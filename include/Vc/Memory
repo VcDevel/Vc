@@ -35,9 +35,10 @@
 #endif
 
 #include "common/make_unique.h"
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 using Common::make_unique;
-Vc_NAMESPACE_END
+}
 
 #endif // INCLUDE_VC_MEMORY
 

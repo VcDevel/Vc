@@ -1,23 +1,35 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2010-2013 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2010-2011 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+}}}*/
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
-
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 inline void deinterleave(double_v &VC_RESTRICT a, double_v &VC_RESTRICT b, double_v &VC_RESTRICT c)
 {   // estimated latency (AVX): 4.5 cycles
@@ -125,9 +137,13 @@ inline void deinterleave(Vector<unsigned short> &a, Vector<unsigned short> &b)
     b.data() = _mm_unpackhi_epi16(tmp2, tmp3);
 }
 
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Internal
+{
 
 template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
         float_v &a, float_v &b, const float *m, Flags align)
@@ -181,61 +197,39 @@ template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
 template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
         int_v &a, int_v &b, const int *m, Flags align)
 {
-    using namespace Vc::Vc_IMPL_NAMESPACE;
     a.load(m, align);
     b.load(m + int_v::Size, align);
-
-    const m256 tmp0 = avx_cast<m256>(Mem::shuffle128<Vc::X0, Vc::Y0>(a.data(), b.data()));
-    const m256 tmp1 = avx_cast<m256>(Mem::shuffle128<Vc::X1, Vc::Y1>(a.data(), b.data()));
-
-    const m256 tmp2 = _mm256_unpacklo_ps(tmp0, tmp1); // b5 b1 b4 b0 a5 a1 a4 a0
-    const m256 tmp3 = _mm256_unpackhi_ps(tmp0, tmp1); // b7 b3 b6 b2 a7 a3 a6 a2
-
-    a.data() = avx_cast<m256i>(_mm256_unpacklo_ps(tmp2, tmp3)); // b6 b4 b2 b0 a6 a4 a2 a0
-    b.data() = avx_cast<m256i>(_mm256_unpackhi_ps(tmp2, tmp3)); // b7 b5 b3 b1 a7 a5 a3 a1
+    const auto tmp0 = _mm_unpacklo_epi32(a.data(), b.data());
+    const auto tmp1 = _mm_unpackhi_epi32(a.data(), b.data());
+    a.data() = _mm_unpacklo_epi32(tmp0, tmp1);
+    b.data() = _mm_unpackhi_epi32(tmp0, tmp1);
 }
 
 template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
-        int_v &a, int_v &b, const short *m, Flags)
+        int_v &a, int_v &b, const short *m, Flags f)
 {
-    using namespace Vc::Vc_IMPL_NAMESPACE;
-    const m256i tmp = VectorHelper<m256i>::template load<Flags>(m);
-    a.data() = concat(
-                _mm_srai_epi32(_mm_slli_epi32(lo128(tmp), 16), 16),
-                _mm_srai_epi32(_mm_slli_epi32(hi128(tmp), 16), 16));
-    b.data() = concat(
-                _mm_srai_epi32(lo128(tmp), 16),
-                _mm_srai_epi32(hi128(tmp), 16));
+    const short_v tmp0(m, f);
+    a.data() = _mm_srai_epi32(_mm_slli_epi32(tmp0.data(), 16), 16);
+    b.data() = _mm_srai_epi32(tmp0.data(), 16);
 }
 
 template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
         uint_v &a, uint_v &b, const unsigned int *m, Flags align)
 {
-    using namespace Vc::Vc_IMPL_NAMESPACE;
     a.load(m, align);
-    b.load(m + uint_v::Size, align);
-
-    const m256 tmp0 = avx_cast<m256>(Mem::shuffle128<Vc::X0, Vc::Y0>(a.data(), b.data()));
-    const m256 tmp1 = avx_cast<m256>(Mem::shuffle128<Vc::X1, Vc::Y1>(a.data(), b.data()));
-
-    const m256 tmp2 = _mm256_unpacklo_ps(tmp0, tmp1); // b5 b1 b4 b0 a5 a1 a4 a0
-    const m256 tmp3 = _mm256_unpackhi_ps(tmp0, tmp1); // b7 b3 b6 b2 a7 a3 a6 a2
-
-    a.data() = avx_cast<m256i>(_mm256_unpacklo_ps(tmp2, tmp3)); // b6 b4 b2 b0 a6 a4 a2 a0
-    b.data() = avx_cast<m256i>(_mm256_unpackhi_ps(tmp2, tmp3)); // b7 b5 b3 b1 a7 a5 a3 a1
+    b.load(m + int_v::Size, align);
+    const auto tmp0 = _mm_unpacklo_epi32(a.data(), b.data());
+    const auto tmp1 = _mm_unpackhi_epi32(a.data(), b.data());
+    a.data() = _mm_unpacklo_epi32(tmp0, tmp1);
+    b.data() = _mm_unpackhi_epi32(tmp0, tmp1);
 }
 
 template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
-        uint_v &a, uint_v &b, const unsigned short *m, Flags)
+        uint_v &a, uint_v &b, const unsigned short *m, Flags f)
 {
-    using namespace Vc::Vc_IMPL_NAMESPACE;
-    const m256i tmp = VectorHelper<m256i>::template load<Flags>(m);
-    a.data() = concat(
-                _mm_srli_epi32(_mm_slli_epi32(lo128(tmp), 16), 16),
-                _mm_srli_epi32(_mm_slli_epi32(hi128(tmp), 16), 16));
-    b.data() = concat(
-                _mm_srli_epi32(lo128(tmp), 16),
-                _mm_srli_epi32(hi128(tmp), 16));
+    const ushort_v tmp0(m, f);
+    a.data() = _mm_srai_epi32(_mm_slli_epi32(tmp0.data(), 16), 16);
+    b.data() = _mm_srai_epi32(tmp0.data(), 16);
 }
 
 template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
@@ -265,4 +259,5 @@ inline Vc_FLATTEN void HelperImpl<VC_IMPL>::deinterleave(V &VC_RESTRICT a, V &VC
     Vc::Vc_IMPL_NAMESPACE::deinterleave(a, b, c);
 }
 
-Vc_NAMESPACE_END
+}
+}

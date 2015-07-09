@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -21,13 +30,6 @@
 #include <iostream>
 #include "vectormemoryhelper.h"
 #include <cmath>
-
-using Vc::float_v;
-using Vc::double_v;
-using Vc::int_v;
-using Vc::uint_v;
-using Vc::short_v;
-using Vc::ushort_v;
 
 using Vc::float_m;
 using Vc::double_m;
@@ -39,7 +41,10 @@ using Vc::ushort_m;
 template<typename T> T two() { return T(2); }
 template<typename T> T three() { return T(3); }
 
-template<typename Vec> void testInc()/*{{{*/
+#define ALL_TYPES (ALL_VECTORS)
+//, SIMD_ARRAYS(33), SIMD_ARRAYS(32), SIMD_ARRAYS(31), SIMD_ARRAYS(16), SIMD_ARRAYS(8), SIMD_ARRAYS(7), SIMD_ARRAYS(4), SIMD_ARRAYS(3), SIMD_ARRAYS(2), SIMD_ARRAYS(1))
+
+TEST_TYPES(Vec, testInc, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -78,7 +83,7 @@ template<typename Vec> void testInc()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testDec()/*{{{*/
+TEST_TYPES(Vec, testDec, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -110,7 +115,7 @@ template<typename Vec> void testDec()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testPlusEq()/*{{{*/
+TEST_TYPES(Vec, testPlusEq, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -126,14 +131,14 @@ template<typename Vec> void testPlusEq()/*{{{*/
         Vec b(&data[Vec::Size]);
         Vec c = a;
         Mask m = a < border;
-        COMPARE(a(m) += two<T>(), b);
+        a(m) += two<T>();
         COMPARE(a, b);
         where(m) | c += two<T>();
         COMPARE(c, b);
     }
 }
 /*}}}*/
-template<typename Vec> void testMinusEq()/*{{{*/
+TEST_TYPES(Vec, testMinusEq, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -153,12 +158,12 @@ template<typename Vec> void testMinusEq()/*{{{*/
         where(m) | c -= two<T>();
         COMPARE(c, b);
 
-        COMPARE(a(m) -= two<T>(), b);
+        a(m) -= two<T>();
         COMPARE(a, b);
     }
 }
 /*}}}*/
-template<typename Vec> void testTimesEq()/*{{{*/
+TEST_TYPES(Vec, testTimesEq, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -178,12 +183,12 @@ template<typename Vec> void testTimesEq()/*{{{*/
         where(m) | c *= two<T>();
         COMPARE(c, b);
 
-        COMPARE(a(m) *= two<T>(), b);
+        a(m) *= two<T>();
         COMPARE(a, b);
     }
 }
 /*}}}*/
-template<typename Vec> void testDivEq()/*{{{*/
+TEST_TYPES(Vec, testDivEq, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -203,12 +208,12 @@ template<typename Vec> void testDivEq()/*{{{*/
         where(m) | c /= three<T>();
         COMPARE(c, b);
 
-        COMPARE(a(m) /= three<T>(), b);
+        a(m) /= three<T>();
         COMPARE(a, b);
     }
 }
 /*}}}*/
-template<typename Vec> void testAssign()/*{{{*/
+TEST_TYPES(Vec, testAssign, ALL_TYPES) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -228,12 +233,12 @@ template<typename Vec> void testAssign()/*{{{*/
         where(m) | c = b;
         COMPARE(c, b);
 
-        COMPARE(a(m) = b, b);
+        a(m) = b;
         COMPARE(a, b);
     }
 }
 /*}}}*/
-template<typename Vec> void testZero()/*{{{*/
+TEST_TYPES(Vec, testZero, ALL_TYPES) /*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -254,13 +259,11 @@ template<typename Vec> void testZero()/*{{{*/
     }
 }
 /*}}}*/
-template<typename Vec> void testCount()/*{{{*/
+TEST_TYPES(Vec, testCount, ALL_TYPES) /*{{{*/
 {
-    typedef typename Vec::EntryType T;
-    typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
-    for_all_masks(Vec, m) {
+    UnitTest::withRandomMask<Vec>([](M m) {
         int count = 0;
         for (size_t i = 0; i < Vec::Size; ++i) {
             if (m[i]) {
@@ -268,12 +271,11 @@ template<typename Vec> void testCount()/*{{{*/
             }
         }
         COMPARE(m.count(), count) << ", m = " << m;
-    }
+    });
 }
 /*}}}*/
-template<typename Vec> void testFirstOne()/*{{{*/
+TEST_TYPES(Vec, testFirstOne, ALL_TYPES) /*{{{*/
 {
-    typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
@@ -281,6 +283,28 @@ template<typename Vec> void testFirstOne()/*{{{*/
         const M mask(I(Vc::IndexesFromZero) == i);
         COMPARE(mask.firstOne(), int(i));
     }
+}
+/*}}}*/
+TEST_TYPES(V, shifted, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ARRAYS(31)))/*{{{*/
+{
+    using M = typename V::Mask;
+    UnitTest::withRandomMask<V>([](const M &reference) {
+        constexpr int Size = V::Size;
+        for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
+            const M test = reference.shifted(shift);
+            for (int i = 0; i < Size; ++i) {
+                if (i + shift >= 0 && i + shift < Size) {
+                    COMPARE(test[i], reference[i + shift])
+                        << "shift: " << shift << ", i: " << i << ", test: " << test
+                        << ", reference: " << reference;
+                } else {
+                    COMPARE(test[i], false) << "shift: " << shift << ", i: " << i
+                                            << ", test: " << test
+                                            << ", reference: " << reference;
+                }
+            }
+        }
+    });
 }
 /*}}}*/
 
@@ -306,7 +330,7 @@ template<typename M1, typename M2> void testBinaryOperatorsImpl()/*{{{*/
     VERIFY((M1(true) ^ M2(false)).isFull());
 }
 /*}}}*/
-void testBinaryOperators()/*{{{*/
+TEST(testBinaryOperators) /*{{{*/
 {
     testBinaryOperatorsImpl< short_m,  short_m>();
     testBinaryOperatorsImpl< short_m, ushort_m>();
@@ -315,21 +339,18 @@ void testBinaryOperators()/*{{{*/
 
     testBinaryOperatorsImpl<   int_m,    int_m>();
     testBinaryOperatorsImpl<   int_m,   uint_m>();
-    testBinaryOperatorsImpl<   int_m,  float_m>();
     testBinaryOperatorsImpl<  uint_m,    int_m>();
     testBinaryOperatorsImpl<  uint_m,   uint_m>();
-    testBinaryOperatorsImpl<  uint_m,  float_m>();
-    testBinaryOperatorsImpl< float_m,    int_m>();
-    testBinaryOperatorsImpl< float_m,   uint_m>();
+
     testBinaryOperatorsImpl< float_m,  float_m>();
 
     testBinaryOperatorsImpl<double_m, double_m>();
 }
 /*}}}*/
 
-template<typename V> void maskReductions()/*{{{*/
+TEST_TYPES(V, maskReductions, ALL_TYPES) /*{{{*/
 {
-    for_all_masks(V, mask) {
+    UnitTest::withRandomMask<V>([](typename V::Mask mask) {
         constexpr decltype(mask.count()) size = V::Size;
         COMPARE(all_of(mask), mask.count() == size);
         if (mask.count() > 0) {
@@ -341,32 +362,19 @@ template<typename V> void maskReductions()/*{{{*/
             VERIFY(none_of(mask));
             VERIFY(!some_of(mask));
         }
-    }
+    });
 }/*}}}*/
-template<typename V> void maskInit()/*{{{*/
+TEST_TYPES(V, maskInit, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
     COMPARE(M(Vc::One), M(true));
     COMPARE(M(Vc::Zero), M(false));
 }
 /*}}}*/
-template<typename V> void maskCompare()/*{{{*/
-{
-    int i = 0;
-    auto m0 = allMasks<V>(i);
-    auto m1 = allMasks<V>(i);
-    while (any_of(m0)) {
-        ++i;
-        VERIFY(m0 == m1);
-        m0 = allMasks<V>(i);
-        VERIFY(m0 != m1);
-        m1 = allMasks<V>(i);
-    }
-}/*}}}*/
-template<typename V> void maskScalarAccess()/*{{{*/
+TEST_TYPES(V, maskScalarAccess, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
-    for_all_masks(V, mask) {
+    UnitTest::withRandomMask<V>([](M mask) {
         const auto &mask2 = mask;
         for (size_t i = 0; i < V::Size; ++i) {
             COMPARE(bool(mask[i]), mask2[i]);
@@ -382,53 +390,48 @@ template<typename V> void maskScalarAccess()/*{{{*/
             mask[i] = true;
         }
         COMPARE(mask, M(true));
-    }
+    });
 }/*}}}*/
-template<typename T> constexpr const char *typeName();
-template<> constexpr const char *typeName< float_m>() { return "float_m"; }
-template<> constexpr const char *typeName<double_m>() { return "double_m"; }
-template<> constexpr const char *typeName<   int_m>() { return "int_m"; }
-template<> constexpr const char *typeName<  uint_m>() { return "uint_m"; }
-template<> constexpr const char *typeName< short_m>() { return "short_m"; }
-template<> constexpr const char *typeName<ushort_m>() { return "ushort_m"; }
-template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)
+template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)/*{{{*/
 {
     MTo test(m);
     size_t i = 0;
     for (; i < std::min(m.Size, test.Size); ++i) {
-        COMPARE(test[i], m[i]) << i << " conversion from " << typeName<MFrom>() << " to " << typeName<MTo>();
+        COMPARE(test[i], m[i]) << i << " conversion from " << UnitTest::typeToString<MFrom>()
+                               << " to " << UnitTest::typeToString<MTo>();
     }
     for (; i < test.Size; ++i) {
-        COMPARE(test[i], false) << i << " conversion from " << typeName<MFrom>() << " to " << typeName<MTo>();
+        COMPARE(test[i], false) << i << " conversion from " << UnitTest::typeToString<MFrom>()
+                                << " to " << UnitTest::typeToString<MTo>();
     }
-}
-template<typename V> void maskConversions()
+}/*}}}*/
+TEST_TYPES(V, maskConversions, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
-    for_all_masks(V, m) {
+    UnitTest::withRandomMask<V>([](M m) {
         testMaskConversion< float_m>(m);
         testMaskConversion<double_m>(m);
         testMaskConversion<   int_m>(m);
         testMaskConversion<  uint_m>(m);
         testMaskConversion< short_m>(m);
         testMaskConversion<ushort_m>(m);
-    }
+    });
 }
-
-template<typename V> void testIntegerConversion()
+/*}}}*/
+TEST_TYPES(V, testIntegerConversion, ALL_TYPES) /*{{{*/
 {
-    for_all_masks(V, m) {
+    UnitTest::withRandomMask<V>([](typename V::Mask m) {
         auto bit = m.toInt();
         for (size_t i = 0; i < m.Size; ++i) {
             COMPARE(!!((bit >> i) & 1), m[i]);
         }
-    }
+    });
 }
-
-template<typename V> void boolConversion()
+/*}}}*/
+TEST_TYPES(V, boolConversion, ALL_TYPES) /*{{{*/
 {
     bool mem[V::Size + 64] __attribute__((aligned(16)));
-    for_all_masks(V, m) {
+    UnitTest::withRandomMask<V>([&](typename V::Mask m) {
         bool *ptr = mem;
         m.store(ptr);
         for (size_t i = 0; i < V::Size; ++i) {
@@ -446,15 +449,18 @@ template<typename V> void boolConversion()
             typename V::Mask m3(ptr, Vc::Unaligned);
             COMPARE(m3, m) << "offset: " << ptr - mem;
         }
-    }
+    });
 }
-
-template <typename V> void testCompareOperators()
+/*}}}*/
+TEST_TYPES(V, testCompareOperators, ALL_TYPES) /*{{{*/
 {
     typedef typename V::Mask M;
     const M a(true);
     const M b(false);
     VERIFY(!(a == b));
+    VERIFY(!(b == a));
+    VERIFY(a != b);
+    VERIFY(b != a);
 
     for_all_masks(V, k)
     {
@@ -475,28 +481,6 @@ template <typename V> void testCompareOperators()
         VERIFY(!(k2 != k2)) << k << k2;
     }
 }
-
-void testmain()/*{{{*/
-{
-    testAllTypes(maskInit);
-    testAllTypes(maskScalarAccess);
-    testAllTypes(maskCompare);
-    testAllTypes(testInc);
-    testAllTypes(testDec);
-    testAllTypes(testPlusEq);
-    testAllTypes(testMinusEq);
-    testAllTypes(testTimesEq);
-    testAllTypes(testDivEq);
-    testAllTypes(testAssign);
-    testAllTypes(testZero);
-    testAllTypes(testIntegerConversion);
-    testAllTypes(testCount);
-    testAllTypes(maskConversions);
-    testAllTypes(testFirstOne);
-    testAllTypes(maskReductions);
-    testAllTypes(testCompareOperators);
-    runTest(testBinaryOperators);
-    testAllTypes(boolConversion);
-}/*}}}*/
+/*}}}*/
 
 // vim: foldmethod=marker

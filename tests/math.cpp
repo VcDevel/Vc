@@ -1,23 +1,32 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 /*includes {{{*/
-#include "unittest.h"
+#include "unittest-old.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
 #include <cmath>
@@ -139,13 +148,12 @@ template<typename Vec> void testAbs()/*{{{*/
 template<typename V> void testTrunc()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
         V reference = x.apply([](T _x) { return std::trunc(_x); });
         COMPARE(Vc::trunc(x), reference) << ", x = " << x << ", i = " << i;
     }
-    V x = static_cast<V>(I::IndexesFromZero());
+    V x = V::IndexesFromZero();
     V reference = x.apply([](T _x) { return std::trunc(_x); });
     COMPARE(Vc::trunc(x), reference) << ", x = " << x;
 }
@@ -153,13 +161,12 @@ template<typename V> void testTrunc()/*{{{*/
 template<typename V> void testFloor()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
         V reference = x.apply([](T _x) { return std::floor(_x); });
         COMPARE(Vc::floor(x), reference) << ", x = " << x << ", i = " << i;
     }
-    V x = static_cast<V>(I::IndexesFromZero());
+    V x = V::IndexesFromZero();
     V reference = x.apply([](T _x) { return std::floor(_x); });
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
@@ -167,21 +174,20 @@ template<typename V> void testFloor()/*{{{*/
 template<typename V> void testCeil()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(100);
         V reference = x.apply([](T _x) { return std::ceil(_x); });
         COMPARE(Vc::ceil(x), reference) << ", x = " << x << ", i = " << i;
     }
-    V x = static_cast<V>(I::IndexesFromZero());
+    V x = V::IndexesFromZero();
     V reference = x.apply([](T _x) { return std::ceil(_x); });
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
 /*}}}*/
 template<typename V> void testExp()/*{{{*/
 {
-    setFuzzyness<float>(1);
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<float>(1);
+    UnitTest::setFuzzyness<double>(2);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(20);
@@ -193,7 +199,7 @@ template<typename V> void testExp()/*{{{*/
 /*}}}*/
 template<typename V> void testLog()/*{{{*/
 {
-    setFuzzyness<float>(1);
+    UnitTest::setFuzzyness<float>(1);
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -216,14 +222,14 @@ template<typename V> void testLog()/*{{{*/
 template<typename V> void testLog2()/*{{{*/
 {
 #if defined(VC_LOG_ILP) || defined(VC_LOG_ILP2)
-    setFuzzyness<float>(3);
+    UnitTest::setFuzzyness<float>(3);
 #else
-    setFuzzyness<float>(1);
+    UnitTest::setFuzzyness<float>(1);
 #endif
 #if (defined(VC_MSVC) || defined(__APPLE__)) && defined(VC_IMPL_Scalar)
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<double>(2);
 #else
-    setFuzzyness<double>(1);
+    UnitTest::setFuzzyness<double>(1);
 #endif
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log2>();
@@ -246,8 +252,8 @@ template<typename V> void testLog2()/*{{{*/
 /*}}}*/
 template<typename V> void testLog10()/*{{{*/
 {
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(2);
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log10>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -284,24 +290,23 @@ template<typename Vec> void testMax()/*{{{*/
     COMPARE(Vc::max(a, b), c);
 }
 /*}}}*/
-    /*{{{*/
-#define FillHelperMemory(code) \
-    typename V::Memory data; \
-    typename V::Memory reference; \
-    for (size_t ii = 0; ii < V::Size; ++ii) { \
-        const T i = static_cast<T>(ii); \
-        data[ii] = i; \
-        reference[ii] = code; \
-    } do {} while (false)
+/*{{{*/
+template <typename V, typename F> void fillDataAndReference(V &data, V &reference, F f)
+{
+    using T = typename V::EntryType;
+    for (size_t i = 0; i < V::Size; ++i) {
+        data[i] = static_cast<T>(i);
+        reference[i] = f(data[i]);
+    }
+}
 /*}}}*/
 template<typename V> void testSqrt()/*{{{*/
 {
     typedef typename V::EntryType T;
-    FillHelperMemory(std::sqrt(i));
-    V a(data);
-    V b(reference);
+    V data, reference;
+    fillDataAndReference(data, reference, [](T x) { return std::sqrt(x); });
 
-    FUZZY_COMPARE(Vc::sqrt(a), b);
+    FUZZY_COMPARE(Vc::sqrt(data), reference);
 }
 /*}}}*/
 template<typename V> void testRSqrt()/*{{{*/
@@ -310,15 +315,15 @@ template<typename V> void testRSqrt()/*{{{*/
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
         const V x = V::Random() * T(1000);
         // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
-        VERIFY(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12)));
+        VERIFY(all_of(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12))));
     }
 }
 /*}}}*/
 template<typename V> void testSincos()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(1e7);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref, cref;
@@ -340,8 +345,8 @@ template<typename V> void testSincos()/*{{{*/
 template<typename V> void testSin()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(1e7);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref;
@@ -357,8 +362,8 @@ template<typename V> void testSin()/*{{{*/
 template<typename V> void testCos()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(1e7);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(1e7);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, cref;
@@ -374,8 +379,8 @@ template<typename V> void testCos()/*{{{*/
 template<typename V> void testAsin()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(2);
-    setFuzzyness<double>(36);
+    UnitTest::setFuzzyness<float>(2);
+    UnitTest::setFuzzyness<double>(36);
     Array<Reference<T> > reference = referenceData<T, Asin>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
@@ -402,15 +407,15 @@ const union {
 template<typename V> void testAtan()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(3);
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<float>(3);
+    UnitTest::setFuzzyness<double>(2);
 
     {
         const V Pi_2 = T(doubleConstant<1, 0x921fb54442d18ull,  0>());
         V nan; nan.setQnan();
         const V inf = T(INF.value);
 
-        VERIFY(Vc::isnan(Vc::atan(nan)));
+        VERIFY(all_of(Vc::isnan(Vc::atan(nan))));
         ATAN_COMPARE(Vc::atan(+inf), +Pi_2);
 #ifdef VC_MSVC
 #pragma warning(suppress: 4756) // overflow in constant arithmetic
@@ -433,8 +438,8 @@ template<typename V> void testAtan()/*{{{*/
 template<typename V> void testAtan2()/*{{{*/
 {
     typedef typename V::EntryType T;
-    setFuzzyness<float>(3);
-    setFuzzyness<double>(2);
+    UnitTest::setFuzzyness<float>(3);
+    UnitTest::setFuzzyness<double>(2);
 
     {
         const V Pi   = T(doubleConstant<1, 0x921fb54442d18ull,  1>());
@@ -447,9 +452,9 @@ template<typename V> void testAtan2()/*{{{*/
         ATAN_COMPARE(Vc::atan2(V(T(-0.)), V(T(-3.))), -Pi);
         // If y is +0 (-0) and x is greater than 0, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+0.)), V(T(+3.))), V(T(+0.)));
-        VERIFY(!Vc::atan2(V(T(+0.)), V(T(+3.))).isNegative());
+        VERIFY(none_of(Vc::atan2(V(T(+0.)), V(T(+3.))).isNegative()));
         COMPARE(Vc::atan2(V(T(-0.)), V(T(+3.))), V(T(-0.)));
-        VERIFY (Vc::atan2(V(T(-0.)), V(T(+3.))).isNegative());
+        VERIFY (all_of(Vc::atan2(V(T(-0.)), V(T(+3.))).isNegative()));
         // If y is less than 0 and x is +0 or -0, -pi/2 is returned.
         COMPARE(Vc::atan2(V(T(-3.)), V(T(+0.))), -Pi_2);
         COMPARE(Vc::atan2(V(T(-3.)), V(T(-0.))), -Pi_2);
@@ -457,25 +462,25 @@ template<typename V> void testAtan2()/*{{{*/
         COMPARE(Vc::atan2(V(T(+3.)), V(T(+0.))), +Pi_2);
         COMPARE(Vc::atan2(V(T(+3.)), V(T(-0.))), +Pi_2);
         // If either x or y is NaN, a NaN is returned.
-        VERIFY(Vc::isnan(Vc::atan2(nan, V(T(3.)))));
-        VERIFY(Vc::isnan(Vc::atan2(V(T(3.)), nan)));
-        VERIFY(Vc::isnan(Vc::atan2(nan, nan)));
+        VERIFY(all_of(Vc::isnan(Vc::atan2(nan, V(T(3.))))));
+        VERIFY(all_of(Vc::isnan(Vc::atan2(V(T(3.)), nan))));
+        VERIFY(all_of(Vc::isnan(Vc::atan2(nan, nan))));
         // If y is +0 (-0) and x is -0, +pi (-pi) is returned.
         ATAN_COMPARE(Vc::atan2(V(T(+0.)), V(T(-0.))), +Pi);
         ATAN_COMPARE(Vc::atan2(V(T(-0.)), V(T(-0.))), -Pi);
         // If y is +0 (-0) and x is +0, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+0.)), V(T(+0.))), V(T(+0.)));
         COMPARE(Vc::atan2(V(T(-0.)), V(T(+0.))), V(T(-0.)));
-        VERIFY(!Vc::atan2(V(T(+0.)), V(T(+0.))).isNegative());
-        VERIFY( Vc::atan2(V(T(-0.)), V(T(+0.))).isNegative());
+        VERIFY(none_of(Vc::atan2(V(T(+0.)), V(T(+0.))).isNegative()));
+        VERIFY( all_of(Vc::atan2(V(T(-0.)), V(T(+0.))).isNegative()));
         // If y is a finite value greater (less) than 0, and x is negative infinity, +pi (-pi) is returned.
         ATAN_COMPARE(Vc::atan2(V(T(+1.)), -inf), +Pi);
         ATAN_COMPARE(Vc::atan2(V(T(-1.)), -inf), -Pi);
         // If y is a finite value greater (less) than 0, and x is positive infinity, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+3.)), +inf), V(T(+0.)));
-        VERIFY(!Vc::atan2(V(T(+3.)), +inf).isNegative());
+        VERIFY(none_of(Vc::atan2(V(T(+3.)), +inf).isNegative()));
         COMPARE(Vc::atan2(V(T(-3.)), +inf), V(T(-0.)));
-        VERIFY (Vc::atan2(V(T(-3.)), +inf).isNegative());
+        VERIFY( all_of(Vc::atan2(V(T(-3.)), +inf).isNegative()));
         // If y is positive infinity (negative infinity), and x is finite, pi/2 (-pi/2) is returned.
         COMPARE(Vc::atan2(+inf, V(T(+3.))), +Pi_2);
         COMPARE(Vc::atan2(-inf, V(T(+3.))), -Pi_2);
@@ -494,13 +499,14 @@ template<typename V> void testAtan2()/*{{{*/
 
     for (int xoffset = -100; xoffset < 54613; xoffset += 47 * V::Size) {
         for (int yoffset = -100; yoffset < 54613; yoffset += 47 * V::Size) {
-            FillHelperMemory(std::atan2((i + xoffset) * T(0.15), (i + yoffset) * T(0.15)));
-            const V a(data);
-            const V b(reference);
+            V data, reference;
+            fillDataAndReference(data, reference, [&](T x) {
+                return std::atan2((x + xoffset) * T(0.15), (x + yoffset) * T(0.15));
+            });
 
-            const V x = (a + xoffset) * T(0.15);
-            const V y = (a + yoffset) * T(0.15);
-            FUZZY_COMPARE(Vc::atan2(x, y), b) << ", x = " << x << ", y = " << y;
+            const V x = (data + xoffset) * T(0.15);
+            const V y = (data + yoffset) * T(0.15);
+            FUZZY_COMPARE(Vc::atan2(x, y), reference) << ", x = " << x << ", y = " << y;
         }
     }
 }
@@ -508,23 +514,21 @@ template<typename V> void testAtan2()/*{{{*/
 template<typename Vec> void testReciprocal()/*{{{*/
 {
     typedef typename Vec::EntryType T;
-    setFuzzyness<float>(1.258295e+07);
-    setFuzzyness<double>(0);
+    UnitTest::setFuzzyness<float>(1.258295e+07);
+    UnitTest::setFuzzyness<double>(0);
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {
         const T scale = T(0.1);
-        typename Vec::Memory data;
-        typename Vec::Memory reference;
+        Vec data;
+        Vec reference;
         for (size_t ii = 0; ii < Vec::Size; ++ii) {
             const T i = static_cast<T>(ii);
             data[ii] = i;
             T tmp = (i + offset) * scale;
             reference[ii] = one / tmp;
         }
-        Vec a(data);
-        Vec b(reference);
 
-        FUZZY_COMPARE(Vc::reciprocal((a + offset) * scale), b);
+        FUZZY_COMPARE(Vc::reciprocal((data + offset) * scale), reference);
     }
 }
 /*}}}*/
@@ -546,15 +550,15 @@ template<typename Vec> void testInf()/*{{{*/
     Vec nan;
     nan.setQnan();
 
-    VERIFY(Vc::isfinite(zero));
-    VERIFY(Vc::isfinite(Vec(one)));
-    VERIFY(!Vc::isfinite(inf));
-    VERIFY(!Vc::isfinite(nan));
+    VERIFY(all_of(Vc::isfinite(zero)));
+    VERIFY(all_of(Vc::isfinite(Vec(one))));
+    VERIFY(none_of(Vc::isfinite(inf)));
+    VERIFY(none_of(Vc::isfinite(nan)));
 
-    VERIFY(!Vc::isinf(zero));
-    VERIFY(!Vc::isinf(Vec(one)));
-    VERIFY(Vc::isinf(inf));
-    VERIFY(!Vc::isinf(nan));
+    VERIFY(none_of(Vc::isinf(zero)));
+    VERIFY(none_of(Vc::isinf(Vec(one))));
+    VERIFY(all_of(Vc::isinf(inf)));
+    VERIFY(none_of(Vc::isinf(nan)));
 }
 /*}}}*/
 template<typename Vec> void testNaN()/*{{{*/
@@ -564,16 +568,16 @@ template<typename Vec> void testNaN()/*{{{*/
     typedef typename Vec::Mask M;
     const T one = 1;
     const Vec zero(Zero);
-    VERIFY(!Vc::isnan(zero));
-    VERIFY(!Vc::isnan(Vec(one)));
+    VERIFY(none_of(Vc::isnan(zero)));
+    VERIFY(none_of(Vc::isnan(Vec(one))));
     const Vec inf = one / zero;
-    VERIFY(Vc::isnan(Vec(inf * zero)));
+    VERIFY(all_of(Vc::isnan(Vec(inf * zero))));
     Vec nan = Vec::Zero();
     const M mask(I::IndexesFromZero() == I::Zero());
     nan.setQnan(mask);
     COMPARE(Vc::isnan(nan), mask);
     nan.setQnan();
-    VERIFY(Vc::isnan(nan));
+    VERIFY(all_of(Vc::isnan(nan)));
 }
 /*}}}*/
 template<typename Vec> void testRound()/*{{{*/
@@ -725,7 +729,7 @@ template<typename T> struct _ExponentVector { typedef int_v Type; };
 template<typename V> void testFrexp()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename _ExponentVector<V>::Type ExpV;
+    using ExpV = typename V::IndexType;
     Vc::Memory<V, 33> input;
     Vc::Memory<V, 33> expectedFraction;
     Vc::Memory<ExpV, 33> expectedExponent;
@@ -771,21 +775,16 @@ template<typename V> void testFrexp()/*{{{*/
             << ", fraction: " << fraction
             << ", expectedFraction: " << V(expectedFraction.vector(i))
             << ", delta: " << fraction - V(expectedFraction.vector(i));
-        if (V::Size * 2 == ExpV::Size) {
-            for (size_t j = 0; j < V::Size; ++j) {
-                COMPARE(exp[j * 2], expectedExponent[i * V::Size + j]) << ", i = " << i
-                    << ", j = " << j;
-            }
-        } else {
-            COMPARE(exp, ExpV(expectedExponent.vector(i))) << ", i = " << i;
-        }
+        const ExpV reference = expectedExponent.vector(i);
+        COMPARE(exp, reference) << "\ninput: " << v << ", fraction: " << fraction
+                                << ", i: " << i;
     }
 }
 /*}}}*/
 template<typename V> void testLdexp()/*{{{*/
 {
     typedef typename V::EntryType T;
-    typedef typename _ExponentVector<V>::Type ExpV;
+    using ExpV = typename V::IndexType;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
         const V v = (V::Random() - T(0.5)) * T(1000);
         ExpV e;
@@ -804,7 +803,7 @@ template<typename V> void testUlpDiff()/*{{{*/
     COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
     for (size_t count = 0; count < 1024 / V::Size; ++count) {
         const V base = (V::Random() - T(0.5)) * T(1000);
-        typename _Ulp_ExponentVector<V>::Type exp;
+        typename V::IndexType exp;
         Vc::frexp(base, &exp);
         const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);
         //std::cout << base << ", " << exp << ", " << eps << std::endl;
@@ -818,7 +817,7 @@ template<typename V> void testUlpDiff()/*{{{*/
             const V expectedDifference = Vc::abs(i_v);
             const V maxUncertainty = Vc::abs(abs(diff).exponent() - abs(base).exponent());
 
-            VERIFY(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty)
+            VERIFY(all_of(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty))
                 << ", base = " << base << ", epsilon = " << eps << ", diff = " << diff;
             for (size_t k = 0; k < V::Size; ++k) {
                 VERIFY(std::abs(ulpDifference[k] - expectedDifference[k]) <= maxUncertainty[k]);

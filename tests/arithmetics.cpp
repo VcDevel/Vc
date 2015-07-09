@@ -1,21 +1,30 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #include "unittest.h"
 #include <iostream>
@@ -26,7 +35,22 @@
 
 using namespace Vc;
 
-template<typename Vec> void testZero()
+#define ALL_TYPES (ALL_VECTORS)
+#if 0
+#define ALL_TYPES                                                                                  \
+    (SIMD_ARRAYS(32),                                                                              \
+     SIMD_ARRAYS(31),                                                                              \
+     SIMD_ARRAYS(16),                                                                              \
+     SIMD_ARRAYS(8),                                                                               \
+     SIMD_ARRAYS(4),                                                                               \
+     SIMD_ARRAYS(2),                                                                               \
+     SIMD_ARRAYS(1),                                                                               \
+     ALL_VECTORS)
+#endif
+
+std::default_random_engine randomEngine;
+
+TEST_TYPES(Vec, testZero, ALL_TYPES)
 {
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
@@ -44,7 +68,7 @@ template<typename Vec> void testZero()
     COMPARE(d, Vec(zero));
 }
 
-template<typename Vec> void testCmp()
+TEST_TYPES(Vec, testCmp, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     Vec a(Zero), b(Zero);
@@ -67,21 +91,19 @@ template<typename Vec> void testCmp()
         const T min = 0;
         const T step = max / 200;
         T j = min;
-        VERIFY(Vec(Zero) == Vec(j));
-        VERIFY(!(Vec(Zero) < Vec(j)));
-        VERIFY(!(Vec(Zero) > Vec(j)));
-        VERIFY(!(Vec(Zero) != Vec(j)));
+        VERIFY(all_of(Vec(Zero) == Vec(j)));
+        VERIFY(none_of(Vec(Zero) < Vec(j)));
+        VERIFY(none_of(Vec(Zero) > Vec(j)));
+        VERIFY(none_of(Vec(Zero) != Vec(j)));
         j += step;
         for (int i = 0; i < 200; ++i, j += step) {
-            if(Vec(Zero) >= Vec(j)) {
+            if(all_of(Vec(Zero) >= Vec(j))) {
                 std::cout << j << " " << Vec(j) << " " << (Vec(Zero) >= Vec(j)) << std::endl;
             }
-            VERIFY(Vec(Zero) < Vec(j));
-            VERIFY(Vec(j) > Vec(Zero));
-            VERIFY(!(Vec(Zero) >= Vec(j)));
-            VERIFY(!(Vec(j) <= Vec(Zero)));
-            VERIFY(!static_cast<bool>(Vec(Zero) >= Vec(j)));
-            VERIFY(!static_cast<bool>(Vec(j) <= Vec(Zero)));
+            VERIFY(all_of(Vec(Zero) < Vec(j))) << (Vec(Zero) < Vec(j)) << ", j = " << j << ", step = " << step;
+            VERIFY(all_of(Vec(j) > Vec(Zero)));
+            VERIFY(none_of(Vec(Zero) >= Vec(j)));
+            VERIFY(none_of(Vec(j) <= Vec(Zero)));
         }
     }
     if (std::numeric_limits<T>::min() <= 0) {
@@ -92,22 +114,21 @@ template<typename Vec> void testCmp()
         const T step = min / T(-201);
         T j = min;
         for (int i = 0; i < 200; ++i, j += step) {
-            VERIFY(Vec(j) < Vec(Zero));
-            VERIFY(Vec(Zero) > Vec(j));
-            VERIFY(!(Vec(Zero) <= Vec(j)));
-            VERIFY(!(Vec(j) >= Vec(Zero)));
+            VERIFY(all_of(Vec(j) < Vec(Zero)));
+            VERIFY(all_of(Vec(Zero) > Vec(j)));
+            VERIFY(none_of(Vec(Zero) <= Vec(j)));
+            VERIFY(none_of(Vec(j) >= Vec(Zero)));
         }
     }
 }
 
-template<typename Vec> void testIsMix()
+TEST_TYPES(Vec, testIsMix, ALL_TYPES)
 {
-    typedef typename Vec::IndexType IT;
-    Vec a(IT::IndexesFromZero());
+    Vec a = Vec::IndexesFromZero();
     Vec b(Zero);
     Vec c(One);
     if (Vec::Size > 1) {
-        VERIFY((a == b).isMix());
+        VERIFY((a == b).isMix()) << "a == b: " << (a == b);
         VERIFY((a != b).isMix());
         VERIFY((a == c).isMix());
         VERIFY((a != c).isMix());
@@ -123,7 +144,7 @@ template<typename Vec> void testIsMix()
     }
 }
 
-template<typename Vec> void testAdd()
+TEST_TYPES(Vec, testAdd, ALL_TYPES)
 {
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
@@ -146,7 +167,7 @@ template<typename Vec> void testAdd()
     }
 }
 
-template<typename Vec> void testSub()
+TEST_TYPES(Vec, testSub, ALL_TYPES)
 {
     Vec a(2), b(2);
     COMPARE(a, b);
@@ -169,7 +190,7 @@ template<typename Vec> void testSub()
     }
 }
 
-template<typename V> void testMul()
+TEST_TYPES(V, testMul, ALL_TYPES)
 {
     for (int i = 0; i < 10000; ++i) {
         V a = V::Random();
@@ -185,30 +206,30 @@ template<typename V> void testMul()
     }
 }
 
-template<typename Vec> void testMulAdd()
-{
-    for (unsigned int i = 0; i < 0xffff; ++i) {
-        const Vec i2(i * i + 1);
-        Vec a(i);
-
-        FUZZY_COMPARE(a * a + 1, i2);
-    }
-}
-
-template<> void testMulAdd<short_v>()
-{ // short_v over-/underflow results in undefined behavior
-    for (unsigned int i = -0xb4; i < 0xb4; ++i) {
-        const short_v i2(i * i + 1);
-        short_v a(i);
-
-        COMPARE(a * a + 1, i2);
-    }
-}
-
-template<typename Vec> void testMulSub()
+TEST_TYPES(Vec, testMulAdd, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
-    for (unsigned int i = 0; i < 0xffff; ++i) {
+    static_assert(std::is_arithmetic<T>::value, "The EntryType is not a builtin arithmetic type");
+    for (std::size_t rep = 0; rep < 10000 / Vec::Size; ++rep) {
+        Vec a = Vec::Random();
+        if (std::is_floating_point<T>::value) {
+            a *= std::sqrt(std::numeric_limits<T>::max());
+        } else if (std::is_signed<T>::value) {
+            a /= std::sqrt(std::numeric_limits<T>::max());
+        }
+        using ReferenceVector = decltype(a * a);
+        ReferenceVector reference = a;
+        reference = reference.apply([](T x) { return x * x + 1; });
+        FUZZY_COMPARE(a * a + T(1), reference) << "a: " << a;
+    }
+}
+
+TEST_TYPES(Vec, testMulSub, ALL_TYPES)
+{
+    typedef typename Vec::EntryType T;
+    const unsigned int minI = sizeof(T) < 4 ? -0xb4 : 0;
+    const unsigned int maxI = sizeof(T) < 4 ? 0xb4 : 0xffff;
+    for (unsigned int i = minI; i < maxI; ++i) {
         const T j = static_cast<T>(i);
         const Vec test(j);
 
@@ -216,17 +237,7 @@ template<typename Vec> void testMulSub()
     }
 }
 
-template<> void testMulSub<short_v>()
-{ // short_v over-/underflow results in undefined behavior
-    for (unsigned int i = -0xb4; i < 0xb4; ++i) {
-        const short j = static_cast<short>(i);
-        const short_v test(j);
-
-        COMPARE(test * test - test, short_v(j * j - j));
-    }
-}
-
-template<typename Vec> void testDiv()
+TEST_TYPES(Vec, testDiv, ALL_TYPES)
 {
     for (int repetition = 0; repetition < 10000; ++repetition) {
         const Vec a = Vec::Random();
@@ -261,7 +272,40 @@ template<typename Vec> void testDiv()
     }
 }
 
-template<typename Vec> void testAnd()
+TEST_TYPES(V,
+           testModulo,
+           (simdarray<unsigned int, 31>,
+            simdarray<unsigned short, 31>,
+            simdarray<unsigned int, 32>,
+            simdarray<unsigned short, 32>,
+            simdarray<int, 31>,
+            simdarray<short, 31>,
+            simdarray<int, 32>,
+            simdarray<short, 32>,
+            int_v,
+            ushort_v,
+            uint_v,
+            short_v))
+{
+    for (int repetition = 0; repetition < 1000; ++repetition) {
+        V x = V::Random();
+        V y = (V::Random() & 2047) - 1023;
+        y(y == 0) = -1024;
+        const V z = x % y;
+
+        V reference;
+        for (size_t i = 0; i < V::Size; ++i) {
+            reference[i] = x[i] % y[i];
+        }
+
+        COMPARE(z, reference) << ", x: " << x << ", y: " << y;
+
+        COMPARE(V::Zero() % y, V::Zero());
+        COMPARE(y % y, V::Zero());
+    }
+}
+
+TEST_TYPES(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
 {
     Vec a(0x7fff);
     Vec b(0xf);
@@ -272,7 +316,7 @@ template<typename Vec> void testAnd()
     COMPARE((c & 0x7ff0), Vec(zero));
 }
 
-template<typename Vec> void testShift()
+TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
 {
     typedef typename Vec::EntryType T;
     const T step = std::max<T>(1, std::numeric_limits<T>::max() / 1000);
@@ -280,8 +324,8 @@ template<typename Vec> void testShift()
         NShifts = sizeof(T) * 8
     };
     for (Vec x = std::numeric_limits<Vec>::min() + Vec::IndexesFromZero();
-            x <  std::numeric_limits<Vec>::max() - step;
-            x += step) {
+         all_of(x < std::numeric_limits<Vec>::max() - step);
+         x += step) {
         for (size_t shift = 0; shift < NShifts; ++shift) {
             const Vec rightShift = x >> shift;
             const Vec leftShift  = x << shift;
@@ -319,13 +363,22 @@ template<typename Vec> void testShift()
     }
 }
 
-template<typename Vec> void testOnesComplement()
+TEST_TYPES(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v, simdarray<int, 17>,
+                                     simdarray<unsigned short, 17>,
+                                     simdarray<unsigned int, 17>, simdarray<short, 17>))
 {
     Vec a(One);
     Vec b = ~a;
     COMPARE(~a, b);
     COMPARE(~b, a);
     COMPARE(~(a + b), Vec(Zero));
+}
+
+TEST_TYPES(V, logicalNegation, ALL_TYPES)
+{
+    V a = V::Random();
+    COMPARE(!a, a == 0) << "a = " << a;
+    COMPARE(!V::Zero(), V() == V()) << "a = " << a;
 }
 
 template<typename T> struct NegateRangeHelper
@@ -352,64 +405,72 @@ template<> const int NegateRangeHelper<short>::End = 0x7fff - 0xee;
 template<> const int NegateRangeHelper<unsigned short>::Start = 0;
 template<> const int NegateRangeHelper<unsigned short>::End = 0xffff - 0xee;
 
-template<typename Vec> void testNegate()
+TEST_TYPES(Vec, testNegate, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
+
+    for (int i = 0; i < 1000; ++i) {
+        const Vec x = Vec::Random();
+        const auto negX = -x;
+        for (size_t j = 0; j < x.Size; ++j) {
+            const T reference = -x[j];
+            COMPARE(negX[j], reference) << "x = " << x;
+        }
+    }
+
     typedef NegateRangeHelper<T> Range;
     for (typename Range::Iterator i = Range::Start; i < Range::End; i += 0xef) {
         T i2 = static_cast<T>(i);
         Vec a(i2);
 
-        COMPARE(static_cast<Vec>(-a), Vec(-i2)) << " i2: " << i2;
+        COMPARE(-a, Vec(-i2)) << " i2: " << i2;
     }
 }
 
-template<typename Vec> void testMin()
+TEST_TYPES(Vec, testMin, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
-    typedef typename Vec::IndexType I;
 
-    Vec v(I::IndexesFromZero());
+    Vec v = Vec::IndexesFromZero();
 
     COMPARE(v.min(), static_cast<T>(0));
     COMPARE((T(Vec::Size) - v).min(), static_cast<T>(1));
 
-    int j = 0;
-    Mask m;
-    do {
-        m = allMasks<Vec>(j++);
-        if (m.isEmpty()) {
-            break;
+    const size_t max = (size_t(1) << Vec::Size) - 1;
+    std::uniform_int_distribution<size_t> dist(0, max);
+    for (int rep = 0; rep < 100000; ++rep) {
+        const size_t j = dist(randomEngine);
+        Mask m = UnitTest::allMasks<Vec>(j);
+        if (any_of(m)) {
+            COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
         }
-        COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
-    } while (true);
+    }
 }
 
-template<typename Vec> void testMax()
+TEST_TYPES(Vec, testMax, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
-    typedef typename Vec::IndexType I;
 
-    Vec v(I::IndexesFromZero());
+    Vec v = Vec::IndexesFromZero();
 
     COMPARE(v.max(), static_cast<T>(Vec::Size - 1));
     v = T(Vec::Size) - v;
     COMPARE(v.max(), static_cast<T>(Vec::Size));
 
-    int j = 0;
-    Mask m;
-    do {
-        m = allMasks<Vec>(j++);
-        if (m.isEmpty()) {
-            break;
+    const size_t max = (size_t(1) << Vec::Size) - 1;
+    std::uniform_int_distribution<size_t> dist(0, max);
+    for (int rep = 0; rep < 100000; ++rep) {
+        const size_t j = dist(randomEngine);
+        Mask m = UnitTest::allMasks<Vec>(j);
+        if (any_of(m)) {
+            COMPARE(v.max(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
         }
-        COMPARE(v.max(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
-    } while (true);
+    }
 }
 
-template<typename Vec> void testProduct()
+TEST_TYPES(Vec, testProduct, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -418,35 +479,40 @@ template<typename Vec> void testProduct()
         T x = static_cast<T>(i);
         Vec v(x);
         T x2 = x;
-        for (int k = Vec::Size; k > 1; k /= 2) {
-            x2 *= x2;
+        if (std::numeric_limits<T>::is_exact) {
+            for (int k = Vec::Size; k > 1; --k) {
+                x2 *= x;
+            }
+            COMPARE(v.product(), x2) << v;
+        } else {
+            x2 = std::round(std::pow(x, static_cast<int>(Vec::Size)));
+            FUZZY_COMPARE(v.product(), x2) << v;
         }
-        COMPARE(v.product(), x2);
 
-        int j = 0;
-        Mask m = allMasks<Vec>(j++);
-        COMPARE(v.product(m), x2) << m << v;
-        do {
-            m = allMasks<Vec>(j++);
-            if (m.isEmpty()) {
-                break;
-            }
-            if (std::numeric_limits<T>::is_exact) {
-                x2 = x;
-                for (int k = m.count(); k > 1; --k) {
-                    x2 *= x;
+        const size_t max = (size_t(1) << Vec::Size) - 1;
+        std::uniform_int_distribution<size_t> dist(0, max);
+        for (int rep = 0; rep < 10000; ++rep) {
+            const size_t j = dist(randomEngine);
+            Mask m = UnitTest::allMasks<Vec>(j);
+            if (any_of(m)) {
+                if (std::numeric_limits<T>::is_exact) {
+                    x2 = x;
+                    for (int k = m.count(); k > 1; --k) {
+                        x2 *= x;
+                    }
+                    COMPARE(v.product(m), x2) << v << ".product(" << m << ')';
+                } else {
+                    x2 = std::round(std::pow(x, static_cast<int>(m.count())));
+                    FUZZY_COMPARE(v.product(m), x2) << v << ".product(" << m << ')';
                 }
-                COMPARE(v.product(m), x2) << m << v;
             } else {
-                x2 = std::round(std::pow(x, static_cast<int>(m.count())));
-                //x2 = static_cast<T>(pow(static_cast<double>(x), static_cast<int>(m.count())));
-                FUZZY_COMPARE(v.product(m), x2) << m << v;
+                COMPARE(v.product(m), T(1)) << v << ".product(" << m << ')';
             }
-        } while (true);
+        }
     }
 }
 
-template<typename Vec> void testSum()
+TEST_TYPES(Vec, testSum, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -454,31 +520,35 @@ template<typename Vec> void testSum()
     for (int i = 0; i < 10; ++i) {
         T x = static_cast<T>(i);
         Vec v(x);
-        COMPARE(v.sum(), T(x * Vec::Size));
+        COMPARE(v.sum(), T(x * Vec::Size)) << v;
 
-        int j = 0;
-        Mask m;
-        do {
-            m = allMasks<Vec>(j++);
-            COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
-        } while (!m.isEmpty());
+        const size_t max = (size_t(1) << Vec::Size) - 1;
+        std::uniform_int_distribution<size_t> dist(0, max);
+        for (int rep = 0; rep < 10000; ++rep) {
+            const size_t j = dist(randomEngine);
+            Mask m = UnitTest::allMasks<Vec>(j);
+            if (any_of(m)) {
+                COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
+            } else {
+                COMPARE(v.sum(m), T(0)) << m << v;
+            }
+        }
     }
 }
 
-template<typename V> void testPartialSum()
+TEST_TYPES(V, testPartialSum, ALL_TYPES)
 {
-    typedef typename V::IndexType I;
-
-    V reference(I::IndexesFromZero() + 1);
+    V reference = V::IndexesFromZero() + 1;
     COMPARE(V(1).partialSum(), reference);
     /* disabled until correct masking is implemented
 
-    reference = V(I(2) << I::IndexesFromZero());
+    typedef typename V::IndexType I;
+    reference = simd_cast<V>(I(2) << I::IndexesFromZero());
     COMPARE(V(2).partialSum([](const V &a, const V &b) { return a * b; }), reference);
     */
 }
 
-template<typename V> void fma()
+template <typename V, typename T> void testFmaDispatch(T)
 {
     for (int i = 0; i < 1000; ++i) {
         V a = V::Random();
@@ -490,133 +560,48 @@ template<typename V> void fma()
     }
 }
 
-template<> void fma<float_v>()
+template <typename V> void testFmaDispatch(float)
 {
     using Vc::Internal::floatConstant;
-    float_v b = floatConstant<1, 0x000001, 0>();
-    float_v c = floatConstant<1, 0x000000, -24>();
-    float_v a = b;
+    V b = floatConstant<1, 0x000001, 0>();
+    V c = floatConstant<1, 0x000000, -24>();
+    V a = b;
     /*a *= b;
     a += c;
-    COMPARE(a, float_v(floatConstant<1, 0x000002, 0>()));
+    COMPARE(a, V(floatConstant<1, 0x000002, 0>()));
     a = b;*/
     a.fusedMultiplyAdd(b, c);
-    COMPARE(a, float_v(floatConstant<1, 0x000003, 0>()));
+    COMPARE(a, V(floatConstant<1, 0x000003, 0>()));
 
     a = floatConstant<1, 0x000002, 0>();
     b = floatConstant<1, 0x000002, 0>();
     c = floatConstant<-1, 0x000000, 0>();
     /*a *= b;
     a += c;
-    COMPARE(a, float_v(floatConstant<1, 0x000000, -21>()));
+    COMPARE(a, V(floatConstant<1, 0x000000, -21>()));
     a = b;*/
     a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
-    COMPARE(a, float_v(floatConstant<1, 0x000001, -21>()));
+    COMPARE(a, V(floatConstant<1, 0x000001, -21>()));
 }
 
-template<> void fma<double_v>()
+template <typename V> void testFmaDispatch(double)
 {
     using Vc::Internal::doubleConstant;
-    double_v b = doubleConstant<1, 0x0000000000001, 0>();
-    double_v c = doubleConstant<1, 0x0000000000000, -53>();
-    double_v a = b;
+    V b = doubleConstant<1, 0x0000000000001, 0>();
+    V c = doubleConstant<1, 0x0000000000000, -53>();
+    V a = b;
     a.fusedMultiplyAdd(b, c);
-    COMPARE(a, double_v(doubleConstant<1, 0x0000000000003, 0>()));
+    COMPARE(a, V(doubleConstant<1, 0x0000000000003, 0>()));
 
     a = doubleConstant<1, 0x0000000000002, 0>();
     b = doubleConstant<1, 0x0000000000002, 0>();
     c = doubleConstant<-1, 0x0000000000000, 0>();
     a.fusedMultiplyAdd(b, c); // 1 + 2^-50 + 2^-102 - 1
-    COMPARE(a, double_v(doubleConstant<1, 0x0000000000001, -50>()));
+    COMPARE(a, V(doubleConstant<1, 0x0000000000001, -50>()));
 }
 
-void testmain()
+TEST_TYPES(V, testFma, ALL_TYPES)
 {
-    testAllTypes(fma);
-
-    runTest(testZero<int_v>);
-    runTest(testZero<uint_v>);
-    runTest(testZero<float_v>);
-    runTest(testZero<double_v>);
-    runTest(testZero<short_v>);
-    runTest(testZero<ushort_v>);
-
-    runTest(testCmp<int_v>);
-    runTest(testCmp<uint_v>);
-    runTest(testCmp<float_v>);
-    runTest(testCmp<double_v>);
-    runTest(testCmp<short_v>);
-    runTest(testCmp<ushort_v>);
-
-    runTest(testIsMix<int_v>);
-    runTest(testIsMix<uint_v>);
-    runTest(testIsMix<float_v>);
-    runTest(testIsMix<double_v>);
-    runTest(testIsMix<short_v>);
-    runTest(testIsMix<ushort_v>);
-
-    runTest(testAdd<int_v>);
-    runTest(testAdd<uint_v>);
-    runTest(testAdd<float_v>);
-    runTest(testAdd<double_v>);
-    runTest(testAdd<short_v>);
-    runTest(testAdd<ushort_v>);
-
-    runTest(testSub<int_v>);
-    runTest(testSub<uint_v>);
-    runTest(testSub<float_v>);
-    runTest(testSub<double_v>);
-    runTest(testSub<short_v>);
-    runTest(testSub<ushort_v>);
-
-    runTest(testMul<int_v>);
-    runTest(testMul<uint_v>);
-    runTest(testMul<float_v>);
-    runTest(testMul<double_v>);
-    runTest(testMul<short_v>);
-    runTest(testMul<ushort_v>);
-
-    runTest(testDiv<int_v>);
-    runTest(testDiv<uint_v>);
-    runTest(testDiv<float_v>);
-    runTest(testDiv<double_v>);
-    runTest(testDiv<short_v>);
-    runTest(testDiv<ushort_v>);
-
-    runTest(testAnd<int_v>);
-    runTest(testAnd<uint_v>);
-    runTest(testAnd<short_v>);
-    runTest(testAnd<ushort_v>);
-    // no operator& for float/double
-
-    runTest(testShift<int_v>);
-    runTest(testShift<uint_v>);
-    runTest(testShift<short_v>);
-    runTest(testShift<ushort_v>);
-
-    runTest(testMulAdd<int_v>);
-    runTest(testMulAdd<uint_v>);
-    runTest(testMulAdd<float_v>);
-    runTest(testMulAdd<double_v>);
-    runTest(testMulAdd<short_v>);
-    runTest(testMulAdd<ushort_v>);
-
-    runTest(testMulSub<int_v>);
-    runTest(testMulSub<uint_v>);
-    runTest(testMulSub<float_v>);
-    runTest(testMulSub<double_v>);
-    runTest(testMulSub<short_v>);
-    runTest(testMulSub<ushort_v>);
-
-    runTest(testOnesComplement<int_v>);
-    runTest(testOnesComplement<uint_v>);
-    runTest(testOnesComplement<short_v>);
-    runTest(testOnesComplement<ushort_v>);
-
-    testAllTypes(testNegate);
-    testAllTypes(testMin);
-    testAllTypes(testMax);
-    testAllTypes(testProduct);
-    testAllTypes(testSum);
-    testAllTypes(testPartialSum);
+    using T = typename V::EntryType;
+    testFmaDispatch<V>(T());
 }

@@ -1,52 +1,51 @@
-#ifndef COMMON_EXPONENTIAL_H
-#define COMMON_EXPONENTIAL_H
 /*  This file is part of the Vc library. {{{
+Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+-------------------------------------------------------------------
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+The exp implementation is derived from Cephes, which carries the
+following Copyright notice:
 
-    -------------------------------------------------------------------
-
-    The exp implementation is derived from Cephes, which carries the
-    following Copyright notice:
-
-    Cephes Math Library Release 2.2:  June, 1992
-    Copyright 1984, 1987, 1989 by Stephen L. Moshier
-    Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+Cephes Math Library Release 2.2:  June, 1992
+Copyright 1984, 1987, 1989 by Stephen L. Moshier
+Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 }}}*/
 
-#ifndef VC_COMMON_EXPONENTIAL_H
-#define VC_COMMON_EXPONENTIAL_H
+#ifdef VC_COMMON_MATH_H_INTERNAL
 
-#include "const.h"
-#include "macros.h"
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+constexpr float log2_e = 1.44269504088896341f;
+constexpr float MAXLOGF = 88.72283905206835f;
+constexpr float MINLOGF = -103.278929903431851103f; /* log(2^-149) */
+constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
-    static const float log2_e = 1.44269504088896341f;
-    static const float MAXLOGF = 88.72283905206835f;
-    static const float MINLOGF = -103.278929903431851103f; /* log(2^-149) */
-    static const float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
-
-    template<typename T> struct TypenameForLdexp { typedef Vector<int> Type; };
-
-    template<typename T> static inline Vector<T> exp(VC_ALIGNED_PARAMETER(Vector<T>) _x) {
+    template<typename T> inline Vector<T> exp(VC_ALIGNED_PARAMETER(Vector<T>) _x) {
         typedef Vector<T> V;
         typedef typename V::Mask M;
-        typedef typename TypenameForLdexp<T>::Type I;
-        typedef Const<T> C;
+        typedef Vc_IMPL_NAMESPACE::Const<T> C;
 
         V x(_x);
 
@@ -60,7 +59,7 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
         // => y  = x - n * ln(2)       | recall that: ln(2) * log₂(e) == 1
         // <=> eˣ = 2ⁿ * eʸ
         V z = floor(C::log2_e() * x + 0.5f);
-        I n = static_cast<I>(z);
+        const auto n = static_cast<Vc::simdarray<int, V::Size>>(z);
         x -= z * C::ln2_large();
         x -= z * C::ln2_small();
 
@@ -81,52 +80,5 @@ Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
 
         return x;
     }
-    static inline Vector<double> exp(Vector<double>::AsArg _x) {
-        Vector<double> x = _x;
-        typedef Vector<double> V;
-        typedef V::Mask M;
-        typedef Const<double> C;
 
-        const M overflow  = x > Vc::Internal::doubleConstant< 1, 0x0006232bdd7abcd2ull, 9>(); // max log
-        const M underflow = x < Vc::Internal::doubleConstant<-1, 0x0006232bdd7abcd2ull, 9>(); // min log
-
-        V px = floor(C::log2_e() * x + 0.5);
-#ifdef VC_IMPL_SSE
-        Vector<int> n(px);
-        n.data() = Mem::permute<X0, X2, X1, X3>(n.data());
-#elif defined(VC_IMPL_AVX)
-        __m128i tmp = _mm256_cvttpd_epi32(px.data());
-        Vector<int> n = Vc_IMPL_NAMESPACE::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
-#endif
-        x -= px * C::ln2_large(); //Vc::Internal::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
-        x -= px * C::ln2_small(); //Vc::Internal::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
-
-        const double P[] = {
-            Vc::Internal::doubleConstant<1, 0x000089cdd5e44be8ull, -13>(),
-            Vc::Internal::doubleConstant<1, 0x000f06d10cca2c7eull,  -6>(),
-            Vc::Internal::doubleConstant<1, 0x0000000000000000ull,   0>()
-        };
-        const double Q[] = {
-            Vc::Internal::doubleConstant<1, 0x00092eb6bc365fa0ull, -19>(),
-            Vc::Internal::doubleConstant<1, 0x0004ae39b508b6c0ull,  -9>(),
-            Vc::Internal::doubleConstant<1, 0x000d17099887e074ull,  -3>(),
-            Vc::Internal::doubleConstant<1, 0x0000000000000000ull,   1>()
-        };
-        const V x2 = x * x;
-        px = x * ((P[0] * x2 + P[1]) * x2 + P[2]);
-        x =  px / ((((Q[0] * x2 + Q[1]) * x2 + Q[2]) * x2 + Q[3]) - px);
-        x = V::One() + 2.0 * x;
-
-        x = ldexp(x, n); // == x * 2ⁿ
-
-        x(overflow) = std::numeric_limits<double>::infinity();
-        x.setZero(underflow);
-
-        return x;
-    }
-
-Vc_NAMESPACE_END
-#include "undomacros.h"
-
-#endif // VC_COMMON_EXPONENTIAL_H
-#endif // COMMON_EXPONENTIAL_H
+#endif // VC_COMMON_MATH_H_INTERNAL

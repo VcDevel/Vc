@@ -1,78 +1,43 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #include "unittest.h"
-#include <iostream>
 #include "vectormemoryhelper.h"
 #include <Vc/cpuid.h>
 #include <Vc/iterators>
 
 using namespace Vc;
 
-template<typename Vec> void testSort()
+TEST_TYPES(V, reversed, (ALL_VECTORS, SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(15)))
 {
-    typedef typename Vec::EntryType EntryType;
-    typedef typename Vec::IndexType IndexType;
-
-    const IndexType _ref(IndexesFromZero);
-    Vec ref(_ref);
-    Vec a;
-//X     for (int i = 0; i < Vec::Size; ++i) {
-//X         a[i] = Vec::Size - i - 1;
-//X     }
-//X     COMPARE(ref, a.sorted()) << ", a: " << a;
-
-    int maxPerm = 1;
-    for (int x = Vec::Size; x > 0 && maxPerm < 400000; --x) {
-        maxPerm *= x;
-    }
-    for (int perm = 0; perm < maxPerm; ++perm) {
-        int rest = perm;
-        for (size_t i = 0; i < Vec::Size; ++i) {
-            a[i] = 0;
-            for (size_t j = 0; j < i; ++j) {
-                if (a[i] == a[j]) {
-                    ++a[i];
-                    j = -1;
-                }
-            }
-            a[i] += rest % (Vec::Size - i);
-            rest /= (Vec::Size - i);
-            for (size_t j = 0; j < i; ++j) {
-                if (a[i] == a[j]) {
-                    ++a[i];
-                    j = -1;
-                }
-            }
-        }
-        //std::cout << a << a.sorted() << std::endl;
-        COMPARE(ref, a.sorted()) << ", a: " << a;
-    }
-
-    for (int repetition = 0; repetition < 1000; ++repetition) {
-        Vec test = Vec::Random();
-        Vc::Memory<Vec, Vec::Size> reference;
-        reference.vector(0) = test;
-        std::sort(&reference[0], &reference[Vec::Size]);
-        ref = reference.vector(0);
-        COMPARE(ref, test.sorted());
-    }
+    const V x = V::IndexesFromZero() + 1;
+    const V reference = V::generate([](int i) { return V::Size - i; });
+    COMPARE(x.reversed(), reference);
 }
 
 template<typename T, typename Mem> struct Foo
@@ -84,17 +49,15 @@ template<typename T, typename Mem> struct Foo
     int i;
 };
 
-template<typename V> void testCall()
+TEST_TYPES(V, testCall, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef typename V::Mask M;
-    typedef typename I::Mask MI;
-    const I _indexes(IndexesFromZero);
-    const MI _odd = (_indexes & I(One)) > 0;
-    const M odd(_odd);
-    V a(_indexes);
-    Foo<T, typename V::Memory> f;
+    const I _indexes(Vc::IndexesFromZero);
+    const M odd = Vc::simd_cast<M>((_indexes & I(One)) > 0);
+    V a(Vc::IndexesFromZero);
+    Foo<T, Vc::Memory<V, V::Size>> f;
     a.callWithValuesSorted(f);
     V b(f.d);
     COMPARE(b, a);
@@ -113,22 +76,20 @@ template<typename V> void testCall()
     }
 }
 
-template<typename V> void testForeachBit()
+TEST_TYPES(V, testForeachBit, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
-    typedef typename V::Mask M;
-    typedef typename I::Mask MI;
     const I indexes(IndexesFromZero);
     for_all_masks(V, mask) {
         V tmp = V::Zero();
-        foreach_bit(int j, mask) {
+        for (int j : where(mask)) {
             tmp[j] = T(1);
         }
         COMPARE(tmp == V::One(), mask);
 
-        unsigned int count = 0;
-        foreach_bit(int j, mask) {
+        int count = 0;
+        for (int j : where(mask)) {
             ++count;
             if (j >= 0) {
                 continue;
@@ -137,118 +98,24 @@ template<typename V> void testForeachBit()
         COMPARE(count, mask.count());
 
         count = 0;
-        foreach_bit(int j, mask) {
+        for (int j : where(mask)) {
             if (j >= 0) {
                 break;
             }
             ++count;
         }
-        COMPARE(count, 0U);
+        COMPARE(count, 0);
     }
 }
 
-template<typename V> void copySign()
+TEST_TYPES(V, copySign, (Vc::float_v, Vc::double_v))
 {
-    typedef typename V::EntryType T;
     V v(One);
     V positive(One);
     V negative = -positive;
     COMPARE(v, v.copySign(positive));
     COMPARE(-v, v.copySign(negative));
 }
-
-#ifdef _WIN32
-void bzero(void *p, size_t n) { memset(p, 0, n); }
-#else
-#include <strings.h>
-#endif
-
-template<typename V> void Random()
-{
-    typedef typename V::EntryType T;
-    enum {
-        NBits = 3,
-        NBins = 1 << NBits,                        // short int
-        TotalBits = sizeof(T) * 8,                 //    16  32
-        RightShift = TotalBits - NBits,            //    13  29
-        NHistograms = TotalBits - NBits + 1,       //    14  30
-        LeftShift = (RightShift + 1) / NHistograms,//     1   1
-        Mean = 135791,
-        MinGood = Mean - Mean/10,
-        MaxGood = Mean + Mean/10
-    };
-    const V mask((1 << NBits) - 1);
-    int histogram[NHistograms][NBins];
-    bzero(&histogram[0][0], sizeof(histogram));
-    for (size_t i = 0; i < NBins * Mean / V::Size; ++i) {
-        const V rand = V::Random();
-        for (size_t hist = 0; hist < NHistograms; ++hist) {
-            const V bin = ((rand << (hist * LeftShift)) >> RightShift) & mask;
-            for (size_t k = 0; k < V::Size; ++k) {
-                ++histogram[hist][bin[k]];
-            }
-        }
-    }
-//#define PRINT_RANDOM_HISTOGRAM
-#ifdef PRINT_RANDOM_HISTOGRAM
-    for (size_t hist = 0; hist < NHistograms; ++hist) {
-        std::cout << "histogram[" << std::setw(2) << hist << "]: ";
-        for (size_t bin = 0; bin < NBins; ++bin) {
-            std::cout << std::setw(3) << (histogram[hist][bin] - Mean) * 1000 / Mean << "|";
-        }
-        std::cout << std::endl;
-    }
-#endif
-    for (size_t hist = 0; hist < NHistograms; ++hist) {
-        for (size_t bin = 0; bin < NBins; ++bin) {
-            VERIFY(histogram[hist][bin] > MinGood)
-                << " bin = " << bin << " is " << histogram[0][bin];
-            VERIFY(histogram[hist][bin] < MaxGood)
-                << " bin = " << bin << " is " << histogram[0][bin];
-        }
-    }
-}
-
-template<typename V, typename I> void FloatRandom()
-{
-    typedef typename V::EntryType T;
-    enum {
-        NBins = 64,
-        NHistograms = 1,
-        Mean = 135791,
-        MinGood = Mean - Mean/10,
-        MaxGood = Mean + Mean/10
-    };
-    int histogram[NHistograms][NBins];
-    bzero(&histogram[0][0], sizeof(histogram));
-    for (size_t i = 0; i < NBins * Mean / V::Size; ++i) {
-        const V rand = V::Random();
-        const I bin = static_cast<I>(rand * T(NBins));
-        for (size_t k = 0; k < V::Size; ++k) {
-            ++histogram[0][bin[k]];
-        }
-    }
-#ifdef PRINT_RANDOM_HISTOGRAM
-    for (size_t hist = 0; hist < NHistograms; ++hist) {
-        std::cout << "histogram[" << std::setw(2) << hist << "]: ";
-        for (size_t bin = 0; bin < NBins; ++bin) {
-            std::cout << std::setw(3) << (histogram[hist][bin] - Mean) * 1000 / Mean << "|";
-        }
-        std::cout << std::endl;
-    }
-#endif
-    for (size_t hist = 0; hist < NHistograms; ++hist) {
-        for (size_t bin = 0; bin < NBins; ++bin) {
-            VERIFY(histogram[hist][bin] > MinGood)
-                << " bin = " << bin << " is " << histogram[0][bin];
-            VERIFY(histogram[hist][bin] < MaxGood)
-                << " bin = " << bin << " is " << histogram[0][bin];
-        }
-    }
-}
-
-template<> void Random<float_v>() { FloatRandom<float_v, int_v>(); }
-template<> void Random<double_v>() { FloatRandom<double_v, int_v>(); }
 
 template<typename T> T add2(T x) { return x + T(2); }
 
@@ -265,7 +132,7 @@ class CallTester
 
         void reset() { v.setZero(); i = 0; }
 
-        unsigned int callCount() const { return i; }
+        int callCount() const { return i; }
         V callValues() const { return v; }
 
     private:
@@ -273,8 +140,7 @@ class CallTester
         unsigned int i;
 };
 
-template<typename V>
-void applyAndCall()
+TEST_TYPES(V, applyAndCall, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
 
@@ -287,7 +153,7 @@ void applyAndCall()
 
         CallTester<T, V> callTester;
         rand.call(callTester);
-        COMPARE(callTester.callCount(), static_cast<unsigned int>(V::Size));
+        COMPARE(callTester.callCount(), static_cast<int>(V::Size));
         COMPARE(callTester.callValues(), rand);
 
         for_all_masks(V, mask) {
@@ -315,24 +181,23 @@ template<typename T, int value> T returnConstant() { return T(value); }
 template<typename T, int value> T returnConstantOffset(int i) { return T(value) + T(i); }
 template<typename T, int value> T returnConstantOffset2(unsigned short i) { return T(value) + T(i); }
 
-template<typename V> void fill()
+TEST_TYPES(V, fill, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     V test = V::Random();
     test.fill(returnConstant<T, 2>);
     COMPARE(test, V(T(2)));
 
     test = V::Random();
     test.fill(returnConstantOffset<T, 0>);
-    COMPARE(test, static_cast<V>(I::IndexesFromZero()));
+    COMPARE(test, static_cast<V>(V::IndexesFromZero()));
 
     test = V::Random();
     test.fill(returnConstantOffset2<T, 0>);
-    COMPARE(test, static_cast<V>(I::IndexesFromZero()));
+    COMPARE(test, static_cast<V>(V::IndexesFromZero()));
 }
 
-template<typename V> void shifted()
+TEST_TYPES(V, shifted, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     constexpr int Size = V::Size;
@@ -349,7 +214,7 @@ template<typename V> void shifted()
     }
 }
 
-template<typename V> void rotated()
+TEST_TYPES(V, rotated, (ALL_VECTORS))
 {
     constexpr int Size = V::Size;
     for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
@@ -363,51 +228,74 @@ template<typename V> void rotated()
     }
 }
 
-template <typename V> void shiftedInConstant(const V &, std::integral_constant<int, V::Size + 1>)
+template <typename V> V shiftReference(const V &data, int shift)
+{
+    constexpr int Size = V::Size;
+    using T = typename V::value_type;
+    return V::generate([&](int i) -> T {
+        if (shift < 0) {
+            i += shift;
+            if (i >= 0) {
+                return data[i];
+            }
+            i += Size;
+            if (i >= 0) {
+                return data[i] + 1;
+            }
+        } else {
+            i += shift;
+            if (i < Size) {
+                return data[i];
+            }
+            i -= Size;
+            if (i < Size) {
+                return data[i] + 1;
+            }
+        }
+        return 0;
+    });
+}
+
+template <typename V>
+void shiftedInConstant(const V &, std::integral_constant<int, 2 * V::Size>)
 {
 }
 
 template <typename V, typename Shift> void shiftedInConstant(const V &data, Shift)
 {
-    constexpr int Size = V::Size;
+    const V reference = shiftReference(data, Shift::value);
     const V test = data.shifted(Shift::value, data + V::One());
-    const V reference = data.rotated(Shift::value) +
-        iif(V::IndexesFromZero() + Size <
-            Size - Shift::value ||  // added Size on both sides of '<' to avoid
-            // overflow with unsigned integers
-            V::IndexesFromZero() >= Size - Shift::value,
-            V::One(),
-            V::Zero());
     COMPARE(test, reference) << "shift = " << Shift::value;
-    shiftedInConstant(data, std::integral_constant<int, Shift::value + 1>());
-}
-
-template<typename V> void shiftedIn()
-{
-    typedef typename V::EntryType T;
-    constexpr int Size = V::Size;
-    for (int shift = -1 * Size; shift <= 1 * Size; ++shift) {
-        const V data = V::Random();
-        const V test = data.shifted(shift, data + V::One());
-        const V reference = data.rotated(shift) +
-                            iif(V::IndexesFromZero() + Size <
-                                        Size - shift ||  // added Size on both sides of '<' to avoid
-                                                         // overflow with unsigned integers
-                                    V::IndexesFromZero() >= Size - shift,
-                                V::One(),
-                                V::Zero());
-        COMPARE(test, reference) << "shift = " << shift;
+    if ((Shift::value + 1) % V::Size != 0) {
+        shiftedInConstant(
+            data, std::integral_constant<
+                      int, ((Shift::value + 1) % V::Size == 0 ? 2 * int(V::Size)
+                                                              : Shift::value + 1)>());
     }
-    shiftedInConstant(V::Random(), std::integral_constant<int, -Size>());
 }
 
-void testMallocAlignment()
+TEST_TYPES(V, shiftedIn, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(16), SIMD_ARRAYS(17)))
+{
+    constexpr int Size = V::Size;
+    const V data = V::Random();
+    for (int shift = -2 * Size + 1; shift <= 2 * Size -1; ++shift) {
+        const V reference = shiftReference(data, shift);
+        const V test = data.shifted(shift, data + V::One());
+        COMPARE(test, reference) << "\nshift = " << shift << "\ndata = " << data;
+    }
+    shiftedInConstant(V::Random(), std::integral_constant<int, -2 * Size + 1>());
+    shiftedInConstant(V::Random(), std::integral_constant<int, -Size>());
+    shiftedInConstant(V::Random(), std::integral_constant<int, 0>());
+    shiftedInConstant(V::Random(), std::integral_constant<int, Size>());
+}
+
+TEST(testMallocAlignment)
 {
     int_v *a = Vc::malloc<int_v, Vc::AlignOnVector>(10);
 
-    unsigned long mask = VectorAlignment - 1;
+    std::uintptr_t mask = int_v::MemoryAlignment - 1;
     for (int i = 0; i < 10; ++i) {
-        VERIFY((reinterpret_cast<unsigned long>(&a[i]) & mask) == 0);
+        VERIFY((reinterpret_cast<std::uintptr_t>(&a[i]) & mask) == 0);
     }
     const char *data = reinterpret_cast<const char *>(&a[0]);
     for (int i = 0; i < 10; ++i) {
@@ -416,16 +304,16 @@ void testMallocAlignment()
 
     a = Vc::malloc<int_v, Vc::AlignOnCacheline>(10);
     mask = CpuId::cacheLineSize() - 1;
-    COMPARE((reinterpret_cast<unsigned long>(&a[0]) & mask), 0ul);
+    COMPARE((reinterpret_cast<std::uintptr_t>(&a[0]) & mask), 0ul);
 
     // I don't know how to properly check page alignment. So we check for 4 KiB alignment as this is
     // the minimum page size on x86
     a = Vc::malloc<int_v, Vc::AlignOnPage>(10);
     mask = 4096 - 1;
-    COMPARE((reinterpret_cast<unsigned long>(&a[0]) & mask), 0ul);
+    COMPARE((reinterpret_cast<std::uintptr_t>(&a[0]) & mask), 0ul);
 }
 
-template<typename V> void testIif()
+TEST_TYPES(V, testIif, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     const T one = T(1);
@@ -447,7 +335,7 @@ template<typename V> void testIif()
     }
 }
 
-template<typename V> void rangeFor()
+TEST_TYPES(V, rangeFor, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     typedef typename V::Mask M;
@@ -488,7 +376,7 @@ template<typename V> void rangeFor()
     }
 
     for_all_masks(V, mask) {
-        unsigned int count = 0;
+        int count = 0;
         V test = V::Zero();
         for (size_t i : where(mask)) {
             VERIFY(i < V::Size);
@@ -500,22 +388,16 @@ template<typename V> void rangeFor()
     }
 }
 
-void testmain()
+TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(9), SIMD_ARRAYS(8)))
 {
-    testAllTypes(testCall);
-    testAllTypes(testForeachBit);
-    testAllTypes(testSort);
-    testRealTypes(copySign);
-
-    testAllTypes(shifted);
-    testAllTypes(rotated);
-    testAllTypes(shiftedIn);
-    testAllTypes(Random);
-
-    testAllTypes(applyAndCall);
-    testAllTypes(fill);
-
-    runTest(testMallocAlignment);
-    testAllTypes(testIif);
-    testAllTypes(rangeFor);
+    for (int repeat = 0; repeat < 10; ++repeat) {
+        std::array<V, 2> testValues = {V::IndexesFromZero(), V::IndexesFromZero() + V::Size};
+        std::array<V, 2> references;
+        for (size_t i = 0; i < 2 * V::Size; ++i) {
+            references[i / V::Size][i % V::Size] = testValues[i & 1][i >> 1];
+        }
+        std::tie(testValues[0], testValues[1]) = interleave(testValues[0], testValues[1]);
+        COMPARE(testValues[0], references[0]);
+        COMPARE(testValues[1], references[1]);
+    }
 }

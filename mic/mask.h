@@ -1,21 +1,30 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #ifndef VC_MIC_MASK_H
 #define VC_MIC_MASK_H
@@ -27,7 +36,10 @@
 #pragma offload_attribute(push, target(mic))
 #endif
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<unsigned int VectorSize> struct MaskHelper;
 template<> struct MaskHelper<8> {
@@ -68,26 +80,59 @@ template<typename T> class Mask
     friend class Mask< int16_t>;
     friend class Mask<uint16_t>;
 
-    typedef typename MaskTypeHelper<T>::Type MaskType;
-    typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
-
 public:
-    static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
+    /**
+     * The \c EntryType of masks is always bool, independent of \c T.
+     */
+    typedef bool EntryType;
+
+    /**
+     * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the
+     * SIMD implementation. This type is useful for the \c sizeof operator in generic
+     * functions.
+     */
+    using VectorEntryType = Common::MaskBool<sizeof(T)>;
+
+    using EntryReference = Common::MaskEntry<Mask>;
+
+    /**
+     * The \c VectorType reveals the implementation-specific internal type used for the
+     * SIMD type.
+     */
+    typedef typename VectorTypeHelper<T>::Type VectorType;
+
+    /**
+     * The associated Vector<T> type.
+     */
+    using Vector = MIC::Vector<T>;
+
+    /** \internal
+     * The intrinsic type of the register/memory representation of the mask data.
+     */
+    typedef typename MaskTypeHelper<T>::Type MaskType;
+
+    static constexpr size_t Size = sizeof(MaskType) * 8;
+    static constexpr std::size_t size() { return Size; }
     typedef Mask<T> AsArg; // for now only ICC can compile this code and it is not broken :)
-    inline Mask() {}
-    inline Mask(MaskType _k) : k(_k) {}
-    inline explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(0) {}
-    inline explicit Mask(VectorSpecialInitializerOne::OEnum) : k(Size == 16 ? 0xffff : 0xff) {}
-    inline explicit Mask(bool b) : k(b ? (Size == 16 ? 0xffff : 0xff) : 0) {}
 
-    template<typename U> Vc_ALWAYS_INLINE Mask(const Mask<U> &rhs,
-      typename std::enable_if<is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
+    Vc_INTRINSIC Mask() : k() {}
+    Vc_INTRINSIC Mask(MaskType _k) : k(_k) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(0) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : k(Size == 16 ? 0xffff : 0xff) {}
+    Vc_INTRINSIC explicit Mask(bool b) : k(b ? (Size == 16 ? 0xffff : 0xff) : 0) {}
+    Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
+    Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
+
+    // implicit cast
+    template <typename U>
+    Vc_INTRINSIC Mask(U &&rhs, Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
         : k(MaskHelper<Size>::cast(rhs.data())) {}
 
-    template<typename U> Vc_ALWAYS_INLINE explicit Mask(const Mask<U> &rhs,
-      typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
-        : k(MaskHelper<Size>::cast(rhs.data())) {}
+    // explicit cast, implemented via simd_cast (in scalar/simd_cast_caller.h)
+    template <typename U>
+    Vc_INTRINSIC_L explicit Mask(U &&rhs,
+                                 Common::enable_if_mask_converts_explicitly<T, U> =
+                                     nullarg) Vc_INTRINSIC_R;
 
     inline explicit Mask(const bool *mem) { load(mem, Aligned); }
     template<typename Flags>
@@ -122,13 +167,12 @@ public:
 
     inline Mask &operator&=(const Mask &rhs) { k = _mm512_kand(k, rhs.k); return *this; }
     inline Mask &operator|=(const Mask &rhs) { k = _mm512_kor (k, rhs.k); return *this; }
+    inline Mask &operator^=(const Mask &rhs) { k = _mm512_kxor(k, rhs.k); return *this; }
 
     inline bool isFull () const { return MaskHelper<Size>::isFull (k); }
     inline bool isEmpty() const { return MaskHelper<Size>::isEmpty(k); }
     inline bool isMix  () const { return MaskHelper<Size>::isMix  (k); }
     inline bool isNotEmpty() const { return MaskHelper<Size>::isNotEmpty(k); }
-
-    inline operator bool() const { return isFull(); }
 
     inline MaskType data () const { return k; }
     inline MaskType dataI() const { return k; }
@@ -143,7 +187,7 @@ public:
         }
     }
 
-    inline Common::MaskEntry<Mask<T>> operator[](size_t index) { return Common::MaskEntry<Mask<T>>(*this, index); }
+    inline EntryReference operator[](size_t index) { return Common::MaskEntry<Mask<T>>(*this, index); }
     inline bool operator[](size_t index) const { return static_cast<bool>(k & (1 << index)); }
 
     Vc_ALWAYS_INLINE Vc_PURE int count() const {
@@ -162,6 +206,26 @@ public:
     int firstOne() const { return _mm_tzcnt_32(k); }
 
     int toInt() const { return k; }
+
+    template <typename G> static Vc_INTRINSIC Mask generate(G &&gen)
+    {
+        unsigned int bits = 0;
+        Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) {
+            bits |= gen(i) << i;
+        });
+        return static_cast<MaskType>(bits);
+    }
+    Vc_INTRINSIC Vc_PURE Mask shifted(int amount) const
+    {
+        if (amount > 0) {
+            if (amount < Size) {
+                return static_cast<MaskType>(k >> amount);
+            }
+        } else if (amount > -int(Size)) {
+            return static_cast<MaskType>(k << -amount);
+        }
+        return Zero();
+    }
 
 private:
     MaskType k;
@@ -214,7 +278,8 @@ struct ForeachHelper
             _Vc_foreach_bit_helper.step()) \
         for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
 
-Vc_NAMESPACE_END
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 #include "mask.tcc"

@@ -1,21 +1,30 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2010-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2010-2011 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #include "unittest.h"
 #include <iostream>
@@ -28,7 +37,6 @@ using Vc::uint_v;
 using Vc::short_v;
 using Vc::ushort_v;
 
-
 /*
  *   V \  M | float | double | ushort | short | uint | int
  * ---------+----------------------------------------------
@@ -39,32 +47,32 @@ using Vc::ushort_v;
  *  short_v |       |        |        |   X   |      |
  * ushort_v |       |        |    X   |       |      |
  */
-template<typename A, typename B> struct TPair { typedef A V; typedef B M; };
+typedef Typelist<float_v, float> float_float;
+typedef Typelist<float_v, unsigned short> float_ushort;
+typedef Typelist<float_v, short> float_short;
 
-typedef TPair<float_v, float> float_float;
-typedef TPair<float_v, unsigned short> float_ushort;
-typedef TPair<float_v, short> float_short;
+typedef Typelist<double_v, double> double_double;
+typedef Typelist<short_v, short> short_short;
+typedef Typelist<ushort_v, unsigned short> ushort_ushort;
 
-typedef TPair<double_v, double> double_double;
-typedef TPair<short_v, short> short_short;
-typedef TPair<ushort_v, unsigned short> ushort_ushort;
+typedef Typelist<int_v, int> int_int;
+typedef Typelist<int_v, short> int_short;
 
-typedef TPair<int_v, int> int_int;
-typedef TPair<int_v, short> int_short;
+typedef Typelist<uint_v, unsigned int> uint_uint;
+typedef Typelist<uint_v, unsigned short> uint_ushort;
 
-typedef TPair<uint_v, unsigned int> uint_uint;
-typedef TPair<uint_v, unsigned short> uint_ushort;
-
-template<typename Pair> void testDeinterleave()
+TEST_TYPES(Pair, testDeinterleave,
+           (float_float, float_ushort, float_short, double_double, int_int, int_short,
+            uint_uint, uint_ushort, short_short, ushort_ushort))
 {
-    typedef typename Pair::V V;
-    typedef typename Pair::M M;
+    typedef typename Pair::template at<0> V;
+    typedef typename Pair::template at<1> M;
     typedef typename V::IndexType I;
 
     const bool isSigned = std::numeric_limits<M>::is_signed;
 
     const typename V::EntryType offset = isSigned ? -512 : 0;
-    const V _0246 = static_cast<V>(I::IndexesFromZero()) * 2 + offset;
+    const V _0246 = Vc::simd_cast<V>(I::IndexesFromZero()) * 2 + offset;
 
     M memory[1024];
     for (int i = 0; i < 1024; ++i) {
@@ -97,7 +105,7 @@ template<typename V, size_t StructSize, bool Random = true> struct Types
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
-    typedef typename I::AsArg IArg;
+    typedef const I &IArg;
     typedef SomeStruct<T, StructSize> S;
     typedef const Vc::InterleavedMemoryWrapper<S, V> &Wrapper;
 };
@@ -115,7 +123,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5, v6, v7;
-        (v0, v1, v2, v3, v4, v5, v6, v7) = data_v[indexes];
+        tie(v0, v1, v2, v3, v4, v5, v6, v7) = data_v[indexes];
         COMPARE(v0, reference + 0) << "N = 8";
         COMPARE(v1, reference + 1) << "N = 8";
         COMPARE(v2, reference + 2) << "N = 8";
@@ -131,7 +139,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5, v6;
-        (v0, v1, v2, v3, v4, v5, v6) = data_v[indexes];
+        tie(v0, v1, v2, v3, v4, v5, v6) = data_v[indexes];
         COMPARE(v0, reference + 0) << "N = 7";
         COMPARE(v1, reference + 1) << "N = 7";
         COMPARE(v2, reference + 2) << "N = 7";
@@ -146,7 +154,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4, v5;
-        (v0, v1, v2, v3, v4, v5) = data_v[indexes];
+        tie(v0, v1, v2, v3, v4, v5) = data_v[indexes];
         COMPARE(v0, reference + 0) << "N = 6";
         COMPARE(v1, reference + 1) << "N = 6";
         COMPARE(v2, reference + 2) << "N = 6";
@@ -160,7 +168,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V v0, v1, v2, v3, v4;
-        (v0, v1, v2, v3, v4) = data_v[indexes];
+        tie(v0, v1, v2, v3, v4) = data_v[indexes];
         COMPARE(v0, reference + 0) << "N = 5";
         COMPARE(v1, reference + 1) << "N = 5";
         COMPARE(v2, reference + 2) << "N = 5";
@@ -173,7 +181,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b, c, d;
-        (a, b, c, d) = data_v[indexes];
+        tie(a, b, c, d) = data_v[indexes];
         COMPARE(a, reference + 0) << "N = 4";
         COMPARE(b, reference + 1) << "N = 4";
         COMPARE(c, reference + 2) << "N = 4";
@@ -185,7 +193,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b, c;
-        (a, b, c) = data_v[indexes];
+        tie(a, b, c) = data_v[indexes];
         COMPARE(a, reference + 0) << "N = 3";
         COMPARE(b, reference + 1) << "N = 3";
         COMPARE(c, reference + 2) << "N = 3";
@@ -196,7 +204,7 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     static void test(typename Types<V, StructSize, Random>::Wrapper data_v, typename Types<V, StructSize, Random>::IArg indexes, const typename V::AsArg reference)
     {
         V a, b;
-        (a, b) = data_v[indexes];
+        tie(a, b) = data_v[indexes];
         COMPARE(a, reference + 0) << "N = 2";
         COMPARE(b, reference + 1) << "N = 2";
     }
@@ -211,8 +219,18 @@ size_t createNMask(size_t N)
     return NMask;
 }
 
-template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
+TEST_TYPES(Param, testDeinterleaveGather,
+           (outer_product<Typelist<ALL_VECTORS>,
+                          Typelist<std::integral_constant<std::size_t, 2>,
+                                   std::integral_constant<std::size_t, 3>,
+                                   std::integral_constant<std::size_t, 4>,
+                                   std::integral_constant<std::size_t, 5>,
+                                   std::integral_constant<std::size_t, 6>,
+                                   std::integral_constant<std::size_t, 7>,
+                                   std::integral_constant<std::size_t, 8>>>))
 {
+    typedef typename Param::template at<0> V;
+    constexpr auto StructSize = Param::template at<1>::value;
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
@@ -230,159 +248,92 @@ template<typename V, size_t StructSize> void testDeinterleaveGatherImpl()
 
     for (int retest = 0; retest < 10000; ++retest) {
         I indexes = (I::Random() >> 10) & I(NMask);
-        VERIFY(indexes >= 0);
-        VERIFY(indexes < N);
-        const V reference = static_cast<V>(indexes) * V(StructSize);
+        VERIFY(all_of(indexes >= 0));
+        VERIFY(all_of(indexes < N));
+        const V reference = Vc::simd_cast<V>(indexes) * V(StructSize);
 
         TestDeinterleaveGatherCompare<V, StructSize, true>::test(data_v, indexes, reference);
     }
 
-    for (size_t i = 0; i < N - V::Size; ++i) {
-        const V reference = static_cast<V>(i + I::IndexesFromZero()) * T(StructSize);
+    for (int i = 0; i < int(N - V::Size); ++i) {
+        const V reference = Vc::simd_cast<V>(i + I::IndexesFromZero()) * T(StructSize);
         TestDeinterleaveGatherCompare<V, StructSize, false>::test(data_v, i, reference);
     }
 }
 
-template<typename V> void testDeinterleaveGather()
+template <typename T> T rotate(T x)
 {
-    testDeinterleaveGatherImpl<V, 2>();
-    testDeinterleaveGatherImpl<V, 3>();
-    testDeinterleaveGatherImpl<V, 4>();
-    testDeinterleaveGatherImpl<V, 5>();
-    testDeinterleaveGatherImpl<V, 6>();
-    testDeinterleaveGatherImpl<V, 7>();
-    testDeinterleaveGatherImpl<V, 8>();
+    return x.rotated(1);
+}
+template <typename T, std::size_t N> Vc::simdarray<T, N> rotate(const Vc::simdarray<T, N> &x)
+{
+    Vc::simdarray<T, N> r;
+    r[0] = x[N - 1];
+    for (std::size_t i = 0; i < N - 1; ++i) {
+        r[i + 1] = x[i];
+    }
+    return r;
 }
 
-template<typename V, size_t StructSize, bool Random> struct TestInterleavingScatterCompare;
-#define _IMPL(STRUCTSIZE, _code_) \
-template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE, true> { \
-    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1, true> NextTest; \
-    template<typename Wrapper> static void test(Wrapper &data, const typename V::IndexType &i) { \
-        _code_ \
-    } \
-}; \
-template<typename V> struct TestInterleavingScatterCompare<V, STRUCTSIZE, false> { \
-    typedef TestInterleavingScatterCompare<V, STRUCTSIZE - 1, false> NextTest; \
-    template<typename Wrapper, typename I> static void test(Wrapper &data, const I &i) { \
-        _code_ \
-    } \
-}
-_IMPL(2,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        V t0;
-        V t1;
-        data[i] = (v0, v1);
-        (t0, t1) = data[i];
-        COMPARE(t0, v0) << 2;
-        COMPARE(t1, v1) << 2;
-     );
-_IMPL(3,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        V t0; V t1; V t2;
-        data[i] = (v0, v1, v2);
-        (t0, t1, t2) = data[i];
-        COMPARE(t0, v0) << 3;
-        COMPARE(t1, v1) << 3;
-        COMPARE(t2, v2) << 3;
-        NextTest::test(data, i);
-     );
-_IMPL(4,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        V t0; V t1; V t2; V t3;
-        data[i] = (v0, v1, v2, v3);
-        (t0, t1, t2, t3) = data[i];
-        COMPARE(t0, v0) << 4;
-        COMPARE(t1, v1) << 4;
-        COMPARE(t2, v2) << 4;
-        COMPARE(t3, v3) << 4;
-        NextTest::test(data, i);
-     );
-_IMPL(5,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        const V v4 = V::Random();
-        V t0; V t1; V t2; V t3; V t4;
-        data[i] = (v0, v1, v2, v3, v4);
-        (t0, t1, t2, t3, t4) = data[i];
-        COMPARE(t0, v0) << 5;
-        COMPARE(t1, v1) << 5;
-        COMPARE(t2, v2) << 5;
-        COMPARE(t3, v3) << 5;
-        COMPARE(t4, v4) << 5;
-        NextTest::test(data, i);
-     );
-_IMPL(6,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        const V v4 = V::Random();
-        const V v5 = V::Random();
-        V t0; V t1; V t2; V t3; V t4; V t5;
-        data[i] = (v0, v1, v2, v3, v4, v5);
-        (t0, t1, t2, t3, t4, t5) = data[i];
-        COMPARE(t0, v0) << 6;
-        COMPARE(t1, v1) << 6;
-        COMPARE(t2, v2) << 6;
-        COMPARE(t3, v3) << 6;
-        COMPARE(t4, v4) << 6;
-        COMPARE(t5, v5) << 6;
-        NextTest::test(data, i);
-     );
-_IMPL(7,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        const V v4 = V::Random();
-        const V v5 = V::Random();
-        const V v6 = V::Random();
-        V t0; V t1; V t2; V t3; V t4; V t5; V t6;
-        data[i] = (v0, v1, v2, v3, v4, v5, v6);
-        (t0, t1, t2, t3, t4, t5, t6) = data[i];
-        COMPARE(t0, v0) << 7;
-        COMPARE(t1, v1) << 7;
-        COMPARE(t2, v2) << 7;
-        COMPARE(t3, v3) << 7;
-        COMPARE(t4, v4) << 7;
-        COMPARE(t5, v5) << 7;
-        COMPARE(t6, v6) << 7;
-        NextTest::test(data, i);
-     );
-_IMPL(8,
-        const V v0 = V::Random();
-        const V v1 = V::Random();
-        const V v2 = V::Random();
-        const V v3 = V::Random();
-        const V v4 = V::Random();
-        const V v5 = V::Random();
-        const V v6 = V::Random();
-        const V v7 = V::Random();
-        V t0; V t1; V t2; V t3; V t4; V t5; V t6; V t7;
-        data[i] = (v0, v1, v2, v3, v4, v5, v6, v7);
-        (t0, t1, t2, t3, t4, t5, t6, t7) = data[i];
-        COMPARE(t0, v0) << 8;
-        COMPARE(t1, v1) << 8;
-        COMPARE(t2, v2) << 8;
-        COMPARE(t3, v3) << 8;
-        COMPARE(t4, v4) << 8;
-        COMPARE(t5, v5) << 8;
-        COMPARE(t6, v6) << 8;
-        COMPARE(t7, v7) << 8;
-        NextTest::test(data, i);
-     );
-
-template<typename V, size_t StructSize> void testInterleavingScatterImpl()
+namespace std
 {
+template <typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const std::array<T, N> &a)
+{
+    out << "\narray{" << a[0];
+    for (std::size_t i = 1; i < N; ++i) {
+        out << ", " << a[i];
+    }
+    return out << '}';
+}
+template <typename T, std::size_t N>
+inline bool operator==(const std::array<Vc::Vector<T>, N> &a, const std::array<Vc::Vector<T>, N> &b)
+{
+    for (std::size_t i = 0; i < N; ++i) {
+        if (!Vc::all_of(a[i] == b[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+}  // namespace std
+
+template <typename V, typename Wrapper, typename IndexType, std::size_t... Indexes>
+void testInterleavingScatterCompare(Wrapper &data, const IndexType &i,
+                                    Vc::index_sequence<Indexes...>)
+{
+    const std::array<V, sizeof...(Indexes)> reference = {
+        {(V::Random() + (Indexes - Indexes))...}};
+
+    data[i] = tie(reference[Indexes]...);
+    std::array<V, sizeof...(Indexes)> t = data[i];
+    COMPARE(t, reference);
+
+    for (auto &x : t) {
+        x.setZero();
+    }
+    tie(t[Indexes]...) = data[i];
+    COMPARE(t, reference);
+
+    if (sizeof...(Indexes) > 2) {
+        testInterleavingScatterCompare<V>(
+            data, i, Vc::make_index_sequence<
+                         (sizeof...(Indexes) > 2 ? sizeof...(Indexes) - 1 : 2)>());
+    }
+}
+
+TEST_TYPES(Param, testInterleavingScatter,
+           (outer_product<Typelist<ALL_VECTORS>,
+                          Typelist<std::integral_constant<std::size_t, 2>,
+                                   std::integral_constant<std::size_t, 3>,
+                                   std::integral_constant<std::size_t, 4>,
+                                   std::integral_constant<std::size_t, 5>,
+                                   std::integral_constant<std::size_t, 6>,
+                                   std::integral_constant<std::size_t, 7>,
+                                   std::integral_constant<std::size_t, 8>>>))
+{
+    typedef typename Param::template at<0> V;
+    constexpr auto StructSize = Param::template at<1>::value;
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
@@ -398,45 +349,19 @@ template<typename V, size_t StructSize> void testInterleavingScatterImpl()
         I indexes = (I::Random() >> 10) & I(NMask);
         if (I::Size != 1) {
             // ensure the indexes are unique
-            while(!(indexes.sorted() == indexes.sorted().rotated(1)).isEmpty()) {
+            while(any_of(indexes.sorted() == rotate(indexes.sorted()))) {
                 indexes = (I::Random() >> 10) & I(NMask);
             }
         }
-        VERIFY(indexes >= 0);
-        VERIFY(indexes < N);
+        VERIFY(all_of(indexes >= 0));
+        VERIFY(all_of(indexes < N));
 
-        TestInterleavingScatterCompare<V, StructSize, true>::test(data_v, indexes);
+        testInterleavingScatterCompare<V>(data_v, indexes,
+                                          Vc::make_index_sequence<StructSize>());
     }
 
     for (size_t i = 0; i < N - V::Size; ++i) {
-        TestInterleavingScatterCompare<V, StructSize, false>::test(data_v, i);
+        testInterleavingScatterCompare<V>(data_v, i,
+                                          Vc::make_index_sequence<StructSize>());
     }
-}
-
-template<typename V> void testInterleavingScatter()
-{
-    testInterleavingScatterImpl<V, 2>();
-    testInterleavingScatterImpl<V, 3>();
-    testInterleavingScatterImpl<V, 4>();
-    testInterleavingScatterImpl<V, 5>();
-    testInterleavingScatterImpl<V, 6>();
-    testInterleavingScatterImpl<V, 7>();
-    testInterleavingScatterImpl<V, 8>();
-}
-
-void testmain()
-{
-    runTest(testDeinterleave<float_float>);
-    runTest(testDeinterleave<float_ushort>);
-    runTest(testDeinterleave<float_short>);
-    runTest(testDeinterleave<double_double>);
-    runTest(testDeinterleave<int_int>);
-    runTest(testDeinterleave<int_short>);
-    runTest(testDeinterleave<uint_uint>);
-    runTest(testDeinterleave<uint_ushort>);
-    runTest(testDeinterleave<short_short>);
-    runTest(testDeinterleave<ushort_ushort>);
-
-    testAllTypes(testDeinterleaveGather);
-    testAllTypes(testInterleavingScatter);
 }

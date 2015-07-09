@@ -22,28 +22,17 @@
 
 #include <type_traits>
 
+#include "traits/type_traits.h"
 #include "common/macros.h"
-Vc_PUBLIC_NAMESPACE_BEGIN
-
-template<typename T>
-struct is_simd_mask : public std::integral_constant<bool,
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  float_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, double_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,   uint_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  short_m>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, ushort_m>::value>
-    {};
-
-template<typename T>
-struct is_simd_vector : public std::integral_constant<bool,
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  float_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, double_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,   uint_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  short_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, ushort_v>::value>
-    {};
+namespace Vc_VERSIONED_NAMESPACE
+{
+using Traits::is_simd_mask;
+using Traits::is_simd_vector;
+using Traits::is_integral;
+using Traits::is_floating_point;
+using Traits::is_arithmetic;
+using Traits::is_signed;
+using Traits::is_unsigned;
 
 template<typename T>
 struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {};
@@ -51,42 +40,7 @@ struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {};
 template<> struct memory_alignment<short_v> : public std::integral_constant<size_t, short_v::MemoryAlignment> {};
 template<> struct memory_alignment<ushort_v> : public std::integral_constant<size_t, ushort_v::MemoryAlignment> {};
 
-template<typename T>
-struct is_integral : public std::integral_constant<bool,
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,   uint_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  short_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, ushort_v>::value ||
-    std::is_integral<T>::value>
-    {};
-
-template<typename T>
-struct is_floating_point : public std::integral_constant<bool,
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  float_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type, double_v>::value ||
-    std::is_floating_point<T>::value>
-    {};
-
-template<typename T>
-struct is_arithmetic : public std::integral_constant<bool,
-    is_floating_point<T>::value ||
-    is_integral<T>::value>
-    {};
-
-template<typename T>
-struct is_signed : public std::integral_constant<bool,
-    is_floating_point<T>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,    int_v>::value ||
-    std::is_same<typename std::remove_cv<typename std::remove_reference<T>::type>::type,  short_v>::value ||
-    std::is_signed<T>::value>
-    {};
-
-template<typename T>
-struct is_unsigned : public std::integral_constant<bool,
-    is_arithmetic<T>::value && !is_signed<T>::value>
-    {};
-
-Vc_NAMESPACE_END
+}
 
 #include "common/undomacros.h"
 

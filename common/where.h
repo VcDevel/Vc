@@ -1,31 +1,47 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
 #ifndef VC_COMMON_WHERE_H
 #define VC_COMMON_WHERE_H
 
+#include "types.h"
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
-
-namespace
+namespace Vc_VERSIONED_NAMESPACE
 {
+
+namespace WhereImpl
+{
+
+    /** \internal
+     * The default implementation covers Vc::Mask types and any \p _LValue type that implements an
+     * overload for the Vc::conditional_assign function.
+     */
     template<typename _Mask, typename _LValue> struct MaskedLValue
     {
         typedef _Mask Mask;
@@ -36,32 +52,73 @@ namespace
 
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         constexpr MaskedLValue(const Mask &m, LValue &l) : mask(m), lhs(l) {}
-#ifdef VC_NO_MOVE_CTOR
-        constexpr MaskedLValue(const MaskedLValue &) = default;
-#else
         MaskedLValue(const MaskedLValue &) = delete;
         constexpr MaskedLValue(MaskedLValue &&) = default;
-#endif
 
         /* It is intentional that the assignment operators return void: When a bool is used for the
          * mask the code might get skipped completely, thus nothing can be returned. This would be
          * like requiring an if statement to return a value.
          */
-        template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { lhs(mask)   = std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator +=(T &&rhs) { lhs(mask)  += std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator -=(T &&rhs) { lhs(mask)  -= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator *=(T &&rhs) { lhs(mask)  *= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator /=(T &&rhs) { lhs(mask)  /= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator %=(T &&rhs) { lhs(mask)  %= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator ^=(T &&rhs) { lhs(mask)  ^= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator &=(T &&rhs) { lhs(mask)  &= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator |=(T &&rhs) { lhs(mask)  |= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator<<=(T &&rhs) { lhs(mask) <<= std::forward<T>(rhs); }
-        template<typename T> Vc_ALWAYS_INLINE void operator>>=(T &&rhs) { lhs(mask) >>= std::forward<T>(rhs); }
+        template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { conditional_assign<Operator::          Assign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator +=(T &&rhs) { conditional_assign<Operator::      PlusAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator -=(T &&rhs) { conditional_assign<Operator::     MinusAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator *=(T &&rhs) { conditional_assign<Operator::  MultiplyAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator /=(T &&rhs) { conditional_assign<Operator::    DivideAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator %=(T &&rhs) { conditional_assign<Operator:: RemainderAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator ^=(T &&rhs) { conditional_assign<Operator::       XorAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator &=(T &&rhs) { conditional_assign<Operator::       AndAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator |=(T &&rhs) { conditional_assign<Operator::        OrAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator<<=(T &&rhs) { conditional_assign<Operator:: LeftShiftAssign>(lhs, mask, std::forward<T>(rhs)); }
+        template<typename T> Vc_ALWAYS_INLINE void operator>>=(T &&rhs) { conditional_assign<Operator::RightShiftAssign>(lhs, mask, std::forward<T>(rhs)); }
+        Vc_ALWAYS_INLINE void operator++()    { conditional_assign<Operator:: PreIncrement>(lhs, mask); }
+        Vc_ALWAYS_INLINE void operator++(int) { conditional_assign<Operator::PostIncrement>(lhs, mask); }
+        Vc_ALWAYS_INLINE void operator--()    { conditional_assign<Operator:: PreDecrement>(lhs, mask); }
+        Vc_ALWAYS_INLINE void operator--(int) { conditional_assign<Operator::PostDecrement>(lhs, mask); }
+    };
+
+    template <typename _Mask, typename T_, typename I_, typename S_>
+    struct MaskedLValue<_Mask, Common::SubscriptOperation<T_, I_, S_, true>>
+    {
+        typedef _Mask Mask;
+        typedef Common::SubscriptOperation<T_, I_, S_, true> SO;
+
+        const Mask &mask;
+        const SO lhs;
+
+        template <typename T> using Decay = typename std::decay<T>::type;
+
+        // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
+        constexpr MaskedLValue(const Mask &m, SO &&l) : mask(m), lhs(l) {}
+        MaskedLValue(const MaskedLValue &) = delete;
+        constexpr MaskedLValue(MaskedLValue &&) = default;
+
+        /* It is intentional that the assignment operators return void: When a bool is used for the
+         * mask the code might get skipped completely, thus nothing can be returned. This would be
+         * like requiring an if statement to return a value.
+         */
+        template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { std::forward<T>(rhs).scatter(lhs.scatterArguments(), mask); }
+        /*
+         * The following operators maybe make some sense. But only if implemented directly on the
+         * scalar objects in memory. Thus, the user is probably better of with a manual loop.
+         *
+         * If implemented the operators would need to do a masked gather, one operation, and a
+         * masked scatter. There is no way this is going to be efficient.
+         *
+        template<typename T> Vc_ALWAYS_INLINE void operator +=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  + std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator -=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  - std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator *=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  * std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator /=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  / std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator %=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  % std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator ^=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  ^ std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator &=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  & std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator |=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask)  | std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator<<=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask) << std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
+        template<typename T> Vc_ALWAYS_INLINE void operator>>=(T &&rhs) { (Decay<T>(lhs.gatherArguments(), mask) >> std::forward<T>(rhs)).scatter(lhs.scatterArguments(), mask); }
         Vc_ALWAYS_INLINE void operator++()    { ++lhs(mask); }
         Vc_ALWAYS_INLINE void operator++(int) { lhs(mask)++; }
         Vc_ALWAYS_INLINE void operator--()    { --lhs(mask); }
         Vc_ALWAYS_INLINE void operator--(int) { lhs(mask)--; }
+        */
     };
 
     template<typename _LValue> struct MaskedLValue<bool, _LValue>
@@ -74,12 +131,8 @@ namespace
 
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         constexpr MaskedLValue(const Mask &m, LValue &l) : mask(m), lhs(l) {}
-#ifdef VC_NO_MOVE_CTOR
-        constexpr MaskedLValue(const MaskedLValue &) = default;
-#else
         MaskedLValue(const MaskedLValue &) = delete;
         constexpr MaskedLValue(MaskedLValue &&) = default;
-#endif
 
         template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { if (mask) lhs   = std::forward<T>(rhs); }
         template<typename T> Vc_ALWAYS_INLINE void operator +=(T &&rhs) { if (mask) lhs  += std::forward<T>(rhs); }
@@ -107,6 +160,16 @@ namespace
         constexpr WhereMask(const Mask &m) : mask(m) {}
         WhereMask(const WhereMask &) = delete;
 
+        template <typename T, typename I, typename S>
+        constexpr Vc_WARN_UNUSED_RESULT
+            MaskedLValue<Mask, Common::SubscriptOperation<T, I, S, true>>
+            operator|(Common::SubscriptOperation<T, I, S, true> &&lhs) const
+        {
+            static_assert(!std::is_const<T>::value,
+                          "masked scatter to constant memory not possible.");
+            return {mask, std::move(lhs)};
+        }
+
         template<typename T> constexpr Vc_WARN_UNUSED_RESULT MaskedLValue<Mask, T> operator|(T &&lhs) const
         {
             static_assert(std::is_lvalue_reference<T>::value, "Syntax error: Incorrect use of Vc::where. Maybe operator precedence got you by surprise. Examples of correct usage:\n"
@@ -123,7 +186,7 @@ namespace
             return operator|(std::forward<T>(lhs));
         }
     };
-} // anonymous namespace
+}  // namespace WhereImpl
 
 /**
  * \ingroup Utilities
@@ -164,21 +227,17 @@ namespace
  * Most of the time the required operation is a masked assignment as stated in \c f2.
  *
  */
-template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> where(const M &mask)
+template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereImpl::WhereMask<M> where(const M &mask)
 {
     return { mask };
 }
 
-template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereMask<M> _if(const M &m)
+template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereImpl::WhereMask<M> _if(const M &m)
 {
     return { m };
 }
 
-Vc_NAMESPACE_END
-
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-    using Vc::where;
-Vc_NAMESPACE_END
+}  // namespace Vc
 
 #include "undomacros.h"
 

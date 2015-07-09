@@ -1,28 +1,40 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #ifndef VC_SCALAR_MATH_H
 #define VC_SCALAR_MATH_H
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Scalar
+{
 template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
 {
     return a.copySign(b);
@@ -44,15 +56,14 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> rsqrt(const Vector<T> &x)
     const typename Vector<T>::EntryType one = 1; return Vector<T>(one / std::sqrt(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> abs  (const Vector<T> &x)
+template <typename T,
+          typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
+                               std::is_same<T, short>::value ||
+                               std::is_same<T, int>::value>>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
 {
-    return Vector<T>(std::abs(x.data()));
+    return std::abs(x.data());
 }
-
-template<> Vc_ALWAYS_INLINE int_v abs(const int_v &x) { return x < 0 ? -x : x; }
-template<> Vc_ALWAYS_INLINE uint_v abs(const uint_v &x) { return x; }
-template<> Vc_ALWAYS_INLINE short_v abs(const short_v &x) { return x < 0 ? -x : x; }
-template<> Vc_ALWAYS_INLINE ushort_v abs(const ushort_v &x) { return x; }
 
 template<typename T> static Vc_ALWAYS_INLINE void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
 {
@@ -204,21 +215,22 @@ template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(cons
             );
 }
 
-Vc_ALWAYS_INLINE Vector<float> frexp(Vector<float> x, Vector<int> *e) {
-    return float_v(::frexpf(x.data(), &e->data()));
+Vc_ALWAYS_INLINE Vector<float> frexp(Vector<float> x, simdarray<int, 1, Vector<int>, 1> *e) {
+    return float_v(std::frexp(x.data(), &internal_data(*e).data()));
 }
-Vc_ALWAYS_INLINE Vector<double> frexp(Vector<double> x, Vector<int> *e) {
-    return double_v(::frexp(x.data(), &e->data()));
-}
-
-Vc_ALWAYS_INLINE Vector<float> ldexp(Vector<float> x, Vector<int> e) {
-    return float_v(::ldexpf(x.data(), e.data()));
-}
-Vc_ALWAYS_INLINE Vector<double> ldexp(Vector<double> x, Vector<int> e) {
-    return double_v(::ldexp(x.data(), e.data()));
+Vc_ALWAYS_INLINE Vector<double> frexp(Vector<double> x, simdarray<int, 1, Vector<int>, 1> *e) {
+    return double_v(std::frexp(x.data(), &internal_data(*e).data()));
 }
 
-Vc_IMPL_NAMESPACE_END
+Vc_ALWAYS_INLINE Vector<float> ldexp(Vector<float> x, const simdarray<int, 1, Vector<int>, 1> &e) {
+    return float_v(std::ldexp(x.data(), internal_data(e).data()));
+}
+Vc_ALWAYS_INLINE Vector<double> ldexp(Vector<double> x, const simdarray<int, 1, Vector<int>, 1> &e) {
+    return double_v(std::ldexp(x.data(), internal_data(e).data()));
+}
+
+}  // namespace Scalar
+}  // namespace Vc
 
 #include "undomacros.h"
 

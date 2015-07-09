@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -22,7 +31,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 // copysign {{{1
 template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
@@ -81,7 +93,8 @@ static Vc_ALWAYS_INLINE double_m isnan(double_v x)
     return _mm512_cmpunord_pd_mask(x.data(), x.data());
 }
 // frexp {{{1
-inline double_v frexp(double_v::AsArg v, int_v *e) {
+inline double_v frexp(double_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> *e)
+{
     const __m512i vi = mic_cast<__m512i>(v.data());
     const __m512i exponentBits = _set1(0x7ff0000000000000ull);
     const __m512i exponentPart = _and(vi, exponentBits);
@@ -91,9 +104,10 @@ inline double_v frexp(double_v::AsArg v, int_v *e) {
                 _mm512_set1_epi64(zeroMask),
                 _load(c_general::frexpAndMask, _MM_UPCONV_EPI32_UINT8)),
             _mm512_setzero_epi32());
-    e->data() = _mm512_mask_sub_epi32(_mm512_setzero_epi32(), zeroMask2,
-            _mm512_srli_epi32(_mm512_swizzle_epi32(exponentPart, _MM_SWIZ_REG_CDAB), 20),
-            _set1(0x3fe));
+    internal_data(*e).data() = _mm512_mask_sub_epi32(
+        _mm512_setzero_epi32(), zeroMask2,
+        _mm512_srli_epi32(_mm512_swizzle_epi32(exponentPart, _MM_SWIZ_REG_CDAB), 20),
+        _set1(0x3fe));
     const __m512i exponentMaximized = _or(vi, exponentBits);
     const __mmask8 nonzeroNumber = _mm512_kand(isfinite(v).data(),
                _mm512_cmpneq_pd_mask(v.data(), _mm512_setzero_pd()));
@@ -101,13 +115,14 @@ inline double_v frexp(double_v::AsArg v, int_v *e) {
                 exponentMaximized, _set1(0xbfefffffffffffffull)));
     return ret;
 }
-inline float_v frexp(float_v::AsArg v, int_v *e) {
+inline float_v frexp(float_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> *e) {
     const __m512i vi = mic_cast<__m512i>(v.data());
     const __m512i exponentBits = _set1(0x7f800000u);
     const __m512i exponentPart = _and(vi, exponentBits);
     const __mmask16 zeroMask = _mm512_cmpneq_ps_mask(v.data(), _mm512_setzero_ps());
-    e->data() = _mm512_mask_sub_epi32(_mm512_setzero_epi32(), zeroMask,
-            _mm512_srli_epi32(exponentPart, 23), _set1(0x7e));
+    internal_data(*e).data() =
+        _mm512_mask_sub_epi32(_mm512_setzero_epi32(), zeroMask,
+                              _mm512_srli_epi32(exponentPart, 23), _set1(0x7e));
     const __m512i exponentMaximized = _or(vi, exponentBits);
     const __mmask16 nonzeroNumber = _mm512_kand(isfinite(v).data(),
                _mm512_cmpneq_ps_mask(v.data(), _mm512_setzero_ps()));
@@ -116,22 +131,23 @@ inline float_v frexp(float_v::AsArg v, int_v *e) {
     return ret;
 }
 // ldexp {{{1
-Vc_ALWAYS_INLINE double_v ldexp(double_v::AsArg v, int_v::AsArg _e)
+Vc_ALWAYS_INLINE double_v ldexp(double_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> _e)
 {
-    __m512i e = _mm512_mask_xor_epi64(_e.data(), (v == double_v::Zero()).data(),
-            _e.data(), _e.data());
+    const auto e__ = internal_data(_e).data();
+    __m512i e = _mm512_mask_xor_epi64(e__, (v == double_v::Zero()).data(), e__, e__);
     const __m512i exponentBits = _mm512_mask_slli_epi32(_mm512_setzero_epi32(),
             0xaaaa, _mm512_swizzle_epi32(e, _MM_SWIZ_REG_CDAB), 20);
     return mic_cast<__m512d>(_mm512_add_epi32(mic_cast<__m512i>(v.data()), exponentBits));
 }
-Vc_ALWAYS_INLINE float_v ldexp(float_v::AsArg v, int_v::AsArg _e)
+Vc_ALWAYS_INLINE float_v ldexp(float_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> _e)
 {
-    int_v e = _e;
+    int_v e = internal_data(_e);
     e.setZero(static_cast<int_m>(v == float_v::Zero()));
     return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
 }
 //}}}1
-Vc_NAMESPACE_END
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 

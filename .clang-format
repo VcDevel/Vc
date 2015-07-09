@@ -18,6 +18,8 @@ AllowShortIfStatementsOnASingleLine: false
 #    If true, while (true) continue; can be put on a single line.
 AllowShortLoopsOnASingleLine: false
 
+AllowShortFunctionsOnASingleLine: true
+
 #    If true, always break before multiline string literals.
 AlwaysBreakBeforeMultilineStrings: false
 
@@ -25,7 +27,7 @@ AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: false
 
 #    If false, a function call’s or function definition’s parameters will either all be on the same line or will have one line each.
-BinPackParameters: false
+BinPackParameters: true
 
 #    If true, binary operators will be placed after line breaks.
 BreakBeforeBinaryOperators: false
@@ -43,7 +45,7 @@ BreakConstructorInitializersBeforeComma: true
 
 #    The column limit.
 #    A column limit of 0 means that there is no column limit. In this case, clang-format will respect the input’s line breaking decisions within statements.
-ColumnLimit: 100
+ColumnLimit: 90
 
 #    If the constructor initializers don’t fit on a line, put each initializer on its own line.
 #ConstructorInitializerAllOnOneLineOrOnePerLine (bool)

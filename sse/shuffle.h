@@ -1,35 +1,47 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2011-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #ifndef VC_SSE_SHUFFLE_H
 #define VC_SSE_SHUFFLE_H
 
+#include "intrinsics.h"
 #include "macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
     enum VecPos {
         X0, X1, X2, X3, X4, X5, X6, X7,
-        Y0, Y1, Y2, Y3, Y4, Y5, Y6, Y7
+        Y0, Y1, Y2, Y3, Y4, Y5, Y6, Y7,
+        Const0
     };
-Vc_NAMESPACE_END
 
-Vc_NAMESPACE_BEGIN(Mem)
+namespace Mem
+{
         // shuffle<X1, X2, Y0, Y2>([x0 x1 x2 x3], [y0 y1 y2 y3]) = [x1 x2 y0 y2]
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128 Vc_CONST shuffle(__m128 x, __m128 y) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
@@ -45,20 +57,17 @@ Vc_NAMESPACE_BEGIN(Mem)
         }
 
         // shuffle<X1, Y0>([x0 x1], [y0 y1]) = [x1 y0]
-        template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE __m128i Vc_CONST shuffle(__m128i x, __m128i y) {
-            static_assert(Dst0 >= X0 && Dst1 >= Y0, "Incorrect_Range");
-            static_assert(Dst0 <= X1 && Dst1 <= Y1, "Incorrect_Range");
-            return _mm_castpd_si128(_mm_shuffle_pd(_mm_castsi128_pd(x), _mm_castsi128_pd(y), Dst0 + (Dst1 - Y0) * 2));
+        template <VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3>
+        Vc_INTRINSIC Vc_CONST __m128i shuffle(__m128i x, __m128i y)
+        {
+            return _mm_castps_si128(shuffle<Dst0,Dst1,Dst2,Dst3>(_mm_castsi128_ps(x), _mm_castsi128_ps(y)));
         }
 
         // blend<X0, Y1>([x0 x1], [y0, y1]) = [x0 y1]
         template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE __m128d Vc_CONST blend(__m128d x, __m128d y) {
             static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
             static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
-#if !defined(VC_IMPL_SSE4_1) && !defined(VC_IMPL_AVX)
-            using Vc::SSE::_mm_blend_pd;
-#endif
-            return _mm_blend_pd(x, y, (Dst0 / Y0) + (Dst1 / Y0) * 2);
+            return Vc::SseIntrinsics::blend_pd<(Dst0 / Y0) + (Dst1 / Y0) * 2>(x, y);
         }
 
         // blend<X0, Y1>([x0 x1], [y0, y1]) = [x0 y1]
@@ -67,12 +76,8 @@ Vc_NAMESPACE_BEGIN(Mem)
             static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
             static_assert(Dst2 == X2 || Dst2 == Y2, "Incorrect_Range");
             static_assert(Dst3 == X3 || Dst3 == Y3, "Incorrect_Range");
-#if !defined(VC_IMPL_SSE4_1) && !defined(VC_IMPL_AVX)
-            using Vc::SSE::_mm_blend_ps;
-#endif
-            return _mm_blend_ps(x, y,
-                    (Dst0 / Y0) *  1 + (Dst1 / Y1) *  2 +
-                    (Dst2 / Y2) *  4 + (Dst3 / Y3) *  8);
+            return Vc::SseIntrinsics::blend_ps<(Dst0 / Y0) * 1 + (Dst1 / Y1) * 2 +
+                                               (Dst2 / Y2) * 4 + (Dst3 / Y3) * 8>(x, y);
         }
 
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
@@ -85,15 +90,10 @@ Vc_NAMESPACE_BEGIN(Mem)
             static_assert(Dst5 == X5 || Dst5 == Y5, "Incorrect_Range");
             static_assert(Dst6 == X6 || Dst6 == Y6, "Incorrect_Range");
             static_assert(Dst7 == X7 || Dst7 == Y7, "Incorrect_Range");
-#if !defined(VC_IMPL_SSE4_1) && !defined(VC_IMPL_AVX)
-            using Vc::SSE::_mm_blend_epi16;
-#endif
-            return _mm_blend_epi16(x, y,
-                    (Dst0 / Y0) *  1 + (Dst1 / Y1) *  2 +
-                    (Dst2 / Y2) *  4 + (Dst3 / Y3) *  8 +
-                    (Dst4 / Y4) * 16 + (Dst5 / Y5) * 32 +
-                    (Dst6 / Y6) * 64 + (Dst7 / Y7) *128
-                    );
+            return Vc::SseIntrinsics::blend_epi16<
+                (Dst0 / Y0) * 1 + (Dst1 / Y1) * 2 + (Dst2 / Y2) * 4 + (Dst3 / Y3) * 8 +
+                (Dst4 / Y4) * 16 + (Dst5 / Y5) * 32 + (Dst6 / Y6) * 64 +
+                (Dst7 / Y7) * 128>(x, y);
         }
 
         // permute<X1, X2, Y0, Y2>([x0 x1 x2 x3], [y0 y1 y2 y3]) = [x1 x2 y0 y2]
@@ -101,6 +101,12 @@ Vc_NAMESPACE_BEGIN(Mem)
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
             return _mm_shuffle_ps(x, x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+        }
+
+        template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE Vc_CONST __m128d permute(__m128d x) {
+            static_assert(Dst0 >= X0 && Dst1 >= X0, "Incorrect_Range");
+            static_assert(Dst0 <= X1 && Dst1 <= X1, "Incorrect_Range");
+            return _mm_shuffle_pd(x, x, Dst0 + Dst1 * 4);
         }
 
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128i Vc_CONST permute(__m128i x) {
@@ -135,10 +141,11 @@ Vc_NAMESPACE_BEGIN(Mem)
             }
             return x;
         }
-Vc_NAMESPACE_END
+}  // namespace Mem
 
     // The shuffles and permutes above use memory ordering. The ones below use register ordering:
-Vc_NAMESPACE_BEGIN(Reg)
+namespace Reg
+{
         // shuffle<Y2, Y0, X2, X1>([x3 x2 x1 x0], [y3 y2 y1 y0]) = [y2 y0 x2 x1]
         template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128 Vc_CONST shuffle(__m128 x, __m128 y) {
             return Mem::shuffle<Dst0, Dst1, Dst2, Dst3>(x, y);
@@ -171,7 +178,8 @@ Vc_NAMESPACE_BEGIN(Reg)
         template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128 Vc_CONST blend(__m128 x, __m128 y) {
             return Mem::blend<Dst0, Dst1, Dst2, Dst3>(x, y);
         }
-Vc_NAMESPACE_END
+}  // namespace Reg
+}  // namespace Vc
 
 #include "undomacros.h"
 

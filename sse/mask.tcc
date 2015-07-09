@@ -1,25 +1,37 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 namespace internal {
 
 // mask_cast/*{{{*/
@@ -158,7 +170,7 @@ template<> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
     *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(k2);
 #else
     *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(k2);
-    *reinterpret_cast<boolAlias *>(mem + 4) = _mm_extract_epi32(k2, 1);
+    *reinterpret_cast<boolAlias *>(mem + 4) = extract_epi32<1>(k2);
 #endif
 }
 /*}}}*/
@@ -191,12 +203,12 @@ template<typename T> Vc_ALWAYS_INLINE void Mask<T>::store(bool *mem) const
 }
 template<> Vc_ALWAYS_INLINE void Mask<double>::load(const bool *mem)
 {
-    d.m(0) = mem[0];
-    d.m(1) = mem[1];
+    d.set(0, MaskBool(mem[0]));
+    d.set(1, MaskBool(mem[1]));
 }
-template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
+template <typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
 {
-    d.v() = internal::mask_load<Size>(mem);
+    d.v() = sse_cast<VectorType>(internal::mask_load<Size>(mem));
 }
 
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
@@ -216,7 +228,87 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE int Mask<T>::firstOne() const
 /*operators{{{*/
 /*}}}*/
 
-Vc_NAMESPACE_END
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 2>)
+{
+    return _mm_set_epi64x(gen(1) ? 0xffffffffffffffffull : 0,
+                          gen(0) ? 0xffffffffffffffffull : 0);
+}
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4>)
+{
+    return _mm_setr_epi32(gen(0) ? 0xfffffffful : 0, gen(1) ? 0xfffffffful : 0,
+                          gen(2) ? 0xfffffffful : 0, gen(3) ? 0xfffffffful : 0);
+}
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8>)
+{
+    return _mm_setr_epi16(gen(0) ? 0xffffu : 0, gen(1) ? 0xffffu : 0,
+                          gen(2) ? 0xffffu : 0, gen(3) ? 0xffffu : 0,
+                          gen(4) ? 0xffffu : 0, gen(5) ? 0xffffu : 0,
+                          gen(6) ? 0xffffu : 0, gen(7) ? 0xffffu : 0);
+}
+template <typename T>
+template <typename G>
+Vc_INTRINSIC Mask<T> Mask<T>::generate(G &&gen)
+{
+    return generate_impl<Mask<T>>(std::forward<G>(gen),
+                                  std::integral_constant<int, Size>());
+}
+// shifted {{{1
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(amount > 0), T> shifted_impl(T k)
+{
+    return _mm_srli_si128(k, amount);
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(amount < 0), T> shifted_impl(T k)
+{
+    return _mm_slli_si128(k, -amount);
+}
+template <typename T> Vc_INTRINSIC Vc_PURE Mask<T> Mask<T>::shifted(int amount) const
+{
+    switch (amount * int(sizeof(VectorEntryType))) {
+    case   0: return *this;
+    case   1: return shifted_impl<  1>(dataI());
+    case   2: return shifted_impl<  2>(dataI());
+    case   3: return shifted_impl<  3>(dataI());
+    case   4: return shifted_impl<  4>(dataI());
+    case   5: return shifted_impl<  5>(dataI());
+    case   6: return shifted_impl<  6>(dataI());
+    case   7: return shifted_impl<  7>(dataI());
+    case   8: return shifted_impl<  8>(dataI());
+    case   9: return shifted_impl<  9>(dataI());
+    case  10: return shifted_impl< 10>(dataI());
+    case  11: return shifted_impl< 11>(dataI());
+    case  12: return shifted_impl< 12>(dataI());
+    case  13: return shifted_impl< 13>(dataI());
+    case  14: return shifted_impl< 14>(dataI());
+    case  15: return shifted_impl< 15>(dataI());
+    case  16: return shifted_impl< 16>(dataI());
+    case  -1: return shifted_impl< -1>(dataI());
+    case  -2: return shifted_impl< -2>(dataI());
+    case  -3: return shifted_impl< -3>(dataI());
+    case  -4: return shifted_impl< -4>(dataI());
+    case  -5: return shifted_impl< -5>(dataI());
+    case  -6: return shifted_impl< -6>(dataI());
+    case  -7: return shifted_impl< -7>(dataI());
+    case  -8: return shifted_impl< -8>(dataI());
+    case  -9: return shifted_impl< -9>(dataI());
+    case -10: return shifted_impl<-10>(dataI());
+    case -11: return shifted_impl<-11>(dataI());
+    case -12: return shifted_impl<-12>(dataI());
+    case -13: return shifted_impl<-13>(dataI());
+    case -14: return shifted_impl<-14>(dataI());
+    case -15: return shifted_impl<-15>(dataI());
+    case -16: return shifted_impl<-16>(dataI());
+    }
+    return Zero();
+}
+// }}}1
+
+}
+}
 
 #include "undomacros.h"
 

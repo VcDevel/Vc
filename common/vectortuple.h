@@ -1,144 +1,168 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
 #ifndef VC_COMMON_VECTORTUPLE_H
 #define VC_COMMON_VECTORTUPLE_H
 
+#include "transpose.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
-template<size_t StructSize, typename V, typename I> struct InterleavedMemoryReadAccess;
+template<size_t StructSize, typename V, typename I, bool Readonly = true> struct InterleavedMemoryReadAccess;
 
-template<int Length, typename V> struct VectorTuple;
-template<typename V> struct VectorTuple<2, V>
+template <int Length, typename V> class VectorReferenceArray
 {
     typedef typename V::EntryType T;
     typedef V &VC_RESTRICT Reference;
-    Reference l, r;
+    std::array<V * VC_RESTRICT, Length> r;
 
-    constexpr VectorTuple(Reference a, Reference b)
-        : l(a), r(b)
+    typedef make_index_sequence<Length> IndexSequence;
+
+    template <typename VV, std::size_t... Indexes>
+    constexpr VectorReferenceArray<Length + 1, VV> appendOneReference(
+        VV &a, index_sequence<Indexes...>) const
+    {
+        return {*r[Indexes]..., a};
+    }
+
+    template <typename A, std::size_t... Indexes>
+    Vc_INTRINSIC void callDeinterleave(const A &access, index_sequence<Indexes...>) const
+    {
+        access.deinterleave(*r[Indexes]...);
+    }
+
+public:
+    template <typename... Us, typename = enable_if<(sizeof...(Us) == Length)>>
+    constexpr VectorReferenceArray(Us &&... args)
+        : r{{std::addressof(std::forward<Us>(args))...}}
     {
     }
 
-    constexpr VectorTuple<3, V> operator,(V &a) const
+    template <typename VV, typename = enable_if<!std::is_const<V>::value &&
+                                                std::is_same<VV, V>::value>>
+    VC_DEPRECATED("build the tuple with Vc::tie instead")
+    constexpr VectorReferenceArray<Length + 1, V> operator, (VV & a) const
     {
-        return VectorTuple<3, V>(*this, a);
+        return appendOneReference(a, IndexSequence());
     }
 
-    constexpr VectorTuple<3, const V> operator,(const V &a) const
+    VC_DEPRECATED("build the tuple with Vc::tie instead")
+    constexpr VectorReferenceArray<Length + 1, const V> operator, (const V &a) const
     {
-        return VectorTuple<3, const V>(*this, a);
+        return appendOneReference(a, IndexSequence());
     }
 
-    template<size_t StructSize, typename I>
-    Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V, I> &access) const
+    template <size_t StructSize, typename I, bool RO>
+    Vc_ALWAYS_INLINE enable_if<(Length <= StructSize), void> operator=(
+        const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access)
     {
-        static_assert(2 <= StructSize, "You_are_trying_to_extract_more_data_from_the_struct_than_it_has");
-        access.deinterleave(l, r);
+        callDeinterleave(access, IndexSequence());
     }
+
+    template <size_t StructSize, typename I, bool RO>
+    enable_if<(Length > StructSize), void> operator=(
+        const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access) =
+        delete;  //("You are trying to extract more data from the struct than it has");
+
+    template <typename... Inputs> void operator=(TransposeProxy<Inputs...> &&proxy)
+    {
+        transpose_impl<Length>(&r[0], proxy);
+    }
+
+    template <typename T, typename IndexVector, typename Scale, bool Flag>
+    void operator=(const SubscriptOperation<T, IndexVector, Scale, Flag> &sub)
+    {
+        const auto &args = sub.gatherArguments();
+        //const IndexVector args.indexes;
+        //const T *const args.address;
+        Common::InterleavedMemoryReadAccess<1, V, Traits::decay<decltype(args.indexes)>>
+            deinterleaver(args.address, args.indexes);
+        callDeinterleave(deinterleaver, IndexSequence());
+    }
+
+    Vc_ALWAYS_INLINE Reference operator[](std::size_t i) { return *r[i]; }
 };
 
-template<typename V> struct VectorTuple<2, const V>
+}  // namespace Common
+
+template <typename V, typename... Vs>
+constexpr Common::VectorReferenceArray<sizeof...(Vs) + 1,
+                                       typename std::remove_reference<V>::type>
+    tie(V &&a, Vs &&... b)
 {
-    typedef typename V::EntryType T;
-    typedef const V &VC_RESTRICT Reference;
-    Reference l, r;
-
-    constexpr VectorTuple(Reference a, Reference b)
-        : l(a), r(b)
-    {
-    }
-
-    constexpr VectorTuple<3, const V> operator,(const V &a) const
-    {
-        return VectorTuple<3, const V>(*this, a);
-    }
-};
-
-#define _VC_VECTORTUPLE_SPECIALIZATION(LENGTH, parameters) \
-template<typename V> struct VectorTuple<LENGTH, V> \
-{ \
-    typedef typename V::EntryType T; \
-    typedef V &VC_RESTRICT Reference; \
-    const VectorTuple<LENGTH - 1, V> &l; \
-    Reference r; \
- \
-    constexpr VectorTuple(const VectorTuple<LENGTH - 1, V> &tuple, Reference a) \
-        : l(tuple), r(a) \
-    { \
-    } \
- \
-    constexpr VectorTuple<LENGTH + 1, V> operator,(V &a) const \
-    { \
-        return VectorTuple<LENGTH + 1, V>(*this, a); \
-    } \
- \
-    template<size_t StructSize, typename I> \
-    Vc_ALWAYS_INLINE void operator=(const InterleavedMemoryReadAccess<StructSize, V, I> &access) const \
-    { \
-        static_assert(LENGTH <= StructSize, "You_are_trying_to_extract_more_data_from_the_struct_than_it_has"); \
-        access.deinterleave parameters; \
-    } \
-}; \
-template<typename V> struct VectorTuple<LENGTH, const V> \
-{ \
-    typedef typename V::EntryType T; \
-    typedef const V &VC_RESTRICT Reference; \
-    const VectorTuple<LENGTH - 1, const V> &l; \
-    Reference r; \
- \
-    constexpr VectorTuple(const VectorTuple<LENGTH - 1, const V> &tuple, Reference a) \
-        : l(tuple), r(a) \
-    { \
-    } \
- \
-    constexpr VectorTuple<LENGTH + 1, const V> operator,(const V &a) const \
-    { \
-        return VectorTuple<LENGTH + 1, const V>(*this, a); \
-    } \
-}
-_VC_VECTORTUPLE_SPECIALIZATION(3, (l.l, l.r, r));
-_VC_VECTORTUPLE_SPECIALIZATION(4, (l.l.l, l.l.r, l.r, r));
-_VC_VECTORTUPLE_SPECIALIZATION(5, (l.l.l.l, l.l.l.r, l.l.r, l.r, r));
-_VC_VECTORTUPLE_SPECIALIZATION(6, (l.l.l.l.l, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
-_VC_VECTORTUPLE_SPECIALIZATION(7, (l.l.l.l.l.l, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
-_VC_VECTORTUPLE_SPECIALIZATION(8, (l.l.l.l.l.l.l, l.l.l.l.l.l.r, l.l.l.l.l.r, l.l.l.l.r, l.l.l.r, l.l.r, l.r, r));
-//        static_assert(false, "You_are_gathering_too_many_vectors__This_is_not_implemented");
-
-Vc_NAMESPACE_END
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-
-template<typename T>
-constexpr Common::VectorTuple<2, Vc::Vector<T> > operator,(Vc::Vector<T> &a, Vc::Vector<T> &b)
-{
-    return Common::VectorTuple<2, Vc::Vector<T> >(a, b);
+    return {std::forward<V>(a), std::forward<Vs>(b)...};
 }
 
-template<typename T>
-constexpr Common::VectorTuple<2, const Vc::Vector<T> > operator,(const Vc::Vector<T> &a, const Vc::Vector<T> &b)
+namespace Scalar
 {
-    return Common::VectorTuple<2, const Vc::Vector<T> >(a, b);
+    using Vc::tie;
+}  // namespace Scalar
+namespace SSE
+{
+    using Vc::tie;
+}  // namespace Scalar
+namespace AVX
+{
+    using Vc::tie;
+}  // namespace Scalar
+namespace AVX2
+{
+    using Vc::tie;
+}  // namespace Scalar
+namespace MIC
+{
+    using Vc::tie;
+}  // namespace Scalar
+
+namespace Vc_IMPL_NAMESPACE
+{
+template <typename T>
+VC_DEPRECATED("use Vc::tie instead")
+constexpr Common::VectorReferenceArray<2, Vc::Vector<T>>
+    operator, (Vc::Vector<T> & a, Vc::Vector<T> & b)
+{
+    return {a, b};
 }
 
-Vc_NAMESPACE_END
+template <typename T>
+VC_DEPRECATED("use Vc::tie instead")
+constexpr Common::VectorReferenceArray<2, const Vc::Vector<T>>
+    operator, (const Vc::Vector<T> &a, const Vc::Vector<T> &b)
+{
+    return {a, b};
+}
+
+}  // namespace Vc_IMPL_NAMESPACE
+}  // namespace Vc
 
 #include "undomacros.h"
 

@@ -1,21 +1,30 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2010-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2010-2011 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #include "unittest.h"
 #include <limits>
@@ -23,6 +32,371 @@
 
 using namespace Vc;
 
+// EXTRA_IMPL_VECTORS {{{1
+#ifdef VC_IMPL_Scalar
+#define EXTRA_IMPL_VECTORS
+#elif defined VC_IMPL_AVX2
+#define EXTRA_IMPL_VECTORS                                                               \
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
+        Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
+        Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v,          \
+        Vc::AVX::int_v, Vc::AVX::ushort_v, Vc::AVX::double_v, Vc::AVX::uint_v,           \
+        Vc::AVX::short_v, Vc::AVX::float_v
+#elif defined VC_IMPL_AVX
+#define EXTRA_IMPL_VECTORS                                                               \
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
+        Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
+        Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v
+#else
+#define EXTRA_IMPL_VECTORS                                                               \
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
+        Vc::Scalar::short_v, Vc::Scalar::float_v
+#endif
+
+// AllTestTypes {{{1
+#ifdef VC_DEFAULT_TYPES
+using AllTestTypes = outer_product<Typelist<ALL_VECTORS>, Typelist<ALL_VECTORS>>;
+#elif defined VC_EXTRA_TYPES
+using AllTestTypes =
+    concat<outer_product<Typelist<ALL_VECTORS>, Typelist<EXTRA_IMPL_VECTORS>>,
+           outer_product<Typelist<EXTRA_IMPL_VECTORS>, Typelist<ALL_VECTORS>>>;
+#elif defined VC_FROM_N
+#ifdef VC_TO_N
+using AllTestTypes =
+    outer_product<Typelist<SIMD_ARRAYS(VC_FROM_N)>, Typelist<SIMD_ARRAYS(VC_TO_N)>>;
+#else
+using AllTestTypes =
+    outer_product<Typelist<SIMD_ARRAYS(VC_FROM_N)>, Typelist<ALL_VECTORS>>;
+#endif
+#elif defined VC_TO_N
+using AllTestTypes =
+    outer_product<Typelist<ALL_VECTORS>, Typelist<SIMD_ARRAYS(VC_TO_N)>>;
+#endif
+
+// is_conversion_undefined {{{1
+/* implementation-defined
+ * ======================
+ * §4.7 p3 (integral conversions)
+ *  If the destination type is signed, the value is unchanged if it can be represented in the
+ *  destination type (and bit-field width); otherwise, the value is implementation-defined.
+ *
+ * undefined
+ * =========
+ * §4.9 p1 (floating-integral conversions)
+ *  floating point type can be converted to integer type.
+ *  The behavior is undefined if the truncated value cannot be
+ *  represented in the destination type.
+ *      p2
+ *  integer can be converted to floating point type.
+ *  If the value being converted is outside the range of values that can be represented, the
+ *  behavior is undefined.
+ */
+template <typename To, typename From>
+typename std::enable_if<
+    (std::is_arithmetic<From>::value && std::is_floating_point<From>::value &&
+     std::is_integral<To>::value),
+    bool>::type
+is_conversion_undefined(From x)
+{
+    if (x > static_cast<From>(std::numeric_limits<To>::max()) ||
+        x < static_cast<From>(std::numeric_limits<To>::min())) {
+        return true;
+    }
+    return false;
+}
+template <typename To, typename From>
+typename std::enable_if<
+    (std::is_arithmetic<From>::value &&
+     !(std::is_floating_point<From>::value && std::is_integral<To>::value)),
+    bool>::type
+is_conversion_undefined(From)
+{
+    return false;
+}
+
+template <typename To, typename From>
+typename std::enable_if<Vc::is_simd_vector<From>::value, typename From::Mask>::type
+    is_conversion_undefined(const From x)
+{
+    typename From::Mask k = false;
+    for (std::size_t i = 0; i < From::Size; ++i) {
+        k[i] = is_conversion_undefined(x[i]);
+    }
+}
+
+// ith_scalar {{{1
+template <typename V> inline typename V::EntryType ith_scalar(std::size_t i, const V &x)
+{
+    return x[i];
+}
+template <typename V, typename... Vs, typename = Vc::enable_if<(sizeof...(Vs) > 0)>>
+inline typename V::EntryType ith_scalar(std::size_t i, const V &x, const Vs &... xs)
+{
+    return i < V::Size ? x[i] : ith_scalar(i - V::Size, xs...);
+}
+// extraInformation {{{1
+static void doNothing(const std::initializer_list<void *> &) {}
+template <typename To, typename V0, typename... Vs>
+std::string extraInformation(const V0 &arg0, const Vs &... args)
+{
+    std::stringstream s;
+    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20) << arg0;
+    doNothing({&(s << ", " << args)...});
+    s << ')';
+    return s.str();
+}
+// rnd {{{1
+template <typename To, typename From>
+static Vc::enable_if<(Vc::Traits::is_floating_point<From>::value), From> rnd()
+{
+    using T = typename From::value_type;
+    auto r = (From::Random() - T(0.5)) *
+             T(std::numeric_limits<typename To::value_type>::max());
+    r.setZero(isnan(r));
+    return r;
+}
+template <typename To, typename From>
+static Vc::enable_if<(!Vc::Traits::is_floating_point<From>::value), From> rnd()
+{
+    return From::Random();
+}
+// cast_vector_impl {{{1
+template <typename To, typename From, typename... Froms>
+Vc::enable_if<(To::size() <= sizeof...(Froms) * From::size()), void> cast_vector_impl(
+    const From &, const Froms &...)
+{
+}
+
+template <typename To, typename From, typename... Froms>
+Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_impl(
+    const From &x0, const Froms &... xs)
+{
+    using T = typename To::EntryType;
+    auto result = simd_cast<To>(x0, xs...);
+#ifdef VC_GCC
+    // workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47226
+    // parameter pack expansion does not work inside lambda
+    typename From::EntryType input[(1 + sizeof...(Froms)) * From::Size];
+    for (std::size_t i = 0; i < (1 + sizeof...(Froms)) * From::Size; ++i) {
+        input[i] = ith_scalar(i, x0, xs...);
+    }
+#endif
+    const To reference = To::generate([&](std::size_t i) {
+        if (i >= (1 + sizeof...(Froms)) * From::Size) {
+            return T(0);
+        }
+#ifdef VC_GCC
+        if (is_conversion_undefined<T>(input[i])) {
+            result[i] = 0;
+            return T(0);
+        }
+        return static_cast<T>(input[i]);
+#else
+        const auto input = ith_scalar(i, x0, xs...);
+        if (is_conversion_undefined<T>(input)) {
+            result[i] = 0;
+            return T(0);
+        }
+        return static_cast<T>(input);
+#endif
+    });
+
+    COMPARE(result, reference) << extraInformation<To>(x0, xs...);
+    cast_vector_impl<To>(x0, rnd<To, From>(), xs...);
+}
+// cast_vector_split {{{1
+template <typename To, typename From, std::size_t Index = 0>
+Vc::enable_if<!(Index * To::Size < From::Size && To::Size < From::Size), void>
+    cast_vector_split(const From &)
+{
+}
+template <typename To, typename From, std::size_t Index = 0>
+Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
+    cast_vector_split(const From &x)
+{
+    using T = typename To::EntryType;
+    const auto result = simd_cast<To, Index>(x);
+    const To reference = To::generate([&](std::size_t i) {
+        if (i + Index * To::Size >= From::Size) {
+            return T(0);
+        }
+        const auto input = x[i + Index * To::Size];
+        return is_conversion_undefined<T>(input) ? result[i] : static_cast<T>(input);
+    });
+
+    COMPARE(result, reference) << "simd_cast<" << UnitTest::typeToString<To>() << ", "
+                               << Index << ">(" << x << ')';
+
+    cast_vector_split<To, From, Index + 1>(x);
+}
+TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
+{
+    using From = typename TList::template at<0>;
+    using To = typename TList::template at<1>;
+    using T = typename From::EntryType;
+
+    alignas(From) T testData[17 + 2 * From::Size] = {
+        std::numeric_limits<T>::min(),
+        T(0),
+        T(-1),
+        T(1),
+        std::numeric_limits<T>::max(),
+        T(std::numeric_limits<T>::max() - 1),
+        T(std::numeric_limits<T>::max() - 0xff),
+        T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 6 - 1)),
+        T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 6 - 1)),
+        T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 4 - 1)),
+        T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 4 - 1)),
+        T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 2 - 1)),
+        T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 2 - 1)),
+        T(std::numeric_limits<T>::max() - 0xff),
+        T(std::numeric_limits<T>::max() - 0x55),
+        T(-std::numeric_limits<T>::min()),
+        T(-std::numeric_limits<T>::max())};
+    rnd<To, From>().store(&testData[17], Vc::Unaligned);
+    for (std::size_t i = 0; i < 17 + From::Size; i += From::Size) {
+        const From v(&testData[i],
+                     Vc::Unaligned);  // Unaligned because From can be simdarray<T, Odd>
+        cast_vector_impl<To>(v);
+        cast_vector_split<To>(v);
+    }
+    cast_vector_split<To>(rnd<To, From>());
+}
+// mask_cast_1 {{{1
+template <typename To, typename From> void mask_cast_1(const From &mask)
+{
+    To casted = simd_cast<To>(mask);
+    std::size_t i = 0;
+    for (; i < std::min(To::Size, From::Size); ++i) {
+        COMPARE(casted[i], mask[i]) << "i: " << i << ", " << mask << " got converted to "
+                                    << UnitTest::typeToString<To>() << ": " << casted;
+    }
+    for (; i < To::Size; ++i) {
+        COMPARE(casted[i], false) << "i: " << i << ", " << mask << " got converted to "
+                                  << UnitTest::typeToString<To>() << ": " << casted;
+    }
+}
+// mask_cast_2 {{{1
+template <typename To, typename From>
+void mask_cast_2(const From &mask0, const From &mask1,
+                 Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
+{
+    To casted = simd_cast<To>(mask0, mask1);
+    std::size_t i = 0;
+    for (; i < From::Size; ++i) {
+        COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1
+                                     << " were converted to "
+                                     << UnitTest::typeToString<To>() << ": " << casted;
+    }
+    for (; i < std::min(To::Size, 2 * From::Size); ++i) {
+        COMPARE(casted[i], mask1[i - From::Size])
+            << "i: " << i << mask0 << mask1 << " were converted to "
+            << UnitTest::typeToString<To>() << ": " << casted;
+    }
+    for (; i < To::Size; ++i) {
+        COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << " were converted to "
+                                  << UnitTest::typeToString<To>() << ": " << casted;
+    }
+}
+template <typename To, typename From>
+void mask_cast_2(const From &, const From &,
+                 Vc::enable_if<!(To::size() > From::size())> = Vc::nullarg)
+{
+}
+// mask_cast_4 {{{1
+template <typename To, typename From>
+void mask_cast_4(const From &mask0, const From &mask1, const From &mask2,
+                 const From &mask3,
+                 Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
+{
+    To casted = simd_cast<To>(mask0, mask1, mask2, mask3);
+    std::size_t i = 0;
+    for (; i < From::Size; ++i) {
+        COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1 << mask2 << mask3
+                                     << " were converted to "
+                                     << UnitTest::typeToString<To>() << ": " << casted;
+    }
+    for (; i < std::min(To::Size, 2 * From::Size); ++i) {
+        COMPARE(casted[i], mask1[i - From::Size])
+            << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
+            << UnitTest::typeToString<To>() << ": " << casted;
+    }
+    for (; i < std::min(To::Size, 3 * From::Size); ++i) {
+        COMPARE(casted[i], mask2[i - 2 * From::Size])
+            << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
+            << UnitTest::typeToString<To>() << ": " << casted;
+    }
+    for (; i < std::min(To::Size, 4 * From::Size); ++i) {
+        COMPARE(casted[i], mask3[i - 3 * From::Size])
+            << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
+            << UnitTest::typeToString<To>() << ": " << casted;
+    }
+    for (; i < To::Size; ++i) {
+        COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << mask2 << mask3
+                                  << " were converted to " << UnitTest::typeToString<To>()
+                                  << ": " << casted;
+    }
+}
+template <typename To, typename From>
+void mask_cast_4(const From &, const From &, const From &, const From &,
+                 Vc::enable_if<!(To::size() > 2 * From::size())> = Vc::nullarg)
+{
+}
+// cast_mask_split {{{1
+template <typename To, typename From, std::size_t Index = 0>
+Vc::enable_if<!(Index * To::Size < From::Size && To::Size < From::Size), void>
+    cast_mask_split(const From &)
+{
+}
+template <typename To, typename From, std::size_t Index = 0>
+Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
+    cast_mask_split(const From &x)
+{
+    const auto result = simd_cast<To, Index>(x);
+    const To reference = To::generate([&](std::size_t i) {
+        return i + Index * To::Size >= From::Size ? false : x[i + Index * To::Size];
+    });
+
+    COMPARE(result, reference) << "simd_cast<" << UnitTest::typeToString<To>() << ", "
+                               << Index << ">(" << x << ')';
+
+    cast_mask_split<To, From, Index + 1>(x);
+}
+TEST_TYPES(TList, cast_mask, (AllTestTypes)) // {{{1
+{
+    using FromV = typename TList::template at<0>;
+    using ToV = typename TList::template at<1>;
+    using From = typename FromV::Mask;
+    using To = typename ToV::Mask;
+    std::vector<From> randomMasks(4, From{false});
+
+    UnitTest::withRandomMask<FromV>([&](const From &mask) {
+        std::rotate(randomMasks.begin(), randomMasks.begin() + 1, randomMasks.end());
+        randomMasks[0] = mask;
+        mask_cast_1<To>(randomMasks[0]);
+        mask_cast_2<To>(randomMasks[0], randomMasks[1]);
+        mask_cast_4<To>(randomMasks[0], randomMasks[1], randomMasks[2], randomMasks[3]);
+        cast_mask_split<To>(randomMasks[0]);
+    });
+}
+// }}}1
+#ifdef VC_DEFAULT_TYPES
+TEST(fullConversion)/*{{{*/
+{
+    float_v x = float_v::Random();
+    float_v r;
+    for (size_t i = 0; i < float_v::Size; i += double_v::Size) {
+        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(x.shifted(i)));
+        r = r.shifted(double_v::Size, tmp);
+    }
+    for (size_t i = 0; i < float_v::Size; ++i) {
+        COMPARE(r[i], static_cast<float>(x[i] * 0.1)) << "i = " << i;
+    }
+}/*}}}*/
+#endif // VC_DEFAULT_TYPES
+
+#if 0
+/*{{{*/
 template<typename T> constexpr bool may_overflow() { return std::is_integral<T>::value && std::is_unsigned<T>::value; }
 
 template<typename T1, typename T2> struct is_conversion_exact
@@ -120,6 +494,7 @@ template<typename V1, typename V2> void testCast2()
 
     testNumber<V1, V2>(-1.);
     testNumber<V1, V2>(0.);
+    testNumber<V1, V2>(0.5);
     testNumber<V1, V2>(1.);
     testNumber<V1, V2>(2.);
     testNumber<V1, V2>(max);
@@ -131,73 +506,7 @@ template<typename V1, typename V2> void testCast2()
     V1 test(IndexesFromZero);
     COMPARE(static_cast<V2>(test), makeReference<V1>(V2::IndexesFromZero()));
 }
+/*}}}*/
+#endif
 
-template<typename T> void testCast()
-{
-    testCast2<typename T::V1, typename T::V2>();
-}
-
-#define _CONCAT(A, B) A ## _ ## B
-#define CONCAT(A, B) _CONCAT(A, B)
-template<typename T1, typename T2>
-struct T2Helper
-{
-    typedef T1 V1;
-    typedef T2 V2;
-};
-
-void fullConversion()
-{
-    float_v x = float_v::Random();
-    float_v r;
-    for (size_t i = 0; i < float_v::Size; i += double_v::Size) {
-        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(x.shifted(i)));
-        r = r.shifted(double_v::Size, tmp);
-    }
-    for (size_t i = 0; i < float_v::Size; ++i) {
-        COMPARE(r[i], static_cast<float>(x[i] * 0.1)) << "i = " << i;
-    }
-}
-
-void testmain()
-{
-#define TEST(v1, v2) \
-    typedef T2Helper<v1, v2> CONCAT(v1, v2); \
-    runTest(testCast<CONCAT(v1, v2)>)
-
-    TEST(double_v, double_v);
-    TEST(double_v,  float_v);
-    TEST(double_v,    int_v);
-    TEST(double_v,   uint_v);
-    //TEST(double_v,  short_v);
-    //TEST(double_v, ushort_v);
-
-    TEST(float_v, double_v);
-    TEST(float_v,  float_v);
-    TEST(float_v,    int_v);
-    TEST(float_v,   uint_v);
-    TEST(float_v,  short_v);
-    TEST(float_v, ushort_v);
-
-    TEST(int_v, double_v);
-    TEST(int_v, float_v);
-    TEST(int_v, int_v);
-    TEST(int_v, uint_v);
-    TEST(int_v, short_v);
-    TEST(int_v, ushort_v);
-
-    TEST(uint_v, double_v);
-    TEST(uint_v, float_v);
-    TEST(uint_v, int_v);
-    TEST(uint_v, uint_v);
-    TEST(uint_v, short_v);
-    TEST(uint_v, ushort_v);
-
-    TEST(ushort_v, short_v);
-    TEST(ushort_v, ushort_v);
-
-    TEST(short_v, short_v);
-    TEST(short_v, ushort_v);
-#undef TEST
-    runTest(fullConversion);
-}
+// vim: foldmethod=marker

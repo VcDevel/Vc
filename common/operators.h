@@ -1,21 +1,71 @@
-#ifndef VC_ICC
-// ICC ICEs if the following type-traits are in the anonymous namespace
-namespace
-{
-#endif
+/*  This file is part of the Vc library. {{{
+Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-using std::conditional;
-using std::integral_constant;
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+}}}*/
+
+#include "macros.h"
+
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+template <bool C, typename T, typename F>
+using conditional_t = typename std::conditional<C, T, F>::type;
+
 using std::is_convertible;
 using std::is_floating_point;
 using std::is_integral;
-using std::is_unsigned;
 using std::is_same;
-using std::remove_cv;
-using std::remove_reference;
 
-template<typename T> struct IsVector             { static constexpr bool value = false; };
-template<typename T> struct IsVector<Vector<T> > { static constexpr bool value =  true; };
+template <typename T> constexpr bool isUnsigned()
+{
+    return !std::is_same<Traits::decay<T>, bool>::value && Traits::is_unsigned<T>::value;
+}
+template <typename T> constexpr bool isIntegral()
+{
+    return Traits::is_integral<T>::value;
+}
+template <typename T> constexpr bool isVector()
+{
+    return Traits::is_simd_vector_internal<Traits::decay<T>>::value;
+}
+
+template <typename T, bool = isIntegral<T>(), bool = isVector<T>()> struct MakeUnsignedInternal;
+template <template <typename> class Vector__, typename T>
+struct MakeUnsignedInternal<Vector__<T>, true, true>
+{
+    using type = Vector__<typename std::make_unsigned<T>::type>;
+};
+template <typename T> struct MakeUnsignedInternal<T, false, true>
+{
+    using type = T;
+};
+
+template <typename Test, typename T>
+using CopyUnsigned = typename MakeUnsignedInternal<T, isIntegral<T>() && isUnsigned<Test>()>::type;
 
 /* § 8.5.4 p7:
  * A narrowing conversion is an implicit conversion
@@ -31,95 +81,165 @@ template<typename T> struct IsVector<Vector<T> > { static constexpr bool value =
  *   conversion will fit into the target type and will produce the original value when converted back to the
  *   original type.
  */
-template<typename From, typename To> struct is_narrowing_float_conversion : public integral_constant<bool,
-    is_floating_point<From>::value && (is_integral<To>::value || (is_floating_point<To>::value && sizeof(From) > sizeof(To)))>
-{};
-static_assert(is_narrowing_float_conversion<double, float>::value, "");
-static_assert(is_narrowing_float_conversion<long double, float>::value, "");
-static_assert(is_narrowing_float_conversion<long double, double>::value, "");
-static_assert(is_convertible<double, float_v>::value, "");
-static_assert(false ==
-           ((is_convertible<double, float_v>::value || (IsVector<double>::value && is_convertible<float_v, double>::value))
-        && !is_narrowing_float_conversion<double, float_v::EntryType>::value), "");
-
-template<typename V, typename W> struct DetermineReturnType { typedef V type; };
-template<> struct DetermineReturnType<   int_v,    float> { typedef  float_v type; };
-template<> struct DetermineReturnType<  uint_v,    float> { typedef  float_v type; };
-template<> struct DetermineReturnType<   int_v,  float_v> { typedef  float_v type; };
-template<> struct DetermineReturnType<  uint_v,  float_v> { typedef  float_v type; };
-template<> struct DetermineReturnType<   int_v,   uint_v> { typedef   uint_v type; };
-template<> struct DetermineReturnType< short_v, ushort_v> { typedef ushort_v type; };
-template<typename T> struct DetermineReturnType<   int_v, T> { typedef typename conditional<!is_same<bool, T>::value && is_unsigned<T>::value,   uint_v,   int_v>::type type; };
-template<typename T> struct DetermineReturnType< short_v, T> { typedef typename conditional<!is_same<bool, T>::value && is_unsigned<T>::value, ushort_v, short_v>::type type; };
-
-template<typename L, typename R,
-    typename V = typename remove_cv<typename remove_reference<typename conditional< IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value, L, R>::type>::type>::type,
-    typename W = typename remove_cv<typename remove_reference<typename conditional<!IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value, L, R>::type>::type>::type,
-    bool = IsVector<V>::value // one operand has to be a vector
-        && !is_same<V, W>::value // if they're the same type it's already covered by Vector::operatorX
-        && (is_convertible<W, V>::value || (IsVector<W>::value && is_convertible<V, W>::value))
-        && !is_narrowing_float_conversion<W, typename V::EntryType>::value
-        > struct TypesForOperator
+template <typename From, typename To> constexpr bool isNarrowingFloatConversion()
 {
-    // Vector<decltype(V::EntryType() + W::EntryType())> is not what we want since short_v * int should result in short_v not int_v
-    typedef typename DetermineReturnType<V, W>::type type;
-};
-
-template<typename L, typename R, typename V, typename W> struct TypesForOperator<L, R, V, W, false> {
-    static_assert(!(
-            IsVector<V>::value // one operand has to be a vector
-            && !is_same<V, W>::value // if they're the same type it's allowed
-            && (is_narrowing_float_conversion<W, typename V::EntryType>::value
-                || (IsVector<W>::value && !is_convertible<V, W>::value && !is_convertible<W, V>::value)
-                || (std::is_arithmetic<W>::value && !is_convertible<W, V>::value)
-               )),
-            "invalid operands to binary expression. Vc does not allow operands that can have a differing size on some targets.");
-};
-
-template<typename L, typename R,
-    typename V = typename remove_cv<typename remove_reference<typename conditional< IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value, L, R>::type>::type>::type,
-    typename W = typename remove_cv<typename remove_reference<typename conditional<!IsVector<typename remove_cv<typename remove_reference<L>::type>::type>::value, L, R>::type>::type>::type,
-    bool IsIncorrect = IsVector<V>::value // one operand has to be a vector
-        && !is_same<V, W>::value // if they're the same type it's allowed
-        && (is_narrowing_float_conversion<W, typename V::EntryType>::value
-            || (!is_convertible<W, V>::value && !(IsVector<W>::value && is_convertible<V, W>::value))
-           )
-    > struct IsIncorrectVectorOperands
-{
-    typedef void type;
-    static constexpr bool correct = !IsIncorrect;
-};
-template<typename L, typename R, typename V, typename W> struct IsIncorrectVectorOperands<L, R, V, W, false> {
-    static constexpr bool correct = true;
-};
-
-template<typename T> struct GetMaskType { typedef typename T::Mask type; };
-
-#ifndef VC_ICC
+    return is_floating_point<From>::value &&
+           (is_integral<To>::value || (is_floating_point<To>::value && sizeof(From) > sizeof(To)));
 }
-#endif
 
-#define VC_GENERIC_OPERATOR(op) \
-template<typename L, typename R> Vc_ALWAYS_INLINE typename TypesForOperator<L, R>::type operator op(L &&x, R &&y) { typedef typename TypesForOperator<L, R>::type V; return V(std::forward<L>(x)) op V(std::forward<R>(y)); }
+template <typename T> static constexpr bool convertsToSomeVector()
+{
+    return is_convertible<T, double_v>::value || is_convertible<T, float_v>::value ||
+           is_convertible<T, int_v>::value || is_convertible<T, uint_v>::value ||
+           is_convertible<T, short_v>::value || is_convertible<T, ushort_v>::value;
+}
 
-#define VC_COMPARE_OPERATOR(op) \
-template<typename L, typename R> Vc_ALWAYS_INLINE typename GetMaskType<typename TypesForOperator<L, R>::type>::type operator op(L &&x, R &&y) { typedef typename TypesForOperator<L, R>::type V; return V(std::forward<L>(x)) op V(std::forward<R>(y)); }
+static_assert(isNarrowingFloatConversion<double, float>(), "");
+static_assert(isNarrowingFloatConversion<long double, float>(), "");
+static_assert(isNarrowingFloatConversion<long double, double>(), "");
+static_assert(is_convertible<double, float_v>::value, "");
+static_assert(false == ((is_convertible<double, float_v>::value ||
+                         (isVector<double>() && is_convertible<float_v, double>::value)) &&
+                        !isNarrowingFloatConversion<double, float_v::EntryType>()),
+              "");
 
-#define VC_INVALID_OPERATOR(op) \
-template<typename L, typename R> typename IsIncorrectVectorOperands<L, R>::type operator op(L &&, R &&) { static_assert(IsIncorrectVectorOperands<L, R>::correct, "invalid operands to binary expression operator"#op". Vc does not allow operands that can have a differing size on some targets."); }
+template <typename V, typename W>
+using DetermineReturnType =
+    conditional_t<(is_same<V, int_v>::value || is_same<V, uint_v>::value) &&
+                    (is_same<W, float>::value || is_same<W, float_v>::value),
+                float_v,
+                CopyUnsigned<W, V>>;
+
+template <typename V, typename W> constexpr bool participateInOverloadResolution()
+{
+    return isVector<V>() &&            // one operand has to be a vector
+           !is_same<V, W>::value &&    // if they're the same type it's already
+                                       // covered by Vector::operatorX
+           convertsToSomeVector<W>();  // if the other operand is not convertible to a SIMD vector
+                                       // type at all then don't use our operator in overload
+                                       // resolution at all
+}
+
+template <typename V, typename W> constexpr enable_if<isVector<V>(), bool> isValidOperandTypes()
+{
+    // Vc does not allow operands that could possibly have different Vector::Size.
+    return isVector<W>()
+               ? (is_convertible<V, W>::value || is_convertible<W, V>::value)
+               : (is_convertible<W, DetermineReturnType<V, W>>::value &&
+                  !isNarrowingFloatConversion<W, typename DetermineReturnType<V, W>::EntryType>());
+}
+
+template <
+    typename V,
+    typename W,
+    bool VectorOperation = participateInOverloadResolution<V, W>() && isValidOperandTypes<V, W>()>
+struct TypesForOperatorInternal
+{
+};
+
+template <typename V, typename W> struct TypesForOperatorInternal<V, W, true>
+{
+    using type = DetermineReturnType<V, W>;
+};
+
+template <typename L, typename R>
+using TypesForOperator = typename TypesForOperatorInternal<
+    Traits::decay<conditional_t<isVector<L>(), L, R>>,
+    Traits::decay<conditional_t<!isVector<L>(), L, R>>>::type;
+
+template <
+    typename V,
+    typename W,
+    bool IsIncorrect = participateInOverloadResolution<V, W>() && !isValidOperandTypes<V, W>()>
+struct IsIncorrectVectorOperands
+{
+};
+template <typename V, typename W> struct IsIncorrectVectorOperands<V, W, true>
+{
+    using type = void;
+};
+
+template <typename L, typename R>
+using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability =
+    typename IsIncorrectVectorOperands<
+        Traits::decay<conditional_t<isVector<L>(), L, R>>,
+        Traits::decay<conditional_t<!isVector<L>(), L, R>>>::type;
+
+#define VC_GENERIC_OPERATOR(op)                                                                    \
+    template <typename L, typename R>                                                              \
+    Vc_ALWAYS_INLINE TypesForOperator<L, R> operator op(L &&x, R &&y)                              \
+    {                                                                                              \
+        using V = TypesForOperator<L, R>;                                                          \
+        return V(std::forward<L>(x)) op V(std::forward<R>(y));                                     \
+    }
+
+#define VC_COMPARE_OPERATOR(op)                                                                    \
+    template <typename L, typename R>                                                              \
+    Vc_ALWAYS_INLINE typename TypesForOperator<L, R>::Mask operator op(L &&x, R &&y)               \
+    {                                                                                              \
+        using V = TypesForOperator<L, R>;                                                          \
+        return V(std::forward<L>(x)) op V(std::forward<R>(y));                                     \
+    }
+
+#define VC_INVALID_OPERATOR(op)                                                                    \
+    template <typename L, typename R>                                                              \
+    Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability<L, R> operator op(L &&, R &&) = delete;
+// invalid operands to binary expression. Vc does not allow operands that can have a differing size
+// on some targets.
 
 VC_ALL_LOGICAL    (VC_GENERIC_OPERATOR)
 VC_ALL_BINARY     (VC_GENERIC_OPERATOR)
 VC_ALL_ARITHMETICS(VC_GENERIC_OPERATOR)
 VC_ALL_COMPARES   (VC_COMPARE_OPERATOR)
 
-//VC_ALL_LOGICAL    (VC_INVALID_OPERATOR)
-//VC_ALL_BINARY     (VC_INVALID_OPERATOR)
-//VC_ALL_ARITHMETICS(VC_INVALID_OPERATOR)
-//VC_ALL_COMPARES   (VC_INVALID_OPERATOR)
+VC_ALL_LOGICAL    (VC_INVALID_OPERATOR)
+VC_ALL_BINARY     (VC_INVALID_OPERATOR)
+VC_ALL_ARITHMETICS(VC_INVALID_OPERATOR)
+VC_ALL_COMPARES   (VC_INVALID_OPERATOR)
 
 #undef VC_GENERIC_OPERATOR
 #undef VC_COMPARE_OPERATOR
 #undef VC_INVALID_OPERATOR
+}  // namespace Common
 
-// }}}1
+#define Vc_USING_OPERATOR(op) using Vc_VERSIONED_NAMESPACE::Common::operator op;
+namespace Scalar
+{
+VC_ALL_LOGICAL(Vc_USING_OPERATOR)
+VC_ALL_BINARY(Vc_USING_OPERATOR)
+VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
+VC_ALL_COMPARES(Vc_USING_OPERATOR)
+}  // namespace Scalar
+namespace SSE
+{
+VC_ALL_LOGICAL(Vc_USING_OPERATOR)
+VC_ALL_BINARY(Vc_USING_OPERATOR)
+VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
+VC_ALL_COMPARES(Vc_USING_OPERATOR)
+}  // namespace SSE
+namespace AVX
+{
+VC_ALL_LOGICAL(Vc_USING_OPERATOR)
+VC_ALL_BINARY(Vc_USING_OPERATOR)
+VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
+VC_ALL_COMPARES(Vc_USING_OPERATOR)
+}  // namespace AVX
+namespace AVX2
+{
+VC_ALL_LOGICAL(Vc_USING_OPERATOR)
+VC_ALL_BINARY(Vc_USING_OPERATOR)
+VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
+VC_ALL_COMPARES(Vc_USING_OPERATOR)
+}  // namespace AVX2
+namespace MIC
+{
+VC_ALL_LOGICAL(Vc_USING_OPERATOR)
+VC_ALL_BINARY(Vc_USING_OPERATOR)
+VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
+VC_ALL_COMPARES(Vc_USING_OPERATOR)
+}  // namespace MIC
+#undef Vc_USING_OPERATOR
+
+}  // namespace Vc
+
+#include "undomacros.h"

@@ -1,34 +1,52 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2011-2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 namespace internal
 {
 
-template<> Vc_ALWAYS_INLINE Vc_CONST m128 zero<m128>() { return _mm_setzero_ps(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256 zero<m256>() { return _mm256_setzero_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128  zero<m128 >() { return _mm_setzero_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128i zero<m128i>() { return _mm_setzero_si128(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128d zero<m128d>() { return _mm_setzero_pd(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256  zero<m256 >() { return _mm256_setzero_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256i zero<m256i>() { return _mm256_setzero_si256(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256d zero<m256d>() { return _mm256_setzero_pd(); }
 
-template<> Vc_ALWAYS_INLINE Vc_CONST m128 allone<m128>() { return _mm_setallone_ps(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256 allone<m256>() { return _mm256_setallone_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128  allone<m128 >() { return _mm_setallone_ps(); }
 template<> Vc_ALWAYS_INLINE Vc_CONST m128i allone<m128i>() { return _mm_setallone_si128(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256i allone<m256i>() { return _mm256_setallone_si256(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m128d allone<m128d>() { return _mm_setallone_pd(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256  allone<m256 >() { return setallone_ps(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256i allone<m256i>() { return setallone_si256(); }
+template<> Vc_ALWAYS_INLINE Vc_CONST m256d allone<m256d>() { return setallone_pd(); }
 
 // mask_cast/*{{{*/
 template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE Vc_CONST R mask_cast(m128i k)
@@ -45,6 +63,19 @@ template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE Vc_CONST R mask_ca
     return avx_cast<m256>(k);
 }
 
+// 4 -> 4
+template <> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<4, 4, m128>(m256i k)
+{
+    return avx_cast<m128>(_mm_packs_epi32(lo128(k), hi128(k)));
+}
+
+template <> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<4, 4, m256>(m128i k)
+{
+    const auto kk = _mm_castsi128_ps(k);
+    return concat(_mm_unpacklo_ps(kk, kk), _mm_unpackhi_ps(kk, kk));
+}
+
+// 4 -> 8
 template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<4, 8, m256>(m256i k)
 {
     // aabb ccdd -> abcd 0000
@@ -58,6 +89,17 @@ template<> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<4, 8, m128>(m256i k)
     return avx_cast<m128>(_mm_packs_epi16(_mm_packs_epi32(lo128(k), hi128(k)), _mm_setzero_si128()));
 }
 
+template <> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<4, 8, m256>(m128i k)
+{
+    return zeroExtend(avx_cast<m128>(k));
+}
+
+template <> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<4, 8, m128>(m128i k)
+{
+    return avx_cast<m128>(_mm_packs_epi16(k, _mm_setzero_si128()));
+}
+
+// 8 -> 4
 template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<8, 4, m256>(m256i k)
 {
     // aabb ccdd eeff gghh -> aaaa bbbb cccc dddd
@@ -66,10 +108,9 @@ template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<8, 4, m256>(m256i k)
                   _mm_unpackhi_ps(lo, lo));
 }
 
-template<> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<8, 8, m128>(m256i k)
+template<> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<8, 4, m128>(m256i k)
 {
-    // aabb ccdd eeff gghh -> abcd efgh
-    return avx_cast<m128>(_mm_packs_epi16(lo128(k), hi128(k)));
+    return avx_cast<m128>(lo128(k));
 }
 
 template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<8, 4, m256>(m128i k)
@@ -78,6 +119,18 @@ template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<8, 4, m256>(m128i k)
     const auto tmp = _mm_unpacklo_epi16(k, k); // aa bb cc dd
     return avx_cast<m256>(concat(_mm_unpacklo_epi32(tmp, tmp), // aaaa bbbb
                                  _mm_unpackhi_epi32(tmp, tmp))); // cccc dddd
+}
+
+template<> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<8, 4, m128>(m128i k)
+{
+    return avx_cast<m128>(_mm_unpacklo_epi16(k, k));
+}
+
+// 8 -> 8
+template<> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<8, 8, m128>(m256i k)
+{
+    // aabb ccdd eeff gghh -> abcd efgh
+    return avx_cast<m128>(_mm_packs_epi16(lo128(k), hi128(k)));
 }
 
 template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<8, 8, m256>(m128i k)
@@ -96,6 +149,10 @@ template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<8>(m256i k)
 {
     return movemask(avx_cast<m256>(k));
 }
+template <> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<4>(m128i k)
+{
+    return movemask(avx_cast<m256>(k));
+}
 template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<8>(m128i k)
 {
     return movemask(avx_cast<m128i>(_mm_packs_epi16(k, _mm_setzero_si128())));
@@ -104,29 +161,38 @@ template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<8>(m128i k)
 // mask_store/*{{{*/
 template<size_t> Vc_ALWAYS_INLINE void mask_store(m256i k, bool *mem);
 template<size_t> Vc_ALWAYS_INLINE void mask_store(m128i k, bool *mem);
+template<> Vc_ALWAYS_INLINE void mask_store<4>(m256i k, bool *mem)
+{
+    *reinterpret_cast<MayAlias<int32_t> *>(mem) =
+        (_mm_movemask_epi8(lo128(k)) | (_mm_movemask_epi8(hi128(k)) << 16)) & 0x01010101;
+}
 template<> Vc_ALWAYS_INLINE void mask_store<8>(m256i k, bool *mem)
 {
     const auto k2 = _mm_srli_epi16(_mm_packs_epi16(lo128(k), hi128(k)), 15);
-    typedef uint64_t boolAlias Vc_MAY_ALIAS;
     const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
 #ifdef __x86_64__
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(k3);
+    *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
 #else
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(k3);
-    *reinterpret_cast<boolAlias *>(mem + 4) = _mm_extract_epi32(k3, 1);
+    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k3);
+    *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
 #endif
 }
 template<> Vc_ALWAYS_INLINE void mask_store<8>(m128i k, bool *mem)
 {
     k = _mm_srli_epi16(k, 15);
-    typedef uint64_t boolAlias Vc_MAY_ALIAS;
     const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
 #ifdef __x86_64__
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(k2);
+    *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);
 #else
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(k2);
-    *reinterpret_cast<boolAlias *>(mem + 4) = _mm_extract_epi32(k2, 1);
+    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k2);
+    *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k2, 1);
 #endif
+}
+template<> Vc_ALWAYS_INLINE void mask_store<4>(m128i k, bool *mem)
+{
+    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(
+        _mm_packs_epi16(_mm_srli_epi16(_mm_packs_epi32(k, _mm_setzero_si128()), 15),
+                        _mm_setzero_si128()));
 }
 /*}}}*/
 // mask_load/*{{{*/
@@ -135,6 +201,14 @@ template<> Vc_ALWAYS_INLINE m128 mask_load<m128, 8>(const bool *mem)
 {
     m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
     return avx_cast<m128>(_mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
+}
+template<> Vc_ALWAYS_INLINE m128 mask_load<m128, 4>(const bool *mem)
+{
+    m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int32_t *>(mem));
+    k = _mm_unpacklo_epi8(k, k);
+    k = _mm_unpacklo_epi16(k, k);
+    k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
+    return avx_cast<m128>(k);
 }
 template<> Vc_ALWAYS_INLINE m256 mask_load<m256, 8>(const bool *mem)
 {
@@ -155,25 +229,167 @@ template<> Vc_ALWAYS_INLINE m256 mask_load<m256, 4>(const bool *mem)
 
 } // namespace internal
 
-template<> Vc_ALWAYS_INLINE void Mask<double>::store(bool *mem) const
-{
-    typedef uint16_t boolAlias Vc_MAY_ALIAS;
-    boolAlias *ptr = reinterpret_cast<boolAlias *>(mem);
-    ptr[0] = _mm_movemask_epi8(lo128(dataI())) & 0x0101;
-    ptr[1] = _mm_movemask_epi8(hi128(dataI())) & 0x0101;
-}
+// store {{{1
 template<typename T> Vc_ALWAYS_INLINE void Mask<T>::store(bool *mem) const
 {
     internal::mask_store<Size>(dataI(), mem);
 }
+// load {{{1
 template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
 {
-    d.v() = internal::mask_load<VectorType, Size>(mem);
+    d.v() = avx_cast<VectorType>(internal::mask_load<VectorTypeF, Size>(mem));
 }
-
+// operator[] {{{1
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE bool Mask<T>::operator[](size_t index) const { return toInt() & (1 << index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+// operator== {{{1
+template <> Vc_INTRINSIC Vc_PURE bool double_m::operator==(const double_m &rhs) const
+{ return internal::movemask(dataD()) == internal::movemask(rhs.dataD()); }
+template <> Vc_INTRINSIC Vc_PURE bool short_m::operator==(const short_m &rhs) const
+{ return internal::movemask(dataI()) == internal::movemask(rhs.dataI()); }
+template <> Vc_INTRINSIC Vc_PURE bool ushort_m::operator==(const ushort_m &rhs) const
+{ return internal::movemask(dataI()) == internal::movemask(rhs.dataI()); }
+// generate {{{1
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 32>)
+{
+    return _mm256_setr_epi64x(
+        gen(0) ? 0xffffffffffffffffull : 0, gen(1) ? 0xffffffffffffffffull : 0,
+        gen(2) ? 0xffffffffffffffffull : 0, gen(3) ? 0xffffffffffffffffull : 0);
+}
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 32>)
+{
+    return _mm256_setr_epi32(gen(0) ? 0xfffffffful : 0, gen(1) ? 0xfffffffful : 0,
+                             gen(2) ? 0xfffffffful : 0, gen(3) ? 0xfffffffful : 0,
+                             gen(4) ? 0xfffffffful : 0, gen(5) ? 0xfffffffful : 0,
+                             gen(6) ? 0xfffffffful : 0, gen(7) ? 0xfffffffful : 0);
+}
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 16>)
+{
+    return _mm_setr_epi32(gen(0) ? 0xffffffffu : 0, gen(1) ? 0xffffffffu : 0,
+                          gen(2) ? 0xffffffffu : 0, gen(3) ? 0xffffffffu : 0);
+}
+template <typename M, typename G>
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 16>)
+{
+    return _mm_setr_epi16(gen(0) ? 0xffffu : 0, gen(1) ? 0xffffu : 0,
+                          gen(2) ? 0xffffu : 0, gen(3) ? 0xffffu : 0,
+                          gen(4) ? 0xffffu : 0, gen(5) ? 0xffffu : 0,
+                          gen(6) ? 0xffffu : 0, gen(7) ? 0xffffu : 0);
+}
+template <typename T>
+template <typename G>
+Vc_INTRINSIC Mask<T> Mask<T>::generate(G &&gen)
+{
+    return generate_impl<Mask<T>>(std::forward<G>(gen),
+                                  std::integral_constant<int, Size + sizeof(Storage)>());
+}
+// shifted {{{1
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount >= 16), T> shifted_impl(T k)
+{
+    return zeroExtend(_mm_srli_si128(hi128(k), amount - 16));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > 0 && amount < 16), T>
+    shifted_impl(T k)
+{
+    return alignr<amount>(Mem::permute128<X1, Const0>(k), Mem::permute128<X0, X1>(k));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount <= -16), T> shifted_impl(T k)
+{
+    return Mem::permute128<Const0, X0>(avx_cast<m256i>(_mm_slli_si128(lo128(k), -16 - amount)));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > -16 && amount < 0), T>
+    shifted_impl(T k)
+{
+    return alignr<16 + amount>(k, Mem::permute128<Const0, X0>(k));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount > 0), T> shifted_impl(T k)
+{
+    return _mm_srli_si128(k, amount);
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount < 0), T> shifted_impl(T k)
+{
+    return _mm_slli_si128(k, -amount);
+}
+template <typename T> Vc_INTRINSIC Vc_PURE Mask<T> Mask<T>::shifted(int amount) const
+{
+    switch (amount * int(sizeof(VectorEntryType))) {
+    case   0: return *this;
+    case   1: return shifted_impl<  1>(dataI());
+    case   2: return shifted_impl<  2>(dataI());
+    case   3: return shifted_impl<  3>(dataI());
+    case   4: return shifted_impl<  4>(dataI());
+    case   5: return shifted_impl<  5>(dataI());
+    case   6: return shifted_impl<  6>(dataI());
+    case   7: return shifted_impl<  7>(dataI());
+    case   8: return shifted_impl<  8>(dataI());
+    case   9: return shifted_impl<  9>(dataI());
+    case  10: return shifted_impl< 10>(dataI());
+    case  11: return shifted_impl< 11>(dataI());
+    case  12: return shifted_impl< 12>(dataI());
+    case  13: return shifted_impl< 13>(dataI());
+    case  14: return shifted_impl< 14>(dataI());
+    case  15: return shifted_impl< 15>(dataI());
+    case  16: return shifted_impl< 16>(dataI());
+    case  17: return shifted_impl< 17>(dataI());
+    case  18: return shifted_impl< 18>(dataI());
+    case  19: return shifted_impl< 19>(dataI());
+    case  20: return shifted_impl< 20>(dataI());
+    case  21: return shifted_impl< 21>(dataI());
+    case  22: return shifted_impl< 22>(dataI());
+    case  23: return shifted_impl< 23>(dataI());
+    case  24: return shifted_impl< 24>(dataI());
+    case  25: return shifted_impl< 25>(dataI());
+    case  26: return shifted_impl< 26>(dataI());
+    case  27: return shifted_impl< 27>(dataI());
+    case  28: return shifted_impl< 28>(dataI());
+    case  29: return shifted_impl< 29>(dataI());
+    case  30: return shifted_impl< 30>(dataI());
+    case  31: return shifted_impl< 31>(dataI());
+    case  -1: return shifted_impl< -1>(dataI());
+    case  -2: return shifted_impl< -2>(dataI());
+    case  -3: return shifted_impl< -3>(dataI());
+    case  -4: return shifted_impl< -4>(dataI());
+    case  -5: return shifted_impl< -5>(dataI());
+    case  -6: return shifted_impl< -6>(dataI());
+    case  -7: return shifted_impl< -7>(dataI());
+    case  -8: return shifted_impl< -8>(dataI());
+    case  -9: return shifted_impl< -9>(dataI());
+    case -10: return shifted_impl<-10>(dataI());
+    case -11: return shifted_impl<-11>(dataI());
+    case -12: return shifted_impl<-12>(dataI());
+    case -13: return shifted_impl<-13>(dataI());
+    case -14: return shifted_impl<-14>(dataI());
+    case -15: return shifted_impl<-15>(dataI());
+    case -16: return shifted_impl<-16>(dataI());
+    case -17: return shifted_impl<-17>(dataI());
+    case -18: return shifted_impl<-18>(dataI());
+    case -19: return shifted_impl<-19>(dataI());
+    case -20: return shifted_impl<-20>(dataI());
+    case -21: return shifted_impl<-21>(dataI());
+    case -22: return shifted_impl<-22>(dataI());
+    case -23: return shifted_impl<-23>(dataI());
+    case -24: return shifted_impl<-24>(dataI());
+    case -25: return shifted_impl<-25>(dataI());
+    case -26: return shifted_impl<-26>(dataI());
+    case -27: return shifted_impl<-27>(dataI());
+    case -28: return shifted_impl<-28>(dataI());
+    case -29: return shifted_impl<-29>(dataI());
+    case -30: return shifted_impl<-30>(dataI());
+    case -31: return shifted_impl<-31>(dataI());
+    }
+    return Zero();
+}
+// }}}1
 
 /*
 template<> Vc_ALWAYS_INLINE Mask< 4, 32> &Mask< 4, 32>::operator=(const std::array<bool, 4> &values) {
@@ -246,6 +462,7 @@ template<> Vc_ALWAYS_INLINE Mask<16, 16>::operator std::array<bool, 16>() const 
 }
 */
 
-Vc_IMPL_NAMESPACE_END
+}
+}
 
 // vim: foldmethod=marker

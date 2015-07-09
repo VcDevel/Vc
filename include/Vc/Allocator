@@ -37,7 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "global.h"
 #include "common/macros.h"
 
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
     using std::size_t;
     using std::ptrdiff_t;
@@ -228,13 +229,43 @@ namespace std \
     template<typename T> inline bool operator==(const Allocator<T>&, const Allocator<T>&) { return true;  }
     template<typename T> inline bool operator!=(const Allocator<T>&, const Allocator<T>&) { return false; }
 
-Vc_NAMESPACE_END
+}
 
 #include "common/undomacros.h"
 #include "vector.h"
 namespace std
 {
     template<typename T> class allocator<Vc::Vector<T> > : public ::Vc::Allocator<Vc::Vector<T> >
+    {
+    public:
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; };
+#ifdef VC_MSVC
+        // MSVC brokenness: the following function is optional - just doesn't compile without it
+        const allocator &select_on_container_copy_construction() const { return *this; }
+#endif
+    };
+    template <typename T>
+    class allocator<Vc::Mask<T>> : public ::Vc::Allocator<Vc::Mask<T>>
+    {
+    public:
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; };
+#ifdef VC_MSVC
+        // MSVC brokenness: the following function is optional - just doesn't compile without it
+        const allocator &select_on_container_copy_construction() const { return *this; }
+#endif
+    };
+    template <typename T, std::size_t N, typename V, std::size_t M>
+    class allocator<Vc::simdarray<T, N, V, M>> : public ::Vc::Allocator<Vc::simdarray<T, N, V, M>>
+    {
+    public:
+        template<typename U> struct rebind { typedef ::std::allocator<U> other; };
+#ifdef VC_MSVC
+        // MSVC brokenness: the following function is optional - just doesn't compile without it
+        const allocator &select_on_container_copy_construction() const { return *this; }
+#endif
+    };
+    template <typename T, std::size_t N, typename V, std::size_t M>
+    class allocator<Vc::simd_mask_array<T, N, V, M>> : public ::Vc::Allocator<Vc::simd_mask_array<T, N, V, M>>
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };

@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -26,7 +35,10 @@
 #include "../common/loadstoreflags.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(MicIntrinsics)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace MicIntrinsics
+{
     using MIC::c_general;
 
     static Vc_INTRINSIC Vc_CONST __m512  _mm512_setallone_ps()    { return _mm512_castsi512_ps(_mm512_set_1to16_pi(~0)); }
@@ -137,21 +149,13 @@ static Vc_INTRINSIC void store_unaligned(void *m, __m512i v, _MM_DOWNCONV_EPI32_
     _mm512_extpackstorehi_epi32(static_cast<char *>(m) + 64, v, downconv, memHint);
 }
 
-static Vc_INTRINSIC void store_unaligned(__mmask16 mask, void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
-{
-    _mm512_mask_extpackstorelo_ps(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_ps(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
-}
-static Vc_INTRINSIC void store_unaligned(__mmask8 mask, void *m, __m512d v, _MM_DOWNCONV_PD_ENUM downconv, int memHint)
-{
-    _mm512_mask_extpackstorelo_pd(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_pd(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
-}
-static Vc_INTRINSIC void store_unaligned(__mmask16 mask, void *m, __m512i v, _MM_DOWNCONV_EPI32_ENUM downconv, int memHint)
-{
-    _mm512_mask_extpackstorelo_epi32(m, mask, v, downconv, memHint);
-    _mm512_mask_extpackstorehi_epi32(static_cast<char *>(m) + 64, mask, v, downconv, memHint);
-}
+/*
+void store_unaligned(__mmask16 mask, void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
+and friends are not that easy. MIC only provides packstore for unaligned stores. But packstore packs
+the masked values consecutively, which is not what we want.
+The maskstore is thus better implemented in the Vector class - where more type information is still
+available.
+*/
 
 static Vc_INTRINSIC void store_aligned(void *m, __m512 v, _MM_DOWNCONV_PS_ENUM downconv, int memHint)
 {
@@ -195,17 +199,9 @@ template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512i i, MemT const
 template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, int scale = sizeof(MemT)) { return _mm512_i32loextgather_pd (i, mem, conv, scale, _MM_HINT_NONE); }
 template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, int scale = sizeof(MemT)) { return _mm512_i32extgather_epi32(i, mem, conv, scale, _MM_HINT_NONE); }
 
-template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512i i, MemT const *mem, _MM_UPCONV_PS_ENUM    conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_i32extgather_ps   (i, mem, conv, scale, _MM_HINT_NT); }
-template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_i32loextgather_pd (i, mem, conv, scale, _MM_HINT_NT); }
-template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_i32extgather_epi32(i, mem, conv, scale, _MM_HINT_NT); }
-
 template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512  old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_PS_ENUM    conv, int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_ps   (old, mask, i, mem, conv, scale, _MM_HINT_NONE); }
 template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512d old, __mmask8  mask, __m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, int scale = sizeof(MemT)) { return _mm512_mask_i32loextgather_pd (old, mask, i, mem, conv, scale, _MM_HINT_NONE); }
 template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_epi32(old, mask, i, mem, conv, scale, _MM_HINT_NONE); }
-
-template<typename MemT> static Vc_INTRINSIC __m512  gather(__m512  old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_PS_ENUM    conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_ps   (old, mask, i, mem, conv, scale, _MM_HINT_NT); }
-template<typename MemT> static Vc_INTRINSIC __m512d gather(__m512d old, __mmask8  mask, __m512i i, MemT const *mem, _MM_UPCONV_PD_ENUM    conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_mask_i32loextgather_pd (old, mask, i, mem, conv, scale, _MM_HINT_NT); }
-template<typename MemT> static Vc_INTRINSIC __m512i gather(__m512i old, __mmask16 mask, __m512i i, MemT const *mem, _MM_UPCONV_EPI32_ENUM conv, decltype(Streaming), int scale = sizeof(MemT)) { return _mm512_mask_i32extgather_epi32(old, mask, i, mem, conv, scale, _MM_HINT_NT); }
 
 template<typename DownConv> static Vc_INTRINSIC
     void scatter(void *m, __m512i i, __m512  v, DownConv downconv, int scale)
@@ -213,41 +209,20 @@ template<typename DownConv> static Vc_INTRINSIC
     _mm512_i32extscatter_ps(m, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename DownConv> static Vc_INTRINSIC
-    void scatter(void *m, __m512i i, __m512  v, DownConv downconv, int scale, decltype(Streaming))
-{
-    _mm512_i32extscatter_ps(m, i, v, downconv, scale, _MM_HINT_NT);
-}
-template<typename DownConv> static Vc_INTRINSIC
     void scatter(void *m, __m512i i, __m512d v, DownConv downconv, int scale)
 {
     _mm512_i32loextscatter_pd(m, i, v, downconv, scale, _MM_HINT_NONE);
-}
-template<typename DownConv> static Vc_INTRINSIC
-    void scatter(void *m, __m512i i, __m512d v, DownConv downconv, int scale, decltype(Streaming))
-{
-    _mm512_i32loextscatter_pd(m, i, v, downconv, scale, _MM_HINT_NT);
 }
 template<typename DownConv> static Vc_INTRINSIC
     void scatter(void *m, __m512i i, __m512i v, DownConv downconv, int scale)
 {
     _mm512_i32extscatter_epi32(m, i, v, downconv, scale, _MM_HINT_NONE);
 }
-template<typename DownConv> static Vc_INTRINSIC
-    void scatter(void *m, __m512i i, __m512i v, DownConv downconv, int scale, decltype(Streaming))
-{
-    _mm512_i32extscatter_epi32(m, i, v, downconv, scale, _MM_HINT_NT);
-}
 
-// TODO:
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512  v, DownConv downconv, int scale = sizeof(MemT))
 {
     _mm512_mask_i32extscatter_ps(m, mask, i, v, downconv, scale, _MM_HINT_NONE);
-}
-template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
-    void scatter(M mask, MemT *m, __m512i i, __m512  v, DownConv downconv, decltype(Streaming), int scale = sizeof(MemT))
-{
-    _mm512_mask_i32extscatter_ps(m, mask, i, v, downconv, scale, _MM_HINT_NT);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512d v, DownConv downconv, int scale = sizeof(MemT))
@@ -255,19 +230,9 @@ template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     _mm512_mask_i32loextscatter_pd(m, mask, i, v, downconv, scale, _MM_HINT_NONE);
 }
 template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
-    void scatter(M mask, MemT *m, __m512i i, __m512d v, DownConv downconv, decltype(Streaming), int scale = sizeof(MemT))
-{
-    _mm512_mask_i32loextscatter_pd(m, mask, i, v, downconv, scale, _MM_HINT_NT);
-}
-template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
     void scatter(M mask, MemT *m, __m512i i, __m512i v, DownConv downconv, int scale = sizeof(MemT))
 {
     _mm512_mask_i32extscatter_epi32(m, mask, i, v, downconv, scale, _MM_HINT_NONE);
-}
-template<typename M, typename DownConv, typename MemT> static Vc_INTRINSIC
-    void scatter(M mask, MemT *m, __m512i i, __m512i v, DownConv downconv, decltype(Streaming), int scale = sizeof(MemT))
-{
-    _mm512_mask_i32extscatter_epi32(m, mask, i, v, downconv, scale, _MM_HINT_NT);
 }
 
 static Vc_INTRINSIC __m512  swizzle(__m512  v, _MM_SWIZZLE_ENUM swiz) { return _mm512_swizzle_ps(v, swiz); }
@@ -276,6 +241,19 @@ static Vc_INTRINSIC __m512i swizzle(__m512i v, _MM_SWIZZLE_ENUM swiz) { return _
 
 static Vc_INTRINSIC __m512  shuffle(__m512  v, _MM_PERM_ENUM perm) { return _mm512_castsi512_ps(_mm512_shuffle_epi32(_mm512_castps_si512(v), perm)); }
 static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm512_shuffle_epi32(v, perm); }
+
+static Vc_INTRINSIC __m512 permute128(__m512 v, _MM_PERM_ENUM perm)
+{
+    return _mm512_permute4f128_ps(v, perm);
+}
+static Vc_INTRINSIC __m512i permute128(__m512i v, _MM_PERM_ENUM perm)
+{
+    return _mm512_permute4f128_epi32(v, perm);
+}
+static Vc_INTRINSIC __m512d permute128(__m512d v, _MM_PERM_ENUM perm)
+{
+    return _mm512_castps_pd(_mm512_permute4f128_ps(_mm512_castpd_ps(v), perm));
+}
 
 #define _mm512_rsqrt_pd _mm512_invsqrt_pd
 #define _mm512_mask_rsqrt_pd _mm512_mask_invsqrt_pd
@@ -347,6 +325,13 @@ static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm5
     Vc_FUN2(_div)
 #undef Vc_FUN2
 
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_signed<T>::value, __m512i> mod_(__m512i a, __m512i b)
+{ return _mm512_rem_epi32(a, b); }
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_unsigned<T>::value, __m512i> mod_(__m512i a, __m512i b)
+{ return _mm512_rem_epu32(a, b); }
+
     template<typename> Vc_INTRINSIC __m512  _mul(__m512  a, __m512  b) { return _mm512_mul_ps(a, b); }
     template<typename> Vc_INTRINSIC __m512d _mul(__m512d a, __m512d b) { return _mm512_mul_pd(a, b); }
     template<typename> Vc_INTRINSIC __m512i _mul(__m512i a, __m512i b) { return _mm512_mullo_epi32(a, b); }
@@ -369,12 +354,190 @@ static Vc_INTRINSIC __m512i shuffle(__m512i v, _MM_PERM_ENUM perm) { return _mm5
     static Vc_INTRINSIC __m512i _set1(       signed char a) { return _mm512_set1_epi32(a); }
     static Vc_INTRINSIC __m512i _set1(     unsigned char a) { return _mm512_set1_epi32(a); }
 
-Vc_NAMESPACE_END
+}
+}
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-    using namespace MicIntrinsics;
-Vc_NAMESPACE_END
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace MIC
+{
+using namespace MicIntrinsics;
+
+template<typename T> struct DetermineVectorEntryType { typedef T Type; };
+// MIC does not support epi8/epu8 operations, thus we change the EntryType to int/uint
+template<> struct DetermineVectorEntryType<char> { typedef int Type; };
+template<> struct DetermineVectorEntryType<signed char> { typedef int Type; };
+template<> struct DetermineVectorEntryType<unsigned char> { typedef unsigned int Type; };
+// MIC does not support epi16/epu16 operations, thus we change the EntryType to int/uint
+template<> struct DetermineVectorEntryType<short> { typedef int Type; };
+template<> struct DetermineVectorEntryType<unsigned short> { typedef unsigned int Type; };
+// MIC does not support epi64/epu64 operations, thus we change the EntryType to int/uint
+template<> struct DetermineVectorEntryType<long> { typedef int Type; };
+template<> struct DetermineVectorEntryType<unsigned long> { typedef unsigned int Type; };
+// MIC does not support epi64/epu64 operations, thus we change the EntryType to int/uint
+template<> struct DetermineVectorEntryType<long long> { typedef int Type; };
+template<> struct DetermineVectorEntryType<unsigned long long> { typedef unsigned int Type; };
+
+template <typename T> struct SwizzledVector;
+template <typename T> struct VectorHelper;
+template <typename T> class VectorMultiplication;
+
+ALIGN(16) extern const char _IndexesFromZero[16];
+
+template <typename T> struct VectorTypeHelper;
+template <> struct VectorTypeHelper<char> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<signed char> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<unsigned char> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<short> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<unsigned short> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<int> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<unsigned int> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<long> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<unsigned long> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<long long> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<unsigned long long> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<float> { typedef __m512 Type; };
+template <> struct VectorTypeHelper<double> { typedef __m512d Type; };
+template <> struct VectorTypeHelper<__m512i> { typedef __m512i Type; };
+template <> struct VectorTypeHelper<__m512> { typedef __m512 Type; };
+template <> struct VectorTypeHelper<__m512d> { typedef __m512d Type; };
+
+template <typename T> struct MaskTypeHelper { typedef __mmask16 Type; };
+template <> struct MaskTypeHelper<__m512d> { typedef __mmask8 Type; };
+template <> struct MaskTypeHelper<double> { typedef __mmask8 Type; };
+
+template <typename T> struct ReturnTypeHelper { typedef char Type; };
+template <> struct ReturnTypeHelper<unsigned int> { typedef unsigned char Type; };
+template <> struct ReturnTypeHelper<int> { typedef signed char Type; };
+template <typename T> const typename ReturnTypeHelper<T>::Type *IndexesFromZeroHelper()
+{
+    return reinterpret_cast<const typename ReturnTypeHelper<T>::Type *>(&_IndexesFromZero[0]);
+}
+
+template <size_t Size> struct IndexScaleHelper;
+template <> struct IndexScaleHelper<8> { static inline _MM_INDEX_SCALE_ENUM value() { return _MM_SCALE_4; } };
+template <> struct IndexScaleHelper<4> { static inline _MM_INDEX_SCALE_ENUM value() { return _MM_SCALE_4; } };
+template <> struct IndexScaleHelper<2> { static inline _MM_INDEX_SCALE_ENUM value() { return _MM_SCALE_2; } };
+template <> struct IndexScaleHelper<1> { static inline _MM_INDEX_SCALE_ENUM value() { return _MM_SCALE_1; } };
+template <typename T> struct IndexScale
+{
+    static inline _MM_INDEX_SCALE_ENUM value() { return IndexScaleHelper<sizeof(T)>::value(); }
+};
+
+template <typename EntryType, typename MemType> struct UpDownConversion;
+template <> struct UpDownConversion<double, double>
+{
+    constexpr operator _MM_DOWNCONV_PD_ENUM() const { return _MM_DOWNCONV_PD_NONE; }
+    constexpr operator _MM_UPCONV_PD_ENUM() const { return _MM_UPCONV_PD_NONE; }
+};
+template <> struct UpDownConversion<float, float>
+{
+    constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_NONE; }
+    constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_NONE; }
+};
+/*template<> struct UpDownConversion<float, half_float> {
+    constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_FLOAT16; }
+    constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_FLOAT16; }
+};*/
+template <> struct UpDownConversion<float, unsigned char>
+{
+    constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_UINT8; }
+    constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_UINT8; }
+};
+template <> struct UpDownConversion<float, signed char>
+{
+    constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_SINT8; }
+    constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_SINT8; }
+};
+template <> struct UpDownConversion<float, unsigned short>
+{
+    constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_UINT16; }
+    constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_UINT16; }
+};
+template <> struct UpDownConversion<float, signed short>
+{
+    constexpr operator _MM_DOWNCONV_PS_ENUM() const { return _MM_DOWNCONV_PS_SINT16; }
+    constexpr operator _MM_UPCONV_PS_ENUM() const { return _MM_UPCONV_PS_SINT16; }
+};
+template <> struct UpDownConversion<unsigned int, char>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
+};
+template <> struct UpDownConversion<unsigned int, signed char>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
+};
+template <> struct UpDownConversion<unsigned int, unsigned char>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT8; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT8; }
+};
+template <> struct UpDownConversion<unsigned int, short>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT16; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT16; }
+};
+template <> struct UpDownConversion<unsigned int, unsigned short>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT16; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT16; }
+};
+template <> struct UpDownConversion<unsigned int, int>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
+};
+template <> struct UpDownConversion<unsigned int, unsigned int>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
+};
+template <> struct UpDownConversion<int, char>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
+};
+template <> struct UpDownConversion<int, signed char>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT8; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT8; }
+};
+template <> struct UpDownConversion<int, unsigned char>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT8; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT8; }
+};
+template <> struct UpDownConversion<int, short>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_SINT16; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_SINT16; }
+};
+template <> struct UpDownConversion<int, unsigned short>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_UINT16; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_UINT16; }
+};
+template <> struct UpDownConversion<int, int>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
+};
+template <> struct UpDownConversion<int, unsigned int>
+{
+    constexpr operator _MM_DOWNCONV_EPI32_ENUM() const { return _MM_DOWNCONV_EPI32_NONE; }
+    constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
+};
+
+template <typename V> class alignas(64) VectorAlignedBaseT
+{
+public:
+    FREE_STORE_OPERATORS_ALIGNED(alignof(V))
+};
+}  // namespace MIC
+}  // namespace Vc
 
 #include "undomacros.h"
 
-#endif // VC_MIC_INTRINSICS_H
+#endif  // VC_MIC_INTRINSICS_H

@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -34,6 +43,8 @@
 //#include "vectormultiplication.h"
 #include "writemaskedvector.h"
 #include "sorthelper.h"
+#include "iterators.h"
+#include "where.h"
 #include "macros.h"
 
 #ifdef isfinite
@@ -45,10 +56,17 @@
 
 #define VC_HAVE_FMA
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
+#define VC_CURRENT_CLASS_NAME Vector
 template<typename T> class Vector : public StoreMixin<Vector<T>, T>
 {
+    static_assert(std::is_arithmetic<T>::value,
+                  "Vector<T> only accepts arithmetic builtin types as template parameter T.");
+
     //friend class VectorMultiplication<T>;
     friend class WriteMaskedVector<T>;
     //friend Vector<T> operator+<>(const Vector<T> &x, const VectorMultiplication<T> &y);
@@ -62,21 +80,24 @@ template<typename T> class Vector : public StoreMixin<Vector<T>, T>
 public:
     FREE_STORE_OPERATORS_ALIGNED(64)
     typedef typename VectorTypeHelper<T>::Type VectorType;
+    using vector_type = VectorType;
     typedef typename DetermineEntryType<T>::Type EntryType;
+    using value_type = EntryType;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
-    typedef Vector<unsigned int> IndexType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
+    typedef simdarray<int, 16, MIC::int_v, 16> IndexType;
     enum Constants {
         MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true
     };
     typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
-    typedef typename Mask::AsArg MaskArg;
-    typedef Vc::Memory<Vector<T>, Size> Memory;
+    using MaskType = Mask;
+    using mask_type = Mask;
+    typedef typename Mask::AsArg MaskArgument;
     typedef Vector<T> AsArg; // for now only ICC can compile this code and it is not broken :)
     typedef VectorType VectorTypeArg;
 
-    inline const VectorType data() const { return d.v(); }
+    inline const VectorType &data() const { return d.v(); }
     inline VectorType &data() { return d.v(); }
 
 protected:
@@ -90,11 +111,10 @@ protected:
     StorageType d;
     VC_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
 
-    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::remove_cv<MemType>::type>;
-
     template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) x) { return mic_cast<VectorType>(x); }
 
 public:
+    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::decay<MemType>::type>;
 
     /**
      * Reinterpret some array of T as a vector of T. You may only do this if the pointer is
@@ -106,38 +126,31 @@ public:
         return reinterpret_cast<Vector<T> >(mem);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // uninitialized
-    inline Vector() {}
+#include "../common/generalinterface.h"
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // constants
-    inline explicit Vector(VectorSpecialInitializerZero::ZEnum);
-    inline explicit Vector(VectorSpecialInitializerOne::OEnum);
-    inline explicit Vector(VectorSpecialInitializerIndexesFromZero::IEnum);
-    static inline Vector Zero();
-    static inline Vector One();
-    static inline Vector IndexesFromZero();
     static Vector Random();
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // internal: required to enable returning objects of VectorType
     Vc_INTRINSIC Vector(VectorType x) : d(x) {}
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // copy
-    Vc_INTRINSIC Vector(const Vector &x) = default; //: d(x.data()) {}
-    Vc_INTRINSIC Vector &operator=(const Vector &v) { d.v() = v.d.v(); return *this; }
-
     // implict conversion from compatible Vector<U>
-    template<typename U> Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-            typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-        : d(StaticCastHelper<U, T>::cast(x.data())) {}
+    template <typename U>
+    Vc_INTRINSIC Vector(
+        VC_ALIGNED_PARAMETER(Vector<U>) x,
+        typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
+        : d(StaticCastHelper<U, T>::cast(x.data()))
+    {
+    }
 
     // static_cast from the remaining Vector<U>
-    template<typename U> Vc_INTRINSIC explicit Vector(VC_ALIGNED_PARAMETER(Vector<U>) x,
-            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-        : d(StaticCastHelper<U, T>::cast(x.data())) {}
+    template <typename U>
+    Vc_INTRINSIC explicit Vector(
+        VC_ALIGNED_PARAMETER(Vector<U>) x,
+        typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
+        : d(StaticCastHelper<U, T>::cast(x.data()))
+    {
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // broadcast
@@ -151,39 +164,16 @@ public:
         {
         }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // load ctors
-    explicit Vc_INTRINSIC Vector(const EntryType * x) { load(x); }
-    template<typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const EntryType * x, Flags flags = Flags())
-    {
-        load(x, flags);
-    }
-    template<typename OtherT, typename Flags = AlignedT> explicit Vc_INTRINSIC Vector(const OtherT *x, Flags flags = Flags())
-    {
-        load(x, flags);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // load member functions
-    Vc_INTRINSIC void load(const EntryType *mem) { load<AlignedT>(mem, Aligned); }
-    template<typename Flags = AlignedT> Vc_INTRINSIC_L
-        void load(const EntryType *mem, Flags) Vc_INTRINSIC_R;
-    template<typename OtherT, typename Flags = AlignedT> Vc_INTRINSIC_L
-        void load(const OtherT    *mem, Flags = Flags()) Vc_INTRINSIC_R;
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // expand 1 float_v to 2 double_v                 XXX rationale? remove it for release? XXX
-    // TODO: handle 8 <-> 16 conversions
-    explicit Vc_ALWAYS_INLINE_L Vc_FLATTEN Vector(const Vector<typename ConcatTypeHelper<T>::Type> *a) Vc_ALWAYS_INLINE_R;
-    Vc_ALWAYS_INLINE_L Vc_FLATTEN void expand(Vector<typename ConcatTypeHelper<T>::Type> *x) const Vc_ALWAYS_INLINE_R;
+#include "../common/loadinterface.h"
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // zeroing
     inline void setZero();
-    inline void setZero(MaskArg k);
+    inline void setZero(MaskArgument k);
+    inline void setZeroInverted(MaskArgument k);
 
     inline void setQnan();
-    inline void setQnan(MaskArg k);
+    inline void setQnan(MaskArgument k);
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // stores in StoreMixin
@@ -204,37 +194,8 @@ public:
     Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dbca() const Vc_INTRINSIC_R Vc_CONST_R;
     Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dcba() const Vc_INTRINSIC_R Vc_CONST_R;
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // gathers
-    template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes);
-    template<typename IndexT> Vector(const EntryType *mem, Vector<IndexT> indexes);
-    template<typename IndexT> Vector(const EntryType *mem, const IndexT *indexes, MaskArg mask);
-    template<typename IndexT> Vector(const EntryType *mem, Vector<IndexT> indexes, MaskArg mask);
-    template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, IT indexes);
-    template<typename S1, typename IT> Vector(const S1 *array, const EntryType S1::* member1, IT indexes, MaskArg mask);
-    template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes);
-    template<typename S1, typename S2, typename IT> Vector(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask);
-    template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes);
-    template<typename S1, typename IT1, typename IT2> Vector(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, MaskArg mask);
-    template<typename Index> void gather(const EntryType *mem, Index indexes);
-    template<typename Index> void gather(const EntryType *mem, Index indexes, MaskArg mask);
-    template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes);
-    template<typename S1, typename IT> void gather(const S1 *array, const EntryType S1::* member1, IT indexes, MaskArg mask);
-    template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes);
-    template<typename S1, typename S2, typename IT> void gather(const S1 *array, const S2 S1::* member1, const EntryType S2::* member2, IT indexes, MaskArg mask);
-    template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes);
-    template<typename S1, typename IT1, typename IT2> void gather(const S1 *array, const EntryType *const S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, MaskArg mask);
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // scatters
-    template<typename Index> void scatter(EntryType *mem, Index indexes) const;
-    template<typename Index> void scatter(EntryType *mem, Index indexes, MaskArg mask) const;
-    template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes) const;
-    template<typename S1, typename IT> void scatter(S1 *array, EntryType S1::* member1, IT indexes, MaskArg mask) const;
-    template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes) const;
-    template<typename S1, typename S2, typename IT> void scatter(S1 *array, S2 S1::* member1, EntryType S2::* member2, IT indexes, MaskArg mask) const;
-    template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes) const;
-    template<typename S1, typename IT1, typename IT2> void scatter(S1 *array, EntryType *S1::* ptrMember1, IT1 outerIndexes, IT2 innerIndexes, MaskArg mask) const;
+#include "../common/gatherinterface.h"
+#include "../common/scatterinterface.h"
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     //prefix
@@ -244,25 +205,49 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // aliasing scalar access
-    Vc_INTRINSIC decltype(d.m(0)) &operator[](size_t index) {
-        return d.m(index);
-    }
-    Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
-        return d.m(index);
-    }
+    Vc_INTRINSIC_L auto operator[](size_t index)Vc_INTRINSIC_R -> decltype(d.ref(0)) &;
+    Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_INTRINSIC_R;
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // unary operators
-    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator~() const { return _andnot(d.v(), _setallone<VectorType>()); }
-    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector<typename NegateTypeHelper<T>::Type> operator-() const;
+    Vc_INTRINSIC Vc_PURE Mask operator!() const
+    {
+        return *this == Zero();
+    }
+    Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator~() const
+    {
+#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+        static_assert(std::is_integral<T>::value,
+                      "bit-complement can only be used with Vectors of integral type");
+#endif
+        return _andnot(d.v(), _setallone<VectorType>());
+    }
+    Vc_PURE_L Vc_ALWAYS_INLINE_L Vector operator-() const Vc_PURE_R Vc_ALWAYS_INLINE_R;
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator+() const { return *this; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // binary operators
-#define Vc_OP(symbol, fun) \
-    Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x) { d.v() = fun(d.v(), x.d.v()); return *this; } \
-    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const { return Vector<T>(fun(d.v(), x.d.v())); }
+#ifdef VC_ENABLE_FLOAT_BIT_OPERATORS
+#define VC_ASSERT__
+#else
+#define VC_ASSERT__                                                                                \
+    static_assert(std::is_integral<T>::value,                                                      \
+                  "bitwise-operators can only be used with Vectors of integral type")
+#endif
+#define Vc_OP(symbol, fun)                                                                         \
+    Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x)                                           \
+    {                                                                                              \
+        VC_ASSERT__;                                                                               \
+        d.v() = fun(d.v(), x.d.v());                                                               \
+        return *this;                                                                              \
+    }                                                                                              \
+    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const                                         \
+    {                                                                                              \
+        VC_ASSERT__;                                                                               \
+        return Vector<T>(fun(d.v(), x.d.v()));                                                     \
+    }
 
+    Vc_OP(%, mod_<VectorEntryType>)
     Vc_OP(*, _mul<VectorEntryType>)
     Vc_OP(+, _add<VectorEntryType>)
     Vc_OP(-, _sub<VectorEntryType>)
@@ -304,21 +289,22 @@ public:
     template<typename V2> Vc_INTRINSIC V2 staticCast() const { return V2(*this); }
     template<typename V2> Vc_INTRINSIC V2 reinterpretCast() const { return mic_cast<typename V2::VectorType>(d.v()); }
 
-    Vc_ALWAYS_INLINE WriteMaskedVector<T> operator()(MaskArg k) { return WriteMaskedVector<T>(this, k); }
+    Vc_ALWAYS_INLINE WriteMaskedVector<T> operator()(MaskArgument k) { return WriteMaskedVector<T>(this, k); }
 
     inline EntryType min() const { return HT::reduce_min(d.v()); }
     inline EntryType max() const { return HT::reduce_max(d.v()); }
     inline EntryType product() const { return HT::reduce_mul(d.v()); }
     inline EntryType sum() const { return HT::reduce_add(d.v()); }
     Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
-    inline EntryType min(MaskArg m) const;
-    inline EntryType max(MaskArg m) const;
-    inline EntryType product(MaskArg m) const;
-    inline EntryType sum(MaskArg m) const;
+    inline EntryType min(MaskArgument m) const;
+    inline EntryType max(MaskArgument m) const;
+    inline EntryType product(MaskArgument m) const;
+    inline EntryType sum(MaskArgument m) const;
 
     Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
+    Vc_INTRINSIC_L Vc_PURE_L Vector reversed() const Vc_INTRINSIC_R Vc_PURE_R;
     Vc_INTRINSIC Vector sorted() const { return SortHelper<T>::sort(d.v()); }
 
     template<typename F> void callWithValuesSorted(F &f) {
@@ -332,57 +318,6 @@ public:
         }
     }
 
-#ifdef VC_NO_MOVE_CTOR
-    template<typename F> Vc_INTRINSIC void call(const F &f) const {
-        for_all_vector_entries(i,
-                f(EntryType(d.m(i)));
-                );
-    }
-    template<typename F> Vc_INTRINSIC void call(const F &f, const Mask &mask) const {
-        Vc_foreach_bit(size_t i, mask) {
-            f(EntryType(d.m(i)));
-        }
-    }
-    template<typename F> Vc_INTRINSIC Vector<T> apply(const F &f) const {
-        Vector<T> r;
-        for_all_vector_entries(i,
-                r.d.m(i) = f(EntryType(d.m(i)));
-                );
-        return r;
-    }
-    template<typename F> Vc_INTRINSIC Vector<T> apply(const F &&f, const Mask &mask) const {
-        Vector<T> r(*this);
-        Vc_foreach_bit (size_t i, mask) {
-            r.d.m(i) = f(EntryType(r.d.m(i)));
-        }
-        return r;
-    }
-
-    template<typename F> Vc_INTRINSIC void call(F &f) const {
-        for_all_vector_entries(i,
-                f(EntryType(d.m(i)));
-                );
-    }
-    template<typename F> Vc_INTRINSIC void call(F &f, const Mask &mask) const {
-        Vc_foreach_bit(size_t i, mask) {
-            f(EntryType(d.m(i)));
-        }
-    }
-    template<typename F> Vc_INTRINSIC Vector<T> apply(F &f) const {
-        Vector<T> r;
-        for_all_vector_entries(i,
-                r.d.m(i) = f(EntryType(d.m(i)));
-                );
-        return r;
-    }
-    template<typename F> Vc_INTRINSIC Vector<T> apply(F &f, const Mask &mask) const {
-        Vector<T> r(*this);
-        Vc_foreach_bit (size_t i, mask) {
-            r.d.m(i) = f(EntryType(r.d.m(i)));
-        }
-        return r;
-    }
-#else
     template<typename F> Vc_INTRINSIC void call(F &&f) const {
         for_all_vector_entries(i,
                 f(EntryType(d.m(i)));
@@ -398,7 +333,7 @@ public:
     template<typename F> Vc_INTRINSIC Vector<T> apply(F &&f) const {
         Vector<T> r;
         for_all_vector_entries(i,
-                r.d.m(i) = f(EntryType(d.m(i)));
+                r.d.set(i, f(EntryType(d.m(i))));
                 );
         return r;
     }
@@ -406,40 +341,39 @@ public:
     template<typename F> Vc_INTRINSIC Vector<T> apply(F &&f, const Mask &mask) const {
         Vector<T> r(*this);
         Vc_foreach_bit (size_t i, mask) {
-            r.d.m(i) = f(EntryType(r.d.m(i)));
+            r.d.set(i, f(EntryType(r.d.m(i))));
         }
         return r;
     }
-#endif
 
     template<typename IndexT> Vc_INTRINSIC void fill(EntryType (&f)(IndexT)) {
         for_all_vector_entries(i,
-                d.m(i) = f(i);
+                d.set(i, f(i));
                 );
     }
     Vc_INTRINSIC void fill(EntryType (&f)()) {
         for_all_vector_entries(i,
-                d.m(i) = f();
+                d.set(i, f());
                 );
+    }
+
+    template <typename G> static Vc_INTRINSIC Vector generate(G gen)
+    {
+        Vector r;
+        Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) {
+            r.d.set(i, gen(i));
+        });
+        return r;
     }
 
     Vc_INTRINSIC_L Vector copySign(AsArg reference) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
-};
-template<typename T> constexpr size_t Vector<T>::Size;
 
-typedef Vector<double>         double_v;
-typedef Vector<float>          float_v;
-typedef Vector<int>            int_v;
-typedef Vector<unsigned int>   uint_v;
-typedef Vector<short>          short_v;
-typedef Vector<unsigned short> ushort_v;
-typedef double_v::Mask double_m;
-typedef  float_v::Mask float_m;
-typedef    int_v::Mask int_m;
-typedef   uint_v::Mask uint_m;
-typedef  short_v::Mask short_m;
-typedef ushort_v::Mask ushort_m;
+    Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
+    Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
+};
+#undef VC_CURRENT_CLASS_NAME
+template<typename T> constexpr size_t Vector<T>::Size;
 
 template<typename T> struct SwizzledVector
 {
@@ -458,6 +392,15 @@ template<typename T> struct SwizzledVector
     MATH_OP2(atan2, atan2)
 #undef MATH_OP2
 
+template <typename T,
+          typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
+                               std::is_same<T, short>::value ||
+                               std::is_same<T, int>::value>>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
+{
+    return VectorHelper<typename Vector<T>::VectorEntryType>::abs(x.data());
+}
+
 #define MATH_OP1(name, call) \
     template<typename T> static Vc_ALWAYS_INLINE Vector<T> name(const Vector<T> &x) \
     { \
@@ -466,7 +409,6 @@ template<typename T> struct SwizzledVector
     }
     MATH_OP1(sqrt, sqrt)
     MATH_OP1(rsqrt, rsqrt)
-    MATH_OP1(abs, abs)
     MATH_OP1(sin, sin)
     MATH_OP1(cos, cos)
     MATH_OP1(log, log)
@@ -489,12 +431,45 @@ template<typename T> struct SwizzledVector
 
 #include "forcetoregisters.tcc"
 
-Vc_NAMESPACE_END
+#define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
+    template <Operator O, typename T, typename M, typename U>                            \
+    Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
+        Vector<T> &lhs, M &&mask, U &&rhs)                                               \
+    {                                                                                    \
+        lhs(mask) op__ rhs;                                                              \
+    }
+Vc_CONDITIONAL_ASSIGN(          Assign,  =)
+Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
+Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=)
+Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=)
+Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=)
+Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=)
+Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=)
+Vc_CONDITIONAL_ASSIGN(       AndAssign, &=)
+Vc_CONDITIONAL_ASSIGN(        OrAssign, |=)
+Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
+Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
+#undef Vc_CONDITIONAL_ASSIGN
+
+#define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
+    template <Operator O, typename T, typename M>                                        \
+    Vc_INTRINSIC enable_if<O == Operator::name__, Vector<T>> conditional_assign(         \
+        Vector<T> &lhs, M &&mask)                                                        \
+    {                                                                                    \
+        return expr__;                                                                   \
+    }
+Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++)
+Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))
+Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--)
+Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
+#undef Vc_CONDITIONAL_ASSIGN
+
+} // namespace MIC
+using MIC::conditional_assign;
+} // namespace Vc
 
 #include "vector.tcc"
 #include "undomacros.h"
-#include "helperimpl.h"
-#include "math.h"
 
 #ifdef CAN_OFFLOAD
 #pragma offload_attribute(pop)

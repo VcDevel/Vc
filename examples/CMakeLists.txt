@@ -11,10 +11,28 @@ set(CMAKE_REQUIRED_LIBRARIES "${SAFE_CMAKE_REQUIRED_LIBRARIES}")
 
 add_custom_target(Examples COMMENT "build all examples" VERBATIM)
 
-# for the remaining targets unconditional Vc_ARCHITECTURE_FLAGS is mostly fine.
-add_definitions(${Vc_ARCHITECTURE_FLAGS})
-
 AddCompilerFlag(-ftemplate-depth=1024)
+
+macro(vc_add_run_target _target)
+   if("${_target}" MATCHES "_mic$")
+      if(MIC_NATIVELOAD)
+         get_target_property(_exe "${_target}" OUTPUT_NAME)
+         add_custom_target(run_${_target}
+            ${MIC_NATIVELOAD} "${_exe}"
+            DEPENDS ${_target}
+            COMMENT "Execute ${_target} example"
+            VERBATIM
+            )
+      endif()
+   else()
+      add_custom_target(run_${_target}
+         ${_target}
+         DEPENDS ${_target}
+         COMMENT "Execute ${_target} example"
+         VERBATIM
+         )
+   endif()
+endmacro()
 
 macro(build_example name)
    set(_SRCS)
@@ -35,47 +53,52 @@ macro(build_example name)
       endif()
    endforeach()
    add_executable("example_${name}_default" ${_SRCS})
+   add_target_property("example_${name}_default" COMPILE_FLAGS "${Vc_ARCHITECTURE_FLAGS}")
    target_link_libraries("example_${name}_default" Vc ${_LIBS})
    add_dependencies(Examples "example_${name}_default")
 
    list(FIND _disabled_impl "Scalar" _index)
    if(_index EQUAL -1)
       add_executable("example_${name}_scalar" ${_SRCS})
-      add_target_property("example_${name}_scalar" COMPILE_FLAGS "-DVC_IMPL=Scalar")
+      add_target_property("example_${name}_scalar" COMPILE_FLAGS "${Vc_ARCHITECTURE_FLAGS} -DVC_IMPL=Scalar")
       add_target_property("example_${name}_scalar" LABELS "Scalar")
       add_dependencies(Scalar "example_${name}_scalar")
       add_dependencies(Examples "example_${name}_scalar")
       target_link_libraries("example_${name}_scalar" Vc ${_LIBS})
+      vc_add_run_target("example_${name}_scalar")
    endif()
 
    list(FIND _disabled_impl "SSE" _index)
    if(USE_SSE2 AND _index EQUAL -1)
       add_executable("example_${name}_sse" ${_SRCS})
-      add_target_property("example_${name}_sse" COMPILE_FLAGS "-DVC_IMPL=SSE")
+      add_target_property("example_${name}_sse" COMPILE_FLAGS "${Vc_ARCHITECTURE_FLAGS} -DVC_IMPL=SSE")
       add_target_property("example_${name}_sse" LABELS "SSE")
       add_dependencies(SSE "example_${name}_sse")
       add_dependencies(Examples "example_${name}_sse")
       target_link_libraries("example_${name}_sse" Vc ${_LIBS})
+      vc_add_run_target("example_${name}_sse")
    endif()
 
    list(FIND _disabled_impl "AVX" _index)
    if(USE_AVX AND _index EQUAL -1)
       add_executable("example_${name}_avx" ${_SRCS})
-      add_target_property("example_${name}_avx" COMPILE_FLAGS "-DVC_IMPL=AVX")
+      add_target_property("example_${name}_avx" COMPILE_FLAGS "${Vc_ARCHITECTURE_FLAGS} -DVC_IMPL=AVX")
       add_target_property("example_${name}_avx" LABELS "AVX")
       add_dependencies(AVX "example_${name}_avx")
       add_dependencies(Examples "example_${name}_avx")
       target_link_libraries("example_${name}_avx" Vc ${_LIBS})
+      vc_add_run_target("example_${name}_avx")
    endif()
 
    list(FIND _disabled_impl "AVX2" _index)
    if(USE_AVX2 AND _index EQUAL -1)
       add_executable("example_${name}_avx2" ${_SRCS})
-      add_target_property("example_${name}_avx2" COMPILE_FLAGS "-DVC_IMPL=AVX2")
+      add_target_property("example_${name}_avx2" COMPILE_FLAGS "${Vc_ARCHITECTURE_FLAGS} -DVC_IMPL=AVX2")
       add_target_property("example_${name}_avx2" LABELS "AVX2")
       add_dependencies(AVX2 "example_${name}_avx2")
       add_dependencies(Examples "example_${name}_avx2")
       target_link_libraries("example_${name}_avx2" Vc ${_LIBS})
+      vc_add_run_target("example_${name}_avx2")
    endif()
 
    list(FIND _disabled_impl "MIC" _index)
@@ -87,6 +110,7 @@ macro(build_example name)
          )
       add_target_property("example_${name}_mic" LABELS "MIC")
       add_dependencies(MIC "example_${name}_mic")
+      vc_add_run_target("example_${name}_mic")
    endif()
 
    if(USE_AVX2)
@@ -102,6 +126,7 @@ macro(build_example name)
       add_target_property("example_${name}_default" LABELS "Scalar")
       add_dependencies(Scalar "example_${name}_default")
    endif()
+   vc_add_run_target("example_${name}_default")
 endmacro(build_example)
 
 macro(my_add_subdirectory _name)
@@ -118,3 +143,4 @@ my_add_subdirectory(buddhabrot)
 my_add_subdirectory(finitediff)
 my_add_subdirectory(scaling)
 my_add_subdirectory(test_inside)
+my_add_subdirectory(simdize)

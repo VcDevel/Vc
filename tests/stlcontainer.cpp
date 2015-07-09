@@ -1,5 +1,5 @@
 /*{{{
-    Copyright (C) 2012 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2012-2014 Matthias Kretz <kretz@kde.org>
 
     Permission to use, copy, modify, and distribute this software
     and its documentation for any purpose and without fee is hereby
@@ -43,7 +43,7 @@ template<typename Vec> size_t alignmentMask()
 
 template<typename T> struct SomeStruct { char a; T x; };
 
-template<typename V> void stdVectorAlignment()
+TEST_TYPES(V, stdVectorAlignment, (ALL_VECTORS))
 {
     const size_t mask = alignmentMask<V>();
     const char *const null = 0;
@@ -65,36 +65,88 @@ template<typename V> void stdVectorAlignment()
     for (int i = 1; i < 100; ++i) {
         std::vector<T, Vc::Allocator<T>> v5(i);
         const size_t expectedAlignment = alignof(V);
-        COMPARE((&v5[0] - static_cast<const T *>(0)) * sizeof(T) & (expectedAlignment - 1), 0);
+        COMPARE((&v5[0] - static_cast<const T *>(0)) * sizeof(T) & (expectedAlignment - 1), 0u);
     }
 }
 
-template<typename V, typename Container> void listInitialization()
+template<typename V, typename Container> void listInitializationImpl()
 {
     typedef typename V::EntryType T;
-    typedef typename V::IndexType I;
     const auto data = Vc::makeContainer<Container>({ T(1), T(2), T(3), T(4), T(5), T(6), T(7), T(8), T(9) });
-    V reference = V{ I::IndexesFromZero() + 1 };
+    V reference = V::IndexesFromZero() + 1;
     for (const auto &v : data) {
         reference.setZero(reference > 9);
         COMPARE(v, reference);
         reference += V::Size;
     }
 }
-template<typename V> void listInitialization()
+TEST_TYPES(V, listInitialization, (ALL_VECTORS))
 {
-    listInitialization<V, std::vector<V>>();
-    listInitialization<V, std::array<V, 9>>();
-    listInitialization<V, std::deque<V>>();
+    listInitializationImpl<V, std::vector<V>>();
+    listInitializationImpl<V, std::array<V, 9>>();
+    listInitializationImpl<V, std::deque<V>>();
 
     // The following two crash (at least with AVX). Probably unaligned memory access.
     //listInitialization<V, std::forward_list<V>>();
     //listInitialization<V, std::list<V>>();
 }
 
-void testmain()
+#ifdef VC_CXX14
+TEST_TYPES(V, simdForEach, (ALL_VECTORS))
 {
-    using namespace Vc;
-    testAllTypes(stdVectorAlignment);
-    testAllTypes(listInitialization);
+    typedef typename V::EntryType T;
+    std::vector<T> data;
+    data.reserve(99);
+    for (int i = 0; i < 99; ++i) {
+        data.push_back(T(i));
+    }
+    T reference = 1;
+    int called_with_scalar = 0;
+    int called_with_V = 0;
+    int position = 1;
+    Vc::simd_for_each(std::next(data.begin()), data.end(), [&](auto &x) {
+        const auto ref = reference + x.IndexesFromZero();
+        COMPARE(ref, x);
+        reference += x.Size;
+        x += 1;
+        if (std::is_same<decltype(x), Vc::Scalar::Vector<T> &>::value) {
+            ++called_with_scalar;
+        }
+        if (std::is_same<decltype(x), V &>::value) {
+            ++called_with_V;
+        }
+        for (std::size_t i = 0; i < x.Size; ++i) {
+            data[position++] += T(2);  // modify the container directly - if it is not
+                                       // undone by simd_for_each we have a bug
+        }
+    });
+    VERIFY(called_with_scalar > 0);
+    VERIFY(called_with_V > 0);
+    if (std::is_same<V, Vc::Scalar::Vector<T>>::value) {
+        // in this case called_with_V and called_with_scalar will have been incremented both on
+        // every call
+        COMPARE(called_with_V * V::Size + called_with_scalar, 2 * 98);
+    } else {
+        COMPARE(called_with_V * V::Size + called_with_scalar, 98);
+    }
+
+    reference = 2;
+    position = 1;
+    Vc::simd_for_each(std::next(data.begin()), data.end(), [&](auto x) {
+        const auto ref = reference + x.IndexesFromZero();
+        COMPARE(ref, x);
+        reference += x.Size;
+        x += 1;
+        for (std::size_t i = 0; i < x.Size; ++i) {
+            data[position++] += T(2);  // modify the container directly - if it is undone
+                                       // by simd_for_each we have a bug
+        }
+    });
+    reference = 4;
+    Vc::simd_for_each(std::next(data.begin()), data.end(), [&reference](auto x) {
+        const auto ref = reference + x.IndexesFromZero();
+        COMPARE(ref, x) << "if ref == x + 2 then simd_for_each wrote back the closure argument, even though it should not have";
+        reference += x.Size;
+    });
 }
+#endif

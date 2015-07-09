@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2010 Jochen Gerhard <gerhard@compeng.uni-frankfurt.de>
-    Copyright (C) 2010-2012 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2014 Matthias Kretz <kretz@kde.org>
 
     Permission to use, copy, modify, and distribute this software
     and its documentation for any purpose and without fee is hereby
@@ -116,7 +116,7 @@ void printResults()
 int main()
 {
     {
-      float_v x_i(float_v::IndexType::IndexesFromZero());
+      float_v x_i(Vc::IndexesFromZero);
       for ( unsigned int i = 0; i < x_points.vectorsCount(); ++i, x_i += float_v::Size ) {
         const float_v x = x_i * h;
         x_points.vector(i) = x;

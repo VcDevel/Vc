@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -25,7 +34,10 @@
 #include <iterator>
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 #define VC_MEM_OPERATOR_EQ(op) \
         template<typename T> \
@@ -62,9 +74,7 @@ public:
         // disable copies because this type is supposed to alias the data in a Memory object,
         // nothing else
         MemoryVector(const MemoryVector &) = delete;
-#ifndef VC_NO_MOVE_CTOR
         MemoryVector(MemoryVector &&) = delete;
-#endif
         // Do not disable MemoryVector &operator=(const MemoryVector &) = delete; because it is
         // covered nicely by the operator= below.
 
@@ -76,7 +86,7 @@ public:
          *
          * This function allows to assign this object to any object of type \p V.
          */
-        Vc_ALWAYS_INLINE Vc_PURE operator const V() const { return value(); }
+        Vc_ALWAYS_INLINE Vc_PURE operator V() const { return value(); }
 
         template<typename T>
         Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator=(const T &x) {
@@ -109,9 +119,7 @@ public:
 
     constexpr MemoryVectorIterator(MemoryVector<_V, Flags> *dd) : d(dd) {}
     constexpr MemoryVectorIterator(const MemoryVectorIterator &) = default;
-#ifndef VC_NO_MOVE_CTOR
     constexpr MemoryVectorIterator(MemoryVectorIterator &&) = default;
-#endif
     Vc_ALWAYS_INLINE MemoryVectorIterator &operator=(const MemoryVectorIterator &) = default;
 
     Vc_ALWAYS_INLINE void *orderBy() const { return d; }
@@ -213,6 +221,7 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
         /// Const overload of the above function.
         Vc_ALWAYS_INLINE Vc_PURE const EntryType scalar(size_t i) const { return entries()[i]; }
 
+#ifdef DOXYGEN
         /**
          * Cast operator to the scalar type. This allows to use the object very much like a standard
          * C array.
@@ -220,6 +229,27 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
         Vc_ALWAYS_INLINE Vc_PURE operator       EntryType*()       { return entries(); }
         /// Const overload of the above function.
         Vc_ALWAYS_INLINE Vc_PURE operator const EntryType*() const { return entries(); }
+#else
+        // The above conversion operator allows implicit conversion to bool. To prohibit this
+        // conversion we use SFINAE to allow only conversion to EntryType* and void*.
+        template <typename T,
+                  typename std::enable_if<
+                      std::is_same<typename std::remove_const<T>::type, EntryType *>::value ||
+                          std::is_same<typename std::remove_const<T>::type, void *>::value,
+                      int>::type = 0>
+        Vc_ALWAYS_INLINE Vc_PURE operator T()
+        {
+            return entries();
+        }
+        template <typename T,
+                  typename std::enable_if<std::is_same<T, const EntryType *>::value ||
+                                              std::is_same<T, const void *>::value,
+                                          int>::type = 0>
+        Vc_ALWAYS_INLINE Vc_PURE operator T() const
+        {
+            return entries();
+        }
+#endif
 
         /**
          *
@@ -239,16 +269,12 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
             return MemoryRange<const V, Parent>(p(), firstIndex, lastIndex);
         }
 
-        // omit operator[] because the EntryType* cast operator suffices, for dox it makes sense to
-        // show it, though because it helps API discoverability.
-#ifdef DOXYGEN
         /**
          * Returns the \p i-th scalar value in the memory.
          */
-        inline EntryType &operator[](size_t i);
+        Vc_ALWAYS_INLINE EntryType &operator[](size_t i) { return entries()[i]; }
         /// Const overload of the above function.
-        inline const EntryType &operator[](size_t i) const;
-#endif
+        Vc_ALWAYS_INLINE const EntryType &operator[](size_t i) const { return entries()[i]; }
 
         /**
          * Uses a vector gather to combine the entries at the indexes in \p i into the returned
@@ -351,19 +377,19 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         /**
          * Return a (vectorized) iterator to the start of this memory object.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE MemoryVectorIterator<      V, Flags> begin(Flags flags = Flags())       { return &firstVector(flags); }
         //! const overload of the above
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags> begin(Flags flags = Flags()) const { return &firstVector(flags); }
 
         /**
          * Return a (vectorized) iterator to the end of this memory object.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE MemoryVectorIterator<      V, Flags>   end(Flags flags = Flags())       { return &lastVector(flags) + 1; }
         //! const overload of the above
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags>   end(Flags flags = Flags()) const { return &lastVector(flags) + 1; }
 
         /**
@@ -386,7 +412,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * access memory at fixed strides. If access to known offsets from the aligned vectors is
          * needed the vector(size_t, int) function can be used.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<!std::is_convertible<Flags, int>::value, MemoryVector<V, Flags>>::type &vector(size_t i, Flags = Flags()) {
             return *new(&entries()[i * V::Size]) MemoryVector<V, Flags>;
         }
@@ -396,7 +422,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * \return a smart object to wrap the \p i-th vector in the memory.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<!std::is_convertible<Flags, int>::value, MemoryVector<const V, Flags>>::type &vector(size_t i, Flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[i * V::Size])) MemoryVector<const V, Flags>;
         }
@@ -417,10 +443,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * values scalar(i), scalar(i + 1), ..., scalar(i + V::Size - 1) will be read/overwritten.
          *
          * \param flags  You must take care to determine whether an unaligned load/store is
-         * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
-         * you must pass Vc::Unaligned here.
+         * required. Per default an unaligned load/store is used. If \p i is a multiple of \c V::Size
+         * you may want to pass Vc::Aligned here.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = UnalignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &vectorAt(size_t i, Flags flags = Flags()) {
             return *new(&entries()[i]) MemoryVector<V, Flags>;
         }
@@ -432,10 +458,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * values scalar(i), scalar(i + 1), ..., scalar(i + V::Size - 1) will be read/overwritten.
          *
          * \param flags  You must take care to determine whether an unaligned load/store is
-         * required. Per default an aligned load/store is used. If \p i is not a multiple of \c V::Size
-         * you must pass Vc::Unaligned here.
+         * required. Per default an unaligned load/store is used. If \p i is a multiple of \c V::Size
+         * you may want to pass Vc::Aligned here.
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = UnalignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &vectorAt(size_t i, Flags flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[i])) MemoryVector<const V, Flags>;
         }
@@ -482,12 +508,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * This function is simply a shorthand for vector(0).
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &firstVector(Flags = Flags()) {
             return *new(entries()) MemoryVector<V, Flags>;
         }
         /// Const overload of the above function.
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &firstVector(Flags = Flags()) const {
             return *new(const_cast<EntryType *>(entries())) MemoryVector<const V, Flags>;
         }
@@ -497,12 +523,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          *
          * This function is simply a shorthand for vector(vectorsCount() - 1).
          */
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> &lastVector(Flags = Flags()) {
             return *new(&entries()[vectorsCount() * V::Size - V::Size]) MemoryVector<V, Flags>;
         }
         /// Const overload of the above function.
-        template<typename Flags = AlignedT>
+        template<typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> &lastVector(Flags = Flags()) const {
             return *new(const_cast<EntryType *>(&entries()[vectorsCount() * V::Size - V::Size])) MemoryVector<const V, Flags>;
         }
@@ -512,6 +538,9 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned int   *indexes) const { return V(entries(), indexes); }
         Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned long  *indexes) const { return V(entries(), indexes); }
 
+        /**
+         * Zero the whole memory area.
+         */
         Vc_ALWAYS_INLINE void setZero() {
             V zero(Vc::Zero);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -519,6 +548,19 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
         }
 
+        /**
+         * Assign a value to all vectors in the array.
+         */
+        template<typename U>
+        Vc_ALWAYS_INLINE Parent &operator=(U &&x) {
+            for (size_t i = 0; i < vectorsCount(); ++i) {
+                vector(i) = std::forward<U>(x);
+            }
+        }
+
+        /**
+         * (Inefficient) shorthand to add up two arrays.
+         */
         template<typename P2, typename RM>
         inline Parent &operator+=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -527,6 +569,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to subtract two arrays.
+         */
         template<typename P2, typename RM>
         inline Parent &operator-=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -535,6 +581,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to multiply two arrays.
+         */
         template<typename P2, typename RM>
         inline Parent &operator*=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -543,6 +593,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to divide two arrays.
+         */
         template<typename P2, typename RM>
         inline Parent &operator/=(const MemoryBase<V, P2, Dimension, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -551,6 +605,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to add a value to an array.
+         */
         inline Parent &operator+=(EntryType rhs) {
             V v(rhs);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -558,6 +616,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to subtract a value from an array.
+         */
         inline Parent &operator-=(EntryType rhs) {
             V v(rhs);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -565,6 +627,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to multiply a value to an array.
+         */
         inline Parent &operator*=(EntryType rhs) {
             V v(rhs);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -572,6 +638,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand to divide an array with a value.
+         */
         inline Parent &operator/=(EntryType rhs) {
             V v(rhs);
             for (size_t i = 0; i < vectorsCount(); ++i) {
@@ -579,6 +649,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return static_cast<Parent &>(*this);
         }
+
+        /**
+         * (Inefficient) shorthand compare equality of two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator==(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -589,6 +663,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator!=(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -599,6 +677,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator<(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -609,6 +691,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator<=(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -619,6 +705,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator>(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -629,6 +719,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             }
             return true;
         }
+
+        /**
+         * (Inefficient) shorthand compare two arrays.
+         */
         template<typename P2, typename RM>
         inline bool operator>=(const MemoryBase<V, P2, Dimension, RM> &rhs) const {
             assert(vectorsCount() == rhs.vectorsCount());
@@ -670,7 +764,8 @@ inline void copyVectors(MemoryBase<V, ParentL, Dimension, RowMemoryL> &dst,
 }
 } // namespace Internal2
 
-Vc_NAMESPACE_END
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

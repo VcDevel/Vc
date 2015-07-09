@@ -1,26 +1,36 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #include "unittest.h"
-#include <iostream>
 
 using namespace Vc;
+
+#define ALL_TYPES (ALL_VECTORS)
 
 template<typename T> static constexpr T min(T a, T b) { return a < b ? a : b; }
 
@@ -31,11 +41,11 @@ template<typename Vec> constexpr unsigned long alignmentMask()
             min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
         ) : (
             // AVX::VectorAlignment is too large
-            min<size_t>(sizeof(Vec), VectorAlignment) - 1
+            min(sizeof(Vec), alignof(Vec)) - 1
         );
 }
 
-template<typename Vec> void checkAlignment()
+TEST_TYPES(Vec, checkAlignment, ALL_TYPES)
 {
     unsigned char i = 1;
     Vec a[10];
@@ -51,7 +61,7 @@ template<typename Vec> void checkAlignment()
 
 void *hack_to_put_b_on_the_stack = 0;
 
-template<typename Vec> void checkMemoryAlignment()
+TEST_TYPES(Vec, checkMemoryAlignment, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     const T *b = 0;
@@ -64,43 +74,11 @@ template<typename Vec> void checkMemoryAlignment()
     }
 }
 
-template<typename Vec> void loadArray()
-{
-    typedef typename Vec::EntryType T;
-    typedef typename Vec::IndexType I;
-
-    enum loadArrayEnum { count = 256 * 1024 / sizeof(T) };
-    Vc::Memory<Vec, count> array;
-    for (int i = 0; i < count; ++i) {
-        array[i] = i;
-    }
-
-    const I indexesFromZero(IndexesFromZero);
-
-    const Vec offsets(indexesFromZero);
-    for (int i = 0; i < count; i += Vec::Size) {
-        const T *const addr = &array[i];
-        Vec ii(i);
-        ii += offsets;
-
-        Vec a(addr);
-        COMPARE(a, ii);
-
-        Vec b = Vec::Zero();
-        b.load(addr);
-        COMPARE(b, ii);
-    }
-
-    // check that Vc allows construction from objects that auto-convert to T*
-    Vec tmp0(array);
-    tmp0.load(array);
-}
-
 enum Enum {
     loadArrayShortCount = 32 * 1024,
     streamingLoadCount = 1024
 };
-template<typename Vec> void loadArrayShort()
+TEST_TYPES(Vec, loadArrayShort, (short_v, ushort_v, simdarray<short, 32>, simdarray<unsigned short, 32>))
 {
     typedef typename Vec::EntryType T;
 
@@ -109,22 +87,54 @@ template<typename Vec> void loadArrayShort()
         array[i] = i;
     }
 
-    const Vec &offsets = static_cast<Vec>(ushort_v::IndexesFromZero());
+    const Vec offsets(IndexesFromZero);
     for (int i = 0; i < loadArrayShortCount; i += Vec::Size) {
         const T *const addr = &array[i];
         Vec ii(i);
         ii += offsets;
 
-        Vec a(addr);
+        Vec a(addr, Vc::Aligned);
         COMPARE(a, ii);
 
         Vec b = Vec::Zero();
-        b.load(addr);
+        b.load(addr, Vc::Aligned);
         COMPARE(b, ii);
     }
 }
 
-template<typename Vec> void streamingLoad()
+TEST_TYPES(Vec, loadArray, ALL_TYPES)
+{
+    typedef typename Vec::EntryType T;
+    if (sizeof(T) < 4) {
+        return;
+    }
+
+    enum loadArrayEnum { count = 256 * 1024 / sizeof(T) };
+    Vc::Memory<Vec, count> array;
+    for (int i = 0; i < count; ++i) {
+        array[i] = i;
+    }
+
+    const Vec offsets(IndexesFromZero);
+    for (int i = 0; i < count; i += Vec::Size) {
+        const T *const addr = &array[i];
+        Vec ii(i);
+        ii += offsets;
+
+        Vec a(addr, Vc::Aligned);
+        COMPARE(a, ii);
+
+        Vec b = Vec::Zero();
+        b.load(addr, Vc::Aligned);
+        COMPARE(b, ii);
+    }
+
+    // check that Vc allows construction from objects that auto-convert to T*
+    Vec tmp0(array, Vc::Aligned);
+    tmp0.load(array, Vc::Aligned);
+}
+
+TEST_TYPES(Vec, streamingLoad, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
 
@@ -139,8 +149,8 @@ template<typename Vec> void streamingLoad()
     for (size_t i = 0; i < streamingLoadCount - Vec::Size; ++i, ++ref) {
         Vec v1, v2;
         if (0 == i % Vec::Size) {
-            v1 = Vec(&data[i], Vc::Streaming);
-            v2.load (&data[i], Vc::Streaming);
+            v1 = Vec(&data[i], Vc::Aligned | Vc::Streaming);
+            v2.load (&data[i], Vc::Aligned | Vc::Streaming);
         } else {
             v1 = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
             v2.load (&data[i], Vc::Unaligned | Vc::Streaming);
@@ -150,123 +160,64 @@ template<typename Vec> void streamingLoad()
     }
 }
 
-template<typename T> struct TypeInfo;
-template<> struct TypeInfo<double        > { static const char *string() { return "double"; } };
-template<> struct TypeInfo<float         > { static const char *string() { return "float"; } };
-template<> struct TypeInfo<int           > { static const char *string() { return "int"; } };
-template<> struct TypeInfo<unsigned int  > { static const char *string() { return "uint"; } };
-template<> struct TypeInfo<short         > { static const char *string() { return "short"; } };
-template<> struct TypeInfo<unsigned short> { static const char *string() { return "ushort"; } };
-template<> struct TypeInfo<signed char   > { static const char *string() { return "schar"; } };
-template<> struct TypeInfo<unsigned char > { static const char *string() { return "uchar"; } };
-template<> struct TypeInfo<double_v      > { static const char *string() { return "double_v"; } };
-template<> struct TypeInfo<float_v       > { static const char *string() { return "float_v"; } };
-template<> struct TypeInfo<int_v         > { static const char *string() { return "int_v"; } };
-template<> struct TypeInfo<uint_v        > { static const char *string() { return "uint_v"; } };
-template<> struct TypeInfo<short_v       > { static const char *string() { return "short_v"; } };
-template<> struct TypeInfo<ushort_v      > { static const char *string() { return "ushort_v"; } };
+TEST_TYPES(
+    Pair, loadCvt,
+    (concat<
+        outer_product<Typelist<float>,
+                      Typelist<double, int, unsigned int, short, unsigned short,
+                               signed char, unsigned char>>,
+        outer_product<Typelist<int>, Typelist<unsigned int, short, unsigned short,
+                                              signed char, unsigned char>>,
+        outer_product<Typelist<unsigned int>, Typelist<unsigned short, unsigned char>>,
+        outer_product<Typelist<short>, Typelist<unsigned char, unsigned char>>,
+        outer_product<Typelist<unsigned short>, Typelist<unsigned char>>>))
+{
+    using Vec = Vector<typename Pair::template at<0>>;
+    using MemT = typename Pair::template at<1>;
 
-template<typename T, typename Current = void> struct SupportedConversions { typedef void Next; };
-template<> struct SupportedConversions<float, void>           { typedef double         Next; };
-template<> struct SupportedConversions<float, double>         { typedef int            Next; };
-template<> struct SupportedConversions<float, int>            { typedef unsigned int   Next; };
-template<> struct SupportedConversions<float, unsigned int>   { typedef short          Next; };
-template<> struct SupportedConversions<float, short>          { typedef unsigned short Next; };
-template<> struct SupportedConversions<float, unsigned short> { typedef signed char    Next; };
-template<> struct SupportedConversions<float, signed char>    { typedef unsigned char  Next; };
-template<> struct SupportedConversions<float, unsigned char>  { typedef void           Next; };
-template<> struct SupportedConversions<int  , void          > { typedef unsigned int   Next; };
-template<> struct SupportedConversions<int  , unsigned int  > { typedef short          Next; };
-template<> struct SupportedConversions<int  , short         > { typedef unsigned short Next; };
-template<> struct SupportedConversions<int  , unsigned short> { typedef signed char    Next; };
-template<> struct SupportedConversions<int  , signed char   > { typedef unsigned char  Next; };
-template<> struct SupportedConversions<int  , unsigned char > { typedef void           Next; };
-template<> struct SupportedConversions<unsigned int, void          > { typedef unsigned short Next; };
-template<> struct SupportedConversions<unsigned int, unsigned short> { typedef unsigned char  Next; };
-template<> struct SupportedConversions<unsigned int, unsigned char > { typedef void           Next; };
-template<> struct SupportedConversions<unsigned short, void          > { typedef unsigned char  Next; };
-template<> struct SupportedConversions<unsigned short, unsigned char > { typedef void           Next; };
-template<> struct SupportedConversions<         short, void          > { typedef unsigned char  Next; };
-template<> struct SupportedConversions<         short, unsigned char > { typedef signed char    Next; };
-template<> struct SupportedConversions<         short,   signed char > { typedef void           Next; };
-
-template<typename Vec, typename MemT> struct LoadCvt {
-    static void test() {
-        typedef typename Vec::EntryType VecT;
-        MemT *data = Vc::malloc<MemT, Vc::AlignOnCacheline>(128);
-        for (size_t i = 0; i < 128; ++i) {
-            data[i] = static_cast<MemT>(i - 64);
-        }
-
-        for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
-            Vec v;
-            if (i % (2 * Vec::Size) == 0) {
-                v = Vec(&data[i]);
-            } else if (i % Vec::Size == 0) {
-                v = Vec(&data[i], Vc::Aligned);
-            } else {
-                v = Vec(&data[i], Vc::Unaligned);
-            }
-            for (size_t j = 0; j < Vec::Size; ++j) {
-                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << TypeInfo<MemT>::string();
-            }
-        }
-        for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
-            Vec v;
-            if (i % (2 * Vec::Size) == 0) {
-                v.load(&data[i]);
-            } else if (i % Vec::Size == 0) {
-                v.load(&data[i], Vc::Aligned);
-            } else {
-                v.load(&data[i], Vc::Unaligned);
-            }
-            for (size_t j = 0; j < Vec::Size; ++j) {
-                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << TypeInfo<MemT>::string();
-            }
-        }
-        for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
-            Vec v;
-            if (i % (2 * Vec::Size) == 0) {
-                v = Vec(&data[i], Vc::Streaming);
-            } else if (i % Vec::Size == 0) {
-                v = Vec(&data[i], Vc::Streaming | Vc::Aligned);
-            } else {
-                v = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
-            }
-            for (size_t j = 0; j < Vec::Size; ++j) {
-                COMPARE(v[j], static_cast<VecT>(data[i + j])) << " " << TypeInfo<MemT>::string();
-            }
-        }
-
-        ADD_PASS() << "loadCvt: load " << TypeInfo<MemT>::string() << "* as " << TypeInfo<Vec>::string();
-        LoadCvt<Vec, typename SupportedConversions<VecT, MemT>::Next>::test();
+    typedef typename Vec::EntryType VecT;
+    MemT *data = Vc::malloc<MemT, Vc::AlignOnCacheline>(128);
+    for (size_t i = 0; i < 128; ++i) {
+        data[i] = static_cast<MemT>(i - 64);
     }
-};
-template<typename Vec> struct LoadCvt<Vec, void> { static void test() {} };
 
-template<typename Vec> void loadCvt()
-{
-    typedef typename Vec::EntryType T;
-    LoadCvt<Vec, typename SupportedConversions<T>::Next>::test();
-}
-
-void testmain()
-{
-    runTest(checkAlignment<int_v>);
-    runTest(checkAlignment<uint_v>);
-    runTest(checkAlignment<float_v>);
-    runTest(checkAlignment<double_v>);
-    runTest(checkAlignment<short_v>);
-    runTest(checkAlignment<ushort_v>);
-    testAllTypes(checkMemoryAlignment);
-    runTest(loadArray<int_v>);
-    runTest(loadArray<uint_v>);
-    runTest(loadArray<float_v>);
-    runTest(loadArray<double_v>);
-    runTest(loadArrayShort<short_v>);
-    runTest(loadArrayShort<ushort_v>);
-
-    testAllTypes(streamingLoad);
-
-    testAllTypes(loadCvt);
+    for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
+        Vec v;
+        if (i % (2 * Vec::Size) == 0) {
+            v = Vec(&data[i]);
+        } else if (i % Vec::Size == 0) {
+            v = Vec(&data[i], Vc::Aligned);
+        } else {
+            v = Vec(&data[i], Vc::Unaligned);
+        }
+        for (size_t j = 0; j < Vec::Size; ++j) {
+            COMPARE(v[j], static_cast<VecT>(data[i + j]));
+        }
+    }
+    for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
+        Vec v;
+        if (i % (2 * Vec::Size) == 0) {
+            v.load(&data[i]);
+        } else if (i % Vec::Size == 0) {
+            v.load(&data[i], Vc::Aligned);
+        } else {
+            v.load(&data[i], Vc::Unaligned);
+        }
+        for (size_t j = 0; j < Vec::Size; ++j) {
+            COMPARE(v[j], static_cast<VecT>(data[i + j]));
+        }
+    }
+    for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
+        Vec v;
+        if (i % (2 * Vec::Size) == 0) {
+            v = Vec(&data[i], Vc::Streaming);
+        } else if (i % Vec::Size == 0) {
+            v = Vec(&data[i], Vc::Streaming | Vc::Aligned);
+        } else {
+            v = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
+        }
+        for (size_t j = 0; j < Vec::Size; ++j) {
+            COMPARE(v[j], static_cast<VecT>(data[i + j]));
+        }
+    }
 }

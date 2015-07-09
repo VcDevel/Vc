@@ -1,21 +1,30 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #ifndef VC_GLOBAL_H
 #define VC_GLOBAL_H
@@ -43,6 +52,8 @@
 #else
 #error "Vc requires support for C++11."
 #endif
+#elif __cplusplus >= 201402L
+# define VC_CXX14 1
 #endif
 
 // Features/Quirks defines
@@ -80,9 +91,6 @@
 #ifndef alignof
 #define alignof(x) __alignof(x)
 #endif
-#define VC_NO_MOVE_CTOR 1
-//#else
-//#warning "Please check whether ICC now understands: noexcept, alignof, &&"
 #endif
 #endif
 
@@ -97,13 +105,7 @@
 #endif
 
 #if defined(VC_GCC) || defined(VC_CLANG)
-#define VC_USE_BUILTIN_VECTOR_TYPES
-#endif
-
-// ICC ships the AVX2 intrinsics inside the AVX1 header.
-// FIXME: the number 20120731 is too large, but I don't know which one is the right one
-#if (defined(VC_ICC) && VC_ICC >= 20120731) || (defined(VC_MSVC) && VC_MSVC >= 170000000)
-#define VC_UNCONDITIONAL_AVX2_INTRINSICS 1
+#define VC_USE_BUILTIN_VECTOR_TYPES 1
 #endif
 
 /* Define the following strings to a unique integer, which is the only type the preprocessor can
@@ -191,7 +193,7 @@
 #      define VC_IMPL_Scalar 1
 #    endif
 #  endif
-#  if defined(VC_IMPL_AVX2) || defined(VC_IMPL_AVX) || defined(VC_IMPL_SSE) || defined(VC_IMPL_MIC)
+#  if !defined(VC_IMPL_Scalar)
 #    ifdef __FMA4__
 #      define VC_IMPL_FMA4 1
 #    endif
@@ -284,7 +286,7 @@
 #  if (VC_IMPL & F16C)
 #    define VC_IMPL_F16C 1
 #  endif
-#  if (VC_IMPL & POPCNT)
+#  if (!defined(VC_IMPL_Scalar) && defined(__POPCNT__)) || (VC_IMPL & POPCNT)
 #    define VC_IMPL_POPCNT 1
 #  endif
 #  if (VC_IMPL & SSE4a)
@@ -302,27 +304,14 @@
 #  define VC_USE_VEX_CODING 1
 #endif
 
-#if defined(VC_GCC) && VC_GCC < 0x40300 && !defined(VC_IMPL_Scalar)
-#    ifndef VC_DONT_WARN_OLD_GCC
-#      warning "GCC < 4.3 does not have full support for SSE2 intrinsics. Using scalar types/operations only. Define VC_DONT_WARN_OLD_GCC to silence this warning."
-#    endif
-#    undef VC_IMPL_SSE
-#    undef VC_IMPL_SSE2
-#    undef VC_IMPL_SSE3
-#    undef VC_IMPL_SSE4_1
-#    undef VC_IMPL_SSE4_2
-#    undef VC_IMPL_SSSE3
-#    undef VC_IMPL_AVX
-#    undef VC_IMPL_AVX2
-#    undef VC_IMPL_MIC
-#    undef VC_IMPL_FMA4
-#    undef VC_IMPL_XOP
-#    undef VC_IMPL_F16C
-#    undef VC_IMPL_POPCNT
-#    undef VC_IMPL_SSE4a
-#    undef VC_IMPL_FMA
-#    undef VC_USE_VEX_CODING
-#    define VC_IMPL_Scalar 1
+#ifdef VC_IMPL_AVX
+// if we have AVX then we also have all SSE intrinsics
+#    define VC_IMPL_SSE4_2 1
+#    define VC_IMPL_SSE4_1 1
+#    define VC_IMPL_SSSE3 1
+#    define VC_IMPL_SSE3 1
+#    define VC_IMPL_SSE2 1
+#    define VC_IMPL_SSE 1
 #endif
 
 # if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_MIC)
@@ -352,6 +341,20 @@
 #undef IMPL_MASK
 #undef EXT_MASK
 
+#ifdef VC_IMPL_MIC
+#define VC_DEFAULT_IMPL_MIC
+#elif defined VC_IMPL_AVX2
+#define VC_DEFAULT_IMPL_AVX2
+#elif defined VC_IMPL_AVX
+#define VC_DEFAULT_IMPL_AVX
+#elif defined VC_IMPL_SSE
+#define VC_DEFAULT_IMPL_SSE
+#elif defined VC_IMPL_Scalar
+#define VC_DEFAULT_IMPL_Scalar
+#else
+#error "Preprocessor logic broken. Please report a bug."
+#endif
+
 /* ICC includes intrinsics unconditionally - not checking whether __SSE2__ or such is defined.
  * Now that <random> includes <ia32intrin.h> with latest libstdc++ ICC will declare all possible
  * intrinsics. The only workaround is to fool ICC into thinking it already included the intrinsics
@@ -379,27 +382,13 @@
 #  endif
 #endif
 
-#ifndef Vc__SYMBOL_VERSION
-#define Vc__SYMBOL_VERSION v0
-#endif
+#define Vc_VERSIONED_NAMESPACE Vc_0
 
-#define Vc_NAMESPACE_BEGIN(NAME) \
-    namespace Vc { \
-        inline namespace Vc__SYMBOL_VERSION { \
-            namespace NAME {
+namespace Vc_VERSIONED_NAMESPACE {}
+namespace Vc = Vc_VERSIONED_NAMESPACE;
 
-#define Vc_PUBLIC_NAMESPACE_BEGIN \
-    namespace Vc { \
-        inline namespace Vc__SYMBOL_VERSION { \
-            inline namespace Public {
-
-#define Vc_NAMESPACE_END }}}
-#define Vc_IMPL_NAMESPACE_END Vc_NAMESPACE_END
-
-Vc_PUBLIC_NAMESPACE_BEGIN
-Vc_NAMESPACE_END
-
-Vc_PUBLIC_NAMESPACE_BEGIN
+namespace Vc_VERSIONED_NAMESPACE
+{
 
 typedef   signed char        int8_t;
 typedef unsigned char       uint8_t;
@@ -567,28 +556,25 @@ typedef ImplementationT<
 #endif
     > CurrentImplementation;
 
-namespace Warnings
-{
-    void _operator_bracket_warning()
-#ifdef VC_HAVE_ATTRIBUTE_WARNING
-        __attribute__((warning("\n\tUse of Vc::Vector::operator[] to modify scalar entries is known to miscompile with GCC 4.3.x.\n\tPlease upgrade to a more recent GCC or avoid operator[] altogether.\n\t(This warning adds an unnecessary function call to operator[] which should work around the problem at a little extra cost.)")))
-#endif
-        ;
-} // namespace Warnings
-
 namespace Error
 {
     template<typename L, typename R> struct invalid_operands_of_types {};
 } // namespace Error
 
 #endif // DOXYGEN
-Vc_NAMESPACE_END
 
-Vc_NAMESPACE_BEGIN(Internal)
+namespace Internal
+{
     // TODO (refactor): get rid of this abstraction:
     template<Implementation Impl> struct HelperImpl;
     typedef HelperImpl<VC_IMPL> Helper;
-Vc_NAMESPACE_END
+}
+}
+
+// TODO: clean up headers (e.g. math.h) to remove the following:
+#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+#define VC_ENABLE_FLOAT_BIT_OPERATORS 1
+#endif
 
 #include "version.h"
 

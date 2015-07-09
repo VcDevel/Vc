@@ -1,0 +1,5 @@
+add_executable(simdize test.cpp)
+add_target_property(simdize COMPILE_FLAGS "${Vc_ARCHITECTURE_FLAGS}")
+add_target_property(simdize LABELS "other")
+target_link_libraries(simdize Vc)
+add_dependencies(other simdize)

@@ -1,21 +1,30 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #ifndef SSE_MASK_H
 #define SSE_MASK_H
@@ -24,7 +33,10 @@
 #include "../common/maskentry.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 
 template<unsigned int Size1> struct MaskHelper;
 template<> struct MaskHelper<2> {
@@ -55,16 +67,48 @@ template<typename T> class Mask
     friend class Mask<uint32_t>;
     friend class Mask< int16_t>;
     friend class Mask<uint16_t>;
+    friend class Common::MaskEntry<Mask>;
 
-    public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
-        static constexpr size_t Size = VectorTraits<T>::Size;
+    /**
+     * A helper type for aliasing the entries in the mask but behaving like a bool.
+     */
+    typedef Common::MaskBool<sizeof(T)> MaskBool;
 
-    private:
-        typedef Common::MaskBool<sizeof(T)> MaskBool;
-        typedef Common::VectorMemoryUnion<__m128, MaskBool> Storage;
+    typedef Common::Storage<T, VectorTraits<T>::Size> Storage;
 
-    public:
+public:
+
+    /**
+     * The \c EntryType of masks is always bool, independent of \c T.
+     */
+    typedef bool EntryType;
+
+    /**
+     * The return type of the non-const subscript operator.
+     */
+    using EntryReference = Common::MaskEntry<Mask>;
+
+    /**
+     * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
+     * implementation. This type is useful for the \c sizeof operator in generic functions.
+     */
+    typedef MaskBool VectorEntryType;
+
+    /**
+     * The \c VectorType reveals the implementation-specific internal type used for the SIMD type.
+     */
+    using VectorType = typename Storage::VectorType;
+
+    /**
+     * The associated Vector<T> type.
+     */
+    using Vector = SSE::Vector<T>;
+
+public:
+    FREE_STORE_OPERATORS_ALIGNED(16)
+    static constexpr size_t Size = VectorTraits<T>::Size;
+    static constexpr std::size_t size() { return Size; }
+
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined VC_MSVC && defined _WIN32
         typedef const Mask<T> &Argument;
@@ -72,21 +116,31 @@ template<typename T> class Mask
         typedef Mask<T> Argument;
 #endif
 
-        Vc_ALWAYS_INLINE Mask() {}
-        Vc_ALWAYS_INLINE Mask(const __m128  &x) : d(x) {}
-        Vc_ALWAYS_INLINE Mask(const __m128d &x) : d(_mm_castpd_ps(x)) {}
-        Vc_ALWAYS_INLINE Mask(const __m128i &x) : d(_mm_castsi128_ps(x)) {}
-        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : d(_mm_setzero_ps()) {}
-        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : d(_mm_setallone_ps()) {}
-        Vc_ALWAYS_INLINE explicit Mask(bool b) : d(b ? _mm_setallone_ps() : _mm_setzero_ps()) {}
+        Vc_INTRINSIC Mask() {}
+        Vc_INTRINSIC Mask(const __m128  &x) : d(sse_cast<VectorType>(x)) {}
+        Vc_INTRINSIC Mask(const __m128d &x) : d(sse_cast<VectorType>(x)) {}
+        Vc_INTRINSIC Mask(const __m128i &x) : d(sse_cast<VectorType>(x)) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : Mask(_mm_setzero_ps()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : Mask(_mm_setallone_ps()) {}
+        Vc_INTRINSIC explicit Mask(bool b) : Mask(b ? _mm_setallone_ps() : _mm_setzero_ps()) {}
+        Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
+        Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
 
-        template<typename U> Vc_ALWAYS_INLINE Mask(const Mask<U> &rhs,
-          typename std::enable_if<is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
-            : d(sse_cast<__m128>(internal::mask_cast<Mask<U>::Size, Size>(rhs.dataI()))) {}
+        // implicit cast
+        template <typename U>
+        Vc_INTRINSIC Mask(U &&rhs,
+                          Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
+            : d(sse_cast<VectorType>(
+                  internal::mask_cast<Traits::simd_vector_size<U>::value, Size>(
+                      rhs.dataI())))
+        {
+        }
 
-        template<typename U> Vc_ALWAYS_INLINE explicit Mask(const Mask<U> &rhs,
-          typename std::enable_if<!is_implicit_cast_allowed_mask<U, T>::value, void *>::type = nullptr)
-            : d(sse_cast<__m128>(internal::mask_cast<Mask<U>::Size, Size>(rhs.dataI()))) {}
+        // explicit cast, implemented via simd_cast (implementation in sse/simd_cast.h)
+        template <typename U>
+        Vc_INTRINSIC explicit Mask(U &&rhs,
+                                   Common::enable_if_mask_converts_explicitly<T, U> =
+                                       nullarg);
 
         Vc_ALWAYS_INLINE explicit Mask(const bool *mem) { load(mem); }
         template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags f) { load(mem, f); }
@@ -97,14 +151,14 @@ template<typename T> class Mask
         Vc_ALWAYS_INLINE_L void store(bool *) const Vc_ALWAYS_INLINE_R;
         template<typename Flags> Vc_ALWAYS_INLINE void store(bool *mem, Flags) const { store(mem); }
 
-        Vc_ALWAYS_INLINE Vc_PURE bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (d.v(), rhs.d.v()); }
-        Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Mask &rhs) const { return MaskHelper<Size>::cmpneq(d.v(), rhs.d.v()); }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (data(), rhs.data()); }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Mask &rhs) const { return MaskHelper<Size>::cmpneq(data(), rhs.data()); }
 
         Vc_ALWAYS_INLINE Vc_PURE Mask operator!() const { return _mm_andnot_si128(dataI(), _mm_setallone_si128()); }
 
-        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = _mm_and_ps(d.v(), rhs.d.v()); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = _mm_or_ps (d.v(), rhs.d.v()); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { d.v() = _mm_xor_ps(d.v(), rhs.d.v()); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = sse_cast<VectorType>(_mm_and_ps(data(), rhs.data())); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = sse_cast<VectorType>(_mm_or_ps (data(), rhs.data())); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { d.v() = sse_cast<VectorType>(_mm_xor_ps(data(), rhs.data())); return *this; }
 
         Vc_ALWAYS_INLINE Vc_PURE Mask operator&(const Mask &rhs) const { return _mm_and_ps(data(), rhs.data()); }
         Vc_ALWAYS_INLINE Vc_PURE Mask operator|(const Mask &rhs) const { return _mm_or_ps (data(), rhs.data()); }
@@ -143,20 +197,22 @@ template<typename T> class Mask
 #endif
         }
 
-#ifndef VC_NO_AUTOMATIC_BOOL_FROM_MASK
-        Vc_ALWAYS_INLINE Vc_PURE operator bool() const { return isFull(); }
-#endif
-
         Vc_ALWAYS_INLINE Vc_PURE int shiftMask() const { return _mm_movemask_epi8(dataI()); }
 
         Vc_ALWAYS_INLINE Vc_PURE int toInt() const { return internal::mask_to_int<Size>(dataI()); }
 
-        Vc_ALWAYS_INLINE Vc_PURE _M128  data () const { return d.v(); }
-        Vc_ALWAYS_INLINE Vc_PURE _M128I dataI() const { return _mm_castps_si128(d.v()); }
-        Vc_ALWAYS_INLINE Vc_PURE _M128D dataD() const { return _mm_castps_pd(d.v()); }
+        Vc_ALWAYS_INLINE Vc_PURE __m128  data () const { return sse_cast<__m128 >(d.v()); }
+        Vc_ALWAYS_INLINE Vc_PURE __m128i dataI() const { return sse_cast<__m128i>(d.v()); }
+        Vc_ALWAYS_INLINE Vc_PURE __m128d dataD() const { return sse_cast<__m128d>(d.v()); }
 
-        Vc_ALWAYS_INLINE MaskBool &operator[](size_t index) { return d.m(index); }
-        Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const { return toInt() & (1 << index); }
+        Vc_ALWAYS_INLINE EntryReference operator[](size_t index)
+        {
+            return {*this, index};
+        }
+        Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const
+        {
+            return toInt() & (1 << index);
+        }
 
         Vc_ALWAYS_INLINE Vc_PURE int count() const { return internal::mask_count<Size>(dataI()); }
 
@@ -167,6 +223,12 @@ template<typename T> class Mask
          */
         Vc_ALWAYS_INLINE_L Vc_PURE_L int firstOne() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
+        template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vc_PURE_L Mask shifted(int amount) const Vc_INTRINSIC_R Vc_PURE_R;
+
+        ///\internal Called indirectly from operator[]
+        void setEntry(size_t i, bool x) { d.set(i, MaskBool(x)); }
+
     private:
 #ifdef VC_COMPILE_BENCHMARKS
     public:
@@ -175,65 +237,8 @@ template<typename T> class Mask
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
-struct ForeachHelper
-{
-    _long mask;
-    bool brk;
-    bool outerBreak;
-    Vc_ALWAYS_INLINE ForeachHelper(_long _mask) : mask(_mask), brk(false), outerBreak(false) {}
-    Vc_ALWAYS_INLINE bool outer() const { return (mask != 0) && !outerBreak; }
-    Vc_ALWAYS_INLINE bool inner() { return (brk = !brk); }
-    Vc_ALWAYS_INLINE void noBreak() { outerBreak = false; }
-    Vc_ALWAYS_INLINE _long next() {
-        outerBreak = true;
-#ifdef VC_GNU_ASM
-        const _long bit = __builtin_ctzl(mask);
-        __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
-#elif defined(_WIN64)
-       unsigned long bit;
-       _BitScanForward64(&bit, mask);
-       _bittestandreset64(&mask, bit);
-#elif defined(_WIN32)
-       unsigned long bit;
-       _BitScanForward(&bit, mask);
-       _bittestandreset(&mask, bit);
-#else
-#error "Not implemented yet. Please contact vc-devel@compeng.uni-frankfurt.de"
-#endif
-        return bit;
-    }
-};
-
-#define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::SSE::ForeachHelper Vc__make_unique(foreach_bit_obj)((_mask_).toInt()); Vc__make_unique(foreach_bit_obj).outer(); ) \
-        for (_it_ = Vc__make_unique(foreach_bit_obj).next(); Vc__make_unique(foreach_bit_obj).inner(); Vc__make_unique(foreach_bit_obj).noBreak())
-
-/**
- * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
- * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
- * 1, 3, and 4.
- *
- * This allows you to write:
- * \code
- * float_v a = ...;
- * foreach_bit(int i, a < 0.f) {
- *   std::cout << a[i] << "\n";
- * }
- * \endcode
- * The example prints all the values in \p a that are negative, and only those.
- *
- * \param it   The iterator variable. For example "int i".
- * \param mask The mask to iterate over. You can also just write a vector operation that returns a
- *             mask.
- */
-//X #define foreach_bit(it, mask)
-//X     for (int _sse_vector_foreach_inner = 1, ForeachScope _sse_vector_foreach_scope(mask.toInt()), int it = _sse_vector_foreach_scope.bit(); _sse_vector_foreach_inner; --_sse_vector_foreach_inner)
-//X     for (int _sse_vector_foreach_mask = (mask).toInt(), int _sse_vector_foreach_it = _sse_bitscan(mask.toInt());
-//X             _sse_vector_foreach_it > 0;
-//X             _sse_vector_foreach_it = _sse_bitscan_initialized(_sse_vector_foreach_it, mask.data()))
-//X         for (int _sse_vector_foreach_inner = 1, it = _sse_vector_foreach_it; _sse_vector_foreach_inner; --_sse_vector_foreach_inner)
-
-Vc_IMPL_NAMESPACE_END
+}  // namespace SSE
+}  // namespace Vc
 
 #include "undomacros.h"
 #include "mask.tcc"

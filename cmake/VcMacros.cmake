@@ -300,21 +300,18 @@ macro(vc_set_preferred_compiler_flags)
          set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DNDEBUG -O3")
          set(CMAKE_C_FLAGS_RELEASE          "${CMAKE_C_FLAGS_RELEASE} -O3")
          set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG -O3")
-
-         set(ALIAS_FLAGS "-no-ansi-alias")
-         if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-            # default ICC to -no-ansi-alias because otherwise tests/utils_sse fails. So far I suspect a miscompilation...
-            set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
-            if(ENABLE_STRICT_ALIASING)
-               set(ALIAS_FLAGS "-ansi-alias")
-            endif(ENABLE_STRICT_ALIASING)
-         endif()
-         set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   ${ALIAS_FLAGS}")
-         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ALIAS_FLAGS}")
       endif()
       vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 913")
       # Disable warning #13211 "Immediate parameter to intrinsic call too large". (sse/vector.tcc rotated(int))
       vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 13211")
+      if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+         set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
+         if(ENABLE_STRICT_ALIASING)
+            AddCompilerFlag(-ansi-alias CXX_FLAGS Vc_DEFINITIONS)
+         else()
+            AddCompilerFlag(-no-ansi-alias CXX_FLAGS Vc_DEFINITIONS)
+         endif()
+      endif()
 
       if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
          # disable warning #2928: the __GXX_EXPERIMENTAL_CXX0X__ macro is disabled when using GNU version 4.6 with the c++0x option
@@ -374,12 +371,6 @@ macro(vc_set_preferred_compiler_flags)
       # disable these warnings because clang shows them for function overloads that were discarded via SFINAE
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-local-type-template-args")
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-unnamed-type-template-args")
-
-      if(XCODE)
-         # set_target_properties(${_target} PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-      elseif(NOT DEFINED Vc_INSIDE_ROOT)  # ROOT has to set this up
-         AddCompilerFlag(-stdlib=libc++)
-      endif()
    endif()
 
    if(NOT Vc_COMPILER_IS_MSVC)

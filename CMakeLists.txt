@@ -43,11 +43,29 @@ else()
          message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.7.")
       endif()
 
-      AddCompilerFlag("-std=c++11" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+      AddCompilerFlag("-std=c++14" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+      if(MIC_NATIVE_FOUND AND NOT _mic_ok)
+         AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+         if(NOT _mic_ok)
+            AddCompilerFlag("-std=c++11" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+            if(NOT _mic_ok)
+               AddCompilerFlag("-std=c++0x" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+               if(NOT _mic_ok)
+                  message(FATAL_ERROR "Vc 1.x requires C++11, better even C++14. The MIC native compiler does not support any of the C++11 language flags.")
+               endif()
+            endif()
+         endif()
+      endif()
       if(NOT _ok)
-         AddCompilerFlag("-std=c++0x" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
+         AddCompilerFlag("-std=c++1y" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
          if(NOT _ok)
-            message(FATAL_ERROR "Vc 1.x requires C++11 support. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
+            AddCompilerFlag("-std=c++11" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
+            if(NOT _ok)
+               AddCompilerFlag("-std=c++0x" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
+               if(NOT _ok)
+                  message(FATAL_ERROR "Vc 1.x requires C++11, better even C++14. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
+               endif()
+            endif()
          endif()
       endif()
    endif()
@@ -141,9 +159,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/incl
 if(NOT ROOT_RELEASE)
    add_custom_target(other VERBATIM)
    add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
-   add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
-   add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
-   add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
 
    AddCompilerFlag(-ftemplate-depth=128)
 
@@ -153,7 +168,7 @@ if(NOT ROOT_RELEASE)
 
    if(MIC_FOUND)
       add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
-      mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support.cpp src/mic_sorthelper.cpp
+      mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support_x86.cpp src/mic_sorthelper.cpp
          COMPILE_FLAGS ${libvc_mic_compile_flags})
       add_target_property(Vc_MIC LABELS "MIC")
       add_dependencies(MIC Vc_MIC)
@@ -161,10 +176,19 @@ if(NOT ROOT_RELEASE)
       install(FILES ${outputName} DESTINATION lib${LIB_SUFFIX})
    endif()
 
-   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp)
-   vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA AVX2)
-   vc_compile_for_all_implementations(_srcs src/avx_sorthelper.cpp ONLY AVX)
-   vc_compile_for_all_implementations(_srcs src/avx2_sorthelper.cpp ONLY AVX2)
+   set(_srcs src/const.cpp)
+   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86")
+      add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
+      add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
+      add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
+
+      list(APPEND _srcs src/cpuid.cpp src/support_x86.cpp)
+      vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)# AVX2)
+      vc_compile_for_all_implementations(_srcs src/avx_sorthelper.cpp ONLY AVX)
+      #vc_compile_for_all_implementations(_srcs src/avx2_sorthelper.cpp ONLY AVX2)
+   else()
+      message(FATAL_ERROR "Unsupported target architecture '${CMAKE_SYSTEM_PROCESSOR}'. No support_???.cpp file exists for this architecture.")
+   endif()
    add_library(Vc STATIC ${_srcs})
    add_target_property(Vc COMPILE_FLAGS ${libvc_compile_flags})
    add_target_property(Vc LABELS "other")
@@ -174,6 +198,35 @@ if(NOT ROOT_RELEASE)
       set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "YES")
       set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
       set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+   elseif(UNIX AND Vc_COMPILER_IS_CLANG)
+      # On UNIX (Linux) the standard library used by default typically is libstdc++ (GCC).
+      # To get the full clang deal we rather want to build against libc++. This requires
+      # additionally the libc++abi and libsupc++ libraries in all linker invokations.
+      option(USE_LIBC++ "Use libc++ instead of the system default C++ standard library." ON)
+      if(USE_LIBC++)
+         AddCompilerFlag(-stdlib=libc++ CXX_FLAGS CMAKE_CXX_FLAGS CXX_RESULT _use_libcxx)
+         if(_use_libcxx)
+            find_library(LIBC++ABI c++abi)
+            if(LIBC++ABI)
+               set(CMAKE_REQUIRED_LIBRARIES "${LIBC++ABI};supc++")
+               CHECK_CXX_SOURCE_COMPILES("#include <stdexcept>
+               #include <iostream>
+               void foo() {
+                 std::cout << 'h' << std::flush << std::endl;
+                 throw std::exception();
+               }
+               int main() {
+                 try { foo(); }
+                 catch (int) { return 0; }
+                 return 1;
+               }" libcxx_compiles)
+               unset(CMAKE_REQUIRED_LIBRARIES)
+               if(libcxx_compiles)
+                  link_libraries(${LIBC++ABI} supc++)
+               endif()
+            endif()
+         endif()
+      endif()
    endif()
    add_dependencies(other Vc)
 
@@ -212,7 +265,7 @@ else()
 endif()
 
 # Install all implementation headers
-install(DIRECTORY scalar sse avx mic common DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY scalar sse avx mic common traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 # read version parts from version.h to be put into VcConfig.cmake
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define VC_VERSION_STRING ")

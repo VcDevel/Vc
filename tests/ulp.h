@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2011-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -31,7 +40,8 @@ namespace std
 } // namespace std
 #endif
 
-template<typename T> static T ulpDiffToReference(T val, T ref)
+template <typename T, typename = Vc::enable_if<std::is_floating_point<T>::value>>
+static T ulpDiffToReference(T val, T ref)
 {
     if (val == ref || (std::isnan(val) && std::isnan(ref))) {
         return 0;
@@ -50,19 +60,25 @@ template<typename T> static T ulpDiffToReference(T val, T ref)
     // val * 2 ^ -exp
     return ldexp(std::abs(ref - val), std::numeric_limits<T>::digits - exp);
 }
-template<typename T> static T ulpDiffToReferenceSigned(T val, T ref)
+
+template <typename T, typename = Vc::enable_if<std::is_floating_point<T>::value>>
+inline T ulpDiffToReferenceSigned(T val, T ref)
 {
     return ulpDiffToReference(val, ref) * (val - ref < 0 ? -1 : 1);
 }
 
-template<typename T> struct _Ulp_ExponentVector { typedef Vc::int_v Type; };
+template<typename T> struct UlpExponentVector_ { typedef Vc::int_v Type; };
+template <typename T, std::size_t N> struct UlpExponentVector_<Vc::simdarray<T, N>>
+{
+    using Type = Vc::simdarray<int, N>;
+};
 
-template<typename _T> static Vc::Vector<_T> ulpDiffToReference(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
+template <typename V, typename = Vc::enable_if<Vc::is_simd_vector<V>::value>>
+static V ulpDiffToReference(const V &_val, const V &_ref)
 {
     using namespace Vc;
-    typedef Vector<_T> V;
-    typedef typename V::EntryType T;
-    typedef typename V::Mask M;
+    using T = typename V::EntryType;
+    using M = typename V::Mask;
 
     V val = _val;
     V ref = _ref;
@@ -78,16 +94,25 @@ template<typename _T> static Vc::Vector<_T> ulpDiffToReference(const Vc::Vector<
     val  (zeroMask)= std::numeric_limits<V>::min();
     diff (zeroMask)+= V::One();
 
-    typename _Ulp_ExponentVector<V>::Type exp;
+    typename V::IndexType exp;
     frexp(ref, &exp);
     diff += ldexp(abs(ref - val), std::numeric_limits<T>::digits - exp);
     diff.setZero(_val == _ref || (isnan(_val) && isnan(_ref)));
     return diff;
 }
 
-template<typename _T> static Vc::Vector<_T> ulpDiffToReferenceSigned(const Vc::Vector<_T> &_val, const Vc::Vector<_T> &_ref)
+template <typename T>
+inline Vc::enable_if<Vc::is_simd_vector<T>::value && Vc::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
+    const T &_val, const T &_ref)
 {
     return ulpDiffToReference(_val, _ref).copySign(_val - _ref);
+}
+
+template <typename T>
+inline Vc::enable_if<!Vc::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
+    const T &, const T &)
+{
+    return 0;
 }
 
 #endif // TESTS_ULP_H

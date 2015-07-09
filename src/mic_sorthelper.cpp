@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -22,7 +31,10 @@
 #include <mic/sorthelper.h>
 #include <mic/macros.h>
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 // reference:
 //////////// bitonic merge kernel (Chhugani2008) ///////////////
@@ -70,17 +82,17 @@ template<> __m512i SortHelper<int>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     min = _mm512_min_epi32(lh, _mm512_swizzle_epi32(tmp, _MM_SWIZ_REG_BADC)); // ↓ed ↓gb ↓ha ↓fc ↓ed ↓gb ↓ha ↓fc
     max = _mm512_max_epi32(lh, _mm512_swizzle_epi32(tmp, _MM_SWIZ_REG_BADC)); // ↑ed ↑gb ↑ha ↑fc ↑ed ↑gb ↑ha ↑fc
     lh  = _mm512_mask_mov_epi32(min, 0xf0f0, max);                         // ↑ed  ↑gb  ↑ha  ↑fc ↓ha  ↓fc  ↓ed  ↓gb
-                                                                        //  └╴x3╶┘    └╴x2╶┘   └╴x0╶┘    └╴x1╶┘
+                                                                           //  └╴x3╶┘    └╴x2╶┘   └╴x0╶┘    └╴x1╶┘
     min = _mm512_min_epi32(lh, _mm512_swizzle_epi32(lh, _MM_SWIZ_REG_CDAB)); // ↓x3 ↓x3 ↓x2 ↓x2 ↓x0 ↓x0 ↓x1 ↓x1
     max = _mm512_max_epi32(lh, _mm512_swizzle_epi32(lh, _MM_SWIZ_REG_CDAB)); // ↑x3 ↑x3 ↑x2 ↑x2 ↑x0 ↑x0 ↑x1 ↑x1
     lh  = _mm512_mask_mov_epi32(min, 0xaaaa, max);                        // ↑x3 ↓x3 ↑x2 ↓x2 ↑x0 ↓x0 ↑x1 ↓x1
-                                                                       //  └──╴y3╶─┘   │   └──╴y1╶─┘   │
-                                                                       //      └──╴y2╶─┘       └──╴y0╶─┘
+                                                                          //  └──╴y3╶─┘   │   └──╴y1╶─┘   │
+                                                                          //      └──╴y2╶─┘       └──╴y0╶─┘
     min = _mm512_min_epi32(lh, _mm512_swizzle_epi32(lh, _MM_SWIZ_REG_BADC)); // ↓y3 ↓y2 ↓y3 ↓y2 ↓y1 ↓y0 ↓y1 ↓y0
     max = _mm512_max_epi32(lh, _mm512_swizzle_epi32(lh, _MM_SWIZ_REG_BADC)); // ↑y3 ↑y2 ↑y3 ↑y2 ↑y1 ↑y0 ↑y1 ↑y0
     lh  = _mm512_mask_mov_epi32(min, 0x6666, max);                        // ↓y3 ↑y2 ↑y3 ↓y2 ↓y1 ↑y0 ↑y1 ↓y0 | onpm|kjli|gfhe|cbda (2130)
     tmp = _mm512_permute4f128_epi32(lh, _MM_PERM_ABCD);                   //                                   cbda|gfhe|kjli|onpm
-                                                                       // required after swizzle:           bcad|...
+                                                                          // required after swizzle:           bcad|...
     // lh  = [8, 11, 9, 10, 12, 15, 13, 14, 0, 3, 1, 2, 4, 7, 5, 6]
     // tmp = [4, 7, 5, 6, 0, 3, 1, 2, 12, 15, 13, 14, 8, 11, 9, 10]
     // a <= b <= c <= d <= e <= f <= g <= h
@@ -90,10 +102,10 @@ template<> __m512i SortHelper<int>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     min = _mm512_min_epi32(lh, _mm512_swizzle_epi32(tmp, _MM_SWIZ_REG_CDAB)); // ↓v6 ↓v5 ↓v7 ↓v4 ↓v2 ↓v1 ↓v3 ↓v0 ↓v6 ↓v5 ↓v7 ↓v4 ↓v2 ↓v1 ↓v3 ↓v0
     max = _mm512_max_epi32(lh, _mm512_swizzle_epi32(tmp, _MM_SWIZ_REG_CDAB)); // ↑v6 ↑v5 ↑v7 ↑v4 ↑v2 ↑v1 ↑v3 ↑v0 ↑v6 ↑v5 ↑v7 ↑v4 ↑v2 ↑v1 ↑v3 ↑v0
     lh  = _mm512_mask_mov_epi32(min, 0xff00, max);                         // ↑v6 ↑v5 ↑v7 ↑v4 ↑v2 ↑v1 ↑v3 ↑v0 ↓v6 ↓v5 ↓v7 ↓v4 ↓v2 ↓v1 ↓v3 ↓v0
-                                                                        //  │   └───│───│w5╶│───┘   │   │   │   └───│───│w1╶│───┘   │   │
-                                                                        //  │       │   └───│──╴w4╶─│───┘   │       │   └───│──╴w0╶─│───┘
-                                                                        //  └──────╴w6╶─────┘       │       └──────╴w2╶─────┘       │
-                                                                        //          └──────╴w7╶─────┘               └──────╴w3╶─────┘
+                                                                           //  │   └───│───│w5╶│───┘   │   │   │   └───│───│w1╶│───┘   │   │
+                                                                           //  │       │   └───│──╴w4╶─│───┘   │       │   └───│──╴w0╶─│───┘
+                                                                           //  └──────╴w6╶─────┘       │       └──────╴w2╶─────┘       │
+                                                                           //          └──────╴w7╶─────┘               └──────╴w3╶─────┘
     // lh  = [7, 4, 6, 5, 3, 0, 2, 1, 15, 12, 14, 13, 11, 8, 10, 9]
     tmp = _mm512_permute4f128_epi32(lh, _MM_PERM_CDAB);
     // tmp = [3, 0, 2, 1, 7, 4, 6, 5, 11, 8, 10, 9, 15, 12, 14, 13]
@@ -367,6 +379,7 @@ template<> __m512d SortHelper<double>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     */
 }
 
-Vc_NAMESPACE_END
+}
+}
 
 #include <mic/undomacros.h>

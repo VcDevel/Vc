@@ -21,6 +21,7 @@
 #define VECIO_H
 
 #include "vector.h"
+#include "simdarray"
 #include "Memory"
 #include <iostream>
 
@@ -33,110 +34,119 @@
 #include <ext/stdio_sync_filebuf.h>
 #endif
 
+namespace Vc_VERSIONED_NAMESPACE
+{
 namespace
 {
-    namespace AnsiColor
-    {
-        struct Type { const char *data; };
-        static const Type green  = { "\033[1;40;32m" };
-        static const Type yellow = { "\033[1;40;33m" };
-        static const Type blue   = { "\033[1;40;34m" };
-        static const Type normal = { "\033[0m" };
-    } // namespace AnsiColor
-
 #ifdef VC_HACK_OSTREAM_FOR_TTY
-    class hacked_ostream : public std::ostream
-    {
-        public:
-            using std::ostream::_M_streambuf;
-    };
-    bool mayUseColor(const std::ostream &os) __attribute__((__const__));
-    bool mayUseColor(const std::ostream &os)
-    {
-        std::basic_streambuf<char> *hack1 = const_cast<std::basic_streambuf<char> *>(os.*(&hacked_ostream::_M_streambuf));
-        __gnu_cxx::stdio_sync_filebuf<char> *hack = dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char> *>(hack1);
-        if (!hack) {
-            return false;
-        }
-        FILE *file = hack->file();
-        return 1 == isatty(fileno(file));
-    }
-#else
-    bool mayUseColor(const std::ostream &) { return false; }
-#endif
-} // anonymous namespace
-
-namespace std
+class hacked_ostream : public std::ostream
 {
-inline std::ostream &operator<<(std::ostream &out, const AnsiColor::Type &c)
+public:
+    using std::ostream::_M_streambuf;
+};
+bool mayUseColor(const std::ostream &os) __attribute__((__const__));
+bool mayUseColor(const std::ostream &os)
+{
+    std::basic_streambuf<char> *hack1 =
+        const_cast<std::basic_streambuf<char> *>(os.*(&hacked_ostream::_M_streambuf));
+    __gnu_cxx::stdio_sync_filebuf<char> *hack =
+        dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char> *>(hack1);
+    if (!hack) {
+        return false;
+    }
+    FILE *file = hack->file();
+    return 1 == isatty(fileno(file));
+}
+#else
+bool mayUseColor(const std::ostream &) { return false; }
+#endif
+}  // anonymous namespace
+
+namespace AnsiColor
+{
+struct Type
+{
+    const char *data;
+};
+static const Type green = {"\033[1;40;32m"};
+static const Type yellow = {"\033[1;40;33m"};
+static const Type blue = {"\033[1;40;34m"};
+static const Type normal = {"\033[0m"};
+
+inline std::ostream &operator<<(std::ostream &out, const Type &c)
 {
     if (mayUseColor(out)) {
         out << c.data;
     }
     return out;
 }
+}  // namespace AnsiColor
 
-template<typename T>
-inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Vector<T> &v)
+template <typename V>
+inline enable_if<Traits::is_simd_vector<V>::value, std::ostream &> operator<<(
+    std::ostream &out,
+    const V &v)
 {
+    using T = typename V::EntryType;
+    using TT = typename std::conditional<std::is_same<T, char>::value ||
+                                             std::is_same<T, unsigned char>::value ||
+                                             std::is_same<T, signed char>::value,
+                                         int,
+                                         T>::type;
     out << AnsiColor::green << "[";
-    out << v[0];
+    out << TT(v[0]);
     for (size_t i = 1; i < v.Size; ++i) {
-        out << ", " << v[i];
+        out << ", " << TT(v[i]);
     }
     out << "]" << AnsiColor::normal;
     return out;
 }
 
-inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Vector<char> &v)
-{
-    out << AnsiColor::green << "[";
-    out << int(v[0]);
-    for (size_t i = 1; i < v.Size; ++i) {
-        out << ", " << int(v[i]);
-    }
-    out << "]" << AnsiColor::normal;
-    return out;
-}
-inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Vector<unsigned char> &v)
-{
-    out << AnsiColor::green << "[";
-    out << int(v[0]);
-    for (size_t i = 1; i < v.Size; ++i) {
-        out << ", " << int(v[i]);
-    }
-    out << "]" << AnsiColor::normal;
-    return out;
-}
-
-#ifdef VC_HAVE_FMA
-template<typename T>
-inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::VectorMultiplication<T> &v)
-{
-    return out << Vc::Vc_IMPL_NAMESPACE::Vector<T>(v);
-}
-#endif
-
-template<typename T>
-inline std::ostream &operator<<(std::ostream &out, const Vc::Vc_IMPL_NAMESPACE::Mask<T> &m)
+template <typename M>
+inline enable_if<Traits::is_simd_mask<M>::value, std::ostream &> operator<<(
+    std::ostream &out,
+    const M &m)
 {
     out << AnsiColor::blue << "m[";
     for (unsigned int i = 0; i < m.Size; ++i) {
         if (i > 0 && (i % 4) == 0) {
             out << " ";
         }
-        if ( m[i] ) {
-          out << AnsiColor::yellow << '1';
+        if (m[i]) {
+            out << AnsiColor::yellow << '1';
         } else {
-          out << AnsiColor::blue << '0';
+            out << AnsiColor::blue << '0';
         }
     }
     out << AnsiColor::blue << "]" << AnsiColor::normal;
     return out;
 }
 
+namespace Scalar
+{
+using Vc::operator<<;
+}  // namespace Scalar
+namespace SSE
+{
+using Vc::operator<<;
+}  // namespace Scalar
+namespace AVX
+{
+using Vc::operator<<;
+}  // namespace Scalar
+namespace AVX2
+{
+using Vc::operator<<;
+}  // namespace Scalar
+namespace MIC
+{
+using Vc::operator<<;
+}  // namespace Scalar
+
+namespace Common
+{
 template<typename V, typename Parent, typename RM>
-inline std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<V, Parent, 1, RM> &m )
+inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 1, RM> &m )
 {
     out << AnsiColor::blue << "{" << AnsiColor::normal;
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
@@ -147,7 +157,7 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<
 }
 
 template<typename V, typename Parent, typename RM>
-inline std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<V, Parent, 2, RM> &m )
+inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 2, RM> &m )
 {
     out << AnsiColor::blue << "{" << AnsiColor::normal;
     for (size_t i = 0; i < m.rowsCount(); ++i) {
@@ -162,7 +172,36 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::Common::MemoryBase<
     out << AnsiColor::blue << "}" << AnsiColor::normal;
     return out;
 }
-} // namespace std
+}  // namespace Common
+
+template<typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const simdarray<T, N> &v)
+{
+    out << AnsiColor::green << '<' << v[0];
+    for (size_t i = 1; i < N; ++i) {
+        if (i % 4 == 0) out << " |";
+        out << ' ' << v[i];
+    }
+    return out << '>' << AnsiColor::normal;
+}
+
+template<typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const simd_mask_array<T, N> &m)
+{
+    out << AnsiColor::blue << "«";
+    for (size_t i = 0; i < N; ++i) {
+        if (i > 0 && (i % 4) == 0) {
+            out << " ";
+        }
+        if ( m[i] ) {
+          out << AnsiColor::yellow << '1';
+        } else {
+          out << AnsiColor::blue << '0';
+        }
+    }
+    return out << AnsiColor::blue << "»" << AnsiColor::normal;
+}
+}
 
 #endif // VECIO_H
 

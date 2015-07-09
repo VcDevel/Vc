@@ -1,23 +1,32 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+}}}*/
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
-
-#include "unittest.h"
+#include "unittest-old.h"
 #include <iostream>
 #include <cstring>
 
@@ -37,7 +46,7 @@ template<typename Vec> void alignedStore()
     T xValue = 1;
     const Vec x(xValue);
     for (int i = 0; i < Count; i += Vec::Size) {
-        x.store(&array[i]);
+        x.store(&array[i], Vc::Aligned);
     }
 
     for (int i = 0; i < Count; ++i) {
@@ -45,7 +54,22 @@ template<typename Vec> void alignedStore()
     }
 
     // make sure store can be used with parameters that auto-convert to T*
-    x.store(array);
+    x.store(array, Vc::Aligned);
+
+    if (std::is_integral<T>::value && std::is_unsigned<T>::value) {
+        // ensure that over-/underflowed values are stored correctly.
+        Vec v = Vec::Zero() - Vec::One(); // underflow
+        v.store(array, Vc::Aligned);
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            COMPARE(array[i], v[i]);
+        }
+
+        v = std::numeric_limits<T>::max() + Vec::One(); // overflow
+        v.store(array, Vc::Aligned);
+        for (size_t i = 0; i < Vec::Size; ++i) {
+            COMPARE(array[i], v[i]);
+        }
+    }
 }
 
 template<typename Vec> void unalignedStore()
@@ -127,21 +151,43 @@ template<typename Vec> void maskedStore()
     }
 
     const int count = 256 * 1024 / sizeof(T);
-    const int outerCount = count / Vec::Size;
     Vc::Memory<Vec> array(count);
-	array.setZero();
+    array.setZero();
     const T nullValue = 0;
     const T setValue = 170;
     const Vec x(setValue);
     for (int i = 0; i < count; i += Vec::Size) {
-        x.store(&array[i], mask);
+        x.store(&array[i], mask, Vc::Aligned);
     }
 
     for (int i = 1; i < count; i += 2) {
-        COMPARE(array[i], setValue) << ", i: " << i << ", count: " << count << ", outer: " << outerCount;
+        COMPARE(array[i], setValue) << ", i: " << i << ", count: " << count << ", mask: " << mask << ", array:\n" << array;
     }
     for (int i = 0; i < count; i += 2) {
-        COMPARE(array[i], nullValue) << ", i: " << i << ", count: " << count << ", outer: " << outerCount;
+        COMPARE(array[i], nullValue) << ", i: " << i << ", count: " << count << ", mask: " << mask << ", array:\n" << array;
+    }
+
+    for (int offset = 0; offset < count - int(Vec::Size); ++offset) {
+        auto mem = &array[offset];
+        Vec::Zero().store(mem, Vc::Unaligned);
+
+        constexpr std::ptrdiff_t alignment = sizeof(T) * Vec::Size;
+        constexpr std::ptrdiff_t alignmentMask = ~(alignment - 1);
+
+        const auto loAddress = reinterpret_cast<T *>(
+            (reinterpret_cast<char *>(mem) - static_cast<const char *>(0)) & alignmentMask);
+        const auto offset2 = mem - loAddress;
+
+        const Vec rand = Vec::Random();
+        const auto mean = (rand / T(Vec::Size)).sum();
+        mask = rand < mean;
+        rand.store(mem, mask, Vc::Unaligned);
+        for (std::size_t i = 0; i < Vec::Size; ++i) {
+            COMPARE(mem[i], mask[i] ? rand[i] : T(0))
+                << ", i: " << i << ", mask: " << mask << "\nrand: " << rand << "\nmean: " << mean
+                << ", offset: " << offset << ", offset2: " << offset2 << ", mem: " << mem
+                << ", loAddress: " << loAddress;
+        }
     }
 }
 
@@ -153,11 +199,9 @@ void testmain()
     testAllTypes(streamingAndUnalignedStore);
 
     if (float_v::Size > 1) {
-        runTest(maskedStore<int_v>);
-        runTest(maskedStore<uint_v>);
-        runTest(maskedStore<float_v>);
-        runTest(maskedStore<double_v>);
-        runTest(maskedStore<short_v>);
-        runTest(maskedStore<ushort_v>);
+        // only works with an even number of vector entries
+        // a) masked store with 01010101 will use only 0 for size 1
+        // b) the random masks will not be random, because mean == value
+        testAllTypes(maskedStore);
     }
 }

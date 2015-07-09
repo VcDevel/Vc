@@ -1,21 +1,30 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #ifndef VC_SSE_MATH_H
 #define VC_SSE_MATH_H
@@ -23,7 +32,10 @@
 #include "const.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
 template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
 {
     return a.copySign(b);
@@ -34,21 +46,25 @@ template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T>
      * The return value will be in the range [0.5, 1.0[
      * The \p e value will be an integer defining the power-of-two exponent
      */
-    inline double_v frexp(const double_v &v, int_v *e) {
+    inline double_v frexp(const double_v &v, simdarray<int, 2, Scalar::int_v, 1> *e) {
         const __m128i exponentBits = Const<double>::exponentMask().dataI();
         const __m128i exponentPart = _mm_and_si128(_mm_castpd_si128(v.data()), exponentBits);
-        *e = _mm_sub_epi32(_mm_srli_epi64(exponentPart, 52), _mm_set1_epi32(0x3fe));
+        int_v exponent = _mm_sub_epi32(_mm_srli_epi64(exponentPart, 52), _mm_set1_epi32(0x3fe));
         const __m128d exponentMaximized = _mm_or_pd(v.data(), _mm_castsi128_pd(exponentBits));
-        double_v ret = _mm_and_pd(exponentMaximized, _mm_load_pd(reinterpret_cast<const double *>(&c_general::frexpMask[0])));
+        double_v ret =
+            _mm_and_pd(exponentMaximized,
+                       _mm_load_pd(reinterpret_cast<const double *>(&c_general::frexpMask[0])));
         double_m zeroMask = v == double_v::Zero();
         ret(isnan(v) || !isfinite(v) || zeroMask) = v;
-        e->setZero(zeroMask.data());
+        exponent.setZero(zeroMask.data());
+        (*e)[0] = exponent[0];
+        (*e)[1] = exponent[2];
         return ret;
     }
-    inline float_v frexp(const float_v &v, int_v *e) {
+    inline float_v frexp(const float_v &v, simdarray<int, 4, SSE::int_v, 4> *e) {
         const __m128i exponentBits = Const<float>::exponentMask().dataI();
         const __m128i exponentPart = _mm_and_si128(_mm_castps_si128(v.data()), exponentBits);
-        *e = _mm_sub_epi32(_mm_srli_epi32(exponentPart, 23), _mm_set1_epi32(0x7e));
+        internal_data(*e) = _mm_sub_epi32(_mm_srli_epi32(exponentPart, 23), _mm_set1_epi32(0x7e));
         const __m128 exponentMaximized = _mm_or_ps(v.data(), _mm_castsi128_ps(exponentBits));
         float_v ret = _mm_and_ps(exponentMaximized, _mm_castsi128_ps(_mm_set1_epi32(0xbf7fffffu)));
         ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
@@ -60,14 +76,14 @@ template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T>
      * x == NaN    -> NaN
      * x == (-)inf -> (-)inf
      */
-    inline double_v ldexp(double_v::AsArg v, int_v::AsArg _e) {
-        int_v e = _e;
+    inline double_v ldexp(double_v::AsArg v, const simdarray<int, 2, Scalar::int_v, 1> &_e) {
+        int_v e = _mm_setr_epi32(_e[0], 0, _e[1], 0);
         e.setZero((v == double_v::Zero()).dataI());
         const __m128i exponentBits = _mm_slli_epi64(e.data(), 52);
         return _mm_castsi128_pd(_mm_add_epi64(_mm_castpd_si128(v.data()), exponentBits));
     }
-    inline float_v ldexp(float_v::AsArg v, int_v::AsArg _e) {
-        int_v e = _e;
+    inline float_v ldexp(float_v::AsArg v, const simdarray<int, 4, SSE::int_v, 4> &_e) {
+        int_v e = internal_data(_e);
         e.setZero(static_cast<int_m>(v == float_v::Zero()));
         return (v.reinterpretCast<int_v>() + (e << 23)).reinterpretCast<float_v>();
     }
@@ -157,16 +173,9 @@ template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T>
         return v;
     }
 #endif
-Vc_IMPL_NAMESPACE_END
+}  // namespace SSE
+}  // namespace Vc
 
 #include "undomacros.h"
-
-#define VC__USE_NAMESPACE SSE
-#include "../common/trigonometric.h"
-#define VC__USE_NAMESPACE SSE
-#include "../common/logarithm.h"
-#define VC__USE_NAMESPACE SSE
-#include "../common/exponential.h"
-#undef VC__USE_NAMESPACE
 
 #endif // VC_SSE_MATH_H

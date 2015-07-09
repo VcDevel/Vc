@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -22,7 +31,10 @@
 
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
 
 /**
  * \internal
@@ -32,7 +44,7 @@ Vc_NAMESPACE_BEGIN(Common)
  */
 template<size_t StructSize> class SuccessiveEntries
 {
-    size_t m_first;
+    std::size_t m_first;
 public:
     typedef SuccessiveEntries AsArg;
     constexpr SuccessiveEntries(size_t first) : m_first(first) {}
@@ -40,17 +52,26 @@ public:
     constexpr Vc_PURE size_t data() const { return m_first; }
     constexpr Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
     constexpr Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
+    constexpr Vc_PURE SuccessiveEntries operator<<(std::size_t x) const { return {m_first << x}; }
+
+    friend SuccessiveEntries &internal_data(SuccessiveEntries &x) { return x; }
+    friend const SuccessiveEntries &internal_data(const SuccessiveEntries &x)
+    {
+        return x;
+    }
 };
 
 /**
  * \internal
  */
-template<typename V, typename I> struct InterleavedMemoryAccessBase
+template<typename V, typename I, bool Readonly> struct InterleavedMemoryAccessBase
 {
     // Partial specialization doesn't work for functions without partial specialization of the whole
     // class. Therefore we capture the contents of InterleavedMemoryAccessBase in a macro to easily
     // copy it into its specializations.
-    typedef typename V::EntryType T;
+    typedef typename std::conditional<
+        Readonly, typename std::add_const<typename V::EntryType>::type,
+        typename V::EntryType>::type T;
     typedef typename V::AsArg VArg;
     typedef T Ta Vc_MAY_ALIAS;
     const I m_indexes;
@@ -77,20 +98,56 @@ template<typename V, typename I> struct InterleavedMemoryAccessBase
     inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5);
     inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6);
     inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6, VArg v7);
+
+protected:
+    template <typename T, std::size_t... Indexes>
+    Vc_INTRINSIC void callInterleave(T &&a, index_sequence<Indexes...>)
+    {
+        interleave(a[Indexes]...);
+    }
 };
 
 /**
  * \internal
  */
 // delay execution of the deinterleaving gather until operator=
-template<size_t StructSize, typename V, typename I = typename V::IndexType> struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I>
+template <size_t StructSize, typename V, typename I = typename V::IndexType,
+          bool Readonly>
+struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I, Readonly>
 {
-    typedef InterleavedMemoryAccessBase<V, I> Base;
+    typedef InterleavedMemoryAccessBase<V, I, Readonly> Base;
     typedef typename Base::Ta Ta;
 
     Vc_ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, typename I::AsArg indexes)
-        : Base(indexes * I(StructSize), data)
+        : Base(
+              StructSize == 1 ? indexes : StructSize == 2
+                                              ? indexes << 1
+                                              : StructSize == 4
+                                                    ? indexes << 2
+                                                    : StructSize == 8
+                                                          ? indexes << 3
+                                                          : StructSize == 16
+                                                                ? indexes << 4
+                                                                : indexes * I(StructSize),
+              data)
     {
+    }
+
+    template <typename T, std::size_t... Indexes>
+    Vc_ALWAYS_INLINE T deinterleave_unpack(index_sequence<Indexes...>) const
+    {
+        T r;
+        this->deinterleave(std::get<Indexes>(r)...);
+        return r;
+    }
+
+    template <typename T,
+              typename = enable_if<(std::is_default_constructible<T>::value &&
+                                    std::is_same<V, Traits::decay<decltype(std::get<0>(
+                                                        std::declval<T &>()))>>::value)>>
+    Vc_ALWAYS_INLINE operator T() const
+    {
+        return deinterleave_unpack<T>(make_index_sequence<std::tuple_size<T>::value>());
     }
 };
 
@@ -114,38 +171,30 @@ template<size_t S> struct CheckIndexesUnique<SuccessiveEntries<S> >
 /**
  * \internal
  */
-template<size_t StructSize, typename V, typename I = typename V::IndexType> struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V, I>
+template <size_t StructSize, typename V, typename I = typename V::IndexType>
+struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V, I, false>
 {
-    typedef InterleavedMemoryAccessBase<V, I> Base;
+    typedef InterleavedMemoryAccessBase<V, I, false> Base;
     typedef typename Base::Ta Ta;
 
     Vc_ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, typename I::AsArg indexes)
-        : InterleavedMemoryReadAccess<StructSize, V, I>(data, indexes)
+        : InterleavedMemoryReadAccess<StructSize, V, I, false>(data, indexes)
     {
         CheckIndexesUnique<I>::test(indexes);
     }
 
-#define _VC_SCATTER_ASSIGNMENT(LENGTH, parameters) \
-    Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, V> &rhs) \
-    { \
-        static_assert(LENGTH <= StructSize, "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has"); \
-        this->interleave parameters ; \
-    } \
-    Vc_ALWAYS_INLINE void operator=(const VectorTuple<LENGTH, const V> &rhs) \
-    { \
-        static_assert(LENGTH <= StructSize, "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has"); \
-        this->interleave parameters ; \
+    template <int N> Vc_ALWAYS_INLINE void operator=(VectorReferenceArray<N, V> &&rhs)
+    {
+        static_assert(N <= StructSize,
+                      "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has");
+        this->callInterleave(std::move(rhs), make_index_sequence<N>());
     }
-    _VC_SCATTER_ASSIGNMENT(2, (rhs.l, rhs.r))
-    _VC_SCATTER_ASSIGNMENT(3, (rhs.l.l, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(4, (rhs.l.l.l, rhs.l.l.r, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(5, (rhs.l.l.l.l, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(6, (rhs.l.l.l.l.l, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(7, (rhs.l.l.l.l.l.l, rhs.l.l.l.l.l.r, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
-    _VC_SCATTER_ASSIGNMENT(8, (rhs.l.l.l.l.l.l.l, rhs.l.l.l.l.l.l.r, rhs.l.l.l.l.l.r, rhs.l.l.l.l.r, rhs.l.l.l.r, rhs.l.l.r, rhs.l.r, rhs.r));
-#undef _VC_SCATTER_ASSIGNMENT
-
-private:
+    template <int N> Vc_ALWAYS_INLINE void operator=(VectorReferenceArray<N, const V> &&rhs)
+    {
+        static_assert(N <= StructSize,
+                      "You_are_trying_to_scatter_more_data_into_the_struct_than_it_has");
+        this->callInterleave(std::move(rhs), make_index_sequence<N>());
+    }
 };
 
 /**
@@ -161,11 +210,13 @@ private:
  */
 template<typename S, typename V> class InterleavedMemoryWrapper
 {
-    typedef typename V::EntryType T;
+    typedef typename std::conditional<std::is_const<S>::value,
+                                      const typename V::EntryType,
+                                      typename V::EntryType>::type T;
     typedef typename V::IndexType I;
     typedef typename V::AsArg VArg;
-    typedef typename I::AsArg IndexType;
-    enum Constants { StructSize = sizeof(S) / sizeof(T) };
+    typedef const I &IndexType;
+    static constexpr std::size_t StructSize = sizeof(S) / sizeof(T);
     typedef InterleavedMemoryAccess<StructSize, V> Access;
     typedef InterleavedMemoryReadAccess<StructSize, V> ReadAccess;
     typedef InterleavedMemoryAccess<StructSize, V, SuccessiveEntries<StructSize> > AccessSuccessiveEntries;
@@ -173,7 +224,8 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef T Ta Vc_MAY_ALIAS;
     Ta *const m_data;
 
-    static_assert((sizeof(S) / sizeof(T)) * sizeof(T) == sizeof(S), "InterleavedMemoryAccess_does_not_support_packed_structs");
+    static_assert(StructSize * sizeof(T) == sizeof(S),
+                  "InterleavedMemoryAccess_does_not_support_packed_structs");
 
 public:
     /**
@@ -238,7 +290,10 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
      * \warning If \p indexes contains non-unique entries on scatter, the result is undefined. If
      * \c NDEBUG is not defined the implementation will assert that the \p indexes entries are unique.
      */
-    Vc_ALWAYS_INLINE Access operator[](IndexType indexes)
+    template <typename IT>
+    Vc_ALWAYS_INLINE enable_if<
+        std::is_convertible<IT, IndexType>::value && !std::is_const<S>::value, Access>
+        operator[](IT indexes)
     {
         return Access(m_data, indexes);
     }
@@ -297,11 +352,16 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
 
     //Vc_ALWAYS_INLINE Access scatter(I indexes, VArg v0, VArg v1);
 };
-Vc_NAMESPACE_END
+}  // namespace Common
 
-Vc_PUBLIC_NAMESPACE_BEGIN
 using Common::InterleavedMemoryWrapper;
-Vc_NAMESPACE_END
+
+template <typename V, typename S>
+inline Common::InterleavedMemoryWrapper<S, V> make_interleave_wrapper(S *s)
+{
+    return Common::InterleavedMemoryWrapper<S, V>(s);
+}
+}  // namespace Vc
 
 #include "undomacros.h"
 

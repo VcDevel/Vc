@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2012 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -22,7 +31,10 @@
 
 #include <type_traits>
 
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Vc_IMPL_NAMESPACE
+{
 
 template<typename Parent, typename T> class StoreMixin
 {
@@ -38,23 +50,42 @@ private:
     // helper that specializes on T
     typedef VectorHelper<VectorEntryType> HT;
 
-    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::remove_cv<MemType>::type>;
+    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::decay<MemType>::type>;
 
     VectorType  data() const { return static_cast<const Parent *>(this)->data(); }
     VectorType &data()       { return static_cast<      Parent *>(this)->data(); }
 
 public:
-    template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Flags = Flags()) const Vc_INTRINSIC_R;
-    template<typename T2, typename Flags = AlignedT> Vc_INTRINSIC_L void store(T2 *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
+    template <typename U,
+              typename Flags = DefaultStoreTag,
+              typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    Vc_INTRINSIC_L void store(U *mem, Flags = Flags()) const Vc_INTRINSIC_R;
+    template <typename U,
+              typename Flags = DefaultStoreTag,
+              typename std::enable_if<std::is_arithmetic<U>::value, int>::type = 0>
+    Vc_INTRINSIC_L void store(U *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
     // the following store overloads are here to support classes that have a cast operator to EntryType.
     // Without this overload GCC complains about not finding a matching store function.
-    Vc_INTRINSIC void store(EntryType *mem) const { store<EntryType, AlignedT>(mem); }
-    template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const { store<EntryType, Flags>(mem, flags); }
-    Vc_INTRINSIC void store(EntryType *mem, Mask mask) const { store<EntryType, AlignedT>(mem, mask); }
-    template<typename Flags = AlignedT> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const { store<EntryType, Flags>(mem, mask, flags); }
+    Vc_INTRINSIC void store(EntryType *mem) const
+    {
+        store<EntryType, DefaultStoreTag>(mem);
+    }
+    template <typename Flags> Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
+    {
+        store<EntryType, Flags>(mem, flags);
+    }
+    Vc_INTRINSIC void store(EntryType *mem, Mask mask) const
+    {
+        store<EntryType, DefaultStoreTag>(mem, mask);
+    }
+    template <typename Flags> Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const
+    {
+        store<EntryType, Flags>(mem, mask, flags);
+    }
 
     inline void store(VectorEntryType *mem, decltype(Streaming)) const;
 };
 
-Vc_NAMESPACE_END
+}  // namespace MIC
+}  // namespace Vc
 #endif // VC_MIC_STOREMIXIN_H

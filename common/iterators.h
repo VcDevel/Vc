@@ -1,19 +1,28 @@
 /*  This file is part of the Vc library. {{{
+Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2013 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
-
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
@@ -21,23 +30,29 @@
 #define VC_COMMON_ITERATORS_H
 
 #include <array>
-#include <Vc/type_traits>
+#include <iterator>
+#include "where.h"
 #include "macros.h"
 
-Vc_NAMESPACE_BEGIN(Common)
-
-namespace
+namespace Vc_VERSIONED_NAMESPACE
 {
-    template<typename V> class Iterator/*{{{*/
+namespace Common
+{
+
+template<typename _V, typename Flags> class MemoryVector;
+template<typename _V, typename Flags> class MemoryVectorIterator;
+
+// class Iterator {{{
+template <typename V>
+class Iterator
+    : public std::iterator<std::bidirectional_iterator_tag, typename V::EntryType>
     {
         V &v;
         size_t i;
     public:
         constexpr Iterator(V &_v, size_t _i) : v(_v), i(_i) {}
         constexpr Iterator(const Iterator &) = default;
-#ifndef VC_NO_MOVE_CTOR
         constexpr Iterator(Iterator &&) = default;
-#endif
 
         Vc_ALWAYS_INLINE decltype(v[i]) operator->() { return v[i]; }
         Vc_ALWAYS_INLINE decltype(v[i]) operator->() const { return v[i]; }
@@ -70,9 +85,7 @@ namespace
     public:
         Vc_ALWAYS_INLINE BitmaskIterator(int m) : mask(m), bit(_mm_tzcnt_32(mask)) {}
         Vc_ALWAYS_INLINE BitmaskIterator(const BitmaskIterator &) = default;
-#ifndef VC_NO_MOVE_CTOR
         Vc_ALWAYS_INLINE BitmaskIterator(BitmaskIterator &&) = default;
-#endif
 
         Vc_ALWAYS_INLINE size_t operator->() const { return bit; }
         Vc_ALWAYS_INLINE size_t operator*() const { return bit; }
@@ -127,9 +140,7 @@ namespace
     public:
         BitmaskIterator(size_t m) : mask(m) { nextBit(); }
         BitmaskIterator(const BitmaskIterator &) = default;
-#ifndef VC_NO_MOVE_CTOR
         BitmaskIterator(BitmaskIterator &&) = default;
-#endif
 
         Vc_ALWAYS_INLINE size_t operator->() const { return bit; }
         Vc_ALWAYS_INLINE size_t operator*() const { return bit; }
@@ -141,44 +152,43 @@ namespace
         Vc_ALWAYS_INLINE bool operator!=(const BitmaskIterator &rhs) const { return mask != rhs.mask; }
     };/*}}}*/
 #endif
-} // anonymous namespace
 
-template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_vector<V>::value, Iterator<V>>::type begin(V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_vector<V>::value, Iterator<V>>::type end(V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_vector<V>::value, Iterator<V>>::type end(V &v)
 {
     return { v, V::Size };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, ConstIterator<V>>::type begin(const V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_mask<V>::value || Traits::is_simd_vector<V>::value, ConstIterator<V>>::type begin(const V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, ConstIterator<V>>::type end(const V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_mask<V>::value || Traits::is_simd_vector<V>::value, ConstIterator<V>>::type end(const V &v)
 {
     return { v, V::Size };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, ConstIterator<V>>::type cbegin(const V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_mask<V>::value || Traits::is_simd_vector<V>::value, ConstIterator<V>>::type cbegin(const V &v)
 {
     return { v, 0 };
 }
 
-template<typename V> constexpr typename std::enable_if<is_simd_mask<V>::value || is_simd_vector<V>::value, ConstIterator<V>>::type cend(const V &v)
+template<typename V> constexpr typename std::enable_if<Traits::is_simd_mask<V>::value || Traits::is_simd_vector<V>::value, ConstIterator<V>>::type cend(const V &v)
 {
     return { v, V::Size };
 }
 
-template<typename M> Vc_ALWAYS_INLINE BitmaskIterator begin(const WhereMask<M> &w)
+template<typename M> Vc_ALWAYS_INLINE BitmaskIterator begin(const WhereImpl::WhereMask<M> &w)
 {
     return w.mask.toInt();
 }
 
-template<typename M> Vc_ALWAYS_INLINE BitmaskIterator end(const WhereMask<M> &)
+template<typename M> Vc_ALWAYS_INLINE BitmaskIterator end(const WhereImpl::WhereMask<M> &)
 {
     return 0;
 }
@@ -207,13 +217,8 @@ template<typename V, typename Flags, typename FlagsX> Vc_ALWAYS_INLINE MemoryVec
     return new(&mv) MemoryVector<const V, Flags>;
 }
 
-Vc_NAMESPACE_END
-
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-    using ::Vc::Common::begin;
-    using ::Vc::Common::end;
-    using ::Vc::Common::makeIterator;
-Vc_NAMESPACE_END
+}  // namespace Common
+}  // namespace Vc
 
 #include "undomacros.h"
 

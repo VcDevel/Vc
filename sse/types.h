@@ -1,110 +1,83 @@
-/*  This file is part of the Vc library.
+/*  This file is part of the Vc library. {{{
+Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+All rights reserved.
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
 
-    Vc is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3 of
-    the License, or (at your option) any later version.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-    Vc is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with Vc.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+}}}*/
 
 #ifndef SSE_TYPES_H
 #define SSE_TYPES_H
 
-#include "intrinsics.h"
-#include "../common/storage.h"
-
+#ifdef VC_DEFAULT_IMPL_SSE
 #define VC_DOUBLE_V_SIZE 2
 #define VC_FLOAT_V_SIZE 4
-#define VC_SFLOAT_V_SIZE 8
 #define VC_INT_V_SIZE 4
 #define VC_UINT_V_SIZE 4
 #define VC_SHORT_V_SIZE 8
 #define VC_USHORT_V_SIZE 8
-
-#include "../common/types.h"
-#include "macros.h"
-
-Vc_NAMESPACE_BEGIN(Vc_IMPL_NAMESPACE)
-    template<typename T> class Vector;
-    template<typename T> class WriteMaskedVector;
-
-    // define our own long because on Windows64 long == int while on Linux long == max. register width
-    // since we want to have a type that depends on 32 vs. 64 bit we need to do some special casing on Windows
-#ifdef _WIN64
-    typedef __int64 _long;
-    typedef unsigned __int64 _ulong;
-#else
-    typedef long _long;
-    typedef unsigned long _ulong;
 #endif
 
-    template<typename T> class Mask;
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
+constexpr std::size_t VectorAlignment = 16;
 
-    template<typename T> struct ParameterHelper {
-        typedef T ByValue;
-        typedef T & Reference;
-        typedef const T & ConstRef;
-    };
+template <typename T> class Vector;
+typedef Vector<double>         double_v;
+typedef Vector<float>           float_v;
+typedef Vector<int>               int_v;
+typedef Vector<unsigned int>     uint_v;
+typedef Vector<short>           short_v;
+typedef Vector<unsigned short> ushort_v;
 
-    template<typename T> struct VectorHelper {};
+template <typename T> class Mask;
+typedef Mask<double>         double_m;
+typedef Mask<float>           float_m;
+typedef Mask<int>               int_m;
+typedef Mask<unsigned int>     uint_m;
+typedef Mask<short>           short_m;
+typedef Mask<unsigned short> ushort_m;
 
-    template<unsigned int Size> struct IndexTypeHelper;
-    template<> struct IndexTypeHelper<2u> { typedef          int   Type; };
-    template<> struct IndexTypeHelper<4u> { typedef          int   Type; };
-    template<> struct IndexTypeHelper<8u> { typedef unsigned short Type; };
-    template<> struct IndexTypeHelper<16u>{ typedef unsigned char  Type; };
+template <typename V = Vector<float>>
+class
+#ifndef VC_ICC
+    alignas(alignof(V))
+#endif
+    VectorAlignedBaseT;
 
-    template<typename T> struct CtorTypeHelper { typedef T Type; };
-    template<> struct CtorTypeHelper<short> { typedef int Type; };
-    template<> struct CtorTypeHelper<unsigned short> { typedef unsigned int Type; };
-    template<> struct CtorTypeHelper<float> { typedef double Type; };
+template <typename T> struct is_vector : public std::false_type {};
+template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
+template <typename T> struct is_mask : public std::false_type {};
+template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
+}  // namespace SSE
 
-    template<typename T> struct ExpandTypeHelper { typedef T Type; };
-    template<> struct ExpandTypeHelper<short> { typedef int Type; };
-    template<> struct ExpandTypeHelper<unsigned short> { typedef unsigned int Type; };
-    template<> struct ExpandTypeHelper<float> { typedef double Type; };
-
-    template<typename T> struct VectorTypeHelper { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<double>   { typedef __m128d Type; };
-    template<> struct VectorTypeHelper< float>   { typedef __m128  Type; };
-
-    template<typename T> struct DetermineGatherMask { typedef T Type; };
-
-    template<typename T> struct VectorTraits
-    {
-        typedef typename VectorTypeHelper<T>::Type VectorType;
-        typedef typename DetermineEntryType<T>::Type EntryType;
-        static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
-        enum Constants {
-            HasVectorDivision = !std::is_integral<T>::value
-        };
-        typedef Mask<T> MaskType;
-        typedef typename DetermineGatherMask<MaskType>::Type GatherMaskType;
-        typedef Vector<typename IndexTypeHelper<Size>::Type> IndexType;
-        typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
-    };
-
-    template<typename T> struct VectorHelperSize;
-
-    template<typename V = Vector<float> >
-    class STRUCT_ALIGN1(16) VectorAlignedBaseT
-    {
-        public:
-            FREE_STORE_OPERATORS_ALIGNED(16)
-    } STRUCT_ALIGN2(16);
-
-Vc_IMPL_NAMESPACE_END
-
-#include "undomacros.h"
+namespace Traits
+{
+template <typename T> struct is_simd_mask_internal<SSE::Mask<T>> : public std::true_type {};
+template <typename T> struct is_simd_vector_internal<SSE::Vector<T>> : public std::true_type {};
+}  // namespace Traits
+}  // namespace Vc
 
 #endif // SSE_TYPES_H

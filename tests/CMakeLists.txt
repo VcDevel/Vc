@@ -1,8 +1,5 @@
 include(AddFileDependencies)
 
-# for the remaining targets unconditional Vc_ARCHITECTURE_FLAGS is mostly fine.
-add_definitions(${Vc_ARCHITECTURE_FLAGS})
-
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS) # -DVC_CHECK_ALIGNMENT)
 if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
@@ -39,7 +36,7 @@ macro(vc_add_run_target _target)
       if(MIC_NATIVELOAD)
          get_target_property(_exe "${_target}" OUTPUT_NAME)
          add_custom_target(run_${_target}
-            ${MIC_NATIVELOAD} "${_exe}"
+            ${MIC_NATIVELOAD} "${_exe}" -a "-v"
             DEPENDS ${_target}
             COMMENT "Execute ${_target} test"
             VERBATIM
@@ -47,7 +44,7 @@ macro(vc_add_run_target _target)
       endif()
    else()
       add_custom_target(run_${_target}
-         ${_target}
+         ${_target} -v
          DEPENDS ${_target}
          COMMENT "Execute ${_target} test"
          VERBATIM
@@ -90,6 +87,9 @@ macro(vc_add_test _name)
          endif()
       endif()
    endforeach()
+   string(REPLACE "=" "_" name "${name}")
+
+   set(_run_targets)
 
    set(_target "${name}_scalar")
    list(FIND disabled_targets ${_target} _disabled)
@@ -98,6 +98,7 @@ macro(vc_add_test _name)
       add_file_dependencies(${_name}.cpp "${_extra_deps}")
       add_executable(${_target} EXCLUDE_FROM_ALL ${_name}.cpp)
       vc_set_test_target_properties(${_target} Scalar "-DVC_IMPL=Scalar")
+      list(APPEND _run_targets "run_${_target}")
    endif()
 
    if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN AND "${_targets}" MATCHES "SSE")
@@ -116,7 +117,8 @@ macro(vc_add_test _name)
          file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/sse/*.tcc" "${CMAKE_SOURCE_DIR}/sse/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} EXCLUDE_FROM_ALL ${_name}.cpp)
-         vc_set_test_target_properties(${_target} SSE "${DVC_IMPL} ${_sse2_flag}")
+         vc_set_test_target_properties(${_target} SSE "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
+         list(APPEND _run_targets "run_${_target}")
       endif()
    endif()
 
@@ -136,7 +138,8 @@ macro(vc_add_test _name)
          file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/avx/*.tcc" "${CMAKE_SOURCE_DIR}/avx/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} EXCLUDE_FROM_ALL ${_name}.cpp)
-         vc_set_test_target_properties(${_target} AVX "${DVC_IMPL} ${_avx_flag}")
+         vc_set_test_target_properties(${_target} AVX "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
+         list(APPEND _run_targets "run_${_target}")
       endif()
    endif()
 
@@ -148,7 +151,8 @@ macro(vc_add_test _name)
          file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/avx/*.tcc" "${CMAKE_SOURCE_DIR}/avx/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} EXCLUDE_FROM_ALL ${_name}.cpp)
-         vc_set_test_target_properties(${_target} AVX2 "${DVC_IMPL} ${_avx2_flag}")
+         vc_set_test_target_properties(${_target} AVX2 "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
+         list(APPEND _run_targets "run_${_target}")
       endif()
    endif()
 
@@ -175,18 +179,30 @@ macro(vc_add_test _name)
                )
             set_property(TEST ${Vc_TEST_TARGET_PREFIX}${_target} PROPERTY LABELS "MIC")
             vc_add_run_target(${_target})
+            list(APPEND _run_targets "run_${_target}")
          endif()
       endif()
    endif()
+
+   if(_run_targets)
+      add_custom_target(run_${name}_all
+         COMMENT "Execute all ${name} tests"
+         VERBATIM
+         )
+      add_dependencies(run_${name}_all ${_run_targets})
+   endif()
+
 endmacro(vc_add_test)
 
+vc_add_test(types)
+vc_add_test(subscript)
 vc_add_test(type_traits)
 vc_add_test(stlcontainer)
 vc_add_test(scalaraccess)
 vc_add_test(memory)
 vc_add_test(arithmetics)
+vc_add_test(simdize)
 vc_add_test(implicit_type_conversion)
-vc_add_test(expandandmerge)
 vc_add_test(load)
 vc_add_test(store)
 vc_add_test(gather)
@@ -201,10 +217,75 @@ vc_add_test(math VC_LOG_ILP TARGETS SSE AVX AVX2)
 vc_add_test(math VC_LOG_ILP2 TARGETS SSE AVX AVX2)
 vc_add_test(mask)
 vc_add_test(utils)
+vc_add_test(sorted)
+vc_add_test(random)
 vc_add_test(deinterleave)
 vc_add_test(deinterleave VC_USE_MASKMOV_SCATTER TARGETS SSE AVX AVX2)
-vc_add_test(casts)
+vc_add_test(casts VC_DEFAULT_TYPES)
+option(BUILD_EXTRA_CAST_TESTS "build all possible combinations of simd_cast tests (compiles for a very long time)" FALSE)
+if(BUILD_EXTRA_CAST_TESTS)
+   vc_add_test(casts VC_EXTRA_TYPES)
+   foreach(n 1 2 3 4 5 8 16 17 31)
+      vc_add_test(casts VC_FROM_N=${n})
+      vc_add_test(casts VC_TO_N=${n})
+      foreach(m 1 2 3 4 5 8 16 17 31)
+         vc_add_test(casts VC_FROM_N=${m} VC_TO_N=${n})
+      endforeach()
+   endforeach()
+endif()
 vc_add_test(swizzles)
+vc_add_test(simd_array)
+
+find_program(OBJDUMP objdump)
+
+if(OBJDUMP)
+   macro(test_abi _impl)
+      set(_target abi_${_impl})
+      set(_test test_${_target})
+      if("${_impl}" STREQUAL "MIC")
+         mic_add_executable(${_target} SOURCES abi.cpp LINK_LIBRARIES Vc_MIC COMPILE_FLAGS "-DVC_IMPL=${_impl} ${ARGN}")
+      else()
+         add_executable(${_target} EXCLUDE_FROM_ALL abi.cpp)
+         target_link_libraries(${_target} Vc)
+         add_target_property(${_target} COMPILE_FLAGS "-DVC_IMPL=${_impl} ${Vc_ARCHITECTURE_FLAGS} ${ARGN}")
+      endif()
+      add_target_property(${_target} LABELS "${_impl}")
+      add_dependencies(${_impl} ${_target})
+      add_dependencies(build_tests ${_target})
+
+      get_target_property(_exe ${_target} OUTPUT_NAME)
+      if(NOT _exe)
+         set(_exe ${_target})
+      endif()
+
+      add_test(NAME ${_test}
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl} -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
+         )
+      set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
+      add_custom_target(run_${_target}
+         ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl} -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         DEPENDS ${_target}
+         COMMENT "Execute ${_target} test"
+         VERBATIM
+         )
+   endmacro()
+
+   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86")
+      test_abi(SSE  ${_sse2_flag})
+      test_abi(AVX  ${_avx_flag})
+      # TODO: reenable for AVX2
+      #test_abi(AVX2 ${_avx2_flag})
+   endif()
+   if(MIC_NATIVE_FOUND)
+      find_program(MIC_OBJDUMP x86_64-k1om-linux-objdump PATHS ENV PATH "${MIC_TARGET_TOOLS_DIR}/bin")
+      if(MIC_OBJDUMP)
+         set(OBJDUMP "${MIC_OBJDUMP}")
+         test_abi(MIC)
+      endif()
+   endif()
+endif()
 
 if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
    list(FIND disabled_targets sse_blend _disabled)
@@ -220,7 +301,7 @@ if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
 
       if(USE_SSE4_1)
          add_executable(sse4_blend EXCLUDE_FROM_ALL sse_blend.cpp)
-         add_target_property(sse4_blend COMPILE_FLAGS "-DVC_IMPL=SSE4_1 ${_sse4_1_flag}")
+         add_target_property(sse4_blend COMPILE_FLAGS "-DVC_IMPL=SSE4_1 ${Vc_ARCHITECTURE_FLAGS}")
          add_target_property(sse4_blend LABELS "SSE")
          add_dependencies(build_tests ${_target})
          add_dependencies(SSE sse4_blend)
@@ -285,7 +366,7 @@ if(TEST_OPERATOR_FAILURES)
                   )
                set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY LABELS "${impl}")
                set_tests_properties("${Vc_TEST_TARGET_PREFIX}${name}" PROPERTIES
-                  PASS_REGULAR_EXPRESSION "invalid operands to binary expression;error: no match for .*operator\\${op};error C267[789]: binary .*\\${op}.* no (global )?operator found;error: no operator \"\\${op}\" matches these operands"
+                  PASS_REGULAR_EXPRESSION "use of deleted function"
                   FAIL_REGULAR_EXPRESSION "no such file or directory;undefined reference to"
                   )
             endforeach()
