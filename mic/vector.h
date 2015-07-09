@@ -97,7 +97,7 @@ public:
     typedef Vector<T> AsArg; // for now only ICC can compile this code and it is not broken :)
     typedef VectorType VectorTypeArg;
 
-    inline const VectorType data() const { return d.v(); }
+    inline const VectorType &data() const { return d.v(); }
     inline VectorType &data() { return d.v(); }
 
 protected:
