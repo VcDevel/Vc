@@ -1177,10 +1177,11 @@ simd_cast_impl_smaller_input(const From &... xs, const T &last)
 template <typename Return, std::size_t N, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast_impl_smaller_input(const T &last)
 {
-    Return r;
+    Return r = Return();
     for (size_t i = 0; i < N; ++i) {
         r[i] = static_cast<typename Return::EntryType>(last[i]);
     }
+    VC_ASSERT(r[N] == 0);
     return r;
 }
 template <typename Return, std::size_t N, typename T, typename... From>
