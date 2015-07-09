@@ -154,6 +154,9 @@ TEST(nontype_template_parameters)
     using namespace Vc;
     using std::array;
 
+    using float_intsize = typename std::conditional<
+        int_v::size() == float_v::size(), float_v, simdarray<float, int_v::size()>>::type;
+
     static_assert(SimdizeDetail::is_class_template<array<float, 3>>::value, "");
     static_assert(SimdizeDetail::is_class_template<Foo1<float, 3, 5, 6>>::value, "");
     static_assert(SimdizeDetail::is_class_template<Foo2<int, float, 3, 5, 6>>::value, "");
@@ -168,10 +171,12 @@ TEST(nontype_template_parameters)
             SimdizeAdapter<Foo1<float, 3, 5, 6>, Foo1<float_v, 3, 5, 6>, float_v::size()>));
     COMPARE(typeid(simdize<Foo2<int, float, 3, 5, 6>>),
             typeid(SimdizeAdapter<Foo2<int, float, 3, 5, 6>,
-                                  Foo2<int_v, float_v, 3, 5, 6>, int_v::size()>));
-    COMPARE(typeid(simdize<Foo3<int, int, float, 3, 5, 6>>),
-            typeid(SimdizeAdapter<Foo3<int, int, float, 3, 5, 6>,
-                                  Foo3<int_v, int_v, float_v, 3, 5, 6>, int_v::size()>));
+                                  Foo2<int_v, float_intsize, 3, 5, 6>, int_v::size()>));
+    COMPARE(
+        typeid(simdize<Foo3<int, int, float, 3, 5, 6>>),
+        typeid(
+            SimdizeAdapter<Foo3<int, int, float, 3, 5, 6>,
+                           Foo3<int_v, int_v, float_intsize, 3, 5, 6>, int_v::size()>));
 }
 #endif  // VC_ICC
 
