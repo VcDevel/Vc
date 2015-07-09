@@ -203,7 +203,7 @@ if(target_architecture)
 endif()
 
 macro(go)
-   set_property(GLOBAL PROPERTY SubProject ${compiler})
+   set_property(GLOBAL PROPERTY SubProject "0.7: ${compiler}")
    set_property(GLOBAL PROPERTY Label other)
    CTEST_START (${dashboard_model})
    set(res 0)
