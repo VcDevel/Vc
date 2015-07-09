@@ -266,7 +266,7 @@ TEST(broadcast)
     {
         using T = std::array<int, 3>;
         using V = simdize<T>;
-        T scalar{1, 2, 3};
+        T scalar{{1, 2, 3}};
         V vector(scalar);
         COMPARE(vector[0], int_v(1));
         COMPARE(vector[1], int_v(2));
