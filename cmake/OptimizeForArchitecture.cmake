@@ -1,5 +1,23 @@
+# Determine the host CPU feature set and determine the best set of compiler
+# flags to enable all supported SIMD relevant features. Alternatively, the
+# target CPU can be explicitly selected (for generating more generic binaries
+# or for targeting a different system).
+# Compilers provide e.g. the -march=native flag to achieve a similar result.
+# This fails to address the need for building for a different microarchitecture
+# than the current host.
+# The script tries to deduce all settings from the model and family numbers of
+# the CPU instead of reading the CPUID flags from e.g. /proc/cpuinfo. This makes
+# the detection more independent from the CPUID code in the kernel (e.g. avx2 is
+# not listed on older kernels).
+#
+# Usage:
+# OptimizeForArchitecture()
+# If either of Vc_SSE_INTRINSICS_BROKEN, Vc_AVX_INTRINSICS_BROKEN,
+# Vc_AVX2_INTRINSICS_BROKEN is defined and set, the OptimizeForArchitecture
+# macro will consequently disable the relevant features via compiler flags.
+
 #=============================================================================
-# Copyright 2010-2013 Matthias Kretz <kretz@kde.org>
+# Copyright 2010-2015 Matthias Kretz <kretz@kde.org>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -71,7 +89,9 @@ macro(AutodetectHostArchitecture)
    if(_vendor_id STREQUAL "GenuineIntel")
       if(_cpu_family EQUAL 6)
          # Any recent Intel CPU except NetBurst
-         if(_cpu_model EQUAL 62)
+         if(_cpu_model EQUAL 63) # e.g. Xeon E5 2660 v3
+            set(TARGET_ARCHITECTURE "haswell")
+         elseif(_cpu_model EQUAL 62)
             set(TARGET_ARCHITECTURE "ivy-bridge")
          elseif(_cpu_model EQUAL 61)
             set(TARGET_ARCHITECTURE "broadwell")
