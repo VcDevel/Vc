@@ -1,5 +1,23 @@
+# Determine the host CPU feature set and determine the best set of compiler
+# flags to enable all supported SIMD relevant features. Alternatively, the
+# target CPU can be explicitly selected (for generating more generic binaries
+# or for targeting a different system).
+# Compilers provide e.g. the -march=native flag to achieve a similar result.
+# This fails to address the need for building for a different microarchitecture
+# than the current host.
+# The script tries to deduce all settings from the model and family numbers of
+# the CPU instead of reading the CPUID flags from e.g. /proc/cpuinfo. This makes
+# the detection more independent from the CPUID code in the kernel (e.g. avx2 is
+# not listed on older kernels).
+#
+# Usage:
+# OptimizeForArchitecture()
+# If either of Vc_SSE_INTRINSICS_BROKEN, Vc_AVX_INTRINSICS_BROKEN,
+# Vc_AVX2_INTRINSICS_BROKEN is defined and set, the OptimizeForArchitecture
+# macro will consequently disable the relevant features via compiler flags.
+
 #=============================================================================
-# Copyright 2010-2013 Matthias Kretz <kretz@kde.org>
+# Copyright 2010-2015 Matthias Kretz <kretz@kde.org>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -71,8 +89,12 @@ macro(AutodetectHostArchitecture)
    if(_vendor_id STREQUAL "GenuineIntel")
       if(_cpu_family EQUAL 6)
          # Any recent Intel CPU except NetBurst
-         if(_cpu_model EQUAL 62)
+         if(_cpu_model EQUAL 63) # e.g. Xeon E5 2660 v3
+            set(TARGET_ARCHITECTURE "haswell")
+         elseif(_cpu_model EQUAL 62)
             set(TARGET_ARCHITECTURE "ivy-bridge")
+         elseif(_cpu_model EQUAL 61)
+            set(TARGET_ARCHITECTURE "broadwell")
          elseif(_cpu_model EQUAL 60)
             set(TARGET_ARCHITECTURE "haswell")
          elseif(_cpu_model EQUAL 58)
@@ -144,7 +166,7 @@ macro(AutodetectHostArchitecture)
 endmacro()
 
 macro(OptimizeForArchitecture)
-   set(TARGET_ARCHITECTURE "auto" CACHE STRING "CPU architecture to optimize for. Using an incorrect setting here can result in crashes of the resulting binary because of invalid instructions used.\nSetting the value to \"auto\" will try to optimize for the architecture where cmake is called.\nOther supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Core2), \"penryn\" (45nm Core2), \"nehalem\", \"westmere\", \"sandy-bridge\", \"ivy-bridge\", \"haswell\", \"atom\", \"k8\", \"k8-sse3\", \"barcelona\", \"istanbul\", \"magny-cours\", \"bulldozer\", \"interlagos\", \"piledriver\", \"AMD 14h\", \"AMD 16h\".")
+   set(TARGET_ARCHITECTURE "auto" CACHE STRING "CPU architecture to optimize for. Using an incorrect setting here can result in crashes of the resulting binary because of invalid instructions used.\nSetting the value to \"auto\" will try to optimize for the architecture where cmake is called.\nOther supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Core2), \"penryn\" (45nm Core2), \"nehalem\", \"westmere\", \"sandy-bridge\", \"ivy-bridge\", \"haswell\", \"broadwell\", \"atom\", \"k8\", \"k8-sse3\", \"barcelona\", \"istanbul\", \"magny-cours\", \"bulldozer\", \"interlagos\", \"piledriver\", \"AMD 14h\", \"AMD 16h\".")
    set(_force)
    if(NOT _last_target_arch STREQUAL "${TARGET_ARCHITECTURE}")
       message(STATUS "target changed from \"${_last_target_arch}\" to \"${TARGET_ARCHITECTURE}\"")
@@ -190,10 +212,27 @@ macro(OptimizeForArchitecture)
       list(APPEND _march_flag_list "corei7")
       list(APPEND _march_flag_list "core2")
       list(APPEND _available_vector_units_list "sse" "sse2" "sse3" "ssse3" "sse4.1" "sse4.2")
-   elseif(TARGET_ARCHITECTURE STREQUAL "haswell")
+   elseif(TARGET_ARCHITECTURE STREQUAL "broadwell")
+      list(APPEND _march_flag_list "broadwell")
+      list(APPEND _march_flag_list "haswell")
       list(APPEND _march_flag_list "core-avx2")
+      list(APPEND _march_flag_list "ivybridge")
       list(APPEND _march_flag_list "core-avx-i")
+      list(APPEND _march_flag_list "sandybridge")
       list(APPEND _march_flag_list "corei7-avx")
+      list(APPEND _march_flag_list "westmere")
+      list(APPEND _march_flag_list "nehalem")
+      list(APPEND _march_flag_list "core2")
+      list(APPEND _available_vector_units_list "sse" "sse2" "sse3" "ssse3" "sse4.1" "sse4.2" "avx" "avx2" "rdrnd" "f16c" "fma" "bmi" "bmi2")
+   elseif(TARGET_ARCHITECTURE STREQUAL "haswell")
+      list(APPEND _march_flag_list "haswell")
+      list(APPEND _march_flag_list "core-avx2")
+      list(APPEND _march_flag_list "ivybridge")
+      list(APPEND _march_flag_list "core-avx-i")
+      list(APPEND _march_flag_list "sandybridge")
+      list(APPEND _march_flag_list "corei7-avx")
+      list(APPEND _march_flag_list "westmere")
+      list(APPEND _march_flag_list "nehalem")
       list(APPEND _march_flag_list "core2")
       list(APPEND _available_vector_units_list "sse" "sse2" "sse3" "ssse3" "sse4.1" "sse4.2" "avx" "avx2" "rdrnd" "f16c" "fma")
    elseif(TARGET_ARCHITECTURE STREQUAL "ivy-bridge")
@@ -428,7 +467,7 @@ macro(OptimizeForArchitecture)
             endif(_good)
          endforeach(_flag)
          foreach(_flag ${_enable_vector_unit_list})
-            AddCompilerFlag("-m${_flag}" CXX_RESULT _result)
+            AddCompilerFlag("-m${_flag}" CXX_RESULT _result CXX_FLAGS Vc_ARCHITECTURE_FLAGS)
             if(_result)
                set(_header FALSE)
                if(_flag STREQUAL "sse3")
