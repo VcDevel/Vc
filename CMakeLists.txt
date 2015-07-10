@@ -39,10 +39,6 @@ else()
    # TODO: check that 'decltype' compiles
    # TODO: check that 'constexpr' compiles
    if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
-      if(Vc_COMPILER_IS_GCC AND Vc_GCC_VERSION VERSION_LESS 4.7.0)
-         message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.7.")
-      endif()
-
       AddCompilerFlag("-std=c++14" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
       if(MIC_NATIVE_FOUND AND NOT _mic_ok)
          AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
