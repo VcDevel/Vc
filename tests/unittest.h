@@ -68,17 +68,20 @@ inline void printPass()
     std::cout << AnsiColor::green << " PASS: " << AnsiColor::normal;
 }
 
-bool _UnitTest_verify_vector_unit_supported()
+namespace
 {
-    bool s = Vc::currentImplementationSupported();
-    if (!s) {
-        std::cerr << "CPU or OS requirements not met for the compiled in vector unit!\n";
-        exit(-1);
+struct verify_vector_unit_supported
+{
+    verify_vector_unit_supported()
+    {
+        if (!Vc::currentImplementationSupported()) {
+            std::cerr
+                << "CPU or OS requirements not met for the compiled in vector unit!\n";
+            exit(-1);
+        }
     }
-    return s;
-}
-
-static bool _UnitTest_verify_vector_unit_supported_result = _UnitTest_verify_vector_unit_supported();
+} verify_vector_unit_supported__;
+}  // unnamed namespace
 
 class _UnitTest_Failure
 {
