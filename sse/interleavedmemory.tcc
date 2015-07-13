@@ -59,6 +59,7 @@ template<typename V> struct InterleaveImpl<V, 8> {
         *reinterpret_cast<int *>(&data[i[6]]) = tmp11;
         *reinterpret_cast<int *>(&data[i[7]]) = tmp11 >> 32;
 #elif defined(VC_IMPL_SSE4_1)
+        using namespace SseIntrinsics;
         *reinterpret_cast<int *>(&data[i[0]]) = _mm_cvtsi128_si32(tmp0);
         *reinterpret_cast<int *>(&data[i[1]]) = extract_epi32<1>(tmp0);
         *reinterpret_cast<int *>(&data[i[2]]) = extract_epi32<2>(tmp0);
