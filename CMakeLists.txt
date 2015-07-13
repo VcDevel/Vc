@@ -173,7 +173,7 @@ if(NOT ROOT_RELEASE)
    endif()
 
    set(_srcs src/const.cpp)
-   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86")
+   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64)")
       add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
       add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
       add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
