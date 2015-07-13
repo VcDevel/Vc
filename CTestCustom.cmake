@@ -10,6 +10,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "WARNING non-zero return value in ctest from: make" # Ignore output from ctest
    "ipo: warning #11010:" # Ignore warning about incompatible libraries with ICC -m32 on 64-bit system
    "include/qt4" # -Wuninitialized in QWeakPointer(X *ptr)
+   " note: " # Notes are additional lines from errors (or warnings) that we don't want to count as additional warnings
    )
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
