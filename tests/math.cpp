@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 /*includes {{{*/
-#include "unittest-old.h"
+#include "unittest.h"
 #include <iostream>
 #include "vectormemoryhelper.h"
 #include <cmath>
@@ -37,15 +37,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace Vc;
 using Vc::Internal::floatConstant;
 using Vc::Internal::doubleConstant;
-/*fix isfinite and isnan{{{*/
+
+#define REAL_TYPES (float_v, double_v)
+
+// fix isfinite and isnan {{{1
 #ifdef isfinite
 #undef isfinite
 #endif
 #ifdef isnan
 #undef isnan
 #endif
-/*}}}*/
-template<typename T> struct SincosReference/*{{{*/
+
+template<typename T> struct SincosReference //{{{1
 {
     T x, s, c;
 };
@@ -126,16 +129,30 @@ static Array<Reference<T> > referenceData()
         }
     }
     return data;
-}/*}}}*/
+}
 
-template<typename T> struct Denormals { static T *data; };/*{{{*/
-template<> float  *Denormals<float >::data = 0;
-template<> double *Denormals<double>::data = 0;
-enum {
-    NDenormals = 64
+template <typename T> struct Denormals { //{{{1
+    static T *data;
 };
-/*}}}*/
-template<typename Vec> void testAbs()/*{{{*/
+template <> float *Denormals<float>::data = 0;
+template <> double *Denormals<double>::data = 0;
+enum { NDenormals = 64 };
+
+TEST(prepareDenormals) //{{{1
+{
+    Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);
+    Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
+    for (int i = 1; i < NDenormals; ++i) {
+        Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2.173f;
+    }
+    Denormals<double>::data = Vc::malloc<double, Vc::AlignOnVector>(NDenormals);
+    Denormals<double>::data[0] = std::numeric_limits<double>::denorm_min();
+    for (int i = 1; i < NDenormals; ++i) {
+        Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2.173;
+    }
+}
+
+TEST_TYPES(Vec, testAbs, (int_v, float_v, double_v, short_v)) //{{{1
 {
     for (int i = 0; i < 0x7fff; ++i) {
         Vec a(i);
@@ -144,8 +161,8 @@ template<typename Vec> void testAbs()/*{{{*/
         COMPARE(a, Vc::abs(b));
     }
 }
-/*}}}*/
-template<typename V> void testTrunc()/*{{{*/
+
+TEST_TYPES(V, testTrunc, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -157,8 +174,8 @@ template<typename V> void testTrunc()/*{{{*/
     V reference = x.apply([](T _x) { return std::trunc(_x); });
     COMPARE(Vc::trunc(x), reference) << ", x = " << x;
 }
-/*}}}*/
-template<typename V> void testFloor()/*{{{*/
+
+TEST_TYPES(V, testFloor, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -170,8 +187,8 @@ template<typename V> void testFloor()/*{{{*/
     V reference = x.apply([](T _x) { return std::floor(_x); });
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
-/*}}}*/
-template<typename V> void testCeil()/*{{{*/
+
+TEST_TYPES(V, testCeil, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -183,8 +200,8 @@ template<typename V> void testCeil()/*{{{*/
     V reference = x.apply([](T _x) { return std::ceil(_x); });
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
-/*}}}*/
-template<typename V> void testExp()/*{{{*/
+
+TEST_TYPES(V, testExp, REAL_TYPES) //{{{1
 {
     UnitTest::setFuzzyness<float>(1);
     UnitTest::setFuzzyness<double>(2);
@@ -196,8 +213,8 @@ template<typename V> void testExp()/*{{{*/
     }
     COMPARE(Vc::exp(V::Zero()), V::One());
 }
-/*}}}*/
-template<typename V> void testLog()/*{{{*/
+
+TEST_TYPES(V, testLog, REAL_TYPES) //{{{1
 {
     UnitTest::setFuzzyness<float>(1);
     typedef typename V::EntryType T;
@@ -218,8 +235,8 @@ template<typename V> void testLog()/*{{{*/
         FUZZY_COMPARE(Vc::log(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
-/*}}}*/
-template<typename V> void testLog2()/*{{{*/
+
+TEST_TYPES(V, testLog2, REAL_TYPES) //{{{1
 {
 #if defined(VC_LOG_ILP) || defined(VC_LOG_ILP2)
     UnitTest::setFuzzyness<float>(3);
@@ -249,8 +266,8 @@ template<typename V> void testLog2()/*{{{*/
         FUZZY_COMPARE(Vc::log2(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
-/*}}}*/
-template<typename V> void testLog10()/*{{{*/
+
+TEST_TYPES(V, testLog10, REAL_TYPES) //{{{1
 {
     UnitTest::setFuzzyness<float>(2);
     UnitTest::setFuzzyness<double>(2);
@@ -272,8 +289,8 @@ template<typename V> void testLog10()/*{{{*/
         FUZZY_COMPARE(Vc::log10(x), ref) << ", x = " << x << ", i = " << i;
     }
 }
-/*}}}*/
-template<typename Vec> void testMax()/*{{{*/
+
+TEST_TYPES(Vec, testMax, (ALL_VECTORS)) //{{{1
 {
     typedef typename Vec::EntryType T;
     VectorMemoryHelper<Vec> mem(3);
@@ -289,8 +306,8 @@ template<typename Vec> void testMax()/*{{{*/
 
     COMPARE(Vc::max(a, b), c);
 }
-/*}}}*/
-/*{{{*/
+
+
 template <typename V, typename F> void fillDataAndReference(V &data, V &reference, F f)
 {
     using T = typename V::EntryType;
@@ -299,8 +316,8 @@ template <typename V, typename F> void fillDataAndReference(V &data, V &referenc
         reference[i] = f(data[i]);
     }
 }
-/*}}}*/
-template<typename V> void testSqrt()/*{{{*/
+
+TEST_TYPES(V, testSqrt, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     V data, reference;
@@ -308,8 +325,8 @@ template<typename V> void testSqrt()/*{{{*/
 
     FUZZY_COMPARE(Vc::sqrt(data), reference);
 }
-/*}}}*/
-template<typename V> void testRSqrt()/*{{{*/
+
+TEST_TYPES(V, testRSqrt, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
@@ -318,8 +335,8 @@ template<typename V> void testRSqrt()/*{{{*/
         VERIFY(all_of(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12))));
     }
 }
-/*}}}*/
-template<typename V> void testSincos()/*{{{*/
+
+TEST_TYPES(V, testSincos, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -341,8 +358,8 @@ template<typename V> void testSincos()/*{{{*/
         FUZZY_COMPARE(cos, cref) << " x = " << -x << ", i = " << i;
     }
 }
-/*}}}*/
-template<typename V> void testSin()/*{{{*/
+
+TEST_TYPES(V, testSin, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -358,8 +375,8 @@ template<typename V> void testSin()/*{{{*/
         FUZZY_COMPARE(Vc::sin(-x), -sref) << " x = " << x << ", i = " << i;
     }
 }
-/*}}}*/
-template<typename V> void testCos()/*{{{*/
+
+TEST_TYPES(V, testCos, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -375,8 +392,8 @@ template<typename V> void testCos()/*{{{*/
         FUZZY_COMPARE(Vc::cos(-x), cref) << " x = " << x << ", i = " << i;
     }
 }
-/*}}}*/
-template<typename V> void testAsin()/*{{{*/
+
+TEST_TYPES(V, testAsin, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -392,7 +409,7 @@ template<typename V> void testAsin()/*{{{*/
         FUZZY_COMPARE(Vc::asin(-x), -ref) << " -x = " << -x << ", i = " << i;
     }
 }
-/*}}}*/
+
 const union {
     unsigned int hex;
     float value;
@@ -404,7 +421,7 @@ const union {
 #define ATAN_COMPARE COMPARE
 #endif
 
-template<typename V> void testAtan()/*{{{*/
+TEST_TYPES(V, testAtan, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(3);
@@ -434,8 +451,8 @@ template<typename V> void testAtan()/*{{{*/
         FUZZY_COMPARE(Vc::atan(-x), -ref) << " -x = " << -x << ", i = " << i;
     }
 }
-/*}}}*/
-template<typename V> void testAtan2()/*{{{*/
+
+TEST_TYPES(V, testAtan2, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(3);
@@ -510,8 +527,8 @@ template<typename V> void testAtan2()/*{{{*/
         }
     }
 }
-/*}}}*/
-template<typename Vec> void testReciprocal()/*{{{*/
+
+TEST_TYPES(Vec, testReciprocal, REAL_TYPES) //{{{1
 {
     typedef typename Vec::EntryType T;
     UnitTest::setFuzzyness<float>(1.258295e+07);
@@ -531,8 +548,8 @@ template<typename Vec> void testReciprocal()/*{{{*/
         FUZZY_COMPARE(Vc::reciprocal((data + offset) * scale), reference);
     }
 }
-/*}}}*/
-template<typename V> void isNegative()/*{{{*/
+
+TEST_TYPES(V, isNegative, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     VERIFY(V::One().isNegative().isEmpty());
@@ -540,8 +557,8 @@ template<typename V> void isNegative()/*{{{*/
     VERIFY((-V::One()).isNegative().isFull());
     VERIFY(V(T(-0.)).isNegative().isFull());
 }
-/*}}}*/
-template<typename Vec> void testInf()/*{{{*/
+
+TEST_TYPES(Vec, testInf, REAL_TYPES) //{{{1
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -560,8 +577,8 @@ template<typename Vec> void testInf()/*{{{*/
     VERIFY(all_of(Vc::isinf(inf)));
     VERIFY(none_of(Vc::isinf(nan)));
 }
-/*}}}*/
-template<typename Vec> void testNaN()/*{{{*/
+
+TEST_TYPES(Vec, testNaN, REAL_TYPES) //{{{1
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
@@ -579,8 +596,8 @@ template<typename Vec> void testNaN()/*{{{*/
     nan.setQnan();
     VERIFY(all_of(Vc::isnan(nan)));
 }
-/*}}}*/
-template<typename Vec> void testRound()/*{{{*/
+
+TEST_TYPES(Vec, testRound, REAL_TYPES) //{{{1
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -606,8 +623,8 @@ template<typename Vec> void testRound()/*{{{*/
         COMPARE(Vc::round(a), ref);
     }
 }
-/*}}}*/
-template<typename Vec> void testReduceMin()/*{{{*/
+
+TEST_TYPES(Vec, testReduceMin, (ALL_VECTORS)) //{{{1
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -622,8 +639,8 @@ template<typename Vec> void testReduceMin()/*{{{*/
         COMPARE(a.min(), one);
     }
 }
-/*}}}*/
-template<typename Vec> void testReduceMax()/*{{{*/
+
+TEST_TYPES(Vec, testReduceMax, (ALL_VECTORS)) //{{{1
 {
     typedef typename Vec::EntryType T;
     const T max = Vec::Size + 1;
@@ -638,8 +655,8 @@ template<typename Vec> void testReduceMax()/*{{{*/
         COMPARE(a.max(), max);
     }
 }
-/*}}}*/
-template<typename Vec> void testReduceProduct()/*{{{*/
+
+TEST_TYPES(Vec, testReduceProduct, (ALL_VECTORS)) //{{{1
 {
     enum {
         Max = Vec::Size > 8 ? Vec::Size / 2 : Vec::Size
@@ -661,8 +678,8 @@ template<typename Vec> void testReduceProduct()/*{{{*/
         COMPARE(a.product(), product);
     }
 }
-/*}}}*/
-template<typename Vec> void testReduceSum()/*{{{*/
+
+TEST_TYPES(Vec, testReduceSum, (ALL_VECTORS)) //{{{1
 {
     typedef typename Vec::EntryType T;
     int _sum = 1;
@@ -681,8 +698,8 @@ template<typename Vec> void testReduceSum()/*{{{*/
         COMPARE(a.sum(), sum);
     }
 }
-/*}}}*/
-template<typename V> void testExponent()/*{{{*/
+
+TEST_TYPES(V, testExponent, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     Vc::Memory<V, 32> input;
@@ -723,10 +740,10 @@ template<typename V> void testExponent()/*{{{*/
         COMPARE(V(input.vector(i)).exponent(), V(expected.vector(i)));
     }
 }
-/*}}}*/
+
 template<typename T> struct _ExponentVector { typedef int_v Type; };
 
-template<typename V> void testFrexp()/*{{{*/
+TEST_TYPES(V, testFrexp, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     using ExpV = typename V::IndexType;
@@ -780,8 +797,8 @@ template<typename V> void testFrexp()/*{{{*/
                                 << ", i: " << i;
     }
 }
-/*}}}*/
-template<typename V> void testLdexp()/*{{{*/
+
+TEST_TYPES(V, testLdexp, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
     using ExpV = typename V::IndexType;
@@ -792,9 +809,9 @@ template<typename V> void testLdexp()/*{{{*/
         COMPARE(ldexp(m, e), v) << ", m = " << m << ", e = " << e;
     }
 }
-/*}}}*/
+
 #include "ulp.h"
-template<typename V> void testUlpDiff()/*{{{*/
+TEST_TYPES(V, testUlpDiff, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
 
@@ -824,90 +841,8 @@ template<typename V> void testUlpDiff()/*{{{*/
             }
         }
     }
-}/*}}}*/
+}
 
-void testmain()/*{{{*/
-{
-    Denormals<float>::data = Vc::malloc<float, Vc::AlignOnVector>(NDenormals);/*{{{*/
-    Denormals<float>::data[0] = std::numeric_limits<float>::denorm_min();
-    for (int i = 1; i < NDenormals; ++i) {
-        Denormals<float>::data[i] = Denormals<float>::data[i - 1] * 2.173f;
-    }
-    Denormals<double>::data = Vc::malloc<double, Vc::AlignOnVector>(NDenormals);
-    Denormals<double>::data[0] = std::numeric_limits<double>::denorm_min();
-    for (int i = 1; i < NDenormals; ++i) {
-        Denormals<double>::data[i] = Denormals<double>::data[i - 1] * 2.173;
-    }/*}}}*/
-
-    testRealTypes(isNegative);
-    testRealTypes(testFrexp);
-    testRealTypes(testLdexp);
-
-    runTest(testAbs<int_v>);
-    runTest(testAbs<float_v>);
-    runTest(testAbs<double_v>);
-    runTest(testAbs<short_v>);
-
-    testRealTypes(testUlpDiff);
-
-    testRealTypes(testTrunc);
-    testRealTypes(testFloor);
-    testRealTypes(testCeil);
-    testRealTypes(testExp);
-    testRealTypes(testLog);
-    testRealTypes(testLog2);
-    testRealTypes(testLog10);
-
-    runTest(testMax<int_v>);
-    runTest(testMax<uint_v>);
-    runTest(testMax<float_v>);
-    runTest(testMax<double_v>);
-    runTest(testMax<short_v>);
-    runTest(testMax<ushort_v>);
-
-    testRealTypes(testSqrt);
-    testRealTypes(testRSqrt);
-    testRealTypes(testSin);
-    testRealTypes(testCos);
-    testRealTypes(testAsin);
-    testRealTypes(testAtan);
-    testRealTypes(testAtan2);
-    testRealTypes(testReciprocal);
-    testRealTypes(testInf);
-    testRealTypes(testNaN);
-    testRealTypes(testRound);
-
-    runTest(testReduceMin<float_v>);
-    runTest(testReduceMin<double_v>);
-    runTest(testReduceMin<int_v>);
-    runTest(testReduceMin<uint_v>);
-    runTest(testReduceMin<short_v>);
-    runTest(testReduceMin<ushort_v>);
-
-    runTest(testReduceMax<float_v>);
-    runTest(testReduceMax<double_v>);
-    runTest(testReduceMax<int_v>);
-    runTest(testReduceMax<uint_v>);
-    runTest(testReduceMax<short_v>);
-    runTest(testReduceMax<ushort_v>);
-
-    runTest(testReduceProduct<float_v>);
-    runTest(testReduceProduct<double_v>);
-    runTest(testReduceProduct<int_v>);
-    runTest(testReduceProduct<uint_v>);
-    runTest(testReduceProduct<short_v>);
-    runTest(testReduceProduct<ushort_v>);
-
-    runTest(testReduceSum<float_v>);
-    runTest(testReduceSum<double_v>);
-    runTest(testReduceSum<int_v>);
-    runTest(testReduceSum<uint_v>);
-    runTest(testReduceSum<short_v>);
-    runTest(testReduceSum<ushort_v>);
-
-    testRealTypes(testSincos);
-    testRealTypes(testExponent);
-    // TODO: copysign
-}/*}}}*/
+// TODO: copysign
 
 // vim: foldmethod=marker
