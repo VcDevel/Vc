@@ -125,9 +125,9 @@ TEST_TYPES(V, simdForEach, (ALL_VECTORS))
     if (std::is_same<V, Vc::Scalar::Vector<T>>::value) {
         // in this case called_with_V and called_with_scalar will have been incremented both on
         // every call
-        COMPARE(called_with_V * V::Size + called_with_scalar, 2 * 98);
+        COMPARE(called_with_V * V::Size + called_with_scalar, 2u * 98u);
     } else {
-        COMPARE(called_with_V * V::Size + called_with_scalar, 98);
+        COMPARE(called_with_V * V::Size + called_with_scalar, 98u);
     }
 
     reference = 2;

@@ -257,20 +257,20 @@ using std::get;
 static inline void printPass() { std::cout << Vc::AnsiColor::green << " PASS: " << Vc::AnsiColor::normal; }
 
 // verify_vector_unit_supported {{{1
-bool verify_vector_unit_supported()
-{
-    bool s = Vc::currentImplementationSupported();
-    if (!s) {
-        std::cerr << "CPU or OS requirements not met for the compiled in vector unit!\n";
-        exit(-1);
-    }
-    return s;
-}
-
 namespace
 {
-bool verify_vector_unit_supported_result = verify_vector_unit_supported();
-} // anonymous namespace
+struct verify_vector_unit_supported
+{
+    verify_vector_unit_supported()
+    {
+        if (!Vc::currentImplementationSupported()) {
+            std::cerr
+                << "CPU or OS requirements not met for the compiled in vector unit!\n";
+            exit(-1);
+        }
+    }
+} verify_vector_unit_supported__;
+}  // unnamed namespace
 
 class UnitTestFailure //{{{1
 {
