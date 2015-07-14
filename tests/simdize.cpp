@@ -334,6 +334,22 @@ TEST(list_iterator_vectorization)
     }
 }
 
+TEST_TYPES(L, cast_simdized_iterator_to_scalar,
+           (std::vector<float>, std::list<float>, std::vector<std::tuple<float, int>>))
+{
+    using T = typename L::value_type;
+    using LI = typename L::iterator;
+    using LIV = simdize<LI>;
+    L list;
+    for (auto i = 13; i; --i) {
+        list.push_back(T());
+    }
+    LIV b = list.begin();
+    LIV e = list.end();
+    COMPARE(static_cast<LI>(b), list.begin());
+    COMPARE(static_cast<LI>(e), list.end());
+}
+
 TEST(vector_iterator_vectorization)
 {
     {

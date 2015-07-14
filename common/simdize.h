@@ -1259,6 +1259,21 @@ public:
      */
     const_reference operator*() const { return scalar_it; }
 
+    /**
+     * Returns a const lvalue reference to the underlying scalar iterator. This
+     * effectively allows you to cast simdized iterator objects to their scalar ancestor
+     * type.
+     *
+     * Example:
+     * \code
+        const auto mask = *it == value_v;
+        if (any_of(mask)) {
+          return static_cast<ScalarIt>(it) + mask.firstOne();
+        }
+     * \endcode
+     */
+    operator const T &() const { return scalar_it; }
+
 protected:
     T scalar_it;
 };
