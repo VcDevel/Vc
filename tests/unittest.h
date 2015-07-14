@@ -54,7 +54,7 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #include <tuple>
 #include <typeinfo>
 #include <vector>
-#ifdef __GNUC__
+#ifdef HAVE_CXX_ABI_H
 #include <cxxabi.h>
 #endif
 #include <common/macros.h>
@@ -950,7 +950,7 @@ private:
     template <typename T> static inline void print(const T &x) { printImpl(x, int()); }
     static void print(const std::type_info &x)
     {
-#ifdef __GNUC__
+#ifdef HAVE_CXX_ABI_H
         char buf[1024];
         size_t size = 1024;
         abi::__cxa_demangle(x.name(), buf, &size, nullptr);

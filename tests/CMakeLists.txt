@@ -17,6 +17,12 @@ endif()
 AddCompilerFlag(-Wno-tautological-constant-out-of-range-compare)
 AddCompilerFlag(-Wno-tautological-compare)
 
+CHECK_CXX_SOURCE_COMPILES("#include <cxxabi.h>
+int main() { return 0; }" cxx_abi_header_works)
+if(cxx_abi_header_works)
+   add_definitions(-DHAVE_CXX_ABI_H)
+endif()
+
 macro(vc_set_first_flag_of _result)
    set(${_result})
    foreach(_flag ${ARGN})
