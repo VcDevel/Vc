@@ -203,6 +203,7 @@ if(NOT ROOT_RELEASE)
          AddCompilerFlag(-stdlib=libc++ CXX_FLAGS CMAKE_CXX_FLAGS CXX_RESULT _use_libcxx)
          if(_use_libcxx)
             find_library(LIBC++ABI c++abi)
+            mark_as_advanced(LIBC++ABI)
             if(LIBC++ABI)
                set(CMAKE_REQUIRED_LIBRARIES "${LIBC++ABI};supc++")
                CHECK_CXX_SOURCE_COMPILES("#include <stdexcept>
