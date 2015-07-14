@@ -27,7 +27,6 @@
 #include <vector>
 #include <algorithm>
 #include "../tsc.h"
-#include "../kdtree/simdize.h"
 
 using Vc::float_v;
 typedef Vc::simdarray<double, float_v::size()> double_v;
@@ -116,7 +115,7 @@ inline Iterator find(Iterator first, Iterator last, const T &value)
     for (simdize<Iterator> it = first; it < last; ++it) {
         const auto mask = *it == value_v;
         if (any_of(mask)) {
-            return it.scalar() + mask.firstOne();
+            return static_cast<Iterator>(it) + mask.firstOne();
         }
     }
     return last;
