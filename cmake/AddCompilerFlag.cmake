@@ -117,27 +117,32 @@ macro(AddCompilerFlag _flag)
       endforeach()
    endif()
 
+   set(_c_code "int main() { return 0; }")
+   set(_cxx_code "int main() { return 0; }")
    if("${_flag}" STREQUAL "-mfma")
       # Compiling with FMA3 support may fail only at the assembler level.
       # In that case we need to have such an instruction in the test code
-      set(_code "#include <immintrin.h>
+      set(_c_code "#include <immintrin.h>
       __m128 foo(__m128 x) { return _mm_fmadd_ps(x, x, x); }
       int main() { return 0; }")
+      set(_cxx_code "${_c_code}")
    elseif("${_flag}" STREQUAL "-stdlib=libc++")
       # Compiling with libc++ not only requires a compiler that understands it, but also
       # the libc++ headers itself
-      set(_code "#include <iostream>
+      set(_cxx_code "#include <iostream>
+      #include <cstdio>
       int main() { return 0; }")
    else()
-      set(_code "int main() { return 0; }")
+      set(_cxx_code "#include <cstdio>
+      int main() { return 0; }")
    endif()
 
    if(DEFINED _c_result)
-      check_c_compiler_flag("${_flag}" check_c_compiler_flag_${_flag_esc} "${_code}")
+      check_c_compiler_flag("${_flag}" check_c_compiler_flag_${_flag_esc} "${_c_code}")
       set(${_c_result} ${check_c_compiler_flag_${_flag_esc}})
    endif()
    if(DEFINED _cxx_result)
-      check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag_esc} "${_code}")
+      check_cxx_compiler_flag("${_flag}" check_cxx_compiler_flag_${_flag_esc} "${_cxx_code}")
       set(${_cxx_result} ${check_cxx_compiler_flag_${_flag_esc}})
    endif()
 
@@ -158,11 +163,11 @@ macro(AddCompilerFlag _flag)
 
    if(MIC_NATIVE_FOUND)
       if(DEFINED _mic_c_result)
-         check_mic_c_compiler_flag("${_flag}" check_mic_c_compiler_flag_${_flag_esc} "${_code}")
+         check_mic_c_compiler_flag("${_flag}" check_mic_c_compiler_flag_${_flag_esc} "${_c_code}")
          set(${_mic_c_result} ${check_mic_c_compiler_flag_${_flag_esc}})
       endif()
       if(DEFINED _mic_cxx_result)
-         check_mic_cxx_compiler_flag("${_flag}" check_mic_cxx_compiler_flag_${_flag_esc} "${_code}")
+         check_mic_cxx_compiler_flag("${_flag}" check_mic_cxx_compiler_flag_${_flag_esc} "${_cxx_code}")
          set(${_mic_cxx_result} ${check_mic_cxx_compiler_flag_${_flag_esc}})
       endif()
 
