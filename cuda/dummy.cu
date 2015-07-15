@@ -1,10 +1,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-<<<<<<< HEAD
-=======
 #include <utility>
->>>>>>> cuda
 
 #include "math.h"
 #include "vector.h"
