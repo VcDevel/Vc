@@ -40,11 +40,7 @@ namespace CUDA
 
 template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> sqrt(const Vector<T> &x)
 {
-    __shared__ Vector<T> resultVec;
-    int id = Internal::getThreadId();
-    resultVec[id] = sqrtf(x[id]);
-    return resultVec;
-    //return {InternalInitTag(), sqrtf(x[Internal::getThreadId()])};
+    return Vector<T>::internalInit(sqrtf(x[Internal::getThreadId()]));
 }
 
 } // namespace CUDA

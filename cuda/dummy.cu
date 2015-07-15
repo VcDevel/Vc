@@ -1,6 +1,10 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+<<<<<<< HEAD
+=======
+#include <utility>
+>>>>>>> cuda
 
 #include "math.h"
 #include "vector.h"
@@ -14,10 +18,10 @@ __global__ void my_kernel(const float *in, float *out)
     outVec.store(out);
 }
 
-template <typename... Arguments>
-Vc_ALWAYS_INLINE void spawn(void(*kernel)(Arguments... args), Arguments... args)
+template <typename F, typename... Arguments>
+Vc_ALWAYS_INLINE void spawn(F&& kernel, Arguments&& ... args)
 {
-    kernel<<<1, CUDA_VECTOR_SIZE>>>(args...);
+    kernel<<<1, CUDA_VECTOR_SIZE>>>(std::forward<Arguments>(args) ...);
 }
 
 int main()
@@ -41,8 +45,7 @@ int main()
     cudaMemcpy(devData, data, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyHostToDevice);
 
     // run kernel
-    //my_kernel<<<1, CUDA_VECTOR_SIZE>>>(devData, devResult);
-    spawn(my_kernel, (const float*) devData, devResult);
+    spawn(my_kernel, devData, devResult);
 
     // copy result from device
     cudaMemcpy(result, devResult, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyDeviceToHost);
