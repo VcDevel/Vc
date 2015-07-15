@@ -128,11 +128,10 @@ if(NOT ROOT_RELEASE)
 
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
-   vc_compile_for_all_implementations(_objs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
+   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp)
+   vc_compile_for_all_implementations(_srcs src/trigonometric.cpp FLAGS ${libvc_compile_flags}
       ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)
-   set(_srcs src/const.cpp src/cpuid.cpp src/support.cpp ${_objs})
-   vc_compile_for_all_implementations(_objs src/avx_sorthelper.cpp FLAGS ${libvc_compile_flags} ONLY AVX)
-   set(_srcs ${_srcs} ${_objs})
+   vc_compile_for_all_implementations(_srcs src/avx_sorthelper.cpp FLAGS ${libvc_compile_flags} ONLY AVX)
    add_library(Vc STATIC ${_srcs})
    add_target_property(Vc COMPILE_FLAGS ${libvc_compile_flags})
    add_target_property(Vc LABELS "other")
