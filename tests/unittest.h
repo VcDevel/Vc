@@ -1309,9 +1309,13 @@ template <typename T, typename Exception = void, typename TestImpl = void> class
 private:
     static void wrapper()
     {
+#ifdef __NVCC__
+        TestImpl::test_function();
+#else
         try { TestImpl::test_function(); }
         catch (Exception &e) { return; }
         FAIL() << "Test was expected to throw, but it didn't";
+#endif
     }
 
 public:

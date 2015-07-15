@@ -92,6 +92,7 @@ class Vector
         
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
+        // FIXME: This won't work in GPU code
         __device__ Vector(EntryType a)
         {
             m_data[Internal::getThreadId()] = a;
@@ -118,6 +119,13 @@ class Vector
         __device__ Vc_INTRINSIC Vector(InternalInitTag, EntryType x)
         {
             m_data[Internal::getThreadId()] = x;
+        }
+
+        __device__ static Vc_INTRINSIC Vector internalInit(EntryType x)
+        {
+            __shared__ Vector<EntryType> r;
+            r[Internal::getThreadId()] = x;
+            return r;
         }
         
         ///////////////////////////////////////////////////////////////////////////////////////////
