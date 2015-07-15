@@ -1828,6 +1828,43 @@ namespace Common
                                                internal_data(std::get<2>(proxy.in)),
                                                internal_data(std::get<3>(proxy.in))});
     }
+    template <int L, typename T, typename V>
+    inline enable_if<(L == 2), void> transpose_impl(
+        simdarray<T, 4, V, 1> *VC_RESTRICT r[],
+        const TransposeProxy<simdarray<T, 2, V, 1>, simdarray<T, 2, V, 1>,
+                             simdarray<T, 2, V, 1>, simdarray<T, 2, V, 1>> &proxy)
+    {
+        auto &lo = *r[0];
+        auto &hi = *r[1];
+        internal_data0(internal_data0(lo)) = internal_data0(std::get<0>(proxy.in));
+        internal_data1(internal_data0(lo)) = internal_data0(std::get<1>(proxy.in));
+        internal_data0(internal_data1(lo)) = internal_data0(std::get<2>(proxy.in));
+        internal_data1(internal_data1(lo)) = internal_data0(std::get<3>(proxy.in));
+        internal_data0(internal_data0(hi)) = internal_data1(std::get<0>(proxy.in));
+        internal_data1(internal_data0(hi)) = internal_data1(std::get<1>(proxy.in));
+        internal_data0(internal_data1(hi)) = internal_data1(std::get<2>(proxy.in));
+        internal_data1(internal_data1(hi)) = internal_data1(std::get<3>(proxy.in));
+    }
+    template <int L, typename T, std::size_t N, typename V>
+    inline enable_if<(L == 4 && N > 1), void> transpose_impl(
+        simdarray<T, N, V, 1> *VC_RESTRICT r[],
+        const TransposeProxy<simdarray<T, N, V, 1>, simdarray<T, N, V, 1>,
+                             simdarray<T, N, V, 1>, simdarray<T, N, V, 1>> &proxy)
+    {
+        simdarray<T, N, V, 1> *VC_RESTRICT r0[L / 2] = {r[0], r[1]};
+        simdarray<T, N, V, 1> *VC_RESTRICT r1[L / 2] = {r[2], r[3]};
+        using H = simdarray<T, 2>;
+        transpose_impl<2>(
+            &r0[0], TransposeProxy<H, H, H, H>{internal_data0(std::get<0>(proxy.in)),
+                                               internal_data0(std::get<1>(proxy.in)),
+                                               internal_data0(std::get<2>(proxy.in)),
+                                               internal_data0(std::get<3>(proxy.in))});
+        transpose_impl<2>(
+            &r1[0], TransposeProxy<H, H, H, H>{internal_data1(std::get<0>(proxy.in)),
+                                               internal_data1(std::get<1>(proxy.in)),
+                                               internal_data1(std::get<2>(proxy.in)),
+                                               internal_data1(std::get<3>(proxy.in))});
+    }
     /* TODO:
     template <typename T, std::size_t N, typename V, std::size_t VSize>
     inline enable_if<(N > VSize), void> transpose_impl(
