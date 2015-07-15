@@ -27,8 +27,9 @@
 #include <iomanip>
 #include <valarray>
 #include "../tsc.h"
+#include "common/macros.h"
 
-static constexpr size_t UnrollOuterloop = 4;
+static constexpr int UnrollOuterloop = 4;
 
 template <typename T, size_t N> class MatrixValarray
 {
@@ -62,73 +63,84 @@ inline MatrixValarray<T, N> operator*(const MatrixValarray<T, N> &a,
 
 template <typename T, size_t N> class Matrix
 {
-  using V = Vc::Vector<T>;
+    using V = Vc::Vector<T>;
 
-  // round up to the next multiple of V::size()
-  static constexpr size_t NPadded = (N + V::size() - 1) / V::size() * V::size();
+    // round up to the next multiple of V::size()
+    static constexpr size_t NPadded = (N + V::size() - 1) / V::size() * V::size();
 
-  // the inner array stores one row of values and is padded
-  using RowArray = std::array<T, NPadded>;
-  // The outer array stores N rows and does not require further padding. It must be aligned
-  // correctly for Vc::Aligned loads and stores, though.
-  alignas(V::MemoryAlignment) std::array<RowArray, N> data;
+    // the inner array stores one row of values and is padded
+    using RowArray = std::array<T, NPadded>;
+    // The outer array stores N rows and does not require further padding. It must be
+    // aligned correctly for Vc::Aligned loads and stores, though.
+    alignas(V::MemoryAlignment) std::array<RowArray, N> data;
 
- public:
-  // returns a reference to the i-th row
-  RowArray &operator[](size_t i) { return data[i]; }
-  // const overload of the above
-  const RowArray &operator[](size_t i) const { return data[i]; }
+public:
+    Matrix()
+    {
+        for (int i = 0; i < int(N); ++i) {
+            for (int j = N; j < int(NPadded); ++j) {
+                data[i][j] = 0;
+            }
+        }
+    }
+    // returns a reference to the i-th row
+    RowArray &operator[](size_t i) { return data[i]; }
+    // const overload of the above
+    const RowArray &operator[](size_t i) const { return data[i]; }
 };
 
 // vectorized matrix multiplication
 template <typename T, size_t N>
 inline Matrix<T, N> operator*(const Matrix<T, N> &a, const Matrix<T, N> &b)
 {
+    constexpr int NN = N;
     using V = Vc::Vector<T>;
     // resulting matrix c
     Matrix<T, N> c;
 
-    // The row index (for a and c) is unrolled using the UnrollOuterloop stride. Therefore the last
-    // rows may need special treatment if N is not a multiple of UnrollOuterloop. N0 is the number
-    // of rows that can safely be iterated with a stride of UnrollOuterloop.
-    constexpr size_t N0 = N / UnrollOuterloop * UnrollOuterloop;
-    for (size_t i = 0; i < N0; i += UnrollOuterloop) {
-        // The iteration over the column index of b and c uses a stride of V::size(). This enables
-        // row-vector loads (from b) and stores (to c). The matrix storage is padded accordingly,
-        // ensuring correct bounds and alignment.
-        for (size_t j = 0; j < N; j += V::size()) {
-            // This temporary variables are used to accumulate the results of the products producing
-            // the new values for the c matrix. This variable is necessary because we need a V
-            // object for data-parallel accumulation. Storing to c directly stores to scalar objects
-            // and thus would drop the ability for data-parallel (SIMD) addition.
+    // The row index (for a and c) is unrolled using the UnrollOuterloop stride. Therefore
+    // the last rows may need special treatment if N is not a multiple of UnrollOuterloop.
+    // N0 is the number of rows that can safely be iterated with a stride of
+    // UnrollOuterloop.
+    constexpr int N0 = N / UnrollOuterloop * UnrollOuterloop;
+    for (int i = 0; i < N0; i += UnrollOuterloop) {
+        // The iteration over the column index of b and c uses a stride of V::size(). This
+        // enables row-vector loads (from b) and stores (to c). The matrix storage is
+        // padded accordingly, ensuring correct bounds and alignment.
+        for (int j = 0; j < NN; j += V::size()) {
+            // This temporary variables are used to accumulate the results of the products
+            // producing the new values for the c matrix. This variable is necessary
+            // because we need a V object for data-parallel accumulation. Storing to c
+            // directly stores to scalar objects and thus would drop the ability for
+            // data-parallel (SIMD) addition.
             V c_ij[UnrollOuterloop];
-            for (size_t n = 0; n < UnrollOuterloop; ++n) {
+            for (int n = 0; n < UnrollOuterloop; ++n) {
                 c_ij[n] = a[i + n][0] * V(&b[0][j], Vc::Aligned);
             }
-            for (size_t k = 1; k < N - 1; ++k) {
-                for (size_t n = 0; n < UnrollOuterloop; ++n) {
+            for (int k = 1; k < NN - 1; ++k) {
+                for (int n = 0; n < UnrollOuterloop; ++n) {
                     c_ij[n] += a[i + n][k] * V(&b[k][j], Vc::Aligned);
                 }
             }
-            for (size_t n = 0; n < UnrollOuterloop; ++n) {
-                c_ij[n] += a[i + n][N - 1] * V(&b[N - 1][j], Vc::Aligned);
+            for (int n = 0; n < UnrollOuterloop; ++n) {
+                c_ij[n] += a[i + n][NN - 1] * V(&b[NN - 1][j], Vc::Aligned);
                 c_ij[n].store(&c[i + n][j], Vc::Aligned);
             }
         }
     }
-    // This final loop treats the remaining N - N0 rows.
-    for (size_t j = 0; j < N; j += V::size()) {
+    // This final loop treats the remaining NN - N0 rows.
+    for (int j = 0; j < NN; j += V::size()) {
         V c_ij[UnrollOuterloop];
-        for (size_t n = N0; n < N; ++n) {
+        for (int n = N0; n < NN; ++n) {
             c_ij[n - N0] = a[n][0] * V(&b[0][j], Vc::Aligned);
         }
-        for (size_t k = 1; k < N - 1; ++k) {
-            for (size_t n = N0; n < N; ++n) {
+        for (int k = 1; k < NN - 1; ++k) {
+            for (int n = N0; n < NN; ++n) {
                 c_ij[n - N0] += a[n][k] * V(&b[k][j], Vc::Aligned);
             }
         }
-        for (size_t n = N0; n < N; ++n) {
-            c_ij[n - N0] += a[n][N - 1] * V(&b[N - 1][j], Vc::Aligned);
+        for (int n = N0; n < NN; ++n) {
+            c_ij[n - N0] += a[n][NN - 1] * V(&b[N - 1][j], Vc::Aligned);
             c_ij[n - N0].store(&c[n][j], Vc::Aligned);
         }
     }
@@ -139,12 +151,45 @@ inline Matrix<T, N> operator*(const Matrix<T, N> &a, const Matrix<T, N> &b)
 template <typename T, size_t N>
 Matrix<T, N> scalar_mul(const Matrix<T, N> &a, const Matrix<T, N> &b)
 {
+    constexpr int NN = N;
     Matrix<T, N> c;
-    for (size_t i = 0; i < N; ++i) {
-        for (size_t j = 0; j < N; ++j) {
+    for (int i = 0; i < NN; ++i) {
+        for (int j = 0; j < NN; ++j) {
             c[i][j] = a[i][0] * b[0][j];
-            for (size_t k = 1; k < N; ++k) {
+            for (int k = 1; k < NN; ++k) {
                 c[i][j] += a[i][k] * b[k][j];
+            }
+        }
+    }
+    return c;
+}
+
+// scalar matrix multiplication
+template <typename T, size_t N>
+Matrix<T, N> scalar_mul_blocked(const Matrix<T, N> &a, const Matrix<T, N> &b)
+{
+    constexpr int NN = N;
+    Matrix<T, N> c;
+    constexpr int N0 = N / UnrollOuterloop * UnrollOuterloop;
+    for (int i = 0; i < N0; i += UnrollOuterloop) {
+        for (int j = 0; j < NN; ++j) {
+            for (int n = 0; n < UnrollOuterloop; ++n) {
+                c[i + n][j] = a[i + n][0] * b[0][j];
+            }
+            for (int k = 1; k < NN; ++k) {
+                for (int n = 0; n < UnrollOuterloop; ++n) {
+                    c[i + n][j] += a[i + n][k] * b[k][j];
+                }
+            }
+        }
+    }
+    for (int j = 0; j < NN; ++j) {
+        for (int n = N0; n < NN; ++n) {
+            c[n][j] = a[n][0] * b[0][j];
+        }
+        for (int k = 1; k < NN; ++k) {
+            for (int n = N0; n < NN; ++n) {
+                c[n][j] += a[n][k] * b[k][j];
             }
         }
     }
@@ -193,11 +238,30 @@ std::ostream &operator<<(std::ostream &out, const M<T, N> &m)
     return out << " ⎦\n";
 }
 
-template <typename T> void unused(const T &) {}
+template <typename T> void unused(T &&x) { asm("" ::"m"(x)); }
 
-int main()
+template <size_t N, typename F> Vc_ALWAYS_INLINE void benchmark(F &&f)
 {
-    static constexpr size_t N = 23;
+    TimeStampCounter tsc;
+    auto cycles = tsc.cycles();
+    cycles = 0x7fffffff;
+    for (int i = 0; i < 100; ++i) {
+        tsc.start();
+        for (int j = 0; j < 10; ++j) {
+            auto C = f();
+            unused(C);
+        }
+        tsc.stop();
+        cycles = std::min(cycles, tsc.cycles());
+    }
+    //std::cout << cycles << " Cycles for " << N *N *(N + N - 1) << " FLOP => ";
+    std::cout << std::setw(19) << std::setprecision(3)
+              << double(N * N * (N + N - 1) * 10) / cycles;
+    //<< " FLOP/cycle (" << variant << ")\n";
+}
+
+template <size_t N> void run()
+{
     Matrix<float, N> A;
     Matrix<float, N> B;
     MatrixValarray<float, N> AV;
@@ -210,38 +274,60 @@ int main()
             BV[i][j] = 0.01 * (N + i - j);
         }
     }
-    {
-        auto C = A * B;
-        std::cout << A << "times\n" << B << "=\n" << C;
-        auto CS = scalar_mul(A, B);
-        std::cout << "scalar=\n" << CS;
-        auto CV = AV * BV;
-        std::cout << "valarray=\n" << CV;
-    }
-    TimeStampCounter tsc;
-    for (int i = 0; i < 10; ++i) {
-        tsc.start();
-        auto CS = scalar_mul(A, B);
-        tsc.stop();
-        unused(CS);
-        std::cout << tsc << " Cycles for " << N * N * (N + N - 1) << " FLOP => ";
-        std::cout << double(N * N * (N + N - 1)) / tsc.cycles() << " FLOP/cycle (scalar)\n";
-    }
-    for (int i = 0; i < 10; ++i) {
-        tsc.start();
-        auto C = A * B;
-        tsc.stop();
-        unused(C);
-        std::cout << tsc << " Cycles for " << N * N * (N + N - 1) << " FLOP => ";
-        std::cout << double(N * N * (N + N - 1)) / tsc.cycles() << " FLOP/cycle (vector)\n";
-    }
-    for (int i = 0; i < 10; ++i) {
-        tsc.start();
-        auto C = AV * BV;
-        tsc.stop();
-        unused(C);
-        std::cout << tsc << " Cycles for " << N * N * (N + N - 1) << " FLOP => ";
-        std::cout << double(N * N * (N + N - 1)) / tsc.cycles() << " FLOP/cycle (valarray)\n";
-    }
+    std::cout << std::setw(2) << N;
+    benchmark<N>([&] {
+        asm("" : "+m"(A), "+m"(B));
+        return scalar_mul(A, B);
+    });
+    benchmark<N>([&] {
+        asm("" : "+m"(A), "+m"(B));
+        return scalar_mul_blocked(A, B);
+    });
+    benchmark<N>([&] {
+        asm("" : "+m"(A), "+m"(B));
+        return A * B;
+    });
+    benchmark<N>([&] {
+        asm("" : "+m"(AV), "+m"(BV));
+        return AV * BV;
+    });
+    std::cout << std::endl;
+}
+
+int main()
+{
+    std::cout << " N             scalar   scalar & blocked          Vector<T>           valarray\n";
+    run< 4>();
+    run< 5>();
+    run< 6>();
+    run< 7>();
+    run< 8>();
+    run< 9>();
+    run<10>();
+    run<11>();
+    run<12>();
+    run<13>();
+    run<14>();
+    run<15>();
+    run<16>();
+    run<17>();
+    run<18>();
+    run<19>();
+    run<20>();
+    run<21>();
+    run<22>();
+    run<23>();
+    run<24>();
+    run<25>();
+    run<26>();
+    run<27>();
+    run<28>();
+    run<29>();
+    run<30>();
+    run<31>();
+    run<32>();
+    run<33>();
+    run<34>();
+    run<35>();
     return 0;
 }
