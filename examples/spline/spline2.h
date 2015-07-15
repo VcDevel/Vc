@@ -45,7 +45,6 @@ This work is derived from a class in ALICE with the following copyright notice:
 #include <array>
 #include <tuple>
 #include <Vc/Vc>
-#include "../kdtree/simdize.h"
 #include <Vc/vector>
 #include "spline.h"
 
@@ -59,8 +58,8 @@ public:
     typedef std::array<float, 2> Point2;
     typedef std::array<float, 3> Point3;
 
-    typedef simdize<Point2> Point2V;
-    typedef simdize<Point3> Point3V;
+    typedef Vc::simdize<Point2> Point2V;
+    typedef Vc::simdize<Point3> Point3V;
 
     Spline2(float minA, float maxA, int nBinsA, float minB, float maxB, int nBinsB);
 

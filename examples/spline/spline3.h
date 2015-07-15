@@ -45,7 +45,6 @@ This work is derived from a class in ALICE with the following copyright notice:
 #include <array>
 #include <tuple>
 #include <Vc/Vc>
-#include "../kdtree/simdize.h"
 #include <Vc/vector>
 #include "spline2.h"
 

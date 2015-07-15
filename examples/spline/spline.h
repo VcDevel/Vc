@@ -44,7 +44,7 @@ This work is derived from a class in ALICE with the following copyright notice:
 #include <utility>
 #include <array>
 #include <tuple>
-#include "../kdtree/simdize.h"
+#include <Vc/simdize>
 #include <Vc/vector>
 
 //* This file is property of and copyright by the ALICE HLT Project        *
@@ -54,8 +54,8 @@ This work is derived from a class in ALICE with the following copyright notice:
 typedef std::array<float, 2> Point2;
 typedef std::array<float, 3> Point3;
 
-typedef simdize<Point2> Point2V;
-typedef simdize<Point3> Point3V;
+typedef Vc::simdize<Point2> Point2V;
+typedef Vc::simdize<Point3> Point3V;
 
 class Spline
 {

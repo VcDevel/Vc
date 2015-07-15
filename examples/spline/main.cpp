@@ -102,12 +102,12 @@ std::ostream &operator<<(std::ostream &s, const Point3V &xyz)
 // VectorizeBuffer {{{1
 template <typename Input> struct VectorizeBuffer
 {
-    typedef simdize<Input> InputV;
+    typedef Vc::simdize<Input> InputV;
     InputV input;
     int entries = 0;
     int operator()(Input x)
     {
-        simdize_assign(input, entries, x);
+        assign(input, entries, x);
         entries = (entries + 1) % InputV::size();
         return entries;
     }

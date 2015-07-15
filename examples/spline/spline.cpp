@@ -40,7 +40,6 @@ This work is derived from a class in ALICE with the following copyright notice:
 
 #include "spline.h"
 #include <Vc/Vc>
-#include "../kdtree/simdize.h"
 
 #include <iostream>
 #include <iomanip>
