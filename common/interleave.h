@@ -40,8 +40,8 @@ namespace Vc_VERSIONED_NAMESPACE
 
 Example:
 \code
-Vc::simdarray<int, 4> a = { 1, 2, 3, 4 };
-Vc::simdarray<int, 4> b = { 9, 8, 7, 6 };
+Vc::SimdArray<int, 4> a = { 1, 2, 3, 4 };
+Vc::SimdArray<int, 4> b = { 9, 8, 7, 6 };
 std::tie(a, b) = Vc::interleave(a, b);
 std::cout << a << b;
 // prints:

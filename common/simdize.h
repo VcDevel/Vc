@@ -198,22 +198,22 @@ using simdize = typename SimdizeDetail::ReplaceTypes<T, N, MT>::type;
 
 /**\internal
  * ReplaceTypes specialization for simdizable arithmetic types. This results in either
- * Vector<T> or simdarray<T, N>.
+ * Vector<T> or SimdArray<T, N>.
  */
 template <typename T, size_t N, typename MT>
 struct ReplaceTypes<T, N, MT, Category::ArithmeticVectorizable>
-    : public conditional<(N == 0 || Vector<T>::size() == N), Vector<T>, simdarray<T, N>>
+    : public conditional<(N == 0 || Vector<T>::size() == N), Vector<T>, SimdArray<T, N>>
 {
 };
 
 /**\internal
  * ReplaceTypes specialization for bool. This results either in Mask<MT> or
- * simd_mask_array<MT, N>.
+ * SimdMaskArray<MT, N>.
  */
 template <size_t N, typename MT>
 struct ReplaceTypes<bool, N, MT, Category::ArithmeticVectorizable>
     : public conditional<(N == 0 || Mask<MT>::size() == N), Mask<MT>,
-                         simd_mask_array<MT, N>>
+                         SimdMaskArray<MT, N>>
 {
 };
 /**\internal
@@ -761,7 +761,7 @@ inline void assign(Adapter<S, T, N> &a, size_t i, const S &x)
     assign_impl(a, i, x, Vc::make_index_sequence<determine_tuple_size<T>()>());
 }
 /**\internal
- * Overload for standard Vector/simdarray types.
+ * Overload for standard Vector/SimdArray types.
  */
 template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
 Vc_INTRINSIC void assign(V &v, size_t i, typename V::EntryType x)
@@ -790,7 +790,7 @@ inline S extract(const Adapter<S, T, N> &a, size_t i)
     return extract_impl(a, i, Vc::make_index_sequence<determine_tuple_size<S>()>());
 }
 /**\internal
- * Overload for standard Vector/simdarray types.
+ * Overload for standard Vector/SimdArray types.
  */
 template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
 Vc_INTRINSIC typename V::EntryType extract(const V &v, size_t i)

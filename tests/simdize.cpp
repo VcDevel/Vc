@@ -86,9 +86,9 @@ TEST(simdize_bools)
     COMPARE(typeid(simdize<bool, 0, int>), typeid(int_m));
     COMPARE(typeid(simdize<bool, int_m::size(), int>), typeid(int_m));
     COMPARE(typeid(simdize<bool, float_m::size() + 1>),
-            typeid(simd_mask_array<float, float_m::size() + 1>));
+            typeid(SimdMaskArray<float, float_m::size() + 1>));
     COMPARE(typeid(simdize<bool, int_m::size() + 1, int>),
-            typeid(simd_mask_array<int, int_m::size() + 1>));
+            typeid(SimdMaskArray<int, int_m::size() + 1>));
 
     COMPARE(typeid(simdize<tuple<bool>>),
             typeid(SimdizeAdapter<tuple<bool>, tuple<float_m>, float_m::size()>));
@@ -97,7 +97,7 @@ TEST(simdize_bools)
     COMPARE(
         typeid(simdize<tuple<bool>, float_m::size() + 1>),
         typeid(
-            SimdizeAdapter<tuple<bool>, tuple<simd_mask_array<float, float_m::size() + 1>>,
+            SimdizeAdapter<tuple<bool>, tuple<SimdMaskArray<float, float_m::size() + 1>>,
                            float_m::size() + 1>));
 
     COMPARE(typeid(simdize<tuple<int, bool>>),
@@ -105,7 +105,7 @@ TEST(simdize_bools)
     COMPARE(
         typeid(simdize<tuple<int, bool>, 3>),
         typeid(SimdizeAdapter<tuple<int, bool>,
-                              tuple<simdarray<int, 3>, simd_mask_array<float, 3>>, 3>));
+                              tuple<SimdArray<int, 3>, SimdMaskArray<float, 3>>, 3>));
 
     COMPARE(
         typeid(simdize<tuple<bool, double, bool>>),
@@ -113,14 +113,14 @@ TEST(simdize_bools)
             tuple<bool, double, bool>,
             tuple<float_m,
                   typename std::conditional<float_m::size() == double_v::size(), double_v,
-                                            simdarray<double, float_m::size()>>::type,
+                                            SimdArray<double, float_m::size()>>::type,
                   float_m>,
             float_m::size()>));
     COMPARE(typeid(simdize<tuple<bool, double, bool>, float_m::size() + 1>),
             typeid(SimdizeAdapter<tuple<bool, double, bool>,
-                                  tuple<simd_mask_array<float, float_m::size() + 1>,
-                                        simdarray<double, float_m::size() + 1>,
-                                        simd_mask_array<float, float_m::size() + 1>>,
+                                  tuple<SimdMaskArray<float, float_m::size() + 1>,
+                                        SimdArray<double, float_m::size() + 1>,
+                                        SimdMaskArray<float, float_m::size() + 1>>,
                                   float_m::size() + 1>));
     COMPARE(typeid(simdize<tuple<bool, double, bool>, 0, double>),
             typeid(SimdizeAdapter<tuple<bool, double, bool>,
@@ -155,7 +155,7 @@ TEST(nontype_template_parameters)
     using std::array;
 
     using float_intsize = typename std::conditional<
-        int_v::size() == float_v::size(), float_v, simdarray<float, int_v::size()>>::type;
+        int_v::size() == float_v::size(), float_v, SimdArray<float, int_v::size()>>::type;
 
     static_assert(SimdizeDetail::is_class_template<array<float, 3>>::value, "");
     static_assert(SimdizeDetail::is_class_template<Foo1<float, 3, 5, 6>>::value, "");

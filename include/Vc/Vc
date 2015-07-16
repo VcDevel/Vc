@@ -25,7 +25,7 @@
 #include "Utils"
 #include "Allocator"
 #include "iterators"
-#include "simdarray"
+#include "SimdArray"
 #include "simdize"
 #endif // VC_VC
 

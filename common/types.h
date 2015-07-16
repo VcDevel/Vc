@@ -201,12 +201,12 @@ Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 
 template <typename T, typename U>
 using enable_if_mask_converts_implicitly =
-    enable_if<(Traits::is_simd_mask<U>::value && !Traits::is_simd_mask_array<U>::value &&
+    enable_if<(Traits::is_simd_mask<U>::value && !Traits::isSimdMaskArray<U>::value &&
                is_implicit_cast_allowed_mask<
                    Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value)>;
 template <typename T, typename U>
 using enable_if_mask_converts_explicitly = enable_if<
-    (Traits::is_simd_mask_array<U>::value ||
+    (Traits::isSimdMaskArray<U>::value ||
      (Traits::is_simd_mask<U>::value &&
       !is_implicit_cast_allowed_mask<
            Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value))>;

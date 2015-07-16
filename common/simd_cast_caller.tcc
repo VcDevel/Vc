@@ -34,24 +34,24 @@ namespace Vc_VERSIONED_NAMESPACE {
 
 template <typename T, std::size_t N, typename VectorType>
 template <typename U, typename V>
-Vc_INTRINSIC simd_mask_array<T, N, VectorType, N>::simd_mask_array(
-    const simd_mask_array<U, N, V> &x,
+Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
+    const SimdMaskArray<U, N, V> &x,
     enable_if<N == V::size()>)
     : data(simd_cast<mask_type>(internal_data(x)))
 {
 }
 template <typename T, std::size_t N, typename VectorType>
 template <typename U, typename V>
-Vc_INTRINSIC simd_mask_array<T, N, VectorType, N>::simd_mask_array(
-    const simd_mask_array<U, N, V> &x,
+Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
+    const SimdMaskArray<U, N, V> &x,
     enable_if<(N > V::size() && N <= 2 * V::size())>)
     : data(simd_cast<mask_type>(internal_data(internal_data0(x)), internal_data(internal_data1(x))))
 {
 }
 template <typename T, std::size_t N, typename VectorType>
 template <typename U, typename V>
-Vc_INTRINSIC simd_mask_array<T, N, VectorType, N>::simd_mask_array(
-    const simd_mask_array<U, N, V> &x,
+Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
+    const SimdMaskArray<U, N, V> &x,
     enable_if<(N > 2 * V::size() && N <= 4 * V::size())>)
     : data(simd_cast<mask_type>(internal_data(internal_data0(internal_data0(x))),
                                 internal_data(internal_data1(internal_data0(x))),
@@ -59,10 +59,10 @@ Vc_INTRINSIC simd_mask_array<T, N, VectorType, N>::simd_mask_array(
                                 internal_data(internal_data1(internal_data1(x)))))
 {
 }
-// conversion from any Segment object (could be simd_mask_array or Mask<T>)
+// conversion from any Segment object (could be SimdMaskArray or Mask<T>)
 template <typename T, std::size_t N, typename VectorType>
 template <typename M, std::size_t Pieces, std::size_t Index>
-Vc_INTRINSIC simd_mask_array<T, N, VectorType, N>::simd_mask_array(
+Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
     Common::Segment<M, Pieces, Index> &&x,
     enable_if<Traits::simd_vector_size<M>::value == Size * Pieces>)
     : data(simd_cast<mask_type, Index>(x.data))
@@ -71,9 +71,9 @@ Vc_INTRINSIC simd_mask_array<T, N, VectorType, N>::simd_mask_array(
 // conversion from Mask<T>
 template <typename T, std::size_t N, typename VectorType>
 template <typename M>
-Vc_INTRINSIC simd_mask_array<T, N, VectorType, N>::simd_mask_array(
+Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
     M k,
-    enable_if<(Traits::is_simd_mask<M>::value && !Traits::is_simd_mask_array<M>::value &&
+    enable_if<(Traits::is_simd_mask<M>::value && !Traits::isSimdMaskArray<M>::value &&
                Traits::simd_vector_size<M>::value == Size)>)
     : data(simd_cast<mask_type>(k))
 {

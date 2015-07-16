@@ -36,7 +36,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-/// \addtogroup simdarray
+/// \addtogroup SimdArray
 /// @{
 /*select_best_vector_type{{{*/
 namespace internal
@@ -98,11 +98,11 @@ using select_best_vector_type =
 /// @}
 }  // namespace Common
 
-// === having simdarray<T, N> in the Vc namespace leads to a ABI bug ===
+// === having SimdArray<T, N> in the Vc namespace leads to a ABI bug ===
 //
-// simdarray<double, 4> can be { double[4] }, { __m128d[2] }, or { __m256d } even though the type
+// SimdArray<double, 4> can be { double[4] }, { __m128d[2] }, or { __m256d } even though the type
 // is the same.
-// The question is, what should simdarray focus on?
+// The question is, what should SimdArray focus on?
 // a) A type that makes interfacing between different implementations possible?
 // b) Or a type that makes fixed size SIMD easier and efficient?
 //
@@ -111,17 +111,17 @@ using select_best_vector_type =
 // much harder time wrt. aliasing issues). Also alignment would need to be set to the sizeof in
 // order to be compatible with targets with larger alignment requirements.
 // But, the in-memory representation of masks is not portable. Thus, at the latest with AVX-512,
-// there would be a problem with requiring simd_mask_array<T, N> to be an ABI compatible type.
+// there would be a problem with requiring SimdMaskArray<T, N> to be an ABI compatible type.
 // AVX-512 uses one bit per boolean, whereas SSE/AVX use sizeof(T) Bytes per boolean. Conversion
 // between the two representations is not a trivial operation. Therefore choosing one or the other
 // representation will have a considerable impact for the targets that do not use this
 // representation. Since the future probably belongs to one bit per boolean representation, I would
 // go with that choice.
 //
-// b) requires that simdarray<T, N> != simdarray<T, N> if
-// simdarray<T, N>::vector_type != simdarray<T, N>::vector_type
+// b) requires that SimdArray<T, N> != SimdArray<T, N> if
+// SimdArray<T, N>::vector_type != SimdArray<T, N>::vector_type
 //
-// Therefore use simdarray<T, N, V>, where V follows from the above.
+// Therefore use SimdArray<T, N, V>, where V follows from the above.
 template <
     typename T, std::size_t N,
     typename VectorType = Common::select_best_vector_type<T, N>,
@@ -136,7 +136,7 @@ class
              127) +
             1)
 #endif
-        simdarray;
+        SimdArray;
 
 template <
     typename T, std::size_t N,
@@ -152,51 +152,51 @@ class
              127) +
             1)
 #endif
-        simd_mask_array;
+        SimdMaskArray;
 
 /** \internal
- * Simple traits for simdarray to easily access internal types of non-atomic simdarray
+ * Simple traits for SimdArray to easily access internal types of non-atomic SimdArray
  * types.
  */
-template <typename T, std::size_t N> struct simdarray_traits {
+template <typename T, std::size_t N> struct SimdArrayTraits {
     static constexpr std::size_t N0 = Common::left_size(N);
     static constexpr std::size_t N1 = Common::right_size(N);
 
-    using storage_type0 = simdarray<T, N0>;
-    using storage_type1 = simdarray<T, N1>;
+    using storage_type0 = SimdArray<T, N0>;
+    using storage_type1 = SimdArray<T, N1>;
 };
 
 template <typename T, std::size_t N, typename VectorType, std::size_t VectorSize>
-Vc_INTRINSIC_L typename simdarray_traits<T, N>::storage_type0 &internal_data0(
-    simdarray<T, N, VectorType, VectorSize> &x) Vc_INTRINSIC_R;
+Vc_INTRINSIC_L typename SimdArrayTraits<T, N>::storage_type0 &internal_data0(
+    SimdArray<T, N, VectorType, VectorSize> &x) Vc_INTRINSIC_R;
 template <typename T, std::size_t N, typename VectorType, std::size_t VectorSize>
-Vc_INTRINSIC_L typename simdarray_traits<T, N>::storage_type1 &internal_data1(
-    simdarray<T, N, VectorType, VectorSize> &x) Vc_INTRINSIC_R;
+Vc_INTRINSIC_L typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
+    SimdArray<T, N, VectorType, VectorSize> &x) Vc_INTRINSIC_R;
 template <typename T, std::size_t N, typename VectorType, std::size_t VectorSize>
-Vc_INTRINSIC_L const typename simdarray_traits<T, N>::storage_type0 &internal_data0(
-    const simdarray<T, N, VectorType, VectorSize> &x) Vc_INTRINSIC_R;
+Vc_INTRINSIC_L const typename SimdArrayTraits<T, N>::storage_type0 &internal_data0(
+    const SimdArray<T, N, VectorType, VectorSize> &x) Vc_INTRINSIC_R;
 template <typename T, std::size_t N, typename VectorType, std::size_t VectorSize>
-Vc_INTRINSIC_L const typename simdarray_traits<T, N>::storage_type1 &internal_data1(
-    const simdarray<T, N, VectorType, VectorSize> &x) Vc_INTRINSIC_R;
+Vc_INTRINSIC_L const typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
+    const SimdArray<T, N, VectorType, VectorSize> &x) Vc_INTRINSIC_R;
 
 template <typename T, std::size_t N, typename V>
-Vc_INTRINSIC_L V &internal_data(simdarray<T, N, V, N> &x) Vc_INTRINSIC_R;
+Vc_INTRINSIC_L V &internal_data(SimdArray<T, N, V, N> &x) Vc_INTRINSIC_R;
 template <typename T, std::size_t N, typename V>
-Vc_INTRINSIC_L const V &internal_data(const simdarray<T, N, V, N> &x) Vc_INTRINSIC_R;
+Vc_INTRINSIC_L const V &internal_data(const SimdArray<T, N, V, N> &x) Vc_INTRINSIC_R;
 
 namespace Traits
 {
-template <typename T, std::size_t N, typename V> struct is_atomic_simdarray_internal<simdarray<T, N, V, N>> : public std::true_type {};
-template <typename T, std::size_t N, typename V> struct is_atomic_simd_mask_array_internal<simd_mask_array<T, N, V, N>> : public std::true_type {};
+template <typename T, std::size_t N, typename V> struct is_atomic_simdarray_internal<SimdArray<T, N, V, N>> : public std::true_type {};
+template <typename T, std::size_t N, typename V> struct is_atomic_simd_mask_array_internal<SimdMaskArray<T, N, V, N>> : public std::true_type {};
 
-template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simdarray_internal<simdarray<T, N, VectorType, M>> : public std::true_type {};
-template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simd_mask_array_internal<simd_mask_array<T, N, VectorType, M>> : public std::true_type {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_integral_internal      <simdarray<T, N, V, M>, false> : public std::is_integral<T> {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_floating_point_internal<simdarray<T, N, V, M>, false> : public std::is_floating_point<T> {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_signed_internal        <simdarray<T, N, V, M>, false> : public std::is_signed<T> {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_unsigned_internal      <simdarray<T, N, V, M>, false> : public std::is_unsigned<T> {};
+template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simdarray_internal<SimdArray<T, N, VectorType, M>> : public std::true_type {};
+template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simd_mask_array_internal<SimdMaskArray<T, N, VectorType, M>> : public std::true_type {};
+template <typename T, std::size_t N, typename V, std::size_t M> struct is_integral_internal      <SimdArray<T, N, V, M>, false> : public std::is_integral<T> {};
+template <typename T, std::size_t N, typename V, std::size_t M> struct is_floating_point_internal<SimdArray<T, N, V, M>, false> : public std::is_floating_point<T> {};
+template <typename T, std::size_t N, typename V, std::size_t M> struct is_signed_internal        <SimdArray<T, N, V, M>, false> : public std::is_signed<T> {};
+template <typename T, std::size_t N, typename V, std::size_t M> struct is_unsigned_internal      <SimdArray<T, N, V, M>, false> : public std::is_unsigned<T> {};
 
-template<typename T, std::size_t N> struct has_no_allocated_data_impl<Vc::simdarray<T, N>> : public std::true_type {};
+template<typename T, std::size_t N> struct has_no_allocated_data_impl<Vc::SimdArray<T, N>> : public std::true_type {};
 }  // namespace Traits
 
 }  // namespace Vc

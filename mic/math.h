@@ -93,7 +93,7 @@ static Vc_ALWAYS_INLINE double_m isnan(double_v x)
     return _mm512_cmpunord_pd_mask(x.data(), x.data());
 }
 // frexp {{{1
-inline double_v frexp(double_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> *e)
+inline double_v frexp(double_v::AsArg v, SimdArray<int, 16, MIC::int_v, 16> *e)
 {
     const __m512i vi = mic_cast<__m512i>(v.data());
     const __m512i exponentBits = _set1(0x7ff0000000000000ull);
@@ -115,7 +115,7 @@ inline double_v frexp(double_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> *e)
                 exponentMaximized, _set1(0xbfefffffffffffffull)));
     return ret;
 }
-inline float_v frexp(float_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> *e) {
+inline float_v frexp(float_v::AsArg v, SimdArray<int, 16, MIC::int_v, 16> *e) {
     const __m512i vi = mic_cast<__m512i>(v.data());
     const __m512i exponentBits = _set1(0x7f800000u);
     const __m512i exponentPart = _and(vi, exponentBits);
@@ -131,7 +131,7 @@ inline float_v frexp(float_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> *e) {
     return ret;
 }
 // ldexp {{{1
-Vc_ALWAYS_INLINE double_v ldexp(double_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> _e)
+Vc_ALWAYS_INLINE double_v ldexp(double_v::AsArg v, SimdArray<int, 16, MIC::int_v, 16> _e)
 {
     const auto e__ = internal_data(_e).data();
     __m512i e = _mm512_mask_xor_epi64(e__, (v == double_v::Zero()).data(), e__, e__);
@@ -139,7 +139,7 @@ Vc_ALWAYS_INLINE double_v ldexp(double_v::AsArg v, simdarray<int, 16, MIC::int_v
             0xaaaa, _mm512_swizzle_epi32(e, _MM_SWIZ_REG_CDAB), 20);
     return mic_cast<__m512d>(_mm512_add_epi32(mic_cast<__m512i>(v.data()), exponentBits));
 }
-Vc_ALWAYS_INLINE float_v ldexp(float_v::AsArg v, simdarray<int, 16, MIC::int_v, 16> _e)
+Vc_ALWAYS_INLINE float_v ldexp(float_v::AsArg v, SimdArray<int, 16, MIC::int_v, 16> _e)
 {
     int_v e = internal_data(_e);
     e.setZero(static_cast<int_m>(v == float_v::Zero()));

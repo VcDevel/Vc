@@ -78,7 +78,7 @@ enum Enum {
     loadArrayShortCount = 32 * 1024,
     streamingLoadCount = 1024
 };
-TEST_TYPES(Vec, loadArrayShort, (short_v, ushort_v, simdarray<short, 32>, simdarray<unsigned short, 32>))
+TEST_TYPES(Vec, loadArrayShort, (short_v, ushort_v, SimdArray<short, 32>, SimdArray<unsigned short, 32>))
 {
     typedef typename Vec::EntryType T;
 

@@ -255,7 +255,7 @@ namespace std
 #endif
     };
     template <typename T, std::size_t N, typename V, std::size_t M>
-    class allocator<Vc::simdarray<T, N, V, M>> : public ::Vc::Allocator<Vc::simdarray<T, N, V, M>>
+    class allocator<Vc::SimdArray<T, N, V, M>> : public ::Vc::Allocator<Vc::SimdArray<T, N, V, M>>
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };
@@ -265,7 +265,7 @@ namespace std
 #endif
     };
     template <typename T, std::size_t N, typename V, std::size_t M>
-    class allocator<Vc::simd_mask_array<T, N, V, M>> : public ::Vc::Allocator<Vc::simd_mask_array<T, N, V, M>>
+    class allocator<Vc::SimdMaskArray<T, N, V, M>> : public ::Vc::Allocator<Vc::SimdMaskArray<T, N, V, M>>
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };

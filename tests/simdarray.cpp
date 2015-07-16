@@ -43,7 +43,7 @@ using namespace Vc;
      SIMD_ARRAYS(2),                                                                               \
      SIMD_ARRAYS(1))
 
-template <typename T, size_t N> constexpr size_t captureN(const simdarray<T, N> &)
+template <typename T, size_t N> constexpr size_t captureN(const SimdArray<T, N> &)
 {
     return N;
 }
@@ -75,7 +75,7 @@ TEST_TYPES(V, checkArrayAlignment, SIMD_ARRAY_LIST)
     COMPARE(alignof(M), bound(sizeof(M), 128u));
     VERIFY(alignof(V) >= bound(V::Size * sizeof(T), 128u));
     if (V::Size > 1) {
-        using V2 = simdarray<T, Vc::Common::left_size(V::Size)>;
+        using V2 = SimdArray<T, Vc::Common::left_size(V::Size)>;
         using M2 = typename V2::mask_type;
         VERIFY(alignof(V) >= bound(2 * alignof(V2), 128u));
         VERIFY(alignof(M) >= bound(2 * alignof(M2), 128u));
@@ -169,14 +169,14 @@ TEST_TYPES(V, load, SIMD_ARRAY_LIST)
 
 TEST_TYPES(A,
            load_converting,
-           (simdarray<float, 32>,
-            simdarray<float, 17>,
-            simdarray<float, 16>,
-            simdarray<float, 8>,
-            simdarray<float, 4>,
-            simdarray<float, 3>,
-            simdarray<float, 2>,
-            simdarray<float, 1>))
+           (SimdArray<float, 32>,
+            SimdArray<float, 17>,
+            SimdArray<float, 16>,
+            SimdArray<float, 8>,
+            SimdArray<float, 4>,
+            SimdArray<float, 3>,
+            SimdArray<float, 2>,
+            SimdArray<float, 1>))
 {
     Vc::Memory<double_v, 34> data;
     for (size_t i = 0; i < data.entriesCount(); ++i) {

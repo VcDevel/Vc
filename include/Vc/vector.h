@@ -38,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "avx/types.h"
 #include "mic/types.h"
 
-// 2. forward declare simdarray types
+// 2. forward declare SimdArray types
 #include "common/simdarrayfwd.h"
 
 // 3. define all of Vc::Scalar - this one is always present, so it makes sense to put it first
@@ -177,7 +177,7 @@ namespace Vc_VERSIONED_NAMESPACE
 #include "common/operators.h"
 
 #include "common/simdarray.h"
-// XXX See bottom of common/simd_mask_array.h:
+// XXX See bottom of common/simdmaskarray.h:
 //#include "common/simd_cast_caller.tcc"
 
 namespace Vc_VERSIONED_NAMESPACE {

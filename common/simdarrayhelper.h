@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SIMD_ARRAY_DATA_H
-#define VC_COMMON_SIMD_ARRAY_DATA_H
+#ifndef VC_COMMON_SIMDARRAYHELPER_H_
+#define VC_COMMON_SIMDARRAYHELPER_H_
 
 #include "macros.h"
 
@@ -36,7 +36,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
-/// \addtogroup simdarray
+/// \addtogroup SimdArray
 /// @{
 
 namespace Operations/*{{{*/
@@ -109,12 +109,12 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
 
 /** \internal
   Template class that is used to attach an offset value to an existing type. It is used
-  for IndexesFromZero construction in simdarray. The \c data1 constructor needs to know
+  for IndexesFromZero construction in SimdArray. The \c data1 constructor needs to know
   that the IndexesFromZero constructor requires an offset so that the whole data is
   constructed as a correct sequence from `0` to `Size - 1`.
 
   \tparam T The original type that needs the offset attached.
-  \tparam Offset An integral value that determines the offset in the complete simdarray.
+  \tparam Offset An integral value that determines the offset in the complete SimdArray.
  */
 template <typename T, std::size_t Offset> struct AddOffset
 {
@@ -123,10 +123,10 @@ template <typename T, std::size_t Offset> struct AddOffset
 
 /** \internal
   Helper type with static functions to generically adjust arguments for the \c data0 and
-  \c data1 members of simdarray and simd_mask_array.
+  \c data1 members of SimdArray and SimdMaskArray.
 
-  \tparam secondOffset The offset in number of elements that \c data1 has in the simdarray
-                       / simd_mask_array. This is essentially equal to the number of
+  \tparam secondOffset The offset in number of elements that \c data1 has in the SimdArray
+                       / SimdMaskArray. This is essentially equal to the number of
                        elements in \c data0.
  */
 template <std::size_t secondOffset> class Split/*{{{*/
@@ -144,70 +144,70 @@ template <std::size_t secondOffset> class Split/*{{{*/
         return {};
     }
 
-    // split composite simdarray
+    // split composite SimdArray
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto loImpl(const simdarray<U, N, V, M> &x) -> decltype(internal_data0(x))
+    static Vc_INTRINSIC auto loImpl(const SimdArray<U, N, V, M> &x) -> decltype(internal_data0(x))
     {
         return internal_data0(x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hiImpl(const simdarray<U, N, V, M> &x) -> decltype(internal_data1(x))
+    static Vc_INTRINSIC auto hiImpl(const SimdArray<U, N, V, M> &x) -> decltype(internal_data1(x))
     {
         return internal_data1(x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto loImpl(simdarray<U, N, V, M> *x) -> decltype(&internal_data0(*x))
+    static Vc_INTRINSIC auto loImpl(SimdArray<U, N, V, M> *x) -> decltype(&internal_data0(*x))
     {
         return &internal_data0(*x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hiImpl(simdarray<U, N, V, M> *x) -> decltype(&internal_data1(*x))
+    static Vc_INTRINSIC auto hiImpl(SimdArray<U, N, V, M> *x) -> decltype(&internal_data1(*x))
     {
         return &internal_data1(*x);
     }
 
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V, 2, 0> loImpl(const simdarray<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<V, 2, 0> loImpl(const SimdArray<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V, 2, 1> hiImpl(const simdarray<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<V, 2, 1> hiImpl(const SimdArray<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V *, 2, 0> loImpl(const simdarray<U, N, V, N> *x)
+    static Vc_INTRINSIC Segment<V *, 2, 0> loImpl(const SimdArray<U, N, V, N> *x)
     {
         return {&internal_data(*x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V *, 2, 1> hiImpl(const simdarray<U, N, V, N> *x)
+    static Vc_INTRINSIC Segment<V *, 2, 1> hiImpl(const SimdArray<U, N, V, N> *x)
     {
         return {&internal_data(*x)};
     }
 
-    // split composite simd_mask_array
+    // split composite SimdMaskArray
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto loImpl(const simd_mask_array<U, N, V, M> &x) -> decltype(internal_data0(x))
+    static Vc_INTRINSIC auto loImpl(const SimdMaskArray<U, N, V, M> &x) -> decltype(internal_data0(x))
     {
         return internal_data0(x);
     }
     template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hiImpl(const simd_mask_array<U, N, V, M> &x) -> decltype(internal_data1(x))
+    static Vc_INTRINSIC auto hiImpl(const SimdMaskArray<U, N, V, M> &x) -> decltype(internal_data1(x))
     {
         return internal_data1(x);
     }
 
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<typename simd_mask_array<U, N, V, N>::mask_type, 2, 0> loImpl(
-        const simd_mask_array<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<typename SimdMaskArray<U, N, V, N>::mask_type, 2, 0> loImpl(
+        const SimdMaskArray<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<typename simd_mask_array<U, N, V, N>::mask_type, 2, 1> hiImpl(
-        const simd_mask_array<U, N, V, N> &x)
+    static Vc_INTRINSIC Segment<typename SimdMaskArray<U, N, V, N>::mask_type, 2, 1> hiImpl(
+        const SimdMaskArray<U, N, V, N> &x)
     {
         return {internal_data(x)};
     }
@@ -215,8 +215,8 @@ template <std::size_t secondOffset> class Split/*{{{*/
     // split Vector<T> and Mask<T>
     template <typename T>
     static constexpr bool is_vector_or_mask(){
-        return (Traits::is_simd_vector<T>::value && !Traits::is_simdarray<T>::value) ||
-               (Traits::is_simd_mask<T>::value && !Traits::is_simd_mask_array<T>::value);
+        return (Traits::is_simd_vector<T>::value && !Traits::isSimdArray<T>::value) ||
+               (Traits::is_simd_mask<T>::value && !Traits::isSimdMaskArray<T>::value);
     }
     template <typename V>
     static Vc_INTRINSIC Segment<V, 2, 0> loImpl(V &&x, enable_if<is_vector_or_mask<V>()> = nullarg)
@@ -346,32 +346,32 @@ template <typename Op, typename U> static Vc_INTRINSIC U actual_value(Op, U &&x)
   return std::forward<U>(x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC const V &actual_value(Op, const simdarray<U, M, V, M> &x)
+static Vc_INTRINSIC const V &actual_value(Op, const SimdArray<U, M, V, M> &x)
 {
   return internal_data(x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC const V &actual_value(Op, simdarray<U, M, V, M> &&x)
+static Vc_INTRINSIC const V &actual_value(Op, SimdArray<U, M, V, M> &&x)
 {
   return internal_data(x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC V *actual_value(Op, simdarray<U, M, V, M> *x)
+static Vc_INTRINSIC V *actual_value(Op, SimdArray<U, M, V, M> *x)
 {
   return &internal_data(*x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC const typename V::Mask &actual_value(Op, const simd_mask_array<U, M, V, M> &x)
+static Vc_INTRINSIC const typename V::Mask &actual_value(Op, const SimdMaskArray<U, M, V, M> &x)
 {
   return internal_data(x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC const typename V::Mask &actual_value(Op, simd_mask_array<U, M, V, M> &&x)
+static Vc_INTRINSIC const typename V::Mask &actual_value(Op, SimdMaskArray<U, M, V, M> &&x)
 {
   return internal_data(x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC typename V::Mask *actual_value(Op, simd_mask_array<U, M, V, M> *x)
+static Vc_INTRINSIC typename V::Mask *actual_value(Op, SimdMaskArray<U, M, V, M> *x)
 {
   return &internal_data(*x);
 }
@@ -383,6 +383,6 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, simd_mask_array<U, M, V, 
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_SIMD_ARRAY_DATA_H
+#endif  // VC_COMMON_SIMDARRAYHELPER_H_
 
 // vim: foldmethod=marker

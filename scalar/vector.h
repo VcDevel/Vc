@@ -78,7 +78,7 @@ template <typename T> class Vector
         enum Constants {
             MemoryAlignment = alignof(VectorType)
         };
-        typedef simdarray<int, Size, int_v, 1> IndexType;
+        typedef SimdArray<int, Size, int_v, 1> IndexType;
 
 #include "../common/generalinterface.h"
 

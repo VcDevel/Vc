@@ -29,9 +29,9 @@
 #include "../tsc.h"
 
 using Vc::float_v;
-typedef Vc::simdarray<double, float_v::size()> double_v;
-typedef Vc::simdarray<std::int32_t, float_v::size()> int32_v;
-typedef Vc::simdarray<std::uint32_t, float_v::size()> uint32_v;
+typedef Vc::SimdArray<double, float_v::size()> double_v;
+typedef Vc::SimdArray<std::int32_t, float_v::size()> int32_v;
+typedef Vc::SimdArray<std::uint32_t, float_v::size()> uint32_v;
 
 typedef typename float_v::mask_type float_m;
 typedef typename double_v::mask_type double_m;
@@ -51,12 +51,12 @@ struct less<Vc::Vector<T>>
 };
 
 template <typename T, std::size_t N>
-struct less<Vc::simdarray<T, N>>
-    : public binary_function<Vc::simdarray<T, N>, Vc::simdarray<T, N>,
-                             typename Vc::simdarray<T, N>::mask_type>
+struct less<Vc::SimdArray<T, N>>
+    : public binary_function<Vc::SimdArray<T, N>, Vc::SimdArray<T, N>,
+                             typename Vc::SimdArray<T, N>::mask_type>
 {
-    typename Vc::simdarray<T, N>::mask_type operator()(const Vc::simdarray<T, N> &__x,
-                                                       const Vc::simdarray<T, N> &__y)
+    typename Vc::SimdArray<T, N>::mask_type operator()(const Vc::SimdArray<T, N> &__x,
+                                                       const Vc::SimdArray<T, N> &__y)
         const
     {
         return __x < __y;
