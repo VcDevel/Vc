@@ -256,7 +256,7 @@ TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
     rnd<To, From>().store(&testData[17], Vc::Unaligned);
     for (std::size_t i = 0; i < 17 + From::Size; i += From::Size) {
         const From v(&testData[i],
-                     Vc::Unaligned);  // Unaligned because From can be simdarray<T, Odd>
+                     Vc::Unaligned);  // Unaligned because From can be SimdArray<T, Odd>
         cast_vector_impl<To>(v);
         cast_vector_split<To>(v);
     }

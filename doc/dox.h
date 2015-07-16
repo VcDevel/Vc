@@ -1139,7 +1139,7 @@ unsigned int versionNumber();
 //@}
 
 /**
-  \defgroup simdarray SIMD Array
+  \defgroup SimdArray SIMD Array
 
   This set of (template) classes provides types that allow an arbitrarily sized set of
   values of an arithmetic type, much like a \c std::array. But in contrast to \c

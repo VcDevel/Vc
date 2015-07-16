@@ -265,9 +265,9 @@ template <typename T> T rotate(T x)
 {
     return x.rotated(1);
 }
-template <typename T, std::size_t N> Vc::simdarray<T, N> rotate(const Vc::simdarray<T, N> &x)
+template <typename T, std::size_t N> Vc::SimdArray<T, N> rotate(const Vc::SimdArray<T, N> &x)
 {
-    Vc::simdarray<T, N> r;
+    Vc::SimdArray<T, N> r;
     r[0] = x[N - 1];
     for (std::size_t i = 0; i < N - 1; ++i) {
         r[i + 1] = x[i];

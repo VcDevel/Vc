@@ -104,7 +104,7 @@ private:
     const float fStepB;   // step between points B axis
     const float fScaleA;  // scale A axis
     const float fScaleB;  // scale B axis
-    typedef Vc::simdarray<float, 4> DataPoint;
+    typedef Vc::SimdArray<float, 4> DataPoint;
     Vc::vector<DataPoint> fXYZ;  // array of points, {X,Y,Z,0} values
 };
 

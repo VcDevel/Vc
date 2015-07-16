@@ -274,14 +274,14 @@ TEST_TYPES(Vec, testDiv, ALL_TYPES)
 
 TEST_TYPES(V,
            testModulo,
-           (simdarray<unsigned int, 31>,
-            simdarray<unsigned short, 31>,
-            simdarray<unsigned int, 32>,
-            simdarray<unsigned short, 32>,
-            simdarray<int, 31>,
-            simdarray<short, 31>,
-            simdarray<int, 32>,
-            simdarray<short, 32>,
+           (SimdArray<unsigned int, 31>,
+            SimdArray<unsigned short, 31>,
+            SimdArray<unsigned int, 32>,
+            SimdArray<unsigned short, 32>,
+            SimdArray<int, 31>,
+            SimdArray<short, 31>,
+            SimdArray<int, 32>,
+            SimdArray<short, 32>,
             int_v,
             ushort_v,
             uint_v,
@@ -363,9 +363,9 @@ TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
     }
 }
 
-TEST_TYPES(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v, simdarray<int, 17>,
-                                     simdarray<unsigned short, 17>,
-                                     simdarray<unsigned int, 17>, simdarray<short, 17>))
+TEST_TYPES(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v, SimdArray<int, 17>,
+                                     SimdArray<unsigned short, 17>,
+                                     SimdArray<unsigned int, 17>, SimdArray<short, 17>))
 {
     Vec a(One);
     Vec b = ~a;

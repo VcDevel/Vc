@@ -1200,19 +1200,19 @@ inline std::string typeToString_impl(std::integral_constant<T, N> const &)
     s << "integral_constant<" << N << '>';
     return s.str();
 }
-// simdarray to string {{{2
+// SimdArray to string {{{2
 template <typename T, std::size_t N, typename V, std::size_t M>
-inline std::string typeToString_impl(Vc::simdarray<T, N, V, M> const &)
+inline std::string typeToString_impl(Vc::SimdArray<T, N, V, M> const &)
 {
     std::stringstream s;
-    s << "simdarray<" << typeToString<T>() << ", " << N << '>';
+    s << "SimdArray<" << typeToString<T>() << ", " << N << '>';
     return s.str();
 }
 template <typename T, std::size_t N, typename V, std::size_t M>
-inline std::string typeToString_impl(Vc::simd_mask_array<T, N, V, M> const &)
+inline std::string typeToString_impl(Vc::SimdMaskArray<T, N, V, M> const &)
 {
     std::stringstream s;
-    s << "simd_mask_array<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
+    s << "SimdMaskArray<" << typeToString<T>() << ", " << N << ", " << typeToString<V>() << '>';
     return s.str();
 }
 // template parameter pack to a comma separated string {{{2
@@ -1430,9 +1430,9 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
 #define ALL_VECTORS                                                                      \
     Vc::int_v, Vc::ushort_v, Vc::double_v, Vc::uint_v, Vc::short_v, Vc::float_v
 #define SIMD_ARRAYS(N__)                                                                 \
-    Vc::simdarray<int, N__>, Vc::simdarray<unsigned short, N__>,                         \
-        Vc::simdarray<double, N__>, Vc::simdarray<unsigned int, N__>,                    \
-        Vc::simdarray<short, N__>, Vc::simdarray<float, N__>
+    Vc::SimdArray<int, N__>, Vc::SimdArray<unsigned short, N__>,                         \
+        Vc::SimdArray<double, N__>, Vc::SimdArray<unsigned int, N__>,                    \
+        Vc::SimdArray<short, N__>, Vc::SimdArray<float, N__>
 
 #ifdef UNITTEST_ONLY_XTEST
 #define TEST_ALL_V(V__, fun__) template <typename V__> void fun__()

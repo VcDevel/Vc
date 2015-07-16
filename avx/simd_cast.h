@@ -651,10 +651,10 @@ template <typename Return, int offset, typename From>
 Vc_INTRINSIC Vc_CONST enable_if<
     (offset == 0 &&
      ((Vc_AVX_NAMESPACE::is_vector<From>::value && !Scalar::is_vector<Return>::value &&
-       Traits::is_simd_vector<Return>::value && !Traits::is_simdarray<Return>::value) ||
+       Traits::is_simd_vector<Return>::value && !Traits::isSimdArray<Return>::value) ||
       (Vc_AVX_NAMESPACE::is_mask<From>::value && !Scalar::is_mask<Return>::value &&
        Traits::is_simd_mask<Return>::value &&
-       !Traits::is_simd_mask_array<Return>::value))),
+       !Traits::isSimdMaskArray<Return>::value))),
     Return>
 simd_cast(const From &x);
 // Declaration: offset == 0 | convert from SSE::Mask/Vector to AVX(2)::Mask/Vector {{{1
@@ -1732,10 +1732,10 @@ template <typename Return, int offset, typename From>
 Vc_INTRINSIC Vc_CONST enable_if<
     (offset == 0 &&
      ((Vc_AVX_NAMESPACE::is_vector<From>::value && !Scalar::is_vector<Return>::value &&
-       Traits::is_simd_vector<Return>::value && !Traits::is_simdarray<Return>::value) ||
+       Traits::is_simd_vector<Return>::value && !Traits::isSimdArray<Return>::value) ||
       (Vc_AVX_NAMESPACE::is_mask<From>::value && !Scalar::is_mask<Return>::value &&
        Traits::is_simd_mask<Return>::value &&
-       !Traits::is_simd_mask_array<Return>::value))),
+       !Traits::isSimdMaskArray<Return>::value))),
     Return>
 simd_cast(const From &x)
 {

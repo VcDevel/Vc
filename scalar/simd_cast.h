@@ -47,7 +47,7 @@ Vc_INTRINSIC Vc_CONST To
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To simd_cast(
     From &&x,
-    enable_if<Scalar::is_vector<To>::value && Traits::is_simdarray<From>::value> = nullarg)
+    enable_if<Scalar::is_vector<To>::value && Traits::isSimdArray<From>::value> = nullarg)
 {
     return static_cast<To>(x[0]);
 }
@@ -61,16 +61,16 @@ Vc_INTRINSIC Vc_CONST To
     return static_cast<To>(x.data());
 }
 
-// simd_mask_array to Scalar::Mask
+// SimdMaskArray to Scalar::Mask
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To simd_cast(From &&x,
                                    enable_if<Scalar::is_mask<To>::value &&
-                                             Traits::is_simd_mask_array<From>::value> = nullarg)
+                                             Traits::isSimdMaskArray<From>::value> = nullarg)
 {
     return static_cast<To>(x[0]);
 }
 
-// Any vector (Vector<T> or simdarray) to multiple Scalar::Vector<T>
+// Any vector (Vector<T> or SimdArray) to multiple Scalar::Vector<T>
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(
     T &&x,
@@ -91,7 +91,7 @@ Vc_INTRINSIC Vc_CONST enable_if<offset == 0 && Traits::is_simd_vector<Return>::v
 }
 
 
-// Any mask (Mask<T> or simd_mask_array) to multiple Scalar::Mask<T>
+// Any mask (Mask<T> or SimdMaskArray) to multiple Scalar::Mask<T>
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(
     T &&x,

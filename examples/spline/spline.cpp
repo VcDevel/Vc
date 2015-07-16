@@ -84,7 +84,7 @@ Point3 Spline::GetValue(Point2 ab) const  //{{{1
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
     int ind = iA * fNB + iB;
 
-    typedef Vc::simdarray<float, 4> float4;
+    typedef Vc::SimdArray<float, 4> float4;
     const float4 da = da1;
     const float4 db = db1;
 
@@ -106,8 +106,8 @@ Point3 Spline::GetValue16(Point2 ab) const  //{{{1
     std::tie(iA, iB, da1, db1) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
-    typedef Vc::simdarray<float, 4> float4;
-    typedef Vc::simdarray<float, 16> float16;
+    typedef Vc::SimdArray<float, 4> float4;
+    typedef Vc::SimdArray<float, 16> float16;
     const float4 da = da1;
     const float16 db = db1;
 

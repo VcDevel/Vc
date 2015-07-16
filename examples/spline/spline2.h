@@ -162,8 +162,8 @@ inline Point3 Spline2::GetValue(Point2 ab) const  //{{{1
     std::tie(iA, iB, da1, db1) =
         evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
 
-    typedef Vc::simdarray<float, 4> float4;
-    typedef Vc::simdarray<float, 12> float12;
+    typedef Vc::SimdArray<float, 4> float4;
+    typedef Vc::SimdArray<float, 12> float12;
     const float4 da = da1;
     const float12 db = db1;
 

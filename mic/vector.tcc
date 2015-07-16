@@ -513,13 +513,13 @@ Vc_ALWAYS_INLINE enable_if<MIC::is_vector<IT>::value, __m512i> ensureVector(IT i
 { return indexes.data(); }
 
 template <typename IT>
-Vc_ALWAYS_INLINE enable_if<Traits::is_atomic_simdarray<IT>::value, __m512i> ensureVector(
+Vc_ALWAYS_INLINE enable_if<Traits::isAtomicSimdArray<IT>::value, __m512i> ensureVector(
     IT indexes)
 { return internal_data(indexes).data(); }
 
 template <typename IT>
 Vc_ALWAYS_INLINE
-    enable_if<(!MIC::is_vector<IT>::value && !Traits::is_atomic_simdarray<IT>::value &&
+    enable_if<(!MIC::is_vector<IT>::value && !Traits::isAtomicSimdArray<IT>::value &&
                Traits::has_subscript_operator<IT>::value &&
                Traits::has_contiguous_storage<IT>::value),
               __m512i>
@@ -530,7 +530,7 @@ Vc_ALWAYS_INLINE
 
 template <typename IT>
 Vc_ALWAYS_INLINE
-    enable_if<(!MIC::is_vector<IT>::value && !Traits::is_atomic_simdarray<IT>::value &&
+    enable_if<(!MIC::is_vector<IT>::value && !Traits::isAtomicSimdArray<IT>::value &&
                !(Traits::has_subscript_operator<IT>::value &&
                  Traits::has_contiguous_storage<IT>::value)),
               __m512i> ensureVector(IT) = delete;

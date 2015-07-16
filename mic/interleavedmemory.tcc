@@ -53,7 +53,7 @@ template<typename V> struct InterleaveImpl {
     typedef typename V::VectorEntryType VT;
     typedef MIC::UpDownConversion<VT, T> UpDownC;
 
-    template <int N> static inline __m512i fixup(const simdarray<int, 16> &i)
+    template <int N> static inline __m512i fixup(const SimdArray<int, 16> &i)
     {
         return (internal_data(i) * N).data();
     }

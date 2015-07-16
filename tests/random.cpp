@@ -36,7 +36,7 @@ void bzero(void *p, size_t n) { memset(p, 0, n); }
 
 using Vc::float_v;
 using Vc::double_v;
-using Vc::simdarray;
+using Vc::SimdArray;
 
 TEST_TYPES(V, testRandom, (ALL_VECTORS))
 {
@@ -124,11 +124,11 @@ template<typename V, typename I> void FloatRandom()
 
 template <> void testRandom<float_v>::operator()()
 {
-    FloatRandom<float_v, simdarray<int, float_v::size()>>();
+    FloatRandom<float_v, SimdArray<int, float_v::size()>>();
 }
 template <> void testRandom<double_v>::operator()()
 {
-    FloatRandom<double_v, simdarray<int, double_v::size()>>();
+    FloatRandom<double_v, SimdArray<int, double_v::size()>>();
 }
 
 // vim: foldmethod=marker

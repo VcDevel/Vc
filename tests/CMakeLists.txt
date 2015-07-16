@@ -240,7 +240,7 @@ if(BUILD_EXTRA_CAST_TESTS)
    endforeach()
 endif()
 vc_add_test(swizzles)
-vc_add_test(simd_array)
+vc_add_test(simdarray)
 
 find_program(OBJDUMP objdump)
 

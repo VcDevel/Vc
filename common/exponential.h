@@ -59,7 +59,7 @@ constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
         // => y  = x - n * ln(2)       | recall that: ln(2) * log₂(e) == 1
         // <=> eˣ = 2ⁿ * eʸ
         V z = floor(C::log2_e() * x + 0.5f);
-        const auto n = static_cast<Vc::simdarray<int, V::Size>>(z);
+        const auto n = static_cast<Vc::SimdArray<int, V::Size>>(z);
         x -= z * C::ln2_large();
         x -= z * C::ln2_small();
 

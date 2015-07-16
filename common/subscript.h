@@ -219,34 +219,34 @@ enable_if<
 template <typename IV>
 enable_if<
     (Traits::is_simd_vector<IV>::value && sizeof(typename IV::EntryType) < sizeof(int)),
-    simdarray<int, IV::Size>>
+    SimdArray<int, IV::Size>>
     convertIndexVector(const IV &indexVector)
 {
-    return static_cast<simdarray<int, IV::Size>>(indexVector);
+    return static_cast<SimdArray<int, IV::Size>>(indexVector);
 }
 
 // helper for promoting int types to int or higher
 template<typename T> using promoted_type = decltype(std::declval<T>() + 1);
 
 // std::array, Vc::array, and C-array are fixed size and can therefore be converted to a
-// simdarray of the same size
+// SimdArray of the same size
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, simdarray<promoted_type<T>, N>> convertIndexVector(
+enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertIndexVector(
     const std::array<T, N> &indexVector)
 {
     return {std::addressof(indexVector[0]), Vc::Unaligned};
 }
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, simdarray<promoted_type<T>, N>> convertIndexVector(
+enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertIndexVector(
     const Vc::array<T, N> &indexVector)
 {
     return {std::addressof(indexVector[0]), Vc::Unaligned};
 }
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, simdarray<promoted_type<T>, N>> convertIndexVector(
+enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertIndexVector(
     const T (&indexVector)[N])
 {
-    return simdarray<promoted_type<T>, N>{std::addressof(indexVector[0]), Vc::Unaligned};
+    return SimdArray<promoted_type<T>, N>{std::addressof(indexVector[0]), Vc::Unaligned};
 }
 
 // a plain pointer won't work. Because we need some information on the number of values in

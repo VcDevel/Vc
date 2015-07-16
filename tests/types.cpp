@@ -52,8 +52,8 @@ TEST_TYPES(V, check_MaskType, ALL_TYPES)
 TEST_TYPES(V, check_IndexType, ALL_TYPES)
 {
     using IndexType = typename V::IndexType;
-    static_assert(Vc::Traits::is_simdarray<IndexType>::value,
-                  "IndexType is not a simdarray instance");
+    static_assert(Vc::Traits::isSimdArray<IndexType>::value,
+                  "IndexType is not a SimdArray instance");
     static_assert(IndexType::Size >= V::Size,
                   "IndexType does not have the expected minimum size");
     static_assert(std::is_same<typename IndexType::value_type, int>::value,

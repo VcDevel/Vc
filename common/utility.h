@@ -46,7 +46,7 @@ static constexpr std::size_t nextPowerOfTwo(std::size_t x)
 
 /**
  * \internal
- * Returns the size of the left/first simdarray member.
+ * Returns the size of the left/first SimdArray member.
  */
 static constexpr std::size_t left_size(std::size_t N)
 {
@@ -54,7 +54,7 @@ static constexpr std::size_t left_size(std::size_t N)
 }
 /**
  * \internal
- * Returns the size of the right/second simdarray member.
+ * Returns the size of the right/second SimdArray member.
  */
 static constexpr std::size_t right_size(std::size_t N)
 {

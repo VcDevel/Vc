@@ -47,7 +47,7 @@ namespace
 
     template <typename V>
     using best_int_v_for = typename std::conditional<(V::size() <= int_v::size()), int_v,
-                                                     simdarray<int, V::size()>>::type;
+                                                     SimdArray<int, V::size()>>::type;
     using float_int_v = best_int_v_for<float_v>;
     using double_int_v = best_int_v_for<double_v>;
 

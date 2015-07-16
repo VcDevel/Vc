@@ -26,12 +26,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SIMD_MASK_ARRAY_H
-#define VC_COMMON_SIMD_MASK_ARRAY_H
+#ifndef VC_COMMON_SIMDMASKARRAY_H
+#define VC_COMMON_SIMDMASKARRAY_H
 
 #include <type_traits>
 #include <array>
-#include "simd_array_data.h"
+#include "simdarrayhelper.h"
 #include "utility.h"
 #include "maskentry.h"
 
@@ -39,10 +39,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-/// \addtogroup simdarray
+/// \addtogroup SimdArray
 /// @{
 
-template <typename T, std::size_t N, typename VectorType_> class simd_mask_array<T, N, VectorType_, N>
+template <typename T, std::size_t N, typename VectorType_> class SimdMaskArray<T, N, VectorType_, N>
 {
 public:
     using VectorType = VectorType_;
@@ -50,8 +50,8 @@ public:
     using mask_type = typename vector_type::Mask;
     using storage_type = mask_type;
 
-    friend storage_type &internal_data(simd_mask_array &m) { return m.data; }
-    friend const storage_type &internal_data(const simd_mask_array &m) { return m.data; }
+    friend storage_type &internal_data(SimdMaskArray &m) { return m.data; }
+    friend const storage_type &internal_data(const SimdMaskArray &m) { return m.data; }
 
     static constexpr std::size_t size() { return N; }
     static constexpr std::size_t Size = size();
@@ -64,49 +64,49 @@ public:
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
     using EntryReference = typename mask_type::EntryReference;
-    using Vector = simdarray<T, N, VectorType, N>;
+    using Vector = SimdArray<T, N, VectorType, N>;
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
 
     // zero init
-    simd_mask_array() = default;
+    SimdMaskArray() = default;
 
     // broadcasts
-    Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerOne::OEnum one) : data(one) {}
-    Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerZero::ZEnum zero) : data(zero) {}
-    Vc_INTRINSIC explicit simd_mask_array(bool b) : data(b) {}
-    Vc_INTRINSIC static simd_mask_array Zero() { return {storage_type::Zero()}; }
-    Vc_INTRINSIC static simd_mask_array One() { return {storage_type::One()}; }
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne::OEnum one) : data(one) {}
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero::ZEnum zero) : data(zero) {}
+    Vc_INTRINSIC explicit SimdMaskArray(bool b) : data(b) {}
+    Vc_INTRINSIC static SimdMaskArray Zero() { return {storage_type::Zero()}; }
+    Vc_INTRINSIC static SimdMaskArray One() { return {storage_type::One()}; }
 
     // conversion (casts)
     template <typename U, typename V>
-    Vc_INTRINSIC_L simd_mask_array(const simd_mask_array<U, N, V> &x,
+    Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
                                    enable_if<N == V::size()> = nullarg) Vc_INTRINSIC_R;
     template <typename U, typename V>
-    Vc_INTRINSIC_L simd_mask_array(const simd_mask_array<U, N, V> &x,
+    Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
                                    enable_if<(N > V::size() && N <= 2 * V::size())> = nullarg)
         Vc_INTRINSIC_R;
     template <typename U, typename V>
-    Vc_INTRINSIC_L simd_mask_array(const simd_mask_array<U, N, V> &x,
+    Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
                                    enable_if<(N > 2 * V::size() && N <= 4 * V::size())> = nullarg)
         Vc_INTRINSIC_R;
 
-    // conversion from any Segment object (could be simd_mask_array or Mask<T>)
+    // conversion from any Segment object (could be SimdMaskArray or Mask<T>)
     template <typename M, std::size_t Pieces, std::size_t Index>
-    Vc_INTRINSIC_L simd_mask_array(
+    Vc_INTRINSIC_L SimdMaskArray(
         Common::Segment<M, Pieces, Index> &&x,
         enable_if<Traits::simd_vector_size<M>::value == Size * Pieces> = nullarg) Vc_INTRINSIC_R;
 
     // conversion from Mask<T>
     template <typename M>
-    Vc_INTRINSIC_L simd_mask_array(
+    Vc_INTRINSIC_L SimdMaskArray(
         M k,
-        enable_if<(Traits::is_simd_mask<M>::value && !Traits::is_simd_mask_array<M>::value &&
+        enable_if<(Traits::is_simd_mask<M>::value && !Traits::isSimdMaskArray<M>::value &&
                    Traits::simd_vector_size<M>::value == Size)> = nullarg) Vc_INTRINSIC_R;
 
     // load/store (from/to bool arrays)
     template <typename Flags = DefaultLoadTag>
-    Vc_INTRINSIC explicit simd_mask_array(const bool *mem, Flags f = Flags())
+    Vc_INTRINSIC explicit SimdMaskArray(const bool *mem, Flags f = Flags())
         : data(mem, f)
     {
     }
@@ -124,56 +124,56 @@ public:
     }
 
     // compares
-    Vc_INTRINSIC Vc_PURE bool operator==(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE bool operator==(const SimdMaskArray &rhs) const
     {
         return data == rhs.data;
     }
-    Vc_INTRINSIC Vc_PURE bool operator!=(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE bool operator!=(const SimdMaskArray &rhs) const
     {
         return data != rhs.data;
     }
 
     // inversion
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator!() const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator!() const
     {
         return {!data};
     }
 
     // binary operators
-    Vc_INTRINSIC simd_mask_array &operator&=(const simd_mask_array &rhs)
+    Vc_INTRINSIC SimdMaskArray &operator&=(const SimdMaskArray &rhs)
     {
         data &= rhs.data;
         return *this;
     }
-    Vc_INTRINSIC simd_mask_array &operator|=(const simd_mask_array &rhs)
+    Vc_INTRINSIC SimdMaskArray &operator|=(const SimdMaskArray &rhs)
     {
         data |= rhs.data;
         return *this;
     }
-    Vc_INTRINSIC simd_mask_array &operator^=(const simd_mask_array &rhs)
+    Vc_INTRINSIC SimdMaskArray &operator^=(const SimdMaskArray &rhs)
     {
         data ^= rhs.data;
         return *this;
     }
 
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator&(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator&(const SimdMaskArray &rhs) const
     {
         return {data & rhs.data};
     }
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator|(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator|(const SimdMaskArray &rhs) const
     {
         return {data | rhs.data};
     }
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator^(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator^(const SimdMaskArray &rhs) const
     {
         return {data ^ rhs.data};
     }
 
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator&&(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator&&(const SimdMaskArray &rhs) const
     {
         return {data && rhs.data};
     }
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator||(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator||(const SimdMaskArray &rhs) const
     {
         return {data || rhs.data};
     }
@@ -202,27 +202,27 @@ public:
      */
     Vc_INTRINSIC Vc_PURE int firstOne() const { return data.firstOne(); }
 
-    template <typename G> static Vc_INTRINSIC simd_mask_array generate(const G &gen)
+    template <typename G> static Vc_INTRINSIC SimdMaskArray generate(const G &gen)
     {
         return {mask_type::generate(gen)};
     }
 
-    Vc_INTRINSIC Vc_PURE simd_mask_array shifted(int amount) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray shifted(int amount) const
     {
         return {data.shifted(amount)};
     }
 
     /// \internal execute specified Operation
     template <typename Op, typename... Args>
-    static Vc_INTRINSIC simd_mask_array fromOperation(Op op, Args &&... args)
+    static Vc_INTRINSIC SimdMaskArray fromOperation(Op op, Args &&... args)
     {
-        simd_mask_array r;
+        SimdMaskArray r;
         op(r.data, Common::actual_value(op, std::forward<Args>(args))...);
         return r;
     }
 
     /// \internal
-    Vc_INTRINSIC simd_mask_array(mask_type &&x) : data(std::move(x)) {}
+    Vc_INTRINSIC SimdMaskArray(mask_type &&x) : data(std::move(x)) {}
 
     ///\internal Called indirectly from operator[]
     void setEntry(size_t index, bool x) { data.setEntry(index, x); }
@@ -231,27 +231,27 @@ private:
     storage_type data;
 };
 
-template <typename T, std::size_t N, typename VectorType> constexpr std::size_t simd_mask_array<T, N, VectorType, N>::Size;
+template <typename T, std::size_t N, typename VectorType> constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::Size;
 
-template <typename T, std::size_t N, typename VectorType, std::size_t> class simd_mask_array
+template <typename T, std::size_t N, typename VectorType, std::size_t> class SimdMaskArray
 {
     static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
 
     using Split = Common::Split<N0>;
 
 public:
-    using storage_type0 = simd_mask_array<T, N0>;
-    using storage_type1 = simd_mask_array<T, N - N0>;
+    using storage_type0 = SimdMaskArray<T, N0>;
+    using storage_type1 = SimdMaskArray<T, N - N0>;
     static_assert(storage_type0::size() == N0, "");
 
     using vector_type = VectorType;
 
-    friend storage_type0 &internal_data0(simd_mask_array &m) { return m.data0; }
-    friend storage_type1 &internal_data1(simd_mask_array &m) { return m.data1; }
-    friend const storage_type0 &internal_data0(const simd_mask_array &m) { return m.data0; }
-    friend const storage_type1 &internal_data1(const simd_mask_array &m) { return m.data1; }
+    friend storage_type0 &internal_data0(SimdMaskArray &m) { return m.data0; }
+    friend storage_type1 &internal_data1(SimdMaskArray &m) { return m.data1; }
+    friend const storage_type0 &internal_data0(const SimdMaskArray &m) { return m.data0; }
+    friend const storage_type1 &internal_data1(const SimdMaskArray &m) { return m.data1; }
 
-    using mask_type = simd_mask_array;
+    using mask_type = SimdMaskArray;
     static constexpr std::size_t size() { return N; }
     static constexpr std::size_t Size = size();
     static_assert(Size == mask_type::Size, "size mismatch");
@@ -265,30 +265,30 @@ public:
     using EntryReference = typename std::conditional<
         std::is_same<typename storage_type0::EntryReference,
                      typename storage_type1::EntryReference>::value,
-        typename storage_type0::EntryReference, Common::MaskEntry<simd_mask_array>>::type;
-    using Vector = simdarray<T, N, VectorType, VectorType::Size>;
+        typename storage_type0::EntryReference, Common::MaskEntry<SimdMaskArray>>::type;
+    using Vector = SimdArray<T, N, VectorType, VectorType::Size>;
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
 
     // zero init
-    simd_mask_array() = default;
+    SimdMaskArray() = default;
 
     // default copy ctor/operator
-    simd_mask_array(const simd_mask_array &) = default;
-    simd_mask_array(simd_mask_array &&) = default;
-    simd_mask_array &operator=(const simd_mask_array &) = default;
-    simd_mask_array &operator=(simd_mask_array &&) = default;
+    SimdMaskArray(const SimdMaskArray &) = default;
+    SimdMaskArray(SimdMaskArray &&) = default;
+    SimdMaskArray &operator=(const SimdMaskArray &) = default;
+    SimdMaskArray &operator=(SimdMaskArray &&) = default;
 
-    // implicit conversion from simd_mask_array with same N
+    // implicit conversion from SimdMaskArray with same N
     template <typename U, typename V>
-    Vc_INTRINSIC simd_mask_array(const simd_mask_array<U, N, V> &rhs)
+    Vc_INTRINSIC SimdMaskArray(const SimdMaskArray<U, N, V> &rhs)
         : data0(Split::lo(rhs)), data1(Split::hi(rhs))
     {
     }
 
-    // conversion from any Segment object (could be simd_mask_array or Mask<T>)
+    // conversion from any Segment object (could be SimdMaskArray or Mask<T>)
     template <typename M, std::size_t Pieces, std::size_t Index>
-    Vc_INTRINSIC simd_mask_array(
+    Vc_INTRINSIC SimdMaskArray(
         Common::Segment<M, Pieces, Index> &&rhs,
         enable_if<Traits::simd_vector_size<M>::value == Size * Pieces> = nullarg)
         : data0(Split::lo(rhs)), data1(Split::hi(rhs))
@@ -297,29 +297,29 @@ public:
 
     // conversion from Mask<T>
     template <typename M>
-    Vc_INTRINSIC simd_mask_array(
+    Vc_INTRINSIC SimdMaskArray(
         M k,
-        enable_if<(Traits::is_simd_mask<M>::value && !Traits::is_simd_mask_array<M>::value &&
+        enable_if<(Traits::is_simd_mask<M>::value && !Traits::isSimdMaskArray<M>::value &&
                    Traits::simd_vector_size<M>::value == Size)> = nullarg)
         : data0(Split::lo(k)), data1(Split::hi(k))
     {
     }
 
-    Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerOne::OEnum one)
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne::OEnum one)
         : data0(one), data1(one)
     {
     }
-    Vc_INTRINSIC explicit simd_mask_array(VectorSpecialInitializerZero::ZEnum zero)
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero::ZEnum zero)
         : data0(zero), data1(zero)
     {
     }
-    Vc_INTRINSIC explicit simd_mask_array(bool b) : data0(b), data1(b) {}
+    Vc_INTRINSIC explicit SimdMaskArray(bool b) : data0(b), data1(b) {}
 
-    Vc_INTRINSIC static simd_mask_array Zero() { return {storage_type0::Zero(), storage_type1::Zero()}; }
-    Vc_INTRINSIC static simd_mask_array One() { return {storage_type0::One(), storage_type1::One()}; }
+    Vc_INTRINSIC static SimdMaskArray Zero() { return {storage_type0::Zero(), storage_type1::Zero()}; }
+    Vc_INTRINSIC static SimdMaskArray One() { return {storage_type0::One(), storage_type1::One()}; }
 
     template <typename Flags = DefaultLoadTag>
-    Vc_INTRINSIC explicit simd_mask_array(const bool *mem, Flags f = Flags())
+    Vc_INTRINSIC explicit SimdMaskArray(const bool *mem, Flags f = Flags())
         : data0(mem, f), data1(mem + storage_type0::size(), f)
     {
     }
@@ -346,57 +346,57 @@ public:
         data1.store(mem + storage_type0::size(), f);
     }
 
-    Vc_INTRINSIC Vc_PURE bool operator==(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE bool operator==(const SimdMaskArray &rhs) const
     {
         return data0 == rhs.data0 && data1 == rhs.data1;
     }
-    Vc_INTRINSIC Vc_PURE bool operator!=(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE bool operator!=(const SimdMaskArray &rhs) const
     {
         return data0 != rhs.data0 || data1 != rhs.data1;
     }
 
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator!() const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator!() const
     {
         return {!data0, !data1};
     }
 
-    Vc_INTRINSIC simd_mask_array &operator&=(const simd_mask_array &rhs)
+    Vc_INTRINSIC SimdMaskArray &operator&=(const SimdMaskArray &rhs)
     {
         data0 &= rhs.data0;
         data1 &= rhs.data1;
         return *this;
     }
-    Vc_INTRINSIC simd_mask_array &operator|=(const simd_mask_array &rhs)
+    Vc_INTRINSIC SimdMaskArray &operator|=(const SimdMaskArray &rhs)
     {
         data0 |= rhs.data0;
         data1 |= rhs.data1;
         return *this;
     }
-    Vc_INTRINSIC simd_mask_array &operator^=(const simd_mask_array &rhs)
+    Vc_INTRINSIC SimdMaskArray &operator^=(const SimdMaskArray &rhs)
     {
         data0 ^= rhs.data0;
         data1 ^= rhs.data1;
         return *this;
     }
 
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator&(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator&(const SimdMaskArray &rhs) const
     {
         return {data0 & rhs.data0, data1 & rhs.data1};
     }
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator|(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator|(const SimdMaskArray &rhs) const
     {
         return {data0 | rhs.data0, data1 | rhs.data1};
     }
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator^(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator^(const SimdMaskArray &rhs) const
     {
         return {data0 ^ rhs.data0, data1 ^ rhs.data1};
     }
 
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator&&(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator&&(const SimdMaskArray &rhs) const
     {
         return {data0 && rhs.data0, data1 && rhs.data1};
     }
-    Vc_INTRINSIC Vc_PURE simd_mask_array operator||(const simd_mask_array &rhs) const
+    Vc_INTRINSIC Vc_PURE SimdMaskArray operator||(const SimdMaskArray &rhs) const
     {
         return {data0 || rhs.data0, data1 || rhs.data1};
     }
@@ -464,18 +464,18 @@ public:
         return data0.firstOne();
     }
 
-    template <typename G> static Vc_INTRINSIC simd_mask_array generate(const G &gen)
+    template <typename G> static Vc_INTRINSIC SimdMaskArray generate(const G &gen)
     {
         return {storage_type0::generate(gen),
                 storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
     }
 
-    inline Vc_PURE simd_mask_array shifted(int amount) const
+    inline Vc_PURE SimdMaskArray shifted(int amount) const
     {
         if (VC_IS_UNLIKELY(amount == 0)) {
             return *this;
         }
-        simd_mask_array r{};
+        SimdMaskArray r{};
         if (amount < 0) {
             for (int i = 0; i < int(Size) + amount; ++i) {
                 r[i - amount] = operator[](i);
@@ -490,9 +490,9 @@ public:
 
     /// \internal execute specified Operation
     template <typename Op, typename... Args>
-    static Vc_INTRINSIC simd_mask_array fromOperation(Op op, Args &&... args)
+    static Vc_INTRINSIC SimdMaskArray fromOperation(Op op, Args &&... args)
     {
-        simd_mask_array r = {
+        SimdMaskArray r = {
             storage_type0::fromOperation(op, Split::lo(args)...),  // no forward here - it
                                                                    // could move and thus
                                                                    // break the next line
@@ -501,7 +501,7 @@ public:
     }
 
     /// \internal
-    Vc_INTRINSIC simd_mask_array(storage_type0 &&x, storage_type1 &&y)
+    Vc_INTRINSIC SimdMaskArray(storage_type0 &&x, storage_type1 &&y)
         : data0(std::move(x)), data1(std::move(y))
     {
     }
@@ -510,7 +510,7 @@ private:
     storage_type0 data0;
     storage_type1 data1;
 };
-template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t simd_mask_array<T, N, VectorType, M>::Size;
+template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::Size;
 
 /// @}
 
@@ -522,4 +522,4 @@ template <typename T, std::size_t N, typename VectorType, std::size_t M> constex
 // code. Not sure yet what is going on, but it looks a lot like a bug in clang.
 #include "simd_cast_caller.tcc"
 
-#endif // VC_COMMON_SIMD_MASK_ARRAY_H
+#endif // VC_COMMON_SIMDMASKARRAY_H

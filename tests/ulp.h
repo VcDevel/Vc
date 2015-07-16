@@ -68,9 +68,9 @@ inline T ulpDiffToReferenceSigned(T val, T ref)
 }
 
 template<typename T> struct UlpExponentVector_ { typedef Vc::int_v Type; };
-template <typename T, std::size_t N> struct UlpExponentVector_<Vc::simdarray<T, N>>
+template <typename T, std::size_t N> struct UlpExponentVector_<Vc::SimdArray<T, N>>
 {
-    using Type = Vc::simdarray<int, N>;
+    using Type = Vc::SimdArray<int, N>;
 };
 
 template <typename V, typename = Vc::enable_if<Vc::is_simd_vector<V>::value>>
