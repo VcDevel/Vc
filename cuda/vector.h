@@ -173,6 +173,7 @@ class Vector
             return m_data[index];
         }
 };
+#undef VC_CURRENT_CLASS_NAME
 
 } // namespace CUDA
 } // namespace Vc

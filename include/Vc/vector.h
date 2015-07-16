@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sse/types.h"
 #include "avx/types.h"
 #include "mic/types.h"
+#include "cuda/types.h"
 
 // 2. forward declare SimdArray types
 #include "common/simdarrayfwd.h"

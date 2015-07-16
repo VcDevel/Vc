@@ -276,65 +276,65 @@ public:
 
 template <size_t Size, typename... Replaced> struct SubstitutedBase;
 template <typename... Replaced> struct SubstitutedBase<1, Replaced...> {
-// ICC barfs on packs of values
-#ifndef VC_ICC
+// ICC and NVCC barf on packs of values
+#if !defined(VC_ICC) && !defined(VC_NVCC)
     template <typename ValueT, template <typename, ValueT...> class C, ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // VC_ICC && VC_NVCC
 };
 template <typename... Replaced> struct SubstitutedBase<2, Replaced...> {
-#ifndef VC_ICC
+#if !defined(VC_ICC) && !defined(VC_NVCC)
     template <typename ValueT, template <typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // VC_ICC && VC_NVCC
 };
 template <typename... Replaced> struct SubstitutedBase<3, Replaced...> {
-#ifndef VC_ICC
+#if !defined(VC_ICC) && !defined(VC_NVCC)
     template <typename ValueT, template <typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // VC_ICC && VC_NVCC
 };
 template <typename... Replaced> struct SubstitutedBase<4, Replaced...> {
-#ifndef VC_ICC
+#if !defined(VC_ICC) && !defined(VC_NVCC)
     template <typename ValueT,
               template <typename, typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // VC_ICC & VC_NVCC
 };
 template <typename... Replaced> struct SubstitutedBase<5, Replaced...> {
-#ifndef VC_ICC
+#if !defined(VC_ICC) && !defined(VC_NVCC)
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // VC_ICC && VC_NVCC
 };
 template <typename... Replaced> struct SubstitutedBase<6, Replaced...> {
-#ifndef VC_ICC
+#if !defined(VC_ICC) && !defined(VC_NVCC)
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // VC_ICC && VC_NVCC
 };
 template <typename... Replaced> struct SubstitutedBase<7, Replaced...> {
-#ifndef VC_ICC
+#if !defined(VC_ICC) && !defined(VC_NVCC)
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // VC_ICC && VC_NVCC
 };
 template <typename... Replaced> struct SubstitutedBase<8, Replaced...> {
-#ifndef VC_ICC
+#if !defined(VC_ICC) && !defined(VC_NVCC)
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // VC_ICC && VC_NVCC
 };
 
 /**\internal
@@ -502,7 +502,7 @@ Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long long);
 #endif // VC_ICC
 #undef Vc_DEFINE_NONTYPE_REPLACETYPES__
 
-#ifdef VC_ICC
+#if defined(VC_ICC) || defined(VC_NVCC)
 template <typename Class, typename... Args>
 constexpr bool is_constructible_with_single_brace()
 {

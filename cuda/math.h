@@ -47,13 +47,22 @@ namespace Internal
 
 #ifndef MATH_FUNC_MACROS
 #define MATH_FUNC_MACROS
-#define FUNC1(name__, impl__) template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> name__(const Vector<T> &x) { return CALC1(impl__, x); }
-#define FUNC2(name__, impl__) template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> name__(const Vector<T> &x, const Vector<T> &y) { return CALC2(impl__, x, y); }
+#define FUNC1(name__, impl__) \
+    template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> name__(const Vector<T> &x) \
+    { \
+        return CALC1(impl__, x);\
+    }
+
+#define FUNC2(name__, impl__) \
+    template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> name__(const Vector<T> &x, const Vector<T> &y) \
+    { \
+        return CALC2(impl__, x, y); \
+    }
 #endif
 
 #ifndef CALC_MACROS
-#define CALC1(fun__, arg__) Vector<T>::internalInit(::fun__(arg__[Internal::getThreadId()]))
-#define CALC2(fun__, arg1__, arg2__) Vector<T>::internalInit(::fun__(arg1__[Internal::getThreadId()], arg2__[Internal::getThreadId()]))
+#define CALC1(fun__, arg__) Vector<T>::internalInit(fun__(arg__[Internal::getThreadId()]))
+#define CALC2(fun__, arg1__, arg2__) Vector<T>::internalInit(fun__(arg1__[Internal::getThreadId()], arg2__[Internal::getThreadId()]))
 #define CALC_MACROS
 #endif
 

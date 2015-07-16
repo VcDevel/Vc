@@ -77,7 +77,9 @@ namespace Common
 template<typename T, Vc::MallocAlignment A>
 Vc_ALWAYS_INLINE_L T *Vc_ALWAYS_INLINE_R malloc(size_t n)
 {
+#ifndef VC_NVCC
     return static_cast<T *>(Internal::Helper::malloc<A>(n * sizeof(T)));
+#endif
 }
 
 /**
@@ -104,7 +106,9 @@ Vc_ALWAYS_INLINE_L T *Vc_ALWAYS_INLINE_R malloc(size_t n)
 template<typename T>
 Vc_ALWAYS_INLINE void free(T *p)
 {
+#ifndef VC_NVCC
     Internal::Helper::free(p);
+#endif
 }
 
 template<typename V, size_t Size> struct _MemorySizeCalculation
@@ -594,7 +598,9 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
  */
 Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr)
 {
+#ifndef VC_NVCC
     Internal::Helper::prefetchForOneRead(addr);
+#endif
 }
 
 /**
@@ -611,7 +617,9 @@ Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr)
  */
 Vc_ALWAYS_INLINE void prefetchForModify(const void *addr)
 {
+#ifndef VC_NVCC
     Internal::Helper::prefetchForModify(addr);
+#endif
 }
 
 /**
@@ -626,7 +634,9 @@ Vc_ALWAYS_INLINE void prefetchForModify(const void *addr)
  */
 Vc_ALWAYS_INLINE void prefetchClose(const void *addr)
 {
+#ifndef VC_NVCC
     Internal::Helper::prefetchClose(addr);
+#endif
 }
 
 /**
@@ -641,7 +651,9 @@ Vc_ALWAYS_INLINE void prefetchClose(const void *addr)
  */
 Vc_ALWAYS_INLINE void prefetchMid(const void *addr)
 {
+#ifndef VC_NVCC
     Internal::Helper::prefetchMid(addr);
+#endif
 }
 
 /**
@@ -656,7 +668,9 @@ Vc_ALWAYS_INLINE void prefetchMid(const void *addr)
  */
 Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 {
+#ifndef VC_NVCC
     Internal::Helper::prefetchFar(addr);
+#endif
 }
 }  // namespace Common
 

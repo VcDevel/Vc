@@ -67,6 +67,12 @@ else()
       endif()
    endif()
 
+   if(CUDA_FOUND)
+       # CUDA doesn't support c++14 so disable it even if the host supports it
+       string(REPLACE "-std=c++14" "-std=c++11" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+       string(REPLACE "-std=c++1y" "-std=c++11" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+   endif()
+
    if(Vc_COMPILER_IS_GCC)
       if(Vc_GCC_VERSION STREQUAL "4.6.0")
          UserWarning("GCC 4.6.0 is broken. The following tests are therefore disabled:
@@ -176,9 +182,13 @@ if(NOT ROOT_RELEASE)
    
    if(CUDA_FOUND)
        add_custom_target(CUDA COMMENT "build CUDA code" VERBATIM)
-       cuda_add_library(Vc_CUDA src/cuda_const.cpp STATIC OPTIONS "${libvc_cuda_compile_flags} -std=c++11 -arch=sm_20 -Xptxas='-v' -ccbin ${CMAKE_CXX_COMPILER}")
-       cuda_add_executable(Vc_CUDA_DUMMY cuda/dummy.cu OPTIONS "${libvc_cuda_compile_flags} -std=c++11 -arch=sm_20 -Xptxas=-v -ccbin ${CMAKE_CXX_COMPILER}")
-       cuda_add_executable(Vc_CUDA_TEST cuda/unittest.cu OPTIONS "${libvc_cuda_compile_flags} -std=c++11 -arch=sm_20 -Xptxas=-v -ccbin ${CMAKE_CXX_COMPILER}")
+
+       SET(CUDA_NVCC_FLAGS "-std c++11 -arch sm_20")
+       SET(CUDA_VERBOSE_BUILD OFF)
+
+       cuda_add_library(Vc_CUDA src/cuda_const.cpp STATIC OPTIONS "${libvc_cuda_compile_flags}")
+       cuda_add_executable(Vc_CUDA_DUMMY cuda/dummy.cu)
+       #cuda_add_executable(Vc_CUDA_TEST cuda/unittest.cu)
        add_target_property(Vc_CUDA LABELS "CUDA")
        add_dependencies(CUDA Vc_CUDA Vc_CUDA_DUMMY Vc_CUDA_TEST)
        get_target_property(outputName Vc_CUDA OUTPUT_NAME)
