@@ -3,8 +3,6 @@
 #include <cstdlib>
 #include <utility>
 
-#include "../tests/unittest.h"
-
 #include "math.h"
 #include "vector.h"
 #include "macros.h"
