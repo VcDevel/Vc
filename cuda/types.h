@@ -33,12 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../traits/type_traits.h"
 #include "macros.h"
 
-#define VC_DOUBLE_V_SIZE    CUDA_VECTOR_SIZE;
-#define VC_FLOAT_V_SIZE     CUDA_VECTOR_SIZE;
-#define VC_INT_V_SIZE       CUDA_VECTOR_SIZE;
-#define VC_UINT_V_SIZE      CUDA_VECTOR_SIZE;
-#define VC_SHORT_V_SIZE     CUDA_VECTOR_SIZE;
-#define VC_USHORT_V_SIZE    CUDA_VECTOR_SIZE;
+#define VC_DOUBLE_V_SIZE    CUDA_VECTOR_SIZE
+#define VC_FLOAT_V_SIZE     CUDA_VECTOR_SIZE
+#define VC_INT_V_SIZE       CUDA_VECTOR_SIZE
+#define VC_UINT_V_SIZE      CUDA_VECTOR_SIZE
+#define VC_SHORT_V_SIZE     CUDA_VECTOR_SIZE
+#define VC_USHORT_V_SIZE    CUDA_VECTOR_SIZE
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -52,6 +52,14 @@ typedef Vector<int>             int_v;
 typedef Vector<unsigned int>    uint_v;
 typedef Vector<short>           short_v;
 typedef Vector<unsigned short>  ushort_v;
+
+template <typename T> class Mask;
+typedef Mask<double>            double_m;
+typedef Mask<float>             float_m;
+typedef Mask<int>               int_m;
+typedef Mask<unsigned int>      uint_m;
+typedef Mask<short>             short_m;
+typedef Mask<unsigned short>    ushort_m;
 
 } // namespace CUDA
 } // namespace Vc
