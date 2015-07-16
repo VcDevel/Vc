@@ -49,12 +49,9 @@ std::true_type test(int);
 template <typename F, typename A> std::false_type test(...);
 }  // namespace is_functor_argument_immutable_impl
 
-#ifndef __NVCC__
 template <typename F, typename A>
 using is_functor_argument_immutable =
     decltype(is_functor_argument_immutable_impl::test<F, A>(1));
-#else
-#endif
 
 
 }  // namespace Traits
