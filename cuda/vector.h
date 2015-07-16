@@ -37,6 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "global.h"
 #include "initflags.h"
+#include "types.h"
+
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE

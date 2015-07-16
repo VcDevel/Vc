@@ -3,9 +3,12 @@
 #include <cstdlib>
 #include <utility>
 
+#include "../tests/unittest.h"
+
 #include "math.h"
 #include "vector.h"
 #include "macros.h"
+
 
 __global__ void my_kernel(const float *in, float *out)
 {
