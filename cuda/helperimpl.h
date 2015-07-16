@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2011-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2015 Jan Stephan <jan.stephan.dd@gmail.com>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
