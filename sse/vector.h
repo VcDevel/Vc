@@ -395,8 +395,6 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isinf(const Vector<T> &x) { return VectorHelper<T>::isInfinite(x.data()); }
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isnan(const Vector<T> &x) { return VectorHelper<T>::isNaN(x.data()); }
 
-#include "forceToRegisters.tcc"
-
 #define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
     template <Operator O, typename T, typename M, typename U>                            \
     Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
