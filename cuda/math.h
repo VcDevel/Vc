@@ -90,6 +90,18 @@ template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> ldexp(Vector<
     return Vector<T>::internalInit(::ldexpf(x[Internal::getThreadId()], e[Internal::getThreadId()]));
 }
 
+template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isfinite(const Vector<T> &v)
+{
+}
+
+template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isinf(const Vector<T> &v)
+{
+}
+
+template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isnan(const Vector<T> &v)
+{
+}
+
 #ifdef CALC_MACROS
 #undef CALC1
 #undef CALC2
@@ -102,30 +114,29 @@ template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> ldexp(Vector<
 #undef MATH_FUNC_MACROS
 #endif
 
-__device__ Vc_ALWAYS_INLINE double_v trunc(double_v::AsArg v)
+__device__ Vc_ALWAYS_INLINE double_v trunc(const double_v& v)
 {
     return double_v::internalInit(::trunc(v[Internal::getThreadId()]));
 }
-__device__ Vc_ALWAYS_INLINE float_v trunc(float_v::AsArg v)
+__device__ Vc_ALWAYS_INLINE float_v trunc(const float_v& v)
 {
     return float_v::internalInit(::truncf(v[Internal::getThreadId()]));
 }
 
-__device__ Vc_ALWAYS_INLINE double_v floor(double_v::AsArg v)
+__device__ Vc_ALWAYS_INLINE double_v floor(const double_v& v)
 {
     return double_v::internalInit(::floor(v[Internal::getThreadId()]));
 }
-__device__ Vc_ALWAYS_INLINE float_v floor(float_v::AsArg v)
+__device__ Vc_ALWAYS_INLINE float_v floor(const float_v& v)
 {
     return float_v::internalInit(::floorf(v[Internal::getThreadId()]));
 }
 
-__device__ double_v ceil(double_v::AsArg v)
+__device__ double_v ceil(const double_v& v)
 {
     return double_v::internalInit(::ceil(v[Internal::getThreadId()]));
 }
-
-__device__ float_v ceil(float_v::AsArg v)
+__device__ float_v ceil(const float_v& v)
 {
     return float_v::internalInit(::ceilf(v[Internal::getThreadId()]));
 }

@@ -73,11 +73,7 @@ class Vector
             MemoryAlignment = alignof(VectorType)
         };
 
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-        typedef const Vector<T> &AsArg;
-#else
         typedef const Vector<T> AsArg;
-#endif
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // general interface - we have to redefine it here as the declarations in
