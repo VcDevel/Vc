@@ -210,7 +210,8 @@ if(target_architecture)
 endif()
 
 macro(go)
-   set_property(GLOBAL PROPERTY SubProject "master: ${compiler}")
+   # SubProjects currently don't improve the overview but rather make the dashboard more cumbersume to navigate
+   #set_property(GLOBAL PROPERTY SubProject "master: ${compiler}")
    set_property(GLOBAL PROPERTY Label other)
    CTEST_START (${dashboard_model})
    set(res 0)
