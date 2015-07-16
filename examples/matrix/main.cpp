@@ -70,9 +70,13 @@ template <typename T, size_t N> class Matrix
 
     // the inner array stores one row of values and is padded
     using RowArray = std::array<T, NPadded>;
+
+    // The following function is a workaround for GCC 4.8, which fails to recognize
+    // V::MemoryAlignment as a constant expression inside the alignas operator.
+    static constexpr size_t dataAlignment() { return V::MemoryAlignment; }
     // The outer array stores N rows and does not require further padding. It must be
     // aligned correctly for Vc::Aligned loads and stores, though.
-    alignas(V::MemoryAlignment) std::array<RowArray, N> data;
+    alignas(dataAlignment()) std::array<RowArray, N> data;
 
 public:
     Matrix()
