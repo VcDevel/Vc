@@ -429,8 +429,6 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
         *cos = HT::cos(x.data());
     }
 
-#include "forcetoregisters.tcc"
-
 #define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
     template <Operator O, typename T, typename M, typename U>                            \
     Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \

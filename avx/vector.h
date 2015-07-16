@@ -448,8 +448,6 @@ static_assert(!std::is_convertible<float *, short_v>::value, "A float* should ne
 static_assert(!std::is_convertible<int *  , short_v>::value, "An int* should never implicitly convert to short_v. Something is broken.");
 static_assert(!std::is_convertible<short *, short_v>::value, "A short* should never implicitly convert to short_v. Something is broken.");
 
-#include "forceToRegisters.tcc"
-
 #define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
     template <Operator O, typename T, typename M, typename U>                            \
     Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \

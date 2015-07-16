@@ -251,7 +251,6 @@ namespace Vc_VERSIONED_NAMESPACE
   using Vc_IMPL_NAMESPACE::isfinite;
   using Vc_IMPL_NAMESPACE::isinf;
   using Vc_IMPL_NAMESPACE::isnan;
-  using Vc_IMPL_NAMESPACE::forceToRegisters;
 }
 
 #include "common/vectortuple.h"
