@@ -372,8 +372,7 @@ if(TEST_OPERATOR_FAILURES)
                   )
                set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY LABELS "${impl}")
                set_tests_properties("${Vc_TEST_TARGET_PREFIX}${name}" PROPERTIES
-                  PASS_REGULAR_EXPRESSION "use of deleted function"
-                  FAIL_REGULAR_EXPRESSION "no such file or directory;undefined reference to"
+                  PASS_REGULAR_EXPRESSION "Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability"
                   )
             endforeach()
             set(type_b ${A})
