@@ -89,6 +89,9 @@ using select_best_vector_type =
 #elif defined(VC_IMPL_MIC)
                                           Vc::MIC::Vector<T>,
                                           Vc::Scalar::Vector<T>
+#elif defined(VC_IMPL_CUDA)
+                                          Vc::CUDA::Vector<T>
+                                          // nothing else allowed on devices
 #endif
                                           >::type;
 //}}}
