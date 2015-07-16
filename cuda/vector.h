@@ -73,6 +73,12 @@ class Vector
             MemoryAlignment = alignof(VectorType)
         };
 
+#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+        typedef const Vector<T> &AsArg;
+#else
+        typedef const Vector<T> AsArg;
+#endif
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         // general interface - we have to redefine it here as the declarations in
         // common/generalinterface.h don't have the __device__ annotations
@@ -94,10 +100,15 @@ class Vector
         
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        // FIXME: This won't work in GPU code
         __device__ Vector(EntryType a)
         {
-            m_data[Internal::getThreadId()] = a;
+            // see example B.14.5.1 (CUDA C Programming Guide)
+            int laneId = threadIdx.x & 0x1F;
+            int value;
+            if(laneId == 0)
+                value = a;
+            value = __shfl(value, 0);
+            m_data[Internal::getThreadId()] = value;
         }
         
         template<typename U>
@@ -127,6 +138,7 @@ class Vector
         {
             __shared__ Vector<EntryType> r;
             r[Internal::getThreadId()] = x;
+            __syncthreads();
             return r;
         }
         

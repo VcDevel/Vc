@@ -96,6 +96,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define VC_RESTRICT __restrict__
 #  define VC_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
+#elif defined(__CUDACC__)
+#  define Vc_MAY_ALIAS
+#  define Vc_ALWAYS_INLINE __forceinline__
+#  define Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE
+#  define Vc_ALWAYS_INLINE_R
+#  define Vc_CONST
+#  define Vc_CONST_L Vc_CONST
+#  define Vc_CONST_R
+#  define Vc_PURE
+#  define Vc_PURE_L Vc_PURE
+#  define Vc_PURE_R
+#  define Vc_INTRINSIC __forceinline__
+#  define Vc_INTRINSIC_L Vc_INTRINSIC
+#  define Vc_INTRINSIC_R
+#  define Vc_FLATTEN
+#  define VC_IS_UNLIKELY(x)
+#  define VC_IS_LIKELY(x)
+#  define VC_RESTRICT __restrict__
+#  define VC_DEPRECATED(msg)
+#  define Vc_WARN_UNUSED_RESULT
 #else
 #  define Vc_FLATTEN
 #  ifdef Vc_PURE

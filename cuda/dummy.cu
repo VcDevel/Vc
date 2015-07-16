@@ -3,15 +3,14 @@
 #include <cstdlib>
 #include <utility>
 
-#include "math.h"
-#include "vector.h"
+#include <Vc/Vc>
 #include "macros.h"
 
 
 __global__ void my_kernel(const float *in, float *out)
 {
-    Vc::CUDA::Vector<float> inVec(in);
-    Vc::CUDA::Vector<float> outVec;
+    Vc::float_v inVec(in);
+    Vc::float_v outVec;
     outVec = sqrt(inVec);
     outVec.store(out);
 }

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2015 Jan Stephan <jan.stephan.dd@gmail.com>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,8 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace CUDA
 {
+// shared memory banks are organised in consecutive 32bit words
+constexpr std::size_t VectorAlignment = 4;
 
 template <typename T> class Vector;
 typedef Vector<double>          double_v;
@@ -60,6 +62,9 @@ typedef Mask<int>               int_m;
 typedef Mask<unsigned int>      uint_m;
 typedef Mask<short>             short_m;
 typedef Mask<unsigned short>    ushort_m;
+
+template <typename V = Vector<float>>
+class alignas(alignof(V)) VectorAlignedBaseT;
 
 } // namespace CUDA
 } // namespace Vc

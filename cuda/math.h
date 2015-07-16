@@ -37,15 +37,97 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace CUDA
 {
-
-template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> sqrt(const Vector<T> &x)
+namespace Internal
 {
-    /*__shared__ Vector<T> resultVec;
-    int id = Internal::getThreadId();
-    resultVec[id] = sqrtf(x[id]);
-    return resultVec;*/
-    //return __shared__ {InternalInitTag(), sqrtf(x[Internal::getThreadId()])};
-    return Vector<T>::internalInit(sqrtf(x[Internal::getThreadId()]));
+    template <typename T> __device__ Vc_ALWAYS_INLINE T reciprocal(T x)
+    {
+        return 1 / x;
+    }
+}
+
+#ifndef MATH_FUNC_MACROS
+#define MATH_FUNC_MACROS
+#define FUNC1(name__, impl__) template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> name__(const Vector<T> &x) { return CALC1(impl__, x); }
+#define FUNC2(name__, impl__) template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> name__(const Vector<T> &x, const Vector<T> &y) { return CALC2(impl__, x, y); }
+#endif
+
+#ifndef CALC_MACROS
+#define CALC1(fun__, arg__) Vector<T>::internalInit(::fun__(arg__[Internal::getThreadId()]))
+#define CALC2(fun__, arg1__, arg2__) Vector<T>::internalInit(::fun__(arg1__[Internal::getThreadId()], arg2__[Internal::getThreadId()]))
+#define CALC_MACROS
+#endif
+
+FUNC1(sqrt, ::sqrtf)
+FUNC1(rsqrt, ::rsqrtf)
+FUNC1(reciprocal, Internal::reciprocal)
+FUNC1(abs, ::fabsf)
+FUNC1(round, ::roundf)
+FUNC1(log, ::logf)
+FUNC1(log2, ::log2f)
+FUNC1(log10, ::log10f)
+FUNC1(exp, ::expf)
+FUNC1(sin, ::sinf)
+FUNC1(cos, ::cosf)
+
+template <typename T> __device__ static Vc_ALWAYS_INLINE void sincos(const Vector<T> &v, Vector<T>* sin, Vector<T>* cos)
+{
+    ::sincosf(v[Internal::getThreadId()], (*sin)[Internal::getThreadId()], (*cos)[Internal::getThreadId()]);
+}
+
+FUNC1(asin, ::asinf)
+FUNC1(atan, ::atanf)
+FUNC2(atan2, ::atan2f)
+FUNC2(max, ::fmaxf)
+FUNC2(min, ::fminf)
+
+template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> frexp(const Vector<T> &v, Vector<int>* e)
+{
+    return Vector<T>::internalInit(::frexpf(v[Internal::getThreadId()], (*e)[Internal::getThreadId()]));
+}
+
+template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> ldexp(Vector<T> x, Vector<int> e)
+{
+    return Vector<T>::internalInit(::ldexpf(x[Internal::getThreadId()], e[Internal::getThreadId()]));
+}
+
+#ifdef CALC_MACROS
+#undef CALC1
+#undef CALC2
+#undef CALC_MACROS
+#endif
+
+#ifdef MATH_FUNC_MACROS
+#undef FUNC1
+#undef FUNC2
+#undef MATH_FUNC_MACROS
+#endif
+
+__device__ Vc_ALWAYS_INLINE double_v trunc(double_v::AsArg v)
+{
+    return double_v::internalInit(::trunc(v[Internal::getThreadId()]));
+}
+__device__ Vc_ALWAYS_INLINE float_v trunc(float_v::AsArg v)
+{
+    return float_v::internalInit(::truncf(v[Internal::getThreadId()]));
+}
+
+__device__ Vc_ALWAYS_INLINE double_v floor(double_v::AsArg v)
+{
+    return double_v::internalInit(::floor(v[Internal::getThreadId()]));
+}
+__device__ Vc_ALWAYS_INLINE float_v floor(float_v::AsArg v)
+{
+    return float_v::internalInit(::floorf(v[Internal::getThreadId()]));
+}
+
+__device__ double_v ceil(double_v::AsArg v)
+{
+    return double_v::internalInit(::ceil(v[Internal::getThreadId()]));
+}
+
+__device__ float_v ceil(float_v::AsArg v)
+{
+    return float_v::internalInit(::ceilf(v[Internal::getThreadId()]));
 }
 
 } // namespace CUDA
