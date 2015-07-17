@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef AVX_TYPES_H
 #define AVX_TYPES_H
 
+#include "../sse/types.h"
 #include "../traits/type_traits.h"
 #include "macros.h"
 

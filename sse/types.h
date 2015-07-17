@@ -26,6 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#include "../scalar/types.h"
+
 #ifndef SSE_TYPES_H
 #define SSE_TYPES_H
 

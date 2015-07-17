@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <float.h>
 #endif
 
+#include "../common/simdarrayfwd.h"
 #include "../common/memoryfwd.h"
 #include "../common/loadstoreflags.h"
 #include "types.h"
@@ -338,5 +339,6 @@ using Scalar::conditional_assign;
 
 #include "vector.tcc"
 #include "undomacros.h"
+#include "simd_cast.h"
 
 #endif // SCALAR_VECTOR_H

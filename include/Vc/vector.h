@@ -29,52 +29,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#include "global.h"
-
-// 1. forward declare all possible SIMD impl types
-#include "common/types.h"
-#include "scalar/types.h"
-#include "sse/types.h"
-#include "avx/types.h"
-#include "mic/types.h"
-
-// 2. forward declare SimdArray types
-#include "common/simdarrayfwd.h"
-
-// 3. define all of Vc::Scalar - this one is always present, so it makes sense to put it first
+// 1. define all of Vc::Scalar - this one is always present, so it makes sense to put it first
 #include "scalar/vector.h"
-#include "common/simd_cast.h"
-#include "scalar/simd_cast.h"
 
 #ifdef VC_IMPL_AVX
-# include "avx/intrinsics.h"
-# undef VC_IMPL
-# undef Vc_IMPL_NAMESPACE
-# define VC_IMPL ::Vc::SSE42Impl
-# define Vc_IMPL_NAMESPACE SSE
-# include "sse/vector.h"
-# undef VC_IMPL
-# undef Vc_IMPL_NAMESPACE
-# if defined(VC_IMPL_AVX2)
-#  define VC_IMPL ::Vc::AVX2Impl
-#  define Vc_IMPL_NAMESPACE AVX2
-# elif defined(VC_IMPL_AVX)
-#  define VC_IMPL ::Vc::AVXImpl
-#  define Vc_IMPL_NAMESPACE AVX
-# else
-#  error "I lost track of the targeted implementation now. Something is messed up or there's a bug in Vc."
-# endif
 # include "avx/vector.h"
-# include "sse/simd_cast.h"
-# include "avx/simd_cast.h"
 #elif defined(VC_IMPL_SSE)
 # include "sse/vector.h"
-# include "sse/simd_cast.h"
 #endif
 
 #if defined(VC_IMPL_MIC)
 # include "mic/vector.h"
-# include "mic/simd_cast.h"
 #endif
 
 namespace Vc_VERSIONED_NAMESPACE
