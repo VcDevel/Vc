@@ -69,8 +69,8 @@ else()
 
    if(CUDA_FOUND)
        # CUDA doesn't support c++14 so disable it even if the host supports it
-       string(REPLACE "-std=c++14" "-std=c++11" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-       string(REPLACE "-std=c++1y" "-std=c++11" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+       string(REPLACE "-std=c++14" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+       string(REPLACE "-std=c++1y" " " CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
    endif()
 
    if(Vc_COMPILER_IS_GCC)
@@ -183,7 +183,7 @@ if(NOT ROOT_RELEASE)
    if(CUDA_FOUND)
        add_custom_target(CUDA COMMENT "build CUDA code" VERBATIM)
 
-       SET(CUDA_NVCC_FLAGS "-std c++11 -arch sm_20 -ccbin ${CMAKE_CXX_COMPILER}")
+       SET(CUDA_NVCC_FLAGS "-std c++11;-arch sm_20;-ccbin ${CMAKE_CXX_COMPILER};--verbose;--keep")
        SET(CUDA_VERBOSE_BUILD OFF)
 
        cuda_add_library(Vc_CUDA src/cuda_const.cpp STATIC OPTIONS "${libvc_cuda_compile_flags}")

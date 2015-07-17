@@ -423,7 +423,7 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
 }
 
 // generic SimdArray {{{1
-template <typename T, std::size_t N, typename VectorType, std::size_t> class SimdArray
+template <typename T, std::size_t N, typename VectorType, std::size_t VSize> class SimdArray
 {
     static_assert(std::is_same<T,   double>::value ||
                   std::is_same<T,    float>::value ||
