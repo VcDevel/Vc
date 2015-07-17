@@ -26,7 +26,7 @@
 
 #include <Vc/global.h>
 
-#ifdef VC_CLANG
+#if defined VC_CLANG && VC_CLANG < 0x30400
 
 #ifdef _mm_slli_si128
 #undef _mm_slli_si128
