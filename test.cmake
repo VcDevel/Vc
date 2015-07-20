@@ -213,7 +213,6 @@ string(REPLACE "+" "x" CTEST_BUILD_NAME "${CTEST_BUILD_NAME}")
 ################################################################################
 string(REGEX REPLACE "[][ ():,]" "" CTEST_BINARY_DIRECTORY "${CTEST_BUILD_NAME}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-${dashboard_model}-${CTEST_BINARY_DIRECTORY}")
-file(MAKE_DIRECTORY "${CTEST_BINARY_DIRECTORY}")
 
 # Give user feedback
 ################################################################################
@@ -314,6 +313,8 @@ if(${dashboard_model} STREQUAL "Continuous")
       ctest_sleep(${START_TIME} 1200 ${CTEST_ELAPSED_TIME})
    endwhile()
 else()
-   CTEST_EMPTY_BINARY_DIRECTORY(${CTEST_BINARY_DIRECTORY})
+   if(EXISTS "${CTEST_BINARY_DIRECTORY}")
+      CTEST_EMPTY_BINARY_DIRECTORY(${CTEST_BINARY_DIRECTORY})
+   endif()
    go()
 endif()
