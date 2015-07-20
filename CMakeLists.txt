@@ -67,17 +67,10 @@ else()
    endif()
 
    if(Vc_COMPILER_IS_GCC)
-      if(Vc_GCC_VERSION STREQUAL "4.6.0")
-         UserWarning("GCC 4.6.0 is broken. The following tests are therefore disabled:
-         gather_avx, gather_sse, gather_VC_USE_SET_GATHERS_avx, gather_VC_USE_SET_GATHERS_sse,
-         gather_sse_LOOP, scatter_avx, and scatter_sse")
+      if(Vc_GCC_VERSION STREQUAL "5.1.0")
+         UserWarning("GCC 5.1.0 goes into an endless loop comiling example_scaling_scalar. Therefore, this target is disabled.")
          list(APPEND disabled_targets
-            gather_avx
-            gather_sse
-            gather_VC_USE_SET_GATHERS_avx
-            gather_VC_USE_SET_GATHERS_sse
-            scatter_avx
-            scatter_sse
+            example_scaling_scalar
             )
       elseif(Vc_GCC_VERSION STREQUAL "4.8.0")
          UserWarning("GCC 4.8.0 is broken. The following tests are therefore disabled:
