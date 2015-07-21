@@ -44,15 +44,22 @@ template <typename F, typename A,
           // this fails for cudafe++ (as of CUDA v7.0) as well
           typename MemberPtr = decltype(&F::template operator() <A>),
 #endif
-          typename = decltype((std::declval<F &>().*
+          typename foo = decltype((std::declval<F &>().*
                                (std::declval<MemberPtr>()))(std::declval<const A &>()))>
 std::true_type test(int);
 template <typename F, typename A> std::false_type test(...);
 }  // namespace is_functor_argument_immutable_impl
 
+// CUDA's C++11 support is broken (v7.0) - this workaround replaces the previous alias template
+// declaration for is_functor_argument_immutable
+template<typename F, typename A>
+struct nvcc_alias_template_workaround
+{
+    using type = decltype(is_functor_argument_immutable_impl::test<F, A>(1));
+};
+
 template <typename F, typename A>
-using is_functor_argument_immutable =
-    decltype(is_functor_argument_immutable_impl::test<F, A>(1));
+using is_functor_argument_immutable = typename nvcc_alias_template_workaround<F, A>::type;
 
 
 }  // namespace Traits

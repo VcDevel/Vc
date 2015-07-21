@@ -77,12 +77,10 @@ template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix()
  */
 constexpr bool some_of(bool) { return false; }
 
-template <typename A, typename B>
-using workaround_for_nvcc = Traits::is_functor_argument_immutable<A, Vector<typename B::value_type>>;
-
 template <typename InputIt, typename UnaryFunction>
-inline enable_if<workaround_for_nvcc<UnaryFunction, InputIt>::value &&
-                    std::is_arithmetic<typename InputIt::value_type>::value,
+inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
+                     Traits::is_functor_argument_immutable<
+                         UnaryFunction, Vector<typename InputIt::value_type>>::value,
                  UnaryFunction>
 simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 {
