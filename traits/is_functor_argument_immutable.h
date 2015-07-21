@@ -36,11 +36,12 @@ namespace Traits
 namespace is_functor_argument_immutable_impl
 {
 template <typename F, typename A,
-#if defined(VC_ICC) || defined(__NVCC__)
+#if defined(VC_ICC) || defined(VC_NVCC)
           // this is wrong, but then again ICC is broken - and better it compiles and
           // returns the wrong answer than not compiling at all
           typename MemberPtr = decltype(&F::operator()),
 #else
+          // this fails for cudafe++ (as of CUDA v7.0) as well
           typename MemberPtr = decltype(&F::template operator() <A>),
 #endif
           typename = decltype((std::declval<F &>().*
