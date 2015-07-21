@@ -26,6 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#include "../scalar/types.h"
+
 #ifndef VC_MIC_TYPES_H
 #define VC_MIC_TYPES_H
 

@@ -468,6 +468,7 @@ using MIC::conditional_assign;
 
 #include "vector.tcc"
 #include "undomacros.h"
+#include "simd_cast.h"
 
 #ifdef CAN_OFFLOAD
 #pragma offload_attribute(pop)

@@ -30,6 +30,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_AVX_VECTOR_H__
 
 #include "intrinsics.h"
+#include "casts.h"
+# undef VC_IMPL
+# undef Vc_IMPL_NAMESPACE
+# define VC_IMPL ::Vc::SSE42Impl
+# define Vc_IMPL_NAMESPACE SSE
+#include "../sse/vector.h"
+# undef VC_IMPL
+# undef Vc_IMPL_NAMESPACE
+# define VC_IMPL ::Vc::AVXImpl
+# define Vc_IMPL_NAMESPACE AVX
 #include "shuffle.h"
 #include "vectorhelper.h"
 #include "mask.h"
@@ -487,5 +497,6 @@ using Vc_AVX_NAMESPACE::conditional_assign;
 
 #include "vector.tcc"
 #include "undomacros.h"
+#include "simd_cast.h"
 
 #endif // VC_AVX_VECTOR_H__

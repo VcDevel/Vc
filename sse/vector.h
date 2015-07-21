@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_VECTOR_H__
 #define VC_SSE_VECTOR_H__
 
+#include "../scalar/vector.h"
 #include "intrinsics.h"
 #include "types.h"
 #include "vectorhelper.h"
@@ -434,4 +435,6 @@ using SSE::conditional_assign;
 
 #include "undomacros.h"
 #include "vector.tcc"
+#include "simd_cast.h"
+
 #endif // VC_SSE_VECTOR_H__
