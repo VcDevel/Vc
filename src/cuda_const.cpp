@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdio>
 #include <cstdlib>
 
+#include "common/const.h"
 #include "common/macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
