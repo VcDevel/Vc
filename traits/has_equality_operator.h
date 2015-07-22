@@ -35,10 +35,17 @@ namespace has_equality_operator_impl
 template <typename T, typename U, typename = decltype(std::declval<T>() == std::declval<U>())> std::true_type test(int);
 template <typename T, typename U> std::false_type test(...);
 
+// see description for corresponding struct in traits/is_functor_argument_immutable.h
+template <typename T, typename U>
+struct nvcc_alias_template_workaround
+{
+    using type = decltype(test<T, U>(1));
+};
+
 }  // namespace has_equality_operator_impl
 
 template <typename T, typename U = T>
-struct has_equality_operator : public decltype(has_equality_operator_impl::test<T, U>(1))
+struct has_equality_operator : public has_equality_operator_impl::nvcc_alias_template_workaround<T, U>::type
 {
 };
 

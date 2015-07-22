@@ -1,8 +1,8 @@
 #include "../tests/unittest.h"
 
 TEST(test_sqrt) {
-    float test = sqrtf(4.0f);
-    COMPARE(test, 2.0f) << "not working!";
+    int test = 1 + 1;
+    COMPARE(test, 2) << "bla";
     VERIFY(1 > 0);
 }
 
