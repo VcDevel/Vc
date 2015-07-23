@@ -286,8 +286,7 @@ class UnitTester  //{{{1
 {
 public:
     UnitTester()
-        : status(true)
-        , expect_failure(false)
+        : expect_failure(false)
         , assert_failure(0)
         , expect_assert_failure(false)
         , float_fuzzyness(1.f)
@@ -317,7 +316,6 @@ public:
 
     void runTestInt(TestFunction fun, const char *name);
 
-    bool status;
     bool expect_failure;
     int assert_failure;
     bool expect_assert_failure;
@@ -399,32 +397,28 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
         0 != std::strcmp(name, global_unit_test_object_.only_name)) {
         return;
     }
-    global_unit_test_object_.status = true;
+    bool passed = true;
     global_unit_test_object_.expect_failure = false;
-    try
-    {
+    try {
         setFuzzyness<float>(1);
         setFuzzyness<double>(1);
         maximumDistance = 0.;
         meanDistance = 0.;
         meanCount = 0;
         fun();
-    }
-    catch (UnitTestFailure) {}
-    catch (std::exception &e)
-    {
+    } catch (UnitTestFailure) {
+        passed = false;
+    } catch (std::exception &e) {
         std::cout << failString() << "┍ " << name << " threw an unexpected exception:\n";
         std::cout << failString() << "│ " << e.what() << '\n';
-        global_unit_test_object_.status = false;
-    }
-    catch (...)
-    {
+        passed = false;
+    } catch (...) {
         std::cout << failString() << "┍ " << name
                   << " threw an unexpected exception, of unknown type\n";
-        global_unit_test_object_.status = false;
+        passed = false;
     }
     if (global_unit_test_object_.expect_failure) {
-        if (!global_unit_test_object_.status) {
+        if (!passed) {
             std::cout << "XFAIL: " << name << std::endl;
         } else {
             std::cout << "unexpected PASS: " << name
@@ -433,7 +427,7 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
             ++failedTests;
         }
     } else {
-        if (!global_unit_test_object_.status) {
+        if (!passed) {
             if (findMaximumDistance) {
                 std::cout << failString() << "│ with a maximal distance of " << maximumDistance
                           << " to the reference (mean: " << meanDistance / meanCount << ").\n";
@@ -1007,7 +1001,6 @@ private:
     static void printLast()
     {
         std::cout << std::endl;
-        global_unit_test_object_.status = false;
         throw UnitTestFailure();
     }
     // printPosition {{{2
@@ -1148,7 +1141,6 @@ void unittest_assert(bool cond, const char *code, const char *file, int line)
         /* failure expected but it didn't fail */                                                  \
         std::cout << "       " << #code << " at " << __FILE__ << ":" << __LINE__                   \
                   << " did not fail as was expected.\n";                                           \
-        global_unit_test_object_.status = false;                                                   \
         throw UnitTestFailure();                                                                   \
         return;                                                                                    \
     }                                                                                              \
