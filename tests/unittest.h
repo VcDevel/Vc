@@ -276,8 +276,13 @@ struct verify_vector_unit_supported
 } verify_vector_unit_supported__;
 }  // unnamed namespace
 
-class UnitTestFailure //{{{1
+class UnitTestFailure  //{{{1
 {
+    std::string m_message;
+
+public:
+    UnitTestFailure(std::string msg) : m_message(std::move(msg)) {}
+    const std::string &message() const { return m_message; }
 };
 
 using TestFunction = void (*)(void); //{{{1
@@ -406,7 +411,8 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
         meanDistance = 0.;
         meanCount = 0;
         fun();
-    } catch (UnitTestFailure) {
+    } catch (const UnitTestFailure &failure) {
+        std::cout << failure.message();
         passed = false;
     } catch (std::exception &e) {
         std::cout << failString() << "┍ " << name << " threw an unexpected exception:\n";
@@ -565,6 +571,9 @@ template <> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::doubl
 
 class Compare  //{{{1
 {
+    // data{{{2
+    std::stringstream m_err_stream;
+
     // absoluteErrorTest{{{2
     template <typename T, typename ET>
     static bool absoluteErrorTest(const T &a, const T &b, ET error)
@@ -852,7 +861,7 @@ public:
     }
 
     // stream operators {{{2
-    template <typename T> Vc_ALWAYS_INLINE const Compare &operator<<(const T &x) const
+    template <typename T> Vc_ALWAYS_INLINE Compare &operator<<(const T &x)
     {
         if (VC_IS_UNLIKELY(m_failed)) {
             print(x);
@@ -860,7 +869,7 @@ public:
         return *this;
     }
 
-    Vc_ALWAYS_INLINE const Compare &operator<<(const char *str) const
+    Vc_ALWAYS_INLINE Compare &operator<<(const char *str)
     {
         if (VC_IS_UNLIKELY(m_failed)) {
             print(str);
@@ -868,7 +877,7 @@ public:
         return *this;
     }
 
-    Vc_ALWAYS_INLINE const Compare &operator<<(const char ch) const
+    Vc_ALWAYS_INLINE Compare &operator<<(const char ch)
     {
         if (VC_IS_UNLIKELY(m_failed)) {
             print(ch);
@@ -876,7 +885,7 @@ public:
         return *this;
     }
 
-    Vc_ALWAYS_INLINE const Compare &operator<<(bool b) const
+    Vc_ALWAYS_INLINE Compare &operator<<(bool b)
     {
         if (VC_IS_UNLIKELY(m_failed)) {
             print(b);
@@ -917,7 +926,7 @@ private:
     {
         return x + (x > 9 ? 87 : 48);
     }
-    template <typename T> static void printMem(const T &x)  // {{{2
+    template <typename T> void printMem(const T &x)  // {{{2
     {
         constexpr std::size_t length = sizeof(T) * 2 + sizeof(T) / 4;
         std::unique_ptr<char[]> s{new char[length + 1]};
@@ -929,89 +938,89 @@ private:
             s[i * 2 + i / 4] = hexChar(bytes[i] >> 4);
             s[i * 2 + 1 + i / 4] = hexChar(bytes[i] & 0xf);
         }
-        std::cout << s.get();
+        m_err_stream << s.get();
     }
     // printFirst {{{2
-    static void printFirst()
+    void printFirst()
     {
         if (!global_unit_test_object_.vim_lines) {
-            std::cout << failString() << "┍ ";
+            m_err_stream << failString() << "┍ ";
         }
     }
     // print overloads {{{2
-    template <typename T, typename = decltype(std::cout << std::declval<const T &>())>
-    static inline void printImpl(const T &x, int)
+    template <typename T, typename = decltype(m_err_stream << std::declval<const T &>())>
+    inline void printImpl(const T &x, int)
     {
-        std::cout << x;
+        m_err_stream << x;
     }
-    template <typename T> static inline void printImpl(const T &x, ...) { printMem(x); }
-    template <typename T> static inline void print(const T &x) { printImpl(x, int()); }
-    static void print(const std::type_info &x)
+    template <typename T> inline void printImpl(const T &x, ...) { printMem(x); }
+    template <typename T> inline void print(const T &x) { printImpl(x, int()); }
+    void print(const std::type_info &x)
     {
 #ifdef HAVE_CXX_ABI_H
         char buf[1024];
         size_t size = 1024;
         abi::__cxa_demangle(x.name(), buf, &size, nullptr);
-        std::cout << buf;
+        m_err_stream << buf;
 #else
-        std::cout << x.name();
+        m_err_stream << x.name();
 #endif
     }
-    static void print(const std::string &str)
+    void print(const std::string &str)
     {
         print(str.c_str());
     }
-    static void print(const char *str)
+    void print(const char *str)
     {
         const char *pos = 0;
         if (0 != (pos = std::strchr(str, '\n'))) {
             if (pos == str) {
-                std::cout << '\n' << failString();
+                m_err_stream << '\n' << failString();
                 if (!global_unit_test_object_.vim_lines) {
-                    std::cout << "│ ";
+                    m_err_stream << "│ ";
                 }
                 print(&str[1]);
             } else {
                 char *left = strdup(str);
                 left[pos - str] = '\0';
-                std::cout << left << '\n' << failString();
+                m_err_stream << left << '\n' << failString();
                 if (!global_unit_test_object_.vim_lines) {
-                    std::cout << "│ ";
+                    m_err_stream << "│ ";
                 }
                 free(left);
                 print(&pos[1]);
             }
         } else {
-            std::cout << str;
+            m_err_stream << str;
         }
     }
-    static void print(const char ch)
+    void print(const char ch)
     {
         if (ch == '\n') {
-            std::cout << '\n' << failString();
+            m_err_stream << '\n' << failString();
             if (!global_unit_test_object_.vim_lines) {
-                std::cout << "│ ";
+                m_err_stream << "│ ";
             }
         } else {
-            std::cout << ch;
+            m_err_stream << ch;
         }
     }
-    static void print(bool b) { std::cout << (b ? "true" : "false"); }
+    void print(bool b) { m_err_stream << (b ? "true" : "false"); }
     // printLast {{{2
-    static void printLast()
+    void printLast()
     {
-        std::cout << std::endl;
-        throw UnitTestFailure();
+        m_err_stream << std::endl;
+        throw UnitTestFailure(m_err_stream.str());
     }
     // printPosition {{{2
     void printPosition(const char *_file, int _line)
     {
         if (global_unit_test_object_.vim_lines) {
-            std::cout << _file << ':' << _line << ": (0x" << std::hex << m_ip << std::dec
-                      << "): ";
+            m_err_stream << _file << ':' << _line << ": (0x" << std::hex << m_ip
+                         << std::dec << "): ";
         } else {
-            std::cout << "at " << _file << ':' << _line << " (0x" << std::hex << m_ip
-                      << std::dec << ')';
+            m_err_stream << "at " << _file << ':' << _line << " (0x" << std::hex << m_ip
+                         << std::dec << ')';
             print("):\n");
         }
     }
@@ -1020,10 +1029,10 @@ private:
                                      VC_ALIGNED_PARAMETER(T) a,
                                      VC_ALIGNED_PARAMETER(T) b);
     template <typename T>
-    static inline void printFuzzyInfo(VC_ALIGNED_PARAMETER(T), VC_ALIGNED_PARAMETER(T));
+    inline void printFuzzyInfo(VC_ALIGNED_PARAMETER(T), VC_ALIGNED_PARAMETER(T));
     template <typename T>
-    static inline void printFuzzyInfoImpl(std::true_type, VC_ALIGNED_PARAMETER(T) a,
-                                          VC_ALIGNED_PARAMETER(T) b, double fuzzyness)
+    inline void printFuzzyInfoImpl(std::true_type, VC_ALIGNED_PARAMETER(T) a,
+                                   VC_ALIGNED_PARAMETER(T) b, double fuzzyness)
     {
         print("\ndistance: ");
         print(ulpDiffToReferenceSigned(a, b));
@@ -1032,7 +1041,7 @@ private:
         print(" ulp");
     }
     template <typename T>
-    static inline void printFuzzyInfoImpl(std::false_type, VC_ALIGNED_PARAMETER(T),
+    inline void printFuzzyInfoImpl(std::false_type, VC_ALIGNED_PARAMETER(T),
                                           VC_ALIGNED_PARAMETER(T), double)
     {
     }
@@ -1133,17 +1142,17 @@ void unittest_assert(bool cond, const char *code, const char *file, int line)
 #endif
 #define assert(cond) unittest_assert(cond, #cond, __FILE__, __LINE__)
 // EXPECT_ASSERT_FAILURE {{{1
-#define EXPECT_ASSERT_FAILURE(code)                                                                \
-    global_unit_test_object_.expect_assert_failure = true;                                         \
-    global_unit_test_object_.assert_failure = 0;                                                   \
-    code;                                                                                          \
-    if (global_unit_test_object_.assert_failure == 0) {                                            \
-        /* failure expected but it didn't fail */                                                  \
-        std::cout << "       " << #code << " at " << __FILE__ << ":" << __LINE__                   \
-                  << " did not fail as was expected.\n";                                           \
-        throw UnitTestFailure();                                                                   \
-        return;                                                                                    \
-    }                                                                                              \
+#define EXPECT_ASSERT_FAILURE(code)                                                      \
+    global_unit_test_object_.expect_assert_failure = true;                               \
+    global_unit_test_object_.assert_failure = 0;                                         \
+    code;                                                                                \
+    if (global_unit_test_object_.assert_failure == 0) {                                  \
+        /* failure expected but it didn't fail */                                        \
+        throw UnitTestFailure(std::string("       ") + #code + " at " + __FILE__ + ":" + \
+                              std::to_string(__LINE__) +                                 \
+                              " did not fail as was expected.\n");                       \
+        return;                                                                          \
+    }                                                                                    \
     global_unit_test_object_.expect_assert_failure = false
 // allMasks {{{1
 template <typename Vec>
