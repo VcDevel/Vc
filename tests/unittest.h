@@ -1345,6 +1345,23 @@ public:
         g_allTests.emplace_back(wrapper, name);
     }
 };
+template <typename T, typename TestImpl> class Test<T, TestImpl, void> : TestImpl
+{
+private:
+    static void wrapper()
+    {
+        TestImpl::test_function();
+    }
+
+public:
+    Test(std::string name)
+    {
+        if (!std::is_same<T, void>()) {
+            name += '<' + typeToString<T>() + '>';
+        }
+        g_allTests.emplace_back(wrapper, name);
+    }
+};
 template <typename T> class Test<T, void, void>
 {
 public:
@@ -1519,7 +1536,7 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
             Vc::CUDA::spawn(kernel_##fun__);                                             \
         }                                                                                \
     };                                                                                   \
-    static UnitTest::Test<void, fun__, UnitTest::UnitTestFailure> test_##fun__##__(#fun__); \
+    static UnitTest::Test<void, fun__> test_##fun__##__(#fun__);                         \
     __global__ void kernel_##fun__()                                                     
 #else
 #define TEST(fun__)                                                                      \
