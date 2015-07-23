@@ -83,7 +83,7 @@ if(arch STREQUAL "linux")
    string(REGEX REPLACE "\\(.*\\)" "" os_ident "${os_ident}") # shorten the Distribution string, stripping everything in parens
    string(REPLACE "Scientific Linux SL" "SL" os_ident "${os_ident}")
    string(REPLACE " release" "" os_ident "${os_ident}")
-   string(REPLACE " GNU_Linux" "" os_ident "${os_ident}")
+   string(REPLACE " GNU/Linux" "" os_ident "${os_ident}")
    string(REPLACE "openSUSE" "Suse" os_ident "${os_ident}")
    string(STRIP "${os_ident}" os_ident)
 else()
