@@ -280,19 +280,35 @@ template <size_t N> void run()
     }
     std::cout << std::setw(2) << N;
     benchmark<N>([&] {
+#ifdef VC_ICC
+        asm("" :: "r"(&A), "r"(&B));
+#else
         asm("" : "+m"(A), "+m"(B));
+#endif
         return scalar_mul(A, B);
     });
     benchmark<N>([&] {
+#ifdef VC_ICC
+        asm("" :: "r"(&A), "r"(&B));
+#else
         asm("" : "+m"(A), "+m"(B));
+#endif
         return scalar_mul_blocked(A, B);
     });
     benchmark<N>([&] {
+#ifdef VC_ICC
+        asm("" :: "r"(&A), "r"(&B));
+#else
         asm("" : "+m"(A), "+m"(B));
+#endif
         return A * B;
     });
     benchmark<N>([&] {
-        asm("" : "+m"(AV), "+m"(BV));
+#ifdef VC_ICC
+        asm("" :: "r"(&A), "r"(&B));
+#else
+        asm("" : "+m"(A), "+m"(B));
+#endif
         return AV * BV;
     });
     std::cout << std::endl;
