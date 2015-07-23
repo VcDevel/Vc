@@ -774,7 +774,17 @@ template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::rotated(int amount) const
     typedef VectorRotate<sizeof(VectorType), Size> VR;
     return _cast(VR::rotated(mic_cast<typename VR::VectorType>(d.v()), amount));
 }
-// shifted / rotated {{{1
+// interleaveLow/-High {{{1
+template <typename T> Vc_INTRINSIC Vector<T> Vector<T>::interleaveLow(Vector<T> x) const
+{
+    return x; // TODO
+}
+template <typename T> Vc_INTRINSIC Vector<T> Vector<T>::interleaveHigh(Vector<T> x) const
+{
+    return x; // TODO
+}
+
+// reversed {{{1
 template <typename T> Vc_INTRINSIC Vc_PURE Vector<T> Vector<T>::reversed() const {
     return permute128(dcba().data(), _MM_PERM_ABCD);
 }
