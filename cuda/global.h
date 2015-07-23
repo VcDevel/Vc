@@ -64,7 +64,22 @@ namespace Internal
            free(ptr);
     }
 
+
+
 } // namespace Internal
+
+template <typename F, typename... Arguments>
+Vc_ALWAYS_INLINE void spawn(F&& kernel, Arguments&& ... args)
+{
+    kernel<<<1, CUDA_VECTOR_SIZE>>>(std::forward<Arguments>(args) ...);
+}
+
+template <typename F>
+Vc_ALWAYS_INLINE void spawn(F&& kernel)
+{
+    kernel<<<1, CUDA_VECTOR_SIZE>>>();
+}
+
 } // namespace CUDA
 } // namespace Vc
 

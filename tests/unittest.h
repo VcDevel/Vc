@@ -59,6 +59,10 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #endif
 #include <common/macros.h>
 
+#ifdef VC_NVCC
+#include "cuda/global.h"
+#endif
+
 #ifdef DOXYGEN
 
 /**
@@ -1322,18 +1326,14 @@ void runAll()
     }
 }
 // class Test {{{1
-template <typename T, typename Exception = void, typename TestImpl = void> class Test : TestImpl
+template <typename T, typename TestImpl = void, typename Exception = void> class Test : TestImpl
 {
 private:
     static void wrapper()
     {
-#ifdef __NVCC__
-        TestImpl::test_function();
-#else
         try { TestImpl::test_function(); }
         catch (Exception &e) { return; }
         FAIL() << "Test was expected to throw, but it didn't";
-#endif
     }
 
 public:
@@ -1345,8 +1345,10 @@ public:
         g_allTests.emplace_back(wrapper, name);
     }
 };
+
 template <typename T> class Test<T, void, void>
 {
+
 public:
     Test(TestFunction fun, std::string name)
     {
@@ -1438,6 +1440,12 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
         Vc::SimdArray<double, N__>, Vc::SimdArray<unsigned int, N__>,                    \
         Vc::SimdArray<short, N__>, Vc::SimdArray<float, N__>
 
+#ifdef VC_NVCC
+#define CUDA_TEST __global__
+#else
+#define CUDA_TEST
+#endif
+
 #ifdef UNITTEST_ONLY_XTEST
 #define TEST_ALL_V(V__, fun__) template <typename V__> void fun__()
 #define XTEST_ALL_V(V__, fun__)                                                          \
@@ -1509,10 +1517,24 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
     template <typename V__> void fun__<V__>::operator()()
 
 #define XTEST(fun__) template <typename T__> void fun__()
+#ifdef VC_NVCC
+#define TEST(fun__)                                                                      \
+    __global__ void kernel_##fun__();                                                    \
+    struct fun__                                                                         \
+    {                                                                                    \
+        static void test_function()                                                      \
+        {                                                                                \
+            Vc::CUDA::spawn(kernel_##fun__);                                             \
+        }                                                                                \
+    };                                                                                   \
+    static UnitTest::Test<void, fun__, UnitTest::UnitTestFailure> test_##fun__##__(#fun__); \
+    __global__ void kernel_##fun__()                                                     
+#else
 #define TEST(fun__)                                                                      \
     void fun__();                                                                        \
     static UnitTest::Test<void> test_##fun__##__(&fun__, #fun__);                        \
     void fun__()
+#endif
 
 #define XTEST_CATCH(fun__, exception__) void fun__::test_function()
 #define TEST_CATCH(fun__, exception__)                                                   \
@@ -1520,7 +1542,7 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
     {                                                                                    \
         static void test_function();                                                     \
     };                                                                                   \
-    static UnitTest::Test<void, exception__, fun__> test_##fun__##__(#fun__);            \
+    static UnitTest::Test<void, fun__, exception__> test_##fun__##__(#fun__);            \
     void fun__::test_function()
 #endif
 

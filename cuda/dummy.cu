@@ -16,12 +16,6 @@ __global__ void my_kernel(const float *in, float *out)
     outVec.store(out);
 }
 
-template <typename F, typename... Arguments>
-Vc_ALWAYS_INLINE void spawn(F&& kernel, Arguments&& ... args)
-{
-    kernel<<<1, CUDA_VECTOR_SIZE>>>(std::forward<Arguments>(args) ...);
-}
-
 int main()
 {
     float data[32];
@@ -44,7 +38,7 @@ int main()
 
     // run kernel
     //my_kernel<<<1, CUDA_VECTOR_SIZE>>>(devData, devResult);
-    spawn(my_kernel, devData, devResult);
+    Vc::CUDA::spawn(my_kernel, devData, devResult);
 
     // copy result from device
     cudaMemcpy(result, devResult, sizeof(float) * CUDA_VECTOR_SIZE, cudaMemcpyDeviceToHost);
