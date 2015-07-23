@@ -1345,10 +1345,8 @@ public:
         g_allTests.emplace_back(wrapper, name);
     }
 };
-
 template <typename T> class Test<T, void, void>
 {
-
 public:
     Test(TestFunction fun, std::string name)
     {
@@ -1439,12 +1437,6 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
     Vc::SimdArray<int, N__>, Vc::SimdArray<unsigned short, N__>,                         \
         Vc::SimdArray<double, N__>, Vc::SimdArray<unsigned int, N__>,                    \
         Vc::SimdArray<short, N__>, Vc::SimdArray<float, N__>
-
-#ifdef VC_NVCC
-#define CUDA_TEST __global__
-#else
-#define CUDA_TEST
-#endif
 
 #ifdef UNITTEST_ONLY_XTEST
 #define TEST_ALL_V(V__, fun__) template <typename V__> void fun__()

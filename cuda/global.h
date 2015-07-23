@@ -64,8 +64,6 @@ namespace Internal
            free(ptr);
     }
 
-
-
 } // namespace Internal
 
 template <typename F, typename... Arguments>
