@@ -20,6 +20,12 @@
 #ifndef VC_AVX_PREFETCHES_TCC
 #define VC_AVX_PREFETCHES_TCC
 
+#ifdef __3dNOW__
+extern "C" {
+#include <mm3dnow.h>
+}
+#endif
+
 /*OUTER_NAMESPACE_BEGIN*/
 namespace Vc
 {
