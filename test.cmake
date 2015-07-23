@@ -290,6 +290,10 @@ macro(go)
          OPTIONS "${configure_options}"
          APPEND
          RETURN_VALUE res)
+      list(APPEND CTEST_NOTES_FILES
+         #"${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeOutput.log"
+         "${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeError.log"
+         )
       ctest_submit(PARTS Notes Configure)
       if(res EQUAL 0)
          foreach(label other Scalar SSE AVX)
