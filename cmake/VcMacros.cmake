@@ -235,8 +235,11 @@ macro(vc_set_preferred_compiler_flags)
       #                                              GCC                                               #
       ##################################################################################################
       if(_add_warning_flags)
-         foreach(_f -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -pedantic -Wshadow -Wundef -Wold-style-cast -Wno-variadic-macros)
+         foreach(_f -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -pedantic -Wshadow -Wundef)
             AddCompilerFlag("${_f}")
+         endforeach()
+         foreach(_f -Wold-style-cast)
+            AddCompilerFlag("${_f}" CXX_FLAGS CMAKE_CXX_FLAGS)
          endforeach()
       endif()
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wabi")
