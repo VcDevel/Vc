@@ -16,4 +16,4 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
    "^make\\[[1-9]\\]: "
    "^collect2: ld returned . exit status"
-   "^make: \\*\\*\\* \\[all\\] Error ")
+   "^make: \\*\\*\\* \\[.*\\] Error ")
