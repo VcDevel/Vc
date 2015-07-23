@@ -149,7 +149,7 @@ if(NOT ROOT_RELEASE)
    add_custom_target(other VERBATIM)
    add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
 
-   AddCompilerFlag(-ftemplate-depth=128)
+   AddCompilerFlag(-ftemplate-depth=128 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
 
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    set(libvc_mic_compile_flags "-DVC_COMPILE_LIB")
