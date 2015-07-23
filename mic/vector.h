@@ -383,14 +383,14 @@ template<typename T> struct SwizzledVector
 
 Vc_INTRINSIC int_v    min(const int_v    &x, const int_v    &y) { return _mm512_min_epi32(x.data(), y.data()); }
 Vc_INTRINSIC uint_v   min(const uint_v   &x, const uint_v   &y) { return _mm512_min_epu32(x.data(), y.data()); }
-Vc_INTRINSIC short_v  min(const short_v  &x, const short_v  &y) { return _mm512_min_epi16(x.data(), y.data()); }
-Vc_INTRINSIC ushort_v min(const ushort_v &x, const ushort_v &y) { return _mm512_min_epu16(x.data(), y.data()); }
+Vc_INTRINSIC short_v  min(const short_v  &x, const short_v  &y) { return _mm512_min_epi32(x.data(), y.data()); }
+Vc_INTRINSIC ushort_v min(const ushort_v &x, const ushort_v &y) { return _mm512_min_epu32(x.data(), y.data()); }
 Vc_INTRINSIC float_v  min(const float_v  &x, const float_v  &y) { return _mm512_min_ps   (x.data(), y.data()); }
 Vc_INTRINSIC double_v min(const double_v &x, const double_v &y) { return _mm512_min_pd   (x.data(), y.data()); }
 Vc_INTRINSIC int_v    max(const int_v    &x, const int_v    &y) { return _mm512_max_epi32(x.data(), y.data()); }
 Vc_INTRINSIC uint_v   max(const uint_v   &x, const uint_v   &y) { return _mm512_max_epu32(x.data(), y.data()); }
-Vc_INTRINSIC short_v  max(const short_v  &x, const short_v  &y) { return _mm512_max_epi16(x.data(), y.data()); }
-Vc_INTRINSIC ushort_v max(const ushort_v &x, const ushort_v &y) { return _mm512_max_epu16(x.data(), y.data()); }
+Vc_INTRINSIC short_v  max(const short_v  &x, const short_v  &y) { return _mm512_max_epi32(x.data(), y.data()); }
+Vc_INTRINSIC ushort_v max(const ushort_v &x, const ushort_v &y) { return _mm512_max_epu32(x.data(), y.data()); }
 Vc_INTRINSIC float_v  max(const float_v  &x, const float_v  &y) { return _mm512_max_ps   (x.data(), y.data()); }
 Vc_INTRINSIC double_v max(const double_v &x, const double_v &y) { return _mm512_max_pd   (x.data(), y.data()); }
 template <typename T> static inline Vector<T> atan2(Vector<T> x, Vector<T> y)
