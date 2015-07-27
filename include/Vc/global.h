@@ -315,6 +315,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define VC_IMPL_SSE 1
 #endif
 
+#if defined(VC_CLANG) && VC_CLANG >= 0x30600 && VC_CLANG < 0x30700
+#    if defined(VC_IMPL_AVX)
+#        warning "clang 3.6.x miscompiles AVX code, frequently losing 50% of the data. Vc will fall back to SSE4 instead."
+#        undef VC_IMPL_AVX
+#        if defined(VC_IMPL_AVX2)
+#            undef VC_IMPL_AVX2
+#        endif
+#    endif
+#endif
+
 # if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_MIC)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)

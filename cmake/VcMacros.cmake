@@ -330,6 +330,11 @@ macro(vc_set_preferred_compiler_flags)
          vc_add_compiler_flag(Vc_DEFINITIONS "-no-integrated-as")
       else()
          vc_add_compiler_flag(Vc_DEFINITIONS "-integrated-as")
+         if(Vc_CLANG_VERSION VERSION_GREATER "3.5.99" AND Vc_CLANG_VERSION VERSION_LESS 3.7.0)
+            UserWarning("Clang 3.6 has serious issues with AVX code generation, frequently losing 50% of the data. AVX is therefore disabled.\nPlease update to a more recent clang version.\n")
+            set(Vc_AVX_INTRINSICS_BROKEN true)
+            set(Vc_AVX2_INTRINSICS_BROKEN true)
+         endif()
       endif()
 
       # disable these warnings because clang shows them for function overloads that were discarded via SFINAE
