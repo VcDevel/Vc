@@ -569,7 +569,7 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> Vector<T>::operator<<(in
 #undef OP_IMPL
 
 // subscript operators {{{1
-#if defined(VC_GCC) && VC_GCC >= 0x50000 && VC_GCC <= 0x50100
+#if defined(VC_GCC) && VC_GCC >= 0x50000 && VC_GCC <= 0x50200
 template <> Vc_ALWAYS_INLINE short_v::EntryType short_v::operator[](size_t index) const
 {
     ALIGN(sizeof(d)) EntryType tmp[Size];
