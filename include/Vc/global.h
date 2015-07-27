@@ -278,6 +278,21 @@
 #    define VC_IMPL_Scalar 1
 #endif
 
+#if defined(VC_CLANG) && VC_CLANG >= 0x30600 && VC_CLANG < 0x30700
+#    if defined(VC_IMPL_AVX)
+#        warning "clang 3.6.x miscompiles AVX code, frequently losing 50% of the data. Vc will fall back to SSE4 instead."
+#        undef VC_IMPL_AVX
+#        define VC_IMPL_SSE4_2 1
+#        define VC_IMPL_SSE4_1 1
+#        define VC_IMPL_SSSE3 1
+#        define VC_IMPL_SSE3 1
+#        define VC_IMPL_SSE2 1
+#        define VC_IMPL_SSE 1
+#    endif
+#    undef VC_IMPL_FMA4
+#    undef VC_IMPL_XOP
+#endif
+
 # if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX)
 #  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
 # elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
