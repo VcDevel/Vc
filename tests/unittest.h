@@ -466,13 +466,13 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
 
 // unittest_compareHelper {{{1
 template <typename T1, typename T2>
-Vc_ALWAYS_INLINE bool unittest_compareHelper(const T1 &a, const T2 &b)
+CUDA_CALLABLE Vc_ALWAYS_INLINE bool unittest_compareHelper(const T1 &a, const T2 &b)
 {
     return Vc::all_of(a == b);
 }
 
 template <>
-Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(
+CUDA_CALLABLE Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(
     const std::type_info &a,
     const std::type_info &b)
 {
@@ -569,7 +569,116 @@ template <> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::doubl
     return global_unit_test_object_.double_fuzzyness;
 }
 
-class Compare  //{{{1
+#ifdef VC_NVCC
+class Compare // CUDA Compare{{{1
+{
+    // absoluteErrorTest{{{2
+    template <typename T, typename ET>
+    static __device__ bool absoluteErrorTest(const T &a, const T &b, ET error)
+    {
+        if (a > b) {  // don't use abs(a - b) because it doesn't work for unsigned
+                      // integers
+            return a - b > error;
+        } else {
+            return b - a > error;
+        }
+    }
+
+    // relativeErrorTest{{{2
+    template <typename T, typename ET>
+    static __device__ bool relativeErrorTest(const T &a, const T &b, ET error)
+    {
+        if (b > 0) {
+            error *= b;
+        } else if (b < 0) {
+            error *= -b;
+        } else if (std::is_floating_point<T>::value) {
+            // if the reference value is 0 then use the smallest normalized number
+            error *= std::numeric_limits<T>::min();
+        } else {
+            // error *= 1;  // the smalles non-zero positive number is 1...
+        }
+        if(a > b) {  // don't use abs(a - b) because it doesn't work for unsigned
+                     // integers
+            return a - b > error;
+        } else {
+            return b - a > error;
+        }
+    }
+
+public:
+    // tag types {{{2
+    struct Fuzzy {};
+    struct NoEq {};
+    struct AbsoluteError {};
+    struct RelativeError {};
+    struct Mem {};
+
+    // Normal Compare ctor {{{2
+    template <typename T1, typename T2>
+    __device__ Vc_ALWAYS_INLINE Compare(
+            const T1 &a,
+            const T2 &b,
+            const char *_a,
+            const char *_b,
+            const char *_file,
+            typename std::enable_if<Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
+            : m_ip(getIp()), m_failed(!unittest_compareHelper(a, b))
+    {
+    }
+
+    // FAIL ctor {{{2
+    __device__ Vc_ALWAYS_INLINE Compare(const char *_file, int _line) : m_ip(getIp()), m_failed(true)
+    {
+        printFirst();
+        printPosition(_file, _line);
+    }
+
+    // stream operators {{{2
+    template <typename T> __device__ Vc_ALWAYS_INLINE const Compare &operator<<(const T &x) const
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            if(Vc::CUDA::Internal::getThreadId() == 0)
+                printf("Placeholder for generic operator<<\n");
+        }
+        return *this;
+    }
+
+    __device__ Vc_ALWAYS_INLINE const Compare &operator<<(const char *str) const
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            if(Vc::CUDA::Internal::getThreadId() == 0)
+                printf("Placeholder for const char* operator<<\n");
+        }
+        return *this;
+    }
+
+private:
+    static __device__ Vc_ALWAYS_INLINE size_t getIp()   ///{{{2
+    {
+        size_t _ip = 0; // we won't need an instruction pointer for CUDA
+        return _ip;
+    }
+
+    // printFirst {{{2
+    static __device__ void printFirst()
+    {
+        if(Vc::CUDA::Internal::getThreadId() == 0)
+            printf("Placeholder for printFirst\n");
+    }
+
+    // printPosition {{{2
+    __device__ void printPosition(const char *_file, int _line)
+    {
+        if(Vc::CUDA::Internal::getThreadId() == 0)
+            printf("Placeholder for printPostion\n");
+    }
+    // member variables {{{2
+    const size_t m_ip;
+    const size_t m_failed;
+};
+#else
+class Compare  // Generic Compare{{{1
 {
     // absoluteErrorTest{{{2
     template <typename T, typename ET>
@@ -1079,6 +1188,7 @@ inline void Compare::writePlotData(std::fstream &file, VC_ALIGNED_PARAMETER(T) a
     const T dist = ulpDiffToReferenceSigned(a, b);
     writePlotDataImpl(std::integral_constant<bool, Vc::is_simd_vector<T>::value>(), file, ref, dist);
 }
+#endif // VC_NVCC
 
 // FUZZY_COMPARE {{{1
 // Workaround for clang: The "<< ' '" is only added to silence the warnings
@@ -1125,6 +1235,7 @@ public:
     }
 };
 // unittest_assert (called from assert macro) {{{1
+#ifndef VC_NVCC
 void unittest_assert(bool cond, const char *code, const char *file, int line)
 {
     if (!cond) {
@@ -1135,6 +1246,7 @@ void unittest_assert(bool cond, const char *code, const char *file, int line)
         }
     }
 }
+#endif
 #ifdef assert
 #undef assert
 #endif
