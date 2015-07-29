@@ -156,6 +156,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_WARN_UNUSED_RESULT
 #endif
 
+#ifdef VC_NVCC
+#define Vc_GPU_CALLABLE __device__
+#else
+#define Vc_GPU_CALLABLE
+#endif
+
 #define FREE_STORE_OPERATORS_ALIGNED(alignment) \
         Vc_ALWAYS_INLINE void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignment>(size); } \
         Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; } \

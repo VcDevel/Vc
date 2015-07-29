@@ -32,11 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 
 #define CUDA_VECTOR_SIZE    32
-#ifdef VC_NVCC
-#define CUDA_CALLABLE __device__
-#else
-#define CUDA_CALLABLE
-#endif
 
 namespace Vc_VERSIONED_NAMESPACE
 {

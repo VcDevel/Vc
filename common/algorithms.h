@@ -30,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define COMMON_ALGORITHMS_H
 
 #include "macros.h"
-#include "../cuda/global.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -45,11 +44,11 @@ namespace Vc_VERSIONED_NAMESPACE
  *  Returns whether all entries in the mask \p m are \c true.
  */
 template<typename Mask>
-CUDA_CALLABLE constexpr bool all_of(const Mask &m) { return m.isFull(); }
+Vc_GPU_CALLABLE constexpr bool all_of(const Mask &m) { return m.isFull(); }
 /** \ingroup Utilities
  *  Returns \p b
  */
-CUDA_CALLABLE constexpr bool all_of(bool b) { return b; }
+Vc_GPU_CALLABLE constexpr bool all_of(bool b) { return b; }
 
 /** \ingroup Utilities
  *  Returns whether at least one entry in the mask \p m is \c true.

@@ -466,13 +466,13 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
 
 // unittest_compareHelper {{{1
 template <typename T1, typename T2>
-CUDA_CALLABLE Vc_ALWAYS_INLINE bool unittest_compareHelper(const T1 &a, const T2 &b)
+Vc_GPU_CALLABLE Vc_ALWAYS_INLINE bool unittest_compareHelper(const T1 &a, const T2 &b)
 {
     return Vc::all_of(a == b);
 }
 
 template <>
-CUDA_CALLABLE Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(
+Vc_GPU_CALLABLE Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(
     const std::type_info &a,
     const std::type_info &b)
 {
@@ -623,12 +623,12 @@ public:
             const char *_b,
             const char *_file,
             typename std::enable_if<Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
-            : m_ip(getIp()), m_failed(!unittest_compareHelper(a, b))
+            : m_failed(!unittest_compareHelper(a, b))
     {
     }
 
     // FAIL ctor {{{2
-    __device__ Vc_ALWAYS_INLINE Compare(const char *_file, int _line) : m_ip(getIp()), m_failed(true)
+    __device__ Vc_ALWAYS_INLINE Compare(const char *_file, int _line) : m_failed(true)
     {
         printFirst();
         printPosition(_file, _line);
@@ -654,12 +654,6 @@ public:
     }
 
 private:
-    static __device__ Vc_ALWAYS_INLINE size_t getIp()   ///{{{2
-    {
-        size_t _ip = 0; // we won't need an instruction pointer for CUDA
-        return _ip;
-    }
-
     // printFirst {{{2
     static __device__ void printFirst()
     {
@@ -674,7 +668,6 @@ private:
             printf("Placeholder for printPostion\n");
     }
     // member variables {{{2
-    const size_t m_ip;
     const size_t m_failed;
 };
 #else
