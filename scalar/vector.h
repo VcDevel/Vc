@@ -56,7 +56,7 @@ template <typename T> class Vector
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
     public:
-        typedef typename DetermineEntryType<T>::Type EntryType;
+        using EntryType = T;
         using VectorEntryType = EntryType;
         using value_type = EntryType;
         using VectorType = EntryType;

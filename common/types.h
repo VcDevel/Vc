@@ -42,11 +42,10 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 using std::size_t;
 
-namespace Vc_IMPL_NAMESPACE
-{
-    template<typename T> class Vector;
-    template<typename T> class Mask;
-}  // namespace Vc_IMPL_NAMESPACE
+enum class VectorAbi : unsigned int { Scalar, Sse, Avx, Mic };
+
+template<typename T, typename VectorAbi> class Vector;
+template<typename T, typename VectorAbi> class Mask;
 
 namespace Detail
 {

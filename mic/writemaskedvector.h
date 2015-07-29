@@ -40,7 +40,7 @@ template<typename T> class WriteMaskedVector
 {
     friend class Vector<T>;
     typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef typename DetermineEntryType<T>::Type EntryType;
+    using EntryType = T;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
     typedef MIC::Mask<T> Mask;
 public:

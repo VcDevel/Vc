@@ -735,7 +735,7 @@ template <typename T> struct DetermineGatherMask
 template <typename T> struct VectorTraits
 {
     typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef typename DetermineEntryType<T>::Type EntryType;
+    using EntryType = T;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
     enum Constants { HasVectorDivision = !std::is_integral<T>::value };
     typedef Mask<T> MaskType;

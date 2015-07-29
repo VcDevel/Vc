@@ -76,7 +76,7 @@ template<typename T> class Vector
 
         FREE_STORE_OPERATORS_ALIGNED(sizeof(VectorType))
 
-        typedef typename DetermineEntryType<T>::Type EntryType;
+        using EntryType = T;
         using value_type = EntryType;
         typedef EntryType VectorEntryType;
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);

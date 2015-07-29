@@ -40,7 +40,7 @@ template<typename Parent, typename T> class StoreMixin
 {
 private:
     typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef typename DetermineEntryType<T>::Type EntryType;
+    using EntryType = T;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
     typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
 
