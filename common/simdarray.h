@@ -1185,12 +1185,21 @@ Vc_INTRINSIC Vc_CONST Return simd_cast_impl_smaller_input(const T &last)
     return r;
 }
 template <typename Return, std::size_t N, typename T, typename... From>
-Vc_INTRINSIC Vc_CONST Return
-    simd_cast_impl_larger_input(const From &... xs, const T &last)
+Vc_INTRINSIC Vc_CONST enable_if<sizeof...(From) != 0, Return> simd_cast_impl_larger_input(
+    const From &... xs, const T &last)
 {
     Return r = simd_cast<Return>(xs...);
     for (size_t i = N * sizeof...(From); i < Return::Size; ++i) {
         r[i] = static_cast<typename Return::EntryType>(last[i - N * sizeof...(From)]);
+    }
+    return r;
+}
+template <typename Return, std::size_t N, typename T>
+Vc_INTRINSIC Vc_CONST Return simd_cast_impl_larger_input(const T &last)
+{
+    Return r = Return();
+    for (size_t i = 0; i < N; ++i) {
+        r[i] = static_cast<typename Return::EntryType>(last[i]);
     }
     return r;
 }

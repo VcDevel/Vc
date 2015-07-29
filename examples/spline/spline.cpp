@@ -81,7 +81,7 @@ Point3 Spline::GetValue(Point2 ab) const  //{{{1
     float da1, db1;
     int iA, iB;
     std::tie(iA, iB, da1, db1) =
-        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+        evaluatePosition(ab, {{fMinA, fMinB}}, {{fScaleA, fScaleB}}, fNA, fNB);
     int ind = iA * fNB + iB;
 
     typedef Vc::SimdArray<float, 4> float4;
@@ -96,7 +96,7 @@ Point3 Spline::GetValue(Point2 ab) const  //{{{1
         ind += fNB;
     }
     float4 res = GetSpline3(v[0], v[1], v[2], v[3], da);
-    return {res[0], res[1], res[2]};
+    return {{res[0], res[1], res[2]}};
 }
 
 Point3 Spline::GetValue16(Point2 ab) const  //{{{1
@@ -104,7 +104,7 @@ Point3 Spline::GetValue16(Point2 ab) const  //{{{1
     float da1, db1;
     int iA, iB;
     std::tie(iA, iB, da1, db1) =
-        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+        evaluatePosition(ab, {{fMinA, fMinB}}, {{fScaleA, fScaleB}}, fNA, fNB);
 
     typedef Vc::SimdArray<float, 4> float4;
     typedef Vc::SimdArray<float, 16> float16;
@@ -123,7 +123,7 @@ Point3 Spline::GetValue16(Point2 ab) const  //{{{1
     const float4 res =
         GetSpline3(Vc::simd_cast<float4, 0>(v0123), Vc::simd_cast<float4, 1>(v0123),
                    Vc::simd_cast<float4, 2>(v0123), Vc::simd_cast<float4, 3>(v0123), da);
-    return {res[0], res[1], res[2]};
+    return {{res[0], res[1], res[2]}};
 }
 
 Point3 Spline::GetValueScalar(Point2 ab) const  //{{{1
@@ -131,7 +131,7 @@ Point3 Spline::GetValueScalar(Point2 ab) const  //{{{1
     float da, db;
     int iA, iB;
     std::tie(iA, iB, da, db) =
-        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+        evaluatePosition(ab, {{fMinA, fMinB}}, {{fScaleA, fScaleB}}, fNA, fNB);
     int ind = iA * fNB + iB;
 
     float vx[4];
@@ -146,7 +146,7 @@ Point3 Spline::GetValueScalar(Point2 ab) const  //{{{1
                            fXYZ[ind + 3][2], db);
         ind += fNB;
     }
-    return {GetSpline3(vx, da), GetSpline3(vy, da), GetSpline3(vz, da)};
+    return {{GetSpline3(vx, da), GetSpline3(vy, da), GetSpline3(vz, da)}};
 }
 
 Point3 Spline::GetValueAutovec(Point2 ab) const  //{{{1
@@ -154,7 +154,7 @@ Point3 Spline::GetValueAutovec(Point2 ab) const  //{{{1
     float da, db;
     int iA, iB;
     std::tie(iA, iB, da, db) =
-        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+        evaluatePosition(ab, {{fMinA, fMinB}}, {{fScaleA, fScaleB}}, fNA, fNB);
     int ind = iA * fNB + iB;
 
     float vx[4];
@@ -168,7 +168,7 @@ Point3 Spline::GetValueAutovec(Point2 ab) const  //{{{1
         vz[i] = GetSpline3(m[ind4 + 2], m[ind4 + 6], m[ind4 + 10], m[ind4 + 14], db);
         ind += fNB;
     }
-    return {GetSpline3(vx, da), GetSpline3(vy, da), GetSpline3(vz, da)};
+    return {{GetSpline3(vx, da), GetSpline3(vy, da), GetSpline3(vz, da)}};
 }
 
 Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
@@ -176,7 +176,7 @@ Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
     index_v iA, iB;
     float_v da, db;
     std::tie(iA, iB, da, db) =
-        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+        evaluatePosition(ab, {{fMinA, fMinB}}, {{fScaleA, fScaleB}}, fNA, fNB);
 
     float_v vx[4];
     float_v vy[4];

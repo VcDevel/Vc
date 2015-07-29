@@ -87,6 +87,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #if defined(VC_ICC)
+#define __POPCNT__
 #if VC_ICC <= 20130728
 // ICC doesn't know noexcept, alignof, and move ctors
 #define Vc__NO_NOEXCEPT 1
@@ -319,6 +320,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define VC_IMPL_SSE3 1
 #    define VC_IMPL_SSE2 1
 #    define VC_IMPL_SSE 1
+#endif
+
+#if defined(VC_CLANG) && VC_CLANG >= 0x30600 && VC_CLANG < 0x30700
+#    if defined(VC_IMPL_AVX)
+#        warning "clang 3.6.x miscompiles AVX code, frequently losing 50% of the data. Vc will fall back to SSE4 instead."
+#        undef VC_IMPL_AVX
+#        if defined(VC_IMPL_AVX2)
+#            undef VC_IMPL_AVX2
+#        endif
+#    endif
 #endif
 
 # if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_MIC) && !defined(VC_IMPL_CUDA)

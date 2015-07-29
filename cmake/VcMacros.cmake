@@ -235,9 +235,11 @@ macro(vc_set_preferred_compiler_flags)
       #                                              GCC                                               #
       ##################################################################################################
       if(_add_warning_flags)
-          #foreach(_f -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -pedantic -Wshadow -Wundef -Wold-style-cast -Wno-variadic-macros)
-          foreach(_f -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wshadow -Wno-variadic-macros)
+         foreach(_f -W -Wall -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -pedantic -Wshadow -Wundef)
             AddCompilerFlag("${_f}")
+         endforeach()
+         foreach(_f -Wold-style-cast)
+            AddCompilerFlag("${_f}" CXX_FLAGS CMAKE_CXX_FLAGS)
          endforeach()
       endif()
       vc_add_compiler_flag(Vc_DEFINITIONS "-Wabi")
@@ -263,6 +265,9 @@ macro(vc_set_preferred_compiler_flags)
       vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 913")
       # Disable warning #13211 "Immediate parameter to intrinsic call too large". (sse/vector.tcc rotated(int))
       vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 13211")
+      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 61") # warning #61: integer operation result is out of range
+      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 173") # warning #173: floating-point value does not fit in required integral type
+      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 264") # warning #264: floating-point value does not fit in required floating-point type
       if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
          set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
          if(ENABLE_STRICT_ALIASING)
@@ -325,6 +330,11 @@ macro(vc_set_preferred_compiler_flags)
          vc_add_compiler_flag(Vc_DEFINITIONS "-no-integrated-as")
       else()
          vc_add_compiler_flag(Vc_DEFINITIONS "-integrated-as")
+         if(Vc_CLANG_VERSION VERSION_GREATER "3.5.99" AND Vc_CLANG_VERSION VERSION_LESS 3.7.0)
+            UserWarning("Clang 3.6 has serious issues with AVX code generation, frequently losing 50% of the data. AVX is therefore disabled.\nPlease update to a more recent clang version.\n")
+            set(Vc_AVX_INTRINSICS_BROKEN true)
+            set(Vc_AVX2_INTRINSICS_BROKEN true)
+         endif()
       endif()
 
       # disable these warnings because clang shows them for function overloads that were discarded via SFINAE

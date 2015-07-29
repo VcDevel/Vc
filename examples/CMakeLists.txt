@@ -11,7 +11,7 @@ set(CMAKE_REQUIRED_LIBRARIES "${SAFE_CMAKE_REQUIRED_LIBRARIES}")
 
 add_custom_target(Examples COMMENT "build all examples" VERBATIM)
 
-AddCompilerFlag(-ftemplate-depth=1024)
+AddCompilerFlag(-ftemplate-depth=1024 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
 
 macro(vc_add_run_target _target)
    if("${_target}" MATCHES "_mic$")

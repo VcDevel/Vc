@@ -132,7 +132,7 @@ inline Point3 Spline3::GetValue(Point2 ab) const  //{{{1
     float da1, db1;
     int iA, iB;
     std::tie(iA, iB, da1, db1) =
-        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+        evaluatePosition(ab, {{fMinA, fMinB}}, {{fScaleA, fScaleB}}, fNA, fNB);
 
     typedef Vc::SimdArray<float, 4> float4;
     typedef Vc::SimdArray<float, 12> float12;
@@ -153,7 +153,7 @@ inline Point3 Spline3::GetValue(Point2 ab) const  //{{{1
 
     const float4 res =
         GetSpline3(t0, t0.shifted(3, t1), t1.shifted(2, t2), t2.shifted(1), da);
-    return {res[0], res[1], res[2]};
+    return {{res[0], res[1], res[2]}};
 }
 
 Point3V Spline3::GetValue(const Point2V &ab) const  //{{{1
@@ -161,7 +161,7 @@ Point3V Spline3::GetValue(const Point2V &ab) const  //{{{1
     index_v iA, iB;
     float_v da, db;
     std::tie(iA, iB, da, db) =
-        evaluatePosition(ab, {fMinA, fMinB}, {fScaleA, fScaleB}, fNA, fNB);
+        evaluatePosition(ab, {{fMinA, fMinB}}, {{fScaleA, fScaleB}}, fNA, fNB);
 
     float_v vx[4];
     float_v vy[4];
