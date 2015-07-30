@@ -179,19 +179,16 @@ namespace
 
     template<typename From, typename To> struct is_implicit_cast_allowed : public std::false_type {};
     template<typename T> struct is_implicit_cast_allowed<T, T> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed< int64_t, uint64_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed<uint64_t,  int64_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed< int32_t, uint32_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed<uint32_t,  int32_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed< int16_t, uint16_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed<uint16_t,  int16_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed<  int8_t,  uint8_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed< uint8_t,   int8_t> : public std::true_type {};
 
     template<typename From, typename To> struct is_implicit_cast_allowed_mask : public is_implicit_cast_allowed<From, To> {};
-
-    // TODO: issue #605 (make int_v <-> float_v conversion explicit only and drop the int_v::size()
-    // == float_v::size() guarantee)
-    template<> struct is_implicit_cast_allowed< int32_t,    float> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<uint32_t,    float> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed_mask< float,  int32_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed_mask< float, uint32_t> : public std::true_type {};
 #ifndef VC_ICC
 } // anonymous namespace
 #endif
