@@ -37,25 +37,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <float.h>
 #endif
 
-#include "../common/simdarrayfwd.h"
-#include "../common/memoryfwd.h"
 #include "../common/loadstoreflags.h"
+#include "../common/memoryfwd.h"
+#include "../common/simdarrayfwd.h"
+#include "../common/writemaskedvector.h"
 #include "types.h"
 #include "mask.h"
-#include "writemaskedvector.h"
+
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Scalar
-{
 #define VC_CURRENT_CLASS_NAME Vector
-template <typename T> class Vector
+template <typename T> class Vector<T, VectorAbi::Scalar>
 {
     static_assert(std::is_arithmetic<T>::value,
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
     public:
+        using abi = VectorAbi::Scalar;
         using EntryType = T;
         using VectorEntryType = EntryType;
         using value_type = EntryType;
@@ -64,13 +64,14 @@ template <typename T> class Vector
 
     protected:
         VectorType m_data = VectorType();
+        template <typename U> using V = Vector<U, abi>;
 
     public:
         typedef Scalar::Mask<T> Mask;
         using MaskType = Mask;
         using mask_type = Mask;
         typedef Mask MaskArgument;
-        typedef Vector<T> AsArg;
+        typedef Vector AsArg;
 
         Vc_ALWAYS_INLINE VectorType &data() { return m_data; }
         Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
@@ -79,26 +80,27 @@ template <typename T> class Vector
         enum Constants {
             MemoryAlignment = alignof(VectorType)
         };
-        typedef SimdArray<int, Size, int_v, 1> IndexType;
+        typedef SimdArray<int, Size, Scalar::int_v, 1> IndexType;
 
 #include "../common/generalinterface.h"
 
         static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
-        // implict conversion from compatible Vector<U>
+        // implict conversion from compatible Vector<U, abi>
         template <typename U>
-        Vc_INTRINSIC Vector(
-            VC_ALIGNED_PARAMETER(Vector<U>) x,
-            typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
+        Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(V<U>) x,
+                            typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
+                                                    void *>::type = nullptr)
             : m_data(static_cast<EntryType>(x.data()))
         {
         }
 
-        // static_cast from the remaining Vector<U>
+        // static_cast from the remaining Vector<U, abi>
         template <typename U>
         Vc_INTRINSIC explicit Vector(
-            VC_ALIGNED_PARAMETER(Vector<U>) x,
-            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
+            VC_ALIGNED_PARAMETER(V<U>) x,
+            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
+                                    void *>::type = nullptr)
             : m_data(static_cast<EntryType>(x.data()))
         {
         }
@@ -129,19 +131,19 @@ template <typename T> class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // swizzles
-        Vc_INTRINSIC const Vector<T> &abcd() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  cdab() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  badc() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  aaaa() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  bbbb() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  cccc() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  dddd() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  bcad() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  bcda() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  dabc() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  acbd() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  dbca() const { return *this; }
-        Vc_INTRINSIC const Vector<T>  dcba() const { return *this; }
+        Vc_INTRINSIC const Vector &abcd() const { return *this; }
+        Vc_INTRINSIC const Vector  cdab() const { return *this; }
+        Vc_INTRINSIC const Vector  badc() const { return *this; }
+        Vc_INTRINSIC const Vector  aaaa() const { return *this; }
+        Vc_INTRINSIC const Vector  bbbb() const { return *this; }
+        Vc_INTRINSIC const Vector  cccc() const { return *this; }
+        Vc_INTRINSIC const Vector  dddd() const { return *this; }
+        Vc_INTRINSIC const Vector  bcad() const { return *this; }
+        Vc_INTRINSIC const Vector  bcda() const { return *this; }
+        Vc_INTRINSIC const Vector  dabc() const { return *this; }
+        Vc_INTRINSIC const Vector  acbd() const { return *this; }
+        Vc_INTRINSIC const Vector  dbca() const { return *this; }
+        Vc_INTRINSIC const Vector  dcba() const { return *this; }
 
 #include "../common/gatherinterface.h"
 #include "../common/scatterinterface.h"
@@ -183,7 +185,7 @@ template <typename T> class Vector
 
 #define OPshift(symbol) \
         Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { m_data symbol##= x.m_data; return *this; } \
-        Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector<T>(m_data symbol x.m_data); }
+        Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
         VC_ALL_SHIFTS(OPshift)
 #undef OPshift
 
@@ -201,11 +203,11 @@ template <typename T> class Vector
 
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
-        Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
+        Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector &factor, const Vector &summand) {
             m_data = m_data * factor.data() + summand.data();
         }
 
-        Vc_ALWAYS_INLINE void assign(const Vector<T> &v, const Mask &m) {
+        Vc_ALWAYS_INLINE void assign(const Vector &v, const Mask &m) {
           if (m.data()) m_data = v.m_data;
         }
 
@@ -215,9 +217,12 @@ template <typename T> class Vector
             return V2(*reinterpret_cast<const AliasT2 *>(&m_data));
         }
 
-        Vc_ALWAYS_INLINE WriteMaskedVector<T> operator()(Mask m) { return WriteMaskedVector<T>(this, m); }
+        Vc_ALWAYS_INLINE Common::WriteMaskedVector<Vector, Mask> operator()(Mask m)
+        {
+            return {this, m};
+        }
 
-        Vc_ALWAYS_INLINE bool pack(Mask &m1, Vector<T> &v2, Mask &m2) {
+        Vc_ALWAYS_INLINE bool pack(Mask &m1, Vector &v2, Mask &m2) {
             if (!m1.data() && m2.data()) {
                 m_data = v2.m_data;
                 m1 = true;
@@ -294,14 +299,12 @@ template <typename T> class Vector
         Vc_INTRINSIC Vector interleaveHigh(Vector x) const { return x; }
 };
 #undef VC_CURRENT_CLASS_NAME
-template<typename T> constexpr size_t Vector<T>::Size;
-
-template<typename T> class SwizzledVector : public Vector<T> {};
+template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::Size;
 
 #define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
     template <Operator O, typename T, typename M, typename U>                            \
     Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
-        Vector<T> &lhs, M &&mask, U &&rhs)                                               \
+        Vector<T, VectorAbi::Scalar> &lhs, M &&mask, U &&rhs)                            \
     {                                                                                    \
         if (mask.isFull()) {                                                             \
             lhs op__ std::forward<U>(rhs);                                               \
@@ -322,8 +325,8 @@ Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
 
 #define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
     template <Operator O, typename T, typename M>                                        \
-    Vc_INTRINSIC enable_if<O == Operator::name__, Vector<T>> conditional_assign(         \
-        Vector<T> &lhs, M &&mask)                                                        \
+    Vc_INTRINSIC enable_if<O == Operator::name__, Vector<T, VectorAbi::Scalar>>          \
+        conditional_assign(Vector<T, VectorAbi::Scalar> &lhs, M &&mask)                  \
     {                                                                                    \
         return mask.isFull() ? (expr__) : lhs;                                           \
     }
@@ -333,8 +336,6 @@ Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs--)
 Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs)
 #undef Vc_CONDITIONAL_ASSIGN
 
-}  // namespace Scalar
-using Scalar::conditional_assign;
 }  // namespace Vc
 
 #include "vector.tcc"

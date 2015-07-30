@@ -122,46 +122,6 @@ constexpr Common::VectorReferenceArray<sizeof...(Vs) + 1,
     return {std::forward<V>(a), std::forward<Vs>(b)...};
 }
 
-namespace Scalar
-{
-    using Vc::tie;
-}  // namespace Scalar
-namespace SSE
-{
-    using Vc::tie;
-}  // namespace Scalar
-namespace AVX
-{
-    using Vc::tie;
-}  // namespace Scalar
-namespace AVX2
-{
-    using Vc::tie;
-}  // namespace Scalar
-namespace MIC
-{
-    using Vc::tie;
-}  // namespace Scalar
-
-namespace Vc_IMPL_NAMESPACE
-{
-template <typename T>
-VC_DEPRECATED("use Vc::tie instead")
-constexpr Common::VectorReferenceArray<2, Vc::Vector<T>>
-    operator, (Vc::Vector<T> & a, Vc::Vector<T> & b)
-{
-    return {a, b};
-}
-
-template <typename T>
-VC_DEPRECATED("use Vc::tie instead")
-constexpr Common::VectorReferenceArray<2, const Vc::Vector<T>>
-    operator, (const Vc::Vector<T> &a, const Vc::Vector<T> &b)
-{
-    return {a, b};
-}
-
-}  // namespace Vc_IMPL_NAMESPACE
 }  // namespace Vc
 
 #include "undomacros.h"

@@ -46,7 +46,7 @@ namespace Scalar
 {
 constexpr std::size_t VectorAlignment = 8;
 
-template <typename T> class Vector;
+template <typename T> using Vector = Vc::Vector<T, VectorAbi::Scalar>;
 typedef Vector<double>         double_v;
 typedef Vector<float>           float_v;
 typedef Vector<int>               int_v;
@@ -54,7 +54,7 @@ typedef Vector<unsigned int>     uint_v;
 typedef Vector<short>           short_v;
 typedef Vector<unsigned short> ushort_v;
 
-template <typename T> class Mask;
+template <typename T> using Mask = Vc::Mask<T, VectorAbi::Scalar>;
 typedef Mask<double>         double_m;
 typedef Mask<float>           float_m;
 typedef Mask<int>               int_m;

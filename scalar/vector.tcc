@@ -27,27 +27,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "../common/data.h"
-#include "where.h"
+#include "../common/where.h"
 #include "iterators.h"
 #include "../common/transpose.h"
 #include "macros.h"
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Scalar
-{
 
+// special value constructors{{{1
 template <typename T>
-Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum)
+Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerZero::ZEnum)
     : m_data(0)
 {
 }
 template <typename T>
-Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerOne::OEnum)
+Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerOne::OEnum)
     : m_data(1)
 {
 }
 template <typename T>
-Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(
+    VectorSpecialInitializerIndexesFromZero::IEnum)
     : m_data(0)
 {
 }
@@ -55,7 +55,7 @@ Vc_INTRINSIC Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
 // load member functions{{{1
 template <typename T>
 template <typename U, typename Flags, typename>
-Vc_INTRINSIC void Vector<T>::load(const U *mem, Flags)
+Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::load(const U *mem, Flags)
 {
     m_data = mem[0];
 }
@@ -63,13 +63,13 @@ Vc_INTRINSIC void Vector<T>::load(const U *mem, Flags)
 // store member functions{{{1
 template <typename T>
 template <typename U, typename Flags, typename>
-Vc_INTRINSIC void Vector<T>::store(U *mem, Flags) const
+Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::store(U *mem, Flags) const
 {
     mem[0] = m_data;
 }
 template <typename T>
 template <typename U, typename Flags, typename>
-Vc_INTRINSIC void Vector<T>::store(U *mem, Mask mask, Flags) const
+Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::store(U *mem, Mask mask, Flags) const
 {
     if (mask.data())
         mem[0] = m_data;
@@ -78,16 +78,16 @@ Vc_INTRINSIC void Vector<T>::store(U *mem, Mask mask, Flags) const
 // gather {{{1
 template <typename T>
 template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void Vector<T>::gatherImplementation(const MT *mem, IT &&indexes)
+Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::gatherImplementation(const MT *mem,
+                                                                         IT &&indexes)
 {
     m_data = mem[indexes[0]];
 }
 
 template <typename T>
 template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void Vector<T>::gatherImplementation(const MT *mem,
-                                                      IT &&indexes,
-                                                      MaskArgument mask)
+Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::gatherImplementation(
+    const MT *mem, IT &&indexes, MaskArgument mask)
 {
     if (mask.data()) {
         m_data = mem[indexes[0]];
@@ -96,14 +96,17 @@ Vc_ALWAYS_INLINE void Vector<T>::gatherImplementation(const MT *mem,
 // scatter {{{1
 template <typename T>
 template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void Vector<T>::scatterImplementation(MT *mem, IT &&indexes) const
+Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::scatterImplementation(MT *mem,
+                                                                          IT &&indexes)
+    const
 {
     mem[indexes[0]] = m_data;
 }
 
 template <typename T>
 template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void Vector<T>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const
+Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::scatterImplementation(
+    MT *mem, IT &&indexes, MaskArgument mask) const
 {
     if (mask.data()) {
         mem[indexes[0]] = m_data;
@@ -112,7 +115,7 @@ Vc_ALWAYS_INLINE void Vector<T>::scatterImplementation(MT *mem, IT &&indexes, Ma
 
 // copySign {{{1
 template <>
-Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float> reference) const
+Vc_INTRINSIC Scalar::float_v Scalar::float_v::copySign(Scalar::float_v reference) const
 {
     union {
         float f;
@@ -121,9 +124,9 @@ Vc_INTRINSIC Vector<float> Vector<float>::copySign(Vector<float> reference) cons
     value.f = data();
     sign.f = reference.data();
     value.i = (sign.i & 0x80000000u) | (value.i & 0x7fffffffu);
-    return float_v(value.f);
+    return Scalar::float_v{value.f};
 }
-template<> Vc_INTRINSIC Vector<double> Vector<double>::copySign(Vector<double> reference) const
+template<> Vc_INTRINSIC Scalar::double_v Scalar::double_v::copySign(Scalar::double_v reference) const
 {
     union {
         double f;
@@ -132,7 +135,7 @@ template<> Vc_INTRINSIC Vector<double> Vector<double>::copySign(Vector<double> r
     value.f = data();
     sign.f = reference.data();
     value.i = (sign.i & 0x8000000000000000ull) | (value.i & 0x7fffffffffffffffull);
-    return double_v(value.f);
+    return Scalar::double_v{value.f};
 } // }}}1
 // bitwise operators {{{1
 #define VC_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
@@ -147,8 +150,8 @@ template<> Vc_ALWAYS_INLINE Vc_PURE VecT VecT::operator op(const VecT &x) const 
     VecT ret = *this; \
     return VecT(ret op##= x); \
 }
-#define VC_CAST_OPERATOR_FORWARD_FLOAT(op)  VC_CAST_OPERATOR_FORWARD(op, unsigned int, Vector<float>)
-#define VC_CAST_OPERATOR_FORWARD_DOUBLE(op) VC_CAST_OPERATOR_FORWARD(op, unsigned long long, Vector<double>)
+#define VC_CAST_OPERATOR_FORWARD_FLOAT(op)  VC_CAST_OPERATOR_FORWARD(op, unsigned int, Scalar::float_v)
+#define VC_CAST_OPERATOR_FORWARD_DOUBLE(op) VC_CAST_OPERATOR_FORWARD(op, unsigned long long, Scalar::double_v)
 VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_FLOAT)
 VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_DOUBLE)
 #undef VC_CAST_OPERATOR_FORWARD
@@ -156,19 +159,19 @@ VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_DOUBLE)
 #undef VC_CAST_OPERATOR_FORWARD_DOUBLE
 // }}}1
 // exponent {{{1
-template<> Vc_INTRINSIC Vector<float> Vector<float>::exponent() const
+template<> Vc_INTRINSIC Scalar::float_v Scalar::float_v::exponent() const
 {
     VC_ASSERT(m_data >= 0.f);
     union { float f; int i; } value;
     value.f = m_data;
-    return float_v(static_cast<float>((value.i >> 23) - 0x7f));
+    return Scalar::float_v(static_cast<float>((value.i >> 23) - 0x7f));
 }
-template<> Vc_INTRINSIC Vector<double> Vector<double>::exponent() const
+template<> Vc_INTRINSIC Scalar::double_v Scalar::double_v::exponent() const
 {
     VC_ASSERT(m_data >= 0.);
     union { double f; long long i; } value;
     value.f = m_data;
-    return double_v(static_cast<double>((value.i >> 52) - 0x3ff));
+    return Scalar::double_v(static_cast<double>((value.i >> 52) - 0x3ff));
 }
 // }}}1
 // FMA {{{1
@@ -207,39 +210,38 @@ template<typename T> Vc_ALWAYS_INLINE T _fusedMultiplyAdd(T a, T b, T c)
         return (ll + lh) + (c + hh);
     }
 }
-template<> Vc_ALWAYS_INLINE void float_v::fusedMultiplyAdd(const float_v &f, const float_v &s)
+template<> Vc_ALWAYS_INLINE void Scalar::float_v::fusedMultiplyAdd(const Scalar::float_v &f, const Scalar::float_v &s)
 {
     data() = _fusedMultiplyAdd(data(), f.data(), s.data());
 }
-template<> Vc_ALWAYS_INLINE void double_v::fusedMultiplyAdd(const double_v &f, const double_v &s)
+template<> Vc_ALWAYS_INLINE void Scalar::double_v::fusedMultiplyAdd(const Scalar::double_v &f, const Scalar::double_v &s)
 {
     data() = _fusedMultiplyAdd(data(), f.data(), s.data());
 }
 // Random {{{1
-static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
-        Vector<unsigned int> &state1)
+static Vc_ALWAYS_INLINE void _doRandomStep(Scalar::uint_v &state0, Scalar::uint_v &state1)
 {
     state0.load(&Common::RandomState[0]);
-    state1.load(&Common::RandomState[uint_v::Size]);
-    (state1 * 0xdeece66du + 11).store(&Common::RandomState[uint_v::Size]);
-    uint_v((state0 * 0xdeece66du + 11).data() ^ (state1.data() >> 16)).store(&Common::RandomState[0]);
+    state1.load(&Common::RandomState[Scalar::uint_v::Size]);
+    (state1 * 0xdeece66du + 11).store(&Common::RandomState[Scalar::uint_v::Size]);
+    Scalar::uint_v((state0 * 0xdeece66du + 11).data() ^ (state1.data() >> 16)).store(&Common::RandomState[0]);
 }
 
-template<typename T> Vc_INTRINSIC Vector<T> Vector<T>::Random()
+template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Scalar> Vector<T, VectorAbi::Scalar>::Random()
 {
-    Vector<unsigned int> state0, state1;
+    Scalar::uint_v state0, state1;
     _doRandomStep(state0, state1);
-    return Vector<T>(static_cast<EntryType>(state0.data()));
+    return Vector<T, VectorAbi::Scalar>(static_cast<EntryType>(state0.data()));
 }
-template<> Vc_INTRINSIC Vector<float> Vector<float>::Random()
+template<> Vc_INTRINSIC Scalar::float_v Scalar::float_v::Random()
 {
-    Vector<unsigned int> state0, state1;
+    Scalar::uint_v state0, state1;
     _doRandomStep(state0, state1);
     union { unsigned int i; float f; } x;
     x.i = (state0.data() & 0x0fffffffu) | 0x3f800000u;
-    return float_v(x.f - 1.f);
+    return Scalar::float_v(x.f - 1.f);
 }
-template<> Vc_INTRINSIC Vector<double> Vector<double>::Random()
+template<> Vc_INTRINSIC Scalar::double_v Scalar::double_v::Random()
 {
     typedef unsigned long long uint64 Vc_MAY_ALIAS;
     uint64 state0 = *reinterpret_cast<const uint64 *>(&Common::RandomState[8]);
@@ -247,48 +249,47 @@ template<> Vc_INTRINSIC Vector<double> Vector<double>::Random()
     *reinterpret_cast<uint64 *>(&Common::RandomState[8]) = state0;
     union { unsigned long long i; double f; } x;
     x.i = state0 | 0x3ff0000000000000ull;
-    return double_v(x.f - 1.);
+    return Scalar::double_v(x.f - 1.);
 }
 // isNegative {{{1
-template<typename T> Vc_INTRINSIC Vc_PURE typename Vector<T>::Mask Vector<T>::isNegative() const
+template<typename T> Vc_INTRINSIC Vc_PURE typename Vector<T, VectorAbi::Scalar>::Mask Vector<T, VectorAbi::Scalar>::isNegative() const
 {
     union { float f; unsigned int i; } u;
     u.f = m_data;
     return Mask(0u != (u.i & 0x80000000u));
 }
-template<> Vc_INTRINSIC Vc_PURE double_m double_v::isNegative() const
+template<> Vc_INTRINSIC Vc_PURE Scalar::double_m Scalar::double_v::isNegative() const
 {
     union { double d; unsigned long long l; } u;
     u.d = m_data;
-    return double_m(0ull != (u.l & 0x8000000000000000ull));
+    return Scalar::double_m(0ull != (u.l & 0x8000000000000000ull));
 }
 // setQnan {{{1
-template<typename T> Vc_INTRINSIC void Vector<T>::setQnan()
+template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::setQnan()
 {
     union { float f; unsigned int i; } u;
     u.i = 0xffffffffu;
     m_data = u.f;
 }
-template<> Vc_INTRINSIC void double_v::setQnan()
+template<> Vc_INTRINSIC void Scalar::double_v::setQnan()
 {
     union { double d; unsigned long long l; } u;
     u.l = 0xffffffffffffffffull;
     m_data = u.d;
 }
-template<typename T> Vc_INTRINSIC void Vector<T>::setQnan(Mask m)
+template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::setQnan(Mask m)
 {
     if (m.data()) {
         setQnan();
     }
 }
-template<> Vc_INTRINSIC void double_v::setQnan(Mask m)
+template<> Vc_INTRINSIC void Scalar::double_v::setQnan(Mask m)
 {
     if (m.data()) {
         setQnan();
     }
 }
 // }}}1
-}
 
 namespace Common
 {

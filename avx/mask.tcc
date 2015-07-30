@@ -28,147 +28,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace Detail
 {
-
-namespace internal
-{
-
-template<> Vc_ALWAYS_INLINE Vc_CONST m128  zero<m128 >() { return _mm_setzero_ps(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m128i zero<m128i>() { return _mm_setzero_si128(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m128d zero<m128d>() { return _mm_setzero_pd(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256  zero<m256 >() { return _mm256_setzero_ps(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256i zero<m256i>() { return _mm256_setzero_si256(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256d zero<m256d>() { return _mm256_setzero_pd(); }
-
-template<> Vc_ALWAYS_INLINE Vc_CONST m128  allone<m128 >() { return _mm_setallone_ps(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m128i allone<m128i>() { return _mm_setallone_si128(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m128d allone<m128d>() { return _mm_setallone_pd(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256  allone<m256 >() { return setallone_ps(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256i allone<m256i>() { return setallone_si256(); }
-template<> Vc_ALWAYS_INLINE Vc_CONST m256d allone<m256d>() { return setallone_pd(); }
-
-// mask_cast/*{{{*/
-template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE Vc_CONST R mask_cast(m128i k)
-{
-    static_assert(From == To, "Incorrect mask cast.");
-    static_assert(std::is_same<R, m128>::value, "Incorrect mask cast.");
-    return avx_cast<m128>(k);
-}
-
-template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE Vc_CONST R mask_cast(m256i k)
-{
-    static_assert(From == To, "Incorrect mask cast.");
-    static_assert(std::is_same<R, m256>::value, "Incorrect mask cast.");
-    return avx_cast<m256>(k);
-}
-
-// 4 -> 4
-template <> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<4, 4, m128>(m256i k)
-{
-    return avx_cast<m128>(_mm_packs_epi32(lo128(k), hi128(k)));
-}
-
-template <> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<4, 4, m256>(m128i k)
-{
-    const auto kk = _mm_castsi128_ps(k);
-    return concat(_mm_unpacklo_ps(kk, kk), _mm_unpackhi_ps(kk, kk));
-}
-
-// 4 -> 8
-template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<4, 8, m256>(m256i k)
-{
-    // aabb ccdd -> abcd 0000
-    return avx_cast<m256>(concat(_mm_packs_epi32(lo128(k), hi128(k)),
-                                 _mm_setzero_si128()));
-}
-
-template<> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<4, 8, m128>(m256i k)
-{
-    // aaaa bbbb cccc dddd -> abcd 0000
-    return avx_cast<m128>(_mm_packs_epi16(_mm_packs_epi32(lo128(k), hi128(k)), _mm_setzero_si128()));
-}
-
-template <> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<4, 8, m256>(m128i k)
-{
-    return zeroExtend(avx_cast<m128>(k));
-}
-
-template <> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<4, 8, m128>(m128i k)
-{
-    return avx_cast<m128>(_mm_packs_epi16(k, _mm_setzero_si128()));
-}
-
-// 8 -> 4
-template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<8, 4, m256>(m256i k)
-{
-    // aabb ccdd eeff gghh -> aaaa bbbb cccc dddd
-    const auto lo = lo128(avx_cast<m256>(k));
-    return concat(_mm_unpacklo_ps(lo, lo),
-                  _mm_unpackhi_ps(lo, lo));
-}
-
-template<> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<8, 4, m128>(m256i k)
-{
-    return avx_cast<m128>(lo128(k));
-}
-
-template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<8, 4, m256>(m128i k)
-{
-    // abcd efgh -> aaaa bbbb cccc dddd
-    const auto tmp = _mm_unpacklo_epi16(k, k); // aa bb cc dd
-    return avx_cast<m256>(concat(_mm_unpacklo_epi32(tmp, tmp), // aaaa bbbb
-                                 _mm_unpackhi_epi32(tmp, tmp))); // cccc dddd
-}
-
-template<> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<8, 4, m128>(m128i k)
-{
-    return avx_cast<m128>(_mm_unpacklo_epi16(k, k));
-}
-
-// 8 -> 8
-template<> Vc_ALWAYS_INLINE Vc_CONST m128 mask_cast<8, 8, m128>(m256i k)
-{
-    // aabb ccdd eeff gghh -> abcd efgh
-    return avx_cast<m128>(_mm_packs_epi16(lo128(k), hi128(k)));
-}
-
-template<> Vc_ALWAYS_INLINE Vc_CONST m256 mask_cast<8, 8, m256>(m128i k)
-{
-    return avx_cast<m256>(concat(_mm_unpacklo_epi16(k, k),
-                                 _mm_unpackhi_epi16(k, k)));
-}
-
-/*}}}*/
 // mask_to_int/*{{{*/
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<4>(m256i k)
+template<> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(__m256i k)
 {
-    return movemask(avx_cast<m256d>(k));
+    return movemask(AVX::avx_cast<__m256d>(k));
 }
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<8>(m256i k)
+template<> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(__m256i k)
 {
-    return movemask(avx_cast<m256>(k));
-}
-template <> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<4>(m128i k)
-{
-    return movemask(avx_cast<m256>(k));
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<8>(m128i k)
-{
-    return movemask(avx_cast<m128i>(_mm_packs_epi16(k, _mm_setzero_si128())));
+    return movemask(AVX::avx_cast<__m256>(k));
 }
 /*}}}*/
 // mask_store/*{{{*/
-template<size_t> Vc_ALWAYS_INLINE void mask_store(m256i k, bool *mem);
-template<size_t> Vc_ALWAYS_INLINE void mask_store(m128i k, bool *mem);
-template<> Vc_ALWAYS_INLINE void mask_store<4>(m256i k, bool *mem)
+template<size_t> Vc_INTRINSIC void mask_store(__m256i k, bool *mem);
+template<> Vc_INTRINSIC void mask_store<4>(__m256i k, bool *mem)
 {
     *reinterpret_cast<MayAlias<int32_t> *>(mem) =
-        (_mm_movemask_epi8(lo128(k)) | (_mm_movemask_epi8(hi128(k)) << 16)) & 0x01010101;
+        (_mm_movemask_epi8(AVX::lo128(k)) | (_mm_movemask_epi8(AVX::hi128(k)) << 16)) & 0x01010101;
 }
-template<> Vc_ALWAYS_INLINE void mask_store<8>(m256i k, bool *mem)
+template<> Vc_INTRINSIC void mask_store<8>(__m256i k, bool *mem)
 {
-    const auto k2 = _mm_srli_epi16(_mm_packs_epi16(lo128(k), hi128(k)), 15);
+    const auto k2 = _mm_srli_epi16(_mm_packs_epi16(AVX::lo128(k), AVX::hi128(k)), 15);
     const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
 #ifdef __x86_64__
     *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
@@ -177,79 +58,62 @@ template<> Vc_ALWAYS_INLINE void mask_store<8>(m256i k, bool *mem)
     *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
 #endif
 }
-template<> Vc_ALWAYS_INLINE void mask_store<8>(m128i k, bool *mem)
-{
-    k = _mm_srli_epi16(k, 15);
-    const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
-#ifdef __x86_64__
-    *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);
-#else
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k2);
-    *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k2, 1);
-#endif
-}
-template<> Vc_ALWAYS_INLINE void mask_store<4>(m128i k, bool *mem)
-{
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(
-        _mm_packs_epi16(_mm_srli_epi16(_mm_packs_epi32(k, _mm_setzero_si128()), 15),
-                        _mm_setzero_si128()));
-}
 /*}}}*/
 // mask_load/*{{{*/
-template<typename R, size_t> Vc_ALWAYS_INLINE R mask_load(const bool *mem);
-template<> Vc_ALWAYS_INLINE m128 mask_load<m128, 8>(const bool *mem)
+template<typename R, size_t> Vc_INTRINSIC R mask_load(const bool *mem);
+template<> Vc_INTRINSIC __m128 mask_load<__m128, 8>(const bool *mem)
 {
-    m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
-    return avx_cast<m128>(_mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
+    __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+    return AVX::avx_cast<__m128>(_mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
 }
-template<> Vc_ALWAYS_INLINE m128 mask_load<m128, 4>(const bool *mem)
+template<> Vc_INTRINSIC __m128 mask_load<__m128, 4>(const bool *mem)
 {
-    m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int32_t *>(mem));
+    __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int32_t *>(mem));
     k = _mm_unpacklo_epi8(k, k);
     k = _mm_unpacklo_epi16(k, k);
     k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
-    return avx_cast<m128>(k);
+    return AVX::avx_cast<__m128>(k);
 }
-template<> Vc_ALWAYS_INLINE m256 mask_load<m256, 8>(const bool *mem)
+template<> Vc_INTRINSIC __m256 mask_load<__m256, 8>(const bool *mem)
 {
-    m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+    __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
     k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
 
-    return avx_cast<m256>(concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k)));
+    return AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k)));
 }
-template<> Vc_ALWAYS_INLINE m256 mask_load<m256, 4>(const bool *mem)
+template<> Vc_INTRINSIC __m256 mask_load<__m256, 4>(const bool *mem)
 {
-    m128i k = avx_cast<m128i>(_mm_and_ps(_mm_set1_ps(*reinterpret_cast<const float *>(mem)),
-                avx_cast<m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))
+    __m128i k = AVX::avx_cast<__m128i>(_mm_and_ps(_mm_set1_ps(*reinterpret_cast<const float *>(mem)),
+                AVX::avx_cast<__m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))
                 ));
     k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
-    return avx_cast<m256>(concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
+    return AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
 }
 /*}}}*/
 
-} // namespace internal
+} // namespace Detail
 
 // store {{{1
-template<typename T> Vc_ALWAYS_INLINE void Mask<T>::store(bool *mem) const
+template<typename T> Vc_INTRINSIC void AVX2::Mask<T>::store(bool *mem) const
 {
-    internal::mask_store<Size>(dataI(), mem);
+    Detail::mask_store<Size>(dataI(), mem);
 }
 // load {{{1
-template<typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
+template<typename T> Vc_INTRINSIC void AVX2::Mask<T>::load(const bool *mem)
 {
-    d.v() = avx_cast<VectorType>(internal::mask_load<VectorTypeF, Size>(mem));
+    d.v() = AVX::avx_cast<VectorType>(Detail::mask_load<VectorTypeF, Size>(mem));
 }
 // operator[] {{{1
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE bool Mask<T>::operator[](size_t index) const { return toInt() & (1 << index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+template<typename T> Vc_INTRINSIC Vc_PURE bool AVX2::Mask<T>::operator[](size_t index) const { return toInt() & (1 << index); }
+template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 // operator== {{{1
-template <> Vc_INTRINSIC Vc_PURE bool double_m::operator==(const double_m &rhs) const
-{ return internal::movemask(dataD()) == internal::movemask(rhs.dataD()); }
-template <> Vc_INTRINSIC Vc_PURE bool short_m::operator==(const short_m &rhs) const
-{ return internal::movemask(dataI()) == internal::movemask(rhs.dataI()); }
-template <> Vc_INTRINSIC Vc_PURE bool ushort_m::operator==(const ushort_m &rhs) const
-{ return internal::movemask(dataI()) == internal::movemask(rhs.dataI()); }
+template <> Vc_INTRINSIC Vc_PURE bool AVX2::double_m::operator==(const AVX2::double_m &rhs) const
+{ return Detail::movemask(dataD()) == Detail::movemask(rhs.dataD()); }
+template <> Vc_INTRINSIC Vc_PURE bool AVX2::short_m::operator==(const AVX2::short_m &rhs) const
+{ return Detail::movemask(dataI()) == Detail::movemask(rhs.dataI()); }
+template <> Vc_INTRINSIC Vc_PURE bool AVX2::ushort_m::operator==(const AVX2::ushort_m &rhs) const
+{ return Detail::movemask(dataI()) == Detail::movemask(rhs.dataI()); }
 // generate {{{1
 template <typename M, typename G>
 Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 32>)
@@ -282,33 +146,33 @@ Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 16>)
 }
 template <typename T>
 template <typename G>
-Vc_INTRINSIC Mask<T> Mask<T>::generate(G &&gen)
+Vc_INTRINSIC AVX2::Mask<T> AVX2::Mask<T>::generate(G &&gen)
 {
-    return generate_impl<Mask<T>>(std::forward<G>(gen),
+    return generate_impl<AVX2::Mask<T>>(std::forward<G>(gen),
                                   std::integral_constant<int, Size + sizeof(Storage)>());
 }
 // shifted {{{1
 template <int amount, typename T>
 Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount >= 16), T> shifted_impl(T k)
 {
-    return zeroExtend(_mm_srli_si128(hi128(k), amount - 16));
+    return AVX::zeroExtend(_mm_srli_si128(AVX::hi128(k), amount - 16));
 }
 template <int amount, typename T>
 Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > 0 && amount < 16), T>
     shifted_impl(T k)
 {
-    return alignr<amount>(Mem::permute128<X1, Const0>(k), Mem::permute128<X0, X1>(k));
+    return AVX::alignr<amount>(Mem::permute128<X1, Const0>(k), Mem::permute128<X0, X1>(k));
 }
 template <int amount, typename T>
 Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount <= -16), T> shifted_impl(T k)
 {
-    return Mem::permute128<Const0, X0>(avx_cast<m256i>(_mm_slli_si128(lo128(k), -16 - amount)));
+    return Mem::permute128<Const0, X0>(AVX::avx_cast<__m256i>(_mm_slli_si128(AVX::lo128(k), -16 - amount)));
 }
 template <int amount, typename T>
 Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > -16 && amount < 0), T>
     shifted_impl(T k)
 {
-    return alignr<16 + amount>(k, Mem::permute128<Const0, X0>(k));
+    return AVX::alignr<16 + amount>(k, Mem::permute128<Const0, X0>(k));
 }
 template <int amount, typename T>
 Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount > 0), T> shifted_impl(T k)
@@ -320,7 +184,7 @@ Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount < 0), T> shifted_impl(
 {
     return _mm_slli_si128(k, -amount);
 }
-template <typename T> Vc_INTRINSIC Vc_PURE Mask<T> Mask<T>::shifted(int amount) const
+template <typename T> Vc_INTRINSIC Vc_PURE AVX2::Mask<T> AVX2::Mask<T>::shifted(int amount) const
 {
     switch (amount * int(sizeof(VectorEntryType))) {
     case   0: return *this;
@@ -392,43 +256,43 @@ template <typename T> Vc_INTRINSIC Vc_PURE Mask<T> Mask<T>::shifted(int amount) 
 // }}}1
 
 /*
-template<> Vc_ALWAYS_INLINE Mask< 4, 32> &Mask< 4, 32>::operator=(const std::array<bool, 4> &values) {
+template<> Vc_INTRINSIC AVX2::Mask< 4, 32> &AVX2::Mask< 4, 32>::operator=(const std::array<bool, 4> &values) {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
     unsigned int x = *reinterpret_cast<const unsigned int *>(values.data());
     x *= 0xffu;
-    m128i y = _mm_cvtsi32_si128(x); //  4 Bytes
+    __m128i y = _mm_cvtsi32_si128(x); //  4 Bytes
     y = _mm_unpacklo_epi8(y, y);    //  8 Bytes
     y = _mm_unpacklo_epi16(y, y);   // 16 Bytes
-    d.v() = avx_cast<m256>(concat(_mm_unpacklo_epi32(y, y), _mm_unpackhi_epi32(y, y)));
+    d.v() = AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi32(y, y), _mm_unpackhi_epi32(y, y)));
     return *this;
 }
-template<> Vc_ALWAYS_INLINE Mask< 8, 32> &Mask< 8, 32>::operator=(const std::array<bool, 8> &values) {
+template<> Vc_INTRINSIC AVX2::Mask< 8, 32> &AVX2::Mask< 8, 32>::operator=(const std::array<bool, 8> &values) {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
     unsigned long long x = *reinterpret_cast<const unsigned long long *>(values.data());
     x *= 0xffull;
-    m128i y = _mm_cvtsi64_si128(x); //  8 Bytes
+    __m128i y = _mm_cvtsi64_si128(x); //  8 Bytes
     y = _mm_unpacklo_epi8(y, y);   // 16 Bytes
-    d.v() = avx_cast<m256>(concat(_mm_unpacklo_epi16(y, y), _mm_unpackhi_epi16(y, y)));
+    d.v() = AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi16(y, y), _mm_unpackhi_epi16(y, y)));
     return *this;
 }
-template<> Vc_ALWAYS_INLINE Mask< 8, 16> &Mask< 8, 16>::operator=(const std::array<bool, 8> &values) {
+template<> Vc_INTRINSIC AVX2::Mask< 8, 16> &AVX2::Mask< 8, 16>::operator=(const std::array<bool, 8> &values) {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
     unsigned long long x = *reinterpret_cast<const unsigned long long *>(values.data());
     x *= 0xffull;
-    m128i y = _mm_cvtsi64_si128(x); //  8 Bytes
-    d.v() = avx_cast<m128>(_mm_unpacklo_epi8(y, y));
+    __m128i y = _mm_cvtsi64_si128(x); //  8 Bytes
+    d.v() = AVX::avx_cast<__m128>(_mm_unpacklo_epi8(y, y));
     return *this;
 }
-template<> Vc_ALWAYS_INLINE Mask<16, 16> &Mask<16, 16>::operator=(const std::array<bool, 16> &values) {
+template<> Vc_INTRINSIC AVX2::Mask<16, 16> &AVX2::Mask<16, 16>::operator=(const std::array<bool, 16> &values) {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
-    m128i x = _mm_loadu_si128(reinterpret_cast<const __m128i *>(values.data()));
-    d.v() = _mm_andnot_ps(_mm_setallone_ps(), avx_cast<m128>(_mm_sub_epi8(x, _mm_set1_epi8(1))));
+    __m128i x = _mm_loadu_si128(reinterpret_cast<const __m128i *>(values.data()));
+    d.v() = _mm_andnot_ps(AVX::_mm_setallone_ps(), AVX::avx_cast<__m128>(_mm_sub_epi8(x, _mm_set1_epi8(1))));
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Mask< 4, 32>::operator std::array<bool, 4>() const {
+template<> Vc_INTRINSIC AVX2::Mask< 4, 32>::operator std::array<bool, 4>() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
-    m128i x = _mm_packs_epi32(lo128(dataI()), hi128(dataI())); // 64bit -> 32bit
+    __m128i x = _mm_packs_epi32(AVX::lo128(dataI()), AVX::hi128(dataI())); // 64bit -> 32bit
     x = _mm_packs_epi32(x, x); // 32bit -> 16bit
     x = _mm_srli_epi16(x, 15);
     x = _mm_packs_epi16(x, x); // 16bit ->  8bit
@@ -436,33 +300,32 @@ template<> Vc_ALWAYS_INLINE Mask< 4, 32>::operator std::array<bool, 4>() const {
     asm volatile("vmovd %1,%0" : "=m"(*r.data()) : "x"(x));
     return r;
 }
-template<> Vc_ALWAYS_INLINE Mask< 8, 32>::operator std::array<bool, 8>() const {
+template<> Vc_INTRINSIC AVX2::Mask< 8, 32>::operator std::array<bool, 8>() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
-    m128i x = _mm_packs_epi32(lo128(dataI()), hi128(dataI())); // 32bit -> 16bit
+    __m128i x = _mm_packs_epi32(AVX::lo128(dataI()), AVX::hi128(dataI())); // 32bit -> 16bit
     x = _mm_srli_epi16(x, 15);
     x = _mm_packs_epi16(x, x); // 16bit ->  8bit
     std::array<bool, 8> r;
     asm volatile("vmovq %1,%0" : "=m"(*r.data()) : "x"(x));
     return r;
 }
-template<> Vc_ALWAYS_INLINE Mask< 8, 16>::operator std::array<bool, 8>() const {
+template<> Vc_INTRINSIC AVX2::Mask< 8, 16>::operator std::array<bool, 8>() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
-    m128i x = _mm_srli_epi16(dataI(), 15);
+    __m128i x = _mm_srli_epi16(dataI(), 15);
     x = _mm_packs_epi16(x, x); // 16bit ->  8bit
     std::array<bool, 8> r;
     asm volatile("vmovq %1,%0" : "=m"(*r.data()) : "x"(x));
     return r;
 }
-template<> Vc_ALWAYS_INLINE Mask<16, 16>::operator std::array<bool, 16>() const {
+template<> Vc_INTRINSIC AVX2::Mask<16, 16>::operator std::array<bool, 16>() const {
     static_assert(sizeof(bool) == 1, "Vc expects bool to have a sizeof 1 Byte");
-    m128 x = _mm_and_ps(d.v(), avx_cast<m128>(_mm_set1_epi32(0x01010101)));
+    __m128 x = _mm_and_ps(d.v(), AVX::avx_cast<__m128>(_mm_set1_epi32(0x01010101)));
     std::array<bool, 16> r;
     asm volatile("vmovups %1,%0" : "=m"(*r.data()) : "x"(x));
     return r;
 }
 */
 
-}
 }
 
 // vim: foldmethod=marker

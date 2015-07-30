@@ -42,10 +42,11 @@ constexpr float MAXLOGF = 88.72283905206835f;
 constexpr float MINLOGF = -103.278929903431851103f; /* log(2^-149) */
 constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
-    template<typename T> inline Vector<T> exp(VC_ALIGNED_PARAMETER(Vector<T>) _x) {
-        typedef Vector<T> V;
+template <typename T, typename Abi, typename V = Vector<T, Abi>>
+inline Vector<T, Abi> exp(VC_ALIGNED_PARAMETER(V) _x)
+{
         typedef typename V::Mask M;
-        typedef Vc_IMPL_NAMESPACE::Const<T> C;
+    typedef Detail::Const<T, Abi> C;
 
         V x(_x);
 

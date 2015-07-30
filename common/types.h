@@ -42,14 +42,33 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 using std::size_t;
 
-enum class VectorAbi : unsigned int { Scalar, Sse, Avx, Mic };
+namespace VectorAbi
+{
+struct Scalar;
+struct Sse;
+struct Avx;
+struct Mic;
+template <typename T>
+using Best =
+#if defined VC_IMPL_MIC
+    Mic;
+#elif defined VC_IMPL_AVX2
+    Avx;
+#elif defined VC_IMPL_AVX
+    typename std::conditional<std::is_integral<T>::value, Sse, Avx>::type;
+#elif defined VC_IMPL_SSE
+    Sse;
+#else
+    Scalar;
+#endif
+}  // namespace VectorAbi
 
-template<typename T, typename VectorAbi> class Vector;
-template<typename T, typename VectorAbi> class Mask;
+template<typename T, typename Abi = VectorAbi::Best<T>> class Vector;
+template<typename T, typename Abi = VectorAbi::Best<T>> class Mask;
 
 namespace Detail
 {
-template<typename T> struct MayAlias { typedef T type Vc_MAY_ALIAS; };
+template<typename T> struct MayAliasImpl { typedef T type Vc_MAY_ALIAS; };
 //template<size_t Bytes> struct MayAlias<MaskBool<Bytes>> { typedef MaskBool<Bytes> type; };
 /**\internal
  * Helper MayAlias<T> that turns T into the type to be used for an aliasing pointer. This
@@ -58,7 +77,7 @@ template<typename T> struct MayAlias { typedef T type Vc_MAY_ALIAS; };
  * therefore MaskBool is simply forwarded as is.
  */
 }  // namespace Detail
-template <typename T> using MayAlias = typename Detail::MayAlias<T>::type;
+template <typename T> using MayAlias = typename Detail::MayAliasImpl<T>::type;
 
 enum class Operator : char {
     Assign,
@@ -139,8 +158,6 @@ public:
 
 // TODO: all of the following doesn't really belong into the toplevel Vc namespace. An anonymous
 // namespace might be enough:
-
-template<typename T> struct DetermineEntryType { typedef T Type; };
 
 // TODO: convert to enum classes
 namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }

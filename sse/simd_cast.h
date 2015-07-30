@@ -772,7 +772,7 @@ Vc_INTRINSIC Vc_CONST Return
     simd_cast(SSE::Mask<T> x, enable_if<SSE::is_mask<Return>::value> = nullarg)
 {
     using M = SSE::Mask<T>;
-    return {SSE::sse_cast<__m128>(SSE::internal::mask_cast<M::Size, Return::Size>(x.dataI()))};
+    return {Detail::mask_cast<M::Size, Return::Size, __m128>(x.dataI())};
 }
 // 2 SSE Masks to 1 SSE Mask {{{2
 template <typename Return, typename T>

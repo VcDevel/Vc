@@ -46,7 +46,7 @@ namespace SSE
 {
 constexpr std::size_t VectorAlignment = 16;
 
-template <typename T> class Vector;
+template <typename T> using Vector = Vc::Vector<T, VectorAbi::Sse>;
 typedef Vector<double>         double_v;
 typedef Vector<float>           float_v;
 typedef Vector<int>               int_v;
@@ -54,13 +54,15 @@ typedef Vector<unsigned int>     uint_v;
 typedef Vector<short>           short_v;
 typedef Vector<unsigned short> ushort_v;
 
-template <typename T> class Mask;
+template <typename T> using Mask = Vc::Mask<T, VectorAbi::Sse>;
 typedef Mask<double>         double_m;
 typedef Mask<float>           float_m;
 typedef Mask<int>               int_m;
 typedef Mask<unsigned int>     uint_m;
 typedef Mask<short>           short_m;
 typedef Mask<unsigned short> ushort_m;
+
+template <typename T> struct Const;
 
 template <typename V = Vector<float>>
 class

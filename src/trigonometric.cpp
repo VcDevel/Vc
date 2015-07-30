@@ -40,64 +40,72 @@ namespace Common
 
 namespace
 {
-    using Vc::Vector;
-    using Vc::float_v;
-    using Vc::double_v;
-    using Vc_IMPL_NAMESPACE::Const;
+using Vc::Vector;
+template <typename Abi> using float_v = Vc::Vector<float, Abi>;
+template <typename Abi> using double_v = Vc::Vector<double, Abi>;
+template <typename T, typename Abi>
+using Const = typename std::conditional<std::is_same<Abi, VectorAbi::Avx>::value,
+                                        AVX::Const<T>, SSE::Const<T>>::type;
 
-    template <typename V>
-    using best_int_v_for = typename std::conditional<(V::size() <= int_v::size()), int_v,
-                                                     SimdArray<int, V::size()>>::type;
-    using float_int_v = best_int_v_for<float_v>;
-    using double_int_v = best_int_v_for<double_v>;
+template <typename V>
+using best_int_v_for = typename std::conditional<
+    (V::size() <= Vector<int, typename V::abi>::size()), Vector<int, typename V::abi>,
+    SimdArray<int, V::size()>>::type;
+template <typename Abi> using float_int_v = best_int_v_for<float_v<Abi>>;
+template <typename Abi> using double_int_v = best_int_v_for<double_v<Abi>>;
 
-    template<typename T> static Vc_ALWAYS_INLINE Vector<T> cosSeries(const Vector<T> &x)
-    {
-        typedef Const<T> C;
-        const Vector<T> x2 = x * x;
-        return ((C::cosCoeff(2)  * x2 +
-                 C::cosCoeff(1)) * x2 +
-                 C::cosCoeff(0)) * (x2 * x2)
-            - C::_1_2() * x2 + Vector<T>::One();
-    }
-    static Vc_ALWAYS_INLINE double_v cosSeries(const double_v &x)
-    {
-        typedef Const<double> C;
-        const double_v x2 = x * x;
-        return (((((C::cosCoeff(5)  * x2 +
-                    C::cosCoeff(4)) * x2 +
-                    C::cosCoeff(3)) * x2 +
-                    C::cosCoeff(2)) * x2 +
-                    C::cosCoeff(1)) * x2 +
-                    C::cosCoeff(0)) * (x2 * x2)
-            - C::_1_2() * x2 + double_v::One();
-    }
-    template<typename T> static Vc_ALWAYS_INLINE Vector<T> sinSeries(const Vector<T> &x)
-    {
-        typedef Const<T> C;
-        const Vector<T> x2 = x * x;
-        return ((C::sinCoeff(2)  * x2 +
-                 C::sinCoeff(1)) * x2 +
-                 C::sinCoeff(0)) * (x2 * x)
-            + x;
-    }
-    static Vc_ALWAYS_INLINE double_v sinSeries(const double_v &x)
-    {
-        typedef Const<double> C;
-        const double_v x2 = x * x;
-        return (((((C::sinCoeff(5)  * x2 +
-                    C::sinCoeff(4)) * x2 +
-                    C::sinCoeff(3)) * x2 +
-                    C::sinCoeff(2)) * x2 +
-                    C::sinCoeff(1)) * x2 +
-                    C::sinCoeff(0)) * (x2 * x)
-            + x;
-    }
+template <typename T, typename Abi>
+static Vc_ALWAYS_INLINE Vector<T, Abi> cosSeries(const Vector<T, Abi> &x)
+{
+    typedef Const<T, Abi> C;
+    const Vector<T, Abi> x2 = x * x;
+    return ((C::cosCoeff(2)  * x2 +
+             C::cosCoeff(1)) * x2 +
+             C::cosCoeff(0)) * (x2 * x2)
+        - C::_1_2() * x2 + Vector<T, Abi>::One();
+}
+template <typename Abi>
+static Vc_ALWAYS_INLINE double_v<Abi> cosSeries(const double_v<Abi> &x)
+{
+    typedef Const<double, Abi> C;
+    const double_v<Abi> x2 = x * x;
+    return (((((C::cosCoeff(5)  * x2 +
+                C::cosCoeff(4)) * x2 +
+                C::cosCoeff(3)) * x2 +
+                C::cosCoeff(2)) * x2 +
+                C::cosCoeff(1)) * x2 +
+                C::cosCoeff(0)) * (x2 * x2)
+        - C::_1_2() * x2 + double_v<Abi>::One();
+}
+template <typename T, typename Abi>
+static Vc_ALWAYS_INLINE Vector<T, Abi> sinSeries(const Vector<T, Abi> &x)
+{
+    typedef Const<T, Abi> C;
+    const Vector<T, Abi> x2 = x * x;
+    return ((C::sinCoeff(2)  * x2 +
+             C::sinCoeff(1)) * x2 +
+             C::sinCoeff(0)) * (x2 * x)
+        + x;
+}
+template <typename Abi>
+static Vc_ALWAYS_INLINE double_v<Abi> sinSeries(const double_v<Abi> &x)
+{
+    typedef Const<double, Abi> C;
+    const double_v<Abi> x2 = x * x;
+    return (((((C::sinCoeff(5)  * x2 +
+                C::sinCoeff(4)) * x2 +
+                C::sinCoeff(3)) * x2 +
+                C::sinCoeff(2)) * x2 +
+                C::sinCoeff(1)) * x2 +
+                C::sinCoeff(0)) * (x2 * x)
+        + x;
+}
 
-    template<typename _T, typename IV> static Vc_ALWAYS_INLINE Vector<_T> foldInput(const Vector<_T> &_x, IV &quadrant)
-    {
-        typedef Vector<_T> V;
-        typedef Const<_T> C;
+template <typename _T, typename IV, typename Abi>
+static Vc_ALWAYS_INLINE Vector<_T, Abi> foldInput(const Vector<_T, Abi> &_x, IV &quadrant)
+{
+    typedef Vector<_T, Abi> V;
+    typedef Const<_T, Abi> C;
 
         const V x = abs(_x);
 #if defined(VC_IMPL_FMA4) || defined(VC_IMPL_FMA)
@@ -112,16 +120,18 @@ namespace
 
         return ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
     }
-    static Vc_ALWAYS_INLINE double_v foldInput(const double_v &_x, double_int_v &quadrant)
-    {
-        typedef double_v V;
-        typedef Const<double> C;
+template <typename Abi>
+static Vc_ALWAYS_INLINE double_v<Abi> foldInput(const double_v<Abi> &_x,
+                                                double_int_v<Abi> &quadrant)
+{
+    typedef Vector<double, Abi> V;
+    typedef Const<double, Abi> C;
 
         const V x = abs(_x);
         V y = trunc(x / C::_pi_4()); // * C::_4_pi() would work, but is >twice as imprecise
         V z = y - trunc(y * C::_1_16()) * C::_16(); // y modulo 16
-        quadrant = static_cast<double_int_v>(z);
-        int_m mask = (quadrant & double_int_v::One()) != double_int_v::Zero();
+        quadrant = static_cast<double_int_v<Abi>>(z);
+        int_m mask = (quadrant & double_int_v<Abi>::One()) != double_int_v<Abi>::Zero();
         ++quadrant(mask);
         y(static_cast<double_m>(mask)) += V::One();
         quadrant &= 7;
@@ -164,19 +174,19 @@ template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImple
     return y;
 }
 
-template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sin(const double_v &_x)
+template<> template<> Vc::double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sin(const Vc::double_v &_x)
 {
-    typedef double_v V;
+    typedef Vc::double_v V;
     typedef V::Mask M;
 
-    double_int_v quadrant;
+    double_int_v<V::abi> quadrant;
     M sign = _x < V::Zero();
     const V x = foldInput(_x, quadrant);
     sign ^= static_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
 
     V y = sinSeries(x);
-    y(static_cast<M>(quadrant == double_int_v::One() || quadrant == 2)) = cosSeries(x);
+    y(static_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = cosSeries(x);
     y(sign) = -y;
     return y;
 }
@@ -195,19 +205,19 @@ template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImple
     y(sign) = -y;
     return y;
 }
-template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::cos(const double_v &_x)
+template<> template<> Vc::double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::cos(const Vc::double_v &_x)
 {
-    typedef double_v V;
+    typedef Vc::double_v V;
     typedef V::Mask M;
 
-    double_int_v quadrant;
+    double_int_v<V::abi> quadrant;
     const V x = foldInput(_x, quadrant);
     M sign = static_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
-    sign ^= static_cast<M>(quadrant > double_int_v::One());
+    sign ^= static_cast<M>(quadrant > double_int_v<V::abi>::One());
 
     V y = cosSeries(x);
-    y(static_cast<M>(quadrant == double_int_v::One() || quadrant == 2)) = sinSeries(x);
+    y(static_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = sinSeries(x);
     y(sign) = -y;
     return y;
 }
@@ -233,11 +243,11 @@ template<> template<typename V> void Trigonometric<Vc::Internal::TrigonometricIm
     s(sign ^ static_cast<M>(_x < V::Zero())) = -s;
     *_sin = s;
 }
-template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sincos(const double_v &_x, double_v *_sin, double_v *_cos) {
-    typedef double_v V;
+template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sincos(const Vc::double_v &_x, Vc::double_v *_sin, Vc::double_v *_cos) {
+    typedef Vc::double_v V;
     typedef V::Mask M;
 
-    double_int_v quadrant;
+    double_int_v<V::abi> quadrant;
     const V x = foldInput(_x, quadrant);
     M sign = static_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
@@ -246,18 +256,18 @@ template<> template<> void Trigonometric<Vc::Internal::TrigonometricImplementati
     const V sin_s = sinSeries(x);
 
     V c = cos_s;
-    c(static_cast<M>(quadrant == double_int_v::One() || quadrant == 2)) = sin_s;
-    c(sign ^ static_cast<M>(quadrant > double_int_v::One())) = -c;
+    c(static_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = sin_s;
+    c(sign ^ static_cast<M>(quadrant > double_int_v<V::abi>::One())) = -c;
     *_cos = c;
 
     V s = sin_s;
-    s(static_cast<M>(quadrant == double_int_v::One() || quadrant == 2)) = cos_s;
+    s(static_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = cos_s;
     s(sign ^ static_cast<M>(_x < V::Zero())) = -s;
     *_sin = s;
 }
 template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::asin (const V &_x) {
     typedef typename V::EntryType T;
-    typedef Const<T> C;
+    typedef Const<T, typename V::abi> C;
     typedef typename V::Mask M;
 
     const M &negative = _x < V::Zero();
@@ -283,9 +293,9 @@ template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImple
 
     return z;
 }
-template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::asin (const double_v &_x) {
-    typedef Const<double> C;
-    typedef double_v V;
+template<> template<> Vc::double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::asin (const Vc::double_v &_x) {
+    typedef Vc::double_v V;
+    typedef Const<double, V::abi> C;
     typedef V::Mask M;
 
     const M negative = _x < V::Zero();
@@ -320,7 +330,7 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
 }
 template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan (const V &_x) {
     typedef typename V::EntryType T;
-    typedef Const<T> C;
+    typedef Const<T, typename V::abi> C;
     typedef typename V::Mask M;
     V x = abs(_x);
     const M &gt_tan_3pi_8 = x > C::atanThrsHi();
@@ -340,9 +350,9 @@ template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImple
     y.setQnan(isnan(_x));
     return y;
 }
-template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan (const double_v &_x) {
-    typedef Const<double> C;
-    typedef double_v V;
+template<> template<> Vc::double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan (const Vc::double_v &_x) {
+    typedef Vc::double_v V;
+    typedef Const<double, V::abi> C;
     typedef V::Mask M;
 
     M sign = _x < V::Zero();
@@ -372,7 +382,7 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
 }
 template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan2(const V &y, const V &x) {
     typedef typename V::EntryType T;
-    typedef Const<T> C;
+    typedef Const<T, typename V::abi> C;
     typedef typename V::Mask M;
 
     const M xZero = x == V::Zero();
@@ -411,9 +421,9 @@ template<> template<typename V> V Trigonometric<Vc::Internal::TrigonometricImple
 
     return a;
 }
-template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan2 (const double_v &y, const double_v &x) {
-    typedef Const<double> C;
-    typedef double_v V;
+template<> template<> Vc::double_v Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan2 (const Vc::double_v &y, const Vc::double_v &x) {
+    typedef Vc::double_v V;
+    typedef Const<double, V::abi> C;
     typedef V::Mask M;
 
     const M xZero = x == V::Zero();
@@ -459,15 +469,10 @@ template<> template<> double_v Trigonometric<Vc::Internal::TrigonometricImplemen
 #include <common/undomacros.h>
 
 // instantiate the non-specialized template functions above
-template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sin(const Vc::float_v  &);
-
-template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::cos(const Vc::float_v  &);
-
-template void Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sincos(const Vc::float_v  &, Vc::float_v  *, Vc::float_v  *);
-
-template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::asin(const Vc::float_v  &);
-
-template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan(const Vc::float_v  &);
-
-template Vc::float_v  Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan2(const Vc::float_v  &, const Vc::float_v  &);
+template Vc::float_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sin(const Vc::float_v &);
+template Vc::float_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::cos(const Vc::float_v &);
+template Vc::float_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::asin(const Vc::float_v &);
+template Vc::float_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan(const Vc::float_v &);
+template Vc::float_v Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan2(const Vc::float_v &, const Vc::float_v &);
+template void Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sincos(const Vc::float_v &, Vc::float_v *, Vc::float_v *);
 #endif

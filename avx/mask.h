@@ -35,54 +35,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/storage.h"
 #include "../common/bitscanintrinsics.h"
 #include "../common/maskentry.h"
+#include "detail.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+template <typename T> class Mask<T, VectorAbi::Avx>
 {
-
-namespace internal {
-template<typename V> Vc_ALWAYS_INLINE_L Vc_CONST_L V zero() Vc_ALWAYS_INLINE_R Vc_CONST_R;
-template<typename V> Vc_ALWAYS_INLINE_L Vc_CONST_L V allone() Vc_ALWAYS_INLINE_R Vc_CONST_R;
-template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE_L Vc_CONST_L R mask_cast(m128i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
-template<size_t From, size_t To, typename R> Vc_ALWAYS_INLINE_L Vc_CONST_L R mask_cast(m256i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
-template<size_t Size> Vc_ALWAYS_INLINE_L Vc_CONST_L int mask_to_int(m128i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
-template<size_t Size> Vc_ALWAYS_INLINE_L Vc_CONST_L int mask_to_int(m256i) Vc_ALWAYS_INLINE_R Vc_CONST_R;
-Vc_INTRINSIC Vc_CONST int testc(m128 a, m128 b) { return _mm_testc_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
-Vc_INTRINSIC Vc_CONST int testc(m256 a, m256 b) { return _mm256_testc_ps(a, b); }
-Vc_INTRINSIC Vc_CONST int testz(m128 a, m128 b) { return _mm_testz_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
-Vc_INTRINSIC Vc_CONST int testz(m256 a, m256 b) { return _mm256_testz_ps(a, b); }
-Vc_INTRINSIC Vc_CONST int testnzc(m128 a, m128 b) { return _mm_testnzc_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
-Vc_INTRINSIC Vc_CONST int testnzc(m256 a, m256 b) { return _mm256_testnzc_ps(a, b); }
-Vc_INTRINSIC Vc_CONST m256 andnot_(param256 a, param256 b) { return _mm256_andnot_ps(a, b); }
-Vc_INTRINSIC Vc_CONST m128 andnot_(param128 a, param128 b) { return _mm_andnot_ps(a, b); }
-Vc_INTRINSIC Vc_CONST m256 and_(param256 a, param256 b) { return _mm256_and_ps(a, b); }
-Vc_INTRINSIC Vc_CONST m128 and_(param128 a, param128 b) { return _mm_and_ps(a, b); }
-Vc_INTRINSIC Vc_CONST m256 or_(param256 a, param256 b) { return _mm256_or_ps(a, b); }
-Vc_INTRINSIC Vc_CONST m128 or_(param128 a, param128 b) { return _mm_or_ps(a, b); }
-Vc_INTRINSIC Vc_CONST m256 xor_(param256 a, param256 b) { return _mm256_xor_ps(a, b); }
-Vc_INTRINSIC Vc_CONST m128 xor_(param128 a, param128 b) { return _mm_xor_ps(a, b); }
-Vc_INTRINSIC Vc_CONST int movemask(param256i a) { return movemask_epi8(a); }
-Vc_INTRINSIC Vc_CONST int movemask(param128i a) { return _mm_movemask_epi8(a); }
-Vc_INTRINSIC Vc_CONST int movemask(param256d a) { return _mm256_movemask_pd(a); }
-Vc_INTRINSIC Vc_CONST int movemask(param128d a) { return _mm_movemask_pd(a); }
-Vc_INTRINSIC Vc_CONST int movemask(param256  a) { return _mm256_movemask_ps(a); }
-Vc_INTRINSIC Vc_CONST int movemask(param128  a) { return _mm_movemask_ps(a); }
-
-} // namespace internal
-
-template<typename T> class Mask
-{
-    friend class Mask<  double>;
-    friend class Mask<   float>;
-    friend class Mask< int32_t>;
-    friend class Mask<uint32_t>;
-    friend class Mask< int16_t>;
-    friend class Mask<uint16_t>;
+    friend class Mask<  double, VectorAbi::Avx>;
+    friend class Mask<   float, VectorAbi::Avx>;
+    friend class Mask< int32_t, VectorAbi::Avx>;
+    friend class Mask<uint32_t, VectorAbi::Avx>;
+    friend class Mask< int16_t, VectorAbi::Avx>;
+    friend class Mask<uint16_t, VectorAbi::Avx>;
     friend Common::MaskEntry<Mask>;
 
 public:
+    using abi = VectorAbi::Avx;
+
     /**
      * The \c EntryType of masks is always bool, independent of \c T.
      */
@@ -97,14 +67,14 @@ public:
     /**
      * The associated Vector<T> type.
      */
-    using Vector = Vc_AVX_NAMESPACE::Vector<T>;
+    using Vector = AVX2::Vector<T>;
 
     ///\internal
-    using VectorTypeF = FloatVectorType<typename VectorTypeHelper<T>::Type>;
+    using VectorTypeF = AVX::FloatVectorType<typename AVX::VectorTypeHelper<T>::Type>;
     ///\internal
-    using VectorTypeD = DoubleVectorType<VectorTypeF>;
+    using VectorTypeD = AVX::DoubleVectorType<VectorTypeF>;
     ///\internal
-    using VectorTypeI = IntegerVectorType<VectorTypeF>;
+    using VectorTypeI = AVX::IntegerVectorType<VectorTypeF>;
 
 private:
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
@@ -136,19 +106,19 @@ public:
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined VC_MSVC && defined _WIN32
-        typedef const Mask<T> &AsArg;
+        typedef const Mask &AsArg;
 #else
-        typedef const Mask<T> AsArg;
+        typedef const Mask AsArg;
 #endif
 
-        Vc_ALWAYS_INLINE Mask() {}
-        Vc_ALWAYS_INLINE Mask(VArg  x) : d(avx_cast<VectorType>(x)) {}
-        Vc_ALWAYS_INLINE Mask(VdArg x) : d(avx_cast<VectorType>(x)) {}
-        Vc_ALWAYS_INLINE Mask(ViArg x) : d(avx_cast<VectorType>(x)) {}
-        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : d(internal::zero<VectorType>()) {}
-        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : d(internal::allone<VectorType>()) {}
-        Vc_ALWAYS_INLINE explicit Mask(bool b)
-            : d(b ? internal::allone<VectorType>() : internal::zero<VectorType>())
+        Vc_INTRINSIC Mask() {}
+        Vc_INTRINSIC Mask(VArg  x) : d(AVX::avx_cast<VectorType>(x)) {}
+        Vc_INTRINSIC Mask(VdArg x) : d(AVX::avx_cast<VectorType>(x)) {}
+        Vc_INTRINSIC Mask(ViArg x) : d(AVX::avx_cast<VectorType>(x)) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : d(Detail::zero<VectorType>()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : d(Detail::allone<VectorType>()) {}
+        Vc_INTRINSIC explicit Mask(bool b)
+            : d(b ? Detail::allone<VectorType>() : Detail::zero<VectorType>())
         {
         }
         Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
@@ -158,8 +128,8 @@ public:
         template <typename U>
         Vc_INTRINSIC Mask(U &&rhs,
                           Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
-            : d(avx_cast<VectorType>(
-                  internal::mask_cast<Traits::decay<U>::Size, Size, VectorTypeF>(
+            : d(AVX::avx_cast<VectorType>(
+                  Detail::mask_cast<Traits::decay<U>::Size, Size, VectorTypeF>(
                       rhs.dataI())))
         {
         }
@@ -170,61 +140,61 @@ public:
                                    Common::enable_if_mask_converts_explicitly<T, U> =
                                        nullarg);
 
-        Vc_ALWAYS_INLINE explicit Mask(const bool *mem) { load(mem); }
-        template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags f) { load(mem, f); }
+        Vc_INTRINSIC explicit Mask(const bool *mem) { load(mem); }
+        template<typename Flags> Vc_INTRINSIC explicit Mask(const bool *mem, Flags f) { load(mem, f); }
 
-        Vc_ALWAYS_INLINE_L void load(const bool *mem) Vc_ALWAYS_INLINE_R;
-        template<typename Flags> Vc_ALWAYS_INLINE void load(const bool *mem, Flags) { load(mem); }
+        Vc_INTRINSIC_L void load(const bool *mem) Vc_INTRINSIC_R;
+        template<typename Flags> Vc_INTRINSIC void load(const bool *mem, Flags) { load(mem); }
 
-        Vc_ALWAYS_INLINE_L void store(bool *) const Vc_ALWAYS_INLINE_R;
-        template<typename Flags> Vc_ALWAYS_INLINE void store(bool *mem, Flags) const { store(mem); }
+        Vc_INTRINSIC_L void store(bool *) const Vc_INTRINSIC_R;
+        template<typename Flags> Vc_INTRINSIC void store(bool *mem, Flags) const { store(mem); }
 
-        Vc_ALWAYS_INLINE Mask &operator=(const Mask &) = default;
-        Vc_ALWAYS_INLINE_L Mask &operator=(const std::array<bool, Size> &values) Vc_ALWAYS_INLINE_R;
-        Vc_ALWAYS_INLINE_L operator std::array<bool, Size>() const Vc_ALWAYS_INLINE_R;
+        Vc_INTRINSIC Mask &operator=(const Mask &) = default;
+        Vc_INTRINSIC_L Mask &operator=(const std::array<bool, Size> &values) Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L operator std::array<bool, Size>() const Vc_INTRINSIC_R;
 
         // specializations in mask.tcc
         Vc_INTRINSIC Vc_PURE bool operator==(const Mask &rhs) const
-        { return internal::movemask(d.v()) == internal::movemask(rhs.d.v()); }
+        { return Detail::movemask(d.v()) == Detail::movemask(rhs.d.v()); }
 
         Vc_INTRINSIC Vc_PURE bool operator!=(const Mask &rhs) const
         { return !operator==(rhs); }
 
-        Vc_ALWAYS_INLINE Mask operator!() const { return internal::andnot_(data(), internal::allone<VectorTypeF>()); }
+        Vc_INTRINSIC Mask operator!() const { return Detail::andnot_(data(), Detail::allone<VectorTypeF>()); }
 
-        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = avx_cast<VectorType>(internal::and_(data(), rhs.data())); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = avx_cast<VectorType>(internal::or_ (data(), rhs.data())); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { d.v() = avx_cast<VectorType>(internal::xor_(data(), rhs.data())); return *this; }
+        Vc_INTRINSIC Mask &operator&=(const Mask &rhs) { d.v() = AVX::avx_cast<VectorType>(Detail::and_(data(), rhs.data())); return *this; }
+        Vc_INTRINSIC Mask &operator|=(const Mask &rhs) { d.v() = AVX::avx_cast<VectorType>(Detail::or_ (data(), rhs.data())); return *this; }
+        Vc_INTRINSIC Mask &operator^=(const Mask &rhs) { d.v() = AVX::avx_cast<VectorType>(Detail::xor_(data(), rhs.data())); return *this; }
 
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator&(const Mask &rhs) const { return internal::and_(data(), rhs.data()); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator|(const Mask &rhs) const { return internal::or_(data(), rhs.data()); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator^(const Mask &rhs) const { return internal::xor_(data(), rhs.data()); }
+        Vc_INTRINSIC Vc_PURE Mask operator&(const Mask &rhs) const { return Detail::and_(data(), rhs.data()); }
+        Vc_INTRINSIC Vc_PURE Mask operator|(const Mask &rhs) const { return Detail::or_(data(), rhs.data()); }
+        Vc_INTRINSIC Vc_PURE Mask operator^(const Mask &rhs) const { return Detail::xor_(data(), rhs.data()); }
 
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator&&(const Mask &rhs) const { return internal::and_(data(), rhs.data()); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator||(const Mask &rhs) const { return internal::or_(data(), rhs.data()); }
+        Vc_INTRINSIC Vc_PURE Mask operator&&(const Mask &rhs) const { return Detail::and_(data(), rhs.data()); }
+        Vc_INTRINSIC Vc_PURE Mask operator||(const Mask &rhs) const { return Detail::or_(data(), rhs.data()); }
 
         // no need for expression template optimizations because cmp(n)eq for floats are not bitwise
         // compares
-        Vc_ALWAYS_INLINE bool isFull () const { return 0 != internal::testc(data(), internal::allone<VectorTypeF>()); }
-        Vc_ALWAYS_INLINE bool isNotEmpty() const { return 0 == internal::testz(data(), data()); }
-        Vc_ALWAYS_INLINE bool isEmpty() const { return 0 != internal::testz(data(), data()); }
-        Vc_ALWAYS_INLINE bool isMix  () const { return 0 != internal::testnzc(data(), internal::allone<VectorTypeF>()); }
+        Vc_INTRINSIC bool isFull () const { return 0 != Detail::testc(data(), Detail::allone<VectorTypeF>()); }
+        Vc_INTRINSIC bool isNotEmpty() const { return 0 == Detail::testz(data(), data()); }
+        Vc_INTRINSIC bool isEmpty() const { return 0 != Detail::testz(data(), data()); }
+        Vc_INTRINSIC bool isMix  () const { return 0 != Detail::testnzc(data(), Detail::allone<VectorTypeF>()); }
 
-        Vc_ALWAYS_INLINE Vc_PURE int shiftMask() const { return internal::movemask(dataI()); }
-        Vc_ALWAYS_INLINE Vc_PURE int toInt() const { return internal::mask_to_int<Size>(dataI()); }
+        Vc_INTRINSIC Vc_PURE int shiftMask() const { return Detail::movemask(dataI()); }
+        Vc_INTRINSIC Vc_PURE int toInt() const { return Detail::mask_to_int<Size>(dataI()); }
 
-        Vc_ALWAYS_INLINE VectorTypeF data () const { return avx_cast<VectorTypeF>(d.v()); }
-        Vc_ALWAYS_INLINE VectorTypeI dataI() const { return avx_cast<VectorTypeI>(d.v()); }
-        Vc_ALWAYS_INLINE VectorTypeD dataD() const { return avx_cast<VectorTypeD>(d.v()); }
+        Vc_INTRINSIC VectorTypeF data () const { return AVX::avx_cast<VectorTypeF>(d.v()); }
+        Vc_INTRINSIC VectorTypeI dataI() const { return AVX::avx_cast<VectorTypeI>(d.v()); }
+        Vc_INTRINSIC VectorTypeD dataD() const { return AVX::avx_cast<VectorTypeD>(d.v()); }
 
-        Vc_ALWAYS_INLINE EntryReference operator[](size_t index)
+        Vc_INTRINSIC EntryReference operator[](size_t index)
         {
             return {*this, index};
         }
-        Vc_ALWAYS_INLINE_L Vc_PURE_L bool operator[](size_t index) const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_INTRINSIC_L Vc_PURE_L bool operator[](size_t index) const Vc_INTRINSIC_R Vc_PURE_R;
 
-        Vc_ALWAYS_INLINE Vc_PURE int count() const { return _mm_popcnt_u32(toInt()); }
-        Vc_ALWAYS_INLINE Vc_PURE int firstOne() const { return _bit_scan_forward(toInt()); }
+        Vc_INTRINSIC Vc_PURE int count() const { return _mm_popcnt_u32(toInt()); }
+        Vc_INTRINSIC Vc_PURE int firstOne() const { return _bit_scan_forward(toInt()); }
 
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Mask shifted(int amount) const Vc_INTRINSIC_R Vc_PURE_R;
@@ -234,7 +204,7 @@ public:
 
     private:
 #ifndef VC_IMPL_POPCNT
-        static Vc_ALWAYS_INLINE Vc_CONST unsigned int _mm_popcnt_u32(unsigned int n) {
+        static Vc_INTRINSIC Vc_CONST unsigned int _mm_popcnt_u32(unsigned int n) {
             n = (n & 0x55555555U) + ((n >> 1) & 0x55555555U);
             n = (n & 0x33333333U) + ((n >> 2) & 0x33333333U);
             n = (n & 0x0f0f0f0fU) + ((n >> 4) & 0x0f0f0f0fU);
@@ -249,9 +219,8 @@ public:
 #endif
         Storage d;
 };
-template<typename T> constexpr size_t Mask<T>::Size;
+template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::Size;
 
-}  // namespace AVX(2)
 }  // namespace Vc
 
 #include "mask.tcc"

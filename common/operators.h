@@ -53,11 +53,12 @@ template <typename T> constexpr bool isVector()
     return Traits::is_simd_vector_internal<Traits::decay<T>>::value;
 }
 
-template <typename T, bool = isIntegral<T>(), bool = isVector<T>()> struct MakeUnsignedInternal;
-template <template <typename> class Vector__, typename T>
-struct MakeUnsignedInternal<Vector__<T>, true, true>
+template <typename T, bool = isIntegral<T>(), bool = isVector<T>()>
+struct MakeUnsignedInternal;
+template <template <typename, typename> class Vector__, typename T, typename Abi>
+struct MakeUnsignedInternal<Vector__<T, Abi>, true, true>
 {
-    using type = Vector__<typename std::make_unsigned<T>::type>;
+    using type = Vector__<typename std::make_unsigned<T>::type, Abi>;
 };
 template <typename T> struct MakeUnsignedInternal<T, false, true>
 {
@@ -164,26 +165,30 @@ using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_S
     typename IsIncorrectVectorOperands<
         Traits::decay<conditional_t<isVector<L>(), L, R>>,
         Traits::decay<conditional_t<!isVector<L>(), L, R>>>::type;
+}  // namespace Common
 
-#define VC_GENERIC_OPERATOR(op)                                                                    \
-    template <typename L, typename R>                                                              \
-    Vc_ALWAYS_INLINE TypesForOperator<L, R> operator op(L &&x, R &&y)                              \
-    {                                                                                              \
-        using V = TypesForOperator<L, R>;                                                          \
-        return V(std::forward<L>(x)) op V(std::forward<R>(y));                                     \
+#define VC_GENERIC_OPERATOR(op)                                                          \
+    template <typename L, typename R>                                                    \
+    Vc_ALWAYS_INLINE Common::TypesForOperator<L, R> operator op(L &&x, R &&y)            \
+    {                                                                                    \
+        using V = Common::TypesForOperator<L, R>;                                        \
+        return V(std::forward<L>(x)) op V(std::forward<R>(y));                           \
     }
 
-#define VC_COMPARE_OPERATOR(op)                                                                    \
-    template <typename L, typename R>                                                              \
-    Vc_ALWAYS_INLINE typename TypesForOperator<L, R>::Mask operator op(L &&x, R &&y)               \
-    {                                                                                              \
-        using V = TypesForOperator<L, R>;                                                          \
-        return V(std::forward<L>(x)) op V(std::forward<R>(y));                                     \
+#define VC_COMPARE_OPERATOR(op)                                                          \
+    template <typename L, typename R>                                                    \
+    Vc_ALWAYS_INLINE typename Common::TypesForOperator<L, R>::Mask operator op(L &&x,    \
+                                                                               R &&y)    \
+    {                                                                                    \
+        using V = Common::TypesForOperator<L, R>;                                        \
+        return V(std::forward<L>(x)) op V(std::forward<R>(y));                           \
     }
 
-#define VC_INVALID_OPERATOR(op)                                                                    \
-    template <typename L, typename R>                                                              \
-    Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability<L, R> operator op(L &&, R &&) = delete;
+#define VC_INVALID_OPERATOR(op)                                                                                                                     \
+    template <typename L, typename R>                                                                                                               \
+    Common::                                                                                                                                        \
+        Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability< \
+            L, R> operator op(L &&, R &&) = delete;
 // invalid operands to binary expression. Vc does not allow operands that can have a differing size
 // on some targets.
 
@@ -200,45 +205,6 @@ VC_ALL_COMPARES   (VC_INVALID_OPERATOR)
 #undef VC_GENERIC_OPERATOR
 #undef VC_COMPARE_OPERATOR
 #undef VC_INVALID_OPERATOR
-}  // namespace Common
-
-#define Vc_USING_OPERATOR(op) using Vc_VERSIONED_NAMESPACE::Common::operator op;
-namespace Scalar
-{
-VC_ALL_LOGICAL(Vc_USING_OPERATOR)
-VC_ALL_BINARY(Vc_USING_OPERATOR)
-VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
-VC_ALL_COMPARES(Vc_USING_OPERATOR)
-}  // namespace Scalar
-namespace SSE
-{
-VC_ALL_LOGICAL(Vc_USING_OPERATOR)
-VC_ALL_BINARY(Vc_USING_OPERATOR)
-VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
-VC_ALL_COMPARES(Vc_USING_OPERATOR)
-}  // namespace SSE
-namespace AVX
-{
-VC_ALL_LOGICAL(Vc_USING_OPERATOR)
-VC_ALL_BINARY(Vc_USING_OPERATOR)
-VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
-VC_ALL_COMPARES(Vc_USING_OPERATOR)
-}  // namespace AVX
-namespace AVX2
-{
-VC_ALL_LOGICAL(Vc_USING_OPERATOR)
-VC_ALL_BINARY(Vc_USING_OPERATOR)
-VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
-VC_ALL_COMPARES(Vc_USING_OPERATOR)
-}  // namespace AVX2
-namespace MIC
-{
-VC_ALL_LOGICAL(Vc_USING_OPERATOR)
-VC_ALL_BINARY(Vc_USING_OPERATOR)
-VC_ALL_ARITHMETICS(Vc_USING_OPERATOR)
-VC_ALL_COMPARES(Vc_USING_OPERATOR)
-}  // namespace MIC
-#undef Vc_USING_OPERATOR
 
 }  // namespace Vc
 

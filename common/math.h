@@ -36,32 +36,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "const.h"
 #include "macros.h"
 
-#ifdef VC_IMPL_AVX
-#  ifdef VC_IMPL_AVX2
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace AVX2
-{
-#  else
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace AVX
-{
-#  endif
+#ifdef VC_IMPL_SSE
+// for SSE, AVX, and AVX2
 #include "logarithm.h"
 #include "exponential.h"
-    inline double_v exp(double_v::AsArg _x) {
-        Vector<double> x = _x;
-        typedef Vector<double> V;
+#ifdef VC_IMPL_AVX
+inline AVX::double_v exp(VC_ALIGNED_PARAMETER(AVX::double_v) _x)
+{
+    AVX::Vector<double> x = _x;
+    typedef AVX::Vector<double> V;
         typedef V::Mask M;
-        typedef Const<double> C;
+    typedef AVX::Const<double> C;
 
         const M overflow  = x > Vc::Internal::doubleConstant< 1, 0x0006232bdd7abcd2ull, 9>(); // max log
         const M underflow = x < Vc::Internal::doubleConstant<-1, 0x0006232bdd7abcd2ull, 9>(); // min log
 
         V px = floor(C::log2_e() * x + 0.5);
         __m128i tmp = _mm256_cvttpd_epi32(px.data());
-        const SimdArray<int, double_v::Size> n = SSE::int_v{tmp};
+    const SimdArray<int, V::Size> n = SSE::int_v{tmp};
         x -= px * C::ln2_large(); //Vc::Internal::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
         x -= px * C::ln2_small(); //Vc::Internal::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
 
@@ -88,28 +82,19 @@ namespace AVX
 
         return x;
     }
-}  // namespace AVX(2)
-}  // namespace Vc
-#endif
+#endif  // VC_IMPL_AVX
 
-#ifdef VC_IMPL_SSE
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace SSE
-{
-#include "logarithm.h"
-#include "exponential.h"
-    inline SSE::double_v exp(SSE::double_v::AsArg _x) {
-        SSE::Vector<double> x = _x;
-        typedef SSE::Vector<double> V;
+inline SSE::double_v exp(SSE::double_v::AsArg _x) {
+    SSE::Vector<double> x = _x;
+    typedef SSE::Vector<double> V;
         typedef V::Mask M;
-        typedef SSE::Const<double> C;
+    typedef SSE::Const<double> C;
 
         const M overflow  = x > Vc::Internal::doubleConstant< 1, 0x0006232bdd7abcd2ull, 9>(); // max log
         const M underflow = x < Vc::Internal::doubleConstant<-1, 0x0006232bdd7abcd2ull, 9>(); // min log
 
         V px = floor(C::log2_e() * x + 0.5);
-        SimdArray<int, double_v::Size> n;
+    SimdArray<int, V::Size> n;
         _mm_storel_epi64(reinterpret_cast<__m128i *>(&n), _mm_cvttpd_epi32(px.data()));
         x -= px * C::ln2_large(); //Vc::Internal::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
         x -= px * C::ln2_small(); //Vc::Internal::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
@@ -137,9 +122,9 @@ namespace SSE
 
         return x;
     }
-}  // namespace SSE
-}  // namespace Vc
+
 #endif
+}  // namespace Vc
 #include "undomacros.h"
 
 #undef VC_COMMON_MATH_H_INTERNAL

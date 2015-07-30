@@ -60,12 +60,18 @@ enum LogarithmBase {
     BaseE, Base10, Base2
 };
 
+namespace Detail
+{
+template <typename T, typename Abi>
+using Const = typename std::conditional<std::is_same<Abi, VectorAbi::Avx>::value,
+                                        AVX::Const<T>, SSE::Const<T>>::type;
+
 template<LogarithmBase Base>
 struct LogImpl
 {
-    template<typename T> static Vc_ALWAYS_INLINE void log_series(Vector<T> &VC_RESTRICT x, typename Vector<T>::AsArg exponent) {
-        typedef Vector<T> V;
-        typedef Const<T> C;
+    template<typename T, typename Abi> static Vc_ALWAYS_INLINE void log_series(Vector<T, Abi> &VC_RESTRICT x, typename Vector<T, Abi>::AsArg exponent) {
+        typedef Vector<T, Abi> V;
+        typedef Detail::Const<T, Abi> C;
         // Taylor series around x = 2^exponent
         //   f(x) = ln(x)   → exponent * ln(2) → C::ln2_small + C::ln2_large
         //  f'(x) =    x⁻¹  →  x               → 1
@@ -165,9 +171,12 @@ struct LogImpl
         }
     }
 
-    static Vc_ALWAYS_INLINE void log_series(Vector<double> &VC_RESTRICT x, Vector<double>::AsArg exponent) {
-        typedef Vector<double> V;
-        typedef Const<double> C;
+template <typename Abi>
+static Vc_ALWAYS_INLINE void log_series(Vector<double, Abi> &VC_RESTRICT x,
+                                        typename Vector<double, Abi>::AsArg exponent)
+{
+    typedef Vector<double, Abi> V;
+    typedef Detail::Const<double, Abi> C;
         const V x2 = x * x;
         V y = C::P(0);
         V y2 = C::Q(0) + x;
@@ -207,10 +216,11 @@ struct LogImpl
         }
     }
 
-    template<typename T> static inline Vector<T> calc(VC_ALIGNED_PARAMETER(Vector<T>) _x) {
-        typedef Vector<T> V;
+template <typename T, typename Abi, typename V = Vector<T, Abi>>
+static inline Vector<T, Abi> calc(VC_ALIGNED_PARAMETER(V) _x)
+{
         typedef typename V::Mask M;
-        typedef Const<T> C;
+    typedef Detail::Const<T, Abi> C;
 
         V x(_x);
 
@@ -219,7 +229,7 @@ struct LogImpl
         const M denormal = x <= C::min();
 
         x(denormal) *= V(Vc::Internal::doubleConstant<1, 0, 54>()); // 2²⁵
-        V exponent = Internal::exponent(x.data()); // = ⎣log₂(x)⎦
+        V exponent = Detail::exponent(x.data());                    // = ⎣log₂(x)⎦
         exponent(denormal) -= 54;
 
         x.setZero(C::exponentMask()); // keep only the fractional part ⇒ x ∈ [1, 2[
@@ -244,15 +254,22 @@ struct LogImpl
         return x;
     }
 };
+}  // namespace Detail
 
-template<typename T> static Vc_ALWAYS_INLINE Vc_CONST Vector<T> log(VC_ALIGNED_PARAMETER(Vector<T>) x) {
-    return LogImpl<BaseE>::calc(x);
+template <typename T, typename Abi>
+Vc_INTRINSIC Vc_CONST Vector<T, Abi> log(const Vector<T, Abi> &x)
+{
+    return Detail::LogImpl<BaseE>::calc(x);
 }
-template<typename T> static Vc_ALWAYS_INLINE Vc_CONST Vector<T> log10(VC_ALIGNED_PARAMETER(Vector<T>) x) {
-    return LogImpl<Base10>::calc(x);
+template <typename T, typename Abi>
+Vc_INTRINSIC Vc_CONST Vector<T, Abi> log10(const Vector<T, Abi> &x)
+{
+    return Detail::LogImpl<Base10>::calc(x);
 }
-template<typename T> static Vc_ALWAYS_INLINE Vc_CONST Vector<T> log2(VC_ALIGNED_PARAMETER(Vector<T>) x) {
-    return LogImpl<Base2>::calc(x);
+template <typename T, typename Abi>
+Vc_INTRINSIC Vc_CONST Vector<T, Abi> log2(const Vector<T, Abi> &x)
+{
+    return Detail::LogImpl<Base2>::calc(x);
 }
 
 #endif // VC_COMMON_MATH_H_INTERNAL

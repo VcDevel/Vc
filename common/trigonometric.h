@@ -60,54 +60,27 @@ template<typename Impl> struct Trigonometric
 };
 }  // namespace Common
 
-#ifdef VC_IMPL_AVX
-namespace AVX
-{
-using Trigonometric = Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<AVXImpl>>;
-template<typename T> Vc_ALWAYS_INLINE T sin(const T &x) { return Trigonometric::sin(x); }
-template<typename T> Vc_ALWAYS_INLINE T cos(const T &x) { return Trigonometric::cos(x); }
-template<typename T> Vc_ALWAYS_INLINE void sincos(const T &x, T *sin, T *cos) { return Trigonometric::sincos(x, sin, cos); }
-template<typename T> Vc_ALWAYS_INLINE T asin(const T &x) { return Trigonometric::asin(x); }
-template<typename T> Vc_ALWAYS_INLINE T atan(const T &x) { return Trigonometric::atan(x); }
-template<typename T> Vc_ALWAYS_INLINE T atan2(const T &y, const T &x) { return Trigonometric::atan2(y, x); }
-}  // namespace AVX
-#endif
-
 #ifdef VC_IMPL_SSE
-namespace SSE
+// this is either SSE, AVX, or AVX2
+namespace Detail
 {
-// FIXME is SSE42Impl right? Probably yes, but explain why...
-using Trigonometric = Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<SSE42Impl>>;
-template<typename T> Vc_ALWAYS_INLINE T sin(const T &x) { return Trigonometric::sin(x); }
-template<typename T> Vc_ALWAYS_INLINE T cos(const T &x) { return Trigonometric::cos(x); }
-template<typename T> Vc_ALWAYS_INLINE void sincos(const T &x, T *sin, T *cos) { return Trigonometric::sincos(x, sin, cos); }
-template<typename T> Vc_ALWAYS_INLINE T asin(const T &x) { return Trigonometric::asin(x); }
-template<typename T> Vc_ALWAYS_INLINE T atan(const T &x) { return Trigonometric::atan(x); }
-template<typename T> Vc_ALWAYS_INLINE T atan2(const T &y, const T &x) { return Trigonometric::atan2(y, x); }
-}  // namespace SSE
-
-// only needed for AVX2, AVX, or SSE:
-namespace Vc_IMPL_NAMESPACE
+template <typename T, typename Abi>
+using Trig = Common::Trigonometric<Internal::TrigonometricImplementation<
+    (std::is_same<Abi, VectorAbi::Sse>::value
+         ? SSE42Impl
+         : std::is_same<Abi, VectorAbi::Avx>::value ? AVXImpl : ScalarImpl)>>;
+}  // namespace Detail
+template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> sin(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::sin(x); }
+template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> cos(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::cos(x); }
+template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> asin(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::asin(x); }
+template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> atan(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::atan(x); }
+template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> atan2(const Vector<T, Abi> &y, const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::atan2(y, x); }
+template <typename T, typename Abi>
+Vc_INTRINSIC Vector<T, Abi> sincos(const Vector<T, Abi> &x, Vector<T, Abi> *sin,
+                                   Vector<T, Abi> *cos)
 {
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> sin(const Vector<T> &_x) {
-    return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sin(_x);
+    return Detail::Trig<T, Abi>::sincos(x, sin, cos);
 }
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> cos(const Vector<T> &_x) {
-    return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::cos(_x);
-}
-template<typename T> Vc_ALWAYS_INLINE void sincos(const Vector<T> &_x, Vector<T> *_sin, Vector<T> *_cos) {
-    Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::sincos(_x, _sin, _cos);
-}
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> asin (const Vector<T> &_x) {
-    return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::asin(_x);
-}
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan (const Vector<T> &_x) {
-    return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan(_x);
-}
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T> atan2(const Vector<T> &y, const Vector<T> &x) {
-    return Vc::Common::Trigonometric<Vc::Internal::TrigonometricImplementation<VC_IMPL>>::atan2(y, x);
-}
-}  // namespace Vc_IMPL_NAMESPACE
 #endif
 }  // namespace Vc
 

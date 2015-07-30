@@ -33,39 +33,43 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Scalar
-{
-template <typename T> Vc_ALWAYS_INLINE Vector<T> copysign(Vector<T> a, Vector<T> b)
+template <typename T> Vc_ALWAYS_INLINE Scalar::Vector<T> copysign(Scalar::Vector<T> a, Scalar::Vector<T> b)
 {
     return a.copySign(b);
 }
 
-#define VC_MINMAX(V) \
-static Vc_ALWAYS_INLINE V min(const V &x, const V &y) { return V(std::min(x.data(), y.data())); } \
-static Vc_ALWAYS_INLINE V max(const V &x, const V &y) { return V(std::max(x.data(), y.data())); }
+#define VC_MINMAX(V)                                                                     \
+    static Vc_ALWAYS_INLINE V min(const Scalar::V &x, const Scalar::V &y)                \
+    {                                                                                    \
+        return V(std::min(x.data(), y.data()));                                          \
+    }                                                                                    \
+    static Vc_ALWAYS_INLINE V max(const Scalar::V &x, const Scalar::V &y)                \
+    {                                                                                    \
+        return V(std::max(x.data(), y.data()));                                          \
+    }
 VC_ALL_VECTOR_TYPES(VC_MINMAX)
 #undef VC_MINMAX
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> sqrt (const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> sqrt (const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::sqrt(x.data()));
+    return Scalar::Vector<T>(std::sqrt(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> rsqrt(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> rsqrt(const Scalar::Vector<T> &x)
 {
-    const typename Vector<T>::EntryType one = 1; return Vector<T>(one / std::sqrt(x.data()));
+    const typename Scalar::Vector<T>::EntryType one = 1; return Scalar::Vector<T>(one / std::sqrt(x.data()));
 }
 
 template <typename T,
           typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
                                std::is_same<T, short>::value ||
                                std::is_same<T, int>::value>>
-Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
+Vc_ALWAYS_INLINE Vc_PURE Scalar::Vector<T> abs(Scalar::Vector<T> x)
 {
     return std::abs(x.data());
 }
 
-template<typename T> static Vc_ALWAYS_INLINE void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos)
+template<typename T> static Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<T> &x, Scalar::Vector<T> *sin, Scalar::Vector<T> *cos)
 {
 #if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
     __builtin_sincosf(x.data(), &sin->data(), &cos->data());
@@ -77,7 +81,7 @@ template<typename T> static Vc_ALWAYS_INLINE void sincos(const Vector<T> &x, Vec
 #endif
 }
 
-template<> Vc_ALWAYS_INLINE void sincos(const Vector<double> &x, Vector<double> *sin, Vector<double> *cos)
+template<> Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<double> &x, Scalar::Vector<double> *sin, Scalar::Vector<double> *cos)
 {
 #if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
@@ -89,67 +93,67 @@ template<> Vc_ALWAYS_INLINE void sincos(const Vector<double> &x, Vector<double> 
 #endif
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> sin  (const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> sin  (const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::sin(x.data()));
+    return Scalar::Vector<T>(std::sin(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> asin (const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> asin (const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::asin(x.data()));
+    return Scalar::Vector<T>(std::asin(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> cos  (const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> cos  (const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::cos(x.data()));
+    return Scalar::Vector<T>(std::cos(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> log  (const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> log  (const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::log(x.data()));
+    return Scalar::Vector<T>(std::log(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> log10(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> log10(const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::log10(x.data()));
+    return Scalar::Vector<T>(std::log10(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> log2(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> log2(const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::log2(x.data()));
+    return Scalar::Vector<T>(std::log2(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> exp (const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> exp (const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::exp(x.data()));
+    return Scalar::Vector<T>(std::exp(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> atan (const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> atan (const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::atan( x.data() ));
+    return Scalar::Vector<T>(std::atan( x.data() ));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> atan2(const Vector<T> &x, const Vector<T> &y)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> atan2(const Scalar::Vector<T> &x, const Scalar::Vector<T> &y)
 {
-    return Vector<T>(std::atan2( x.data(), y.data() ));
+    return Scalar::Vector<T>(std::atan2( x.data(), y.data() ));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> trunc(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> trunc(const Scalar::Vector<T> &x)
 {
     return std::trunc(x.data());
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> floor(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> floor(const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::floor(x.data()));
+    return Scalar::Vector<T>(std::floor(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> ceil(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> ceil(const Scalar::Vector<T> &x)
 {
-    return Vector<T>(std::ceil(x.data()));
+    return Scalar::Vector<T>(std::ceil(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> round(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> round(const Scalar::Vector<T> &x)
 {
     return x;
 }
@@ -163,19 +167,19 @@ namespace
         return (x - f) == half;
     }
 } // namespace
-template<> Vc_ALWAYS_INLINE Vector<float>  round(const Vector<float>  &x)
+template<> Vc_ALWAYS_INLINE Scalar::Vector<float>  round(const Scalar::Vector<float>  &x)
 {
-    return float_v(std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f));
+    return Scalar::float_v(std::floor(x.data() + 0.5f) - (_realIsEvenHalf(x.data()) ? 1.f : 0.f));
 }
 
-template<> Vc_ALWAYS_INLINE Vector<double> round(const Vector<double> &x)
+template<> Vc_ALWAYS_INLINE Scalar::Vector<double> round(const Scalar::Vector<double> &x)
 {
-    return double_v(std::floor(x.data() + 0.5 ) - (_realIsEvenHalf(x.data()) ? 1.  : 0. ));
+    return Scalar::double_v(std::floor(x.data() + 0.5 ) - (_realIsEvenHalf(x.data()) ? 1.  : 0. ));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE Vector<T> reciprocal(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> reciprocal(const Scalar::Vector<T> &x)
 {
-    const typename Vector<T>::EntryType one = 1; return Vector<T>(one / x.data());
+    const typename Scalar::Vector<T>::EntryType one = 1; return Scalar::Vector<T>(one / x.data());
 }
 
 #ifdef isfinite
@@ -184,9 +188,9 @@ template<typename T> static Vc_ALWAYS_INLINE Vector<T> reciprocal(const Vector<T
 #ifdef isnan
 #undef isnan
 #endif
-template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isfinite(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE typename Scalar::Vector<T>::Mask isfinite(const Scalar::Vector<T> &x)
 {
-    return typename Vector<T>::Mask(
+    return typename Scalar::Vector<T>::Mask(
 #ifdef _MSC_VER
             !!_finite(x.data())
 #elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1500
@@ -197,14 +201,14 @@ template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isfinite(c
             );
 }
 
-template<typename T> Vc_ALWAYS_INLINE typename Vector<T>::Mask isinf(const Vector<T> &x)
+template<typename T> Vc_ALWAYS_INLINE typename Scalar::Vector<T>::Mask isinf(const Scalar::Vector<T> &x)
 {
-    return typename Vector<T>::Mask(std::isinf(x.data()));
+    return typename Scalar::Vector<T>::Mask(std::isinf(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(const Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE typename Scalar::Vector<T>::Mask isnan(const Scalar::Vector<T> &x)
 {
-    return typename Vector<T>::Mask(
+    return typename Scalar::Vector<T>::Mask(
 #ifdef _MSC_VER
             !!_isnan(x.data())
 #elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1500
@@ -215,21 +219,20 @@ template<typename T> static Vc_ALWAYS_INLINE typename Vector<T>::Mask isnan(cons
             );
 }
 
-Vc_ALWAYS_INLINE Vector<float> frexp(Vector<float> x, SimdArray<int, 1, Vector<int>, 1> *e) {
-    return float_v(std::frexp(x.data(), &internal_data(*e).data()));
+Vc_ALWAYS_INLINE Scalar::Vector<float> frexp(Scalar::Vector<float> x, SimdArray<int, 1, Scalar::Vector<int>, 1> *e) {
+    return Scalar::float_v(std::frexp(x.data(), &internal_data(*e).data()));
 }
-Vc_ALWAYS_INLINE Vector<double> frexp(Vector<double> x, SimdArray<int, 1, Vector<int>, 1> *e) {
-    return double_v(std::frexp(x.data(), &internal_data(*e).data()));
-}
-
-Vc_ALWAYS_INLINE Vector<float> ldexp(Vector<float> x, const SimdArray<int, 1, Vector<int>, 1> &e) {
-    return float_v(std::ldexp(x.data(), internal_data(e).data()));
-}
-Vc_ALWAYS_INLINE Vector<double> ldexp(Vector<double> x, const SimdArray<int, 1, Vector<int>, 1> &e) {
-    return double_v(std::ldexp(x.data(), internal_data(e).data()));
+Vc_ALWAYS_INLINE Scalar::Vector<double> frexp(Scalar::Vector<double> x, SimdArray<int, 1, Scalar::Vector<int>, 1> *e) {
+    return Scalar::double_v(std::frexp(x.data(), &internal_data(*e).data()));
 }
 
-}  // namespace Scalar
+Vc_ALWAYS_INLINE Scalar::Vector<float> ldexp(Scalar::Vector<float> x, const SimdArray<int, 1, Scalar::Vector<int>, 1> &e) {
+    return Scalar::float_v(std::ldexp(x.data(), internal_data(e).data()));
+}
+Vc_ALWAYS_INLINE Scalar::Vector<double> ldexp(Scalar::Vector<double> x, const SimdArray<int, 1, Scalar::Vector<int>, 1> &e) {
+    return Scalar::double_v(std::ldexp(x.data(), internal_data(e).data()));
+}
+
 }  // namespace Vc
 
 #include "undomacros.h"

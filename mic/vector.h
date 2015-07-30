@@ -44,7 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "writemaskedvector.h"
 #include "sorthelper.h"
 #include "iterators.h"
-#include "where.h"
+#include "../common/where.h"
 #include "macros.h"
 
 #ifdef isfinite
