@@ -83,7 +83,7 @@ Vc_INTRINSIC __m256d load(const schar *mem, Flags f, LoadTag<__m256d, double, 32
 
 // float {{{2
 template <typename Flags>
-Vc_INTRINSIC __m256 load(const double *mem, Flags flags, LoadTag<__m256, float, 32>)
+Vc_INTRINSIC __m256 load(const double *mem, Flags, LoadTag<__m256, float, 32>)
 {
     return AVX::concat(_mm256_cvtpd_ps(AVX::VectorHelper<__m256d>::load<Flags>(&mem[0])),
                        _mm256_cvtpd_ps(AVX::VectorHelper<__m256d>::load<Flags>(&mem[4])));
