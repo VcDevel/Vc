@@ -94,9 +94,9 @@ Vc_INTRINSIC __m256 load(const uint *mem, Flags, LoadTag<__m256, float, 32>)
     const auto v = AVX::VectorHelper<__m256i>::load<Flags>(mem);
     return _mm256_blendv_ps(
         _mm256_cvtepi32_ps(v),
-        _mm256_add_ps(_mm256_cvtepi32_ps(sub_epi32(v, AVX::set2power31_epu32())),
+        _mm256_add_ps(_mm256_cvtepi32_ps(AVX::sub_epi32(v, AVX::set2power31_epu32())),
                       AVX::set2power31_ps()),
-        _mm256_castsi256_ps(cmplt_epi32(v, _mm256_setzero_si256())));
+        _mm256_castsi256_ps(AVX::cmplt_epi32(v, _mm256_setzero_si256())));
 }
 template <typename T, typename Flags,
           typename = enable_if<!std::is_same<T, float>::value>>
