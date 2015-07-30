@@ -93,7 +93,7 @@ template<> Vc_INTRINSIC void AVX2::double_v::setQnan()
 {
     data() = Detail::allone<VectorType>();
 }
-template<> Vc_INTRINSIC void AVX2::double_v::setQnan(MaskArg k)
+template<> Vc_INTRINSIC void AVX2::double_v::setQnan(MaskArgument k)
 {
     data() = _mm256_or_pd(data(), k.dataD());
 }
@@ -101,7 +101,7 @@ template<> Vc_INTRINSIC void AVX2::float_v::setQnan()
 {
     data() = Detail::allone<VectorType>();
 }
-template<> Vc_INTRINSIC void AVX2::float_v::setQnan(MaskArg k)
+template<> Vc_INTRINSIC void AVX2::float_v::setQnan(MaskArgument k)
 {
     data() = _mm256_or_ps(data(), k.data());
 }

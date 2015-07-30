@@ -61,21 +61,42 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace Detail
+{
+template <typename T, typename Abi> struct VectorTraits
+{
+    using mask_type = Vc::Mask<T, Abi>;
+    using vector_type = Vc::Vector<T, Abi>;
+    using writemasked_vector_type = Common::WriteMaskedVector<vector_type, mask_type>;
+    using intrinsic_type = typename AVX::VectorTypeHelper<T>::Type;
+};
+}  // namespace Detail
+
 #define VC_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector<T, VectorAbi::Avx>
 {
+public:
+    using abi = VectorAbi::Avx;
+
+private:
+    using traits_type = Detail::VectorTraits<T, abi>;
     static_assert(
         std::is_arithmetic<T>::value,
         "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
-    using WriteMaskedVector = Common::WriteMaskedVector<Vector, Mask<T, VectorAbi::Avx>>;
+    using WriteMaskedVector = typename traits_type::writemasked_vector_type;
 
 public:
-    using abi = VectorAbi::Avx;
-    using VectorType = typename AVX::VectorTypeHelper<T>::Type;
-        using vector_type = VectorType;
+    using VectorType = typename traits_type::intrinsic_type;
+    using vector_type = VectorType;
 
-        FREE_STORE_OPERATORS_ALIGNED(sizeof(VectorType))
+    using mask_type = typename traits_type::mask_type;
+    using Mask = mask_type;
+    using MaskType = mask_type;
+    using MaskArg VC_DEPRECATED("Use MaskArgument instead.") = typename Mask::AsArg;
+    using MaskArgument = typename Mask::AsArg;
+
+    FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
     using EntryType = T;
         using value_type = EntryType;
@@ -97,11 +118,6 @@ public:
                                           SimdArray<int, Size, SSE::int_v, 4>,
                                           SimdArray<int, Size, Scalar::int_v, 1>>::type IndexType;
 #endif
-        using Mask = Vc::Mask<T, VectorAbi::Avx>;
-        using MaskType = Mask;
-        using mask_type = Mask;
-        typedef typename Mask::AsArg MaskArg;
-        using MaskArgument = typename Mask::AsArg;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
         typedef const Vector<T, abi> &AsArg;
         typedef const VectorType &VectorTypeArg;
