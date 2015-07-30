@@ -1511,30 +1511,34 @@ struct ReplaceTypes<T, N, MT, Category::RandomAccessIterator>
  */
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>()), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::size() == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &, const U &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>()), void> conditional_assign(
-    Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
+    conditional_assign(Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
 {
-    conditional_assign<Op>(get<Offset>(lhs), mask, get<Offset>(rhs));
+    using V = typename std::decay<decltype(get<Offset>(lhs))>::type;
+    using M2 = typename V::mask_type;
+    conditional_assign<Op>(get<Offset>(lhs), simd_cast<M2>(mask), get<Offset>(rhs));
     conditional_assign<Op, S, T, N, M, U, Offset + 1>(lhs, mask, rhs);
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>()), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::size() == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>()), void> conditional_assign(
-    Adapter<S, T, N> &lhs, const M &mask)
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
+    conditional_assign(Adapter<S, T, N> &lhs, const M &mask)
 {
-    conditional_assign<Op>(get<Offset>(lhs), mask);
+    using V = typename std::decay<decltype(get<Offset>(lhs))>::type;
+    using M2 = typename V::mask_type;
+    conditional_assign<Op>(get<Offset>(lhs), simd_cast<M2>(mask));
     conditional_assign<Op, S, T, N, M, Offset + 1>(lhs, mask);
 }
 
