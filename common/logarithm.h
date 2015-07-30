@@ -259,17 +259,17 @@ static inline Vector<T, Abi> calc(VC_ALIGNED_PARAMETER(V) _x)
 template <typename T, typename Abi>
 Vc_INTRINSIC Vc_CONST Vector<T, Abi> log(const Vector<T, Abi> &x)
 {
-    return Detail::LogImpl<BaseE>::calc(x);
+    return Detail::LogImpl<BaseE>::calc<T, Abi>(x);
 }
 template <typename T, typename Abi>
 Vc_INTRINSIC Vc_CONST Vector<T, Abi> log10(const Vector<T, Abi> &x)
 {
-    return Detail::LogImpl<Base10>::calc(x);
+    return Detail::LogImpl<Base10>::calc<T, Abi>(x);
 }
 template <typename T, typename Abi>
 Vc_INTRINSIC Vc_CONST Vector<T, Abi> log2(const Vector<T, Abi> &x)
 {
-    return Detail::LogImpl<Base2>::calc(x);
+    return Detail::LogImpl<Base2>::calc<T, Abi>(x);
 }
 
 #endif // VC_COMMON_MATH_H_INTERNAL

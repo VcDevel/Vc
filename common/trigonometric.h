@@ -75,12 +75,7 @@ template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> cos(const Vector
 template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> asin(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::asin(x); }
 template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> atan(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::atan(x); }
 template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> atan2(const Vector<T, Abi> &y, const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::atan2(y, x); }
-template <typename T, typename Abi>
-Vc_INTRINSIC Vector<T, Abi> sincos(const Vector<T, Abi> &x, Vector<T, Abi> *sin,
-                                   Vector<T, Abi> *cos)
-{
-    return Detail::Trig<T, Abi>::sincos(x, sin, cos);
-}
+template <typename T, typename Abi> Vc_INTRINSIC void sincos(const Vector<T, Abi> &x, Vector<T, Abi> *sin, Vector<T, Abi> *cos) { Detail::Trig<T, Abi>::sincos(x, sin, cos); }
 #endif
 }  // namespace Vc
 

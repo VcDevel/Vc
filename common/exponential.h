@@ -42,13 +42,12 @@ constexpr float MAXLOGF = 88.72283905206835f;
 constexpr float MINLOGF = -103.278929903431851103f; /* log(2^-149) */
 constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
-template <typename T, typename Abi, typename V = Vector<T, Abi>>
-inline Vector<T, Abi> exp(VC_ALIGNED_PARAMETER(V) _x)
+template <typename Abi>
+inline Vector<float, Abi> exp(Vector<float, Abi> x)
 {
-        typedef typename V::Mask M;
-    typedef Detail::Const<T, Abi> C;
-
-        V x(_x);
+    using V = Vector<float, Abi>;
+    typedef typename V::Mask M;
+    typedef Detail::Const<float, Abi> C;
 
         const M overflow  = x > MAXLOGF;
         const M underflow = x < MINLOGF;
