@@ -165,8 +165,13 @@ public:
     Vc_INTRINSIC SimdArray(const std::initializer_list<value_type> &init)
         : data(init.begin(), Vc::Unaligned)
     {
-        // TODO: when initializer_list::size() becomes constexpr (C++14) make this a static_assert
+#ifdef VC_CXX14
+        static_assert(init.size() == size(), "The initializer_list argument to "
+                                             "SimdArray<T, N> must contain exactly N "
+                                             "values.");
+#else
         VC_ASSERT(init.size() == size());
+#endif
     }
 
     // implicit conversion from underlying vector_type
@@ -492,8 +497,13 @@ public:
         : data0(init.begin(), Vc::Unaligned)
         , data1(init.begin() + storage_type0::size(), Vc::Unaligned)
     {
-        // TODO: when initializer_list::size() becomes constexpr (C++14) make this a static_assert
+#ifdef VC_CXX14
+        static_assert(init.size() == size(), "The initializer_list argument to "
+                                             "SimdArray<T, N> must contain exactly N "
+                                             "values.");
+#else
         VC_ASSERT(init.size() == size());
+#endif
     }
 
 #include "gatherinterface.h"
