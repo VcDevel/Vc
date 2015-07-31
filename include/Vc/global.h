@@ -366,33 +366,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #error "Preprocessor logic broken. Please report a bug."
 #endif
 
-/* ICC includes intrinsics unconditionally - not checking whether __SSE2__ or such is defined.
- * Now that <random> includes <ia32intrin.h> with latest libstdc++ ICC will declare all possible
- * intrinsics. The only workaround is to fool ICC into thinking it already included the intrinsics
- * headers by defining their include guards. :'(
- */
-#if defined(VC_ICC) && !(defined(VC_IMPL_AVX) || defined(VC_IMPL_MIC))
-#  ifndef VC_IMPL_SSE4_2
-#    define _INCLUDED_NMM 1
-// also disable wmmintrin.h because it requires SSE4.2
-#    define _INCLUDED_WMM 1
-// also disable immintrin.h because it requires SSE4.2
-#    define _INCLUDED_IMM 1
-#    ifdef VC_IMPL_AVX2
-#      error "AA"
-#    endif
-#  endif
-#  ifndef VC_IMPL_SSE4_1
-#    define _INCLUDED_SMM 1
-#  endif
-#  ifndef VC_IMPL_SSSE3
-#    define _TMMINTRIN_H 1
-#  endif
-#  ifndef VC_IMPL_SSE3
-#    define _INCLUDED_PMM 1
-#  endif
-#endif
-
 #define Vc_VERSIONED_NAMESPACE Vc_0
 
 namespace Vc_VERSIONED_NAMESPACE {}
