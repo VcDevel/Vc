@@ -35,14 +35,14 @@ namespace Traits
 {
 namespace is_functor_argument_immutable_impl
 {
+// this indirection for decltype is required for EDG based compilers
+template <typename F, typename A> struct workaround_edg
+{
+    typedef decltype(&F::template operator()<A>) type;
+};
+
 template <typename F, typename A,
-#ifdef VC_ICC
-          // this is wrong, but then again ICC is broken - and better it compiles and
-          // returns the wrong answer than not compiling at all
-          typename MemberPtr = decltype(&F::operator()),
-#else
-          typename MemberPtr = decltype(&F::template operator() <A>),
-#endif
+          typename MemberPtr = typename workaround_edg<F, A>::type,
           typename = decltype((std::declval<F &>().*
                                (std::declval<MemberPtr>()))(std::declval<const A &>()))>
 std::true_type test(int);
