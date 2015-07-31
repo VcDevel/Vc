@@ -233,7 +233,10 @@ message("model:      ${dashboard_model}")
 
 Set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY_ONCE TRUE)
 
-set(CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/HEAD" "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
+list(APPEND CTEST_NOTES_FILES
+   "${CTEST_SOURCE_DIRECTORY}/.git/HEAD"
+   "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}"
+   )
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 ctest_read_custom_files(${CTEST_SOURCE_DIRECTORY})
@@ -302,6 +305,7 @@ macro(go)
             )
          ctest_submit(PARTS Notes Configure)
       endif()
+      unset(CTEST_NOTES_FILES) # less clutter in ctest -V output
       if(res EQUAL 0)
          foreach(label other Scalar SSE AVX AVX2 MIC)
             set_property(GLOBAL PROPERTY Label ${label})
