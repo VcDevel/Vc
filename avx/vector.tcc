@@ -559,7 +559,7 @@ namespace Internal
 {
 Vc_ALWAYS_INLINE Vc_CONST __m256 negate(__m256 v, std::integral_constant<std::size_t, 4>)
 {
-    return _mm256_xor_ps(v, AVX:::setsignmask_ps());
+    return _mm256_xor_ps(v, AVX::setsignmask_ps());
 }
 Vc_ALWAYS_INLINE Vc_CONST __m256d negate(__m256d v, std::integral_constant<std::size_t, 8>)
 {
@@ -567,7 +567,7 @@ Vc_ALWAYS_INLINE Vc_CONST __m256d negate(__m256d v, std::integral_constant<std::
 }
 Vc_ALWAYS_INLINE Vc_CONST __m256i negate(__m256i v, std::integral_constant<std::size_t, 4>)
 {
-    return sign_epi32(v, Detail::allone<__m256i>());
+    return AVX::sign_epi32(v, Detail::allone<__m256i>());
 }
 Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 4>)
 {
