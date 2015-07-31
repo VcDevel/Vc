@@ -195,6 +195,30 @@ template<typename Flags> struct LoadHelper<float, signed char, Flags> {
 };
 */
 
+// shifted{{{1
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount >= 16), T> shifted(T k)
+{
+    return AVX::zeroExtend(_mm_srli_si128(AVX::hi128(k), amount - 16));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > 0 && amount < 16), T> shifted(
+    T k)
+{
+    return AVX::alignr<amount>(Mem::permute128<X1, Const0>(k), Mem::permute128<X0, X1>(k));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount <= -16), T> shifted(T k)
+{
+    return Mem::permute128<Const0, X0>(AVX::avx_cast<__m256i>(_mm_slli_si128(AVX::lo128(k), -16 - amount)));
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > -16 && amount < 0), T>
+    shifted(T k)
+{
+    return AVX::alignr<16 + amount>(k, Mem::permute128<Const0, X0>(k));
+}
+
 // mask_cast{{{1
 template<size_t From, size_t To, typename R> Vc_INTRINSIC Vc_CONST R mask_cast(__m256i k)
 {

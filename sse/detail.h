@@ -204,6 +204,18 @@ Vc_INTRINSIC __m128 load(const T *mem, Flags f, LoadTag<__m128, float>)
     return _mm_cvtepi32_ps(load<__m128i, int>(mem, f));
 }
 
+// shifted{{{1
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount > 0), T> shifted(T k)
+{
+    return _mm_srli_si128(k, amount);
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount < 0), T> shifted(T k)
+{
+    return _mm_slli_si128(k, -amount);
+}
+
 // IndexesFromZero{{{1
 template <typename T, int Size> Vc_INTRINSIC Vc_CONST const T *IndexesFromZero()
 {
