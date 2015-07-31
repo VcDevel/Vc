@@ -94,7 +94,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define VC_RESTRICT __restrict__
-#  define VC_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#  ifdef VC_ICC
+#    define VC_DEPRECATED(msg)
+#  else
+#    define VC_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#  endif
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #else
 #  define Vc_FLATTEN
