@@ -94,17 +94,17 @@ template<> Vc_INTRINSIC __m256 mask_load<__m256, 4>(const bool *mem)
 } // namespace Detail
 
 // store {{{1
-template<typename T> Vc_INTRINSIC void AVX2::Mask<T>::store(bool *mem) const
+template<typename T> Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::store(bool *mem) const
 {
     Detail::mask_store<Size>(dataI(), mem);
 }
 // load {{{1
-template<typename T> Vc_INTRINSIC void AVX2::Mask<T>::load(const bool *mem)
+template<typename T> Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::load(const bool *mem)
 {
     d.v() = AVX::avx_cast<VectorType>(Detail::mask_load<VectorTypeF, Size>(mem));
 }
 // operator[] {{{1
-template<typename T> Vc_INTRINSIC Vc_PURE bool AVX2::Mask<T>::operator[](size_t index) const { return toInt() & (1 << index); }
+template<typename T> Vc_INTRINSIC Vc_PURE bool Mask<T, VectorAbi::Avx>::operator[](size_t index) const { return toInt() & (1 << index); }
 template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 // operator== {{{1
@@ -146,13 +146,13 @@ Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 16>)
 }
 template <typename T>
 template <typename G>
-Vc_INTRINSIC AVX2::Mask<T> AVX2::Mask<T>::generate(G &&gen)
+Vc_INTRINSIC AVX2::Mask<T> Mask<T, VectorAbi::Avx>::generate(G &&gen)
 {
     return generate_impl<AVX2::Mask<T>>(std::forward<G>(gen),
                                   std::integral_constant<int, Size + sizeof(Storage)>());
 }
 // shifted {{{1
-template <typename T> Vc_INTRINSIC Vc_PURE AVX2::Mask<T> AVX2::Mask<T>::shifted(int amount) const
+template <typename T> Vc_INTRINSIC Vc_PURE AVX2::Mask<T> Mask<T, VectorAbi::Avx>::shifted(int amount) const
 {
     switch (amount * int(sizeof(VectorEntryType))) {
     case   0: return *this;

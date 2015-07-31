@@ -35,7 +35,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T>
 template <typename U>
-Vc_INTRINSIC SSE::Mask<T>::Mask(U &&rhs, Common::enable_if_mask_converts_explicitly<T, U>)
+Vc_INTRINSIC Mask<T, VectorAbi::Sse>::Mask(U &&rhs, Common::enable_if_mask_converts_explicitly<T, U>)
     : Mask(Vc::simd_cast<Mask>(std::forward<U>(rhs)))
 {
 }

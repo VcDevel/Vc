@@ -66,7 +66,7 @@ template<> Vc_INTRINSIC SSE::double_v::Vector(VectorSpecialInitializerIndexesFro
 // load member functions {{{1
 template <typename DstT>
 template <typename SrcT, typename Flags, typename>
-Vc_INTRINSIC void SSE::Vector<DstT>::load(const SrcT *mem, Flags flags)
+Vc_INTRINSIC void Vector<DstT, VectorAbi::Sse>::load(const SrcT *mem, Flags flags)
 {
     Common::handleLoadPrefetches(mem, flags);
     d.v() = Detail::load<VectorType, DstT>(mem, flags);

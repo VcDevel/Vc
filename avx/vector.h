@@ -466,9 +466,9 @@ static Vc_ALWAYS_INLINE AVX2::double_v max(const AVX2::double_v &x, const AVX2::
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> reciprocal(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::reciprocal(x.data()); }
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> round(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::round(x.data()); }
 
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename AVX2::Vector<T>::Mask isfinite(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isFinite(x.data()); }
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename AVX2::Vector<T>::Mask isinf(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isInfinite(x.data()); }
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename AVX2::Vector<T>::Mask isnan(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isNaN(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isfinite(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isFinite(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isinf(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isInfinite(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isnan(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isNaN(x.data()); }
 
 static_assert(!std::is_convertible<float *, AVX2::short_v>::value, "A float* should never implicitly convert to short_v. Something is broken.");
 static_assert(!std::is_convertible<int *  , AVX2::short_v>::value, "An int* should never implicitly convert to short_v. Something is broken.");

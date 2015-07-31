@@ -57,7 +57,7 @@ template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> sqrt (const Scala
 
 template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> rsqrt(const Scalar::Vector<T> &x)
 {
-    const typename Scalar::Vector<T>::EntryType one = 1; return Scalar::Vector<T>(one / std::sqrt(x.data()));
+    const typename Vector<T, VectorAbi::Scalar>::EntryType one = 1; return Scalar::Vector<T>(one / std::sqrt(x.data()));
 }
 
 template <typename T,
@@ -179,7 +179,7 @@ template<> Vc_ALWAYS_INLINE Scalar::Vector<double> round(const Scalar::Vector<do
 
 template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> reciprocal(const Scalar::Vector<T> &x)
 {
-    const typename Scalar::Vector<T>::EntryType one = 1; return Scalar::Vector<T>(one / x.data());
+    const typename Vector<T, VectorAbi::Scalar>::EntryType one = 1; return Scalar::Vector<T>(one / x.data());
 }
 
 #ifdef isfinite
@@ -188,9 +188,9 @@ template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> reciprocal(const 
 #ifdef isnan
 #undef isnan
 #endif
-template<typename T> static Vc_ALWAYS_INLINE typename Scalar::Vector<T>::Mask isfinite(const Scalar::Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Scalar>::Mask isfinite(const Scalar::Vector<T> &x)
 {
-    return typename Scalar::Vector<T>::Mask(
+    return typename Vector<T, VectorAbi::Scalar>::Mask(
 #ifdef _MSC_VER
             !!_finite(x.data())
 #elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1500
@@ -201,14 +201,14 @@ template<typename T> static Vc_ALWAYS_INLINE typename Scalar::Vector<T>::Mask is
             );
 }
 
-template<typename T> Vc_ALWAYS_INLINE typename Scalar::Vector<T>::Mask isinf(const Scalar::Vector<T> &x)
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Scalar>::Mask isinf(const Scalar::Vector<T> &x)
 {
-    return typename Scalar::Vector<T>::Mask(std::isinf(x.data()));
+    return typename Vector<T, VectorAbi::Scalar>::Mask(std::isinf(x.data()));
 }
 
-template<typename T> static Vc_ALWAYS_INLINE typename Scalar::Vector<T>::Mask isnan(const Scalar::Vector<T> &x)
+template<typename T> static Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Scalar>::Mask isnan(const Scalar::Vector<T> &x)
 {
-    return typename Scalar::Vector<T>::Mask(
+    return typename Vector<T, VectorAbi::Scalar>::Mask(
 #ifdef _MSC_VER
             !!_isnan(x.data())
 #elif defined(__INTEL_COMPILER) && __INTEL_COMPILER < 1500

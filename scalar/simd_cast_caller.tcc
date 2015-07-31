@@ -35,8 +35,8 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T>
 template <typename U>
-Vc_INTRINSIC Scalar::Mask<T>::Mask(U &&rhs,
-                                   Common::enable_if_mask_converts_explicitly<T, U>)
+Vc_INTRINSIC Mask<T, VectorAbi::Scalar>::Mask(
+    U &&rhs, Common::enable_if_mask_converts_explicitly<T, U>)
     : Mask(simd_cast<Mask>(std::forward<U>(rhs)))
 {
 }

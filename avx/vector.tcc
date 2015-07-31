@@ -38,7 +38,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 ///////////////////////////////////////////////////////////////////////////////////////////
 // constants {{{1
-template <typename T> Vc_INTRINSIC AVX2::Vector<T>::Vector(VectorSpecialInitializerZero::ZEnum) : d{} {}
+template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerZero::ZEnum) : d{} {}
 
 template <> Vc_INTRINSIC AVX2::double_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_pd()) {}
 template <> Vc_INTRINSIC  AVX2::float_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_ps()) {}
@@ -49,7 +49,7 @@ template <> Vc_INTRINSIC AVX2::ushort_v::Vector(VectorSpecialInitializerOne::OEn
 template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::_mm_setone_epi8()) {}
 template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::_mm_setone_epu8()) {}
 
-template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
     : d(HV::template load<AlignedTag>(AVX::IndexesFromZeroData<T>::address())) {}
 
 template <>
@@ -68,7 +68,7 @@ Vc_ALWAYS_INLINE AVX2::double_v::Vector(VectorSpecialInitializerIndexesFromZero:
 // general load, implemented via LoadHelper {{{2
 template <typename DstT>
 template <typename SrcT, typename Flags, typename>
-Vc_INTRINSIC void AVX2::Vector<DstT>::load(const SrcT *mem, Flags flags)
+Vc_INTRINSIC void Vector<DstT, VectorAbi::Avx>::load(const SrcT *mem, Flags flags)
 {
     Common::handleLoadPrefetches(mem, flags);
     d.v() = Detail::load<VectorType, DstT>(mem, flags);
@@ -76,15 +76,15 @@ Vc_INTRINSIC void AVX2::Vector<DstT>::load(const SrcT *mem, Flags flags)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // zeroing {{{1
-template<typename T> Vc_INTRINSIC void AVX2::Vector<T>::setZero()
+template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZero()
 {
     data() = HV::zero();
 }
-template<typename T> Vc_INTRINSIC void AVX2::Vector<T>::setZero(const Mask &k)
+template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZero(const Mask &k)
 {
     data() = HV::andnot_(AVX::avx_cast<VectorType>(k.data()), data());
 }
-template<typename T> Vc_INTRINSIC void AVX2::Vector<T>::setZeroInverted(const Mask &k)
+template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZeroInverted(const Mask &k)
 {
     data() = HV::and_(AVX::avx_cast<VectorType>(k.data()), data());
 }
@@ -112,7 +112,7 @@ template <typename T>
 template <typename U,
           typename Flags,
           typename>
-Vc_INTRINSIC void AVX2::Vector<T>::store(U *mem, Flags flags) const
+Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::store(U *mem, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
     HV::template store<Flags>(mem, data());
@@ -122,7 +122,7 @@ template <typename T>
 template <typename U,
           typename Flags,
           typename>
-Vc_INTRINSIC void AVX2::Vector<T>::store(U *mem, Mask mask, Flags flags) const
+Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::store(U *mem, Mask mask, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
     HV::template store<Flags>(mem, data(), AVX::avx_cast<VectorType>(mask.data()));
@@ -131,19 +131,19 @@ Vc_INTRINSIC void AVX2::Vector<T>::store(U *mem, Mask mask, Flags flags) const
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 // swizzles {{{1
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE &AVX2::Vector<T>::abcd() const { return *this; }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  AVX2::Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE &Vector<T, VectorAbi::Avx>::abcd() const { return *this; }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::cdab() const { return Mem::permute<X2, X3, X0, X1>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::aaaa() const { return Mem::permute<X0, X0, X0, X0>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::bbbb() const { return Mem::permute<X1, X1, X1, X1>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::cccc() const { return Mem::permute<X2, X2, X2, X2>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::dddd() const { return Mem::permute<X3, X3, X3, X3>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::bcad() const { return Mem::permute<X1, X2, X0, X3>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::bcda() const { return Mem::permute<X1, X2, X3, X0>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::dabc() const { return Mem::permute<X3, X0, X1, X2>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::acbd() const { return Mem::permute<X0, X2, X1, X3>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::dbca() const { return Mem::permute<X3, X1, X2, X0>(data()); }
+template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::dcba() const { return Mem::permute<X3, X2, X1, X0>(data()); }
 
 template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::cdab() const { return Mem::shuffle128<X1, X0>(data(), data()); }
 template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
@@ -159,25 +159,25 @@ template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::dbca() cons
 template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::dcba() const { return cdab().badc(); }
 
 #define VC_SWIZZLES_16BIT_IMPL(T) \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::cdab() const { return Mem::permute<X2, X3, X0, X1, X6, X7, X4, X5>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::badc() const { return Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::aaaa() const { return Mem::permute<X0, X0, X0, X0, X4, X4, X4, X4>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::bbbb() const { return Mem::permute<X1, X1, X1, X1, X5, X5, X5, X5>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::cccc() const { return Mem::permute<X2, X2, X2, X2, X6, X6, X6, X6>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::dddd() const { return Mem::permute<X3, X3, X3, X3, X7, X7, X7, X7>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::bcad() const { return Mem::permute<X1, X2, X0, X3, X5, X6, X4, X7>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::bcda() const { return Mem::permute<X1, X2, X3, X0, X5, X6, X7, X4>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::dabc() const { return Mem::permute<X3, X0, X1, X2, X7, X4, X5, X6>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::acbd() const { return Mem::permute<X0, X2, X1, X3, X4, X6, X5, X7>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::dbca() const { return Mem::permute<X3, X1, X2, X0, X7, X5, X6, X4>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE AVX2::Vector<T>::dcba() const { return Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(data()); }
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::cdab() const { return Mem::permute<X2, X3, X0, X1, X6, X7, X4, X5>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::badc() const { return Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::aaaa() const { return Mem::permute<X0, X0, X0, X0, X4, X4, X4, X4>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::bbbb() const { return Mem::permute<X1, X1, X1, X1, X5, X5, X5, X5>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::cccc() const { return Mem::permute<X2, X2, X2, X2, X6, X6, X6, X6>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::dddd() const { return Mem::permute<X3, X3, X3, X3, X7, X7, X7, X7>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::bcad() const { return Mem::permute<X1, X2, X0, X3, X5, X6, X4, X7>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::bcda() const { return Mem::permute<X1, X2, X3, X0, X5, X6, X7, X4>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::dabc() const { return Mem::permute<X3, X0, X1, X2, X7, X4, X5, X6>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::acbd() const { return Mem::permute<X0, X2, X1, X3, X4, X6, X5, X7>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::dbca() const { return Mem::permute<X3, X1, X2, X0, X7, X5, X6, X4>(data()); } \
+template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::dcba() const { return Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(data()); }
 VC_SWIZZLES_16BIT_IMPL(short)
 VC_SWIZZLES_16BIT_IMPL(unsigned short)
 #undef VC_SWIZZLES_16BIT_IMPL
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // division {{{1
-template<typename T> inline AVX2::Vector<T> &AVX2::Vector<T>::operator/=(EntryType x)
+template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator/=(EntryType x)
 {
     if (HasVectorDivision) {
         return operator/=(AVX2::Vector<T>(x));
@@ -186,13 +186,13 @@ template<typename T> inline AVX2::Vector<T> &AVX2::Vector<T>::operator/=(EntryTy
     return *this;
 }
 // per default fall back to scalar division
-template<typename T> inline AVX2::Vector<T> &AVX2::Vector<T>::operator/=(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
+template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator/=(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
 {
     for_all_vector_entries(i, { d.set(i, d.m(i) / x.d.m(i)); });
     return *this;
 }
 
-template<typename T> inline Vc_PURE AVX2::Vector<T> AVX2::Vector<T>::operator/(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x) const
+template<typename T> inline Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator/(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x) const
 {
     AVX2::Vector<T> r;
     for_all_vector_entries(i,
@@ -341,14 +341,14 @@ template <> inline Vc_PURE AVX2::ushort_v AVX2::ushort_v::operator%(const AVX2::
 }
 
 #define OP_IMPL(T, symbol)                                                               \
-    template <> Vc_ALWAYS_INLINE AVX2::Vector<T> &AVX2::Vector<T>::operator symbol##=(AsArg x)       \
+    template <> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(AsArg x)       \
     {                                                                                    \
         Common::unrolled_loop<std::size_t, 0, Size>(                                     \
             [&](std::size_t i) { d.set(i, d.m(i) symbol x.d.m(i)); });                   \
         return *this;                                                                    \
     }                                                                                    \
     template <>                                                                          \
-    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> AVX2::Vector<T>::operator symbol(AsArg x) const         \
+    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol(AsArg x) const         \
     {                                                                                    \
         AVX2::Vector<T> r;                                                                     \
         Common::unrolled_loop<std::size_t, 0, Size>(                                     \
@@ -365,24 +365,24 @@ OP_IMPL(unsigned short, <<)
 OP_IMPL(unsigned short, >>)
 #undef OP_IMPL
 
-template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &AVX2::Vector<T>::operator>>=(int shift) {
+template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator>>=(int shift) {
     d.v() = HT::shiftRight(d.v(), shift);
     return *static_cast<AVX2::Vector<T> *>(this);
 }
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> AVX2::Vector<T>::operator>>(int shift) const {
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator>>(int shift) const {
     return HT::shiftRight(d.v(), shift);
 }
-template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &AVX2::Vector<T>::operator<<=(int shift) {
+template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator<<=(int shift) {
     d.v() = HT::shiftLeft(d.v(), shift);
     return *static_cast<AVX2::Vector<T> *>(this);
 }
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> AVX2::Vector<T>::operator<<(int shift) const {
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator<<(int shift) const {
     return HT::shiftLeft(d.v(), shift);
 }
 
 #define OP_IMPL(T, symbol, fun) \
-  template<> Vc_ALWAYS_INLINE AVX2::Vector<T> &AVX2::Vector<T>::operator symbol##=(AsArg x) { d.v() = HV::fun(d.v(), x.d.v()); return *this; } \
-  template<> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T>  AVX2::Vector<T>::operator symbol(AsArg x) const { return AVX2::Vector<T>(HV::fun(d.v(), x.d.v())); }
+  template<> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(AsArg x) { d.v() = HV::fun(d.v(), x.d.v()); return *this; } \
+  template<> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T>  Vector<T, VectorAbi::Avx>::operator symbol(AsArg x) const { return AVX2::Vector<T>(HV::fun(d.v(), x.d.v())); }
   OP_IMPL(int, &, and_)
   OP_IMPL(int, |, or_)
   OP_IMPL(int, ^, xor_)
@@ -472,7 +472,7 @@ inline void AVX2::ushort_v::gatherImplementation(const MT *mem, IT &&indexes)
 
 template <typename T>
 template <typename MT, typename IT>
-inline void AVX2::Vector<T>::gatherImplementation(const MT *mem, IT &&indexes, MaskArgument mask)
+inline void Vector<T, VectorAbi::Avx>::gatherImplementation(const MT *mem, IT &&indexes, MaskArgument mask)
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
 #ifdef VC_USE_SET_GATHERS
@@ -491,14 +491,14 @@ inline void AVX2::Vector<T>::gatherImplementation(const MT *mem, IT &&indexes, M
 
 template <typename T>
 template <typename MT, typename IT>
-inline void AVX2::Vector<T>::scatterImplementation(MT *mem, IT &&indexes) const
+inline void Vector<T, VectorAbi::Avx>::scatterImplementation(MT *mem, IT &&indexes) const
 {
     Common::unrolled_loop<std::size_t, 0, Size>([&](std::size_t i) { mem[indexes[i]] = d.m(i); });
 }
 
 template <typename T>
 template <typename MT, typename IT>
-inline void AVX2::Vector<T>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const
+inline void Vector<T, VectorAbi::Avx>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
 #ifdef VC_USE_SET_GATHERS
@@ -550,7 +550,7 @@ Vc_ALWAYS_INLINE void AVX2::ushort_v::scatterImplementation(MT *mem, IT &&indexe
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
 #ifdef VC_USE_BUILTIN_VECTOR_TYPES
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> AVX2::Vector<T>::operator-() const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator-() const
 {
     return VectorType(-d.builtin());
 }
@@ -583,7 +583,7 @@ Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::
 }
 }  // namespace
 
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> AVX2::Vector<T>::operator-() const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator-() const
 {
     return Internal::negate(d.v(), std::integral_constant<std::size_t, sizeof(T)>());
 }
@@ -591,12 +591,12 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> AVX2::Vector<T>::o
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
-template <typename T> Vc_INTRINSIC std::pair<AVX2::Vector<T>, int> AVX2::Vector<T>::minIndex() const
+template <typename T> Vc_INTRINSIC std::pair<AVX2::Vector<T>, int> Vector<T, VectorAbi::Avx>::minIndex() const
 {
     AVX2::Vector<T> x = min();
     return std::make_pair(x, (*this == x).firstOne());
 }
-template <typename T> Vc_INTRINSIC std::pair<AVX2::Vector<T>, int> AVX2::Vector<T>::maxIndex() const
+template <typename T> Vc_INTRINSIC std::pair<AVX2::Vector<T>, int> Vector<T, VectorAbi::Avx>::maxIndex() const
 {
     AVX2::Vector<T> x = max();
     return std::make_pair(x, (*this == x).firstOne());
@@ -656,7 +656,7 @@ template <> Vc_INTRINSIC std::pair<AVX2::float_v, int> AVX2::float_v::minIndex()
     x = _mm256_blendv_ps(y, x, less);
     return std::make_pair(x, index);
 }
-template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> AVX2::Vector<T>::partialSum() const
+template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::partialSum() const
 {
     //   a    b    c    d    e    f    g    h
     // +      a    b    c    d    e    f    g    -> a ab bc  cd   de    ef     fg      gh
@@ -673,7 +673,7 @@ template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> AVX2::Vector<T>::partialSu
 
 /* This function requires correct masking because the neutral element of \p op is not necessarily 0
  *
-template<typename T> template<typename BinaryOperation> Vc_ALWAYS_INLINE AVX2::Vector<T> AVX2::Vector<T>::partialSum(BinaryOperation op) const
+template<typename T> template<typename BinaryOperation> Vc_ALWAYS_INLINE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::partialSum(BinaryOperation op) const
 {
     //   a    b    c    d    e    f    g    h
     // +      a    b    c    d    e    f    g    -> a ab bc  cd   de    ef     fg      gh
@@ -690,25 +690,25 @@ template<typename T> template<typename BinaryOperation> Vc_ALWAYS_INLINE AVX2::V
 }
 */
 
-template<typename T> Vc_ALWAYS_INLINE typename AVX2::Vector<T>::EntryType AVX2::Vector<T>::min(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::min(MaskArg m) const
 {
     AVX2::Vector<T> tmp = std::numeric_limits<AVX2::Vector<T> >::max();
     tmp(m) = *this;
     return tmp.min();
 }
-template<typename T> Vc_ALWAYS_INLINE typename AVX2::Vector<T>::EntryType AVX2::Vector<T>::max(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::max(MaskArg m) const
 {
     AVX2::Vector<T> tmp = std::numeric_limits<AVX2::Vector<T> >::min();
     tmp(m) = *this;
     return tmp.max();
 }
-template<typename T> Vc_ALWAYS_INLINE typename AVX2::Vector<T>::EntryType AVX2::Vector<T>::product(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::product(MaskArg m) const
 {
     AVX2::Vector<T> tmp(VectorSpecialInitializerOne::One);
     tmp(m) = *this;
     return tmp.product();
 }
-template<typename T> Vc_ALWAYS_INLINE typename AVX2::Vector<T>::EntryType AVX2::Vector<T>::sum(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::sum(MaskArg m) const
 {
     AVX2::Vector<T> tmp(VectorSpecialInitializerZero::Zero);
     tmp(m) = *this;
@@ -773,7 +773,7 @@ static Vc_ALWAYS_INLINE AVX2::uint_v _doRandomStep()
     return state0;
 }
 
-template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> AVX2::Vector<T>::Random()
+template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::Random()
 {
     const AVX2::uint_v state0 = _doRandomStep();
     return {state0.data()};
@@ -948,7 +948,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> rotated(
 }
 
 }  // namespace Detail
-template<typename T> Vc_INTRINSIC AVX2::Vector<T> AVX2::Vector<T>::shifted(int amount) const
+template<typename T> Vc_INTRINSIC AVX2::Vector<T> Vector<T, VectorAbi::Avx>::shifted(int amount) const
 {
     return Detail::shifted<EntryType>(d.v(), amount);
 }
@@ -964,7 +964,7 @@ Vc_INTRINSIC Vc_CONST VectorType shifted_shortcut(VectorType left, VectorType ri
     return Mem::shuffle128<X1, Y0>(left, right);
 }
 
-template<typename T> Vc_INTRINSIC AVX2::Vector<T> AVX2::Vector<T>::shifted(int amount, Vector shiftIn) const
+template<typename T> Vc_INTRINSIC AVX2::Vector<T> Vector<T, VectorAbi::Avx>::shifted(int amount, Vector shiftIn) const
 {
 #ifdef __GNUC__
     if (__builtin_constant_p(amount)) {
@@ -980,7 +980,7 @@ template<typename T> Vc_INTRINSIC AVX2::Vector<T> AVX2::Vector<T>::shifted(int a
                               shiftIn.shifted(amount - Size) :
                               shiftIn.shifted(Size + amount));
 }
-template<typename T> Vc_INTRINSIC AVX2::Vector<T> AVX2::Vector<T>::rotated(int amount) const
+template<typename T> Vc_INTRINSIC AVX2::Vector<T> Vector<T, VectorAbi::Avx>::rotated(int amount) const
 {
     return Detail::rotated<EntryType, size()>(d.v(), amount);
 }

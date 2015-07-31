@@ -779,7 +779,7 @@ template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(
     SSE::Mask<T> x0,
     SSE::Mask<T> x1,
-    enable_if<SSE::is_mask<Return>::value && SSE::Mask<T>::Size * 2 == Return::Size> = nullarg)
+    enable_if<SSE::is_mask<Return>::value && Mask<T, VectorAbi::Sse>::Size * 2 == Return::Size> = nullarg)
 {
     return SSE::sse_cast<__m128>(_mm_packs_epi16(x0.dataI(), x1.dataI()));
 }
@@ -787,7 +787,7 @@ template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast(
     SSE::Mask<T> x0,
     SSE::Mask<T> x1,
-    enable_if<SSE::is_mask<Return>::value && SSE::Mask<T>::Size * 4 == Return::Size> = nullarg)
+    enable_if<SSE::is_mask<Return>::value && Mask<T, VectorAbi::Sse>::Size * 4 == Return::Size> = nullarg)
 {
     return SSE::sse_cast<__m128>(
         _mm_packs_epi16(_mm_packs_epi16(x0.dataI(), x1.dataI()), _mm_setzero_si128()));
@@ -799,7 +799,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     SSE::Mask<T> x1,
     SSE::Mask<T> x2,
     SSE::Mask<T> x3,
-    enable_if<SSE::is_mask<Return>::value && SSE::Mask<T>::Size * 4 == Return::Size> = nullarg)
+    enable_if<SSE::is_mask<Return>::value && Mask<T, VectorAbi::Sse>::Size * 4 == Return::Size> = nullarg)
 {
     return SSE::sse_cast<__m128>(_mm_packs_epi16(_mm_packs_epi16(x0.dataI(), x1.dataI()),
                                                  _mm_packs_epi16(x2.dataI(), x3.dataI())));

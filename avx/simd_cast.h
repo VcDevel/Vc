@@ -1512,7 +1512,7 @@ template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast(const AVX2::Mask<T> &k, enable_if<AVX2::is_mask<Return>::value>)
 {
-    return {Detail::mask_cast<AVX2::Mask<T>::Size, Return::Size,
+    return {Detail::mask_cast<Mask<T, VectorAbi::Avx>::Size, Return::Size,
                               typename Return::VectorTypeF>(k.dataI())};
 }
 
