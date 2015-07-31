@@ -213,37 +213,9 @@ template<> Vc_ALWAYS_INLINE Vc_PURE SSE::double_v SSE::double_v::operator/(VC_AL
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
-namespace Internal
-{
-Vc_ALWAYS_INLINE Vc_CONST __m128 negate(__m128 v, std::integral_constant<std::size_t, 4>)
-{
-    return _mm_xor_ps(v, SSE::_mm_setsignmask_ps());
-}
-Vc_ALWAYS_INLINE Vc_CONST __m128d negate(__m128d v, std::integral_constant<std::size_t, 8>)
-{
-    return _mm_xor_pd(v, SSE::_mm_setsignmask_pd());
-}
-Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 4>)
-{
-#ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi32(v, SSE::_mm_setallone_si128());
-#else
-    return _mm_sub_epi32(_mm_setzero_si128(), v);
-#endif
-}
-Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 2>)
-{
-#ifdef VC_IMPL_SSSE3
-    return _mm_sign_epi16(v, SSE::_mm_setallone_si128());
-#else
-    return _mm_sub_epi16(_mm_setzero_si128(), v);
-#endif
-}
-}  // namespace
-
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator-() const
 {
-    return Internal::negate(d.v(), std::integral_constant<std::size_t, sizeof(T)>());
+    return Detail::negate(d.v(), std::integral_constant<std::size_t, sizeof(T)>());
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1

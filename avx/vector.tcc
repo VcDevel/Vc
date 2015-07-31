@@ -555,37 +555,9 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAb
     return VectorType(-d.builtin());
 }
 #else
-namespace Internal
-{
-Vc_ALWAYS_INLINE Vc_CONST __m256 negate(__m256 v, std::integral_constant<std::size_t, 4>)
-{
-    return _mm256_xor_ps(v, AVX::setsignmask_ps());
-}
-Vc_ALWAYS_INLINE Vc_CONST __m256d negate(__m256d v, std::integral_constant<std::size_t, 8>)
-{
-    return _mm256_xor_pd(v, AVX::setsignmask_pd());
-}
-Vc_ALWAYS_INLINE Vc_CONST __m256i negate(__m256i v, std::integral_constant<std::size_t, 4>)
-{
-    return AVX::sign_epi32(v, Detail::allone<__m256i>());
-}
-Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 4>)
-{
-    return _mm_sign_epi32(v, Detail::allone<__m128i>());
-}
-Vc_ALWAYS_INLINE Vc_CONST __m256i negate(__m256i v, std::integral_constant<std::size_t, 2>)
-{
-    return sign_epi16(v, Detail::allone<__m256i>());
-}
-Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 2>)
-{
-    return _mm_sign_epi16(v, Detail::allone<__m128i>());
-}
-}  // namespace
-
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator-() const
 {
-    return Internal::negate(d.v(), std::integral_constant<std::size_t, sizeof(T)>());
+    return Detail::negate(d.v(), std::integral_constant<std::size_t, sizeof(T)>());
 }
 #endif
 

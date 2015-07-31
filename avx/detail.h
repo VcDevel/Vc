@@ -303,6 +303,24 @@ template<> Vc_INTRINSIC Vc_CONST __m256  zero<__m256 >() { return _mm256_setzero
 template<> Vc_INTRINSIC Vc_CONST __m256i zero<__m256i>() { return _mm256_setzero_si256(); }
 template<> Vc_INTRINSIC Vc_CONST __m256d zero<__m256d>() { return _mm256_setzero_pd(); }
 
+// negate{{{1
+Vc_ALWAYS_INLINE Vc_CONST __m256 negate(__m256 v, std::integral_constant<std::size_t, 4>)
+{
+    return _mm256_xor_ps(v, AVX::setsignmask_ps());
+}
+Vc_ALWAYS_INLINE Vc_CONST __m256d negate(__m256d v, std::integral_constant<std::size_t, 8>)
+{
+    return _mm256_xor_pd(v, AVX::setsignmask_pd());
+}
+Vc_ALWAYS_INLINE Vc_CONST __m256i negate(__m256i v, std::integral_constant<std::size_t, 4>)
+{
+    return AVX::sign_epi32(v, Detail::allone<__m256i>());
+}
+Vc_ALWAYS_INLINE Vc_CONST __m256i negate(__m256i v, std::integral_constant<std::size_t, 2>)
+{
+    return AVX::sign_epi16(v, Detail::allone<__m256i>());
+}
+
 // xor_{{{1
 Vc_INTRINSIC __m256 xor_(__m256 a, __m256 b) { return _mm256_xor_ps(a, b); }
 Vc_INTRINSIC __m256d xor_(__m256d a, __m256d b) { return _mm256_xor_pd(a, b); }
