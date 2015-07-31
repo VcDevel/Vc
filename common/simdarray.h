@@ -1791,7 +1791,7 @@ namespace internal
     SimdArray<T, N, V, N> Vc_INTRINSIC Vc_PURE                                           \
         name__(const SimdArray<T, N, V, N> &l, const SimdArray<T, N, V, N> &r)           \
     {                                                                                    \
-        return {name__(internal_data(l), internal_data(r))};                             \
+        return SimdArray<T, N, V, N>{name__(internal_data(l), internal_data(r))};        \
     }
 Vc_BINARY_FUNCTION__(min)
 Vc_BINARY_FUNCTION__(max)
