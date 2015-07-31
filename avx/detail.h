@@ -39,57 +39,121 @@ namespace Detail
 // (converting) load functions {{{1
 // no conversion load from any T {{{2
 template <typename V, typename T, typename Flags>
-Vc_INTRINSIC V load(const T *mem, Flags, LoadTag<V, T, 32>)
+Vc_INTRINSIC V
+    load(const T *mem, Flags, LoadTag<V, T>, enable_if<sizeof(V) == 32> = nullarg)
 {
     return AVX::VectorHelper<V>::template load<Flags>(mem);
 }
 
+// short {{{2
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const ushort *mem, Flags, LoadTag<__m256i, short>)
+{
+    return AVX::VectorHelper<__m256i>::load<Flags>(mem);
+}
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const uchar *mem, Flags f, LoadTag<__m256i, short>)
+{
+    return AVX::cvtepu8_epi16(load(mem, f, LoadTag<__m128i, uchar>()));
+}
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const schar *mem, Flags f, LoadTag<__m256i, short>)
+{
+    return AVX::cvtepi8_epi16(load(mem, f, LoadTag<__m128i, schar>()));
+}
+
+// ushort {{{2
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const uchar *mem, Flags f, LoadTag<__m256i, ushort>)
+{
+    return AVX::cvtepu8_epi16(load(mem, f, LoadTag<__m128i, uchar>()));
+}
+
+// int {{{2
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const uint *mem, Flags, LoadTag<__m256i, int>)
+{
+    return AVX::VectorHelper<__m256i>::load<Flags>(mem);
+}
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const ushort *mem, Flags f, LoadTag<__m256i, int>)
+{
+    return AVX::cvtepu16_epi32(load(mem, f, LoadTag<__m128i, ushort>()));
+}
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const short *mem, Flags f, LoadTag<__m256i, int>)
+{
+    return AVX::cvtepi16_epi32(load(mem, f, LoadTag<__m128i, short>()));
+}
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, int>)
+{
+    return AVX::cvtepu8_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+}
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const schar *mem, Flags, LoadTag<__m256i, int>)
+{
+    return AVX::cvtepi8_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+}
+
+// uint {{{2
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const ushort *mem, Flags f, LoadTag<__m256i, uint>)
+{
+    return AVX::cvtepu16_epi32(load(mem, f, LoadTag<__m128i, ushort>()));
+}
+template <typename Flags>
+Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, uint>)
+{
+    return AVX::cvtepu8_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+}
+
 // double {{{2
 template <typename Flags>
-Vc_INTRINSIC __m256d load(const float *mem, Flags f, LoadTag<__m256d, double, 32>)
+Vc_INTRINSIC __m256d load(const float *mem, Flags f, LoadTag<__m256d, double>)
 {
     return AVX::StaticCastHelper<float, double>::cast(load<__m128, float>(mem, f));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256d load(const uint *mem, Flags f, LoadTag<__m256d, double, 32>)
+Vc_INTRINSIC __m256d load(const uint *mem, Flags f, LoadTag<__m256d, double>)
 {
     return AVX::StaticCastHelper<uint, double>::cast(load<__m128i, uint>(mem, f));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256d load(const int *mem, Flags f, LoadTag<__m256d, double, 32>)
+Vc_INTRINSIC __m256d load(const int *mem, Flags f, LoadTag<__m256d, double>)
 {
     return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256d load(const ushort *mem, Flags f, LoadTag<__m256d, double, 32>)
+Vc_INTRINSIC __m256d load(const ushort *mem, Flags f, LoadTag<__m256d, double>)
 {
     return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256d load(const short *mem, Flags f, LoadTag<__m256d, double, 32>)
+Vc_INTRINSIC __m256d load(const short *mem, Flags f, LoadTag<__m256d, double>)
 {
     return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256d load(const uchar *mem, Flags f, LoadTag<__m256d, double, 32>)
+Vc_INTRINSIC __m256d load(const uchar *mem, Flags f, LoadTag<__m256d, double>)
 {
     return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256d load(const schar *mem, Flags f, LoadTag<__m256d, double, 32>)
+Vc_INTRINSIC __m256d load(const schar *mem, Flags f, LoadTag<__m256d, double>)
 {
     return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
 }
 
 // float {{{2
 template <typename Flags>
-Vc_INTRINSIC __m256 load(const double *mem, Flags, LoadTag<__m256, float, 32>)
+Vc_INTRINSIC __m256 load(const double *mem, Flags, LoadTag<__m256, float>)
 {
     return AVX::concat(_mm256_cvtpd_ps(AVX::VectorHelper<__m256d>::load<Flags>(&mem[0])),
                        _mm256_cvtpd_ps(AVX::VectorHelper<__m256d>::load<Flags>(&mem[4])));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256 load(const uint *mem, Flags, LoadTag<__m256, float, 32>)
+Vc_INTRINSIC __m256 load(const uint *mem, Flags, LoadTag<__m256, float>)
 {
     const auto v = AVX::VectorHelper<__m256i>::load<Flags>(mem);
     return _mm256_blendv_ps(
@@ -100,17 +164,17 @@ Vc_INTRINSIC __m256 load(const uint *mem, Flags, LoadTag<__m256, float, 32>)
 }
 template <typename T, typename Flags,
           typename = enable_if<!std::is_same<T, float>::value>>
-Vc_INTRINSIC __m256 load(const T *mem, Flags f, LoadTag<__m256, float, 32>)
+Vc_INTRINSIC __m256 load(const T *mem, Flags f, LoadTag<__m256, float>)
 {
     return _mm256_cvtepi32_ps(load<__m256i, int>(mem, f));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256 load(const ushort *mem, Flags f, LoadTag<__m256, float, 32>)
+Vc_INTRINSIC __m256 load(const ushort *mem, Flags f, LoadTag<__m256, float>)
 {
     return AVX::StaticCastHelper<ushort, float>::cast(load<__m128i, ushort>(mem, f));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256 load(const short *mem, Flags f, LoadTag<__m256, float, 32>)
+Vc_INTRINSIC __m256 load(const short *mem, Flags f, LoadTag<__m256, float>)
 {
     return AVX::StaticCastHelper<short, float>::cast(load<__m128i, short>(mem, f));
 }
@@ -130,71 +194,6 @@ template<typename Flags> struct LoadHelper<float, signed char, Flags> {
     }
 };
 */
-
-#ifdef VC_IMPL_AVX2
-// int {{{2
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const uint *mem, Flags, LoadTag<__m256i, int, 32>)
-{
-    return SSE::VectorHelper<__m128i>::load<Flags>(mem);
-}
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const ushort *mem, Flags, LoadTag<__m256i, int, 32>)
-{
-    return SSE::cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const short *mem, Flags, LoadTag<__m256i, int, 32>)
-{
-    return SSE::cvtepi16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, int, 32>)
-{
-    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const schar *mem, Flags, LoadTag<__m256i, int, 32>)
-{
-    return SSE::cvtepi8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
-}
-
-// uint {{{2
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const ushort *mem, Flags, LoadTag<__m256i, uint, 32>)
-{
-    return SSE::cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, uint, 32>)
-{
-    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
-}
-
-// short {{{2
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const ushort *mem, Flags, LoadTag<__m256i, short, 32>)
-{
-    return SSE::VectorHelper<__m128i>::load<Flags>(mem);
-}
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, short, 32>)
-{
-    return SSE::cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const schar *mem, Flags, LoadTag<__m256i, short, 32>)
-{
-    return SSE::cvtepi8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-
-// ushort {{{2
-template <typename Flags>
-Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, ushort, 32>)
-{
-    return SSE::cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-#endif
 
 // mask_cast{{{1
 template<size_t From, size_t To, typename R> Vc_INTRINSIC Vc_CONST R mask_cast(__m256i k)

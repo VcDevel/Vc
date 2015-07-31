@@ -45,7 +45,7 @@ using uchar = unsigned char;
 using schar = signed char;
 
 // (converting) load functions {{{1
-template <typename V, typename DstT, size_t VSize> struct LoadTag
+template <typename V, typename DstT> struct LoadTag
 {
 };
 
@@ -55,55 +55,127 @@ template <typename V, typename DstT, typename SrcT, typename Flags,
                          !std::is_integral<SrcT>::value || sizeof(DstT) >= sizeof(SrcT))>>
 Vc_INTRINSIC V load(const SrcT *mem, Flags flags)
 {
-    return load(mem, flags, LoadTag<V, DstT, sizeof(V)>());
+    return load(mem, flags, LoadTag<V, DstT>());
 }
 
 // no conversion load from any T {{{2
 template <typename V, typename T, typename Flags>
-Vc_INTRINSIC V load(const T *mem, Flags, LoadTag<V, T, 16>)
+Vc_INTRINSIC V
+    load(const T *mem, Flags, LoadTag<V, T>, enable_if<sizeof(V) == 16> = nullarg)
 {
     return SSE::VectorHelper<V>::template load<Flags>(mem);
 }
 
+// short {{{2
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const ushort *mem, Flags, LoadTag<__m128i, short>)
+{
+    return SSE::VectorHelper<__m128i>::load<Flags>(mem);
+}
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, short>)
+{
+    // the only available streaming load loads 16 bytes - twice as much as we need =>
+    // can't use it, or we risk an out-of-bounds read and an unaligned load exception
+    return SSE::cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+}
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const schar *mem, Flags, LoadTag<__m128i, short>)
+{
+    // the only available streaming load loads 16 bytes - twice as much as we need =>
+    // can't use it, or we risk an out-of-bounds read and an unaligned load exception
+    return SSE::cvtepi8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+}
+
+// ushort {{{2
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, ushort>)
+{
+    // the only available streaming load loads 16 bytes - twice as much as we need =>
+    // can't use it, or we risk an out-of-bounds read and an unaligned load exception
+    return SSE::cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+}
+
+// int {{{2
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const uint *mem, Flags, LoadTag<__m128i, int>)
+{
+    return SSE::VectorHelper<__m128i>::load<Flags>(mem);
+}
+// no difference between streaming and alignment, because the
+// 32/64 bit loads are not available as streaming loads, and can always be unaligned
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const ushort *mem, Flags, LoadTag<__m128i, int>)
+{
+    return SSE::cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+}
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const short *mem, Flags, LoadTag<__m128i, int>)
+{
+    return SSE::cvtepi16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+}
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, int>)
+{
+    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
+}
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const schar *mem, Flags, LoadTag<__m128i, int>)
+{
+    return SSE::cvtepi8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
+}
+
+// uint {{{2
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const ushort *mem, Flags, LoadTag<__m128i, uint>)
+{
+    return SSE::cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
+}
+template <typename Flags>
+Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, uint>)
+{
+    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
+}
+
 // double {{{2
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const float *mem, Flags, LoadTag<__m128d, double, 16>)
+Vc_INTRINSIC __m128d load(const float *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::StaticCastHelper<float, double>::cast(
         _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<const __m64 *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const uint *mem, Flags f, LoadTag<__m128d, double, 16>)
+Vc_INTRINSIC __m128d load(const uint *mem, Flags f, LoadTag<__m128d, double>)
 {
     return SSE::StaticCastHelper<uint, double>::cast(
         _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const int *mem, Flags f, LoadTag<__m128d, double, 16>)
+Vc_INTRINSIC __m128d load(const int *mem, Flags f, LoadTag<__m128d, double>)
 {
     return SSE::StaticCastHelper<int, double>::cast(
         _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const ushort *mem, Flags f, LoadTag<__m128d, double, 16>)
+Vc_INTRINSIC __m128d load(const ushort *mem, Flags f, LoadTag<__m128d, double>)
 {
     return SSE::StaticCastHelper<ushort, double>::cast(
         _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const short *mem, Flags f, LoadTag<__m128d, double, 16>)
+Vc_INTRINSIC __m128d load(const short *mem, Flags f, LoadTag<__m128d, double>)
 {
     return SSE::StaticCastHelper<short, double>::cast(
         _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const uchar *mem, Flags f, LoadTag<__m128d, double, 16>)
+Vc_INTRINSIC __m128d load(const uchar *mem, Flags f, LoadTag<__m128d, double>)
 {
     return SSE::StaticCastHelper<uchar, double>::cast(
         _mm_set1_epi16(*reinterpret_cast<const short *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const schar *mem, Flags f, LoadTag<__m128d, double, 16>)
+Vc_INTRINSIC __m128d load(const schar *mem, Flags f, LoadTag<__m128d, double>)
 {
     return SSE::StaticCastHelper<char, double>::cast(
         _mm_set1_epi16(*reinterpret_cast<const short *>(mem)));
@@ -111,7 +183,7 @@ Vc_INTRINSIC __m128d load(const schar *mem, Flags f, LoadTag<__m128d, double, 16
 
 // float {{{2
 template <typename Flags>
-Vc_INTRINSIC __m128 load(const double *mem, Flags, LoadTag<__m128, float, 16>)
+Vc_INTRINSIC __m128 load(const double *mem, Flags, LoadTag<__m128, float>)
 {
 #ifdef VC_IMPL_AVX
     return _mm256_cvtpd_ps(AVX::VectorHelper<__m256d>::load<Flags>(mem));
@@ -121,86 +193,15 @@ Vc_INTRINSIC __m128 load(const double *mem, Flags, LoadTag<__m128, float, 16>)
 #endif
 }
 template <typename Flags>
-Vc_INTRINSIC __m128 load(const uint *mem, Flags f, LoadTag<__m128, float, 16>)
+Vc_INTRINSIC __m128 load(const uint *mem, Flags f, LoadTag<__m128, float>)
 {
     return SSE::StaticCastHelper<uint, float>::cast(load<__m128i, uint>(mem, f));
 }
 template <typename T, typename Flags,
           typename = enable_if<!std::is_same<T, float>::value>>
-Vc_INTRINSIC __m128 load(const T *mem, Flags f, LoadTag<__m128, float, 16>)
+Vc_INTRINSIC __m128 load(const T *mem, Flags f, LoadTag<__m128, float>)
 {
     return _mm_cvtepi32_ps(load<__m128i, int>(mem, f));
-}
-
-// int {{{2
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const uint *mem, Flags, LoadTag<__m128i, int, 16>)
-{
-    return SSE::VectorHelper<__m128i>::load<Flags>(mem);
-}
-// no difference between streaming and alignment, because the
-// 32/64 bit loads are not available as streaming loads, and can always be unaligned
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const ushort *mem, Flags, LoadTag<__m128i, int, 16>)
-{
-    return SSE::cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const short *mem, Flags, LoadTag<__m128i, int, 16>)
-{
-    return SSE::cvtepi16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, int, 16>)
-{
-    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const schar *mem, Flags, LoadTag<__m128i, int, 16>)
-{
-    return SSE::cvtepi8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
-}
-
-// uint {{{2
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const ushort *mem, Flags, LoadTag<__m128i, uint, 16>)
-{
-    return SSE::cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, uint, 16>)
-{
-    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem)));
-}
-
-// short {{{2
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const ushort *mem, Flags, LoadTag<__m128i, short, 16>)
-{
-    return SSE::VectorHelper<__m128i>::load<Flags>(mem);
-}
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, short, 16>)
-{
-    // the only available streaming load loads 16 bytes - twice as much as we need =>
-    // can't use it, or we risk an out-of-bounds read and an unaligned load exception
-    return SSE::cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const schar *mem, Flags, LoadTag<__m128i, short, 16>)
-{
-    // the only available streaming load loads 16 bytes - twice as much as we need =>
-    // can't use it, or we risk an out-of-bounds read and an unaligned load exception
-    return SSE::cvtepi8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
-}
-
-// ushort {{{2
-template <typename Flags>
-Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, ushort, 16>)
-{
-    // the only available streaming load loads 16 bytes - twice as much as we need =>
-    // can't use it, or we risk an out-of-bounds read and an unaligned load exception
-    return SSE::cvtepu8_epi16(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
 }
 
 // IndexesFromZero{{{1
