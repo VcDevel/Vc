@@ -45,17 +45,17 @@ namespace MicIntrinsics
     static Vc_INTRINSIC Vc_CONST __m512d _mm512_setallone_pd()    { return _mm512_castsi512_pd(_mm512_set_1to16_pi(~0)); }
     static Vc_INTRINSIC Vc_CONST __m512i _mm512_setallone_si512() { return _mm512_set_1to16_pi(~0); }
 
-    template<typename T> T _setallone();
-    template<> __m512i _setallone<__m512i>() { return _mm512_setallone_si512(); }
-    template<> __m512d _setallone<__m512d>() { return _mm512_setallone_pd(); }
-    template<> __m512  _setallone<__m512 >() { return _mm512_setallone_ps(); }
+    template<typename T> T allone();
+    template<> __m512i allone<__m512i>() { return _mm512_setallone_si512(); }
+    template<> __m512d allone<__m512d>() { return _mm512_setallone_pd(); }
+    template<> __m512  allone<__m512 >() { return _mm512_setallone_ps(); }
 
     static Vc_INTRINSIC Vc_CONST __m512d _mm512_setabsmask_pd() { return _mm512_set1_pd(reinterpret_cast<const double &>(c_general::absMaskFloat[0])); }
     static Vc_INTRINSIC Vc_CONST __m512  _mm512_setabsmask_ps() { return _mm512_set1_ps(reinterpret_cast<const float &>(c_general::absMaskFloat[1])); }
     static Vc_INTRINSIC Vc_CONST __m512d _mm512_setsignmask_pd(){ return _mm512_set1_pd(reinterpret_cast<const double &>(c_general::signMaskFloat[0])); }
     static Vc_INTRINSIC Vc_CONST __m512  _mm512_setsignmask_ps(){ return _mm512_set1_ps(reinterpret_cast<const float &>(c_general::signMaskFloat[1])); }
 
-    static Vc_INTRINSIC __m512d _mm512_loadu_pd(const void *mt,
+    static Vc_INTRINSIC __m512d mm512_loadu_pd(const void *mt,
             _MM_UPCONV_PD_ENUM upconv = _MM_UPCONV_PD_NONE, int memHint = _MM_HINT_NONE)
     {
         __m512d r;
@@ -66,7 +66,7 @@ namespace MicIntrinsics
         return r;
     }
 
-    static Vc_INTRINSIC __m512  _mm512_loadu_ps(const void *mt,
+    static Vc_INTRINSIC __m512  mm512_loadu_ps(const void *mt,
             _MM_UPCONV_PS_ENUM upconv = _MM_UPCONV_PS_NONE, int memHint = _MM_HINT_NONE)
     {
         __m512 r = _mm512_setzero_ps();
@@ -77,7 +77,7 @@ namespace MicIntrinsics
         return r;
     }
 
-    static Vc_INTRINSIC __m512i _mm512_loadu_epi32(const void *mt,
+    static Vc_INTRINSIC __m512i mm512_loadu_epi32(const void *mt,
             _MM_UPCONV_EPI32_ENUM upconv = _MM_UPCONV_EPI32_NONE, int memHint = _MM_HINT_NONE)
     {
         __m512i r;
@@ -339,9 +339,9 @@ Vc_INTRINSIC enable_if<std::is_unsigned<T>::value, __m512i> mod_(__m512i a, __m5
     template<typename> Vc_INTRINSIC __m512d _mul(__m512d r, __mmask8  k, __m512d a, __m512d b) { return _mm512_mask_mul_pd(r, k, a, b); }
     template<typename> Vc_INTRINSIC __m512i _mul(__m512i r, __mmask16 k, __m512i a, __m512i b) { return _mm512_mask_mullo_epi32(r, k, a, b); }
 
-    static Vc_INTRINSIC __m512  _mask_mov(__m512  r, __mmask16 k, __m512  a) { return _mm512_mask_mov_ps(r, k, a); }
-    static Vc_INTRINSIC __m512d _mask_mov(__m512d r, __mmask8  k, __m512d a) { return _mm512_mask_mov_pd(r, k, a); }
-    static Vc_INTRINSIC __m512i _mask_mov(__m512i r, __mmask16 k, __m512i a) { return _mm512_mask_mov_epi32(r, k, a); }
+    static Vc_INTRINSIC __m512  mask_mov(__m512  r, __mmask16 k, __m512  a) { return _mm512_mask_mov_ps(r, k, a); }
+    static Vc_INTRINSIC __m512d mask_mov(__m512d r, __mmask8  k, __m512d a) { return _mm512_mask_mov_pd(r, k, a); }
+    static Vc_INTRINSIC __m512i mask_mov(__m512i r, __mmask16 k, __m512i a) { return _mm512_mask_mov_epi32(r, k, a); }
 
     static Vc_INTRINSIC __m512  _set1(             float a) { return _mm512_set1_ps(a); }
     static Vc_INTRINSIC __m512d _set1(            double a) { return _mm512_set1_pd(a); }

@@ -58,39 +58,41 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
-{
-
 #define VC_CURRENT_CLASS_NAME Vector
-template<typename T> class Vector : public StoreMixin<Vector<T>, T>
+template <typename T>
+class Vector<T, VectorAbi::Mic> : public MIC::StoreMixin<MIC::Vector<T>, T>
 {
     static_assert(std::is_arithmetic<T>::value,
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
+public:
+    using abi = VectorAbi::Mic;
+
+private:
     //friend class VectorMultiplication<T>;
-    friend class WriteMaskedVector<T>;
+    friend class MIC::WriteMaskedVector<T>;
     //friend Vector<T> operator+<>(const Vector<T> &x, const VectorMultiplication<T> &y);
     //friend Vector<T> operator-<>(const Vector<T> &x, const VectorMultiplication<T> &y);
-    friend class Vector<float>;
-    friend class Vector<double>;
-    friend class Vector<int>;
-    friend class Vector<unsigned int>;
-    friend class StoreMixin<Vector<T>, T>;
+    friend class Vector<float, abi>;
+    friend class Vector<double, abi>;
+    friend class Vector<int, abi>;
+    friend class Vector<unsigned int, abi>;
+    friend class MIC::StoreMixin<Vector, T>;
 
 public:
     FREE_STORE_OPERATORS_ALIGNED(64)
-    typedef typename VectorTypeHelper<T>::Type VectorType;
+    typedef typename MIC::VectorTypeHelper<T>::Type VectorType;
     using vector_type = VectorType;
     using EntryType = T;
     using value_type = EntryType;
-    typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
+    typedef typename MIC::DetermineVectorEntryType<T>::Type VectorEntryType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
     typedef SimdArray<int, 16, MIC::int_v, 16> IndexType;
     enum Constants {
         MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true
     };
-    typedef Vc_IMPL_NAMESPACE::Mask<T> Mask;
+    typedef MIC::Mask<T> Mask;
     using MaskType = Mask;
     using mask_type = Mask;
     typedef typename Mask::AsArg MaskArgument;
@@ -102,19 +104,21 @@ public:
 
 protected:
     // helper that specializes on VectorType
-    typedef VectorHelper<VectorType> HV;
+    typedef MIC::VectorHelper<VectorType> HV;
 
     // helper that specializes on T
-    typedef VectorHelper<VectorEntryType> HT;
+    typedef MIC::VectorHelper<VectorEntryType> HT;
 
     typedef Common::VectorMemoryUnion<VectorType, VectorEntryType> StorageType;
     StorageType d;
     VC_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
 
-    template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) x) { return mic_cast<VectorType>(x); }
+    template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) x) { return MIC::mic_cast<VectorType>(x); }
 
 public:
-    template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::decay<MemType>::type>;
+    template <typename MemType>
+    using UpDownC =
+        MIC::UpDownConversion<VectorEntryType, typename std::decay<MemType>::type>;
 
     /**
      * Reinterpret some array of T as a vector of T. You may only do this if the pointer is
@@ -139,7 +143,7 @@ public:
     Vc_INTRINSIC Vector(
         VC_ALIGNED_PARAMETER(Vector<U>) x,
         typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-        : d(StaticCastHelper<U, T>::cast(x.data()))
+        : d(MIC::StaticCastHelper<U, T>::cast(x.data()))
     {
     }
 
@@ -148,13 +152,13 @@ public:
     Vc_INTRINSIC explicit Vector(
         VC_ALIGNED_PARAMETER(Vector<U>) x,
         typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-        : d(StaticCastHelper<U, T>::cast(x.data()))
+        : d(MIC::StaticCastHelper<U, T>::cast(x.data()))
     {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // broadcast
-    Vc_INTRINSIC Vector(EntryType a) : d(_set1(a)) {}
+    Vc_INTRINSIC Vector(EntryType a) : d(MIC::_set1(a)) {}
     template <typename U>
     Vc_INTRINSIC Vector(
         U a,
@@ -199,9 +203,9 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     //prefix
-    Vc_ALWAYS_INLINE Vector &operator++() { d.v() = _add<VectorEntryType>(d.v(), HV::one()); return *this; }
+    Vc_ALWAYS_INLINE Vector &operator++() { d.v() = MIC::_add<VectorEntryType>(d.v(), HV::one()); return *this; }
     //postfix
-    Vc_ALWAYS_INLINE Vector operator++(int) { const Vector<T> r = *this; d.v() = _add<VectorEntryType>(d.v(), HV::one()); return r; }
+    Vc_ALWAYS_INLINE Vector operator++(int) { const Vector<T> r = *this; d.v() = MIC::_add<VectorEntryType>(d.v(), HV::one()); return r; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // aliasing scalar access
@@ -220,7 +224,7 @@ public:
         static_assert(std::is_integral<T>::value,
                       "bit-complement can only be used with Vectors of integral type");
 #endif
-        return _andnot(d.v(), _setallone<VectorType>());
+        return MIC::_andnot(d.v(), MIC::allone<VectorType>());
     }
     Vc_PURE_L Vc_ALWAYS_INLINE_L Vector operator-() const Vc_PURE_R Vc_ALWAYS_INLINE_R;
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator+() const { return *this; }
@@ -247,14 +251,14 @@ public:
         return Vector<T>(fun(d.v(), x.d.v()));                                                     \
     }
 
-    Vc_OP(%, mod_<VectorEntryType>)
-    Vc_OP(*, _mul<VectorEntryType>)
-    Vc_OP(+, _add<VectorEntryType>)
-    Vc_OP(-, _sub<VectorEntryType>)
-    Vc_OP(/, _div<VectorEntryType>) // ushort_v::operator/ is specialized in vector.tcc
-    Vc_OP(|, _or)
-    Vc_OP(&, _and)
-    Vc_OP(^, _xor)
+    Vc_OP(%, MIC::mod_<VectorEntryType>)
+    Vc_OP(*, MIC::_mul<VectorEntryType>)
+    Vc_OP(+, MIC::_add<VectorEntryType>)
+    Vc_OP(-, MIC::_sub<VectorEntryType>)
+    Vc_OP(/, MIC::_div<VectorEntryType>) // ushort_v::operator/ is specialized in vector.tcc
+    Vc_OP(|, MIC::_or)
+    Vc_OP(&, MIC::_and)
+    Vc_OP(^, MIC::_xor)
 #undef Vc_OP
 
     Vc_ALWAYS_INLINE_L Vector &operator<<=(AsArg x) Vc_ALWAYS_INLINE_R;
@@ -287,9 +291,12 @@ public:
     Vc_INTRINSIC_L void assign(Vector<T> v, Mask mask) Vc_INTRINSIC_R;
 
     template<typename V2> Vc_INTRINSIC V2 staticCast() const { return V2(*this); }
-    template<typename V2> Vc_INTRINSIC V2 reinterpretCast() const { return mic_cast<typename V2::VectorType>(d.v()); }
+    template<typename V2> Vc_INTRINSIC V2 reinterpretCast() const { return MIC::mic_cast<typename V2::VectorType>(d.v()); }
 
-    Vc_ALWAYS_INLINE WriteMaskedVector<T> operator()(MaskArgument k) { return WriteMaskedVector<T>(this, k); }
+    Vc_ALWAYS_INLINE MIC::WriteMaskedVector<T> operator()(MaskArgument k)
+    {
+        return MIC::WriteMaskedVector<T>(this, k);
+    }
 
     inline EntryType min() const { return HT::reduce_min(d.v()); }
     inline EntryType max() const { return HT::reduce_max(d.v()); }
@@ -305,7 +312,7 @@ public:
     Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vc_PURE_L Vector reversed() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC Vector sorted() const { return SortHelper<T>::sort(d.v()); }
+    Vc_INTRINSIC Vector sorted() const { return MIC::SortHelper<T>::sort(d.v()); }
 
     template<typename F> void callWithValuesSorted(F &f) {
         EntryType value = d.m(0);
@@ -381,36 +388,38 @@ template<typename T> struct SwizzledVector
     unsigned int s;
 };
 
-Vc_INTRINSIC int_v    min(const int_v    &x, const int_v    &y) { return _mm512_min_epi32(x.data(), y.data()); }
-Vc_INTRINSIC uint_v   min(const uint_v   &x, const uint_v   &y) { return _mm512_min_epu32(x.data(), y.data()); }
-Vc_INTRINSIC short_v  min(const short_v  &x, const short_v  &y) { return _mm512_min_epi32(x.data(), y.data()); }
-Vc_INTRINSIC ushort_v min(const ushort_v &x, const ushort_v &y) { return _mm512_min_epu32(x.data(), y.data()); }
-Vc_INTRINSIC float_v  min(const float_v  &x, const float_v  &y) { return _mm512_min_ps   (x.data(), y.data()); }
-Vc_INTRINSIC double_v min(const double_v &x, const double_v &y) { return _mm512_min_pd   (x.data(), y.data()); }
-Vc_INTRINSIC int_v    max(const int_v    &x, const int_v    &y) { return _mm512_max_epi32(x.data(), y.data()); }
-Vc_INTRINSIC uint_v   max(const uint_v   &x, const uint_v   &y) { return _mm512_max_epu32(x.data(), y.data()); }
-Vc_INTRINSIC short_v  max(const short_v  &x, const short_v  &y) { return _mm512_max_epi32(x.data(), y.data()); }
-Vc_INTRINSIC ushort_v max(const ushort_v &x, const ushort_v &y) { return _mm512_max_epu32(x.data(), y.data()); }
-Vc_INTRINSIC float_v  max(const float_v  &x, const float_v  &y) { return _mm512_max_ps   (x.data(), y.data()); }
-Vc_INTRINSIC double_v max(const double_v &x, const double_v &y) { return _mm512_max_pd   (x.data(), y.data()); }
-template <typename T> static inline Vector<T> atan2(Vector<T> x, Vector<T> y)
+Vc_INTRINSIC MIC::int_v    min(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_min_epi32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::uint_v   min(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_min_epu32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::short_v  min(const MIC::short_v  &x, const MIC::short_v  &y) { return _mm512_min_epi32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::ushort_v min(const MIC::ushort_v &x, const MIC::ushort_v &y) { return _mm512_min_epu32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::float_v  min(const MIC::float_v  &x, const MIC::float_v  &y) { return _mm512_min_ps   (x.data(), y.data()); }
+Vc_INTRINSIC MIC::double_v min(const MIC::double_v &x, const MIC::double_v &y) { return _mm512_min_pd   (x.data(), y.data()); }
+Vc_INTRINSIC MIC::int_v    max(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_max_epi32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::uint_v   max(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_max_epu32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::short_v  max(const MIC::short_v  &x, const MIC::short_v  &y) { return _mm512_max_epi32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::ushort_v max(const MIC::ushort_v &x, const MIC::ushort_v &y) { return _mm512_max_epu32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::float_v  max(const MIC::float_v  &x, const MIC::float_v  &y) { return _mm512_max_ps   (x.data(), y.data()); }
+Vc_INTRINSIC MIC::double_v max(const MIC::double_v &x, const MIC::double_v &y) { return _mm512_max_pd   (x.data(), y.data()); }
+template <typename T>
+static inline MIC::Vector<T> atan2(MIC::Vector<T> x, MIC::Vector<T> y)
 {
-    return VectorHelper<typename Vector<T>::VectorEntryType>::atan2(x.data(), y.data());
+    return MIC::VectorHelper<typename MIC::Vector<T>::VectorEntryType>::atan2(x.data(),
+                                                                              y.data());
 }
 
 template <typename T,
-          typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
-                               std::is_same<T, short>::value ||
-                               std::is_same<T, int>::value>>
-Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
+          typename =
+              enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
+                        std::is_same<T, short>::value || std::is_same<T, int>::value>>
+Vc_ALWAYS_INLINE Vc_PURE MIC::Vector<T> abs(MIC::Vector<T> x)
 {
-    return VectorHelper<typename Vector<T>::VectorEntryType>::abs(x.data());
+    return MIC::VectorHelper<typename MIC::Vector<T>::VectorEntryType>::abs(x.data());
 }
 
 #define MATH_OP1(name, call) \
     template<typename T> static Vc_ALWAYS_INLINE Vector<T> name(const Vector<T> &x) \
     { \
-        typedef VectorHelper<typename Vector<T>::VectorEntryType> HT; \
+        typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT; \
         return HT::call(x.data()); \
     }
     MATH_OP1(sqrt, sqrt)
@@ -430,7 +439,7 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T> abs(Vector<T> x)
 #undef MATH_OP1
 
     template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos) {
-        typedef VectorHelper<typename Vector<T>::VectorEntryType> HT; \
+        typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT; \
         *sin = HT::sin(x.data());
         *cos = HT::cos(x.data());
     }
@@ -468,8 +477,6 @@ Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--)
 Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 #undef Vc_CONDITIONAL_ASSIGN
 
-} // namespace MIC
-using MIC::conditional_assign;
 } // namespace Vc
 
 #include "vector.tcc"
