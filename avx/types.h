@@ -56,10 +56,7 @@ namespace AVX
 {
 constexpr std::size_t VectorAlignment = 32;
 
-template <typename T>
-using AbiFor = typename std::conditional<std::is_integral<T>::value, VectorAbi::Sse,
-                                         VectorAbi::Avx>::type;
-template <typename T> using Vector = Vc::Vector<T, AbiFor<T>>;
+template <typename T> using Vector = Vc::Vector<T, VectorAbi::Avx1Abi<T>>;
 typedef Vector<double>         double_v;
 typedef Vector<float>           float_v;
 typedef Vector<int>               int_v;
@@ -67,7 +64,7 @@ typedef Vector<unsigned int>     uint_v;
 typedef Vector<short>           short_v;
 typedef Vector<unsigned short> ushort_v;
 
-template <typename T> using Mask = Vc::Mask<T, AbiFor<T>>;
+template <typename T> using Mask = Vc::Mask<T, VectorAbi::Avx1Abi<T>>;
 typedef Mask<double>         double_m;
 typedef Mask<float>           float_m;
 typedef Mask<int>               int_m;
