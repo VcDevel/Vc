@@ -232,52 +232,6 @@ private:
 };
 template<typename T> constexpr size_t Mask<T>::Size;
 
-struct ForeachHelper
-{
-    unsigned int mask;
-    int bit;
-    bool brk;
-    template<typename T>
-    inline ForeachHelper(Mask<T> _mask) :
-        mask(_mask.data()),
-        bit(_mm_tzcnt_32(mask)),
-        brk(false)
-    {}
-    inline ForeachHelper(Mask<double> _mask) :
-        mask(_mask.data() & 0xff),
-        bit(_mm_tzcnt_32(mask)),
-        brk(false)
-    {}
-    inline bool outer() const { return bit != sizeof(mask) * 8; }
-    inline bool inner() { return (brk = !brk); }
-    inline short next() const { return bit; }
-    inline void step() { bit = _mm_tzcnti_32(bit, mask); }
-};
-
-/**
- * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
- * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
- * 1, 3, and 4.
- *
- * This allows you to write:
- * \code
- * float_v a = ...;
- * foreach_bit(int i, a < 0.f) {
- *   std::cout << a[i] << "\n";
- * }
- * \endcode
- * The example prints all the values in \p a that are negative, and only those.
- *
- * \param it   The iterator variable. For example "int i".
- * \param mask The mask to iterate over. You can also just write a vector operation that returns a
- *             mask.
- */
-#define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::MIC::ForeachHelper _Vc_foreach_bit_helper(_mask_); \
-            _Vc_foreach_bit_helper.outer(); \
-            _Vc_foreach_bit_helper.step()) \
-        for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
-
 }  // namespace MIC
 }  // namespace Vc
 

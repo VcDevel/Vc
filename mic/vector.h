@@ -325,7 +325,7 @@ public:
     }
 
     template<typename F> Vc_INTRINSIC void call(F &&f, const Mask &mask) const {
-        Vc_foreach_bit(size_t i, mask) {
+        for (size_t i : where(mask)) {
             f(EntryType(d.m(i)));
         }
     }
@@ -340,7 +340,7 @@ public:
 
     template<typename F> Vc_INTRINSIC Vector<T> apply(F &&f, const Mask &mask) const {
         Vector<T> r(*this);
-        Vc_foreach_bit (size_t i, mask) {
+        for (size_t i : where(mask)) {
             r.d.set(i, f(EntryType(r.d.m(i))));
         }
         return r;
