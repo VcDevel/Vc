@@ -165,7 +165,7 @@ public:
     Vc_INTRINSIC SimdArray(const std::initializer_list<value_type> &init)
         : data(init.begin(), Vc::Unaligned)
     {
-#ifdef VC_CXX14
+#if defined VC_CXX14 && 0  // doesn't compile yet
         static_assert(init.size() == size(), "The initializer_list argument to "
                                              "SimdArray<T, N> must contain exactly N "
                                              "values.");
@@ -497,7 +497,7 @@ public:
         : data0(init.begin(), Vc::Unaligned)
         , data1(init.begin() + storage_type0::size(), Vc::Unaligned)
     {
-#ifdef VC_CXX14
+#if defined VC_CXX14 && 0  // doesn't compile yet
         static_assert(init.size() == size(), "The initializer_list argument to "
                                              "SimdArray<T, N> must contain exactly N "
                                              "values.");
