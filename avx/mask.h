@@ -42,12 +42,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T> class Mask<T, VectorAbi::Avx>
 {
-    friend class Mask<  double, VectorAbi::Avx>;
-    friend class Mask<   float, VectorAbi::Avx>;
-    friend class Mask< int32_t, VectorAbi::Avx>;
-    friend class Mask<uint32_t, VectorAbi::Avx>;
-    friend class Mask< int16_t, VectorAbi::Avx>;
-    friend class Mask<uint16_t, VectorAbi::Avx>;
     friend Common::MaskEntry<Mask>;
 
 public:

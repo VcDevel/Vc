@@ -583,6 +583,15 @@ namespace AVX
             static Vc_INTRINSIC VectorType Vc_CONST round(VTArg a) { return a; }
         };
 
+#ifndef VC_IMPL_AVX2
+#undef OP1
+#undef OP
+#undef OP_
+#undef OPx
+#undef OPcmp
+#undef OP_CAST_
+#undef MINMAX
+#else
         template<> struct VectorHelper<signed short> {
             typedef VectorTypeHelper<signed short>::Type VectorType;
 #ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
@@ -808,6 +817,7 @@ template<> struct VectorHelper<unsigned char>
 #endif
     typedef unsigned char EntryType;
 };
+#endif  // AVX2
 
 }  // namespace AVX(2)
 }  // namespace Vc

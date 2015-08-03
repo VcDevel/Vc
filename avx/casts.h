@@ -158,14 +158,27 @@ namespace Vc_IMPL_NAMESPACE
     template<> struct StaticCastHelper<unsigned short, unsigned int  > { static Vc_ALWAYS_INLINE Vc_CONST m128i  cast(__m128i v) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); } };
     template<> struct StaticCastHelper<float         , float         > { static Vc_ALWAYS_INLINE Vc_CONST m256   cast(__m256  v) { return v; } };
     template<> struct StaticCastHelper<double        , float         > { static Vc_ALWAYS_INLINE Vc_CONST m256   cast(__m256d v) { return avx_cast<m256>(_mm256_cvtpd_ps(v)); } };
-    template<> struct StaticCastHelper<int           , float         > { static Vc_ALWAYS_INLINE Vc_CONST m256   cast(__m128i v) { return zeroExtend(_mm_cvtepi32_ps(v)); } };
-    template<> struct StaticCastHelper<unsigned int  , float         > { static inline Vc_CONST m256   cast(__m128i v) {
+    template<> struct StaticCastHelper<int           , float         > {
+        static Vc_ALWAYS_INLINE Vc_CONST __m256 cast(__m128i v) { return zeroExtend(_mm_cvtepi32_ps(v)); }
+        static Vc_ALWAYS_INLINE Vc_CONST __m256 cast(__m256i v) { return _mm256_cvtepi32_ps(v); }
+    };
+    template<> struct StaticCastHelper<unsigned int  , float         > {
+        static inline Vc_CONST __m256 cast(__m128i v) {
             return zeroExtend(_mm_blendv_ps(
                 _mm_cvtepi32_ps(v),
                 _mm_add_ps(_mm_cvtepi32_ps(_mm_sub_epi32(v, _mm_set2power31_epu32())),
                            _mm_set2power31_ps()),
                 _mm_castsi128_ps(_mm_cmplt_epi32(v, _mm_setzero_si128()))));
-    } };
+        }
+        static inline Vc_CONST __m256 cast(__m256i v)
+        {
+            return _mm256_blendv_ps(
+                _mm256_cvtepi32_ps(v),
+                _mm256_add_ps(_mm256_cvtepi32_ps(AVX::sub_epi32(v, AVX::set2power31_epu32())),
+                              AVX::set2power31_ps()),
+                _mm256_castsi256_ps(AVX::cmplt_epi32(v, _mm256_setzero_si256())));
+        }
+    };
     template<> struct StaticCastHelper<short         , float         > { static Vc_ALWAYS_INLINE Vc_CONST m256  cast(__m128i v) {
             return _mm256_cvtepi32_ps(
                 concat(_mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16),

@@ -76,10 +76,12 @@ namespace std
         }                                                                                \
     }
 
+#ifdef VC_IMPL_AVX2
 _VC_NUM_LIM(unsigned short, Vc::AVX::_mm_setallone_si128(), _mm_setzero_si128());
 _VC_NUM_LIM(         short, _mm_srli_epi16(Vc::AVX::_mm_setallone_si128(), 1), Vc::AVX::_mm_setmin_epi16());
 _VC_NUM_LIM(  unsigned int, Vc::AvxIntrinsics::_mm_setallone_si128(), _mm_setzero_si128());
 _VC_NUM_LIM(           int, _mm_srli_epi32(Vc::AvxIntrinsics::_mm_setallone_si128(), 1), Vc::AVX::_mm_setmin_epi32());
+#endif
 #undef _VC_NUM_LIM
 
 } // namespace std

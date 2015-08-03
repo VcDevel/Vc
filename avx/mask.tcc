@@ -105,15 +105,19 @@ template<typename T> Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::load(const bool 
 }
 // operator[] {{{1
 template<typename T> Vc_INTRINSIC Vc_PURE bool Mask<T, VectorAbi::Avx>::operator[](size_t index) const { return toInt() & (1 << index); }
+#ifdef VC_IMPL_AVX2
 template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+#endif
 // operator== {{{1
 template <> Vc_INTRINSIC Vc_PURE bool AVX2::double_m::operator==(const AVX2::double_m &rhs) const
 { return Detail::movemask(dataD()) == Detail::movemask(rhs.dataD()); }
+#ifdef VC_IMPL_AVX2
 template <> Vc_INTRINSIC Vc_PURE bool AVX2::short_m::operator==(const AVX2::short_m &rhs) const
 { return Detail::movemask(dataI()) == Detail::movemask(rhs.dataI()); }
 template <> Vc_INTRINSIC Vc_PURE bool AVX2::ushort_m::operator==(const AVX2::ushort_m &rhs) const
 { return Detail::movemask(dataI()) == Detail::movemask(rhs.dataI()); }
+#endif
 // generate {{{1
 template <typename M, typename G>
 Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 32>)

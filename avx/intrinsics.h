@@ -57,6 +57,7 @@ extern "C" {
 #endif
 
 #include "const_data.h"
+#include "../common/types.h"
 #include "macros.h"
 #include <cstdlib>
 
@@ -764,7 +765,6 @@ namespace AVX2
 namespace AVX
 {
     template<typename T> struct VectorTypeHelper;
-#ifdef VC_IMPL_AVX2
     template<> struct VectorTypeHelper<         char > { typedef __m256i Type; };
     template<> struct VectorTypeHelper<  signed char > { typedef __m256i Type; };
     template<> struct VectorTypeHelper<unsigned char > { typedef __m256i Type; };
@@ -776,19 +776,6 @@ namespace AVX
     template<> struct VectorTypeHelper<unsigned long > { typedef __m256i Type; };
     template<> struct VectorTypeHelper<         long long> { typedef __m256i Type; };
     template<> struct VectorTypeHelper<unsigned long long> { typedef __m256i Type; };
-#else
-    template<> struct VectorTypeHelper<         char > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<  signed char > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<unsigned char > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<         short> { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<unsigned short> { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<         int  > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<unsigned int  > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<         long > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<unsigned long > { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<         long long> { typedef __m128i Type; };
-    template<> struct VectorTypeHelper<unsigned long long> { typedef __m128i Type; };
-#endif
     template<> struct VectorTypeHelper<         float> { typedef __m256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef __m256d Type; };
 
