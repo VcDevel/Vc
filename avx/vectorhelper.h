@@ -54,9 +54,6 @@ namespace AVX
 #else
             typedef const VectorType VTArg;
 #endif
-            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename Flags::EnableIfAligned   = nullptr) { return _mm_load_ps(x); }
-            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename Flags::EnableIfUnaligned = nullptr) { return _mm_loadu_ps(x); }
-            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename Flags::EnableIfStreaming = nullptr) { return AvxIntrinsics::stream_load<VectorType>(x); }
         };
 
         template<> struct VectorHelper<__m256>
@@ -67,9 +64,6 @@ namespace AVX
 #else
             typedef const VectorType VTArg;
 #endif
-            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename Flags::EnableIfAligned   = nullptr) { return _mm256_load_ps(x); }
-            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename Flags::EnableIfUnaligned = nullptr) { return _mm256_loadu_ps(x); }
-            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const float *x, typename Flags::EnableIfStreaming = nullptr) { return AvxIntrinsics::stream_load<VectorType>(x); }
 
             template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, typename Flags::EnableIfAligned               = nullptr) { _mm256_store_ps(mem, x); }
             template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, typename Flags::EnableIfUnalignedNotStreaming = nullptr) { _mm256_storeu_ps(mem, x); }
@@ -104,9 +98,6 @@ namespace AVX
 #else
             typedef const VectorType VTArg;
 #endif
-            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const double *x, typename Flags::EnableIfAligned   = nullptr) { return _mm256_load_pd(x); }
-            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const double *x, typename Flags::EnableIfUnaligned = nullptr) { return _mm256_loadu_pd(x); }
-            template<typename Flags> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const double *x, typename Flags::EnableIfStreaming = nullptr) { return AvxIntrinsics::stream_load<VectorType>(x); }
 
             template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, typename Flags::EnableIfAligned               = nullptr) { _mm256_store_pd(mem, x); }
             template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, typename Flags::EnableIfUnalignedNotStreaming = nullptr) { _mm256_storeu_pd(mem, x); }
@@ -143,9 +134,6 @@ namespace AVX
 #else
             typedef const VectorType VTArg;
 #endif
-            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const T *x, typename Flags::EnableIfAligned   = nullptr) { return _mm256_load_si256(reinterpret_cast<const __m256i *>(x)); }
-            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const T *x, typename Flags::EnableIfUnaligned = nullptr) { return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(x)); }
-            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VectorType load(const T *x, typename Flags::EnableIfStreaming = nullptr) { return AvxIntrinsics::stream_load<VectorType>(x); }
 
             template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename Flags::EnableIfAligned               = nullptr) { _mm256_store_si256(reinterpret_cast<__m256i *>(mem), x); }
             template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename Flags::EnableIfUnalignedNotStreaming = nullptr) { _mm256_storeu_si256(reinterpret_cast<__m256i *>(mem), x); }
@@ -180,9 +168,6 @@ namespace AVX
 #else
             typedef const VectorType VTArg;
 #endif
-            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VTArg load(const T *x, typename Flags::EnableIfAligned   = nullptr) { return _mm_load_si128(reinterpret_cast<const __m128i *>(x)); }
-            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VTArg load(const T *x, typename Flags::EnableIfUnaligned = nullptr) { return _mm_loadu_si128(reinterpret_cast<const __m128i *>(x)); }
-            template<typename Flags, typename T> static Vc_ALWAYS_INLINE Vc_PURE VTArg load(const T *x, typename Flags::EnableIfStreaming = nullptr) { return AvxIntrinsics::stream_load<VectorType>(x); }
 
             template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename Flags::EnableIfAligned               = nullptr) { _mm_store_si128(reinterpret_cast<__m128i *>(mem), x); }
             template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, typename Flags::EnableIfUnalignedNotStreaming = nullptr) { _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), x); }

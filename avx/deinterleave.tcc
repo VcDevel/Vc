@@ -157,7 +157,7 @@ template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
         float_v &a, float_v &b, const short *m, Flags)
 {
     using namespace Vc::Vc_IMPL_NAMESPACE;
-    const m256i tmp = VectorHelper<m256i>::template load<Flags>(m);
+    const auto tmp = Detail::load<Flags>(m, __m256i());
     a.data() = _mm256_cvtepi32_ps(concat(
                 _mm_srai_epi32(_mm_slli_epi32(lo128(tmp), 16), 16),
                 _mm_srai_epi32(_mm_slli_epi32(hi128(tmp), 16), 16)));
@@ -170,7 +170,7 @@ template<typename Flags> inline void HelperImpl<VC_IMPL>::deinterleave(
         float_v &a, float_v &b, const unsigned short *m, Flags)
 {
     using namespace Vc::Vc_IMPL_NAMESPACE;
-    const m256i tmp = VectorHelper<m256i>::template load<Flags>(m);
+    const auto tmp = Detail::load<Flags>(m, __m256i());
     a.data() = _mm256_cvtepi32_ps(concat(
                 _mm_blend_epi16(lo128(tmp), _mm_setzero_si128(), 0xaa),
                 _mm_blend_epi16(hi128(tmp), _mm_setzero_si128(), 0xaa)));
