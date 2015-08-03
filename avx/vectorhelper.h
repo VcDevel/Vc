@@ -46,16 +46,6 @@ namespace AVX
 #define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a, VTArg b) { return code; }
 #define OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a, VTArg b, VTArg c) { return code; }
 
-        template<> struct VectorHelper<__m128>
-        {
-            typedef __m128 VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-            typedef const VectorType & VTArg;
-#else
-            typedef const VectorType VTArg;
-#endif
-        };
-
         template<> struct VectorHelper<__m256>
         {
             typedef __m256 VectorType;
