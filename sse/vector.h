@@ -298,7 +298,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Vector reversed() const Vc_INTRINSIC_R Vc_PURE_R;
-        inline Vc_PURE Vector sorted() const { return SSE::SortHelper<VectorType, Size>::sort(data()); }
+        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector sorted() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         template <typename F> void callWithValuesSorted(F &&f)
         {

@@ -347,6 +347,21 @@ Vc_INTRINSIC __m128 andnot_(__m128 a, __m128 b) { return _mm_andnot_ps(a, b); }
 Vc_INTRINSIC __m128d andnot_(__m128d a, __m128d b) { return _mm_andnot_pd(a, b); }
 Vc_INTRINSIC __m128i andnot_(__m128i a, __m128i b) { return _mm_andnot_si128(a, b); }
 
+// sorted{{{1
+template <Vc::Implementation, typename T>
+Vc_CONST_L SSE::Vector<T> sorted(VC_ALIGNED_PARAMETER(SSE::Vector<T>) x) Vc_CONST_R;
+template <typename T>
+Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(VC_ALIGNED_PARAMETER(SSE::Vector<T>) x)
+{
+    static_assert(!CurrentImplementation::is(ScalarImpl),
+                  "Detail::sorted can only be instantiated if a non-Scalar "
+                  "implementation is selected.");
+    return sorted < CurrentImplementation::is_between(SSE2Impl, SSSE3Impl)
+               ? SSE2Impl
+               : CurrentImplementation::is_between(SSE41Impl, SSE42Impl)
+                     ? SSE41Impl
+                     : CurrentImplementation::current() > (x);
+}
 //}}}1
 }  // namespace Detail
 }  // namespace Vc

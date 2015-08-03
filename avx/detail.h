@@ -429,6 +429,15 @@ Vc_INTRINSIC __m256i andnot_(__m256i a, __m256i b)
 #endif
 }
 
+// sorted{{{1
+template <Vc::Implementation Impl, typename T,
+          typename = enable_if<(Impl >= AVXImpl && Impl <= AVX2Impl)>>
+Vc_CONST_L AVX2::Vector<T> sorted(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x) Vc_CONST_R;
+template <typename T>
+Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
+{
+    return sorted<CurrentImplementation::current()>(x);
+}
 //}}}1
 
 template <size_t Size>

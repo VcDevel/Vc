@@ -39,11 +39,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
-    template<typename VectorType, unsigned int Size> struct SortHelper
-    {
-        static inline Vc_CONST_L VectorType sort(VectorType) Vc_CONST_R;
-    };
-
 #define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
 #define OP1(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a) { return code; }
 #define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a, const VectorType b) { return code; }

@@ -740,62 +740,21 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, Ve
     }
     return Zero();
 }
-// sorted specializations {{{1
-template<> inline Vc_PURE SSE::uint_v SSE::uint_v::sorted() const
+// sorted {{{1
+namespace Detail
 {
-    __m128i x = data();
-    __m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-    __m128i l = SSE::min_epu32(x, y);
-    __m128i h = SSE::max_epu32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi32(h, l);
-
-    // sort quads
-    l = SSE::min_epu32(x, y);
-    h = SSE::max_epu32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi64(x, x);
-
-    l = SSE::min_epu32(x, y);
-    h = SSE::max_epu32(x, y);
-    return _mm_unpacklo_epi32(l, h);
+inline Vc_CONST SSE::double_v sorted(VC_ALIGNED_PARAMETER(SSE::double_v) x_)
+{
+    const __m128d x = x_.data();
+    const __m128d y = _mm_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));
+    return _mm_unpacklo_pd(_mm_min_sd(x, y), _mm_max_sd(x, y));
 }
-template<> inline Vc_PURE SSE::ushort_v SSE::ushort_v::sorted() const
+}  // namespace Detail
+template <typename T>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::sorted()
+    const
 {
-    __m128i lo, hi, y, x = data();
-    // sort pairs
-    y = Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(x);
-    lo = SSE::min_epu16(x, y);
-    hi = SSE::max_epu16(x, y);
-    x = SSE::blend_epi16<0xaa>(lo, hi);
-
-    // merge left and right quads
-    y = Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(x);
-    lo = SSE::min_epu16(x, y);
-    hi = SSE::max_epu16(x, y);
-    x = SSE::blend_epi16<0xcc>(lo, hi);
-    y = _mm_srli_si128(x, 2);
-    lo = SSE::min_epu16(x, y);
-    hi = SSE::max_epu16(x, y);
-    x = SSE::blend_epi16<0xaa>(lo, _mm_slli_si128(hi, 2));
-
-    // merge quads into octs
-    y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
-    y = _mm_shufflelo_epi16(y, _MM_SHUFFLE(0, 1, 2, 3));
-    lo = SSE::min_epu16(x, y);
-    hi = SSE::max_epu16(x, y);
-
-    x = _mm_unpacklo_epi16(lo, hi);
-    y = _mm_srli_si128(x, 8);
-    lo = SSE::min_epu16(x, y);
-    hi = SSE::max_epu16(x, y);
-
-    x = _mm_unpacklo_epi16(lo, hi);
-    y = _mm_srli_si128(x, 8);
-    lo = SSE::min_epu16(x, y);
-    hi = SSE::max_epu16(x, y);
-
-    return _mm_unpacklo_epi16(lo, hi);
+    return Detail::sorted(*this);
 }
 // interleaveLow/-High {{{1
 template <> Vc_INTRINSIC SSE::double_v SSE::double_v::interleaveLow (SSE::double_v x) const { return _mm_unpacklo_pd(data(), x.data()); }

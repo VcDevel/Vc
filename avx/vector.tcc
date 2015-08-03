@@ -981,6 +981,13 @@ template<typename T> Vc_INTRINSIC AVX2::Vector<T> Vector<T, VectorAbi::Avx>::rot
 {
     return Detail::rotated<EntryType, size()>(d.v(), amount);
 }
+// sorted {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Avx> Vector<T, VectorAbi::Avx>::sorted()
+    const
+{
+    return Detail::sorted(*this);
+}
 // interleaveLow/-High {{{1
 template <> Vc_INTRINSIC AVX2::double_v AVX2::double_v::interleaveLow(AVX2::double_v x) const
 {
