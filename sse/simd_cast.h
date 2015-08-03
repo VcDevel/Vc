@@ -30,6 +30,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_SSE_SIMD_CAST_H
 
 #include "../common/utility.h"
+#ifdef VC_IMPL_AVX
+#include "../avx/casts.h"
+#endif
 
 #ifndef VC_SSE_VECTOR_H__
 #error "Vc/sse/vector.h needs to be included before Vc/sse/simd_cast.h"
