@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "intrinsics.h"
 #include "types.h"
+#include "../sse/casts.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -189,6 +190,7 @@ namespace Vc_IMPL_NAMESPACE
         const auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // 1 3 0 0 X X X X
         return _mm_unpacklo_epi16(tmp2, tmp3); // 0 1 2 3 0 0 0 0
     } };
+    template<> struct StaticCastHelper<double        , short         > { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(__m256d v) { return SSE::convert<int, short>(_mm256_cvttpd_epi32(v)); } };
     template<> struct StaticCastHelper<float         , short         > { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(__m256  v) {
             auto tmpi = _mm256_cvttps_epi32(v);
             auto tmp0 = _mm_unpacklo_epi16(lo128(tmpi), hi128(tmpi));  // 0 4 X X 1 5 X X
@@ -213,6 +215,7 @@ namespace Vc_IMPL_NAMESPACE
         auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // 1 3 0 0 X X X X
         return _mm_unpacklo_epi16(tmp2, tmp3); // 0 1 2 3 0 0 0 0
     } };
+    template<> struct StaticCastHelper<double        , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(__m256d v) { return SSE::convert<int, unsigned short>(_mm256_cvttpd_epi32(v)); } };
     template<> struct StaticCastHelper<float         , unsigned short> { static Vc_ALWAYS_INLINE Vc_CONST m128i cast(__m256  v) {
             auto tmpi = avx_cast<m256i>(_mm256_blendv_ps(
                 avx_cast<m256>(_mm256_cvttps_epi32(v)),
