@@ -499,12 +499,26 @@ enum ExtraInstructions { // TODO: make enum class of uint32_t
 #define Vc_IMPL_NAMESPACE SSE
 #endif
 
-template<unsigned int Features> struct ImplementationT { enum _Value {
-    Value = Features,
-    Implementation = Features & ImplementationMask,
-    ExtraInstructions = Features & ExtraInstructionsMask
-}; };
-
+template <unsigned int Features> struct ImplementationT {
+    static constexpr Implementation current()
+    {
+        return static_cast<Implementation>(Features & ImplementationMask);
+    }
+    static constexpr bool is(Implementation impl)
+    {
+        return static_cast<unsigned int>(impl) == current();
+    }
+    static constexpr bool is_between(Implementation low, Implementation high)
+    {
+        return static_cast<unsigned int>(low) >= current() &&
+               static_cast<unsigned int>(high) <= current();
+    }
+    static constexpr bool runs_on(unsigned int extraInstructions)
+    {
+        return (extraInstructions & Features & ExtraInstructionsMask) ==
+               (Features & ExtraInstructionsMask);
+    }
+};
 typedef ImplementationT<
 #ifdef VC_USE_VEX_CODING
     // everything will use VEX coding, so the system has to support AVX even if VC_IMPL_AVX is not set
