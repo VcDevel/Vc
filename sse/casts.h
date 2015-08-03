@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "intrinsics.h"
 #include "types.h"
+#include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -135,6 +136,8 @@ template <typename From, typename To> struct StaticCastHelper //{{{1
 // }}}1
 }  // namespace SSE
 }  // namespace Vc
+
+#include "undomacros.h"
 
 #endif // SSE_CASTS_H
 
