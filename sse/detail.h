@@ -29,9 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_DETAIL_H_
 #define VC_SSE_DETAIL_H_
 
+#include "casts.h"
 #ifdef VC_IMPL_AVX
-#include "../avx/vectorhelper.h"
+#include "../avx/intrinsics.h"
 #endif
+#include "vectorhelper.h"
 
 #include "macros.h"
 
@@ -186,7 +188,13 @@ template <typename Flags>
 Vc_INTRINSIC __m128 load(const double *mem, Flags, LoadTag<__m128, float>)
 {
 #ifdef VC_IMPL_AVX
-    return _mm256_cvtpd_ps(AVX::VectorHelper<__m256d>::load<Flags>(mem));
+    if (Flags::IsUnaligned) {
+        return _mm256_cvtpd_ps(_mm256_loadu_pd(mem));
+    } else if (Flags::IsStreaming) {
+        return _mm256_cvtpd_ps(AvxIntrinsics::stream_load<__m256d>(mem));
+    } else {  // Flags::IsAligned
+        return _mm256_cvtpd_ps(_mm256_load_pd(mem));
+    }
 #else
     return _mm_movelh_ps(_mm_cvtpd_ps(SSE::VectorHelper<__m128d>::load<Flags>(&mem[0])),
                          _mm_cvtpd_ps(SSE::VectorHelper<__m128d>::load<Flags>(&mem[2])));
