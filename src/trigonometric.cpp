@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2012-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -48,9 +48,10 @@ using Const = typename std::conditional<std::is_same<Abi, VectorAbi::Avx>::value
                                         AVX::Const<T>, SSE::Const<T>>::type;
 
 template <typename V>
-using best_int_v_for = typename std::conditional<
-    (V::size() <= Vector<int, typename V::abi>::size()), Vector<int, typename V::abi>,
-    SimdArray<int, V::size()>>::type;
+using best_int_v_for =
+    typename std::conditional<(V::size() <= Vector<int, VectorAbi::Best<int>>::size()),
+                              Vector<int, VectorAbi::Best<int>>,
+                              SimdArray<int, V::size()>>::type;
 template <typename Abi> using float_int_v = best_int_v_for<float_v<Abi>>;
 template <typename Abi> using double_int_v = best_int_v_for<double_v<Abi>>;
 
@@ -130,7 +131,7 @@ static Vc_ALWAYS_INLINE double_v<Abi> foldInput(const double_v<Abi> &_x,
         const V x = abs(_x);
         V y = trunc(x / C::_pi_4()); // * C::_4_pi() would work, but is >twice as imprecise
         V z = y - trunc(y * C::_1_16()) * C::_16(); // y modulo 16
-        quadrant = static_cast<double_int_v<Abi>>(z);
+        quadrant = simd_cast<double_int_v<Abi>>(z);
         int_m mask = (quadrant & double_int_v<Abi>::One()) != double_int_v<Abi>::Zero();
         ++quadrant(mask);
         y(static_cast<double_m>(mask)) += V::One();
