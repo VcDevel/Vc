@@ -85,9 +85,10 @@ bool isImplementationSupported(Implementation impl)
         return CpuId::processorFamily() == 0xB && CpuId::processorModel() == 0x1
             && CpuId::isIntel();
     case CUDAImpl:
-#ifdef __NVCC__
+#ifdef VC_CUDA_TARGET // this is passed as a compiler flag to gcc as libVc_CUDA is compiled entirely with gcc
         return true;
 #else
+#error "This shouldn't print\n"
         return false;
 #endif
     case ImplementationMask:
@@ -99,6 +100,9 @@ bool isImplementationSupported(Implementation impl)
 VC_TARGET_NO_SIMD
 Vc::Implementation bestImplementationSupported()
 {
+#ifdef VC_CUDA_TARGET
+    return Vc::CUDAImpl;
+#endif
     CpuId::init();
 
     if (CpuId::processorFamily() == 0xB && CpuId::processorModel() == 0x1

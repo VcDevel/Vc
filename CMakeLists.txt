@@ -172,8 +172,8 @@ if(NOT ROOT_RELEASE)
 
    set(libvc_compile_flags "-DVC_COMPILE_LIB")
    set(libvc_mic_compile_flags "-DVC_COMPILE_LIB")
-   set(libvc_cuda_compile_flags "-DVC_COMPILE_LIB")
-   AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flag)
+   set(libvc_cuda_compile_flags "-DVC_COMPILE_LIB -DVC_CUDA_TARGET")
+   AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags CUDA_CXX_FLAGS libvc_cuda_compile_flags)
 
    if(MIC_FOUND)
       add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
@@ -191,7 +191,9 @@ if(NOT ROOT_RELEASE)
        SET(CUDA_NVCC_FLAGS "-arch sm_30;-ccbin ${CMAKE_CXX_COMPILER};--keep")
        SET(CUDA_VERBOSE_BUILD OFF)
 
-       cuda_add_library(Vc_CUDA src/cuda_const.cpp src/cpuid.cpp src/support_x86.cpp STATIC OPTIONS "${libvc_cuda_compile_flags}")
+       cuda_add_library(Vc_CUDA STATIC src/cuda_const.cpp src/cpuid.cpp src/support_x86.cpp)
+       set_target_properties(Vc_CUDA PROPERTIES COMPILE_FLAGS ${libvc_cuda_compile_flags})
+
        cuda_add_executable(Vc_CUDA_DUMMY cuda/dummy.cu)
        cuda_add_executable(Vc_CUDA_TEST cuda/unittest.cu)
        target_link_libraries(Vc_CUDA_TEST Vc_CUDA)
