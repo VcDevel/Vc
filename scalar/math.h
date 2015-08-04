@@ -39,13 +39,13 @@ template <typename T> Vc_ALWAYS_INLINE Scalar::Vector<T> copysign(Scalar::Vector
 }
 
 #define VC_MINMAX(V)                                                                     \
-    static Vc_ALWAYS_INLINE V min(const Scalar::V &x, const Scalar::V &y)                \
+    static Vc_ALWAYS_INLINE Scalar::V min(const Scalar::V &x, const Scalar::V &y)        \
     {                                                                                    \
-        return V(std::min(x.data(), y.data()));                                          \
+        return Scalar::V(std::min(x.data(), y.data()));                                  \
     }                                                                                    \
-    static Vc_ALWAYS_INLINE V max(const Scalar::V &x, const Scalar::V &y)                \
+    static Vc_ALWAYS_INLINE Scalar::V max(const Scalar::V &x, const Scalar::V &y)        \
     {                                                                                    \
-        return V(std::max(x.data(), y.data()));                                          \
+        return Scalar::V(std::max(x.data(), y.data()));                                  \
     }
 VC_ALL_VECTOR_TYPES(VC_MINMAX)
 #undef VC_MINMAX
