@@ -36,7 +36,7 @@ namespace Detail
 #ifdef VC_IMPL_AVX2
 template<> Vc_CONST AVX2::short_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::short_v) x_)
 {
-    __m128i lo, hi, y, x = x_.data();
+    __m128i lo, hi, y, x = AVX::lo128(x_.data());
     // sort pairs
     y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
     lo = _mm_min_epi16(x, y);
@@ -69,12 +69,12 @@ template<> Vc_CONST AVX2::short_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::sho
     lo = _mm_min_epi16(x, y);
     hi = _mm_max_epi16(x, y);
 
-    return _mm_unpacklo_epi16(lo, hi);
+    return AVX::zeroExtend(_mm_unpacklo_epi16(lo, hi));
 }
 
 template <> Vc_CONST AVX2::ushort_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::ushort_v) x_)
 {
-    __m128i lo, hi, y, x = x_.data();
+    __m128i lo, hi, y, x = AVX::lo128(x_.data());
     // sort pairs
     y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
     lo = _mm_min_epu16(x, y);
@@ -107,49 +107,96 @@ template <> Vc_CONST AVX2::ushort_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::u
     lo = _mm_min_epu16(x, y);
     hi = _mm_max_epu16(x, y);
 
-    return _mm_unpacklo_epi16(lo, hi);
+    return AVX::zeroExtend(_mm_unpacklo_epi16(lo, hi));
 }
 
 template <> Vc_CONST AVX2::int_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::int_v) x_)
 {
-    __m128i x = x_.data();
-    // sort pairs
-    __m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-    __m128i l = _mm_min_epi32(x, y);
-    __m128i h = _mm_max_epi32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi32(h, l);
+    using namespace AVX;
+    const __m256i hgfedcba = x_.data();
+    const __m128i hgfe = hi128(hgfedcba);
+    const __m128i dcba = lo128(hgfedcba);
+    __m128i l = _mm_min_epi32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
+    __m128i h = _mm_max_epi32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
 
-    // sort quads
-    l = _mm_min_epi32(x, y);
-    h = _mm_max_epi32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi64(x, x);
+    __m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
+    __m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
 
-    l = _mm_min_epi32(x, y);
-    h = _mm_max_epi32(x, y);
-    return _mm_unpacklo_epi32(l, h);
+    l = _mm_min_epi32(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
+    h = _mm_max_epi32(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
+
+    x = _mm_min_epi32(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
+    y = _mm_max_epi32(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
+
+    __m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
+    __m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
+
+    // _mm_extract_epi32 may return an unsigned int, breaking these comparisons.
+    if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 2)) >= static_cast<int>(_mm_extract_epi32(y, 1)))) {
+        return concat(Reg::permute<X0, X1, X2, X3>(b), a);
+    } else if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 0)) >= static_cast<int>(_mm_extract_epi32(y, 3)))) {
+        return concat(a, Reg::permute<X0, X1, X2, X3>(b));
+    }
+
+    // merge
+    l = _mm_min_epi32(a, b); // ↓a3b3 ↓a2b2 ↓a1b1 ↓a0b0
+    h = _mm_max_epi32(a, b); // ↑a3b3 ↑a2b2 ↑a1b1 ↑a0b0
+
+    a = _mm_unpacklo_epi32(l, h); // ↑a1b1 ↓a1b1 ↑a0b0 ↓a0b0
+    b = _mm_unpackhi_epi32(l, h); // ↑a3b3 ↓a3b3 ↑a2b2 ↓a2b2
+    l = _mm_min_epi32(a, b);      // ↓(↑a1b1,↑a3b3) ↓a1b3 ↓(↑a0b0,↑a2b2) ↓a0b2
+    h = _mm_max_epi32(a, b);      // ↑a3b1 ↑(↓a1b1,↓a3b3) ↑a2b0 ↑(↓a0b0,↓a2b2)
+
+    a = _mm_unpacklo_epi32(l, h); // ↑a2b0 ↓(↑a0b0,↑a2b2) ↑(↓a0b0,↓a2b2) ↓a0b2
+    b = _mm_unpackhi_epi32(l, h); // ↑a3b1 ↓(↑a1b1,↑a3b3) ↑(↓a1b1,↓a3b3) ↓a1b3
+    l = _mm_min_epi32(a, b); // ↓(↑a2b0,↑a3b1) ↓(↑a0b0,↑a2b2,↑a1b1,↑a3b3) ↓(↑(↓a0b0,↓a2b2) ↑(↓a1b1,↓a3b3)) ↓a0b3
+    h = _mm_max_epi32(a, b); // ↑a3b0 ↑(↓(↑a0b0,↑a2b2) ↓(↑a1b1,↑a3b3)) ↑(↓a0b0,↓a2b2,↓a1b1,↓a3b3) ↑(↓a0b2,↓a1b3)
+
+    return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
 
 template <> Vc_CONST AVX2::uint_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::uint_v) x_)
 {
-    __m128i x = x_.data();
-    // sort pairs
-    __m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-    __m128i l = _mm_min_epu32(x, y);
-    __m128i h = _mm_max_epu32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi32(h, l);
+    using namespace AVX;
+    const __m256i hgfedcba = x_.data();
+    const __m128i hgfe = hi128(hgfedcba);
+    const __m128i dcba = lo128(hgfedcba);
+    __m128i l = _mm_min_epu32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
+    __m128i h = _mm_max_epu32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
 
-    // sort quads
-    l = _mm_min_epu32(x, y);
-    h = _mm_max_epu32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi64(x, x);
+    __m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
+    __m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
 
-    l = _mm_min_epu32(x, y);
-    h = _mm_max_epu32(x, y);
-    return _mm_unpacklo_epi32(l, h);
+    l = _mm_min_epu32(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
+    h = _mm_max_epu32(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
+
+    x = _mm_min_epu32(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
+    y = _mm_max_epu32(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
+
+    __m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
+    __m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
+
+    if (VC_IS_UNLIKELY(extract_epu32<2>(x) >= extract_epu32<1>(y))) {
+        return concat(Reg::permute<X0, X1, X2, X3>(b), a);
+    } else if (VC_IS_UNLIKELY(extract_epu32<0>(x) >= extract_epu32<3>(y))) {
+        return concat(a, Reg::permute<X0, X1, X2, X3>(b));
+    }
+
+    // merge
+    l = _mm_min_epu32(a, b); // ↓a3b3 ↓a2b2 ↓a1b1 ↓a0b0
+    h = _mm_max_epu32(a, b); // ↑a3b3 ↑a2b2 ↑a1b1 ↑a0b0
+
+    a = _mm_unpacklo_epi32(l, h); // ↑a1b1 ↓a1b1 ↑a0b0 ↓a0b0
+    b = _mm_unpackhi_epi32(l, h); // ↑a3b3 ↓a3b3 ↑a2b2 ↓a2b2
+    l = _mm_min_epu32(a, b);      // ↓(↑a1b1,↑a3b3) ↓a1b3 ↓(↑a0b0,↑a2b2) ↓a0b2
+    h = _mm_max_epu32(a, b);      // ↑a3b1 ↑(↓a1b1,↓a3b3) ↑a2b0 ↑(↓a0b0,↓a2b2)
+
+    a = _mm_unpacklo_epi32(l, h); // ↑a2b0 ↓(↑a0b0,↑a2b2) ↑(↓a0b0,↓a2b2) ↓a0b2
+    b = _mm_unpackhi_epi32(l, h); // ↑a3b1 ↓(↑a1b1,↑a3b3) ↑(↓a1b1,↓a3b3) ↓a1b3
+    l = _mm_min_epu32(a, b); // ↓(↑a2b0,↑a3b1) ↓(↑a0b0,↑a2b2,↑a1b1,↑a3b3) ↓(↑(↓a0b0,↓a2b2) ↑(↓a1b1,↓a3b3)) ↓a0b3
+    h = _mm_max_epu32(a, b); // ↑a3b0 ↑(↓(↑a0b0,↑a2b2) ↓(↑a1b1,↑a3b3)) ↑(↓a0b0,↓a2b2,↓a1b1,↓a3b3) ↑(↓a0b2,↓a1b3)
+
+    return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
 #endif  // AVX2
 

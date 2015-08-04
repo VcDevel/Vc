@@ -108,7 +108,7 @@ public:
 #ifdef VC_IMPL_AVX2
         typedef typename std::conditional<
             (Size >= 8),
-            SimdArray<int, Size, int_v, 8>,
+            SimdArray<int, Size, AVX2::int_v, 8>,
             typename std::conditional<(Size >= 4),
                                       SimdArray<int, Size, SSE::int_v, 4>,
                                       SimdArray<int, Size, Scalar::int_v, 1>>>::type IndexType;
@@ -162,7 +162,7 @@ public:
         Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(V<U>) x,
                             typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
                                                     void *>::type = nullptr)
-            : d(AVX::StaticCastHelper<U, T>::cast(x.data()))
+            : d(AVX::convert<U, T>(x.data()))
         {
         }
 
@@ -172,7 +172,7 @@ public:
             VC_ALIGNED_PARAMETER(V<U>) x,
             typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
-            : d(AVX::StaticCastHelper<U, T>::cast(x.data()))
+            : d(Detail::zeroExtendIfNeeded(AVX::convert<U, T>(x.data())))
         {
         }
 
@@ -185,7 +185,7 @@ public:
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
-        Vc_INTRINSIC Vector(EntryType a) : d(HT::set(a)) {}
+        Vc_INTRINSIC Vector(EntryType a) : d(Detail::avx_broadcast(a)) {}
         template <typename U>
         Vc_INTRINSIC Vector(U a,
                             typename std::enable_if<std::is_same<U, int>::value &&
@@ -231,7 +231,8 @@ public:
             return d.m(index);
         }
 
-        Vc_INTRINSIC_L Vector operator[](const IndexType &perm) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vc_PURE_L Vector operator[](Permutation::ReversedTag) const Vc_INTRINSIC_R Vc_PURE_R;
+        Vc_INTRINSIC_L Vc_PURE_L Vector operator[](const IndexType &perm) const Vc_INTRINSIC_R Vc_PURE_R;
 
         Vc_INTRINSIC Vc_PURE Mask operator!() const
         {
@@ -256,8 +257,8 @@ public:
         inline Vc_PURE Vector operator%(const Vector &x) const;
 
 #define OP(symbol, fun) \
-        Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { data() = HT::fun(data(), x.data()); return *this; } \
-        Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(HT::fun(data(), x.data())); }
+        Vc_INTRINSIC Vector &operator symbol##=(const Vector &x) { data() = Detail::fun(data(), x.data(), T()); return *this; } \
+        Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector &x) const { return Detail::fun(data(), x.data(), T()); }
 
         OP(+, add)
         OP(-, sub)
@@ -432,14 +433,14 @@ static_assert(Traits::is_simd_mask  <AVX2:: short_m>::value, "is_simd_mask  < sh
 static_assert(Traits::is_simd_mask  <AVX2::ushort_m>::value, "is_simd_mask  <ushort_m>::value");
 
 #ifdef VC_IMPL_AVX2
-static Vc_ALWAYS_INLINE AVX2::int_v    min(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm_min_epi32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::uint_v   min(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm_min_epu32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::short_v  min(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::ushort_v min(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm_min_epu16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::int_v    max(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm_max_epi32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::uint_v   max(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm_max_epu32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::short_v  max(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm_max_epi16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::ushort_v max(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm_max_epu16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE AVX2::int_v    min(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm256_min_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE AVX2::uint_v   min(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm256_min_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE AVX2::short_v  min(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm256_min_epi16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE AVX2::ushort_v min(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm256_min_epu16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE AVX2::int_v    max(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm256_max_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE AVX2::uint_v   max(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm256_max_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE AVX2::short_v  max(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm256_max_epi16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE AVX2::ushort_v max(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm256_max_epu16(x.data(), y.data()); }
 #endif
 static Vc_ALWAYS_INLINE AVX2::float_v  min(const AVX2::float_v  &x, const AVX2::float_v  &y) { return _mm256_min_ps(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE AVX2::double_v min(const AVX2::double_v &x, const AVX2::double_v &y) { return _mm256_min_pd(x.data(), y.data()); }

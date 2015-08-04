@@ -36,6 +36,18 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Mem
 {
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteLo(__m256i x) {
+            static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+            static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+            return _mm256_shufflelo_epi16(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+        }
+
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteHi(__m256i x) {
+            static_assert(Dst0 >= X4 && Dst1 >= X4 && Dst2 >= X4 && Dst3 >= X4, "Incorrect_Range");
+            static_assert(Dst0 <= X7 && Dst1 <= X7 && Dst2 <= X7 && Dst3 <= X7, "Incorrect_Range");
+            return _mm256_shufflehi_epi16(x, (Dst0 - X4) + (Dst1 - X4) * 4 + (Dst2 - X4) * 16 + (Dst3 - X4) * 64);
+        }
+
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x) {
             static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
             static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
@@ -81,6 +93,11 @@ namespace Mem
         }
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute(__m256i x) {
             return _mm256_castps_si256(permute<Dst0, Dst1, Dst2, Dst3>(_mm256_castsi256_ps(x)));
+        }
+        template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute4x64(__m256i x) {
+            static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+            static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+            return _mm256_permute4x64_epi64(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
             static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");

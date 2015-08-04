@@ -43,12 +43,12 @@ template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(VectorSpeci
 template <> Vc_INTRINSIC AVX2::double_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_pd()) {}
 template <> Vc_INTRINSIC  AVX2::float_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_ps()) {}
 #ifdef VC_IMPL_AVX2
-template <> Vc_INTRINSIC    AVX2::int_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::_mm_setone_epi32()) {}
-template <> Vc_INTRINSIC   AVX2::uint_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::_mm_setone_epu32()) {}
-template <> Vc_INTRINSIC  AVX2::short_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::_mm_setone_epi16()) {}
-template <> Vc_INTRINSIC AVX2::ushort_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::_mm_setone_epu16()) {}
-template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::_mm_setone_epi8()) {}
-template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::_mm_setone_epu8()) {}
+template <> Vc_INTRINSIC    AVX2::int_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epi32()) {}
+template <> Vc_INTRINSIC   AVX2::uint_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu32()) {}
+template <> Vc_INTRINSIC  AVX2::short_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epi16()) {}
+template <> Vc_INTRINSIC AVX2::ushort_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu16()) {}
+template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epi8()) {}
+template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu8()) {}
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
@@ -158,10 +158,17 @@ template<typename T> inline Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::o
 }
 #ifdef VC_IMPL_AVX2
 // specialize division on type
-static Vc_INTRINSIC __m128i Vc_CONST divInt(__m128i a, __m128i b)
+static Vc_INTRINSIC __m256i Vc_CONST divInt(__m256i a, __m256i b)
 {
-    return _mm256_cvttpd_epi32(
-        _mm256_div_pd(_mm256_cvtepi32_pd(a), _mm256_cvtepi32_pd(b)));
+    using namespace AVX;
+    const m256d lo1 = _mm256_cvtepi32_pd(lo128(a));
+    const m256d lo2 = _mm256_cvtepi32_pd(lo128(b));
+    const m256d hi1 = _mm256_cvtepi32_pd(hi128(a));
+    const m256d hi2 = _mm256_cvtepi32_pd(hi128(b));
+    return concat(
+            _mm256_cvttpd_epi32(_mm256_div_pd(lo1, lo2)),
+            _mm256_cvttpd_epi32(_mm256_div_pd(hi1, hi2))
+            );
 }
 template<> inline AVX2::int_v &AVX2::int_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::int_v) x)
 {
@@ -177,41 +184,20 @@ static inline __m256i Vc_CONST divUInt(__m256i a, __m256i b) {
     // conversion and take the adjustment back after the conversion.
     // It could be argued that for b this is not really important because division by a b >= 2^31 is
     // useless. But for full correctness it cannot be ignored.
-#ifdef VC_IMPL_AVX2
-    const __m256i aa = add_epi32(a, AVX::set1_epi32(-2147483648));
-    const __m256i bb = add_epi32(b, AVX::set1_epi32(-2147483648));
-    const __m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(AVX::lo128(aa)), AVX::set1_pd(2147483648.));
-    const __m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(AVX::hi128(aa)), AVX::set1_pd(2147483648.));
-    const __m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(AVX::lo128(bb)), AVX::set1_pd(2147483648.));
-    const __m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(AVX::hi128(bb)), AVX::set1_pd(2147483648.));
-#else
-    const auto a0 = _mm_add_epi32(AVX::lo128(a), _mm_set1_epi32(-2147483648));
-    const auto a1 = _mm_add_epi32(AVX::hi128(a), _mm_set1_epi32(-2147483648));
-    const auto b0 = _mm_add_epi32(AVX::lo128(b), _mm_set1_epi32(-2147483648));
-    const auto b1 = _mm_add_epi32(AVX::hi128(b), _mm_set1_epi32(-2147483648));
-    const __m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(a0), AVX::set1_pd(2147483648.));
-    const __m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(a1), AVX::set1_pd(2147483648.));
-    const __m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(b0), AVX::set1_pd(2147483648.));
-    const __m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(b1), AVX::set1_pd(2147483648.));
-#endif
+    using namespace AVX;
+    const __m256i aa = add_epi32(a, set1_epi32(-2147483648));
+    const __m256i bb = add_epi32(b, set1_epi32(-2147483648));
+    const __m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), set1_pd(2147483648.));
+    const __m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), set1_pd(2147483648.));
+    const __m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), set1_pd(2147483648.));
+    const __m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(bb)), set1_pd(2147483648.));
     // there is one remaining problem: a >= 2^31 and b == 1
     // in that case the return value would be 2^31
-    return AVX::avx_cast<__m256i>(_mm256_blendv_ps(
-        AVX::avx_cast<__m256>(AVX::concat(_mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
+    return avx_cast<__m256i>(_mm256_blendv_ps(
+        avx_cast<__m256>(concat(_mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
                                           _mm256_cvttpd_epi32(_mm256_div_pd(hia, hib)))),
-        AVX::avx_cast<__m256>(a),
-        AVX::avx_cast<__m256>(AVX::cmpeq_epi32(b, AVX::setone_epi32()))));
-}
-static inline __m128i Vc_CONST divUInt(__m128i a, __m128i b)
-{
-    const auto a0 = _mm_add_epi32(a, _mm_set1_epi32(-2147483648));
-    const auto b0 = _mm_add_epi32(b, _mm_set1_epi32(-2147483648));
-    const __m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(a0), AVX::set1_pd(2147483648.));
-    const __m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(b0), AVX::set1_pd(2147483648.));
-    // there is one remaining problem: a >= 2^31 and b == 1
-    // in that case the return value would be 2^31
-    return _mm_blendv_epi8(_mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)), a,
-                           _mm_cmpeq_epi32(b, AVX::_mm_setone_epi32()));
+        avx_cast<__m256>(a),
+        avx_cast<__m256>(cmpeq_epi32(b, setone_epi32()))));
 }
 template<> Vc_ALWAYS_INLINE AVX2::uint_v &AVX2::uint_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::uint_v) x)
 {
@@ -222,11 +208,14 @@ template<> Vc_ALWAYS_INLINE AVX2::uint_v Vc_PURE AVX2::uint_v::operator/(VC_ALIG
 {
     return divUInt(d.v(), x.d.v());
 }
-template<typename T> static inline __m128i Vc_CONST divShort(__m128i a, __m128i b)
+template <typename T> static inline __m256i Vc_CONST divShort(__m256i a, __m256i b)
 {
-    const __m256 r = _mm256_div_ps(AVX::StaticCastHelper<T, float>::cast(a),
-                                   AVX::StaticCastHelper<T, float>::cast(b));
-    return AVX::StaticCastHelper<float, T>::cast(r);
+    using namespace AVX;
+    const __m256 lo =
+        _mm256_div_ps(convert<T, float>(lo128(a)), convert<T, float>(lo128(b)));
+    const __m256 hi =
+        _mm256_div_ps(convert<T, float>(hi128(a)), convert<T, float>(hi128(b)));
+    return _mm256_packs_epi16(_mm256_cvttps_epi32(lo), _mm256_cvttps_epi32(hi));
 }
 template<> Vc_ALWAYS_INLINE AVX2::short_v &AVX2::short_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::short_v) x)
 {
@@ -271,24 +260,32 @@ template<> Vc_INTRINSIC AVX2::double_v Vc_PURE AVX2::double_v::operator/(VC_ALIG
 #ifdef VC_IMPL_AVX2
 template <> inline Vc_PURE AVX2::int_v AVX2::int_v::operator%(const AVX2::int_v &n) const
 {
+    using namespace AVX;
     return *this -
-           n * AVX2::int_v(_mm256_cvttpd_epi32(_mm256_div_pd(_mm256_cvtepi32_pd(data()),
-                                                       _mm256_cvtepi32_pd(n.data()))));
+           n * AVX2::int_v(concat(_mm256_cvttpd_epi32(_mm256_div_pd(
+                                      _mm256_cvtepi32_pd(lo128(data())),
+                                      _mm256_cvtepi32_pd(lo128(n.data())))),
+                                  _mm256_cvttpd_epi32(_mm256_div_pd(
+                                      _mm256_cvtepi32_pd(hi128(data())),
+                                      _mm256_cvtepi32_pd(hi128(n.data()))))));
 }
-template <> inline Vc_PURE AVX2::uint_v AVX2::uint_v::operator%(const AVX2::uint_v &n) const
+template <>
+inline Vc_PURE AVX2::uint_v AVX2::uint_v::operator%(const AVX2::uint_v &n) const
 {
+    using namespace AVX;
     auto &&cvt = [](__m128i v) {
-        return _mm256_add_pd(
-            _mm256_cvtepi32_pd(_mm_sub_epi32(v, AVX::_mm_setmin_epi32())),
-            AVX::set1_pd(1u << 31));
+        return _mm256_add_pd(_mm256_cvtepi32_pd(_mm_sub_epi32(v, _mm_setmin_epi32())),
+                             set1_pd(1u << 31));
     };
     auto &&cvt2 = [](__m256d v) {
-        return __m128i(_mm256_cvttpd_epi32(
-                                 _mm256_sub_pd(_mm256_floor_pd(v), AVX::set1_pd(0x80000000u))));
+        return __m128i(
+            _mm256_cvttpd_epi32(_mm256_sub_pd(_mm256_floor_pd(v), set1_pd(0x80000000u))));
     };
     return *this -
-           n * AVX2::uint_v(_mm_add_epi32(cvt2(_mm256_div_pd(cvt(data()), cvt(n.data()))),
-                                         AVX::_mm_set2power31_epu32()));
+           n * AVX2::uint_v(add_epi32(
+                   concat(cvt2(_mm256_div_pd(cvt(lo128(data())), cvt(lo128(n.data())))),
+                          cvt2(_mm256_div_pd(cvt(hi128(data())), cvt(hi128(n.data()))))),
+                   set2power31_epu32()));
 }
 template <> inline Vc_PURE AVX2::short_v AVX2::short_v::operator%(const AVX2::short_v &n) const
 {
@@ -710,7 +707,7 @@ static Vc_ALWAYS_INLINE __m256i _doRandomStep()
     AVX2::uint_v state0(&Common::RandomState[0]);
     AVX2::uint_v state1(&Common::RandomState[AVX2::uint_v::Size]);
     (state1 * 0xdeece66du + 11).store(&Common::RandomState[AVX2::uint_v::Size]);
-    AVX2::uint_v(Detail::xor_((state0 * 0xdeece66du + 11).data(), _mm_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
+    AVX2::uint_v(Detail::xor_((state0 * 0xdeece66du + 11).data(), _mm256_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
     return state0.data();
 #else
     SSE::uint_v state0(&Common::RandomState[0]);
@@ -962,19 +959,14 @@ template <> Vc_INTRINSIC AVX2::float_v AVX2::float_v::interleaveHigh(AVX2::float
                                    _mm256_unpackhi_ps(data(), x.data()));
 }
 #ifdef VC_IMPL_AVX2
-template <> Vc_INTRINSIC    AVX2::int_v    AVX2::int_v::interleaveLow (   AVX2::int_v x) const { return unpacklo_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC    AVX2::int_v    AVX2::int_v::interleaveHigh(   AVX2::int_v x) const { return unpackhi_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC   AVX2::uint_v   AVX2::uint_v::interleaveLow (  AVX2::uint_v x) const { return unpacklo_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC   AVX2::uint_v   AVX2::uint_v::interleaveHigh(  AVX2::uint_v x) const { return unpackhi_epi32(data(), x.data()); }
-// TODO:
-//template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveLow ( AVX2::short_v x) const { return unpacklo_epi16(data(), x.data()); }
-//template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveHigh( AVX2::short_v x) const { return unpackhi_epi16(data(), x.data()); }
-//template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveLow (AVX2::ushort_v x) const { return unpacklo_epi16(data(), x.data()); }
-//template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveHigh(AVX2::ushort_v x) const { return unpackhi_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveLow ( AVX2::short_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveHigh( AVX2::short_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveLow (AVX2::ushort_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveHigh(AVX2::ushort_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC    AVX2::int_v    AVX2::int_v::interleaveLow (   AVX2::int_v x) const { return _mm256_unpacklo_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC    AVX2::int_v    AVX2::int_v::interleaveHigh(   AVX2::int_v x) const { return _mm256_unpackhi_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC   AVX2::uint_v   AVX2::uint_v::interleaveLow (  AVX2::uint_v x) const { return _mm256_unpacklo_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC   AVX2::uint_v   AVX2::uint_v::interleaveHigh(  AVX2::uint_v x) const { return _mm256_unpackhi_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveLow ( AVX2::short_v x) const { return _mm256_unpacklo_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveHigh( AVX2::short_v x) const { return _mm256_unpackhi_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveLow (AVX2::ushort_v x) const { return _mm256_unpacklo_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveHigh(AVX2::ushort_v x) const { return _mm256_unpackhi_epi16(data(), x.data()); }
 #endif
 // generate {{{1
 template <> template <typename G> Vc_INTRINSIC AVX2::double_v AVX2::double_v::generate(G gen)
@@ -1039,39 +1031,44 @@ template <> template <typename G> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::ge
     return _mm_setr_epi16(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
 }
 #endif
-// }}}1
-// reversed {{{1
-template <> Vc_INTRINSIC Vc_PURE AVX2::double_v AVX2::double_v::reversed() const
+
+// permutation via operator[] {{{1
+template <> Vc_INTRINSIC Vc_PURE AVX2::double_v AVX2::double_v::operator[](Permutation::ReversedTag) const
 {
     return Mem::permute128<X1, X0>(Mem::permute<X1, X0, X3, X2>(d.v()));
 }
-template <> Vc_INTRINSIC Vc_PURE AVX2::float_v AVX2::float_v::reversed() const
+template <> Vc_INTRINSIC Vc_PURE AVX2::float_v AVX2::float_v::operator[](Permutation::ReversedTag) const
 {
     return Mem::permute128<X1, X0>(Mem::permute<X3, X2, X1, X0>(d.v()));
 }
 #ifdef VC_IMPL_AVX2
-template <> Vc_INTRINSIC Vc_PURE AVX2::int_v AVX2::int_v::reversed() const
+template <>
+Vc_INTRINSIC Vc_PURE AVX2::int_v AVX2::int_v::operator[](Permutation::ReversedTag) const
 {
     return Mem::permute128<X1, X0>(Mem::permute<X3, X2, X1, X0>(d.v()));
 }
-template <> Vc_INTRINSIC Vc_PURE AVX2::uint_v AVX2::uint_v::reversed() const
+template <>
+Vc_INTRINSIC Vc_PURE AVX2::uint_v AVX2::uint_v::operator[](Permutation::ReversedTag) const
 {
     return Mem::permute128<X1, X0>(Mem::permute<X3, X2, X1, X0>(d.v()));
 }
-template <> Vc_INTRINSIC Vc_PURE AVX2::short_v AVX2::short_v::reversed() const
+template <>
+Vc_INTRINSIC Vc_PURE AVX2::short_v AVX2::short_v::operator[](
+    Permutation::ReversedTag) const
 {
-    return AVX::avx_cast<__m128i>(Mem::shuffle<X1, Y0>(
-        AVX::avx_cast<__m128d>(Mem::permuteHi<X7, X6, X5, X4>(d.v())),
-        AVX::avx_cast<__m128d>(Mem::permuteLo<X3, X2, X1, X0>(d.v()))));
+    return Mem::permute128<X1, X0>(AVX::avx_cast<__m256i>(Mem::shuffle<X1, Y0, X3, Y2>(
+        AVX::avx_cast<__m256d>(Mem::permuteHi<X7, X6, X5, X4>(d.v())),
+        AVX::avx_cast<__m256d>(Mem::permuteLo<X3, X2, X1, X0>(d.v())))));
 }
-template <> Vc_INTRINSIC Vc_PURE AVX2::ushort_v AVX2::ushort_v::reversed() const
+template <>
+Vc_INTRINSIC Vc_PURE AVX2::ushort_v AVX2::ushort_v::operator[](
+    Permutation::ReversedTag) const
 {
-    return AVX::avx_cast<__m128i>(Mem::shuffle<X1, Y0>(
-        AVX::avx_cast<__m128d>(Mem::permuteHi<X7, X6, X5, X4>(d.v())),
-        AVX::avx_cast<__m128d>(Mem::permuteLo<X3, X2, X1, X0>(d.v()))));
+    return Mem::permute128<X1, X0>(AVX::avx_cast<__m256i>(Mem::shuffle<X1, Y0, X3, Y2>(
+        AVX::avx_cast<__m256d>(Mem::permuteHi<X7, X6, X5, X4>(d.v())),
+        AVX::avx_cast<__m256d>(Mem::permuteLo<X3, X2, X1, X0>(d.v())))));
 }
 #endif
-// permutation via operator[] {{{1
 template <> Vc_INTRINSIC AVX2::float_v AVX2::float_v::operator[](const IndexType &/*perm*/) const
 {
     // TODO
@@ -1089,6 +1086,14 @@ template <> Vc_INTRINSIC AVX2::float_v AVX2::float_v::operator[](const IndexType
     */
 #endif
 }
+
+// reversed {{{1
+template <typename T>
+Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Avx> Vector<T, VectorAbi::Avx>::reversed() const
+{
+    return (*this)[Permutation::Reversed];
+}
+
 // broadcast from constexpr index {{{1
 template <> template <int Index> Vc_INTRINSIC AVX2::float_v AVX2::float_v::broadcast() const
 {

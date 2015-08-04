@@ -169,37 +169,37 @@ Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, uint>)
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const float *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::StaticCastHelper<float, double>::cast(load<__m128, float>(mem, f));
+    return AVX::convert<float, double>(load<__m128, float>(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const uint *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::StaticCastHelper<uint, double>::cast(load<__m128i, uint>(mem, f));
+    return AVX::convert<uint, double>(load<__m128i, uint>(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const int *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const ushort *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const short *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const uchar *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const schar *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::StaticCastHelper<int, double>::cast(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
 }
 
 // float {{{2
@@ -228,12 +228,12 @@ Vc_INTRINSIC __m256 load(const T *mem, Flags f, LoadTag<__m256, float>)
 template <typename Flags>
 Vc_INTRINSIC __m256 load(const ushort *mem, Flags f, LoadTag<__m256, float>)
 {
-    return AVX::StaticCastHelper<ushort, float>::cast(load<__m128i, ushort>(mem, f));
+    return AVX::convert<ushort, float>(load<__m128i, ushort>(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256 load(const short *mem, Flags f, LoadTag<__m256, float>)
 {
-    return AVX::StaticCastHelper<short, float>::cast(load<__m128i, short>(mem, f));
+    return AVX::convert<short, float>(load<__m128i, short>(mem, f));
 }
 /*
 template<typename Flags> struct LoadHelper<float, unsigned char, Flags> {
@@ -428,6 +428,49 @@ Vc_INTRINSIC __m256i andnot_(__m256i a, __m256i b)
         _mm256_andnot_ps(_mm256_castsi256_ps(a), _mm256_castsi256_ps(b)));
 #endif
 }
+
+// add{{{1
+Vc_INTRINSIC __m256  add(__m256  a, __m256  b,  float) { return _mm256_add_ps(a, b); }
+Vc_INTRINSIC __m256d add(__m256d a, __m256d b, double) { return _mm256_add_pd(a, b); }
+Vc_INTRINSIC __m256i add(__m256i a, __m256i b,    int) { return _mm256_add_epi32(a, b); }
+Vc_INTRINSIC __m256i add(__m256i a, __m256i b,   uint) { return _mm256_add_epi32(a, b); }
+Vc_INTRINSIC __m256i add(__m256i a, __m256i b,  short) { return _mm256_add_epi16(a, b); }
+Vc_INTRINSIC __m256i add(__m256i a, __m256i b, ushort) { return _mm256_add_epi16(a, b); }
+
+// sub{{{1
+Vc_INTRINSIC __m256  sub(__m256  a, __m256  b,  float) { return _mm256_sub_ps(a, b); }
+Vc_INTRINSIC __m256d sub(__m256d a, __m256d b, double) { return _mm256_sub_pd(a, b); }
+Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,    int) { return _mm256_sub_epi32(a, b); }
+Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,   uint) { return _mm256_sub_epi32(a, b); }
+Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,  short) { return _mm256_sub_epi16(a, b); }
+Vc_INTRINSIC __m256i sub(__m256i a, __m256i b, ushort) { return _mm256_sub_epi16(a, b); }
+
+// mul{{{1
+Vc_INTRINSIC __m256  mul(__m256  a, __m256  b,  float) { return _mm256_mul_ps(a, b); }
+Vc_INTRINSIC __m256d mul(__m256d a, __m256d b, double) { return _mm256_mul_pd(a, b); }
+Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,    int) { return _mm256_mullo_epi32(a, b); }
+Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,   uint) { return _mm256_mullo_epi32(a, b); }
+Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,  short) { return _mm256_mullo_epi16(a, b); }
+Vc_INTRINSIC __m256i mul(__m256i a, __m256i b, ushort) { return _mm256_mullo_epi16(a, b); }
+
+// zeroExtendIfNeeded{{{1
+Vc_INTRINSIC __m256  zeroExtendIfNeeded(__m256  x) { return x; }
+Vc_INTRINSIC __m256d zeroExtendIfNeeded(__m256d x) { return x; }
+Vc_INTRINSIC __m256i zeroExtendIfNeeded(__m256i x) { return x; }
+Vc_INTRINSIC __m256  zeroExtendIfNeeded(__m128  x) { return AVX::zeroExtend(x); }
+Vc_INTRINSIC __m256d zeroExtendIfNeeded(__m128d x) { return AVX::zeroExtend(x); }
+Vc_INTRINSIC __m256i zeroExtendIfNeeded(__m128i x) { return AVX::zeroExtend(x); }
+
+// broadcast{{{1
+Vc_INTRINSIC __m256  avx_broadcast( float x) { return _mm256_set1_ps(x); }
+Vc_INTRINSIC __m256d avx_broadcast(double x) { return _mm256_set1_pd(x); }
+Vc_INTRINSIC __m256i avx_broadcast(   int x) { return _mm256_set1_epi32(x); }
+Vc_INTRINSIC __m256i avx_broadcast(  uint x) { return _mm256_set1_epi32(x); }
+Vc_INTRINSIC __m256i avx_broadcast( short x) { return _mm256_set1_epi16(x); }
+Vc_INTRINSIC __m256i avx_broadcast(ushort x) { return _mm256_set1_epi16(x); }
+Vc_INTRINSIC __m256i avx_broadcast(  char x) { return _mm256_set1_epi8(x); }
+Vc_INTRINSIC __m256i avx_broadcast( schar x) { return _mm256_set1_epi8(x); }
+Vc_INTRINSIC __m256i avx_broadcast( uchar x) { return _mm256_set1_epi8(x); }
 
 // sorted{{{1
 template <Vc::Implementation Impl, typename T,
