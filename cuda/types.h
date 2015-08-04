@@ -26,12 +26,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#include "../common/types.h"
+
 #ifndef CUDA_TYPES_H
 #define CUDA_TYPES_H
 
 #include "global.h"
-#include "../traits/type_traits.h"
-#include "macros.h"
 
 #define VC_DOUBLE_V_SIZE    CUDA_VECTOR_SIZE
 #define VC_FLOAT_V_SIZE     CUDA_VECTOR_SIZE
@@ -47,7 +47,7 @@ namespace CUDA
 // shared memory banks are organised in consecutive 32bit words
 constexpr std::size_t VectorAlignment = 4;
 
-template <typename T> class Vector;
+template <typename T> using Vector = Vc::Vector<T, VectorAbi::Cuda>;
 typedef Vector<double>          double_v;
 typedef Vector<float>           float_v;
 typedef Vector<int>             int_v;
@@ -65,6 +65,11 @@ typedef Mask<unsigned short>    ushort_m;
 
 template <typename V = Vector<float>>
 class alignas(alignof(V)) VectorAlignedBaseT;
+
+template <typename T> struct is_vector : public std::false_type {};
+template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
+template <typename T> struct is_mask : public std::false_type {};
+template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
 
 } // namespace CUDA
 } // namespace Vc

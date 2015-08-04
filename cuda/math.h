@@ -29,15 +29,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_CUDA_MATH_H
 #define VC_CUDA_MATH_H
 
-#include "global.h"
+#include "detail.h"
 #include "vector.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace CUDA
-{
-namespace Internal
+namespace Detail
 {
     template <typename T> __device__ Vc_ALWAYS_INLINE T reciprocal(T x)
     {
@@ -61,14 +59,14 @@ namespace Internal
 #endif
 
 #ifndef CALC_MACROS
-#define CALC1(fun__, arg__) Vector<T>::internalInit(fun__(arg__[Internal::getThreadId()]))
-#define CALC2(fun__, arg1__, arg2__) Vector<T>::internalInit(fun__(arg1__[Internal::getThreadId()], arg2__[Internal::getThreadId()]))
+#define CALC1(fun__, arg__) Vector<T>::internalInit(fun__(arg__[Detail::getThreadId()]))
+#define CALC2(fun__, arg1__, arg2__) Vector<T>::internalInit(fun__(arg1__[Detail::getThreadId()], arg2__[Detail::getThreadId()]))
 #define CALC_MACROS
 #endif
 
 FUNC1(sqrt, ::sqrtf)
 FUNC1(rsqrt, ::rsqrtf)
-FUNC1(reciprocal, Internal::reciprocal)
+FUNC1(reciprocal, Detail::reciprocal)
 FUNC1(abs, ::fabsf)
 FUNC1(round, ::roundf)
 FUNC1(log, ::logf)
@@ -80,7 +78,7 @@ FUNC1(cos, ::cosf)
 
 template <typename T> __device__ static Vc_ALWAYS_INLINE void sincos(const Vector<T> &v, Vector<T>* sin, Vector<T>* cos)
 {
-    ::sincosf(v[Internal::getThreadId()], (*sin)[Internal::getThreadId()], (*cos)[Internal::getThreadId()]);
+    ::sincosf(v[Detail::getThreadId()], (*sin)[Detail::getThreadId()], (*cos)[Detail::getThreadId()]);
 }
 
 FUNC1(asin, ::asinf)
@@ -91,12 +89,12 @@ FUNC2(min, ::fminf)
 
 template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> frexp(const Vector<T> &v, Vector<int>* e)
 {
-    return Vector<T>::internalInit(::frexpf(v[Internal::getThreadId()], (*e)[Internal::getThreadId()]));
+    return Vector<T>::internalInit(::frexpf(v[Detail::getThreadId()], (*e)[Detail::getThreadId()]));
 }
 
 template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> ldexp(Vector<T> x, Vector<int> e)
 {
-    return Vector<T>::internalInit(::ldexpf(x[Internal::getThreadId()], e[Internal::getThreadId()]));
+    return Vector<T>::internalInit(::ldexpf(x[Detail::getThreadId()], e[Detail::getThreadId()]));
 }
 
 template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isfinite(const Vector<T> &v)
@@ -123,34 +121,33 @@ template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isnan(const Vec
 #undef MATH_FUNC_MACROS
 #endif
 
-__device__ Vc_ALWAYS_INLINE double_v trunc(const double_v& v)
+__device__ Vc_ALWAYS_INLINE CUDA::double_v trunc(const CUDA::double_v& v)
 {
-    return double_v::internalInit(::trunc(v[Internal::getThreadId()]));
+    return CUDA::double_v::internalInit(::trunc(v[Detail::getThreadId()]));
 }
-__device__ Vc_ALWAYS_INLINE float_v trunc(const float_v& v)
+__device__ Vc_ALWAYS_INLINE CUDA::float_v trunc(const CUDA::float_v& v)
 {
-    return float_v::internalInit(::truncf(v[Internal::getThreadId()]));
-}
-
-__device__ Vc_ALWAYS_INLINE double_v floor(const double_v& v)
-{
-    return double_v::internalInit(::floor(v[Internal::getThreadId()]));
-}
-__device__ Vc_ALWAYS_INLINE float_v floor(const float_v& v)
-{
-    return float_v::internalInit(::floorf(v[Internal::getThreadId()]));
+    return CUDA::float_v::internalInit(::truncf(v[Detail::getThreadId()]));
 }
 
-__device__ double_v ceil(const double_v& v)
+__device__ Vc_ALWAYS_INLINE CUDA::double_v floor(const CUDA::double_v& v)
 {
-    return double_v::internalInit(::ceil(v[Internal::getThreadId()]));
+    return CUDA::double_v::internalInit(::floor(v[Detail::getThreadId()]));
 }
-__device__ float_v ceil(const float_v& v)
+__device__ Vc_ALWAYS_INLINE CUDA::float_v floor(const CUDA::float_v& v)
 {
-    return float_v::internalInit(::ceilf(v[Internal::getThreadId()]));
+    return CUDA::float_v::internalInit(::floorf(v[Detail::getThreadId()]));
 }
 
-} // namespace CUDA
+__device__ Vc_ALWAYS_INLINE CUDA::double_v ceil(const CUDA::double_v& v)
+{
+    return CUDA::double_v::internalInit(::ceil(v[Detail::getThreadId()]));
+}
+__device__ Vc_ALWAYS_INLINE CUDA::float_v ceil(const CUDA::float_v& v)
+{
+    return CUDA::float_v::internalInit(::ceilf(v[Detail::getThreadId()]));
+}
+
 } // namespace Vc
 
 #include "undomacros.h"

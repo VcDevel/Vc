@@ -48,6 +48,7 @@ struct Scalar;
 struct Sse;
 struct Avx;
 struct Mic;
+struct Cuda;
 template <typename T>
 using Avx1Abi = typename std::conditional<std::is_integral<T>::value, VectorAbi::Sse,
                                           VectorAbi::Avx>::type;
@@ -55,6 +56,8 @@ template <typename T>
 using Best =
 #if defined VC_IMPL_MIC
     Mic;
+#elif defined VC_IMPL_CUDA
+    Cuda;
 #elif defined VC_IMPL_AVX2
     Avx;
 #elif defined VC_IMPL_AVX

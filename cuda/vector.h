@@ -29,37 +29,29 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef CUDA_VECTOR_H
 #define CUDA_VECTOR_H
 
-#include <initializer_list>
-#include <type_traits>
-
-//#include "../common/loadstoreflags.h"
-//#include "../traits/type_traits.h"
-
+#include "detail.h"
 #include "global.h"
-#include "initflags.h"
 #include "types.h"
 
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace CUDA
-{
 // TODO: make an incomplete type in case someone calls this in CPU code
 #define VC_CURRENT_CLASS_NAME Vector
-template <typename T>
-class Vector
+template <typename T> class Vector<T, VectorAbi::Cuda>
 {
     static_assert(std::is_arithmetic<T>::value,
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
     public:
-        typedef T EntryType;
-        typedef T VectorType[CUDA_VECTOR_SIZE];
+        using abi = VectorAbi::Cuda;
+        using EntryType = T;
+        using VectorType = T[CUDA_VECTOR_SIZE];
 
-        typedef EntryType VectorEntryType;
-        typedef EntryType value_type;
-        typedef VectorType vector_type;
+        using VectorEntryType = EntryType;
+        using value_type = EntryType;
+        using vector_type = VectorType;
 
     protected:
         VectorType m_data;
@@ -104,7 +96,7 @@ class Vector
             if(laneId == 0)
                 value = a;
             value = __shfl(value, 0);
-            m_data[Internal::getThreadId()] = value;
+            m_data[Detail::getThreadId()] = value;
         }
         
         template<typename U>
@@ -125,15 +117,16 @@ class Vector
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal init
-        __device__ Vc_INTRINSIC Vector(InternalInitTag, EntryType x)
+        __device__ Vc_INTRINSIC Vector(Detail::InternalInitTag, EntryType x)
         {
-            m_data[Internal::getThreadId()] = x;
+            m_data[Detail::getThreadId()] = x;
         }
+
 
         __device__ static Vc_INTRINSIC Vector internalInit(EntryType x)
         {
             __shared__ Vector<EntryType> r;
-            r[Internal::getThreadId()] = x;
+            r[Detail::getThreadId()] = x;
             __syncthreads();
             return r;
         }
@@ -174,8 +167,6 @@ class Vector
         }
 };
 #undef VC_CURRENT_CLASS_NAME
-
-} // namespace CUDA
 } // namespace Vc
 
 #include "undomacros.h"

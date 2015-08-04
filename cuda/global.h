@@ -37,34 +37,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace CUDA
 {
-namespace Internal
-{
-    __device__ Vc_ALWAYS_INLINE int getThreadId()
-    {
-        return blockIdx.x * blockDim.x + threadIdx.x;
-    }
-
-    // allocates memory that is to be shared within a thread of blocks --
-    // this is likely to be slower than pre-allocating the memory on
-    // the host, so use with caution
-    __device__ void* block_malloc(std::size_t bytes)
-    {
-        __shared__ void *ptr;
-        if(threadIdx.x == 0)
-            ptr = malloc(bytes);
-        
-        __syncthreads();
-        return ptr;
-    }
-
-    __device__ void block_free(void *ptr)
-    {
-        __syncthreads();
-        if(threadIdx.x == 0)
-           free(ptr);
-    }
-
-} // namespace Internal
 
 template <typename F, typename... Arguments>
 Vc_ALWAYS_INLINE void spawn(F&& kernel, Arguments&& ... args)

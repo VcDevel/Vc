@@ -26,32 +26,32 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_CUDA_INITFLAGS_H
-#define VC_CUDA_INITFLAGS_H
+#ifndef VC_CUDA_DETAIL_H
+#define VC_CUDA_DETAIL_H
 
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace CUDA
-{
-namespace InitFlags
+namespace Detail
 {
 
 template<typename... Flags> struct InitFlags
 {
 };
 
-} // namespace InitFlags
-
-typedef InitFlags::InitFlags<> InternalInitTag;
-
+using InternalInitTag = InitFlags<>;
 constexpr InternalInitTag InternalInit;
 
-} // namespace CUDA
+__device__ Vc_ALWAYS_INLINE int getThreadId()
+{
+    return blockIdx.x * blockDim.x + threadIdx.x;
+}
+
+} // namespace Detail
 } // namespace Vc
 
 #include "undomacros.h"
 
-#endif // VC_CUDA_INITFLAGS_H
+#endif // VC_CUDA_DETAIL_H
 
