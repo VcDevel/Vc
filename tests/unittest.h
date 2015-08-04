@@ -638,7 +638,7 @@ public:
     template <typename T> __device__ Vc_ALWAYS_INLINE const Compare &operator<<(const T &x) const
     {
         if(VC_IS_UNLIKELY(m_failed)) {
-            if(Vc::CUDA::Internal::getThreadId() == 0)
+            if(Vc::Detail::getThreadId() == 0)
                 printf("Placeholder for generic operator<<\n");
         }
         return *this;
@@ -647,7 +647,7 @@ public:
     __device__ Vc_ALWAYS_INLINE const Compare &operator<<(const char *str) const
     {
         if(VC_IS_UNLIKELY(m_failed)) {
-            if(Vc::CUDA::Internal::getThreadId() == 0)
+            if(Vc::Detail::getThreadId() == 0)
                 printf("Placeholder for const char* operator<<\n");
         }
         return *this;
@@ -657,14 +657,14 @@ private:
     // printFirst {{{2
     static __device__ void printFirst()
     {
-        if(Vc::CUDA::Internal::getThreadId() == 0)
+        if(Vc::Detail::getThreadId() == 0)
             printf("Placeholder for printFirst\n");
     }
 
     // printPosition {{{2
     __device__ void printPosition(const char *_file, int _line)
     {
-        if(Vc::CUDA::Internal::getThreadId() == 0)
+        if(Vc::Detail::getThreadId() == 0)
             printf("Placeholder for printPostion\n");
     }
     // member variables {{{2

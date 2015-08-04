@@ -46,21 +46,21 @@ namespace Detail
 #ifndef MATH_FUNC_MACROS
 #define MATH_FUNC_MACROS
 #define FUNC1(name__, impl__) \
-    template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> name__(const Vector<T> &x) \
+    template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T, VectorAbi::Cuda> name__(const Vector<T, VectorAbi::Cuda> &x) \
     { \
         return CALC1(impl__, x);\
     }
 
 #define FUNC2(name__, impl__) \
-    template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> name__(const Vector<T> &x, const Vector<T> &y) \
+    template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T, VectorAbi::Cuda> name__(const Vector<T, VectorAbi::Cuda> &x, const Vector<T, VectorAbi::Cuda> &y) \
     { \
         return CALC2(impl__, x, y); \
     }
 #endif
 
 #ifndef CALC_MACROS
-#define CALC1(fun__, arg__) Vector<T>::internalInit(fun__(arg__[Detail::getThreadId()]))
-#define CALC2(fun__, arg1__, arg2__) Vector<T>::internalInit(fun__(arg1__[Detail::getThreadId()], arg2__[Detail::getThreadId()]))
+#define CALC1(fun__, arg__) Vector<T, VectorAbi::Cuda>::internalInit(fun__(arg__[Detail::getThreadId()]))
+#define CALC2(fun__, arg1__, arg2__) Vector<T, VectorAbi::Cuda>::internalInit(fun__(arg1__[Detail::getThreadId()], arg2__[Detail::getThreadId()]))
 #define CALC_MACROS
 #endif
 
@@ -76,7 +76,7 @@ FUNC1(exp, ::expf)
 FUNC1(sin, ::sinf)
 FUNC1(cos, ::cosf)
 
-template <typename T> __device__ static Vc_ALWAYS_INLINE void sincos(const Vector<T> &v, Vector<T>* sin, Vector<T>* cos)
+template <typename T> __device__ static Vc_ALWAYS_INLINE void sincos(const Vector<T, VectorAbi::Cuda> &v, Vector<T, VectorAbi::Cuda>* sin, Vector<T, VectorAbi::Cuda>* cos)
 {
     ::sincosf(v[Detail::getThreadId()], (*sin)[Detail::getThreadId()], (*cos)[Detail::getThreadId()]);
 }
@@ -87,25 +87,25 @@ FUNC2(atan2, ::atan2f)
 FUNC2(max, ::fmaxf)
 FUNC2(min, ::fminf)
 
-template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> frexp(const Vector<T> &v, Vector<int>* e)
+template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T, VectorAbi::Cuda> frexp(const Vector<T, VectorAbi::Cuda> &v, Vector<int, VectorAbi::Cuda>* e)
 {
-    return Vector<T>::internalInit(::frexpf(v[Detail::getThreadId()], (*e)[Detail::getThreadId()]));
+    return Vector<T, VectorAbi::Cuda>::internalInit(::frexpf(v[Detail::getThreadId()], (*e)[Detail::getThreadId()]));
 }
 
-template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> ldexp(Vector<T> x, Vector<int> e)
+template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> ldexp(Vector<T, VectorAbi::Cuda> x, Vector<int, VectorAbi::Cuda> e)
 {
-    return Vector<T>::internalInit(::ldexpf(x[Detail::getThreadId()], e[Detail::getThreadId()]));
+    return Vector<T, VectorAbi::Cuda>::internalInit(::ldexpf(x[Detail::getThreadId()], e[Detail::getThreadId()]));
 }
 
-template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isfinite(const Vector<T> &v)
-{
-}
-
-template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isinf(const Vector<T> &v)
+template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isfinite(const Vector<T, VectorAbi::Cuda> &v)
 {
 }
 
-template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isnan(const Vector<T> &v)
+template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isinf(const Vector<T, VectorAbi::Cuda> &v)
+{
+}
+
+template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isnan(const Vector<T, VectorAbi::Cuda> &v)
 {
 }
 

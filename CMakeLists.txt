@@ -188,7 +188,7 @@ if(NOT ROOT_RELEASE)
    if(CUDA_FOUND)
        add_custom_target(CUDA COMMENT "build CUDA code" VERBATIM)
 
-       SET(CUDA_NVCC_FLAGS "-arch sm_20;-ccbin ${CMAKE_CXX_COMPILER};--keep")
+       SET(CUDA_NVCC_FLAGS "-arch sm_30;-ccbin ${CMAKE_CXX_COMPILER};--keep")
        SET(CUDA_VERBOSE_BUILD OFF)
 
        cuda_add_library(Vc_CUDA src/cuda_const.cpp src/cpuid.cpp src/support_x86.cpp STATIC OPTIONS "${libvc_cuda_compile_flags}")
