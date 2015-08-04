@@ -149,22 +149,6 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setQnan(const Mask &k) Vc_INTRINSIC_R;
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // swizzles
-        Vc_INTRINSIC_L Vc_PURE_L const Vector &abcd() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  cdab() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  badc() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  aaaa() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  bbbb() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  cccc() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  dddd() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  bcad() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  bcda() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  dabc() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  acbd() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  dbca() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  dcba() const Vc_INTRINSIC_R Vc_PURE_R;
-
 #include "../common/gatherinterface.h"
 #include "../common/scatterinterface.h"
 

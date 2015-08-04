@@ -129,22 +129,6 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setQnan(Mask m) Vc_INTRINSIC_R;
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // swizzles
-        Vc_INTRINSIC const Vector &abcd() const { return *this; }
-        Vc_INTRINSIC const Vector  cdab() const { return *this; }
-        Vc_INTRINSIC const Vector  badc() const { return *this; }
-        Vc_INTRINSIC const Vector  aaaa() const { return *this; }
-        Vc_INTRINSIC const Vector  bbbb() const { return *this; }
-        Vc_INTRINSIC const Vector  cccc() const { return *this; }
-        Vc_INTRINSIC const Vector  dddd() const { return *this; }
-        Vc_INTRINSIC const Vector  bcad() const { return *this; }
-        Vc_INTRINSIC const Vector  bcda() const { return *this; }
-        Vc_INTRINSIC const Vector  dabc() const { return *this; }
-        Vc_INTRINSIC const Vector  acbd() const { return *this; }
-        Vc_INTRINSIC const Vector  dbca() const { return *this; }
-        Vc_INTRINSIC const Vector  dcba() const { return *this; }
-
 #include "../common/gatherinterface.h"
 #include "../common/scatterinterface.h"
 

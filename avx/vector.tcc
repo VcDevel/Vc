@@ -132,54 +132,6 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::store(U *mem, Mask mask, Flags flag
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
-// swizzles {{{1
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE &Vector<T, VectorAbi::Avx>::abcd() const { return *this; }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::cdab() const { return Mem::permute<X2, X3, X0, X1>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::aaaa() const { return Mem::permute<X0, X0, X0, X0>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::bbbb() const { return Mem::permute<X1, X1, X1, X1>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::cccc() const { return Mem::permute<X2, X2, X2, X2>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::dddd() const { return Mem::permute<X3, X3, X3, X3>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::bcad() const { return Mem::permute<X1, X2, X0, X3>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::bcda() const { return Mem::permute<X1, X2, X3, X0>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::dabc() const { return Mem::permute<X3, X0, X1, X2>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::acbd() const { return Mem::permute<X0, X2, X1, X3>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::dbca() const { return Mem::permute<X3, X1, X2, X0>(data()); }
-template<typename T> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE  Vector<T, VectorAbi::Avx>::dcba() const { return Mem::permute<X3, X2, X1, X0>(data()); }
-
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::cdab() const { return Mem::shuffle128<X1, X0>(data(), data()); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::badc() const { return Mem::permute<X1, X0, X3, X2>(data()); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::aaaa() const { const double &tmp = d.m(0); return _mm256_broadcast_sd(&tmp); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::bbbb() const { const double &tmp = d.m(1); return _mm256_broadcast_sd(&tmp); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::cccc() const { const double &tmp = d.m(2); return _mm256_broadcast_sd(&tmp); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::dddd() const { const double &tmp = d.m(3); return _mm256_broadcast_sd(&tmp); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::bcad() const { return Mem::shuffle<X1, Y0, X2, Y3>(Mem::shuffle128<X0, X0>(data(), data()), Mem::shuffle128<X1, X1>(data(), data())); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::bcda() const { return Mem::shuffle<X1, Y0, X3, Y2>(data(), Mem::shuffle128<X1, X0>(data(), data())); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::dabc() const { return Mem::shuffle<X1, Y0, X3, Y2>(Mem::shuffle128<X1, X0>(data(), data()), data()); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::acbd() const { return Mem::shuffle<X0, Y0, X3, Y3>(Mem::shuffle128<X0, X0>(data(), data()), Mem::shuffle128<X1, X1>(data(), data())); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::dbca() const { return Mem::shuffle<X1, Y1, X2, Y2>(Mem::shuffle128<X1, X1>(data(), data()), Mem::shuffle128<X0, X0>(data(), data())); }
-template<> Vc_INTRINSIC const AVX2::double_v Vc_PURE AVX2::double_v::dcba() const { return cdab().badc(); }
-
-#define VC_SWIZZLES_16BIT_IMPL(T) \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::cdab() const { return Mem::permute<X2, X3, X0, X1, X6, X7, X4, X5>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::badc() const { return Mem::permute<X1, X0, X3, X2, X5, X4, X7, X6>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::aaaa() const { return Mem::permute<X0, X0, X0, X0, X4, X4, X4, X4>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::bbbb() const { return Mem::permute<X1, X1, X1, X1, X5, X5, X5, X5>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::cccc() const { return Mem::permute<X2, X2, X2, X2, X6, X6, X6, X6>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::dddd() const { return Mem::permute<X3, X3, X3, X3, X7, X7, X7, X7>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::bcad() const { return Mem::permute<X1, X2, X0, X3, X5, X6, X4, X7>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::bcda() const { return Mem::permute<X1, X2, X3, X0, X5, X6, X7, X4>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::dabc() const { return Mem::permute<X3, X0, X1, X2, X7, X4, X5, X6>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::acbd() const { return Mem::permute<X0, X2, X1, X3, X4, X6, X5, X7>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::dbca() const { return Mem::permute<X3, X1, X2, X0, X7, X5, X6, X4>(data()); } \
-template<> Vc_INTRINSIC const AVX2::Vector<T> Vc_PURE Vector<T, VectorAbi::Avx>::dcba() const { return Mem::permute<X3, X2, X1, X0, X7, X6, X5, X4>(data()); }
-#ifdef VC_IMPL_AVX2
-VC_SWIZZLES_16BIT_IMPL(short)
-VC_SWIZZLES_16BIT_IMPL(unsigned short)
-#endif
-#undef VC_SWIZZLES_16BIT_IMPL
-
-///////////////////////////////////////////////////////////////////////////////////////////
 // division {{{1
 template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator/=(EntryType x)
 {
