@@ -137,6 +137,13 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
+if(CUDA_FOUND)
+       # these warning flags make CUDA compilation emit thousands of lines of unnecessary warnings because of CUDA's header files
+       string(REPLACE "-Wold-style-cast" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+       string(REPLACE "-Wundef" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+       string(REPLACE "-pedantic" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+       string(CONCAT CMAKE_CXX_FLAGS "-Wno-attributes " ${CMAKE_CXX_FLAGS})
+endif(CUDA_FOUND)
 
 # FIXME: This needs cleanup for the next major Vc version
 # Vc_DEFINITIONS contains Vc_ARCHITECTURE_FLAGS which should not be unconditionally added to all targets.
@@ -181,7 +188,7 @@ if(NOT ROOT_RELEASE)
    if(CUDA_FOUND)
        add_custom_target(CUDA COMMENT "build CUDA code" VERBATIM)
 
-       SET(CUDA_NVCC_FLAGS "-std c++11;-arch sm_20;-ccbin ${CMAKE_CXX_COMPILER};--keep")
+       SET(CUDA_NVCC_FLAGS "-arch sm_20;-ccbin ${CMAKE_CXX_COMPILER};--keep")
        SET(CUDA_VERBOSE_BUILD OFF)
 
        cuda_add_library(Vc_CUDA src/cuda_const.cpp src/cpuid.cpp src/support_x86.cpp STATIC OPTIONS "${libvc_cuda_compile_flags}")

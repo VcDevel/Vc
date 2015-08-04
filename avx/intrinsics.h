@@ -761,7 +761,7 @@ namespace AVX2
 {
     using namespace AvxIntrinsics;
 }  // namespace AVX2
-namespace Vc_AVX_NAMESPACE
+namespace AVX
 {
     template<typename T> struct VectorTypeHelper;
 #ifdef VC_IMPL_AVX2

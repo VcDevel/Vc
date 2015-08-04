@@ -30,86 +30,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace SSE
+namespace Detail
 {
-namespace internal {
-
-// mask_cast/*{{{*/
-template<size_t From, size_t To> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast(__m128i k)
-{
-    static_assert(From == To, "Incorrect mask cast.");
-    return k;
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<2, 4>(__m128i k)
-{
-    return _mm_packs_epi16(k, _mm_setzero_si128());
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<2, 8>(__m128i k)
-{
-    auto tmp = _mm_packs_epi16(k, _mm_setzero_si128());
-    return _mm_packs_epi16(tmp, _mm_setzero_si128());
-}
-
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<4, 2>(__m128i k)
-{
-    return _mm_unpacklo_epi32(k, k);
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<4, 8>(__m128i k)
-{
-    return _mm_packs_epi16(k, _mm_setzero_si128());
-}
-
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<8, 2>(__m128i k)
-{
-    auto tmp = _mm_unpacklo_epi16(k, k);
-    return _mm_unpacklo_epi32(tmp, tmp);
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<8, 4>(__m128i k)
-{
-    return _mm_unpacklo_epi16(k, k);
-}
-
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<16, 8>(__m128i k)
-{
-    return _mm_unpacklo_epi8(k, k);
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<16, 4>(__m128i k)
-{
-    auto tmp = mask_cast<16, 8>(k);
-    return _mm_unpacklo_epi16(tmp, tmp);
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i mask_cast<16, 2>(__m128i k)
-{
-    auto tmp = mask_cast<16, 4>(k);
-    return _mm_unpacklo_epi32(tmp, tmp);
-}
-/*}}}*/
-// mask_to_int/*{{{*/
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<2>(__m128i k)
-{
-    return _mm_movemask_pd(_mm_castsi128_pd(k));
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<4>(__m128i k)
-{
-    return _mm_movemask_ps(_mm_castsi128_ps(k));
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<8>(__m128i k)
-{
-    return _mm_movemask_epi8(_mm_packs_epi16(k, _mm_setzero_si128()));
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_to_int<16>(__m128i k)
-{
-    return _mm_movemask_epi8(k);
-}
-/*}}}*/
 /*mask_count{{{*/
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_count<2>(__m128i k)
+template<> Vc_INTRINSIC Vc_CONST int mask_count<2>(__m128i k)
 {
     int mask = _mm_movemask_pd(_mm_castsi128_pd(k));
     return (mask & 1) + (mask >> 1);
 }
 
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_count<4>(__m128i k)
+template<> Vc_INTRINSIC Vc_CONST int mask_count<4>(__m128i k)
 {
 #ifdef VC_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_ps(_mm_castsi128_ps(k)));
@@ -123,7 +53,7 @@ template<> Vc_ALWAYS_INLINE Vc_CONST int mask_count<4>(__m128i k)
 #endif
 }
 
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_count<8>(__m128i k)
+template<> Vc_INTRINSIC Vc_CONST int mask_count<8>(__m128i k)
 {
 #ifdef VC_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_epi8(k)) / 2;
@@ -140,7 +70,7 @@ template<> Vc_ALWAYS_INLINE Vc_CONST int mask_count<8>(__m128i k)
 #endif
 }
 
-template<> Vc_ALWAYS_INLINE Vc_CONST int mask_count<16>(__m128i k)
+template<> Vc_INTRINSIC Vc_CONST int mask_count<16>(__m128i k)
 {
     int tmp = _mm_movemask_epi8(k);
 #ifdef VC_IMPL_POPCNT
@@ -153,24 +83,41 @@ template<> Vc_ALWAYS_INLINE Vc_CONST int mask_count<16>(__m128i k)
 #endif
 }
 /*}}}*/
-// mask_store/*{{{*/
-template<size_t> Vc_ALWAYS_INLINE void mask_store(__m128i k, bool *mem);
-template<> Vc_ALWAYS_INLINE void mask_store<4>(__m128i k, bool *mem)
+// mask_to_int/*{{{*/
+template<> Vc_INTRINSIC Vc_CONST int mask_to_int<2>(__m128i k)
 {
-    const auto k2 = _mm_srli_epi16(_mm_packs_epi16(k, _mm_setzero_si128()), 15);
-    typedef int boolAlias Vc_MAY_ALIAS;
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(_mm_packs_epi16(k2, _mm_setzero_si128()));
+    return _mm_movemask_pd(_mm_castsi128_pd(k));
 }
-template<> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
+template<> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(__m128i k)
+{
+    return _mm_movemask_ps(_mm_castsi128_ps(k));
+}
+template<> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(__m128i k)
+{
+    return _mm_movemask_epi8(_mm_packs_epi16(k, _mm_setzero_si128()));
+}
+template<> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m128i k)
+{
+    return _mm_movemask_epi8(k);
+}
+/*}}}*/
+// mask_store/*{{{*/
+template <size_t> Vc_ALWAYS_INLINE void mask_store(__m128i k, bool *mem);
+template <> Vc_ALWAYS_INLINE void mask_store<4>(__m128i k, bool *mem)
+{
+    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(
+        _mm_packs_epi16(_mm_srli_epi16(_mm_packs_epi32(k, _mm_setzero_si128()), 15),
+                        _mm_setzero_si128()));
+}
+template <> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
 {
     k = _mm_srli_epi16(k, 15);
-    typedef int64_t boolAlias Vc_MAY_ALIAS;
     const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
 #ifdef __x86_64__
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si64(k2);
+    *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);
 #else
-    *reinterpret_cast<boolAlias *>(mem) = _mm_cvtsi128_si32(k2);
-    *reinterpret_cast<boolAlias *>(mem + 4) = extract_epi32<1>(k2);
+    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k2);
+    *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k2, 1);
 #endif
 }
 /*}}}*/
@@ -188,32 +135,73 @@ template<> Vc_ALWAYS_INLINE __m128 mask_load<4>(const bool *mem)
     return sse_cast<__m128>(_mm_unpacklo_epi16(k, k));
 }
 /*}}}*/
+// is_equal{{{
+template <> Vc_INTRINSIC Vc_CONST bool is_equal<2>(__m128 k1, __m128 k2)
+{
+    return _mm_movemask_pd(_mm_castps_pd(k1)) == _mm_movemask_pd(_mm_castps_pd(k2));
+}
+template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<2>(__m128 k1, __m128 k2)
+{
+    return _mm_movemask_pd(_mm_castps_pd(k1)) != _mm_movemask_pd(_mm_castps_pd(k2));
+}
 
-} // namespace internal
+template <> Vc_INTRINSIC Vc_CONST bool is_equal<4>(__m128 k1, __m128 k2)
+{
+    return _mm_movemask_ps(k1) == _mm_movemask_ps(k2);
+}
+template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<4>(__m128 k1, __m128 k2)
+{
+    return _mm_movemask_ps(k1) != _mm_movemask_ps(k2);
+}
 
-template<> Vc_ALWAYS_INLINE void Mask<double>::store(bool *mem) const
+template <> Vc_INTRINSIC Vc_CONST bool is_equal<8>(__m128 k1, __m128 k2)
+{
+    return _mm_movemask_epi8(_mm_castps_si128(k1)) ==
+           _mm_movemask_epi8(_mm_castps_si128(k2));
+}
+template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<8>(__m128 k1, __m128 k2)
+{
+    return _mm_movemask_epi8(_mm_castps_si128(k1)) !=
+           _mm_movemask_epi8(_mm_castps_si128(k2));
+}
+
+template <> Vc_INTRINSIC Vc_CONST bool is_equal<16>(__m128 k1, __m128 k2)
+{
+    return _mm_movemask_epi8(_mm_castps_si128(k1)) ==
+           _mm_movemask_epi8(_mm_castps_si128(k2));
+}
+template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<16>(__m128 k1, __m128 k2)
+{
+    return _mm_movemask_epi8(_mm_castps_si128(k1)) !=
+           _mm_movemask_epi8(_mm_castps_si128(k2));
+}
+
+// }}}
+}  // namespace Detail
+
+template<> Vc_ALWAYS_INLINE void SSE::double_m::store(bool *mem) const
 {
     typedef uint16_t boolAlias Vc_MAY_ALIAS;
     boolAlias *ptr = reinterpret_cast<boolAlias *>(mem);
     *ptr = _mm_movemask_epi8(dataI()) & 0x0101;
 }
-template<typename T> Vc_ALWAYS_INLINE void Mask<T>::store(bool *mem) const
+template<typename T> Vc_ALWAYS_INLINE void Mask<T, VectorAbi::Sse>::store(bool *mem) const
 {
-    internal::mask_store<Size>(dataI(), mem);
+    Detail::mask_store<Size>(dataI(), mem);
 }
-template<> Vc_ALWAYS_INLINE void Mask<double>::load(const bool *mem)
+template<> Vc_ALWAYS_INLINE void SSE::double_m::load(const bool *mem)
 {
     d.set(0, MaskBool(mem[0]));
     d.set(1, MaskBool(mem[1]));
 }
-template <typename T> Vc_ALWAYS_INLINE void Mask<T>::load(const bool *mem)
+template <typename T> Vc_ALWAYS_INLINE void Mask<T, VectorAbi::Sse>::load(const bool *mem)
 {
-    d.v() = sse_cast<VectorType>(internal::mask_load<Size>(mem));
+    d.v() = sse_cast<VectorType>(Detail::mask_load<Size>(mem));
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE int Mask<T>::firstOne() const
+template<> Vc_ALWAYS_INLINE Vc_PURE bool SSE:: short_m::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+template<> Vc_ALWAYS_INLINE Vc_PURE bool SSE::ushort_m::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE int Mask<T, VectorAbi::Sse>::firstOne() const
 {
     const int mask = toInt();
 #ifdef _MSC_VER
@@ -250,64 +238,53 @@ Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8>)
 }
 template <typename T>
 template <typename G>
-Vc_INTRINSIC Mask<T> Mask<T>::generate(G &&gen)
+Vc_INTRINSIC Mask<T, VectorAbi::Sse> Mask<T, VectorAbi::Sse>::generate(G &&gen)
 {
-    return generate_impl<Mask<T>>(std::forward<G>(gen),
+    return generate_impl<Mask<T, VectorAbi::Sse>>(std::forward<G>(gen),
                                   std::integral_constant<int, Size>());
 }
 // shifted {{{1
-template <int amount, typename T>
-Vc_INTRINSIC Vc_PURE enable_if<(amount > 0), T> shifted_impl(T k)
-{
-    return _mm_srli_si128(k, amount);
-}
-template <int amount, typename T>
-Vc_INTRINSIC Vc_PURE enable_if<(amount < 0), T> shifted_impl(T k)
-{
-    return _mm_slli_si128(k, -amount);
-}
-template <typename T> Vc_INTRINSIC Vc_PURE Mask<T> Mask<T>::shifted(int amount) const
+template <typename T> Vc_INTRINSIC Vc_PURE Mask<T, VectorAbi::Sse> Mask<T, VectorAbi::Sse>::shifted(int amount) const
 {
     switch (amount * int(sizeof(VectorEntryType))) {
     case   0: return *this;
-    case   1: return shifted_impl<  1>(dataI());
-    case   2: return shifted_impl<  2>(dataI());
-    case   3: return shifted_impl<  3>(dataI());
-    case   4: return shifted_impl<  4>(dataI());
-    case   5: return shifted_impl<  5>(dataI());
-    case   6: return shifted_impl<  6>(dataI());
-    case   7: return shifted_impl<  7>(dataI());
-    case   8: return shifted_impl<  8>(dataI());
-    case   9: return shifted_impl<  9>(dataI());
-    case  10: return shifted_impl< 10>(dataI());
-    case  11: return shifted_impl< 11>(dataI());
-    case  12: return shifted_impl< 12>(dataI());
-    case  13: return shifted_impl< 13>(dataI());
-    case  14: return shifted_impl< 14>(dataI());
-    case  15: return shifted_impl< 15>(dataI());
-    case  16: return shifted_impl< 16>(dataI());
-    case  -1: return shifted_impl< -1>(dataI());
-    case  -2: return shifted_impl< -2>(dataI());
-    case  -3: return shifted_impl< -3>(dataI());
-    case  -4: return shifted_impl< -4>(dataI());
-    case  -5: return shifted_impl< -5>(dataI());
-    case  -6: return shifted_impl< -6>(dataI());
-    case  -7: return shifted_impl< -7>(dataI());
-    case  -8: return shifted_impl< -8>(dataI());
-    case  -9: return shifted_impl< -9>(dataI());
-    case -10: return shifted_impl<-10>(dataI());
-    case -11: return shifted_impl<-11>(dataI());
-    case -12: return shifted_impl<-12>(dataI());
-    case -13: return shifted_impl<-13>(dataI());
-    case -14: return shifted_impl<-14>(dataI());
-    case -15: return shifted_impl<-15>(dataI());
-    case -16: return shifted_impl<-16>(dataI());
+    case   1: return Detail::shifted<  1>(dataI());
+    case   2: return Detail::shifted<  2>(dataI());
+    case   3: return Detail::shifted<  3>(dataI());
+    case   4: return Detail::shifted<  4>(dataI());
+    case   5: return Detail::shifted<  5>(dataI());
+    case   6: return Detail::shifted<  6>(dataI());
+    case   7: return Detail::shifted<  7>(dataI());
+    case   8: return Detail::shifted<  8>(dataI());
+    case   9: return Detail::shifted<  9>(dataI());
+    case  10: return Detail::shifted< 10>(dataI());
+    case  11: return Detail::shifted< 11>(dataI());
+    case  12: return Detail::shifted< 12>(dataI());
+    case  13: return Detail::shifted< 13>(dataI());
+    case  14: return Detail::shifted< 14>(dataI());
+    case  15: return Detail::shifted< 15>(dataI());
+    case  16: return Detail::shifted< 16>(dataI());
+    case  -1: return Detail::shifted< -1>(dataI());
+    case  -2: return Detail::shifted< -2>(dataI());
+    case  -3: return Detail::shifted< -3>(dataI());
+    case  -4: return Detail::shifted< -4>(dataI());
+    case  -5: return Detail::shifted< -5>(dataI());
+    case  -6: return Detail::shifted< -6>(dataI());
+    case  -7: return Detail::shifted< -7>(dataI());
+    case  -8: return Detail::shifted< -8>(dataI());
+    case  -9: return Detail::shifted< -9>(dataI());
+    case -10: return Detail::shifted<-10>(dataI());
+    case -11: return Detail::shifted<-11>(dataI());
+    case -12: return Detail::shifted<-12>(dataI());
+    case -13: return Detail::shifted<-13>(dataI());
+    case -14: return Detail::shifted<-14>(dataI());
+    case -15: return Detail::shifted<-15>(dataI());
+    case -16: return Detail::shifted<-16>(dataI());
     }
     return Zero();
 }
 // }}}1
 
-}
 }
 
 #include "undomacros.h"

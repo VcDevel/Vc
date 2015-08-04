@@ -33,14 +33,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace MIC
 {
 
 template<typename T> class WriteMaskedVector
 {
-    friend class Vector<T>;
+    friend class Vc::Vector<T, VectorAbi::Mic>;
     typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef typename DetermineEntryType<T>::Type EntryType;
+    using EntryType = T;
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
     typedef MIC::Mask<T> Mask;
 public:

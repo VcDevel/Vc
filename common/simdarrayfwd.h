@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sse/types.h"
 #include "avx/types.h"
 #include "mic/types.h"
+#include "cuda/types.h"
 
 #include "utility.h"
 #include "macros.h"
@@ -44,21 +45,6 @@ namespace Common
 /// \addtogroup SimdArray
 /// @{
 /*select_best_vector_type{{{*/
-namespace internal
-{
-/**
- * \internal
- * AVX::Vector<T> with T int, uint, short, or ushort is either two SSE::Vector<T> or the same as
- * SSE::Vector<T>. Thus we can skip AVX::Vector<T> for integral types altogether.
- */
-template <typename T> struct never_best_vector_type : public std::false_type {};
-
-// the AVX namespace only exists in AVX compilations, otherwise it's AVX2 - which is fine
-#if defined(VC_IMPL_AVX) && !defined(VC_IMPL_AVX2)
-template <typename T> struct never_best_vector_type<AVX::Vector<T>> : public std::is_integral<T> {};
-#endif
-}  // namespace internal
-
 /**
  * \internal
  * Selects the best SIMD type out of a typelist to store N scalar values.
@@ -71,9 +57,9 @@ template<std::size_t N, typename T> struct select_best_vector_type_impl<N, T>
 };
 template<std::size_t N, typename T, typename... Typelist> struct select_best_vector_type_impl<N, T, Typelist...>
 {
-    using type = typename std::conditional<(N < T::Size || internal::never_best_vector_type<T>::value),
-                                           typename select_best_vector_type_impl<N, Typelist...>::type,
-                                           T>::type;
+    using type = typename std::conditional<
+        (N < T::Size), typename select_best_vector_type_impl<N, Typelist...>::type,
+        T>::type;
 };
 template <typename T, std::size_t N>
 using select_best_vector_type =

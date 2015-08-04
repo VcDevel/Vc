@@ -49,9 +49,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-  using Vc_IMPL_NAMESPACE::Vector;
-  using Vc_IMPL_NAMESPACE::Mask;
-
   typedef Vc_IMPL_NAMESPACE::double_v double_v;
   typedef Vc_IMPL_NAMESPACE:: float_v  float_v;
   typedef Vc_IMPL_NAMESPACE::   int_v    int_v;
@@ -191,31 +188,6 @@ namespace Vc_VERSIONED_NAMESPACE
   using namespace VectorSpecialInitializerZero;
   using namespace VectorSpecialInitializerOne;
   using namespace VectorSpecialInitializerIndexesFromZero;
-  using Vc_IMPL_NAMESPACE::min;
-  using Vc_IMPL_NAMESPACE::max;
-  using Vc_IMPL_NAMESPACE::sqrt;
-  using Vc_IMPL_NAMESPACE::rsqrt;
-  using Vc_IMPL_NAMESPACE::abs;
-  using Vc_IMPL_NAMESPACE::sin;
-  using Vc_IMPL_NAMESPACE::asin;
-  using Vc_IMPL_NAMESPACE::cos;
-  using Vc_IMPL_NAMESPACE::sincos;
-  using Vc_IMPL_NAMESPACE::trunc;
-  using Vc_IMPL_NAMESPACE::floor;
-  using Vc_IMPL_NAMESPACE::ceil;
-  using Vc_IMPL_NAMESPACE::exp;
-  using Vc_IMPL_NAMESPACE::log;
-  using Vc_IMPL_NAMESPACE::log2;
-  using Vc_IMPL_NAMESPACE::log10;
-  using Vc_IMPL_NAMESPACE::reciprocal;
-  using Vc_IMPL_NAMESPACE::atan;
-  using Vc_IMPL_NAMESPACE::atan2;
-  using Vc_IMPL_NAMESPACE::frexp;
-  using Vc_IMPL_NAMESPACE::ldexp;
-  using Vc_IMPL_NAMESPACE::round;
-  using Vc_IMPL_NAMESPACE::isfinite;
-  using Vc_IMPL_NAMESPACE::isinf;
-  using Vc_IMPL_NAMESPACE::isnan;
 }
 
 #include "common/vectortuple.h"

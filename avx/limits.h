@@ -35,24 +35,51 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace std
 {
-#define _VC_NUM_LIM(T, _max, _min) \
-template<> struct numeric_limits< ::Vc::Vc_IMPL_NAMESPACE::Vector<T> > : public numeric_limits<T> \
-{ \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> max()           Vc_NOEXCEPT { return _max; } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> min()           Vc_NOEXCEPT { return _min; } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> lowest()        Vc_NOEXCEPT { return min(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> epsilon()       Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> round_error()   Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> infinity()      Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> quiet_NaN()     Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> signaling_NaN() Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-    static Vc_INTRINSIC Vc_CONST ::Vc::Vc_IMPL_NAMESPACE::Vector<T> denorm_min()    Vc_NOEXCEPT { return ::Vc::Vc_IMPL_NAMESPACE::Vector<T>::Zero(); } \
-}
+#define _VC_NUM_LIM(T, _max, _min)                                                       \
+    template <> struct numeric_limits<Vc::AVX2::Vector<T>> : public numeric_limits<T>    \
+    {                                                                                    \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> max() Vc_NOEXCEPT               \
+        {                                                                                \
+            return _max;                                                                 \
+        }                                                                                \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> min() Vc_NOEXCEPT               \
+        {                                                                                \
+            return _min;                                                                 \
+        }                                                                                \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> lowest() Vc_NOEXCEPT            \
+        {                                                                                \
+            return min();                                                                \
+        }                                                                                \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> epsilon() Vc_NOEXCEPT           \
+        {                                                                                \
+            return Vc::AVX2::Vector<T>::Zero();                                          \
+        }                                                                                \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> round_error() Vc_NOEXCEPT       \
+        {                                                                                \
+            return Vc::AVX2::Vector<T>::Zero();                                          \
+        }                                                                                \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> infinity() Vc_NOEXCEPT          \
+        {                                                                                \
+            return Vc::AVX2::Vector<T>::Zero();                                          \
+        }                                                                                \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> quiet_NaN() Vc_NOEXCEPT         \
+        {                                                                                \
+            return Vc::AVX2::Vector<T>::Zero();                                          \
+        }                                                                                \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> signaling_NaN() Vc_NOEXCEPT     \
+        {                                                                                \
+            return Vc::AVX2::Vector<T>::Zero();                                          \
+        }                                                                                \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> denorm_min() Vc_NOEXCEPT        \
+        {                                                                                \
+            return Vc::AVX2::Vector<T>::Zero();                                          \
+        }                                                                                \
+    }
 
-_VC_NUM_LIM(unsigned short, ::Vc::Vc_IMPL_NAMESPACE::_mm_setallone_si128(), _mm_setzero_si128());
-_VC_NUM_LIM(         short, _mm_srli_epi16(::Vc::Vc_IMPL_NAMESPACE::_mm_setallone_si128(), 1), ::Vc::Vc_IMPL_NAMESPACE::_mm_setmin_epi16());
+_VC_NUM_LIM(unsigned short, Vc::AVX::_mm_setallone_si128(), _mm_setzero_si128());
+_VC_NUM_LIM(         short, _mm_srli_epi16(Vc::AVX::_mm_setallone_si128(), 1), Vc::AVX::_mm_setmin_epi16());
 _VC_NUM_LIM(  unsigned int, Vc::AvxIntrinsics::_mm_setallone_si128(), _mm_setzero_si128());
-_VC_NUM_LIM(           int, _mm_srli_epi32(::Vc::AvxIntrinsics::_mm_setallone_si128(), 1), Vc::Vc_IMPL_NAMESPACE::_mm_setmin_epi32());
+_VC_NUM_LIM(           int, _mm_srli_epi32(Vc::AvxIntrinsics::_mm_setallone_si128(), 1), Vc::AVX::_mm_setmin_epi32());
 #undef _VC_NUM_LIM
 
 } // namespace std

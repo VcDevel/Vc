@@ -559,26 +559,7 @@ struct is_subscript_operation_internal<Common::SubscriptOperation<T, IndexVector
 };
 }  // namespace Traits
 
-namespace Scalar
-{
-    using Common::subscript_operator;
-}  // namespace
-namespace SSE
-{
-    using Common::subscript_operator;
-}  // namespace
-namespace AVX
-{
-    using Common::subscript_operator;
-}  // namespace
-namespace AVX2
-{
-    using Common::subscript_operator;
-}  // namespace
-namespace MIC
-{
-    using Common::subscript_operator;
-}  // namespace
+using Common::subscript_operator;
 
 }  // namespace Vc
 

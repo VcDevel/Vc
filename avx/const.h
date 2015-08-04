@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_AVX_CONST_H
 
 #include <cstddef>
+#include "types.h"
 #include "const_data.h"
 #include "macros.h"
 
@@ -37,8 +38,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Vc_IMPL_NAMESPACE
 {
-    template<typename T> class Vector;
-
     template<typename T> struct IndexesFromZeroData;
     template<> struct IndexesFromZeroData<int> {
         static Vc_ALWAYS_INLINE Vc_CONST const int *address() { return reinterpret_cast<const int *>(&_IndexesFromZero32[0]); }

@@ -38,8 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
-{
 
 template<unsigned int VectorSize> struct MaskHelper;
 template<> struct MaskHelper<8> {
@@ -71,14 +69,18 @@ template<> struct MaskHelper<16> {
     static Vc_INTRINSIC Vc_CONST Type cast(__mmask8 k) { return _mm512_kand(k, 0xff); }
 };
 
-template<typename T> class Mask
+template <typename T> class Mask<T, VectorAbi::Mic>
 {
-    friend class Mask<  double>;
-    friend class Mask<   float>;
-    friend class Mask< int32_t>;
-    friend class Mask<uint32_t>;
-    friend class Mask< int16_t>;
-    friend class Mask<uint16_t>;
+public:
+    using abi = VectorAbi::Mic;
+
+private:
+    friend class Mask<  double, abi>;
+    friend class Mask<   float, abi>;
+    friend class Mask< int32_t, abi>;
+    friend class Mask<uint32_t, abi>;
+    friend class Mask< int16_t, abi>;
+    friend class Mask<uint16_t, abi>;
 
 public:
     /**
@@ -99,7 +101,7 @@ public:
      * The \c VectorType reveals the implementation-specific internal type used for the
      * SIMD type.
      */
-    typedef typename VectorTypeHelper<T>::Type VectorType;
+    typedef typename MIC::VectorTypeHelper<T>::Type VectorType;
 
     /**
      * The associated Vector<T> type.
@@ -109,7 +111,7 @@ public:
     /** \internal
      * The intrinsic type of the register/memory representation of the mask data.
      */
-    typedef typename MaskTypeHelper<T>::Type MaskType;
+    typedef typename MIC::MaskTypeHelper<T>::Type MaskType;
 
     static constexpr size_t Size = sizeof(MaskType) * 8;
     static constexpr std::size_t size() { return Size; }
@@ -141,7 +143,8 @@ public:
     inline void load(const bool *mem) { load(mem, Aligned); }
     template<typename Flags>
     inline void load(const bool *mem, Flags) {
-        const __m512i ones = _mm512_loadu_epi32(mem, UpDownConversion<unsigned int, unsigned char>());
+        const __m512i ones = MIC::mm512_loadu_epi32(
+            mem, MIC::UpDownConversion<unsigned int, unsigned char>());
             //_mm512_extload_epi32(mem, UpDownConversion<unsigned int, unsigned char>(), _MM_BROADCAST32_NONE, _MM_HINT_NONE);
         k = _mm512_cmpneq_epi32_mask(ones, _mm512_setzero_epi32());
     }
@@ -150,9 +153,9 @@ public:
     template<typename Flags>
     inline void store(bool *mem, Flags) const {
         const __m512i zero = _mm512_setzero_epi32();
-        const __m512i one = VectorHelper<__m512i>::one();
-        const __m512i tmp = _and(zero, k, one, one);
-        MicIntrinsics::store<decltype(Unaligned)>(mem, tmp, UpDownConversion<unsigned int, unsigned char>());
+        const __m512i one = MIC::VectorHelper<__m512i>::one();
+        const __m512i tmp = MIC::_and(zero, k, one, one);
+        MicIntrinsics::store<decltype(Unaligned)>(mem, tmp, MIC::UpDownConversion<unsigned int, unsigned char>());
     }
 
     inline bool operator==(const Mask &rhs) const { return MaskHelper<Size>::cmpeq (k, rhs.k); }
@@ -230,55 +233,8 @@ public:
 private:
     MaskType k;
 };
-template<typename T> constexpr size_t Mask<T>::Size;
+template <typename T> constexpr size_t Mask<T, VectorAbi::Mic>::Size;
 
-struct ForeachHelper
-{
-    unsigned int mask;
-    int bit;
-    bool brk;
-    template<typename T>
-    inline ForeachHelper(Mask<T> _mask) :
-        mask(_mask.data()),
-        bit(_mm_tzcnt_32(mask)),
-        brk(false)
-    {}
-    inline ForeachHelper(Mask<double> _mask) :
-        mask(_mask.data() & 0xff),
-        bit(_mm_tzcnt_32(mask)),
-        brk(false)
-    {}
-    inline bool outer() const { return bit != sizeof(mask) * 8; }
-    inline bool inner() { return (brk = !brk); }
-    inline short next() const { return bit; }
-    inline void step() { bit = _mm_tzcnti_32(bit, mask); }
-};
-
-/**
- * Loop over all set bits in the mask. The iterator variable will be set to the position of the set
- * bits. A mask of e.g. 00011010 would result in the loop being called with the iterator being set to
- * 1, 3, and 4.
- *
- * This allows you to write:
- * \code
- * float_v a = ...;
- * foreach_bit(int i, a < 0.f) {
- *   std::cout << a[i] << "\n";
- * }
- * \endcode
- * The example prints all the values in \p a that are negative, and only those.
- *
- * \param it   The iterator variable. For example "int i".
- * \param mask The mask to iterate over. You can also just write a vector operation that returns a
- *             mask.
- */
-#define Vc_foreach_bit(_it_, _mask_) \
-    for (Vc::MIC::ForeachHelper _Vc_foreach_bit_helper(_mask_); \
-            _Vc_foreach_bit_helper.outer(); \
-            _Vc_foreach_bit_helper.step()) \
-        for (_it_ = _Vc_foreach_bit_helper.next(); _Vc_foreach_bit_helper.inner(); )
-
-}  // namespace MIC
 }  // namespace Vc
 
 #include "undomacros.h"

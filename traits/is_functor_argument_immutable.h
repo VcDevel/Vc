@@ -35,16 +35,20 @@ namespace Traits
 {
 namespace is_functor_argument_immutable_impl
 {
-template <typename F, typename A,
-#if defined(VC_ICC) || defined(VC_NVCC)
-          // this is wrong, but then again ICC is broken - and better it compiles and
-          // returns the wrong answer than not compiling at all
-          typename MemberPtr = decltype(&F::operator()),
+// this indirection for decltype is required for EDG based compilers
+template <typename F, typename A> struct workaround_edg
+{
+#ifdef VC_NVCC
+    // this is still not working for NVCC for some reason
+    typedef decltype(&F::operator()) type;
 #else
-          // this fails for cudafe++ (as of CUDA v7.0) as well
-          typename MemberPtr = decltype(&F::template operator() <A>),
+    typedef decltype(&F::template operator()<A>) type;
 #endif
-          typename foo = decltype((std::declval<F &>().*
+};
+
+template <typename F, typename A,
+          typename MemberPtr = typename workaround_edg<F, A>::type,
+          typename = decltype((std::declval<F &>().*
                                (std::declval<MemberPtr>()))(std::declval<const A &>()))>
 std::true_type test(int);
 template <typename F, typename A> std::false_type test(...);

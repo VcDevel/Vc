@@ -42,15 +42,36 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 using std::size_t;
 
-namespace Vc_IMPL_NAMESPACE
+namespace VectorAbi
 {
-    template<typename T> class Vector;
-    template<typename T> class Mask;
-}  // namespace Vc_IMPL_NAMESPACE
+struct Scalar;
+struct Sse;
+struct Avx;
+struct Mic;
+template <typename T>
+using Avx1Abi = typename std::conditional<std::is_integral<T>::value, VectorAbi::Sse,
+                                          VectorAbi::Avx>::type;
+template <typename T>
+using Best =
+#if defined VC_IMPL_MIC
+    Mic;
+#elif defined VC_IMPL_AVX2
+    Avx;
+#elif defined VC_IMPL_AVX
+    Avx1Abi<T>;
+#elif defined VC_IMPL_SSE
+    Sse;
+#else
+    Scalar;
+#endif
+}  // namespace VectorAbi
+
+template<typename T, typename Abi = VectorAbi::Best<T>> class Vector;
+template<typename T, typename Abi = VectorAbi::Best<T>> class Mask;
 
 namespace Detail
 {
-template<typename T> struct MayAlias { typedef T type Vc_MAY_ALIAS; };
+template<typename T> struct MayAliasImpl { typedef T type Vc_MAY_ALIAS; };
 //template<size_t Bytes> struct MayAlias<MaskBool<Bytes>> { typedef MaskBool<Bytes> type; };
 /**\internal
  * Helper MayAlias<T> that turns T into the type to be used for an aliasing pointer. This
@@ -59,7 +80,7 @@ template<typename T> struct MayAlias { typedef T type Vc_MAY_ALIAS; };
  * therefore MaskBool is simply forwarded as is.
  */
 }  // namespace Detail
-template <typename T> using MayAlias = typename Detail::MayAlias<T>::type;
+template <typename T> using MayAlias = typename Detail::MayAliasImpl<T>::type;
 
 enum class Operator : char {
     Assign,
@@ -141,8 +162,6 @@ public:
 // TODO: all of the following doesn't really belong into the toplevel Vc namespace. An anonymous
 // namespace might be enough:
 
-template<typename T> struct DetermineEntryType { typedef T Type; };
-
 // TODO: convert to enum classes
 namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
@@ -163,19 +182,16 @@ namespace
 
     template<typename From, typename To> struct is_implicit_cast_allowed : public std::false_type {};
     template<typename T> struct is_implicit_cast_allowed<T, T> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed< int64_t, uint64_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed<uint64_t,  int64_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed< int32_t, uint32_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed<uint32_t,  int32_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed< int16_t, uint16_t> : public std::true_type {};
     template<> struct is_implicit_cast_allowed<uint16_t,  int16_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed<  int8_t,  uint8_t> : public std::true_type {};
+    template<> struct is_implicit_cast_allowed< uint8_t,   int8_t> : public std::true_type {};
 
     template<typename From, typename To> struct is_implicit_cast_allowed_mask : public is_implicit_cast_allowed<From, To> {};
-
-    // TODO: issue #605 (make int_v <-> float_v conversion explicit only and drop the int_v::size()
-    // == float_v::size() guarantee)
-    template<> struct is_implicit_cast_allowed< int32_t,    float> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<uint32_t,    float> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed_mask< float,  int32_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed_mask< float, uint32_t> : public std::true_type {};
 #ifndef VC_ICC
 } // anonymous namespace
 #endif

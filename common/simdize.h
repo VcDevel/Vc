@@ -581,6 +581,7 @@ Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long long);
 #undef Vc_DEFINE_NONTYPE_REPLACETYPES__
 
 #if defined(VC_ICC) || defined(VC_NVCC)
+// FIXME: find a proper workaround implementation for ICC / NVCC
 template <typename Class, typename... Args>
 constexpr bool is_constructible_with_single_brace()
 {
@@ -638,41 +639,38 @@ template <typename Scalar, typename Base, size_t N> class Adapter : public Base
 {
 private:
     /// helper for the broadcast ctor below using double braces for Base initialization
-    template <std::size_t... Indexes>
-    Adapter(
-        enable_if<is_constructible_with_double_brace<
-                      Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>(),
-                  const Scalar &> x,
-        Vc::index_sequence<Indexes...>)
+    template <std::size_t... Indexes, typename T>
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x, T, std::true_type)
         : Base{{get<Indexes>(x)...}}
     {
     }
 
     /// helper for the broadcast ctor below using single braces for Base initialization
     template <std::size_t... Indexes>
-    Adapter(
-        enable_if<
-            is_constructible_with_single_brace<
-                Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>() &&
-                !is_constructible_with_double_brace<
-                    Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>(),
-            const Scalar &> x,
-        Vc::index_sequence<Indexes...>)
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x, std::true_type,
+            std::false_type)
         : Base{get<Indexes>(x)...}
     {
     }
 
     /// helper for the broadcast ctor below using parenthesis for Base initialization
     template <std::size_t... Indexes>
-    Adapter(
-        enable_if<
-            !is_constructible_with_single_brace<
-                Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>() &&
-                !is_constructible_with_double_brace<
-                    Base, decltype(get<Indexes>(std::declval<const Scalar &>()))...>(),
-            const Scalar &> x,
-        Vc::index_sequence<Indexes...>)
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x, std::false_type,
+            std::false_type)
         : Base(get<Indexes>(x)...)
+    {
+    }
+
+    template <std::size_t... Indexes>
+    Adapter(Vc::index_sequence<Indexes...> seq, const Scalar &x)
+        : Adapter(
+              seq, x,
+              std::integral_constant<bool, is_constructible_with_single_brace<
+                                               Base, decltype(get<Indexes>(std::declval<
+                                                         const Scalar &>()))...>()>(),
+              std::integral_constant<bool, is_constructible_with_double_brace<
+                                               Base, decltype(get<Indexes>(std::declval<
+                                                         const Scalar &>()))...>()>())
     {
     }
 
@@ -704,13 +702,14 @@ public:
               typename Seq = Vc::make_index_sequence<TupleSize>,
               typename = enable_if<std::is_convertible<U, Scalar>::value>>
     Adapter(U &&x)
-        : Adapter(static_cast<const Scalar &>(x), Seq())
+        : Adapter(Seq(), static_cast<const Scalar &>(x))
     {
     }
 
     /// perfect forward all Base constructors
     template <typename A0, typename... Args,
               typename = typename std::enable_if<
+                  !Traits::is_index_sequence<A0>::value &&
                   (sizeof...(Args) > 0 || !std::is_convertible<A0, Scalar>::value)>::type>
     Adapter(A0 &&arg0, Args &&... arguments)
         : Base(std::forward<A0>(arg0), std::forward<Args>(arguments)...)
@@ -1511,30 +1510,34 @@ struct ReplaceTypes<T, N, MT, Category::RandomAccessIterator>
  */
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>()), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::size() == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &, const U &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>()), void> conditional_assign(
-    Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
+    conditional_assign(Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
 {
-    conditional_assign<Op>(get<Offset>(lhs), mask, get<Offset>(rhs));
+    using V = typename std::decay<decltype(get<Offset>(lhs))>::type;
+    using M2 = typename V::mask_type;
+    conditional_assign<Op>(get<Offset>(lhs), simd_cast<M2>(mask), get<Offset>(rhs));
     conditional_assign<Op, S, T, N, M, U, Offset + 1>(lhs, mask, rhs);
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>()), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::size() == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>()), void> conditional_assign(
-    Adapter<S, T, N> &lhs, const M &mask)
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
+    conditional_assign(Adapter<S, T, N> &lhs, const M &mask)
 {
-    conditional_assign<Op>(get<Offset>(lhs), mask);
+    using V = typename std::decay<decltype(get<Offset>(lhs))>::type;
+    using M2 = typename V::mask_type;
+    conditional_assign<Op>(get<Offset>(lhs), simd_cast<M2>(mask));
     conditional_assign<Op, S, T, N, M, Offset + 1>(lhs, mask);
 }
 

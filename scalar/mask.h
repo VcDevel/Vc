@@ -34,20 +34,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Scalar
+template <typename T> class Mask<T, VectorAbi::Scalar>
 {
-template<typename T> class Mask
-{
-    friend class Mask<  double>;
-    friend class Mask<   float>;
-    friend class Mask< int32_t>;
-    friend class Mask<uint32_t>;
-    friend class Mask< int16_t>;
-    friend class Mask<uint16_t>;
+    friend class Mask<  double, VectorAbi::Scalar>;
+    friend class Mask<   float, VectorAbi::Scalar>;
+    friend class Mask< int32_t, VectorAbi::Scalar>;
+    friend class Mask<uint32_t, VectorAbi::Scalar>;
+    friend class Mask< int16_t, VectorAbi::Scalar>;
+    friend class Mask<uint16_t, VectorAbi::Scalar>;
 
 public:
+    using abi = VectorAbi::Scalar;
+
     static constexpr size_t Size = 1;
-    static constexpr std::size_t size() { return Size; }
+    static constexpr std::size_t size() { return 1; }
 
     /**
      * The \c EntryType of masks is always bool, independent of \c T.
@@ -72,12 +72,12 @@ public:
      */
     using Vector = Scalar::Vector<T>;
 
-        Vc_ALWAYS_INLINE Mask() {}
-        Vc_ALWAYS_INLINE explicit Mask(bool b) : m(b) {}
-        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
-        Vc_ALWAYS_INLINE explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
-        Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
-        Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
+    Vc_INTRINSIC Mask() = default;
+    Vc_INTRINSIC explicit Mask(bool b) : m(b) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
+    Vc_INTRINSIC static Mask Zero() { return Mask(false); }
+    Vc_INTRINSIC static Mask One() { return Mask(true); }
 
     // implicit cast
     template <typename U>
@@ -161,9 +161,8 @@ public:
     private:
         bool m;
 };
-template<typename T> constexpr size_t Mask<T>::Size;
+template <typename T> constexpr size_t Mask<T, VectorAbi::Scalar>::Size;
 
-}  // namespace Scalar
 }  // namespace Vc
 
 #include "undomacros.h"

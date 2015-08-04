@@ -33,19 +33,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_AVX_NAMESPACE
-{
 template <typename T>
 template <typename U, typename>
-Vc_INTRINSIC Vector<T>::Vector(U &&x)
+Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(U &&x)
     : d(simd_cast<Vector>(std::forward<U>(x)).data())
 {
 }
 
 template <typename T>
 template <typename U>
-Vc_INTRINSIC Mask<T>::Mask(U &&rhs, Common::enable_if_mask_converts_explicitly<T, U>)
-    : Mask(simd_cast<Mask>(std::forward<U>(rhs))) {}
+Vc_INTRINSIC Mask<T, VectorAbi::Avx>::Mask(U &&rhs,
+                                 Common::enable_if_mask_converts_explicitly<T, U>)
+    : Mask(simd_cast<Mask>(std::forward<U>(rhs)))
+{
 }
 }
 

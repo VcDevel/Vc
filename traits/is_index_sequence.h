@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,17 +26,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_WHERE_H
-#define VC_AVX_WHERE_H
+#ifndef VC_IS_INDEX_SEQUENCE_H_
+#define VC_IS_INDEX_SEQUENCE_H_
 
-#include "../common/where.h"
+#include "../common/indexsequence.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace Traits
 {
-using Vc::where;
-}  // namespace AVX(2)
+
+template <typename T> struct is_index_sequence : public std::false_type {};
+template <std::size_t... I>
+struct is_index_sequence<Vc::index_sequence<I...>> : public std::true_type {};
+
+static_assert(!is_index_sequence<int>::value, "");
+static_assert(is_index_sequence<make_index_sequence<2>>::value, "");
+
+}  // namespace Traits
 }  // namespace Vc
 
-#endif // VC_AVX_WHERE_H
+#endif  // VC_IS_INDEX_SEQUENCE_H_
+
+// vim: foldmethod=marker

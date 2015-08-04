@@ -39,23 +39,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
-
-namespace Internal
-{
-Vc_INTRINSIC Vc_CONST __m128 exponent(__m128 v)
-{
-    __m128i tmp = _mm_srli_epi32(_mm_castps_si128(v), 23);
-    tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x7f));
-    return _mm_cvtepi32_ps(tmp);
-}
-Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
-{
-    __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(v), 52);
-    tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x3ff));
-    return _mm_cvtepi32_pd(_mm_shuffle_epi32(tmp, 0x08));
-}
-} // namespace Internal
-
     template<typename VectorType, unsigned int Size> struct SortHelper
     {
         static inline Vc_CONST_L VectorType sort(VectorType) Vc_CONST_R;
@@ -84,10 +67,6 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 
             OP0(allone, _mm_setallone_ps())
             OP0(zero, _mm_setzero_ps())
-            OP2(or_, _mm_or_ps(a, b))
-            OP2(xor_, _mm_xor_ps(a, b))
-            OP2(and_, _mm_and_ps(a, b))
-            OP2(andnot_, _mm_andnot_ps(a, b))
             OP3(blend, blendv_ps(a, b, c))
         };
 
@@ -110,10 +89,6 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 
             OP0(allone, _mm_setallone_pd())
             OP0(zero, _mm_setzero_pd())
-            OP2(or_, _mm_or_pd(a, b))
-            OP2(xor_, _mm_xor_pd(a, b))
-            OP2(and_, _mm_and_pd(a, b))
-            OP2(andnot_, _mm_andnot_pd(a, b))
             OP3(blend, blendv_pd(a, b, c))
         };
 
@@ -135,10 +110,6 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 
             OP0(allone, _mm_setallone_si128())
             OP0(zero, _mm_setzero_si128())
-            OP2(or_, _mm_or_si128(a, b))
-            OP2(xor_, _mm_xor_si128(a, b))
-            OP2(and_, _mm_and_si128(a, b))
-            OP2(andnot_, _mm_andnot_si128(a, b))
             OP3(blend, blendv_epi8(a, b, c))
         };
 

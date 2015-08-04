@@ -36,81 +36,106 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
-    template<typename To, typename From> static Vc_ALWAYS_INLINE To Vc_CONST mm128_reinterpret_cast(VC_ALIGNED_PARAMETER(From) v) { return v; }
-    template<> Vc_ALWAYS_INLINE _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128 >(VC_ALIGNED_PARAMETER(_M128 ) v) { return _mm_castps_si128(v); }
-    template<> Vc_ALWAYS_INLINE _M128I Vc_CONST mm128_reinterpret_cast<_M128I, _M128D>(VC_ALIGNED_PARAMETER(_M128D) v) { return _mm_castpd_si128(v); }
-    template<> Vc_ALWAYS_INLINE _M128  Vc_CONST mm128_reinterpret_cast<_M128 , _M128D>(VC_ALIGNED_PARAMETER(_M128D) v) { return _mm_castpd_ps(v);    }
-    template<> Vc_ALWAYS_INLINE _M128  Vc_CONST mm128_reinterpret_cast<_M128 , _M128I>(VC_ALIGNED_PARAMETER(_M128I) v) { return _mm_castsi128_ps(v); }
-    template<> Vc_ALWAYS_INLINE _M128D Vc_CONST mm128_reinterpret_cast<_M128D, _M128I>(VC_ALIGNED_PARAMETER(_M128I) v) { return _mm_castsi128_pd(v); }
-    template<> Vc_ALWAYS_INLINE _M128D Vc_CONST mm128_reinterpret_cast<_M128D, _M128 >(VC_ALIGNED_PARAMETER(_M128 ) v) { return _mm_castps_pd(v);    }
-    template<typename To, typename From> static Vc_ALWAYS_INLINE To Vc_CONST sse_cast(VC_ALIGNED_PARAMETER(From) v) { return mm128_reinterpret_cast<To, From>(v); }
+using uint = unsigned int;
+using ushort = unsigned short;
+using uchar = unsigned char;
+using schar = signed char;
 
-    template<typename From, typename To> struct StaticCastHelper;
-    template<> struct StaticCastHelper<float       , int         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128  &v) { return _mm_cvttps_epi32(v); } };
-    template<> struct StaticCastHelper<double      , int         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128D &v) { return _mm_cvttpd_epi32(v); } };
-    template<> struct StaticCastHelper<int         , int         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-    template<> struct StaticCastHelper<unsigned int, int         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-    template<> struct StaticCastHelper<short       , int         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); } };
-    template<> struct StaticCastHelper<unsigned short, int       > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); } };
-    template<> struct StaticCastHelper<float       , unsigned int> { static Vc_ALWAYS_INLINE _M128I cast(const _M128  &v) {
-        return _mm_castps_si128(blendv_ps(
-                _mm_castsi128_ps(_mm_cvttps_epi32(v)),
-                _mm_castsi128_ps(_mm_add_epi32(_mm_cvttps_epi32(_mm_sub_ps(v, _mm_set1_ps(1u << 31))), _mm_set1_epi32(1 << 31))),
-                _mm_cmpge_ps(v, _mm_set1_ps(1u << 31))
-                ));
+// sse_cast {{{1
+template <typename To, typename From> Vc_ALWAYS_INLINE Vc_CONST To sse_cast(From v)
+{
+    return v;
+}
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128i sse_cast<__m128i, __m128 >(__m128  v) { return _mm_castps_si128(v); }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128i sse_cast<__m128i, __m128d>(__m128d v) { return _mm_castpd_si128(v); }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128  sse_cast<__m128 , __m128d>(__m128d v) { return _mm_castpd_ps(v);    }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128  sse_cast<__m128 , __m128i>(__m128i v) { return _mm_castsi128_ps(v); }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128d sse_cast<__m128d, __m128i>(__m128i v) { return _mm_castsi128_pd(v); }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128d sse_cast<__m128d, __m128 >(__m128  v) { return _mm_castps_pd(v);    }
 
-    } };
-    template<> struct StaticCastHelper<double      , unsigned int> { static Vc_ALWAYS_INLINE _M128I cast(const _M128D &v) {
-            return _mm_add_epi32(_mm_cvttpd_epi32(_mm_sub_pd(v, _mm_set1_pd(0x80000000u))),
-                                 _mm_cvtsi64_si128(0x8000000080000000ull));
-    } };
-    template<> struct StaticCastHelper<int         , unsigned int> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-    template<> struct StaticCastHelper<unsigned int, unsigned int> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-    template<> struct StaticCastHelper<short       , unsigned int> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); } };
-    template<> struct StaticCastHelper<unsigned short,unsigned int>{ static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); } };
-    template<> struct StaticCastHelper<float       , float       > { static Vc_ALWAYS_INLINE _M128  cast(const _M128  &v) { return v; } };
-    template<> struct StaticCastHelper<double      , float       > { static Vc_ALWAYS_INLINE _M128  cast(const _M128D &v) { return _mm_cvtpd_ps(v); } };
-    template<> struct StaticCastHelper<int         , float       > { static Vc_ALWAYS_INLINE _M128  cast(const _M128I &v) { return _mm_cvtepi32_ps(v); } };
-    template<> struct StaticCastHelper<unsigned int, float       > { static Vc_ALWAYS_INLINE _M128  cast(const _M128I &v) {
-        return blendv_ps(
-                _mm_cvtepi32_ps(v),
-                _mm_add_ps(_mm_cvtepi32_ps(_mm_sub_epi32(v, _mm_setmin_epi32())), _mm_set1_ps(1u << 31)),
-                _mm_castsi128_ps(_mm_cmplt_epi32(v, _mm_setzero_si128()))
-                );
-    } };
-    template<> struct StaticCastHelper<float       , double      > { static Vc_ALWAYS_INLINE _M128D cast(const _M128  &v) { return _mm_cvtps_pd(v); } };
-    template<> struct StaticCastHelper<double      , double      > { static Vc_ALWAYS_INLINE _M128D cast(const _M128D &v) { return v; } };
-    template<> struct StaticCastHelper<int         , double      > { static Vc_ALWAYS_INLINE _M128D cast(const _M128I &v) { return _mm_cvtepi32_pd(v); } };
-    template<> struct StaticCastHelper<unsigned int, double      > { static Vc_ALWAYS_INLINE _M128D cast(const _M128I &v) {
-            return _mm_add_pd(_mm_cvtepi32_pd(_mm_sub_epi32(v, _mm_setmin_epi32())),
-                              _mm_set1_pd(1u << 31));
-    } };
+// convert {{{1
+template <typename From, typename To> struct ConvertTag
+{
+};
+template <typename From, typename To>
+Vc_INTRINSIC typename VectorTraits<To>::VectorType convert(
+    typename VectorTraits<From>::VectorType v)
+{
+    return convert(v, ConvertTag<From, To>());
+}
 
-    template<> struct StaticCastHelper<float         , short         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128  &v) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); } };
-    template<> struct StaticCastHelper<int           , short         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return _mm_packs_epi32(v, _mm_setzero_si128()); } };
-    template<> struct StaticCastHelper<unsigned int  , short         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return _mm_packs_epi32(v, _mm_setzero_si128()); } };
-    template<> struct StaticCastHelper<short         , short         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-    template<> struct StaticCastHelper<unsigned short, short         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-    template<> struct StaticCastHelper<double        , short         > { static Vc_ALWAYS_INLINE _M128I cast(const _M128D &v) { return StaticCastHelper<int, short>::cast(StaticCastHelper<double, int>::cast(v)); } };
-    template<> struct StaticCastHelper<int           , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) {
-        auto tmp0 = _mm_unpacklo_epi16(v, _mm_setzero_si128()); // 0 4 X X 1 5 X X
-        auto tmp1 = _mm_unpackhi_epi16(v, _mm_setzero_si128()); // 2 6 X X 3 7 X X
-        auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1); // 0 2 4 6 X X X X
-        auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // 1 3 5 7 X X X X
-        return _mm_unpacklo_epi16(tmp2, tmp3); // 0 1 2 3 4 5 6 7
-    } };
-    template<> struct StaticCastHelper<unsigned int  , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) {
-        auto tmp0 = _mm_unpacklo_epi16(v, _mm_setzero_si128()); // 0 4 X X 1 5 X X
-        auto tmp1 = _mm_unpackhi_epi16(v, _mm_setzero_si128()); // 2 6 X X 3 7 X X
-        auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1); // 0 2 4 6 X X X X
-        auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // 1 3 5 7 X X X X
-        return _mm_unpacklo_epi16(tmp2, tmp3); // 0 1 2 3 4 5 6 7
-    } };
-    template<> struct StaticCastHelper<float         , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128  &v) { return StaticCastHelper<int, unsigned short>::cast(_mm_cvttps_epi32(v)); } };
-    template<> struct StaticCastHelper<short         , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-    template<> struct StaticCastHelper<unsigned short, unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128I &v) { return v; } };
-    template<> struct StaticCastHelper<double        , unsigned short> { static Vc_ALWAYS_INLINE _M128I cast(const _M128D &v) { return StaticCastHelper<int, unsigned short>::cast(StaticCastHelper<double, int>::cast(v)); } };
+Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , int   >) { return _mm_cvttps_epi32(v); }
+Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, int   >) { return _mm_cvttpd_epi32(v); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int   , int   >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint  , int   >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , int   >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, int   >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , uint  >) {
+    return _mm_castps_si128(
+        blendv_ps(_mm_castsi128_ps(_mm_cvttps_epi32(v)),
+                  _mm_castsi128_ps(_mm_add_epi32(
+                      _mm_cvttps_epi32(_mm_sub_ps(v, _mm_set1_ps(1u << 31))),
+                      _mm_set1_epi32(1 << 31))),
+                  _mm_cmpge_ps(v, _mm_set1_ps(1u << 31))));
+}
+Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, uint  >) {
+    return _mm_add_epi32(_mm_cvttpd_epi32(_mm_sub_pd(v, _mm_set1_pd(0x80000000u))),
+                         _mm_cvtsi64_si128(0x8000000080000000ull));
+}
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int   , uint  >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint  , uint  >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , uint  >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, uint  >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128  convert(__m128  v, ConvertTag<float , float >) { return v; }
+Vc_INTRINSIC __m128  convert(__m128d v, ConvertTag<double, float >) { return _mm_cvtpd_ps(v); }
+Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<int   , float >) { return _mm_cvtepi32_ps(v); }
+Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<uint  , float >) {
+    return blendv_ps(_mm_cvtepi32_ps(v),
+                     _mm_add_ps(_mm_cvtepi32_ps(_mm_sub_epi32(v, _mm_setmin_epi32())),
+                                _mm_set1_ps(1u << 31)),
+                     _mm_castsi128_ps(_mm_cmplt_epi32(v, _mm_setzero_si128())));
+}
+Vc_INTRINSIC __m128d convert(__m128  v, ConvertTag<float , double>) { return _mm_cvtps_pd(v); }
+Vc_INTRINSIC __m128d convert(__m128d v, ConvertTag<double, double>) { return v; }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<int   , double>) { return _mm_cvtepi32_pd(v); }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<uint  , double>) { return _mm_add_pd(_mm_cvtepi32_pd(_mm_sub_epi32(v, _mm_setmin_epi32())), _mm_set1_pd(1u << 31)); }
+Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , short >) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int   , short >) { return _mm_packs_epi32(v, _mm_setzero_si128()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint  , short >) { return _mm_packs_epi32(v, _mm_setzero_si128()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , short >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, short >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, short >) { return convert(convert(v, ConvertTag<double, int>()), ConvertTag<int, short>()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int   , ushort>) {
+    auto tmp0 = _mm_unpacklo_epi16(v, _mm_setzero_si128());  // 0 4 X X 1 5 X X
+    auto tmp1 = _mm_unpackhi_epi16(v, _mm_setzero_si128());  // 2 6 X X 3 7 X X
+    auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);              // 0 2 4 6 X X X X
+    auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);              // 1 3 5 7 X X X X
+    return _mm_unpacklo_epi16(tmp2, tmp3);                   // 0 1 2 3 4 5 6 7
+}
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint  , ushort>) {
+    auto tmp0 = _mm_unpacklo_epi16(v, _mm_setzero_si128());  // 0 4 X X 1 5 X X
+    auto tmp1 = _mm_unpackhi_epi16(v, _mm_setzero_si128());  // 2 6 X X 3 7 X X
+    auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);              // 0 2 4 6 X X X X
+    auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);              // 1 3 5 7 X X X X
+    return _mm_unpacklo_epi16(tmp2, tmp3);                   // 0 1 2 3 4 5 6 7
+}
+Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , ushort>) { return convert(_mm_cvttps_epi32(v), ConvertTag<int, ushort>()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , ushort>) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, ushort>) { return v; }
+Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, ushort>) { return convert(convert(v, ConvertTag<double, int>()), ConvertTag<int, ushort>()); }
+
+template <typename From, typename To> struct StaticCastHelper //{{{1
+{
+    static Vc_INTRINSIC typename VectorTraits<To>::VectorType cast(
+        typename VectorTraits<From>::VectorType v)
+    {
+        return convert(v, ConvertTag<From, To>());
+    }
+};
+// }}}1
 }  // namespace SSE
 }  // namespace Vc
 
 #endif // SSE_CASTS_H
+
+// vim: foldmethod=marker
