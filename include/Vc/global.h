@@ -550,11 +550,6 @@ typedef ImplementationT<
 #endif
     > CurrentImplementation;
 
-namespace Error
-{
-    template<typename L, typename R> struct invalid_operands_of_types {};
-} // namespace Error
-
 #endif // DOXYGEN
 
 namespace Internal

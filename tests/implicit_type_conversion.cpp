@@ -66,7 +66,6 @@ static_assert( std::is_convertible< short_v, ushort_v>::value, " std::is_convert
 
 #ifdef QUICK
 #define _TYPE_TEST(a, b, c)
-#define _TYPE_TEST_ERR(a, b)
 #else
 #if defined(VC_GCC) && VC_GCC == 0x40801
 // Skipping tests involving operator& because of a bug in GCC 4.8.1 (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57532)
@@ -120,19 +119,6 @@ static_assert( std::is_convertible< short_v, ushort_v>::value, " std::is_convert
     COMPARE(typeid(a() >= b()), typeid(c::Mask)); \
     COMPARE(typeid(a() <  b()), typeid(c::Mask));
 #endif
-#define _TYPE_TEST_ERR(a, b) \
-    COMPARE(typeid(a() *  b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() /  b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() +  b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() -  b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() &  b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() |  b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() ^  b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() == b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() != b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() <= b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() >= b()), typeid(Vc::Error::invalid_operands_of_types<a, b>)); \
-    COMPARE(typeid(a() <  b()), typeid(Vc::Error::invalid_operands_of_types<a, b>));
 #endif
 
 #define TYPE_TEST(a, b, c) \
