@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // enable bit operators for easier portable bit manipulation on floats
 #define VC_ENABLE_FLOAT_BIT_OPERATORS 1
 
-#include <Vc/Vc>
+#include <Vc/vector.h>
 #if defined(VC_IMPL_SSE) || defined(VC_IMPL_AVX)
 #include <common/macros.h>
 
