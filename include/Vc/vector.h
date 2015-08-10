@@ -44,19 +44,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-  typedef Vc_IMPL_NAMESPACE::double_v double_v;
-  typedef Vc_IMPL_NAMESPACE:: float_v  float_v;
-  typedef Vc_IMPL_NAMESPACE::   int_v    int_v;
-  typedef Vc_IMPL_NAMESPACE::  uint_v   uint_v;
-  typedef Vc_IMPL_NAMESPACE:: short_v  short_v;
-  typedef Vc_IMPL_NAMESPACE::ushort_v ushort_v;
+  using double_v = Vector<double>;
+  using  float_v = Vector< float>;
+  using    int_v = Vector<   int>;
+  using   uint_v = Vector<  uint>;
+  using  short_v = Vector< short>;
+  using ushort_v = Vector<ushort>;
 
-  typedef Vc_IMPL_NAMESPACE::double_m double_m;
-  typedef Vc_IMPL_NAMESPACE:: float_m  float_m;
-  typedef Vc_IMPL_NAMESPACE::   int_m    int_m;
-  typedef Vc_IMPL_NAMESPACE::  uint_m   uint_m;
-  typedef Vc_IMPL_NAMESPACE:: short_m  short_m;
-  typedef Vc_IMPL_NAMESPACE::ushort_m ushort_m;
+  using double_m = Mask<double>;
+  using  float_m = Mask< float>;
+  using    int_m = Mask<   int>;
+  using   uint_m = Mask<  uint>;
+  using  short_m = Mask< short>;
+  using ushort_m = Mask<ushort>;
 
   typedef Vector<std:: int_least64_t>  int_least64_v;
   typedef Vector<std::uint_least64_t> uint_least64_v;
