@@ -2,7 +2,7 @@
 
 TEST(test_sqrt) {
     int test = 1 + 1;
-    //COMPARE(test, 2) << "bla";
-    //VERIFY(1 > 0);
+    COMPARE(test, 3) << "bla";
+    VERIFY(1 < 0);
 }
 

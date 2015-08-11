@@ -71,55 +71,59 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define VC_DEPRECATED(msg)
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
-#  define Vc_MAY_ALIAS __attribute__((__may_alias__))
-#  define Vc_INTRINSIC_R __attribute__((__always_inline__, __artificial__))
-#  define Vc_INTRINSIC_L inline
-#  define Vc_INTRINSIC Vc_INTRINSIC_L Vc_INTRINSIC_R
-#  define Vc_FLATTEN __attribute__((__flatten__))
-#  define Vc_ALWAYS_INLINE_L inline
-#  define Vc_ALWAYS_INLINE_R __attribute__((__always_inline__))
-#  define Vc_ALWAYS_INLINE Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE_R
-#  ifdef VC_ICC
-     // ICC miscompiles if there are functions marked as pure or const
-#    define Vc_PURE
-#    define Vc_CONST
-#  else
-#    define Vc_PURE __attribute__((__pure__))
-#    define Vc_CONST __attribute__((__const__))
-#  endif
-#  define Vc_CONST_L
-#  define Vc_CONST_R Vc_CONST
-#  define Vc_PURE_L
-#  define Vc_PURE_R Vc_PURE
-#  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
-#  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
-#  define VC_RESTRICT __restrict__
-#  ifdef VC_ICC
-#    define VC_DEPRECATED(msg)
-#  else
-#    define VC_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
-#  endif
-#  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
-#elif defined(__CUDACC__)
-#  define Vc_MAY_ALIAS
-#  define Vc_ALWAYS_INLINE __forceinline__
-#  define Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE
-#  define Vc_ALWAYS_INLINE_R
-#  define Vc_CONST
-#  define Vc_CONST_L Vc_CONST
-#  define Vc_CONST_R
-#  define Vc_PURE
-#  define Vc_PURE_L Vc_PURE
-#  define Vc_PURE_R
-#  define Vc_INTRINSIC __forceinline__
-#  define Vc_INTRINSIC_L Vc_INTRINSIC
-#  define Vc_INTRINSIC_R
-#  define Vc_FLATTEN
-#  define VC_IS_UNLIKELY(x)
-#  define VC_IS_LIKELY(x)
-#  define VC_RESTRICT __restrict__
-#  define VC_DEPRECATED(msg)
-#  define Vc_WARN_UNUSED_RESULT
+#  ifndef __CUDA_ARCH__
+#       define Vc_MAY_ALIAS __attribute__((__may_alias__))
+#       define Vc_INTRINSIC_R __attribute__((__always_inline__, __artificial__))
+#       define Vc_INTRINSIC_L inline
+#       define Vc_INTRINSIC Vc_INTRINSIC_L Vc_INTRINSIC_R
+#       define Vc_FLATTEN __attribute__((__flatten__))
+#       define Vc_ALWAYS_INLINE_L inline
+#       define Vc_ALWAYS_INLINE_R __attribute__((__always_inline__))
+#       define Vc_ALWAYS_INLINE Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE_R
+#       ifdef VC_ICC
+        // ICC miscompiles if there are functions marked as pure or const
+#           define Vc_PURE
+#           define Vc_CONST
+#       else
+#           define Vc_PURE __attribute__((__pure__))
+#           define Vc_CONST __attribute__((__const__))
+#       endif
+#       define Vc_CONST_L
+#       define Vc_CONST_R Vc_CONST
+#       define Vc_PURE_L
+#       define Vc_PURE_R Vc_PURE
+#       define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
+#       define VC_IS_LIKELY(x) __builtin_expect(x, 1)
+#       define VC_RESTRICT __restrict__
+#       ifdef VC_ICC
+#           define VC_DEPRECATED(msg)
+#       else
+#           define VC_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#       endif
+#       define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
+#   else // __CUDA_ARCH__
+#       define Vc_MAY_ALIAS
+#       define Vc_FLATTEN
+#       define Vc_ALWAYS_INLINE __forceinline__
+#       define Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE
+#       define Vc_ALWAYS_INLINE_R
+#       define Vc_CONST
+#       define Vc_CONST_L Vc_CONST
+#       define Vc_CONST_R
+#       define Vc_PURE
+#       define Vc_PURE_L Vc_PURE
+#       define Vc_PURE_R
+#       define Vc_INTRINSIC __forceinline__
+#       define Vc_INTRINSIC_L Vc_INTRINSIC
+#       define Vc_INTRINSIC_R
+#       define Vc_FLATTEN
+#       define VC_IS_UNLIKELY(x) x
+#       define VC_IS_LIKELY(x) x
+#       define VC_RESTRICT __restrict__
+#       define VC_DEPRECATED(msg)
+#       define Vc_WARN_UNUSED_RESULT
+#   endif // __CUDA_ARCH__
+#elif defined(VC_NVCC)
 #else
 #  define Vc_FLATTEN
 #  ifdef Vc_PURE

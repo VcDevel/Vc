@@ -38,18 +38,21 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace CUDA
 {
 
+#ifdef VC_NVCC
 template <typename F, typename... Arguments>
 Vc_ALWAYS_INLINE void spawn(F&& kernel, Arguments&& ... args)
 {
     kernel<<<1, CUDA_VECTOR_SIZE>>>(std::forward<Arguments>(args) ...);
+    cudaDeviceSynchronize();
 }
 
 template <typename F>
 Vc_ALWAYS_INLINE void spawn(F&& kernel)
 {
     kernel<<<1, CUDA_VECTOR_SIZE>>>();
+    cudaDeviceSynchronize();
 }
-
+#endif
 } // namespace CUDA
 } // namespace Vc
 

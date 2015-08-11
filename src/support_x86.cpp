@@ -88,7 +88,6 @@ bool isImplementationSupported(Implementation impl)
 #ifdef VC_CUDA_TARGET // this is passed as a compiler flag to gcc as libVc_CUDA is compiled entirely with gcc
         return true;
 #else
-#error "This shouldn't print\n"
         return false;
 #endif
     case ImplementationMask:

@@ -343,7 +343,17 @@ static UnitTester global_unit_test_object_;
 
 void EXPECT_FAILURE() { global_unit_test_object_.expect_failure = true; }
 
-static const char *failString()  // {{{1
+
+#ifdef VC_NVCC
+__device__ static const char *failString() // CUDA failString {{{1
+{
+    __shared__ static const char *str;
+    if(Vc::Detail::getThreadId == 0)
+        str = " \033[1;40;31mFAIL:\033[0m ";
+    return str;
+}
+#else
+static const char *failString()  // generic failString {{{1
 {
     if (global_unit_test_object_.expect_failure) {
         return "XFAIL: ";
@@ -360,7 +370,7 @@ static const char *failString()  // {{{1
     }
     return str;
 }
-
+#endif
 void initTest(int argc, char **argv)  //{{{1
 {
     for (int i = 1; i < argc; ++i) {
@@ -583,7 +593,6 @@ class Compare // CUDA Compare{{{1
             return b - a > error;
         }
     }
-
     // relativeErrorTest{{{2
     template <typename T, typename ET>
     static __device__ bool relativeErrorTest(const T &a, const T &b, ET error)
@@ -617,14 +626,52 @@ public:
     // Normal Compare ctor {{{2
     template <typename T1, typename T2>
     __device__ Vc_ALWAYS_INLINE Compare(
-            const T1 &a,
-            const T2 &b,
-            const char *_a,
-            const char *_b,
-            const char *_file,
-            typename std::enable_if<Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
-            : m_failed(!unittest_compareHelper(a, b))
+        const T1 &a,
+        const T2 &b,
+        const char *_a,
+        const char *_b,
+        const char *_file,
+        typename std::enable_if<Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
+        : m_failed(!unittest_compareHelper(a, b))
     {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            printFirst();
+            printPosition(_file, _line);
+            print(_a);
+            print(" (");
+            // print(std::setprecision(10));
+            print(a);
+            print(") == ");
+            print(_b);
+            print(" (");
+            // print(std::setprecision(10));
+            print(") -> ");
+            print(a == b);
+        }
+    }
+
+    template <typename T1, typename T2>
+    __device__ Vc_ALWAYS_INLINE Compare(
+        const T1 &a,
+        const T2 &b,
+        const char *_a,
+        const char *_b,
+        const char *_file,
+        typename std::enable_if<!Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
+        : Compare(a, b, _a, _b, _file, _line, Mem())
+    {
+    }
+
+
+    // VERIFY ctor {{{2
+    __device__ Vc_ALWAYS_INLINE Compare(bool good, const char *cond, const char *_file, int _line)
+        : m_failed(!good)
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            printFirst();
+            printPosition(_file, _line);
+            print(cond);
+        }
     }
 
     // FAIL ctor {{{2
@@ -653,19 +700,43 @@ public:
         return *this;
     }
 
+    __device__ Vc_ALWAYS_INLINE ~Compare()
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            printLast();
+        }
+    }
+
+    // }}}2
 private:
     // printFirst {{{2
     static __device__ void printFirst()
     {
         if(Vc::Detail::getThreadId() == 0)
-            printf("Placeholder for printFirst\n");
+            printf("%s┍", failString());
+    }
+
+    // print overloads {{{2
+    __device__ static void print(bool b)
+    {
+        if(b)
+            printf("true\n");
+        else
+            printf("false\n");
+    }
+
+    // printLast {{{2
+    __device__ static void printLast()
+    {
+        if(Vc::Detail::getThreadId() == 0)
+            printf("\n");
     }
 
     // printPosition {{{2
     __device__ void printPosition(const char *_file, int _line)
     {
         if(Vc::Detail::getThreadId() == 0)
-            printf("Placeholder for printPostion\n");
+            printf("%s: %i\n", _file, _line);
     }
     // member variables {{{2
     const size_t m_failed;
