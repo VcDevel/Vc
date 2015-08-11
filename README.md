@@ -1,29 +1,42 @@
-# Vc: portable, zero-overhead SIMD library for C++
+# Vc: portable, zero-overhead C++ types for explicitly data-parallel programming
 
-The use of SIMD is becoming increasingly important with modern CPUs. The SIMD
-instruction sets are being improved: new instructions are added as well as
-performance improvements relative to the scalar instructions. The next
-generations of CPUs will double the vector width. Neglecting SIMD in
-high-performance code thus becomes more expensive, compared to the theoretical
-performance of CPUs.
+Recent generations of CPUs, and GPUs in particular, require data-parallel codes
+for full efficiency. Data parallelism requires that the same sequence of
+operations is applied to different input data. CPUs and GPUs can thus reduce
+the necessary hardware for instruction decoding and scheduling in favor of more
+arithmetic and logic units, which execute the same instructions synchronously.
+On CPU architectures this is implemented via SIMD registers and instructions.
+A single SIMD register can store N values and a single SIMD instruction can
+execute N operations on those values. On GPU architectures N threads run in
+perfect sync, fed by a single instruction decoder/scheduler. Each thread has
+local memory and a given index to calculate the offsets in memory for loads and
+stores.
 
-The use of SIMD instructions is not easy. C/C++ compilers support some
-extensions to ease development for SSE and AVX. Commonly intrinsics are the
-available extension of choice. Intrinsics basically map every SIMD instruction
-to a C function. The use of these intrinsics leads to code which is hard to read
-and maintain in addition to making portability to other vector units
-complicated.
+Current C++ compilers can do automatic transformation of scalar codes to SIMD
+instructions (auto-vectorization). However, the compiler must reconstruct an
+intrinsic property of the algorithm that was lost when the developer wrote a
+purely scalar implementation in C++. Consequently, C++ compilers cannot
+vectorize any given code to its most efficient data-parallel variant.
+Especially larger data-parallel loops, spanning over multiple functions or even
+translation units, will often not be transformed into efficient SIMD code.
 
-Vc is a free software library to ease explicit vectorization of C++ code. It has
-an intuitive API and provides portability between different compilers and
+The Vc library provides the missing link. Its types enable explicitly stating
+data-parallel operations on multiple values. The parallelism is therefore added
+via the type system. Competing approaches state the parallelism via new control
+structures and consequently new semantics inside the body of these control
+structures.
+
+Vc is a free software library to ease explicit vectorization of C++ code. It
+has an intuitive API and provides portability between different compilers and
 compiler versions as well as portability between different vector instruction
-sets. Thus an application written with Vc can be compiled for
+sets. Thus an application written with Vc can be compiled for:
 
-* AVX
+* AVX and AVX2
 * SSE2 up to SSE4.2 or SSE4a
 * Scalar (fallback which works everywhere)
 * MIC (for Vc 1.0)
 * NEON (in development)
+* NVIDIA GPUs / CUDA (in development)
 
 
 ## Build Requirements
@@ -32,10 +45,10 @@ cmake >= 2.8.3
 
 C++11 Compiler:
 
-* GCC >= 4.6
+* GCC >= 4.8
 * clang >= 3.2
-* ICC >= 13
-* Visual Studio >= 2012
+* ICC >= 15.0.3
+* Visual Studio (not ready for Vc 1.0 yet)
 
 
 ## Building and Installing Vc
