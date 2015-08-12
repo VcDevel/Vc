@@ -510,8 +510,8 @@ template <unsigned int Features> struct ImplementationT {
     }
     static constexpr bool is_between(Implementation low, Implementation high)
     {
-        return static_cast<unsigned int>(low) >= current() &&
-               static_cast<unsigned int>(high) <= current();
+        return static_cast<unsigned int>(low) <= current() &&
+               static_cast<unsigned int>(high) >= current();
     }
     static constexpr bool runs_on(unsigned int extraInstructions)
     {
