@@ -80,7 +80,7 @@ bool isImplementationSupported(Implementation impl)
     case AVXImpl:
         return CpuId::hasOsxsave() && CpuId::hasAvx() && xgetbvCheck(0x6);
     case AVX2Impl:
-        return false;
+        return CpuId::hasOsxsave() && CpuId::hasAvx2() && xgetbvCheck(0x6);
     case MICImpl:
         return CpuId::processorFamily() == 0xB && CpuId::processorModel() == 0x1
             && CpuId::isIntel();
@@ -105,7 +105,8 @@ Vc::Implementation bestImplementationSupported()
     if (!CpuId::hasSse41()) return Vc::SSSE3Impl;
     if (!CpuId::hasSse42()) return Vc::SSE41Impl;
     if (CpuId::hasAvx() && CpuId::hasOsxsave() && xgetbvCheck(0x6)) {
-        return Vc::AVXImpl;
+        if (!CpuId::hasAvx2()) return Vc::AVXImpl;
+        return Vc::AVX2Impl;
     }
     return Vc::SSE42Impl;
 }
