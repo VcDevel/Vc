@@ -36,6 +36,8 @@ CpuId::uint   CpuId::s_ecx0 = 0;
 CpuId::uint   CpuId::s_logicalProcessors = 0;
 CpuId::uint   CpuId::s_processorFeaturesC = 0;
 CpuId::uint   CpuId::s_processorFeaturesD = 0;
+CpuId::uint   CpuId::s_processorFeatures7B = 0;
+CpuId::uint   CpuId::s_processorFeatures7C = 0;
 CpuId::uint   CpuId::s_processorFeatures8C = 0;
 CpuId::uint   CpuId::s_processorFeatures8D = 0;
 CpuId::uint   CpuId::s_L1Instruction = 0;
@@ -74,10 +76,10 @@ namespace Vc_VERSIONED_NAMESPACE
         ecx = out[2]; \
         edx = out[3]; \
     } while (false)
-#define CPUID_C(leaf, _ecx_) \
+#define CPUID_C(leaf, ecx__) \
     do { \
         int out[4]; \
-        __cpuidex(out, leaf, _ecx_); \
+        __cpuidex(out, leaf, ecx__); \
         eax = out[0]; \
         ebx = out[1]; \
         ecx = out[2]; \
@@ -99,14 +101,14 @@ static inline void _Vc_cpuid(int leaf, unsigned int &eax, unsigned int &ebx, uns
 #define CPUID(leaf) \
     ecx = 0; \
     _Vc_cpuid(leaf, eax, ebx, ecx, edx)
-#define CPUID_C(leaf, _ecx_) \
-    ecx = _ecx_; \
+#define CPUID_C(leaf, ecx__) \
+    ecx = ecx__; \
     _Vc_cpuid(leaf, eax, ebx, ecx, edx)
 #else
 #define CPUID(leaf) \
     __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf))
-#define CPUID_C(leaf, _ecx_) \
-    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf), "c"(_ecx_))
+#define CPUID_C(leaf, ecx__) \
+    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf), "c"(ecx__))
 #endif
 static unsigned int CpuIdAmdAssociativityTable(int bits)
 {
@@ -172,6 +174,10 @@ void CpuId::init()
     s_cacheLineSize = ebx & 0xff;
     ebx >>= 8;
     s_logicalProcessors = ebx & 0xff;
+
+    CPUID_C(7, 0);
+    s_processorFeatures7B = ebx;
+    s_processorFeatures7C = ecx;
 
     CPUID(0x80000001);
     s_processorFeatures8C = ecx;

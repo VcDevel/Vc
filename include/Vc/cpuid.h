@@ -124,6 +124,36 @@ class CpuId
         static inline bool hasOsxsave() { return (s_processorFeaturesC & (1 << 27)) != 0; }
         //! Return whether the CPU supports AVX.
         static inline bool hasAvx  () { return (s_processorFeaturesC & (1 << 28)) != 0; }
+        //! Return whether the CPU supports BMI1.
+        static inline bool hasBmi1 () { return (s_processorFeatures7B& (1 << 3)) != 0; }
+        //! Return whether the CPU supports transactional synchronization extensions.
+        static inline bool hasHle  () { return (s_processorFeatures7B& (1 << 4)) != 0; }
+        //! Return whether the CPU supports AVX2.
+        static inline bool hasAvx2 () { return (s_processorFeatures7B& (1 << 5)) != 0; }
+        //! Return whether the CPU supports BMI2.
+        static inline bool hasBmi2 () { return (s_processorFeatures7B& (1 << 8)) != 0; }
+        //! Return whether the CPU supports transactional synchronization extensions.
+        static inline bool hasRtm  () { return (s_processorFeatures7B& (1 << 11)) != 0; }
+
+        //! Return whether the CPU supports AVX512f.
+        static inline bool hasAvx512f   () { return (s_processorFeatures7B & (1u << 16)) != 0; }
+        //! Return whether the CPU supports AVX512dq.
+        static inline bool hasAvx512dq  () { return (s_processorFeatures7B & (1u << 17)) != 0; }
+        //! Return whether the CPU supports AVX512ifma.
+        static inline bool hasAvx512ifma() { return (s_processorFeatures7B & (1u << 21)) != 0; }
+        //! Return whether the CPU supports AVX512pf.
+        static inline bool hasAvx512pf  () { return (s_processorFeatures7B & (1u << 26)) != 0; }
+        //! Return whether the CPU supports AVX512er.
+        static inline bool hasAvx512er  () { return (s_processorFeatures7B & (1u << 27)) != 0; }
+        //! Return whether the CPU supports AVX512cd.
+        static inline bool hasAvx512cd  () { return (s_processorFeatures7B & (1u << 28)) != 0; }
+        //! Return whether the CPU supports AVX512bw.
+        static inline bool hasAvx512bw  () { return (s_processorFeatures7B & (1u << 30)) != 0; }
+        //! Return whether the CPU supports AVX512vl.
+        static inline bool hasAvx512vl  () { return (s_processorFeatures7B & (1u << 31)) != 0; }
+        //! Return whether the CPU supports AVX512vbmi.
+        static inline bool hasAvx512vbmi() { return (s_processorFeatures7C & (1u <<  1)) != 0; }
+
         //! Return whether the CPU supports 16-bit floating-point conversion instructions.
         static inline bool hasF16c () { return (s_processorFeaturesC & (1 << 29)) != 0; }
         //! Return whether the CPU supports the RDRAND instruction.
@@ -196,6 +226,8 @@ class CpuId
         static uint   s_logicalProcessors;
         static uint   s_processorFeaturesC;
         static uint   s_processorFeaturesD;
+        static uint   s_processorFeatures7B;
+        static uint   s_processorFeatures7C;
         static uint   s_processorFeatures8C;
         static uint   s_processorFeatures8D;
         static uint   s_L1Instruction;
