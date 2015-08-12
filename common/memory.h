@@ -36,13 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstddef>
 #include <initializer_list>
 #include "memoryfwd.h"
+#include "malloc.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Common
-{
-
 /**
  * Allocates memory on the Heap with alignment and padding suitable for vectorized access.
  *
@@ -77,7 +75,7 @@ namespace Common
 template<typename T, Vc::MallocAlignment A>
 Vc_ALWAYS_INLINE T *malloc(size_t n)
 {
-    return static_cast<T *>(Internal::Helper::malloc<A>(n * sizeof(T)));
+    return static_cast<T *>(Common::malloc<A>(n * sizeof(T)));
 }
 
 /**
@@ -104,9 +102,11 @@ Vc_ALWAYS_INLINE T *malloc(size_t n)
 template<typename T>
 Vc_ALWAYS_INLINE void free(T *p)
 {
-    Internal::Helper::free(p);
+    Common::free(p);
 }
 
+namespace Common
+{
 template<typename V, size_t Size> struct _MemorySizeCalculation
 {
     enum AlignmentCalculations {
@@ -660,8 +660,6 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 }
 }  // namespace Common
 
-using Common::malloc;
-using Common::free;
 using Common::Memory;
 using Common::prefetchForOneRead;
 using Common::prefetchForModify;
