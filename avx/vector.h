@@ -288,13 +288,16 @@ public:
         Vc_ALWAYS_INLINE_L Vector operator>>(int x) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L Vector operator<<(int x) const Vc_ALWAYS_INLINE_R;
 
-#define OPcmp(symbol, fun) \
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const { return HT::fun(data(), x.data()); }
+#define OPcmp(symbol, fun)                                                               \
+    Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const                 \
+    {                                                                                    \
+        return Detail::fun(data(), x.data(), T());                                       \
+    }
 
         OPcmp(==, cmpeq)
         OPcmp(!=, cmpneq)
-        OPcmp(>=, cmpnlt)
-        OPcmp(>, cmpnle)
+        OPcmp(>=, cmpge)
+        OPcmp(>, cmpgt)
         OPcmp(<, cmplt)
         OPcmp(<=, cmple)
 #undef OPcmp

@@ -145,7 +145,7 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC m256i Vc_CONST set2power31_epu32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
     static Vc_INTRINSIC m128i Vc_CONST _mm_set2power31_epu32() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
 
-    //X         static Vc_INTRINSIC m256i Vc_CONST setmin_epi8 () { return _mm256_slli_epi8 (setallone_si256(),  7); }
+    static Vc_INTRINSIC m256i Vc_CONST setmin_epi8 () { return _mm256_set1_epi8(-0x80); }
     static Vc_INTRINSIC m128i Vc_CONST _mm_setmin_epi16() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
     static Vc_INTRINSIC m128i Vc_CONST _mm_setmin_epi32() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
     static Vc_INTRINSIC m256i Vc_CONST setmin_epi16() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
@@ -172,8 +172,10 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC m256d Vc_CONST cmpneq_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NEQ_UQ); }
     static Vc_INTRINSIC m256d Vc_CONST cmplt_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_LT_OS); }
     static Vc_INTRINSIC m256d Vc_CONST cmpnlt_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLT_US); }
+    static Vc_INTRINSIC m256d Vc_CONST cmpge_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLT_US); }
     static Vc_INTRINSIC m256d Vc_CONST cmple_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_LE_OS); }
     static Vc_INTRINSIC m256d Vc_CONST cmpnle_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLE_US); }
+    static Vc_INTRINSIC m256d Vc_CONST cmpgt_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLE_US); }
     static Vc_INTRINSIC m256d Vc_CONST cmpord_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_ORD_Q); }
     static Vc_INTRINSIC m256d Vc_CONST cmpunord_pd(__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_UNORD_Q); }
 
@@ -596,6 +598,10 @@ Vc_INTRINSIC Vc_CONST int movemask_epi8(__m256i a0)
 
 #endif // VC_IMPL_AVX2
 
+/////////////////////////////////////////////////////////////////////////
+// implementation of intrinsics missing in AVX and AVX2
+/////////////////////////////////////////////////////////////////////////
+
 static Vc_INTRINSIC m256i cmplt_epi64(__m256i a, __m256i b) {
     return cmpgt_epi64(b, a);
 }
@@ -609,14 +615,12 @@ static Vc_INTRINSIC m256i cmplt_epi8(__m256i a, __m256i b) {
     return cmpgt_epi8(b, a);
 }
 
-/////////////////////////////////////////////////////////////////////////
-// implementation of intrinsics missing in AVX and AVX2
-/////////////////////////////////////////////////////////////////////////
-
-//X     static Vc_INTRINSIC m256i cmplt_epu8 (__m256i a, __m256i b) { return cmplt_epi8 (
-//X             xor_si256(a, setmin_epi8 ()), xor_si256(b, setmin_epi8 ())); }
-//X     static Vc_INTRINSIC m256i cmpgt_epu8 (__m256i a, __m256i b) { return cmpgt_epi8 (
-//X             xor_si256(a, setmin_epi8 ()), xor_si256(b, setmin_epi8 ())); }
+static Vc_INTRINSIC m256i cmplt_epu8(__m256i a, __m256i b) {
+    return cmplt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
+}
+static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
+    return cmpgt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
+}
 #if defined(VC_IMPL_XOP) && (!defined(VC_CLANG) || VC_CLANG >= 0x30400)
     AVX_TO_SSE_2_NEW(comlt_epu32)
     AVX_TO_SSE_2_NEW(comgt_epu32)
