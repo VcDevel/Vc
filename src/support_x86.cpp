@@ -121,6 +121,7 @@ unsigned int extraInstructionsSupported()
     if (CpuId::hasPopcnt()) flags |= Vc::PopcntInstructions;
     if (CpuId::hasSse4a()) flags |= Vc::Sse4aInstructions;
     if (CpuId::hasFma ()) flags |= Vc::FmaInstructions;
+    if (CpuId::hasOsxsave() && CpuId::hasAvx() && xgetbvCheck(0x6)) flags |= Vc::VexInstructions;
     //if (CpuId::hasPclmulqdq()) flags |= Vc::PclmulqdqInstructions;
     //if (CpuId::hasAes()) flags |= Vc::AesInstructions;
     //if (CpuId::hasRdrand()) flags |= Vc::RdrandInstructions;

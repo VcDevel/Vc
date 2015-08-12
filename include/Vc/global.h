@@ -462,6 +462,8 @@ enum ExtraInstructions { // TODO: make enum class of uint32_t
     Sse4aInstructions     = 0x10000,
     //! Support for FMA instructions (3 operand variant)
     FmaInstructions       = 0x20000,
+    //! Support for ternary instruction coding (VEX)
+    VexInstructions       = 0x40000,
     // PclmulqdqInstructions,
     // AesInstructions,
     // RdrandInstructions
@@ -520,19 +522,7 @@ template <unsigned int Features> struct ImplementationT {
     }
 };
 typedef ImplementationT<
-#ifdef VC_USE_VEX_CODING
-    // everything will use VEX coding, so the system has to support AVX even if VC_IMPL_AVX is not set
-    // but AFAIU the OSXSAVE and xgetbv tests do not have to positive (unless, of course, the
-    // compiler decides to insert an instruction that uses the full register size - so better be on
-    // the safe side)
-#ifdef VC_IMPL_AVX2
-    AVX2Impl
-#else
-    AVXImpl
-#endif
-#else
     VC_IMPL
-#endif
 #ifdef VC_IMPL_SSE4a
     + Vc::Sse4aInstructions
 #ifdef VC_IMPL_XOP
@@ -547,6 +537,9 @@ typedef ImplementationT<
 #endif
 #ifdef VC_IMPL_FMA
     + Vc::FmaInstructions
+#endif
+#ifdef VC_USE_VEX_CODING
+    + Vc::VexInstructions
 #endif
     > CurrentImplementation;
 
