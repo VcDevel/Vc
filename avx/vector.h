@@ -107,11 +107,10 @@ public:
         };
 #ifdef VC_IMPL_AVX2
         typedef typename std::conditional<
-            (Size >= 8),
-            SimdArray<int, Size, AVX2::int_v, 8>,
-            typename std::conditional<(Size >= 4),
-                                      SimdArray<int, Size, SSE::int_v, 4>,
-                                      SimdArray<int, Size, Scalar::int_v, 1>>>::type IndexType;
+            (Size >= 8), SimdArray<int, Size, AVX2::int_v, 8>,
+            typename std::conditional<(Size >= 4), SimdArray<int, Size, SSE::int_v, 4>,
+                                      SimdArray<int, Size, Scalar::int_v, 1>>::type>::type
+            IndexType;
 #else
         typedef typename std::conditional<(Size >= 4),
                                           SimdArray<int, Size, SSE::int_v, 4>,
