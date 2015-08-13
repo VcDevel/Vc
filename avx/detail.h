@@ -360,6 +360,16 @@ template<> Vc_INTRINSIC Vc_CONST __m256  zero<__m256 >() { return _mm256_setzero
 template<> Vc_INTRINSIC Vc_CONST __m256i zero<__m256i>() { return _mm256_setzero_si256(); }
 template<> Vc_INTRINSIC Vc_CONST __m256d zero<__m256d>() { return _mm256_setzero_pd(); }
 
+// one{{{1
+Vc_INTRINSIC Vc_CONST __m256  one( float) { return AVX::setone_ps   (); }
+Vc_INTRINSIC Vc_CONST __m256d one(double) { return AVX::setone_pd   (); }
+Vc_INTRINSIC Vc_CONST __m256i one(   int) { return AVX::setone_epi32(); }
+Vc_INTRINSIC Vc_CONST __m256i one(  uint) { return AVX::setone_epu32(); }
+Vc_INTRINSIC Vc_CONST __m256i one( short) { return AVX::setone_epi16(); }
+Vc_INTRINSIC Vc_CONST __m256i one(ushort) { return AVX::setone_epu16(); }
+Vc_INTRINSIC Vc_CONST __m256i one( schar) { return AVX::setone_epi8 (); }
+Vc_INTRINSIC Vc_CONST __m256i one( uchar) { return AVX::setone_epu8 (); }
+
 // negate{{{1
 Vc_ALWAYS_INLINE Vc_CONST __m256 negate(__m256 v, std::integral_constant<std::size_t, 4>)
 {

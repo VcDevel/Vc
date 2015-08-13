@@ -219,11 +219,11 @@ public:
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix
-        Vc_ALWAYS_INLINE Vector &operator++() { data() = HT::add(data(), HT::one()); return *this; }
-        Vc_ALWAYS_INLINE Vector &operator--() { data() = HT::sub(data(), HT::one()); return *this; }
+        Vc_ALWAYS_INLINE Vector &operator++() { data() = Detail::add(data(), Detail::one(T()), T()); return *this; }
+        Vc_ALWAYS_INLINE Vector &operator--() { data() = Detail::sub(data(), Detail::one(T()), T()); return *this; }
         //postfix
-        Vc_ALWAYS_INLINE Vector operator++(int) { const Vector r = *this; data() = HT::add(data(), HT::one()); return r; }
-        Vc_ALWAYS_INLINE Vector operator--(int) { const Vector r = *this; data() = HT::sub(data(), HT::one()); return r; }
+        Vc_ALWAYS_INLINE Vector operator++(int) { const Vector r = *this; data() = Detail::add(data(), Detail::one(T()), T()); return r; }
+        Vc_ALWAYS_INLINE Vector operator--(int) { const Vector r = *this; data() = Detail::sub(data(), Detail::one(T()), T()); return r; }
 
         Vc_INTRINSIC decltype(d.ref(0)) operator[](size_t index) { return d.ref(index); }
         Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
