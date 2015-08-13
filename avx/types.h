@@ -106,8 +106,6 @@ typedef Mask<unsigned int>     uint_m;
 typedef Mask<short>           short_m;
 typedef Mask<unsigned short> ushort_m;
 
-template <typename T> struct Const;
-
 template <typename V = Vector<float>>
 class
 #ifndef VC_ICC
