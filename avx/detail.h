@@ -526,6 +526,36 @@ Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b, ushort) { return AVX::cmpgt_epu
 Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b,  schar) { return AVX::cmpgt_epi8 (b, a); }
 Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b,  uchar) { return AVX::cmpgt_epu8 (b, a); }
 
+// shiftRight{{{1
+template <int shift> Vc_INTRINSIC __m256i shiftRight(__m256i a,    int) { return AVX::srai_epi32<shift>(a); }
+template <int shift> Vc_INTRINSIC __m256i shiftRight(__m256i a,   uint) { return AVX::srli_epi32<shift>(a); }
+template <int shift> Vc_INTRINSIC __m256i shiftRight(__m256i a,  short) { return AVX::srai_epi16<shift>(a); }
+template <int shift> Vc_INTRINSIC __m256i shiftRight(__m256i a, ushort) { return AVX::srli_epi16<shift>(a); }
+//template <int shift> Vc_INTRINSIC __m256i shiftRight(__m256i a,  schar) { return AVX::srai_epi8 <shift>(a); }
+//template <int shift> Vc_INTRINSIC __m256i shiftRight(__m256i a,  uchar) { return AVX::srli_epi8 <shift>(a); }
+
+Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,    int) { return AVX::sra_epi32(a, _mm_cvtsi32_si128(shift)); }
+Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,   uint) { return AVX::srl_epi32(a, _mm_cvtsi32_si128(shift)); }
+Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,  short) { return AVX::sra_epi16(a, _mm_cvtsi32_si128(shift)); }
+Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift, ushort) { return AVX::srl_epi16(a, _mm_cvtsi32_si128(shift)); }
+//Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,  schar) { return AVX::sra_epi8 (a, _mm_cvtsi32_si128(shift)); }
+//Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,  uchar) { return AVX::srl_epi8 (a, _mm_cvtsi32_si128(shift)); }
+
+// shiftLeft{{{1
+template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,    int) { return AVX::slli_epi32<shift>(a); }
+template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,   uint) { return AVX::slli_epi32<shift>(a); }
+template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,  short) { return AVX::slli_epi16<shift>(a); }
+template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a, ushort) { return AVX::slli_epi16<shift>(a); }
+//template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,  schar) { return AVX::slli_epi8 <shift>(a); }
+//template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,  uchar) { return AVX::slli_epi8 <shift>(a); }
+
+Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,    int) { return AVX::sll_epi32(a, _mm_cvtsi32_si128(shift)); }
+Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,   uint) { return AVX::sll_epi32(a, _mm_cvtsi32_si128(shift)); }
+Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,  short) { return AVX::sll_epi16(a, _mm_cvtsi32_si128(shift)); }
+Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift, ushort) { return AVX::sll_epi16(a, _mm_cvtsi32_si128(shift)); }
+//Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,  schar) { return AVX::sll_epi8 (a, _mm_cvtsi32_si128(shift)); }
+//Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,  uchar) { return AVX::sll_epi8 (a, _mm_cvtsi32_si128(shift)); }
+
 // zeroExtendIfNeeded{{{1
 Vc_INTRINSIC __m256  zeroExtendIfNeeded(__m256  x) { return x; }
 Vc_INTRINSIC __m256d zeroExtendIfNeeded(__m256d x) { return x; }

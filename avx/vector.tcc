@@ -327,18 +327,18 @@ OP_IMPL(unsigned short, >>)
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator>>=(int shift) {
-    d.v() = HT::shiftRight(d.v(), shift);
+    d.v() = Detail::shiftRight(d.v(), shift, T());
     return *static_cast<AVX2::Vector<T> *>(this);
 }
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator>>(int shift) const {
-    return HT::shiftRight(d.v(), shift);
+    return Detail::shiftRight(d.v(), shift, T());
 }
 template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator<<=(int shift) {
-    d.v() = HT::shiftLeft(d.v(), shift);
+    d.v() = Detail::shiftLeft(d.v(), shift, T());
     return *static_cast<AVX2::Vector<T> *>(this);
 }
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator<<(int shift) const {
-    return HT::shiftLeft(d.v(), shift);
+    return Detail::shiftLeft(d.v(), shift, T());
 }
 
 #define OP_IMPL(T, symbol, fun) \
