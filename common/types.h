@@ -45,25 +45,40 @@ using std::size_t;
 
 namespace VectorAbi
 {
-struct Scalar;
-struct Sse;
-struct Avx;
-struct Mic;
+struct Scalar {};
+struct Sse {};
+struct Avx {};
+struct Mic {};
 template <typename T>
 using Avx1Abi = typename std::conditional<std::is_integral<T>::value, VectorAbi::Sse,
                                           VectorAbi::Avx>::type;
 template <typename T>
-using Best =
-#if defined VC_IMPL_MIC
-    Mic;
-#elif defined VC_IMPL_AVX2
-    Avx;
+using Best = typename std::conditional<
+    CurrentImplementation::is(ScalarImpl), Scalar,
+    typename std::conditional<
+        CurrentImplementation::is_between(SSE2Impl, SSE42Impl), Sse,
+        typename std::conditional<
+            CurrentImplementation::is(AVXImpl), Avx1Abi<T>,
+            typename std::conditional<
+                CurrentImplementation::is(AVX2Impl), Avx,
+                typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
+                                          void>::type>::type>::type>::type>::type;
+#ifdef VC_IMPL_AVX2
+static_assert(std::is_same<Best<float>, Avx>::value, "");
+static_assert(std::is_same<Best<int>, Avx>::value, "");
 #elif defined VC_IMPL_AVX
-    Avx1Abi<T>;
+static_assert(std::is_same<Best<float>, Avx>::value, "");
+static_assert(std::is_same<Best<int>, Sse>::value, "");
 #elif defined VC_IMPL_SSE
-    Sse;
-#else
-    Scalar;
+static_assert(CurrentImplementation::is_between(SSE2Impl, SSE42Impl), "");
+static_assert(std::is_same<Best<float>, Sse>::value, "");
+static_assert(std::is_same<Best<int>, Sse>::value, "");
+#elif defined VC_IMPL_MIC
+static_assert(std::is_same<Best<float>, Mic>::value, "");
+static_assert(std::is_same<Best<int>, Mic>::value, "");
+#elif defined VC_IMPL_Scalar
+static_assert(std::is_same<Best<float>, Scalar>::value, "");
+static_assert(std::is_same<Best<int>, Scalar>::value, "");
 #endif
 }  // namespace VectorAbi
 
