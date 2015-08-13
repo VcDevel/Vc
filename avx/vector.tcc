@@ -51,8 +51,12 @@ template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitia
 template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu8()) {}
 #endif
 
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(HV::template load<AlignedTag>(AVX::IndexesFromZeroData<T>::address())) {}
+template <typename T>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx>::Vector(
+    VectorSpecialInitializerIndexesFromZero::IEnum)
+    : Vector(AVX::IndexesFromZeroData<T>::address(), Vc::Aligned)
+{
+}
 
 template <>
 Vc_ALWAYS_INLINE AVX2::float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
