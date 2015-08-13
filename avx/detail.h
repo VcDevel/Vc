@@ -444,6 +444,16 @@ Vc_INTRINSIC __m256  not_(__m256  a) { return andnot_(a, allone<__m256 >()); }
 Vc_INTRINSIC __m256d not_(__m256d a) { return andnot_(a, allone<__m256d>()); }
 Vc_INTRINSIC __m256i not_(__m256i a) { return andnot_(a, allone<__m256i>()); }
 
+// abs{{{1
+Vc_INTRINSIC __m256  abs(__m256  a,  float) { return and_(a, AVX::setabsmask_ps()); }
+Vc_INTRINSIC __m256d abs(__m256d a, double) { return and_(a, AVX::setabsmask_pd()); }
+Vc_INTRINSIC __m256i abs(__m256i a,    int) { return _mm256_abs_epi32(a); }
+Vc_INTRINSIC __m256i abs(__m256i a,   uint) { return a; }
+Vc_INTRINSIC __m256i abs(__m256i a,  short) { return _mm256_abs_epi16(a); }
+Vc_INTRINSIC __m256i abs(__m256i a, ushort) { return a; }
+Vc_INTRINSIC __m256i abs(__m256i a,  schar) { return _mm256_abs_epi8 (a); }
+Vc_INTRINSIC __m256i abs(__m256i a,  uchar) { return a; }
+
 // add{{{1
 Vc_INTRINSIC __m256  add(__m256  a, __m256  b,  float) { return _mm256_add_ps(a, b); }
 Vc_INTRINSIC __m256d add(__m256d a, __m256d b, double) { return _mm256_add_pd(a, b); }
@@ -467,6 +477,50 @@ Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,    int) { return _mm256_mullo_epi
 Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,   uint) { return _mm256_mullo_epi32(a, b); }
 Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,  short) { return _mm256_mullo_epi16(a, b); }
 Vc_INTRINSIC __m256i mul(__m256i a, __m256i b, ushort) { return _mm256_mullo_epi16(a, b); }
+
+// horizontal add{{{1
+template <typename T>
+Vc_INTRINSIC float add(
+    typename std::conditional<std::is_same<T, float>::value, __m256,
+                              typename std::conditional<std::is_same<T, double>::value,
+                                                        __m256d, __m256i>::type>::type a,
+    T)
+{
+    return add(add(AVX::lo128(a), AVX::hi128(a), T()), T());
+}
+
+// horizontal mul{{{1
+template <typename T>
+Vc_INTRINSIC float mul(
+    typename std::conditional<std::is_same<T, float>::value, __m256,
+                              typename std::conditional<std::is_same<T, double>::value,
+                                                        __m256d, __m256i>::type>::type a,
+    T)
+{
+    return mul(mul(AVX::lo128(a), AVX::hi128(a), T()), T());
+}
+
+// horizontal min{{{1
+template <typename T>
+Vc_INTRINSIC float min(
+    typename std::conditional<std::is_same<T, float>::value, __m256,
+                              typename std::conditional<std::is_same<T, double>::value,
+                                                        __m256d, __m256i>::type>::type a,
+    T)
+{
+    return min(min(AVX::lo128(a), AVX::hi128(a), T()), T());
+}
+
+// horizontal max{{{1
+template <typename T>
+Vc_INTRINSIC float max(
+    typename std::conditional<std::is_same<T, float>::value, __m256,
+                              typename std::conditional<std::is_same<T, double>::value,
+                                                        __m256d, __m256i>::type>::type a,
+    T)
+{
+    return max(max(AVX::lo128(a), AVX::hi128(a), T()), T());
+}
 
 // cmpeq{{{1
 Vc_INTRINSIC __m256  cmpeq(__m256  a, __m256  b,  float) { return AvxIntrinsics::cmpeq_ps(a, b); }
@@ -525,6 +579,52 @@ Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b,  short) { return AVX::cmpgt_epi
 Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b, ushort) { return AVX::cmpgt_epu16(b, a); }
 Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b,  schar) { return AVX::cmpgt_epi8 (b, a); }
 Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b,  uchar) { return AVX::cmpgt_epu8 (b, a); }
+
+// fma{{{1
+Vc_INTRINSIC void fma(__m256  &a, __m256  b, __m256  c,  float) {
+#ifdef VC_IMPL_FMA4
+    a = _mm256_macc_ps(a, b, c);
+#elif defined VC_IMPL_FMA
+    a = _mm256_fmadd_ps(a, b, c);
+#else
+    using namespace AVX;
+    __m256d v1_0 = _mm256_cvtps_pd(lo128(a));
+    __m256d v1_1 = _mm256_cvtps_pd(hi128(a));
+    __m256d v2_0 = _mm256_cvtps_pd(lo128(b));
+    __m256d v2_1 = _mm256_cvtps_pd(hi128(b));
+    __m256d v3_0 = _mm256_cvtps_pd(lo128(c));
+    __m256d v3_1 = _mm256_cvtps_pd(hi128(c));
+    a = concat(_mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_0, v2_0), v3_0)),
+               _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_1, v2_1), v3_1)));
+#endif
+}
+Vc_INTRINSIC void fma(__m256d &a, __m256d b, __m256d c, double) {
+#ifdef VC_IMPL_FMA4
+    a = _mm256_macc_pd(a, b, c);
+#elif defined VC_IMPL_FMA
+    a = _mm256_fmadd_pd(a, b, c);
+#else
+    using namespace AVX;
+    __m256d h1 = and_(a, _mm256_broadcast_sd(reinterpret_cast<const double *>(
+                             &c_general::highMaskDouble)));
+    __m256d h2 = and_(b, _mm256_broadcast_sd(reinterpret_cast<const double *>(
+                             &c_general::highMaskDouble)));
+    const __m256d l1 = _mm256_sub_pd(a, h1);
+    const __m256d l2 = _mm256_sub_pd(b, h2);
+    const __m256d ll = mul(l1, l2, double());
+    const __m256d lh = add(mul(l1, h2, double()), mul(h1, l2, double()), double());
+    const __m256d hh = mul(h1, h2, double());
+    // ll < lh < hh for all entries is certain
+    const __m256d lh_lt_v3 = cmplt(abs(lh, double()), abs(c, double()), double());  // |lh| < |c|
+    const __m256d x = _mm256_blendv_pd(c, lh, lh_lt_v3);
+    const __m256d y = _mm256_blendv_pd(lh, c, lh_lt_v3);
+    a = add(add(ll, x, double()), add(y, hh, double()), double());
+#endif
+}
+template <typename T> Vc_INTRINSIC void fma(__m256i &a, __m256i b, __m256i c, T)
+{
+    a = add(mul(a, b, T()), c, T());
+}
 
 // shiftRight{{{1
 template <int shift> Vc_INTRINSIC __m256i shiftRight(__m256i a,    int) { return AVX::srai_epi32<shift>(a); }

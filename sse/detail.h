@@ -347,6 +347,250 @@ Vc_INTRINSIC __m128 andnot_(__m128 a, __m128 b) { return _mm_andnot_ps(a, b); }
 Vc_INTRINSIC __m128d andnot_(__m128d a, __m128d b) { return _mm_andnot_pd(a, b); }
 Vc_INTRINSIC __m128i andnot_(__m128i a, __m128i b) { return _mm_andnot_si128(a, b); }
 
+// add{{{1
+Vc_INTRINSIC __m128  add(__m128  a, __m128  b,  float) { return _mm_add_ps(a, b); }
+Vc_INTRINSIC __m128d add(__m128d a, __m128d b, double) { return _mm_add_pd(a, b); }
+Vc_INTRINSIC __m128i add(__m128i a, __m128i b,    int) { return _mm_add_epi32(a, b); }
+Vc_INTRINSIC __m128i add(__m128i a, __m128i b,   uint) { return _mm_add_epi32(a, b); }
+Vc_INTRINSIC __m128i add(__m128i a, __m128i b,  short) { return _mm_add_epi16(a, b); }
+Vc_INTRINSIC __m128i add(__m128i a, __m128i b, ushort) { return _mm_add_epi16(a, b); }
+Vc_INTRINSIC __m128i add(__m128i a, __m128i b,  schar) { return _mm_add_epi8 (a, b); }
+Vc_INTRINSIC __m128i add(__m128i a, __m128i b,  uchar) { return _mm_add_epi8 (a, b); }
+
+// sub{{{1
+Vc_INTRINSIC __m128  sub(__m128  a, __m128  b,  float) { return _mm_sub_ps(a, b); }
+Vc_INTRINSIC __m128d sub(__m128d a, __m128d b, double) { return _mm_sub_pd(a, b); }
+Vc_INTRINSIC __m128i sub(__m128i a, __m128i b,    int) { return _mm_sub_epi32(a, b); }
+Vc_INTRINSIC __m128i sub(__m128i a, __m128i b,   uint) { return _mm_sub_epi32(a, b); }
+Vc_INTRINSIC __m128i sub(__m128i a, __m128i b,  short) { return _mm_sub_epi16(a, b); }
+Vc_INTRINSIC __m128i sub(__m128i a, __m128i b, ushort) { return _mm_sub_epi16(a, b); }
+Vc_INTRINSIC __m128i sub(__m128i a, __m128i b,  schar) { return _mm_sub_epi8 (a, b); }
+Vc_INTRINSIC __m128i sub(__m128i a, __m128i b,  uchar) { return _mm_sub_epi8 (a, b); }
+
+// mul{{{1
+Vc_INTRINSIC __m128  mul(__m128  a, __m128  b,  float) { return _mm_mul_ps(a, b); }
+Vc_INTRINSIC __m128d mul(__m128d a, __m128d b, double) { return _mm_mul_pd(a, b); }
+Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,    int) {
+#ifdef VC_IMPL_SSE4_1
+    return _mm_mullo_epi32(a, b);
+#else
+    const __m128i aShift = _mm_srli_si128(a, 4);
+    const __m128i ab02 = _mm_mul_epu32(a, b);  // [a0 * b0, a2 * b2]
+    const __m128i bShift = _mm_srli_si128(b, 4);
+    const __m128i ab13 = _mm_mul_epu32(aShift, bShift);  // [a1 * b1, a3 * b3]
+    return _mm_unpacklo_epi32(_mm_shuffle_epi32(ab02, 8), _mm_shuffle_epi32(ab13, 8));
+#endif
+}
+Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,   uint) { return mul(a, b, int()); }
+Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  short) { return _mm_mullo_epi16(a, b); }
+Vc_INTRINSIC __m128i mul(__m128i a, __m128i b, ushort) { return _mm_mullo_epi16(a, b); }
+Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  schar) {
+#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+    using B = Common::BuiltinType<schar, 16>;
+    const auto x = reinterpret_cast<const MayAlias<B> &>(a) *
+                   reinterpret_cast<const MayAlias<B> &>(b);
+    return reinterpret_cast<const __m128i &>(x);
+#else
+    return or_(
+        and_(_mm_mullo_epi16(a, b), _mm_slli_epi16(allone<__m128i>(), 8)),
+        _mm_slli_epi16(_mm_mullo_epi16(_mm_srli_si128(a, 1), _mm_srli_si128(b, 1)), 8));
+#endif
+}
+Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  uchar) {
+#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+    using B = Common::BuiltinType<uchar, 16>;
+    const auto x = reinterpret_cast<const MayAlias<B> &>(a) *
+                   reinterpret_cast<const MayAlias<B> &>(b);
+    return reinterpret_cast<const __m128i &>(x);
+#else
+    return or_(
+        and_(_mm_mullo_epi16(a, b), _mm_slli_epi16(allone<__m128i>(), 8)),
+        _mm_slli_epi16(_mm_mullo_epi16(_mm_srli_si128(a, 1), _mm_srli_si128(b, 1)), 8));
+#endif
+}
+
+// TODO: fma{{{1
+//Vc_INTRINSIC __m128  fma(__m128  a, __m128  b, __m128  c,  float) { return _mm_mul_ps(a, b); }
+//Vc_INTRINSIC __m128d fma(__m128d a, __m128d b, __m128d c, double) { return _mm_mul_pd(a, b); }
+//Vc_INTRINSIC __m128i fma(__m128i a, __m128i b, __m128i c,    int) { }
+//Vc_INTRINSIC __m128i fma(__m128i a, __m128i b, __m128i c,   uint) { return fma(a, b, int()); }
+//Vc_INTRINSIC __m128i fma(__m128i a, __m128i b, __m128i c,  short) { return _mm_mullo_epi16(a, b); }
+//Vc_INTRINSIC __m128i fma(__m128i a, __m128i b, __m128i c, ushort) { return _mm_mullo_epi16(a, b); }
+//Vc_INTRINSIC __m128i fma(__m128i a, __m128i b, __m128i c,  schar) { }
+//Vc_INTRINSIC __m128i fma(__m128i a, __m128i b, __m128i c,  uchar) { }
+
+// min{{{1
+Vc_INTRINSIC __m128  min(__m128  a, __m128  b,  float) { return _mm_min_ps(a, b); }
+Vc_INTRINSIC __m128d min(__m128d a, __m128d b, double) { return _mm_min_pd(a, b); }
+Vc_INTRINSIC __m128i min(__m128i a, __m128i b,    int) { return SSE::min_epi32(a, b); }
+Vc_INTRINSIC __m128i min(__m128i a, __m128i b,   uint) { return SSE::min_epu32(a, b); }
+Vc_INTRINSIC __m128i min(__m128i a, __m128i b,  short) { return _mm_min_epi16(a, b); }
+Vc_INTRINSIC __m128i min(__m128i a, __m128i b, ushort) { return _mm_min_epu16(a, b); }
+Vc_INTRINSIC __m128i min(__m128i a, __m128i b,  schar) { return _mm_min_epi8 (a, b); }
+Vc_INTRINSIC __m128i min(__m128i a, __m128i b,  uchar) { return _mm_min_epu8 (a, b); }
+
+// max{{{1
+Vc_INTRINSIC __m128  max(__m128  a, __m128  b,  float) { return _mm_max_ps(a, b); }
+Vc_INTRINSIC __m128d max(__m128d a, __m128d b, double) { return _mm_max_pd(a, b); }
+Vc_INTRINSIC __m128i max(__m128i a, __m128i b,    int) { return SSE::max_epi32(a, b); }
+Vc_INTRINSIC __m128i max(__m128i a, __m128i b,   uint) { return SSE::max_epu32(a, b); }
+Vc_INTRINSIC __m128i max(__m128i a, __m128i b,  short) { return _mm_max_epi16(a, b); }
+Vc_INTRINSIC __m128i max(__m128i a, __m128i b, ushort) { return _mm_max_epu16(a, b); }
+Vc_INTRINSIC __m128i max(__m128i a, __m128i b,  schar) { return _mm_max_epi8 (a, b); }
+Vc_INTRINSIC __m128i max(__m128i a, __m128i b,  uchar) { return _mm_max_epu8 (a, b); }
+
+// horizontal add{{{1
+Vc_INTRINSIC  float add(__m128  a,  float) {
+    a = _mm_add_ps(a, _mm_movehl_ps(a, a));
+    a = _mm_add_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1)));
+    return _mm_cvtss_f32(a);
+}
+Vc_INTRINSIC double add(__m128d a, double) {
+    a = _mm_add_sd(a, _mm_unpackhi_pd(a, a));
+    return _mm_cvtsd_f64(a);
+}
+Vc_INTRINSIC    int add(__m128i a,    int) {
+    a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    return _mm_cvtsi128_si32(a);
+}
+Vc_INTRINSIC   uint add(__m128i a,   uint) { return add(a, int()); }
+Vc_INTRINSIC  short add(__m128i a,  short) {
+    a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
+    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
+    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), short());
+    return _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+}
+Vc_INTRINSIC ushort add(__m128i a, ushort) { return add(a, short()); }
+Vc_INTRINSIC  schar add(__m128i a,  schar) {
+    a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+    return (_mm_cvtsi128_si32(a) >> 8) + (_mm_cvtsi128_si32(a) & 0xff);
+}
+Vc_INTRINSIC  uchar add(__m128i a,  uchar) { return add(a, schar()); }
+
+// horizontal mul{{{1
+Vc_INTRINSIC  float mul(__m128  a,  float) {
+    a = _mm_mul_ps(a, _mm_movehl_ps(a, a));
+    a = _mm_mul_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1)));
+    return _mm_cvtss_f32(a);
+}
+Vc_INTRINSIC double mul(__m128d a, double) {
+    a = _mm_mul_sd(a, _mm_unpackhi_pd(a, a));
+    return _mm_cvtsd_f64(a);
+}
+Vc_INTRINSIC    int mul(__m128i a,    int) {
+    a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    return _mm_cvtsi128_si32(a);
+}
+Vc_INTRINSIC   uint mul(__m128i a,   uint) { return mul(a, int()); }
+Vc_INTRINSIC  short mul(__m128i a,  short) {
+    a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
+    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
+    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), short());
+    return _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+}
+Vc_INTRINSIC ushort mul(__m128i a, ushort) { return mul(a, short()); }
+Vc_INTRINSIC  schar mul(__m128i a,  schar) {
+    a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+    return (_mm_cvtsi128_si32(a) >> 8) * (_mm_cvtsi128_si32(a) & 0xff);
+}
+Vc_INTRINSIC  uchar mul(__m128i a,  uchar) { return mul(a, schar()); }
+
+// horizontal min{{{1
+Vc_INTRINSIC  float min(__m128  a,  float) {
+    a = _mm_min_ps(a, _mm_movehl_ps(a, a));
+    a = _mm_min_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1)));
+    return _mm_cvtss_f32(a);
+}
+Vc_INTRINSIC double min(__m128d a, double) {
+    a = _mm_min_sd(a, _mm_unpackhi_pd(a, a));
+    return _mm_cvtsd_f64(a);
+}
+Vc_INTRINSIC    int min(__m128i a,    int) {
+    a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    return _mm_cvtsi128_si32(a);
+}
+Vc_INTRINSIC   uint min(__m128i a,   uint) {
+    a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), uint());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), uint());
+    return _mm_cvtsi128_si32(a);
+}
+Vc_INTRINSIC  short min(__m128i a,  short) {
+    a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), short());
+    return _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+}
+Vc_INTRINSIC ushort min(__m128i a, ushort) {
+    a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), ushort());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), ushort());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), ushort());
+    return _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+}
+Vc_INTRINSIC  schar min(__m128i a,  schar) {
+    a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+    return std::min(schar(_mm_cvtsi128_si32(a) >> 8), schar(_mm_cvtsi128_si32(a)));
+}
+Vc_INTRINSIC  uchar min(__m128i a,  uchar) {
+    a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+    return std::min((_mm_cvtsi128_si32(a) >> 8) & 0xff, _mm_cvtsi128_si32(a) & 0xff);
+}
+
+// horizontal max{{{1
+Vc_INTRINSIC  float max(__m128  a,  float) {
+    a = _mm_max_ps(a, _mm_movehl_ps(a, a));
+    a = _mm_max_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1)));
+    return _mm_cvtss_f32(a);
+}
+Vc_INTRINSIC double max(__m128d a, double) {
+    a = _mm_max_sd(a, _mm_unpackhi_pd(a, a));
+    return _mm_cvtsd_f64(a);
+}
+Vc_INTRINSIC    int max(__m128i a,    int) {
+    a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    return _mm_cvtsi128_si32(a);
+}
+Vc_INTRINSIC   uint max(__m128i a,   uint) {
+    a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), uint());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), uint());
+    return _mm_cvtsi128_si32(a);
+}
+Vc_INTRINSIC  short max(__m128i a,  short) {
+    a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), short());
+    return _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+}
+Vc_INTRINSIC ushort max(__m128i a, ushort) {
+    a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), ushort());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), ushort());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), ushort());
+    return _mm_cvtsi128_si32(a);  // & 0xffff is implicit
+}
+Vc_INTRINSIC  schar max(__m128i a,  schar) {
+    a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+    return std::max(schar(_mm_cvtsi128_si32(a) >> 8), schar(_mm_cvtsi128_si32(a)));
+}
+Vc_INTRINSIC  uchar max(__m128i a,  uchar) {
+    a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
+    a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
+    return std::max((_mm_cvtsi128_si32(a) >> 8) & 0xff, _mm_cvtsi128_si32(a) & 0xff);
+}
+
 // sorted{{{1
 template <Vc::Implementation, typename T>
 Vc_CONST_L SSE::Vector<T> sorted(VC_ALIGNED_PARAMETER(SSE::Vector<T>) x) Vc_CONST_R;

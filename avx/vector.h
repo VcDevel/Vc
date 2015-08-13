@@ -304,7 +304,7 @@ public:
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
         Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector &factor, const Vector &summand) {
-            HT::fma(data(), factor.data(), summand.data());
+            Detail::fma(data(), factor.data(), summand.data(), T());
         }
 
         Vc_ALWAYS_INLINE void assign( const Vector &v, const Mask &mask ) {
@@ -338,10 +338,10 @@ public:
         Vc_INTRINSIC_L std::pair<Vector, int> minIndex() const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L std::pair<Vector, int> maxIndex() const Vc_INTRINSIC_R;
 
-        Vc_ALWAYS_INLINE EntryType min() const { return HT::min(data()); }
-        Vc_ALWAYS_INLINE EntryType max() const { return HT::max(data()); }
-        Vc_ALWAYS_INLINE EntryType product() const { return HT::mul(data()); }
-        Vc_ALWAYS_INLINE EntryType sum() const { return HT::add(data()); }
+        Vc_ALWAYS_INLINE EntryType min() const { return Detail::min(data(), T()); }
+        Vc_ALWAYS_INLINE EntryType max() const { return Detail::max(data(), T()); }
+        Vc_ALWAYS_INLINE EntryType product() const { return Detail::mul(data(), T()); }
+        Vc_ALWAYS_INLINE EntryType sum() const { return Detail::add(data(), T()); }
         Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
         //template<typename BinaryOperation> Vc_ALWAYS_INLINE_L Vector partialSum(BinaryOperation op) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L EntryType min(MaskArg m) const Vc_ALWAYS_INLINE_R;
