@@ -30,16 +30,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
-// mask_to_int/*{{{*/
-template<> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(__m256i k)
-{
-    return movemask(AVX::avx_cast<__m256d>(k));
-}
-template<> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(__m256i k)
-{
-    return movemask(AVX::avx_cast<__m256>(k));
-}
-/*}}}*/
 // mask_store/*{{{*/
 template<size_t> Vc_INTRINSIC void mask_store(__m256i k, bool *mem);
 template<> Vc_INTRINSIC void mask_store<4>(__m256i k, bool *mem)

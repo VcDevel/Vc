@@ -684,17 +684,20 @@ Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(VC_ALIGNED_PARAMETER(AVX2::Vector<T
 {
     return sorted<CurrentImplementation::current()>(x);
 }
-//}}}1
 
-template <size_t Size>
-Vc_INTRINSIC_L Vc_CONST_L int mask_to_int(__m256i x) Vc_INTRINSIC_R Vc_CONST_R;
-
+// testc{{{1
 Vc_INTRINSIC Vc_CONST int testc(__m128 a, __m128 b) { return _mm_testc_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
 Vc_INTRINSIC Vc_CONST int testc(__m256 a, __m256 b) { return _mm256_testc_ps(a, b); }
+
+// testz{{{1
 Vc_INTRINSIC Vc_CONST int testz(__m128 a, __m128 b) { return _mm_testz_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
 Vc_INTRINSIC Vc_CONST int testz(__m256 a, __m256 b) { return _mm256_testz_ps(a, b); }
+
+// testnzc{{{1
 Vc_INTRINSIC Vc_CONST int testnzc(__m128 a, __m128 b) { return _mm_testnzc_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
 Vc_INTRINSIC Vc_CONST int testnzc(__m256 a, __m256 b) { return _mm256_testnzc_ps(a, b); }
+
+// movemask{{{1
 Vc_INTRINSIC Vc_CONST int movemask(__m256i a) { return AVX::movemask_epi8(a); }
 Vc_INTRINSIC Vc_CONST int movemask(__m128i a) { return _mm_movemask_epi8(a); }
 Vc_INTRINSIC Vc_CONST int movemask(__m256d a) { return _mm256_movemask_pd(a); }
@@ -702,8 +705,23 @@ Vc_INTRINSIC Vc_CONST int movemask(__m128d a) { return _mm_movemask_pd(a); }
 Vc_INTRINSIC Vc_CONST int movemask(__m256  a) { return _mm256_movemask_ps(a); }
 Vc_INTRINSIC Vc_CONST int movemask(__m128  a) { return _mm_movemask_ps(a); }
 
-} // namespace Detail
-
+// mask_to_int{{{1
+template <size_t Size>
+Vc_INTRINSIC_L Vc_CONST_L int mask_to_int(__m256i x) Vc_INTRINSIC_R Vc_CONST_R;
+template <> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(__m256i k)
+{
+    return movemask(AVX::avx_cast<__m256d>(k));
+}
+template <> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(__m256i k)
+{
+    return movemask(AVX::avx_cast<__m256>(k));
+}
+template <> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m256i k)
+{
+    return movemask(k);
+}
+//}}}1
+}  // namespace Detail
 }  // namespace Vc
 
 #include "undomacros.h"
