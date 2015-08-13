@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2011-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -29,80 +29,93 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_AVX_HELPERIMPL_H
 #define VC_AVX_HELPERIMPL_H
 
+#include "sse/helperimpl.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Internal
+namespace Detail
 {
+template <typename A>
+inline void deinterleave(AVX2::float_v &, AVX2::float_v &, const float *, A);
+template <typename A>
+inline void deinterleave(AVX2::float_v &, AVX2::float_v &, const short *, A);
+template <typename A>
+inline void deinterleave(AVX2::float_v &, AVX2::float_v &, const ushort *, A);
+template <typename A>
+inline void deinterleave(AVX2::double_v &, AVX2::double_v &, const double *, A);
+template <typename A>
+inline void deinterleave(AVX2::int_v &, AVX2::int_v &, const int *, A);
+template <typename A>
+inline void deinterleave(AVX2::int_v &, AVX2::int_v &, const short *, A);
+template <typename A>
+inline void deinterleave(AVX2::uint_v &, AVX2::uint_v &, const uint *, A);
+template <typename A>
+inline void deinterleave(AVX2::uint_v &, AVX2::uint_v &, const ushort *, A);
+template <typename A>
+inline void deinterleave(AVX2::short_v &, AVX2::short_v &, const short *, A);
+template <typename A>
+inline void deinterleave(AVX2::ushort_v &, AVX2::ushort_v &, const ushort *, A);
 
-template<> struct HelperImpl<VC_IMPL>
+template <typename T, typename M, typename A>
+Vc_ALWAYS_INLINE_L void deinterleave(AVX2::Vector<T> &VC_RESTRICT a,
+                                     AVX2::Vector<T> &VC_RESTRICT b,
+                                     AVX2::Vector<T> &VC_RESTRICT c,
+                                     const M *VC_RESTRICT memory,
+                                     A align) Vc_ALWAYS_INLINE_R;
+template <typename T, typename M, typename A>
+Vc_ALWAYS_INLINE_L void deinterleave(AVX2::Vector<T> &VC_RESTRICT a,
+                                     AVX2::Vector<T> &VC_RESTRICT b,
+                                     AVX2::Vector<T> &VC_RESTRICT c,
+                                     AVX2::Vector<T> &VC_RESTRICT d,
+                                     const M *VC_RESTRICT memory,
+                                     A align) Vc_ALWAYS_INLINE_R;
+template <typename T, typename M, typename A>
+Vc_ALWAYS_INLINE_L void deinterleave(AVX2::Vector<T> &VC_RESTRICT a,
+                                     AVX2::Vector<T> &VC_RESTRICT b,
+                                     AVX2::Vector<T> &VC_RESTRICT c,
+                                     AVX2::Vector<T> &VC_RESTRICT d,
+                                     AVX2::Vector<T> &VC_RESTRICT e,
+                                     const M *VC_RESTRICT memory,
+                                     A align) Vc_ALWAYS_INLINE_R;
+template <typename T, typename M, typename A>
+Vc_ALWAYS_INLINE_L void deinterleave(
+    AVX2::Vector<T> &VC_RESTRICT a, AVX2::Vector<T> &VC_RESTRICT b,
+    AVX2::Vector<T> &VC_RESTRICT c, AVX2::Vector<T> &VC_RESTRICT d,
+    AVX2::Vector<T> &VC_RESTRICT e, AVX2::Vector<T> &VC_RESTRICT f,
+    const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
+template <typename T, typename M, typename A>
+Vc_ALWAYS_INLINE_L void deinterleave(
+    AVX2::Vector<T> &VC_RESTRICT a, AVX2::Vector<T> &VC_RESTRICT b,
+    AVX2::Vector<T> &VC_RESTRICT c, AVX2::Vector<T> &VC_RESTRICT d,
+    AVX2::Vector<T> &VC_RESTRICT e, AVX2::Vector<T> &VC_RESTRICT f,
+    AVX2::Vector<T> &VC_RESTRICT g, AVX2::Vector<T> &VC_RESTRICT h,
+    const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
+
+Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr, VectorAbi::Avx)
 {
-    typedef Vc_IMPL_NAMESPACE::float_v float_v;
-    typedef Vc_IMPL_NAMESPACE::double_v double_v;
-    typedef Vc_IMPL_NAMESPACE::int_v int_v;
-    typedef Vc_IMPL_NAMESPACE::uint_v uint_v;
-    typedef Vc_IMPL_NAMESPACE::short_v short_v;
-    typedef Vc_IMPL_NAMESPACE::ushort_v ushort_v;
-
-    template<typename A> static void deinterleave(float_v &, float_v &, const float *, A);
-    template<typename A> static void deinterleave(float_v &, float_v &, const short *, A);
-    template<typename A> static void deinterleave(float_v &, float_v &, const unsigned short *, A);
-
-    template<typename A> static void deinterleave(double_v &, double_v &, const double *, A);
-
-    template<typename A> static void deinterleave(int_v &, int_v &, const int *, A);
-    template<typename A> static void deinterleave(int_v &, int_v &, const short *, A);
-
-    template<typename A> static void deinterleave(uint_v &, uint_v &, const unsigned int *, A);
-    template<typename A> static void deinterleave(uint_v &, uint_v &, const unsigned short *, A);
-
-    template<typename A> static void deinterleave(short_v &, short_v &, const short *, A);
-
-    template<typename A> static void deinterleave(ushort_v &, ushort_v &, const unsigned short *, A);
-
-    template<typename V, typename M, typename A>
-        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-                V &VC_RESTRICT c, const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
-
-    template<typename V, typename M, typename A>
-        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-                V &VC_RESTRICT c, V &VC_RESTRICT d,
-                const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
-
-    template<typename V, typename M, typename A>
-        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-                V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e,
-                const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
-
-    template<typename V, typename M, typename A>
-        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-                V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e,
-                V &VC_RESTRICT f, const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
-
-    template<typename V, typename M, typename A>
-        static Vc_ALWAYS_INLINE_L void deinterleave(V &VC_RESTRICT a, V &VC_RESTRICT b,
-                V &VC_RESTRICT c, V &VC_RESTRICT d, V &VC_RESTRICT e,
-                V &VC_RESTRICT f, V &VC_RESTRICT g, V &VC_RESTRICT h,
-                const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
-
-    static Vc_ALWAYS_INLINE_L void prefetchForOneRead(const void *addr) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void prefetchForModify(const void *addr) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void prefetchClose(const void *addr) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void prefetchMid(const void *addr) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void prefetchFar(const void *addr) Vc_ALWAYS_INLINE_R;
-
-    template<Vc::MallocAlignment A>
-    static Vc_ALWAYS_INLINE_L void *malloc(size_t n) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
-};
-
-}  // namespace Internal
+    prefetchForOneRead(addr, VectorAbi::Sse());
+}
+Vc_ALWAYS_INLINE void prefetchForModify(const void *addr, VectorAbi::Avx)
+{
+    prefetchForModify(addr, VectorAbi::Sse());
+}
+Vc_ALWAYS_INLINE void prefetchClose(const void *addr, VectorAbi::Avx)
+{
+    prefetchClose(addr, VectorAbi::Sse());
+}
+Vc_ALWAYS_INLINE void prefetchMid(const void *addr, VectorAbi::Avx)
+{
+    prefetchMid(addr, VectorAbi::Sse());
+}
+Vc_ALWAYS_INLINE void prefetchFar(const void *addr, VectorAbi::Avx)
+{
+    prefetchFar(addr, VectorAbi::Sse());
+}
+}  // namespace Detail
 }  // namespace Vc
 
 #include "deinterleave.tcc"
-#include "prefetches.tcc"
-#include "helperimpl.tcc"
 #include "undomacros.h"
 
 #endif // VC_AVX_HELPERIMPL_H

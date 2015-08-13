@@ -594,7 +594,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
  */
 Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr)
 {
-    Internal::Helper::prefetchForOneRead(addr);
+    Vc::Detail::prefetchForOneRead(addr, VectorAbi::Best<float>());
 }
 
 /**
@@ -611,7 +611,7 @@ Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr)
  */
 Vc_ALWAYS_INLINE void prefetchForModify(const void *addr)
 {
-    Internal::Helper::prefetchForModify(addr);
+    Vc::Detail::prefetchForModify(addr, VectorAbi::Best<float>());
 }
 
 /**
@@ -626,7 +626,7 @@ Vc_ALWAYS_INLINE void prefetchForModify(const void *addr)
  */
 Vc_ALWAYS_INLINE void prefetchClose(const void *addr)
 {
-    Internal::Helper::prefetchClose(addr);
+    Vc::Detail::prefetchClose(addr, VectorAbi::Best<float>());
 }
 
 /**
@@ -641,7 +641,7 @@ Vc_ALWAYS_INLINE void prefetchClose(const void *addr)
  */
 Vc_ALWAYS_INLINE void prefetchMid(const void *addr)
 {
-    Internal::Helper::prefetchMid(addr);
+    Vc::Detail::prefetchMid(addr, VectorAbi::Best<float>());
 }
 
 /**
@@ -656,7 +656,7 @@ Vc_ALWAYS_INLINE void prefetchMid(const void *addr)
  */
 Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 {
-    Internal::Helper::prefetchFar(addr);
+    Vc::Detail::prefetchFar(addr, VectorAbi::Best<float>());
 }
 }  // namespace Common
 

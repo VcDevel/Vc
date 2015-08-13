@@ -110,84 +110,82 @@ inline void deinterleave(Vector<unsigned int> &a, Vector<unsigned int> &b, Vecto
 }
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Internal
+namespace Detail
 {
-
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        float_v &a, float_v &b, const float *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::float_v &a, SSE::float_v &b, const float *m, A align)
 {
     a.load(m, align);
-    b.load(m + float_v::Size, align);
+    b.load(m + SSE::float_v::Size, align);
     Vc::SSE::deinterleave(a, b);
 }
 
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        float_v &a, float_v &b, const short *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::float_v &a, SSE::float_v &b, const short *m, A align)
 {
-    short_v tmp(m, align);
+    SSE::short_v tmp(m, align);
     Vc::SSE::deinterleave(a, b, tmp);
 }
 
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        float_v &a, float_v &b, const unsigned short *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::float_v &a, SSE::float_v &b, const unsigned short *m, A align)
 {
-    ushort_v tmp(m, align);
+    SSE::ushort_v tmp(m, align);
     Vc::SSE::deinterleave(a, b, tmp);
 }
 
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        double_v &a, double_v &b, const double *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::double_v &a, SSE::double_v &b, const double *m, A align)
 {
     a.load(m, align);
-    b.load(m + double_v::Size, align);
+    b.load(m + SSE::double_v::Size, align);
     Vc::SSE::deinterleave(a, b);
 }
 
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        int_v &a, int_v &b, const int *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::int_v &a, SSE::int_v &b, const int *m, A align)
 {
     a.load(m, align);
-    b.load(m + int_v::Size, align);
+    b.load(m + SSE::int_v::Size, align);
     Vc::SSE::deinterleave(a, b);
 }
 
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        int_v &a, int_v &b, const short *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::int_v &a, SSE::int_v &b, const short *m, A align)
 {
-    short_v tmp(m, align);
+    SSE::short_v tmp(m, align);
     Vc::SSE::deinterleave(a, b, tmp);
 }
 
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        uint_v &a, uint_v &b, const unsigned int *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::uint_v &a, SSE::uint_v &b, const unsigned int *m, A align)
 {
     a.load(m, align);
-    b.load(m + uint_v::Size, align);
+    b.load(m + SSE::uint_v::Size, align);
     Vc::SSE::deinterleave(a, b);
 }
 
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        uint_v &a, uint_v &b, const unsigned short *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::uint_v &a, SSE::uint_v &b, const unsigned short *m, A align)
 {
-    ushort_v tmp(m, align);
+    SSE::ushort_v tmp(m, align);
     Vc::SSE::deinterleave(a, b, tmp);
 }
 
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        short_v &a, short_v &b, const short *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::short_v &a, SSE::short_v &b, const short *m, A align)
 {
     a.load(m, align);
-    b.load(m + short_v::Size, align);
+    b.load(m + SSE::short_v::Size, align);
     Vc::SSE::deinterleave(a, b);
 }
 
-template<typename A> inline void HelperImpl<Vc::SSE2Impl>::deinterleave(
-        ushort_v &a, ushort_v &b, const unsigned short *m, A align)
+template<typename A> inline void deinterleave(
+        SSE::ushort_v &a, SSE::ushort_v &b, const unsigned short *m, A align)
 {
     a.load(m, align);
-    b.load(m + ushort_v::Size, align);
+    b.load(m + SSE::ushort_v::Size, align);
     Vc::SSE::deinterleave(a, b);
 }
-
-}
-}
+}  // namespace Detail
+}  // namespace Vc

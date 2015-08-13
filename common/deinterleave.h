@@ -77,14 +77,14 @@ ushort_v |       |        |    X   |       |      |
 template<typename V, typename M, typename A> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
         const M *memory, A align)
 {
-    Internal::Helper::deinterleave(*a, *b, memory, align);
+    Detail::deinterleave(*a, *b, memory, align);
 }
 
 // documented as default for align above
 template<typename V, typename M> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
         const M *memory)
 {
-    Internal::Helper::deinterleave(*a, *b, memory, Aligned);
+    Detail::deinterleave(*a, *b, memory, Aligned);
 }
 
 }  // namespace Vc
