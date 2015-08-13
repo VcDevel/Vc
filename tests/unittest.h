@@ -344,16 +344,34 @@ static UnitTester global_unit_test_object_;
 void EXPECT_FAILURE() { global_unit_test_object_.expect_failure = true; }
 
 
-#ifdef VC_NVCC
-__device__ static const char *failString() // CUDA failString {{{1
+#ifdef VC_NVCC // CUDA failString {{{1
+__host__ __device__ static const char *failString()
 {
+#ifdef __CUDA_ARCH__
     __shared__ static const char *str;
     if(Vc::Detail::getThreadId == 0)
         str = " \033[1;40;31mFAIL:\033[0m ";
     return str;
-}
 #else
-static const char *failString()  // generic failString {{{1
+    if (global_unit_test_object_.expect_failure) {
+        return "XFAIL: ";
+    }
+    static const char *str = 0;
+    if (str == 0) {
+        if (Vc::mayUseColor(std::cout)) {
+            static const char *fail = " \033[1;40;31mFAIL:\033[0m ";
+            str = fail;
+        } else {
+            static const char *fail = " FAIL: ";
+            str = fail;
+        }
+    }
+    return str;
+#endif // __CUDA_ARCH__ 
+}
+
+#else
+static const char *failString() // generic failString {{{1
 {
     if (global_unit_test_object_.expect_failure) {
         return "XFAIL: ";
@@ -371,6 +389,7 @@ static const char *failString()  // generic failString {{{1
     return str;
 }
 #endif
+
 void initTest(int argc, char **argv)  //{{{1
 {
     for (int i = 1; i < argc; ++i) {
@@ -403,7 +422,7 @@ template <> inline void setFuzzyness<double>(double fuzz)
     global_unit_test_object_.double_fuzzyness = fuzz;
 }
 
-void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
+void UnitTester::runTestInt(TestFunction fun, const char *name) 
 {
     if (global_unit_test_object_.only_name &&
         0 != std::strcmp(name, global_unit_test_object_.only_name)) {
@@ -717,12 +736,91 @@ private:
     }
 
     // print overloads {{{2
+    __device__ static void print(const char *str)
+    {
+        auto strchr = [](const char *str, int character)
+        {
+            while(*str)
+            {
+                if(*str == character)
+                    return str;
+                ++str;
+            }
+            
+            return static_cast<const char*>(0); // CUDA doesn't support nullptr
+        };
+
+        auto strchr = [](char *str, int character)
+        {
+            while(*str)
+            {
+                if(*str == character)
+                    return str;
+                ++str;
+            }
+            return static_cast<char*>(0);
+        };
+
+        auto strlen = [](const char *str)
+        {
+            size_t ret = 0;
+            while(*str != '\0')
+                ++ret;
+            return ret;
+        };
+
+        auto strcpy = [](char *destination, const char *source)
+        {
+            while(*source)
+            {
+                *destination = *source;
+                ++destination;
+                ++source;
+            }
+        };
+
+        auto strdup = [&strlen, &strcpy](const char *s1)
+        {
+            if(s1 == static_cast<const char*>(0))
+                return static_cast<char*>(0);
+            
+            char *ret = new char[strlen(s1) + 1];
+            strcpy(ret, s1);
+            return ret;
+        };
+        
+        const char *pos = NULL;
+        if(NULL != (pos = strchr(str, static_cast<int>('\n')))) {
+            if(pos == str) {
+                printf("%c%s", '\n', failString());
+                print(&str[1]);
+            }
+            else {
+                char *left = strdup(str);
+                left[pos - str] = '\0';
+                printf("%s%c%s", left, '\n', failString());
+                delete[] left;
+                print(&pos[1]);
+            }
+        }
+        else {
+            printf("%s", str);
+        }
+    }
+
+    __device__ static void print(const char ch)
+    {
+        if(ch == '\n') {
+            printf("%c%s", '\n', failString());
+        }
+        else {
+            printf("%c", ch);
+        }
+    }
+
     __device__ static void print(bool b)
     {
-        if(b)
-            printf("true\n");
-        else
-            printf("false\n");
+        printf((b ? "true" : "false"));
     }
 
     // printLast {{{2
