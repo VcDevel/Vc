@@ -169,10 +169,10 @@ public:
 
         // no need for expression template optimizations because cmp(n)eq for floats are not bitwise
         // compares
-        Vc_INTRINSIC bool isFull () const { return 0 != Detail::testc(data(), Detail::allone<VectorTypeF>()); }
-        Vc_INTRINSIC bool isNotEmpty() const { return 0 == Detail::testz(data(), data()); }
-        Vc_INTRINSIC bool isEmpty() const { return 0 != Detail::testz(data(), data()); }
-        Vc_INTRINSIC bool isMix  () const { return 0 != Detail::testnzc(data(), Detail::allone<VectorTypeF>()); }
+        Vc_INTRINSIC_L bool isNotEmpty() const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L bool isEmpty() const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L bool isFull() const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L bool isMix() const Vc_INTRINSIC_R;
 
         Vc_INTRINSIC Vc_PURE int shiftMask() const { return Detail::movemask(dataI()); }
         Vc_INTRINSIC Vc_PURE int toInt() const { return Detail::mask_to_int<Size>(dataI()); }
