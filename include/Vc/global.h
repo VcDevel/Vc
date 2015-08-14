@@ -120,6 +120,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define POPCNT 0x00000008
 #define SSE4a  0x00000010
 #define FMA    0x00000020
+#define BMI2   0x00000040
 
 #define IMPL_MASK 0xFFF00000
 #define EXT_MASK  0x000FFFFF
@@ -209,6 +210,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    ifdef __FMA__
 #      define VC_IMPL_FMA 1
 #    endif
+#    ifdef __BMI2__
+#      define VC_IMPL_BMI2 1
+#    endif
 #  endif
 
 #else // VC_IMPL
@@ -292,6 +296,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  if (VC_IMPL & FMA)
 #    define VC_IMPL_FMA 1
 #  endif
+#  if (VC_IMPL & BMI2)
+#    define VC_IMPL_BMI2 1
+#  endif
 #  undef VC_IMPL
 
 #endif // VC_IMPL
@@ -344,6 +351,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef POPCNT
 #undef SSE4a
 #undef FMA
+#undef BMI2
 
 #undef IMPL_MASK
 #undef EXT_MASK
@@ -464,6 +472,8 @@ enum ExtraInstructions { // TODO: make enum class of uint32_t
     FmaInstructions       = 0x20000,
     //! Support for ternary instruction coding (VEX)
     VexInstructions       = 0x40000,
+    //! Support for BMI2 instructions
+    Bmi2Instructions      = 0x80000,
     // PclmulqdqInstructions,
     // AesInstructions,
     // RdrandInstructions
@@ -537,6 +547,9 @@ typedef ImplementationT<
 #endif
 #ifdef VC_IMPL_FMA
     + Vc::FmaInstructions
+#endif
+#ifdef VC_IMPL_BMI2
+    + Vc::Bmi2Instructions
 #endif
 #ifdef VC_USE_VEX_CODING
     + Vc::VexInstructions
