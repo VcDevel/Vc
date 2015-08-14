@@ -564,11 +564,11 @@ Vc_INTRINSIC __m256i cmpge(__m256i a, __m256i b,  uchar) { return not_(AVX::cmpg
 Vc_INTRINSIC __m256  cmple(__m256  a, __m256  b,  float) { return AVX::cmple_ps(a, b); }
 Vc_INTRINSIC __m256d cmple(__m256d a, __m256d b, double) { return AVX::cmple_pd(a, b); }
 Vc_INTRINSIC __m256i cmple(__m256i a, __m256i b,    int) { return not_(AVX::cmpgt_epi32(a, b)); }
-Vc_INTRINSIC __m256i cmple(__m256i a, __m256i b,   uint) { return not_(AVX::cmpgt_epi32(a, b)); }
+Vc_INTRINSIC __m256i cmple(__m256i a, __m256i b,   uint) { return not_(AVX::cmpgt_epu32(a, b)); }
 Vc_INTRINSIC __m256i cmple(__m256i a, __m256i b,  short) { return not_(AVX::cmpgt_epi16(a, b)); }
-Vc_INTRINSIC __m256i cmple(__m256i a, __m256i b, ushort) { return not_(AVX::cmpgt_epi16(a, b)); }
+Vc_INTRINSIC __m256i cmple(__m256i a, __m256i b, ushort) { return not_(AVX::cmpgt_epu16(a, b)); }
 Vc_INTRINSIC __m256i cmple(__m256i a, __m256i b,  schar) { return not_(AVX::cmpgt_epi8 (a, b)); }
-Vc_INTRINSIC __m256i cmple(__m256i a, __m256i b,  uchar) { return not_(AVX::cmpgt_epi8 (a, b)); }
+Vc_INTRINSIC __m256i cmple(__m256i a, __m256i b,  uchar) { return not_(AVX::cmpgt_epu8 (a, b)); }
 
 // cmplt{{{1
 Vc_INTRINSIC __m256  cmplt(__m256  a, __m256  b,  float) { return AVX::cmplt_ps(a, b); }
