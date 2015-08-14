@@ -43,6 +43,14 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 using std::size_t;
 
+using llong = long long;
+using ullong = unsigned long long;
+using ulong = unsigned long;
+using uint = unsigned int;
+using ushort = unsigned short;
+using uchar = unsigned char;
+using schar = signed char;
+
 namespace VectorAbi
 {
 struct Scalar {};

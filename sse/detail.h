@@ -41,11 +41,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
-using uint = unsigned int;
-using ushort = unsigned short;
-using uchar = unsigned char;
-using schar = signed char;
-
 // (converting) load functions {{{1
 template <typename V, typename DstT> struct LoadTag
 {
