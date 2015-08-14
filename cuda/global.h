@@ -40,17 +40,17 @@ namespace CUDA
 
 #ifdef VC_NVCC
 template <typename F, typename... Arguments>
-Vc_ALWAYS_INLINE void spawn(F&& kernel, Arguments&& ... args)
+Vc_ALWAYS_INLINE auto spawn(F&& kernel, Arguments&& ... args) -> decltype(cudaDeviceSynchronize())
 {
     kernel<<<1, CUDA_VECTOR_SIZE>>>(std::forward<Arguments>(args) ...);
-    cudaDeviceSynchronize();
+    return cudaDeviceSynchronize();
 }
 
 template <typename F>
-Vc_ALWAYS_INLINE void spawn(F&& kernel)
+Vc_ALWAYS_INLINE auto spawn(F&& kernel) -> decltype(cudaDeviceSynchronize())
 {
     kernel<<<1, CUDA_VECTOR_SIZE>>>();
-    cudaDeviceSynchronize();
+    return cudaDeviceSynchronize();
 }
 #endif
 } // namespace CUDA

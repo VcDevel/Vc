@@ -345,32 +345,11 @@ void EXPECT_FAILURE() { global_unit_test_object_.expect_failure = true; }
 
 
 #ifdef VC_NVCC // CUDA failString {{{1
-__host__ __device__ static const char *failString()
+__device__ static const char *cuFailString()
 {
-#ifdef __CUDA_ARCH__
-    __shared__ static const char *str;
-    if(Vc::Detail::getThreadId == 0)
-        str = " \033[1;40;31mFAIL:\033[0m ";
-    return str;
-#else
-    if (global_unit_test_object_.expect_failure) {
-        return "XFAIL: ";
-    }
-    static const char *str = 0;
-    if (str == 0) {
-        if (Vc::mayUseColor(std::cout)) {
-            static const char *fail = " \033[1;40;31mFAIL:\033[0m ";
-            str = fail;
-        } else {
-            static const char *fail = " FAIL: ";
-            str = fail;
-        }
-    }
-    return str;
-#endif // __CUDA_ARCH__ 
+    return " \033[1;40;31mFAIL:\033[0m ";
 }
-
-#else
+#endif
 static const char *failString() // generic failString {{{1
 {
     if (global_unit_test_object_.expect_failure) {
@@ -388,7 +367,6 @@ static const char *failString() // generic failString {{{1
     }
     return str;
 }
-#endif
 
 void initTest(int argc, char **argv)  //{{{1
 {
@@ -664,6 +642,7 @@ public:
             print(_b);
             print(" (");
             // print(std::setprecision(10));
+            print(b);
             print(") -> ");
             print(a == b);
         }
@@ -677,8 +656,41 @@ public:
         const char *_b,
         const char *_file,
         typename std::enable_if<!Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
-        : Compare(a, b, _a, _b, _file, _line, Mem())
+        : Compare(a, b, _a, _b, _file, _line, Mem()) 
     {
+    }
+
+    // Mem Compare ctor {{{2
+    template <typename T1, typename T2>
+    __device__ Vc_ALWAYS_INLINE Compare(const T1 &valueA,
+                                        const T2 &valueB,
+                                        const char *variableNameA,
+                                        const char *variableNameB,
+                                        const char *filename,
+                                        int line,
+                                        Mem)
+        : m_failed(0 != memcmp(&valueA, &valueB, sizeof(T1)))
+    {
+        static_assert(
+            sizeof(T1) == sizeof(T2),
+            "MEMCOMPARE requires both of its arguments to have the same size (equal sizeof)");
+        if(VC_IS_UNLIKELY(m_failed)) {
+            printFirst();
+            printPosition(filename, line);
+            print("MEMCOMPARE(");
+            print(variableNameA);
+            print(", ");
+            print(variableNameB);
+            const int endian_test = 1;
+            if(reinterpret_cast<const char *>(&endian_test)[0] == 1) {
+                print("), memory contents (little-endian):\n");
+            } else {
+                print("), memory contents (big-endian):\n");
+            }
+            printMem(valueA);
+            print('\n');
+            printMem(valueB);
+        }
     }
 
 
@@ -694,7 +706,8 @@ public:
     }
 
     // FAIL ctor {{{2
-    __device__ Vc_ALWAYS_INLINE Compare(const char *_file, int _line) : m_failed(true)
+    __device__ Vc_ALWAYS_INLINE Compare(const char *_file, int _line)
+        : m_failed(true)
     {
         printFirst();
         printPosition(_file, _line);
@@ -705,7 +718,7 @@ public:
     {
         if(VC_IS_UNLIKELY(m_failed)) {
             if(Vc::Detail::getThreadId() == 0)
-                printf("Placeholder for generic operator<<\n");
+                print(x);
         }
         return *this;
     }
@@ -714,104 +727,162 @@ public:
     {
         if(VC_IS_UNLIKELY(m_failed)) {
             if(Vc::Detail::getThreadId() == 0)
-                printf("Placeholder for const char* operator<<\n");
+            {
+                print('\n');
+                print(str);
+            }
         }
         return *this;
     }
 
-    __device__ Vc_ALWAYS_INLINE ~Compare()
+    __device__ Vc_ALWAYS_INLINE const Compare &operator<<(const char ch) const
     {
         if(VC_IS_UNLIKELY(m_failed)) {
-            printLast();
+            if(Vc::Detail::getThreadId() == 0)
+                print(ch);
+        }
+        return *this;
+    }
+
+    __device__ Vc_ALWAYS_INLINE const Compare &operator<<(bool b) const
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            if(Vc::Detail::getThreadId() == 0)
+                print(b);
+        }
+        return *this;
+    }
+
+    __device__ Vc_ALWAYS_INLINE ~Compare() // {{{2
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            printLast(m_failPtr);
         }
     }
 
     // }}}2
 private:
+    // cstdlib string functions {{{2
+    __device__ static const char* strchr(const char *str, int character)
+    {
+        while(*str)
+        {
+            if(*str == character)
+                return str;
+            ++str;
+        }
+        
+        return nullptr; 
+    }
+
+    __device__ static char* strchr(char *str, int character)
+    {
+        while(*str)
+        {
+            if(*str == character)
+                return str;
+            ++str;
+        }
+        return nullptr;
+    }
+
+    __device__ static std::size_t strlen(const char *str)
+    {
+        std::size_t ret = 0;
+        while(*str != '\0')
+            ++ret;
+        return ret;
+    }
+
+    __device__ static char* strcpy(char *destination, const char *source)
+    {
+        while(*source)
+        {
+            *destination = *source;
+            ++destination;
+            ++source;
+        }
+        return destination;
+    }
+
+    __device__ static char* strdup(const char *s1)
+    {
+        if(s1 == nullptr)
+            return nullptr;
+
+        char *ret = new char[strlen(s1) + 1];
+        strcpy(ret, s1);
+        return ret;
+    }
+
+    __device__ static char hexChar(char x) // {{{2
+    {
+        return x + (x > 9 ? 87 : 48);
+    }
+
+    template <typename T> __device__ static void printMem(const T &x) // {{{2
+    {
+        constexpr std::size_t length = sizeof(T) * 2 + sizeof(T) / 4;
+        auto s = new char[length + 1];
+        memset(s, '\'', length - 1);
+        s[length - 1] = '\0';
+        s[length] = '\0';
+        const auto bytes = reinterpret_cast<const std::uint8_t *>(&x);
+        for(std::size_t i = 0; i < sizeof(T); ++i) {
+            s[i * 2 + i / 4] = hexChar(bytes[i] >> 4);
+            s[i * 2 + 1 + i / 4] = hexChar(bytes[i] & 0xf);
+        }
+        printf("Thread #%i: %s\n", Vc::Detail::getThreadId(), s);
+        delete[] s;
+    }
+
     // printFirst {{{2
     static __device__ void printFirst()
     {
         if(Vc::Detail::getThreadId() == 0)
-            printf("%s┍", failString());
+            printf("%s┍ ", cuFailString());
     }
 
     // print overloads {{{2
+    template <typename T, typename... Args> // variadic because CUDA doesn't support ellipsis
+    __device__ static inline void printImpl(const T &x, Args... args);
+
+    template <typename T>
+    __device__ static inline void print(const T &x) { printImpl(x, int()); }
+    
+    __device__ static void print(const std::type_info &x)
+    {
+        printf(x.name());
+    }
     __device__ static void print(const char *str)
     {
-        auto strchr = [](const char *str, int character)
-        {
-            while(*str)
-            {
-                if(*str == character)
-                    return str;
-                ++str;
-            }
-            
-            return static_cast<const char*>(0); // CUDA doesn't support nullptr
-        };
-
-        auto strchr = [](char *str, int character)
-        {
-            while(*str)
-            {
-                if(*str == character)
-                    return str;
-                ++str;
-            }
-            return static_cast<char*>(0);
-        };
-
-        auto strlen = [](const char *str)
-        {
-            size_t ret = 0;
-            while(*str != '\0')
-                ++ret;
-            return ret;
-        };
-
-        auto strcpy = [](char *destination, const char *source)
-        {
-            while(*source)
-            {
-                *destination = *source;
-                ++destination;
-                ++source;
-            }
-        };
-
-        auto strdup = [&strlen, &strcpy](const char *s1)
-        {
-            if(s1 == static_cast<const char*>(0))
-                return static_cast<char*>(0);
-            
-            char *ret = new char[strlen(s1) + 1];
-            strcpy(ret, s1);
-            return ret;
-        };
-        
-        const char *pos = NULL;
-        if(NULL != (pos = strchr(str, static_cast<int>('\n')))) {
+        const char *pos = nullptr;
+        if(nullptr != (pos = strchr(str, '\n'))) {
             if(pos == str) {
-                printf("%c%s", '\n', failString());
+                printf("%c%s", '\n', cuFailString());
+                printf("│ ");
                 print(&str[1]);
             }
             else {
                 char *left = strdup(str);
                 left[pos - str] = '\0';
-                printf("%s%c%s", left, '\n', failString());
+                printf("%s%c%s", left, '\n', cuFailString());
+                printf("│ ");
                 delete[] left;
                 print(&pos[1]);
             }
         }
         else {
-            printf("%s", str);
+            if(Vc::Detail::getThreadId() == 0)
+                printf("%s", str);
         }
     }
 
     __device__ static void print(const char ch)
     {
         if(ch == '\n') {
-            printf("%c%s", '\n', failString());
+            printf("%c%s", '\n', cuFailString());
+            printf("│ ");
         }
         else {
             printf("%c", ch);
@@ -820,25 +891,51 @@ private:
 
     __device__ static void print(bool b)
     {
-        printf((b ? "true" : "false"));
+        printf("\n%s│ Thread #%i: %s", cuFailString(), Vc::Detail::getThreadId(), (b ? "true" : "false"));
     }
 
     // printLast {{{2
-    __device__ static void printLast()
+    __device__ static void printLast(bool *failPtr)
     {
         if(Vc::Detail::getThreadId() == 0)
             printf("\n");
+        asm("trap;");
     }
 
     // printPosition {{{2
     __device__ void printPosition(const char *_file, int _line)
     {
         if(Vc::Detail::getThreadId() == 0)
-            printf("%s: %i\n", _file, _line);
+        {
+            printf("at %s: %i:", _file, _line);
+            print('\n');
+        }
     }
     // member variables {{{2
     const size_t m_failed;
+    bool *m_failPtr;
 };
+// print implementations {{{2
+template<typename T, typename... Args>
+__device__ inline void Compare::printImpl(const T& x, Args... args)
+{
+    printMem(x);
+}
+
+template<> __device__ inline void Compare::printImpl<int>(const int &x, int)
+{
+    printf("%i,", x);
+}
+
+template<> __device__ inline void Compare::printImpl<float>(const float &x, int)
+{
+    printf("%f,", x);
+}
+
+template<> __device__ inline void Compare::printImpl<unsigned int>(const unsigned int &x, int)
+{
+    printf("%u,", x);
+}
 #else
 class Compare  // Generic Compare{{{1
 {
@@ -1807,11 +1904,20 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
     {                                                                                    \
         static void test_function()                                                      \
         {                                                                                \
-            Vc::CUDA::spawn(kernel_##fun__);                                             \
+            auto error = Vc::CUDA::spawn(kernel_##fun__);                                \
+            if(error == cudaErrorLaunchFailure) {                                        \
+                cudaDeviceReset();                                                       \
+                UnitTest::global_unit_test_object_.status = false;                       \
+                throw UnitTest::UnitTestFailure();                                       \
+                }                                                                        \
+            else if(error != cudaSuccess) {                                              \
+                cudaDeviceReset();                                                       \
+                throw std::runtime_error("Unexpected CUDA error");                       \
+            }                                                                            \
         }                                                                                \
     };                                                                                   \
     static UnitTest::Test<void, fun__> test_##fun__##__(#fun__);                         \
-    __global__ void kernel_##fun__()                                                     
+    __global__ void kernel_##fun__()                                         
 #else
 #define TEST(fun__)                                                                      \
     void fun__();                                                                        \
