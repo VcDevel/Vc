@@ -1513,11 +1513,11 @@ Vc_SIMD_CAST_AVX_2(double_m,  short_m) { return _mm_packs_epi16(_mm_packs_epi32(
 Vc_SIMD_CAST_AVX_2(double_m, ushort_m) { return _mm_packs_epi16(_mm_packs_epi32(AVX::lo128(x0.dataI()), AVX::hi128(x0.dataI())), _mm_packs_epi32(AVX::lo128(x1.dataI()), AVX::hi128(x1.dataI()))); }
 
 #ifdef VC_IMPL_AVX2
-Vc_SIMD_CAST_AVX_2(   int_m,  short_m) { return _mm256_packs_epi16(x0.dataI(), x1.dataI()); }
-Vc_SIMD_CAST_AVX_2(   int_m, ushort_m) { return _mm256_packs_epi16(x0.dataI(), x1.dataI()); }
+Vc_SIMD_CAST_AVX_2(   int_m,  short_m) { return Mem::permute4x64<X0, X2, X1, X3>(_mm256_packs_epi16(x0.dataI(), x1.dataI())); }
+Vc_SIMD_CAST_AVX_2(   int_m, ushort_m) { return Mem::permute4x64<X0, X2, X1, X3>(_mm256_packs_epi16(x0.dataI(), x1.dataI())); }
 
-Vc_SIMD_CAST_AVX_2(  uint_m,  short_m) { return _mm256_packs_epi16(x0.dataI(), x1.dataI()); }
-Vc_SIMD_CAST_AVX_2(  uint_m, ushort_m) { return _mm256_packs_epi16(x0.dataI(), x1.dataI()); }
+Vc_SIMD_CAST_AVX_2(  uint_m,  short_m) { return Mem::permute4x64<X0, X2, X1, X3>(_mm256_packs_epi16(x0.dataI(), x1.dataI())); }
+Vc_SIMD_CAST_AVX_2(  uint_m, ushort_m) { return Mem::permute4x64<X0, X2, X1, X3>(_mm256_packs_epi16(x0.dataI(), x1.dataI())); }
 #endif
 
 // 1 SSE::Mask to 1 AVX2::Mask {{{2
