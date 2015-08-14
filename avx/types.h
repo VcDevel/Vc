@@ -91,20 +91,26 @@ namespace AVX2
 constexpr std::size_t VectorAlignment = 32;
 
 template <typename T> using Vector = Vc::Vector<T, VectorAbi::Avx>;
-typedef Vector<double>         double_v;
-typedef Vector<float>           float_v;
-typedef Vector<int>               int_v;
-typedef Vector<unsigned int>     uint_v;
-typedef Vector<short>           short_v;
-typedef Vector<unsigned short> ushort_v;
+using double_v = Vector<double>;
+using  float_v = Vector< float>;
+using    int_v = Vector<   int>;
+using   uint_v = Vector<  uint>;
+using  short_v = Vector< short>;
+using ushort_v = Vector<ushort>;
 
 template <typename T> using Mask = Vc::Mask<T, VectorAbi::Avx>;
-typedef Mask<double>         double_m;
-typedef Mask<float>           float_m;
-typedef Mask<int>               int_m;
-typedef Mask<unsigned int>     uint_m;
-typedef Mask<short>           short_m;
-typedef Mask<unsigned short> ushort_m;
+using double_m = Mask<double>;
+using  float_m = Mask< float>;
+using  llong_m = Mask< llong>;
+using ullong_m = Mask<ullong>;
+using   long_m = Mask<  long>;
+using  ulong_m = Mask< ulong>;
+using    int_m = Mask<   int>;
+using   uint_m = Mask<  uint>;
+using  short_m = Mask< short>;
+using ushort_m = Mask<ushort>;
+using  schar_m = Mask< schar>;
+using  uchar_m = Mask< uchar>;
 
 template <typename V = Vector<float>>
 class
