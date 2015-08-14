@@ -272,42 +272,11 @@ template<> Vc_INTRINSIC AVX2::double_v Vc_PURE AVX2::double_v::operator/(VC_ALIG
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #ifdef VC_IMPL_AVX2
-template <> inline Vc_PURE AVX2::int_v AVX2::int_v::operator%(const AVX2::int_v &n) const
+template <typename T>
+inline Vc_PURE Vector<T, VectorAbi::Avx> Vector<T, VectorAbi::Avx>::operator%(
+    const Vector &n) const
 {
-    using namespace AVX;
-    return *this -
-           n * AVX2::int_v(concat(_mm256_cvttpd_epi32(_mm256_div_pd(
-                                      _mm256_cvtepi32_pd(lo128(data())),
-                                      _mm256_cvtepi32_pd(lo128(n.data())))),
-                                  _mm256_cvttpd_epi32(_mm256_div_pd(
-                                      _mm256_cvtepi32_pd(hi128(data())),
-                                      _mm256_cvtepi32_pd(hi128(n.data()))))));
-}
-template <>
-inline Vc_PURE AVX2::uint_v AVX2::uint_v::operator%(const AVX2::uint_v &n) const
-{
-    using namespace AVX;
-    auto &&cvt = [](__m128i v) {
-        return _mm256_add_pd(_mm256_cvtepi32_pd(_mm_sub_epi32(v, _mm_setmin_epi32())),
-                             set1_pd(1u << 31));
-    };
-    auto &&cvt2 = [](__m256d v) {
-        return __m128i(
-            _mm256_cvttpd_epi32(_mm256_sub_pd(_mm256_floor_pd(v), set1_pd(0x80000000u))));
-    };
-    return *this -
-           n * AVX2::uint_v(add_epi32(
-                   concat(cvt2(_mm256_div_pd(cvt(lo128(data())), cvt(lo128(n.data())))),
-                          cvt2(_mm256_div_pd(cvt(hi128(data())), cvt(hi128(n.data()))))),
-                   set2power31_epu32()));
-}
-template <> inline Vc_PURE AVX2::short_v AVX2::short_v::operator%(const AVX2::short_v &n) const
-{
-    return *this - n * static_cast<AVX2::short_v>(static_cast<AVX2::float_v>(*this) / static_cast<AVX2::float_v>(n));
-}
-template <> inline Vc_PURE AVX2::ushort_v AVX2::ushort_v::operator%(const AVX2::ushort_v &n) const
-{
-    return *this - n * static_cast<AVX2::ushort_v>(static_cast<AVX2::float_v>(*this) / static_cast<AVX2::float_v>(n));
+    return *this - n * (*this / n);
 }
 
 #define OP_IMPL(T, symbol)                                                               \
