@@ -219,7 +219,17 @@ template <typename T> static inline __m256i Vc_CONST divShort(__m256i a, __m256i
         _mm256_div_ps(convert<T, float>(lo128(a)), convert<T, float>(lo128(b)));
     const __m256 hi =
         _mm256_div_ps(convert<T, float>(hi128(a)), convert<T, float>(hi128(b)));
-    return _mm256_packs_epi16(_mm256_cvttps_epi32(lo), _mm256_cvttps_epi32(hi));
+    if (std::is_same<T, ushort>::value) {
+        const float_v threshold = 32767.f;
+        const __m128i loShort = (VC_IS_UNLIKELY((float_v(lo) > threshold).isNotEmpty()))
+                                    ? convert<float, ushort>(lo)
+                                    : convert<float, short>(lo);
+        const __m128i hiShort = (VC_IS_UNLIKELY((float_v(hi) > threshold).isNotEmpty()))
+                                    ? convert<float, ushort>(hi)
+                                    : convert<float, short>(hi);
+        return concat(loShort, hiShort);
+    }
+    return concat(convert<float, short>(lo), convert<float, short>(hi));
 }
 template<> Vc_ALWAYS_INLINE AVX2::short_v &AVX2::short_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::short_v) x)
 {
