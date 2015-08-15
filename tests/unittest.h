@@ -716,6 +716,31 @@ public:
         }
     }
 
+    // Fuzzy Compare ctor {{{2
+    template <typename T>
+    __device__ Vc_ALWAYS_INLINE Compare(const T &a,
+                                        const T &b,
+                                        const char *_a,
+                                        const char *_b,
+                                        const char *_file,
+                                        int _line,
+                                        Fuzzy)
+    : m_failed(!unittest_fuzzyCompareHelper(a, b))
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            printFirst();
+            printPosition(_file, _line);
+            print(_a);
+            print<decltype(a), 10>(a);
+            print(") ≈ ");
+            print(_b);
+            print<decltype(b), 10>(b);
+            print(") -> ");
+            print(a == b);
+            printFuzzyInfo(a, b);
+        }
+        // FIXME: Plot data
+    }
     // VERIFY ctor {{{2
     __device__ Vc_ALWAYS_INLINE Compare(bool good, const char *cond, const char *_file, int _line)
         : m_failed(!good)
