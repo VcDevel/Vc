@@ -693,6 +693,33 @@ public:
         }
     }
 
+    // NoEq compare ctor {{{2
+    template <typename T1, typename T2>
+    Vc_ALWAYS_INLINE Compare(const T1 &a,
+                             const T2 &b,
+                             const char *_a,
+                             const char *_b,
+                             const char *_file,
+                             int _line,
+                             NoEq)
+    : m_failed(!unittest_compareHelper(a, b))
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            printFirst();
+            printPosition(_file, _line);
+            print(_a);
+            print(" (");
+            // print(std::setprecision(10));
+            print(a);
+            print(") == ");
+            print(_b);
+            print(" (");
+            // print(std::setprecision(10));
+            print(b);
+            // print(std::setprecision(6));
+            print(')');
+        }
+    }
 
     // VERIFY ctor {{{2
     __device__ Vc_ALWAYS_INLINE Compare(bool good, const char *cond, const char *_file, int _line)
