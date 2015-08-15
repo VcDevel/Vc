@@ -636,13 +636,11 @@ public:
             printPosition(_file, _line);
             print(_a);
             print(" (");
-            // print(std::setprecision(10));
-            print(a);
+            print<decltype(a), 10>(a);
             print(") == ");
             print(_b);
             print(" (");
-            // print(std::setprecision(10));
-            print(b);
+            print<decltype(b), 10>(b);
             print(") -> ");
             print(a == b);
         }
@@ -656,7 +654,7 @@ public:
         const char *_b,
         const char *_file,
         typename std::enable_if<!Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
-        : Compare(a, b, _a, _b, _file, _line, Mem()) 
+        : Compare(a, b, _a, _b, _file, _line, Mem())
     {
     }
 
@@ -695,13 +693,13 @@ public:
 
     // NoEq compare ctor {{{2
     template <typename T1, typename T2>
-    Vc_ALWAYS_INLINE Compare(const T1 &a,
-                             const T2 &b,
-                             const char *_a,
-                             const char *_b,
-                             const char *_file,
-                             int _line,
-                             NoEq)
+    __device__ Vc_ALWAYS_INLINE Compare(const T1 &a,
+                                        const T2 &b,
+                                        const char *_a,
+                                        const char *_b,
+                                        const char *_file,
+                                        int _line,
+                                        NoEq)
     : m_failed(!unittest_compareHelper(a, b))
     {
         if(VC_IS_UNLIKELY(m_failed)) {
@@ -709,14 +707,11 @@ public:
             printPosition(_file, _line);
             print(_a);
             print(" (");
-            // print(std::setprecision(10));
-            print(a);
+            print<decltype(a), 10>(a);
             print(") == ");
             print(_b);
             print(" (");
-            // print(std::setprecision(10));
-            print(b);
-            // print(std::setprecision(6));
+            print<decltype(b), 10>(b);
             print(')');
         }
     }
@@ -783,7 +778,7 @@ public:
     __device__ Vc_ALWAYS_INLINE ~Compare() // {{{2
     {
         if(VC_IS_UNLIKELY(m_failed)) {
-            printLast(m_failPtr);
+            printLast();
         }
     }
 
@@ -871,11 +866,12 @@ private:
     }
 
     // print overloads {{{2
-    template <typename T, typename... Args> // variadic because CUDA doesn't support ellipsis
+    // variadic because CUDA doesn't support ellipsis
+    template <typename T, int precision = 6, typename... Args>
     __device__ static inline void printImpl(const T &x, Args... args);
 
-    template <typename T>
-    __device__ static inline void print(const T &x) { printImpl(x, int()); }
+    template <typename T, int precision = 6>
+    __device__ static inline void print(const T &x) { printImpl<T, precision>(x, int()); }
     
     __device__ static void print(const std::type_info &x)
     {
@@ -922,7 +918,7 @@ private:
     }
 
     // printLast {{{2
-    __device__ static void printLast(bool *failPtr)
+    __device__ static void printLast()
     {
         if(Vc::Detail::getThreadId() == 0)
             printf("\n");
@@ -940,10 +936,9 @@ private:
     }
     // member variables {{{2
     const size_t m_failed;
-    bool *m_failPtr;
 };
 // print implementations {{{2
-template<typename T, typename... Args>
+template<typename T, int precision, typename... Args>
 __device__ inline void Compare::printImpl(const T& x, Args... args)
 {
     printMem(x);
@@ -956,7 +951,12 @@ template<> __device__ inline void Compare::printImpl<int>(const int &x, int)
 
 template<> __device__ inline void Compare::printImpl<float>(const float &x, int)
 {
-    printf("%f,", x);
+    printf("%.6f,", x);
+}
+
+template<> __device__ inline void Compare::printImpl<float, 10>(const float &x, int)
+{
+    printf("%.10f,", x);
 }
 
 template<> __device__ inline void Compare::printImpl<unsigned int>(const unsigned int &x, int)
