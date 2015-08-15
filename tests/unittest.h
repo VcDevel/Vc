@@ -741,6 +741,94 @@ public:
         }
         // FIXME: Plot data
     }
+
+    // Absolute Error compare ctor {{{2
+    template <typename T, typename ET>
+    __device__ Vc_ALWAYS_INLINE Compare(const T &a,
+                                        const T &b,
+                                        const char *_a,
+                                        const char *_b,
+                                        const char *_file,
+                                        int _line,
+                                        AbsoluteError,
+                                        ET error)
+    : m_failed(absoluteErrorTest(a, b, error))
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            printFirst();
+            printPosition(_file, _line);
+            print(_a);
+            print(" (");
+            print<decltype(a), 10>(a);
+            print(") ≈ ");
+            print(_b);
+            print(" (");
+            print<decltype(a), 10>(b);
+            print(") -> ");
+            print(a == b);
+            print("\ndifference: ");
+            if(a > b) {
+                print(a - b);
+            } else {
+                print('-');
+                print(b - a);
+            }
+            print(", allowed difference: ±");
+            print(error);
+            print("\ndistance: ");
+            print(ulpDiffToReferenceSigned(a, b));
+            print(" ulp");
+        }
+    }
+
+    // Relative Error Compare ctor {{{2
+    template <typename T, typename ET>
+    __device__ Vc_ALWAYS_INLINE Compare(const T &a,
+                                        const T &b,
+                                        const char *_a,
+                                        const char *_b,
+                                        const char *_file,
+                                        int _line,
+                                        RelativeError,
+                                        ET error)
+    : m_failed(relativeErrorTest(a, b, error))
+    {
+        if(VC_IS_UNLIKELY(m_failed)) {
+            printFirst();
+            printPosition(_file, _line);
+            print(_a);
+            print(" (");
+            print<decltype(a), 10>(a);
+            print(") ≈ ");
+            print(_b);
+            print(" (");
+            print<decltype(b), 10>(b);
+            print(") -> ");
+            print(a == b);
+            print("\nrelative difference: ");
+            if(a > b) {
+                print((a - b) / (b > 0 ? b : -b));
+            } else {
+                print((b - a) / (b > 0 ? b : -b));
+            }
+            print(", allowed: ±");
+            print(error);
+            print("\nabsolute difference: ");
+            if(a > b) {
+                print(a - b);
+            } else {
+                print('-');
+                print(b - a);
+            }
+            print(", allowed: ±");
+            print(error * (b > 0 ? b : -b));
+            print("\ndistance: ");
+            print(ulpDiffToReferenceSigned(a, b));
+            print(" ulp");
+
+        }
+    }
+
     // VERIFY ctor {{{2
     __device__ Vc_ALWAYS_INLINE Compare(bool good, const char *cond, const char *_file, int _line)
         : m_failed(!good)
@@ -959,10 +1047,40 @@ private:
             print('\n');
         }
     }
+
+    // fuzzy prints {{{2
+    template <typename T>
+    __device__ static inline void printFuzzyInfo(VC_ALIGNED_PARAMETER(T), VC_ALIGNED_PARAMETER(T));
+
+    template <typename T>
+    __device__ static inline void printFuzzyInfoImpl(std::true_type, VC_ALIGNED_PARAMETER(T) a,
+                                                     VC_ALIGNED_PARAMETER(T) b, double fuzzyness)
+    {
+        print("\ndistance: ");
+        print(ulpDiffToReferenceSigned(a, b));
+        print(" ulp, allowed distance: ±");
+        print(fuzzyness);
+        print(" ulp");
+    }
+
+    template <typename T>
+    __device__ static inline void printFuzzyInfoImpl(std::false_type, VC_ALIGNED_PARAMETER(T),
+                                                     VC_ALIGNED_PARAMETER(T), double)
+    {
+    }
+    
     // member variables {{{2
     const size_t m_failed;
 };
-// print implementations {{{2
+
+// printFuzzyInfo specializations for float and double {{{1
+template <typename T>
+__device__ inline void Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(T) a, VC_ALIGNED_PARAMETER(T) b)
+{
+    if(Vc::Detail::getThreadId() == 0)
+        printf("STUB: %s", __func__);
+}
+// print implementations {{{1
 template<typename T, int precision, typename... Args>
 __device__ inline void Compare::printImpl(const T& x, Args... args)
 {
