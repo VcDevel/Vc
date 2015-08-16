@@ -57,7 +57,7 @@ typedef Vector<unsigned int>    uint_v;
 typedef Vector<short>           short_v;
 typedef Vector<unsigned short>  ushort_v;
 
-template <typename T> class Mask;
+template <typename T> using Mask = Vc::Mask<T, VectorAbi::Cuda>;
 typedef Mask<double>            double_m;
 typedef Mask<float>             float_m;
 typedef Mask<int>               int_m;

@@ -1080,6 +1080,7 @@ __device__ inline void Compare::printFuzzyInfo(VC_ALIGNED_PARAMETER(T) a, VC_ALI
     if(Vc::Detail::getThreadId() == 0)
         printf("STUB: %s", __func__);
 }
+
 // print implementations {{{1
 template<typename T, int precision, typename... Args>
 __device__ inline void Compare::printImpl(const T& x, Args... args)

@@ -7,11 +7,10 @@
 #include "vector.h"
 #include "macros.h"
 
-
 __global__ void my_kernel(const float *in, float *out)
 {
-    Vc::CUDA::Vector<float> inVec(in);
-    Vc::CUDA::Vector<float> outVec;
+    Vc::Vector<float> inVec(in);
+    Vc::Vector<float> outVec;
     outVec = sqrt(inVec);
     outVec.store(out);
 }

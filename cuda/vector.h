@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "detail.h"
 #include "global.h"
 #include "types.h"
+#include "mask.h"
 
 #include "macros.h"
 
@@ -57,6 +58,10 @@ template <typename T> class Vector<T, VectorAbi::Cuda>
         VectorType m_data;
 
     public:
+        typedef CUDA::Mask<T> Mask;
+        using MaskType = Mask;
+        using mask_type = Mask;
+
         __device__ Vc_ALWAYS_INLINE VectorType &data() { return m_data; }
         __device__ Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
 
@@ -114,6 +119,15 @@ template <typename T> class Vector<T, VectorAbi::Cuda>
                             "A SIMD vector object cannot be initialized from an initializer list "
                             "because the number of entries in the vector is target-dependent.");
         }
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // zeroing
+        __device__ Vc_INTRINSIC_L void setZero() Vc_INTRINSIC_R;
+        __device__ Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;
+        __device__ Vc_INTRINSIC_L void setZeroInverted(const Mask &k) Vc_INTRINSIC_R;
+
+        __device__ void setQnan() Vc_INTRINSIC_R;
+        __device__ void setQnan(Mask k) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal init
