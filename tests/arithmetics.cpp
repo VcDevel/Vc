@@ -103,7 +103,7 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
             VERIFY(all_of(Vec(Zero) < Vec(j))) << (Vec(Zero) < Vec(j)) << ", j = " << j << ", step = " << step;
             VERIFY(all_of(Vec(j) > Vec(Zero)));
             VERIFY(none_of(Vec(Zero) >= Vec(j)));
-            VERIFY(none_of(Vec(j) <= Vec(Zero)));
+            VERIFY(none_of(Vec(j) <= Vec(Zero))) << (Vec(j) <= Vec::Zero()) << ", j = " << j << ", Vec(j) = " << Vec(j);
         }
     }
     if (std::numeric_limits<T>::min() <= 0) {
