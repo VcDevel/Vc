@@ -754,10 +754,12 @@ template <> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(__m256i k)
 {
     return movemask(AVX::avx_cast<__m256>(k));
 }
+#ifdef VC_IMPL_BMI2
 template <> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m256i k)
 {
-    return movemask(_mm256_packs_epi16(k, zero<__m256i>()));
+    return _pext_u32(movemask(k), 0x55555555u);
 }
+#endif
 template <> Vc_INTRINSIC Vc_CONST int mask_to_int<32>(__m256i k)
 {
     return movemask(k);
