@@ -832,7 +832,11 @@ template <> template <typename G> Vc_INTRINSIC AVX2::int_v AVX2::int_v::generate
     const auto tmp1 = gen(1);
     const auto tmp2 = gen(2);
     const auto tmp3 = gen(3);
-    return _mm_setr_epi32(tmp0, tmp1, tmp2, tmp3);
+    const auto tmp4 = gen(4);
+    const auto tmp5 = gen(5);
+    const auto tmp6 = gen(6);
+    const auto tmp7 = gen(7);
+    return _mm256_setr_epi32(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
 }
 template <> template <typename G> Vc_INTRINSIC AVX2::uint_v AVX2::uint_v::generate(G gen)
 {
@@ -840,7 +844,11 @@ template <> template <typename G> Vc_INTRINSIC AVX2::uint_v AVX2::uint_v::genera
     const auto tmp1 = gen(1);
     const auto tmp2 = gen(2);
     const auto tmp3 = gen(3);
-    return _mm_setr_epi32(tmp0, tmp1, tmp2, tmp3);
+    const auto tmp4 = gen(4);
+    const auto tmp5 = gen(5);
+    const auto tmp6 = gen(6);
+    const auto tmp7 = gen(7);
+    return _mm256_setr_epi32(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
 }
 template <> template <typename G> Vc_INTRINSIC AVX2::short_v AVX2::short_v::generate(G gen)
 {
@@ -852,7 +860,15 @@ template <> template <typename G> Vc_INTRINSIC AVX2::short_v AVX2::short_v::gene
     const auto tmp5 = gen(5);
     const auto tmp6 = gen(6);
     const auto tmp7 = gen(7);
-    return _mm_setr_epi16(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
+    const auto tmp8 = gen(8);
+    const auto tmp9 = gen(9);
+    const auto tmp10 = gen(10);
+    const auto tmp11 = gen(11);
+    const auto tmp12 = gen(12);
+    const auto tmp13 = gen(13);
+    const auto tmp14 = gen(14);
+    const auto tmp15 = gen(15);
+    return _mm256_setr_epi16(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15);
 }
 template <> template <typename G> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::generate(G gen)
 {
@@ -864,7 +880,15 @@ template <> template <typename G> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::ge
     const auto tmp5 = gen(5);
     const auto tmp6 = gen(6);
     const auto tmp7 = gen(7);
-    return _mm_setr_epi16(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
+    const auto tmp8 = gen(8);
+    const auto tmp9 = gen(9);
+    const auto tmp10 = gen(10);
+    const auto tmp11 = gen(11);
+    const auto tmp12 = gen(12);
+    const auto tmp13 = gen(13);
+    const auto tmp14 = gen(14);
+    const auto tmp15 = gen(15);
+    return _mm256_setr_epi16(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12, tmp13, tmp14, tmp15);
 }
 #endif
 
