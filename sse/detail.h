@@ -445,23 +445,24 @@ Vc_INTRINSIC double add(__m128d a, double) {
     return _mm_cvtsd_f64(a);
 }
 Vc_INTRINSIC    int add(__m128i a,    int) {
-    a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
-    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    a = add(a, _mm_srli_si128(a, 8), int());
+    a = add(a, _mm_srli_si128(a, 4), int());
     return _mm_cvtsi128_si32(a);
 }
 Vc_INTRINSIC   uint add(__m128i a,   uint) { return add(a, int()); }
 Vc_INTRINSIC  short add(__m128i a,  short) {
-    a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
-    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
-    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), short());
+    a = add(a, _mm_srli_si128(a, 8), short());
+    a = add(a, _mm_srli_si128(a, 4), short());
+    a = add(a, _mm_srli_si128(a, 2), short());
     return _mm_cvtsi128_si32(a);  // & 0xffff is implicit
 }
 Vc_INTRINSIC ushort add(__m128i a, ushort) { return add(a, short()); }
 Vc_INTRINSIC  schar add(__m128i a,  schar) {
-    a = add(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-    a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
-    return (_mm_cvtsi128_si32(a) >> 8) + (_mm_cvtsi128_si32(a) & 0xff);
+    a = add(a, _mm_srli_si128(a, 8), schar());
+    a = add(a, _mm_srli_si128(a, 4), schar());
+    a = add(a, _mm_srli_si128(a, 2), schar());
+    a = add(a, _mm_srli_si128(a, 1), schar());
+    return _mm_cvtsi128_si32(a);  // & 0xff is implicit
 }
 Vc_INTRINSIC  uchar add(__m128i a,  uchar) { return add(a, schar()); }
 
@@ -476,23 +477,23 @@ Vc_INTRINSIC double mul(__m128d a, double) {
     return _mm_cvtsd_f64(a);
 }
 Vc_INTRINSIC    int mul(__m128i a,    int) {
-    a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
-    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), int());
+    a = mul(a, _mm_srli_si128(a, 8), int());
+    a = mul(a, _mm_srli_si128(a, 4), int());
     return _mm_cvtsi128_si32(a);
 }
 Vc_INTRINSIC   uint mul(__m128i a,   uint) { return mul(a, int()); }
 Vc_INTRINSIC  short mul(__m128i a,  short) {
-    a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
-    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), short());
-    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), short());
+    a = mul(a, _mm_srli_si128(a, 8), short());
+    a = mul(a, _mm_srli_si128(a, 4), short());
+    a = mul(a, _mm_srli_si128(a, 2), short());
     return _mm_cvtsi128_si32(a);  // & 0xffff is implicit
 }
 Vc_INTRINSIC ushort mul(__m128i a, ushort) { return mul(a, short()); }
 Vc_INTRINSIC  schar mul(__m128i a,  schar) {
-    a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)), schar());
-    a = mul(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)), schar());
-    return (_mm_cvtsi128_si32(a) >> 8) * (_mm_cvtsi128_si32(a) & 0xff);
+    // convert to two short vectors, multiply them and then do horizontal reduction
+    const __m128i s0 = _mm_srai_epi16(a, 1);
+    const __m128i s1 = Detail::and_(a, _mm_set1_epi32(0x0f0f0f0f));
+    return mul(mul(s0, s1, short()), short());
 }
 Vc_INTRINSIC  uchar mul(__m128i a,  uchar) { return mul(a, schar()); }
 
