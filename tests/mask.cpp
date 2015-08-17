@@ -259,6 +259,16 @@ TEST_TYPES(Vec, testZero, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
+TEST_TYPES(V, testIntegerConversion, ALL_TYPES) /*{{{*/
+{
+    UnitTest::withRandomMask<V>([](typename V::Mask m) {
+        auto bit = m.toInt();
+        for (size_t i = 0; i < m.Size; ++i) {
+            COMPARE(!!((bit >> i) & 1), m[i]) << std::hex << bit;
+        }
+    });
+}
+/*}}}*/
 TEST_TYPES(Vec, testCount, ALL_TYPES) /*{{{*/
 {
     typedef typename Vec::Mask M;
@@ -281,7 +291,7 @@ TEST_TYPES(Vec, testFirstOne, ALL_TYPES) /*{{{*/
 
     for (unsigned int i = 0; i < Vec::Size; ++i) {
         const M mask(I(Vc::IndexesFromZero) == i);
-        COMPARE(mask.firstOne(), int(i));
+        COMPARE(mask.firstOne(), int(i)) << mask << ' ' << I::IndexesFromZero() << ' ' << (I::IndexesFromZero() == i);
     }
 }
 /*}}}*/
@@ -415,16 +425,6 @@ TEST_TYPES(V, maskConversions, ALL_TYPES) /*{{{*/
         testMaskConversion<  uint_m>(m);
         testMaskConversion< short_m>(m);
         testMaskConversion<ushort_m>(m);
-    });
-}
-/*}}}*/
-TEST_TYPES(V, testIntegerConversion, ALL_TYPES) /*{{{*/
-{
-    UnitTest::withRandomMask<V>([](typename V::Mask m) {
-        auto bit = m.toInt();
-        for (size_t i = 0; i < m.Size; ++i) {
-            COMPARE(!!((bit >> i) & 1), m[i]);
-        }
     });
 }
 /*}}}*/
