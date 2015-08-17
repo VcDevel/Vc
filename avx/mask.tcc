@@ -48,6 +48,11 @@ template<> Vc_INTRINSIC void mask_store<8>(__m256i k, bool *mem)
     *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
 #endif
 }
+template<> Vc_INTRINSIC void mask_store<16>(__m256i k, bool *mem)
+{
+    _mm_store_si128(reinterpret_cast<__m128i *>(mem),
+                    Detail::and_(AVX::_mm_setone_epu8(), _mm_packs_epi16(AVX::lo128(k), AVX::hi128(k))));
+}
 /*}}}*/
 // mask_load/*{{{*/
 template<typename R, size_t> Vc_INTRINSIC R mask_load(const bool *mem);
@@ -63,6 +68,11 @@ template<> Vc_INTRINSIC __m128 mask_load<__m128, 4>(const bool *mem)
     k = _mm_unpacklo_epi16(k, k);
     k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
     return AVX::avx_cast<__m128>(k);
+}
+template<> Vc_INTRINSIC __m256 mask_load<__m256, 16>(const bool *mem)
+{
+    const auto k128 = _mm_cmpgt_epi8(_mm_load_si128(reinterpret_cast<const __m128i *>(mem)), _mm_setzero_si128());
+    return AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi8(k128, k128), _mm_unpackhi_epi8(k128, k128)));
 }
 template<> Vc_INTRINSIC __m256 mask_load<__m256, 8>(const bool *mem)
 {
