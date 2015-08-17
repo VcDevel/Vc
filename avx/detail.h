@@ -315,6 +315,13 @@ template <> Vc_INTRINSIC Vc_CONST __m256 mask_cast<4, 8, __m256>(__m128i k)
     return AVX::zeroExtend(AVX::avx_cast<__m128>(k));
 }
 
+// 4 -> 16
+template<> Vc_INTRINSIC Vc_CONST __m256 mask_cast<4, 16, __m256>(__m256i k)
+{
+    // aaaa bbbb cccc dddd -> abcd 0000 0000 0000
+    return AVX::zeroExtend(mask_cast<4, 8, __m128>(k));
+}
+
 // 8 -> 4
 template<> Vc_INTRINSIC Vc_CONST __m256 mask_cast<8, 4, __m256>(__m256i k)
 {
@@ -348,6 +355,31 @@ template<> Vc_INTRINSIC Vc_CONST __m256 mask_cast<8, 8, __m256>(__m128i k)
 {
     return AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi16(k, k),
                                  _mm_unpackhi_epi16(k, k)));
+}
+
+// 8 -> 16
+template<> Vc_INTRINSIC Vc_CONST __m256 mask_cast<8, 16, __m256>(__m256i k)
+{
+    // aabb ccdd eeff gghh -> abcd efgh 0000 0000
+    return AVX::zeroExtend(mask_cast<8, 8, __m128>(k));
+}
+
+// 16 -> 8
+#ifdef VC_IMPL_AVX2
+template<> Vc_INTRINSIC Vc_CONST __m256 mask_cast<16, 8, __m256>(__m256i k)
+{
+    // abcd efgh ijkl mnop -> aabb ccdd eeff gghh
+    const auto flipped = Mem::permute4x64<X0, X2, X1, X3>(k);
+    return _mm256_castsi256_ps(_mm256_unpacklo_epi16(flipped, flipped));
+}
+#endif
+
+// 16 -> 4
+template<> Vc_INTRINSIC Vc_CONST __m256 mask_cast<16, 4, __m256>(__m256i k)
+{
+    // abcd efgh ijkl mnop -> aaaa bbbb cccc dddd
+    const auto tmp = _mm_unpacklo_epi16(AVX::lo128(k), AVX::lo128(k)); // aabb ccdd
+    return _mm256_castsi256_ps(AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp)));
 }
 
 // allone{{{1
