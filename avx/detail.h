@@ -743,6 +743,98 @@ Vc_INTRINSIC Vc_CONST int movemask(__m128d a) { return _mm_movemask_pd(a); }
 Vc_INTRINSIC Vc_CONST int movemask(__m256  a) { return _mm256_movemask_ps(a); }
 Vc_INTRINSIC Vc_CONST int movemask(__m128  a) { return _mm_movemask_ps(a); }
 
+// mask_store{{{1
+template <size_t N, typename Flags>
+Vc_INTRINSIC void mask_store(__m256i k, bool *mem, Flags)
+{
+    static_assert(
+        N == 4 || N == 8 || N == 16,
+        "mask_store(__m256i, bool *) is only implemented for 4, 8, and 16 entries");
+    switch (N) {
+    case 4:
+        *reinterpret_cast<MayAlias<int32_t> *>(mem) =
+            (_mm_movemask_epi8(AVX::lo128(k)) |
+             (_mm_movemask_epi8(AVX::hi128(k)) << 16)) &
+            0x01010101;
+        break;
+    case 8: {
+        const auto k2 = _mm_srli_epi16(_mm_packs_epi16(AVX::lo128(k), AVX::hi128(k)), 15);
+        const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
+#ifdef __x86_64__
+        *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
+#else
+        *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k3);
+        *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
+#endif
+    } break;
+    case 16: {
+        const auto bools = Detail::and_(AVX::_mm_setone_epu8(),
+                                        _mm_packs_epi16(AVX::lo128(k), AVX::hi128(k)));
+        if (Flags::IsAligned) {
+            _mm_store_si128(reinterpret_cast<__m128i *>(mem), bools);
+        } else {
+            _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), bools);
+        }
+    } break;
+    }
+}
+
+// mask_load{{{1
+template <typename R, size_t N, typename Flags>
+Vc_INTRINSIC R mask_load(const bool *mem, Flags,
+                         enable_if<std::is_same<R, __m128>::value> = nullarg)
+{
+    static_assert(N == 4 || N == 8,
+                  "mask_load<__m128>(const bool *) is only implemented for 4, 8 entries");
+    switch (N) {
+    case 4: {
+        __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int32_t *>(mem));
+        k = _mm_unpacklo_epi8(k, k);
+        k = _mm_unpacklo_epi16(k, k);
+        k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
+        return AVX::avx_cast<__m128>(k);
+    }
+    case 8: {
+        __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+        return AVX::avx_cast<__m128>(
+            _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
+    }
+    }
+}
+
+template <typename R, size_t N, typename Flags>
+Vc_INTRINSIC R mask_load(const bool *mem, Flags,
+                         enable_if<std::is_same<R, __m256>::value> = nullarg)
+{
+    static_assert(
+        N == 4 || N == 8 || N == 16,
+        "mask_load<__m256>(const bool *) is only implemented for 4, 8, and 16 entries");
+    switch (N) {
+    case 4: {
+        __m128i k = AVX::avx_cast<__m128i>(_mm_and_ps(
+            _mm_set1_ps(*reinterpret_cast<const float *>(mem)),
+            AVX::avx_cast<__m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))));
+        k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
+        return AVX::avx_cast<__m256>(
+            AVX::concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
+    }
+    case 8: {
+        __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+        k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
+        return AVX::avx_cast<__m256>(
+            AVX::concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k)));
+    }
+    case 16: {
+        const auto k128 = _mm_cmpgt_epi8(
+            Flags::IsAligned ? _mm_load_si128(reinterpret_cast<const __m128i *>(mem))
+                             : _mm_loadu_si128(reinterpret_cast<const __m128i *>(mem)),
+            _mm_setzero_si128());
+        return AVX::avx_cast<__m256>(
+            AVX::concat(_mm_unpacklo_epi8(k128, k128), _mm_unpackhi_epi8(k128, k128)));
+    }
+    }
+}
+
 // mask_to_int{{{1
 template <size_t Size>
 Vc_INTRINSIC_L Vc_CONST_L int mask_to_int(__m256i x) Vc_INTRINSIC_R Vc_CONST_R;
@@ -764,6 +856,7 @@ template <> Vc_INTRINSIC Vc_CONST int mask_to_int<32>(__m256i k)
 {
     return movemask(k);
 }
+
 //}}}1
 }  // namespace Detail
 }  // namespace Vc

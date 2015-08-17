@@ -28,81 +28,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Detail
-{
-// mask_store/*{{{*/
-template<size_t> Vc_INTRINSIC void mask_store(__m256i k, bool *mem);
-template<> Vc_INTRINSIC void mask_store<4>(__m256i k, bool *mem)
-{
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) =
-        (_mm_movemask_epi8(AVX::lo128(k)) | (_mm_movemask_epi8(AVX::hi128(k)) << 16)) & 0x01010101;
-}
-template<> Vc_INTRINSIC void mask_store<8>(__m256i k, bool *mem)
-{
-    const auto k2 = _mm_srli_epi16(_mm_packs_epi16(AVX::lo128(k), AVX::hi128(k)), 15);
-    const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
-#ifdef __x86_64__
-    *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
-#else
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k3);
-    *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
-#endif
-}
-template<> Vc_INTRINSIC void mask_store<16>(__m256i k, bool *mem)
-{
-    _mm_store_si128(reinterpret_cast<__m128i *>(mem),
-                    Detail::and_(AVX::_mm_setone_epu8(), _mm_packs_epi16(AVX::lo128(k), AVX::hi128(k))));
-}
-/*}}}*/
-// mask_load/*{{{*/
-template<typename R, size_t> Vc_INTRINSIC R mask_load(const bool *mem);
-template<> Vc_INTRINSIC __m128 mask_load<__m128, 8>(const bool *mem)
-{
-    __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
-    return AVX::avx_cast<__m128>(_mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
-}
-template<> Vc_INTRINSIC __m128 mask_load<__m128, 4>(const bool *mem)
-{
-    __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int32_t *>(mem));
-    k = _mm_unpacklo_epi8(k, k);
-    k = _mm_unpacklo_epi16(k, k);
-    k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
-    return AVX::avx_cast<__m128>(k);
-}
-template<> Vc_INTRINSIC __m256 mask_load<__m256, 16>(const bool *mem)
-{
-    const auto k128 = _mm_cmpgt_epi8(_mm_load_si128(reinterpret_cast<const __m128i *>(mem)), _mm_setzero_si128());
-    return AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi8(k128, k128), _mm_unpackhi_epi8(k128, k128)));
-}
-template<> Vc_INTRINSIC __m256 mask_load<__m256, 8>(const bool *mem)
-{
-    __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
-    k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
-
-    return AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k)));
-}
-template<> Vc_INTRINSIC __m256 mask_load<__m256, 4>(const bool *mem)
-{
-    __m128i k = AVX::avx_cast<__m128i>(_mm_and_ps(_mm_set1_ps(*reinterpret_cast<const float *>(mem)),
-                AVX::avx_cast<__m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))
-                ));
-    k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
-    return AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
-}
-/*}}}*/
-
-} // namespace Detail
-
 // store {{{1
-template<typename T> Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::store(bool *mem) const
+template <typename T>
+template <typename Flags>
+Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::store(bool *mem, Flags f) const
 {
-    Detail::mask_store<Size>(dataI(), mem);
+    Detail::mask_store<Size>(dataI(), mem, f);
 }
+
 // load {{{1
-template<typename T> Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::load(const bool *mem)
+template <typename T>
+template <typename Flags>
+Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::load(const bool *mem, Flags f)
 {
-    d.v() = AVX::avx_cast<VectorType>(Detail::mask_load<VectorTypeF, Size>(mem));
+    d.v() = AVX::avx_cast<VectorType>(Detail::mask_load<VectorTypeF, Size>(mem, f));
 }
+
 // operator[] {{{1
 template<typename T> Vc_INTRINSIC Vc_PURE bool Mask<T, VectorAbi::Avx>::operator[](size_t index) const { return toInt() & (1 << index); }
 #ifdef VC_IMPL_AVX2

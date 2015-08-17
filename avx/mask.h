@@ -134,14 +134,11 @@ public:
                                    Common::enable_if_mask_converts_explicitly<T, U> =
                                        nullarg);
 
-        Vc_INTRINSIC explicit Mask(const bool *mem) { load(mem); }
-        template<typename Flags> Vc_INTRINSIC explicit Mask(const bool *mem, Flags f) { load(mem, f); }
+        template<typename Flags = DefaultLoadTag> Vc_INTRINSIC explicit Mask(const bool *mem, Flags f = Flags()) { load(mem, f); }
 
-        Vc_INTRINSIC_L void load(const bool *mem) Vc_INTRINSIC_R;
-        template<typename Flags> Vc_INTRINSIC void load(const bool *mem, Flags) { load(mem); }
+        template<typename Flags = DefaultLoadTag> Vc_INTRINSIC void load(const bool *mem, Flags = Flags());
 
-        Vc_INTRINSIC_L void store(bool *) const Vc_INTRINSIC_R;
-        template<typename Flags> Vc_INTRINSIC void store(bool *mem, Flags) const { store(mem); }
+        template<typename Flags = DefaultLoadTag> Vc_INTRINSIC void store(bool *mem, Flags = Flags()) const;
 
         Vc_INTRINSIC Mask &operator=(const Mask &) = default;
         Vc_INTRINSIC_L Mask &operator=(const std::array<bool, Size> &values) Vc_INTRINSIC_R;
