@@ -245,7 +245,6 @@ if(BUILD_EXTRA_CAST_TESTS)
       endforeach()
    endforeach()
 endif()
-vc_add_test(swizzles)
 vc_add_test(simdarray)
 
 find_program(OBJDUMP objdump)
