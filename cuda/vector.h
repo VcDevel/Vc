@@ -72,25 +72,7 @@ template <typename T> class Vector<T, VectorAbi::Cuda>
 
         typedef const Vector<T> AsArg;
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // general interface - we have to redefine it here as the declarations in
-        // common/generalinterface.h don't have the __device__ annotations
-         
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // init to zero
-        __device__ Vector() = default;
-        
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // types
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // constants
-        static constexpr std::size_t size() { return Size; }
-        
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // constant Vectors
-        // TODO: include these
-        
+#include "../common/generalinterface.h"
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast
         __device__ Vector(EntryType a)
@@ -126,8 +108,8 @@ template <typename T> class Vector<T, VectorAbi::Cuda>
         __device__ Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;
         __device__ Vc_INTRINSIC_L void setZeroInverted(const Mask &k) Vc_INTRINSIC_R;
 
-        __device__ void setQnan() Vc_INTRINSIC_R;
-        __device__ void setQnan(Mask k) Vc_INTRINSIC_R;
+        __device__ Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
+        __device__ Vc_INTRINSIC_L void setQnan(Mask k) Vc_INTRINSIC_R;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // internal init

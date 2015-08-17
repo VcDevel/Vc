@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "types.h"
 #include "macros.h"
 
-namespace Vc_UNVERSIONED_NAMESPACE
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T> class Mask<T, VectorAbi::Cuda>
 {
@@ -94,8 +94,8 @@ public:
     {
     }
 
-    __device__ Vc_INTRINSIC static Mask Zero() { return Mask(false); }
-    __device__ Vc_INTRINSIC static Mask One() { return Mask(true); }
+    __device__ Vc_INTRINSIC static Mask Zero() { return internalInit(false); }
+    __device__ Vc_INTRINSIC static Mask One() { return internalInit(true); }
 
     // implicit cast
     template <typename U>
@@ -180,34 +180,43 @@ public:
     // logical operators {{{1
     __device__ Vc_ALWAYS_INLINE Mask operator&&(const Mask &rhs) const
     {
+        return internalInit(m[Detail::getThreadId()] && rhs.m[Detail::getThreadId()]);
     }
     __device__ Vc_ALWAYS_INLINE Mask operator& (const Mask &rhs) const
     {
+        return internalInit(m[Detail::getThreadId()] && rhs.m[Detail::getThreadId()]);
     }
     __device__ Vc_ALWAYS_INLINE Mask operator||(const Mask &rhs) const
     {
+        return internalInit(m[Detail::getThreadId()] || rhs.m[Detail::getThreadId()]);
     }
     __device__ Vc_ALWAYS_INLINE Mask operator| (const Mask &rhs) const
     {
+        return internalInit(m[Detail::getThreadId()] || rhs.m[Detail::getThreadId()]);
     }
     __device__ Vc_ALWAYS_INLINE Mask operator^ (const Mask &rhs) const
     {
+        return internalInit(m[Detail::getThreadId()] ^ rhs.m[Detail::getThreadId()]);
     }
     __device__ Vc_ALWAYS_INLINE Mask operator!() const
     {
+        return internalInit(!(m[Detail::getThreadId()]));
     }
 
     // logical assignment operators {{{1
     __device__ Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) const
     {
+        m[Detail::getThreadId()] &= rhs.m[Detail::getThreadId()];
         return *this;
     }
     __device__ Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) const
     {
+        m[Detail::getThreadId()] |= rhs.m[Detail::getThreadId()];
         return *this;
     }
     __device__ Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) const
     {
+        m[Detail::getThreadId()] ^= rhs.m[Detail::getThreadId()];
         return *this;
     }
 
@@ -217,17 +226,13 @@ public:
         __shared__ bool full;
         if(Detail::getThreadId() == 0)
             full = m[Detail::getThreadId()];
-        full = (isFull && m[Detail::getThreadId()]);
+        full = (full && m[Detail::getThreadId()]);
         return full;
     }
 
     __device__ Vc_ALWAYS_INLINE bool isNotEmpty() const
     {
-        __shared__ bool notEmpty;
-        if(Detail::getThreadId() == 0)
-            notEmpty = m[Detail::getThreadId()];
-        notEmpty = (notEmpty || m[Detail::getThreadId()]);;
-        return notEmpty;
+        return !isEmpty();
     }
 
     __device__ Vc_ALWAYS_INLINE bool isEmpty() const
@@ -241,6 +246,52 @@ public:
 
     __device__ Vc_ALWAYS_INLINE bool isMix() const
     {
+        return !isEmpty() && !isFull();
+    }
+
+    // utility {{{1
+    __device__ Vc_ALWAYS_INLINE Vc_PURE int shiftMask() const
+    {
+    }
+
+    __device__ Vc_ALWAYS_INLINE Vc_PURE int toInt() const
+    {
+    }
+
+    __device__ Vc_ALWAYS_INLINE Vc_PURE float  data () const { }
+    __device__ Vc_ALWAYS_INLINE Vc_PURE int    dataI() const { }
+    __device__ Vc_ALWAYS_INLINE Vc_PURE double dataD() const { }
+
+    __device__ Vc_ALWAYS_INLINE EntryReference operator[](std::size_t index)
+    {
+        return m[index];
+    }
+
+    __device__ Vc_ALWAYS_INLINE Vc_PURE bool operator[](std::size_t index) const
+    {
+        return m[index];
+    }
+
+    __device__ Vc_ALWAYS_INLINE Vc_PURE int count() const
+    {
+    }
+
+    /**
+     * Returns the value of the first one in the mask.
+     *
+     * The return value is undefined if the mask is empty.
+     */
+    __device__ Vc_ALWAYS_INLINE Vc_PURE int firstOne() const
+    {
+        bool first = false;
+        std::size_t i;
+        for(i = 0; i < CUDA_VECTOR_SIZE; ++i)
+        {
+            first = m[i];
+            if(first)
+                break;
+        }
+        return i;
     }
 
     ///\internal Called indirectly from operator[]
@@ -249,6 +300,15 @@ public:
         if(Vc::Detail::getThreadId() == i)
             m[i] = x;
     }
+    
+    __device__ static Vc_INTRINSIC Mask internalInit(EntryType x)
+    {
+        __shared__ Mask<EntryType> r;
+        r[Detail::getThreadId()] = x;
+        __syncthreads();
+        return r;
+    }
+
 private:
     bool m[CUDA_VECTOR_SIZE];
 };

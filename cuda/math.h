@@ -99,14 +99,17 @@ template <typename T> __device__ static Vc_ALWAYS_INLINE Vector<T> ldexp(Vector<
 
 template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isfinite(const Vector<T, VectorAbi::Cuda> &v)
 {
+    return Mask<T, VectorAbi::Cuda>::internalInit(::isfinite((v[Detail::getThreadId()])));
 }
 
 template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isinf(const Vector<T, VectorAbi::Cuda> &v)
 {
+    return Mask<T, VectorAbi::Cuda>::internalInit(::isinf(v[Detail::getThreadId()]));
 }
 
 template <typename T> __device__ static Vc_ALWAYS_INLINE Mask<T> isnan(const Vector<T, VectorAbi::Cuda> &v)
 {
+    return Mask<T, VectorAbi::Cuda>::internalInit(::isnan(v[Detail::getThreadId()]));
 }
 
 #ifdef CALC_MACROS

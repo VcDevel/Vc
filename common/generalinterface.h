@@ -29,26 +29,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 public:
     ///////////////////////////////////////////////////////////////////////////
     // init to zero
-    Vector() = default;
+    Vc_GPU_CALLABLE Vector() = default;
 
     ///////////////////////////////////////////////////////////////////////////
     // types
 
     ///////////////////////////////////////////////////////////////////////////
     // constants
-    static constexpr std::size_t size() { return Size; }
+    Vc_GPU_CALLABLE static constexpr std::size_t size() { return Size; }
 
     ///////////////////////////////////////////////////////////////////////////
     // constant Vectors
-    explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerZero::ZEnum) Vc_INTRINSIC_R;
-    explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerOne::OEnum) Vc_INTRINSIC_R;
-    explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero::IEnum) Vc_INTRINSIC_R;
-    static Vc_INTRINSIC Vc_CONST Vector Zero()
+    Vc_GPU_CALLABLE explicit
+    Vc_INTRINSIC_L Vector(VectorSpecialInitializerZero::ZEnum) Vc_INTRINSIC_R;
+    
+    Vc_GPU_CALLABLE explicit
+    Vc_INTRINSIC_L Vector(VectorSpecialInitializerOne::OEnum) Vc_INTRINSIC_R;
+    Vc_GPU_CALLABLE explicit
+    Vc_INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero::IEnum) Vc_INTRINSIC_R;
+    
+    Vc_GPU_CALLABLE static Vc_INTRINSIC Vc_CONST Vector Zero()
     {
         return Vector(VectorSpecialInitializerZero::Zero);
     }
-    static Vc_INTRINSIC Vc_CONST Vector One() { return Vector(VectorSpecialInitializerOne::One); }
-    static Vc_INTRINSIC Vc_CONST Vector IndexesFromZero()
+    Vc_GPU_CALLABLE static Vc_INTRINSIC Vc_CONST Vector One()
+    {
+        return Vector(VectorSpecialInitializerOne::One);
+    }
+    Vc_GPU_CALLABLE static Vc_INTRINSIC Vc_CONST Vector IndexesFromZero()
     {
         return Vector(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
     }
