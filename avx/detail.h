@@ -254,28 +254,33 @@ template<typename Flags> struct LoadHelper<float, signed char, Flags> {
 
 // shifted{{{1
 template <int amount, typename T>
-Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount >= 16), T> shifted(T k)
+Vc_INTRINSIC Vc_CONST enable_if<(sizeof(T) == 32 && amount >= 16), T> shifted(T k)
 {
-    return AVX::zeroExtend(_mm_srli_si128(AVX::hi128(k), amount - 16));
+    return AVX::avx_cast<T>(AVX::zeroExtend(
+        _mm_srli_si128(AVX::hi128(AVX::avx_cast<__m256i>(k)), amount - 16)));
 }
 template <int amount, typename T>
-Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > 0 && amount < 16), T> shifted(
-    T k)
+Vc_INTRINSIC Vc_CONST enable_if<(sizeof(T) == 32 && amount > 0 && amount < 16), T>
+shifted(T k)
 {
-    return AVX::alignr<amount>(Mem::permute128<X1, Const0>(k), Mem::permute128<X0, X1>(k));
+    return AVX::avx_cast<T>(
+        AVX::alignr<amount>(Mem::permute128<X1, Const0>(AVX::avx_cast<__m256i>(k)),
+                            Mem::permute128<X0, X1>(AVX::avx_cast<__m256i>(k))));
 }
 template <int amount, typename T>
-Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount <= -16), T> shifted(T k)
+Vc_INTRINSIC Vc_CONST enable_if<(sizeof(T) == 32 && amount <= -16), T> shifted(T k)
 {
-    return Mem::permute128<Const0, X0>(AVX::avx_cast<__m256i>(_mm_slli_si128(AVX::lo128(k), -16 - amount)));
+    return AVX::avx_cast<T>(Mem::permute128<Const0, X0>(AVX::avx_cast<__m256i>(
+        _mm_slli_si128(AVX::lo128(AVX::avx_cast<__m256i>(k)), -16 - amount))));
 }
 template <int amount, typename T>
-Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 32 && amount > -16 && amount < 0), T>
-    shifted(T k)
+Vc_INTRINSIC Vc_CONST enable_if<(sizeof(T) == 32 && amount > -16 && amount < 0), T>
+shifted(T k)
 {
-    return AVX::alignr<16 + amount>(k, Mem::permute128<Const0, X0>(k));
+    return AVX::avx_cast<T>(
+        AVX::alignr<16 + amount>(AVX::avx_cast<__m256i>(k),
+                                 Mem::permute128<Const0, X0>(AVX::avx_cast<__m256i>(k))));
 }
-
 // mask_cast{{{1
 template<size_t From, size_t To, typename R> Vc_INTRINSIC Vc_CONST R mask_cast(__m256i k)
 {
@@ -694,6 +699,234 @@ template <typename T>
 Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
 {
     return sorted<CurrentImplementation::current()>(x);
+}
+
+// shifted{{{1
+template <typename T, typename V>
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(
+    VC_ALIGNED_PARAMETER(V) v, int amount)
+{
+    using namespace AVX;
+    constexpr int S = sizeof(T);
+    switch (amount) {
+    case  0: return v;
+    case  1: return shifted<sanitize<V>( 1 * S)>(v);
+    case  2: return shifted<sanitize<V>( 2 * S)>(v);
+    case  3: return shifted<sanitize<V>( 3 * S)>(v);
+    case -1: return shifted<sanitize<V>(-1 * S)>(v);
+    case -2: return shifted<sanitize<V>(-2 * S)>(v);
+    case -3: return shifted<sanitize<V>(-3 * S)>(v);
+    }
+    if (sizeof(T) <= 4) {
+        switch (amount) {
+        case  4: return shifted<sanitize<V>( 4 * S)>(v);
+        case  5: return shifted<sanitize<V>( 5 * S)>(v);
+        case  6: return shifted<sanitize<V>( 6 * S)>(v);
+        case  7: return shifted<sanitize<V>( 7 * S)>(v);
+        case -4: return shifted<sanitize<V>(-4 * S)>(v);
+        case -5: return shifted<sanitize<V>(-5 * S)>(v);
+        case -6: return shifted<sanitize<V>(-6 * S)>(v);
+        case -7: return shifted<sanitize<V>(-7 * S)>(v);
+        }
+        if (sizeof(T) <= 2) {
+            switch (amount) {
+            case   8: return shifted<sanitize<V>(  8 * S)>(v);
+            case   9: return shifted<sanitize<V>(  9 * S)>(v);
+            case  10: return shifted<sanitize<V>( 10 * S)>(v);
+            case  11: return shifted<sanitize<V>( 11 * S)>(v);
+            case  12: return shifted<sanitize<V>( 12 * S)>(v);
+            case  13: return shifted<sanitize<V>( 13 * S)>(v);
+            case  14: return shifted<sanitize<V>( 14 * S)>(v);
+            case  15: return shifted<sanitize<V>( 15 * S)>(v);
+            case  -8: return shifted<sanitize<V>(- 8 * S)>(v);
+            case  -9: return shifted<sanitize<V>(- 9 * S)>(v);
+            case -10: return shifted<sanitize<V>(-10 * S)>(v);
+            case -11: return shifted<sanitize<V>(-11 * S)>(v);
+            case -12: return shifted<sanitize<V>(-12 * S)>(v);
+            case -13: return shifted<sanitize<V>(-13 * S)>(v);
+            case -14: return shifted<sanitize<V>(-14 * S)>(v);
+            case -15: return shifted<sanitize<V>(-15 * S)>(v);
+            }
+            if (sizeof(T) == 1) {
+                switch (amount) {
+                case  16: return shifted<sanitize<V>( 16)>(v);
+                case  17: return shifted<sanitize<V>( 17)>(v);
+                case  18: return shifted<sanitize<V>( 18)>(v);
+                case  19: return shifted<sanitize<V>( 19)>(v);
+                case  20: return shifted<sanitize<V>( 20)>(v);
+                case  21: return shifted<sanitize<V>( 21)>(v);
+                case  22: return shifted<sanitize<V>( 22)>(v);
+                case  23: return shifted<sanitize<V>( 23)>(v);
+                case  24: return shifted<sanitize<V>( 24)>(v);
+                case  25: return shifted<sanitize<V>( 25)>(v);
+                case  26: return shifted<sanitize<V>( 26)>(v);
+                case  27: return shifted<sanitize<V>( 27)>(v);
+                case  28: return shifted<sanitize<V>( 28)>(v);
+                case  29: return shifted<sanitize<V>( 29)>(v);
+                case  30: return shifted<sanitize<V>( 30)>(v);
+                case  31: return shifted<sanitize<V>( 31)>(v);
+                case -16: return shifted<sanitize<V>(-16)>(v);
+                case -17: return shifted<sanitize<V>(-17)>(v);
+                case -18: return shifted<sanitize<V>(-18)>(v);
+                case -19: return shifted<sanitize<V>(-19)>(v);
+                case -20: return shifted<sanitize<V>(-20)>(v);
+                case -21: return shifted<sanitize<V>(-21)>(v);
+                case -22: return shifted<sanitize<V>(-22)>(v);
+                case -23: return shifted<sanitize<V>(-23)>(v);
+                case -24: return shifted<sanitize<V>(-24)>(v);
+                case -25: return shifted<sanitize<V>(-25)>(v);
+                case -26: return shifted<sanitize<V>(-26)>(v);
+                case -27: return shifted<sanitize<V>(-27)>(v);
+                case -28: return shifted<sanitize<V>(-28)>(v);
+                case -29: return shifted<sanitize<V>(-29)>(v);
+                case -30: return shifted<sanitize<V>(-30)>(v);
+                case -31: return shifted<sanitize<V>(-31)>(v);
+                }
+            }
+        }
+    }
+    return avx_cast<V>(_mm256_setzero_ps());
+}
+
+template <typename T, typename V>
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(
+    VC_ALIGNED_PARAMETER(V) v, int amount)
+{
+    using namespace AVX;
+    switch (amount) {
+    case  0: return v;
+    case  1: return avx_cast<V>(_mm_srli_si128(avx_cast<__m128i>(v), sanitize<V>(1 * sizeof(T))));
+    case  2: return avx_cast<V>(_mm_srli_si128(avx_cast<__m128i>(v), sanitize<V>(2 * sizeof(T))));
+    case  3: return avx_cast<V>(_mm_srli_si128(avx_cast<__m128i>(v), sanitize<V>(3 * sizeof(T))));
+    case -1: return avx_cast<V>(_mm_slli_si128(avx_cast<__m128i>(v), sanitize<V>(1 * sizeof(T))));
+    case -2: return avx_cast<V>(_mm_slli_si128(avx_cast<__m128i>(v), sanitize<V>(2 * sizeof(T))));
+    case -3: return avx_cast<V>(_mm_slli_si128(avx_cast<__m128i>(v), sanitize<V>(3 * sizeof(T))));
+    }
+    if (sizeof(T) <= 2) {
+        switch (amount) {
+        case  4: return avx_cast<V>(_mm_srli_si128(avx_cast<__m128i>(v), sanitize<V>(4 * sizeof(T))));
+        case  5: return avx_cast<V>(_mm_srli_si128(avx_cast<__m128i>(v), sanitize<V>(5 * sizeof(T))));
+        case  6: return avx_cast<V>(_mm_srli_si128(avx_cast<__m128i>(v), sanitize<V>(6 * sizeof(T))));
+        case  7: return avx_cast<V>(_mm_srli_si128(avx_cast<__m128i>(v), sanitize<V>(7 * sizeof(T))));
+        case -4: return avx_cast<V>(_mm_slli_si128(avx_cast<__m128i>(v), sanitize<V>(4 * sizeof(T))));
+        case -5: return avx_cast<V>(_mm_slli_si128(avx_cast<__m128i>(v), sanitize<V>(5 * sizeof(T))));
+        case -6: return avx_cast<V>(_mm_slli_si128(avx_cast<__m128i>(v), sanitize<V>(6 * sizeof(T))));
+        case -7: return avx_cast<V>(_mm_slli_si128(avx_cast<__m128i>(v), sanitize<V>(7 * sizeof(T))));
+        }
+    }
+    return avx_cast<V>(_mm_setzero_ps());
+}
+// rotated{{{1
+template <typename T, size_t N, typename V>
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(
+    VC_ALIGNED_PARAMETER(V) v, int amount)
+{
+    using namespace AVX;
+    const __m128i vLo = avx_cast<__m128i>(lo128(v));
+    const __m128i vHi = avx_cast<__m128i>(hi128(v));
+    switch (static_cast<unsigned int>(amount) % N) {
+    case 0:
+        return v;
+    case 1:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, sizeof(T))));
+    case 2:
+        return Mem::permute128<X1, X0>(v);
+    case 3:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, sizeof(T))));
+    }
+    return avx_cast<V>(_mm256_setzero_ps());
+}
+
+template <typename T, size_t N, typename V>
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(
+    VC_ALIGNED_PARAMETER(V) v, int amount)
+{
+    using namespace AVX;
+    const __m128i vLo = avx_cast<__m128i>(lo128(v));
+    const __m128i vHi = avx_cast<__m128i>(hi128(v));
+    switch (static_cast<unsigned int>(amount) % N) {
+    case 0:
+        return v;
+    case 1:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, 1 * sizeof(T))));
+    case 2:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, 2 * sizeof(T))));
+    case 3:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, 3 * sizeof(T))));
+    case 4:
+        return Mem::permute128<X1, X0>(v);
+    case 5:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 1 * sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, 1 * sizeof(T))));
+    case 6:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 2 * sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, 2 * sizeof(T))));
+    case 7:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 3 * sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, 3 * sizeof(T))));
+    }
+    return avx_cast<V>(_mm256_setzero_ps());
+}
+
+template <typename T, size_t N, typename V>
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
+    VC_ALIGNED_PARAMETER(V) v, int amount)
+{
+    using namespace AVX;
+    const __m128i vLo = avx_cast<__m128i>(lo128(v));
+    const __m128i vHi = avx_cast<__m128i>(hi128(v));
+    switch (static_cast<unsigned int>(amount) % N) {
+    case 0:
+        return v;
+    case 1:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, 1 * sizeof(T))));
+    case 2:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, 2 * sizeof(T))));
+    case 3:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, 3 * sizeof(T))));
+    case 4:
+        return Mem::permute4x64<X3, X0, X1, X2>(v);
+    case 5:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 5 * sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, 5 * sizeof(T))));
+    case 6:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 6 * sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, 6 * sizeof(T))));
+    case 7:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 7 * sizeof(T)),
+                                       _mm_alignr_epi8(vLo, vHi, 7 * sizeof(T))));
+    case 8:
+        return Mem::permute128<X1, X0>(v);
+    case 9:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 1 * sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, 1 * sizeof(T))));
+    case 10:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 2 * sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, 2 * sizeof(T))));
+    case 11:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 3 * sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, 3 * sizeof(T))));
+    case 12:
+        return Mem::permute4x64<X1, X2, X3, X0>(v);
+    case 13:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 5 * sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, 5 * sizeof(T))));
+    case 14:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 6 * sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, 6 * sizeof(T))));
+    case 15:
+        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 7 * sizeof(T)),
+                                       _mm_alignr_epi8(vHi, vLo, 7 * sizeof(T))));
+    }
+    return avx_cast<V>(_mm256_setzero_ps());
 }
 
 // testc{{{1

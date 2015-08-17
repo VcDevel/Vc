@@ -209,12 +209,17 @@ Vc_INTRINSIC __m128 load(const T *mem, Flags f, LoadTag<__m128, float>)
 
 // shifted{{{1
 template <int amount, typename T>
-Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount > 0), T> shifted(T k)
+Vc_INTRINSIC Vc_CONST enable_if<amount == 0, T> shifted(T k)
+{
+    return k;
+}
+template <int amount, typename T>
+Vc_INTRINSIC Vc_CONST enable_if<(sizeof(T) == 16 && amount > 0), T> shifted(T k)
 {
     return _mm_srli_si128(k, amount);
 }
 template <int amount, typename T>
-Vc_INTRINSIC Vc_PURE enable_if<(sizeof(T) == 16 && amount < 0), T> shifted(T k)
+Vc_INTRINSIC Vc_CONST enable_if<(sizeof(T) == 16 && amount < 0), T> shifted(T k)
 {
     return _mm_slli_si128(k, -amount);
 }
@@ -602,6 +607,40 @@ Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(VC_ALIGNED_PARAMETER(SSE::Vector<T>)
                      ? SSE41Impl
                      : CurrentImplementation::current() > (x);
 }
+
+// sanitize{{{1
+template <typename V> constexpr int sanitize(int n)
+{
+    return (n >= int(sizeof(V)) || n <= -int(sizeof(V))) ? 0 : n;
+}
+
+// rotated{{{1
+template <typename T, size_t N, typename V>
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> rotated(
+    VC_ALIGNED_PARAMETER(V) v, int amount)
+{
+    using namespace SSE;
+    switch (static_cast<unsigned int>(amount) % N) {
+    case 0:
+        return v;
+    case 1:
+        return sse_cast<V>(_mm_alignr_epi8(v, v, sanitize<V>(1 * sizeof(T))));
+    case 2:
+        return sse_cast<V>(_mm_alignr_epi8(v, v, sanitize<V>(2 * sizeof(T))));
+    case 3:
+        return sse_cast<V>(_mm_alignr_epi8(v, v, sanitize<V>(3 * sizeof(T))));
+    case 4:
+        return sse_cast<V>(_mm_alignr_epi8(v, v, sanitize<V>(4 * sizeof(T))));
+    case 5:
+        return sse_cast<V>(_mm_alignr_epi8(v, v, sanitize<V>(5 * sizeof(T))));
+    case 6:
+        return sse_cast<V>(_mm_alignr_epi8(v, v, sanitize<V>(6 * sizeof(T))));
+    case 7:
+        return sse_cast<V>(_mm_alignr_epi8(v, v, sanitize<V>(7 * sizeof(T))));
+    }
+    return sse_cast<V>(_mm_setzero_si128());
+}
+
 //}}}1
 }  // namespace Detail
 }  // namespace Vc
