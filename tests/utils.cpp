@@ -217,7 +217,7 @@ TEST_TYPES(V, shifted, (ALL_VECTORS))
 TEST_TYPES(V, rotated, (ALL_VECTORS))
 {
     constexpr int Size = V::Size;
-    for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
+    for (int shift = 2 * Size; shift >= -2 * Size; --shift) {
         //std::cout << "amount = " << shift % Size << std::endl;
         const V reference = V::Random();
         const V test = reference.rotated(shift);

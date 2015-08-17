@@ -893,7 +893,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
         return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(T)),
                                        _mm_alignr_epi8(vLo, vHi, 3 * sizeof(T))));
     case 4:
-        return Mem::permute4x64<X3, X0, X1, X2>(v);
+        return Mem::permute4x64<X1, X2, X3, X0>(v);
     case 5:
         return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 5 * sizeof(T)),
                                        _mm_alignr_epi8(vLo, vHi, 5 * sizeof(T))));
@@ -915,7 +915,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
         return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 3 * sizeof(T)),
                                        _mm_alignr_epi8(vHi, vLo, 3 * sizeof(T))));
     case 12:
-        return Mem::permute4x64<X1, X2, X3, X0>(v);
+        return Mem::permute4x64<X3, X0, X1, X2>(v);
     case 13:
         return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 5 * sizeof(T)),
                                        _mm_alignr_epi8(vHi, vLo, 5 * sizeof(T))));
