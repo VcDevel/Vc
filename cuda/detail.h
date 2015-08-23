@@ -43,9 +43,22 @@ template<typename... Flags> struct InitFlags
 using InternalInitTag = InitFlags<>;
 constexpr InternalInitTag InternalInit;
 
-__device__ Vc_ALWAYS_INLINE int getThreadId()
+__device__ Vc_ALWAYS_INLINE unsigned int getThreadId()
 {
     return blockIdx.x * blockDim.x + threadIdx.x;
+}
+
+template <typename Op, typename T>
+__device__ Vc_ALWAYS_INLINE void reduce(volatile T *ptr, const T *data, unsigned int threadId)
+{
+    // ptr is a pointer to a single variable
+    Op(ptr, data[threadId]);
+}
+
+template <typename Op, typename T>
+__device__ Vc_ALWAYS_INLINE void reduce2(volatile T *ptr, const T *data1, const T *data2, unsigned int threadId)
+{
+    Op(ptr, data1[threadId], data2[threadId]);
 }
 
 } // namespace Detail

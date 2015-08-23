@@ -165,16 +165,19 @@ public:
         __shared__ bool isSame;
         if(Detail::getThreadId() == 0)
             isSame = (m[Detail::getThreadId()] == rhs.m[Detail::getThreadId()]);
-        isSame = isSame && (m[Detail::getThreadId()] == rhs.m[Detail::getThreadId()]);
+
+        struct Compare2
+        {
+            Compare2(bool *ptr, bool var1, bool var2) { *ptr &= (var1 && var2); }
+        };
+
+        Detail::reduce2<Compare2>(&isSame, m, rhs.m, Detail::getThreadId());
         return isSame;
     }
+    
     __device__ Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const
     {
-        __shared__ bool isSame;
-        if(Detail::getThreadId() == 0)
-            isSame = (m[Detail::getThreadId()] == rhs.m[Detail::getThreadId()]);
-        isSame = isSame && (m[Detail::getThreadId()] == rhs.m[Detail::getThreadId()]);
-        return !isSame;
+        return !operator==(rhs);
     }
 
     // logical operators {{{1
@@ -226,7 +229,13 @@ public:
         __shared__ bool full;
         if(Detail::getThreadId() == 0)
             full = m[Detail::getThreadId()];
-        full = (full && m[Detail::getThreadId()]);
+
+        struct And
+        {
+            And(bool *ptr, bool var) { *ptr &= var; }
+        };
+
+        Detail::reduce<And>(&full, m, Detail::getThreadId());
         return full;
     }
 
@@ -240,7 +249,13 @@ public:
         __shared__ bool empty;
         if(Detail::getThreadId() == 0)
             empty = !(m[Detail::getThreadId()]);
-        empty = (empty && !(m[Detail::getThreadId()]));
+
+        struct NotAnd
+        {
+            NotAnd(bool *ptr, bool var) { *ptr &= !var; }
+        };
+        
+        Detail::reduce<NotAnd>(&empty, m, Detail::getThreadId());
         return empty;
     }
 
