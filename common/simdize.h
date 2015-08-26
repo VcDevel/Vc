@@ -41,6 +41,57 @@ Automatic type vectorization.
 
 The simdize<T> expression transforms the type \c T to a vectorized variant. This requires the type
 \c T to be a class template instance.
+
+Example:
+First, we declare a class template for a three-dimensional point. The template parameter \c T
+determines the type of the members and is \c float in the scalar (classical) case.
+\code
+template <typename T> class PointTemplate
+{
+  T x, y, z;
+
+  using Instance = PointTemplate<T>;
+  Vc_SIMDIZE_MEMBER(T, 0, x);  // Makes the members accessible via get<N>(point), allowing the
+  Vc_SIMDIZE_MEMBER(T, 1, y);  // simdize implementation to convert between Point and PointV (see
+  Vc_SIMDIZE_MEMBER(T, 2, z);  // below).
+
+ public:
+  Vc_SIMDIZE_STRUCT(Instance, 3);  // This declares the actual non-member get and tuple_size.
+
+  PointTemplate(T xx, T yy, T zz) : x{xx}, y{yy}, z{zz} {};
+
+  // The following function is will automatically be vectorized in the PointV type.
+  T distance_to_origin() const {
+    return std::sqrt(x * x + y * y + z * z);
+  }
+};
+\endcode
+
+In the following we create a type alias for the scalar type, which simply means instantiating
+\c PointTemplate with \c float. The resulting type can then be transformed with \ref simdize.
+\code
+using Point  = PointTemplate<float>;  // A simple struct with three floats and two functions.
+using PointV = Vc::simdize<Point>;    // The vectorization of Point stores three float_v and thus
+                                      // float_v::size() Points.
+\endcode
+
+The following shows a code example using the above \c Point and \c PointV types.
+\code
+PointV pv = Point{0.f, 1.f, 2.f};  // Constructs a PointV containing PointV::size()
+                                   // copies of Point{0, 1, 2}.
+for (int i = 1; i < int(pv.size()); ++i) {
+  assign(pv, i, {i + 0.f, i + 1.f, i + 2.f});
+}
+
+const Vc::float_v l = pv.distance_to_origin();
+std::cout << l << '\n';
+// prints [2.23607, 3.74166, 5.38516, 7.07107, 8.77496, 10.4881, 12.2066, 13.9284] with
+// float_v::size() == 8
+
+const Point most_distant = extract(pv, (l.max() == l).firstOne());
+std::cout << '(' << most_distant.x << ", " << most_distant.y << ", " << most_distant.z << ")\n";
+// prints (7, 8, 9) with float_v::size() == 8
+\endcode
  */
 namespace Vc_VERSIONED_NAMESPACE
 {
