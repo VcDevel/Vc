@@ -34,15 +34,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
+/*!
+\addtogroup Simdize simdize<T>
+
+Automatic type vectorization.
+
+The simdize<T> expression transforms the type \c T to a vectorized variant. This requires the type
+\c T to be a class template instance.
+ */
 namespace Vc_VERSIONED_NAMESPACE
 {
 /**\internal
+ * \ingroup Simdize
  * This namespace contains all the required code for implementing simdize<T>. None of this
  * code should be directly accessed by users, though the unit test for simdize<T>
  * certainly may look into some of the details if necessary.
  */
 namespace SimdizeDetail
 {
+/**
+ * \addtogroup Simdize
+ * @{
+ */
 using std::is_same;
 using std::is_base_of;
 using std::false_type;
@@ -63,21 +76,21 @@ template <typename... Ts> struct Typelist;
  * The Category identifies how the type argument to simdize<T> has to be transformed.
  */
 enum class Category {
-    /// No transformation
+    ///\internal No transformation
     None,
-    /// simple Vector<T> transformation
+    ///\internal simple Vector<T> transformation
     ArithmeticVectorizable,
-    /// transform an input iterator to return vectorized entries
+    ///\internal transform an input iterator to return vectorized entries
     InputIterator,
-    /// transform a forward iterator to return vectorized entries
+    ///\internal transform a forward iterator to return vectorized entries
     OutputIterator,
-    /// transform an output iterator to return vectorized entries
+    ///\internal transform an output iterator to return vectorized entries
     ForwardIterator,
-    /// transform a bidirectional iterator to return vectorized entries
+    ///\internal transform a bidirectional iterator to return vectorized entries
     BidirectionalIterator,
-    /// transform a random access iterator to return vectorized entries
+    ///\internal transform a random access iterator to return vectorized entries
     RandomAccessIterator,
-    /// transform a class template recursively
+    ///\internal transform a class template recursively
     ClassTemplate
 };
 
@@ -243,7 +256,7 @@ template <size_t N, typename MT, typename... Replaced, typename T,
 struct SubstituteOneByOne<N, MT, Typelist<Replaced...>, T, Remaining...>
 {
 private:
-    /**
+    /**\internal
      * If \p U::size() yields a constant expression convertible to size_t then value will
      * be equal to U::size(), 0 otherwise.
      */
@@ -251,16 +264,16 @@ private:
     static std::integral_constant<size_t, M> size_or_0(int);
     template <typename U> static std::integral_constant<size_t, 0> size_or_0(...);
 
-    /// The vectorized type for \p T.
+    ///\internal The vectorized type for \p T.
     using V = simdize<T, N, MT>;
 
-    /**
+    /**\internal
      * Determine the new \p N to use for the SubstituteOneByOne expression below. If N is
      * non-zero that value is used. Otherwise size_or_0<V> determines the new value.
      */
     static constexpr auto NewN = N != 0 ? N : decltype(size_or_0<V>(int()))::value;
 
-    /**
+    /**\internal
      * Determine the new \p MT type to use for the SubstituteOneByOne expression below.
      * This is normally the old \p MT type. However, if N != NewN and MT = void, NewMT is
      * set to either \c float or \p T, depending on whether \p T is \c bool or not.
@@ -269,7 +282,9 @@ private:
                           conditional_t<is_same<T, bool>::value, float, T>, MT> NewMT;
 
 public:
-    /// An alias to the type member of the completed recursion over SubstituteOneByOne.
+    /**\internal
+     * An alias to the type member of the completed recursion over SubstituteOneByOne.
+     */
     using type = typename SubstituteOneByOne<NewN, NewMT, Typelist<Replaced..., V>,
                                              Remaining...>::type;
 };
@@ -340,11 +355,13 @@ template <typename... Replaced> struct SubstitutedBase<8, Replaced...> {
 template <size_t N_, typename MT, typename Replaced0, typename... Replaced>
 struct SubstituteOneByOne<N_, MT, Typelist<Replaced0, Replaced...>>
 {
-    /// Return type for returning the vector width and list of substituted types
+    /**\internal
+     * Return type for returning the vector width and list of substituted types
+     */
     struct type
         : public SubstitutedBase<sizeof...(Replaced) + 1, Replaced0, Replaced...> {
         static constexpr auto N = N_;
-        /**
+        /**\internal
          * Alias template to construct a class template instantiation with the replaced
          * types.
          */
@@ -378,16 +395,16 @@ template <typename Scalar, typename Base, size_t N> class Adapter;
 template <template <typename...> class C, typename... Ts, size_t N, typename MT>
 struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
 {
-    /// The \p type member of the SubstituteOneByOne instantiation
+    ///\internal The \p type member of the SubstituteOneByOne instantiation
     using SubstitutionResult =
         typename SubstituteOneByOne<N, MT, Typelist<>, Ts...>::type;
-    /**
+    /**\internal
      * This expression instantiates the class template \p C with the substituted template
      * arguments in the \p Ts parameter pack. The alias \p Vectorized thus is the
      * vectorized equivalent to \p C<Ts...>.
      */
     using Vectorized = typename SubstitutionResult::template Substituted<C>;
-    /**
+    /**\internal
      * The result type of this ReplaceTypes instantiation is set to \p C<Ts...> if no
      * template parameter substitution was done in SubstituteOneByOne. Otherwise, the type
      * aliases an Adapter instantiation.
@@ -736,7 +753,7 @@ public:
     void operator delete[](void *, void *) {}
 };
 
-/**internal
+/**\internal
  * Delete compare operators for simdize<tuple<...>> types because the tuple compares
  * require the compares to be bool based.
  */
@@ -765,6 +782,7 @@ inline bool operator>(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 
+/** @}*/
 }  // namespace SimdizeDetail
 }  // namespace Vc
 
@@ -808,6 +826,9 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SimdizeDetail
 {
+/**\addtogroup Simdize
+ * @{
+ */
 /**\internal
  * Since std::decay can ICE GCC (with types that are declared as may_alias), this is used
  * as an alternative approach. Using decltype the template type deduction implements the
@@ -1541,8 +1562,27 @@ Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N
     conditional_assign<Op, S, T, N, M, Offset + 1>(lhs, mask);
 }
 
+/** @}*/
 }  // namespace SimdizeDetail
 
+/*!\ingroup Simdize
+ * Vectorize/Simdize the given type T.
+ *
+ * \tparam T This type must be a class template instance where the template arguments can
+ * be recursively replaced with their vectorized variant. If the type implements a
+ * specific interface for introspection and member modification, the resulting type can
+ * easily be constructed from objects of type T and scalar objects of type T can be
+ * extracted from it.
+ *
+ * \tparam N This value determines the width of the vectorization. Per default it is set
+ * to 0 making the implementation choose the value considering the compilation target and
+ * the given type T.
+ *
+ * \tparam MT This type determines the type to be used when replacing bool with Mask<MT>.
+ * If it is set to void the implementation choosed the type as smart as possible.
+ *
+ * \see Vc_SIMDIZE_STRUCT, Vc_SIMDIZE_MEMBER
+ */
 template <typename T, size_t N = 0, typename MT = void>
 using simdize = SimdizeDetail::simdize<T, N, MT>;
 
