@@ -640,31 +640,31 @@ template <typename Scalar, typename Base, size_t N> class Adapter : public Base
 private:
     /// helper for the broadcast ctor below using double braces for Base initialization
     template <std::size_t... Indexes, typename T>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x, T, std::true_type)
-        : Base{{get<Indexes>(x)...}}
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, T, std::true_type)
+        : Base{{get<Indexes>(x__)...}}
     {
     }
 
     /// helper for the broadcast ctor below using single braces for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x, std::true_type,
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, std::true_type,
             std::false_type)
-        : Base{get<Indexes>(x)...}
+        : Base{get<Indexes>(x__)...}
     {
     }
 
     /// helper for the broadcast ctor below using parenthesis for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x, std::false_type,
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, std::false_type,
             std::false_type)
-        : Base(get<Indexes>(x)...)
+        : Base(get<Indexes>(x__)...)
     {
     }
 
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...> seq, const Scalar &x)
+    Adapter(Vc::index_sequence<Indexes...> seq__, const Scalar &x__)
         : Adapter(
-              seq, x,
+              seq__, x__,
               std::integral_constant<bool, is_constructible_with_single_brace<
                                                Base, decltype(get<Indexes>(std::declval<
                                                          const Scalar &>()))...>()>(),
@@ -701,8 +701,8 @@ public:
     template <typename U, size_t TupleSize = determine_tuple_size<Scalar>(),
               typename Seq = Vc::make_index_sequence<TupleSize>,
               typename = enable_if<std::is_convertible<U, Scalar>::value>>
-    Adapter(U &&x)
-        : Adapter(Seq(), static_cast<const Scalar &>(x))
+    Adapter(U &&x__)
+        : Adapter(Seq(), static_cast<const Scalar &>(x__))
     {
     }
 
@@ -711,28 +711,28 @@ public:
               typename = typename std::enable_if<
                   !Traits::is_index_sequence<A0>::value &&
                   (sizeof...(Args) > 0 || !std::is_convertible<A0, Scalar>::value)>::type>
-    Adapter(A0 &&arg0, Args &&... arguments)
-        : Base(std::forward<A0>(arg0), std::forward<Args>(arguments)...)
+    Adapter(A0 &&arg0__, Args &&... arguments__)
+        : Base(std::forward<A0>(arg0__), std::forward<Args>(arguments__)...)
     {
     }
 
     /// perfect forward Base constructors that accept an initializer_list
     template <typename T,
               typename = decltype(Base(std::declval<const std::initializer_list<T> &>()))>
-    Adapter(const std::initializer_list<T> &l)
-        : Base(l)
+    Adapter(const std::initializer_list<T> &l__)
+        : Base(l__)
     {
     }
 
     /// Overload the new operator to adhere to the alignment requirements which C++11
     /// ignores by default.
     void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
-    void *operator new(size_t, void *p) { return p; }
+    void *operator new(size_t, void *p__) { return p__; }
     void *operator new[](size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
-    void *operator new[](size_t , void *p) { return p; }
-    void operator delete(void *ptr, size_t) { Vc::Common::free(ptr); }
+    void *operator new[](size_t , void *p__) { return p__; }
+    void operator delete(void *ptr__, size_t) { Vc::Common::free(ptr__); }
     void operator delete(void *, void *) {}
-    void operator delete[](void *ptr, size_t) { Vc::Common::free(ptr); }
+    void operator delete[](void *ptr__, size_t) { Vc::Common::free(ptr__); }
     void operator delete[](void *, void *) {}
 };
 
