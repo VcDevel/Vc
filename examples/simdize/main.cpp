@@ -1,35 +1,14 @@
 #include <Vc/simdize>
 #include <Vc/IO>
 
-template <typename float_t> struct PointTemplate
-{
-    float_t x, y, z;
+template <typename T> struct PointTemplate {
+    T x, y, z;
 
-    template <std::size_t I> friend inline float_t &get(PointTemplate<float_t> &p)
-    {
-        static_assert(I <= 2, "get<N>(PointTemplate<T>) requires N <= 2");
-        if (I == 0) {
-            return p.x;
-        } else if (I == 1) {
-            return p.y;
-        } else if (I == 2) {
-            return p.z;
-        }
-    }
-    template <std::size_t I>
-    friend inline const float_t &get(const PointTemplate<float_t> &p)
-    {
-        static_assert(I <= 2, "get<N>(PointTemplate<T>) requires N <= 2");
-        if (I == 0) {
-            return p.x;
-        } else if (I == 1) {
-            return p.y;
-        } else if (I == 2) {
-            return p.z;
-        }
-    }
-
-    static constexpr std::size_t tuple_size = 3;
+    using InstantiatedType = PointTemplate<T>;
+    Vc_SIMDIZE_MEMBER(T, 0, x);
+    Vc_SIMDIZE_MEMBER(T, 1, y);
+    Vc_SIMDIZE_MEMBER(T, 2, z);
+    Vc_SIMDIZE_STRUCT(InstantiatedType, 3);
 };
 
 using Point = PointTemplate<float>;

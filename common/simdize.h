@@ -1586,6 +1586,66 @@ Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N
 template <typename T, size_t N = 0, typename MT = void>
 using simdize = SimdizeDetail::simdize<T, N, MT>;
 
+/*!\ingroup Simdize
+ * Declares the necessary internal functions for implementing `get<N__>`.
+ *
+ * \param T__ The type of the member variable.
+ * \param N__ The index of the member variable.
+ * \param VAR__ The name of the member variable.
+ *
+ * \note It is recommended to use these macros in the private section of a class.
+ *
+ * \see Vc_SIMDIZE_STRUCT
+ */
+#define Vc_SIMDIZE_MEMBER(T__, N__, VAR__)                                               \
+    inline T__ &vc_get__(std::integral_constant<std::size_t, N__>) { return VAR__; }     \
+    inline const T__ &vc_get__(std::integral_constant<std::size_t, N__>) const           \
+    {                                                                                    \
+        return VAR__;                                                                    \
+    }                                                                                    \
+    enum Vc_ignore_me_##N__##VAR__##__LINE__ {}
+
+/*!\ingroup Simdize
+ * Declares the necessary non-member get functions for accessing the members declared with
+ * Vc_SIMDIZE_MEMBER. In addition the tuple_size member is defined as \p N__, which
+ * signifies the number of members in the structure.
+ *
+ * \param T__ The type of the instantiation of the current class template. Since the
+ * preprocessor gets confused by template parameter lists it is recommended to use a type
+ * alias. Example:
+ * \code
+ * template <typename T, typename U> struct X {
+ *   T a;
+ *   U b;
+ *   using Instance = X<T, U>;
+ *   Vc_SIMDIZE_MEMBER(T, 0, a);
+ *   Vc_SIMDIZE_MEMBER(U, 1, b);
+ *   Vc_SIMDIZE_STRUCT(Instance, 2);
+ * };
+ * \endcode
+ *
+ * \param N__ The number of members in the current structure.
+ *
+ * \note You must use this macros in the public section of a class.
+ * \note The Vc_SIMDIZE_MEMBER definitions must come first.
+ */
+#define Vc_SIMDIZE_STRUCT(T__, N__)                                                      \
+    template <std::size_t I>                                                             \
+    friend inline decltype(                                                              \
+        std::declval<T__ &>().vc_get__(std::integral_constant<std::size_t, I>()))        \
+    get(T__ &p)                                                                          \
+    {                                                                                    \
+        return p.vc_get__(std::integral_constant<std::size_t, I>());                     \
+    }                                                                                    \
+    template <std::size_t I>                                                             \
+    friend inline decltype(                                                              \
+        std::declval<const T__ &>().vc_get__(std::integral_constant<std::size_t, I>()))  \
+    get(const T__ &p)                                                                    \
+    {                                                                                    \
+        return p.vc_get__(std::integral_constant<std::size_t, I>());                     \
+    }                                                                                    \
+    enum : std::size_t { tuple_size = N__ }
+
 }  // namespace Vc
 
 namespace std
