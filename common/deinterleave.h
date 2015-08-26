@@ -37,6 +37,8 @@ namespace Vc_VERSIONED_NAMESPACE
 /**
  * \ingroup Vectors
  *
+ * \deprecated Turn to InterleavedMemoryWrapper for a more flexible and complete solution.
+ *
  * Loads two vectors of values from an interleaved array.
  *
  * \param a, b The vectors to load the values from memory into.
