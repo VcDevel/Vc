@@ -70,7 +70,7 @@ Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, int   >) { return _mm
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int   , int   >) { return v; }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint  , int   >) { return v; }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , int   >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, int   >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, int   >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
 Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , uint  >) {
     return _mm_castps_si128(
         blendv_ps(_mm_castsi128_ps(_mm_cvttps_epi32(v)),
@@ -85,7 +85,7 @@ Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, uint  >) {
 }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int   , uint  >) { return v; }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint  , uint  >) { return v; }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , uint  >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , uint  >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, uint  >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
 Vc_INTRINSIC __m128  convert(__m128  v, ConvertTag<float , float >) { return v; }
 Vc_INTRINSIC __m128  convert(__m128d v, ConvertTag<double, float >) { return _mm_cvtpd_ps(v); }
@@ -96,10 +96,14 @@ Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<uint  , float >) {
                                 _mm_set1_ps(1u << 31)),
                      _mm_castsi128_ps(_mm_cmplt_epi32(v, _mm_setzero_si128())));
 }
+Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<short , float >) { return convert(convert(v, ConvertTag<short, int>()), ConvertTag<int, float>()); }
+Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<ushort, float >) { return convert(convert(v, ConvertTag<ushort, int>()), ConvertTag<int, float>()); }
 Vc_INTRINSIC __m128d convert(__m128  v, ConvertTag<float , double>) { return _mm_cvtps_pd(v); }
 Vc_INTRINSIC __m128d convert(__m128d v, ConvertTag<double, double>) { return v; }
 Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<int   , double>) { return _mm_cvtepi32_pd(v); }
-Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<uint  , double>) { return _mm_add_pd(_mm_cvtepi32_pd(_mm_sub_epi32(v, _mm_setmin_epi32())), _mm_set1_pd(1u << 31)); }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<uint  , double>) { return _mm_add_pd(_mm_cvtepi32_pd(_mm_xor_si128(v, _mm_setmin_epi32())), _mm_set1_pd(1u << 31)); }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<short , double>) { return convert(convert(v, ConvertTag<short, int>()), ConvertTag<int, double>()); }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<ushort, double>) { return convert(convert(v, ConvertTag<ushort, int>()), ConvertTag<int, double>()); }
 Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , short >) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int   , short >) { return _mm_packs_epi32(v, _mm_setzero_si128()); }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint  , short >) { return _mm_packs_epi32(v, _mm_setzero_si128()); }
