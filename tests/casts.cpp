@@ -235,7 +235,11 @@ TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
     using To = typename TList::template at<1>;
     using T = typename From::EntryType;
 
-    alignas(From) T testData[17 + 2 * From::Size] = {
+    alignas(From) T testData[21 + 2 * From::Size] = {
+        T(0xc0000080u),
+        T(0xc0000081u),
+        T(0xc000017fu),
+        T(0xc0000180u),
         std::numeric_limits<T>::min(),
         T(0),
         T(-1),
@@ -253,8 +257,8 @@ TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
         T(std::numeric_limits<T>::max() - 0x55),
         T(-std::numeric_limits<T>::min()),
         T(-std::numeric_limits<T>::max())};
-    rnd<To, From>().store(&testData[17], Vc::Unaligned);
-    for (std::size_t i = 0; i < 17 + From::Size; i += From::Size) {
+    rnd<To, From>().store(&testData[21], Vc::Unaligned);
+    for (std::size_t i = 0; i < 21 + From::Size; i += From::Size) {
         const From v(&testData[i],
                      Vc::Unaligned);  // Unaligned because From can be SimdArray<T, Odd>
         cast_vector_impl<To>(v);
