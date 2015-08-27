@@ -377,16 +377,16 @@ Vc_SIMD_CAST_1( short_v, ushort_v) { return x.data(); }
 // 2 SSE::Vector to 1 SSE::Vector {{{2
 Vc_SIMD_CAST_2(double_v,    int_v) {
 #ifdef VC_IMPL_AVX
-    return _mm256_cvttpd_epi32(AVX::concat(x0.data(), x1.data()));
+    return AVX::convert<double, int>(AVX::concat(x0.data(), x1.data()));
 #else
-    return _mm_unpacklo_epi64(_mm_cvttpd_epi32(x0.data()), _mm_cvttpd_epi32(x1.data()));
+    return _mm_unpacklo_epi64(convert<double, int>(x0.data()), convert<double, int>(x1.data()));
 #endif
 }
 Vc_SIMD_CAST_2(double_v,   uint_v) {
 #ifdef VC_IMPL_AVX
-    return _mm256_cvttpd_epi32(AVX::concat(x0.data(), x1.data()));
+    return AVX::convert<double, uint>(AVX::concat(x0.data(), x1.data()));
 #else
-    return _mm_unpacklo_epi64(_mm_cvttpd_epi32(x0.data()), _mm_cvttpd_epi32(x1.data()));
+    return _mm_unpacklo_epi64(convert<double, uint>(x0.data()), convert<double, uint>(x1.data()));
 #endif
 }
 Vc_SIMD_CAST_2(double_v,  float_v) {
