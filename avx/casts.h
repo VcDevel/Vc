@@ -152,7 +152,7 @@ Vc_INTRINSIC __m256i convert(__m256  v, ConvertTag<float , uint>) {
 }
 Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, uint>) {
     using namespace AVX;
-    return _mm_add_epi32(
+    return _mm_xor_si128(
         _mm256_cvttpd_epi32(_mm256_sub_pd(_mm256_floor_pd(v), set1_pd(0x80000000u))),
         _mm_set2power31_epu32());
 }
@@ -211,7 +211,7 @@ Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<int   , double>) { return _mm
 Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<uint  , double>) {
     using namespace AVX;
     return _mm256_add_pd(
-        _mm256_cvtepi32_pd(_mm_sub_epi32(v, _mm_setmin_epi32())),
+        _mm256_cvtepi32_pd(_mm_xor_si128(v, _mm_setmin_epi32())),
         set1_pd(1u << 31)); }
 Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<short , double>) { return convert(convert(v, SSE::ConvertTag< short, int>()), ConvertTag<int, double>()); }
 Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<ushort, double>) { return convert(convert(v, SSE::ConvertTag<ushort, int>()), ConvertTag<int, double>()); }
