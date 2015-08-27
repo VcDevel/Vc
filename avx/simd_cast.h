@@ -1818,43 +1818,49 @@ Vc_SIMD_CAST_OFFSET(SSE::ushort_v, AVX2::double_v, 1) { return simd_cast<AVX2::d
 
 // Mask casts with offset {{{1
 // 1 AVX2::Mask to N AVX2::Mask {{{2
-// float_v and (u)short_v have size 8, double_v and (u)int_v have size 4. Consequently,
-// offset can either be 0 or 1. The 0 case is already done. The offset == 1 case is only
-// relevant for casts from size 8 to size 4.
-// (float types have 32 bits, integral types have 16 bits.)
+// float_v and (u)int_v have size 8, double_v has size 4, and (u)short_v have size 16. Consequently,
+// offset can 0, 1, 2, or 3.
+// - offset == 0 is already done.
+// - offset == 1 can be 16 -> 8, 16 -> 4, 8 -> 4, and 16 -> 4
+// - offset == 2 && offset == 3 can only be 16 -> 4
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(const AVX2::Mask<T> &k,
-          enable_if<sizeof(k) == 32 && sizeof(Return) == 32 && offset == 1 &&
-                    AVX2::is_mask<Return>::value> = nullarg)
+          enable_if<(AVX2::is_mask<Return>::value && offset == 1 &&
+                     AVX2::Mask<T>::size() == Return::size() * 2)> = nullarg)
 {
     const auto tmp = AVX::hi128(k.dataI());
-    return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
+    return AVX::concat(_mm_unpacklo_epi8(tmp, tmp), _mm_unpackhi_epi8(tmp, tmp));
 }
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(const AVX2::Mask<T> &k,
-          enable_if<sizeof(k) == 32 && sizeof(Return) == 16 && offset == 1 &&
-                    AVX2::is_mask<Return>::value> = nullarg)
+          enable_if<(AVX2::is_mask<Return>::value && offset == 1 &&
+                     AVX2::Mask<T>::size() == Return::size() * 4)> = nullarg)
 {
-    return AVX::hi128(k.dataI());
+    auto tmp = AVX::lo128(k.dataI());
+    tmp = _mm_unpackhi_epi8(tmp, tmp);
+    return AVX::concat(_mm_unpacklo_epi16(tmp, tmp), _mm_unpackhi_epi16(tmp, tmp));
 }
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(const AVX2::Mask<T> &k,
-          enable_if<sizeof(k) == 16 && sizeof(Return) == 32 && offset == 1 &&
-                    AVX2::is_mask<Return>::value> = nullarg)
+          enable_if<(AVX2::is_mask<Return>::value && offset == 2 &&
+                     AVX2::Mask<T>::size() == Return::size() * 4)> = nullarg)
 {
-    const auto tmp = _mm_unpackhi_epi16(k.dataI(), k.dataI());
-    return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp));
+    auto tmp = AVX::hi128(k.dataI());
+    tmp = _mm_unpacklo_epi8(tmp, tmp);
+    return AVX::concat(_mm_unpacklo_epi16(tmp, tmp), _mm_unpackhi_epi16(tmp, tmp));
 }
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(const AVX2::Mask<T> &k,
-          enable_if<sizeof(k) == 16 && sizeof(Return) == 16 && offset == 1 &&
-                    AVX2::is_mask<Return>::value> = nullarg)
+          enable_if<(AVX2::is_mask<Return>::value && offset == 3 &&
+                     AVX2::Mask<T>::size() == Return::size() * 4)> = nullarg)
 {
-    return _mm_unpackhi_epi16(k.dataI(), k.dataI());
+    auto tmp = AVX::hi128(k.dataI());
+    tmp = _mm_unpackhi_epi8(tmp, tmp);
+    return AVX::concat(_mm_unpacklo_epi16(tmp, tmp), _mm_unpackhi_epi16(tmp, tmp));
 }
 
 // 1 SSE::Mask to N AVX2::Mask {{{2
