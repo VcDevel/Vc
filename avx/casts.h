@@ -165,12 +165,43 @@ Vc_INTRINSIC __m256  convert(__m256  v, ConvertTag<float , float>) { return v; }
 Vc_INTRINSIC __m128  convert(__m256d v, ConvertTag<double, float>) { return _mm256_cvtpd_ps(v); }
 Vc_INTRINSIC __m256  convert(__m256i v, ConvertTag<int   , float>) { return _mm256_cvtepi32_ps(v); }
 Vc_INTRINSIC __m256  convert(__m256i v, ConvertTag<uint  , float>) {
+    // this is complicated because cvtepi32_ps only supports signed input. Thus, all
+    // input values with the MSB set would produce a negative result. We can reuse the
+    // cvtepi32_ps instruction if we unset the MSB. But then the rounding results can be
+    // different. Since float uses 24 bits for the mantissa (effectively), the 9-bit LSB
+    // determines the rounding direction. (Consider the bits ...8'7654'3210. The bits [0:7]
+    // need to be dropped and if > 0x80 round up, if < 0x80 round down. If [0:7] == 0x80
+    // then the rounding direction is determined by bit [8] for round to even. That's why
+    // the 9th bit is relevant for the rounding decision.)
+    // If the MSB of the input is set to 0, the cvtepi32_ps instruction makes its rounding
+    // decision on the lowest 8 bits instead. A second rounding decision is made when
+    // float(0x8000'0000) is added. This will rarely fix the rounding issue.
+    //
+    // Here's what the standard rounding mode expects:
+    // 0xc0000080 should cvt to 0xc0000000
+    // 0xc0000081 should cvt to 0xc0000100
+    //     --     should cvt to 0xc0000100
+    // 0xc000017f should cvt to 0xc0000100
+    // 0xc0000180 should cvt to 0xc0000200
+    //
+    // However: using float(input ^ 0x8000'0000) + float(0x8000'0000) we get:
+    // 0xc0000081 would cvt to 0xc0000000
+    // 0xc00000c0 would cvt to 0xc0000000
+    // 0xc00000c1 would cvt to 0xc0000100
+    // 0xc000013f would cvt to 0xc0000100
+    // 0xc0000140 would cvt to 0xc0000200
+    //
+    // Solution: float(input & 0x7fff'fe00) + (float(0x8000'0000) + float(input & 0x1ff))
+    // This ensures the rounding decision is made on the 9-bit LSB when 0x8000'0000 is
+    // added to the float value of the low 8 bits of the input.
     using namespace AVX;
     return _mm256_blendv_ps(
         _mm256_cvtepi32_ps(v),
-        _mm256_add_ps(_mm256_cvtepi32_ps(sub_epi32(v, set2power31_epu32())),
-                      set2power31_ps()),
-        _mm256_castsi256_ps(cmplt_epi32(v, _mm256_setzero_si256()))); }
+        _mm256_add_ps(_mm256_cvtepi32_ps(and_si256(v, set1_epi32(0x7ffffe00))),
+                      _mm256_add_ps(set2power31_ps(), _mm256_cvtepi32_ps(and_si256(
+                                                          v, set1_epi32(0x000001ff))))),
+        _mm256_castsi256_ps(cmplt_epi32(v, _mm256_setzero_si256())));
+}
 Vc_INTRINSIC __m256  convert(__m128i v, ConvertTag<short , float>) { return _mm256_cvtepi32_ps(convert(v, ConvertTag< short, int>())); }
 Vc_INTRINSIC __m256  convert(__m128i v, ConvertTag<ushort, float>) { return _mm256_cvtepi32_ps(convert(v, ConvertTag<ushort, int>())); }
 

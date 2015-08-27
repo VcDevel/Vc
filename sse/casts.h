@@ -91,10 +91,14 @@ Vc_INTRINSIC __m128  convert(__m128  v, ConvertTag<float , float >) { return v; 
 Vc_INTRINSIC __m128  convert(__m128d v, ConvertTag<double, float >) { return _mm_cvtpd_ps(v); }
 Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<int   , float >) { return _mm_cvtepi32_ps(v); }
 Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<uint  , float >) {
+    // see AVX::convert<uint, float> for an explanation of the math behind the
+    // implementation
+    using namespace SSE;
     return blendv_ps(_mm_cvtepi32_ps(v),
-                     _mm_add_ps(_mm_cvtepi32_ps(_mm_sub_epi32(v, _mm_setmin_epi32())),
-                                _mm_set1_ps(1u << 31)),
-                     _mm_castsi128_ps(_mm_cmplt_epi32(v, _mm_setzero_si128())));
+        _mm_add_ps(_mm_cvtepi32_ps(_mm_and_si128(v, _mm_set1_epi32(0x7ffffe00))),
+                      _mm_add_ps(_mm_set1_ps(1u << 31), _mm_cvtepi32_ps(_mm_and_si128(
+                                                          v, _mm_set1_epi32(0x000001ff))))),
+        _mm_castsi128_ps(_mm_cmplt_epi32(v, _mm_setzero_si128())));
 }
 Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<short , float >) { return convert(convert(v, ConvertTag<short, int>()), ConvertTag<int, float>()); }
 Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<ushort, float >) { return convert(convert(v, ConvertTag<ushort, int>()), ConvertTag<int, float>()); }
