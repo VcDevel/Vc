@@ -43,16 +43,18 @@ Vc_INTRINSIC Vc_CONST AVX2::float_v abs(AVX2::float_v x)
 {
     return Detail::and_(x.data(), AVX::setabsmask_ps());
 }
-Vc_INTRINSIC Vc_CONST AVX::int_v abs(AVX::int_v x)
+#ifdef VC_IMPL_AVX2
+Vc_INTRINSIC Vc_CONST AVX2::int_v abs(AVX2::int_v x)
 {
-    return _mm_abs_epi32(x.data());
+    return _mm256_abs_epi32(x.data());
 }
-Vc_INTRINSIC Vc_CONST AVX::short_v abs(AVX::short_v x)
+Vc_INTRINSIC Vc_CONST AVX2::short_v abs(AVX2::short_v x)
 {
-    return _mm_abs_epi16(x.data());
+    return _mm256_abs_epi16(x.data());
 }
+#endif
 template <typename T>
-Vc_INTRINSIC AVX::Vector<T> copysign(AVX::Vector<T> a, AVX::Vector<T> b)
+Vc_INTRINSIC AVX2::Vector<T> copysign(AVX2::Vector<T> a, AVX2::Vector<T> b)
 {
     return a.copySign(b);
 }
