@@ -235,6 +235,31 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 
 namespace Common
 {
+/**
+ * \internal
+ *
+ * Helper interface to make m_indexes in InterleavedMemoryAccessBase behave like an integer vector.
+ * Only that the entries are successive entries from the given start index.
+ */
+template<size_t StructSize> class SuccessiveEntries
+{
+    std::size_t m_first;
+public:
+    typedef SuccessiveEntries AsArg;
+    constexpr SuccessiveEntries(size_t first) : m_first(first) {}
+    constexpr Vc_PURE size_t operator[](size_t offset) const { return m_first + offset * StructSize; }
+    constexpr Vc_PURE size_t data() const { return m_first; }
+    constexpr Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
+    constexpr Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
+    constexpr Vc_PURE SuccessiveEntries operator<<(std::size_t x) const { return {m_first << x}; }
+
+    friend SuccessiveEntries &internal_data(SuccessiveEntries &x) { return x; }
+    friend const SuccessiveEntries &internal_data(const SuccessiveEntries &x)
+    {
+        return x;
+    }
+};
+
 template <std::size_t alignment>
 Vc_INTRINSIC_L void *aligned_malloc(std::size_t n) Vc_INTRINSIC_R;
 Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
