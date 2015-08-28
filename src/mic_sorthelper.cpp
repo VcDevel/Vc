@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace MIC
 {
 
 // reference:

@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace MIC
 {
     template<typename T> static Vc_INTRINSIC_L Vc_CONST_L T mic_cast(__m512  v) Vc_INTRINSIC_R Vc_CONST_R;
     template<typename T> static Vc_INTRINSIC_L Vc_CONST_L T mic_cast(__m512i v) Vc_INTRINSIC_R Vc_CONST_R;

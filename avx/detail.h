@@ -1733,7 +1733,7 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1)
     {
-        using namespace Vc::Vc_IMPL_NAMESPACE;
+        using namespace Vc::AVX;
         const m256d ab02 = concat(_mm_loadu_pd(&data[i[0]]), _mm_loadu_pd(&data[i[2]]));
         const m256d ab13 = concat(_mm_loadu_pd(&data[i[1]]), _mm_loadu_pd(&data[i[3]]));
 

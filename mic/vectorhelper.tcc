@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace MIC
 {
 // zero, one {{{1
 template<> inline __m512  VectorHelper<__m512 >::zero() { return _mm512_setzero_ps(); }

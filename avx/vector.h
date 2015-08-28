@@ -32,14 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "intrinsics.h"
 #include "casts.h"
 # undef VC_IMPL
-# undef Vc_IMPL_NAMESPACE
 # define VC_IMPL ::Vc::SSE42Impl
-# define Vc_IMPL_NAMESPACE SSE
 #include "../sse/vector.h"
 # undef VC_IMPL
-# undef Vc_IMPL_NAMESPACE
 # define VC_IMPL ::Vc::AVXImpl
-# define Vc_IMPL_NAMESPACE AVX
 #include "shuffle.h"
 #include "vectorhelper.h"
 #include "mask.h"
