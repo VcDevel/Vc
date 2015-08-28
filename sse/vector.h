@@ -40,7 +40,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/loadstoreflags.h"
 #include <algorithm>
 #include <cmath>
-#include "iterators.h"
 #include "detail.h"
 
 #include "macros.h"

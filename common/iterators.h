@@ -218,6 +218,10 @@ template<typename V, typename Flags, typename FlagsX> Vc_ALWAYS_INLINE MemoryVec
 }
 
 }  // namespace Common
+
+using Common::begin;
+using Common::end;
+using Common::makeIterator;
 }  // namespace Vc
 
 #include "undomacros.h"

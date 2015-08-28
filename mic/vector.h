@@ -43,7 +43,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#include "vectormultiplication.h"
 #include "writemaskedvector.h"
 #include "sorthelper.h"
-#include "iterators.h"
 #include "../common/where.h"
 #include "macros.h"
 

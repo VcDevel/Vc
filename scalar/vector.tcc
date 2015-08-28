@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../common/data.h"
 #include "../common/where.h"
-#include "iterators.h"
 #include "../common/transpose.h"
 #include "macros.h"
 namespace Vc_VERSIONED_NAMESPACE

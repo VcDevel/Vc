@@ -48,7 +48,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/aliasingentryhelper.h"
 #include "../common/memoryfwd.h"
 #include "../common/where.h"
-#include "iterators.h"
 #include "macros.h"
 
 #ifdef isfinite
