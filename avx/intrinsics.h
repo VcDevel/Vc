@@ -776,7 +776,7 @@ namespace AVX
     public:
         FREE_STORE_OPERATORS_ALIGNED(alignof(V))
     };
-}  // namespace AVX(2)
+}  // namespace AVX
 }  // namespace Vc
 
 #include "undomacros.h"

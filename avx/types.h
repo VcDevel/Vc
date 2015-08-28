@@ -112,12 +112,7 @@ using ushort_m = Mask<ushort>;
 using  schar_m = Mask< schar>;
 using  uchar_m = Mask< uchar>;
 
-template <typename V = Vector<float>>
-class
-#ifndef VC_ICC
-    alignas(alignof(V))
-#endif
-    VectorAlignedBaseT;
+using AVX::VectorAlignedBaseT;
 
 template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
