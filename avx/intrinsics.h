@@ -629,6 +629,14 @@ static Vc_INTRINSIC void _mm256_maskstore(int *mem, const __m256i mask, const __
 static Vc_INTRINSIC void _mm256_maskstore(unsigned int *mem, const __m256i mask, const __m256i v) {
     _mm256_maskstore(reinterpret_cast<int *>(mem), mask, v);
 }
+static Vc_INTRINSIC void _mm256_maskstore(short *mem, const __m256i mask, const __m256i v) {
+    using namespace AVX;
+    _mm_maskmoveu_si128(_mm256_castsi256_si128(v), _mm256_castsi256_si128(mask), reinterpret_cast<char *>(&mem[0]));
+    _mm_maskmoveu_si128(extract128<1>(v), extract128<1>(mask), reinterpret_cast<char *>(&mem[8]));
+}
+static Vc_INTRINSIC void _mm256_maskstore(unsigned short *mem, const __m256i mask, const __m256i v) {
+    _mm256_maskstore(reinterpret_cast<short *>(mem), mask, v);
+}
 
 #undef AVX_TO_SSE_1
 #undef AVX_TO_SSE_1_128
