@@ -34,23 +34,23 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Internal
 {
 
-Vc_ALWAYS_INLINE void HelperImpl<VC_IMPL>::prefetchForOneRead(const void *addr)
+Vc_ALWAYS_INLINE void HelperImpl<CurrentImplementation::current()>::prefetchForOneRead(const void *addr)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_NTA);
 }
-Vc_ALWAYS_INLINE void HelperImpl<VC_IMPL>::prefetchClose(const void *addr)
+Vc_ALWAYS_INLINE void HelperImpl<CurrentImplementation::current()>::prefetchClose(const void *addr)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T0);
 }
-Vc_ALWAYS_INLINE void HelperImpl<VC_IMPL>::prefetchMid(const void *addr)
+Vc_ALWAYS_INLINE void HelperImpl<CurrentImplementation::current()>::prefetchMid(const void *addr)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T1);
 }
-Vc_ALWAYS_INLINE void HelperImpl<VC_IMPL>::prefetchFar(const void *addr)
+Vc_ALWAYS_INLINE void HelperImpl<CurrentImplementation::current()>::prefetchFar(const void *addr)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T2);
 }
-Vc_ALWAYS_INLINE void HelperImpl<VC_IMPL>::prefetchForModify(const void *addr)
+Vc_ALWAYS_INLINE void HelperImpl<CurrentImplementation::current()>::prefetchForModify(const void *addr)
 {
 #ifdef __3dNOW__
     _m_prefetchw(const_cast<void *>(addr));
