@@ -479,7 +479,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         Vc_ALWAYS_INLINE Memory(size_t size)
             : m_entriesCount(size),
             m_vectorsCount(calcPaddedEntriesCount(m_entriesCount)),
-            m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
         {
             m_vectorsCount /= V::Size;
             Base::lastVector() = V::Zero();
@@ -496,7 +496,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         Vc_ALWAYS_INLINE Memory(const MemoryBase<V, Parent, 1, RM> &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
-            m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
             Internal2::copyVectors(*this, rhs);
         }
@@ -511,7 +511,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         Vc_ALWAYS_INLINE Memory(const Memory &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
-            m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
             Internal2::copyVectors(*this, rhs);
         }
@@ -521,7 +521,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
          */
         Vc_ALWAYS_INLINE ~Memory()
         {
-            Common::free(m_mem);
+            Vc::free(m_mem);
         }
 
         /**
