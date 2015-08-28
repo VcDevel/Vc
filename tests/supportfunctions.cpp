@@ -41,7 +41,8 @@ void testBestImplementation()
     // when building with a recent and fully featured compiler the following should pass
     // but - old GCC versions have to fall back to Scalar, even though SSE is supported by the CPU
     //     - ICC/MSVC can't use XOP/FMA4
-    //COMPARE(Vc::bestImplementationSupported(), VC_IMPL);
+    COMPARE(Vc::bestImplementationSupported(), Vc::CurrentImplementation::current());
+    COMPARE(Vc::bestImplementationSupported(), VC_IMPL);
 }
 
 void testExtraInstructions()
