@@ -63,8 +63,12 @@ namespace Mem
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x) {
             static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
             static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
-            return _mm256_permute2f128_si256(
-                x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
+#ifdef VC_IMPL_AVX2
+            return _mm256_permute2x128_si256
+#else
+            return _mm256_permute2f128_si256
+#endif
+                (x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
         }
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle128(__m256 x, __m256 y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
@@ -74,7 +78,12 @@ namespace Mem
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST shuffle128(__m256i x, __m256i y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
             static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
-            return _mm256_permute2f128_si256(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+#ifdef VC_IMPL_AVX2
+            return _mm256_permute2x128_si256
+#else
+            return _mm256_permute2f128_si256
+#endif
+                   (x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle128(__m256d x, __m256d y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
@@ -213,7 +222,12 @@ namespace Reg
         template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x, __m256i y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
             static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
-            return _mm256_permute2f128_si256(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+#ifdef VC_IMPL_AVX2
+            return _mm256_permute2x128_si256
+#else
+            return _mm256_permute2f128_si256
+#endif
+                   (x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
         }
         template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute128(__m256d x, __m256d y) {
             static_assert(L >= X0 && H >= X0, "Incorrect_Range");
