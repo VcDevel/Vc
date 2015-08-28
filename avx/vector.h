@@ -31,11 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "intrinsics.h"
 #include "casts.h"
-# undef VC_IMPL
-# define VC_IMPL ::Vc::SSE42Impl
 #include "../sse/vector.h"
-# undef VC_IMPL
-# define VC_IMPL ::Vc::AVXImpl
 #include "shuffle.h"
 #include "vectorhelper.h"
 #include "mask.h"
