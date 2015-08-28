@@ -805,14 +805,38 @@ template <> Vc_INTRINSIC AVX2::float_v AVX2::float_v::interleaveHigh(AVX2::float
                                    _mm256_unpackhi_ps(data(), x.data()));
 }
 #ifdef VC_IMPL_AVX2
-template <> Vc_INTRINSIC    AVX2::int_v    AVX2::int_v::interleaveLow (   AVX2::int_v x) const { return _mm256_unpacklo_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC    AVX2::int_v    AVX2::int_v::interleaveHigh(   AVX2::int_v x) const { return _mm256_unpackhi_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC   AVX2::uint_v   AVX2::uint_v::interleaveLow (  AVX2::uint_v x) const { return _mm256_unpacklo_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC   AVX2::uint_v   AVX2::uint_v::interleaveHigh(  AVX2::uint_v x) const { return _mm256_unpackhi_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveLow ( AVX2::short_v x) const { return _mm256_unpacklo_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveHigh( AVX2::short_v x) const { return _mm256_unpackhi_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveLow (AVX2::ushort_v x) const { return _mm256_unpacklo_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveHigh(AVX2::ushort_v x) const { return _mm256_unpackhi_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC    AVX2::int_v    AVX2::int_v::interleaveLow (   AVX2::int_v x) const {
+    return Mem::shuffle128<X0, Y0>(_mm256_unpacklo_epi32(data(), x.data()),
+                                   _mm256_unpackhi_epi32(data(), x.data()));
+}
+template <> Vc_INTRINSIC    AVX2::int_v    AVX2::int_v::interleaveHigh(   AVX2::int_v x) const {
+    return Mem::shuffle128<X1, Y1>(_mm256_unpacklo_epi32(data(), x.data()),
+                                   _mm256_unpackhi_epi32(data(), x.data()));
+}
+template <> Vc_INTRINSIC   AVX2::uint_v   AVX2::uint_v::interleaveLow (  AVX2::uint_v x) const {
+    return Mem::shuffle128<X0, Y0>(_mm256_unpacklo_epi32(data(), x.data()),
+                                   _mm256_unpackhi_epi32(data(), x.data()));
+}
+template <> Vc_INTRINSIC   AVX2::uint_v   AVX2::uint_v::interleaveHigh(  AVX2::uint_v x) const {
+    return Mem::shuffle128<X1, Y1>(_mm256_unpacklo_epi32(data(), x.data()),
+                                   _mm256_unpackhi_epi32(data(), x.data()));
+}
+template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveLow ( AVX2::short_v x) const {
+    return Mem::shuffle128<X0, Y0>(_mm256_unpacklo_epi16(data(), x.data()),
+                                   _mm256_unpackhi_epi16(data(), x.data()));
+}
+template <> Vc_INTRINSIC  AVX2::short_v  AVX2::short_v::interleaveHigh( AVX2::short_v x) const {
+    return Mem::shuffle128<X1, Y1>(_mm256_unpacklo_epi16(data(), x.data()),
+                                   _mm256_unpackhi_epi16(data(), x.data()));
+}
+template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveLow (AVX2::ushort_v x) const {
+    return Mem::shuffle128<X0, Y0>(_mm256_unpacklo_epi16(data(), x.data()),
+                                   _mm256_unpackhi_epi16(data(), x.data()));
+}
+template <> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::interleaveHigh(AVX2::ushort_v x) const {
+    return Mem::shuffle128<X1, Y1>(_mm256_unpacklo_epi16(data(), x.data()),
+                                   _mm256_unpackhi_epi16(data(), x.data()));
+}
 #endif
 // generate {{{1
 template <> template <typename G> Vc_INTRINSIC AVX2::double_v AVX2::double_v::generate(G gen)
