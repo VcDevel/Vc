@@ -34,7 +34,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Detail
 {
 #ifdef VC_IMPL_AVX2
-template<> Vc_CONST AVX2::short_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::short_v) x_)
+template<> Vc_CONST AVX2::short_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::short_v) x_)
 {
     __m128i lo, hi, y, x = AVX::lo128(x_.data());
     // sort pairs
@@ -72,7 +72,7 @@ template<> Vc_CONST AVX2::short_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::sho
     return AVX::zeroExtend(_mm_unpacklo_epi16(lo, hi));
 }
 
-template <> Vc_CONST AVX2::ushort_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::ushort_v) x_)
+template <> Vc_CONST AVX2::ushort_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::ushort_v) x_)
 {
     __m128i lo, hi, y, x = AVX::lo128(x_.data());
     // sort pairs
@@ -110,7 +110,7 @@ template <> Vc_CONST AVX2::ushort_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::u
     return AVX::zeroExtend(_mm_unpacklo_epi16(lo, hi));
 }
 
-template <> Vc_CONST AVX2::int_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::int_v) x_)
+template <> Vc_CONST AVX2::int_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::int_v) x_)
 {
     using namespace AVX;
     const __m256i hgfedcba = x_.data();
@@ -155,7 +155,7 @@ template <> Vc_CONST AVX2::int_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::int_
     return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
 
-template <> Vc_CONST AVX2::uint_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::uint_v) x_)
+template <> Vc_CONST AVX2::uint_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::uint_v) x_)
 {
     using namespace AVX;
     const __m256i hgfedcba = x_.data();
@@ -200,7 +200,7 @@ template <> Vc_CONST AVX2::uint_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::uin
 }
 #endif  // AVX2
 
-template <> Vc_CONST AVX2::float_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::float_v) x_)
+template <> Vc_CONST AVX2::float_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::float_v) x_)
 {
     __m256 hgfedcba = x_.data();
     const __m128 hgfe = AVX::hi128(hgfedcba);
@@ -274,7 +274,7 @@ template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RES
     y = _mm256_unpackhi_pd(l, h); // h3 l3 h1 l1
 }
 #endif
-template <> Vc_CONST AVX2::double_v sorted<VC_IMPL>(VC_ALIGNED_PARAMETER(AVX2::double_v) x_)
+template <> Vc_CONST AVX2::double_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::double_v) x_)
 {
     __m256d dcba = x_.data();
     /*
