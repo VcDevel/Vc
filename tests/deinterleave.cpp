@@ -82,16 +82,13 @@ TEST_TYPES(Pair, testDeinterleave,
     V a, b;
 
     for (size_t i = 0; i < 1024 - 2 * V::Size; ++i) {
-        // note that a 32 bit integer is certainly enough to decide on alignment...
-        // ... but uintptr_t is C99 but not C++ yet
-        // ... and GCC refuses to do the cast, even if I know what I'm doing
-        if (reinterpret_cast<unsigned long>(&memory[i]) & (Vc::VectorAlignment - 1)) {
+        if (reinterpret_cast<std::uintptr_t>(&memory[i]) & (Vc::VectorAlignment - 1)) {
             Vc::deinterleave(&a, &b, &memory[i], Vc::Unaligned);
         } else {
             Vc::deinterleave(&a, &b, &memory[i]);
         }
-        COMPARE(_0246 + i,     a);
-        COMPARE(_0246 + i + 1, b);
+        COMPARE(a, _0246 + i);
+        COMPARE(b, _0246 + i + 1);
     }
 }
 
@@ -307,7 +304,7 @@ void testInterleavingScatterCompare(Wrapper &data, const IndexType &i,
 
     data[i] = tie(reference[Indexes]...);
     std::array<V, sizeof...(Indexes)> t = data[i];
-    COMPARE(t, reference);
+    COMPARE(t, reference) << "i: " << i;
 
     for (auto &x : t) {
         x.setZero();
