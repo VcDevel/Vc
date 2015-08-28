@@ -120,30 +120,29 @@ inline void deinterleave(Vector<float> &a, Vector<float> &b)
     b.data() = _mm256_unpackhi_ps(tmp2, tmp3); // b7 b5 b3 b1 a7 a5 a3 a1
 }
 
-inline void deinterleave(Vector<short> &, Vector<short> &)
+inline void deinterleave(Vector<short> &a, // a0 b0 a1 b1 a2 b2 a3 b3 | a4 b4 a5 ...
+                         Vector<short> &b) // a8 b8 a9 ...
 {
-    return;
-    /* TODO:
-    m128i tmp0 = _mm_unpacklo_epi16(a.data(), b.data()); // a0 a4 b0 b4 a1 a5 b1 b5
-    m128i tmp1 = _mm_unpackhi_epi16(a.data(), b.data()); // a2 a6 b2 b6 a3 a7 b3 b7
-    m128i tmp2 = _mm_unpacklo_epi16(tmp0, tmp1); // a0 a2 a4 a6 b0 b2 b4 b6
-    m128i tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // a1 a3 a5 a7 b1 b3 b5 b7
-    a.data() = _mm_unpacklo_epi16(tmp2, tmp3);
-    b.data() = _mm_unpackhi_epi16(tmp2, tmp3);
-    */
+    auto v0 = Mem::shuffle128<X0, Y0>(a.data(), b.data());
+    auto v1 = Mem::shuffle128<X1, Y1>(a.data(), b.data());
+    auto v2 = _mm256_unpacklo_epi16(v0, v1); // a0 a4 ...
+    auto v3 = _mm256_unpackhi_epi16(v0, v1); // a2 a6 ...
+    v0 = _mm256_unpacklo_epi16(v2, v3); // a0 a2 ...
+    v1 = _mm256_unpackhi_epi16(v2, v3); // a1 a3 ...
+    a.data() = _mm256_unpacklo_epi16(v0, v1); // a0 a1 ...
+    b.data() = _mm256_unpackhi_epi16(v0, v1); // b0 b1 ...
 }
 
-inline void deinterleave(Vector<unsigned short> &, Vector<unsigned short> &)
+inline void deinterleave(Vector<ushort> &a, Vector<ushort> &b)
 {
-    return;
-    /* TODO:
-    m128i tmp0 = _mm_unpacklo_epi16(a.data(), b.data()); // a0 a4 b0 b4 a1 a5 b1 b5
-    m128i tmp1 = _mm_unpackhi_epi16(a.data(), b.data()); // a2 a6 b2 b6 a3 a7 b3 b7
-    m128i tmp2 = _mm_unpacklo_epi16(tmp0, tmp1); // a0 a2 a4 a6 b0 b2 b4 b6
-    m128i tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // a1 a3 a5 a7 b1 b3 b5 b7
-    a.data() = _mm_unpacklo_epi16(tmp2, tmp3);
-    b.data() = _mm_unpackhi_epi16(tmp2, tmp3);
-    */
+    auto v0 = Mem::shuffle128<X0, Y0>(a.data(), b.data());
+    auto v1 = Mem::shuffle128<X1, Y1>(a.data(), b.data());
+    auto v2 = _mm256_unpacklo_epi16(v0, v1); // a0 a4 ...
+    auto v3 = _mm256_unpackhi_epi16(v0, v1); // a2 a6 ...
+    v0 = _mm256_unpacklo_epi16(v2, v3); // a0 a2 ...
+    v1 = _mm256_unpackhi_epi16(v2, v3); // a1 a3 ...
+    a.data() = _mm256_unpacklo_epi16(v0, v1); // a0 a1 ...
+    b.data() = _mm256_unpackhi_epi16(v0, v1); // b0 b1 ...
 }
 
 }  // namespace AVX2
