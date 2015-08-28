@@ -368,7 +368,7 @@ TEST_TYPES(Param, testInterleavingScatter,
         for (size_t n = 0; n < StructSize; ++n) {
             std::cout << '\n' << n << ": ";
             for (size_t i = 0; i < N; ++i) {
-                std::cout << data[i].d[0] << ' ';
+                std::cout << data[i].d[n] << ' ';
             }
         }
         std::cout << '\n';
