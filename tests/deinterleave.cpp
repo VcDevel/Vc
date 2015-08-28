@@ -335,30 +335,43 @@ TEST_TYPES(Param, testInterleavingScatter,
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
     typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
-    const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(), 1024 * 1024 / sizeof(S));
+    const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(),
+                                      1024 * 1024 / sizeof(S));
     const size_t NMask = createNMask(N);
 
     S *data = Vc::malloc<S, Vc::AlignOnVector>(N);
     std::memset(data, 0, sizeof(S) * N);
     Wrapper data_v(data);
 
-    for (int retest = 0; retest < 10000; ++retest) {
-        I indexes = (I::Random() >> 10) & I(NMask);
-        if (I::Size != 1) {
-            // ensure the indexes are unique
-            while(any_of(indexes.sorted() == rotate(indexes.sorted()))) {
-                indexes = (I::Random() >> 10) & I(NMask);
+    try {
+        for (int retest = 0; retest < 10000; ++retest) {
+            I indexes = (I::Random() >> 10) & I(NMask);
+            if (I::Size != 1) {
+                // ensure the indexes are unique
+                while (any_of(indexes.sorted() == rotate(indexes.sorted()))) {
+                    indexes = (I::Random() >> 10) & I(NMask);
+                }
+            }
+            VERIFY(all_of(indexes >= 0));
+            VERIFY(all_of(indexes < N));
+
+            testInterleavingScatterCompare<V>(data_v, indexes,
+                                              Vc::make_index_sequence<StructSize>());
+        }
+
+        for (size_t i = 0; i < N - V::Size; ++i) {
+            testInterleavingScatterCompare<V>(data_v, i,
+                                              Vc::make_index_sequence<StructSize>());
+        }
+    } catch (...) {
+        std::cout << "data was:";
+        for (size_t n = 0; n < StructSize; ++n) {
+            std::cout << '\n' << n << ": ";
+            for (size_t i = 0; i < N; ++i) {
+                std::cout << data[i].d[0] << ' ';
             }
         }
-        VERIFY(all_of(indexes >= 0));
-        VERIFY(all_of(indexes < N));
-
-        testInterleavingScatterCompare<V>(data_v, indexes,
-                                          Vc::make_index_sequence<StructSize>());
-    }
-
-    for (size_t i = 0; i < N - V::Size; ++i) {
-        testInterleavingScatterCompare<V>(data_v, i,
-                                          Vc::make_index_sequence<StructSize>());
+        std::cout << '\n';
+        throw;
     }
 }
