@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace AVX
 {
 
 #ifdef NDEBUG
@@ -101,9 +101,9 @@ class DebugStream
 };
 #endif
 
-#define VC_DEBUG ::Vc::Vc_IMPL_NAMESPACE::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define Vc_DEBUG Vc::AVX::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
-}  // namespace AVX(2)
+}  // namespace AVX
 }  // namespace Vc
 
 #endif // VC_AVX_DEBUG_H
