@@ -113,14 +113,14 @@ namespace Casts
     Vc_INTRINSIC Vc_CONST __m128  lo128(__m256  v) { return avx_cast<__m128>(v); }
     Vc_INTRINSIC Vc_CONST __m128d lo128(__m256d v) { return avx_cast<__m128d>(v); }
     Vc_INTRINSIC Vc_CONST __m128i lo128(__m256i v) { return avx_cast<__m128i>(v); }
-    Vc_INTRINSIC Vc_CONST __m128  hi128(__m256  v) { return _mm256_extractf128_ps(v, 1); }
-    Vc_INTRINSIC Vc_CONST __m128d hi128(__m256d v) { return _mm256_extractf128_pd(v, 1); }
-    Vc_INTRINSIC Vc_CONST __m128i hi128(__m256i v) { return _mm256_extractf128_si256(v, 1); }
+    Vc_INTRINSIC Vc_CONST __m128  hi128(__m256  v) { return extract128<1>(v); }
+    Vc_INTRINSIC Vc_CONST __m128d hi128(__m256d v) { return extract128<1>(v); }
+    Vc_INTRINSIC Vc_CONST __m128i hi128(__m256i v) { return extract128<1>(v); }
 
     // simplify combining 128-bit registers in 256-bit registers
-    Vc_INTRINSIC Vc_CONST __m256  concat(__m128  a, __m128  b) { return _mm256_insertf128_ps   (avx_cast<__m256 >(a), b, 1); }
-    Vc_INTRINSIC Vc_CONST __m256d concat(__m128d a, __m128d b) { return _mm256_insertf128_pd   (avx_cast<__m256d>(a), b, 1); }
-    Vc_INTRINSIC Vc_CONST __m256i concat(__m128i a, __m128i b) { return _mm256_insertf128_si256(avx_cast<__m256i>(a), b, 1); }
+    Vc_INTRINSIC Vc_CONST __m256  concat(__m128  a, __m128  b) { return insert128<1>(avx_cast<__m256 >(a), b); }
+    Vc_INTRINSIC Vc_CONST __m256d concat(__m128d a, __m128d b) { return insert128<1>(avx_cast<__m256d>(a), b); }
+    Vc_INTRINSIC Vc_CONST __m256i concat(__m128i a, __m128i b) { return insert128<1>(avx_cast<__m256i>(a), b); }
 
 }  // namespace Casts
 using namespace Casts;
