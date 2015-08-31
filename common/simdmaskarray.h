@@ -42,7 +42,10 @@ namespace Vc_VERSIONED_NAMESPACE
 /// \addtogroup SimdArray
 /// @{
 
-template <typename T, std::size_t N, typename VectorType_> class SimdMaskArray<T, N, VectorType_, N>
+template <typename T, std::size_t N, typename VectorType_>
+class alignas(
+    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) & 127) +
+    1) SimdMaskArray<T, N, VectorType_, N>
 {
 public:
     using VectorType = VectorType_;
@@ -233,7 +236,10 @@ private:
 
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::Size;
 
-template <typename T, std::size_t N, typename VectorType, std::size_t> class SimdMaskArray
+template <typename T, std::size_t N, typename VectorType, std::size_t>
+class alignas(
+    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType) / VectorType::size()) - 1) & 127) +
+    1) SimdMaskArray
 {
     static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
 

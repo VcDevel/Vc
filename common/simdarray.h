@@ -86,7 +86,10 @@ template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r
 
 // atomic SimdArray {{{1
 #define VC_CURRENT_CLASS_NAME SimdArray
-template <typename T, std::size_t N, typename VectorType_> class SimdArray<T, N, VectorType_, N>
+template <typename T, std::size_t N, typename VectorType_>
+class alignas(
+    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) & 127) +
+    1) SimdArray<T, N, VectorType_, N>
 {
     static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value ||
                       std::is_same<T, int32_t>::value ||
@@ -428,7 +431,10 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
 }
 
 // generic SimdArray {{{1
-template <typename T, std::size_t N, typename VectorType, std::size_t> class SimdArray
+template <typename T, std::size_t N, typename VectorType, std::size_t>
+class alignas(
+    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType) / VectorType::size()) - 1) & 127) +
+    1) SimdArray
 {
     static_assert(std::is_same<T,   double>::value ||
                   std::is_same<T,    float>::value ||

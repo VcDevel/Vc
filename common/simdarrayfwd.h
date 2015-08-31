@@ -109,25 +109,21 @@ using select_best_vector_type =
 // SimdArray<T, N>::vector_type != SimdArray<T, N>::vector_type
 //
 // Therefore use SimdArray<T, N, V>, where V follows from the above.
-template <
-    typename T, std::size_t N,
-    typename VectorType = Common::select_best_vector_type<T, N>,
-    std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
-                                                 // specialization of N == VectorSize
-    >
-class alignas(
-    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType) / VectorType::size()) - 1) & 127) +
-    1) SimdArray;
+template <typename T, std::size_t N,
+          typename VectorType = Common::select_best_vector_type<T, N>,
+          std::size_t VectorSize =
+              VectorType::size()  // this last parameter is only used for
+                                  // specialization of N == VectorSize
+          >
+class SimdArray;
 
-template <
-    typename T, std::size_t N,
-    typename VectorType = Common::select_best_vector_type<T, N>,
-    std::size_t VectorSize = VectorType::size()  // this last parameter is only used for
-                                                 // specialization of N == VectorSize
-    >
-class alignas(
-    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType) / VectorType::size()) - 1) & 127) +
-    1) SimdMaskArray;
+template <typename T, std::size_t N,
+          typename VectorType = Common::select_best_vector_type<T, N>,
+          std::size_t VectorSize =
+              VectorType::size()  // this last parameter is only used for
+                                  // specialization of N == VectorSize
+          >
+class SimdMaskArray;
 
 /** \internal
  * Simple traits for SimdArray to easily access internal types of non-atomic SimdArray
