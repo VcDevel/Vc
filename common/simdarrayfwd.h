@@ -116,13 +116,11 @@ template <
                                                  // specialization of N == VectorSize
     >
 class
-#ifndef VC_ICC
     alignas((((Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
                sizeof(VectorType)) -
               1) &
              127) +
             1)
-#endif
         SimdArray;
 
 template <
@@ -132,13 +130,11 @@ template <
                                                  // specialization of N == VectorSize
     >
 class
-#ifndef VC_ICC
     alignas((((Common::nextPowerOfTwo((N + VectorSize - 1) / VectorSize) *
                sizeof(typename VectorType::Mask)) -
               1) &
              127) +
             1)
-#endif
         SimdMaskArray;
 
 /** \internal
