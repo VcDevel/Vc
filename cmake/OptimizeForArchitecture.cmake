@@ -88,43 +88,35 @@ macro(AutodetectHostArchitecture)
    endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
    if(_vendor_id STREQUAL "GenuineIntel")
       if(_cpu_family EQUAL 6)
-         # Any recent Intel CPU except NetBurst
-         if(_cpu_model EQUAL 63) # e.g. Xeon E5 2660 v3
-            set(TARGET_ARCHITECTURE "haswell")
-         elseif(_cpu_model EQUAL 62)
-            set(TARGET_ARCHITECTURE "ivy-bridge")
-         elseif(_cpu_model EQUAL 61)
+         # taken from the Intel ORM
+         # http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html
+         # CPUID Signature Values of Of Recent Intel Microarchitectures
+         # 3D          | Broadwell microarchitecture
+         # 3C 45 46 3F | Haswell microarchitecture
+         # 3A 3E       | Ivy Bridge microarchitecture
+         # 2A 2D       | Sandy Bridge microarchitecture
+         # 25 2C 2F    | Intel microarchitecture Westmere
+         # 1A 1E 1F 2E | Intel microarchitecture Nehalem
+         # 17 1D       | Enhanced Intel Core microarchitecture
+         # 0F          | Intel Core microarchitecture
+         if(_cpu_model EQUAL 0x3D)
             set(TARGET_ARCHITECTURE "broadwell")
-         elseif(_cpu_model EQUAL 60)
+         elseif(_cpu_model EQUAL 0x3C OR _cpu_model EQUAL 0x45 OR _cpu_model EQUAL 0x46 OR _cpu_model EQUAL 0x3F)
             set(TARGET_ARCHITECTURE "haswell")
-         elseif(_cpu_model EQUAL 58)
+         elseif(_cpu_model EQUAL 0x3A OR _cpu_model EQUAL 0x3E)
             set(TARGET_ARCHITECTURE "ivy-bridge")
-         elseif(_cpu_model EQUAL 47) # Xeon E7 4860
-            set(TARGET_ARCHITECTURE "westmere")
-         elseif(_cpu_model EQUAL 46) # Xeon 7500 series
-            set(TARGET_ARCHITECTURE "westmere")
-         elseif(_cpu_model EQUAL 45) # Xeon TNG
+         elseif(_cpu_model EQUAL 0x2A OR _cpu_model EQUAL 0x2D)
             set(TARGET_ARCHITECTURE "sandy-bridge")
-         elseif(_cpu_model EQUAL 44) # Xeon 5600 series
+         elseif(_cpu_model EQUAL 0x25 OR _cpu_model EQUAL 0x2C OR _cpu_model EQUAL 0x2F)
             set(TARGET_ARCHITECTURE "westmere")
-         elseif(_cpu_model EQUAL 42) # Core TNG
-            set(TARGET_ARCHITECTURE "sandy-bridge")
-         elseif(_cpu_model EQUAL 37) # Core i7/i5/i3
-            set(TARGET_ARCHITECTURE "westmere")
-         elseif(_cpu_model EQUAL 31) # Core i7/i5
-            set(TARGET_ARCHITECTURE "westmere")
-         elseif(_cpu_model EQUAL 30) # Core i7/i5
-            set(TARGET_ARCHITECTURE "westmere")
-         elseif(_cpu_model EQUAL 29)
+         elseif(_cpu_model EQUAL 0x1A OR _cpu_model EQUAL 0x1E OR _cpu_model EQUAL 0x1F OR _cpu_model EQUAL 0x2E)
+            set(TARGET_ARCHITECTURE "nehalem")
+         elseif(_cpu_model EQUAL 0x17 OR _cpu_model EQUAL 0x1D)
             set(TARGET_ARCHITECTURE "penryn")
+         elseif(_cpu_model EQUAL 0x0F)
+            set(TARGET_ARCHITECTURE "merom")
          elseif(_cpu_model EQUAL 28)
             set(TARGET_ARCHITECTURE "atom")
-         elseif(_cpu_model EQUAL 26)
-            set(TARGET_ARCHITECTURE "nehalem")
-         elseif(_cpu_model EQUAL 23)
-            set(TARGET_ARCHITECTURE "penryn")
-         elseif(_cpu_model EQUAL 15)
-            set(TARGET_ARCHITECTURE "merom")
          elseif(_cpu_model EQUAL 14)
             set(TARGET_ARCHITECTURE "core")
          elseif(_cpu_model LESS 14)
