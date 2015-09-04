@@ -29,10 +29,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_SIMDARRAYFWD_H_
 #define VC_COMMON_SIMDARRAYFWD_H_
 
-#include "scalar/types.h"
-#include "sse/types.h"
-#include "avx/types.h"
-#include "mic/types.h"
+#include "../scalar/types.h"
+#include "../sse/types.h"
+#include "../avx/types.h"
+#include "../mic/types.h"
 
 #include "utility.h"
 #include "macros.h"
