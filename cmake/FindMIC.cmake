@@ -44,7 +44,11 @@
 set(MIC_FOUND false)
 set(MIC_NATIVE_FOUND false)
 
-file(GLOB _intel_dirs "/opt/intel/composer_xe_*")
+file(GLOB _intel_dirs "/opt/intel/compilers_and_libraries_*/linux")
+if ("${_intel_dirs}" STREQUAL "")
+  file(GLOB _intel_dirs "/opt/intel/composer_xe_*")
+endif()
+
 list(SORT _intel_dirs)
 list(REVERSE _intel_dirs)
 find_path(MIC_SDK_DIR bin/intel64_mic/icpc PATHS
