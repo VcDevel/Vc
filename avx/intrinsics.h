@@ -104,9 +104,9 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC Vc_CONST m256 _mm256_sub_ps(m256 a, m256 b) { return static_cast<m256>(static_cast<__v8sf>(a) - static_cast<__v8sf>(b)); }
 #endif
 
-    static Vc_INTRINSIC m256  Vc_CONST set1_ps   (float  a) { return ::_mm256_set1_ps   (a); }
-    static Vc_INTRINSIC m256d Vc_CONST set1_pd   (double a) { return ::_mm256_set1_pd   (a); }
-    static Vc_INTRINSIC m256i Vc_CONST set1_epi32(int    a) { return ::_mm256_set1_epi32(a); }
+    static Vc_INTRINSIC m256  Vc_CONST set1_ps   (float  a) { return _mm256_set1_ps   (a); }
+    static Vc_INTRINSIC m256d Vc_CONST set1_pd   (double a) { return _mm256_set1_pd   (a); }
+    static Vc_INTRINSIC m256i Vc_CONST set1_epi32(int    a) { return _mm256_set1_epi32(a); }
     //static Vc_INTRINSIC m256i Vc_CONST _mm256_set1_epu32(unsigned int a) { return ::_mm256_set1_epu32(a); }
 
     static Vc_INTRINSIC Vc_CONST m128i _mm_setallone_si128() { return _mm_load_si128(reinterpret_cast<const __m128i *>(Common::AllBitsSet)); }
