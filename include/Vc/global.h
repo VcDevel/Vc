@@ -84,16 +84,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc__NO_NOEXCEPT 1
 #endif
 
-#if defined(VC_ICC)
-#define __POPCNT__
-#if VC_ICC <= 20130728
-// ICC doesn't know noexcept, alignof, and move ctors
-#define Vc__NO_NOEXCEPT 1
-#ifndef alignof
-#define alignof(x) __alignof(x)
-#endif
-#endif
-#endif
 
 #ifdef VC_GCC
 #  if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
