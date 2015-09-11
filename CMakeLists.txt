@@ -103,7 +103,7 @@ else()
       endif()
    endif()
    if(MIC_NATIVE_FOUND)
-      if("${Vc_MIC_ICC_VERSION}" VERSION_LESS "15.1.0")
+      if("${Vc_MIC_ICC_VERSION}" VERSION_LESS "16.1.0")
          UserWarning("ICC for MIC uses an incompatible STL. Disabling simdize_mic.")
          list(APPEND disabled_targets
             simdize_mic
