@@ -29,6 +29,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_MIC_INTRINSICS_H
 #define VC_MIC_INTRINSICS_H
 
+#if defined VC_ICC && VC_ICC >= 20150815
+#  ifdef _ZMMINTRIN_H_INCLUDED
+#    error "Something includes zmmintrin.h before Vc. This breaks the intrinsics interface. Please change the include order."
+#  endif
+#  define __INTEL_COMPILER_USE_INTRINSIC_PROTOTYPES 1
+#endif
 #include <immintrin.h>
 
 #include "const_data.h"
