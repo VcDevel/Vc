@@ -147,6 +147,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # endif
 #endif
 
+#if defined VC_ICC && !defined __POPCNT__
+# if defined __SSE4_2__ || defined __SSE4A__
+#  define __POPCNT__ 1
+# endif
+#endif
+
 #ifndef VC_IMPL
 
 #  if defined(__MIC__)
