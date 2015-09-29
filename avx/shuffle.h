@@ -34,6 +34,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace Detail
+{
+template <int... Dst> struct Permutation {};
+template <uint8_t... Sel> struct Mask {};
+template <uint8_t Sel0, uint8_t Sel1, uint8_t Sel2, uint8_t Sel3, uint8_t Sel4,
+          uint8_t Sel5, uint8_t Sel6, uint8_t Sel7, uint8_t Sel8, uint8_t Sel9,
+          uint8_t Sel10, uint8_t Sel11, uint8_t Sel12, uint8_t Sel13, uint8_t Sel14,
+          uint8_t Sel15>
+Vc_INTRINSIC Vc_CONST __m256i
+blend(__m256i a, __m256i b, Mask<Sel0, Sel1, Sel2, Sel3, Sel4, Sel5, Sel6, Sel7, Sel8,
+                                 Sel9, Sel10, Sel11, Sel12, Sel13, Sel14, Sel15>)
+{
+    static_assert((Sel0 == 0 || Sel0 == 1) && (Sel1 == 0 || Sel1 == 1) &&
+                      (Sel2 == 0 || Sel2 == 1) && (Sel3 == 0 || Sel3 == 1) &&
+                      (Sel4 == 0 || Sel4 == 1) && (Sel5 == 0 || Sel5 == 1) &&
+                      (Sel6 == 0 || Sel6 == 1) && (Sel7 == 0 || Sel7 == 1) &&
+                      (Sel8 == 0 || Sel8 == 1) && (Sel9 == 0 || Sel9 == 1) &&
+                      (Sel10 == 0 || Sel10 == 1) && (Sel11 == 0 || Sel11 == 1) &&
+                      (Sel12 == 0 || Sel12 == 1) && (Sel13 == 0 || Sel13 == 1) &&
+                      (Sel14 == 0 || Sel14 == 1) && (Sel15 == 0 || Sel15 == 1),
+                  "Selectors must be 0 or 1 to select the value from a or b");
+    constexpr uint8_t mask = static_cast<uint8_t>(
+        (Sel0  << 0 ) | (Sel1  << 1 ) | (Sel2  << 2 ) | (Sel3  << 3 ) |
+        (Sel4  << 4 ) | (Sel5  << 5 ) | (Sel6  << 6 ) | (Sel7  << 7 ) |
+        (Sel8  << 8 ) | (Sel9  << 9 ) | (Sel10 << 10) | (Sel11 << 11) |
+        (Sel12 << 12) | (Sel13 << 13) | (Sel14 << 14) | (Sel15 << 15));
+    return _mm256_blend_epi16(a, b, mask);
+}
+}  // namespace Detail
 namespace Mem
 {
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteLo(__m256i x) {
