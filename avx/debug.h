@@ -39,6 +39,10 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
+template <typename T, typename U> struct AddType {
+    const U &d;
+};
+template <typename T, typename U> AddType<T, U> addType(const U &x) { return {x}; }
 
 #ifdef NDEBUG
 class DebugStream
@@ -69,6 +73,11 @@ class DebugStream
 
         template<typename T> DebugStream &operator<<(const T &x) { std::cerr << x; return *this; }
 
+        template <typename T, typename U> DebugStream &operator<<(AddType<T, U> &&x)
+        {
+            printVector<T, U>(x.d);
+            return *this;
+        }
         DebugStream &operator<<(__m128 x) {
             printVector<float, __m128>(x);
             return *this;
