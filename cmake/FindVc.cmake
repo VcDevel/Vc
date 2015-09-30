@@ -1,4 +1,4 @@
-# Locate the Vc template library. Vc can be found at http://gitorious.org/Vc/
+# Locate the Vc template library. Vc can be found at https://github.com/VcDevel/Vc
 #
 # This file is meant to be copied into projects that want to use Vc. It will
 # search for VcConfig.cmake, which ships with Vc and will provide up-to-date
@@ -10,6 +10,9 @@
 # Vc_INCLUDE_DIR
 # Vc_LIBRARIES
 # Vc_DEFINITIONS
+# Vc_COMPILE_FLAGS
+# Vc_ARCHITECTURE_FLAGS
+# Vc_ALL_FLAGS (the union of the above three variables)
 # Vc_VERSION_MAJOR
 # Vc_VERSION_MINOR
 # Vc_VERSION_PATCH
@@ -25,7 +28,7 @@
 # Vc_AVX_INTRINSICS_BROKEN
 #
 #=============================================================================
-# Copyright 2009-2012   Matthias Kretz <kretz@kde.org>
+# Copyright 2009-2015   Matthias Kretz <kretz@kde.org>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are

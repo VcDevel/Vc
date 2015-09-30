@@ -234,7 +234,7 @@ if(MIC_NATIVE_FOUND)
             set(_type ${_arg})
          elseif(_arg STREQUAL "EXCLUDE_FROM_ALL")
             set(_all)
-         elseif(_arg STREQUAL "COMPILE_FLAGS")
+         elseif(_arg STREQUAL "COMPILE_FLAGS" OR _arg STREQUAL "COMPILE_OPTIONS")
             set(_state 1)
          elseif(_arg STREQUAL "LINK_LIBRARIES")
             set(_state 2)
@@ -243,7 +243,7 @@ if(MIC_NATIVE_FOUND)
          elseif(_state EQUAL 0) # SOURCES
             set(_srcs ${_srcs} "${_arg}")
          elseif(_state EQUAL 1) # COMPILE_FLAGS
-            list(APPEND _cflags "${_arg}")
+            list(APPEND _cflags ${_arg})
          elseif(_state EQUAL 2) # LINK_LIBRARIES
             get_filename_component(_lpath "${_arg}" PATH)
             get_filename_component(_lname "${_arg}" NAME)

@@ -131,17 +131,12 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
 
-# FIXME: This needs cleanup for the next major Vc version
-# Vc_DEFINITIONS contains Vc_ARCHITECTURE_FLAGS which should not be unconditionally added to all targets.
-# Instead, Vc_DEFINITIONS - Vc_ARCHITECTURE_FLAGS is added unconditionally.
-# Vc_ARCHITECTURE_FLAGS then must be added per target.
-string(REPLACE "${Vc_ARCHITECTURE_FLAGS}" "" _flags "${Vc_DEFINITIONS}")
-add_definitions("${_flags}")
+add_definitions(${Vc_DEFINITIONS})
+add_compile_options(${Vc_COMPILE_FLAGS})
 
 if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
-   set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -fp-model source")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model source")
+   AddCompilerFlag("-fp-model source")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
@@ -184,7 +179,7 @@ if(NOT ROOT_RELEASE)
       message(FATAL_ERROR "Unsupported target architecture '${CMAKE_SYSTEM_PROCESSOR}'. No support_???.cpp file exists for this architecture.")
    endif()
    add_library(Vc STATIC ${_srcs})
-   add_target_property(Vc COMPILE_FLAGS ${libvc_compile_flags})
+   set_property(TARGET Vc APPEND PROPERTY COMPILE_OPTIONS ${libvc_compile_flags})
    add_target_property(Vc LABELS "other")
    if(XCODE)
       # TODO: document what this does and why it has no counterpart in the non-XCODE logic

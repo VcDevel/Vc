@@ -324,8 +324,13 @@ can use the following variables:
 \li \e Vc_FOUND: tells whether the package was found
 \li \e Vc_INCLUDE_DIR: you must add this to your include directories for the targets that you
 want to compile against %Vc: \code include_directories(${Vc_INCLUDE_DIR}) \endcode
-\li \e Vc_DEFINITIONS: recommended compiler flags. You can use them via add_definitions or the
-COMPILE_FLAGS property.
+\li \e Vc_DEFINITIONS: recommended preprocessor definitions. You can use them via \c add_definitions.
+\li \e Vc_COMPILE_FLAGS: recommended compiler flags. You can use them via the
+\li \e Vc_ARCHITECTURE_FLAGS: recommended compiler flags for a selected target
+microarchitecture. You can use them via the \c COMPILE_OPTIONS property or via \c
+add_compile_options.
+\li \e Vc_ALL_FLAGS: a list combining the above three variables. Use it to conveniently
+set all required compiler flags in one place (e.g. via \c add_compile_options).
 
 The following variables might be of interest, too:
 \li \e Vc_SSE_INTRINSICS_BROKEN
