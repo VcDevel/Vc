@@ -138,43 +138,43 @@ Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, uint>)
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const float *mem, Flags, LoadTag<__m128d, double>)
 {
-    return SSE::StaticCastHelper<float, double>::cast(
+    return SSE::convert<float, double>(
         _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<const __m64 *>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const uint *mem, Flags f, LoadTag<__m128d, double>)
 {
-    return SSE::StaticCastHelper<uint, double>::cast(
+    return SSE::convert<uint, double>(
         _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const int *mem, Flags f, LoadTag<__m128d, double>)
 {
-    return SSE::StaticCastHelper<int, double>::cast(
+    return SSE::convert<int, double>(
         _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const ushort *mem, Flags f, LoadTag<__m128d, double>)
 {
-    return SSE::StaticCastHelper<ushort, double>::cast(
+    return SSE::convert<ushort, double>(
         _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const short *mem, Flags f, LoadTag<__m128d, double>)
 {
-    return SSE::StaticCastHelper<short, double>::cast(
+    return SSE::convert<short, double>(
         _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const uchar *mem, Flags f, LoadTag<__m128d, double>)
 {
-    return SSE::StaticCastHelper<uchar, double>::cast(
+    return SSE::convert<uchar, double>(
         _mm_set1_epi16(*reinterpret_cast<const MayAlias<short> *>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const schar *mem, Flags f, LoadTag<__m128d, double>)
 {
-    return SSE::StaticCastHelper<char, double>::cast(
+    return SSE::convert<char, double>(
         _mm_set1_epi16(*reinterpret_cast<const MayAlias<short> *>(mem)));
 }
 
@@ -198,7 +198,7 @@ Vc_INTRINSIC __m128 load(const double *mem, Flags, LoadTag<__m128, float>)
 template <typename Flags>
 Vc_INTRINSIC __m128 load(const uint *mem, Flags f, LoadTag<__m128, float>)
 {
-    return SSE::StaticCastHelper<uint, float>::cast(load<__m128i, uint>(mem, f));
+    return SSE::convert<uint, float>(load<__m128i, uint>(mem, f));
 }
 template <typename T, typename Flags,
           typename = enable_if<!std::is_same<T, float>::value>>

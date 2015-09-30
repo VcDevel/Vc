@@ -102,11 +102,11 @@ template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<MIC::float_v
 }
 template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<MIC::float_v, int>::load(const int *mem)
 {
-    return MIC::StaticCastHelper<int, float>::cast(LoadHelper<MIC::int_v>::load(mem, Flags()));
+    return MIC::convert<int, float>(LoadHelper<MIC::int_v>::load(mem, Flags()));
 }
 template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<MIC::float_v, unsigned int>::load(const unsigned int *mem)
 {
-    return MIC::StaticCastHelper<unsigned int, float>::cast(LoadHelper<MIC::uint_v>::load(mem, Flags()));
+    return MIC::convert<unsigned int, float>(LoadHelper<MIC::uint_v>::load(mem, Flags()));
 }
 
 } // anonymous namespace
@@ -126,7 +126,7 @@ template<> Vc_ALWAYS_INLINE MIC::float_v::Vector(VectorSpecialInitializerIndexes
     : d(_mm512_extload_ps(&MIC::_IndexesFromZero, _MM_UPCONV_PS_SINT8, _MM_BROADCAST32_NONE, _MM_HINT_NONE)) {}
 
 template<> Vc_ALWAYS_INLINE MIC::double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(MIC::StaticCastHelper<int, double>::cast(MIC::int_v::IndexesFromZero().data())) {}
+    : d(MIC::convert<int, double>(MIC::int_v::IndexesFromZero().data())) {}
 
 // loads {{{1
 template <typename T>

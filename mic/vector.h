@@ -142,7 +142,7 @@ public:
     Vc_INTRINSIC Vector(
         VC_ALIGNED_PARAMETER(Vector<U>) x,
         typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-        : d(MIC::StaticCastHelper<U, T>::cast(x.data()))
+        : d(MIC::convert<U, T>(x.data()))
     {
     }
 
@@ -151,7 +151,7 @@ public:
     Vc_INTRINSIC explicit Vector(
         VC_ALIGNED_PARAMETER(Vector<U>) x,
         typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-        : d(MIC::StaticCastHelper<U, T>::cast(x.data()))
+        : d(MIC::convert<U, T>(x.data()))
     {
     }
 

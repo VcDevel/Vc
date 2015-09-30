@@ -53,13 +53,15 @@ template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecia
 {
 }
 
-template<> Vc_INTRINSIC SSE::float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(SSE::StaticCastHelper<int, float>::cast(SSE::int_v::IndexesFromZero().data()))
+template <>
+Vc_INTRINSIC SSE::float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(SSE::convert<int, float>(SSE::int_v::IndexesFromZero().data()))
 {
 }
 
-template<> Vc_INTRINSIC SSE::double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(SSE::StaticCastHelper<int, double>::cast(SSE::int_v::IndexesFromZero().data()))
+template <>
+Vc_INTRINSIC SSE::double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+    : d(SSE::convert<int, double>(SSE::int_v::IndexesFromZero().data()))
 {
 }
 

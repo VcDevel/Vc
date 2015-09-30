@@ -270,17 +270,6 @@ Vc_INTRINSIC auto convert(typename AVX::VectorTypeHelper<From>::Type v)
 {
     return convert(lo128(v), ConvertTag<From, To>());
 }
-
-template <typename From, typename To> struct StaticCastHelper {
-    static VC_DEPRECATED("use convert<From, To> instead") inline auto cast(
-        typename std::conditional<(sizeof(From) < sizeof(To)),
-                                  typename SSE::VectorTraits<From>::VectorType,
-                                  typename AVX::VectorTypeHelper<From>::Type>::type v)
-        -> decltype(convert(v, ConvertTag<From, To>()))
-    {
-        return convert(v, ConvertTag<From, To>());
-    }
-};
 }  // namespace AVX
 }  // namespace Vc
 

@@ -108,10 +108,10 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         // implict conversion from compatible Vector<U>
         template <typename U>
-        Vc_INTRINSIC Vector(
-            VC_ALIGNED_PARAMETER(V<U>) x,
-            typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-            : d(SSE::StaticCastHelper<U, T>::cast(x.data()))
+        Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(V<U>) x,
+                            typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
+                                                    void *>::type = nullptr)
+            : d(SSE::convert<U, T>(x.data()))
         {
         }
 
@@ -119,8 +119,9 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         template <typename U>
         Vc_INTRINSIC explicit Vector(
             VC_ALIGNED_PARAMETER(V<U>) x,
-            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-            : d(SSE::StaticCastHelper<U, T>::cast(x.data()))
+            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
+                                    void *>::type = nullptr)
+            : d(SSE::convert<U, T>(x.data()))
         {
         }
 
@@ -247,7 +248,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             data() = HV::blend(data(), v.data(), k);
         }
 
-        template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 staticCast() const { return SSE::StaticCastHelper<T, typename V2::EntryType>::cast(data()); }
+        template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 staticCast() const { return SSE::convert<T, typename V2::EntryType>(data()); }
         template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 reinterpretCast() const { return SSE::sse_cast<typename V2::VectorType>(data()); }
 
         Vc_INTRINSIC WriteMaskedVector operator()(const Mask &k) { return {this, k}; }

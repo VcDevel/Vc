@@ -140,14 +140,6 @@ Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , ushort>) { return v; 
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, ushort>) { return v; }
 Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, ushort>) { return convert(convert(v, ConvertTag<double, int>()), ConvertTag<int, ushort>()); }
 
-template <typename From, typename To> struct StaticCastHelper //{{{1
-{
-    static Vc_INTRINSIC typename VectorTraits<To>::VectorType cast(
-        typename VectorTraits<From>::VectorType v)
-    {
-        return convert(v, ConvertTag<From, To>());
-    }
-};
 // }}}1
 }  // namespace SSE
 }  // namespace Vc
