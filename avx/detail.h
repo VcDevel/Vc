@@ -375,7 +375,7 @@ template<> Vc_INTRINSIC Vc_CONST __m256 mask_cast<16, 8, __m256>(__m256i k)
 {
     // abcd efgh ijkl mnop -> aabb ccdd eeff gghh
     const auto flipped = Mem::permute4x64<X0, X2, X1, X3>(k);
-    return _mm256_castsi256_ps(_mm256_unpacklo_epi16(flipped, flipped));
+    return _mm256_castsi256_ps(AVX::unpacklo_epi16(flipped, flipped));
 }
 #endif
 
@@ -484,36 +484,36 @@ Vc_INTRINSIC __m256i not_(__m256i a) { return andnot_(a, allone<__m256i>()); }
 // abs{{{1
 Vc_INTRINSIC __m256  abs(__m256  a,  float) { return and_(a, AVX::setabsmask_ps()); }
 Vc_INTRINSIC __m256d abs(__m256d a, double) { return and_(a, AVX::setabsmask_pd()); }
-Vc_INTRINSIC __m256i abs(__m256i a,    int) { return _mm256_abs_epi32(a); }
+Vc_INTRINSIC __m256i abs(__m256i a,    int) { return AVX::abs_epi32(a); }
 Vc_INTRINSIC __m256i abs(__m256i a,   uint) { return a; }
-Vc_INTRINSIC __m256i abs(__m256i a,  short) { return _mm256_abs_epi16(a); }
+Vc_INTRINSIC __m256i abs(__m256i a,  short) { return AVX::abs_epi16(a); }
 Vc_INTRINSIC __m256i abs(__m256i a, ushort) { return a; }
-Vc_INTRINSIC __m256i abs(__m256i a,  schar) { return _mm256_abs_epi8 (a); }
+Vc_INTRINSIC __m256i abs(__m256i a,  schar) { return AVX::abs_epi8 (a); }
 Vc_INTRINSIC __m256i abs(__m256i a,  uchar) { return a; }
 
 // add{{{1
 Vc_INTRINSIC __m256  add(__m256  a, __m256  b,  float) { return _mm256_add_ps(a, b); }
 Vc_INTRINSIC __m256d add(__m256d a, __m256d b, double) { return _mm256_add_pd(a, b); }
-Vc_INTRINSIC __m256i add(__m256i a, __m256i b,    int) { return _mm256_add_epi32(a, b); }
-Vc_INTRINSIC __m256i add(__m256i a, __m256i b,   uint) { return _mm256_add_epi32(a, b); }
-Vc_INTRINSIC __m256i add(__m256i a, __m256i b,  short) { return _mm256_add_epi16(a, b); }
-Vc_INTRINSIC __m256i add(__m256i a, __m256i b, ushort) { return _mm256_add_epi16(a, b); }
+Vc_INTRINSIC __m256i add(__m256i a, __m256i b,    int) { return AVX::add_epi32(a, b); }
+Vc_INTRINSIC __m256i add(__m256i a, __m256i b,   uint) { return AVX::add_epi32(a, b); }
+Vc_INTRINSIC __m256i add(__m256i a, __m256i b,  short) { return AVX::add_epi16(a, b); }
+Vc_INTRINSIC __m256i add(__m256i a, __m256i b, ushort) { return AVX::add_epi16(a, b); }
 
 // sub{{{1
 Vc_INTRINSIC __m256  sub(__m256  a, __m256  b,  float) { return _mm256_sub_ps(a, b); }
 Vc_INTRINSIC __m256d sub(__m256d a, __m256d b, double) { return _mm256_sub_pd(a, b); }
-Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,    int) { return _mm256_sub_epi32(a, b); }
-Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,   uint) { return _mm256_sub_epi32(a, b); }
-Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,  short) { return _mm256_sub_epi16(a, b); }
-Vc_INTRINSIC __m256i sub(__m256i a, __m256i b, ushort) { return _mm256_sub_epi16(a, b); }
+Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,    int) { return AVX::sub_epi32(a, b); }
+Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,   uint) { return AVX::sub_epi32(a, b); }
+Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,  short) { return AVX::sub_epi16(a, b); }
+Vc_INTRINSIC __m256i sub(__m256i a, __m256i b, ushort) { return AVX::sub_epi16(a, b); }
 
 // mul{{{1
 Vc_INTRINSIC __m256  mul(__m256  a, __m256  b,  float) { return _mm256_mul_ps(a, b); }
 Vc_INTRINSIC __m256d mul(__m256d a, __m256d b, double) { return _mm256_mul_pd(a, b); }
-Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,    int) { return _mm256_mullo_epi32(a, b); }
-Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,   uint) { return _mm256_mullo_epi32(a, b); }
-Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,  short) { return _mm256_mullo_epi16(a, b); }
-Vc_INTRINSIC __m256i mul(__m256i a, __m256i b, ushort) { return _mm256_mullo_epi16(a, b); }
+Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,    int) { return AVX::mullo_epi32(a, b); }
+Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,   uint) { return AVX::mullo_epi32(a, b); }
+Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,  short) { return AVX::mullo_epi16(a, b); }
+Vc_INTRINSIC __m256i mul(__m256i a, __m256i b, ushort) { return AVX::mullo_epi16(a, b); }
 
 // horizontal add{{{1
 template <typename T> Vc_INTRINSIC T add(Common::IntrinsicType<T, 32 / sizeof(T)> a, T)
@@ -873,6 +873,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(
     return avx_cast<V>(_mm256_setzero_ps());
 }
 
+#ifdef VC_IMPL_AVX2
 template <typename T, size_t N, typename V>
 static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
     VC_ALIGNED_PARAMETER(V) v, int amount)
@@ -928,6 +929,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
     }
     return avx_cast<V>(_mm256_setzero_ps());
 }
+#endif  // VC_IMPL_AVX2
 
 // testc{{{1
 Vc_INTRINSIC Vc_CONST int testc(__m128  a, __m128  b) { return _mm_testc_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
@@ -1075,8 +1077,8 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
             const typename V::AsArg v0, // a0 a1 a2 a3 a4 a5 a6 a7 | a8 a9 ...
             const typename V::AsArg v1) // b0 b1 b2 b3 b4 b5 b6 b7 | b8 b9 ...
     {
-        const __m256i tmp0 = _mm256_unpacklo_epi16(v0.data(), v1.data()); // a0 b0 a1 b1 a2 b2 a3 b3 | a8 b8 a9 ...
-        const __m256i tmp1 = _mm256_unpackhi_epi16(v0.data(), v1.data()); // a4 b4 a5 ...
+        const __m256i tmp0 = AVX::unpacklo_epi16(v0.data(), v1.data()); // a0 b0 a1 b1 a2 b2 a3 b3 | a8 b8 a9 ...
+        const __m256i tmp1 = AVX::unpackhi_epi16(v0.data(), v1.data()); // a4 b4 a5 ...
         using namespace AVX;
         *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 0]]) = _mm_cvtsi128_si32(lo128(tmp0));
         *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 1]]) = _mm_extract_epi32(lo128(tmp0), 1);
@@ -1098,8 +1100,8 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
     static inline void interleave(typename V::EntryType *const data, const Common::SuccessiveEntries<2> &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1)
     {
-        const __m256i tmp0 = _mm256_unpacklo_epi16(v0.data(), v1.data()); // a0 b0 a1 b1 a2 b2 a3 b3 | a8 b8 a9 ...
-        const __m256i tmp1 = _mm256_unpackhi_epi16(v0.data(), v1.data()); // a4 b4 a5 ...
+        const __m256i tmp0 = AVX::unpacklo_epi16(v0.data(), v1.data()); // a0 b0 a1 b1 a2 b2 a3 b3 | a8 b8 a9 ...
+        const __m256i tmp1 = AVX::unpackhi_epi16(v0.data(), v1.data()); // a4 b4 a5 ...
         V(Mem::shuffle128<X0, Y0>(tmp0, tmp1)).store(&data[i[0]], Vc::Unaligned);
         V(Mem::shuffle128<X1, Y1>(tmp0, tmp1)).store(&data[i[8]], Vc::Unaligned);
     }/*}}}*/
@@ -1113,15 +1115,15 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
             const typename V::AsArg v0, const typename V::AsArg v1,
             const typename V::AsArg v2, const typename V::AsArg v3)
     {
-        const __m256i tmp0 = _mm256_unpacklo_epi16(v0.data(), v2.data()); // a0 c0 a1 c1 a2 c2 a3 c3 | a8 c8 a9 c9 ...
-        const __m256i tmp1 = _mm256_unpackhi_epi16(v0.data(), v2.data()); // a4 c4 a5 c5 a6 c6 a7 c7 | a12 c12 ...
-        const __m256i tmp2 = _mm256_unpacklo_epi16(v1.data(), v3.data()); // b0 d0 b1 d1 b2 d2 b3 d3 | b8 d8 b9 d9 ...
-        const __m256i tmp3 = _mm256_unpackhi_epi16(v1.data(), v3.data()); // b4 d4 b5 ...
+        const __m256i tmp0 = AVX::unpacklo_epi16(v0.data(), v2.data()); // a0 c0 a1 c1 a2 c2 a3 c3 | a8 c8 a9 c9 ...
+        const __m256i tmp1 = AVX::unpackhi_epi16(v0.data(), v2.data()); // a4 c4 a5 c5 a6 c6 a7 c7 | a12 c12 ...
+        const __m256i tmp2 = AVX::unpacklo_epi16(v1.data(), v3.data()); // b0 d0 b1 d1 b2 d2 b3 d3 | b8 d8 b9 d9 ...
+        const __m256i tmp3 = AVX::unpackhi_epi16(v1.data(), v3.data()); // b4 d4 b5 ...
 
-        const __m256i tmp4 = _mm256_unpacklo_epi16(tmp0, tmp2); // a0 b0 c0 d0 a1 b1 c1 d1 | a8 b8 c8 d8 a9 b9 ...
-        const __m256i tmp5 = _mm256_unpackhi_epi16(tmp0, tmp2); // [abcd]2 [abcd]3 | [abcd]10 [abcd]11
-        const __m256i tmp6 = _mm256_unpacklo_epi16(tmp1, tmp3); // [abcd]4 [abcd]5 | [abcd]12 [abcd]13
-        const __m256i tmp7 = _mm256_unpackhi_epi16(tmp1, tmp3); // [abcd]6 [abcd]7 | [abcd]14 [abcd]15
+        const __m256i tmp4 = AVX::unpacklo_epi16(tmp0, tmp2); // a0 b0 c0 d0 a1 b1 c1 d1 | a8 b8 c8 d8 a9 b9 ...
+        const __m256i tmp5 = AVX::unpackhi_epi16(tmp0, tmp2); // [abcd]2 [abcd]3 | [abcd]10 [abcd]11
+        const __m256i tmp6 = AVX::unpacklo_epi16(tmp1, tmp3); // [abcd]4 [abcd]5 | [abcd]12 [abcd]13
+        const __m256i tmp7 = AVX::unpackhi_epi16(tmp1, tmp3); // [abcd]6 [abcd]7 | [abcd]14 [abcd]15
 
         using namespace AVX;
         auto &&store = [&](__m256i x, int offset) {
@@ -1139,15 +1141,15 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
             const typename V::AsArg v0, const typename V::AsArg v1,
             const typename V::AsArg v2, const typename V::AsArg v3)
     {
-        const __m256i tmp0 = _mm256_unpacklo_epi16(v0.data(), v2.data()); // a0 c0 a1 c1 a2 c2 a3 c3 | a8 c8 a9 c9 ...
-        const __m256i tmp1 = _mm256_unpackhi_epi16(v0.data(), v2.data()); // a4 c4 a5 c5 a6 c6 a7 c7 | a12 c12 ...
-        const __m256i tmp2 = _mm256_unpacklo_epi16(v1.data(), v3.data()); // b0 d0 b1 d1 b2 d2 b3 d3 | b8 d8 b9 d9 ...
-        const __m256i tmp3 = _mm256_unpackhi_epi16(v1.data(), v3.data()); // b4 d4 b5 ...
+        const __m256i tmp0 = AVX::unpacklo_epi16(v0.data(), v2.data()); // a0 c0 a1 c1 a2 c2 a3 c3 | a8 c8 a9 c9 ...
+        const __m256i tmp1 = AVX::unpackhi_epi16(v0.data(), v2.data()); // a4 c4 a5 c5 a6 c6 a7 c7 | a12 c12 ...
+        const __m256i tmp2 = AVX::unpacklo_epi16(v1.data(), v3.data()); // b0 d0 b1 d1 b2 d2 b3 d3 | b8 d8 b9 d9 ...
+        const __m256i tmp3 = AVX::unpackhi_epi16(v1.data(), v3.data()); // b4 d4 b5 ...
 
-        const __m256i tmp4 = _mm256_unpacklo_epi16(tmp0, tmp2); // a0 b0 c0 d0 a1 b1 c1 d1 | a8 b8 c8 d8 a9 b9 ...
-        const __m256i tmp5 = _mm256_unpackhi_epi16(tmp0, tmp2); // [abcd]2 [abcd]3 | [abcd]10 [abcd]11
-        const __m256i tmp6 = _mm256_unpacklo_epi16(tmp1, tmp3); // [abcd]4 [abcd]5 | [abcd]12 [abcd]13
-        const __m256i tmp7 = _mm256_unpackhi_epi16(tmp1, tmp3); // [abcd]6 [abcd]7 | [abcd]14 [abcd]15
+        const __m256i tmp4 = AVX::unpacklo_epi16(tmp0, tmp2); // a0 b0 c0 d0 a1 b1 c1 d1 | a8 b8 c8 d8 a9 b9 ...
+        const __m256i tmp5 = AVX::unpackhi_epi16(tmp0, tmp2); // [abcd]2 [abcd]3 | [abcd]10 [abcd]11
+        const __m256i tmp6 = AVX::unpacklo_epi16(tmp1, tmp3); // [abcd]4 [abcd]5 | [abcd]12 [abcd]13
+        const __m256i tmp7 = AVX::unpackhi_epi16(tmp1, tmp3); // [abcd]6 [abcd]7 | [abcd]14 [abcd]15
 
         V(Mem::shuffle128<X0, Y0>(tmp4, tmp5)).store(&data[i[0]], ::Vc::Unaligned);
         V(Mem::shuffle128<X0, Y0>(tmp6, tmp7)).store(&data[i[4]], ::Vc::Unaligned);
@@ -1176,14 +1178,14 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
                               *reinterpret_cast<const MayAlias<int> *>(&data[i[14]]),
                               *reinterpret_cast<const MayAlias<int> *>(&data[i[15]]));
 
-        const __m256i tmp2 = _mm256_unpacklo_epi16(tmp4, tmp5);  // a0 a4 b0 b4 a1 a5 b1 b5 | a8 a12 b8 b12 a9 a13 b9 b13
-        const __m256i tmp3 = _mm256_unpackhi_epi16(tmp4, tmp5);  // a2 a6 b2 b6 a3 a7 b3 b7 | a10 a14 b10 b14 a11 a15 b11 b15
+        const __m256i tmp2 = AVX::unpacklo_epi16(tmp4, tmp5);  // a0 a4 b0 b4 a1 a5 b1 b5 | a8 a12 b8 b12 a9 a13 b9 b13
+        const __m256i tmp3 = AVX::unpackhi_epi16(tmp4, tmp5);  // a2 a6 b2 b6 a3 a7 b3 b7 | a10 a14 b10 b14 a11 a15 b11 b15
 
-        const __m256i tmp0 = _mm256_unpacklo_epi16(tmp2, tmp3);  // a0 a2 a4 a6 b0 b2 b4 b6 | a8 a10 a12 a14 b8 ...
-        const __m256i tmp1 = _mm256_unpackhi_epi16(tmp2, tmp3);  // a1 a3 a5 a7 b1 b3 b5 b7 | a9 a11 a13 a15 b9 ...
+        const __m256i tmp0 = AVX::unpacklo_epi16(tmp2, tmp3);  // a0 a2 a4 a6 b0 b2 b4 b6 | a8 a10 a12 a14 b8 ...
+        const __m256i tmp1 = AVX::unpackhi_epi16(tmp2, tmp3);  // a1 a3 a5 a7 b1 b3 b5 b7 | a9 a11 a13 a15 b9 ...
 
-        v0.data() = _mm256_unpacklo_epi16(tmp0, tmp1); // a0 a1 a2 a3 a4 a5 a6 a7 | a8 a9 ...
-        v1.data() = _mm256_unpackhi_epi16(tmp0, tmp1); // b0 b1 b2 b3 b4 b5 b6 b7 | b8 b9 ...
+        v0.data() = AVX::unpacklo_epi16(tmp0, tmp1); // a0 a1 a2 a3 a4 a5 a6 a7 | a8 a9 ...
+        v1.data() = AVX::unpackhi_epi16(tmp0, tmp1); // b0 b1 b2 b3 b4 b5 b6 b7 | b8 b9 ...
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2)
@@ -1205,19 +1207,19 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
                                                               *reinterpret_cast<const MayAlias<double> *>(&data[i[7]]),
                                                               *reinterpret_cast<const MayAlias<double> *>(&data[i[14]]),
                                                               *reinterpret_cast<const MayAlias<double> *>(&data[i[15]])));
-        const __m256i tmp4 = _mm256_unpacklo_epi16(tmp0, tmp2); // a0 a4 b0 b4 c0 c4 XX XX | a8 a12 b8 ...
-        const __m256i tmp5 = _mm256_unpackhi_epi16(tmp0, tmp2); // a1 a5 ...
-        const __m256i tmp6 = _mm256_unpacklo_epi16(tmp1, tmp3); // a2 a6 ...
-        const __m256i tmp7 = _mm256_unpackhi_epi16(tmp1, tmp3); // a3 a7 ...
+        const __m256i tmp4 = AVX::unpacklo_epi16(tmp0, tmp2); // a0 a4 b0 b4 c0 c4 XX XX | a8 a12 b8 ...
+        const __m256i tmp5 = AVX::unpackhi_epi16(tmp0, tmp2); // a1 a5 ...
+        const __m256i tmp6 = AVX::unpacklo_epi16(tmp1, tmp3); // a2 a6 ...
+        const __m256i tmp7 = AVX::unpackhi_epi16(tmp1, tmp3); // a3 a7 ...
 
-        const __m256i tmp8  = _mm256_unpacklo_epi16(tmp4, tmp6); // a0 a2 a4 a6 b0 ...
-        const __m256i tmp9  = _mm256_unpackhi_epi16(tmp4, tmp6); // c0 c2 c4 c6 XX ...
-        const __m256i tmp10 = _mm256_unpacklo_epi16(tmp5, tmp7); // a1 a3 a5 a7 b1 ...
-        const __m256i tmp11 = _mm256_unpackhi_epi16(tmp5, tmp7); // c1 c3 c5 c7 XX ...
+        const __m256i tmp8  = AVX::unpacklo_epi16(tmp4, tmp6); // a0 a2 a4 a6 b0 ...
+        const __m256i tmp9  = AVX::unpackhi_epi16(tmp4, tmp6); // c0 c2 c4 c6 XX ...
+        const __m256i tmp10 = AVX::unpacklo_epi16(tmp5, tmp7); // a1 a3 a5 a7 b1 ...
+        const __m256i tmp11 = AVX::unpackhi_epi16(tmp5, tmp7); // c1 c3 c5 c7 XX ...
 
-        v0.data() = _mm256_unpacklo_epi16(tmp8, tmp10); // a0 a1 a2 a3 a4 a5 a6 a7 | a8 ...
-        v1.data() = _mm256_unpackhi_epi16(tmp8, tmp10);
-        v2.data() = _mm256_unpacklo_epi16(tmp9, tmp11);
+        v0.data() = AVX::unpacklo_epi16(tmp8, tmp10); // a0 a1 a2 a3 a4 a5 a6 a7 | a8 ...
+        v1.data() = AVX::unpackhi_epi16(tmp8, tmp10);
+        v2.data() = AVX::unpacklo_epi16(tmp9, tmp11);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3)
@@ -1239,20 +1241,20 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
                                                               *reinterpret_cast<const MayAlias<double> *>(&data[i[7]]),
                                                               *reinterpret_cast<const MayAlias<double> *>(&data[i[14]]),
                                                               *reinterpret_cast<const MayAlias<double> *>(&data[i[15]])));
-        const __m256i tmp4 = _mm256_unpacklo_epi16(tmp0, tmp2); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 a12 b8 ...
-        const __m256i tmp5 = _mm256_unpackhi_epi16(tmp0, tmp2); // a1 a5 ...
-        const __m256i tmp6 = _mm256_unpacklo_epi16(tmp1, tmp3); // a2 a6 ...
-        const __m256i tmp7 = _mm256_unpackhi_epi16(tmp1, tmp3); // a3 a7 ...
+        const __m256i tmp4 = AVX::unpacklo_epi16(tmp0, tmp2); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 a12 b8 ...
+        const __m256i tmp5 = AVX::unpackhi_epi16(tmp0, tmp2); // a1 a5 ...
+        const __m256i tmp6 = AVX::unpacklo_epi16(tmp1, tmp3); // a2 a6 ...
+        const __m256i tmp7 = AVX::unpackhi_epi16(tmp1, tmp3); // a3 a7 ...
 
-        const __m256i tmp8  = _mm256_unpacklo_epi16(tmp4, tmp6); // a0 a2 a4 a6 b0 ...
-        const __m256i tmp9  = _mm256_unpackhi_epi16(tmp4, tmp6); // c0 c2 c4 c6 d0 ...
-        const __m256i tmp10 = _mm256_unpacklo_epi16(tmp5, tmp7); // a1 a3 a5 a7 b1 ...
-        const __m256i tmp11 = _mm256_unpackhi_epi16(tmp5, tmp7); // c1 c3 c5 c7 d1 ...
+        const __m256i tmp8  = AVX::unpacklo_epi16(tmp4, tmp6); // a0 a2 a4 a6 b0 ...
+        const __m256i tmp9  = AVX::unpackhi_epi16(tmp4, tmp6); // c0 c2 c4 c6 d0 ...
+        const __m256i tmp10 = AVX::unpacklo_epi16(tmp5, tmp7); // a1 a3 a5 a7 b1 ...
+        const __m256i tmp11 = AVX::unpackhi_epi16(tmp5, tmp7); // c1 c3 c5 c7 d1 ...
 
-        v0.data() = _mm256_unpacklo_epi16(tmp8, tmp10); // a0 a1 a2 a3 a4 a5 a6 a7 | a8 ...
-        v1.data() = _mm256_unpackhi_epi16(tmp8, tmp10);
-        v2.data() = _mm256_unpacklo_epi16(tmp9, tmp11);
-        v3.data() = _mm256_unpackhi_epi16(tmp9, tmp11);
+        v0.data() = AVX::unpacklo_epi16(tmp8, tmp10); // a0 a1 a2 a3 a4 a5 a6 a7 | a8 ...
+        v1.data() = AVX::unpackhi_epi16(tmp8, tmp10);
+        v2.data() = AVX::unpacklo_epi16(tmp9, tmp11);
+        v3.data() = AVX::unpackhi_epi16(tmp9, tmp11);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4)
@@ -1275,27 +1277,27 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
         const __m256i h = concat(_mm_loadu_si128(reinterpret_cast<const __m128i *>(&data[i[7]])),
                                  _mm_loadu_si128(reinterpret_cast<const __m128i *>(&data[i[15]])));
 
-        const __m256i tmp2  = _mm256_unpacklo_epi16(a, e); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 ...
-        const __m256i tmp4  = _mm256_unpacklo_epi16(b, f); // a1 a5 b1 b5 c1 c5 d1 d5
-        const __m256i tmp3  = _mm256_unpacklo_epi16(c, g); // a2 a6 b2 b6 c2 c6 d2 d6
-        const __m256i tmp5  = _mm256_unpacklo_epi16(d, h); // a3 a7 b3 b7 c3 c7 d3 d7
-        const __m256i tmp10 = _mm256_unpackhi_epi16(a, e); // e0 e4 f0 f4 g0 g4 h0 h4
-        const __m256i tmp11 = _mm256_unpackhi_epi16(c, g); // e1 e5 f1 f5 g1 g5 h1 h5
-        const __m256i tmp12 = _mm256_unpackhi_epi16(b, f); // e2 e6 f2 f6 g2 g6 h2 h6
-        const __m256i tmp13 = _mm256_unpackhi_epi16(d, h); // e3 e7 f3 f7 g3 g7 h3 h7
+        const __m256i tmp2  = AVX::unpacklo_epi16(a, e); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 ...
+        const __m256i tmp4  = AVX::unpacklo_epi16(b, f); // a1 a5 b1 b5 c1 c5 d1 d5
+        const __m256i tmp3  = AVX::unpacklo_epi16(c, g); // a2 a6 b2 b6 c2 c6 d2 d6
+        const __m256i tmp5  = AVX::unpacklo_epi16(d, h); // a3 a7 b3 b7 c3 c7 d3 d7
+        const __m256i tmp10 = AVX::unpackhi_epi16(a, e); // e0 e4 f0 f4 g0 g4 h0 h4
+        const __m256i tmp11 = AVX::unpackhi_epi16(c, g); // e1 e5 f1 f5 g1 g5 h1 h5
+        const __m256i tmp12 = AVX::unpackhi_epi16(b, f); // e2 e6 f2 f6 g2 g6 h2 h6
+        const __m256i tmp13 = AVX::unpackhi_epi16(d, h); // e3 e7 f3 f7 g3 g7 h3 h7
 
-        const __m256i tmp0  = _mm256_unpacklo_epi16(tmp2, tmp3); // a0 a2 a4 a6 b0 b2 b4 b6 | a8 ...
-        const __m256i tmp1  = _mm256_unpacklo_epi16(tmp4, tmp5); // a1 a3 a5 a7 b1 b3 b5 b7
-        const __m256i tmp6  = _mm256_unpackhi_epi16(tmp2, tmp3); // c0 c2 c4 c6 d0 d2 d4 d6
-        const __m256i tmp7  = _mm256_unpackhi_epi16(tmp4, tmp5); // c1 c3 c5 c7 d1 d3 d5 d7
-        const __m256i tmp8  = _mm256_unpacklo_epi16(tmp10, tmp11); // e0 e2 e4 e6 f0 f2 f4 f6
-        const __m256i tmp9  = _mm256_unpacklo_epi16(tmp12, tmp13); // e1 e3 e5 e7 f1 f3 f5 f7
+        const __m256i tmp0  = AVX::unpacklo_epi16(tmp2, tmp3); // a0 a2 a4 a6 b0 b2 b4 b6 | a8 ...
+        const __m256i tmp1  = AVX::unpacklo_epi16(tmp4, tmp5); // a1 a3 a5 a7 b1 b3 b5 b7
+        const __m256i tmp6  = AVX::unpackhi_epi16(tmp2, tmp3); // c0 c2 c4 c6 d0 d2 d4 d6
+        const __m256i tmp7  = AVX::unpackhi_epi16(tmp4, tmp5); // c1 c3 c5 c7 d1 d3 d5 d7
+        const __m256i tmp8  = AVX::unpacklo_epi16(tmp10, tmp11); // e0 e2 e4 e6 f0 f2 f4 f6
+        const __m256i tmp9  = AVX::unpacklo_epi16(tmp12, tmp13); // e1 e3 e5 e7 f1 f3 f5 f7
 
-        v0.data() = _mm256_unpacklo_epi16(tmp0, tmp1);
-        v1.data() = _mm256_unpackhi_epi16(tmp0, tmp1);
-        v2.data() = _mm256_unpacklo_epi16(tmp6, tmp7);
-        v3.data() = _mm256_unpackhi_epi16(tmp6, tmp7);
-        v4.data() = _mm256_unpacklo_epi16(tmp8, tmp9);
+        v0.data() = AVX::unpacklo_epi16(tmp0, tmp1);
+        v1.data() = AVX::unpackhi_epi16(tmp0, tmp1);
+        v2.data() = AVX::unpacklo_epi16(tmp6, tmp7);
+        v3.data() = AVX::unpackhi_epi16(tmp6, tmp7);
+        v4.data() = AVX::unpacklo_epi16(tmp8, tmp9);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5)
@@ -1318,28 +1320,28 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
         const __m256i h = concat(_mm_loadu_si128(reinterpret_cast<const __m128i *>(&data[i[7]])),
                                  _mm_loadu_si128(reinterpret_cast<const __m128i *>(&data[i[15]])));
 
-        const __m256i tmp2  = _mm256_unpacklo_epi16(a, e); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 ...
-        const __m256i tmp4  = _mm256_unpacklo_epi16(b, f); // a1 a5 b1 b5 c1 c5 d1 d5
-        const __m256i tmp3  = _mm256_unpacklo_epi16(c, g); // a2 a6 b2 b6 c2 c6 d2 d6
-        const __m256i tmp5  = _mm256_unpacklo_epi16(d, h); // a3 a7 b3 b7 c3 c7 d3 d7
-        const __m256i tmp10 = _mm256_unpackhi_epi16(a, e); // e0 e4 f0 f4 g0 g4 h0 h4
-        const __m256i tmp11 = _mm256_unpackhi_epi16(c, g); // e1 e5 f1 f5 g1 g5 h1 h5
-        const __m256i tmp12 = _mm256_unpackhi_epi16(b, f); // e2 e6 f2 f6 g2 g6 h2 h6
-        const __m256i tmp13 = _mm256_unpackhi_epi16(d, h); // e3 e7 f3 f7 g3 g7 h3 h7
+        const __m256i tmp2  = AVX::unpacklo_epi16(a, e); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 ...
+        const __m256i tmp4  = AVX::unpacklo_epi16(b, f); // a1 a5 b1 b5 c1 c5 d1 d5
+        const __m256i tmp3  = AVX::unpacklo_epi16(c, g); // a2 a6 b2 b6 c2 c6 d2 d6
+        const __m256i tmp5  = AVX::unpacklo_epi16(d, h); // a3 a7 b3 b7 c3 c7 d3 d7
+        const __m256i tmp10 = AVX::unpackhi_epi16(a, e); // e0 e4 f0 f4 g0 g4 h0 h4
+        const __m256i tmp11 = AVX::unpackhi_epi16(c, g); // e1 e5 f1 f5 g1 g5 h1 h5
+        const __m256i tmp12 = AVX::unpackhi_epi16(b, f); // e2 e6 f2 f6 g2 g6 h2 h6
+        const __m256i tmp13 = AVX::unpackhi_epi16(d, h); // e3 e7 f3 f7 g3 g7 h3 h7
 
-        const __m256i tmp0  = _mm256_unpacklo_epi16(tmp2, tmp3); // a0 a2 a4 a6 b0 b2 b4 b6 | a8 ...
-        const __m256i tmp1  = _mm256_unpacklo_epi16(tmp4, tmp5); // a1 a3 a5 a7 b1 b3 b5 b7
-        const __m256i tmp6  = _mm256_unpackhi_epi16(tmp2, tmp3); // c0 c2 c4 c6 d0 d2 d4 d6
-        const __m256i tmp7  = _mm256_unpackhi_epi16(tmp4, tmp5); // c1 c3 c5 c7 d1 d3 d5 d7
-        const __m256i tmp8  = _mm256_unpacklo_epi16(tmp10, tmp11); // e0 e2 e4 e6 f0 f2 f4 f6
-        const __m256i tmp9  = _mm256_unpacklo_epi16(tmp12, tmp13); // e1 e3 e5 e7 f1 f3 f5 f7
+        const __m256i tmp0  = AVX::unpacklo_epi16(tmp2, tmp3); // a0 a2 a4 a6 b0 b2 b4 b6 | a8 ...
+        const __m256i tmp1  = AVX::unpacklo_epi16(tmp4, tmp5); // a1 a3 a5 a7 b1 b3 b5 b7
+        const __m256i tmp6  = AVX::unpackhi_epi16(tmp2, tmp3); // c0 c2 c4 c6 d0 d2 d4 d6
+        const __m256i tmp7  = AVX::unpackhi_epi16(tmp4, tmp5); // c1 c3 c5 c7 d1 d3 d5 d7
+        const __m256i tmp8  = AVX::unpacklo_epi16(tmp10, tmp11); // e0 e2 e4 e6 f0 f2 f4 f6
+        const __m256i tmp9  = AVX::unpacklo_epi16(tmp12, tmp13); // e1 e3 e5 e7 f1 f3 f5 f7
 
-        v0.data() = _mm256_unpacklo_epi16(tmp0, tmp1);
-        v1.data() = _mm256_unpackhi_epi16(tmp0, tmp1);
-        v2.data() = _mm256_unpacklo_epi16(tmp6, tmp7);
-        v3.data() = _mm256_unpackhi_epi16(tmp6, tmp7);
-        v4.data() = _mm256_unpacklo_epi16(tmp8, tmp9);
-        v5.data() = _mm256_unpackhi_epi16(tmp8, tmp9);
+        v0.data() = AVX::unpacklo_epi16(tmp0, tmp1);
+        v1.data() = AVX::unpackhi_epi16(tmp0, tmp1);
+        v2.data() = AVX::unpacklo_epi16(tmp6, tmp7);
+        v3.data() = AVX::unpackhi_epi16(tmp6, tmp7);
+        v4.data() = AVX::unpacklo_epi16(tmp8, tmp9);
+        v5.data() = AVX::unpackhi_epi16(tmp8, tmp9);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6)
@@ -1362,31 +1364,31 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
         const __m256i h = concat(_mm_loadu_si128(reinterpret_cast<const __m128i *>(&data[i[7]])),
                                  _mm_loadu_si128(reinterpret_cast<const __m128i *>(&data[i[15]])));
 
-        const __m256i tmp2  = _mm256_unpacklo_epi16(a, e); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 ...
-        const __m256i tmp4  = _mm256_unpacklo_epi16(b, f); // a1 a5 b1 b5 c1 c5 d1 d5
-        const __m256i tmp3  = _mm256_unpacklo_epi16(c, g); // a2 a6 b2 b6 c2 c6 d2 d6
-        const __m256i tmp5  = _mm256_unpacklo_epi16(d, h); // a3 a7 b3 b7 c3 c7 d3 d7
-        const __m256i tmp10 = _mm256_unpackhi_epi16(a, e); // e0 e4 f0 f4 g0 g4 h0 h4
-        const __m256i tmp11 = _mm256_unpackhi_epi16(c, g); // e1 e5 f1 f5 g1 g5 h1 h5
-        const __m256i tmp12 = _mm256_unpackhi_epi16(b, f); // e2 e6 f2 f6 g2 g6 h2 h6
-        const __m256i tmp13 = _mm256_unpackhi_epi16(d, h); // e3 e7 f3 f7 g3 g7 h3 h7
+        const __m256i tmp2  = AVX::unpacklo_epi16(a, e); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 ...
+        const __m256i tmp4  = AVX::unpacklo_epi16(b, f); // a1 a5 b1 b5 c1 c5 d1 d5
+        const __m256i tmp3  = AVX::unpacklo_epi16(c, g); // a2 a6 b2 b6 c2 c6 d2 d6
+        const __m256i tmp5  = AVX::unpacklo_epi16(d, h); // a3 a7 b3 b7 c3 c7 d3 d7
+        const __m256i tmp10 = AVX::unpackhi_epi16(a, e); // e0 e4 f0 f4 g0 g4 h0 h4
+        const __m256i tmp11 = AVX::unpackhi_epi16(c, g); // e1 e5 f1 f5 g1 g5 h1 h5
+        const __m256i tmp12 = AVX::unpackhi_epi16(b, f); // e2 e6 f2 f6 g2 g6 h2 h6
+        const __m256i tmp13 = AVX::unpackhi_epi16(d, h); // e3 e7 f3 f7 g3 g7 h3 h7
 
-        const __m256i tmp0  = _mm256_unpacklo_epi16(tmp2, tmp3); // a0 a2 a4 a6 b0 b2 b4 b6 | a8 ...
-        const __m256i tmp1  = _mm256_unpacklo_epi16(tmp4, tmp5); // a1 a3 a5 a7 b1 b3 b5 b7
-        const __m256i tmp6  = _mm256_unpackhi_epi16(tmp2, tmp3); // c0 c2 c4 c6 d0 d2 d4 d6
-        const __m256i tmp7  = _mm256_unpackhi_epi16(tmp4, tmp5); // c1 c3 c5 c7 d1 d3 d5 d7
-        const __m256i tmp8  = _mm256_unpacklo_epi16(tmp10, tmp11); // e0 e2 e4 e6 f0 f2 f4 f6
-        const __m256i tmp9  = _mm256_unpacklo_epi16(tmp12, tmp13); // e1 e3 e5 e7 f1 f3 f5 f7
-        const __m256i tmp14 = _mm256_unpackhi_epi16(tmp10, tmp11); // g0 g2 g4 g6 h0 h2 h4 h6
-        const __m256i tmp15 = _mm256_unpackhi_epi16(tmp12, tmp13); // g1 g3 g5 g7 h1 h3 h5 h7
+        const __m256i tmp0  = AVX::unpacklo_epi16(tmp2, tmp3); // a0 a2 a4 a6 b0 b2 b4 b6 | a8 ...
+        const __m256i tmp1  = AVX::unpacklo_epi16(tmp4, tmp5); // a1 a3 a5 a7 b1 b3 b5 b7
+        const __m256i tmp6  = AVX::unpackhi_epi16(tmp2, tmp3); // c0 c2 c4 c6 d0 d2 d4 d6
+        const __m256i tmp7  = AVX::unpackhi_epi16(tmp4, tmp5); // c1 c3 c5 c7 d1 d3 d5 d7
+        const __m256i tmp8  = AVX::unpacklo_epi16(tmp10, tmp11); // e0 e2 e4 e6 f0 f2 f4 f6
+        const __m256i tmp9  = AVX::unpacklo_epi16(tmp12, tmp13); // e1 e3 e5 e7 f1 f3 f5 f7
+        const __m256i tmp14 = AVX::unpackhi_epi16(tmp10, tmp11); // g0 g2 g4 g6 h0 h2 h4 h6
+        const __m256i tmp15 = AVX::unpackhi_epi16(tmp12, tmp13); // g1 g3 g5 g7 h1 h3 h5 h7
 
-        v0.data() = _mm256_unpacklo_epi16(tmp0, tmp1);
-        v1.data() = _mm256_unpackhi_epi16(tmp0, tmp1);
-        v2.data() = _mm256_unpacklo_epi16(tmp6, tmp7);
-        v3.data() = _mm256_unpackhi_epi16(tmp6, tmp7);
-        v4.data() = _mm256_unpacklo_epi16(tmp8, tmp9);
-        v5.data() = _mm256_unpackhi_epi16(tmp8, tmp9);
-        v6.data() = _mm256_unpacklo_epi16(tmp14, tmp15);
+        v0.data() = AVX::unpacklo_epi16(tmp0, tmp1);
+        v1.data() = AVX::unpackhi_epi16(tmp0, tmp1);
+        v2.data() = AVX::unpacklo_epi16(tmp6, tmp7);
+        v3.data() = AVX::unpackhi_epi16(tmp6, tmp7);
+        v4.data() = AVX::unpacklo_epi16(tmp8, tmp9);
+        v5.data() = AVX::unpackhi_epi16(tmp8, tmp9);
+        v6.data() = AVX::unpacklo_epi16(tmp14, tmp15);
     }/*}}}*/
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7)
@@ -1409,32 +1411,32 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
         const __m256i h = concat(_mm_loadu_si128(reinterpret_cast<const __m128i *>(&data[i[7]])),
                                  _mm_loadu_si128(reinterpret_cast<const __m128i *>(&data[i[15]])));
 
-        const __m256i tmp2  = _mm256_unpacklo_epi16(a, e); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 ...
-        const __m256i tmp4  = _mm256_unpacklo_epi16(b, f); // a1 a5 b1 b5 c1 c5 d1 d5
-        const __m256i tmp3  = _mm256_unpacklo_epi16(c, g); // a2 a6 b2 b6 c2 c6 d2 d6
-        const __m256i tmp5  = _mm256_unpacklo_epi16(d, h); // a3 a7 b3 b7 c3 c7 d3 d7
-        const __m256i tmp10 = _mm256_unpackhi_epi16(a, e); // e0 e4 f0 f4 g0 g4 h0 h4
-        const __m256i tmp11 = _mm256_unpackhi_epi16(c, g); // e1 e5 f1 f5 g1 g5 h1 h5
-        const __m256i tmp12 = _mm256_unpackhi_epi16(b, f); // e2 e6 f2 f6 g2 g6 h2 h6
-        const __m256i tmp13 = _mm256_unpackhi_epi16(d, h); // e3 e7 f3 f7 g3 g7 h3 h7
+        const __m256i tmp2  = AVX::unpacklo_epi16(a, e); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 ...
+        const __m256i tmp4  = AVX::unpacklo_epi16(b, f); // a1 a5 b1 b5 c1 c5 d1 d5
+        const __m256i tmp3  = AVX::unpacklo_epi16(c, g); // a2 a6 b2 b6 c2 c6 d2 d6
+        const __m256i tmp5  = AVX::unpacklo_epi16(d, h); // a3 a7 b3 b7 c3 c7 d3 d7
+        const __m256i tmp10 = AVX::unpackhi_epi16(a, e); // e0 e4 f0 f4 g0 g4 h0 h4
+        const __m256i tmp11 = AVX::unpackhi_epi16(c, g); // e1 e5 f1 f5 g1 g5 h1 h5
+        const __m256i tmp12 = AVX::unpackhi_epi16(b, f); // e2 e6 f2 f6 g2 g6 h2 h6
+        const __m256i tmp13 = AVX::unpackhi_epi16(d, h); // e3 e7 f3 f7 g3 g7 h3 h7
 
-        const __m256i tmp0  = _mm256_unpacklo_epi16(tmp2, tmp3); // a0 a2 a4 a6 b0 b2 b4 b6 | a8 ...
-        const __m256i tmp1  = _mm256_unpacklo_epi16(tmp4, tmp5); // a1 a3 a5 a7 b1 b3 b5 b7
-        const __m256i tmp6  = _mm256_unpackhi_epi16(tmp2, tmp3); // c0 c2 c4 c6 d0 d2 d4 d6
-        const __m256i tmp7  = _mm256_unpackhi_epi16(tmp4, tmp5); // c1 c3 c5 c7 d1 d3 d5 d7
-        const __m256i tmp8  = _mm256_unpacklo_epi16(tmp10, tmp11); // e0 e2 e4 e6 f0 f2 f4 f6
-        const __m256i tmp9  = _mm256_unpacklo_epi16(tmp12, tmp13); // e1 e3 e5 e7 f1 f3 f5 f7
-        const __m256i tmp14 = _mm256_unpackhi_epi16(tmp10, tmp11); // g0 g2 g4 g6 h0 h2 h4 h6
-        const __m256i tmp15 = _mm256_unpackhi_epi16(tmp12, tmp13); // g1 g3 g5 g7 h1 h3 h5 h7
+        const __m256i tmp0  = AVX::unpacklo_epi16(tmp2, tmp3); // a0 a2 a4 a6 b0 b2 b4 b6 | a8 ...
+        const __m256i tmp1  = AVX::unpacklo_epi16(tmp4, tmp5); // a1 a3 a5 a7 b1 b3 b5 b7
+        const __m256i tmp6  = AVX::unpackhi_epi16(tmp2, tmp3); // c0 c2 c4 c6 d0 d2 d4 d6
+        const __m256i tmp7  = AVX::unpackhi_epi16(tmp4, tmp5); // c1 c3 c5 c7 d1 d3 d5 d7
+        const __m256i tmp8  = AVX::unpacklo_epi16(tmp10, tmp11); // e0 e2 e4 e6 f0 f2 f4 f6
+        const __m256i tmp9  = AVX::unpacklo_epi16(tmp12, tmp13); // e1 e3 e5 e7 f1 f3 f5 f7
+        const __m256i tmp14 = AVX::unpackhi_epi16(tmp10, tmp11); // g0 g2 g4 g6 h0 h2 h4 h6
+        const __m256i tmp15 = AVX::unpackhi_epi16(tmp12, tmp13); // g1 g3 g5 g7 h1 h3 h5 h7
 
-        v0.data() = _mm256_unpacklo_epi16(tmp0, tmp1);
-        v1.data() = _mm256_unpackhi_epi16(tmp0, tmp1);
-        v2.data() = _mm256_unpacklo_epi16(tmp6, tmp7);
-        v3.data() = _mm256_unpackhi_epi16(tmp6, tmp7);
-        v4.data() = _mm256_unpacklo_epi16(tmp8, tmp9);
-        v5.data() = _mm256_unpackhi_epi16(tmp8, tmp9);
-        v6.data() = _mm256_unpacklo_epi16(tmp14, tmp15);
-        v7.data() = _mm256_unpackhi_epi16(tmp14, tmp15);
+        v0.data() = AVX::unpacklo_epi16(tmp0, tmp1);
+        v1.data() = AVX::unpackhi_epi16(tmp0, tmp1);
+        v2.data() = AVX::unpacklo_epi16(tmp6, tmp7);
+        v3.data() = AVX::unpackhi_epi16(tmp6, tmp7);
+        v4.data() = AVX::unpacklo_epi16(tmp8, tmp9);
+        v5.data() = AVX::unpackhi_epi16(tmp8, tmp9);
+        v6.data() = AVX::unpacklo_epi16(tmp14, tmp15);
+        v7.data() = AVX::unpackhi_epi16(tmp14, tmp15);
     }/*}}}*/
 };
 template<typename V> struct InterleaveImpl<V, 8, 32> {

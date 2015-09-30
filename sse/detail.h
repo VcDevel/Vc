@@ -425,8 +425,8 @@ Vc_INTRINSIC __m128d min(__m128d a, __m128d b, double) { return _mm_min_pd(a, b)
 Vc_INTRINSIC __m128i min(__m128i a, __m128i b,    int) { return SSE::min_epi32(a, b); }
 Vc_INTRINSIC __m128i min(__m128i a, __m128i b,   uint) { return SSE::min_epu32(a, b); }
 Vc_INTRINSIC __m128i min(__m128i a, __m128i b,  short) { return _mm_min_epi16(a, b); }
-Vc_INTRINSIC __m128i min(__m128i a, __m128i b, ushort) { return _mm_min_epu16(a, b); }
-Vc_INTRINSIC __m128i min(__m128i a, __m128i b,  schar) { return _mm_min_epi8 (a, b); }
+Vc_INTRINSIC __m128i min(__m128i a, __m128i b, ushort) { return SSE::min_epu16(a, b); }
+Vc_INTRINSIC __m128i min(__m128i a, __m128i b,  schar) { return SSE::min_epi8 (a, b); }
 Vc_INTRINSIC __m128i min(__m128i a, __m128i b,  uchar) { return _mm_min_epu8 (a, b); }
 
 // max{{{1
@@ -435,8 +435,8 @@ Vc_INTRINSIC __m128d max(__m128d a, __m128d b, double) { return _mm_max_pd(a, b)
 Vc_INTRINSIC __m128i max(__m128i a, __m128i b,    int) { return SSE::max_epi32(a, b); }
 Vc_INTRINSIC __m128i max(__m128i a, __m128i b,   uint) { return SSE::max_epu32(a, b); }
 Vc_INTRINSIC __m128i max(__m128i a, __m128i b,  short) { return _mm_max_epi16(a, b); }
-Vc_INTRINSIC __m128i max(__m128i a, __m128i b, ushort) { return _mm_max_epu16(a, b); }
-Vc_INTRINSIC __m128i max(__m128i a, __m128i b,  schar) { return _mm_max_epi8 (a, b); }
+Vc_INTRINSIC __m128i max(__m128i a, __m128i b, ushort) { return SSE::max_epu16(a, b); }
+Vc_INTRINSIC __m128i max(__m128i a, __m128i b,  schar) { return SSE::max_epi8 (a, b); }
 Vc_INTRINSIC __m128i max(__m128i a, __m128i b,  uchar) { return _mm_max_epu8 (a, b); }
 
 // horizontal add{{{1

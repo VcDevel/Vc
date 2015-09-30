@@ -38,6 +38,8 @@ namespace Detail
 {
 template <int... Dst> struct Permutation {};
 template <uint8_t... Sel> struct Mask {};
+
+#ifdef VC_IMPL_AVX2
 template <uint8_t Sel0, uint8_t Sel1, uint8_t Sel2, uint8_t Sel3, uint8_t Sel4,
           uint8_t Sel5, uint8_t Sel6, uint8_t Sel7, uint8_t Sel8, uint8_t Sel9,
           uint8_t Sel10, uint8_t Sel11, uint8_t Sel12, uint8_t Sel13, uint8_t Sel14,
@@ -62,9 +64,11 @@ blend(__m256i a, __m256i b, Mask<Sel0, Sel1, Sel2, Sel3, Sel4, Sel5, Sel6, Sel7,
         (Sel12 << 12) | (Sel13 << 13) | (Sel14 << 14) | (Sel15 << 15));
     return _mm256_blend_epi16(a, b, mask);
 }
+#endif  // VC_IMPL_AVX2
 }  // namespace Detail
 namespace Mem
 {
+#ifdef VC_IMPL_AVX2
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteLo(__m256i x) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
@@ -76,6 +80,7 @@ namespace Mem
             static_assert(Dst0 <= X7 && Dst1 <= X7 && Dst2 <= X7 && Dst3 <= X7, "Incorrect_Range");
             return _mm256_shufflehi_epi16(x, (Dst0 - X4) + (Dst1 - X4) * 4 + (Dst2 - X4) * 16 + (Dst3 - X4) * 64);
         }
+#endif  // VC_IMPL_AVX2
 
         template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x) {
             static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
@@ -132,11 +137,13 @@ namespace Mem
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute(__m256i x) {
             return _mm256_castps_si256(permute<Dst0, Dst1, Dst2, Dst3>(_mm256_castsi256_ps(x)));
         }
+#ifdef VC_IMPL_AVX2
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute4x64(__m256i x) {
             static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
             static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
             return _mm256_permute4x64_epi64(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
         }
+#endif  // VC_IMPL_AVX2
         template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
             static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");
             static_assert(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, "Incorrect_Range");
