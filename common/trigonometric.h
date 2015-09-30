@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Internal
+namespace Detail
 {
 template<Vc::Implementation Impl> struct MapImpl { enum Dummy { Value = Impl }; };
 template<> struct MapImpl<Vc::SSE42Impl> { enum Dummy { Value = MapImpl<Vc::SSE41Impl>::Value }; };
@@ -45,7 +45,7 @@ template<Vc::Implementation Impl> using TrigonometricImplementation =
     + Vc::Fma4Instructions
 #endif
     >;
-}  // namespace Internal
+}  // namespace Detail
 
 namespace Common
 {
@@ -65,7 +65,7 @@ template<typename Impl> struct Trigonometric
 namespace Detail
 {
 template <typename T, typename Abi>
-using Trig = Common::Trigonometric<Internal::TrigonometricImplementation<
+using Trig = Common::Trigonometric<Detail::TrigonometricImplementation<
     (std::is_same<Abi, VectorAbi::Sse>::value
          ? SSE42Impl
          : std::is_same<Abi, VectorAbi::Avx>::value ? AVXImpl : ScalarImpl)>>;

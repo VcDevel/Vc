@@ -562,7 +562,7 @@ template <typename V, typename T> void testFmaDispatch(T)
 
 template <typename V> void testFmaDispatch(float)
 {
-    using Vc::Internal::floatConstant;
+    using Vc::Detail::floatConstant;
     V b = floatConstant<1, 0x000001, 0>();
     V c = floatConstant<1, 0x000000, -24>();
     V a = b;
@@ -586,7 +586,7 @@ template <typename V> void testFmaDispatch(float)
 
 template <typename V> void testFmaDispatch(double)
 {
-    using Vc::Internal::doubleConstant;
+    using Vc::Detail::doubleConstant;
     V b = doubleConstant<1, 0x0000000000001, 0>();
     V c = doubleConstant<1, 0x0000000000000, -53>();
     V a = b;

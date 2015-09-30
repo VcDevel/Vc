@@ -49,8 +49,8 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
-    using Internal::doubleConstant;
-    using Internal::floatConstant;
+    using Detail::doubleConstant;
+    using Detail::floatConstant;
 
     // cacheline 1
     V_ALIGN(64) extern const unsigned int   _IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -301,8 +301,8 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
-    using Internal::doubleConstant;
-    using Internal::floatConstant;
+    using Detail::doubleConstant;
+    using Detail::floatConstant;
 
     // cacheline 1
     V_ALIGN(64) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };

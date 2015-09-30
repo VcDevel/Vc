@@ -228,7 +228,7 @@ static inline Vector<T, Abi> calc(VC_ALIGNED_PARAMETER(V) _x)
         const M infinityMask = x == V::Zero();
         const M denormal = x <= C::min();
 
-        x(denormal) *= V(Vc::Internal::doubleConstant<1, 0, 54>()); // 2²⁵
+        x(denormal) *= V(Vc::Detail::doubleConstant<1, 0, 54>()); // 2²⁵
         V exponent = Detail::exponent(x.data());                    // = ⎣log₂(x)⎦
         exponent(denormal) -= 54;
 

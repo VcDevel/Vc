@@ -35,8 +35,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <common/macros.h>
 /*}}}*/
 using namespace Vc;
-using Vc::Internal::floatConstant;
-using Vc::Internal::doubleConstant;
+using Vc::Detail::floatConstant;
+using Vc::Detail::doubleConstant;
 
 #define REAL_TYPES (float_v, double_v)
 

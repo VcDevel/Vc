@@ -201,12 +201,12 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
             template<typename Parent, typename RM>
             Vc_ALWAYS_INLINE Memory &operator=(const MemoryBase<V, Parent, 2, RM> &rhs) {
                 assert(vectorsCount() == rhs.vectorsCount());
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
                 return *this;
             }
 
             Vc_ALWAYS_INLINE Memory &operator=(const Memory &rhs) {
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
                 return *this;
             }
 
@@ -368,25 +368,25 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
 
             inline Memory(const Memory &rhs)
             {
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
             }
 
             template <size_t S> inline Memory(const Memory<V, S> &rhs)
             {
                 assert(vectorsCount() == rhs.vectorsCount());
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
             }
 
             inline Memory &operator=(const Memory &rhs)
             {
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
                 return *this;
             }
 
             template <size_t S> inline Memory &operator=(const Memory<V, S> &rhs)
             {
                 assert(vectorsCount() == rhs.vectorsCount());
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
                 return *this;
             }
 
@@ -498,7 +498,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
             m_vectorsCount(rhs.vectorsCount()),
             m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
-            Internal2::copyVectors(*this, rhs);
+            Detail::copyVectors(*this, rhs);
         }
 
         /**
@@ -513,7 +513,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
             m_vectorsCount(rhs.vectorsCount()),
             m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
-            Internal2::copyVectors(*this, rhs);
+            Detail::copyVectors(*this, rhs);
         }
 
         /**
@@ -557,13 +557,13 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         template<typename Parent, typename RM>
         Vc_ALWAYS_INLINE Memory &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            Internal2::copyVectors(*this, rhs);
+            Detail::copyVectors(*this, rhs);
             return *this;
         }
 
         Vc_ALWAYS_INLINE Memory &operator=(const Memory &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            Internal2::copyVectors(*this, rhs);
+            Detail::copyVectors(*this, rhs);
             return *this;
         }
 

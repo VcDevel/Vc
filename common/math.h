@@ -50,25 +50,25 @@ inline AVX::double_v exp(VC_ALIGNED_PARAMETER(AVX::double_v) _x)
         typedef V::Mask M;
     typedef AVX::Const<double> C;
 
-        const M overflow  = x > Vc::Internal::doubleConstant< 1, 0x0006232bdd7abcd2ull, 9>(); // max log
-        const M underflow = x < Vc::Internal::doubleConstant<-1, 0x0006232bdd7abcd2ull, 9>(); // min log
+        const M overflow  = x > Vc::Detail::doubleConstant< 1, 0x0006232bdd7abcd2ull, 9>(); // max log
+        const M underflow = x < Vc::Detail::doubleConstant<-1, 0x0006232bdd7abcd2ull, 9>(); // min log
 
         V px = floor(C::log2_e() * x + 0.5);
         __m128i tmp = _mm256_cvttpd_epi32(px.data());
     const SimdArray<int, V::Size> n = SSE::int_v{tmp};
-        x -= px * C::ln2_large(); //Vc::Internal::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
-        x -= px * C::ln2_small(); //Vc::Internal::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
+        x -= px * C::ln2_large(); //Vc::Detail::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
+        x -= px * C::ln2_small(); //Vc::Detail::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
 
         const double P[] = {
-            Vc::Internal::doubleConstant<1, 0x000089cdd5e44be8ull, -13>(),
-            Vc::Internal::doubleConstant<1, 0x000f06d10cca2c7eull,  -6>(),
-            Vc::Internal::doubleConstant<1, 0x0000000000000000ull,   0>()
+            Vc::Detail::doubleConstant<1, 0x000089cdd5e44be8ull, -13>(),
+            Vc::Detail::doubleConstant<1, 0x000f06d10cca2c7eull,  -6>(),
+            Vc::Detail::doubleConstant<1, 0x0000000000000000ull,   0>()
         };
         const double Q[] = {
-            Vc::Internal::doubleConstant<1, 0x00092eb6bc365fa0ull, -19>(),
-            Vc::Internal::doubleConstant<1, 0x0004ae39b508b6c0ull,  -9>(),
-            Vc::Internal::doubleConstant<1, 0x000d17099887e074ull,  -3>(),
-            Vc::Internal::doubleConstant<1, 0x0000000000000000ull,   1>()
+            Vc::Detail::doubleConstant<1, 0x00092eb6bc365fa0ull, -19>(),
+            Vc::Detail::doubleConstant<1, 0x0004ae39b508b6c0ull,  -9>(),
+            Vc::Detail::doubleConstant<1, 0x000d17099887e074ull,  -3>(),
+            Vc::Detail::doubleConstant<1, 0x0000000000000000ull,   1>()
         };
         const V x2 = x * x;
         px = x * ((P[0] * x2 + P[1]) * x2 + P[2]);
@@ -90,25 +90,25 @@ inline SSE::double_v exp(SSE::double_v::AsArg _x) {
         typedef V::Mask M;
     typedef SSE::Const<double> C;
 
-        const M overflow  = x > Vc::Internal::doubleConstant< 1, 0x0006232bdd7abcd2ull, 9>(); // max log
-        const M underflow = x < Vc::Internal::doubleConstant<-1, 0x0006232bdd7abcd2ull, 9>(); // min log
+        const M overflow  = x > Vc::Detail::doubleConstant< 1, 0x0006232bdd7abcd2ull, 9>(); // max log
+        const M underflow = x < Vc::Detail::doubleConstant<-1, 0x0006232bdd7abcd2ull, 9>(); // min log
 
         V px = floor(C::log2_e() * x + 0.5);
     SimdArray<int, V::Size> n;
         _mm_storel_epi64(reinterpret_cast<__m128i *>(&n), _mm_cvttpd_epi32(px.data()));
-        x -= px * C::ln2_large(); //Vc::Internal::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
-        x -= px * C::ln2_small(); //Vc::Internal::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
+        x -= px * C::ln2_large(); //Vc::Detail::doubleConstant<1, 0x00062e4000000000ull, -1>();  // ln2
+        x -= px * C::ln2_small(); //Vc::Detail::doubleConstant<1, 0x0007f7d1cf79abcaull, -20>(); // ln2
 
         const double P[] = {
-            Vc::Internal::doubleConstant<1, 0x000089cdd5e44be8ull, -13>(),
-            Vc::Internal::doubleConstant<1, 0x000f06d10cca2c7eull,  -6>(),
-            Vc::Internal::doubleConstant<1, 0x0000000000000000ull,   0>()
+            Vc::Detail::doubleConstant<1, 0x000089cdd5e44be8ull, -13>(),
+            Vc::Detail::doubleConstant<1, 0x000f06d10cca2c7eull,  -6>(),
+            Vc::Detail::doubleConstant<1, 0x0000000000000000ull,   0>()
         };
         const double Q[] = {
-            Vc::Internal::doubleConstant<1, 0x00092eb6bc365fa0ull, -19>(),
-            Vc::Internal::doubleConstant<1, 0x0004ae39b508b6c0ull,  -9>(),
-            Vc::Internal::doubleConstant<1, 0x000d17099887e074ull,  -3>(),
-            Vc::Internal::doubleConstant<1, 0x0000000000000000ull,   1>()
+            Vc::Detail::doubleConstant<1, 0x00092eb6bc365fa0ull, -19>(),
+            Vc::Detail::doubleConstant<1, 0x0004ae39b508b6c0ull,  -9>(),
+            Vc::Detail::doubleConstant<1, 0x000d17099887e074ull,  -3>(),
+            Vc::Detail::doubleConstant<1, 0x0000000000000000ull,   1>()
         };
         const V x2 = x * x;
         px = x * ((P[0] * x2 + P[1]) * x2 + P[2]);
