@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2010-2013 Matthias Kretz <kretz@kde.org>
+Copyright © 2010-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,36 +26,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_PREFETCH_TCC
-#define VC_MIC_PREFETCH_TCC
+#ifndef VC_MIC_PREFETCHES_TCC
+#define VC_MIC_PREFETCHES_TCC
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Internal
+namespace Detail
 {
-
-Vc_ALWAYS_INLINE void HelperImpl<Vc::MICImpl>::prefetchForOneRead(const void *addr)
+Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr, VectorAbi::Mic)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_NTA);
 }
-Vc_ALWAYS_INLINE void HelperImpl<Vc::MICImpl>::prefetchClose(const void *addr)
+Vc_ALWAYS_INLINE void prefetchClose(const void *addr, VectorAbi::Mic)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T0);
 }
-Vc_ALWAYS_INLINE void HelperImpl<Vc::MICImpl>::prefetchMid(const void *addr)
+Vc_ALWAYS_INLINE void prefetchMid(const void *addr, VectorAbi::Mic)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T1);
 }
-Vc_ALWAYS_INLINE void HelperImpl<Vc::MICImpl>::prefetchFar(const void *addr)
+Vc_ALWAYS_INLINE void prefetchFar(const void *addr, VectorAbi::Mic)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T2);
 }
-Vc_ALWAYS_INLINE void HelperImpl<Vc::MICImpl>::prefetchForModify(const void *addr)
+Vc_ALWAYS_INLINE void prefetchForModify(const void *addr, VectorAbi::Mic)
 {
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_ET0);
 }
+}  // namespace Detail
+}  // namespace Vc
 
-}
-}
-
-#endif // VC_MIC_PREFETCH_TCC
+#endif // VC_MIC_PREFETCHES_TCC

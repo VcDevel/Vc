@@ -363,13 +363,7 @@ public:
     Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
 #undef VC_CURRENT_CLASS_NAME
-template<typename T> constexpr size_t Vector<T>::Size;
-
-template<typename T> struct SwizzledVector
-{
-    Vector<T> v;
-    unsigned int s;
-};
+template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::Size;
 
 Vc_INTRINSIC MIC::int_v    min(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_min_epi32(x.data(), y.data()); }
 Vc_INTRINSIC MIC::uint_v   min(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_min_epu32(x.data(), y.data()); }

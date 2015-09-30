@@ -28,16 +28,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Internal
+namespace Detail
 {
-
-template<typename V, typename M, typename A> inline void HelperImpl<MICImpl>::deinterleave(V &a, V &b, const M *m, A)
-//template<> inline void deinterleave(float_v &a, float_v &b, const float *m, A align)
+template <typename V, typename M, typename A>
+inline void deinterleave(V &a, V &b, const M *m, A)
 {
     const auto i = MIC::int_v::IndexesFromZero() << 1;
     a.data() = MicIntrinsics::gather(i.data(), m, MIC::UpDownConversion<typename V::VectorEntryType, M>());
     b.data() = MicIntrinsics::gather(i.data(), m + 1, MIC::UpDownConversion<typename V::VectorEntryType, M>());
 }
-
-}  // namespace Internal
+}  // namespace Detail
 }  // namespace Vc
