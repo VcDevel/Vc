@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SCALAR_MATH_H
 #define VC_SCALAR_MATH_H
 
+#include <cstdlib>
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
