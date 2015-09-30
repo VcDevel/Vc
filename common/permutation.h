@@ -36,7 +36,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Permutation
 {
 struct ReversedTag {};
-constexpr ReversedTag Reversed;
+constexpr ReversedTag Reversed{};
 }  // namespace Permutation
 }
 
