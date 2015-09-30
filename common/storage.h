@@ -32,6 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "aliasingentryhelper.h"
 #include "types.h"
 #include "maskentry.h"
+#ifdef VC_IMPL_AVX
+#include "../avx/intrinsics.h"
+#endif
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
