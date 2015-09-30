@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2010-2014 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2015 Matthias Kretz <kretz@kde.org>
 
     Permission to use, copy, modify, and distribute this software
     and its documentation for any purpose and without fee is hereby
@@ -42,8 +42,8 @@ typedef bool int_m;
 
 using Vc::float_v;
 using Vc::float_m;
-using Vc::int_v;
-using Vc::int_m;
+using int_v = Vc::SimdArray<int, float_v::size()>;
+using int_m = int_v::mask_type;
 #endif
 
 ProgressWriter::ProgressWriter()
@@ -488,7 +488,7 @@ void Baker::createImage()
     }
 #else
     const float imagStep2 = imagStep * float_v::Size;
-    const float_v imagMin2 = imagMin + imagStep * static_cast<float_v>(int_v::IndexesFromZero());
+    const float_v imagMin2 = imagMin + imagStep * float_v::IndexesFromZero();
     for (float real = realMin; real <= realMax; real += realStep) {
         m_progress.setValue(99.f * (real - realMin) / (realMax - realMin));
         for (float_v imag = imagMin2; all_of(imag <= imagMax); imag += imagStep2) {

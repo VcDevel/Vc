@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -106,6 +106,15 @@ public:
         M k,
         enable_if<(Traits::is_simd_mask<M>::value && !Traits::isSimdMaskArray<M>::value &&
                    Traits::simd_vector_size<M>::value == Size)> = nullarg) Vc_INTRINSIC_R;
+
+    // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
+    template <typename M,
+              typename = enable_if<Traits::is_simd_mask<M>::value &&
+                                   !Traits::isSimdMaskArray<M>::value && M::size() == N>>
+    operator M() const
+    {
+        return simd_cast<M>(*this);
+    }
 
     // load/store (from/to bool arrays)
     template <typename Flags = DefaultLoadTag>
@@ -309,6 +318,15 @@ public:
                    Traits::simd_vector_size<M>::value == Size)> = nullarg)
         : data0(Split::lo(k)), data1(Split::hi(k))
     {
+    }
+
+    // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
+    template <typename M,
+              typename = enable_if<Traits::is_simd_mask<M>::value &&
+                                   !Traits::isSimdMaskArray<M>::value && M::size() == N>>
+    operator M() const
+    {
+        return simd_cast<M>(*this);
     }
 
     Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne::OEnum one)

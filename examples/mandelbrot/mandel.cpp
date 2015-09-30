@@ -31,8 +31,8 @@
 
 using Vc::float_v;
 using Vc::float_m;
-using Vc::uint_v;
-using Vc::uint_m;
+using uint_v = Vc::SimdArray<unsigned int, float_v::size()>;
+using uint_m = uint_v::mask_type;
 
 template<MandelImpl Impl>
 Mandel<Impl>::Mandel(QObject *_parent)

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -184,6 +184,17 @@ public:
     explicit Vc_INTRINSIC SimdArray(const V &x)
         : data(simd_cast<vector_type>(x))
     {
+    }
+
+    // implicit conversion to Vector<U, AnyAbi> for if Vector<U, AnyAbi>::size() == N and
+    // T implicitly convertible to U
+    template <typename V,
+              typename = enable_if<
+                  Traits::is_simd_vector<V>::value && !Traits::isSimdArray<V>::value &&
+                  std::is_convertible<T, typename V::EntryType>::value && V::size() == N>>
+    operator V() const
+    {
+        return simd_cast<V>(*this);
     }
 
 #include "gatherinterface.h"
@@ -546,6 +557,17 @@ public:
                    std::is_convertible<Traits::entry_type_of<V>, T>::value)> = nullarg)
         : data0(Split::lo(x)), data1(Split::hi(x))
     {
+    }
+
+    // implicit conversion to Vector<U, AnyAbi> for if Vector<U, AnyAbi>::size() == N and
+    // T implicitly convertible to U
+    template <typename V,
+              typename = enable_if<
+                  Traits::is_simd_vector<V>::value && !Traits::isSimdArray<V>::value &&
+                  std::is_convertible<T, typename V::EntryType>::value && V::size() == N>>
+    operator V() const
+    {
+        return simd_cast<V>(*this);
     }
 
     //////////////////// other functions ///////////////
