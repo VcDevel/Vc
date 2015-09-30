@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_VERSION_STRING "0.99.71-dev"
 #define VC_VERSION_NUMBER 0x00638f
 #define VC_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
-#define VC_LIBRARY_ABI_VERSION 4
+#define VC_LIBRARY_ABI_VERSION 5
 
 namespace Vc_VERSIONED_NAMESPACE
 {
