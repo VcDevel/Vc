@@ -757,12 +757,14 @@ template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi
 template <typename T>
 Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::reversed() const
 {
-    return MIC::permute128(dcba().data(), _MM_PERM_ABCD);
+    return MIC::mic_cast<VectorType>(MIC::permute128(
+        _mm512_shuffle_epi32(MIC::mic_cast<__m512i>(data()), _MM_PERM_ABCD),
+        _MM_PERM_ABCD));
 }
 template <> Vc_INTRINSIC Vc_PURE MIC::double_v MIC::double_v::reversed() const
 {
     return _mm512_castps_pd(MIC::permute128(
-        MIC::float_v(_mm512_castpd_ps(d.v())).cdab().data(), _MM_PERM_ABCD));
+        _mm512_swizzle_ps(_mm512_castpd_ps(d.v()), _MM_SWIZ_REG_BADC), _MM_PERM_ABCD));
 }
 
 // }}}1
