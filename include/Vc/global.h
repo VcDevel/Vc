@@ -558,13 +558,7 @@ typedef ImplementationT<
 
 #endif // DOXYGEN
 
-namespace Internal
-{
-    // TODO (refactor): get rid of this abstraction:
-    template<Implementation Impl> struct HelperImpl;
-    typedef HelperImpl<VC_IMPL> Helper;
-}
-}
+}  // namespace Vc
 
 // TODO: clean up headers (e.g. math.h) to remove the following:
 #ifndef VC_ENABLE_FLOAT_BIT_OPERATORS

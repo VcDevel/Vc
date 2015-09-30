@@ -26,53 +26,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_DEINTERLEAVE_H
-#define VC_MIC_DEINTERLEAVE_H
+#ifndef VC_MIC_HELPERIMPL_H
+#define VC_MIC_HELPERIMPL_H
 
 #include "macros.h"
-
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace Internal
-{
-
-template<> struct HelperImpl<Vc::MICImpl>
-{
-    typedef MIC::Vector<float> float_v;
-    typedef MIC::Vector<double> double_v;
-    typedef MIC::Vector<int> int_v;
-    typedef MIC::Vector<unsigned int> uint_v;
-
-    template<typename V, typename M, typename A> static void deinterleave(V &a, V &b, const M *m, A);
-//  template<typename A> static void deinterleave(float_v &, float_v &, const float *, A);
-//  template<typename A> static void deinterleave(float_v &, float_v &, const short *, A);
-//  template<typename A> static void deinterleave(float_v &, float_v &, const unsigned short *, A);
-//
-//  template<typename A> static void deinterleave(double_v &, double_v &, const double *, A);
-//
-//  template<typename A> static void deinterleave(int_v &, int_v &, const int *, A);
-//  template<typename A> static void deinterleave(int_v &, int_v &, const short *, A);
-//
-//  template<typename A> static void deinterleave(uint_v &, uint_v &, const unsigned int *, A);
-//  template<typename A> static void deinterleave(uint_v &, uint_v &, const unsigned short *, A);
-
-    static Vc_ALWAYS_INLINE_L void prefetchForOneRead(const void *addr) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void prefetchForModify(const void *addr) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void prefetchClose(const void *addr) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void prefetchMid(const void *addr) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void prefetchFar(const void *addr) Vc_ALWAYS_INLINE_R;
-
-    template<Vc::MallocAlignment A>
-    static Vc_ALWAYS_INLINE_L void *malloc(size_t n) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
-};
-
-}  // namespace Internal
-}  // namespace Vc
-
 #include "deinterleave.tcc"
 #include "prefetches.tcc"
-#include "helperimpl.tcc"
 #include "undomacros.h"
 
-#endif // VC_MIC_DEINTERLEAVE_H
+#endif // VC_MIC_HELPERIMPL_H
