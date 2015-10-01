@@ -116,8 +116,7 @@ template <> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
 #ifdef __x86_64__
     *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);
 #else
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k2);
-    *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k2, 1);
+    _mm_store_sd(reinterpret_cast<MayAlias<double> *>(mem), _mm_castsi128_pd(k2));
 #endif
 }
 /*}}}*/
@@ -125,7 +124,11 @@ template <> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
 template<size_t> Vc_ALWAYS_INLINE __m128 mask_load(const bool *mem);
 template<> Vc_ALWAYS_INLINE __m128 mask_load<8>(const bool *mem)
 {
+#ifdef __x86_64__
     __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+#else
+    __m128i k = _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(mem)));
+#endif
     return sse_cast<__m128>(_mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
 }
 template<> Vc_ALWAYS_INLINE __m128 mask_load<4>(const bool *mem)

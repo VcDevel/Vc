@@ -1009,7 +1009,12 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
         return AVX::avx_cast<__m128>(k);
     }
     case 8: {
+#ifdef __x86_64__
         __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const MayAlias<int64_t> *>(mem));
+#else
+        __m128i k = _mm_castpd_si128(
+            _mm_load_sd(reinterpret_cast<const MayAlias<double> *>(mem)));
+#endif
         return AVX::avx_cast<__m128>(
             _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
     }
@@ -1033,7 +1038,12 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
             AVX::concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
     }
     case 8: {
+#ifdef __x86_64__
         __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const MayAlias<int64_t> *>(mem));
+#else
+        __m128i k = _mm_castpd_si128(
+            _mm_load_sd(reinterpret_cast<const MayAlias<double> *>(mem)));
+#endif
         k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
         return AVX::avx_cast<__m256>(
             AVX::concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k)));
