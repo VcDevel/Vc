@@ -1290,18 +1290,30 @@ template <> inline std::string typeToString<Vc::  uint_v>() { return "  uint_v";
 template <> inline std::string typeToString<Vc::double_v>() { return "double_v"; }
 template <> inline std::string typeToString<Vc::ushort_v>() { return "ushort_v"; }
 template <> inline std::string typeToString<Vc::   int_v>() { return "   int_v"; }
+template <> inline std::string typeToString<Vc:: schar_v>() { return " schar_v"; }
+template <> inline std::string typeToString<Vc:: uchar_v>() { return " uchar_v"; }
+template <> inline std::string typeToString<Vc::  long_v>() { return "  long_v"; }
+template <> inline std::string typeToString<Vc:: ulong_v>() { return " ulong_v"; }
+template <> inline std::string typeToString<Vc:: llong_v>() { return " llong_v"; }
+template <> inline std::string typeToString<Vc::ullong_v>() { return "ullong_v"; }
 template <> inline std::string typeToString<Vc:: float_m>() { return " float_m"; }
 template <> inline std::string typeToString<Vc:: short_m>() { return " short_m"; }
 template <> inline std::string typeToString<Vc::  uint_m>() { return "  uint_m"; }
 template <> inline std::string typeToString<Vc::double_m>() { return "double_m"; }
 template <> inline std::string typeToString<Vc::ushort_m>() { return "ushort_m"; }
 template <> inline std::string typeToString<Vc::   int_m>() { return "   int_m"; }
+template <> inline std::string typeToString<Vc:: schar_m>() { return " schar_m"; }
+template <> inline std::string typeToString<Vc:: uchar_m>() { return " uchar_m"; }
+template <> inline std::string typeToString<Vc::  long_m>() { return "  long_m"; }
+template <> inline std::string typeToString<Vc:: ulong_m>() { return " ulong_m"; }
+template <> inline std::string typeToString<Vc:: llong_m>() { return " llong_m"; }
+template <> inline std::string typeToString<Vc::ullong_m>() { return "ullong_m"; }
 
 template <> inline std::string typeToString<long double>() { return "long double"; }
 template <> inline std::string typeToString<double>() { return "double"; }
 template <> inline std::string typeToString< float>() { return " float"; }
-template <> inline std::string typeToString<         long long>() { return " long long"; }
-template <> inline std::string typeToString<unsigned long long>() { return "ulong long"; }
+template <> inline std::string typeToString<         long long>() { return " llong"; }
+template <> inline std::string typeToString<unsigned long long>() { return "ullong"; }
 template <> inline std::string typeToString<         long>() { return "  long"; }
 template <> inline std::string typeToString<unsigned long>() { return " ulong"; }
 template <> inline std::string typeToString<         int>() { return "   int"; }
