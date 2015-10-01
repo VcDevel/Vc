@@ -46,17 +46,29 @@ namespace Vc_VERSIONED_NAMESPACE
 {
   using double_v = Vector<double>;
   using  float_v = Vector< float>;
+  using  llong_v = Vector< llong>;
+  using ullong_v = Vector<ullong>;
+  using   long_v = Vector<  long>;
+  using  ulong_v = Vector< ulong>;
   using    int_v = Vector<   int>;
   using   uint_v = Vector<  uint>;
   using  short_v = Vector< short>;
   using ushort_v = Vector<ushort>;
+  using  schar_v = Vector< schar>;
+  using  uchar_v = Vector< uchar>;
 
   using double_m = Mask<double>;
   using  float_m = Mask< float>;
+  using  llong_m = Mask< llong>;
+  using ullong_m = Mask<ullong>;
+  using   long_m = Mask<  long>;
+  using  ulong_m = Mask< ulong>;
   using    int_m = Mask<   int>;
   using   uint_m = Mask<  uint>;
   using  short_m = Mask< short>;
   using ushort_m = Mask<ushort>;
+  using  schar_m = Mask< schar>;
+  using  uchar_m = Mask< uchar>;
 
   typedef Vector<std:: int_least64_t>  int_least64_v;
   typedef Vector<std::uint_least64_t> uint_least64_v;
