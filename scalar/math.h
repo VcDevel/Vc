@@ -86,7 +86,7 @@ template<> Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<double> &x, Scalar:
 {
 #if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__APPLE__)
     sin->data() = std::sin(x.data());
     cos->data() = std::cos(x.data());
 #else
