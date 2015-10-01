@@ -283,6 +283,10 @@ if(target_architecture)
    set(configure_options "${configure_options};-DTARGET_ARCHITECTURE=${target_architecture}")
 endif()
 
+if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[01234567]\\." OR "${COMPILER_VERSION}" MATCHES "GCC 4.8.0")
+   message(FATAL_ERROR "Compiler too old for C++11 (${COMPILER_VERSION})")
+endif()
+
 macro(go)
    # SubProjects currently don't improve the overview but rather make the dashboard more cumbersume to navigate
    #set_property(GLOBAL PROPERTY SubProject "master: ${compiler}")
@@ -298,22 +302,15 @@ macro(go)
 
    # enter the following section for Continuous builds only if the CTEST_UPDATE above found changes
    if(NOT ${dashboard_model} STREQUAL "Continuous" OR res GREATER 0)
-      if("${COMPILER_VERSION}" MATCHES "(g\\+\\+|GCC|Open64).*4\\.[01234567]\\.")
-         file(WRITE "${CTEST_BINARY_DIRECTORY}/abort_reason" "Compiler too old for C++11: ${COMPILER_VERSION}")
-         list(APPEND CTEST_NOTES_FILES "${CTEST_BINARY_DIRECTORY}/abort_reason")
-         ctest_submit(PARTS Notes)
-         set(res 1)
-      else()
-         CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
-            OPTIONS "${configure_options}"
-            APPEND
-            RETURN_VALUE res)
-         list(APPEND CTEST_NOTES_FILES
-            #"${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeOutput.log"
-            "${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeError.log"
-            )
-         ctest_submit(PARTS Notes Configure)
-      endif()
+      CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
+         OPTIONS "${configure_options}"
+         APPEND
+         RETURN_VALUE res)
+      list(APPEND CTEST_NOTES_FILES
+         #"${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeOutput.log"
+         "${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeError.log"
+         )
+      ctest_submit(PARTS Notes Configure)
       unset(CTEST_NOTES_FILES) # less clutter in ctest -V output
       if(res EQUAL 0)
          foreach(label other Scalar SSE AVX AVX2 MIC)
