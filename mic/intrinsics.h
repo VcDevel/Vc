@@ -331,12 +331,28 @@ static Vc_INTRINSIC __m512d permute128(__m512d v, _MM_PERM_ENUM perm)
     Vc_FUN2(_div)
 #undef Vc_FUN2
 
+Vc_INTRINSIC __m512  _set1(             float a) { return _mm512_set1_ps(a); }
+Vc_INTRINSIC __m512d _set1(            double a) { return _mm512_set1_pd(a); }
+Vc_INTRINSIC __m512i _set1(         long long a) { return _mm512_set1_epi64(a); }
+Vc_INTRINSIC __m512i _set1(unsigned long long a) { return _mm512_set1_epi64(a); }
+Vc_INTRINSIC __m512i _set1(               int a) { return _mm512_set1_epi32(a); }
+Vc_INTRINSIC __m512i _set1(      unsigned int a) { return _mm512_set1_epi32(a); }
+Vc_INTRINSIC __m512i _set1(             short a) { return _mm512_set1_epi32(a); }
+Vc_INTRINSIC __m512i _set1(    unsigned short a) { return _mm512_set1_epi32(a); }
+Vc_INTRINSIC __m512i _set1(       signed char a) { return _mm512_set1_epi32(a); }
+Vc_INTRINSIC __m512i _set1(     unsigned char a) { return _mm512_set1_epi32(a); }
+
 template <typename T>
 Vc_INTRINSIC enable_if<std::is_signed<T>::value, __m512i> mod_(__m512i a, __m512i b)
 { return _mm512_rem_epi32(a, b); }
 template <typename T>
-Vc_INTRINSIC enable_if<std::is_unsigned<T>::value, __m512i> mod_(__m512i a, __m512i b)
+Vc_INTRINSIC enable_if<std::is_same<T, uint>::value, __m512i> mod_(__m512i a, __m512i b)
 { return _mm512_rem_epu32(a, b); }
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_same<T, ushort>::value, __m512i> mod_(__m512i a, __m512i b)
+{
+    return _mm512_rem_epu32(_and(a, _set1(0xffff)), _and(b, _set1(0xffff)));
+}
 
     template<typename> Vc_INTRINSIC __m512  _mul(__m512  a, __m512  b) { return _mm512_mul_ps(a, b); }
     template<typename> Vc_INTRINSIC __m512d _mul(__m512d a, __m512d b) { return _mm512_mul_pd(a, b); }
@@ -348,17 +364,6 @@ Vc_INTRINSIC enable_if<std::is_unsigned<T>::value, __m512i> mod_(__m512i a, __m5
     static Vc_INTRINSIC __m512  mask_mov(__m512  r, __mmask16 k, __m512  a) { return _mm512_mask_mov_ps(r, k, a); }
     static Vc_INTRINSIC __m512d mask_mov(__m512d r, __mmask8  k, __m512d a) { return _mm512_mask_mov_pd(r, k, a); }
     static Vc_INTRINSIC __m512i mask_mov(__m512i r, __mmask16 k, __m512i a) { return _mm512_mask_mov_epi32(r, k, a); }
-
-    static Vc_INTRINSIC __m512  _set1(             float a) { return _mm512_set1_ps(a); }
-    static Vc_INTRINSIC __m512d _set1(            double a) { return _mm512_set1_pd(a); }
-    static Vc_INTRINSIC __m512i _set1(         long long a) { return _mm512_set1_epi64(a); }
-    static Vc_INTRINSIC __m512i _set1(unsigned long long a) { return _mm512_set1_epi64(a); }
-    static Vc_INTRINSIC __m512i _set1(               int a) { return _mm512_set1_epi32(a); }
-    static Vc_INTRINSIC __m512i _set1(      unsigned int a) { return _mm512_set1_epi32(a); }
-    static Vc_INTRINSIC __m512i _set1(             short a) { return _mm512_set1_epi32(a); }
-    static Vc_INTRINSIC __m512i _set1(    unsigned short a) { return _mm512_set1_epi32(a); }
-    static Vc_INTRINSIC __m512i _set1(       signed char a) { return _mm512_set1_epi32(a); }
-    static Vc_INTRINSIC __m512i _set1(     unsigned char a) { return _mm512_set1_epi32(a); }
 
 }
 }

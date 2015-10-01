@@ -234,7 +234,7 @@ public:
         return Vector<T>(fun(d.v(), x.d.v()));                                                     \
     }
 
-    Vc_OP(%, MIC::mod_<VectorEntryType>)
+    Vc_OP(%, MIC::mod_<EntryType>)
     Vc_OP(*, MIC::_mul<VectorEntryType>)
     Vc_OP(+, MIC::_add<VectorEntryType>)
     Vc_OP(-, MIC::_sub<VectorEntryType>)
