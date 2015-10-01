@@ -295,6 +295,8 @@ macro(go)
          ctest_submit(PARTS Update)
       endif()
    endif()
+
+   # enter the following section for Continuous builds only if the CTEST_UPDATE above found changes
    if(NOT ${dashboard_model} STREQUAL "Continuous" OR res GREATER 0)
       if("${COMPILER_VERSION}" MATCHES "(g\\+\\+|GCC|Open64).*4\\.[01234567]\\.")
          file(WRITE "${CTEST_BINARY_DIRECTORY}/abort_reason" "Compiler too old for C++11: ${COMPILER_VERSION}")
