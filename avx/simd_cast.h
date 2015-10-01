@@ -1350,7 +1350,7 @@ Vc_SIMD_CAST_3(SSE::  uint_v, AVX2::ushort_v) { return simd_cast<AVX2::ushort_v>
 #endif
 
 // 4 SSE::Vector to 1 AVX2::Vector {{{2
-Vc_SIMD_CAST_4(SSE::double_v, AVX2:: float_v) { return simd_cast<AVX2:: float_v>(simd_cast<AVX2::double_v>(x0, x1), simd_cast<AVX2::double_v>(x2)); }
+Vc_SIMD_CAST_4(SSE::double_v, AVX2:: float_v) { return simd_cast<AVX2:: float_v>(simd_cast<AVX2::double_v>(x0, x1), simd_cast<AVX2::double_v>(x2, x3)); }
 
 #ifdef VC_IMPL_AVX2
 Vc_SIMD_CAST_4(SSE::double_v, AVX2::   int_v) { return simd_cast<AVX2:: int_v>(simd_cast<AVX2::double_v>(x0, x1), simd_cast<AVX2::double_v>(x2, x3)); }
