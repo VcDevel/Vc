@@ -91,7 +91,8 @@ macro(AutodetectHostArchitecture)
          # taken from the Intel ORM
          # http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html
          # CPUID Signature Values of Of Recent Intel Microarchitectures
-         # 3D          | Broadwell microarchitecture
+         # 4E 5E       | Skylake microarchitecture
+         # 3D 47 56    | Broadwell microarchitecture
          # 3C 45 46 3F | Haswell microarchitecture
          # 3A 3E       | Ivy Bridge microarchitecture
          # 2A 2D       | Sandy Bridge microarchitecture
@@ -99,7 +100,9 @@ macro(AutodetectHostArchitecture)
          # 1A 1E 1F 2E | Intel microarchitecture Nehalem
          # 17 1D       | Enhanced Intel Core microarchitecture
          # 0F          | Intel Core microarchitecture
-         if(_cpu_model EQUAL 0x3D)
+         if(_cpu_model EQUAL 0x4E OR _cpu_model EQUAL 0x5E)
+            set(TARGET_ARCHITECTURE "skylake")
+         elseif(_cpu_model EQUAL 0x3D OR _cpu_model EQUAL 0x47 OR _cpu_model EQUAL 0x56)
             set(TARGET_ARCHITECTURE "broadwell")
          elseif(_cpu_model EQUAL 0x3C OR _cpu_model EQUAL 0x45 OR _cpu_model EQUAL 0x46 OR _cpu_model EQUAL 0x3F)
             set(TARGET_ARCHITECTURE "haswell")
@@ -158,7 +161,7 @@ macro(AutodetectHostArchitecture)
 endmacro()
 
 macro(OptimizeForArchitecture)
-   set(TARGET_ARCHITECTURE "auto" CACHE STRING "CPU architecture to optimize for. Using an incorrect setting here can result in crashes of the resulting binary because of invalid instructions used.\nSetting the value to \"auto\" will try to optimize for the architecture where cmake is called.\nOther supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Core2), \"penryn\" (45nm Core2), \"nehalem\", \"westmere\", \"sandy-bridge\", \"ivy-bridge\", \"haswell\", \"broadwell\", \"atom\", \"k8\", \"k8-sse3\", \"barcelona\", \"istanbul\", \"magny-cours\", \"bulldozer\", \"interlagos\", \"piledriver\", \"AMD 14h\", \"AMD 16h\".")
+   set(TARGET_ARCHITECTURE "auto" CACHE STRING "CPU architecture to optimize for. Using an incorrect setting here can result in crashes of the resulting binary because of invalid instructions used.\nSetting the value to \"auto\" will try to optimize for the architecture where cmake is called.\nOther supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Core2), \"penryn\" (45nm Core2), \"nehalem\", \"westmere\", \"sandy-bridge\", \"ivy-bridge\", \"haswell\", \"broadwell\", \"skylake\", \"atom\", \"k8\", \"k8-sse3\", \"barcelona\", \"istanbul\", \"magny-cours\", \"bulldozer\", \"interlagos\", \"piledriver\", \"AMD 14h\", \"AMD 16h\".")
    set(_force)
    if(NOT _last_target_arch STREQUAL "${TARGET_ARCHITECTURE}")
       message(STATUS "target changed from \"${_last_target_arch}\" to \"${TARGET_ARCHITECTURE}\"")
@@ -204,6 +207,20 @@ macro(OptimizeForArchitecture)
       list(APPEND _march_flag_list "corei7")
       list(APPEND _march_flag_list "core2")
       list(APPEND _available_vector_units_list "sse" "sse2" "sse3" "ssse3" "sse4.1" "sse4.2")
+   elseif(TARGET_ARCHITECTURE STREQUAL "skylake")
+      list(APPEND _march_flag_list "skylake")
+      list(APPEND _march_flag_list "broadwell")
+      list(APPEND _march_flag_list "haswell")
+      list(APPEND _march_flag_list "core-avx2")
+      list(APPEND _march_flag_list "ivybridge")
+      list(APPEND _march_flag_list "core-avx-i")
+      list(APPEND _march_flag_list "sandybridge")
+      list(APPEND _march_flag_list "corei7-avx")
+      list(APPEND _march_flag_list "westmere")
+      list(APPEND _march_flag_list "nehalem")
+      list(APPEND _march_flag_list "core2")
+      # FIXME: How can we determine the supported AVX-512 instructions? AFAIK there will be different Skylake CPUs, some not supporting AVX-512 at all
+      list(APPEND _available_vector_units_list "sse" "sse2" "sse3" "ssse3" "sse4.1" "sse4.2" "avx" "avx2" "rdrnd" "f16c" "fma" "bmi" "bmi2")
    elseif(TARGET_ARCHITECTURE STREQUAL "broadwell")
       list(APPEND _march_flag_list "broadwell")
       list(APPEND _march_flag_list "haswell")
