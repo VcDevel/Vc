@@ -4,11 +4,7 @@
 template <typename T> struct PointTemplate {
     T x, y, z;
 
-    using InstantiatedType = PointTemplate<T>;
-    Vc_SIMDIZE_MEMBER(T, 0, x);
-    Vc_SIMDIZE_MEMBER(T, 1, y);
-    Vc_SIMDIZE_MEMBER(T, 2, z);
-    Vc_SIMDIZE_STRUCT(InstantiatedType, 3);
+    Vc_SIMDIZE_INTERFACE((x, y, z));
 };
 
 using Point = PointTemplate<float>;

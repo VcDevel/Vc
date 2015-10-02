@@ -218,12 +218,6 @@ constexpr size_t determine_tuple_size(size_t = T::tuple_size)
 
 namespace
 {
-struct Dummy__;
-/**\internal
- * Dummy get<N>(x) function to enable compilation of the following code. This code is
- * never meant to be called or used.
- */
-template <size_t> Dummy__ get(Dummy__ x);
 template <typename T> struct The_simdization_for_the_requested_type_is_not_implemented;
 }  // unnamed namespace
 
@@ -702,6 +696,27 @@ static_assert(is_constructible_with_double_brace<std::array<int, 3>, int, int, i
               "");
 #endif
 
+template <size_t I, typename T>
+auto get_dispatcher(T &x) -> decltype(x.template vc_get__<I>())
+{
+    return x.template vc_get__<I>();
+}
+template <size_t I, typename T>
+auto get_dispatcher(const T &x) -> decltype(x.template vc_get__<I>())
+{
+    return x.template vc_get__<I>();
+}
+template <size_t I, typename T> auto get_dispatcher(T &x) -> decltype(std::get<I>(x))
+{
+    return std::get<I>(x);
+}
+template <size_t I, typename T>
+auto get_dispatcher(const T &x) -> decltype(std::get<I>(x))
+{
+    return std::get<I>(x);
+}
+
+
 // see above
 template <typename Scalar, typename Base, size_t N> class Adapter : public Base
 {
@@ -709,7 +724,7 @@ private:
     /// helper for the broadcast ctor below using double braces for Base initialization
     template <std::size_t... Indexes, typename T>
     Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, T, std::true_type)
-        : Base{{get<Indexes>(x__)...}}
+        : Base{{get_dispatcher<Indexes>(x__)...}}
     {
     }
 
@@ -717,7 +732,7 @@ private:
     template <std::size_t... Indexes>
     Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, std::true_type,
             std::false_type)
-        : Base{get<Indexes>(x__)...}
+        : Base{get_dispatcher<Indexes>(x__)...}
     {
     }
 
@@ -725,7 +740,7 @@ private:
     template <std::size_t... Indexes>
     Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, std::false_type,
             std::false_type)
-        : Base(get<Indexes>(x__)...)
+        : Base(get_dispatcher<Indexes>(x__)...)
     {
     }
 
@@ -734,10 +749,10 @@ private:
         : Adapter(
               seq__, x__,
               std::integral_constant<bool, is_constructible_with_single_brace<
-                                               Base, decltype(get<Indexes>(std::declval<
+                                               Base, decltype(get_dispatcher<Indexes>(std::declval<
                                                          const Scalar &>()))...>()>(),
               std::integral_constant<bool, is_constructible_with_double_brace<
-                                               Base, decltype(get<Indexes>(std::declval<
+                                               Base, decltype(get_dispatcher<Indexes>(std::declval<
                                                          const Scalar &>()))...>()>())
     {
     }
@@ -894,9 +909,9 @@ template <typename S, typename T, size_t N, size_t... Indexes>
 inline void assign_impl(Adapter<S, T, N> &a, size_t i, const S &x,
                         Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get<Indexes>(x)))...> tmp(
-        decay_workaround(get<Indexes>(x))...);
-    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(tmp), 0)...};
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(x)))...> tmp(
+        decay_workaround(get_dispatcher<Indexes>(x))...);
+    auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused) {}
 }
 
@@ -924,9 +939,9 @@ Vc_INTRINSIC void assign(V &v, size_t i, typename V::EntryType x)
 template <typename S, typename T, size_t N, size_t... Indexes>
 inline S extract_impl(const Adapter<S, T, N> &a, size_t i, Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[i]))...> tmp(
-        decay_workaround(get<Indexes>(a)[i])...);
-    return S(get<Indexes>(tmp)...);
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[i]))...> tmp(
+        decay_workaround(get_dispatcher<Indexes>(a)[i])...);
+    return S(get_dispatcher<Indexes>(tmp)...);
 }
 
 /**
@@ -952,7 +967,7 @@ inline Adapter<S, T, N> shifted_impl(const Adapter<S, T, N> &a, int shift,
                                      Vc::index_sequence<Indexes...>)
 {
     Adapter<S, T, N> r;
-    auto &&unused = {(get<Indexes>(r) = get<Indexes>(a).shifted(shift), 0)...};
+    auto &&unused = {(get_dispatcher<Indexes>(r) = get_dispatcher<Indexes>(a).shifted(shift), 0)...};
     if (&unused == &unused) {}
     return r;
 }
@@ -974,20 +989,20 @@ template <typename S, typename T, std::size_t N, std::size_t... Indexes>
 inline void swap_impl(Adapter<S, T, N> &a, std::size_t i, S &x,
                       Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[0]))...> tmp{
-        decay_workaround(get<Indexes>(a)[i])...};
-    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(x), 0)...};
-    auto &&unused2 = {(get<Indexes>(x) = get<Indexes>(tmp), 0)...};
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[0]))...> tmp{
+        decay_workaround(get_dispatcher<Indexes>(a)[i])...};
+    auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(x), 0)...};
+    auto &&unused2 = {(get_dispatcher<Indexes>(x) = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused2) {}
 }
 template <typename S, typename T, std::size_t N, std::size_t... Indexes>
 inline void swap_impl(Adapter<S, T, N> &a, std::size_t i, Adapter<S, T, N> &b,
                       std::size_t j, Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[0]))...> tmp{
-        decay_workaround(get<Indexes>(a)[i])...};
-    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(b)[j], 0)...};
-    auto &&unused2 = {(get<Indexes>(b)[j] = get<Indexes>(tmp), 0)...};
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[0]))...> tmp{
+        decay_workaround(get_dispatcher<Indexes>(a)[i])...};
+    auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(b)[j], 0)...};
+    auto &&unused2 = {(get_dispatcher<Indexes>(b)[j] = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused2) {}
 }
 
@@ -1104,11 +1119,11 @@ template <typename It, typename V, size_t I, size_t End>
 Vc_INTRINSIC V fromIteratorImpl(enable_if<(I < End), It> it)
 {
     V r = fromIteratorImpl<It, V, I + 1, End>(it);
-    Traits::decay<decltype(get<I>(r))> tmp;
+    Traits::decay<decltype(get_dispatcher<I>(r))> tmp;
     for (size_t j = 0; j < V::size(); ++j, ++it) {
-        tmp[j] = get<I>(*it);
+        tmp[j] = get_dispatcher<I>(*it);
     }
-    get<I>(r) = tmp;
+    get_dispatcher<I>(r) = tmp;
     return r;
 }
 template <typename It, typename V>
@@ -1591,9 +1606,9 @@ template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, ty
 Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
 {
-    using V = typename std::decay<decltype(get<Offset>(lhs))>::type;
+    using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;
     using M2 = typename V::mask_type;
-    conditional_assign<Op>(get<Offset>(lhs), simd_cast<M2>(mask), get<Offset>(rhs));
+    conditional_assign<Op>(get_dispatcher<Offset>(lhs), simd_cast<M2>(mask), get_dispatcher<Offset>(rhs));
     conditional_assign<Op, S, T, N, M, U, Offset + 1>(lhs, mask, rhs);
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
@@ -1607,9 +1622,9 @@ template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
 Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask)
 {
-    using V = typename std::decay<decltype(get<Offset>(lhs))>::type;
+    using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;
     using M2 = typename V::mask_type;
-    conditional_assign<Op>(get<Offset>(lhs), simd_cast<M2>(mask));
+    conditional_assign<Op>(get_dispatcher<Offset>(lhs), simd_cast<M2>(mask));
     conditional_assign<Op, S, T, N, M, Offset + 1>(lhs, mask);
 }
 
@@ -1638,64 +1653,38 @@ template <typename T, size_t N = 0, typename MT = void>
 using simdize = SimdizeDetail::simdize<T, N, MT>;
 
 /*!\ingroup Simdize
- * Declares the necessary internal functions for implementing `get<N__>`.
+ * Declares functions and constants for introspection by the simdize functions. This
+ * allows e.g. conversion between scalar \c T and \c simdize<T>.
  *
- * \param T__ The type of the member variable.
- * \param N__ The index of the member variable.
- * \param VAR__ The name of the member variable.
+ * \param MEMBERS__ The data members of this struct/class listed inside extra parenthesis.
+ * The extra parenthesis are required because the macro would otherwise see a variable
+ * number of arguments.
  *
- * \note It is recommended to use these macros in the private section of a class.
- *
- * \see Vc_SIMDIZE_STRUCT
- */
-#define Vc_SIMDIZE_MEMBER(T__, N__, VAR__)                                               \
-    inline T__ &vc_get__(std::integral_constant<std::size_t, N__>) { return VAR__; }     \
-    inline const T__ &vc_get__(std::integral_constant<std::size_t, N__>) const           \
-    {                                                                                    \
-        return VAR__;                                                                    \
-    }                                                                                    \
-    enum Vc_ignore_me_##N__##VAR__##__LINE__ {}
-
-/*!\ingroup Simdize
- * Declares the necessary non-member get functions for accessing the members declared with
- * Vc_SIMDIZE_MEMBER. In addition the tuple_size member is defined as \p N__, which
- * signifies the number of members in the structure.
- *
- * \param T__ The type of the instantiation of the current class template. Since the
- * preprocessor gets confused by template parameter lists it is recommended to use a type
- * alias. Example:
+ * Example:
  * \code
  * template <typename T, typename U> struct X {
  *   T a;
  *   U b;
- *   using Instance = X<T, U>;
- *   Vc_SIMDIZE_MEMBER(T, 0, a);
- *   Vc_SIMDIZE_MEMBER(U, 1, b);
- *   Vc_SIMDIZE_STRUCT(Instance, 2);
+ *   Vc_SIMDIZE_INTERFACE((a, b));
  * };
  * \endcode
  *
- * \param N__ The number of members in the current structure.
- *
  * \note You must use this macros in the public section of a class.
- * \note The Vc_SIMDIZE_MEMBER definitions must come first.
  */
-#define Vc_SIMDIZE_STRUCT(T__, N__)                                                      \
-    template <std::size_t I>                                                             \
-    friend inline decltype(                                                              \
-        std::declval<T__ &>().vc_get__(std::integral_constant<std::size_t, I>()))        \
-    get(T__ &p)                                                                          \
+#define Vc_SIMDIZE_INTERFACE(MEMBERS__)                                                  \
+    template <std::size_t N__>                                                           \
+    inline auto vc_get__()->decltype(std::get<N__>(std::tie MEMBERS__))                  \
     {                                                                                    \
-        return p.vc_get__(std::integral_constant<std::size_t, I>());                     \
+        return std::get<N__>(std::tie MEMBERS__);                                        \
     }                                                                                    \
-    template <std::size_t I>                                                             \
-    friend inline decltype(                                                              \
-        std::declval<const T__ &>().vc_get__(std::integral_constant<std::size_t, I>()))  \
-    get(const T__ &p)                                                                    \
+    template <std::size_t N__>                                                           \
+    inline auto vc_get__() const->decltype(std::get<N__>(std::tie MEMBERS__))            \
     {                                                                                    \
-        return p.vc_get__(std::integral_constant<std::size_t, I>());                     \
+        return std::get<N__>(std::tie MEMBERS__);                                        \
     }                                                                                    \
-    enum : std::size_t { tuple_size = N__ }
+    enum : std::size_t {                                                                 \
+        tuple_size = std::tuple_size<decltype(std::tie MEMBERS__)>::value                \
+    }
 
 }  // namespace Vc
 
