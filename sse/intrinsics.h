@@ -173,7 +173,7 @@ namespace SseIntrinsics
     Vc_INTRINSIC Vc_CONST __m128i abs_epi32(__m128i a) { return _mm_abs_epi32(a); }
     template <size_t s> Vc_INTRINSIC Vc_CONST __m128i alignr_epi8(__m128i a, __m128i b)
     {
-        return _mm_alignr_epi8(a, b, s & 0xffu);
+        return _mm_alignr_epi8(a, b, s & 0x1fu);
     }
 }  // namespace SseIntrinsics
 }  // namespace Vc
