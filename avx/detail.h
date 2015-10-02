@@ -828,13 +828,13 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(
     case 0:
         return v;
     case 1:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, sizeof(T)),
-                                       _mm_alignr_epi8(vLo, vHi, sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<sizeof(T)>(vHi, vLo),
+                                  SSE::alignr_epi8<sizeof(T)>(vLo, vHi)));
     case 2:
         return Mem::permute128<X1, X0>(v);
     case 3:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, sizeof(T)),
-                                       _mm_alignr_epi8(vHi, vLo, sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<sizeof(T)>(vLo, vHi),
+                                  SSE::alignr_epi8<sizeof(T)>(vHi, vLo)));
     }
     return avx_cast<V>(_mm256_setzero_ps());
 }
@@ -885,47 +885,47 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
     case 0:
         return v;
     case 1:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 1 * sizeof(T)),
-                                       _mm_alignr_epi8(vLo, vHi, 1 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<1 * sizeof(T)>(vHi, vLo),
+                                  SSE::alignr_epi8<1 * sizeof(T)>(vLo, vHi)));
     case 2:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 2 * sizeof(T)),
-                                       _mm_alignr_epi8(vLo, vHi, 2 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<2 * sizeof(T)>(vHi, vLo),
+                                  SSE::alignr_epi8<2 * sizeof(T)>(vLo, vHi)));
     case 3:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 3 * sizeof(T)),
-                                       _mm_alignr_epi8(vLo, vHi, 3 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<3 * sizeof(T)>(vHi, vLo),
+                                  SSE::alignr_epi8<3 * sizeof(T)>(vLo, vHi)));
     case 4:
         return Mem::permute4x64<X1, X2, X3, X0>(v);
     case 5:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 5 * sizeof(T)),
-                                       _mm_alignr_epi8(vLo, vHi, 5 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<5 * sizeof(T)>(vHi, vLo),
+                                  SSE::alignr_epi8<5 * sizeof(T)>(vLo, vHi)));
     case 6:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 6 * sizeof(T)),
-                                       _mm_alignr_epi8(vLo, vHi, 6 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<6 * sizeof(T)>(vHi, vLo),
+                                  SSE::alignr_epi8<6 * sizeof(T)>(vLo, vHi)));
     case 7:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vHi, vLo, 7 * sizeof(T)),
-                                       _mm_alignr_epi8(vLo, vHi, 7 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<7 * sizeof(T)>(vHi, vLo),
+                                  SSE::alignr_epi8<7 * sizeof(T)>(vLo, vHi)));
     case 8:
         return Mem::permute128<X1, X0>(v);
     case 9:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 1 * sizeof(T)),
-                                       _mm_alignr_epi8(vHi, vLo, 1 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<1 * sizeof(T)>(vLo, vHi),
+                                  SSE::alignr_epi8<1 * sizeof(T)>(vHi, vLo)));
     case 10:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 2 * sizeof(T)),
-                                       _mm_alignr_epi8(vHi, vLo, 2 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<2 * sizeof(T)>(vLo, vHi),
+                                  SSE::alignr_epi8<2 * sizeof(T)>(vHi, vLo)));
     case 11:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 3 * sizeof(T)),
-                                       _mm_alignr_epi8(vHi, vLo, 3 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<3 * sizeof(T)>(vLo, vHi),
+                                  SSE::alignr_epi8<3 * sizeof(T)>(vHi, vLo)));
     case 12:
         return Mem::permute4x64<X3, X0, X1, X2>(v);
     case 13:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 5 * sizeof(T)),
-                                       _mm_alignr_epi8(vHi, vLo, 5 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<5 * sizeof(T)>(vLo, vHi),
+                                  SSE::alignr_epi8<5 * sizeof(T)>(vHi, vLo)));
     case 14:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 6 * sizeof(T)),
-                                       _mm_alignr_epi8(vHi, vLo, 6 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<6 * sizeof(T)>(vLo, vHi),
+                                  SSE::alignr_epi8<6 * sizeof(T)>(vHi, vLo)));
     case 15:
-        return avx_cast<V>(concat(_mm_alignr_epi8(vLo, vHi, 7 * sizeof(T)),
-                                       _mm_alignr_epi8(vHi, vLo, 7 * sizeof(T))));
+        return avx_cast<V>(concat(SSE::alignr_epi8<7 * sizeof(T)>(vLo, vHi),
+                                  SSE::alignr_epi8<7 * sizeof(T)>(vHi, vLo)));
     }
     return avx_cast<V>(_mm256_setzero_ps());
 }

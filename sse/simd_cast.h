@@ -868,7 +868,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     constexpr int shift = (sizeof(V) / V::Size) * offset * Return::Size;
     static_assert(shift > 0 && shift < 16, "");
     return simd_cast<Return>(V{SSE::sse_cast<typename V::VectorType>(
-        _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift))});
+        _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift & 0xff))});
 }
 
 // SSE to Scalar (Vector) {{{2
@@ -890,7 +890,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     constexpr int shift = (sizeof(V) / V::Size) * offset * Return::Size;
     static_assert(shift > 0 && shift < 16, "");
     return simd_cast<Return>(V{SSE::sse_cast<typename V::VectorType>(
-        _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift))});
+        _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift & 0xff))});
 }
 
 // undef Vc_SIMD_CAST_[1248] {{{1
