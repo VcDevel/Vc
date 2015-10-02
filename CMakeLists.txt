@@ -107,6 +107,7 @@ else()
          UserWarning("ICC for MIC uses an incompatible STL. Disabling simdize_mic.")
          list(APPEND disabled_targets
             simdize_mic
+            example_simdize_mic
             )
       elseif("${Vc_MIC_ICC_VERSION}" VERSION_LESS "14.1.0")
          UserWarning("ICC does not support initializer lists (C++11). Additionally it fails to optimize properly and therefore cannot provide an immediate parameter to an instrinsic. The following tests are therefore disabled:

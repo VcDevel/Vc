@@ -81,16 +81,17 @@ function(build_example name)
    _build_one_example_target("${name}" AVX ${_SRCS})
    _build_one_example_target("${name}" AVX2 ${_SRCS})
 
-   list(FIND _disabled_impl "MIC" _index)
-   if(MIC_NATIVE_FOUND AND "${_LIBS}" STREQUAL "" AND _index EQUAL -1)
-      mic_add_executable("example_${name}_mic"
-         #COMPILE_FLAGS -no-opt-prefetch
+   set(_target "example_${name}_mic")
+   list(FIND _disabled_impl "MIC" _index1)
+   list(FIND disabled_targets "${_target}" _index2)
+   if(MIC_NATIVE_FOUND AND "${_LIBS}" STREQUAL "" AND _index1 EQUAL -1 AND _index2 EQUAL -1)
+      mic_add_executable(${_target}
          SOURCES ${_SRCS}
          LINK_LIBRARIES Vc_MIC
          )
-      add_target_property("example_${name}_mic" LABELS "MIC")
-      add_dependencies(MIC "example_${name}_mic")
-      vc_add_run_target("example_${name}_mic")
+      add_target_property(${_target} LABELS "MIC")
+      add_dependencies(MIC ${_target})
+      vc_add_run_target(${_target})
    endif()
 
    if(USE_AVX2)
