@@ -43,8 +43,6 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<4>(__m128i k)
 {
 #ifdef VC_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_ps(_mm_castsi128_ps(k)));
-//X     tmp = (tmp & 5) + ((tmp >> 1) & 5);
-//X     return (tmp & 3) + ((tmp >> 2) & 3);
 #else
     auto x = _mm_srli_epi32(k, 31);
     x = _mm_add_epi32(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
@@ -58,10 +56,6 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<8>(__m128i k)
 #ifdef VC_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_epi8(k)) / 2;
 #else
-//X     int tmp = _mm_movemask_epi8(dataI());
-//X     tmp = (tmp & 0x1111) + ((tmp >> 2) & 0x1111);
-//X     tmp = (tmp & 0x0303) + ((tmp >> 4) & 0x0303);
-//X     return (tmp & 0x000f) + ((tmp >> 8) & 0x000f);
     auto x = _mm_srli_epi16(k, 15);
     x = _mm_add_epi16(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
     x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)));
@@ -72,15 +66,7 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<8>(__m128i k)
 
 template<> Vc_INTRINSIC Vc_CONST int mask_count<16>(__m128i k)
 {
-    int tmp = _mm_movemask_epi8(k);
-#ifdef VC_IMPL_POPCNT
-    return _mm_popcnt_u32(tmp);
-#else
-    tmp = (tmp & 0x5555) + ((tmp >> 1) & 0x5555);
-    tmp = (tmp & 0x3333) + ((tmp >> 2) & 0x3333);
-    tmp = (tmp & 0x0f0f) + ((tmp >> 4) & 0x0f0f);
-    return (tmp & 0x00ff) + ((tmp >> 8) & 0x00ff);
-#endif
+    return Detail::popcnt16(_mm_movemask_epi8(k));
 }
 /*}}}*/
 // mask_to_int/*{{{*/

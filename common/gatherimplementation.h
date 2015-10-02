@@ -105,7 +105,6 @@ Vc_ALWAYS_INLINE void executeGather(BitScanLoopT,
     */
 }
 
-#ifdef VC_IMPL_POPCNT
 template <typename V, typename MT, typename IT>
 Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     V &v,
@@ -116,7 +115,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
-    switch (_mm_popcnt_u32(bits)) {
+    switch (Vc::Detail::popcnt16(bits)) {
     case 16:
         v.gather(mem, indexes);
         break;
@@ -192,7 +191,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
-    switch (_mm_popcnt_u32(bits)) {
+    switch (Vc::Detail::popcnt8(bits)) {
     case 8:
         v.gather(mem, indexes);
         break;
@@ -236,13 +235,13 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
-    switch (_mm_popcnt_u32(bits)) {
+    switch (Vc::Detail::popcnt4(bits)) {
     case 4:
         v.gather(mem, indexes);
         break;
     case 3:
         low = _bit_scan_forward(bits);
-        bits ^= high | (1 << low);
+        bits ^= 1 << low;
         v[low] = mem[indexes[low]];
     case 2:
         high = _bit_scan_reverse(bits);
@@ -264,7 +263,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
 {
     unsigned int bits = mask.toInt();
     unsigned int low;
-    switch (_mm_popcnt_u32(bits)) {
+    switch (Vc::Detail::popcnt4(bits)) {
     case 2:
         v.gather(mem, indexes);
         break;
@@ -275,7 +274,6 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
         break;
     }
 }
-#endif
 
 }  // namespace Common
 }  // namespace Vc

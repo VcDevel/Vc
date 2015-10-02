@@ -237,6 +237,54 @@ template <typename T, int Size> Vc_INTRINSIC Vc_CONST const T *IndexesFromZero()
     return 0;
 }
 
+// popcnt{{{1
+Vc_INTRINSIC Vc_CONST unsigned int popcnt4(unsigned int n)
+{
+#ifdef VC_IMPL_POPCNT
+    return _mm_popcnt_u32(n);
+#else
+    n = (n & 0x5U) + ((n >> 1) & 0x5U);
+    n = (n & 0x3U) + ((n >> 2) & 0x3U);
+    return n;
+#endif
+}
+Vc_INTRINSIC Vc_CONST unsigned int popcnt8(unsigned int n)
+{
+#ifdef VC_IMPL_POPCNT
+    return _mm_popcnt_u32(n);
+#else
+    n = (n & 0x55U) + ((n >> 1) & 0x55U);
+    n = (n & 0x33U) + ((n >> 2) & 0x33U);
+    n = (n & 0x0fU) + ((n >> 4) & 0x0fU);
+    return n;
+#endif
+}
+Vc_INTRINSIC Vc_CONST unsigned int popcnt16(unsigned int n)
+{
+#ifdef VC_IMPL_POPCNT
+    return _mm_popcnt_u32(n);
+#else
+    n = (n & 0x5555U) + ((n >> 1) & 0x5555U);
+    n = (n & 0x3333U) + ((n >> 2) & 0x3333U);
+    n = (n & 0x0f0fU) + ((n >> 4) & 0x0f0fU);
+    n = (n & 0x00ffU) + ((n >> 8) & 0x00ffU);
+    return n;
+#endif
+}
+Vc_INTRINSIC Vc_CONST unsigned int popcnt32(unsigned int n)
+{
+#ifdef VC_IMPL_POPCNT
+    return _mm_popcnt_u32(n);
+#else
+    n = (n & 0x55555555U) + ((n >> 1) & 0x55555555U);
+    n = (n & 0x33333333U) + ((n >> 2) & 0x33333333U);
+    n = (n & 0x0f0f0f0fU) + ((n >> 4) & 0x0f0f0f0fU);
+    n = (n & 0x00ff00ffU) + ((n >> 8) & 0x00ff00ffU);
+    n = (n & 0x0000ffffU) + ((n >>16) & 0x0000ffffU);
+    return n;
+#endif
+}
+
 // mask_cast{{{1
 template<size_t From, size_t To, typename R> Vc_INTRINSIC Vc_CONST R mask_cast(__m128i k)
 {

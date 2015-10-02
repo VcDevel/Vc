@@ -184,7 +184,7 @@ public:
         }
         Vc_INTRINSIC_L Vc_PURE_L bool operator[](size_t index) const Vc_INTRINSIC_R Vc_PURE_R;
 
-        Vc_INTRINSIC Vc_PURE int count() const { return _mm_popcnt_u32(toInt()); }
+        Vc_INTRINSIC Vc_PURE int count() const { return Detail::popcnt16(toInt()); }
         Vc_INTRINSIC Vc_PURE int firstOne() const { return _bit_scan_forward(toInt()); }
 
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
@@ -194,17 +194,6 @@ public:
         void setEntry(size_t i, bool x) { d.set(i, Common::MaskBool<sizeof(T)>(x)); }
 
     private:
-#ifndef VC_IMPL_POPCNT
-        static Vc_INTRINSIC Vc_CONST unsigned int _mm_popcnt_u32(unsigned int n) {
-            n = (n & 0x55555555U) + ((n >> 1) & 0x55555555U);
-            n = (n & 0x33333333U) + ((n >> 2) & 0x33333333U);
-            n = (n & 0x0f0f0f0fU) + ((n >> 4) & 0x0f0f0f0fU);
-            //n = (n & 0x00ff00ffU) + ((n >> 8) & 0x00ff00ffU);
-            //n = (n & 0x0000ffffU) + ((n >>16) & 0x0000ffffU);
-            return n;
-        }
-#endif
-
 #ifdef VC_COMPILE_BENCHMARKS
     public:
 #endif
