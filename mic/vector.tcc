@@ -408,6 +408,27 @@ template<> Vc_ALWAYS_INLINE MIC::ushort_m MIC::ushort_v::operator< (MIC::ushort_
     return _mm512_cmplt_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xffff)), MIC::_and(x.d.v(), MIC::_set1(0xffff)));
 }
 
+// (u)char compares {{{1
+// only unsigned integers have well-defined behavior on over-/underflow
+template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator==(MIC::uchar_v::AsArg x) const {
+    return _mm512_cmpeq_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
+}
+template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator!=(MIC::uchar_v::AsArg x) const {
+    return _mm512_cmpneq_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
+}
+template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator>=(MIC::uchar_v::AsArg x) const {
+    return _mm512_cmpge_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
+}
+template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator> (MIC::uchar_v::AsArg x) const {
+    return _mm512_cmpgt_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
+}
+template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator<=(MIC::uchar_v::AsArg x) const {
+    return _mm512_cmple_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
+}
+template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator< (MIC::uchar_v::AsArg x) const {
+    return _mm512_cmplt_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
+}
+
 // integer ops {{{1
 template<> Vc_ALWAYS_INLINE    MIC::int_v    MIC::int_v::operator<<(   MIC::int_v::AsArg x) const { return _mm512_sllv_epi32(d.v(), x.d.v()); }
 template<> Vc_ALWAYS_INLINE   MIC::uint_v   MIC::uint_v::operator<<(  MIC::uint_v::AsArg x) const { return _mm512_sllv_epi32(d.v(), x.d.v()); }
@@ -424,10 +445,14 @@ template<> Vc_ALWAYS_INLINE    MIC::int_v    MIC::int_v::operator<<(unsigned int
 template<> Vc_ALWAYS_INLINE   MIC::uint_v   MIC::uint_v::operator<<(unsigned int x) const { return _mm512_slli_epi32(d.v(), x); }
 template<> Vc_ALWAYS_INLINE  MIC::short_v  MIC::short_v::operator<<(unsigned int x) const { return _mm512_slli_epi32(d.v(), x); }
 template<> Vc_ALWAYS_INLINE MIC::ushort_v MIC::ushort_v::operator<<(unsigned int x) const { return _mm512_slli_epi32(d.v(), x); }
+template<> Vc_ALWAYS_INLINE  MIC::schar_v  MIC::schar_v::operator<<(unsigned int x) const { return _mm512_slli_epi32(d.v(), x); }
+template<> Vc_ALWAYS_INLINE  MIC::uchar_v  MIC::uchar_v::operator<<(unsigned int x) const { return _mm512_slli_epi32(d.v(), x); }
 template<> Vc_ALWAYS_INLINE    MIC::int_v    MIC::int_v::operator>>(unsigned int x) const { return _mm512_srai_epi32(d.v(), x); }
 template<> Vc_ALWAYS_INLINE   MIC::uint_v   MIC::uint_v::operator>>(unsigned int x) const { return _mm512_srli_epi32(d.v(), x); }
 template<> Vc_ALWAYS_INLINE  MIC::short_v  MIC::short_v::operator>>(unsigned int x) const { return _mm512_srai_epi32(d.v(), x); }
 template<> Vc_ALWAYS_INLINE MIC::ushort_v MIC::ushort_v::operator>>(unsigned int x) const { return _mm512_srli_epi32(d.v(), x); }
+template<> Vc_ALWAYS_INLINE  MIC::schar_v  MIC::schar_v::operator>>(unsigned int x) const { return _mm512_srai_epi32(d.v(), x); }
+template<> Vc_ALWAYS_INLINE  MIC::uchar_v  MIC::uchar_v::operator>>(unsigned int x) const { return _mm512_srli_epi32(d.v(), x); }
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator<<=(unsigned int x) { return *this = *this << x; }
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator>>=(unsigned int x) { return *this = *this >> x; }
 
