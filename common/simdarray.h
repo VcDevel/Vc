@@ -380,6 +380,11 @@ public:
         return {data.shifted(amount, simd_cast<VectorType>(shiftIn))};
     }
 
+    Vc_INTRINSIC SimdArray rotated(int amount) const
+    {
+        return {data.rotated(amount)};
+    }
+
     Vc_INTRINSIC SimdArray interleaveLow(SimdArray x) const
     {
         return {data.interleaveLow(x.data)};
@@ -904,6 +909,43 @@ public:
             return shiftIn.shifted(amount - SSize);
         }
         return Zero();
+    }
+
+    // rotated {{{2
+    Vc_INTRINSIC SimdArray rotated(int amount) const
+    {
+        amount %= int(size());
+        if (amount == 0) {
+            return *this;
+        } else if (amount < 0) {
+            amount += size();
+        }
+
+        auto &&d0cvtd = simd_cast<storage_type1>(data0);
+        auto &&d1cvtd = simd_cast<storage_type0>(data1);
+        constexpr int size0 = storage_type0::size();
+        constexpr int size1 = storage_type1::size();
+
+        if (amount == size0 && std::is_same<storage_type0, storage_type1>::value) {
+            return {std::move(d1cvtd), std::move(d0cvtd)};
+        } else if (amount < size1) {
+            return {data0.shifted(amount, d1cvtd), data1.shifted(amount, d0cvtd)};
+        } else if (amount == size1) {
+            return {data0.shifted(amount, d1cvtd), std::move(d0cvtd)};
+        } else if (int(size()) - amount < size1) {
+            return {data0.shifted(amount - int(size()), d1cvtd.shifted(size1 - size0)),
+                    data1.shifted(amount - int(size()), data0.shifted(size0 - size1))};
+        } else if (int(size()) - amount == size1) {
+            return {data0.shifted(-size1, d1cvtd.shifted(size1 - size0)),
+                    simd_cast<storage_type1>(data0.shifted(size0 - size1))};
+        } else if (amount <= size0) {
+            return {data0.shifted(size1, d1cvtd).shifted(amount - size1, data0),
+                    simd_cast<storage_type1>(data0.shifted(amount - size1))};
+        } else {
+            return {data0.shifted(size1, d1cvtd).shifted(amount - size1, data0),
+                    simd_cast<storage_type1>(data0.shifted(amount - size1, d1cvtd))};
+        }
+        return *this;
     }
 
     // interleaveLow/-High {{{2

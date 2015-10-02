@@ -214,7 +214,8 @@ TEST_TYPES(V, shifted, (ALL_VECTORS))
     }
 }
 
-TEST_TYPES(V, rotated, (ALL_VECTORS))
+TEST_TYPES(V, rotated, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ARRAYS(15), SIMD_ARRAYS(11),
+                        SIMD_ARRAYS(9), SIMD_ARRAYS(8), SIMD_ARRAYS(7), SIMD_ARRAYS(3)))
 {
     constexpr int Size = V::Size;
     for (int shift = 2 * Size; shift >= -2 * Size; --shift) {
@@ -222,8 +223,13 @@ TEST_TYPES(V, rotated, (ALL_VECTORS))
         const V reference = V::Random();
         const V test = reference.rotated(shift);
         for (int i = 0; i < Size; ++i) {
-            unsigned int refShift = i + shift;
-            COMPARE(test[i], reference[refShift % V::Size]) << "shift: " << shift << ", i: " << i << ", test: " << test << ", reference: " << reference;
+            int refShift = (i + shift) % int(V::size());
+            if (refShift < 0) {
+                refShift += V::size();
+            }
+            COMPARE(test[i], reference[refShift])
+                << "shift: " << shift << ", refShift: " << refShift << ", i: " << i
+                << ", test: " << test << ", reference: " << reference;
         }
     }
 }
