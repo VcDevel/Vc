@@ -283,7 +283,9 @@ if(target_architecture)
    set(configure_options "${configure_options};-DTARGET_ARCHITECTURE=${target_architecture}")
 endif()
 
-if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[01234567]\\." OR "${COMPILER_VERSION}" MATCHES "GCC 4.8.0")
+if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[01234567]\\."
+      OR "${COMPILER_VERSION}" MATCHES "GCC 4.8.0"
+      OR "${COMPILER_VERSION}" MATCHES "clang 3\\.[0123]\\.")
    message(FATAL_ERROR "Compiler too old for C++11 (${COMPILER_VERSION})")
 endif()
 

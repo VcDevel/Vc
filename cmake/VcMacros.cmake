@@ -62,6 +62,11 @@ macro(vc_determine_compiler)
          exec_program(${CMAKE_CXX_COMPILER} ARGS --version OUTPUT_VARIABLE Vc_CLANG_VERSION)
          string(REGEX MATCH "[0-9]+\\.[0-9]+(\\.[0-9]+)?" Vc_CLANG_VERSION "${Vc_CLANG_VERSION}")
          message(STATUS "Detected Compiler: Clang ${Vc_CLANG_VERSION}")
+
+         # break build with too old clang as early as possible.
+         if(Vc_CLANG_VERSION VERSION_LESS 3.4)
+            message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least clang 3.4")
+         endif()
       elseif(MSVC)
          set(Vc_COMPILER_IS_MSVC true)
          message(STATUS "Detected Compiler: MSVC ${MSVC_VERSION}")
@@ -322,19 +327,10 @@ macro(vc_set_preferred_compiler_flags)
       #                                              Clang                                             #
       ##################################################################################################
 
-      # for now I don't know of any arguments I want to pass. -march and stuff is tried by OptimizeForArchitecture...
-      if(Vc_CLANG_VERSION VERSION_EQUAL "3.0")
-         UserWarning("Clang 3.0 has serious issues to compile Vc code and will most likely crash when trying to do so.\nPlease update to a recent clang version.")
-      elseif(Vc_CLANG_VERSION VERSION_LESS "3.3")
-         # the LLVM assembler gets FMAs wrong (bug 15040)
-         vc_add_compiler_flag(Vc_COMPILE_FLAGS "-no-integrated-as")
-      else()
-         vc_add_compiler_flag(Vc_COMPILE_FLAGS "-integrated-as")
-         if(Vc_CLANG_VERSION VERSION_GREATER "3.5.99" AND Vc_CLANG_VERSION VERSION_LESS 3.7.0)
-            UserWarning("Clang 3.6 has serious issues with AVX code generation, frequently losing 50% of the data. AVX is therefore disabled.\nPlease update to a more recent clang version.\n")
-            set(Vc_AVX_INTRINSICS_BROKEN true)
-            set(Vc_AVX2_INTRINSICS_BROKEN true)
-         endif()
+      if(Vc_CLANG_VERSION VERSION_GREATER "3.5.99" AND Vc_CLANG_VERSION VERSION_LESS 3.7.0)
+         UserWarning("Clang 3.6 has serious issues with AVX code generation, frequently losing 50% of the data. AVX is therefore disabled.\nPlease update to a more recent clang version.\n")
+         set(Vc_AVX_INTRINSICS_BROKEN true)
+         set(Vc_AVX2_INTRINSICS_BROKEN true)
       endif()
 
       # disable these warnings because clang shows them for function overloads that were discarded via SFINAE
