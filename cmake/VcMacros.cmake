@@ -54,6 +54,11 @@ macro(vc_determine_compiler)
          set(Vc_COMPILER_IS_INTEL true)
          exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE Vc_ICC_VERSION)
          message(STATUS "Detected Compiler: Intel ${Vc_ICC_VERSION}")
+
+         # break build with too old clang as early as possible.
+         if(Vc_ICC_VERSION VERSION_LESS 15.0.3)
+            message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least ICC 15.0.3")
+         endif()
       elseif(CMAKE_CXX_COMPILER MATCHES "(opencc|openCC)$")
          set(Vc_COMPILER_IS_OPEN64 true)
          message(STATUS "Detected Compiler: Open64")
