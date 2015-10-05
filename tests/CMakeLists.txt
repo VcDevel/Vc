@@ -338,7 +338,9 @@ macro(vc_add_general_test _name)
    vc_add_run_target(${_name})
 endmacro()
 
-vc_add_general_test(supportfunctions)
+if(_last_target_arch STREQUAL "auto")
+   vc_add_general_test(supportfunctions)
+endif()
 vc_add_general_test(alignmentinheritance)
 
 get_property(_incdirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
