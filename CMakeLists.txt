@@ -91,6 +91,9 @@ else()
             stlcontainer_avx
             )
       endif()
+      # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
+      # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
+      AddCompilerFlag("/wd4290")
    endif()
    if(MIC_NATIVE_FOUND)
       if("${Vc_MIC_ICC_VERSION}" VERSION_LESS "16.1.0")
@@ -100,9 +103,6 @@ else()
             example_simdize_mic
             )
       endif()
-      # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
-      # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
-      AddCompilerFlag("/wd4290")
    endif()
 endif()
 
