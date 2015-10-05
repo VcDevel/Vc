@@ -696,22 +696,26 @@ static_assert(is_constructible_with_double_brace<std::array<int, 3>, int, int, i
               "");
 #endif
 
-template <size_t I, typename T>
-auto get_dispatcher(T &x) -> decltype(x.template vc_get__<I>())
+template <size_t I, typename T,
+          typename R = decltype(std::declval<T &>().template vc_get__<I>())>
+R get_dispatcher(T &x, void * = nullptr)
 {
     return x.template vc_get__<I>();
 }
-template <size_t I, typename T>
-auto get_dispatcher(const T &x) -> decltype(x.template vc_get__<I>())
+template <size_t I, typename T,
+          typename R = decltype(std::declval<const T &>().template vc_get__<I>())>
+R get_dispatcher(const T &x, void * = nullptr)
 {
     return x.template vc_get__<I>();
 }
-template <size_t I, typename T> auto get_dispatcher(T &x) -> decltype(std::get<I>(x))
+template <size_t I, typename T, typename R = decltype(std::get<I>(std::declval<T &>()))>
+R get_dispatcher(T &x, int = 0)
 {
     return std::get<I>(x);
 }
-template <size_t I, typename T>
-auto get_dispatcher(const T &x) -> decltype(std::get<I>(x))
+template <size_t I, typename T,
+          typename R = decltype(std::get<I>(std::declval<const T &>()))>
+R get_dispatcher(const T &x, int = 0)
 {
     return std::get<I>(x);
 }
