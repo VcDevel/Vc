@@ -77,9 +77,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         Vc_ALWAYS_INLINE const VectorType &data() const { return m_data; }
 
         static constexpr size_t Size = 1;
-        enum Constants {
-            MemoryAlignment = alignof(VectorType)
-        };
+        static constexpr size_t MemoryAlignment = alignof(VectorType);
         typedef SimdArray<int, Size, Scalar::int_v, 1> IndexType;
 
 #include "../common/generalinterface.h"
@@ -284,6 +282,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 };
 #undef VC_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::Size;
+template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::MemoryAlignment;
 
 #define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
     template <Operator O, typename T, typename M, typename U>                            \

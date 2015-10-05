@@ -541,10 +541,10 @@ template <> struct UpDownConversion<int, unsigned int>
     constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
 };
 
-template <typename V> class alignas(64) VectorAlignedBaseT
+template <typename V> class alignas(V::MemoryAlignment) VectorAlignedBaseT
 {
 public:
-    FREE_STORE_OPERATORS_ALIGNED(alignof(V))
+    FREE_STORE_OPERATORS_ALIGNED(V::MemoryAlignment)
 };
 }  // namespace MIC
 }  // namespace Vc

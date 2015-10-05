@@ -136,20 +136,15 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         typedef MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> > Base;
             friend class MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> >;
             friend class MemoryDimensionBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> >;
-            enum InternalConstants {
+            enum : size_t {
+                Alignment = V::MemoryAlignment,
                 PaddedSize2 = _MemorySizeCalculation<V, Size2>::PaddedSize
             };
-#if defined(VC_ICC) && defined(_WIN32)
-            __declspec(align(__alignof(VectorAlignedBaseT<V>)))
-#elif defined(VC_CLANG)
-            __attribute__((aligned(__alignof(VectorAlignedBaseT<V>))))
-#elif defined(VC_MSVC)
-	    VectorAlignedBaseT<V> _force_alignment;
-            // __declspec(align(#)) accepts only numbers not __alignof nor just VectorAlignment
-	    // by putting VectorAlignedBaseT<V> here _force_alignment is aligned correctly.
-	    // the downside is that there's a lot of padding before m_mem (32 Bytes with SSE) :(
-#endif
-            EntryType m_mem[Size1][PaddedSize2];
+            alignas(static_cast<size_t>(Alignment))  // GCC complains about 'is not an
+                                                     // integer constant' unless the
+                                                     // static_cast is present
+                EntryType m_mem[Size1][PaddedSize2];
+
         public:
             using Base::vector;
             enum Constants {
@@ -223,11 +218,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
                 }
                 return *this;
             }
-    }
-#if defined(VC_ICC) && VC_ICC < 20120212 && !defined(_WIN32)
-    __attribute__((__aligned__(__alignof(VectorAlignedBaseT<V>))))
-#endif
-    ;
+};
 
     /**
      * A helper class to simplify usage of correctly aligned and padded memory, allowing both vector and
@@ -280,24 +271,18 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
             typedef MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void> Base;
             friend class MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
             friend class MemoryDimensionBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
-            enum InternalConstants {
-                Alignment = V::Size,
+            enum : size_t {
+                Alignment = V::MemoryAlignment,
                 AlignmentMask = Alignment - 1,
                 MaskedSize = Size & AlignmentMask,
                 Padding = Alignment - MaskedSize,
                 PaddedSize = MaskedSize == 0 ? Size : Size + Padding
             };
-#if defined(VC_ICC) && defined(_WIN32)
-            __declspec(align(__alignof(VectorAlignedBaseT<V>)))
-#elif defined(VC_CLANG)
-            __attribute__((aligned(__alignof(VectorAlignedBaseT<V>))))
-#elif defined(VC_MSVC)
-            VectorAlignedBaseT<V> _force_alignment;
-            // __declspec(align(#)) accepts only numbers not __alignof nor just VectorAlignment
-            // by putting VectorAlignedBaseT<V> here _force_alignment is aligned correctly.
-            // the downside is that there's a lot of padding before m_mem (32 Bytes with SSE) :(
-#endif
-            EntryType m_mem[PaddedSize];
+            alignas(static_cast<size_t>(Alignment))  // GCC complains about 'is not an
+                                                     // integer constant' unless the
+                                                     // static_cast is present
+                EntryType m_mem[PaddedSize];
+
         public:
             using Base::vector;
             enum Constants {
@@ -400,11 +385,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
                 }
                 return *this;
             }
-    }
-#if defined(VC_ICC) && VC_ICC < 20120212 && !defined(_WIN32)
-    __attribute__((__aligned__(__alignof(VectorAlignedBaseT<V>)) ))
-#endif
-    ;
+    };
 
     /**
      * A helper class that is very similar to Memory<V, Size> but with dynamically allocated memory and

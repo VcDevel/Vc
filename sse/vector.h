@@ -75,9 +75,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         typedef typename SSE::VectorTraits<T>::VectorType VectorType;
         using vector_type = VectorType;
         static constexpr size_t Size = SSE::VectorTraits<T>::Size;
-        enum Constants {
-            MemoryAlignment = alignof(VectorType)
-        };
+        static constexpr size_t MemoryAlignment = alignof(VectorType);
         typedef typename SSE::VectorTraits<T>::EntryType EntryType;
         using value_type = EntryType;
         using VectorEntryType = EntryType;
@@ -348,6 +346,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 };
 #undef VC_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::Size;
+template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::MemoryAlignment;
 
 static Vc_ALWAYS_INLINE Vc_PURE SSE::int_v    min(const SSE::int_v    &x, const SSE::int_v    &y) { return SSE::min_epi32(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE Vc_PURE SSE::uint_v   min(const SSE::uint_v   &x, const SSE::uint_v   &y) { return SSE::min_epu32(x.data(), y.data()); }

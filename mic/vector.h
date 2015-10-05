@@ -86,9 +86,9 @@ public:
     using value_type = EntryType;
     typedef typename MIC::DetermineVectorEntryType<T>::Type VectorEntryType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
+    static constexpr size_t MemoryAlignment = sizeof(EntryType) * Size;
     typedef SimdArray<int, 16, MIC::int_v, 16> IndexType;
     enum Constants {
-        MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true
     };
     typedef MIC::Mask<T> Mask;
@@ -364,6 +364,7 @@ public:
 };
 #undef VC_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::Size;
+template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::MemoryAlignment;
 
 Vc_INTRINSIC MIC::int_v    min(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_min_epi32(x.data(), y.data()); }
 Vc_INTRINSIC MIC::uint_v   min(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_min_epu32(x.data(), y.data()); }

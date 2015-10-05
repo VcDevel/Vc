@@ -766,15 +766,10 @@ namespace AVX
     template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
     template<typename T> struct VectorHelperSize;
 
-    template <typename V>
-    class
-#ifndef VC_ICC
-        alignas(alignof(V))
-#endif
-        VectorAlignedBaseT
+    template <typename V> class alignas(V::MemoryAlignment) VectorAlignedBaseT
     {
     public:
-        FREE_STORE_OPERATORS_ALIGNED(alignof(V))
+        FREE_STORE_OPERATORS_ALIGNED(V::MemoryAlignment)
     };
 }  // namespace AVX
 }  // namespace Vc

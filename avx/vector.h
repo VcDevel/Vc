@@ -92,8 +92,8 @@ public:
         using value_type = EntryType;
         typedef EntryType VectorEntryType;
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
+        static constexpr size_t MemoryAlignment = alignof(VectorType);
         enum Constants {
-            MemoryAlignment = alignof(VectorType),
             HasVectorDivision = AVX::HasVectorDivisionHelper<T>::Value
         };
 #ifdef VC_IMPL_AVX2
@@ -411,6 +411,7 @@ public:
 };
 #undef VC_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Avx>::Size;
+template <typename T> constexpr size_t Vector<T, VectorAbi::Avx>::MemoryAlignment;
 
 static_assert(Traits::is_simd_vector<AVX2::double_v>::value, "is_simd_vector<double_v>::value");
 static_assert(Traits::is_simd_vector<AVX2:: float_v>::value, "is_simd_vector< float_v>::value");

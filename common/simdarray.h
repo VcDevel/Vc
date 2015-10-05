@@ -116,6 +116,7 @@ public:
     using IndexType = index_type;
     using AsArg = const SimdArray &;
     static constexpr std::size_t Size = size();
+    static constexpr std::size_t MemoryAlignment = storage_type::MemoryAlignment;
 
     // zero init
     SimdArray() = default;
@@ -419,6 +420,8 @@ private:
 };
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t SimdArray<T, N, VectorType, N>::Size;
 template <typename T, std::size_t N, typename VectorType>
+constexpr std::size_t SimdArray<T, N, VectorType, N>::MemoryAlignment;
+template <typename T, std::size_t N, typename VectorType>
 Vc_INTRINSIC VectorType &internal_data(SimdArray<T, N, VectorType, N> &x)
 {
     return x.data;
@@ -484,6 +487,10 @@ public:
     using IndexType = index_type;
     using AsArg = const SimdArray &;
     static constexpr std::size_t Size = size();
+    static constexpr std::size_t MemoryAlignment =
+        storage_type0::MemoryAlignment > storage_type1::MemoryAlignment
+            ? storage_type0::MemoryAlignment
+            : storage_type1::MemoryAlignment;
 
     //////////////////// constructors //////////////////
 
@@ -1077,6 +1084,8 @@ private: //{{{2
 };
 #undef VC_CURRENT_CLASS_NAME
 template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t SimdArray<T, N, VectorType, M>::Size;
+template <typename T, std::size_t N, typename VectorType, std::size_t M>
+constexpr std::size_t SimdArray<T, N, VectorType, M>::MemoryAlignment;
 
 // gatherImplementation {{{2
 template <typename T, std::size_t N, typename VectorType, std::size_t M>
