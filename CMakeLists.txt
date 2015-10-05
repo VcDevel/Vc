@@ -82,16 +82,6 @@ else()
             memory_scalar
             )
       endif()
-   elseif(Vc_COMPILER_IS_INTEL)
-      if("${Vc_ICC_VERSION}" VERSION_LESS "14.1.0")
-         UserWarning("ICC does not support initializer lists (C++11). The following tests are therefore disabled:
-         stlcontainer_avx stlcontainer_scalar stlcontainer_sse.")
-         list(APPEND disabled_targets
-            stlcontainer_avx
-            stlcontainer_scalar
-            stlcontainer_sse
-            )
-      endif()
    elseif(Vc_COMPILER_IS_MSVC)
       if(MSVC_VERSION LESS 1700)
          # MSVC before 2012 has a broken std::vector::resize implementation. STL + Vc code will probably not compile.
@@ -108,14 +98,6 @@ else()
          list(APPEND disabled_targets
             simdize_mic
             example_simdize_mic
-            )
-      elseif("${Vc_MIC_ICC_VERSION}" VERSION_LESS "14.1.0")
-         UserWarning("ICC does not support initializer lists (C++11). Additionally it fails to optimize properly and therefore cannot provide an immediate parameter to an instrinsic. The following tests are therefore disabled:
-         deinterleave_mic
-         stlcontainer_mic.")
-         list(APPEND disabled_targets
-            stlcontainer_mic
-            deinterleave_mic
             )
       endif()
       # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
