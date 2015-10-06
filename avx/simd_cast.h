@@ -1653,7 +1653,7 @@ Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x,
           enable_if<std::is_same<Return, AVX2::uint_v>::value>)
 {
-    return _mm256_setr_epi32(x.data(), 0, 0, 0, 0, 0, 0, 0);
+    return _mm256_setr_epi32(uint(x.data()), 0, 0, 0, 0, 0, 0, 0);
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -1699,7 +1699,7 @@ Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1,
           enable_if<std::is_same<Return, AVX2::uint_v>::value>)
 {
-    return _mm256_setr_epi32(x0.data(), x1.data(), 0, 0, 0, 0, 0, 0);
+    return _mm256_setr_epi32(uint(x0.data()), uint(x1.data()), 0, 0, 0, 0, 0, 0);
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -1745,7 +1745,8 @@ Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           enable_if<std::is_same<Return, AVX2::uint_v>::value>)
 {
-    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), 0, 0, 0, 0, 0);
+    return _mm256_setr_epi32(uint(x0.data()), uint(x1.data()), uint(x2.data()), 0, 0, 0,
+                             0, 0);
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -1795,7 +1796,8 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           Scalar::Vector<T> x3,
           enable_if<std::is_same<Return, AVX2::uint_v>::value>)
 {
-    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0);
+    return _mm256_setr_epi32(uint(x0.data()), uint(x1.data()), uint(x2.data()),
+                             uint(x3.data()), 0, 0, 0, 0);
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -1839,7 +1841,8 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           Scalar::Vector<T> x3, Scalar::Vector<T> x4,
           enable_if<std::is_same<Return, AVX2::uint_v>::value>)
 {
-    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), 0, 0, 0);
+    return _mm256_setr_epi32(uint(x0.data()), uint(x1.data()), uint(x2.data()),
+                             uint(x3.data()), uint(x4.data()), 0, 0, 0);
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -1885,8 +1888,8 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
           enable_if<std::is_same<Return, AVX2::uint_v>::value>)
 {
-    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
-                             x5.data(), 0, 0);
+    return _mm256_setr_epi32(uint(x0.data()), uint(x1.data()), uint(x2.data()),
+                             uint(x3.data()), uint(x4.data()), uint(x5.data()), 0, 0);
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -1937,8 +1940,9 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           Scalar::Vector<T> x6,
           enable_if<std::is_same<Return, AVX2::uint_v>::value>)
 {
-    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
-                             x5.data(), x6.data(), 0);
+    return _mm256_setr_epi32(uint(x0.data()), uint(x1.data()), uint(x2.data()),
+                             uint(x3.data()), uint(x4.data()), uint(x5.data()),
+                             uint(x6.data()), 0);
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -1991,8 +1995,9 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           Scalar::Vector<T> x6, Scalar::Vector<T> x7,
           enable_if<std::is_same<Return, AVX2::uint_v>::value>)
 {
-    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
-                             x5.data(), x6.data(), x7.data());
+    return _mm256_setr_epi32(uint(x0.data()), uint(x1.data()), uint(x2.data()),
+                             uint(x3.data()), uint(x4.data()), uint(x5.data()),
+                             uint(x6.data()), uint(x7.data()));
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return

@@ -450,7 +450,7 @@ Vc_INTRINSIC Vc_CONST Return
     simd_cast(Scalar::Vector<T> x,
               enable_if<std::is_same<Return, SSE::uint_v>::value> )
 {
-    return _mm_setr_epi32(x.data(), 0, 0, 0);  // FIXME: use register-register mov
+    return _mm_setr_epi32(uint(x.data()), 0, 0, 0);  // FIXME: use register-register mov
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -500,7 +500,8 @@ Vc_INTRINSIC Vc_CONST Return
               Scalar::Vector<T> x1,
               enable_if<std::is_same<Return, SSE::uint_v>::value> )
 {
-    return _mm_setr_epi32(x0.data(), x1.data(), 0, 0);  // FIXME: use register-register mov
+    return _mm_setr_epi32(uint(x0.data()), uint(x1.data()), 0,
+                          0);  // FIXME: use register-register mov
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -541,7 +542,8 @@ Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           enable_if<std::is_same<Return, SSE::uint_v>::value>)
 {
-    return _mm_setr_epi32(x0.data(), x1.data(), x2.data(), 0);
+    return _mm_setr_epi32(uint(x0.data()), uint(x1.data()), uint(x2.data()),
+                          0);  // FIXME: use register-register mov
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -589,8 +591,8 @@ Vc_INTRINSIC Vc_CONST Return
               Scalar::Vector<T> x3,
               enable_if<std::is_same<Return, SSE::uint_v>::value> )
 {
-    return _mm_setr_epi32(
-        x0.data(), x1.data(), x2.data(), x3.data());  // FIXME: use register-register mov
+    return _mm_setr_epi32(uint(x0.data()), uint(x1.data()), uint(x2.data()),
+                          uint(x3.data()));  // FIXME: use register-register mov
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
