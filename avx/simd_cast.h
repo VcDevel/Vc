@@ -639,6 +639,158 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           enable_if<std::is_same<Return, AVX2::ushort_v>::value> = nullarg);
 #endif
 
+// 9 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          enable_if<std::is_same<Return, AVX2::short_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value> = nullarg);
+#endif
+
+// 10 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9,
+          enable_if<std::is_same<Return, AVX2::short_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value> = nullarg);
+#endif
+
+// 11 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10,
+          enable_if<std::is_same<Return, AVX2::short_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value> = nullarg);
+#endif
+
+// 12 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          enable_if<std::is_same<Return, AVX2::short_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value> = nullarg);
+#endif
+
+// 13 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12,
+          enable_if<std::is_same<Return, AVX2::short_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value> = nullarg);
+#endif
+
+// 14 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13,
+          enable_if<std::is_same<Return, AVX2::short_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value> = nullarg);
+#endif
+
+// 15 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14,
+          enable_if<std::is_same<Return, AVX2::short_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value> = nullarg);
+#endif
+
+// 16 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14,
+          Scalar::Vector<T> x15,
+          enable_if<std::is_same<Return, AVX2::short_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14,
+          Scalar::Vector<T> x15,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value> = nullarg);
+#endif
+
 // 1 AVX2::Vector to 1 Scalar::Vector {{{2
 template <typename To, typename FromT>
 Vc_INTRINSIC Vc_CONST To simd_cast(AVX2::Vector<FromT> x,
@@ -747,6 +899,11 @@ Vc_SIMD_CAST_2(SSE::  uint_m, AVX2::   int_m);
 Vc_SIMD_CAST_2(SSE::  uint_m, AVX2::  uint_m);
 Vc_SIMD_CAST_2(SSE::  uint_m, AVX2:: short_m);
 Vc_SIMD_CAST_2(SSE::  uint_m, AVX2::ushort_m);
+
+Vc_SIMD_CAST_2(SSE:: short_m, AVX2:: short_m);
+Vc_SIMD_CAST_2(SSE:: short_m, AVX2::ushort_m);
+Vc_SIMD_CAST_2(SSE::ushort_m, AVX2:: short_m);
+Vc_SIMD_CAST_2(SSE::ushort_m, AVX2::ushort_m);
 #endif
 
 // 4 SSE::Mask to 1 AVX2::Mask {{{2
@@ -756,6 +913,12 @@ Vc_SIMD_CAST_4(SSE::double_m, AVX2::   int_m);
 Vc_SIMD_CAST_4(SSE::double_m, AVX2::  uint_m);
 Vc_SIMD_CAST_4(SSE::double_m, AVX2:: short_m);
 Vc_SIMD_CAST_4(SSE::double_m, AVX2::ushort_m);
+Vc_SIMD_CAST_4(SSE:: float_m, AVX2:: short_m);
+Vc_SIMD_CAST_4(SSE:: float_m, AVX2::ushort_m);
+Vc_SIMD_CAST_4(SSE::   int_m, AVX2:: short_m);
+Vc_SIMD_CAST_4(SSE::   int_m, AVX2::ushort_m);
+Vc_SIMD_CAST_4(SSE::  uint_m, AVX2:: short_m);
+Vc_SIMD_CAST_4(SSE::  uint_m, AVX2::ushort_m);
 #endif
 
 // 1 Scalar::Mask to 1 AVX2::Mask {{{2
@@ -782,6 +945,16 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
     Scalar::Mask<T> k0, Scalar::Mask<T> k1, Scalar::Mask<T> k2, Scalar::Mask<T> k3,
     Scalar::Mask<T> k4, Scalar::Mask<T> k5, Scalar::Mask<T> k6, Scalar::Mask<T> k7,
     enable_if<(AVX2::is_mask<Return>::value && Return::Size >= 8)> = nullarg);
+
+// 16 Scalar::Mask to 1 AVX2::Mask {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Mask<T> k0, Scalar::Mask<T> k1, Scalar::Mask<T> k2, Scalar::Mask<T> k3,
+          Scalar::Mask<T> k4, Scalar::Mask<T> k5, Scalar::Mask<T> k6, Scalar::Mask<T> k7,
+          Scalar::Mask<T> k8, Scalar::Mask<T> k9, Scalar::Mask<T> k10,
+          Scalar::Mask<T> k11, Scalar::Mask<T> k12, Scalar::Mask<T> k13,
+          Scalar::Mask<T> k14, Scalar::Mask<T> k15,
+          enable_if<(AVX2::is_mask<Return>::value && Return::Size >= 16)> = nullarg);
 
 // 1 AVX2::Mask to 1 SSE::Mask {{{2
 Vc_SIMD_CAST_1(AVX2::double_m, SSE::double_m);
@@ -1630,7 +1803,7 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           Scalar::Vector<T> x3,
           enable_if<std::is_same<Return, AVX2::short_v>::value>)
 {
-    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0, 0, 0, 0, 0);
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -1652,6 +1825,22 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
     return _mm256_setr_ps(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), 0, 0, 0);
 }
 #ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4,
+          enable_if<std::is_same<Return, AVX2::int_v>::value>)
+{
+    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), 0, 0, 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4,
+          enable_if<std::is_same<Return, AVX2::uint_v>::value>)
+{
+    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), 0, 0, 0);
+}
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
@@ -1685,6 +1874,24 @@ template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          enable_if<std::is_same<Return, AVX2::int_v>::value>)
+{
+    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), 0, 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          enable_if<std::is_same<Return, AVX2::uint_v>::value>)
+{
+    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), 0, 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
           enable_if<std::is_same<Return, AVX2::short_v>::value>)
 {
     return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
@@ -1713,6 +1920,26 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
                           x5.data(), x6.data(), 0);
 }
 #ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6,
+          enable_if<std::is_same<Return, AVX2::int_v>::value>)
+{
+    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6,
+          enable_if<std::is_same<Return, AVX2::uint_v>::value>)
+{
+    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), 0);
+}
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
@@ -1752,6 +1979,26 @@ Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
           Scalar::Vector<T> x6, Scalar::Vector<T> x7,
+          enable_if<std::is_same<Return, AVX2::int_v>::value>)
+{
+    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data());
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7,
+          enable_if<std::is_same<Return, AVX2::uint_v>::value>)
+{
+    return _mm256_setr_epi32(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data());
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7,
           enable_if<std::is_same<Return, AVX2::short_v>::value>)
 {
     return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
@@ -1766,6 +2013,236 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
 {
     return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
                           x5.data(), x6.data(), x7.data(), 0, 0, 0, 0, 0, 0, 0, 0);
+}
+#endif
+
+// 9 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          enable_if<std::is_same<Return, AVX2::short_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), 0, 0, 0, 0, 0, 0,
+                             0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), 0, 0, 0, 0, 0, 0,
+                             0);
+}
+#endif
+
+// 10 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, enable_if<std::is_same<Return, AVX2::short_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(), 0, 0,
+                             0, 0, 0, 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, enable_if<std::is_same<Return, AVX2::ushort_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(), 0, 0,
+                             0, 0, 0, 0);
+}
+#endif
+
+// 11 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10,
+          enable_if<std::is_same<Return, AVX2::short_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), 0, 0, 0, 0, 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), 0, 0, 0, 0, 0);
+}
+#endif
+
+// 12 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          enable_if<std::is_same<Return, AVX2::short_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), 0, 0, 0, 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), 0, 0, 0, 0);
+}
+#endif
+
+// 13 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, enable_if<std::is_same<Return, AVX2::short_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), x12.data(), 0, 0, 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, enable_if<std::is_same<Return, AVX2::ushort_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), x12.data(), 0, 0, 0);
+}
+#endif
+
+// 14 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13,
+          enable_if<std::is_same<Return, AVX2::short_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), x12.data(), x13.data(), 0, 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), x12.data(), x13.data(), 0, 0);
+}
+#endif
+
+// 15 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14,
+          enable_if<std::is_same<Return, AVX2::short_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), x12.data(), x13.data(), x14.data(),
+                             0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14,
+          enable_if<std::is_same<Return, AVX2::ushort_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), x12.data(), x13.data(), x14.data(),
+                             0);
+}
+#endif
+
+// 16 Scalar::Vector to 1 AVX2::Vector {{{2
+#ifdef VC_IMPL_AVX2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14,
+          Scalar::Vector<T> x15, enable_if<std::is_same<Return, AVX2::short_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), x12.data(), x13.data(), x14.data(),
+                             x15.data());
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, Scalar::Vector<T> x7, Scalar::Vector<T> x8,
+          Scalar::Vector<T> x9, Scalar::Vector<T> x10, Scalar::Vector<T> x11,
+          Scalar::Vector<T> x12, Scalar::Vector<T> x13, Scalar::Vector<T> x14,
+          Scalar::Vector<T> x15, enable_if<std::is_same<Return, AVX2::ushort_v>::value>)
+{
+    return _mm256_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                             x5.data(), x6.data(), x7.data(), x8.data(), x9.data(),
+                             x10.data(), x11.data(), x12.data(), x13.data(), x14.data(),
+                             x15.data());
 }
 #endif
 
@@ -1896,6 +2373,11 @@ Vc_SIMD_CAST_2(SSE::  uint_m, AVX2::   int_m) { return AVX::concat(x0.data(), x1
 Vc_SIMD_CAST_2(SSE::  uint_m, AVX2::  uint_m) { return AVX::concat(x0.data(), x1.data()); }
 Vc_SIMD_CAST_2(SSE::  uint_m, AVX2:: short_m) { return AVX::zeroExtend(_mm_packs_epi16(x0.dataI(), x1.dataI())); }
 Vc_SIMD_CAST_2(SSE::  uint_m, AVX2::ushort_m) { return AVX::zeroExtend(_mm_packs_epi16(x0.dataI(), x1.dataI())); }
+
+Vc_SIMD_CAST_2(SSE:: short_m, AVX2:: short_m) { return AVX::concat(x0.data(), x1.data()); }
+Vc_SIMD_CAST_2(SSE:: short_m, AVX2::ushort_m) { return AVX::concat(x0.data(), x1.data()); }
+Vc_SIMD_CAST_2(SSE::ushort_m, AVX2:: short_m) { return AVX::concat(x0.data(), x1.data()); }
+Vc_SIMD_CAST_2(SSE::ushort_m, AVX2::ushort_m) { return AVX::concat(x0.data(), x1.data()); }
 #endif
 
 // 4 SSE::Mask to 1 AVX2::Mask {{{2
@@ -1905,6 +2387,12 @@ Vc_SIMD_CAST_4(SSE::double_m, AVX2::   int_m) { return AVX::concat(_mm_packs_epi
 Vc_SIMD_CAST_4(SSE::double_m, AVX2::  uint_m) { return AVX::concat(_mm_packs_epi32(x0.dataI(), x1.dataI()), _mm_packs_epi32(x2.dataI(), x3.dataI())); }
 Vc_SIMD_CAST_4(SSE::double_m, AVX2:: short_m) { return AVX::zeroExtend(_mm_packs_epi16(_mm_packs_epi32(x0.dataI(), x1.dataI()), _mm_packs_epi32(x2.dataI(), x3.dataI()))); }
 Vc_SIMD_CAST_4(SSE::double_m, AVX2::ushort_m) { return AVX::zeroExtend(_mm_packs_epi16(_mm_packs_epi32(x0.dataI(), x1.dataI()), _mm_packs_epi32(x2.dataI(), x3.dataI()))); }
+Vc_SIMD_CAST_4(SSE:: float_m, AVX2:: short_m) { return AVX::concat(_mm_packs_epi16(x0.dataI(), x1.dataI()), _mm_packs_epi16(x2.dataI(), x3.dataI())); }
+Vc_SIMD_CAST_4(SSE:: float_m, AVX2::ushort_m) { return AVX::concat(_mm_packs_epi16(x0.dataI(), x1.dataI()), _mm_packs_epi16(x2.dataI(), x3.dataI())); }
+Vc_SIMD_CAST_4(SSE::   int_m, AVX2:: short_m) { return AVX::concat(_mm_packs_epi16(x0.dataI(), x1.dataI()), _mm_packs_epi16(x2.dataI(), x3.dataI())); }
+Vc_SIMD_CAST_4(SSE::   int_m, AVX2::ushort_m) { return AVX::concat(_mm_packs_epi16(x0.dataI(), x1.dataI()), _mm_packs_epi16(x2.dataI(), x3.dataI())); }
+Vc_SIMD_CAST_4(SSE::  uint_m, AVX2:: short_m) { return AVX::concat(_mm_packs_epi16(x0.dataI(), x1.dataI()), _mm_packs_epi16(x2.dataI(), x3.dataI())); }
+Vc_SIMD_CAST_4(SSE::  uint_m, AVX2::ushort_m) { return AVX::concat(_mm_packs_epi16(x0.dataI(), x1.dataI()), _mm_packs_epi16(x2.dataI(), x3.dataI())); }
 #endif
 
 // 1 Scalar::Mask to 1 AVX2::Mask {{{2
@@ -1959,6 +2447,36 @@ simd_cast(Scalar::Mask<T> k0, Scalar::Mask<T> k1, Scalar::Mask<T> k2, Scalar::Ma
     r[5] = k5.data();
     r[6] = k6.data();
     r[7] = k7.data();
+    return r;
+}
+
+// 16 Scalar::Mask to 1 AVX2::Mask {{{2
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Mask<T> k0, Scalar::Mask<T> k1, Scalar::Mask<T> k2, Scalar::Mask<T> k3,
+          Scalar::Mask<T> k4, Scalar::Mask<T> k5, Scalar::Mask<T> k6, Scalar::Mask<T> k7,
+          Scalar::Mask<T> k8, Scalar::Mask<T> k9, Scalar::Mask<T> k10,
+          Scalar::Mask<T> k11, Scalar::Mask<T> k12, Scalar::Mask<T> k13,
+          Scalar::Mask<T> k14, Scalar::Mask<T> k15,
+          enable_if<(AVX2::is_mask<Return>::value && Return::Size >= 16)>)
+{
+    Return r{false};
+    r[0] = k0.data();
+    r[1] = k1.data();
+    r[2] = k2.data();
+    r[3] = k3.data();
+    r[4] = k4.data();
+    r[5] = k5.data();
+    r[6] = k6.data();
+    r[7] = k7.data();
+    r[8] = k8.data();
+    r[9] = k9.data();
+    r[10] = k10.data();
+    r[11] = k11.data();
+    r[12] = k12.data();
+    r[13] = k13.data();
+    r[14] = k14.data();
+    r[15] = k15.data();
     return r;
 }
 
