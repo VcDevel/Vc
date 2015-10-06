@@ -118,18 +118,16 @@ Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 32>)
                              gen(6) ? 0xfffffffful : 0, gen(7) ? 0xfffffffful : 0);
 }
 template <typename M, typename G>
-Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 16>)
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 16 + 32>)
 {
-    return _mm_setr_epi32(gen(0) ? 0xffffffffu : 0, gen(1) ? 0xffffffffu : 0,
-                          gen(2) ? 0xffffffffu : 0, gen(3) ? 0xffffffffu : 0);
-}
-template <typename M, typename G>
-Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 16>)
-{
-    return _mm_setr_epi16(gen(0) ? 0xffffu : 0, gen(1) ? 0xffffu : 0,
-                          gen(2) ? 0xffffu : 0, gen(3) ? 0xffffu : 0,
-                          gen(4) ? 0xffffu : 0, gen(5) ? 0xffffu : 0,
-                          gen(6) ? 0xffffu : 0, gen(7) ? 0xffffu : 0);
+    return _mm256_setr_epi16(gen(0) ? 0xfffful : 0, gen(1) ? 0xfffful : 0,
+                             gen(2) ? 0xfffful : 0, gen(3) ? 0xfffful : 0,
+                             gen(4) ? 0xfffful : 0, gen(5) ? 0xfffful : 0,
+                             gen(6) ? 0xfffful : 0, gen(7) ? 0xfffful : 0,
+                             gen(8) ? 0xfffful : 0, gen(9) ? 0xfffful : 0,
+                             gen(10) ? 0xfffful : 0, gen(11) ? 0xfffful : 0,
+                             gen(12) ? 0xfffful : 0, gen(13) ? 0xfffful : 0,
+                             gen(14) ? 0xfffful : 0, gen(15) ? 0xfffful : 0);
 }
 template <typename T>
 template <typename G>
