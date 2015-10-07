@@ -185,8 +185,6 @@ namespace Vc_VERSIONED_NAMESPACE {
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-  using Vc_IMPL_NAMESPACE::VectorAlignedBaseT;
-  typedef VectorAlignedBaseT<> VectorAlignedBase;
   using namespace VectorSpecialInitializerZero;
   using namespace VectorSpecialInitializerOne;
   using namespace VectorSpecialInitializerIndexesFromZero;

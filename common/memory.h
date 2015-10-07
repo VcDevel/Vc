@@ -128,7 +128,10 @@ template<typename V, size_t Size> struct _MemorySizeCalculation
  * \param Size1 Number of rows
  * \param Size2 Number of columns
  */
-template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> >
+template <typename V, size_t Size1, size_t Size2, bool InitPadding>
+class Memory : public AlignedBase<V::MemoryAlignment>,
+               public MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2,
+                                 Memory<V, Size2, 0, false>>
 {
     public:
         typedef typename V::EntryType EntryType;
@@ -263,7 +266,10 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
      * \ingroup Utilities
      * \headerfile memory.h <Vc/Memory>
      */
-    template<typename V, size_t Size, bool InitPadding> class Memory<V, Size, 0u, InitPadding> : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>
+template <typename V, size_t Size, bool InitPadding>
+class Memory<V, Size, 0u, InitPadding>
+    : public AlignedBase<V::MemoryAlignment>,
+      public MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>
     {
         public:
             typedef typename V::EntryType EntryType;

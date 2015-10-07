@@ -73,9 +73,6 @@ typedef Mask<unsigned short> ushort_m;
 
 template <typename T> struct Const;
 
-template <typename V = Vector<float>>
-class alignas(V::MemoryAlignment) VectorAlignedBaseT;
-
 template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
@@ -107,8 +104,6 @@ using  short_m = Mask< short>;
 using ushort_m = Mask<ushort>;
 using  schar_m = Mask< schar>;
 using  uchar_m = Mask< uchar>;
-
-using AVX::VectorAlignedBaseT;
 
 template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};

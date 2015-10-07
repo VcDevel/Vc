@@ -167,10 +167,10 @@ lead to degraded performance, which becomes very noticeable for memory intensive
 %Vc provides several classes and functions to get alignment right.
 \li Vc::VectorAlignment is a compile time constant that equals the largest alignment restriction
                   (in Bytes) for the selected target architecture.
-\li Vc::VectorAlignedBase and Vc::VectorAlignedBaseT are helper classes that use compiler
-                  specific extensions to annotate the alignment restrictions for vector types.
-                  Additionally they reimplement \c new and \c delete to return correctly aligned
-                  pointers to the heap.
+\li Vc::AlignedBase, Vc::VectorAlignedBase, and Vc::MemoryAlignedBase implement the alignment
+                  restrictions needed for aligned vector loads and stores. They set the
+                  alignment attribute and reimplement the \c new and \c delete operators,
+                  returning correctly aligned pointers to the heap.
 \li Vc::malloc and Vc::free are meant as replacements for \c malloc and \c free. They can be used
                   to allocate any type of memory with an abstract alignment restriction: \ref
                   Vc::MallocAlignment. Note, that (like \c malloc) the memory is only allocated
@@ -810,56 +810,6 @@ namespace Vc
      * \note Often int_v::Size == double_v::Size * 2, then only every second value in \p *e is defined.
      */
     double_v ldexp(double_v x, int_v e);
-
-    /**
-     * \ingroup Utilities
-     *
-     * Helper class to ensure proper alignment.
-     *
-     * This class reimplements the \c new and \c delete operators to align the allocated object
-     * suitably for vector data. Additionally the type is annotated to require that same alignment
-     * when placed on the stack.
-     *
-     * \see Vc::VectorAlignedBaseT
-     */
-    class VectorAlignedBase
-    {
-    public:
-        void *operator new(size_t size);
-        void *operator new(size_t, void *p);
-        void *operator new[](size_t size);
-        void operator delete(void *ptr, size_t);
-        void operator delete[](void *ptr, size_t);
-    };
-
-    /**
-     * \ingroup Utilities
-     *
-     * Helper class to ensure proper alignment.
-     *
-     * This class reimplements the \c new and \c delete operators to align the allocated object
-     * suitably for vector data. Additionally the type is annotated to require that same alignment
-     * when placed on the stack.
-     *
-     * This class differs from Vc::VectorAlignedBase in that the template parameter determines the
-     * alignment. The alignment rules for different vector types might be different. If you use
-     * Vc::VectorAlignedBase you will get the most restrictive alignment (i.e. it will work for all
-     * vector types, but might lead to unnecessary padding).
-     *
-     * \tparam V One of the %Vc vector types.
-     *
-     * \see Vc::VectorAlignedBase
-     */
-    template<typename V>
-    class VectorAlignedBaseT
-    {
-    public:
-        void *operator new(size_t size);
-        void *operator new(size_t, void *p);
-        void *operator new[](size_t size);
-        void operator delete(void *ptr, size_t);
-        void operator delete[](void *ptr, size_t);
-    };
 }
 
 /**

@@ -744,13 +744,6 @@ template <typename T> struct VectorTraits
 };
 
 template <typename T> struct VectorHelperSize;
-
-template <typename V> class alignas(V::MemoryAlignment) VectorAlignedBaseT
-{
-public:
-    FREE_STORE_OPERATORS_ALIGNED(V::MemoryAlignment)
-};
-
 }  // namespace SSE
 }  // namespace Vc
 
