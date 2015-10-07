@@ -99,6 +99,7 @@ public:
 public:
     FREE_STORE_OPERATORS_ALIGNED(16)
     static constexpr size_t Size = SSE::VectorTraits<T>::Size;
+    static constexpr size_t MemoryAlignment = Size;
     static constexpr std::size_t size() { return Size; }
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
@@ -237,6 +238,7 @@ public:
         Storage d;
 };
 template <typename T> constexpr size_t Mask<T, VectorAbi::Sse>::Size;
+template <typename T> constexpr size_t Mask<T, VectorAbi::Sse>::MemoryAlignment;
 
 }  // namespace Vc
 

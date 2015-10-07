@@ -114,6 +114,7 @@ public:
     typedef typename MIC::MaskTypeHelper<T>::Type MaskType;
 
     static constexpr size_t Size = sizeof(MaskType) * 8;
+    static constexpr size_t MemoryAlignment = Size;
     static constexpr std::size_t size() { return Size; }
     typedef Mask<T> AsArg; // for now only ICC can compile this code and it is not broken :)
 
@@ -234,6 +235,7 @@ private:
     MaskType k;
 };
 template <typename T> constexpr size_t Mask<T, VectorAbi::Mic>::Size;
+template <typename T> constexpr size_t Mask<T, VectorAbi::Mic>::MemoryAlignment;
 
 }  // namespace Vc
 

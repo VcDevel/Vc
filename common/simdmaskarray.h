@@ -58,6 +58,7 @@ public:
 
     static constexpr std::size_t size() { return N; }
     static constexpr std::size_t Size = size();
+    static constexpr std::size_t MemoryAlignment = storage_type::MemoryAlignment;
     static_assert(Size == mask_type::Size, "size mismatch");
 
     using vectorentry_type = typename mask_type::VectorEntryType;
@@ -244,6 +245,8 @@ private:
 };
 
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::Size;
+template <typename T, std::size_t N, typename VectorType>
+constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::MemoryAlignment;
 
 template <typename T, std::size_t N, typename VectorType, std::size_t>
 class alignas(
@@ -269,6 +272,10 @@ public:
     using mask_type = SimdMaskArray;
     static constexpr std::size_t size() { return N; }
     static constexpr std::size_t Size = size();
+    static constexpr std::size_t MemoryAlignment =
+        storage_type0::MemoryAlignment > storage_type1::MemoryAlignment
+            ? storage_type0::MemoryAlignment
+            : storage_type1::MemoryAlignment;
     static_assert(Size == mask_type::Size, "size mismatch");
 
     using vectorentry_type = typename storage_type0::VectorEntryType;
@@ -535,6 +542,8 @@ private:
     storage_type1 data1;
 };
 template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::Size;
+template <typename T, std::size_t N, typename VectorType, std::size_t M>
+constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::MemoryAlignment;
 
 /// @}
 

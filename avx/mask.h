@@ -83,6 +83,7 @@ private:
 
 public:
     static constexpr size_t Size = sizeof(VectorTypeF) / sizeof(T);
+    static constexpr size_t MemoryAlignment = Size;
     static constexpr std::size_t size() { return Size; }
     FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
@@ -200,6 +201,7 @@ public:
         Storage d;
 };
 template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::Size;
+template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::MemoryAlignment;
 
 }  // namespace Vc
 
