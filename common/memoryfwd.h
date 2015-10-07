@@ -36,6 +36,9 @@ namespace Common
 template <typename V, std::size_t Size1 = 0, std::size_t Size2 = 0,
           bool InitPadding = true>
 class Memory;
+
+template <typename V, typename Parent, int Dimension, typename RowMemory>
+class MemoryBase;
 }  // namespace Common
 
 using Common::Memory;
