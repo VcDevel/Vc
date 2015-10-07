@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define VC_DEBUG_SIMD_CAST 1
 //#define VC_DEBUG_SORTED 1
 #if defined VC_DEBUG_SIMD_CAST || defined VC_DEBUG_SORTED
-#include <iostream>
+#include <Vc/IO>
 #endif
 
 #include <array>
@@ -1410,13 +1410,13 @@ Vc_INTRINSIC Vc_CONST
 namespace
 {
 #ifdef VC_DEBUG_SIMD_CAST
-void doNothing(const std::initializer_list<void *> &) {}
+void debugDoNothing(const std::initializer_list<void *> &) {}
 template <typename T0, typename... Ts>
 inline void vc_debug_(const char *prefix, const char *suffix, const T0 &arg0,
                       const Ts &... args)
 {
     std::cerr << prefix << arg0;
-    doNothing({&(std::cerr << ", " << args)...});
+    debugDoNothing({&(std::cerr << ", " << args)...});
     std::cerr << suffix;
 }
 #else
