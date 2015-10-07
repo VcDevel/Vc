@@ -1281,7 +1281,7 @@ template <typename Return, std::size_t N, typename T>
 Vc_INTRINSIC Vc_CONST Return simd_cast_impl_larger_input(const T &last)
 {
     Return r = Return();
-    for (size_t i = 0; i < N; ++i) {
+    for (size_t i = 0; i < Return::size(); ++i) {
         r[i] = static_cast<typename Return::EntryType>(last[i]);
     }
     return r;
