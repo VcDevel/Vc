@@ -342,6 +342,7 @@ if(_last_target_arch STREQUAL "auto")
    vc_add_general_test(supportfunctions)
 endif()
 vc_add_general_test(alignmentinheritance)
+vc_add_general_test(alignedbase)
 
 get_property(_incdirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 set(incdirs)
