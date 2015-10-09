@@ -278,11 +278,11 @@ class Memory<V, Size, 0u, InitPadding>
             friend class MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
             friend class MemoryDimensionBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
             enum : size_t {
-                Alignment = V::MemoryAlignment,
+                Alignment = V::MemoryAlignment,  // in Bytes
                 AlignmentMask = Alignment - 1,
-                MaskedSize = Size & AlignmentMask,
+                MaskedSize = Size * sizeof(EntryType) & AlignmentMask,
                 Padding = Alignment - MaskedSize,
-                PaddedSize = MaskedSize == 0 ? Size : Size + Padding
+                PaddedSize = MaskedSize == 0 ? Size : Size + Padding / sizeof(EntryType)
             };
             alignas(static_cast<size_t>(Alignment))  // GCC complains about 'is not an
                                                      // integer constant' unless the
