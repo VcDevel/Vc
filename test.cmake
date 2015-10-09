@@ -330,7 +330,7 @@ macro(go)
                   APPEND
                   RETURN_VALUE res
                   PARALLEL_LEVEL ${number_of_processors}
-                  INCLUDE_LABEL "${label}")
+                  INCLUDE_LABEL "^${label}$")
                ctest_submit(PARTS Test)
             endif()
          endforeach()
