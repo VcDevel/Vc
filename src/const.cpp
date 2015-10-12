@@ -279,11 +279,6 @@ namespace Common
         0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU
     };
 
-    // dummy symbol to emit warnings with GCC 4.3
-    namespace Warnings {
-        void _operator_bracket_warning() {}
-    } // namespace Warnings
-
     const char LIBRARY_VERSION[] = VC_VERSION_STRING;
     const unsigned int LIBRARY_VERSION_NUMBER = VC_VERSION_NUMBER;
     const unsigned int LIBRARY_ABI_VERSION = VC_LIBRARY_ABI_VERSION;
