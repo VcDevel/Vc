@@ -95,60 +95,42 @@ static Vc_ALWAYS_INLINE MIC::double_m isnan(MIC::double_v x)
     return _mm512_cmpunord_pd_mask(x.data(), x.data());
 }
 // frexp {{{1
-inline MIC::double_v frexp(MIC::double_v::AsArg v,
-                           SimdArray<int, 16, MIC::int_v, 16> *e)
+inline MIC::double_v frexp(MIC::double_v::AsArg v, MIC::double_v::IndexType *e)
 {
-    const __m512i vi = MIC::mic_cast<__m512i>(v.data());
-    const __m512i exponentBits = MIC::_set1(0x7ff0000000000000ull);
-    const __m512i exponentPart = MIC::_and(vi, exponentBits);
-    const __mmask8 zeroMask = _mm512_cmpneq_pd_mask(v.data(), _mm512_setzero_pd());
-    // bit-interleave 0x00 and zeroMask:
-    const __mmask16 zeroMask2 = _mm512_cmpgt_epu32_mask(
-        _mm512_and_epi32(
-            _mm512_set1_epi64(zeroMask),
-            MIC::_load(MIC::c_general::frexpAndMask, _MM_UPCONV_EPI32_UINT8)),
-        _mm512_setzero_epi32());
-    internal_data(*e).data() = _mm512_mask_sub_epi32(
-        _mm512_setzero_epi32(), zeroMask2,
-        _mm512_srli_epi32(_mm512_swizzle_epi32(exponentPart, _MM_SWIZ_REG_CDAB), 20),
-        MIC::_set1(0x3fe));
-    const __m512i exponentMaximized = MIC::_or(vi, exponentBits);
-    const __mmask8 nonzeroNumber = _mm512_kand(
-        isfinite(v).data(), _mm512_cmpneq_pd_mask(v.data(), _mm512_setzero_pd()));
-    MIC::double_v ret = MIC::mic_cast<__m512d>(_mm512_mask_and_epi64(
-        vi, nonzeroNumber, exponentMaximized, MIC::_set1(0xbfefffffffffffffull)));
-    return ret;
+    using namespace MIC;
+    const __m512d mantissa =
+        _mm512_getmant_pd(v.data(), _MM_MANT_NORM_1_2, _MM_MANT_SIGN_src);
+    int_v exponent = int_v::Zero();
+    exponent(static_cast<int_m>(v != v.Zero())) =
+        int_v(convert<double, int>(_mm512_getexp_pd(v.data()))) + 1;
+    *e = simd_cast<double_v::IndexType>(exponent);
+    return double_v(mantissa) * 0.5;
 }
-inline MIC::float_v frexp(MIC::float_v::AsArg v,
-                          SimdArray<int, 16, MIC::int_v, 16> *e)
+inline MIC::float_v frexp(MIC::float_v::AsArg v, MIC::float_v::IndexType *e)
 {
-    const __m512i vi = MIC::mic_cast<__m512i>(v.data());
-    const __m512i exponentBits = MIC::_set1(0x7f800000u);
-    const __m512i exponentPart = MIC::_and(vi, exponentBits);
-    const __mmask16 zeroMask = _mm512_cmpneq_ps_mask(v.data(), _mm512_setzero_ps());
-    internal_data(*e).data() =
-        _mm512_mask_sub_epi32(_mm512_setzero_epi32(), zeroMask,
-                              _mm512_srli_epi32(exponentPart, 23), MIC::_set1(0x7e));
-    const __m512i exponentMaximized = MIC::_or(vi, exponentBits);
-    const __mmask16 nonzeroNumber = _mm512_kand(
-        isfinite(v).data(), _mm512_cmpneq_ps_mask(v.data(), _mm512_setzero_ps()));
-    MIC::float_v ret = MIC::mic_cast<__m512>(_mm512_mask_and_epi32(
-        vi, nonzeroNumber, exponentMaximized, MIC::_set1(0xbf7fffffu)));
-    return ret;
+    using namespace MIC;
+    const __m512 mantissa =
+        _mm512_getmant_ps(v.data(), _MM_MANT_NORM_1_2, _MM_MANT_SIGN_src);
+    int_v exponent = int_v::Zero();
+    exponent(static_cast<int_m>(v != v.Zero())) =
+        int_v(convert<float, int>(_mm512_getexp_ps(v.data()))) + 1;
+    internal_data(*e) = exponent;
+    return float_v(mantissa) * 0.5f;
 }
 // ldexp {{{1
-Vc_ALWAYS_INLINE MIC::double_v ldexp(MIC::double_v::AsArg v,
-                                     SimdArray<int, 16, MIC::int_v, 16> _e)
+Vc_ALWAYS_INLINE MIC::double_v ldexp(MIC::double_v::AsArg v, MIC::double_v::IndexType _e)
 {
-    const auto e__ = internal_data(_e).data();
-    __m512i e = _mm512_mask_xor_epi64(e__, (v == MIC::double_v::Zero()).data(), e__, e__);
+    using namespace MIC;
+    static_assert(sizeof(_e) >= 32, "");
+    static_assert(std::is_same<double_v::IndexType::EntryType, int>::value, "");
+    const auto e__ = _mm512_extload_epi32(&_e, _MM_UPCONV_EPI32_SINT16,
+                                          _MM_BROADCAST32_NONE, _MM_HINT_NONE);
+    __m512i e = _mm512_mask_xor_epi64(e__, (v == double_v::Zero()).data(), e__, e__);
     const __m512i exponentBits = _mm512_mask_slli_epi32(
         _mm512_setzero_epi32(), 0xaaaa, _mm512_swizzle_epi32(e, _MM_SWIZ_REG_CDAB), 20);
-    return MIC::mic_cast<__m512d>(
-        _mm512_add_epi32(MIC::mic_cast<__m512i>(v.data()), exponentBits));
+    return mic_cast<__m512d>(_mm512_add_epi32(mic_cast<__m512i>(v.data()), exponentBits));
 }
-Vc_ALWAYS_INLINE MIC::float_v ldexp(MIC::float_v::AsArg v,
-                                    SimdArray<int, 16, MIC::int_v, 16> _e)
+Vc_ALWAYS_INLINE MIC::float_v ldexp(MIC::float_v::AsArg v, MIC::float_v::IndexType _e)
 {
     MIC::int_v e = internal_data(_e);
     e.setZero(static_cast<MIC::int_m>(v == MIC::float_v::Zero()));

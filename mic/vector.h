@@ -87,7 +87,6 @@ public:
     typedef typename MIC::DetermineVectorEntryType<T>::Type VectorEntryType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
     static constexpr size_t MemoryAlignment = sizeof(EntryType) * Size;
-    typedef SimdArray<int, 16, MIC::int_v, 16> IndexType;
     enum Constants {
         HasVectorDivision = true
     };
@@ -130,6 +129,7 @@ public:
     }
 
 #include "../common/generalinterface.h"
+    using IndexType = SimdArray<int, Size>;
 
     static Vector Random();
 
