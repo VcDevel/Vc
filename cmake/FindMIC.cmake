@@ -155,6 +155,8 @@ if(MIC_NATIVE_FOUND OR MIC_OFFLOAD_FOUND)
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 173") # warning #173: floating-point value does not fit in required integral type
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 264") # warning #264: floating-point value does not fit in required floating-point type
 
+   list(APPEND CMAKE_MIC_CXX_FLAGS "-fp-model source") # fix IEEE FP comliance
+
    set(VC_MIC_CXX_FLAGS "")
 
    macro(mic_add_definitions)
