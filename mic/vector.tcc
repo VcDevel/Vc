@@ -522,6 +522,11 @@ Vc_ALWAYS_INLINE
     return MIC::int_v(std::addressof(indexes[0]), Vc::Unaligned).data();
 }
 
+Vc_ALWAYS_INLINE __m512i ensureVector(const SimdArray<int, 8> &indexes)
+{
+    return _mm512_mask_load_epi32(_mm512_setzero_epi32(), 0x00ff, &indexes);
+}
+
 template <typename IT>
 Vc_ALWAYS_INLINE
     enable_if<(!MIC::is_vector<IT>::value && !Traits::isAtomicSimdArray<IT>::value &&
