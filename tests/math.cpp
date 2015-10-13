@@ -364,7 +364,11 @@ TEST_TYPES(V, testExp, REAL_TYPES) //{{{1
 
 TEST_TYPES(V, testLog, REAL_TYPES) //{{{1
 {
+#ifdef VC_IMPL_MIC
+    UnitTest::setFuzzyness<float>(2);
+#else
     UnitTest::setFuzzyness<float>(1);
+#endif
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -544,7 +548,11 @@ TEST_TYPES(V, testCos, REAL_TYPES) //{{{1
 TEST_TYPES(V, testAsin, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
+#ifdef VC_IMPL_MIC
+    UnitTest::setFuzzyness<float>(3);
+#else
     UnitTest::setFuzzyness<float>(2);
+#endif
     UnitTest::setFuzzyness<double>(36);
     Array<Reference<T> > reference = referenceData<T, Asin>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
