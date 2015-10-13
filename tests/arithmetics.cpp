@@ -287,16 +287,20 @@ TEST_TYPES(V,
             uint_v,
             short_v))
 {
+    using T = typename V::EntryType;
+    alignas(V::MemoryAlignment) T x_mem[V::size()];
+    alignas(V::MemoryAlignment) T y_mem[V::size()];
     for (int repetition = 0; repetition < 1000; ++repetition) {
         V x = V::Random();
         V y = (V::Random() & 2047) - 1023;
         y(y == 0) = -1024;
         const V z = x % y;
 
-        V reference;
-        for (size_t i = 0; i < V::Size; ++i) {
-            reference[i] = x[i] % y[i];
-        }
+        x.store(x_mem, Vc::Aligned);
+        y.store(y_mem, Vc::Aligned);
+        const V reference = V::generate([&](size_t i) {
+            return x_mem[i] % y_mem[i];
+        });
 
         COMPARE(z, reference) << ", x: " << x << ", y: " << y;
 
