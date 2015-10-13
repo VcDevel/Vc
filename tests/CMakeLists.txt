@@ -175,10 +175,19 @@ macro(vc_add_test _name)
       list(FIND disabled_targets ${_target} _disabled)
       file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/mic/*.tcc" "${CMAKE_SOURCE_DIR}/mic/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
       add_file_dependencies(${_name}.cpp "${_extra_deps}")
+      set(_objs)
+      if("${_name}" STREQUAL "math")
+         foreach(fun sincos asin acos atan ln log2 log10)
+            foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+               set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
+            endforeach()
+         endforeach()
+      endif()
       mic_add_executable(${_target}
          LINK_LIBRARIES Vc_MIC
          COMPILE_FLAGS "${DVC_IMPL} ${_extra_flags}"
          SOURCES ${_name}.cpp
+         OBJECTS ${_objs}
          EXCLUDE_FROM_ALL
          )
       add_target_property(${_target} LABELS "MIC")
@@ -206,6 +215,34 @@ macro(vc_add_test _name)
    endif()
 
 endmacro(vc_add_test)
+
+set(_deps)
+foreach(fun sincos asin acos atan ln log2 log10)
+   foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+      add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+         COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
+         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         COMMENT "Downloading Test Data: ${filename}"
+         VERBATIM
+         )
+      if(MIC_OBJCOPY)
+         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o"
+            COMMAND ${MIC_OBJCOPY} -I binary -O elf64-k1om -B k1om ${filename} ${filename}.k1om.o
+            DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Converting Test Data: ${filename}.k1om.o"
+            VERBATIM
+            )
+         list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o")
+      endif()
+      list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
+   endforeach()
+endforeach()
+add_custom_target(download-testdata ALL
+   DEPENDS ${_deps}
+   )
+add_dependencies(other download-testdata)
 
 vc_add_test(types)
 vc_add_test(subscript)
@@ -425,20 +462,3 @@ target_link_libraries(linkTest Vc linkTestLibDynamic1 linkTestLibDynamic2 linkTe
 # Use the following program to generate the sincos-reference-*.dat files
 #add_executable(convert-sincos-reference EXCLUDE_FROM_ALL convert-sincos-reference.cpp)
 
-set(_deps)
-foreach(fun sincos asin acos atan ln log2 log10)
-   foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-      add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-         COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-         COMMENT "Downloading Test Data: ${filename}"
-         VERBATIM
-         )
-      list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
-   endforeach()
-endforeach()
-add_custom_target(download-testdata ALL
-   DEPENDS ${_deps}
-   )
-add_dependencies(other download-testdata)
