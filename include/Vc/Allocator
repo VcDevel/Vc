@@ -134,7 +134,9 @@ namespace std \
             NaturalAlignment = sizeof(void *) > alignof(long double) ? sizeof(void *) :
                 (alignof(long double) > alignof(long long) ? alignof(long double) : alignof(long long)),
 #endif
-#ifdef VC_IMPL_AVX
+#ifdef VC_IMPL_MIC
+            SimdAlignment = 64,
+#elif defined VC_IMPL_AVX
             SimdAlignment = 32,
 #elif defined VC_IMPL_SSE
             SimdAlignment = 16,
