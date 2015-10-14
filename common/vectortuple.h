@@ -114,6 +114,22 @@ public:
 
 }  // namespace Common
 
+template <typename T, typename Abi>
+VC_DEPRECATED("build the tuple with Vc::tie instead")
+constexpr Common::VectorReferenceArray<2, Vc::Vector<T, Abi>>
+operator,(Vc::Vector<T, Abi> &a, Vc::Vector<T, Abi> &b)
+{
+    return {a, b};
+}
+
+template <typename T, typename Abi>
+VC_DEPRECATED("build the tuple with Vc::tie instead")
+constexpr Common::VectorReferenceArray<2, const Vc::Vector<T, Abi>>
+operator,(const Vc::Vector<T, Abi> &a, const Vc::Vector<T, Abi> &b)
+{
+    return {a, b};
+}
+
 template <typename V, typename... Vs>
 constexpr Common::VectorReferenceArray<sizeof...(Vs) + 1,
                                        typename std::remove_reference<V>::type>
