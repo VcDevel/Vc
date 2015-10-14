@@ -65,7 +65,8 @@ TEST_TYPES(V, stdVectorAlignment, (ALL_VECTORS))
     for (int i = 1; i < 100; ++i) {
         std::vector<T, Vc::Allocator<T>> v5(i);
         const size_t expectedAlignment = alignof(V);
-        COMPARE((&v5[0] - static_cast<const T *>(0)) * sizeof(T) & (expectedAlignment - 1), 0u);
+        COMPARE(reinterpret_cast<std::uintptr_t>(v5.data()) & (expectedAlignment - 1), 0u)
+            << "expectedAlignment: " << expectedAlignment;
     }
 }
 
