@@ -69,10 +69,10 @@ template<> struct MaskHelper<16> {
     static Vc_INTRINSIC Vc_CONST Type cast(__mmask8 k) { return _mm512_kand(k, 0xff); }
 };
 
-template <typename T> class Mask<T, VectorAbi::Mic>
+template <typename T, int Wt> class Mask<T, VectorAbi::MicMasked<Wt>>
 {
 public:
-    using abi = VectorAbi::Mic;
+    using abi = VectorAbi::MicMasked<Wt>;
 
 private:
     friend class Mask<  double, abi>;
@@ -234,8 +234,9 @@ public:
 private:
     MaskType k;
 };
-template <typename T> constexpr size_t Mask<T, VectorAbi::Mic>::Size;
-template <typename T> constexpr size_t Mask<T, VectorAbi::Mic>::MemoryAlignment;
+template <typename T, int Wt> constexpr size_t Mask<T, VectorAbi::MicMasked<Wt>>::Size;
+template <typename T, int Wt>
+constexpr size_t Mask<T, VectorAbi::MicMasked<Wt>>::MemoryAlignment;
 
 }  // namespace Vc
 

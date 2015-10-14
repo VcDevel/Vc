@@ -58,14 +58,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 #define Vc_CURRENT_CLASS_NAME Vector
-template <typename T>
-class Vector<T, VectorAbi::Mic> : public MIC::StoreMixin<MIC::Vector<T>, T>
+template <typename T, int Wt>
+class Vector<T, VectorAbi::MicMasked<Wt>>
+    : public MIC::StoreMixin<Vector<T, VectorAbi::MicMasked<Wt>>, T>
 {
     static_assert(std::is_arithmetic<T>::value,
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
 public:
-    using abi = VectorAbi::Mic;
+    using abi = VectorAbi::MicMasked<Wt>;
 
 private:
     //friend class VectorMultiplication<T>;
@@ -85,11 +86,11 @@ public:
     Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
     using value_type = EntryType;
     typedef typename MIC::DetermineVectorEntryType<T>::Type VectorEntryType;
-    static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
-    static constexpr size_t MemoryAlignment = sizeof(EntryType) * Size;
-    enum Constants {
-        HasVectorDivision = true
-    };
+    static constexpr size_t Size =
+        Wt <= 0 ? sizeof(VectorType) / sizeof(VectorEntryType) : Wt;
+    static constexpr size_t MemoryAlignment =
+        sizeof(EntryType) * sizeof(VectorType) / sizeof(VectorEntryType);
+    enum : bool { HasVectorDivision = true };
     typedef MIC::Mask<T> Mask;
     using MaskType = Mask;
     using mask_type = Mask;
@@ -359,8 +360,9 @@ public:
     Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
 #undef Vc_CURRENT_CLASS_NAME
-template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::Size;
-template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::MemoryAlignment;
+template <typename T, int Wt> constexpr size_t Vector<T, VectorAbi::MicMasked<Wt>>::Size;
+template <typename T, int Wt>
+constexpr size_t Vector<T, VectorAbi::MicMasked<Wt>>::MemoryAlignment;
 
 Vc_INTRINSIC MIC::int_v    min(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_min_epi32(x.data(), y.data()); }
 Vc_INTRINSIC MIC::uint_v   min(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_min_epu32(x.data(), y.data()); }

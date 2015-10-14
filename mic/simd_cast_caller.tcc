@@ -33,9 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-template <typename T>
+template <typename T, int Wt>
 template <typename U>
-Vc_INTRINSIC Mask<T, VectorAbi::Mic>::Mask(
+Vc_INTRINSIC Mask<T, VectorAbi::MicMasked<Wt>>::Mask(
     U &&rhs, Common::enable_if_mask_converts_explicitly<T, U>)
     : Mask(simd_cast<Mask>(std::forward<U>(rhs)))
 {

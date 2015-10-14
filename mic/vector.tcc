@@ -112,13 +112,23 @@ template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<MIC::float_v
 } // anonymous namespace
 
 // constants {{{1
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerZero) : d(HV::zero()) {}
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerOne) : d(HV::one()) {}
-template <typename T>
-Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::MicMasked<Wt>>::Vector(
+    VectorSpecialInitializerZero)
+    : d(HV::zero())
+{
+}
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::MicMasked<Wt>>::Vector(
+    VectorSpecialInitializerOne)
+    : d(HV::one())
+{
+}
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::MicMasked<Wt>>::Vector(
     VectorSpecialInitializerIndexesFromZero)
-    : d(LoadHelper<Vector<T, VectorAbi::Mic>>::load(MIC::IndexesFromZeroHelper<T>(),
-                                                    Aligned))
+    : d(LoadHelper<Vector<T, VectorAbi::MicMasked<Wt>>>::load(
+          MIC::IndexesFromZeroHelper<T>(), Aligned))
 {
 }
 
@@ -136,34 +146,38 @@ Vc_ALWAYS_INLINE MIC::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
 }
 
 // loads {{{1
-template <typename T>
+template <typename T, int Wt>
 template <typename U, typename Flags, typename>
-Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::load(const U *x, Flags flags)
+Vc_INTRINSIC void Vector<T, VectorAbi::MicMasked<Wt>>::load(const U *x, Flags flags)
 {
     Common::handleLoadPrefetches(x, flags);
-    d.v() = LoadHelper<Vector<T, VectorAbi::Mic>>::load(x, flags);
+    d.v() = LoadHelper<Vector<T, VectorAbi::MicMasked<Wt>>>::load(x, flags);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // zeroing {{{1
-template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::setZero()
+template<typename T, int Wt> Vc_INTRINSIC void Vector<T, VectorAbi::MicMasked<Wt>>::setZero()
 {
     data() = HV::zero();
 }
-template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::setZero(MaskArgument k)
+template <typename T, int Wt>
+Vc_INTRINSIC void Vector<T, VectorAbi::MicMasked<Wt>>::setZero(MaskArgument k)
 {
     data() = MIC::_xor(data(), k.data(), data(), data());
 }
-template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::setZeroInverted(MaskArgument k)
+template <typename T, int Wt>
+Vc_INTRINSIC void Vector<T, VectorAbi::MicMasked<Wt>>::setZeroInverted(MaskArgument k)
 {
     data() = MIC::_xor(data(), (!k).data(), data(), data());
 }
 
-template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::setQnan()
+template <typename T, int Wt>
+Vc_INTRINSIC void Vector<T, VectorAbi::MicMasked<Wt>>::setQnan()
 {
     data() = MIC::allone<VectorType>();
 }
-template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::setQnan(MaskArgument k)
+template <typename T, int Wt>
+Vc_INTRINSIC void Vector<T, VectorAbi::MicMasked<Wt>>::setQnan(MaskArgument k)
 {
     data() = MIC::mask_mov(data(), k.data(), MIC::allone<VectorType>());
 }
@@ -307,7 +321,9 @@ template<typename Parent, typename T> Vc_INTRINSIC void StoreMixin<Parent, T>::s
 }  // namespace MIC
 
 // negation {{{1
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::operator-() const
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::MicMasked<Wt>>
+    Vector<T, VectorAbi::MicMasked<Wt>>::operator-() const
 {
     return Zero() - *this;
 }
@@ -320,13 +336,15 @@ template<> Vc_ALWAYS_INLINE Vc_PURE MIC::float_v MIC::float_v::operator-() const
     return MIC::_xor(d.v(), MIC::mic_cast<VectorType>(MIC::_set1(0x80000000u)));
 }
 // horizontal ops {{{1
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::partialSum() const
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::MicMasked<Wt>>
+Vector<T, VectorAbi::MicMasked<Wt>>::partialSum() const
 {
     //   a    b    c    d    e    f    g    h
     // +      a    b    c    d    e    f    g    -> a ab bc  cd   de    ef     fg      gh
     // +           a    ab   bc   cd   de   ef   -> a ab abc abcd bcde  cdef   defg    efgh
     // +                     a    ab   abc  abcd -> a ab abc abcd abcde abcdef abcdefg abcdefgh
-    Vector<T, VectorAbi::Mic> tmp = *this;
+    Vector<T, VectorAbi::MicMasked<Wt>> tmp = *this;
     if (Size >  1) tmp += tmp.shifted(-1);
     if (Size >  2) tmp += tmp.shifted(-2);
     if (Size >  4) tmp += tmp.shifted(-4);
@@ -334,7 +352,9 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> Vector<T, Vector
     if (Size > 16) tmp += tmp.shifted(-16);
     return tmp;
 }
-template<typename T> inline typename Vector<T, VectorAbi::Mic>::EntryType Vector<T, VectorAbi::Mic>::min(MaskArgument m) const
+template <typename T, int Wt>
+inline typename Vector<T, VectorAbi::MicMasked<Wt>>::EntryType
+Vector<T, VectorAbi::MicMasked<Wt>>::min(MaskArgument m) const
 {
     return _mm512_mask_reduce_min_epi32(m.data(), data());
 }
@@ -346,7 +366,9 @@ template<> inline double Vector<double>::min(MaskArgument m) const
 {
     return _mm512_mask_reduce_min_pd(m.data(), data());
 }
-template<typename T> inline typename Vector<T, VectorAbi::Mic>::EntryType Vector<T, VectorAbi::Mic>::max(MaskArgument m) const
+template <typename T, int Wt>
+inline typename Vector<T, VectorAbi::MicMasked<Wt>>::EntryType
+Vector<T, VectorAbi::MicMasked<Wt>>::max(MaskArgument m) const
 {
     return _mm512_mask_reduce_max_epi32(m.data(), data());
 }
@@ -358,7 +380,9 @@ template<> inline double Vector<double>::max(MaskArgument m) const
 {
     return _mm512_mask_reduce_max_pd(m.data(), data());
 }
-template<typename T> inline typename Vector<T, VectorAbi::Mic>::EntryType Vector<T, VectorAbi::Mic>::product(MaskArgument m) const
+template <typename T, int Wt>
+inline typename Vector<T, VectorAbi::MicMasked<Wt>>::EntryType
+Vector<T, VectorAbi::MicMasked<Wt>>::product(MaskArgument m) const
 {
     return _mm512_mask_reduce_mul_epi32(m.data(), data());
 }
@@ -370,7 +394,9 @@ template<> inline double Vector<double>::product(MaskArgument m) const
 {
     return _mm512_mask_reduce_mul_pd(m.data(), data());
 }
-template<typename T> inline typename Vector<T, VectorAbi::Mic>::EntryType Vector<T, VectorAbi::Mic>::sum(MaskArgument m) const
+template <typename T, int Wt>
+inline typename Vector<T, VectorAbi::MicMasked<Wt>>::EntryType
+Vector<T, VectorAbi::MicMasked<Wt>>::sum(MaskArgument m) const
 {
     return _mm512_mask_reduce_add_epi32(m.data(), data());
 }
@@ -445,8 +471,20 @@ template<> Vc_ALWAYS_INLINE    MIC::int_v    MIC::int_v::operator>>(   MIC::int_
 template<> Vc_ALWAYS_INLINE   MIC::uint_v   MIC::uint_v::operator>>(  MIC::uint_v::AsArg x) const { return _mm512_srlv_epi32(d.v(), x.d.v()); }
 template<> Vc_ALWAYS_INLINE  MIC::short_v  MIC::short_v::operator>>( MIC::short_v::AsArg x) const { return _mm512_srav_epi32(d.v(), x.d.v()); }
 template<> Vc_ALWAYS_INLINE MIC::ushort_v MIC::ushort_v::operator>>(MIC::ushort_v::AsArg x) const { return _mm512_srlv_epi32(d.v(), x.d.v()); }
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator<<=(AsArg x) { return *this = *this << x; }
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator>>=(AsArg x) { return *this = *this >> x; }
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::MicMasked<Wt>> &
+    Vector<T, VectorAbi::MicMasked<Wt>>::
+    operator<<=(AsArg x)
+{
+    return *this = *this << x;
+}
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::MicMasked<Wt>> &
+    Vector<T, VectorAbi::MicMasked<Wt>>::
+    operator>>=(AsArg x)
+{
+    return *this = *this >> x;
+}
 
 template<> Vc_ALWAYS_INLINE    MIC::int_v    MIC::int_v::operator<<(unsigned int x) const { return _mm512_slli_epi32(d.v(), x); }
 template<> Vc_ALWAYS_INLINE   MIC::uint_v   MIC::uint_v::operator<<(unsigned int x) const { return _mm512_slli_epi32(d.v(), x); }
@@ -460,9 +498,20 @@ template<> Vc_ALWAYS_INLINE  MIC::short_v  MIC::short_v::operator>>(unsigned int
 template<> Vc_ALWAYS_INLINE MIC::ushort_v MIC::ushort_v::operator>>(unsigned int x) const { return _mm512_srli_epi32(d.v(), x); }
 template<> Vc_ALWAYS_INLINE  MIC::schar_v  MIC::schar_v::operator>>(unsigned int x) const { return _mm512_srai_epi32(d.v(), x); }
 template<> Vc_ALWAYS_INLINE  MIC::uchar_v  MIC::uchar_v::operator>>(unsigned int x) const { return _mm512_srli_epi32(d.v(), x); }
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator<<=(unsigned int x) { return *this = *this << x; }
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator>>=(unsigned int x) { return *this = *this >> x; }
-
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::MicMasked<Wt>> &
+    Vector<T, VectorAbi::MicMasked<Wt>>::
+    operator<<=(unsigned int x)
+{
+    return *this = *this << x;
+}
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::MicMasked<Wt>> &
+    Vector<T, VectorAbi::MicMasked<Wt>>::
+    operator>>=(unsigned int x)
+{
+    return *this = *this >> x;
+}
 
 // this specialization is required because overflow is well defined (mod 2^16) for unsigned short,
 // but a / b is not independent of the high bits (in contrast to mul, add, and sub)
@@ -478,8 +527,9 @@ template<> MIC::ushort_v MIC::ushort_v::operator/(MIC::ushort_v::AsArg x) const
         MIC::_and(d.v(), MIC::_set1(0xffff)), MIC::_and(x.d.v(), MIC::_set1(0xffff))));
 }
 // subscript operators ([]){{{1
-template <typename T>
-Vc_INTRINSIC auto Vector<T, VectorAbi::Mic>::operator[](size_t index) -> decltype(d.ref(0)) &
+template <typename T, int Wt>
+Vc_INTRINSIC auto Vector<T, VectorAbi::MicMasked<Wt>>::operator[](size_t index)
+    -> decltype(d.ref(0)) &
 {
     return d.ref(index);
 }
@@ -490,8 +540,10 @@ template <> Vc_INTRINSIC auto MIC::ushort_v::operator[](size_t index) -> decltyp
     d.ref(index) &= 0xffffu;
     return d.ref(index);
 }
-template <typename T>
-Vc_INTRINSIC typename Vector<T, VectorAbi::Mic>::EntryType Vector<T, VectorAbi::Mic>::operator[](size_t index) const
+template <typename T, int Wt>
+Vc_INTRINSIC typename Vector<T, VectorAbi::MicMasked<Wt>>::EntryType
+    Vector<T, VectorAbi::MicMasked<Wt>>::
+    operator[](size_t index) const
 {
     return d.m(index);
 }
@@ -543,36 +595,38 @@ Vc_ALWAYS_INLINE
 } // anonymous namespace
 
 // gathers {{{1
-template <typename T>
+template <typename T, int Wt>
 template <typename MT, typename IT>
-Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::Mic>::gatherImplementation(const MT *mem, IT &&indexes)
+Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::MicMasked<Wt>>::gatherImplementation(
+    const MT *mem, IT &&indexes)
 {
     d.v() = MicIntrinsics::gather(ensureVector(std::forward<IT>(indexes)), mem,
                                   UpDownC<MT>());
 }
 
-template <typename T>
+template <typename T, int Wt>
 template <typename MT, typename IT>
-Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::Mic>::gatherImplementation(const MT *mem, IT &&indexes,
-                                                          MaskArgument mask)
+Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::MicMasked<Wt>>::gatherImplementation(
+    const MT *mem, IT &&indexes, MaskArgument mask)
 {
     d.v() = MicIntrinsics::gather(
         d.v(), mask.data(), ensureVector(std::forward<IT>(indexes)), mem, UpDownC<MT>());
 }
 
 // scatters {{{1
-template <typename T>
+template <typename T, int Wt>
 template <typename MT, typename IT>
-Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &&indexes) const
+Vc_INTRINSIC void Vector<T, VectorAbi::MicMasked<Wt>>::scatterImplementation(
+    MT *mem, IT &&indexes) const
 {
     const auto v = std::is_same<T, ushort>::value ? (*this & 0xffff).data() : d.v();
     MicIntrinsics::scatter(mem, ensureVector(std::forward<IT>(indexes)), v, UpDownC<MT>(),
                            sizeof(MT));
 }
-template <typename T>
+template <typename T, int Wt>
 template <typename MT, typename IT>
-Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &&indexes,
-                                                   MaskArgument mask) const
+Vc_INTRINSIC void Vector<T, VectorAbi::MicMasked<Wt>>::scatterImplementation(
+    MT *mem, IT &&indexes, MaskArgument mask) const
 {
     const auto v = std::is_same<T, ushort>::value ? (*this & 0xffff).data() : d.v();
     MicIntrinsics::scatter(mask.data(), mem, ensureVector(std::forward<IT>(indexes)),
@@ -580,7 +634,9 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &
 }
 
 // exponent {{{1
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::exponent() const
+template <typename T, int Wt>
+Vc_INTRINSIC Vector<T, VectorAbi::MicMasked<Wt>>
+Vector<T, VectorAbi::MicMasked<Wt>>::exponent() const
 {
     Vc_ASSERT((*this >= Zero()).isFull());
     return _mm512_getexp_ps(d.v());
@@ -601,7 +657,9 @@ static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
     MIC::uint_v(MIC::_xor((state0 * 0xdeece66du + 11).data(), _mm512_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
 }
 
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::Random()
+template <typename T, int Wt>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::MicMasked<Wt>>
+Vector<T, VectorAbi::MicMasked<Wt>>::Random()
 {
     Vector<unsigned int> state0, state1;
     _doRandomStep(state0, state1);
@@ -609,9 +667,9 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> Vector<T, Vector
         // short and ushort vectors would hold values that are outside of their range
         // for ushort this doesn't matter because overflow behavior is defined in the compare
         // operators
-        return state0.reinterpretCast<Vector<T, VectorAbi::Mic>>() >> 16;
+        return state0.reinterpretCast<Vector<T, VectorAbi::MicMasked<Wt>>>() >> 16;
     }
-    return state0.reinterpretCast<Vector<T, VectorAbi::Mic> >();
+    return state0.reinterpretCast<Vector<T, VectorAbi::MicMasked<Wt>> >();
 }
 
 template<> Vc_ALWAYS_INLINE Vector<float> Vector<float>::Random()
@@ -765,12 +823,16 @@ template<> struct VectorShift<64, 16>/*{{{*/
     }
 };/*}}}*/
 } // anonymous namespace
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::shifted(int amount) const
+template <typename T, int Wt>
+Vc_INTRINSIC Vector<T, VectorAbi::MicMasked<Wt>>
+Vector<T, VectorAbi::MicMasked<Wt>>::shifted(int amount) const
 {
     typedef VectorShift<sizeof(VectorType), Size> VS;
     return _cast(VS::shifted(MIC::mic_cast<typename VS::VectorType>(d.v()), amount));
 }
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::shifted(int amount, Vector shiftIn) const
+template <typename T, int Wt>
+Vc_INTRINSIC Vector<T, VectorAbi::MicMasked<Wt>>
+Vector<T, VectorAbi::MicMasked<Wt>>::shifted(int amount, Vector shiftIn) const
 {
     typedef VectorShift<sizeof(VectorType), Size> VS;
     return _cast(VS::shifted(MIC::mic_cast<typename VS::VectorType>(d.v()), amount,
@@ -825,15 +887,18 @@ template<> struct VectorRotate<64, 16>/*{{{*/
     }
 };/*}}}*/
 } // anonymous namespace
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::rotated(int amount) const
+template <typename T, int Wt>
+Vc_INTRINSIC Vector<T, VectorAbi::MicMasked<Wt>>
+Vector<T, VectorAbi::MicMasked<Wt>>::rotated(int amount) const
 {
     typedef VectorRotate<sizeof(VectorType), Size> VR;
     return _cast(VR::rotated(MIC::mic_cast<typename VR::VectorType>(d.v()), amount));
 }
 // interleaveLow/-High {{{1
-template <typename T>
-Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveLow(
-    Vector<T, VectorAbi::Mic> x) const
+template <typename T, int Wt>
+Vc_INTRINSIC Vector<T, VectorAbi::MicMasked<Wt>>
+Vector<T, VectorAbi::MicMasked<Wt>>::interleaveLow(
+    Vector<T, VectorAbi::MicMasked<Wt>> x) const
 {
     using namespace MIC;
     __m512i lo = mic_cast<__m512i>(d.v());
@@ -845,9 +910,10 @@ Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveLow(
     hi = _mm512_mask_swizzle_epi32(hi, 0xf0f0, hi, _MM_SWIZ_REG_BADC);
     return mic_cast<VectorType>(_mm512_mask_shuffle_epi32(lo, 0xaaaa, hi, _MM_PERM_BBAA));
 }
-template <typename T>
-Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveHigh(
-    Vector<T, VectorAbi::Mic> x) const
+template <typename T, int Wt>
+Vc_INTRINSIC Vector<T, VectorAbi::MicMasked<Wt>>
+Vector<T, VectorAbi::MicMasked<Wt>>::interleaveHigh(
+    Vector<T, VectorAbi::MicMasked<Wt>> x) const
 {
     using namespace MIC;
     __m512i lo = mic_cast<__m512i>(d.v());
@@ -889,8 +955,8 @@ Vector<double, VectorAbi::Mic>::interleaveHigh(Vector<double, VectorAbi::Mic> x)
 }
 
 // reversed {{{1
-template <typename T>
-Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::reversed() const
+template <typename T, int Wt>
+Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::MicMasked<Wt>> Vector<T, VectorAbi::MicMasked<Wt>>::reversed() const
 {
     return MIC::mic_cast<VectorType>(MIC::permute128(
         _mm512_shuffle_epi32(MIC::mic_cast<__m512i>(data()), _MM_PERM_ABCD),
