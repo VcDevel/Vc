@@ -59,7 +59,7 @@ template<typename V> struct InterleaveImpl {
     }
     static inline __m512i fixup(const SimdArray<int, 8> &i)
     {
-        return _mm512_mask_load_epi32(_mm512_setzero_epi32(), 0x00ff, &i);
+        return _mm512_mask_loadunpacklo_epi32(_mm512_setzero_epi32(), 0x00ff, &i);
     }
     template <size_t StructSize>
     static inline __m512i fixup(const SuccessiveEntries<StructSize> &i)
