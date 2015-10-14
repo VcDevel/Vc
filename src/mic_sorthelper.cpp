@@ -234,7 +234,8 @@ template<> __m512i SortHelper<short>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
 
 template<> __m512i SortHelper<unsigned short>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
 {
-    return SortHelper<unsigned int>::sort(in);
+    return SortHelper<unsigned int>::sort(
+        _mm512_and_epi32(_mm512_set1_epi32(0xffff), in));
 }
 
 template<> __m512 SortHelper<float>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
