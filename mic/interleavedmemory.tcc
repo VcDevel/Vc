@@ -53,26 +53,25 @@ template<typename V> struct InterleaveImpl {
     typedef typename V::VectorEntryType VT;
     typedef MIC::UpDownConversion<VT, T> UpDownC;
 
-    template <int N> static inline __m512i fixup(const SimdArray<int, 16> &i)
+    static inline __m512i fixup(const SimdArray<int, 16> &i)
     {
-        return (internal_data(i) * N).data();
+        return internal_data(i).data();
     }
-    template <int N> static inline __m512i fixup(const SimdArray<int, 8> &i)
+    static inline __m512i fixup(const SimdArray<int, 8> &i)
     {
-        return (MIC::int_v(_mm512_mask_load_epi32(_mm512_setzero_epi32(), 0x00ff, &i)) *
-                N).data();
+        return _mm512_mask_load_epi32(_mm512_setzero_epi32(), 0x00ff, &i);
     }
-    template <int N, size_t StructSize>
+    template <size_t StructSize>
     static inline __m512i fixup(const SuccessiveEntries<StructSize> &i)
     {
-        return ((int_v::IndexesFromZero() + i.data()) * N).data();
+        return (int_v::IndexesFromZero() * StructSize + i.data()).data();
     }
 
     // deinterleave 2 {{{1
     template <typename I>
     static inline std::tuple<V, V> deinterleave(I &&indexes, const T *const data, Size2)
     {
-        const auto i = fixup<2>(std::forward<I>(indexes));
+        const auto i = fixup(std::forward<I>(indexes));
         return std::tuple<V, V>{gather(i, data + 0, UpDownC()),
                                 gather(i, data + 1, UpDownC())};
     }
@@ -81,7 +80,7 @@ template<typename V> struct InterleaveImpl {
     template <typename I>
     static inline std::tuple<V, V, V> deinterleave(I &&indexes, const T *const data, Size3)
     {
-        const auto i = fixup<3>(std::forward<I>(indexes));
+        const auto i = fixup(std::forward<I>(indexes));
         return std::tuple<V, V, V>{gather(i, data + 0, UpDownC()),
                                    gather(i, data + 1, UpDownC()),
                                    gather(i, data + 2, UpDownC())};
@@ -92,7 +91,7 @@ template<typename V> struct InterleaveImpl {
     static inline std::tuple<V, V, V, V> deinterleave(I &&indexes, const T *const data,
                                                       Size4)
     {
-        const auto i = fixup<4>(std::forward<I>(indexes));
+        const auto i = fixup(std::forward<I>(indexes));
         return std::tuple<V, V, V, V>{
             gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
             gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC())};
@@ -103,7 +102,7 @@ template<typename V> struct InterleaveImpl {
     static inline std::tuple<V, V, V, V, V> deinterleave(I &&indexes, const T *const data,
                                                          Size5)
     {
-        const auto i = fixup<5>(std::forward<I>(indexes));
+        const auto i = fixup(std::forward<I>(indexes));
         return std::tuple<V, V, V, V, V>{
             gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
             gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC()),
@@ -115,7 +114,7 @@ template<typename V> struct InterleaveImpl {
     static inline std::tuple<V, V, V, V, V, V> deinterleave(I &&indexes,
                                                             const T *const data, Size6)
     {
-        const auto i = fixup<6>(std::forward<I>(indexes));
+        const auto i = fixup(std::forward<I>(indexes));
         return std::tuple<V, V, V, V, V, V>{
             gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
             gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC()),
@@ -127,7 +126,7 @@ template<typename V> struct InterleaveImpl {
     static inline std::tuple<V, V, V, V, V, V, V> deinterleave(I &&indexes,
                                                                const T *const data, Size7)
     {
-        const auto i = fixup<7>(std::forward<I>(indexes));
+        const auto i = fixup(std::forward<I>(indexes));
         return std::tuple<V, V, V, V, V, V, V>{
             gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
             gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC()),
@@ -141,7 +140,7 @@ template<typename V> struct InterleaveImpl {
                                                                   const T *const data,
                                                                   Size8)
     {
-        const auto i = fixup<8>(std::forward<I>(indexes));
+        const auto i = fixup(std::forward<I>(indexes));
         return std::tuple<V, V, V, V, V, V, V, V>{
             gather(i, data + 0, UpDownC()), gather(i, data + 1, UpDownC()),
             gather(i, data + 2, UpDownC()), gather(i, data + 3, UpDownC()),
@@ -153,7 +152,7 @@ template<typename V> struct InterleaveImpl {
     template <typename I>
     static inline void interleave(I &&indexes, T *const data, V v0, V v1)
     {
-        const auto i = fixup<2>(indexes);
+        const auto i = fixup(indexes);
         scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
         scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
     }
@@ -162,7 +161,7 @@ template<typename V> struct InterleaveImpl {
     template <typename I>
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2)
     {
-        const auto i = fixup<3>(indexes);
+        const auto i = fixup(indexes);
         scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
         scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
         scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
@@ -172,7 +171,7 @@ template<typename V> struct InterleaveImpl {
     template <typename I>
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3)
     {
-        const auto i = fixup<4>(indexes);
+        const auto i = fixup(indexes);
         scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
         scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
         scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
@@ -184,7 +183,7 @@ template<typename V> struct InterleaveImpl {
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
                                   V v4)
     {
-        const auto i = fixup<5>(indexes);
+        const auto i = fixup(indexes);
         scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
         scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
         scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
@@ -197,7 +196,7 @@ template<typename V> struct InterleaveImpl {
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
                                   V v4, V v5)
     {
-        const auto i = fixup<6>(indexes);
+        const auto i = fixup(indexes);
         scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
         scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
         scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
@@ -211,7 +210,7 @@ template<typename V> struct InterleaveImpl {
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
                                   V v4, V v5, V v6)
     {
-        const auto i = fixup<7>(indexes);
+        const auto i = fixup(indexes);
         scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
         scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
         scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
@@ -226,7 +225,7 @@ template<typename V> struct InterleaveImpl {
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
                                   V v4, V v5, V v6, V v7)
     {
-        const auto i = fixup<8>(indexes);
+        const auto i = fixup(indexes);
         scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
         scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
         scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));

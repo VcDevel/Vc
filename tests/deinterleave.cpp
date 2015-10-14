@@ -202,8 +202,8 @@ template<typename V, size_t StructSize, bool Random> struct TestDeinterleaveGath
     {
         V a, b;
         tie(a, b) = data_v[indexes];
-        COMPARE(a, reference + 0) << "N = 2";
-        COMPARE(b, reference + 1) << "N = 2";
+        COMPARE(a, reference + 0) << "N = 2, indexes: " << indexes;
+        COMPARE(b, reference + 1) << "N = 2, indexes: " << indexes;
     }
 };
 
@@ -232,7 +232,14 @@ TEST_TYPES(Param, testDeinterleaveGather,
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
     typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
-    const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(), 1024 * 1024 / sizeof(S));
+    const size_t N = std::min(
+        // indexes * StructSize may not overflow for signed integral types. That would be
+        // UB and MIC::short_v will happily use it for more performance.
+        std::is_integral<T>::value && std::is_signed<T>::value
+            ? static_cast<size_t>(std::numeric_limits<T>::max()) / StructSize
+            : std::numeric_limits<size_t>::max(),
+        std::min(static_cast<size_t>(std::numeric_limits<typename I::EntryType>::max()),
+                 1024u * 1024u / sizeof(S)));
     const size_t NMask = createNMask(N);
 
     S *data = Vc::malloc<S, Vc::AlignOnVector>(N);
