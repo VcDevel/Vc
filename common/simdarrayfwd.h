@@ -78,7 +78,7 @@ using select_best_vector_type =
                                           Vc::Scalar::Vector<T>
 #elif defined(Vc_IMPL_MIC)
                                           Vc::MIC::Vector<T>,
-                                          Vc::Scalar::Vector<T>
+                                          Vc::Vector<T, Vc::VectorAbi::MicMasked<N>>
 #endif
                                           >::type;
 //}}}

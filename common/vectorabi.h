@@ -36,7 +36,8 @@ namespace VectorAbi
 struct Scalar {};
 struct Sse {};
 struct Avx {};
-struct Mic {};
+template <int Wt> struct MicMasked {};
+using Mic = MicMasked<-1>;
 template <typename T>
 using Avx1Abi = typename std::conditional<std::is_integral<T>::value, VectorAbi::Sse,
                                           VectorAbi::Avx>::type;
