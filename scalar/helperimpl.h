@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2010-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2010-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -33,33 +33,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Internal
+namespace Detail
 {
-
-template<> struct HelperImpl<Vc::ScalarImpl>
+template <typename T, typename M, typename A>
+Vc_ALWAYS_INLINE void deinterleave(Scalar::Vector<T> &a, Scalar::Vector<T> &b,
+                                   const M *mem, A)
 {
-    template<typename V, typename M, typename A>
-    static Vc_ALWAYS_INLINE void deinterleave(V &a, V &b, const M *mem, A)
-    {
-        a = mem[0];
-        b = mem[1];
-    }
+    a = mem[0];
+    b = mem[1];
+}
 
-    static Vc_ALWAYS_INLINE void prefetchForOneRead(const void *) {}
-    static Vc_ALWAYS_INLINE void prefetchForModify(const void *) {}
-    static Vc_ALWAYS_INLINE void prefetchClose(const void *) {}
-    static Vc_ALWAYS_INLINE void prefetchMid(const void *) {}
-    static Vc_ALWAYS_INLINE void prefetchFar(const void *) {}
-
-    template<Vc::MallocAlignment A>
-    static Vc_ALWAYS_INLINE_L void *malloc(size_t n) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
-};
-
-}  // namespace Internal
+Vc_ALWAYS_INLINE void prefetchForOneRead(const void *, VectorAbi::Scalar) {}
+Vc_ALWAYS_INLINE void prefetchForModify(const void *, VectorAbi::Scalar) {}
+Vc_ALWAYS_INLINE void prefetchClose(const void *, VectorAbi::Scalar) {}
+Vc_ALWAYS_INLINE void prefetchMid(const void *, VectorAbi::Scalar) {}
+Vc_ALWAYS_INLINE void prefetchFar(const void *, VectorAbi::Scalar) {}
+}  // namespace Detail
 }  // namespace Vc
 
-#include "helperimpl.tcc"
 #include "undomacros.h"
 
 #endif // VC_SCALAR_DEINTERLEAVE_H

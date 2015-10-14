@@ -1,6 +1,6 @@
 /*  This file is part of the Vc library.
 
-    Copyright (C) 2009-2011 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2015 Matthias Kretz <kretz@kde.org>
 
     Vc is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,9 +20,9 @@
 #ifndef VECIO_H
 #define VECIO_H
 
-#include "vector.h"
-#include "SimdArray"
-#include "Memory"
+#include "common/types.h"
+#include "common/simdarrayfwd.h"
+#include "common/memoryfwd.h"
 #include <iostream>
 
 #if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
@@ -82,12 +82,9 @@ inline std::ostream &operator<<(std::ostream &out, const Type &c)
 }
 }  // namespace AnsiColor
 
-template <typename V>
-inline enable_if<Traits::is_simd_vector<V>::value, std::ostream &> operator<<(
-    std::ostream &out,
-    const V &v)
+template <typename T, typename Abi>
+inline std::ostream &operator<<(std::ostream &out, const Vc::Vector<T, Abi> &v)
 {
-    using T = typename V::EntryType;
     using TT = typename std::conditional<std::is_same<T, char>::value ||
                                              std::is_same<T, unsigned char>::value ||
                                              std::is_same<T, signed char>::value,
@@ -102,10 +99,8 @@ inline enable_if<Traits::is_simd_vector<V>::value, std::ostream &> operator<<(
     return out;
 }
 
-template <typename M>
-inline enable_if<Traits::is_simd_mask<M>::value, std::ostream &> operator<<(
-    std::ostream &out,
-    const M &m)
+template <typename T, typename Abi>
+inline std::ostream &operator<<(std::ostream &out, const Vc::Mask<T, Abi> &m)
 {
     out << AnsiColor::blue << "m[";
     for (unsigned int i = 0; i < m.Size; ++i) {
@@ -121,27 +116,6 @@ inline enable_if<Traits::is_simd_mask<M>::value, std::ostream &> operator<<(
     out << AnsiColor::blue << "]" << AnsiColor::normal;
     return out;
 }
-
-namespace Scalar
-{
-using Vc::operator<<;
-}  // namespace Scalar
-namespace SSE
-{
-using Vc::operator<<;
-}  // namespace Scalar
-namespace AVX
-{
-using Vc::operator<<;
-}  // namespace Scalar
-namespace AVX2
-{
-using Vc::operator<<;
-}  // namespace Scalar
-namespace MIC
-{
-using Vc::operator<<;
-}  // namespace Scalar
 
 namespace Common
 {

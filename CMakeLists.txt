@@ -89,16 +89,6 @@ else()
             memory_scalar
             )
       endif()
-   elseif(Vc_COMPILER_IS_INTEL)
-      if("${Vc_ICC_VERSION}" VERSION_LESS "14.1.0")
-         UserWarning("ICC does not support initializer lists (C++11). The following tests are therefore disabled:
-         stlcontainer_avx stlcontainer_scalar stlcontainer_sse.")
-         list(APPEND disabled_targets
-            stlcontainer_avx
-            stlcontainer_scalar
-            stlcontainer_sse
-            )
-      endif()
    elseif(Vc_COMPILER_IS_MSVC)
       if(MSVC_VERSION LESS 1700)
          # MSVC before 2012 has a broken std::vector::resize implementation. STL + Vc code will probably not compile.
@@ -108,25 +98,18 @@ else()
             stlcontainer_avx
             )
       endif()
-   endif()
-   if(MIC_NATIVE_FOUND)
-      if("${Vc_MIC_ICC_VERSION}" VERSION_LESS "15.1.0")
-         UserWarning("ICC for MIC uses an incompatible STL. Disabling simdize_mic.")
-         list(APPEND disabled_targets
-            simdize_mic
-            )
-      elseif("${Vc_MIC_ICC_VERSION}" VERSION_LESS "14.1.0")
-         UserWarning("ICC does not support initializer lists (C++11). Additionally it fails to optimize properly and therefore cannot provide an immediate parameter to an instrinsic. The following tests are therefore disabled:
-         deinterleave_mic
-         stlcontainer_mic.")
-         list(APPEND disabled_targets
-            stlcontainer_mic
-            deinterleave_mic
-            )
-      endif()
       # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
       # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
       AddCompilerFlag("/wd4290")
+   endif()
+   if(MIC_NATIVE_FOUND)
+      if("${Vc_MIC_ICC_VERSION}" VERSION_LESS "16.1.0")
+         UserWarning("ICC for MIC uses an incompatible STL. Disabling simdize_mic.")
+         list(APPEND disabled_targets
+            simdize_mic
+            example_simdize_mic
+            )
+      endif()
    endif()
 endif()
 
@@ -145,17 +128,12 @@ if(CUDA_FOUND)
        string(CONCAT CMAKE_CXX_FLAGS "-Wno-attributes " ${CMAKE_CXX_FLAGS})
 endif(CUDA_FOUND)
 
-# FIXME: This needs cleanup for the next major Vc version
-# Vc_DEFINITIONS contains Vc_ARCHITECTURE_FLAGS which should not be unconditionally added to all targets.
-# Instead, Vc_DEFINITIONS - Vc_ARCHITECTURE_FLAGS is added unconditionally.
-# Vc_ARCHITECTURE_FLAGS then must be added per target.
-string(REPLACE "${Vc_ARCHITECTURE_FLAGS}" "" _flags "${Vc_DEFINITIONS}")
-add_definitions("${_flags}")
+add_definitions(${Vc_DEFINITIONS})
+add_compile_options(${Vc_COMPILE_FLAGS})
 
 if(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
-   set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -fp-model source")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fp-model source")
+   AddCompilerFlag("-fp-model source")
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
@@ -213,15 +191,15 @@ if(NOT ROOT_RELEASE)
       add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
 
       list(APPEND _srcs src/cpuid.cpp src/support_x86.cpp)
-      vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)# AVX2)
-      vc_compile_for_all_implementations(_srcs src/avx_sorthelper.cpp ONLY AVX)
-      #vc_compile_for_all_implementations(_srcs src/avx2_sorthelper.cpp ONLY AVX2)
+      vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)# AVX2+FMA+BMI2)
+      vc_compile_for_all_implementations(_srcs src/sse_sorthelper.cpp ONLY SSE2 SSE4_1 AVX AVX2+FMA+BMI2)
+      vc_compile_for_all_implementations(_srcs src/avx_sorthelper.cpp ONLY AVX AVX2+FMA+BMI2)
    else()
       message(FATAL_ERROR "Unsupported target architecture '${CMAKE_SYSTEM_PROCESSOR}'. No support_???.cpp file exists for this architecture.")
    endif()
 
    add_library(Vc STATIC ${_srcs})
-   add_target_property(Vc COMPILE_FLAGS ${libvc_compile_flags})
+   set_property(TARGET Vc APPEND PROPERTY COMPILE_OPTIONS ${libvc_compile_flags})
    add_target_property(Vc LABELS "other")
    if(XCODE)
       # TODO: document what this does and why it has no counterpart in the non-XCODE logic

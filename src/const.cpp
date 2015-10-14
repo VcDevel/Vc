@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2013 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -49,13 +49,13 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
-    using Internal::doubleConstant;
-    using Internal::floatConstant;
+    using Detail::doubleConstant;
+    using Detail::floatConstant;
 
     // cacheline 1
-    V_ALIGN(64) extern const unsigned int   _IndexesFromZero32[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    V_ALIGN(16) extern const unsigned short _IndexesFromZero16[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    V_ALIGN(16) extern const unsigned char  _IndexesFromZero8 [16]= { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    V_ALIGN(64) extern const unsigned int   _IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    V_ALIGN(16) extern const unsigned short _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    V_ALIGN(16) extern const unsigned char  _IndexesFromZero8 [32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
 
     template<> const double c_trig<double>::data[] = {
     // cacheline 4
@@ -301,8 +301,8 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
-    using Internal::doubleConstant;
-    using Internal::floatConstant;
+    using Detail::doubleConstant;
+    using Detail::floatConstant;
 
     // cacheline 1
     V_ALIGN(64) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };

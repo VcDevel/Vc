@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -86,16 +86,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc__NO_NOEXCEPT 1
 #endif
 
-#if defined(VC_ICC)
-#define __POPCNT__
-#if VC_ICC <= 20130728
-// ICC doesn't know noexcept, alignof, and move ctors
-#define Vc__NO_NOEXCEPT 1
-#ifndef alignof
-#define alignof(x) __alignof(x)
-#endif
-#endif
-#endif
 
 #ifdef VC_GCC
 #  if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
@@ -133,6 +123,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define POPCNT 0x00000008
 #define SSE4a  0x00000010
 #define FMA    0x00000020
+#define BMI2   0x00000040
 
 #define IMPL_MASK 0xFFF00000
 #define EXT_MASK  0x000FFFFF
@@ -157,6 +148,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  ifndef __SSE2__
 #   define __SSE2__ 1
 #  endif
+# endif
+#endif
+
+#if defined VC_ICC && !defined __POPCNT__
+# if defined __SSE4_2__ || defined __SSE4A__
+#  define __POPCNT__ 1
 # endif
 #endif
 
@@ -217,6 +214,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    endif
 #    ifdef __FMA__
 #      define VC_IMPL_FMA 1
+#    endif
+#    ifdef __BMI2__
+#      define VC_IMPL_BMI2 1
 #    endif
 #  endif
 
@@ -303,6 +303,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  if (VC_IMPL & FMA)
 #    define VC_IMPL_FMA 1
 #  endif
+#  if (VC_IMPL & BMI2)
+#    define VC_IMPL_BMI2 1
+#  endif
 #  undef VC_IMPL
 
 #endif // VC_IMPL
@@ -356,6 +359,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef POPCNT
 #undef SSE4a
 #undef FMA
+#undef BMI2
 
 #undef IMPL_MASK
 #undef EXT_MASK
@@ -478,6 +482,10 @@ enum ExtraInstructions { // TODO: make enum class of uint32_t
     Sse4aInstructions     = 0x10000,
     //! Support for FMA instructions (3 operand variant)
     FmaInstructions       = 0x20000,
+    //! Support for ternary instruction coding (VEX)
+    VexInstructions       = 0x40000,
+    //! Support for BMI2 instructions
+    Bmi2Instructions      = 0x80000,
     // PclmulqdqInstructions,
     // AesInstructions,
     // RdrandInstructions
@@ -518,26 +526,28 @@ enum ExtraInstructions { // TODO: make enum class of uint32_t
 #define Vc_IMPL_NAMESPACE SSE
 #endif
 
-template<unsigned int Features> struct ImplementationT { enum _Value {
-    Value = Features,
-    Implementation = Features & ImplementationMask,
-    ExtraInstructions = Features & ExtraInstructionsMask
-}; };
-
+template <unsigned int Features> struct ImplementationT {
+    static constexpr Implementation current()
+    {
+        return static_cast<Implementation>(Features & ImplementationMask);
+    }
+    static constexpr bool is(Implementation impl)
+    {
+        return static_cast<unsigned int>(impl) == current();
+    }
+    static constexpr bool is_between(Implementation low, Implementation high)
+    {
+        return static_cast<unsigned int>(low) <= current() &&
+               static_cast<unsigned int>(high) >= current();
+    }
+    static constexpr bool runs_on(unsigned int extraInstructions)
+    {
+        return (extraInstructions & Features & ExtraInstructionsMask) ==
+               (Features & ExtraInstructionsMask);
+    }
+};
 typedef ImplementationT<
-#ifdef VC_USE_VEX_CODING
-    // everything will use VEX coding, so the system has to support AVX even if VC_IMPL_AVX is not set
-    // but AFAIU the OSXSAVE and xgetbv tests do not have to positive (unless, of course, the
-    // compiler decides to insert an instruction that uses the full register size - so better be on
-    // the safe side)
-#ifdef VC_IMPL_AVX2
-    AVX2Impl
-#else
-    AVXImpl
-#endif
-#else
     VC_IMPL
-#endif
 #ifdef VC_IMPL_SSE4a
     + Vc::Sse4aInstructions
 #ifdef VC_IMPL_XOP
@@ -553,22 +563,17 @@ typedef ImplementationT<
 #ifdef VC_IMPL_FMA
     + Vc::FmaInstructions
 #endif
+#ifdef VC_IMPL_BMI2
+    + Vc::Bmi2Instructions
+#endif
+#ifdef VC_USE_VEX_CODING
+    + Vc::VexInstructions
+#endif
     > CurrentImplementation;
-
-namespace Error
-{
-    template<typename L, typename R> struct invalid_operands_of_types {};
-} // namespace Error
 
 #endif // DOXYGEN
 
-namespace Internal
-{
-    // TODO (refactor): get rid of this abstraction:
-    template<Implementation Impl> struct HelperImpl;
-    typedef HelperImpl<VC_IMPL> Helper;
-}
-}
+}  // namespace Vc
 
 // TODO: clean up headers (e.g. math.h) to remove the following:
 #ifndef VC_ENABLE_FLOAT_BIT_OPERATORS

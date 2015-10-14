@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Internal
+namespace Detail
 {
 
 template <int exponent> constexpr double exponentToFloat(std::integral_constant<bool, true>);
@@ -87,7 +87,7 @@ template <int sign, unsigned int mantissa, int exponent> constexpr float floatCo
            sign;
 }
 
-}  // namespace Internal
+}  // namespace Detail
 }  // namespace Vc
 
 #endif // VC_COMMON_CONST_H

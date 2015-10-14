@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -735,7 +735,7 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         }
 };
 
-namespace Internal2
+namespace Detail
 {
 template <typename V,
           typename ParentL,
@@ -762,7 +762,7 @@ inline void copyVectors(MemoryBase<V, ParentL, Dimension, RowMemoryL> &dst,
         dst.vector(i) = src.vector(i);
     }
 }
-} // namespace Internal2
+} // namespace Detail
 
 }  // namespace Common
 }  // namespace Vc

@@ -54,6 +54,11 @@ macro(vc_determine_compiler)
          set(Vc_COMPILER_IS_INTEL true)
          exec_program(${CMAKE_C_COMPILER} ARGS -dumpversion OUTPUT_VARIABLE Vc_ICC_VERSION)
          message(STATUS "Detected Compiler: Intel ${Vc_ICC_VERSION}")
+
+         # break build with too old clang as early as possible.
+         if(Vc_ICC_VERSION VERSION_LESS 15.0.3)
+            message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least ICC 15.0.3")
+         endif()
       elseif(CMAKE_CXX_COMPILER MATCHES "(opencc|openCC)$")
          set(Vc_COMPILER_IS_OPEN64 true)
          message(STATUS "Detected Compiler: Open64")
@@ -62,6 +67,11 @@ macro(vc_determine_compiler)
          exec_program(${CMAKE_CXX_COMPILER} ARGS --version OUTPUT_VARIABLE Vc_CLANG_VERSION)
          string(REGEX MATCH "[0-9]+\\.[0-9]+(\\.[0-9]+)?" Vc_CLANG_VERSION "${Vc_CLANG_VERSION}")
          message(STATUS "Detected Compiler: Clang ${Vc_CLANG_VERSION}")
+
+         # break build with too old clang as early as possible.
+         if(Vc_CLANG_VERSION VERSION_LESS 3.4)
+            message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least clang 3.4")
+         endif()
       elseif(MSVC)
          set(Vc_COMPILER_IS_MSVC true)
          message(STATUS "Detected Compiler: MSVC ${MSVC_VERSION}")
@@ -99,8 +109,8 @@ macro(vc_determine_compiler)
          endif()
 
          # break build with too old GCC as early as possible.
-         if(Vc_GCC_VERSION VERSION_LESS 4.8.0)
-            message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.8.0")
+         if(Vc_GCC_VERSION VERSION_LESS 4.8.1)
+            message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least GCC 4.8.1")
          endif()
       else()
          message(WARNING "Untested/-supported Compiler (${CMAKE_CXX_COMPILER}) for use with Vc.\nPlease fill out the missing parts in the CMake scripts and submit a patch to http://code.compeng.uni-frankfurt.de/projects/vc")
@@ -174,7 +184,7 @@ macro(vc_check_fpmath)
    if(NOT Vc_VOID_PTR_IS_64BIT)
       exec_program(${CMAKE_C_COMPILER} ARGS -dumpmachine OUTPUT_VARIABLE _gcc_machine)
       if(_gcc_machine MATCHES "[x34567]86" OR _gcc_machine STREQUAL "mingw32")
-         vc_add_compiler_flag(Vc_DEFINITIONS "-mfpmath=sse")
+         vc_add_compiler_flag(Vc_COMPILE_FLAGS "-mfpmath=sse")
       endif()
    endif()
 endmacro()
@@ -242,8 +252,12 @@ macro(vc_set_preferred_compiler_flags)
             AddCompilerFlag("${_f}" CXX_FLAGS CMAKE_CXX_FLAGS)
          endforeach()
       endif()
-      vc_add_compiler_flag(Vc_DEFINITIONS "-Wabi")
-      vc_add_compiler_flag(Vc_DEFINITIONS "-fabi-version=0") # ABI version 4 is required to make __m128 and __m256 appear as different types. 0 should give us the latest version.
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-Wabi")
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-fabi-version=0") # ABI version 4 is required to make __m128 and __m256 appear as different types. 0 should give us the latest version.
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-fabi-compat-version=0") # GCC 5 introduced this switch
+      # and defaults it to 2 if -fabi-version is 0. But in that case the bug -fabi-version=0 is
+      # supposed to fix resurfaces. For now just make sure that it compiles and links.
+      # Bug report pending.
 
       if(_add_buildtype_flags)
          vc_set_gnu_buildtype_flags()
@@ -262,25 +276,25 @@ macro(vc_set_preferred_compiler_flags)
          set(CMAKE_C_FLAGS_RELEASE          "${CMAKE_C_FLAGS_RELEASE} -O3")
          set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG -O3")
       endif()
-      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 913")
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 913")
       # Disable warning #13211 "Immediate parameter to intrinsic call too large". (sse/vector.tcc rotated(int))
-      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 13211")
-      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 61") # warning #61: integer operation result is out of range
-      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 173") # warning #173: floating-point value does not fit in required integral type
-      vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 264") # warning #264: floating-point value does not fit in required floating-point type
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 13211")
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 61") # warning #61: integer operation result is out of range
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 173") # warning #173: floating-point value does not fit in required integral type
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 264") # warning #264: floating-point value does not fit in required floating-point type
       if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
          set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
          if(ENABLE_STRICT_ALIASING)
-            AddCompilerFlag(-ansi-alias CXX_FLAGS Vc_DEFINITIONS)
+            AddCompilerFlag(-ansi-alias CXX_FLAGS Vc_COMPILE_FLAGS)
          else()
-            AddCompilerFlag(-no-ansi-alias CXX_FLAGS Vc_DEFINITIONS)
+            AddCompilerFlag(-no-ansi-alias CXX_FLAGS Vc_COMPILE_FLAGS)
          endif()
       endif()
 
       if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "")
          # disable warning #2928: the __GXX_EXPERIMENTAL_CXX0X__ macro is disabled when using GNU version 4.6 with the c++0x option
          # this warning just adds noise about problems in the compiler - but I'm only interested in seeing problems in Vc
-         vc_add_compiler_flag(Vc_DEFINITIONS "-diag-disable 2928")
+         vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 2928")
       endif()
 
       # Intel doesn't implement the XOP or FMA4 intrinsics
@@ -322,33 +336,22 @@ macro(vc_set_preferred_compiler_flags)
       #                                              Clang                                             #
       ##################################################################################################
 
-      # for now I don't know of any arguments I want to pass. -march and stuff is tried by OptimizeForArchitecture...
-      if(Vc_CLANG_VERSION VERSION_EQUAL "3.0")
-         UserWarning("Clang 3.0 has serious issues to compile Vc code and will most likely crash when trying to do so.\nPlease update to a recent clang version.")
-      elseif(Vc_CLANG_VERSION VERSION_LESS "3.3")
-         # the LLVM assembler gets FMAs wrong (bug 15040)
-         vc_add_compiler_flag(Vc_DEFINITIONS "-no-integrated-as")
-      else()
-         vc_add_compiler_flag(Vc_DEFINITIONS "-integrated-as")
-         if(Vc_CLANG_VERSION VERSION_GREATER "3.5.99" AND Vc_CLANG_VERSION VERSION_LESS 3.7.0)
-            UserWarning("Clang 3.6 has serious issues with AVX code generation, frequently losing 50% of the data. AVX is therefore disabled.\nPlease update to a more recent clang version.\n")
-            set(Vc_AVX_INTRINSICS_BROKEN true)
-            set(Vc_AVX2_INTRINSICS_BROKEN true)
-         endif()
+      if(Vc_CLANG_VERSION VERSION_GREATER "3.5.99" AND Vc_CLANG_VERSION VERSION_LESS 3.7.0)
+         UserWarning("Clang 3.6 has serious issues with AVX code generation, frequently losing 50% of the data. AVX is therefore disabled.\nPlease update to a more recent clang version.\n")
+         set(Vc_AVX_INTRINSICS_BROKEN true)
+         set(Vc_AVX2_INTRINSICS_BROKEN true)
       endif()
 
       # disable these warnings because clang shows them for function overloads that were discarded via SFINAE
-      vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-local-type-template-args")
-      vc_add_compiler_flag(Vc_DEFINITIONS "-Wno-unnamed-type-template-args")
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-Wno-local-type-template-args")
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-Wno-unnamed-type-template-args")
    endif()
 
    if(NOT Vc_COMPILER_IS_MSVC)
-      vc_add_compiler_flag(Vc_DEFINITIONS "-ffp-contract=fast")
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-ffp-contract=fast")
    endif()
 
    OptimizeForArchitecture()
-   set(Vc_DEFINITIONS "${Vc_ARCHITECTURE_FLAGS} ${Vc_DEFINITIONS}")
-
    set(VC_IMPL "auto" CACHE STRING "Force the Vc implementation globally to the selected instruction set. \"auto\" lets Vc use the best available instructions.")
    if(NOT VC_IMPL STREQUAL "auto")
       set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVC_IMPL=${VC_IMPL}")
@@ -469,6 +472,11 @@ macro(vc_compile_for_all_implementations _srcs _src)
       _vc_compile_one_implementation(${_srcs} AVX+FMA "-mavx -mfma"  ""    "")
    endif()
    if(NOT Vc_AVX2_INTRINSICS_BROKEN)
-      _vc_compile_one_implementation(${_srcs} AVX2 "-xCORE-AVX2"  "-mavx2"    "/arch:AVX2")
+      # The necessary list is not clear to me yet. At this point I'll only consider Intel CPUs, in
+      # which case AVX2 implies the availability of FMA and BMI2
+      #_vc_compile_one_implementation(${_srcs} AVX2  "-mavx2")
+      #_vc_compile_one_implementation(${_srcs} AVX2+BMI2 "-mavx2 -mbmi2")
+      _vc_compile_one_implementation(${_srcs} AVX2+FMA+BMI2 "-xCORE-AVX2" "-mavx2 -mfma -mbmi2" "/arch:AVX2")
+      #_vc_compile_one_implementation(${_srcs} AVX2+FMA "-mavx2 -mfma")
    endif()
 endmacro()

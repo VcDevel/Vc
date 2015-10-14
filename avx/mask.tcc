@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2011-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,92 +28,79 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Detail
-{
-// mask_to_int/*{{{*/
-template<> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(__m256i k)
-{
-    return movemask(AVX::avx_cast<__m256d>(k));
-}
-template<> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(__m256i k)
-{
-    return movemask(AVX::avx_cast<__m256>(k));
-}
-/*}}}*/
-// mask_store/*{{{*/
-template<size_t> Vc_INTRINSIC void mask_store(__m256i k, bool *mem);
-template<> Vc_INTRINSIC void mask_store<4>(__m256i k, bool *mem)
-{
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) =
-        (_mm_movemask_epi8(AVX::lo128(k)) | (_mm_movemask_epi8(AVX::hi128(k)) << 16)) & 0x01010101;
-}
-template<> Vc_INTRINSIC void mask_store<8>(__m256i k, bool *mem)
-{
-    const auto k2 = _mm_srli_epi16(_mm_packs_epi16(AVX::lo128(k), AVX::hi128(k)), 15);
-    const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
-#ifdef __x86_64__
-    *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
-#else
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k3);
-    *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
-#endif
-}
-/*}}}*/
-// mask_load/*{{{*/
-template<typename R, size_t> Vc_INTRINSIC R mask_load(const bool *mem);
-template<> Vc_INTRINSIC __m128 mask_load<__m128, 8>(const bool *mem)
-{
-    __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
-    return AVX::avx_cast<__m128>(_mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
-}
-template<> Vc_INTRINSIC __m128 mask_load<__m128, 4>(const bool *mem)
-{
-    __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int32_t *>(mem));
-    k = _mm_unpacklo_epi8(k, k);
-    k = _mm_unpacklo_epi16(k, k);
-    k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
-    return AVX::avx_cast<__m128>(k);
-}
-template<> Vc_INTRINSIC __m256 mask_load<__m256, 8>(const bool *mem)
-{
-    __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
-    k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
-
-    return AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k)));
-}
-template<> Vc_INTRINSIC __m256 mask_load<__m256, 4>(const bool *mem)
-{
-    __m128i k = AVX::avx_cast<__m128i>(_mm_and_ps(_mm_set1_ps(*reinterpret_cast<const float *>(mem)),
-                AVX::avx_cast<__m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))
-                ));
-    k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
-    return AVX::avx_cast<__m256>(AVX::concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
-}
-/*}}}*/
-
-} // namespace Detail
-
 // store {{{1
-template<typename T> Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::store(bool *mem) const
+template <typename T>
+template <typename Flags>
+Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::store(bool *mem, Flags f) const
 {
-    Detail::mask_store<Size>(dataI(), mem);
+    Detail::mask_store<Size>(dataI(), mem, f);
 }
+
 // load {{{1
-template<typename T> Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::load(const bool *mem)
+template <typename T>
+template <typename Flags>
+Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::load(const bool *mem, Flags f)
 {
-    d.v() = AVX::avx_cast<VectorType>(Detail::mask_load<VectorTypeF, Size>(mem));
+    d.v() = AVX::avx_cast<VectorType>(Detail::mask_load<VectorTypeF, Size>(mem, f));
 }
+
 // operator[] {{{1
 template<typename T> Vc_INTRINSIC Vc_PURE bool Mask<T, VectorAbi::Avx>::operator[](size_t index) const { return toInt() & (1 << index); }
+#ifdef VC_IMPL_AVX2
 template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
 template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+#endif
 // operator== {{{1
 template <> Vc_INTRINSIC Vc_PURE bool AVX2::double_m::operator==(const AVX2::double_m &rhs) const
 { return Detail::movemask(dataD()) == Detail::movemask(rhs.dataD()); }
+#ifdef VC_IMPL_AVX2
 template <> Vc_INTRINSIC Vc_PURE bool AVX2::short_m::operator==(const AVX2::short_m &rhs) const
 { return Detail::movemask(dataI()) == Detail::movemask(rhs.dataI()); }
 template <> Vc_INTRINSIC Vc_PURE bool AVX2::ushort_m::operator==(const AVX2::ushort_m &rhs) const
 { return Detail::movemask(dataI()) == Detail::movemask(rhs.dataI()); }
+#endif
+
+// isFull, isNotEmpty, isEmpty, isMix specializations{{{1
+template <typename T> Vc_INTRINSIC bool Mask<T, VectorAbi::Avx>::isFull() const {
+    if (sizeof(T) == 8) {
+        return 0 != Detail::testc(dataD(), Detail::allone<VectorTypeD>());
+    } else if (sizeof(T) == 4) {
+        return 0 != Detail::testc(data (), Detail::allone<VectorTypeF>());
+    } else {
+        return 0 != Detail::testc(dataI(), Detail::allone<VectorTypeI>());
+    }
+}
+
+template <typename T> Vc_INTRINSIC bool Mask<T, VectorAbi::Avx>::isNotEmpty() const {
+    if (sizeof(T) == 8) {
+        return 0 == Detail::testz(dataD(), dataD());
+    } else if (sizeof(T) == 4) {
+        return 0 == Detail::testz(data (), data ());
+    } else {
+        return 0 == Detail::testz(dataI(), dataI());
+    }
+}
+
+template <typename T> Vc_INTRINSIC bool Mask<T, VectorAbi::Avx>::isEmpty() const {
+    if (sizeof(T) == 8) {
+        return 0 != Detail::testz(dataD(), dataD());
+    } else if (sizeof(T) == 4) {
+        return 0 != Detail::testz(data (), data ());
+    } else {
+        return 0 != Detail::testz(dataI(), dataI());
+    }
+}
+
+template <typename T> Vc_INTRINSIC bool Mask<T, VectorAbi::Avx>::isMix() const {
+    if (sizeof(T) == 8) {
+        return 0 != Detail::testnzc(dataD(), Detail::allone<VectorTypeD>());
+    } else if (sizeof(T) == 4) {
+        return 0 != Detail::testnzc(data (), Detail::allone<VectorTypeF>());
+    } else {
+        return 0 != Detail::testnzc(dataI(), Detail::allone<VectorTypeI>());
+    }
+}
+
 // generate {{{1
 template <typename M, typename G>
 Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 32>)
@@ -131,18 +118,16 @@ Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 32>)
                              gen(6) ? 0xfffffffful : 0, gen(7) ? 0xfffffffful : 0);
 }
 template <typename M, typename G>
-Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 4 + 16>)
+Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 16 + 32>)
 {
-    return _mm_setr_epi32(gen(0) ? 0xffffffffu : 0, gen(1) ? 0xffffffffu : 0,
-                          gen(2) ? 0xffffffffu : 0, gen(3) ? 0xffffffffu : 0);
-}
-template <typename M, typename G>
-Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 8 + 16>)
-{
-    return _mm_setr_epi16(gen(0) ? 0xffffu : 0, gen(1) ? 0xffffu : 0,
-                          gen(2) ? 0xffffu : 0, gen(3) ? 0xffffu : 0,
-                          gen(4) ? 0xffffu : 0, gen(5) ? 0xffffu : 0,
-                          gen(6) ? 0xffffu : 0, gen(7) ? 0xffffu : 0);
+    return _mm256_setr_epi16(gen(0) ? 0xfffful : 0, gen(1) ? 0xfffful : 0,
+                             gen(2) ? 0xfffful : 0, gen(3) ? 0xfffful : 0,
+                             gen(4) ? 0xfffful : 0, gen(5) ? 0xfffful : 0,
+                             gen(6) ? 0xfffful : 0, gen(7) ? 0xfffful : 0,
+                             gen(8) ? 0xfffful : 0, gen(9) ? 0xfffful : 0,
+                             gen(10) ? 0xfffful : 0, gen(11) ? 0xfffful : 0,
+                             gen(12) ? 0xfffful : 0, gen(13) ? 0xfffful : 0,
+                             gen(14) ? 0xfffful : 0, gen(15) ? 0xfffful : 0);
 }
 template <typename T>
 template <typename G>

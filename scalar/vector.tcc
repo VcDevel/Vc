@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2011-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../common/data.h"
 #include "../common/where.h"
-#include "iterators.h"
 #include "../common/transpose.h"
 #include "macros.h"
 namespace Vc_VERSIONED_NAMESPACE

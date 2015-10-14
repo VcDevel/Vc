@@ -44,7 +44,11 @@
 set(MIC_FOUND false)
 set(MIC_NATIVE_FOUND false)
 
-file(GLOB _intel_dirs "/opt/intel/composer_xe_*")
+file(GLOB _intel_dirs "/opt/intel/compilers_and_libraries_*/linux")
+if ("${_intel_dirs}" STREQUAL "")
+  file(GLOB _intel_dirs "/opt/intel/composer_xe_*")
+endif()
+
 list(SORT _intel_dirs)
 list(REVERSE _intel_dirs)
 find_path(MIC_SDK_DIR bin/intel64_mic/icpc PATHS
@@ -113,6 +117,7 @@ find_path(MIC_TARGET_TOOLS_DIR bin/x86_64-k1om-linux-ar HINTS
    )
 find_program(MIC_AR x86_64-k1om-linux-ar PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
 find_program(MIC_RANLIB x86_64-k1om-linux-ranlib PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
+find_program(MIC_OBJCOPY x86_64-k1om-linux-objcopy PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
 find_program(MIC_NATIVELOAD micnativeloadex PATHS ENV PATH)
 mark_as_advanced(MIC_AR MIC_RANLIB MIC_NATIVELOAD)
 
@@ -149,6 +154,8 @@ if(MIC_NATIVE_FOUND OR MIC_OFFLOAD_FOUND)
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 61") # warning #61: integer operation result is out of range
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 173") # warning #173: floating-point value does not fit in required integral type
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 264") # warning #264: floating-point value does not fit in required floating-point type
+
+   list(APPEND CMAKE_MIC_CXX_FLAGS "-fp-model source") # fix IEEE FP comliance
 
    set(VC_MIC_CXX_FLAGS "")
 
@@ -230,7 +237,7 @@ if(MIC_NATIVE_FOUND)
             set(_type ${_arg})
          elseif(_arg STREQUAL "EXCLUDE_FROM_ALL")
             set(_all)
-         elseif(_arg STREQUAL "COMPILE_FLAGS")
+         elseif(_arg STREQUAL "COMPILE_FLAGS" OR _arg STREQUAL "COMPILE_OPTIONS")
             set(_state 1)
          elseif(_arg STREQUAL "LINK_LIBRARIES")
             set(_state 2)
@@ -239,7 +246,7 @@ if(MIC_NATIVE_FOUND)
          elseif(_state EQUAL 0) # SOURCES
             set(_srcs ${_srcs} "${_arg}")
          elseif(_state EQUAL 1) # COMPILE_FLAGS
-            list(APPEND _cflags "${_arg}")
+            list(APPEND _cflags ${_arg})
          elseif(_state EQUAL 2) # LINK_LIBRARIES
             get_filename_component(_lpath "${_arg}" PATH)
             get_filename_component(_lname "${_arg}" NAME)
@@ -294,6 +301,8 @@ ${MIC_RANLIB} ${_output}
       set(_libTargets)
       set(_dump_asm false)
       set(_exec_output_name "${_target}")
+      set(_objects)
+      set(_objectsStr)
       foreach(_arg ${ARGN})
          if(_arg STREQUAL "EXCLUDE_FROM_ALL")
             set(_all)
@@ -305,6 +314,8 @@ ${MIC_RANLIB} ${_output}
             set(_state 3)
          elseif(_arg STREQUAL "SOURCES")
             set(_state 0)
+         elseif(_arg STREQUAL "OBJECTS")
+            set(_state 4)
          elseif(_arg STREQUAL "DUMP_ASM")
             set(_dump_asm true)
          elseif(_state EQUAL 0) # SOURCES
@@ -312,10 +323,17 @@ ${MIC_RANLIB} ${_output}
          elseif(_state EQUAL 1) # COMPILE_FLAGS
             set(_cflags ${_cflags} "${_arg}")
          elseif(_state EQUAL 2) # LINK_LIBRARIES
-            get_target_property(_tmp "${_arg}" OUTPUT_NAME)
-            if(_tmp)
-               set(_libs ${_libs} "${_tmp}")
-               set(_libTargets ${_libTargets} "${_tmp}" "${_arg}")
+            if(TARGET ${_arg})
+               get_target_property(_tmp "${_arg}" OUTPUT_NAME)
+               if(_tmp)
+                  set(_libs ${_libs} "${_tmp}")
+                  set(_libTargets ${_libTargets} "${_tmp}" "${_arg}")
+               else()
+                  set(_libs ${_libs} "${_arg}")
+                  if(EXISTS "${_arg}")
+                     set(_libTargets ${_libTargets} "${_arg}")
+                  endif()
+               endif()
             else()
                set(_libs ${_libs} "${_arg}")
                if(EXISTS "${_arg}")
@@ -324,10 +342,11 @@ ${MIC_RANLIB} ${_output}
             endif()
          elseif(_state EQUAL 3) # OUTPUT_NAME
             set(_exec_output_name "${_arg}")
+         elseif(_state EQUAL 4) # OBJECTS
+            set(_objects ${_objects} "${_arg}")
+            set(_objectsStr "${_objectsStr} \"${_arg}\"")
          endif()
       endforeach()
-      set(_objects)
-      set(_objectsStr)
       foreach(_src ${_srcs})
          _mic_add_object("${_target}" "${_src}" _obj ${_cflags})
          set(_objects ${_objects} "${_obj}")

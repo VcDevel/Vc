@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <common/macros.h>
 /*}}}*/
 using namespace Vc;
-using Vc::Internal::floatConstant;
-using Vc::Internal::doubleConstant;
+using Vc::Detail::floatConstant;
+using Vc::Detail::doubleConstant;
 
 #define REAL_TYPES (float_v, double_v)
 
@@ -60,13 +60,14 @@ template<typename T> struct Reference
 template<typename T> struct Array
 {
     size_t size;
-    T *data;
+    const T *data;
     Array() : size(0), data(0) {}
+    Array(size_t s, const T *p) : size(s), data(p) {}
 };
 template<typename T> struct StaticDeleter
 {
-    T *ptr;
-    StaticDeleter(T *p) : ptr(p) {}
+    const T *ptr;
+    StaticDeleter(const T *p) : ptr(p) {}
     ~StaticDeleter() { delete[] ptr; }
 };
 
@@ -89,46 +90,193 @@ template<> inline const char *filename<double, Log2  >() { return "reference-log
 template<> inline const char *filename<float , Log10 >() { return "reference-log10-sp.dat"; }
 template<> inline const char *filename<double, Log10 >() { return "reference-log10-dp.dat"; }
 
+#ifdef VC_IMPL_MIC
+extern "C" {
+extern const Reference<double> _binary_reference_acos_dp_dat_start;
+extern const Reference<double> _binary_reference_acos_dp_dat_end;
+extern const Reference<float > _binary_reference_acos_sp_dat_start;
+extern const Reference<float > _binary_reference_acos_sp_dat_end;
+extern const Reference<double> _binary_reference_asin_dp_dat_start;
+extern const Reference<double> _binary_reference_asin_dp_dat_end;
+extern const Reference<float > _binary_reference_asin_sp_dat_start;
+extern const Reference<float > _binary_reference_asin_sp_dat_end;
+extern const Reference<double> _binary_reference_atan_dp_dat_start;
+extern const Reference<double> _binary_reference_atan_dp_dat_end;
+extern const Reference<float > _binary_reference_atan_sp_dat_start;
+extern const Reference<float > _binary_reference_atan_sp_dat_end;
+extern const Reference<double> _binary_reference_ln_dp_dat_start;
+extern const Reference<double> _binary_reference_ln_dp_dat_end;
+extern const Reference<float > _binary_reference_ln_sp_dat_start;
+extern const Reference<float > _binary_reference_ln_sp_dat_end;
+extern const Reference<double> _binary_reference_log10_dp_dat_start;
+extern const Reference<double> _binary_reference_log10_dp_dat_end;
+extern const Reference<float > _binary_reference_log10_sp_dat_start;
+extern const Reference<float > _binary_reference_log10_sp_dat_end;
+extern const Reference<double> _binary_reference_log2_dp_dat_start;
+extern const Reference<double> _binary_reference_log2_dp_dat_end;
+extern const Reference<float > _binary_reference_log2_sp_dat_start;
+extern const Reference<float > _binary_reference_log2_sp_dat_end;
+extern const SincosReference<double> _binary_reference_sincos_dp_dat_start;
+extern const SincosReference<double> _binary_reference_sincos_dp_dat_end;
+extern const SincosReference<float > _binary_reference_sincos_sp_dat_start;
+extern const SincosReference<float > _binary_reference_sincos_sp_dat_end;
+}
+
+template <typename T, Function F>
+inline std::pair<const T *, const T *> binary();
+template <>
+inline std::pair<const SincosReference<float> *, const SincosReference<float> *>
+binary<SincosReference<float>, Sincos>()
+{
+    return std::make_pair(&_binary_reference_sincos_sp_dat_start,
+                          &_binary_reference_sincos_sp_dat_end);
+}
+template <>
+inline std::pair<const SincosReference<double> *,
+                 const SincosReference<double> *>
+binary<SincosReference<double>, Sincos>()
+{
+    return std::make_pair(&_binary_reference_sincos_dp_dat_start,
+                          &_binary_reference_sincos_dp_dat_end);
+}
+template <>
+inline std::pair<const Reference<float> *, const Reference<float> *>
+binary<Reference<float>, Atan>()
+{
+    return std::make_pair(&_binary_reference_atan_sp_dat_start,
+                          &_binary_reference_atan_sp_dat_end);
+}
+template <>
+inline std::pair<const Reference<double> *, const Reference<double> *>
+binary<Reference<double>, Atan>()
+{
+    return std::make_pair(&_binary_reference_atan_dp_dat_start,
+                          &_binary_reference_atan_dp_dat_end);
+}
+template <>
+inline std::pair<const Reference<float> *, const Reference<float> *>
+binary<Reference<float>, Asin>()
+{
+    return std::make_pair(&_binary_reference_asin_sp_dat_start,
+                          &_binary_reference_asin_sp_dat_end);
+}
+template <>
+inline std::pair<const Reference<double> *, const Reference<double> *>
+binary<Reference<double>, Asin>()
+{
+    return std::make_pair(&_binary_reference_asin_dp_dat_start,
+                          &_binary_reference_asin_dp_dat_end);
+}
+template <>
+inline std::pair<const Reference<float> *, const Reference<float> *>
+binary<Reference<float>, Acos>()
+{
+    return std::make_pair(&_binary_reference_acos_sp_dat_start,
+                          &_binary_reference_acos_sp_dat_end);
+}
+template <>
+inline std::pair<const Reference<double> *, const Reference<double> *>
+binary<Reference<double>, Acos>()
+{
+    return std::make_pair(&_binary_reference_acos_dp_dat_start,
+                          &_binary_reference_acos_dp_dat_end);
+}
+template <>
+inline std::pair<const Reference<float> *, const Reference<float> *>
+binary<Reference<float>, Log>()
+{
+    return std::make_pair(&_binary_reference_ln_sp_dat_start,
+                          &_binary_reference_ln_sp_dat_end);
+}
+template <>
+inline std::pair<const Reference<double> *, const Reference<double> *>
+binary<Reference<double>, Log>()
+{
+    return std::make_pair(&_binary_reference_ln_dp_dat_start,
+                          &_binary_reference_ln_dp_dat_end);
+}
+template <>
+inline std::pair<const Reference<float> *, const Reference<float> *>
+binary<Reference<float>, Log2>()
+{
+    return std::make_pair(&_binary_reference_log2_sp_dat_start,
+                          &_binary_reference_log2_sp_dat_end);
+}
+template <>
+inline std::pair<const Reference<double> *, const Reference<double> *>
+binary<Reference<double>, Log2>()
+{
+    return std::make_pair(&_binary_reference_log2_dp_dat_start,
+                          &_binary_reference_log2_dp_dat_end);
+}
+template <>
+inline std::pair<const Reference<float> *, const Reference<float> *>
+binary<Reference<float>, Log10>()
+{
+    return std::make_pair(&_binary_reference_log10_sp_dat_start,
+                          &_binary_reference_log10_sp_dat_end);
+}
+template <>
+inline std::pair<const Reference<double> *, const Reference<double> *>
+binary<Reference<double>, Log10>()
+{
+    return std::make_pair(&_binary_reference_log10_dp_dat_start,
+                          &_binary_reference_log10_dp_dat_end);
+}
+#endif
+
 template<typename T>
 static Array<SincosReference<T> > sincosReference()
 {
+#ifdef VC_IMPL_MIC
+    const auto range = binary<SincosReference<T>, Sincos>();
+    return {range.second - range.first, range.first};
+#else
     static Array<SincosReference<T> > data;
     if (data.data == 0) {
-        FILE *file = fopen(filename<T, Sincos>(), "rb");
+        FILE *file = std::fopen(filename<T, Sincos>(), "rb");
         if (file) {
-            fseek(file, 0, SEEK_END);
-            const size_t size = ftell(file) / sizeof(SincosReference<T>);
-            rewind(file);
-            data.data = new SincosReference<T>[size];
+            std::fseek(file, 0, SEEK_END);
+            const size_t size = std::ftell(file) / sizeof(SincosReference<T>);
+            std::rewind(file);
+            auto mem = new SincosReference<T>[size];
             static StaticDeleter<SincosReference<T> > _cleanup(data.data);
-            data.size = fread(data.data, sizeof(SincosReference<T>), size, file);
-            fclose(file);
+            data.size = std::fread(mem, sizeof(SincosReference<T>), size, file);
+            data.data = mem;
+            std::fclose(file);
         } else {
             FAIL() << "the reference data " << filename<T, Sincos>() << " does not exist in the current working directory.";
         }
     }
     return data;
+#endif
 }
 
 template<typename T, Function Fun>
 static Array<Reference<T> > referenceData()
 {
+#ifdef VC_IMPL_MIC
+    const auto range = binary<Reference<T>, Fun>();
+    return {range.second - range.first, range.first};
+#else
     static Array<Reference<T> > data;
     if (data.data == 0) {
-        FILE *file = fopen(filename<T, Fun>(), "rb");
+        FILE *file = std::fopen(filename<T, Fun>(), "rb");
         if (file) {
-            fseek(file, 0, SEEK_END);
-            const size_t size = ftell(file) / sizeof(Reference<T>);
-            rewind(file);
-            data.data = new Reference<T>[size];
+            std::fseek(file, 0, SEEK_END);
+            const size_t size = std::ftell(file) / sizeof(Reference<T>);
+            std::rewind(file);
+            auto mem = new Reference<T>[size];
             static StaticDeleter<Reference<T> > _cleanup(data.data);
-            data.size = fread(data.data, sizeof(Reference<T>), size, file);
-            fclose(file);
+            data.size = std::fread(mem, sizeof(Reference<T>), size, file);
+            data.data = mem;
+            std::fclose(file);
         } else {
             FAIL() << "the reference data " << filename<T, Fun>() << " does not exist in the current working directory.";
         }
     }
     return data;
+#endif
 }
 
 template <typename T> struct Denormals { //{{{1
@@ -216,7 +364,11 @@ TEST_TYPES(V, testExp, REAL_TYPES) //{{{1
 
 TEST_TYPES(V, testLog, REAL_TYPES) //{{{1
 {
+#ifdef VC_IMPL_MIC
+    UnitTest::setFuzzyness<float>(2);
+#else
     UnitTest::setFuzzyness<float>(1);
+#endif
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -396,7 +548,11 @@ TEST_TYPES(V, testCos, REAL_TYPES) //{{{1
 TEST_TYPES(V, testAsin, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
+#ifdef VC_IMPL_MIC
+    UnitTest::setFuzzyness<float>(3);
+#else
     UnitTest::setFuzzyness<float>(2);
+#endif
     UnitTest::setFuzzyness<double>(36);
     Array<Reference<T> > reference = referenceData<T, Asin>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {

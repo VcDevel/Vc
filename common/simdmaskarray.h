@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,10 @@ namespace Vc_VERSIONED_NAMESPACE
 /// \addtogroup SimdArray
 /// @{
 
-template <typename T, std::size_t N, typename VectorType_> class SimdMaskArray<T, N, VectorType_, N>
+template <typename T, std::size_t N, typename VectorType_>
+class alignas(
+    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) & 127) +
+    1) SimdMaskArray<T, N, VectorType_, N>
 {
 public:
     using VectorType = VectorType_;
@@ -55,6 +58,7 @@ public:
 
     static constexpr std::size_t size() { return N; }
     static constexpr std::size_t Size = size();
+    static constexpr std::size_t MemoryAlignment = storage_type::MemoryAlignment;
     static_assert(Size == mask_type::Size, "size mismatch");
 
     using vectorentry_type = typename mask_type::VectorEntryType;
@@ -103,6 +107,15 @@ public:
         M k,
         enable_if<(Traits::is_simd_mask<M>::value && !Traits::isSimdMaskArray<M>::value &&
                    Traits::simd_vector_size<M>::value == Size)> = nullarg) Vc_INTRINSIC_R;
+
+    // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
+    template <typename M,
+              typename = enable_if<Traits::is_simd_mask<M>::value &&
+                                   !Traits::isSimdMaskArray<M>::value && M::size() == N>>
+    operator M() const
+    {
+        return simd_cast<M>(*this);
+    }
 
     // load/store (from/to bool arrays)
     template <typename Flags = DefaultLoadTag>
@@ -232,8 +245,13 @@ private:
 };
 
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::Size;
+template <typename T, std::size_t N, typename VectorType>
+constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::MemoryAlignment;
 
-template <typename T, std::size_t N, typename VectorType, std::size_t> class SimdMaskArray
+template <typename T, std::size_t N, typename VectorType, std::size_t>
+class alignas(
+    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType) / VectorType::size()) - 1) & 127) +
+    1) SimdMaskArray
 {
     static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
 
@@ -254,6 +272,10 @@ public:
     using mask_type = SimdMaskArray;
     static constexpr std::size_t size() { return N; }
     static constexpr std::size_t Size = size();
+    static constexpr std::size_t MemoryAlignment =
+        storage_type0::MemoryAlignment > storage_type1::MemoryAlignment
+            ? storage_type0::MemoryAlignment
+            : storage_type1::MemoryAlignment;
     static_assert(Size == mask_type::Size, "size mismatch");
 
     using vectorentry_type = typename storage_type0::VectorEntryType;
@@ -303,6 +325,15 @@ public:
                    Traits::simd_vector_size<M>::value == Size)> = nullarg)
         : data0(Split::lo(k)), data1(Split::hi(k))
     {
+    }
+
+    // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
+    template <typename M,
+              typename = enable_if<Traits::is_simd_mask<M>::value &&
+                                   !Traits::isSimdMaskArray<M>::value && M::size() == N>>
+    operator M() const
+    {
+        return simd_cast<M>(*this);
     }
 
     Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne::OEnum one)
@@ -511,6 +542,8 @@ private:
     storage_type1 data1;
 };
 template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::Size;
+template <typename T, std::size_t N, typename VectorType, std::size_t M>
+constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::MemoryAlignment;
 
 /// @}
 

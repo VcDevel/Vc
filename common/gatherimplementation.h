@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -105,17 +105,93 @@ Vc_ALWAYS_INLINE void executeGather(BitScanLoopT,
     */
 }
 
-#ifdef VC_IMPL_POPCNT
 template <typename V, typename MT, typename IT>
 Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     V &v,
                                     const MT *mem,
                                     const IT &indexes,
-                                    typename V::MaskArgument mask)
+                                    typename V::MaskArgument mask,
+                                    enable_if<V::size() == 16> = nullarg)
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
-    switch (_mm_popcnt_u32(bits)) {
+    switch (Vc::Detail::popcnt16(bits)) {
+    case 16:
+        v.gather(mem, indexes);
+        break;
+    case 15:
+        low = _bit_scan_forward(bits);
+        bits ^= 1 << low;
+        v[low] = mem[indexes[low]];
+    case 14:
+        high = _bit_scan_reverse(bits);
+        v[high] = mem[indexes[high]];
+        high = (1 << high);
+    case 13:
+        low = _bit_scan_forward(bits);
+        bits ^= high | (1 << low);
+        v[low] = mem[indexes[low]];
+    case 12:
+        high = _bit_scan_reverse(bits);
+        v[high] = mem[indexes[high]];
+        high = (1 << high);
+    case 11:
+        low = _bit_scan_forward(bits);
+        bits ^= high | (1 << low);
+        v[low] = mem[indexes[low]];
+    case 10:
+        high = _bit_scan_reverse(bits);
+        v[high] = mem[indexes[high]];
+        high = (1 << high);
+    case 9:
+        low = _bit_scan_forward(bits);
+        bits ^= high | (1 << low);
+        v[low] = mem[indexes[low]];
+    case 8:
+        high = _bit_scan_reverse(bits);
+        v[high] = mem[indexes[high]];
+        high = (1 << high);
+    case 7:
+        low = _bit_scan_forward(bits);
+        bits ^= high | (1 << low);
+        v[low] = mem[indexes[low]];
+    case 6:
+        high = _bit_scan_reverse(bits);
+        v[high] = mem[indexes[high]];
+        high = (1 << high);
+    case 5:
+        low = _bit_scan_forward(bits);
+        bits ^= high | (1 << low);
+        v[low] = mem[indexes[low]];
+    case 4:
+        high = _bit_scan_reverse(bits);
+        v[high] = mem[indexes[high]];
+        high = (1 << high);
+    case 3:
+        low = _bit_scan_forward(bits);
+        bits ^= high | (1 << low);
+        v[low] = mem[indexes[low]];
+    case 2:
+        high = _bit_scan_reverse(bits);
+        v[high] = mem[indexes[high]];
+    case 1:
+        low = _bit_scan_forward(bits);
+        v[low] = mem[indexes[low]];
+    case 0:
+        break;
+    }
+}
+template <typename V, typename MT, typename IT>
+Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
+                                    V &v,
+                                    const MT *mem,
+                                    const IT &indexes,
+                                    typename V::MaskArgument mask,
+                                    enable_if<V::size() == 8> = nullarg)
+{
+    unsigned int bits = mask.toInt();
+    unsigned int low, high = 0;
+    switch (Vc::Detail::popcnt8(bits)) {
     case 8:
         v.gather(mem, indexes);
         break;
@@ -149,7 +225,55 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
         break;
     }
 }
-#endif
+template <typename V, typename MT, typename IT>
+Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
+                                    V &v,
+                                    const MT *mem,
+                                    const IT &indexes,
+                                    typename V::MaskArgument mask,
+                                    enable_if<V::size() == 4> = nullarg)
+{
+    unsigned int bits = mask.toInt();
+    unsigned int low, high = 0;
+    switch (Vc::Detail::popcnt4(bits)) {
+    case 4:
+        v.gather(mem, indexes);
+        break;
+    case 3:
+        low = _bit_scan_forward(bits);
+        bits ^= 1 << low;
+        v[low] = mem[indexes[low]];
+    case 2:
+        high = _bit_scan_reverse(bits);
+        v[high] = mem[indexes[high]];
+    case 1:
+        low = _bit_scan_forward(bits);
+        v[low] = mem[indexes[low]];
+    case 0:
+        break;
+    }
+}
+template <typename V, typename MT, typename IT>
+Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
+                                    V &v,
+                                    const MT *mem,
+                                    const IT &indexes,
+                                    typename V::MaskArgument mask,
+                                    enable_if<V::size() == 2> = nullarg)
+{
+    unsigned int bits = mask.toInt();
+    unsigned int low;
+    switch (Vc::Detail::popcnt4(bits)) {
+    case 2:
+        v.gather(mem, indexes);
+        break;
+    case 1:
+        low = _bit_scan_forward(bits);
+        v[low] = mem[indexes[low]];
+    case 0:
+        break;
+    }
+}
 
 }  // namespace Common
 }  // namespace Vc

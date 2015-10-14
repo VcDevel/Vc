@@ -86,6 +86,8 @@ if(arch STREQUAL "linux")
    string(REPLACE " GNU/Linux" "" os_ident "${os_ident}")
    string(REPLACE "openSUSE" "Suse" os_ident "${os_ident}")
    string(STRIP "${os_ident}" os_ident)
+elseif(arch STREQUAL "darwin")
+   set(os_ident "OSX")
 else()
    set(os_ident "${arch}")
    string(REPLACE "Windows" "Win" os_ident "${os_ident}")
@@ -138,6 +140,11 @@ macro(extract_gnuc_compiler_info CXX)
    string(REPLACE "g++" "GCC" COMPILER_VERSION "${COMPILER_VERSION}")
    string(REPLACE ".exe" "" COMPILER_VERSION "${COMPILER_VERSION}")
    string(REPLACE " version" "" COMPILER_VERSION "${COMPILER_VERSION}")
+   if(COMPILER_VERSION MATCHES "based on LLVM ")
+      # e.g. "Apple LLVM version 6.0 (clang-600.0.57) (based on LLVM 3.5svn)"
+      string(REGEX REPLACE ".*based on LLVM" "clang" COMPILER_VERSION "${COMPILER_VERSION}")
+      string(REPLACE ")" "" COMPILER_VERSION "${COMPILER_VERSION}")
+   endif()
    string(REGEX REPLACE " \\([^()]*\\)" "" COMPILER_VERSION "${COMPILER_VERSION}")
    string(REGEX REPLACE " \\[.*\\]" "" COMPILER_VERSION "${COMPILER_VERSION}")
    string(REGEX REPLACE "GCC-[0-9](\\.[0-9])?" "GCC" COMPILER_VERSION "${COMPILER_VERSION}")
@@ -183,7 +190,7 @@ else()
    set(CXX "$ENV{CXX}")
    if(NOT CXX)
       unset(CXX)
-      find_program(CXX NAMES g++ clang++ icpc c++)
+      find_program(CXX NAMES c++ g++ clang++ icpc)
       if(NOT CXX)
          message(FATAL_ERROR "No C++ compiler found")
       endif()
@@ -196,7 +203,7 @@ endif()
 if(target_architecture)
    set(tmp ${target_architecture})
 else()
-   execute_process(COMMAND cmake -Darch=${arch} -P ${CTEST_SOURCE_DIRECTORY}/print_target_architecture.cmake OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE tmp ERROR_VARIABLE tmp)
+   execute_process(COMMAND cmake -Darch=${arch} -P ${CTEST_SOURCE_DIRECTORY}/print_target_architecture.cmake OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE tmp)
 endif()
 if(build_type STREQUAL "Release")
    set(build_type_short "Rel")
@@ -276,6 +283,12 @@ if(target_architecture)
    set(configure_options "${configure_options};-DTARGET_ARCHITECTURE=${target_architecture}")
 endif()
 
+if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[01234567]\\."
+      OR "${COMPILER_VERSION}" MATCHES "GCC 4.8.0"
+      OR "${COMPILER_VERSION}" MATCHES "clang 3\\.[0123]$")
+   message(FATAL_ERROR "Compiler too old for C++11 (${COMPILER_VERSION})")
+endif()
+
 macro(go)
    # SubProjects currently don't improve the overview but rather make the dashboard more cumbersume to navigate
    #set_property(GLOBAL PROPERTY SubProject "master: ${compiler}")
@@ -288,23 +301,18 @@ macro(go)
          ctest_submit(PARTS Update)
       endif()
    endif()
+
+   # enter the following section for Continuous builds only if the CTEST_UPDATE above found changes
    if(NOT ${dashboard_model} STREQUAL "Continuous" OR res GREATER 0)
-      if("${COMPILER_VERSION}" MATCHES "(g\\+\\+|GCC|Open64).*4\\.[01234567]\\.")
-         file(WRITE "${CTEST_BINARY_DIRECTORY}/abort_reason" "Compiler too old for C++11: ${COMPILER_VERSION}")
-         list(APPEND CTEST_NOTES_FILES "${CTEST_BINARY_DIRECTORY}/abort_reason")
-         ctest_submit(PARTS Notes)
-         set(res 1)
-      else()
-         CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
-            OPTIONS "${configure_options}"
-            APPEND
-            RETURN_VALUE res)
-         list(APPEND CTEST_NOTES_FILES
-            #"${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeOutput.log"
-            "${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeError.log"
-            )
-         ctest_submit(PARTS Notes Configure)
-      endif()
+      CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
+         OPTIONS "${configure_options}"
+         APPEND
+         RETURN_VALUE res)
+      list(APPEND CTEST_NOTES_FILES
+         #"${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeOutput.log"
+         "${CTEST_BINARY_DIRECTORY}/CMakeFiles/CMakeError.log"
+         )
+      ctest_submit(PARTS Notes Configure)
       unset(CTEST_NOTES_FILES) # less clutter in ctest -V output
       if(res EQUAL 0)
          foreach(label other Scalar SSE AVX AVX2 MIC)
@@ -322,7 +330,7 @@ macro(go)
                   APPEND
                   RETURN_VALUE res
                   PARALLEL_LEVEL ${number_of_processors}
-                  INCLUDE_LABEL "${label}")
+                  INCLUDE_LABEL "^${label}$")
                ctest_submit(PARTS Test)
             endif()
          endforeach()

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/loadstoreflags.h"
 #include <algorithm>
 #include <cmath>
-#include "iterators.h"
 #include "detail.h"
 
 #include "macros.h"
@@ -76,9 +75,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         typedef typename SSE::VectorTraits<T>::VectorType VectorType;
         using vector_type = VectorType;
         static constexpr size_t Size = SSE::VectorTraits<T>::Size;
-        enum Constants {
-            MemoryAlignment = alignof(VectorType)
-        };
+        static constexpr size_t MemoryAlignment = alignof(VectorType);
         typedef typename SSE::VectorTraits<T>::EntryType EntryType;
         using value_type = EntryType;
         using VectorEntryType = EntryType;
@@ -109,10 +106,10 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         // implict conversion from compatible Vector<U>
         template <typename U>
-        Vc_INTRINSIC Vector(
-            VC_ALIGNED_PARAMETER(V<U>) x,
-            typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-            : d(SSE::StaticCastHelper<U, T>::cast(x.data()))
+        Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(V<U>) x,
+                            typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
+                                                    void *>::type = nullptr)
+            : d(SSE::convert<U, T>(x.data()))
         {
         }
 
@@ -120,8 +117,9 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         template <typename U>
         Vc_INTRINSIC explicit Vector(
             VC_ALIGNED_PARAMETER(V<U>) x,
-            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-            : d(SSE::StaticCastHelper<U, T>::cast(x.data()))
+            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
+                                    void *>::type = nullptr)
+            : d(SSE::convert<U, T>(x.data()))
         {
         }
 
@@ -148,22 +146,6 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
         Vc_INTRINSIC_L void setQnan(const Mask &k) Vc_INTRINSIC_R;
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        // swizzles
-        Vc_INTRINSIC_L Vc_PURE_L const Vector &abcd() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  cdab() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  badc() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  aaaa() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  bbbb() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  cccc() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  dddd() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  bcad() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  bcda() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  dabc() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  acbd() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  dbca() const Vc_INTRINSIC_R Vc_PURE_R;
-        Vc_INTRINSIC_L Vc_PURE_L const Vector  dcba() const Vc_INTRINSIC_R Vc_PURE_R;
 
 #include "../common/gatherinterface.h"
 #include "../common/scatterinterface.h"
@@ -264,7 +246,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             data() = HV::blend(data(), v.data(), k);
         }
 
-        template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 staticCast() const { return SSE::StaticCastHelper<T, typename V2::EntryType>::cast(data()); }
+        template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 staticCast() const { return SSE::convert<T, typename V2::EntryType>(data()); }
         template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 reinterpretCast() const { return SSE::sse_cast<typename V2::VectorType>(data()); }
 
         Vc_INTRINSIC WriteMaskedVector operator()(const Mask &k) { return {this, k}; }
@@ -298,7 +280,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Vector reversed() const Vc_INTRINSIC_R Vc_PURE_R;
-        inline Vc_PURE Vector sorted() const { return SSE::SortHelper<VectorType, Size>::sort(data()); }
+        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector sorted() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
         template <typename F> void callWithValuesSorted(F &&f)
         {
@@ -364,6 +346,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 };
 #undef VC_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::Size;
+template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::MemoryAlignment;
 
 static Vc_ALWAYS_INLINE Vc_PURE SSE::int_v    min(const SSE::int_v    &x, const SSE::int_v    &y) { return SSE::min_epi32(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE Vc_PURE SSE::uint_v   min(const SSE::uint_v   &x, const SSE::uint_v   &y) { return SSE::min_epu32(x.data(), y.data()); }

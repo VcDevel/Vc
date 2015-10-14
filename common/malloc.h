@@ -63,7 +63,8 @@ template <std::size_t alignment> Vc_INTRINSIC void *aligned_malloc(std::size_t n
 # endif
 #else
     void *ptr = nullptr;
-    if (0 == posix_memalign(&ptr, alignment, nextMultipleOf<alignment>(n))) {
+    if (0 == posix_memalign(&ptr, alignment < sizeof(void *) ? sizeof(void *) : alignment,
+                            nextMultipleOf<alignment>(n))) {
         return ptr;
     }
     return ptr;

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,79 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
+/*!
+\addtogroup Simdize simdize<T>
+
+Automatic type vectorization.
+
+The simdize<T> expression transforms the type \c T to a vectorized variant. This requires the type
+\c T to be a class template instance.
+
+Example:
+First, we declare a class template for a three-dimensional point. The template parameter \c T
+determines the type of the members and is \c float in the scalar (classical) case.
+\code
+template <typename T> class PointTemplate
+{
+  T x, y, z;
+
+  using Instance = PointTemplate<T>;
+  Vc_SIMDIZE_MEMBER(T, 0, x);  // Makes the members accessible via get<N>(point), allowing the
+  Vc_SIMDIZE_MEMBER(T, 1, y);  // simdize implementation to convert between Point and PointV (see
+  Vc_SIMDIZE_MEMBER(T, 2, z);  // below).
+
+ public:
+  Vc_SIMDIZE_STRUCT(Instance, 3);  // This declares the actual non-member get and tuple_size.
+
+  PointTemplate(T xx, T yy, T zz) : x{xx}, y{yy}, z{zz} {};
+
+  // The following function is will automatically be vectorized in the PointV type.
+  T distance_to_origin() const {
+    return std::sqrt(x * x + y * y + z * z);
+  }
+};
+\endcode
+
+In the following we create a type alias for the scalar type, which simply means instantiating
+\c PointTemplate with \c float. The resulting type can then be transformed with \ref simdize.
+\code
+using Point  = PointTemplate<float>;  // A simple struct with three floats and two functions.
+using PointV = Vc::simdize<Point>;    // The vectorization of Point stores three float_v and thus
+                                      // float_v::size() Points.
+\endcode
+
+The following shows a code example using the above \c Point and \c PointV types.
+\code
+PointV pv = Point{0.f, 1.f, 2.f};  // Constructs a PointV containing PointV::size()
+                                   // copies of Point{0, 1, 2}.
+for (int i = 1; i < int(pv.size()); ++i) {
+  assign(pv, i, {i + 0.f, i + 1.f, i + 2.f});
+}
+
+const Vc::float_v l = pv.distance_to_origin();
+std::cout << l << '\n';
+// prints [2.23607, 3.74166, 5.38516, 7.07107, 8.77496, 10.4881, 12.2066, 13.9284] with
+// float_v::size() == 8
+
+const Point most_distant = extract(pv, (l.max() == l).firstOne());
+std::cout << '(' << most_distant.x << ", " << most_distant.y << ", " << most_distant.z << ")\n";
+// prints (7, 8, 9) with float_v::size() == 8
+\endcode
+ */
 namespace Vc_VERSIONED_NAMESPACE
 {
 /**\internal
+ * \ingroup Simdize
  * This namespace contains all the required code for implementing simdize<T>. None of this
  * code should be directly accessed by users, though the unit test for simdize<T>
  * certainly may look into some of the details if necessary.
  */
 namespace SimdizeDetail
 {
+/**
+ * \addtogroup Simdize
+ * @{
+ */
 using std::is_same;
 using std::is_base_of;
 using std::false_type;
@@ -63,21 +127,21 @@ template <typename... Ts> struct Typelist;
  * The Category identifies how the type argument to simdize<T> has to be transformed.
  */
 enum class Category {
-    /// No transformation
+    ///\internal No transformation
     None,
-    /// simple Vector<T> transformation
+    ///\internal simple Vector<T> transformation
     ArithmeticVectorizable,
-    /// transform an input iterator to return vectorized entries
+    ///\internal transform an input iterator to return vectorized entries
     InputIterator,
-    /// transform a forward iterator to return vectorized entries
+    ///\internal transform a forward iterator to return vectorized entries
     OutputIterator,
-    /// transform an output iterator to return vectorized entries
+    ///\internal transform an output iterator to return vectorized entries
     ForwardIterator,
-    /// transform a bidirectional iterator to return vectorized entries
+    ///\internal transform a bidirectional iterator to return vectorized entries
     BidirectionalIterator,
-    /// transform a random access iterator to return vectorized entries
+    ///\internal transform a random access iterator to return vectorized entries
     RandomAccessIterator,
-    /// transform a class template recursively
+    ///\internal transform a class template recursively
     ClassTemplate
 };
 
@@ -154,12 +218,6 @@ constexpr size_t determine_tuple_size(size_t = T::tuple_size)
 
 namespace
 {
-struct Dummy__;
-/**\internal
- * Dummy get<N>(x) function to enable compilation of the following code. This code is
- * never meant to be called or used.
- */
-template <size_t> Dummy__ get(Dummy__ x);
 template <typename T> struct The_simdization_for_the_requested_type_is_not_implemented;
 }  // unnamed namespace
 
@@ -243,7 +301,7 @@ template <size_t N, typename MT, typename... Replaced, typename T,
 struct SubstituteOneByOne<N, MT, Typelist<Replaced...>, T, Remaining...>
 {
 private:
-    /**
+    /**\internal
      * If \p U::size() yields a constant expression convertible to size_t then value will
      * be equal to U::size(), 0 otherwise.
      */
@@ -251,16 +309,16 @@ private:
     static std::integral_constant<size_t, M> size_or_0(int);
     template <typename U> static std::integral_constant<size_t, 0> size_or_0(...);
 
-    /// The vectorized type for \p T.
+    ///\internal The vectorized type for \p T.
     using V = simdize<T, N, MT>;
 
-    /**
+    /**\internal
      * Determine the new \p N to use for the SubstituteOneByOne expression below. If N is
      * non-zero that value is used. Otherwise size_or_0<V> determines the new value.
      */
     static constexpr auto NewN = N != 0 ? N : decltype(size_or_0<V>(int()))::value;
 
-    /**
+    /**\internal
      * Determine the new \p MT type to use for the SubstituteOneByOne expression below.
      * This is normally the old \p MT type. However, if N != NewN and MT = void, NewMT is
      * set to either \c float or \p T, depending on whether \p T is \c bool or not.
@@ -269,7 +327,9 @@ private:
                           conditional_t<is_same<T, bool>::value, float, T>, MT> NewMT;
 
 public:
-    /// An alias to the type member of the completed recursion over SubstituteOneByOne.
+    /**\internal
+     * An alias to the type member of the completed recursion over SubstituteOneByOne.
+     */
     using type = typename SubstituteOneByOne<NewN, NewMT, Typelist<Replaced..., V>,
                                              Remaining...>::type;
 };
@@ -340,11 +400,13 @@ template <typename... Replaced> struct SubstitutedBase<8, Replaced...> {
 template <size_t N_, typename MT, typename Replaced0, typename... Replaced>
 struct SubstituteOneByOne<N_, MT, Typelist<Replaced0, Replaced...>>
 {
-    /// Return type for returning the vector width and list of substituted types
+    /**\internal
+     * Return type for returning the vector width and list of substituted types
+     */
     struct type
         : public SubstitutedBase<sizeof...(Replaced) + 1, Replaced0, Replaced...> {
         static constexpr auto N = N_;
-        /**
+        /**\internal
          * Alias template to construct a class template instantiation with the replaced
          * types.
          */
@@ -378,16 +440,16 @@ template <typename Scalar, typename Base, size_t N> class Adapter;
 template <template <typename...> class C, typename... Ts, size_t N, typename MT>
 struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
 {
-    /// The \p type member of the SubstituteOneByOne instantiation
+    ///\internal The \p type member of the SubstituteOneByOne instantiation
     using SubstitutionResult =
         typename SubstituteOneByOne<N, MT, Typelist<>, Ts...>::type;
-    /**
+    /**\internal
      * This expression instantiates the class template \p C with the substituted template
      * arguments in the \p Ts parameter pack. The alias \p Vectorized thus is the
      * vectorized equivalent to \p C<Ts...>.
      */
     using Vectorized = typename SubstitutionResult::template Substituted<C>;
-    /**
+    /**\internal
      * The result type of this ReplaceTypes instantiation is set to \p C<Ts...> if no
      * template parameter substitution was done in SubstituteOneByOne. Otherwise, the type
      * aliases an Adapter instantiation.
@@ -634,42 +696,67 @@ static_assert(is_constructible_with_double_brace<std::array<int, 3>, int, int, i
               "");
 #endif
 
+template <size_t I, typename T,
+          typename R = decltype(std::declval<T &>().template vc_get__<I>())>
+R get_dispatcher(T &x, void * = nullptr)
+{
+    return x.template vc_get__<I>();
+}
+template <size_t I, typename T,
+          typename R = decltype(std::declval<const T &>().template vc_get__<I>())>
+R get_dispatcher(const T &x, void * = nullptr)
+{
+    return x.template vc_get__<I>();
+}
+template <size_t I, typename T, typename R = decltype(std::get<I>(std::declval<T &>()))>
+R get_dispatcher(T &x, int = 0)
+{
+    return std::get<I>(x);
+}
+template <size_t I, typename T,
+          typename R = decltype(std::get<I>(std::declval<const T &>()))>
+R get_dispatcher(const T &x, int = 0)
+{
+    return std::get<I>(x);
+}
+
+
 // see above
 template <typename Scalar, typename Base, size_t N> class Adapter : public Base
 {
 private:
     /// helper for the broadcast ctor below using double braces for Base initialization
     template <std::size_t... Indexes, typename T>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x, T, std::true_type)
-        : Base{{get<Indexes>(x)...}}
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, T, std::true_type)
+        : Base{{get_dispatcher<Indexes>(x__)...}}
     {
     }
 
     /// helper for the broadcast ctor below using single braces for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x, std::true_type,
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, std::true_type,
             std::false_type)
-        : Base{get<Indexes>(x)...}
+        : Base{get_dispatcher<Indexes>(x__)...}
     {
     }
 
     /// helper for the broadcast ctor below using parenthesis for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x, std::false_type,
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, std::false_type,
             std::false_type)
-        : Base(get<Indexes>(x)...)
+        : Base(get_dispatcher<Indexes>(x__)...)
     {
     }
 
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...> seq, const Scalar &x)
+    Adapter(Vc::index_sequence<Indexes...> seq__, const Scalar &x__)
         : Adapter(
-              seq, x,
+              seq__, x__,
               std::integral_constant<bool, is_constructible_with_single_brace<
-                                               Base, decltype(get<Indexes>(std::declval<
+                                               Base, decltype(get_dispatcher<Indexes>(std::declval<
                                                          const Scalar &>()))...>()>(),
               std::integral_constant<bool, is_constructible_with_double_brace<
-                                               Base, decltype(get<Indexes>(std::declval<
+                                               Base, decltype(get_dispatcher<Indexes>(std::declval<
                                                          const Scalar &>()))...>()>())
     {
     }
@@ -701,8 +788,8 @@ public:
     template <typename U, size_t TupleSize = determine_tuple_size<Scalar>(),
               typename Seq = Vc::make_index_sequence<TupleSize>,
               typename = enable_if<std::is_convertible<U, Scalar>::value>>
-    Adapter(U &&x)
-        : Adapter(Seq(), static_cast<const Scalar &>(x))
+    Adapter(U &&x__)
+        : Adapter(Seq(), static_cast<const Scalar &>(x__))
     {
     }
 
@@ -711,32 +798,32 @@ public:
               typename = typename std::enable_if<
                   !Traits::is_index_sequence<A0>::value &&
                   (sizeof...(Args) > 0 || !std::is_convertible<A0, Scalar>::value)>::type>
-    Adapter(A0 &&arg0, Args &&... arguments)
-        : Base(std::forward<A0>(arg0), std::forward<Args>(arguments)...)
+    Adapter(A0 &&arg0__, Args &&... arguments__)
+        : Base(std::forward<A0>(arg0__), std::forward<Args>(arguments__)...)
     {
     }
 
     /// perfect forward Base constructors that accept an initializer_list
     template <typename T,
               typename = decltype(Base(std::declval<const std::initializer_list<T> &>()))>
-    Adapter(const std::initializer_list<T> &l)
-        : Base(l)
+    Adapter(const std::initializer_list<T> &l__)
+        : Base(l__)
     {
     }
 
     /// Overload the new operator to adhere to the alignment requirements which C++11
     /// ignores by default.
     void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
-    void *operator new(size_t, void *p) { return p; }
+    void *operator new(size_t, void *p__) { return p__; }
     void *operator new[](size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
-    void *operator new[](size_t , void *p) { return p; }
-    void operator delete(void *ptr, size_t) { Vc::Common::free(ptr); }
+    void *operator new[](size_t , void *p__) { return p__; }
+    void operator delete(void *ptr__, size_t) { Vc::Common::free(ptr__); }
     void operator delete(void *, void *) {}
-    void operator delete[](void *ptr, size_t) { Vc::Common::free(ptr); }
+    void operator delete[](void *ptr__, size_t) { Vc::Common::free(ptr__); }
     void operator delete[](void *, void *) {}
 };
 
-/**internal
+/**\internal
  * Delete compare operators for simdize<tuple<...>> types because the tuple compares
  * require the compares to be bool based.
  */
@@ -765,6 +852,7 @@ inline bool operator>(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 
+/** @}*/
 }  // namespace SimdizeDetail
 }  // namespace Vc
 
@@ -808,6 +896,9 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SimdizeDetail
 {
+/**\addtogroup Simdize
+ * @{
+ */
 /**\internal
  * Since std::decay can ICE GCC (with types that are declared as may_alias), this is used
  * as an alternative approach. Using decltype the template type deduction implements the
@@ -822,9 +913,9 @@ template <typename S, typename T, size_t N, size_t... Indexes>
 inline void assign_impl(Adapter<S, T, N> &a, size_t i, const S &x,
                         Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get<Indexes>(x)))...> tmp(
-        decay_workaround(get<Indexes>(x))...);
-    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(tmp), 0)...};
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(x)))...> tmp(
+        decay_workaround(get_dispatcher<Indexes>(x))...);
+    auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused) {}
 }
 
@@ -852,9 +943,9 @@ Vc_INTRINSIC void assign(V &v, size_t i, typename V::EntryType x)
 template <typename S, typename T, size_t N, size_t... Indexes>
 inline S extract_impl(const Adapter<S, T, N> &a, size_t i, Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[i]))...> tmp(
-        decay_workaround(get<Indexes>(a)[i])...);
-    return S(get<Indexes>(tmp)...);
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[i]))...> tmp(
+        decay_workaround(get_dispatcher<Indexes>(a)[i])...);
+    return S(get_dispatcher<Indexes>(tmp)...);
 }
 
 /**
@@ -880,7 +971,7 @@ inline Adapter<S, T, N> shifted_impl(const Adapter<S, T, N> &a, int shift,
                                      Vc::index_sequence<Indexes...>)
 {
     Adapter<S, T, N> r;
-    auto &&unused = {(get<Indexes>(r) = get<Indexes>(a).shifted(shift), 0)...};
+    auto &&unused = {(get_dispatcher<Indexes>(r) = get_dispatcher<Indexes>(a).shifted(shift), 0)...};
     if (&unused == &unused) {}
     return r;
 }
@@ -902,20 +993,20 @@ template <typename S, typename T, std::size_t N, std::size_t... Indexes>
 inline void swap_impl(Adapter<S, T, N> &a, std::size_t i, S &x,
                       Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[0]))...> tmp{
-        decay_workaround(get<Indexes>(a)[i])...};
-    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(x), 0)...};
-    auto &&unused2 = {(get<Indexes>(x) = get<Indexes>(tmp), 0)...};
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[0]))...> tmp{
+        decay_workaround(get_dispatcher<Indexes>(a)[i])...};
+    auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(x), 0)...};
+    auto &&unused2 = {(get_dispatcher<Indexes>(x) = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused2) {}
 }
 template <typename S, typename T, std::size_t N, std::size_t... Indexes>
 inline void swap_impl(Adapter<S, T, N> &a, std::size_t i, Adapter<S, T, N> &b,
                       std::size_t j, Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get<Indexes>(a)[0]))...> tmp{
-        decay_workaround(get<Indexes>(a)[i])...};
-    auto &&unused = {(get<Indexes>(a)[i] = get<Indexes>(b)[j], 0)...};
-    auto &&unused2 = {(get<Indexes>(b)[j] = get<Indexes>(tmp), 0)...};
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[0]))...> tmp{
+        decay_workaround(get_dispatcher<Indexes>(a)[i])...};
+    auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(b)[j], 0)...};
+    auto &&unused2 = {(get_dispatcher<Indexes>(b)[j] = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused2) {}
 }
 
@@ -1032,11 +1123,11 @@ template <typename It, typename V, size_t I, size_t End>
 Vc_INTRINSIC V fromIteratorImpl(enable_if<(I < End), It> it)
 {
     V r = fromIteratorImpl<It, V, I + 1, End>(it);
-    Traits::decay<decltype(get<I>(r))> tmp;
+    Traits::decay<decltype(get_dispatcher<I>(r))> tmp;
     for (size_t j = 0; j < V::size(); ++j, ++it) {
-        tmp[j] = get<I>(*it);
+        tmp[j] = get_dispatcher<I>(*it);
     }
-    get<I>(r) = tmp;
+    get_dispatcher<I>(r) = tmp;
     return r;
 }
 template <typename It, typename V>
@@ -1519,9 +1610,9 @@ template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, ty
 Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
 {
-    using V = typename std::decay<decltype(get<Offset>(lhs))>::type;
+    using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;
     using M2 = typename V::mask_type;
-    conditional_assign<Op>(get<Offset>(lhs), simd_cast<M2>(mask), get<Offset>(rhs));
+    conditional_assign<Op>(get_dispatcher<Offset>(lhs), simd_cast<M2>(mask), get_dispatcher<Offset>(rhs));
     conditional_assign<Op, S, T, N, M, U, Offset + 1>(lhs, mask, rhs);
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
@@ -1535,16 +1626,69 @@ template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
 Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask)
 {
-    using V = typename std::decay<decltype(get<Offset>(lhs))>::type;
+    using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;
     using M2 = typename V::mask_type;
-    conditional_assign<Op>(get<Offset>(lhs), simd_cast<M2>(mask));
+    conditional_assign<Op>(get_dispatcher<Offset>(lhs), simd_cast<M2>(mask));
     conditional_assign<Op, S, T, N, M, Offset + 1>(lhs, mask);
 }
 
+/** @}*/
 }  // namespace SimdizeDetail
 
+/*!\ingroup Simdize
+ * Vectorize/Simdize the given type T.
+ *
+ * \tparam T This type must be a class template instance where the template arguments can
+ * be recursively replaced with their vectorized variant. If the type implements a
+ * specific interface for introspection and member modification, the resulting type can
+ * easily be constructed from objects of type T and scalar objects of type T can be
+ * extracted from it.
+ *
+ * \tparam N This value determines the width of the vectorization. Per default it is set
+ * to 0 making the implementation choose the value considering the compilation target and
+ * the given type T.
+ *
+ * \tparam MT This type determines the type to be used when replacing bool with Mask<MT>.
+ * If it is set to void the implementation choosed the type as smart as possible.
+ *
+ * \see Vc_SIMDIZE_STRUCT, Vc_SIMDIZE_MEMBER
+ */
 template <typename T, size_t N = 0, typename MT = void>
 using simdize = SimdizeDetail::simdize<T, N, MT>;
+
+/*!\ingroup Simdize
+ * Declares functions and constants for introspection by the simdize functions. This
+ * allows e.g. conversion between scalar \c T and \c simdize<T>.
+ *
+ * \param MEMBERS__ The data members of this struct/class listed inside extra parenthesis.
+ * The extra parenthesis are required because the macro would otherwise see a variable
+ * number of arguments.
+ *
+ * Example:
+ * \code
+ * template <typename T, typename U> struct X {
+ *   T a;
+ *   U b;
+ *   Vc_SIMDIZE_INTERFACE((a, b));
+ * };
+ * \endcode
+ *
+ * \note You must use this macros in the public section of a class.
+ */
+#define Vc_SIMDIZE_INTERFACE(MEMBERS__)                                                  \
+    template <std::size_t N__>                                                           \
+    inline auto vc_get__()->decltype(std::get<N__>(std::tie MEMBERS__))                  \
+    {                                                                                    \
+        return std::get<N__>(std::tie MEMBERS__);                                        \
+    }                                                                                    \
+    template <std::size_t N__>                                                           \
+    inline auto vc_get__() const->decltype(std::get<N__>(std::tie MEMBERS__))            \
+    {                                                                                    \
+        return std::get<N__>(std::tie MEMBERS__);                                        \
+    }                                                                                    \
+    enum : std::size_t {                                                                 \
+        tuple_size = std::tuple_size<decltype(std::tie MEMBERS__)>::value                \
+    }
 
 }  // namespace Vc
 

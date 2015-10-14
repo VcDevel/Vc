@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SCALAR_MATH_H
 #define VC_SCALAR_MATH_H
 
+#include <cstdlib>
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -73,7 +74,7 @@ template<typename T> static Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<T>
 {
 #if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
     __builtin_sincosf(x.data(), &sin->data(), &cos->data());
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__APPLE__)
     sin->data() = std::sin(x.data());
     cos->data() = std::cos(x.data());
 #else
@@ -85,7 +86,7 @@ template<> Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<double> &x, Scalar:
 {
 #if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
-#elif defined(_WIN32)
+#elif defined(_WIN32) || defined(__APPLE__)
     sin->data() = std::sin(x.data());
     cos->data() = std::cos(x.data());
 #else

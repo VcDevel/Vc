@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2012-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,36 +36,59 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <Vc/global.h>
 #include "../traits/type_traits.h"
+#include "permutation.h"
+#include "alignedbase.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
 using std::size_t;
 
+using llong = long long;
+using ullong = unsigned long long;
+using ulong = unsigned long;
+using uint = unsigned int;
+using ushort = unsigned short;
+using uchar = unsigned char;
+using schar = signed char;
+
 namespace VectorAbi
 {
-struct Scalar;
-struct Sse;
-struct Avx;
-struct Mic;
-struct Cuda;
+struct Scalar {};
+struct Sse {};
+struct Avx {};
+struct Mic {};
+struct Cuda {};
 template <typename T>
 using Avx1Abi = typename std::conditional<std::is_integral<T>::value, VectorAbi::Sse,
                                           VectorAbi::Avx>::type;
 template <typename T>
-using Best =
-#if defined VC_IMPL_MIC
-    Mic;
-#elif defined VC_IMPL_CUDA
-    Cuda;
-#elif defined VC_IMPL_AVX2
-    Avx;
+using Best = typename std::conditional<
+    CurrentImplementation::is(ScalarImpl), Scalar,
+    typename std::conditional<
+        CurrentImplementation::is_between(SSE2Impl, SSE42Impl), Sse,
+        typename std::conditional<
+            CurrentImplementation::is(AVXImpl), Avx1Abi<T>,
+            typename std::conditional<
+                CurrentImplementation::is(AVX2Impl), Avx,
+                typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
+                                          typename std::conditional<CurrentImplementation::is(CUDAImpl), Cuda, void>::type>::type>::type>::type>::type>::type;
+#ifdef VC_IMPL_AVX2
+static_assert(std::is_same<Best<float>, Avx>::value, "");
+static_assert(std::is_same<Best<int>, Avx>::value, "");
 #elif defined VC_IMPL_AVX
-    Avx1Abi<T>;
+static_assert(std::is_same<Best<float>, Avx>::value, "");
+static_assert(std::is_same<Best<int>, Sse>::value, "");
 #elif defined VC_IMPL_SSE
-    Sse;
-#else
-    Scalar;
+static_assert(CurrentImplementation::is_between(SSE2Impl, SSE42Impl), "");
+static_assert(std::is_same<Best<float>, Sse>::value, "");
+static_assert(std::is_same<Best<int>, Sse>::value, "");
+#elif defined VC_IMPL_MIC
+static_assert(std::is_same<Best<float>, Mic>::value, "");
+static_assert(std::is_same<Best<int>, Mic>::value, "");
+#elif defined VC_IMPL_Scalar
+static_assert(std::is_same<Best<float>, Scalar>::value, "");
+static_assert(std::is_same<Best<int>, Scalar>::value, "");
 #endif
 }  // namespace VectorAbi
 
@@ -214,6 +237,31 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 
 namespace Common
 {
+/**
+ * \internal
+ *
+ * Helper interface to make m_indexes in InterleavedMemoryAccessBase behave like an integer vector.
+ * Only that the entries are successive entries from the given start index.
+ */
+template<size_t StructSize> class SuccessiveEntries
+{
+    std::size_t m_first;
+public:
+    typedef SuccessiveEntries AsArg;
+    constexpr SuccessiveEntries(size_t first) : m_first(first) {}
+    constexpr Vc_PURE size_t operator[](size_t offset) const { return m_first + offset * StructSize; }
+    constexpr Vc_PURE size_t data() const { return m_first; }
+    constexpr Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
+    constexpr Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
+    constexpr Vc_PURE SuccessiveEntries operator<<(std::size_t x) const { return {m_first << x}; }
+
+    friend SuccessiveEntries &internal_data(SuccessiveEntries &x) { return x; }
+    friend const SuccessiveEntries &internal_data(const SuccessiveEntries &x)
+    {
+        return x;
+    }
+};
+
 template <std::size_t alignment>
 Vc_INTRINSIC_L void *aligned_malloc(std::size_t n) Vc_INTRINSIC_R;
 Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;

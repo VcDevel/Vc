@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#include "vectormultiplication.h"
 #include "writemaskedvector.h"
 #include "sorthelper.h"
-#include "iterators.h"
 #include "../common/where.h"
 #include "macros.h"
 
@@ -87,9 +86,8 @@ public:
     using value_type = EntryType;
     typedef typename MIC::DetermineVectorEntryType<T>::Type VectorEntryType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
-    typedef SimdArray<int, 16, MIC::int_v, 16> IndexType;
+    static constexpr size_t MemoryAlignment = sizeof(EntryType) * Size;
     enum Constants {
-        MemoryAlignment = sizeof(EntryType) * Size,
         HasVectorDivision = true
     };
     typedef MIC::Mask<T> Mask;
@@ -131,6 +129,7 @@ public:
     }
 
 #include "../common/generalinterface.h"
+    using IndexType = SimdArray<int, Size>;
 
     static Vector Random();
 
@@ -143,7 +142,7 @@ public:
     Vc_INTRINSIC Vector(
         VC_ALIGNED_PARAMETER(Vector<U>) x,
         typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-        : d(MIC::StaticCastHelper<U, T>::cast(x.data()))
+        : d(MIC::convert<U, T>(x.data()))
     {
     }
 
@@ -152,7 +151,7 @@ public:
     Vc_INTRINSIC explicit Vector(
         VC_ALIGNED_PARAMETER(Vector<U>) x,
         typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
-        : d(MIC::StaticCastHelper<U, T>::cast(x.data()))
+        : d(MIC::convert<U, T>(x.data()))
     {
     }
 
@@ -181,22 +180,6 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // stores in StoreMixin
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // swizzles
-    Vc_INTRINSIC_L Vc_CONST_L const Vector<T> &abcd() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  cdab() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  badc() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  aaaa() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  bbbb() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  cccc() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dddd() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  bcad() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  bcda() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dabc() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  acbd() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dbca() const Vc_INTRINSIC_R Vc_CONST_R;
-    Vc_INTRINSIC_L Vc_CONST_L       Vector<T>  dcba() const Vc_INTRINSIC_R Vc_CONST_R;
 
 #include "../common/gatherinterface.h"
 #include "../common/scatterinterface.h"
@@ -251,7 +234,7 @@ public:
         return Vector<T>(fun(d.v(), x.d.v()));                                                     \
     }
 
-    Vc_OP(%, MIC::mod_<VectorEntryType>)
+    Vc_OP(%, MIC::mod_<EntryType>)
     Vc_OP(*, MIC::_mul<VectorEntryType>)
     Vc_OP(+, MIC::_add<VectorEntryType>)
     Vc_OP(-, MIC::_sub<VectorEntryType>)
@@ -380,13 +363,8 @@ public:
     Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
 #undef VC_CURRENT_CLASS_NAME
-template<typename T> constexpr size_t Vector<T>::Size;
-
-template<typename T> struct SwizzledVector
-{
-    Vector<T> v;
-    unsigned int s;
-};
+template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::Size;
+template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::MemoryAlignment;
 
 Vc_INTRINSIC MIC::int_v    min(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_min_epi32(x.data(), y.data()); }
 Vc_INTRINSIC MIC::uint_v   min(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_min_epu32(x.data(), y.data()); }

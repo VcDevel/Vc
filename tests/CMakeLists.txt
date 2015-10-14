@@ -62,7 +62,8 @@ macro(vc_set_test_target_properties _target _impl _compile_flags)
    target_link_libraries(${_target} Vc)
    set_target_properties(${_target} PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
    set_target_properties(${_target} PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-   add_target_property(${_target} COMPILE_FLAGS "${_compile_flags} ${_extra_flags}")
+   add_target_property(${_target} COMPILE_FLAGS "${_extra_flags}")
+   set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS ${_compile_flags})
    add_target_property(${_target} LABELS "${_impl}")
    add_dependencies(build_tests ${_target})
    add_dependencies(${_impl} ${_target})
@@ -123,7 +124,7 @@ macro(vc_add_test _name)
          file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/sse/*.tcc" "${CMAKE_SOURCE_DIR}/sse/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} EXCLUDE_FROM_ALL ${_name}.cpp)
-         vc_set_test_target_properties(${_target} SSE "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
+         vc_set_test_target_properties(${_target} SSE "${DVC_IMPL};${Vc_ARCHITECTURE_FLAGS}")
          list(APPEND _run_targets "run_${_target}")
       endif()
    endif()
@@ -144,20 +145,26 @@ macro(vc_add_test _name)
          file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/avx/*.tcc" "${CMAKE_SOURCE_DIR}/avx/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} EXCLUDE_FROM_ALL ${_name}.cpp)
-         vc_set_test_target_properties(${_target} AVX "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
+         vc_set_test_target_properties(${_target} AVX "${DVC_IMPL};${Vc_ARCHITECTURE_FLAGS}")
          list(APPEND _run_targets "run_${_target}")
       endif()
    endif()
 
    if(USE_AVX2 AND "${_targets}" MATCHES "AVX2")
       set(DVC_IMPL "-DVC_IMPL=AVX2")
+      if(USE_FMA)
+         set(DVC_IMPL "${DVC_IMPL}+FMA")
+      endif()
+      if(USE_BMI2)
+         set(DVC_IMPL "${DVC_IMPL}+BMI2")
+      endif()
       set(_target "${name}_avx2")
       list(FIND disabled_targets ${_target} _disabled)
       if(_disabled EQUAL -1)
          file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/avx/*.tcc" "${CMAKE_SOURCE_DIR}/avx/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
          add_file_dependencies(${_name}.cpp "${_extra_deps}")
          add_executable(${_target} EXCLUDE_FROM_ALL ${_name}.cpp)
-         vc_set_test_target_properties(${_target} AVX2 "${DVC_IMPL} ${Vc_ARCHITECTURE_FLAGS}")
+         vc_set_test_target_properties(${_target} AVX2 "${DVC_IMPL};${Vc_ARCHITECTURE_FLAGS}")
          list(APPEND _run_targets "run_${_target}")
       endif()
    endif()
@@ -168,10 +175,19 @@ macro(vc_add_test _name)
       list(FIND disabled_targets ${_target} _disabled)
       file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/mic/*.tcc" "${CMAKE_SOURCE_DIR}/mic/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
       add_file_dependencies(${_name}.cpp "${_extra_deps}")
+      set(_objs)
+      if("${_name}" STREQUAL "math")
+         foreach(fun sincos asin acos atan ln log2 log10)
+            foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+               set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
+            endforeach()
+         endforeach()
+      endif()
       mic_add_executable(${_target}
          LINK_LIBRARIES Vc_MIC
          COMPILE_FLAGS "${DVC_IMPL} ${_extra_flags}"
          SOURCES ${_name}.cpp
+         OBJECTS ${_objs}
          EXCLUDE_FROM_ALL
          )
       add_target_property(${_target} LABELS "MIC")
@@ -199,6 +215,34 @@ macro(vc_add_test _name)
    endif()
 
 endmacro(vc_add_test)
+
+set(_deps)
+foreach(fun sincos asin acos atan ln log2 log10)
+   foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+      add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+         COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
+         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         COMMENT "Downloading Test Data: ${filename}"
+         VERBATIM
+         )
+      if(MIC_OBJCOPY)
+         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o"
+            COMMAND ${MIC_OBJCOPY} -I binary -O elf64-k1om -B k1om ${filename} ${filename}.k1om.o
+            DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Converting Test Data: ${filename}.k1om.o"
+            VERBATIM
+            )
+         list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o")
+      endif()
+      list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
+   endforeach()
+endforeach()
+add_custom_target(download-testdata ALL
+   DEPENDS ${_deps}
+   )
+add_dependencies(other download-testdata)
 
 vc_add_test(types)
 vc_add_test(subscript)
@@ -239,21 +283,20 @@ if(BUILD_EXTRA_CAST_TESTS)
       endforeach()
    endforeach()
 endif()
-vc_add_test(swizzles)
 vc_add_test(simdarray)
 
 find_program(OBJDUMP objdump)
 
 if(OBJDUMP)
-   macro(test_abi _impl)
-      set(_target abi_${_impl})
+   macro(test_abi _target _impl)
       set(_test test_${_target})
       if("${_impl}" STREQUAL "MIC")
-         mic_add_executable(${_target} SOURCES abi.cpp LINK_LIBRARIES Vc_MIC COMPILE_FLAGS "-DVC_IMPL=${_impl} ${ARGN}")
+         mic_add_executable(${_target} SOURCES abi.cpp LINK_LIBRARIES Vc_MIC COMPILE_FLAGS "-DVC_IMPL=${_impl};${ARGN}")
       else()
          add_executable(${_target} EXCLUDE_FROM_ALL abi.cpp)
          target_link_libraries(${_target} Vc)
-         add_target_property(${_target} COMPILE_FLAGS "-DVC_IMPL=${_impl} ${Vc_ARCHITECTURE_FLAGS} ${ARGN}")
+         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS "VC_IMPL=${_impl}")
+         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS ${ARGN})
       endif()
       add_target_property(${_target} LABELS "${_impl}")
       add_dependencies(${_impl} ${_target})
@@ -279,16 +322,18 @@ if(OBJDUMP)
    endmacro()
 
    if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86")
-      test_abi(SSE  ${_sse2_flag})
-      test_abi(AVX  ${_avx_flag})
-      # TODO: reenable for AVX2
-      #test_abi(AVX2 ${_avx2_flag})
+      test_abi(abi_SSE     SSE  ${_sse2_flag})
+      test_abi(abi_SSE_AVX SSE  ${_avx_flag})
+      if(NOT Vc_AVX_INTRINSICS_BROKEN)
+         test_abi(abi_AVX     AVX  ${_avx_flag})
+         test_abi(abi_AVX2    AVX2 ${_avx2_flag})
+      endif()
    endif()
    if(MIC_NATIVE_FOUND)
       find_program(MIC_OBJDUMP x86_64-k1om-linux-objdump PATHS ENV PATH "${MIC_TARGET_TOOLS_DIR}/bin")
       if(MIC_OBJDUMP)
          set(OBJDUMP "${MIC_OBJDUMP}")
-         test_abi(MIC)
+         test_abi(abi_MIC MIC)
       endif()
    endif()
 endif()
@@ -297,7 +342,8 @@ if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
    list(FIND disabled_targets sse_blend _disabled)
    if(_disabled EQUAL -1)
       add_executable(sse2_blend EXCLUDE_FROM_ALL sse_blend.cpp)
-      add_target_property(sse2_blend COMPILE_FLAGS "-DVC_IMPL=SSE2 ${_sse2_flag}")
+      add_target_property(sse2_blend COMPILE_DEFINITIONS "VC_IMPL=SSE2")
+      set_property(TARGET sse2_blend APPEND PROPERTY COMPILE_OPTIONS "${_sse2_flag}")
       add_target_property(sse2_blend LABELS "SSE")
       add_dependencies(build_tests sse2_blend)
       add_dependencies(SSE sse2_blend)
@@ -307,7 +353,8 @@ if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
 
       if(USE_SSE4_1)
          add_executable(sse4_blend EXCLUDE_FROM_ALL sse_blend.cpp)
-         add_target_property(sse4_blend COMPILE_FLAGS "-DVC_IMPL=SSE4_1 ${Vc_ARCHITECTURE_FLAGS}")
+         add_target_property(sse4_blend COMPILE_DEFINITIONS "VC_IMPL=SSE4_1")
+         set_property(TARGET sse4_blend APPEND PROPERTY COMPILE_OPTIONS ${Vc_ARCHITECTURE_FLAGS})
          add_target_property(sse4_blend LABELS "SSE")
          add_dependencies(build_tests sse4_blend)
          add_dependencies(SSE sse4_blend)
@@ -319,9 +366,10 @@ if(USE_SSE2 AND NOT Vc_SSE_INTRINSICS_BROKEN)
 endif()
 
 macro(vc_add_general_test _name)
-   add_executable(${_name} EXCLUDE_FROM_ALL ${_name}.cpp)
+   add_executable(${_name} EXCLUDE_FROM_ALL ${_name}.cpp )
    target_link_libraries(${_name} Vc)
    add_target_property(${_name} LABELS "other")
+   set_property(TARGET ${_name} APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
    add_dependencies(build_tests ${_name})
    add_dependencies(other ${_name})
    add_test(${Vc_TEST_TARGET_PREFIX}${_name} "${CMAKE_CURRENT_BINARY_DIR}/${_name}")
@@ -329,8 +377,11 @@ macro(vc_add_general_test _name)
    vc_add_run_target(${_name})
 endmacro()
 
-vc_add_general_test(supportfunctions)
+if(_last_target_arch STREQUAL "auto" AND NOT Vc_AVX_INTRINSICS_BROKEN)
+   vc_add_general_test(supportfunctions)
+endif()
 vc_add_general_test(alignmentinheritance)
+vc_add_general_test(alignedbase)
 
 get_property(_incdirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
 set(incdirs)
@@ -339,6 +390,7 @@ foreach(_d ${_incdirs})
 endforeach()
 
 separate_arguments(_flags UNIX_COMMAND "${CMAKE_CXX_FLAGS} ${Vc_DEFINITIONS}")
+list(APPEND _flags ${Vc_COMPILE_FLAGS})
 foreach(_f ${_flags})
    if(_f MATCHES "^-m" OR _f MATCHES "^/arch:" OR _f MATCHES "^-x")
       list(REMOVE_ITEM _flags "${_f}")
@@ -372,7 +424,7 @@ if(TEST_OPERATOR_FAILURES)
                   )
                set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY LABELS "${impl}")
                set_tests_properties("${Vc_TEST_TARGET_PREFIX}${name}" PROPERTIES
-                  PASS_REGULAR_EXPRESSION "Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability"
+                  PASS_REGULAR_EXPRESSION "Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability;error: overload resolution selected deleted operator;error: function \"Vc.*::operator.* cannot be referenced -- it is a deleted function"
                   )
             endforeach()
             set(type_b ${A})
@@ -410,20 +462,3 @@ target_link_libraries(linkTest Vc linkTestLibDynamic1 linkTestLibDynamic2 linkTe
 # Use the following program to generate the sincos-reference-*.dat files
 #add_executable(convert-sincos-reference EXCLUDE_FROM_ALL convert-sincos-reference.cpp)
 
-set(_deps)
-foreach(fun sincos asin acos atan ln log2 log10)
-   foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-      add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-         COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-         COMMENT "Downloading Test Data: ${filename}"
-         VERBATIM
-         )
-      list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
-   endforeach()
-endforeach()
-add_custom_target(download-testdata ALL
-   DEPENDS ${_deps}
-   )
-add_dependencies(other download-testdata)

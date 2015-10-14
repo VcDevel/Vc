@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ public:
     using abi = VectorAbi::Scalar;
 
     static constexpr size_t Size = 1;
+    static constexpr size_t MemoryAlignment = 1;
     static constexpr std::size_t size() { return 1; }
 
     /**
@@ -162,6 +163,7 @@ public:
         bool m;
 };
 template <typename T> constexpr size_t Mask<T, VectorAbi::Scalar>::Size;
+template <typename T> constexpr size_t Mask<T, VectorAbi::Scalar>::MemoryAlignment;
 
 }  // namespace Vc
 

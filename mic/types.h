@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2010-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2010-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,8 @@ typedef Vector<int>               int_v;
 typedef Vector<unsigned int>     uint_v;
 typedef Vector<short>           short_v;
 typedef Vector<unsigned short> ushort_v;
+typedef Vector<schar>           schar_v;
+typedef Vector<uchar>           uchar_v;
 
 template <typename T> using Mask = Vc::Mask<T, VectorAbi::Mic>;
 typedef Mask<double>         double_m;
@@ -61,13 +63,8 @@ typedef Mask<int>               int_m;
 typedef Mask<unsigned int>     uint_m;
 typedef Mask<short>           short_m;
 typedef Mask<unsigned short> ushort_m;
-
-template <typename V = Vector<float>>
-class
-#ifndef VC_ICC
-    alignas(alignof(V))
-#endif
-    VectorAlignedBaseT;
+typedef Mask<schar>           schar_m;
+typedef Mask<uchar>           uchar_m;
 
 template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};

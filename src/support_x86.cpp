@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2010-2013 Matthias Kretz <kretz@kde.org>
+Copyright © 2010-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -80,7 +80,7 @@ bool isImplementationSupported(Implementation impl)
     case AVXImpl:
         return CpuId::hasOsxsave() && CpuId::hasAvx() && xgetbvCheck(0x6);
     case AVX2Impl:
-        return false;
+        return CpuId::hasOsxsave() && CpuId::hasAvx2() && xgetbvCheck(0x6);
     case MICImpl:
         return CpuId::processorFamily() == 0xB && CpuId::processorModel() == 0x1
             && CpuId::isIntel();
@@ -114,7 +114,8 @@ Vc::Implementation bestImplementationSupported()
     if (!CpuId::hasSse41()) return Vc::SSSE3Impl;
     if (!CpuId::hasSse42()) return Vc::SSE41Impl;
     if (CpuId::hasAvx() && CpuId::hasOsxsave() && xgetbvCheck(0x6)) {
-        return Vc::AVXImpl;
+        if (!CpuId::hasAvx2()) return Vc::AVXImpl;
+        return Vc::AVX2Impl;
     }
     return Vc::SSE42Impl;
 }
@@ -129,6 +130,8 @@ unsigned int extraInstructionsSupported()
     if (CpuId::hasPopcnt()) flags |= Vc::PopcntInstructions;
     if (CpuId::hasSse4a()) flags |= Vc::Sse4aInstructions;
     if (CpuId::hasFma ()) flags |= Vc::FmaInstructions;
+    if (CpuId::hasBmi2()) flags |= Vc::Bmi2Instructions;
+    if (CpuId::hasOsxsave() && CpuId::hasAvx() && xgetbvCheck(0x6)) flags |= Vc::VexInstructions;
     //if (CpuId::hasPclmulqdq()) flags |= Vc::PclmulqdqInstructions;
     //if (CpuId::hasAes()) flags |= Vc::AesInstructions;
     //if (CpuId::hasRdrand()) flags |= Vc::RdrandInstructions;

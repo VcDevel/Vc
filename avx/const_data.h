@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2012-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,9 +37,9 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace AVX
 {
 
-ALIGN(64) extern const unsigned int   _IndexesFromZero32[8];
-ALIGN(16) extern const unsigned short _IndexesFromZero16[8];
-ALIGN(16) extern const unsigned char  _IndexesFromZero8[16];
+ALIGN(64) extern const unsigned int   _IndexesFromZero32[ 8];
+ALIGN(16) extern const unsigned short _IndexesFromZero16[16];
+ALIGN(16) extern const unsigned char  _IndexesFromZero8 [32];
 
 struct STRUCT_ALIGN1(64) c_general
 {

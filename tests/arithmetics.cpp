@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -103,7 +103,7 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
             VERIFY(all_of(Vec(Zero) < Vec(j))) << (Vec(Zero) < Vec(j)) << ", j = " << j << ", step = " << step;
             VERIFY(all_of(Vec(j) > Vec(Zero)));
             VERIFY(none_of(Vec(Zero) >= Vec(j)));
-            VERIFY(none_of(Vec(j) <= Vec(Zero)));
+            VERIFY(none_of(Vec(j) <= Vec(Zero))) << (Vec(j) <= Vec::Zero()) << ", j = " << j << ", Vec(j) = " << Vec(j);
         }
     }
     if (std::numeric_limits<T>::min() <= 0) {
@@ -287,16 +287,20 @@ TEST_TYPES(V,
             uint_v,
             short_v))
 {
+    using T = typename V::EntryType;
+    alignas(static_cast<size_t>(V::MemoryAlignment)) T x_mem[V::size()];
+    alignas(static_cast<size_t>(V::MemoryAlignment)) T y_mem[V::size()];
     for (int repetition = 0; repetition < 1000; ++repetition) {
         V x = V::Random();
         V y = (V::Random() & 2047) - 1023;
         y(y == 0) = -1024;
         const V z = x % y;
 
-        V reference;
-        for (size_t i = 0; i < V::Size; ++i) {
-            reference[i] = x[i] % y[i];
-        }
+        x.store(x_mem, Vc::Aligned);
+        y.store(y_mem, Vc::Aligned);
+        const V reference = V::generate([&](size_t i) {
+            return x_mem[i] % y_mem[i];
+        });
 
         COMPARE(z, reference) << ", x: " << x << ", y: " << y;
 
@@ -562,7 +566,7 @@ template <typename V, typename T> void testFmaDispatch(T)
 
 template <typename V> void testFmaDispatch(float)
 {
-    using Vc::Internal::floatConstant;
+    using Vc::Detail::floatConstant;
     V b = floatConstant<1, 0x000001, 0>();
     V c = floatConstant<1, 0x000000, -24>();
     V a = b;
@@ -586,7 +590,7 @@ template <typename V> void testFmaDispatch(float)
 
 template <typename V> void testFmaDispatch(double)
 {
-    using Vc::Internal::doubleConstant;
+    using Vc::Detail::doubleConstant;
     V b = doubleConstant<1, 0x0000000000001, 0>();
     V c = doubleConstant<1, 0x0000000000000, -53>();
     V a = b;

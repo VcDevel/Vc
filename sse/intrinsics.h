@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -173,7 +173,7 @@ namespace SseIntrinsics
     Vc_INTRINSIC Vc_CONST __m128i abs_epi32(__m128i a) { return _mm_abs_epi32(a); }
     template <size_t s> Vc_INTRINSIC Vc_CONST __m128i alignr_epi8(__m128i a, __m128i b)
     {
-        return _mm_alignr_epi8(a, b, s & 0xffu);
+        return _mm_alignr_epi8(a, b, s & 0x1fu);
     }
 }  // namespace SseIntrinsics
 }  // namespace Vc
@@ -744,13 +744,6 @@ template <typename T> struct VectorTraits
 };
 
 template <typename T> struct VectorHelperSize;
-
-template <typename V> class alignas(16) VectorAlignedBaseT
-{
-public:
-    FREE_STORE_OPERATORS_ALIGNED(16)
-};
-
 }  // namespace SSE
 }  // namespace Vc
 

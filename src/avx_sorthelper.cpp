@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2011-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,147 +26,296 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include <common/types.h>
-#include <avx/intrinsics.h>
-#include <avx/shuffle.h>
-#include <avx/casts.h>
-#include <avx/sorthelper.h>
+#include <avx/vector.h>
+#include <avx/debug.h>
 #include <avx/macros.h>
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace Detail
 {
-
-#ifndef VC_IMPL_AVX2
-template<> __m128i SortHelper<short>::sort(VTArg _x)
+#ifdef VC_IMPL_AVX2
+template<> Vc_CONST AVX2::short_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::short_v) x_)
 {
-    m128i lo, hi, y, x = _x;
-    // sort pairs
-    y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
-    lo = _mm_min_epi16(x, y);
-    hi = _mm_max_epi16(x, y);
-    x = _mm_blend_epi16(lo, hi, 0xaa);
+    // ab cd ef gh ij kl mn op
+    // ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑
+    // ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮
+    // ⎮ ╳ ⎮ ⎮ ╳ ⎮ ⎮ ╳ ⎮ ⎮ ╳ ⎮
+    // ⎮⎛ ⎞⎮ ⎮⎛ ⎞⎮ ⎮⎛ ⎞⎮ ⎮⎛ ⎞⎮
+    // <> <> <> <> <> <> <> <>
+    // ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑
+    // ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮
+    // ⎮ o ⎮ ⎮ o ⎮ ⎮ o ⎮ ⎮ o ⎮
+    // ⎮↓ ↑⎮ ⎮↓ ↑⎮ ⎮↓ ↑⎮ ⎮↓ ↑⎮
+    // 01 23 01 23 01 23 01 23
+    // ⎮⎮ ⎮⎮   ╳   ⎮⎮ ⎮⎮   ╳
+    // 01 23 32 10 01 23 32 10
+    // ⎮⎝ ⎮⎝ ⎠⎮ ⎠⎮ ⎮⎝ ⎮⎝ ⎠⎮ ⎠⎮
+    // ⎮ ╲⎮ ╳ ⎮╱ ⎮ ⎮ ╲⎮ ╳ ⎮╱ ⎮
+    // ⎮  ╲╱ ╲╱  ⎮ ⎮  ╲╱ ╲╱  ⎮
+    // ⎮  ╱╲ ╱╲  ⎮ ⎮  ╱╲ ╱╲  ⎮
+    // ⎮ ╱⎮ ╳ ⎮╲ ⎮ ⎮ ╱⎮ ╳ ⎮╲ ⎮
+    // ⎮⎛ ⎮⎛ ⎞⎮ ⎞⎮ ⎮⎛ ⎮⎛ ⎞⎮ ⎞⎮
+    // <> <> <> <> <> <> <> <>
+    // ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑
+    // ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮
+    // ⎮ ╳ ⎮ ⎮ ╳ ⎮ ⎮ ╳ ⎮ ⎮ ╳ ⎮
+    // ⎮⎛ ⎞⎮ ⎮⎛ ⎞⎮ ⎮⎛ ⎞⎮ ⎮⎛ ⎞⎮
+    // <> <> <> <> <> <> <> <>
+    // ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑
+    // ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮ ⎮⎝ ⎠⎮
+    // ⎮ o ⎮ ⎮ o ⎮ ⎮ o ⎮ ⎮ o ⎮
+    // ⎮↓ ↑⎮ ⎮↓ ↑⎮ ⎮↓ ↑⎮ ⎮↓ ↑⎮
+    // 01 23 01 23 01 23 01 23
 
-    // merge left and right quads
-    y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)), _MM_SHUFFLE(0, 1, 2, 3));
-    lo = _mm_min_epi16(x, y);
-    hi = _mm_max_epi16(x, y);
-    x = _mm_blend_epi16(lo, hi, 0xcc);
-    y = _mm_srli_si128(x, 2);
-    lo = _mm_min_epi16(x, y);
-    hi = _mm_max_epi16(x, y);
-    x = _mm_blend_epi16(lo, _mm_slli_si128(hi, 2), 0xaa);
+    // sort pairs (one min/max)
+    auto x = AVX::lo128(x_.data());
+    auto y = AVX::hi128(x_.data());
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    auto l = _mm_min_epi16(x, y);
+    auto h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
 
-    // merge quads into octs
-    y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
-    y = _mm_shufflelo_epi16(y, _MM_SHUFFLE(0, 1, 2, 3));
-    lo = _mm_min_epi16(x, y);
-    hi = _mm_max_epi16(x, y);
+    // merge left & right quads (two min/max)
+    x = _mm_unpacklo_epi16(l, h);
+    y = _mm_unpackhi_epi16(h, l);
+    Vc_DEBUG << "8x2 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epi16(x, y);
+    h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = Mem::permuteLo<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h));
+    y = Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epi16(x, y);
+    h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
 
-    x = _mm_unpacklo_epi16(lo, hi);
-    y = _mm_srli_si128(x, 8);
-    lo = _mm_min_epi16(x, y);
-    hi = _mm_max_epi16(x, y);
+    // merge quads into octs (three min/max)
+    x = _mm_unpacklo_epi16(h, l);
+    y = _mm_unpackhi_epi16(l, h);
+    Vc_DEBUG << "4x4 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epi16(x, y);
+    h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = Mem::permuteLo<X2, X3, X0, X1>(Mem::blend<X0, X1, Y2, Y3, X4, X5, Y6, Y7>(h, l));
+    y = Mem::permuteHi<X6, X7, X4, X5>(Mem::blend<X0, X1, Y2, Y3, X4, X5, Y6, Y7>(l, h));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epi16(x, y);
+    h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h));
+    y = Mem::permuteLo<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epi16(x, y);
+    h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h) << " done?";
 
-    x = _mm_unpacklo_epi16(lo, hi);
-    y = _mm_srli_si128(x, 8);
-    lo = _mm_min_epi16(x, y);
-    hi = _mm_max_epi16(x, y);
-
-    return _mm_unpacklo_epi16(lo, hi);
+    // merge octs into hexa (four min/max)
+    x = _mm_unpacklo_epi16(l, h);
+    y = _mm_unpackhi_epi16(h, l);
+    Vc_DEBUG << "2x8 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epi16(x, y);
+    h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = _mm_unpacklo_epi64(l, h);
+    y = _mm_unpackhi_epi64(l, h);
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epi16(x, y);
+    h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = _mm_castps_si128(Mem::permute<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3>(_mm_castsi128_ps(h), _mm_castsi128_ps(l))));
+    y = _mm_castps_si128(Mem::blend<X0, Y1, X2, Y3>(_mm_castsi128_ps(l), _mm_castsi128_ps(h)));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epi16(x, y);
+    h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h);
+    y = Mem::permuteLo<X1, X0, X3, X2>(
+        Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l)));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epi16(x, y);
+    h = _mm_max_epi16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = _mm_unpacklo_epi16(l, h);
+    y = _mm_unpackhi_epi16(l, h);
+    return AVX::concat(x, y);
 }
-template<> __m128i SortHelper<unsigned short>::sort(VTArg _x)
+
+template <> Vc_CONST AVX2::ushort_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::ushort_v) x_)
 {
-    m128i lo, hi, y, x = _x;
-    // sort pairs
-    y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)), _MM_SHUFFLE(2, 3, 0, 1));
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
-    x = _mm_blend_epi16(lo, hi, 0xaa);
+    // sort pairs (one min/max)
+    auto x = AVX::lo128(x_.data());
+    auto y = AVX::hi128(x_.data());
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    auto l = _mm_min_epu16(x, y);
+    auto h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
 
-    // merge left and right quads
-    y = _mm_shufflelo_epi16(_mm_shufflehi_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)), _MM_SHUFFLE(0, 1, 2, 3));
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
-    x = _mm_blend_epi16(lo, hi, 0xcc);
-    y = _mm_srli_si128(x, 2);
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
-    x = _mm_blend_epi16(lo, _mm_slli_si128(hi, 2), 0xaa);
+    // merge left & right quads (two min/max)
+    x = _mm_unpacklo_epi16(l, h);
+    y = _mm_unpackhi_epi16(h, l);
+    Vc_DEBUG << "8x2 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epu16(x, y);
+    h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = Mem::permuteLo<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h));
+    y = Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epu16(x, y);
+    h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
 
-    // merge quads into octs
-    y = _mm_shuffle_epi32(x, _MM_SHUFFLE(1, 0, 3, 2));
-    y = _mm_shufflelo_epi16(y, _MM_SHUFFLE(0, 1, 2, 3));
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
+    // merge quads into octs (three min/max)
+    x = _mm_unpacklo_epi16(h, l);
+    y = _mm_unpackhi_epi16(l, h);
+    Vc_DEBUG << "4x4 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epu16(x, y);
+    h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = Mem::permuteLo<X2, X3, X0, X1>(Mem::blend<X0, X1, Y2, Y3, X4, X5, Y6, Y7>(h, l));
+    y = Mem::permuteHi<X6, X7, X4, X5>(Mem::blend<X0, X1, Y2, Y3, X4, X5, Y6, Y7>(l, h));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epu16(x, y);
+    h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h));
+    y = Mem::permuteLo<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epu16(x, y);
+    h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h) << " done?";
 
-    x = _mm_unpacklo_epi16(lo, hi);
-    y = _mm_srli_si128(x, 8);
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
-
-    x = _mm_unpacklo_epi16(lo, hi);
-    y = _mm_srli_si128(x, 8);
-    lo = _mm_min_epu16(x, y);
-    hi = _mm_max_epu16(x, y);
-
-    return _mm_unpacklo_epi16(lo, hi);
+    // merge octs into hexa (four min/max)
+    x = _mm_unpacklo_epi16(l, h);
+    y = _mm_unpackhi_epi16(h, l);
+    Vc_DEBUG << "2x8 sorted xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epu16(x, y);
+    h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = _mm_unpacklo_epi64(l, h);
+    y = _mm_unpackhi_epi64(l, h);
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epu16(x, y);
+    h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = _mm_castps_si128(Mem::permute<X1, X0, X3, X2>(Mem::blend<X0, Y1, X2, Y3>(_mm_castsi128_ps(h), _mm_castsi128_ps(l))));
+    y = _mm_castps_si128(Mem::blend<X0, Y1, X2, Y3>(_mm_castsi128_ps(l), _mm_castsi128_ps(h)));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epu16(x, y);
+    h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(l, h);
+    y = Mem::permuteLo<X1, X0, X3, X2>(
+        Mem::permuteHi<X5, X4, X7, X6>(Mem::blend<X0, Y1, X2, Y3, X4, Y5, X6, Y7>(h, l)));
+    Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
+    l = _mm_min_epu16(x, y);
+    h = _mm_max_epu16(x, y);
+    Vc_DEBUG << "lh: " << AVX::addType<short>(l) << AVX::addType<short>(h);
+    x = _mm_unpacklo_epi16(l, h);
+    y = _mm_unpackhi_epi16(l, h);
+    return AVX::concat(x, y);
 }
 
-template <> __m128i SortHelper<int>::sort(VTArg x_)
+template <> Vc_CONST AVX2::int_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::int_v) x_)
 {
-    auto x = x_;
-    // sort pairs
-    __m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-    __m128i l = _mm_min_epi32(x, y);
-    __m128i h = _mm_max_epi32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi32(h, l);
+    using namespace AVX;
+    const __m256i hgfedcba = x_.data();
+    const __m128i hgfe = hi128(hgfedcba);
+    const __m128i dcba = lo128(hgfedcba);
+    __m128i l = _mm_min_epi32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
+    __m128i h = _mm_max_epi32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
 
-    // sort quads
-    l = _mm_min_epi32(x, y);
-    h = _mm_max_epi32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi64(x, x);
+    __m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
+    __m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
 
-    l = _mm_min_epi32(x, y);
-    h = _mm_max_epi32(x, y);
-    return _mm_unpacklo_epi32(l, h);
+    l = _mm_min_epi32(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
+    h = _mm_max_epi32(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
+
+    x = _mm_min_epi32(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
+    y = _mm_max_epi32(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
+
+    __m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
+    __m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
+
+    // _mm_extract_epi32 may return an unsigned int, breaking these comparisons.
+    if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 2)) >= static_cast<int>(_mm_extract_epi32(y, 1)))) {
+        return concat(Reg::permute<X0, X1, X2, X3>(b), a);
+    } else if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 0)) >= static_cast<int>(_mm_extract_epi32(y, 3)))) {
+        return concat(a, Reg::permute<X0, X1, X2, X3>(b));
+    }
+
+    // merge
+    l = _mm_min_epi32(a, b); // ↓a3b3 ↓a2b2 ↓a1b1 ↓a0b0
+    h = _mm_max_epi32(a, b); // ↑a3b3 ↑a2b2 ↑a1b1 ↑a0b0
+
+    a = _mm_unpacklo_epi32(l, h); // ↑a1b1 ↓a1b1 ↑a0b0 ↓a0b0
+    b = _mm_unpackhi_epi32(l, h); // ↑a3b3 ↓a3b3 ↑a2b2 ↓a2b2
+    l = _mm_min_epi32(a, b);      // ↓(↑a1b1,↑a3b3) ↓a1b3 ↓(↑a0b0,↑a2b2) ↓a0b2
+    h = _mm_max_epi32(a, b);      // ↑a3b1 ↑(↓a1b1,↓a3b3) ↑a2b0 ↑(↓a0b0,↓a2b2)
+
+    a = _mm_unpacklo_epi32(l, h); // ↑a2b0 ↓(↑a0b0,↑a2b2) ↑(↓a0b0,↓a2b2) ↓a0b2
+    b = _mm_unpackhi_epi32(l, h); // ↑a3b1 ↓(↑a1b1,↑a3b3) ↑(↓a1b1,↓a3b3) ↓a1b3
+    l = _mm_min_epi32(a, b); // ↓(↑a2b0,↑a3b1) ↓(↑a0b0,↑a2b2,↑a1b1,↑a3b3) ↓(↑(↓a0b0,↓a2b2) ↑(↓a1b1,↓a3b3)) ↓a0b3
+    h = _mm_max_epi32(a, b); // ↑a3b0 ↑(↓(↑a0b0,↑a2b2) ↓(↑a1b1,↑a3b3)) ↑(↓a0b0,↓a2b2,↓a1b1,↓a3b3) ↑(↓a0b2,↓a1b3)
+
+    return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
 
-template <> __m128i SortHelper<unsigned int>::sort(VTArg x_)
+template <> Vc_CONST AVX2::uint_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::uint_v) x_)
 {
-    auto x = x_;
-    // sort pairs
-    __m128i y = _mm_shuffle_epi32(x, _MM_SHUFFLE(2, 3, 0, 1));
-    __m128i l = _mm_min_epu32(x, y);
-    __m128i h = _mm_max_epu32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi32(h, l);
+    using namespace AVX;
+    const __m256i hgfedcba = x_.data();
+    const __m128i hgfe = hi128(hgfedcba);
+    const __m128i dcba = lo128(hgfedcba);
+    __m128i l = _mm_min_epu32(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
+    __m128i h = _mm_max_epu32(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
 
-    // sort quads
-    l = _mm_min_epu32(x, y);
-    h = _mm_max_epu32(x, y);
-    x = _mm_unpacklo_epi32(l, h);
-    y = _mm_unpackhi_epi64(x, x);
+    __m128i x = _mm_unpacklo_epi32(l, h); // ↑fb ↓fb ↑ea ↓ea
+    __m128i y = _mm_unpackhi_epi32(l, h); // ↑hd ↓hd ↑gc ↓gc
 
-    l = _mm_min_epu32(x, y);
-    h = _mm_max_epu32(x, y);
-    return _mm_unpacklo_epi32(l, h);
+    l = _mm_min_epu32(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
+    h = _mm_max_epu32(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
+
+    x = _mm_min_epu32(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
+    y = _mm_max_epu32(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
+
+    __m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
+    __m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
+
+    if (VC_IS_UNLIKELY(extract_epu32<2>(x) >= extract_epu32<1>(y))) {
+        return concat(Reg::permute<X0, X1, X2, X3>(b), a);
+    } else if (VC_IS_UNLIKELY(extract_epu32<0>(x) >= extract_epu32<3>(y))) {
+        return concat(a, Reg::permute<X0, X1, X2, X3>(b));
+    }
+
+    // merge
+    l = _mm_min_epu32(a, b); // ↓a3b3 ↓a2b2 ↓a1b1 ↓a0b0
+    h = _mm_max_epu32(a, b); // ↑a3b3 ↑a2b2 ↑a1b1 ↑a0b0
+
+    a = _mm_unpacklo_epi32(l, h); // ↑a1b1 ↓a1b1 ↑a0b0 ↓a0b0
+    b = _mm_unpackhi_epi32(l, h); // ↑a3b3 ↓a3b3 ↑a2b2 ↓a2b2
+    l = _mm_min_epu32(a, b);      // ↓(↑a1b1,↑a3b3) ↓a1b3 ↓(↑a0b0,↑a2b2) ↓a0b2
+    h = _mm_max_epu32(a, b);      // ↑a3b1 ↑(↓a1b1,↓a3b3) ↑a2b0 ↑(↓a0b0,↓a2b2)
+
+    a = _mm_unpacklo_epi32(l, h); // ↑a2b0 ↓(↑a0b0,↑a2b2) ↑(↓a0b0,↓a2b2) ↓a0b2
+    b = _mm_unpackhi_epi32(l, h); // ↑a3b1 ↓(↑a1b1,↑a3b3) ↑(↓a1b1,↓a3b3) ↓a1b3
+    l = _mm_min_epu32(a, b); // ↓(↑a2b0,↑a3b1) ↓(↑a0b0,↑a2b2,↑a1b1,↑a3b3) ↓(↑(↓a0b0,↓a2b2) ↑(↓a1b1,↓a3b3)) ↓a0b3
+    h = _mm_max_epu32(a, b); // ↑a3b0 ↑(↓(↑a0b0,↑a2b2) ↓(↑a1b1,↑a3b3)) ↑(↓a0b0,↓a2b2,↓a1b1,↓a3b3) ↑(↓a0b2,↓a1b3)
+
+    return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
-#endif
+#endif  // AVX2
 
-template<> __m256 SortHelper<float>::sort(VTArg _hgfedcba)
+template <> Vc_CONST AVX2::float_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::float_v) x_)
 {
-    VectorType hgfedcba = _hgfedcba;
-    const m128 hgfe = hi128(hgfedcba);
-    const m128 dcba = lo128(hgfedcba);
-    m128 l = _mm_min_ps(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
-    m128 h = _mm_max_ps(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
+    __m256 hgfedcba = x_.data();
+    const __m128 hgfe = AVX::hi128(hgfedcba);
+    const __m128 dcba = AVX::lo128(hgfedcba);
+    __m128 l = _mm_min_ps(hgfe, dcba); // ↓hd ↓gc ↓fb ↓ea
+    __m128 h = _mm_max_ps(hgfe, dcba); // ↑hd ↑gc ↑fb ↑ea
 
-    m128 x = _mm_unpacklo_ps(l, h); // ↑fb ↓fb ↑ea ↓ea
-    m128 y = _mm_unpackhi_ps(l, h); // ↑hd ↓hd ↑gc ↓gc
+    __m128 x = _mm_unpacklo_ps(l, h); // ↑fb ↓fb ↑ea ↓ea
+    __m128 y = _mm_unpackhi_ps(l, h); // ↑hd ↓hd ↑gc ↓gc
 
     l = _mm_min_ps(x, y); // ↓(↑fb,↑hd) ↓hfdb ↓(↑ea,↑gc) ↓geca
     h = _mm_max_ps(x, y); // ↑hfdb ↑(↓fb,↓hd) ↑geca ↑(↓ea,↓gc)
@@ -174,8 +323,8 @@ template<> __m256 SortHelper<float>::sort(VTArg _hgfedcba)
     x = _mm_min_ps(l, Reg::permute<X2, X2, X0, X0>(h)); // 2(hfdb) 1(hfdb) 2(geca) 1(geca)
     y = _mm_max_ps(h, Reg::permute<X3, X3, X1, X1>(l)); // 4(hfdb) 3(hfdb) 4(geca) 3(geca)
 
-    m128 a = _mm_castpd_ps(_mm_unpackhi_pd(_mm_castps_pd(x), _mm_castps_pd(y))); // a3 >= a2 >= a1 >= a0
-    m128 b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
+    __m128 a = _mm_castpd_ps(_mm_unpackhi_pd(_mm_castps_pd(x), _mm_castps_pd(y))); // a3 >= a2 >= a1 >= a0
+    __m128 b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
 
     // merge
     l = _mm_min_ps(a, b); // ↓a3b3 ↓a2b2 ↓a1b1 ↓a0b0
@@ -191,13 +340,14 @@ template<> __m256 SortHelper<float>::sort(VTArg _hgfedcba)
     l = _mm_min_ps(a, b); // ↓(↑a2b0,↑a3b1) ↓(↑a0b0,↑a2b2,↑a1b1,↑a3b3) ↓(↑(↓a0b0,↓a2b2),↑(↓a1b1,↓a3b3)) ↓a0b3
     h = _mm_max_ps(a, b); // ↑a3b0 ↑(↓(↑a0b0,↑a2b2),↓(↑a1b1,↑a3b3)) ↑(↓a0b0,↓a2b2,↓a1b1,↓a3b3) ↑(↓a0b2,↓a1b3)
 
-    return concat(_mm_unpacklo_ps(l, h), _mm_unpackhi_ps(l, h));
+    return AVX::concat(_mm_unpacklo_ps(l, h), _mm_unpackhi_ps(l, h));
 }
 
+#if 0
 template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RESTRICT y)
 {
-    m256d l = _mm256_min_pd(x, y); // ↓x3y3 ↓x2y2 ↓x1y1 ↓x0y0
-    m256d h = _mm256_max_pd(x, y); // ↑x3y3 ↑x2y2 ↑x1y1 ↑x0y0
+    __m256d l = _mm256_min_pd(x, y); // ↓x3y3 ↓x2y2 ↓x1y1 ↓x0y0
+    __m256d h = _mm256_max_pd(x, y); // ↑x3y3 ↑x2y2 ↑x1y1 ↑x0y0
     x = _mm256_unpacklo_pd(l, h); // ↑x2y2 ↓x2y2 ↑x0y0 ↓x0y0
     y = _mm256_unpackhi_pd(l, h); // ↑x3y3 ↓x3y3 ↑x1y1 ↓x1y1
     l = _mm256_min_pd(x, y); // ↓(↑x2y2,↑x3y3) ↓x3x2y3y2 ↓(↑x0y0,↑x1y1) ↓x1x0y1y0
@@ -206,8 +356,8 @@ template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RES
     y = _mm256_unpackhi_pd(h, l); // ↓(↑x2y2,↑x3y3) ↑x3x2y3y2 ↓(↑x0y0,↑x1y1) ↑x1x0y1y0
     l = _mm256_min_pd(x, y); // ↓(↑(↓x2y2,↓x3y3) ↓(↑x2y2,↑x3y3)) ↓x3x2y3y2 ↓(↑(↓x0y0,↓x1y1) ↓(↑x0y0,↑x1y1)) ↓x1x0y1y0
     h = _mm256_max_pd(x, y); // ↑(↑(↓x2y2,↓x3y3) ↓(↑x2y2,↑x3y3)) ↑x3x2y3y2 ↑(↑(↓x0y0,↓x1y1) ↓(↑x0y0,↑x1y1)) ↑x1x0y1y0
-    m256d a = Reg::permute<X2, X3, X1, X0>(Reg::permute128<X0, X1>(h, h)); // h0 h1 h3 h2
-    m256d b = Reg::permute<X2, X3, X1, X0>(l);                             // l2 l3 l1 l0
+    __m256d a = Reg::permute<X2, X3, X1, X0>(Reg::permute128<X0, X1>(h, h)); // h0 h1 h3 h2
+    __m256d b = Reg::permute<X2, X3, X1, X0>(l);                             // l2 l3 l1 l0
 
     // a3 >= a2 >= b1 >= b0
     // b3 <= b2 <= a1 <= a0
@@ -229,26 +379,27 @@ template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RES
     x = _mm256_unpacklo_pd(l, h); // h2 l2 h0 l0
     y = _mm256_unpackhi_pd(l, h); // h3 l3 h1 l1
 }
-template<> __m256d SortHelper<double>::sort(VTArg _dcba)
+#endif
+template <> Vc_CONST AVX2::double_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::double_v) x_)
 {
-    VectorType dcba = _dcba;
+    __m256d dcba = x_.data();
     /*
      * to find the second largest number find
      * max(min(max(ab),max(cd)), min(max(ad),max(bc)))
      *  or
      * max(max(min(ab),min(cd)), min(max(ab),max(cd)))
      *
-    const m256d adcb = avx_cast<m256d>(concat(_mm_alignr_epi8(avx_cast<m128i>(dc), avx_cast<m128i>(ba), 8), _mm_alignr_epi8(avx_cast<m128i>(ba), avx_cast<m128i>(dc), 8)));
-    const m256d l = _mm256_min_pd(dcba, adcb); // min(ad cd bc ab)
-    const m256d h = _mm256_max_pd(dcba, adcb); // max(ad cd bc ab)
+    const __m256d adcb = avx_cast<__m256d>(AVX::concat(_mm_alignr_epi8(avx_cast<__m128i>(dc), avx_cast<__m128i>(ba), 8), _mm_alignr_epi8(avx_cast<__m128i>(ba), avx_cast<__m128i>(dc), 8)));
+    const __m256d l = _mm256_min_pd(dcba, adcb); // min(ad cd bc ab)
+    const __m256d h = _mm256_max_pd(dcba, adcb); // max(ad cd bc ab)
     // max(h3, h1)
     // max(min(h0,h2), min(h3,h1))
     // min(max(l0,l2), max(l3,l1))
     // min(l3, l1)
 
-    const m256d ll = _mm256_min_pd(h, Reg::permute128<X0, X1>(h, h)); // min(h3h1 h2h0 h1h3 h0h2)
-    //const m256d hh = _mm256_max_pd(h3 ll1_3 l1 l0, h1 ll0_2 l3 l2);
-    const m256d hh = _mm256_max_pd(
+    const __m256d ll = _mm256_min_pd(h, Reg::permute128<X0, X1>(h, h)); // min(h3h1 h2h0 h1h3 h0h2)
+    //const __m256d hh = _mm256_max_pd(h3 ll1_3 l1 l0, h1 ll0_2 l3 l2);
+    const __m256d hh = _mm256_max_pd(
             Reg::permute128<X1, Y0>(_mm256_unpackhi_pd(ll, h), l),
             Reg::permute128<X0, Y1>(_mm256_blend_pd(h ll, 0x1), l));
     _mm256_min_pd(hh0, hh1
@@ -259,13 +410,13 @@ template<> __m256d SortHelper<double>::sort(VTArg _dcba)
     // max(max(min(ac),min(bd)), min(max(ac),max(bd)))
     // min(max(min(ac),min(bd)), min(max(ac),max(bd)))
     // min(min(ac), min(bd))
-    m128d l = _mm_min_pd(lo128(dcba), hi128(dcba)); // min(bd) min(ac)
-    m128d h = _mm_max_pd(lo128(dcba), hi128(dcba)); // max(bd) max(ac)
-    m128d h0_l0 = _mm_unpacklo_pd(l, h);
-    m128d h1_l1 = _mm_unpackhi_pd(l, h);
+    __m128d l = _mm_min_pd(AVX::lo128(dcba), AVX::hi128(dcba)); // min(bd) min(ac)
+    __m128d h = _mm_max_pd(AVX::lo128(dcba), AVX::hi128(dcba)); // max(bd) max(ac)
+    __m128d h0_l0 = _mm_unpacklo_pd(l, h);
+    __m128d h1_l1 = _mm_unpackhi_pd(l, h);
     l = _mm_min_pd(h0_l0, h1_l1);
     h = _mm_max_pd(h0_l0, h1_l1);
-    return concat(
+    return AVX::concat(
         _mm_min_pd(l, Reg::permute<X0, X0>(h)),
         _mm_max_pd(h, Reg::permute<X1, X1>(l))
             );
@@ -280,11 +431,11 @@ template<> __m256d SortHelper<double>::sort(VTArg _dcba)
     // total:   17 cycles
 
     /*
-    m256d cdab = Reg::permute<X2, X3, X0, X1>(dcba);
-    m256d l = _mm256_min_pd(dcba, cdab);
-    m256d h = _mm256_max_pd(dcba, cdab);
-    m256d maxmin_ba = Reg::permute128<X0, Y0>(l, h);
-    m256d maxmin_dc = Reg::permute128<X1, Y1>(l, h);
+    __m256d cdab = Reg::permute<X2, X3, X0, X1>(dcba);
+    __m256d l = _mm256_min_pd(dcba, cdab);
+    __m256d h = _mm256_max_pd(dcba, cdab);
+    __m256d maxmin_ba = Reg::permute128<X0, Y0>(l, h);
+    __m256d maxmin_dc = Reg::permute128<X1, Y1>(l, h);
 
     l = _mm256_min_pd(maxmin_ba, maxmin_dc);
     h = _mm256_max_pd(maxmin_ba, maxmin_dc);
@@ -296,8 +447,8 @@ template<> __m256d SortHelper<double>::sort(VTArg _dcba)
     // a b c d
     // b a d c
     // sort pairs
-    m256d y, l, h;
-    m128d l2, h2;
+    __m256d y, l, h;
+    __m128d l2, h2;
     y = shuffle<X1, Y0, X3, Y2>(x, x);
     l = _mm256_min_pd(x, y); // min[ab ab cd cd]
     h = _mm256_max_pd(x, y); // max[ab ab cd cd]
@@ -309,18 +460,18 @@ template<> __m256d SortHelper<double>::sort(VTArg _dcba)
 
     // don't be fooled by unpack here. It works differently for AVX pd than for SSE ps
     x = _mm256_unpacklo_pd(l, h); // l_ab h_ab l_cd h_cd
-    l2 = _mm_min_pd(lo128(x), hi128(x)); // l_abcd l(h_ab hcd)
-    h2 = _mm_max_pd(lo128(x), hi128(x)); // h(l_ab l_cd) h_abcd
+    l2 = _mm_min_pd(AVX::lo128(x), AVX::hi128(x)); // l_abcd l(h_ab hcd)
+    h2 = _mm_max_pd(AVX::lo128(x), AVX::hi128(x)); // h(l_ab l_cd) h_abcd
 
     // either it is:
-    return concat(l2, h2);
+    return AVX::concat(l2, h2);
     // or:
-    // concat(_mm_unpacklo_pd(l2, h2), _mm_unpackhi_pd(l2, h2));
+    // AVX::concat(_mm_unpacklo_pd(l2, h2), _mm_unpackhi_pd(l2, h2));
 
     // I'd like to have four useful compares
-    const m128d dc = hi128(dcba);
-    const m128d ba = lo128(dcba);
-    const m256d adcb = avx_cast<m256d>(concat(_mm_alignr_epi8(avx_cast<m128i>(dc), avx_cast<m128i>(ba), 8), _mm_alignr_epi8(avx_cast<m128i>(ba), avx_cast<m128i>(dc), 8)));
+    const __m128d dc = AVX::hi128(dcba);
+    const __m128d ba = AVX::lo128(dcba);
+    const __m256d adcb = avx_cast<__m256d>(AVX::concat(_mm_alignr_epi8(avx_cast<__m128i>(dc), avx_cast<__m128i>(ba), 8), _mm_alignr_epi8(avx_cast<__m128i>(ba), avx_cast<__m128i>(dc), 8)));
 
     const int extraCmp = _mm_movemask_pd(_mm_cmpgt_pd(dc, ba));
     // 0x0: d <= b && c <= a
@@ -383,5 +534,9 @@ template<> __m256d SortHelper<double>::sort(VTArg _dcba)
     */
 }
 
-}
-}
+}  // namespace Detail
+}  // namespace Vc
+
+#include <avx/undomacros.h>
+
+// vim: foldmethod=marker

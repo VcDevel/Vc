@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2011-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -56,11 +56,12 @@ namespace Mem
             return _mm_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2);
         }
 
-        // shuffle<X1, Y0>([x0 x1], [y0 y1]) = [x1 y0]
+        // shuffle<X1, X2, Y0, Y2>([x0 x1 x2 x3], [y0 y1 y2 y3]) = [x1 x2 y0 y2]
         template <VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3>
         Vc_INTRINSIC Vc_CONST __m128i shuffle(__m128i x, __m128i y)
         {
-            return _mm_castps_si128(shuffle<Dst0,Dst1,Dst2,Dst3>(_mm_castsi128_ps(x), _mm_castsi128_ps(y)));
+            return _mm_castps_si128(shuffle<Dst0, Dst1, Dst2, Dst3>(_mm_castsi128_ps(x),
+                                                                    _mm_castsi128_ps(y)));
         }
 
         // blend<X0, Y1>([x0 x1], [y0, y1]) = [x0 y1]

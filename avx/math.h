@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,16 +43,18 @@ Vc_INTRINSIC Vc_CONST AVX2::float_v abs(AVX2::float_v x)
 {
     return Detail::and_(x.data(), AVX::setabsmask_ps());
 }
-Vc_INTRINSIC Vc_CONST AVX::int_v abs(AVX::int_v x)
+#ifdef VC_IMPL_AVX2
+Vc_INTRINSIC Vc_CONST AVX2::int_v abs(AVX2::int_v x)
 {
-    return _mm_abs_epi32(x.data());
+    return _mm256_abs_epi32(x.data());
 }
-Vc_INTRINSIC Vc_CONST AVX::short_v abs(AVX::short_v x)
+Vc_INTRINSIC Vc_CONST AVX2::short_v abs(AVX2::short_v x)
 {
-    return _mm_abs_epi16(x.data());
+    return _mm256_abs_epi16(x.data());
 }
+#endif
 template <typename T>
-Vc_INTRINSIC AVX::Vector<T> copysign(AVX::Vector<T> a, AVX::Vector<T> b)
+Vc_INTRINSIC AVX2::Vector<T> copysign(AVX2::Vector<T> a, AVX2::Vector<T> b)
 {
     return a.copySign(b);
 }
@@ -81,18 +83,31 @@ inline AVX2::double_v frexp(AVX2::double_v::AsArg v, SimdArray<int, 4, SSE::int_
     internal_data(*e) = exponent;
     return ret;
 }
-inline AVX2::float_v frexp(AVX2::float_v::AsArg v, SimdArray<int, 8, SSE::int_v, 4> *e)
+namespace Detail
 {
-    const __m256 exponentBits = AVX::Const<float>::exponentMask().data();
-    const __m256 exponentPart = _mm256_and_ps(v.data(), exponentBits);
-    auto lo = AVX::avx_cast<__m128i>(AVX::lo128(exponentPart));
-    auto hi = AVX::avx_cast<__m128i>(AVX::hi128(exponentPart));
-    internal_data(internal_data0(*e)) = _mm_sub_epi32(_mm_srli_epi32(lo, 23), _mm_set1_epi32(0x7e));
-    internal_data(internal_data1(*e)) = _mm_sub_epi32(_mm_srli_epi32(hi, 23), _mm_set1_epi32(0x7e));
-    const __m256 exponentMaximized = _mm256_or_ps(v.data(), exponentBits);
-    AVX2::float_v ret = _mm256_and_ps(exponentMaximized, AVX::avx_cast<__m256>(AVX::set1_epi32(0xbf7fffffu)));
-    ret(isnan(v) || !isfinite(v) || v == AVX2::float_v::Zero()) = v;
-    e->setZero(static_cast<decltype(*e == *e)>(v == AVX2::float_v::Zero()));
+Vc_INTRINSIC AVX2::float_v::IndexType extractExponent(__m256 e)
+{
+    SimdArray<uint, float_v::size()> exponentPart;
+    const auto ee = AVX::avx_cast<__m256i>(e);
+#ifdef VC_IMPL_AVX2
+    exponentPart = AVX2::uint_v(ee);
+#else
+    internal_data(internal_data0(exponentPart)) = AVX::lo128(ee);
+    internal_data(internal_data1(exponentPart)) = AVX::hi128(ee);
+#endif
+    return (exponentPart >> 23) - 0x7e;
+}
+}  // namespace Detail
+inline AVX2::float_v frexp(AVX2::float_v::AsArg v, AVX2::float_v::IndexType *e)
+{
+    using namespace Detail;
+    using namespace AVX2;
+    const __m256 exponentBits = Const<float>::exponentMask().data();
+    *e = extractExponent(and_(v.data(), exponentBits));
+    const __m256 exponentMaximized = or_(v.data(), exponentBits);
+    float_v ret = _mm256_and_ps(exponentMaximized, avx_cast<__m256>(set1_epi32(0xbf7fffffu)));
+    ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
+    e->setZero(static_cast<decltype(*e == *e)>(v == float_v::Zero()));
     return ret;
 }
 

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2012-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -113,6 +113,22 @@ public:
 };
 
 }  // namespace Common
+
+template <typename T, typename Abi>
+VC_DEPRECATED("build the tuple with Vc::tie instead")
+constexpr Common::VectorReferenceArray<2, Vc::Vector<T, Abi>>
+operator,(Vc::Vector<T, Abi> &a, Vc::Vector<T, Abi> &b)
+{
+    return {a, b};
+}
+
+template <typename T, typename Abi>
+VC_DEPRECATED("build the tuple with Vc::tie instead")
+constexpr Common::VectorReferenceArray<2, const Vc::Vector<T, Abi>>
+operator,(const Vc::Vector<T, Abi> &a, const Vc::Vector<T, Abi> &b)
+{
+    return {a, b};
+}
 
 template <typename V, typename... Vs>
 constexpr Common::VectorReferenceArray<sizeof...(Vs) + 1,

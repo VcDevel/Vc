@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -49,19 +49,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-  typedef Vc_IMPL_NAMESPACE::double_v double_v;
-  typedef Vc_IMPL_NAMESPACE:: float_v  float_v;
-  typedef Vc_IMPL_NAMESPACE::   int_v    int_v;
-  typedef Vc_IMPL_NAMESPACE::  uint_v   uint_v;
-  typedef Vc_IMPL_NAMESPACE:: short_v  short_v;
-  typedef Vc_IMPL_NAMESPACE::ushort_v ushort_v;
+  using double_v = Vector<double>;
+  using  float_v = Vector< float>;
+  using  llong_v = Vector< llong>;
+  using ullong_v = Vector<ullong>;
+  using   long_v = Vector<  long>;
+  using  ulong_v = Vector< ulong>;
+  using    int_v = Vector<   int>;
+  using   uint_v = Vector<  uint>;
+  using  short_v = Vector< short>;
+  using ushort_v = Vector<ushort>;
+  using  schar_v = Vector< schar>;
+  using  uchar_v = Vector< uchar>;
 
-  typedef Vc_IMPL_NAMESPACE::double_m double_m;
-  typedef Vc_IMPL_NAMESPACE:: float_m  float_m;
-  typedef Vc_IMPL_NAMESPACE::   int_m    int_m;
-  typedef Vc_IMPL_NAMESPACE::  uint_m   uint_m;
-  typedef Vc_IMPL_NAMESPACE:: short_m  short_m;
-  typedef Vc_IMPL_NAMESPACE::ushort_m ushort_m;
+  using double_m = Mask<double>;
+  using  float_m = Mask< float>;
+  using  llong_m = Mask< llong>;
+  using ullong_m = Mask<ullong>;
+  using   long_m = Mask<  long>;
+  using  ulong_m = Mask< ulong>;
+  using    int_m = Mask<   int>;
+  using   uint_m = Mask<  uint>;
+  using  short_m = Mask< short>;
+  using ushort_m = Mask<ushort>;
+  using  schar_m = Mask< schar>;
+  using  uchar_m = Mask< uchar>;
 
   typedef Vector<std:: int_least64_t>  int_least64_v;
   typedef Vector<std::uint_least64_t> uint_least64_v;
@@ -183,8 +195,6 @@ namespace Vc_VERSIONED_NAMESPACE {
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-  using Vc_IMPL_NAMESPACE::VectorAlignedBaseT;
-  typedef VectorAlignedBaseT<> VectorAlignedBase;
   using namespace VectorSpecialInitializerZero;
   using namespace VectorSpecialInitializerOne;
   using namespace VectorSpecialInitializerIndexesFromZero;

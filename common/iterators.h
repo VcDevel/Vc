@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -218,6 +218,10 @@ template<typename V, typename Flags, typename FlagsX> Vc_ALWAYS_INLINE MemoryVec
 }
 
 }  // namespace Common
+
+using Common::begin;
+using Common::end;
+using Common::makeIterator;
 }  // namespace Vc
 
 #include "undomacros.h"

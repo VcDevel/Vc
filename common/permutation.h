@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2010-2013 Matthias Kretz <kretz@kde.org>
+Copyright © 2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,28 +26,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_HELPERIMPL_TCC
-#define VC_SSE_HELPERIMPL_TCC
+#ifndef VC_COMMON_PERMUTATION_H_
+#define VC_COMMON_PERMUTATION_H_
 
-#include "../common/malloc.h"
+#include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Internal
+namespace Permutation
 {
-
-template<Vc::MallocAlignment A>
-inline void *HelperImpl<SSE2Impl>::malloc(size_t n)
-{
-    return Common::malloc<A>(n);
+struct ReversedTag {};
+constexpr ReversedTag Reversed{};
+}  // namespace Permutation
 }
 
-inline void HelperImpl<SSE2Impl>::free(void *p)
-{
-    Common::free(p);
-}
+#include "undomacros.h"
 
-}
-}
+#endif  // VC_COMMON_PERMUTATION_H_
 
-#endif // VC_SSE_HELPERIMPL_TCC
+// vim: foldmethod=marker

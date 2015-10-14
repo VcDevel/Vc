@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,12 +42,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T> class Mask<T, VectorAbi::Avx>
 {
-    friend class Mask<  double, VectorAbi::Avx>;
-    friend class Mask<   float, VectorAbi::Avx>;
-    friend class Mask< int32_t, VectorAbi::Avx>;
-    friend class Mask<uint32_t, VectorAbi::Avx>;
-    friend class Mask< int16_t, VectorAbi::Avx>;
-    friend class Mask<uint16_t, VectorAbi::Avx>;
     friend Common::MaskEntry<Mask>;
 
 public:
@@ -89,6 +83,7 @@ private:
 
 public:
     static constexpr size_t Size = sizeof(VectorTypeF) / sizeof(T);
+    static constexpr size_t MemoryAlignment = Size;
     static constexpr std::size_t size() { return Size; }
     FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
@@ -140,14 +135,11 @@ public:
                                    Common::enable_if_mask_converts_explicitly<T, U> =
                                        nullarg);
 
-        Vc_INTRINSIC explicit Mask(const bool *mem) { load(mem); }
-        template<typename Flags> Vc_INTRINSIC explicit Mask(const bool *mem, Flags f) { load(mem, f); }
+        template<typename Flags = DefaultLoadTag> Vc_INTRINSIC explicit Mask(const bool *mem, Flags f = Flags()) { load(mem, f); }
 
-        Vc_INTRINSIC_L void load(const bool *mem) Vc_INTRINSIC_R;
-        template<typename Flags> Vc_INTRINSIC void load(const bool *mem, Flags) { load(mem); }
+        template<typename Flags = DefaultLoadTag> Vc_INTRINSIC void load(const bool *mem, Flags = Flags());
 
-        Vc_INTRINSIC_L void store(bool *) const Vc_INTRINSIC_R;
-        template<typename Flags> Vc_INTRINSIC void store(bool *mem, Flags) const { store(mem); }
+        template<typename Flags = DefaultLoadTag> Vc_INTRINSIC void store(bool *mem, Flags = Flags()) const;
 
         Vc_INTRINSIC Mask &operator=(const Mask &) = default;
         Vc_INTRINSIC_L Mask &operator=(const std::array<bool, Size> &values) Vc_INTRINSIC_R;
@@ -175,10 +167,10 @@ public:
 
         // no need for expression template optimizations because cmp(n)eq for floats are not bitwise
         // compares
-        Vc_INTRINSIC bool isFull () const { return 0 != Detail::testc(data(), Detail::allone<VectorTypeF>()); }
-        Vc_INTRINSIC bool isNotEmpty() const { return 0 == Detail::testz(data(), data()); }
-        Vc_INTRINSIC bool isEmpty() const { return 0 != Detail::testz(data(), data()); }
-        Vc_INTRINSIC bool isMix  () const { return 0 != Detail::testnzc(data(), Detail::allone<VectorTypeF>()); }
+        Vc_INTRINSIC_L bool isNotEmpty() const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L bool isEmpty() const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L bool isFull() const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L bool isMix() const Vc_INTRINSIC_R;
 
         Vc_INTRINSIC Vc_PURE int shiftMask() const { return Detail::movemask(dataI()); }
         Vc_INTRINSIC Vc_PURE int toInt() const { return Detail::mask_to_int<Size>(dataI()); }
@@ -193,7 +185,7 @@ public:
         }
         Vc_INTRINSIC_L Vc_PURE_L bool operator[](size_t index) const Vc_INTRINSIC_R Vc_PURE_R;
 
-        Vc_INTRINSIC Vc_PURE int count() const { return _mm_popcnt_u32(toInt()); }
+        Vc_INTRINSIC Vc_PURE int count() const { return Detail::popcnt16(toInt()); }
         Vc_INTRINSIC Vc_PURE int firstOne() const { return _bit_scan_forward(toInt()); }
 
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
@@ -203,23 +195,13 @@ public:
         void setEntry(size_t i, bool x) { d.set(i, Common::MaskBool<sizeof(T)>(x)); }
 
     private:
-#ifndef VC_IMPL_POPCNT
-        static Vc_INTRINSIC Vc_CONST unsigned int _mm_popcnt_u32(unsigned int n) {
-            n = (n & 0x55555555U) + ((n >> 1) & 0x55555555U);
-            n = (n & 0x33333333U) + ((n >> 2) & 0x33333333U);
-            n = (n & 0x0f0f0f0fU) + ((n >> 4) & 0x0f0f0f0fU);
-            //n = (n & 0x00ff00ffU) + ((n >> 8) & 0x00ff00ffU);
-            //n = (n & 0x0000ffffU) + ((n >>16) & 0x0000ffffU);
-            return n;
-        }
-#endif
-
 #ifdef VC_COMPILE_BENCHMARKS
     public:
 #endif
         Storage d;
 };
 template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::Size;
+template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::MemoryAlignment;
 
 }  // namespace Vc
 

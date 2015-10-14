@@ -1,5 +1,5 @@
 /*{{{
-    Copyright (C) 2013-2014 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2013-2015 Matthias Kretz <kretz@kde.org>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ void testIsSupported()
     COMPARE(Vc::isImplementationSupported(Vc::SSE41Impl), CpuId::hasSse41());
     COMPARE(Vc::isImplementationSupported(Vc::SSE42Impl), CpuId::hasSse42());
     COMPARE(Vc::isImplementationSupported(Vc::AVXImpl  ), CpuId::hasOsxsave() && CpuId::hasAvx());
-    COMPARE(Vc::isImplementationSupported(Vc::AVX2Impl ), false);
+    COMPARE(Vc::isImplementationSupported(Vc::AVX2Impl ), CpuId::hasOsxsave() && CpuId::hasAvx2());
 }
 
 void testBestImplementation()
@@ -41,7 +41,8 @@ void testBestImplementation()
     // when building with a recent and fully featured compiler the following should pass
     // but - old GCC versions have to fall back to Scalar, even though SSE is supported by the CPU
     //     - ICC/MSVC can't use XOP/FMA4
-    //COMPARE(Vc::bestImplementationSupported(), VC_IMPL);
+    COMPARE(Vc::bestImplementationSupported(), Vc::CurrentImplementation::current());
+    COMPARE(Vc::bestImplementationSupported(), VC_IMPL);
 }
 
 void testExtraInstructions()
@@ -53,6 +54,8 @@ void testExtraInstructions()
     COMPARE(!(extra & Vc::Fma4Instructions), !CpuId::hasFma4());
     COMPARE(!(extra & Vc::PopcntInstructions), !CpuId::hasPopcnt());
     COMPARE(!(extra & Vc::Sse4aInstructions), !CpuId::hasSse4a());
+    COMPARE(!(extra & Vc::FmaInstructions), !CpuId::hasFma());
+    COMPARE(!(extra & Vc::Bmi2Instructions), !CpuId::hasBmi2());
 }
 
 void testmain()

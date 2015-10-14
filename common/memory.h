@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstddef>
 #include <initializer_list>
 #include "memoryfwd.h"
+#include "malloc.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Common
-{
-
 /**
  * Allocates memory on the Heap with alignment and padding suitable for vectorized access.
  *
@@ -75,10 +73,10 @@ namespace Common
  * \headerfile memory.h <Vc/Memory>
  */
 template<typename T, Vc::MallocAlignment A>
-Vc_ALWAYS_INLINE_L T *Vc_ALWAYS_INLINE_R malloc(size_t n)
+Vc_ALWAYS_INLINE T *malloc(size_t n)
 {
 #ifndef VC_NVCC
-    return static_cast<T *>(Internal::Helper::malloc<A>(n * sizeof(T)));
+    return static_cast<T *>(Common::malloc<A>(n * sizeof(T)));
 #endif
 }
 
@@ -107,10 +105,12 @@ template<typename T>
 Vc_ALWAYS_INLINE void free(T *p)
 {
 #ifndef VC_NVCC
-    Internal::Helper::free(p);
+    Common::free(p);
 #endif
 }
 
+namespace Common
+{
 template<typename V, size_t Size> struct _MemorySizeCalculation
 {
     enum AlignmentCalculations {
@@ -132,7 +132,10 @@ template<typename V, size_t Size> struct _MemorySizeCalculation
  * \param Size1 Number of rows
  * \param Size2 Number of columns
  */
-template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> >
+template <typename V, size_t Size1, size_t Size2, bool InitPadding>
+class Memory : public AlignedBase<V::MemoryAlignment>,
+               public MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2,
+                                 Memory<V, Size2, 0, false>>
 {
     public:
         typedef typename V::EntryType EntryType;
@@ -140,20 +143,15 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         typedef MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> > Base;
             friend class MemoryBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> >;
             friend class MemoryDimensionBase<V, Memory<V, Size1, Size2, InitPadding>, 2, Memory<V, Size2, 0, false> >;
-            enum InternalConstants {
+            enum : size_t {
+                Alignment = V::MemoryAlignment,
                 PaddedSize2 = _MemorySizeCalculation<V, Size2>::PaddedSize
             };
-#if defined(VC_ICC) && defined(_WIN32)
-            __declspec(align(__alignof(VectorAlignedBaseT<V>)))
-#elif defined(VC_CLANG)
-            __attribute__((aligned(__alignof(VectorAlignedBaseT<V>))))
-#elif defined(VC_MSVC)
-	    VectorAlignedBaseT<V> _force_alignment;
-            // __declspec(align(#)) accepts only numbers not __alignof nor just VectorAlignment
-	    // by putting VectorAlignedBaseT<V> here _force_alignment is aligned correctly.
-	    // the downside is that there's a lot of padding before m_mem (32 Bytes with SSE) :(
-#endif
-            EntryType m_mem[Size1][PaddedSize2];
+            alignas(static_cast<size_t>(Alignment))  // GCC complains about 'is not an
+                                                     // integer constant' unless the
+                                                     // static_cast is present
+                EntryType m_mem[Size1][PaddedSize2];
+
         public:
             using Base::vector;
             enum Constants {
@@ -205,12 +203,12 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
             template<typename Parent, typename RM>
             Vc_ALWAYS_INLINE Memory &operator=(const MemoryBase<V, Parent, 2, RM> &rhs) {
                 assert(vectorsCount() == rhs.vectorsCount());
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
                 return *this;
             }
 
             Vc_ALWAYS_INLINE Memory &operator=(const Memory &rhs) {
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
                 return *this;
             }
 
@@ -227,11 +225,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
                 }
                 return *this;
             }
-    }
-#if defined(VC_ICC) && VC_ICC < 20120212 && !defined(_WIN32)
-    __attribute__((__aligned__(__alignof(VectorAlignedBaseT<V>))))
-#endif
-    ;
+};
 
     /**
      * A helper class to simplify usage of correctly aligned and padded memory, allowing both vector and
@@ -276,7 +270,10 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
      * \ingroup Utilities
      * \headerfile memory.h <Vc/Memory>
      */
-    template<typename V, size_t Size, bool InitPadding> class Memory<V, Size, 0u, InitPadding> : public VectorAlignedBaseT<V>, public MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>
+template <typename V, size_t Size, bool InitPadding>
+class Memory<V, Size, 0u, InitPadding>
+    : public AlignedBase<V::MemoryAlignment>,
+      public MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>
     {
         public:
             typedef typename V::EntryType EntryType;
@@ -284,24 +281,18 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
             typedef MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void> Base;
             friend class MemoryBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
             friend class MemoryDimensionBase<V, Memory<V, Size, 0u, InitPadding>, 1, void>;
-            enum InternalConstants {
-                Alignment = V::Size,
-                AlignmentMask = Alignment - 1,
-                MaskedSize = Size & AlignmentMask,
-                Padding = Alignment - MaskedSize,
+            enum : size_t {
+                Alignment = V::MemoryAlignment,     // in Bytes
+                MaskedSize = Size & (V::Size - 1),  // the fraction of Size that exceeds
+                                                    // an integral multiple of V::Size
+                Padding = V::Size - MaskedSize,
                 PaddedSize = MaskedSize == 0 ? Size : Size + Padding
             };
-#if defined(VC_ICC) && defined(_WIN32)
-            __declspec(align(__alignof(VectorAlignedBaseT<V>)))
-#elif defined(VC_CLANG)
-            __attribute__((aligned(__alignof(VectorAlignedBaseT<V>))))
-#elif defined(VC_MSVC)
-            VectorAlignedBaseT<V> _force_alignment;
-            // __declspec(align(#)) accepts only numbers not __alignof nor just VectorAlignment
-            // by putting VectorAlignedBaseT<V> here _force_alignment is aligned correctly.
-            // the downside is that there's a lot of padding before m_mem (32 Bytes with SSE) :(
-#endif
-            EntryType m_mem[PaddedSize];
+            alignas(static_cast<size_t>(Alignment))  // GCC complains about 'is not an
+                                                     // integer constant' unless the
+                                                     // static_cast is present
+                EntryType m_mem[PaddedSize];
+
         public:
             using Base::vector;
             enum Constants {
@@ -372,25 +363,25 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
 
             inline Memory(const Memory &rhs)
             {
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
             }
 
             template <size_t S> inline Memory(const Memory<V, S> &rhs)
             {
                 assert(vectorsCount() == rhs.vectorsCount());
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
             }
 
             inline Memory &operator=(const Memory &rhs)
             {
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
                 return *this;
             }
 
             template <size_t S> inline Memory &operator=(const Memory<V, S> &rhs)
             {
                 assert(vectorsCount() == rhs.vectorsCount());
-                Internal2::copyVectors(*this, rhs);
+                Detail::copyVectors(*this, rhs);
                 return *this;
             }
 
@@ -404,11 +395,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
                 }
                 return *this;
             }
-    }
-#if defined(VC_ICC) && VC_ICC < 20120212 && !defined(_WIN32)
-    __attribute__((__aligned__(__alignof(VectorAlignedBaseT<V>)) ))
-#endif
-    ;
+    };
 
     /**
      * A helper class that is very similar to Memory<V, Size> but with dynamically allocated memory and
@@ -483,7 +470,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         Vc_ALWAYS_INLINE Memory(size_t size)
             : m_entriesCount(size),
             m_vectorsCount(calcPaddedEntriesCount(m_entriesCount)),
-            m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount))
         {
             m_vectorsCount /= V::Size;
             Base::lastVector() = V::Zero();
@@ -500,9 +487,9 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         Vc_ALWAYS_INLINE Memory(const MemoryBase<V, Parent, 1, RM> &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
-            m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
-            Internal2::copyVectors(*this, rhs);
+            Detail::copyVectors(*this, rhs);
         }
 
         /**
@@ -515,9 +502,9 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         Vc_ALWAYS_INLINE Memory(const Memory &rhs)
             : m_entriesCount(rhs.entriesCount()),
             m_vectorsCount(rhs.vectorsCount()),
-            m_mem(Common::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
+            m_mem(Vc::malloc<EntryType, Vc::AlignOnVector>(m_vectorsCount * V::Size))
         {
-            Internal2::copyVectors(*this, rhs);
+            Detail::copyVectors(*this, rhs);
         }
 
         /**
@@ -525,7 +512,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
          */
         Vc_ALWAYS_INLINE ~Memory()
         {
-            Common::free(m_mem);
+            Vc::free(m_mem);
         }
 
         /**
@@ -561,13 +548,13 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
         template<typename Parent, typename RM>
         Vc_ALWAYS_INLINE Memory &operator=(const MemoryBase<V, Parent, 1, RM> &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            Internal2::copyVectors(*this, rhs);
+            Detail::copyVectors(*this, rhs);
             return *this;
         }
 
         Vc_ALWAYS_INLINE Memory &operator=(const Memory &rhs) {
             assert(vectorsCount() == rhs.vectorsCount());
-            Internal2::copyVectors(*this, rhs);
+            Detail::copyVectors(*this, rhs);
             return *this;
         }
 
@@ -599,7 +586,7 @@ template<typename V, size_t Size1, size_t Size2, bool InitPadding> class Memory 
 Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr)
 {
 #ifndef VC_NVCC
-    Internal::Helper::prefetchForOneRead(addr);
+    Vc::Detail::prefetchForOneRead(addr, VectorAbi::Best<float>());
 #endif
 }
 
@@ -618,7 +605,7 @@ Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr)
 Vc_ALWAYS_INLINE void prefetchForModify(const void *addr)
 {
 #ifndef VC_NVCC
-    Internal::Helper::prefetchForModify(addr);
+    Vc::Detail::prefetchForModify(addr, VectorAbi::Best<float>());
 #endif
 }
 
@@ -635,7 +622,7 @@ Vc_ALWAYS_INLINE void prefetchForModify(const void *addr)
 Vc_ALWAYS_INLINE void prefetchClose(const void *addr)
 {
 #ifndef VC_NVCC
-    Internal::Helper::prefetchClose(addr);
+    Vc::Detail::prefetchClose(addr, VectorAbi::Best<float>());
 #endif
 }
 
@@ -652,7 +639,7 @@ Vc_ALWAYS_INLINE void prefetchClose(const void *addr)
 Vc_ALWAYS_INLINE void prefetchMid(const void *addr)
 {
 #ifndef VC_NVCC
-    Internal::Helper::prefetchMid(addr);
+    Vc::Detail::prefetchMid(addr, VectorAbi::Best<float>());
 #endif
 }
 
@@ -669,13 +656,11 @@ Vc_ALWAYS_INLINE void prefetchMid(const void *addr)
 Vc_ALWAYS_INLINE void prefetchFar(const void *addr)
 {
 #ifndef VC_NVCC
-    Internal::Helper::prefetchFar(addr);
+    Vc::Detail::prefetchFar(addr, VectorAbi::Best<float>());
 #endif
 }
 }  // namespace Common
 
-using Common::malloc;
-using Common::free;
 using Common::Memory;
 using Common::prefetchForOneRead;
 using Common::prefetchForModify;

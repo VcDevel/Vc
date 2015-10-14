@@ -127,8 +127,8 @@ Vc_CAST__( short_v) simd_cast(double_v a, double_v b)
 Vc_CAST__(  uint_v) simd_cast(double_v a, double_v b)
 {
     return _mm512_mask_permute4f128_epi32(
-        _mm512_cvtfxpnt_roundpd_epi32lo(a.data(), _MM_ROUND_MODE_TOWARD_ZERO), 0xff00,
-        _mm512_cvtfxpnt_roundpd_epi32lo(b.data(), _MM_ROUND_MODE_TOWARD_ZERO),
+        _mm512_cvtfxpnt_roundpd_epu32lo(a.data(), _MM_ROUND_MODE_TOWARD_ZERO), 0xff00,
+        _mm512_cvtfxpnt_roundpd_epu32lo(b.data(), _MM_ROUND_MODE_TOWARD_ZERO),
         _MM_PERM_BABA);
 }
 Vc_CAST__(   int_v) simd_cast(double_v a, double_v b)

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2012-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2012-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,32 +35,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-
-/**
- * \internal
- *
- * Helper interface to make m_indexes in InterleavedMemoryAccessBase behave like an integer vector.
- * Only that the entries are successive entries from the given start index.
- */
-template<size_t StructSize> class SuccessiveEntries
-{
-    std::size_t m_first;
-public:
-    typedef SuccessiveEntries AsArg;
-    constexpr SuccessiveEntries(size_t first) : m_first(first) {}
-    constexpr Vc_PURE size_t operator[](size_t offset) const { return m_first + offset * StructSize; }
-    constexpr Vc_PURE size_t data() const { return m_first; }
-    constexpr Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
-    constexpr Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
-    constexpr Vc_PURE SuccessiveEntries operator<<(std::size_t x) const { return {m_first << x}; }
-
-    friend SuccessiveEntries &internal_data(SuccessiveEntries &x) { return x; }
-    friend const SuccessiveEntries &internal_data(const SuccessiveEntries &x)
-    {
-        return x;
-    }
-};
-
 /**
  * \internal
  */

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2010-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2010-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ namespace Vc_VERSIONED_NAMESPACE
 
 /**
  * \ingroup Vectors
+ *
+ * \deprecated Turn to InterleavedMemoryWrapper for a more flexible and complete solution.
  *
  * Loads two vectors of values from an interleaved array.
  *
@@ -76,7 +78,7 @@ template<typename V, typename M, typename A> Vc_ALWAYS_INLINE void deinterleave(
         const M *memory, A align)
 {
 #ifndef VC_NVCC
-    Internal::Helper::deinterleave(*a, *b, memory, align);
+    Detail::deinterleave(*a, *b, memory, align);
 #endif
 }
 
@@ -85,7 +87,7 @@ template<typename V, typename M> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
         const M *memory)
 {
 #ifndef VC_NVCC
-    Internal::Helper::deinterleave(*a, *b, memory, Aligned);
+    Detail::deinterleave(*a, *b, memory, Aligned);
 #endif
 }
 

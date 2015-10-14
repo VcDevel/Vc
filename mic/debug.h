@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2011-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Vc_IMPL_NAMESPACE
+namespace MIC
 {
 
 #ifdef NDEBUG
@@ -89,7 +89,7 @@ class DebugStream
 };
 #endif
 
-#define VC_DEBUG DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
+#define Vc_DEBUG Vc::MIC::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 }  // namespace MIC
 }  // namespace Vc

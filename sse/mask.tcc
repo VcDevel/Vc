@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,6 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<4>(__m128i k)
 {
 #ifdef VC_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_ps(_mm_castsi128_ps(k)));
-//X     tmp = (tmp & 5) + ((tmp >> 1) & 5);
-//X     return (tmp & 3) + ((tmp >> 2) & 3);
 #else
     auto x = _mm_srli_epi32(k, 31);
     x = _mm_add_epi32(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
@@ -58,10 +56,6 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<8>(__m128i k)
 #ifdef VC_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_epi8(k)) / 2;
 #else
-//X     int tmp = _mm_movemask_epi8(dataI());
-//X     tmp = (tmp & 0x1111) + ((tmp >> 2) & 0x1111);
-//X     tmp = (tmp & 0x0303) + ((tmp >> 4) & 0x0303);
-//X     return (tmp & 0x000f) + ((tmp >> 8) & 0x000f);
     auto x = _mm_srli_epi16(k, 15);
     x = _mm_add_epi16(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
     x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)));
@@ -72,15 +66,7 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<8>(__m128i k)
 
 template<> Vc_INTRINSIC Vc_CONST int mask_count<16>(__m128i k)
 {
-    int tmp = _mm_movemask_epi8(k);
-#ifdef VC_IMPL_POPCNT
-    return _mm_popcnt_u32(tmp);
-#else
-    tmp = (tmp & 0x5555) + ((tmp >> 1) & 0x5555);
-    tmp = (tmp & 0x3333) + ((tmp >> 2) & 0x3333);
-    tmp = (tmp & 0x0f0f) + ((tmp >> 4) & 0x0f0f);
-    return (tmp & 0x00ff) + ((tmp >> 8) & 0x00ff);
-#endif
+    return Detail::popcnt16(_mm_movemask_epi8(k));
 }
 /*}}}*/
 // mask_to_int/*{{{*/
@@ -116,8 +102,7 @@ template <> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
 #ifdef __x86_64__
     *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);
 #else
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k2);
-    *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k2, 1);
+    _mm_store_sd(reinterpret_cast<MayAlias<double> *>(mem), _mm_castsi128_pd(k2));
 #endif
 }
 /*}}}*/
@@ -125,7 +110,11 @@ template <> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
 template<size_t> Vc_ALWAYS_INLINE __m128 mask_load(const bool *mem);
 template<> Vc_ALWAYS_INLINE __m128 mask_load<8>(const bool *mem)
 {
+#ifdef __x86_64__
     __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+#else
+    __m128i k = _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(mem)));
+#endif
     return sse_cast<__m128>(_mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
 }
 template<> Vc_ALWAYS_INLINE __m128 mask_load<4>(const bool *mem)

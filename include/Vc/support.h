@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2010-2013 Matthias Kretz <kretz@kde.org>
+Copyright © 2010-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -96,8 +96,8 @@ template<typename Impl>
 VC_TARGET_NO_SIMD
 static inline bool isImplementationSupported()
 {
-    return isImplementationSupported(static_cast<Vc::Implementation>(Impl::Implementation)) &&
-        (extraInstructionsSupported() & Impl::ExtraInstructions) == Impl::ExtraInstructions;
+    return isImplementationSupported(Impl::current()) &&
+           Impl::runs_on(extraInstructionsSupported());
 }
 
 /**

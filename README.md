@@ -45,8 +45,8 @@ cmake >= 2.8.3
 
 C++11 Compiler:
 
-* GCC >= 4.8
-* clang >= 3.2
+* GCC >= 4.8.1
+* clang >= 3.4
 * ICC >= 15.0.3
 * Visual Studio (not ready for Vc 1.0 yet)
 
