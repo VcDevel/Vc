@@ -288,8 +288,8 @@ TEST_TYPES(V,
             short_v))
 {
     using T = typename V::EntryType;
-    alignas(V::MemoryAlignment) T x_mem[V::size()];
-    alignas(V::MemoryAlignment) T y_mem[V::size()];
+    alignas(static_cast<size_t>(V::MemoryAlignment)) T x_mem[V::size()];
+    alignas(static_cast<size_t>(V::MemoryAlignment)) T y_mem[V::size()];
     for (int repetition = 0; repetition < 1000; ++repetition) {
         V x = V::Random();
         V y = (V::Random() & 2047) - 1023;
