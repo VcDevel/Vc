@@ -300,13 +300,20 @@ TEST(prepareDenormals) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testAbs, (int_v, float_v, double_v, short_v)) //{{{1
+// testAbs{{{1
+TEST_TYPES(Vec, testAbs, (int_v, float_v, double_v, short_v, SimdArray<int, 8>,
+                          SimdArray<int, 2>, SimdArray<int, 7>))
 {
-    for (int i = 0; i < 0x7fff; ++i) {
-        Vec a(i);
-        Vec b(-i);
+    for (int i = 0; i < 0x7fff - int(Vec::size()); ++i) {
+        Vec a = Vec::IndexesFromZero() + i;
+        Vec b = -a;
         COMPARE(a, Vc::abs(a));
         COMPARE(a, Vc::abs(b));
+    }
+    for (int i = 0; i < 1000; ++i) {
+        const Vec a = Vec::Random();
+        const Vec ref = Vec::generate([&](int j) { return std::abs(a[j]); });
+        COMPARE(abs(a), ref) << "a : " << a;
     }
 }
 
