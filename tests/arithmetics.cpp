@@ -291,21 +291,24 @@ TEST_TYPES(V,
     alignas(static_cast<size_t>(V::MemoryAlignment)) T x_mem[V::size()];
     alignas(static_cast<size_t>(V::MemoryAlignment)) T y_mem[V::size()];
     for (int repetition = 0; repetition < 1000; ++repetition) {
-        V x = V::Random();
+        const V x = V::Random();
+        x.store(x_mem, Vc::Aligned);
         V y = (V::Random() & 2047) - 1023;
         y(y == 0) = -1024;
-        const V z = x % y;
-
-        x.store(x_mem, Vc::Aligned);
         y.store(y_mem, Vc::Aligned);
-        const V reference = V::generate([&](size_t i) {
-            return x_mem[i] % y_mem[i];
-        });
-
-        COMPARE(z, reference) << ", x: " << x << ", y: " << y;
-
-        COMPARE(V::Zero() % y, V::Zero());
-        COMPARE(y % y, V::Zero());
+        {
+            const V z = x % y;
+            const V reference =
+                V::generate([&](size_t i) { return x_mem[i] % y_mem[i]; });
+            COMPARE(z, reference) << ", x: " << x << ", y: " << y;
+            COMPARE(V::Zero() % y, V::Zero());
+            COMPARE(y % y, V::Zero());
+        }
+        {
+            const V z = x % 256;
+            const V reference = V::generate([&](size_t i) { return x_mem[i] % 256; });
+            COMPARE(z, reference) << ", x: " << x;
+        }
     }
 }
 
