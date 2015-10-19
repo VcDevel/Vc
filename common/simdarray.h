@@ -613,7 +613,7 @@ public:
             storage_type0::fromOperation(op, Split::lo(args)...),  // no forward here - it
                                                                    // could move and thus
                                                                    // break the next line
-            storage_type1::fromOperation(op, Split::lo(std::forward<Args>(args))...)};
+            storage_type1::fromOperation(op, Split::hi(std::forward<Args>(args))...)};
         return r;
     }
 
@@ -1107,7 +1107,7 @@ inline void SimdArray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
                  Split::lo(mask));  // don't forward indexes - it could move and
                                     // thus break the next line
     data1.gather(mem, Split::hi(Common::Operations::gather(), std::forward<IT>(indexes)),
-                 Split::lo(mask));
+                 Split::hi(mask));
 }
 
 // internal_data0/1 (SimdArray) {{{1
