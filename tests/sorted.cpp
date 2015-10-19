@@ -77,10 +77,10 @@ TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_AR
 
     for (int repetition = 0; repetition < 1000; ++repetition) {
         Vec test = Vec::Random();
-        Vc::Memory<Vec, Vec::Size> reference;
-        reference.vector(0) = test;
-        std::sort(&reference[0], &reference[Vec::Size - 1] + 1);
-        ref = reference.vector(0);
+        alignas(Vec::MemoryAlignment) typename Vec::EntryType reference[Vec::Size] = {};
+        test.store(&reference[0], Vc::Aligned);
+        std::sort(std::begin(reference), std::end(reference));
+        ref.load(&reference[0], Vc::Aligned);
         COMPARE(test.sorted(), ref);
     }
 }
