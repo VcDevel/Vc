@@ -824,13 +824,61 @@ template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi:
     return _cast(VR::rotated(MIC::mic_cast<typename VR::VectorType>(d.v()), amount));
 }
 // interleaveLow/-High {{{1
-template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveLow(Vector<T, VectorAbi::Mic> x) const
+template <typename T>
+Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveLow(
+    Vector<T, VectorAbi::Mic> x) const
 {
-    return x; // TODO
+    using namespace MIC;
+    __m512i lo = mic_cast<__m512i>(d.v());
+    __m512i hi = mic_cast<__m512i>(x.d.v());
+    lo = _mm512_permute4f128_epi32(lo, _MM_PERM_BBAA);
+    lo = _mm512_mask_swizzle_epi32(lo, 0xf0f0, lo, _MM_SWIZ_REG_BADC);
+    lo = _mm512_shuffle_epi32(lo, _MM_PERM_BBAA);
+    hi = _mm512_permute4f128_epi32(hi, _MM_PERM_BBAA);
+    hi = _mm512_mask_swizzle_epi32(hi, 0xf0f0, hi, _MM_SWIZ_REG_BADC);
+    return mic_cast<VectorType>(_mm512_mask_shuffle_epi32(lo, 0xaaaa, hi, _MM_PERM_BBAA));
 }
-template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveHigh(Vector<T, VectorAbi::Mic> x) const
+template <typename T>
+Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveHigh(
+    Vector<T, VectorAbi::Mic> x) const
 {
-    return x; // TODO
+    using namespace MIC;
+    __m512i lo = mic_cast<__m512i>(d.v());
+    __m512i hi = mic_cast<__m512i>(x.d.v());
+    lo = _mm512_permute4f128_epi32(lo, _MM_PERM_DDCC);
+    lo = _mm512_mask_swizzle_epi32(lo, 0xf0f0, lo, _MM_SWIZ_REG_BADC);
+    lo = _mm512_shuffle_epi32(lo, _MM_PERM_BBAA);
+    hi = _mm512_permute4f128_epi32(hi, _MM_PERM_DDCC);
+    hi = _mm512_mask_swizzle_epi32(hi, 0xf0f0, hi, _MM_SWIZ_REG_BADC);
+    return mic_cast<VectorType>(_mm512_mask_shuffle_epi32(lo, 0xaaaa, hi, _MM_PERM_BBAA));
+}
+template <>
+Vc_INTRINSIC Vector<double, VectorAbi::Mic> Vector<double, VectorAbi::Mic>::interleaveLow(
+    Vector<double, VectorAbi::Mic> x) const
+{
+    using namespace MIC;
+    __m512i lo = mic_cast<__m512i>(d.v());
+    __m512i hi = mic_cast<__m512i>(x.d.v());
+    lo = _mm512_permute4f128_epi32(lo, _MM_PERM_BBAA);
+    lo = _mm512_mask_swizzle_epi32(lo, 0xf0f0, lo, _MM_SWIZ_REG_BADC);
+    lo = _mm512_shuffle_epi32(lo, _MM_PERM_BABA);
+    hi = _mm512_permute4f128_epi32(hi, _MM_PERM_BBAA);
+    hi = _mm512_mask_swizzle_epi32(hi, 0xf0f0, hi, _MM_SWIZ_REG_BADC);
+    return mic_cast<VectorType>(_mm512_mask_shuffle_epi32(lo, 0xcccc, hi, _MM_PERM_BABA));
+}
+template <>
+Vc_INTRINSIC Vector<double, VectorAbi::Mic>
+Vector<double, VectorAbi::Mic>::interleaveHigh(Vector<double, VectorAbi::Mic> x) const
+{
+    using namespace MIC;
+    __m512i lo = mic_cast<__m512i>(d.v());
+    __m512i hi = mic_cast<__m512i>(x.d.v());
+    lo = _mm512_permute4f128_epi32(lo, _MM_PERM_DDCC);
+    lo = _mm512_mask_swizzle_epi32(lo, 0xf0f0, lo, _MM_SWIZ_REG_BADC);
+    lo = _mm512_shuffle_epi32(lo, _MM_PERM_BABA);
+    hi = _mm512_permute4f128_epi32(hi, _MM_PERM_DDCC);
+    hi = _mm512_mask_swizzle_epi32(hi, 0xf0f0, hi, _MM_SWIZ_REG_BADC);
+    return mic_cast<VectorType>(_mm512_mask_shuffle_epi32(lo, 0xcccc, hi, _MM_PERM_BABA));
 }
 
 // reversed {{{1
