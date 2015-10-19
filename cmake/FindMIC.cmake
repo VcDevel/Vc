@@ -183,6 +183,7 @@ endif()
 
 if(MIC_NATIVE_FOUND)
    macro(_mic_add_object _target _source _output)
+      get_property(_deps SOURCE "${_source}" PROPERTY OBJECT_DEPENDS)
       get_filename_component(_abs "${_source}" ABSOLUTE)
       get_filename_component(_ext "${_source}" EXT)
       get_filename_component(_tmp "${_source}" NAME_WE)
@@ -206,7 +207,7 @@ if(MIC_NATIVE_FOUND)
          COMMAND "${_compiler}" -mmic
          -DVC_IMPL=MIC
          ${_flags} -c -o "${${_output}}" "${_abs}"
-         DEPENDS "${_abs}"
+         DEPENDS "${_abs}" ${_deps}
          IMPLICIT_DEPENDS ${_lang} "${_abs}"
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
          COMMENT "Compiling (MIC) ${${_output}}"
