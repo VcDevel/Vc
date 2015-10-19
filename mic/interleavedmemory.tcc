@@ -152,30 +152,30 @@ template<typename V> struct InterleaveImpl {
     template <typename I>
     static inline void interleave(I &&indexes, T *const data, V v0, V v1)
     {
-        const auto i = fixup(indexes);
-        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
+        const int_v i = fixup(indexes);
+        v0.scatter(data + 0, i);
+        v1.scatter(data + 1, i);
     }
 
     // interleave 3 {{{1
     template <typename I>
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2)
     {
-        const auto i = fixup(indexes);
-        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
+        const int_v i = fixup(indexes);
+        v0.scatter(data + 0, i);
+        v1.scatter(data + 1, i);
+        v2.scatter(data + 2, i);
     }
 
     // interleave 4 {{{1
     template <typename I>
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3)
     {
-        const auto i = fixup(indexes);
-        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
+        const int_v i = fixup(indexes);
+        v0.scatter(data + 0, i);
+        v1.scatter(data + 1, i);
+        v2.scatter(data + 2, i);
+        v3.scatter(data + 3, i);
     }
 
     // interleave 5 {{{1
@@ -183,12 +183,12 @@ template<typename V> struct InterleaveImpl {
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
                                   V v4)
     {
-        const auto i = fixup(indexes);
-        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, i, v4.data(), UpDownC(), sizeof(T));
+        const int_v i = fixup(indexes);
+        v0.scatter(data + 0, i);
+        v1.scatter(data + 1, i);
+        v2.scatter(data + 2, i);
+        v3.scatter(data + 3, i);
+        v4.scatter(data + 4, i);
     }
 
     // interleave 6 {{{1
@@ -196,13 +196,13 @@ template<typename V> struct InterleaveImpl {
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
                                   V v4, V v5)
     {
-        const auto i = fixup(indexes);
-        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, i, v4.data(), UpDownC(), sizeof(T));
-        scatter(data + 5, i, v5.data(), UpDownC(), sizeof(T));
+        const int_v i = fixup(indexes);
+        v0.scatter(data + 0, i);
+        v1.scatter(data + 1, i);
+        v2.scatter(data + 2, i);
+        v3.scatter(data + 3, i);
+        v4.scatter(data + 4, i);
+        v5.scatter(data + 5, i);
     }
 
     // interleave 7 {{{1
@@ -210,14 +210,14 @@ template<typename V> struct InterleaveImpl {
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
                                   V v4, V v5, V v6)
     {
-        const auto i = fixup(indexes);
-        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, i, v4.data(), UpDownC(), sizeof(T));
-        scatter(data + 5, i, v5.data(), UpDownC(), sizeof(T));
-        scatter(data + 6, i, v6.data(), UpDownC(), sizeof(T));
+        const int_v i = fixup(indexes);
+        v0.scatter(data + 0, i);
+        v1.scatter(data + 1, i);
+        v2.scatter(data + 2, i);
+        v3.scatter(data + 3, i);
+        v4.scatter(data + 4, i);
+        v5.scatter(data + 5, i);
+        v6.scatter(data + 6, i);
     }
 
     // interleave 8 {{{1
@@ -225,15 +225,15 @@ template<typename V> struct InterleaveImpl {
     static inline void interleave(I &&indexes, T *const data, V v0, V v1, V v2, V v3,
                                   V v4, V v5, V v6, V v7)
     {
-        const auto i = fixup(indexes);
-        scatter(data + 0, i, v0.data(), UpDownC(), sizeof(T));
-        scatter(data + 1, i, v1.data(), UpDownC(), sizeof(T));
-        scatter(data + 2, i, v2.data(), UpDownC(), sizeof(T));
-        scatter(data + 3, i, v3.data(), UpDownC(), sizeof(T));
-        scatter(data + 4, i, v4.data(), UpDownC(), sizeof(T));
-        scatter(data + 5, i, v5.data(), UpDownC(), sizeof(T));
-        scatter(data + 6, i, v6.data(), UpDownC(), sizeof(T));
-        scatter(data + 7, i, v7.data(), UpDownC(), sizeof(T));
+        const int_v i = fixup(indexes);
+        v0.scatter(data + 0, i);
+        v1.scatter(data + 1, i);
+        v2.scatter(data + 2, i);
+        v3.scatter(data + 3, i);
+        v4.scatter(data + 4, i);
+        v5.scatter(data + 5, i);
+        v6.scatter(data + 6, i);
+        v7.scatter(data + 7, i);
     }
 };
 }  // anonymous namespace

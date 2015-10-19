@@ -558,14 +558,16 @@ template <typename T>
 template <typename MT, typename IT>
 Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &&indexes) const
 {
-    MicIntrinsics::scatter(mem, ensureVector(std::forward<IT>(indexes)), d.v(),
-                           UpDownC<MT>(), sizeof(MT));
+    const auto v = std::is_same<T, ushort>::value ? (*this & 0xffff).data() : d.v();
+    MicIntrinsics::scatter(mem, ensureVector(std::forward<IT>(indexes)), v, UpDownC<MT>(),
+                           sizeof(MT));
 }
 template <typename T>
 template <typename MT, typename IT>
 Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &&indexes,
                                                    MaskArgument mask) const
 {
+    const auto v = std::is_same<T, ushort>::value ? (*this & 0xffff).data() : d.v();
     MicIntrinsics::scatter(mask.data(), mem, ensureVector(std::forward<IT>(indexes)),
                            d.v(), UpDownC<MT>(), sizeof(MT));
 }
