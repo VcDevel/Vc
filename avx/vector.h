@@ -88,7 +88,11 @@ public:
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
+#ifdef VC_ICC
+    typedef T EntryType __attribute__((aligned(sizeof(T))));
+#else
     using EntryType alignas(sizeof(T)) = T;
+#endif
         using value_type = EntryType;
         typedef EntryType VectorEntryType;
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);

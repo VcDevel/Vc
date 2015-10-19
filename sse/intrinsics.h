@@ -735,7 +735,11 @@ template <typename T> struct DetermineGatherMask
 template <typename T> struct VectorTraits
 {
     typedef typename VectorTypeHelper<T>::Type VectorType;
+#ifdef VC_ICC
+    typedef T EntryType __attribute__((aligned(sizeof(T))));
+#else
     using EntryType alignas(sizeof(T)) = T;
+#endif
     static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
     enum Constants { HasVectorDivision = !std::is_integral<T>::value };
     typedef Mask<T> MaskType;

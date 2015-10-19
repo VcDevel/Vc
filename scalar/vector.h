@@ -56,7 +56,11 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 
     public:
         using abi = VectorAbi::Scalar;
+#ifdef VC_ICC
+        typedef T EntryType __attribute__((aligned(sizeof(T))));
+#else
         using EntryType alignas(sizeof(T)) = T;
+#endif
         using VectorEntryType = EntryType;
         using value_type = EntryType;
         using VectorType = EntryType;

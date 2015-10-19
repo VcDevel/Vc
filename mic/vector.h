@@ -82,7 +82,11 @@ public:
     FREE_STORE_OPERATORS_ALIGNED(64)
     typedef typename MIC::VectorTypeHelper<T>::Type VectorType;
     using vector_type = VectorType;
+#ifdef VC_ICC
+    typedef T EntryType __attribute__((aligned(sizeof(T))));
+#else
     using EntryType alignas(sizeof(T)) = T;
+#endif
     using value_type = EntryType;
     typedef typename MIC::DetermineVectorEntryType<T>::Type VectorEntryType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
