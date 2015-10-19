@@ -144,14 +144,7 @@ template<typename T> struct Struct
     char z;
 };
 
-template <typename Vec>
-void gatherStructImpl(Vc::enable_if<alignof(Vec) != sizeof(Vec)> = Vc::nullarg)
-{
-    UnitTest::EXPECT_FAILURE();
-    FAIL() << "A type with alignof != sizeof breaks gathers from structs";
-}
-template <typename Vec>
-void gatherStructImpl(Vc::enable_if<alignof(Vec) == sizeof(Vec)> = Vc::nullarg)
+TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
@@ -198,10 +191,6 @@ void gatherStructImpl(Vc::enable_if<alignof(Vec) == sizeof(Vec)> = Vc::nullarg)
             COMPARE(!castedMask, b == Vec(Zero));
         }
     }
-}
-TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
-{
-    gatherStructImpl<Vec>();
 }
 
 template<typename T, int N> struct Row
