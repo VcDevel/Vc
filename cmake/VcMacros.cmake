@@ -177,18 +177,6 @@ macro(vc_check_assembler)
    endif(APPLE)
 endmacro()
 
-macro(vc_check_fpmath)
-   # if compiling for 32 bit x86 we need to use the -mfpmath=sse since the x87 is broken by design
-   include (CheckCXXSourceRuns)
-   check_cxx_source_runs("int main() { return sizeof(void*) != 8; }" Vc_VOID_PTR_IS_64BIT)
-   if(NOT Vc_VOID_PTR_IS_64BIT)
-      exec_program(${CMAKE_C_COMPILER} ARGS -dumpmachine OUTPUT_VARIABLE _gcc_machine)
-      if(_gcc_machine MATCHES "[x34567]86" OR _gcc_machine STREQUAL "mingw32")
-         vc_add_compiler_flag(Vc_COMPILE_FLAGS "-mfpmath=sse")
-      endif()
-   endif()
-endmacro()
-
 macro(vc_set_preferred_compiler_flags)
    vc_determine_compiler()
 
@@ -263,7 +251,6 @@ macro(vc_set_preferred_compiler_flags)
          vc_set_gnu_buildtype_flags()
       endif()
 
-      vc_check_fpmath()
       vc_check_assembler()
    elseif(Vc_COMPILER_IS_INTEL)
       ##################################################################################################

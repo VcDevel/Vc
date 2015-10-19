@@ -6,6 +6,9 @@ if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
 endif()
 
+# 32-bit x86 requires SSE for fp math to produce comparable results.
+AddCompilerFlag("-mfpmath=sse")
+
 if(DEFINED Vc_INSIDE_ROOT)
    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")  # Reset the ROOT default executable destination
    set(Vc_TEST_TARGET_PREFIX "vc-")
