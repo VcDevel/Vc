@@ -149,8 +149,10 @@ TEST_TYPES(V, scatters, ALL_TYPES)
         //std::cerr << data1 << '\n';
 
         for (size_t i = 0; i < V::Size; ++i) {
-            COMPARE(data1[indexes[i]], T(i + 1)) << indexes[i];
-            COMPARE(data2[indexes[i]], T(i + 1)) << indexes[i];
+            COMPARE(data1[indexes[i]], T(i + 1)) << ", indexes: " << indexes
+                                                 << ", i: " << i << ", data1:\n" << data1;
+            COMPARE(data2[indexes[i]], T(i + 1)) << ", indexes: " << indexes
+                                                 << ", i: " << i << ", data2:\n" << data2;
         }
     }
 }
