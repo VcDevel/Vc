@@ -351,6 +351,10 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
  */
 template<typename V, typename Parent, int Dimension, typename RowMemory> class MemoryBase : public MemoryDimensionBase<V, Parent, Dimension, RowMemory> //{{{1
 {
+    static_assert((V::size() * sizeof(typename V::EntryType)) % V::MemoryAlignment == 0,
+                  "Vc::Memory can only be used for data-parallel types storing a number "
+                  "of values that's a multiple of the memory alignment.");
+
     private:
         Parent *p() { return static_cast<Parent *>(this); }
         const Parent *p() const { return static_cast<const Parent *>(this); }
