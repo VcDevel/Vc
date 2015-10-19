@@ -96,6 +96,11 @@ Vc_ALWAYS_INLINE enable_if<
     Traits::decay<T>>
     applyScale(T &&x)
 {
+    static_assert(Scale::num % Scale::den == 0,
+                  "Non-integral index scaling requested. This typically happens only for "
+                  "Vc::Scalar on 32-bit for gathers on double. You can work around the "
+                  "issue by ensuring that all doubles in the structure are aligned on 8 "
+                  "Bytes.");
     constexpr auto value = Scale::num / Scale::den;
     VC_ASSERT(Vc::all_of((x * value) / value == x));
     return std::forward<T>(x) * value;
@@ -107,6 +112,11 @@ Vc_ALWAYS_INLINE enable_if<
     T>
     applyScale(T x)
 {
+    static_assert(Scale::num % Scale::den == 0,
+                  "Non-integral index scaling requested. This typically happens only for "
+                  "Vc::Scalar on 32-bit for gathers on double. You can work around the "
+                  "issue by ensuring that all doubles in the structure are aligned on 8 "
+                  "Bytes.");
     constexpr auto value = Scale::num / Scale::den;
     for (size_t i = 0; i < x.size(); ++i) {
         VC_ASSERT((x[i] * value) / value == x[i]);
