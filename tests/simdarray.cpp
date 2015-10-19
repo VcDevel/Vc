@@ -148,9 +148,12 @@ TEST_TYPES(V, indexesFromZero, SIMD_ARRAY_LIST)
 TEST_TYPES(V, load, SIMD_ARRAY_LIST)
 {
     typedef typename V::EntryType T;
-    Vc::Memory<V, V::Size + 2> data;
-    for (size_t i = 0; i < data.entriesCount(); ++i) {
-        data[i] = T(i);
+    alignas(V::MemoryAlignment) T data[V::Size + 2];
+    {
+        int n = 0;
+        for (auto &entry : data) {
+            entry = T(n++);
+        }
     }
 
     V a{ &data[0] };
@@ -197,8 +200,7 @@ TEST_TYPES(A,
 TEST_TYPES(V, store, SIMD_ARRAY_LIST)
 {
     using T = typename V::EntryType;
-    Vc::Memory<V, 34> data;
-    data = V::Zero();
+    alignas(V::MemoryAlignment) T data[34] = {};
 
     V a(Vc::IndexesFromZero);
     a.store(&data[0], Vc::Aligned);
