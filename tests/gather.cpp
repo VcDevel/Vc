@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <Vc/array>
 
-#define ALL_TYPES (ALL_VECTORS)
+#define ALL_TYPES (ALL_VECTORS, SimdArray<int, 7>)
 
 using namespace Vc;
 
