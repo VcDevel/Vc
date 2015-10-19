@@ -721,13 +721,13 @@ public:
     // operator[] {{{2
     Vc_INTRINSIC value_type operator[](std::size_t i) const
     {
-        const auto tmp = reinterpret_cast<const alias_type *>(&data0);
+        const auto tmp = reinterpret_cast<const alias_type *>(this);
         return tmp[i];
     }
 
     Vc_INTRINSIC alias_type &operator[](std::size_t i)
     {
-        auto tmp = reinterpret_cast<alias_type *>(&data0);
+        auto tmp = reinterpret_cast<alias_type *>(this);
         return tmp[i];
     }
 
