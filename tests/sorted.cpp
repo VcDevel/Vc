@@ -77,7 +77,8 @@ TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_AR
 
     for (int repetition = 0; repetition < 1000; ++repetition) {
         Vec test = Vec::Random();
-        alignas(Vec::MemoryAlignment) typename Vec::EntryType reference[Vec::Size] = {};
+        alignas(static_cast<size_t>(
+            Vec::MemoryAlignment)) typename Vec::EntryType reference[Vec::Size] = {};
         test.store(&reference[0], Vc::Aligned);
         std::sort(std::begin(reference), std::end(reference));
         ref.load(&reference[0], Vc::Aligned);
