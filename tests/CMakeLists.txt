@@ -17,8 +17,12 @@ else()
 endif()
 
 # don't warn about sanity checks:
-AddCompilerFlag(-Wno-tautological-constant-out-of-range-compare)
-AddCompilerFlag(-Wno-tautological-compare)
+if(Vc_COMPILER_IS_CLANG)
+   # GCC does not complain about the following flags until much later. Therefore
+   # the AddCompilerFlag logic doesn't work as intended.
+   AddCompilerFlag(-Wno-tautological-constant-out-of-range-compare)
+   AddCompilerFlag(-Wno-tautological-compare)
+endif()
 
 CHECK_CXX_SOURCE_COMPILES("#include <cxxabi.h>
 int main() { return 0; }" cxx_abi_header_works)
