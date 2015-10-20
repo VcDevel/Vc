@@ -70,7 +70,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         typedef SSE::VectorHelper<typename SSE::VectorTraits<T>::VectorType> HV;
         typedef SSE::VectorHelper<T> HT;
     public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
+        Vc_FREE_STORE_OPERATORS_ALIGNED(16)
 
         typedef typename SSE::VectorTraits<T>::VectorType VectorType;
         using vector_type = VectorType;
@@ -407,7 +407,6 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 
 }  // namespace Vc
 
-#include "undomacros.h"
 #include "vector.tcc"
 #include "simd_cast.h"
 

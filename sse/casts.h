@@ -144,8 +144,6 @@ Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, ushort>) { return con
 }  // namespace SSE
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // SSE_CASTS_H
 
 // vim: foldmethod=marker

@@ -37,11 +37,11 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace AVX
 {
 
-ALIGN(64) extern const unsigned int   _IndexesFromZero32[ 8];
-ALIGN(16) extern const unsigned short _IndexesFromZero16[16];
-ALIGN(16) extern const unsigned char  _IndexesFromZero8 [32];
+alignas(64) extern const unsigned int   _IndexesFromZero32[ 8];
+alignas(16) extern const unsigned short _IndexesFromZero16[16];
+alignas(16) extern const unsigned char  _IndexesFromZero8 [32];
 
-struct STRUCT_ALIGN1(64) c_general
+struct alignas(64) c_general
 {
     static const float oneFloat;
     static const unsigned int absMaskFloat[2];
@@ -53,18 +53,18 @@ struct STRUCT_ALIGN1(64) c_general
     static const double oneDouble;
     static const unsigned long long frexpMask;
     static const unsigned long long highMaskDouble;
-} STRUCT_ALIGN2(64);
+};
 
 template<typename T> struct c_trig
 {
-    ALIGN(64) static const T data[];
+    alignas(64) static const T data[];
 };
 
 template<typename T> struct c_log
 {
     typedef float floatAlias Vc_MAY_ALIAS;
     static Vc_ALWAYS_INLINE float d(int i) { return *reinterpret_cast<const floatAlias *>(&data[i]); }
-    ALIGN(64) static const unsigned int data[];
+    alignas(64) static const unsigned int data[];
 };
 
 template<> struct c_log<double>
@@ -72,7 +72,7 @@ template<> struct c_log<double>
     enum VectorSize { Size = 16 / sizeof(double) };
     typedef double doubleAlias Vc_MAY_ALIAS;
     static Vc_ALWAYS_INLINE double d(int i) { return *reinterpret_cast<const doubleAlias *>(&data[i]); }
-    ALIGN(64) static const unsigned long long data[];
+    alignas(64) static const unsigned long long data[];
 };
 
 }  // namespace AVX
@@ -90,7 +90,5 @@ namespace AVX2
     using AVX::c_log;
 }  // namespace AVX2
 }  // namespace Vc
-
-#include "undomacros.h"
 
 #endif // VC_AVX_CONST_DATA_H_

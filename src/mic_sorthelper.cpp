@@ -403,5 +403,3 @@ template<> __m512d SortHelper<double>::sort(Vc_ALIGNED_PARAMETER(VectorType) in)
 
 }
 }
-
-#include <mic/undomacros.h>

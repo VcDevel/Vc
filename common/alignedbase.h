@@ -52,7 +52,7 @@ Vc_ALWAYS_INLINE void free(void *);
  */
 template <std::size_t Alignment> struct alignas(Alignment) AlignedBase
 {
-    FREE_STORE_OPERATORS_ALIGNED(Alignment)
+    Vc_FREE_STORE_OPERATORS_ALIGNED(Alignment)
 };
 
 /**
@@ -84,8 +84,6 @@ template <typename V> using VectorAlignedBase = AlignedBase<alignof(V)>;
  */
 template <typename V> using MemoryAlignedBase = AlignedBase<V::MemoryAlignment>;
 }
-
-#include "undomacros.h"
 
 #endif  // VC_COMMON_ALIGNEDBASE_H_
 

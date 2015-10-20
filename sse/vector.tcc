@@ -890,6 +890,4 @@ Vc_ALWAYS_INLINE enable_if<L == 4, void> transpose_impl(
 }  // namespace Common
 }
 
-#include "undomacros.h"
-
 // vim: foldmethod=marker

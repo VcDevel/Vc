@@ -904,8 +904,6 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_SSE_SIMD_CAST_H_
 
 // vim: foldmethod=marker

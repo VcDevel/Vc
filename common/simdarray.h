@@ -2034,8 +2034,6 @@ static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4> &&>::value, ""
 
 } // namespace Vc_VERSIONED_NAMESPACE
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_SIMDARRAY_H_
 
 // vim: foldmethod=marker

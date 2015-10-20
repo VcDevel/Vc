@@ -660,6 +660,4 @@ namespace std
     template<typename V> Vc_ALWAYS_INLINE void swap(Vc::Memory<V> &a, Vc::Memory<V> &b) { a.swap(b); }
 } // namespace std
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_MEMORY_H_

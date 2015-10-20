@@ -366,6 +366,4 @@ using VectorMemoryUnion = Storage<EntryType, sizeof(VectorType) / sizeof(EntryTy
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_STORAGE_H_

@@ -140,6 +140,4 @@ constexpr Common::VectorReferenceArray<sizeof...(Vs) + 1,
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_VECTORTUPLE_H_

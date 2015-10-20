@@ -98,6 +98,4 @@ Vc_ALWAYS_INLINE void free(void *p)
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_MALLOC_H_

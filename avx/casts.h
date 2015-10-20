@@ -273,6 +273,4 @@ Vc_INTRINSIC auto convert(typename AVX::VectorTypeHelper<From>::Type v)
 }  // namespace AVX
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // AVX_CASTS_H

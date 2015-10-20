@@ -79,14 +79,10 @@ private:
     friend class MIC::StoreMixin<Vector, T>;
 
 public:
-    FREE_STORE_OPERATORS_ALIGNED(64)
+    Vc_FREE_STORE_OPERATORS_ALIGNED(64)
     typedef typename MIC::VectorTypeHelper<T>::Type VectorType;
     using vector_type = VectorType;
-#if defined __GNUC__
-    typedef T EntryType [[gnu::aligned(sizeof(T))]];
-#else
-    using EntryType alignas(sizeof(T)) = T;
-#endif
+    Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
     using value_type = EntryType;
     typedef typename MIC::DetermineVectorEntryType<T>::Type VectorEntryType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
@@ -455,7 +451,6 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 } // namespace Vc
 
 #include "vector.tcc"
-#include "undomacros.h"
 #include "simd_cast.h"
 
 #ifdef CAN_OFFLOAD

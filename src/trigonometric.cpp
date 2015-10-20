@@ -467,8 +467,6 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
 }
 }
 
-#include <common/undomacros.h>
-
 // instantiate the non-specialized template functions above
 template Vc::float_v Vc::Common::Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::sin(const Vc::float_v &);
 template Vc::float_v Vc::Common::Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::cos(const Vc::float_v &);

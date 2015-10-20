@@ -89,6 +89,5 @@ namespace
     }
 }  // anonymous namespace
 }  // namespace Vc
-#include "undomacros.h"
 
 #endif // VC_COMMON_SET_H_

@@ -72,8 +72,6 @@ template <std::size_t N>
 using make_index_sequence = typename make_index_sequence_impl<N>::type;
 }
 
-#include "undomacros.h"
-
 #endif  // VC_COMMON_INDEXSEQUENCE_H_
 
 // vim: foldmethod=marker

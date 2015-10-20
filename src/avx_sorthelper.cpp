@@ -537,6 +537,4 @@ template <> Vc_CONST AVX2::double_v sorted<CurrentImplementation::current()>(Vc_
 }  // namespace Detail
 }  // namespace Vc
 
-#include <avx/undomacros.h>
-
 // vim: foldmethod=marker

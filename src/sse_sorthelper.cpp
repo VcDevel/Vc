@@ -197,6 +197,4 @@ template <> Vc_CONST SSE::float_v sorted<CurrentImplementation::current()>(Vc_AL
 }  // namespace Detail
 }  // namespace Vc
 
-#include <sse/undomacros.h>
-
 // vim: foldmethod=marker

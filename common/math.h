@@ -125,7 +125,6 @@ inline SSE::double_v exp(SSE::double_v::AsArg _x) {
 
 #endif
 }  // namespace Vc
-#include "undomacros.h"
 
 #undef Vc_COMMON_MATH_H_INTERNAL
 

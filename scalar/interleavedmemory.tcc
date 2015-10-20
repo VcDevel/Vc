@@ -160,7 +160,6 @@ template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemor
 
 }
 }
-#include "undomacros.h"
 
 #endif // VC_SCALAR_INTERLEAVEDMEMORY_TCC_
 

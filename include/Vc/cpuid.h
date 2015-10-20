@@ -251,6 +251,5 @@ class CpuId
 };
 
 }
-#include "common/undomacros.h"
 
 #endif // VC_CPUID_H_

@@ -187,6 +187,4 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
 #endif
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_SSE_MATH_H_

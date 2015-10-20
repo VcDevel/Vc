@@ -119,6 +119,4 @@ template<class StorageType> class AliasingEntryHelper
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_ALIASINGENTRYHELPER_H_

@@ -130,8 +130,6 @@ Vc_INTRINSIC __m512i convert(__m512i v, ConvertTag<ushort, short >) {
 }  // namespace MIC
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_MIC_CASTS_H_
 
 // vim: foldmethod=marker

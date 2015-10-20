@@ -86,6 +86,4 @@ _VC_NUM_LIM(           int, _mm256_srli_epi32(Vc::Detail::allone<__m256i>(), 1),
 
 } // namespace std
 
-#include "undomacros.h"
-
 #endif // VC_AVX_LIMITS_H_

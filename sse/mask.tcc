@@ -276,6 +276,4 @@ template <typename T> Vc_INTRINSIC Vc_PURE Mask<T, VectorAbi::Sse> Mask<T, Vecto
 
 }
 
-#include "undomacros.h"
-
 // vim: foldmethod=marker

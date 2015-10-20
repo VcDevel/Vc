@@ -233,7 +233,6 @@ namespace std \
 
 }
 
-#include "common/undomacros.h"
 #include "vector.h"
 namespace std
 {

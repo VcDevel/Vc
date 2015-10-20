@@ -182,6 +182,4 @@ struct is_loadstoreflag_internal<Prefetch<L1, L2, ExclusiveOrShared>> : public s
 }  // namespace Traits
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_LOADSTOREFLAGS_H_

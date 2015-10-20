@@ -167,6 +167,4 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Scalar>::MemoryAlignme
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_SCALAR_MASK_H_

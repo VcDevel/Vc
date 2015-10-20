@@ -28,26 +28,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef VC_COMMON_MACROS_H_
 #define VC_COMMON_MACROS_H_
-#undef VC_COMMON_UNDOMACROS_H_
 
 #include <Vc/global.h>
 
-#if defined(Vc_GCC) && !defined(__OPTIMIZE__)
-// GCC uses lots of old-style-casts in macros that disguise as intrinsics
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-#endif
 
 #ifdef Vc_MSVC
-# define ALIGN(n) __declspec(align(n))
-# define STRUCT_ALIGN1(n) ALIGN(n)
-# define STRUCT_ALIGN2(n)
-# define ALIGNED_TYPEDEF(n, _type_, _newType_) typedef ALIGN(n) _type_ _newType_
-#else
-# define ALIGN(n) __attribute__((aligned(n)))
-# define STRUCT_ALIGN1(n)
-# define STRUCT_ALIGN2(n) ALIGN(n)
-# define ALIGNED_TYPEDEF(n, _type_, _newType_) typedef _type_ _newType_ ALIGN(n)
+#define Vc_ALIGNED_TYPEDEF(n__, type__, new_type__)                                      \
+    typedef __declspec(align(n__)) type__ new_type__
+#elif __GNUC__
+#define Vc_ALIGNED_TYPEDEF(n__, type__, new_type__)                                      \
+    typedef type__ new_type__[[gnu::aligned(n__)]]
+#else  // the following is actually ill-formed according to C++1[14]
+#define Vc_ALIGNED_TYPEDEF(n__, type__, new_type__)                                      \
+    using new_type__ alignas(sizeof(n__)) = type__
 #endif
 
 #ifdef Vc_CLANG
@@ -140,7 +133,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_WARN_UNUSED_RESULT
 #endif
 
-#define FREE_STORE_OPERATORS_ALIGNED(alignment) \
+#define Vc_FREE_STORE_OPERATORS_ALIGNED(alignment) \
         Vc_ALWAYS_INLINE void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignment>(size); } \
         Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; } \
         Vc_ALWAYS_INLINE void *operator new[](size_t size) { return Vc::Common::aligned_malloc<alignment>(size); } \
@@ -167,13 +160,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_HAS_BUILTIN(x) 0
 #endif
 
-#ifndef Vc_COMMON_MACROS_H_ONCE
-#define Vc_COMMON_MACROS_H_ONCE
-
 #define Vc_CAT_HELPER_(a, b, c, d) a##b##c##d
 #define Vc_CAT(a, b, c, d) Vc_CAT_HELPER_(a, b, c, d)
-
-#endif // Vc_COMMON_MACROS_H_ONCE
 
 #define Vc_CAT_IMPL(a, b) a##b
 #define Vc_CAT2(a, b) Vc_CAT_IMPL(a, b)
@@ -242,9 +230,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_ALIGNED_PARAMETER(_Type) const _Type
 #endif
 
-#ifndef Vc__make_unique
 #define Vc__make_unique(name) Vc_CAT(Vc__,name,_,__LINE__)
-#endif
 
 #if defined(Vc_ICC) || defined(Vc_CLANG)
 #define Vc_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))

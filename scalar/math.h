@@ -236,6 +236,4 @@ Vc_ALWAYS_INLINE Scalar::Vector<double> ldexp(Scalar::Vector<double> x, const Si
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_SCALAR_MATH_H_

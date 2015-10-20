@@ -32,6 +32,5 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #include "deinterleave.tcc"
 #include "prefetches.tcc"
-#include "undomacros.h"
 
 #endif // VC_MIC_HELPERIMPL_H_

@@ -56,6 +56,4 @@ inline void MIC::double_m::store(bool *mem, Flags) const
 }
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_MIC_MASK_TCC_

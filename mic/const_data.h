@@ -37,9 +37,9 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace MIC
 {
 
-ALIGN(16) extern const char  _IndexesFromZero8[16];
+alignas(16) extern const char  _IndexesFromZero8[16];
 
-struct STRUCT_ALIGN1(64) c_general
+struct alignas(64) c_general
 {
     static const float oneFloat;
     static const unsigned int absMaskFloat[2];
@@ -52,11 +52,9 @@ struct STRUCT_ALIGN1(64) c_general
     static const unsigned long long frexpMask;
     static const unsigned long long highMaskDouble;
     static const unsigned char frexpAndMask[16];
-} STRUCT_ALIGN2(64);
+};
 
 }  // namespace MIC
 }  // namespace Vc
-
-#include "undomacros.h"
 
 #endif // VC_MIC_CONST_DATA_H_

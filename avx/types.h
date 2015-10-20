@@ -118,6 +118,4 @@ template<typename T> struct is_simd_vector_internal<Vector<T, VectorAbi::Avx>> :
 }  // namespace Traits
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // AVX_TYPES_H

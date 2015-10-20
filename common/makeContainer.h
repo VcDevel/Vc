@@ -132,6 +132,4 @@ namespace Vc_VERSIONED_NAMESPACE
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_MAKECONTAINER_H_

@@ -86,13 +86,9 @@ public:
     using MaskArg Vc_DEPRECATED("Use MaskArgument instead.") = typename Mask::AsArg;
     using MaskArgument = typename Mask::AsArg;
 
-    FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
-#if defined __GNUC__
-    typedef T EntryType [[gnu::aligned(sizeof(T))]];
-#else
-    using EntryType alignas(sizeof(T)) = T;
-#endif
+    Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
         using value_type = EntryType;
         typedef EntryType VectorEntryType;
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
@@ -489,7 +485,6 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 }  // namespace Vc
 
 #include "vector.tcc"
-#include "undomacros.h"
 #include "simd_cast.h"
 
 #endif // VC_AVX_VECTOR_H__

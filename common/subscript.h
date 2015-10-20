@@ -573,8 +573,6 @@ using Common::subscript_operator;
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_SUBSCRIPT_H_
 
 // vim: foldmethod=marker

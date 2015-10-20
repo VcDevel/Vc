@@ -139,8 +139,6 @@ Vc_ALWAYS_INLINE MIC::float_v ldexp(MIC::float_v::AsArg v, MIC::float_v::IndexTy
 //}}}1
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_MIC_MATH_H_
 
 // vim: foldmethod=marker

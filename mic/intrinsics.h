@@ -393,7 +393,7 @@ template <typename T> struct SwizzledVector;
 template <typename T> struct VectorHelper;
 template <typename T> class VectorMultiplication;
 
-ALIGN(16) extern const char _IndexesFromZero[16];
+alignas(16) extern const char _IndexesFromZero[16];
 
 template <typename T> struct VectorTypeHelper;
 template <> struct VectorTypeHelper<char> { typedef __m512i Type; };
@@ -542,7 +542,5 @@ template <> struct UpDownConversion<int, unsigned int>
 };
 }  // namespace MIC
 }  // namespace Vc
-
-#include "undomacros.h"
 
 #endif  // VC_MIC_INTRINSICS_H_

@@ -771,8 +771,6 @@ inline void copyVectors(MemoryBase<V, ParentL, Dimension, RowMemoryL> &dst,
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_MEMORYBASE_H_
 
 // vim: foldmethod=marker

@@ -89,6 +89,4 @@ template<typename V, typename M> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_DEINTERLEAVE_H_

@@ -42,8 +42,6 @@ template<> struct memory_alignment<ushort_v> : public std::integral_constant<siz
 
 }
 
-#include "common/undomacros.h"
-
 #endif // VC_TYPE_TRAITS_
 
 // vim: ft=cpp

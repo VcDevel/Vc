@@ -143,6 +143,4 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 //@}
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // COMMON_ALGORITHMS_H

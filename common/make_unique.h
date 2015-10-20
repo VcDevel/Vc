@@ -55,6 +55,4 @@ inline std::unique_ptr<T, Deleter<T>> make_unique(Args&&... args)
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_MAKE_UNIQUE_H_

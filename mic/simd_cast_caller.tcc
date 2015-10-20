@@ -42,8 +42,6 @@ Vc_INTRINSIC Mask<T, VectorAbi::Mic>::Mask(
 }
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // Vc_MIC_SIMD_CAST_CALLER_TCC_
 
 // vim: foldmethod=marker

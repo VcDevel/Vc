@@ -127,6 +127,4 @@ static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_MASKENTRY_H_

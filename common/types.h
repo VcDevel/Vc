@@ -330,7 +330,6 @@ template <std::size_t Size, typename F> Vc_INTRINSIC void for_all_vector_entries
 }  // namespace Vc
 
 #include "memoryfwd.h"
-#include "undomacros.h"
 
 #endif // VC_COMMON_TYPES_H_
 

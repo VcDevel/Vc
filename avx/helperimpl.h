@@ -116,6 +116,5 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *addr, VectorAbi::Avx)
 }  // namespace Vc
 
 #include "deinterleave.tcc"
-#include "undomacros.h"
 
 #endif // VC_AVX_HELPERIMPL_H_

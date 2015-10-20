@@ -278,6 +278,4 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_GATHERIMPLEMENTATION_H_

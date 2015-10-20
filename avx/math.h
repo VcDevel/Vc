@@ -160,6 +160,4 @@ static Vc_ALWAYS_INLINE AVX2::double_v ceil(AVX2::double_v::AsArg v)
 }
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_AVX_MATH_H_

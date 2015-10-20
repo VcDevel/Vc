@@ -30,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef VC_SSE_MACROS_H_
 #define VC_SSE_MACROS_H_
-#undef VC_SSE_UNDOMACROS_H_
 
 #ifndef _M128
 # define _M128 __m128
@@ -43,11 +42,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _M128D
 # define _M128D __m128d
 #endif
-
-#define STORE_VECTOR(type, name, vec) \
-    union { __m128i p; type v[16 / sizeof(type)]; } Vc_CAT2(u, __LINE__); \
-    _mm_store_si128(&Vc_CAT2(u, __LINE__).p, vec); \
-    const type *const name = &Vc_CAT2(u, __LINE__).v[0]
 
 #if defined(Vc_IMPL_SSE4_1) && !defined(Vc_DISABLE_PTEST)
 #define Vc_USE_PTEST

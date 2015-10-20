@@ -79,5 +79,4 @@ template <typename T, typename Abi> Vc_INTRINSIC void sincos(const Vector<T, Abi
 #endif
 }  // namespace Vc
 
-#include "undomacros.h"
 #endif // VC_COMMON_TRIGONOMETRIC_H_

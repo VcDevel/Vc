@@ -114,6 +114,4 @@ template<typename T> constexpr T iif (bool condition, const T &trueValue, const 
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_IIF_H_

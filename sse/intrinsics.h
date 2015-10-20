@@ -54,7 +54,12 @@ extern "C" {
 #include "const_data.h"
 #include <cstdlib>
 #include "types.h"
-#include "macros.h"
+
+#if defined(Vc_GCC) && !defined(__OPTIMIZE__)
+// GCC uses lots of old-style-casts in macros that disguise as intrinsics
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
+#endif
 
 #ifdef __3dNOW__
 extern "C" {
@@ -735,11 +740,7 @@ template <typename T> struct DetermineGatherMask
 template <typename T> struct VectorTraits
 {
     typedef typename VectorTypeHelper<T>::Type VectorType;
-#if defined __GNUC__
-    typedef T EntryType [[gnu::aligned(sizeof(T))]];
-#else
-    using EntryType alignas(sizeof(T)) = T;
-#endif
+    Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
     static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
     enum Constants { HasVectorDivision = !std::is_integral<T>::value };
     typedef Mask<T> MaskType;
@@ -751,7 +752,10 @@ template <typename T> struct VectorHelperSize;
 }  // namespace SSE
 }  // namespace Vc
 
-#include "undomacros.h"
+#if defined(Vc_GCC) && !defined(__OPTIMIZE__)
+#pragma GCC diagnostic pop
+#endif
+
 #include "shuffle.h"
 
 #endif // SSE_INTRINSICS_H

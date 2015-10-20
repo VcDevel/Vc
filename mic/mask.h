@@ -239,7 +239,6 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Mic>::MemoryAlignment;
 
 }  // namespace Vc
 
-#include "undomacros.h"
 #include "mask.tcc"
 
 #endif // VC_MIC_MASK_H_

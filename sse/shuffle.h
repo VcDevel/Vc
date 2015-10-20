@@ -182,6 +182,4 @@ namespace Reg
 }  // namespace Reg
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_SSE_SHUFFLE_H_

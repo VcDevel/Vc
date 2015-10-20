@@ -2728,8 +2728,6 @@ Vc_INTRINSIC Vc_CONST enable_if<(offset != 0 && SSE::is_mask<Return>::value &&
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_AVX_SIMD_CAST_H_
 
 // vim: foldmethod=marker

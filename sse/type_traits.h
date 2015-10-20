@@ -46,8 +46,6 @@ template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
 }  // namespace SSE
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_SSE_TYPE_TRAITS_H_
 
 // vim: foldmethod=marker

@@ -140,8 +140,6 @@ using Common::prefetchMid;
 using Common::prefetchFar;
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_X86_PREFETCHES_H_
 
 // vim: foldmethod=marker

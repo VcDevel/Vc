@@ -85,6 +85,4 @@ template<> struct numeric_limits< ::Vc::SSE::int_v> : public numeric_limits<int>
 };
 } // namespace std
 
-#include "undomacros.h"
-
 #endif // VC_SSE_LIMITS_H_

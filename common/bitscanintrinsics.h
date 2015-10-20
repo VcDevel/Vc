@@ -42,7 +42,6 @@ static Vc_ALWAYS_INLINE Vc_CONST int _Vc_bit_scan_reverse_asm(unsigned int x) {
     __asm__("bsr %1,%0" : "=r"(r) : "X"(x));
     return r;
 }
-#include "undomacros.h"
 #    define _bit_scan_reverse(x) _Vc_bit_scan_reverse_asm(x)
 #  endif
 #elif defined(Vc_ICC)

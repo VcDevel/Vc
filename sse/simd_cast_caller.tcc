@@ -41,8 +41,6 @@ Vc_INTRINSIC Mask<T, VectorAbi::Sse>::Mask(U &&rhs, Common::enable_if_mask_conve
 }
 }
 
-#include "undomacros.h"
-
 #endif  // Vc_SSE_SIMD_CAST_CALLER_TCC_
 
 // vim: foldmethod=marker

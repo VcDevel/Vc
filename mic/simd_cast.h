@@ -593,8 +593,6 @@ Vc_INTRINSIC enable_if<MIC::is_mask<Return>::value, Return> simd_cast(Scalar::Ma
 using MIC::simd_cast;
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_MIC_SIMD_CAST_H_
 
 // vim: foldmethod=marker

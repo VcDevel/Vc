@@ -64,8 +64,6 @@ static constexpr std::size_t right_size(std::size_t N)
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_COMMON_UTILITY_H_
 
 // vim: foldmethod=marker

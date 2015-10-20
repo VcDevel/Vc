@@ -152,7 +152,6 @@ inline bool currentImplementationSupported()
 //@}
 
 }
-#include "common/undomacros.h"
 
 #undef Vc_TARGET_NO_SIMD
 

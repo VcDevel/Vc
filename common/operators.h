@@ -207,5 +207,3 @@ Vc_ALL_COMPARES   (Vc_INVALID_OPERATOR)
 #undef Vc_INVALID_OPERATOR
 
 }  // namespace Vc
-
-#include "undomacros.h"

@@ -381,8 +381,6 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, SimdMaskArray<U, M, V, M>
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_COMMON_SIMDARRAYHELPER_H_
 
 // vim: foldmethod=marker

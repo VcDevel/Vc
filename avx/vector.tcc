@@ -1003,6 +1003,4 @@ template <> template <int Index> Vc_INTRINSIC AVX2::double_v AVX2::double_v::bro
 // }}}1
 }  // namespace Vc
 
-#include "undomacros.h"
-
 // vim: foldmethod=marker

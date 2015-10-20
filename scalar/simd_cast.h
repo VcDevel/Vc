@@ -114,8 +114,6 @@ Vc_INTRINSIC Vc_CONST enable_if<
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_SCALAR_SIMD_CAST_H_
 
 // vim: foldmethod=marker

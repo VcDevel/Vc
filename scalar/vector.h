@@ -56,11 +56,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 
     public:
         using abi = VectorAbi::Scalar;
-#if defined __GNUC__
-    typedef T EntryType [[gnu::aligned(sizeof(T))]];
-#else
-        using EntryType alignas(sizeof(T)) = T;
-#endif
+    Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
         using VectorEntryType = EntryType;
         using value_type = EntryType;
         using VectorType = EntryType;
@@ -326,7 +322,6 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs)
 }  // namespace Vc
 
 #include "vector.tcc"
-#include "undomacros.h"
 #include "simd_cast.h"
 
 #endif // SCALAR_VECTOR_H

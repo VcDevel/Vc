@@ -224,8 +224,6 @@ using Common::end;
 using Common::makeIterator;
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_ITERATORS_H_
 
 // vim: foldmethod=marker

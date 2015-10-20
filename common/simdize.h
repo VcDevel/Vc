@@ -1697,8 +1697,6 @@ namespace std
 using Vc::SimdizeDetail::swap;
 }  // namespace std
 
-#include "undomacros.h"
-
 #endif  // VC_COMMON_SIMDIZE_H_
 
 // vim: foldmethod=marker

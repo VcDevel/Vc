@@ -337,6 +337,4 @@ inline Common::InterleavedMemoryWrapper<S, V> make_interleave_wrapper(S *s)
 }
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_INTERLEAVEDMEMORY_H_

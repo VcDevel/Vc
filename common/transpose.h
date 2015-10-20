@@ -47,8 +47,6 @@ template <typename... Vs> TransposeProxy<Vs...> transpose(Vs... vs)
 }
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_COMMON_TRANSPOSE_H_
 
 // vim: foldmethod=marker

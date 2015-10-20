@@ -305,6 +305,5 @@ namespace Reg
         }
 }  // namespace Reg
 }  // namespace Vc
-#include "undomacros.h"
 
 #endif // VC_AVX_SHUFFLE_H_

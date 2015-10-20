@@ -1241,8 +1241,6 @@ template<typename V> struct InterleaveImpl<V, 2, 16> {
 }  // namespace Detail
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_SSE_DETAIL_H_
 
 // vim: foldmethod=marker

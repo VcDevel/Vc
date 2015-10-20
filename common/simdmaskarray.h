@@ -70,7 +70,7 @@ public:
     using EntryReference = typename mask_type::EntryReference;
     using Vector = SimdArray<T, N, VectorType, N>;
 
-    FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
 
     // zero init
     SimdMaskArray() = default;
@@ -290,7 +290,7 @@ public:
         typename storage_type0::EntryReference, Common::MaskEntry<SimdMaskArray>>::type;
     using Vector = SimdArray<T, N, VectorType, VectorType::Size>;
 
-    FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
 
     // zero init
     SimdMaskArray() = default;
@@ -548,8 +548,6 @@ constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::MemoryAlignment;
 /// @}
 
 }  // namespace Vc
-
-#include "undomacros.h"
 
 // XXX: this include should be in <Vc/vector.h>. But at least clang 3.4 then fails to compile the
 // code. Not sure yet what is going on, but it looks a lot like a bug in clang.

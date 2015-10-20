@@ -56,6 +56,4 @@ template <typename To> Vc_INTRINSIC Vc_CONST To simd_cast() { return To(); }
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_COMMON_SIMD_CAST_H_

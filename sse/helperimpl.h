@@ -66,6 +66,5 @@ Vc_ALWAYS_INLINE_L void prefetchFar(const void *addr, VectorAbi::Sse) Vc_ALWAYS_
 
 #include "deinterleave.tcc"
 #include "prefetches.tcc"
-#include "undomacros.h"
 
 #endif // VC_SSE_DEINTERLEAVE_H_

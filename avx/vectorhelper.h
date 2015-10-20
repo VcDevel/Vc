@@ -372,6 +372,4 @@ namespace AVX
 }  // namespace AVX(2)
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // AVX_VECTORHELPER_H

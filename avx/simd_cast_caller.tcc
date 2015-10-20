@@ -49,8 +49,6 @@ Vc_INTRINSIC Mask<T, VectorAbi::Avx>::Mask(U &&rhs,
 }
 }
 
-#include "undomacros.h"
-
 #endif  // Vc_AVX_SIMD_CAST_CALLER_TCC_
 
 // vim: foldmethod=marker

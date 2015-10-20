@@ -160,8 +160,6 @@ Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(
 }
 }
 
-#include "undomacros.h"
-
 #endif  // VC_SSE_INTERLEAVEDMEMORY_TCC_
 
 // vim: foldmethod=marker

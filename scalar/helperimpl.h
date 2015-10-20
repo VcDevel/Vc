@@ -51,6 +51,4 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *, VectorAbi::Scalar) {}
 }  // namespace Detail
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_SCALAR_DEINTERLEAVE_H_

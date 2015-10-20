@@ -47,7 +47,7 @@ public:
     typedef M Mask;
     static constexpr size_t Size = V::Size;
 
-    FREE_STORE_OPERATORS_ALIGNED(alignof(Mask))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(Mask))
 
     // implicit (allows {vec, mask} in places where WriteMaskedVector is expected)
     Vc_INTRINSIC WriteMaskedVector(V *v, const Mask &k) : mask(k), vec(v)
@@ -126,7 +126,5 @@ private:
 };
 }  // namespace Common
 }  // namespace Vc
-
-#include "undomacros.h"
 
 #endif // VC_COMMON_WRITEMASKEDVECTOR_H_

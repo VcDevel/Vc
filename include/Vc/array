@@ -370,8 +370,6 @@ static_assert(has_no_allocated_data<Vc::array<int, 256> &&>::value, "");
 
 } // namespace Vc
 
-#include "common/undomacros.h"
-
 #endif // VC_STL_ARRAY_
 
 // vim: ft=cpp

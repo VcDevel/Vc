@@ -172,8 +172,6 @@ template<typename T, std::size_t N> struct has_no_allocated_data_impl<Vc::SimdAr
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_COMMON_SIMDARRAYFWD_H_
 
 // vim: foldmethod=marker

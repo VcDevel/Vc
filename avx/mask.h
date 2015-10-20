@@ -85,7 +85,7 @@ public:
     static constexpr size_t Size = sizeof(VectorTypeF) / sizeof(T);
     static constexpr size_t MemoryAlignment = Size;
     static constexpr std::size_t size() { return Size; }
-    FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
 private:
     typedef Common::Storage<T, size()> Storage;
@@ -206,6 +206,5 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::MemoryAlignment;
 }  // namespace Vc
 
 #include "mask.tcc"
-#include "undomacros.h"
 
 #endif // VC_AVX_MASK_H_

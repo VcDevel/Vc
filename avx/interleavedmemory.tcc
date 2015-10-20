@@ -164,8 +164,6 @@ inline void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V 
 }
 }
 
-#include "undomacros.h"
-
 #endif // VC_AVX_INTERLEAVEDMEMORY_TCC_
 
 // vim: foldmethod=marker

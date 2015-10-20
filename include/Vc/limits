@@ -44,7 +44,6 @@ public:
 };
 } // namespace std
 
-#include "common/undomacros.h"
 #ifdef Vc_IMPL_Scalar
 # include "scalar/limits.h"
 #elif defined(Vc_IMPL_AVX)

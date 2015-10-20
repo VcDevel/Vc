@@ -48,6 +48,4 @@ template<typename T> struct SortHelper
 }  // namespace MIC
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_MIC_SORTHELPER_H_

@@ -768,6 +768,4 @@ namespace AVX
 }  // namespace AVX
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_AVX_INTRINSICS_H_

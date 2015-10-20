@@ -80,7 +80,6 @@ Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
 }
 
 }
-#include "undomacros.h"
 
 #endif  // VC_COMMON_SIMD_CAST_CALLER_TCC_
 

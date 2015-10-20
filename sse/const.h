@@ -94,6 +94,4 @@ namespace SSE
 }  // namespace SSE
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_SSE_CONST_H_

@@ -118,6 +118,4 @@ using AVX::Const;
 }  // namespace AVX2
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif // VC_AVX_CONST_H_
