@@ -268,7 +268,7 @@ static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const   SSE::uint_v &value, cons
 static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const  SSE::short_v &value, const  SSE::short_v &count) { return shiftLeft(value,          -count ); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const SSE::ushort_v &value, const SSE::ushort_v &count) { return shiftLeft(value, SSE::ushort_v(-count)); }
 
-#define _VC_OP(T, symbol, impl)                                                          \
+#define Vc_OP(T, symbol, impl)                                                           \
     template <> Vc_INTRINSIC SSE::T &SSE::T::operator symbol##=(SSE::T::AsArg shift)     \
     {                                                                                    \
         d.v() = impl(*this, shift);                                                      \
@@ -279,9 +279,9 @@ static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const SSE::ushort_v &value, cons
     {                                                                                    \
         return impl(*this, shift);                                                       \
     }
-Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, _VC_OP, <<, shiftLeft)
-Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, _VC_OP, >>, shiftRight)
-#undef _VC_OP
+Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, <<, shiftLeft)
+Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, >>, shiftRight)
+#undef Vc_OP
 #else
 #if defined(Vc_GCC) && Vc_GCC == 0x40600 && defined(Vc_IMPL_XOP)
 #define Vc_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
