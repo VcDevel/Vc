@@ -278,13 +278,6 @@ not imported into the \c std namespace. They are still available in the %Vc name
 If this macro is defined, any symbol or macro that does not have a %Vc
 prefix will be disabled.
 
-\par Vc_NO_AUTOMATIC_BOOL_FROM_MASK
-
-Define this macro to disable automatic conversion from %Vc
-mask types to bool. The automatic conversion corresponds to the isFull() function. By disabling
-the automatic conversion you can find places where the implicit isFull() conversion is not the
-correct reduction.
-
 \par Vc_NO_VERSION_CHECK
 
 Define this macro to disable the safety check for the libVc version.
