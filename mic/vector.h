@@ -82,8 +82,8 @@ public:
     FREE_STORE_OPERATORS_ALIGNED(64)
     typedef typename MIC::VectorTypeHelper<T>::Type VectorType;
     using vector_type = VectorType;
-#ifdef VC_ICC
-    typedef T EntryType __attribute__((aligned(sizeof(T))));
+#if defined __GNUC__
+    typedef T EntryType [[gnu::aligned(sizeof(T))]];
 #else
     using EntryType alignas(sizeof(T)) = T;
 #endif

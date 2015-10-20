@@ -735,8 +735,8 @@ template <typename T> struct DetermineGatherMask
 template <typename T> struct VectorTraits
 {
     typedef typename VectorTypeHelper<T>::Type VectorType;
-#ifdef VC_ICC
-    typedef T EntryType __attribute__((aligned(sizeof(T))));
+#if defined __GNUC__
+    typedef T EntryType [[gnu::aligned(sizeof(T))]];
 #else
     using EntryType alignas(sizeof(T)) = T;
 #endif

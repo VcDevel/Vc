@@ -88,8 +88,8 @@ public:
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
-#ifdef VC_ICC
-    typedef T EntryType __attribute__((aligned(sizeof(T))));
+#if defined __GNUC__
+    typedef T EntryType [[gnu::aligned(sizeof(T))]];
 #else
     using EntryType alignas(sizeof(T)) = T;
 #endif
