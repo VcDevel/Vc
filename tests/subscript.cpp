@@ -74,9 +74,11 @@ template <typename V, int Modulo> static V randomIndexes()
             indexes[i] = (indexes[i] + 1) % Modulo;
         }
     }
-    VERIFY(none_of(indexes.sorted() == indexes.sorted().rotated(1)))
-        << "\nindexes must not contain duplicate values, otherwise the scatter tests "
-           "will fail without actually doing anything wrong!\nindexes: " << indexes;
+    if (V::size() > 1) {
+        VERIFY(none_of(indexes.sorted() == indexes.sorted().rotated(1)))
+            << "\nindexes must not contain duplicate values, otherwise the scatter tests "
+               "will fail without actually doing anything wrong!\nindexes: " << indexes;
+    }
     return indexes;
 }
 
