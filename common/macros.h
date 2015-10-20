@@ -200,19 +200,19 @@ do {} while ( false )
 #ifndef Vc_COMMON_MACROS_H_ONCE
 #define Vc_COMMON_MACROS_H_ONCE
 
-#define _VC_CAT_HELPER(a, b, c, d) a##b##c##d
-#define _VC_CAT(a, b, c, d) _VC_CAT_HELPER(a, b, c, d)
+#define Vc_CAT_HELPER_(a, b, c, d) a##b##c##d
+#define Vc_CAT(a, b, c, d) Vc_CAT_HELPER_(a, b, c, d)
 
 #endif // Vc_COMMON_MACROS_H_ONCE
 
-#define _CAT_IMPL(a, b) a##b
-#define CAT(a, b) _CAT_IMPL(a, b)
+#define Vc_CAT_IMPL(a, b) a##b
+#define Vc_CAT2(a, b) Vc_CAT_IMPL(a, b)
 
-#define _VC_APPLY_IMPL_1(macro, a, b, c, d, e) macro(a)
-#define _VC_APPLY_IMPL_2(macro, a, b, c, d, e) macro(a, b)
-#define _VC_APPLY_IMPL_3(macro, a, b, c, d, e) macro(a, b, c)
-#define _VC_APPLY_IMPL_4(macro, a, b, c, d, e) macro(a, b, c, d)
-#define _VC_APPLY_IMPL_5(macro, a, b, c, d, e) macro(a, b, c, d, e)
+#define Vc_APPLY_IMPL_1_(macro, a, b, c, d, e) macro(a)
+#define Vc_APPLY_IMPL_2_(macro, a, b, c, d, e) macro(a, b)
+#define Vc_APPLY_IMPL_3_(macro, a, b, c, d, e) macro(a, b, c)
+#define Vc_APPLY_IMPL_4_(macro, a, b, c, d, e) macro(a, b, c, d)
+#define Vc_APPLY_IMPL_5_(macro, a, b, c, d, e) macro(a, b, c, d, e)
 
 #define Vc_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro, double_v, a, b, c, d) \
@@ -249,11 +249,11 @@ do {} while ( false )
     size(macro, /, a, b, c, d) \
     size(macro, %, a, b, c, d)
 
-#define Vc_APPLY_0(_list, macro)             _list(_VC_APPLY_IMPL_1, macro, 0, 0, 0, 0)
-#define Vc_APPLY_1(_list, macro, a)          _list(_VC_APPLY_IMPL_2, macro, a, 0, 0, 0)
-#define Vc_APPLY_2(_list, macro, a, b)       _list(_VC_APPLY_IMPL_3, macro, a, b, 0, 0)
-#define Vc_APPLY_3(_list, macro, a, b, c)    _list(_VC_APPLY_IMPL_4, macro, a, b, c, 0)
-#define Vc_APPLY_4(_list, macro, a, b, c, d) _list(_VC_APPLY_IMPL_5, macro, a, b, c, d)
+#define Vc_APPLY_0(_list, macro)             _list(Vc_APPLY_IMPL_1_, macro, 0, 0, 0, 0)
+#define Vc_APPLY_1(_list, macro, a)          _list(Vc_APPLY_IMPL_2_, macro, a, 0, 0, 0)
+#define Vc_APPLY_2(_list, macro, a, b)       _list(Vc_APPLY_IMPL_3_, macro, a, b, 0, 0)
+#define Vc_APPLY_3(_list, macro, a, b, c)    _list(Vc_APPLY_IMPL_4_, macro, a, b, c, 0)
+#define Vc_APPLY_4(_list, macro, a, b, c, d) _list(Vc_APPLY_IMPL_5_, macro, a, b, c, d)
 
 #define Vc_ALL_COMPARES(macro)     Vc_APPLY_0(Vc_LIST_COMPARES, macro)
 #define Vc_ALL_LOGICAL(macro)      Vc_APPLY_0(Vc_LIST_LOGICAL, macro)
@@ -273,7 +273,7 @@ do {} while ( false )
 #endif
 
 #ifndef Vc__make_unique
-#define Vc__make_unique(name) _VC_CAT(Vc__,name,_,__LINE__)
+#define Vc__make_unique(name) Vc_CAT(Vc__,name,_,__LINE__)
 #endif
 
 #if defined(Vc_ICC) || defined(Vc_CLANG)

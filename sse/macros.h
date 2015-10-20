@@ -45,9 +45,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #define STORE_VECTOR(type, name, vec) \
-    union { __m128i p; type v[16 / sizeof(type)]; } CAT(u, __LINE__); \
-    _mm_store_si128(&CAT(u, __LINE__).p, vec); \
-    const type *const name = &CAT(u, __LINE__).v[0]
+    union { __m128i p; type v[16 / sizeof(type)]; } Vc_CAT2(u, __LINE__); \
+    _mm_store_si128(&Vc_CAT2(u, __LINE__).p, vec); \
+    const type *const name = &Vc_CAT2(u, __LINE__).v[0]
 
 #if defined(Vc_IMPL_SSE4_1) && !defined(Vc_DISABLE_PTEST)
 #define Vc_USE_PTEST

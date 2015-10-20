@@ -113,23 +113,23 @@ namespace SSE
 #undef OP3
 
 #define OP1(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a) { return CAT(_mm_##op##_, SUFFIX)(a); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a) { return Vc_CAT2(_mm_##op##_, SUFFIX)(a); }
 #define OP(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_##op##_ , SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op##_ , SUFFIX)(a, b); }
 #define OP_(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_##op    , SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op    , SUFFIX)(a, b); }
 #define OPx(op, op2) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_##op2##_, SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op2##_, SUFFIX)(a, b); }
 #define OPcmp(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType cmp##op(const VectorType a, const VectorType b) { return CAT(_mm_cmp##op##_, SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType cmp##op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_cmp##op##_, SUFFIX)(a, b); }
 #define OP_CAST_(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_castps_, SUFFIX)( \
-            _mm_##op##ps(CAT(CAT(_mm_cast, SUFFIX), _ps)(a), \
-              CAT(CAT(_mm_cast, SUFFIX), _ps)(b))); \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_castps_, SUFFIX)( \
+            _mm_##op##ps(Vc_CAT2(Vc_CAT2(_mm_cast, SUFFIX), _ps)(a), \
+              Vc_CAT2(Vc_CAT2(_mm_cast, SUFFIX), _ps)(b))); \
         }
 #define MINMAX \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return CAT(_mm_min_, SUFFIX)(a, b); } \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return CAT(_mm_max_, SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return Vc_CAT2(_mm_min_, SUFFIX)(a, b); } \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return Vc_CAT2(_mm_max_, SUFFIX)(a, b); }
 
         template<> struct VectorHelper<double> {
             typedef _M128D VectorType;
@@ -137,11 +137,11 @@ namespace SSE
 #define SUFFIX pd
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_pd(mask), a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a, const double b) { return CAT(_mm_set_, SUFFIX)(a, b); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, SUFFIX)(_mm_castps_pd(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a) { return Vc_CAT2(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a, const double b) { return Vc_CAT2(_mm_set_, SUFFIX)(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return Vc_CAT2(_mm_setone_, SUFFIX)(); }// set(1.); }
 
 #ifdef Vc_IMPL_FMA4
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
@@ -191,7 +191,7 @@ namespace SSE
                 return _mm_castsi128_pd(cmpeq_epi64(_mm_castpd_si128(abs(x)), _mm_castpd_si128(_mm_load_pd(c_log<double>::d(1)))));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) {
-                return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_pd());
+                return Vc_CAT2(_mm_and_, SUFFIX)(a, _mm_setabsmask_pd());
             }
 
             MINMAX
@@ -228,11 +228,11 @@ namespace SSE
 #define SUFFIX ps
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(mask, a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.f); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, SUFFIX)(mask, a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a) { return Vc_CAT2(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d) { return Vc_CAT2(_mm_set_, SUFFIX)(a, b, c, d); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return Vc_CAT2(_mm_setone_, SUFFIX)(); }// set(1.f); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128 concat(_M128D a, _M128D b) { return _mm_movelh_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b)); }
 
 #ifdef Vc_IMPL_FMA4
@@ -272,7 +272,7 @@ namespace SSE
                 return _mm_rcp_ps(x);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) {
-                return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_ps());
+                return Vc_CAT2(_mm_and_, SUFFIX)(a, _mm_setabsmask_ps());
             }
 
             MINMAX
@@ -313,22 +313,22 @@ namespace SSE
 #define SUFFIX si128
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 #undef SUFFIX
 #define SUFFIX epi32
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return Vc_CAT2(_mm_setone_, SUFFIX)(); }
 
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a, const int b, const int c, const int d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a) { return Vc_CAT2(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a, const int b, const int c, const int d) { return Vc_CAT2(_mm_set_, SUFFIX)(a, b, c, d); }
 
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
-                return CAT(_mm_slli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_slli_, SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
-                return CAT(_mm_srai_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_srai_, SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) { return abs_epi32(a); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epi32(a, b); }
@@ -384,12 +384,12 @@ namespace SSE
             typedef _M128I VectorType;
 #define SUFFIX si128
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 
 #undef SUFFIX
 #define SUFFIX epu32
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return Vc_CAT2(_mm_setone_, SUFFIX)(); }
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epu32(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epu32(a, b); }
@@ -445,13 +445,13 @@ namespace SSE
 #undef SUFFIX
 #define SUFFIX epi32
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
-                return CAT(_mm_slli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_slli_, SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
-                return CAT(_mm_srli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_srli_, SUFFIX)(a, shift);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a) { return Vc_CAT2(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) { return Vc_CAT2(_mm_set_, SUFFIX)(a, b, c, d); }
 
             OP(add) OP(sub)
             OPcmp(eq)
@@ -482,26 +482,26 @@ namespace SSE
 #define SUFFIX si128
 
             OP_(or_) OP_(and_) OP_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_srai_epi32(_mm_unpacklo_epi16(x, x), 16); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_srai_epi32(_mm_unpackhi_epi16(x, x), 16); }
 
 #undef SUFFIX
 #define SUFFIX epi16
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return Vc_CAT2(_mm_setone_, SUFFIX)(); }
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
-                return CAT(_mm_slli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_slli_, SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
-                return CAT(_mm_srai_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_srai_, SUFFIX)(a, shift);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return Vc_CAT2(_mm_set1_, SUFFIX)(a); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a, const EntryType b, const EntryType c, const EntryType d,
                     const EntryType e, const EntryType f, const EntryType g, const EntryType h) {
-                return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
+                return Vc_CAT2(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
@@ -555,8 +555,8 @@ namespace SSE
             typedef unsigned short EntryType;
 #define SUFFIX si128
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
 #ifdef Vc_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
@@ -574,7 +574,7 @@ namespace SSE
 
 #undef SUFFIX
 #define SUFFIX epu16
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return Vc_CAT2(_mm_setone_, SUFFIX)(); }
 
 //X             template<unsigned int b> static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(const VectorType a) {
 //X                 switch (b) {
@@ -601,10 +601,10 @@ namespace SSE
 #undef SUFFIX
 #define SUFFIX epi16
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
-                return CAT(_mm_slli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_slli_, SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
-                return CAT(_mm_srli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_srli_, SUFFIX)(a, shift);
             }
 
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
@@ -641,11 +641,11 @@ namespace SSE
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return Vc_CAT2(_mm_set1_, SUFFIX)(a); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a, const EntryType b, const EntryType c,
                     const EntryType d, const EntryType e, const EntryType f,
                     const EntryType g, const EntryType h) {
-                return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
+                return Vc_CAT2(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
             OP(add) OP(sub)

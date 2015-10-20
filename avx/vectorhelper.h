@@ -155,23 +155,23 @@ namespace AVX
 #undef OP3
 
 #define OP1(op) \
-        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a) { return CAT(_mm256_##op##_, SUFFIX)(a); }
+        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a) { return Vc_CAT2(_mm256_##op##_, SUFFIX)(a); }
 #define OP(op) \
-        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return CAT(op##_ , SUFFIX)(a, b); }
+        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return Vc_CAT2(op##_ , SUFFIX)(a, b); }
 #define OP_(op) \
-        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return CAT(_mm256_##op    , SUFFIX)(a, b); }
+        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return Vc_CAT2(_mm256_##op    , SUFFIX)(a, b); }
 #define OPx(op, op2) \
-        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return CAT(_mm256_##op2##_, SUFFIX)(a, b); }
+        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return Vc_CAT2(_mm256_##op2##_, SUFFIX)(a, b); }
 #define OPcmp(op) \
-        static Vc_INTRINSIC VectorType Vc_CONST cmp##op(VTArg a, VTArg b) { return CAT(cmp##op##_, SUFFIX)(a, b); }
+        static Vc_INTRINSIC VectorType Vc_CONST cmp##op(VTArg a, VTArg b) { return Vc_CAT2(cmp##op##_, SUFFIX)(a, b); }
 #define OP_CAST_(op) \
-        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return CAT(_mm256_castps_, SUFFIX)( \
-            _mm256_##op##ps(CAT(CAT(_mm256_cast, SUFFIX), _ps)(a), \
-              CAT(CAT(_mm256_cast, SUFFIX), _ps)(b))); \
+        static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return Vc_CAT2(_mm256_castps_, SUFFIX)( \
+            _mm256_##op##ps(Vc_CAT2(Vc_CAT2(_mm256_cast, SUFFIX), _ps)(a), \
+              Vc_CAT2(Vc_CAT2(_mm256_cast, SUFFIX), _ps)(b))); \
         }
 #define MINMAX \
-        static Vc_INTRINSIC VectorType Vc_CONST min(VTArg a, VTArg b) { return CAT(min_, SUFFIX)(a, b); } \
-        static Vc_INTRINSIC VectorType Vc_CONST max(VTArg a, VTArg b) { return CAT(max_, SUFFIX)(a, b); }
+        static Vc_INTRINSIC VectorType Vc_CONST min(VTArg a, VTArg b) { return Vc_CAT2(min_, SUFFIX)(a, b); } \
+        static Vc_INTRINSIC VectorType Vc_CONST max(VTArg a, VTArg b) { return Vc_CAT2(max_, SUFFIX)(a, b); }
 
         template<> struct VectorHelper<double> {
             typedef __m256d VectorType;
@@ -183,13 +183,13 @@ namespace AVX
             typedef double EntryType;
 #define SUFFIX pd
 
-            static Vc_ALWAYS_INLINE VectorType notMaskedToZero(VTArg a, __m256 mask) { return CAT(_mm256_and_, SUFFIX)(_mm256_castps_pd(mask), a); }
-            static Vc_ALWAYS_INLINE VectorType set(const double a) { return CAT(_mm256_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE VectorType notMaskedToZero(VTArg a, __m256 mask) { return Vc_CAT2(_mm256_and_, SUFFIX)(_mm256_castps_pd(mask), a); }
+            static Vc_ALWAYS_INLINE VectorType set(const double a) { return Vc_CAT2(_mm256_set1_, SUFFIX)(a); }
             static Vc_ALWAYS_INLINE VectorType set(const double a, const double b, const double c, const double d) {
-                return CAT(_mm256_set_, SUFFIX)(a, b, c, d);
+                return Vc_CAT2(_mm256_set_, SUFFIX)(a, b, c, d);
             }
-            static Vc_ALWAYS_INLINE VectorType zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE VectorType one()  { return CAT(setone_, SUFFIX)(); }// set(1.); }
+            static Vc_ALWAYS_INLINE VectorType zero() { return Vc_CAT2(_mm256_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE VectorType one()  { return Vc_CAT2(setone_, SUFFIX)(); }// set(1.); }
 
             static inline void fma(VectorType &v1, VTArg v2, VTArg v3) {
 #ifdef Vc_IMPL_FMA4
@@ -239,7 +239,7 @@ namespace AVX
                 return _mm256_castsi256_pd(cmpeq_epi64(_mm256_castpd_si256(abs(x)), _mm256_castpd_si256(set1_pd(c_log<double>::d(1)))));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(VTArg a) {
-                return CAT(_mm256_and_, SUFFIX)(a, setabsmask_pd());
+                return Vc_CAT2(_mm256_and_, SUFFIX)(a, setabsmask_pd());
             }
 
             static Vc_INTRINSIC VectorType Vc_CONST min(VTArg a, VTArg b) { return _mm256_min_pd(a, b); }
@@ -280,13 +280,13 @@ namespace AVX
 #endif
 #define SUFFIX ps
 
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VTArg a, __m256 mask) { return CAT(_mm256_and_, SUFFIX)(mask, a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a) { return CAT(_mm256_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VTArg a, __m256 mask) { return Vc_CAT2(_mm256_and_, SUFFIX)(mask, a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a) { return Vc_CAT2(_mm256_set1_, SUFFIX)(a); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d,
                     const float e, const float f, const float g, const float h) {
-                return CAT(_mm256_set_, SUFFIX)(a, b, c, d, e, f, g, h); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm256_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return CAT(setone_, SUFFIX)(); }// set(1.f); }
+                return Vc_CAT2(_mm256_set_, SUFFIX)(a, b, c, d, e, f, g, h); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm256_setzero_, SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return Vc_CAT2(setone_, SUFFIX)(); }// set(1.f); }
             static Vc_ALWAYS_INLINE Vc_CONST __m256 concat(__m256d a, __m256d b) { return _mm256_insertf128_ps(avx_cast<__m256>(_mm256_cvtpd_ps(a)), _mm256_cvtpd_ps(b), 1); }
 
             static inline void fma(VectorType &v1, VTArg v2, VTArg v3) {
@@ -326,7 +326,7 @@ namespace AVX
                 return _mm256_rcp_ps(x);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(VTArg a) {
-                return CAT(_mm256_and_, SUFFIX)(a, setabsmask_ps());
+                return Vc_CAT2(_mm256_and_, SUFFIX)(a, setabsmask_ps());
             }
 
             static Vc_INTRINSIC VectorType Vc_CONST min(VTArg a, VTArg b) { return _mm256_min_ps(a, b); }

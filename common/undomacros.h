@@ -53,8 +53,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef STRUCT_ALIGN1
 #undef STRUCT_ALIGN2
 #undef ALIGNED_TYPEDEF
-#undef _CAT_IMPL
-#undef CAT
+#undef Vc_CAT_IMPL
+#undef Vc_CAT2
 #undef unrolled_loop16
 #undef for_all_vector_entries
 #undef FREE_STORE_OPERATORS_ALIGNED
@@ -70,11 +70,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #undef Vc_HAS_BUILTIN
 
-#undef _VC_APPLY_IMPL_1
-#undef _VC_APPLY_IMPL_2
-#undef _VC_APPLY_IMPL_3
-#undef _VC_APPLY_IMPL_4
-#undef _VC_APPLY_IMPL_5
+#undef Vc_APPLY_IMPL_1_
+#undef Vc_APPLY_IMPL_2_
+#undef Vc_APPLY_IMPL_3_
+#undef Vc_APPLY_IMPL_4_
+#undef Vc_APPLY_IMPL_5_
 
 #undef Vc_LIST_FLOAT_VECTOR_TYPES
 #undef Vc_LIST_INT_VECTOR_TYPES
