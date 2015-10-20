@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_CONST_DATA_H
-#define VC_AVX_CONST_DATA_H
+#ifndef VC_AVX_CONST_DATA_H_
+#define VC_AVX_CONST_DATA_H_
 
 #include "../common/data.h"
 #include "macros.h"
@@ -93,4 +93,4 @@ namespace AVX2
 
 #include "undomacros.h"
 
-#endif // VC_AVX_CONST_DATA_H
+#endif // VC_AVX_CONST_DATA_H_

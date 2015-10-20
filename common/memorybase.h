@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MEMORYBASE_H
-#define VC_COMMON_MEMORYBASE_H
+#ifndef VC_COMMON_MEMORYBASE_H_
+#define VC_COMMON_MEMORYBASE_H_
 
 #include <assert.h>
 #include <type_traits>
@@ -39,7 +39,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
-#define VC_MEM_OPERATOR_EQ(op) \
+#define Vc_MEM_OPERATOR_EQ(op) \
         template<typename T> \
         Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator op##=(const T &x) { \
             const V v = value() op x; \
@@ -96,8 +96,8 @@ public:
             return *this;
         }
 
-        VC_ALL_BINARY(VC_MEM_OPERATOR_EQ)
-        VC_ALL_ARITHMETICS(VC_MEM_OPERATOR_EQ)
+        Vc_ALL_BINARY(Vc_MEM_OPERATOR_EQ)
+        Vc_ALL_ARITHMETICS(Vc_MEM_OPERATOR_EQ)
 };
 
 template<typename _V, typename Flags> class MemoryVectorIterator
@@ -169,17 +169,17 @@ Vc_ALWAYS_INLINE bool operator< (const MemoryVectorIterator<V, FlagsL> &l, const
     return l.orderBy() <  r.orderBy();
 }
 /*}}}*/
-#undef VC_MEM_OPERATOR_EQ
+#undef Vc_MEM_OPERATOR_EQ
 
-#define VC_VPH_OPERATOR(op) \
+#define Vc_VPH_OPERATOR(op) \
 template<typename V1, typename Flags1, typename V2, typename Flags2> \
 decltype(V1() op V2()) operator op(const MemoryVector<V1, Flags1> &x, const MemoryVector<V2, Flags2> &y) { \
     return x.value() op y.value(); \
 }
-VC_ALL_ARITHMETICS(VC_VPH_OPERATOR)
-VC_ALL_BINARY     (VC_VPH_OPERATOR)
-VC_ALL_COMPARES   (VC_VPH_OPERATOR)
-#undef VC_VPH_OPERATOR
+Vc_ALL_ARITHMETICS(Vc_VPH_OPERATOR)
+Vc_ALL_BINARY     (Vc_VPH_OPERATOR)
+Vc_ALL_COMPARES   (Vc_VPH_OPERATOR)
+#undef Vc_VPH_OPERATOR
 
 template<typename V, typename Parent, typename Flags = Prefetch<>> class MemoryRange/*{{{*/
 {
@@ -773,6 +773,6 @@ inline void copyVectors(MemoryBase<V, ParentL, Dimension, RowMemoryL> &dst,
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_MEMORYBASE_H
+#endif // VC_COMMON_MEMORYBASE_H_
 
 // vim: foldmethod=marker

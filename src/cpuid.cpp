@@ -59,7 +59,7 @@ CpuId::uchar  CpuId::s_processorFamily = 0;
 CpuId::ProcessorType CpuId::s_processorType = CpuId::IntelReserved;
 bool   CpuId::s_noL2orL3 = false;
 
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
 
 }
 // better not include intrin.h inside the Vc namespace :)

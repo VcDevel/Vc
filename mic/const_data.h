@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_CONST_DATA_H
-#define VC_MIC_CONST_DATA_H
+#ifndef VC_MIC_CONST_DATA_H_
+#define VC_MIC_CONST_DATA_H_
 
 #include "../common/data.h"
 #include "macros.h"
@@ -59,4 +59,4 @@ struct STRUCT_ALIGN1(64) c_general
 
 #include "undomacros.h"
 
-#endif // VC_MIC_CONST_DATA_H
+#endif // VC_MIC_CONST_DATA_H_

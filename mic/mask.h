@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_MASK_H
-#define VC_MIC_MASK_H
+#ifndef VC_MIC_MASK_H_
+#define VC_MIC_MASK_H_
 
 #include "../common/maskentry.h"
 #include "macros.h"
@@ -242,4 +242,4 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Mic>::MemoryAlignment;
 #include "undomacros.h"
 #include "mask.tcc"
 
-#endif // VC_MIC_MASK_H
+#endif // VC_MIC_MASK_H_

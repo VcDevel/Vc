@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MEMORYFWD_H
-#define VC_COMMON_MEMORYFWD_H
+#ifndef VC_COMMON_MEMORYFWD_H_
+#define VC_COMMON_MEMORYFWD_H_
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -44,4 +44,4 @@ class MemoryBase;
 using Common::Memory;
 }  // namespace Vc
 
-#endif // VC_COMMON_MEMORYFWD_H
+#endif // VC_COMMON_MEMORYFWD_H_

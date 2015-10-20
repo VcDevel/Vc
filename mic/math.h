@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_MATH_H
-#define VC_MIC_MATH_H
+#ifndef VC_MIC_MATH_H_
+#define VC_MIC_MATH_H_
 
 #include "macros.h"
 
@@ -141,6 +141,6 @@ Vc_ALWAYS_INLINE MIC::float_v ldexp(MIC::float_v::AsArg v, MIC::float_v::IndexTy
 
 #include "undomacros.h"
 
-#endif  // VC_MIC_MATH_H
+#endif  // VC_MIC_MATH_H_
 
 // vim: foldmethod=marker

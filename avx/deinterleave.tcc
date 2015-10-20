@@ -31,7 +31,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace AVX2
 {
 
-inline void deinterleave(double_v &VC_RESTRICT a, double_v &VC_RESTRICT b, double_v &VC_RESTRICT c)
+inline void deinterleave(double_v &Vc_RESTRICT a, double_v &Vc_RESTRICT b, double_v &Vc_RESTRICT c)
 {   // estimated latency (AVX): 4.5 cycles
     const m256d tmp0 = Mem::shuffle128<X0, Y1>(a.data(), b.data());
     const m256d tmp1 = Mem::shuffle128<X1, Y0>(a.data(), c.data());
@@ -41,7 +41,7 @@ inline void deinterleave(double_v &VC_RESTRICT a, double_v &VC_RESTRICT b, doubl
     c.data() = Mem::shuffle<X0, Y1, X2, Y3>(tmp1, tmp2);
 }
 
-inline void deinterleave(float_v &VC_RESTRICT a, float_v &VC_RESTRICT b, float_v &VC_RESTRICT c)
+inline void deinterleave(float_v &Vc_RESTRICT a, float_v &Vc_RESTRICT b, float_v &Vc_RESTRICT c)
 {
     //                               abc   abc abc
     // a = [a0 b0 c0 a1 b1 c1 a2 b2] 332 = 211+121
@@ -62,20 +62,20 @@ inline void deinterleave(float_v &VC_RESTRICT a, float_v &VC_RESTRICT b, float_v
     c.data() = Mem::permute<X2, X1, X0, X3>(tmp2);
 }
 
-inline void deinterleave(int_v &VC_RESTRICT a, int_v &VC_RESTRICT b, int_v &VC_RESTRICT c)
+inline void deinterleave(int_v &Vc_RESTRICT a, int_v &Vc_RESTRICT b, int_v &Vc_RESTRICT c)
 {
     deinterleave(reinterpret_cast<float_v &>(a), reinterpret_cast<float_v &>(b),
             reinterpret_cast<float_v &>(c));
 }
 
-inline void deinterleave(uint_v &VC_RESTRICT a, uint_v &VC_RESTRICT b, uint_v &VC_RESTRICT c)
+inline void deinterleave(uint_v &Vc_RESTRICT a, uint_v &Vc_RESTRICT b, uint_v &Vc_RESTRICT c)
 {
     deinterleave(reinterpret_cast<float_v &>(a), reinterpret_cast<float_v &>(b),
             reinterpret_cast<float_v &>(c));
 }
 
-inline void deinterleave(Vector<short> &VC_RESTRICT , Vector<short> &VC_RESTRICT ,
-        Vector<short> &VC_RESTRICT )
+inline void deinterleave(Vector<short> &Vc_RESTRICT , Vector<short> &Vc_RESTRICT ,
+        Vector<short> &Vc_RESTRICT )
 {
     return;
     /* TODO:
@@ -99,8 +99,8 @@ inline void deinterleave(Vector<short> &VC_RESTRICT , Vector<short> &VC_RESTRICT
     */
 }
 
-inline void deinterleave(Vector<unsigned short> &VC_RESTRICT a, Vector<unsigned short> &VC_RESTRICT b,
-        Vector<unsigned short> &VC_RESTRICT c)
+inline void deinterleave(Vector<unsigned short> &Vc_RESTRICT a, Vector<unsigned short> &Vc_RESTRICT b,
+        Vector<unsigned short> &Vc_RESTRICT c)
 {
     deinterleave(reinterpret_cast<Vector<short> &>(a), reinterpret_cast<Vector<short> &>(b),
             reinterpret_cast<Vector<short> &>(c));
@@ -275,10 +275,10 @@ inline void deinterleave(AVX2::ushort_v &a, AVX2::ushort_v &b, const unsigned sh
 
 // only support M == V::EntryType -> no specialization
 template <typename T, typename M, typename Flags>
-Vc_ALWAYS_INLINE void deinterleave(AVX2::Vector<T> &VC_RESTRICT a,
-                                   AVX2::Vector<T> &VC_RESTRICT b,
-                                   AVX2::Vector<T> &VC_RESTRICT c,
-                                   const M *VC_RESTRICT memory, Flags align)
+Vc_ALWAYS_INLINE void deinterleave(AVX2::Vector<T> &Vc_RESTRICT a,
+                                   AVX2::Vector<T> &Vc_RESTRICT b,
+                                   AVX2::Vector<T> &Vc_RESTRICT c,
+                                   const M *Vc_RESTRICT memory, Flags align)
 {
     using V = AVX2::Vector<T>;
     a.load(&memory[0 * V::Size], align);

@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_VECTORHELPER_H
-#define VC_MIC_VECTORHELPER_H
+#ifndef VC_MIC_VECTORHELPER_H_
+#define VC_MIC_VECTORHELPER_H_
 
 #include "types.h"
 #include "macros.h"
@@ -260,4 +260,4 @@ template<> struct VectorHelper<unsigned int> {
 
 #include "vectorhelper.tcc"
 
-#endif // VC_MIC_VECTORHELPER_H
+#endif // VC_MIC_VECTORHELPER_H_

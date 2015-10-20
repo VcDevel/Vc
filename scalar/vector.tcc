@@ -137,7 +137,7 @@ template<> Vc_INTRINSIC Scalar::double_v Scalar::double_v::copySign(Scalar::doub
     return Scalar::double_v{value.f};
 } // }}}1
 // bitwise operators {{{1
-#define VC_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
+#define Vc_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
 template<> Vc_ALWAYS_INLINE VecT &VecT::operator op##=(const VecT &x) { \
     typedef IntT uinta Vc_MAY_ALIAS; \
     uinta *left = reinterpret_cast<uinta *>(&m_data); \
@@ -149,25 +149,25 @@ template<> Vc_ALWAYS_INLINE Vc_PURE VecT VecT::operator op(const VecT &x) const 
     VecT ret = *this; \
     return VecT(ret op##= x); \
 }
-#define VC_CAST_OPERATOR_FORWARD_FLOAT(op)  VC_CAST_OPERATOR_FORWARD(op, unsigned int, Scalar::float_v)
-#define VC_CAST_OPERATOR_FORWARD_DOUBLE(op) VC_CAST_OPERATOR_FORWARD(op, unsigned long long, Scalar::double_v)
-VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_FLOAT)
-VC_ALL_BINARY(VC_CAST_OPERATOR_FORWARD_DOUBLE)
-#undef VC_CAST_OPERATOR_FORWARD
-#undef VC_CAST_OPERATOR_FORWARD_FLOAT
-#undef VC_CAST_OPERATOR_FORWARD_DOUBLE
+#define Vc_CAST_OPERATOR_FORWARD_FLOAT(op)  Vc_CAST_OPERATOR_FORWARD(op, unsigned int, Scalar::float_v)
+#define Vc_CAST_OPERATOR_FORWARD_DOUBLE(op) Vc_CAST_OPERATOR_FORWARD(op, unsigned long long, Scalar::double_v)
+Vc_ALL_BINARY(Vc_CAST_OPERATOR_FORWARD_FLOAT)
+Vc_ALL_BINARY(Vc_CAST_OPERATOR_FORWARD_DOUBLE)
+#undef Vc_CAST_OPERATOR_FORWARD
+#undef Vc_CAST_OPERATOR_FORWARD_FLOAT
+#undef Vc_CAST_OPERATOR_FORWARD_DOUBLE
 // }}}1
 // exponent {{{1
 template<> Vc_INTRINSIC Scalar::float_v Scalar::float_v::exponent() const
 {
-    VC_ASSERT(m_data >= 0.f);
+    Vc_ASSERT(m_data >= 0.f);
     union { float f; int i; } value;
     value.f = m_data;
     return Scalar::float_v(static_cast<float>((value.i >> 23) - 0x7f));
 }
 template<> Vc_INTRINSIC Scalar::double_v Scalar::double_v::exponent() const
 {
-    VC_ASSERT(m_data >= 0.);
+    Vc_ASSERT(m_data >= 0.);
     union { double f; long long i; } value;
     value.f = m_data;
     return Scalar::double_v(static_cast<double>((value.i >> 52) - 0x3ff));
@@ -295,7 +295,7 @@ namespace Common
 // transpose_impl {{{1
 template <int L>
 Vc_ALWAYS_INLINE enable_if<L == 1, void> transpose_impl(
-    Scalar::float_v *VC_RESTRICT r[], const TransposeProxy<Scalar::float_v> &proxy)
+    Scalar::float_v *Vc_RESTRICT r[], const TransposeProxy<Scalar::float_v> &proxy)
 {
     *r[0] = std::get<0>(proxy.in).data();
 }

@@ -80,7 +80,7 @@ Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , uint  >) {
                   _mm_cmpge_ps(v, _mm_set1_ps(1u << 31))));
 }
 Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, uint  >) {
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
     return _mm_xor_si128(_mm_cvttpd_epi32(_mm_sub_pd(_mm_floor_pd(v), _mm_set1_pd(0x80000000u))),
                          _mm_cvtsi64_si128(0x8000000080000000ull));
 #else

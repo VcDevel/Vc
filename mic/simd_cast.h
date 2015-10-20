@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_MIC_SIMD_CAST_H_
 #define VC_MIC_SIMD_CAST_H_
 
-#ifndef VC_MIC_VECTOR_H
+#ifndef VC_MIC_VECTOR_H_
 #error "Vc/mic/vector.h needs to be included before Vc/mic/simd_cast.h"
 #endif
 #include "macros.h"

@@ -45,7 +45,7 @@ private:
     inline void scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const;
 
 public:
-    #define VC_ASSERT_SCATTER_PARAMETER_TYPES__                                                    \
+    #define Vc_ASSERT_SCATTER_PARAMETER_TYPES__                                                    \
         static_assert(std::is_convertible<EntryType, MT>::value,                                   \
                       "The memory pointer needs to point to a type that the EntryType of this "    \
                       "SIMD vector type can be converted to.");                                    \
@@ -66,7 +66,7 @@ public:
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC void scatter(MT *mem, IT &&indexes) const
     {
-        VC_ASSERT_SCATTER_PARAMETER_TYPES__;
+        Vc_ASSERT_SCATTER_PARAMETER_TYPES__;
         scatterImplementation(mem, std::forward<IT>(indexes));
     }
 
@@ -75,7 +75,7 @@ public:
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC void scatter(MT *mem, IT &&indexes, MaskArgument mask) const
     {
-        VC_ASSERT_SCATTER_PARAMETER_TYPES__;
+        Vc_ASSERT_SCATTER_PARAMETER_TYPES__;
         scatterImplementation(mem, std::forward<IT>(indexes), mask);
     }
 
@@ -90,4 +90,4 @@ public:
     {
         scatter(args.address, args.indexes, mask);
     }
-#undef VC_ASSERT_SCATTER_PARAMETER_TYPES__
+#undef Vc_ASSERT_SCATTER_PARAMETER_TYPES__

@@ -28,16 +28,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../scalar/types.h"
 
-#ifndef VC_MIC_TYPES_H
-#define VC_MIC_TYPES_H
+#ifndef VC_MIC_TYPES_H_
+#define VC_MIC_TYPES_H_
 
-#ifdef VC_DEFAULT_IMPL_MIC
-#define VC_DOUBLE_V_SIZE 8
-#define VC_FLOAT_V_SIZE 16
-#define VC_INT_V_SIZE 16
-#define VC_UINT_V_SIZE 16
-#define VC_SHORT_V_SIZE 16
-#define VC_USHORT_V_SIZE 16
+#ifdef Vc_DEFAULT_IMPL_MIC
+#define Vc_DOUBLE_V_SIZE 8
+#define Vc_FLOAT_V_SIZE 16
+#define Vc_INT_V_SIZE 16
+#define Vc_UINT_V_SIZE 16
+#define Vc_SHORT_V_SIZE 16
+#define Vc_USHORT_V_SIZE 16
 #endif
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -79,4 +79,4 @@ template <typename T> struct is_simd_vector_internal<MIC::Vector<T>> : public st
 }  // namespace Traits
 }  // namespace Vc
 
-#endif // VC_MIC_TYPES_H
+#endif // VC_MIC_TYPES_H_

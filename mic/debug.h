@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_DEBUG_H
-#define VC_MIC_DEBUG_H
+#ifndef VC_MIC_DEBUG_H_
+#define VC_MIC_DEBUG_H_
 
 #ifndef NDEBUG
 #include "vector.h"
@@ -94,4 +94,4 @@ class DebugStream
 }  // namespace MIC
 }  // namespace Vc
 
-#endif // VC_MIC_DEBUG_H
+#endif // VC_MIC_DEBUG_H_

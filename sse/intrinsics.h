@@ -46,7 +46,7 @@ extern "C" {
 
 #include "../common/fix_clang_emmintrin.h"
 
-#if defined(__GNUC__) && !defined(VC_IMPL_SSE2)
+#if defined(__GNUC__) && !defined(Vc_IMPL_SSE2)
 #error "SSE Vector class needs at least SSE2"
 #endif
 
@@ -63,7 +63,7 @@ extern "C" {
 #endif
 
 // XOP / FMA4
-#if defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)
+#if defined(Vc_IMPL_XOP) || defined(Vc_IMPL_FMA4)
 extern "C" {
 #include <x86intrin.h>
 }
@@ -78,7 +78,7 @@ namespace SseIntrinsics
 
     constexpr std::size_t VectorAlignment = 16;
 
-#if defined(VC_GCC) && VC_GCC < 0x40600 && !defined(VC_DONT_FIX_SSE_SHIFT)
+#if defined(Vc_GCC) && Vc_GCC < 0x40600 && !defined(Vc_DONT_FIX_SSE_SHIFT)
     static Vc_INTRINSIC Vc_CONST __m128i _mm_sll_epi16(__m128i a, __m128i count) { __asm__("psllw %1,%0" : "+x"(a) : "x"(count)); return a; }
     static Vc_INTRINSIC Vc_CONST __m128i _mm_sll_epi32(__m128i a, __m128i count) { __asm__("pslld %1,%0" : "+x"(a) : "x"(count)); return a; }
     static Vc_INTRINSIC Vc_CONST __m128i _mm_sll_epi64(__m128i a, __m128i count) { __asm__("psllq %1,%0" : "+x"(a) : "x"(count)); return a; }
@@ -87,7 +87,7 @@ namespace SseIntrinsics
     static Vc_INTRINSIC Vc_CONST __m128i _mm_srl_epi64(__m128i a, __m128i count) { __asm__("psrlq %1,%0" : "+x"(a) : "x"(count)); return a; }
 #endif
 
-#ifdef VC_GCC
+#ifdef Vc_GCC
     // Redefine the mul/add/sub intrinsics to use GCC-specific operators instead of builtin
     // functions. This way the fp-contraction optimization step kicks in and creates FMAs! :)
     static Vc_INTRINSIC Vc_CONST __m128d _mm_mul_pd(__m128d a, __m128d b) { return static_cast<__m128d>(static_cast<__v2df>(a) * static_cast<__v2df>(b)); }
@@ -125,7 +125,7 @@ namespace SseIntrinsics
     //X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
     //X         static Vc_INTRINSIC __m128i Vc_CONST _mm_cmpgt_epu8 (__m128i a, __m128i b) { return _mm_cmpgt_epi8 (
     //X                 _mm_xor_si128(a, _mm_setmin_epi8 ()), _mm_xor_si128(b, _mm_setmin_epi8 ())); }
-#if defined(VC_IMPL_XOP) && !defined(VC_CLANG)
+#if defined(Vc_IMPL_XOP) && !defined(Vc_CLANG)
     static Vc_INTRINSIC __m128i Vc_CONST cmplt_epu16(__m128i a, __m128i b) { return _mm_comlt_epu16(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu16(__m128i a, __m128i b) { return _mm_comgt_epu16(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_cmplt_epu32(__m128i a, __m128i b) { return _mm_comlt_epu32(a, b); }
@@ -144,13 +144,13 @@ namespace SseIntrinsics
 }  // namespace Vc
 
 // SSE3
-#ifdef VC_IMPL_SSE3
+#ifdef Vc_IMPL_SSE3
 extern "C" {
 #include <pmmintrin.h>
 }
 #endif
 // SSSE3
-#ifdef VC_IMPL_SSSE3
+#ifdef Vc_IMPL_SSSE3
 extern "C" {
 #include <tmmintrin.h>
 }
@@ -161,7 +161,7 @@ namespace SseIntrinsics
 {
     // not overriding _mm_set1_epi8 because this one should only be used for non-constants
     static Vc_INTRINSIC __m128i Vc_CONST set1_epi8(int a) {
-#if defined(VC_GCC) && VC_GCC < 0x40500
+#if defined(Vc_GCC) && Vc_GCC < 0x40500
         return _mm_shuffle_epi8(_mm_cvtsi32_si128(a), _mm_setzero_si128());
 #else
         // GCC 4.5 nows about the pshufb improvement
@@ -253,7 +253,7 @@ namespace SseIntrinsics
 #endif
 
 // SSE4.1
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
 extern "C" {
 #include <smmintrin.h>
 }
@@ -367,7 +367,7 @@ namespace SseIntrinsics
     }
     template <int index> Vc_INTRINSIC Vc_CONST int extract_epi32(__m128i v)
     {
-#ifdef VC_CLANG
+#ifdef Vc_CLANG
         typedef int int32v4 __attribute__((__vector_size__(16)));
         return static_cast<int32v4>(v)[index];
 #else
@@ -579,12 +579,12 @@ namespace SseIntrinsics
 
 #endif
 
-#ifdef VC_IMPL_POPCNT
+#ifdef Vc_IMPL_POPCNT
 #include <popcntintrin.h>
 #endif
 
 // SSE4.2
-#ifdef VC_IMPL_SSE4_2
+#ifdef Vc_IMPL_SSE4_2
 extern "C" {
 #include <nmmintrin.h>
 }
@@ -600,9 +600,9 @@ namespace SseIntrinsics
         case 0:
             f = _mm_cvtss_f32(v);
             break;
-#if defined VC_IMPL_SSE4_1 && !defined VC_MSVC
+#if defined Vc_IMPL_SSE4_1 && !defined Vc_MSVC
         default:
-#ifdef VC_GCC
+#ifdef Vc_GCC
             f = __builtin_ia32_vec_ext_v4sf(static_cast<__v4sf>(v), (i));
 #else
             // MSVC fails to compile this because it can't optimize i to an immediate
@@ -630,7 +630,7 @@ namespace SseIntrinsics
         return _mm_cvtsd_f64(_mm_castps_pd(_mm_movehl_ps(_mm_castpd_ps(v), _mm_castpd_ps(v))));
     }
     static Vc_INTRINSIC Vc_CONST float extract_float(const __m128 v, const size_t i) {
-#ifdef VC_GCC
+#ifdef Vc_GCC
         if (__builtin_constant_p(i)) {
             return extract_float_imm(v, i);
 //X         if (index <= 1) {
@@ -652,21 +652,21 @@ namespace SseIntrinsics
     }
 
     static Vc_INTRINSIC Vc_PURE __m128  _mm_stream_load(const float *mem) {
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
         return _mm_castsi128_ps(_mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<float *>(mem))));
 #else
         return _mm_load_ps(mem);
 #endif
     }
     static Vc_INTRINSIC Vc_PURE __m128d _mm_stream_load(const double *mem) {
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
         return _mm_castsi128_pd(_mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<double *>(mem))));
 #else
         return _mm_load_pd(mem);
 #endif
     }
     static Vc_INTRINSIC Vc_PURE __m128i _mm_stream_load(const int *mem) {
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
         return _mm_stream_load_si128(reinterpret_cast<__m128i *>(const_cast<int *>(mem)));
 #else
         return _mm_load_si128(reinterpret_cast<const __m128i *>(mem));

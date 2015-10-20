@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MATH_H
-#define VC_COMMON_MATH_H
+#ifndef VC_COMMON_MATH_H_
+#define VC_COMMON_MATH_H_
 
-#define VC_COMMON_MATH_H_INTERNAL 1
+#define Vc_COMMON_MATH_H_INTERNAL 1
 
 #include "trigonometric.h"
 
@@ -38,12 +38,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-#ifdef VC_IMPL_SSE
+#ifdef Vc_IMPL_SSE
 // for SSE, AVX, and AVX2
 #include "logarithm.h"
 #include "exponential.h"
-#ifdef VC_IMPL_AVX
-inline AVX::double_v exp(VC_ALIGNED_PARAMETER(AVX::double_v) _x)
+#ifdef Vc_IMPL_AVX
+inline AVX::double_v exp(Vc_ALIGNED_PARAMETER(AVX::double_v) _x)
 {
     AVX::Vector<double> x = _x;
     typedef AVX::Vector<double> V;
@@ -82,7 +82,7 @@ inline AVX::double_v exp(VC_ALIGNED_PARAMETER(AVX::double_v) _x)
 
         return x;
     }
-#endif  // VC_IMPL_AVX
+#endif  // Vc_IMPL_AVX
 
 inline SSE::double_v exp(SSE::double_v::AsArg _x) {
     SSE::Vector<double> x = _x;
@@ -127,6 +127,6 @@ inline SSE::double_v exp(SSE::double_v::AsArg _x) {
 }  // namespace Vc
 #include "undomacros.h"
 
-#undef VC_COMMON_MATH_H_INTERNAL
+#undef Vc_COMMON_MATH_H_INTERNAL
 
-#endif // VC_COMMON_MATH_H
+#endif // VC_COMMON_MATH_H_

@@ -143,7 +143,7 @@ namespace SSE
             static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.); }
 
-#ifdef VC_IMPL_FMA4
+#ifdef Vc_IMPL_FMA4
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = _mm_macc_pd(v1, v2, v3);
             }
@@ -151,7 +151,7 @@ namespace SSE
             static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 VectorType h1 = _mm_and_pd(v1, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
                 VectorType h2 = _mm_and_pd(v2, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
-#if defined(VC_GCC) && VC_GCC < 0x40703
+#if defined(Vc_GCC) && Vc_GCC < 0x40703
                 // GCC before 4.7.3 uses an incorrect optimization where it replaces the subtraction with an andnot
                 // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54703
                 asm("":"+x"(h1), "+x"(h2));
@@ -213,7 +213,7 @@ namespace SSE
             }
 #undef SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) {
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
                 return _mm_round_pd(a, _MM_FROUND_NINT);
 #else
                 //XXX: slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -235,7 +235,7 @@ namespace SSE
             static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.f); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128 concat(_M128D a, _M128D b) { return _mm_movelh_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b)); }
 
-#ifdef VC_IMPL_FMA4
+#ifdef Vc_IMPL_FMA4
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = _mm_macc_ps(v1, v2, v3);
             }
@@ -298,7 +298,7 @@ namespace SSE
             }
 #undef SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) {
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
                 return _mm_round_ps(a, _MM_FROUND_NINT);
 #else
                 //XXX slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -350,7 +350,7 @@ namespace SSE
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
@@ -557,7 +557,7 @@ namespace SSE
             OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
             // FIXME too bad, but this is broken without SSE 4.1
@@ -594,7 +594,7 @@ namespace SSE
 //X                 }
 //X                 return mul(a, set(b));
 //X             }
-#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || VC_IMPL_SSE4_1
+#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || Vc_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epu16(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epu16(a, b); }
 #endif
@@ -610,7 +610,7 @@ namespace SSE
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             OPx(mul, mullo) // should work correctly for all values
-#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(VC_IMPL_SSE4_1)
+#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(Vc_IMPL_SSE4_1)
             OP(min) OP(max) // XXX breaks for values with MSB set
 #endif
             static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {

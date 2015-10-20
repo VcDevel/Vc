@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SUBSCRIPT_H
-#define VC_COMMON_SUBSCRIPT_H
+#ifndef VC_COMMON_SUBSCRIPT_H_
+#define VC_COMMON_SUBSCRIPT_H_
 
 #include <initializer_list>
 #include <ratio>
@@ -102,7 +102,7 @@ Vc_ALWAYS_INLINE enable_if<
                   "issue by ensuring that all doubles in the structure are aligned on 8 "
                   "Bytes.");
     constexpr auto value = Scale::num / Scale::den;
-    VC_ASSERT(Vc::all_of((x * value) / value == x));
+    Vc_ASSERT(Vc::all_of((x * value) / value == x));
     return std::forward<T>(x) * value;
 }
 
@@ -119,7 +119,7 @@ Vc_ALWAYS_INLINE enable_if<
                   "Bytes.");
     constexpr auto value = Scale::num / Scale::den;
     for (size_t i = 0; i < x.size(); ++i) {
-        VC_ASSERT((x[i] * value) / value == x[i]);
+        Vc_ASSERT((x[i] * value) / value == x[i]);
         x[i] *= value;
     }
     return x;
@@ -421,7 +421,7 @@ public:
                 // expression if has_subscript_operator<T>::value is true.
     Vc_ALWAYS_INLINE auto
         operator[](enable_if<
-#ifndef VC_IMPROVE_ERROR_MESSAGES
+#ifndef Vc_IMPROVE_ERROR_MESSAGES
                        Traits::has_no_allocated_data<T>::value &&
                            Traits::has_subscript_operator<T>::value &&
 #endif
@@ -456,7 +456,7 @@ public:
     // precondition: m_address points to a type that implements the subscript operator
     template <typename IT>
     Vc_ALWAYS_INLINE enable_if<
-#ifndef VC_IMPROVE_ERROR_MESSAGES
+#ifndef Vc_IMPROVE_ERROR_MESSAGES
         Traits::has_no_allocated_data<T>::value &&Traits::has_subscript_operator<T>::value &&
 #endif
             Traits::has_subscript_operator<IT>::value,
@@ -522,7 +522,7 @@ Vc_ALWAYS_INLINE SubscriptOperation<
                                    // SubscriptOperation explicitly adds them for its member type
     > subscript_operator(Container &&c, IndexVector &&indexes)
 {
-    VC_ASSERT(std::addressof(*begin(c)) + 1 ==
+    Vc_ASSERT(std::addressof(*begin(c)) + 1 ==
               std::addressof(*(begin(c) + 1)));  // runtime assertion for contiguous storage, this
                                                  // requires a RandomAccessIterator - but that
                                                  // should be given for a container with contiguous
@@ -575,6 +575,6 @@ using Common::subscript_operator;
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_SUBSCRIPT_H
+#endif // VC_COMMON_SUBSCRIPT_H_
 
 // vim: foldmethod=marker

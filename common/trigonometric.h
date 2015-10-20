@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_TRIGONOMETRIC_H
-#define VC_COMMON_TRIGONOMETRIC_H
+#ifndef VC_COMMON_TRIGONOMETRIC_H_
+#define VC_COMMON_TRIGONOMETRIC_H_
 
 #include "macros.h"
 
@@ -40,7 +40,7 @@ template<> struct MapImpl<Vc::SSE42Impl> { enum Dummy { Value = MapImpl<Vc::SSE4
 
 template<Vc::Implementation Impl> using TrigonometricImplementation =
     ImplementationT<MapImpl<Impl>::Value
-#if defined(VC_IMPL_XOP) && defined(VC_IMPL_FMA4)
+#if defined(Vc_IMPL_XOP) && defined(Vc_IMPL_FMA4)
     + Vc::XopInstructions
     + Vc::Fma4Instructions
 #endif
@@ -60,7 +60,7 @@ template<typename Impl> struct Trigonometric
 };
 }  // namespace Common
 
-#ifdef VC_IMPL_SSE
+#ifdef Vc_IMPL_SSE
 // this is either SSE, AVX, or AVX2
 namespace Detail
 {
@@ -80,4 +80,4 @@ template <typename T, typename Abi> Vc_INTRINSIC void sincos(const Vector<T, Abi
 }  // namespace Vc
 
 #include "undomacros.h"
-#endif // VC_COMMON_TRIGONOMETRIC_H
+#endif // VC_COMMON_TRIGONOMETRIC_H_

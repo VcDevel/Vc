@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_INTERLEAVEDMEMORY_TCC
-#define VC_SSE_INTERLEAVEDMEMORY_TCC
+#ifndef VC_SSE_INTERLEAVEDMEMORY_TCC_
+#define VC_SSE_INTERLEAVEDMEMORY_TCC_
 
 #include "detail.h"
 #include "macros.h"
@@ -162,6 +162,6 @@ Vc_ALWAYS_INLINE void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(
 
 #include "undomacros.h"
 
-#endif  // VC_SSE_INTERLEAVEDMEMORY_TCC
+#endif  // VC_SSE_INTERLEAVEDMEMORY_TCC_
 
 // vim: foldmethod=marker

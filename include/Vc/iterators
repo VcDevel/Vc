@@ -17,8 +17,8 @@
 
 }}}*/
 
-#ifndef VC_INCLUDE_VC_ITERATORS_H
-#define VC_INCLUDE_VC_ITERATORS_H
+#ifndef VC_INCLUDE_VC_ITERATORS_H_
+#define VC_INCLUDE_VC_ITERATORS_H_
 
 #include "common/iterators.h"
 namespace Vc_VERSIONED_NAMESPACE
@@ -28,6 +28,6 @@ namespace Vc_VERSIONED_NAMESPACE
     using ::Vc::Common::makeIterator;
 }
 
-#endif // VC_INCLUDE_VC_ITERATORS_H
+#endif // VC_INCLUDE_VC_ITERATORS_H_
 
 // ft=cpp

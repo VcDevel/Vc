@@ -279,9 +279,9 @@ namespace Common
         0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU
     };
 
-    const char LIBRARY_VERSION[] = VC_VERSION_STRING;
-    const unsigned int LIBRARY_VERSION_NUMBER = VC_VERSION_NUMBER;
-    const unsigned int LIBRARY_ABI_VERSION = VC_LIBRARY_ABI_VERSION;
+    const char LIBRARY_VERSION[] = Vc_VERSION_STRING;
+    const unsigned int LIBRARY_VERSION_NUMBER = Vc_VERSION_NUMBER;
+    const unsigned int LIBRARY_ABI_VERSION = Vc_LIBRARY_ABI_VERSION;
 
     void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
         if (LIBRARY_ABI_VERSION != compileTimeAbi || LIBRARY_VERSION_NUMBER < versionNumber) {

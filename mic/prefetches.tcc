@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_PREFETCHES_TCC
-#define VC_MIC_PREFETCHES_TCC
+#ifndef VC_MIC_PREFETCHES_TCC_
+#define VC_MIC_PREFETCHES_TCC_
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -56,4 +56,4 @@ Vc_ALWAYS_INLINE void prefetchForModify(const void *addr, VectorAbi::Mic)
 }  // namespace Detail
 }  // namespace Vc
 
-#endif // VC_MIC_PREFETCHES_TCC
+#endif // VC_MIC_PREFETCHES_TCC_

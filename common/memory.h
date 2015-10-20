@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MEMORY_H
-#define VC_COMMON_MEMORY_H
+#ifndef VC_COMMON_MEMORY_H_
+#define VC_COMMON_MEMORY_H_
 
 #include "memorybase.h"
 #include <assert.h>
@@ -305,7 +305,7 @@ class Memory<V, Size, 0u, InitPadding>
 
             Memory(std::initializer_list<EntryType> init)
             {
-                VC_ASSERT(init.size() <= Size);
+                Vc_ASSERT(init.size() <= Size);
                 Base::lastVector() = V::Zero();
                 std::copy(init.begin(), init.end(), &m_mem[0]);
             }
@@ -339,7 +339,7 @@ class Memory<V, Size, 0u, InitPadding>
                 // accordingly
                 char *addr = reinterpret_cast<char *>(ptr);
                 typedef Memory<V, Size, 0u, false> MM;
-                addr -= VC_OFFSETOF(MM, m_mem);
+                addr -= Vc_OFFSETOF(MM, m_mem);
                 return *new(addr) MM;
             }
 
@@ -662,4 +662,4 @@ namespace std
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_MEMORY_H
+#endif // VC_COMMON_MEMORY_H_

@@ -26,11 +26,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_UNDOMACROS_H
-#define VC_AVX_UNDOMACROS_H
-#undef VC_AVX_MACROS_H
+#ifndef VC_AVX_UNDOMACROS_H_
+#define VC_AVX_UNDOMACROS_H_
+#undef VC_AVX_MACROS_H_
 
 
-#endif // VC_AVX_UNDOMACROS_H
+#endif // VC_AVX_UNDOMACROS_H_
 
 #include "../common/undomacros.h"

@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_X86_PREFETCHES_H
-#define VC_COMMON_X86_PREFETCHES_H
+#ifndef VC_COMMON_X86_PREFETCHES_H_
+#define VC_COMMON_X86_PREFETCHES_H_
 
 #include <xmmintrin.h>
 #include "macros.h"
@@ -37,8 +37,8 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
-#if !defined(VC_IMPL_MIC) && !defined(_MM_HINT_ENTA)
-#define VC__NO_SUPPORT_FOR_EXCLUSIVE_HINT 1
+#if !defined(Vc_IMPL_MIC) && !defined(_MM_HINT_ENTA)
+#define Vc__NO_SUPPORT_FOR_EXCLUSIVE_HINT 1
 #define _MM_HINT_ENTA _MM_HINT_NTA
 #define _MM_HINT_ET0 _MM_HINT_T0
 #define _MM_HINT_ET1 _MM_HINT_T1
@@ -84,8 +84,8 @@ Vc_INTRINSIC void prefetchFar(const void *addr)
     }
 }
 
-#ifdef VC__NO_SUPPORT_FOR_EXCLUSIVE_HINT
-#undef VC__NO_SUPPORT_FOR_EXCLUSIVE_HINT
+#ifdef Vc__NO_SUPPORT_FOR_EXCLUSIVE_HINT
+#undef Vc__NO_SUPPORT_FOR_EXCLUSIVE_HINT
 #undef _MM_HINT_ENTA
 #undef _MM_HINT_ET0
 #undef _MM_HINT_ET1
@@ -142,6 +142,6 @@ using Common::prefetchFar;
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_X86_PREFETCHES_H
+#endif // VC_COMMON_X86_PREFETCHES_H_
 
 // vim: foldmethod=marker

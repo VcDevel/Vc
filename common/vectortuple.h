@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_VECTORTUPLE_H
-#define VC_COMMON_VECTORTUPLE_H
+#ifndef VC_COMMON_VECTORTUPLE_H_
+#define VC_COMMON_VECTORTUPLE_H_
 
 #include "transpose.h"
 #include "macros.h"
@@ -42,8 +42,8 @@ template<size_t StructSize, typename V, typename I, bool Readonly = true> struct
 template <int Length, typename V> class VectorReferenceArray
 {
     typedef typename V::EntryType T;
-    typedef V &VC_RESTRICT Reference;
-    std::array<V * VC_RESTRICT, Length> r;
+    typedef V &Vc_RESTRICT Reference;
+    std::array<V * Vc_RESTRICT, Length> r;
 
     typedef make_index_sequence<Length> IndexSequence;
 
@@ -69,13 +69,13 @@ public:
 
     template <typename VV, typename = enable_if<!std::is_const<V>::value &&
                                                 std::is_same<VV, V>::value>>
-    VC_DEPRECATED("build the tuple with Vc::tie instead")
+    Vc_DEPRECATED("build the tuple with Vc::tie instead")
     constexpr VectorReferenceArray<Length + 1, V> operator, (VV & a) const
     {
         return appendOneReference(a, IndexSequence());
     }
 
-    VC_DEPRECATED("build the tuple with Vc::tie instead")
+    Vc_DEPRECATED("build the tuple with Vc::tie instead")
     constexpr VectorReferenceArray<Length + 1, const V> operator, (const V &a) const
     {
         return appendOneReference(a, IndexSequence());
@@ -115,7 +115,7 @@ public:
 }  // namespace Common
 
 template <typename T, typename Abi>
-VC_DEPRECATED("build the tuple with Vc::tie instead")
+Vc_DEPRECATED("build the tuple with Vc::tie instead")
 constexpr Common::VectorReferenceArray<2, Vc::Vector<T, Abi>>
 operator,(Vc::Vector<T, Abi> &a, Vc::Vector<T, Abi> &b)
 {
@@ -123,7 +123,7 @@ operator,(Vc::Vector<T, Abi> &a, Vc::Vector<T, Abi> &b)
 }
 
 template <typename T, typename Abi>
-VC_DEPRECATED("build the tuple with Vc::tie instead")
+Vc_DEPRECATED("build the tuple with Vc::tie instead")
 constexpr Common::VectorReferenceArray<2, const Vc::Vector<T, Abi>>
 operator,(const Vc::Vector<T, Abi> &a, const Vc::Vector<T, Abi> &b)
 {
@@ -142,4 +142,4 @@ constexpr Common::VectorReferenceArray<sizeof...(Vs) + 1,
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_VECTORTUPLE_H
+#endif // VC_COMMON_VECTORTUPLE_H_

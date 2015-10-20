@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_VECTOR_H
-#define VC_MIC_VECTOR_H
+#ifndef VC_MIC_VECTOR_H_
+#define VC_MIC_VECTOR_H_
 
 #ifdef CAN_OFFLOAD
 #pragma offload_attribute(push, target(mic))
@@ -53,11 +53,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef isnan
 #endif
 
-#define VC_HAVE_FMA
+#define Vc_HAVE_FMA
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-#define VC_CURRENT_CLASS_NAME Vector
+#define Vc_CURRENT_CLASS_NAME Vector
 template <typename T>
 class Vector<T, VectorAbi::Mic> : public MIC::StoreMixin<MIC::Vector<T>, T>
 {
@@ -113,9 +113,9 @@ protected:
 
     typedef Common::VectorMemoryUnion<VectorType, VectorEntryType> StorageType;
     StorageType d;
-    VC_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
+    Vc_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
 
-    template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) x) { return MIC::mic_cast<VectorType>(x); }
+    template<typename V> static Vc_INTRINSIC VectorType _cast(Vc_ALIGNED_PARAMETER(V) x) { return MIC::mic_cast<VectorType>(x); }
 
 public:
     template <typename MemType>
@@ -144,7 +144,7 @@ public:
     // implict conversion from compatible Vector<U>
     template <typename U>
     Vc_INTRINSIC Vector(
-        VC_ALIGNED_PARAMETER(Vector<U>) x,
+        Vc_ALIGNED_PARAMETER(Vector<U>) x,
         typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
         : d(MIC::convert<U, T>(x.data()))
     {
@@ -153,7 +153,7 @@ public:
     // static_cast from the remaining Vector<U>
     template <typename U>
     Vc_INTRINSIC explicit Vector(
-        VC_ALIGNED_PARAMETER(Vector<U>) x,
+        Vc_ALIGNED_PARAMETER(Vector<U>) x,
         typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
         : d(MIC::convert<U, T>(x.data()))
     {
@@ -207,7 +207,7 @@ public:
     }
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator~() const
     {
-#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+#ifndef Vc_ENABLE_FLOAT_BIT_OPERATORS
         static_assert(std::is_integral<T>::value,
                       "bit-complement can only be used with Vectors of integral type");
 #endif
@@ -218,23 +218,23 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // binary operators
-#ifdef VC_ENABLE_FLOAT_BIT_OPERATORS
-#define VC_ASSERT__
+#ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
+#define Vc_ASSERT__
 #else
-#define VC_ASSERT__                                                                                \
+#define Vc_ASSERT__                                                                                \
     static_assert(std::is_integral<T>::value,                                                      \
                   "bitwise-operators can only be used with Vectors of integral type")
 #endif
 #define Vc_OP(symbol, fun)                                                                         \
     Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x)                                           \
     {                                                                                              \
-        VC_ASSERT__;                                                                               \
+        Vc_ASSERT__;                                                                               \
         d.v() = fun(d.v(), x.d.v());                                                               \
         return *this;                                                                              \
     }                                                                                              \
     Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const                                         \
     {                                                                                              \
-        VC_ASSERT__;                                                                               \
+        Vc_ASSERT__;                                                                               \
         return Vector<T>(fun(d.v(), x.d.v()));                                                     \
     }
 
@@ -366,7 +366,7 @@ public:
     Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
-#undef VC_CURRENT_CLASS_NAME
+#undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::MemoryAlignment;
 
@@ -469,4 +469,4 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 #pragma offload_attribute(pop)
 #endif
 
-#endif // VC_MIC_VECTOR_H
+#endif // VC_MIC_VECTOR_H_

@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_SHUFFLE_H
-#define VC_SSE_SHUFFLE_H
+#ifndef VC_SSE_SHUFFLE_H_
+#define VC_SSE_SHUFFLE_H_
 
 #include "intrinsics.h"
 #include "macros.h"
@@ -184,4 +184,4 @@ namespace Reg
 
 #include "undomacros.h"
 
-#endif // VC_SSE_SHUFFLE_H
+#endif // VC_SSE_SHUFFLE_H_

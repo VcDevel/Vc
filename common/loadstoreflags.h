@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_LOADSTOREFLAGS_H
-#define VC_COMMON_LOADSTOREFLAGS_H
+#ifndef VC_COMMON_LOADSTOREFLAGS_H_
+#define VC_COMMON_LOADSTOREFLAGS_H_
 
 #include "types.h"
 #include "macros.h"
@@ -52,7 +52,7 @@ namespace LoadStoreFlags
 struct StreamingFlag {};
 struct UnalignedFlag {};
 struct PrefetchFlagBase {};
-#ifdef VC_IMPL_MIC
+#ifdef Vc_IMPL_MIC
 template<size_t L1 = 8 * 64, size_t L2 = 64 * 64,
 #else
 // TODO: determine a good default for typical CPU use
@@ -80,7 +80,7 @@ template<typename Base, typename Default, typename T, typename... LoadStoreFlags
 // who needs that warning, especially if it was referenced...
 // The warning cannot be reenabled because it gets emitted whenever the LoadStoreFlags is instantiated
 // somewhere, so it could be anywhere.
-#ifdef VC_ICC
+#ifdef Vc_ICC
 #pragma warning(disable: 177)
 #endif
 template<typename... Flags> struct LoadStoreFlags
@@ -184,4 +184,4 @@ struct is_loadstoreflag_internal<Prefetch<L1, L2, ExclusiveOrShared>> : public s
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_LOADSTOREFLAGS_H
+#endif // VC_COMMON_LOADSTOREFLAGS_H_

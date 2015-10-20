@@ -154,7 +154,7 @@ bool isMix() const;
  * Cast to bool operator. Returns the same as isFull().
  *
  * \warning Be careful with the cast to bool. Often it is better to write explicitly whether you
- * want isFull or !isEmpty or something else. If you define VC_NO_AUTOMATIC_BOOL_FROM_MASK this
+ * want isFull or !isEmpty or something else. If you define Vc_NO_AUTOMATIC_BOOL_FROM_MASK this
  * operator will be disabled, requiring you to explicitly reduce masks to bools.
  */
 operator bool() const;

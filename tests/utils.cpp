@@ -66,7 +66,7 @@ TEST_TYPES(V, testCall, (ALL_VECTORS))
     a(odd) -= 1;
     a.callWithValuesSorted(f);
     V c(f.d);
-#ifndef VC_IMPL_Scalar // avoid -Wtautological-compare warnings because of V::Size == 1
+#ifndef Vc_IMPL_Scalar // avoid -Wtautological-compare warnings because of V::Size == 1
     for (size_t i = 0; i < V::Size / 2; ++i) {
         COMPARE(a[i * 2], c[i]);
     }

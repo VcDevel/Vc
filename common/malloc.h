@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MALLOC_H
-#define VC_COMMON_MALLOC_H
+#ifndef VC_COMMON_MALLOC_H_
+#define VC_COMMON_MALLOC_H_
 
-#ifndef VC_VECTOR_DECLARED__
+#ifndef Vc_VECTOR_DECLARED__
 #error "Incorrect inclusion order. This header must be included from Vc/vector.h only."
 #endif
 
@@ -100,4 +100,4 @@ Vc_ALWAYS_INLINE void free(void *p)
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_MALLOC_H
+#endif // VC_COMMON_MALLOC_H_

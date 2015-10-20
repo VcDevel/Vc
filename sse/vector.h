@@ -54,14 +54,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 
-#define VC_CURRENT_CLASS_NAME Vector
+#define Vc_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector<T, VectorAbi::Sse>
 {
     static_assert(std::is_arithmetic<T>::value,
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
     protected:
-#ifdef VC_COMPILE_BENCHMARKS
+#ifdef Vc_COMPILE_BENCHMARKS
     public:
 #endif
         typedef typename SSE::VectorTraits<T>::StorageType StorageType;
@@ -87,7 +87,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         using mask_type = Mask;
         typedef typename Mask::Argument MaskArg;
         typedef typename Mask::Argument MaskArgument;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
         typedef const Vector &AsArg;
 #else
         typedef const Vector AsArg;
@@ -106,7 +106,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         // implict conversion from compatible Vector<U>
         template <typename U>
-        Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(V<U>) x,
+        Vc_INTRINSIC Vector(Vc_ALIGNED_PARAMETER(V<U>) x,
                             typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
                                                     void *>::type = nullptr)
             : d(SSE::convert<U, T>(x.data()))
@@ -116,7 +116,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         // static_cast from the remaining Vector<U>
         template <typename U>
         Vc_INTRINSIC explicit Vector(
-            VC_ALIGNED_PARAMETER(V<U>) x,
+            Vc_ALIGNED_PARAMETER(V<U>) x,
             typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
             : d(SSE::convert<U, T>(x.data()))
@@ -168,7 +168,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         }
         Vc_INTRINSIC Vc_PURE Vector operator~() const
         {
-#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+#ifndef Vc_ENABLE_FLOAT_BIT_OPERATORS
             static_assert(std::is_integral<T>::value,
                           "bit-complement can only be used with Vectors of integral type");
 #endif
@@ -203,8 +203,8 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC_L Vector  operator>> (  int shift) const Vc_INTRINSIC_R;
 
         inline Vector &operator/=(EntryType x);
-        inline Vector &operator/=(VC_ALIGNED_PARAMETER(Vector) x);
-        inline Vc_PURE_L Vector operator/ (VC_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
+        inline Vector &operator/=(Vc_ALIGNED_PARAMETER(Vector) x);
+        inline Vc_PURE_L Vector operator/ (Vc_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
 #define OP(symbol)                                                                       \
     Vc_INTRINSIC Vector &operator symbol##=(const Vector & x)                            \
@@ -219,7 +219,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             std::is_integral<T>::value,                                                  \
             "bitwise operators can only be used with Vectors of integral type");         \
     }
-    VC_ALL_BINARY(OP)
+    Vc_ALL_BINARY(OP)
 #undef OP
 
 #define OPcmp(symbol, fun) \
@@ -344,7 +344,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
-#undef VC_CURRENT_CLASS_NAME
+#undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::MemoryAlignment;
 

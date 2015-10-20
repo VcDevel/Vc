@@ -33,16 +33,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace Vc;
 
 // EXTRA_IMPL_VECTORS {{{1
-#ifdef VC_IMPL_Scalar
+#ifdef Vc_IMPL_Scalar
 #define EXTRA_IMPL_VECTORS
-#elif defined VC_IMPL_AVX2
+#elif defined Vc_IMPL_AVX2
 #define EXTRA_IMPL_VECTORS                                                               \
     Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
         Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
         Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v,          \
         Vc::AVX::int_v, Vc::AVX::ushort_v, Vc::AVX::double_v, Vc::AVX::uint_v,           \
         Vc::AVX::short_v, Vc::AVX::float_v
-#elif defined VC_IMPL_AVX
+#elif defined Vc_IMPL_AVX
 #define EXTRA_IMPL_VECTORS                                                               \
     Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
         Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
@@ -54,23 +54,23 @@ using namespace Vc;
 #endif
 
 // AllTestTypes {{{1
-#ifdef VC_DEFAULT_TYPES
+#ifdef Vc_DEFAULT_TYPES
 using AllTestTypes = outer_product<Typelist<ALL_VECTORS>, Typelist<ALL_VECTORS>>;
-#elif defined VC_EXTRA_TYPES
+#elif defined Vc_EXTRA_TYPES
 using AllTestTypes =
     concat<outer_product<Typelist<ALL_VECTORS>, Typelist<EXTRA_IMPL_VECTORS>>,
            outer_product<Typelist<EXTRA_IMPL_VECTORS>, Typelist<ALL_VECTORS>>>;
-#elif defined VC_FROM_N
-#ifdef VC_TO_N
+#elif defined Vc_FROM_N
+#ifdef Vc_TO_N
 using AllTestTypes =
-    outer_product<Typelist<SIMD_ARRAYS(VC_FROM_N)>, Typelist<SIMD_ARRAYS(VC_TO_N)>>;
+    outer_product<Typelist<SIMD_ARRAYS(Vc_FROM_N)>, Typelist<SIMD_ARRAYS(Vc_TO_N)>>;
 #else
 using AllTestTypes =
-    outer_product<Typelist<SIMD_ARRAYS(VC_FROM_N)>, Typelist<ALL_VECTORS>>;
+    outer_product<Typelist<SIMD_ARRAYS(Vc_FROM_N)>, Typelist<ALL_VECTORS>>;
 #endif
-#elif defined VC_TO_N
+#elif defined Vc_TO_N
 using AllTestTypes =
-    outer_product<Typelist<ALL_VECTORS>, Typelist<SIMD_ARRAYS(VC_TO_N)>>;
+    outer_product<Typelist<ALL_VECTORS>, Typelist<SIMD_ARRAYS(Vc_TO_N)>>;
 #endif
 
 // is_conversion_undefined {{{1
@@ -173,7 +173,7 @@ Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_
 {
     using T = typename To::EntryType;
     auto result = simd_cast<To>(x0, xs...);
-#ifdef VC_GCC
+#ifdef Vc_GCC
     // workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47226
     // parameter pack expansion does not work inside lambda
     typename From::EntryType input[(1 + sizeof...(Froms)) * From::Size];
@@ -185,7 +185,7 @@ Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_
         if (i >= (1 + sizeof...(Froms)) * From::Size) {
             return T(0);
         }
-#ifdef VC_GCC
+#ifdef Vc_GCC
         if (is_conversion_undefined<T>(input[i])) {
             result[i] = 0;
             return T(0);
@@ -384,7 +384,7 @@ TEST_TYPES(TList, cast_mask, (AllTestTypes)) // {{{1
     });
 }
 // }}}1
-#ifdef VC_DEFAULT_TYPES
+#ifdef Vc_DEFAULT_TYPES
 TEST(fullConversion)/*{{{*/
 {
     float_v x = float_v::Random();
@@ -397,7 +397,7 @@ TEST(fullConversion)/*{{{*/
         COMPARE(r[i], static_cast<float>(x[i] * 0.1)) << "i = " << i;
     }
 }/*}}}*/
-#endif // VC_DEFAULT_TYPES
+#endif // Vc_DEFAULT_TYPES
 
 #if 0
 /*{{{*/

@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_TRAITS_HAS_NO_ALLOCATED_DATA_H
-#define VC_TRAITS_HAS_NO_ALLOCATED_DATA_H
+#ifndef VC_TRAITS_HAS_NO_ALLOCATED_DATA_H_
+#define VC_TRAITS_HAS_NO_ALLOCATED_DATA_H_
 
 #include <array>
 
@@ -104,4 +104,4 @@ static_assert(!has_no_allocated_data<int *const>::value, "");
 }  // namespace Traits
 }  // namespace Vc
 
-#endif // VC_TRAITS_HAS_NO_ALLOCATED_DATA_H
+#endif // VC_TRAITS_HAS_NO_ALLOCATED_DATA_H_

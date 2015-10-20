@@ -87,7 +87,7 @@ static inline Vc::float_v dfu(Vc::float_v::AsArg x) {
 // where the value is used in printResults.
 Vc::Memory<float_v, N> x_points;
 Vc::Memory<float_v, N> y_points;
-float *VC_RESTRICT dy_points;
+float *Vc_RESTRICT dy_points;
 
 void printResults()
 {
@@ -210,7 +210,7 @@ int main()
         auto y = y_points.begin(Vc::Prefetch<>());
         float_v y0 = *y++;
         const auto y_it_last = y_points.end();
-#ifdef VC_ICC
+#ifdef Vc_ICC
 #pragma noprefetch
 #endif
         for (; y < y_it_last; y += 4 , dy += 4) {

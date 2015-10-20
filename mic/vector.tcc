@@ -575,12 +575,12 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &
 // exponent {{{1
 template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::exponent() const
 {
-    VC_ASSERT((*this >= Zero()).isFull());
+    Vc_ASSERT((*this >= Zero()).isFull());
     return _mm512_getexp_ps(d.v());
 }
 template<> Vc_INTRINSIC MIC::double_v MIC::double_v::exponent() const
 {
-    VC_ASSERT((*this >= Zero()).isFull());
+    Vc_ASSERT((*this >= Zero()).isFull());
     return _mm512_getexp_pd(d.v());
 }
 // }}}1
@@ -644,8 +644,8 @@ template<size_t SIMDWidth, size_t Size> struct VectorShift;
 template<> struct VectorShift<64, 8>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount,
-            VC_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
+    static Vc_INTRINSIC VectorType shifted(Vc_ALIGNED_PARAMETER(VectorType) v, int amount,
+            Vc_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
     {
         switch (amount) {
         case 15: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 14);
@@ -686,8 +686,8 @@ template<> struct VectorShift<64, 8>/*{{{*/
 template<> struct VectorShift<64, 16>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount,
-            VC_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
+    static Vc_INTRINSIC VectorType shifted(Vc_ALIGNED_PARAMETER(VectorType) v, int amount,
+            Vc_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
     {
         switch (amount) {
         case 31: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 15);
@@ -776,7 +776,7 @@ template<size_t SIMDWidth, size_t Size> struct VectorRotate;
 template<> struct VectorRotate<64, 8>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
+    static Vc_INTRINSIC VectorType rotated(Vc_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (static_cast<unsigned int>(amount) % 8) {
         case  0: return v;
@@ -794,7 +794,7 @@ template<> struct VectorRotate<64, 8>/*{{{*/
 template<> struct VectorRotate<64, 16>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
+    static Vc_INTRINSIC VectorType rotated(Vc_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (static_cast<unsigned int>(amount) % 16) {
         case 15: return _mm512_alignr_epi32(v, v, 15);

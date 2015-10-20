@@ -26,19 +26,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MACROS_H
-#define VC_COMMON_MACROS_H
-#undef VC_COMMON_UNDOMACROS_H
+#ifndef VC_COMMON_MACROS_H_
+#define VC_COMMON_MACROS_H_
+#undef VC_COMMON_UNDOMACROS_H_
 
 #include <Vc/global.h>
 
-#if defined(VC_GCC) && !defined(__OPTIMIZE__)
+#if defined(Vc_GCC) && !defined(__OPTIMIZE__)
 // GCC uses lots of old-style-casts in macros that disguise as intrinsics
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
 # define ALIGN(n) __declspec(align(n))
 # define STRUCT_ALIGN1(n) ALIGN(n)
 # define STRUCT_ALIGN2(n)
@@ -50,7 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # define ALIGNED_TYPEDEF(n, _type_, _newType_) typedef _type_ _newType_ ALIGN(n)
 #endif
 
-#ifdef VC_CLANG
+#ifdef Vc_CLANG
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC_R __attribute__((always_inline))
 #  define Vc_INTRINSIC Vc_INTRINSIC_L Vc_INTRINSIC_R
@@ -65,10 +65,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_ALWAYS_INLINE_L inline
 #  define Vc_ALWAYS_INLINE_R __attribute__((always_inline))
 #  define Vc_ALWAYS_INLINE Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE_R
-#  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
-#  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
-#  define VC_RESTRICT __restrict__
-#  define VC_DEPRECATED(msg)
+#  define Vc_IS_UNLIKELY(x) __builtin_expect(x, 0)
+#  define Vc_IS_LIKELY(x) __builtin_expect(x, 1)
+#  define Vc_RESTRICT __restrict__
+#  define Vc_DEPRECATED(msg)
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
 #  define Vc_MAY_ALIAS __attribute__((__may_alias__))
@@ -79,7 +79,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_ALWAYS_INLINE_L inline
 #  define Vc_ALWAYS_INLINE_R __attribute__((__always_inline__))
 #  define Vc_ALWAYS_INLINE Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE_R
-#  ifdef VC_ICC
+#  ifdef Vc_ICC
      // ICC miscompiles if there are functions marked as pure or const
 #    define Vc_PURE
 #    define Vc_CONST
@@ -91,13 +91,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_CONST_R Vc_CONST
 #  define Vc_PURE_L
 #  define Vc_PURE_R Vc_PURE
-#  define VC_IS_UNLIKELY(x) __builtin_expect(x, 0)
-#  define VC_IS_LIKELY(x) __builtin_expect(x, 1)
-#  define VC_RESTRICT __restrict__
-#  ifdef VC_ICC
-#    define VC_DEPRECATED(msg)
+#  define Vc_IS_UNLIKELY(x) __builtin_expect(x, 0)
+#  define Vc_IS_LIKELY(x) __builtin_expect(x, 1)
+#  define Vc_RESTRICT __restrict__
+#  ifdef Vc_ICC
+#    define Vc_DEPRECATED(msg)
 #  else
-#    define VC_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#    define Vc_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
 #  endif
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #else
@@ -106,7 +106,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    undef Vc_PURE
 #  endif
 #  define Vc_MAY_ALIAS
-#  ifdef VC_MSVC
+#  ifdef Vc_MSVC
 #    define Vc_ALWAYS_INLINE inline __forceinline
 #    define Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE
 #    define Vc_ALWAYS_INLINE_R
@@ -133,10 +133,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define Vc_INTRINSIC_L
 #    define Vc_INTRINSIC_R
 #  endif
-#  define VC_IS_UNLIKELY(x) x
-#  define VC_IS_LIKELY(x) x
-#  define VC_RESTRICT __restrict
-#  define VC_DEPRECATED(msg) __declspec(deprecated(msg))
+#  define Vc_IS_UNLIKELY(x) x
+#  define Vc_IS_LIKELY(x) x
+#  define Vc_RESTRICT __restrict
+#  define Vc_DEPRECATED(msg) __declspec(deprecated(msg))
 #  define Vc_WARN_UNUSED_RESULT
 #endif
 
@@ -150,12 +150,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t) { Vc::Common::free(ptr); } \
         Vc_ALWAYS_INLINE void operator delete[](void *, void *) {}
 
-#ifdef VC_GCC
-# define VC_WARN_INLINE
-# define VC_WARN(msg) __attribute__((warning("\n\t" msg)))
+#ifdef Vc_GCC
+# define Vc_WARN_INLINE
+# define Vc_WARN(msg) __attribute__((warning("\n\t" msg)))
 #else
-# define VC_WARN_INLINE inline
-# define VC_WARN(msg)
+# define Vc_WARN_INLINE inline
+# define Vc_WARN(msg)
 #endif
 
 #define unrolled_loop16(_it_, _start_, _end_, _code_) \
@@ -180,30 +180,30 @@ do {} while ( false )
 #define for_all_vector_entries(_it_, _code_) \
   unrolled_loop16(_it_, 0, Size, _code_)
 
-#ifdef VC_ASSERT
-#define VC_EXTERNAL_ASSERT 1
+#ifdef Vc_ASSERT
+#define Vc_EXTERNAL_ASSERT 1
 #else
 #ifdef NDEBUG
-#define VC_ASSERT(x)
+#define Vc_ASSERT(x)
 #else
 #include <assert.h>
-#define VC_ASSERT(x) assert(x);
+#define Vc_ASSERT(x) assert(x);
 #endif
 #endif
 
-#ifdef VC_CLANG
-#define VC_HAS_BUILTIN(x) __has_builtin(x)
+#ifdef Vc_CLANG
+#define Vc_HAS_BUILTIN(x) __has_builtin(x)
 #else
-#define VC_HAS_BUILTIN(x) 0
+#define Vc_HAS_BUILTIN(x) 0
 #endif
 
-#ifndef VC_COMMON_MACROS_H_ONCE
-#define VC_COMMON_MACROS_H_ONCE
+#ifndef Vc_COMMON_MACROS_H_ONCE
+#define Vc_COMMON_MACROS_H_ONCE
 
 #define _VC_CAT_HELPER(a, b, c, d) a##b##c##d
 #define _VC_CAT(a, b, c, d) _VC_CAT_HELPER(a, b, c, d)
 
-#endif // VC_COMMON_MACROS_H_ONCE
+#endif // Vc_COMMON_MACROS_H_ONCE
 
 #define _CAT_IMPL(a, b) a##b
 #define CAT(a, b) _CAT_IMPL(a, b)
@@ -214,74 +214,74 @@ do {} while ( false )
 #define _VC_APPLY_IMPL_4(macro, a, b, c, d, e) macro(a, b, c, d)
 #define _VC_APPLY_IMPL_5(macro, a, b, c, d, e) macro(a, b, c, d, e)
 
-#define VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
+#define Vc_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro, double_v, a, b, c, d) \
     size(macro,  float_v, a, b, c, d)
-#define VC_LIST_INT_VECTOR_TYPES(size, macro, a, b, c, d) \
+#define Vc_LIST_INT_VECTOR_TYPES(size, macro, a, b, c, d) \
     size(macro,    int_v, a, b, c, d) \
     size(macro,   uint_v, a, b, c, d) \
     size(macro,  short_v, a, b, c, d) \
     size(macro, ushort_v, a, b, c, d)
-#define VC_LIST_VECTOR_TYPES(size, macro, a, b, c, d) \
-    VC_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
-    VC_LIST_INT_VECTOR_TYPES(size, macro, a, b, c, d)
-#define VC_LIST_COMPARES(size, macro, a, b, c, d) \
+#define Vc_LIST_VECTOR_TYPES(size, macro, a, b, c, d) \
+    Vc_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
+    Vc_LIST_INT_VECTOR_TYPES(size, macro, a, b, c, d)
+#define Vc_LIST_COMPARES(size, macro, a, b, c, d) \
     size(macro, ==, a, b, c, d) \
     size(macro, !=, a, b, c, d) \
     size(macro, <=, a, b, c, d) \
     size(macro, >=, a, b, c, d) \
     size(macro, < , a, b, c, d) \
     size(macro, > , a, b, c, d)
-#define VC_LIST_LOGICAL(size, macro, a, b, c, d) \
+#define Vc_LIST_LOGICAL(size, macro, a, b, c, d) \
     size(macro, &&, a, b, c, d) \
     size(macro, ||, a, b, c, d)
-#define VC_LIST_BINARY(size, macro, a, b, c, d) \
+#define Vc_LIST_BINARY(size, macro, a, b, c, d) \
     size(macro, |, a, b, c, d) \
     size(macro, &, a, b, c, d) \
     size(macro, ^, a, b, c, d)
-#define VC_LIST_SHIFTS(size, macro, a, b, c, d) \
+#define Vc_LIST_SHIFTS(size, macro, a, b, c, d) \
     size(macro, <<, a, b, c, d) \
     size(macro, >>, a, b, c, d)
-#define VC_LIST_ARITHMETICS(size, macro, a, b, c, d) \
+#define Vc_LIST_ARITHMETICS(size, macro, a, b, c, d) \
     size(macro, +, a, b, c, d) \
     size(macro, -, a, b, c, d) \
     size(macro, *, a, b, c, d) \
     size(macro, /, a, b, c, d) \
     size(macro, %, a, b, c, d)
 
-#define VC_APPLY_0(_list, macro)             _list(_VC_APPLY_IMPL_1, macro, 0, 0, 0, 0)
-#define VC_APPLY_1(_list, macro, a)          _list(_VC_APPLY_IMPL_2, macro, a, 0, 0, 0)
-#define VC_APPLY_2(_list, macro, a, b)       _list(_VC_APPLY_IMPL_3, macro, a, b, 0, 0)
-#define VC_APPLY_3(_list, macro, a, b, c)    _list(_VC_APPLY_IMPL_4, macro, a, b, c, 0)
-#define VC_APPLY_4(_list, macro, a, b, c, d) _list(_VC_APPLY_IMPL_5, macro, a, b, c, d)
+#define Vc_APPLY_0(_list, macro)             _list(_VC_APPLY_IMPL_1, macro, 0, 0, 0, 0)
+#define Vc_APPLY_1(_list, macro, a)          _list(_VC_APPLY_IMPL_2, macro, a, 0, 0, 0)
+#define Vc_APPLY_2(_list, macro, a, b)       _list(_VC_APPLY_IMPL_3, macro, a, b, 0, 0)
+#define Vc_APPLY_3(_list, macro, a, b, c)    _list(_VC_APPLY_IMPL_4, macro, a, b, c, 0)
+#define Vc_APPLY_4(_list, macro, a, b, c, d) _list(_VC_APPLY_IMPL_5, macro, a, b, c, d)
 
-#define VC_ALL_COMPARES(macro)     VC_APPLY_0(VC_LIST_COMPARES, macro)
-#define VC_ALL_LOGICAL(macro)      VC_APPLY_0(VC_LIST_LOGICAL, macro)
-#define VC_ALL_BINARY(macro)       VC_APPLY_0(VC_LIST_BINARY, macro)
-#define VC_ALL_SHIFTS(macro)       VC_APPLY_0(VC_LIST_SHIFTS, macro)
-#define VC_ALL_ARITHMETICS(macro)  VC_APPLY_0(VC_LIST_ARITHMETICS, macro)
-#define VC_ALL_FLOAT_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_FLOAT_VECTOR_TYPES, macro)
-#define VC_ALL_VECTOR_TYPES(macro) VC_APPLY_0(VC_LIST_VECTOR_TYPES, macro)
+#define Vc_ALL_COMPARES(macro)     Vc_APPLY_0(Vc_LIST_COMPARES, macro)
+#define Vc_ALL_LOGICAL(macro)      Vc_APPLY_0(Vc_LIST_LOGICAL, macro)
+#define Vc_ALL_BINARY(macro)       Vc_APPLY_0(Vc_LIST_BINARY, macro)
+#define Vc_ALL_SHIFTS(macro)       Vc_APPLY_0(Vc_LIST_SHIFTS, macro)
+#define Vc_ALL_ARITHMETICS(macro)  Vc_APPLY_0(Vc_LIST_ARITHMETICS, macro)
+#define Vc_ALL_FLOAT_VECTOR_TYPES(macro) Vc_APPLY_0(Vc_LIST_FLOAT_VECTOR_TYPES, macro)
+#define Vc_ALL_VECTOR_TYPES(macro) Vc_APPLY_0(Vc_LIST_VECTOR_TYPES, macro)
 
-#define VC_EXACT_TYPE(_test, _reference, _type) \
+#define Vc_EXACT_TYPE(_test, _reference, _type) \
     typename std::enable_if<std::is_same<_test, _reference>::value, _type>::type
 
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-#define VC_ALIGNED_PARAMETER(_Type) const _Type &
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#define Vc_ALIGNED_PARAMETER(_Type) const _Type &
 #else
-#define VC_ALIGNED_PARAMETER(_Type) const _Type
+#define Vc_ALIGNED_PARAMETER(_Type) const _Type
 #endif
 
 #ifndef Vc__make_unique
 #define Vc__make_unique(name) _VC_CAT(Vc__,name,_,__LINE__)
 #endif
 
-#if defined(VC_ICC) || defined(VC_CLANG)
-#define VC_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
-#elif defined(VC_GCC) && VC_GCC < 0x40500
-#define VC_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0x1000)->member) - reinterpret_cast<const char *>(0x1000))
+#if defined(Vc_ICC) || defined(Vc_CLANG)
+#define Vc_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
+#elif defined(Vc_GCC) && Vc_GCC < 0x40500
+#define Vc_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0x1000)->member) - reinterpret_cast<const char *>(0x1000))
 #else
-#define VC_OFFSETOF(Type, member) offsetof(Type, member)
+#define Vc_OFFSETOF(Type, member) offsetof(Type, member)
 #endif
 
 #if defined(Vc__NO_NOEXCEPT)
@@ -290,7 +290,7 @@ do {} while ( false )
 #define Vc_NOEXCEPT noexcept
 #endif
 
-#ifdef VC_NO_ALWAYS_INLINE
+#ifdef Vc_NO_ALWAYS_INLINE
 #undef Vc_ALWAYS_INLINE
 #undef Vc_ALWAYS_INLINE_L
 #undef Vc_ALWAYS_INLINE_R
@@ -305,4 +305,4 @@ do {} while ( false )
 #define Vc_INTRINSIC_R
 #endif
 
-#endif // VC_COMMON_MACROS_H
+#endif // VC_COMMON_MACROS_H_

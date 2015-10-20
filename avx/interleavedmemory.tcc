@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_INTERLEAVEDMEMORY_TCC
-#define VC_AVX_INTERLEAVEDMEMORY_TCC
+#ifndef VC_AVX_INTERLEAVEDMEMORY_TCC_
+#define VC_AVX_INTERLEAVEDMEMORY_TCC_
 
 #include "detail.h"
 #include "macros.h"
@@ -166,6 +166,6 @@ inline void InterleavedMemoryAccessBase<V, I, RO>::deinterleave(V &v0, V &v1, V 
 
 #include "undomacros.h"
 
-#endif // VC_AVX_INTERLEAVEDMEMORY_TCC
+#endif // VC_AVX_INTERLEAVEDMEMORY_TCC_
 
 // vim: foldmethod=marker

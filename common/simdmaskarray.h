@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SIMDMASKARRAY_H
-#define VC_COMMON_SIMDMASKARRAY_H
+#ifndef VC_COMMON_SIMDMASKARRAY_H_
+#define VC_COMMON_SIMDMASKARRAY_H_
 
 #include <type_traits>
 #include <array>
@@ -503,7 +503,7 @@ public:
 
     inline Vc_PURE SimdMaskArray shifted(int amount) const
     {
-        if (VC_IS_UNLIKELY(amount == 0)) {
+        if (Vc_IS_UNLIKELY(amount == 0)) {
             return *this;
         }
         SimdMaskArray r{};
@@ -555,4 +555,4 @@ constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::MemoryAlignment;
 // code. Not sure yet what is going on, but it looks a lot like a bug in clang.
 #include "simd_cast_caller.tcc"
 
-#endif // VC_COMMON_SIMDMASKARRAY_H
+#endif // VC_COMMON_SIMDMASKARRAY_H_

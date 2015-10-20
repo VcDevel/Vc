@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SCALAR_INTERLEAVEDMEMORY_TCC
-#define VC_SCALAR_INTERLEAVEDMEMORY_TCC
+#ifndef VC_SCALAR_INTERLEAVEDMEMORY_TCC_
+#define VC_SCALAR_INTERLEAVEDMEMORY_TCC_
 
 #include "macros.h"
 namespace Vc_VERSIONED_NAMESPACE
@@ -162,6 +162,6 @@ template<typename V, typename I, bool RO> Vc_ALWAYS_INLINE void InterleavedMemor
 }
 #include "undomacros.h"
 
-#endif // VC_SCALAR_INTERLEAVEDMEMORY_TCC
+#endif // VC_SCALAR_INTERLEAVEDMEMORY_TCC_
 
 // vim: foldmethod=marker

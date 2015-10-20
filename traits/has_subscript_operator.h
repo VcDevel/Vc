@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H
-#define VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H
+#ifndef VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H_
+#define VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H_
 
 namespace has_subscript_operator_impl
 {
@@ -46,4 +46,4 @@ static_assert(has_subscript_operator<int[]>::value, "");
 static_assert(has_subscript_operator<int[], int>::value, "");
 static_assert(!has_subscript_operator<int[], void *>::value, "");
 
-#endif // VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H
+#endif // VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H_

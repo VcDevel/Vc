@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_WHERE_H
-#define VC_COMMON_WHERE_H
+#ifndef VC_COMMON_WHERE_H_
+#define VC_COMMON_WHERE_H_
 
 #include "types.h"
 #include "macros.h"
@@ -241,4 +241,4 @@ template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereImpl::WhereMask<M> _if
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_WHERE_H
+#endif // VC_COMMON_WHERE_H_

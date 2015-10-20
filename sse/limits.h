@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_LIMITS_H
-#define VC_SSE_LIMITS_H
+#ifndef VC_SSE_LIMITS_H_
+#define VC_SSE_LIMITS_H_
 
 #include "intrinsics.h"
 #include "types.h"
@@ -87,4 +87,4 @@ template<> struct numeric_limits< ::Vc::SSE::int_v> : public numeric_limits<int>
 
 #include "undomacros.h"
 
-#endif // VC_SSE_LIMITS_H
+#endif // VC_SSE_LIMITS_H_

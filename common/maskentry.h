@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MASKENTRY_H
-#define VC_COMMON_MASKENTRY_H
+#ifndef VC_COMMON_MASKENTRY_H_
+#define VC_COMMON_MASKENTRY_H_
 
 #include "macros.h"
 
@@ -129,4 +129,4 @@ static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_MASKENTRY_H
+#endif // VC_COMMON_MASKENTRY_H_

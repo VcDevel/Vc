@@ -54,7 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   (this is the zlib license)
 */
 
-#ifdef VC_COMMON_MATH_H_INTERNAL
+#ifdef Vc_COMMON_MATH_H_INTERNAL
 
 enum LogarithmBase {
     BaseE, Base10, Base2
@@ -69,7 +69,7 @@ using Const = typename std::conditional<std::is_same<Abi, VectorAbi::Avx>::value
 template<LogarithmBase Base>
 struct LogImpl
 {
-    template<typename T, typename Abi> static Vc_ALWAYS_INLINE void log_series(Vector<T, Abi> &VC_RESTRICT x, typename Vector<T, Abi>::AsArg exponent) {
+    template<typename T, typename Abi> static Vc_ALWAYS_INLINE void log_series(Vector<T, Abi> &Vc_RESTRICT x, typename Vector<T, Abi>::AsArg exponent) {
         typedef Vector<T, Abi> V;
         typedef Detail::Const<T, Abi> C;
         // Taylor series around x = 2^exponent
@@ -85,7 +85,7 @@ struct LogImpl
         // P(0) is the smallest term and |x| < 1 ⇒ |xⁿ| > |xⁿ⁺¹|
         // The order of additions must go from smallest to largest terms
         const V x2 = x * x; // 0 → 4
-#ifdef VC_LOG_ILP
+#ifdef Vc_LOG_ILP
         V y2 = (C::P(6) * /*4 →  8*/ x2 + /* 8 → 11*/ C::P(7) * /*1 → 5*/ x) + /*11 → 14*/ C::P(8);
         V y0 = (C::P(0) * /*5 →  9*/ x2 + /* 9 → 12*/ C::P(1) * /*2 → 6*/ x) + /*12 → 15*/ C::P(2);
         V y1 = (C::P(3) * /*6 → 10*/ x2 + /*10 → 13*/ C::P(4) * /*3 → 7*/ x) + /*13 → 16*/ C::P(5);
@@ -93,7 +93,7 @@ struct LogImpl
         const V x6 = x3 * x3; // 11 → 15
         const V x9 = x6 * x3; // 15 → 19
         V y = (y0 * /*19 → 23*/ x9 + /*23 → 26*/ y1 * /*16 → 20*/ x6) + /*26 → 29*/ y2 * /*14 → 18*/ x3;
-#elif defined VC_LOG_ILP2
+#elif defined Vc_LOG_ILP2
         /*
          *                            name start done
          *  movaps %xmm0, %xmm1     ; x     0     1
@@ -172,7 +172,7 @@ struct LogImpl
     }
 
 template <typename Abi>
-static Vc_ALWAYS_INLINE void log_series(Vector<double, Abi> &VC_RESTRICT x,
+static Vc_ALWAYS_INLINE void log_series(Vector<double, Abi> &Vc_RESTRICT x,
                                         typename Vector<double, Abi>::AsArg exponent)
 {
     typedef Vector<double, Abi> V;
@@ -217,7 +217,7 @@ static Vc_ALWAYS_INLINE void log_series(Vector<double, Abi> &VC_RESTRICT x,
     }
 
 template <typename T, typename Abi, typename V = Vector<T, Abi>>
-static inline Vector<T, Abi> calc(VC_ALIGNED_PARAMETER(V) _x)
+static inline Vector<T, Abi> calc(Vc_ALIGNED_PARAMETER(V) _x)
 {
         typedef typename V::Mask M;
     typedef Detail::Const<T, Abi> C;
@@ -272,4 +272,4 @@ Vc_INTRINSIC Vc_CONST Vector<T, Abi> log2(const Vector<T, Abi> &x)
     return Detail::LogImpl<Base2>::calc<T, Abi>(x);
 }
 
-#endif // VC_COMMON_MATH_H_INTERNAL
+#endif // Vc_COMMON_MATH_H_INTERNAL

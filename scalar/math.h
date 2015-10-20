@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SCALAR_MATH_H
-#define VC_SCALAR_MATH_H
+#ifndef VC_SCALAR_MATH_H_
+#define VC_SCALAR_MATH_H_
 
 #include <cstdlib>
 #include "macros.h"
@@ -39,7 +39,7 @@ template <typename T> Vc_ALWAYS_INLINE Scalar::Vector<T> copysign(Scalar::Vector
     return a.copySign(b);
 }
 
-#define VC_MINMAX(V)                                                                     \
+#define Vc_MINMAX(V)                                                                     \
     static Vc_ALWAYS_INLINE Scalar::V min(const Scalar::V &x, const Scalar::V &y)        \
     {                                                                                    \
         return Scalar::V(std::min(x.data(), y.data()));                                  \
@@ -48,8 +48,8 @@ template <typename T> Vc_ALWAYS_INLINE Scalar::Vector<T> copysign(Scalar::Vector
     {                                                                                    \
         return Scalar::V(std::max(x.data(), y.data()));                                  \
     }
-VC_ALL_VECTOR_TYPES(VC_MINMAX)
-#undef VC_MINMAX
+Vc_ALL_VECTOR_TYPES(Vc_MINMAX)
+#undef Vc_MINMAX
 
 template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> sqrt (const Scalar::Vector<T> &x)
 {
@@ -72,7 +72,7 @@ Vc_ALWAYS_INLINE Vc_PURE Scalar::Vector<T> abs(Scalar::Vector<T> x)
 
 template<typename T> static Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<T> &x, Scalar::Vector<T> *sin, Scalar::Vector<T> *cos)
 {
-#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincosf)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
+#if (defined(Vc_CLANG) && Vc_HAS_BUILTIN(__builtin_sincosf)) || (!defined(Vc_CLANG) && defined(__GNUC__) && !defined(_WIN32))
     __builtin_sincosf(x.data(), &sin->data(), &cos->data());
 #elif defined(_WIN32) || defined(__APPLE__)
     sin->data() = std::sin(x.data());
@@ -84,7 +84,7 @@ template<typename T> static Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<T>
 
 template<> Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<double> &x, Scalar::Vector<double> *sin, Scalar::Vector<double> *cos)
 {
-#if (defined(VC_CLANG) && VC_HAS_BUILTIN(__builtin_sincos)) || (!defined(VC_CLANG) && defined(__GNUC__) && !defined(_WIN32))
+#if (defined(Vc_CLANG) && Vc_HAS_BUILTIN(__builtin_sincos)) || (!defined(Vc_CLANG) && defined(__GNUC__) && !defined(_WIN32))
     __builtin_sincos(x.data(), &sin->data(), &cos->data());
 #elif defined(_WIN32) || defined(__APPLE__)
     sin->data() = std::sin(x.data());
@@ -238,4 +238,4 @@ Vc_ALWAYS_INLINE Scalar::Vector<double> ldexp(Scalar::Vector<double> x, const Si
 
 #include "undomacros.h"
 
-#endif // VC_SCALAR_MATH_H
+#endif // VC_SCALAR_MATH_H_

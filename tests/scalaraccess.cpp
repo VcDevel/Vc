@@ -49,7 +49,7 @@ template<typename V> void reads()
 }
 
 template<typename V, size_t Index>
-inline void readsConstantIndexTest(VC_ALIGNED_PARAMETER(V) a, VC_ALIGNED_PARAMETER(V) b)
+inline void readsConstantIndexTest(Vc_ALIGNED_PARAMETER(V) a, Vc_ALIGNED_PARAMETER(V) b)
 {
     typedef typename V::EntryType T;
     {
@@ -66,7 +66,7 @@ inline void readsConstantIndexTest(VC_ALIGNED_PARAMETER(V) a, VC_ALIGNED_PARAMET
 template<typename V, size_t Index>
 struct ReadsConstantIndex
 {
-    ReadsConstantIndex(VC_ALIGNED_PARAMETER(V) a, VC_ALIGNED_PARAMETER(V) b)
+    ReadsConstantIndex(Vc_ALIGNED_PARAMETER(V) a, Vc_ALIGNED_PARAMETER(V) b)
     {
         readsConstantIndexTest<V, Index>(a, b);
         ReadsConstantIndex<V, Index - 1>(a, b);
@@ -77,7 +77,7 @@ struct ReadsConstantIndex
 template<typename V>
 struct ReadsConstantIndex<V, 0>
 {
-    ReadsConstantIndex(VC_ALIGNED_PARAMETER(V) a, VC_ALIGNED_PARAMETER(V) b)
+    ReadsConstantIndex(Vc_ALIGNED_PARAMETER(V) a, Vc_ALIGNED_PARAMETER(V) b)
     {
         readsConstantIndexTest<V, 0>(a, b);
     }

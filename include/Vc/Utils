@@ -17,12 +17,12 @@
 
 */
 
-#ifndef VC_UTILS
-#define VC_UTILS
+#ifndef VC_UTILS_
+#define VC_UTILS_
 
 #include "global.h"
 
-#ifdef VC_IMPL_Scalar
+#ifdef Vc_IMPL_Scalar
 # define VECTOR_NAMESPACE Scalar
 #else
 # define VECTOR_NAMESPACE SSE
@@ -31,4 +31,4 @@
 #include "common/deinterleave.h"
 #include "common/makeContainer.h"
 
-#endif // VC_UTILS
+#endif // VC_UTILS_

@@ -17,8 +17,8 @@
 
 */
 
-#ifndef VECIO_H
-#define VECIO_H
+#ifndef VC_IO_
+#define VC_IO_
 
 #include "common/types.h"
 #include "common/simdarrayfwd.h"
@@ -26,10 +26,10 @@
 #include <iostream>
 
 #if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
-#define VC_HACK_OSTREAM_FOR_TTY 1
+#define Vc_HACK_OSTREAM_FOR_TTY 1
 #endif
 
-#ifdef VC_HACK_OSTREAM_FOR_TTY
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
 #include <unistd.h>
 #include <ext/stdio_sync_filebuf.h>
 #endif
@@ -38,7 +38,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace
 {
-#ifdef VC_HACK_OSTREAM_FOR_TTY
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
 class hacked_ostream : public std::ostream
 {
 public:
@@ -177,6 +177,6 @@ inline std::ostream &operator<<(std::ostream &out, const SimdMaskArray<T, N> &m)
 }
 }
 
-#endif // VECIO_H
+#endif // VC_IO_
 
 // vim: ft=cpp

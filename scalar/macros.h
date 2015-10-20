@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../common/macros.h"
 
-#ifndef VC_SCALAR_MACROS_H
-#define VC_SCALAR_MACROS_H
+#ifndef VC_SCALAR_MACROS_H_
+#define VC_SCALAR_MACROS_H_
 
-#endif // VC_SCALAR_MACROS_H
+#endif // VC_SCALAR_MACROS_H_

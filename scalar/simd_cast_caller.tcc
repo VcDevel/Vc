@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SCALAR_SIMD_CAST_CALLER_TCC_
-#define VC_SCALAR_SIMD_CAST_CALLER_TCC_
+#ifndef Vc_SCALAR_SIMD_CAST_CALLER_TCC_
+#define Vc_SCALAR_SIMD_CAST_CALLER_TCC_
 
 #include "macros.h"
 
@@ -44,6 +44,6 @@ Vc_INTRINSIC Mask<T, VectorAbi::Scalar>::Mask(
 
 #include "undomacros.h"
 
-#endif  // VC_SCALAR_SIMD_CAST_CALLER_TCC_
+#endif  // Vc_SCALAR_SIMD_CAST_CALLER_TCC_
 
 // vim: foldmethod=marker

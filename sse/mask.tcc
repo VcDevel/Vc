@@ -41,7 +41,7 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<2>(__m128i k)
 
 template<> Vc_INTRINSIC Vc_CONST int mask_count<4>(__m128i k)
 {
-#ifdef VC_IMPL_POPCNT
+#ifdef Vc_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_ps(_mm_castsi128_ps(k)));
 #else
     auto x = _mm_srli_epi32(k, 31);
@@ -53,7 +53,7 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<4>(__m128i k)
 
 template<> Vc_INTRINSIC Vc_CONST int mask_count<8>(__m128i k)
 {
-#ifdef VC_IMPL_POPCNT
+#ifdef Vc_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_epi8(k)) / 2;
 #else
     auto x = _mm_srli_epi16(k, 15);

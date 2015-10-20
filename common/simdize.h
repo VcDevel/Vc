@@ -352,44 +352,44 @@ template <typename R0, typename R1, typename R2> struct SubstitutedBase<3, R0, R
     using SubstitutedWithValues = C<R0, R1, R2, Values...>;
 };
 template <typename... Replaced> struct SubstitutedBase<4, Replaced...> {
-#ifndef VC_ICC
+#ifndef Vc_ICC
     template <typename ValueT,
               template <typename, typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // Vc_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<5, Replaced...> {
-#ifndef VC_ICC
+#ifndef Vc_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // Vc_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<6, Replaced...> {
-#ifndef VC_ICC
+#ifndef Vc_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // Vc_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<7, Replaced...> {
-#ifndef VC_ICC
+#ifndef Vc_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // Vc_ICC
 };
 template <typename... Replaced> struct SubstitutedBase<8, Replaced...> {
-#ifndef VC_ICC
+#ifndef Vc_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // VC_ICC
+#endif // Vc_ICC
 };
 
 /**\internal
@@ -463,7 +463,7 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
  * templates with non-type parameters. This is impossible to express with variadic
  * templates and therefore requires a lot of code duplication.
  */
-#ifdef VC_ICC
+#ifdef Vc_ICC
 // ICC barfs on packs of values
 #define Vc_DEFINE_NONTYPE_REPLACETYPES__(ValueType__)                                    \
     template <template <typename, ValueType__...> class C, typename T,                   \
@@ -626,7 +626,7 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
             C<T0, T1, T2, Value0, Values...>,                                            \
             Adapter<C<T0, T1, T2, Value0, Values...>, Substituted, NN>> type;            \
     }
-#endif  // VC_ICC
+#endif  // Vc_ICC
 Vc_DEFINE_NONTYPE_REPLACETYPES__(bool);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(wchar_t);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(char);
@@ -642,7 +642,7 @@ Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long long);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long long);
 #undef Vc_DEFINE_NONTYPE_REPLACETYPES__
 
-#ifdef VC_ICC
+#ifdef Vc_ICC
 // FIXME: find a proper workaround implementation for ICC
 template <typename Class, typename... Args>
 constexpr bool is_constructible_with_single_brace()
@@ -1385,7 +1385,7 @@ public:
     {
         T it(scalar_it);
         for (size_t i = 1; i < Size; ++i) {
-            VC_ASSERT((++it != rhs.scalar_it));
+            Vc_ASSERT((++it != rhs.scalar_it));
         }
         return scalar_it == rhs.scalar_it;
     }
@@ -1401,7 +1401,7 @@ public:
     {
         T it(scalar_it);
         for (size_t i = 1; i < Size; ++i) {
-            VC_ASSERT((++it != rhs.scalar_it));
+            Vc_ASSERT((++it != rhs.scalar_it));
         }
         return scalar_it != rhs.scalar_it;
     }
@@ -1524,7 +1524,7 @@ public:
     difference_type operator-(const Iterator &rhs) const
     {
         constexpr difference_type n = Size;
-        VC_ASSERT((scalar_it - rhs.scalar_it) % n ==
+        Vc_ASSERT((scalar_it - rhs.scalar_it) % n ==
                   0);  // if this fails the two iterators are not a multiple of the vector
                        // width apart. The distance would be fractional and that doesn't
                        // make too much sense for iteration. Therefore, it is a

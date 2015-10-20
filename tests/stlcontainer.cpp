@@ -92,7 +92,7 @@ TEST_TYPES(V, listInitialization, (ALL_VECTORS))
     //listInitialization<V, std::list<V>>();
 }
 
-#ifdef VC_CXX14
+#ifdef Vc_CXX14
 TEST_TYPES(V, simdForEach, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;

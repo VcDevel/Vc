@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H
-#define VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H
+#ifndef VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H_
+#define VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H_
 
 #include <initializer_list>
 #include <memory>
@@ -71,4 +71,4 @@ template <typename T, typename A> struct has_contiguous_storage_impl<std::vector
 }  // namespace Traits
 }  // namespace Vc
 
-#endif // VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H
+#endif // VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H_

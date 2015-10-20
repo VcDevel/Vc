@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_MATH_H
-#define VC_AVX_MATH_H
+#ifndef VC_AVX_MATH_H_
+#define VC_AVX_MATH_H_
 
 #include "const.h"
 #include "limits.h"
@@ -43,7 +43,7 @@ Vc_INTRINSIC Vc_CONST AVX2::float_v abs(AVX2::float_v x)
 {
     return Detail::and_(x.data(), AVX::setabsmask_ps());
 }
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 Vc_INTRINSIC Vc_CONST AVX2::int_v abs(AVX2::int_v x)
 {
     return _mm256_abs_epi32(x.data());
@@ -89,7 +89,7 @@ Vc_INTRINSIC AVX2::float_v::IndexType extractExponent(__m256 e)
 {
     SimdArray<uint, float_v::size()> exponentPart;
     const auto ee = AVX::avx_cast<__m256i>(e);
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
     exponentPart = AVX2::uint_v(ee);
 #else
     internal_data(internal_data0(exponentPart)) = AVX::lo128(ee);
@@ -162,4 +162,4 @@ static Vc_ALWAYS_INLINE AVX2::double_v ceil(AVX2::double_v::AsArg v)
 
 #include "undomacros.h"
 
-#endif // VC_AVX_MATH_H
+#endif // VC_AVX_MATH_H_

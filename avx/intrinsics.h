@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_INTRINSICS_H
-#define VC_AVX_INTRINSICS_H
+#ifndef VC_AVX_INTRINSICS_H_
+#define VC_AVX_INTRINSICS_H_
 
 #include "../common/windows_fix_intrin.h"
 
@@ -39,14 +39,14 @@ extern "C" {
 // AVX
 #include <immintrin.h>
 
-#if (defined(VC_IMPL_XOP) || defined(VC_IMPL_FMA4)) && !defined(VC_MSVC)
+#if (defined(Vc_IMPL_XOP) || defined(Vc_IMPL_FMA4)) && !defined(Vc_MSVC)
 #include <x86intrin.h>
 #endif
 }
 
 #include "../common/fix_clang_emmintrin.h"
 
-#if defined(VC_CLANG) && VC_CLANG < 0x30100
+#if defined(Vc_CLANG) && Vc_CLANG < 0x30100
 // _mm_permute_ps is broken: http://llvm.org/bugs/show_bug.cgi?id=12401
 #undef _mm_permute_ps
 #define _mm_permute_ps(A, C) __extension__ ({ \
@@ -61,11 +61,11 @@ extern "C" {
 #include "macros.h"
 #include <cstdlib>
 
-#if defined(VC_CLANG) || defined(VC_MSVC) || (defined(VC_GCC) && !defined(__OPTIMIZE__))
-#define VC_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
+#if defined(Vc_CLANG) || defined(Vc_MSVC) || (defined(Vc_GCC) && !defined(__OPTIMIZE__))
+#define Vc_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
 #endif
 
-#if defined(VC_CLANG) && VC_CLANG <= 0x30000
+#if defined(Vc_CLANG) && Vc_CLANG <= 0x30000
 // _mm_alignr_epi8 doesn't specify its return type, thus breaking overload resolution
 #undef _mm_alignr_epi8
 #define _mm_alignr_epi8(a, b, n) ((m128i)__builtin_ia32_palignr128((a), (b), (n)))
@@ -94,7 +94,7 @@ namespace AvxIntrinsics
     typedef const m256d param256d;
     typedef const m256i param256i;
 
-#ifdef VC_GCC
+#ifdef Vc_GCC
     // Redefine the mul/add/sub intrinsics to use GCC-specific operators instead of builtin
     // functions. This way the fp-contraction optimization step kicks in and creates FMAs! :)
     static Vc_INTRINSIC Vc_CONST m256d _mm256_mul_pd(m256d a, m256d b) { return static_cast<m256d>(static_cast<__v4df>(a) * static_cast<__v4df>(b)); }
@@ -170,7 +170,7 @@ namespace AvxIntrinsics
     template <int offset> Vc_INTRINSIC __m256  insert128(__m256  a, __m128  b) { return _mm256_insertf128_ps(a, b, offset); }
     template <int offset> Vc_INTRINSIC __m256d insert128(__m256d a, __m128d b) { return _mm256_insertf128_pd(a, b, offset); }
     template <int offset> Vc_INTRINSIC __m256i insert128(__m256i a, __m128i b) {
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
         return _mm256_inserti128_si256(a, b, offset);
 #else
         return _mm256_insertf128_si256(a, b, offset);
@@ -180,7 +180,7 @@ namespace AvxIntrinsics
     template <int offset> Vc_INTRINSIC __m128  extract128(__m256  a) { return _mm256_extractf128_ps(a, offset); }
     template <int offset> Vc_INTRINSIC __m128d extract128(__m256d a) { return _mm256_extractf128_pd(a, offset); }
     template <int offset> Vc_INTRINSIC __m128i extract128(__m256i a) {
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
         return _mm256_extracti128_si256(a, offset);
 #else
         return _mm256_extractf128_si256(a, offset);
@@ -210,7 +210,7 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC m256  Vc_CONST cmpord_ps  (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_ORD_Q); }
     static Vc_INTRINSIC m256  Vc_CONST cmpunord_ps(__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
 
-#if defined(VC_IMPL_XOP) && !defined(VC_CLANG)
+#if defined(Vc_IMPL_XOP) && !defined(Vc_CLANG)
     static Vc_INTRINSIC m128i cmplt_epu16(__m128i a, __m128i b) {
         return _mm_comlt_epu16(a, b);
     }
@@ -226,7 +226,7 @@ namespace AvxIntrinsics
     }
 #endif
 
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
     template <int shift> Vc_INTRINSIC Vc_CONST m256i alignr(__m256i s1, __m256i s2)
     {
         return _mm256_alignr_epi8(s1, s2, shift);
@@ -241,7 +241,7 @@ namespace AvxIntrinsics
     }
 #endif
 
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 #define AVX_TO_SSE_2_NEW(name)                                                           \
     Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m256i b0)                         \
     {                                                                                    \
@@ -431,7 +431,7 @@ namespace AvxIntrinsics
     AVX_TO_SSE_1_128(cvtepu16_epi32, 8)
     AVX_TO_SSE_1_128(cvtepu16_epi64, 4)
     AVX_TO_SSE_1_128(cvtepu32_epi64, 8)
-#if !defined(VC_CLANG) || VC_CLANG > 0x30100
+#if !defined(Vc_CLANG) || Vc_CLANG > 0x30100
     // clang is missing _mm_minpos_epu16 from smmintrin.h
     // http://llvm.org/bugs/show_bug.cgi?id=12399
     //AVX_TO_SSE_1(minpos_epu16)
@@ -439,7 +439,7 @@ namespace AvxIntrinsics
 
     AVX_TO_SSE_2_NEW(packus_epi32)
 
-#ifndef VC_IMPL_AVX2
+#ifndef Vc_IMPL_AVX2
 
 /////////////////////////////////////////////////////////////////////////
 // implementation of the intrinsics missing in AVX
@@ -493,7 +493,7 @@ namespace AvxIntrinsics
     // mpsadbw_epu8 (__m128i __X, __m128i __Y, const int __M)
     // stream_load_si128 (__m128i *__X)
 
-#if defined(VC_IMPL_FMA4) && defined(VC_CLANG) && VC_CLANG < 0x30300
+#if defined(Vc_IMPL_FMA4) && defined(Vc_CLANG) && Vc_CLANG < 0x30300
         // clang miscompiles _mm256_macc_ps: http://llvm.org/bugs/show_bug.cgi?id=15040
         static Vc_INTRINSIC __m256 my256_macc_ps(__m256 a, __m256 b, __m256 c) {
             __m256 r;
@@ -518,7 +518,7 @@ namespace AvxIntrinsics
 #define _mm256_macc_pd(a, b, c) Vc::AVX::my256_macc_pd(a, b, c)
 #endif
 
-#else // VC_IMPL_AVX2
+#else // Vc_IMPL_AVX2
 
 static Vc_INTRINSIC Vc_CONST m256i xor_si256(__m256i x, __m256i y) { return _mm256_xor_si256(x, y); }
 static Vc_INTRINSIC Vc_CONST m256i or_si256(__m256i x, __m256i y) { return _mm256_or_si256(x, y); }
@@ -546,7 +546,7 @@ Vc_INTRINSIC Vc_CONST int movemask_epi8(__m256i a0)
     return _mm256_movemask_epi8(a0);
 }
 
-#endif // VC_IMPL_AVX2
+#endif // Vc_IMPL_AVX2
 
 /////////////////////////////////////////////////////////////////////////
 // implementation of intrinsics missing in AVX and AVX2
@@ -571,7 +571,7 @@ static Vc_INTRINSIC m256i cmplt_epu8(__m256i a, __m256i b) {
 static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
     return cmpgt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
 }
-#if defined(VC_IMPL_XOP) && (!defined(VC_CLANG) || VC_CLANG >= 0x30400)
+#if defined(Vc_IMPL_XOP) && (!defined(Vc_CLANG) || Vc_CLANG >= 0x30400)
     AVX_TO_SSE_2_NEW(comlt_epu32)
     AVX_TO_SSE_2_NEW(comgt_epu32)
     AVX_TO_SSE_2_NEW(comlt_epu16)
@@ -604,23 +604,23 @@ static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
 #endif
 
 static Vc_INTRINSIC void _mm256_maskstore(float *mem, const __m256 mask, const __m256 v) {
-#ifndef VC_MM256_MASKSTORE_WRONG_MASK_TYPE
+#ifndef Vc_MM256_MASKSTORE_WRONG_MASK_TYPE
     _mm256_maskstore_ps(mem, _mm256_castps_si256(mask), v);
 #else
     _mm256_maskstore_ps(mem, mask, v);
 #endif
 }
 static Vc_INTRINSIC void _mm256_maskstore(double *mem, const __m256d mask, const __m256d v) {
-#ifndef VC_MM256_MASKSTORE_WRONG_MASK_TYPE
+#ifndef Vc_MM256_MASKSTORE_WRONG_MASK_TYPE
     _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask), v);
 #else
     _mm256_maskstore_pd(mem, mask, v);
 #endif
 }
 static Vc_INTRINSIC void _mm256_maskstore(int *mem, const __m256i mask, const __m256i v) {
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
     _mm256_maskstore_epi32(mem, mask, v);
-#elif !defined(VC_MM256_MASKSTORE_WRONG_MASK_TYPE)
+#elif !defined(Vc_MM256_MASKSTORE_WRONG_MASK_TYPE)
     _mm256_maskstore_ps(reinterpret_cast<float *>(mem), mask, _mm256_castsi256_ps(v));
 #else
     _mm256_maskstore_ps(reinterpret_cast<float *>(mem), _mm256_castsi256_ps(mask), _mm256_castsi256_ps(v));
@@ -770,4 +770,4 @@ namespace AVX
 
 #include "undomacros.h"
 
-#endif // VC_AVX_INTRINSICS_H
+#endif // VC_AVX_INTRINSICS_H_

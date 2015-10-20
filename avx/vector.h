@@ -62,7 +62,7 @@ template <typename T, typename Abi> struct VectorTraits
 };
 }  // namespace Detail
 
-#define VC_CURRENT_CLASS_NAME Vector
+#define Vc_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector<T, VectorAbi::Avx>
 {
 public:
@@ -83,7 +83,7 @@ public:
     using mask_type = typename traits_type::mask_type;
     using Mask = mask_type;
     using MaskType = mask_type;
-    using MaskArg VC_DEPRECATED("Use MaskArgument instead.") = typename Mask::AsArg;
+    using MaskArg Vc_DEPRECATED("Use MaskArgument instead.") = typename Mask::AsArg;
     using MaskArgument = typename Mask::AsArg;
 
     FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
@@ -100,7 +100,7 @@ public:
         enum Constants {
             HasVectorDivision = AVX::HasVectorDivisionHelper<T>::Value
         };
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
         typedef typename std::conditional<
             (Size >= 8), SimdArray<int, Size, AVX2::int_v, 8>,
             typename std::conditional<(Size >= 4), SimdArray<int, Size, SSE::int_v, 4>,
@@ -111,7 +111,7 @@ public:
                                           SimdArray<int, Size, SSE::int_v, 4>,
                                           SimdArray<int, Size, Scalar::int_v, 1>>::type IndexType;
 #endif
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
         typedef const Vector<T, abi> &AsArg;
         typedef const VectorType &VectorTypeArg;
 #else
@@ -130,7 +130,7 @@ public:
 
         // cast any m256/m128 to VectorType
         template <typename V>
-        static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) v)
+        static Vc_INTRINSIC VectorType _cast(Vc_ALIGNED_PARAMETER(V) v)
         {
             return AVX::avx_cast<VectorType>(v);
         }
@@ -153,7 +153,7 @@ public:
 
         // implict conversion from compatible Vector<U, abi>
         template <typename U>
-        Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(V<U>) x,
+        Vc_INTRINSIC Vector(Vc_ALIGNED_PARAMETER(V<U>) x,
                             typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
                                                     void *>::type = nullptr)
             : d(AVX::convert<U, T>(x.data()))
@@ -163,7 +163,7 @@ public:
         // static_cast from the remaining Vector<U, abi>
         template <typename U>
         Vc_INTRINSIC explicit Vector(
-            VC_ALIGNED_PARAMETER(V<U>) x,
+            Vc_ALIGNED_PARAMETER(V<U>) x,
             typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
             : d(Detail::zeroExtendIfNeeded(AVX::convert<U, T>(x.data())))
@@ -234,7 +234,7 @@ public:
         }
         Vc_ALWAYS_INLINE Vector operator~() const
         {
-#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+#ifndef Vc_ENABLE_FLOAT_BIT_OPERATORS
             static_assert(std::is_integral<T>::value,
                           "bit-complement can only be used with Vectors of integral type");
 #endif
@@ -259,8 +259,8 @@ public:
         OP(*, mul)
 #undef OP
         inline Vector &operator/=(EntryType x);
-        inline Vector &operator/=(VC_ALIGNED_PARAMETER(Vector) x);
-        inline Vc_PURE_L Vector operator/ (VC_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
+        inline Vector &operator/=(Vc_ALIGNED_PARAMETER(Vector) x);
+        inline Vc_PURE_L Vector operator/ (Vc_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
         // bitwise ops
 #define OP_VEC(op)                                                                                 \
@@ -274,8 +274,8 @@ public:
         static_assert(std::is_integral<T>::value,                                                  \
                       "bitwise-operators can only be used with Vectors of integral type");         \
     }
-    VC_ALL_BINARY(OP_VEC)
-    VC_ALL_SHIFTS(OP_VEC)
+    Vc_ALL_BINARY(OP_VEC)
+    Vc_ALL_SHIFTS(OP_VEC)
 #undef OP_VEC
 
         Vc_ALWAYS_INLINE_L Vector &operator>>=(int x) Vc_ALWAYS_INLINE_R;
@@ -413,7 +413,7 @@ public:
         Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
-#undef VC_CURRENT_CLASS_NAME
+#undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Avx>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Avx>::MemoryAlignment;
 
@@ -430,7 +430,7 @@ static_assert(Traits::is_simd_mask  <AVX2::  uint_m>::value, "is_simd_mask  <  u
 static_assert(Traits::is_simd_mask  <AVX2:: short_m>::value, "is_simd_mask  < short_m>::value");
 static_assert(Traits::is_simd_mask  <AVX2::ushort_m>::value, "is_simd_mask  <ushort_m>::value");
 
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 static Vc_ALWAYS_INLINE AVX2::int_v    min(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm256_min_epi32(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE AVX2::uint_v   min(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm256_min_epu32(x.data(), y.data()); }
 static Vc_ALWAYS_INLINE AVX2::short_v  min(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm256_min_epi16(x.data(), y.data()); }
@@ -454,7 +454,7 @@ static Vc_ALWAYS_INLINE AVX2::double_v max(const AVX2::double_v &x, const AVX2::
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isinf(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isInfinite(x.data()); }
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isnan(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isNaN(x.data()); }
 
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 static_assert(!std::is_convertible<float *, AVX2::short_v>::value, "A float* should never implicitly convert to short_v. Something is broken.");
 static_assert(!std::is_convertible<int *  , AVX2::short_v>::value, "An int* should never implicitly convert to short_v. Something is broken.");
 static_assert(!std::is_convertible<short *, AVX2::short_v>::value, "A short* should never implicitly convert to short_v. Something is broken.");

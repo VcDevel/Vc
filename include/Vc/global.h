@@ -26,55 +26,55 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_GLOBAL_H
-#define VC_GLOBAL_H
+#ifndef VC_GLOBAL_H_
+#define VC_GLOBAL_H_
 
 #ifndef DOXYGEN
 
 // Compiler defines
 #ifdef __INTEL_COMPILER
-#define VC_ICC __INTEL_COMPILER_BUILD_DATE
+#define Vc_ICC __INTEL_COMPILER_BUILD_DATE
 #elif defined(__OPENCC__)
-#define VC_OPEN64 1
+#define Vc_OPEN64 1
 #elif defined(__clang__)
-#define VC_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
 #elif defined(__GNUC__)
-#define VC_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
+#define Vc_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
 #elif defined(_MSC_VER)
-#define VC_MSVC _MSC_FULL_VER
+#define Vc_MSVC _MSC_FULL_VER
 #else
-#define VC_UNSUPPORTED_COMPILER 1
+#define Vc_UNSUPPORTED_COMPILER 1
 #endif
 
 #if __cplusplus < 201103
-#if (defined VC_MSVC && VC_MSVC >= 160000000) || (defined VC_GCC && VC_GCC >= 0x40600) || (defined VC_ICC && VC_ICC >= 20120731)
+#if (defined Vc_MSVC && Vc_MSVC >= 160000000) || (defined Vc_GCC && Vc_GCC >= 0x40600) || (defined Vc_ICC && Vc_ICC >= 20120731)
 // these compilers still work, even if they don't define __cplusplus as expected
 #else
 #error "Vc requires support for C++11."
 #endif
 #elif __cplusplus >= 201402L
-# define VC_CXX14 1
+# define Vc_CXX14 1
 #endif
 
 // Features/Quirks defines
-#if defined VC_MSVC && defined _WIN32
+#if defined Vc_MSVC && defined _WIN32
 // the Win32 ABI can't handle function parameters with alignment >= 16
-#define VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
+#define Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
 #endif
-#if defined(__GNUC__) && !defined(VC_NO_INLINE_ASM)
-#define VC_GNU_ASM 1
+#if defined(__GNUC__) && !defined(Vc_NO_INLINE_ASM)
+#define Vc_GNU_ASM 1
 #endif
-#if defined(VC_GCC) && (VC_GCC <= 0x40405 || (VC_GCC >= 0x40500 && VC_GCC <= 0x40502)) && !(VC_GCC == 0x40502 && defined(__GNUC_UBUNTU_VERSION__) && __GNUC_UBUNTU_VERSION__ == 0xb0408)
+#if defined(Vc_GCC) && (Vc_GCC <= 0x40405 || (Vc_GCC >= 0x40500 && Vc_GCC <= 0x40502)) && !(Vc_GCC == 0x40502 && defined(__GNUC_UBUNTU_VERSION__) && __GNUC_UBUNTU_VERSION__ == 0xb0408)
 // GCC 4.6.0 / 4.5.3 / 4.4.6 switched to the interface as defined by ICC
 // (Ubuntu 11.04 ships a GCC 4.5.2 with the new interface)
-#define VC_MM256_MASKSTORE_WRONG_MASK_TYPE 1
+#define Vc_MM256_MASKSTORE_WRONG_MASK_TYPE 1
 #endif
-#if defined(VC_GCC) && VC_GCC >= 0x40300
-#define VC_HAVE_ATTRIBUTE_ERROR 1
-#define VC_HAVE_ATTRIBUTE_WARNING 1
+#if defined(Vc_GCC) && Vc_GCC >= 0x40300
+#define Vc_HAVE_ATTRIBUTE_ERROR 1
+#define Vc_HAVE_ATTRIBUTE_WARNING 1
 #endif
 
-#if defined(VC_MSVC) && VC_MSVC < 180000000
+#if defined(Vc_MSVC) && Vc_MSVC < 180000000
 // MSVC doesn't know constexpr and noexcept
 // first include the check that forbids macroizing keywords >:)
 #include <xkeycheck.h>
@@ -85,22 +85,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 
-#ifdef VC_GCC
-#  if VC_GCC >= 0x40700 // && VC_GCC < 0x408000)
+#ifdef Vc_GCC
+#  if Vc_GCC >= 0x40700 // && Vc_GCC < 0x408000)
 //     ::max_align_t was introduced with GCC 4.7. std::max_align_t took a bit longer.
-#    define VC_HAVE_MAX_ALIGN_T 1
+#    define Vc_HAVE_MAX_ALIGN_T 1
 #  endif
-#elif !defined(VC_CLANG) && !defined(VC_ICC)
+#elif !defined(Vc_CLANG) && !defined(Vc_ICC)
 //   Clang/ICC don't provide max_align_t at all
-#  define VC_HAVE_STD_MAX_ALIGN_T 1
+#  define Vc_HAVE_STD_MAX_ALIGN_T 1
 #endif
 
-#if defined(VC_GCC) || defined(VC_CLANG)
-#define VC_USE_BUILTIN_VECTOR_TYPES 1
+#if defined(Vc_GCC) || defined(Vc_CLANG)
+#define Vc_USE_BUILTIN_VECTOR_TYPES 1
 #endif
 
 /* Define the following strings to a unique integer, which is the only type the preprocessor can
- * compare. This allows to use -DVC_IMPL=SSE3. The preprocessor will then consider VC_IMPL and SSE3
+ * compare. This allows to use -DVC_IMPL=SSE3. The preprocessor will then consider Vc_IMPL and SSE3
  * to be equal. Of course, it is important to undefine the strings later on!
  */
 #define Scalar 0x00100000
@@ -125,7 +125,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define IMPL_MASK 0xFFF00000
 #define EXT_MASK  0x000FFFFF
 
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
 # ifdef _M_IX86_FP
 #  if _M_IX86_FP >= 1
 #   ifndef __SSE__
@@ -148,189 +148,189 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # endif
 #endif
 
-#if defined VC_ICC && !defined __POPCNT__
+#if defined Vc_ICC && !defined __POPCNT__
 # if defined __SSE4_2__ || defined __SSE4A__
 #  define __POPCNT__ 1
 # endif
 #endif
 
-#ifndef VC_IMPL
+#ifndef Vc_IMPL
 
 #  if defined(__MIC__)
-#    define VC_IMPL_MIC 1
+#    define Vc_IMPL_MIC 1
 #  elif defined(__AVX2__)
-#    define VC_IMPL_AVX2 1
-#    define VC_IMPL_AVX 1
+#    define Vc_IMPL_AVX2 1
+#    define Vc_IMPL_AVX 1
 #  elif defined(__AVX__)
-#    define VC_IMPL_AVX 1
+#    define Vc_IMPL_AVX 1
 #  else
 #    if defined(__SSE4_2__)
-#      define VC_IMPL_SSE 1
-#      define VC_IMPL_SSE4_2 1
+#      define Vc_IMPL_SSE 1
+#      define Vc_IMPL_SSE4_2 1
 #    endif
 #    if defined(__SSE4_1__)
-#      define VC_IMPL_SSE 1
-#      define VC_IMPL_SSE4_1 1
+#      define Vc_IMPL_SSE 1
+#      define Vc_IMPL_SSE4_1 1
 #    endif
 #    if defined(__SSE3__)
-#      define VC_IMPL_SSE 1
-#      define VC_IMPL_SSE3 1
+#      define Vc_IMPL_SSE 1
+#      define Vc_IMPL_SSE3 1
 #    endif
 #    if defined(__SSSE3__)
-#      define VC_IMPL_SSE 1
-#      define VC_IMPL_SSSE3 1
+#      define Vc_IMPL_SSE 1
+#      define Vc_IMPL_SSSE3 1
 #    endif
 #    if defined(__SSE2__)
-#      define VC_IMPL_SSE 1
-#      define VC_IMPL_SSE2 1
+#      define Vc_IMPL_SSE 1
+#      define Vc_IMPL_SSE2 1
 #    endif
 
-#    if defined(VC_IMPL_SSE)
+#    if defined(Vc_IMPL_SSE)
        // nothing
 #    else
-#      define VC_IMPL_Scalar 1
+#      define Vc_IMPL_Scalar 1
 #    endif
 #  endif
-#  if !defined(VC_IMPL_Scalar)
+#  if !defined(Vc_IMPL_Scalar)
 #    ifdef __FMA4__
-#      define VC_IMPL_FMA4 1
+#      define Vc_IMPL_FMA4 1
 #    endif
 #    ifdef __XOP__
-#      define VC_IMPL_XOP 1
+#      define Vc_IMPL_XOP 1
 #    endif
 #    ifdef __F16C__
-#      define VC_IMPL_F16C 1
+#      define Vc_IMPL_F16C 1
 #    endif
 #    ifdef __POPCNT__
-#      define VC_IMPL_POPCNT 1
+#      define Vc_IMPL_POPCNT 1
 #    endif
 #    ifdef __SSE4A__
-#      define VC_IMPL_SSE4a 1
+#      define Vc_IMPL_SSE4a 1
 #    endif
 #    ifdef __FMA__
-#      define VC_IMPL_FMA 1
+#      define Vc_IMPL_FMA 1
 #    endif
 #    ifdef __BMI2__
-#      define VC_IMPL_BMI2 1
+#      define Vc_IMPL_BMI2 1
 #    endif
 #  endif
 
-#else // VC_IMPL
+#else // Vc_IMPL
 
-#  if (VC_IMPL & IMPL_MASK) == MIC // MIC supersedes everything else
-#    define VC_IMPL_MIC 1
+#  if (Vc_IMPL & IMPL_MASK) == MIC // MIC supersedes everything else
+#    define Vc_IMPL_MIC 1
 #    ifdef __POPCNT__
-#      define VC_IMPL_POPCNT 1
+#      define Vc_IMPL_POPCNT 1
 #    endif
-#  elif (VC_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
-#    define VC_IMPL_AVX2 1
-#    define VC_IMPL_AVX 1
-#  elif (VC_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
-#    define VC_IMPL_AVX 1
-#  elif (VC_IMPL & IMPL_MASK) == Scalar
-#    define VC_IMPL_Scalar 1
-#  elif (VC_IMPL & IMPL_MASK) == SSE4_2
-#    define VC_IMPL_SSE4_2 1
-#    define VC_IMPL_SSE4_1 1
-#    define VC_IMPL_SSSE3 1
-#    define VC_IMPL_SSE3 1
-#    define VC_IMPL_SSE2 1
-#    define VC_IMPL_SSE 1
-#  elif (VC_IMPL & IMPL_MASK) == SSE4_1
-#    define VC_IMPL_SSE4_1 1
-#    define VC_IMPL_SSSE3 1
-#    define VC_IMPL_SSE3 1
-#    define VC_IMPL_SSE2 1
-#    define VC_IMPL_SSE 1
-#  elif (VC_IMPL & IMPL_MASK) == SSSE3
-#    define VC_IMPL_SSSE3 1
-#    define VC_IMPL_SSE3 1
-#    define VC_IMPL_SSE2 1
-#    define VC_IMPL_SSE 1
-#  elif (VC_IMPL & IMPL_MASK) == SSE3
-#    define VC_IMPL_SSE3 1
-#    define VC_IMPL_SSE2 1
-#    define VC_IMPL_SSE 1
-#  elif (VC_IMPL & IMPL_MASK) == SSE2
-#    define VC_IMPL_SSE2 1
-#    define VC_IMPL_SSE 1
-#  elif (VC_IMPL & IMPL_MASK) == SSE
-#    define VC_IMPL_SSE 1
+#  elif (Vc_IMPL & IMPL_MASK) == AVX2 // AVX2 supersedes SSE
+#    define Vc_IMPL_AVX2 1
+#    define Vc_IMPL_AVX 1
+#  elif (Vc_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
+#    define Vc_IMPL_AVX 1
+#  elif (Vc_IMPL & IMPL_MASK) == Scalar
+#    define Vc_IMPL_Scalar 1
+#  elif (Vc_IMPL & IMPL_MASK) == SSE4_2
+#    define Vc_IMPL_SSE4_2 1
+#    define Vc_IMPL_SSE4_1 1
+#    define Vc_IMPL_SSSE3 1
+#    define Vc_IMPL_SSE3 1
+#    define Vc_IMPL_SSE2 1
+#    define Vc_IMPL_SSE 1
+#  elif (Vc_IMPL & IMPL_MASK) == SSE4_1
+#    define Vc_IMPL_SSE4_1 1
+#    define Vc_IMPL_SSSE3 1
+#    define Vc_IMPL_SSE3 1
+#    define Vc_IMPL_SSE2 1
+#    define Vc_IMPL_SSE 1
+#  elif (Vc_IMPL & IMPL_MASK) == SSSE3
+#    define Vc_IMPL_SSSE3 1
+#    define Vc_IMPL_SSE3 1
+#    define Vc_IMPL_SSE2 1
+#    define Vc_IMPL_SSE 1
+#  elif (Vc_IMPL & IMPL_MASK) == SSE3
+#    define Vc_IMPL_SSE3 1
+#    define Vc_IMPL_SSE2 1
+#    define Vc_IMPL_SSE 1
+#  elif (Vc_IMPL & IMPL_MASK) == SSE2
+#    define Vc_IMPL_SSE2 1
+#    define Vc_IMPL_SSE 1
+#  elif (Vc_IMPL & IMPL_MASK) == SSE
+#    define Vc_IMPL_SSE 1
 #    if defined(__SSE4_2__)
-#      define VC_IMPL_SSE4_2 1
+#      define Vc_IMPL_SSE4_2 1
 #    endif
 #    if defined(__SSE4_1__)
-#      define VC_IMPL_SSE4_1 1
+#      define Vc_IMPL_SSE4_1 1
 #    endif
 #    if defined(__SSE3__)
-#      define VC_IMPL_SSE3 1
+#      define Vc_IMPL_SSE3 1
 #    endif
 #    if defined(__SSSE3__)
-#      define VC_IMPL_SSSE3 1
+#      define Vc_IMPL_SSSE3 1
 #    endif
 #    if defined(__SSE2__)
-#      define VC_IMPL_SSE2 1
+#      define Vc_IMPL_SSE2 1
 #    endif
-#  elif (VC_IMPL & IMPL_MASK) == 0 && (VC_IMPL & SSE4a)
+#  elif (Vc_IMPL & IMPL_MASK) == 0 && (Vc_IMPL & SSE4a)
      // this is for backward compatibility only where SSE4a was included in the main
      // line of available SIMD instruction sets
-#    define VC_IMPL_SSE3 1
-#    define VC_IMPL_SSE2 1
-#    define VC_IMPL_SSE 1
+#    define Vc_IMPL_SSE3 1
+#    define Vc_IMPL_SSE2 1
+#    define Vc_IMPL_SSE 1
 #  endif
-#  if (VC_IMPL & XOP)
-#    define VC_IMPL_XOP 1
+#  if (Vc_IMPL & XOP)
+#    define Vc_IMPL_XOP 1
 #  endif
-#  if (VC_IMPL & FMA4)
-#    define VC_IMPL_FMA4 1
+#  if (Vc_IMPL & FMA4)
+#    define Vc_IMPL_FMA4 1
 #  endif
-#  if (VC_IMPL & F16C)
-#    define VC_IMPL_F16C 1
+#  if (Vc_IMPL & F16C)
+#    define Vc_IMPL_F16C 1
 #  endif
-#  if (!defined(VC_IMPL_Scalar) && defined(__POPCNT__)) || (VC_IMPL & POPCNT)
-#    define VC_IMPL_POPCNT 1
+#  if (!defined(Vc_IMPL_Scalar) && defined(__POPCNT__)) || (Vc_IMPL & POPCNT)
+#    define Vc_IMPL_POPCNT 1
 #  endif
-#  if (VC_IMPL & SSE4a)
-#    define VC_IMPL_SSE4a 1
+#  if (Vc_IMPL & SSE4a)
+#    define Vc_IMPL_SSE4a 1
 #  endif
-#  if (VC_IMPL & FMA)
-#    define VC_IMPL_FMA 1
+#  if (Vc_IMPL & FMA)
+#    define Vc_IMPL_FMA 1
 #  endif
-#  if (VC_IMPL & BMI2)
-#    define VC_IMPL_BMI2 1
+#  if (Vc_IMPL & BMI2)
+#    define Vc_IMPL_BMI2 1
 #  endif
-#  undef VC_IMPL
+#  undef Vc_IMPL
 
-#endif // VC_IMPL
+#endif // Vc_IMPL
 
 // If AVX is enabled in the compiler it will use VEX coding for the SIMD instructions.
 #ifdef __AVX__
-#  define VC_USE_VEX_CODING 1
+#  define Vc_USE_VEX_CODING 1
 #endif
 
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_AVX
 // if we have AVX then we also have all SSE intrinsics
-#    define VC_IMPL_SSE4_2 1
-#    define VC_IMPL_SSE4_1 1
-#    define VC_IMPL_SSSE3 1
-#    define VC_IMPL_SSE3 1
-#    define VC_IMPL_SSE2 1
-#    define VC_IMPL_SSE 1
+#    define Vc_IMPL_SSE4_2 1
+#    define Vc_IMPL_SSE4_1 1
+#    define Vc_IMPL_SSSE3 1
+#    define Vc_IMPL_SSE3 1
+#    define Vc_IMPL_SSE2 1
+#    define Vc_IMPL_SSE 1
 #endif
 
-#if defined(VC_CLANG) && VC_CLANG >= 0x30600 && VC_CLANG < 0x30700
-#    if defined(VC_IMPL_AVX)
+#if defined(Vc_CLANG) && Vc_CLANG >= 0x30600 && Vc_CLANG < 0x30700
+#    if defined(Vc_IMPL_AVX)
 #        warning "clang 3.6.x miscompiles AVX code, frequently losing 50% of the data. Vc will fall back to SSE4 instead."
-#        undef VC_IMPL_AVX
-#        if defined(VC_IMPL_AVX2)
-#            undef VC_IMPL_AVX2
+#        undef Vc_IMPL_AVX
+#        if defined(Vc_IMPL_AVX2)
+#            undef Vc_IMPL_AVX2
 #        endif
 #    endif
 #endif
 
-# if !defined(VC_IMPL_Scalar) && !defined(VC_IMPL_SSE) && !defined(VC_IMPL_AVX) && !defined(VC_IMPL_MIC)
-#  error "No suitable Vc implementation was selected! Probably VC_IMPL was set to an invalid value."
-# elif defined(VC_IMPL_SSE) && !defined(VC_IMPL_SSE2)
+# if !defined(Vc_IMPL_Scalar) && !defined(Vc_IMPL_SSE) && !defined(Vc_IMPL_AVX) && !defined(Vc_IMPL_MIC)
+#  error "No suitable Vc implementation was selected! Probably Vc_IMPL was set to an invalid value."
+# elif defined(Vc_IMPL_SSE) && !defined(Vc_IMPL_SSE2)
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
 # endif
 
@@ -356,16 +356,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef IMPL_MASK
 #undef EXT_MASK
 
-#ifdef VC_IMPL_MIC
-#define VC_DEFAULT_IMPL_MIC
-#elif defined VC_IMPL_AVX2
-#define VC_DEFAULT_IMPL_AVX2
-#elif defined VC_IMPL_AVX
-#define VC_DEFAULT_IMPL_AVX
-#elif defined VC_IMPL_SSE
-#define VC_DEFAULT_IMPL_SSE
-#elif defined VC_IMPL_Scalar
-#define VC_DEFAULT_IMPL_Scalar
+#ifdef Vc_IMPL_MIC
+#define Vc_DEFAULT_IMPL_MIC
+#elif defined Vc_IMPL_AVX2
+#define Vc_DEFAULT_IMPL_AVX2
+#elif defined Vc_IMPL_AVX
+#define Vc_DEFAULT_IMPL_AVX
+#elif defined Vc_IMPL_SSE
+#define Vc_DEFAULT_IMPL_SSE
+#elif defined Vc_IMPL_Scalar
+#define Vc_DEFAULT_IMPL_Scalar
 #else
 #error "Preprocessor logic broken. Please report a bug."
 #endif
@@ -421,7 +421,7 @@ enum MallocAlignment {
  *
  * Enum to identify a certain SIMD instruction set.
  *
- * You can use \ref VC_IMPL for the currently active implementation.
+ * You can use \ref Vc_IMPL for the currently active implementation.
  *
  * \see ExtraInstructions
  */
@@ -482,32 +482,32 @@ enum ExtraInstructions { // TODO: make enum class of uint32_t
 
 #ifndef DOXYGEN
 
-#ifdef VC_IMPL_Scalar
-#define VC_IMPL ::Vc::ScalarImpl
+#ifdef Vc_IMPL_Scalar
+#define Vc_IMPL ::Vc::ScalarImpl
 #define Vc_IMPL_NAMESPACE Scalar
-#elif defined(VC_IMPL_MIC)
-#define VC_IMPL ::Vc::MICImpl
+#elif defined(Vc_IMPL_MIC)
+#define Vc_IMPL ::Vc::MICImpl
 #define Vc_IMPL_NAMESPACE MIC
-#elif defined(VC_IMPL_AVX2)
-#define VC_IMPL ::Vc::AVX2Impl
+#elif defined(Vc_IMPL_AVX2)
+#define Vc_IMPL ::Vc::AVX2Impl
 #define Vc_IMPL_NAMESPACE AVX2
-#elif defined(VC_IMPL_AVX)
-#define VC_IMPL ::Vc::AVXImpl
+#elif defined(Vc_IMPL_AVX)
+#define Vc_IMPL ::Vc::AVXImpl
 #define Vc_IMPL_NAMESPACE AVX
-#elif defined(VC_IMPL_SSE4_2)
-#define VC_IMPL ::Vc::SSE42Impl
+#elif defined(Vc_IMPL_SSE4_2)
+#define Vc_IMPL ::Vc::SSE42Impl
 #define Vc_IMPL_NAMESPACE SSE
-#elif defined(VC_IMPL_SSE4_1)
-#define VC_IMPL ::Vc::SSE41Impl
+#elif defined(Vc_IMPL_SSE4_1)
+#define Vc_IMPL ::Vc::SSE41Impl
 #define Vc_IMPL_NAMESPACE SSE
-#elif defined(VC_IMPL_SSSE3)
-#define VC_IMPL ::Vc::SSSE3Impl
+#elif defined(Vc_IMPL_SSSE3)
+#define Vc_IMPL ::Vc::SSSE3Impl
 #define Vc_IMPL_NAMESPACE SSE
-#elif defined(VC_IMPL_SSE3)
-#define VC_IMPL ::Vc::SSE3Impl
+#elif defined(Vc_IMPL_SSE3)
+#define Vc_IMPL ::Vc::SSE3Impl
 #define Vc_IMPL_NAMESPACE SSE
-#elif defined(VC_IMPL_SSE2)
-#define VC_IMPL ::Vc::SSE2Impl
+#elif defined(Vc_IMPL_SSE2)
+#define Vc_IMPL ::Vc::SSE2Impl
 #define Vc_IMPL_NAMESPACE SSE
 #endif
 
@@ -532,26 +532,26 @@ template <unsigned int Features> struct ImplementationT {
     }
 };
 typedef ImplementationT<
-    VC_IMPL
-#ifdef VC_IMPL_SSE4a
+    Vc_IMPL
+#ifdef Vc_IMPL_SSE4a
     + Vc::Sse4aInstructions
-#ifdef VC_IMPL_XOP
+#ifdef Vc_IMPL_XOP
     + Vc::XopInstructions
-#ifdef VC_IMPL_FMA4
+#ifdef Vc_IMPL_FMA4
     + Vc::Fma4Instructions
 #endif
 #endif
 #endif
-#ifdef VC_IMPL_POPCNT
+#ifdef Vc_IMPL_POPCNT
     + Vc::PopcntInstructions
 #endif
-#ifdef VC_IMPL_FMA
+#ifdef Vc_IMPL_FMA
     + Vc::FmaInstructions
 #endif
-#ifdef VC_IMPL_BMI2
+#ifdef Vc_IMPL_BMI2
     + Vc::Bmi2Instructions
 #endif
-#ifdef VC_USE_VEX_CODING
+#ifdef Vc_USE_VEX_CODING
     + Vc::VexInstructions
 #endif
     > CurrentImplementation;
@@ -561,12 +561,12 @@ typedef ImplementationT<
 }  // namespace Vc
 
 // TODO: clean up headers (e.g. math.h) to remove the following:
-#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
-#define VC_ENABLE_FLOAT_BIT_OPERATORS 1
+#ifndef Vc_ENABLE_FLOAT_BIT_OPERATORS
+#define Vc_ENABLE_FLOAT_BIT_OPERATORS 1
 #endif
 
 #include "version.h"
 
-#endif // VC_GLOBAL_H
+#endif // VC_GLOBAL_H_
 
 // vim: foldmethod=marker

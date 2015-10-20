@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_WRITEMASKEDVECTOR_H
-#define VC_COMMON_WRITEMASKEDVECTOR_H
+#ifndef VC_COMMON_WRITEMASKEDVECTOR_H_
+#define VC_COMMON_WRITEMASKEDVECTOR_H_
 
 #include <utility>
 #include "macros.h"
@@ -82,15 +82,15 @@ public:
         return ret;
     }
 
-#define VC_OPERATOR__(op)                                                                \
+#define Vc_OPERATOR__(op)                                                                \
     template <typename U> Vc_ALWAYS_INLINE void operator op##=(U &&x)                    \
     {                                                                                    \
         operator=(static_cast<V>(*vec op std::forward<U>(x)));                           \
     }
-    VC_ALL_BINARY(VC_OPERATOR__)
-    VC_ALL_ARITHMETICS(VC_OPERATOR__)
-    VC_ALL_SHIFTS(VC_OPERATOR__)
-#undef VC_OPERATOR__
+    Vc_ALL_BINARY(Vc_OPERATOR__)
+    Vc_ALL_ARITHMETICS(Vc_OPERATOR__)
+    Vc_ALL_SHIFTS(Vc_OPERATOR__)
+#undef Vc_OPERATOR__
 
     Vc_ALWAYS_INLINE void operator=(const V &x)
     {
@@ -129,4 +129,4 @@ private:
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_WRITEMASKEDVECTOR_H
+#endif // VC_COMMON_WRITEMASKEDVECTOR_H_

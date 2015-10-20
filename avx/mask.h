@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_MASK_H
-#define VC_AVX_MASK_H
+#ifndef VC_AVX_MASK_H_
+#define VC_AVX_MASK_H_
 
 #include <array>
 
@@ -71,7 +71,7 @@ public:
     using VectorTypeI = AVX::IntegerVectorType<VectorTypeF>;
 
 private:
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
     typedef const VectorTypeF &VArg;
     typedef const VectorTypeD &VdArg;
     typedef const VectorTypeI &ViArg;
@@ -100,7 +100,7 @@ public:
     using EntryReference = Common::MaskEntry<Mask>;
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
-#if defined VC_MSVC && defined _WIN32
+#if defined Vc_MSVC && defined _WIN32
         typedef const Mask &AsArg;
 #else
         typedef const Mask AsArg;
@@ -195,7 +195,7 @@ public:
         void setEntry(size_t i, bool x) { d.set(i, Common::MaskBool<sizeof(T)>(x)); }
 
     private:
-#ifdef VC_COMPILE_BENCHMARKS
+#ifdef Vc_COMPILE_BENCHMARKS
     public:
 #endif
         Storage d;
@@ -208,4 +208,4 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::MemoryAlignment;
 #include "mask.tcc"
 #include "undomacros.h"
 
-#endif // VC_AVX_MASK_H
+#endif // VC_AVX_MASK_H_

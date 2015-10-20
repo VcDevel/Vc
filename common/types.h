@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_TYPES_H
-#define VC_COMMON_TYPES_H
+#ifndef VC_COMMON_TYPES_H_
+#define VC_COMMON_TYPES_H_
 
-#ifdef VC_CHECK_ALIGNMENT
+#ifdef Vc_CHECK_ALIGNMENT
 #include <cstdlib>
 #include <cstdio>
 #endif
@@ -72,20 +72,20 @@ using Best = typename std::conditional<
                 CurrentImplementation::is(AVX2Impl), Avx,
                 typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
                                           void>::type>::type>::type>::type>::type;
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 static_assert(std::is_same<Best<float>, Avx>::value, "");
 static_assert(std::is_same<Best<int>, Avx>::value, "");
-#elif defined VC_IMPL_AVX
+#elif defined Vc_IMPL_AVX
 static_assert(std::is_same<Best<float>, Avx>::value, "");
 static_assert(std::is_same<Best<int>, Sse>::value, "");
-#elif defined VC_IMPL_SSE
+#elif defined Vc_IMPL_SSE
 static_assert(CurrentImplementation::is_between(SSE2Impl, SSE42Impl), "");
 static_assert(std::is_same<Best<float>, Sse>::value, "");
 static_assert(std::is_same<Best<int>, Sse>::value, "");
-#elif defined VC_IMPL_MIC
+#elif defined Vc_IMPL_MIC
 static_assert(std::is_same<Best<float>, Mic>::value, "");
 static_assert(std::is_same<Best<int>, Mic>::value, "");
-#elif defined VC_IMPL_Scalar
+#elif defined Vc_IMPL_Scalar
 static_assert(std::is_same<Best<float>, Scalar>::value, "");
 static_assert(std::is_same<Best<int>, Scalar>::value, "");
 #endif
@@ -192,7 +192,7 @@ namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
 namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
 namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
-#ifndef VC_ICC
+#ifndef Vc_ICC
 // ICC ICEs if the traits below are in an unnamed namespace
 namespace
 {
@@ -217,11 +217,11 @@ namespace
     template<> struct is_implicit_cast_allowed< uint8_t,   int8_t> : public std::true_type {};
 
     template<typename From, typename To> struct is_implicit_cast_allowed_mask : public is_implicit_cast_allowed<From, To> {};
-#ifndef VC_ICC
+#ifndef Vc_ICC
 } // anonymous namespace
 #endif
 
-#ifndef VC_CHECK_ALIGNMENT
+#ifndef Vc_CHECK_ALIGNMENT
 template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
 #else
 template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
@@ -327,6 +327,6 @@ Vc_INTRINSIC Vc_FLATTEN enable_if<(Begin < End), void> unrolled_loop(F &&f)
 #include "memoryfwd.h"
 #include "undomacros.h"
 
-#endif // VC_COMMON_TYPES_H
+#endif // VC_COMMON_TYPES_H_
 
 // vim: foldmethod=marker

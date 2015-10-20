@@ -203,7 +203,7 @@ Point3V Spline::GetValue(const Point2V &ab) const  //{{{1
 
 // Point3 Spline::GetValueAlice(Point2 ab) const {{{1
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-#ifdef VC_GCC
+#ifdef Vc_GCC
 __attribute__((optimize("no-tree-vectorize")))
 #endif
 Point3 Spline::GetValueAlice(Point2 ab) const

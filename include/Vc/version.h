@@ -26,26 +26,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_VERSION_H
-#define VC_VERSION_H
+#ifndef VC_VERSION_H_
+#define VC_VERSION_H_
 
-#define VC_VERSION_STRING "0.99.71-dev"
-#define VC_VERSION_NUMBER 0x00638f
-#define VC_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
-#define VC_LIBRARY_ABI_VERSION 5
+#define Vc_VERSION_STRING "0.99.71-dev"
+#define Vc_VERSION_NUMBER 0x00638f
+#define Vc_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
+#define Vc_LIBRARY_ABI_VERSION 5
 
 namespace Vc_VERSIONED_NAMESPACE
 {
     static inline const char *versionString() {
-        return VC_VERSION_STRING;
+        return Vc_VERSION_STRING;
     }
 
     static inline unsigned int versionNumber() {
-        return VC_VERSION_NUMBER;
+        return Vc_VERSION_NUMBER;
     }
 }
 
-#if !defined(VC_NO_VERSION_CHECK) && !defined(VC_COMPILE_LIB)
+#if !defined(Vc_NO_VERSION_CHECK) && !defined(Vc_COMPILE_LIB)
 namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
@@ -55,7 +55,7 @@ namespace Common
         static struct runLibraryAbiCheck
         {
             runLibraryAbiCheck() {
-                checkLibraryAbi(VC_LIBRARY_ABI_VERSION, VC_VERSION_NUMBER, VC_VERSION_STRING);
+                checkLibraryAbi(Vc_LIBRARY_ABI_VERSION, Vc_VERSION_NUMBER, Vc_VERSION_STRING);
             }
         } _runLibraryAbiCheck;
     }
@@ -63,4 +63,4 @@ namespace Common
 }
 #endif
 
-#endif // VC_VERSION_H
+#endif // VC_VERSION_H_

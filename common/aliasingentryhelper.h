@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_ALIASINGENTRYHELPER_H
-#define VC_COMMON_ALIASINGENTRYHELPER_H
+#ifndef VC_COMMON_ALIASINGENTRYHELPER_H_
+#define VC_COMMON_ALIASINGENTRYHELPER_H_
 
 #include "macros.h"
 
@@ -40,7 +40,7 @@ template<class StorageType> class AliasingEntryHelper
 {
     private:
         typedef typename StorageType::EntryType T;
-#ifdef VC_ICC
+#ifdef Vc_ICC
         StorageType *const m_storage;
         const int m_index;
     public:
@@ -121,4 +121,4 @@ template<class StorageType> class AliasingEntryHelper
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_ALIASINGENTRYHELPER_H
+#endif // VC_COMMON_ALIASINGENTRYHELPER_H_

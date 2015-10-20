@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_TRAITS_HAS_MULTIPLY_OPERATOR_H
-#define VC_TRAITS_HAS_MULTIPLY_OPERATOR_H
+#ifndef VC_TRAITS_HAS_MULTIPLY_OPERATOR_H_
+#define VC_TRAITS_HAS_MULTIPLY_OPERATOR_H_
 
 namespace has_multiply_operator_impl
 {
@@ -42,4 +42,4 @@ struct has_multiply_operator : public decltype(has_multiply_operator_impl::test<
 {
 };
 
-#endif // VC_TRAITS_HAS_MULTIPLY_OPERATOR_H
+#endif // VC_TRAITS_HAS_MULTIPLY_OPERATOR_H_

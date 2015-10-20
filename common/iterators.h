@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_ITERATORS_H
-#define VC_COMMON_ITERATORS_H
+#ifndef VC_COMMON_ITERATORS_H_
+#define VC_COMMON_ITERATORS_H_
 
 #include <array>
 #include <iterator>
@@ -77,7 +77,7 @@ class Iterator
 
     template<typename V> using ConstIterator = Iterator<const V>;
 
-#ifdef VC_IMPL_MIC
+#ifdef Vc_IMPL_MIC
     class BitmaskIterator/*{{{*/
     {
         const int mask;
@@ -111,7 +111,7 @@ class Iterator
 
         void nextBit()
         {
-#ifdef VC_GNU_ASM
+#ifdef Vc_GNU_ASM
             bit = __builtin_ctzl(mask);
 #elif defined(_WIN64)
             _BitScanForward64(&bit, mask);
@@ -126,7 +126,7 @@ class Iterator
             // 01100100 - 1 = 01100011
             mask &= (mask - 1);
             /*
-#ifdef VC_GNU_ASM
+#ifdef Vc_GNU_ASM
             __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
 #elif defined(_WIN64)
             _bittestandreset64(&mask, bit);
@@ -226,6 +226,6 @@ using Common::makeIterator;
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_ITERATORS_H
+#endif // VC_COMMON_ITERATORS_H_
 
 // vim: foldmethod=marker

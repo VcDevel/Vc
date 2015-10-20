@@ -17,9 +17,9 @@
 
 }}}*/
 
-#ifndef VC_VC_SIMDARRAY
-#define VC_VC_SIMDARRAY
+#ifndef VC_SIMDARRAY_
+#define VC_SIMDARRAY_
 
 #include "common/simdarray.h"
 
-#endif // VC_VC_SIMDARRAY
+#endif // VC_SIMDARRAY_

@@ -138,13 +138,13 @@ template<typename T> inline Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>
 
 template <typename T>
 inline Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator/=(
-    VC_ALIGNED_PARAMETER(V<T>) x)
+    Vc_ALIGNED_PARAMETER(V<T>) x)
 {
     for_all_vector_entries(i, { d.set(i, d.m(i) / x.d.m(i)); });
     return *this;
 }
 
-template<typename T> inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator/(VC_ALIGNED_PARAMETER(V<T>) x) const
+template<typename T> inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator/(Vc_ALIGNED_PARAMETER(V<T>) x) const
 {
     Vector<T, VectorAbi::Sse> r;
     for_all_vector_entries(i,
@@ -153,7 +153,7 @@ template<typename T> inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAb
     return r;
 }
 
-template<> inline SSE::short_v &SSE::short_v::operator/=(VC_ALIGNED_PARAMETER(SSE::short_v) x)
+template<> inline SSE::short_v &SSE::short_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::short_v) x)
 {
     __m128 lo = _mm_cvtepi32_ps(HT::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(HT::expand1(d.v()));
@@ -163,7 +163,7 @@ template<> inline SSE::short_v &SSE::short_v::operator/=(VC_ALIGNED_PARAMETER(SS
     return *this;
 }
 
-template<> inline Vc_PURE SSE::short_v SSE::short_v::operator/(VC_ALIGNED_PARAMETER(SSE::short_v) x) const
+template<> inline Vc_PURE SSE::short_v SSE::short_v::operator/(Vc_ALIGNED_PARAMETER(SSE::short_v) x) const
 {
     __m128 lo = _mm_cvtepi32_ps(HT::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(HT::expand1(d.v()));
@@ -172,7 +172,7 @@ template<> inline Vc_PURE SSE::short_v SSE::short_v::operator/(VC_ALIGNED_PARAME
     return HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
 }
 
-template<> inline SSE::ushort_v &SSE::ushort_v::operator/=(VC_ALIGNED_PARAMETER(SSE::ushort_v) x)
+template<> inline SSE::ushort_v &SSE::ushort_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::ushort_v) x)
 {
     __m128 lo = _mm_cvtepi32_ps(HT::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(HT::expand1(d.v()));
@@ -182,7 +182,7 @@ template<> inline SSE::ushort_v &SSE::ushort_v::operator/=(VC_ALIGNED_PARAMETER(
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v SSE::ushort_v::operator/(VC_ALIGNED_PARAMETER(SSE::ushort_v) x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v SSE::ushort_v::operator/(Vc_ALIGNED_PARAMETER(SSE::ushort_v) x) const
 {
     __m128 lo = _mm_cvtepi32_ps(HT::expand0(d.v()));
     __m128 hi = _mm_cvtepi32_ps(HT::expand1(d.v()));
@@ -191,24 +191,24 @@ template<> Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v SSE::ushort_v::operator/(VC_AL
     return HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
 }
 
-template<> Vc_ALWAYS_INLINE SSE::float_v &SSE::float_v::operator/=(VC_ALIGNED_PARAMETER(SSE::float_v) x)
+template<> Vc_ALWAYS_INLINE SSE::float_v &SSE::float_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::float_v) x)
 {
     d.v() = _mm_div_ps(d.v(), x.d.v());
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE SSE::float_v SSE::float_v::operator/(VC_ALIGNED_PARAMETER(SSE::float_v) x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE SSE::float_v SSE::float_v::operator/(Vc_ALIGNED_PARAMETER(SSE::float_v) x) const
 {
     return _mm_div_ps(d.v(), x.d.v());
 }
 
-template<> Vc_ALWAYS_INLINE SSE::double_v &SSE::double_v::operator/=(VC_ALIGNED_PARAMETER(SSE::double_v) x)
+template<> Vc_ALWAYS_INLINE SSE::double_v &SSE::double_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::double_v) x)
 {
     d.v() = _mm_div_pd(d.v(), x.d.v());
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE SSE::double_v SSE::double_v::operator/(VC_ALIGNED_PARAMETER(SSE::double_v) x) const
+template<> Vc_ALWAYS_INLINE Vc_PURE SSE::double_v SSE::double_v::operator/(Vc_ALIGNED_PARAMETER(SSE::double_v) x) const
 {
     return _mm_div_pd(d.v(), x.d.v());
 }
@@ -248,7 +248,7 @@ OP_IMPL(short, ^, xor_)
 OP_IMPL(unsigned short, &, and_)
 OP_IMPL(unsigned short, |, or_)
 OP_IMPL(unsigned short, ^, xor_)
-#ifdef VC_ENABLE_FLOAT_BIT_OPERATORS
+#ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
 OP_IMPL(float, &, and_)
 OP_IMPL(float, |, or_)
 OP_IMPL(float, ^, xor_)
@@ -258,7 +258,7 @@ OP_IMPL(double, ^, xor_)
 #endif
 #undef OP_IMPL
 
-#ifdef VC_IMPL_XOP
+#ifdef Vc_IMPL_XOP
 static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const    SSE::int_v &value, const    SSE::int_v &count) { return _mm_sha_epi32(value.data(), count.data()); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const   SSE::uint_v &value, const   SSE::uint_v &count) { return _mm_shl_epi32(value.data(), count.data()); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const  SSE::short_v &value, const  SSE::short_v &count) { return _mm_sha_epi16(value.data(), count.data()); }
@@ -279,19 +279,19 @@ static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const SSE::ushort_v &value, cons
     {                                                                                    \
         return impl(*this, shift);                                                       \
     }
-VC_APPLY_2(VC_LIST_INT_VECTOR_TYPES, _VC_OP, <<, shiftLeft)
-VC_APPLY_2(VC_LIST_INT_VECTOR_TYPES, _VC_OP, >>, shiftRight)
+Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, _VC_OP, <<, shiftLeft)
+Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, _VC_OP, >>, shiftRight)
 #undef _VC_OP
 #else
-#if defined(VC_GCC) && VC_GCC == 0x40600 && defined(VC_IMPL_XOP)
-#define VC_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
+#if defined(Vc_GCC) && Vc_GCC == 0x40600 && defined(Vc_IMPL_XOP)
+#define Vc_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
 #else
-#define VC_WORKAROUND Vc_INTRINSIC
+#define Vc_WORKAROUND Vc_INTRINSIC
 #endif
 
 #define OP_IMPL(T, symbol)                                                               \
     template <>                                                                          \
-    VC_WORKAROUND Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator symbol##=(Vector<T, VectorAbi::Sse>::AsArg x)           \
+    Vc_WORKAROUND Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator symbol##=(Vector<T, VectorAbi::Sse>::AsArg x)           \
     {                                                                                    \
         for_all_vector_entries(i, d.set(i, d.m(i) symbol x.d.m(i)););                    \
         return *this;                                                                    \
@@ -312,7 +312,7 @@ OP_IMPL(short, >>)
 OP_IMPL(unsigned short, <<)
 OP_IMPL(unsigned short, >>)
 #undef OP_IMPL
-#undef VC_WORKAROUND
+#undef Vc_WORKAROUND
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator>>=(int shift) {
@@ -392,12 +392,12 @@ template <typename MT, typename IT>
 inline void Vector<T, VectorAbi::Sse>::gatherImplementation(const MT *mem, IT &&indexes, MaskArgument mask)
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
-#ifdef VC_USE_SET_GATHERS
+#ifdef Vc_USE_SET_GATHERS
           Traits::is_simd_vector<IT>::value ? Common::GatherScatterImplementation::SetIndexZero :
 #endif
-#ifdef VC_USE_BSF_GATHERS
+#ifdef Vc_USE_BSF_GATHERS
                                             Common::GatherScatterImplementation::BitScanLoop
-#elif defined VC_USE_POPCNT_BSF_GATHERS
+#elif defined Vc_USE_POPCNT_BSF_GATHERS
               Common::GatherScatterImplementation::PopcntSwitch
 #else
               Common::GatherScatterImplementation::SimpleLoop
@@ -419,12 +419,12 @@ template <typename MT, typename IT>
 inline void Vector<T, VectorAbi::Sse>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
-#ifdef VC_USE_SET_GATHERS
+#ifdef Vc_USE_SET_GATHERS
           Traits::is_simd_vector<IT>::value ? Common::GatherScatterImplementation::SetIndexZero :
 #endif
-#ifdef VC_USE_BSF_GATHERS
+#ifdef Vc_USE_BSF_GATHERS
                                             Common::GatherScatterImplementation::BitScanLoop
-#elif defined VC_USE_POPCNT_BSF_GATHERS
+#elif defined Vc_USE_POPCNT_BSF_GATHERS
               Common::GatherScatterImplementation::PopcntSwitch
 #else
               Common::GatherScatterImplementation::SimpleLoop
@@ -439,7 +439,7 @@ template<typename T> Vc_INTRINSIC typename Vector<T, VectorAbi::Sse>::EntryType 
 {
     return d.m(index);
 }
-#ifdef VC_GCC
+#ifdef Vc_GCC
 template<> Vc_INTRINSIC double Vc_PURE SSE::double_v::operator[](size_t index) const
 {
     if (__builtin_constant_p(index)) {
@@ -460,7 +460,7 @@ template<> Vc_INTRINSIC int Vc_PURE SSE::int_v::operator[](size_t index) const
 #else
         if (index == 0) return _mm_cvtsi128_si32(d.v());
 #endif
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
 #endif
     }
@@ -475,7 +475,7 @@ template<> Vc_INTRINSIC unsigned int Vc_PURE SSE::uint_v::operator[](size_t inde
 #else
         if (index == 0) return _mm_cvtsi128_si32(d.v());
 #endif
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
         return _mm_extract_epi32(d.v(), index);
 #endif
     }
@@ -512,7 +512,7 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> Vector<T, Vector
     if (Size > 16) tmp += tmp.shifted(-16);
     return tmp;
 }
-#ifndef VC_IMPL_SSE4_1
+#ifndef Vc_IMPL_SSE4_1
 // without SSE4.1 integer multiplication is slow and we rather multiply the scalars
 template<> Vc_INTRINSIC Vc_PURE int SSE::int_v::product() const
 {
@@ -583,12 +583,12 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 
 template<> Vc_INTRINSIC Vc_PURE SSE::float_v SSE::float_v::exponent() const
 {
-    VC_ASSERT((*this >= 0.f).isFull());
+    Vc_ASSERT((*this >= 0.f).isFull());
     return Detail::exponent(d.v());
 }
 template<> Vc_INTRINSIC Vc_PURE SSE::double_v SSE::double_v::exponent() const
 {
-    VC_ASSERT((*this >= 0.).isFull());
+    Vc_ASSERT((*this >= 0.).isFull());
     return Detail::exponent(d.v());
 }
 // }}}1
@@ -713,7 +713,7 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, Ve
 // sorted {{{1
 namespace Detail
 {
-inline Vc_CONST SSE::double_v sorted(VC_ALIGNED_PARAMETER(SSE::double_v) x_)
+inline Vc_CONST SSE::double_v sorted(Vc_ALIGNED_PARAMETER(SSE::double_v) x_)
 {
     const __m128d x = x_.data();
     const __m128d y = _mm_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));
@@ -829,7 +829,7 @@ template <> Vc_INTRINSIC Vc_PURE SSE::ushort_v SSE::ushort_v::reversed() const
 // permutation via operator[] {{{1
 template <>
 Vc_INTRINSIC SSE::float_v SSE::float_v::operator[](SSE::int_v
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_AVX
                                              perm
 #endif
                                          ) const
@@ -843,7 +843,7 @@ Vc_INTRINSIC SSE::float_v SSE::float_v::operator[](SSE::int_v
         return x;
     } else {
     */
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_AVX
     return _mm_permutevar_ps(d.v(), perm.data());
 #else
     return *this;//TODO
@@ -867,7 +867,7 @@ namespace Common
 // transpose_impl {{{1
 template <int L>
 Vc_ALWAYS_INLINE enable_if<L == 4, void> transpose_impl(
-    SSE::float_v *VC_RESTRICT r[],
+    SSE::float_v *Vc_RESTRICT r[],
     const TransposeProxy<SSE::float_v, SSE::float_v, SSE::float_v, SSE::float_v> &proxy)
 {
     const auto in0 = std::get<0>(proxy.in).data();

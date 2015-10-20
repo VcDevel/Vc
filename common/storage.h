@@ -26,13 +26,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_STORAGE_H
-#define VC_COMMON_STORAGE_H
+#ifndef VC_COMMON_STORAGE_H_
+#define VC_COMMON_STORAGE_H_
 
 #include "aliasingentryhelper.h"
 #include "types.h"
 #include "maskentry.h"
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_AVX
 #include "../avx/intrinsics.h"
 #endif
 #include "macros.h"
@@ -43,7 +43,7 @@ namespace Common
 {
 namespace Detail
 {
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_AVX
 template <typename ValueType, size_t Size> struct IntrinsicType {
     using type = typename std::conditional<
         std::is_integral<ValueType>::value,
@@ -55,14 +55,14 @@ template <typename ValueType, size_t Size> struct IntrinsicType {
             typename std::conditional<sizeof(ValueType) * Size == 16, __m128,
                                       __m256>::type>::type>::type;
 };
-#elif defined VC_IMPL_SSE
+#elif defined Vc_IMPL_SSE
 template <typename ValueType, size_t Size> struct IntrinsicType {
     using type = typename std::conditional<
         std::is_integral<ValueType>::value, __m128i,
         typename std::conditional<std::is_same<ValueType, double>::value, __m128d,
                                   __m128>::type>::type;
 };
-#elif defined VC_IMPL_MIC
+#elif defined Vc_IMPL_MIC
 template <typename ValueType, size_t Size> struct IntrinsicType {
     using type = typename std::conditional<
         std::is_integral<ValueType>::value, __m512i,
@@ -82,7 +82,7 @@ struct BuiltinType {
     // enable_if:
     typedef ValueType type;
 };
-#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 #define Vc_VECBUILTIN __attribute__((__vector_size__(16)))
 template <size_t Size> struct BuiltinType<         double   , Size, 16> { typedef          double    type Vc_VECBUILTIN; };
 template <size_t Size> struct BuiltinType<         float    , Size, 16> { typedef          float     type Vc_VECBUILTIN; };
@@ -131,11 +131,11 @@ struct UnionMembers {};
 }  // namespace AliasStrategy
 
 using DefaultStrategy =
-#if defined VC_USE_BUILTIN_VECTOR_TYPES
+#if defined Vc_USE_BUILTIN_VECTOR_TYPES
     AliasStrategy::VectorBuiltin;
-#elif defined VC_MSVC
+#elif defined Vc_MSVC
     AliasStrategy::UnionMembers;
-#elif defined VC_ICC
+#elif defined Vc_ICC
     AliasStrategy::Union;
 #elif defined __GNUC__
     AliasStrategy::MayAlias;
@@ -320,7 +320,7 @@ private:
     VectorType data;
 };
 
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
 template <> Vc_INTRINSIC Vc_PURE          double Storage<         double, 2, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128d_f64[i]; }
 template <> Vc_INTRINSIC Vc_PURE          float  Storage<         float , 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128_f32[i]; }
 template <> Vc_INTRINSIC Vc_PURE   signed int    Storage<  signed int   , 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i32[i]; }
@@ -339,7 +339,7 @@ template <> Vc_INTRINSIC Vc_PURE unsigned int    &Storage<unsigned int   , 4, Al
 template <> Vc_INTRINSIC Vc_PURE unsigned short  &Storage<unsigned short , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u16[i]; }
 template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u8[i]; }
 
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_AVX
 template <> Vc_INTRINSIC Vc_PURE          double Storage<         double, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256d_f64[i]; }
 template <> Vc_INTRINSIC Vc_PURE          float  Storage<         float , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256_f32[i]; }
 template <> Vc_INTRINSIC Vc_PURE   signed int    Storage<  signed int   , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i32[i]; }
@@ -358,7 +358,7 @@ template <> Vc_INTRINSIC Vc_PURE unsigned int    &Storage<unsigned int   , 8, Al
 template <> Vc_INTRINSIC Vc_PURE unsigned short  &Storage<unsigned short ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u16[i]; }
 template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u8[i]; }
 #endif
-#endif  // VC_MSVC
+#endif  // Vc_MSVC
 
 template <typename VectorType, typename EntryType>
 using VectorMemoryUnion = Storage<EntryType, sizeof(VectorType) / sizeof(EntryType)>;
@@ -368,4 +368,4 @@ using VectorMemoryUnion = Storage<EntryType, sizeof(VectorType) / sizeof(EntryTy
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_STORAGE_H
+#endif // VC_COMMON_STORAGE_H_

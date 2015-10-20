@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_CONST_H
-#define VC_SSE_CONST_H
+#ifndef VC_SSE_CONST_H_
+#define VC_SSE_CONST_H_
 
 #include "const_data.h"
 #include "vector.h"
@@ -96,4 +96,4 @@ namespace SSE
 
 #include "undomacros.h"
 
-#endif // VC_SSE_CONST_H
+#endif // VC_SSE_CONST_H_

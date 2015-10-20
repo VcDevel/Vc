@@ -26,16 +26,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_UNDOMACROS_H
-#define VC_SSE_UNDOMACROS_H
-#undef VC_SSE_MACROS_H
+#ifndef VC_SSE_UNDOMACROS_H_
+#define VC_SSE_UNDOMACROS_H_
+#undef VC_SSE_MACROS_H_
 
 #undef STORE_VECTOR
 
-#ifdef VC_USE_PTEST
-#undef VC_USE_PTEST
+#ifdef Vc_USE_PTEST
+#undef Vc_USE_PTEST
 #endif
 
-#endif // VC_SSE_UNDOMACROS_H
+#endif // VC_SSE_UNDOMACROS_H_
 
 #include "../common/undomacros.h"

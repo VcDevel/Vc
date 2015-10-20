@@ -27,10 +27,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 // enable bit operators for easier portable bit manipulation on floats
-#define VC_ENABLE_FLOAT_BIT_OPERATORS 1
+#define Vc_ENABLE_FLOAT_BIT_OPERATORS 1
 
 #include <Vc/vector.h>
-#if defined(VC_IMPL_SSE) || defined(VC_IMPL_AVX)
+#if defined(Vc_IMPL_SSE) || defined(Vc_IMPL_AVX)
 #include <common/macros.h>
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -109,7 +109,7 @@ static Vc_ALWAYS_INLINE Vector<_T, Abi> foldInput(const Vector<_T, Abi> &_x, IV 
     typedef Const<_T, Abi> C;
 
         const V x = abs(_x);
-#if defined(VC_IMPL_FMA4) || defined(VC_IMPL_FMA)
+#if defined(Vc_IMPL_FMA4) || defined(Vc_IMPL_FMA)
         quadrant = static_cast<IV>(x * C::_4_pi() + V::One()); // prefer the fma here
         quadrant &= ~IV::One();
 #else

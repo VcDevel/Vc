@@ -49,7 +49,7 @@ namespace AVX
         template<> struct VectorHelper<__m256>
         {
             typedef __m256 VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
             typedef const VectorType VTArg;
@@ -83,7 +83,7 @@ namespace AVX
         template<> struct VectorHelper<__m256d>
         {
             typedef __m256d VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
             typedef const VectorType VTArg;
@@ -119,7 +119,7 @@ namespace AVX
         template<> struct VectorHelper<__m256i>
         {
             typedef __m256i VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
             typedef const VectorType VTArg;
@@ -175,7 +175,7 @@ namespace AVX
 
         template<> struct VectorHelper<double> {
             typedef __m256d VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
             typedef const VectorType VTArg;
@@ -192,12 +192,12 @@ namespace AVX
             static Vc_ALWAYS_INLINE VectorType one()  { return CAT(setone_, SUFFIX)(); }// set(1.); }
 
             static inline void fma(VectorType &v1, VTArg v2, VTArg v3) {
-#ifdef VC_IMPL_FMA4
+#ifdef Vc_IMPL_FMA4
                 v1 = _mm256_macc_pd(v1, v2, v3);
 #else
                 VectorType h1 = _mm256_and_pd(v1, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
                 VectorType h2 = _mm256_and_pd(v2, _mm256_broadcast_sd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
-#if defined(VC_GCC) && VC_GCC < 0x40703
+#if defined(Vc_GCC) && Vc_GCC < 0x40703
                 // GCC before 4.7.3 uses an incorrect optimization where it replaces the subtraction with an andnot
                 // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54703
                 asm("":"+x"(h1), "+x"(h2));
@@ -273,7 +273,7 @@ namespace AVX
         template<> struct VectorHelper<float> {
             typedef float EntryType;
             typedef __m256 VectorType;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
             typedef const VectorType & VTArg;
 #else
             typedef const VectorType VTArg;
@@ -290,7 +290,7 @@ namespace AVX
             static Vc_ALWAYS_INLINE Vc_CONST __m256 concat(__m256d a, __m256d b) { return _mm256_insertf128_ps(avx_cast<__m256>(_mm256_cvtpd_ps(a)), _mm256_cvtpd_ps(b), 1); }
 
             static inline void fma(VectorType &v1, VTArg v2, VTArg v3) {
-#ifdef VC_IMPL_FMA4
+#ifdef Vc_IMPL_FMA4
                 v1 = _mm256_macc_ps(v1, v2, v3);
 #else
                 __m256d v1_0 = _mm256_cvtps_pd(lo128(v1));

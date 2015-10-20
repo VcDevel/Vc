@@ -28,9 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../common/macros.h"
 
-#ifndef VC_AVX_MACROS_H
-#define VC_AVX_MACROS_H
-#undef VC_AVX_UNDOMACROS_H
+#ifndef VC_AVX_MACROS_H_
+#define VC_AVX_MACROS_H_
+#undef VC_AVX_UNDOMACROS_H_
 
 
-#endif // VC_AVX_MACROS_H
+#endif // VC_AVX_MACROS_H_

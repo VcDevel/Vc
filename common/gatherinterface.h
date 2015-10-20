@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_CURRENT_CLASS_NAME
-#error "incorrect use of common/gatherinterface.h: VC_CURRENT_CLASS_NAME must be defined to the current class name for declaring constructors."
+#ifndef Vc_CURRENT_CLASS_NAME
+#error "incorrect use of common/gatherinterface.h: Vc_CURRENT_CLASS_NAME must be defined to the current class name for declaring constructors."
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -74,7 +74,7 @@ private:
     }
 
 public:
-    #define VC_ASSERT_GATHER_PARAMETER_TYPES__                                                     \
+    #define Vc_ASSERT_GATHER_PARAMETER_TYPES__                                                     \
         static_assert(std::is_convertible<MT, EntryType>::value,                                   \
                       "The memory pointer needs to point to a type that can be converted to the "  \
                       "EntryType of this SIMD vector type.");                                      \
@@ -92,17 +92,17 @@ public:
 
     template <typename MT, typename IT,
               typename = enable_if<Traits::has_subscript_operator<IT>::value>>
-    Vc_INTRINSIC VC_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes)
+    Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes)
     {
-        VC_ASSERT_GATHER_PARAMETER_TYPES__;
+        Vc_ASSERT_GATHER_PARAMETER_TYPES__;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
     }
 
     template <typename MT, typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
-    Vc_INTRINSIC VC_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes, MaskArgument mask)
+    Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes, MaskArgument mask)
     {
-        VC_ASSERT_GATHER_PARAMETER_TYPES__;
+        Vc_ASSERT_GATHER_PARAMETER_TYPES__;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
 
@@ -111,7 +111,7 @@ public:
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC void gather(const MT *mem, IT &&indexes)
     {
-        VC_ASSERT_GATHER_PARAMETER_TYPES__;
+        Vc_ASSERT_GATHER_PARAMETER_TYPES__;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
     }
 
@@ -120,7 +120,7 @@ public:
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC void gather(const MT *mem, IT &&indexes, MaskArgument mask)
     {
-        VC_ASSERT_GATHER_PARAMETER_TYPES__;
+        Vc_ASSERT_GATHER_PARAMETER_TYPES__;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
 
@@ -136,4 +136,4 @@ public:
         gather(args.address, adjustIndexParameter(args.indexes), mask);
     }
 
-#undef VC_ASSERT_GATHER_PARAMETER_TYPES__
+#undef Vc_ASSERT_GATHER_PARAMETER_TYPES__

@@ -30,26 +30,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/cpuid.h>
 #include <Vc/support.h>
 
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
 #include <intrin.h>
 #endif
 
-#if defined(VC_GCC) && VC_GCC >= 0x40400
-#define VC_TARGET_NO_SIMD __attribute__((target("no-sse2,no-avx")))
+#if defined(Vc_GCC) && Vc_GCC >= 0x40400
+#define Vc_TARGET_NO_SIMD __attribute__((target("no-sse2,no-avx")))
 #else
-#define VC_TARGET_NO_SIMD
+#define Vc_TARGET_NO_SIMD
 #endif
 
 namespace Vc_VERSIONED_NAMESPACE
 {
 
-VC_TARGET_NO_SIMD
+Vc_TARGET_NO_SIMD
 static inline bool xgetbvCheck(unsigned int bits)
 {
-#if defined(VC_MSVC) && VC_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
+#if defined(Vc_MSVC) && Vc_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
     unsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
     return (xcrFeatureMask & bits) == bits;
-#elif defined(VC_GNU_ASM) && !defined(VC_NO_XGETBV)
+#elif defined(Vc_GNU_ASM) && !defined(Vc_NO_XGETBV)
     unsigned int eax;
     asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");
     return (eax & bits) == bits;
@@ -59,7 +59,7 @@ static inline bool xgetbvCheck(unsigned int bits)
 #endif
 }
 
-VC_TARGET_NO_SIMD
+Vc_TARGET_NO_SIMD
 bool isImplementationSupported(Implementation impl)
 {
     CpuId::init();
@@ -90,7 +90,7 @@ bool isImplementationSupported(Implementation impl)
     return false;
 }
 
-VC_TARGET_NO_SIMD
+Vc_TARGET_NO_SIMD
 Vc::Implementation bestImplementationSupported()
 {
     CpuId::init();
@@ -111,7 +111,7 @@ Vc::Implementation bestImplementationSupported()
     return Vc::SSE42Impl;
 }
 
-VC_TARGET_NO_SIMD
+Vc_TARGET_NO_SIMD
 unsigned int extraInstructionsSupported()
 {
     unsigned int flags = 0;
@@ -131,6 +131,6 @@ unsigned int extraInstructionsSupported()
 
 }
 
-#undef VC_TARGET_NO_SIMD
+#undef Vc_TARGET_NO_SIMD
 
 // vim: sw=4 sts=4 et tw=100

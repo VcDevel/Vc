@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_GATHERIMPLEMENTATION_H
-#define VC_COMMON_GATHERIMPLEMENTATION_H
+#ifndef VC_COMMON_GATHERIMPLEMENTATION_H_
+#define VC_COMMON_GATHERIMPLEMENTATION_H_
 
 #include "macros.h"
 
@@ -67,7 +67,7 @@ Vc_ALWAYS_INLINE void executeGather(SimpleLoopT,
                                     const IT &indexes,
                                     typename V::MaskArgument mask)
 {
-    if (VC_IS_UNLIKELY(mask.isEmpty())) {
+    if (Vc_IS_UNLIKELY(mask.isEmpty())) {
         return;
     }
     Common::unrolled_loop<std::size_t, 0, V::Size>([&](std::size_t i) {
@@ -84,7 +84,7 @@ Vc_ALWAYS_INLINE void executeGather(BitScanLoopT,
                                     typename V::MaskArgument mask)
 {
     size_t bits = mask.toInt();
-    while (VC_IS_LIKELY(bits > 0)) {
+    while (Vc_IS_LIKELY(bits > 0)) {
         size_t i, j;
         asm("bsf %[bits],%[i]\n\t"
             "bsr %[bits],%[j]\n\t"
@@ -280,4 +280,4 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_GATHERIMPLEMENTATION_H
+#endif // VC_COMMON_GATHERIMPLEMENTATION_H_

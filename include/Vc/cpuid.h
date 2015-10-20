@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef CPUID_H
-#define CPUID_H
+#ifndef VC_CPUID_H_
+#define VC_CPUID_H_
 
 #include "common/macros.h"
 namespace Vc_VERSIONED_NAMESPACE
@@ -253,4 +253,4 @@ class CpuId
 }
 #include "common/undomacros.h"
 
-#endif // CPUID_H
+#endif // VC_CPUID_H_

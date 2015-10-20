@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_LIMITS_H
-#define VC_AVX_LIMITS_H
+#ifndef VC_AVX_LIMITS_H_
+#define VC_AVX_LIMITS_H_
 
 #include "intrinsics.h"
 #include "types.h"
@@ -76,7 +76,7 @@ namespace std
         }                                                                                \
     }
 
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 _VC_NUM_LIM(unsigned short, Vc::Detail::allone<__m256i>(), Vc::Detail::zero<__m256i>());
 _VC_NUM_LIM(         short, _mm256_srli_epi16(Vc::Detail::allone<__m256i>(), 1), Vc::AVX::setmin_epi16());
 _VC_NUM_LIM(  unsigned int, Vc::Detail::allone<__m256i>(), Vc::Detail::zero<__m256i>());
@@ -88,4 +88,4 @@ _VC_NUM_LIM(           int, _mm256_srli_epi32(Vc::Detail::allone<__m256i>(), 1),
 
 #include "undomacros.h"
 
-#endif // VC_AVX_LIMITS_H
+#endif // VC_AVX_LIMITS_H_

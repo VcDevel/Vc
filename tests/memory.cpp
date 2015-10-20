@@ -335,7 +335,7 @@ void testmain()
 {
     testAllTypes(testEntries);
     testAllTypes(paddingMustBeZero);
-#ifndef VC_ICC
+#ifndef Vc_ICC
     testAllTypes(initializerList);
 #endif
     testAllTypes(testEntries2D);

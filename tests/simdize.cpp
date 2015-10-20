@@ -147,7 +147,7 @@ template <typename, typename, typename, std::size_t...> struct Foo3
 };
 
 // ICC does not support packs of values
-#ifndef VC_ICC
+#ifndef Vc_ICC
 TEST(nontype_template_parameters)
 {
     using namespace std;
@@ -178,7 +178,7 @@ TEST(nontype_template_parameters)
             SimdizeAdapter<Foo3<int, int, float, 3, 5, 6>,
                            Foo3<int_v, int_v, float_intsize, 3, 5, 6>, int_v::size()>));
 }
-#endif  // VC_ICC
+#endif  // Vc_ICC
 
 TEST(tuple_interface)
 {

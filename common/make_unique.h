@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MAKE_UNIQUE_H
-#define VC_COMMON_MAKE_UNIQUE_H
+#ifndef VC_COMMON_MAKE_UNIQUE_H_
+#define VC_COMMON_MAKE_UNIQUE_H_
 
 #include <memory>
 
@@ -57,4 +57,4 @@ inline std::unique_ptr<T, Deleter<T>> make_unique(Args&&... args)
 
 #include "undomacros.h"
 
-#endif // VC_COMMON_MAKE_UNIQUE_H
+#endif // VC_COMMON_MAKE_UNIQUE_H_

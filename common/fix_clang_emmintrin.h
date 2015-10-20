@@ -21,12 +21,12 @@
 
 }}}*/
 
-#ifndef VC_COMMON_FIX_CLANG_EMMINTRIN_H
-#define VC_COMMON_FIX_CLANG_EMMINTRIN_H
+#ifndef VC_COMMON_FIX_CLANG_EMMINTRIN_H_
+#define VC_COMMON_FIX_CLANG_EMMINTRIN_H_
 
 #include <Vc/global.h>
 
-#if defined VC_CLANG && VC_CLANG < 0x30700
+#if defined Vc_CLANG && Vc_CLANG < 0x30700
 
 #ifdef _mm_slli_si128
 #undef _mm_slli_si128
@@ -74,6 +74,6 @@
   __builtin_shufflevector((__m128d)(a), (__m128d)(b), (i) & 1, (((i) & 2) >> 1) + 2); })
 #endif
 
-#endif // VC_CLANG
+#endif // Vc_CLANG
 
-#endif // VC_COMMON_FIX_CLANG_EMMINTRIN_H
+#endif // VC_COMMON_FIX_CLANG_EMMINTRIN_H_
