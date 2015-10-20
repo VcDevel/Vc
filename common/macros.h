@@ -150,14 +150,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t) { Vc::Common::free(ptr); } \
         Vc_ALWAYS_INLINE void operator delete[](void *, void *) {}
 
-#ifdef Vc_GCC
-# define Vc_WARN_INLINE
-# define Vc_WARN(msg) __attribute__((warning("\n\t" msg)))
-#else
-# define Vc_WARN_INLINE inline
-# define Vc_WARN(msg)
-#endif
-
 #define unrolled_loop16(_it_, _start_, _end_, _code_) \
 if (_start_ +  0 < _end_) { enum { _it_ = (_start_ +  0) < _end_ ? (_start_ +  0) : _start_ }; _code_ } \
 if (_start_ +  1 < _end_) { enum { _it_ = (_start_ +  1) < _end_ ? (_start_ +  1) : _start_ }; _code_ } \
