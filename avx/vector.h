@@ -364,9 +364,7 @@ public:
 
         template <typename F> Vc_INTRINSIC void call(F &&f) const
         {
-            for_all_vector_entries(i,
-                    f(EntryType(d.m(i)));
-                    );
+            Common::for_all_vector_entries<Size>([&](size_t i) { f(EntryType(d.m(i))); });
         }
 
         template <typename F> Vc_INTRINSIC void call(F &&f, const Mask &mask) const
@@ -379,9 +377,8 @@ public:
         template <typename F> Vc_INTRINSIC Vector apply(F &&f) const
         {
             Vector r;
-            for_all_vector_entries(i,
-                    r.d.set(i, f(EntryType(d.m(i))));
-                    );
+            Common::for_all_vector_entries<Size>(
+                [&](size_t i) { r.d.set(i, f(EntryType(d.m(i)))); });
             return r;
         }
 
@@ -395,14 +392,10 @@ public:
         }
 
         template<typename IndexT> Vc_INTRINSIC void fill(EntryType (&f)(IndexT)) {
-            for_all_vector_entries(i,
-                    d.set(i, f(i));
-                    );
+            Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f(i)); });
         }
         Vc_INTRINSIC void fill(EntryType (&f)()) {
-            for_all_vector_entries(i,
-                    d.set(i, f());
-                    );
+            Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f()); });
         }
 
         template <typename G> static Vc_INTRINSIC_L Vector generate(G gen) Vc_INTRINSIC_R;

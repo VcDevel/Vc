@@ -55,8 +55,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef ALIGNED_TYPEDEF
 #undef Vc_CAT_IMPL
 #undef Vc_CAT2
-#undef unrolled_loop16
-#undef for_all_vector_entries
 #undef FREE_STORE_OPERATORS_ALIGNED
 
 #ifdef Vc_EXTERNAL_ASSERT

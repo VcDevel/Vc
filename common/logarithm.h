@@ -138,9 +138,7 @@ struct LogImpl
             + C::P(5) * x6  + C::P(6) * x5  + C::P(7) * x4 + C::P(8) * x3;
 #else
         V y = C::P(0);
-        unrolled_loop16(i, 1, 9,
-                y = y * x + C::P(i);
-                );
+        Vc::Common::unrolled_loop<int, 1, 9>([&](int i) { y = y * x + C::P(i); });
         y *= x * x2;
 #endif
         switch (Base) {
@@ -180,10 +178,10 @@ static Vc_ALWAYS_INLINE void log_series(Vector<double, Abi> &Vc_RESTRICT x,
         const V x2 = x * x;
         V y = C::P(0);
         V y2 = C::Q(0) + x;
-        unrolled_loop16(i, 1, 5,
-                y = y * x + C::P(i);
-                y2 = y2 * x + C::Q(i);
-                );
+        Vc::Common::unrolled_loop<int, 1, 5>([&](int i) {
+            y = y * x + C::P(i);
+            y2 = y2 * x + C::Q(i);
+        });
         y2 = x / y2;
         y = y * x + C::P(5);
         y = x2 * y * y2;

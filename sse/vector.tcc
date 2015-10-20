@@ -132,7 +132,7 @@ template<typename T> inline Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>
     if (SSE::VectorTraits<T>::HasVectorDivision) {
         return operator/=(Vector<T, VectorAbi::Sse>(x));
     }
-    for_all_vector_entries(i, { d.set(i, d.m(i) / x); });
+    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x); });
     return *this;
 }
 
@@ -140,16 +140,15 @@ template <typename T>
 inline Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator/=(
     Vc_ALIGNED_PARAMETER(V<T>) x)
 {
-    for_all_vector_entries(i, { d.set(i, d.m(i) / x.d.m(i)); });
+    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x.d.m(i)); });
     return *this;
 }
 
 template<typename T> inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator/(Vc_ALIGNED_PARAMETER(V<T>) x) const
 {
     Vector<T, VectorAbi::Sse> r;
-    for_all_vector_entries(i,
-            r.d.set(i, d.m(i) / x.d.m(i));
-            );
+    Common::for_all_vector_entries<Size>(
+        [&](size_t i) { r.d.set(i, d.m(i) / x.d.m(i)); });
     return r;
 }
 
@@ -291,16 +290,20 @@ Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, >>, shiftRight)
 
 #define OP_IMPL(T, symbol)                                                               \
     template <>                                                                          \
-    Vc_WORKAROUND Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator symbol##=(Vector<T, VectorAbi::Sse>::AsArg x)           \
+    Vc_WORKAROUND Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::                 \
+    operator symbol##=(Vector<T, VectorAbi::Sse>::AsArg x)                               \
     {                                                                                    \
-        for_all_vector_entries(i, d.set(i, d.m(i) symbol x.d.m(i)););                    \
+        Common::for_all_vector_entries<Size>(                                            \
+            [&](size_t i) { d.set(i, d.m(i) symbol x.d.m(i)); });                        \
         return *this;                                                                    \
     }                                                                                    \
     template <>                                                                          \
-    inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator symbol(Vector<T, VectorAbi::Sse>::AsArg x) const        \
+    inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator symbol( \
+        Vector<T, VectorAbi::Sse>::AsArg x) const                                        \
     {                                                                                    \
-        Vector<T, VectorAbi::Sse> r;                                                                     \
-        for_all_vector_entries(i, r.d.set(i, d.m(i) symbol x.d.m(i)););                  \
+        Vector<T, VectorAbi::Sse> r;                                                     \
+        Common::for_all_vector_entries<Size>(                                            \
+            [&](size_t i) { r.d.set(i, d.m(i) symbol x.d.m(i)); });                      \
         return r;                                                                        \
     }
 OP_IMPL(int, <<)

@@ -142,22 +142,21 @@ template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator
     if (HasVectorDivision) {
         return operator/=(AVX2::Vector<T>(x));
     }
-    for_all_vector_entries(i, { d.set(i, d.m(i) / x); });
+    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x); });
     return *this;
 }
 // per default fall back to scalar division
 template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator/=(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
 {
-    for_all_vector_entries(i, { d.set(i, d.m(i) / x.d.m(i)); });
+    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x.d.m(i)); });
     return *this;
 }
 
 template<typename T> inline Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator/(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x) const
 {
     AVX2::Vector<T> r;
-    for_all_vector_entries(i,
-            r.d.set(i, d.m(i) / x.d.m(i));
-            );
+    Common::for_all_vector_entries<Size>(
+        [&](size_t i) { r.d.set(i, d.m(i) / x.d.m(i)); });
     return r;
 }
 #ifdef Vc_IMPL_AVX2

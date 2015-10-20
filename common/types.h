@@ -321,6 +321,11 @@ Vc_INTRINSIC Vc_FLATTEN enable_if<(Begin < End), void> unrolled_loop(F &&f)
     unrolled_loop<I, Begin + 1, End>(f);
 }
 
+template <std::size_t Size, typename F> Vc_INTRINSIC void for_all_vector_entries(F &&f)
+{
+    unrolled_loop<std::size_t, 0u, Size>(std::forward<F>(f));
+}
+
 }  // namespace Common
 }  // namespace Vc
 
