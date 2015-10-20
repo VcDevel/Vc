@@ -43,8 +43,7 @@ std::uintptr_t addressOf(void *ptr)
 
 void *blackhole = nullptr;
 
-TEST_TYPES(A, alignedbase,
-           (Int<4>, Int<8>, Int<16>, Int<32>, Int<64>, Int<128>, Int<256>))
+TEST_TYPES(A, alignedbase, (Int<4>, Int<8>, Int<16>, Int<32>, Int<64>, Int<128>))
 {
     using T = Foo<A::value>;
     COMPARE(alignof(T), A::value);
