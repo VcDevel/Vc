@@ -47,7 +47,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #if __cplusplus < 201103
-#if (defined Vc_MSVC && Vc_MSVC >= 160000000) || (defined Vc_GCC && Vc_GCC >= 0x40600) || (defined Vc_ICC && Vc_ICC >= 20120731)
+#if (defined Vc_MSVC && Vc_MSVC >= 160000000)
 // these compilers still work, even if they don't define __cplusplus as expected
 #else
 #error "Vc requires support for C++11."
