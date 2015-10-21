@@ -221,15 +221,6 @@ namespace AVX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType reciprocal(VTArg x) {
                 return _mm256_div_pd(one(), x);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType isNaN(VTArg x) {
-                return cmpunord_pd(x, x);
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType isFinite(VTArg x) {
-                return cmpord_pd(x, _mm256_mul_pd(zero(), x));
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType isInfinite(VectorType x) {
-                return _mm256_castsi256_pd(cmpeq_epi64(_mm256_castpd_si256(abs(x)), _mm256_castpd_si256(set1_pd(c_log<double>::d(1)))));
-            }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(VTArg a) {
                 return Vc_CAT2(_mm256_and_, Vc_SUFFIX)(a, setabsmask_pd());
             }
@@ -305,15 +296,6 @@ namespace AVX
             Vc_OPcmp(le) Vc_OPcmp(nle)
 
             Vc_OP1(sqrt) Vc_OP1(rsqrt)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType isNaN(VTArg x) {
-                return cmpunord_ps(x, x);
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType isFinite(VTArg x) {
-                return cmpord_ps(x, _mm256_mul_ps(zero(), x));
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType isInfinite(VectorType x) {
-                return _mm256_castsi256_ps(cmpeq_epi32(_mm256_castps_si256(abs(x)), _mm256_castps_si256(set1_ps(c_log<float>::d(1)))));
-            }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType reciprocal(VTArg x) {
                 return _mm256_rcp_ps(x);
             }

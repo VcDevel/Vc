@@ -79,30 +79,6 @@ Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> round(const AVX2::Vector<T> &x)
     return AVX::VectorHelper<T>::round(x.data());
 }
 
-// isfinite {{{1
-template <typename T>
-Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isfinite(
-    const AVX2::Vector<T> &x)
-{
-    return AVX::VectorHelper<T>::isFinite(x.data());
-}
-
-// isinf {{{1
-template <typename T>
-Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isinf(
-    const AVX2::Vector<T> &x)
-{
-    return AVX::VectorHelper<T>::isInfinite(x.data());
-}
-
-// isnan {{{1
-template <typename T>
-Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isnan(
-    const AVX2::Vector<T> &x)
-{
-    return AVX::VectorHelper<T>::isNaN(x.data());
-}
-
 // abs {{{1
 Vc_INTRINSIC Vc_CONST AVX2::double_v abs(AVX2::double_v x)
 {
@@ -122,6 +98,43 @@ Vc_INTRINSIC Vc_CONST AVX2::short_v abs(AVX2::short_v x)
     return _mm256_abs_epi16(x.data());
 }
 #endif
+
+// isfinite {{{1
+Vc_ALWAYS_INLINE Vc_PURE AVX2::double_m isfinite(const AVX2::double_v &x)
+{
+    return AVX::cmpord_pd(x.data(), _mm256_mul_pd(Detail::zero<__m256d>(), x.data()));
+}
+
+Vc_ALWAYS_INLINE Vc_PURE AVX2::float_m isfinite(const AVX2::float_v &x)
+{
+    return AVX::cmpord_ps(x.data(), _mm256_mul_ps(Detail::zero<__m256>(), x.data()));
+}
+
+// isinf {{{1
+Vc_ALWAYS_INLINE Vc_PURE AVX2::double_m isinf(const AVX2::double_v &x)
+{
+    return _mm256_castsi256_pd(AVX::cmpeq_epi64(
+        _mm256_castpd_si256(abs(x).data()),
+        _mm256_castpd_si256(Detail::avx_broadcast(AVX::c_log<double>::d(1)))));
+}
+
+Vc_ALWAYS_INLINE Vc_PURE AVX2::float_m isinf(const AVX2::float_v &x)
+{
+    return _mm256_castsi256_ps(
+        AVX::cmpeq_epi32(_mm256_castps_si256(abs(x).data()),
+                         _mm256_castps_si256(Detail::avx_broadcast(AVX::c_log<float>::d(1)))));
+}
+
+// isnan {{{1
+Vc_ALWAYS_INLINE Vc_PURE AVX2::double_m isnan(const AVX2::double_v &x)
+{
+    return AVX::cmpunord_pd(x.data(), x.data());
+}
+
+Vc_ALWAYS_INLINE Vc_PURE AVX2::float_m isnan(const AVX2::float_v &x)
+{
+    return AVX::cmpunord_ps(x.data(), x.data());
+}
 
 // copysign {{{1
 template <typename T>
