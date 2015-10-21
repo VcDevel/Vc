@@ -35,6 +35,75 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+// min & max {{{1
+#ifdef Vc_IMPL_AVX2
+Vc_ALWAYS_INLINE AVX2::int_v    min(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm256_min_epi32(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::uint_v   min(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm256_min_epu32(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::short_v  min(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm256_min_epi16(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::ushort_v min(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm256_min_epu16(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::int_v    max(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm256_max_epi32(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::uint_v   max(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm256_max_epu32(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::short_v  max(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm256_max_epi16(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::ushort_v max(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm256_max_epu16(x.data(), y.data()); }
+#endif
+Vc_ALWAYS_INLINE AVX2::float_v  min(const AVX2::float_v  &x, const AVX2::float_v  &y) { return _mm256_min_ps(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::double_v min(const AVX2::double_v &x, const AVX2::double_v &y) { return _mm256_min_pd(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::float_v  max(const AVX2::float_v  &x, const AVX2::float_v  &y) { return _mm256_max_ps(x.data(), y.data()); }
+Vc_ALWAYS_INLINE AVX2::double_v max(const AVX2::double_v &x, const AVX2::double_v &y) { return _mm256_max_pd(x.data(), y.data()); }
+
+// sqrt {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> sqrt(const AVX2::Vector<T> &x)
+{
+    return AVX::VectorHelper<T>::sqrt(x.data());
+}
+
+// rsqrt {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> rsqrt(const AVX2::Vector<T> &x)
+{
+    return AVX::VectorHelper<T>::rsqrt(x.data());
+}
+
+// reciprocal {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> reciprocal(const AVX2::Vector<T> &x)
+{
+    return AVX::VectorHelper<T>::reciprocal(x.data());
+}
+
+// round {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> round(const AVX2::Vector<T> &x)
+{
+    return AVX::VectorHelper<T>::round(x.data());
+}
+
+// isfinite {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isfinite(
+    const AVX2::Vector<T> &x)
+{
+    return AVX::VectorHelper<T>::isFinite(x.data());
+}
+
+// isinf {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isinf(
+    const AVX2::Vector<T> &x)
+{
+    return AVX::VectorHelper<T>::isInfinite(x.data());
+}
+
+// isnan {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isnan(
+    const AVX2::Vector<T> &x)
+{
+    return AVX::VectorHelper<T>::isNaN(x.data());
+}
+
+// abs {{{1
 Vc_INTRINSIC Vc_CONST AVX2::double_v abs(AVX2::double_v x)
 {
     return Detail::and_(x.data(), AVX::setabsmask_pd());
@@ -53,11 +122,15 @@ Vc_INTRINSIC Vc_CONST AVX2::short_v abs(AVX2::short_v x)
     return _mm256_abs_epi16(x.data());
 }
 #endif
+
+// copysign {{{1
 template <typename T>
 Vc_INTRINSIC AVX2::Vector<T> copysign(AVX2::Vector<T> a, AVX2::Vector<T> b)
 {
     return a.copySign(b);
 }
+
+// frexp {{{1
 /**
  * splits \p v into exponent and mantissa, the sign is kept with the mantissa
  *
@@ -111,53 +184,66 @@ inline AVX2::float_v frexp(AVX2::float_v::AsArg v, AVX2::float_v::IndexType *e)
     return ret;
 }
 
+// ldexp {{{1
 /*             -> x * 2^e
  * x == NaN    -> NaN
  * x == (-)inf -> (-)inf
  */
-inline AVX2::double_v ldexp(AVX2::double_v::AsArg v, const SimdArray<int, 4, SSE::int_v, 4> &_e)
+inline AVX2::double_v ldexp(AVX2::double_v::AsArg v,
+                            const SimdArray<int, 4, SSE::int_v, 4> &_e)
 {
     SSE::int_v e = internal_data(_e);
     e.setZero(SSE::int_m{v == AVX2::double_v::Zero()});
-    const __m256i exponentBits = AVX::concat(_mm_slli_epi64(_mm_unpacklo_epi32(e.data(), e.data()), 52),
-                                      _mm_slli_epi64(_mm_unpackhi_epi32(e.data(), e.data()), 52));
-    return AVX::avx_cast<__m256d>(AVX::add_epi64(AVX::avx_cast<__m256i>(v.data()), exponentBits));
+    const __m256i exponentBits =
+        AVX::concat(_mm_slli_epi64(_mm_unpacklo_epi32(e.data(), e.data()), 52),
+                    _mm_slli_epi64(_mm_unpackhi_epi32(e.data(), e.data()), 52));
+    return AVX::avx_cast<__m256d>(
+        AVX::add_epi64(AVX::avx_cast<__m256i>(v.data()), exponentBits));
 }
 inline AVX2::float_v ldexp(AVX2::float_v::AsArg v, SimdArray<int, 8, SSE::int_v, 4> e)
 {
     e.setZero(static_cast<decltype(e == e)>(v == AVX2::float_v::Zero()));
     e <<= 23;
     return {AVX::avx_cast<__m256>(
-        AVX::concat(_mm_add_epi32(AVX::avx_cast<__m128i>(AVX::lo128(v.data())), internal_data(internal_data0(e)).data()),
-               _mm_add_epi32(AVX::avx_cast<__m128i>(AVX::hi128(v.data())), internal_data(internal_data1(e)).data())))};
+        AVX::concat(_mm_add_epi32(AVX::avx_cast<__m128i>(AVX::lo128(v.data())),
+                                  internal_data(internal_data0(e)).data()),
+                    _mm_add_epi32(AVX::avx_cast<__m128i>(AVX::hi128(v.data())),
+                                  internal_data(internal_data1(e)).data())))};
 }
 
-static Vc_ALWAYS_INLINE AVX2::float_v trunc(AVX2::float_v::AsArg v)
+// trunc {{{1
+Vc_ALWAYS_INLINE AVX2::float_v trunc(AVX2::float_v::AsArg v)
 {
     return _mm256_round_ps(v.data(), 0x3);
 }
-static Vc_ALWAYS_INLINE AVX2::double_v trunc(AVX2::double_v::AsArg v)
+Vc_ALWAYS_INLINE AVX2::double_v trunc(AVX2::double_v::AsArg v)
 {
     return _mm256_round_pd(v.data(), 0x3);
 }
 
-static Vc_ALWAYS_INLINE AVX2::float_v floor(AVX2::float_v::AsArg v)
+// floor {{{1
+Vc_ALWAYS_INLINE AVX2::float_v floor(AVX2::float_v::AsArg v)
 {
     return _mm256_floor_ps(v.data());
 }
-static Vc_ALWAYS_INLINE AVX2::double_v floor(AVX2::double_v::AsArg v)
+Vc_ALWAYS_INLINE AVX2::double_v floor(AVX2::double_v::AsArg v)
 {
     return _mm256_floor_pd(v.data());
 }
 
-static Vc_ALWAYS_INLINE AVX2::float_v ceil(AVX2::float_v::AsArg v)
+// ceil {{{1
+Vc_ALWAYS_INLINE AVX2::float_v ceil(AVX2::float_v::AsArg v)
 {
     return _mm256_ceil_ps(v.data());
 }
-static Vc_ALWAYS_INLINE AVX2::double_v ceil(AVX2::double_v::AsArg v)
+Vc_ALWAYS_INLINE AVX2::double_v ceil(AVX2::double_v::AsArg v)
 {
     return _mm256_ceil_pd(v.data());
 }
+
+// }}}1
 }  // namespace Vc
 
 #endif // VC_AVX_MATH_H_
+
+// vim: foldmethod=marker

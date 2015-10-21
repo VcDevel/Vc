@@ -430,30 +430,6 @@ static_assert(Traits::is_simd_mask  <AVX2:: short_m>::value, "is_simd_mask  < sh
 static_assert(Traits::is_simd_mask  <AVX2::ushort_m>::value, "is_simd_mask  <ushort_m>::value");
 
 #ifdef Vc_IMPL_AVX2
-static Vc_ALWAYS_INLINE AVX2::int_v    min(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm256_min_epi32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::uint_v   min(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm256_min_epu32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::short_v  min(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm256_min_epi16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::ushort_v min(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm256_min_epu16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::int_v    max(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm256_max_epi32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::uint_v   max(const AVX2::uint_v   &x, const AVX2::uint_v   &y) { return _mm256_max_epu32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::short_v  max(const AVX2::short_v  &x, const AVX2::short_v  &y) { return _mm256_max_epi16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::ushort_v max(const AVX2::ushort_v &x, const AVX2::ushort_v &y) { return _mm256_max_epu16(x.data(), y.data()); }
-#endif
-static Vc_ALWAYS_INLINE AVX2::float_v  min(const AVX2::float_v  &x, const AVX2::float_v  &y) { return _mm256_min_ps(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::double_v min(const AVX2::double_v &x, const AVX2::double_v &y) { return _mm256_min_pd(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::float_v  max(const AVX2::float_v  &x, const AVX2::float_v  &y) { return _mm256_max_ps(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE AVX2::double_v max(const AVX2::double_v &x, const AVX2::double_v &y) { return _mm256_max_pd(x.data(), y.data()); }
-
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> sqrt (const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::sqrt(x.data()); }
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> rsqrt(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::rsqrt(x.data()); }
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> reciprocal(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::reciprocal(x.data()); }
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> round(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::round(x.data()); }
-
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isfinite(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isFinite(x.data()); }
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isinf(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isInfinite(x.data()); }
-  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Avx>::Mask isnan(const AVX2::Vector<T> &x) { return AVX::VectorHelper<T>::isNaN(x.data()); }
-
-#ifdef Vc_IMPL_AVX2
 static_assert(!std::is_convertible<float *, AVX2::short_v>::value, "A float* should never implicitly convert to short_v. Something is broken.");
 static_assert(!std::is_convertible<int *  , AVX2::short_v>::value, "An int* should never implicitly convert to short_v. Something is broken.");
 static_assert(!std::is_convertible<short *, AVX2::short_v>::value, "A short* should never implicitly convert to short_v. Something is broken.");
