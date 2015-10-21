@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef COMMON_ALGORITHMS_H
-#define COMMON_ALGORITHMS_H
+#ifndef VC_COMMON_ALGORITHMS_H_
+#define VC_COMMON_ALGORITHMS_H_
 
 #include "macros.h"
 
@@ -143,4 +143,4 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 //@}
 }  // namespace Vc
 
-#endif // COMMON_ALGORITHMS_H
+#endif // VC_COMMON_ALGORITHMS_H_

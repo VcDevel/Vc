@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef SSE_CASTS_H
-#define SSE_CASTS_H
+#ifndef VC_SSE_CASTS_H_
+#define VC_SSE_CASTS_H_
 
 #include "intrinsics.h"
 #include "types.h"
@@ -144,6 +144,6 @@ Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, ushort>) { return con
 }  // namespace SSE
 }  // namespace Vc
 
-#endif // SSE_CASTS_H
+#endif // VC_SSE_CASTS_H_
 
 // vim: foldmethod=marker

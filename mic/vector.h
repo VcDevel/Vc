@@ -254,17 +254,17 @@ public:
     Vc_ALWAYS_INLINE_L Vector  operator<< (unsigned int x) const Vc_ALWAYS_INLINE_R;
     Vc_ALWAYS_INLINE_L Vector  operator>> (unsigned int x) const Vc_ALWAYS_INLINE_R;
 
-#define OPcmp(symbol, fun) \
+#define Vc_OPcmp(symbol, fun) \
     Vc_ALWAYS_INLINE Mask operator symbol(AsArg x) const { return HT::fun(d.v(), x.d.v()); }
 
     // ushort_v specializations are in vector.tcc!
-    OPcmp(==, cmpeq)
-    OPcmp(!=, cmpneq)
-    OPcmp(>=, cmpnlt)
-    OPcmp(>, cmpnle)
-    OPcmp(<, cmplt)
-    OPcmp(<=, cmple)
-#undef OPcmp
+    Vc_OPcmp(==, cmpeq)
+    Vc_OPcmp(!=, cmpneq)
+    Vc_OPcmp(>=, cmpnlt)
+    Vc_OPcmp(>, cmpnle)
+    Vc_OPcmp(<, cmplt)
+    Vc_OPcmp(<=, cmple)
+#undef Vc_OPcmp
     Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_INTRINSIC_R Vc_PURE_R;
 
     Vc_INTRINSIC void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
@@ -387,27 +387,27 @@ Vc_ALWAYS_INLINE Vc_PURE MIC::Vector<T> abs(MIC::Vector<T> x)
     return MIC::VectorHelper<typename MIC::Vector<T>::VectorEntryType>::abs(x.data());
 }
 
-#define MATH_OP1(name, call) \
-    template<typename T> static Vc_ALWAYS_INLINE Vector<T> name(const Vector<T> &x) \
-    { \
-        typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT; \
-        return HT::call(x.data()); \
+#define Vc_MATH_OP1(name, call)                                                          \
+    template <typename T> static Vc_ALWAYS_INLINE Vector<T> name(const Vector<T> &x)     \
+    {                                                                                    \
+        typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT;               \
+        return HT::call(x.data());                                                       \
     }
-    MATH_OP1(sqrt, sqrt)
-    MATH_OP1(rsqrt, rsqrt)
-    MATH_OP1(sin, sin)
-    MATH_OP1(cos, cos)
-    MATH_OP1(log, log)
-    MATH_OP1(log2, log2)
-    MATH_OP1(log10, log10)
-    MATH_OP1(atan, atan)
-    MATH_OP1(reciprocal, recip)
-    MATH_OP1(round, round)
-    MATH_OP1(asin, asin)
-    MATH_OP1(floor, floor)
-    MATH_OP1(ceil, ceil)
-    MATH_OP1(exp, exp)
-#undef MATH_OP1
+    Vc_MATH_OP1(sqrt, sqrt)
+    Vc_MATH_OP1(rsqrt, rsqrt)
+    Vc_MATH_OP1(sin, sin)
+    Vc_MATH_OP1(cos, cos)
+    Vc_MATH_OP1(log, log)
+    Vc_MATH_OP1(log2, log2)
+    Vc_MATH_OP1(log10, log10)
+    Vc_MATH_OP1(atan, atan)
+    Vc_MATH_OP1(reciprocal, recip)
+    Vc_MATH_OP1(round, round)
+    Vc_MATH_OP1(asin, asin)
+    Vc_MATH_OP1(floor, floor)
+    Vc_MATH_OP1(ceil, ceil)
+    Vc_MATH_OP1(exp, exp)
+#undef Vc_MATH_OP1
 
     template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos) {
         typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT; \

@@ -51,7 +51,7 @@ CpuId::ushort CpuId::s_L3DataLineSize = 0;
 CpuId::uint   CpuId::s_L1Associativity = 0;
 CpuId::uint   CpuId::s_L2Associativity = 0;
 CpuId::uint   CpuId::s_L3Associativity = 0;
-CpuId::ushort CpuId::s_prefetch = 32; // The Intel ORM says that if CPUID(2) doesn't set the prefetch size it is 32
+CpuId::ushort CpuId::s_prefetch = 32; // The Intel ORM says that if Vc_CPUID(2) doesn't set the prefetch size it is 32
 CpuId::uchar  CpuId::s_brandIndex = 0;
 CpuId::uchar  CpuId::s_cacheLineSize = 0;
 CpuId::uchar  CpuId::s_processorModel = 0;
@@ -67,7 +67,7 @@ bool   CpuId::s_noL2orL3 = false;
 namespace Vc_VERSIONED_NAMESPACE
 {
 
-#define CPUID(leaf) \
+#define Vc_CPUID(leaf) \
     do { \
         int out[4]; \
         __cpuid(out, leaf); \
@@ -76,7 +76,7 @@ namespace Vc_VERSIONED_NAMESPACE
         ecx = out[2]; \
         edx = out[3]; \
     } while (false)
-#define CPUID_C(leaf, ecx__) \
+#define Vc_CPUID_C(leaf, ecx__) \
     do { \
         int out[4]; \
         __cpuidex(out, leaf, ecx__); \
@@ -98,16 +98,16 @@ static inline void _Vc_cpuid(int leaf, unsigned int &eax, unsigned int &ebx, uns
         : [leaf] "a"(leaf)
       );
 }
-#define CPUID(leaf) \
+#define Vc_CPUID(leaf) \
     ecx = 0; \
     _Vc_cpuid(leaf, eax, ebx, ecx, edx)
-#define CPUID_C(leaf, ecx__) \
+#define Vc_CPUID_C(leaf, ecx__) \
     ecx = ecx__; \
     _Vc_cpuid(leaf, eax, ebx, ecx, edx)
 #else
-#define CPUID(leaf) \
+#define Vc_CPUID(leaf) \
     __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf))
-#define CPUID_C(leaf, ecx__) \
+#define Vc_CPUID_C(leaf, ecx__) \
     __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf), "c"(ecx__))
 #endif
 static unsigned int CpuIdAmdAssociativityTable(int bits)
@@ -138,10 +138,10 @@ void CpuId::init()
     }
     uint eax, ebx, ecx, edx;
 
-    CPUID(0);
+    Vc_CPUID(0);
     s_ecx0 = ecx;
 
-    CPUID(1);
+    Vc_CPUID(1);
     s_processorFeaturesC = ecx;
     s_processorFeaturesD = edx;
     s_processorModel  = (eax & 0x000000f0) >> 4;
@@ -175,25 +175,25 @@ void CpuId::init()
     ebx >>= 8;
     s_logicalProcessors = ebx & 0xff;
 
-    CPUID_C(7, 0);
+    Vc_CPUID_C(7, 0);
     s_processorFeatures7B = ebx;
     s_processorFeatures7C = ecx;
 
-    CPUID(0x80000001);
+    Vc_CPUID(0x80000001);
     s_processorFeatures8C = ecx;
     s_processorFeatures8D = edx;
 
     if (isAmd()) {
         s_prefetch = cacheLineSize();
 
-        CPUID(0x80000005);
+        Vc_CPUID(0x80000005);
         s_L1DataLineSize = ecx & 0xff;
         s_L1Data = (ecx >> 24) * 1024;
         s_L1Associativity = (ecx >> 16) & 0xff;
         s_L1InstructionLineSize = edx & 0xff;
         s_L1Instruction = (edx >> 24) * 1024;
 
-        CPUID(0x80000006);
+        Vc_CPUID(0x80000006);
         s_L2DataLineSize = ecx & 0xff;
         s_L2Data = (ecx >> 16) * 1024;
         s_L2Associativity = CpuIdAmdAssociativityTable((ecx >> 12) & 0xf);
@@ -207,7 +207,7 @@ void CpuId::init()
     int repeat = 0;
     bool checkLeaf4 = false;
     do {
-        CPUID(2);
+        Vc_CPUID(2);
         if (repeat == 0) {
             if (eax == 0 && ebx == 0 && ecx == 0 && edx == 0) {
                 // this is the case on MIC
@@ -248,7 +248,7 @@ void CpuId::init()
         }
         eax = 1;
         for (int i = 0; eax & 0x1f; ++i) {
-            CPUID_C(4, i);
+            Vc_CPUID_C(4, i);
             const int cacheLevel = (eax >> 5) & 7;
             //const int sharedBy = 1 + ((eax >> 14) & 0xfff);
             const int linesize = 1 + (ebx & 0xfff);   ebx >>= 12;
@@ -636,7 +636,7 @@ void CpuId::interpret(uchar byte, bool *checkLeaf4)
         s_prefetch = 128;
         break;
     case 0xFF:
-        // we have to use CPUID(4) to find out
+        // we have to use Vc_CPUID(4) to find out
         *checkLeaf4 = true;
         break;
     default:

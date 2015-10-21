@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef SCALAR_VECTOR_H
-#define SCALAR_VECTOR_H
+#ifndef VC_SCALAR_VECTOR_H_
+#define VC_SCALAR_VECTOR_H_
 
 #include <assert.h>
 #include <algorithm>
@@ -165,23 +165,23 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         }
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
 
-#define OPshift(symbol) \
+#define Vc_OP(symbol) \
         Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { m_data symbol##= x.m_data; return *this; } \
         Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
-        Vc_ALL_SHIFTS(OPshift)
-#undef OPshift
+        Vc_ALL_SHIFTS(Vc_OP)
+#undef Vc_OP
 
-#define OP(symbol) \
+#define Vc_OP(symbol) \
         Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { m_data symbol##= x.m_data; return *this; } \
         Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
-        Vc_ALL_ARITHMETICS(OP)
-        Vc_ALL_BINARY(OP)
-#undef OP
+        Vc_ALL_ARITHMETICS(Vc_OP)
+        Vc_ALL_BINARY(Vc_OP)
+#undef Vc_OP
 
-#define OPcmp(symbol) \
+#define Vc_OP(symbol) \
         Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const { return Mask(m_data symbol x.m_data); }
-        Vc_ALL_COMPARES(OPcmp)
-#undef OPcmp
+        Vc_ALL_COMPARES(Vc_OP)
+#undef Vc_OP
 
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
@@ -324,4 +324,4 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs)
 #include "vector.tcc"
 #include "simd_cast.h"
 
-#endif // SCALAR_VECTOR_H
+#endif // VC_SCALAR_VECTOR_H_

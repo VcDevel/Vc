@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef AVX_CASTS_H
-#define AVX_CASTS_H
+#ifndef VC_AVX_CASTS_H_
+#define VC_AVX_CASTS_H_
 
 #include "intrinsics.h"
 #include "types.h"
@@ -273,4 +273,4 @@ Vc_INTRINSIC auto convert(typename AVX::VectorTypeHelper<From>::Type v)
 }  // namespace AVX
 }  // namespace Vc
 
-#endif // AVX_CASTS_H
+#endif // VC_AVX_CASTS_H_

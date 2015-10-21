@@ -35,9 +35,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace std
 {
-#define _VC_NUM_LIM(T, _max, _min)                                                       \
-    template <> struct numeric_limits<Vc::AVX2::Vector<T>> : public numeric_limits<T>    \
-    {                                                                                    \
+#define Vc_NUM_LIM(T, _max, _min)                                                        \
+    template <> struct numeric_limits<Vc::AVX2::Vector<T>> : public numeric_limits<T> {  \
         static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> max() Vc_NOEXCEPT               \
         {                                                                                \
             return _max;                                                                 \
@@ -77,12 +76,12 @@ namespace std
     }
 
 #ifdef Vc_IMPL_AVX2
-_VC_NUM_LIM(unsigned short, Vc::Detail::allone<__m256i>(), Vc::Detail::zero<__m256i>());
-_VC_NUM_LIM(         short, _mm256_srli_epi16(Vc::Detail::allone<__m256i>(), 1), Vc::AVX::setmin_epi16());
-_VC_NUM_LIM(  unsigned int, Vc::Detail::allone<__m256i>(), Vc::Detail::zero<__m256i>());
-_VC_NUM_LIM(           int, _mm256_srli_epi32(Vc::Detail::allone<__m256i>(), 1), Vc::AVX::setmin_epi32());
+Vc_NUM_LIM(unsigned short, Vc::Detail::allone<__m256i>(), Vc::Detail::zero<__m256i>());
+Vc_NUM_LIM(         short, _mm256_srli_epi16(Vc::Detail::allone<__m256i>(), 1), Vc::AVX::setmin_epi16());
+Vc_NUM_LIM(  unsigned int, Vc::Detail::allone<__m256i>(), Vc::Detail::zero<__m256i>());
+Vc_NUM_LIM(           int, _mm256_srli_epi32(Vc::Detail::allone<__m256i>(), 1), Vc::AVX::setmin_epi32());
 #endif
-#undef _VC_NUM_LIM
+#undef Vc_NUM_LIM
 
 } // namespace std
 

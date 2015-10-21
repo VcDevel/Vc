@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef SSE_INTRINSICS_H
-#define SSE_INTRINSICS_H
+#ifndef VC_SSE_INTRINSICS_H_
+#define VC_SSE_INTRINSICS_H_
 
 #include "../common/windows_fix_intrin.h"
 
@@ -758,4 +758,4 @@ template <typename T> struct VectorHelperSize;
 
 #include "shuffle.h"
 
-#endif // SSE_INTRINSICS_H
+#endif // VC_SSE_INTRINSICS_H_

@@ -242,24 +242,24 @@ namespace AvxIntrinsics
 #endif
 
 #ifdef Vc_IMPL_AVX2
-#define AVX_TO_SSE_2_NEW(name)                                                           \
-    Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m256i b0)                         \
+#define Vc_AVX_TO_SSE_2_NEW(name)                                                        \
+    Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m256i b0)                             \
     {                                                                                    \
         return _mm256_##name(a0, b0);                                                    \
     }
-#define AVX_TO_SSE_256_128(name)                                                         \
-    Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m128i b0)                         \
+#define Vc_AVX_TO_SSE_256_128(name)                                                      \
+    Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m128i b0)                             \
     {                                                                                    \
         return _mm256_##name(a0, b0);                                                    \
     }
-#define AVX_TO_SSE_1i(name)                                                              \
-    template <int i> Vc_INTRINSIC Vc_CONST m256i name(__m256i a0)                      \
+#define Vc_AVX_TO_SSE_1i(name)                                                           \
+    template <int i> Vc_INTRINSIC Vc_CONST m256i name(__m256i a0)                        \
     {                                                                                    \
         return _mm256_##name(a0, i);                                                     \
     }
-#define AVX_TO_SSE_1(name)                                                               \
+#define Vc_AVX_TO_SSE_1(name)                                                            \
     Vc_INTRINSIC Vc_CONST __m256i name(__m256i a0) { return _mm256_##name(a0); }
-#define AVX_TO_SSE_1_128(name, shift__)                                                  \
+#define Vc_AVX_TO_SSE_1_128(name, shift__)                                               \
     Vc_INTRINSIC Vc_CONST __m256i name(__m128i a0) { return _mm256_##name(a0); }
 #else
 /**\internal
@@ -269,45 +269,45 @@ namespace AvxIntrinsics
  * In case the AVX2 intrinsics are enabled, the arguments are directly passed to a single
  * `_mm256_##name` call.
  */
-#define AVX_TO_SSE_1(name)                                                               \
+#define Vc_AVX_TO_SSE_1(name)                                                            \
     Vc_INTRINSIC Vc_CONST __m256i name(__m256i a0)                                       \
     {                                                                                    \
-        __m128i a1 = extract128<1>(a0);                                    \
+        __m128i a1 = extract128<1>(a0);                                                  \
         __m128i r0 = _mm_##name(_mm256_castsi256_si128(a0));                             \
         __m128i r1 = _mm_##name(a1);                                                     \
-        return insert128<1>(_mm256_castsi128_si256(r0), r1);               \
+        return insert128<1>(_mm256_castsi128_si256(r0), r1);                             \
     }
-#define AVX_TO_SSE_1_128(name, shift__)                                                  \
+#define Vc_AVX_TO_SSE_1_128(name, shift__)                                               \
     Vc_INTRINSIC Vc_CONST __m256i name(__m128i a0)                                       \
     {                                                                                    \
         __m128i r0 = _mm_##name(a0);                                                     \
         __m128i r1 = _mm_##name(_mm_srli_si128(a0, shift__));                            \
-        return insert128<1>(_mm256_castsi128_si256(r0), r1);               \
+        return insert128<1>(_mm256_castsi128_si256(r0), r1);                             \
     }
-#define AVX_TO_SSE_2_NEW(name)                                                           \
-    Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m256i b0)                         \
+#define Vc_AVX_TO_SSE_2_NEW(name)                                                        \
+    Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m256i b0)                             \
     {                                                                                    \
-        m128i a1 = extract128<1>(a0);                                      \
-        m128i b1 = extract128<1>(b0);                                      \
+        m128i a1 = extract128<1>(a0);                                                    \
+        m128i b1 = extract128<1>(b0);                                                    \
         m128i r0 = _mm_##name(_mm256_castsi256_si128(a0), _mm256_castsi256_si128(b0));   \
         m128i r1 = _mm_##name(a1, b1);                                                   \
-        return insert128<1>(_mm256_castsi128_si256(r0), r1);               \
+        return insert128<1>(_mm256_castsi128_si256(r0), r1);                             \
     }
-#define AVX_TO_SSE_256_128(name)                                                         \
-    Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m128i b0)                         \
+#define Vc_AVX_TO_SSE_256_128(name)                                                      \
+    Vc_INTRINSIC Vc_CONST m256i name(__m256i a0, __m128i b0)                             \
     {                                                                                    \
-        m128i a1 = extract128<1>(a0);                                      \
+        m128i a1 = extract128<1>(a0);                                                    \
         m128i r0 = _mm_##name(_mm256_castsi256_si128(a0), b0);                           \
         m128i r1 = _mm_##name(a1, b0);                                                   \
-        return insert128<1>(_mm256_castsi128_si256(r0), r1);               \
+        return insert128<1>(_mm256_castsi128_si256(r0), r1);                             \
     }
-#define AVX_TO_SSE_1i(name)                                                              \
-    template <int i> Vc_INTRINSIC Vc_CONST m256i name(__m256i a0)                      \
+#define Vc_AVX_TO_SSE_1i(name)                                                           \
+    template <int i> Vc_INTRINSIC Vc_CONST m256i name(__m256i a0)                        \
     {                                                                                    \
-        m128i a1 = extract128<1>(a0);                                      \
+        m128i a1 = extract128<1>(a0);                                                    \
         m128i r0 = _mm_##name(_mm256_castsi256_si128(a0), i);                            \
         m128i r1 = _mm_##name(a1, i);                                                    \
-        return insert128<1>(_mm256_castsi128_si256(r0), r1);               \
+        return insert128<1>(_mm256_castsi128_si256(r0), r1);                             \
     }
 #endif
     Vc_INTRINSIC Vc_CONST __m128i sll_epi16(__m128i a, __m128i b) { return _mm_sll_epi16(a, b); }
@@ -319,125 +319,125 @@ namespace AvxIntrinsics
     Vc_INTRINSIC Vc_CONST __m128i sra_epi16(__m128i a, __m128i b) { return _mm_sra_epi16(a, b); }
     Vc_INTRINSIC Vc_CONST __m128i sra_epi32(__m128i a, __m128i b) { return _mm_sra_epi32(a, b); }
 
-    AVX_TO_SSE_1i(slli_epi16)
-    AVX_TO_SSE_1i(slli_epi32)
-    AVX_TO_SSE_1i(slli_epi64)
-    AVX_TO_SSE_1i(srai_epi16)
-    AVX_TO_SSE_1i(srai_epi32)
-    AVX_TO_SSE_1i(srli_epi16)
-    AVX_TO_SSE_1i(srli_epi32)
-    AVX_TO_SSE_1i(srli_epi64)
+    Vc_AVX_TO_SSE_1i(slli_epi16)
+    Vc_AVX_TO_SSE_1i(slli_epi32)
+    Vc_AVX_TO_SSE_1i(slli_epi64)
+    Vc_AVX_TO_SSE_1i(srai_epi16)
+    Vc_AVX_TO_SSE_1i(srai_epi32)
+    Vc_AVX_TO_SSE_1i(srli_epi16)
+    Vc_AVX_TO_SSE_1i(srli_epi32)
+    Vc_AVX_TO_SSE_1i(srli_epi64)
 
-    AVX_TO_SSE_256_128(sll_epi16)
-    AVX_TO_SSE_256_128(sll_epi32)
-    AVX_TO_SSE_256_128(sll_epi64)
-    AVX_TO_SSE_256_128(srl_epi16)
-    AVX_TO_SSE_256_128(srl_epi32)
-    AVX_TO_SSE_256_128(srl_epi64)
-    AVX_TO_SSE_256_128(sra_epi16)
-    AVX_TO_SSE_256_128(sra_epi32)
+    Vc_AVX_TO_SSE_256_128(sll_epi16)
+    Vc_AVX_TO_SSE_256_128(sll_epi32)
+    Vc_AVX_TO_SSE_256_128(sll_epi64)
+    Vc_AVX_TO_SSE_256_128(srl_epi16)
+    Vc_AVX_TO_SSE_256_128(srl_epi32)
+    Vc_AVX_TO_SSE_256_128(srl_epi64)
+    Vc_AVX_TO_SSE_256_128(sra_epi16)
+    Vc_AVX_TO_SSE_256_128(sra_epi32)
 
-    AVX_TO_SSE_2_NEW(cmpeq_epi8)
-    AVX_TO_SSE_2_NEW(cmpeq_epi16)
-    AVX_TO_SSE_2_NEW(cmpeq_epi32)
-    AVX_TO_SSE_2_NEW(cmpeq_epi64)
-    AVX_TO_SSE_2_NEW(cmpgt_epi8)
-    AVX_TO_SSE_2_NEW(cmpgt_epi16)
-    AVX_TO_SSE_2_NEW(cmpgt_epi32)
-    AVX_TO_SSE_2_NEW(cmpgt_epi64)
-    AVX_TO_SSE_2_NEW(packs_epi16)
-    AVX_TO_SSE_2_NEW(packs_epi32)
-    AVX_TO_SSE_2_NEW(packus_epi16)
-    AVX_TO_SSE_2_NEW(unpackhi_epi8)
-    AVX_TO_SSE_2_NEW(unpackhi_epi16)
-    AVX_TO_SSE_2_NEW(unpackhi_epi32)
-    AVX_TO_SSE_2_NEW(unpackhi_epi64)
-    AVX_TO_SSE_2_NEW(unpacklo_epi8)
-    AVX_TO_SSE_2_NEW(unpacklo_epi16)
-    AVX_TO_SSE_2_NEW(unpacklo_epi32)
-    AVX_TO_SSE_2_NEW(unpacklo_epi64)
-    AVX_TO_SSE_2_NEW(add_epi8)
-    AVX_TO_SSE_2_NEW(add_epi16)
-    AVX_TO_SSE_2_NEW(add_epi32)
-    AVX_TO_SSE_2_NEW(add_epi64)
-    AVX_TO_SSE_2_NEW(adds_epi8)
-    AVX_TO_SSE_2_NEW(adds_epi16)
-    AVX_TO_SSE_2_NEW(adds_epu8)
-    AVX_TO_SSE_2_NEW(adds_epu16)
-    AVX_TO_SSE_2_NEW(sub_epi8)
-    AVX_TO_SSE_2_NEW(sub_epi16)
-    AVX_TO_SSE_2_NEW(sub_epi32)
-    AVX_TO_SSE_2_NEW(sub_epi64)
-    AVX_TO_SSE_2_NEW(subs_epi8)
-    AVX_TO_SSE_2_NEW(subs_epi16)
-    AVX_TO_SSE_2_NEW(subs_epu8)
-    AVX_TO_SSE_2_NEW(subs_epu16)
-    AVX_TO_SSE_2_NEW(madd_epi16)
-    AVX_TO_SSE_2_NEW(mulhi_epi16)
-    AVX_TO_SSE_2_NEW(mullo_epi16)
-    AVX_TO_SSE_2_NEW(mul_epu32)
-    AVX_TO_SSE_2_NEW(max_epi16)
-    AVX_TO_SSE_2_NEW(max_epu8)
-    AVX_TO_SSE_2_NEW(min_epi16)
-    AVX_TO_SSE_2_NEW(min_epu8)
-    AVX_TO_SSE_2_NEW(mulhi_epu16)
+    Vc_AVX_TO_SSE_2_NEW(cmpeq_epi8)
+    Vc_AVX_TO_SSE_2_NEW(cmpeq_epi16)
+    Vc_AVX_TO_SSE_2_NEW(cmpeq_epi32)
+    Vc_AVX_TO_SSE_2_NEW(cmpeq_epi64)
+    Vc_AVX_TO_SSE_2_NEW(cmpgt_epi8)
+    Vc_AVX_TO_SSE_2_NEW(cmpgt_epi16)
+    Vc_AVX_TO_SSE_2_NEW(cmpgt_epi32)
+    Vc_AVX_TO_SSE_2_NEW(cmpgt_epi64)
+    Vc_AVX_TO_SSE_2_NEW(packs_epi16)
+    Vc_AVX_TO_SSE_2_NEW(packs_epi32)
+    Vc_AVX_TO_SSE_2_NEW(packus_epi16)
+    Vc_AVX_TO_SSE_2_NEW(unpackhi_epi8)
+    Vc_AVX_TO_SSE_2_NEW(unpackhi_epi16)
+    Vc_AVX_TO_SSE_2_NEW(unpackhi_epi32)
+    Vc_AVX_TO_SSE_2_NEW(unpackhi_epi64)
+    Vc_AVX_TO_SSE_2_NEW(unpacklo_epi8)
+    Vc_AVX_TO_SSE_2_NEW(unpacklo_epi16)
+    Vc_AVX_TO_SSE_2_NEW(unpacklo_epi32)
+    Vc_AVX_TO_SSE_2_NEW(unpacklo_epi64)
+    Vc_AVX_TO_SSE_2_NEW(add_epi8)
+    Vc_AVX_TO_SSE_2_NEW(add_epi16)
+    Vc_AVX_TO_SSE_2_NEW(add_epi32)
+    Vc_AVX_TO_SSE_2_NEW(add_epi64)
+    Vc_AVX_TO_SSE_2_NEW(adds_epi8)
+    Vc_AVX_TO_SSE_2_NEW(adds_epi16)
+    Vc_AVX_TO_SSE_2_NEW(adds_epu8)
+    Vc_AVX_TO_SSE_2_NEW(adds_epu16)
+    Vc_AVX_TO_SSE_2_NEW(sub_epi8)
+    Vc_AVX_TO_SSE_2_NEW(sub_epi16)
+    Vc_AVX_TO_SSE_2_NEW(sub_epi32)
+    Vc_AVX_TO_SSE_2_NEW(sub_epi64)
+    Vc_AVX_TO_SSE_2_NEW(subs_epi8)
+    Vc_AVX_TO_SSE_2_NEW(subs_epi16)
+    Vc_AVX_TO_SSE_2_NEW(subs_epu8)
+    Vc_AVX_TO_SSE_2_NEW(subs_epu16)
+    Vc_AVX_TO_SSE_2_NEW(madd_epi16)
+    Vc_AVX_TO_SSE_2_NEW(mulhi_epi16)
+    Vc_AVX_TO_SSE_2_NEW(mullo_epi16)
+    Vc_AVX_TO_SSE_2_NEW(mul_epu32)
+    Vc_AVX_TO_SSE_2_NEW(max_epi16)
+    Vc_AVX_TO_SSE_2_NEW(max_epu8)
+    Vc_AVX_TO_SSE_2_NEW(min_epi16)
+    Vc_AVX_TO_SSE_2_NEW(min_epu8)
+    Vc_AVX_TO_SSE_2_NEW(mulhi_epu16)
     // shufflehi_epi16
     // shufflelo_epi16 (__m128i __A, const int __mask)
     // shuffle_epi32 (__m128i __A, const int __mask)
     // maskmoveu_si128 (__m128i __A, __m128i __B, char *__C)
-    AVX_TO_SSE_2_NEW(avg_epu8)
-    AVX_TO_SSE_2_NEW(avg_epu16)
-    AVX_TO_SSE_2_NEW(sad_epu8)
+    Vc_AVX_TO_SSE_2_NEW(avg_epu8)
+    Vc_AVX_TO_SSE_2_NEW(avg_epu16)
+    Vc_AVX_TO_SSE_2_NEW(sad_epu8)
     // stream_si32 (int *__A, int __B)
     // stream_si128 (__m128i *__A, __m128i __B)
     // cvtsi32_si128 (int __A)
     // cvtsi64_si128 (long long __A)
     // cvtsi64x_si128 (long long __A)
-    AVX_TO_SSE_2_NEW(hadd_epi16)
-    AVX_TO_SSE_2_NEW(hadd_epi32)
-    AVX_TO_SSE_2_NEW(hadds_epi16)
-    AVX_TO_SSE_2_NEW(hsub_epi16)
-    AVX_TO_SSE_2_NEW(hsub_epi32)
-    AVX_TO_SSE_2_NEW(hsubs_epi16)
-    AVX_TO_SSE_2_NEW(maddubs_epi16)
-    AVX_TO_SSE_2_NEW(mulhrs_epi16)
-    AVX_TO_SSE_2_NEW(shuffle_epi8)
-    AVX_TO_SSE_2_NEW(sign_epi8)
-    AVX_TO_SSE_2_NEW(sign_epi16)
-    AVX_TO_SSE_2_NEW(sign_epi32)
-    AVX_TO_SSE_2_NEW(min_epi8)
-    AVX_TO_SSE_2_NEW(max_epi8)
-    AVX_TO_SSE_2_NEW(min_epu16)
-    AVX_TO_SSE_2_NEW(max_epu16)
-    AVX_TO_SSE_2_NEW(min_epi32)
-    AVX_TO_SSE_2_NEW(max_epi32)
-    AVX_TO_SSE_2_NEW(min_epu32)
-    AVX_TO_SSE_2_NEW(max_epu32)
-    AVX_TO_SSE_2_NEW(mullo_epi32)
-    AVX_TO_SSE_2_NEW(mul_epi32)
+    Vc_AVX_TO_SSE_2_NEW(hadd_epi16)
+    Vc_AVX_TO_SSE_2_NEW(hadd_epi32)
+    Vc_AVX_TO_SSE_2_NEW(hadds_epi16)
+    Vc_AVX_TO_SSE_2_NEW(hsub_epi16)
+    Vc_AVX_TO_SSE_2_NEW(hsub_epi32)
+    Vc_AVX_TO_SSE_2_NEW(hsubs_epi16)
+    Vc_AVX_TO_SSE_2_NEW(maddubs_epi16)
+    Vc_AVX_TO_SSE_2_NEW(mulhrs_epi16)
+    Vc_AVX_TO_SSE_2_NEW(shuffle_epi8)
+    Vc_AVX_TO_SSE_2_NEW(sign_epi8)
+    Vc_AVX_TO_SSE_2_NEW(sign_epi16)
+    Vc_AVX_TO_SSE_2_NEW(sign_epi32)
+    Vc_AVX_TO_SSE_2_NEW(min_epi8)
+    Vc_AVX_TO_SSE_2_NEW(max_epi8)
+    Vc_AVX_TO_SSE_2_NEW(min_epu16)
+    Vc_AVX_TO_SSE_2_NEW(max_epu16)
+    Vc_AVX_TO_SSE_2_NEW(min_epi32)
+    Vc_AVX_TO_SSE_2_NEW(max_epi32)
+    Vc_AVX_TO_SSE_2_NEW(min_epu32)
+    Vc_AVX_TO_SSE_2_NEW(max_epu32)
+    Vc_AVX_TO_SSE_2_NEW(mullo_epi32)
+    Vc_AVX_TO_SSE_2_NEW(mul_epi32)
 
-    AVX_TO_SSE_1(abs_epi8)
-    AVX_TO_SSE_1(abs_epi16)
-    AVX_TO_SSE_1(abs_epi32)
-    AVX_TO_SSE_1_128(cvtepi8_epi16, 8)
-    AVX_TO_SSE_1_128(cvtepi8_epi32, 4)
-    AVX_TO_SSE_1_128(cvtepi8_epi64, 2)
-    AVX_TO_SSE_1_128(cvtepi16_epi32, 8)
-    AVX_TO_SSE_1_128(cvtepi16_epi64, 4)
-    AVX_TO_SSE_1_128(cvtepi32_epi64, 8)
-    AVX_TO_SSE_1_128(cvtepu8_epi16, 8)
-    AVX_TO_SSE_1_128(cvtepu8_epi32, 4)
-    AVX_TO_SSE_1_128(cvtepu8_epi64, 2)
-    AVX_TO_SSE_1_128(cvtepu16_epi32, 8)
-    AVX_TO_SSE_1_128(cvtepu16_epi64, 4)
-    AVX_TO_SSE_1_128(cvtepu32_epi64, 8)
+    Vc_AVX_TO_SSE_1(abs_epi8)
+    Vc_AVX_TO_SSE_1(abs_epi16)
+    Vc_AVX_TO_SSE_1(abs_epi32)
+    Vc_AVX_TO_SSE_1_128(cvtepi8_epi16, 8)
+    Vc_AVX_TO_SSE_1_128(cvtepi8_epi32, 4)
+    Vc_AVX_TO_SSE_1_128(cvtepi8_epi64, 2)
+    Vc_AVX_TO_SSE_1_128(cvtepi16_epi32, 8)
+    Vc_AVX_TO_SSE_1_128(cvtepi16_epi64, 4)
+    Vc_AVX_TO_SSE_1_128(cvtepi32_epi64, 8)
+    Vc_AVX_TO_SSE_1_128(cvtepu8_epi16, 8)
+    Vc_AVX_TO_SSE_1_128(cvtepu8_epi32, 4)
+    Vc_AVX_TO_SSE_1_128(cvtepu8_epi64, 2)
+    Vc_AVX_TO_SSE_1_128(cvtepu16_epi32, 8)
+    Vc_AVX_TO_SSE_1_128(cvtepu16_epi64, 4)
+    Vc_AVX_TO_SSE_1_128(cvtepu32_epi64, 8)
 #if !defined(Vc_CLANG) || Vc_CLANG > 0x30100
     // clang is missing _mm_minpos_epu16 from smmintrin.h
     // http://llvm.org/bugs/show_bug.cgi?id=12399
-    //AVX_TO_SSE_1(minpos_epu16)
+    //Vc_AVX_TO_SSE_1(minpos_epu16)
 #endif
 
-    AVX_TO_SSE_2_NEW(packus_epi32)
+    Vc_AVX_TO_SSE_2_NEW(packus_epi32)
 
 #ifndef Vc_IMPL_AVX2
 
@@ -572,10 +572,10 @@ static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
     return cmpgt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
 }
 #if defined(Vc_IMPL_XOP) && (!defined(Vc_CLANG) || Vc_CLANG >= 0x30400)
-    AVX_TO_SSE_2_NEW(comlt_epu32)
-    AVX_TO_SSE_2_NEW(comgt_epu32)
-    AVX_TO_SSE_2_NEW(comlt_epu16)
-    AVX_TO_SSE_2_NEW(comgt_epu16)
+    Vc_AVX_TO_SSE_2_NEW(comlt_epu32)
+    Vc_AVX_TO_SSE_2_NEW(comgt_epu32)
+    Vc_AVX_TO_SSE_2_NEW(comlt_epu16)
+    Vc_AVX_TO_SSE_2_NEW(comgt_epu16)
     static Vc_INTRINSIC m256i Vc_CONST cmplt_epu32(__m256i a, __m256i b) { return comlt_epu32(a, b); }
     static Vc_INTRINSIC m256i Vc_CONST cmpgt_epu32(__m256i a, __m256i b) { return comgt_epu32(a, b); }
     static Vc_INTRINSIC m256i Vc_CONST cmplt_epu16(__m256i a, __m256i b) { return comlt_epu16(a, b); }
@@ -638,11 +638,11 @@ static Vc_INTRINSIC void _mm256_maskstore(unsigned short *mem, const __m256i mas
     _mm256_maskstore(reinterpret_cast<short *>(mem), mask, v);
 }
 
-#undef AVX_TO_SSE_1
-#undef AVX_TO_SSE_1_128
-#undef AVX_TO_SSE_2_NEW
-#undef AVX_TO_SSE_256_128
-#undef AVX_TO_SSE_1i
+#undef Vc_AVX_TO_SSE_1
+#undef Vc_AVX_TO_SSE_1_128
+#undef Vc_AVX_TO_SSE_2_NEW
+#undef Vc_AVX_TO_SSE_256_128
+#undef Vc_AVX_TO_SSE_1i
 
 template<typename R> Vc_INTRINSIC_L R stream_load(const float *mem) Vc_INTRINSIC_R;
 template<> Vc_INTRINSIC m128 stream_load<m128>(const float *mem)

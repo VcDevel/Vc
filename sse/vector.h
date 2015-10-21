@@ -184,14 +184,14 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         }
         inline Vc_PURE Vector operator%(const Vector &x) const;
 
-#define OP(symbol, fun) \
+#define Vc_OP(symbol, fun) \
         Vc_INTRINSIC Vector &operator symbol##=(const Vector &x) { data() = HT::fun(data(), x.data()); return *this; } \
         Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector &x) const { return HT::fun(data(), x.data()); }
 
-        OP(+, add)
-        OP(-, sub)
-        OP(*, mul)
-#undef OP
+        Vc_OP(+, add)
+        Vc_OP(-, sub)
+        Vc_OP(*, mul)
+#undef Vc_OP
 
         Vc_INTRINSIC_L Vector &operator<<=(AsArg shift)       Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector  operator<< (AsArg shift) const Vc_INTRINSIC_R;
@@ -206,8 +206,8 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         inline Vector &operator/=(Vc_ALIGNED_PARAMETER(Vector) x);
         inline Vc_PURE_L Vector operator/ (Vc_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
-#define OP(symbol)                                                                       \
-    Vc_INTRINSIC Vector &operator symbol##=(const Vector & x)                            \
+#define Vc_OP(symbol)                                                                    \
+    Vc_INTRINSIC Vector &operator symbol##=(const Vector &x)                             \
     {                                                                                    \
         static_assert(                                                                   \
             std::is_integral<T>::value,                                                  \
@@ -219,19 +219,21 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             std::is_integral<T>::value,                                                  \
             "bitwise operators can only be used with Vectors of integral type");         \
     }
-    Vc_ALL_BINARY(OP)
-#undef OP
+    Vc_ALL_BINARY(Vc_OP)
+#undef Vc_OP
 
-#define OPcmp(symbol, fun) \
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const { return HT::fun(data(), x.data()); }
-
-        OPcmp(==, cmpeq)
-        OPcmp(!=, cmpneq)
-        OPcmp(>=, cmpnlt)
-        OPcmp(>, cmpnle)
-        OPcmp(<, cmplt)
-        OPcmp(<=, cmple)
-#undef OPcmp
+#define Vc_OP(symbol, fun)                                                               \
+    Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const                 \
+    {                                                                                    \
+        return HT::fun(data(), x.data());                                                \
+    }
+    Vc_OP(==, cmpeq)
+    Vc_OP(!=, cmpneq)
+    Vc_OP(>=, cmpnlt)
+    Vc_OP(>, cmpnle)
+    Vc_OP(<, cmplt)
+    Vc_OP(<=, cmple)
+#undef Vc_OP
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
         Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector &factor,

@@ -18,8 +18,8 @@
 
 */
 
-#ifndef TSC_H
-#define TSC_H
+#ifndef TSC_H_
+#define TSC_H_
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -95,4 +95,4 @@ inline std::ostream &operator<<(std::ostream &out, const TimeStampCounter &tsc)
     return out << o.str();
 }
 
-#endif // TSC_H
+#endif // TSC_H_

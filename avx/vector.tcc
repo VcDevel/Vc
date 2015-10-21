@@ -278,30 +278,33 @@ inline Vc_PURE Vector<T, VectorAbi::Avx> Vector<T, VectorAbi::Avx>::operator%(
     return *this - n * (*this / n);
 }
 
-#define OP_IMPL(T, symbol)                                                               \
-    template <> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(AsArg x)       \
+#define Vc_OP_IMPL(T, symbol)                                                            \
+    template <>                                                                          \
+    Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(     \
+        AsArg x)                                                                         \
     {                                                                                    \
         Common::unrolled_loop<std::size_t, 0, Size>(                                     \
             [&](std::size_t i) { d.set(i, d.m(i) symbol x.d.m(i)); });                   \
         return *this;                                                                    \
     }                                                                                    \
     template <>                                                                          \
-    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol(AsArg x) const         \
+    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol( \
+        AsArg x) const                                                                   \
     {                                                                                    \
-        AVX2::Vector<T> r;                                                                     \
+        AVX2::Vector<T> r;                                                               \
         Common::unrolled_loop<std::size_t, 0, Size>(                                     \
             [&](std::size_t i) { r.d.set(i, d.m(i) symbol x.d.m(i)); });                 \
         return r;                                                                        \
     }
-OP_IMPL(int, <<)
-OP_IMPL(int, >>)
-OP_IMPL(unsigned int, <<)
-OP_IMPL(unsigned int, >>)
-OP_IMPL(short, <<)
-OP_IMPL(short, >>)
-OP_IMPL(unsigned short, <<)
-OP_IMPL(unsigned short, >>)
-#undef OP_IMPL
+Vc_OP_IMPL(int, <<)
+Vc_OP_IMPL(int, >>)
+Vc_OP_IMPL(unsigned int, <<)
+Vc_OP_IMPL(unsigned int, >>)
+Vc_OP_IMPL(short, <<)
+Vc_OP_IMPL(short, >>)
+Vc_OP_IMPL(unsigned short, <<)
+Vc_OP_IMPL(unsigned short, >>)
+#undef Vc_OP_IMPL
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator>>=(int shift) {
@@ -319,32 +322,43 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAb
     return Detail::shiftLeft(d.v(), shift, T());
 }
 
-#define OP_IMPL(T, symbol, fun) \
-  template<> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(AsArg x) { d.v() = HV::fun(d.v(), x.d.v()); return *this; } \
-  template<> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T>  Vector<T, VectorAbi::Avx>::operator symbol(AsArg x) const { return AVX2::Vector<T>(HV::fun(d.v(), x.d.v())); }
+#define Vc_OP_IMPL(T, symbol, fun)                                                       \
+    template <>                                                                          \
+    Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(     \
+        AsArg x)                                                                         \
+    {                                                                                    \
+        d.v() = HV::fun(d.v(), x.d.v());                                                 \
+        return *this;                                                                    \
+    }                                                                                    \
+    template <>                                                                          \
+    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol( \
+        AsArg x) const                                                                   \
+    {                                                                                    \
+        return AVX2::Vector<T>(HV::fun(d.v(), x.d.v()));                                 \
+    }
 #ifdef Vc_IMPL_AVX2
-  OP_IMPL(int, &, and_)
-  OP_IMPL(int, |, or_)
-  OP_IMPL(int, ^, xor_)
-  OP_IMPL(unsigned int, &, and_)
-  OP_IMPL(unsigned int, |, or_)
-  OP_IMPL(unsigned int, ^, xor_)
-  OP_IMPL(short, &, and_)
-  OP_IMPL(short, |, or_)
-  OP_IMPL(short, ^, xor_)
-  OP_IMPL(unsigned short, &, and_)
-  OP_IMPL(unsigned short, |, or_)
-  OP_IMPL(unsigned short, ^, xor_)
+  Vc_OP_IMPL(int, &, and_)
+  Vc_OP_IMPL(int, |, or_)
+  Vc_OP_IMPL(int, ^, xor_)
+  Vc_OP_IMPL(unsigned int, &, and_)
+  Vc_OP_IMPL(unsigned int, |, or_)
+  Vc_OP_IMPL(unsigned int, ^, xor_)
+  Vc_OP_IMPL(short, &, and_)
+  Vc_OP_IMPL(short, |, or_)
+  Vc_OP_IMPL(short, ^, xor_)
+  Vc_OP_IMPL(unsigned short, &, and_)
+  Vc_OP_IMPL(unsigned short, |, or_)
+  Vc_OP_IMPL(unsigned short, ^, xor_)
 #endif
 #ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
-  OP_IMPL(float, &, and_)
-  OP_IMPL(float, |, or_)
-  OP_IMPL(float, ^, xor_)
-  OP_IMPL(double, &, and_)
-  OP_IMPL(double, |, or_)
-  OP_IMPL(double, ^, xor_)
+  Vc_OP_IMPL(float, &, and_)
+  Vc_OP_IMPL(float, |, or_)
+  Vc_OP_IMPL(float, ^, xor_)
+  Vc_OP_IMPL(double, &, and_)
+  Vc_OP_IMPL(double, |, or_)
+  Vc_OP_IMPL(double, ^, xor_)
 #endif
-#undef OP_IMPL
+#undef Vc_OP_IMPL
 
 // isNegative {{{1
 template<> Vc_INTRINSIC Vc_PURE AVX2::float_m AVX2::float_v::isNegative() const

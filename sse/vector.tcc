@@ -225,37 +225,41 @@ template <typename T> inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorA
     return *this - *this / n * n;
 }
 
-#define OP_IMPL(T, symbol, fun) \
-template<> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator symbol##=(const Vector<T, VectorAbi::Sse> &x) \
-{ \
-    d.v() = Detail::fun(d.v(), x.d.v()); \
-    return *this; \
-} \
-template<> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse>  Vector<T, VectorAbi::Sse>::operator symbol(const Vector<T, VectorAbi::Sse> &x) const \
-{ \
-    return Detail::fun(d.v(), x.d.v()); \
-}
-OP_IMPL(int, &, and_)
-OP_IMPL(int, |, or_)
-OP_IMPL(int, ^, xor_)
-OP_IMPL(unsigned int, &, and_)
-OP_IMPL(unsigned int, |, or_)
-OP_IMPL(unsigned int, ^, xor_)
-OP_IMPL(short, &, and_)
-OP_IMPL(short, |, or_)
-OP_IMPL(short, ^, xor_)
-OP_IMPL(unsigned short, &, and_)
-OP_IMPL(unsigned short, |, or_)
-OP_IMPL(unsigned short, ^, xor_)
+#define Vc_OP_IMPL(T, symbol, fun)                                                       \
+    template <>                                                                          \
+    Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::              \
+    operator symbol##=(const Vector<T, VectorAbi::Sse> &x)                               \
+    {                                                                                    \
+        d.v() = Detail::fun(d.v(), x.d.v());                                             \
+        return *this;                                                                    \
+    }                                                                                    \
+    template <>                                                                          \
+    Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::       \
+    operator symbol(const Vector<T, VectorAbi::Sse> &x) const                            \
+    {                                                                                    \
+        return Detail::fun(d.v(), x.d.v());                                              \
+    }
+Vc_OP_IMPL(int, &, and_)
+Vc_OP_IMPL(int, |, or_)
+Vc_OP_IMPL(int, ^, xor_)
+Vc_OP_IMPL(unsigned int, &, and_)
+Vc_OP_IMPL(unsigned int, |, or_)
+Vc_OP_IMPL(unsigned int, ^, xor_)
+Vc_OP_IMPL(short, &, and_)
+Vc_OP_IMPL(short, |, or_)
+Vc_OP_IMPL(short, ^, xor_)
+Vc_OP_IMPL(unsigned short, &, and_)
+Vc_OP_IMPL(unsigned short, |, or_)
+Vc_OP_IMPL(unsigned short, ^, xor_)
 #ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
-OP_IMPL(float, &, and_)
-OP_IMPL(float, |, or_)
-OP_IMPL(float, ^, xor_)
-OP_IMPL(double, &, and_)
-OP_IMPL(double, |, or_)
-OP_IMPL(double, ^, xor_)
+Vc_OP_IMPL(float, &, and_)
+Vc_OP_IMPL(float, |, or_)
+Vc_OP_IMPL(float, ^, xor_)
+Vc_OP_IMPL(double, &, and_)
+Vc_OP_IMPL(double, |, or_)
+Vc_OP_IMPL(double, ^, xor_)
 #endif
-#undef OP_IMPL
+#undef Vc_OP_IMPL
 
 #ifdef Vc_IMPL_XOP
 static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const    SSE::int_v &value, const    SSE::int_v &count) { return _mm_sha_epi32(value.data(), count.data()); }
@@ -282,15 +286,10 @@ Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, <<, shiftLeft)
 Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, >>, shiftRight)
 #undef Vc_OP
 #else
-#if defined(Vc_GCC) && Vc_GCC == 0x40600 && defined(Vc_IMPL_XOP)
-#define Vc_WORKAROUND __attribute__((optimize("no-tree-vectorize"),weak))
-#else
-#define Vc_WORKAROUND Vc_INTRINSIC
-#endif
 
-#define OP_IMPL(T, symbol)                                                               \
+#define Vc_OP_IMPL(T, symbol)                                                            \
     template <>                                                                          \
-    Vc_WORKAROUND Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::                 \
+    Vc_INTRINSIC Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::                  \
     operator symbol##=(Vector<T, VectorAbi::Sse>::AsArg x)                               \
     {                                                                                    \
         Common::for_all_vector_entries<Size>(                                            \
@@ -306,16 +305,15 @@ Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, >>, shiftRight)
             [&](size_t i) { r.d.set(i, d.m(i) symbol x.d.m(i)); });                      \
         return r;                                                                        \
     }
-OP_IMPL(int, <<)
-OP_IMPL(int, >>)
-OP_IMPL(unsigned int, <<)
-OP_IMPL(unsigned int, >>)
-OP_IMPL(short, <<)
-OP_IMPL(short, >>)
-OP_IMPL(unsigned short, <<)
-OP_IMPL(unsigned short, >>)
-#undef OP_IMPL
-#undef Vc_WORKAROUND
+Vc_OP_IMPL(int, <<)
+Vc_OP_IMPL(int, >>)
+Vc_OP_IMPL(unsigned int, <<)
+Vc_OP_IMPL(unsigned int, >>)
+Vc_OP_IMPL(short, <<)
+Vc_OP_IMPL(short, >>)
+Vc_OP_IMPL(unsigned short, <<)
+Vc_OP_IMPL(unsigned short, >>)
+#undef Vc_OP_IMPL
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator>>=(int shift) {

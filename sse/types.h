@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../scalar/types.h"
 
-#ifndef SSE_TYPES_H
-#define SSE_TYPES_H
+#ifndef VC_SSE_TYPES_H_
+#define VC_SSE_TYPES_H_
 
 #ifdef Vc_DEFAULT_IMPL_SSE
 #define Vc_DOUBLE_V_SIZE 2
@@ -77,4 +77,4 @@ template <typename T> struct is_simd_vector_internal<SSE::Vector<T>> : public st
 }  // namespace Traits
 }  // namespace Vc
 
-#endif // SSE_TYPES_H
+#endif // VC_SSE_TYPES_H_

@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef SSE_MASK_H
-#define SSE_MASK_H
+#ifndef VC_SSE_MASK_H_
+#define VC_SSE_MASK_H_
 
 #include "intrinsics.h"
 #include "../common/maskentry.h"
@@ -244,4 +244,4 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Sse>::MemoryAlignment;
 
 #include "mask.tcc"
 
-#endif // SSE_MASK_H
+#endif // VC_SSE_MASK_H_

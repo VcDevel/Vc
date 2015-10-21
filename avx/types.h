@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef AVX_TYPES_H
-#define AVX_TYPES_H
+#ifndef VC_AVX_TYPES_H_
+#define VC_AVX_TYPES_H_
 
 #include "../sse/types.h"
 #include "../traits/type_traits.h"
@@ -118,4 +118,4 @@ template<typename T> struct is_simd_vector_internal<Vector<T, VectorAbi::Avx>> :
 }  // namespace Traits
 }  // namespace Vc
 
-#endif // AVX_TYPES_H
+#endif // VC_AVX_TYPES_H_

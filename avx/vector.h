@@ -246,52 +246,61 @@ public:
         }
         inline Vc_PURE Vector operator%(const Vector &x) const;
 
-#define OP(symbol, fun) \
-        Vc_INTRINSIC Vector &operator symbol##=(const Vector &x) { data() = Detail::fun(data(), x.data(), T()); return *this; } \
-        Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector &x) const { return Detail::fun(data(), x.data(), T()); }
+#define Vc_OP(symbol, fun)                                                               \
+    Vc_INTRINSIC Vector &operator symbol##=(const Vector &x)                             \
+    {                                                                                    \
+        data() = Detail::fun(data(), x.data(), T());                                     \
+        return *this;                                                                    \
+    }                                                                                    \
+    Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector &x) const                   \
+    {                                                                                    \
+        return Detail::fun(data(), x.data(), T());                                       \
+    }
 
-        OP(+, add)
-        OP(-, sub)
-        OP(*, mul)
-#undef OP
+        Vc_OP(+, add)
+        Vc_OP(-, sub)
+        Vc_OP(*, mul)
+#undef Vc_OP
         inline Vector &operator/=(EntryType x);
         inline Vector &operator/=(Vc_ALIGNED_PARAMETER(Vector) x);
         inline Vc_PURE_L Vector operator/ (Vc_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
         // bitwise ops
-#define OP_VEC(op)                                                                                 \
-    Vc_INTRINSIC Vector &operator op##=(AsArg x)                                                   \
-    {                                                                                              \
-        static_assert(std::is_integral<T>::value,                                                  \
-                      "bitwise-operators can only be used with Vectors of integral type");         \
-    }                                                                                              \
-    Vc_INTRINSIC Vc_PURE Vector operator op(AsArg x) const                                         \
-    {                                                                                              \
-        static_assert(std::is_integral<T>::value,                                                  \
-                      "bitwise-operators can only be used with Vectors of integral type");         \
+#define Vc_OP_VEC(op)                                                                    \
+    Vc_INTRINSIC Vector &operator op##=(AsArg x)                                         \
+    {                                                                                    \
+        static_assert(                                                                   \
+            std::is_integral<T>::value,                                                  \
+            "bitwise-operators can only be used with Vectors of integral type");         \
+    }                                                                                    \
+    Vc_INTRINSIC Vc_PURE Vector operator op(AsArg x) const                               \
+    {                                                                                    \
+        static_assert(                                                                   \
+            std::is_integral<T>::value,                                                  \
+            "bitwise-operators can only be used with Vectors of integral type");         \
     }
-    Vc_ALL_BINARY(OP_VEC)
-    Vc_ALL_SHIFTS(OP_VEC)
-#undef OP_VEC
+    Vc_ALL_BINARY(Vc_OP_VEC)
+    Vc_ALL_SHIFTS(Vc_OP_VEC)
+#undef Vc_OP_VEC
 
         Vc_ALWAYS_INLINE_L Vector &operator>>=(int x) Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L Vector &operator<<=(int x) Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L Vector operator>>(int x) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L Vector operator<<(int x) const Vc_ALWAYS_INLINE_R;
 
-#define OPcmp(symbol, fun)                                                               \
+#define Vc_OPcmp(symbol, fun)                                                            \
     Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const                 \
     {                                                                                    \
         return Detail::fun(data(), x.data(), T());                                       \
     }
 
-        OPcmp(==, cmpeq)
-        OPcmp(!=, cmpneq)
-        OPcmp(>=, cmpge)
-        OPcmp(>, cmpgt)
-        OPcmp(<, cmplt)
-        OPcmp(<=, cmple)
-#undef OPcmp
+        Vc_OPcmp(==, cmpeq)
+        Vc_OPcmp(!=, cmpneq)
+        Vc_OPcmp(>=, cmpge)
+        Vc_OPcmp(>, cmpgt)
+        Vc_OPcmp(<, cmplt)
+        Vc_OPcmp(<=, cmple)
+#undef Vc_OPcmp
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
         Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector &factor, const Vector &summand) {
