@@ -32,11 +32,12 @@ public:
 
     // implict conversion from compatible Vector<U>
     template <typename U>
-    Vc_INTRINSIC_L Vector(U &&x,
-                          enable_if<NEON::is_vector<Traits::decay<U>>::value &&
-                                    !std::is_same<Vector, Traits::decay<U>>::value &&
-                                    is_implicit_cast_allowed<Traits::entry_type_of<U>, T>::value> =
-                              nullarg) Vc_INTRINSIC_R;
+    Vc_INTRINSIC_L Vector(
+        U &&x,
+        enable_if<NEON::is_vector<Traits::decay<U>>::value &&
+                  !std::is_same<Vector, Traits::decay<U>>::value &&
+                  Traits::is_implicit_cast_allowed<Traits::entry_type_of<U>, T>::value> =
+            nullarg) Vc_INTRINSIC_R;
 
     // static_cast from other types
     template <typename U>

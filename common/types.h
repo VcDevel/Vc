@@ -191,35 +191,6 @@ constexpr struct VectorSpecialInitializerIndexesFromZero {} IndexesFromZero;
 // TODO: all of the following doesn't really belong into the toplevel Vc namespace. An anonymous
 // namespace might be enough:
 
-#ifndef Vc_ICC
-// ICC ICEs if the traits below are in an unnamed namespace
-namespace
-{
-#endif
-    enum TestEnum {};
-
-    static_assert(std::is_convertible<TestEnum, short>          ::value ==  true, "HasImplicitCast0_is_broken");
-    static_assert(std::is_convertible<int *, void *>            ::value ==  true, "HasImplicitCast1_is_broken");
-    static_assert(std::is_convertible<int *, const void *>      ::value ==  true, "HasImplicitCast2_is_broken");
-    static_assert(std::is_convertible<const int *, const void *>::value ==  true, "HasImplicitCast3_is_broken");
-    static_assert(std::is_convertible<const int *, int *>       ::value == false, "HasImplicitCast4_is_broken");
-
-    template<typename From, typename To> struct is_implicit_cast_allowed : public std::false_type {};
-    template<typename T> struct is_implicit_cast_allowed<T, T> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed< int64_t, uint64_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<uint64_t,  int64_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed< int32_t, uint32_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<uint32_t,  int32_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed< int16_t, uint16_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<uint16_t,  int16_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<  int8_t,  uint8_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed< uint8_t,   int8_t> : public std::true_type {};
-
-    template<typename From, typename To> struct is_implicit_cast_allowed_mask : public is_implicit_cast_allowed<From, To> {};
-#ifndef Vc_ICC
-} // anonymous namespace
-#endif
-
 #ifndef Vc_CHECK_ALIGNMENT
 template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
 #else
@@ -267,14 +238,14 @@ Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 template <typename T, typename U>
 using enable_if_mask_converts_implicitly =
     enable_if<(Traits::is_simd_mask<U>::value && !Traits::isSimdMaskArray<U>::value &&
-               is_implicit_cast_allowed_mask<
+               Traits::is_implicit_cast_allowed_mask<
                    Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value)>;
 template <typename T, typename U>
-using enable_if_mask_converts_explicitly = enable_if<
-    (Traits::isSimdMaskArray<U>::value ||
-     (Traits::is_simd_mask<U>::value &&
-      !is_implicit_cast_allowed_mask<
-           Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value))>;
+using enable_if_mask_converts_explicitly = enable_if<(
+    Traits::isSimdMaskArray<U>::value ||
+    (Traits::is_simd_mask<U>::value &&
+     !Traits::is_implicit_cast_allowed_mask<
+         Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value))>;
 
 template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(T)>;
 

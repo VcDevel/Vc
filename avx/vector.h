@@ -149,9 +149,10 @@ public:
 
         // implict conversion from compatible Vector<U, abi>
         template <typename U>
-        Vc_INTRINSIC Vector(Vc_ALIGNED_PARAMETER(V<U>) x,
-                            typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
-                                                    void *>::type = nullptr)
+        Vc_INTRINSIC Vector(
+            Vc_ALIGNED_PARAMETER(V<U>) x,
+            typename std::enable_if<Traits::is_implicit_cast_allowed<U, T>::value,
+                                    void *>::type = nullptr)
             : d(AVX::convert<U, T>(x.data()))
         {
         }
@@ -160,7 +161,7 @@ public:
         template <typename U>
         Vc_INTRINSIC explicit Vector(
             Vc_ALIGNED_PARAMETER(V<U>) x,
-            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
+            typename std::enable_if<!Traits::is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
             : d(Detail::zeroExtendIfNeeded(AVX::convert<U, T>(x.data())))
         {

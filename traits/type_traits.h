@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "is_functor_argument_immutable.h"
 #include "is_output_iterator.h"
 #include "is_index_sequence.h"
+#include "is_implicit_cast_allowed.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {

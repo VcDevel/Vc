@@ -106,9 +106,10 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         // implict conversion from compatible Vector<U>
         template <typename U>
-        Vc_INTRINSIC Vector(Vc_ALIGNED_PARAMETER(V<U>) x,
-                            typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
-                                                    void *>::type = nullptr)
+        Vc_INTRINSIC Vector(
+            Vc_ALIGNED_PARAMETER(V<U>) x,
+            typename std::enable_if<Traits::is_implicit_cast_allowed<U, T>::value,
+                                    void *>::type = nullptr)
             : d(SSE::convert<U, T>(x.data()))
         {
         }
@@ -117,7 +118,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         template <typename U>
         Vc_INTRINSIC explicit Vector(
             Vc_ALIGNED_PARAMETER(V<U>) x,
-            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
+            typename std::enable_if<!Traits::is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
             : d(SSE::convert<U, T>(x.data()))
         {
