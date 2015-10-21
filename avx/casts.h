@@ -139,8 +139,22 @@ Vc_INTRINSIC __m256i convert(__m256  v, ConvertTag<float , int>) { return _mm256
 Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, int>) { return _mm256_cvttpd_epi32(v); }
 Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<int   , int>) { return v; }
 Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<uint  , int>) { return v; }
-Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<short , int>) { return AVX::srai_epi32<16>(concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v))); }
-Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<ushort, int>) { return AVX::srli_epi32<16>(concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v))); }
+Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<short , int>) {
+#ifdef Vc_IMPL_AVX2
+    return _mm256_cvtepi16_epi32(v);
+#else
+    return AVX::srai_epi32<16>(
+        concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
+#endif
+}
+Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<ushort, int>) {
+#ifdef Vc_IMPL_AVX2
+    return _mm256_cvtepu16_epi32(v);
+#else
+    return AVX::srli_epi32<16>(
+        concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
+#endif
+}
 
 Vc_INTRINSIC __m256i convert(__m256  v, ConvertTag<float , uint>) {
     using namespace AVX;
@@ -158,8 +172,22 @@ Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, uint>) {
 }
 Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<int   , uint>) { return v; }
 Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<uint  , uint>) { return v; }
-Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<short , uint>) { return AVX::srai_epi32<16>(concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v))); }
-Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<ushort, uint>) { return AVX::srli_epi32<16>(concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v))); }
+Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<short , uint>) {
+#ifdef Vc_IMPL_AVX2
+    return _mm256_cvtepi16_epi32(v);
+#else
+    return AVX::srai_epi32<16>(
+        concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
+#endif
+}
+Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<ushort, uint>) {
+#ifdef Vc_IMPL_AVX2
+    return _mm256_cvtepu16_epi32(v);
+#else
+    return AVX::srli_epi32<16>(
+        concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
+#endif
+}
 
 Vc_INTRINSIC __m256  convert(__m256  v, ConvertTag<float , float>) { return v; }
 Vc_INTRINSIC __m128  convert(__m256d v, ConvertTag<double, float>) { return _mm256_cvtpd_ps(v); }
