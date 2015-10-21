@@ -43,18 +43,19 @@ alignas(16) extern const unsigned char  _IndexesFromZero16[16];
 
 struct c_general
 {
-    alignas(64) static const unsigned int allone[4];
+    alignas(64) static const int absMaskFloat[4];
+    alignas(16) static const unsigned int signMaskFloat[4];
+    alignas(16) static const unsigned int highMaskFloat[4];
+    alignas(16) static const short minShort[8];
+
     alignas(16) static const unsigned short one16[8];
     alignas(16) static const unsigned int one32[4];
     alignas(16) static const float oneFloat[4];
-    alignas(16) static const double oneDouble[2];
-    alignas(16) static const int absMaskFloat[4];
-    alignas(16) static const long long absMaskDouble[2];
-    alignas(16) static const unsigned int signMaskFloat[4];
-    alignas(16) static const unsigned int highMaskFloat[4];
-    alignas(16) static const unsigned long long signMaskDouble[2];
+
     alignas(16) static const unsigned long long highMaskDouble[2];
-    alignas(16) static const short minShort[8];
+    alignas(16) static const double oneDouble[2];
+    alignas(16) static const long long absMaskDouble[2];
+    alignas(16) static const unsigned long long signMaskDouble[2];
     alignas(16) static const unsigned long long frexpMask[2];
 };
 

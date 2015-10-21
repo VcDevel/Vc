@@ -26,14 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef V_ALIGN
-# ifdef __GNUC__
-#  define V_ALIGN(n) __attribute__((aligned(n)))
-# else
-#  define V_ALIGN(n) __declspec(align(n))
-# endif
-#endif
-
 #include "avx/const_data.h"
 #include "sse/const_data.h"
 #include <Vc/version.h>
@@ -53,9 +45,9 @@ namespace AVX
     using Detail::floatConstant;
 
     // cacheline 1
-    V_ALIGN(64) extern const unsigned int   _IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    V_ALIGN(16) extern const unsigned short _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-    V_ALIGN(16) extern const unsigned char  _IndexesFromZero8 [32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+    alignas(64) extern const unsigned int   _IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    alignas(16) extern const unsigned short _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    alignas(16) extern const unsigned char  _IndexesFromZero8 [32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
 
     template<> const double c_trig<double>::data[] = {
     // cacheline 4
@@ -209,7 +201,7 @@ namespace AVX
     const             double c_general::oneDouble = 1.;
     const unsigned long long c_general::frexpMask = 0xbfefffffffffffffull;
 
-    const unsigned long long c_log<double>::data[21] = {
+    alignas(64) const unsigned long long c_log<double>::data[21] = {
         0x000003ff000003ffull // bias TODO: remove
       , 0x7ff0000000000000ull // exponentMask (+inf)
 
@@ -268,14 +260,14 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-    V_ALIGN(64) unsigned int RandomState[16] = {
+    alignas(64) unsigned int RandomState[16] = {
         0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
         0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
         0x36ed2684u, 0xfb1f049du, 0x19e52f31u, 0x821e4dd7u,
         0x23996d25u, 0x5962725au, 0x6aced4ceu, 0xd4c610f3u
     };
 
-    V_ALIGN(32) const unsigned int AllBitsSet[8] = {
+    alignas(32) const unsigned int AllBitsSet[8] = {
         0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU
     };
 
@@ -300,24 +292,24 @@ namespace SSE
     using Detail::floatConstant;
 
     // cacheline 1
-    V_ALIGN(64) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
-    V_ALIGN(16) const unsigned int c_general::signMaskFloat[4] = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
-    V_ALIGN(16) const unsigned int c_general::highMaskFloat[4] = { 0xfffff000u, 0xfffff000u, 0xfffff000u, 0xfffff000u };
-    V_ALIGN(16) const short c_general::minShort[8] = { -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000 };
-    V_ALIGN(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    alignas(64) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
+    alignas(16) const unsigned int c_general::signMaskFloat[4] = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
+    alignas(16) const unsigned int c_general::highMaskFloat[4] = { 0xfffff000u, 0xfffff000u, 0xfffff000u, 0xfffff000u };
+    alignas(16) const short c_general::minShort[8] = { -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000 };
+    alignas(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
     // cacheline 2
-    V_ALIGN(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
-    V_ALIGN(16) const unsigned short c_general::one16[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-    V_ALIGN(16) const unsigned int c_general::one32[4] = { 1, 1, 1, 1 };
-    V_ALIGN(16) const float c_general::oneFloat[4] = { 1.f, 1.f, 1.f, 1.f };
+    alignas(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
+    alignas(16) const unsigned short c_general::one16[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+    alignas(16) const unsigned int c_general::one32[4] = { 1, 1, 1, 1 };
+    alignas(16) const float c_general::oneFloat[4] = { 1.f, 1.f, 1.f, 1.f };
 
     // cacheline 3
-    V_ALIGN(16) const unsigned long long c_general::highMaskDouble[2] = { 0xfffffffff8000000ull, 0xfffffffff8000000ull };
-    V_ALIGN(16) const double c_general::oneDouble[2] = { 1., 1. };
-    V_ALIGN(16) const long long c_general::absMaskDouble[2] = { 0x7fffffffffffffffll, 0x7fffffffffffffffll };
-    V_ALIGN(16) const unsigned long long c_general::signMaskDouble[2] = { 0x8000000000000000ull, 0x8000000000000000ull };
-    V_ALIGN(16) const unsigned long long c_general::frexpMask[2] = { 0xbfefffffffffffffull, 0xbfefffffffffffffull };
+    alignas(16) const unsigned long long c_general::highMaskDouble[2] = { 0xfffffffff8000000ull, 0xfffffffff8000000ull };
+    alignas(16) const double c_general::oneDouble[2] = { 1., 1. };
+    alignas(16) const long long c_general::absMaskDouble[2] = { 0x7fffffffffffffffll, 0x7fffffffffffffffll };
+    alignas(16) const unsigned long long c_general::signMaskDouble[2] = { 0x8000000000000000ull, 0x8000000000000000ull };
+    alignas(16) const unsigned long long c_general::frexpMask[2] = { 0xbfefffffffffffffull, 0xbfefffffffffffffull };
 
 #define Vc_2(x) x, x
     template<> const double c_trig<double>::data[] = {
@@ -479,9 +471,9 @@ namespace SSE
 #undef Vc_4
 
     // cacheline 8
-    V_ALIGN(16) extern const unsigned char _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    alignas(16) extern const unsigned char _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-    V_ALIGN(64) const unsigned long long c_log<double>::data[21 * 2] = {
+    alignas(64) const unsigned long long c_log<double>::data[21 * 2] = {
       /* 0*/   0x000003ff000003ffull, 0x000003ff000003ffull // bias TODO: remove
       /* 1*/ , 0x7ff0000000000000ull, 0x7ff0000000000000ull // exponentMask (+inf)
 
@@ -508,7 +500,7 @@ namespace SSE
       /*20*/ , 0x3ff71547652b82feull, 0x3ff71547652b82feull // log2(e)
     };
 
-    template<> V_ALIGN(64) const unsigned int c_log<float>::data[21 * 4] = {
+    template<> alignas(64) const unsigned int c_log<float>::data[21 * 4] = {
         0x0000007fu, 0x0000007fu, 0x0000007fu, 0x0000007fu, // bias TODO: remove
         0x7f800000u, 0x7f800000u, 0x7f800000u, 0x7f800000u, // exponentMask (+inf)
 
@@ -546,5 +538,3 @@ namespace SSE
     };
 }
 }
-
-#undef V_ALIGN
