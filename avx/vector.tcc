@@ -38,33 +38,33 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 ///////////////////////////////////////////////////////////////////////////////////////////
 // constants {{{1
-template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerZero::ZEnum) : d{} {}
+template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerZero) : d{} {}
 
-template <> Vc_INTRINSIC AVX2::double_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_pd()) {}
-template <> Vc_INTRINSIC  AVX2::float_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_ps()) {}
+template <> Vc_INTRINSIC AVX2::double_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_pd()) {}
+template <> Vc_INTRINSIC  AVX2::float_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_ps()) {}
 #ifdef Vc_IMPL_AVX2
-template <> Vc_INTRINSIC    AVX2::int_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epi32()) {}
-template <> Vc_INTRINSIC   AVX2::uint_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu32()) {}
-template <> Vc_INTRINSIC  AVX2::short_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epi16()) {}
-template <> Vc_INTRINSIC AVX2::ushort_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu16()) {}
-template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epi8()) {}
-template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu8()) {}
+template <> Vc_INTRINSIC    AVX2::int_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi32()) {}
+template <> Vc_INTRINSIC   AVX2::uint_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu32()) {}
+template <> Vc_INTRINSIC  AVX2::short_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi16()) {}
+template <> Vc_INTRINSIC AVX2::ushort_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu16()) {}
+template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi8()) {}
+template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu8()) {}
 #endif
 
 template <typename T>
 Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx>::Vector(
-    VectorSpecialInitializerIndexesFromZero::IEnum)
+    VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<T>::address(), Vc::Aligned)
 {
 }
 
 template <>
-Vc_ALWAYS_INLINE AVX2::float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+Vc_ALWAYS_INLINE AVX2::float_v::Vector(VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<int>::address(), Vc::Aligned)
 {
 }
 template <>
-Vc_ALWAYS_INLINE AVX2::double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+Vc_ALWAYS_INLINE AVX2::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<int>::address(), Vc::Aligned)
 {
 }
@@ -647,13 +647,13 @@ template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryT
 }
 template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::product(MaskArg m) const
 {
-    AVX2::Vector<T> tmp(VectorSpecialInitializerOne::One);
+    AVX2::Vector<T> tmp(Vc::One);
     tmp(m) = *this;
     return tmp.product();
 }
 template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::sum(MaskArg m) const
 {
-    AVX2::Vector<T> tmp(VectorSpecialInitializerZero::Zero);
+    AVX2::Vector<T> tmp(Vc::Zero);
     tmp(m) = *this;
     return tmp.sum();
 }//}}}

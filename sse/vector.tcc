@@ -38,29 +38,29 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 // constants {{{1
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerZero::ZEnum)
+template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerZero)
     : d(HV::zero())
 {
 }
 
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerOne::OEnum)
+template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerOne)
     : d(HT::one())
 {
 }
 
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero)
     : d(HV::template load<AlignedTag>(Detail::IndexesFromZero<EntryType, Size>()))
 {
 }
 
 template <>
-Vc_INTRINSIC SSE::float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+Vc_INTRINSIC SSE::float_v::Vector(VectorSpecialInitializerIndexesFromZero)
     : d(SSE::convert<int, float>(SSE::int_v::IndexesFromZero().data()))
 {
 }
 
 template <>
-Vc_INTRINSIC SSE::double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+Vc_INTRINSIC SSE::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
     : d(SSE::convert<int, double>(SSE::int_v::IndexesFromZero().data()))
 {
 }
@@ -538,13 +538,13 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>
 }
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::EntryType Vector<T, VectorAbi::Sse>::product(MaskArg m) const
 {
-    Vector<T, VectorAbi::Sse> tmp(VectorSpecialInitializerOne::One);
+    Vector<T, VectorAbi::Sse> tmp(Vc::One);
     tmp(m) = *this;
     return tmp.product();
 }
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::EntryType Vector<T, VectorAbi::Sse>::sum(MaskArg m) const
 {
-    Vector<T, VectorAbi::Sse> tmp(VectorSpecialInitializerZero::Zero);
+    Vector<T, VectorAbi::Sse> tmp(Vc::Zero);
     tmp(m) = *this;
     return tmp.sum();
 }

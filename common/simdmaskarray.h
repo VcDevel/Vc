@@ -76,8 +76,8 @@ public:
     SimdMaskArray() = default;
 
     // broadcasts
-    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne::OEnum one) : data(one) {}
-    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero::ZEnum zero) : data(zero) {}
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne one) : data(one) {}
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero zero) : data(zero) {}
     Vc_INTRINSIC explicit SimdMaskArray(bool b) : data(b) {}
     Vc_INTRINSIC static SimdMaskArray Zero() { return {storage_type::Zero()}; }
     Vc_INTRINSIC static SimdMaskArray One() { return {storage_type::One()}; }
@@ -336,11 +336,11 @@ public:
         return simd_cast<M>(*this);
     }
 
-    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne::OEnum one)
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne one)
         : data0(one), data1(one)
     {
     }
-    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero::ZEnum zero)
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero zero)
         : data0(zero), data1(zero)
     {
     }

@@ -75,8 +75,8 @@ public:
 
     Vc_INTRINSIC Mask() = default;
     Vc_INTRINSIC explicit Mask(bool b) : m(b) {}
-    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
-    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero) : m(false) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne) : m(true) {}
     Vc_INTRINSIC static Mask Zero() { return Mask(false); }
     Vc_INTRINSIC static Mask One() { return Mask(true); }
 

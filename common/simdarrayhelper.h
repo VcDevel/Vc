@@ -131,15 +131,15 @@ template <typename T, std::size_t Offset> struct AddOffset
  */
 template <std::size_t secondOffset> class Split/*{{{*/
 {
-    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, secondOffset> hiImpl(
-        VectorSpecialInitializerIndexesFromZero::IEnum)
+    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero, secondOffset>
+        hiImpl(VectorSpecialInitializerIndexesFromZero)
     {
         return {};
     }
     template <std::size_t Offset>
-    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum,
+    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero,
                                Offset + secondOffset>
-        hiImpl(AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, Offset>)
+        hiImpl(AddOffset<VectorSpecialInitializerIndexesFromZero, Offset>)
     {
         return {};
     }

@@ -40,17 +40,14 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////
     // constant Vectors
-    explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerZero::ZEnum) Vc_INTRINSIC_R;
-    explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerOne::OEnum) Vc_INTRINSIC_R;
-    explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero::IEnum) Vc_INTRINSIC_R;
-    static Vc_INTRINSIC Vc_CONST Vector Zero()
-    {
-        return Vector(VectorSpecialInitializerZero::Zero);
-    }
-    static Vc_INTRINSIC Vc_CONST Vector One() { return Vector(VectorSpecialInitializerOne::One); }
+    explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerZero) Vc_INTRINSIC_R;
+    explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerOne) Vc_INTRINSIC_R;
+    explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero) Vc_INTRINSIC_R;
+    static Vc_INTRINSIC Vc_CONST Vector Zero() { return Vector(Vc::Zero); }
+    static Vc_INTRINSIC Vc_CONST Vector One() { return Vector(Vc::One); }
     static Vc_INTRINSIC Vc_CONST Vector IndexesFromZero()
     {
-        return Vector(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
+        return Vector(Vc::IndexesFromZero);
     }
 
 // vim: foldmethod=marker

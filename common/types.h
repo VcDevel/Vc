@@ -184,13 +184,12 @@ public:
 };
 */
 
+constexpr struct VectorSpecialInitializerZero {} Zero;
+constexpr struct VectorSpecialInitializerOne {} One;
+constexpr struct VectorSpecialInitializerIndexesFromZero {} IndexesFromZero;
+
 // TODO: all of the following doesn't really belong into the toplevel Vc namespace. An anonymous
 // namespace might be enough:
-
-// TODO: convert to enum classes
-namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
-namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
-namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
 
 #ifndef Vc_ICC
 // ICC ICEs if the traits below are in an unnamed namespace

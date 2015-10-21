@@ -113,11 +113,11 @@ public:
         Vc_INTRINSIC Mask(const __m128  &x) : d(sse_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(const __m128d &x) : d(sse_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(const __m128i &x) : d(sse_cast<VectorType>(x)) {}
-        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : Mask(_mm_setzero_ps()) {}
-        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : Mask(SSE::_mm_setallone_ps()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero) : Mask(_mm_setzero_ps()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne) : Mask(SSE::_mm_setallone_ps()) {}
         Vc_INTRINSIC explicit Mask(bool b) : Mask(b ? SSE::_mm_setallone_ps() : _mm_setzero_ps()) {}
-        Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
-        Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
+        Vc_INTRINSIC static Mask Zero() { return Mask{Vc::Zero}; }
+        Vc_INTRINSIC static Mask One() { return Mask{Vc::One}; }
 
         // implicit cast
         template <typename U>

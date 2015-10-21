@@ -35,18 +35,17 @@ namespace Vc_VERSIONED_NAMESPACE
 
 // special value constructors{{{1
 template <typename T>
-Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerZero::ZEnum)
+Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerZero)
     : m_data(0)
 {
 }
 template <typename T>
-Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerOne::OEnum)
+Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerOne)
     : m_data(1)
 {
 }
 template <typename T>
-Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(
-    VectorSpecialInitializerIndexesFromZero::IEnum)
+Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerIndexesFromZero)
     : m_data(0)
 {
 }

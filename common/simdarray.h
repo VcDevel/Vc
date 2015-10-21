@@ -212,8 +212,8 @@ public:
 
     template <std::size_t Offset>
     explicit Vc_INTRINSIC SimdArray(
-        Common::AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, Offset>)
-        : data(VectorSpecialInitializerIndexesFromZero::IndexesFromZero)
+        Common::AddOffset<VectorSpecialInitializerIndexesFromZero, Offset>)
+        : data(Vc::IndexesFromZero)
     {
         data += value_type(Offset);
     }
@@ -234,15 +234,15 @@ public:
 
     static Vc_INTRINSIC SimdArray Zero()
     {
-        return SimdArray(VectorSpecialInitializerZero::Zero);
+        return SimdArray(Vc::Zero);
     }
     static Vc_INTRINSIC SimdArray One()
     {
-        return SimdArray(VectorSpecialInitializerOne::One);
+        return SimdArray(Vc::One);
     }
     static Vc_INTRINSIC SimdArray IndexesFromZero()
     {
-        return SimdArray(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
+        return SimdArray(Vc::IndexesFromZero);
     }
     static Vc_INTRINSIC SimdArray Random()
     {
@@ -619,15 +619,15 @@ public:
 
     static Vc_INTRINSIC SimdArray Zero()
     {
-        return SimdArray(VectorSpecialInitializerZero::Zero);
+        return SimdArray(Vc::Zero);
     }
     static Vc_INTRINSIC SimdArray One()
     {
-        return SimdArray(VectorSpecialInitializerOne::One);
+        return SimdArray(Vc::One);
     }
     static Vc_INTRINSIC SimdArray IndexesFromZero()
     {
-        return SimdArray(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
+        return SimdArray(Vc::IndexesFromZero);
     }
     static Vc_INTRINSIC SimdArray Random()
     {

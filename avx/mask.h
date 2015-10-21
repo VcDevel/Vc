@@ -110,14 +110,14 @@ public:
         Vc_INTRINSIC Mask(VArg  x) : d(AVX::avx_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(VdArg x) : d(AVX::avx_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(ViArg x) : d(AVX::avx_cast<VectorType>(x)) {}
-        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : d(Detail::zero<VectorType>()) {}
-        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : d(Detail::allone<VectorType>()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero) : d(Detail::zero<VectorType>()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne) : d(Detail::allone<VectorType>()) {}
         Vc_INTRINSIC explicit Mask(bool b)
             : d(b ? Detail::allone<VectorType>() : Detail::zero<VectorType>())
         {
         }
-        Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
-        Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
+        Vc_INTRINSIC static Mask Zero() { return Mask{Vc::Zero}; }
+        Vc_INTRINSIC static Mask One() { return Mask{Vc::One}; }
 
         // implicit cast
         template <typename U>

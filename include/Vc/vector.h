@@ -183,13 +183,6 @@ namespace Vc_VERSIONED_NAMESPACE {
 #undef isnan
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
-  using namespace VectorSpecialInitializerZero;
-  using namespace VectorSpecialInitializerOne;
-  using namespace VectorSpecialInitializerIndexesFromZero;
-}
-
 #include "common/vectortuple.h"
 #include "common/algorithms.h"
 #include "common/where.h"

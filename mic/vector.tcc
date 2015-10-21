@@ -112,21 +112,28 @@ template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<MIC::float_v
 } // anonymous namespace
 
 // constants {{{1
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerZero::ZEnum) : d(HV::zero()) {}
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerOne::OEnum) : d(HV::one()) {}
+template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerZero) : d(HV::zero()) {}
+template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerOne) : d(HV::one()) {}
 template <typename T>
 Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(
-    VectorSpecialInitializerIndexesFromZero::IEnum)
+    VectorSpecialInitializerIndexesFromZero)
     : d(LoadHelper<Vector<T, VectorAbi::Mic>>::load(MIC::IndexesFromZeroHelper<T>(),
                                                     Aligned))
 {
 }
 
-template<> Vc_ALWAYS_INLINE MIC::float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(_mm512_extload_ps(&MIC::_IndexesFromZero, _MM_UPCONV_PS_SINT8, _MM_BROADCAST32_NONE, _MM_HINT_NONE)) {}
+template <>
+Vc_ALWAYS_INLINE MIC::float_v::Vector(VectorSpecialInitializerIndexesFromZero)
+    : d(_mm512_extload_ps(&MIC::_IndexesFromZero, _MM_UPCONV_PS_SINT8,
+                          _MM_BROADCAST32_NONE, _MM_HINT_NONE))
+{
+}
 
-template<> Vc_ALWAYS_INLINE MIC::double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(MIC::convert<int, double>(MIC::int_v::IndexesFromZero().data())) {}
+template <>
+Vc_ALWAYS_INLINE MIC::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
+    : d(MIC::convert<int, double>(MIC::int_v::IndexesFromZero().data()))
+{
+}
 
 // loads {{{1
 template <typename T>

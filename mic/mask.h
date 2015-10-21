@@ -120,11 +120,11 @@ public:
 
     Vc_INTRINSIC Mask() : k() {}
     Vc_INTRINSIC Mask(MaskType _k) : k(_k) {}
-    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : k(0) {}
-    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : k(Size == 16 ? 0xffff : 0xff) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero) : k(0) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne) : k(Size == 16 ? 0xffff : 0xff) {}
     Vc_INTRINSIC explicit Mask(bool b) : k(b ? (Size == 16 ? 0xffff : 0xff) : 0) {}
-    Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
-    Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
+    Vc_INTRINSIC static Mask Zero() { return Mask{Vc::Zero}; }
+    Vc_INTRINSIC static Mask One() { return Mask{Vc::One}; }
 
     // implicit cast
     template <typename U>

@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_GLOBAL_H_
 #define VC_GLOBAL_H_
 
+#include <cstdint>
+
 #ifndef DOXYGEN
 
 // Compiler defines
@@ -425,7 +427,7 @@ enum MallocAlignment {
  *
  * \see ExtraInstructions
  */
-enum Implementation { // TODO: make enum class of uint32_t
+enum Implementation : std::uint_least32_t { // TODO: make enum class
     /// uses only fundamental types
     ScalarImpl,
     /// x86 SSE + SSE2
@@ -457,7 +459,7 @@ enum Implementation { // TODO: make enum class of uint32_t
  * But there are additional instructions that are not necessarily required by this list. These are
  * covered in this enum.
  */
-enum ExtraInstructions { // TODO: make enum class of uint32_t
+enum ExtraInstructions : std::uint_least32_t { // TODO: make enum class
     //! Support for float16 conversions in hardware
     Float16cInstructions  = 0x01000,
     //! Support for FMA4 instructions
