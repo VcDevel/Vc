@@ -184,13 +184,23 @@ public:
 };
 */
 
+/**
+ * The special object \p Vc::Zero can be used to construct Vector and Mask objects
+ * initialized to zero/false.
+ */
 constexpr struct VectorSpecialInitializerZero {} Zero;
+/**
+ * The special object \p Vc::One can be used to construct Vector and Mask objects
+ * initialized to one/true.
+ */
 constexpr struct VectorSpecialInitializerOne {} One;
+/**
+ * The special object \p Vc::IndexesFromZero can be used to construct Vector objects
+ * initialized to values 0, 1, 2, 3, 4, ...
+ */
 constexpr struct VectorSpecialInitializerIndexesFromZero {} IndexesFromZero;
 
-// TODO: all of the following doesn't really belong into the toplevel Vc namespace. An anonymous
-// namespace might be enough:
-
+// TODO: the following doesn't really belong into the toplevel Vc namespace.
 #ifndef Vc_CHECK_ALIGNMENT
 template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
 #else
@@ -279,11 +289,19 @@ template <typename T, typename IndexVector> struct ScatterArguments
     T *const address;
 };
 
+/**\internal
+ * Break the recursion of the function below.
+ */
 template <typename I, I Begin, I End, typename F>
 Vc_INTRINSIC enable_if<(Begin >= End), void> unrolled_loop(F &&)
 {
 }
 
+/**\internal
+ * Force the code in the lambda \p f to be called with indexes starting from \p Begin up
+ * to (excluding) \p End to be called without compare and jump instructions (i.e. an
+ * unrolled loop).
+ */
 template <typename I, I Begin, I End, typename F>
 Vc_INTRINSIC Vc_FLATTEN enable_if<(Begin < End), void> unrolled_loop(F &&f)
 {
@@ -291,6 +309,10 @@ Vc_INTRINSIC Vc_FLATTEN enable_if<(Begin < End), void> unrolled_loop(F &&f)
     unrolled_loop<I, Begin + 1, End>(f);
 }
 
+/**\internal
+ * Small simplification of the unrolled_loop call for ranges from 0 to \p Size using
+ * std::size_t as the index type.
+ */
 template <std::size_t Size, typename F> Vc_INTRINSIC void for_all_vector_entries(F &&f)
 {
     unrolled_loop<std::size_t, 0u, Size>(std::forward<F>(f));
