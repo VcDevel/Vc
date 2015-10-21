@@ -39,13 +39,13 @@ else()
    # TODO: check that 'decltype' compiles
    # TODO: check that 'constexpr' compiles
    if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
-      AddCompilerFlag("-std=c++14" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+      AddCompilerFlag("-std=c++14" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
       if(MIC_NATIVE_FOUND AND NOT _mic_ok)
-         AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+         AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
          if(NOT _mic_ok)
-            AddCompilerFlag("-std=c++11" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+            AddCompilerFlag("-std=c++11" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
             if(NOT _mic_ok)
-               AddCompilerFlag("-std=c++0x" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+               AddCompilerFlag("-std=c++0x" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
                if(NOT _mic_ok)
                   message(FATAL_ERROR "Vc 1.x requires C++11, better even C++14. The MIC native compiler does not support any of the C++11 language flags.")
                endif()
@@ -241,7 +241,7 @@ endif()
 install(DIRECTORY scalar sse avx mic common traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 # read version parts from version.h to be put into VcConfig.cmake
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define VC_VERSION_STRING ")
+file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define Vc_VERSION_STRING ")
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _version_matches "${_version_lines}")
 set(Vc_VERSION_MAJOR ${CMAKE_MATCH_1})
 set(Vc_VERSION_MINOR ${CMAKE_MATCH_2})
@@ -302,5 +302,5 @@ if(NOT ROOT_RELEASE)
    endif(BUILD_EXAMPLES)
 endif()
 
-# Hide VC_IMPL as it is only meant for users of Vc
-mark_as_advanced(VC_IMPL)
+# Hide Vc_IMPL as it is only meant for users of Vc
+mark_as_advanced(Vc_IMPL)
