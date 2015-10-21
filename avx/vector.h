@@ -235,7 +235,7 @@ public:
             static_assert(std::is_integral<T>::value,
                           "bit-complement can only be used with Vectors of integral type");
 #endif
-            return Detail::andnot_(data(), HV::allone());
+            return Detail::andnot_(data(), Detail::allone<VectorType>());
         }
         Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
         Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }

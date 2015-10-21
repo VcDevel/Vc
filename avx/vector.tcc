@@ -84,15 +84,15 @@ Vc_INTRINSIC void Vector<DstT, VectorAbi::Avx>::load(const SrcT *mem, Flags flag
 // zeroing {{{1
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZero()
 {
-    data() = HV::zero();
+    data() = Detail::zero<VectorType>();
 }
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZero(const Mask &k)
 {
-    data() = HV::andnot_(AVX::avx_cast<VectorType>(k.data()), data());
+    data() = Detail::andnot_(AVX::avx_cast<VectorType>(k.data()), data());
 }
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZeroInverted(const Mask &k)
 {
-    data() = HV::and_(AVX::avx_cast<VectorType>(k.data()), data());
+    data() = Detail::and_(AVX::avx_cast<VectorType>(k.data()), data());
 }
 
 template<> Vc_INTRINSIC void AVX2::double_v::setQnan()
@@ -327,14 +327,14 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAb
     Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(     \
         AsArg x)                                                                         \
     {                                                                                    \
-        d.v() = HV::fun(d.v(), x.d.v());                                                 \
+        d.v() = Detail::fun(d.v(), x.d.v());                                             \
         return *this;                                                                    \
     }                                                                                    \
     template <>                                                                          \
     Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol( \
         AsArg x) const                                                                   \
     {                                                                                    \
-        return AVX2::Vector<T>(HV::fun(d.v(), x.d.v()));                                 \
+        return AVX2::Vector<T>(Detail::fun(d.v(), x.d.v()));                             \
     }
 #ifdef Vc_IMPL_AVX2
   Vc_OP_IMPL(int, &, and_)
@@ -737,7 +737,7 @@ template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> Vector<T, VectorAbi::Avx>:
 
 template <> Vc_ALWAYS_INLINE AVX2::float_v AVX2::float_v::Random()
 {
-    return HT::sub(HV::or_(_cast(AVX::srli_epi32<2>(_doRandomStep())), HT::one()),
+    return HT::sub(Detail::or_(_cast(AVX::srli_epi32<2>(_doRandomStep())), HT::one()),
                    HT::one());
 }
 
@@ -749,7 +749,7 @@ template<> Vc_ALWAYS_INLINE AVX2::double_v AVX2::double_v::Random()
         const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
         *reinterpret_cast<uint64 *>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
     }
-    return HT::sub(HV::or_(_cast(AVX::srli_epi64<12>(state)), HT::one()), HT::one());
+    return HT::sub(Detail::or_(_cast(AVX::srli_epi64<12>(state)), HT::one()), HT::one());
 }
 // }}}1
 // shifted / rotated {{{1

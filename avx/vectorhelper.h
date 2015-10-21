@@ -40,12 +40,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
-
-#define Vc_OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
-#define Vc_OP1(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a) { return code; }
-#define Vc_OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a, VTArg b) { return code; }
-#define Vc_OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(VTArg a, VTArg b, VTArg c) { return code; }
-
         template<> struct VectorHelper<__m256>
         {
             typedef __m256 VectorType;
@@ -62,21 +56,6 @@ namespace AVX
 
             template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, VTArg m, typename std::enable_if<!Flags::IsStreaming, void *>::type = nullptr) { _mm256_maskstore(mem, m, x); }
             template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VTArg x, VTArg m, typename std::enable_if< Flags::IsStreaming, void *>::type = nullptr) { AvxIntrinsics::stream_store(mem, x, m); }
-
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType cdab(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(2, 3, 0, 1)); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType badc(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(1, 0, 3, 2)); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType aaaa(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(0, 0, 0, 0)); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType bbbb(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(1, 1, 1, 1)); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType cccc(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(2, 2, 2, 2)); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType dddd(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(3, 3, 3, 3)); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType dacb(VTArg x) { return _mm256_permute_ps(x, _MM_SHUFFLE(3, 0, 2, 1)); }
-
-            Vc_OP0(allone, setallone_ps())
-            Vc_OP0(zero, _mm256_setzero_ps())
-            Vc_OP2(or_, _mm256_or_ps(a, b))
-            Vc_OP2(xor_, _mm256_xor_ps(a, b))
-            Vc_OP2(and_, _mm256_and_ps(a, b))
-            Vc_OP2(andnot_, _mm256_andnot_ps(a, b))
         };
 
         template<> struct VectorHelper<__m256d>
@@ -95,23 +74,6 @@ namespace AVX
 
             template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, VTArg m, typename std::enable_if<!Flags::IsStreaming, void *>::type = nullptr) { _mm256_maskstore(mem, m, x); }
             template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VTArg x, VTArg m, typename std::enable_if< Flags::IsStreaming, void *>::type = nullptr) { AvxIntrinsics::stream_store(mem, x, m); }
-
-            static VectorType cdab(VTArg x) { return _mm256_permute_pd(x, 5); }
-            static VectorType badc(VTArg x) { return _mm256_permute2f128_pd(x, x, 1); }
-            // aaaa bbbb cccc dddd specialized in vector.tcc
-            static VectorType dacb(VTArg x) {
-                const __m128d cb = avx_cast<__m128d>(_mm_alignr_epi8(avx_cast<__m128i>(lo128(x)),
-                            avx_cast<__m128i>(hi128(x)), sizeof(double))); // XXX: lo and hi swapped?
-                const __m128d da = _mm_blend_pd(lo128(x), hi128(x), 0 + 2); // XXX: lo and hi swapped?
-                return concat(cb, da);
-            }
-
-            Vc_OP0(allone, setallone_pd())
-            Vc_OP0(zero, _mm256_setzero_pd())
-            Vc_OP2(or_, _mm256_or_pd(a, b))
-            Vc_OP2(xor_, _mm256_xor_pd(a, b))
-            Vc_OP2(and_, _mm256_and_pd(a, b))
-            Vc_OP2(andnot_, _mm256_andnot_pd(a, b))
         };
 
         template<> struct VectorHelper<__m256i>
@@ -130,26 +92,7 @@ namespace AVX
 
             template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, VTArg m, typename std::enable_if<!Flags::IsStreaming, void *>::type = nullptr) { _mm256_maskstore(mem, m, x); }
             template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VTArg x, VTArg m, typename std::enable_if< Flags::IsStreaming, void *>::type = nullptr) { AvxIntrinsics::stream_store(mem, x, m); }
-
-            static VectorType cdab(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(2, 3, 0, 1))); }
-            static VectorType badc(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(1, 0, 3, 2))); }
-            static VectorType aaaa(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(0, 0, 0, 0))); }
-            static VectorType bbbb(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(1, 1, 1, 1))); }
-            static VectorType cccc(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(2, 2, 2, 2))); }
-            static VectorType dddd(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(3, 3, 3, 3))); }
-            static VectorType dacb(VTArg x) { return avx_cast<VectorType>(_mm256_permute_ps(avx_cast<__m256>(x), _MM_SHUFFLE(3, 0, 2, 1))); }
-
-            Vc_OP0(allone, setallone_si256())
-            Vc_OP0(zero, _mm256_setzero_si256())
-            Vc_OP2(or_, or_si256(a, b))
-            Vc_OP2(xor_, xor_si256(a, b))
-            Vc_OP2(and_, and_si256(a, b))
-            Vc_OP2(andnot_, andnot_si256(a, b))
         };
-#undef Vc_OP0
-#undef Vc_OP1
-#undef Vc_OP2
-#undef Vc_OP3
 
 #define Vc_OP1(op) \
         static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a) { return Vc_CAT2(_mm256_##op##_, Vc_SUFFIX)(a); }
