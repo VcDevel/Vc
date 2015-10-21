@@ -659,20 +659,29 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, Ve
 template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::shifted(int amount, Vector shiftIn) const
 {
     if (amount >= -int(size())) {
-        constexpr auto EntryTypeSizeof = sizeof(EntryType);
+        constexpr int VectorWidth = size();
+        constexpr int EntryTypeSizeof = sizeof(EntryType);
         const __m128i v0 = sse_cast<__m128i>(d.v());
         const __m128i v1 = sse_cast<__m128i>(shiftIn.d.v());
         auto &&fixup = sse_cast<VectorType, __m128i>;
         switch (amount) {
         case  0: return *this;
                  // alignr_epi8: [arg1 arg0] << n
-        case -1: return fixup(SSE::alignr_epi8<(size() - 1) * EntryTypeSizeof>(v0, v1));
-        case -2: return fixup(SSE::alignr_epi8<(size() - 2) * EntryTypeSizeof>(v0, v1));
-        case -3: return fixup(SSE::alignr_epi8<(size() - 3) * EntryTypeSizeof>(v0, v1));
-        case -4: return fixup(SSE::alignr_epi8<(size() - 4) * EntryTypeSizeof>(v0, v1));
-        case -5: return fixup(SSE::alignr_epi8<(size() - 5) * EntryTypeSizeof>(v0, v1));
-        case -6: return fixup(SSE::alignr_epi8<(size() - 6) * EntryTypeSizeof>(v0, v1));
-        case -7: return fixup(SSE::alignr_epi8<(size() - 7) * EntryTypeSizeof>(v0, v1));
+        case -1: return fixup(SSE::alignr_epi8<(VectorWidth - 1) * EntryTypeSizeof>(v0, v1));
+        case -2: return fixup(SSE::alignr_epi8<(VectorWidth - 2) * EntryTypeSizeof>(v0, v1));
+        case -3: return fixup(SSE::alignr_epi8<(VectorWidth - 3) * EntryTypeSizeof>(v0, v1));
+        case -4: return fixup(SSE::alignr_epi8<(VectorWidth - 4) * EntryTypeSizeof>(v0, v1));
+        case -5: return fixup(SSE::alignr_epi8<(VectorWidth - 5) * EntryTypeSizeof>(v0, v1));
+        case -6: return fixup(SSE::alignr_epi8<(VectorWidth - 6) * EntryTypeSizeof>(v0, v1));
+        case -7: return fixup(SSE::alignr_epi8<(VectorWidth - 7) * EntryTypeSizeof>(v0, v1));
+        case -8: return fixup(SSE::alignr_epi8<(VectorWidth - 8) * EntryTypeSizeof>(v0, v1));
+        case -9: return fixup(SSE::alignr_epi8<(VectorWidth - 9) * EntryTypeSizeof>(v0, v1));
+        case-10: return fixup(SSE::alignr_epi8<(VectorWidth -10) * EntryTypeSizeof>(v0, v1));
+        case-11: return fixup(SSE::alignr_epi8<(VectorWidth -11) * EntryTypeSizeof>(v0, v1));
+        case-12: return fixup(SSE::alignr_epi8<(VectorWidth -12) * EntryTypeSizeof>(v0, v1));
+        case-13: return fixup(SSE::alignr_epi8<(VectorWidth -13) * EntryTypeSizeof>(v0, v1));
+        case-14: return fixup(SSE::alignr_epi8<(VectorWidth -14) * EntryTypeSizeof>(v0, v1));
+        case-15: return fixup(SSE::alignr_epi8<(VectorWidth -15) * EntryTypeSizeof>(v0, v1));
         case  1: return fixup(SSE::alignr_epi8< 1 * EntryTypeSizeof>(v1, v0));
         case  2: return fixup(SSE::alignr_epi8< 2 * EntryTypeSizeof>(v1, v0));
         case  3: return fixup(SSE::alignr_epi8< 3 * EntryTypeSizeof>(v1, v0));
