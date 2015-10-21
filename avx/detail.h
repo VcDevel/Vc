@@ -481,6 +481,11 @@ Vc_INTRINSIC __m256  not_(__m256  a) { return andnot_(a, allone<__m256 >()); }
 Vc_INTRINSIC __m256d not_(__m256d a) { return andnot_(a, allone<__m256d>()); }
 Vc_INTRINSIC __m256i not_(__m256i a) { return andnot_(a, allone<__m256i>()); }
 
+// blend{{{1
+Vc_INTRINSIC __m256  blend(__m256  a, __m256  b, __m256  c) { return _mm256_blendv_ps(a, b, c); }
+Vc_INTRINSIC __m256d blend(__m256d a, __m256d b, __m256d c) { return _mm256_blendv_pd(a, b, c); }
+Vc_INTRINSIC __m256i blend(__m256i a, __m256i b, __m256i c) { return AVX::blendv_epi8(a, b, c); }
+
 // abs{{{1
 Vc_INTRINSIC __m256  abs(__m256  a,  float) { return and_(a, AVX::setabsmask_ps()); }
 Vc_INTRINSIC __m256d abs(__m256d a, double) { return and_(a, AVX::setabsmask_pd()); }

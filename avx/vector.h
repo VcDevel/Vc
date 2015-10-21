@@ -310,7 +310,7 @@ public:
 
         Vc_ALWAYS_INLINE void assign( const Vector &v, const Mask &mask ) {
             const VectorType k = _cast(mask.data());
-            data() = HV::blend(data(), v.data(), k);
+            data() = Detail::blend(data(), v.data(), k);
         }
 
         template<typename V2> Vc_ALWAYS_INLINE V2 staticCast() const { return V2(*this); }

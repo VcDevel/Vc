@@ -77,7 +77,6 @@ namespace AVX
             Vc_OP2(xor_, _mm256_xor_ps(a, b))
             Vc_OP2(and_, _mm256_and_ps(a, b))
             Vc_OP2(andnot_, _mm256_andnot_ps(a, b))
-            Vc_OP3(blend, _mm256_blendv_ps(a, b, c))
         };
 
         template<> struct VectorHelper<__m256d>
@@ -113,7 +112,6 @@ namespace AVX
             Vc_OP2(xor_, _mm256_xor_pd(a, b))
             Vc_OP2(and_, _mm256_and_pd(a, b))
             Vc_OP2(andnot_, _mm256_andnot_pd(a, b))
-            Vc_OP3(blend, _mm256_blendv_pd(a, b, c))
         };
 
         template<> struct VectorHelper<__m256i>
@@ -147,7 +145,6 @@ namespace AVX
             Vc_OP2(xor_, xor_si256(a, b))
             Vc_OP2(and_, and_si256(a, b))
             Vc_OP2(andnot_, andnot_si256(a, b))
-            Vc_OP3(blend, blendv_epi8(a, b, c))
         };
 #undef Vc_OP0
 #undef Vc_OP1
