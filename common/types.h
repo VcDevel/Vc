@@ -188,17 +188,17 @@ public:
  * The special object \p Vc::Zero can be used to construct Vector and Mask objects
  * initialized to zero/false.
  */
-constexpr struct VectorSpecialInitializerZero {} Zero;
+static constexpr struct VectorSpecialInitializerZero {} Zero = {};
 /**
  * The special object \p Vc::One can be used to construct Vector and Mask objects
  * initialized to one/true.
  */
-constexpr struct VectorSpecialInitializerOne {} One;
+static constexpr struct VectorSpecialInitializerOne {} One = {};
 /**
  * The special object \p Vc::IndexesFromZero can be used to construct Vector objects
  * initialized to values 0, 1, 2, 3, 4, ...
  */
-constexpr struct VectorSpecialInitializerIndexesFromZero {} IndexesFromZero;
+static constexpr struct VectorSpecialInitializerIndexesFromZero {} IndexesFromZero = {};
 
 // TODO: the following doesn't really belong into the toplevel Vc namespace.
 #ifndef Vc_CHECK_ALIGNMENT
