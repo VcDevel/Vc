@@ -72,15 +72,6 @@ else()
          list(APPEND disabled_targets
             example_scaling_scalar
             )
-      elseif(Vc_GCC_VERSION STREQUAL "4.8.0")
-         UserWarning("GCC 4.8.0 is broken. The following tests are therefore disabled:
-         memory_avx2, memory_avx, memory_sse, memory_scalar")
-         list(APPEND disabled_targets
-            memory_avx2
-            memory_avx
-            memory_sse
-            memory_scalar
-            )
       endif()
    elseif(Vc_COMPILER_IS_MSVC)
       if(MSVC_VERSION LESS 1700)
