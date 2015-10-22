@@ -102,7 +102,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 /* Define the following strings to a unique integer, which is the only type the preprocessor can
- * compare. This allows to use -DVC_IMPL=SSE3. The preprocessor will then consider Vc_IMPL and SSE3
+ * compare. This allows to use -DVc_IMPL=SSE3. The preprocessor will then consider Vc_IMPL and SSE3
  * to be equal. Of course, it is important to undefine the strings later on!
  */
 #define Scalar 0x00100000
@@ -154,6 +154,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # if defined __SSE4_2__ || defined __SSE4A__
 #  define __POPCNT__ 1
 # endif
+#endif
+
+#ifdef VC_IMPL
+#error "You are using the old VC_IMPL macro. Since Vc 1.0 all Vc macros start with Vc_, i.e. a lower-case 'c'"
 #endif
 
 #ifndef Vc_IMPL

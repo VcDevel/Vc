@@ -205,7 +205,7 @@ if(MIC_NATIVE_FOUND)
 
       add_custom_command(OUTPUT "${${_output}}"
          COMMAND "${_compiler}" -mmic
-         -DVC_IMPL=MIC
+         -DVc_IMPL=MIC
          ${_flags} -c -o "${${_output}}" "${_abs}"
          DEPENDS "${_abs}" ${_deps}
          IMPLICIT_DEPENDS ${_lang} "${_abs}"
@@ -372,7 +372,7 @@ ${MIC_RANLIB} ${_output}
             get_filename_component(_name "${_src}" NAME)
             add_custom_command(OUTPUT "${_name}.s"
                COMMAND "${MIC_CXX}" -mmic
-               -DVC_IMPL=MIC ${_mic_cflags} ${_cflags} ${Vc_MIC_CXX_FLAGS}
+               -DVc_IMPL=MIC ${_mic_cflags} ${_cflags} ${Vc_MIC_CXX_FLAGS}
                ${_abs}
                -S -fsource-asm -fno-verbose-asm -o "${_name}.x"
                COMMAND sh -c "grep -v ___tag_value '${_name}.x' | c++filt > '${_name}.s'"
