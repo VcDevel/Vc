@@ -64,7 +64,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_DEPRECATED(msg)
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
-#  define Vc_MAY_ALIAS __attribute__((__may_alias__))
+#  if defined Vc_GCC && Vc_GCC >= 0x50000 && !defined __OPTIMIZE__
+#    define Vc_MAY_ALIAS
+#  else
+#    define Vc_MAY_ALIAS __attribute__((__may_alias__))
+#  endif
 #  define Vc_INTRINSIC_R __attribute__((__always_inline__, __artificial__))
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC Vc_INTRINSIC_L Vc_INTRINSIC_R
