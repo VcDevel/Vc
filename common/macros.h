@@ -64,7 +64,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_DEPRECATED(msg)
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
-#  if defined Vc_GCC && Vc_GCC >= 0x50000 && !defined __OPTIMIZE__
+#  if defined Vc_GCC && !defined __OPTIMIZE__
 #    define Vc_MAY_ALIAS
 #  else
 #    define Vc_MAY_ALIAS __attribute__((__may_alias__))
