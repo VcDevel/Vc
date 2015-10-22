@@ -49,7 +49,8 @@ namespace AVX
     alignas(16) extern const unsigned short _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
     alignas(16) extern const unsigned char  _IndexesFromZero8 [32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
 
-    template<> const double c_trig<double>::data[] = {
+    template <>
+    alignas(64) const double c_trig<double>::data[] = {
     // cacheline 4
         doubleConstant<1, 0x921fb54442d18ull, -1>(), // π/4
         doubleConstant<1, 0x921fb40000000ull, -1>(), // π/4 - 30bits precision
@@ -120,7 +121,8 @@ namespace AVX
         doubleConstant<-1, 0x898220a3607acull,  5>(), // asinCoeff3
     };
 #define Vc_4(x) x
-    template<> const float c_trig<float>::data[] = {
+    template <>
+    alignas(64) const float c_trig<float>::data[] = {
     // cacheline
         Vc_4((floatConstant< 1, 0x490FDB,  -1>())), // π/4
         Vc_4((floatConstant< 1, 0x491000,  -1>())), // π/4 - 12 bits precision
@@ -228,7 +230,8 @@ namespace AVX
       , 0x3ff71547652b82feull // log2(e)
     };
 
-    template<> const unsigned int c_log<float>::data[21] = {
+    template <>
+    alignas(64) const unsigned int c_log<float>::data[21] = {
         0x0000007fu // bias TODO: remove
       , 0x7f800000u // exponentMask (+inf)
 
@@ -312,7 +315,8 @@ namespace SSE
     alignas(16) const unsigned long long c_general::frexpMask[2] = { 0xbfefffffffffffffull, 0xbfefffffffffffffull };
 
 #define Vc_2(x) x, x
-    template<> const double c_trig<double>::data[] = {
+    template <>
+    alignas(64) const double c_trig<double>::data[] = {
     // cacheline 4
         Vc_2((doubleConstant<1, 0x921fb54442d18ull, -1>())), // π/4
         Vc_2((doubleConstant<1, 0x921fb40000000ull, -1>())), // π/4 - 30bits precision
@@ -391,7 +395,8 @@ namespace SSE
     };
 #undef Vc_2
 #define Vc_4(x) x, x, x, x
-    template<> const float c_trig<float>::data[] = {
+    template <>
+    alignas(64) const float c_trig<float>::data[] = {
     // cacheline
         Vc_4((floatConstant< 1, 0x490FDB,  -1>())), // π/4
         Vc_4((floatConstant< 1, 0x491000,  -1>())), // π/4 - 12 bits precision
