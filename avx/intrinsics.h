@@ -604,26 +604,16 @@ static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
 #endif
 
 static Vc_INTRINSIC void _mm256_maskstore(float *mem, const __m256 mask, const __m256 v) {
-#ifndef Vc_MM256_MASKSTORE_WRONG_MASK_TYPE
     _mm256_maskstore_ps(mem, _mm256_castps_si256(mask), v);
-#else
-    _mm256_maskstore_ps(mem, mask, v);
-#endif
 }
 static Vc_INTRINSIC void _mm256_maskstore(double *mem, const __m256d mask, const __m256d v) {
-#ifndef Vc_MM256_MASKSTORE_WRONG_MASK_TYPE
     _mm256_maskstore_pd(mem, _mm256_castpd_si256(mask), v);
-#else
-    _mm256_maskstore_pd(mem, mask, v);
-#endif
 }
 static Vc_INTRINSIC void _mm256_maskstore(int *mem, const __m256i mask, const __m256i v) {
 #ifdef Vc_IMPL_AVX2
     _mm256_maskstore_epi32(mem, mask, v);
-#elif !defined(Vc_MM256_MASKSTORE_WRONG_MASK_TYPE)
-    _mm256_maskstore_ps(reinterpret_cast<float *>(mem), mask, _mm256_castsi256_ps(v));
 #else
-    _mm256_maskstore_ps(reinterpret_cast<float *>(mem), _mm256_castsi256_ps(mask), _mm256_castsi256_ps(v));
+    _mm256_maskstore_ps(reinterpret_cast<float *>(mem), mask, _mm256_castsi256_ps(v));
 #endif
 }
 static Vc_INTRINSIC void _mm256_maskstore(unsigned int *mem, const __m256i mask, const __m256i v) {

@@ -66,15 +66,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if defined(__GNUC__) && !defined(Vc_NO_INLINE_ASM)
 #define Vc_GNU_ASM 1
 #endif
-#if defined(Vc_GCC) && (Vc_GCC <= 0x40405 || (Vc_GCC >= 0x40500 && Vc_GCC <= 0x40502)) && !(Vc_GCC == 0x40502 && defined(__GNUC_UBUNTU_VERSION__) && __GNUC_UBUNTU_VERSION__ == 0xb0408)
-// GCC 4.6.0 / 4.5.3 / 4.4.6 switched to the interface as defined by ICC
-// (Ubuntu 11.04 ships a GCC 4.5.2 with the new interface)
-#define Vc_MM256_MASKSTORE_WRONG_MASK_TYPE 1
-#endif
-#if defined(Vc_GCC) && Vc_GCC >= 0x40300
-#define Vc_HAVE_ATTRIBUTE_ERROR 1
-#define Vc_HAVE_ATTRIBUTE_WARNING 1
-#endif
 
 #if defined(Vc_MSVC) && Vc_MSVC < 180000000
 // MSVC doesn't know constexpr and noexcept
