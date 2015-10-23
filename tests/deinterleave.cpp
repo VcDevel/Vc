@@ -216,6 +216,12 @@ size_t createNMask(size_t N)
     return NMask;
 }
 
+#if !defined __GNUC__ || defined __OPTIMIZE__
+static constexpr int TotalRetests = 10000;
+#else
+static constexpr int TotalRetests = 1000;
+#endif
+
 TEST_TYPES(Param, testDeinterleaveGather,
            (outer_product<Typelist<ALL_VECTORS>,
                           Typelist<std::integral_constant<std::size_t, 2>,
@@ -250,7 +256,7 @@ TEST_TYPES(Param, testDeinterleaveGather,
     }
     const Wrapper data_v(data);
 
-    for (int retest = 0; retest < 10000; ++retest) {
+    for (int retest = 0; retest < TotalRetests; ++retest) {
         I indexes = (I::Random() >> 10) & I(NMask);
         VERIFY(all_of(indexes >= 0));
         VERIFY(all_of(indexes < N));
@@ -351,7 +357,7 @@ TEST_TYPES(Param, testInterleavingScatter,
     Wrapper data_v(data);
 
     try {
-        for (int retest = 0; retest < 10000; ++retest) {
+        for (int retest = 0; retest < TotalRetests; ++retest) {
             I indexes = (I::Random() >> 10) & I(NMask);
             if (I::Size != 1) {
                 // ensure the indexes are unique
