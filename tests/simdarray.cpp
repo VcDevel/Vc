@@ -146,7 +146,7 @@ TEST_TYPES(V, indexesFromZero, SIMD_ARRAY_LIST)
 // storing 2-Byte data, whereas the MIC::Vector<(u)short> stores 4-Byte data.
 // The plan is to have it fixed in Vc 2.0.
     if (sizeof(T) < 4) {
-        alignas(V::MemoryAlignment) T mem[V::size()] = {};
+        alignas(V::MemoryAlignment) T mem[V::size()];
         a.store(mem, Vc::Aligned);
         for (std::size_t i = 0; i < a.size(); ++i) {
             COMPARE(mem[i], T(i));
