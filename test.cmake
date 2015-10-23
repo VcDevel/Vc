@@ -253,7 +253,7 @@ set(CTEST_USE_LAUNCHERS 0) # launchers once lead to much improved error/warning
 if(WIN32)
    set(MAKE_ARGS "-k")
 else()
-   set(MAKE_ARGS "-j${number_of_processors} -k")
+   set(MAKE_ARGS "-j${number_of_processors} -l${number_of_processors} -k")
 endif()
 
 if(WIN32)
