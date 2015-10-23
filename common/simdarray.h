@@ -119,12 +119,12 @@ public:
     static constexpr std::size_t MemoryAlignment = storage_type::MemoryAlignment;
 
     // zero init
-    SimdArray() = default;
+    Vc_INTRINSIC SimdArray() = default;
 
     // default copy ctor/operator
-    SimdArray(const SimdArray &) = default;
-    SimdArray(SimdArray &&) = default;
-    SimdArray &operator=(const SimdArray &) = default;
+    Vc_INTRINSIC SimdArray(const SimdArray &) = default;
+    Vc_INTRINSIC SimdArray(SimdArray &&) = default;
+    Vc_INTRINSIC SimdArray &operator=(const SimdArray &) = default;
 
     // broadcast
     Vc_INTRINSIC SimdArray(const value_type &a) : data(a) {}
@@ -133,7 +133,7 @@ public:
     template <
         typename U,
         typename = enable_if<std::is_same<U, int>::value && !std::is_same<int, value_type>::value>>
-    SimdArray(U a)
+    Vc_INTRINSIC SimdArray(U a)
         : SimdArray(static_cast<value_type>(a))
     {
     }
@@ -193,7 +193,7 @@ public:
               typename = enable_if<
                   Traits::is_simd_vector<V>::value && !Traits::isSimdArray<V>::value &&
                   std::is_convertible<T, typename V::EntryType>::value && V::size() == N>>
-    operator V() const
+    Vc_INTRINSIC operator V() const
     {
         return simd_cast<V>(*this);
     }
