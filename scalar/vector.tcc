@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#include <cmath>
 #include "../common/data.h"
 #include "../common/where.h"
 #include "../common/transpose.h"
@@ -173,48 +174,17 @@ template<> Vc_INTRINSIC Scalar::double_v Scalar::double_v::exponent() const
 }
 // }}}1
 // FMA {{{1
-static Vc_ALWAYS_INLINE float highBits(float x)
+template <>
+Vc_ALWAYS_INLINE void Scalar::float_v::fusedMultiplyAdd(const Scalar::float_v &f,
+                                                        const Scalar::float_v &s)
 {
-    union {
-        float f;
-        unsigned int i;
-    } y;
-    y.f = x;
-    y.i &= 0xfffff000u;
-    return y.f;
+    data() = std::fma(data(), f.data(), s.data());
 }
-static Vc_ALWAYS_INLINE double highBits(double x)
+template <>
+Vc_ALWAYS_INLINE void Scalar::double_v::fusedMultiplyAdd(const Scalar::double_v &f,
+                                                         const Scalar::double_v &s)
 {
-    union {
-        double f;
-        unsigned long long i;
-    } y;
-    y.f = x;
-    y.i &= 0xfffffffff8000000ull;
-    return y.f;
-}
-template<typename T> Vc_ALWAYS_INLINE T _fusedMultiplyAdd(T a, T b, T c)
-{
-    const T h1 = highBits(a);
-    const T l1 = a - h1;
-    const T h2 = highBits(b);
-    const T l2 = b - h2;
-    const T ll = l1 * l2;
-    const T lh = l1 * h2 + h1 * l2;
-    const T hh = h1 * h2;
-    if (std::abs(c) < std::abs(lh)) {
-        return (ll + c) + (lh + hh);
-    } else {
-        return (ll + lh) + (c + hh);
-    }
-}
-template<> Vc_ALWAYS_INLINE void Scalar::float_v::fusedMultiplyAdd(const Scalar::float_v &f, const Scalar::float_v &s)
-{
-    data() = _fusedMultiplyAdd(data(), f.data(), s.data());
-}
-template<> Vc_ALWAYS_INLINE void Scalar::double_v::fusedMultiplyAdd(const Scalar::double_v &f, const Scalar::double_v &s)
-{
-    data() = _fusedMultiplyAdd(data(), f.data(), s.data());
+    data() = std::fma(data(), f.data(), s.data());
 }
 // Random {{{1
 static Vc_ALWAYS_INLINE void _doRandomStep(Scalar::uint_v &state0, Scalar::uint_v &state1)
