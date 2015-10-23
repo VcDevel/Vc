@@ -30,6 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_ARRAYS(3), SIMD_ARRAYS(1)))
 {
+// On GCC/clang (i.e. __GNUC__ compatible) __OPTIMIZE__ is not defined on -O0.
+// We use this information to make the test complete in a sane timeframe on debug
+// builds.
+#if !defined __GNUC__ || defined __OPTIMIZE__
     Vec ref(Vc::IndexesFromZero);
     Vec a;
     using limits = std::numeric_limits<typename Vec::value_type>;
@@ -42,7 +46,7 @@ TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_AR
     }
 
     int maxPerm = 1;
-    for (int x = Vec::Size; x > 0 && maxPerm < 400000; --x) {
+    for (int x = Vec::Size; x > 0 && maxPerm < 200000; --x) {
         maxPerm *= x;
     }
     for (int perm = 0; perm < maxPerm; ++perm) {
@@ -74,6 +78,7 @@ TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_AR
         }
         COMPARE(a.sorted(), ref) << ", a: " << a;
     }
+#endif
 
     for (int repetition = 0; repetition < 1000; ++repetition) {
         Vec test = Vec::Random();
@@ -81,8 +86,7 @@ TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_AR
             Vec::MemoryAlignment)) typename Vec::EntryType reference[Vec::Size] = {};
         test.store(&reference[0], Vc::Aligned);
         std::sort(std::begin(reference), std::end(reference));
-        ref.load(&reference[0], Vc::Aligned);
-        COMPARE(test.sorted(), ref);
+        COMPARE(test.sorted(), Vec(&reference[0], Vc::Aligned));
     }
 }
 
