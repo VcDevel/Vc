@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_AVX_HELPERIMPL_H_
 #define VC_AVX_HELPERIMPL_H_
 
-#include "sse/helperimpl.h"
+#include "../sse/helperimpl.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
