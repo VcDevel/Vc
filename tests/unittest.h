@@ -526,26 +526,6 @@ static inline bool unittest_fuzzyCompareHelper(
     return Vc::all_of(a == b);
 }
 
-// unitttest_comparePrintHelper {{{1
-template <typename T1, typename T2, typename M>
-inline void unitttest_comparePrintHelper(const T1 &a,
-                                         const T2 &b,
-                                         const M &m,
-                                         const char *aa,
-                                         const char *bb,
-                                         const char *file,
-                                         int line,
-                                         double fuzzyness = 0.)
-{
-    std::cout << "       " << aa << " (" << std::setprecision(10) << a << std::setprecision(6)
-              << ") == " << bb << " (" << std::setprecision(10) << b << std::setprecision(6)
-              << ") -> " << m;
-    if (fuzzyness > 0.) {
-        std::cout << " with fuzzyness " << fuzzyness;
-    }
-    std::cout << " at " << file << ":" << line << " failed.\n";
-}
-
 // unittest_fuzzynessHelper {{{1
 template <typename T> inline double unittest_fuzzynessHelper(const T &) { return 0.; }
 template <> inline double unittest_fuzzynessHelper<float>(const float &)
