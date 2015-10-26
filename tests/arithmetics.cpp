@@ -607,6 +607,12 @@ template <typename V> void testFmaDispatch(double)
 
 TEST_TYPES(V, testFma, ALL_TYPES)
 {
+// https://github.com/VcDevel/Vc/issues/61
+// std::fma produces incorrect results on RHEL6 (which uses glibc 2.12) in debug builds
+#if defined Vc_GCC && !defined __OPTIMIZE__ && defined __GLIBC__ && __GLIBC__ == 2 &&    \
+    __GLIBC_MINOR__ <= 12
+    UnitTest::EXPECT_FAILURE();
+#endif
     using T = typename V::EntryType;
     testFmaDispatch<V>(T());
 }
