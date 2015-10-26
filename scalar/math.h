@@ -240,7 +240,11 @@ Vc_ALWAYS_INLINE Vector<T, VectorAbi::Scalar> fma(Vector<T, VectorAbi::Scalar> a
                                                   Vector<T, VectorAbi::Scalar> b,
                                                   Vector<T, VectorAbi::Scalar> c)
 {
-    return std::fma(a.data(), b.data(), c.data());
+    if (std::is_integral<T>::value) {
+        return a * b + c;
+    } else {
+        return std::fma(a.data(), b.data(), c.data());
+    }
 }
 
 // }}}1
