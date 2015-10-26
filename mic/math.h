@@ -100,7 +100,10 @@ Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> fma(Vector<T, VectorAbi::Mic> a,
                                                Vector<T, VectorAbi::Mic> b,
                                                Vector<T, VectorAbi::Mic> c)
 {
-    return MIC::VectorHelper<T>::multiplyAndAdd(a.data(), b.data(), c.data());
+    return MIC::VectorHelper<
+        typename Vector<T, VectorAbi::Mic>::VectorEntryType>::multiplyAndAdd(a.data(),
+                                                                             b.data(),
+                                                                             c.data());
 }
 
 // frexp {{{1
