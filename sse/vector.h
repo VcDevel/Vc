@@ -237,12 +237,6 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 #undef Vc_OP
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
-        Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector &factor,
-                                               const Vector &summand)
-        {
-            HT::fma(data(), factor.data(), summand.data());
-        }
-
         Vc_ALWAYS_INLINE void assign(const Vector &v, const Mask &mask)
         {
             const VectorType k = SSE::sse_cast<VectorType>(mask.data());

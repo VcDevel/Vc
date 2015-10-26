@@ -201,6 +201,7 @@ namespace std
   using Vc::ceil;
   using Vc::cos;
   using Vc::exp;
+  using Vc::fma;
   using Vc::trunc;
   using Vc::floor;
   using Vc::frexp;

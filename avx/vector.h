@@ -304,10 +304,6 @@ public:
 #undef Vc_OPcmp
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
-        Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector &factor, const Vector &summand) {
-            Detail::fma(data(), factor.data(), summand.data(), T());
-        }
-
         Vc_ALWAYS_INLINE void assign( const Vector &v, const Mask &mask ) {
             const VectorType k = _cast(mask.data());
             data() = Detail::blend(data(), v.data(), k);

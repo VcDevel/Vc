@@ -185,6 +185,18 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
         return v;
     }
 #endif
+// fma {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> fma(Vector<T, VectorAbi::Sse> a,
+                                               Vector<T, VectorAbi::Sse> b,
+                                               Vector<T, VectorAbi::Sse> c)
+{
+    SSE::VectorHelper<T>::fma(a.data(), b.data(), c.data());
+    return a;
+}
+// }}}1
 }  // namespace Vc
 
 #endif // VC_SSE_MATH_H_
+
+// vim: foldmethod=marker

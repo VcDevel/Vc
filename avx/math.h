@@ -254,6 +254,15 @@ Vc_ALWAYS_INLINE AVX2::double_v ceil(AVX2::double_v::AsArg v)
     return _mm256_ceil_pd(v.data());
 }
 
+// fma {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx> fma(Vector<T, VectorAbi::Avx> a,
+                                               Vector<T, VectorAbi::Avx> b,
+                                               Vector<T, VectorAbi::Avx> c)
+{
+    return Detail::fma(a.data(), b.data(), c.data(), T());
+}
+
 // }}}1
 }  // namespace Vc
 

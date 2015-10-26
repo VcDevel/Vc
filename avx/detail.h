@@ -602,11 +602,11 @@ Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b,  schar) { return AVX::cmpgt_epi
 Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b,  uchar) { return AVX::cmpgt_epu8 (b, a); }
 
 // fma{{{1
-Vc_INTRINSIC void fma(__m256  &a, __m256  b, __m256  c,  float) {
+Vc_INTRINSIC __m256 fma(__m256  a, __m256  b, __m256  c,  float) {
 #ifdef Vc_IMPL_FMA4
-    a = _mm256_macc_ps(a, b, c);
+    return _mm256_macc_ps(a, b, c);
 #elif defined Vc_IMPL_FMA
-    a = _mm256_fmadd_ps(a, b, c);
+    return _mm256_fmadd_ps(a, b, c);
 #else
     using namespace AVX;
     __m256d v1_0 = _mm256_cvtps_pd(lo128(a));
@@ -615,15 +615,16 @@ Vc_INTRINSIC void fma(__m256  &a, __m256  b, __m256  c,  float) {
     __m256d v2_1 = _mm256_cvtps_pd(hi128(b));
     __m256d v3_0 = _mm256_cvtps_pd(lo128(c));
     __m256d v3_1 = _mm256_cvtps_pd(hi128(c));
-    a = concat(_mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_0, v2_0), v3_0)),
-               _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_1, v2_1), v3_1)));
+    return concat(_mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_0, v2_0), v3_0)),
+                  _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_1, v2_1), v3_1)));
 #endif
 }
-Vc_INTRINSIC void fma(__m256d &a, __m256d b, __m256d c, double) {
+Vc_INTRINSIC __m256d fma(__m256d a, __m256d b, __m256d c, double)
+{
 #ifdef Vc_IMPL_FMA4
-    a = _mm256_macc_pd(a, b, c);
+    return _mm256_macc_pd(a, b, c);
 #elif defined Vc_IMPL_FMA
-    a = _mm256_fmadd_pd(a, b, c);
+    return _mm256_fmadd_pd(a, b, c);
 #else
     using namespace AVX;
     __m256d h1 = and_(a, _mm256_broadcast_sd(reinterpret_cast<const double *>(
@@ -639,12 +640,12 @@ Vc_INTRINSIC void fma(__m256d &a, __m256d b, __m256d c, double) {
     const __m256d lh_lt_v3 = cmplt(abs(lh, double()), abs(c, double()), double());  // |lh| < |c|
     const __m256d x = _mm256_blendv_pd(c, lh, lh_lt_v3);
     const __m256d y = _mm256_blendv_pd(lh, c, lh_lt_v3);
-    a = add(add(ll, x, double()), add(y, hh, double()), double());
+    return add(add(ll, x, double()), add(y, hh, double()), double());
 #endif
 }
-template <typename T> Vc_INTRINSIC void fma(__m256i &a, __m256i b, __m256i c, T)
+template <typename T> Vc_INTRINSIC __m256i fma(__m256i a, __m256i b, __m256i c, T)
 {
-    a = add(mul(a, b, T()), c, T());
+    return add(mul(a, b, T()), c, T());
 }
 
 // shiftRight{{{1

@@ -234,6 +234,18 @@ Vc_ALWAYS_INLINE Scalar::Vector<double> ldexp(Scalar::Vector<double> x, const Si
     return Scalar::double_v(std::ldexp(x.data(), internal_data(e).data()));
 }
 
+// fma {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::Scalar> fma(Vector<T, VectorAbi::Scalar> a,
+                                                  Vector<T, VectorAbi::Scalar> b,
+                                                  Vector<T, VectorAbi::Scalar> c)
+{
+    return std::fma(a.data(), b.data(), c.data());
+}
+
+// }}}1
 }  // namespace Vc
 
 #endif // VC_SCALAR_MATH_H_
+
+// vim: foldmethod=marker

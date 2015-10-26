@@ -269,10 +269,6 @@ public:
 #undef Vc_OPcmp
     Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_INTRINSIC_R Vc_PURE_R;
 
-    Vc_INTRINSIC void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
-        d.v() = HT::multiplyAndAdd(d.v(), factor.data(), summand.data());
-    }
-
     Vc_INTRINSIC_L void assign(Vector<T> v, Mask mask) Vc_INTRINSIC_R;
 
     template<typename V2> Vc_INTRINSIC V2 staticCast() const { return V2(*this); }

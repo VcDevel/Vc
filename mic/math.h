@@ -94,6 +94,15 @@ static Vc_ALWAYS_INLINE MIC::double_m isnan(MIC::double_v x)
 {
     return _mm512_cmpunord_pd_mask(x.data(), x.data());
 }
+// fma {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> fma(Vector<T, VectorAbi::Mic> a,
+                                               Vector<T, VectorAbi::Mic> b,
+                                               Vector<T, VectorAbi::Mic> c)
+{
+    return MIC::VectorHelper<T>::multiplyAndAdd(a.data(), b.data(), c.data());
+}
+
 // frexp {{{1
 inline MIC::double_v frexp(MIC::double_v::AsArg v, MIC::double_v::IndexType *e)
 {

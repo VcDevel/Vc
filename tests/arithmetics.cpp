@@ -562,8 +562,8 @@ template <typename V, typename T> void testFmaDispatch(T)
         const V b = V::Random();
         const V c = V::Random();
         const V reference = a * b + c;
-        a.fusedMultiplyAdd(b, c);
-        COMPARE(a, reference) << ", a = " << a << ", b = " << b << ", c = " << c;
+        COMPARE(Vc::fma(a, b, c), reference) << ", a = " << a << ", b = " << b
+                                             << ", c = " << c;
     }
 }
 
@@ -577,8 +577,7 @@ template <typename V> void testFmaDispatch(float)
     a += c;
     COMPARE(a, V(floatConstant<1, 0x000002, 0>()));
     a = b;*/
-    a.fusedMultiplyAdd(b, c);
-    COMPARE(a, V(floatConstant<1, 0x000003, 0>()));
+    COMPARE(Vc::fma(a, b, c), V(floatConstant<1, 0x000003, 0>()));
 
     a = floatConstant<1, 0x000002, 0>();
     b = floatConstant<1, 0x000002, 0>();
@@ -587,8 +586,8 @@ template <typename V> void testFmaDispatch(float)
     a += c;
     COMPARE(a, V(floatConstant<1, 0x000000, -21>()));
     a = b;*/
-    a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
-    COMPARE(a, V(floatConstant<1, 0x000001, -21>()));
+    COMPARE(Vc::fma(a, b, c),  // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
+            V(floatConstant<1, 0x000001, -21>()));
 }
 
 template <typename V> void testFmaDispatch(double)
@@ -597,14 +596,13 @@ template <typename V> void testFmaDispatch(double)
     V b = doubleConstant<1, 0x0000000000001, 0>();
     V c = doubleConstant<1, 0x0000000000000, -53>();
     V a = b;
-    a.fusedMultiplyAdd(b, c);
-    COMPARE(a, V(doubleConstant<1, 0x0000000000003, 0>()));
+    COMPARE(fma(a, b, c), V(doubleConstant<1, 0x0000000000003, 0>()));
 
     a = doubleConstant<1, 0x0000000000002, 0>();
     b = doubleConstant<1, 0x0000000000002, 0>();
     c = doubleConstant<-1, 0x0000000000000, 0>();
-    a.fusedMultiplyAdd(b, c); // 1 + 2^-50 + 2^-102 - 1
-    COMPARE(a, V(doubleConstant<1, 0x0000000000001, -50>()));
+    COMPARE(fma(a, b, c),  // 1 + 2^-50 + 2^-102 - 1
+            V(doubleConstant<1, 0x0000000000001, -50>()));
 }
 
 TEST_TYPES(V, testFma, ALL_TYPES)
