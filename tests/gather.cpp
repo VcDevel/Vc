@@ -207,7 +207,14 @@ TEST_TYPES(Vec, gather2dim, ALL_TYPES)
     Vc::array<S, count> array;
     for (int i = 0; i < count; ++i) {
         for (int j = 0; j < count; ++j) {
+#ifdef Vc_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
             array[i].data[j] = 2 * i + j + 1;
+#ifdef Vc_GCC
+#pragma GCC diagnostic pop
+#endif
         }
     }
 
