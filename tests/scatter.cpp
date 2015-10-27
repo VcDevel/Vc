@@ -105,11 +105,11 @@ TEST_TYPES(Vec, maskedScatterArray, (ALL_TYPES)) //{{{1
 
 template<typename T> struct Struct //{{{1
 {
-    T a;
+    alignas(T) T a;
     char x;
-    T b;
+    alignas(T) T b;
     short y;
-    T c;
+    alignas(T) T c;
     char z;
 };
 

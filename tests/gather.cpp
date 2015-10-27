@@ -136,11 +136,11 @@ TEST_TYPES(Vec, gatherArray, ALL_TYPES)
 
 template<typename T> struct Struct
 {
-    T a;
+    alignas(T) T a;
     char x;
-    T b;
+    alignas(T) T b;
     short y;
-    T c;
+    alignas(T) T c;
     char z;
 };
 

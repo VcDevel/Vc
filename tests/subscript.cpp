@@ -168,11 +168,11 @@ template <typename T> struct S
         c = x + 2;
     }
     double x0;
-    T a;
+    alignas(T) T a;
     char x1;
-    T b;
+    alignas(T) T b;
     short x2;
-    T c;
+    alignas(T) T c;
     char x3;
 };
 
