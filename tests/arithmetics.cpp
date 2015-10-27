@@ -609,10 +609,14 @@ TEST_TYPES(V, testFma, ALL_TYPES)
 {
     using T = typename V::EntryType;
 // https://github.com/VcDevel/Vc/issues/61
-// std::fma produces incorrect results on RHEL6 (which uses glibc 2.12) in debug builds
+// std::fma (the implementation of the Scalar fma function) produces incorrect results on
+// RHEL6 (which uses glibc 2.12) in debug builds. On 64-bit float and double both fail. On
+// 32-bit on double fails.
 #if defined Vc_GCC && !defined __OPTIMIZE__ && defined __GLIBC__ && __GLIBC__ == 2 &&    \
     __GLIBC_MINOR__ <= 12
-    if (std::is_floating_point<T>::value) {
+    if (std::is_same<typename V::abi, VectorAbi::Scalar>::value &&
+        (std::is_same<T, double>::value ||
+         (std::is_same<T, float>::value && sizeof(void*) == 8))) {
         UnitTest::EXPECT_FAILURE();
     }
 #endif
