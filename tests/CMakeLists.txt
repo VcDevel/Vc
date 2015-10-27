@@ -7,7 +7,7 @@ if(Vc_COMPILER_IS_MSVC)
 endif()
 
 # 32-bit x86 requires SSE for fp math to produce comparable results.
-AddCompilerFlag("-mfpmath=sse")
+AddCompilerFlag("-mfpmath=sse" CXX_FLAGS Vc_ARCHITECTURE_FLAGS)
 
 if(DEFINED Vc_INSIDE_ROOT)
    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")  # Reset the ROOT default executable destination
@@ -470,6 +470,10 @@ target_link_libraries(linkTestLibDynamic1 Vc)
 target_link_libraries(linkTestLibDynamic2 Vc)
 add_target_property(linkTestLibDynamic1 COMPILE_FLAGS "-DPOSTFIX=A")
 add_target_property(linkTestLibDynamic2 COMPILE_FLAGS "-DPOSTFIX=B")
+set_property(TARGET linkTestLibDynamic1 APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
+set_property(TARGET linkTestLibDynamic2 APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
+set_property(TARGET linkTestLibStatic APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
+set_property(TARGET linkTest APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
 target_link_libraries(linkTestLibStatic Vc)
 target_link_libraries(linkTest Vc linkTestLibDynamic1 linkTestLibDynamic2 linkTestLibStatic)
 
