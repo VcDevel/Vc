@@ -67,7 +67,7 @@ else()
    endif()
 
    if(Vc_COMPILER_IS_GCC)
-      if(Vc_GCC_VERSION VERSION_EQUAL "5.1.0" OR Vc_GCC_VERSION VERSION_EQUAL "5.2.0")
+      if(Vc_GCC_VERSION VERSION_GREATER "5.0.0" OR Vc_GCC_VERSION VERSION_LESS "5.3.0")
          UserWarning("GCC 5 goes into an endless loop comiling example_scaling_scalar. Therefore, this target is disabled.")
          list(APPEND disabled_targets
             example_scaling_scalar
