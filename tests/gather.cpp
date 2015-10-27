@@ -134,13 +134,13 @@ TEST_TYPES(Vec, gatherArray, ALL_TYPES)
     COMPARE(a, Vec(One));
 }
 
-template<typename T> struct Struct
+template<typename T, std::size_t Align> struct Struct
 {
-    alignas(T) T a;
+    alignas(Align) T a;
     char x;
-    alignas(T) T b;
+    alignas(Align) T b;
     short y;
-    alignas(T) T c;
+    alignas(Align) T c;
     char z;
 };
 
@@ -148,7 +148,7 @@ TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
-    typedef Struct<T> S;
+    typedef Struct<T, alignof(T)> S;
     constexpr int count = 3999;
     Vc::array<S, count> array;
     for (int i = 0; i < count; ++i) {

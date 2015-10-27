@@ -103,20 +103,20 @@ TEST_TYPES(Vec, maskedScatterArray, (ALL_TYPES)) //{{{1
     }
 }
 
-template<typename T> struct Struct //{{{1
+template<typename T, std::size_t Align> struct Struct //{{{1
 {
-    alignas(T) T a;
+    alignas(Align) T a;
     char x;
-    alignas(T) T b;
+    alignas(Align) T b;
     short y;
-    alignas(T) T c;
+    alignas(Align) T c;
     char z;
 };
 
 TEST_TYPES(Vec, scatterStruct, (ALL_TYPES)) //{{{1
 {
     typedef typename Vec::IndexType It;
-    typedef Struct<typename Vec::EntryType> S;
+    typedef Struct<typename Vec::EntryType, alignof(typename Vec::EntryType)> S;
     constexpr int count = 3999;
     Vc::array<S, count> array, out;
     memset(&array[0], 0, count * sizeof(S));
@@ -139,23 +139,23 @@ TEST_TYPES(Vec, scatterStruct, (ALL_TYPES)) //{{{1
     VERIFY(0 == memcmp(&array[0], &out[0], count * sizeof(S)));
 }
 
-template<typename T> struct Struct2 //{{{1
+template<typename T, std::size_t Align> struct Struct2 //{{{1
 {
     char x;
-    Struct<T> b;
+    Struct<T, Align> b;
     short y;
 };
 
 constexpr int scatterStruct2Count = 97;
 
-template<typename T>
-static std::ostream &operator<<(std::ostream &out, const Struct2<T> &s)
+template<typename T, std::size_t Align>
+static std::ostream &operator<<(std::ostream &out, const Struct2<T, Align> &s)
 {
     return out << '{' << s.b.a << ' ' << s.b.b << ' ' << s.b.c << '}';
 }
 
-template<typename T>
-static std::ostream &operator<<(std::ostream &out, const Struct2<T> *s)
+template<typename T, std::size_t Align>
+static std::ostream &operator<<(std::ostream &out, const Struct2<T, Align> *s)
 {
     for (int i = 0; i < scatterStruct2Count; ++i) {
         out << s[i];
@@ -181,8 +181,8 @@ template<typename V> V makeReference(V v, typename V::Mask m)
 TEST_TYPES(Vec, scatterStruct2, (ALL_TYPES)) //{{{1
 {
     typedef typename Vec::IndexType It;
-    typedef Struct2<typename Vec::EntryType> S1;
-    typedef Struct<typename Vec::EntryType> S2;
+    typedef Struct2<typename Vec::EntryType, alignof(typename Vec::EntryType)> S1;
+    typedef Struct<typename Vec::EntryType, alignof(typename Vec::EntryType)> S2;
     Vc::array<S1, scatterStruct2Count> array, out;
     memset(&array[0], 0, scatterStruct2Count * sizeof(S1));
     memset(&out[0], 0, scatterStruct2Count * sizeof(S1));

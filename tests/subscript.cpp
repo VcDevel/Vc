@@ -159,8 +159,7 @@ TEST_TYPES(V, scatters, ALL_TYPES)
     }
 }
 
-template <typename T> struct S
-{
+template <typename T, std::size_t Align = alignof(T)> struct S {
     void operator=(int x)
     {
         a = x;
@@ -168,11 +167,11 @@ template <typename T> struct S
         c = x + 2;
     }
     double x0;
-    alignas(T) T a;
+    alignas(Align) T a;
     char x1;
-    alignas(T) T b;
+    alignas(Align) T b;
     short x2;
-    alignas(T) T c;
+    alignas(Align) T c;
     char x3;
 };
 
@@ -180,7 +179,7 @@ TEST_TYPES(V, structGathers, ALL_TYPES)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
-    Vc::array<S<T>, 256> data1;
+    Vc::array<S<T, alignof(T)>, 256> data1;
     Vc::array<S<S<T>>, 256> data2;
     Vc::array<S<S<S<T>>>, 256> data3;
     Vc::array<S<S<S<S<T>>>>, 256> data4;
