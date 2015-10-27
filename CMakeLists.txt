@@ -122,6 +122,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/incl
 if(NOT ROOT_RELEASE)
    add_custom_target(other VERBATIM)
    add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
+   add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
+   add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
+   add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
+   add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
 
    AddCompilerFlag(-ftemplate-depth=128 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
 
@@ -130,7 +134,6 @@ if(NOT ROOT_RELEASE)
    AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags)
 
    if(MIC_FOUND)
-      add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
       mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support_x86.cpp src/mic_sorthelper.cpp
          COMPILE_FLAGS ${libvc_mic_compile_flags})
       add_target_property(Vc_MIC LABELS "MIC")
@@ -141,9 +144,6 @@ if(NOT ROOT_RELEASE)
 
    set(_srcs src/const.cpp)
    if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64)")
-      add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
-      add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
-      add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
 
       list(APPEND _srcs src/cpuid.cpp src/support_x86.cpp)
       vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)# AVX2+FMA+BMI2)
