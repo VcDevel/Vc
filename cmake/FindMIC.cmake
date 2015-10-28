@@ -203,8 +203,9 @@ if(MIC_NATIVE_FOUND)
          list(APPEND _flags "-I${_i}")
       endforeach()
 
+      get_property(_launch_rule GLOBAL PROPERTY RULE_LAUNCH_COMPILE)
       add_custom_command(OUTPUT "${${_output}}"
-         COMMAND "${_compiler}" -mmic
+         COMMAND ${_launch_rule} "${_compiler}" -mmic
          -DVc_IMPL=MIC
          ${_flags} -c -o "${${_output}}" "${_abs}"
          DEPENDS "${_abs}" ${_deps}
@@ -355,8 +356,9 @@ ${MIC_RANLIB} ${_output}
       endforeach()
 
       set(_exec_output "${CMAKE_CURRENT_BINARY_DIR}/${_exec_output_name}")
+      get_property(_launch_rule GLOBAL PROPERTY RULE_LAUNCH_LINK)
       add_custom_command(OUTPUT "${_exec_output}"
-         COMMAND "${MIC_CXX}" -mmic
+         COMMAND ${_launch_rule} "${MIC_CXX}" -mmic
          "-L${MIC_SDK_DIR}/compiler/lib/mic/"
          ${_mic_lflags} ${_objects} -o "${_exec_output}"
          ${_libs}
