@@ -35,6 +35,14 @@ if(ROOT_RELEASE)
       set(_extra_namespace "AliRoot")
    endif()
 else()
+   option(USE_CCACHE "If enabled, ccache will be used (if it exists on the system) to speed up recompiles." OFF)
+   if(USE_CCACHE)
+      find_program(CCACHE_COMMAND ccache)
+      if(CCACHE_COMMAND)
+         set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_COMMAND}")
+         set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CCACHE_COMMAND}")
+      endif()
+   endif()
 
    # TODO: check that 'decltype' compiles
    # TODO: check that 'constexpr' compiles
