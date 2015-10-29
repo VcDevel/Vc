@@ -83,6 +83,10 @@ template<typename Base, typename Default, typename T, typename... LoadStoreFlags
 #ifdef Vc_ICC
 #pragma warning(disable: 177)
 #endif
+/**\internal
+ * Implementation of the load/store flags mechanism. This is internal API. Only some
+ * concrete aliases are API-relevant types.
+ */
 template<typename... Flags> struct LoadStoreFlags
 {
 private:
@@ -118,6 +122,9 @@ public:
     typedef typename std::conditional<!IsPrefetch                , void *, void>::type EnableIfNotPrefetch;
 };
 
+/**\internal
+ * Specialization for no flags (i.e aligned, non-streaming, no prefetching)
+ */
 template<> struct LoadStoreFlags<>
 {
     constexpr LoadStoreFlags() {}
@@ -171,10 +178,13 @@ struct Prefetch : public LoadStoreFlags::LoadStoreFlags<PrefetchFlag<L1, L2, Exc
 
 namespace Traits
 {
+///\internal partial specialization for detecting LoadStoreFlags types
 template <typename... Ts>
 struct is_loadstoreflag_internal<LoadStoreFlags::LoadStoreFlags<Ts...>> : public std::true_type
 {
 };
+///\internal partial specialization for detecting the derived Prefetch type as a
+/// load/store flag.
 template <size_t L1, size_t L2, typename ExclusiveOrShared>
 struct is_loadstoreflag_internal<Prefetch<L1, L2, ExclusiveOrShared>> : public std::true_type
 {
