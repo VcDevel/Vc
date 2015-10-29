@@ -29,20 +29,60 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_VERSION_H_
 #define VC_VERSION_H_
 
+/**
+ * \name Version Macros
+ * \ingroup Utilities
+ */
+//@{
+/**
+ * \ingroup Utilities
+ * Contains the version string of the %Vc headers. Same as Vc::versionString().
+ */
 #define Vc_VERSION_STRING "1.0.0-dev"
+
+/**
+ * \ingroup Utilities
+ * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
+ */
 #define Vc_VERSION_NUMBER 0x010001
+
+/**
+ * \ingroup Utilities
+ *
+ * Helper macro to compare against an encoded version number.
+ * Example:
+ * \code
+ * #if Vc_VERSION_CHECK(1, 0, 0) >= Vc_VERSION_NUMBER
+ * \endcode
+ */
 #define Vc_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
+//@}
+
 #define Vc_LIBRARY_ABI_VERSION 5
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-    static inline const char *versionString() {
-        return Vc_VERSION_STRING;
-    }
+/**
+ * \ingroup Utilities
+ * \headerfile version.h <Vc/version.h>
+ *
+ * \returns the version string of the %Vc headers.
+ *
+ * \note There exists a built-in check that ensures on application startup that the %Vc version of the
+ * library (link time) and the headers (compile time) are equal. A mismatch between headers and
+ * library could lead to errors that are very hard to debug.
+ * \note If you need to disable the check (it costs a very small amount of application startup time)
+ * you can define Vc_NO_VERSION_CHECK at compile time.
+ */
+inline const char *versionString() { return Vc_VERSION_STRING; }
 
-    static inline unsigned int versionNumber() {
-        return Vc_VERSION_NUMBER;
-    }
+/**
+ * \ingroup Utilities
+ * \headerfile version.h <Vc/version.h>
+ *
+ * \returns the version of the %Vc headers encoded in an integer.
+ */
+constexpr unsigned int versionNumber() { return Vc_VERSION_NUMBER; }
 }
 
 #if !defined(Vc_NO_VERSION_CHECK) && !defined(Vc_COMPILE_LIB)
@@ -50,17 +90,30 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-    void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *versionString);
-    namespace {
-        static struct runLibraryAbiCheck
-        {
-            runLibraryAbiCheck() {
-                checkLibraryAbi(Vc_LIBRARY_ABI_VERSION, Vc_VERSION_NUMBER, Vc_VERSION_STRING);
-            }
-        } _runLibraryAbiCheck;
+/**\internal
+ * This function is implemented in the libVc library and checks whether the library is
+ * compatible with the version information passed via the function parameters. If it is
+ * incompatible the function prints a warning and aborts.
+ */
+void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber,
+                     const char *versionString);
+namespace
+{
+/**\internal
+ * This constructor function is compiled into every translation unit and thus executed on
+ * startup (before main) for as many TUs as are linked into the executable. It calls
+ * Vc::Common::checkLibraryAbi to ensure the TU was compiled with Vc headers that are
+ * compatible to the linked libVc.
+ */
+static struct runLibraryAbiCheck {
+    runLibraryAbiCheck()
+    {
+        checkLibraryAbi(Vc_LIBRARY_ABI_VERSION, Vc_VERSION_NUMBER, Vc_VERSION_STRING);
     }
-}
-}
+} _runLibraryAbiCheck;
+}  // unnamed namespace
+}  // namespace Common
+}  // namespace Vc
 #endif
 
 #endif // VC_VERSION_H_
