@@ -888,28 +888,6 @@ inline std::ostream &operator<<(std::ostream &s, const Vc::MemoryBase<V, Parent,
 namespace Vc
 {
 /**
- * \ingroup Utilities
- * \headerfile dox.h <Vc/version.h>
- *
- * \returns the version string of the %Vc headers.
- *
- * \note There exists a built-in check that ensures on application startup that the %Vc version of the
- * library (link time) and the headers (compile time) are equal. A mismatch between headers and
- * library could lead to errors that are very hard to debug.
- * \note If you need to disable the check (it costs a very small amount of application startup time)
- * you can define Vc_NO_VERSION_CHECK at compile time.
- */
-const char *versionString();
-
-/**
- * \ingroup Utilities
- * \headerfile dox.h <Vc/version.h>
- *
- * \returns the version of the %Vc headers encoded in an integer.
- */
-unsigned int versionNumber();
-
-/**
  * \name SIMD Support Feature Macros
  * \ingroup Utilities
  */
@@ -987,35 +965,6 @@ unsigned int versionNumber();
  * This macro is defined if the current translation unit is compiled with AVX instruction support (excluding AVX2 and up).
  */
 #define Vc_IMPL_AVX
-//@}
-
-/**
- * \name Version Macros
- * \ingroup Utilities
- */
-//@{
-/**
- * \ingroup Utilities
- * Contains the version string of the %Vc headers. Same as Vc::versionString().
- */
-#define Vc_VERSION_STRING
-
-/**
- * \ingroup Utilities
- * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
- */
-#define Vc_VERSION_NUMBER
-
-/**
- * \ingroup Utilities
- *
- * Helper macro to compare against an encoded version number.
- * Example:
- * \code
- * #if Vc_VERSION_CHECK(0.5.1) >= Vc_VERSION_NUMBER
- * \endcode
- */
-#define Vc_VERSION_CHECK(major, minor, patch)
 //@}
 
 /**

@@ -664,15 +664,10 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ../include/Vc/global.h \
-                         ../include/Vc/cpuid.h \
-                         ../include/Vc/support.h \
-                         ../include/Vc/Allocator \
-                         ../include/Vc/array \
-                         ../include/Vc/vector \
+INPUT                  = ../include/Vc \
                          ./dox.h \
                          ./examples.h \
-                         ../common
+                         ../common \
                          ../traits
 
 # This tag can be used to specify the character encoding of the source files
