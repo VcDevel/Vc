@@ -31,7 +31,48 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdint>
 
-#ifndef DOXYGEN
+#ifdef DOXYGEN
+
+/**
+ * \name Compiler Identification Macros
+ * \ingroup Utilities
+ */
+//@{
+/**
+ * \ingroup Utilities
+ * This macro is defined to a number identifying the ICC version if the current
+ * translation unit is compiled with the Intel compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_ICC __INTEL_COMPILER_BUILD_DATE
+/**
+ * \ingroup Utilities
+ * This macro is defined to a number identifying the Clang version if the current
+ * translation unit is compiled with the Clang compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+/**
+ * \ingroup Utilities
+ * This macro is defined to a number identifying the GCC version if the current
+ * translation unit is compiled with the GCC compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
+/**
+ * \ingroup Utilities
+ * This macro is defined to a number identifying the Microsoft Visual C++ version if
+ * the current translation unit is compiled with the Visual C++ (MSVC) compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_MSVC _MSC_FULL_VER
+//@}
+
+#else  // DOXYGEN
 
 // Compiler defines
 #ifdef __INTEL_COMPILER
