@@ -125,6 +125,7 @@ struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I, Re
     }
 };
 
+///\internal Runtime check (NDEBUG) for asserting unique indexes.
 template<typename I> struct CheckIndexesUnique
 {
 #ifdef NDEBUG
@@ -137,6 +138,7 @@ template<typename I> struct CheckIndexesUnique
     }
 #endif
 };
+///\internal For SuccessiveEntries there can never be a problem.
 template<size_t S> struct CheckIndexesUnique<SuccessiveEntries<S> >
 {
     static Vc_INTRINSIC void test(const SuccessiveEntries<S> &) {}

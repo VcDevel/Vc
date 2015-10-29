@@ -334,23 +334,29 @@ public:
                                              Remaining...>::type;
 };
 
+///\internal Generates the SubstitutedWithValues member. This needs specialization for the
+/// number of types in the template argument list.
 template <size_t Size, typename... Replaced> struct SubstitutedBase;
+///\internal Specialization for one type parameter.
 template <typename Replaced> struct SubstitutedBase<1, Replaced> {
     template <typename ValueT, template <typename, ValueT...> class C, ValueT... Values>
     using SubstitutedWithValues = C<Replaced, Values...>;
 };
+///\internal Specialization for two type parameters.
 template <typename R0, typename R1> struct SubstitutedBase<2, R0, R1>
 {
     template <typename ValueT, template <typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<R0, R1, Values...>;
 };
+///\internal Specialization for three type parameters.
 template <typename R0, typename R1, typename R2> struct SubstitutedBase<3, R0, R1, R2>
 {
     template <typename ValueT, template <typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<R0, R1, R2, Values...>;
 };
+///\internal Specialization for four type parameters.
 template <typename... Replaced> struct SubstitutedBase<4, Replaced...> {
 #ifndef Vc_ICC
     template <typename ValueT,
@@ -359,6 +365,7 @@ template <typename... Replaced> struct SubstitutedBase<4, Replaced...> {
     using SubstitutedWithValues = C<Replaced..., Values...>;
 #endif // Vc_ICC
 };
+///\internal Specialization for five type parameters.
 template <typename... Replaced> struct SubstitutedBase<5, Replaced...> {
 #ifndef Vc_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
@@ -367,6 +374,7 @@ template <typename... Replaced> struct SubstitutedBase<5, Replaced...> {
     using SubstitutedWithValues = C<Replaced..., Values...>;
 #endif // Vc_ICC
 };
+///\internal Specialization for six type parameters.
 template <typename... Replaced> struct SubstitutedBase<6, Replaced...> {
 #ifndef Vc_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
@@ -375,6 +383,7 @@ template <typename... Replaced> struct SubstitutedBase<6, Replaced...> {
     using SubstitutedWithValues = C<Replaced..., Values...>;
 #endif // Vc_ICC
 };
+///\internal Specialization for seven type parameters.
 template <typename... Replaced> struct SubstitutedBase<7, Replaced...> {
 #ifndef Vc_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
@@ -383,6 +392,7 @@ template <typename... Replaced> struct SubstitutedBase<7, Replaced...> {
     using SubstitutedWithValues = C<Replaced..., Values...>;
 #endif // Vc_ICC
 };
+///\internal Specialization for eight type parameters.
 template <typename... Replaced> struct SubstitutedBase<8, Replaced...> {
 #ifndef Vc_ICC
     template <typename ValueT, template <typename, typename, typename, typename, typename,
