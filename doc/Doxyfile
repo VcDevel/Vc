@@ -1479,31 +1479,6 @@ MAN_LINKS              = NO
 
 GENERATE_XML           = NO
 
-# The XML_OUTPUT tag is used to specify where the XML pages will be put.
-# If a relative path is entered the value of OUTPUT_DIRECTORY will be
-# put in front of it. If left blank `xml' will be used as the default path.
-
-XML_OUTPUT             = xml
-
-# The XML_SCHEMA tag can be used to specify an XML schema,
-# which can be used by a validating XML parser to check the
-# syntax of the XML files.
-
-XML_SCHEMA             =
-
-# The XML_DTD tag can be used to specify an XML DTD,
-# which can be used by a validating XML parser to check the
-# syntax of the XML files.
-
-XML_DTD                =
-
-# If the XML_PROGRAMLISTING tag is set to YES Doxygen will
-# dump the program listings (including syntax highlighting
-# and cross-referencing information) to the XML output. Note that
-# enabling this will significantly increase the size of the XML output.
-
-XML_PROGRAMLISTING     = YES
-
 #---------------------------------------------------------------------------
 # configuration options related to the DOCBOOK output
 #---------------------------------------------------------------------------
@@ -1512,12 +1487,6 @@ XML_PROGRAMLISTING     = YES
 # that can be used to generate PDF.
 
 GENERATE_DOCBOOK       = NO
-
-# The DOCBOOK_OUTPUT tag is used to specify where the DOCBOOK pages will be put.
-# If a relative path is entered the value of OUTPUT_DIRECTORY will be put in
-# front of it. If left blank docbook will be used as the default path.
-
-DOCBOOK_OUTPUT         = docbook
 
 #---------------------------------------------------------------------------
 # configuration options for the AutoGen Definitions output
@@ -1542,29 +1511,6 @@ GENERATE_AUTOGEN_DEF   = NO
 # moment.
 
 GENERATE_PERLMOD       = NO
-
-# If the PERLMOD_LATEX tag is set to YES Doxygen will generate
-# the necessary Makefile rules, Perl scripts and LaTeX code to be able
-# to generate PDF and DVI output from the Perl module output.
-
-PERLMOD_LATEX          = NO
-
-# If the PERLMOD_PRETTY tag is set to YES the Perl module output will be
-# nicely formatted so it can be parsed by a human reader.
-# This is useful
-# if you want to understand what is going on.
-# On the other hand, if this
-# tag is set to NO the size of the Perl module output will be much smaller
-# and Perl will parse it just the same.
-
-PERLMOD_PRETTY         = YES
-
-# The names of the make variables in the generated doxyrules.make file
-# are prefixed with the string contained in PERLMOD_MAKEVAR_PREFIX.
-# This is useful so different doxyrules.make files included by the same
-# Makefile don't overwrite each other's variables.
-
-PERLMOD_MAKEVAR_PREFIX =
 
 #---------------------------------------------------------------------------
 # Configuration options related to the preprocessor
@@ -1616,9 +1562,6 @@ INCLUDE_FILE_PATTERNS  =
 # instead of the = operator.
 
 PREDEFINED             = DOXYGEN \
-                         "Vc_PUBLIC_NAMESPACE_BEGIN:=namespace Vc {" \
-                         "Vc_NAMESPACE_BEGIN:=namespace Vc {" \
-                         Vc_NAMESPACE_END:=} \
                          Vc_INTRINSIC=inline \
                          Vc_INTRINSIC_L=inline \
                          Vc_INTRINSIC_R \
@@ -1631,7 +1574,6 @@ PREDEFINED             = DOXYGEN \
                          Vc_CONST \
                          Vc_CONST_L \
                          Vc_CONST_R \
-                         Vc_WARN_UNUSED_RESULT \
                          Vc_VERSIONED_NAMESPACE=Vc
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
