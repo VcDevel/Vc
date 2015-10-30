@@ -618,7 +618,7 @@ TEST_TYPES(V, testFma, ALL_TYPES)
         if (std::is_same<T, double>::value) {
             UnitTest::EXPECT_FAILURE();
         }
-#ifdef Vc_GCC
+#if defined Vc_GCC || (defined Vc_CLANG && Vc_CLANG >= 0x30500)
         if (std::is_same<T, float>::value && sizeof(void*) == 8) {
             UnitTest::EXPECT_FAILURE();
         }
