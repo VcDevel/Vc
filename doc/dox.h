@@ -367,15 +367,15 @@ If your project does not use CMake all you need to do is the following:
 \li Ensure you use the right compiler flags to enable the relevant SIMD instructions.
 
 
-\defgroup Vectors
-\defgroup Masks
-\defgroup SimdArray
-\defgroup Simdize
-\defgroup Math
-\defgroup Utilities
+\defgroup Vectors Vectors
+\defgroup Masks Masks
+\defgroup SimdArray SIMD Array
+\defgroup Simdize simdize<T>
+\defgroup Math Math
+\defgroup Utilities Utilities
 
 
-\addtogroup Vectors Vectors
+\addtogroup Vectors
 
 The vector classes abstract the SIMD registers and their according instructions into types that
 feel very familiar to C++ developers.
@@ -428,26 +428,26 @@ v = int_v::IndexesFromZero().apply(f);
 
 
 
-\addtogroup Masks Masks
+\addtogroup Masks
 
 Mask classes are abstractions for the results of vector comparisons. The actual implementation
 differs depending on the SIMD instruction set. On SSE they contain a full 128-bit datatype while
 on a different architecture they might be bit-fields.
 
 
-\addtogroup Utilities Utilities
+\addtogroup Utilities
 
 Additional classes, macros, and functions that help to work more easily with the main vector
 types.
 
 
-\addtogroup Math Math
+\addtogroup Math
 
 Functions that implement math functions. Take care that some of the implementations will return
 results with less precision than what the FPU calculates.
 
 
-\addtogroup SimdArray SIMD Array
+\addtogroup SimdArray
 
 This set of (template) classes provides types that allow an arbitrarily sized set of
 values of an arithmetic type, much like a \c std::array. But in contrast to \c
