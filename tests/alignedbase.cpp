@@ -58,7 +58,7 @@ TEST_TYPES(A, alignedbase, (Int<4>, Int<8>, Int<16>, Int<32>, Int<64>, Int<128>)
     COMPARE(addressOf(&onHeap[2]) & (A::value - 1), 0u);
 }
 
-template <typename T> struct VectorAligned : public Vc::VectorAlignedBase<T>
+template <typename T> struct VectorAligned : public Vc::VectorAlignedBaseT<T>
 {
     int x;
 };
@@ -81,7 +81,7 @@ TEST_TYPES(N, vectoralignedbase,
     COMPARE(addressOf(&onHeap[2]) & (A - 1), 0u);
 }
 
-template <typename T> struct MemoryAligned : public Vc::MemoryAlignedBase<T>
+template <typename T> struct MemoryAligned : public Vc::MemoryAlignedBaseT<T>
 {
     int x;
 };
@@ -102,6 +102,17 @@ TEST_TYPES(N, memoryalignedbase,
     COMPARE(addressOf(&onHeap[0]) & (A - 1), 0u);
     COMPARE(addressOf(&onHeap[1]) & (A - 1), 0u);
     COMPARE(addressOf(&onHeap[2]) & (A - 1), 0u);
+}
+
+TEST_TYPES(T, alignedbasealiases,
+           (float, double, unsigned long long, long long, unsigned long, long,
+            unsigned int, int, unsigned short, short, unsigned char, signed char))
+{
+    using V = Vc::Vector<T>;
+    VERIFY(alignof(Vc::VectorAlignedBase) >= alignof(V));
+    VERIFY(alignof(Vc::MemoryAlignedBase) >= V::MemoryAlignment);
+    VERIFY(Vc::VectorAlignment >= alignof(V));
+    VERIFY(Vc::MemoryAlignment >= V::MemoryAlignment);
 }
 
 // vim: foldmethod=marker

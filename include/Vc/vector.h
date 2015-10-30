@@ -149,8 +149,10 @@ namespace Vc_VERSIONED_NAMESPACE
 // XXX See bottom of common/simdmaskarray.h:
 //#include "common/simd_cast_caller.tcc"
 
+#include "common/alignedbase.h"
 namespace Vc_VERSIONED_NAMESPACE {
-  using Vc_IMPL_NAMESPACE::VectorAlignment;
+constexpr std::size_t VectorAlignment = alignof(VectorAlignedBase);
+constexpr std::size_t MemoryAlignment = alignof(MemoryAlignedBase);
 } // namespace Vc_VERSIONED_NAMESPACE
 
 #define Vc_VECTOR_DECLARED__ 1

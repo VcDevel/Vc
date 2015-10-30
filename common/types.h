@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/global.h>
 #include "../traits/type_traits.h"
 #include "permutation.h"
-#include "alignedbase.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
