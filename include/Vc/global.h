@@ -413,6 +413,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE {}
 namespace Vc = Vc_VERSIONED_NAMESPACE;
 
+#endif // DOXYGEN
+
 namespace Vc_VERSIONED_NAMESPACE
 {
 
@@ -424,8 +426,6 @@ typedef   signed int        int32_t;
 typedef unsigned int       uint32_t;
 typedef   signed long long  int64_t;
 typedef unsigned long long uint64_t;
-
-#endif // DOXYGEN
 
 /**
  * \ingroup Utilities
@@ -459,7 +459,7 @@ enum MallocAlignment {
  *
  * Enum to identify a certain SIMD instruction set.
  *
- * You can use \ref Vc_IMPL for the currently active implementation.
+ * You can use \ref CurrentImplementation for the currently active implementation.
  *
  * \see ExtraInstructions
  */
@@ -518,59 +518,70 @@ enum ExtraInstructions : std::uint_least32_t { // TODO: make enum class
     ExtraInstructionsMask = 0xfffff000u
 };
 
-#ifndef DOXYGEN
-
-#ifdef Vc_IMPL_Scalar
-#define Vc_IMPL ::Vc::ScalarImpl
-#define Vc_IMPL_NAMESPACE Scalar
-#elif defined(Vc_IMPL_MIC)
-#define Vc_IMPL ::Vc::MICImpl
-#define Vc_IMPL_NAMESPACE MIC
-#elif defined(Vc_IMPL_AVX2)
-#define Vc_IMPL ::Vc::AVX2Impl
-#define Vc_IMPL_NAMESPACE AVX2
-#elif defined(Vc_IMPL_AVX)
-#define Vc_IMPL ::Vc::AVXImpl
-#define Vc_IMPL_NAMESPACE AVX
-#elif defined(Vc_IMPL_SSE4_2)
-#define Vc_IMPL ::Vc::SSE42Impl
-#define Vc_IMPL_NAMESPACE SSE
-#elif defined(Vc_IMPL_SSE4_1)
-#define Vc_IMPL ::Vc::SSE41Impl
-#define Vc_IMPL_NAMESPACE SSE
-#elif defined(Vc_IMPL_SSSE3)
-#define Vc_IMPL ::Vc::SSSE3Impl
-#define Vc_IMPL_NAMESPACE SSE
-#elif defined(Vc_IMPL_SSE3)
-#define Vc_IMPL ::Vc::SSE3Impl
-#define Vc_IMPL_NAMESPACE SSE
-#elif defined(Vc_IMPL_SSE2)
-#define Vc_IMPL ::Vc::SSE2Impl
-#define Vc_IMPL_NAMESPACE SSE
-#endif
-
+/**
+ * \ingroup Utilities
+ * This class identifies the specific implementation %Vc uses in the current translation
+ * unit in terms of a type.
+ *
+ * Most importantantly, the type \ref CurrentImplementation instantiates the class
+ * template with the bitmask identifying the current implementation. The contents of the
+ * bitmask can be queried with the static member functions of the class.
+ */
 template <unsigned int Features> struct ImplementationT {
+    /// Returns the currently used Vc::Implementation.
     static constexpr Implementation current()
     {
         return static_cast<Implementation>(Features & ImplementationMask);
     }
+    /// Returns whether \p impl is the current Vc::Implementation.
     static constexpr bool is(Implementation impl)
     {
         return static_cast<unsigned int>(impl) == current();
     }
+    /**
+     * Returns whether the current Vc::Implementation implements at least \p low and at
+     * most \p high.
+     */
     static constexpr bool is_between(Implementation low, Implementation high)
     {
         return static_cast<unsigned int>(low) <= current() &&
                static_cast<unsigned int>(high) >= current();
     }
+    /**
+     * Returns whether the current code would run on a CPU providing \p extraInstructions.
+     */
     static constexpr bool runs_on(unsigned int extraInstructions)
     {
         return (extraInstructions & Features & ExtraInstructionsMask) ==
                (Features & ExtraInstructionsMask);
     }
 };
-typedef ImplementationT<
-    Vc_IMPL
+/**
+ * \ingroup Utilities
+ * Identifies the %Vc implementation used in the current translation unit.
+ *
+ * \see ImplementationT
+ */
+using CurrentImplementation = ImplementationT<
+#ifdef Vc_IMPL_Scalar
+    ScalarImpl
+#elif defined(Vc_IMPL_MIC)
+    MICImpl
+#elif defined(Vc_IMPL_AVX2)
+    AVX2Impl
+#elif defined(Vc_IMPL_AVX)
+    AVXImpl
+#elif defined(Vc_IMPL_SSE4_2)
+    SSE42Impl
+#elif defined(Vc_IMPL_SSE4_1)
+    SSE41Impl
+#elif defined(Vc_IMPL_SSSE3)
+    SSSE3Impl
+#elif defined(Vc_IMPL_SSE3)
+    SSE3Impl
+#elif defined(Vc_IMPL_SSE2)
+    SSE2Impl
+#endif
 #ifdef Vc_IMPL_SSE4a
     + Vc::Sse4aInstructions
 #ifdef Vc_IMPL_XOP
@@ -592,9 +603,7 @@ typedef ImplementationT<
 #ifdef Vc_USE_VEX_CODING
     + Vc::VexInstructions
 #endif
-    > CurrentImplementation;
-
-#endif // DOXYGEN
+    >;
 
 }  // namespace Vc
 
