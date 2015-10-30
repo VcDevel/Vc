@@ -776,7 +776,11 @@ public:
     Adapter() = default;
 
     /// Defaulted copy and move construction and assignment
+#if defined Vc_CLANG && Vc_CLANG < 0x30700
+    Vc_INTRINSIC Adapter(const Adapter &x) : Base(x) {}
+#else
     Adapter(const Adapter &) = default;
+#endif
     /// Defaulted copy and move construction and assignment
     Adapter(Adapter &&) = default;
     /// Defaulted copy and move construction and assignment
