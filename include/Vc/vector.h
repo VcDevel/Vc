@@ -151,7 +151,27 @@ namespace Vc_VERSIONED_NAMESPACE
 
 #include "common/alignedbase.h"
 namespace Vc_VERSIONED_NAMESPACE {
+/**
+ * \ingroup Vectors
+ *
+ * Specifies the most conservative memory alignment necessary for Vector<T> objects with
+ * default VectorAbi. Use this value e.g. with an \c alignas expression or when allocating
+ * aligned memory dynamically (\ref Vc::malloc).
+ *
+ * \see Vc::MemoryAlignment
+ * \see Vc::VectorAlignedBase
+ */
 constexpr std::size_t VectorAlignment = alignof(VectorAlignedBase);
+/**
+ * \ingroup Vectors
+ *
+ * Specifies the most conservative memory alignment necessary for aligned loads and stores
+ * of Vector types. Use this value e.g. with an \c alignas expression or when allocating
+ * aligned memory dynamically (\ref Vc::malloc).
+ *
+ * \see Vc::VectorAlignment
+ * \see Vc::Vector<T, Abi>::MemoryAlignment
+ */
 constexpr std::size_t MemoryAlignment = alignof(MemoryAlignedBase);
 } // namespace Vc_VERSIONED_NAMESPACE
 
