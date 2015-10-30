@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 
 /*!
-\addtogroup Simdize simdize<T>
+\addtogroup Simdize
 
 Automatic type vectorization.
 
