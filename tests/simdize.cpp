@@ -212,6 +212,30 @@ TEST(assign)
     }
 }
 
+template <typename T> T copy_by_value(T x) { return T(x); }
+
+TEST(copy)
+{
+    using T = std::tuple<float, int>;
+    using V = simdize<T>;
+    V v = {1.f, 1};
+    for (unsigned i = 0; i < v.size(); ++i) {
+        COMPARE(std::get<0>(v)[i], 1.f);
+        COMPARE(std::get<1>(v)[i], 1);
+    }
+    V v2 = copy_by_value(v);
+    for (unsigned i = 0; i < v2.size(); ++i) {
+        COMPARE(std::get<0>(v2)[i], 1.f);
+        COMPARE(std::get<1>(v2)[i], 1);
+    }
+    v = {2.f, 2};
+    v2 = copy_by_value(v);
+    for (unsigned i = 0; i < v2.size(); ++i) {
+        COMPARE(std::get<0>(v2)[i], 2.f);
+        COMPARE(std::get<1>(v2)[i], 2);
+    }
+}
+
 TEST(extract)
 {
     using T = std::tuple<float, unsigned>;
