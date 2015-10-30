@@ -44,8 +44,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace MIC
 {
-constexpr std::size_t VectorAlignment = 64;
-
 template <typename T> using Vector = Vc::Vector<T, VectorAbi::Mic>;
 typedef Vector<double>         double_v;
 typedef Vector<float>           float_v;
