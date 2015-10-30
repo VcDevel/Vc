@@ -41,7 +41,6 @@ else()
       if(CCACHE_COMMAND)
          mark_as_advanced(CCACHE_COMMAND)
          set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_COMMAND}")
-         set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${CCACHE_COMMAND}")
       endif()
    endif()
 
