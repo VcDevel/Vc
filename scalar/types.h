@@ -44,8 +44,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Scalar
 {
-constexpr std::size_t VectorAlignment = 8;
-
 template <typename T> using Vector = Vc::Vector<T, VectorAbi::Scalar>;
 typedef Vector<double>         double_v;
 typedef Vector<float>           float_v;

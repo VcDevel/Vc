@@ -44,8 +44,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
-constexpr std::size_t VectorAlignment = 16;
-
 template <typename T> using Vector = Vc::Vector<T, VectorAbi::Sse>;
 typedef Vector<double>         double_v;
 typedef Vector<float>           float_v;
