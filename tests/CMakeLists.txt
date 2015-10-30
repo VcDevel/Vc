@@ -314,11 +314,15 @@ if(OBJDUMP)
 
       add_test(NAME ${_test}
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-         COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl} -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
+         COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+         -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+         -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
          )
       set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
       add_custom_target(run_${_target}
-         ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl} -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
+         ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+         -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+         -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
          DEPENDS ${_target}
          COMMENT "Execute ${_target} test"
