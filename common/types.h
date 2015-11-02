@@ -104,7 +104,11 @@ template<typename T> struct MayAliasImpl { typedef T type Vc_MAY_ALIAS; };
  * therefore MaskBool is simply forwarded as is.
  */
 }  // namespace Detail
+#ifdef Vc_ICC
+template <typename T> using MayAlias [[gnu::may_alias]] = T;
+#else
 template <typename T> using MayAlias = typename Detail::MayAliasImpl<T>::type;
+#endif
 
 enum class Operator : char {
     Assign,
