@@ -29,8 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_VERSION_H_
 #define VC_VERSION_H_
 
-#define Vc_VERSION_STRING "0.99.71-dev"
-#define Vc_VERSION_NUMBER 0x00638f
+#define Vc_VERSION_STRING "1.0.0"
+#define Vc_VERSION_NUMBER 0x010000
 #define Vc_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
 #define Vc_LIBRARY_ABI_VERSION 5
 
