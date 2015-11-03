@@ -367,7 +367,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #error "Preprocessor logic broken. Please report a bug."
 #endif
 
-#define Vc_VERSIONED_NAMESPACE Vc_0
+#define Vc_VERSIONED_NAMESPACE Vc_1
 
 namespace Vc_VERSIONED_NAMESPACE {}
 namespace Vc = Vc_VERSIONED_NAMESPACE;

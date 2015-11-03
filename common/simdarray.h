@@ -1206,8 +1206,8 @@ template <typename L, typename R>
 using result_vector_type = typename result_vector_type_internal::evaluate<L, R>::type;
 
 static_assert(
-    std::is_same<result_vector_type<short int, Vc_0::SimdArray<short unsigned int, 32ul>>,
-                 Vc_0::SimdArray<short unsigned int, 32ul>>::value,
+    std::is_same<result_vector_type<short int, Vc::SimdArray<short unsigned int, 32ul>>,
+                 Vc::SimdArray<short unsigned int, 32ul>>::value,
     "result_vector_type does not work");
 
 #define Vc_BINARY_OPERATORS_(op__)                                                       \
