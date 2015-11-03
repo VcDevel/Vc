@@ -393,7 +393,7 @@ macro(_vc_compile_one_implementation _srcs _impl)
          set(_out "${CMAKE_CURRENT_BINARY_DIR}/${_out}_${_impl}${_ext}")
          add_custom_command(OUTPUT "${_out}"
             COMMAND ${CMAKE_COMMAND} -E copy "${_vc_compile_src}" "${_out}"
-            MAIN_DEPENDENCY "${_vc_compile_src}"
+            DEPENDS "${_vc_compile_src}"
             COMMENT "Copy to ${_out}"
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
             VERBATIM)
