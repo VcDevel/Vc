@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_SIMD_CAST_CALLER_TCC_
-#define VC_AVX_SIMD_CAST_CALLER_TCC_
+#ifndef Vc_AVX_SIMD_CAST_CALLER_TCC_
+#define Vc_AVX_SIMD_CAST_CALLER_TCC_
 
 #include "macros.h"
 
@@ -49,8 +49,6 @@ Vc_INTRINSIC Mask<T, VectorAbi::Avx>::Mask(U &&rhs,
 }
 }
 
-#include "undomacros.h"
-
-#endif  // VC_AVX_SIMD_CAST_CALLER_TCC_
+#endif  // Vc_AVX_SIMD_CAST_CALLER_TCC_
 
 // vim: foldmethod=marker

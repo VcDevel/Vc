@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_VECTOR_H
-#define VC_MIC_VECTOR_H
+#ifndef VC_MIC_VECTOR_H_
+#define VC_MIC_VECTOR_H_
 
 #ifdef CAN_OFFLOAD
 #pragma offload_attribute(push, target(mic))
@@ -53,11 +53,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef isnan
 #endif
 
-#define VC_HAVE_FMA
+#define Vc_HAVE_FMA
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-#define VC_CURRENT_CLASS_NAME Vector
+#define Vc_CURRENT_CLASS_NAME Vector
 template <typename T>
 class Vector<T, VectorAbi::Mic> : public MIC::StoreMixin<MIC::Vector<T>, T>
 {
@@ -79,10 +79,10 @@ private:
     friend class MIC::StoreMixin<Vector, T>;
 
 public:
-    FREE_STORE_OPERATORS_ALIGNED(64)
+    Vc_FREE_STORE_OPERATORS_ALIGNED(64)
     typedef typename MIC::VectorTypeHelper<T>::Type VectorType;
     using vector_type = VectorType;
-    using EntryType = T;
+    Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
     using value_type = EntryType;
     typedef typename MIC::DetermineVectorEntryType<T>::Type VectorEntryType;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(VectorEntryType);
@@ -109,9 +109,9 @@ protected:
 
     typedef Common::VectorMemoryUnion<VectorType, VectorEntryType> StorageType;
     StorageType d;
-    VC_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
+    Vc_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
 
-    template<typename V> static Vc_INTRINSIC VectorType _cast(VC_ALIGNED_PARAMETER(V) x) { return MIC::mic_cast<VectorType>(x); }
+    template<typename V> static Vc_INTRINSIC VectorType _cast(Vc_ALIGNED_PARAMETER(V) x) { return MIC::mic_cast<VectorType>(x); }
 
 public:
     template <typename MemType>
@@ -140,8 +140,9 @@ public:
     // implict conversion from compatible Vector<U>
     template <typename U>
     Vc_INTRINSIC Vector(
-        VC_ALIGNED_PARAMETER(Vector<U>) x,
-        typename std::enable_if<is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
+        Vc_ALIGNED_PARAMETER(Vector<U>) x,
+        typename std::enable_if<Traits::is_implicit_cast_allowed<U, T>::value,
+                                void *>::type = nullptr)
         : d(MIC::convert<U, T>(x.data()))
     {
     }
@@ -149,8 +150,9 @@ public:
     // static_cast from the remaining Vector<U>
     template <typename U>
     Vc_INTRINSIC explicit Vector(
-        VC_ALIGNED_PARAMETER(Vector<U>) x,
-        typename std::enable_if<!is_implicit_cast_allowed<U, T>::value, void *>::type = nullptr)
+        Vc_ALIGNED_PARAMETER(Vector<U>) x,
+        typename std::enable_if<!Traits::is_implicit_cast_allowed<U, T>::value,
+                                void *>::type = nullptr)
         : d(MIC::convert<U, T>(x.data()))
     {
     }
@@ -203,7 +205,7 @@ public:
     }
     Vc_PURE Vc_ALWAYS_INLINE Vc_FLATTEN Vector operator~() const
     {
-#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+#ifndef Vc_ENABLE_FLOAT_BIT_OPERATORS
         static_assert(std::is_integral<T>::value,
                       "bit-complement can only be used with Vectors of integral type");
 #endif
@@ -214,23 +216,23 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // binary operators
-#ifdef VC_ENABLE_FLOAT_BIT_OPERATORS
-#define VC_ASSERT__
+#ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
+#define Vc_ASSERT__
 #else
-#define VC_ASSERT__                                                                                \
+#define Vc_ASSERT__                                                                                \
     static_assert(std::is_integral<T>::value,                                                      \
                   "bitwise-operators can only be used with Vectors of integral type")
 #endif
 #define Vc_OP(symbol, fun)                                                                         \
     Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x)                                           \
     {                                                                                              \
-        VC_ASSERT__;                                                                               \
+        Vc_ASSERT__;                                                                               \
         d.v() = fun(d.v(), x.d.v());                                                               \
         return *this;                                                                              \
     }                                                                                              \
     Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const                                         \
     {                                                                                              \
-        VC_ASSERT__;                                                                               \
+        Vc_ASSERT__;                                                                               \
         return Vector<T>(fun(d.v(), x.d.v()));                                                     \
     }
 
@@ -254,22 +256,18 @@ public:
     Vc_ALWAYS_INLINE_L Vector  operator<< (unsigned int x) const Vc_ALWAYS_INLINE_R;
     Vc_ALWAYS_INLINE_L Vector  operator>> (unsigned int x) const Vc_ALWAYS_INLINE_R;
 
-#define OPcmp(symbol, fun) \
+#define Vc_OPcmp(symbol, fun) \
     Vc_ALWAYS_INLINE Mask operator symbol(AsArg x) const { return HT::fun(d.v(), x.d.v()); }
 
     // ushort_v specializations are in vector.tcc!
-    OPcmp(==, cmpeq)
-    OPcmp(!=, cmpneq)
-    OPcmp(>=, cmpnlt)
-    OPcmp(>, cmpnle)
-    OPcmp(<, cmplt)
-    OPcmp(<=, cmple)
-#undef OPcmp
+    Vc_OPcmp(==, cmpeq)
+    Vc_OPcmp(!=, cmpneq)
+    Vc_OPcmp(>=, cmpnlt)
+    Vc_OPcmp(>, cmpnle)
+    Vc_OPcmp(<, cmplt)
+    Vc_OPcmp(<=, cmple)
+#undef Vc_OPcmp
     Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_INTRINSIC_R Vc_PURE_R;
-
-    Vc_INTRINSIC void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand) {
-        d.v() = HT::multiplyAndAdd(d.v(), factor.data(), summand.data());
-    }
 
     Vc_INTRINSIC_L void assign(Vector<T> v, Mask mask) Vc_INTRINSIC_R;
 
@@ -309,9 +307,7 @@ public:
     }
 
     template<typename F> Vc_INTRINSIC void call(F &&f) const {
-        for_all_vector_entries(i,
-                f(EntryType(d.m(i)));
-                );
+        Common::for_all_vector_entries<Size>([&](size_t i) { f(EntryType(d.m(i))); });
     }
 
     template<typename F> Vc_INTRINSIC void call(F &&f, const Mask &mask) const {
@@ -322,9 +318,8 @@ public:
 
     template<typename F> Vc_INTRINSIC Vector<T> apply(F &&f) const {
         Vector<T> r;
-        for_all_vector_entries(i,
-                r.d.set(i, f(EntryType(d.m(i))));
-                );
+        Common::for_all_vector_entries<Size>(
+            [&](size_t i) { r.d.set(i, f(EntryType(d.m(i)))); });
         return r;
     }
 
@@ -337,14 +332,10 @@ public:
     }
 
     template<typename IndexT> Vc_INTRINSIC void fill(EntryType (&f)(IndexT)) {
-        for_all_vector_entries(i,
-                d.set(i, f(i));
-                );
+        Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f(i)); });
     }
     Vc_INTRINSIC void fill(EntryType (&f)()) {
-        for_all_vector_entries(i,
-                d.set(i, f());
-                );
+        Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f()); });
     }
 
     template <typename G> static Vc_INTRINSIC Vector generate(G gen)
@@ -362,7 +353,7 @@ public:
     Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
-#undef VC_CURRENT_CLASS_NAME
+#undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::MemoryAlignment;
 
@@ -394,27 +385,27 @@ Vc_ALWAYS_INLINE Vc_PURE MIC::Vector<T> abs(MIC::Vector<T> x)
     return MIC::VectorHelper<typename MIC::Vector<T>::VectorEntryType>::abs(x.data());
 }
 
-#define MATH_OP1(name, call) \
-    template<typename T> static Vc_ALWAYS_INLINE Vector<T> name(const Vector<T> &x) \
-    { \
-        typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT; \
-        return HT::call(x.data()); \
+#define Vc_MATH_OP1(name, call)                                                          \
+    template <typename T> static Vc_ALWAYS_INLINE Vector<T> name(const Vector<T> &x)     \
+    {                                                                                    \
+        typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT;               \
+        return HT::call(x.data());                                                       \
     }
-    MATH_OP1(sqrt, sqrt)
-    MATH_OP1(rsqrt, rsqrt)
-    MATH_OP1(sin, sin)
-    MATH_OP1(cos, cos)
-    MATH_OP1(log, log)
-    MATH_OP1(log2, log2)
-    MATH_OP1(log10, log10)
-    MATH_OP1(atan, atan)
-    MATH_OP1(reciprocal, recip)
-    MATH_OP1(round, round)
-    MATH_OP1(asin, asin)
-    MATH_OP1(floor, floor)
-    MATH_OP1(ceil, ceil)
-    MATH_OP1(exp, exp)
-#undef MATH_OP1
+    Vc_MATH_OP1(sqrt, sqrt)
+    Vc_MATH_OP1(rsqrt, rsqrt)
+    Vc_MATH_OP1(sin, sin)
+    Vc_MATH_OP1(cos, cos)
+    Vc_MATH_OP1(log, log)
+    Vc_MATH_OP1(log2, log2)
+    Vc_MATH_OP1(log10, log10)
+    Vc_MATH_OP1(atan, atan)
+    Vc_MATH_OP1(reciprocal, recip)
+    Vc_MATH_OP1(round, round)
+    Vc_MATH_OP1(asin, asin)
+    Vc_MATH_OP1(floor, floor)
+    Vc_MATH_OP1(ceil, ceil)
+    Vc_MATH_OP1(exp, exp)
+#undef Vc_MATH_OP1
 
     template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos) {
         typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT; \
@@ -458,11 +449,10 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 } // namespace Vc
 
 #include "vector.tcc"
-#include "undomacros.h"
 #include "simd_cast.h"
 
 #ifdef CAN_OFFLOAD
 #pragma offload_attribute(pop)
 #endif
 
-#endif // VC_MIC_VECTOR_H
+#endif // VC_MIC_VECTOR_H_

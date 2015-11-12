@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H
-#define VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H
+#ifndef VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H_
+#define VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H_
 
 #include <initializer_list>
 #include <memory>
@@ -71,4 +71,4 @@ template <typename T, typename A> struct has_contiguous_storage_impl<std::vector
 }  // namespace Traits
 }  // namespace Vc
 
-#endif // VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H
+#endif // VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H_

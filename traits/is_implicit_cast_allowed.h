@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,26 +26,44 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_TYPE_TRAITS_H_
-#define VC_SSE_TYPE_TRAITS_H_
-
-#include "macros.h"
+#ifndef VC_TRAITS_IS_IMPLICIT_CAST_ALLOWED_H_
+#define VC_TRAITS_IS_IMPLICIT_CAST_ALLOWED_H_
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace SSE
-{
 namespace Traits
 {
-template <typename T> struct is_vector : public std::false_type {};
-template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
+template <typename From, typename To, bool = std::is_integral<From>::value>
+struct is_implicit_cast_allowed
+    : public std::integral_constant<
+          bool, std::is_same<From, To>::value ||
+                    (std::is_integral<To>::value &&
+                     (std::is_same<typename std::make_unsigned<From>::type, To>::value ||
+                      std::is_same<typename std::make_signed<From>::type, To>::value))> {
+};
 
-template <typename T> struct is_mask : public std::false_type {};
-template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
+template <typename From, typename To>
+struct is_implicit_cast_allowed<From, To, false> : public std::is_same<From, To>::type {
+};
+
+template <typename From, typename To>
+struct is_implicit_cast_allowed_mask : public is_implicit_cast_allowed<From, To> {
+};
+
+static_assert(is_implicit_cast_allowed<float, float>::value, "");
+static_assert(!is_implicit_cast_allowed<float, double>::value, "");
+static_assert(is_implicit_cast_allowed< int64_t, uint64_t>::value, "");
+static_assert(is_implicit_cast_allowed<uint64_t,  int64_t>::value, "");
+static_assert(is_implicit_cast_allowed< int32_t, uint32_t>::value, "");
+static_assert(is_implicit_cast_allowed<uint32_t,  int32_t>::value, "");
+static_assert(is_implicit_cast_allowed< int16_t, uint16_t>::value, "");
+static_assert(is_implicit_cast_allowed<uint16_t,  int16_t>::value, "");
+static_assert(is_implicit_cast_allowed<  int8_t,  uint8_t>::value, "");
+static_assert(is_implicit_cast_allowed< uint8_t,   int8_t>::value, "");
+
 }  // namespace Traits
-}  // namespace SSE
 }  // namespace Vc
 
-#endif  // VC_SSE_TYPE_TRAITS_H_
+#endif  // VC_TRAITS_IS_IMPLICIT_CAST_ALLOWED_H_
 
 // vim: foldmethod=marker

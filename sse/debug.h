@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_DEBUG_H
-#define VC_SSE_DEBUG_H
+#ifndef VC_SSE_DEBUG_H_
+#define VC_SSE_DEBUG_H_
 
 #ifndef NDEBUG
 #include "types.h"
@@ -94,4 +94,4 @@ class DebugStream
 }  // namespace SSE
 }  // namespace Vc
 
-#endif // VC_SSE_DEBUG_H
+#endif // VC_SSE_DEBUG_H_

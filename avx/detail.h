@@ -370,7 +370,7 @@ template<> Vc_INTRINSIC Vc_CONST __m256 mask_cast<8, 16, __m256>(__m256i k)
 }
 
 // 16 -> 8
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 template<> Vc_INTRINSIC Vc_CONST __m256 mask_cast<16, 8, __m256>(__m256i k)
 {
     // abcd efgh ijkl mnop -> aabb ccdd eeff gghh
@@ -430,7 +430,7 @@ Vc_INTRINSIC __m256 xor_(__m256 a, __m256 b) { return _mm256_xor_ps(a, b); }
 Vc_INTRINSIC __m256d xor_(__m256d a, __m256d b) { return _mm256_xor_pd(a, b); }
 Vc_INTRINSIC __m256i xor_(__m256i a, __m256i b)
 {
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
     return _mm256_xor_si256(a, b);
 #else
     return _mm256_castps_si256(
@@ -443,7 +443,7 @@ Vc_INTRINSIC __m256 or_(__m256 a, __m256 b) { return _mm256_or_ps(a, b); }
 Vc_INTRINSIC __m256d or_(__m256d a, __m256d b) { return _mm256_or_pd(a, b); }
 Vc_INTRINSIC __m256i or_(__m256i a, __m256i b)
 {
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
     return _mm256_or_si256(a, b);
 #else
     return _mm256_castps_si256(
@@ -455,7 +455,7 @@ Vc_INTRINSIC __m256i or_(__m256i a, __m256i b)
 Vc_INTRINSIC __m256 and_(__m256 a, __m256 b) { return _mm256_and_ps(a, b); }
 Vc_INTRINSIC __m256d and_(__m256d a, __m256d b) { return _mm256_and_pd(a, b); }
 Vc_INTRINSIC __m256i and_(__m256i a, __m256i b) {
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
     return _mm256_and_si256(a, b);
 #else
     return _mm256_castps_si256(
@@ -468,7 +468,7 @@ Vc_INTRINSIC __m256 andnot_(__m256 a, __m256 b) { return _mm256_andnot_ps(a, b);
 Vc_INTRINSIC __m256d andnot_(__m256d a, __m256d b) { return _mm256_andnot_pd(a, b); }
 Vc_INTRINSIC __m256i andnot_(__m256i a, __m256i b)
 {
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
     return _mm256_andnot_si256(a, b);
 #else
     return _mm256_castps_si256(
@@ -480,6 +480,11 @@ Vc_INTRINSIC __m256i andnot_(__m256i a, __m256i b)
 Vc_INTRINSIC __m256  not_(__m256  a) { return andnot_(a, allone<__m256 >()); }
 Vc_INTRINSIC __m256d not_(__m256d a) { return andnot_(a, allone<__m256d>()); }
 Vc_INTRINSIC __m256i not_(__m256i a) { return andnot_(a, allone<__m256i>()); }
+
+// blend{{{1
+Vc_INTRINSIC __m256  blend(__m256  a, __m256  b, __m256  c) { return _mm256_blendv_ps(a, b, c); }
+Vc_INTRINSIC __m256d blend(__m256d a, __m256d b, __m256d c) { return _mm256_blendv_pd(a, b, c); }
+Vc_INTRINSIC __m256i blend(__m256i a, __m256i b, __m256i c) { return AVX::blendv_epi8(a, b, c); }
 
 // abs{{{1
 Vc_INTRINSIC __m256  abs(__m256  a,  float) { return and_(a, AVX::setabsmask_ps()); }
@@ -597,11 +602,11 @@ Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b,  schar) { return AVX::cmpgt_epi
 Vc_INTRINSIC __m256i cmplt(__m256i a, __m256i b,  uchar) { return AVX::cmpgt_epu8 (b, a); }
 
 // fma{{{1
-Vc_INTRINSIC void fma(__m256  &a, __m256  b, __m256  c,  float) {
-#ifdef VC_IMPL_FMA4
-    a = _mm256_macc_ps(a, b, c);
-#elif defined VC_IMPL_FMA
-    a = _mm256_fmadd_ps(a, b, c);
+Vc_INTRINSIC __m256 fma(__m256  a, __m256  b, __m256  c,  float) {
+#ifdef Vc_IMPL_FMA4
+    return _mm256_macc_ps(a, b, c);
+#elif defined Vc_IMPL_FMA
+    return _mm256_fmadd_ps(a, b, c);
 #else
     using namespace AVX;
     __m256d v1_0 = _mm256_cvtps_pd(lo128(a));
@@ -610,15 +615,16 @@ Vc_INTRINSIC void fma(__m256  &a, __m256  b, __m256  c,  float) {
     __m256d v2_1 = _mm256_cvtps_pd(hi128(b));
     __m256d v3_0 = _mm256_cvtps_pd(lo128(c));
     __m256d v3_1 = _mm256_cvtps_pd(hi128(c));
-    a = concat(_mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_0, v2_0), v3_0)),
-               _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_1, v2_1), v3_1)));
+    return concat(_mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_0, v2_0), v3_0)),
+                  _mm256_cvtpd_ps(_mm256_add_pd(_mm256_mul_pd(v1_1, v2_1), v3_1)));
 #endif
 }
-Vc_INTRINSIC void fma(__m256d &a, __m256d b, __m256d c, double) {
-#ifdef VC_IMPL_FMA4
-    a = _mm256_macc_pd(a, b, c);
-#elif defined VC_IMPL_FMA
-    a = _mm256_fmadd_pd(a, b, c);
+Vc_INTRINSIC __m256d fma(__m256d a, __m256d b, __m256d c, double)
+{
+#ifdef Vc_IMPL_FMA4
+    return _mm256_macc_pd(a, b, c);
+#elif defined Vc_IMPL_FMA
+    return _mm256_fmadd_pd(a, b, c);
 #else
     using namespace AVX;
     __m256d h1 = and_(a, _mm256_broadcast_sd(reinterpret_cast<const double *>(
@@ -634,12 +640,12 @@ Vc_INTRINSIC void fma(__m256d &a, __m256d b, __m256d c, double) {
     const __m256d lh_lt_v3 = cmplt(abs(lh, double()), abs(c, double()), double());  // |lh| < |c|
     const __m256d x = _mm256_blendv_pd(c, lh, lh_lt_v3);
     const __m256d y = _mm256_blendv_pd(lh, c, lh_lt_v3);
-    a = add(add(ll, x, double()), add(y, hh, double()), double());
+    return add(add(ll, x, double()), add(y, hh, double()), double());
 #endif
 }
-template <typename T> Vc_INTRINSIC void fma(__m256i &a, __m256i b, __m256i c, T)
+template <typename T> Vc_INTRINSIC __m256i fma(__m256i a, __m256i b, __m256i c, T)
 {
-    a = add(mul(a, b, T()), c, T());
+    return add(mul(a, b, T()), c, T());
 }
 
 // shiftRight{{{1
@@ -694,9 +700,9 @@ Vc_INTRINSIC __m256i avx_broadcast( uchar x) { return _mm256_set1_epi8(x); }
 // sorted{{{1
 template <Vc::Implementation Impl, typename T,
           typename = enable_if<(Impl >= AVXImpl && Impl <= AVX2Impl)>>
-Vc_CONST_L AVX2::Vector<T> sorted(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x) Vc_CONST_R;
+Vc_CONST_L AVX2::Vector<T> sorted(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x) Vc_CONST_R;
 template <typename T>
-Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
+Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
 {
     return sorted<CurrentImplementation::current()>(x);
 }
@@ -704,7 +710,7 @@ Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(VC_ALIGNED_PARAMETER(AVX2::Vector<T
 // shifted{{{1
 template <typename T, typename V>
 static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(
-    VC_ALIGNED_PARAMETER(V) v, int amount)
+    Vc_ALIGNED_PARAMETER(V) v, int amount)
 {
     using namespace AVX;
     constexpr int S = sizeof(T);
@@ -790,7 +796,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(
 
 template <typename T, typename V>
 static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(
-    VC_ALIGNED_PARAMETER(V) v, int amount)
+    Vc_ALIGNED_PARAMETER(V) v, int amount)
 {
     using namespace AVX;
     switch (amount) {
@@ -819,7 +825,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(
 // rotated{{{1
 template <typename T, size_t N, typename V>
 static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(
-    VC_ALIGNED_PARAMETER(V) v, int amount)
+    Vc_ALIGNED_PARAMETER(V) v, int amount)
 {
     using namespace AVX;
     const __m128i vLo = avx_cast<__m128i>(lo128(v));
@@ -841,7 +847,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(
 
 template <typename T, size_t N, typename V>
 static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(
-    VC_ALIGNED_PARAMETER(V) v, int amount)
+    Vc_ALIGNED_PARAMETER(V) v, int amount)
 {
     using namespace AVX;
     const __m128i vLo = avx_cast<__m128i>(lo128(v));
@@ -873,10 +879,10 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(
     return avx_cast<V>(_mm256_setzero_ps());
 }
 
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 template <typename T, size_t N, typename V>
 static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
-    VC_ALIGNED_PARAMETER(V) v, int amount)
+    Vc_ALIGNED_PARAMETER(V) v, int amount)
 {
     using namespace AVX;
     const __m128i vLo = avx_cast<__m128i>(lo128(v));
@@ -929,7 +935,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
     }
     return avx_cast<V>(_mm256_setzero_ps());
 }
-#endif  // VC_IMPL_AVX2
+#endif  // Vc_IMPL_AVX2
 
 // testc{{{1
 Vc_INTRINSIC Vc_CONST int testc(__m128  a, __m128  b) { return _mm_testc_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }
@@ -1070,7 +1076,7 @@ template <> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(__m256i k)
 {
     return movemask(AVX::avx_cast<__m256>(k));
 }
-#ifdef VC_IMPL_BMI2
+#ifdef Vc_IMPL_BMI2
 template <> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m256i k)
 {
     return _pext_u32(movemask(k), 0x55555555u);
@@ -1484,7 +1490,7 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
         using namespace AVX;
-#ifdef VC_USE_MASKMOV_SCATTER
+#ifdef Vc_USE_MASKMOV_SCATTER
         // [0a 2a 0b 2b 0e 2e 0f 2f]:
         const m256 tmp0 = _mm256_unpacklo_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
         // [0c 2c 0d 2d 0g 2g 0h 2h]:
@@ -1692,13 +1698,13 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
         using namespace AVX;
-#ifdef VC_USE_MASKMOV_SCATTER
+#ifdef Vc_USE_MASKMOV_SCATTER
         const m256d tmp0 = _mm256_unpacklo_pd(v0.data(), v1.data());
         const m256d tmp1 = _mm256_unpackhi_pd(v0.data(), v1.data());
         const m256d tmp2 = _mm256_unpacklo_pd(v2.data(), v2.data());
         const m256d tmp3 = _mm256_unpackhi_pd(v2.data(), v2.data());
 
-#if defined(VC_MSVC) && (VC_MSVC < 170000000 || !defined(_WIN64))
+#if defined(Vc_MSVC) && (Vc_MSVC < 170000000 || !defined(_WIN64))
         // MSVC needs to be at Version 2012 before _mm256_set_epi64x works
         const m256i mask = concat(_mm_setallone_si128(), _mm_set_epi32(0, 0, -1, -1));
 #else
@@ -1798,8 +1804,6 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
 //}}}1
 }  // namespace Detail
 }  // namespace Vc
-
-#include "undomacros.h"
 
 #endif  // VC_AVX_DETAIL_H_
 

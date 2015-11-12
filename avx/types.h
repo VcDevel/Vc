@@ -26,27 +26,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef AVX_TYPES_H
-#define AVX_TYPES_H
+#ifndef VC_AVX_TYPES_H_
+#define VC_AVX_TYPES_H_
 
 #include "../sse/types.h"
 #include "../traits/type_traits.h"
 #include "macros.h"
 
-#ifdef VC_DEFAULT_IMPL_AVX2
-#define VC_DOUBLE_V_SIZE 4
-#define VC_FLOAT_V_SIZE 8
-#define VC_INT_V_SIZE 8
-#define VC_UINT_V_SIZE 8
-#define VC_SHORT_V_SIZE 16
-#define VC_USHORT_V_SIZE 16
-#elif defined VC_DEFAULT_IMPL_AVX
-#define VC_DOUBLE_V_SIZE 4
-#define VC_FLOAT_V_SIZE 8
-#define VC_INT_V_SIZE 4
-#define VC_UINT_V_SIZE 4
-#define VC_SHORT_V_SIZE 8
-#define VC_USHORT_V_SIZE 8
+#ifdef Vc_DEFAULT_IMPL_AVX2
+#define Vc_DOUBLE_V_SIZE 4
+#define Vc_FLOAT_V_SIZE 8
+#define Vc_INT_V_SIZE 8
+#define Vc_UINT_V_SIZE 8
+#define Vc_SHORT_V_SIZE 16
+#define Vc_USHORT_V_SIZE 16
+#elif defined Vc_DEFAULT_IMPL_AVX
+#define Vc_DOUBLE_V_SIZE 4
+#define Vc_FLOAT_V_SIZE 8
+#define Vc_INT_V_SIZE 4
+#define Vc_UINT_V_SIZE 4
+#define Vc_SHORT_V_SIZE 8
+#define Vc_USHORT_V_SIZE 8
 #endif
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -118,6 +118,4 @@ template<typename T> struct is_simd_vector_internal<Vector<T, VectorAbi::Avx>> :
 }  // namespace Traits
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // AVX_TYPES_H
+#endif // VC_AVX_TYPES_H_

@@ -64,20 +64,20 @@ template<std::size_t N, typename T, typename... Typelist> struct select_best_vec
 template <typename T, std::size_t N>
 using select_best_vector_type =
     typename select_best_vector_type_impl<N,
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
                                           Vc::AVX2::Vector<T>,
                                           Vc::SSE::Vector<T>,
                                           Vc::Scalar::Vector<T>
-#elif defined(VC_IMPL_AVX)
+#elif defined(Vc_IMPL_AVX)
                                           Vc::AVX::Vector<T>,
                                           Vc::SSE::Vector<T>,
                                           Vc::Scalar::Vector<T>
-#elif defined(VC_IMPL_Scalar)
+#elif defined(Vc_IMPL_Scalar)
                                           Vc::Scalar::Vector<T>
-#elif defined(VC_IMPL_SSE)
+#elif defined(Vc_IMPL_SSE)
                                           Vc::SSE::Vector<T>,
                                           Vc::Scalar::Vector<T>
-#elif defined(VC_IMPL_MIC)
+#elif defined(Vc_IMPL_MIC)
                                           Vc::MIC::Vector<T>,
                                           Vc::Scalar::Vector<T>
 #elif defined(VC_IMPL_CUDA)
@@ -175,8 +175,6 @@ template<typename T, std::size_t N> struct has_no_allocated_data_impl<Vc::SimdAr
 }  // namespace Traits
 
 }  // namespace Vc
-
-#include "undomacros.h"
 
 #endif  // VC_COMMON_SIMDARRAYFWD_H_
 

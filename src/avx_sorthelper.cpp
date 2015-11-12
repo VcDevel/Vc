@@ -34,8 +34,8 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
-#ifdef VC_IMPL_AVX2
-template<> Vc_CONST AVX2::short_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::short_v) x_)
+#ifdef Vc_IMPL_AVX2
+template<> Vc_CONST AVX2::short_v sorted<CurrentImplementation::current()>(Vc_ALIGNED_PARAMETER(AVX2::short_v) x_)
 {
     // ab cd ef gh ij kl mn op
     // ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑ ↓↑
@@ -141,7 +141,7 @@ template<> Vc_CONST AVX2::short_v sorted<CurrentImplementation::current()>(VC_AL
     return AVX::concat(x, y);
 }
 
-template <> Vc_CONST AVX2::ushort_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::ushort_v) x_)
+template <> Vc_CONST AVX2::ushort_v sorted<CurrentImplementation::current()>(Vc_ALIGNED_PARAMETER(AVX2::ushort_v) x_)
 {
     // sort pairs (one min/max)
     auto x = AVX::lo128(x_.data());
@@ -216,7 +216,7 @@ template <> Vc_CONST AVX2::ushort_v sorted<CurrentImplementation::current()>(VC_
     return AVX::concat(x, y);
 }
 
-template <> Vc_CONST AVX2::int_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::int_v) x_)
+template <> Vc_CONST AVX2::int_v sorted<CurrentImplementation::current()>(Vc_ALIGNED_PARAMETER(AVX2::int_v) x_)
 {
     using namespace AVX;
     const __m256i hgfedcba = x_.data();
@@ -238,9 +238,9 @@ template <> Vc_CONST AVX2::int_v sorted<CurrentImplementation::current()>(VC_ALI
     __m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
 
     // _mm_extract_epi32 may return an unsigned int, breaking these comparisons.
-    if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 2)) >= static_cast<int>(_mm_extract_epi32(y, 1)))) {
+    if (Vc_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 2)) >= static_cast<int>(_mm_extract_epi32(y, 1)))) {
         return concat(Reg::permute<X0, X1, X2, X3>(b), a);
-    } else if (VC_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 0)) >= static_cast<int>(_mm_extract_epi32(y, 3)))) {
+    } else if (Vc_IS_UNLIKELY(static_cast<int>(_mm_extract_epi32(x, 0)) >= static_cast<int>(_mm_extract_epi32(y, 3)))) {
         return concat(a, Reg::permute<X0, X1, X2, X3>(b));
     }
 
@@ -261,7 +261,7 @@ template <> Vc_CONST AVX2::int_v sorted<CurrentImplementation::current()>(VC_ALI
     return concat(_mm_unpacklo_epi32(l, h), _mm_unpackhi_epi32(l, h));
 }
 
-template <> Vc_CONST AVX2::uint_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::uint_v) x_)
+template <> Vc_CONST AVX2::uint_v sorted<CurrentImplementation::current()>(Vc_ALIGNED_PARAMETER(AVX2::uint_v) x_)
 {
     using namespace AVX;
     const __m256i hgfedcba = x_.data();
@@ -282,9 +282,9 @@ template <> Vc_CONST AVX2::uint_v sorted<CurrentImplementation::current()>(VC_AL
     __m128i b = Reg::shuffle<Y0, Y1, X0, X1>(y, x); // b3 <= b2 <= b1 <= b0
     __m128i a = _mm_unpackhi_epi64(x, y);           // a3 >= a2 >= a1 >= a0
 
-    if (VC_IS_UNLIKELY(extract_epu32<2>(x) >= extract_epu32<1>(y))) {
+    if (Vc_IS_UNLIKELY(extract_epu32<2>(x) >= extract_epu32<1>(y))) {
         return concat(Reg::permute<X0, X1, X2, X3>(b), a);
-    } else if (VC_IS_UNLIKELY(extract_epu32<0>(x) >= extract_epu32<3>(y))) {
+    } else if (Vc_IS_UNLIKELY(extract_epu32<0>(x) >= extract_epu32<3>(y))) {
         return concat(a, Reg::permute<X0, X1, X2, X3>(b));
     }
 
@@ -306,7 +306,7 @@ template <> Vc_CONST AVX2::uint_v sorted<CurrentImplementation::current()>(VC_AL
 }
 #endif  // AVX2
 
-template <> Vc_CONST AVX2::float_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::float_v) x_)
+template <> Vc_CONST AVX2::float_v sorted<CurrentImplementation::current()>(Vc_ALIGNED_PARAMETER(AVX2::float_v) x_)
 {
     __m256 hgfedcba = x_.data();
     const __m128 hgfe = AVX::hi128(hgfedcba);
@@ -344,7 +344,7 @@ template <> Vc_CONST AVX2::float_v sorted<CurrentImplementation::current()>(VC_A
 }
 
 #if 0
-template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RESTRICT y)
+template<> void SortHelper<double>::sort(__m256d &Vc_RESTRICT x, __m256d &Vc_RESTRICT y)
 {
     __m256d l = _mm256_min_pd(x, y); // ↓x3y3 ↓x2y2 ↓x1y1 ↓x0y0
     __m256d h = _mm256_max_pd(x, y); // ↑x3y3 ↑x2y2 ↑x1y1 ↑x0y0
@@ -380,7 +380,7 @@ template<> void SortHelper<double>::sort(__m256d &VC_RESTRICT x, __m256d &VC_RES
     y = _mm256_unpackhi_pd(l, h); // h3 l3 h1 l1
 }
 #endif
-template <> Vc_CONST AVX2::double_v sorted<CurrentImplementation::current()>(VC_ALIGNED_PARAMETER(AVX2::double_v) x_)
+template <> Vc_CONST AVX2::double_v sorted<CurrentImplementation::current()>(Vc_ALIGNED_PARAMETER(AVX2::double_v) x_)
 {
     __m256d dcba = x_.data();
     /*
@@ -536,7 +536,5 @@ template <> Vc_CONST AVX2::double_v sorted<CurrentImplementation::current()>(VC_
 
 }  // namespace Detail
 }  // namespace Vc
-
-#include <avx/undomacros.h>
 
 // vim: foldmethod=marker

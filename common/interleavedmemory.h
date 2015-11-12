@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_INTERLEAVEDMEMORY_H
-#define VC_COMMON_INTERLEAVEDMEMORY_H
+#ifndef VC_COMMON_INTERLEAVEDMEMORY_H_
+#define VC_COMMON_INTERLEAVEDMEMORY_H_
 
 #include "macros.h"
 
@@ -133,7 +133,7 @@ template<typename I> struct CheckIndexesUnique
     static void test(const I &indexes)
     {
         const I test = indexes.sorted();
-        VC_ASSERT(I::Size == 1 || (test == test.rotated(1)).isEmpty())
+        Vc_ASSERT(I::Size == 1 || (test == test.rotated(1)).isEmpty())
     }
 #endif
 };
@@ -337,6 +337,4 @@ inline Common::InterleavedMemoryWrapper<S, V> make_interleave_wrapper(S *s)
 }
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_INTERLEAVEDMEMORY_H
+#endif // VC_COMMON_INTERLEAVEDMEMORY_H_

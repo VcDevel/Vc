@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef SSE_MASK_H
-#define SSE_MASK_H
+#ifndef VC_SSE_MASK_H_
+#define VC_SSE_MASK_H_
 
 #include "intrinsics.h"
 #include "../common/maskentry.h"
@@ -97,13 +97,13 @@ public:
     using Vector = SSE::Vector<T>;
 
 public:
-    FREE_STORE_OPERATORS_ALIGNED(16)
+    Vc_FREE_STORE_OPERATORS_ALIGNED(16)
     static constexpr size_t Size = SSE::VectorTraits<T>::Size;
     static constexpr size_t MemoryAlignment = Size;
     static constexpr std::size_t size() { return Size; }
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
-#if defined VC_MSVC && defined _WIN32
+#if defined Vc_MSVC && defined _WIN32
         typedef const Mask &Argument;
 #else
         typedef Mask Argument;
@@ -113,11 +113,11 @@ public:
         Vc_INTRINSIC Mask(const __m128  &x) : d(sse_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(const __m128d &x) : d(sse_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(const __m128i &x) : d(sse_cast<VectorType>(x)) {}
-        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : Mask(_mm_setzero_ps()) {}
-        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : Mask(SSE::_mm_setallone_ps()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero) : Mask(_mm_setzero_ps()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne) : Mask(SSE::_mm_setallone_ps()) {}
         Vc_INTRINSIC explicit Mask(bool b) : Mask(b ? SSE::_mm_setallone_ps() : _mm_setzero_ps()) {}
-        Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
-        Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
+        Vc_INTRINSIC static Mask Zero() { return Mask{Vc::Zero}; }
+        Vc_INTRINSIC static Mask One() { return Mask{Vc::One}; }
 
         // implicit cast
         template <typename U>
@@ -167,28 +167,28 @@ public:
         Vc_ALWAYS_INLINE Vc_PURE Mask operator||(const Mask &rhs) const { return _mm_or_ps (data(), rhs.data()); }
 
         Vc_ALWAYS_INLINE Vc_PURE bool isFull () const { return
-#ifdef VC_USE_PTEST
+#ifdef Vc_USE_PTEST
             _mm_testc_si128(dataI(), SSE::_mm_setallone_si128()); // return 1 if (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) == (~0 & d.v())
 #else
             _mm_movemask_epi8(dataI()) == 0xffff;
 #endif
         }
         Vc_ALWAYS_INLINE Vc_PURE bool isNotEmpty() const { return
-#ifdef VC_USE_PTEST
+#ifdef Vc_USE_PTEST
             0 == _mm_testz_si128(dataI(), dataI()); // return 1 if (0, 0, 0, 0) == (d.v() & d.v())
 #else
             _mm_movemask_epi8(dataI()) != 0x0000;
 #endif
         }
         Vc_ALWAYS_INLINE Vc_PURE bool isEmpty() const { return
-#ifdef VC_USE_PTEST
+#ifdef Vc_USE_PTEST
             0 != _mm_testz_si128(dataI(), dataI()); // return 1 if (0, 0, 0, 0) == (d.v() & d.v())
 #else
             _mm_movemask_epi8(dataI()) == 0x0000;
 #endif
         }
         Vc_ALWAYS_INLINE Vc_PURE bool isMix() const {
-#ifdef VC_USE_PTEST
+#ifdef Vc_USE_PTEST
             return _mm_test_mix_ones_zeros(dataI(), SSE::_mm_setallone_si128());
 #else
             const int tmp = _mm_movemask_epi8(dataI());
@@ -232,7 +232,7 @@ public:
         void setEntry(size_t i, bool x) { d.set(i, MaskBool(x)); }
 
     private:
-#ifdef VC_COMPILE_BENCHMARKS
+#ifdef Vc_COMPILE_BENCHMARKS
     public:
 #endif
         Storage d;
@@ -242,7 +242,6 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Sse>::MemoryAlignment;
 
 }  // namespace Vc
 
-#include "undomacros.h"
 #include "mask.tcc"
 
-#endif // SSE_MASK_H
+#endif // VC_SSE_MASK_H_

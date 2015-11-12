@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SIMDMASKARRAY_H
-#define VC_COMMON_SIMDMASKARRAY_H
+#ifndef VC_COMMON_SIMDMASKARRAY_H_
+#define VC_COMMON_SIMDMASKARRAY_H_
 
 #include <type_traits>
 #include <array>
@@ -70,14 +70,14 @@ public:
     using EntryReference = typename mask_type::EntryReference;
     using Vector = SimdArray<T, N, VectorType, N>;
 
-    FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
 
     // zero init
     SimdMaskArray() = default;
 
     // broadcasts
-    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne::OEnum one) : data(one) {}
-    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero::ZEnum zero) : data(zero) {}
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne one) : data(one) {}
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero zero) : data(zero) {}
     Vc_INTRINSIC explicit SimdMaskArray(bool b) : data(b) {}
     Vc_INTRINSIC static SimdMaskArray Zero() { return {storage_type::Zero()}; }
     Vc_INTRINSIC static SimdMaskArray One() { return {storage_type::One()}; }
@@ -290,7 +290,7 @@ public:
         typename storage_type0::EntryReference, Common::MaskEntry<SimdMaskArray>>::type;
     using Vector = SimdArray<T, N, VectorType, VectorType::Size>;
 
-    FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
 
     // zero init
     SimdMaskArray() = default;
@@ -336,11 +336,11 @@ public:
         return simd_cast<M>(*this);
     }
 
-    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne::OEnum one)
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne one)
         : data0(one), data1(one)
     {
     }
-    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero::ZEnum zero)
+    Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero zero)
         : data0(zero), data1(zero)
     {
     }
@@ -503,7 +503,7 @@ public:
 
     inline Vc_PURE SimdMaskArray shifted(int amount) const
     {
-        if (VC_IS_UNLIKELY(amount == 0)) {
+        if (Vc_IS_UNLIKELY(amount == 0)) {
             return *this;
         }
         SimdMaskArray r{};
@@ -549,10 +549,8 @@ constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::MemoryAlignment;
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
 // XXX: this include should be in <Vc/vector.h>. But at least clang 3.4 then fails to compile the
 // code. Not sure yet what is going on, but it looks a lot like a bug in clang.
 #include "simd_cast_caller.tcc"
 
-#endif // VC_COMMON_SIMDMASKARRAY_H
+#endif // VC_COMMON_SIMDMASKARRAY_H_

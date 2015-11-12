@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_SORTHELPER_H
-#define VC_MIC_SORTHELPER_H
+#ifndef VC_MIC_SORTHELPER_H_
+#define VC_MIC_SORTHELPER_H_
 
 #include <tuple>
 #include "types.h"
@@ -41,13 +41,11 @@ namespace MIC
 template<typename T> struct SortHelper
 {
     typedef typename VectorTypeHelper<T>::Type VectorType;
-    static VectorType sort(VC_ALIGNED_PARAMETER(VectorType));
-    template<typename... Vs> static std::tuple<Vs...> sort(VC_ALIGNED_PARAMETER(std::tuple<Vs...>));
+    static VectorType sort(Vc_ALIGNED_PARAMETER(VectorType));
+    template<typename... Vs> static std::tuple<Vs...> sort(Vc_ALIGNED_PARAMETER(std::tuple<Vs...>));
 };
 
 }  // namespace MIC
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_MIC_SORTHELPER_H
+#endif // VC_MIC_SORTHELPER_H_

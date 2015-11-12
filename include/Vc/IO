@@ -17,8 +17,8 @@
 
 */
 
-#ifndef VECIO_H
-#define VECIO_H
+#ifndef VC_IO_
+#define VC_IO_
 
 #include "common/types.h"
 #include "common/simdarrayfwd.h"
@@ -26,10 +26,10 @@
 #include <iostream>
 
 #if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
-#define VC_HACK_OSTREAM_FOR_TTY 1
+#define Vc_HACK_OSTREAM_FOR_TTY 1
 #endif
 
-#ifdef VC_HACK_OSTREAM_FOR_TTY
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
 #include <unistd.h>
 #include <ext/stdio_sync_filebuf.h>
 #endif
@@ -38,7 +38,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace
 {
-#ifdef VC_HACK_OSTREAM_FOR_TTY
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
 class hacked_ostream : public std::ostream
 {
 public:
@@ -90,12 +90,12 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::Vector<T, Abi> &v)
                                              std::is_same<T, signed char>::value,
                                          int,
                                          T>::type;
-    out << AnsiColor::green << "[";
+    out << AnsiColor::green << '[';
     out << TT(v[0]);
     for (size_t i = 1; i < v.Size; ++i) {
         out << ", " << TT(v[i]);
     }
-    out << "]" << AnsiColor::normal;
+    out << ']' << AnsiColor::normal;
     return out;
 }
 
@@ -105,7 +105,7 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::Mask<T, Abi> &m)
     out << AnsiColor::blue << "m[";
     for (unsigned int i = 0; i < m.Size; ++i) {
         if (i > 0 && (i % 4) == 0) {
-            out << " ";
+            out << ' ';
         }
         if (m[i]) {
             out << AnsiColor::yellow << '1';
@@ -113,7 +113,7 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::Mask<T, Abi> &m)
             out << AnsiColor::blue << '0';
         }
     }
-    out << AnsiColor::blue << "]" << AnsiColor::normal;
+    out << AnsiColor::blue << ']' << AnsiColor::normal;
     return out;
 }
 
@@ -122,18 +122,18 @@ namespace Common
 template<typename V, typename Parent, typename RM>
 inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 1, RM> &m )
 {
-    out << AnsiColor::blue << "{" << AnsiColor::normal;
+    out << AnsiColor::blue << '{' << AnsiColor::normal;
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
         out << V(m.vector(i));
     }
-    out << AnsiColor::blue << "}" << AnsiColor::normal;
+    out << AnsiColor::blue << '}' << AnsiColor::normal;
     return out;
 }
 
 template<typename V, typename Parent, typename RM>
 inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 2, RM> &m )
 {
-    out << AnsiColor::blue << "{" << AnsiColor::normal;
+    out << AnsiColor::blue << '{' << AnsiColor::normal;
     for (size_t i = 0; i < m.rowsCount(); ++i) {
         if (i > 0) {
             out << "\n ";
@@ -143,7 +143,7 @@ inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 2
             out << V(m[i].vector(j));
         }
     }
-    out << AnsiColor::blue << "}" << AnsiColor::normal;
+    out << AnsiColor::blue << '}' << AnsiColor::normal;
     return out;
 }
 }  // namespace Common
@@ -165,7 +165,7 @@ inline std::ostream &operator<<(std::ostream &out, const SimdMaskArray<T, N> &m)
     out << AnsiColor::blue << "«";
     for (size_t i = 0; i < N; ++i) {
         if (i > 0 && (i % 4) == 0) {
-            out << " ";
+            out << ' ';
         }
         if ( m[i] ) {
           out << AnsiColor::yellow << '1';
@@ -177,6 +177,6 @@ inline std::ostream &operator<<(std::ostream &out, const SimdMaskArray<T, N> &m)
 }
 }
 
-#endif // VECIO_H
+#endif // VC_IO_
 
 // vim: ft=cpp

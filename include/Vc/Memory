@@ -18,21 +18,21 @@
 
 */
 
-#ifndef INCLUDE_VC_MEMORY
-#define INCLUDE_VC_MEMORY
+#ifndef VC_MEMORY_
+#define VC_MEMORY_
 
 #include "vector.h"
 #include "common/memory.h"
 #include "common/interleavedmemory.h"
-#ifdef VC_IMPL_Scalar
+#ifdef Vc_IMPL_Scalar
 # include "scalar/interleavedmemory.tcc"
-#elif defined(VC_IMPL_MIC)
+#elif defined(Vc_IMPL_MIC)
 # include "mic/interleavedmemory.tcc"
 #elif defined(VC_IMPL_CUDA)
 # include "cuda/interleavedmemory.tcc"
 #elif defined(VC_IMPL_AVX)
 # include "avx/interleavedmemory.tcc"
-#elif defined(VC_IMPL_SSE)
+#elif defined(Vc_IMPL_SSE)
 # include "sse/interleavedmemory.tcc"
 #endif
 
@@ -42,6 +42,6 @@ namespace Vc_VERSIONED_NAMESPACE
 using Common::make_unique;
 }
 
-#endif // INCLUDE_VC_MEMORY
+#endif // VC_MEMORY_
 
 // vim: ft=cpp

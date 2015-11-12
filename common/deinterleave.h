@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_DEINTERLEAVE_H
-#define VC_COMMON_DEINTERLEAVE_H
+#ifndef VC_COMMON_DEINTERLEAVE_H_
+#define VC_COMMON_DEINTERLEAVE_H_
 
 #include "macros.h"
 
@@ -93,6 +93,4 @@ template<typename V, typename M> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_DEINTERLEAVE_H
+#endif // VC_COMMON_DEINTERLEAVE_H_

@@ -253,7 +253,7 @@ set(CTEST_USE_LAUNCHERS 0) # launchers once lead to much improved error/warning
 if(WIN32)
    set(MAKE_ARGS "-k")
 else()
-   set(MAKE_ARGS "-j${number_of_processors} -k")
+   set(MAKE_ARGS "-j${number_of_processors} -l${number_of_processors} -k")
 endif()
 
 if(WIN32)
@@ -278,14 +278,14 @@ else()
    set(CMAKE_MAKE_PROGRAM "make")
 endif()
 
-set(configure_options "-DCTEST_USE_LAUNCHERS=${CTEST_USE_LAUNCHERS};-DCMAKE_BUILD_TYPE=${build_type};-DBUILD_EXAMPLES=TRUE;-DTEST_OPERATOR_FAILURES=TRUE")
+set(configure_options "-DCTEST_USE_LAUNCHERS=${CTEST_USE_LAUNCHERS};-DCMAKE_BUILD_TYPE=${build_type};-DBUILD_EXAMPLES=TRUE;-DTEST_OPERATOR_FAILURES=TRUE;-DUSE_CCACHE=ON")
 if(target_architecture)
    set(configure_options "${configure_options};-DTARGET_ARCHITECTURE=${target_architecture}")
 endif()
 
 if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[01234567]\\."
       OR "${COMPILER_VERSION}" MATCHES "GCC 4.8.0"
-      OR "${COMPILER_VERSION}" MATCHES "clang 3\\.[0123]$")
+      OR "${COMPILER_VERSION}" MATCHES "clang 3\\.[0123](\\.[0-9])?$")
    message(FATAL_ERROR "Compiler too old for C++11 (${COMPILER_VERSION})")
 endif()
 

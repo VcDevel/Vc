@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../common/macros.h"
 
-#ifndef VC_SSE_MACROS_H
-#define VC_SSE_MACROS_H
-#undef VC_SSE_UNDOMACROS_H
+#ifndef VC_SSE_MACROS_H_
+#define VC_SSE_MACROS_H_
 
 #ifndef _M128
 # define _M128 __m128
@@ -44,13 +43,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # define _M128D __m128d
 #endif
 
-#define STORE_VECTOR(type, name, vec) \
-    union { __m128i p; type v[16 / sizeof(type)]; } CAT(u, __LINE__); \
-    _mm_store_si128(&CAT(u, __LINE__).p, vec); \
-    const type *const name = &CAT(u, __LINE__).v[0]
-
-#if defined(VC_IMPL_SSE4_1) && !defined(VC_DISABLE_PTEST)
-#define VC_USE_PTEST
+#if defined(Vc_IMPL_SSE4_1) && !defined(Vc_DISABLE_PTEST)
+#define Vc_USE_PTEST
 #endif
 
-#endif // VC_SSE_MACROS_H
+#endif // VC_SSE_MACROS_H_

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SET_H
-#define VC_COMMON_SET_H
+#ifndef VC_COMMON_SET_H_
+#define VC_COMMON_SET_H_
 
 #include "macros.h"
 namespace Vc_VERSIONED_NAMESPACE
@@ -37,7 +37,7 @@ namespace
     static Vc_INTRINSIC Vc_CONST __m128i set(unsigned short x0, unsigned short x1, unsigned short x2, unsigned short x3,
             unsigned short x4, unsigned short x5, unsigned short x6, unsigned short x7)
     {
-#if defined(VC_GNU_ASM)
+#if defined(Vc_GNU_ASM)
 #if 0 // defined(__x86_64__)
         // it appears that the 32bit variant is always faster
         __m128i r;
@@ -48,7 +48,7 @@ namespace
         unsigned long long tmp3 = x5; tmp3 = (tmp3 << 16) | x4;
         asm("vpinsrq $1,%1,%0,%0" : "+x"(r) : "r"((tmp2 << 32) | tmp3));
         return r;
-#elif defined(VC_USE_VEX_CODING)
+#elif defined(Vc_USE_VEX_CODING)
         __m128i r0, r1;
         unsigned int tmp0 = x1; tmp0 = (tmp0 << 16) | x0;
         unsigned int tmp1 = x3; tmp1 = (tmp1 << 16) | x2;
@@ -89,6 +89,5 @@ namespace
     }
 }  // anonymous namespace
 }  // namespace Vc
-#include "undomacros.h"
 
-#endif // VC_COMMON_SET_H
+#endif // VC_COMMON_SET_H_

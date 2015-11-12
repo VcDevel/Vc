@@ -40,8 +40,6 @@ constexpr ReversedTag Reversed{};
 }  // namespace Permutation
 }
 
-#include "undomacros.h"
-
 #endif  // VC_COMMON_PERMUTATION_H_
 
 // vim: foldmethod=marker

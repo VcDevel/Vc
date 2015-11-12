@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_TRAITS_TYPE_TRAITS_H
-#define VC_TRAITS_TYPE_TRAITS_H
+#ifndef VC_TRAITS_TYPE_TRAITS_H_
+#define VC_TRAITS_TYPE_TRAITS_H_
 
 #include <type_traits>
 #include "decay.h"
@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "is_functor_argument_immutable.h"
 #include "is_output_iterator.h"
 #include "is_index_sequence.h"
+#include "is_implicit_cast_allowed.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -185,4 +186,4 @@ template <typename T> using scalar_type = typename scalar_type_internal<decay<T>
 
 #include "entry_type_of.h"
 
-#endif // VC_TRAITS_TYPE_TRAITS_H
+#endif // VC_TRAITS_TYPE_TRAITS_H_

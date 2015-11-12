@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_ALLOCATOR_H
-#define VC_ALLOCATOR_H
+#ifndef VC_ALLOCATOR_H_
+#define VC_ALLOCATOR_H_
 
 #include <new>
 #include <cstddef>
@@ -53,7 +53,7 @@ namespace Vc_VERSIONED_NAMESPACE
      *
      * \note You have to use this macro in the global namespace.
      */
-#define VC_DECLARE_ALLOCATOR(Type) \
+#define Vc_DECLARE_ALLOCATOR(Type) \
 namespace std \
 { \
     template<> class allocator<Type> : public ::Vc::Allocator<Type> \
@@ -62,7 +62,7 @@ namespace std \
         template<typename U> struct rebind { typedef ::std::allocator<U> other; }; \
     }; \
 }
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
 #undef Vc_DECLARE_ALLOCATOR
 #define Vc_DECLARE_ALLOCATOR(Type) \
 namespace std \
@@ -112,7 +112,7 @@ namespace std \
      * struct Data {
      *   Vc::float_v x, y, z;
      * };
-     * VC_DECLARE_ALLOCATOR(Data)
+     * Vc_DECLARE_ALLOCATOR(Data)
      *
      * void fun()
      * {
@@ -126,17 +126,19 @@ namespace std \
     {
     private:
         enum Constants {
-#ifdef VC_HAVE_STD_MAX_ALIGN_T
+#ifdef Vc_HAVE_STD_MAX_ALIGN_T
             NaturalAlignment = alignof(std::max_align_t),
-#elif defined(VC_HAVE_MAX_ALIGN_T)
+#elif defined(Vc_HAVE_MAX_ALIGN_T)
             NaturalAlignment = alignof(::max_align_t),
 #else
             NaturalAlignment = sizeof(void *) > alignof(long double) ? sizeof(void *) :
                 (alignof(long double) > alignof(long long) ? alignof(long double) : alignof(long long)),
 #endif
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_MIC
+            SimdAlignment = 64,
+#elif defined Vc_IMPL_AVX
             SimdAlignment = 32,
-#elif defined VC_IMPL_SSE
+#elif defined Vc_IMPL_SSE
             SimdAlignment = 16,
 #else
             SimdAlignment = 1,
@@ -206,12 +208,12 @@ namespace std \
 
         size_type max_size() const throw() { return size_t(-1) / sizeof(T); }
 
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
         // MSVC brokenness: the following function is optional - just doesn't compile without it
         const Allocator &select_on_container_copy_construction() const { return *this; }
 
         // MSVC also requires a function that neither C++98 nor C++11 mention
-        // but it doesn't support variadic templates... otherwise the VC_CXX11 clause would be nice
+        // but it doesn't support variadic templates... otherwise the Vc_CXX11 clause would be nice
         void construct(pointer p) { ::new(p) T(); }
 
         // we still need the C++98 version:
@@ -231,7 +233,6 @@ namespace std \
 
 }
 
-#include "common/undomacros.h"
 #include "vector.h"
 namespace std
 {
@@ -239,7 +240,7 @@ namespace std
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
         // MSVC brokenness: the following function is optional - just doesn't compile without it
         const allocator &select_on_container_copy_construction() const { return *this; }
 #endif
@@ -249,7 +250,7 @@ namespace std
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
         // MSVC brokenness: the following function is optional - just doesn't compile without it
         const allocator &select_on_container_copy_construction() const { return *this; }
 #endif
@@ -259,7 +260,7 @@ namespace std
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
         // MSVC brokenness: the following function is optional - just doesn't compile without it
         const allocator &select_on_container_copy_construction() const { return *this; }
 #endif
@@ -269,13 +270,13 @@ namespace std
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
         // MSVC brokenness: the following function is optional - just doesn't compile without it
         const allocator &select_on_container_copy_construction() const { return *this; }
 #endif
     };
 }
 
-#endif // VC_ALLOCATOR_H
+#endif // VC_ALLOCATOR_H_
 
 // vim: ft=cpp et sw=4 sts=4

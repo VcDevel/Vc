@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_MASK_TCC
-#define VC_MIC_MASK_TCC
+#ifndef VC_MIC_MASK_TCC_
+#define VC_MIC_MASK_TCC_
 
 #include "macros.h"
 
@@ -56,6 +56,4 @@ inline void MIC::double_m::store(bool *mem, Flags) const
 }
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_MIC_MASK_TCC
+#endif // VC_MIC_MASK_TCC_

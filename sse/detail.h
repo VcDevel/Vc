@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_SSE_DETAIL_H_
 
 #include "casts.h"
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_AVX
 #include "../avx/intrinsics.h"
 #endif
 #include "vectorhelper.h"
@@ -182,7 +182,7 @@ Vc_INTRINSIC __m128d load(const schar *mem, Flags f, LoadTag<__m128d, double>)
 template <typename Flags>
 Vc_INTRINSIC __m128 load(const double *mem, Flags, LoadTag<__m128, float>)
 {
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_AVX
     if (Flags::IsUnaligned) {
         return _mm256_cvtpd_ps(_mm256_loadu_pd(mem));
     } else if (Flags::IsStreaming) {
@@ -240,7 +240,7 @@ template <typename T, int Size> Vc_INTRINSIC Vc_CONST const T *IndexesFromZero()
 // popcnt{{{1
 Vc_INTRINSIC Vc_CONST unsigned int popcnt4(unsigned int n)
 {
-#ifdef VC_IMPL_POPCNT
+#ifdef Vc_IMPL_POPCNT
     return _mm_popcnt_u32(n);
 #else
     n = (n & 0x5U) + ((n >> 1) & 0x5U);
@@ -250,7 +250,7 @@ Vc_INTRINSIC Vc_CONST unsigned int popcnt4(unsigned int n)
 }
 Vc_INTRINSIC Vc_CONST unsigned int popcnt8(unsigned int n)
 {
-#ifdef VC_IMPL_POPCNT
+#ifdef Vc_IMPL_POPCNT
     return _mm_popcnt_u32(n);
 #else
     n = (n & 0x55U) + ((n >> 1) & 0x55U);
@@ -261,7 +261,7 @@ Vc_INTRINSIC Vc_CONST unsigned int popcnt8(unsigned int n)
 }
 Vc_INTRINSIC Vc_CONST unsigned int popcnt16(unsigned int n)
 {
-#ifdef VC_IMPL_POPCNT
+#ifdef Vc_IMPL_POPCNT
     return _mm_popcnt_u32(n);
 #else
     n = (n & 0x5555U) + ((n >> 1) & 0x5555U);
@@ -273,7 +273,7 @@ Vc_INTRINSIC Vc_CONST unsigned int popcnt16(unsigned int n)
 }
 Vc_INTRINSIC Vc_CONST unsigned int popcnt32(unsigned int n)
 {
-#ifdef VC_IMPL_POPCNT
+#ifdef Vc_IMPL_POPCNT
     return _mm_popcnt_u32(n);
 #else
     n = (n & 0x55555555U) + ((n >> 1) & 0x55555555U);
@@ -360,7 +360,7 @@ Vc_ALWAYS_INLINE Vc_CONST __m128d negate(__m128d v, std::integral_constant<std::
 }
 Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 4>)
 {
-#ifdef VC_IMPL_SSSE3
+#ifdef Vc_IMPL_SSSE3
     return _mm_sign_epi32(v, allone<__m128i>());
 #else
     return _mm_sub_epi32(_mm_setzero_si128(), v);
@@ -368,7 +368,7 @@ Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::
 }
 Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 2>)
 {
-#ifdef VC_IMPL_SSSE3
+#ifdef Vc_IMPL_SSSE3
     return _mm_sign_epi16(v, allone<__m128i>());
 #else
     return _mm_sub_epi16(_mm_setzero_si128(), v);
@@ -419,7 +419,7 @@ Vc_INTRINSIC __m128i sub(__m128i a, __m128i b,  uchar) { return _mm_sub_epi8 (a,
 Vc_INTRINSIC __m128  mul(__m128  a, __m128  b,  float) { return _mm_mul_ps(a, b); }
 Vc_INTRINSIC __m128d mul(__m128d a, __m128d b, double) { return _mm_mul_pd(a, b); }
 Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,    int) {
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
     return _mm_mullo_epi32(a, b);
 #else
     const __m128i aShift = _mm_srli_si128(a, 4);
@@ -433,7 +433,7 @@ Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,   uint) { return mul(a, b, int())
 Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  short) { return _mm_mullo_epi16(a, b); }
 Vc_INTRINSIC __m128i mul(__m128i a, __m128i b, ushort) { return _mm_mullo_epi16(a, b); }
 Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  schar) {
-#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
     using B = Common::BuiltinType<schar, 16>;
     const auto x = reinterpret_cast<const MayAlias<B> &>(a) *
                    reinterpret_cast<const MayAlias<B> &>(b);
@@ -445,7 +445,7 @@ Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  schar) {
 #endif
 }
 Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  uchar) {
-#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
     using B = Common::BuiltinType<uchar, 16>;
     const auto x = reinterpret_cast<const MayAlias<B> &>(a) *
                    reinterpret_cast<const MayAlias<B> &>(b);
@@ -642,9 +642,9 @@ Vc_INTRINSIC  uchar max(__m128i a,  uchar) {
 
 // sorted{{{1
 template <Vc::Implementation, typename T>
-Vc_CONST_L SSE::Vector<T> sorted(VC_ALIGNED_PARAMETER(SSE::Vector<T>) x) Vc_CONST_R;
+Vc_CONST_L SSE::Vector<T> sorted(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) x) Vc_CONST_R;
 template <typename T>
-Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(VC_ALIGNED_PARAMETER(SSE::Vector<T>) x)
+Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) x)
 {
     static_assert(!CurrentImplementation::is(ScalarImpl),
                   "Detail::sorted can only be instantiated if a non-Scalar "
@@ -665,7 +665,7 @@ template <typename V> constexpr int sanitize(int n)
 // rotated{{{1
 template <typename T, size_t N, typename V>
 static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> rotated(
-    VC_ALIGNED_PARAMETER(V) v, int amount)
+    Vc_ALIGNED_PARAMETER(V) v, int amount)
 {
     using namespace SSE;
     switch (static_cast<unsigned int>(amount) % N) {
@@ -710,7 +710,7 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
         *reinterpret_cast<MayAlias<int> *>(&data[i[5]]) = tmp10 >> 32;
         *reinterpret_cast<MayAlias<int> *>(&data[i[6]]) = tmp11;
         *reinterpret_cast<MayAlias<int> *>(&data[i[7]]) = tmp11 >> 32;
-#elif defined(VC_IMPL_SSE4_1)
+#elif defined(Vc_IMPL_SSE4_1)
         using namespace SseIntrinsics;
         *reinterpret_cast<MayAlias<int> *>(&data[i[0]]) = _mm_cvtsi128_si32(tmp0);
         *reinterpret_cast<MayAlias<int> *>(&data[i[1]]) = extract_epi32<1>(tmp0);
@@ -742,7 +742,7 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
-#ifdef VC_USE_MASKMOV_SCATTER
+#ifdef Vc_USE_MASKMOV_SCATTER
         const __m128i maskLo = _mm_set_epi16(0, 0, 0, 0, 0, -1, -1, -1);
         const __m128i maskHi = _mm_set_epi16(0, -1, -1, -1, 0, 0, 0, 0);
         typename V::EntryType *const dataHi = data - 4;
@@ -1055,7 +1055,7 @@ template<typename V> struct InterleaveImpl<V, 4, 16> {
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
-#ifdef VC_USE_MASKMOV_SCATTER
+#ifdef Vc_USE_MASKMOV_SCATTER
         const __m128 tmp0 = _mm_unpacklo_ps(SSE::sse_cast<__m128>(v0.data()), SSE::sse_cast<__m128>(v1.data()));
         const __m128 tmp1 = _mm_unpackhi_ps(SSE::sse_cast<__m128>(v0.data()), SSE::sse_cast<__m128>(v1.data()));
         const __m128 tmp2 = _mm_unpacklo_ps(SSE::sse_cast<__m128>(v2.data()), SSE::sse_cast<__m128>(v2.data()));
@@ -1240,8 +1240,6 @@ template<typename V> struct InterleaveImpl<V, 2, 16> {
 //}}}1
 }  // namespace Detail
 }  // namespace Vc
-
-#include "undomacros.h"
 
 #endif  // VC_SSE_DETAIL_H_
 

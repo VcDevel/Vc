@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SCATTERIMPLEMENTATION_H
-#define VC_COMMON_SCATTERIMPLEMENTATION_H
+#ifndef VC_COMMON_SCATTERIMPLEMENTATION_H_
+#define VC_COMMON_SCATTERIMPLEMENTATION_H_
 
 #include "gatherimplementation.h"
 #include "macros.h"
@@ -57,7 +57,7 @@ Vc_ALWAYS_INLINE void executeScatter(SimpleLoopT,
                                     const IT &indexes,
                                     typename V::MaskArgument mask)
 {
-    if (VC_IS_UNLIKELY(mask.isEmpty())) {
+    if (Vc_IS_UNLIKELY(mask.isEmpty())) {
         return;
     }
     Common::unrolled_loop<std::size_t, 0, V::Size>([&](std::size_t i) {
@@ -74,7 +74,7 @@ Vc_ALWAYS_INLINE void executeScatter(BitScanLoopT,
                                     typename V::MaskArgument mask)
 {
     size_t bits = mask.toInt();
-    while (VC_IS_LIKELY(bits > 0)) {
+    while (Vc_IS_LIKELY(bits > 0)) {
         size_t i, j;
         asm("bsf %[bits],%[i]\n\t"
             "bsr %[bits],%[j]\n\t"
@@ -268,6 +268,4 @@ Vc_ALWAYS_INLINE void executeScatter(PopcntSwitchT,
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_SCATTERIMPLEMENTATION_H
+#endif // VC_COMMON_SCATTERIMPLEMENTATION_H_

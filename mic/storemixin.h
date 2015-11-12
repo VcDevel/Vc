@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_STOREMIXIN_H
-#define VC_MIC_STOREMIXIN_H
+#ifndef VC_MIC_STOREMIXIN_H_
+#define VC_MIC_STOREMIXIN_H_
 
 #include <type_traits>
 
@@ -88,4 +88,4 @@ public:
 
 }  // namespace MIC
 }  // namespace Vc
-#endif // VC_MIC_STOREMIXIN_H
+#endif // VC_MIC_STOREMIXIN_H_

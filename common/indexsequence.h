@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -71,8 +71,6 @@ struct make_index_sequence_impl<N, index_sequence<Ns...>>
 template <std::size_t N>
 using make_index_sequence = typename make_index_sequence_impl<N>::type;
 }
-
-#include "undomacros.h"
 
 #endif  // VC_COMMON_INDEXSEQUENCE_H_
 

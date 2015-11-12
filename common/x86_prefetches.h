@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_X86_PREFETCHES_H
-#define VC_COMMON_X86_PREFETCHES_H
+#ifndef VC_COMMON_X86_PREFETCHES_H_
+#define VC_COMMON_X86_PREFETCHES_H_
 
 #include <xmmintrin.h>
 #include "macros.h"
@@ -37,60 +37,54 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
-#if !defined(VC_IMPL_MIC) && !defined(_MM_HINT_ENTA)
-#define VC__NO_SUPPORT_FOR_EXCLUSIVE_HINT 1
-#define _MM_HINT_ENTA _MM_HINT_NTA
-#define _MM_HINT_ET0 _MM_HINT_T0
-#define _MM_HINT_ET1 _MM_HINT_T1
-#define _MM_HINT_ET2 _MM_HINT_T2
+#if defined(Vc_IMPL_MIC)
+static constexpr int exclusive_hint = 0x4;
+#else
+static constexpr int exclusive_hint = 0;
 #endif
 
 // TODO: support AMD's prefetchw with correct flags and checks via cpuid
 
-template<typename ExclusiveOrShared = Vc::Shared>
+template <typename ExclusiveOrShared = Vc::Shared>
 Vc_INTRINSIC void prefetchForOneRead(const void *addr)
 {
     if (std::is_same<ExclusiveOrShared, Vc::Shared>::value) {
         _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_NTA);
     } else {
-        _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_ENTA);
+        _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)),
+                     static_cast<decltype(_MM_HINT_NTA)>(_MM_HINT_NTA | exclusive_hint));
     }
 }
-template<typename ExclusiveOrShared = Vc::Shared>
+template <typename ExclusiveOrShared = Vc::Shared>
 Vc_INTRINSIC void prefetchClose(const void *addr)
 {
     if (std::is_same<ExclusiveOrShared, Vc::Shared>::value) {
         _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T0);
     } else {
-        _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_ET0);
+        _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)),
+                     static_cast<decltype(_MM_HINT_T0)>(_MM_HINT_T0 | exclusive_hint));
     }
 }
-template<typename ExclusiveOrShared = Vc::Shared>
+template <typename ExclusiveOrShared = Vc::Shared>
 Vc_INTRINSIC void prefetchMid(const void *addr)
 {
     if (std::is_same<ExclusiveOrShared, Vc::Shared>::value) {
         _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T1);
     } else {
-        _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_ET1);
+        _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)),
+                     static_cast<decltype(_MM_HINT_T1)>(_MM_HINT_T1 | exclusive_hint));
     }
 }
-template<typename ExclusiveOrShared = Vc::Shared>
+template <typename ExclusiveOrShared = Vc::Shared>
 Vc_INTRINSIC void prefetchFar(const void *addr)
 {
     if (std::is_same<ExclusiveOrShared, Vc::Shared>::value) {
         _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T2);
     } else {
-        _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_ET2);
+        _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)),
+                     static_cast<decltype(_MM_HINT_T2)>(_MM_HINT_T2 | exclusive_hint));
     }
 }
-
-#ifdef VC__NO_SUPPORT_FOR_EXCLUSIVE_HINT
-#undef VC__NO_SUPPORT_FOR_EXCLUSIVE_HINT
-#undef _MM_HINT_ENTA
-#undef _MM_HINT_ET0
-#undef _MM_HINT_ET1
-#undef _MM_HINT_ET2
-#endif
 
 /*handlePrefetch/handleLoadPrefetches/handleStorePrefetches{{{*/
 namespace
@@ -140,8 +134,6 @@ using Common::prefetchMid;
 using Common::prefetchFar;
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_X86_PREFETCHES_H
+#endif // VC_COMMON_X86_PREFETCHES_H_
 
 // vim: foldmethod=marker

@@ -54,14 +54,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 
-#define VC_CURRENT_CLASS_NAME Vector
+#define Vc_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector<T, VectorAbi::Sse>
 {
     static_assert(std::is_arithmetic<T>::value,
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
     protected:
-#ifdef VC_COMPILE_BENCHMARKS
+#ifdef Vc_COMPILE_BENCHMARKS
     public:
 #endif
         typedef typename SSE::VectorTraits<T>::StorageType StorageType;
@@ -70,7 +70,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         typedef SSE::VectorHelper<typename SSE::VectorTraits<T>::VectorType> HV;
         typedef SSE::VectorHelper<T> HT;
     public:
-        FREE_STORE_OPERATORS_ALIGNED(16)
+        Vc_FREE_STORE_OPERATORS_ALIGNED(16)
 
         typedef typename SSE::VectorTraits<T>::VectorType VectorType;
         using vector_type = VectorType;
@@ -87,7 +87,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         using mask_type = Mask;
         typedef typename Mask::Argument MaskArg;
         typedef typename Mask::Argument MaskArgument;
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
         typedef const Vector &AsArg;
 #else
         typedef const Vector AsArg;
@@ -106,9 +106,10 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         // implict conversion from compatible Vector<U>
         template <typename U>
-        Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(V<U>) x,
-                            typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
-                                                    void *>::type = nullptr)
+        Vc_INTRINSIC Vector(
+            Vc_ALIGNED_PARAMETER(V<U>) x,
+            typename std::enable_if<Traits::is_implicit_cast_allowed<U, T>::value,
+                                    void *>::type = nullptr)
             : d(SSE::convert<U, T>(x.data()))
         {
         }
@@ -116,8 +117,8 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         // static_cast from the remaining Vector<U>
         template <typename U>
         Vc_INTRINSIC explicit Vector(
-            VC_ALIGNED_PARAMETER(V<U>) x,
-            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
+            Vc_ALIGNED_PARAMETER(V<U>) x,
+            typename std::enable_if<!Traits::is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
             : d(SSE::convert<U, T>(x.data()))
         {
@@ -168,7 +169,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         }
         Vc_INTRINSIC Vc_PURE Vector operator~() const
         {
-#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+#ifndef Vc_ENABLE_FLOAT_BIT_OPERATORS
             static_assert(std::is_integral<T>::value,
                           "bit-complement can only be used with Vectors of integral type");
 #endif
@@ -184,14 +185,14 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         }
         inline Vc_PURE Vector operator%(const Vector &x) const;
 
-#define OP(symbol, fun) \
+#define Vc_OP(symbol, fun) \
         Vc_INTRINSIC Vector &operator symbol##=(const Vector &x) { data() = HT::fun(data(), x.data()); return *this; } \
         Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector &x) const { return HT::fun(data(), x.data()); }
 
-        OP(+, add)
-        OP(-, sub)
-        OP(*, mul)
-#undef OP
+        Vc_OP(+, add)
+        Vc_OP(-, sub)
+        Vc_OP(*, mul)
+#undef Vc_OP
 
         Vc_INTRINSIC_L Vector &operator<<=(AsArg shift)       Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector  operator<< (AsArg shift) const Vc_INTRINSIC_R;
@@ -203,11 +204,11 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC_L Vector  operator>> (  int shift) const Vc_INTRINSIC_R;
 
         inline Vector &operator/=(EntryType x);
-        inline Vector &operator/=(VC_ALIGNED_PARAMETER(Vector) x);
-        inline Vc_PURE_L Vector operator/ (VC_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
+        inline Vector &operator/=(Vc_ALIGNED_PARAMETER(Vector) x);
+        inline Vc_PURE_L Vector operator/ (Vc_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
-#define OP(symbol)                                                                       \
-    Vc_INTRINSIC Vector &operator symbol##=(const Vector & x)                            \
+#define Vc_OP(symbol)                                                                    \
+    Vc_INTRINSIC Vector &operator symbol##=(const Vector &x)                             \
     {                                                                                    \
         static_assert(                                                                   \
             std::is_integral<T>::value,                                                  \
@@ -219,26 +220,22 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             std::is_integral<T>::value,                                                  \
             "bitwise operators can only be used with Vectors of integral type");         \
     }
-    VC_ALL_BINARY(OP)
-#undef OP
+    Vc_ALL_BINARY(Vc_OP)
+#undef Vc_OP
 
-#define OPcmp(symbol, fun) \
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const { return HT::fun(data(), x.data()); }
-
-        OPcmp(==, cmpeq)
-        OPcmp(!=, cmpneq)
-        OPcmp(>=, cmpnlt)
-        OPcmp(>, cmpnle)
-        OPcmp(<, cmplt)
-        OPcmp(<=, cmple)
-#undef OPcmp
+#define Vc_OP(symbol, fun)                                                               \
+    Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const                 \
+    {                                                                                    \
+        return HT::fun(data(), x.data());                                                \
+    }
+    Vc_OP(==, cmpeq)
+    Vc_OP(!=, cmpneq)
+    Vc_OP(>=, cmpnlt)
+    Vc_OP(>, cmpnle)
+    Vc_OP(<, cmplt)
+    Vc_OP(<=, cmple)
+#undef Vc_OP
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
-
-        Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector &factor,
-                                               const Vector &summand)
-        {
-            HT::fma(data(), factor.data(), summand.data());
-        }
 
         Vc_ALWAYS_INLINE void assign(const Vector &v, const Mask &mask)
         {
@@ -296,9 +293,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         template <typename F> Vc_INTRINSIC void call(F &&f) const
         {
-            for_all_vector_entries(i,
-                    f(EntryType(d.m(i)));
-                    );
+            Common::for_all_vector_entries<Size>([&](size_t i) { f(EntryType(d.m(i))); });
         }
 
         template <typename F> Vc_INTRINSIC void call(F &&f, const Mask &mask) const
@@ -311,9 +306,8 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         template <typename F> Vc_INTRINSIC Vector apply(F &&f) const
         {
             Vector r;
-            for_all_vector_entries(i,
-                    r.d.set(i, f(EntryType(d.m(i))));
-                    );
+            Common::for_all_vector_entries<Size>(
+                [&](size_t i) { r.d.set(i, f(EntryType(d.m(i)))); });
             return r;
         }
         template <typename F> Vc_INTRINSIC Vector apply(F &&f, const Mask &mask) const
@@ -326,14 +320,10 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         }
 
         template<typename IndexT> Vc_INTRINSIC void fill(EntryType (&f)(IndexT)) {
-            for_all_vector_entries(i,
-                    d.set(i, f(i));
-                    );
+            Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f(i)); });
         }
         Vc_INTRINSIC void fill(EntryType (&f)()) {
-            for_all_vector_entries(i,
-                    d.set(i, f());
-                    );
+            Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f()); });
         }
 
         template <typename G> static Vc_INTRINSIC_L Vector generate(G gen) Vc_INTRINSIC_R;
@@ -344,7 +334,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
-#undef VC_CURRENT_CLASS_NAME
+#undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::MemoryAlignment;
 
@@ -414,7 +404,6 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 
 }  // namespace Vc
 
-#include "undomacros.h"
 #include "vector.tcc"
 #include "simd_cast.h"
 

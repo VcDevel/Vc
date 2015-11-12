@@ -131,15 +131,15 @@ template <typename T, std::size_t Offset> struct AddOffset
  */
 template <std::size_t secondOffset> class Split/*{{{*/
 {
-    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, secondOffset> hiImpl(
-        VectorSpecialInitializerIndexesFromZero::IEnum)
+    static Vc_INTRINSIC AddOffset<VectorSpecialInitializerIndexesFromZero, secondOffset>
+        hiImpl(VectorSpecialInitializerIndexesFromZero)
     {
         return {};
     }
     template <std::size_t Offset>
-    static constexpr AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum,
-                               Offset + secondOffset>
-        hiImpl(AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, Offset>)
+    static Vc_INTRINSIC
+        AddOffset<VectorSpecialInitializerIndexesFromZero, Offset + secondOffset>
+            hiImpl(AddOffset<VectorSpecialInitializerIndexesFromZero, Offset>)
     {
         return {};
     }
@@ -380,8 +380,6 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, SimdMaskArray<U, M, V, M>
 
 }  // namespace Common
 }  // namespace Vc
-
-#include "undomacros.h"
 
 #endif  // VC_COMMON_SIMDARRAYHELPER_H_
 

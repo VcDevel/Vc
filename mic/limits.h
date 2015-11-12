@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_LIMITS_H
-#define VC_MIC_LIMITS_H
+#ifndef VC_MIC_LIMITS_H_
+#define VC_MIC_LIMITS_H_
 #ifdef CAN_OFFLOAD
 #pragma offload_attribute(push, target(mic))
 #endif
@@ -40,4 +40,4 @@ namespace std
 #ifdef CAN_OFFLOAD
 #pragma offload_attribute(pop)
 #endif
-#endif // VC_MIC_LIMITS_H
+#endif // VC_MIC_LIMITS_H_

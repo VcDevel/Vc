@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MASKENTRY_H
-#define VC_COMMON_MASKENTRY_H
+#ifndef VC_COMMON_MASKENTRY_H_
+#define VC_COMMON_MASKENTRY_H_
 
 #include "macros.h"
 
@@ -68,10 +68,12 @@ public:
 namespace
 {
     template<size_t Bytes> struct MaskBoolStorage;
-    template<> struct MaskBoolStorage<1> { typedef int8_t  type; };
-    template<> struct MaskBoolStorage<2> { typedef int16_t type; };
-    template<> struct MaskBoolStorage<4> { typedef int32_t type; };
-    template<> struct MaskBoolStorage<8> { typedef int64_t type; };
+    // the following for typedefs must use std::intN_t and NOT! Vc::intN_t. The latter
+    // segfaults ICC 15.0.3.
+    template<> struct MaskBoolStorage<1> { typedef std::int8_t  type; };
+    template<> struct MaskBoolStorage<2> { typedef std::int16_t type; };
+    template<> struct MaskBoolStorage<4> { typedef std::int32_t type; };
+    template<> struct MaskBoolStorage<8> { typedef std::int64_t type; };
 } // anonymous namespace
 
 template<size_t Bytes> class MaskBool
@@ -127,6 +129,4 @@ static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_MASKENTRY_H
+#endif // VC_COMMON_MASKENTRY_H_

@@ -51,23 +51,23 @@ Per default, code compiled against the %Vc headers will use the instruction set 
 says is available. For example compiling with "g++ -mssse3" will enable compilation against the
 SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
 compilation against a specific implementation of the vector classes you can set the macro
-VC_IMPL to either "Scalar", "SSE", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", or "AVX".
-You may additionally append "+XOP", "+FMA4", "+SSE4a", "+F16C", and "+POPCNT", e.g. "-D VC_IMPL=SSE+XOP+FMA4"
-Setting VC_IMPL to
+Vc_IMPL to either "Scalar", "SSE", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", or "AVX".
+You may additionally append "+XOP", "+FMA4", "+SSE4a", "+F16C", and "+POPCNT", e.g. "-D Vc_IMPL=SSE+XOP+FMA4"
+Setting Vc_IMPL to
 "SSE" will force the SSE instruction set, but lets the headers figure out the version to use or,
 if that fails, uses SSE4.1.
 After you include a %Vc header, you will have the following macros available, which you can (but
 normally should not) use to determine the implementation %Vc uses:
-\li \c VC_IMPL_Scalar
-\li \c VC_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
-\li \c VC_IMPL_SSE2
-\li \c VC_IMPL_SSE3
-\li \c VC_IMPL_SSSE3
-\li \c VC_IMPL_SSE4_1
-\li \c VC_IMPL_SSE4_2
-\li \c VC_IMPL_AVX
+\li \c Vc_IMPL_Scalar
+\li \c Vc_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
+\li \c Vc_IMPL_SSE2
+\li \c Vc_IMPL_SSE3
+\li \c Vc_IMPL_SSSE3
+\li \c Vc_IMPL_SSE4_1
+\li \c Vc_IMPL_SSE4_2
+\li \c Vc_IMPL_AVX
 
-Another set of macros you may use for target specific implementations are the \c VC_*_V_SIZE
+Another set of macros you may use for target specific implementations are the \c Vc_*_V_SIZE
 macros: \ref Utilities
 
 
@@ -181,7 +181,7 @@ lead to degraded performance, which becomes very noticeable for memory intensive
                   Therefore, memory addresses returned from this allocator will always be
                   aligned to at least the constraints attached to the type \c T. STL containers
                   will already default to Vc::Allocator for Vc::Vector<T>. For all other
-                  composite types you want to use, you can take the \ref VC_DECLARE_ALLOCATOR
+                  composite types you want to use, you can take the \ref Vc_DECLARE_ALLOCATOR
                   convenience macro to set is as default.
 \li Vc::Memory, Vc::Memory<V, Size, 0u>, Vc::Memory<V, 0u, 0u>
                   The three different variants of the memory class can be used like a more
@@ -258,7 +258,7 @@ void foo(Vc::float_v *) {}
 \endcode all work.
 Normally you should prefer passing by value since a sane compiler will then pass the data in a
 register and does not have to store/load the data to/from the stack. %Vc defines \c
-VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN for such cases. Also the %Vc vector types contain a composite
+Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN for such cases. Also the %Vc vector types contain a composite
 typedef \c AsArg which resolves to either const-ref or const-by-value. Thus, you can always use
 \code void foo(Vc::float_v::AsArg) {}\endcode.
 
@@ -268,36 +268,29 @@ typedef \c AsArg which resolves to either const-ref or const-by-value. Thus, you
 
 The following macros are available to enable/disable selected features:
 
-\par VC_NO_STD_FUNCTIONS
+\par Vc_NO_STD_FUNCTIONS
 
 If this macro is defined, the %Vc math functions are
 not imported into the \c std namespace. They are still available in the %Vc namespace.
 
-\par VC_CLEAN_NAMESPACE
+\par Vc_CLEAN_NAMESPACE
 
 If this macro is defined, any symbol or macro that does not have a %Vc
 prefix will be disabled.
 
-\par VC_NO_AUTOMATIC_BOOL_FROM_MASK
-
-Define this macro to disable automatic conversion from %Vc
-mask types to bool. The automatic conversion corresponds to the isFull() function. By disabling
-the automatic conversion you can find places where the implicit isFull() conversion is not the
-correct reduction.
-
-\par VC_NO_VERSION_CHECK
+\par Vc_NO_VERSION_CHECK
 
 Define this macro to disable the safety check for the libVc version.
 The check generates a small check for every object file, which is called at startup, i.e. before
 the main function.
 
-\par VC_CHECK_ALIGNMENT
+\par Vc_CHECK_ALIGNMENT
 
 If this macro is defined %Vc will assert correct alignment for all
        objects that require correct alignment. This can be very useful to debug crashes resulting
        from misaligned memory accesses. This check will introduce a significant overhead.
 
-\par VC_ENABLE_FLOAT_BIT_OPERATORS
+\par Vc_ENABLE_FLOAT_BIT_OPERATORS
 
 Define this macro to enable bitwise operators (&, |, ^) on floating-point vectors. Since these
 operators are not provided for the builtin floating-point types, the default is to not provide
@@ -904,7 +897,7 @@ namespace Vc
  * library (link time) and the headers (compile time) are equal. A mismatch between headers and
  * library could lead to errors that are very hard to debug.
  * \note If you need to disable the check (it costs a very small amount of application startup time)
- * you can define VC_NO_VERSION_CHECK at compile time.
+ * you can define Vc_NO_VERSION_CHECK at compile time.
  */
 const char *versionString();
 
@@ -926,74 +919,74 @@ unsigned int versionNumber();
  * This macro is set to the value of \ref Vc::Implementation that the current translation unit is
  * compiled with.
  */
-#define VC_IMPL
+#define Vc_IMPL
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with XOP instruction support.
  */
-#define VC_IMPL_XOP
+#define Vc_IMPL_XOP
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with FMA4 instruction support.
  */
-#define VC_IMPL_FMA4
+#define Vc_IMPL_FMA4
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with F16C instruction support.
  */
-#define VC_IMPL_F16C
+#define Vc_IMPL_F16C
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with POPCNT instruction support.
  */
-#define VC_IMPL_POPCNT
+#define Vc_IMPL_POPCNT
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE4a instruction support.
  */
-#define VC_IMPL_SSE4a
+#define Vc_IMPL_SSE4a
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled without any SIMD support.
  */
-#define VC_IMPL_Scalar
+#define Vc_IMPL_Scalar
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with any version of SSE (but not
  * AVX).
  */
-#define VC_IMPL_SSE
+#define Vc_IMPL_SSE
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE2 instruction support
  * (excluding SSE3 and up).
  */
-#define VC_IMPL_SSE2
+#define Vc_IMPL_SSE2
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE3 instruction support (excluding SSSE3 and up).
  */
-#define VC_IMPL_SSE3
+#define Vc_IMPL_SSE3
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSSE3 instruction support (excluding SSE4.1 and up).
  */
-#define VC_IMPL_SSSE3
+#define Vc_IMPL_SSSE3
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE4.1 instruction support (excluding SSE4.2 and up).
  */
-#define VC_IMPL_SSE4_1
+#define Vc_IMPL_SSE4_1
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE4.2 instruction support (excluding AVX and up).
  */
-#define VC_IMPL_SSE4_2
+#define Vc_IMPL_SSE4_2
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with AVX instruction support (excluding AVX2 and up).
  */
-#define VC_IMPL_AVX
+#define Vc_IMPL_AVX
 //@}
 
 /**
@@ -1005,13 +998,13 @@ unsigned int versionNumber();
  * \ingroup Utilities
  * Contains the version string of the %Vc headers. Same as Vc::versionString().
  */
-#define VC_VERSION_STRING
+#define Vc_VERSION_STRING
 
 /**
  * \ingroup Utilities
  * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
  */
-#define VC_VERSION_NUMBER
+#define Vc_VERSION_NUMBER
 
 /**
  * \ingroup Utilities
@@ -1019,10 +1012,10 @@ unsigned int versionNumber();
  * Helper macro to compare against an encoded version number.
  * Example:
  * \code
- * #if VC_VERSION_CHECK(0.5.1) >= VC_VERSION_NUMBER
+ * #if Vc_VERSION_CHECK(0.5.1) >= Vc_VERSION_NUMBER
  * \endcode
  */
-#define VC_VERSION_CHECK(major, minor, patch)
+#define Vc_VERSION_CHECK(major, minor, patch)
 //@}
 
 /**
@@ -1034,32 +1027,32 @@ unsigned int versionNumber();
  * \ingroup Utilities
  * An integer (for use with the preprocessor) that gives the number of entries in a double_v.
  */
-#define VC_DOUBLE_V_SIZE
+#define Vc_DOUBLE_V_SIZE
 /**
  * \ingroup Utilities
  * An integer (for use with the preprocessor) that gives the number of entries in a float_v.
  */
-#define VC_FLOAT_V_SIZE
+#define Vc_FLOAT_V_SIZE
 /**
  * \ingroup Utilities
  * An integer (for use with the preprocessor) that gives the number of entries in a int_v.
  */
-#define VC_INT_V_SIZE
+#define Vc_INT_V_SIZE
 /**
  * \ingroup Utilities
  * An integer (for use with the preprocessor) that gives the number of entries in a uint_v.
  */
-#define VC_UINT_V_SIZE
+#define Vc_UINT_V_SIZE
 /**
  * \ingroup Utilities
  * An integer (for use with the preprocessor) that gives the number of entries in a short_v.
  */
-#define VC_SHORT_V_SIZE
+#define Vc_SHORT_V_SIZE
 /**
  * \ingroup Utilities
  * An integer (for use with the preprocessor) that gives the number of entries in a ushort_v.
  */
-#define VC_USHORT_V_SIZE
+#define Vc_USHORT_V_SIZE
 //@}
 
 } // namespace Vc

@@ -280,7 +280,7 @@ template <size_t N> void run()
     }
     std::cout << std::setw(2) << N;
     benchmark<N>([&] {
-#ifdef VC_ICC
+#ifdef Vc_ICC
         asm("" :: "r"(&A), "r"(&B));
 #else
         asm("" : "+m"(A), "+m"(B));
@@ -288,7 +288,7 @@ template <size_t N> void run()
         return scalar_mul(A, B);
     });
     benchmark<N>([&] {
-#ifdef VC_ICC
+#ifdef Vc_ICC
         asm("" :: "r"(&A), "r"(&B));
 #else
         asm("" : "+m"(A), "+m"(B));
@@ -296,7 +296,7 @@ template <size_t N> void run()
         return scalar_mul_blocked(A, B);
     });
     benchmark<N>([&] {
-#ifdef VC_ICC
+#ifdef Vc_ICC
         asm("" :: "r"(&A), "r"(&B));
 #else
         asm("" : "+m"(A), "+m"(B));
@@ -304,7 +304,7 @@ template <size_t N> void run()
         return A * B;
     });
     benchmark<N>([&] {
-#ifdef VC_ICC
+#ifdef Vc_ICC
         asm("" :: "r"(&A), "r"(&B));
 #else
         asm("" : "+m"(A), "+m"(B));

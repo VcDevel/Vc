@@ -177,18 +177,6 @@ macro(vc_check_assembler)
    endif(APPLE)
 endmacro()
 
-macro(vc_check_fpmath)
-   # if compiling for 32 bit x86 we need to use the -mfpmath=sse since the x87 is broken by design
-   include (CheckCXXSourceRuns)
-   check_cxx_source_runs("int main() { return sizeof(void*) != 8; }" Vc_VOID_PTR_IS_64BIT)
-   if(NOT Vc_VOID_PTR_IS_64BIT)
-      exec_program(${CMAKE_C_COMPILER} ARGS -dumpmachine OUTPUT_VARIABLE _gcc_machine)
-      if(_gcc_machine MATCHES "[x34567]86" OR _gcc_machine STREQUAL "mingw32")
-         vc_add_compiler_flag(Vc_COMPILE_FLAGS "-mfpmath=sse")
-      endif()
-   endif()
-endmacro()
-
 macro(vc_set_preferred_compiler_flags)
    vc_determine_compiler()
 
@@ -263,7 +251,6 @@ macro(vc_set_preferred_compiler_flags)
          vc_set_gnu_buildtype_flags()
       endif()
 
-      vc_check_fpmath()
       vc_check_assembler()
    elseif(Vc_COMPILER_IS_INTEL)
       ##################################################################################################
@@ -352,16 +339,16 @@ macro(vc_set_preferred_compiler_flags)
    endif()
 
    OptimizeForArchitecture()
-   set(VC_IMPL "auto" CACHE STRING "Force the Vc implementation globally to the selected instruction set. \"auto\" lets Vc use the best available instructions.")
-   if(NOT VC_IMPL STREQUAL "auto")
-      set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVC_IMPL=${VC_IMPL}")
-      if(NOT VC_IMPL STREQUAL "Scalar")
-         set(_use_var "USE_${VC_IMPL}")
-         if(VC_IMPL STREQUAL "SSE")
+   set(Vc_IMPL "auto" CACHE STRING "Force the Vc implementation globally to the selected instruction set. \"auto\" lets Vc use the best available instructions.")
+   if(NOT Vc_IMPL STREQUAL "auto")
+      set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVc_IMPL=${Vc_IMPL}")
+      if(NOT Vc_IMPL STREQUAL "Scalar")
+         set(_use_var "USE_${Vc_IMPL}")
+         if(Vc_IMPL STREQUAL "SSE")
             set(_use_var "USE_SSE2")
          endif()
          if(NOT ${_use_var})
-            message(WARNING "The selected value for VC_IMPL (${VC_IMPL}) will not work because the relevant instructions are not enabled via compiler flags.")
+            message(WARNING "The selected value for Vc_IMPL (${Vc_IMPL}) will not work because the relevant instructions are not enabled via compiler flags.")
          endif()
       endif()
    endif()
@@ -411,7 +398,7 @@ macro(_vc_compile_one_implementation _srcs _impl)
             WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
             VERBATIM)
          set_source_files_properties( "${_out}" PROPERTIES
-            COMPILE_DEFINITIONS "VC_IMPL=${_impl}"
+            COMPILE_DEFINITIONS "Vc_IMPL=${_impl}"
             COMPILE_FLAGS "${_flags} ${_extra_flags}"
          )
          list(APPEND ${_srcs} "${_out}")

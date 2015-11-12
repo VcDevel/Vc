@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef SCALAR_VECTOR_H
-#define SCALAR_VECTOR_H
+#ifndef VC_SCALAR_VECTOR_H_
+#define VC_SCALAR_VECTOR_H_
 
 #include <assert.h>
 #include <algorithm>
@@ -48,7 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-#define VC_CURRENT_CLASS_NAME Vector
+#define Vc_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector<T, VectorAbi::Scalar>
 {
     static_assert(std::is_arithmetic<T>::value,
@@ -56,7 +56,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 
     public:
         using abi = VectorAbi::Scalar;
-        using EntryType = T;
+    Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
         using VectorEntryType = EntryType;
         using value_type = EntryType;
         using VectorType = EntryType;
@@ -86,9 +86,10 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 
         // implict conversion from compatible Vector<U, abi>
         template <typename U>
-        Vc_INTRINSIC Vector(VC_ALIGNED_PARAMETER(V<U>) x,
-                            typename std::enable_if<is_implicit_cast_allowed<U, T>::value,
-                                                    void *>::type = nullptr)
+        Vc_INTRINSIC Vector(
+            Vc_ALIGNED_PARAMETER(V<U>) x,
+            typename std::enable_if<Traits::is_implicit_cast_allowed<U, T>::value,
+                                    void *>::type = nullptr)
             : m_data(static_cast<EntryType>(x.data()))
         {
         }
@@ -96,8 +97,8 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         // static_cast from the remaining Vector<U, abi>
         template <typename U>
         Vc_INTRINSIC explicit Vector(
-            VC_ALIGNED_PARAMETER(V<U>) x,
-            typename std::enable_if<!is_implicit_cast_allowed<U, T>::value,
+            Vc_ALIGNED_PARAMETER(V<U>) x,
+            typename std::enable_if<!Traits::is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
             : m_data(static_cast<EntryType>(x.data()))
         {
@@ -153,7 +154,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         }
         Vc_ALWAYS_INLINE Vector operator~() const
         {
-#ifndef VC_ENABLE_FLOAT_BIT_OPERATORS
+#ifndef Vc_ENABLE_FLOAT_BIT_OPERATORS
             static_assert(std::is_integral<T>::value, "bit-complement can only be used with Vectors of integral type");
 #endif
             return Vector(~m_data);
@@ -165,23 +166,23 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         }
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
 
-#define OPshift(symbol) \
+#define Vc_OP(symbol) \
         Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { m_data symbol##= x.m_data; return *this; } \
         Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
-        VC_ALL_SHIFTS(OPshift)
-#undef OPshift
+        Vc_ALL_SHIFTS(Vc_OP)
+#undef Vc_OP
 
-#define OP(symbol) \
+#define Vc_OP(symbol) \
         Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { m_data symbol##= x.m_data; return *this; } \
         Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
-        VC_ALL_ARITHMETICS(OP)
-        VC_ALL_BINARY(OP)
-#undef OP
+        Vc_ALL_ARITHMETICS(Vc_OP)
+        Vc_ALL_BINARY(Vc_OP)
+#undef Vc_OP
 
-#define OPcmp(symbol) \
+#define Vc_OP(symbol) \
         Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const { return Mask(m_data symbol x.m_data); }
-        VC_ALL_COMPARES(OPcmp)
-#undef OPcmp
+        Vc_ALL_COMPARES(Vc_OP)
+#undef Vc_OP
 
         Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
 
@@ -232,7 +233,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         Vc_ALWAYS_INLINE EntryType sum(Mask m) const { if (m.data()) return m_data; return static_cast<EntryType>(0); }
 
         Vc_INTRINSIC Vector shifted(int amount, Vector shiftIn) const {
-            VC_ASSERT(amount >= -1 && amount <= 1);
+            Vc_ASSERT(amount >= -1 && amount <= 1);
             return amount == 0 ? *this : shiftIn;
         }
         Vc_INTRINSIC Vector shifted(int amount) const { return amount == 0 ? *this : Zero(); }
@@ -280,7 +281,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         Vc_INTRINSIC Vector interleaveLow(Vector) const { return *this; }
         Vc_INTRINSIC Vector interleaveHigh(Vector x) const { return x; }
 };
-#undef VC_CURRENT_CLASS_NAME
+#undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::MemoryAlignment;
 
@@ -322,7 +323,6 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs)
 }  // namespace Vc
 
 #include "vector.tcc"
-#include "undomacros.h"
 #include "simd_cast.h"
 
-#endif // SCALAR_VECTOR_H
+#endif // VC_SCALAR_VECTOR_H_

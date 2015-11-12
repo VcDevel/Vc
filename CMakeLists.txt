@@ -36,17 +36,25 @@ if(ROOT_RELEASE)
       set(_extra_namespace "AliRoot")
    endif()
 else()
+   option(USE_CCACHE "If enabled, ccache will be used (if it exists on the system) to speed up recompiles." OFF)
+   if(USE_CCACHE)
+      find_program(CCACHE_COMMAND ccache)
+      if(CCACHE_COMMAND)
+         mark_as_advanced(CCACHE_COMMAND)
+         set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_COMMAND}")
+      endif()
+   endif()
 
    # TODO: check that 'decltype' compiles
    # TODO: check that 'constexpr' compiles
    if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
-      AddCompilerFlag("-std=c++14" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+      AddCompilerFlag("-std=c++14" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
       if(MIC_NATIVE_FOUND AND NOT _mic_ok)
-         AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+         AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
          if(NOT _mic_ok)
-            AddCompilerFlag("-std=c++11" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+            AddCompilerFlag("-std=c++11" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
             if(NOT _mic_ok)
-               AddCompilerFlag("-std=c++0x" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS VC_MIC_CXX_FLAGS)
+               AddCompilerFlag("-std=c++0x" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
                if(NOT _mic_ok)
                   message(FATAL_ERROR "Vc 1.x requires C++11, better even C++14. The MIC native compiler does not support any of the C++11 language flags.")
                endif()
@@ -74,19 +82,10 @@ else()
    endif()
 
    if(Vc_COMPILER_IS_GCC)
-      if(Vc_GCC_VERSION VERSION_EQUAL "5.1.0" OR Vc_GCC_VERSION VERSION_EQUAL "5.2.0")
+      if(Vc_GCC_VERSION VERSION_GREATER "5.0.0" OR Vc_GCC_VERSION VERSION_LESS "5.3.0")
          UserWarning("GCC 5 goes into an endless loop comiling example_scaling_scalar. Therefore, this target is disabled.")
          list(APPEND disabled_targets
             example_scaling_scalar
-            )
-      elseif(Vc_GCC_VERSION STREQUAL "4.8.0")
-         UserWarning("GCC 4.8.0 is broken. The following tests are therefore disabled:
-         memory_avx2, memory_avx, memory_sse, memory_scalar")
-         list(APPEND disabled_targets
-            memory_avx2
-            memory_avx
-            memory_sse
-            memory_scalar
             )
       endif()
    elseif(Vc_COMPILER_IS_MSVC)
@@ -145,6 +144,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/incl
 if(NOT ROOT_RELEASE)
    add_custom_target(other VERBATIM)
    add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
+   add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
+   add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
+   add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
+   add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
 
    AddCompilerFlag(-ftemplate-depth=128 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
 
@@ -154,7 +157,6 @@ if(NOT ROOT_RELEASE)
    AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags CUDA_CXX_FLAGS libvc_cuda_compile_flags)
 
    if(MIC_FOUND)
-      add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
       mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support_x86.cpp src/mic_sorthelper.cpp
          COMPILE_FLAGS ${libvc_mic_compile_flags})
       add_target_property(Vc_MIC LABELS "MIC")
@@ -186,9 +188,6 @@ if(NOT ROOT_RELEASE)
 
    set(_srcs src/const.cpp)
    if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64)")
-      add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
-      add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
-      add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
 
       list(APPEND _srcs src/cpuid.cpp src/support_x86.cpp)
       vc_compile_for_all_implementations(_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA)# AVX2+FMA+BMI2)
@@ -278,7 +277,7 @@ endif()
 install(DIRECTORY scalar sse avx mic common traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 # read version parts from version.h to be put into VcConfig.cmake
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define VC_VERSION_STRING ")
+file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define Vc_VERSION_STRING ")
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _version_matches "${_version_lines}")
 set(Vc_VERSION_MAJOR ${CMAKE_MATCH_1})
 set(Vc_VERSION_MINOR ${CMAKE_MATCH_2})
@@ -339,5 +338,5 @@ if(NOT ROOT_RELEASE)
    endif(BUILD_EXAMPLES)
 endif()
 
-# Hide VC_IMPL as it is only meant for users of Vc
-mark_as_advanced(VC_IMPL)
+# Hide Vc_IMPL as it is only meant for users of Vc
+mark_as_advanced(Vc_IMPL)

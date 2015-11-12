@@ -251,7 +251,7 @@ TEST_TYPES(Vec, testDiv, ALL_TYPES)
         }
     }
     typedef typename Vec::EntryType T;
-#if defined(VC_ICC) && !defined(__x86_64__) && VC_ICC <= 20131008
+#if defined(Vc_ICC) && !defined(__x86_64__) && Vc_ICC <= 20131008
     // http://software.intel.com/en-us/forums/topic/488995
     if (isEqualType<short, T>()) {
         EXPECT_FAILURE();
@@ -291,21 +291,24 @@ TEST_TYPES(V,
     alignas(static_cast<size_t>(V::MemoryAlignment)) T x_mem[V::size()];
     alignas(static_cast<size_t>(V::MemoryAlignment)) T y_mem[V::size()];
     for (int repetition = 0; repetition < 1000; ++repetition) {
-        V x = V::Random();
+        const V x = V::Random();
+        x.store(x_mem, Vc::Aligned);
         V y = (V::Random() & 2047) - 1023;
         y(y == 0) = -1024;
-        const V z = x % y;
-
-        x.store(x_mem, Vc::Aligned);
         y.store(y_mem, Vc::Aligned);
-        const V reference = V::generate([&](size_t i) {
-            return x_mem[i] % y_mem[i];
-        });
-
-        COMPARE(z, reference) << ", x: " << x << ", y: " << y;
-
-        COMPARE(V::Zero() % y, V::Zero());
-        COMPARE(y % y, V::Zero());
+        {
+            const V z = x % y;
+            const V reference =
+                V::generate([&](size_t i) { return x_mem[i] % y_mem[i]; });
+            COMPARE(z, reference) << ", x: " << x << ", y: " << y;
+            COMPARE(V::Zero() % y, V::Zero());
+            COMPARE(y % y, V::Zero());
+        }
+        {
+            const V z = x % 256;
+            const V reference = V::generate([&](size_t i) { return x_mem[i] % 256; });
+            COMPARE(z, reference) << ", x: " << x;
+        }
     }
 }
 
@@ -559,8 +562,8 @@ template <typename V, typename T> void testFmaDispatch(T)
         const V b = V::Random();
         const V c = V::Random();
         const V reference = a * b + c;
-        a.fusedMultiplyAdd(b, c);
-        COMPARE(a, reference) << ", a = " << a << ", b = " << b << ", c = " << c;
+        COMPARE(Vc::fma(a, b, c), reference) << ", a = " << a << ", b = " << b
+                                             << ", c = " << c;
     }
 }
 
@@ -574,8 +577,7 @@ template <typename V> void testFmaDispatch(float)
     a += c;
     COMPARE(a, V(floatConstant<1, 0x000002, 0>()));
     a = b;*/
-    a.fusedMultiplyAdd(b, c);
-    COMPARE(a, V(floatConstant<1, 0x000003, 0>()));
+    COMPARE(Vc::fma(a, b, c), V(floatConstant<1, 0x000003, 0>()));
 
     a = floatConstant<1, 0x000002, 0>();
     b = floatConstant<1, 0x000002, 0>();
@@ -584,8 +586,8 @@ template <typename V> void testFmaDispatch(float)
     a += c;
     COMPARE(a, V(floatConstant<1, 0x000000, -21>()));
     a = b;*/
-    a.fusedMultiplyAdd(b, c); // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
-    COMPARE(a, V(floatConstant<1, 0x000001, -21>()));
+    COMPARE(Vc::fma(a, b, c),  // 1 + 2^-21 + 2^-44 - 1 == (1 + 2^-20)*2^-18
+            V(floatConstant<1, 0x000001, -21>()));
 }
 
 template <typename V> void testFmaDispatch(double)
@@ -594,18 +596,34 @@ template <typename V> void testFmaDispatch(double)
     V b = doubleConstant<1, 0x0000000000001, 0>();
     V c = doubleConstant<1, 0x0000000000000, -53>();
     V a = b;
-    a.fusedMultiplyAdd(b, c);
-    COMPARE(a, V(doubleConstant<1, 0x0000000000003, 0>()));
+    COMPARE(fma(a, b, c), V(doubleConstant<1, 0x0000000000003, 0>()));
 
     a = doubleConstant<1, 0x0000000000002, 0>();
     b = doubleConstant<1, 0x0000000000002, 0>();
     c = doubleConstant<-1, 0x0000000000000, 0>();
-    a.fusedMultiplyAdd(b, c); // 1 + 2^-50 + 2^-102 - 1
-    COMPARE(a, V(doubleConstant<1, 0x0000000000001, -50>()));
+    COMPARE(fma(a, b, c),  // 1 + 2^-50 + 2^-102 - 1
+            V(doubleConstant<1, 0x0000000000001, -50>()));
 }
 
 TEST_TYPES(V, testFma, ALL_TYPES)
 {
     using T = typename V::EntryType;
+// https://github.com/VcDevel/Vc/issues/61
+// std::fma (the implementation of the Scalar fma function) produces incorrect results on
+// RHEL6 (which uses glibc 2.12) in debug builds. On 64-bit float and double both fail. On
+// 32-bit on double fails.
+#if (defined Vc_GCC || defined Vc_CLANG) && !defined __OPTIMIZE__ &&                     \
+    defined __GLIBC__ && __GLIBC__ == 2 && __GLIBC_MINOR__ <= 12
+    if (std::is_same<typename V::abi, VectorAbi::Scalar>::value) {
+        if (std::is_same<T, double>::value) {
+            UnitTest::EXPECT_FAILURE();
+        }
+#if defined Vc_GCC || (defined Vc_CLANG && Vc_CLANG >= 0x30500)
+        if (std::is_same<T, float>::value && sizeof(void*) == 8) {
+            UnitTest::EXPECT_FAILURE();
+        }
+#endif
+    }
+#endif
     testFmaDispatch<V>(T());
 }

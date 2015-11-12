@@ -167,7 +167,7 @@ using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_S
         Traits::decay<conditional_t<!isVector<L>(), L, R>>>::type;
 }  // namespace Common
 
-#define VC_GENERIC_OPERATOR(op)                                                          \
+#define Vc_GENERIC_OPERATOR(op)                                                          \
     template <typename L, typename R>                                                    \
     Vc_ALWAYS_INLINE Common::TypesForOperator<L, R> operator op(L &&x, R &&y)            \
     {                                                                                    \
@@ -175,7 +175,7 @@ using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_S
         return V(std::forward<L>(x)) op V(std::forward<R>(y));                           \
     }
 
-#define VC_COMPARE_OPERATOR(op)                                                          \
+#define Vc_COMPARE_OPERATOR(op)                                                          \
     template <typename L, typename R>                                                    \
     Vc_ALWAYS_INLINE typename Common::TypesForOperator<L, R>::Mask operator op(L &&x,    \
                                                                                R &&y)    \
@@ -184,7 +184,7 @@ using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_S
         return V(std::forward<L>(x)) op V(std::forward<R>(y));                           \
     }
 
-#define VC_INVALID_OPERATOR(op)                                                                                                                     \
+#define Vc_INVALID_OPERATOR(op)                                                                                                                     \
     template <typename L, typename R>                                                                                                               \
     Common::                                                                                                                                        \
         Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability< \
@@ -192,20 +192,18 @@ using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_S
 // invalid operands to binary expression. Vc does not allow operands that can have a differing size
 // on some targets.
 
-VC_ALL_LOGICAL    (VC_GENERIC_OPERATOR)
-VC_ALL_BINARY     (VC_GENERIC_OPERATOR)
-VC_ALL_ARITHMETICS(VC_GENERIC_OPERATOR)
-VC_ALL_COMPARES   (VC_COMPARE_OPERATOR)
+Vc_ALL_LOGICAL    (Vc_GENERIC_OPERATOR)
+Vc_ALL_BINARY     (Vc_GENERIC_OPERATOR)
+Vc_ALL_ARITHMETICS(Vc_GENERIC_OPERATOR)
+Vc_ALL_COMPARES   (Vc_COMPARE_OPERATOR)
 
-VC_ALL_LOGICAL    (VC_INVALID_OPERATOR)
-VC_ALL_BINARY     (VC_INVALID_OPERATOR)
-VC_ALL_ARITHMETICS(VC_INVALID_OPERATOR)
-VC_ALL_COMPARES   (VC_INVALID_OPERATOR)
+Vc_ALL_LOGICAL    (Vc_INVALID_OPERATOR)
+Vc_ALL_BINARY     (Vc_INVALID_OPERATOR)
+Vc_ALL_ARITHMETICS(Vc_INVALID_OPERATOR)
+Vc_ALL_COMPARES   (Vc_INVALID_OPERATOR)
 
-#undef VC_GENERIC_OPERATOR
-#undef VC_COMPARE_OPERATOR
-#undef VC_INVALID_OPERATOR
+#undef Vc_GENERIC_OPERATOR
+#undef Vc_COMPARE_OPERATOR
+#undef Vc_INVALID_OPERATOR
 
 }  // namespace Vc
-
-#include "undomacros.h"

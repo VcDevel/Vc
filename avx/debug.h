@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_DEBUG_H
-#define VC_AVX_DEBUG_H
+#ifndef VC_AVX_DEBUG_H_
+#define VC_AVX_DEBUG_H_
 
 #ifndef NDEBUG
 #include "vector.h"
@@ -115,4 +115,4 @@ class DebugStream
 }  // namespace AVX
 }  // namespace Vc
 
-#endif // VC_AVX_DEBUG_H
+#endif // VC_AVX_DEBUG_H_

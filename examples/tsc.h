@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2009-2014 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2009-2015 Matthias Kretz <kretz@kde.org>
 
     This program is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -18,8 +18,8 @@
 
 */
 
-#ifndef TSC_H
-#define TSC_H
+#ifndef TSC_H_
+#define TSC_H_
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -47,7 +47,7 @@ class TimeStampCounter
 
 inline void TimeStampCounter::start()
 {
-#if defined VC_IMPL_MIC || defined __MIC__
+#if defined Vc_IMPL_MIC || defined __MIC__
     asm volatile("xor %%eax,%%eax\n\tcpuid\n\trdtsc" : "=a"(m_start.b[0]), "=d"(m_start.b[1]) :: "ebx", "ecx" );
 #elif defined _MSC_VER
 	unsigned int tmp;
@@ -59,7 +59,7 @@ inline void TimeStampCounter::start()
 
 inline void TimeStampCounter::stop()
 {
-#if defined VC_IMPL_MIC || defined __MIC__
+#if defined Vc_IMPL_MIC || defined __MIC__
     asm volatile("xor %%eax,%%eax\n\tcpuid\n\trdtsc" : "=a"(m_end.b[0]), "=d"(m_end.b[1]) :: "ebx", "ecx" );
 #elif defined _MSC_VER
 	unsigned int tmp;
@@ -95,4 +95,4 @@ inline std::ostream &operator<<(std::ostream &out, const TimeStampCounter &tsc)
     return out << o.str();
 }
 
-#endif // TSC_H
+#endif // TSC_H_

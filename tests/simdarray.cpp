@@ -140,6 +140,20 @@ TEST_TYPES(V, indexesFromZero, SIMD_ARRAY_LIST)
 {
     typedef typename V::EntryType T;
     V a(Vc::IndexesFromZero);
+#if defined Vc_IMPL_MIC && Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1, 99, 0)
+// see https://github.com/VcDevel/Vc/issues/47:
+// The subscript access to a[i] with i >= V::N0 might access Scalar::Vector<(u)short>
+// storing 2-Byte data, whereas the MIC::Vector<(u)short> stores 4-Byte data.
+// The plan is to have it fixed in Vc 2.0.
+    if (sizeof(T) < 4) {
+        alignas(V::MemoryAlignment) T mem[V::size()];
+        a.store(mem, Vc::Aligned);
+        for (std::size_t i = 0; i < a.size(); ++i) {
+            COMPARE(mem[i], T(i));
+        }
+        return;
+    }
+#endif
     for (std::size_t i = 0; i < a.size(); ++i) {
         COMPARE(a[i], T(i));
     }
@@ -148,9 +162,12 @@ TEST_TYPES(V, indexesFromZero, SIMD_ARRAY_LIST)
 TEST_TYPES(V, load, SIMD_ARRAY_LIST)
 {
     typedef typename V::EntryType T;
-    Vc::Memory<V, V::Size + 2> data;
-    for (size_t i = 0; i < data.entriesCount(); ++i) {
-        data[i] = T(i);
+    alignas(static_cast<size_t>(V::MemoryAlignment)) T data[V::Size + 2];
+    {
+        int n = 0;
+        for (auto &entry : data) {
+            entry = T(n++);
+        }
     }
 
     V a{ &data[0] };
@@ -197,8 +214,7 @@ TEST_TYPES(A,
 TEST_TYPES(V, store, SIMD_ARRAY_LIST)
 {
     using T = typename V::EntryType;
-    Vc::Memory<V, 34> data;
-    data = V::Zero();
+    alignas(static_cast<size_t>(V::MemoryAlignment)) T data[34] = {};
 
     V a(Vc::IndexesFromZero);
     a.store(&data[0], Vc::Aligned);

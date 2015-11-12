@@ -75,7 +75,7 @@ namespace MIC
 // || || || || || || || ||
 // ab cd ef gh ij kl mn op
 
-template<> __m512i SortHelper<int>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
+template<> __m512i SortHelper<int>::sort(Vc_ALIGNED_PARAMETER(VectorType) in)
 {
     //__int64 masks = 0x55559999aaaaf0f0;
     //auto m0x5555 = _mm512_kextract_64(masks, 3);
@@ -151,7 +151,7 @@ template<> __m512i SortHelper<int>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     return _mm512_shuffle_epi32(lh, _MM_PERM_DBCA);
 }
 
-template<> __m512i SortHelper<unsigned int>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
+template<> __m512i SortHelper<unsigned int>::sort(Vc_ALIGNED_PARAMETER(VectorType) in)
 {
     //__int64 masks = 0x55559999aaaaf0f0;
     //auto m0x5555 = _mm512_kextract_64(masks, 3);
@@ -227,17 +227,18 @@ template<> __m512i SortHelper<unsigned int>::sort(VC_ALIGNED_PARAMETER(VectorTyp
     return _mm512_shuffle_epi32(lh, _MM_PERM_DBCA);
 }
 
-template<> __m512i SortHelper<short>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
+template<> __m512i SortHelper<short>::sort(Vc_ALIGNED_PARAMETER(VectorType) in)
 {
     return SortHelper<int>::sort(in);
 }
 
-template<> __m512i SortHelper<unsigned short>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
+template<> __m512i SortHelper<unsigned short>::sort(Vc_ALIGNED_PARAMETER(VectorType) in)
 {
-    return SortHelper<unsigned int>::sort(in);
+    return SortHelper<unsigned int>::sort(
+        _mm512_and_epi32(_mm512_set1_epi32(0xffff), in));
 }
 
-template<> __m512 SortHelper<float>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
+template<> __m512 SortHelper<float>::sort(Vc_ALIGNED_PARAMETER(VectorType) in)
 {
     const __int64 masks = 0xaaaa6666f0f0ff00ULL;
     const auto m0xaaaa = _mm512_kextract_64(masks, 3);
@@ -314,7 +315,7 @@ template<> __m512 SortHelper<float>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
     return mic_cast<__m512>(_mm512_shuffle_epi32(mic_cast<__m512i>(lh), _MM_PERM_DBCA));
 }
 
-template<> __m512d SortHelper<double>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
+template<> __m512d SortHelper<double>::sort(Vc_ALIGNED_PARAMETER(VectorType) in)
 {
     // in = hgfe dcba
 
@@ -402,5 +403,3 @@ template<> __m512d SortHelper<double>::sort(VC_ALIGNED_PARAMETER(VectorType) in)
 
 }
 }
-
-#include <mic/undomacros.h>

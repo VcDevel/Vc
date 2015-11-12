@@ -17,8 +17,8 @@
 
 */
 
-#ifndef VC_VC
-#define VC_VC
+#ifndef VC_VC_
+#define VC_VC_
 #include "vector.h"
 #include "IO"
 #include "Memory"
@@ -30,5 +30,6 @@
 #include "simdize"
 #endif
 #endif // VC_VC
+
 
 // vim: ft=cpp

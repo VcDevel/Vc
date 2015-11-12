@@ -160,7 +160,7 @@
  * {
  *   Vc::float_v x, y;
  * }
- * VC_DECLARE_ALLOCATOR(CartesianCoordinate)
+ * Vc_DECLARE_ALLOCATOR(CartesianCoordinate)
  * std::vector<CartesianCoordinate> input((1000 + Vc::float_v::Size - 1) / Vc::float_v::Size);
  * \endcode
  *

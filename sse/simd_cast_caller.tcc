@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_SIMD_CAST_CALLER_TCC_
-#define VC_SSE_SIMD_CAST_CALLER_TCC_
+#ifndef Vc_SSE_SIMD_CAST_CALLER_TCC_
+#define Vc_SSE_SIMD_CAST_CALLER_TCC_
 
 #include "macros.h"
 
@@ -41,8 +41,6 @@ Vc_INTRINSIC Mask<T, VectorAbi::Sse>::Mask(U &&rhs, Common::enable_if_mask_conve
 }
 }
 
-#include "undomacros.h"
-
-#endif  // VC_SSE_SIMD_CAST_CALLER_TCC_
+#endif  // Vc_SSE_SIMD_CAST_CALLER_TCC_
 
 // vim: foldmethod=marker

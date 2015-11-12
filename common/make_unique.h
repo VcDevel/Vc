@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MAKE_UNIQUE_H
-#define VC_COMMON_MAKE_UNIQUE_H
+#ifndef VC_COMMON_MAKE_UNIQUE_H_
+#define VC_COMMON_MAKE_UNIQUE_H_
 
 #include <memory>
 
@@ -55,6 +55,4 @@ inline std::unique_ptr<T, Deleter<T>> make_unique(Args&&... args)
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_MAKE_UNIQUE_H
+#endif // VC_COMMON_MAKE_UNIQUE_H_

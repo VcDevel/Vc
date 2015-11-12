@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_MATH_H
-#define VC_SSE_MATH_H
+#ifndef VC_SSE_MATH_H_
+#define VC_SSE_MATH_H_
 
 #include "const.h"
 #include "macros.h"
@@ -96,7 +96,7 @@ inline SSE::float_v ldexp(SSE::float_v::AsArg v,
     return (v.reinterpretCast<SSE::int_v>() + (e << 23)).reinterpretCast<SSE::float_v>();
 }
 
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
 inline SSE::double_v trunc(SSE::double_v::AsArg v) { return _mm_round_pd(v.data(), 0x3); }
 inline SSE::float_v trunc(SSE::float_v::AsArg v) { return _mm_round_ps(v.data(), 0x3); }
 
@@ -132,7 +132,7 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
 }  // namespace Detail
 
     template<typename T>
-    inline SSE::Vector<T> trunc(VC_ALIGNED_PARAMETER(SSE::Vector<T>) _v) {
+    inline SSE::Vector<T> trunc(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) _v) {
         typedef SSE::Vector<T> V;
         typedef typename V::Mask M;
 
@@ -150,7 +150,7 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
     }
 
     template<typename T>
-    inline SSE::Vector<T> floor(VC_ALIGNED_PARAMETER(SSE::Vector<T>) _v) {
+    inline SSE::Vector<T> floor(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) _v) {
         typedef SSE::Vector<T> V;
         typedef typename V::Mask M;
 
@@ -168,7 +168,7 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
     }
 
     template<typename T>
-    inline SSE::Vector<T> ceil(VC_ALIGNED_PARAMETER(SSE::Vector<T>) _v) {
+    inline SSE::Vector<T> ceil(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) _v) {
         typedef SSE::Vector<T> V;
         typedef typename V::Mask M;
 
@@ -185,8 +185,18 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
         return v;
     }
 #endif
+// fma {{{1
+template <typename T>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> fma(Vector<T, VectorAbi::Sse> a,
+                                               Vector<T, VectorAbi::Sse> b,
+                                               Vector<T, VectorAbi::Sse> c)
+{
+    SSE::VectorHelper<T>::fma(a.data(), b.data(), c.data());
+    return a;
+}
+// }}}1
 }  // namespace Vc
 
-#include "undomacros.h"
+#endif // VC_SSE_MATH_H_
 
-#endif // VC_SSE_MATH_H
+// vim: foldmethod=marker

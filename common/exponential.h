@@ -35,7 +35,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 
 }}}*/
 
-#ifdef VC_COMMON_MATH_H_INTERNAL
+#ifdef Vc_COMMON_MATH_H_INTERNAL
 
 constexpr float log2_e = 1.44269504088896341f;
 constexpr float MAXLOGF = 88.72283905206835f;
@@ -81,4 +81,4 @@ inline Vector<float, Abi> exp(Vector<float, Abi> x)
         return x;
     }
 
-#endif // VC_COMMON_MATH_H_INTERNAL
+#endif // Vc_COMMON_MATH_H_INTERNAL

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_WINDOWS_FIX_INTRIN_H
-#define VC_COMMON_WINDOWS_FIX_INTRIN_H
+#ifndef VC_COMMON_WINDOWS_FIX_INTRIN_H_
+#define VC_COMMON_WINDOWS_FIX_INTRIN_H_
 
-#if defined(VC_MSVC) && !defined(__midl)
+#if defined(Vc_MSVC) && !defined(__midl)
 // MSVC sucks. If you include intrin.h you get all SSE and AVX intrinsics
 // declared. This is a problem because we need to implement the intrinsics
 // that are not supported in hardware ourselves.
@@ -306,4 +306,4 @@ unsigned __int64 __rdtscp(unsigned int*);
 }
 #endif
 
-#endif // VC_COMMON_WINDOWS_FIX_INTRIN_H
+#endif // VC_COMMON_WINDOWS_FIX_INTRIN_H_

@@ -59,8 +59,6 @@ std::pair<V, V> interleave(const V &a, const V &b)
 }
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_COMMON_INTERLEAVE_H_
 
 // vim: foldmethod=marker

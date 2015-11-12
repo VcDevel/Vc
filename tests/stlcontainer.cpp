@@ -65,7 +65,8 @@ TEST_TYPES(V, stdVectorAlignment, (ALL_VECTORS))
     for (int i = 1; i < 100; ++i) {
         std::vector<T, Vc::Allocator<T>> v5(i);
         const size_t expectedAlignment = alignof(V);
-        COMPARE((&v5[0] - static_cast<const T *>(0)) * sizeof(T) & (expectedAlignment - 1), 0u);
+        COMPARE(reinterpret_cast<std::uintptr_t>(v5.data()) & (expectedAlignment - 1), 0u)
+            << "expectedAlignment: " << expectedAlignment;
     }
 }
 
@@ -91,7 +92,7 @@ TEST_TYPES(V, listInitialization, (ALL_VECTORS))
     //listInitialization<V, std::list<V>>();
 }
 
-#ifdef VC_CXX14
+#ifdef Vc_CXX14
 TEST_TYPES(V, simdForEach, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;

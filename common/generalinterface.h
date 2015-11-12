@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,25 +40,14 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////
     // constant Vectors
-    Vc_GPU_CALLABLE explicit
-    Vc_INTRINSIC_L Vector(VectorSpecialInitializerZero::ZEnum) Vc_INTRINSIC_R;
-    
-    Vc_GPU_CALLABLE explicit
-    Vc_INTRINSIC_L Vector(VectorSpecialInitializerOne::OEnum) Vc_INTRINSIC_R;
-    Vc_GPU_CALLABLE explicit
-    Vc_INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero::IEnum) Vc_INTRINSIC_R;
-    
-    Vc_GPU_CALLABLE static Vc_INTRINSIC Vc_CONST Vector Zero()
-    {
-        return Vector(VectorSpecialInitializerZero::Zero);
-    }
-    Vc_GPU_CALLABLE static Vc_INTRINSIC Vc_CONST Vector One()
-    {
-        return Vector(VectorSpecialInitializerOne::One);
-    }
+    Vc_GPU_CALLABLE explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerZero) Vc_INTRINSIC_R;
+    Vc_GPU_CALLABLE explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerOne) Vc_INTRINSIC_R;
+    Vc_GPU_CALLABLE explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero) Vc_INTRINSIC_R;
+    Vc_GPU_CALLABLE static Vc_INTRINSIC Vc_CONST Vector Zero() { return Vector(Vc::Zero); }
+    Vc_GPU_CALLABLE static Vc_INTRINSIC Vc_CONST Vector One() { return Vector(Vc::One); }
     Vc_GPU_CALLABLE static Vc_INTRINSIC Vc_CONST Vector IndexesFromZero()
     {
-        return Vector(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
+        return Vector(Vc::IndexesFromZero);
     }
 
 // vim: foldmethod=marker

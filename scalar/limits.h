@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SCALAR_LIMITS_H
-#define VC_SCALAR_LIMITS_H
+#ifndef VC_SCALAR_LIMITS_H_
+#define VC_SCALAR_LIMITS_H_
 
 
-#endif // VC_SCALAR_LIMITS_H
+#endif // VC_SCALAR_LIMITS_H_

@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_INTRINSICS_H
-#define VC_MIC_INTRINSICS_H
+#ifndef VC_MIC_INTRINSICS_H_
+#define VC_MIC_INTRINSICS_H_
 
-#if defined VC_ICC && VC_ICC >= 20150815
+#if defined Vc_ICC && Vc_ICC >= 20150815
 #  ifdef _ZMMINTRIN_H_INCLUDED
 #    error "Something includes zmmintrin.h before Vc. This breaks the intrinsics interface. Please change the include order."
 #  endif
@@ -393,7 +393,7 @@ template <typename T> struct SwizzledVector;
 template <typename T> struct VectorHelper;
 template <typename T> class VectorMultiplication;
 
-ALIGN(16) extern const char _IndexesFromZero[16];
+alignas(16) extern const char _IndexesFromZero[16];
 
 template <typename T> struct VectorTypeHelper;
 template <> struct VectorTypeHelper<char> { typedef __m512i Type; };
@@ -543,6 +543,4 @@ template <> struct UpDownConversion<int, unsigned int>
 }  // namespace MIC
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif  // VC_MIC_INTRINSICS_H
+#endif  // VC_MIC_INTRINSICS_H_

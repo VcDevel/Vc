@@ -3,7 +3,7 @@
 cd "`dirname "$0"`"
 
 # Read version number
-eval `awk '/VC_VERSION_NUMBER 0x[0-9]+/ { h=$3 }
+eval `awk '/Vc_VERSION_NUMBER 0x[0-9]+/ { h=$3 }
 END {
 major=strtonum(substr(h, 1, 4))
 minor=strtonum("0x" substr(h, 5, 2))
@@ -24,8 +24,8 @@ sed -i \
 	-e "s/^HTML_TIMESTAMP         = YES/HTML_TIMESTAMP         = NO/" \
 	doc/Doxyfile
 sed -i \
-	-e "s/VC_VERSION_STRING \".*\"\$/VC_VERSION_STRING \"$versionString\"/" \
-	-e "s/VC_VERSION_NUMBER 0x.*\$/VC_VERSION_NUMBER $versionNumber/" \
+	-e "s/Vc_VERSION_STRING \".*\"\$/Vc_VERSION_STRING \"$versionString\"/" \
+	-e "s/Vc_VERSION_NUMBER 0x.*\$/Vc_VERSION_NUMBER $versionNumber/" \
 	include/Vc/version.h
 cat include/Vc/version.h
 
@@ -61,8 +61,8 @@ sed -i \
 	-e "s/^HTML_TIMESTAMP         = YES/HTML_TIMESTAMP         = NO/" \
 	doc/Doxyfile
 sed -i \
-	-e "s/VC_VERSION_STRING \".*\"\$/VC_VERSION_STRING \"$versionString\"/" \
-	-e "s/VC_VERSION_NUMBER 0x.*\$/VC_VERSION_NUMBER $versionNumber/" \
+	-e "s/Vc_VERSION_STRING \".*\"\$/Vc_VERSION_STRING \"$versionString\"/" \
+	-e "s/Vc_VERSION_NUMBER 0x.*\$/Vc_VERSION_NUMBER $versionNumber/" \
 	include/Vc/version.h
 # Revert the build_tests change
 sed -i \

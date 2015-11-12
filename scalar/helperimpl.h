@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SCALAR_DEINTERLEAVE_H
-#define VC_SCALAR_DEINTERLEAVE_H
+#ifndef VC_SCALAR_DEINTERLEAVE_H_
+#define VC_SCALAR_DEINTERLEAVE_H_
 
 #include "macros.h"
 
@@ -51,6 +51,4 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *, VectorAbi::Scalar) {}
 }  // namespace Detail
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_SCALAR_DEINTERLEAVE_H
+#endif // VC_SCALAR_DEINTERLEAVE_H_

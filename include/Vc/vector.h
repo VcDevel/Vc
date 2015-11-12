@@ -26,19 +26,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef VC_VECTOR_H_
+#define VC_VECTOR_H_
 
 // 1. define all of Vc::Scalar - this one is always present, so it makes sense to put it first
 #include "scalar/vector.h"
 
-#ifdef VC_IMPL_AVX
+#ifdef Vc_IMPL_AVX
 # include "avx/vector.h"
-#elif defined(VC_IMPL_SSE)
+#elif defined(Vc_IMPL_SSE)
 # include "sse/vector.h"
 #endif
 
-#if defined(VC_IMPL_MIC)
+#if defined(Vc_IMPL_MIC)
 # include "mic/vector.h"
 #endif
 
@@ -137,12 +137,12 @@ namespace Vc_VERSIONED_NAMESPACE
 #endif
 
   namespace {
-    static_assert(double_v::Size == VC_DOUBLE_V_SIZE, "VC_DOUBLE_V_SIZE macro defined to an incorrect value");
-    static_assert(float_v::Size  == VC_FLOAT_V_SIZE , "VC_FLOAT_V_SIZE macro defined to an incorrect value ");
-    static_assert(int_v::Size    == VC_INT_V_SIZE   , "VC_INT_V_SIZE macro defined to an incorrect value   ");
-    static_assert(uint_v::Size   == VC_UINT_V_SIZE  , "VC_UINT_V_SIZE macro defined to an incorrect value  ");
-    static_assert(short_v::Size  == VC_SHORT_V_SIZE , "VC_SHORT_V_SIZE macro defined to an incorrect value ");
-    static_assert(ushort_v::Size == VC_USHORT_V_SIZE, "VC_USHORT_V_SIZE macro defined to an incorrect value");
+    static_assert(double_v::Size == Vc_DOUBLE_V_SIZE, "Vc_DOUBLE_V_SIZE macro defined to an incorrect value");
+    static_assert(float_v::Size  == Vc_FLOAT_V_SIZE , "Vc_FLOAT_V_SIZE macro defined to an incorrect value ");
+    static_assert(int_v::Size    == Vc_INT_V_SIZE   , "Vc_INT_V_SIZE macro defined to an incorrect value   ");
+    static_assert(uint_v::Size   == Vc_UINT_V_SIZE  , "Vc_UINT_V_SIZE macro defined to an incorrect value  ");
+    static_assert(short_v::Size  == Vc_SHORT_V_SIZE , "Vc_SHORT_V_SIZE macro defined to an incorrect value ");
+    static_assert(ushort_v::Size == Vc_USHORT_V_SIZE, "Vc_USHORT_V_SIZE macro defined to an incorrect value");
   }
 }
 
@@ -154,26 +154,28 @@ namespace Vc_VERSIONED_NAMESPACE
 // XXX See bottom of common/simdmaskarray.h:
 //#include "common/simd_cast_caller.tcc"
 
+#include "common/alignedbase.h"
 namespace Vc_VERSIONED_NAMESPACE {
-  using Vc_IMPL_NAMESPACE::VectorAlignment;
+constexpr std::size_t VectorAlignment = alignof(VectorAlignedBase);
+constexpr std::size_t MemoryAlignment = alignof(MemoryAlignedBase);
 } // namespace Vc_VERSIONED_NAMESPACE
 
-#define VC_VECTOR_DECLARED__ 1
+#define Vc_VECTOR_DECLARED__ 1
 
 #include "scalar/helperimpl.h"
 #include "scalar/math.h"
 #include "scalar/simd_cast_caller.tcc"
-#if defined(VC_IMPL_SSE)
+#if defined(Vc_IMPL_SSE)
 # include "sse/helperimpl.h"
 # include "sse/math.h"
 # include "sse/simd_cast_caller.tcc"
 #endif
-#if defined(VC_IMPL_AVX)
+#if defined(Vc_IMPL_AVX)
 # include "avx/helperimpl.h"
 # include "avx/math.h"
 # include "avx/simd_cast_caller.tcc"
 #endif
-#if defined(VC_IMPL_MIC)
+#if defined(Vc_IMPL_MIC)
 # include "mic/helperimpl.h"
 # include "mic/math.h"
 # include "mic/simd_cast_caller.tcc"
@@ -193,19 +195,12 @@ namespace Vc_VERSIONED_NAMESPACE {
 #undef isnan
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
-  using namespace VectorSpecialInitializerZero;
-  using namespace VectorSpecialInitializerOne;
-  using namespace VectorSpecialInitializerIndexesFromZero;
-}
-
 #include "common/vectortuple.h"
 #include "common/algorithms.h"
 #include "common/where.h"
 #include "common/iif.h"
 
-#ifndef VC_NO_STD_FUNCTIONS
+#ifndef Vc_NO_STD_FUNCTIONS
 namespace std
 {
   using Vc::min;
@@ -218,6 +213,7 @@ namespace std
   using Vc::ceil;
   using Vc::cos;
   using Vc::exp;
+  using Vc::fma;
   using Vc::trunc;
   using Vc::floor;
   using Vc::frexp;
@@ -234,4 +230,4 @@ namespace std
 } // namespace std
 #endif
 
-#endif // VECTOR_H
+#endif // VC_VECTOR_H_

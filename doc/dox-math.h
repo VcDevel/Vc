@@ -209,3 +209,23 @@ MASK_TYPE isfinite(const VECTOR_TYPE &x);
  * Returns a mask that tells whether the values in the vector are NaN.
  */
 MASK_TYPE isnan(const VECTOR_TYPE &x);
+
+/**
+ * \ingroup Math
+ *
+ * Multiplies \p a with \p b and then adds \p c, without rounding between the
+ * multiplication and the addition.
+ *
+ * \param a First multiplication factor.
+ * \param b Second multiplication factor.
+ * \param c Summand that will be added after multiplication.
+ *
+ * \note This operation may have explicit hardware support, in which case it is normally faster to
+ * use the FMA instead of separate multiply and add instructions.
+ * \note If the target hardware does not have FMA support this function will be considerably slower
+ * than a normal a * b + c. This is due to the increased precision fusedMultiplyAdd provides.
+ * \note The compiler normally detects opportunities for using the hardware FMA
+ * instructions from normal multiplication and addition/subtraction operators. Use this
+ * function only if you \emph require the additional precision.
+ */
+VECTOR_TYPE fma(VECTOR_TYPE a, VECTOR_TYPE b, VECTOR_TYPE c);

@@ -26,12 +26,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SIMDARRAY_H
-#define VC_COMMON_SIMDARRAY_H
+#ifndef VC_COMMON_SIMDARRAY_H_
+#define VC_COMMON_SIMDARRAY_H_
 
-//#define VC_DEBUG_SIMD_CAST 1
-//#define VC_DEBUG_SORTED 1
-#if defined VC_DEBUG_SIMD_CAST || defined VC_DEBUG_SORTED
+//#define Vc_DEBUG_SIMD_CAST 1
+//#define Vc_DEBUG_SORTED 1
+#if defined Vc_DEBUG_SIMD_CAST || defined Vc_DEBUG_SORTED
 #include <Vc/IO>
 #endif
 
@@ -85,7 +85,7 @@ template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r
 /// @{
 
 // atomic SimdArray {{{1
-#define VC_CURRENT_CLASS_NAME SimdArray
+#define Vc_CURRENT_CLASS_NAME SimdArray
 template <typename T, std::size_t N, typename VectorType_>
 class alignas(
     ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) & 127) +
@@ -119,12 +119,12 @@ public:
     static constexpr std::size_t MemoryAlignment = storage_type::MemoryAlignment;
 
     // zero init
-    SimdArray() = default;
+    Vc_INTRINSIC SimdArray() = default;
 
     // default copy ctor/operator
-    SimdArray(const SimdArray &) = default;
-    SimdArray(SimdArray &&) = default;
-    SimdArray &operator=(const SimdArray &) = default;
+    Vc_INTRINSIC SimdArray(const SimdArray &) = default;
+    Vc_INTRINSIC SimdArray(SimdArray &&) = default;
+    Vc_INTRINSIC SimdArray &operator=(const SimdArray &) = default;
 
     // broadcast
     Vc_INTRINSIC SimdArray(const value_type &a) : data(a) {}
@@ -133,7 +133,7 @@ public:
     template <
         typename U,
         typename = enable_if<std::is_same<U, int>::value && !std::is_same<int, value_type>::value>>
-    SimdArray(U a)
+    Vc_INTRINSIC SimdArray(U a)
         : SimdArray(static_cast<value_type>(a))
     {
     }
@@ -169,12 +169,12 @@ public:
     Vc_INTRINSIC SimdArray(const std::initializer_list<value_type> &init)
         : data(init.begin(), Vc::Unaligned)
     {
-#if defined VC_CXX14 && 0  // doesn't compile yet
+#if defined Vc_CXX14 && 0  // doesn't compile yet
         static_assert(init.size() == size(), "The initializer_list argument to "
                                              "SimdArray<T, N> must contain exactly N "
                                              "values.");
 #else
-        VC_ASSERT(init.size() == size());
+        Vc_ASSERT(init.size() == size());
 #endif
     }
 
@@ -193,7 +193,7 @@ public:
               typename = enable_if<
                   Traits::is_simd_vector<V>::value && !Traits::isSimdArray<V>::value &&
                   std::is_convertible<T, typename V::EntryType>::value && V::size() == N>>
-    operator V() const
+    Vc_INTRINSIC operator V() const
     {
         return simd_cast<V>(*this);
     }
@@ -212,8 +212,8 @@ public:
 
     template <std::size_t Offset>
     explicit Vc_INTRINSIC SimdArray(
-        Common::AddOffset<VectorSpecialInitializerIndexesFromZero::IEnum, Offset>)
-        : data(VectorSpecialInitializerIndexesFromZero::IndexesFromZero)
+        Common::AddOffset<VectorSpecialInitializerIndexesFromZero, Offset>)
+        : data(Vc::IndexesFromZero)
     {
         data += value_type(Offset);
     }
@@ -234,15 +234,15 @@ public:
 
     static Vc_INTRINSIC SimdArray Zero()
     {
-        return SimdArray(VectorSpecialInitializerZero::Zero);
+        return SimdArray(Vc::Zero);
     }
     static Vc_INTRINSIC SimdArray One()
     {
-        return SimdArray(VectorSpecialInitializerOne::One);
+        return SimdArray(Vc::One);
     }
     static Vc_INTRINSIC SimdArray IndexesFromZero()
     {
-        return SimdArray(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
+        return SimdArray(Vc::IndexesFromZero);
     }
     static Vc_INTRINSIC SimdArray Random()
     {
@@ -311,9 +311,9 @@ public:
         data op## = rhs.data;                                                            \
         return *this;                                                                    \
     }
-    VC_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
-    VC_ALL_BINARY(Vc_BINARY_OPERATOR_)
-    VC_ALL_SHIFTS(Vc_BINARY_OPERATOR_)
+    Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
+    Vc_ALL_BINARY(Vc_BINARY_OPERATOR_)
+    Vc_ALL_SHIFTS(Vc_BINARY_OPERATOR_)
 #undef Vc_BINARY_OPERATOR_
 
 #define Vc_COMPARES(op)                                                                  \
@@ -321,7 +321,7 @@ public:
     {                                                                                    \
         return {data op rhs.data};                                                       \
     }
-    VC_ALL_COMPARES(Vc_COMPARES)
+    Vc_ALL_COMPARES(Vc_COMPARES)
 #undef Vc_COMPARES
 
     Vc_INTRINSIC decltype(std::declval<vector_type &>()[0]) operator[](std::size_t i)
@@ -526,12 +526,12 @@ public:
         : data0(init.begin(), Vc::Unaligned)
         , data1(init.begin() + storage_type0::size(), Vc::Unaligned)
     {
-#if defined VC_CXX14 && 0  // doesn't compile yet
+#if defined Vc_CXX14 && 0  // doesn't compile yet
         static_assert(init.size() == size(), "The initializer_list argument to "
                                              "SimdArray<T, N> must contain exactly N "
                                              "values.");
 #else
-        VC_ASSERT(init.size() == size());
+        Vc_ASSERT(init.size() == size());
 #endif
     }
 
@@ -613,21 +613,21 @@ public:
             storage_type0::fromOperation(op, Split::lo(args)...),  // no forward here - it
                                                                    // could move and thus
                                                                    // break the next line
-            storage_type1::fromOperation(op, Split::lo(std::forward<Args>(args))...)};
+            storage_type1::fromOperation(op, Split::hi(std::forward<Args>(args))...)};
         return r;
     }
 
     static Vc_INTRINSIC SimdArray Zero()
     {
-        return SimdArray(VectorSpecialInitializerZero::Zero);
+        return SimdArray(Vc::Zero);
     }
     static Vc_INTRINSIC SimdArray One()
     {
-        return SimdArray(VectorSpecialInitializerOne::One);
+        return SimdArray(Vc::One);
     }
     static Vc_INTRINSIC SimdArray IndexesFromZero()
     {
-        return SimdArray(VectorSpecialInitializerIndexesFromZero::IndexesFromZero);
+        return SimdArray(Vc::IndexesFromZero);
     }
     static Vc_INTRINSIC SimdArray Random()
     {
@@ -705,9 +705,9 @@ public:
         data1 op## = rhs.data1;                                                          \
         return *this;                                                                    \
     }
-    VC_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
-    VC_ALL_BINARY(Vc_BINARY_OPERATOR_)
-    VC_ALL_SHIFTS(Vc_BINARY_OPERATOR_)
+    Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
+    Vc_ALL_BINARY(Vc_BINARY_OPERATOR_)
+    Vc_ALL_SHIFTS(Vc_BINARY_OPERATOR_)
 #undef Vc_BINARY_OPERATOR_
 
 #define Vc_COMPARES(op)                                                                  \
@@ -715,19 +715,19 @@ public:
     {                                                                                    \
         return {data0 op rhs.data0, data1 op rhs.data1};                                 \
     }
-    VC_ALL_COMPARES(Vc_COMPARES)
+    Vc_ALL_COMPARES(Vc_COMPARES)
 #undef Vc_COMPARES
 
     // operator[] {{{2
     Vc_INTRINSIC value_type operator[](std::size_t i) const
     {
-        const auto tmp = reinterpret_cast<const alias_type *>(&data0);
+        const auto tmp = reinterpret_cast<const alias_type *>(this);
         return tmp[i];
     }
 
     Vc_INTRINSIC alias_type &operator[](std::size_t i)
     {
-        auto tmp = reinterpret_cast<alias_type *>(&data0);
+        auto tmp = reinterpret_cast<alias_type *>(this);
         return tmp[i];
     }
 
@@ -764,9 +764,9 @@ public:
                                                                                          \
     Vc_INTRINSIC value_type name__(const mask_type &mask) const                          \
     {                                                                                    \
-        if (VC_IS_UNLIKELY(Split::lo(mask).isEmpty())) {                                 \
+        if (Vc_IS_UNLIKELY(Split::lo(mask).isEmpty())) {                                 \
             return data1.name__(Split::hi(mask));                                        \
-        } else if (VC_IS_UNLIKELY(Split::hi(mask).isEmpty())) {                          \
+        } else if (Vc_IS_UNLIKELY(Split::hi(mask).isEmpty())) {                          \
             return data0.name__(Split::lo(mask));                                        \
         } else {                                                                         \
             return binary_fun__(data0.name__(Split::lo(mask)),                           \
@@ -1005,7 +1005,7 @@ public:
 
     Vc_INTRINSIC SimdArray sortedImpl(std::true_type) const
     {
-#ifdef VC_DEBUG_SORTED
+#ifdef Vc_DEBUG_SORTED
         std::cerr << "-- " << data0 << data1 << '\n';
 #endif
         const auto a = data0.sorted();
@@ -1033,7 +1033,7 @@ public:
          * work.
         const auto a = data0.sorted();
         const auto b = data1.sorted();
-#ifdef VC_DEBUG_SORTED
+#ifdef Vc_DEBUG_SORTED
         std::cerr << "== " << a << b << '\n';
 #endif
         auto aIt = Vc::begin(a);
@@ -1082,7 +1082,7 @@ private: //{{{2
     storage_type0 data0;
     storage_type1 data1;
 };
-#undef VC_CURRENT_CLASS_NAME
+#undef Vc_CURRENT_CLASS_NAME
 template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t SimdArray<T, N, VectorType, M>::Size;
 template <typename T, std::size_t N, typename VectorType, std::size_t M>
 constexpr std::size_t SimdArray<T, N, VectorType, M>::MemoryAlignment;
@@ -1107,7 +1107,7 @@ inline void SimdArray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
                  Split::lo(mask));  // don't forward indexes - it could move and
                                     // thus break the next line
     data1.gather(mem, Split::hi(Common::Operations::gather(), std::forward<IT>(indexes)),
-                 Split::lo(mask));
+                 Split::hi(mask));
 }
 
 // internal_data0/1 (SimdArray) {{{1
@@ -1206,8 +1206,8 @@ template <typename L, typename R>
 using result_vector_type = typename result_vector_type_internal::evaluate<L, R>::type;
 
 static_assert(
-    std::is_same<result_vector_type<short int, Vc_0::SimdArray<short unsigned int, 32ul>>,
-                 Vc_0::SimdArray<short unsigned int, 32ul>>::value,
+    std::is_same<result_vector_type<short int, Vc::SimdArray<short unsigned int, 32ul>>,
+                 Vc::SimdArray<short unsigned int, 32ul>>::value,
     "result_vector_type does not work");
 
 #define Vc_BINARY_OPERATORS_(op__)                                                       \
@@ -1217,8 +1217,8 @@ static_assert(
         using Return = result_vector_type<L, R>;                                         \
         return Return(std::forward<L>(lhs)) op__ Return(std::forward<R>(rhs));           \
     }
-VC_ALL_ARITHMETICS(Vc_BINARY_OPERATORS_)
-VC_ALL_BINARY(Vc_BINARY_OPERATORS_)
+Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATORS_)
+Vc_ALL_BINARY(Vc_BINARY_OPERATORS_)
 #undef Vc_BINARY_OPERATORS_
 #define Vc_BINARY_OPERATORS_(op__)                                                       \
     template <typename L, typename R>                                                    \
@@ -1228,7 +1228,7 @@ VC_ALL_BINARY(Vc_BINARY_OPERATORS_)
         using Promote = result_vector_type<L, R>;                                        \
         return Promote(std::forward<L>(lhs)) op__ Promote(std::forward<R>(rhs));         \
     }
-VC_ALL_COMPARES(Vc_BINARY_OPERATORS_)
+Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_)
 #undef Vc_BINARY_OPERATORS_
 
 // math functions {{{1
@@ -1417,7 +1417,7 @@ Vc_INTRINSIC Vc_CONST
 
 namespace
 {
-#ifdef VC_DEBUG_SIMD_CAST
+#ifdef Vc_DEBUG_SIMD_CAST
 void debugDoNothing(const std::initializer_list<void *> &) {}
 template <typename T0, typename... Ts>
 inline void vc_debug_(const char *prefix, const char *suffix, const T0 &arg0,
@@ -1938,11 +1938,11 @@ namespace Common
 {
     template <int L, typename T, std::size_t N, typename V>
     inline enable_if<L == 4, void> transpose_impl(
-        SimdArray<T, N, V, N> * VC_RESTRICT r[],
+        SimdArray<T, N, V, N> * Vc_RESTRICT r[],
         const TransposeProxy<SimdArray<T, N, V, N>, SimdArray<T, N, V, N>,
                              SimdArray<T, N, V, N>, SimdArray<T, N, V, N>> &proxy)
     {
-        V *VC_RESTRICT r2[L] = {&internal_data(*r[0]), &internal_data(*r[1]),
+        V *Vc_RESTRICT r2[L] = {&internal_data(*r[0]), &internal_data(*r[1]),
                                 &internal_data(*r[2]), &internal_data(*r[3])};
         transpose_impl<L>(
             &r2[0], TransposeProxy<V, V, V, V>{internal_data(std::get<0>(proxy.in)),
@@ -1952,7 +1952,7 @@ namespace Common
     }
     template <int L, typename T, typename V>
     inline enable_if<(L == 2), void> transpose_impl(
-        SimdArray<T, 4, V, 1> *VC_RESTRICT r[],
+        SimdArray<T, 4, V, 1> *Vc_RESTRICT r[],
         const TransposeProxy<SimdArray<T, 2, V, 1>, SimdArray<T, 2, V, 1>,
                              SimdArray<T, 2, V, 1>, SimdArray<T, 2, V, 1>> &proxy)
     {
@@ -1969,12 +1969,12 @@ namespace Common
     }
     template <int L, typename T, std::size_t N, typename V>
     inline enable_if<(L == 4 && N > 1), void> transpose_impl(
-        SimdArray<T, N, V, 1> *VC_RESTRICT r[],
+        SimdArray<T, N, V, 1> *Vc_RESTRICT r[],
         const TransposeProxy<SimdArray<T, N, V, 1>, SimdArray<T, N, V, 1>,
                              SimdArray<T, N, V, 1>, SimdArray<T, N, V, 1>> &proxy)
     {
-        SimdArray<T, N, V, 1> *VC_RESTRICT r0[L / 2] = {r[0], r[1]};
-        SimdArray<T, N, V, 1> *VC_RESTRICT r1[L / 2] = {r[2], r[3]};
+        SimdArray<T, N, V, 1> *Vc_RESTRICT r0[L / 2] = {r[0], r[1]};
+        SimdArray<T, N, V, 1> *Vc_RESTRICT r1[L / 2] = {r[2], r[3]};
         using H = SimdArray<T, 2>;
         transpose_impl<2>(
             &r0[0], TransposeProxy<H, H, H, H>{internal_data0(std::get<0>(proxy.in)),
@@ -1990,12 +1990,12 @@ namespace Common
     /* TODO:
     template <typename T, std::size_t N, typename V, std::size_t VSize>
     inline enable_if<(N > VSize), void> transpose_impl(
-        std::array<SimdArray<T, N, V, VSize> * VC_RESTRICT, 4> & r,
+        std::array<SimdArray<T, N, V, VSize> * Vc_RESTRICT, 4> & r,
         const TransposeProxy<SimdArray<T, N, V, VSize>, SimdArray<T, N, V, VSize>,
                              SimdArray<T, N, V, VSize>, SimdArray<T, N, V, VSize>> &proxy)
     {
         typedef SimdArray<T, N, V, VSize> SA;
-        std::array<typename SA::storage_type0 * VC_RESTRICT, 4> r0 = {
+        std::array<typename SA::storage_type0 * Vc_RESTRICT, 4> r0 = {
             {&internal_data0(*r[0]), &internal_data0(*r[1]), &internal_data0(*r[2]),
              &internal_data0(*r[3])}};
         transpose_impl(
@@ -2006,7 +2006,7 @@ namespace Common
                     internal_data0(std::get<2>(proxy.in)),
                     internal_data0(std::get<3>(proxy.in))});
 
-        std::array<typename SA::storage_type1 * VC_RESTRICT, 4> r1 = {
+        std::array<typename SA::storage_type1 * Vc_RESTRICT, 4> r1 = {
             {&internal_data1(*r[0]), &internal_data1(*r[1]), &internal_data1(*r[2]),
              &internal_data1(*r[3])}};
         transpose_impl(
@@ -2034,8 +2034,6 @@ static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4> &&>::value, ""
 
 } // namespace Vc_VERSIONED_NAMESPACE
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_SIMDARRAY_H
+#endif // VC_COMMON_SIMDARRAY_H_
 
 // vim: foldmethod=marker

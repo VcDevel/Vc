@@ -26,19 +26,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_SUPPORT_H
-#define VC_COMMON_SUPPORT_H
+#ifndef VC_COMMON_SUPPORT_H_
+#define VC_COMMON_SUPPORT_H_
 
-#ifndef VC_GLOBAL_H
+#ifndef VC_GLOBAL_H_
 #error "Vc/global.h must be included first!"
 #endif
 
 #include <Vc/cpuid.h>
 
-#if defined(VC_GCC) && VC_GCC >= 0x40400 && defined __SSE__
-#define VC_TARGET_NO_SIMD __attribute__((target("no-sse2,no-avx")))
+#if defined(Vc_GCC) && Vc_GCC >= 0x40400 && defined __SSE__
+#define Vc_TARGET_NO_SIMD __attribute__((target("no-sse2,no-avx")))
 #else
-#define VC_TARGET_NO_SIMD
+#define Vc_TARGET_NO_SIMD
 #endif
 
 #include "common/macros.h"
@@ -56,7 +56,7 @@ namespace Vc_VERSIONED_NAMESPACE
  *
  * \return A combination of flags from Vc::ExtraInstructions that the current CPU supports.
  */
-VC_TARGET_NO_SIMD
+Vc_TARGET_NO_SIMD
 unsigned int extraInstructionsSupported();
 
 /**
@@ -70,7 +70,7 @@ unsigned int extraInstructionsSupported();
  *
  * \param impl The SIMD target to test for.
  */
-VC_TARGET_NO_SIMD
+Vc_TARGET_NO_SIMD
 bool isImplementationSupported(Vc::Implementation impl);
 
 /**
@@ -93,7 +93,7 @@ bool isImplementationSupported(Vc::Implementation impl);
  * \tparam Impl The SIMD target to test for.
  */
 template<typename Impl>
-VC_TARGET_NO_SIMD
+Vc_TARGET_NO_SIMD
 static inline bool isImplementationSupported()
 {
     return isImplementationSupported(Impl::current()) &&
@@ -108,10 +108,10 @@ static inline bool isImplementationSupported()
  *
  * \return The enum value for the best implementation.
  */
-VC_TARGET_NO_SIMD
+Vc_TARGET_NO_SIMD
 Vc::Implementation bestImplementationSupported();
 
-#ifndef VC_COMPILE_LIB
+#ifndef Vc_COMPILE_LIB
 /**
  * \ingroup Utilities
  * \headerfile support.h <Vc/support.h>
@@ -140,7 +140,7 @@ Vc::Implementation bestImplementationSupported();
  *                 instructions.
  * \return \c false otherwise
  */
-VC_TARGET_NO_SIMD
+Vc_TARGET_NO_SIMD
 #ifndef DOXYGEN
 static
 #endif
@@ -148,12 +148,11 @@ inline bool currentImplementationSupported()
 {
     return isImplementationSupported<Vc::CurrentImplementation>();
 }
-#endif // VC_COMPILE_LIB
+#endif // Vc_COMPILE_LIB
 //@}
 
 }
-#include "common/undomacros.h"
 
-#undef VC_TARGET_NO_SIMD
+#undef Vc_TARGET_NO_SIMD
 
-#endif // VC_COMMON_SUPPORT_H
+#endif // VC_COMMON_SUPPORT_H_

@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef SSE_VECTORHELPER_H
-#define SSE_VECTORHELPER_H
+#ifndef VC_SSE_VECTORHELPER_H_
+#define VC_SSE_VECTORHELPER_H_
 
 #include "types.h"
 #include "../common/loadstoreflags.h"
@@ -39,10 +39,10 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
-#define OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
-#define OP1(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a) { return code; }
-#define OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a, const VectorType b) { return code; }
-#define OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a, const VectorType b, const VectorType c) { return code; }
+#define Vc_OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
+#define Vc_OP1(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a) { return code; }
+#define Vc_OP2(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a, const VectorType b) { return code; }
+#define Vc_OP3(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name(const VectorType a, const VectorType b, const VectorType c) { return code; }
 
         template<> struct VectorHelper<_M128>
         {
@@ -60,9 +60,9 @@ namespace SSE
             // before AVX there was only one maskstore. load -> blend -> store would break the C++ memory model (read/write of memory that is actually not touched by this thread)
             template<typename Flags> static Vc_ALWAYS_INLINE void store(float *mem, VectorType x, VectorType m) { _mm_maskmoveu_si128(_mm_castps_si128(x), _mm_castps_si128(m), reinterpret_cast<char *>(mem)); }
 
-            OP0(allone, _mm_setallone_ps())
-            OP0(zero, _mm_setzero_ps())
-            OP3(blend, blendv_ps(a, b, c))
+            Vc_OP0(allone, _mm_setallone_ps())
+            Vc_OP0(zero, _mm_setzero_ps())
+            Vc_OP3(blend, blendv_ps(a, b, c))
         };
 
 
@@ -82,9 +82,9 @@ namespace SSE
             // before AVX there was only one maskstore. load -> blend -> store would break the C++ memory model (read/write of memory that is actually not touched by this thread)
             template<typename Flags> static Vc_ALWAYS_INLINE void store(double *mem, VectorType x, VectorType m) { _mm_maskmoveu_si128(_mm_castpd_si128(x), _mm_castpd_si128(m), reinterpret_cast<char *>(mem)); }
 
-            OP0(allone, _mm_setallone_pd())
-            OP0(zero, _mm_setzero_pd())
-            OP3(blend, blendv_pd(a, b, c))
+            Vc_OP0(allone, _mm_setallone_pd())
+            Vc_OP0(zero, _mm_setzero_pd())
+            Vc_OP3(blend, blendv_pd(a, b, c))
         };
 
         template<> struct VectorHelper<_M128I>
@@ -103,47 +103,47 @@ namespace SSE
             // before AVX there was only one maskstore. load -> blend -> store would break the C++ memory model (read/write of memory that is actually not touched by this thread)
             template<typename Flags, typename T> static Vc_ALWAYS_INLINE void store(T *mem, VectorType x, VectorType m) { _mm_maskmoveu_si128(x, m, reinterpret_cast<char *>(mem)); }
 
-            OP0(allone, _mm_setallone_si128())
-            OP0(zero, _mm_setzero_si128())
-            OP3(blend, blendv_epi8(a, b, c))
+            Vc_OP0(allone, _mm_setallone_si128())
+            Vc_OP0(zero, _mm_setzero_si128())
+            Vc_OP3(blend, blendv_epi8(a, b, c))
         };
 
-#undef OP1
-#undef OP2
-#undef OP3
+#undef Vc_OP1
+#undef Vc_OP2
+#undef Vc_OP3
 
-#define OP1(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a) { return CAT(_mm_##op##_, SUFFIX)(a); }
-#define OP(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_##op##_ , SUFFIX)(a, b); }
-#define OP_(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_##op    , SUFFIX)(a, b); }
-#define OPx(op, op2) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_##op2##_, SUFFIX)(a, b); }
-#define OPcmp(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType cmp##op(const VectorType a, const VectorType b) { return CAT(_mm_cmp##op##_, SUFFIX)(a, b); }
-#define OP_CAST_(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return CAT(_mm_castps_, SUFFIX)( \
-            _mm_##op##ps(CAT(CAT(_mm_cast, SUFFIX), _ps)(a), \
-              CAT(CAT(_mm_cast, SUFFIX), _ps)(b))); \
+#define Vc_OP1(op) \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a) { return Vc_CAT2(_mm_##op##_, Vc_SUFFIX)(a); }
+#define Vc_OP(op) \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op##_ , Vc_SUFFIX)(a, b); }
+#define Vc_OP_(op) \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op    , Vc_SUFFIX)(a, b); }
+#define Vc_OPx(op, op2) \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op2##_, Vc_SUFFIX)(a, b); }
+#define Vc_OPcmp(op) \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType cmp##op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_cmp##op##_, Vc_SUFFIX)(a, b); }
+#define Vc_OP_CAST_(op) \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_castps_, Vc_SUFFIX)( \
+            _mm_##op##ps(Vc_CAT2(Vc_CAT2(_mm_cast, Vc_SUFFIX), _ps)(a), \
+              Vc_CAT2(Vc_CAT2(_mm_cast, Vc_SUFFIX), _ps)(b))); \
         }
-#define MINMAX \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return CAT(_mm_min_, SUFFIX)(a, b); } \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return CAT(_mm_max_, SUFFIX)(a, b); }
+#define Vc_MINMAX \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return Vc_CAT2(_mm_min_, Vc_SUFFIX)(a, b); } \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return Vc_CAT2(_mm_max_, Vc_SUFFIX)(a, b); }
 
         template<> struct VectorHelper<double> {
             typedef _M128D VectorType;
             typedef double EntryType;
-#define SUFFIX pd
+#define Vc_SUFFIX pd
 
-            OP_(or_) OP_(and_) OP_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_pd(mask), a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a, const double b) { return CAT(_mm_set_, SUFFIX)(a, b); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.); }
+            Vc_OP_(or_) Vc_OP_(and_) Vc_OP_(xor_)
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, Vc_SUFFIX)(_mm_castps_pd(mask), a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a) { return Vc_CAT2(_mm_set1_, Vc_SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const double a, const double b) { return Vc_CAT2(_mm_set_, Vc_SUFFIX)(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, Vc_SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return Vc_CAT2(_mm_setone_, Vc_SUFFIX)(); }// set(1.); }
 
-#ifdef VC_IMPL_FMA4
+#ifdef Vc_IMPL_FMA4
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = _mm_macc_pd(v1, v2, v3);
             }
@@ -151,7 +151,7 @@ namespace SSE
             static inline void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 VectorType h1 = _mm_and_pd(v1, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
                 VectorType h2 = _mm_and_pd(v2, _mm_load_pd(reinterpret_cast<const double *>(&c_general::highMaskDouble)));
-#if defined(VC_GCC) && VC_GCC < 0x40703
+#if defined(Vc_GCC) && Vc_GCC < 0x40703
                 // GCC before 4.7.3 uses an incorrect optimization where it replaces the subtraction with an andnot
                 // http://gcc.gnu.org/bugzilla/show_bug.cgi?id=54703
                 asm("":"+x"(h1), "+x"(h2));
@@ -169,12 +169,12 @@ namespace SSE
             }
 #endif
 
-            OP(add) OP(sub) OP(mul)
-            OPcmp(eq) OPcmp(neq)
-            OPcmp(lt) OPcmp(nlt)
-            OPcmp(le) OPcmp(nle)
+            Vc_OP(add) Vc_OP(sub) Vc_OP(mul)
+            Vc_OPcmp(eq) Vc_OPcmp(neq)
+            Vc_OPcmp(lt) Vc_OPcmp(nlt)
+            Vc_OPcmp(le) Vc_OPcmp(nle)
 
-            OP1(sqrt)
+            Vc_OP1(sqrt)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType rsqrt(VectorType x) {
                 return _mm_div_pd(one(), sqrt(x));
             }
@@ -191,10 +191,10 @@ namespace SSE
                 return _mm_castsi128_pd(cmpeq_epi64(_mm_castpd_si128(abs(x)), _mm_castpd_si128(_mm_load_pd(c_log<double>::d(1)))));
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) {
-                return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_pd());
+                return Vc_CAT2(_mm_and_, Vc_SUFFIX)(a, _mm_setabsmask_pd());
             }
 
-            MINMAX
+            Vc_MINMAX
             static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 a = _mm_min_sd(a, _mm_unpackhi_pd(a, a));
                 return _mm_cvtsd_f64(a);
@@ -211,9 +211,9 @@ namespace SSE
                 a = _mm_add_sd(a, _mm_shuffle_pd(a, a, _MM_SHUFFLE2(0, 1)));
                 return _mm_cvtsd_f64(a);
             }
-#undef SUFFIX
+#undef Vc_SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) {
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
                 return _mm_round_pd(a, _MM_FROUND_NINT);
 #else
                 //XXX: slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -225,17 +225,17 @@ namespace SSE
         template<> struct VectorHelper<float> {
             typedef float EntryType;
             typedef _M128 VectorType;
-#define SUFFIX ps
+#define Vc_SUFFIX ps
 
-            OP_(or_) OP_(and_) OP_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(mask, a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return CAT(_mm_setone_, SUFFIX)(); }// set(1.f); }
+            Vc_OP_(or_) Vc_OP_(and_) Vc_OP_(xor_)
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, Vc_SUFFIX)(mask, a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a) { return Vc_CAT2(_mm_set1_, Vc_SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const float a, const float b, const float c, const float d) { return Vc_CAT2(_mm_set_, Vc_SUFFIX)(a, b, c, d); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, Vc_SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one()  { return Vc_CAT2(_mm_setone_, Vc_SUFFIX)(); }// set(1.f); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128 concat(_M128D a, _M128D b) { return _mm_movelh_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b)); }
 
-#ifdef VC_IMPL_FMA4
+#ifdef Vc_IMPL_FMA4
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
                 v1 = _mm_macc_ps(v1, v2, v3);
             }
@@ -253,12 +253,12 @@ namespace SSE
             }
 #endif
 
-            OP(add) OP(sub) OP(mul)
-            OPcmp(eq) OPcmp(neq)
-            OPcmp(lt) OPcmp(nlt)
-            OPcmp(le) OPcmp(nle)
+            Vc_OP(add) Vc_OP(sub) Vc_OP(mul)
+            Vc_OPcmp(eq) Vc_OPcmp(neq)
+            Vc_OPcmp(lt) Vc_OPcmp(nlt)
+            Vc_OPcmp(le) Vc_OPcmp(nle)
 
-            OP1(sqrt) OP1(rsqrt)
+            Vc_OP1(sqrt) Vc_OP1(rsqrt)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType isNaN(VectorType x) {
                 return _mm_cmpunord_ps(x, x);
             }
@@ -272,10 +272,10 @@ namespace SSE
                 return _mm_rcp_ps(x);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) {
-                return CAT(_mm_and_, SUFFIX)(a, _mm_setabsmask_ps());
+                return Vc_CAT2(_mm_and_, Vc_SUFFIX)(a, _mm_setabsmask_ps());
             }
 
-            MINMAX
+            Vc_MINMAX
             static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 a = _mm_min_ps(a, _mm_movehl_ps(a, a));   // a = min(a0, a2), min(a1, a3), min(a2, a2), min(a3, a3)
                 a = _mm_min_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = min(a0, a1), a1, a2, a3
@@ -296,9 +296,9 @@ namespace SSE
                 a = _mm_add_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 2, 0, 1)));
                 return _mm_cvtss_f32(a);
             }
-#undef SUFFIX
+#undef Vc_SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) {
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
                 return _mm_round_ps(a, _MM_FROUND_NINT);
 #else
                 //XXX slow: _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -310,25 +310,25 @@ namespace SSE
         template<> struct VectorHelper<int> {
             typedef int EntryType;
             typedef _M128I VectorType;
-#define SUFFIX si128
+#define Vc_SUFFIX si128
 
-            OP_(or_) OP_(and_) OP_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
-#undef SUFFIX
-#define SUFFIX epi32
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
+            Vc_OP_(or_) Vc_OP_(and_) Vc_OP_(xor_)
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, Vc_SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, Vc_SUFFIX)(_mm_castps_si128(mask), a); }
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epi32
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return Vc_CAT2(_mm_setone_, Vc_SUFFIX)(); }
 
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a, const int b, const int c, const int d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a) { return Vc_CAT2(_mm_set1_, Vc_SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const int a, const int b, const int c, const int d) { return Vc_CAT2(_mm_set_, Vc_SUFFIX)(a, b, c, d); }
 
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
-                return CAT(_mm_slli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_slli_, Vc_SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
-                return CAT(_mm_srai_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_srai_, Vc_SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) { return abs_epi32(a); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epi32(a, b); }
@@ -350,7 +350,7 @@ namespace SSE
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-#ifdef VC_IMPL_SSE4_1
+#ifdef Vc_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(VectorType a, VectorType b) { return _mm_mullo_epi32(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
                 a = mul(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
@@ -367,29 +367,29 @@ namespace SSE
             }
 #endif
 
-            OP(add) OP(sub)
-            OPcmp(eq)
-            OPcmp(lt)
-            OPcmp(gt)
+            Vc_OP(add) Vc_OP(sub)
+            Vc_OPcmp(eq)
+            Vc_OPcmp(lt)
+            Vc_OPcmp(gt)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(const VectorType a, const VectorType b) { _M128I x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnlt(const VectorType a, const VectorType b) { _M128I x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmple (const VectorType a, const VectorType b) { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
-#undef SUFFIX
+#undef Vc_SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<unsigned int> {
             typedef unsigned int EntryType;
             typedef _M128I VectorType;
-#define SUFFIX si128
-            OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+#define Vc_SUFFIX si128
+            Vc_OP_CAST_(or_) Vc_OP_CAST_(and_) Vc_OP_CAST_(xor_)
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, Vc_SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, Vc_SUFFIX)(_mm_castps_si128(mask), a); }
 
-#undef SUFFIX
-#define SUFFIX epu32
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epu32
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return Vc_CAT2(_mm_setone_, Vc_SUFFIX)(); }
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epu32(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epu32(a, b); }
@@ -442,19 +442,19 @@ namespace SSE
 //X                 return mul(a, set(b));
 //X             }
 
-#undef SUFFIX
-#define SUFFIX epi32
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epi32
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
-                return CAT(_mm_slli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_slli_, Vc_SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
-                return CAT(_mm_srli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_srli_, Vc_SUFFIX)(a, shift);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a) { return CAT(_mm_set1_, SUFFIX)(a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) { return CAT(_mm_set_, SUFFIX)(a, b, c, d); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a) { return Vc_CAT2(_mm_set1_, Vc_SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const unsigned int a, const unsigned int b, const unsigned int c, const unsigned int d) { return Vc_CAT2(_mm_set_, Vc_SUFFIX)(a, b, c, d); }
 
-            OP(add) OP(sub)
-            OPcmp(eq)
+            Vc_OP(add) Vc_OP(sub)
+            Vc_OPcmp(eq)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
@@ -465,43 +465,43 @@ namespace SSE
                 return _mm_cmpgt_epu32(a, b);
             }
 #else
-            OPcmp(lt)
-            OPcmp(gt)
+            Vc_OPcmp(lt)
+            Vc_OPcmp(gt)
 #endif
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnlt(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmple (const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 
-#undef SUFFIX
+#undef Vc_SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<signed short> {
             typedef _M128I VectorType;
             typedef signed short EntryType;
-#define SUFFIX si128
+#define Vc_SUFFIX si128
 
-            OP_(or_) OP_(and_) OP_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
+            Vc_OP_(or_) Vc_OP_(and_) Vc_OP_(xor_)
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, Vc_SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, Vc_SUFFIX)(_mm_castps_si128(mask), a); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packs_epi32(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_srai_epi32(_mm_unpacklo_epi16(x, x), 16); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_srai_epi32(_mm_unpackhi_epi16(x, x), 16); }
 
-#undef SUFFIX
-#define SUFFIX epi16
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epi16
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return Vc_CAT2(_mm_setone_, Vc_SUFFIX)(); }
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
-                return CAT(_mm_slli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_slli_, Vc_SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
-                return CAT(_mm_srai_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_srai_, Vc_SUFFIX)(a, shift);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return Vc_CAT2(_mm_set1_, Vc_SUFFIX)(a); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a, const EntryType b, const EntryType c, const EntryType d,
                     const EntryType e, const EntryType f, const EntryType g, const EntryType h) {
-                return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
+                return Vc_CAT2(_mm_set_, Vc_SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) {
@@ -509,8 +509,8 @@ namespace SSE
 
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) { return abs_epi16(a); }
 
-            OPx(mul, mullo)
-            OP(min) OP(max)
+            Vc_OPx(mul, mullo)
+            Vc_OP(min) Vc_OP(max)
             static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
                 a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
@@ -538,26 +538,26 @@ namespace SSE
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
 
-            OP(add) OP(sub)
-            OPcmp(eq)
-            OPcmp(lt)
-            OPcmp(gt)
+            Vc_OP(add) Vc_OP(sub)
+            Vc_OPcmp(eq)
+            Vc_OPcmp(lt)
+            Vc_OPcmp(gt)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(const VectorType a, const VectorType b) { _M128I x = cmpeq(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnlt(const VectorType a, const VectorType b) { _M128I x = cmplt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmple (const VectorType a, const VectorType b) { _M128I x = cmpgt(a, b); return _mm_andnot_si128(x, _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
-#undef SUFFIX
+#undef Vc_SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
         };
 
         template<> struct VectorHelper<unsigned short> {
             typedef _M128I VectorType;
             typedef unsigned short EntryType;
-#define SUFFIX si128
-            OP_CAST_(or_) OP_CAST_(and_) OP_CAST_(xor_)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return CAT(_mm_setzero_, SUFFIX)(); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return CAT(_mm_and_, SUFFIX)(_mm_castps_si128(mask), a); }
-#ifdef VC_IMPL_SSE4_1
+#define Vc_SUFFIX si128
+            Vc_OP_CAST_(or_) Vc_OP_CAST_(and_) Vc_OP_CAST_(xor_)
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType zero() { return Vc_CAT2(_mm_setzero_, Vc_SUFFIX)(); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType notMaskedToZero(VectorType a, _M128 mask) { return Vc_CAT2(_mm_and_, Vc_SUFFIX)(_mm_castps_si128(mask), a); }
+#ifdef Vc_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST _M128I concat(_M128I a, _M128I b) { return _mm_packus_epi32(a, b); }
 #else
             // FIXME too bad, but this is broken without SSE 4.1
@@ -572,9 +572,9 @@ namespace SSE
             static Vc_ALWAYS_INLINE Vc_CONST _M128I expand0(_M128I x) { return _mm_unpacklo_epi16(x, _mm_setzero_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST _M128I expand1(_M128I x) { return _mm_unpackhi_epi16(x, _mm_setzero_si128()); }
 
-#undef SUFFIX
-#define SUFFIX epu16
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return CAT(_mm_setone_, SUFFIX)(); }
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epu16
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return Vc_CAT2(_mm_setone_, Vc_SUFFIX)(); }
 
 //X             template<unsigned int b> static Vc_ALWAYS_INLINE Vc_CONST VectorType mul(const VectorType a) {
 //X                 switch (b) {
@@ -594,24 +594,24 @@ namespace SSE
 //X                 }
 //X                 return mul(a, set(b));
 //X             }
-#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || VC_IMPL_SSE4_1
+#if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || Vc_IMPL_SSE4_1
             static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epu16(a, b); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epu16(a, b); }
 #endif
-#undef SUFFIX
-#define SUFFIX epi16
+#undef Vc_SUFFIX
+#define Vc_SUFFIX epi16
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftLeft(VectorType a, int shift) {
-                return CAT(_mm_slli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_slli_, Vc_SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType shiftRight(VectorType a, int shift) {
-                return CAT(_mm_srli_, SUFFIX)(a, shift);
+                return Vc_CAT2(_mm_srli_, Vc_SUFFIX)(a, shift);
             }
 
             static Vc_ALWAYS_INLINE void fma(VectorType &v1, VectorType v2, VectorType v3) { v1 = add(mul(v1, v2), v3); }
 
-            OPx(mul, mullo) // should work correctly for all values
-#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(VC_IMPL_SSE4_1)
-            OP(min) OP(max) // XXX breaks for values with MSB set
+            Vc_OPx(mul, mullo) // should work correctly for all values
+#if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(Vc_IMPL_SSE4_1)
+            Vc_OP(min) Vc_OP(max) // XXX breaks for values with MSB set
 #endif
             static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
@@ -641,15 +641,15 @@ namespace SSE
                 a = add(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return CAT(_mm_set1_, SUFFIX)(a); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a) { return Vc_CAT2(_mm_set1_, Vc_SUFFIX)(a); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a, const EntryType b, const EntryType c,
                     const EntryType d, const EntryType e, const EntryType f,
                     const EntryType g, const EntryType h) {
-                return CAT(_mm_set_, SUFFIX)(a, b, c, d, e, f, g, h);
+                return Vc_CAT2(_mm_set_, Vc_SUFFIX)(a, b, c, d, e, f, g, h);
             }
 
-            OP(add) OP(sub)
-            OPcmp(eq)
+            Vc_OP(add) Vc_OP(sub)
+            Vc_OPcmp(eq)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
 
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
@@ -660,27 +660,26 @@ namespace SSE
                 return cmpgt_epu16(a, b);
             }
 #else
-            OPcmp(lt)
-            OPcmp(gt)
+            Vc_OPcmp(lt)
+            Vc_OPcmp(gt)
 #endif
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnlt(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmple (const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
-#undef SUFFIX
+#undef Vc_SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
         };
-#undef OP1
-#undef OP
-#undef OP_
-#undef OPx
-#undef OPcmp
-#undef OP_CAST_
-#undef MINMAX
+#undef Vc_OP1
+#undef Vc_OP
+#undef Vc_OP_
+#undef Vc_OPx
+#undef Vc_OPcmp
+#undef Vc_OP_CAST_
+#undef Vc_MINMAX
 
 }  // namespace SSE
 }  // namespace Vc
 
 #include "vectorhelper.tcc"
-#include "undomacros.h"
 
-#endif // SSE_VECTORHELPER_H
+#endif // VC_SSE_VECTORHELPER_H_

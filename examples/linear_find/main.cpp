@@ -64,7 +64,7 @@ struct less<Vc::SimdArray<T, N>>
 };
 }  // namespace std
 
-namespace Vc_0
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <class Iterator, class T, class C>
 inline Iterator lower_bound(Iterator first, Iterator last,

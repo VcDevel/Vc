@@ -38,33 +38,33 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 ///////////////////////////////////////////////////////////////////////////////////////////
 // constants {{{1
-template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerZero::ZEnum) : d{} {}
+template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerZero) : d{} {}
 
-template <> Vc_INTRINSIC AVX2::double_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_pd()) {}
-template <> Vc_INTRINSIC  AVX2::float_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_ps()) {}
-#ifdef VC_IMPL_AVX2
-template <> Vc_INTRINSIC    AVX2::int_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epi32()) {}
-template <> Vc_INTRINSIC   AVX2::uint_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu32()) {}
-template <> Vc_INTRINSIC  AVX2::short_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epi16()) {}
-template <> Vc_INTRINSIC AVX2::ushort_v::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu16()) {}
-template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epi8()) {}
-template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne::OEnum) : d(AVX::setone_epu8()) {}
+template <> Vc_INTRINSIC AVX2::double_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_pd()) {}
+template <> Vc_INTRINSIC  AVX2::float_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_ps()) {}
+#ifdef Vc_IMPL_AVX2
+template <> Vc_INTRINSIC    AVX2::int_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi32()) {}
+template <> Vc_INTRINSIC   AVX2::uint_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu32()) {}
+template <> Vc_INTRINSIC  AVX2::short_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi16()) {}
+template <> Vc_INTRINSIC AVX2::ushort_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu16()) {}
+template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi8()) {}
+template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu8()) {}
 #endif
 
 template <typename T>
 Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx>::Vector(
-    VectorSpecialInitializerIndexesFromZero::IEnum)
+    VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<T>::address(), Vc::Aligned)
 {
 }
 
 template <>
-Vc_ALWAYS_INLINE AVX2::float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+Vc_ALWAYS_INLINE AVX2::float_v::Vector(VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<int>::address(), Vc::Aligned)
 {
 }
 template <>
-Vc_ALWAYS_INLINE AVX2::double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
+Vc_ALWAYS_INLINE AVX2::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<int>::address(), Vc::Aligned)
 {
 }
@@ -84,15 +84,15 @@ Vc_INTRINSIC void Vector<DstT, VectorAbi::Avx>::load(const SrcT *mem, Flags flag
 // zeroing {{{1
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZero()
 {
-    data() = HV::zero();
+    data() = Detail::zero<VectorType>();
 }
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZero(const Mask &k)
 {
-    data() = HV::andnot_(AVX::avx_cast<VectorType>(k.data()), data());
+    data() = Detail::andnot_(AVX::avx_cast<VectorType>(k.data()), data());
 }
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZeroInverted(const Mask &k)
 {
-    data() = HV::and_(AVX::avx_cast<VectorType>(k.data()), data());
+    data() = Detail::and_(AVX::avx_cast<VectorType>(k.data()), data());
 }
 
 template<> Vc_INTRINSIC void AVX2::double_v::setQnan()
@@ -142,25 +142,24 @@ template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator
     if (HasVectorDivision) {
         return operator/=(AVX2::Vector<T>(x));
     }
-    for_all_vector_entries(i, { d.set(i, d.m(i) / x); });
+    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x); });
     return *this;
 }
 // per default fall back to scalar division
-template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator/=(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
+template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator/=(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
 {
-    for_all_vector_entries(i, { d.set(i, d.m(i) / x.d.m(i)); });
+    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x.d.m(i)); });
     return *this;
 }
 
-template<typename T> inline Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator/(VC_ALIGNED_PARAMETER(AVX2::Vector<T>) x) const
+template<typename T> inline Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator/(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x) const
 {
     AVX2::Vector<T> r;
-    for_all_vector_entries(i,
-            r.d.set(i, d.m(i) / x.d.m(i));
-            );
+    Common::for_all_vector_entries<Size>(
+        [&](size_t i) { r.d.set(i, d.m(i) / x.d.m(i)); });
     return r;
 }
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 // specialize division on type
 static Vc_INTRINSIC __m256i Vc_CONST divInt(__m256i a, __m256i b)
 {
@@ -174,12 +173,12 @@ static Vc_INTRINSIC __m256i Vc_CONST divInt(__m256i a, __m256i b)
             _mm256_cvttpd_epi32(_mm256_div_pd(hi1, hi2))
             );
 }
-template<> inline AVX2::int_v &AVX2::int_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::int_v) x)
+template<> inline AVX2::int_v &AVX2::int_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::int_v) x)
 {
     d.v() = divInt(d.v(), x.d.v());
     return *this;
 }
-template<> inline AVX2::int_v Vc_PURE AVX2::int_v::operator/(VC_ALIGNED_PARAMETER(AVX2::int_v) x) const
+template<> inline AVX2::int_v Vc_PURE AVX2::int_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::int_v) x) const
 {
     return divInt(d.v(), x.d.v());
 }
@@ -203,12 +202,12 @@ static inline __m256i Vc_CONST divUInt(__m256i a, __m256i b) {
         avx_cast<__m256>(a),
         avx_cast<__m256>(cmpeq_epi32(b, setone_epi32()))));
 }
-template<> Vc_ALWAYS_INLINE AVX2::uint_v &AVX2::uint_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::uint_v) x)
+template<> Vc_ALWAYS_INLINE AVX2::uint_v &AVX2::uint_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::uint_v) x)
 {
     d.v() = divUInt(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_ALWAYS_INLINE AVX2::uint_v Vc_PURE AVX2::uint_v::operator/(VC_ALIGNED_PARAMETER(AVX2::uint_v) x) const
+template<> Vc_ALWAYS_INLINE AVX2::uint_v Vc_PURE AVX2::uint_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::uint_v) x) const
 {
     return divUInt(d.v(), x.d.v());
 }
@@ -221,57 +220,57 @@ template <typename T> static inline __m256i Vc_CONST divShort(__m256i a, __m256i
         _mm256_div_ps(convert<T, float>(hi128(a)), convert<T, float>(hi128(b)));
     if (std::is_same<T, ushort>::value) {
         const float_v threshold = 32767.f;
-        const __m128i loShort = (VC_IS_UNLIKELY((float_v(lo) > threshold).isNotEmpty()))
+        const __m128i loShort = (Vc_IS_UNLIKELY((float_v(lo) > threshold).isNotEmpty()))
                                     ? convert<float, ushort>(lo)
                                     : convert<float, short>(lo);
-        const __m128i hiShort = (VC_IS_UNLIKELY((float_v(hi) > threshold).isNotEmpty()))
+        const __m128i hiShort = (Vc_IS_UNLIKELY((float_v(hi) > threshold).isNotEmpty()))
                                     ? convert<float, ushort>(hi)
                                     : convert<float, short>(hi);
         return concat(loShort, hiShort);
     }
     return concat(convert<float, short>(lo), convert<float, short>(hi));
 }
-template<> Vc_ALWAYS_INLINE AVX2::short_v &AVX2::short_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::short_v) x)
+template<> Vc_ALWAYS_INLINE AVX2::short_v &AVX2::short_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::short_v) x)
 {
     d.v() = divShort<short>(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_ALWAYS_INLINE AVX2::short_v Vc_PURE AVX2::short_v::operator/(VC_ALIGNED_PARAMETER(AVX2::short_v) x) const
+template<> Vc_ALWAYS_INLINE AVX2::short_v Vc_PURE AVX2::short_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::short_v) x) const
 {
     return divShort<short>(d.v(), x.d.v());
 }
-template<> Vc_ALWAYS_INLINE AVX2::ushort_v &AVX2::ushort_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::ushort_v) x)
+template<> Vc_ALWAYS_INLINE AVX2::ushort_v &AVX2::ushort_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::ushort_v) x)
 {
     d.v() = divShort<unsigned short>(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_ALWAYS_INLINE AVX2::ushort_v Vc_PURE AVX2::ushort_v::operator/(VC_ALIGNED_PARAMETER(AVX2::ushort_v) x) const
+template<> Vc_ALWAYS_INLINE AVX2::ushort_v Vc_PURE AVX2::ushort_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::ushort_v) x) const
 {
     return divShort<unsigned short>(d.v(), x.d.v());
 }
 #endif
-template<> Vc_INTRINSIC AVX2::float_v &AVX2::float_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::float_v) x)
+template<> Vc_INTRINSIC AVX2::float_v &AVX2::float_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::float_v) x)
 {
     d.v() = _mm256_div_ps(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_INTRINSIC AVX2::float_v Vc_PURE AVX2::float_v::operator/(VC_ALIGNED_PARAMETER(AVX2::float_v) x) const
+template<> Vc_INTRINSIC AVX2::float_v Vc_PURE AVX2::float_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::float_v) x) const
 {
     return _mm256_div_ps(d.v(), x.d.v());
 }
-template<> Vc_INTRINSIC AVX2::double_v &AVX2::double_v::operator/=(VC_ALIGNED_PARAMETER(AVX2::double_v) x)
+template<> Vc_INTRINSIC AVX2::double_v &AVX2::double_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::double_v) x)
 {
     d.v() = _mm256_div_pd(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_INTRINSIC AVX2::double_v Vc_PURE AVX2::double_v::operator/(VC_ALIGNED_PARAMETER(AVX2::double_v) x) const
+template<> Vc_INTRINSIC AVX2::double_v Vc_PURE AVX2::double_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::double_v) x) const
 {
     return _mm256_div_pd(d.v(), x.d.v());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 template <typename T>
 inline Vc_PURE Vector<T, VectorAbi::Avx> Vector<T, VectorAbi::Avx>::operator%(
     const Vector &n) const
@@ -279,30 +278,33 @@ inline Vc_PURE Vector<T, VectorAbi::Avx> Vector<T, VectorAbi::Avx>::operator%(
     return *this - n * (*this / n);
 }
 
-#define OP_IMPL(T, symbol)                                                               \
-    template <> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(AsArg x)       \
+#define Vc_OP_IMPL(T, symbol)                                                            \
+    template <>                                                                          \
+    Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(     \
+        AsArg x)                                                                         \
     {                                                                                    \
         Common::unrolled_loop<std::size_t, 0, Size>(                                     \
             [&](std::size_t i) { d.set(i, d.m(i) symbol x.d.m(i)); });                   \
         return *this;                                                                    \
     }                                                                                    \
     template <>                                                                          \
-    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol(AsArg x) const         \
+    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol( \
+        AsArg x) const                                                                   \
     {                                                                                    \
-        AVX2::Vector<T> r;                                                                     \
+        AVX2::Vector<T> r;                                                               \
         Common::unrolled_loop<std::size_t, 0, Size>(                                     \
             [&](std::size_t i) { r.d.set(i, d.m(i) symbol x.d.m(i)); });                 \
         return r;                                                                        \
     }
-OP_IMPL(int, <<)
-OP_IMPL(int, >>)
-OP_IMPL(unsigned int, <<)
-OP_IMPL(unsigned int, >>)
-OP_IMPL(short, <<)
-OP_IMPL(short, >>)
-OP_IMPL(unsigned short, <<)
-OP_IMPL(unsigned short, >>)
-#undef OP_IMPL
+Vc_OP_IMPL(int, <<)
+Vc_OP_IMPL(int, >>)
+Vc_OP_IMPL(unsigned int, <<)
+Vc_OP_IMPL(unsigned int, >>)
+Vc_OP_IMPL(short, <<)
+Vc_OP_IMPL(short, >>)
+Vc_OP_IMPL(unsigned short, <<)
+Vc_OP_IMPL(unsigned short, >>)
+#undef Vc_OP_IMPL
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator>>=(int shift) {
@@ -320,32 +322,43 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAb
     return Detail::shiftLeft(d.v(), shift, T());
 }
 
-#define OP_IMPL(T, symbol, fun) \
-  template<> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(AsArg x) { d.v() = HV::fun(d.v(), x.d.v()); return *this; } \
-  template<> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T>  Vector<T, VectorAbi::Avx>::operator symbol(AsArg x) const { return AVX2::Vector<T>(HV::fun(d.v(), x.d.v())); }
-#ifdef VC_IMPL_AVX2
-  OP_IMPL(int, &, and_)
-  OP_IMPL(int, |, or_)
-  OP_IMPL(int, ^, xor_)
-  OP_IMPL(unsigned int, &, and_)
-  OP_IMPL(unsigned int, |, or_)
-  OP_IMPL(unsigned int, ^, xor_)
-  OP_IMPL(short, &, and_)
-  OP_IMPL(short, |, or_)
-  OP_IMPL(short, ^, xor_)
-  OP_IMPL(unsigned short, &, and_)
-  OP_IMPL(unsigned short, |, or_)
-  OP_IMPL(unsigned short, ^, xor_)
+#define Vc_OP_IMPL(T, symbol, fun)                                                       \
+    template <>                                                                          \
+    Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(     \
+        AsArg x)                                                                         \
+    {                                                                                    \
+        d.v() = Detail::fun(d.v(), x.d.v());                                             \
+        return *this;                                                                    \
+    }                                                                                    \
+    template <>                                                                          \
+    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol( \
+        AsArg x) const                                                                   \
+    {                                                                                    \
+        return AVX2::Vector<T>(Detail::fun(d.v(), x.d.v()));                             \
+    }
+#ifdef Vc_IMPL_AVX2
+  Vc_OP_IMPL(int, &, and_)
+  Vc_OP_IMPL(int, |, or_)
+  Vc_OP_IMPL(int, ^, xor_)
+  Vc_OP_IMPL(unsigned int, &, and_)
+  Vc_OP_IMPL(unsigned int, |, or_)
+  Vc_OP_IMPL(unsigned int, ^, xor_)
+  Vc_OP_IMPL(short, &, and_)
+  Vc_OP_IMPL(short, |, or_)
+  Vc_OP_IMPL(short, ^, xor_)
+  Vc_OP_IMPL(unsigned short, &, and_)
+  Vc_OP_IMPL(unsigned short, |, or_)
+  Vc_OP_IMPL(unsigned short, ^, xor_)
 #endif
-#ifdef VC_ENABLE_FLOAT_BIT_OPERATORS
-  OP_IMPL(float, &, and_)
-  OP_IMPL(float, |, or_)
-  OP_IMPL(float, ^, xor_)
-  OP_IMPL(double, &, and_)
-  OP_IMPL(double, |, or_)
-  OP_IMPL(double, ^, xor_)
+#ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
+  Vc_OP_IMPL(float, &, and_)
+  Vc_OP_IMPL(float, |, or_)
+  Vc_OP_IMPL(float, ^, xor_)
+  Vc_OP_IMPL(double, &, and_)
+  Vc_OP_IMPL(double, |, or_)
+  Vc_OP_IMPL(double, ^, xor_)
 #endif
-#undef OP_IMPL
+#undef Vc_OP_IMPL
 
 // isNegative {{{1
 template<> Vc_INTRINSIC Vc_PURE AVX2::float_m AVX2::float_v::isNegative() const
@@ -380,7 +393,7 @@ inline void AVX2::float_v::gatherImplementation(const MT *mem, IT &&indexes)
                            mem[indexes[7]]);
 }
 
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 template <>
 template <typename MT, typename IT>
 inline void AVX2::int_v::gatherImplementation(const MT *mem, IT &&indexes)
@@ -429,12 +442,12 @@ template <typename MT, typename IT>
 inline void Vector<T, VectorAbi::Avx>::gatherImplementation(const MT *mem, IT &&indexes, MaskArgument mask)
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
-#ifdef VC_USE_SET_GATHERS
+#ifdef Vc_USE_SET_GATHERS
           Traits::is_simd_vector<IT>::value ? Common::GatherScatterImplementation::SetIndexZero :
 #endif
-#ifdef VC_USE_BSF_GATHERS
+#ifdef Vc_USE_BSF_GATHERS
                                             Common::GatherScatterImplementation::BitScanLoop
-#elif defined VC_USE_POPCNT_BSF_GATHERS
+#elif defined Vc_USE_POPCNT_BSF_GATHERS
               Common::GatherScatterImplementation::PopcntSwitch
 #else
               Common::GatherScatterImplementation::SimpleLoop
@@ -455,12 +468,12 @@ template <typename MT, typename IT>
 inline void Vector<T, VectorAbi::Avx>::scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const
 {
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
-#ifdef VC_USE_SET_GATHERS
+#ifdef Vc_USE_SET_GATHERS
           Traits::is_simd_vector<IT>::value ? Common::GatherScatterImplementation::SetIndexZero :
 #endif
-#ifdef VC_USE_BSF_GATHERS
+#ifdef Vc_USE_BSF_GATHERS
                                             Common::GatherScatterImplementation::BitScanLoop
-#elif defined VC_USE_POPCNT_BSF_GATHERS
+#elif defined Vc_USE_POPCNT_BSF_GATHERS
               Common::GatherScatterImplementation::PopcntSwitch
 #else
               Common::GatherScatterImplementation::SimpleLoop
@@ -469,7 +482,7 @@ inline void Vector<T, VectorAbi::Avx>::scatterImplementation(MT *mem, IT &&index
     Common::executeScatter(Selector(), *this, mem, indexes, mask);
 }
 
-#if defined(VC_MSVC) && VC_MSVC >= 170000000
+#if defined(Vc_MSVC) && Vc_MSVC >= 170000000
 // MSVC miscompiles the store mem[indexes[1]] = d.m(1) for T = (u)short
 template <>
 template <typename MT, typename IT>
@@ -503,7 +516,7 @@ Vc_ALWAYS_INLINE void AVX2::ushort_v::scatterImplementation(MT *mem, IT &&indexe
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
-#ifdef VC_USE_BUILTIN_VECTOR_TYPES
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator-() const
 {
     return VectorType(-d.builtin());
@@ -634,13 +647,13 @@ template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryT
 }
 template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::product(MaskArg m) const
 {
-    AVX2::Vector<T> tmp(VectorSpecialInitializerOne::One);
+    AVX2::Vector<T> tmp(Vc::One);
     tmp(m) = *this;
     return tmp.product();
 }
 template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::sum(MaskArg m) const
 {
-    AVX2::Vector<T> tmp(VectorSpecialInitializerZero::Zero);
+    AVX2::Vector<T> tmp(Vc::Zero);
     tmp(m) = *this;
     return tmp.sum();
 }//}}}
@@ -684,19 +697,19 @@ Vc_INTRINSIC Vc_CONST __m256d exponent(__m256d v)
 
 template<> Vc_INTRINSIC AVX2::float_v AVX2::float_v::exponent() const
 {
-    VC_ASSERT((*this >= 0.f).isFull());
+    Vc_ASSERT((*this >= 0.f).isFull());
     return Detail::exponent(d.v());
 }
 template<> Vc_INTRINSIC AVX2::double_v AVX2::double_v::exponent() const
 {
-    VC_ASSERT((*this >= 0.).isFull());
+    Vc_ASSERT((*this >= 0.).isFull());
     return Detail::exponent(d.v());
 }
 // }}}1
 // Random {{{1
 static Vc_ALWAYS_INLINE __m256i _doRandomStep()
 {
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
     AVX2::uint_v state0(&Common::RandomState[0]);
     AVX2::uint_v state1(&Common::RandomState[AVX2::uint_v::Size]);
     (state1 * 0xdeece66du + 11).store(&Common::RandomState[AVX2::uint_v::Size]);
@@ -715,7 +728,7 @@ static Vc_ALWAYS_INLINE __m256i _doRandomStep()
 #endif
 }
 
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::Random()
 {
     return {_doRandomStep()};
@@ -724,7 +737,7 @@ template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> Vector<T, VectorAbi::Avx>:
 
 template <> Vc_ALWAYS_INLINE AVX2::float_v AVX2::float_v::Random()
 {
-    return HT::sub(HV::or_(_cast(AVX::srli_epi32<2>(_doRandomStep())), HT::one()),
+    return HT::sub(Detail::or_(_cast(AVX::srli_epi32<2>(_doRandomStep())), HT::one()),
                    HT::one());
 }
 
@@ -736,7 +749,7 @@ template<> Vc_ALWAYS_INLINE AVX2::double_v AVX2::double_v::Random()
         const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
         *reinterpret_cast<uint64 *>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
     }
-    return HT::sub(HV::or_(_cast(AVX::srli_epi64<12>(state)), HT::one()), HT::one());
+    return HT::sub(Detail::or_(_cast(AVX::srli_epi64<12>(state)), HT::one()), HT::one());
 }
 // }}}1
 // shifted / rotated {{{1
@@ -804,7 +817,7 @@ template <> Vc_INTRINSIC AVX2::float_v AVX2::float_v::interleaveHigh(AVX2::float
     return Mem::shuffle128<X1, Y1>(_mm256_unpacklo_ps(data(), x.data()),
                                    _mm256_unpackhi_ps(data(), x.data()));
 }
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 template <> Vc_INTRINSIC    AVX2::int_v    AVX2::int_v::interleaveLow (   AVX2::int_v x) const {
     return Mem::shuffle128<X0, Y0>(_mm256_unpacklo_epi32(data(), x.data()),
                                    _mm256_unpackhi_epi32(data(), x.data()));
@@ -859,7 +872,7 @@ template <> template <typename G> Vc_INTRINSIC AVX2::float_v AVX2::float_v::gene
     const auto tmp7 = gen(7);
     return _mm256_setr_ps(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
 }
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 template <> template <typename G> Vc_INTRINSIC AVX2::int_v AVX2::int_v::generate(G gen)
 {
     const auto tmp0 = gen(0);
@@ -935,7 +948,7 @@ template <> Vc_INTRINSIC Vc_PURE AVX2::float_v AVX2::float_v::operator[](Permuta
 {
     return Mem::permute128<X1, X0>(Mem::permute<X3, X2, X1, X0>(d.v()));
 }
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 template <>
 Vc_INTRINSIC Vc_PURE AVX2::int_v AVX2::int_v::operator[](Permutation::ReversedTag) const
 {
@@ -967,7 +980,7 @@ template <> Vc_INTRINSIC AVX2::float_v AVX2::float_v::operator[](const IndexType
 {
     // TODO
     return *this;
-#ifdef VC_IMPL_AVX2
+#ifdef Vc_IMPL_AVX2
 #else
     /*
     const int_m cross128 = AVX::concat(_mm_cmpgt_epi32(AVX::lo128(perm.data()), _mm_set1_epi32(3)),
@@ -1003,7 +1016,5 @@ template <> template <int Index> Vc_INTRINSIC AVX2::double_v AVX2::double_v::bro
 }
 // }}}1
 }  // namespace Vc
-
-#include "undomacros.h"
 
 // vim: foldmethod=marker

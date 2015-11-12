@@ -90,7 +90,7 @@ template<> inline const char *filename<double, Log2  >() { return "reference-log
 template<> inline const char *filename<float , Log10 >() { return "reference-log10-sp.dat"; }
 template<> inline const char *filename<double, Log10 >() { return "reference-log10-dp.dat"; }
 
-#ifdef VC_IMPL_MIC
+#ifdef Vc_IMPL_MIC
 extern "C" {
 extern const Reference<double> _binary_reference_acos_dp_dat_start;
 extern const Reference<double> _binary_reference_acos_dp_dat_end;
@@ -228,7 +228,7 @@ binary<Reference<double>, Log10>()
 template<typename T>
 static Array<SincosReference<T> > sincosReference()
 {
-#ifdef VC_IMPL_MIC
+#ifdef Vc_IMPL_MIC
     const auto range = binary<SincosReference<T>, Sincos>();
     return {range.second - range.first, range.first};
 #else
@@ -255,7 +255,7 @@ static Array<SincosReference<T> > sincosReference()
 template<typename T, Function Fun>
 static Array<Reference<T> > referenceData()
 {
-#ifdef VC_IMPL_MIC
+#ifdef Vc_IMPL_MIC
     const auto range = binary<Reference<T>, Fun>();
     return {range.second - range.first, range.first};
 #else
@@ -300,13 +300,20 @@ TEST(prepareDenormals) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testAbs, (int_v, float_v, double_v, short_v)) //{{{1
+// testAbs{{{1
+TEST_TYPES(Vec, testAbs, (int_v, float_v, double_v, short_v, SimdArray<int, 8>,
+                          SimdArray<int, 2>, SimdArray<int, 7>))
 {
-    for (int i = 0; i < 0x7fff; ++i) {
-        Vec a(i);
-        Vec b(-i);
+    for (int i = 0; i < 0x7fff - int(Vec::size()); ++i) {
+        Vec a = Vec::IndexesFromZero() + i;
+        Vec b = -a;
         COMPARE(a, Vc::abs(a));
         COMPARE(a, Vc::abs(b));
+    }
+    for (int i = 0; i < 1000; ++i) {
+        const Vec a = Vec::Random();
+        const Vec ref = Vec::generate([&](int j) { return std::abs(a[j]); });
+        COMPARE(abs(a), ref) << "a : " << a;
     }
 }
 
@@ -364,7 +371,7 @@ TEST_TYPES(V, testExp, REAL_TYPES) //{{{1
 
 TEST_TYPES(V, testLog, REAL_TYPES) //{{{1
 {
-#ifdef VC_IMPL_MIC
+#ifdef Vc_IMPL_MIC
     UnitTest::setFuzzyness<float>(2);
 #else
     UnitTest::setFuzzyness<float>(1);
@@ -390,12 +397,12 @@ TEST_TYPES(V, testLog, REAL_TYPES) //{{{1
 
 TEST_TYPES(V, testLog2, REAL_TYPES) //{{{1
 {
-#if defined(VC_LOG_ILP) || defined(VC_LOG_ILP2)
+#if defined(Vc_LOG_ILP) || defined(Vc_LOG_ILP2)
     UnitTest::setFuzzyness<float>(3);
 #else
     UnitTest::setFuzzyness<float>(1);
 #endif
-#if (defined(VC_MSVC) || defined(__APPLE__)) && defined(VC_IMPL_Scalar)
+#if (defined(Vc_MSVC) || defined(__APPLE__)) && defined(Vc_IMPL_Scalar)
     UnitTest::setFuzzyness<double>(2);
 #else
     UnitTest::setFuzzyness<double>(1);
@@ -548,7 +555,7 @@ TEST_TYPES(V, testCos, REAL_TYPES) //{{{1
 TEST_TYPES(V, testAsin, REAL_TYPES) //{{{1
 {
     typedef typename V::EntryType T;
-#ifdef VC_IMPL_MIC
+#ifdef Vc_IMPL_MIC
     UnitTest::setFuzzyness<float>(3);
 #else
     UnitTest::setFuzzyness<float>(2);
@@ -571,7 +578,7 @@ const union {
     float value;
 } INF = { 0x7f800000 };
 
-#if defined(__APPLE__) && defined(VC_IMPL_Scalar)
+#if defined(__APPLE__) && defined(Vc_IMPL_Scalar)
 #define ATAN_COMPARE FUZZY_COMPARE
 #else
 #define ATAN_COMPARE COMPARE
@@ -590,7 +597,7 @@ TEST_TYPES(V, testAtan, REAL_TYPES) //{{{1
 
         VERIFY(all_of(Vc::isnan(Vc::atan(nan))));
         ATAN_COMPARE(Vc::atan(+inf), +Pi_2);
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
 #pragma warning(suppress: 4756) // overflow in constant arithmetic
 #endif
         ATAN_COMPARE(Vc::atan(-inf), -Pi_2);

@@ -1,5 +1,5 @@
 /*{{{
-    Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+    Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 
     Permission to use, copy, modify, and distribute this software
     and its documentation for any purpose and without fee is hereby
@@ -74,6 +74,11 @@ template <typename V, int Modulo> static V randomIndexes()
             indexes[i] = (indexes[i] + 1) % Modulo;
         }
     }
+    if (V::size() > 1) {
+        VERIFY(none_of(indexes.sorted() == indexes.sorted().rotated(1)))
+            << "\nindexes must not contain duplicate values, otherwise the scatter tests "
+               "will fail without actually doing anything wrong!\nindexes: " << indexes;
+    }
     return indexes;
 }
 
@@ -146,14 +151,15 @@ TEST_TYPES(V, scatters, ALL_TYPES)
         //std::cerr << data1 << '\n';
 
         for (size_t i = 0; i < V::Size; ++i) {
-            COMPARE(data1[indexes[i]], T(i + 1)) << indexes[i];
-            COMPARE(data2[indexes[i]], T(i + 1)) << indexes[i];
+            COMPARE(data1[indexes[i]], T(i + 1)) << ", indexes: " << indexes
+                                                 << ", i: " << i << ", data1:\n" << data1;
+            COMPARE(data2[indexes[i]], T(i + 1)) << ", indexes: " << indexes
+                                                 << ", i: " << i << ", data2:\n" << data2;
         }
     }
 }
 
-template <typename T> struct S
-{
+template <typename T, std::size_t Align = alignof(T)> struct S {
     void operator=(int x)
     {
         a = x;
@@ -161,11 +167,11 @@ template <typename T> struct S
         c = x + 2;
     }
     double x0;
-    T a;
+    alignas(Align) T a;
     char x1;
-    T b;
+    alignas(Align) T b;
     short x2;
-    T c;
+    alignas(Align) T c;
     char x3;
 };
 
@@ -173,7 +179,7 @@ TEST_TYPES(V, structGathers, ALL_TYPES)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
-    Vc::array<S<T>, 256> data1;
+    Vc::array<S<T, alignof(T)>, 256> data1;
     Vc::array<S<S<T>>, 256> data2;
     Vc::array<S<S<S<T>>>, 256> data3;
     Vc::array<S<S<S<S<T>>>>, 256> data4;

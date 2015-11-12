@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_MAKECONTAINER_H
-#define VC_COMMON_MAKECONTAINER_H
+#ifndef VC_COMMON_MAKECONTAINER_H_
+#define VC_COMMON_MAKECONTAINER_H_
 
 #include <Vc/vector.h>
 #include <initializer_list>
@@ -76,8 +76,8 @@ namespace Vc_VERSIONED_NAMESPACE
             static constexpr std::size_t size = (N + (V::Size - 1)) / V::Size;
             typedef Container<V, size> C;
             static inline C help(std::initializer_list<T> list) {
-                VC_ASSERT(N == list.size())
-                VC_ASSERT(size == (list.size() + (V::Size - 1)) / V::Size)
+                Vc_ASSERT(N == list.size())
+                Vc_ASSERT(size == (list.size() + (V::Size - 1)) / V::Size)
                 C v;
                 auto containerIt = v.begin();
                 auto init = std::begin(list);
@@ -113,9 +113,9 @@ namespace Vc_VERSIONED_NAMESPACE
      * Example:
      * \code
      * auto data = Vc::makeContainer<std::vector<float_v>>({ 1.f, 2.f, 3.f, 4.f, 5.f });
-     * // data.size() == 5 if float_v::Size == 1 (i.e. VC_IMPL=Scalar)
-     * // data.size() == 2 if float_v::Size == 4 (i.e. VC_IMPL=SSE)
-     * // data.size() == 1 if float_v::Size == 8 (i.e. VC_IMPL=AVX)
+     * // data.size() == 5 if float_v::Size == 1 (i.e. Vc_IMPL=Scalar)
+     * // data.size() == 2 if float_v::Size == 4 (i.e. Vc_IMPL=SSE)
+     * // data.size() == 1 if float_v::Size == 8 (i.e. Vc_IMPL=AVX)
      * \endcode
      */
     template<typename Container, typename T>
@@ -132,6 +132,4 @@ namespace Vc_VERSIONED_NAMESPACE
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_MAKECONTAINER_H
+#endif // VC_COMMON_MAKECONTAINER_H_

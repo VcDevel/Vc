@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -39,21 +39,21 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace MIC
 {
-    ALIGN(16) extern const char _IndexesFromZero[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    alignas(16) extern const char _IndexesFromZero[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-    ALIGN(8) const unsigned       int c_general::absMaskFloat[2] = { 0xffffffffu, 0x7fffffffu };
-    ALIGN(8) const unsigned       int c_general::signMaskFloat[2] = { 0x0u, 0x80000000u };
+    alignas(8) const unsigned       int c_general::absMaskFloat[2] = { 0xffffffffu, 0x7fffffffu };
+    alignas(8) const unsigned       int c_general::signMaskFloat[2] = { 0x0u, 0x80000000u };
     const              float c_general::oneFloat = 1.f;
     const unsigned       int c_general::highMaskFloat = 0xfffff000u;
-    ALIGN(4) const unsigned     short c_general::minShort[2] = { 0x8000u, 0x8000u };
-    ALIGN(4) const unsigned     short c_general::one16[2] = { 1, 1 };
+    alignas(4) const unsigned     short c_general::minShort[2] = { 0x8000u, 0x8000u };
+    alignas(4) const unsigned     short c_general::one16[2] = { 1, 1 };
     const              float c_general::_2power31 = 1u << 31;
 
     const             double c_general::oneDouble = 1.;
     const unsigned long long c_general::frexpMask = 0xbfefffffffffffffull;
     const unsigned long long c_general::highMaskDouble = 0xfffffffff8000000ull;
 
-    ALIGN(16) const unsigned char c_general::frexpAndMask[16] = {
+    alignas(16) const unsigned char c_general::frexpAndMask[16] = {
         1, 0, 2, 0, 4, 0, 8, 0, 16, 0, 32, 0, 64, 0, 128, 0
     };
 }
@@ -63,7 +63,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-ALIGN(64) unsigned int RandomState[32] = {
+alignas(64) unsigned int RandomState[32] = {
     0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
     0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
     0x36ed2684u, 0xfb1f049du, 0x19e52f31u, 0x821e4dd7u,
@@ -75,9 +75,9 @@ ALIGN(64) unsigned int RandomState[32] = {
     0xa94dc0a0u, 0xf6fef349u, 0xcaee8edbu, 0x74af8a26u
 };
 
-const char LIBRARY_VERSION[] = VC_VERSION_STRING;
-const unsigned int LIBRARY_VERSION_NUMBER = VC_VERSION_NUMBER;
-const unsigned int LIBRARY_ABI_VERSION = VC_LIBRARY_ABI_VERSION;
+const char LIBRARY_VERSION[] = Vc_VERSION_STRING;
+const unsigned int LIBRARY_VERSION_NUMBER = Vc_VERSION_NUMBER;
+const unsigned int LIBRARY_ABI_VERSION = Vc_LIBRARY_ABI_VERSION;
 
 void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
     if (LIBRARY_ABI_VERSION != compileTimeAbi || LIBRARY_VERSION_NUMBER < versionNumber) {

@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_MASK_H
-#define VC_AVX_MASK_H
+#ifndef VC_AVX_MASK_H_
+#define VC_AVX_MASK_H_
 
 #include <array>
 
@@ -71,7 +71,7 @@ public:
     using VectorTypeI = AVX::IntegerVectorType<VectorTypeF>;
 
 private:
-#ifdef VC_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
     typedef const VectorTypeF &VArg;
     typedef const VectorTypeD &VdArg;
     typedef const VectorTypeI &ViArg;
@@ -85,7 +85,7 @@ public:
     static constexpr size_t Size = sizeof(VectorTypeF) / sizeof(T);
     static constexpr size_t MemoryAlignment = Size;
     static constexpr std::size_t size() { return Size; }
-    FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
 private:
     typedef Common::Storage<T, size()> Storage;
@@ -100,7 +100,7 @@ public:
     using EntryReference = Common::MaskEntry<Mask>;
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
-#if defined VC_MSVC && defined _WIN32
+#if defined Vc_MSVC && defined _WIN32
         typedef const Mask &AsArg;
 #else
         typedef const Mask AsArg;
@@ -110,14 +110,14 @@ public:
         Vc_INTRINSIC Mask(VArg  x) : d(AVX::avx_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(VdArg x) : d(AVX::avx_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(ViArg x) : d(AVX::avx_cast<VectorType>(x)) {}
-        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : d(Detail::zero<VectorType>()) {}
-        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : d(Detail::allone<VectorType>()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero) : d(Detail::zero<VectorType>()) {}
+        Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne) : d(Detail::allone<VectorType>()) {}
         Vc_INTRINSIC explicit Mask(bool b)
             : d(b ? Detail::allone<VectorType>() : Detail::zero<VectorType>())
         {
         }
-        Vc_INTRINSIC static Mask Zero() { return Mask{VectorSpecialInitializerZero::Zero}; }
-        Vc_INTRINSIC static Mask One() { return Mask{VectorSpecialInitializerOne::One}; }
+        Vc_INTRINSIC static Mask Zero() { return Mask{Vc::Zero}; }
+        Vc_INTRINSIC static Mask One() { return Mask{Vc::One}; }
 
         // implicit cast
         template <typename U>
@@ -195,7 +195,7 @@ public:
         void setEntry(size_t i, bool x) { d.set(i, Common::MaskBool<sizeof(T)>(x)); }
 
     private:
-#ifdef VC_COMPILE_BENCHMARKS
+#ifdef Vc_COMPILE_BENCHMARKS
     public:
 #endif
         Storage d;
@@ -206,6 +206,5 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::MemoryAlignment;
 }  // namespace Vc
 
 #include "mask.tcc"
-#include "undomacros.h"
 
-#endif // VC_AVX_MASK_H
+#endif // VC_AVX_MASK_H_

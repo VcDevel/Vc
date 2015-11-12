@@ -6,7 +6,7 @@
 
 using namespace Vc;
 float_v
-#ifdef VC_MSVC
+#ifdef Vc_MSVC
 __declspec(dllexport)
 #endif
 name(fooLib1, POSTFIX)(float_v::AsArg a)

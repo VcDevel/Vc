@@ -26,12 +26,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_HELPERIMPL_H
-#define VC_MIC_HELPERIMPL_H
+#ifndef VC_MIC_HELPERIMPL_H_
+#define VC_MIC_HELPERIMPL_H_
 
 #include "macros.h"
 #include "deinterleave.tcc"
 #include "prefetches.tcc"
-#include "undomacros.h"
 
-#endif // VC_MIC_HELPERIMPL_H
+#endif // VC_MIC_HELPERIMPL_H_

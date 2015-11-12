@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_CONST_H
-#define VC_COMMON_CONST_H
+#ifndef VC_COMMON_CONST_H_
+#define VC_COMMON_CONST_H_
 
 #include <type_traits>
 #include <Vc/global.h>
@@ -90,4 +90,4 @@ template <int sign, unsigned int mantissa, int exponent> constexpr float floatCo
 }  // namespace Detail
 }  // namespace Vc
 
-#endif // VC_COMMON_CONST_H
+#endif // VC_COMMON_CONST_H_

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "unittest-old.h"
 
-#if defined(VC_ICC) || (defined(VC_GCC) && VC_GCC < 0x40800)
+#if defined(Vc_ICC) || (defined(Vc_GCC) && Vc_GCC < 0x40800)
 class A {} __attribute__((aligned(64)));
 #else
 class alignas(64) A {};

@@ -463,7 +463,7 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
  * templates with non-type parameters. This is impossible to express with variadic
  * templates and therefore requires a lot of code duplication.
  */
-#ifdef VC_ICC
+#ifdef Vc_ICC
 // ICC barfs on packs of values
 #define Vc_DEFINE_NONTYPE_REPLACETYPES__(ValueType__)                                    \
     template <template <typename, ValueType__...> class C, typename T,                   \
@@ -626,7 +626,7 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
             C<T0, T1, T2, Value0, Values...>,                                            \
             Adapter<C<T0, T1, T2, Value0, Values...>, Substituted, NN>> type;            \
     }
-#endif  // VC_ICC
+#endif  // Vc_ICC
 Vc_DEFINE_NONTYPE_REPLACETYPES__(bool);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(wchar_t);
 Vc_DEFINE_NONTYPE_REPLACETYPES__(char);
@@ -776,7 +776,11 @@ public:
     Adapter() = default;
 
     /// Defaulted copy and move construction and assignment
+#if defined Vc_CLANG && Vc_CLANG < 0x30700
+    Vc_INTRINSIC Adapter(const Adapter &x) : Base(x) {}
+#else
     Adapter(const Adapter &) = default;
+#endif
     /// Defaulted copy and move construction and assignment
     Adapter(Adapter &&) = default;
     /// Defaulted copy and move construction and assignment
@@ -1385,7 +1389,7 @@ public:
     {
         T it(scalar_it);
         for (size_t i = 1; i < Size; ++i) {
-            VC_ASSERT((++it != rhs.scalar_it));
+            Vc_ASSERT((++it != rhs.scalar_it));
         }
         return scalar_it == rhs.scalar_it;
     }
@@ -1401,7 +1405,7 @@ public:
     {
         T it(scalar_it);
         for (size_t i = 1; i < Size; ++i) {
-            VC_ASSERT((++it != rhs.scalar_it));
+            Vc_ASSERT((++it != rhs.scalar_it));
         }
         return scalar_it != rhs.scalar_it;
     }
@@ -1524,7 +1528,7 @@ public:
     difference_type operator-(const Iterator &rhs) const
     {
         constexpr difference_type n = Size;
-        VC_ASSERT((scalar_it - rhs.scalar_it) % n ==
+        Vc_ASSERT((scalar_it - rhs.scalar_it) % n ==
                   0);  // if this fails the two iterators are not a multiple of the vector
                        // width apart. The distance would be fractional and that doesn't
                        // make too much sense for iteration. Therefore, it is a
@@ -1696,8 +1700,6 @@ namespace std
 {
 using Vc::SimdizeDetail::swap;
 }  // namespace std
-
-#include "undomacros.h"
 
 #endif  // VC_COMMON_SIMDIZE_H_
 

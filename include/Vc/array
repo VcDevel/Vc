@@ -26,8 +26,8 @@
  *  This is a modified Standard C++ Library header.
  */
 
-#ifndef VC_STL_ARRAY
-#define VC_STL_ARRAY 1
+#ifndef VC_STL_ARRAY_
+#define VC_STL_ARRAY_ 1
 
 #include <stdexcept>
 #include <algorithm>
@@ -370,8 +370,6 @@ static_assert(has_no_allocated_data<Vc::array<int, 256> &&>::value, "");
 
 } // namespace Vc
 
-#include "common/undomacros.h"
-
-#endif // VC_STL_ARRAY
+#endif // VC_STL_ARRAY_
 
 // vim: ft=cpp

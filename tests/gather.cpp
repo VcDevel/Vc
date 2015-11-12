@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <Vc/array>
 
-#define ALL_TYPES (ALL_VECTORS)
+#define ALL_TYPES (ALL_VECTORS, SimdArray<int, 7>)
 
 using namespace Vc;
 
@@ -134,13 +134,13 @@ TEST_TYPES(Vec, gatherArray, ALL_TYPES)
     COMPARE(a, Vec(One));
 }
 
-template<typename T> struct Struct
+template<typename T, std::size_t Align> struct Struct
 {
-    T a;
+    alignas(Align) T a;
     char x;
-    T b;
+    alignas(Align) T b;
     short y;
-    T c;
+    alignas(Align) T c;
     char z;
 };
 
@@ -148,7 +148,7 @@ TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
-    typedef Struct<T> S;
+    typedef Struct<T, alignof(T)> S;
     constexpr int count = 3999;
     Vc::array<S, count> array;
     for (int i = 0; i < count; ++i) {
@@ -207,7 +207,14 @@ TEST_TYPES(Vec, gather2dim, ALL_TYPES)
     Vc::array<S, count> array;
     for (int i = 0; i < count; ++i) {
         for (int j = 0; j < count; ++j) {
+#ifdef Vc_GCC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
             array[i].data[j] = 2 * i + j + 1;
+#ifdef Vc_GCC
+#pragma GCC diagnostic pop
+#endif
         }
     }
 

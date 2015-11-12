@@ -26,14 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef V_ALIGN
-# ifdef __GNUC__
-#  define V_ALIGN(n) __attribute__((aligned(n)))
-# else
-#  define V_ALIGN(n) __declspec(align(n))
-# endif
-#endif
-
 #include "avx/const_data.h"
 #include "sse/const_data.h"
 #include <Vc/version.h>
@@ -53,11 +45,12 @@ namespace AVX
     using Detail::floatConstant;
 
     // cacheline 1
-    V_ALIGN(64) extern const unsigned int   _IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    V_ALIGN(16) extern const unsigned short _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-    V_ALIGN(16) extern const unsigned char  _IndexesFromZero8 [32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+    alignas(64) extern const unsigned int   _IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    alignas(16) extern const unsigned short _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    alignas(16) extern const unsigned char  _IndexesFromZero8 [32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
 
-    template<> const double c_trig<double>::data[] = {
+    template <>
+    alignas(64) const double c_trig<double>::data[] = {
     // cacheline 4
         doubleConstant<1, 0x921fb54442d18ull, -1>(), // π/4
         doubleConstant<1, 0x921fb40000000ull, -1>(), // π/4 - 30bits precision
@@ -127,74 +120,75 @@ namespace AVX
         doubleConstant< 1, 0x1705684ffbf9dull,  7>(), // asinCoeff3
         doubleConstant<-1, 0x898220a3607acull,  5>(), // asinCoeff3
     };
-#define _4(x) x
-    template<> const float c_trig<float>::data[] = {
+#define Vc_4(x) x
+    template <>
+    alignas(64) const float c_trig<float>::data[] = {
     // cacheline
-        _4((floatConstant< 1, 0x490FDB,  -1>())), // π/4
-        _4((floatConstant< 1, 0x491000,  -1>())), // π/4 - 12 bits precision
-        _4((floatConstant<-1, 0x157000, -19>())), // π/4 remainder1 - 12 bits precision
-        _4((floatConstant<-1, 0x6F4B9F, -32>())), // π/4 remainder2
-        _4(0.0625f),
-        _4(16.f),
-        _4(0.f), // padding
-        _4(0.f), // padding
-        _4(4.166664568298827e-2f),  // ~ 1/4!
-        _4(-1.388731625493765e-3f), // ~-1/6!
-        _4(2.443315711809948e-5f),  // ~ 1/8!
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(-1.6666654611e-1f), // ~-1/3!
-        _4(8.3321608736e-3f),  // ~ 1/5!
+        Vc_4((floatConstant< 1, 0x490FDB,  -1>())), // π/4
+        Vc_4((floatConstant< 1, 0x491000,  -1>())), // π/4 - 12 bits precision
+        Vc_4((floatConstant<-1, 0x157000, -19>())), // π/4 remainder1 - 12 bits precision
+        Vc_4((floatConstant<-1, 0x6F4B9F, -32>())), // π/4 remainder2
+        Vc_4(0.0625f),
+        Vc_4(16.f),
+        Vc_4(0.f), // padding
+        Vc_4(0.f), // padding
+        Vc_4(4.166664568298827e-2f),  // ~ 1/4!
+        Vc_4(-1.388731625493765e-3f), // ~-1/6!
+        Vc_4(2.443315711809948e-5f),  // ~ 1/8!
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(-1.6666654611e-1f), // ~-1/3!
+        Vc_4(8.3321608736e-3f),  // ~ 1/5!
     // cacheline
-        _4(-1.9515295891e-4f), // ~-1/7!
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(8192.f), // loss threshold
-        _4((floatConstant<1, 0x22F983, 0>())), // 1.27323949337005615234375 = 4/π
-        _4((floatConstant<1, 0x490FDB, 0>())), // π/2
-        _4((floatConstant<1, 0x490FDB, 1>())), // π
-        _4(8.05374449538e-2f), // atan P coefficients
-        _4(1.38776856032e-1f), // atan P coefficients
-        _4(1.99777106478e-1f), // atan P coefficients
-        _4(3.33329491539e-1f), // atan P coefficients
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(-1.9515295891e-4f), // ~-1/7!
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(8192.f), // loss threshold
+        Vc_4((floatConstant<1, 0x22F983, 0>())), // 1.27323949337005615234375 = 4/π
+        Vc_4((floatConstant<1, 0x490FDB, 0>())), // π/2
+        Vc_4((floatConstant<1, 0x490FDB, 1>())), // π
+        Vc_4(8.05374449538e-2f), // atan P coefficients
+        Vc_4(1.38776856032e-1f), // atan P coefficients
+        Vc_4(1.99777106478e-1f), // atan P coefficients
+        Vc_4(3.33329491539e-1f), // atan P coefficients
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(2.414213562373095f), // tan( 3/8 π )
-        _4(0.414213562373095f), // tan( 1/8 π ) lower threshold for special casing in atan
-        _4((floatConstant<-1, 0x3BBD2E, -25>())), // remainder of pi/2
-        _4(1.e-4f), // small asin input threshold
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(4.2163199048e-2f), // asinCoeff0
-        _4(2.4181311049e-2f), // asinCoeff0
-        _4(4.5470025998e-2f), // asinCoeff0
-        _4(7.4953002686e-2f), // asinCoeff0
-        _4(1.6666752422e-1f), // asinCoeff0
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(2.414213562373095f), // tan( 3/8 π )
+        Vc_4(0.414213562373095f), // tan( 1/8 π ) lower threshold for special casing in atan
+        Vc_4((floatConstant<-1, 0x3BBD2E, -25>())), // remainder of pi/2
+        Vc_4(1.e-4f), // small asin input threshold
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(4.2163199048e-2f), // asinCoeff0
+        Vc_4(2.4181311049e-2f), // asinCoeff0
+        Vc_4(4.5470025998e-2f), // asinCoeff0
+        Vc_4(7.4953002686e-2f), // asinCoeff0
+        Vc_4(1.6666752422e-1f), // asinCoeff0
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     };
-#undef _4
+#undef Vc_4
 
     const unsigned       int c_general::absMaskFloat[2] = { 0xffffffffu, 0x7fffffffu };
     const unsigned       int c_general::signMaskFloat[2] = { 0x0u, 0x80000000u };
@@ -209,7 +203,7 @@ namespace AVX
     const             double c_general::oneDouble = 1.;
     const unsigned long long c_general::frexpMask = 0xbfefffffffffffffull;
 
-    const unsigned long long c_log<double>::data[21] = {
+    alignas(64) const unsigned long long c_log<double>::data[21] = {
         0x000003ff000003ffull // bias TODO: remove
       , 0x7ff0000000000000ull // exponentMask (+inf)
 
@@ -236,7 +230,8 @@ namespace AVX
       , 0x3ff71547652b82feull // log2(e)
     };
 
-    template<> const unsigned int c_log<float>::data[21] = {
+    template <>
+    alignas(64) const unsigned int c_log<float>::data[21] = {
         0x0000007fu // bias TODO: remove
       , 0x7f800000u // exponentMask (+inf)
 
@@ -268,25 +263,20 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-    V_ALIGN(64) unsigned int RandomState[16] = {
+    alignas(64) unsigned int RandomState[16] = {
         0x5a383a4fu, 0xc68bd45eu, 0x691d6d86u, 0xb367e14fu,
         0xd689dbaau, 0xfde442aau, 0x3d265423u, 0x1a77885cu,
         0x36ed2684u, 0xfb1f049du, 0x19e52f31u, 0x821e4dd7u,
         0x23996d25u, 0x5962725au, 0x6aced4ceu, 0xd4c610f3u
     };
 
-    V_ALIGN(32) const unsigned int AllBitsSet[8] = {
+    alignas(32) const unsigned int AllBitsSet[8] = {
         0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU
     };
 
-    // dummy symbol to emit warnings with GCC 4.3
-    namespace Warnings {
-        void _operator_bracket_warning() {}
-    } // namespace Warnings
-
-    const char LIBRARY_VERSION[] = VC_VERSION_STRING;
-    const unsigned int LIBRARY_VERSION_NUMBER = VC_VERSION_NUMBER;
-    const unsigned int LIBRARY_ABI_VERSION = VC_LIBRARY_ABI_VERSION;
+    const char LIBRARY_VERSION[] = Vc_VERSION_STRING;
+    const unsigned int LIBRARY_VERSION_NUMBER = Vc_VERSION_NUMBER;
+    const unsigned int LIBRARY_ABI_VERSION = Vc_LIBRARY_ABI_VERSION;
 
     void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
         if (LIBRARY_ABI_VERSION != compileTimeAbi || LIBRARY_VERSION_NUMBER < versionNumber) {
@@ -305,188 +295,190 @@ namespace SSE
     using Detail::floatConstant;
 
     // cacheline 1
-    V_ALIGN(64) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
-    V_ALIGN(16) const unsigned int c_general::signMaskFloat[4] = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
-    V_ALIGN(16) const unsigned int c_general::highMaskFloat[4] = { 0xfffff000u, 0xfffff000u, 0xfffff000u, 0xfffff000u };
-    V_ALIGN(16) const short c_general::minShort[8] = { -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000 };
-    V_ALIGN(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    alignas(64) const int c_general::absMaskFloat[4] = { 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff };
+    alignas(16) const unsigned int c_general::signMaskFloat[4] = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
+    alignas(16) const unsigned int c_general::highMaskFloat[4] = { 0xfffff000u, 0xfffff000u, 0xfffff000u, 0xfffff000u };
+    alignas(16) const short c_general::minShort[8] = { -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000 };
+    alignas(16) extern const unsigned short _IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
     // cacheline 2
-    V_ALIGN(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
-    V_ALIGN(16) const unsigned short c_general::one16[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-    V_ALIGN(16) const unsigned int c_general::one32[4] = { 1, 1, 1, 1 };
-    V_ALIGN(16) const float c_general::oneFloat[4] = { 1.f, 1.f, 1.f, 1.f };
+    alignas(16) extern const unsigned int   _IndexesFromZero4[4] = { 0, 1, 2, 3 };
+    alignas(16) const unsigned short c_general::one16[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+    alignas(16) const unsigned int c_general::one32[4] = { 1, 1, 1, 1 };
+    alignas(16) const float c_general::oneFloat[4] = { 1.f, 1.f, 1.f, 1.f };
 
     // cacheline 3
-    V_ALIGN(16) const unsigned long long c_general::highMaskDouble[2] = { 0xfffffffff8000000ull, 0xfffffffff8000000ull };
-    V_ALIGN(16) const double c_general::oneDouble[2] = { 1., 1. };
-    V_ALIGN(16) const long long c_general::absMaskDouble[2] = { 0x7fffffffffffffffll, 0x7fffffffffffffffll };
-    V_ALIGN(16) const unsigned long long c_general::signMaskDouble[2] = { 0x8000000000000000ull, 0x8000000000000000ull };
-    V_ALIGN(16) const unsigned long long c_general::frexpMask[2] = { 0xbfefffffffffffffull, 0xbfefffffffffffffull };
+    alignas(16) const unsigned long long c_general::highMaskDouble[2] = { 0xfffffffff8000000ull, 0xfffffffff8000000ull };
+    alignas(16) const double c_general::oneDouble[2] = { 1., 1. };
+    alignas(16) const long long c_general::absMaskDouble[2] = { 0x7fffffffffffffffll, 0x7fffffffffffffffll };
+    alignas(16) const unsigned long long c_general::signMaskDouble[2] = { 0x8000000000000000ull, 0x8000000000000000ull };
+    alignas(16) const unsigned long long c_general::frexpMask[2] = { 0xbfefffffffffffffull, 0xbfefffffffffffffull };
 
-#define _2(x) x, x
-    template<> const double c_trig<double>::data[] = {
+#define Vc_2(x) x, x
+    template <>
+    alignas(64) const double c_trig<double>::data[] = {
     // cacheline 4
-        _2((doubleConstant<1, 0x921fb54442d18ull, -1>())), // π/4
-        _2((doubleConstant<1, 0x921fb40000000ull, -1>())), // π/4 - 30bits precision
-        _2((doubleConstant<1, 0x4442d00000000ull, -25>())), // π/4 remainder1 - 32bits precision
-        _2((doubleConstant<1, 0x8469898cc5170ull, -49>())), // π/4 remainder2
+        Vc_2((doubleConstant<1, 0x921fb54442d18ull, -1>())), // π/4
+        Vc_2((doubleConstant<1, 0x921fb40000000ull, -1>())), // π/4 - 30bits precision
+        Vc_2((doubleConstant<1, 0x4442d00000000ull, -25>())), // π/4 remainder1 - 32bits precision
+        Vc_2((doubleConstant<1, 0x8469898cc5170ull, -49>())), // π/4 remainder2
     // cacheline 5
-        _2(0.0625),
-        _2(16.),
-        _2(0.), // padding
-        _2(0.), // padding
+        Vc_2(0.0625),
+        Vc_2(16.),
+        Vc_2(0.), // padding
+        Vc_2(0.), // padding
     // cacheline 6
-        _2((doubleConstant< 1, 0x555555555554bull,  -5>())), // ~ 1/4!
-        _2((doubleConstant<-1, 0x6c16c16c14f91ull, -10>())), // ~-1/6!
-        _2((doubleConstant< 1, 0xa01a019c844f5ull, -16>())), // ~ 1/8!
-        _2((doubleConstant<-1, 0x27e4f7eac4bc6ull, -22>())), // ~-1/10!
+        Vc_2((doubleConstant< 1, 0x555555555554bull,  -5>())), // ~ 1/4!
+        Vc_2((doubleConstant<-1, 0x6c16c16c14f91ull, -10>())), // ~-1/6!
+        Vc_2((doubleConstant< 1, 0xa01a019c844f5ull, -16>())), // ~ 1/8!
+        Vc_2((doubleConstant<-1, 0x27e4f7eac4bc6ull, -22>())), // ~-1/10!
     // cacheline 7
-        _2((doubleConstant< 1, 0x1ee9d7b4e3f05ull, -29>())), // ~ 1/12!
-        _2((doubleConstant<-1, 0x8fa49a0861a9bull, -37>())), // ~-1/14!
-        _2((doubleConstant<-1, 0x5555555555548ull,  -3>())), // ~-1/3!
-        _2((doubleConstant< 1, 0x111111110f7d0ull,  -7>())), // ~ 1/5!
+        Vc_2((doubleConstant< 1, 0x1ee9d7b4e3f05ull, -29>())), // ~ 1/12!
+        Vc_2((doubleConstant<-1, 0x8fa49a0861a9bull, -37>())), // ~-1/14!
+        Vc_2((doubleConstant<-1, 0x5555555555548ull,  -3>())), // ~-1/3!
+        Vc_2((doubleConstant< 1, 0x111111110f7d0ull,  -7>())), // ~ 1/5!
     // cacheline 8
-        _2((doubleConstant<-1, 0xa01a019bfdf03ull, -13>())), // ~-1/7!
-        _2((doubleConstant< 1, 0x71de3567d48a1ull, -19>())), // ~ 1/9!
-        _2((doubleConstant<-1, 0xae5e5a9291f5dull, -26>())), // ~-1/11!
-        _2((doubleConstant< 1, 0x5d8fd1fd19ccdull, -33>())), // ~ 1/13!
+        Vc_2((doubleConstant<-1, 0xa01a019bfdf03ull, -13>())), // ~-1/7!
+        Vc_2((doubleConstant< 1, 0x71de3567d48a1ull, -19>())), // ~ 1/9!
+        Vc_2((doubleConstant<-1, 0xae5e5a9291f5dull, -26>())), // ~-1/11!
+        Vc_2((doubleConstant< 1, 0x5d8fd1fd19ccdull, -33>())), // ~ 1/13!
     // cacheline 9
-        _2(0.), // padding (for alignment with float)
-        _2((doubleConstant<1, 0x8BE60DB939105ull,  0>())), // 4/π
-        _2((doubleConstant<1, 0x921fb54442d18ull,  0>())), // π/2
-        _2((doubleConstant<1, 0x921fb54442d18ull,  1>())), // π
+        Vc_2(0.), // padding (for alignment with float)
+        Vc_2((doubleConstant<1, 0x8BE60DB939105ull,  0>())), // 4/π
+        Vc_2((doubleConstant<1, 0x921fb54442d18ull,  0>())), // π/2
+        Vc_2((doubleConstant<1, 0x921fb54442d18ull,  1>())), // π
     // cacheline 10
-        _2((doubleConstant<-1, 0xc007fa1f72594ull, -1>())), // atan P coefficients
-        _2((doubleConstant<-1, 0x028545b6b807aull,  4>())), // atan P coefficients
-        _2((doubleConstant<-1, 0x2c08c36880273ull,  6>())), // atan P coefficients
-        _2((doubleConstant<-1, 0xeb8bf2d05ba25ull,  6>())), // atan P coefficients
+        Vc_2((doubleConstant<-1, 0xc007fa1f72594ull, -1>())), // atan P coefficients
+        Vc_2((doubleConstant<-1, 0x028545b6b807aull,  4>())), // atan P coefficients
+        Vc_2((doubleConstant<-1, 0x2c08c36880273ull,  6>())), // atan P coefficients
+        Vc_2((doubleConstant<-1, 0xeb8bf2d05ba25ull,  6>())), // atan P coefficients
     // cacheline 11
-        _2((doubleConstant<-1, 0x03669fd28ec8eull,  6>())), // atan P coefficients
-        _2((doubleConstant< 1, 0x8dbc45b14603cull,  4>())), // atan Q coefficients
-        _2((doubleConstant< 1, 0x4a0dd43b8fa25ull,  7>())), // atan Q coefficients
-        _2((doubleConstant< 1, 0xb0e18d2e2be3bull,  8>())), // atan Q coefficients
+        Vc_2((doubleConstant<-1, 0x03669fd28ec8eull,  6>())), // atan P coefficients
+        Vc_2((doubleConstant< 1, 0x8dbc45b14603cull,  4>())), // atan Q coefficients
+        Vc_2((doubleConstant< 1, 0x4a0dd43b8fa25ull,  7>())), // atan Q coefficients
+        Vc_2((doubleConstant< 1, 0xb0e18d2e2be3bull,  8>())), // atan Q coefficients
     // cacheline 12
-        _2((doubleConstant< 1, 0xe563f13b049eaull,  8>())), // atan Q coefficients
-        _2((doubleConstant< 1, 0x8519efbbd62ecull,  7>())), // atan Q coefficients
-        _2((doubleConstant< 1, 0x3504f333f9de6ull,  1>())), // tan( 3/8 π )
-        _2(0.66),                                    // lower threshold for special casing in atan
+        Vc_2((doubleConstant< 1, 0xe563f13b049eaull,  8>())), // atan Q coefficients
+        Vc_2((doubleConstant< 1, 0x8519efbbd62ecull,  7>())), // atan Q coefficients
+        Vc_2((doubleConstant< 1, 0x3504f333f9de6ull,  1>())), // tan( 3/8 π )
+        Vc_2(0.66),                                    // lower threshold for special casing in atan
     // cacheline 13
-        _2((doubleConstant<1, 0x1A62633145C07ull, -54>())), // remainder of pi/2
-        _2(1.e-8), // small asin input threshold
-        _2(0.625), // large asin input threshold
-        _2(0.), // padding
+        Vc_2((doubleConstant<1, 0x1A62633145C07ull, -54>())), // remainder of pi/2
+        Vc_2(1.e-8), // small asin input threshold
+        Vc_2(0.625), // large asin input threshold
+        Vc_2(0.), // padding
     // cacheline 14
-        _2((doubleConstant< 1, 0x84fc3988e9f08ull, -9>())), // asinCoeff0
-        _2((doubleConstant<-1, 0x2079259f9290full, -1>())), // asinCoeff0
-        _2((doubleConstant< 1, 0xbdff5baf33e6aull,  2>())), // asinCoeff0
-        _2((doubleConstant<-1, 0x991aaac01ab68ull,  4>())), // asinCoeff0
+        Vc_2((doubleConstant< 1, 0x84fc3988e9f08ull, -9>())), // asinCoeff0
+        Vc_2((doubleConstant<-1, 0x2079259f9290full, -1>())), // asinCoeff0
+        Vc_2((doubleConstant< 1, 0xbdff5baf33e6aull,  2>())), // asinCoeff0
+        Vc_2((doubleConstant<-1, 0x991aaac01ab68ull,  4>())), // asinCoeff0
     // cacheline 15
-        _2((doubleConstant< 1, 0xc896240f3081dull,  4>())), // asinCoeff0
-        _2((doubleConstant<-1, 0x5f2a2b6bf5d8cull,  4>())), // asinCoeff1
-        _2((doubleConstant< 1, 0x26219af6a7f42ull,  7>())), // asinCoeff1
-        _2((doubleConstant<-1, 0x7fe08959063eeull,  8>())), // asinCoeff1
+        Vc_2((doubleConstant< 1, 0xc896240f3081dull,  4>())), // asinCoeff0
+        Vc_2((doubleConstant<-1, 0x5f2a2b6bf5d8cull,  4>())), // asinCoeff1
+        Vc_2((doubleConstant< 1, 0x26219af6a7f42ull,  7>())), // asinCoeff1
+        Vc_2((doubleConstant<-1, 0x7fe08959063eeull,  8>())), // asinCoeff1
     // cacheline 16
-        _2((doubleConstant< 1, 0x56709b0b644beull,  8>())), // asinCoeff1
-        _2((doubleConstant< 1, 0x16b9b0bd48ad3ull, -8>())), // asinCoeff2
-        _2((doubleConstant<-1, 0x34341333e5c16ull, -1>())), // asinCoeff2
-        _2((doubleConstant< 1, 0x5c74b178a2dd9ull,  2>())), // asinCoeff2
+        Vc_2((doubleConstant< 1, 0x56709b0b644beull,  8>())), // asinCoeff1
+        Vc_2((doubleConstant< 1, 0x16b9b0bd48ad3ull, -8>())), // asinCoeff2
+        Vc_2((doubleConstant<-1, 0x34341333e5c16ull, -1>())), // asinCoeff2
+        Vc_2((doubleConstant< 1, 0x5c74b178a2dd9ull,  2>())), // asinCoeff2
     // cacheline 17
-        _2((doubleConstant<-1, 0x04331de27907bull,  4>())), // asinCoeff2
-        _2((doubleConstant< 1, 0x39007da779259ull,  4>())), // asinCoeff2
-        _2((doubleConstant<-1, 0x0656c06ceafd5ull,  3>())), // asinCoeff2
-        _2((doubleConstant<-1, 0xd7b590b5e0eabull,  3>())), // asinCoeff3
+        Vc_2((doubleConstant<-1, 0x04331de27907bull,  4>())), // asinCoeff2
+        Vc_2((doubleConstant< 1, 0x39007da779259ull,  4>())), // asinCoeff2
+        Vc_2((doubleConstant<-1, 0x0656c06ceafd5ull,  3>())), // asinCoeff2
+        Vc_2((doubleConstant<-1, 0xd7b590b5e0eabull,  3>())), // asinCoeff3
     // cacheline 18
-        _2((doubleConstant< 1, 0x19fc025fe9054ull,  6>())), // asinCoeff3
-        _2((doubleConstant<-1, 0x265bb6d3576d7ull,  7>())), // asinCoeff3
-        _2((doubleConstant< 1, 0x1705684ffbf9dull,  7>())), // asinCoeff3
-        _2((doubleConstant<-1, 0x898220a3607acull,  5>())), // asinCoeff3
+        Vc_2((doubleConstant< 1, 0x19fc025fe9054ull,  6>())), // asinCoeff3
+        Vc_2((doubleConstant<-1, 0x265bb6d3576d7ull,  7>())), // asinCoeff3
+        Vc_2((doubleConstant< 1, 0x1705684ffbf9dull,  7>())), // asinCoeff3
+        Vc_2((doubleConstant<-1, 0x898220a3607acull,  5>())), // asinCoeff3
     };
-#undef _2
-#define _4(x) x, x, x, x
-    template<> const float c_trig<float>::data[] = {
+#undef Vc_2
+#define Vc_4(x) x, x, x, x
+    template <>
+    alignas(64) const float c_trig<float>::data[] = {
     // cacheline
-        _4((floatConstant< 1, 0x490FDB,  -1>())), // π/4
-        _4((floatConstant< 1, 0x491000,  -1>())), // π/4 - 12 bits precision
-        _4((floatConstant<-1, 0x157000, -19>())), // π/4 remainder1 - 12 bits precision
-        _4((floatConstant<-1, 0x6F4B9F, -32>())), // π/4 remainder2
+        Vc_4((floatConstant< 1, 0x490FDB,  -1>())), // π/4
+        Vc_4((floatConstant< 1, 0x491000,  -1>())), // π/4 - 12 bits precision
+        Vc_4((floatConstant<-1, 0x157000, -19>())), // π/4 remainder1 - 12 bits precision
+        Vc_4((floatConstant<-1, 0x6F4B9F, -32>())), // π/4 remainder2
     // cacheline
-        _4(0.0625f),
-        _4(16.f),
-        _4(0.f), // padding
-        _4(0.f), // padding
+        Vc_4(0.0625f),
+        Vc_4(16.f),
+        Vc_4(0.f), // padding
+        Vc_4(0.f), // padding
     // cacheline
-        _4(4.166664568298827e-2f),  // ~ 1/4!
-        _4(-1.388731625493765e-3f), // ~-1/6!
-        _4(2.443315711809948e-5f),  // ~ 1/8!
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(4.166664568298827e-2f),  // ~ 1/4!
+        Vc_4(-1.388731625493765e-3f), // ~-1/6!
+        Vc_4(2.443315711809948e-5f),  // ~ 1/8!
+        Vc_4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(-1.6666654611e-1f), // ~-1/3!
-        _4(8.3321608736e-3f),  // ~ 1/5!
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(-1.6666654611e-1f), // ~-1/3!
+        Vc_4(8.3321608736e-3f),  // ~ 1/5!
     // cacheline
-        _4(-1.9515295891e-4f), // ~-1/7!
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(-1.9515295891e-4f), // ~-1/7!
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(8192.f), // loss threshold
-        _4((floatConstant<1, 0x22F983, 0>())), // 1.27323949337005615234375 = 4/π
-        _4((floatConstant<1, 0x490FDB, 0>())), // π/2
-        _4((floatConstant<1, 0x490FDB, 1>())), // π
+        Vc_4(8192.f), // loss threshold
+        Vc_4((floatConstant<1, 0x22F983, 0>())), // 1.27323949337005615234375 = 4/π
+        Vc_4((floatConstant<1, 0x490FDB, 0>())), // π/2
+        Vc_4((floatConstant<1, 0x490FDB, 1>())), // π
     // cacheline
-        _4(8.05374449538e-2f), // atan P coefficients
-        _4(1.38776856032e-1f), // atan P coefficients
-        _4(1.99777106478e-1f), // atan P coefficients
-        _4(3.33329491539e-1f), // atan P coefficients
+        Vc_4(8.05374449538e-2f), // atan P coefficients
+        Vc_4(1.38776856032e-1f), // atan P coefficients
+        Vc_4(1.99777106478e-1f), // atan P coefficients
+        Vc_4(3.33329491539e-1f), // atan P coefficients
     // cacheline
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(2.414213562373095f), // tan( 3/8 π )
-        _4(0.414213562373095f), // tan( 1/8 π ) lower threshold for special casing in atan
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(2.414213562373095f), // tan( 3/8 π )
+        Vc_4(0.414213562373095f), // tan( 1/8 π ) lower threshold for special casing in atan
     // cacheline
-        _4((floatConstant<-1, 0x3BBD2E, -25>())), // remainder of pi/2
-        _4(1.e-4f), // small asin input threshold
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4((floatConstant<-1, 0x3BBD2E, -25>())), // remainder of pi/2
+        Vc_4(1.e-4f), // small asin input threshold
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(4.2163199048e-2f), // asinCoeff0
-        _4(2.4181311049e-2f), // asinCoeff0
-        _4(4.5470025998e-2f), // asinCoeff0
-        _4(7.4953002686e-2f), // asinCoeff0
+        Vc_4(4.2163199048e-2f), // asinCoeff0
+        Vc_4(2.4181311049e-2f), // asinCoeff0
+        Vc_4(4.5470025998e-2f), // asinCoeff0
+        Vc_4(7.4953002686e-2f), // asinCoeff0
     // cacheline
-        _4(1.6666752422e-1f), // asinCoeff0
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(1.6666752422e-1f), // asinCoeff0
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     // cacheline
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
-        _4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
+        Vc_4(0.f), // padding (for alignment with double)
     };
-#undef _4
+#undef Vc_4
 
     // cacheline 8
-    V_ALIGN(16) extern const unsigned char _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+    alignas(16) extern const unsigned char _IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-    V_ALIGN(64) const unsigned long long c_log<double>::data[21 * 2] = {
+    alignas(64) const unsigned long long c_log<double>::data[21 * 2] = {
       /* 0*/   0x000003ff000003ffull, 0x000003ff000003ffull // bias TODO: remove
       /* 1*/ , 0x7ff0000000000000ull, 0x7ff0000000000000ull // exponentMask (+inf)
 
@@ -513,7 +505,7 @@ namespace SSE
       /*20*/ , 0x3ff71547652b82feull, 0x3ff71547652b82feull // log2(e)
     };
 
-    template<> V_ALIGN(64) const unsigned int c_log<float>::data[21 * 4] = {
+    template<> alignas(64) const unsigned int c_log<float>::data[21 * 4] = {
         0x0000007fu, 0x0000007fu, 0x0000007fu, 0x0000007fu, // bias TODO: remove
         0x7f800000u, 0x7f800000u, 0x7f800000u, 0x7f800000u, // exponentMask (+inf)
 
@@ -551,5 +543,3 @@ namespace SSE
     };
 }
 }
-
-#undef V_ALIGN

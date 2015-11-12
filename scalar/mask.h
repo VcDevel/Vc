@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SCALAR_MASK_H
-#define VC_SCALAR_MASK_H
+#ifndef VC_SCALAR_MASK_H_
+#define VC_SCALAR_MASK_H_
 
 #include "types.h"
 #include "macros.h"
@@ -75,8 +75,8 @@ public:
 
     Vc_INTRINSIC Mask() = default;
     Vc_INTRINSIC explicit Mask(bool b) : m(b) {}
-    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero::ZEnum) : m(false) {}
-    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne::OEnum) : m(true) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerZero) : m(false) {}
+    Vc_INTRINSIC explicit Mask(VectorSpecialInitializerOne) : m(true) {}
     Vc_INTRINSIC static Mask Zero() { return Mask(false); }
     Vc_INTRINSIC static Mask One() { return Mask(true); }
 
@@ -167,6 +167,4 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Scalar>::MemoryAlignme
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_SCALAR_MASK_H
+#endif // VC_SCALAR_MASK_H_

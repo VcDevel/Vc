@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_HELPERIMPL_H
-#define VC_AVX_HELPERIMPL_H
+#ifndef VC_AVX_HELPERIMPL_H_
+#define VC_AVX_HELPERIMPL_H_
 
-#include "sse/helperimpl.h"
+#include "../sse/helperimpl.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -58,39 +58,39 @@ template <typename A>
 inline void deinterleave(AVX2::ushort_v &, AVX2::ushort_v &, const ushort *, A);
 
 template <typename T, typename M, typename A>
-Vc_ALWAYS_INLINE_L void deinterleave(AVX2::Vector<T> &VC_RESTRICT a,
-                                     AVX2::Vector<T> &VC_RESTRICT b,
-                                     AVX2::Vector<T> &VC_RESTRICT c,
-                                     const M *VC_RESTRICT memory,
+Vc_ALWAYS_INLINE_L void deinterleave(AVX2::Vector<T> &Vc_RESTRICT a,
+                                     AVX2::Vector<T> &Vc_RESTRICT b,
+                                     AVX2::Vector<T> &Vc_RESTRICT c,
+                                     const M *Vc_RESTRICT memory,
                                      A align) Vc_ALWAYS_INLINE_R;
 template <typename T, typename M, typename A>
-Vc_ALWAYS_INLINE_L void deinterleave(AVX2::Vector<T> &VC_RESTRICT a,
-                                     AVX2::Vector<T> &VC_RESTRICT b,
-                                     AVX2::Vector<T> &VC_RESTRICT c,
-                                     AVX2::Vector<T> &VC_RESTRICT d,
-                                     const M *VC_RESTRICT memory,
+Vc_ALWAYS_INLINE_L void deinterleave(AVX2::Vector<T> &Vc_RESTRICT a,
+                                     AVX2::Vector<T> &Vc_RESTRICT b,
+                                     AVX2::Vector<T> &Vc_RESTRICT c,
+                                     AVX2::Vector<T> &Vc_RESTRICT d,
+                                     const M *Vc_RESTRICT memory,
                                      A align) Vc_ALWAYS_INLINE_R;
 template <typename T, typename M, typename A>
-Vc_ALWAYS_INLINE_L void deinterleave(AVX2::Vector<T> &VC_RESTRICT a,
-                                     AVX2::Vector<T> &VC_RESTRICT b,
-                                     AVX2::Vector<T> &VC_RESTRICT c,
-                                     AVX2::Vector<T> &VC_RESTRICT d,
-                                     AVX2::Vector<T> &VC_RESTRICT e,
-                                     const M *VC_RESTRICT memory,
+Vc_ALWAYS_INLINE_L void deinterleave(AVX2::Vector<T> &Vc_RESTRICT a,
+                                     AVX2::Vector<T> &Vc_RESTRICT b,
+                                     AVX2::Vector<T> &Vc_RESTRICT c,
+                                     AVX2::Vector<T> &Vc_RESTRICT d,
+                                     AVX2::Vector<T> &Vc_RESTRICT e,
+                                     const M *Vc_RESTRICT memory,
                                      A align) Vc_ALWAYS_INLINE_R;
 template <typename T, typename M, typename A>
 Vc_ALWAYS_INLINE_L void deinterleave(
-    AVX2::Vector<T> &VC_RESTRICT a, AVX2::Vector<T> &VC_RESTRICT b,
-    AVX2::Vector<T> &VC_RESTRICT c, AVX2::Vector<T> &VC_RESTRICT d,
-    AVX2::Vector<T> &VC_RESTRICT e, AVX2::Vector<T> &VC_RESTRICT f,
-    const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
+    AVX2::Vector<T> &Vc_RESTRICT a, AVX2::Vector<T> &Vc_RESTRICT b,
+    AVX2::Vector<T> &Vc_RESTRICT c, AVX2::Vector<T> &Vc_RESTRICT d,
+    AVX2::Vector<T> &Vc_RESTRICT e, AVX2::Vector<T> &Vc_RESTRICT f,
+    const M *Vc_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
 template <typename T, typename M, typename A>
 Vc_ALWAYS_INLINE_L void deinterleave(
-    AVX2::Vector<T> &VC_RESTRICT a, AVX2::Vector<T> &VC_RESTRICT b,
-    AVX2::Vector<T> &VC_RESTRICT c, AVX2::Vector<T> &VC_RESTRICT d,
-    AVX2::Vector<T> &VC_RESTRICT e, AVX2::Vector<T> &VC_RESTRICT f,
-    AVX2::Vector<T> &VC_RESTRICT g, AVX2::Vector<T> &VC_RESTRICT h,
-    const M *VC_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
+    AVX2::Vector<T> &Vc_RESTRICT a, AVX2::Vector<T> &Vc_RESTRICT b,
+    AVX2::Vector<T> &Vc_RESTRICT c, AVX2::Vector<T> &Vc_RESTRICT d,
+    AVX2::Vector<T> &Vc_RESTRICT e, AVX2::Vector<T> &Vc_RESTRICT f,
+    AVX2::Vector<T> &Vc_RESTRICT g, AVX2::Vector<T> &Vc_RESTRICT h,
+    const M *Vc_RESTRICT memory, A align) Vc_ALWAYS_INLINE_R;
 
 Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr, VectorAbi::Avx)
 {
@@ -116,6 +116,5 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *addr, VectorAbi::Avx)
 }  // namespace Vc
 
 #include "deinterleave.tcc"
-#include "undomacros.h"
 
-#endif // VC_AVX_HELPERIMPL_H
+#endif // VC_AVX_HELPERIMPL_H_

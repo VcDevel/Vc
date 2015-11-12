@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_CASTS_H
-#define VC_MIC_CASTS_H
+#ifndef VC_MIC_CASTS_H_
+#define VC_MIC_CASTS_H_
 
 #include "intrinsics.h"
 #include "types.h"
@@ -130,8 +130,6 @@ Vc_INTRINSIC __m512i convert(__m512i v, ConvertTag<ushort, short >) {
 }  // namespace MIC
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_MIC_CASTS_H
+#endif // VC_MIC_CASTS_H_
 
 // vim: foldmethod=marker

@@ -150,14 +150,14 @@ endif()
 if(MIC_NATIVE_FOUND OR MIC_OFFLOAD_FOUND)
    set(MIC_FOUND true)
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 2338") # this switch statement does not have a default clause
-   list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 193") # zero used for undefined preprocessing identifier "VC_GCC"
+   list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 193") # zero used for undefined preprocessing identifier "Vc_GCC"
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 61") # warning #61: integer operation result is out of range
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 173") # warning #173: floating-point value does not fit in required integral type
    list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 264") # warning #264: floating-point value does not fit in required floating-point type
 
    list(APPEND CMAKE_MIC_CXX_FLAGS "-fp-model source") # fix IEEE FP comliance
 
-   set(VC_MIC_CXX_FLAGS "")
+   set(Vc_MIC_CXX_FLAGS "")
 
    macro(mic_add_definitions)
       add_definitions(${ARGN})
@@ -183,6 +183,7 @@ endif()
 
 if(MIC_NATIVE_FOUND)
    macro(_mic_add_object _target _source _output)
+      get_property(_deps SOURCE "${_source}" PROPERTY OBJECT_DEPENDS)
       get_filename_component(_abs "${_source}" ABSOLUTE)
       get_filename_component(_ext "${_source}" EXT)
       get_filename_component(_tmp "${_source}" NAME_WE)
@@ -195,18 +196,19 @@ if(MIC_NATIVE_FOUND)
       endif()
 
       string(TOUPPER "${CMAKE_BUILD_TYPE}" _tmp)
-      string(STRIP "${CMAKE_MIC_${_lang}_FLAGS} ${CMAKE_${_lang}_FLAGS_${_tmp}} ${_mic_cflags} ${VC_MIC_CXX_FLAGS}" _flags)
+      string(STRIP "${CMAKE_MIC_${_lang}_FLAGS} ${CMAKE_${_lang}_FLAGS_${_tmp}} ${_mic_cflags} ${Vc_MIC_CXX_FLAGS}" _flags)
       string(REPLACE " " ";" _flags "${_flags} ${ARGN}")
       get_directory_property(_inc INCLUDE_DIRECTORIES)
       foreach(_i ${_inc})
          list(APPEND _flags "-I${_i}")
       endforeach()
 
+      get_property(_launch_rule GLOBAL PROPERTY RULE_LAUNCH_COMPILE)
       add_custom_command(OUTPUT "${${_output}}"
-         COMMAND "${_compiler}" -mmic
-         -DVC_IMPL=MIC
+         COMMAND ${_launch_rule} "${_compiler}" -mmic
+         -DVc_IMPL=MIC
          ${_flags} -c -o "${${_output}}" "${_abs}"
-         DEPENDS "${_abs}"
+         DEPENDS "${_abs}" ${_deps}
          IMPLICIT_DEPENDS ${_lang} "${_abs}"
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
          COMMENT "Compiling (MIC) ${${_output}}"
@@ -354,8 +356,9 @@ ${MIC_RANLIB} ${_output}
       endforeach()
 
       set(_exec_output "${CMAKE_CURRENT_BINARY_DIR}/${_exec_output_name}")
+      get_property(_launch_rule GLOBAL PROPERTY RULE_LAUNCH_LINK)
       add_custom_command(OUTPUT "${_exec_output}"
-         COMMAND "${MIC_CXX}" -mmic
+         COMMAND ${_launch_rule} "${MIC_CXX}" -mmic
          "-L${MIC_SDK_DIR}/compiler/lib/mic/"
          ${_mic_lflags} ${_objects} -o "${_exec_output}"
          ${_libs}
@@ -371,7 +374,7 @@ ${MIC_RANLIB} ${_output}
             get_filename_component(_name "${_src}" NAME)
             add_custom_command(OUTPUT "${_name}.s"
                COMMAND "${MIC_CXX}" -mmic
-               -DVC_IMPL=MIC ${_mic_cflags} ${_cflags} ${VC_MIC_CXX_FLAGS}
+               -DVc_IMPL=MIC ${_mic_cflags} ${_cflags} ${Vc_MIC_CXX_FLAGS}
                ${_abs}
                -S -fsource-asm -fno-verbose-asm -o "${_name}.x"
                COMMAND sh -c "grep -v ___tag_value '${_name}.x' | c++filt > '${_name}.s'"

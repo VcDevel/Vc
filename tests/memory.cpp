@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -335,7 +335,7 @@ void testmain()
 {
     testAllTypes(testEntries);
     testAllTypes(paddingMustBeZero);
-#ifndef VC_ICC
+#ifndef Vc_ICC
     testAllTypes(initializerList);
 #endif
     testAllTypes(testEntries2D);

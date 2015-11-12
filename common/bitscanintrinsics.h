@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2011-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2011-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,11 +26,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_BITSCANINTRINSICS_H
-#define VC_COMMON_BITSCANINTRINSICS_H
+#ifndef VC_COMMON_BITSCANINTRINSICS_H_
+#define VC_COMMON_BITSCANINTRINSICS_H_
 
-#if defined(VC_GCC) || defined(VC_CLANG)
-#  if VC_GCC >= 0x40500
+#if defined(Vc_GCC) || defined(Vc_CLANG)
+#  if Vc_GCC >= 0x40500
      // GCC 4.5.0 introduced _bit_scan_forward / _bit_scan_reverse
 #    include <x86intrin.h>
 #  else
@@ -42,14 +42,13 @@ static Vc_ALWAYS_INLINE Vc_CONST int _Vc_bit_scan_reverse_asm(unsigned int x) {
     __asm__("bsr %1,%0" : "=r"(r) : "X"(x));
     return r;
 }
-#include "undomacros.h"
 #    define _bit_scan_reverse(x) _Vc_bit_scan_reverse_asm(x)
 #  endif
-#elif defined(VC_ICC)
+#elif defined(Vc_ICC)
 // for all I know ICC supports the _bit_scan_* intrinsics
-#elif defined(VC_OPEN64)
+#elif defined(Vc_OPEN64)
 // TODO
-#elif defined(VC_MSVC)
+#elif defined(Vc_MSVC)
 #include "windows_fix_intrin.h"
 #pragma intrinsic(_BitScanForward)
 #pragma intrinsic(_BitScanReverse)
@@ -68,4 +67,4 @@ static inline __forceinline unsigned long _bit_scan_reverse(unsigned long x) {
 #endif
 
 
-#endif // VC_COMMON_BITSCANINTRINSICS_H
+#endif // VC_COMMON_BITSCANINTRINSICS_H_

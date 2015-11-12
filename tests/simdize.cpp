@@ -147,7 +147,7 @@ template <typename, typename, typename, std::size_t...> struct Foo3
 };
 
 // ICC does not support packs of values
-#ifndef VC_ICC
+#ifndef Vc_ICC
 TEST(nontype_template_parameters)
 {
     using namespace std;
@@ -178,7 +178,7 @@ TEST(nontype_template_parameters)
             SimdizeAdapter<Foo3<int, int, float, 3, 5, 6>,
                            Foo3<int_v, int_v, float_intsize, 3, 5, 6>, int_v::size()>));
 }
-#endif  // VC_ICC
+#endif  // Vc_ICC
 
 TEST(tuple_interface)
 {
@@ -209,6 +209,30 @@ TEST(assign)
     for (unsigned i = 0; i < v.size(); ++i) {
         COMPARE(std::get<0>(v)[i], 1.f * i);
         COMPARE(std::get<1>(v)[i], i);
+    }
+}
+
+template <typename T> T copy_by_value(T x) { return T(x); }
+
+TEST(copy)
+{
+    using T = std::tuple<float, int>;
+    using V = simdize<T>;
+    V v = {1.f, 1};
+    for (unsigned i = 0; i < v.size(); ++i) {
+        COMPARE(std::get<0>(v)[i], 1.f);
+        COMPARE(std::get<1>(v)[i], 1);
+    }
+    V v2 = copy_by_value(v);
+    for (unsigned i = 0; i < v2.size(); ++i) {
+        COMPARE(std::get<0>(v2)[i], 1.f);
+        COMPARE(std::get<1>(v2)[i], 1);
+    }
+    v = {2.f, 2};
+    v2 = copy_by_value(v);
+    for (unsigned i = 0; i < v2.size(); ++i) {
+        COMPARE(std::get<0>(v2)[i], 2.f);
+        COMPARE(std::get<1>(v2)[i], 2);
     }
 }
 

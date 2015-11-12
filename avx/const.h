@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_CONST_H
-#define VC_AVX_CONST_H
+#ifndef VC_AVX_CONST_H_
+#define VC_AVX_CONST_H_
 
 #include <cstddef>
 #include "types.h"
@@ -118,6 +118,4 @@ using AVX::Const;
 }  // namespace AVX2
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_AVX_CONST_H
+#endif // VC_AVX_CONST_H_

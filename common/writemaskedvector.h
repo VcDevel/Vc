@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_WRITEMASKEDVECTOR_H
-#define VC_COMMON_WRITEMASKEDVECTOR_H
+#ifndef VC_COMMON_WRITEMASKEDVECTOR_H_
+#define VC_COMMON_WRITEMASKEDVECTOR_H_
 
 #include <utility>
 #include "macros.h"
@@ -47,7 +47,7 @@ public:
     typedef M Mask;
     static constexpr size_t Size = V::Size;
 
-    FREE_STORE_OPERATORS_ALIGNED(alignof(Mask))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(Mask))
 
     // implicit (allows {vec, mask} in places where WriteMaskedVector is expected)
     Vc_INTRINSIC WriteMaskedVector(V *v, const Mask &k) : mask(k), vec(v)
@@ -82,15 +82,15 @@ public:
         return ret;
     }
 
-#define VC_OPERATOR__(op)                                                                \
+#define Vc_OPERATOR__(op)                                                                \
     template <typename U> Vc_ALWAYS_INLINE void operator op##=(U &&x)                    \
     {                                                                                    \
         operator=(static_cast<V>(*vec op std::forward<U>(x)));                           \
     }
-    VC_ALL_BINARY(VC_OPERATOR__)
-    VC_ALL_ARITHMETICS(VC_OPERATOR__)
-    VC_ALL_SHIFTS(VC_OPERATOR__)
-#undef VC_OPERATOR__
+    Vc_ALL_BINARY(Vc_OPERATOR__)
+    Vc_ALL_ARITHMETICS(Vc_OPERATOR__)
+    Vc_ALL_SHIFTS(Vc_OPERATOR__)
+#undef Vc_OPERATOR__
 
     Vc_ALWAYS_INLINE void operator=(const V &x)
     {
@@ -127,6 +127,4 @@ private:
 }  // namespace Common
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_WRITEMASKEDVECTOR_H
+#endif // VC_COMMON_WRITEMASKEDVECTOR_H_

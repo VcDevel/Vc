@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_MIC_CONST_DATA_H
-#define VC_MIC_CONST_DATA_H
+#ifndef VC_MIC_CONST_DATA_H_
+#define VC_MIC_CONST_DATA_H_
 
 #include "../common/data.h"
 #include "macros.h"
@@ -37,9 +37,9 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace MIC
 {
 
-ALIGN(16) extern const char  _IndexesFromZero8[16];
+alignas(16) extern const char  _IndexesFromZero8[16];
 
-struct STRUCT_ALIGN1(64) c_general
+struct alignas(64) c_general
 {
     static const float oneFloat;
     static const unsigned int absMaskFloat[2];
@@ -52,11 +52,9 @@ struct STRUCT_ALIGN1(64) c_general
     static const unsigned long long frexpMask;
     static const unsigned long long highMaskDouble;
     static const unsigned char frexpAndMask[16];
-} STRUCT_ALIGN2(64);
+};
 
 }  // namespace MIC
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_MIC_CONST_DATA_H
+#endif // VC_MIC_CONST_DATA_H_

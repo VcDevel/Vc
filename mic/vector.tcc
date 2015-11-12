@@ -112,21 +112,28 @@ template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<MIC::float_v
 } // anonymous namespace
 
 // constants {{{1
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerZero::ZEnum) : d(HV::zero()) {}
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerOne::OEnum) : d(HV::one()) {}
+template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerZero) : d(HV::zero()) {}
+template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerOne) : d(HV::one()) {}
 template <typename T>
 Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(
-    VectorSpecialInitializerIndexesFromZero::IEnum)
+    VectorSpecialInitializerIndexesFromZero)
     : d(LoadHelper<Vector<T, VectorAbi::Mic>>::load(MIC::IndexesFromZeroHelper<T>(),
                                                     Aligned))
 {
 }
 
-template<> Vc_ALWAYS_INLINE MIC::float_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(_mm512_extload_ps(&MIC::_IndexesFromZero, _MM_UPCONV_PS_SINT8, _MM_BROADCAST32_NONE, _MM_HINT_NONE)) {}
+template <>
+Vc_ALWAYS_INLINE MIC::float_v::Vector(VectorSpecialInitializerIndexesFromZero)
+    : d(_mm512_extload_ps(&MIC::_IndexesFromZero, _MM_UPCONV_PS_SINT8,
+                          _MM_BROADCAST32_NONE, _MM_HINT_NONE))
+{
+}
 
-template<> Vc_ALWAYS_INLINE MIC::double_v::Vector(VectorSpecialInitializerIndexesFromZero::IEnum)
-    : d(MIC::convert<int, double>(MIC::int_v::IndexesFromZero().data())) {}
+template <>
+Vc_ALWAYS_INLINE MIC::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
+    : d(MIC::convert<int, double>(MIC::int_v::IndexesFromZero().data()))
+{
+}
 
 // loads {{{1
 template <typename T>
@@ -558,14 +565,16 @@ template <typename T>
 template <typename MT, typename IT>
 Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &&indexes) const
 {
-    MicIntrinsics::scatter(mem, ensureVector(std::forward<IT>(indexes)), d.v(),
-                           UpDownC<MT>(), sizeof(MT));
+    const auto v = std::is_same<T, ushort>::value ? (*this & 0xffff).data() : d.v();
+    MicIntrinsics::scatter(mem, ensureVector(std::forward<IT>(indexes)), v, UpDownC<MT>(),
+                           sizeof(MT));
 }
 template <typename T>
 template <typename MT, typename IT>
 Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &&indexes,
                                                    MaskArgument mask) const
 {
+    const auto v = std::is_same<T, ushort>::value ? (*this & 0xffff).data() : d.v();
     MicIntrinsics::scatter(mask.data(), mem, ensureVector(std::forward<IT>(indexes)),
                            d.v(), UpDownC<MT>(), sizeof(MT));
 }
@@ -573,12 +582,12 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &
 // exponent {{{1
 template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::exponent() const
 {
-    VC_ASSERT((*this >= Zero()).isFull());
+    Vc_ASSERT((*this >= Zero()).isFull());
     return _mm512_getexp_ps(d.v());
 }
 template<> Vc_INTRINSIC MIC::double_v MIC::double_v::exponent() const
 {
-    VC_ASSERT((*this >= Zero()).isFull());
+    Vc_ASSERT((*this >= Zero()).isFull());
     return _mm512_getexp_pd(d.v());
 }
 // }}}1
@@ -642,10 +651,18 @@ template<size_t SIMDWidth, size_t Size> struct VectorShift;
 template<> struct VectorShift<64, 8>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount,
-            VC_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
+    static Vc_INTRINSIC VectorType shifted(Vc_ALIGNED_PARAMETER(VectorType) v, int amount,
+            Vc_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
     {
         switch (amount) {
+        case 15: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 14);
+        case 14: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 12);
+        case 13: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 10);
+        case 12: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  8);
+        case 11: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  6);
+        case 10: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  4);
+        case  9: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  2);
+        case  8: return z;
         case  7: return _mm512_alignr_epi32(z, v, 14);
         case  6: return _mm512_alignr_epi32(z, v, 12);
         case  5: return _mm512_alignr_epi32(z, v, 10);
@@ -661,6 +678,14 @@ template<> struct VectorShift<64, 8>/*{{{*/
         case -5: return _mm512_alignr_epi32(v, z,  6);
         case -6: return _mm512_alignr_epi32(v, z,  4);
         case -7: return _mm512_alignr_epi32(v, z,  2);
+        case -8: return z;
+        case -9: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(), 14);
+        case-10: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(), 12);
+        case-11: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(), 10);
+        case-12: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  8);
+        case-13: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  6);
+        case-14: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  4);
+        case-15: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  2);
         }
         return z;
     }
@@ -668,10 +693,26 @@ template<> struct VectorShift<64, 8>/*{{{*/
 template<> struct VectorShift<64, 16>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC VectorType shifted(VC_ALIGNED_PARAMETER(VectorType) v, int amount,
-            VC_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
+    static Vc_INTRINSIC VectorType shifted(Vc_ALIGNED_PARAMETER(VectorType) v, int amount,
+            Vc_ALIGNED_PARAMETER(VectorType) z = _mm512_setzero_epi32())
     {
         switch (amount) {
+        case 31: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 15);
+        case 30: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 14);
+        case 29: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 13);
+        case 28: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 12);
+        case 27: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 11);
+        case 26: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z, 10);
+        case 25: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  9);
+        case 24: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  8);
+        case 23: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  7);
+        case 22: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  6);
+        case 21: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  5);
+        case 20: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  4);
+        case 19: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  3);
+        case 18: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  2);
+        case 17: return _mm512_alignr_epi32(_mm512_setzero_epi32(), z,  1);
+        case 16: return z;
         case 15: return _mm512_alignr_epi32(z, v, 15);
         case 14: return _mm512_alignr_epi32(z, v, 14);
         case 13: return _mm512_alignr_epi32(z, v, 13);
@@ -703,6 +744,22 @@ template<> struct VectorShift<64, 16>/*{{{*/
         case-13: return _mm512_alignr_epi32(v, z,  3);
         case-14: return _mm512_alignr_epi32(v, z,  2);
         case-15: return _mm512_alignr_epi32(v, z,  1);
+        case-16: return z;
+        case-17: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(), 15);
+        case-18: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(), 14);
+        case-19: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(), 13);
+        case-20: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(), 12);
+        case-21: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(), 11);
+        case-22: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(), 10);
+        case-23: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  9);
+        case-24: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  8);
+        case-25: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  7);
+        case-26: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  6);
+        case-27: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  5);
+        case-28: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  4);
+        case-29: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  3);
+        case-30: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  2);
+        case-31: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  1);
         }
         return z;
     }
@@ -726,7 +783,7 @@ template<size_t SIMDWidth, size_t Size> struct VectorRotate;
 template<> struct VectorRotate<64, 8>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
+    static Vc_INTRINSIC VectorType rotated(Vc_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (static_cast<unsigned int>(amount) % 8) {
         case  0: return v;
@@ -744,7 +801,7 @@ template<> struct VectorRotate<64, 8>/*{{{*/
 template<> struct VectorRotate<64, 16>/*{{{*/
 {
     typedef __m512i VectorType;
-    static Vc_INTRINSIC VectorType rotated(VC_ALIGNED_PARAMETER(VectorType) v, int amount)
+    static Vc_INTRINSIC VectorType rotated(Vc_ALIGNED_PARAMETER(VectorType) v, int amount)
     {
         switch (static_cast<unsigned int>(amount) % 16) {
         case 15: return _mm512_alignr_epi32(v, v, 15);
@@ -774,13 +831,61 @@ template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi:
     return _cast(VR::rotated(MIC::mic_cast<typename VR::VectorType>(d.v()), amount));
 }
 // interleaveLow/-High {{{1
-template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveLow(Vector<T, VectorAbi::Mic> x) const
+template <typename T>
+Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveLow(
+    Vector<T, VectorAbi::Mic> x) const
 {
-    return x; // TODO
+    using namespace MIC;
+    __m512i lo = mic_cast<__m512i>(d.v());
+    __m512i hi = mic_cast<__m512i>(x.d.v());
+    lo = _mm512_permute4f128_epi32(lo, _MM_PERM_BBAA);
+    lo = _mm512_mask_swizzle_epi32(lo, 0xf0f0, lo, _MM_SWIZ_REG_BADC);
+    lo = _mm512_shuffle_epi32(lo, _MM_PERM_BBAA);
+    hi = _mm512_permute4f128_epi32(hi, _MM_PERM_BBAA);
+    hi = _mm512_mask_swizzle_epi32(hi, 0xf0f0, hi, _MM_SWIZ_REG_BADC);
+    return mic_cast<VectorType>(_mm512_mask_shuffle_epi32(lo, 0xaaaa, hi, _MM_PERM_BBAA));
 }
-template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveHigh(Vector<T, VectorAbi::Mic> x) const
+template <typename T>
+Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::interleaveHigh(
+    Vector<T, VectorAbi::Mic> x) const
 {
-    return x; // TODO
+    using namespace MIC;
+    __m512i lo = mic_cast<__m512i>(d.v());
+    __m512i hi = mic_cast<__m512i>(x.d.v());
+    lo = _mm512_permute4f128_epi32(lo, _MM_PERM_DDCC);
+    lo = _mm512_mask_swizzle_epi32(lo, 0xf0f0, lo, _MM_SWIZ_REG_BADC);
+    lo = _mm512_shuffle_epi32(lo, _MM_PERM_BBAA);
+    hi = _mm512_permute4f128_epi32(hi, _MM_PERM_DDCC);
+    hi = _mm512_mask_swizzle_epi32(hi, 0xf0f0, hi, _MM_SWIZ_REG_BADC);
+    return mic_cast<VectorType>(_mm512_mask_shuffle_epi32(lo, 0xaaaa, hi, _MM_PERM_BBAA));
+}
+template <>
+Vc_INTRINSIC Vector<double, VectorAbi::Mic> Vector<double, VectorAbi::Mic>::interleaveLow(
+    Vector<double, VectorAbi::Mic> x) const
+{
+    using namespace MIC;
+    __m512i lo = mic_cast<__m512i>(d.v());
+    __m512i hi = mic_cast<__m512i>(x.d.v());
+    lo = _mm512_permute4f128_epi32(lo, _MM_PERM_BBAA);
+    lo = _mm512_mask_swizzle_epi32(lo, 0xf0f0, lo, _MM_SWIZ_REG_BADC);
+    lo = _mm512_shuffle_epi32(lo, _MM_PERM_BABA);
+    hi = _mm512_permute4f128_epi32(hi, _MM_PERM_BBAA);
+    hi = _mm512_mask_swizzle_epi32(hi, 0xf0f0, hi, _MM_SWIZ_REG_BADC);
+    return mic_cast<VectorType>(_mm512_mask_shuffle_epi32(lo, 0xcccc, hi, _MM_PERM_BABA));
+}
+template <>
+Vc_INTRINSIC Vector<double, VectorAbi::Mic>
+Vector<double, VectorAbi::Mic>::interleaveHigh(Vector<double, VectorAbi::Mic> x) const
+{
+    using namespace MIC;
+    __m512i lo = mic_cast<__m512i>(d.v());
+    __m512i hi = mic_cast<__m512i>(x.d.v());
+    lo = _mm512_permute4f128_epi32(lo, _MM_PERM_DDCC);
+    lo = _mm512_mask_swizzle_epi32(lo, 0xf0f0, lo, _MM_SWIZ_REG_BADC);
+    lo = _mm512_shuffle_epi32(lo, _MM_PERM_BABA);
+    hi = _mm512_permute4f128_epi32(hi, _MM_PERM_DDCC);
+    hi = _mm512_mask_swizzle_epi32(hi, 0xf0f0, hi, _MM_SWIZ_REG_BADC);
+    return mic_cast<VectorType>(_mm512_mask_shuffle_epi32(lo, 0xcccc, hi, _MM_PERM_BABA));
 }
 
 // reversed {{{1

@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_TYPES_H
-#define VC_COMMON_TYPES_H
+#ifndef VC_COMMON_TYPES_H_
+#define VC_COMMON_TYPES_H_
 
-#ifdef VC_CHECK_ALIGNMENT
+#ifdef Vc_CHECK_ALIGNMENT
 #include <cstdlib>
 #include <cstdio>
 #endif
@@ -37,7 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/global.h>
 #include "../traits/type_traits.h"
 #include "permutation.h"
-#include "alignedbase.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -72,21 +71,26 @@ using Best = typename std::conditional<
             typename std::conditional<
                 CurrentImplementation::is(AVX2Impl), Avx,
                 typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
+<<<<<<< HEAD
                                           typename std::conditional<CurrentImplementation::is(CUDAImpl), Cuda, void>::type>::type>::type>::type>::type>::type;
 #ifdef VC_IMPL_AVX2
+=======
+                                          void>::type>::type>::type>::type>::type;
+#ifdef Vc_IMPL_AVX2
+>>>>>>> refs/remotes/origin/master
 static_assert(std::is_same<Best<float>, Avx>::value, "");
 static_assert(std::is_same<Best<int>, Avx>::value, "");
-#elif defined VC_IMPL_AVX
+#elif defined Vc_IMPL_AVX
 static_assert(std::is_same<Best<float>, Avx>::value, "");
 static_assert(std::is_same<Best<int>, Sse>::value, "");
-#elif defined VC_IMPL_SSE
+#elif defined Vc_IMPL_SSE
 static_assert(CurrentImplementation::is_between(SSE2Impl, SSE42Impl), "");
 static_assert(std::is_same<Best<float>, Sse>::value, "");
 static_assert(std::is_same<Best<int>, Sse>::value, "");
-#elif defined VC_IMPL_MIC
+#elif defined Vc_IMPL_MIC
 static_assert(std::is_same<Best<float>, Mic>::value, "");
 static_assert(std::is_same<Best<int>, Mic>::value, "");
-#elif defined VC_IMPL_Scalar
+#elif defined Vc_IMPL_Scalar
 static_assert(std::is_same<Best<float>, Scalar>::value, "");
 static_assert(std::is_same<Best<int>, Scalar>::value, "");
 #endif
@@ -106,7 +110,11 @@ template<typename T> struct MayAliasImpl { typedef T type Vc_MAY_ALIAS; };
  * therefore MaskBool is simply forwarded as is.
  */
 }  // namespace Detail
+#ifdef Vc_ICC
+template <typename T> using MayAlias [[gnu::may_alias]] = T;
+#else
 template <typename T> using MayAlias = typename Detail::MayAliasImpl<T>::type;
+#endif
 
 enum class Operator : char {
     Assign,
@@ -185,44 +193,24 @@ public:
 };
 */
 
-// TODO: all of the following doesn't really belong into the toplevel Vc namespace. An anonymous
-// namespace might be enough:
+/**
+ * The special object \p Vc::Zero can be used to construct Vector and Mask objects
+ * initialized to zero/false.
+ */
+static constexpr struct VectorSpecialInitializerZero {} Zero = {};
+/**
+ * The special object \p Vc::One can be used to construct Vector and Mask objects
+ * initialized to one/true.
+ */
+static constexpr struct VectorSpecialInitializerOne {} One = {};
+/**
+ * The special object \p Vc::IndexesFromZero can be used to construct Vector objects
+ * initialized to values 0, 1, 2, 3, 4, ...
+ */
+static constexpr struct VectorSpecialInitializerIndexesFromZero {} IndexesFromZero = {};
 
-// TODO: convert to enum classes
-namespace VectorSpecialInitializerZero { enum ZEnum { Zero = 0 }; }
-namespace VectorSpecialInitializerOne { enum OEnum { One = 1 }; }
-namespace VectorSpecialInitializerIndexesFromZero { enum IEnum { IndexesFromZero }; }
-
-#ifndef VC_ICC
-// ICC ICEs if the traits below are in an unnamed namespace
-namespace
-{
-#endif
-    enum TestEnum {};
-
-    static_assert(std::is_convertible<TestEnum, short>          ::value ==  true, "HasImplicitCast0_is_broken");
-    static_assert(std::is_convertible<int *, void *>            ::value ==  true, "HasImplicitCast1_is_broken");
-    static_assert(std::is_convertible<int *, const void *>      ::value ==  true, "HasImplicitCast2_is_broken");
-    static_assert(std::is_convertible<const int *, const void *>::value ==  true, "HasImplicitCast3_is_broken");
-    static_assert(std::is_convertible<const int *, int *>       ::value == false, "HasImplicitCast4_is_broken");
-
-    template<typename From, typename To> struct is_implicit_cast_allowed : public std::false_type {};
-    template<typename T> struct is_implicit_cast_allowed<T, T> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed< int64_t, uint64_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<uint64_t,  int64_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed< int32_t, uint32_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<uint32_t,  int32_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed< int16_t, uint16_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<uint16_t,  int16_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed<  int8_t,  uint8_t> : public std::true_type {};
-    template<> struct is_implicit_cast_allowed< uint8_t,   int8_t> : public std::true_type {};
-
-    template<typename From, typename To> struct is_implicit_cast_allowed_mask : public is_implicit_cast_allowed<From, To> {};
-#ifndef VC_ICC
-} // anonymous namespace
-#endif
-
-#ifndef VC_CHECK_ALIGNMENT
+// TODO: the following doesn't really belong into the toplevel Vc namespace.
+#ifndef Vc_CHECK_ALIGNMENT
 template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
 #else
 template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
@@ -269,14 +257,14 @@ Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 template <typename T, typename U>
 using enable_if_mask_converts_implicitly =
     enable_if<(Traits::is_simd_mask<U>::value && !Traits::isSimdMaskArray<U>::value &&
-               is_implicit_cast_allowed_mask<
+               Traits::is_implicit_cast_allowed_mask<
                    Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value)>;
 template <typename T, typename U>
-using enable_if_mask_converts_explicitly = enable_if<
-    (Traits::isSimdMaskArray<U>::value ||
-     (Traits::is_simd_mask<U>::value &&
-      !is_implicit_cast_allowed_mask<
-           Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value))>;
+using enable_if_mask_converts_explicitly = enable_if<(
+    Traits::isSimdMaskArray<U>::value ||
+    (Traits::is_simd_mask<U>::value &&
+     !Traits::is_implicit_cast_allowed_mask<
+         Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value))>;
 
 template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(T)>;
 
@@ -310,11 +298,19 @@ template <typename T, typename IndexVector> struct ScatterArguments
     T *const address;
 };
 
+/**\internal
+ * Break the recursion of the function below.
+ */
 template <typename I, I Begin, I End, typename F>
 Vc_INTRINSIC enable_if<(Begin >= End), void> unrolled_loop(F &&)
 {
 }
 
+/**\internal
+ * Force the code in the lambda \p f to be called with indexes starting from \p Begin up
+ * to (excluding) \p End to be called without compare and jump instructions (i.e. an
+ * unrolled loop).
+ */
 template <typename I, I Begin, I End, typename F>
 Vc_INTRINSIC Vc_FLATTEN enable_if<(Begin < End), void> unrolled_loop(F &&f)
 {
@@ -322,12 +318,20 @@ Vc_INTRINSIC Vc_FLATTEN enable_if<(Begin < End), void> unrolled_loop(F &&f)
     unrolled_loop<I, Begin + 1, End>(f);
 }
 
+/**\internal
+ * Small simplification of the unrolled_loop call for ranges from 0 to \p Size using
+ * std::size_t as the index type.
+ */
+template <std::size_t Size, typename F> Vc_INTRINSIC void for_all_vector_entries(F &&f)
+{
+    unrolled_loop<std::size_t, 0u, Size>(std::forward<F>(f));
+}
+
 }  // namespace Common
 }  // namespace Vc
 
 #include "memoryfwd.h"
-#include "undomacros.h"
 
-#endif // VC_COMMON_TYPES_H
+#endif // VC_COMMON_TYPES_H_
 
 // vim: foldmethod=marker

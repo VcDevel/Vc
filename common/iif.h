@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_COMMON_IIF_H
-#define VC_COMMON_IIF_H
+#ifndef VC_COMMON_IIF_H_
+#define VC_COMMON_IIF_H_
 
 #include <Vc/type_traits>
 #include "macros.h"
@@ -81,7 +81,7 @@ iif(const Mask &condition, const T &trueValue, const T &_falseValue)
  * 2. the semantics are a bit fishy: basically the mask determines how to blow up the scalar values
 template<typename Mask, typename T> Vc_ALWAYS_INLINE
 typename std::enable_if<Vc::is_simd_mask<Mask>::value && !Vc::is_simd_vector<T>::value, void>::type
-#ifndef VC_MSVC
+#ifndef Vc_MSVC
 iif(Mask condition, T trueValue, T falseValue)
 #else
 iif(const Mask &condition, T trueValue, T falseValue)
@@ -114,6 +114,4 @@ template<typename T> constexpr T iif (bool condition, const T &trueValue, const 
 
 }  // namespace Vc
 
-#include "undomacros.h"
-
-#endif // VC_COMMON_IIF_H
+#endif // VC_COMMON_IIF_H_
