@@ -272,10 +272,12 @@ static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const    SSE::int_v &value, cons
 static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const   SSE::uint_v &value, const   SSE::uint_v &count) { return _mm_shl_epi32(value.data(), count.data()); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const  SSE::short_v &value, const  SSE::short_v &count) { return _mm_sha_epi16(value.data(), count.data()); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const SSE::ushort_v &value, const SSE::ushort_v &count) { return _mm_shl_epi16(value.data(), count.data()); }
+static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const  SSE::uchar_v &value, const  SSE::uchar_v &count) { return _mm_shl_epi8(value.data(), count.data()); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const    SSE::int_v &value, const    SSE::int_v &count) { return shiftLeft(value,          -count ); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const   SSE::uint_v &value, const   SSE::uint_v &count) { return shiftLeft(value,   SSE::uint_v(-count)); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const  SSE::short_v &value, const  SSE::short_v &count) { return shiftLeft(value,          -count ); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const SSE::ushort_v &value, const SSE::ushort_v &count) { return shiftLeft(value, SSE::ushort_v(-count)); }
+static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const  SSE::uchar_v &value, const  SSE::uchar_v &count) { return shiftLeft(value, SSE::uchar_v(-count)); }
 
 #define Vc_OP(T, symbol, impl)                                                           \
     template <> Vc_INTRINSIC SSE::T &SSE::T::operator symbol##=(SSE::T::AsArg shift)     \
@@ -320,6 +322,8 @@ Vc_OP_IMPL(short, <<);
 Vc_OP_IMPL(short, >>);
 Vc_OP_IMPL(unsigned short, <<);
 Vc_OP_IMPL(unsigned short, >>);
+Vc_OP_IMPL(unsigned char, <<)
+Vc_OP_IMPL(unsigned char, >>)
 #undef Vc_OP_IMPL
 #endif
 
@@ -804,6 +808,27 @@ template <> template <typename G> Vc_INTRINSIC SSE::ushort_v SSE::ushort_v::gene
     const auto tmp6 = gen(6);
     const auto tmp7 = gen(7);
     return _mm_setr_epi16(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7);
+}
+template <> template <typename G> Vc_INTRINSIC SSE::uchar_v SSE::uchar_v::generate(G gen)
+{
+    const auto tmp0 = gen(0);
+    const auto tmp1 = gen(1);
+    const auto tmp2 = gen(2);
+    const auto tmp3 = gen(3);
+    const auto tmp4 = gen(4);
+    const auto tmp5 = gen(5);
+    const auto tmp6 = gen(6);
+    const auto tmp7 = gen(7);
+    const auto tmp8 = gen(8);
+    const auto tmp9 = gen(9);
+    const auto tmp10 = gen(10);
+    const auto tmp11 = gen(11);
+    const auto tmp12 = gen(12);
+    const auto tmp13 = gen(13);
+    const auto tmp14 = gen(14);
+    const auto tmp15 = gen(15);
+    return _mm_setr_epi8(tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9,
+                         tmp10, tmp11, tmp12, tmp13, tmp14, tmp15);
 }
 // }}}1
 // reversed {{{1

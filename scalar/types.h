@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_UINT_V_SIZE 1
 #define Vc_SHORT_V_SIZE 1
 #define Vc_USHORT_V_SIZE 1
+#define Vc_UCHAR_V_SIZE 1
 #endif
 
 namespace Vc_VERSIONED_NAMESPACE
@@ -51,6 +52,7 @@ typedef Vector<int>               int_v;
 typedef Vector<unsigned int>     uint_v;
 typedef Vector<short>           short_v;
 typedef Vector<unsigned short> ushort_v;
+typedef Vector<unsigned char>   uchar_v;
 
 template <typename T> using Mask = Vc::Mask<T, VectorAbi::Scalar>;
 typedef Mask<double>         double_m;
@@ -59,6 +61,7 @@ typedef Mask<int>               int_m;
 typedef Mask<unsigned int>     uint_m;
 typedef Mask<short>           short_m;
 typedef Mask<unsigned short> ushort_m;
+typedef Mask<unsigned char>   uchar_m;
 
 template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};

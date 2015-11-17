@@ -182,6 +182,7 @@ using  uchar_m = Mask< uchar>;
     static_assert(uint_v::Size   == Vc_UINT_V_SIZE  , "Vc_UINT_V_SIZE macro defined to an incorrect value  ");
     static_assert(short_v::Size  == Vc_SHORT_V_SIZE , "Vc_SHORT_V_SIZE macro defined to an incorrect value ");
     static_assert(ushort_v::Size == Vc_USHORT_V_SIZE, "Vc_USHORT_V_SIZE macro defined to an incorrect value");
+    static_assert(uchar_v::Size  == Vc_UCHAR_V_SIZE , "Vc_UCHAR_V_SIZE macro defined to an incorrect value ");
   }
 }
 

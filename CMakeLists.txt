@@ -162,7 +162,13 @@ if(NOT ROOT_RELEASE)
    else()
       message(FATAL_ERROR "Unsupported target architecture '${CMAKE_SYSTEM_PROCESSOR}'. No support_???.cpp file exists for this architecture.")
    endif()
-   add_library(Vc STATIC ${_srcs})
+
+   file(GLOB _header
+   "sse/*"
+   "avx/*"
+   )
+
+   add_library(Vc STATIC ${_srcs} ${_header})
    set_property(TARGET Vc APPEND PROPERTY COMPILE_OPTIONS ${libvc_compile_flags})
    add_target_property(Vc LABELS "other")
    if(XCODE)

@@ -374,6 +374,14 @@ Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::
     return _mm_sub_epi16(_mm_setzero_si128(), v);
 #endif
 }
+Vc_ALWAYS_INLINE Vc_CONST __m128i negate(__m128i v, std::integral_constant<std::size_t, 1>)
+{
+#ifdef VC_IMPL_SSSE3
+  return _mm_sign_epi8(v, allone<__m128i>());
+#else
+  return _mm_sub_epi8(_mm_setzero_si128(), v);
+#endif
+}
 
 // xor_{{{1
 Vc_INTRINSIC __m128 xor_(__m128 a, __m128 b) { return _mm_xor_ps(a, b); }

@@ -926,7 +926,9 @@ private:
     {
         std::cout << x;
     }
+
     template <typename T> static inline void printImpl(const T &x, ...) { printMem(x); }
+    static inline void print(const unsigned char &x) { printImpl((int)x, int()); }
     template <typename T> static inline void print(const T &x) { printImpl(x, int()); }
     static void print(const std::type_info &x)
     {

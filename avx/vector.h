@@ -391,12 +391,14 @@ static_assert(Traits::is_simd_vector<AVX2::   int_v>::value, "is_simd_vector<   
 static_assert(Traits::is_simd_vector<AVX2::  uint_v>::value, "is_simd_vector<  uint_v>::value");
 static_assert(Traits::is_simd_vector<AVX2:: short_v>::value, "is_simd_vector< short_v>::value");
 static_assert(Traits::is_simd_vector<AVX2::ushort_v>::value, "is_simd_vector<ushort_v>::value");
+static_assert(Traits::is_simd_vector<AVX2:: uchar_v>::value, "is_simd_vector< uchar_v>::value");
 static_assert(Traits::is_simd_mask  <AVX2::double_m>::value, "is_simd_mask  <double_m>::value");
 static_assert(Traits::is_simd_mask  <AVX2:: float_m>::value, "is_simd_mask  < float_m>::value");
 static_assert(Traits::is_simd_mask  <AVX2::   int_m>::value, "is_simd_mask  <   int_m>::value");
 static_assert(Traits::is_simd_mask  <AVX2::  uint_m>::value, "is_simd_mask  <  uint_m>::value");
 static_assert(Traits::is_simd_mask  <AVX2:: short_m>::value, "is_simd_mask  < short_m>::value");
 static_assert(Traits::is_simd_mask  <AVX2::ushort_m>::value, "is_simd_mask  <ushort_m>::value");
+static_assert(Traits::is_simd_mask  <AVX2:: uchar_m>::value, "is_simd_mask  < uchar_m>::value");
 
 #ifdef Vc_IMPL_AVX2
 static_assert(!std::is_convertible<float *, AVX2::short_v>::value, "A float* should never implicitly convert to short_v. Something is broken.");

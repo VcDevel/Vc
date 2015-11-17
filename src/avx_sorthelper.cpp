@@ -69,7 +69,7 @@ template<> Vc_CONST AVX2::short_v sorted<CurrentImplementation::current()>(Vc_AL
     // 01 23 01 23 01 23 01 23
 
     // sort pairs (one min/max)
-    auto x = AVX::lo128(x_.data());
+    auto x = AVX::lo128(x_.data())
     auto y = AVX::hi128(x_.data());
     Vc_DEBUG << "xy: " << AVX::addType<short>(x) << AVX::addType<short>(y);
     auto l = _mm_min_epi16(x, y);
