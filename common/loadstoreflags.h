@@ -142,6 +142,14 @@ template<> struct LoadStoreFlags<>
     typedef void* EnableIfNotPrefetch;
 };
 
+/**
+ * Operator for concatenation of LoadStoreFlags.
+ *
+ * Example:
+ * \code
+ * float_v x(mem, Vc::Aligned | Vc::Streaming);
+ * \endcode
+ */
 template<typename... LFlags, typename... RFlags>
 constexpr LoadStoreFlags<LFlags..., RFlags...> operator|(LoadStoreFlags<LFlags...>, LoadStoreFlags<RFlags...>)
 {
@@ -156,12 +164,21 @@ typedef LoadStoreFlags::LoadStoreFlags<> AlignedTag;
 typedef LoadStoreFlags::LoadStoreFlags<LoadStoreFlags::StreamingFlag> StreamingTag;
 typedef LoadStoreFlags::LoadStoreFlags<LoadStoreFlags::UnalignedFlag> UnalignedTag;
 
+/// The default load tag type uses unaligned (non-streaming) loads.
 typedef UnalignedTag DefaultLoadTag;
+/// The default store tag type uses unaligned (non-streaming) stores.
 typedef UnalignedTag DefaultStoreTag;
 
+/// Use this object for a \p flags parameter to request aligned loads and stores.
 constexpr AlignedTag Aligned;
+/// Use this object for a \p flags parameter to request streaming loads and stores.
 constexpr StreamingTag Streaming;
+/// Use this object for a \p flags parameter to request unaligned loads and stores.
 constexpr UnalignedTag Unaligned;
+/**
+ * Use this object for a \p flags parameter to request default software prefetches to be
+ * emitted.
+ */
 constexpr LoadStoreFlags::LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
 
 /**
