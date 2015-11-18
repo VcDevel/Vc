@@ -1259,6 +1259,11 @@ SimdArray<T, N> ldexp(const SimdArray<T, N> &x, const SimdArray<int, N> &e)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Ldexp(), x, e);
 }
+template <typename T, std::size_t N>
+SimdArray<T, N> sqrt(const SimdArray<T, N> &x)
+{
+    return SimdArray<T, N>::fromOperation(Common::Operations::Sqrt(), x);
+}
 
 // simd_cast {{{1
 // simd_cast_impl_smaller_input {{{2
