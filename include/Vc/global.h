@@ -70,6 +70,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * For any other compiler this macro is not defined.
  */
 #define Vc_MSVC _MSC_FULL_VER
+/**
+ * \ingroup Utilities
+ * This macro is defined if the compiler disallows passing over-aligned types by value. If
+ * this is the case you must use parameter passing by const-ref exclusively.
+ *
+ * \note This is a bug in the compiler (or rather it's restriction to inefficient function
+ * call conventions). You may be able to work around the issue with a better (i.e. sane)
+ * calling
+ * convention.
+ */
+#define Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
 //@}
 
 #else  // DOXYGEN
