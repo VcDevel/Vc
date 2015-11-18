@@ -215,6 +215,7 @@ TEST_TYPES(A,
     Vc::isnan(a);
     // Vc::frexp(a,e);
     // Vc::ldexp(a,e);
+    Vc::sqrt(a);
 }
 
 TEST_TYPES(V, store, SIMD_ARRAY_LIST)

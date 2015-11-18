@@ -81,6 +81,7 @@ Vc_DEFINE_OPERATION(Abs, v = abs(std::forward<Args>(args)...));
 Vc_DEFINE_OPERATION(Isnan, v = isnan(std::forward<Args>(args)...));
 Vc_DEFINE_OPERATION(Frexp, v = frexp(std::forward<Args>(args)...));
 Vc_DEFINE_OPERATION(Ldexp, v = ldexp(std::forward<Args>(args)...));
+Vc_DEFINE_OPERATION(Sqrt, v = sqrt(std::forward<Args>(args)...));
 #undef Vc_DEFINE_OPERATION
 template<typename T> using is_operation = std::is_base_of<tag, T>;
 }  // namespace Operations }}}
