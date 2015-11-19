@@ -38,7 +38,39 @@ using namespace Vc;
 using Vc::Detail::floatConstant;
 using Vc::Detail::doubleConstant;
 
-#define REAL_TYPES (float_v, double_v)
+#define SIMD_ARRAY_LIST                                                                            \
+     SIMD_ARRAYS(32),                                                                              \
+     SIMD_ARRAYS(17),                                                                              \
+     SIMD_ARRAYS(16),                                                                              \
+     SIMD_ARRAYS(9),                                                                               \
+     SIMD_ARRAYS(8),                                                                               \
+     SIMD_ARRAYS(5),                                                                               \
+     SIMD_ARRAYS(4),                                                                               \
+     SIMD_ARRAYS(3),                                                                               \
+     SIMD_ARRAYS(2),                                                                               \
+     SIMD_ARRAYS(1)
+#define SIMD_REAL_ARRAY_LIST                                                                       \
+     SIMD_REAL_ARRAYS(32),                                                                         \
+     SIMD_REAL_ARRAYS(17),                                                                         \
+     SIMD_REAL_ARRAYS(16),                                                                         \
+     SIMD_REAL_ARRAYS(9),                                                                          \
+     SIMD_REAL_ARRAYS(8),                                                                          \
+     SIMD_REAL_ARRAYS(5),                                                                          \
+     SIMD_REAL_ARRAYS(4),                                                                          \
+     SIMD_REAL_ARRAYS(3),                                                                          \
+     SIMD_REAL_ARRAYS(2),                                                                          \
+     SIMD_REAL_ARRAYS(1)
+#define SIMD_INT_ARRAY_LIST                                                                        \
+     SIMD_INT_ARRAYS(32),                                                                          \
+     SIMD_INT_ARRAYS(17),                                                                          \
+     SIMD_INT_ARRAYS(16),                                                                          \
+     SIMD_INT_ARRAYS(9),                                                                           \
+     SIMD_INT_ARRAYS(8),                                                                           \
+     SIMD_INT_ARRAYS(5),                                                                           \
+     SIMD_INT_ARRAYS(4),                                                                           \
+     SIMD_INT_ARRAYS(3),                                                                           \
+     SIMD_INT_ARRAYS(2),                                                                           \
+     SIMD_INT_ARRAYS(1)
 
 // fix isfinite and isnan {{{1
 #ifdef isfinite
@@ -301,7 +333,7 @@ TEST(prepareDenormals) //{{{1
 }
 
 // testAbs{{{1
-TEST_TYPES(Vec, testAbs, (int_v, float_v, double_v, short_v, SimdArray<int, 8>,
+TEST_TYPES(Vec, testAbs, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST, int_v, short_v, SimdArray<int, 8>,
                           SimdArray<int, 2>, SimdArray<int, 7>))
 {
     for (int i = 0; i < 0x7fff - int(Vec::size()); ++i) {
@@ -317,7 +349,7 @@ TEST_TYPES(Vec, testAbs, (int_v, float_v, double_v, short_v, SimdArray<int, 8>,
     }
 }
 
-TEST_TYPES(V, testTrunc, REAL_TYPES) //{{{1
+TEST_TYPES(V, testTrunc, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -330,7 +362,7 @@ TEST_TYPES(V, testTrunc, REAL_TYPES) //{{{1
     COMPARE(Vc::trunc(x), reference) << ", x = " << x;
 }
 
-TEST_TYPES(V, testFloor, REAL_TYPES) //{{{1
+TEST_TYPES(V, testFloor, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -343,7 +375,7 @@ TEST_TYPES(V, testFloor, REAL_TYPES) //{{{1
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
 
-TEST_TYPES(V, testCeil, REAL_TYPES) //{{{1
+TEST_TYPES(V, testCeil, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -356,7 +388,7 @@ TEST_TYPES(V, testCeil, REAL_TYPES) //{{{1
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
 
-TEST_TYPES(V, testExp, REAL_TYPES) //{{{1
+TEST_TYPES(V, testExp, (REAL_VECTORS)) //{{{1
 {
     UnitTest::setFuzzyness<float>(1);
     UnitTest::setFuzzyness<double>(2);
@@ -369,7 +401,7 @@ TEST_TYPES(V, testExp, REAL_TYPES) //{{{1
     COMPARE(Vc::exp(V::Zero()), V::One());
 }
 
-TEST_TYPES(V, testLog, REAL_TYPES) //{{{1
+TEST_TYPES(V, testLog, (REAL_VECTORS)) //{{{1
 {
 #ifdef Vc_IMPL_MIC
     UnitTest::setFuzzyness<float>(2);
@@ -395,7 +427,7 @@ TEST_TYPES(V, testLog, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(V, testLog2, REAL_TYPES) //{{{1
+TEST_TYPES(V, testLog2, (REAL_VECTORS)) //{{{1
 {
 #if defined(Vc_LOG_ILP) || defined(Vc_LOG_ILP2)
     UnitTest::setFuzzyness<float>(3);
@@ -426,7 +458,7 @@ TEST_TYPES(V, testLog2, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(V, testLog10, REAL_TYPES) //{{{1
+TEST_TYPES(V, testLog10, (REAL_VECTORS)) //{{{1
 {
     UnitTest::setFuzzyness<float>(2);
     UnitTest::setFuzzyness<double>(2);
@@ -476,7 +508,7 @@ template <typename V, typename F> void fillDataAndReference(V &data, V &referenc
     }
 }
 
-TEST_TYPES(V, testSqrt, REAL_TYPES) //{{{1
+TEST_TYPES(V, testSqrt, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     V data, reference;
@@ -485,7 +517,7 @@ TEST_TYPES(V, testSqrt, REAL_TYPES) //{{{1
     FUZZY_COMPARE(Vc::sqrt(data), reference);
 }
 
-TEST_TYPES(V, testRSqrt, REAL_TYPES) //{{{1
+TEST_TYPES(V, testRSqrt, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
@@ -495,7 +527,7 @@ TEST_TYPES(V, testRSqrt, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(V, testSincos, REAL_TYPES) //{{{1
+TEST_TYPES(V, testSincos, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -518,7 +550,7 @@ TEST_TYPES(V, testSincos, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(V, testSin, REAL_TYPES) //{{{1
+TEST_TYPES(V, testSin, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -535,7 +567,7 @@ TEST_TYPES(V, testSin, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(V, testCos, REAL_TYPES) //{{{1
+TEST_TYPES(V, testCos, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -552,7 +584,7 @@ TEST_TYPES(V, testCos, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(V, testAsin, REAL_TYPES) //{{{1
+TEST_TYPES(V, testAsin, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
 #ifdef Vc_IMPL_MIC
@@ -584,7 +616,7 @@ const union {
 #define ATAN_COMPARE COMPARE
 #endif
 
-TEST_TYPES(V, testAtan, REAL_TYPES) //{{{1
+TEST_TYPES(V, testAtan, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(3);
@@ -615,7 +647,7 @@ TEST_TYPES(V, testAtan, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(V, testAtan2, REAL_TYPES) //{{{1
+TEST_TYPES(V, testAtan2, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(3);
@@ -691,7 +723,7 @@ TEST_TYPES(V, testAtan2, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testReciprocal, REAL_TYPES) //{{{1
+TEST_TYPES(Vec, testReciprocal, (REAL_VECTORS)) //{{{1
 {
     typedef typename Vec::EntryType T;
     UnitTest::setFuzzyness<float>(1.258295e+07);
@@ -712,7 +744,7 @@ TEST_TYPES(Vec, testReciprocal, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(V, isNegative, REAL_TYPES) //{{{1
+TEST_TYPES(V, isNegative, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     VERIFY(V::One().isNegative().isEmpty());
@@ -721,7 +753,7 @@ TEST_TYPES(V, isNegative, REAL_TYPES) //{{{1
     VERIFY(V(T(-0.)).isNegative().isFull());
 }
 
-TEST_TYPES(Vec, testInf, REAL_TYPES) //{{{1
+TEST_TYPES(Vec, testInf, (REAL_VECTORS)) //{{{1
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -741,7 +773,7 @@ TEST_TYPES(Vec, testInf, REAL_TYPES) //{{{1
     VERIFY(none_of(Vc::isinf(nan)));
 }
 
-TEST_TYPES(Vec, testNaN, REAL_TYPES) //{{{1
+TEST_TYPES(Vec, testNaN, (REAL_VECTORS)) //{{{1
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;
@@ -760,7 +792,7 @@ TEST_TYPES(Vec, testNaN, REAL_TYPES) //{{{1
     VERIFY(all_of(Vc::isnan(nan)));
 }
 
-TEST_TYPES(Vec, testRound, REAL_TYPES) //{{{1
+TEST_TYPES(Vec, testRound, (REAL_VECTORS)) //{{{1
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -862,7 +894,7 @@ TEST_TYPES(Vec, testReduceSum, (ALL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, testExponent, REAL_TYPES) //{{{1
+TEST_TYPES(V, testExponent, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     Vc::Memory<V, 32> input;
@@ -906,7 +938,7 @@ TEST_TYPES(V, testExponent, REAL_TYPES) //{{{1
 
 template<typename T> struct _ExponentVector { typedef int_v Type; };
 
-TEST_TYPES(V, testFrexp, REAL_TYPES) //{{{1
+TEST_TYPES(V, testFrexp, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     using ExpV = typename V::IndexType;
@@ -961,7 +993,7 @@ TEST_TYPES(V, testFrexp, REAL_TYPES) //{{{1
     }
 }
 
-TEST_TYPES(V, testLdexp, REAL_TYPES) //{{{1
+TEST_TYPES(V, testLdexp, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
     using ExpV = typename V::IndexType;
@@ -974,7 +1006,7 @@ TEST_TYPES(V, testLdexp, REAL_TYPES) //{{{1
 }
 
 #include "ulp.h"
-TEST_TYPES(V, testUlpDiff, REAL_TYPES) //{{{1
+TEST_TYPES(V, testUlpDiff, (REAL_VECTORS)) //{{{1
 {
     typedef typename V::EntryType T;
 

@@ -1419,12 +1419,17 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
 //}}}1
 }  // namespace UnitTest
 // TEST_BEGIN / TEST_END / TEST macros {{{1
-#define ALL_VECTORS                                                                      \
-    Vc::int_v, Vc::ushort_v, Vc::double_v, Vc::uint_v, Vc::short_v, Vc::float_v
-#define SIMD_ARRAYS(N__)                                                                 \
-    Vc::SimdArray<int, N__>, Vc::SimdArray<unsigned short, N__>,                         \
-        Vc::SimdArray<double, N__>, Vc::SimdArray<unsigned int, N__>,                    \
-        Vc::SimdArray<short, N__>, Vc::SimdArray<float, N__>
+#define REAL_VECTORS                                                                     \
+    Vc::double_v, Vc::float_v
+#define INT_VECTORS                                                                      \
+    Vc::int_v, Vc::ushort_v, Vc::uint_v, Vc::short_v
+#define ALL_VECTORS REAL_VECTORS, INT_VECTORS
+#define SIMD_REAL_ARRAYS(N__)                                                            \
+        Vc::SimdArray<double, N__>, Vc::SimdArray<float, N__>
+#define SIMD_INT_ARRAYS(N__)                                                             \
+        Vc::SimdArray<int, N__>, Vc::SimdArray<unsigned short, N__>,                     \
+        Vc::SimdArray<unsigned int, N__>, Vc::SimdArray<short, N__>
+#define SIMD_ARRAYS(N__) SIMD_REAL_ARRAYS(N__), SIMD_INT_ARRAYS(N__)
 
 #ifdef UNITTEST_ONLY_XTEST
 #define TEST_ALL_V(V__, fun__) template <typename V__> void fun__()
