@@ -508,7 +508,7 @@ template <typename V, typename F> void fillDataAndReference(V &data, V &referenc
     }
 }
 
-TEST_TYPES(V, testSqrt, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testSqrt, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     V data, reference;
