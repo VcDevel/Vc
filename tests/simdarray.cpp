@@ -209,13 +209,6 @@ TEST_TYPES(A,
 
     a = A(&data[2], Vc::Unaligned | Vc::Streaming);
     COMPARE(a, b + 1);
-
-    // test mathematical operators
-    Vc::abs(a);
-    Vc::isnan(a);
-    // Vc::frexp(a,e);
-    // Vc::ldexp(a,e);
-    Vc::sqrt(a);
 }
 
 TEST_TYPES(V, store, SIMD_ARRAY_LIST)
