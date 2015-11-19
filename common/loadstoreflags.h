@@ -169,17 +169,55 @@ typedef UnalignedTag DefaultLoadTag;
 /// The default store tag type uses unaligned (non-streaming) stores.
 typedef UnalignedTag DefaultStoreTag;
 
-/// Use this object for a \p flags parameter to request aligned loads and stores.
+/**\addtogroup Utilities
+ * @{
+ */
+/**
+ * Use this object for a \p flags parameter to request aligned loads and stores.
+ *
+ * It specifies that a load/store can expect a memory address that is aligned on
+ * the correct boundary. (i.e. \p MemoryAlignment)
+ *
+ * \warning
+ * If you specify Aligned, but the memory address is not aligned the program
+ * will most likely crash.
+ */
 constexpr AlignedTag Aligned;
-/// Use this object for a \p flags parameter to request streaming loads and stores.
-constexpr StreamingTag Streaming;
-/// Use this object for a \p flags parameter to request unaligned loads and stores.
+
+/**
+ * Use this object for a \p flags parameter to request unaligned loads and stores.
+ *
+ * It specifies that a load/store can \em not expect a memory address that is
+ * aligned on the correct boundary. (i.e. alignment is less than
+ * \p MemoryAlignment)
+ *
+ * \note
+ * If you specify Unaligned, but the memory address is aligned the load/store
+ * will execute slightly slower than necessary.
+ */
 constexpr UnalignedTag Unaligned;
+
+/**
+ * Use this object for a \p flags parameter to request streaming loads and stores.
+ *
+ * It specifies that the cache should be bypassed for the given load/store.
+ * Whether this will actually be done depends on the target system's capabilities.
+ *
+ * Streaming stores can be interesting when the code calculates values that, after being
+ * written to memory, will not be used for a long time or used by a different thread.
+ *
+ * \note
+ * Expect that most target systems do not support unaligned streaming loads or stores.
+ * Therefore, make sure that you also specify Aligned.
+ */
+constexpr StreamingTag Streaming;
+
 /**
  * Use this object for a \p flags parameter to request default software prefetches to be
  * emitted.
  */
 constexpr LoadStoreFlags::LoadStoreFlags<PrefetchFlag<>> PrefetchDefault;
+///@}
 
 /**
  * \tparam L1
