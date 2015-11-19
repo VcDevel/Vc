@@ -30,46 +30,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 \mainpage
 \image html logo.png
 
-The %Vc library is a collection of SIMD vector classes with existing implementations for SSE, AVX,
-and a scalar fallback. An implementation for the Intel Xeon Phi is expected to be ready for %Vc
-0.8.
+The %Vc library implements portable, zero-overhead C++ types for explicitly data-parallel
+programming.
+The 1.0 release ships implementations for x86 SIMD instruction sets: SSE, AVX, AVX2, and
+the Xeon Phi (MIC). A scalar implementation ensures full portability to any C++11 capable
+compiler and target system.
 
-\section background Background information and learning material
-\li \ref intro
-\li \ref portability
-\li \ref featuremacros
-\li \ref buildsystem
-\li \ref examples
+\par Introduction
 
-\section apidox API documentation
+Recent generations of CPUs, and GPUs in particular, require data-parallel codes for full efficiency.
+Data parallelism requires that the same sequence of operations is applied to different input data.
+CPUs and GPUs can thus reduce the necessary hardware for instruction decoding and scheduling in favor of more arithmetic and logic units, which execute the same instructions synchronously.
+On CPU architectures this is implemented via SIMD registers and instructions.
+A single SIMD register can store N values and a single SIMD instruction can execute N operations on those values.
+On GPU architectures N threads run in perfect sync, fed by a single instruction decoder/scheduler.
+Each thread has local memory and a given index to calculate the offsets in memory for loads and stores.
+
+Current C++ compilers can do automatic transformation of scalar codes to SIMD instructions (auto-vectorization).
+However, the compiler must reconstruct an intrinsic property of the algorithm that was lost when the developer wrote a purely scalar implementation in C++.
+Consequently, C++ compilers cannot vectorize any given code to its most efficient data-parallel variant.
+Especially larger data-parallel loops, spanning over multiple functions or even translation units, will often not be transformed into efficient SIMD code.
+
+The Vc library provides the missing link.
+Its types enable explicitly stating data-parallel operations on multiple values.
+The parallelism is therefore added via the type system.
+Competing approaches state the parallelism via new control structures and consequently new semantics inside the body of these control structures.
+
+\par Background information and learning material
+\li \subpage intro
+\li \subpage portability
+\li \subpage vcmacros
+\li \subpage featuremacros
+\li \subpage buildsystem
+\li \subpage examples
+
+\par API documentation
 \li \ref Vectors
 \li \ref Masks
-\li \ref Utilities
+\li \ref SimdArray
+\li \ref Simdize
 \li \ref Math
-
-Per default, code compiled against the %Vc headers will use the instruction set that the compiler
-says is available. For example compiling with "g++ -mssse3" will enable compilation against the
-SSE implementation using SSE the instruction sets SSE, SSE2, SSE3 and SSSE3. If you want to force
-compilation against a specific implementation of the vector classes you can set the macro
-Vc_IMPL to either "Scalar", "SSE", "SSE2", "SSE3", "SSSE3", "SSE4_1", "SSE4_2", or "AVX".
-You may additionally append "+XOP", "+FMA4", "+SSE4a", "+F16C", and "+POPCNT", e.g. "-D Vc_IMPL=SSE+XOP+FMA4"
-Setting Vc_IMPL to
-"SSE" will force the SSE instruction set, but lets the headers figure out the version to use or,
-if that fails, uses SSE4.1.
-After you include a %Vc header, you will have the following macros available, which you can (but
-normally should not) use to determine the implementation %Vc uses:
-\li \c Vc_IMPL_Scalar
-\li \c Vc_IMPL_SSE (shorthand for SSE2 || SSE3 || SSSE3 || SSE4_1. SSE1 alone is not supported.)
-\li \c Vc_IMPL_SSE2
-\li \c Vc_IMPL_SSE3
-\li \c Vc_IMPL_SSSE3
-\li \c Vc_IMPL_SSE4_1
-\li \c Vc_IMPL_SSE4_2
-\li \c Vc_IMPL_AVX
-
-Another set of macros you may use for target specific implementations are the \c Vc_*_V_SIZE
-macros: \ref Utilities
-
+\li \ref Utilities
 
 
 \page intro Introduction
@@ -77,7 +78,7 @@ macros: \ref Utilities
 If you are new to vectorization please read this following part and make sure you understand it:
 \li Forget what you learned about vectors in math classes. SIMD vectors are a different concept!
 \li Forget about containers that also go by the name of a vector. SIMD vectors are a different concept!
-\li A vector is defined by the hardware as a special register which is wider than required for a
+\li A SIMD vector is defined by the hardware as a special register which is wider than required for a
 single value. Thus multiple values fit into one register. The width of this register and the
 size of the scalar data type in use determine the number of entries in the vector.
 Therefore this number is an unchangeable property of the hardware and not a variable in the
@@ -263,34 +264,87 @@ typedef \c AsArg which resolves to either const-ref or const-by-value. Thus, you
 \code void foo(Vc::float_v::AsArg) {}\endcode.
 
 
+\page vcmacros Pre-defined Macros
+
+The %Vc library defines a few macros that you may rely on in your code:
+
+\section vc_impl Implementation Identification
+
+One or more of the following macros will be defined:
+\li \ref Vc_IMPL_Scalar
+\li \ref Vc_IMPL_SSE
+\li \ref Vc_IMPL_SSE2
+\li \ref Vc_IMPL_SSE3
+\li \ref Vc_IMPL_SSSE3
+\li \ref Vc_IMPL_SSE4_1
+\li \ref Vc_IMPL_SSE4_2
+\li \ref Vc_IMPL_AVX
+\li \ref Vc_IMPL_AVX2
+\li \ref Vc_IMPL_MIC
+
+You can use these macros to enable target-specific implementations.
+In general, it is better to rely on function overloading or template mechanisms, though.
+Per default, code compiled against the %Vc headers will use the instruction set that the compiler advertises as available.
+For example, compiling with "g++ -mssse3" chooses the SSE implementation (Vc::VectorAbi::Sse) with instructions from SSE, SSE2, SSE3 and SSSE3.
+After you include a %Vc header, you will have the following macros available, which you can (but normally should not) use to determine the implementation %Vc uses:
+
+\section vc_size Vector/Mask Sizes
+
+The macros \ref Vc_DOUBLE_V_SIZE, \ref Vc_FLOAT_V_SIZE, \ref Vc_INT, \ref Vc_UINT_V_SIZE, \ref Vc_SHORT_V_SIZE, and \ref Vc_USHORT_V_SIZE make the default vector width accessible in the preprocessor.
+In most cases you should prefer the Vector::size() function, though.
+Since this function is \c constexpr you can use it for compile-time decisions (e.g. as template argument).
+
+\section vc_compiler Compiler Identification (and related)
+
+- \ref Vc_GCC
+- \ref Vc_CLANG
+- \ref Vc_ICC
+- \ref Vc_MSVC
+- \ref Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
+
+\section vc_version Version Macros
+
+- \ref Vc_VERSION_STRING
+- \ref Vc_VERSION_NUMBER
+- \ref Vc_VERSION_CHECK
+
+\section vc_boilerplate Boilerplate Code Generation
+
+- \ref Vc_SIMDIZE_INTERFACE
+
 
 \page featuremacros Feature Macros
 
-The following macros are available to enable/disable selected features:
+You can define the following macros to enable/disable specific features:
 
-\par Vc_NO_STD_FUNCTIONS
+\section set_vc_impl Vc_IMPL
 
-If this macro is defined, the %Vc math functions are
-not imported into the \c std namespace. They are still available in the %Vc namespace.
+If you want to force compilation against a specific implementation of the vector classes you can set the macro Vc_IMPL to either
+\c Scalar, \c SSE, \c SSE2, \c SSE3, \c SSSE3, \c SSE4_1, \c SSE4_2, \c AVX, \c AVX2, or \c MIC.
+Additionally, you may (should) append \c +XOP, \c +FMA4, \c +FMA, \c +SSE4a, \c +F16C, \c +BMI2, and/or \c +POPCNT.
+For example, `-D Vc_IMPL=SSE+XOP+FMA4` tells the Vc library to use the best SSE instructions available for the target (according to the information provided by the compiler) and additionally use XOP and FMA4 instructions (this might be a good choice for some AMD processors, which support AVX but may perform slightly better if only SSE widths are used).
+Setting \c Vc_IMPL to \c SSE forces the SSE instruction set, but lets the headers figure out the exact SSE revision to use, or, if that fails, uses SSE4.1.
 
-\par Vc_CLEAN_NAMESPACE
+If you do not specify \c Vc_IMPL the %Vc headers determine the implementation from compiler-specific pre-defined macros (which in turn are determined from compiler flags that determine the target micro-architecture, such as \c -mavx2).
 
-If this macro is defined, any symbol or macro that does not have a %Vc
-prefix will be disabled.
+\section Vc_NO_STD_FUNCTIONS
 
-\par Vc_NO_VERSION_CHECK
+If this macro is defined, the %Vc math functions are not imported into the \c std namespace.
+They are still available in the %Vc namespace and through [ADL](http://en.cppreference.com/w/cpp/language/adl).
+
+\section Vc_NO_VERSION_CHECK
 
 Define this macro to disable the safety check for the libVc version.
 The check generates a small check for every object file, which is called at startup, i.e. before
 the main function.
 
-\par Vc_CHECK_ALIGNMENT
+\section Vc_CHECK_ALIGNMENT
 
-If this macro is defined %Vc will assert correct alignment for all
-       objects that require correct alignment. This can be very useful to debug crashes resulting
-       from misaligned memory accesses. This check will introduce a significant overhead.
+If this macro is defined %Vc will assert correct alignment for all objects that require correct alignment.
+This can be very useful to debug crashes resulting from misaligned memory accesses.
+This check will introduce a significant overhead.
 
-\par Vc_ENABLE_FLOAT_BIT_OPERATORS
+\section Vc_ENABLE_FLOAT_BIT_OPERATORS
 
 Define this macro to enable bitwise operators (&, |, ^) on floating-point vectors. Since these
 operators are not provided for the builtin floating-point types, the default is to not provide
@@ -300,14 +354,13 @@ them for SIMD vector types as well.
 
 \page buildsystem Build System
 
-%Vc uses CMake as its buildsystem. It also provides much of the CMake logic it
-uses for itself for other projects that use CMake and %Vc. Here's an (incomplete) list of features
-you can get from the CMake scripts provided with %Vc:
+%Vc uses CMake as its buildsystem.
+It also provides much of the CMake logic it uses for itself for other projects that use CMake and %Vc.
+Here's an (incomplete) list of features you can get from the CMake scripts provided with %Vc:
 \li check for a required %Vc version
 \li locate libVc and %Vc includes
-\li compiler flags to workaround %Vc related quirks/bugs in specific compilers
-\li compiler flags to enable/disable SIMD instruction sets, defaulting to full support for the
-host system
+\li compiler flags to work around %Vc related quirks/bugs in specific compilers
+\li compiler flags to enable/disable SIMD instruction sets (defaults to full support for the host system)
 
 \section buildsystem_variables CMake Variables
 
@@ -461,8 +514,9 @@ operators and functions.
  *
  * All functions and types of %Vc are defined inside the %Vc namespace.
  *
- * To be precise, most types are actually defined inside a second namespace, such as Vc::SSE. At
- * compile-time the correct implementation is simply imported into the %Vc namespace.
+ * \internal
+ * Internal types and functions should be defined either in the Vc::Detail namespace or in
+ * a `Vc::<Impl>` namespace such as Vc::SSE.
  */
 namespace Vc
 {
@@ -479,271 +533,48 @@ namespace Vc
      * \li Vc::short_v
      * \li Vc::ushort_v
      *
-     * are only specializations of this class. For the full documentation take a look at the
-     * specialized classes. For most cases there are no API differences for the specializations.
-     * Thus you can make use of \c Vector<T> for generic programming.
+     * are specializations of this class.
+     * For most cases there are no API differences for the specializations.
+     * Make use of Vector<T> for generic programming, otherwise you might prefer to use
+     * the \p *_v aliases.
      */
-    template<typename T> class Vector
+    template <typename T> class Vector
     {
         public:
-#define INDEX_TYPE uint_v
-#define VECTOR_TYPE Vector<T>
+#define INDEX_TYPE Vc::SimdArray<int, size()>
+#define VECTOR_TYPE Vc::Vector<T>
 #define ENTRY_TYPE T
-#define MASK_TYPE float_m
-#define EXPONENT_TYPE int_v
+#define MASK_TYPE Vc::Mask<T>
+#define EXPONENT_TYPE Vc::SimdArray<int, size()>
 #include "dox-common-ops.h"
 #include "dox-real-ops.h"
+    };
+
+    /**
+     * \class Mask dox.h <Vc/vector.h>
+     * \ingroup Masks
+     *
+     * The main SIMD mask class.
+     */
+    template <typename T> class Mask
+    {
+        public:
+#include "dox-common-mask-ops.h"
+    };
+
+#include "dox-math.h"
+
 #undef INDEX_TYPE
 #undef VECTOR_TYPE
 #undef ENTRY_TYPE
 #undef MASK_TYPE
 #undef EXPONENT_TYPE
-    };
 
-#define INDEX_TYPE uint_v
-#define VECTOR_TYPE float_v
-#define ENTRY_TYPE float
-#define MASK_TYPE float_m
-#define EXPONENT_TYPE int_v
-    /**
-     * \class float_v dox.h <Vc/float_v>
-     * \ingroup Vectors
-     *
-     * SIMD Vector of single precision floats.
-     *
-     * \note This is the same type as Vc::Vector<float>.
-     */
-    class VECTOR_TYPE
-    {
-        public:
-#include "dox-common-ops.h"
-#include "dox-real-ops.h"
-    };
-    /**
-     * \class float_m dox.h <Vc/float_v>
-     * \ingroup Masks
-     *
-     * Mask object to use with float_v objects.
-     *
-     * Of the same type as int_m and uint_m.
-     */
-    class MASK_TYPE
-    {
-        public:
-#include "dox-common-mask-ops.h"
-    };
-#include "dox-math.h"
-#undef VECTOR_TYPE
-#undef ENTRY_TYPE
-#undef MASK_TYPE
-
-#define VECTOR_TYPE double_v
-#define ENTRY_TYPE double
-#define MASK_TYPE double_m
-    /**
-     * \class double_v dox.h <Vc/double_v>
-     * \ingroup Vectors
-     *
-     * SIMD Vector of double precision floats.
-     *
-     * \note This is the same type as Vc::Vector<double>.
-     */
-    class VECTOR_TYPE
-    {
-        public:
-#include "dox-common-ops.h"
-#include "dox-real-ops.h"
-    };
-    /**
-     * \class double_m dox.h <Vc/double_v>
-     * \ingroup Masks
-     *
-     * Mask object to use with double_v objects.
-     */
-    class MASK_TYPE
-    {
-        public:
-#include "dox-common-mask-ops.h"
-    };
-#include "dox-math.h"
-#undef VECTOR_TYPE
-#undef ENTRY_TYPE
-#undef MASK_TYPE
-
-#define VECTOR_TYPE_HAS_SHIFTS 1
-#define VECTOR_TYPE int_v
-#define ENTRY_TYPE int
-#define MASK_TYPE int_m
-#define INTEGER
-    /**
-     * \class int_v dox.h <Vc/int_v>
-     * \ingroup Vectors
-     *
-     * SIMD Vector of 32 bit signed integers.
-     *
-     * \note This is the same type as Vc::Vector<int>.
-     */
-    class VECTOR_TYPE
-    {
-        public:
-#include "dox-common-ops.h"
-    };
-    /**
-     * \class int_m dox.h <Vc/int_v>
-     * \ingroup Masks
-     *
-     * Mask object to use with int_v objects.
-     *
-     * Of the same type as float_m and uint_m.
-     */
-    class MASK_TYPE
-    {
-        public:
-#include "dox-common-mask-ops.h"
-    };
-#undef VECTOR_TYPE
-#undef ENTRY_TYPE
-#undef MASK_TYPE
-
-#define VECTOR_TYPE uint_v
-#define ENTRY_TYPE unsigned int
-#define MASK_TYPE uint_m
-    /**
-     * \class uint_v dox.h <Vc/uint_v>
-     * \ingroup Vectors
-     *
-     * SIMD Vector of 32 bit unsigned integers.
-     *
-     * \note This is the same type as Vc::Vector<unsigned int>.
-     */
-    class VECTOR_TYPE
-    {
-        public:
-#include "dox-common-ops.h"
-    };
-    /**
-     * \class uint_m dox.h <Vc/uint_v>
-     * \ingroup Masks
-     *
-     * Mask object to use with uint_v objects.
-     *
-     * Of the same type as int_m and float_m.
-     */
-    class MASK_TYPE
-    {
-        public:
-#include "dox-common-mask-ops.h"
-    };
-#undef VECTOR_TYPE
-#undef ENTRY_TYPE
-#undef MASK_TYPE
-#undef INDEX_TYPE
-
-#define INDEX_TYPE ushort_v
-#define VECTOR_TYPE short_v
-#define ENTRY_TYPE short
-#define MASK_TYPE short_m
-    /**
-     * \class short_v dox.h <Vc/short_v>
-     * \ingroup Vectors
-     *
-     * SIMD Vector of 16 bit signed integers.
-     *
-     * \note This is the same type as Vc::Vector<short>.
-     *
-     * \warning Vectors of this type are not supported on all platforms. In that case the vector
-     * class will silently fall back to a Vc::int_v.
-     */
-    class VECTOR_TYPE
-    {
-        public:
-#include "dox-common-ops.h"
-    };
-    /**
-     * \class short_m dox.h <Vc/short_v>
-     * \ingroup Masks
-     *
-     * Mask object to use with short_v objects.
-     *
-     * Of the same type as ushort_m.
-     */
-    class MASK_TYPE
-    {
-        public:
-#include "dox-common-mask-ops.h"
-    };
-#undef VECTOR_TYPE
-#undef ENTRY_TYPE
-#undef MASK_TYPE
-
-#define VECTOR_TYPE ushort_v
-#define ENTRY_TYPE unsigned short
-#define MASK_TYPE ushort_m
-    /**
-     * \class ushort_v dox.h <Vc/ushort_v>
-     * \ingroup Vectors
-     *
-     * SIMD Vector of 16 bit unsigned integers.
-     *
-     * \note This is the same type as Vc::Vector<unsigned short>.
-     *
-     * \warning Vectors of this type are not supported on all platforms. In that case the vector
-     * class will silently fall back to a Vc::uint_v.
-     */
-    class VECTOR_TYPE
-    {
-        public:
-#include "dox-common-ops.h"
-    };
-    /**
-     * \class ushort_m dox.h <Vc/ushort_v>
-     * \ingroup Masks
-     *
-     * Mask object to use with ushort_v objects.
-     *
-     * Of the same type as short_m.
-     */
-    class MASK_TYPE
-    {
-        public:
-#include "dox-common-mask-ops.h"
-    };
-#undef VECTOR_TYPE
-#undef ENTRY_TYPE
-#undef MASK_TYPE
-#undef INTEGER
-#undef EXPONENT_TYPE
-#undef VECTOR_TYPE_HAS_SHIFTS
-#undef INDEX_TYPE
-
-#include "dox-math.h"
-
-    /**
-     * \ingroup Math
-     * \note Often int_v::Size == double_v::Size * 2, then only every second value in \p *e is defined.
-     */
-    double_v frexp(const double_v &x, int_v *e);
-    /**
-     * \ingroup Math
-     * \note Often int_v::Size == double_v::Size * 2, then only every second value in \p *e is defined.
-     */
-    double_v ldexp(double_v x, int_v e);
-}
-
-
-namespace Vc
-{
 /**
  * \name SIMD Support Feature Macros
  * \ingroup Utilities
  */
 //@{
-/**
- * \ingroup Utilities
- * This macro is set to the value of \ref Vc::Implementation that the current translation unit is
- * compiled with.
- */
-#define Vc_IMPL
 /**
  * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with XOP instruction support.
