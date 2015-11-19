@@ -76,6 +76,7 @@ template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix()
  *  Returns \c false
  */
 constexpr bool some_of(bool) { return false; }
+//@}
 
 template <typename InputIt, typename UnaryFunction>
 inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
@@ -140,7 +141,6 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
     return std::for_each(first, last, std::move(f));
 }
 
-//@}
 }  // namespace Vc
 
 #endif // VC_COMMON_ALGORITHMS_H_
