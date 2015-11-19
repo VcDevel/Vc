@@ -773,7 +773,7 @@ TEST_TYPES(Vec, testInf, (REAL_VECTORS)) //{{{1
     VERIFY(none_of(Vc::isinf(nan)));
 }
 
-TEST_TYPES(Vec, testNaN, (REAL_VECTORS)) //{{{1
+TEST_TYPES(Vec, testNaN, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType I;

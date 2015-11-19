@@ -232,6 +232,9 @@ public:
     Vc_INTRINSIC void setZeroInverted() { data.setZeroInverted(); }
     Vc_INTRINSIC void setZeroInverted(mask_type k) { data.setZeroInverted(internal_data(k)); }
 
+    Vc_INTRINSIC void setQnan() { data.setQnan(); }
+    Vc_INTRINSIC void setQnan(mask_type m) { data.setQnan(internal_data(m)); }
+
     // internal: execute specified Operation
     template <typename Op, typename... Args>
     static Vc_INTRINSIC SimdArray fromOperation(Op op, Args &&... args)
@@ -612,6 +615,16 @@ public:
     {
         data0.setZeroInverted(Split::lo(k));
         data1.setZeroInverted(Split::hi(k));
+    }
+
+
+    Vc_INTRINSIC void setQnan() {
+        data0.setQnan();
+        data1.setQnan();
+    }
+    Vc_INTRINSIC void setQnan(const mask_type &m) {
+        data0.setQnan(Split::lo(m));
+        data1.setQnan(Split::hi(m));
     }
 
     // internal: execute specified Operation
