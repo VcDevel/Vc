@@ -90,6 +90,8 @@ static_assert(std::is_same<Best<int>, Scalar>::value, "");
 #endif
 }  // namespace VectorAbi
 
+// TODO: declare the Vector and Mask interfaces here and add the API documentation.
+// Specializations should only have internal documentation (if needed).
 template<typename T, typename Abi = VectorAbi::Best<T>> class Vector;
 template<typename T, typename Abi = VectorAbi::Best<T>> class Mask;
 
@@ -187,6 +189,9 @@ public:
 };
 */
 
+/**\addtogroup Utilities
+ * @{
+ */
 /**
  * The special object \p Vc::Zero can be used to construct Vector and Mask objects
  * initialized to zero/false.
@@ -202,6 +207,7 @@ static constexpr struct VectorSpecialInitializerOne {} One = {};
  * initialized to values 0, 1, 2, 3, 4, ...
  */
 static constexpr struct VectorSpecialInitializerIndexesFromZero {} IndexesFromZero = {};
+///@}
 
 // TODO: the following doesn't really belong into the toplevel Vc namespace.
 #ifndef Vc_CHECK_ALIGNMENT
