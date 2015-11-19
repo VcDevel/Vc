@@ -422,6 +422,11 @@ public:
         return {VectorType::generate(gen)};
     }
 
+    Vc_INTRINSIC SimdArray copySign(SimdArray reference) const
+    {
+        return {data.copySign(reference.data)};
+    }
+
     friend VectorType &internal_data<>(SimdArray &x);
     friend const VectorType &internal_data<>(const SimdArray &x);
 
@@ -1087,6 +1092,13 @@ public:
                                                   // we enforce correct order.
         return {std::move(tmp),
                 storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
+    }
+
+    Vc_INTRINSIC SimdArray copySign(SimdArray reference) const
+    {
+        auto lo = data0.copySign(reference.data0);
+        auto hi = data1.copySign(reference.data1);
+        return {std::move(lo), std::move(hi)};
     }
 
     // internal_data0/1 {{{2
