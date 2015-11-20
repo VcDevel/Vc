@@ -86,6 +86,15 @@ template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r
 
 // atomic SimdArray {{{1
 #define Vc_CURRENT_CLASS_NAME SimdArray
+/**\internal
+ * Specialization of `SimdArray<T, N, VectorType, VectorSize>` for the case where `N ==
+ * VectorSize`.
+ *
+ * This is specialized for implementation purposes: Since the general implementation uses
+ * two SimdArray data members it recurses over different SimdArray instantiations. The
+ * recursion is ended by this specialization, which has a single \p VectorType_ data
+ * member to which all functions are forwarded more or less directly.
+ */
 template <typename T, std::size_t N, typename VectorType_>
 class alignas(
     ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) & 127) +
