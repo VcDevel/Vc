@@ -1,5 +1,9 @@
 language: cpp
 
+os:
+    - linux
+    - osx
+
 compiler:
     - gcc
     - clang
@@ -16,13 +20,19 @@ addons:
 # We have to install cmake manually, because Travis uses version 2.8, which does not work with Vc.
 
 before_install:
-    - wget https://cmake.org/files/v3.3/cmake-3.3.2-Linux-x86_64.tar.gz --no-check-certificate
-    - tar xf cmake-3.3.2-Linux-x86_64.tar.gz
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget https://cmake.org/files/v3.3/cmake-3.3.2-Linux-x86_64.tar.gz --no-check-certificate -O cmake.tar.gz; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then wget https://cmake.org/files/v3.3/cmake-3.3.2-Darwin-x86_64.tar.gz --no-check-certificate -O cmake.tar.gz; fi
+    - tar xf cmake.tar.gz
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; fi
 
 install:
-    - export CMAKE=$(readlink -f "cmake-3.3.2-Linux-x86_64/bin/cmake")
-    - export CTEST=$(readlink -f "cmake-3.3.2-Linux-x86_64/bin/ctest")
-    - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CMAKE=$(readlink -f "cmake-3.3.2-Linux-x86_64/bin/cmake"); fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CTEST=$(readlink -f "cmake-3.3.2-Linux-x86_64/bin/ctest"); fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install coreutils; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CMAKE=$(greadlink -f "cmake-3.3.2-Darwin-x86_64/CMake.app/Contents/bin/cmake"); fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CTEST=$(greadlink -f "cmake-3.3.2-Darwin-x86_64/CMake.app/Contents/bin/ctest"); fi
+    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+    - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 
 before_script:
     - $CMAKE --version
