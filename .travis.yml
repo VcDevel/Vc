@@ -21,6 +21,7 @@ before_install:
 
 install:
     - export CMAKE=$(readlink -f "cmake-3.3.2-Linux-x86_64/bin/cmake")
+    - export CTEST=$(readlink -f "cmake-3.3.2-Linux-x86_64/bin/ctest")
     - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
 
 before_script:
@@ -32,4 +33,4 @@ before_script:
 script:
     - $CXX --version
     - make -j2
-    - make test -j2
+    - $CTEST -j2
