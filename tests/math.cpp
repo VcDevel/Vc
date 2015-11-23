@@ -466,7 +466,7 @@ TEST_TYPES(Vec, testMax, (ALL_VECTORS)) //{{{1
     COMPARE(Vc::max(a, b), c);
 }
 
-
+// fillDataAndReference{{{1
 template <typename V, typename F> void fillDataAndReference(V &data, V &reference, F f)
 {
     using T = typename V::EntryType;
