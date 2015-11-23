@@ -41,7 +41,7 @@ sets. Thus an application written with Vc can be compiled for:
 
 ## Build Requirements
 
-cmake >= 2.8.3
+cmake >= 3.0
 
 C++11 Compiler:
 
