@@ -1266,14 +1266,25 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_)
 #undef Vc_BINARY_OPERATORS_
 
 // math functions {{{1
+#define MISSING(A)
 template <typename T, std::size_t N> SimdArray<T, N> abs(const SimdArray<T, N> &x)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Abs(), x);
 }
+MISSING(asin)
+MISSING(atan)
+MISSING(atan2)
+MISSING(ceil)
 template <typename T, std::size_t N> SimdArray<T, N> copysign(const SimdArray<T, N> &a, const SimdArray<T, N> &b)
 {
     return a.copySign(b);
 }
+MISSING(cos)
+MISSING(exp)
+MISSING(floor)
+MISSING(fma)
+MISSING(isfinite)
+MISSING(isinf)
 template <typename T, std::size_t N> SimdMaskArray<T, N> isnan(const SimdArray<T, N> &x)
 {
     return SimdMaskArray<T, N>::fromOperation(Common::Operations::Isnan(), x);
@@ -1288,11 +1299,20 @@ SimdArray<T, N> ldexp(const SimdArray<T, N> &x, const SimdArray<int, N> &e)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Ldexp(), x, e);
 }
+MISSING(log)
+MISSING(log10)
+MISSING(log2)
+MISSING(reciprocal)
+MISSING(round)
+MISSING(rsqrt)
+MISSING(sin)
+MISSING(sincos)
 template <typename T, std::size_t N>
 SimdArray<T, N> sqrt(const SimdArray<T, N> &x)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Sqrt(), x);
 }
+MISSING(trunc)
 
 // simd_cast {{{1
 // simd_cast_impl_smaller_input {{{2
