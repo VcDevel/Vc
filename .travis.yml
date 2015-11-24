@@ -44,3 +44,12 @@ script:
     - $CXX --version
     - make -j2
     - $CTEST -j2
+
+notifications:
+    irc:
+        channels:
+            - "chat.freenode.net##Vc"
+        on_success: change # [always|never|change] # default: always
+        on_failure: always # [always|never|change] # default: always
+        use_notice: true
+        skip_join: true
