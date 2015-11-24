@@ -143,7 +143,7 @@ macro(vc_check_assembler)
    if(APPLE)
       if(NOT Vc_COMPILER_IS_CLANG)
          message(WARNING "Apple does not provide an assembler with AVX support. AVX will not be available. Please use Clang if you want to use AVX.")
-         set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVC_NO_XGETBV")
+         set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVc_NO_XGETBV") # old assembler doesn't know the xgetbv instruction
          set(Vc_AVX_INTRINSICS_BROKEN true)
          set(Vc_AVX2_INTRINSICS_BROKEN true)
       endif()
@@ -162,7 +162,7 @@ macro(vc_check_assembler)
          string(REGEX MATCH "[1-9]\\.[0-9]+(\\.[0-9]+)?" _as_version "${_as_version}")
          if(_as_version VERSION_LESS "2.18.93")
             UserWarning("Your binutils is too old (${_as_version}). Some optimizations of Vc will be disabled.")
-            add_definitions(-DVC_NO_XGETBV) # old assembler doesn't know the xgetbv instruction
+            set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVc_NO_XGETBV") # old assembler doesn't know the xgetbv instruction
             set(Vc_AVX_INTRINSICS_BROKEN true)
             set(Vc_XOP_INTRINSICS_BROKEN true)
             set(Vc_FMA4_INTRINSICS_BROKEN true)
@@ -303,7 +303,7 @@ macro(vc_set_preferred_compiler_flags)
       # MSVC does not support inline assembly on 64 bit! :(
       # searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
       # TODO: apparently MSVC 2010 SP1 added _xgetbv
-      set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVC_NO_XGETBV")
+      set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVc_NO_XGETBV")
 
       # get rid of the min/max macros
       set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DNOMINMAX")
