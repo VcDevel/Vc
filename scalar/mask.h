@@ -100,9 +100,6 @@ public:
         Vc_ALWAYS_INLINE void store(bool *mem) const { *mem = m; }
         template<typename Flags> Vc_ALWAYS_INLINE void store(bool *mem, Flags) const { *mem = m; }
 
-        Vc_ALWAYS_INLINE Mask &operator=(const Mask &rhs) { m = rhs.m; return *this; }
-        Vc_ALWAYS_INLINE Mask &operator=(bool rhs) { m = rhs; return *this; }
-
         Vc_ALWAYS_INLINE bool operator==(const Mask &rhs) const { return m == rhs.m; }
         Vc_ALWAYS_INLINE bool operator!=(const Mask &rhs) const { return m != rhs.m; }
 
@@ -125,9 +122,6 @@ public:
         Vc_ALWAYS_INLINE bool data () const { return m; }
         Vc_ALWAYS_INLINE bool dataI() const { return m; }
         Vc_ALWAYS_INLINE bool dataD() const { return m; }
-
-        template<unsigned int OtherSize>
-            Vc_ALWAYS_INLINE Mask cast() const { return *this; }
 
         Vc_ALWAYS_INLINE EntryReference operator[](size_t) { return m; }
         Vc_ALWAYS_INLINE bool operator[](size_t) const { return m; }
