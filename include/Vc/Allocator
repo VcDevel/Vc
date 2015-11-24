@@ -37,45 +37,49 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "global.h"
 #include "common/macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
-
-    using std::size_t;
-    using std::ptrdiff_t;
-
-    /**
-     * \headerfile Allocator <Vc/Allocator>
-     * \ingroup Utilities
-     *
-     * Convenience macro to set the default allocator for a given \p Type to Vc::Allocator.
-     *
-     * \param Type Your type that you want to use with STL containers.
-     *
-     * \note You have to use this macro in the global namespace.
-     */
-#define Vc_DECLARE_ALLOCATOR(Type) \
-namespace std \
-{ \
-    template<> class allocator<Type> : public ::Vc::Allocator<Type> \
-    { \
-    public: \
-        template<typename U> struct rebind { typedef ::std::allocator<U> other; }; \
-    }; \
-}
+/**
+ * \ingroup Utilities
+ *
+ * Convenience macro to set the default allocator for a given \p Type to
+ * Vc::Allocator.
+ *
+ * \param Type Your type that you want to use with STL containers.
+ *
+ * \note You have to use this macro in the global namespace.
+ */
 #ifdef Vc_MSVC
-#undef Vc_DECLARE_ALLOCATOR
-#define Vc_DECLARE_ALLOCATOR(Type) \
-namespace std \
-{ \
-    template<> class allocator<Type> : public ::Vc::Allocator<Type> \
-    { \
-    public: \
-        template<typename U> struct rebind { typedef ::std::allocator<U> other; }; \
-        /* MSVC brokenness: the following function is optional - just doesn't compile without it */ \
-        const allocator &select_on_container_copy_construction() const { return *this; } \
-    }; \
+#define Vc_DECLARE_ALLOCATOR(Type)                                                   \
+namespace std                                                                        \
+{                                                                                    \
+template <> class allocator<Type> : public ::Vc::Allocator<Type>                     \
+{                                                                                    \
+public:                                                                              \
+    template <typename U> struct rebind {                                            \
+        typedef ::std::allocator<U> other;                                           \
+    };                                                                               \
+    /* MSVC brokenness: the following function is optional - just doesn't compile    \
+     * without it */                                                                 \
+    const allocator &select_on_container_copy_construction() const { return *this; } \
+};                                                                                   \
+}
+#else
+#define Vc_DECLARE_ALLOCATOR(Type)                                                   \
+namespace std                                                                        \
+{                                                                                    \
+template <> class allocator<Type> : public ::Vc::Allocator<Type>                     \
+{                                                                                    \
+public:                                                                              \
+    template <typename U> struct rebind {                                            \
+        typedef ::std::allocator<U> other;                                           \
+    };                                                                               \
+};                                                                                   \
 }
 #endif
+
+namespace Vc_VERSIONED_NAMESPACE
+{
+    using std::size_t;
+    using std::ptrdiff_t;
 
     /**
      * \headerfile Allocator <Vc/Allocator>
