@@ -28,21 +28,45 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // stores
+
+/**
+ * Store the vector data to \p mem.
+ *
+ * \param mem A pointer to memory, where \VSize{T} consecutive values will be stored.
+ * \param flags The flags parameter can be used to select e.g. the Vc::Aligned,
+ *              Vc::Unaligned, Vc::Streaming, and/or Vc::PrefetchDefault flags.
+ */
 template <
     typename U,
     typename Flags = DefaultStoreTag,
     typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
-Vc_INTRINSIC_L void store(U *mem, Flags = Flags()) const Vc_INTRINSIC_R;
+Vc_INTRINSIC_L void store(U *mem, Flags flags = Flags()) const Vc_INTRINSIC_R;
 
+/**
+ * Store the vector data to \p mem where \p mask is set.
+ *
+ * \param mem A pointer to memory, where \VSize{T} consecutive values will be stored.
+ * \param mask A mask object that determines which entries of the vector should be stored
+ *             to \p mem.
+ * \param flags The flags parameter can be used to select e.g. the Vc::Aligned,
+ *              Vc::Unaligned, Vc::Streaming, and/or Vc::PrefetchDefault flags.
+ *
+ * \note
+ * The masked store does not pack the values into memory. I.e. the value at offset \c i
+ * will be stored to `mem[i]`, independent of whether `mask[j]` for any `j < i` is \c
+ * false.
+ */
 template <
     typename U,
     typename Flags = DefaultStoreTag,
     typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
-Vc_INTRINSIC_L void store(U *mem, Mask mask, Flags = Flags()) const Vc_INTRINSIC_R;
+Vc_INTRINSIC_L void store(U *mem, MaskType mask, Flags flags = Flags()) const Vc_INTRINSIC_R;
 
-// the following store overloads are here to support classes that have a cast operator to
-// EntryType.
-// Without this overload GCC complains about not finding a matching store function.
+//@{
+/**
+ * The following store overloads support classes that have a cast operator to `EntryType
+ * *`.
+ */
 Vc_INTRINSIC void store(EntryType *mem) const
 {
     store<EntryType, DefaultStoreTag>(mem, DefaultStoreTag());
@@ -54,13 +78,16 @@ Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
     store<EntryType, Flags>(mem, flags);
 }
 
-Vc_INTRINSIC void store(EntryType *mem, Mask mask) const
+Vc_INTRINSIC void store(EntryType *mem, MaskType mask) const
 {
     store<EntryType, DefaultStoreTag>(mem, mask, DefaultStoreTag());
 }
 
 template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
-Vc_INTRINSIC void store(EntryType *mem, Mask mask, Flags flags) const
+Vc_INTRINSIC void store(EntryType *mem, MaskType mask, Flags flags) const
 {
     store<EntryType, Flags>(mem, mask, flags);
 }
+//@}
+
+// vim: foldmethod=marker

@@ -29,8 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_LOADSTOREFLAGS_H_
 #define VC_COMMON_LOADSTOREFLAGS_H_
 
-#include "types.h"
-#include "macros.h"
+#include "../traits/type_traits.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {

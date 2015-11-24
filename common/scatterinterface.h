@@ -37,10 +37,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //    thus removes the requirements in (2.) for the disabled entries.
 
 private:
+    /**\internal
+     * This function implements a scatter given a pointer to memory \p mem and some
+     * container object storing the scatter \p indexes.
+     *
+     * \param mem This pointer must be aligned correctly for the type \p MT. This is the
+     * natural behavior of C++, so this is typically the case.
+     * \param indexes This object contains at least \VSize{T} indexes that denote the
+     * offset in \p mem where the components for the current vector should be copied to.
+     * The offset is not in Bytes, but in multiples of `sizeof(MT)`.
+     */
     // enable_if<std::can_convert<MT, EntryType>::value && has_subscript_operator<IT>::value>
     template <typename MT, typename IT>
     inline void scatterImplementation(MT *mem, IT &&indexes) const;
 
+    /**\internal
+     * This overload of the above function adds a \p mask argument to disable memory
+     * accesses at the \p indexes offsets where \p mask is \c false.
+     */
     template <typename MT, typename IT>
     inline void scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const;
 
@@ -61,6 +75,20 @@ public:
                       "If you use a simple array for the indexes parameter, the array must have "  \
                       "at least as many entries as this SIMD vector.")
 
+    /**
+     * \name Scatter functions
+     *
+     * Stores a vector to the objects at `mem[indexes[0]]`, `mem[indexes[1]]`,
+     * `mem[indexes[2]]`, ...
+     *
+     * \param mem A pointer to memory which contains objects of type \p MT at the offsets
+     *            given by \p indexes.
+     * \param indexes
+     * \param mask
+     */
+    ///@{
+
+    /// Scatter function
     template <typename MT,
               typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
@@ -70,6 +98,7 @@ public:
         scatterImplementation(mem, std::forward<IT>(indexes));
     }
 
+    /// Masked scatter function
     template <typename MT,
               typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
@@ -78,7 +107,15 @@ public:
         Vc_ASSERT_SCATTER_PARAMETER_TYPES__;
         scatterImplementation(mem, std::forward<IT>(indexes), mask);
     }
+    ///@}
 
+    /**\internal
+     * \name Scatter function to use from Vc::Common::subscript_operator
+     *
+     * \param args
+     * \param mask
+     */
+    ///@{
     template <typename MT, typename IT>
     Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args) const
     {
@@ -90,4 +127,5 @@ public:
     {
         scatter(args.address, args.indexes, mask);
     }
+    ///@}
 #undef Vc_ASSERT_SCATTER_PARAMETER_TYPES__

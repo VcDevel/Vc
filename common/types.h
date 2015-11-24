@@ -37,81 +37,87 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/global.h>
 #include "../traits/type_traits.h"
 #include "permutation.h"
-#include "macros.h"
+#include "vectorabi.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+template<typename T, typename Abi> class Mask;
+template<typename T, typename Abi> class Vector;
+
+///\addtogroup Utilities
+///@{
+
+/// \internal Allow writing \c size_t without the `std::` prefix.
 using std::size_t;
 
+/// long long shorthand
 using llong = long long;
+/// unsigned long long shorthand
 using ullong = unsigned long long;
+/// unsigned long shorthand
 using ulong = unsigned long;
+/// unsigned int shorthand
 using uint = unsigned int;
+/// unsigned short shorthand
 using ushort = unsigned short;
+/// unsigned char shorthand
 using uchar = unsigned char;
+/// signed char shorthand
 using schar = signed char;
 
-namespace VectorAbi
-{
-struct Scalar {};
-struct Sse {};
-struct Avx {};
-struct Mic {};
-template <typename T>
-using Avx1Abi = typename std::conditional<std::is_integral<T>::value, VectorAbi::Sse,
-                                          VectorAbi::Avx>::type;
-template <typename T>
-using Best = typename std::conditional<
-    CurrentImplementation::is(ScalarImpl), Scalar,
-    typename std::conditional<
-        CurrentImplementation::is_between(SSE2Impl, SSE42Impl), Sse,
-        typename std::conditional<
-            CurrentImplementation::is(AVXImpl), Avx1Abi<T>,
-            typename std::conditional<
-                CurrentImplementation::is(AVX2Impl), Avx,
-                typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
-                                          void>::type>::type>::type>::type>::type;
-#ifdef Vc_IMPL_AVX2
-static_assert(std::is_same<Best<float>, Avx>::value, "");
-static_assert(std::is_same<Best<int>, Avx>::value, "");
-#elif defined Vc_IMPL_AVX
-static_assert(std::is_same<Best<float>, Avx>::value, "");
-static_assert(std::is_same<Best<int>, Sse>::value, "");
-#elif defined Vc_IMPL_SSE
-static_assert(CurrentImplementation::is_between(SSE2Impl, SSE42Impl), "");
-static_assert(std::is_same<Best<float>, Sse>::value, "");
-static_assert(std::is_same<Best<int>, Sse>::value, "");
-#elif defined Vc_IMPL_MIC
-static_assert(std::is_same<Best<float>, Mic>::value, "");
-static_assert(std::is_same<Best<int>, Mic>::value, "");
-#elif defined Vc_IMPL_Scalar
-static_assert(std::is_same<Best<float>, Scalar>::value, "");
-static_assert(std::is_same<Best<int>, Scalar>::value, "");
-#endif
-}  // namespace VectorAbi
+/**\internal
+ * Tag type for explicit zero-initialization
+ */
+struct VectorSpecialInitializerZero {};
+/**\internal
+ * Tag type for explicit one-initialization
+ */
+struct VectorSpecialInitializerOne {};
+/**\internal
+ * Tag type for explicit "iota-initialization"
+ */
+struct VectorSpecialInitializerIndexesFromZero {};
 
-// TODO: declare the Vector and Mask interfaces here and add the API documentation.
-// Specializations should only have internal documentation (if needed).
-template<typename T, typename Abi = VectorAbi::Best<T>> class Vector;
-template<typename T, typename Abi = VectorAbi::Best<T>> class Mask;
+/**
+ * The special object \p Vc::Zero can be used to construct Vector and Mask objects
+ * initialized to zero/\c false.
+ */
+constexpr VectorSpecialInitializerZero Zero = {};
+/**
+ * The special object \p Vc::One can be used to construct Vector and Mask objects
+ * initialized to one/\c true.
+ */
+constexpr VectorSpecialInitializerOne One = {};
+/**
+ * The special object \p Vc::IndexesFromZero can be used to construct Vector objects
+ * initialized to values 0, 1, 2, 3, 4, ...
+ */
+constexpr VectorSpecialInitializerIndexesFromZero IndexesFromZero = {};
+///@}
 
 namespace Detail
 {
 template<typename T> struct MayAliasImpl { typedef T type Vc_MAY_ALIAS; };
 //template<size_t Bytes> struct MayAlias<MaskBool<Bytes>> { typedef MaskBool<Bytes> type; };
+}  // namespace Detail
 /**\internal
  * Helper MayAlias<T> that turns T into the type to be used for an aliasing pointer. This
  * adds the may_alias attribute to T (with compilers that support it). But for MaskBool this
  * attribute is already part of the type and applying it a second times leads to warnings/errors,
  * therefore MaskBool is simply forwarded as is.
  */
-}  // namespace Detail
 #ifdef Vc_ICC
 template <typename T> using MayAlias [[gnu::may_alias]] = T;
 #else
 template <typename T> using MayAlias = typename Detail::MayAliasImpl<T>::type;
 #endif
 
+/**\internal
+ * This enumeration lists all possible operators in C++.
+ *
+ * The assignment and compound assignment enumerators are used with the conditional_assign
+ * implementation.
+ */
 enum class Operator : char {
     Assign,
     Multiply,
@@ -153,6 +159,7 @@ enum class Operator : char {
     CompareGreaterEqual
 };
 
+// forward declaration for Vc::array in <Vc/array>
 template <typename T, std::size_t N> struct array;
 
 /* TODO: add type for half-float, something along these lines:
@@ -188,26 +195,6 @@ public:
     half_float operator/(half_float rhs) const;
 };
 */
-
-/**\addtogroup Utilities
- * @{
- */
-/**
- * The special object \p Vc::Zero can be used to construct Vector and Mask objects
- * initialized to zero/false.
- */
-static constexpr struct VectorSpecialInitializerZero {} Zero = {};
-/**
- * The special object \p Vc::One can be used to construct Vector and Mask objects
- * initialized to one/true.
- */
-static constexpr struct VectorSpecialInitializerOne {} One = {};
-/**
- * The special object \p Vc::IndexesFromZero can be used to construct Vector objects
- * initialized to values 0, 1, 2, 3, 4, ...
- */
-static constexpr struct VectorSpecialInitializerIndexesFromZero {} IndexesFromZero = {};
-///@}
 
 // TODO: the following doesn't really belong into the toplevel Vc namespace.
 #ifndef Vc_CHECK_ALIGNMENT
@@ -250,15 +237,22 @@ public:
     }
 };
 
+// declaration for functions in common/malloc.h
 template <std::size_t alignment>
 Vc_INTRINSIC_L void *aligned_malloc(std::size_t n) Vc_INTRINSIC_R;
 Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 
+/**\internal
+ * Central definition of the type combinations that convert implicitly.
+ */
 template <typename T, typename U>
 using enable_if_mask_converts_implicitly =
     enable_if<(Traits::is_simd_mask<U>::value && !Traits::isSimdMaskArray<U>::value &&
                Traits::is_implicit_cast_allowed_mask<
                    Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value)>;
+/**\internal
+ * Central definition of the type combinations that only convert explicitly.
+ */
 template <typename T, typename U>
 using enable_if_mask_converts_explicitly = enable_if<(
     Traits::isSimdMaskArray<U>::value ||
@@ -266,18 +260,24 @@ using enable_if_mask_converts_explicitly = enable_if<(
      !Traits::is_implicit_cast_allowed_mask<
          Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value))>;
 
+/**\internal
+ * Tag type for overloading on the width (\VSize{T}) of a vector.
+ */
 template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(T)>;
 
-template<std::size_t Bytes> class MaskBool;
+// forward declaration of MaskBool in common/maskentry.h
+template <std::size_t Bytes> class MaskBool;
 
-template <typename T, typename IndexVector, typename Scale, bool> class SubscriptOperation;
+// forward declaration of SubscriptOperation in common/subscript.h
+template <typename T, typename IndexVector, typename Scale, bool>
+class SubscriptOperation;
 
 /**
  * \internal
  * Helper type to pass along the two arguments for a gather operation.
  *
- * \tparam IndexVector  Normally an integer SIMD vector, but an array or std::vector also works
- *                      (though often not as efficient).
+ * \tparam IndexVector  Normally an integer SIMD vector, but an array or std::vector also
+ *                      works (though often not as efficient).
  */
 template <typename T, typename IndexVector> struct GatherArguments
 {
@@ -289,8 +289,8 @@ template <typename T, typename IndexVector> struct GatherArguments
  * \internal
  * Helper type to pass along the two arguments for a scatter operation.
  *
- * \tparam IndexVector  Normally an integer SIMD vector, but an array or std::vector also works
- *                      (though often not as efficient).
+ * \tparam IndexVector  Normally an integer SIMD vector, but an array or std::vector also
+ *                      works (though often not as efficient).
  */
 template <typename T, typename IndexVector> struct ScatterArguments
 {
@@ -330,6 +330,8 @@ template <std::size_t Size, typename F> Vc_INTRINSIC void for_all_vector_entries
 }  // namespace Common
 }  // namespace Vc
 
+#include "vector.h"
+#include "mask.h"
 #include "memoryfwd.h"
 
 #endif // VC_COMMON_TYPES_H_
