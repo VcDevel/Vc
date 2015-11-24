@@ -101,7 +101,7 @@ Vc_DEFINE_OPERATION_FORWARD(sin);
 Vc_DEFINE_OPERATION_FORWARD(sincos);
 Vc_DEFINE_OPERATION_FORWARD(trunc);
 Vc_DEFINE_OPERATION_FORWARD(sqrt);
-#undef Vc_DEFINE_OPERATION
+#undef Vc_DEFINE_OPERATION_FORWARD
 template<typename T> using is_operation = std::is_base_of<tag, T>;
 }  // namespace Operations }}}
 

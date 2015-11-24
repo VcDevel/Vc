@@ -1338,6 +1338,9 @@ void sincos(const SimdArray<T, N> &x, SimdArray<int, N> *sin, SimdArray<int, N> 
 }
 Vc_FORWARD_UNARY_OPERATOR(sqrt)
 Vc_FORWARD_UNARY_OPERATOR(trunc)
+#undef Vc_FORWARD_UNARY_OPERATOR
+#undef Vc_FORWARD_UNARY_BOOL_OPERATOR
+#undef Vc_FORWARD_BINARY_OPERATOR
 
 // simd_cast {{{1
 // simd_cast_impl_smaller_input {{{2
