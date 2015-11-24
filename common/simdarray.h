@@ -1270,6 +1270,10 @@ template <typename T, std::size_t N> SimdArray<T, N> abs(const SimdArray<T, N> &
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Abs(), x);
 }
+template <typename T, std::size_t N> SimdArray<T, N> copysign(const SimdArray<T, N> &a, const SimdArray<T, N> &b)
+{
+    return a.copySign(b);
+}
 template <typename T, std::size_t N> SimdMaskArray<T, N> isnan(const SimdArray<T, N> &x)
 {
     return SimdMaskArray<T, N>::fromOperation(Common::Operations::Isnan(), x);
