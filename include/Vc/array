@@ -140,10 +140,7 @@ typename array<T, Size>::reference array<T, Size>::at(size_type n_)
 template <class T, size_t Size>
 constexpr typename array<T, Size>::const_reference array<T, Size>::at(size_type n_) const
 {
-    if (n_ >= Size) {
-        throw std::out_of_range("array::at");
-    }
-    return elems_[n_];
+    return n_ >= Size ? (throw std::out_of_range("array::at"), elems_[0]) : elems_[n_];
 }
 
 template <class T, size_t Size>
