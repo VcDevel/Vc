@@ -34,11 +34,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-
 /**
  * Casts the argument \p x from type \p From to type \p To.
  *
  * This function implements the trivial case where \p To and \p From are the same type.
+ *
+ * \param x The object of type \p From to be converted to type \p To.
+ * \returns An object of type \p To with all vector components converted according to
+ *          standard conversion behavior as mandated by the C++ standard for the
+ *          underlying arithmetic types.
  */
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST enable_if<std::is_same<To, Traits::decay<From>>::value, To>
@@ -51,6 +55,8 @@ Vc_INTRINSIC Vc_CONST enable_if<std::is_same<To, Traits::decay<From>>::value, To
  * A cast from nothing results in default-initialization of \p To.
  *
  * This function can be useful in generic code where a parameter pack expands to nothing.
+ *
+ * \returns A zero-initialized object of type \p To.
  */
 template <typename To> Vc_INTRINSIC Vc_CONST To simd_cast() { return To(); }
 

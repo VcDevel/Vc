@@ -69,11 +69,11 @@ namespace
  */
 template<typename Mask, typename T> Vc_ALWAYS_INLINE
 typename std::enable_if<Vc::is_simd_mask<Mask>::value, typename assert_for_iif<T>::type>::type
-iif(const Mask &condition, const T &trueValue, const T &_falseValue)
+iif(const Mask &condition, const T &trueValue, const T &falseValue)
 {
-    T falseValue(_falseValue);
-    Vc::where(condition) | falseValue = trueValue;
-    return falseValue;
+    T result(falseValue);
+    Vc::where(condition) | result = trueValue;
+    return result;
 }
 
 /* the following might be a nice shortcut in some cases, but:
