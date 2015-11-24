@@ -309,7 +309,12 @@ public:
             data() = Detail::blend(data(), v.data(), k);
         }
 
-        template<typename V2> Vc_ALWAYS_INLINE V2 staticCast() const { return V2(*this); }
+        template <typename V2>
+        Vc_ALWAYS_INLINE Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast") V2
+            staticCast() const
+        {
+            return V2(*this);
+        }
         template<typename V2> Vc_ALWAYS_INLINE V2 reinterpretCast() const { return AVX::avx_cast<typename V2::VectorType>(data()); }
 
         Vc_ALWAYS_INLINE WriteMaskedVector operator()(const Mask &k)
