@@ -1,349 +1,214 @@
-// <array> -*- C++ -*-
+/*  This file is part of the Vc library. {{{
+Copyright © 2015 Matthias Kretz <kretz@kde.org>
 
-// Copyright (C) 2007-2013 Free Software Foundation, Inc.
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the names of contributing organizations nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+}}}*/
+//===---------------------------- array -----------------------------------===//
 //
-// This file is part of the GNU ISO C++ Library.  This library is free
-// software; you can redistribute it and/or modify it under the
-// terms of the GNU General Public License as published by the
-// Free Software Foundation; either version 3, or (at your option)
-// any later version.
+//                     The LLVM Compiler Infrastructure
+//
+// This file is dual licensed under the MIT and the University of Illinois Open
+// Source Licenses. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
 
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+#ifndef VC_INCLUDE_VC_ARRAY_
+#define VC_INCLUDE_VC_ARRAY_
 
-// Under Section 7 of GPL version 3, you are granted additional
-// permissions described in the GCC Runtime Library Exception, version
-// 3.1, as published by the Free Software Foundation.
-
-// You should have received a copy of the GNU General Public License and
-// a copy of the GCC Runtime Library Exception along with this program;
-// see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
-// <http://www.gnu.org/licenses/>.
-
-/** @file Vc/array
- *  This is a modified Standard C++ Library header.
- */
-
-#ifndef VC_STL_ARRAY_
-#define VC_STL_ARRAY_ 1
-
-#include <stdexcept>
+#include <type_traits>
+#include <utility>
+#include <iterator>
 #include <algorithm>
+#include <stdexcept>
 
-#include "traits/has_no_allocated_data.h"
-#include "traits/has_contiguous_storage.h"
 #include "common/subscript.h"
-#include "common/macros.h"
-
-#pragma GCC system_header
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+template <class T, size_t Size> struct array {
+    // types:
+    typedef array self_;
+    typedef T value_type;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
+    typedef value_type* iterator;
+    typedef const value_type* const_iterator;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef std::reverse_iterator<iterator> reverse_iterator;
+    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
 
-  template<typename _Tp, std::size_t _Nm>
-    struct __array_traits
+    value_type elems_[Size > 0 ? Size : 1];
+
+    // No explicit construct/copy/destroy for aggregate type
+    void fill(const value_type& u_) { std::fill_n(elems_, Size, u_); }
+    void swap(array& a_) noexcept(std::swap(std::declval<T &>(), std::declval<T &>()))
     {
-      typedef _Tp _Type[_Nm];
-
-      static constexpr _Tp&
-      _S_ref(const _Type& __t, std::size_t __n) noexcept
-      { return const_cast<_Tp&>(__t[__n]); }
-    };
-
- template<typename _Tp>
-   struct __array_traits<_Tp, 0>
-   {
-     struct _Type { };
-
-     static constexpr _Tp&
-     _S_ref(const _Type&, std::size_t) noexcept
-     { return *static_cast<_Tp*>(nullptr); }
-   };
-
-  /**
-   *  @brief A standard container for storing a fixed size sequence of elements.
-   *
-   *  @ingroup Utilities
-   *
-   *  Meets the requirements of a <a href="tables.html#65">container</a>, a
-   *  <a href="tables.html#66">reversible container</a>, and a
-   *  <a href="tables.html#67">sequence</a>.
-   *
-   *  Sets support random access iterators.
-   *
-   *  @tparam  Tp  Type of element. Required to be a complete type.
-   *  @tparam  N  Number of elements.
-  */
-  template<typename _Tp, std::size_t _Nm>
-    struct array
-    {
-      typedef _Tp 	    			      value_type;
-      typedef value_type*			      pointer;
-      typedef const value_type*                       const_pointer;
-      typedef value_type&                   	      reference;
-      typedef const value_type&             	      const_reference;
-      typedef value_type*          		      iterator;
-      typedef const value_type*			      const_iterator;
-      typedef std::size_t                    	      size_type;
-      typedef std::ptrdiff_t                   	      difference_type;
-      typedef std::reverse_iterator<iterator>	      reverse_iterator;
-      typedef std::reverse_iterator<const_iterator>   const_reverse_iterator;
-
-      // Support for zero-sized arrays mandatory.
-      typedef Vc_VERSIONED_NAMESPACE::__array_traits<_Tp, _Nm> _AT_Type;
-      typename _AT_Type::_Type                         _M_elems;
-
-      // No explicit construct/copy/destroy for aggregate type.
-
-      // DR 776.
-      void
-      fill(const value_type& __u)
-      { std::fill_n(begin(), size(), __u); }
-
-      void
-      swap(array& __other)
-      noexcept(noexcept(swap(std::declval<_Tp&>(), std::declval<_Tp&>())))
-      { std::swap_ranges(begin(), end(), __other.begin()); }
-
-      // Iterators.
-      iterator
-      begin() noexcept
-      { return iterator(data()); }
-
-      const_iterator
-      begin() const noexcept
-      { return const_iterator(data()); }
-
-      iterator
-      end() noexcept
-      { return iterator(data() + _Nm); }
-
-      const_iterator
-      end() const noexcept
-      { return const_iterator(data() + _Nm); }
-
-      reverse_iterator 
-      rbegin() noexcept
-      { return reverse_iterator(end()); }
-
-      const_reverse_iterator 
-      rbegin() const noexcept
-      { return const_reverse_iterator(end()); }
-
-      reverse_iterator 
-      rend() noexcept
-      { return reverse_iterator(begin()); }
-
-      const_reverse_iterator 
-      rend() const noexcept
-      { return const_reverse_iterator(begin()); }
-
-      const_iterator
-      cbegin() const noexcept
-      { return const_iterator(data()); }
-
-      const_iterator
-      cend() const noexcept
-      { return const_iterator(data() + _Nm); }
-
-      const_reverse_iterator 
-      crbegin() const noexcept
-      { return const_reverse_iterator(end()); }
-
-      const_reverse_iterator 
-      crend() const noexcept
-      { return const_reverse_iterator(begin()); }
-
-      // Capacity.
-      constexpr size_type 
-      size() const noexcept { return _Nm; }
-
-      constexpr size_type 
-      max_size() const noexcept { return _Nm; }
-
-      constexpr bool 
-      empty() const noexcept { return size() == 0; }
-
-      // Element access.
-      reference
-      operator[](size_type __n)
-      { return _AT_Type::_S_ref(_M_elems, __n); }
-
-      constexpr const_reference
-      operator[](size_type __n) const noexcept
-      { return _AT_Type::_S_ref(_M_elems, __n); }
-
-      template <typename I>
-      Vc_ALWAYS_INLINE auto operator[](I&& arg__) -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
-      {
-          return subscript_operator(*this, std::forward<I>(arg__));
-      }
-
-      template <typename I>
-      Vc_ALWAYS_INLINE auto operator[](I&& arg__) const -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
-      {
-          return subscript_operator(*this, std::forward<I>(arg__));
-      }
-
-      reference
-      at(size_type __n)
-      {
-          if (__n >= _Nm) {
-              throw std::out_of_range("array::at");
-          }
-          return _AT_Type::_S_ref(_M_elems, __n);
-      }
-
-      constexpr const_reference
-      at(size_type __n) const
-      {
-	// Result of conditional expression must be an lvalue so use
-	// boolean ? lvalue : (throw-expr, lvalue)
-          return __n < _Nm ? _AT_Type::_S_ref(_M_elems, __n)
-                           : (throw std::out_of_range("array::at"),
-                              _AT_Type::_S_ref(_M_elems, 0));
-      }
-
-      reference 
-      front()
-      { return *begin(); }
-
-      constexpr const_reference 
-      front() const
-      { return _AT_Type::_S_ref(_M_elems, 0); }
-
-      reference 
-      back()
-      { return _Nm ? *(end() - 1) : *end(); }
-
-      constexpr const_reference 
-      back() const
-      { 
-	return _Nm ? _AT_Type::_S_ref(_M_elems, _Nm - 1) 
- 	           : _AT_Type::_S_ref(_M_elems, 0);
-      }
-
-      pointer
-      data() noexcept
-      { return std::addressof(_AT_Type::_S_ref(_M_elems, 0)); }
-
-      const_pointer
-      data() const noexcept
-      { return std::addressof(_AT_Type::_S_ref(_M_elems, 0)); }
-    };
-
-  // Array comparisons.
-  template<typename _Tp, std::size_t _Nm>
-    inline bool 
-    operator==(const array<_Tp, _Nm>& __one, const array<_Tp, _Nm>& __two)
-    { return std::equal(__one.begin(), __one.end(), __two.begin()); }
-
-  template<typename _Tp, std::size_t _Nm>
-    inline bool
-    operator!=(const array<_Tp, _Nm>& __one, const array<_Tp, _Nm>& __two)
-    { return !(__one == __two); }
-
-  template<typename _Tp, std::size_t _Nm>
-    inline bool
-    operator<(const array<_Tp, _Nm>& __a, const array<_Tp, _Nm>& __b)
-    { 
-      return std::lexicographical_compare(__a.begin(), __a.end(),
-					  __b.begin(), __b.end()); 
+        std::swap_ranges(elems_, elems_ + Size, a_.elems_);
     }
 
-  template<typename _Tp, std::size_t _Nm>
-    inline bool
-    operator>(const array<_Tp, _Nm>& __one, const array<_Tp, _Nm>& __two)
-    { return __two < __one; }
-
-  template<typename _Tp, std::size_t _Nm>
-    inline bool
-    operator<=(const array<_Tp, _Nm>& __one, const array<_Tp, _Nm>& __two)
-    { return !(__one > __two); }
-
-  template<typename _Tp, std::size_t _Nm>
-    inline bool
-    operator>=(const array<_Tp, _Nm>& __one, const array<_Tp, _Nm>& __two)
-    { return !(__one < __two); }
-
-  // Specialized algorithms.
-  template<typename _Tp, std::size_t _Nm>
-    inline void
-    swap(array<_Tp, _Nm>& __one, array<_Tp, _Nm>& __two)
-    noexcept(noexcept(__one.swap(__two)))
-    { __one.swap(__two); }
-
-  template<std::size_t _Int, typename _Tp, std::size_t _Nm>
-    constexpr _Tp&
-    get(array<_Tp, _Nm>& __arr) noexcept
+    // iterators:
+    iterator begin() noexcept { return iterator(elems_); }
+    const_iterator begin() const noexcept { return const_iterator(elems_); }
+    iterator end() noexcept { return iterator(elems_ + Size); }
+    const_iterator end() const noexcept { return const_iterator(elems_ + Size); }
+    reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+    const_reverse_iterator rbegin() const noexcept
     {
-      static_assert(_Int < _Nm, "index is out of bounds");
-      return Vc_VERSIONED_NAMESPACE::__array_traits<_Tp, _Nm>::
-	_S_ref(__arr._M_elems, _Int);
+        return const_reverse_iterator(end());
+    }
+    reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+    const_reverse_iterator rend() const noexcept
+    {
+        return const_reverse_iterator(begin());
     }
 
-  template<std::size_t _Int, typename _Tp, std::size_t _Nm>
-    constexpr _Tp&&
-    get(array<_Tp, _Nm>&& __arr) noexcept
+    const_iterator cbegin() const noexcept { return begin(); }
+    const_iterator cend() const noexcept { return end(); }
+    const_reverse_iterator crbegin() const noexcept { return rbegin(); }
+    const_reverse_iterator crend() const noexcept { return rend(); }
+    // capacity:
+    constexpr size_type size() const noexcept { return Size; }
+    constexpr size_type max_size() const noexcept { return Size; }
+    constexpr bool empty() const noexcept { return Size == 0; }
+    // element access:
+    reference operator[](size_type n_) { return elems_[n_]; }
+    constexpr const_reference operator[](size_type n_) const { return elems_[n_]; }
+
+    /**
+     * \name Data-Parallel Subscripting for Gather & Scatter
+     */
+    ///@{
+    template <typename I>
+    Vc_ALWAYS_INLINE auto operator[](I&& arg__)
+        -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
     {
-      static_assert(_Int < _Nm, "index is out of bounds");
-      return std::move(get<_Int>(__arr));
+        return subscript_operator(*this, std::forward<I>(arg__));
     }
 
-  template<std::size_t _Int, typename _Tp, std::size_t _Nm>
-    constexpr const _Tp&
-    get(const array<_Tp, _Nm>& __arr) noexcept
+    template <typename I>
+    Vc_ALWAYS_INLINE auto operator[](I&& arg__) const
+        -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
     {
-      static_assert(_Int < _Nm, "index is out of bounds");
-      return Vc_VERSIONED_NAMESPACE::__array_traits<_Tp, _Nm>::
-	_S_ref(__arr._M_elems, _Int);
+        return subscript_operator(*this, std::forward<I>(arg__));
     }
+    ///@}
 
-  // Tuple interface to class template array.
+    reference at(size_type n_);
+    constexpr const_reference at(size_type n_) const;
 
-  /// tuple_size
-  template<typename _Tp> 
-    class tuple_size;
+    reference front() { return elems_[0]; }
+    constexpr const_reference front() const { return elems_[0]; }
+    reference back() { return elems_[Size > 0 ? Size - 1 : 0]; }
+    constexpr const_reference back() const { return elems_[Size > 0 ? Size - 1 : 0]; }
+    value_type* data() noexcept { return elems_; }
+    const value_type* data() const noexcept { return elems_; }
+};
 
-  template<typename _Tp, std::size_t _Nm>
-    struct tuple_size<Vc_VERSIONED_NAMESPACE::array<_Tp, _Nm>>
-    : public std::integral_constant<std::size_t, _Nm> { };
-
-  /// tuple_element
-  template<std::size_t _Int, typename _Tp>
-    class tuple_element;
-
-  template<std::size_t _Int, typename _Tp, std::size_t _Nm>
-    struct tuple_element<_Int, Vc_VERSIONED_NAMESPACE::array<_Tp, _Nm>>
-    {
-      static_assert(_Int < _Nm, "index is out of bounds");
-      typedef _Tp type;
-    };
-
-    // non-member begin / end
-    template <typename T, std::size_t N>
-    inline auto begin(array<T, N>& arr) -> decltype(arr.begin())
-    {
-        return arr.begin();
+template <class T, size_t Size>
+typename array<T, Size>::reference array<T, Size>::at(size_type n_)
+{
+    if (n_ >= Size) {
+        throw std::out_of_range("array::at");
     }
-    template <typename T, std::size_t N>
-    inline auto begin(const array<T, N>& arr) -> decltype(arr.begin())
-    {
-        return arr.begin();
-    }
-    template <typename T, std::size_t N>
-    inline auto end(array<T, N>& arr) -> decltype(arr.end())
-    {
-        return arr.end();
-    }
-    template <typename T, std::size_t N>
-    inline auto end(const array<T, N>& arr) -> decltype(arr.end())
-    {
-        return arr.end();
-    }
+    return elems_[n_];
+}
 
+template <class T, size_t Size>
+constexpr typename array<T, Size>::const_reference array<T, Size>::at(size_type n_) const
+{
+    if (n_ >= Size) {
+        throw std::out_of_range("array::at");
+    }
+    return elems_[n_];
+}
+
+template <class T, size_t Size>
+inline bool operator==(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+    return std::equal(x_.elems_, x_.elems_ + Size, y_.elems_);
+}
+
+template <class T, size_t Size>
+inline bool operator!=(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+    return !(x_ == y_);
+}
+
+template <class T, size_t Size>
+inline bool operator<(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+    return std::lexicographical_compare(x_.elems_, x_.elems_ + Size, y_.elems_,
+                                        y_.elems_ + Size);
+}
+
+template <class T, size_t Size>
+inline bool operator>(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+    return y_ < x_;
+}
+
+template <class T, size_t Size>
+inline bool operator<=(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+    return !(y_ < x_);
+}
+
+template <class T, size_t Size>
+inline bool operator>=(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+    return !(x_ < y_);
+}
+
+/**\name non-member begin & end
+ * Implement the non-member begin & end functions in the %Vc namespace so that ADL works
+ * and `begin(some_vc_array)` always works.
+ */
+///@{
+template <typename T, std::size_t N>
+inline auto begin(array<T, N>& arr) -> decltype(arr.begin())
+{
+    return arr.begin();
+}
+template <typename T, std::size_t N>
+inline auto begin(const array<T, N>& arr) -> decltype(arr.begin())
+{
+    return arr.begin();
+}
+template <typename T, std::size_t N>
+inline auto end(array<T, N>& arr) -> decltype(arr.end())
+{
+    return arr.end();
+}
+template <typename T, std::size_t N>
+inline auto end(const array<T, N>& arr) -> decltype(arr.end())
+{
+    return arr.end();
+}
+///@}
 
 namespace Traits
 {
@@ -367,9 +232,53 @@ static_assert(has_no_allocated_data<Vc::array<int, 256> &>::value, "");
 static_assert(has_no_allocated_data<Vc::array<int, 256> &&>::value, "");
 
 }  // namespace Traits
+}  // namespace Vc
 
-} // namespace Vc
+namespace std
+{
+template <class T, size_t Size>
+inline
+    typename enable_if<is_same<void, decltype(swap(declval<T&>(), declval<T&>()))>::value,
+                       void>::type
+    swap(const Vc::array<T, Size>& x_,
+         const Vc::array<T, Size>& y_) noexcept(swap(declval<T&>(), declval<T&>()))
+{
+    x_.swap(y_);
+}
 
-#endif // VC_STL_ARRAY_
+template <class T, size_t Size>
+class tuple_size<Vc::array<T, Size>> : public integral_constant<size_t, Size>
+{
+};
 
-// vim: ft=cpp
+template <size_t I, class T, size_t Size> class tuple_element<I, Vc::array<T, Size>>
+{
+public:
+    typedef T type;
+};
+
+template <size_t I, class T, size_t Size>
+inline constexpr typename std::enable_if<(I < Size), T&>::type get(
+    Vc::array<T, Size>& a_) noexcept
+{
+    return a_.elems_[I];
+}
+
+template <size_t I, class T, size_t Size>
+inline constexpr typename std::enable_if<(I < Size), const T&>::type get(
+    const Vc::array<T, Size>& a_) noexcept
+{
+    return a_.elems_[I];
+}
+
+template <size_t I, class T, size_t Size>
+inline constexpr typename std::enable_if<(I < Size), T&&>::type get(
+    Vc::array<T, Size>&& a_) noexcept
+{
+    return std::move(a_.elems_[I]);
+}
+}  // namespace std
+
+#endif  // VC_INCLUDE_VC_ARRAY_
+
+// vim: ft=cpp foldmethod=marker
