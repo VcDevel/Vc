@@ -210,16 +210,6 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
             return {this, m};
         }
 
-        Vc_ALWAYS_INLINE bool pack(Mask &m1, Vector &v2, Mask &m2) {
-            if (!m1.data() && m2.data()) {
-                m_data = v2.m_data;
-                m1 = true;
-                m2 = false;
-                return true;
-            }
-            return m1;
-        }
-
         Vc_ALWAYS_INLINE EntryType min() const { return m_data; }
         Vc_ALWAYS_INLINE EntryType max() const { return m_data; }
         Vc_ALWAYS_INLINE EntryType product() const { return m_data; }

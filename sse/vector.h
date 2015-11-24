@@ -254,15 +254,6 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         Vc_INTRINSIC WriteMaskedVector operator()(const Mask &k) { return {this, k}; }
 
-        /**
-         * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
-         *                  to test this.
-         *         \p false This vector was not completely filled. m2 is all 0.
-         */
-        //inline bool pack(Mask &m1, Vector &v2, Mask &m2) {
-            //return HT::pack(data(), m1.data, v2.data(), m2.data);
-        //}
-
         Vc_ALWAYS_INLINE Vc_PURE VectorType &data() { return d.v(); }
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &data() const { return d.v(); }
 
