@@ -627,3 +627,5 @@ TEST_TYPES(V, testFma, ALL_TYPES)
 #endif
     testFmaDispatch<V>(T());
 }
+
+// vim: foldmethod=marker

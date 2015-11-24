@@ -1,4 +1,3 @@
-/*  This file is part of the Vc library. {{{
 Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
@@ -23,19 +22,3 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-}}}*/
-
-#ifndef VC_VC_
-#define VC_VC_
-#include "vector.h"
-#include "IO"
-#include "Memory"
-#include "Utils"
-#include "Allocator"
-#include "iterators"
-#include "SimdArray"
-#include "simdize"
-#endif // VC_VC_
-
-// vim: ft=cpp foldmethod=marker
