@@ -68,21 +68,42 @@ Vc_DEFINE_OPERATION(increment, ++v);
 Vc_DEFINE_OPERATION(decrement, --v);
 Vc_DEFINE_OPERATION(random, v = V::Random());
 #undef Vc_DEFINE_OPERATION
-#define Vc_DEFINE_OPERATION(name__, code__)                                                        \
-    struct name__ : public tag                                                                     \
-    {                                                                                              \
-        template <typename V, typename... Args>                                                    \
-        Vc_INTRINSIC void operator()(V &v, Args &&... args)                                        \
-        {                                                                                          \
-            code__;                                                                                \
-        }                                                                                          \
+#define Vc_DEFINE_OPERATION_FORWARD(name_)                                               \
+    struct Forward_##name_ : public tag {                                                \
+        template <typename V, typename... Args>                                          \
+        Vc_INTRINSIC void operator()(V &v, Args &&... args)                              \
+        {                                                                                \
+            v = name_(std::forward<Args>(args)...);                                      \
+        }                                                                                \
     }
-Vc_DEFINE_OPERATION(Abs, v = abs(std::forward<Args>(args)...));
-Vc_DEFINE_OPERATION(Isnan, v = isnan(std::forward<Args>(args)...));
-Vc_DEFINE_OPERATION(Frexp, v = frexp(std::forward<Args>(args)...));
-Vc_DEFINE_OPERATION(Ldexp, v = ldexp(std::forward<Args>(args)...));
-Vc_DEFINE_OPERATION(Sqrt, v = sqrt(std::forward<Args>(args)...));
-#undef Vc_DEFINE_OPERATION
+Vc_DEFINE_OPERATION_FORWARD(abs);
+Vc_DEFINE_OPERATION_FORWARD(asin);
+Vc_DEFINE_OPERATION_FORWARD(atan);
+Vc_DEFINE_OPERATION_FORWARD(atan2);
+Vc_DEFINE_OPERATION_FORWARD(cos);
+Vc_DEFINE_OPERATION_FORWARD(ceil);
+Vc_DEFINE_OPERATION_FORWARD(copysign);
+Vc_DEFINE_OPERATION_FORWARD(exp);
+Vc_DEFINE_OPERATION_FORWARD(fma);
+Vc_DEFINE_OPERATION_FORWARD(floor);
+Vc_DEFINE_OPERATION_FORWARD(frexp);
+Vc_DEFINE_OPERATION_FORWARD(isfinite);
+Vc_DEFINE_OPERATION_FORWARD(isinf);
+Vc_DEFINE_OPERATION_FORWARD(isnan);
+Vc_DEFINE_OPERATION_FORWARD(ldexp);
+Vc_DEFINE_OPERATION_FORWARD(log);
+Vc_DEFINE_OPERATION_FORWARD(log10);
+Vc_DEFINE_OPERATION_FORWARD(log2);
+Vc_DEFINE_OPERATION_FORWARD(reciprocal);
+Vc_DEFINE_OPERATION_FORWARD(round);
+Vc_DEFINE_OPERATION_FORWARD(rsqrt);
+Vc_DEFINE_OPERATION_FORWARD(sin);
+Vc_DEFINE_OPERATION_FORWARD(sincos);
+Vc_DEFINE_OPERATION_FORWARD(sqrt);
+Vc_DEFINE_OPERATION_FORWARD(trunc);
+Vc_DEFINE_OPERATION_FORWARD(min);
+Vc_DEFINE_OPERATION_FORWARD(max);
+#undef Vc_DEFINE_OPERATION_FORWARD
 template<typename T> using is_operation = std::is_base_of<tag, T>;
 }  // namespace Operations }}}
 

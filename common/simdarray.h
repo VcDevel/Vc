@@ -1266,33 +1266,77 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_)
 #undef Vc_BINARY_OPERATORS_
 
 // math functions {{{1
-template <typename T, std::size_t N> SimdArray<T, N> abs(const SimdArray<T, N> &x)
+#define Vc_FORWARD_UNARY_OPERATOR(name_)                                                 \
+    template <typename T, std::size_t N, typename V, std::size_t M>                      \
+    inline SimdArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x)                   \
+    {                                                                                    \
+        return SimdArray<T, N, V, M>::fromOperation(                                     \
+            Common::Operations::Forward_##name_(), x);                                   \
+    }
+
+#define Vc_FORWARD_UNARY_BOOL_OPERATOR(name_)                                            \
+    template <typename T, std::size_t N, typename V, std::size_t M>                      \
+    inline SimdMaskArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x)               \
+    {                                                                                    \
+        return SimdMaskArray<T, N, V, M>::fromOperation(                                 \
+            Common::Operations::Forward_##name_(), x);                                   \
+    }
+
+#define Vc_FORWARD_BINARY_OPERATOR(name_)                                                \
+    template <typename T, std::size_t N, typename V, std::size_t M>                      \
+    inline SimdArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x,                   \
+                                       const SimdArray<T, N, V, M> &y)                   \
+    {                                                                                    \
+        return SimdArray<T, N, V, M>::fromOperation(                                     \
+            Common::Operations::Forward_##name_(), x, y);                                \
+    }
+
+Vc_FORWARD_UNARY_OPERATOR(abs)
+Vc_FORWARD_UNARY_OPERATOR(asin)
+Vc_FORWARD_UNARY_OPERATOR(atan)
+Vc_FORWARD_BINARY_OPERATOR(atan2)
+Vc_FORWARD_UNARY_OPERATOR(ceil)
+Vc_FORWARD_BINARY_OPERATOR(copysign)
+Vc_FORWARD_UNARY_OPERATOR(cos)
+Vc_FORWARD_UNARY_OPERATOR(exp)
+Vc_FORWARD_UNARY_OPERATOR(floor)
+template <typename T, std::size_t N>
+SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b, const SimdArray<T, N> &c)
 {
-    return SimdArray<T, N>::fromOperation(Common::Operations::Abs(), x);
+    return SimdArray<T, N>::fromOperation(Common::Operations::Forward_fma(), a, b, c);
 }
-template <typename T, std::size_t N> SimdArray<T, N> copysign(const SimdArray<T, N> &a, const SimdArray<T, N> &b)
-{
-    return a.copySign(b);
-}
-template <typename T, std::size_t N> SimdMaskArray<T, N> isnan(const SimdArray<T, N> &x)
-{
-    return SimdMaskArray<T, N>::fromOperation(Common::Operations::Isnan(), x);
-}
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isfinite)
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isinf)
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isnan)
 template <typename T, std::size_t N>
 SimdArray<T, N> frexp(const SimdArray<T, N> &x, SimdArray<int, N> *e)
 {
-    return SimdArray<T, N>::fromOperation(Common::Operations::Frexp(), x, e);
+    return SimdArray<T, N>::fromOperation(Common::Operations::Forward_frexp(), x, e);
 }
 template <typename T, std::size_t N>
 SimdArray<T, N> ldexp(const SimdArray<T, N> &x, const SimdArray<int, N> &e)
 {
-    return SimdArray<T, N>::fromOperation(Common::Operations::Ldexp(), x, e);
+    return SimdArray<T, N>::fromOperation(Common::Operations::Forward_ldexp(), x, e);
 }
+Vc_FORWARD_UNARY_OPERATOR(log)
+Vc_FORWARD_UNARY_OPERATOR(log10)
+Vc_FORWARD_UNARY_OPERATOR(log2)
+Vc_FORWARD_UNARY_OPERATOR(reciprocal)
+Vc_FORWARD_UNARY_OPERATOR(round)
+Vc_FORWARD_UNARY_OPERATOR(rsqrt)
+Vc_FORWARD_UNARY_OPERATOR(sin)
 template <typename T, std::size_t N>
-SimdArray<T, N> sqrt(const SimdArray<T, N> &x)
+void sincos(const SimdArray<T, N> &x, SimdArray<int, N> *sin, SimdArray<int, N> *cos)
 {
-    return SimdArray<T, N>::fromOperation(Common::Operations::Sqrt(), x);
+    return SimdArray<T, N>::fromOperation(Common::Operations::Forward_sincos(), sin, cos);
 }
+Vc_FORWARD_UNARY_OPERATOR(sqrt)
+Vc_FORWARD_UNARY_OPERATOR(trunc)
+Vc_FORWARD_BINARY_OPERATOR(min)
+Vc_FORWARD_BINARY_OPERATOR(max)
+#undef Vc_FORWARD_UNARY_OPERATOR
+#undef Vc_FORWARD_UNARY_BOOL_OPERATOR
+#undef Vc_FORWARD_BINARY_OPERATOR
 
 // simd_cast {{{1
 // simd_cast_impl_smaller_input {{{2
