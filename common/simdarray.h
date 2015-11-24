@@ -422,7 +422,7 @@ public:
         return {VectorType::generate(gen)};
     }
 
-    Vc_INTRINSIC SimdArray copySign(SimdArray reference) const
+    Vc_INTRINSIC SimdArray copySign(const SimdArray &reference) const
     {
         return {data.copySign(reference.data)};
     }
@@ -1094,7 +1094,7 @@ public:
                 storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
     }
 
-    Vc_INTRINSIC SimdArray copySign(SimdArray reference) const
+    Vc_INTRINSIC SimdArray copySign(const SimdArray& reference) const
     {
         auto lo = data0.copySign(reference.data0);
         auto hi = data1.copySign(reference.data1);
