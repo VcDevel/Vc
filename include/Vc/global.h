@@ -46,6 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * For any other compiler this macro is not defined.
  */
 #define Vc_ICC __INTEL_COMPILER_BUILD_DATE
+#undef Vc_ICC
 /**
  * \ingroup Utilities
  * This macro is defined to a number identifying the Clang version if the current
@@ -54,6 +55,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * For any other compiler this macro is not defined.
  */
 #define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#undef Vc_CLANG
 /**
  * \ingroup Utilities
  * This macro is defined to a number identifying the GCC version if the current
@@ -70,6 +72,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * For any other compiler this macro is not defined.
  */
 #define Vc_MSVC _MSC_FULL_VER
+#undef Vc_MSVC
 /**
  * \ingroup Utilities
  * This macro is defined if the compiler disallows passing over-aligned types by value. If
@@ -81,6 +84,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * convention.
  */
 #define Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
+#undef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
 //@}
 
 #else  // DOXYGEN
