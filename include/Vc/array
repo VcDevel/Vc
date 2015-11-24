@@ -22,7 +22,7 @@
 // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
 // <http://www.gnu.org/licenses/>.
 
-/** @file include/array
+/** @file Vc/array
  *  This is a modified Standard C++ Library header.
  */
 
@@ -65,7 +65,7 @@ namespace Vc_VERSIONED_NAMESPACE
   /**
    *  @brief A standard container for storing a fixed size sequence of elements.
    *
-   *  @ingroup sequences
+   *  @ingroup Utilities
    *
    *  Meets the requirements of a <a href="tables.html#65">container</a>, a
    *  <a href="tables.html#66">reversible container</a>, and a
