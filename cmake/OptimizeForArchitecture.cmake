@@ -25,15 +25,12 @@
 #
 #  * Redistributions of source code must retain the above copyright notice,
 #    this list of conditions and the following disclaimer.
-#
 #  * Redistributions in binary form must reproduce the above copyright notice,
 #    this list of conditions and the following disclaimer in the documentation
 #    and/or other materials provided with the distribution.
-#
-#  * The names of Kitware, Inc., the Insight Consortium, or the names of
-#    any consortium members, or of any contributors, may not be used to
-#    endorse or promote products derived from this software without
-#    specific prior written permission.
+#  * Neither the names of contributing organizations nor the
+#    names of its contributors may be used to endorse or promote products
+#    derived from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS ``AS IS''
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
