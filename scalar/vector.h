@@ -37,10 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <float.h>
 #endif
 
-#include "../common/loadstoreflags.h"
-#include "../common/memoryfwd.h"
-#include "../common/simdarrayfwd.h"
-#include "../common/writemaskedvector.h"
 #include "types.h"
 #include "mask.h"
 

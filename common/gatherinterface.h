@@ -41,19 +41,53 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //    thus removes the requirements in (2.) for the disabled entries.
 
 private:
-    // enable_if<std::can_convert<MT, EntryType>::value && has_subscript_operator<IT>::value>
+    /**\internal
+     * This function implements a gather given a pointer to memory \p mem and some
+     * container object storing the gather \p indexes.
+     *
+     * \param mem This pointer must be aligned correctly for the type \p MT. This is the
+     * natural behavior of C++, so this is typically the case.
+     * \param indexes This object contains at least \VSize{T} indexes that denote the
+     * offset in \p mem where the components for the current vector should be copied from.
+     * The offset is not in Bytes, but in multiples of `sizeof(MT)`.
+     */
+    // enable_if<std::can_convert<MT, EntryType>::value &&
+    // has_subscript_operator<IT>::value>
     template <typename MT, typename IT>
     inline void gatherImplementation(const MT *mem, IT &&indexes);
 
+    /**\internal
+     * This overload of the above function adds a \p mask argument to disable memory
+     * accesses at the \p indexes offsets where \p mask is \c false.
+     */
     template <typename MT, typename IT>
     inline void gatherImplementation(const MT *mem, IT &&indexes, MaskArgument mask);
 
+    /**\internal
+     * Overload for the case of C-arrays or %Vc vector objects.
+     *
+     * In this case the \p indexes parameter is usable without adjustment.
+     *
+     * \param indexes An object to be used for gather or scatter.
+     * \returns Forwards the \p indexes parameter.
+     */
     template <typename IT, typename = enable_if<std::is_pointer<IT>::value ||
                                                 Traits::is_simd_vector<IT>::value>>
-    static Vc_INTRINSIC IT adjustIndexParameter(IT &&i)
+    static Vc_INTRINSIC IT adjustIndexParameter(IT &&indexes)
     {
-        return std::forward<IT>(i);
+        return std::forward<IT>(indexes);
     }
+
+    /**\internal
+     * Overload for the case of a container that returns an lvalue reference from its
+     * subscript operator.
+     *
+     * In this case the container is assumed to use contiguous storage and therefore the
+     * \p indexes object is converted to a C-array interface.
+     *
+     * \param indexes An object to be used for gather or scatter.
+     * \returns A pointer to the first object in the \p indexes container.
+     */
     template <typename IT,
               typename = enable_if<
                   !std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
@@ -63,6 +97,14 @@ private:
     {
         return std::addressof(i[0]);
     }
+
+    /**\internal
+     * Overload for the case of a container that returns an rvalue from its
+     * subscript operator.
+     *
+     * \param indexes An object to be used for gather or scatter.
+     * \returns Forwards the \p indexes parameter.
+     */
     template <typename IT>
     static Vc_INTRINSIC
         enable_if<!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
@@ -90,6 +132,48 @@ public:
                       "If you use a simple array for the indexes parameter, the array must have "  \
                       "at least as many entries as this SIMD vector.")
 
+    /**
+     * \name Gather constructors and member functions
+     *
+     * Constructs or loads a vector from the objects at `mem[indexes[0]]`,
+     * `mem[indexes[1]]`, `mem[indexes[2]]`, ...
+     *
+     * All gather functions optionally take a mask as last argument. In that case only the
+     * entries that are selected in the mask are accessed in memory and copied to the
+     * vector. This enables invalid indexes in the \p indexes vector if those are masked
+     * off in \p mask.
+     *
+     * Gathers from structured data (AoS: arrays of struct) are possible via a special
+     * subscript operator of the container (array). You can use \ref Vc::array and \ref
+     * Vc::vector as drop-in replacements for \c std::array and \c std::vector. These
+     * container classes contain the necessary subscript operator overload. Example:
+     * \code
+     * Vc::vector<float> data(100);
+     * std::iota(data.begin(), data.end(), 0.f);  // fill with values 0, 1, 2, ...
+     * auto indexes = float_v::IndexType::IndexesFromZero();
+     * float_v gathered = data[indexes];  // gathered == [0, 1, 2, ...]
+     * \endcode
+     *
+     * Alternatively, you can use Vc::Common::AdaptSubscriptOperator to extend a given
+     * container class with the necessary subscript operator. Example:
+     * \code
+     * template <typename T, typename Allocator = std::allocator<T>>
+     * using my_vector = Vc::Common::AdaptSubscriptOperator<std::vector<T, Allocator>>;
+     * \endcode
+     *
+     * \param mem A pointer to memory which contains objects of type \p MT at the offsets
+     *            given by \p indexes.
+     * \param indexes A container/vector of offsets into \p mem.
+     *                The type of \p indexes (\p IT) may either be a pointer to integers
+     *                (C-array) or a vector of integers (preferrably IndexType).
+     * \param mask If a mask is given, only the active entries will be copied from memory.
+     *
+     * \note If you use a masked gather constructor the masked-off entries of the vector
+     * are zero-initilized.
+     */
+    ///@{
+
+    /// Gather constructor
     template <typename MT, typename IT,
               typename = enable_if<Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes)
@@ -98,6 +182,7 @@ public:
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
     }
 
+    /// Masked gather constructor
     template <typename MT, typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes, MaskArgument mask)
@@ -106,6 +191,7 @@ public:
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
 
+    /// Gather function
     template <typename MT,
               typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
@@ -115,6 +201,7 @@ public:
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
     }
 
+    /// Masked gather function
     template <typename MT,
               typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
@@ -123,7 +210,15 @@ public:
         Vc_ASSERT_GATHER_PARAMETER_TYPES__;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
+    ///@}
 
+    /**\internal
+     * \name Gather function to use from Vc::Common::subscript_operator
+     *
+     * \param args
+     * \param mask
+     */
+    ///@{
     template <typename MT, typename IT>
     Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args)
     {
@@ -135,5 +230,6 @@ public:
     {
         gather(args.address, adjustIndexParameter(args.indexes), mask);
     }
+    ///@}
 
 #undef Vc_ASSERT_GATHER_PARAMETER_TYPES__

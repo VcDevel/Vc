@@ -27,15 +27,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 // load ctors{{{1
-explicit Vc_INTRINSIC Vector(const EntryType *x)
+/**
+ * Construct a vector from loading its entries from the array at \p mem.
+ *
+ * \param mem A pointer to data. The pointer must not be aligned on a
+ *            MemoryAlignment boundary unless you add the Vc::Aligned flag as a second
+ *            argument.
+ */
+explicit Vc_INTRINSIC Vector(const EntryType *mem)
 {
-    load(x);
+    load(mem);
 }
+/**
+ * Construct a vector from loading its entries from the array at \p mem.
+ *
+ * \param mem A pointer to data. If \p flags contains the Vc::Aligned flag, the pointer
+ *            must be aligned on a MemoryAlignment boundary.
+ * \param flags A (combination of) flag object(s), such as Vc::Aligned, Vc::Streaming,
+ *              Vc::Unaligned, and/or Vc::PrefetchDefault.
+ */
 template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
-explicit Vc_INTRINSIC Vector(const EntryType *x, Flags flags)
+explicit Vc_INTRINSIC Vector(const EntryType *mem, Flags flags)
 {
-    load(x, flags);
+    load(mem, flags);
 }
+
 template <typename U, typename Flags = DefaultLoadTag,
           typename = enable_if<
               (!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
@@ -45,11 +61,29 @@ explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
 {
     load(x, flags);
 }
+
 // load member functions{{{1
+/**
+ * Load the vector entries from \p mem, overwriting the previous values.
+ *
+ * \param mem
+ * A pointer to data. The pointer must not be aligned on a MemoryAlignment boundary unless
+ * you add the Vc::Aligned flag as a second argument.
+ */
 Vc_INTRINSIC void load(const EntryType *mem)
 {
     load(mem, DefaultLoadTag());
 }
+/**
+ * Load the vector entries from \p mem, overwriting the previous values.
+ *
+ * \param mem
+ * A pointer to data. If \p flags contains the Vc::Aligned flag, the pointer must be
+ * aligned on a MemoryAlignment boundary.
+ * \param flags
+ * A (combination of) flag object(s), such as Vc::Aligned, Vc::Streaming, Vc::Unaligned,
+ * and/or Vc::PrefetchDefault.
+ */
 template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
 Vc_INTRINSIC void load(const EntryType *mem, Flags flags)
 {

@@ -32,11 +32,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 The %Vc library implements portable, zero-overhead C++ types for explicitly data-parallel
 programming.
+
 The 1.0 release ships implementations for x86 SIMD instruction sets: SSE, AVX, AVX2, and
 the Xeon Phi (MIC). A scalar implementation ensures full portability to any C++11 capable
 compiler and target system.
 
-\par Introduction
+This documentation is structured in three main areas:
+1. Several manually written documentation pages in the *Overview Documents*.
+   They cover an introduction to SIMD and data-parallelism, portability issues, macros,
+   how to set up the build system, and examples / tutorials.
+   \li \subpage intro
+   \li \subpage portability
+   \li \subpage vcmacros
+   \li \subpage featuremacros
+   \li \subpage buildsystem
+   \li \subpage examples
+
+2. The *API Reference* section contains a manually structured access to the API
+   documentation generated from the %Vc sources.
+   \li \ref Vectors
+   \li \ref Masks
+   \li \ref SimdArray
+   \li \ref Simdize
+   \li \ref Math
+   \li \ref Utilities
+
+3. The *Indexes* section contains automatically generated indexes to the same API
+   documentation.
+
+\page intro Introduction
 
 Recent generations of CPUs, and GPUs in particular, require data-parallel codes for full efficiency.
 Data parallelism requires that the same sequence of operations is applied to different input data.
@@ -51,41 +75,32 @@ However, the compiler must reconstruct an intrinsic property of the algorithm th
 Consequently, C++ compilers cannot vectorize any given code to its most efficient data-parallel variant.
 Especially larger data-parallel loops, spanning over multiple functions or even translation units, will often not be transformed into efficient SIMD code.
 
-The Vc library provides the missing link.
+The %Vc library provides the missing link.
 Its types enable explicitly stating data-parallel operations on multiple values.
 The parallelism is therefore added via the type system.
 Competing approaches state the parallelism via new control structures and consequently new semantics inside the body of these control structures.
 
-\par Background information and learning material
-\li \subpage intro
-\li \subpage portability
-\li \subpage vcmacros
-\li \subpage featuremacros
-\li \subpage buildsystem
-\li \subpage examples
-
-\par API documentation
-\li \ref Vectors
-\li \ref Masks
-\li \ref SimdArray
-\li \ref Simdize
-\li \ref Math
-\li \ref Utilities
-
-
-\page intro Introduction
-
-If you are new to vectorization please read this following part and make sure you understand it:
-\li Forget what you learned about vectors in math classes. SIMD vectors are a different concept!
-\li Forget about containers that also go by the name of a vector. SIMD vectors are a different concept!
-\li A SIMD vector is defined by the hardware as a special register which is wider than required for a
-single value. Thus multiple values fit into one register. The width of this register and the
-size of the scalar data type in use determine the number of entries in the vector.
-Therefore this number is an unchangeable property of the hardware and not a variable in the
-%Vc API.
-\li Note that hardware is free to use different vector register widths for different data types.
-For example AVX has instructions for 256-bit floating point registers, but only 128-bit integer
-instructions.
+If you are new to vectorization please read this following part and make sure you
+understand it:
+- The term *vector* used for data-parallel programming is not about the vectors you
+  studied in math classes.
+- Do not confuse *vector* with containers that also go by the same name. SIMD vectors
+  actually do implement some aspect of a container, but they are closer to a fixed-sized
+  `std::array` than to a dynamically resizable `std::vector`.
+- The *vector* type in %Vc is defined by the target hardware as a group of values with a
+  fixed number of entries (\VSize{T}).
+  Typically one Vc::Vector object then fits into a SIMD register on the target system.
+  Such a SIMD register consequently stores \VSize{T} scalar values; in contrast to a
+  general purpose register, which stores only one scalar value.
+  This value \VSize{T} is thus an unchangeable property of the hardware and not a variable
+  in the %Vc API.
+  You can access the \VSize{T} value via the static Vc::Vector::size() function.
+  Since this function is a constant expression you can also use it for template arguments.
+- Note that some hardware may use different vector register widths for different data
+  types.
+  For example, AVX has instructions for 256-bit floating point registers, but only 128-bit
+  integer instructions, which is why the integral Vc::Vector types use the SSE
+  implementation for AVX target systems.
 
 \par Example 1:
 
@@ -290,7 +305,7 @@ After you include a %Vc header, you will have the following macros available, wh
 
 \section vc_size Vector/Mask Sizes
 
-The macros \ref Vc_DOUBLE_V_SIZE, \ref Vc_FLOAT_V_SIZE, \ref Vc_INT, \ref Vc_UINT_V_SIZE, \ref Vc_SHORT_V_SIZE, and \ref Vc_USHORT_V_SIZE make the default vector width accessible in the preprocessor.
+The macros \ref Vc_DOUBLE_V_SIZE, \ref Vc_FLOAT_V_SIZE, \ref Vc_INT_V_SIZE, \ref Vc_UINT_V_SIZE, \ref Vc_SHORT_V_SIZE, and \ref Vc_USHORT_V_SIZE make the default vector width accessible in the preprocessor.
 In most cases you should prefer the Vector::size() function, though.
 Since this function is \c constexpr you can use it for compile-time decisions (e.g. as template argument).
 
@@ -520,47 +535,11 @@ operators and functions.
  */
 namespace Vc
 {
-    /**
-     * \class Vector dox.h <Vc/vector.h>
-     * \ingroup Vectors
-     *
-     * The main SIMD vector class.
-     *
-     * \li Vc::float_v
-     * \li Vc::double_v
-     * \li Vc::int_v
-     * \li Vc::uint_v
-     * \li Vc::short_v
-     * \li Vc::ushort_v
-     *
-     * are specializations of this class.
-     * For most cases there are no API differences for the specializations.
-     * Make use of Vector<T> for generic programming, otherwise you might prefer to use
-     * the \p *_v aliases.
-     */
-    template <typename T> class Vector
-    {
-        public:
 #define INDEX_TYPE Vc::SimdArray<int, size()>
 #define VECTOR_TYPE Vc::Vector<T>
 #define ENTRY_TYPE T
 #define MASK_TYPE Vc::Mask<T>
 #define EXPONENT_TYPE Vc::SimdArray<int, size()>
-#include "dox-common-ops.h"
-#include "dox-real-ops.h"
-    };
-
-    /**
-     * \class Mask dox.h <Vc/vector.h>
-     * \ingroup Masks
-     *
-     * The main SIMD mask class.
-     */
-    template <typename T> class Mask
-    {
-        public:
-#include "dox-common-mask-ops.h"
-    };
 
 #include "dox-math.h"
 
@@ -575,73 +554,72 @@ namespace Vc
  * \ingroup Utilities
  */
 //@{
+///\addtogroup Utilities
+//@{
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with XOP instruction support.
  */
 #define Vc_IMPL_XOP
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with FMA4 instruction support.
  */
 #define Vc_IMPL_FMA4
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with F16C instruction support.
  */
 #define Vc_IMPL_F16C
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with POPCNT instruction support.
  */
 #define Vc_IMPL_POPCNT
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE4a instruction support.
  */
 #define Vc_IMPL_SSE4a
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled without any SIMD support.
  */
 #define Vc_IMPL_Scalar
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with any version of SSE (but not
  * AVX).
  */
 #define Vc_IMPL_SSE
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE2 instruction support
  * (excluding SSE3 and up).
  */
 #define Vc_IMPL_SSE2
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE3 instruction support (excluding SSSE3 and up).
  */
 #define Vc_IMPL_SSE3
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSSE3 instruction support (excluding SSE4.1 and up).
  */
 #define Vc_IMPL_SSSE3
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE4.1 instruction support (excluding SSE4.2 and up).
  */
 #define Vc_IMPL_SSE4_1
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with SSE4.2 instruction support (excluding AVX and up).
  */
 #define Vc_IMPL_SSE4_2
 /**
- * \ingroup Utilities
  * This macro is defined if the current translation unit is compiled with AVX instruction support (excluding AVX2 and up).
  */
 #define Vc_IMPL_AVX
+/**
+ * This macro is defined if the current translation unit is compiled with AVX2 instruction support.
+ */
+#define Vc_IMPL_AVX2
+/**
+ * This macro is defined if the current translation unit is compiled for the Knights
+ * Corner Xeon Phi instruction set.
+ */
+#define Vc_IMPL_MIC
+//@}
 //@}
 
 /**
