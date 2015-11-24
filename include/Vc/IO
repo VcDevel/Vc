@@ -97,7 +97,8 @@ inline std::ostream &operator<<(std::ostream &out, const Type &c)
 [0, 1, 2, 3]
 \endverbatim
  *
- * \param s Any standard C++ ostream object. For example std::cout or a std::stringstream object.
+ * \param out Any standard C++ ostream object. For example std::cout or a
+ *            std::stringstream object.
  * \param v Any Vc::Vector object.
  * \return  The ostream object: to chain multiple stream operations.
  *
@@ -136,8 +137,9 @@ inline std::ostream &operator<<(std::ostream &out, const Vc::Vector<T, Abi> &v)
 m[1110 0000]
 \endverbatim
  *
- * \param s Any standard C++ ostream object. For example std::cout or a std::stringstream object.
- * \param v Any Vc::Mask object.
+ * \param out Any standard C++ ostream object. For example std::cout or a
+ *            std::stringstream object.
+ * \param m Any Vc::Mask object.
  * \return  The ostream object: to chain multiple stream operations.
  *
  * \note With the GNU standard library this function will check whether the

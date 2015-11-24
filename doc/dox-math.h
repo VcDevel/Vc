@@ -65,7 +65,8 @@ VECTOR_TYPE round(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the natural logarithm of \p v.
+ * \param v The values to apply the logarithm on.
+ * \returns the natural logarithm of \p v.
  *
  * \note The single-precision implementation has an error of max. 1 ulp (mean 0.020 ulp) in the range ]0, 1000] (including denormals).
  * \note The double-precision implementation has an error of max. 1 ulp (mean 0.020 ulp) in the range ]0, 1000] (including denormals).
@@ -75,7 +76,8 @@ VECTOR_TYPE log(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the base-2 logarithm of \p v.
+ * \param v The values to apply the logarithm on.
+ * \returns the base-2 logarithm of \p v.
  *
  * \note The single-precision implementation has an error of max. 1 ulp (mean 0.016 ulp) in the range ]0, 1000] (including denormals).
  * \note The double-precision implementation has an error of max. 1 ulp (mean 0.016 ulp) in the range ]0, 1000] (including denormals).
@@ -85,7 +87,8 @@ VECTOR_TYPE log2(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the base-10 logarithm of \p v.
+ * \param v The values to apply the logarithm on.
+ * \returns the base-10 logarithm of \p v.
  *
  * \note The single-precision implementation has an error of max. 2 ulp (mean 0.31 ulp) in the range ]0, 1000] (including denormals).
  * \note The double-precision implementation has an error of max. 2 ulp (mean 0.26 ulp) in the range ]0, 1000] (including denormals).
@@ -95,14 +98,16 @@ VECTOR_TYPE log10(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the exponential of \p v.
+ * \param v The values to apply the exponential function on.
+ * \returns the exponential of \p v.
  */
 VECTOR_TYPE exp(const VECTOR_TYPE &v);
 
 /**
  * \ingroup Math
  *
- * Returns the sine of \p v.
+ * \param v The values to apply the sine function on.
+ * \returns the sine of \p v.
  *
  * \note The single-precision implementation has an error of max. 2 ulp (mean 0.17 ulp) in the range [-8192, 8192].
  * \note The double-precision implementation has an error of max. 8e6 ulp (mean 1040 ulp) in the range [-8192, 8192].
@@ -113,7 +118,8 @@ VECTOR_TYPE sin(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the cosine of \p v.
+ * \param v The values to apply the cosine function on.
+ * \returns the cosine of \p v.
  *
  * \note The single-precision implementation has an error of max. 2 ulp (mean 0.18 ulp) in the range [-8192, 8192].
  * \note The double-precision implementation has an error of max. 8e6 ulp (mean 1160 ulp) in the range [-8192, 8192].
@@ -124,7 +130,8 @@ VECTOR_TYPE cos(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the arcsine of \p v.
+ * \param v The values to apply the arcsine function on.
+ * \returns the arcsine of \p v.
  *
  * \note The single-precision implementation has an error of max. 2 ulp (mean 0.3 ulp).
  * \note The double-precision implementation has an error of max. 36 ulp (mean 0.4 ulp).
@@ -134,7 +141,8 @@ VECTOR_TYPE asin(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the arctangent of \p v.
+ * \param v The values to apply the arctangent function on.
+ * \returns the arctangent of \p v.
  * \note The single-precision implementation has an error of max. 3 ulp (mean 0.4 ulp) in the range [-8192, 8192].
  * \note The double-precision implementation has an error of max. 2 ulp (mean 0.1 ulp) in the range [-8192, 8192].
  */
@@ -143,21 +151,29 @@ VECTOR_TYPE atan(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * Returns the arctangent of \p x / \p y.
+ * Calculates the angle given the lengths of the opposite and adjacent legs in a right
+ * triangle.
+ * \param y The opposite leg.
+ * \param x The adjacent leg.
+ * \returns the arctangent of \p y / \p x.
  */
-VECTOR_TYPE atan2(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
+VECTOR_TYPE atan2(const VECTOR_TYPE &y, const VECTOR_TYPE &x);
 
 /**
  * \ingroup Math
  *
- * Returns the minimum of \p x and \p y.
+ * \param x \VSize{T} values to compare component-wise against \p y.
+ * \param y \VSize{T} values to compare component-wise against \p x.
+ * \returns the minimum of \p x and \p y.
  */
 VECTOR_TYPE min(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
 
 /**
  * \ingroup Math
  *
- * Returns the maximum of \p x and \p y.
+ * \param x \VSize{T} values to compare component-wise against \p y.
+ * \param y \VSize{T} values to compare component-wise against \p x.
+ * \returns the maximum of \p x and \p y.
  */
 VECTOR_TYPE max(const VECTOR_TYPE &x, const VECTOR_TYPE &y);
 
@@ -199,14 +215,16 @@ VECTOR_TYPE ldexp(VECTOR_TYPE x, EXPONENT_TYPE e);
 /**
  * \ingroup Math
  *
- * Returns a mask that tells whether the values in the vector are finite (i.e.\ not NaN or +/-inf).
+ * \param x The \VSize{T} values to check for finite values.
+ * \returns a mask that tells whether the values in the vector are finite (i.e.\ not NaN or +/-inf).
  */
 MASK_TYPE isfinite(const VECTOR_TYPE &x);
 
 /**
  * \ingroup Math
  *
- * Returns a mask that tells whether the values in the vector are NaN.
+ * \param x The \VSize{T} values to check for NaN values.
+ * \returns a mask that tells whether the values in the vector are NaN.
  */
 MASK_TYPE isnan(const VECTOR_TYPE &x);
 
@@ -219,13 +237,16 @@ MASK_TYPE isnan(const VECTOR_TYPE &x);
  * \param a First multiplication factor.
  * \param b Second multiplication factor.
  * \param c Summand that will be added after multiplication.
+ * \returns The \VSize{T} values of `a * b + c` with higher precision due to no rounding
+ *          between multiplication and addition.
  *
- * \note This operation may have explicit hardware support, in which case it is normally faster to
- * use the FMA instead of separate multiply and add instructions.
- * \note If the target hardware does not have FMA support this function will be considerably slower
- * than a normal a * b + c. This is due to the increased precision fusedMultiplyAdd provides.
+ * \note This operation may have explicit hardware support, in which case it is normally
+ *       faster to use the FMA instead of separate multiply and add instructions.
+ * \note If the target hardware does not have FMA support this function will be
+ *       considerably slower than a normal a * b + c. This is due to the increased
+ *       precision fusedMultiplyAdd provides.
  * \note The compiler normally detects opportunities for using the hardware FMA
- * instructions from normal multiplication and addition/subtraction operators. Use this
- * function only if you \emph require the additional precision.
+ *       instructions from normal multiplication and addition/subtraction operators. Use
+ *       this function only if you \em require the additional precision.
  */
 VECTOR_TYPE fma(VECTOR_TYPE a, VECTOR_TYPE b, VECTOR_TYPE c);

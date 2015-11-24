@@ -993,6 +993,10 @@ inline Adapter<S, T, N> shifted_impl(const Adapter<S, T, N> &a, int shift,
 /**
  * Returns a new vectorized object where each entry is shifted by \p shift. This basically
  * calls Vector<T>::shifted on every entry.
+ *
+ * \param a The object to apply the shift on.
+ * \param shift The number of entries to shift by.
+ * \returns a copy of \p a shifted by \p shift.
  */
 template <typename S, typename T, size_t N>
 inline Adapter<S, T, N> shifted(const Adapter<S, T, N> &a, int shift)
