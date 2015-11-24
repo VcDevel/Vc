@@ -271,7 +271,12 @@ public:
 
     Vc_INTRINSIC_L void assign(Vector<T> v, Mask mask) Vc_INTRINSIC_R;
 
-    template<typename V2> Vc_INTRINSIC V2 staticCast() const { return V2(*this); }
+    template <typename V2>
+    Vc_INTRINSIC Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast") V2
+        staticCast() const
+    {
+        return V2(*this);
+    }
     template<typename V2> Vc_INTRINSIC V2 reinterpretCast() const { return MIC::mic_cast<typename V2::VectorType>(d.v()); }
 
     Vc_ALWAYS_INLINE MIC::WriteMaskedVector<T> operator()(MaskArgument k)
