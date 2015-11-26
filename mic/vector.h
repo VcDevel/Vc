@@ -282,7 +282,12 @@ public:
     {
         return V2(*this);
     }
-    template<typename V2> Vc_INTRINSIC V2 reinterpretCast() const { return MIC::mic_cast<typename V2::VectorType>(d.v()); }
+    template <typename V2>
+    Vc_INTRINSIC Vc_DEPRECATED("use reinterpret_components_cast instead") V2
+        reinterpretCast() const
+    {
+        return MIC::mic_cast<typename V2::VectorType>(d.v());
+    }
 
     Vc_ALWAYS_INLINE MIC::WriteMaskedVector<T> operator()(MaskArgument k)
     {

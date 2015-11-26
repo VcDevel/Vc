@@ -206,7 +206,13 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         {
             return SSE::convert<T, typename V2::EntryType>(data());
         }
-        template<typename V2> Vc_ALWAYS_INLINE Vc_PURE V2 reinterpretCast() const { return SSE::sse_cast<typename V2::VectorType>(data()); }
+        template <typename V2>
+        Vc_ALWAYS_INLINE Vc_PURE
+            Vc_DEPRECATED("use reinterpret_components_cast instead") V2
+            reinterpretCast() const
+        {
+            return SSE::sse_cast<typename V2::VectorType>(data());
+        }
 
         Vc_INTRINSIC WriteMaskedVector operator()(const Mask &k) { return {this, k}; }
 

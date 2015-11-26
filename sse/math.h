@@ -103,7 +103,8 @@ inline SSE::float_v ldexp(SSE::float_v::AsArg v,
 {
     SSE::int_v e = internal_data(_e);
     e.setZero(static_cast<SSE::int_m>(v == SSE::float_v::Zero()));
-    return (v.reinterpretCast<SSE::int_v>() + (e << 23)).reinterpretCast<SSE::float_v>();
+    return reinterpret_components_cast<SSE::float_v>(
+        reinterpret_components_cast<SSE::int_v>(v) + (e << 23));
 }
 
 #ifdef Vc_IMPL_SSE4_1
@@ -123,7 +124,7 @@ static inline void floor_shift(SSE::float_v &v, SSE::float_v::AsArg e)
     SSE::int_v x = SSE::_mm_setallone_si128();
     x <<= 23;
     x >>= static_cast<SSE::int_v>(e);
-    v = Detail::operator&(v, x.reinterpretCast<SSE::float_v>());
+    v = Detail::operator&(v, reinterpret_components_cast<SSE::float_v>(x));
 }
 
 static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)

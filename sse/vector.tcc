@@ -606,7 +606,7 @@ template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> Vector<T, Vector
 {
     SSE::uint_v state0, state1;
     _doRandomStep(state0, state1);
-    return state0.reinterpretCast<Vector<T, VectorAbi::Sse> >();
+    return state0.data();
 }
 
 template<> Vc_ALWAYS_INLINE SSE::float_v SSE::float_v::Random()

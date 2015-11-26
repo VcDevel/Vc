@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2016 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -425,5 +425,32 @@ TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS
         std::tie(testValues[0], testValues[1]) = interleave(testValues[0], testValues[1]);
         COMPARE(testValues[0], references[0]);
         COMPARE(testValues[1], references[1]);
+    }
+}
+
+using CastTypes = Typelist<
+#if Vc_FLOAT_V_SIZE == Vc_INT_V_SIZE
+    Typelist<float_v, int_v>,
+#endif
+#if Vc_FLOAT_V_SIZE == Vc_UINT_V_SIZE
+    Typelist<float_v, uint_v>,
+#endif
+    TypelistSentinel
+    >;
+TEST_TYPES(P, reinterpret_components_cast, (CastTypes))
+{
+    using From = typename P::template at<0>;
+    using To = typename P::template at<1>;
+    //using To = SimdArray<unsigned int, From::size()>;
+    From x(IndexesFromZero);
+    const auto test = reinterpret_components_cast<To>(x);
+    std::size_t i = 0;
+    for (; i < From::size(); ++i) {
+        union {
+            typename From::EntryType f;
+            typename To::EntryType u;
+        } cvt;
+        cvt.f = i;
+        COMPARE(test[i], cvt.u);
     }
 }

@@ -279,7 +279,12 @@ public:
         {
             return V2(*this);
         }
-        template<typename V2> Vc_ALWAYS_INLINE V2 reinterpretCast() const { return AVX::avx_cast<typename V2::VectorType>(data()); }
+        template <typename V2>
+        Vc_ALWAYS_INLINE Vc_DEPRECATED("use reinterpret_components_cast instead") V2
+            reinterpretCast() const
+        {
+            return AVX::avx_cast<typename V2::VectorType>(data());
+        }
 
         Vc_ALWAYS_INLINE WriteMaskedVector operator()(const Mask &k)
         {
