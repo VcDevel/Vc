@@ -136,6 +136,9 @@ TEST_TYPES(Param, testInterleavingScatter,
     Wrapper data_v(data);
 
     try {
+        testInterleavingScatterCompare<V>(
+            data_v, static_cast<typename I::EntryType>(N - 1) - I::IndexesFromZero(),
+            Vc::make_index_sequence<StructSize>());
         for (int retest = 0; retest < TotalRetests; ++retest) {
             I indexes = (I::Random() >> 10) & I(NMask);
             if (I::Size != 1) {
