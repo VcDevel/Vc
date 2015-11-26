@@ -744,8 +744,6 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
     {
 #ifdef Vc_USE_MASKMOV_SCATTER
         const __m128i maskLo = _mm_set_epi16(0, 0, 0, 0, 0, -1, -1, -1);
-        const __m128i maskHi = _mm_set_epi16(0, -1, -1, -1, 0, 0, 0, 0);
-        typename V::EntryType *const dataHi = data - 4;
         const __m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v2.data());
         const __m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v2.data());
         const __m128i tmp2 = _mm_unpacklo_epi16(v1.data(), v1.data());
@@ -756,13 +754,13 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
         const __m128i tmp6 = _mm_unpacklo_epi16(tmp1, tmp3);
         const __m128i tmp7 = _mm_unpackhi_epi16(tmp1, tmp3);
         _mm_maskmoveu_si128(tmp4, maskLo, reinterpret_cast<char *>(&data[i[0]]));
-        _mm_maskmoveu_si128(tmp4, maskHi, reinterpret_cast<char *>(&dataHi[i[1]]));
+        _mm_maskmoveu_si128(_mm_srli_si128(tmp4, 8), maskLo, reinterpret_cast<char *>(&data[i[1]]));
         _mm_maskmoveu_si128(tmp5, maskLo, reinterpret_cast<char *>(&data[i[2]]));
-        _mm_maskmoveu_si128(tmp5, maskHi, reinterpret_cast<char *>(&dataHi[i[3]]));
+        _mm_maskmoveu_si128(_mm_srli_si128(tmp5, 8), maskLo, reinterpret_cast<char *>(&data[i[3]]));
         _mm_maskmoveu_si128(tmp6, maskLo, reinterpret_cast<char *>(&data[i[4]]));
-        _mm_maskmoveu_si128(tmp6, maskHi, reinterpret_cast<char *>(&dataHi[i[5]]));
+        _mm_maskmoveu_si128(_mm_srli_si128(tmp6, 8), maskLo, reinterpret_cast<char *>(&data[i[5]]));
         _mm_maskmoveu_si128(tmp7, maskLo, reinterpret_cast<char *>(&data[i[6]]));
-        _mm_maskmoveu_si128(tmp7, maskHi, reinterpret_cast<char *>(&dataHi[i[7]]));
+        _mm_maskmoveu_si128(_mm_srli_si128(tmp7, 8), maskLo, reinterpret_cast<char *>(&data[i[7]]));
 #else
         interleave(data, i, v0, v1);
         v2.scatter(data + 2, i);
