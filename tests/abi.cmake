@@ -1,3 +1,7 @@
+#######################################################################
+# test Vector<T> ABI
+#######################################################################
+
 execute_process(
    COMMAND ${OBJDUMP} --no-show-raw-insn -dC -j .text ${BINARY}
    COMMAND grep -A3 " <test"
@@ -36,7 +40,32 @@ if("${asm}" MATCHES "${reference}")
    if(expect_failure)
       message(FATAL_ERROR "Warning: unexpected pass. The test was flagged as EXPECT_FAILURE but passed instead.")
    else()
-      message("Passed.")
+      message("PASS: Vector<T> ABI")
+   endif()
+elseif(expect_failure)
+   message("Expected Failure.\n'${asm}'\n  does not match\n'${reference}'")
+else()
+   message(FATAL_ERROR "Failed.\n'${asm}'\n  does not match\n'${reference}'")
+endif()
+
+#######################################################################
+# test Mask<T> ABI
+#######################################################################
+
+execute_process(
+   COMMAND ${OBJDUMP} --no-show-raw-insn -dC -j .text ${BINARY}
+   COMMAND grep -A3 " <mask_test"
+   COMMAND sed 1d
+   COMMAND cut -d: -f2
+   COMMAND xargs echo
+   OUTPUT_VARIABLE asm)
+string(STRIP "${asm}" asm)
+string(REPLACE "add" "and" reference "${reference}")
+if("${asm}" MATCHES "${reference}")
+   if(expect_failure)
+      message(FATAL_ERROR "Warning: unexpected pass. The test was flagged as EXPECT_FAILURE but passed instead.")
+   else()
+      message("PASS: Mask<T> ABI")
    endif()
 elseif(expect_failure)
    message("Expected Failure.\n'${asm}'\n  does not match\n'${reference}'")
