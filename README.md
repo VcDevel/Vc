@@ -73,9 +73,21 @@ $ make -j16
 $ make install
 ```
 
+## Documentation
+
+The documentation is generated via [doxygen](http://doxygen.org). You can build
+the documentation by running `doxygen` in the `doc` subdirectory.
+Alternatively, you can find nightly builds of the documentation at:
+
+* [master branch](https://web-docs.gsi.de/~mkretz/Vc-master/)
+* [1.0 branch](https://web-docs.gsi.de/~mkretz/Vc-1.0/)
+* [0.7 branch](https://web-docs.gsi.de/~mkretz/Vc-0.7/)
 
 ## Publications
 
+* [M. Kretz, "Extending C++ for Explicit Data-Parallel Programming via SIMD
+  Vector Types", Goethe University Frankfurt, Dissertation,
+  2015.](http://publikationen.ub.uni-frankfurt.de/frontdoor/index/index/docId/38415)
 * [M. Kretz and V. Lindenstruth, "Vc: A C++ library for explicit
   vectorization", Software: Practice and Experience,
   2011.](http://dx.doi.org/10.1002/spe.1149)
@@ -90,6 +102,14 @@ A channel on the freenode IRC network is reserved for discussions on Vc:
 [##vc on freenode](irc://chat.freenode.net:6665/##vc)
 ([via SSL](ircs://chat.freenode.net:7000/##vc))
 
+There exist two mailinglists:
+
+* [List for users of Vc, i.e. developers that use
+  Vc](https://compeng.uni-frankfurt.de/mailman/listinfo/vc)
+* [List to discuss the development of Vc
+  itself](https://compeng.uni-frankfurt.de/mailman/listinfo/vc-devel)
+
+Feel free to use the GitHub issue tracker for questions, too.
 
 ## License
 
