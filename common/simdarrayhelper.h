@@ -99,8 +99,10 @@ Vc_DEFINE_OPERATION_FORWARD(round);
 Vc_DEFINE_OPERATION_FORWARD(rsqrt);
 Vc_DEFINE_OPERATION_FORWARD(sin);
 Vc_DEFINE_OPERATION_FORWARD(sincos);
-Vc_DEFINE_OPERATION_FORWARD(trunc);
 Vc_DEFINE_OPERATION_FORWARD(sqrt);
+Vc_DEFINE_OPERATION_FORWARD(trunc);
+Vc_DEFINE_OPERATION_FORWARD(min);
+Vc_DEFINE_OPERATION_FORWARD(max);
 #undef Vc_DEFINE_OPERATION_FORWARD
 template<typename T> using is_operation = std::is_base_of<tag, T>;
 }  // namespace Operations }}}

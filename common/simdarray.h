@@ -1267,29 +1267,29 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_)
 
 // math functions {{{1
 #define Vc_FORWARD_UNARY_OPERATOR(name__)                               \
-    template <typename T, std::size_t N>                                \
-        SimdArray<T, N>                                                 \
-        name__(const SimdArray<T, N> &x)                                \
+    template <typename T, std::size_t N, typename V, std::size_t M>     \
+        SimdArray<T, N, V, M>                                           \
+        name__(const SimdArray<T, N, V, M> &x)                          \
     {                                                                   \
-        return SimdArray<T, N>::fromOperation(                          \
+        return SimdArray<T, N, V, M>::fromOperation(                    \
             Common::Operations::Forward_##name__(), x);                 \
     }
 
 #define Vc_FORWARD_UNARY_BOOL_OPERATOR(name__)                          \
-    template <typename T, std::size_t N>                                \
-        SimdMaskArray<T, N>                                             \
-        name__(const SimdArray<T, N> &x)                                \
+    template <typename T, std::size_t N, typename V, std::size_t M>     \
+        SimdMaskArray<T, N, V, M>                                       \
+        name__(const SimdArray<T, N, V, M> &x)                          \
     {                                                                   \
-        return SimdArray<T, N>::fromOperation(                          \
+        return SimdArray<T, N, V, M>::fromOperation(                    \
             Common::Operations::Forward_##name__(), x);                 \
     }
 
 #define Vc_FORWARD_BINARY_OPERATOR(name__)                              \
-    template <typename T, std::size_t N>                                \
-        SimdArray<T, N>                                                 \
-        name__(const SimdArray<T, N> &x, const SimdArray<T, N> &y)      \
+    template <typename T, std::size_t N, typename V, std::size_t M>     \
+        SimdArray<T, N, V, M>                                           \
+        name__(const SimdArray<T, N, V, M> &x, const SimdArray<T, N, V, M> &y) \
     {                                                                   \
-        return SimdArray<T, N>::fromOperation(                          \
+        return SimdArray<T, N, V, M>::fromOperation(                      \
             Common::Operations::Forward_##name__(), x, y);              \
     }
 
@@ -1338,6 +1338,8 @@ void sincos(const SimdArray<T, N> &x, SimdArray<int, N> *sin, SimdArray<int, N> 
 }
 Vc_FORWARD_UNARY_OPERATOR(sqrt)
 Vc_FORWARD_UNARY_OPERATOR(trunc)
+Vc_FORWARD_BINARY_OPERATOR(min)
+Vc_FORWARD_BINARY_OPERATOR(max)
 #undef Vc_FORWARD_UNARY_OPERATOR
 #undef Vc_FORWARD_UNARY_BOOL_OPERATOR
 #undef Vc_FORWARD_BINARY_OPERATOR
