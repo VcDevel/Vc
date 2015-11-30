@@ -35,15 +35,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 
-namespace
-{
-    template<typename T> struct assert_for_iif
-    {
-        typedef T type;
-        static_assert(Vc::is_simd_vector<T>::value, "Incorrect use of Vc::iif. If you use a mask as first parameter, the second and third parameters must be of vector type.");
-    };
-} // anonymous namespace
-
 /**
  * \ingroup Utilities
  *
@@ -68,9 +59,10 @@ namespace
  * will be [2, 2, 3, 5].
  */
 template<typename Mask, typename T> Vc_ALWAYS_INLINE
-typename std::enable_if<Vc::is_simd_mask<Mask>::value, typename assert_for_iif<T>::type>::type
+typename std::enable_if<Vc::is_simd_mask<Mask>::value, T>::type
 iif(const Mask &condition, const T &trueValue, const T &falseValue)
 {
+    static_assert(Vc::is_simd_vector<T>::value, "Incorrect use of Vc::iif. If you use a mask as first parameter, the second and third parameters must be of vector type.");
     T result(falseValue);
     Vc::where(condition) | result = trueValue;
     return result;
