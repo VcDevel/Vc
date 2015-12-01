@@ -1911,9 +1911,10 @@ Vc_BINARY_FUNCTION__(max)
 }  // namespace internal
 // conditional_assign {{{1
 #define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
-    template <Operator O, typename T, std::size_t N, typename M, typename U>             \
+    template <Operator O, typename T, std::size_t N, typename V, size_t VN, typename M,  \
+              typename U>                                                                \
     Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
-        SimdArray<T, N> &lhs, M &&mask, U &&rhs)                                         \
+        SimdArray<T, N, V, VN> &lhs, M &&mask, U &&rhs)                                  \
     {                                                                                    \
         lhs(mask) op__ rhs;                                                              \
     }
@@ -1931,9 +1932,9 @@ Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
 #undef Vc_CONDITIONAL_ASSIGN
 
 #define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
-    template <Operator O, typename T, std::size_t N, typename M>                         \
-    Vc_INTRINSIC enable_if<O == Operator::name__, SimdArray<T, N>> conditional_assign(   \
-        SimdArray<T, N> &lhs, M &&mask)                                                  \
+    template <Operator O, typename T, std::size_t N, typename V, size_t VN, typename M>  \
+    Vc_INTRINSIC enable_if<O == Operator::name__, SimdArray<T, N, V, VN>>                \
+    conditional_assign(SimdArray<T, N, V, VN> &lhs, M &&mask)                            \
     {                                                                                    \
         return expr__;                                                                   \
     }

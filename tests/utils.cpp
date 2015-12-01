@@ -319,7 +319,23 @@ TEST(testMallocAlignment)
     COMPARE((reinterpret_cast<std::uintptr_t>(&a[0]) & mask), 0ul);
 }
 
-TEST_TYPES(V, testIif, (ALL_VECTORS))
+template <typename A, typename B, typename C,
+          typename = decltype(Vc::iif(std::declval<A>(), std::declval<B>(),
+                                      std::declval<C>()))>
+inline void sfinaeIifIsNotCallable(A &&, B &&, C &&, int)
+{
+    FAIL() << "iif(" << UnitTest::typeToString<A>() << UnitTest::typeToString<B>()
+           << UnitTest::typeToString<C>() << ") appears to be callable.";
+}
+
+template <typename A, typename B, typename C>
+inline void sfinaeIifIsNotCallable(A &&, B &&, C &&, ...)
+{
+    // passes
+}
+
+TEST_TYPES(V, testIif,
+           (ALL_VECTORS, SIMD_ARRAYS(31), Vc::SimdArray<float, 8, Vc::Scalar::float_v>))
 {
     typedef typename V::EntryType T;
     const T one = T(1);
@@ -338,7 +354,20 @@ TEST_TYPES(V, testIif, (ALL_VECTORS))
         }
         COMPARE(iif (x > y, x, y), reference);
         COMPARE(iif (x > y, V(one), V(two)), reference2);
+        sfinaeIifIsNotCallable(
+            x > y, int(), float(),
+            int());  // mismatching true/false value types should never work
+        sfinaeIifIsNotCallable(
+            x > y, int(), int(),
+            int());  // iif(mask, scalar, scalar) should not appear usable
     }
+}
+
+TEST(testIifBuiltin)
+{
+    COMPARE(Vc::iif(true, 1, 2), true ? 1 : 2);
+    COMPARE(Vc::iif(false, 1, 2), false ? 1 : 2);
+    sfinaeIifIsNotCallable(bool(), int(), float(), int());
 }
 
 TEST_TYPES(V, rangeFor, (ALL_VECTORS))

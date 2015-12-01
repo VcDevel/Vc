@@ -34,16 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-
-namespace
-{
-    template<typename T> struct assert_for_iif
-    {
-        typedef T type;
-        static_assert(Vc::is_simd_vector<T>::value, "Incorrect use of Vc::iif. If you use a mask as first parameter, the second and third parameters must be of vector type.");
-    };
-} // anonymous namespace
-
 /**
  * \ingroup Utilities
  *
@@ -67,31 +57,22 @@ namespace
  * Assuming \c a has the values [0, 3, 5, 1], \c b is [1, 1, 1, 1], and \c c is [1, 2, 3, 4], then x
  * will be [2, 2, 3, 5].
  */
-template<typename Mask, typename T> Vc_ALWAYS_INLINE
-typename std::enable_if<Vc::is_simd_mask<Mask>::value, typename assert_for_iif<T>::type>::type
-iif(const Mask &condition, const T &trueValue, const T &falseValue)
+template <typename Mask, typename T>
+Vc_ALWAYS_INLINE enable_if<is_simd_mask<Mask>::value && is_simd_vector<T>::value, T> iif(
+    const Mask &condition, const T &trueValue, const T &falseValue)
 {
     T result(falseValue);
     Vc::where(condition) | result = trueValue;
     return result;
 }
 
-/* the following might be a nice shortcut in some cases, but:
- * 1. it fails if there are different vector classes for the same T
- * 2. the semantics are a bit fishy: basically the mask determines how to blow up the scalar values
-template<typename Mask, typename T> Vc_ALWAYS_INLINE
-typename std::enable_if<Vc::is_simd_mask<Mask>::value && !Vc::is_simd_vector<T>::value, void>::type
-#ifndef Vc_MSVC
-iif(Mask condition, T trueValue, T falseValue)
-#else
-iif(const Mask &condition, T trueValue, T falseValue)
-#endif
-{
-    Vc::Vector<T> f = falseValue;
-    Vc::where(condition) | f = trueValue;
-    return f;
-}
+/**\internal
+ * The following declaration makes it explicit that `iif (Mask, non-vector, non-vector)`
+ * is not supposed to work. Doing the same thing with \c static_assert would break SFINAE.
  */
+template <typename Mask, typename T>
+enable_if<is_simd_mask<Mask>::value && !is_simd_vector<T>::value, T> iif(
+    const Mask &, const T &, const T &) = delete;
 
 /**
  * \ingroup Utilities
