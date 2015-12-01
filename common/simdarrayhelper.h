@@ -70,8 +70,9 @@ Vc_DEFINE_OPERATION(random, v = V::Random());
 #undef Vc_DEFINE_OPERATION
 #define Vc_DEFINE_OPERATION_FORWARD(name_)                                               \
     struct Forward_##name_ : public tag {                                                \
-        template <typename V, typename... Args>                                          \
-        Vc_INTRINSIC void operator()(V &v, Args &&... args)                              \
+        template <typename... Args>                                                      \
+        Vc_INTRINSIC void operator()(decltype(name_(std::declval<Args>()...)) &v,        \
+                                     Args &&... args)                                    \
         {                                                                                \
             v = name_(std::forward<Args>(args)...);                                      \
         }                                                                                \
@@ -120,6 +121,8 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
     using type_decayed = typename std::decay<type>::type;
     static constexpr std::size_t Pieces = Pieces_;
     static constexpr std::size_t Index = Index_;
+    using simd_array_type =
+        SimdArray<typename type_decayed::EntryType, type_decayed::size() / Pieces>;
 
     type data;
 
@@ -127,6 +130,45 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
 
     decltype(std::declval<type>()[0]) operator[](size_t i) { return data[i + EntryOffset]; }
     decltype(std::declval<type>()[0]) operator[](size_t i) const { return data[i + EntryOffset]; }
+
+    simd_array_type asSimdArray() const
+    {
+        return simd_cast<simd_array_type, Index>(data);
+    }
+};/*}}}*/
+
+//Segment<T *, ...> specialization {{{
+template <typename T_, std::size_t Pieces_, std::size_t Index_>
+struct Segment<T_ *, Pieces_, Index_> {
+    static_assert(Index_ < Pieces_, "You found a bug in Vc. Please report.");
+
+    using type = T_ *;
+    using type_decayed = typename std::decay<T_>::type;
+    static constexpr size_t Pieces = Pieces_;
+    static constexpr size_t Index = Index_;
+    using simd_array_type =
+        SimdArray<typename type_decayed::EntryType, type_decayed::size() / Pieces> *;
+
+    type data;
+
+    static constexpr std::size_t EntryOffset = Index * type_decayed::size() / Pieces;
+
+    simd_array_type asSimdArray() const
+    {
+        return reinterpret_cast<
+#ifdef Vc_GCC
+                   // GCC might ICE if this type is declared with may_alias. If it doesn't
+                   // ICE it warns about ignoring the attribute.
+                   typename std::remove_pointer<simd_array_type>::type
+#else
+                   MayAlias<typename std::remove_pointer<simd_array_type>::type>
+#endif
+                       *>(data) +
+               Index;
+    }
+
+    //decltype(std::declval<type>()[0]) operator[](size_t i) { return data[i + EntryOffset]; }
+    //decltype(std::declval<type>()[0]) operator[](size_t i) const { return data[i + EntryOffset]; }
 };/*}}}*/
 
 /** \internal
@@ -167,27 +209,36 @@ template <std::size_t secondOffset> class Split/*{{{*/
     }
 
     // split composite SimdArray
-    template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto loImpl(const SimdArray<U, N, V, M> &x) -> decltype(internal_data0(x))
+    template <typename U, std::size_t N, typename V, std::size_t M,
+              typename = enable_if<N != M>>
+    static Vc_INTRINSIC auto loImpl(const SimdArray<U, N, V, M> &x)
+        -> decltype(internal_data0(x))
     {
         return internal_data0(x);
     }
-    template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hiImpl(const SimdArray<U, N, V, M> &x) -> decltype(internal_data1(x))
+    template <typename U, std::size_t N, typename V, std::size_t M,
+              typename = enable_if<N != M>>
+    static Vc_INTRINSIC auto hiImpl(const SimdArray<U, N, V, M> &x)
+        -> decltype(internal_data1(x))
     {
         return internal_data1(x);
     }
-    template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto loImpl(SimdArray<U, N, V, M> *x) -> decltype(&internal_data0(*x))
+    template <typename U, std::size_t N, typename V, std::size_t M,
+              typename = enable_if<N != M>>
+    static Vc_INTRINSIC auto loImpl(SimdArray<U, N, V, M> *x)
+        -> decltype(&internal_data0(*x))
     {
         return &internal_data0(*x);
     }
-    template <typename U, std::size_t N, typename V, std::size_t M>
-    static Vc_INTRINSIC auto hiImpl(SimdArray<U, N, V, M> *x) -> decltype(&internal_data1(*x))
+    template <typename U, std::size_t N, typename V, std::size_t M,
+              typename = enable_if<N != M>>
+    static Vc_INTRINSIC auto hiImpl(SimdArray<U, N, V, M> *x)
+        -> decltype(&internal_data1(*x))
     {
         return &internal_data1(*x);
     }
 
+    // split atomic SimdArray
     template <typename U, std::size_t N, typename V>
     static Vc_INTRINSIC Segment<V, 2, 0> loImpl(const SimdArray<U, N, V, N> &x)
     {
@@ -199,12 +250,12 @@ template <std::size_t secondOffset> class Split/*{{{*/
         return {internal_data(x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V *, 2, 0> loImpl(const SimdArray<U, N, V, N> *x)
+    static Vc_INTRINSIC Segment<V *, 2, 0> loImpl(SimdArray<U, N, V, N> *x)
     {
         return {&internal_data(*x)};
     }
     template <typename U, std::size_t N, typename V>
-    static Vc_INTRINSIC Segment<V *, 2, 1> hiImpl(const SimdArray<U, N, V, N> *x)
+    static Vc_INTRINSIC Segment<V *, 2, 1> hiImpl(SimdArray<U, N, V, N> *x)
     {
         return {&internal_data(*x)};
     }
@@ -382,6 +433,13 @@ static Vc_INTRINSIC V *actual_value(Op, SimdArray<U, M, V, M> *x)
 {
   return &internal_data(*x);
 }
+template <typename Op, typename T, size_t Pieces, size_t Index>
+static Vc_INTRINSIC typename Segment<T, Pieces, Index>::simd_array_type actual_value(
+    Op, Segment<T, Pieces, Index> &&seg)
+{
+    return seg.asSimdArray();
+}
+
 template <typename Op, typename U, std::size_t M, typename V>
 static Vc_INTRINSIC const typename V::Mask &actual_value(Op, const SimdMaskArray<U, M, V, M> &x)
 {
@@ -399,6 +457,73 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, SimdMaskArray<U, M, V, M>
 }
 
 /// @}
+
+/**\internal
+ * \name unpackArgumentsAuto
+ *
+ * Search for the right amount of SimdArray "unpacking" (via actual_value) to match the
+ * interface of the function to be called.
+ *
+ * The compiler can figure this out for us thanks to SFINAE. The approach is to have a
+ * number \c I that determines the indexes of the arguments to be transformed via
+ * actual_value.  Each bit of \c I identifies an argument. unpackArgumentsAuto starts the
+ * recursion with `I = 0`, i.e. no actual_value transformations. If the overload calling
+ * \c op is unavailable due to a substitution failure \c I is incremented and the function
+ * recurses. Otherwise there are two unpackArgumentsAutoImpl functions in the overload
+ * set. The first argument (\c int / \c float) leads to a preference of the function
+ * calling \c op, thus ending the recursion.
+ */
+///@{
+
+/// transforms \p arg via actual_value
+template <typename Op, typename Arg>
+decltype(actual_value(std::declval<Op &>(), std::declval<Arg>())) conditionalUnpack(
+    std::true_type, Op op, Arg &&arg)
+{
+    return actual_value(op, std::forward<Arg>(arg));
+}
+/// forwards \p arg to its return value
+template <typename Op, typename Arg> Arg conditionalUnpack(std::false_type, Op, Arg &&arg)
+{
+    return std::forward<Arg>(arg);
+}
+
+/// true-/false_type that selects whether the argument with index B should be unpacked
+template <size_t A, size_t B, size_t N>
+using selectorType = std::integral_constant<bool, ((A & (1 << B)) != 0)>;
+
+/// ends the recursion, transforms arguments, and calls \p op
+template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
+Vc_INTRINSIC decltype(std::declval<Op &>()(
+    std::declval<R &>(),
+    conditionalUnpack(selectorType<I, Indexes, sizeof...(Args)>(), std::declval<Op &>(),
+                      std::declval<Args>())...))
+unpackArgumentsAutoImpl(int, index_sequence<Indexes...>, Op op, R &r, Args &&... args)
+{
+    op(r, conditionalUnpack(selectorType<I, Indexes, sizeof...(Args)>(), op,
+                            std::forward<Args>(args))...);
+}
+
+/// the current actual_value calls don't work: recurse to I + 1
+template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
+Vc_INTRINSIC void unpackArgumentsAutoImpl(float, index_sequence<Indexes...> is, Op op,
+                                          R &r, Args &&... args)
+{
+    static_assert(I < (1 << sizeof...(Args)), "Vc Bug. Please report. Failed to find a "
+                                              "combination of actual_value(arg) "
+                                              "transformations that allows calling Op.");
+    unpackArgumentsAutoImpl<I + 1, Op, R, Args...>(int(), is, op, r,
+                                                   std::forward<Args>(args)...);
+}
+
+/// The interface to start the machinery.
+template <typename Op, typename R, typename... Args>
+Vc_INTRINSIC auto unpackArgumentsAuto(Op op, R &r, Args &&... args)
+{
+    unpackArgumentsAutoImpl<0>(int(), make_index_sequence<sizeof...(Args)>(), op, r,
+                               std::forward<Args>(args)...);
+}
+///@}
 
 }  // namespace Common
 }  // namespace Vc
