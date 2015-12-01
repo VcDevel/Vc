@@ -48,37 +48,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-// internal namespace (min/max helper) {{{1
+// internal namespace (product & sum helper) {{{1
 namespace internal
 {
-#define Vc_DECLARE_BINARY_FUNCTION__(name__)                                             \
-    template <typename T, std::size_t N, typename V, std::size_t M>                      \
-    SimdArray<T, N, V, M> Vc_INTRINSIC_L Vc_PURE_L                                       \
-        name__(const SimdArray<T, N, V, M> &l, const SimdArray<T, N, V, M> &r)           \
-            Vc_INTRINSIC_R Vc_PURE_R;                                                    \
-    template <typename T, std::size_t N, typename V>                                     \
-    SimdArray<T, N, V, N> Vc_INTRINSIC_L Vc_PURE_L                                       \
-        name__(const SimdArray<T, N, V, N> &l, const SimdArray<T, N, V, N> &r)           \
-            Vc_INTRINSIC_R Vc_PURE_R;
-Vc_DECLARE_BINARY_FUNCTION__(min)
-Vc_DECLARE_BINARY_FUNCTION__(max)
-#undef Vc_DECLARE_BINARY_FUNCTION__
-
-template <typename T> Vc_INTRINSIC Vc_PURE T min(const T &l, const T &r)
-{
-    T x = l;
-    where(r < l) | x = r;
-    return x;
-}
-template <typename T> Vc_INTRINSIC Vc_PURE T max(const T &l, const T &r)
-{
-    T x = l;
-    where(r > l) | x = r;
-    return x;
-}
 template <typename T> T Vc_INTRINSIC Vc_PURE product_helper__(const T &l, const T &r) { return l * r; }
 template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper__(const T &l, const T &r) { return l + r; }
 }  // namespace internal
+
+// min & max declarations {{{1
+template <typename T, std::size_t N, typename V, std::size_t M>
+inline SimdArray<T, N, V, M> min(const SimdArray<T, N, V, M> &x,
+                                 const SimdArray<T, N, V, M> &y);
+template <typename T, std::size_t N, typename V, std::size_t M>
+inline SimdArray<T, N, V, M> max(const SimdArray<T, N, V, M> &x,
+                                 const SimdArray<T, N, V, M> &y);
 
 // SimdArray class {{{1
 /// \addtogroup SimdArray
@@ -770,7 +753,7 @@ public:
     }
 
     // reductions {{{2
-#define Vc_REDUCTION_FUNCTION__(name__, binary_fun__)                                    \
+#define Vc_REDUCTION_FUNCTION__(name__, binary_fun__, scalar_fun_)                       \
     template <typename ForSfinae = void>                                                 \
     Vc_INTRINSIC enable_if<std::is_same<ForSfinae, void>::value &&                       \
                                storage_type0::size() == storage_type1::size(),           \
@@ -786,7 +769,7 @@ public:
                            value_type>                                                   \
     name__() const                                                                       \
     {                                                                                    \
-        return binary_fun__(data0.name__(), data1.name__());                             \
+        return scalar_fun_(data0.name__(), data1.name__());                              \
     }                                                                                    \
                                                                                          \
     Vc_INTRINSIC value_type name__(const mask_type &mask) const                          \
@@ -796,14 +779,14 @@ public:
         } else if (Vc_IS_UNLIKELY(Split::hi(mask).isEmpty())) {                          \
             return data0.name__(Split::lo(mask));                                        \
         } else {                                                                         \
-            return binary_fun__(data0.name__(Split::lo(mask)),                           \
-                                data1.name__(Split::hi(mask)));                          \
+            return scalar_fun_(data0.name__(Split::lo(mask)),                            \
+                               data1.name__(Split::hi(mask)));                           \
         }                                                                                \
     }
-    Vc_REDUCTION_FUNCTION__(min, Vc::internal::min)
-    Vc_REDUCTION_FUNCTION__(max, Vc::internal::max)
-    Vc_REDUCTION_FUNCTION__(product, internal::product_helper__)
-    Vc_REDUCTION_FUNCTION__(sum, internal::sum_helper__)
+    Vc_REDUCTION_FUNCTION__(min, Vc::min, std::min)
+    Vc_REDUCTION_FUNCTION__(max, Vc::max, std::max)
+    Vc_REDUCTION_FUNCTION__(product, internal::product_helper__, internal::product_helper__)
+    Vc_REDUCTION_FUNCTION__(sum, internal::sum_helper__, internal::sum_helper__)
 #undef Vc_REDUCTION_FUNCTION__
     Vc_INTRINSIC Vc_PURE SimdArray partialSum() const //{{{2
     {
@@ -1037,8 +1020,8 @@ public:
 #endif
         const auto a = data0.sorted();
         const auto b = data1.sorted().reversed();
-        const auto lo = internal::min(a, b);
-        const auto hi = internal::max(a, b);
+        const auto lo = Vc::min(a, b);
+        const auto hi = Vc::max(a, b);
         return {lo.sorted(), hi.sorted()};
     }
 
@@ -1966,27 +1949,6 @@ Vc_INTRINSIC Vc_CONST Return
     return simd_cast_interleaved_argument_order_1<Return, Ts...>(seq(), a..., b...);
 }
 
-// binary min/max functions (internal) {{{1
-namespace internal
-{
-#define Vc_BINARY_FUNCTION__(name__)                                                     \
-    template <typename T, std::size_t N, typename V, std::size_t M>                      \
-    SimdArray<T, N, V, M> Vc_INTRINSIC Vc_PURE                                           \
-    name__(const SimdArray<T, N, V, M> &l, const SimdArray<T, N, V, M> &r)               \
-    {                                                                                    \
-        return {name__(internal_data0(l), internal_data0(r)),                            \
-                name__(internal_data1(l), internal_data1(r))};                           \
-    }                                                                                    \
-    template <typename T, std::size_t N, typename V>                                     \
-    SimdArray<T, N, V, N> Vc_INTRINSIC Vc_PURE                                           \
-    name__(const SimdArray<T, N, V, N> &l, const SimdArray<T, N, V, N> &r)               \
-    {                                                                                    \
-        return SimdArray<T, N, V, N>{name__(internal_data(l), internal_data(r))};        \
-    }
-Vc_BINARY_FUNCTION__(min)
-Vc_BINARY_FUNCTION__(max)
-#undef Vc_BINARY_FUNCTION__
-}  // namespace internal
 // conditional_assign {{{1
 #define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
     template <Operator O, typename T, std::size_t N, typename V, size_t VN, typename M,  \
