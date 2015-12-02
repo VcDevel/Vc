@@ -465,6 +465,10 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
 }
 
 // generic SimdArray {{{1
+/**
+ * \ingroup SimdArray
+ * Data-parallel type with (somewhat) arbitrary number of components.
+ */
 template <typename T, std::size_t N, typename VectorType, std::size_t>
 class alignas(
     ((Common::nextPowerOfTwo(N) * (sizeof(VectorType) / VectorType::size()) - 1) & 127) +
@@ -630,7 +634,7 @@ public:
         data1.setQnan(Split::hi(m));
     }
 
-    // internal: execute specified Operation
+    ///\internal execute specified Operation
     template <typename Op, typename... Args>
     static Vc_INTRINSIC SimdArray fromOperation(Op op, Args &&... args)
     {
@@ -650,18 +654,25 @@ public:
         storage_type1::callOperation(op, Split::hi(std::forward<Args>(args))...);
     }
 
+    ///\copydoc Vector::Zero
     static Vc_INTRINSIC SimdArray Zero()
     {
         return SimdArray(Vc::Zero);
     }
+
+    ///\copydoc Vector::One
     static Vc_INTRINSIC SimdArray One()
     {
         return SimdArray(Vc::One);
     }
+
+    ///\copydoc Vector::IndexesFromZero
     static Vc_INTRINSIC SimdArray IndexesFromZero()
     {
         return SimdArray(Vc::IndexesFromZero);
     }
+
+    ///\copydoc Vector::Random
     static Vc_INTRINSIC SimdArray Random()
     {
         return fromOperation(Common::Operations::random());

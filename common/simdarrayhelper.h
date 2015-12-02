@@ -473,8 +473,6 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, SimdMaskArray<U, M, V, M>
   return &internal_data(*x);
 }
 
-/// @}
-
 // unpackArgumentsAuto {{{1
 /**\internal
  * \name unpackArgumentsAuto
@@ -551,6 +549,7 @@ Vc_INTRINSIC auto unpackArgumentsAuto(Op op, R &&r, Args &&... args)
 ///@}
 
 //}}}1
+///@}
 }  // namespace Common
 }  // namespace Vc
 
