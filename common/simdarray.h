@@ -264,6 +264,9 @@ public:
         return {-data};
     }
 
+    /// Returns a copy of itself
+    Vc_INTRINSIC SimdArray operator+() const { return *this; }
+
     Vc_INTRINSIC SimdArray operator~() const
     {
         return {~data};
@@ -318,6 +321,9 @@ public:
     }
     Vc_ALL_COMPARES(Vc_COMPARES)
 #undef Vc_COMPARES
+
+    /// \copydoc Vector::isNegative
+    Vc_INTRINSIC MaskType isNegative() const { return {data.isNegative()}; }
 
     Vc_INTRINSIC decltype(std::declval<vector_type &>()[0]) operator[](std::size_t i)
     {
@@ -380,6 +386,9 @@ public:
     {
         return {data.rotated(amount)};
     }
+
+    /// \copydoc Vector::exponent
+    Vc_INTRINSIC SimdArray exponent() const { return {data.exponent()}; }
 
     Vc_INTRINSIC SimdArray interleaveLow(SimdArray x) const
     {
@@ -668,6 +677,9 @@ public:
         return {-data0, -data1};
     }
 
+    /// Returns a copy of itself
+    Vc_INTRINSIC SimdArray operator+() const { return *this; }
+
     Vc_INTRINSIC SimdArray operator~() const
     {
         return {~data0, ~data1};
@@ -727,6 +739,12 @@ public:
     }
     Vc_ALL_COMPARES(Vc_COMPARES)
 #undef Vc_COMPARES
+
+    /// \copydoc Vector::isNegative
+    Vc_INTRINSIC MaskType isNegative() const
+    {
+        return {data0.isNegative(), data1.isNegative()};
+    }
 
     // operator[] {{{2
     Vc_INTRINSIC value_type operator[](std::size_t i) const
@@ -966,6 +984,12 @@ public:
                     simd_cast<storage_type1>(data0.shifted(amount - size1, d1cvtd))};
         }
         return *this;
+    }
+
+    /// \copydoc Vector::exponent
+    Vc_INTRINSIC SimdArray exponent() const
+    {
+        return {data0.exponent(), data1.exponent()};
     }
 
     // interleaveLow/-High {{{2
