@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*includes {{{*/
 #include "unittest.h"
 #include <iostream>
+#include <Vc/array>
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>
@@ -349,7 +350,7 @@ TEST_TYPES(Vec, testAbs, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST, int_v, short_v, Si
     }
 }
 
-TEST_TYPES(V, testTrunc, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testTrunc, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -362,7 +363,7 @@ TEST_TYPES(V, testTrunc, (REAL_VECTORS)) //{{{1
     COMPARE(Vc::trunc(x), reference) << ", x = " << x;
 }
 
-TEST_TYPES(V, testFloor, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testFloor, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -375,7 +376,7 @@ TEST_TYPES(V, testFloor, (REAL_VECTORS)) //{{{1
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
 
-TEST_TYPES(V, testCeil, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testCeil, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -388,7 +389,7 @@ TEST_TYPES(V, testCeil, (REAL_VECTORS)) //{{{1
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
 
-TEST_TYPES(V, testExp, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testExp, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     UnitTest::setFuzzyness<float>(1);
     UnitTest::setFuzzyness<double>(2);
@@ -401,7 +402,7 @@ TEST_TYPES(V, testExp, (REAL_VECTORS)) //{{{1
     COMPARE(Vc::exp(V::Zero()), V::One());
 }
 
-TEST_TYPES(V, testLog, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testLog, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
 #ifdef Vc_IMPL_MIC
     UnitTest::setFuzzyness<float>(2);
@@ -427,7 +428,7 @@ TEST_TYPES(V, testLog, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, testLog2, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testLog2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
 #if defined(Vc_LOG_ILP) || defined(Vc_LOG_ILP2)
     UnitTest::setFuzzyness<float>(3);
@@ -458,7 +459,7 @@ TEST_TYPES(V, testLog2, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, testLog10, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testLog10, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     UnitTest::setFuzzyness<float>(2);
     UnitTest::setFuzzyness<double>(2);
@@ -481,7 +482,7 @@ TEST_TYPES(V, testLog10, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testMax, (ALL_VECTORS)) //{{{1
+TEST_TYPES(Vec, testMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
 {
     typedef typename Vec::EntryType T;
     VectorMemoryHelper<Vec> mem(3);
@@ -517,7 +518,7 @@ TEST_TYPES(V, testSqrt, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     FUZZY_COMPARE(Vc::sqrt(data), reference);
 }
 
-TEST_TYPES(V, testRSqrt, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testRSqrt, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
@@ -527,7 +528,7 @@ TEST_TYPES(V, testRSqrt, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, testSincos, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testSincos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -550,7 +551,7 @@ TEST_TYPES(V, testSincos, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, testSin, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testSin, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -567,7 +568,7 @@ TEST_TYPES(V, testSin, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, testCos, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testCos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
@@ -584,7 +585,7 @@ TEST_TYPES(V, testCos, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, testAsin, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testAsin, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
 #ifdef Vc_IMPL_MIC
@@ -616,7 +617,7 @@ const union {
 #define ATAN_COMPARE COMPARE
 #endif
 
-TEST_TYPES(V, testAtan, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testAtan, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(3);
@@ -647,7 +648,7 @@ TEST_TYPES(V, testAtan, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, testAtan2, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testAtan2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(3);
@@ -723,7 +724,7 @@ TEST_TYPES(V, testAtan2, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testReciprocal, (REAL_VECTORS)) //{{{1
+TEST_TYPES(Vec, testReciprocal, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename Vec::EntryType T;
     UnitTest::setFuzzyness<float>(1.258295e+07);
@@ -744,7 +745,7 @@ TEST_TYPES(Vec, testReciprocal, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, isNegative, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, isNegative, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     VERIFY(V::One().isNegative().isEmpty());
@@ -753,7 +754,7 @@ TEST_TYPES(V, isNegative, (REAL_VECTORS)) //{{{1
     VERIFY(V(T(-0.)).isNegative().isFull());
 }
 
-TEST_TYPES(Vec, testInf, (REAL_VECTORS)) //{{{1
+TEST_TYPES(Vec, testInf, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -792,7 +793,7 @@ TEST_TYPES(Vec, testNaN, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     VERIFY(all_of(Vc::isnan(nan)));
 }
 
-TEST_TYPES(Vec, testRound, (REAL_VECTORS)) //{{{1
+TEST_TYPES(Vec, testRound, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -819,7 +820,7 @@ TEST_TYPES(Vec, testRound, (REAL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testReduceMin, (ALL_VECTORS)) //{{{1
+TEST_TYPES(Vec, testReduceMin, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -835,7 +836,7 @@ TEST_TYPES(Vec, testReduceMin, (ALL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testReduceMax, (ALL_VECTORS)) //{{{1
+TEST_TYPES(Vec, testReduceMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
 {
     typedef typename Vec::EntryType T;
     const T max = Vec::Size + 1;
@@ -851,30 +852,31 @@ TEST_TYPES(Vec, testReduceMax, (ALL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testReduceProduct, (ALL_VECTORS)) //{{{1
+TEST_TYPES(V, testReduceProduct, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
 {
-    enum {
-        Max = Vec::Size > 8 ? Vec::Size / 2 : Vec::Size
-    };
-    typedef typename Vec::EntryType T;
-    int _product = 1;
-    for (size_t i = 1; i < Vec::Size; ++i) {
-        _product *= (i % Max) + 1;
+    using T = typename V::EntryType;
+    V test = 0;
+    COMPARE(test.product(), T(0));
+    test = 1;
+    COMPARE(test.product(), T(1));
+    test[0] = 2;
+    COMPARE(test.product(), T(2));
+    test[0] = 3;
+    COMPARE(test.product(), T(3));
+
+    for (std::size_t i = 0; i + 1 < V::size(); ++i) {
+        test[i] = 1;
+        test[i + 1] = 5;
+        COMPARE(test.product(), T(5));
     }
-    const T product = _product;
-    VectorMemoryHelper<Vec> mem(Vec::Size);
-    T *data = mem;
-    for (size_t i = 0; i < Vec::Size * Vec::Size; ++i) {
-        data[i] = ((i + (i / Vec::Size)) % Max) + 1;
-    }
-    for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
-        const Vec a(&data[0]);
-        //std::cout << a << std::endl;
-        COMPARE(a.product(), product);
+    for (std::size_t i = 0; i + 2 < V::size(); ++i) {
+        test[i] = 1;
+        test[i + 1] = 7;
+        COMPARE(test.product(), T(5 * 7));
     }
 }
 
-TEST_TYPES(Vec, testReduceSum, (ALL_VECTORS)) //{{{1
+TEST_TYPES(Vec, testReduceSum, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
 {
     typedef typename Vec::EntryType T;
     int _sum = 1;
@@ -894,11 +896,11 @@ TEST_TYPES(Vec, testReduceSum, (ALL_VECTORS)) //{{{1
     }
 }
 
-TEST_TYPES(V, testExponent, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testExponent, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
-    Vc::Memory<V, 32> input;
-    Vc::Memory<V, 32> expected;
+    Vc::array<T, 32> input;
+    Vc::array<T, 32> expected;
     input[ 0] = T(0.25); expected[ 0] = T(-2);
     input[ 1] = T(   1); expected[ 1] = T( 0);
     input[ 2] = T(   2); expected[ 2] = T( 1);
@@ -931,20 +933,20 @@ TEST_TYPES(V, testExponent, (REAL_VECTORS)) //{{{1
     input[29] = T(  29); expected[29] = T( 4);
     input[30] = T(  32); expected[30] = T( 5);
     input[31] = T(  31); expected[31] = T( 4);
-    for (size_t i = 0; i < input.vectorsCount(); ++i) {
-        COMPARE(V(input.vector(i)).exponent(), V(expected.vector(i)));
+    for (size_t i = 0; i <= input.size() - V::size(); ++i) {
+        COMPARE(V(&input[i]).exponent(), V(&expected[i]));
     }
 }
 
 template<typename T> struct _ExponentVector { typedef int_v Type; };
 
-TEST_TYPES(V, testFrexp, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testFrexp, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     using ExpV = typename V::IndexType;
-    Vc::Memory<V, 33> input;
-    Vc::Memory<V, 33> expectedFraction;
-    Vc::Memory<ExpV, 33> expectedExponent;
+    Vc::array<T, 33> input;
+    Vc::array<T, 33> expectedFraction;
+    Vc::array<int, 33> expectedExponent;
     input[ 0] = T(0.25); expectedFraction[ 0] = T(.5     ); expectedExponent[ 0] = -1;
     input[ 1] = T(   1); expectedFraction[ 1] = T(.5     ); expectedExponent[ 1] =  1;
     input[ 2] = T(   0); expectedFraction[ 2] = T(0.     ); expectedExponent[ 2] =  0;
@@ -978,22 +980,18 @@ TEST_TYPES(V, testFrexp, (REAL_VECTORS)) //{{{1
     input[30] = T(  32); expectedFraction[30] = T(32./64.); expectedExponent[30] =  6;
     input[31] = T(  31); expectedFraction[31] = T(31./32.); expectedExponent[31] =  5;
     input[32] = T( -0.); expectedFraction[32] = T(-0.    ); expectedExponent[32] =  0;
-    for (size_t i = 0; i < input.vectorsCount(); ++i) {
-        const V v = input.vector(i);
+    for (size_t i = 0; i <= 33 - V::size(); ++i) {
+        const V v(&input[i]);
         ExpV exp;
         const V fraction = frexp(v, &exp);
-        COMPARE(fraction, V(expectedFraction.vector(i))) << ", v = " << v;
-        VERIFY(0 == memcmp(&fraction, &expectedFraction[i * V::Size], sizeof(V)))
-            << ", fraction: " << fraction
-            << ", expectedFraction: " << V(expectedFraction.vector(i))
-            << ", delta: " << fraction - V(expectedFraction.vector(i));
-        const ExpV reference = expectedExponent.vector(i);
-        COMPARE(exp, reference) << "\ninput: " << v << ", fraction: " << fraction
-                                << ", i: " << i;
+        COMPARE(fraction, V(&expectedFraction[i]))
+            << ", v = " << v << ", delta: " << fraction - V(&expectedFraction[i]);
+        COMPARE(exp, ExpV(&expectedExponent[i]))
+            << "\ninput: " << v << ", fraction: " << fraction << ", i: " << i;
     }
 }
 
-TEST_TYPES(V, testLdexp, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testLdexp, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     using ExpV = typename V::IndexType;
@@ -1006,7 +1004,7 @@ TEST_TYPES(V, testLdexp, (REAL_VECTORS)) //{{{1
 }
 
 #include "ulp.h"
-TEST_TYPES(V, testUlpDiff, (REAL_VECTORS)) //{{{1
+TEST_TYPES(V, testUlpDiff, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
 
