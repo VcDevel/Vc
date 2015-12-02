@@ -230,7 +230,7 @@ public:
     static Vc_INTRINSIC SimdMaskArray fromOperation(Op op, Args &&... args)
     {
         SimdMaskArray r;
-        Common::unpackArgumentsAuto(op, r.data, std::forward<Args>(args)...);
+        Common::unpackArgumentsAuto(op, &r.data, std::forward<Args>(args)...);
         return r;
     }
 

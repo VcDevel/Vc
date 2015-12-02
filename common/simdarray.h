@@ -223,8 +223,14 @@ public:
     static Vc_INTRINSIC SimdArray fromOperation(Op op, Args &&... args)
     {
         SimdArray r;
-        Common::unpackArgumentsAuto(op, r.data, std::forward<Args>(args)...);
+        Common::unpackArgumentsAuto(op, &r.data, std::forward<Args>(args)...);
         return r;
+    }
+
+    template <typename Op, typename... Args>
+    static Vc_INTRINSIC void callOperation(Op op, Args &&... args)
+    {
+        Common::unpackArgumentsAuto(op, nullptr, std::forward<Args>(args)...);
     }
 
     static Vc_INTRINSIC SimdArray Zero()
@@ -634,6 +640,14 @@ public:
                                                                    // break the next line
             storage_type1::fromOperation(op, Split::hi(std::forward<Args>(args))...)};
         return r;
+    }
+
+    ///\internal
+    template <typename Op, typename... Args>
+    static Vc_INTRINSIC void callOperation(Op op, Args &&... args)
+    {
+        storage_type0::callOperation(op, Split::lo(args)...);
+        storage_type1::callOperation(op, Split::hi(std::forward<Args>(args))...);
     }
 
     static Vc_INTRINSIC SimdArray Zero()
@@ -1333,9 +1347,9 @@ Vc_FORWARD_UNARY_OPERATOR(round)
 Vc_FORWARD_UNARY_OPERATOR(rsqrt)
 Vc_FORWARD_UNARY_OPERATOR(sin)
 template <typename T, std::size_t N>
-void sincos(const SimdArray<T, N> &x, SimdArray<int, N> *sin, SimdArray<int, N> *cos)
+void sincos(const SimdArray<T, N> &x, SimdArray<T, N> *sin, SimdArray<T, N> *cos)
 {
-    return SimdArray<T, N>::fromOperation(Common::Operations::Forward_sincos(), sin, cos);
+    SimdArray<T, N>::callOperation(Common::Operations::Forward_sincos(), x, sin, cos);
 }
 Vc_FORWARD_UNARY_OPERATOR(sqrt)
 Vc_FORWARD_UNARY_OPERATOR(trunc)

@@ -42,14 +42,13 @@ namespace Common
 namespace Operations/*{{{*/
 {
 struct tag {};
-#define Vc_DEFINE_OPERATION(name__)                                                                \
-    struct name__ : public tag                                                                     \
-    {                                                                                              \
-        template <typename V, typename... Args>                                                    \
-        Vc_INTRINSIC void operator()(V &v, Args &&... args)                                        \
-        {                                                                                          \
-            v.name__(std::forward<Args>(args)...);                                                 \
-        }                                                                                          \
+#define Vc_DEFINE_OPERATION(name_)                                                       \
+    struct name_ : public tag {                                                          \
+        template <typename V, typename... Args>                                          \
+        Vc_INTRINSIC void operator()(V *v, Args &&... args)                              \
+        {                                                                                \
+            v->name_(std::forward<Args>(args)...);                                       \
+        }                                                                                \
     }
 Vc_DEFINE_OPERATION(gather);
 Vc_DEFINE_OPERATION(scatter);
@@ -59,22 +58,29 @@ Vc_DEFINE_OPERATION(setZero);
 Vc_DEFINE_OPERATION(setZeroInverted);
 Vc_DEFINE_OPERATION(assign);
 #undef Vc_DEFINE_OPERATION
-#define Vc_DEFINE_OPERATION(name__, code__)                                              \
-    struct name__ : public tag                                                           \
-    {                                                                                    \
-        template <typename V> Vc_INTRINSIC void operator()(V & v) { code__; }            \
+#define Vc_DEFINE_OPERATION(name_, code_)                                                \
+    struct name_ : public tag {                                                          \
+        template <typename V> Vc_INTRINSIC void operator()(V *v) { code_; }              \
     }
-Vc_DEFINE_OPERATION(increment, ++v);
-Vc_DEFINE_OPERATION(decrement, --v);
-Vc_DEFINE_OPERATION(random, v = V::Random());
+Vc_DEFINE_OPERATION(increment, ++(*v));
+Vc_DEFINE_OPERATION(decrement, --(*v));
+Vc_DEFINE_OPERATION(random, *v = V::Random());
 #undef Vc_DEFINE_OPERATION
 #define Vc_DEFINE_OPERATION_FORWARD(name_)                                               \
     struct Forward_##name_ : public tag {                                                \
         template <typename... Args>                                                      \
-        Vc_INTRINSIC void operator()(decltype(name_(std::declval<Args>()...)) &v,        \
-                                     Args &&... args)                                    \
+        Vc_INTRINSIC enable_if<                                                          \
+            !std::is_void<decltype(name_(std::declval<Args>()...))>::value, void>        \
+        operator()(decltype(name_(std::declval<Args>()...)) *v, Args &&... args)         \
         {                                                                                \
-            v = name_(std::forward<Args>(args)...);                                      \
+            *v = name_(std::forward<Args>(args)...);                                     \
+        }                                                                                \
+        template <typename... Args>                                                      \
+        Vc_INTRINSIC enable_if<                                                          \
+            std::is_void<decltype(name_(std::declval<Args>()...))>::value, void>         \
+        operator()(std::nullptr_t, Args &&... args)                                      \
+        {                                                                                \
+            name_(std::forward<Args>(args)...);                                          \
         }                                                                                \
     }
 Vc_DEFINE_OPERATION_FORWARD(abs);
@@ -428,6 +434,11 @@ static Vc_INTRINSIC const V &actual_value(Op, const SimdArray<U, M, V, M> &x)
   return internal_data(x);
 }
 template <typename Op, typename U, std::size_t M, typename V>
+static Vc_INTRINSIC const V &actual_value(Op, SimdArray<U, M, V, M> &x)
+{
+  return internal_data(x);
+}
+template <typename Op, typename U, std::size_t M, typename V>
 static Vc_INTRINSIC const V &actual_value(Op, SimdArray<U, M, V, M> &&x)
 {
   return internal_data(x);
@@ -502,30 +513,37 @@ Vc_INTRINSIC decltype(std::declval<Op &>()(
     std::declval<R &>(),
     conditionalUnpack(selectorType<I, Indexes, sizeof...(Args)>(), std::declval<Op &>(),
                       std::declval<Args>())...))
-unpackArgumentsAutoImpl(int, index_sequence<Indexes...>, Op op, R &r, Args &&... args)
+unpackArgumentsAutoImpl(int, index_sequence<Indexes...>, Op op, R &&r, Args &&... args)
 {
-    op(r, conditionalUnpack(selectorType<I, Indexes, sizeof...(Args)>(), op,
-                            std::forward<Args>(args))...);
+    op(std::forward<R>(r), conditionalUnpack(selectorType<I, Indexes, sizeof...(Args)>(),
+                                             op, std::forward<Args>(args))...);
 }
 
 /// the current actual_value calls don't work: recurse to I + 1
 template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
 Vc_INTRINSIC void unpackArgumentsAutoImpl(float, index_sequence<Indexes...> is, Op op,
-                                          R &r, Args &&... args)
+                                          R &&r, Args &&... args)
 {
     static_assert(I < (1 << sizeof...(Args)), "Vc Bug. Please report. Failed to find a "
                                               "combination of actual_value(arg) "
                                               "transformations that allows calling Op.");
-    unpackArgumentsAutoImpl<I + 1, Op, R, Args...>(int(), is, op, r,
+    unpackArgumentsAutoImpl<I + 1, Op, R, Args...>(int(), is, op, std::forward<R>(r),
                                                    std::forward<Args>(args)...);
 }
 
 /// The interface to start the machinery.
 template <typename Op, typename R, typename... Args>
-Vc_INTRINSIC auto unpackArgumentsAuto(Op op, R &r, Args &&... args)
+Vc_INTRINSIC auto unpackArgumentsAuto(Op op, R &&r, Args &&... args)
 {
-    unpackArgumentsAutoImpl<0>(int(), make_index_sequence<sizeof...(Args)>(), op, r,
-                               std::forward<Args>(args)...);
+    unpackArgumentsAutoImpl<
+        // if R is nullptr_t then the return type cannot enforce that actually any
+        // unwrapping of the SimdArray types happens. Thus, you could get an endless loop
+        // of the SimdArray function overload calling itself, if the index I starts at 0
+        // (0 means no argument transformations via actual_value). Therefore, start at 1
+        // if R is nullptr_t:
+        std::is_same<R, std::nullptr_t>::value ? 1 : 0>(
+        int(), make_index_sequence<sizeof...(Args)>(), op, std::forward<R>(r),
+        std::forward<Args>(args)...);
 }
 ///@}
 
