@@ -42,7 +42,8 @@ constexpr float MAXLOGF = 88.72283905206835f;
 constexpr float MINLOGF = -103.278929903431851103f; /* log(2^-149) */
 constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
-template <typename Abi>
+template <typename Abi, typename = enable_if<std::is_same<Abi, VectorAbi::Sse>::value ||
+                                             std::is_same<Abi, VectorAbi::Avx>::value>>
 inline Vector<float, Abi> exp(Vector<float, Abi> x)
 {
     using V = Vector<float, Abi>;
