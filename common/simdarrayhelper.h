@@ -195,6 +195,7 @@ template <typename T, std::size_t Offset> struct AddOffset
     constexpr AddOffset() = default;
 };
 
+// class Split {{{1
 /** \internal
   Helper type with static functions to generically adjust arguments for the \c data0 and
   \c data1 members of SimdArray and SimdMaskArray.
@@ -203,7 +204,7 @@ template <typename T, std::size_t Offset> struct AddOffset
                        / SimdMaskArray. This is essentially equal to the number of
                        elements in \c data0.
  */
-template <std::size_t secondOffset> class Split/*{{{*/
+template <std::size_t secondOffset> class Split
 {
     static Vc_INTRINSIC AddOffset<VectorSpecialInitializerIndexesFromZero, secondOffset>
         hiImpl(VectorSpecialInitializerIndexesFromZero)
@@ -422,8 +423,9 @@ public:
         return std::forward<U>(x);
     }
     //@}
-};/*}}}*/
+};
 
+// actual_value {{{1
 template <typename Op, typename U> static Vc_INTRINSIC U actual_value(Op, U &&x)
 {
   return std::forward<U>(x);
@@ -473,6 +475,7 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, SimdMaskArray<U, M, V, M>
 
 /// @}
 
+// unpackArgumentsAuto {{{1
 /**\internal
  * \name unpackArgumentsAuto
  *
@@ -547,6 +550,7 @@ Vc_INTRINSIC auto unpackArgumentsAuto(Op op, R &&r, Args &&... args)
 }
 ///@}
 
+//}}}1
 }  // namespace Common
 }  // namespace Vc
 
