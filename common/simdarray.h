@@ -232,6 +232,9 @@ public:
     Vc_INTRINSIC void setZeroInverted() { data.setZeroInverted(); }
     Vc_INTRINSIC void setZeroInverted(mask_type k) { data.setZeroInverted(internal_data(k)); }
 
+    Vc_INTRINSIC void setQnan() { data.setQnan(); }
+    Vc_INTRINSIC void setQnan(mask_type m) { data.setQnan(internal_data(m)); }
+
     // internal: execute specified Operation
     template <typename Op, typename... Args>
     static Vc_INTRINSIC SimdArray fromOperation(Op op, Args &&... args)
@@ -417,6 +420,11 @@ public:
     template <typename G> static Vc_INTRINSIC SimdArray generate(const G &gen)
     {
         return {VectorType::generate(gen)};
+    }
+
+    Vc_INTRINSIC SimdArray copySign(const SimdArray &reference) const
+    {
+        return {data.copySign(reference.data)};
     }
 
     friend VectorType &internal_data<>(SimdArray &x);
@@ -612,6 +620,16 @@ public:
     {
         data0.setZeroInverted(Split::lo(k));
         data1.setZeroInverted(Split::hi(k));
+    }
+
+
+    Vc_INTRINSIC void setQnan() {
+        data0.setQnan();
+        data1.setQnan();
+    }
+    Vc_INTRINSIC void setQnan(const mask_type &m) {
+        data0.setQnan(Split::lo(m));
+        data1.setQnan(Split::hi(m));
     }
 
     // internal: execute specified Operation
@@ -1076,6 +1094,13 @@ public:
                 storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
     }
 
+    Vc_INTRINSIC SimdArray copySign(const SimdArray& reference) const
+    {
+        auto lo = data0.copySign(reference.data0);
+        auto hi = data1.copySign(reference.data1);
+        return {std::move(lo), std::move(hi)};
+    }
+
     // internal_data0/1 {{{2
     friend storage_type0 &internal_data0<>(SimdArray &x);
     friend storage_type1 &internal_data1<>(SimdArray &x);
@@ -1241,24 +1266,83 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_)
 #undef Vc_BINARY_OPERATORS_
 
 // math functions {{{1
-template <typename T, std::size_t N> SimdArray<T, N> abs(const SimdArray<T, N> &x)
+#define Vc_FORWARD_UNARY_OPERATOR(name__)                               \
+    template <typename T, std::size_t N, typename V, std::size_t M>     \
+        SimdArray<T, N, V, M>                                           \
+        name__(const SimdArray<T, N, V, M> &x)                          \
+    {                                                                   \
+        return SimdArray<T, N, V, M>::fromOperation(                    \
+            Common::Operations::Forward_##name__(), x);                 \
+    }
+
+#define Vc_FORWARD_UNARY_BOOL_OPERATOR(name__)                          \
+    template <typename T, std::size_t N, typename V, std::size_t M>     \
+        SimdMaskArray<T, N, V, M>                                       \
+        name__(const SimdArray<T, N, V, M> &x)                          \
+    {                                                                   \
+        return SimdArray<T, N, V, M>::fromOperation(                    \
+            Common::Operations::Forward_##name__(), x);                 \
+    }
+
+#define Vc_FORWARD_BINARY_OPERATOR(name__)                              \
+    template <typename T, std::size_t N, typename V, std::size_t M>     \
+        SimdArray<T, N, V, M>                                           \
+        name__(const SimdArray<T, N, V, M> &x, const SimdArray<T, N, V, M> &y) \
+    {                                                                   \
+        return SimdArray<T, N, V, M>::fromOperation(                      \
+            Common::Operations::Forward_##name__(), x, y);              \
+    }
+
+#define MISSING(A)
+Vc_FORWARD_UNARY_OPERATOR(abs)
+Vc_FORWARD_UNARY_OPERATOR(asin)
+Vc_FORWARD_UNARY_OPERATOR(atan)
+Vc_FORWARD_BINARY_OPERATOR(atan2)
+Vc_FORWARD_UNARY_OPERATOR(ceil)
+template <typename T, std::size_t N> SimdArray<T, N> copysign(const SimdArray<T, N> &a, const SimdArray<T, N> &b)
 {
-    return SimdArray<T, N>::fromOperation(Common::Operations::Abs(), x);
+    return a.copySign(b);
 }
-template <typename T, std::size_t N> SimdMaskArray<T, N> isnan(const SimdArray<T, N> &x)
+Vc_FORWARD_UNARY_OPERATOR(cos)
+Vc_FORWARD_UNARY_OPERATOR(exp)
+Vc_FORWARD_UNARY_OPERATOR(floor)
+template <typename T, std::size_t N>
+SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b, const SimdArray<T, N> &c)
 {
-    return SimdMaskArray<T, N>::fromOperation(Common::Operations::Isnan(), x);
+    return SimdArray<T, N>::fromOperation(Common::Operations::Forward_fma(), a, b, c);
 }
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isfinite)
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isinf)
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isnan)
 template <typename T, std::size_t N>
 SimdArray<T, N> frexp(const SimdArray<T, N> &x, SimdArray<int, N> *e)
 {
-    return SimdArray<T, N>::fromOperation(Common::Operations::Frexp(), x, e);
+    return SimdArray<T, N>::fromOperation(Common::Operations::Forward_frexp(), x, e);
 }
 template <typename T, std::size_t N>
 SimdArray<T, N> ldexp(const SimdArray<T, N> &x, const SimdArray<int, N> &e)
 {
-    return SimdArray<T, N>::fromOperation(Common::Operations::Ldexp(), x, e);
+    return SimdArray<T, N>::fromOperation(Common::Operations::Forward_ldexp(), x, e);
 }
+Vc_FORWARD_UNARY_OPERATOR(log)
+Vc_FORWARD_UNARY_OPERATOR(log10)
+Vc_FORWARD_UNARY_OPERATOR(log2)
+Vc_FORWARD_UNARY_OPERATOR(reciprocal)
+Vc_FORWARD_UNARY_OPERATOR(round)
+Vc_FORWARD_UNARY_OPERATOR(rsqrt)
+Vc_FORWARD_UNARY_OPERATOR(sin)
+template <typename T, std::size_t N>
+void sincos(const SimdArray<T, N> &x, SimdArray<int, N> *sin, SimdArray<int, N> *cos)
+{
+    return SimdArray<T, N>::fromOperation(Common::Operations::Forward_sincos(), sin, cos);
+}
+Vc_FORWARD_UNARY_OPERATOR(sqrt)
+Vc_FORWARD_UNARY_OPERATOR(trunc)
+Vc_FORWARD_BINARY_OPERATOR(min)
+Vc_FORWARD_BINARY_OPERATOR(max)
+#undef Vc_FORWARD_UNARY_OPERATOR
+#undef Vc_FORWARD_UNARY_BOOL_OPERATOR
+#undef Vc_FORWARD_BINARY_OPERATOR
 
 // simd_cast {{{1
 // simd_cast_impl_smaller_input {{{2
