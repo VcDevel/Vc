@@ -940,7 +940,7 @@ TEST_TYPES(V, testExponent, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     input[30] = T(  32); expected[30] = T( 5);
     input[31] = T(  31); expected[31] = T( 4);
     for (size_t i = 0; i <= input.size() - V::size(); ++i) {
-        COMPARE(V(&input[i]).exponent(), V(&expected[i]));
+        COMPARE(exponent(V(&input[i])), V(&expected[i]));
     }
 }
 
@@ -1031,7 +1031,7 @@ TEST_TYPES(V, testUlpDiff, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
             // of +/-1
             const V ulpDifference = ulpDiffToReference(diff, base);
             const V expectedDifference = Vc::abs(i_v);
-            const V maxUncertainty = Vc::abs(abs(diff).exponent() - abs(base).exponent());
+            const V maxUncertainty = Vc::abs(exponent(abs(diff)) - exponent(abs(base)));
 
             VERIFY(all_of(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty))
                 << ", base = " << base << ", epsilon = " << eps << ", diff = " << diff;

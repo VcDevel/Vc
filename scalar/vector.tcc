@@ -156,23 +156,23 @@ Vc_ALL_BINARY(Vc_CAST_OPERATOR_FORWARD_DOUBLE)
 #undef Vc_CAST_OPERATOR_FORWARD
 #undef Vc_CAST_OPERATOR_FORWARD_FLOAT
 #undef Vc_CAST_OPERATOR_FORWARD_DOUBLE
-// }}}1
+
 // exponent {{{1
-template<> Vc_INTRINSIC Scalar::float_v Scalar::float_v::exponent() const
+Vc_INTRINSIC Vc_CONST Scalar::float_v exponent(Scalar::float_v x)
 {
-    Vc_ASSERT(m_data >= 0.f);
+    Vc_ASSERT(x.data() >= 0.f);
     union { float f; int i; } value;
-    value.f = m_data;
+    value.f = x.data();
     return Scalar::float_v(static_cast<float>((value.i >> 23) - 0x7f));
 }
-template<> Vc_INTRINSIC Scalar::double_v Scalar::double_v::exponent() const
+Vc_INTRINSIC Vc_CONST Scalar::double_v exponent(Scalar::double_v x)
 {
-    Vc_ASSERT(m_data >= 0.);
+    Vc_ASSERT(x.data() >= 0.);
     union { double f; long long i; } value;
-    value.f = m_data;
+    value.f = x.data();
     return Scalar::double_v(static_cast<double>((value.i >> 52) - 0x3ff));
 }
-// }}}1
+
 // FMA {{{1
 template <>
 Vc_ALWAYS_INLINE void Scalar::float_v::fusedMultiplyAdd(const Scalar::float_v &f,

@@ -271,7 +271,10 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         }
 
         Vc_INTRINSIC_L Vector copySign(Vector reference) const Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
+        Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const
+        {
+            return Vc::exponent(*this);
+        }
 
         Vc_INTRINSIC Vector interleaveLow(Vector) const { return *this; }
         Vc_INTRINSIC Vector interleaveHigh(Vector x) const { return x; }

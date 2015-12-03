@@ -695,15 +695,15 @@ Vc_INTRINSIC Vc_CONST __m256d exponent(__m256d v)
 }
 } // namespace Detail
 
-template<> Vc_INTRINSIC AVX2::float_v AVX2::float_v::exponent() const
+Vc_INTRINSIC Vc_CONST AVX2::float_v exponent(AVX2::float_v x)
 {
-    Vc_ASSERT((*this >= 0.f).isFull());
-    return Detail::exponent(d.v());
+    Vc_ASSERT((x >= 0.f).isFull());
+    return Detail::exponent(x.data());
 }
-template<> Vc_INTRINSIC AVX2::double_v AVX2::double_v::exponent() const
+Vc_INTRINSIC Vc_CONST AVX2::double_v exponent(AVX2::double_v x)
 {
-    Vc_ASSERT((*this >= 0.).isFull());
-    return Detail::exponent(d.v());
+    Vc_ASSERT((x >= 0.).isFull());
+    return Detail::exponent(x.data());
 }
 // }}}1
 // Random {{{1

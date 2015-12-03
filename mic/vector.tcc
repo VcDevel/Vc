@@ -581,17 +581,17 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &
 }
 
 // exponent {{{1
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::exponent() const
+Vc_INTRINSIC Vc_CONST MIC::float_v exponent(MIC::float_v x)
 {
-    Vc_ASSERT((*this >= Zero()).isFull());
-    return _mm512_getexp_ps(d.v());
+    Vc_ASSERT((x >= Zero()).isFull());
+    return _mm512_getexp_ps(x.data()());
 }
-template<> Vc_INTRINSIC MIC::double_v MIC::double_v::exponent() const
+Vc_INTRINSIC Vc_CONST MIC::double_v exponent(MIC::double_v x)
 {
-    Vc_ASSERT((*this >= Zero()).isFull());
-    return _mm512_getexp_pd(d.v());
+    Vc_ASSERT((x >= Zero()).isFull());
+    return _mm512_getexp_pd(x.data());
 }
-// }}}1
+
 // Random {{{1
 static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)

@@ -137,7 +137,7 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
         typedef typename V::Mask M;
 
         V v = _v;
-        V e = abs(v).exponent();
+        V e = exponent(abs(v));
         const M negativeExponent = e < 0;
         e.setZero(negativeExponent);
         //const M negativeInput = v < V::Zero();
@@ -155,7 +155,7 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
         typedef typename V::Mask M;
 
         V v = _v;
-        V e = abs(v).exponent();
+        V e = exponent(abs(v));
         const M negativeExponent = e < 0;
         e.setZero(negativeExponent);
         const M negativeInput = v < V::Zero();
@@ -173,7 +173,7 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
         typedef typename V::Mask M;
 
         V v = _v;
-        V e = abs(v).exponent();
+        V e = exponent(abs(v));
         const M negativeExponent = e < 0;
         e.setZero(negativeExponent);
         const M positiveInput = v > V::Zero();

@@ -41,6 +41,43 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 /**
  * \ingroup Math
+ * Extracts the exponent of each floating-point vector component.
+ *
+ * \param x The vector of values to check for the sign.
+ * \return the exponent to base 2.
+ *
+ * This function provides efficient access to the exponent of the floating point number. The
+ * returned value is a fast approximation to the logarithm of base 2. The absolute error of that
+ * approximation is between [0, 1[.
+ *
+ * Examples:
+\verbatim
+ value | exponent | log2
+=======|==========|=======
+   1.0 |        0 | 0
+   2.0 |        1 | 1
+   3.0 |        1 | 1.585
+   3.9 |        1 | 1.963
+   4.0 |        2 | 2
+   4.1 |        2 | 2.036
+\endverbatim
+ *
+ * \warning This function assumes a positive value (non-zero). If the value is negative the sign bit will
+ * modify the returned value. An input value of zero will return the bias of the floating-point
+ * representation. If you compile with Vc runtime checks, the function will assert
+ * values greater than or equal to zero.
+ *
+ * You may use abs to apply this function to negative values:
+ * \code
+ * exponent(abs(v))
+ * \endcode
+ */
+template <typename T, typename Abi,
+          typename = enable_if<std::is_floating_point<T>::value>>
+inline Vector<T, Abi> exponent(Vector<T, Abi> x);
+
+/**
+ * \ingroup Math
  * Returns for each vector component whether it stores a negative value.
  *
  * \param x The vector of values to check for the sign.
@@ -666,9 +703,6 @@ public:
     inline void fill(EntryType(&f)());
     ///@}
 
-    /// Returns the exponents of the floating-point values in the vector.
-    inline Vector exponent() const;
-
     /**\internal
      * Interleaves this vector and \p x and returns the resulting low vector.
      * Used to implement Vc::interleave.
@@ -697,6 +731,9 @@ public:
 
     /// \name Deprecated Members
     ///@{
+
+    /// Returns the exponents of the floating-point values in the vector.
+    inline Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const;
 
     /// \deprecated use Vc::isnegative instead
     inline Vc_DEPRECATED("use isnegative(x) instead") MaskType isNegative() const;

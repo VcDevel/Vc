@@ -583,15 +583,15 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 }
 } // namespace Detail
 
-template<> Vc_INTRINSIC Vc_PURE SSE::float_v SSE::float_v::exponent() const
+Vc_INTRINSIC Vc_CONST SSE::float_v exponent(SSE::float_v x)
 {
-    Vc_ASSERT((*this >= 0.f).isFull());
-    return Detail::exponent(d.v());
+    Vc_ASSERT((x >= 0.f).isFull());
+    return Detail::exponent(x.data());
 }
-template<> Vc_INTRINSIC Vc_PURE SSE::double_v SSE::double_v::exponent() const
+Vc_INTRINSIC Vc_CONST SSE::double_v exponent(SSE::double_v x)
 {
-    Vc_ASSERT((*this >= 0.).isFull());
-    return Detail::exponent(d.v());
+    Vc_ASSERT((x >= 0.).isFull());
+    return Detail::exponent(x.data());
 }
 // }}}1
 // Random {{{1

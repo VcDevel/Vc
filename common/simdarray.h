@@ -396,7 +396,10 @@ public:
     }
 
     /// \copydoc Vector::exponent
-    Vc_INTRINSIC SimdArray exponent() const { return {data.exponent()}; }
+    Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") SimdArray exponent() const
+    {
+        return {exponent(data)};
+    }
 
     Vc_INTRINSIC SimdArray interleaveLow(SimdArray x) const
     {
@@ -1014,9 +1017,9 @@ public:
     }
 
     /// \copydoc Vector::exponent
-    Vc_INTRINSIC SimdArray exponent() const
+    Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") SimdArray exponent() const
     {
-        return {data0.exponent(), data1.exponent()};
+        return {exponent(data0), exponent(data1)};
     }
 
     // interleaveLow/-High {{{2
@@ -1333,6 +1336,7 @@ Vc_FORWARD_UNARY_OPERATOR(ceil)
 Vc_FORWARD_BINARY_OPERATOR(copysign)
 Vc_FORWARD_UNARY_OPERATOR(cos)
 Vc_FORWARD_UNARY_OPERATOR(exp)
+Vc_FORWARD_UNARY_OPERATOR(exponent)
 Vc_FORWARD_UNARY_OPERATOR(floor)
 template <typename T, std::size_t N>
 SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b, const SimdArray<T, N> &c)
