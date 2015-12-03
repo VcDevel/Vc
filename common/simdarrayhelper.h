@@ -534,7 +534,7 @@ Vc_INTRINSIC void unpackArgumentsAutoImpl(float, index_sequence<Indexes...> is, 
 
 /// The interface to start the machinery.
 template <typename Op, typename R, typename... Args>
-Vc_INTRINSIC auto unpackArgumentsAuto(Op op, R &&r, Args &&... args)
+Vc_INTRINSIC void unpackArgumentsAuto(Op op, R &&r, Args &&... args)
 {
     unpackArgumentsAutoImpl<
         // if R is nullptr_t then the return type cannot enforce that actually any
