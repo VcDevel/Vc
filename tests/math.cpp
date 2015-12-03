@@ -39,39 +39,46 @@ using namespace Vc;
 using Vc::Detail::floatConstant;
 using Vc::Detail::doubleConstant;
 
-#define SIMD_ARRAY_LIST                                                                            \
-     SIMD_ARRAYS(32),                                                                              \
-     SIMD_ARRAYS(17),                                                                              \
-     SIMD_ARRAYS(16),                                                                              \
-     SIMD_ARRAYS(9),                                                                               \
-     SIMD_ARRAYS(8),                                                                               \
-     SIMD_ARRAYS(5),                                                                               \
-     SIMD_ARRAYS(4),                                                                               \
-     SIMD_ARRAYS(3),                                                                               \
-     SIMD_ARRAYS(2),                                                                               \
-     SIMD_ARRAYS(1)
-#define SIMD_REAL_ARRAY_LIST                                                                       \
-     SIMD_REAL_ARRAYS(32),                                                                         \
-     SIMD_REAL_ARRAYS(17),                                                                         \
-     SIMD_REAL_ARRAYS(16),                                                                         \
-     SIMD_REAL_ARRAYS(9),                                                                          \
-     SIMD_REAL_ARRAYS(8),                                                                          \
-     SIMD_REAL_ARRAYS(5),                                                                          \
-     SIMD_REAL_ARRAYS(4),                                                                          \
-     SIMD_REAL_ARRAYS(3),                                                                          \
-     SIMD_REAL_ARRAYS(2),                                                                          \
-     SIMD_REAL_ARRAYS(1)
-#define SIMD_INT_ARRAY_LIST                                                                        \
-     SIMD_INT_ARRAYS(32),                                                                          \
-     SIMD_INT_ARRAYS(17),                                                                          \
-     SIMD_INT_ARRAYS(16),                                                                          \
-     SIMD_INT_ARRAYS(9),                                                                           \
-     SIMD_INT_ARRAYS(8),                                                                           \
-     SIMD_INT_ARRAYS(5),                                                                           \
-     SIMD_INT_ARRAYS(4),                                                                           \
-     SIMD_INT_ARRAYS(3),                                                                           \
-     SIMD_INT_ARRAYS(2),                                                                           \
-     SIMD_INT_ARRAYS(1)
+#ifdef Vc_IMPL_Scalar
+#define SIMD_ARRAY_LIST                                                                  \
+    SIMD_ARRAYS(3),                                                                      \
+    SIMD_ARRAYS(1)
+#define SIMD_REAL_ARRAY_LIST                                                             \
+    SIMD_REAL_ARRAYS(3),                                                                 \
+    SIMD_REAL_ARRAYS(1)
+#elif Vc_FLOAT_V_SIZE <= 4
+#define SIMD_ARRAY_LIST                                                                  \
+    SIMD_ARRAYS(19),                                                                     \
+    SIMD_ARRAYS(9),                                                                      \
+    SIMD_ARRAYS(8),                                                                      \
+    SIMD_ARRAYS(5),                                                                      \
+    SIMD_ARRAYS(4),                                                                      \
+    SIMD_ARRAYS(3)
+#define SIMD_REAL_ARRAY_LIST                                                             \
+    SIMD_REAL_ARRAYS(19),                                                                \
+    SIMD_REAL_ARRAYS(9),                                                                 \
+    SIMD_REAL_ARRAYS(8),                                                                 \
+    SIMD_REAL_ARRAYS(5),                                                                 \
+    SIMD_REAL_ARRAYS(4),                                                                 \
+    SIMD_REAL_ARRAYS(3)
+#else
+#define SIMD_ARRAY_LIST                                                                  \
+    SIMD_ARRAYS(32),                                                                     \
+    SIMD_ARRAYS(19),                                                                     \
+    SIMD_ARRAYS(9),                                                                      \
+    SIMD_ARRAYS(8),                                                                      \
+    SIMD_ARRAYS(5),                                                                      \
+    SIMD_ARRAYS(4),                                                                      \
+    SIMD_ARRAYS(3)
+#define SIMD_REAL_ARRAY_LIST                                                             \
+    SIMD_REAL_ARRAYS(32),                                                                \
+    SIMD_REAL_ARRAYS(19),                                                                \
+    SIMD_REAL_ARRAYS(9),                                                                 \
+    SIMD_REAL_ARRAYS(8),                                                                 \
+    SIMD_REAL_ARRAYS(5),                                                                 \
+    SIMD_REAL_ARRAYS(4),                                                                 \
+    SIMD_REAL_ARRAYS(3)
+#endif
 
 // fix isfinite and isnan {{{1
 #ifdef isfinite
