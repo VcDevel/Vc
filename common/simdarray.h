@@ -2133,6 +2133,49 @@ static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4> &&>::value, ""
 
 } // namespace Vc_VERSIONED_NAMESPACE
 
+// numeric_limits {{{1
+namespace std
+{
+template <typename T, size_t N, typename V, size_t VN>
+struct numeric_limits<Vc::SimdArray<T, N, V, VN>> : public numeric_limits<T> {
+private:
+    using R = Vc::SimdArray<T, N, V, VN>;
+
+public:
+    static Vc_ALWAYS_INLINE Vc_CONST R max() noexcept { return numeric_limits<T>::max(); }
+    static Vc_ALWAYS_INLINE Vc_CONST R min() noexcept { return numeric_limits<T>::min(); }
+    static Vc_ALWAYS_INLINE Vc_CONST R lowest() noexcept
+    {
+        return numeric_limits<T>::lowest();
+    }
+    static Vc_ALWAYS_INLINE Vc_CONST R epsilon() noexcept
+    {
+        return numeric_limits<T>::epsilon();
+    }
+    static Vc_ALWAYS_INLINE Vc_CONST R round_error() noexcept
+    {
+        return numeric_limits<T>::round_error();
+    }
+    static Vc_ALWAYS_INLINE Vc_CONST R infinity() noexcept
+    {
+        return numeric_limits<T>::infinity();
+    }
+    static Vc_ALWAYS_INLINE Vc_CONST R quiet_NaN() noexcept
+    {
+        return numeric_limits<T>::quiet_NaN();
+    }
+    static Vc_ALWAYS_INLINE Vc_CONST R signaling_NaN() noexcept
+    {
+        return numeric_limits<T>::signaling_NaN();
+    }
+    static Vc_ALWAYS_INLINE Vc_CONST R denorm_min() noexcept
+    {
+        return numeric_limits<T>::denorm_min();
+    }
+};
+}  // namespace std
+//}}}1
+
 #endif // VC_COMMON_SIMDARRAY_H_
 
 // vim: foldmethod=marker
