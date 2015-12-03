@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_VECTOR_H_
 #define VC_COMMON_VECTOR_H_
 
+#include <ratio>
 #include "types.h"
 #include "vectorabi.h"
 #include "vectortraits.h"

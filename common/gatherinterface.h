@@ -210,6 +210,148 @@ public:
         Vc_ASSERT_GATHER_PARAMETER_TYPES__;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
+
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename IT>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
+        Vc_CURRENT_CLASS_NAME(const S1 *array, const EntryType S1::*member1,
+                              Vc_ALIGNED_PARAMETER(IT) indexes)
+    {
+        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+                   array, indexes)[member1]
+                   .gatherArguments());
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename IT>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
+        Vc_CURRENT_CLASS_NAME(const S1 *array, const EntryType S1::*member1,
+                              Vc_ALIGNED_PARAMETER(IT) indexes, MaskArgument mask)
+    {
+        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+                   array, indexes)[member1]
+                   .gatherArguments(),
+               mask);
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename S2, typename IT>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
+        Vc_CURRENT_CLASS_NAME(const S1 *array, const S2 S1::*member1,
+                              const EntryType S2::*member2,
+                              Vc_ALIGNED_PARAMETER(IT) indexes)
+    {
+        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+                   array, indexes)[member1][member2]
+                   .gatherArguments());
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename S2, typename IT>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
+        Vc_CURRENT_CLASS_NAME(const S1 *array, const S2 S1::*member1,
+                              const EntryType S2::*member2,
+                              Vc_ALIGNED_PARAMETER(IT) indexes, MaskArgument mask)
+    {
+        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+                   array, indexes)[member1][member2]
+                   .gatherArguments(),
+               mask);
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename IT1, typename IT2>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
+        Vc_CURRENT_CLASS_NAME(const S1 *array, const EntryType *const S1::*ptrMember1,
+                              Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
+                              Vc_ALIGNED_PARAMETER(IT2) innerIndexes)
+    {
+        gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+                   array, outerIndexes)[ptrMember1][innerIndexes]
+                   .gatherArguments());
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename IT1, typename IT2>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
+        Vc_CURRENT_CLASS_NAME(const S1 *array, const EntryType *const S1::*ptrMember1,
+                              Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
+                              Vc_ALIGNED_PARAMETER(IT2) innerIndexes, MaskArgument mask)
+    {
+        gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+                   array, outerIndexes)[ptrMember1][innerIndexes]
+                   .gatherArguments(),
+               mask);
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename IT>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                         "instead.") void gather(const S1 *array,
+                                                 const EntryType S1::*member1,
+                                                 Vc_ALIGNED_PARAMETER(IT) indexes)
+    {
+        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+                   array, indexes)[member1]
+                   .gatherArguments());
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename IT>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                         "instead.") void gather(const S1 *array,
+                                                 const EntryType S1::*member1,
+                                                 Vc_ALIGNED_PARAMETER(IT) indexes,
+                                                 MaskArgument mask)
+    {
+        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+                   array, indexes)[member1]
+                   .gatherArguments(),
+               mask);
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename S2, typename IT>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                         "instead.") void gather(const S1 *array, const S2 S1::*member1,
+                                                 const EntryType S2::*member2,
+                                                 Vc_ALIGNED_PARAMETER(IT) indexes)
+    {
+        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+                   array, indexes)[member1][member2]
+                   .gatherArguments());
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename S2, typename IT>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                         "instead.") void gather(const S1 *array, const S2 S1::*member1,
+                                                 const EntryType S2::*member2,
+                                                 Vc_ALIGNED_PARAMETER(IT) indexes,
+                                                 MaskArgument mask)
+    {
+        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+                   array, indexes)[member1][member2]
+                   .gatherArguments(),
+               mask);
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename IT1, typename IT2>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                         "instead.") void gather(const S1 *array,
+                                                 const EntryType *const S1::*ptrMember1,
+                                                 Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
+                                                 Vc_ALIGNED_PARAMETER(IT2) innerIndexes)
+    {
+        gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+                   array, outerIndexes)[ptrMember1][innerIndexes]
+                   .gatherArguments());
+    }
+    /// \deprecated Use Vc::array or Vc::vector subscripting instead.
+    template <typename S1, typename IT1, typename IT2>
+    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                         "instead.") void gather(const S1 *array,
+                                                 const EntryType *const S1::*ptrMember1,
+                                                 Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
+                                                 Vc_ALIGNED_PARAMETER(IT2) innerIndexes,
+                                                 MaskArgument mask)
+    {
+        gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+                   array, outerIndexes)[ptrMember1][innerIndexes]
+                   .gatherArguments(),
+               mask);
+    }
     ///@}
 
     /**\internal
