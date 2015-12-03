@@ -130,7 +130,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef constexpr
 #define constexpr inline __forceinline
 #endif
-#define Vc__NO_NOEXCEPT 1
+#define Vc_NO_NOEXCEPT 1
 #endif
 
 

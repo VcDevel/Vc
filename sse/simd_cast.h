@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../avx/casts.h"
 #endif
 
-#ifndef VC_SSE_VECTOR_H__
+#ifndef VC_SSE_VECTOR_H_
 #error "Vc/sse/vector.h needs to be included before Vc/sse/simd_cast.h"
 #endif
 #include "macros.h"
@@ -45,27 +45,27 @@ namespace SSE
 {
 
 // Declarations: helper macros Vc_SIMD_CAST_[1248] {{{1
-#define Vc_SIMD_CAST_1(from__, to__)                                                     \
+#define Vc_SIMD_CAST_1(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x, enable_if<std::is_same<To, to__>::value> = nullarg)
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
+        from_ x, enable_if<std::is_same<To, to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_2(from__, to__)                                                     \
+#define Vc_SIMD_CAST_2(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x0, from__ x1, enable_if<std::is_same<To, to__>::value> = nullarg)
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
+        from_ x0, from_ x1, enable_if<std::is_same<To, to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_4(from__, to__)                                                     \
+#define Vc_SIMD_CAST_4(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x0, from__ x1, from__ x2, from__ x3,                                \
-              enable_if<std::is_same<To, to__>::value> = nullarg)
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
+        from_ x0, from_ x1, from_ x2, from_ x3,                                          \
+        enable_if<std::is_same<To, to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_8(from__, to__)                                                     \
+#define Vc_SIMD_CAST_8(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x0, from__ x1, from__ x2, from__ x3, from__ x4, from__ x5,          \
-              from__ x6, from__ x7, enable_if<std::is_same<To, to__>::value> = nullarg)
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
+        from_ x0, from_ x1, from_ x2, from_ x3, from_ x4, from_ x5, from_ x6, from_ x7,  \
+        enable_if<std::is_same<To, to_>::value> = nullarg)
 
 // Declarations: Vector casts without offset {{{1
 // 1 SSE::Vector to 1 SSE::Vector {{{2
@@ -114,11 +114,11 @@ Vc_SIMD_CAST_2( float_v, ushort_v);
 Vc_SIMD_CAST_2(double_v, ushort_v);
 
 // 3 SSE::Vector to 1 SSE::Vector {{{2
-#define Vc_CAST__(To__)                                                                  \
+#define Vc_CAST_(To_)                                                                    \
     template <typename Return>                                                           \
-    Vc_INTRINSIC Vc_CONST enable_if<std::is_same<Return, To__>::value, Return>
-Vc_CAST__(short_v) simd_cast(double_v a, double_v b, double_v c);
-Vc_CAST__(ushort_v) simd_cast(double_v a, double_v b, double_v c);
+    Vc_INTRINSIC Vc_CONST enable_if<std::is_same<Return, To_>::value, Return>
+Vc_CAST_(short_v) simd_cast(double_v a, double_v b, double_v c);
+Vc_CAST_(ushort_v) simd_cast(double_v a, double_v b, double_v c);
 
 // 4 SSE::Vector to 1 SSE::Vector {{{2
 Vc_SIMD_CAST_4(double_v,  short_v);
@@ -290,26 +290,25 @@ simd_cast(SSE::Vector<FromT> x, enable_if<Scalar::is_vector<To>::value> = nullar
 #undef Vc_SIMD_CAST_2
 #undef Vc_SIMD_CAST_4
 #undef Vc_SIMD_CAST_8
-#define Vc_SIMD_CAST_1(from__, to__)                                                     \
+#define Vc_SIMD_CAST_1(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x, enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x, enable_if<std::is_same<To, to_>::value>)
 
-#define Vc_SIMD_CAST_2(from__, to__)                                                     \
+#define Vc_SIMD_CAST_2(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x0, from__ x1, enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1,                               \
+                                       enable_if<std::is_same<To, to_>::value>)
 
-#define Vc_SIMD_CAST_4(from__, to__)                                                     \
+#define Vc_SIMD_CAST_4(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To simd_cast(from__ x0, from__ x1, from__ x2, from__ x3,       \
-                                       enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1, from_ x2, from_ x3,           \
+                                       enable_if<std::is_same<To, to_>::value>)
 
-#define Vc_SIMD_CAST_8(from__, to__)                                                     \
+#define Vc_SIMD_CAST_8(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x0, from__ x1, from__ x2, from__ x3, from__ x4, from__ x5,          \
-              from__ x6, from__ x7, enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1, from_ x2, from_ x3, from_ x4, \
+                                       from_ x5, from_ x6, from_ x7,                     \
+                                       enable_if<std::is_same<To, to_>::value>)
 
 // Vector casts without offset {{{1
 namespace SSE
@@ -408,15 +407,15 @@ Vc_SIMD_CAST_2( float_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<S
 Vc_SIMD_CAST_2(double_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x0, x1)); }
 
 // 3 SSE::Vector to 1 SSE::Vector {{{2
-Vc_CAST__(short_v) simd_cast(double_v a, double_v b, double_v c)
+Vc_CAST_(short_v) simd_cast(double_v a, double_v b, double_v c)
 {
     return simd_cast<short_v>(simd_cast<int_v>(a, b), simd_cast<int_v>(c));
 }
-Vc_CAST__(ushort_v) simd_cast(double_v a, double_v b, double_v c)
+Vc_CAST_(ushort_v) simd_cast(double_v a, double_v b, double_v c)
 {
     return simd_cast<ushort_v>(simd_cast<int_v>(a, b), simd_cast<int_v>(c));
 }
-#undef Vc_CAST__
+#undef Vc_CAST_
 
 // 4 SSE::Vector to 1 SSE::Vector {{{2
 Vc_SIMD_CAST_4(double_v,  short_v) { return _mm_packs_epi32(simd_cast<SSE::int_v>(x0, x1).data(), simd_cast<SSE::int_v>(x2, x3).data()); }

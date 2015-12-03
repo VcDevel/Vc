@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_AVX_SIMD_CAST_H_
 #define VC_AVX_SIMD_CAST_H_
 
-#ifndef VC_AVX_VECTOR_H__
+#ifndef VC_AVX_VECTOR_H_
 #error "Vc/avx/vector.h needs to be included before Vc/avx/simd_cast.h"
 #endif
 #include "macros.h"
@@ -37,84 +37,83 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 // Declarations: helper macros Vc_SIMD_CAST_AVX_[124] & Vc_SIMD_CAST_[124] {{{1
-#define Vc_SIMD_CAST_AVX_1(from__, to__)                                                 \
+#define Vc_SIMD_CAST_AVX_1(from_, to_)                                                   \
     template <typename To>                                                               \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        AVX2::from__ x, enable_if<std::is_same<To, AVX2::to__>::value> = nullarg)
+        AVX2::from_ x, enable_if<std::is_same<To, AVX2::to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_AVX_2(from__, to__)                                                 \
-    static_assert(AVX2::from__::size() * 2 <= AVX2::to__::size(),                        \
+#define Vc_SIMD_CAST_AVX_2(from_, to_)                                                   \
+    static_assert(AVX2::from_::size() * 2 <= AVX2::to_::size(),                          \
                   "this type combination is wrong");                                     \
     template <typename To>                                                               \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        AVX2::from__ x0, AVX2::from__ x1,                                                \
-        enable_if<std::is_same<To, AVX2::to__>::value> = nullarg)
+        AVX2::from_ x0, AVX2::from_ x1,                                                  \
+        enable_if<std::is_same<To, AVX2::to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_AVX_3(from__, to__)                                                 \
+#define Vc_SIMD_CAST_AVX_3(from_, to_)                                                   \
     template <typename To>                                                               \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        AVX2::from__ x0, AVX2::from__ x1, AVX2::from__ x2,                               \
-        enable_if<std::is_same<To, AVX2::to__>::value> = nullarg)
+        AVX2::from_ x0, AVX2::from_ x1, AVX2::from_ x2,                                  \
+        enable_if<std::is_same<To, AVX2::to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_AVX_4(from__, to__)                                                 \
-    template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-        simd_cast(AVX2::from__ x0, AVX2::from__ x1, AVX2::from__ x2, AVX2::from__ x3,    \
-                  enable_if<std::is_same<To, AVX2::to__>::value> = nullarg)
-
-#define Vc_SIMD_CAST_1(from__, to__)                                                     \
-    template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-        simd_cast(from__ x, enable_if<std::is_same<To, to__>::value> = nullarg)
-
-#define Vc_SIMD_CAST_2(from__, to__)                                                     \
+#define Vc_SIMD_CAST_AVX_4(from_, to_)                                                   \
     template <typename To>                                                               \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x0, from__ x1, enable_if<std::is_same<To, to__>::value> = nullarg)
+        AVX2::from_ x0, AVX2::from_ x1, AVX2::from_ x2, AVX2::from_ x3,                  \
+        enable_if<std::is_same<To, AVX2::to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_3(from__, to__)                                                     \
-    template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-        simd_cast(from__ x0, from__ x1, from__ x2,                                       \
-                  enable_if<std::is_same<To, to__>::value> = nullarg)
-
-#define Vc_SIMD_CAST_4(from__, to__)                                                     \
-    template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-        simd_cast(from__ x0, from__ x1, from__ x2, from__ x3,                            \
-                  enable_if<std::is_same<To, to__>::value> = nullarg)
-
-#define Vc_SIMD_CAST_5(from__, to__)                                                     \
+#define Vc_SIMD_CAST_1(from_, to_)                                                       \
     template <typename To>                                                               \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x0, from__ x1, from__ x2, from__ x3, from__ x4,                           \
-        enable_if<std::is_same<To, to__>::value> = nullarg)
+        from_ x, enable_if<std::is_same<To, to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_6(from__, to__)                                                     \
+#define Vc_SIMD_CAST_2(from_, to_)                                                       \
     template <typename To>                                                               \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x0, from__ x1, from__ x2, from__ x3, from__ x4, from__ x5,                \
-        enable_if<std::is_same<To, to__>::value> = nullarg)
+        from_ x0, from_ x1, enable_if<std::is_same<To, to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_7(from__, to__)                                                     \
+#define Vc_SIMD_CAST_3(from_, to_)                                                       \
     template <typename To>                                                               \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x0, from__ x1, from__ x2, from__ x3, from__ x4, from__ x5, from__ x6,     \
-        enable_if<std::is_same<To, to__>::value> = nullarg)
+        from_ x0, from_ x1, from_ x2, enable_if<std::is_same<To, to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_8(from__, to__)                                                     \
+#define Vc_SIMD_CAST_4(from_, to_)                                                       \
     template <typename To>                                                               \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x0, from__ x1, from__ x2, from__ x3, from__ x4, from__ x5, from__ x6,     \
-        from__ x7, enable_if<std::is_same<To, to__>::value> = nullarg)
+        from_ x0, from_ x1, from_ x2, from_ x3,                                          \
+        enable_if<std::is_same<To, to_>::value> = nullarg)
 
-#define Vc_SIMD_CAST_OFFSET(from__, to__, offset__)                                      \
-    static_assert(from__::size() >= to__::size() * (offset__ + 1),                       \
+#define Vc_SIMD_CAST_5(from_, to_)                                                       \
+    template <typename To>                                                               \
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
+        from_ x0, from_ x1, from_ x2, from_ x3, from_ x4,                                \
+        enable_if<std::is_same<To, to_>::value> = nullarg)
+
+#define Vc_SIMD_CAST_6(from_, to_)                                                       \
+    template <typename To>                                                               \
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
+        from_ x0, from_ x1, from_ x2, from_ x3, from_ x4, from_ x5,                      \
+        enable_if<std::is_same<To, to_>::value> = nullarg)
+
+#define Vc_SIMD_CAST_7(from_, to_)                                                       \
+    template <typename To>                                                               \
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
+        from_ x0, from_ x1, from_ x2, from_ x3, from_ x4, from_ x5, from_ x6,            \
+        enable_if<std::is_same<To, to_>::value> = nullarg)
+
+#define Vc_SIMD_CAST_8(from_, to_)                                                       \
+    template <typename To>                                                               \
+    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
+        from_ x0, from_ x1, from_ x2, from_ x3, from_ x4, from_ x5, from_ x6, from_ x7,  \
+        enable_if<std::is_same<To, to_>::value> = nullarg)
+
+#define Vc_SIMD_CAST_OFFSET(from_, to_, offset_)                                         \
+    static_assert(from_::size() >= to_::size() * (offset_ + 1),                          \
                   "this offset cannot exist for this type combination");                 \
     template <typename To, int offset>                                                   \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x,                                                                        \
-        enable_if<(offset == offset__ && std::is_same<To, to__>::value)> = nullarg)
+        from_ x,                                                                         \
+        enable_if<(offset == offset_ && std::is_same<To, to_>::value)> = nullarg)
 
 // Declaration: SSE -> AVX where the AVX Vector is integral and thus of equal size() {{{1
 // as the equivalent SSE Vector
@@ -1095,95 +1094,89 @@ simd_cast(AVX2::Mask<T> x);
 
 // helper macros Vc_SIMD_CAST_AVX_[124] & Vc_SIMD_CAST_[124] {{{1
 #undef Vc_SIMD_CAST_AVX_1
-#define Vc_SIMD_CAST_AVX_1(from__, to__)                                                 \
+#define Vc_SIMD_CAST_AVX_1(from_, to_)                                                   \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(AVX2::from__ x,                                                \
-              enable_if<std::is_same<To, AVX2::to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(AVX2::from_ x,                                    \
+                                       enable_if<std::is_same<To, AVX2::to_>::value>)
 
 #undef Vc_SIMD_CAST_AVX_2
-#define Vc_SIMD_CAST_AVX_2(from__, to__)                                                 \
-    static_assert(AVX2::from__::size() * 2 <= AVX2::to__::size(),                        \
+#define Vc_SIMD_CAST_AVX_2(from_, to_)                                                   \
+    static_assert(AVX2::from_::size() * 2 <= AVX2::to_::size(),                          \
                   "this type combination is wrong");                                     \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(AVX2::from__ x0, AVX2::from__ x1,                  \
-              enable_if<std::is_same<To, AVX2::to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(AVX2::from_ x0, AVX2::from_ x1,                   \
+                                       enable_if<std::is_same<To, AVX2::to_>::value>)
 
 #undef Vc_SIMD_CAST_AVX_3
-#define Vc_SIMD_CAST_AVX_3(from__, to__)                                                 \
+#define Vc_SIMD_CAST_AVX_3(from_, to_)                                                   \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        AVX2::from__ x0, AVX2::from__ x1, AVX2::from__ x2,                               \
-        enable_if<std::is_same<To, AVX2::to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(AVX2::from_ x0, AVX2::from_ x1, AVX2::from_ x2,   \
+                                       enable_if<std::is_same<To, AVX2::to_>::value>)
 
 #undef Vc_SIMD_CAST_AVX_4
-#define Vc_SIMD_CAST_AVX_4(from__, to__)                                                 \
+#define Vc_SIMD_CAST_AVX_4(from_, to_)                                                   \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(AVX2::from__ x0, AVX2::from__ x1,                  \
-              AVX2::from__ x2, AVX2::from__ x3,                  \
-              enable_if<std::is_same<To, AVX2::to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(AVX2::from_ x0, AVX2::from_ x1, AVX2::from_ x2,   \
+                                       AVX2::from_ x3,                                   \
+                                       enable_if<std::is_same<To, AVX2::to_>::value>)
 
 #undef Vc_SIMD_CAST_1
-#define Vc_SIMD_CAST_1(from__, to__)                                                     \
+#define Vc_SIMD_CAST_1(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x, enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x, enable_if<std::is_same<To, to_>::value>)
 
 #undef Vc_SIMD_CAST_2
-#define Vc_SIMD_CAST_2(from__, to__)                                                     \
+#define Vc_SIMD_CAST_2(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x0, from__ x1, enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1,                               \
+                                       enable_if<std::is_same<To, to_>::value>)
 
 #undef Vc_SIMD_CAST_3
-#define Vc_SIMD_CAST_3(from__, to__)                                                     \
+#define Vc_SIMD_CAST_3(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To                                                             \
-    simd_cast(from__ x0, from__ x1, from__ x2, enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1, from_ x2,                     \
+                                       enable_if<std::is_same<To, to_>::value>)
 
 #undef Vc_SIMD_CAST_4
-#define Vc_SIMD_CAST_4(from__, to__)                                                     \
+#define Vc_SIMD_CAST_4(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To simd_cast(from__ x0, from__ x1, from__ x2, from__ x3,       \
-                                       enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1, from_ x2, from_ x3,           \
+                                       enable_if<std::is_same<To, to_>::value>)
 
 #undef Vc_SIMD_CAST_5
-#define Vc_SIMD_CAST_5(from__, to__)                                                     \
+#define Vc_SIMD_CAST_5(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x0, from__ x1, from__ x2, from__ x3, from__ x4,                           \
-        enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1, from_ x2, from_ x3, from_ x4, \
+                                       enable_if<std::is_same<To, to_>::value>)
 
 #undef Vc_SIMD_CAST_6
-#define Vc_SIMD_CAST_6(from__, to__)                                                     \
+#define Vc_SIMD_CAST_6(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x0, from__ x1, from__ x2, from__ x3, from__ x4, from__ x5,                \
-        enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1, from_ x2, from_ x3, from_ x4, \
+                                       from_ x5,                                         \
+                                       enable_if<std::is_same<To, to_>::value>)
 
 #undef Vc_SIMD_CAST_7
-#define Vc_SIMD_CAST_7(from__, to__)                                                     \
+#define Vc_SIMD_CAST_7(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x0, from__ x1, from__ x2, from__ x3, from__ x4, from__ x5, from__ x6,     \
-        enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1, from_ x2, from_ x3, from_ x4, \
+                                       from_ x5, from_ x6,                               \
+                                       enable_if<std::is_same<To, to_>::value>)
 
 #undef Vc_SIMD_CAST_8
-#define Vc_SIMD_CAST_8(from__, to__)                                                     \
+#define Vc_SIMD_CAST_8(from_, to_)                                                       \
     template <typename To>                                                               \
-    Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x0, from__ x1, from__ x2, from__ x3, from__ x4, from__ x5, from__ x6,     \
-        from__ x7, enable_if<std::is_same<To, to__>::value>)
+    Vc_INTRINSIC Vc_CONST To simd_cast(from_ x0, from_ x1, from_ x2, from_ x3, from_ x4, \
+                                       from_ x5, from_ x6, from_ x7,                     \
+                                       enable_if<std::is_same<To, to_>::value>)
 
 #undef Vc_SIMD_CAST_OFFSET
-#define Vc_SIMD_CAST_OFFSET(from__, to__, offset__)                                      \
-    static_assert(from__::size() >= to__::size() * (offset__ + 1),                       \
+#define Vc_SIMD_CAST_OFFSET(from_, to_, offset_)                                         \
+    static_assert(from_::size() >= to_::size() * (offset_ + 1),                          \
                   "this offset cannot exist for this type combination");                 \
     template <typename To, int offset>                                                   \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
-        from__ x, enable_if<(offset == offset__ && std::is_same<To, to__>::value)>)
+        from_ x, enable_if<(offset == offset_ && std::is_same<To, to_>::value)>)
 
 // SSE -> AVX2 where the AVX2 Vector is integral and thus of equal size() as the {{{1
 // equivalent SSE Vector

@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_AVX_VECTOR_H__
-#define VC_AVX_VECTOR_H__
+#ifndef VC_AVX_VECTOR_H_
+#define VC_AVX_VECTOR_H_
 
 #include "intrinsics.h"
 #include "casts.h"
@@ -427,12 +427,12 @@ static_assert(!std::is_convertible<int *  , AVX2::short_v>::value, "An int* shou
 static_assert(!std::is_convertible<short *, AVX2::short_v>::value, "A short* should never implicitly convert to short_v. Something is broken.");
 #endif
 
-#define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
+#define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \
     template <Operator O, typename T, typename M, typename U>                            \
-    Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
+    Vc_INTRINSIC enable_if<O == Operator::name_, void> conditional_assign(               \
         AVX2::Vector<T> &lhs, M &&mask, U &&rhs)                                         \
     {                                                                                    \
-        lhs(mask) op__ rhs;                                                              \
+        lhs(mask) op_ rhs;                                                               \
     }
 Vc_CONDITIONAL_ASSIGN(          Assign,  =)
 Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
@@ -447,12 +447,12 @@ Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
 Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
 #undef Vc_CONDITIONAL_ASSIGN
 
-#define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
+#define Vc_CONDITIONAL_ASSIGN(name_, expr_)                                              \
     template <Operator O, typename T, typename M>                                        \
-    Vc_INTRINSIC enable_if<O == Operator::name__, AVX2::Vector<T>> conditional_assign(   \
+    Vc_INTRINSIC enable_if<O == Operator::name_, AVX2::Vector<T>> conditional_assign(    \
         AVX2::Vector<T> &lhs, M &&mask)                                                  \
     {                                                                                    \
-        return expr__;                                                                   \
+        return expr_;                                                                    \
     }
 Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++)
 Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))
@@ -465,4 +465,4 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 #include "vector.tcc"
 #include "simd_cast.h"
 
-#endif // VC_AVX_VECTOR_H__
+#endif // VC_AVX_VECTOR_H_

@@ -82,15 +82,15 @@ public:
         return ret;
     }
 
-#define Vc_OPERATOR__(op)                                                                \
+#define Vc_OPERATOR_(op)                                                                 \
     template <typename U> Vc_ALWAYS_INLINE void operator op##=(U &&x)                    \
     {                                                                                    \
         operator=(static_cast<V>(*vec op std::forward<U>(x)));                           \
     }
-    Vc_ALL_BINARY(Vc_OPERATOR__)
-    Vc_ALL_ARITHMETICS(Vc_OPERATOR__)
-    Vc_ALL_SHIFTS(Vc_OPERATOR__)
-#undef Vc_OPERATOR__
+    Vc_ALL_BINARY(Vc_OPERATOR_)
+    Vc_ALL_ARITHMETICS(Vc_OPERATOR_)
+    Vc_ALL_SHIFTS(Vc_OPERATOR_)
+#undef Vc_OPERATOR_
 
     Vc_ALWAYS_INLINE void operator=(const V &x)
     {

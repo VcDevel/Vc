@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SSE_VECTOR_H__
-#define VC_SSE_VECTOR_H__
+#ifndef VC_SSE_VECTOR_H_
+#define VC_SSE_VECTOR_H_
 
 #include "../scalar/vector.h"
 #include "intrinsics.h"
@@ -366,12 +366,12 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> abs(Vector<T, VectorAbi::Sse>
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::Mask isinf(const Vector<T, VectorAbi::Sse> &x) { return SSE::VectorHelper<T>::isInfinite(x.data()); }
   template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::Mask isnan(const Vector<T, VectorAbi::Sse> &x) { return SSE::VectorHelper<T>::isNaN(x.data()); }
 
-#define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
+#define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \
     template <Operator O, typename T, typename M, typename U>                            \
-    Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
-        Vector<T, VectorAbi::Sse> &lhs, M &&mask, U &&rhs)                                               \
+    Vc_INTRINSIC enable_if<O == Operator::name_, void> conditional_assign(               \
+        Vector<T, VectorAbi::Sse> &lhs, M &&mask, U &&rhs)                               \
     {                                                                                    \
-        lhs(mask) op__ rhs;                                                              \
+        lhs(mask) op_ rhs;                                                               \
     }
 Vc_CONDITIONAL_ASSIGN(          Assign,  =)
 Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
@@ -386,12 +386,12 @@ Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
 Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
 #undef Vc_CONDITIONAL_ASSIGN
 
-#define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
+#define Vc_CONDITIONAL_ASSIGN(name_, expr_)                                              \
     template <Operator O, typename T, typename M>                                        \
-    Vc_INTRINSIC enable_if<O == Operator::name__, Vector<T, VectorAbi::Sse>> conditional_assign(         \
-        Vector<T, VectorAbi::Sse> &lhs, M &&mask)                                                        \
+    Vc_INTRINSIC enable_if<O == Operator::name_, Vector<T, VectorAbi::Sse>>              \
+    conditional_assign(Vector<T, VectorAbi::Sse> &lhs, M &&mask)                         \
     {                                                                                    \
-        return expr__;                                                                   \
+        return expr_;                                                                    \
     }
 Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++)
 Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))
@@ -404,4 +404,4 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
 #include "vector.tcc"
 #include "simd_cast.h"
 
-#endif // VC_SSE_VECTOR_H__
+#endif // VC_SSE_VECTOR_H_

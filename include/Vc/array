@@ -103,17 +103,17 @@ template <class T, size_t Size> struct array {
      */
     ///@{
     template <typename I>
-    Vc_ALWAYS_INLINE auto operator[](I&& arg__)
-        -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
+    Vc_ALWAYS_INLINE auto operator[](I&& arg_)
+        -> decltype(subscript_operator(*this, std::forward<I>(arg_)))
     {
-        return subscript_operator(*this, std::forward<I>(arg__));
+        return subscript_operator(*this, std::forward<I>(arg_));
     }
 
     template <typename I>
-    Vc_ALWAYS_INLINE auto operator[](I&& arg__) const
-        -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
+    Vc_ALWAYS_INLINE auto operator[](I&& arg_) const
+        -> decltype(subscript_operator(*this, std::forward<I>(arg_)))
     {
-        return subscript_operator(*this, std::forward<I>(arg__));
+        return subscript_operator(*this, std::forward<I>(arg_));
     }
     ///@}
 

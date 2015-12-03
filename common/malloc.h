@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_MALLOC_H_
 #define VC_COMMON_MALLOC_H_
 
-#ifndef Vc_VECTOR_DECLARED__
+#ifndef Vc_VECTOR_DECLARED_
 #error "Incorrect inclusion order. This header must be included from Vc/vector.h only."
 #endif
 

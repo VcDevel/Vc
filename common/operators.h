@@ -55,10 +55,10 @@ template <typename T> constexpr bool isVector()
 
 template <typename T, bool = isIntegral<T>(), bool = isVector<T>()>
 struct MakeUnsignedInternal;
-template <template <typename, typename> class Vector__, typename T, typename Abi>
-struct MakeUnsignedInternal<Vector__<T, Abi>, true, true>
+template <template <typename, typename> class Vector_, typename T, typename Abi>
+struct MakeUnsignedInternal<Vector_<T, Abi>, true, true>
 {
-    using type = Vector__<typename std::make_unsigned<T>::type, Abi>;
+    using type = Vector_<typename std::make_unsigned<T>::type, Abi>;
 };
 template <typename T> struct MakeUnsignedInternal<T, false, true>
 {

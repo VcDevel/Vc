@@ -40,28 +40,28 @@ namespace MIC
 {
 // MIC <-> MIC Vector casts {{{1
 // 1 MIC::Vector to 1 MIC::Vector {{{2
-#define Vc_CAST__(To__)                                                                  \
+#define Vc_CAST_(To_)                                                                    \
     template <typename Return>                                                           \
-    Vc_INTRINSIC Vc_CONST enable_if<std::is_same<Return, To__>::value, Return>
+    Vc_INTRINSIC Vc_CONST enable_if<std::is_same<Return, To_>::value, Return>
 // to int_v {{{3
-Vc_CAST__(   int_v) simd_cast( short_v x) { return x.data(); }
-Vc_CAST__(   int_v) simd_cast(ushort_v x) { return _mm512_and_epi32(x.data(), _mm512_set1_epi32(0xffff)); }
-Vc_CAST__(   int_v) simd_cast(  uint_v x) { return x.data(); }
-Vc_CAST__(   int_v) simd_cast(double_v x) { return _mm512_cvtfxpnt_roundpd_epi32lo(x.data(), _MM_ROUND_MODE_TOWARD_ZERO); }
-Vc_CAST__(   int_v) simd_cast( float_v x) { return _mm512_cvtfxpnt_round_adjustps_epi32(x.data(), _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); }
+Vc_CAST_(   int_v) simd_cast( short_v x) { return x.data(); }
+Vc_CAST_(   int_v) simd_cast(ushort_v x) { return _mm512_and_epi32(x.data(), _mm512_set1_epi32(0xffff)); }
+Vc_CAST_(   int_v) simd_cast(  uint_v x) { return x.data(); }
+Vc_CAST_(   int_v) simd_cast(double_v x) { return _mm512_cvtfxpnt_roundpd_epi32lo(x.data(), _MM_ROUND_MODE_TOWARD_ZERO); }
+Vc_CAST_(   int_v) simd_cast( float_v x) { return _mm512_cvtfxpnt_round_adjustps_epi32(x.data(), _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); }
 
 // to uint_v {{{3
-Vc_CAST__(  uint_v) simd_cast( short_v x) { return x.data(); }
-Vc_CAST__(  uint_v) simd_cast(ushort_v x)
+Vc_CAST_(  uint_v) simd_cast( short_v x) { return x.data(); }
+Vc_CAST_(  uint_v) simd_cast(ushort_v x)
 { return _mm512_and_epi32(x.data(), _mm512_set1_epi32(0xffff)); }
-Vc_CAST__(  uint_v) simd_cast(   int_v x) { return x.data(); }
-Vc_CAST__(  uint_v) simd_cast(double_v x) {
+Vc_CAST_(  uint_v) simd_cast(   int_v x) { return x.data(); }
+Vc_CAST_(  uint_v) simd_cast(double_v x) {
     const auto negative = _mm512_cmplt_pd_mask(x.data(), _mm512_setzero_pd());
     return _mm512_mask_cvtfxpnt_roundpd_epi32lo(
         _mm512_cvtfxpnt_roundpd_epu32lo(x.data(), _MM_ROUND_MODE_TOWARD_ZERO), negative,
         x.data(), _MM_ROUND_MODE_TOWARD_ZERO);
 }
-Vc_CAST__(  uint_v) simd_cast( float_v x) {
+Vc_CAST_(  uint_v) simd_cast( float_v x) {
     const auto negative = _mm512_cmplt_ps_mask(x.data(), _mm512_setzero_ps());
     return _mm512_mask_cvtfxpnt_round_adjustps_epi32(
         _mm512_cvtfxpnt_round_adjustps_epu32(x.data(), _MM_ROUND_MODE_TOWARD_ZERO,
@@ -70,91 +70,91 @@ Vc_CAST__(  uint_v) simd_cast( float_v x) {
 }
 
 // to short_v {{{3
-Vc_CAST__( short_v) simd_cast(ushort_v x) { return _mm512_srai_epi32(_mm512_slli_epi32(x.data(), 16), 16); }
-Vc_CAST__( short_v) simd_cast(   int_v x) { return _mm512_srai_epi32(_mm512_slli_epi32(x.data(), 16), 16); }
-Vc_CAST__( short_v) simd_cast(  uint_v x) { return _mm512_srai_epi32(_mm512_slli_epi32(x.data(), 16), 16); }
-Vc_CAST__( short_v) simd_cast(double_v x) { return _mm512_cvtfxpnt_roundpd_epi32lo(x.data(), _MM_ROUND_MODE_TOWARD_ZERO); }
-Vc_CAST__( short_v) simd_cast( float_v x) { return _mm512_cvtfxpnt_round_adjustps_epi32(x.data(), _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); }
+Vc_CAST_( short_v) simd_cast(ushort_v x) { return _mm512_srai_epi32(_mm512_slli_epi32(x.data(), 16), 16); }
+Vc_CAST_( short_v) simd_cast(   int_v x) { return _mm512_srai_epi32(_mm512_slli_epi32(x.data(), 16), 16); }
+Vc_CAST_( short_v) simd_cast(  uint_v x) { return _mm512_srai_epi32(_mm512_slli_epi32(x.data(), 16), 16); }
+Vc_CAST_( short_v) simd_cast(double_v x) { return _mm512_cvtfxpnt_roundpd_epi32lo(x.data(), _MM_ROUND_MODE_TOWARD_ZERO); }
+Vc_CAST_( short_v) simd_cast( float_v x) { return _mm512_cvtfxpnt_round_adjustps_epi32(x.data(), _MM_ROUND_MODE_TOWARD_ZERO, _MM_EXPADJ_NONE); }
 
 // to ushort_v {{{3
-Vc_CAST__(ushort_v) simd_cast( short_v x) { return x.data(); }
-Vc_CAST__(ushort_v) simd_cast(   int_v x) { return x.data(); }
-Vc_CAST__(ushort_v) simd_cast(  uint_v x) { return x.data(); }
-Vc_CAST__(ushort_v) simd_cast(double_v x) {
+Vc_CAST_(ushort_v) simd_cast( short_v x) { return x.data(); }
+Vc_CAST_(ushort_v) simd_cast(   int_v x) { return x.data(); }
+Vc_CAST_(ushort_v) simd_cast(  uint_v x) { return x.data(); }
+Vc_CAST_(ushort_v) simd_cast(double_v x) {
     // use conversion to epi32 on purpose here! Conversion to epu32 drops negative inputs.
     // And since we convert to 32bit ints the positive values are all covered.
     return _mm512_cvtfxpnt_roundpd_epi32lo(x.data(), _MM_ROUND_MODE_TOWARD_ZERO);
 }
-Vc_CAST__(ushort_v) simd_cast( float_v x) {
+Vc_CAST_(ushort_v) simd_cast( float_v x) {
     // use conversion to epi32 on purpose here! Conversion to epu32 drops negative inputs.
     // And since we convert to 32bit ints the positive values are all covered.
     return _mm512_cvtfxpnt_round_adjustps_epi32(x.data(), _MM_ROUND_MODE_TOWARD_ZERO,
                                                 _MM_EXPADJ_NONE);
 }
 // to float_v {{{3
-Vc_CAST__( float_v) simd_cast(   int_v x) {
+Vc_CAST_( float_v) simd_cast(   int_v x) {
     return _mm512_cvtfxpnt_round_adjustepi32_ps(x.data(), _MM_FROUND_CUR_DIRECTION,
                                                 _MM_EXPADJ_NONE);
 }
-Vc_CAST__( float_v) simd_cast(  uint_v x) {
+Vc_CAST_( float_v) simd_cast(  uint_v x) {
     return _mm512_cvtfxpnt_round_adjustepu32_ps(x.data(), _MM_FROUND_CUR_DIRECTION,
                                                 _MM_EXPADJ_NONE);
 }
-Vc_CAST__( float_v) simd_cast( short_v x) { return simd_cast<float_v>(simd_cast< int_v>(x)); }
-Vc_CAST__( float_v) simd_cast(ushort_v x) { return simd_cast<float_v>(simd_cast<uint_v>(x)); }
-Vc_CAST__( float_v) simd_cast(double_v x) { return _mm512_cvtpd_pslo(x.data()); }
+Vc_CAST_( float_v) simd_cast( short_v x) { return simd_cast<float_v>(simd_cast< int_v>(x)); }
+Vc_CAST_( float_v) simd_cast(ushort_v x) { return simd_cast<float_v>(simd_cast<uint_v>(x)); }
+Vc_CAST_( float_v) simd_cast(double_v x) { return _mm512_cvtpd_pslo(x.data()); }
 // to double_v {{{3
-Vc_CAST__(double_v) simd_cast( float_v x) { return _mm512_cvtpslo_pd(x.data()); }
-Vc_CAST__(double_v) simd_cast(   int_v x) { return _mm512_cvtepi32lo_pd(x.data()); }
-Vc_CAST__(double_v) simd_cast(  uint_v x) { return _mm512_cvtepu32lo_pd(x.data()); }
-Vc_CAST__(double_v) simd_cast( short_v x) { return simd_cast<double_v>(simd_cast< int_v>(x)); }
-Vc_CAST__(double_v) simd_cast(ushort_v x) { return simd_cast<double_v>(simd_cast<uint_v>(x)); }
+Vc_CAST_(double_v) simd_cast( float_v x) { return _mm512_cvtpslo_pd(x.data()); }
+Vc_CAST_(double_v) simd_cast(   int_v x) { return _mm512_cvtepi32lo_pd(x.data()); }
+Vc_CAST_(double_v) simd_cast(  uint_v x) { return _mm512_cvtepu32lo_pd(x.data()); }
+Vc_CAST_(double_v) simd_cast( short_v x) { return simd_cast<double_v>(simd_cast< int_v>(x)); }
+Vc_CAST_(double_v) simd_cast(ushort_v x) { return simd_cast<double_v>(simd_cast<uint_v>(x)); }
 // 2 MIC::Vector to 1 MIC::Vector {{{2
-Vc_CAST__(ushort_v) simd_cast(double_v a, double_v b)
+Vc_CAST_(ushort_v) simd_cast(double_v a, double_v b)
 {
     return _mm512_mask_permute4f128_epi32(
         _mm512_cvtfxpnt_roundpd_epi32lo(a.data(), _MM_ROUND_MODE_TOWARD_ZERO), 0xff00,
         _mm512_cvtfxpnt_roundpd_epi32lo(b.data(), _MM_ROUND_MODE_TOWARD_ZERO),
         _MM_PERM_BABA);
 }
-Vc_CAST__( short_v) simd_cast(double_v a, double_v b)
+Vc_CAST_( short_v) simd_cast(double_v a, double_v b)
 {
     return _mm512_mask_permute4f128_epi32(
         _mm512_cvtfxpnt_roundpd_epi32lo(a.data(), _MM_ROUND_MODE_TOWARD_ZERO), 0xff00,
         _mm512_cvtfxpnt_roundpd_epi32lo(b.data(), _MM_ROUND_MODE_TOWARD_ZERO),
         _MM_PERM_BABA);
 }
-Vc_CAST__(  uint_v) simd_cast(double_v a, double_v b)
+Vc_CAST_(  uint_v) simd_cast(double_v a, double_v b)
 {
     return _mm512_mask_permute4f128_epi32(
         _mm512_cvtfxpnt_roundpd_epu32lo(a.data(), _MM_ROUND_MODE_TOWARD_ZERO), 0xff00,
         _mm512_cvtfxpnt_roundpd_epu32lo(b.data(), _MM_ROUND_MODE_TOWARD_ZERO),
         _MM_PERM_BABA);
 }
-Vc_CAST__(   int_v) simd_cast(double_v a, double_v b)
+Vc_CAST_(   int_v) simd_cast(double_v a, double_v b)
 {
     return _mm512_mask_permute4f128_epi32(
         _mm512_cvtfxpnt_roundpd_epi32lo(a.data(), _MM_ROUND_MODE_TOWARD_ZERO), 0xff00,
         _mm512_cvtfxpnt_roundpd_epi32lo(b.data(), _MM_ROUND_MODE_TOWARD_ZERO),
         _MM_PERM_BABA);
 }
-Vc_CAST__( float_v) simd_cast(double_v a, double_v b)
+Vc_CAST_( float_v) simd_cast(double_v a, double_v b)
 {
     return _mm512_mask_permute4f128_ps(_mm512_cvtpd_pslo(a.data()), 0xff00,
                                        _mm512_cvtpd_pslo(b.data()), _MM_PERM_BABA);
 }
-#undef Vc_CAST__
+#undef Vc_CAST_
 // 1 MIC::Vector to 2 MIC::Vector {{{2
-#define Vc_CAST__(To__, Offset__)                                                        \
+#define Vc_CAST_(To_, Offset_)                                                           \
     template <typename Return, int offset>                                               \
     Vc_INTRINSIC Vc_CONST                                                                \
-        enable_if<std::is_same<Return, To__>::value&& offset == Offset__, Return>
-Vc_CAST__(double_v, 1) simd_cast(ushort_v x) { return simd_cast<double_v>(ushort_v(_mm512_permute4f128_epi32(x.data(), _MM_PERM_DCDC))); }
-Vc_CAST__(double_v, 1) simd_cast( short_v x) { return simd_cast<double_v>( short_v(_mm512_permute4f128_epi32(x.data(), _MM_PERM_DCDC))); }
-Vc_CAST__(double_v, 1) simd_cast(  uint_v x) { return simd_cast<double_v>(  uint_v(_mm512_permute4f128_epi32(x.data(), _MM_PERM_DCDC))); }
-Vc_CAST__(double_v, 1) simd_cast(   int_v x) { return simd_cast<double_v>(   int_v(_mm512_permute4f128_epi32(x.data(), _MM_PERM_DCDC))); }
-Vc_CAST__(double_v, 1) simd_cast( float_v x) { return simd_cast<double_v>( float_v(_mm512_permute4f128_ps(x.data(), _MM_PERM_DCDC))); }
-#undef Vc_CAST__
+        enable_if<std::is_same<Return, To_>::value && offset == Offset_, Return>
+Vc_CAST_(double_v, 1) simd_cast(ushort_v x) { return simd_cast<double_v>(ushort_v(_mm512_permute4f128_epi32(x.data(), _MM_PERM_DCDC))); }
+Vc_CAST_(double_v, 1) simd_cast( short_v x) { return simd_cast<double_v>( short_v(_mm512_permute4f128_epi32(x.data(), _MM_PERM_DCDC))); }
+Vc_CAST_(double_v, 1) simd_cast(  uint_v x) { return simd_cast<double_v>(  uint_v(_mm512_permute4f128_epi32(x.data(), _MM_PERM_DCDC))); }
+Vc_CAST_(double_v, 1) simd_cast(   int_v x) { return simd_cast<double_v>(   int_v(_mm512_permute4f128_epi32(x.data(), _MM_PERM_DCDC))); }
+Vc_CAST_(double_v, 1) simd_cast( float_v x) { return simd_cast<double_v>( float_v(_mm512_permute4f128_ps(x.data(), _MM_PERM_DCDC))); }
+#undef Vc_CAST_
 template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST enable_if<(is_vector<Return>::value && offset == 0), Return>
     simd_cast(Vector<T> x)

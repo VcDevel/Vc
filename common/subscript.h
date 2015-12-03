@@ -64,23 +64,25 @@ public:
 
     /// \internal forward to non-member subscript_operator function
     template <typename I,
-              typename = enable_if<
-                  !std::is_arithmetic<typename std::decay<I>::type>::value>  // arithmetic types
-                                                                             // should always use
-                                                                             // Base::operator[] and
-                                                                             // never match this one
+              typename = enable_if<!std::is_arithmetic<
+                  typename std::decay<I>::type>::value>  // arithmetic types
+                                                         // should always use
+                                                         // Base::operator[] and
+                                                         // never match this one
               >
-    Vc_ALWAYS_INLINE auto operator[](I &&arg__) -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
+    Vc_ALWAYS_INLINE auto operator[](I &&arg_)
+        -> decltype(subscript_operator(*this, std::forward<I>(arg_)))
     {
-        return subscript_operator(*this, std::forward<I>(arg__));
+        return subscript_operator(*this, std::forward<I>(arg_));
     }
 
     // const overload of the above
-    template <typename I,
-              typename = enable_if<!std::is_arithmetic<typename std::decay<I>::type>::value>>
-    Vc_ALWAYS_INLINE auto operator[](I &&arg__) const -> decltype(subscript_operator(*this, std::forward<I>(arg__)))
+    template <typename I, typename = enable_if<
+                              !std::is_arithmetic<typename std::decay<I>::type>::value>>
+    Vc_ALWAYS_INLINE auto operator[](I &&arg_) const
+        -> decltype(subscript_operator(*this, std::forward<I>(arg_)))
     {
-        return subscript_operator(*this, std::forward<I>(arg__));
+        return subscript_operator(*this, std::forward<I>(arg_));
     }
 };
 // apply Scale (std::ratio) functions {{{1

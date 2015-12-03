@@ -217,23 +217,23 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////
     // binary operators
 #ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
-#define Vc_ASSERT__
+#define Vc_ASSERT_
 #else
-#define Vc_ASSERT__                                                                                \
-    static_assert(std::is_integral<T>::value,                                                      \
+#define Vc_ASSERT_                                                                       \
+    static_assert(std::is_integral<T>::value,                                            \
                   "bitwise-operators can only be used with Vectors of integral type")
 #endif
-#define Vc_OP(symbol, fun)                                                                         \
-    Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x)                                           \
-    {                                                                                              \
-        Vc_ASSERT__;                                                                               \
-        d.v() = fun(d.v(), x.d.v());                                                               \
-        return *this;                                                                              \
-    }                                                                                              \
-    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const                                         \
-    {                                                                                              \
-        Vc_ASSERT__;                                                                               \
-        return Vector<T>(fun(d.v(), x.d.v()));                                                     \
+#define Vc_OP(symbol, fun)                                                               \
+    Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x)                                 \
+    {                                                                                    \
+        Vc_ASSERT_;                                                                      \
+        d.v() = fun(d.v(), x.d.v());                                                     \
+        return *this;                                                                    \
+    }                                                                                    \
+    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const                               \
+    {                                                                                    \
+        Vc_ASSERT_;                                                                      \
+        return Vector<T>(fun(d.v(), x.d.v()));                                           \
     }
 
     Vc_OP(%, MIC::mod_<EntryType>)
@@ -418,12 +418,12 @@ Vc_ALWAYS_INLINE Vc_PURE MIC::Vector<T> abs(MIC::Vector<T> x)
         *cos = HT::cos(x.data());
     }
 
-#define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
+#define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \
     template <Operator O, typename T, typename M, typename U>                            \
-    Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
+    Vc_INTRINSIC enable_if<O == Operator::name_, void> conditional_assign(               \
         Vector<T> &lhs, M &&mask, U &&rhs)                                               \
     {                                                                                    \
-        lhs(mask) op__ rhs;                                                              \
+        lhs(mask) op_ rhs;                                                               \
     }
 Vc_CONDITIONAL_ASSIGN(          Assign,  =)
 Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
@@ -438,12 +438,12 @@ Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
 Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
 #undef Vc_CONDITIONAL_ASSIGN
 
-#define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
+#define Vc_CONDITIONAL_ASSIGN(name_, expr_)                                              \
     template <Operator O, typename T, typename M>                                        \
-    Vc_INTRINSIC enable_if<O == Operator::name__, Vector<T>> conditional_assign(         \
+    Vc_INTRINSIC enable_if<O == Operator::name_, Vector<T>> conditional_assign(          \
         Vector<T> &lhs, M &&mask)                                                        \
     {                                                                                    \
-        return expr__;                                                                   \
+        return expr_;                                                                    \
     }
 Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++)
 Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))

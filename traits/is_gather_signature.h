@@ -27,16 +27,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 template <std::size_t, typename... Args> struct is_gather_signature_impl;
-template <std::size_t N__, typename Arg0, typename Arg1, typename... MoreArguments>
-struct is_gather_signature_impl<
-    N__,
-    Arg0,
-    Arg1,
-    MoreArguments...> : public std::integral_constant<bool,
-                                                      has_subscript_operator<Arg0>::value &&
-                                                          !is_loadstoreflag_internal<Arg1>::value&&
-                                                               has_subscript_operator<Arg1>::value>
-{
+template <std::size_t N_, typename Arg0, typename Arg1, typename... MoreArguments>
+struct is_gather_signature_impl<N_, Arg0, Arg1, MoreArguments...>
+    : public std::integral_constant<bool, has_subscript_operator<Arg0>::value &&
+                                              !is_loadstoreflag_internal<Arg1>::value &&
+                                              has_subscript_operator<Arg1>::value> {
 };
 template<typename... Args> struct is_gather_signature_impl<0, Args...> : public std::false_type {};
 template<typename... Args> struct is_gather_signature_impl<1, Args...> : public std::false_type {};

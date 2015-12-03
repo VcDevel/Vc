@@ -219,7 +219,7 @@ constexpr std::size_t VectorAlignment = alignof(VectorAlignedBase);
 constexpr std::size_t MemoryAlignment = alignof(MemoryAlignedBase);
 } // namespace Vc_VERSIONED_NAMESPACE
 
-#define Vc_VECTOR_DECLARED__ 1
+#define Vc_VECTOR_DECLARED_ 1
 
 #include "scalar/helperimpl.h"
 #include "scalar/math.h"

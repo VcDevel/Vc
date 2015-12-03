@@ -276,13 +276,13 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::MemoryAlignment;
 
-#define Vc_CONDITIONAL_ASSIGN(name__, op__)                                              \
+#define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \
     template <Operator O, typename T, typename M, typename U>                            \
-    Vc_INTRINSIC enable_if<O == Operator::name__, void> conditional_assign(              \
+    Vc_INTRINSIC enable_if<O == Operator::name_, void> conditional_assign(               \
         Vector<T, VectorAbi::Scalar> &lhs, M &&mask, U &&rhs)                            \
     {                                                                                    \
         if (mask.isFull()) {                                                             \
-            lhs op__ std::forward<U>(rhs);                                               \
+            lhs op_ std::forward<U>(rhs);                                                \
         }                                                                                \
     }
 Vc_CONDITIONAL_ASSIGN(          Assign,  =)
@@ -298,12 +298,12 @@ Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
 Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
 #undef Vc_CONDITIONAL_ASSIGN
 
-#define Vc_CONDITIONAL_ASSIGN(name__, expr__)                                            \
+#define Vc_CONDITIONAL_ASSIGN(name_, expr_)                                              \
     template <Operator O, typename T, typename M>                                        \
-    Vc_INTRINSIC enable_if<O == Operator::name__, Vector<T, VectorAbi::Scalar>>          \
-        conditional_assign(Vector<T, VectorAbi::Scalar> &lhs, M &&mask)                  \
+    Vc_INTRINSIC enable_if<O == Operator::name_, Vector<T, VectorAbi::Scalar>>           \
+    conditional_assign(Vector<T, VectorAbi::Scalar> &lhs, M &&mask)                      \
     {                                                                                    \
-        return mask.isFull() ? (expr__) : lhs;                                           \
+        return mask.isFull() ? (expr_) : lhs;                                            \
     }
 Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs++)
 Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs)

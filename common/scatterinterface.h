@@ -59,21 +59,25 @@ private:
     inline void scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const;
 
 public:
-    #define Vc_ASSERT_SCATTER_PARAMETER_TYPES__                                                    \
-        static_assert(std::is_convertible<EntryType, MT>::value,                                   \
-                      "The memory pointer needs to point to a type that the EntryType of this "    \
-                      "SIMD vector type can be converted to.");                                    \
-        static_assert(                                                                             \
-            Vc::Traits::has_subscript_operator<IT>::value,                                         \
-            "The indexes argument must be a type that implements the subscript operator.");        \
-        static_assert(!Traits::is_simd_vector<IT>::value || Traits::simd_vector_size<IT>::value >= Size, \
-                      "If you use a SIMD vector for the indexes parameter, the index vector must " \
-                      "have at least as many entries as this SIMD vector.");                       \
-        static_assert(!std::is_array<T>::value ||                                                  \
-                          (std::rank<T>::value == 1 &&                                             \
-                           (std::extent<T>::value == 0 || std::extent<T>::value >= Size)),         \
-                      "If you use a simple array for the indexes parameter, the array must have "  \
-                      "at least as many entries as this SIMD vector.")
+#define Vc_ASSERT_SCATTER_PARAMETER_TYPES_                                               \
+    static_assert(                                                                       \
+        std::is_convertible<EntryType, MT>::value,                                       \
+        "The memory pointer needs to point to a type that the EntryType of this "        \
+        "SIMD vector type can be converted to.");                                        \
+    static_assert(                                                                       \
+        Vc::Traits::has_subscript_operator<IT>::value,                                   \
+        "The indexes argument must be a type that implements the subscript operator.");  \
+    static_assert(                                                                       \
+        !Traits::is_simd_vector<IT>::value ||                                            \
+            Traits::simd_vector_size<IT>::value >= Size,                                 \
+        "If you use a SIMD vector for the indexes parameter, the index vector must "     \
+        "have at least as many entries as this SIMD vector.");                           \
+    static_assert(                                                                       \
+        !std::is_array<T>::value ||                                                      \
+            (std::rank<T>::value == 1 &&                                                 \
+             (std::extent<T>::value == 0 || std::extent<T>::value >= Size)),             \
+        "If you use a simple array for the indexes parameter, the array must have "      \
+        "at least as many entries as this SIMD vector.")
 
     /**
      * \name Scatter functions
@@ -94,7 +98,7 @@ public:
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC void scatter(MT *mem, IT &&indexes) const
     {
-        Vc_ASSERT_SCATTER_PARAMETER_TYPES__;
+        Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
         scatterImplementation(mem, std::forward<IT>(indexes));
     }
 
@@ -104,7 +108,7 @@ public:
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC void scatter(MT *mem, IT &&indexes, MaskArgument mask) const
     {
-        Vc_ASSERT_SCATTER_PARAMETER_TYPES__;
+        Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
         scatterImplementation(mem, std::forward<IT>(indexes), mask);
     }
 
@@ -201,4 +205,4 @@ public:
         scatter(args.address, args.indexes, mask);
     }
     ///@}
-#undef Vc_ASSERT_SCATTER_PARAMETER_TYPES__
+#undef Vc_ASSERT_SCATTER_PARAMETER_TYPES_

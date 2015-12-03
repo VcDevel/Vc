@@ -33,14 +33,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #ifdef Vc_MSVC
-#define Vc_ALIGNED_TYPEDEF(n__, type__, new_type__)                                      \
-    typedef __declspec(align(n__)) type__ new_type__
+#define Vc_ALIGNED_TYPEDEF(n_, type_, new_type_)                                      \
+    typedef __declspec(align(n_)) type_ new_type_
 #elif __GNUC__
-#define Vc_ALIGNED_TYPEDEF(n__, type__, new_type__)                                      \
-    typedef type__ new_type__[[gnu::aligned(n__)]]
+#define Vc_ALIGNED_TYPEDEF(n_, type_, new_type_)                                      \
+    typedef type_ new_type_[[gnu::aligned(n_)]]
 #else  // the following is actually ill-formed according to C++1[14]
-#define Vc_ALIGNED_TYPEDEF(n__, type__, new_type__)                                      \
-    using new_type__ alignas(sizeof(n__)) = type__
+#define Vc_ALIGNED_TYPEDEF(n_, type_, new_type_)                                      \
+    using new_type_ alignas(sizeof(n_)) = type_
 #endif
 
 #ifdef Vc_CLANG
@@ -234,7 +234,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_ALIGNED_PARAMETER(_Type) const _Type
 #endif
 
-#define Vc__make_unique(name) Vc_CAT(Vc__,name,_,__LINE__)
+#define Vc_make_unique(name) Vc_CAT(Vc_,name,_,__LINE__)
 
 #if defined(Vc_ICC) || defined(Vc_CLANG)
 #define Vc_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
@@ -244,7 +244,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_OFFSETOF(Type, member) offsetof(Type, member)
 #endif
 
-#if defined(Vc__NO_NOEXCEPT)
+#if defined(Vc_NO_NOEXCEPT)
 #define Vc_NOEXCEPT throw()
 #else
 #define Vc_NOEXCEPT noexcept

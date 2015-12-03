@@ -475,82 +475,72 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
  */
 #ifdef Vc_ICC
 // ICC barfs on packs of values
-#define Vc_DEFINE_NONTYPE_REPLACETYPES__(ValueType__)                                    \
-    template <template <typename, ValueType__...> class C, typename T,                   \
-              ValueType__ Value0, ValueType__... Values>                                 \
-    struct is_class_template<C<T, Value0, Values...>> : public true_type                 \
-    {                                                                                    \
+#define Vc_DEFINE_NONTYPE_REPLACETYPES_(ValueType_)                                      \
+    template <template <typename, ValueType_...> class C, typename T, ValueType_ Value0, \
+              ValueType_... Values>                                                      \
+    struct is_class_template<C<T, Value0, Values...>> : public true_type {               \
     };                                                                                   \
-    template <template <typename, typename, ValueType__...> class C, typename T0,        \
-              typename T1, ValueType__ Value0, ValueType__... Values>                    \
-    struct is_class_template<C<T0, T1, Value0, Values...>> : public true_type            \
-    {                                                                                    \
+    template <template <typename, typename, ValueType_...> class C, typename T0,         \
+              typename T1, ValueType_ Value0, ValueType_... Values>                      \
+    struct is_class_template<C<T0, T1, Value0, Values...>> : public true_type {          \
     };                                                                                   \
-    template <template <typename, typename, typename, ValueType__...> class C,           \
-              typename T0, typename T1, typename T2, ValueType__ Value0,                 \
-              ValueType__... Values>                                                     \
-    struct is_class_template<C<T0, T1, T2, Value0, Values...>> : public true_type        \
-    {                                                                                    \
+    template <template <typename, typename, typename, ValueType_...> class C,            \
+              typename T0, typename T1, typename T2, ValueType_ Value0,                  \
+              ValueType_... Values>                                                      \
+    struct is_class_template<C<T0, T1, T2, Value0, Values...>> : public true_type {      \
     };                                                                                   \
-    template <template <typename, typename, typename, typename, ValueType__...> class C, \
-              typename T0, typename T1, typename T2, typename T3, ValueType__ Value0,    \
-              ValueType__... Values>                                                     \
-    struct is_class_template<C<T0, T1, T2, T3, Value0, Values...>> : public true_type    \
-    {                                                                                    \
+    template <template <typename, typename, typename, typename, ValueType_...> class C,  \
+              typename T0, typename T1, typename T2, typename T3, ValueType_ Value0,     \
+              ValueType_... Values>                                                      \
+    struct is_class_template<C<T0, T1, T2, T3, Value0, Values...>> : public true_type {  \
     };                                                                                   \
-    template <                                                                           \
-        template <typename, typename, typename, typename, typename, ValueType__...>      \
-        class C, typename T0, typename T1, typename T2, typename T3, typename T4,        \
-        ValueType__ Value0, ValueType__... Values>                                       \
+    template <template <typename, typename, typename, typename, typename, ValueType_...> \
+              class C,                                                                   \
+              typename T0, typename T1, typename T2, typename T3, typename T4,           \
+              ValueType_ Value0, ValueType_... Values>                                   \
     struct is_class_template<C<T0, T1, T2, T3, T4, Value0, Values...>>                   \
-        : public true_type                                                               \
-    {                                                                                    \
+        : public true_type {                                                             \
     };                                                                                   \
     template <template <typename, typename, typename, typename, typename, typename,      \
-                        ValueType__...> class C,                                         \
+                        ValueType_...> class C,                                          \
               typename T0, typename T1, typename T2, typename T3, typename T4,           \
-              typename T5, ValueType__ Value0, ValueType__... Values>                    \
+              typename T5, ValueType_ Value0, ValueType_... Values>                      \
     struct is_class_template<C<T0, T1, T2, T3, T4, T5, Value0, Values...>>               \
-        : public true_type                                                               \
-    {                                                                                    \
+        : public true_type {                                                             \
     };                                                                                   \
     template <template <typename, typename, typename, typename, typename, typename,      \
-                        typename, ValueType__...> class C,                               \
+                        typename, ValueType_...> class C,                                \
               typename T0, typename T1, typename T2, typename T3, typename T4,           \
-              typename T5, typename T6, ValueType__ Value0, ValueType__... Values>       \
+              typename T5, typename T6, ValueType_ Value0, ValueType_... Values>         \
     struct is_class_template<C<T0, T1, T2, T3, T4, T5, T6, Value0, Values...>>           \
-        : public true_type                                                               \
-    {                                                                                    \
+        : public true_type {                                                             \
     };                                                                                   \
-    template <template <typename, ValueType__> class C, typename T0, ValueType__ Value0, \
+    template <template <typename, ValueType_> class C, typename T0, ValueType_ Value0,   \
               size_t N, typename MT>                                                     \
-    struct ReplaceTypes<C<T0, Value0>, N, MT, Category::ClassTemplate>                   \
-    {                                                                                    \
+    struct ReplaceTypes<C<T0, Value0>, N, MT, Category::ClassTemplate> {                 \
         typedef typename SubstituteOneByOne<N, MT, Typelist<>, T0>::type tmp;            \
-        typedef typename tmp::template SubstitutedWithValues<ValueType__, C, Value0>     \
+        typedef typename tmp::template SubstitutedWithValues<ValueType_, C, Value0>      \
             Substituted;                                                                 \
         static constexpr auto NN = tmp::N;                                               \
         typedef conditional_t<is_same<C<T0, Value0>, Substituted>::value, C<T0, Value0>, \
                               Adapter<C<T0, Value0>, Substituted, NN>> type;             \
     };                                                                                   \
-    template <template <typename, typename, ValueType__> class C, typename T0,           \
-              typename T1, ValueType__ Value0, size_t N, typename MT>                    \
-    struct ReplaceTypes<C<T0, T1, Value0>, N, MT, Category::ClassTemplate>               \
-    {                                                                                    \
+    template <template <typename, typename, ValueType_> class C, typename T0,            \
+              typename T1, ValueType_ Value0, size_t N, typename MT>                     \
+    struct ReplaceTypes<C<T0, T1, Value0>, N, MT, Category::ClassTemplate> {             \
         typedef typename SubstituteOneByOne<N, MT, Typelist<>, T0, T1>::type tmp;        \
-        typedef typename tmp::template SubstitutedWithValues<ValueType__, C, Value0>     \
+        typedef typename tmp::template SubstitutedWithValues<ValueType_, C, Value0>      \
             Substituted;                                                                 \
         static constexpr auto NN = tmp::N;                                               \
         typedef conditional_t<is_same<C<T0, T1, Value0>, Substituted>::value,            \
                               C<T0, T1, Value0>,                                         \
                               Adapter<C<T0, T1, Value0>, Substituted, NN>> type;         \
     };                                                                                   \
-    template <template <typename, typename, typename, ValueType__> class C, typename T0, \
-              typename T1, typename T2, ValueType__ Value0, size_t N, typename MT>       \
-    struct ReplaceTypes<C<T0, T1, T2, Value0>, N, MT, Category::ClassTemplate>           \
-    {                                                                                    \
+    template <template <typename, typename, typename, ValueType_> class C, typename T0,  \
+              typename T1, typename T2, ValueType_ Value0, size_t N, typename MT>        \
+    struct ReplaceTypes<C<T0, T1, T2, Value0>, N, MT, Category::ClassTemplate> {         \
         typedef typename SubstituteOneByOne<N, MT, Typelist<>, T0, T1, T2>::type tmp;    \
-        typedef typename tmp::template SubstitutedWithValues<ValueType__, C, Value0>     \
+        typedef typename tmp::template SubstitutedWithValues<ValueType_, C, Value0>      \
             Substituted;                                                                 \
         static constexpr auto NN = tmp::N;                                               \
         typedef conditional_t<is_same<C<T0, T1, T2, Value0>, Substituted>::value,        \
@@ -558,63 +548,63 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
                               Adapter<C<T0, T1, T2, Value0>, Substituted, NN>> type;     \
     }
 #else
-#define Vc_DEFINE_NONTYPE_REPLACETYPES__(ValueType__)                                    \
-    template <template <typename, ValueType__...> class C, typename T,                   \
-              ValueType__ Value0, ValueType__... Values>                                 \
+#define Vc_DEFINE_NONTYPE_REPLACETYPES_(ValueType_)                                      \
+    template <template <typename, ValueType_...> class C, typename T, ValueType_ Value0, \
+              ValueType_... Values>                                                      \
     struct is_class_template<C<T, Value0, Values...>> : public true_type {               \
     };                                                                                   \
-    template <template <typename, typename, ValueType__...> class C, typename T0,        \
-              typename T1, ValueType__ Value0, ValueType__... Values>                    \
+    template <template <typename, typename, ValueType_...> class C, typename T0,         \
+              typename T1, ValueType_ Value0, ValueType_... Values>                      \
     struct is_class_template<C<T0, T1, Value0, Values...>> : public true_type {          \
     };                                                                                   \
-    template <template <typename, typename, typename, ValueType__...> class C,           \
-              typename T0, typename T1, typename T2, ValueType__ Value0,                 \
-              ValueType__... Values>                                                     \
+    template <template <typename, typename, typename, ValueType_...> class C,            \
+              typename T0, typename T1, typename T2, ValueType_ Value0,                  \
+              ValueType_... Values>                                                      \
     struct is_class_template<C<T0, T1, T2, Value0, Values...>> : public true_type {      \
     };                                                                                   \
-    template <template <typename, typename, typename, typename, ValueType__...> class C, \
-              typename T0, typename T1, typename T2, typename T3, ValueType__ Value0,    \
-              ValueType__... Values>                                                     \
+    template <template <typename, typename, typename, typename, ValueType_...> class C,  \
+              typename T0, typename T1, typename T2, typename T3, ValueType_ Value0,     \
+              ValueType_... Values>                                                      \
     struct is_class_template<C<T0, T1, T2, T3, Value0, Values...>> : public true_type {  \
     };                                                                                   \
-    template <template <typename, typename, typename, typename, typename,                \
-                        ValueType__...> class C,                                         \
+    template <template <typename, typename, typename, typename, typename, ValueType_...> \
+              class C,                                                                   \
               typename T0, typename T1, typename T2, typename T3, typename T4,           \
-              ValueType__ Value0, ValueType__... Values>                                 \
+              ValueType_ Value0, ValueType_... Values>                                   \
     struct is_class_template<C<T0, T1, T2, T3, T4, Value0, Values...>>                   \
         : public true_type {                                                             \
     };                                                                                   \
     template <template <typename, typename, typename, typename, typename, typename,      \
-                        ValueType__...> class C,                                         \
+                        ValueType_...> class C,                                          \
               typename T0, typename T1, typename T2, typename T3, typename T4,           \
-              typename T5, ValueType__ Value0, ValueType__... Values>                    \
+              typename T5, ValueType_ Value0, ValueType_... Values>                      \
     struct is_class_template<C<T0, T1, T2, T3, T4, T5, Value0, Values...>>               \
         : public true_type {                                                             \
     };                                                                                   \
     template <template <typename, typename, typename, typename, typename, typename,      \
-                        typename, ValueType__...> class C,                               \
+                        typename, ValueType_...> class C,                                \
               typename T0, typename T1, typename T2, typename T3, typename T4,           \
-              typename T5, typename T6, ValueType__ Value0, ValueType__... Values>       \
+              typename T5, typename T6, ValueType_ Value0, ValueType_... Values>         \
     struct is_class_template<C<T0, T1, T2, T3, T4, T5, T6, Value0, Values...>>           \
         : public true_type {                                                             \
     };                                                                                   \
-    template <template <typename, ValueType__...> class C, typename T0,                  \
-              ValueType__ Value0, ValueType__... Values, size_t N, typename MT>          \
+    template <template <typename, ValueType_...> class C, typename T0,                   \
+              ValueType_ Value0, ValueType_... Values, size_t N, typename MT>            \
     struct ReplaceTypes<C<T0, Value0, Values...>, N, MT, Category::ClassTemplate> {      \
         typedef typename SubstituteOneByOne<N, MT, Typelist<>, T0>::type tmp;            \
-        typedef typename tmp::template SubstitutedWithValues<ValueType__, C, Value0,     \
+        typedef typename tmp::template SubstitutedWithValues<ValueType_, C, Value0,      \
                                                              Values...> Substituted;     \
         static constexpr auto NN = tmp::N;                                               \
         typedef conditional_t<is_same<C<T0, Value0, Values...>, Substituted>::value,     \
                               C<T0, Value0, Values...>,                                  \
                               Adapter<C<T0, Value0, Values...>, Substituted, NN>> type;  \
     };                                                                                   \
-    template <template <typename, typename, ValueType__...> class C, typename T0,        \
-              typename T1, ValueType__ Value0, ValueType__... Values, size_t N,          \
+    template <template <typename, typename, ValueType_...> class C, typename T0,         \
+              typename T1, ValueType_ Value0, ValueType_... Values, size_t N,            \
               typename MT>                                                               \
     struct ReplaceTypes<C<T0, T1, Value0, Values...>, N, MT, Category::ClassTemplate> {  \
         typedef typename SubstituteOneByOne<N, MT, Typelist<>, T0, T1>::type tmp;        \
-        typedef typename tmp::template SubstitutedWithValues<ValueType__, C, Value0,     \
+        typedef typename tmp::template SubstitutedWithValues<ValueType_, C, Value0,      \
                                                              Values...> Substituted;     \
         static constexpr auto NN = tmp::N;                                               \
         typedef conditional_t<is_same<C<T0, T1, Value0, Values...>, Substituted>::value, \
@@ -622,13 +612,13 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
                               Adapter<C<T0, T1, Value0, Values...>, Substituted, NN>>    \
             type;                                                                        \
     };                                                                                   \
-    template <template <typename, typename, typename, ValueType__...> class C,           \
-              typename T0, typename T1, typename T2, ValueType__ Value0,                 \
-              ValueType__... Values, size_t N, typename MT>                              \
+    template <template <typename, typename, typename, ValueType_...> class C,            \
+              typename T0, typename T1, typename T2, ValueType_ Value0,                  \
+              ValueType_... Values, size_t N, typename MT>                               \
     struct ReplaceTypes<C<T0, T1, T2, Value0, Values...>, N, MT,                         \
                         Category::ClassTemplate> {                                       \
         typedef typename SubstituteOneByOne<N, MT, Typelist<>, T0, T1, T2>::type tmp;    \
-        typedef typename tmp::template SubstitutedWithValues<ValueType__, C, Value0,     \
+        typedef typename tmp::template SubstitutedWithValues<ValueType_, C, Value0,      \
                                                              Values...> Substituted;     \
         static constexpr auto NN = tmp::N;                                               \
         typedef conditional_t<                                                           \
@@ -637,20 +627,20 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
             Adapter<C<T0, T1, T2, Value0, Values...>, Substituted, NN>> type;            \
     }
 #endif  // Vc_ICC
-Vc_DEFINE_NONTYPE_REPLACETYPES__(bool);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(wchar_t);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(char);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed char);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned char);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed short);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned short);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed int);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned int);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(  signed long long);
-Vc_DEFINE_NONTYPE_REPLACETYPES__(unsigned long long);
-#undef Vc_DEFINE_NONTYPE_REPLACETYPES__
+Vc_DEFINE_NONTYPE_REPLACETYPES_(bool);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(wchar_t);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(char);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(  signed char);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(unsigned char);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(  signed short);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(unsigned short);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(  signed int);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(unsigned int);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(  signed long);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(unsigned long);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(  signed long long);
+Vc_DEFINE_NONTYPE_REPLACETYPES_(unsigned long long);
+#undef Vc_DEFINE_NONTYPE_REPLACETYPES_
 
 #ifdef Vc_ICC
 // FIXME: find a proper workaround implementation for ICC
@@ -707,16 +697,16 @@ static_assert(is_constructible_with_double_brace<std::array<int, 3>, int, int, i
 #endif
 
 template <size_t I, typename T,
-          typename R = decltype(std::declval<T &>().template vc_get__<I>())>
+          typename R = decltype(std::declval<T &>().template vc_get_<I>())>
 R get_dispatcher(T &x, void * = nullptr)
 {
-    return x.template vc_get__<I>();
+    return x.template vc_get_<I>();
 }
 template <size_t I, typename T,
-          typename R = decltype(std::declval<const T &>().template vc_get__<I>())>
+          typename R = decltype(std::declval<const T &>().template vc_get_<I>())>
 R get_dispatcher(const T &x, void * = nullptr)
 {
-    return x.template vc_get__<I>();
+    return x.template vc_get_<I>();
 }
 template <size_t I, typename T, typename R = decltype(std::get<I>(std::declval<T &>()))>
 R get_dispatcher(T &x, int = 0)
@@ -737,37 +727,38 @@ template <typename Scalar, typename Base, size_t N> class Adapter : public Base
 private:
     /// helper for the broadcast ctor below using double braces for Base initialization
     template <std::size_t... Indexes, typename T>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, T, std::true_type)
-        : Base{{get_dispatcher<Indexes>(x__)...}}
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, T, std::true_type)
+        : Base{{get_dispatcher<Indexes>(x_)...}}
     {
     }
 
     /// helper for the broadcast ctor below using single braces for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, std::true_type,
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, std::true_type,
             std::false_type)
-        : Base{get_dispatcher<Indexes>(x__)...}
+        : Base{get_dispatcher<Indexes>(x_)...}
     {
     }
 
     /// helper for the broadcast ctor below using parenthesis for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x__, std::false_type,
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, std::false_type,
             std::false_type)
-        : Base(get_dispatcher<Indexes>(x__)...)
+        : Base(get_dispatcher<Indexes>(x_)...)
     {
     }
 
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...> seq__, const Scalar &x__)
-        : Adapter(
-              seq__, x__,
-              std::integral_constant<bool, is_constructible_with_single_brace<
-                                               Base, decltype(get_dispatcher<Indexes>(std::declval<
-                                                         const Scalar &>()))...>()>(),
-              std::integral_constant<bool, is_constructible_with_double_brace<
-                                               Base, decltype(get_dispatcher<Indexes>(std::declval<
-                                                         const Scalar &>()))...>()>())
+    Adapter(Vc::index_sequence<Indexes...> seq_, const Scalar &x_)
+        : Adapter(seq_, x_,
+                  std::integral_constant<
+                      bool, is_constructible_with_single_brace<
+                                Base, decltype(get_dispatcher<Indexes>(
+                                          std::declval<const Scalar &>()))...>()>(),
+                  std::integral_constant<
+                      bool, is_constructible_with_double_brace<
+                                Base, decltype(get_dispatcher<Indexes>(
+                                          std::declval<const Scalar &>()))...>()>())
     {
     }
 
@@ -802,8 +793,8 @@ public:
     template <typename U, size_t TupleSize = determine_tuple_size<Scalar>(),
               typename Seq = Vc::make_index_sequence<TupleSize>,
               typename = enable_if<std::is_convertible<U, Scalar>::value>>
-    Adapter(U &&x__)
-        : Adapter(Seq(), static_cast<const Scalar &>(x__))
+    Adapter(U &&x_)
+        : Adapter(Seq(), static_cast<const Scalar &>(x_))
     {
     }
 
@@ -812,28 +803,34 @@ public:
               typename = typename std::enable_if<
                   !Traits::is_index_sequence<A0>::value &&
                   (sizeof...(Args) > 0 || !std::is_convertible<A0, Scalar>::value)>::type>
-    Adapter(A0 &&arg0__, Args &&... arguments__)
-        : Base(std::forward<A0>(arg0__), std::forward<Args>(arguments__)...)
+    Adapter(A0 &&arg0_, Args &&... arguments_)
+        : Base(std::forward<A0>(arg0_), std::forward<Args>(arguments_)...)
     {
     }
 
     /// perfect forward Base constructors that accept an initializer_list
     template <typename T,
               typename = decltype(Base(std::declval<const std::initializer_list<T> &>()))>
-    Adapter(const std::initializer_list<T> &l__)
-        : Base(l__)
+    Adapter(const std::initializer_list<T> &l_)
+        : Base(l_)
     {
     }
 
     /// Overload the new operator to adhere to the alignment requirements which C++11
     /// ignores by default.
-    void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
-    void *operator new(size_t, void *p__) { return p__; }
-    void *operator new[](size_t size) { return Vc::Common::aligned_malloc<alignof(Adapter)>(size); }
-    void *operator new[](size_t , void *p__) { return p__; }
-    void operator delete(void *ptr__, size_t) { Vc::Common::free(ptr__); }
+    void *operator new(size_t size)
+    {
+        return Vc::Common::aligned_malloc<alignof(Adapter)>(size);
+    }
+    void *operator new(size_t, void *p_) { return p_; }
+    void *operator new[](size_t size)
+    {
+        return Vc::Common::aligned_malloc<alignof(Adapter)>(size);
+    }
+    void *operator new[](size_t , void *p_) { return p_; }
+    void operator delete(void *ptr_, size_t) { Vc::Common::free(ptr_); }
     void operator delete(void *, void *) {}
-    void operator delete[](void *ptr__, size_t) { Vc::Common::free(ptr__); }
+    void operator delete[](void *ptr_, size_t) { Vc::Common::free(ptr_); }
     void operator delete[](void *, void *) {}
 };
 
@@ -1678,7 +1675,7 @@ using simdize = SimdizeDetail::simdize<T, N, MT>;
  * Declares functions and constants for introspection by the simdize functions. This
  * allows e.g. conversion between scalar \c T and \c simdize<T>.
  *
- * \param MEMBERS__ The data members of this struct/class listed inside extra parenthesis.
+ * \param MEMBERS_ The data members of this struct/class listed inside extra parenthesis.
  * The extra parenthesis are required because the macro would otherwise see a variable
  * number of arguments.
  *
@@ -1693,19 +1690,19 @@ using simdize = SimdizeDetail::simdize<T, N, MT>;
  *
  * \note You must use this macros in the public section of a class.
  */
-#define Vc_SIMDIZE_INTERFACE(MEMBERS__)                                                  \
-    template <std::size_t N__>                                                           \
-    inline auto vc_get__()->decltype(std::get<N__>(std::tie MEMBERS__))                  \
+#define Vc_SIMDIZE_INTERFACE(MEMBERS_)                                                   \
+    template <std::size_t N_>                                                            \
+    inline auto vc_get_()->decltype(std::get<N_>(std::tie MEMBERS_))                     \
     {                                                                                    \
-        return std::get<N__>(std::tie MEMBERS__);                                        \
+        return std::get<N_>(std::tie MEMBERS_);                                          \
     }                                                                                    \
-    template <std::size_t N__>                                                           \
-    inline auto vc_get__() const->decltype(std::get<N__>(std::tie MEMBERS__))            \
+    template <std::size_t N_>                                                            \
+    inline auto vc_get_() const->decltype(std::get<N_>(std::tie MEMBERS_))               \
     {                                                                                    \
-        return std::get<N__>(std::tie MEMBERS__);                                        \
+        return std::get<N_>(std::tie MEMBERS_);                                          \
     }                                                                                    \
     enum : std::size_t {                                                                 \
-        tuple_size = std::tuple_size<decltype(std::tie MEMBERS__)>::value                \
+        tuple_size = std::tuple_size<decltype(std::tie MEMBERS_)>::value                 \
     }
 
 }  // namespace Vc

@@ -135,9 +135,9 @@ Vc_ALWAYS_INLINE MIC::double_v ldexp(MIC::double_v::AsArg v, MIC::double_v::Inde
     using namespace MIC;
     static_assert(sizeof(_e) >= 32, "");
     static_assert(std::is_same<double_v::IndexType::EntryType, int>::value, "");
-    const auto e__ = _mm512_extload_epi32(&_e, _MM_UPCONV_EPI32_SINT16,
-                                          _MM_BROADCAST32_NONE, _MM_HINT_NONE);
-    __m512i e = _mm512_mask_xor_epi64(e__, (v == double_v::Zero()).data(), e__, e__);
+    const auto e_ = _mm512_extload_epi32(&_e, _MM_UPCONV_EPI32_SINT16,
+                                         _MM_BROADCAST32_NONE, _MM_HINT_NONE);
+    __m512i e = _mm512_mask_xor_epi64(e_, (v == double_v::Zero()).data(), e_, e_);
     const __m512i exponentBits = _mm512_mask_slli_epi32(
         _mm512_setzero_epi32(), 0xaaaa, _mm512_swizzle_epi32(e, _MM_SWIZ_REG_CDAB), 20);
     return mic_cast<__m512d>(_mm512_add_epi32(mic_cast<__m512i>(v.data()), exponentBits));

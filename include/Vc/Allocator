@@ -221,7 +221,7 @@ namespace Vc_VERSIONED_NAMESPACE
         void construct(pointer p) { ::new(p) T(); }
 
         // we still need the C++98 version:
-        void construct(pointer p, const T& __val) { ::new(p) T(__val); }
+        void construct(pointer p, const T& val) { ::new(p) T(val); }
         void destroy(pointer p) { p->~T(); }
 #else
         template<typename U, typename... Args> void construct(U* p, Args&&... args)

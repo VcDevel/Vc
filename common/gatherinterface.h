@@ -116,21 +116,25 @@ private:
     }
 
 public:
-    #define Vc_ASSERT_GATHER_PARAMETER_TYPES__                                                     \
-        static_assert(std::is_convertible<MT, EntryType>::value,                                   \
-                      "The memory pointer needs to point to a type that can be converted to the "  \
-                      "EntryType of this SIMD vector type.");                                      \
-        static_assert(                                                                             \
-            Vc::Traits::has_subscript_operator<IT>::value,                                         \
-            "The indexes argument must be a type that implements the subscript operator.");        \
-        static_assert(!Traits::is_simd_vector<IT>::value || Traits::simd_vector_size<IT>::value >= Size, \
-                      "If you use a SIMD vector for the indexes parameter, the index vector must " \
-                      "have at least as many entries as this SIMD vector.");                       \
-        static_assert(!std::is_array<T>::value ||                                                  \
-                          (std::rank<T>::value == 1 &&                                             \
-                           (std::extent<T>::value == 0 || std::extent<T>::value >= Size)),         \
-                      "If you use a simple array for the indexes parameter, the array must have "  \
-                      "at least as many entries as this SIMD vector.")
+#define Vc_ASSERT_GATHER_PARAMETER_TYPES_                                                \
+    static_assert(                                                                       \
+        std::is_convertible<MT, EntryType>::value,                                       \
+        "The memory pointer needs to point to a type that can be converted to the "      \
+        "EntryType of this SIMD vector type.");                                          \
+    static_assert(                                                                       \
+        Vc::Traits::has_subscript_operator<IT>::value,                                   \
+        "The indexes argument must be a type that implements the subscript operator.");  \
+    static_assert(                                                                       \
+        !Traits::is_simd_vector<IT>::value ||                                            \
+            Traits::simd_vector_size<IT>::value >= Size,                                 \
+        "If you use a SIMD vector for the indexes parameter, the index vector must "     \
+        "have at least as many entries as this SIMD vector.");                           \
+    static_assert(                                                                       \
+        !std::is_array<T>::value ||                                                      \
+            (std::rank<T>::value == 1 &&                                                 \
+             (std::extent<T>::value == 0 || std::extent<T>::value >= Size)),             \
+        "If you use a simple array for the indexes parameter, the array must have "      \
+        "at least as many entries as this SIMD vector.")
 
     /**
      * \name Gather constructors and member functions
@@ -178,7 +182,7 @@ public:
               typename = enable_if<Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes)
     {
-        Vc_ASSERT_GATHER_PARAMETER_TYPES__;
+        Vc_ASSERT_GATHER_PARAMETER_TYPES_;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
     }
 
@@ -187,7 +191,7 @@ public:
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes, MaskArgument mask)
     {
-        Vc_ASSERT_GATHER_PARAMETER_TYPES__;
+        Vc_ASSERT_GATHER_PARAMETER_TYPES_;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
 
@@ -197,7 +201,7 @@ public:
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC void gather(const MT *mem, IT &&indexes)
     {
-        Vc_ASSERT_GATHER_PARAMETER_TYPES__;
+        Vc_ASSERT_GATHER_PARAMETER_TYPES_;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
     }
 
@@ -207,7 +211,7 @@ public:
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
     Vc_INTRINSIC void gather(const MT *mem, IT &&indexes, MaskArgument mask)
     {
-        Vc_ASSERT_GATHER_PARAMETER_TYPES__;
+        Vc_ASSERT_GATHER_PARAMETER_TYPES_;
         gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
     }
 
@@ -374,4 +378,4 @@ public:
     }
     ///@}
 
-#undef Vc_ASSERT_GATHER_PARAMETER_TYPES__
+#undef Vc_ASSERT_GATHER_PARAMETER_TYPES_

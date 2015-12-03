@@ -76,14 +76,14 @@ namespace Vc_VERSIONED_NAMESPACE
         ecx = out[2]; \
         edx = out[3]; \
     } while (false)
-#define Vc_CPUID_C(leaf, ecx__) \
-    do { \
-        int out[4]; \
-        __cpuidex(out, leaf, ecx__); \
-        eax = out[0]; \
-        ebx = out[1]; \
-        ecx = out[2]; \
-        edx = out[3]; \
+#define Vc_CPUID_C(leaf, ecx_)                                                           \
+    do {                                                                                 \
+        int out[4];                                                                      \
+        __cpuidex(out, leaf, ecx_);                                                      \
+        eax = out[0];                                                                    \
+        ebx = out[1];                                                                    \
+        ecx = out[2];                                                                    \
+        edx = out[3];                                                                    \
     } while (false)
 #elif defined(__i386__) && defined(__PIC__)
 // %ebx may be the PIC register.
@@ -101,14 +101,14 @@ static inline void _Vc_cpuid(int leaf, unsigned int &eax, unsigned int &ebx, uns
 #define Vc_CPUID(leaf) \
     ecx = 0; \
     _Vc_cpuid(leaf, eax, ebx, ecx, edx)
-#define Vc_CPUID_C(leaf, ecx__) \
-    ecx = ecx__; \
+#define Vc_CPUID_C(leaf, ecx_)                                                           \
+    ecx = ecx_;                                                                          \
     _Vc_cpuid(leaf, eax, ebx, ecx, edx)
 #else
 #define Vc_CPUID(leaf) \
     __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf))
-#define Vc_CPUID_C(leaf, ecx__) \
-    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf), "c"(ecx__))
+#define Vc_CPUID_C(leaf, ecx_)                                                           \
+    __asm__("cpuid" : "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf), "c"(ecx_))
 #endif
 static unsigned int CpuIdAmdAssociativityTable(int bits)
 {

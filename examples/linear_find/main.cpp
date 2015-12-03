@@ -44,9 +44,9 @@ template <typename T>
 struct less<Vc::Vector<T>>
     : public binary_function<Vc::Vector<T>, Vc::Vector<T>, Vc::Mask<T>>
 {
-    Vc::Mask<T> operator()(const Vc::Vector<T>& __x, const Vc::Vector<T>& __y) const
+    Vc::Mask<T> operator()(const Vc::Vector<T> &x, const Vc::Vector<T> &y) const
     {
-        return __x < __y;
+        return x < y;
     }
 };
 
@@ -55,11 +55,10 @@ struct less<Vc::SimdArray<T, N>>
     : public binary_function<Vc::SimdArray<T, N>, Vc::SimdArray<T, N>,
                              typename Vc::SimdArray<T, N>::mask_type>
 {
-    typename Vc::SimdArray<T, N>::mask_type operator()(const Vc::SimdArray<T, N> &__x,
-                                                       const Vc::SimdArray<T, N> &__y)
-        const
+    typename Vc::SimdArray<T, N>::mask_type operator()(const Vc::SimdArray<T, N> &x,
+                                                       const Vc::SimdArray<T, N> &y) const
     {
-        return __x < __y;
+        return x < y;
     }
 };
 }  // namespace std
