@@ -671,9 +671,9 @@ TEST_TYPES(V, testAtan2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
         ATAN_COMPARE(Vc::atan2(V(T(-0.)), V(T(-3.))), -Pi);
         // If y is +0 (-0) and x is greater than 0, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+0.)), V(T(+3.))), V(T(+0.)));
-        VERIFY(none_of(Vc::atan2(V(T(+0.)), V(T(+3.))).isNegative()));
+        VERIFY(none_of(isnegative(Vc::atan2(V(T(+0.)), V(T(+3.))))));
         COMPARE(Vc::atan2(V(T(-0.)), V(T(+3.))), V(T(-0.)));
-        VERIFY (all_of(Vc::atan2(V(T(-0.)), V(T(+3.))).isNegative()));
+        VERIFY (all_of(isnegative(Vc::atan2(V(T(-0.)), V(T(+3.))))));
         // If y is less than 0 and x is +0 or -0, -pi/2 is returned.
         COMPARE(Vc::atan2(V(T(-3.)), V(T(+0.))), -Pi_2);
         COMPARE(Vc::atan2(V(T(-3.)), V(T(-0.))), -Pi_2);
@@ -690,16 +690,16 @@ TEST_TYPES(V, testAtan2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
         // If y is +0 (-0) and x is +0, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+0.)), V(T(+0.))), V(T(+0.)));
         COMPARE(Vc::atan2(V(T(-0.)), V(T(+0.))), V(T(-0.)));
-        VERIFY(none_of(Vc::atan2(V(T(+0.)), V(T(+0.))).isNegative()));
-        VERIFY( all_of(Vc::atan2(V(T(-0.)), V(T(+0.))).isNegative()));
+        VERIFY(none_of(isnegative(Vc::atan2(V(T(+0.)), V(T(+0.))))));
+        VERIFY( all_of(isnegative(Vc::atan2(V(T(-0.)), V(T(+0.))))));
         // If y is a finite value greater (less) than 0, and x is negative infinity, +pi (-pi) is returned.
         ATAN_COMPARE(Vc::atan2(V(T(+1.)), -inf), +Pi);
         ATAN_COMPARE(Vc::atan2(V(T(-1.)), -inf), -Pi);
         // If y is a finite value greater (less) than 0, and x is positive infinity, +0 (-0) is returned.
         COMPARE(Vc::atan2(V(T(+3.)), +inf), V(T(+0.)));
-        VERIFY(none_of(Vc::atan2(V(T(+3.)), +inf).isNegative()));
+        VERIFY(none_of(isnegative(Vc::atan2(V(T(+3.)), +inf))));
         COMPARE(Vc::atan2(V(T(-3.)), +inf), V(T(-0.)));
-        VERIFY( all_of(Vc::atan2(V(T(-3.)), +inf).isNegative()));
+        VERIFY( all_of(isnegative(Vc::atan2(V(T(-3.)), +inf))));
         // If y is positive infinity (negative infinity), and x is finite, pi/2 (-pi/2) is returned.
         COMPARE(Vc::atan2(+inf, V(T(+3.))), +Pi_2);
         COMPARE(Vc::atan2(-inf, V(T(+3.))), -Pi_2);
@@ -754,10 +754,10 @@ TEST_TYPES(Vec, testReciprocal, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 TEST_TYPES(V, isNegative, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
-    VERIFY(V::One().isNegative().isEmpty());
-    VERIFY(V::Zero().isNegative().isEmpty());
-    VERIFY((-V::One()).isNegative().isFull());
-    VERIFY(V(T(-0.)).isNegative().isFull());
+    VERIFY(isnegative(V::One()).isEmpty());
+    VERIFY(isnegative(V::Zero()).isEmpty());
+    VERIFY(isnegative((-V::One())).isFull());
+    VERIFY(isnegative(V(T(-0.))).isFull());
 }
 
 TEST_TYPES(Vec, testInf, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1

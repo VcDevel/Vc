@@ -235,7 +235,12 @@ template <typename T> class Vector<T, VectorAbi::Sse>
     Vc_OP(<, cmplt)
     Vc_OP(<=, cmple)
 #undef Vc_OP
-        Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
+
+        Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
+            isNegative() const
+        {
+            return Vc::isnegative(*this);
+        }
 
         Vc_ALWAYS_INLINE void assign(const Vector &v, const Mask &mask)
         {

@@ -219,19 +219,26 @@ template<> Vc_INTRINSIC Scalar::double_v Scalar::double_v::Random()
     x.i = state0 | 0x3ff0000000000000ull;
     return Scalar::double_v(x.f - 1.);
 }
-// isNegative {{{1
-template<typename T> Vc_INTRINSIC Vc_PURE typename Vector<T, VectorAbi::Scalar>::Mask Vector<T, VectorAbi::Scalar>::isNegative() const
+// isnegative {{{1
+Vc_INTRINSIC Vc_CONST Scalar::float_m isnegative(Scalar::float_v x)
 {
+    static_assert(sizeof(float) == sizeof(unsigned int),
+                  "This code assumes float and unsigned int have the same number of "
+                  "Bytes. Please file a bug report if this is a problem.");
     union { float f; unsigned int i; } u;
-    u.f = m_data;
-    return Mask(0u != (u.i & 0x80000000u));
+    u.f = x.data();
+    return Scalar::float_m(0u != (u.i & 0x80000000u));
 }
-template<> Vc_INTRINSIC Vc_PURE Scalar::double_m Scalar::double_v::isNegative() const
+Vc_INTRINSIC Vc_CONST Scalar::double_m isnegative(Scalar::double_v x)
 {
+    static_assert(sizeof(double) == sizeof(unsigned long long),
+                  "This code assumes double and unsigned long long have the same number "
+                  "of Bytes. Please file a bug report if this is a problem.");
     union { double d; unsigned long long l; } u;
-    u.d = m_data;
+    u.d = x.data();
     return Scalar::double_m(0ull != (u.l & 0x8000000000000000ull));
 }
+
 // setQnan {{{1
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::setQnan()
 {

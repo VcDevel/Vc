@@ -40,6 +40,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 /**
+ * \ingroup Math
+ * Returns for each vector component whether it stores a negative value.
+ *
+ * \param x The vector of values to check for the sign.
+ * \returns a mask which is \c true only in those components that are negative in \p x.
+ */
+template <typename T, typename Abi>
+Vc_INTRINSIC Vc_CONST typename Vector<T, Abi>::MaskType isnegative(Vector<T, Abi> x)
+{
+    return x < Vector<T, Abi>::Zero();
+}
+
+/**
  * \class Vector types.h <Vc/vector.h>
  * \ingroup Vectors
  *
@@ -439,9 +452,6 @@ public:
 #undef Vc_CMP_OP
     ///@}
 
-    /// Returns for each vector component whether it stores a negative value.
-    inline MaskType isNegative() const;
-
     /// reinterpret_cast the vector components to construct a vector of type \p V2.
     template <typename V2> inline V2 reinterpretCast() const;
 
@@ -687,6 +697,9 @@ public:
 
     /// \name Deprecated Members
     ///@{
+
+    /// \deprecated use Vc::isnegative instead
+    inline Vc_DEPRECATED("use isnegative(x) instead") MaskType isNegative() const;
 
     ///\copydoc size
     ///\deprecated Use Vc::Vector::size instead.

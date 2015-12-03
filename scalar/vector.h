@@ -180,7 +180,11 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         Vc_ALL_COMPARES(Vc_OP)
 #undef Vc_OP
 
-        Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
+        Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
+            isNegative() const
+        {
+            return Vc::isnegative(*this);
+        }
 
         Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector &factor, const Vector &summand) {
             m_data = m_data * factor.data() + summand.data();

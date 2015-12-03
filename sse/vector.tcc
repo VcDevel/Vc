@@ -332,17 +332,18 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// isNegative {{{1
-template<> Vc_INTRINSIC Vc_PURE SSE::float_m SSE::float_v::isNegative() const
+// isnegative {{{1
+Vc_INTRINSIC Vc_CONST SSE::float_m isnegative(SSE::float_v x)
 {
-    return sse_cast<__m128>(_mm_srai_epi32(sse_cast<__m128i>(_mm_and_ps(SSE::_mm_setsignmask_ps(), d.v())), 31));
+    return sse_cast<__m128>(_mm_srai_epi32(
+        sse_cast<__m128i>(_mm_and_ps(SSE::_mm_setsignmask_ps(), x.data())), 31));
 }
-template<> Vc_INTRINSIC Vc_PURE SSE::double_m SSE::double_v::isNegative() const
+Vc_INTRINSIC Vc_CONST SSE::double_m isnegative(SSE::double_v x)
 {
-    return Mem::permute<X1, X1, X3, X3>(sse_cast<__m128>(
-                _mm_srai_epi32(sse_cast<__m128i>(_mm_and_pd(SSE::_mm_setsignmask_pd(), d.v())), 31)
-                ));
+    return Mem::permute<X1, X1, X3, X3>(sse_cast<__m128>(_mm_srai_epi32(
+        sse_cast<__m128i>(_mm_and_pd(SSE::_mm_setsignmask_pd(), x.data())), 31)));
 }
+
 // gathers {{{1
 template <>
 template <typename MT, typename IT>

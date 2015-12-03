@@ -360,16 +360,16 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAb
 #endif
 #undef Vc_OP_IMPL
 
-// isNegative {{{1
-template<> Vc_INTRINSIC Vc_PURE AVX2::float_m AVX2::float_v::isNegative() const
+// isnegative {{{1
+Vc_INTRINSIC Vc_CONST AVX2::float_m isnegative(AVX2::float_v x)
 {
     return AVX::avx_cast<__m256>(AVX::srai_epi32<31>(
-        AVX::avx_cast<__m256i>(_mm256_and_ps(AVX::setsignmask_ps(), d.v()))));
+        AVX::avx_cast<__m256i>(_mm256_and_ps(AVX::setsignmask_ps(), x.data()))));
 }
-template<> Vc_INTRINSIC Vc_PURE AVX2::double_m AVX2::double_v::isNegative() const
+Vc_INTRINSIC Vc_CONST AVX2::double_m isnegative(AVX2::double_v x)
 {
     return Mem::permute<X1, X1, X3, X3>(AVX::avx_cast<__m256>(AVX::srai_epi32<31>(
-        AVX::avx_cast<__m256i>(_mm256_and_pd(AVX::setsignmask_pd(), d.v())))));
+        AVX::avx_cast<__m256i>(_mm256_and_pd(AVX::setsignmask_pd(), x.data())))));
 }
 // gathers {{{1
 template <>

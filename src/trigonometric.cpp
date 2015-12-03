@@ -388,7 +388,7 @@ template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImpleme
 
     const M xZero = x == V::Zero();
     const M yZero = y == V::Zero();
-    const M xMinusZero = xZero && x.isNegative();
+    const M xMinusZero = xZero && isnegative(x);
     const M yNeg = y < V::Zero();
     const M xInf = !isfinite(x);
     const M yInf = !isfinite(y);
@@ -429,7 +429,7 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
 
     const M xZero = x == V::Zero();
     const M yZero = y == V::Zero();
-    const M xMinusZero = xZero && x.isNegative();
+    const M xMinusZero = xZero && isnegative(x);
     const M yNeg = y < V::Zero();
     const M xInf = !isfinite(x);
     const M yInf = !isfinite(y);

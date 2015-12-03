@@ -495,17 +495,18 @@ Vc_INTRINSIC typename Vector<T, VectorAbi::Mic>::EntryType Vector<T, VectorAbi::
 {
     return d.m(index);
 }
-// isNegative {{{1
-template<> Vc_INTRINSIC Vc_PURE MIC::float_m MIC::float_v::isNegative() const
+// isnegative {{{1
+Vc_INTRINSIC Vc_CONST MIC::float_m isnegative(MIC::float_v x)
 {
-    return _mm512_cmpge_epu32_mask(MIC::mic_cast<__m512i>(d.v()),
+    return _mm512_cmpge_epu32_mask(MIC::mic_cast<__m512i>(x.data()),
                                    MIC::_set1(MIC::c_general::signMaskFloat[1]));
 }
-template<> Vc_INTRINSIC Vc_PURE MIC::double_m MIC::double_v::isNegative() const
+Vc_INTRINSIC Vc_CONST MIC::double_m isnegative(MIC::double_v x)
 {
-    return _mm512_cmpge_epu32_mask(MIC::mic_cast<__m512i>(_mm512_cvtpd_pslo(d.v())),
+    return _mm512_cmpge_epu32_mask(MIC::mic_cast<__m512i>(_mm512_cvtpd_pslo(x.data())),
                                    MIC::_set1(MIC::c_general::signMaskFloat[1]));
 }
+
 // ensureVector helper {{{1
 namespace
 {

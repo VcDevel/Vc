@@ -302,7 +302,12 @@ public:
         Vc_OPcmp(<, cmplt)
         Vc_OPcmp(<=, cmple)
 #undef Vc_OPcmp
-        Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
+
+        Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
+            isNegative() const
+        {
+            return Vc::isnegative(*this);
+        }
 
         Vc_ALWAYS_INLINE void assign( const Vector &v, const Mask &mask ) {
             const VectorType k = _cast(mask.data());

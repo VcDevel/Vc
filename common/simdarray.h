@@ -329,7 +329,10 @@ public:
 #undef Vc_COMPARES
 
     /// \copydoc Vector::isNegative
-    Vc_INTRINSIC MaskType isNegative() const { return {data.isNegative()}; }
+    Vc_INTRINSIC Vc_DEPRECATED("use isnegative(x) instead") MaskType isNegative() const
+    {
+        return {isnegative(data)};
+    }
 
     Vc_INTRINSIC decltype(std::declval<vector_type &>()[0]) operator[](std::size_t i)
     {
@@ -767,7 +770,7 @@ public:
     /// \copydoc Vector::isNegative
     Vc_INTRINSIC MaskType isNegative() const
     {
-        return {data0.isNegative(), data1.isNegative()};
+        return {isnegative(data0), isnegative(data1)};
     }
 
     // operator[] {{{2
@@ -1339,6 +1342,7 @@ SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b, const Si
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isfinite)
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isinf)
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isnan)
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isnegative)
 template <typename T, std::size_t N>
 SimdArray<T, N> frexp(const SimdArray<T, N> &x, SimdArray<int, N> *e)
 {
