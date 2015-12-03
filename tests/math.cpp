@@ -435,10 +435,11 @@ TEST_TYPES(V, testLog2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 #else
     UnitTest::setFuzzyness<float>(1);
 #endif
-#if (defined(Vc_MSVC) || defined(__APPLE__)) && defined(Vc_IMPL_Scalar)
-    UnitTest::setFuzzyness<double>(2);
-#else
     UnitTest::setFuzzyness<double>(1);
+#if defined(Vc_MSVC) || defined(__APPLE__)
+    if (Scalar::is_vector<V>::value || !Traits::isAtomicSimdArray<V>::value) {
+        UnitTest::setFuzzyness<double>(2);
+    }
 #endif
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log2>();
@@ -611,7 +612,12 @@ const union {
     float value;
 } INF = { 0x7f800000 };
 
-#if defined(__APPLE__) && defined(Vc_IMPL_Scalar)
+#if defined(__APPLE__)
+// On Mac OS X, std::atan and std::atan2 don't return the special values defined in the
+// Linux man pages (whether it's C99 or POSIX.1-2001 that specifies the special values is
+// not mentioned in the man page). This issue is only relevant for VectorAbi::Scalar. But
+// since the SimdArray types can inclue scalar Vector objects in the odd variants, the
+// tests must use fuzzy compares in all cases on Mac OS X.
 #define ATAN_COMPARE FUZZY_COMPARE
 #else
 #define ATAN_COMPARE COMPARE
