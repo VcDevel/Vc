@@ -583,12 +583,12 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &
 // exponent {{{1
 Vc_INTRINSIC Vc_CONST MIC::float_v exponent(MIC::float_v x)
 {
-    Vc_ASSERT((x >= Zero()).isFull());
-    return _mm512_getexp_ps(x.data()());
+    Vc_ASSERT((x >= x.Zero()).isFull());
+    return _mm512_getexp_ps(x.data());
 }
 Vc_INTRINSIC Vc_CONST MIC::double_v exponent(MIC::double_v x)
 {
-    Vc_ASSERT((x >= Zero()).isFull());
+    Vc_ASSERT((x >= x.Zero()).isFull());
     return _mm512_getexp_pd(x.data());
 }
 
