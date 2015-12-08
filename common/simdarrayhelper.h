@@ -156,7 +156,7 @@ struct Segment<T_ *, Pieces_, Index_> {
     static constexpr size_t Index = Index_;
     using simd_array_type = SimdArray<
         typename std::conditional<Traits::is_simd_vector<type_decayed>::value,
-                                  typename type_decayed::EntryType, float>::type,
+                                  typename type_decayed::VectorEntryType, float>::type,
         type_decayed::size() / Pieces> *;
 
     type data;
