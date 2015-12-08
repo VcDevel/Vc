@@ -426,22 +426,8 @@ public:
 };
 
 // actual_value {{{1
-template <typename Op, typename U> static Vc_INTRINSIC U actual_value(Op, U &&x)
-{
-  return std::forward<U>(x);
-}
 template <typename Op, typename U, std::size_t M, typename V>
 static Vc_INTRINSIC const V &actual_value(Op, const SimdArray<U, M, V, M> &x)
-{
-  return internal_data(x);
-}
-template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC const V &actual_value(Op, SimdArray<U, M, V, M> &x)
-{
-  return internal_data(x);
-}
-template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC const V &actual_value(Op, SimdArray<U, M, V, M> &&x)
 {
   return internal_data(x);
 }
@@ -459,11 +445,6 @@ static Vc_INTRINSIC typename Segment<T, Pieces, Index>::simd_array_type actual_v
 
 template <typename Op, typename U, std::size_t M, typename V>
 static Vc_INTRINSIC const typename V::Mask &actual_value(Op, const SimdMaskArray<U, M, V, M> &x)
-{
-  return internal_data(x);
-}
-template <typename Op, typename U, std::size_t M, typename V>
-static Vc_INTRINSIC const typename V::Mask &actual_value(Op, SimdMaskArray<U, M, V, M> &&x)
 {
   return internal_data(x);
 }
