@@ -223,7 +223,7 @@ public:
     static Vc_INTRINSIC SimdArray fromOperation(Op op, Args &&... args)
     {
         SimdArray r;
-        Common::unpackArgumentsAuto(op, &r.data, std::forward<Args>(args)...);
+        Common::unpackArgumentsAuto(op, r.data, std::forward<Args>(args)...);
         return r;
     }
 

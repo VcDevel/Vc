@@ -45,9 +45,9 @@ struct tag {};
 #define Vc_DEFINE_OPERATION(name_)                                                       \
     struct name_ : public tag {                                                          \
         template <typename V, typename... Args>                                          \
-        Vc_INTRINSIC void operator()(V *v, Args &&... args)                              \
+        Vc_INTRINSIC void operator()(V &v, Args &&... args)                              \
         {                                                                                \
-            v->name_(std::forward<Args>(args)...);                                       \
+            v.name_(std::forward<Args>(args)...);                                        \
         }                                                                                \
     }
 Vc_DEFINE_OPERATION(gather);
@@ -60,25 +60,23 @@ Vc_DEFINE_OPERATION(assign);
 #undef Vc_DEFINE_OPERATION
 #define Vc_DEFINE_OPERATION(name_, code_)                                                \
     struct name_ : public tag {                                                          \
-        template <typename V> Vc_INTRINSIC void operator()(V *v) { code_; }              \
+        template <typename V> Vc_INTRINSIC void operator()(V &v) { code_; }              \
     }
-Vc_DEFINE_OPERATION(increment, ++(*v));
-Vc_DEFINE_OPERATION(decrement, --(*v));
-Vc_DEFINE_OPERATION(random, *v = V::Random());
+Vc_DEFINE_OPERATION(increment, ++(v));
+Vc_DEFINE_OPERATION(decrement, --(v));
+Vc_DEFINE_OPERATION(random, v = V::Random());
 #undef Vc_DEFINE_OPERATION
 #define Vc_DEFINE_OPERATION_FORWARD(name_)                                               \
-    struct Forward_##name_ : public tag {                                                \
-        template <typename... Args>                                                      \
-        Vc_INTRINSIC enable_if<                                                          \
-            !std::is_void<decltype(name_(std::declval<Args>()...))>::value, void>        \
-        operator()(decltype(name_(std::declval<Args>()...)) *v, Args &&... args)         \
+    struct Forward_##name_ : public tag                                                  \
+    {                                                                                    \
+        template <typename... Args, typename = decltype(name_(std::declval<Args>()...))> \
+        Vc_INTRINSIC void operator()(decltype(name_(std::declval<Args>()...)) &v,        \
+                                     Args &&... args)                                    \
         {                                                                                \
-            *v = name_(std::forward<Args>(args)...);                                     \
+            v = name_(std::forward<Args>(args)...);                                      \
         }                                                                                \
-        template <typename... Args>                                                      \
-        Vc_INTRINSIC enable_if<                                                          \
-            std::is_void<decltype(name_(std::declval<Args>()...))>::value, void>         \
-        operator()(std::nullptr_t, Args &&... args)                                      \
+        template <typename... Args, typename = decltype(name_(std::declval<Args>()...))> \
+        Vc_INTRINSIC void operator()(std::nullptr_t, Args && ... args)                   \
         {                                                                                \
             name_(std::forward<Args>(args)...);                                          \
         }                                                                                \
