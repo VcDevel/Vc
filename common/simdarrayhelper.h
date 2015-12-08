@@ -513,9 +513,9 @@ template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes
 Vc_INTRINSIC void unpackArgumentsAutoImpl(float, index_sequence<Indexes...> is, Op op,
                                           R &&r, Args &&... args)
 {
-    static_assert(I < (1 << sizeof...(Args)), "Vc Bug. Please report. Failed to find a "
-                                              "combination of actual_value(arg) "
-                                              "transformations that allows calling Op.");
+    static_assert(I < (1 << sizeof...(Args)),
+                  "Vc or compiler bug. Please report. Failed to find a combination of "
+                  "actual_value(arg) transformations that allows calling Op.");
     unpackArgumentsAutoImpl<I + 1, Op, R, Args...>(int(), is, op, std::forward<R>(r),
                                                    std::forward<Args>(args)...);
 }
