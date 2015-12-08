@@ -510,16 +510,23 @@ template <typename Op, typename Arg> Arg conditionalUnpack(std::false_type, Op, 
 template <size_t A, size_t B, size_t N>
 using selectorType = std::integral_constant<bool, ((A & (1 << B)) != 0)>;
 
+/// workaround for a bug in ICC
+template <typename... Args> static constexpr size_t icc_sizeof_workaround()
+{
+    return sizeof...(Args);
+}
+
 /// ends the recursion, transforms arguments, and calls \p op
 template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
 Vc_INTRINSIC decltype(std::declval<Op &>()(
     std::declval<R &>(),
-    conditionalUnpack(selectorType<I, Indexes, sizeof...(Args)>(), std::declval<Op &>(),
-                      std::declval<Args>())...))
+    conditionalUnpack(selectorType<I, Indexes, icc_sizeof_workaround<Args...>()>(),
+                      std::declval<Op &>(), std::declval<Args>())...))
 unpackArgumentsAutoImpl(int, index_sequence<Indexes...>, Op op, R &&r, Args &&... args)
 {
-    op(std::forward<R>(r), conditionalUnpack(selectorType<I, Indexes, sizeof...(Args)>(),
-                                             op, std::forward<Args>(args))...);
+    op(std::forward<R>(r),
+       conditionalUnpack(selectorType<I, Indexes, icc_sizeof_workaround<Args...>()>(), op,
+                         std::forward<Args>(args))...);
 }
 
 /// the current actual_value calls don't work: recurse to I + 1
