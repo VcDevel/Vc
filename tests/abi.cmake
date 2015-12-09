@@ -51,6 +51,9 @@ endif()
 #######################################################################
 # test Mask<T> ABI
 #######################################################################
+if("${IMPL}" STREQUAL MIC)
+   set(reference "%di,.*%si,") # needs to read from %di and %si
+endif()
 
 execute_process(
    COMMAND ${OBJDUMP} --no-show-raw-insn -dC -j .text ${BINARY}
