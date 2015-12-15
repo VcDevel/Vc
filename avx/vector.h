@@ -403,7 +403,12 @@ public:
 
         template <typename G> static Vc_INTRINSIC_L Vector generate(G gen) Vc_INTRINSIC_R;
 
-        Vc_INTRINSIC_L Vector copySign(AsArg reference) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC Vc_DEPRECATED("use copysign(x, y) instead") Vector
+            copySign(AsArg reference) const
+        {
+            return Vc::copysign(*this, reference);
+        }
+
         Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const
         {
             Vc::exponent(*this);

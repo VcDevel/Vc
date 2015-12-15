@@ -393,12 +393,12 @@ template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImpleme
     const M xInf = !isfinite(x);
     const M yInf = !isfinite(y);
 
-    V a = C::_pi().copySign(y);
+    V a = copysign(C::_pi(), y);
     a.setZero(x >= V::Zero());
 
     // setting x to any finite value will have atan(y/x) return sign(y/x)*pi/2, just in case x is inf
     V _x = x;
-    _x(yInf) = V::One().copySign(x);
+    _x(yInf) = copysign(V::One(), x);
 
     a += atan(y / _x);
 
@@ -406,16 +406,16 @@ template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImpleme
     a.setZero(xZero && yZero);
 
     // for x = -0 we add/subtract pi to get the correct result
-    a(xMinusZero) += C::_pi().copySign(y);
+    a(xMinusZero) += copysign(C::_pi(), y);
 
     // atan2(-Y, +/-0) = -pi/2
     a(xZero && yNeg) = -C::_pi_2();
 
     // if both inputs are inf the output is +/- (3)pi/4
-    a(xInf && yInf) += C::_pi_4().copySign(x ^ ~y);
+    a(xInf && yInf) += copysign(C::_pi_4(), x ^ ~y);
 
     // correct the sign of y if the result is 0
-    a(a == V::Zero()) = a.copySign(y);
+    a(a == V::Zero()) = copysign(a, y);
 
     // any NaN input will lead to NaN output
     a.setQnan(isnan(y) || isnan(x));
@@ -434,12 +434,12 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
     const M xInf = !isfinite(x);
     const M yInf = !isfinite(y);
 
-    V a = V(C::_pi()).copySign(y);
+    V a = copysign(V(C::_pi()), y);
     a.setZero(x >= V::Zero());
 
     // setting x to any finite value will have atan(y/x) return sign(y/x)*pi/2, just in case x is inf
     V _x = x;
-    _x(yInf) = V::One().copySign(x);
+    _x(yInf) = copysign(V::One(), x);
 
     a += atan(y / _x);
 
@@ -447,16 +447,16 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
     a.setZero(xZero && yZero);
 
     // for x = -0 we add/subtract pi to get the correct result
-    a(xMinusZero) += C::_pi().copySign(y);
+    a(xMinusZero) += copysign(C::_pi(), y);
 
     // atan2(-Y, +/-0) = -pi/2
     a(xZero && yNeg) = -C::_pi_2();
 
     // if both inputs are inf the output is +/- (3)pi/4
-    a(xInf && yInf) += C::_pi_4().copySign(x ^ ~y);
+    a(xInf && yInf) += copysign(C::_pi_4(), x ^ ~y);
 
     // correct the sign of y if the result is 0
-    a(a == V::Zero()) = a.copySign(y);
+    a(a == V::Zero()) = copysign(a, y);
 
     // any NaN input will lead to NaN output
     a.setQnan(isnan(y) || isnan(x));

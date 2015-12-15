@@ -26,17 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-
-/**
- * Copies the sign of \p reference.
- *
- * \param reference This values sign bit will be transferred.
- *
- * \return a value where the sign of the value equals the sign of \p reference. I.e.
- * sign(v.copySign(r)) == sign(r).
- */
-inline VECTOR_TYPE copySign(VECTOR_TYPE reference) const;
-
 /**
  * Check the sign bit of each vector entry.
  *

@@ -657,21 +657,6 @@ template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryT
     tmp(m) = *this;
     return tmp.sum();
 }//}}}
-// copySign {{{1
-template<> Vc_INTRINSIC AVX2::float_v AVX2::float_v::copySign(AVX2::float_v::AsArg reference) const
-{
-    return _mm256_or_ps(
-            _mm256_and_ps(reference.d.v(), AVX::setsignmask_ps()),
-            _mm256_and_ps(d.v(), AVX::setabsmask_ps())
-            );
-}
-template<> Vc_INTRINSIC AVX2::double_v AVX2::double_v::copySign(AVX2::double_v::AsArg reference) const
-{
-    return _mm256_or_pd(
-            _mm256_and_pd(reference.d.v(), AVX::setsignmask_pd()),
-            _mm256_and_pd(d.v(), AVX::setabsmask_pd())
-            );
-}//}}}1
 // exponent {{{1
 namespace Detail
 {

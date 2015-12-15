@@ -112,30 +112,6 @@ Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::scatterImplementation(
     }
 }
 
-// copySign {{{1
-template <>
-Vc_INTRINSIC Scalar::float_v Scalar::float_v::copySign(Scalar::float_v reference) const
-{
-    union {
-        float f;
-        unsigned int i;
-    } value, sign;
-    value.f = data();
-    sign.f = reference.data();
-    value.i = (sign.i & 0x80000000u) | (value.i & 0x7fffffffu);
-    return Scalar::float_v{value.f};
-}
-template<> Vc_INTRINSIC Scalar::double_v Scalar::double_v::copySign(Scalar::double_v reference) const
-{
-    union {
-        double f;
-        unsigned long long i;
-    } value, sign;
-    value.f = data();
-    sign.f = reference.data();
-    value.i = (sign.i & 0x8000000000000000ull) | (value.i & 0x7fffffffffffffffull);
-    return Scalar::double_v{value.f};
-} // }}}1
 // bitwise operators {{{1
 #define Vc_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
 template<> Vc_ALWAYS_INLINE VecT &VecT::operator op##=(const VecT &x) { \

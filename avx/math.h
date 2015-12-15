@@ -137,12 +137,19 @@ Vc_ALWAYS_INLINE Vc_PURE AVX2::float_m isnan(const AVX2::float_v &x)
 }
 
 // copysign {{{1
-template <typename T>
-Vc_INTRINSIC AVX2::Vector<T> copysign(AVX2::Vector<T> a, AVX2::Vector<T> b)
+Vc_INTRINSIC Vc_CONST AVX2::float_v copysign(AVX2::float_v mag, AVX2::float_v sign)
 {
-    return a.copySign(b);
+    return _mm256_or_ps(_mm256_and_ps(sign.data(), AVX::setsignmask_ps()),
+                        _mm256_and_ps(mag.data(), AVX::setabsmask_ps()));
+}
+Vc_INTRINSIC Vc_CONST AVX2::double_v copysign(AVX2::double_v::AsArg mag,
+                                              AVX2::double_v::AsArg sign)
+{
+    return _mm256_or_pd(_mm256_and_pd(sign.data(), AVX::setsignmask_pd()),
+                        _mm256_and_pd(mag.data(), AVX::setabsmask_pd()));
 }
 
+//}}}1
 // frexp {{{1
 /**
  * splits \p v into exponent and mantissa, the sign is kept with the mantissa

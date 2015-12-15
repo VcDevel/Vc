@@ -41,6 +41,21 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 /**
  * \ingroup Math
+ * Copies the sign(s) of \p sign to the value(s) in \p magnitude and returns the resulting
+ * vector.
+ *
+ * \param magnitude This vector's magnitude will be used in the return vector.
+ * \param sign This vector's sign bit will be used in the return vector.
+ *
+ * \return a value where the sign of the value equals the sign of \p sign. I.e.
+ * `sign(copysign(v, r)) == sign(r)`.
+ */
+template <typename T, typename Abi,
+          typename = enable_if<std::is_floating_point<T>::value>>
+inline Vector<T, Abi> copysign(Vector<T, Abi> magnitude, Vector<T, Abi> sign);
+
+/**
+ * \ingroup Math
  * Extracts the exponent of each floating-point vector component.
  *
  * \param x The vector of values to check for the sign.
@@ -761,7 +776,8 @@ public:
      *
      * \deprecated Use Vc::copysign instead.
      */
-    inline Vector copySign(Vector reference) const;
+    inline Vc_DEPRECATED("use copysign(x, y) instead") Vector
+        copySign(Vector reference) const;
     ///@}
 private:
     VectorType d;

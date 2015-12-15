@@ -34,12 +34,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE
 {
 // copysign {{{1
-template <typename T>
-Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> copysign(Vector<T, VectorAbi::Mic> a,
-                                                    Vector<T, VectorAbi::Mic> b)
+Vc_INTRINSIC Vc_CONST MIC::float_v copysign(MIC::float_v mag, MIC::float_v sign)
 {
-    return a.copySign(b);
+    return MIC::_or(MIC::_and(sign.d.v(), MIC::_mm512_setsignmask_ps()),
+                    MIC::_and(mag.d.v(), MIC::_mm512_setabsmask_ps()));
 }
+Vc_INTRINSIC Vc_CONST MIC::double_v copysign(MIC::double_v mag, MIC::double_v sign)
+{
+    return MIC::_or(MIC::_and(sign.d.v(), MIC::_mm512_setsignmask_pd()),
+                    MIC::_and(mag.d.v(), MIC::_mm512_setabsmask_pd()));
+}
+
 // trunc {{{1
 template <typename V> Vc_ALWAYS_INLINE V trunc(V v) { return _mm512_trunc_ps(v.data()); }
 Vc_ALWAYS_INLINE MIC::double_v trunc(MIC::double_v v)

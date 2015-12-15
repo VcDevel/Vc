@@ -551,21 +551,6 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// copySign {{{1
-template<> Vc_INTRINSIC Vc_PURE SSE::float_v SSE::float_v::copySign(SSE::float_v::AsArg reference) const
-{
-    return _mm_or_ps(
-            _mm_and_ps(reference.d.v(), SSE::_mm_setsignmask_ps()),
-            _mm_and_ps(d.v(), SSE::_mm_setabsmask_ps())
-            );
-}
-template<> Vc_INTRINSIC Vc_PURE SSE::double_v SSE::double_v::copySign(SSE::double_v::AsArg reference) const
-{
-    return _mm_or_pd(
-            _mm_and_pd(reference.d.v(), SSE::_mm_setsignmask_pd()),
-            _mm_and_pd(d.v(), SSE::_mm_setabsmask_pd())
-            );
-}//}}}1
 // exponent {{{1
 namespace Detail
 {

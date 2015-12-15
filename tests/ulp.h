@@ -105,7 +105,7 @@ template <typename T>
 inline Vc::enable_if<Vc::is_simd_vector<T>::value && Vc::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
     const T &_val, const T &_ref)
 {
-    return ulpDiffToReference(_val, _ref).copySign(_val - _ref);
+    return copysign(ulpDiffToReference(_val, _ref), _val - _ref);
 }
 
 template <typename T>

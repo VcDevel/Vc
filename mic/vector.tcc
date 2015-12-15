@@ -383,17 +383,6 @@ template<> inline double Vector<double>::sum(MaskArgument m) const
     return _mm512_mask_reduce_add_pd(m.data(), data());
 }
 
-// copySign {{{1
-template<> Vc_INTRINSIC MIC::float_v MIC::float_v::copySign(MIC::float_v::AsArg reference) const
-{
-    return MIC::_or(MIC::_and(reference.d.v(), MIC::_mm512_setsignmask_ps()),
-                    MIC::_and(d.v(), MIC::_mm512_setabsmask_ps()));
-}
-template<> Vc_INTRINSIC MIC::double_v MIC::double_v::copySign(MIC::double_v::AsArg reference) const
-{
-    return MIC::_or(MIC::_and(reference.d.v(), MIC::_mm512_setsignmask_pd()),
-                    MIC::_and(d.v(), MIC::_mm512_setabsmask_pd()));
-}//}}}1
 // (u)short compares {{{1
 // only unsigned integers have well-defined behavior on over-/underflow
 template<> Vc_ALWAYS_INLINE MIC::ushort_m MIC::ushort_v::operator==(MIC::ushort_v::AsArg x) const {

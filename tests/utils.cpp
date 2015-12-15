@@ -108,15 +108,6 @@ TEST_TYPES(V, testForeachBit, (ALL_VECTORS))
     }
 }
 
-TEST_TYPES(V, copySign, (Vc::float_v, Vc::double_v))
-{
-    V v(One);
-    V positive(One);
-    V negative = -positive;
-    COMPARE(v, v.copySign(positive));
-    COMPARE(-v, v.copySign(negative));
-}
-
 template<typename T> T add2(T x) { return x + T(2); }
 
 template<typename T, typename V>

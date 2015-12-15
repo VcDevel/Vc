@@ -34,10 +34,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-template <typename T> Vc_ALWAYS_INLINE SSE::Vector<T> copysign(SSE::Vector<T> a, SSE::Vector<T> b)
+// copysign {{{1
+Vc_INTRINSIC Vc_CONST SSE::float_v copysign(SSE::float_v mag, SSE::float_v sign)
 {
-    return a.copySign(b);
+    return _mm_or_ps(_mm_and_ps(sign.data(), SSE::_mm_setsignmask_ps()),
+                     _mm_and_ps(mag.data(), SSE::_mm_setabsmask_ps()));
 }
+Vc_INTRINSIC Vc_CONST SSE::double_v copysign(SSE::double_v mag, SSE::double_v sign)
+{
+    return _mm_or_pd(_mm_and_pd(sign.data(), SSE::_mm_setsignmask_pd()),
+                     _mm_and_pd(mag.data(), SSE::_mm_setabsmask_pd()));
+}
+
+//}}}1
+
 /**
  * splits \p v into exponent and mantissa, the sign is kept with the mantissa
  *

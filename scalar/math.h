@@ -34,10 +34,32 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-template <typename T> Vc_ALWAYS_INLINE Scalar::Vector<T> copysign(Scalar::Vector<T> a, Scalar::Vector<T> b)
+// copysign {{{1
+Vc_INTRINSIC Scalar::float_v copysign(Scalar::float_v mag, Scalar::float_v sign)
 {
-    return a.copySign(b);
+    union {
+        float f;
+        unsigned int i;
+    } value, s;
+    value.f = mag.data();
+    s.f = sign.data();
+    value.i = (s.i & 0x80000000u) | (value.i & 0x7fffffffu);
+    return Scalar::float_v{value.f};
 }
+Vc_INTRINSIC Vc_CONST Scalar::double_v copysign(Scalar::double_v mag,
+                                                Scalar::double_v sign)
+{
+    union {
+        double f;
+        unsigned long long i;
+    } value, s;
+    value.f = mag.data();
+    s.f = sign.data();
+    value.i = (s.i & 0x8000000000000000ull) | (value.i & 0x7fffffffffffffffull);
+    return Scalar::double_v{value.f};
+}
+
+// }}}1
 
 #define Vc_MINMAX(V)                                                                     \
     static Vc_ALWAYS_INLINE Scalar::V min(const Scalar::V &x, const Scalar::V &y)        \
