@@ -1063,6 +1063,17 @@ TEST_TYPES(V, testUlpDiff, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
 }
 
-// TODO: copysign
+// copysign {{{1
+TEST_TYPES(V, testCopysign, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST))
+{
+    const V x = V::Random();
+    const V y = -x;
+    const V z = copysign(x, y);
+    COMPARE(abs(x), abs(z));
+    COMPARE(y > 0, z > 0);
+    COMPARE(z, V::generate([&](int i) { return std::copysign(x[i], y[i]); }));
+}
+
+//}}}1
 
 // vim: foldmethod=marker
