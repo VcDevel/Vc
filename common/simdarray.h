@@ -490,6 +490,7 @@ class alignas(
     static constexpr std::size_t N0 = my_traits::N0;
     static constexpr std::size_t N1 = my_traits::N1;
     using Split = Common::Split<N0>;
+    template <typename U, std::size_t K> using CArray = U[K];
 
 public:
     using storage_type0 = typename my_traits::storage_type0;
@@ -542,6 +543,27 @@ public:
               typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
     explicit Vc_INTRINSIC SimdArray(const U *mem, Flags f = Flags())
         : data0(mem, f), data1(mem + storage_type0::size(), f)
+    {
+    }
+    /**\internal
+     * Load from a C-array. This is basically the same function as the load constructor
+     * above, except that the forwarding reference overload would steal the deal and the
+     * constructor above doesn't get called. This overload is required to enable loads
+     * from C-arrays.
+     */
+    template <typename U, std::size_t Extent, typename Flags = DefaultLoadTag,
+              typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+    explicit Vc_INTRINSIC SimdArray(CArray<U, Extent> &mem, Flags f = Flags())
+        : data0(&mem[0], f), data1(&mem[storage_type0::size()], f)
+    {
+    }
+    /**\internal
+     * Const overload of the above.
+     */
+    template <typename U, std::size_t Extent, typename Flags = DefaultLoadTag,
+              typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+    explicit Vc_INTRINSIC SimdArray(const CArray<U, Extent> &mem, Flags f = Flags())
+        : data0(&mem[0], f), data1(&mem[storage_type0::size()], f)
     {
     }
 
