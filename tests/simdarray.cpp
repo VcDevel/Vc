@@ -170,11 +170,15 @@ TEST_TYPES(V, load, SIMD_ARRAY_LIST)
         }
     }
 
-    V a{ &data[0] };
+    V a(&data[0], Vc::Aligned);
     V b(Vc::IndexesFromZero);
     COMPARE(a, b);
 
-    b.load(&data[0]);
+    a = V(data, Vc::Aligned);  // this is different to the constructor call above since
+                               // the type is T[N] (vs. T *)
+    COMPARE(a, b);
+
+    b.load(&data[0], Vc::Aligned);
     COMPARE(a, b);
 
     a.load(&data[1], Vc::Unaligned);
@@ -226,20 +230,3 @@ TEST_TYPES(V, store, SIMD_ARRAY_LIST)
     a.store(&data[1], Vc::Unaligned | Vc::Streaming);
     for (size_t i = 0; i < V::Size; ++i) COMPARE(data[i + 1], T(i));
 }
-
-
-TEST(load_from_int_array)
-{
-    int array[8]={1,2,3,4,5,6,7,8};
-    {
-      typedef Vc::SimdArray<int, 4> I4_t; // a 4 element int
-      I4_t a(array);
-      for (size_t i = 0; i < I4_t::Size; ++i) COMPARE(a[i], array[i]);
-    }
-    {
-      typedef Vc::SimdArray<int, 2> I2_t; // a 2 element int
-      I2_t a(array);
-      for (size_t i = 0; i < I2_t::Size; ++i) COMPARE(a[i], array[i]);
-    }
-}
-
