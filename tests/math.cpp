@@ -340,6 +340,23 @@ TEST(prepareDenormals) //{{{1
     }
 }
 
+template <typename V, typename F> void testAllDenormals(F &&fun)
+{
+    using T = typename V::EntryType;
+    fun(V(&Denormals<T>::data[0], Vc::Aligned));  // the first one is always aligned.
+    for (auto i = V::Size; i + V::Size <= NDenormals; i += V::Size) {
+        using AlignedLoadTag = typename std::conditional<
+            (V::Size & (V::Size - 1)) == 0,  // if V::Size is even
+            decltype(Vc::Aligned),           // use aligned loads
+            decltype(Vc::Unaligned)          // otherwise use unaliged loads
+            >::type;
+        fun(V(&Denormals<T>::data[i], AlignedLoadTag()));
+    }
+    if (NDenormals % V::Size != 0) {
+        fun(V(&Denormals<T>::data[NDenormals - V::Size], Vc::Unaligned));
+    }
+}
+
 // testAbs{{{1
 TEST_TYPES(Vec, testAbs, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST, int_v, short_v, SimdArray<int, 8>,
                           SimdArray<int, 2>, SimdArray<int, 7>))
@@ -428,11 +445,10 @@ TEST_TYPES(V, testLog, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
 
     COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
-    for (int i = 0; i < NDenormals; i += V::Size) {
-        V x(&Denormals<T>::data[i]);
+    testAllDenormals<V>([](const V x) {
         V ref = x.apply([](T _x) { return std::log(_x); });
-        FUZZY_COMPARE(Vc::log(x), ref) << ", x = " << x << ", i = " << i;
-    }
+        FUZZY_COMPARE(Vc::log(x), ref) << ", x = " << x;
+    });
 }
 
 TEST_TYPES(V, testLog2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
@@ -460,11 +476,10 @@ TEST_TYPES(V, testLog2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
 
     COMPARE(Vc::log2(V::Zero()), V(std::log2(T(0))));
-    for (int i = 0; i < NDenormals; i += V::Size) {
-        V x(&Denormals<T>::data[i]);
+    testAllDenormals<V>([](const V x) {
         V ref = x.apply([](T _x) { return std::log2(_x); });
-        FUZZY_COMPARE(Vc::log2(x), ref) << ", x = " << x << ", i = " << i;
-    }
+        FUZZY_COMPARE(Vc::log2(x), ref) << ", x = " << x;
+    });
 }
 
 TEST_TYPES(V, testLog10, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
@@ -483,11 +498,10 @@ TEST_TYPES(V, testLog10, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
 
     COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
-    for (int i = 0; i < NDenormals; i += V::Size) {
-        V x(&Denormals<T>::data[i]);
+    testAllDenormals<V>([](const V x) {
         V ref = x.apply([](T _x) { return std::log10(_x); });
-        FUZZY_COMPARE(Vc::log10(x), ref) << ", x = " << x << ", i = " << i;
-    }
+        FUZZY_COMPARE(Vc::log10(x), ref) << ", x = " << x;
+    });
 }
 
 TEST_TYPES(Vec, testMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
