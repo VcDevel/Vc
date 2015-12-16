@@ -27,7 +27,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 /*includes {{{*/
 #include "unittest.h"
-#include "mathreference.h"
 #include <Vc/array>
 #include "vectormemoryhelper.h"
 #include <cmath>
@@ -36,8 +35,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <common/macros.h>
 /*}}}*/
 using namespace Vc;
-using Vc::Detail::floatConstant;
-using Vc::Detail::doubleConstant;
 
 // fix isfinite and isnan {{{1
 #ifdef isfinite
@@ -133,21 +130,10 @@ TEST_TYPES(Vec, testMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
     COMPARE(Vc::max(a, b), c);
 }
 
-// fillDataAndReference{{{1
-template <typename V, typename F> void fillDataAndReference(V &data, V &reference, F f)
-{
-    using T = typename V::EntryType;
-    for (size_t i = 0; i < V::Size; ++i) {
-        data[i] = static_cast<T>(i);
-        reference[i] = f(data[i]);
-    }
-}
-
 TEST_TYPES(V, testSqrt, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
-    typedef typename V::EntryType T;
-    V data, reference;
-    fillDataAndReference(data, reference, [](T x) { return std::sqrt(x); });
+    V data = V::IndexesFromZero();
+    V reference = V::generate([&](int i) { return std::sqrt(data[i]); });
 
     FUZZY_COMPARE(Vc::sqrt(data), reference);
 }
@@ -159,207 +145,6 @@ TEST_TYPES(V, testRSqrt, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
         const V x = V::Random() * T(1000);
         // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
         VERIFY(all_of(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12))));
-    }
-}
-
-TEST_TYPES(V, testSincos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
-{
-    typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(1e7);
-    Array<SincosReference<T> > reference = sincosReference<T>();
-    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
-        V x, sref, cref;
-        for (size_t j = 0; j < V::Size; ++j) {
-            x[j] = reference.data[i + j].x;
-            sref[j] = reference.data[i + j].s;
-            cref[j] = reference.data[i + j].c;
-        }
-        V sin, cos;
-        Vc::sincos(x, &sin, &cos);
-        FUZZY_COMPARE(sin, sref) << " x = " << x << ", i = " << i;
-        FUZZY_COMPARE(cos, cref) << " x = " << x << ", i = " << i;
-        Vc::sincos(-x, &sin, &cos);
-        FUZZY_COMPARE(sin, -sref) << " x = " << -x << ", i = " << i;
-        FUZZY_COMPARE(cos, cref) << " x = " << -x << ", i = " << i;
-    }
-}
-
-TEST_TYPES(V, testSin, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
-{
-    typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(1e7);
-    Array<SincosReference<T> > reference = sincosReference<T>();
-    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
-        V x, sref;
-        for (size_t j = 0; j < V::Size; ++j) {
-            x[j] = reference.data[i + j].x;
-            sref[j] = reference.data[i + j].s;
-        }
-        FUZZY_COMPARE(Vc::sin(x), sref) << " x = " << x << ", i = " << i;
-        FUZZY_COMPARE(Vc::sin(-x), -sref) << " x = " << x << ", i = " << i;
-    }
-}
-
-TEST_TYPES(V, testCos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
-{
-    typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(1e7);
-    Array<SincosReference<T> > reference = sincosReference<T>();
-    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
-        V x, cref;
-        for (size_t j = 0; j < V::Size; ++j) {
-            x[j] = reference.data[i + j].x;
-            cref[j] = reference.data[i + j].c;
-        }
-        FUZZY_COMPARE(Vc::cos(x), cref) << " x = " << x << ", i = " << i;
-        FUZZY_COMPARE(Vc::cos(-x), cref) << " x = " << x << ", i = " << i;
-    }
-}
-
-TEST_TYPES(V, testAsin, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
-{
-    typedef typename V::EntryType T;
-#ifdef Vc_IMPL_MIC
-    UnitTest::setFuzzyness<float>(3);
-#else
-    UnitTest::setFuzzyness<float>(2);
-#endif
-    UnitTest::setFuzzyness<double>(36);
-    Array<Reference<T> > reference = referenceData<T, Asin>();
-    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
-        V x, ref;
-        for (size_t j = 0; j < V::Size; ++j) {
-            x[j] = reference.data[i + j].x;
-            ref[j] = reference.data[i + j].ref;
-        }
-        FUZZY_COMPARE(Vc::asin(x), ref) << " x = " << x << ", i = " << i;
-        FUZZY_COMPARE(Vc::asin(-x), -ref) << " -x = " << -x << ", i = " << i;
-    }
-}
-
-const union {
-    unsigned int hex;
-    float value;
-} INF = { 0x7f800000 };
-
-#if defined(__APPLE__)
-// On Mac OS X, std::atan and std::atan2 don't return the special values defined in the
-// Linux man pages (whether it's C99 or POSIX.1-2001 that specifies the special values is
-// not mentioned in the man page). This issue is only relevant for VectorAbi::Scalar. But
-// since the SimdArray types can inclue scalar Vector objects in the odd variants, the
-// tests must use fuzzy compares in all cases on Mac OS X.
-#define ATAN_COMPARE FUZZY_COMPARE
-#else
-#define ATAN_COMPARE COMPARE
-#endif
-
-TEST_TYPES(V, testAtan, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
-{
-    typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(3);
-    UnitTest::setFuzzyness<double>(2);
-
-    {
-        const V Pi_2 = T(doubleConstant<1, 0x921fb54442d18ull,  0>());
-        V nan; nan.setQnan();
-        const V inf = T(INF.value);
-
-        VERIFY(all_of(Vc::isnan(Vc::atan(nan))));
-        ATAN_COMPARE(Vc::atan(+inf), +Pi_2);
-#ifdef Vc_MSVC
-#pragma warning(suppress: 4756) // overflow in constant arithmetic
-#endif
-        ATAN_COMPARE(Vc::atan(-inf), -Pi_2);
-    }
-
-    Array<Reference<T> > reference = referenceData<T, Atan>();
-    for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
-        V x, ref;
-        for (size_t j = 0; j < V::Size; ++j) {
-            x[j] = reference.data[i + j].x;
-            ref[j] = reference.data[i + j].ref;
-        }
-        FUZZY_COMPARE(Vc::atan(x), ref) << " x = " << x << ", i = " << i;
-        FUZZY_COMPARE(Vc::atan(-x), -ref) << " -x = " << -x << ", i = " << i;
-    }
-}
-
-TEST_TYPES(V, testAtan2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
-{
-    typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(3);
-    UnitTest::setFuzzyness<double>(2);
-
-    {
-        const V Pi   = T(doubleConstant<1, 0x921fb54442d18ull,  1>());
-        const V Pi_2 = T(doubleConstant<1, 0x921fb54442d18ull,  0>());
-        V nan; nan.setQnan();
-        const V inf = T(INF.value);
-
-        // If y is +0 (-0) and x is less than 0, +pi (-pi) is returned.
-        ATAN_COMPARE(Vc::atan2(V(T(+0.)), V(T(-3.))), +Pi);
-        ATAN_COMPARE(Vc::atan2(V(T(-0.)), V(T(-3.))), -Pi);
-        // If y is +0 (-0) and x is greater than 0, +0 (-0) is returned.
-        COMPARE(Vc::atan2(V(T(+0.)), V(T(+3.))), V(T(+0.)));
-        VERIFY(none_of(isnegative(Vc::atan2(V(T(+0.)), V(T(+3.))))));
-        COMPARE(Vc::atan2(V(T(-0.)), V(T(+3.))), V(T(-0.)));
-        VERIFY (all_of(isnegative(Vc::atan2(V(T(-0.)), V(T(+3.))))));
-        // If y is less than 0 and x is +0 or -0, -pi/2 is returned.
-        COMPARE(Vc::atan2(V(T(-3.)), V(T(+0.))), -Pi_2);
-        COMPARE(Vc::atan2(V(T(-3.)), V(T(-0.))), -Pi_2);
-        // If y is greater than 0 and x is +0 or -0, pi/2 is returned.
-        COMPARE(Vc::atan2(V(T(+3.)), V(T(+0.))), +Pi_2);
-        COMPARE(Vc::atan2(V(T(+3.)), V(T(-0.))), +Pi_2);
-        // If either x or y is NaN, a NaN is returned.
-        VERIFY(all_of(Vc::isnan(Vc::atan2(nan, V(T(3.))))));
-        VERIFY(all_of(Vc::isnan(Vc::atan2(V(T(3.)), nan))));
-        VERIFY(all_of(Vc::isnan(Vc::atan2(nan, nan))));
-        // If y is +0 (-0) and x is -0, +pi (-pi) is returned.
-        ATAN_COMPARE(Vc::atan2(V(T(+0.)), V(T(-0.))), +Pi);
-        ATAN_COMPARE(Vc::atan2(V(T(-0.)), V(T(-0.))), -Pi);
-        // If y is +0 (-0) and x is +0, +0 (-0) is returned.
-        COMPARE(Vc::atan2(V(T(+0.)), V(T(+0.))), V(T(+0.)));
-        COMPARE(Vc::atan2(V(T(-0.)), V(T(+0.))), V(T(-0.)));
-        VERIFY(none_of(isnegative(Vc::atan2(V(T(+0.)), V(T(+0.))))));
-        VERIFY( all_of(isnegative(Vc::atan2(V(T(-0.)), V(T(+0.))))));
-        // If y is a finite value greater (less) than 0, and x is negative infinity, +pi (-pi) is returned.
-        ATAN_COMPARE(Vc::atan2(V(T(+1.)), -inf), +Pi);
-        ATAN_COMPARE(Vc::atan2(V(T(-1.)), -inf), -Pi);
-        // If y is a finite value greater (less) than 0, and x is positive infinity, +0 (-0) is returned.
-        COMPARE(Vc::atan2(V(T(+3.)), +inf), V(T(+0.)));
-        VERIFY(none_of(isnegative(Vc::atan2(V(T(+3.)), +inf))));
-        COMPARE(Vc::atan2(V(T(-3.)), +inf), V(T(-0.)));
-        VERIFY( all_of(isnegative(Vc::atan2(V(T(-3.)), +inf))));
-        // If y is positive infinity (negative infinity), and x is finite, pi/2 (-pi/2) is returned.
-        COMPARE(Vc::atan2(+inf, V(T(+3.))), +Pi_2);
-        COMPARE(Vc::atan2(-inf, V(T(+3.))), -Pi_2);
-        COMPARE(Vc::atan2(+inf, V(T(-3.))), +Pi_2);
-        COMPARE(Vc::atan2(-inf, V(T(-3.))), -Pi_2);
-#ifndef _WIN32 // the Microsoft implementation of atan2 fails this test
-        const V Pi_4 = T(doubleConstant<1, 0x921fb54442d18ull, -1>());
-        // If y is positive infinity (negative infinity) and x is negative	infinity, +3*pi/4 (-3*pi/4) is returned.
-        COMPARE(Vc::atan2(+inf, -inf), T(+3.) * Pi_4);
-        COMPARE(Vc::atan2(-inf, -inf), T(-3.) * Pi_4);
-        // If y is positive infinity (negative infinity) and x is positive infinity, +pi/4 (-pi/4) is returned.
-        COMPARE(Vc::atan2(+inf, +inf), +Pi_4);
-        COMPARE(Vc::atan2(-inf, +inf), -Pi_4);
-#endif
-    }
-
-    for (int xoffset = -100; xoffset < 54613; xoffset += 47 * V::Size) {
-        for (int yoffset = -100; yoffset < 54613; yoffset += 47 * V::Size) {
-            V data, reference;
-            fillDataAndReference(data, reference, [&](T x) {
-                return std::atan2((x + xoffset) * T(0.15), (x + yoffset) * T(0.15));
-            });
-
-            const V x = (data + xoffset) * T(0.15);
-            const V y = (data + yoffset) * T(0.15);
-            FUZZY_COMPARE(Vc::atan2(x, y), reference) << ", x = " << x << ", y = " << y;
-        }
     }
 }
 
