@@ -38,13 +38,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \ingroup Utilities
  * Contains the version string of the %Vc headers. Same as Vc::versionString().
  */
-#define Vc_VERSION_STRING "1.1.0"
+#define Vc_VERSION_STRING "1.1.79-dev"
 
 /**
  * \ingroup Utilities
  * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
  */
-#define Vc_VERSION_NUMBER 0x010100
+#define Vc_VERSION_NUMBER 0x01019f
 
 /**
  * \ingroup Utilities
