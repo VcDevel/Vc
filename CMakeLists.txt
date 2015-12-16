@@ -293,7 +293,7 @@ if(NOT ROOT_RELEASE)
    include (CTest)
    configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
    if(BUILD_TESTING)
-      add_custom_target(build_tests ALL VERBATIM)
+      add_custom_target(build_tests VERBATIM)
       add_subdirectory(tests)
    endif(BUILD_TESTING)
 
