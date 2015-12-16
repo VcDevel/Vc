@@ -271,7 +271,7 @@ template <typename V, typename Shift> void shiftedInConstant(const V &data, Shif
     }
 }
 
-TEST_TYPES(V, shiftedIn, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(16), SIMD_ARRAYS(17)))
+TEST_TYPES(V, shiftedIn, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(16), SIMD_ODD_ARRAYS(17)))
 {
     constexpr int Size = V::Size;
     const V data = V::Random();
@@ -326,7 +326,7 @@ inline void sfinaeIifIsNotCallable(A &&, B &&, C &&, ...)
 }
 
 TEST_TYPES(V, testIif,
-           (ALL_VECTORS, SIMD_ARRAYS(31), Vc::SimdArray<float, 8, Vc::Scalar::float_v>))
+           (ALL_VECTORS, SIMD_ODD_ARRAYS(31), Vc::SimdArray<float, 8, Vc::Scalar::float_v>))
 {
     typedef typename V::EntryType T;
     const T one = T(1);

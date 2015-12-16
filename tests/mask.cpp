@@ -295,7 +295,7 @@ TEST_TYPES(Vec, testFirstOne, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
-TEST_TYPES(V, shifted, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ARRAYS(31)))/*{{{*/
+TEST_TYPES(V, shifted, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ODD_ARRAYS(31)))/*{{{*/
 {
     using M = typename V::Mask;
     UnitTest::withRandomMask<V>([](const M &reference) {

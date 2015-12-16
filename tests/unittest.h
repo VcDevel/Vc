@@ -1428,7 +1428,13 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
 #define SIMD_INT_ARRAYS(N_)                                                              \
     Vc::SimdArray<int, N_>, Vc::SimdArray<unsigned short, N_>,                           \
         Vc::SimdArray<unsigned int, N_>, Vc::SimdArray<short, N_>
+#if defined Vc_IMPL_MIC
+#define SIMD_INT_ODD_ARRAYS(N_) Vc::SimdArray<int, N_>, Vc::SimdArray<unsigned int, N_>
+#else
+#define SIMD_INT_ODD_ARRAYS(N_) SIMD_INT_ARRAYS(N_)
+#endif
 #define SIMD_ARRAYS(N_) SIMD_REAL_ARRAYS(N_), SIMD_INT_ARRAYS(N_)
+#define SIMD_ODD_ARRAYS(N_) SIMD_REAL_ARRAYS(N_), SIMD_INT_ODD_ARRAYS(N_)
 
 #ifdef UNITTEST_ONLY_XTEST
 #define TEST_ALL_V(V_, fun_) template <typename V_> void fun_()

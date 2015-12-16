@@ -33,7 +33,7 @@ using namespace Vc;
 
 #define SIMD_ARRAY_LIST                                                                            \
     (SIMD_ARRAYS(32),                                                                              \
-     SIMD_ARRAYS(17),                                                                              \
+     SIMD_ODD_ARRAYS(17),                                                                          \
      SIMD_ARRAYS(16),                                                                              \
      SIMD_ARRAYS(9),                                                                               \
      SIMD_ARRAYS(8),                                                                               \

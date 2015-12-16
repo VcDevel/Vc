@@ -64,7 +64,7 @@ using Vc::Detail::doubleConstant;
 #else
 #define SIMD_ARRAY_LIST                                                                  \
     SIMD_ARRAYS(32),                                                                     \
-    SIMD_ARRAYS(19),                                                                     \
+    SIMD_ODD_ARRAYS(19),                                                                 \
     SIMD_ARRAYS(9),                                                                      \
     SIMD_ARRAYS(8),                                                                      \
     SIMD_ARRAYS(5),                                                                      \
@@ -883,23 +883,23 @@ TEST_TYPES(V, testReduceProduct, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
 {
     using T = typename V::EntryType;
     V test = 0;
-    COMPARE(test.product(), T(0));
+    COMPARE(test.product(), T(0)) << "test = " << test;
     test = 1;
-    COMPARE(test.product(), T(1));
+    COMPARE(test.product(), T(1)) << "test = " << test;
     test[0] = 2;
-    COMPARE(test.product(), T(2));
+    COMPARE(test.product(), T(2)) << "test = " << test;
     test[0] = 3;
-    COMPARE(test.product(), T(3));
+    COMPARE(test.product(), T(3)) << "test = " << test;
 
     for (std::size_t i = 0; i + 1 < V::size(); ++i) {
         test[i] = 1;
         test[i + 1] = 5;
-        COMPARE(test.product(), T(5));
+        COMPARE(test.product(), T(5)) << "test = " << test << ", i = " << i;
     }
     for (std::size_t i = 0; i + 2 < V::size(); ++i) {
         test[i] = 1;
         test[i + 1] = 7;
-        COMPARE(test.product(), T(5 * 7));
+        COMPARE(test.product(), T(5 * 7)) << "test = " << test << ", i = " << i;
     }
 }
 

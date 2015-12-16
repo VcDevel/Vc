@@ -272,20 +272,7 @@ TEST_TYPES(Vec, testDiv, ALL_TYPES)
     }
 }
 
-TEST_TYPES(V,
-           testModulo,
-           (SimdArray<unsigned int, 31>,
-            SimdArray<unsigned short, 31>,
-            SimdArray<unsigned int, 32>,
-            SimdArray<unsigned short, 32>,
-            SimdArray<int, 31>,
-            SimdArray<short, 31>,
-            SimdArray<int, 32>,
-            SimdArray<short, 32>,
-            int_v,
-            ushort_v,
-            uint_v,
-            short_v))
+TEST_TYPES(V, testModulo, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), INT_VECTORS))
 {
     using T = typename V::EntryType;
     alignas(static_cast<size_t>(V::MemoryAlignment)) T x_mem[V::size()];
@@ -370,9 +357,7 @@ TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
     }
 }
 
-TEST_TYPES(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v, SimdArray<int, 17>,
-                                     SimdArray<unsigned short, 17>,
-                                     SimdArray<unsigned int, 17>, SimdArray<short, 17>))
+TEST_TYPES(Vec, testOnesComplement, (INT_VECTORS, SIMD_INT_ODD_ARRAYS(17)))
 {
     Vec a(One);
     Vec b = ~a;
