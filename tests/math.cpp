@@ -39,47 +39,6 @@ using namespace Vc;
 using Vc::Detail::floatConstant;
 using Vc::Detail::doubleConstant;
 
-#ifdef Vc_IMPL_Scalar
-#define SIMD_ARRAY_LIST                                                                  \
-    SIMD_ARRAYS(3),                                                                      \
-    SIMD_ARRAYS(1)
-#define SIMD_REAL_ARRAY_LIST                                                             \
-    SIMD_REAL_ARRAYS(3),                                                                 \
-    SIMD_REAL_ARRAYS(1)
-#elif Vc_FLOAT_V_SIZE <= 4
-#define SIMD_ARRAY_LIST                                                                  \
-    SIMD_ARRAYS(19),                                                                     \
-    SIMD_ARRAYS(9),                                                                      \
-    SIMD_ARRAYS(8),                                                                      \
-    SIMD_ARRAYS(5),                                                                      \
-    SIMD_ARRAYS(4),                                                                      \
-    SIMD_ARRAYS(3)
-#define SIMD_REAL_ARRAY_LIST                                                             \
-    SIMD_REAL_ARRAYS(19),                                                                \
-    SIMD_REAL_ARRAYS(9),                                                                 \
-    SIMD_REAL_ARRAYS(8),                                                                 \
-    SIMD_REAL_ARRAYS(5),                                                                 \
-    SIMD_REAL_ARRAYS(4),                                                                 \
-    SIMD_REAL_ARRAYS(3)
-#else
-#define SIMD_ARRAY_LIST                                                                  \
-    SIMD_ARRAYS(32),                                                                     \
-    SIMD_ODD_ARRAYS(19),                                                                 \
-    SIMD_ARRAYS(9),                                                                      \
-    SIMD_ARRAYS(8),                                                                      \
-    SIMD_ARRAYS(5),                                                                      \
-    SIMD_ARRAYS(4),                                                                      \
-    SIMD_ARRAYS(3)
-#define SIMD_REAL_ARRAY_LIST                                                             \
-    SIMD_REAL_ARRAYS(32),                                                                \
-    SIMD_REAL_ARRAYS(19),                                                                \
-    SIMD_REAL_ARRAYS(9),                                                                 \
-    SIMD_REAL_ARRAYS(8),                                                                 \
-    SIMD_REAL_ARRAYS(5),                                                                 \
-    SIMD_REAL_ARRAYS(4),                                                                 \
-    SIMD_REAL_ARRAYS(3)
-#endif
-
 // fix isfinite and isnan {{{1
 #ifdef isfinite
 #undef isfinite
@@ -1031,38 +990,6 @@ TEST_TYPES(V, testLdexp, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 }
 
 #include "ulp.h"
-TEST_TYPES(V, testUlpDiff, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
-{
-    typedef typename V::EntryType T;
-
-    COMPARE(ulpDiffToReference(V::Zero(), V::Zero()), V::Zero());
-    COMPARE(ulpDiffToReference(std::numeric_limits<V>::min(), V::Zero()), V::One());
-    COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
-    for (size_t count = 0; count < 1024 / V::Size; ++count) {
-        const V base = (V::Random() - T(0.5)) * T(1000);
-        typename V::IndexType exp;
-        Vc::frexp(base, &exp);
-        const V eps = ldexp(V(std::numeric_limits<T>::epsilon()), exp - 1);
-        //std::cout << base << ", " << exp << ", " << eps << std::endl;
-        for (int i = -10000; i <= 10000; ++i) {
-            const V i_v = V(T(i));
-            const V diff = base + i_v * eps;
-
-            // if diff and base have a different exponent then ulpDiffToReference has an uncertainty
-            // of +/-1
-            const V ulpDifference = ulpDiffToReference(diff, base);
-            const V expectedDifference = Vc::abs(i_v);
-            const V maxUncertainty = Vc::abs(exponent(abs(diff)) - exponent(abs(base)));
-
-            VERIFY(all_of(Vc::abs(ulpDifference - expectedDifference) <= maxUncertainty))
-                << ", base = " << base << ", epsilon = " << eps << ", diff = " << diff;
-            for (size_t k = 0; k < V::Size; ++k) {
-                VERIFY(std::abs(ulpDifference[k] - expectedDifference[k]) <= maxUncertainty[k]);
-            }
-        }
-    }
-}
-
 // copysign {{{1
 TEST_TYPES(V, testCopysign, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST))
 {

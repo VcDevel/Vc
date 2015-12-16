@@ -31,24 +31,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Vc;
 
-#define SIMD_ARRAY_LIST                                                                            \
-    (SIMD_ARRAYS(32),                                                                              \
-     SIMD_ODD_ARRAYS(17),                                                                          \
-     SIMD_ARRAYS(16),                                                                              \
-     SIMD_ARRAYS(9),                                                                               \
-     SIMD_ARRAYS(8),                                                                               \
-     SIMD_ARRAYS(5),                                                                               \
-     SIMD_ARRAYS(4),                                                                               \
-     SIMD_ARRAYS(3),                                                                               \
-     SIMD_ARRAYS(2),                                                                               \
-     SIMD_ARRAYS(1))
-
 template <typename T, size_t N> constexpr size_t captureN(const SimdArray<T, N> &)
 {
     return N;
 }
 
-TEST_TYPES(V, createArray, SIMD_ARRAY_LIST)
+TEST_TYPES(V, createArray, (SIMD_ARRAY_LIST))
 {
     typedef typename V::VectorEntryType VT;
     V array;
@@ -63,7 +51,7 @@ template <typename T, typename U> constexpr T bound(T x, U max)
     return x > max ? max : x;
 }
 
-TEST_TYPES(V, checkArrayAlignment, SIMD_ARRAY_LIST)
+TEST_TYPES(V, checkArrayAlignment, (SIMD_ARRAY_LIST))
 {
     using T = typename V::value_type;
     using M = typename V::mask_type;
@@ -82,7 +70,7 @@ TEST_TYPES(V, checkArrayAlignment, SIMD_ARRAY_LIST)
     }
 }
 
-TEST_TYPES(V, broadcast, SIMD_ARRAY_LIST)
+TEST_TYPES(V, broadcast, (SIMD_ARRAY_LIST))
 {
     typedef typename V::EntryType T;
     V array = 0;
@@ -94,7 +82,7 @@ TEST_TYPES(V, broadcast, SIMD_ARRAY_LIST)
     COMPARE(V(), V(0));
 }
 
-TEST_TYPES(V, broadcast_equal, SIMD_ARRAY_LIST)
+TEST_TYPES(V, broadcast_equal, (SIMD_ARRAY_LIST))
 {
     V a = 0;
     V b = 0;
@@ -104,7 +92,7 @@ TEST_TYPES(V, broadcast_equal, SIMD_ARRAY_LIST)
     COMPARE(a, b);
 }
 
-TEST_TYPES(V, broadcast_not_equal, SIMD_ARRAY_LIST)
+TEST_TYPES(V, broadcast_not_equal, (SIMD_ARRAY_LIST))
 {
     V a = 0;
     V b = 1;
@@ -118,7 +106,7 @@ TEST_TYPES(V, broadcast_not_equal, SIMD_ARRAY_LIST)
     VERIFY(all_of(a >= b));
 }
 
-TEST_TYPES(V, arithmetics, SIMD_ARRAY_LIST)
+TEST_TYPES(V, arithmetics, (SIMD_ARRAY_LIST))
 {
     V a = 0;
     V b = 1;
@@ -136,7 +124,7 @@ TEST_TYPES(V, arithmetics, SIMD_ARRAY_LIST)
     COMPARE(c / b, c);
 }
 
-TEST_TYPES(V, indexesFromZero, SIMD_ARRAY_LIST)
+TEST_TYPES(V, indexesFromZero, (SIMD_ARRAY_LIST))
 {
     typedef typename V::EntryType T;
     V a(Vc::IndexesFromZero);
@@ -159,7 +147,7 @@ TEST_TYPES(V, indexesFromZero, SIMD_ARRAY_LIST)
     }
 }
 
-TEST_TYPES(V, load, SIMD_ARRAY_LIST)
+TEST_TYPES(V, load, (SIMD_ARRAY_LIST))
 {
     typedef typename V::EntryType T;
     alignas(static_cast<size_t>(V::MemoryAlignment)) T data[V::Size + 2];
@@ -215,7 +203,7 @@ TEST_TYPES(A,
     COMPARE(a, b + 1);
 }
 
-TEST_TYPES(V, store, SIMD_ARRAY_LIST)
+TEST_TYPES(V, store, (SIMD_ARRAY_LIST))
 {
     using T = typename V::EntryType;
     alignas(static_cast<size_t>(V::MemoryAlignment)) T data[34] = {};

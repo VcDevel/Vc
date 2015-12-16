@@ -1435,6 +1435,46 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
 #endif
 #define SIMD_ARRAYS(N_) SIMD_REAL_ARRAYS(N_), SIMD_INT_ARRAYS(N_)
 #define SIMD_ODD_ARRAYS(N_) SIMD_REAL_ARRAYS(N_), SIMD_INT_ODD_ARRAYS(N_)
+#ifdef Vc_IMPL_Scalar
+#define SIMD_ARRAY_LIST                                                                  \
+    SIMD_ARRAYS(3),                                                                      \
+    SIMD_ARRAYS(1)
+#define SIMD_REAL_ARRAY_LIST                                                             \
+    SIMD_REAL_ARRAYS(3),                                                                 \
+    SIMD_REAL_ARRAYS(1)
+#elif Vc_FLOAT_V_SIZE <= 4
+#define SIMD_ARRAY_LIST                                                                  \
+    SIMD_ODD_ARRAYS(19),                                                                 \
+    SIMD_ARRAYS(9),                                                                      \
+    SIMD_ARRAYS(8),                                                                      \
+    SIMD_ARRAYS(5),                                                                      \
+    SIMD_ARRAYS(4),                                                                      \
+    SIMD_ARRAYS(3)
+#define SIMD_REAL_ARRAY_LIST                                                             \
+    SIMD_REAL_ARRAYS(19),                                                                \
+    SIMD_REAL_ARRAYS(9),                                                                 \
+    SIMD_REAL_ARRAYS(8),                                                                 \
+    SIMD_REAL_ARRAYS(5),                                                                 \
+    SIMD_REAL_ARRAYS(4),                                                                 \
+    SIMD_REAL_ARRAYS(3)
+#else
+#define SIMD_ARRAY_LIST                                                                  \
+    SIMD_ARRAYS(32),                                                                     \
+    SIMD_ODD_ARRAYS(19),                                                                 \
+    SIMD_ARRAYS(9),                                                                      \
+    SIMD_ARRAYS(8),                                                                      \
+    SIMD_ARRAYS(5),                                                                      \
+    SIMD_ARRAYS(4),                                                                      \
+    SIMD_ARRAYS(3)
+#define SIMD_REAL_ARRAY_LIST                                                             \
+    SIMD_REAL_ARRAYS(32),                                                                \
+    SIMD_REAL_ARRAYS(19),                                                                \
+    SIMD_REAL_ARRAYS(9),                                                                 \
+    SIMD_REAL_ARRAYS(8),                                                                 \
+    SIMD_REAL_ARRAYS(5),                                                                 \
+    SIMD_REAL_ARRAYS(4),                                                                 \
+    SIMD_REAL_ARRAYS(3)
+#endif
 
 #ifdef UNITTEST_ONLY_XTEST
 #define TEST_ALL_V(V_, fun_) template <typename V_> void fun_()
