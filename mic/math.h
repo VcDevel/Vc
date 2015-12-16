@@ -36,13 +36,13 @@ namespace Vc_VERSIONED_NAMESPACE
 // copysign {{{1
 Vc_INTRINSIC Vc_CONST MIC::float_v copysign(MIC::float_v mag, MIC::float_v sign)
 {
-    return MIC::_or(MIC::_and(sign.d.v(), MIC::_mm512_setsignmask_ps()),
-                    MIC::_and(mag.d.v(), MIC::_mm512_setabsmask_ps()));
+    return MIC::_or(MIC::_and(sign.data(), MIC::_mm512_setsignmask_ps()),
+                    MIC::_and(mag.data(), MIC::_mm512_setabsmask_ps()));
 }
 Vc_INTRINSIC Vc_CONST MIC::double_v copysign(MIC::double_v mag, MIC::double_v sign)
 {
-    return MIC::_or(MIC::_and(sign.d.v(), MIC::_mm512_setsignmask_pd()),
-                    MIC::_and(mag.d.v(), MIC::_mm512_setabsmask_pd()));
+    return MIC::_or(MIC::_and(sign.data(), MIC::_mm512_setsignmask_pd()),
+                    MIC::_and(mag.data(), MIC::_mm512_setabsmask_pd()));
 }
 
 // trunc {{{1
