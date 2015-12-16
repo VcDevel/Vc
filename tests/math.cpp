@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cmath>
 #include <algorithm>
 #include <common/const.h>
-#include <common/macros.h>
 /*}}}*/
 using namespace Vc;
 
@@ -241,82 +240,6 @@ TEST_TYPES(Vec, testRound, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
         const Vec ref(&reference[i * Vec::Size]);
         //std::cout << a << ref << std::endl;
         COMPARE(Vc::round(a), ref);
-    }
-}
-
-TEST_TYPES(Vec, testReduceMin, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
-{
-    typedef typename Vec::EntryType T;
-    const T one = 1;
-    VectorMemoryHelper<Vec> mem(Vec::Size);
-    T *data = mem;
-    for (size_t i = 0; i < Vec::Size * Vec::Size; ++i) {
-        data[i] = i % (Vec::Size + 1) + one;
-    }
-    for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
-        const Vec a(&data[0]);
-        //std::cout << a << std::endl;
-        COMPARE(a.min(), one);
-    }
-}
-
-TEST_TYPES(Vec, testReduceMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
-{
-    typedef typename Vec::EntryType T;
-    const T max = Vec::Size + 1;
-    VectorMemoryHelper<Vec> mem(Vec::Size);
-    T *data = mem;
-    for (size_t i = 0; i < Vec::Size * Vec::Size; ++i) {
-        data[i] = (i + Vec::Size) % (Vec::Size + 1) + 1;
-    }
-    for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
-        const Vec a(&data[0]);
-        //std::cout << a << std::endl;
-        COMPARE(a.max(), max);
-    }
-}
-
-TEST_TYPES(V, testReduceProduct, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
-{
-    using T = typename V::EntryType;
-    V test = 0;
-    COMPARE(test.product(), T(0)) << "test = " << test;
-    test = 1;
-    COMPARE(test.product(), T(1)) << "test = " << test;
-    test[0] = 2;
-    COMPARE(test.product(), T(2)) << "test = " << test;
-    test[0] = 3;
-    COMPARE(test.product(), T(3)) << "test = " << test;
-
-    for (std::size_t i = 0; i + 1 < V::size(); ++i) {
-        test[i] = 1;
-        test[i + 1] = 5;
-        COMPARE(test.product(), T(5)) << "test = " << test << ", i = " << i;
-    }
-    for (std::size_t i = 0; i + 2 < V::size(); ++i) {
-        test[i] = 1;
-        test[i + 1] = 7;
-        COMPARE(test.product(), T(5 * 7)) << "test = " << test << ", i = " << i;
-    }
-}
-
-TEST_TYPES(Vec, testReduceSum, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
-{
-    typedef typename Vec::EntryType T;
-    int _sum = 1;
-    for (size_t i = 2; i <= Vec::Size; ++i) {
-        _sum += i;
-    }
-    const T sum = _sum;
-    VectorMemoryHelper<Vec> mem(Vec::Size);
-    T *data = mem;
-    for (size_t i = 0; i < Vec::Size * Vec::Size; ++i) {
-        data[i] = (i + i / Vec::Size) % Vec::Size + 1;
-    }
-    for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
-        const Vec a(&data[0]);
-        //std::cout << a << std::endl;
-        COMPARE(a.sum(), sum);
     }
 }
 
