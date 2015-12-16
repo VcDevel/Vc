@@ -44,18 +44,18 @@ using namespace Vc;
 #endif
 
 // testAbs{{{1
-TEST_TYPES(Vec, testAbs, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST, int_v, short_v, SimdArray<int, 8>,
+TEST_TYPES(V, testAbs, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST, int_v, short_v, SimdArray<int, 8>,
                           SimdArray<int, 2>, SimdArray<int, 7>))
 {
-    for (int i = 0; i < 0x7fff - int(Vec::size()); ++i) {
-        Vec a = Vec::IndexesFromZero() + i;
-        Vec b = -a;
+    for (int i = 0; i < 0x7fff - int(V::size()); ++i) {
+        V a = V::IndexesFromZero() + i;
+        V b = -a;
         COMPARE(a, Vc::abs(a));
         COMPARE(a, Vc::abs(b));
     }
     for (int i = 0; i < 1000; ++i) {
-        const Vec a = Vec::Random();
-        const Vec ref = Vec::generate([&](int j) { return std::abs(a[j]); });
+        const V a = V::Random();
+        const V ref = V::generate([&](int j) { return std::abs(a[j]); });
         COMPARE(abs(a), ref) << "a : " << a;
     }
 }
@@ -112,19 +112,19 @@ TEST_TYPES(V, testExp, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     COMPARE(Vc::exp(V::Zero()), V::One());
 }
 
-TEST_TYPES(Vec, testMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
 {
-    typedef typename Vec::EntryType T;
-    VectorMemoryHelper<Vec> mem(3);
+    typedef typename V::EntryType T;
+    VectorMemoryHelper<V> mem(3);
     T *data = mem;
-    for (size_t i = 0; i < Vec::Size; ++i) {
+    for (size_t i = 0; i < V::Size; ++i) {
         data[i] = i;
-        data[i + Vec::Size] = Vec::Size + 1 - i;
-        data[i + 2 * Vec::Size] = std::max(data[i], data[i + Vec::Size]);
+        data[i + V::Size] = V::Size + 1 - i;
+        data[i + 2 * V::Size] = std::max(data[i], data[i + V::Size]);
     }
-    Vec a(&data[0]);
-    Vec b(&data[Vec::Size]);
-    Vec c(&data[2 * Vec::Size]);
+    V a(&data[0]);
+    V b(&data[V::Size]);
+    V c(&data[2 * V::Size]);
 
     COMPARE(Vc::max(a, b), c);
 }
@@ -147,17 +147,17 @@ TEST_TYPES(V, testRSqrt, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testReciprocal, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testReciprocal, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
-    typedef typename Vec::EntryType T;
+    typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(1.258295e+07);
     UnitTest::setFuzzyness<double>(0);
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {
         const T scale = T(0.1);
-        Vec data;
-        Vec reference;
-        for (size_t ii = 0; ii < Vec::Size; ++ii) {
+        V data;
+        V reference;
+        for (size_t ii = 0; ii < V::Size; ++ii) {
             const T i = static_cast<T>(ii);
             data[ii] = i;
             T tmp = (i + offset) * scale;
@@ -177,38 +177,38 @@ TEST_TYPES(V, isNegative, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     VERIFY(isnegative(V(T(-0.))).isFull());
 }
 
-TEST_TYPES(Vec, testInf, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testInf, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
-    typedef typename Vec::EntryType T;
+    typedef typename V::EntryType T;
     const T one = 1;
-    const Vec zero(Zero);
-    const Vec inf = one / zero;
-    Vec nan;
+    const V zero(Zero);
+    const V inf = one / zero;
+    V nan;
     nan.setQnan();
 
     VERIFY(all_of(Vc::isfinite(zero)));
-    VERIFY(all_of(Vc::isfinite(Vec(one))));
+    VERIFY(all_of(Vc::isfinite(V(one))));
     VERIFY(none_of(Vc::isfinite(inf)));
     VERIFY(none_of(Vc::isfinite(nan)));
 
     VERIFY(none_of(Vc::isinf(zero)));
-    VERIFY(none_of(Vc::isinf(Vec(one))));
+    VERIFY(none_of(Vc::isinf(V(one))));
     VERIFY(all_of(Vc::isinf(inf)));
     VERIFY(none_of(Vc::isinf(nan)));
 }
 
-TEST_TYPES(Vec, testNaN, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testNaN, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
-    typedef typename Vec::EntryType T;
-    typedef typename Vec::IndexType I;
-    typedef typename Vec::Mask M;
+    typedef typename V::EntryType T;
+    typedef typename V::IndexType I;
+    typedef typename V::Mask M;
     const T one = 1;
-    const Vec zero(Zero);
+    const V zero(Zero);
     VERIFY(none_of(Vc::isnan(zero)));
-    VERIFY(none_of(Vc::isnan(Vec(one))));
-    const Vec inf = one / zero;
-    VERIFY(all_of(Vc::isnan(Vec(inf * zero))));
-    Vec nan = Vec::Zero();
+    VERIFY(none_of(Vc::isnan(V(one))));
+    const V inf = one / zero;
+    VERIFY(all_of(Vc::isnan(V(inf * zero))));
+    V nan = V::Zero();
     const M mask(I::IndexesFromZero() == I::Zero());
     nan.setQnan(mask);
     COMPARE(Vc::isnan(nan), mask);
@@ -216,17 +216,17 @@ TEST_TYPES(Vec, testNaN, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     VERIFY(all_of(Vc::isnan(nan)));
 }
 
-TEST_TYPES(Vec, testRound, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testRound, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
-    typedef typename Vec::EntryType T;
+    typedef typename V::EntryType T;
     enum {
-        Count = (16 + Vec::Size) / Vec::Size
+        Count = (16 + V::Size) / V::Size
     };
-    VectorMemoryHelper<Vec> mem1(Count);
-    VectorMemoryHelper<Vec> mem2(Count);
+    VectorMemoryHelper<V> mem1(Count);
+    VectorMemoryHelper<V> mem2(Count);
     T *data = mem1;
     T *reference = mem2;
-    for (size_t i = 0; i < Count * Vec::Size; ++i) {
+    for (size_t i = 0; i < Count * V::Size; ++i) {
         data[i] = i * 0.25 - 2.0;
         reference[i] = std::floor(i * 0.25 - 2.0 + 0.5);
         if (i % 8 == 2) {
@@ -236,8 +236,8 @@ TEST_TYPES(Vec, testRound, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
     //std::cout << std::endl;
     for (int i = 0; i < Count; ++i) {
-        const Vec a(&data[i * Vec::Size]);
-        const Vec ref(&reference[i * Vec::Size]);
+        const V a(&data[i * V::Size]);
+        const V ref(&reference[i * V::Size]);
         //std::cout << a << ref << std::endl;
         COMPARE(Vc::round(a), ref);
     }
