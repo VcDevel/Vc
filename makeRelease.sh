@@ -30,9 +30,7 @@ sed -i \
 cat include/Vc/version.h
 
 # Don't build tests with make all
-sed -i \
-  -e 's/add_custom_target(build_tests ALL VERBATIM)/add_custom_target(build_tests VERBATIM)/' \
-  CMakeLists.txt
+sed -i -e 's/#Release# //' CMakeLists.txt
 git commit CMakeLists.txt doc/Doxyfile include/Vc/version.h -s -F- <<EOF
 release: version $versionString
 
@@ -52,6 +50,9 @@ mv doc/html/*.qch "../Vc-${versionString}.qch"
 mv doc/html "Vc-docs-$versionString" && tar -czf "../Vc-docs-$versionString".tar.gz "Vc-docs-$versionString"
 rm -rf "Vc-docs-$versionString"
 
+# Get back to the state before the tag and fix up the version numbers afterwards
+git revert -n HEAD
+
 # Update the version number of the after-release code
 versionString="$versionString-dev"
 versionNumber=`echo $versionNumber | awk '{ printf "0x%06x", (strtonum($0) + 1) }'`
@@ -64,10 +65,6 @@ sed -i \
 	-e "s/Vc_VERSION_STRING \".*\"\$/Vc_VERSION_STRING \"$versionString\"/" \
 	-e "s/Vc_VERSION_NUMBER 0x.*\$/Vc_VERSION_NUMBER $versionNumber/" \
 	include/Vc/version.h
-# Revert the build_tests change
-sed -i \
-  -e 's/add_custom_target(build_tests VERBATIM)/add_custom_target(build_tests ALL VERBATIM)/' \
-  CMakeLists.txt
 git commit CMakeLists.txt doc/Doxyfile include/Vc/version.h -s -F- <<EOF
 after release: version $versionString
 
