@@ -486,6 +486,14 @@ class alignas(
                   std::is_same<T, uint32_t>::value ||
                   std::is_same<T,  int16_t>::value ||
                   std::is_same<T, uint16_t>::value, "SimdArray<T, N> may only be used with T = { double, float, int32_t, uint32_t, int16_t, uint16_t }");
+    static_assert(
+        // either the EntryType and VectorEntryType of the main VectorType are equal
+        std::is_same<typename VectorType::EntryType,
+                     typename VectorType::VectorEntryType>::value ||
+            // or N is a multiple of VectorType::size()
+            (N % VectorType::size() == 0),
+        "SimdArray<(un)signed short, N> on MIC only works correctly for N = k * "
+        "MIC::(u)short_v::size(), i.e. k * 16.");
 
     using my_traits = SimdArrayTraits<T, N>;
     static constexpr std::size_t N0 = my_traits::N0;
