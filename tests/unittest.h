@@ -1418,7 +1418,7 @@ template <template <typename V> class F, typename... Typelist>
 UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
 //}}}1
 }  // namespace UnitTest
-// TEST_BEGIN / TEST_END / TEST macros {{{1
+// pre-defined type lists {{{1
 #define REAL_VECTORS                                                                     \
     Vc::double_v, Vc::float_v
 #define INT_VECTORS                                                                      \
@@ -1476,84 +1476,59 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
     SIMD_REAL_ARRAYS(3)
 #endif
 
+// TEST_BEGIN / TEST_END / TEST macros {{{1
+#define REAL_TEST_TYPES(V_, fun_, typelist_)                                             \
+    template <typename V_> struct fun_;                                                  \
+    static auto test_##fun_##_ =                                                         \
+        decltype(UnitTest::hackTypelist<fun_>(std::declval<void typelist_>()))(#fun_);   \
+    template <typename V_> struct fun_                                                   \
+    {                                                                                    \
+        void operator()();                                                               \
+    };                                                                                   \
+    template <typename V_> void fun_<V_>::operator()()
+
+#define FAKE_TEST_TYPES(V_, fun_, typelist_)                                             \
+    template <typename V_> struct fun_                                                   \
+    {                                                                                    \
+        void operator()();                                                               \
+    };                                                                                   \
+    template <typename V_> void fun_<V_>::operator()()
+
+#define REAL_TEST(fun_)                                                                  \
+    void fun_();                                                                         \
+    static UnitTest::Test<void> test_##fun_##_(&fun_, #fun_);                            \
+    void fun_()
+
+#define FAKE_TEST(fun_) template <typename T_> void fun_()
+
+#define REAL_TEST_CATCH(fun_, exception_)                                                \
+    struct fun_                                                                          \
+    {                                                                                    \
+        static void test_function();                                                     \
+    };                                                                                   \
+    static UnitTest::Test<void, exception_, fun_> test_##fun_##_(#fun_);                 \
+    void fun_::test_function()
+
+#define FAKE_TEST_CATCH(fun_, exception_) void fun_::test_function()
+
 #ifdef UNITTEST_ONLY_XTEST
-#define TEST_ALL_V(V_, fun_) template <typename V_> void fun_()
-#define XTEST_ALL_V(V_, fun_)                                                            \
-    template <typename V_> void fun_();                                                  \
-    static UnitTest::Test<float_v> test_##fun_##_float_v_(&fun_<float_v>, #fun_);        \
-    static UnitTest::Test<short_v> test_##fun_##_short_v_(&fun_<short_v>, #fun_);        \
-    static UnitTest::Test<uint_v> test_##fun_##_ushort_v_(&fun_<uint_v>, #fun_);         \
-    static UnitTest::Test<double_v> test_##fun_##_int_v_(&fun_<double_v>, #fun_);        \
-    static UnitTest::Test<ushort_v> test_##fun_##_double_v_(&fun_<ushort_v>, #fun_);     \
-    static UnitTest::Test<int_v> test_##fun_##_uint_v_(&fun_<int_v>, #fun_);             \
-    template <typename V_> void fun_()
+#define TEST_TYPES(V_, fun_, typelist_) FAKE_TEST_TYPES(V_, fun_, typelist_)
+#define XTEST_TYPES(V_, fun_, typelist_) REAL_TEST_TYPES(V_, fun_, typelist_)
 
-#define TEST_TYPES(V_, fun_, typelist_)                                                  \
-    template <typename V_> struct fun_ {                                                 \
-        void operator()();                                                               \
-    };                                                                                   \
-    template <typename V_> void fun_<V_>::operator()()
-#define XTEST_TYPES(V_, fun_, typelist_)                                                 \
-    template <typename V_> struct fun_;                                                  \
-    static auto test_##fun_##_ =                                                         \
-        decltype(UnitTest::hackTypelist<fun_>(std::declval<void typelist_>()))(#fun_);   \
-    template <typename V_> struct fun_ {                                                 \
-        void operator()();                                                               \
-    };                                                                                   \
-    template <typename V_> void fun_<V_>::operator()()
+#define TEST(fun_) FAKE_TEST(fun_)
+#define XTEST(fun_) REAL_TEST(fun_)
 
-#define TEST(fun_) template <typename T_> void fun_()
-#define XTEST(fun_)                                                                      \
-    void fun_();                                                                         \
-    static UnitTest::Test<void> test_##fun_##_(&fun_, #fun_);                            \
-    void fun_()
-
-#define TEST_CATCH(fun_, exception_) void fun_::test_function()
-#define XTEST_CATCH(fun_, exception_)                                                    \
-    struct fun_ {                                                                        \
-        static void test_function();                                                     \
-    };                                                                                   \
-    static UnitTest::Test<void, exception_, fun_> test_##fun_##_(#fun_);                 \
-    void fun_::test_function()
+#define TEST_CATCH(fun_, exception_) FAKE_TEST_CATCH(fun_, exception_)
+#define XTEST_CATCH(fun_, exception_) REAL_TEST_CATCH(fun_, exception_)
 #else
-#define XTEST_ALL_V(V_, fun_) template <typename V_> void fun_()
-#define TEST_ALL_V(V_, fun_)                                                             \
-    template <typename V_> void fun_();                                                  \
-    static UnitTest::Test<float_v> test_##fun_##_float_v_(&fun_<float_v>, #fun_);        \
-    static UnitTest::Test<short_v> test_##fun_##_short_v_(&fun_<short_v>, #fun_);        \
-    static UnitTest::Test<uint_v> test_##fun_##_ushort_v_(&fun_<uint_v>, #fun_);         \
-    static UnitTest::Test<double_v> test_##fun_##_int_v_(&fun_<double_v>, #fun_);        \
-    static UnitTest::Test<ushort_v> test_##fun_##_double_v_(&fun_<ushort_v>, #fun_);     \
-    static UnitTest::Test<int_v> test_##fun_##_uint_v_(&fun_<int_v>, #fun_);             \
-    template <typename V_> void fun_()
+#define XTEST_TYPES(V_, fun_, typelist_) FAKE_TEST_TYPES(V_, fun_, typelist_)
+#define TEST_TYPES(V_, fun_, typelist_) REAL_TEST_TYPES(V_, fun_, typelist_)
 
-#define XTEST_TYPES(V_, fun_, typelist_)                                                 \
-    template <typename V_> struct fun_ {                                                 \
-        void operator()();                                                               \
-    };                                                                                   \
-    template <typename V_> void fun_<V_>::operator()()
-#define TEST_TYPES(V_, fun_, typelist_)                                                  \
-    template <typename V_> struct fun_;                                                  \
-    static auto test_##fun_##_ =                                                         \
-        decltype(UnitTest::hackTypelist<fun_>(std::declval<void typelist_>()))(#fun_);   \
-    template <typename V_> struct fun_ {                                                 \
-        void operator()();                                                               \
-    };                                                                                   \
-    template <typename V_> void fun_<V_>::operator()()
+#define XTEST(fun_) FAKE_TEST(fun_)
+#define TEST(fun_) REAL_TEST(fun_)
 
-#define XTEST(fun_) template <typename T_> void fun_()
-#define TEST(fun_)                                                                       \
-    void fun_();                                                                         \
-    static UnitTest::Test<void> test_##fun_##_(&fun_, #fun_);                            \
-    void fun_()
-
-#define XTEST_CATCH(fun_, exception_) void fun_::test_function()
-#define TEST_CATCH(fun_, exception_)                                                     \
-    struct fun_ {                                                                        \
-        static void test_function();                                                     \
-    };                                                                                   \
-    static UnitTest::Test<void, exception_, fun_> test_##fun_##_(#fun_);                 \
-    void fun_::test_function()
+#define XTEST_CATCH(fun_, exception_) FAKE_TEST_CATCH(fun_, exception_)
+#define TEST_CATCH(fun_, exception_) REAL_TEST_CATCH(fun_, exception_)
 #endif
 
 int main(int argc, char **argv)  //{{{1
