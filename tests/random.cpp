@@ -122,11 +122,11 @@ template<typename V, typename I> void FloatRandom()
     }
 }
 
-template <> void testRandom<float_v>::operator()()
+template <> void testRandom<float_v>::run()
 {
     FloatRandom<float_v, SimdArray<int, float_v::size()>>();
 }
-template <> void testRandom<double_v>::operator()()
+template <> void testRandom<double_v>::run()
 {
     FloatRandom<double_v, SimdArray<int, double_v::size()>>();
 }

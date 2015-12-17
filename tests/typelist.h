@@ -33,13 +33,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 template <typename... Ts> struct Typelist;
 // concat {{{
-template <typename A, typename B, typename... More> struct concat_impl;
+template <typename... More> struct concat_impl;
 /**
  * Concatenate two type arguments into a single Typelist.
  */
 template <typename... Ts> using concat = typename concat_impl<Ts...>::type;
 
 // concat implementation:
+template <typename A> struct concat_impl<A> {
+    using type = A;
+};
 template <typename A, typename B> struct concat_impl<A, B> {
     using type = Typelist<A, B>;
 };
@@ -81,8 +84,12 @@ template <typename A, typename B>
 using outer_product = typename outer_product_impl<A, B>::type;
 // }}}
 // extract_type_impl {{{
+struct TypelistSentinel;
 template <std::size_t N, bool N_less_4, bool N_larger_32, typename... Ts>
-struct extract_type_impl;
+struct extract_type_impl
+{
+    using type = TypelistSentinel;
+};
 template <typename T0, typename... Ts> struct extract_type_impl<0, true, false, T0, Ts...>
 {
     using type = T0;
@@ -196,6 +203,8 @@ template <typename... Ts> struct Typelist
 {
     template <std::size_t N>
     using at = typename extract_type_impl<N, (N < 4), (N >= 32), Ts...>::type;
+
+    static constexpr std::size_t size() { return sizeof...(Ts); }
 };
 
 // }}}

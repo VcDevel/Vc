@@ -1196,21 +1196,12 @@ inline std::string typeToString_impl(Vc::SimdMaskArray<T, N, V, M> const &)
     return s.str();
 }
 // template parameter pack to a comma separated string {{{2
-template <typename T0> void typepackToString(std::stringstream &s)
-{
-    s << typeToString<T0>();
-}
-template <typename T0, typename T1, typename... Ts>
-void typepackToString(std::stringstream &s)
-{
-    s << typeToString<T0>() << ", ";
-    typepackToString<T1, Ts...>(s);
-}
-template <typename... Ts> std::string typeToString_impl(Typelist<Ts...> const &)
+template <typename T0, typename... Ts> std::string typeToString_impl(Typelist<T0, Ts...> const &)
 {
     std::stringstream s;
-    s << '{';
-    typepackToString<Ts...>(s);
+    s << '{' << typeToString<T0>();
+    auto &&x = {(s << ", " << typeToString<Ts>(), 0)...};
+    if (&x == nullptr) {}  // avoid warning about unused 'x'
     s << '}';
     return s.str();
 }
@@ -1303,6 +1294,7 @@ template <> inline std::string typeToString<unsigned short>() { return "ushort";
 template <> inline std::string typeToString<         char>() { return "  char"; }
 template <> inline std::string typeToString<unsigned char>() { return " uchar"; }
 template <> inline std::string typeToString<  signed char>() { return " schar"; }
+
 // runAll and TestData {{{1
 typedef tuple<TestFunction, std::string> TestData;
 vector<TestData> g_allTests;
@@ -1313,109 +1305,137 @@ void runAll()
         global_unit_test_object_.runTestInt(get<0>(data), get<1>(data).c_str());
     }
 }
+
 // class Test {{{1
-template <typename T, typename Exception = void, typename TestImpl = void> class Test : TestImpl
+template <typename TestWrapper, typename Exception = void>
+struct Test : public TestWrapper
 {
-private:
     static void wrapper()
     {
-        try { TestImpl::test_function(); }
-        catch (Exception &e) { return; }
+        try {
+            TestWrapper::test_function();
+        } catch (const Exception &e) {
+            return;
+        }
         FAIL() << "Test was expected to throw, but it didn't";
     }
 
-public:
+    Test(std::string name) { g_allTests.emplace_back(wrapper, std::move(name)); }
+};
+
+template <typename TestWrapper> struct Test<TestWrapper, void> : public TestWrapper
+{
     Test(std::string name)
     {
-        if (!std::is_same<T, void>()) {
-            name += '<' + typeToString<T>() + '>';
+        g_allTests.emplace_back(&TestWrapper::run, std::move(name));
+    }
+};
+
+// class TestList {{{1
+template <typename T>
+using enable_if_not_list_sentinel = typename std::enable_if<
+    !std::is_same<T, TypelistSentinel>::value, const char *>::type;
+template <template <typename V> class TestWrapper, typename T>
+static void maybe_add(enable_if_not_list_sentinel<T> name)
+{
+    const std::string &typestring = typeToString<T>();
+    std::string fullname;
+    const auto len = std::strlen(name);
+    fullname.reserve(len + typestring.length() + 2);
+    fullname.assign(name, len);
+    fullname.push_back('<');
+    fullname.append(typestring);
+    fullname.push_back('>');
+    g_allTests.emplace_back(&TestWrapper<T>::run, std::move(fullname));
+}
+template <template <typename> class, typename> static void maybe_add(const void *) {}
+
+template <template <typename> class TestWrapper, typename List> struct TestList
+{
+    template <std::size_t Offset = 0u> static int addTestInstantiations(const char *name)
+    {
+        if (Offset == 0u) {
+            g_allTests.reserve(g_allTests.size() + List::size());
         }
-        g_allTests.emplace_back(wrapper, name);
-    }
-};
-template <typename T> class Test<T, void, void>
-{
-public:
-    Test(TestFunction fun, std::string name)
-    {
-        if (!std::is_same<T, void>()) {
-            name += '<' + typeToString<T>() + '>';
+        maybe_add<TestWrapper, typename List::template at< 0 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at< 1 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at< 2 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at< 3 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at< 4 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at< 5 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at< 6 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at< 7 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at< 8 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at< 9 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<10 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<11 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<12 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<13 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<14 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<15 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<16 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<17 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<18 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<19 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<20 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<21 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<22 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<23 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<24 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<25 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<26 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<27 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<28 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<29 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<30 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<31 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<32 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<33 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<34 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<35 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<36 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<37 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<38 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<39 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<40 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<41 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<42 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<43 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<44 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<45 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<46 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<47 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<48 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<49 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<50 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<51 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<52 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<53 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<54 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<55 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<56 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<57 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<58 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<59 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<60 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<61 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<62 + Offset>>(name);
+        maybe_add<TestWrapper, typename List::template at<63 + Offset>>(name);
+        if (List::size() >= Offset + 64) {
+            addTestInstantiations<
+                // avoid (almost) infinite template instantiation recursion:
+                (List::size() >= Offset + 64 ? Offset + 64 : Offset)>(name);
         }
-        g_allTests.emplace_back(fun, name);
+        return 0;
     }
-};
-
-// class Test2 {{{1
-template <template <typename V> class TestFunctor,
-          std::size_t Begin,
-          std::size_t N,
-          typename... TestTypes>
-class Test2Impl;
-
-template <template <typename V> class TestFunctor, std::size_t Index>
-class Test2Impl<TestFunctor, Index, 0>
-{
-public:
-    Vc_ALWAYS_INLINE explicit Test2Impl(const std::string &) {}
-};
-template <template <typename V> class TestFunctor,
-          std::size_t Index,
-          typename... TestTypes>
-class Test2Impl<TestFunctor, Index, 1, TestTypes...>
-{
-    using T = extract_type<Index, TestTypes...>;
-
-public:
-    Vc_ALWAYS_INLINE static void call() { TestFunctor<T>()(); }
-    Vc_ALWAYS_INLINE explicit Test2Impl(const std::string &name)
-    {
-        g_allTests.emplace_back(&call, name + '<' + typeToString<T>() + '>');
-    }
-};
-
-template <template <typename V> class TestFunctor,
-          std::size_t Begin,
-          std::size_t N,
-          typename... TestTypes>
-class Test2Impl
-{
-    static constexpr std::size_t Split = Vc::Common::left_size(N);
-    Test2Impl<TestFunctor, Begin, Split, TestTypes...> left;
-    Test2Impl<TestFunctor, Begin + Split, N - Split, TestTypes...> right;
-
-public:
-    Vc_ALWAYS_INLINE explicit Test2Impl(const std::string &name) : left(name), right(name)
-    {
-    }
-};
-
-template <template <typename V> class TestFunctor, typename... TestTypes>
-class Test2 : public Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>
-{
-#ifdef Vc_ICC
-//#warning "ICC does not fully implement the current C++ standard (yet). The workaround may be suboptimal/wrong."
-public:
-    explicit Test2(const std::string &name) : Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>(name) {}
-#else
-    using Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>::Test2Impl;
-#endif
-};
-template <template <typename V> class TestFunctor, typename... TestTypes>
-class Test2<TestFunctor, Typelist<TestTypes...>>
-    : public Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>
-{
-#ifdef Vc_ICC
-//#warning "ICC does not fully implement the current C++ standard (yet). The workaround may be suboptimal/wrong."
-public:
-    explicit Test2(const std::string &name) : Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>(name) {}
-#else
-    using Test2Impl<TestFunctor, 0, sizeof...(TestTypes), TestTypes...>::Test2Impl;
-#endif
 };
 
 // hackTypelist {{{1
-template <template <typename V> class F, typename... Typelist>
-UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
+template <template <typename> class F, typename... Ts>
+UnitTest::TestList<F, Typelist<Ts...>> hackTypelist(void (*)(Ts...));
+template <template <typename> class F, typename... Ts>
+UnitTest::TestList<F, Typelist<Ts...>> hackTypelist(void (*)(Typelist<Ts...>));
+
 //}}}1
 }  // namespace UnitTest
 // pre-defined type lists {{{1
@@ -1476,40 +1496,49 @@ UnitTest::Test2<F, Typelist...> hackTypelist(void (*)(Typelist...));
     SIMD_REAL_ARRAYS(3)
 #endif
 
+using RealVectors = Typelist<REAL_VECTORS>;
+using RealSimdArrays = Typelist<SIMD_REAL_ARRAY_LIST>;
+using IntVectors = Typelist<INT_VECTORS>;
+using AllVectors = Typelist<ALL_VECTORS>;
+using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
+
 // TEST_BEGIN / TEST_END / TEST macros {{{1
 #define REAL_TEST_TYPES(V_, fun_, typelist_)                                             \
     template <typename V_> struct fun_;                                                  \
-    static auto test_##fun_##_ =                                                         \
-        decltype(UnitTest::hackTypelist<fun_>(std::declval<void typelist_>()))(#fun_);   \
+    static auto test_##fun_##_ = decltype(UnitTest::hackTypelist<fun_>(                  \
+        std::declval<void typelist_>()))::addTestInstantiations(#fun_);                  \
     template <typename V_> struct fun_                                                   \
     {                                                                                    \
-        void operator()();                                                               \
+        static void run();                                                               \
     };                                                                                   \
-    template <typename V_> void fun_<V_>::operator()()
+    template <typename V_> void fun_<V_>::run()
 
 #define FAKE_TEST_TYPES(V_, fun_, typelist_)                                             \
     template <typename V_> struct fun_                                                   \
     {                                                                                    \
-        void operator()();                                                               \
+        static void run();                                                               \
     };                                                                                   \
-    template <typename V_> void fun_<V_>::operator()()
+    template <typename V_> void fun_<V_>::run()
 
 #define REAL_TEST(fun_)                                                                  \
-    void fun_();                                                                         \
-    static UnitTest::Test<void> test_##fun_##_(&fun_, #fun_);                            \
-    void fun_()
+    struct fun_                                                                          \
+    {                                                                                    \
+        static void run();                                                               \
+    };                                                                                   \
+    static UnitTest::Test<fun_> test_##fun_##_(#fun_);                                   \
+    void fun_::run()
 
-#define FAKE_TEST(fun_) template <typename T_> void fun_()
+#define FAKE_TEST(fun_) template <typename UnitTest_T_> void fun_()
 
 #define REAL_TEST_CATCH(fun_, exception_)                                                \
     struct fun_                                                                          \
     {                                                                                    \
-        static void test_function();                                                     \
+        static void run();                                                               \
     };                                                                                   \
-    static UnitTest::Test<void, exception_, fun_> test_##fun_##_(#fun_);                 \
-    void fun_::test_function()
+    static UnitTest::Test<exception_, fun_> test_##fun_##_(#fun_);                       \
+    void fun_::run()
 
-#define FAKE_TEST_CATCH(fun_, exception_) void fun_::test_function()
+#define FAKE_TEST_CATCH(fun_, exception_) template <typename UnitTesT_T_> void fun_()
 
 #ifdef UNITTEST_ONLY_XTEST
 #define TEST_TYPES(V_, fun_, typelist_) FAKE_TEST_TYPES(V_, fun_, typelist_)

@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "unittest.h"
 
-TEST_TYPES(V, testUlpDiff, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testUlpDiff, (concat<RealVectors, RealSimdArrays>))  //{{{1
 {
     typedef typename V::EntryType T;
 
