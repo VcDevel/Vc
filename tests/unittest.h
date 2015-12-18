@@ -1502,62 +1502,61 @@ using IntVectors = Typelist<INT_VECTORS>;
 using AllVectors = Typelist<ALL_VECTORS>;
 using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
 
-// TEST_BEGIN / TEST_END / TEST macros {{{1
-#define REAL_TEST_TYPES(V_, fun_, typelist_)                                             \
-    template <typename V_> struct fun_;                                                  \
-    static auto test_##fun_##_ = decltype(UnitTest::hackTypelist<fun_>(                  \
-        std::declval<void typelist_>()))::addTestInstantiations(#fun_);                  \
-    template <typename V_> struct fun_                                                   \
+// TEST_TYPES / TEST_CATCH / TEST macros {{{1
+#define REAL_TEST_TYPES(V_, name_, typelist_)                                            \
+    template <typename V_> struct Test##name_                                            \
     {                                                                                    \
         static void run();                                                               \
     };                                                                                   \
-    template <typename V_> void fun_<V_>::run()
+    static auto test_##name_##_ = decltype(UnitTest::hackTypelist<Test##name_>(          \
+        std::declval<void typelist_>()))::addTestInstantiations(#name_);                 \
+    template <typename V_> void Test##name_<V_>::run()
 
-#define FAKE_TEST_TYPES(V_, fun_, typelist_)                                             \
-    template <typename V_> struct fun_                                                   \
+#define FAKE_TEST_TYPES(V_, name_, typelist_)                                            \
+    template <typename V_> struct Test##name_                                            \
     {                                                                                    \
         static void run();                                                               \
     };                                                                                   \
-    template <typename V_> void fun_<V_>::run()
+    template <typename V_> void Test##name_<V_>::run()
 
-#define REAL_TEST(fun_)                                                                  \
-    struct fun_                                                                          \
+#define REAL_TEST(name_)                                                                 \
+    struct Test##name_                                                                   \
     {                                                                                    \
         static void run();                                                               \
     };                                                                                   \
-    static UnitTest::Test<fun_> test_##fun_##_(#fun_);                                   \
-    void fun_::run()
+    static UnitTest::Test<Test##name_> test_##name_##_(#name_);                          \
+    void Test##name_::run()
 
-#define FAKE_TEST(fun_) template <typename UnitTest_T_> void fun_()
+#define FAKE_TEST(name_) template <typename UnitTest_T_> void name_()
 
-#define REAL_TEST_CATCH(fun_, exception_)                                                \
-    struct fun_                                                                          \
+#define REAL_TEST_CATCH(name_, exception_)                                               \
+    struct Test##name_                                                                   \
     {                                                                                    \
         static void run();                                                               \
     };                                                                                   \
-    static UnitTest::Test<exception_, fun_> test_##fun_##_(#fun_);                       \
-    void fun_::run()
+    static UnitTest::Test<Test##name_, exception_> test_##name_##_(#name_);              \
+    void Test##name_::run()
 
-#define FAKE_TEST_CATCH(fun_, exception_) template <typename UnitTesT_T_> void fun_()
+#define FAKE_TEST_CATCH(name_, exception_) template <typename UnitTesT_T_> void name_()
 
 #ifdef UNITTEST_ONLY_XTEST
-#define TEST_TYPES(V_, fun_, typelist_) FAKE_TEST_TYPES(V_, fun_, typelist_)
-#define XTEST_TYPES(V_, fun_, typelist_) REAL_TEST_TYPES(V_, fun_, typelist_)
+#define TEST_TYPES(V_, name_, typelist_) FAKE_TEST_TYPES(V_, name_, typelist_)
+#define XTEST_TYPES(V_, name_, typelist_) REAL_TEST_TYPES(V_, name_, typelist_)
 
-#define TEST(fun_) FAKE_TEST(fun_)
-#define XTEST(fun_) REAL_TEST(fun_)
+#define TEST(name_) FAKE_TEST(name_)
+#define XTEST(name_) REAL_TEST(name_)
 
-#define TEST_CATCH(fun_, exception_) FAKE_TEST_CATCH(fun_, exception_)
-#define XTEST_CATCH(fun_, exception_) REAL_TEST_CATCH(fun_, exception_)
+#define TEST_CATCH(name_, exception_) FAKE_TEST_CATCH(name_, exception_)
+#define XTEST_CATCH(name_, exception_) REAL_TEST_CATCH(name_, exception_)
 #else
-#define XTEST_TYPES(V_, fun_, typelist_) FAKE_TEST_TYPES(V_, fun_, typelist_)
-#define TEST_TYPES(V_, fun_, typelist_) REAL_TEST_TYPES(V_, fun_, typelist_)
+#define XTEST_TYPES(V_, name_, typelist_) FAKE_TEST_TYPES(V_, name_, typelist_)
+#define TEST_TYPES(V_, name_, typelist_) REAL_TEST_TYPES(V_, name_, typelist_)
 
-#define XTEST(fun_) FAKE_TEST(fun_)
-#define TEST(fun_) REAL_TEST(fun_)
+#define XTEST(name_) FAKE_TEST(name_)
+#define TEST(name_) REAL_TEST(name_)
 
-#define XTEST_CATCH(fun_, exception_) FAKE_TEST_CATCH(fun_, exception_)
-#define TEST_CATCH(fun_, exception_) REAL_TEST_CATCH(fun_, exception_)
+#define XTEST_CATCH(name_, exception_) FAKE_TEST_CATCH(name_, exception_)
+#define TEST_CATCH(name_, exception_) REAL_TEST_CATCH(name_, exception_)
 #endif
 
 int main(int argc, char **argv)  //{{{1

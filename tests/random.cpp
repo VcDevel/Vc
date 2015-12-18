@@ -38,7 +38,7 @@ using Vc::float_v;
 using Vc::double_v;
 using Vc::SimdArray;
 
-TEST_TYPES(V, testRandom, (ALL_VECTORS))
+TEST_TYPES(V, Random, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     enum {
@@ -122,11 +122,11 @@ template<typename V, typename I> void FloatRandom()
     }
 }
 
-template <> void testRandom<float_v>::run()
+template <> void TestRandom<float_v>::run()
 {
     FloatRandom<float_v, SimdArray<int, float_v::size()>>();
 }
-template <> void testRandom<double_v>::run()
+template <> void TestRandom<double_v>::run()
 {
     FloatRandom<double_v, SimdArray<int, double_v::size()>>();
 }
