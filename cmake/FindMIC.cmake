@@ -55,37 +55,41 @@
 
 set(MIC_FOUND false)
 set(MIC_NATIVE_FOUND false)
+set(MIC_OFFLOAD_FOUND false)
 
-file(GLOB _intel_dirs "/opt/intel/compilers_and_libraries_*/linux")
-if ("${_intel_dirs}" STREQUAL "")
-  file(GLOB _intel_dirs "/opt/intel/composer_xe_*")
-endif()
+option(ENABLE_MIC "Enable native builds for the MIC architecture (Intel Knights Corner)" ON)
+if(ENABLE_MIC)
+   file(GLOB _intel_dirs "/opt/intel/compilers_and_libraries_*/linux")
+   if ("${_intel_dirs}" STREQUAL "")
+      file(GLOB _intel_dirs "/opt/intel/composer_xe_*")
+   endif()
 
-list(SORT _intel_dirs)
-list(REVERSE _intel_dirs)
-find_path(MIC_SDK_DIR bin/intel64_mic/icpc PATHS
-   "$ENV{MIC_SDK_DIR}"
-   ${_intel_dirs}
-   )
+   list(SORT _intel_dirs)
+   list(REVERSE _intel_dirs)
+   find_path(MIC_SDK_DIR bin/intel64_mic/icpc PATHS
+      "$ENV{MIC_SDK_DIR}"
+      ${_intel_dirs}
+      )
+   mark_as_advanced(MIC_SDK_DIR)
 
-##############################################################################
-# First check whether offload works
-
-if(NOT DEFINED c_compiler_can_offload OR NOT DEFINED cxx_compiler_can_offload)
-   set(c_compiler_can_offload FALSE)
-   set(cxx_compiler_can_offload FALSE)
+   ##############################################################################
+   # First check whether offload works
 
    # For now offload is not supported so skip it
-#   include(CheckCSourceCompiles)
-#   include(CheckCXXSourceCompiles)
+#   if(NOT DEFINED c_compiler_can_offload OR NOT DEFINED cxx_compiler_can_offload)
+#      set(c_compiler_can_offload FALSE)
+#      set(cxx_compiler_can_offload FALSE)
 #
-#   #find_library(MIC_HOST_IMF_LIBRARY   imf   HINTS ENV LIBRARY_PATH)
-#   #find_library(MIC_HOST_SVML_LIBRARY  svml  HINTS ENV LIBRARY_PATH)
-#   #find_library(MIC_HOST_INTLC_LIBRARY intlc HINTS ENV LIBRARY_PATH)
+#      include(CheckCSourceCompiles)
+#      include(CheckCXXSourceCompiles)
 #
-#   #set(MIC_HOST_LIBS ${MIC_HOST_IMF_LIBRARY} ${MIC_HOST_SVML_LIBRARY} ${MIC_HOST_INTLC_LIBRARY})
+#      #find_library(MIC_HOST_IMF_LIBRARY   imf   HINTS ENV LIBRARY_PATH)
+#      #find_library(MIC_HOST_SVML_LIBRARY  svml  HINTS ENV LIBRARY_PATH)
+#      #find_library(MIC_HOST_INTLC_LIBRARY intlc HINTS ENV LIBRARY_PATH)
 #
-#   set(_mic_offload_test_source "
+#      #set(MIC_HOST_LIBS ${MIC_HOST_IMF_LIBRARY} ${MIC_HOST_SVML_LIBRARY} ${MIC_HOST_INTLC_LIBRARY})
+#
+#      set(_mic_offload_test_source "
 ##ifdef __MIC__
 ##include <immintrin.h>
 ##endif
@@ -104,60 +108,59 @@ if(NOT DEFINED c_compiler_can_offload OR NOT DEFINED cxx_compiler_can_offload)
 # return 0;
 #}
 #")
+#      set(CMAKE_REQUIRED_FLAGS "-offload-build")
+#      check_c_source_compiles("${_mic_offload_test_source}" c_compiler_can_offload)
+#      check_cxx_source_compiles("${_mic_offload_test_source}" cxx_compiler_can_offload)
+#      set(CMAKE_REQUIRED_FLAGS)
+#   endif()
 #
-#   set(CMAKE_REQUIRED_FLAGS "-offload-build")
-#   check_c_source_compiles("${_mic_offload_test_source}" c_compiler_can_offload)
-#   check_cxx_source_compiles("${_mic_offload_test_source}" cxx_compiler_can_offload)
-#   set(CMAKE_REQUIRED_FLAGS)
-endif()
+#   if(c_compiler_can_offload AND cxx_compiler_can_offload)
+#      message(STATUS "C/C++ Compiler can offload to MIC.")
+#      set(MIC_OFFLOAD_FOUND true)
+#   else()
+#      message(STATUS "C/C++ Compiler can NOT offload to MIC.")
+#   endif()
 
-if(c_compiler_can_offload AND cxx_compiler_can_offload)
-   message(STATUS "C/C++ Compiler can offload to MIC.")
-   set(MIC_OFFLOAD_FOUND true)
-else()
-   message(STATUS "C/C++ Compiler can NOT offload to MIC.")
-   set(MIC_OFFLOAD_FOUND false)
-endif()
+   ##############################################################################
+   # Next check whether everything required for native builds is available
 
-##############################################################################
-# Next check whether everything required for native builds is available
+   find_path(MIC_TARGET_TOOLS_DIR bin/x86_64-k1om-linux-ar HINTS
+      "$ENV{MIC_TARGET_TOOLS_DIR}"
+      "${MIC_SDK_DIR}/target"
+      "/usr/linux-k1om-4.7"
+      )
+   find_program(MIC_AR x86_64-k1om-linux-ar PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
+   find_program(MIC_RANLIB x86_64-k1om-linux-ranlib PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
+   find_program(MIC_OBJCOPY x86_64-k1om-linux-objcopy PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
+   find_program(MIC_NATIVELOAD micnativeloadex PATHS ENV PATH)
+   mark_as_advanced(MIC_TARGET_TOOLS_DIR MIC_AR MIC_RANLIB MIC_NATIVELOAD MIC_OBJCOPY)
 
-find_path(MIC_TARGET_TOOLS_DIR bin/x86_64-k1om-linux-ar HINTS
-   "$ENV{MIC_TARGET_TOOLS_DIR}"
-   "${MIC_SDK_DIR}/target"
-   "/usr/linux-k1om-4.7"
-   )
-find_program(MIC_AR x86_64-k1om-linux-ar PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
-find_program(MIC_RANLIB x86_64-k1om-linux-ranlib PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
-find_program(MIC_OBJCOPY x86_64-k1om-linux-objcopy PATHS "${MIC_TARGET_TOOLS_DIR}/bin")
-find_program(MIC_NATIVELOAD micnativeloadex PATHS ENV PATH)
-mark_as_advanced(MIC_AR MIC_RANLIB MIC_NATIVELOAD)
+   if(MIC_SDK_DIR AND MIC_AR AND MIC_RANLIB)
+      find_program(MIC_CC  icc  HINTS "${MIC_SDK_DIR}/bin" "${MIC_SDK_DIR}/bin/intel64")
+      find_program(MIC_CXX icpc HINTS "${MIC_SDK_DIR}/bin" "${MIC_SDK_DIR}/bin/intel64")
 
-if(MIC_SDK_DIR AND MIC_AR AND MIC_RANLIB)
-   find_program(MIC_CC  icc  HINTS "${MIC_SDK_DIR}/bin" "${MIC_SDK_DIR}/bin/intel64")
-   find_program(MIC_CXX icpc HINTS "${MIC_SDK_DIR}/bin" "${MIC_SDK_DIR}/bin/intel64")
+      find_library(MIC_IMF_LIBRARY   imf      HINTS "${MIC_SDK_DIR}/compiler/lib/mic")
+      find_library(MIC_SVML_LIBRARY  svml     HINTS "${MIC_SDK_DIR}/compiler/lib/mic")
+      find_library(MIC_INTLC_LIBRARY intlc    HINTS "${MIC_SDK_DIR}/compiler/lib/mic")
+      mark_as_advanced(MIC_CC MIC_CXX MIC_IMF_LIBRARY MIC_SVML_LIBRARY MIC_INTLC_LIBRARY)
 
-   find_library(MIC_IMF_LIBRARY   imf      HINTS "${MIC_SDK_DIR}/compiler/lib/mic")
-   find_library(MIC_SVML_LIBRARY  svml     HINTS "${MIC_SDK_DIR}/compiler/lib/mic")
-   find_library(MIC_INTLC_LIBRARY intlc    HINTS "${MIC_SDK_DIR}/compiler/lib/mic")
-   mark_as_advanced(MIC_CC MIC_CXX MIC_IMF_LIBRARY MIC_SVML_LIBRARY MIC_INTLC_LIBRARY)
+      set(MIC_LIBS ${MIC_IMF_LIBRARY} ${MIC_SVML_LIBRARY} ${MIC_INTLC_LIBRARY})
+      set(MIC_CFLAGS "-O2 -vec")
 
-   set(MIC_LIBS ${MIC_IMF_LIBRARY} ${MIC_SVML_LIBRARY} ${MIC_INTLC_LIBRARY})
-   set(MIC_CFLAGS "-O2 -vec")
+      exec_program(${MIC_CXX} ARGS -V OUTPUT_VARIABLE _mic_icc_version_string RETURN_VALUE _mic_icc_ok)
+      if(0 EQUAL _mic_icc_ok)
+         string(REGEX MATCH "Version (Mainline)?[0-9. a-zA-Z]+" Vc_MIC_ICC_VERSION "${_mic_icc_version_string}")
+         string(SUBSTRING "${Vc_MIC_ICC_VERSION}" 8 -1 Vc_MIC_ICC_VERSION)
+         message(STATUS "MIC ICC Version: \"${Vc_MIC_ICC_VERSION}\"")
 
-   exec_program(${MIC_CXX} ARGS -V OUTPUT_VARIABLE _mic_icc_version_string RETURN_VALUE _mic_icc_ok)
-   if(0 EQUAL _mic_icc_ok)
-      string(REGEX MATCH "Version (Mainline)?[0-9. a-zA-Z]+" Vc_MIC_ICC_VERSION "${_mic_icc_version_string}")
-      string(SUBSTRING "${Vc_MIC_ICC_VERSION}" 8 -1 Vc_MIC_ICC_VERSION)
-      message(STATUS "MIC ICC Version: \"${Vc_MIC_ICC_VERSION}\"")
-
-      if(MIC_CC AND MIC_CXX AND MIC_IMF_LIBRARY AND MIC_SVML_LIBRARY AND MIC_INTLC_LIBRARY)
-         set(MIC_NATIVE_FOUND true)
+         if(MIC_CC AND MIC_CXX AND MIC_IMF_LIBRARY AND MIC_SVML_LIBRARY AND MIC_INTLC_LIBRARY)
+            set(MIC_NATIVE_FOUND true)
+         endif()
+      else()
+         message(STATUS "MIC ICC found, but not usable.")
       endif()
-   else()
-      message(STATUS "MIC ICC found, but not usable.")
    endif()
-endif()
+endif(ENABLE_MIC)
 
 if(MIC_NATIVE_FOUND OR MIC_OFFLOAD_FOUND)
    set(MIC_FOUND true)
