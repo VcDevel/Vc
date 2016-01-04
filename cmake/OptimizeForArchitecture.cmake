@@ -387,7 +387,7 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
          else()
             _my_find(_available_vector_units_list "${_flag}" _found)
          endif()
-         set(USE_${_name} _found CACHE BOOL "${documentation}" ${_force})
+         set(USE_${_name} ${_found} CACHE BOOL "${documentation}" ${_force})
          mark_as_advanced(USE_${_name})
          if(USE_${_name})
             list(APPEND _enable_vector_unit_list "${_flag}")
