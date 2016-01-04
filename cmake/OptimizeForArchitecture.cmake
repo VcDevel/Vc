@@ -97,7 +97,27 @@ macro(AutodetectHostArchitecture)
          # 1A 1E 1F 2E | Intel microarchitecture Nehalem
          # 17 1D       | Enhanced Intel Core microarchitecture
          # 0F          | Intel Core microarchitecture
-         if(_cpu_model EQUAL 0x4E OR _cpu_model EQUAL 0x5E)
+         #
+         # Values from the Intel SDE:
+         # 5C | Goldmont
+         # 5A | Silvermont
+         # 57 | Knights Landing
+         # 66 | Cannonlake
+         # 55 | Skylake Server
+         # 4E | Skylake Client
+         # 3C | Broadwell (likely a bug in the SDE)
+         # 3C | Haswell
+         if(_cpu_model EQUAL 0x57)
+            set(TARGET_ARCHITECTURE "knl")  # Knights Landing
+         elseif(_cpu_model EQUAL 0x5C)
+            set(TARGET_ARCHITECTURE "goldmont")
+         elseif(_cpu_model EQUAL 0x5A)
+            set(TARGET_ARCHITECTURE "silvermont")
+         elseif(_cpu_model EQUAL 0x66)
+            set(TARGET_ARCHITECTURE "cannonlake")
+         elseif(_cpu_model EQUAL 0x55)
+            set(TARGET_ARCHITECTURE "skylake-xeon")
+         elseif(_cpu_model EQUAL 0x4E OR _cpu_model EQUAL 0x5E)
             set(TARGET_ARCHITECTURE "skylake")
          elseif(_cpu_model EQUAL 0x3D OR _cpu_model EQUAL 0x47 OR _cpu_model EQUAL 0x56)
             set(TARGET_ARCHITECTURE "broadwell")
