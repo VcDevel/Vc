@@ -1,5 +1,11 @@
 language: cpp
 
+cache: ccache
+
+env:
+    - GCC_VERSION=5
+    - GCC_VERSION=default
+
 os:
     - linux
     - osx
@@ -8,44 +14,45 @@ compiler:
     - gcc
     - clang
 
-# We cannot use the default gcc, because it's too old and lacks C++11 support.
+matrix:
+    exclude:
+        - env: GCC_VERSION=5
+          os: osx
+          compiler: clang
+        - env: GCC_VERSION=5
+          os: linux
+          compiler: clang
 
-addons:
-    apt:
-        sources:
-            - ubuntu-toolchain-r-test
-        packages:
-            - g++-4.8
-
-# We have to install cmake manually, because Travis uses version 2.8, which does not work with Vc.
-
-before_install:
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget https://cmake.org/files/v3.3/cmake-3.3.2-Linux-x86_64.tar.gz --no-check-certificate -O cmake.tar.gz; fi
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then wget https://cmake.org/files/v3.3/cmake-3.3.2-Darwin-x86_64.tar.gz --no-check-certificate -O cmake.tar.gz; fi
-    - tar xf cmake.tar.gz
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; fi
+# The following gives us Ubuntu 14.04 LTS instead of 12.04 LTS
+sudo: required
+dist: trusty
 
 install:
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CMAKE=$(readlink -f "cmake-3.3.2-Linux-x86_64/bin/cmake"); fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export CTEST=$(readlink -f "cmake-3.3.2-Linux-x86_64/bin/ctest"); fi
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install coreutils; fi
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CMAKE=$(greadlink -f "cmake-3.3.2-Darwin-x86_64/CMake.app/Contents/bin/cmake"); fi
-    - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export CTEST=$(greadlink -f "cmake-3.3.2-Darwin-x86_64/CMake.app/Contents/bin/ctest"); fi
-    - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
-    - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+    - if test "$TRAVIS_OS_NAME" = "osx" -a "$CXX" = "g++"; then
+        brew update;
+        if test $GCC_VERSION = 5; then
+          brew install gcc5 && export CXX=g++-5 CC=gcc-5;
+        else
+          brew install coreutils && export CXX=g++-4.9 CC=gcc-4.9;
+        fi
+      fi
+    - if test "$TRAVIS_OS_NAME" = "linux" -a "$GCC_VERSION" = "5"; then
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
+        sudo apt-get update -q &&
+        sudo apt-get install g++-5 -y &&
+        export CXX=g++-5 CC=gcc-5;
+      fi
 
 before_script:
-    - $CMAKE --version
-    - mkdir build
-    - cd build
-    - $CMAKE ..
+    - $CXX --version
+    - cmake --version
+    - mkdir build && cd build
 
 script:
-    - $CXX --version
-    - make -j2
-    - $CTEST -j2
+    - cmake '-DUSE_CCACHE=ON' '-DUSE_LIBC++=OFF' .. && make -j2 && ctest -j2
 
 notifications:
+    email: false
     irc:
         channels:
             - "chat.freenode.net##Vc"
