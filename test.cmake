@@ -249,10 +249,10 @@ message("model:      ${dashboard_model}")
 
 Set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY_ONCE TRUE)
 
-list(APPEND CTEST_NOTES_FILES
-   "${CTEST_SOURCE_DIRECTORY}/.git/HEAD"
-   "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}"
-   )
+list(APPEND CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
+if(EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
+   list(APPEND CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
+endif()
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 ctest_read_custom_files(${CTEST_SOURCE_DIRECTORY})
