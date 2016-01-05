@@ -32,12 +32,21 @@ string(STRIP "${git_branch}" git_branch)
 # -> ref: refs/heads/foobar
 string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
 # -> foobar
+if(git_branch MATCHES "^[0-9a-f]+$")
+   # it's a hash -> make it short
+   string(SUBSTRING "${git_branch}" 0 7 git_branch)
+endif()
 
 # determine the (short) hostname of the build machine
 ################################################################################
-execute_process(COMMAND hostname -s RESULT_VARIABLE ok OUTPUT_VARIABLE CTEST_SITE ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-if(NOT ok EQUAL 0)
-   execute_process(COMMAND hostname OUTPUT_VARIABLE CTEST_SITE ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+set(travis_os $ENV{TRAVIS_OS_NAME})
+if(travis_os)
+   set(CTEST_SITE "Travis CI")
+else()
+   execute_process(COMMAND hostname -s RESULT_VARIABLE ok OUTPUT_VARIABLE CTEST_SITE ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+   if(NOT ok EQUAL 0)
+      execute_process(COMMAND hostname OUTPUT_VARIABLE CTEST_SITE ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+   endif()
 endif()
 
 # collect system information for the "Build Name" (and build setup, e.g. -j)
@@ -282,7 +291,9 @@ set(configure_options "-DCTEST_USE_LAUNCHERS=${CTEST_USE_LAUNCHERS}")
 list(APPEND configure_options "-DCMAKE_BUILD_TYPE=${build_type}")
 list(APPEND configure_options "-DBUILD_TESTING=TRUE")
 list(APPEND configure_options "-DBUILD_EXAMPLES=TRUE")
-list(APPEND configure_options "-DTEST_OPERATOR_FAILURES=TRUE")
+if(NOT travis_os) # Make it a bit faster on Travis CI
+   list(APPEND configure_options "-DTEST_OPERATOR_FAILURES=TRUE")
+endif()
 list(APPEND configure_options "-DUSE_CCACHE=ON")
 if(target_architecture)
    list(APPEND configure_options "-DTARGET_ARCHITECTURE=${target_architecture}")
@@ -320,25 +331,38 @@ macro(go)
       ctest_submit(PARTS Notes Configure)
       unset(CTEST_NOTES_FILES) # less clutter in ctest -V output
       if(res EQUAL 0)
-         foreach(label other Scalar SSE AVX AVX2 MIC)
-            set_property(GLOBAL PROPERTY Label ${label})
-            set(CTEST_BUILD_TARGET "${label}")
-            set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${MAKE_ARGS} ${CTEST_BUILD_TARGET}")
+         if(travis_os)
+            set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${MAKE_ARGS}")
             ctest_build(
                BUILD "${CTEST_BINARY_DIRECTORY}"
                APPEND
                RETURN_VALUE res)
-            ctest_submit(PARTS Build)
-            if(res EQUAL 0 AND NOT skip_tests)
-               ctest_test(
+            ctest_test(
+               BUILD "${CTEST_BINARY_DIRECTORY}"
+               APPEND
+               PARALLEL_LEVEL ${number_of_processors})
+            ctest_submit(PARTS Build Test)
+         else()
+            foreach(label other Scalar SSE AVX AVX2 MIC)
+               set_property(GLOBAL PROPERTY Label ${label})
+               set(CTEST_BUILD_TARGET "${label}")
+               set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${MAKE_ARGS} ${CTEST_BUILD_TARGET}")
+               ctest_build(
                   BUILD "${CTEST_BINARY_DIRECTORY}"
                   APPEND
-                  RETURN_VALUE res
-                  PARALLEL_LEVEL ${number_of_processors}
-                  INCLUDE_LABEL "^${label}$")
-               ctest_submit(PARTS Test)
-            endif()
-         endforeach()
+                  RETURN_VALUE res)
+               ctest_submit(PARTS Build)
+               if(res EQUAL 0 AND NOT skip_tests)
+                  ctest_test(
+                     BUILD "${CTEST_BINARY_DIRECTORY}"
+                     APPEND
+                     RETURN_VALUE res
+                     PARALLEL_LEVEL ${number_of_processors}
+                     INCLUDE_LABEL "^${label}$")
+                  ctest_submit(PARTS Test)
+               endif()
+            endforeach()
+         endif()
       endif()
    endif()
 endmacro()
