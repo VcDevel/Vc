@@ -1508,7 +1508,7 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
     {                                                                                    \
         static void run();                                                               \
     };                                                                                   \
-    static auto test_##name_##_ = decltype(UnitTest::hackTypelist<Test##name_>(          \
+    auto test_##name_##_ = decltype(UnitTest::hackTypelist<Test##name_>(                 \
         std::declval<void typelist_>()))::addTestInstantiations(#name_);                 \
     template <typename V_> void Test##name_<V_>::run()
 
@@ -1524,7 +1524,7 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
     {                                                                                    \
         static void run();                                                               \
     };                                                                                   \
-    static UnitTest::Test<Test##name_> test_##name_##_(#name_);                          \
+    UnitTest::Test<Test##name_> test_##name_##_(#name_);                                 \
     void Test##name_::run()
 
 #define FAKE_TEST(name_) template <typename UnitTest_T_> void name_()
@@ -1534,7 +1534,7 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
     {                                                                                    \
         static void run();                                                               \
     };                                                                                   \
-    static UnitTest::Test<Test##name_, exception_> test_##name_##_(#name_);              \
+    UnitTest::Test<Test##name_, exception_> test_##name_##_(#name_);                     \
     void Test##name_::run()
 
 #define FAKE_TEST_CATCH(name_, exception_) template <typename UnitTesT_T_> void name_()
