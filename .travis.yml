@@ -42,6 +42,10 @@ install:
         sudo apt-get install g++-5 -y &&
         export CXX=g++-5 CC=gcc-5;
       fi
+    - if test "$TRAVIS_OS_NAME" = "linux" -a "$CXX" = "clang++"; then
+        sudo apt-get update -q &&
+        sudo apt-get install libc++-dev libc++abi-dev -y;
+      fi
 
 before_script:
     - $CXX --version
@@ -49,7 +53,7 @@ before_script:
     - mkdir build && cd build
 
 script:
-    - cmake '-DBUILD_TESTING=ON' '-DBUILD_EXAMPLES=ON' '-DUSE_CCACHE=ON' '-DUSE_LIBC++=OFF' .. && make -j2 && ctest -j2
+    - cmake '-DBUILD_TESTING=ON' '-DBUILD_EXAMPLES=ON' '-DUSE_CCACHE=ON' .. && make -j2 && ctest -j2
 
 notifications:
     email: false
