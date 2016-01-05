@@ -1,16 +1,15 @@
 if(QT4_FOUND AND QT4_USABLE)
    include(${QT_USE_FILE})
-   include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-   add_executable(buddhabrot_sse main.cpp)
-   add_target_property(buddhabrot_sse COMPILE_FLAGS "-DVc_IMPL=SSE")
-   target_link_libraries(buddhabrot_sse ${QT_LIBRARIES} Vc)
+   build_example(buddhabrot main.cpp LIBS ${QT_LIBRARIES})
 
-   add_executable(buddhabrot_scalar main.cpp)
-   add_target_property(buddhabrot_scalar COMPILE_FLAGS "-DVc_IMPL=Scalar")
-   target_link_libraries(buddhabrot_scalar ${QT_LIBRARIES} Vc)
-
-   add_executable(buddhabrot_scalar2 main.cpp)
-   add_target_property(buddhabrot_scalar2 COMPILE_FLAGS "-DScalar")
-   target_link_libraries(buddhabrot_scalar2 ${QT_LIBRARIES})
+   # Special -DScalar target that uses fundamental types directly
+   add_executable(example_buddhabrot_scalar2 main.cpp)
+   add_target_property(example_buddhabrot_scalar2 COMPILE_DEFINITIONS "Scalar")
+   set_property(TARGET example_buddhabrot_scalar2 APPEND PROPERTY COMPILE_OPTIONS ${Vc_ARCHITECTURE_FLAGS})
+   add_target_property(example_buddhabrot_scalar2 LABELS "Scalar")
+   add_dependencies(Scalar example_buddhabrot_scalar2)
+   add_dependencies(Examples example_buddhabrot_scalar2)
+   target_link_libraries(example_buddhabrot_scalar2 Vc ${QT_LIBRARIES})
+   vc_add_run_target(example_buddhabrot_scalar2)
 endif()
