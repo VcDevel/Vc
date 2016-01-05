@@ -50,10 +50,12 @@ install:
 before_script:
     - $CXX --version
     - cmake --version
-    - mkdir build && cd build
+    - export dashboard_model=Experimental
+    - export build_type=Release
+    - export NUMBER_OF_PROCESSORS=2
 
 script:
-    - cmake '-DBUILD_TESTING=ON' '-DBUILD_EXAMPLES=ON' '-DUSE_CCACHE=ON' .. && make -j2 && ctest -j2
+    - ctest -V -S test.cmake
 
 notifications:
     email: false
