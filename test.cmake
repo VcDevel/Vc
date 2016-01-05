@@ -278,9 +278,14 @@ else()
    set(CMAKE_MAKE_PROGRAM "make")
 endif()
 
-set(configure_options "-DCTEST_USE_LAUNCHERS=${CTEST_USE_LAUNCHERS};-DCMAKE_BUILD_TYPE=${build_type};-DBUILD_EXAMPLES=TRUE;-DTEST_OPERATOR_FAILURES=TRUE;-DUSE_CCACHE=ON")
+set(configure_options "-DCTEST_USE_LAUNCHERS=${CTEST_USE_LAUNCHERS}")
+list(APPEND configure_options "-DCMAKE_BUILD_TYPE=${build_type}")
+list(APPEND configure_options "-DBUILD_TESTING=TRUE")
+list(APPEND configure_options "-DBUILD_EXAMPLES=TRUE")
+list(APPEND configure_options "-DTEST_OPERATOR_FAILURES=TRUE")
+list(APPEND configure_options "-DUSE_CCACHE=ON")
 if(target_architecture)
-   set(configure_options "${configure_options};-DTARGET_ARCHITECTURE=${target_architecture}")
+   list(APPEND configure_options "-DTARGET_ARCHITECTURE=${target_architecture}")
 endif()
 
 if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[01234567]\\."
