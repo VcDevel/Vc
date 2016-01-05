@@ -117,7 +117,20 @@ void Baker::setFilename(const QString &filename)
     m_filename = filename;
 }
 
-typedef std::complex<float_v> Z;
+struct Z
+{
+    using value_type = float_v;
+    value_type real, imag;
+};
+
+inline Z operator*(Z a, Z b)
+{
+    return {a.real * b.real - a.imag * b.imag, a.real * b.imag + a.imag * b.real};
+}
+inline Z operator+(Z a, Z b)
+{
+    return {a.real + b.real, a.imag + b.imag};
+}
 
 static inline Z P(Z z, Z c)
 {
@@ -126,7 +139,7 @@ static inline Z P(Z z, Z c)
 
 static inline Z::value_type fastNorm(const Z &z)
 {
-    return z.real() * z.real() + z.imag() * z.imag();
+    return z.real * z.real + z.imag * z.imag;
 }
 
 template<typename T> static inline T square(T a) { return a * a; }
@@ -448,9 +461,10 @@ void Baker::createImage()
     for (float real = realMin; real <= realMax; real += realStep) {
         m_progress.setValue(99.f * (real - realMin) / (realMax - realMin));
         for (float imag = imagMin; imag <= imagMax; imag += imagStep) {
-            Z c(real, imag);
-            Z c2 = Z(1.08f * real + 0.15f, imag);
-            if (fastNorm(Z(real + 1.f, imag)) < 0.06f || (std::real(c2) < 0.42f && fastNorm(c2) < 0.417f)) {
+            Z c{real, imag};
+            Z c2{1.08f * real + 0.15f, imag};
+            if (fastNorm(Z{real + 1.f, imag}) < 0.06f ||
+                (c2.real < 0.42f && fastNorm(c2) < 0.417f)) {
                 continue;
             }
             Z z = c;
@@ -461,14 +475,14 @@ void Baker::createImage()
             if (n <= maxIterations && n >= overallLowerBound) {
                 // point is outside of the Mandelbrot set and required enough (overallLowerBound)
                 // iterations to reach the cut-off value S
-                Z cn(real, -imag);
+                Z cn{real, -imag};
                 Z zn = cn;
                 z = c;
                 for (int i = 0; i <= overallUpperBound; ++i) {
-                    const float y2 = (std::imag(z) - m_y) * yFact;
-                    const float yn2 = (std::imag(zn) - m_y) * yFact;
+                    const float y2 = (z.imag - m_y) * yFact;
+                    const float yn2 = (zn.imag - m_y) * yFact;
                     if (y2 >= 0.f && y2 < maxY && yn2 >= 0.f && yn2 < maxY) {
-                        const float x2 = (std::real(z) - m_x) * xFact;
+                        const float x2 = (z.real - m_x) * xFact;
                         if (x2 >= 0.f && x2 < maxX) {
                             const int red   = (i >= lowerBound[0] && i <= upperBound[0]) ? 1 : 0;
                             const int green = (i >= lowerBound[1] && i <= upperBound[1]) ? 1 : 0;
@@ -493,10 +507,10 @@ void Baker::createImage()
         m_progress.setValue(99.f * (real - realMin) / (realMax - realMin));
         for (float_v imag = imagMin2; all_of(imag <= imagMax); imag += imagStep2) {
             // FIXME: extra "tracks" if nSteps[1] is not a multiple of float_v::Size
-            Z c(float_v(real), imag);
-            Z c2 = Z(float_v(1.08f * real + 0.15f), imag);
-            if (all_of(fastNorm(Z(float_v(real + 1.f), imag)) < 0.06f ||
-                       (std::real(c2) < 0.42f && fastNorm(c2) < 0.417f))) {
+            Z c{real, imag};
+            Z c2 = Z{1.08f * real + 0.15f, imag};
+            if (all_of(fastNorm(Z{real + 1.f, imag}) < 0.06f ||
+                       (c2.real < 0.42f && fastNorm(c2) < 0.417f))) {
                 continue;
             }
             Z z = c;
@@ -511,13 +525,13 @@ void Baker::createImage()
             if (inside.isFull()) {
                 continue;
             }
-            Z cn(float_v(real), -imag);
+            Z cn{real, -imag};
             Z zn = cn;
             z = c;
             for (int i = 0; i <= overallUpperBound; ++i) {
-                const float_v y2 = (std::imag(z) - m_y) * yFact;
-                const float_v yn2 = (std::imag(zn) - m_y) * yFact;
-                const float_v x2 = (std::real(z) - m_x) * xFact;
+                const float_v y2 = (z.imag - m_y) * yFact;
+                const float_v yn2 = (zn.imag - m_y) * yFact;
+                const float_v x2 = (z.real - m_x) * xFact;
                 z = P(z, c);
                 zn = P(zn, cn);
                 const float_m drawMask = !inside && y2 >= 0.f && x2 >= 0.f && y2 < maxY && x2 < maxX && yn2 >= 0.f && yn2 < maxY;
