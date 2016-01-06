@@ -28,8 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_INTRINSICS_H_
 #define VC_SSE_INTRINSICS_H_
 
-#include "../common/windows_fix_intrin.h"
-
 #include <x86intrin.h>
 #include "../common/storage.h"
 #include "const_data.h"
