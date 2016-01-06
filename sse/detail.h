@@ -650,9 +650,8 @@ Vc_INTRINSIC  uchar max(__m128i a,  uchar) {
 
 // sorted{{{1
 template <Vc::Implementation, typename T>
-Vc_CONST_L SSE::Vector<T> sorted(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) x) Vc_CONST_R;
-template <typename T>
-Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) x)
+Vc_CONST_L SSE::Vector<T> sorted(SSE::Vector<T> x) Vc_CONST_R;
+template <typename T> Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(SSE::Vector<T> x)
 {
     static_assert(!CurrentImplementation::is(ScalarImpl),
                   "Detail::sorted can only be instantiated if a non-Scalar "
@@ -672,8 +671,7 @@ template <typename V> constexpr int sanitize(int n)
 
 // rotated{{{1
 template <typename T, size_t N, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> rotated(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> rotated(V v, int amount)
 {
     using namespace SSE;
     switch (static_cast<unsigned int>(amount) % N) {

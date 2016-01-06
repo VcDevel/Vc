@@ -214,7 +214,7 @@ static Vc_ALWAYS_INLINE void log_series(Vector<double, Abi> &Vc_RESTRICT x,
     }
 
 template <typename T, typename Abi, typename V = Vector<T, Abi>>
-static inline Vector<T, Abi> calc(Vc_ALIGNED_PARAMETER(V) _x)
+static inline Vector<T, Abi> calc(V _x)
 {
         typedef typename V::Mask M;
     typedef Detail::Const<T, Abi> C;

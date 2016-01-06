@@ -740,17 +740,15 @@ Vc_INTRINSIC __m256i avx_broadcast( uchar x) { return _mm256_set1_epi8(x); }
 // sorted{{{1
 template <Vc::Implementation Impl, typename T,
           typename = enable_if<(Impl >= AVXImpl && Impl <= AVX2Impl)>>
-Vc_CONST_L AVX2::Vector<T> sorted(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x) Vc_CONST_R;
-template <typename T>
-Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
+Vc_CONST_L AVX2::Vector<T> sorted(AVX2::Vector<T> x) Vc_CONST_R;
+template <typename T> Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(AVX2::Vector<T> x)
 {
     return sorted<CurrentImplementation::current()>(x);
 }
 
 // shifted{{{1
 template <typename T, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(V v, int amount)
 {
     using namespace AVX;
     constexpr int S = sizeof(T);
@@ -835,8 +833,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(
 }
 
 template <typename T, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(V v, int amount)
 {
     using namespace AVX;
     switch (amount) {
@@ -864,8 +861,8 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(
 }
 // rotated{{{1
 template <typename T, size_t N, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(V v,
+                                                                               int amount)
 {
     using namespace AVX;
     const __m128i vLo = avx_cast<__m128i>(lo128(v));
@@ -886,8 +883,8 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(
 }
 
 template <typename T, size_t N, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(V v,
+                                                                               int amount)
 {
     using namespace AVX;
     const __m128i vLo = avx_cast<__m128i>(lo128(v));
@@ -922,7 +919,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(
 #ifdef Vc_IMPL_AVX2
 template <typename T, size_t N, typename V>
 static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+    V v, int amount)
 {
     using namespace AVX;
     const __m128i vLo = avx_cast<__m128i>(lo128(v));

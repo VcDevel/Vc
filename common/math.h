@@ -42,7 +42,7 @@ namespace Vc_VERSIONED_NAMESPACE
 #include "logarithm.h"
 #include "exponential.h"
 #ifdef Vc_IMPL_AVX
-inline AVX::double_v exp(Vc_ALIGNED_PARAMETER(AVX::double_v) _x)
+inline AVX::double_v exp(AVX::double_v _x)
 {
     AVX::Vector<double> x = _x;
     typedef AVX::Vector<double> V;

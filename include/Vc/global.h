@@ -81,18 +81,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #define Vc_MSVC _MSC_FULL_VER
 #undef Vc_MSVC
-/**
- * \ingroup Utilities
- * This macro is defined if the compiler disallows passing over-aligned types by value. If
- * this is the case you must use parameter passing by const-ref exclusively.
- *
- * \note This is a bug in the compiler (or rather it's restriction to inefficient function
- * call conventions). You may be able to work around the issue with a better (i.e. sane)
- * calling
- * convention.
- */
-#define Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
-#undef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
 //@}
 
 #else  // DOXYGEN
@@ -118,12 +106,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # error "Vc requires support for C++11."
 #elif __cplusplus >= 201402L
 # define Vc_CXX14 1
-#endif
-
-// Features/Quirks defines
-#if defined Vc_MSVC && defined _WIN32
-// the Win32 ABI can't handle function parameters with alignment >= 16
-#define Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
 #endif
 
 #if defined(__GNUC__) && !defined(Vc_NO_INLINE_ASM)
