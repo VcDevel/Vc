@@ -179,7 +179,7 @@ namespace Detail
 {
 Vc_INTRINSIC AVX2::float_v::IndexType extractExponent(__m256 e)
 {
-    SimdArray<uint, float_v::size()> exponentPart;
+    SimdArray<uint, float_v::Size> exponentPart;
     const auto ee = AVX::avx_cast<__m256i>(e);
 #ifdef Vc_IMPL_AVX2
     exponentPart = AVX2::uint_v(ee);

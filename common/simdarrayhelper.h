@@ -129,7 +129,7 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
     using simd_array_type = SimdArray<
         typename std::conditional<Traits::is_simd_vector<type_decayed>::value,
                                   typename type_decayed::EntryType, float>::type,
-        type_decayed::size() / Pieces>;
+        type_decayed::Size / Pieces>;
 
     type data;
 
@@ -156,7 +156,7 @@ struct Segment<T_ *, Pieces_, Index_> {
     using simd_array_type = SimdArray<
         typename std::conditional<Traits::is_simd_vector<type_decayed>::value,
                                   typename type_decayed::VectorEntryType, float>::type,
-        type_decayed::size() / Pieces> *;
+        type_decayed::Size / Pieces> *;
 
     type data;
 

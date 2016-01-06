@@ -93,14 +93,14 @@ public:
     // conversion (casts)
     template <typename U, typename V>
     Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
-                                   enable_if<N == V::size()> = nullarg) Vc_INTRINSIC_R;
+                                   enable_if<N == V::Size> = nullarg) Vc_INTRINSIC_R;
     template <typename U, typename V>
     Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
-                                   enable_if<(N > V::size() && N <= 2 * V::size())> = nullarg)
+                                   enable_if<(N > V::Size && N <= 2 * V::Size)> = nullarg)
         Vc_INTRINSIC_R;
     template <typename U, typename V>
     Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
-                                   enable_if<(N > 2 * V::size() && N <= 4 * V::size())> = nullarg)
+                                   enable_if<(N > 2 * V::Size && N <= 4 * V::Size)> = nullarg)
         Vc_INTRINSIC_R;
 
     // conversion from any Segment object (could be SimdMaskArray or Mask<T>)
@@ -119,7 +119,7 @@ public:
     // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
     template <typename M,
               typename = enable_if<Traits::is_simd_mask<M>::value &&
-                                   !Traits::isSimdMaskArray<M>::value && M::size() == N>>
+                                   !Traits::isSimdMaskArray<M>::value && M::Size == N>>
     operator M() const
     {
         return simd_cast<M>(*this);
@@ -385,7 +385,7 @@ public:
     // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
     template <typename M,
               typename = enable_if<Traits::is_simd_mask<M>::value &&
-                                   !Traits::isSimdMaskArray<M>::value && M::size() == N>>
+                                   !Traits::isSimdMaskArray<M>::value && M::Size == N>>
     operator M() const
     {
         return simd_cast<M>(*this);

@@ -260,7 +260,7 @@ using simdize = typename SimdizeDetail::ReplaceTypes<T, N, MT>::type;
  */
 template <typename T, size_t N, typename MT>
 struct ReplaceTypes<T, N, MT, Category::ArithmeticVectorizable>
-    : public conditional<(N == 0 || Vector<T>::size() == N), Vector<T>, SimdArray<T, N>>
+    : public conditional<(N == 0 || Vector<T>::Size == N), Vector<T>, SimdArray<T, N>>
 {
 };
 
@@ -270,7 +270,7 @@ struct ReplaceTypes<T, N, MT, Category::ArithmeticVectorizable>
  */
 template <size_t N, typename MT>
 struct ReplaceTypes<bool, N, MT, Category::ArithmeticVectorizable>
-    : public conditional<(N == 0 || Mask<MT>::size() == N), Mask<MT>,
+    : public conditional<(N == 0 || Mask<MT>::Size == N), Mask<MT>,
                          SimdMaskArray<MT, N>>
 {
 };
@@ -305,7 +305,7 @@ private:
      * If \p U::size() yields a constant expression convertible to size_t then value will
      * be equal to U::size(), 0 otherwise.
      */
-    template <typename U, size_t M = U::size()>
+    template <typename U, size_t M = U::Size>
     static std::integral_constant<size_t, M> size_or_0(int);
     template <typename U> static std::integral_constant<size_t, 0> size_or_0(...);
 
@@ -1332,7 +1332,7 @@ template <typename T, size_t N,
           IteratorDetails::Mutable M =
               (Traits::is_output_iterator<T>::value ? Mutable::Yes : Mutable::No),
           typename V = simdize<typename std::iterator_traits<T>::value_type, N>,
-          size_t Size = V::size(),
+          size_t Size = V::Size,
           typename = typename std::iterator_traits<T>::iterator_category>
 class Iterator;
 
@@ -1635,13 +1635,13 @@ struct ReplaceTypes<T, N, MT, Category::RandomAccessIterator>
  */
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::size() == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &, const U &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
 {
     using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;
@@ -1651,13 +1651,13 @@ Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::size() == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask)
 {
     using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;

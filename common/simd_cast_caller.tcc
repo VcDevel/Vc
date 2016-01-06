@@ -35,7 +35,7 @@ template <typename T, std::size_t N, typename VectorType>
 template <typename U, typename V>
 Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
     const SimdMaskArray<U, N, V> &x,
-    enable_if<N == V::size()>)
+    enable_if<N == V::Size>)
     : data(simd_cast<mask_type>(internal_data(x)))
 {
 }
@@ -43,7 +43,7 @@ template <typename T, std::size_t N, typename VectorType>
 template <typename U, typename V>
 Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
     const SimdMaskArray<U, N, V> &x,
-    enable_if<(N > V::size() && N <= 2 * V::size())>)
+    enable_if<(N > V::Size && N <= 2 * V::Size)>)
     : data(simd_cast<mask_type>(internal_data(internal_data0(x)), internal_data(internal_data1(x))))
 {
 }
@@ -51,7 +51,7 @@ template <typename T, std::size_t N, typename VectorType>
 template <typename U, typename V>
 Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
     const SimdMaskArray<U, N, V> &x,
-    enable_if<(N > 2 * V::size() && N <= 4 * V::size())>)
+    enable_if<(N > 2 * V::Size && N <= 4 * V::Size)>)
     : data(simd_cast<mask_type>(internal_data(internal_data0(internal_data0(x))),
                                 internal_data(internal_data1(internal_data0(x))),
                                 internal_data(internal_data0(internal_data1(x))),

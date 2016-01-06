@@ -111,7 +111,7 @@ using select_best_vector_type =
 template <typename T, std::size_t N,
           typename VectorType = Common::select_best_vector_type<T, N>,
           std::size_t VectorSize =
-              VectorType::size()  // this last parameter is only used for
+              VectorType::Size    // this last parameter is only used for
                                   // specialization of N == VectorSize
           >
 class SimdArray;
@@ -119,7 +119,7 @@ class SimdArray;
 template <typename T, std::size_t N,
           typename VectorType = Common::select_best_vector_type<T, N>,
           std::size_t VectorSize =
-              VectorType::size()  // this last parameter is only used for
+              VectorType::Size    // this last parameter is only used for
                                   // specialization of N == VectorSize
           >
 class SimdMaskArray;
