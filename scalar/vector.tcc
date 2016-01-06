@@ -206,7 +206,7 @@ template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::setQnan(Mas
         setQnan();
     }
 }
-template<> Vc_INTRINSIC void Scalar::double_v::setQnan(Mask m)
+template<> Vc_INTRINSIC void Scalar::double_v::setQnan(Scalar::double_v::Mask m)
 {
     if (m.data()) {
         setQnan();
