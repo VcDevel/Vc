@@ -110,7 +110,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     const MT *mem,
                                     const IT &indexes,
                                     typename V::MaskArgument mask,
-                                    enable_if<V::size() == 16> = nullarg)
+                                    enable_if<V::Size == 16> = nullarg)
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
@@ -186,7 +186,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     const MT *mem,
                                     const IT &indexes,
                                     typename V::MaskArgument mask,
-                                    enable_if<V::size() == 8> = nullarg)
+                                    enable_if<V::Size == 8> = nullarg)
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
@@ -230,7 +230,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     const MT *mem,
                                     const IT &indexes,
                                     typename V::MaskArgument mask,
-                                    enable_if<V::size() == 4> = nullarg)
+                                    enable_if<V::Size == 4> = nullarg)
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
@@ -258,7 +258,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     const MT *mem,
                                     const IT &indexes,
                                     typename V::MaskArgument mask,
-                                    enable_if<V::size() == 2> = nullarg)
+                                    enable_if<V::Size == 2> = nullarg)
 {
     unsigned int bits = mask.toInt();
     unsigned int low;

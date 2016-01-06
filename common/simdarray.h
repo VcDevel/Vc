@@ -130,19 +130,19 @@ public:
 
     // implicit casts
     template <typename U, typename V>
-    Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x, enable_if<N == V::size()> = nullarg)
+    Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x, enable_if<N == V::Size> = nullarg)
         : data(simd_cast<vector_type>(internal_data(x)))
     {
     }
     template <typename U, typename V>
     Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x,
-                            enable_if<(N > V::size() && N <= 2 * V::size())> = nullarg)
+                            enable_if<(N > V::Size && N <= 2 * V::Size)> = nullarg)
         : data(simd_cast<vector_type>(internal_data(internal_data0(x)), internal_data(internal_data1(x))))
     {
     }
     template <typename U, typename V>
     Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x,
-                            enable_if<(N > 2 * V::size() && N <= 4 * V::size())> = nullarg)
+                            enable_if<(N > 2 * V::Size && N <= 4 * V::Size)> = nullarg)
         : data(simd_cast<vector_type>(internal_data(internal_data0(internal_data0(x))),
                                       internal_data(internal_data1(internal_data0(x))),
                                       internal_data(internal_data0(internal_data1(x))),
@@ -182,7 +182,7 @@ public:
     template <typename V,
               typename = enable_if<
                   Traits::is_simd_vector<V>::value && !Traits::isSimdArray<V>::value &&
-                  std::is_convertible<T, typename V::EntryType>::value && V::size() == N>>
+                  std::is_convertible<T, typename V::EntryType>::value && V::Size == N>>
     Vc_INTRINSIC operator V() const
     {
         return simd_cast<V>(*this);
@@ -773,7 +773,7 @@ public:
     template <typename W,
               typename = enable_if<
                   Traits::is_simd_vector<W>::value && !Traits::isSimdArray<W>::value &&
-                  std::is_convertible<T, typename W::EntryType>::value && W::size() == N>>
+                  std::is_convertible<T, typename W::EntryType>::value && W::Size == N>>
     operator W() const
     {
         return simd_cast<W>(*this);
@@ -972,7 +972,7 @@ public:
 private:                                                                                 \
     template <typename ForSfinae = void>                                                 \
     Vc_INTRINSIC enable_if<std::is_same<ForSfinae, void>::value &&                       \
-                               storage_type0::size() == storage_type1::size(),           \
+                               storage_type0::Size == storage_type1::Size,           \
                            value_type> name_##_impl() const                              \
     {                                                                                    \
         return binary_fun_(data0, data1).name_();                                        \
@@ -980,7 +980,7 @@ private:                                                                        
                                                                                          \
     template <typename ForSfinae = void>                                                 \
     Vc_INTRINSIC enable_if<std::is_same<ForSfinae, void>::value &&                       \
-                               storage_type0::size() != storage_type1::size(),           \
+                               storage_type0::Size != storage_type1::Size,           \
                            value_type> name_##_impl() const                              \
     {                                                                                    \
         return scalar_fun_(data0.name_(), data1.name_());                                \
