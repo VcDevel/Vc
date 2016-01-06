@@ -37,7 +37,11 @@ _LIBCPP_BEGIN_NAMESPACE_STD
 namespace std
 {
 #endif
+#ifdef _WIN32
+template <typename T, size_t N> class array;
+#else
 template <typename T, size_t N> struct array;
+#endif
 template <typename T, typename Allocator> class vector;
 #ifdef _LIBCPP_END_NAMESPACE_STD
 _LIBCPP_END_NAMESPACE_STD
