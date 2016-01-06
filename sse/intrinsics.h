@@ -28,8 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_INTRINSICS_H_
 #define VC_SSE_INTRINSICS_H_
 
-#include "../common/windows_fix_intrin.h"
-
 // The GCC xxxintrin.h headers do not make sure that the intrinsics have C linkage. This not really
 // a problem, unless there is another place where the exact same functions are declared. Then the
 // linkage must be the same, otherwise it won't compile. Such a case occurs on Windows, where the
