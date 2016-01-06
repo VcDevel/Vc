@@ -277,12 +277,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_EXACT_TYPE(_test, _reference, _type) \
     typename std::enable_if<std::is_same<_test, _reference>::value, _type>::type
 
-#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-#define Vc_ALIGNED_PARAMETER(_Type) const _Type &
-#else
-#define Vc_ALIGNED_PARAMETER(_Type) const _Type
-#endif
-
 #define Vc_make_unique(name) Vc_CAT(Vc_,name,_,__LINE__)
 
 #if defined(Vc_ICC) || defined(Vc_CLANG) || defined Vc_APPLECLANG

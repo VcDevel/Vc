@@ -619,7 +619,7 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, Ve
 // sorted {{{1
 namespace Detail
 {
-inline Vc_CONST SSE::double_v sorted(Vc_ALIGNED_PARAMETER(SSE::double_v) x_)
+inline Vc_CONST SSE::double_v sorted(SSE::double_v x_)
 {
     const __m128d x = x_.data();
     const __m128d y = _mm_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));

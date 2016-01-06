@@ -141,8 +141,8 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
 }
 }  // namespace Detail
 
-    template<typename T>
-    inline SSE::Vector<T> trunc(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) _v) {
+template <typename T> inline SSE::Vector<T> trunc(SSE::Vector<T> _v)
+{
         typedef SSE::Vector<T> V;
         typedef typename V::Mask M;
 
@@ -159,8 +159,8 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
         return v;
     }
 
-    template<typename T>
-    inline SSE::Vector<T> floor(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) _v) {
+template <typename T> inline SSE::Vector<T> floor(SSE::Vector<T> _v)
+{
         typedef SSE::Vector<T> V;
         typedef typename V::Mask M;
 
@@ -177,8 +177,8 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
         return v;
     }
 
-    template<typename T>
-    inline SSE::Vector<T> ceil(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) _v) {
+template <typename T> inline SSE::Vector<T> ceil(SSE::Vector<T> _v)
+{
         typedef SSE::Vector<T> V;
         typedef typename V::Mask M;
 
