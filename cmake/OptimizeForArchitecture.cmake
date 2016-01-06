@@ -404,7 +404,7 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
       _enable_or_disable(AVX "avx" "Use AVX. This will all floating-point vector sizes relative to SSE." _avx_broken)
       _enable_or_disable(FMA "fma" "Use FMA." _avx_broken)
       _enable_or_disable(BMI2 "bmi2" "Use BMI2." _avx_broken)
-      _enable_or_disable(AVX2 "xop" "Use AVX2. This will double all of the vector sizes relative to SSE." _avx2_broken)
+      _enable_or_disable(AVX2 "avx2" "Use AVX2. This will double all of the vector sizes relative to SSE." _avx2_broken)
       _enable_or_disable(XOP "xop" "Use XOP." _xop_broken)
       _enable_or_disable(FMA4 "fma4" "Use FMA4." _fma4_broken)
       _enable_or_disable(AVX512F "avx512f" "Use AVX512F. This will double all floating-point vector sizes relative to AVX2." false)
