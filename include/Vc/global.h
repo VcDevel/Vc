@@ -114,12 +114,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_UNSUPPORTED_COMPILER 1
 #endif
 
-#if __cplusplus < 201103
-#if (defined Vc_MSVC && Vc_MSVC >= 160000000)
-// these compilers still work, even if they don't define __cplusplus as expected
-#else
-#error "Vc requires support for C++11."
-#endif
+#if __cplusplus < 201103 && (!defined Vc_MSVC || _MSC_VER < 1900)
+# error "Vc requires support for C++11."
 #elif __cplusplus >= 201402L
 # define Vc_CXX14 1
 #endif
