@@ -295,22 +295,22 @@ public:
     using VectorType = IntrinsicType<ValueType, Size>;
     using EntryType = ValueType;
 
-    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data.v); }
+    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
     Vc_INTRINSIC Storage(const VectorType &x) : data(x)
     {
-        assertCorrectAlignment(&data.v);
+        assertCorrectAlignment(&data);
     }
     Vc_INTRINSIC Storage &operator=(const VectorType &x)
     {
-        data.v = x;
+        data = x;
         return *this;
     }
 
     Vc_INTRINSIC Storage(const Storage &) = default;
     Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data.v; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data.v; }
+    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
+    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 
     Vc_INTRINSIC_L Vc_PURE_L EntryType m(size_t i) const Vc_INTRINSIC_R Vc_PURE_R;
     Vc_INTRINSIC_L Vc_PURE_L EntryType &ref(size_t i) Vc_INTRINSIC_R Vc_PURE_R;
