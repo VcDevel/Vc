@@ -187,13 +187,13 @@ template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecia
 }
 
 template <>
-Vc_INTRINSIC SSE::float_v::Vector(VectorSpecialInitializerIndexesFromZero)
+Vc_INTRINSIC Vector<float, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero)
     : d(SSE::convert<int, float>(SSE::int_v::IndexesFromZero().data()))
 {
 }
 
 template <>
-Vc_INTRINSIC SSE::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
+Vc_INTRINSIC Vector<double, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero)
     : d(SSE::convert<int, double>(SSE::int_v::IndexesFromZero().data()))
 {
 }
@@ -227,7 +227,7 @@ template<> Vc_INTRINSIC void SSE::double_v::setQnan()
 {
     data() = SSE::_mm_setallone_pd();
 }
-template<> Vc_INTRINSIC void SSE::double_v::setQnan(const Mask &k)
+template<> Vc_INTRINSIC void Vector<double, VectorAbi::Sse>::setQnan(const Mask &k)
 {
     data() = _mm_or_pd(data(), k.dataD());
 }
@@ -235,7 +235,7 @@ template<> Vc_INTRINSIC void SSE::float_v::setQnan()
 {
     data() = SSE::_mm_setallone_ps();
 }
-template<> Vc_INTRINSIC void SSE::float_v::setQnan(const Mask &k)
+template<> Vc_INTRINSIC void Vector<float, VectorAbi::Sse>::setQnan(const Mask &k)
 {
     data() = _mm_or_ps(data(), k.data());
 }
