@@ -2256,6 +2256,22 @@ Vc_INTRINSIC Vc_CONST Return simd_cast_without_last(const From &... xs, const T 
 
 // simd_cast_interleaved_argument_order (definitions) {{{2
 
+#ifdef Vc_MSVC
+// MSVC doesn't see that the Ts pack below can be empty and thus complains when extract_interleaved
+// is called with only 2 arguments. These overloads here are *INCORRECT standard C++*, but they make
+// MSVC do the right thing.
+template <std::size_t I, typename T0>
+Vc_INTRINSIC Vc_CONST enable_if<(I == 0), T0> extract_interleaved(const T0 &a0, const T0 &)
+{
+    return a0;
+}
+template <std::size_t I, typename T0>
+Vc_INTRINSIC Vc_CONST enable_if<(I == 1), T0> extract_interleaved(const T0 &, const T0 &b0)
+{
+    return b0;
+}
+#endif  // Vc_MSVC
+
 /// \internal returns the first argument
 template <std::size_t I, typename T0, typename... Ts>
 Vc_INTRINSIC Vc_CONST enable_if<(I == 0), T0> extract_interleaved(const T0 &a0,
@@ -2284,7 +2300,6 @@ Vc_INTRINSIC Vc_CONST enable_if<(I > 1), T0> extract_interleaved(const T0 &,
     return extract_interleaved<I - 2, Ts...>(a..., b...);
 }
 /// \internal calls simd_cast with correct argument order thanks to extract_interleaved
-/// and extract_back.
 template <typename Return, typename... Ts, std::size_t... Indexes>
 Vc_INTRINSIC Vc_CONST Return
     simd_cast_interleaved_argument_order_1(index_sequence<Indexes...>, const Ts &... a,
