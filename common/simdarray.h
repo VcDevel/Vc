@@ -459,12 +459,18 @@ template <typename T, std::size_t N, typename VectorType> constexpr std::size_t 
 template <typename T, std::size_t N, typename VectorType>
 constexpr std::size_t SimdArray<T, N, VectorType, N>::MemoryAlignment;
 template <typename T, std::size_t N, typename VectorType>
-Vc_INTRINSIC VectorType &internal_data(SimdArray<T, N, VectorType, N> &x)
+#ifndef Vc_MSVC
+Vc_INTRINSIC
+#endif
+VectorType &internal_data(SimdArray<T, N, VectorType, N> &x)
 {
     return x.data;
 }
 template <typename T, std::size_t N, typename VectorType>
-Vc_INTRINSIC const VectorType &internal_data(const SimdArray<T, N, VectorType, N> &x)
+#ifndef Vc_MSVC
+Vc_INTRINSIC
+#endif
+const VectorType &internal_data(const SimdArray<T, N, VectorType, N> &x)
 {
     return x.data;
 }
@@ -1346,28 +1352,40 @@ inline void SimdArray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
 // internal_data0/1 (SimdArray) {{{1
 ///\internal Returns the first data member of a generic SimdArray
 template <typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC typename SimdArrayTraits<T, N>::storage_type0 &internal_data0(
+#ifndef Vc_MSVC
+Vc_INTRINSIC
+#endif
+typename SimdArrayTraits<T, N>::storage_type0 &internal_data0(
     SimdArray<T, N, V, M> &x)
 {
     return x.data0;
 }
 ///\internal Returns the second data member of a generic SimdArray
 template <typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
+#ifndef Vc_MSVC
+Vc_INTRINSIC
+#endif
+typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
     SimdArray<T, N, V, M> &x)
 {
     return x.data1;
 }
 ///\internal Returns the first data member of a generic SimdArray (const overload)
 template <typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC const typename SimdArrayTraits<T, N>::storage_type0 &internal_data0(
+#ifndef Vc_MSVC
+Vc_INTRINSIC
+#endif
+const typename SimdArrayTraits<T, N>::storage_type0 &internal_data0(
     const SimdArray<T, N, V, M> &x)
 {
     return x.data0;
 }
 ///\internal Returns the second data member of a generic SimdArray (const overload)
 template <typename T, std::size_t N, typename V, std::size_t M>
-Vc_INTRINSIC const typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
+#ifndef Vc_MSVC
+Vc_INTRINSIC
+#endif
+const typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
     const SimdArray<T, N, V, M> &x)
 {
     return x.data1;
