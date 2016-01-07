@@ -236,15 +236,15 @@ template <> template <typename G> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::ge
 // constants {{{1
 template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerZero) : d{} {}
 
-template <> Vc_INTRINSIC AVX2::double_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_pd()) {}
-template <> Vc_INTRINSIC  AVX2::float_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_ps()) {}
+template <> Vc_INTRINSIC Vector<double, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_pd()) {}
+template <> Vc_INTRINSIC Vector< float, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_ps()) {}
 #ifdef Vc_IMPL_AVX2
-template <> Vc_INTRINSIC    AVX2::int_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi32()) {}
-template <> Vc_INTRINSIC   AVX2::uint_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu32()) {}
-template <> Vc_INTRINSIC  AVX2::short_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi16()) {}
-template <> Vc_INTRINSIC AVX2::ushort_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu16()) {}
-template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi8()) {}
-template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu8()) {}
+template <> Vc_INTRINSIC Vector<   int, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi32()) {}
+template <> Vc_INTRINSIC Vector<  uint, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu32()) {}
+template <> Vc_INTRINSIC Vector< short, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi16()) {}
+template <> Vc_INTRINSIC Vector<ushort, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu16()) {}
+template <> Vc_INTRINSIC Vector< schar, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi8()) {}
+template <> Vc_INTRINSIC Vector< uchar, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu8()) {}
 #endif
 
 template <typename T>
@@ -255,12 +255,12 @@ Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx>::Vector(
 }
 
 template <>
-Vc_ALWAYS_INLINE AVX2::float_v::Vector(VectorSpecialInitializerIndexesFromZero)
+Vc_ALWAYS_INLINE Vector<float, VectorAbi::Avx>::Vector(VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<int>::address(), Vc::Aligned)
 {
 }
 template <>
-Vc_ALWAYS_INLINE AVX2::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
+Vc_ALWAYS_INLINE Vector<double, VectorAbi::Avx>::Vector(VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<int>::address(), Vc::Aligned)
 {
 }
@@ -291,19 +291,19 @@ template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZeroInverte
     data() = Detail::and_(AVX::avx_cast<VectorType>(k.data()), data());
 }
 
-template<> Vc_INTRINSIC void AVX2::double_v::setQnan()
+template<> Vc_INTRINSIC void Vector<double, VectorAbi::Avx>::setQnan()
 {
     data() = Detail::allone<VectorType>();
 }
-template<> Vc_INTRINSIC void AVX2::double_v::setQnan(MaskArgument k)
+template<> Vc_INTRINSIC void Vector<double, VectorAbi::Avx>::setQnan(MaskArgument k)
 {
     data() = _mm256_or_pd(data(), k.dataD());
 }
-template<> Vc_INTRINSIC void AVX2::float_v::setQnan()
+template<> Vc_INTRINSIC void Vector<float, VectorAbi::Avx>::setQnan()
 {
     data() = Detail::allone<VectorType>();
 }
-template<> Vc_INTRINSIC void AVX2::float_v::setQnan(MaskArgument k)
+template<> Vc_INTRINSIC void Vector<float, VectorAbi::Avx>::setQnan(MaskArgument k)
 {
     data() = _mm256_or_ps(data(), k.data());
 }
@@ -900,7 +900,7 @@ Vc_INTRINSIC Vc_PURE AVX2::ushort_v AVX2::ushort_v::operator[](
         AVX::avx_cast<__m256d>(Mem::permuteLo<X3, X2, X1, X0>(d.v())))));
 }
 #endif
-template <> Vc_INTRINSIC AVX2::float_v AVX2::float_v::operator[](const IndexType &/*perm*/) const
+template <> Vc_INTRINSIC AVX2::float_v Vector<float, VectorAbi::Avx>::operator[](const IndexType &/*perm*/) const
 {
     // TODO
     return *this;
