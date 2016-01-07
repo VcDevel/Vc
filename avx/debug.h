@@ -109,7 +109,11 @@ class DebugStream
 };
 #endif
 
+#ifdef Vc_MSVC
+#define Vc_DEBUG Vc::AVX::DebugStream(__FUNCSIG__, __FILE__, __LINE__)
+#else
 #define Vc_DEBUG Vc::AVX::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
+#endif
 
 }  // namespace AVX
 }  // namespace Vc
