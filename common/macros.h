@@ -78,6 +78,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define Vc_RESTRICT __restrict__
 #  define Vc_DEPRECATED(msg)
+#  define Vc_DEPRECATED_ALIAS(msg)
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
 #  define Vc_UNREACHABLE __builtin_unreachable
@@ -112,8 +113,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_RESTRICT __restrict__
 #  ifdef Vc_ICC
 #    define Vc_DEPRECATED(msg)
+#    define Vc_DEPRECATED_ALIAS(msg)
 #  else
 #    define Vc_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#    define Vc_DEPRECATED_ALIAS(msg) __attribute__((__deprecated__(msg)))
 #  endif
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #else
@@ -155,6 +158,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_IS_LIKELY(x) x
 #  define Vc_RESTRICT __restrict
 #  define Vc_DEPRECATED(msg) __declspec(deprecated(msg))
+#  define Vc_DEPRECATED_ALIAS(msg)
 #  define Vc_WARN_UNUSED_RESULT
 #endif
 
