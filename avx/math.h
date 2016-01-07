@@ -236,9 +236,9 @@ inline AVX2::float_v frexp(AVX2::float_v::AsArg v, AVX2::float_v::IndexType *e)
     const __m256 exponentBits = Const<float>::exponentMask().data();
     *e = extractExponent(and_(v.data(), exponentBits));
     const __m256 exponentMaximized = or_(v.data(), exponentBits);
-    float_v ret = _mm256_and_ps(exponentMaximized, avx_cast<__m256>(set1_epi32(0xbf7fffffu)));
-    ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
-    e->setZero(simd_cast<decltype(*e == *e)>(v == float_v::Zero()));
+    AVX2::float_v ret = _mm256_and_ps(exponentMaximized, avx_cast<__m256>(set1_epi32(0xbf7fffffu)));
+    ret(isnan(v) || !isfinite(v) || v == AVX2::float_v::Zero()) = v;
+    e->setZero(simd_cast<decltype(*e == *e)>(v == AVX2::float_v::Zero()));
     return ret;
 }
 
