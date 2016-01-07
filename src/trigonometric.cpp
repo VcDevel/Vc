@@ -40,8 +40,8 @@ namespace Common
 namespace
 {
 using Vc::Vector;
-template <typename Abi> using float_v = Vc::Vector<float, Abi>;
-template <typename Abi> using double_v = Vc::Vector<double, Abi>;
+template <typename Abi> using float_v_for = Vc::Vector<float, Abi>;
+template <typename Abi> using double_v_for = Vc::Vector<double, Abi>;
 template <typename T, typename Abi>
 using Const = typename std::conditional<std::is_same<Abi, VectorAbi::Avx>::value,
                                         AVX::Const<T>, SSE::Const<T>>::type;
@@ -51,8 +51,8 @@ using best_int_v_for =
     typename std::conditional<(V::size() <= Vector<int, VectorAbi::Best<int>>::size()),
                               Vector<int, VectorAbi::Best<int>>,
                               SimdArray<int, V::size()>>::type;
-template <typename Abi> using float_int_v = best_int_v_for<float_v<Abi>>;
-template <typename Abi> using double_int_v = best_int_v_for<double_v<Abi>>;
+template <typename Abi> using float_int_v = best_int_v_for<float_v_for<Abi>>;
+template <typename Abi> using double_int_v = best_int_v_for<double_v_for<Abi>>;
 
 template <typename T, typename Abi>
 static Vc_ALWAYS_INLINE Vector<T, Abi> cosSeries(const Vector<T, Abi> &x)
@@ -65,17 +65,17 @@ static Vc_ALWAYS_INLINE Vector<T, Abi> cosSeries(const Vector<T, Abi> &x)
         - C::_1_2() * x2 + Vector<T, Abi>::One();
 }
 template <typename Abi>
-static Vc_ALWAYS_INLINE double_v<Abi> cosSeries(const double_v<Abi> &x)
+static Vc_ALWAYS_INLINE double_v_for<Abi> cosSeries(const double_v_for<Abi> &x)
 {
     typedef Const<double, Abi> C;
-    const double_v<Abi> x2 = x * x;
+    const double_v_for<Abi> x2 = x * x;
     return (((((C::cosCoeff(5)  * x2 +
                 C::cosCoeff(4)) * x2 +
                 C::cosCoeff(3)) * x2 +
                 C::cosCoeff(2)) * x2 +
                 C::cosCoeff(1)) * x2 +
                 C::cosCoeff(0)) * (x2 * x2)
-        - C::_1_2() * x2 + double_v<Abi>::One();
+        - C::_1_2() * x2 + double_v_for<Abi>::One();
 }
 template <typename T, typename Abi>
 static Vc_ALWAYS_INLINE Vector<T, Abi> sinSeries(const Vector<T, Abi> &x)
@@ -88,10 +88,10 @@ static Vc_ALWAYS_INLINE Vector<T, Abi> sinSeries(const Vector<T, Abi> &x)
         + x;
 }
 template <typename Abi>
-static Vc_ALWAYS_INLINE double_v<Abi> sinSeries(const double_v<Abi> &x)
+static Vc_ALWAYS_INLINE double_v_for<Abi> sinSeries(const double_v_for<Abi> &x)
 {
     typedef Const<double, Abi> C;
-    const double_v<Abi> x2 = x * x;
+    const double_v_for<Abi> x2 = x * x;
     return (((((C::sinCoeff(5)  * x2 +
                 C::sinCoeff(4)) * x2 +
                 C::sinCoeff(3)) * x2 +
@@ -101,13 +101,14 @@ static Vc_ALWAYS_INLINE double_v<Abi> sinSeries(const double_v<Abi> &x)
         + x;
 }
 
-template <typename _T, typename IV, typename Abi>
-static Vc_ALWAYS_INLINE Vector<_T, Abi> foldInput(const Vector<_T, Abi> &_x, IV &quadrant)
+template <typename Abi>
+static Vc_ALWAYS_INLINE float_v_for<Abi> foldInput(float_v_for<Abi> x, float_int_v<Abi> &quadrant)
 {
-    typedef Vector<_T, Abi> V;
-    typedef Const<_T, Abi> C;
+    typedef float_v_for<Abi> V;
+    typedef Const<float, Abi> C;
+    typedef float_int_v<Abi> IV;
 
-        const V x = abs(_x);
+    x = abs(x);
 #if defined(Vc_IMPL_FMA4) || defined(Vc_IMPL_FMA)
         quadrant = simd_cast<IV>(x * C::_4_pi() + V::One()); // prefer the fma here
         quadrant &= ~IV::One();
@@ -121,13 +122,13 @@ static Vc_ALWAYS_INLINE Vector<_T, Abi> foldInput(const Vector<_T, Abi> &_x, IV 
         return ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
     }
 template <typename Abi>
-static Vc_ALWAYS_INLINE double_v<Abi> foldInput(const double_v<Abi> &_x,
+static Vc_ALWAYS_INLINE double_v_for<Abi> foldInput(double_v_for<Abi> x,
                                                 double_int_v<Abi> &quadrant)
 {
-    typedef Vector<double, Abi> V;
+    typedef double_v_for<Abi> V;
     typedef Const<double, Abi> C;
 
-        const V x = abs(_x);
+    x = abs(x);
         V y = trunc(x / C::_pi_4()); // * C::_4_pi() would work, but is >twice as imprecise
         V z = y - trunc(y * C::_1_16()) * C::_16(); // y modulo 16
         quadrant = simd_cast<double_int_v<Abi>>(z);
