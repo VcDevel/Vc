@@ -52,13 +52,13 @@ explicit Vc_INTRINSIC Vector(const EntryType *mem, Flags flags)
 }
 
 template <typename U, typename Flags = DefaultLoadTag,
-          typename = enable_if<
+          typename Enabled = enable_if<
               (!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
                sizeof(EntryType) >= sizeof(U)) &&
               std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
 explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
 {
-    load(x, flags);
+    load<U, Flags, Enabled>(x, flags);
 }
 
 // load member functions{{{1
@@ -83,10 +83,11 @@ Vc_INTRINSIC void load(const EntryType *mem)
  * A (combination of) flag object(s), such as Vc::Aligned, Vc::Streaming, Vc::Unaligned,
  * and/or Vc::PrefetchDefault.
  */
-template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
-Vc_INTRINSIC void load(const EntryType *mem, Flags flags)
+template <typename Flags>
+Vc_INTRINSIC enable_if<Traits::is_load_store_flag<Flags>::value, void>
+load(const EntryType *mem, Flags flags)
 {
-    load<EntryType, Flags>(mem, flags);
+    load<EntryType, Flags, enable_if_default_type>(mem, flags);
 }
 template <typename U, typename Flags = DefaultLoadTag,
           typename = enable_if<
