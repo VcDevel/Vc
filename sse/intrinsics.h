@@ -67,7 +67,11 @@ extern "C" {
 // XOP / FMA4
 #if defined(Vc_IMPL_XOP) || defined(Vc_IMPL_FMA4)
 extern "C" {
+#ifdef Vc_MSVC
+#include <ammintrin.h>
+#else
 #include <x86intrin.h>
+#endif
 }
 #endif
 
