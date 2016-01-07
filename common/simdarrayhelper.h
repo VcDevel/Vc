@@ -486,7 +486,7 @@ template <typename Op, typename Arg> Arg conditionalUnpack(std::false_type, Op, 
 
 ///\internal true-/false_type that selects whether the argument with index B should be unpacked
 template <size_t A, size_t B>
-struct selectorType : public std::integral_constant<bool, !((A & (1 << B)) != 0)> {
+struct selectorType : public std::integral_constant<bool, !((A & (size_t(1) << B)) != 0)> {
 };
 
 ///\internal ends the recursion, transforms arguments, and calls \p op
