@@ -608,7 +608,9 @@ template <> Vc_INTRINSIC std::pair<AVX2::float_v, int> AVX2::float_v::minIndex()
     idx = _mm256_blendv_ps(idy, idx, less);
 
     const auto index = _mm_cvtsi128_si32(AVX::avx_cast<__m128i>(idx));
+#ifdef Vc_GNU_ASM
     __asm__ __volatile__(""); // help GCC to order the instructions better
+#endif
     x = _mm256_blendv_ps(y, x, less);
     return std::make_pair(x, index);
 }
