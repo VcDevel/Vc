@@ -54,8 +54,11 @@ Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerIndexe
 // load member functions{{{1
 template <typename T>
 template <typename U, typename Flags>
-Vc_INTRINSIC typename Vector<T, VectorAbi::Scalar>::load_concept<U, Flags>::type
-Vector<T, VectorAbi::Scalar>::load(const U *mem, Flags)
+Vc_INTRINSIC typename Vector<T, VectorAbi::Scalar>::
+#ifndef Vc_MSVC
+template
+#endif
+load_concept<U, Flags>::type Vector<T, VectorAbi::Scalar>::load(const U *mem, Flags)
 {
     m_data = mem[0];
 }
