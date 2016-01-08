@@ -262,8 +262,12 @@ enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertInd
 
 // a plain pointer won't work. Because we need some information on the number of values in
 // the index argument
+#ifndef Vc_MSVC
+// MSVC treats the function as usable in SFINAE context if it is deleted. If it's not declared we
+// seem to get what we wanted (except for bad diagnostics)
 template <typename T>
 enable_if<std::is_pointer<T>::value, void> convertIndexVector(T indexVector) = delete;
+#endif
 
 // an initializer_list works, but is runtime-sized (before C++14, at least) so we have to
 // fall back to std::vector
@@ -289,14 +293,20 @@ enable_if<(std::is_integral<T>::value && sizeof(T) < sizeof(int)),
     return {std::begin(indexVector), std::end(indexVector)};
 }
 
-template <typename T, typename = decltype(convertIndexVector(std::declval<T>()))>
-std::true_type is_valid_indexvector(T &&);
+template <typename T>
+std::true_type is_valid_indexvector(T &&, decltype(convertIndexVector(std::declval<T>())) * = nullptr);
 std::false_type is_valid_indexvector(...);
+
+template <typename IndexVector, typename Test = decltype(is_valid_indexvector(std::declval<const IndexVector &>()))>
+struct is_valid_indexvector_ : public std::integral_constant<bool, Test::value>
+{};
+static_assert(!is_valid_indexvector_<const int *>::value, "Pointer is incorrectly classified as valid index vector type");
+static_assert( is_valid_indexvector_<const int[4]>::value, "C-Array is incorrectly classified as invalid index vector type");
 
 // SubscriptOperation {{{1
 template <
     typename T, typename IndexVector, typename Scale = std::ratio<1, 1>,
-    bool = decltype(is_valid_indexvector(std::declval<const IndexVector &>()))::value>
+    bool = is_valid_indexvector_<IndexVector>::value>
 class SubscriptOperation
 {
     const IndexVector m_indexes;
