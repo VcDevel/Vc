@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "simdarrayhelper.h"
 #include "utility.h"
 #include "maskbool.h"
-
 #include "macros.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
