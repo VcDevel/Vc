@@ -216,6 +216,12 @@ constexpr size_t determine_tuple_size(size_t = T::tuple_size)
     return TupleSize;
 }
 
+// workaround for MSVC limitation: constexpr functions in template arguments
+// confuse the compiler
+template <typename T> struct determine_tuple_size_
+: public std::integral_constant<size_t, determine_tuple_size<T>()>
+{};
+
 namespace
 {
 template <typename T> struct The_simdization_for_the_requested_type_is_not_implemented;
@@ -833,7 +839,7 @@ public:
     Adapter &operator=(Adapter &&) = default;
 
     /// Broadcast constructor
-    template <typename U, size_t TupleSize = determine_tuple_size<Scalar>(),
+    template <typename U, size_t TupleSize = determine_tuple_size_<Scalar>::value,
               typename Seq = Vc::make_index_sequence<TupleSize>,
               typename = enable_if<std::is_convertible<U, Scalar>::value>>
     Adapter(U &&x_)
@@ -1677,13 +1683,13 @@ struct ReplaceTypes<T, N, MT, Category::RandomAccessIterator>
  */
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::Size == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size_<S>::value && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &, const U &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::Size == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size_<S>::value && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
 {
     using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;
@@ -1693,13 +1699,13 @@ Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::Size == N),
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::Size == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size_<S>::value && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::Size == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size_<S>::value && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask)
 {
     using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;
