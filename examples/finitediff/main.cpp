@@ -113,7 +113,7 @@ void printResults()
         << std::endl;
 }
 
-int main()
+int Vc_CDECL main()
 {
     {
       float_v x_i(Vc::IndexesFromZero);

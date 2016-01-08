@@ -1551,11 +1551,7 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
 #define TEST_CATCH(name_, exception_) REAL_TEST_CATCH(name_, exception_)
 #endif
 
-int
-#ifdef Vc_MSVC
-__cdecl
-#endif
-main(int argc, char **argv)  //{{{1
+int Vc_CDECL main(int argc, char **argv)  //{{{1
 {
     UnitTest::initTest(argc, argv);
     UnitTest::runAll();
