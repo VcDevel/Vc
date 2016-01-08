@@ -269,8 +269,9 @@ Vc_ALWAYS_INLINE Vector<double, VectorAbi::Avx>::Vector(VectorSpecialInitializer
 // load member functions {{{1
 // general load, implemented via LoadHelper {{{2
 template <typename DstT>
-template <typename SrcT, typename Flags, typename>
-Vc_INTRINSIC void Vector<DstT, VectorAbi::Avx>::load(const SrcT *mem, Flags flags)
+template <typename SrcT, typename Flags>
+Vc_INTRINSIC typename Vector<DstT, VectorAbi::Avx>::load_concept<SrcT, Flags>::type
+Vector<DstT, VectorAbi::Avx>::load(const SrcT *mem, Flags flags)
 {
     Common::handleLoadPrefetches(mem, flags);
     d.v() = Detail::load<VectorType, DstT>(mem, flags);
