@@ -201,8 +201,11 @@ Vc_INTRINSIC Vector<double, VectorAbi::Sse>::Vector(VectorSpecialInitializerInde
 // load member functions {{{1
 template <typename DstT>
 template <typename SrcT, typename Flags>
-Vc_INTRINSIC typename Vector<DstT, VectorAbi::Sse>::load_concept<SrcT, Flags>::type
-Vector<DstT, VectorAbi::Sse>::load(const SrcT *mem, Flags flags)
+Vc_INTRINSIC typename Vector<DstT, VectorAbi::Sse>::
+#ifndef Vc_MSVC
+template
+#endif
+load_concept<SrcT, Flags>::type Vector<DstT, VectorAbi::Sse>::load(const SrcT *mem, Flags flags)
 {
     Common::handleLoadPrefetches(mem, flags);
     d.v() = Detail::load<VectorType, DstT>(mem, flags);
