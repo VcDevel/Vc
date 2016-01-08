@@ -362,50 +362,53 @@ template <typename R0, typename R1, typename R2> struct SubstitutedBase<3, R0, R
               ValueT... Values>
     using SubstitutedWithValues = C<R0, R1, R2, Values...>;
 };
+#if defined Vc_ICC || defined Vc_MSVC
+#define Vc_VALUE_PACK_EXPANSION_IS_BROKEN 1
+#endif
 ///\internal Specialization for four type parameters.
 template <typename... Replaced> struct SubstitutedBase<4, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT,
               template <typename, typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 ///\internal Specialization for five type parameters.
 template <typename... Replaced> struct SubstitutedBase<5, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 ///\internal Specialization for six type parameters.
 template <typename... Replaced> struct SubstitutedBase<6, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 ///\internal Specialization for seven type parameters.
 template <typename... Replaced> struct SubstitutedBase<7, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 ///\internal Specialization for eight type parameters.
 template <typename... Replaced> struct SubstitutedBase<8, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 
 /**\internal
@@ -479,7 +482,7 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
  * templates with non-type parameters. This is impossible to express with variadic
  * templates and therefore requires a lot of code duplication.
  */
-#ifdef Vc_ICC
+#ifdef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 // ICC barfs on packs of values
 #define Vc_DEFINE_NONTYPE_REPLACETYPES_(ValueType_)                                      \
     template <template <typename, ValueType_...> class C, typename T, ValueType_ Value0, \
@@ -632,7 +635,7 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
             C<T0, T1, T2, Value0, Values...>,                                            \
             Adapter<C<T0, T1, T2, Value0, Values...>, Substituted, NN>> type;            \
     }
-#endif  // Vc_ICC
+#endif  // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 Vc_DEFINE_NONTYPE_REPLACETYPES_(bool);
 Vc_DEFINE_NONTYPE_REPLACETYPES_(wchar_t);
 Vc_DEFINE_NONTYPE_REPLACETYPES_(char);
