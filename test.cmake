@@ -109,7 +109,7 @@ endif()
 ################################################################################
 set(number_of_processors "$ENV{NUMBER_OF_PROCESSORS}")
 if(NOT number_of_processors)
-   if("${arch}" MATCHES "[Ww]indows" OR "${arch}" MATCHES "win7" OR "${arch}" MATCHES "mingw")
+   if("${arch}" MATCHES "[Ww]indows" OR "${arch}" MATCHES "win7" OR "${arch}" MATCHES "mingw" OR "${arch}" MATCHES "msys")
       execute_process(COMMAND
          reg query "HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor"
          OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE number_of_processors)
@@ -183,7 +183,7 @@ macro(extract_gnuc_compiler_info CXX)
       endif()
    endif()
 endmacro()
-if("${arch}" MATCHES "[Ww]indows" OR "${arch}" MATCHES "win7")
+if("${arch}" MATCHES "[Ww]indows" OR "${arch}" MATCHES "win7" OR "${arch}" MATCHES "msys")
    find_program(CL cl)
    extract_msvc_compiler_info(${CL})
 elseif(arch MATCHES "mingw")
