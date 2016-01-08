@@ -52,13 +52,13 @@ explicit Vc_INTRINSIC Vector(const EntryType *mem, Flags flags)
 }
 
 template <typename U, typename Flags = DefaultLoadTag,
-          typename Enabled = enable_if<
+          typename = enable_if<
               (!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
                sizeof(EntryType) >= sizeof(U)) &&
               std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
 explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
 {
-    load<U, Flags, Enabled>(x, flags);
+    load<U, Flags>(x, flags);
 }
 
 // load member functions{{{1
@@ -87,14 +87,19 @@ template <typename Flags>
 Vc_INTRINSIC enable_if<Traits::is_load_store_flag<Flags>::value, void>
 load(const EntryType *mem, Flags flags)
 {
-    load<EntryType, Flags, enable_if_default_type>(mem, flags);
+    load<EntryType, Flags>(mem, flags);
 }
-template <typename U, typename Flags = DefaultLoadTag,
-          typename = enable_if<
+private:
+template <typename U, typename Flags>
+struct load_concept : public std::enable_if<
               (!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
                sizeof(EntryType) >= sizeof(U)) &&
-              std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
-Vc_INTRINSIC_L void load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
+              std::is_arithmetic<U>::value && Traits::is_load_store_flag<Flags>::value, void>
+{};
+
+public:
+template <typename U, typename Flags = DefaultLoadTag>
+Vc_INTRINSIC_L typename load_concept<U, Flags>::type load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
 //}}}1
 
 // vim: foldmethod=marker
