@@ -1105,12 +1105,20 @@ public:                                                                         
         });
     }
 
+private:
+    // workaround for MSVC not understanding the simpler and shorter expression of the boolean
+    // expression directly in the enable_if below
+    template <std::size_t NN> struct bisectable_shift
+        : public std::integral_constant<bool,
+                                        std::is_same<storage_type0, storage_type1>::value &&  // bisectable
+                                        N == NN>
+    {
+    };
+
+public:
     template <std::size_t NN>
-    inline
-        enable_if<(std::is_same<storage_type0, storage_type1>::value &&  // bisectable
-                   N == NN),
-                  SimdArray>
-            shifted(int amount, const SimdArray<value_type, NN> &shiftIn) const
+    inline SimdArray shifted(enable_if<bisectable_shift<NN>::value, int> amount,
+            const SimdArray<value_type, NN> &shiftIn) const
     {
         constexpr int SSize = Size;
         if (amount < 0) {
