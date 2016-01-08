@@ -314,7 +314,7 @@ template <size_t N> void run()
     std::cout << std::endl;
 }
 
-int main()
+int Vc_CDECL main()
 {
     std::cout << " N             scalar   scalar & blocked          Vector<T>           valarray\n";
     run< 4>();

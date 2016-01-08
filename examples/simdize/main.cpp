@@ -23,7 +23,7 @@ private:
     int count = 0;
 };
 
-int main()
+int Vc_CDECL main()
 {
     Vectorizer<Point> v;
     float x = 0.f;

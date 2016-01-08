@@ -196,7 +196,7 @@ struct Runner
     }
     //}}}2
 };
-int main()  // {{{1
+int Vc_CDECL main()  // {{{1
 {
     // output header {{{2
     using std::cout;

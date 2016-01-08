@@ -42,6 +42,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     using new_type_ alignas(sizeof(n_)) = type_
 #endif
 
+#ifdef Vc_MSVC
+#  define Vc_CDECL __cdecl
+#else
+#  define Vc_CDECL
+#endif
+
 #if defined Vc_CLANG || defined Vc_APPLECLANG
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC_R __attribute__((always_inline))

@@ -31,7 +31,7 @@ using Vc::float_v;
 //! [includes]
 
 //! [memory allocation]
-int main()
+int Vc_CDECL main()
 {
     // allocate memory for our initial x and y coordinates. Note that you can also put it into a
     // normal float C-array but that you then must ensure alignment to Vc::VectorAlignment!

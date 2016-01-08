@@ -10,4 +10,4 @@ Vc::float_m mask_test(Vc::float_m a, Vc::float_m b)
     return a & b;
 }
 
-int main() { return 0; }
+int Vc_CDECL main() { return 0; }

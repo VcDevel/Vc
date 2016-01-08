@@ -591,7 +591,7 @@ static void usage(const char *argv0)
         ;
 }
 
-int main(int argc, char **argv)
+int Vc_CDECL main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
     const QStringList &args = QCoreApplication::arguments();

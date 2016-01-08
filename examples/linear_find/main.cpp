@@ -156,7 +156,7 @@ inline _InputIterator simple_find(_InputIterator first, _InputIterator last,
   return first;
 }
 
-int main()
+int Vc_CDECL main()
 {
     std::cout << std::setw(15) << "N";
     std::cout << std::setw(15) << "std" << std::setw(15) << "stddev";

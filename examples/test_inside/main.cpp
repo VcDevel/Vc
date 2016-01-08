@@ -61,7 +61,7 @@ std::array<bool, ArraySize> contains(const PointArray &points)
 
 std::array<bool, ArraySize> g_inside;
 
-int main()
+int Vc_CDECL main()
 {
     PointArray points;
     std::generate(points.begin(), points.end(), []() -> Point {
