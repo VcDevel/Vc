@@ -79,7 +79,8 @@ inline SimdArray<T, N, V, M> max(const SimdArray<T, N, V, M> &x,
  */
 template <typename T, std::size_t N, typename VectorType_>
 class alignas(
-    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) & 127) +
+    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) &
+     (Detail::maxSupportedAlignment - 1)) +
     1) SimdArray<T, N, VectorType_, N>
 {
     static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value ||
@@ -526,7 +527,8 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
  * \headerfile simdarray.h <Vc/SimdArray>
  */
 template <typename T, size_t N, typename V, size_t Wt>
-class alignas(((Common::nextPowerOfTwo(N) * (sizeof(V) / V::size()) - 1) & 127) +
+class alignas(((Common::nextPowerOfTwo(N) * (sizeof(V) / V::size()) - 1) &
+               (Detail::maxSupportedAlignment - 1)) +
               1) SimdArray
 {
     static_assert(std::is_same<T,   double>::value ||

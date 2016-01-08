@@ -36,6 +36,14 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Detail
 {
 
+static constexpr std::size_t maxSupportedAlignment =
+#ifdef Vc_MSVC
+    32
+#else
+    128
+#endif
+    ;
+
 template <int exponent> constexpr double exponentToFloat(std::integral_constant<bool, true>);
 template <int exponent> constexpr double exponentToFloat(std::integral_constant<bool, false>);
 template <> constexpr double exponentToFloat<0>(std::integral_constant<bool, true>)
