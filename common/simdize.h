@@ -891,27 +891,27 @@ public:
  * require the compares to be bool based.
  */
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator==(
+inline void operator==(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator!=(
+inline void operator!=(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator<=(
+inline void operator<=(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator>=(
+inline void operator>=(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator<(
+inline void operator<(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator>(
+inline void operator>(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 

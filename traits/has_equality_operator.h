@@ -31,7 +31,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace has_equality_operator_impl
 {
 
-template <typename T, typename U, typename = decltype(std::declval<T>() == std::declval<U>())> std::true_type test(int);
+template <typename T, typename U,
+          typename = enable_if<!std::is_same<void, decltype(std::declval<T>() == std::declval<U>())>::value>>
+std::true_type test(int);
 template <typename T, typename U> std::false_type test(...);
 
 }  // namespace has_equality_operator_impl
@@ -40,5 +42,12 @@ template <typename T, typename U = T>
 struct has_equality_operator : public decltype(has_equality_operator_impl::test<T, U>(1))
 {
 };
+
+static_assert(has_equality_operator<int>::value, "has_equality_operator fails");
+namespace
+{
+class Foobar {};
+static_assert(!has_equality_operator<Foobar>::value, "has_equality_operator fails");
+} // unnamed namespace
 
 #endif  // VC_TRAITS_HAS_EQUALITY_OPERATOR_H_
