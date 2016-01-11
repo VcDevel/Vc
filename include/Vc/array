@@ -235,8 +235,16 @@ namespace std
 {
 template <class T, size_t Size>
 inline
+#ifdef Vc_MSVC
+    // MSVC fails to do SFINAE correctly and gets totally confused:
+    // error C2433: 'type': 'inline' not permitted on data declarations
+    // error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+    // error C2061: syntax error: identifier 'swap'
+    void
+#else
     typename enable_if<is_same<void, decltype(swap(declval<T&>(), declval<T&>()))>::value,
                        void>::type
+#endif
     swap(const Vc::array<T, Size>& x_,
          const Vc::array<T, Size>& y_) noexcept(swap(declval<T&>(), declval<T&>()))
 {
