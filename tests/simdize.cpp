@@ -145,8 +145,8 @@ template <typename, typename, typename, std::size_t...> struct Foo3
     static constexpr std::size_t tuple_size = 3;
 };
 
-// ICC does not support packs of values
-#ifndef Vc_ICC
+// ICC and MSVC do not support packs of values
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 TEST(nontype_template_parameters)
 {
     using namespace std;
@@ -177,7 +177,7 @@ TEST(nontype_template_parameters)
             SimdizeAdapter<Foo3<int, int, float, 3, 5, 6>,
                            Foo3<int_v, int_v, float_intsize, 3, 5, 6>, int_v::size()>));
 }
-#endif  // Vc_ICC
+#endif  // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 
 TEST(tuple_interface)
 {
