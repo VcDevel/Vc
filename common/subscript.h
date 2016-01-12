@@ -294,7 +294,8 @@ enable_if<(std::is_integral<T>::value && sizeof(T) < sizeof(int)),
 }
 
 template <typename T>
-std::true_type is_valid_indexvector(T &&, decltype(convertIndexVector(std::declval<T>())) * = nullptr);
+std::true_type is_valid_indexvector(
+    T &&, Traits::decay<decltype(convertIndexVector(std::declval<T>()))> * = nullptr);
 std::false_type is_valid_indexvector(...);
 
 template <typename IndexVector, typename Test = decltype(is_valid_indexvector(std::declval<const IndexVector &>()))>
