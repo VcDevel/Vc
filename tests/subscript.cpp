@@ -93,6 +93,7 @@ TEST_TYPES(V, gathers, ALL_TYPES)
         data2[i] = i;
     }
 
+    static_assert(Vc::Common::is_valid_indexvector_<const IT &>::value, "");
     V test = data[IT::IndexesFromZero()];
     COMPARE(test, V::IndexesFromZero());
     test = data2[IT::IndexesFromZero()];
