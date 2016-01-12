@@ -37,6 +37,11 @@
 typedef float float_v;
 typedef int int_v;
 typedef bool int_m;
+#ifdef _MSC_VER
+#define Vc_CDECL __cdecl
+#else
+#define Vc_CDECL
+#endif
 #else
 #include <Vc/Vc>
 
