@@ -147,7 +147,7 @@ ALLLIBS      += \$(VCLIBVC)
 ##### local rules #####
 .PHONY:         all-\$(MODNAME) clean-\$(MODNAME) distclean-\$(MODNAME)
 
-VCFLAGS      := -DVC_COMPILE_LIB \$(OPT) \$(CXXFLAGS) -Iinclude/Vc
+VCFLAGS      := -DVc_COMPILE_LIB \$(OPT) \$(CXXFLAGS) -Iinclude/Vc
 VCLIBVCOBJ   := \$(patsubst \$(MODDIRS)/%.cpp,\$(VCBUILDDIR)/%.cpp.o,\$(wildcard \$(MODDIRS)/*.cpp))
 ifndef AVXFLAGS
 VCLIBVCOBJ   := \$(filter-out \$(MODDIRS)/avx-%.cpp,\$(VCLIBVCOBJ))

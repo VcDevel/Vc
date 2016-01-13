@@ -11,6 +11,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "ipo: warning #11010:" # Ignore warning about incompatible libraries with ICC -m32 on 64-bit system
    "include/qt4" # -Wuninitialized in QWeakPointer(X *ptr)
    " note: " # Notes are additional lines from errors (or warnings) that we don't want to count as additional warnings
+   "clang: warning: argument unused during compilation: '-stdlib=libc"
    )
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
