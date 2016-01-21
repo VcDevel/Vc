@@ -1172,6 +1172,22 @@ template <typename V, int Repetitions = 10000, typename F> void withRandomMask(F
 
 // typeToString {{{1
 template <typename T> inline std::string typeToString();
+// std::array<T, N> {{{2
+template <typename T, std::size_t N>
+inline std::string typeToString_impl(std::array<T, N> const &)
+{
+    std::stringstream s;
+    s << "array<" << typeToString<T>() << ", " << N << '>';
+    return s.str();
+}
+// std::vector<T> {{{2
+template <typename T>
+inline std::string typeToString_impl(std::vector<T> const &)
+{
+    std::stringstream s;
+    s << "vector<" << typeToString<T>() << '>';
+    return s.str();
+}
 // std::integral_constant<T, N> {{{2
 template <typename T, T N>
 inline std::string typeToString_impl(std::integral_constant<T, N> const &)

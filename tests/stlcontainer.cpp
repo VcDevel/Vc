@@ -70,22 +70,27 @@ TEST_TYPES(V, stdVectorAlignment, (ALL_VECTORS))
     }
 }
 
-template<typename V, typename Container> void listInitializationImpl()
+template <typename V, typename Container, std::size_t... Indexes>
+void listInitializationImpl(Vc::index_sequence<Indexes...>)
 {
     typedef typename V::EntryType T;
-    const auto data = Vc::makeContainer<Container>({ T(1), T(2), T(3), T(4), T(5), T(6), T(7), T(8), T(9) });
+    const auto data = Vc::makeContainer<Container>({T(Indexes + 1)...});
     V reference = V::IndexesFromZero() + 1;
     for (const auto &v : data) {
-        reference.setZero(reference > 9);
-        COMPARE(v, reference);
+        reference.setZero(reference > sizeof...(Indexes));
+        COMPARE(v, reference) << UnitTest::typeToString<Container>() << " -> "
+                              << UnitTest::typeToString<decltype(data)>();
         reference += V::Size;
     }
 }
 TEST_TYPES(V, listInitialization, (ALL_VECTORS))
 {
-    listInitializationImpl<V, std::vector<V>>();
-    listInitializationImpl<V, std::array<V, 9>>();
-    listInitializationImpl<V, std::deque<V>>();
+    listInitializationImpl<V, std::vector<V>>(Vc::make_index_sequence<9>());
+    listInitializationImpl<V, std::vector<V>>(Vc::make_index_sequence<3>());
+    listInitializationImpl<V, std::array<V, 9>>(Vc::make_index_sequence<9>());
+    listInitializationImpl<V, std::array<V, 3>>(Vc::make_index_sequence<3>());
+    listInitializationImpl<V, std::deque<V>>(Vc::make_index_sequence<9>());
+    listInitializationImpl<V, std::deque<V>>(Vc::make_index_sequence<3>());
 
     // The following two crash (at least with AVX). Probably unaligned memory access.
     //listInitialization<V, std::forward_list<V>>();
