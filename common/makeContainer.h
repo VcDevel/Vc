@@ -43,10 +43,11 @@ namespace Vc_VERSIONED_NAMESPACE
             static constexpr Container help(std::initializer_list<T> list) { return { list }; }
         };
 
-        template<typename _T, typename Alloc, template<class, class> class Container>
-        struct make_container_helper<Container< ::Vc::Vector<_T>, Alloc>, typename ::Vc::Vector<_T>::EntryType>
-        {
-            typedef ::Vc::Vector<_T> V;
+        template <typename T_, typename Abi, typename Alloc,
+                  template <class, class> class Container>
+        struct make_container_helper<Container<Vector<T_, Abi>, Alloc>,
+                                     typename Vector<T_, Abi>::EntryType> {
+            typedef Vector<T_, Abi> V;
             typedef typename V::EntryType T;
             typedef Container<V, Alloc> C;
             static inline C help(std::initializer_list<T> list) {
@@ -68,10 +69,11 @@ namespace Vc_VERSIONED_NAMESPACE
             }
         };
 
-        template<typename _T, std::size_t N, template<class, std::size_t> class Container>
-        struct make_container_helper<Container< ::Vc::Vector<_T>, N>, typename ::Vc::Vector<_T>::EntryType>
-        {
-            typedef ::Vc::Vector<_T> V;
+        template <typename T_, typename Abi, std::size_t N,
+                  template <class, std::size_t> class Container>
+        struct make_container_helper<Container<Vector<T_, Abi>, N>,
+                                     typename Vector<T_, Abi>::EntryType> {
+            typedef Vector<T_, Abi> V;
             typedef typename V::EntryType T;
             static constexpr std::size_t size = (N + (V::Size - 1)) / V::Size;
             typedef Container<V, size> C;
@@ -102,13 +104,20 @@ namespace Vc_VERSIONED_NAMESPACE
      *
      * Construct a container of Vc vectors from a std::initializer_list of scalar entries.
      *
+     * \tparam Container The container type to construct.
+     * \tparam T The scalar type to use for the initializer_list.
+     *
      * \param list An initializer list of arbitrary size. The type of the entries is important!
      * If you pass a list of integers you will get a container filled with Vc::int_v objects.
      * If, instead, you want to have a container of Vc::float_v objects, be sure the include a
-     * period (.) and the 'f' postfix in the literals.
+     * period (.) and the 'f' postfix in the literals. Alternatively, you can pass the
+     * type as second template argument to makeContainer.
      *
      * \return Returns a container of the requested class filled with the minimum number of SIMD
      * vectors to hold the values in the initializer list.
+     * If the number of values in \p list does not match the number of values in the
+     * returned container object, the remaining values in the returned object will be
+     * zero-initialized.
      *
      * Example:
      * \code
