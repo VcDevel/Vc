@@ -76,7 +76,15 @@ namespace Vc_VERSIONED_NAMESPACE
             typedef Vector<T_, Abi> V;
             typedef typename V::EntryType T;
             static constexpr std::size_t size = (N + (V::Size - 1)) / V::Size;
-            typedef Container<V, size> C;
+            typedef Container<
+                V,
+#if defined Vc_CLANG && Vc_CLANG < 0x30700
+                // clang before 3.7.0 has a bug when returning std::array<__m256x, 1>. So
+                // increase it to std::array<__m256x, 2> and fill it with zeros. Better
+                // than returning garbage.
+                (size == 1 && std::is_same<Abi, VectorAbi::Avx>::value) ? 2 :
+#endif
+                                                                        size> C;
             static inline C help(std::initializer_list<T> list) {
                 Vc_ASSERT(N == list.size())
                 Vc_ASSERT(size == (list.size() + (V::Size - 1)) / V::Size)
