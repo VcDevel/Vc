@@ -331,6 +331,7 @@ macro(go)
       ctest_submit(PARTS Notes Configure)
       unset(CTEST_NOTES_FILES) # less clutter in ctest -V output
       if(res EQUAL 0)
+         set(test_results 0)
          if(travis_os)
             set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${MAKE_ARGS}")
             ctest_build(
@@ -340,6 +341,7 @@ macro(go)
             ctest_test(
                BUILD "${CTEST_BINARY_DIRECTORY}"
                APPEND
+               RETURN_VALUE test_results
                PARALLEL_LEVEL ${number_of_processors})
             ctest_submit(PARTS Build Test)
          else()
@@ -360,8 +362,12 @@ macro(go)
                      PARALLEL_LEVEL ${number_of_processors}
                      INCLUDE_LABEL "^${label}$")
                   ctest_submit(PARTS Test)
+                  math(EXPR test_results "${test_results} + ${res}")
                endif()
             endforeach()
+         endif()
+         if(NOT test_results EQUAL 0)
+            message(FATAL_ERROR "One or more tests failed.")
          endif()
       endif()
    endif()
