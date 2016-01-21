@@ -60,12 +60,12 @@ namespace Vc_VERSIONED_NAMESPACE
                     *containerIt++ = V(init, Vc::Unaligned);
                     init += V::Size;
                 }
-                *containerIt = V::Zero();
+                Vc_ASSERT(all_of(*containerIt == V::Zero()));
                 int j = 0;
                 while (init != initEnd) {
                     (*containerIt)[j++] = *init++;
                 }
-                return std::move(v);
+                return v;
             }
         };
 
@@ -88,12 +88,12 @@ namespace Vc_VERSIONED_NAMESPACE
                     *containerIt++ = V(init, Vc::Unaligned);
                     init += V::Size;
                 }
-                *containerIt = V::Zero();
+                Vc_ASSERT(all_of(*containerIt == V::Zero()));
                 int j = 0;
                 while (init != initEnd) {
                     (*containerIt)[j++] = *init++;
                 }
-                return std::move(v);
+                return v;
             }
         };
     } // anonymous namespace
