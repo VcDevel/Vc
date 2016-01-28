@@ -46,24 +46,18 @@ Example:
 First, we declare a class template for a three-dimensional point. The template parameter \c T
 determines the type of the members and is \c float in the scalar (classical) case.
 \code
-template <typename T> class PointTemplate
+template <typename T> struct PointTemplate
 {
   T x, y, z;
 
-  using Instance = PointTemplate<T>;
-  Vc_SIMDIZE_MEMBER(T, 0, x);  // Makes the members accessible via get<N>(point), allowing the
-  Vc_SIMDIZE_MEMBER(T, 1, y);  // simdize implementation to convert between Point and PointV (see
-  Vc_SIMDIZE_MEMBER(T, 2, z);  // below).
-
- public:
-  Vc_SIMDIZE_STRUCT(Instance, 3);  // This declares the actual non-member get and tuple_size.
+  // Declares tuple_size and makes the members accessible via get<N>(point), allowing
+  // the simdize implementation to convert between Point and PointV (see below).
+  Vc_SIMDIZE_INTERFACE((x, y, z));
 
   PointTemplate(T xx, T yy, T zz) : x{xx}, y{yy}, z{zz} {};
 
-  // The following function is will automatically be vectorized in the PointV type.
-  T distance_to_origin() const {
-    return std::sqrt(x * x + y * y + z * z);
-  }
+  // The following function will automatically be vectorized in the PointV type.
+  T distance_to_origin() const { return std::sqrt(x * x + y * y + z * z); }
 };
 \endcode
 
