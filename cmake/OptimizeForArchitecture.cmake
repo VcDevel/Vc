@@ -493,7 +493,7 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
             endif(_good)
          endforeach(_flag)
          foreach(_flag ${_enable_vector_unit_list})
-            AddCompilerFlag("-m${_flag}" CXX_RESULT _result CXX_FLAGS Vc_ARCHITECTURE_FLAGS)
+            AddCompilerFlag("-m${_flag}" CXX_RESULT _result)
             if(_result)
                set(_header FALSE)
                if(_flag STREQUAL "sse3")
