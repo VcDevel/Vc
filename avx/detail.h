@@ -503,6 +503,7 @@ Vc_INTRINSIC __m256i add(__m256i a, __m256i b,    int) { return AVX::add_epi32(a
 Vc_INTRINSIC __m256i add(__m256i a, __m256i b,   uint) { return AVX::add_epi32(a, b); }
 Vc_INTRINSIC __m256i add(__m256i a, __m256i b,  short) { return AVX::add_epi16(a, b); }
 Vc_INTRINSIC __m256i add(__m256i a, __m256i b, ushort) { return AVX::add_epi16(a, b); }
+Vc_INTRINSIC __m256i add(__m256i a, __m256i b,  uchar) { return AVX::add_epi8(a, b); }
 
 // sub{{{1
 Vc_INTRINSIC __m256  sub(__m256  a, __m256  b,  float) { return _mm256_sub_ps(a, b); }
@@ -511,6 +512,7 @@ Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,    int) { return AVX::sub_epi32(a
 Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,   uint) { return AVX::sub_epi32(a, b); }
 Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,  short) { return AVX::sub_epi16(a, b); }
 Vc_INTRINSIC __m256i sub(__m256i a, __m256i b, ushort) { return AVX::sub_epi16(a, b); }
+Vc_INTRINSIC __m256i sub(__m256i a, __m256i b,  uchar) { return AVX::sub_epi8(a, b); }
 
 // mul{{{1
 Vc_INTRINSIC __m256  mul(__m256  a, __m256  b,  float) { return _mm256_mul_ps(a, b); }
@@ -519,6 +521,11 @@ Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,    int) { return AVX::mullo_epi32
 Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,   uint) { return AVX::mullo_epi32(a, b); }
 Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,  short) { return AVX::mullo_epi16(a, b); }
 Vc_INTRINSIC __m256i mul(__m256i a, __m256i b, ushort) { return AVX::mullo_epi16(a, b); }
+Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,  uchar) {
+  const __m128i LO  = (SSE::uchar_v(AVX::lo128(a)) * SSE::uchar_v(AVX::lo128(b))).data();
+  const __m128i HI  = (SSE::uchar_v(AVX::hi128(a)) * SSE::uchar_v(AVX::hi128(b))).data();
+  return AVX::concat(LO, HI);
+}
 
 // mul{{{1
 Vc_INTRINSIC __m256  div(__m256  a, __m256  b,  float) { return _mm256_div_ps(a, b); }
@@ -591,6 +598,7 @@ Vc_INTRINSIC __m256i cmpeq(__m256i a, __m256i b,    int) { return AvxIntrinsics:
 Vc_INTRINSIC __m256i cmpeq(__m256i a, __m256i b,   uint) { return AvxIntrinsics::cmpeq_epi32(a, b); }
 Vc_INTRINSIC __m256i cmpeq(__m256i a, __m256i b,  short) { return AvxIntrinsics::cmpeq_epi16(a, b); }
 Vc_INTRINSIC __m256i cmpeq(__m256i a, __m256i b, ushort) { return AvxIntrinsics::cmpeq_epi16(a, b); }
+Vc_INTRINSIC __m256i cmpeq(__m256i a, __m256i b,  uchar) { return AvxIntrinsics::cmpeq_epi8(a, b); }
 
 // cmpneq{{{1
 Vc_INTRINSIC __m256  cmpneq(__m256  a, __m256  b,  float) { return AvxIntrinsics::cmpneq_ps(a, b); }
@@ -702,7 +710,11 @@ Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,   uint) { return AVX::srl_
 Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,  short) { return AVX::sra_epi16(a, _mm_cvtsi32_si128(shift)); }
 Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift, ushort) { return AVX::srl_epi16(a, _mm_cvtsi32_si128(shift)); }
 //Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,  schar) { return AVX::sra_epi8 (a, _mm_cvtsi32_si128(shift)); }
-//Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,  uchar) { return AVX::srl_epi8 (a, _mm_cvtsi32_si128(shift)); }
+Vc_INTRINSIC __m256i shiftRight(__m256i a, int shift,  uchar) {
+  const __m128i LO  = (SSE::uchar_v(AVX::lo128(a)) >> shift).data();
+  const __m128i HI  = (SSE::uchar_v(AVX::hi128(a)) >> shift).data();
+  return AVX::concat(LO, HI);
+}
 
 // shiftLeft{{{1
 template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,    int) { return AVX::slli_epi32<shift>(a); }
@@ -710,14 +722,18 @@ template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,   uint) { return 
 template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,  short) { return AVX::slli_epi16<shift>(a); }
 template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a, ushort) { return AVX::slli_epi16<shift>(a); }
 //template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,  schar) { return AVX::slli_epi8 <shift>(a); }
-//template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,  uchar) { return AVX::slli_epi8 <shift>(a); }
+//template <int shift> Vc_INTRINSIC __m256i shiftLeft(__m256i a,  schar) { return AVX::slli_epi8 <shift>(a); }
 
 Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,    int) { return AVX::sll_epi32(a, _mm_cvtsi32_si128(shift)); }
 Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,   uint) { return AVX::sll_epi32(a, _mm_cvtsi32_si128(shift)); }
 Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,  short) { return AVX::sll_epi16(a, _mm_cvtsi32_si128(shift)); }
 Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift, ushort) { return AVX::sll_epi16(a, _mm_cvtsi32_si128(shift)); }
 //Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,  schar) { return AVX::sll_epi8 (a, _mm_cvtsi32_si128(shift)); }
-//Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,  uchar) { return AVX::sll_epi8 (a, _mm_cvtsi32_si128(shift)); }
+Vc_INTRINSIC __m256i shiftLeft(__m256i a, int shift,  uchar) {
+  const __m128i LO  = (SSE::uchar_v(AVX::lo128(a)) << shift).data();
+  const __m128i HI  = (SSE::uchar_v(AVX::hi128(a)) << shift).data();
+  return AVX::concat(LO, HI);
+}
 
 // zeroExtendIfNeeded{{{1
 Vc_INTRINSIC __m256  zeroExtendIfNeeded(__m256  x) { return x; }

@@ -272,7 +272,8 @@ TEST_TYPES(Vec, testDiv, ALL_TYPES)
     }
 }
 
-TEST_TYPES(V, testModulo, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), INT_VECTORS))
+// uchar_v not possible with this test
+TEST_TYPES(V, testModulo, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), Vc::int_v, Vc::ushort_v, Vc::uint_v, Vc::short_v))
 {
     using T = typename V::EntryType;
     alignas(static_cast<size_t>(V::MemoryAlignment)) T x_mem[V::size()];
@@ -299,21 +300,7 @@ TEST_TYPES(V, testModulo, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), INT_VEC
     }
 }
 
-TEST_TYPES(V,
-           testModuloSmallNumbers,
-           (SimdArray<unsigned int, 31>,
-            SimdArray<unsigned short, 31>,
-            SimdArray<unsigned int, 32>,
-            SimdArray<unsigned short, 32>,
-            SimdArray<int, 31>,
-            SimdArray<short, 31>,
-            SimdArray<int, 32>,
-            SimdArray<short, 32>,
-            int_v,
-            ushort_v,
-            uint_v,
-            short_v,
-            uchar_v))
+TEST_TYPES(V, testModuloSmallNumbers, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), INT_VECTORS))
 {
   using T = typename V::EntryType;
   alignas(static_cast<size_t>(V::MemoryAlignment)) T x_mem[V::size()];
@@ -340,18 +327,19 @@ TEST_TYPES(V,
   }
 }
 
-TEST_TYPES(Vec, testAnd, (int_v, ushort_v, uint_v, short_v, uchar_v))
+TEST_TYPES(Vec, testAnd, (INT_VECTORS))
 {
     Vec a(0x7f);
     Vec b(0xf);
     COMPARE((a & 0xf), b);
+  
     Vec c(IndexesFromZero);
-    COMPARE(c, (c & 0xf));
+    COMPARE(c, (c & (Vec::Size - 1)));
     const typename Vec::EntryType zero = 0;
-    COMPARE((c & 0x7ff0), Vec(zero));
+    COMPARE((c & (0x7fff - Vec::Size + 1)), Vec(zero));
 }
 
-TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v, uchar_v))
+TEST_TYPES(Vec, testShift, (INT_VECTORS))
 {
     typedef typename Vec::EntryType T;
     const T step = std::max<T>(1, std::numeric_limits<T>::max() / 1000);
@@ -398,9 +386,7 @@ TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v, uchar_v))
     }
 }
 
-TEST_TYPES(Vec, testOnesComplement, (int_v, ushort_v, uint_v, short_v, uchar_v,
-                                     SimdArray<int, 17>, SimdArray<unsigned short, 17>,
-                                     SimdArray<unsigned int, 17>, SimdArray<short, 17>))
+TEST_TYPES(Vec, testOnesComplement, (INT_VECTORS, SIMD_INT_ODD_ARRAYS(17)))
 {
     Vec a(One);
     Vec b = ~a;
@@ -473,8 +459,8 @@ TEST_TYPES(Vec, testMin, ALL_TYPES)
 
     COMPARE(v.min(), static_cast<T>(0));
     COMPARE((T(Vec::Size) - v).min(), static_cast<T>(1));
-
-    const size_t max = (size_t(1) << Vec::Size) - 1;
+  
+    const size_t max = std::numeric_limits<T>::max();
     std::uniform_int_distribution<size_t> dist(0, max);
     for (int rep = 0; rep < 100000; ++rep) {
         const size_t j = dist(randomEngine);

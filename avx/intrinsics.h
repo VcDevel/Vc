@@ -490,6 +490,7 @@ namespace AvxIntrinsics
         m128i r1 = _mm_blendv_epi8(a1, b1, m1);
         return insert128<1>(_mm256_castsi128_si256(r0), r1);
     }
+  
     // mpsadbw_epu8 (__m128i __X, __m128i __Y, const int __M)
     // stream_load_si128 (__m128i *__X)
 

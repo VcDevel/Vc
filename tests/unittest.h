@@ -1460,7 +1460,7 @@ UnitTest::TestList<F, Typelist<Ts...>> hackTypelist(void (*)(Typelist<Ts...>));
 #define REAL_VECTORS                                                                     \
     Vc::double_v, Vc::float_v
 #define INT_VECTORS                                                                      \
-    Vc::int_v, Vc::ushort_v, Vc::uint_v, Vc::short_v
+    Vc::int_v, Vc::ushort_v, Vc::uint_v, Vc::short_v, Vc::uchar_v
 #define ALL_VECTORS REAL_VECTORS, INT_VECTORS
 #define SIMD_REAL_ARRAYS(N_) Vc::SimdArray<double, N_>, Vc::SimdArray<float, N_>
 #define SIMD_INT_ARRAYS(N_)                                                              \
