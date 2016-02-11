@@ -28,8 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "unittest-old.h"
 
-//#define QUICK 1
-
 using namespace Vc;
 
 typedef unsigned short ushort;
@@ -74,62 +72,56 @@ static_assert(!std::is_convertible<   int_v, ushort_v>::value, "!std::is_convert
 static_assert(!std::is_convertible<  uint_v, ushort_v>::value, "!std::is_convertible<  uint_v, ushort_v>");
 static_assert( std::is_convertible< short_v, ushort_v>::value, " std::is_convertible< short_v, ushort_v>");
 
-#ifdef QUICK
-#define _TYPE_TEST(a, b, c)
-#else
-#if defined(Vc_GCC) && Vc_GCC == 0x40801
-// Skipping tests involving operator& because of a bug in GCC 4.8.1 (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57532)
-#define _TYPE_TEST(a, b, c) \
-    static_assert(std::is_same<decltype(a() *  b()), c>::value, #a " *  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() /  b()), c>::value, #a " /  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() +  b()), c>::value, #a " +  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() -  b()), c>::value, #a " -  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() |  b()), c>::value, #a " |  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() ^  b()), c>::value, #a " ^  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() == b()), c::Mask>::value, #a " == " #b " => " #c "::Mask"); \
-    static_assert(std::is_same<decltype(a() != b()), c::Mask>::value, #a " != " #b " => " #c "::Mask"); \
-    static_assert(std::is_same<decltype(a() <= b()), c::Mask>::value, #a " <= " #b " => " #c "::Mask"); \
-    static_assert(std::is_same<decltype(a() >= b()), c::Mask>::value, #a " >= " #b " => " #c "::Mask"); \
-    static_assert(std::is_same<decltype(a() <  b()), c::Mask>::value, #a " <  " #b " => " #c "::Mask"); \
-    COMPARE(typeid(a() * b()), typeid(c)); \
-    COMPARE(typeid(a() / b()), typeid(c)); \
-    COMPARE(typeid(a() + b()), typeid(c)); \
-    COMPARE(typeid(a() - b()), typeid(c)); \
-    COMPARE(typeid(a() | b()), typeid(c)); \
-    COMPARE(typeid(a() ^ b()), typeid(c)); \
-    COMPARE(typeid(a() == b()), typeid(c::Mask)); \
-    COMPARE(typeid(a() != b()), typeid(c::Mask)); \
-    COMPARE(typeid(a() <= b()), typeid(c::Mask)); \
-    COMPARE(typeid(a() >= b()), typeid(c::Mask)); \
-    COMPARE(typeid(a() <  b()), typeid(c::Mask));
-#else
-#define _TYPE_TEST(a, b, c) \
-    static_assert(std::is_same<decltype(a() *  b()), c>::value, #a " *  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() /  b()), c>::value, #a " /  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() +  b()), c>::value, #a " +  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() -  b()), c>::value, #a " -  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() &  b()), c>::value, #a " &  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() |  b()), c>::value, #a " |  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() ^  b()), c>::value, #a " ^  " #b " => " #c); \
-    static_assert(std::is_same<decltype(a() == b()), c::Mask>::value, #a " == " #b " => " #c "::Mask"); \
-    static_assert(std::is_same<decltype(a() != b()), c::Mask>::value, #a " != " #b " => " #c "::Mask"); \
-    static_assert(std::is_same<decltype(a() <= b()), c::Mask>::value, #a " <= " #b " => " #c "::Mask"); \
-    static_assert(std::is_same<decltype(a() >= b()), c::Mask>::value, #a " >= " #b " => " #c "::Mask"); \
-    static_assert(std::is_same<decltype(a() <  b()), c::Mask>::value, #a " <  " #b " => " #c "::Mask"); \
-    COMPARE(typeid(a() * b()), typeid(c)); \
-    COMPARE(typeid(a() / b()), typeid(c)); \
-    COMPARE(typeid(a() + b()), typeid(c)); \
-    COMPARE(typeid(a() - b()), typeid(c)); \
-    COMPARE(typeid(a() & b()), typeid(c)); \
-    COMPARE(typeid(a() | b()), typeid(c)); \
-    COMPARE(typeid(a() ^ b()), typeid(c)); \
-    COMPARE(typeid(a() == b()), typeid(c::Mask)); \
-    COMPARE(typeid(a() != b()), typeid(c::Mask)); \
-    COMPARE(typeid(a() <= b()), typeid(c::Mask)); \
-    COMPARE(typeid(a() >= b()), typeid(c::Mask)); \
-    COMPARE(typeid(a() <  b()), typeid(c::Mask));
+template <typename A, typename B, typename C>
+Vc::enable_if<std::is_integral<A>::value && std::is_integral<B>::value, void>
+integral_tests(A a, B b, C c)
+{
+#if !defined(Vc_GCC) || Vc_GCC != 0x40801
+    // Skipping tests involving operator& because of a bug in GCC 4.8.1
+    // (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57532)
+    static_assert(std::is_same<decltype(a & b), C>::value, "incorrect return type deduction");
+    COMPARE(typeid(a & b), typeid(C));
 #endif
-#endif
+    static_assert(std::is_same<decltype(a | b), C>::value, "incorrect return type deduction");
+    static_assert(std::is_same<decltype(a ^ b), C>::value, "incorrect return type deduction");
+    COMPARE(typeid(a | b), typeid(C));
+    COMPARE(typeid(a ^ b), typeid(C));
+}
+template <typename A, typename B, typename C>
+Vc::enable_if<!(std::is_integral<A>::value && std::is_integral<B>::value), void>
+integral_tests(A, B, C)
+{
+}
+#define _TYPE_TEST(a, b, c)                                                              \
+    {                                                                                    \
+        integral_tests(a(), b(), c());                                                   \
+        using logical_return = typename std::conditional<                                \
+            std::is_fundamental<decltype(b())>::value, decltype(!a()),                   \
+            typename std::conditional<std::is_fundamental<decltype(a())>::value,         \
+                                      decltype(!b()), c::Mask>::type>::type;             \
+        COMPARE(typeid(a() && b()), typeid(logical_return));                             \
+        COMPARE(typeid(a() || b()), typeid(logical_return));                             \
+        COMPARE(typeid(a() *  b()), typeid(c));                                          \
+        COMPARE(typeid(a() /  b()), typeid(c));                                          \
+        COMPARE(typeid(a() +  b()), typeid(c));                                          \
+        COMPARE(typeid(a() -  b()), typeid(c));                                          \
+        COMPARE(typeid(a() == b()), typeid(c::Mask));                                    \
+        COMPARE(typeid(a() != b()), typeid(c::Mask));                                    \
+        COMPARE(typeid(a() <= b()), typeid(c::Mask));                                    \
+        COMPARE(typeid(a() >= b()), typeid(c::Mask));                                    \
+        COMPARE(typeid(a() <  b()), typeid(c::Mask));                                    \
+        static_assert(std::is_same<decltype(a() && b()), logical_return>::value, #a " && " #b " => " #c); \
+        static_assert(std::is_same<decltype(a() || b()), logical_return>::value, #a " || " #b " => " #c); \
+        static_assert(std::is_same<decltype(a() *  b()), c>::value, #a " *  " #b " => " #c); \
+        static_assert(std::is_same<decltype(a() /  b()), c>::value, #a " /  " #b " => " #c); \
+        static_assert(std::is_same<decltype(a() +  b()), c>::value, #a " +  " #b " => " #c); \
+        static_assert(std::is_same<decltype(a() -  b()), c>::value, #a " -  " #b " => " #c); \
+        static_assert(std::is_same<decltype(a() == b()), c::Mask>::value, #a " == " #b " => " #c "::Mask"); \
+        static_assert(std::is_same<decltype(a() != b()), c::Mask>::value, #a " != " #b " => " #c "::Mask"); \
+        static_assert(std::is_same<decltype(a() <= b()), c::Mask>::value, #a " <= " #b " => " #c "::Mask"); \
+        static_assert(std::is_same<decltype(a() >= b()), c::Mask>::value, #a " >= " #b " => " #c "::Mask"); \
+        static_assert(std::is_same<decltype(a() <  b()), c::Mask>::value, #a " <  " #b " => " #c "::Mask"); \
+    }
 
 #define TYPE_TEST(a, b, c) \
     _TYPE_TEST(a, b, c) \
@@ -229,10 +221,6 @@ void testImplicitTypeConversions()
     TYPE_TEST(  short_v,      ushort, ushort_v);
     TYPE_TEST(  short_v,         int,  short_v);
     TYPE_TEST(  short_v,        uint, ushort_v);
-    TYPE_TEST(  short_v,        long,  short_v);
-    TYPE_TEST(  short_v,       ulong, ushort_v);
-    TYPE_TEST(  short_v,    longlong,  short_v);
-    TYPE_TEST(  short_v,   ulonglong, ushort_v);
     TYPE_TEST(  short_v,        Enum,  short_v);
     TYPE_TEST(  short_v,        bool,  short_v);
     TYPE_TEST(    short,     short_v,  short_v);
@@ -240,62 +228,38 @@ void testImplicitTypeConversions()
     TYPE_TEST(   ushort,     short_v, ushort_v);
     TYPE_TEST(      int,     short_v,  short_v);
     TYPE_TEST(     uint,     short_v, ushort_v);
-    TYPE_TEST(     long,     short_v,  short_v);
-    TYPE_TEST(    ulong,     short_v, ushort_v);
-    TYPE_TEST( longlong,     short_v,  short_v);
-    TYPE_TEST(ulonglong,     short_v, ushort_v);
     TYPE_TEST(     Enum,     short_v,  short_v);
     TYPE_TEST(     bool,     short_v,  short_v);
-    // double_v + float_v + short_v done
 
     TYPE_TEST( ushort_v,       short, ushort_v);
     TYPE_TEST( ushort_v,    ushort_v, ushort_v);
     TYPE_TEST( ushort_v,      ushort, ushort_v);
     TYPE_TEST( ushort_v,         int, ushort_v);
     TYPE_TEST( ushort_v,        uint, ushort_v);
-    TYPE_TEST( ushort_v,        long, ushort_v);
-    TYPE_TEST( ushort_v,       ulong, ushort_v);
-    TYPE_TEST( ushort_v,    longlong, ushort_v);
-    TYPE_TEST( ushort_v,   ulonglong, ushort_v);
     TYPE_TEST( ushort_v,        Enum, ushort_v);
     TYPE_TEST( ushort_v,        bool, ushort_v);
     TYPE_TEST(    short,    ushort_v, ushort_v);
     TYPE_TEST(   ushort,    ushort_v, ushort_v);
     TYPE_TEST(      int,    ushort_v, ushort_v);
     TYPE_TEST(     uint,    ushort_v, ushort_v);
-    TYPE_TEST(     long,    ushort_v, ushort_v);
-    TYPE_TEST(    ulong,    ushort_v, ushort_v);
-    TYPE_TEST( longlong,    ushort_v, ushort_v);
-    TYPE_TEST(ulonglong,    ushort_v, ushort_v);
     TYPE_TEST(     Enum,    ushort_v, ushort_v);
     TYPE_TEST(     bool,    ushort_v, ushort_v);
-    // double_v + float_v + short_v + ushort_v done
 
-    TYPE_TEST(    int_v,      ushort,   uint_v);
+    TYPE_TEST(    int_v,      ushort,    int_v);
     TYPE_TEST(    int_v,       short,    int_v);
     TYPE_TEST(    int_v,       int_v,    int_v);
     TYPE_TEST(    int_v,         int,    int_v);
     TYPE_TEST(    int_v,      uint_v,   uint_v);
     TYPE_TEST(    int_v,        uint,   uint_v);
-    TYPE_TEST(    int_v,        long,    int_v);
-    TYPE_TEST(    int_v,       ulong,   uint_v);
-    TYPE_TEST(    int_v,    longlong,    int_v);
-    TYPE_TEST(    int_v,   ulonglong,   uint_v);
     TYPE_TEST(    int_v,        Enum,    int_v);
     TYPE_TEST(    int_v,        bool,    int_v);
-    TYPE_TEST(    int_v,       float,  float_v);
-    TYPE_TEST(   ushort,       int_v,   uint_v);
+    TYPE_TEST(   ushort,       int_v,    int_v);
     TYPE_TEST(    short,       int_v,    int_v);
     TYPE_TEST(      int,       int_v,    int_v);
     TYPE_TEST(   uint_v,       int_v,   uint_v);
     TYPE_TEST(     uint,       int_v,   uint_v);
-    TYPE_TEST(     long,       int_v,    int_v);
-    TYPE_TEST(    ulong,       int_v,   uint_v);
-    TYPE_TEST( longlong,       int_v,    int_v);
-    TYPE_TEST(ulonglong,       int_v,   uint_v);
     TYPE_TEST(     Enum,       int_v,    int_v);
     TYPE_TEST(     bool,       int_v,    int_v);
-    TYPE_TEST(    float,       int_v,  float_v);
 
     TYPE_TEST(   uint_v,       short,   uint_v);
     TYPE_TEST(   uint_v,      ushort,   uint_v);
@@ -303,25 +267,15 @@ void testImplicitTypeConversions()
     TYPE_TEST(   uint_v,         int,   uint_v);
     TYPE_TEST(   uint_v,      uint_v,   uint_v);
     TYPE_TEST(   uint_v,        uint,   uint_v);
-    TYPE_TEST(   uint_v,        long,   uint_v);
-    TYPE_TEST(   uint_v,       ulong,   uint_v);
-    TYPE_TEST(   uint_v,    longlong,   uint_v);
-    TYPE_TEST(   uint_v,   ulonglong,   uint_v);
     TYPE_TEST(   uint_v,        Enum,   uint_v);
     TYPE_TEST(   uint_v,        bool,   uint_v);
-    TYPE_TEST(   uint_v,       float,  float_v);
     TYPE_TEST(    short,      uint_v,   uint_v);
     TYPE_TEST(   ushort,      uint_v,   uint_v);
     TYPE_TEST(    int_v,      uint_v,   uint_v);
     TYPE_TEST(      int,      uint_v,   uint_v);
     TYPE_TEST(     uint,      uint_v,   uint_v);
-    TYPE_TEST(     long,      uint_v,   uint_v);
-    TYPE_TEST(    ulong,      uint_v,   uint_v);
-    TYPE_TEST( longlong,      uint_v,   uint_v);
-    TYPE_TEST(ulonglong,      uint_v,   uint_v);
     TYPE_TEST(     Enum,      uint_v,   uint_v);
     TYPE_TEST(     bool,      uint_v,   uint_v);
-    TYPE_TEST(    float,      uint_v,  float_v);
 }
 
 void testmain()

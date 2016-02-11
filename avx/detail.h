@@ -520,6 +520,47 @@ Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,   uint) { return AVX::mullo_epi32
 Vc_INTRINSIC __m256i mul(__m256i a, __m256i b,  short) { return AVX::mullo_epi16(a, b); }
 Vc_INTRINSIC __m256i mul(__m256i a, __m256i b, ushort) { return AVX::mullo_epi16(a, b); }
 
+// mul{{{1
+Vc_INTRINSIC __m256  div(__m256  a, __m256  b,  float) { return _mm256_div_ps(a, b); }
+Vc_INTRINSIC __m256d div(__m256d a, __m256d b, double) { return _mm256_div_pd(a, b); }
+Vc_INTRINSIC __m256i div(__m256i a, __m256i b,    int) {
+    using namespace AVX;
+    const __m256d lo1 = _mm256_cvtepi32_pd(lo128(a));
+    const __m256d lo2 = _mm256_cvtepi32_pd(lo128(b));
+    const __m256d hi1 = _mm256_cvtepi32_pd(hi128(a));
+    const __m256d hi2 = _mm256_cvtepi32_pd(hi128(b));
+    return concat(_mm256_cvttpd_epi32(_mm256_div_pd(lo1, lo2)),
+                  _mm256_cvttpd_epi32(_mm256_div_pd(hi1, hi2)));
+}
+Vc_INTRINSIC __m256i div(__m256i a, __m256i b,   uint) {
+    // SSE/AVX only has signed int conversion to doubles. Therefore we first adjust the input before
+    // conversion and take the adjustment back after the conversion.
+    // It could be argued that for b this is not really important because division by a b >= 2^31 is
+    // useless. But for full correctness it cannot be ignored.
+    using namespace AVX;
+    const __m256i aa = add_epi32(a, set1_epi32(-2147483648));
+    const __m256i bb = add_epi32(b, set1_epi32(-2147483648));
+    const __m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), set1_pd(2147483648.));
+    const __m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), set1_pd(2147483648.));
+    const __m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), set1_pd(2147483648.));
+    const __m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(bb)), set1_pd(2147483648.));
+    // there is one remaining problem: a >= 2^31 and b == 1
+    // in that case the return value would be 2^31
+    return avx_cast<__m256i>(_mm256_blendv_ps(
+        avx_cast<__m256>(concat(_mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
+                                          _mm256_cvttpd_epi32(_mm256_div_pd(hia, hib)))),
+        avx_cast<__m256>(a),
+        avx_cast<__m256>(cmpeq_epi32(b, setone_epi32()))));
+}
+Vc_INTRINSIC __m256i div(__m256i a, __m256i b,  short) {
+    using namespace AVX;
+    const __m256 lo =
+        _mm256_div_ps(convert<short, float>(lo128(a)), convert<short, float>(lo128(b)));
+    const __m256 hi =
+        _mm256_div_ps(convert<short, float>(hi128(a)), convert<short, float>(hi128(b)));
+    return concat(convert<float, short>(lo), convert<float, short>(hi));
+}
+
 // horizontal add{{{1
 template <typename T> Vc_INTRINSIC T add(Common::IntrinsicType<T, 32 / sizeof(T)> a, T)
 {

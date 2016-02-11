@@ -406,7 +406,6 @@ public:
     ///@}
 
 #define Vc_OP(symbol)                                                                    \
-    inline Vector &operator symbol##=(const Vector &x);                                  \
     inline Vc_PURE Vector operator symbol(const Vector &x) const;
     /**
      * \name Arithmetic Operations
@@ -782,6 +781,15 @@ public:
 private:
     VectorType d;
 };
+
+#define Vc_OP(symbol)                                                                    \
+    template <typename T, typename Abi>                                                  \
+    inline Vector<T, Abi> &operator symbol##=(Vector<T, Abi> &,                          \
+                                              const Vector<T, Abi> &x);
+    //Vc_ALL_ARITHMETICS(Vc_OP)
+    //Vc_ALL_BINARY(Vc_OP)
+    //Vc_ALL_SHIFTS(Vc_OP)
+#undef Vc_OP
 
 }  // namespace Vc
 

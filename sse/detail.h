@@ -457,6 +457,10 @@ Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  uchar) {
 #endif
 }
 
+// div{{{1
+Vc_INTRINSIC __m128  div(__m128  a, __m128  b,  float) { return _mm_div_ps(a, b); }
+Vc_INTRINSIC __m128d div(__m128d a, __m128d b, double) { return _mm_div_pd(a, b); }
+
 // TODO: fma{{{1
 //Vc_INTRINSIC __m128  fma(__m128  a, __m128  b, __m128  c,  float) { return _mm_mul_ps(a, b); }
 //Vc_INTRINSIC __m128d fma(__m128d a, __m128d b, __m128d c, double) { return _mm_mul_pd(a, b); }

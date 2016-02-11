@@ -252,10 +252,6 @@ public:
     {                                                                                    \
         data() = Detail::fun(data(), x.data(), T());                                     \
         return *this;                                                                    \
-    }                                                                                    \
-    Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector &x) const                   \
-    {                                                                                    \
-        return Detail::fun(data(), x.data(), T());                                       \
     }
 
         Vc_OP(+, add)
@@ -264,9 +260,11 @@ public:
 #undef Vc_OP
         inline Vector &operator/=(EntryType x);
         inline Vector &operator/=(Vc_ALIGNED_PARAMETER(Vector) x);
-        inline Vc_PURE_L Vector operator/ (Vc_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
         // bitwise ops
+#define Vc_OP_VEC(op) Vc_INTRINSIC Vector &operator op##=(Vector x);
+    Vc_ALL_BINARY(Vc_OP_VEC)
+#undef Vc_OP_VEC
 #define Vc_OP_VEC(op)                                                                    \
     Vc_INTRINSIC Vector &operator op##=(AsArg x)                                         \
     {                                                                                    \
@@ -280,7 +278,6 @@ public:
             std::is_integral<T>::value,                                                  \
             "bitwise-operators can only be used with Vectors of integral type");         \
     }
-    Vc_ALL_BINARY(Vc_OP_VEC)
     Vc_ALL_SHIFTS(Vc_OP_VEC)
 #undef Vc_OP_VEC
 
@@ -290,7 +287,9 @@ public:
         Vc_ALWAYS_INLINE_L Vector operator<<(int x) const Vc_ALWAYS_INLINE_R;
 
 #define Vc_OPcmp(symbol, fun)                                                            \
-    Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const                 \
+    template <typename U>                                                                \
+    Vc_ALWAYS_INLINE Vc_PURE enable_if<std::is_same<Vector, U>::value, Mask>             \
+    operator symbol(U x) const                                                           \
     {                                                                                    \
         return Detail::fun(data(), x.data(), T());                                       \
     }

@@ -186,8 +186,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         inline Vc_PURE Vector operator%(const Vector &x) const;
 
 #define Vc_OP(symbol, fun) \
-        Vc_INTRINSIC Vector &operator symbol##=(const Vector &x) { data() = HT::fun(data(), x.data()); return *this; } \
-        Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector &x) const { return HT::fun(data(), x.data()); }
+        Vc_INTRINSIC Vector &operator symbol##=(const Vector &x) { data() = HT::fun(data(), x.data()); return *this; }
 
         Vc_OP(+, add)
         Vc_OP(-, sub)
@@ -205,16 +204,9 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         inline Vector &operator/=(EntryType x);
         inline Vector &operator/=(Vc_ALIGNED_PARAMETER(Vector) x);
-        inline Vc_PURE_L Vector operator/ (Vc_ALIGNED_PARAMETER(Vector) x) const Vc_PURE_R;
 
 #define Vc_OP(symbol)                                                                    \
     Vc_INTRINSIC Vector &operator symbol##=(const Vector &x)                             \
-    {                                                                                    \
-        static_assert(                                                                   \
-            std::is_integral<T>::value,                                                  \
-            "bitwise operators can only be used with Vectors of integral type");         \
-    }                                                                                    \
-    Vc_INTRINSIC Vc_PURE Vector operator symbol(const Vector &x) const                   \
     {                                                                                    \
         static_assert(                                                                   \
             std::is_integral<T>::value,                                                  \
@@ -224,7 +216,9 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 #undef Vc_OP
 
 #define Vc_OP(symbol, fun)                                                               \
-    Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const                 \
+    template <typename U>                                                                \
+    Vc_ALWAYS_INLINE Vc_PURE enable_if<std::is_same<Vector, U>::value, Mask>             \
+    operator symbol(U x) const                                                           \
     {                                                                                    \
         return HT::fun(data(), x.data());                                                \
     }

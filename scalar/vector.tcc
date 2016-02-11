@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/data.h"
 #include "../common/where.h"
 #include "../common/transpose.h"
+#include "operators.h"
 #include "macros.h"
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -112,27 +113,6 @@ Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::scatterImplementation(
     }
 }
 
-// bitwise operators {{{1
-#define Vc_CAST_OPERATOR_FORWARD(op, IntT, VecT) \
-template<> Vc_ALWAYS_INLINE VecT &VecT::operator op##=(const VecT &x) { \
-    typedef IntT uinta Vc_MAY_ALIAS; \
-    uinta *left = reinterpret_cast<uinta *>(&m_data); \
-    const uinta *right = reinterpret_cast<const uinta *>(&x.m_data); \
-    *left op##= *right; \
-    return *this; \
-} \
-template<> Vc_ALWAYS_INLINE Vc_PURE VecT VecT::operator op(const VecT &x) const { \
-    VecT ret = *this; \
-    return VecT(ret op##= x); \
-}
-#define Vc_CAST_OPERATOR_FORWARD_FLOAT(op)  Vc_CAST_OPERATOR_FORWARD(op, unsigned int, Scalar::float_v)
-#define Vc_CAST_OPERATOR_FORWARD_DOUBLE(op) Vc_CAST_OPERATOR_FORWARD(op, unsigned long long, Scalar::double_v)
-Vc_ALL_BINARY(Vc_CAST_OPERATOR_FORWARD_FLOAT)
-Vc_ALL_BINARY(Vc_CAST_OPERATOR_FORWARD_DOUBLE)
-#undef Vc_CAST_OPERATOR_FORWARD
-#undef Vc_CAST_OPERATOR_FORWARD_FLOAT
-#undef Vc_CAST_OPERATOR_FORWARD_DOUBLE
-
 // exponent {{{1
 Vc_INTRINSIC Vc_CONST Scalar::float_v exponent(Scalar::float_v x)
 {
@@ -165,10 +145,16 @@ Vc_ALWAYS_INLINE void Scalar::double_v::fusedMultiplyAdd(const Scalar::double_v 
 // Random {{{1
 static Vc_ALWAYS_INLINE void _doRandomStep(Scalar::uint_v &state0, Scalar::uint_v &state1)
 {
+    using Scalar::uint_v;
     state0.load(&Common::RandomState[0]);
-    state1.load(&Common::RandomState[Scalar::uint_v::Size]);
-    (state1 * 0xdeece66du + 11).store(&Common::RandomState[Scalar::uint_v::Size]);
-    Scalar::uint_v((state0 * 0xdeece66du + 11).data() ^ (state1.data() >> 16)).store(&Common::RandomState[0]);
+    state1.load(&Common::RandomState[uint_v::Size]);
+    Detail::operator+(Detail::operator*(state1, uint_v(0xdeece66du)),
+                      uint_v(11))
+        .store(&Common::RandomState[uint_v::Size]);
+    uint_v(Detail::operator+(Detail::operator*(state0, uint_v(0xdeece66du)), uint_v(11))
+               .data() ^
+           (state1.data() >> 16))
+        .store(&Common::RandomState[0]);
 }
 
 template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Scalar> Vector<T, VectorAbi::Scalar>::Random()

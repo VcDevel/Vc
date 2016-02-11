@@ -163,20 +163,22 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         Vc_INTRINSIC Vector Vc_PURE operator+() const { return *this; }
 
 #define Vc_OP(symbol) \
-        Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { m_data symbol##= x.m_data; return *this; } \
         Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
         Vc_ALL_SHIFTS(Vc_OP)
 #undef Vc_OP
 
 #define Vc_OP(symbol) \
-        Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x) { m_data symbol##= x.m_data; return *this; } \
         Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
-        Vc_ALL_ARITHMETICS(Vc_OP)
-        Vc_ALL_BINARY(Vc_OP)
 #undef Vc_OP
 
-#define Vc_OP(symbol) \
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const { return Mask(m_data symbol x.m_data); }
+#define Vc_OP(symbol)                                                                    \
+    template <typename U>                                                                \
+    Vc_ALWAYS_INLINE Vc_PURE enable_if<std::is_same<Vector, U>::value, Mask>             \
+    operator symbol(U x) const                                                           \
+    {                                                                                    \
+        return Mask(m_data symbol x.m_data);                                             \
+    }
+
         Vc_ALL_COMPARES(Vc_OP)
 #undef Vc_OP
 
@@ -287,6 +289,38 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 #undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::MemoryAlignment;
+
+#define Vc_OP(symbol)                                                                    \
+    template <typename T, typename U,                                                    \
+              typename = decltype(std::declval<T &>() symbol## = std::declval<T>())>     \
+    Vc_INTRINSIC enable_if<std::is_convertible<U, Vector<T, VectorAbi::Scalar>>::value,  \
+                           Vector<T, VectorAbi::Scalar>>                                 \
+        &operator symbol##=(Vector<T, VectorAbi::Scalar> &lhs, U &&rhs)                  \
+    {                                                                                    \
+        lhs.data() symbol## = Vector<T, VectorAbi::Scalar>(std::forward<U>(rhs)).data(); \
+        return lhs;                                                                      \
+    }
+Vc_ALL_SHIFTS(Vc_OP)
+Vc_ALL_BINARY(Vc_OP)
+Vc_ALL_ARITHMETICS(Vc_OP)
+#undef Vc_OP
+#define Vc_OP(symbol)                                                                    \
+    template <typename T>                                                                \
+    Vc_INTRINSIC                                                                         \
+        enable_if<std::is_floating_point<T>::value, Vector<T, VectorAbi::Scalar>>        \
+            &operator symbol##=(Vector<T, VectorAbi::Scalar> &lhs,                       \
+                                Vector<T, VectorAbi::Scalar> rhs)                        \
+    {                                                                                    \
+        using uinta =                                                                    \
+            MayAlias<typename std::conditional<sizeof(T) == sizeof(int), unsigned int,   \
+                                               unsigned long long>::type>;               \
+        uinta *left = reinterpret_cast<uinta *>(&lhs.data());                            \
+        const uinta *right = reinterpret_cast<const uinta *>(&rhs.data());               \
+        *left symbol## = *right;                                                         \
+        return lhs;                                                                      \
+    }
+Vc_ALL_BINARY(Vc_OP)
+#undef Vc_OP
 
 #define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \
     template <Operator O, typename T, typename M, typename U>                            \

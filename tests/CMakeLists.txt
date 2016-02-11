@@ -444,6 +444,7 @@ if(TEST_OPERATOR_FAILURES)
                set(name "implicit_type_conversion_failures_${type_a}_${op}_${type_b}_${impl}")
                add_test(NAME "${Vc_TEST_TARGET_PREFIX}${name}" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMAND
+                  env LANG=C
                   ${_launch_rule}
                   ${CMAKE_CXX_COMPILER} ${_flags} ${_implFlags}
                   ${incdirs} -c -o "${name}.tmp"
@@ -452,7 +453,7 @@ if(TEST_OPERATOR_FAILURES)
                   )
                set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY LABELS "${impl}")
                set_tests_properties("${Vc_TEST_TARGET_PREFIX}${name}" PROPERTIES
-                  PASS_REGULAR_EXPRESSION "Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability;error: overload resolution selected deleted operator;error: function \"Vc.*::operator.* cannot be referenced -- it is a deleted function"
+                  PASS_REGULAR_EXPRESSION "error: no match for 'operator..?' ;error: invalid operands of types '.*' and '.*' to binary 'operator.'"
                   )
             endforeach()
             set(type_b ${A})
@@ -467,6 +468,9 @@ if(TEST_OPERATOR_FAILURES)
    vc_test_implicit_type_conversion_failures( "float_v"     "double")
    vc_test_implicit_type_conversion_failures( "float_v"    "short_v")
    vc_test_implicit_type_conversion_failures( "float_v"   "ushort_v")
+   vc_test_implicit_type_conversion_failures(   "int_v"       "long")
+   vc_test_implicit_type_conversion_failures(   "int_v"    "float_v")
+   vc_test_implicit_type_conversion_failures(   "int_v"      "llong")
    vc_test_implicit_type_conversion_failures( "short_v"      "int_v")
    vc_test_implicit_type_conversion_failures( "short_v"     "uint_v")
    vc_test_implicit_type_conversion_failures("ushort_v"      "int_v")

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2012-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2012-2016 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,184 +26,214 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#ifndef COMMON_OPERATORS_H_
+#define COMMON_OPERATORS_H_
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Common
+namespace Detail
 {
-template <bool C, typename T, typename F>
-using conditional_t = typename std::conditional<C, T, F>::type;
+template <typename T, typename Abi, typename U>
+enable_if<!std::is_same<T, U>::value, U> is_convertible_to_any_vector(Vector<U, Abi>);
+template <typename T, typename Abi> T is_convertible_to_any_vector(Vector<T, Abi>);
+template <typename T, typename Abi> void is_convertible_to_any_vector(...);
 
-using std::is_convertible;
-using std::is_floating_point;
-using std::is_integral;
-using std::is_same;
-
-template <typename T> constexpr bool isUnsigned()
-{
-    return !std::is_same<Traits::decay<T>, bool>::value && Traits::is_unsigned<T>::value;
-}
-template <typename T> constexpr bool isIntegral()
-{
-    return Traits::is_integral<T>::value;
-}
-template <typename T> constexpr bool isVector()
-{
-    return Traits::is_simd_vector_internal<Traits::decay<T>>::value;
-}
-
-template <typename T, bool = isIntegral<T>(), bool = isVector<T>()>
-struct MakeUnsignedInternal;
-template <template <typename, typename> class Vector_, typename T, typename Abi>
-struct MakeUnsignedInternal<Vector_<T, Abi>, true, true>
-{
-    using type = Vector_<typename std::make_unsigned<T>::type, Abi>;
+template <typename T, typename U, bool = std::is_integral<T>::value,
+          bool = std::is_integral<U>::value>
+struct FundamentalReturnType;
+template <typename T, typename U> struct FundamentalReturnType<T, U, false, false> {
+    using type = typename std::conditional<
+        std::is_arithmetic<U>::value,
+        typename std::conditional<(sizeof(T) < sizeof(U)), U, T>::type,
+        // U is not arithmetic, e.g. an enum or a type with e.g. operator int()
+        T>::type;
 };
-template <typename T> struct MakeUnsignedInternal<T, false, true>
-{
+template <typename T, typename U> struct FundamentalReturnType<T, U, true, false> {
+    using type = typename std::conditional<
+        std::is_arithmetic<U>::value, U,
+        // U is not arithmetic, e.g. an enum or a type with e.g. operator int()
+        T>::type;
+};
+template <typename T, typename U> struct FundamentalReturnType<T, U, false, true> {
     using type = T;
 };
 
-template <typename Test, typename T>
-using CopyUnsigned = typename MakeUnsignedInternal<T, isIntegral<T>() && isUnsigned<Test>()>::type;
+template <typename T, typename U, typename Test, typename Otherwise>
+using larger_conditional = typename std::conditional<
+    std::is_same<T, Test>::value || std::is_same<U, Test>::value, Test, Otherwise>::type;
 
-/* § 8.5.4 p7:
- * A narrowing conversion is an implicit conversion
- * — from a floating-point type to an integer type, or
- * — from long double to double or float, or from double to float, except where the source is a constant
- *   expression and the actual value after conversion is within the range of values that can be represented
- *   (even if it cannot be represented exactly), or
- * — from an integer type or unscoped enumeration type to a floating-point type, except where the source
- *   is a constant expression and the actual value after conversion will fit into the target type and will
- *   produce the original value when converted back to the original type, or
- * — from an integer type or unscoped enumeration type to an integer type that cannot represent all the
- *   values of the original type, except where the source is a constant expression and the actual value after
- *   conversion will fit into the target type and will produce the original value when converted back to the
- *   original type.
- */
-template <typename From, typename To> constexpr bool isNarrowingFloatConversion()
-{
-    return is_floating_point<From>::value &&
-           (is_integral<To>::value || (is_floating_point<To>::value && sizeof(From) > sizeof(To)));
-}
+template <typename T, typename U>
+using larger_type = larger_conditional<
+    T, U, long long,
+    larger_conditional<
+        T, U, long,
+        larger_conditional<
+            T, U, int, larger_conditional<T, U, short,
+                                          larger_conditional<T, U, signed char, void>>>>>;
 
-template <typename T> static constexpr bool convertsToSomeVector()
-{
-    return is_convertible<T, double_v>::value || is_convertible<T, float_v>::value ||
-           is_convertible<T, int_v>::value || is_convertible<T, uint_v>::value ||
-           is_convertible<T, short_v>::value || is_convertible<T, ushort_v>::value;
-}
-
-static_assert(isNarrowingFloatConversion<double, float>(), "");
-static_assert(isNarrowingFloatConversion<long double, float>(), "");
-static_assert(isNarrowingFloatConversion<long double, double>(), "");
-static_assert(is_convertible<double, float_v>::value, "");
-static_assert(false == ((is_convertible<double, float_v>::value ||
-                         (isVector<double>() && is_convertible<float_v, double>::value)) &&
-                        !isNarrowingFloatConversion<double, float_v::EntryType>()),
-              "");
-
-template <typename V, typename W>
-using DetermineReturnType =
-    conditional_t<(is_same<V, int_v>::value || is_same<V, uint_v>::value) &&
-                    (is_same<W, float>::value || is_same<W, float_v>::value),
-                float_v,
-                CopyUnsigned<W, V>>;
-
-template <typename V, typename W> constexpr bool participateInOverloadResolution()
-{
-    return isVector<V>() &&            // one operand has to be a vector
-           !is_same<V, W>::value &&    // if they're the same type it's already
-                                       // covered by Vector::operatorX
-           convertsToSomeVector<W>();  // if the other operand is not convertible to a SIMD vector
-                                       // type at all then don't use our operator in overload
-                                       // resolution at all
-}
-
-template <typename V, typename W> constexpr enable_if<isVector<V>(), bool> isValidOperandTypes()
-{
-    // Vc does not allow operands that could possibly have different Vector::Size.
-    return isVector<W>()
-               ? (is_convertible<V, W>::value || is_convertible<W, V>::value)
-               : (is_convertible<W, DetermineReturnType<V, W>>::value &&
-                  !isNarrowingFloatConversion<W, typename DetermineReturnType<V, W>::EntryType>());
-}
-
-template <
-    typename V,
-    typename W,
-    bool VectorOperation = participateInOverloadResolution<V, W>() && isValidOperandTypes<V, W>()>
-struct TypesForOperatorInternal
-{
+template <typename T> struct my_make_signed : public std::make_signed<T> {
+};
+template <> struct my_make_signed<bool> {
+    using type = bool;
 };
 
-template <typename V, typename W> struct TypesForOperatorInternal<V, W, true>
-{
-    using type = DetermineReturnType<V, W>;
+template <typename T, typename U> struct FundamentalReturnType<T, U, true, true> {
+    using type = typename std::conditional<
+        (sizeof(T) > sizeof(U)), T,
+        typename std::conditional<
+            (sizeof(T) < sizeof(U)), U,
+            typename std::conditional<
+                (std::is_unsigned<T>::value || std::is_unsigned<U>::value),
+                typename std::make_unsigned<
+                    larger_type<typename my_make_signed<T>::type,
+                                typename my_make_signed<U>::type>>::type,
+                larger_type<typename my_make_signed<T>::type,
+                            typename my_make_signed<U>::type>>::type>::type>::type;
 };
+static_assert(std::is_same<long, typename FundamentalReturnType<int, long>::type>::value, "");
 
-template <typename L, typename R>
-using TypesForOperator = typename TypesForOperatorInternal<
-    Traits::decay<conditional_t<isVector<L>(), L, R>>,
-    Traits::decay<conditional_t<!isVector<L>(), L, R>>>::type;
-
-template <
-    typename V,
-    typename W,
-    bool IsIncorrect = participateInOverloadResolution<V, W>() && !isValidOperandTypes<V, W>()>
-struct IsIncorrectVectorOperands
-{
+template <typename V, typename T, bool, typename, bool> struct ReturnTypeImpl {
+    // no type => SFINAE
 };
-template <typename V, typename W> struct IsIncorrectVectorOperands<V, W, true>
-{
-    using type = void;
+template <typename T, typename U, typename Abi, typename Deduced>
+struct ReturnTypeImpl<Vector<T, Abi>, Vector<U, Abi>, false, Deduced, false> {
+    using type = Vector<typename FundamentalReturnType<T, U>::type, Abi>;
 };
+template <typename T, typename Abi>
+struct ReturnTypeImpl<Vector<T, Abi>, int, true, T, true> {
+    using type = Vector<T, Abi>;
+};
+template <typename T, typename Abi>
+struct ReturnTypeImpl<Vector<T, Abi>, unsigned int, true, T, true> {
+    using type = Vector<typename std::make_unsigned<T>::type, Abi>;
+};
+template <typename T, typename U, typename Abi, bool Integral>
+struct ReturnTypeImpl<Vector<T, Abi>, U, true, T, Integral> {
+    using type = Vector<typename FundamentalReturnType<T, U>::type, Abi>;
+};
+template <typename T, typename U, typename Abi, bool Integral>
+struct ReturnTypeImpl<Vector<T, Abi>, U, false, void, Integral> {
+    // no type => SFINAE
+};
+template <typename T, typename U, typename Abi, typename V, bool Integral>
+struct ReturnTypeImpl<Vector<T, Abi>, U, false, V, Integral> {
+    using type = Vector<typename FundamentalReturnType<T, V>::type, Abi>;
+};
+template <typename V, typename T>
+using ReturnType = typename ReturnTypeImpl<
+    V, T, std::is_arithmetic<T>::value || std::is_convertible<T, int>::value,
+    decltype(is_convertible_to_any_vector<typename V::value_type, typename V::abi>(
+        std::declval<const T &>())),
+    std::is_integral<typename V::value_type>::value>::type;
 
-template <typename L, typename R>
-using Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability =
-    typename IsIncorrectVectorOperands<
-        Traits::decay<conditional_t<isVector<L>(), L, R>>,
-        Traits::decay<conditional_t<!isVector<L>(), L, R>>>::type;
-}  // namespace Common
+template <typename T> struct is_a_type : public std::true_type {
+};
+}  // namespace Detail
 
 #define Vc_GENERIC_OPERATOR(op)                                                          \
-    template <typename L, typename R>                                                    \
-    Vc_ALWAYS_INLINE Common::TypesForOperator<L, R> operator op(L &&x, R &&y)            \
+    template <typename T, typename Abi, typename U>                                      \
+    Vc_ALWAYS_INLINE enable_if<                                                          \
+        Detail::is_a_type<decltype(                                                      \
+            std::declval<typename Detail::ReturnType<Vector<T, Abi>, U>::EntryType>()    \
+                op std::declval<typename Detail::ReturnType<Vector<T, Abi>,              \
+                                                            U>::EntryType>())>::value && \
+            std::is_convertible<Vector<T, Abi>,                                          \
+                                Detail::ReturnType<Vector<T, Abi>, U>>::value &&         \
+            std::is_convertible<U, Detail::ReturnType<Vector<T, Abi>, U>>::value,        \
+        Detail::ReturnType<Vector<T, Abi>, U>>                                           \
+    operator op(Vector<T, Abi> x, const U &y)                                            \
     {                                                                                    \
-        using V = Common::TypesForOperator<L, R>;                                        \
-        return V(std::forward<L>(x)) op V(std::forward<R>(y));                           \
+        using V = Detail::ReturnType<Vector<T, Abi>, U>;                                 \
+        return Detail::operator op(V(x), V(y));                                          \
+    }                                                                                    \
+    template <typename T, typename Abi, typename U>                                      \
+    Vc_ALWAYS_INLINE enable_if<                                                          \
+        Detail::is_a_type<decltype(                                                      \
+            std::declval<typename Detail::ReturnType<Vector<T, Abi>, U>::EntryType>()    \
+                op std::declval<typename Detail::ReturnType<Vector<T, Abi>,              \
+                                                            U>::EntryType>())>::value && \
+            !Traits::is_simd_vector_internal<U>::value &&                                \
+            std::is_convertible<Vector<T, Abi>,                                          \
+                                Detail::ReturnType<Vector<T, Abi>, U>>::value &&         \
+            std::is_convertible<U, Detail::ReturnType<Vector<T, Abi>, U>>::value,        \
+        Detail::ReturnType<Vector<T, Abi>, U>>                                           \
+    operator op(const U &x, Vector<T, Abi> y)                                            \
+    {                                                                                    \
+        using V = Detail::ReturnType<Vector<T, Abi>, U>;                                 \
+        return Detail::operator op(V(x), V(y));                                          \
+    }
+
+#define Vc_LOGICAL_OPERATOR(op)                                                          \
+    template <typename T, typename Abi>                                                  \
+    Vc_ALWAYS_INLINE typename Vector<T, Abi>::Mask operator op(Vector<T, Abi> x,         \
+                                                               Vector<T, Abi> y)         \
+    {                                                                                    \
+        return !!x op !!y;                                                               \
+    }                                                                                    \
+    template <typename T, typename Abi, typename U>                                      \
+    Vc_ALWAYS_INLINE                                                                     \
+        enable_if<std::is_convertible<Vector<T, Abi>, Vector<U, Abi>>::value &&          \
+                      std::is_convertible<Vector<U, Abi>, Vector<T, Abi>>::value,        \
+                  typename Detail::ReturnType<Vector<T, Abi>, Vector<U, Abi>>::Mask>     \
+        operator op(Vector<T, Abi> x, Vector<U, Abi> y)                                  \
+    {                                                                                    \
+        return !!x op !!y;                                                               \
+    }                                                                                    \
+    template <typename T, typename Abi, typename U>                                      \
+    Vc_ALWAYS_INLINE                                                                     \
+        enable_if<std::is_same<bool, decltype(!std::declval<const U &>())>::value,       \
+                  typename Vector<T, Abi>::Mask>                                         \
+        operator op(Vector<T, Abi> x, const U &y)                                        \
+    {                                                                                    \
+        using M = typename Vector<T, Abi>::Mask;                                         \
+        return !!x op M(!!y);                                                            \
+    }                                                                                    \
+    template <typename T, typename Abi, typename U>                                      \
+    Vc_ALWAYS_INLINE                                                                     \
+        enable_if<std::is_same<bool, decltype(!std::declval<const U &>())>::value,       \
+                  typename Vector<T, Abi>::Mask>                                         \
+        operator op(const U &x, Vector<T, Abi> y)                                        \
+    {                                                                                    \
+        using M = typename Vector<T, Abi>::Mask;                                         \
+        return M(!!x) op !!y;                                                            \
     }
 
 #define Vc_COMPARE_OPERATOR(op)                                                          \
-    template <typename L, typename R>                                                    \
-    Vc_ALWAYS_INLINE typename Common::TypesForOperator<L, R>::Mask operator op(L &&x,    \
-                                                                               R &&y)    \
+    template <typename T, typename Abi, typename U>                                      \
+    Vc_ALWAYS_INLINE enable_if<                                                          \
+        !std::is_same<Vector<T, Abi>, U>::value &&                                       \
+            std::is_convertible<Vector<T, Abi>,                                          \
+                                Detail::ReturnType<Vector<T, Abi>, U>>::value &&         \
+            std::is_convertible<U, Detail::ReturnType<Vector<T, Abi>, U>>::value,        \
+        typename Detail::ReturnType<Vector<T, Abi>, U>::Mask>                            \
+    operator op(Vector<T, Abi> x, const U &y)                                            \
     {                                                                                    \
-        using V = Common::TypesForOperator<L, R>;                                        \
-        return V(std::forward<L>(x)) op V(std::forward<R>(y));                           \
+        using V = Detail::ReturnType<Vector<T, Abi>, U>;                                 \
+        return V(x) op V(y);                                                             \
+    }                                                                                    \
+    template <typename T, typename Abi, typename U>                                      \
+    Vc_ALWAYS_INLINE enable_if<                                                          \
+        !Traits::is_simd_vector_internal<U>::value &&                                    \
+            std::is_convertible<Vector<T, Abi>,                                          \
+                                Detail::ReturnType<Vector<T, Abi>, U>>::value &&         \
+            std::is_convertible<U, Detail::ReturnType<Vector<T, Abi>, U>>::value,        \
+        typename Detail::ReturnType<Vector<T, Abi>, U>::Mask>                            \
+    operator op(const U &x, Vector<T, Abi> y)                                            \
+    {                                                                                    \
+        using V = Detail::ReturnType<Vector<T, Abi>, U>;                                 \
+        return V(x) op V(y);                                                             \
     }
 
-#define Vc_INVALID_OPERATOR(op)                                                                                                                     \
-    template <typename L, typename R>                                                                                                               \
-    Common::                                                                                                                                        \
-        Vc_does_not_allow_operands_to_a_binary_operator_which_can_have_different_SIMD_register_sizes_on_some_targets_and_thus_enforces_portability< \
-            L, R> operator op(L &&, R &&) = delete;
-// invalid operands to binary expression. Vc does not allow operands that can have a differing size
-// on some targets.
-
-Vc_ALL_LOGICAL    (Vc_GENERIC_OPERATOR)
+Vc_ALL_LOGICAL    (Vc_LOGICAL_OPERATOR)
 Vc_ALL_BINARY     (Vc_GENERIC_OPERATOR)
 Vc_ALL_ARITHMETICS(Vc_GENERIC_OPERATOR)
 Vc_ALL_COMPARES   (Vc_COMPARE_OPERATOR)
 
-Vc_ALL_LOGICAL    (Vc_INVALID_OPERATOR)
-Vc_ALL_BINARY     (Vc_INVALID_OPERATOR)
-Vc_ALL_ARITHMETICS(Vc_INVALID_OPERATOR)
-Vc_ALL_COMPARES   (Vc_INVALID_OPERATOR)
-
+#undef Vc_LOGICAL_OPERATOR
 #undef Vc_GENERIC_OPERATOR
 #undef Vc_COMPARE_OPERATOR
 #undef Vc_INVALID_OPERATOR
 
 }  // namespace Vc
+#endif  // COMMON_OPERATORS_H_

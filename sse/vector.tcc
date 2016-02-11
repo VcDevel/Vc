@@ -37,6 +37,73 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace Detail
+{
+// bitwise operators {{{1
+template <typename T>
+Vc_INTRINSIC SSE::Vector<T> operator^(SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    return xor_(a.data(), b.data());
+}
+template <typename T>
+Vc_INTRINSIC SSE::Vector<T> operator&(SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    return and_(a.data(), b.data());
+}
+template <typename T>
+Vc_INTRINSIC SSE::Vector<T> operator|(SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    return or_(a.data(), b.data());
+}
+// arithmetic operators {{{1
+template <typename T>
+Vc_INTRINSIC SSE::Vector<T> operator+(SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    return add(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC SSE::Vector<T> operator-(SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    return sub(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC SSE::Vector<T> operator*(SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    return mul(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_floating_point<T>::value, SSE::Vector<T>> operator/(
+    SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    return div(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC
+    enable_if<std::is_same<int, T>::value || std::is_same<uint, T>::value, SSE::Vector<T>>
+    operator/(SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    return SSE::Vector<T>::generate([&](int i) { return a[i] / b[i]; });
+}
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_same<short, T>::value || std::is_same<ushort, T>::value,
+                       SSE::Vector<T>>
+operator/(SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    using HT = SSE::VectorHelper<T>;
+    __m128 lo = _mm_cvtepi32_ps(HT::expand0(a.data()));
+    __m128 hi = _mm_cvtepi32_ps(HT::expand1(a.data()));
+    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(HT::expand0(b.data())));
+    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(HT::expand1(b.data())));
+    return HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
+}
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_integral<T>::value, SSE::Vector<T>> operator%(
+    SSE::Vector<T> a, SSE::Vector<T> b)
+{
+    return a - a / b * b;
+}
+// }}}1
+}  // namespace Detail
 // constants {{{1
 template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerZero)
     : d(HV::zero())
@@ -144,14 +211,6 @@ inline Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator/=(
     return *this;
 }
 
-template<typename T> inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator/(Vc_ALIGNED_PARAMETER(V<T>) x) const
-{
-    Vector<T, VectorAbi::Sse> r;
-    Common::for_all_vector_entries<Size>(
-        [&](size_t i) { r.d.set(i, d.m(i) / x.d.m(i)); });
-    return r;
-}
-
 template<> inline SSE::short_v &SSE::short_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::short_v) x)
 {
     __m128 lo = _mm_cvtepi32_ps(HT::expand0(d.v()));
@@ -160,15 +219,6 @@ template<> inline SSE::short_v &SSE::short_v::operator/=(Vc_ALIGNED_PARAMETER(SS
     hi = _mm_div_ps(hi, _mm_cvtepi32_ps(HT::expand1(x.d.v())));
     d.v() = HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
     return *this;
-}
-
-template<> inline Vc_PURE SSE::short_v SSE::short_v::operator/(Vc_ALIGNED_PARAMETER(SSE::short_v) x) const
-{
-    __m128 lo = _mm_cvtepi32_ps(HT::expand0(d.v()));
-    __m128 hi = _mm_cvtepi32_ps(HT::expand1(d.v()));
-    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(HT::expand0(x.d.v())));
-    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(HT::expand1(x.d.v())));
-    return HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
 }
 
 template<> inline SSE::ushort_v &SSE::ushort_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::ushort_v) x)
@@ -181,35 +231,16 @@ template<> inline SSE::ushort_v &SSE::ushort_v::operator/=(Vc_ALIGNED_PARAMETER(
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v SSE::ushort_v::operator/(Vc_ALIGNED_PARAMETER(SSE::ushort_v) x) const
-{
-    __m128 lo = _mm_cvtepi32_ps(HT::expand0(d.v()));
-    __m128 hi = _mm_cvtepi32_ps(HT::expand1(d.v()));
-    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(HT::expand0(x.d.v())));
-    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(HT::expand1(x.d.v())));
-    return HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
-}
-
 template<> Vc_ALWAYS_INLINE SSE::float_v &SSE::float_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::float_v) x)
 {
     d.v() = _mm_div_ps(d.v(), x.d.v());
     return *this;
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE SSE::float_v SSE::float_v::operator/(Vc_ALIGNED_PARAMETER(SSE::float_v) x) const
-{
-    return _mm_div_ps(d.v(), x.d.v());
-}
-
 template<> Vc_ALWAYS_INLINE SSE::double_v &SSE::double_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::double_v) x)
 {
     d.v() = _mm_div_pd(d.v(), x.d.v());
     return *this;
-}
-
-template<> Vc_ALWAYS_INLINE Vc_PURE SSE::double_v SSE::double_v::operator/(Vc_ALIGNED_PARAMETER(SSE::double_v) x) const
-{
-    return _mm_div_pd(d.v(), x.d.v());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -232,12 +263,6 @@ template <typename T> inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorA
     {                                                                                    \
         d.v() = Detail::fun(d.v(), x.d.v());                                             \
         return *this;                                                                    \
-    }                                                                                    \
-    template <>                                                                          \
-    Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::       \
-    operator symbol(const Vector<T, VectorAbi::Sse> &x) const                            \
-    {                                                                                    \
-        return Detail::fun(d.v(), x.d.v());                                              \
     }
 Vc_OP_IMPL(int, &, and_)
 Vc_OP_IMPL(int, |, or_)
@@ -570,12 +595,12 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 
 Vc_INTRINSIC Vc_CONST SSE::float_v exponent(SSE::float_v x)
 {
-    Vc_ASSERT((x >= 0.f).isFull());
+    Vc_ASSERT((x >= x.Zero()).isFull());
     return Detail::exponent(x.data());
 }
 Vc_INTRINSIC Vc_CONST SSE::double_v exponent(SSE::double_v x)
 {
-    Vc_ASSERT((x >= 0.).isFull());
+    Vc_ASSERT((x >= x.Zero()).isFull());
     return Detail::exponent(x.data());
 }
 // }}}1
@@ -583,10 +608,15 @@ Vc_INTRINSIC Vc_CONST SSE::double_v exponent(SSE::double_v x)
 static void _doRandomStep(SSE::uint_v &state0,
         SSE::uint_v &state1)
 {
+    using SSE::uint_v;
+    using Detail::operator+;
+    using Detail::operator*;
     state0.load(&Common::RandomState[0]);
-    state1.load(&Common::RandomState[SSE::uint_v::Size]);
-    (state1 * 0xdeece66du + 11).store(&Common::RandomState[SSE::uint_v::Size]);
-    SSE::uint_v(_mm_xor_si128((state0 * 0xdeece66du + 11).data(), _mm_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
+    state1.load(&Common::RandomState[uint_v::Size]);
+    (state1 * uint_v(0xdeece66du) + uint_v(11)).store(&Common::RandomState[uint_v::Size]);
+    uint_v(_mm_xor_si128((state0 * uint_v(0xdeece66du) + uint_v(11)).data(),
+                         _mm_srli_epi32(state1.data(), 16)))
+        .store(&Common::RandomState[0]);
 }
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::Random()

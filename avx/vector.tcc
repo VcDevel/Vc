@@ -36,6 +36,71 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace Detail
+{
+// bitwise operators {{{1
+template <typename T>
+Vc_INTRINSIC AVX2::Vector<T> operator^(AVX2::Vector<T> a, AVX2::Vector<T> b)
+{
+    return xor_(a.data(), b.data());
+}
+template <typename T>
+Vc_INTRINSIC AVX2::Vector<T> operator&(AVX2::Vector<T> a, AVX2::Vector<T> b)
+{
+    return and_(a.data(), b.data());
+}
+template <typename T>
+Vc_INTRINSIC AVX2::Vector<T> operator|(AVX2::Vector<T> a, AVX2::Vector<T> b)
+{
+    return or_(a.data(), b.data());
+}
+// }}}1
+// arithmetic operators {{{1
+template <typename T>
+Vc_INTRINSIC AVX2::Vector<T> operator+(AVX2::Vector<T> a, AVX2::Vector<T> b)
+{
+    return add(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC AVX2::Vector<T> operator-(AVX2::Vector<T> a, AVX2::Vector<T> b)
+{
+    return sub(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC AVX2::Vector<T> operator*(AVX2::Vector<T> a, AVX2::Vector<T> b)
+{
+    return mul(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC AVX2::Vector<T> operator/(AVX2::Vector<T> a, AVX2::Vector<T> b)
+{
+    return div(a.data(), b.data(), T());
+}
+Vc_INTRINSIC AVX2::Vector<ushort> operator/(AVX2::Vector<ushort> a,
+                                            AVX2::Vector<ushort> b)
+{
+    using namespace AVX;
+    const __m256 lo = _mm256_div_ps(convert<ushort, float>(lo128(a.data())),
+                                    convert<ushort, float>(lo128(b.data())));
+    const __m256 hi = _mm256_div_ps(convert<ushort, float>(hi128(a.data())),
+                                    convert<ushort, float>(hi128(b.data())));
+    const float_v threshold = 32767.f;
+    const __m128i loShort = (Vc_IS_UNLIKELY((float_v(lo) > threshold).isNotEmpty()))
+                                ? convert<float, ushort>(lo)
+                                : convert<float, short>(lo);
+    const __m128i hiShort = (Vc_IS_UNLIKELY((float_v(hi) > threshold).isNotEmpty()))
+                                ? convert<float, ushort>(hi)
+                                : convert<float, short>(hi);
+    return concat(loShort, hiShort);
+}
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_integral<T>::value, AVX2::Vector<T>> operator%(
+    AVX2::Vector<T> a, AVX2::Vector<T> b)
+{
+    return a - a / b * b;
+}
+// }}}1
+}  // namespace Detail
 ///////////////////////////////////////////////////////////////////////////////////////////
 // constants {{{1
 template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerZero) : d{} {}
@@ -152,13 +217,6 @@ template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator
     return *this;
 }
 
-template<typename T> inline Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator/(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x) const
-{
-    AVX2::Vector<T> r;
-    Common::for_all_vector_entries<Size>(
-        [&](size_t i) { r.d.set(i, d.m(i) / x.d.m(i)); });
-    return r;
-}
 #ifdef Vc_IMPL_AVX2
 // specialize division on type
 static Vc_INTRINSIC __m256i Vc_CONST divInt(__m256i a, __m256i b)
@@ -177,10 +235,6 @@ template<> inline AVX2::int_v &AVX2::int_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2
 {
     d.v() = divInt(d.v(), x.d.v());
     return *this;
-}
-template<> inline AVX2::int_v Vc_PURE AVX2::int_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::int_v) x) const
-{
-    return divInt(d.v(), x.d.v());
 }
 static inline __m256i Vc_CONST divUInt(__m256i a, __m256i b) {
     // SSE/AVX only has signed int conversion to doubles. Therefore we first adjust the input before
@@ -207,10 +261,6 @@ template<> Vc_ALWAYS_INLINE AVX2::uint_v &AVX2::uint_v::operator/=(Vc_ALIGNED_PA
     d.v() = divUInt(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_ALWAYS_INLINE AVX2::uint_v Vc_PURE AVX2::uint_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::uint_v) x) const
-{
-    return divUInt(d.v(), x.d.v());
-}
 template <typename T> static inline __m256i Vc_CONST divShort(__m256i a, __m256i b)
 {
     using namespace AVX;
@@ -235,18 +285,10 @@ template<> Vc_ALWAYS_INLINE AVX2::short_v &AVX2::short_v::operator/=(Vc_ALIGNED_
     d.v() = divShort<short>(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_ALWAYS_INLINE AVX2::short_v Vc_PURE AVX2::short_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::short_v) x) const
-{
-    return divShort<short>(d.v(), x.d.v());
-}
 template<> Vc_ALWAYS_INLINE AVX2::ushort_v &AVX2::ushort_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::ushort_v) x)
 {
     d.v() = divShort<unsigned short>(d.v(), x.d.v());
     return *this;
-}
-template<> Vc_ALWAYS_INLINE AVX2::ushort_v Vc_PURE AVX2::ushort_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::ushort_v) x) const
-{
-    return divShort<unsigned short>(d.v(), x.d.v());
 }
 #endif
 template<> Vc_INTRINSIC AVX2::float_v &AVX2::float_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::float_v) x)
@@ -254,18 +296,10 @@ template<> Vc_INTRINSIC AVX2::float_v &AVX2::float_v::operator/=(Vc_ALIGNED_PARA
     d.v() = _mm256_div_ps(d.v(), x.d.v());
     return *this;
 }
-template<> Vc_INTRINSIC AVX2::float_v Vc_PURE AVX2::float_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::float_v) x) const
-{
-    return _mm256_div_ps(d.v(), x.d.v());
-}
 template<> Vc_INTRINSIC AVX2::double_v &AVX2::double_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::double_v) x)
 {
     d.v() = _mm256_div_pd(d.v(), x.d.v());
     return *this;
-}
-template<> Vc_INTRINSIC AVX2::double_v Vc_PURE AVX2::double_v::operator/(Vc_ALIGNED_PARAMETER(AVX2::double_v) x) const
-{
-    return _mm256_div_pd(d.v(), x.d.v());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -322,41 +356,35 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAb
     return Detail::shiftLeft(d.v(), shift, T());
 }
 
-#define Vc_OP_IMPL(T, symbol, fun)                                                       \
+#define Vc_OP_IMPL(T, symbol)                                                            \
     template <>                                                                          \
     Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(     \
-        AsArg x)                                                                         \
+        Vector x)                                                                        \
     {                                                                                    \
-        d.v() = Detail::fun(d.v(), x.d.v());                                             \
+        *this = Detail::operator symbol(*this, x);                                       \
         return *this;                                                                    \
-    }                                                                                    \
-    template <>                                                                          \
-    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol( \
-        AsArg x) const                                                                   \
-    {                                                                                    \
-        return AVX2::Vector<T>(Detail::fun(d.v(), x.d.v()));                             \
     }
 #ifdef Vc_IMPL_AVX2
-  Vc_OP_IMPL(int, &, and_)
-  Vc_OP_IMPL(int, |, or_)
-  Vc_OP_IMPL(int, ^, xor_)
-  Vc_OP_IMPL(unsigned int, &, and_)
-  Vc_OP_IMPL(unsigned int, |, or_)
-  Vc_OP_IMPL(unsigned int, ^, xor_)
-  Vc_OP_IMPL(short, &, and_)
-  Vc_OP_IMPL(short, |, or_)
-  Vc_OP_IMPL(short, ^, xor_)
-  Vc_OP_IMPL(unsigned short, &, and_)
-  Vc_OP_IMPL(unsigned short, |, or_)
-  Vc_OP_IMPL(unsigned short, ^, xor_)
+  Vc_OP_IMPL(int, &)
+  Vc_OP_IMPL(int, |)
+  Vc_OP_IMPL(int, ^)
+  Vc_OP_IMPL(unsigned int, &)
+  Vc_OP_IMPL(unsigned int, |)
+  Vc_OP_IMPL(unsigned int, ^)
+  Vc_OP_IMPL(short, &)
+  Vc_OP_IMPL(short, |)
+  Vc_OP_IMPL(short, ^)
+  Vc_OP_IMPL(unsigned short, &)
+  Vc_OP_IMPL(unsigned short, |)
+  Vc_OP_IMPL(unsigned short, ^)
 #endif
 #ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
-  Vc_OP_IMPL(float, &, and_)
-  Vc_OP_IMPL(float, |, or_)
-  Vc_OP_IMPL(float, ^, xor_)
-  Vc_OP_IMPL(double, &, and_)
-  Vc_OP_IMPL(double, |, or_)
-  Vc_OP_IMPL(double, ^, xor_)
+  Vc_OP_IMPL(float, &)
+  Vc_OP_IMPL(float, |)
+  Vc_OP_IMPL(float, ^)
+  Vc_OP_IMPL(double, &)
+  Vc_OP_IMPL(double, |)
+  Vc_OP_IMPL(double, ^)
 #endif
 #undef Vc_OP_IMPL
 
@@ -682,33 +710,45 @@ Vc_INTRINSIC Vc_CONST __m256d exponent(__m256d v)
 
 Vc_INTRINSIC Vc_CONST AVX2::float_v exponent(AVX2::float_v x)
 {
-    Vc_ASSERT((x >= 0.f).isFull());
+    Vc_ASSERT((x >= x.Zero()).isFull());
     return Detail::exponent(x.data());
 }
 Vc_INTRINSIC Vc_CONST AVX2::double_v exponent(AVX2::double_v x)
 {
-    Vc_ASSERT((x >= 0.).isFull());
+    Vc_ASSERT((x >= x.Zero()).isFull());
     return Detail::exponent(x.data());
 }
 // }}}1
 // Random {{{1
 static Vc_ALWAYS_INLINE __m256i _doRandomStep()
 {
+    using Detail::operator*;
+    using Detail::operator+;
 #ifdef Vc_IMPL_AVX2
-    AVX2::uint_v state0(&Common::RandomState[0]);
-    AVX2::uint_v state1(&Common::RandomState[AVX2::uint_v::Size]);
-    (state1 * 0xdeece66du + 11).store(&Common::RandomState[AVX2::uint_v::Size]);
-    AVX2::uint_v(Detail::xor_((state0 * 0xdeece66du + 11).data(), _mm256_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
+    using AVX2::uint_v;
+    uint_v state0(&Common::RandomState[0]);
+    uint_v state1(&Common::RandomState[uint_v::Size]);
+    (state1 * uint_v(0xdeece66du) + uint_v(11)).store(&Common::RandomState[uint_v::Size]);
+    uint_v(Detail::xor_((state0 * uint_v(0xdeece66du) + uint_v(11)).data(),
+                        _mm256_srli_epi32(state1.data(), 16)))
+        .store(&Common::RandomState[0]);
     return state0.data();
 #else
-    SSE::uint_v state0(&Common::RandomState[0]);
-    SSE::uint_v state1(&Common::RandomState[SSE::uint_v::Size]);
-    SSE::uint_v state2(&Common::RandomState[2 * SSE::uint_v::Size]);
-    SSE::uint_v state3(&Common::RandomState[3 * SSE::uint_v::Size]);
-    (state2 * 0xdeece66du + 11).store(&Common::RandomState[2 * SSE::uint_v::Size]);
-    (state3 * 0xdeece66du + 11).store(&Common::RandomState[3 * SSE::uint_v::Size]);
-    SSE::uint_v(Detail::xor_((state0 * 0xdeece66du + 11).data(), _mm_srli_epi32(state2.data(), 16))).store(&Common::RandomState[0]);
-    SSE::uint_v(Detail::xor_((state1 * 0xdeece66du + 11).data(), _mm_srli_epi32(state3.data(), 16))).store(&Common::RandomState[SSE::uint_v::Size]);
+    using SSE::uint_v;
+    uint_v state0(&Common::RandomState[0]);
+    uint_v state1(&Common::RandomState[uint_v::Size]);
+    uint_v state2(&Common::RandomState[2 * uint_v::Size]);
+    uint_v state3(&Common::RandomState[3 * uint_v::Size]);
+    (state2 * uint_v(0xdeece66du) + uint_v(11))
+        .store(&Common::RandomState[2 * uint_v::Size]);
+    (state3 * uint_v(0xdeece66du) + uint_v(11))
+        .store(&Common::RandomState[3 * uint_v::Size]);
+    uint_v(Detail::xor_((state0 * uint_v(0xdeece66du) + uint_v(11)).data(),
+                        _mm_srli_epi32(state2.data(), 16)))
+        .store(&Common::RandomState[0]);
+    uint_v(Detail::xor_((state1 * uint_v(0xdeece66du) + uint_v(11)).data(),
+                        _mm_srli_epi32(state3.data(), 16)))
+        .store(&Common::RandomState[uint_v::Size]);
     return AVX::concat(state0.data(), state1.data());
 #endif
 }
@@ -766,6 +806,7 @@ template<typename T> Vc_INTRINSIC AVX2::Vector<T> Vector<T, VectorAbi::Avx>::shi
         }
     }
 #endif
+    using Detail::operator|;
     return shifted(amount) | (amount > 0 ?
                               shiftIn.shifted(amount - Size) :
                               shiftIn.shifted(Size + amount));
