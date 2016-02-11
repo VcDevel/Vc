@@ -77,7 +77,7 @@ void listInitializationImpl(Vc::index_sequence<Indexes...>)
     const auto data = Vc::makeContainer<Container>({T(Indexes + 1)...});
     V reference = V::IndexesFromZero() + 1;
     for (const auto &v : data) {
-        reference.setZero(reference > sizeof...(Indexes));
+        reference.setZero(reference > int(sizeof...(Indexes)));
         COMPARE(v, reference) << UnitTest::typeToString<Container>() << " -> "
                               << UnitTest::typeToString<decltype(data)>();
         reference += V::Size;

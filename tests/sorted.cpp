@@ -72,7 +72,7 @@ TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_AR
             where(a == 0) | a =
                 -std::numeric_limits<typename Vec::value_type>::infinity();
             if (Vec::size() > 2) {
-                where(a == Vec::Size - 1) | a =
+                where(a == int(Vec::Size) - 1) | a =
                     std::numeric_limits<typename Vec::value_type>::infinity();
             }
         }
