@@ -81,7 +81,8 @@ TEST_TYPES(Pair, testDeinterleave,
 
     V a, b;
 
-    for (size_t i = 0; i < 1024 - 2 * V::Size; ++i) {
+    static_assert(2 * V::Size < 1024, "fix the test, please");
+    for (int i = 0; i < 1024 - 2 * int(V::Size); ++i) {
         if (reinterpret_cast<std::uintptr_t>(&memory[i]) & (Vc::VectorAlignment - 1)) {
             Vc::deinterleave(&a, &b, &memory[i], Vc::Unaligned);
         } else {

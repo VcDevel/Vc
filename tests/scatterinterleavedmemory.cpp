@@ -92,7 +92,7 @@ void testInterleavingScatterCompare(Wrapper &data, const IndexType &i,
                                     Vc::index_sequence<Indexes...>)
 {
     const std::array<V, sizeof...(Indexes)> reference = {
-        {(V::Random() + (Indexes - Indexes))...}};
+        {((void)Indexes, V::Random())...}};
 
     data[i] = tie(reference[Indexes]...);
     std::array<V, sizeof...(Indexes)> t = data[i];

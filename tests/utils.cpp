@@ -417,7 +417,7 @@ TEST_TYPES(V, rangeFor, (ALL_VECTORS))
 TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(9), SIMD_ARRAYS(8)))
 {
     for (int repeat = 0; repeat < 10; ++repeat) {
-        std::array<V, 2> testValues = {V::IndexesFromZero(), V::IndexesFromZero() + V::Size};
+        std::array<V, 2> testValues = {V::IndexesFromZero(), V::IndexesFromZero() + int(V::Size)};
         std::array<V, 2> references;
         for (size_t i = 0; i < 2 * V::Size; ++i) {
             references[i / V::Size][i % V::Size] = testValues[i & 1][i >> 1];
