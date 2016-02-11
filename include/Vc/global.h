@@ -622,11 +622,6 @@ using CurrentImplementation = ImplementationT<
 
 }  // namespace Vc
 
-// TODO: clean up headers (e.g. math.h) to remove the following:
-#ifndef Vc_ENABLE_FLOAT_BIT_OPERATORS
-#define Vc_ENABLE_FLOAT_BIT_OPERATORS 1
-#endif
-
 #include "version.h"
 
 #endif // VC_GLOBAL_H_

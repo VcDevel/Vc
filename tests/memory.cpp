@@ -111,7 +111,7 @@ template<typename V, unsigned int Size> struct TestVectors { static void test()
     const Memory<V, Size> &m2 = m;
     Memory<V> m3(Size);
     V x = startX;
-    for (unsigned int i = 0; i < m.vectorsCount(); ++i, x += V::Size) {
+    for (unsigned int i = 0; i < m.vectorsCount(); ++i, x += int(V::size())) {
         m.vector(i) = x;
         m3.vector(i) = x;
     }
@@ -138,14 +138,14 @@ template<typename V, unsigned int Size> struct TestVectors2D { static void test(
     Memory<V, Size, Size> m;
     const Memory<V, Size, Size> &m2 = m;
     V x = startX;
-    for (size_t i = 0; i < m.rowsCount(); ++i, x += V::Size) {
+    for (size_t i = 0; i < m.rowsCount(); ++i, x += int(V::size())) {
         auto &mrow = m[i];
-        for (size_t j = 0; j < mrow.vectorsCount(); ++j, x += V::Size) {
+        for (size_t j = 0; j < mrow.vectorsCount(); ++j, x += int(V::size())) {
             mrow.vector(j) = x;
         }
     }
     x = startX;
-    for (size_t i = 0; i < m.rowsCount(); ++i, x += V::Size) {
+    for (size_t i = 0; i < m.rowsCount(); ++i, x += int(V::size())) {
         auto &mrow = m[i];
         const auto &m2row = m2[i];
         size_t j;
@@ -159,7 +159,7 @@ template<typename V, unsigned int Size> struct TestVectors2D { static void test(
         }
         COMPARE(V(mrow.vector(j)), x) << i << " " << j;
         COMPARE(V(m2row.vector(j)), x);
-        x += V::Size;
+        x += int(V::size());
     }
 }};
 
@@ -175,14 +175,14 @@ template<typename V, unsigned int Size> struct TestVectorReorganization { static
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
         m.vector(i) = x;
         m3.vector(i) = x;
-        x += V::Size;
+        x += int(V::size());
     }
     ///////////////////////////////////////////////////////////////////////////
     x = V(init);
     for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
         COMPARE(V(m.vector(i)), x);
         COMPARE(V(m3.vector(i)), x);
-        x += V::Size;
+        x += int(V::size());
     }
     ///////////////////////////////////////////////////////////////////////////
     x = V(init);

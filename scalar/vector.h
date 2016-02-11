@@ -167,21 +167,6 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         Vc_ALL_SHIFTS(Vc_OP)
 #undef Vc_OP
 
-#define Vc_OP(symbol) \
-        Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
-#undef Vc_OP
-
-#define Vc_OP(symbol)                                                                    \
-    template <typename U>                                                                \
-    Vc_ALWAYS_INLINE Vc_PURE enable_if<std::is_same<Vector, U>::value, Mask>             \
-    operator symbol(U x) const                                                           \
-    {                                                                                    \
-        return Mask(m_data symbol x.m_data);                                             \
-    }
-
-        Vc_ALL_COMPARES(Vc_OP)
-#undef Vc_OP
-
         Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
             isNegative() const
         {
@@ -301,25 +286,6 @@ template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::MemoryAlign
         return lhs;                                                                      \
     }
 Vc_ALL_SHIFTS(Vc_OP)
-Vc_ALL_BINARY(Vc_OP)
-Vc_ALL_ARITHMETICS(Vc_OP)
-#undef Vc_OP
-#define Vc_OP(symbol)                                                                    \
-    template <typename T>                                                                \
-    Vc_INTRINSIC                                                                         \
-        enable_if<std::is_floating_point<T>::value, Vector<T, VectorAbi::Scalar>>        \
-            &operator symbol##=(Vector<T, VectorAbi::Scalar> &lhs,                       \
-                                Vector<T, VectorAbi::Scalar> rhs)                        \
-    {                                                                                    \
-        using uinta =                                                                    \
-            MayAlias<typename std::conditional<sizeof(T) == sizeof(int), unsigned int,   \
-                                               unsigned long long>::type>;               \
-        uinta *left = reinterpret_cast<uinta *>(&lhs.data());                            \
-        const uinta *right = reinterpret_cast<const uinta *>(&rhs.data());               \
-        *left symbol## = *right;                                                         \
-        return lhs;                                                                      \
-    }
-Vc_ALL_BINARY(Vc_OP)
 #undef Vc_OP
 
 #define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \

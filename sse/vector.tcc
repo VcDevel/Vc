@@ -39,6 +39,73 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
+// compare operators {{{1
+Vc_INTRINSIC SSE::double_m operator==(SSE::double_v a, SSE::double_v b) { return _mm_cmpeq_pd(a.data(), b.data()); }
+Vc_INTRINSIC SSE:: float_m operator==(SSE:: float_v a, SSE:: float_v b) { return _mm_cmpeq_ps(a.data(), b.data()); }
+Vc_INTRINSIC SSE::   int_m operator==(SSE::   int_v a, SSE::   int_v b) { return _mm_cmpeq_epi32(a.data(), b.data()); }
+Vc_INTRINSIC SSE::  uint_m operator==(SSE::  uint_v a, SSE::  uint_v b) { return _mm_cmpeq_epi32(a.data(), b.data()); }
+Vc_INTRINSIC SSE:: short_m operator==(SSE:: short_v a, SSE:: short_v b) { return _mm_cmpeq_epi16(a.data(), b.data()); }
+Vc_INTRINSIC SSE::ushort_m operator==(SSE::ushort_v a, SSE::ushort_v b) { return _mm_cmpeq_epi16(a.data(), b.data()); }
+
+Vc_INTRINSIC SSE::double_m operator!=(SSE::double_v a, SSE::double_v b) { return _mm_cmpneq_pd(a.data(), b.data()); }
+Vc_INTRINSIC SSE:: float_m operator!=(SSE:: float_v a, SSE:: float_v b) { return _mm_cmpneq_ps(a.data(), b.data()); }
+Vc_INTRINSIC SSE::   int_m operator!=(SSE::   int_v a, SSE::   int_v b) { return not_(_mm_cmpeq_epi32(a.data(), b.data())); }
+Vc_INTRINSIC SSE::  uint_m operator!=(SSE::  uint_v a, SSE::  uint_v b) { return not_(_mm_cmpeq_epi32(a.data(), b.data())); }
+Vc_INTRINSIC SSE:: short_m operator!=(SSE:: short_v a, SSE:: short_v b) { return not_(_mm_cmpeq_epi16(a.data(), b.data())); }
+Vc_INTRINSIC SSE::ushort_m operator!=(SSE::ushort_v a, SSE::ushort_v b) { return not_(_mm_cmpeq_epi16(a.data(), b.data())); }
+
+Vc_INTRINSIC SSE::double_m operator> (SSE::double_v a, SSE::double_v b) { return _mm_cmpgt_pd(a.data(), b.data()); }
+Vc_INTRINSIC SSE:: float_m operator> (SSE:: float_v a, SSE:: float_v b) { return _mm_cmpgt_ps(a.data(), b.data()); }
+Vc_INTRINSIC SSE::   int_m operator> (SSE::   int_v a, SSE::   int_v b) { return _mm_cmpgt_epi32(a.data(), b.data()); }
+Vc_INTRINSIC SSE::  uint_m operator> (SSE::  uint_v a, SSE::  uint_v b) {
+#ifndef USE_INCORRECT_UNSIGNED_COMPARE
+    return SSE::_mm_cmpgt_epu32(a.data(), b.data());
+#else
+    return _mm_cmpgt_epi32(a.data(), b.data());
+#endif
+}
+Vc_INTRINSIC SSE:: short_m operator> (SSE:: short_v a, SSE:: short_v b) { return _mm_cmpgt_epi16(a.data(), b.data()); }
+Vc_INTRINSIC SSE::ushort_m operator> (SSE::ushort_v a, SSE::ushort_v b) {
+#ifndef USE_INCORRECT_UNSIGNED_COMPARE
+    return SSE::cmpgt_epu16(a.data(), b.data());
+#else
+    return _mm_cmpgt_epi16(a.data(), b.data());
+#endif
+}
+
+Vc_INTRINSIC SSE::double_m operator< (SSE::double_v a, SSE::double_v b) { return _mm_cmplt_pd(a.data(), b.data()); }
+Vc_INTRINSIC SSE:: float_m operator< (SSE:: float_v a, SSE:: float_v b) { return _mm_cmplt_ps(a.data(), b.data()); }
+Vc_INTRINSIC SSE::   int_m operator< (SSE::   int_v a, SSE::   int_v b) { return _mm_cmplt_epi32(a.data(), b.data()); }
+Vc_INTRINSIC SSE::  uint_m operator< (SSE::  uint_v a, SSE::  uint_v b) {
+#ifndef USE_INCORRECT_UNSIGNED_COMPARE
+    return SSE::_mm_cmplt_epu32(a.data(), b.data());
+#else
+    return _mm_cmplt_epi32(a.data(), b.data());
+#endif
+}
+Vc_INTRINSIC SSE:: short_m operator< (SSE:: short_v a, SSE:: short_v b) { return _mm_cmplt_epi16(a.data(), b.data()); }
+Vc_INTRINSIC SSE::ushort_m operator< (SSE::ushort_v a, SSE::ushort_v b) {
+#ifndef USE_INCORRECT_UNSIGNED_COMPARE
+    return SSE::cmplt_epu16(a.data(), b.data());
+#else
+    return _mm_cmplt_epi16(a.data(), b.data());
+#endif
+}
+
+Vc_INTRINSIC SSE::double_m operator>=(SSE::double_v a, SSE::double_v b) { return _mm_cmpnlt_pd(a.data(), b.data()); }
+Vc_INTRINSIC SSE:: float_m operator>=(SSE:: float_v a, SSE:: float_v b) { return _mm_cmpnlt_ps(a.data(), b.data()); }
+Vc_INTRINSIC SSE::   int_m operator>=(SSE::   int_v a, SSE::   int_v b) { return !(a < b); }
+Vc_INTRINSIC SSE::  uint_m operator>=(SSE::  uint_v a, SSE::  uint_v b) { return !(a < b); }
+Vc_INTRINSIC SSE:: short_m operator>=(SSE:: short_v a, SSE:: short_v b) { return !(a < b); }
+Vc_INTRINSIC SSE::ushort_m operator>=(SSE::ushort_v a, SSE::ushort_v b) { return !(a < b); }
+
+Vc_INTRINSIC SSE::double_m operator<=(SSE::double_v a, SSE::double_v b) { return _mm_cmple_pd(a.data(), b.data()); }
+Vc_INTRINSIC SSE:: float_m operator<=(SSE:: float_v a, SSE:: float_v b) { return _mm_cmple_ps(a.data(), b.data()); }
+Vc_INTRINSIC SSE::   int_m operator<=(SSE::   int_v a, SSE::   int_v b) { return !(a > b); }
+Vc_INTRINSIC SSE::  uint_m operator<=(SSE::  uint_v a, SSE::  uint_v b) { return !(a > b); }
+Vc_INTRINSIC SSE:: short_m operator<=(SSE:: short_v a, SSE:: short_v b) { return !(a > b); }
+Vc_INTRINSIC SSE::ushort_m operator<=(SSE::ushort_v a, SSE::ushort_v b) { return !(a > b); }
+
 // bitwise operators {{{1
 template <typename T>
 Vc_INTRINSIC SSE::Vector<T> operator^(SSE::Vector<T> a, SSE::Vector<T> b)
@@ -193,57 +260,6 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Sse>::store(U *mem, Mask mask, Flags flag
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// division {{{1
-template<typename T> inline Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator/=(EntryType x)
-{
-    if (SSE::VectorTraits<T>::HasVectorDivision) {
-        return operator/=(Vector<T, VectorAbi::Sse>(x));
-    }
-    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x); });
-    return *this;
-}
-
-template <typename T>
-inline Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator/=(
-    Vc_ALIGNED_PARAMETER(V<T>) x)
-{
-    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x.d.m(i)); });
-    return *this;
-}
-
-template<> inline SSE::short_v &SSE::short_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::short_v) x)
-{
-    __m128 lo = _mm_cvtepi32_ps(HT::expand0(d.v()));
-    __m128 hi = _mm_cvtepi32_ps(HT::expand1(d.v()));
-    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(HT::expand0(x.d.v())));
-    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(HT::expand1(x.d.v())));
-    d.v() = HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
-    return *this;
-}
-
-template<> inline SSE::ushort_v &SSE::ushort_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::ushort_v) x)
-{
-    __m128 lo = _mm_cvtepi32_ps(HT::expand0(d.v()));
-    __m128 hi = _mm_cvtepi32_ps(HT::expand1(d.v()));
-    lo = _mm_div_ps(lo, _mm_cvtepi32_ps(HT::expand0(x.d.v())));
-    hi = _mm_div_ps(hi, _mm_cvtepi32_ps(HT::expand1(x.d.v())));
-    d.v() = HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
-    return *this;
-}
-
-template<> Vc_ALWAYS_INLINE SSE::float_v &SSE::float_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::float_v) x)
-{
-    d.v() = _mm_div_ps(d.v(), x.d.v());
-    return *this;
-}
-
-template<> Vc_ALWAYS_INLINE SSE::double_v &SSE::double_v::operator/=(Vc_ALIGNED_PARAMETER(SSE::double_v) x)
-{
-    d.v() = _mm_div_pd(d.v(), x.d.v());
-    return *this;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator-() const
 {
@@ -251,41 +267,6 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
-template <typename T> inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator%(const Vector<T, VectorAbi::Sse> &n) const
-{
-    return *this - *this / n * n;
-}
-
-#define Vc_OP_IMPL(T, symbol, fun)                                                       \
-    template <>                                                                          \
-    Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::              \
-    operator symbol##=(const Vector<T, VectorAbi::Sse> &x)                               \
-    {                                                                                    \
-        d.v() = Detail::fun(d.v(), x.d.v());                                             \
-        return *this;                                                                    \
-    }
-Vc_OP_IMPL(int, &, and_)
-Vc_OP_IMPL(int, |, or_)
-Vc_OP_IMPL(int, ^, xor_)
-Vc_OP_IMPL(unsigned int, &, and_)
-Vc_OP_IMPL(unsigned int, |, or_)
-Vc_OP_IMPL(unsigned int, ^, xor_)
-Vc_OP_IMPL(short, &, and_)
-Vc_OP_IMPL(short, |, or_)
-Vc_OP_IMPL(short, ^, xor_)
-Vc_OP_IMPL(unsigned short, &, and_)
-Vc_OP_IMPL(unsigned short, |, or_)
-Vc_OP_IMPL(unsigned short, ^, xor_)
-#ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
-Vc_OP_IMPL(float, &, and_)
-Vc_OP_IMPL(float, |, or_)
-Vc_OP_IMPL(float, ^, xor_)
-Vc_OP_IMPL(double, &, and_)
-Vc_OP_IMPL(double, |, or_)
-Vc_OP_IMPL(double, ^, xor_)
-#endif
-#undef Vc_OP_IMPL
-
 #ifdef Vc_IMPL_XOP
 static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const    SSE::int_v &value, const    SSE::int_v &count) { return _mm_sha_epi32(value.data(), count.data()); }
 static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const   SSE::uint_v &value, const   SSE::uint_v &count) { return _mm_shl_epi32(value.data(), count.data()); }
@@ -595,11 +576,13 @@ Vc_INTRINSIC Vc_CONST __m128d exponent(__m128d v)
 
 Vc_INTRINSIC Vc_CONST SSE::float_v exponent(SSE::float_v x)
 {
+    using Detail::operator>=;
     Vc_ASSERT((x >= x.Zero()).isFull());
     return Detail::exponent(x.data());
 }
 Vc_INTRINSIC Vc_CONST SSE::double_v exponent(SSE::double_v x)
 {
+    using Detail::operator>=;
     Vc_ASSERT((x >= x.Zero()).isFull());
     return Detail::exponent(x.data());
 }

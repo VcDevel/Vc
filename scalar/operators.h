@@ -35,22 +35,39 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
+// compare operators {{{1
+#define Vc_OP(op_)                                                                       \
+    template <typename T>                                                                \
+    Vc_INTRINSIC Scalar::Mask<T> operator op_(Scalar::Vector<T> a, Scalar::Vector<T> b)  \
+    {                                                                                    \
+        return Scalar::Mask<T>(a.data() op_ b.data());                                   \
+    }
+Vc_ALL_COMPARES(Vc_OP)
+#undef Vc_OP
+
 // bitwise operators {{{1
-template <typename T>
-Vc_INTRINSIC Scalar::Vector<T> operator^(Scalar::Vector<T> a, Scalar::Vector<T> b)
-{
-    return a.data() ^ b.data();
-}
-template <typename T>
-Vc_INTRINSIC Scalar::Vector<T> operator&(Scalar::Vector<T> a, Scalar::Vector<T> b)
-{
-    return a.data() & b.data();
-}
-template <typename T>
-Vc_INTRINSIC Scalar::Vector<T> operator|(Scalar::Vector<T> a, Scalar::Vector<T> b)
-{
-    return a.data() | b.data();
-}
+#define Vc_OP(symbol)                                                                    \
+    template <typename T>                                                                \
+    Vc_INTRINSIC enable_if<std::is_integral<T>::value, Scalar::Vector<T>>                \
+    operator symbol(Scalar::Vector<T> a, Scalar::Vector<T> b)                            \
+    {                                                                                    \
+        return a.data() symbol b.data();                                                 \
+    }                                                                                    \
+    template <typename T>                                                                \
+    Vc_INTRINSIC enable_if<std::is_floating_point<T>::value, Scalar::Vector<T>>          \
+    operator symbol(Scalar::Vector<T> &lhs, Scalar::Vector<T> rhs)                       \
+    {                                                                                    \
+        using uinta =                                                                    \
+            MayAlias<typename std::conditional<sizeof(T) == sizeof(int), unsigned int,   \
+                                               unsigned long long>::type>;               \
+        uinta *left = reinterpret_cast<uinta *>(&lhs.data());                            \
+        const uinta *right = reinterpret_cast<const uinta *>(&rhs.data());               \
+        *left symbol## = *right;                                                         \
+        return lhs;                                                                      \
+    }
+Vc_ALL_BINARY(Vc_OP)
+#undef Vc_OP
+
 // arithmetic operators {{{1
 template <typename T>
 Vc_INTRINSIC Scalar::Vector<T> operator+(Scalar::Vector<T> a, Scalar::Vector<T> b)

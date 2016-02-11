@@ -102,8 +102,6 @@ namespace AVX
         static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return Vc_CAT2(_mm256_##op    , Vc_SUFFIX)(a, b); }
 #define Vc_OPx(op, op2) \
         static Vc_INTRINSIC VectorType Vc_CONST op(VTArg a, VTArg b) { return Vc_CAT2(_mm256_##op2##_, Vc_SUFFIX)(a, b); }
-#define Vc_OPcmp(op) \
-        static Vc_INTRINSIC VectorType Vc_CONST cmp##op(VTArg a, VTArg b) { return Vc_CAT2(cmp##op##_, Vc_SUFFIX)(a, b); }
 
         template<> struct VectorHelper<double> {
             typedef __m256d VectorType;
@@ -140,7 +138,7 @@ namespace AVX
                 const VectorType lh = add(mul(l1, h2), mul(h1, l2));
                 const VectorType hh = mul(h1, h2);
                 // ll < lh < hh for all entries is certain
-                const VectorType lh_lt_v3 = cmplt(abs(lh), abs(v3)); // |lh| < |v3|
+                const VectorType lh_lt_v3 = cmplt_pd(abs(lh), abs(v3)); // |lh| < |v3|
                 const VectorType b = _mm256_blendv_pd(v3, lh, lh_lt_v3);
                 const VectorType c = _mm256_blendv_pd(lh, v3, lh_lt_v3);
                 v1 = add(add(ll, b), add(c, hh));
@@ -150,9 +148,6 @@ namespace AVX
             static Vc_INTRINSIC VectorType Vc_CONST add(VTArg a, VTArg b) { return _mm256_add_pd(a,b); }
             static Vc_INTRINSIC VectorType Vc_CONST sub(VTArg a, VTArg b) { return _mm256_sub_pd(a,b); }
             static Vc_INTRINSIC VectorType Vc_CONST mul(VTArg a, VTArg b) { return _mm256_mul_pd(a,b); }
-            Vc_OPcmp(eq) Vc_OPcmp(neq)
-            Vc_OPcmp(lt) Vc_OPcmp(nlt)
-            Vc_OPcmp(le) Vc_OPcmp(nle)
 
             Vc_OP1(sqrt)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType rsqrt(VTArg x) {
@@ -231,9 +226,6 @@ namespace AVX
             static Vc_INTRINSIC VectorType Vc_CONST add(VTArg a, VTArg b) { return _mm256_add_ps(a, b); }
             static Vc_INTRINSIC VectorType Vc_CONST sub(VTArg a, VTArg b) { return _mm256_sub_ps(a, b); }
             static Vc_INTRINSIC VectorType Vc_CONST mul(VTArg a, VTArg b) { return _mm256_mul_ps(a, b); }
-            Vc_OPcmp(eq) Vc_OPcmp(neq)
-            Vc_OPcmp(lt) Vc_OPcmp(nlt)
-            Vc_OPcmp(le) Vc_OPcmp(nle)
 
             Vc_OP1(sqrt) Vc_OP1(rsqrt)
             static Vc_ALWAYS_INLINE Vc_CONST VectorType reciprocal(VTArg x) {
@@ -279,7 +271,6 @@ namespace AVX
 #undef Vc_OP
 #undef Vc_OP_
 #undef Vc_OPx
-#undef Vc_OPcmp
 
 }  // namespace AVX(2)
 }  // namespace Vc

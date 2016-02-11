@@ -231,7 +231,8 @@ static inline Vector<T, Abi> calc(Vc_ALIGNED_PARAMETER(V) _x)
         exponent(denormal) -= 54;
 
         x.setZero(C::exponentMask()); // keep only the fractional part ⇒ x ∈ [1, 2[
-        x |= C::_1_2();               // and set the exponent to 2⁻¹   ⇒ x ∈ [½, 1[
+        x = Detail::operator|(x,
+                              C::_1_2());  // and set the exponent to 2⁻¹   ⇒ x ∈ [½, 1[
 
         // split calculation in two cases:
         // A: x ∈ [½, √½[

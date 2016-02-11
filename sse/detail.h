@@ -395,6 +395,11 @@ Vc_INTRINSIC __m128 andnot_(__m128 a, __m128 b) { return _mm_andnot_ps(a, b); }
 Vc_INTRINSIC __m128d andnot_(__m128d a, __m128d b) { return _mm_andnot_pd(a, b); }
 Vc_INTRINSIC __m128i andnot_(__m128i a, __m128i b) { return _mm_andnot_si128(a, b); }
 
+// not_{{{1
+Vc_INTRINSIC __m128  not_(__m128  a) { return andnot_(a, allone<__m128 >()); }
+Vc_INTRINSIC __m128d not_(__m128d a) { return andnot_(a, allone<__m128d>()); }
+Vc_INTRINSIC __m128i not_(__m128i a) { return andnot_(a, allone<__m128i>()); }
+
 // add{{{1
 Vc_INTRINSIC __m128  add(__m128  a, __m128  b,  float) { return _mm_add_ps(a, b); }
 Vc_INTRINSIC __m128d add(__m128d a, __m128d b, double) { return _mm_add_pd(a, b); }

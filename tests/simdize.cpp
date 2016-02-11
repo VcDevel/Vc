@@ -350,7 +350,7 @@ TEST(list_iterator_vectorization)
         auto reference1 = list.size() - float_v::IndexesFromZero();
         auto reference2 =
             unsigned(list.size()) - simdize<unsigned, V::size()>::IndexesFromZero();
-        for (; b != e; ++b, reference1 -= V::size(), reference2 -= V::size()) {
+        for (; b != e; ++b, reference1 -= int(V::size()), reference2 -= int(V::size())) {
             V x = *b;
             COMPARE(x, V(reference1, reference2 * 2, reference1 * 3));
             COMPARE(std::get<0>(*b), reference1);

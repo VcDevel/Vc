@@ -361,7 +361,7 @@ This check will introduce a significant overhead.
 
 \section Vc_ENABLE_FLOAT_BIT_OPERATORS
 
-Define this macro to enable bitwise operators (&, |, ^) on floating-point vectors. Since these
+Define this macro to enable bitwise operators (&, |, ^, ~) on floating-point vectors. Since these
 operators are not provided for the builtin floating-point types, the default is to not provide
 them for SIMD vector types as well.
 

@@ -123,7 +123,7 @@ static inline void floor_shift(SSE::float_v &v, SSE::float_v::AsArg e)
     SSE::int_v x = SSE::_mm_setallone_si128();
     x <<= 23;
     x >>= static_cast<SSE::int_v>(e);
-    v &= x.reinterpretCast<SSE::float_v>();
+    v = Detail::operator&(v, x.reinterpretCast<SSE::float_v>());
 }
 
 static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
@@ -137,7 +137,7 @@ static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
     };
     d_ll mask0 = {initialMask >> shifts[0]};
     d_ll mask1 = {initialMask >> shifts[1]};
-    v &= SSE::double_v(_mm_setr_pd(mask0.d, mask1.d));
+    v = Detail::operator&(v, SSE::double_v(_mm_setr_pd(mask0.d, mask1.d)));
 }
 }  // namespace Detail
 

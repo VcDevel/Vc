@@ -38,6 +38,49 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
+// compare operators {{{1
+Vc_INTRINSIC AVX2::double_m operator==(AVX2::double_v a, AVX2::double_v b) { return AVX::cmpeq_pd(a.data(), b.data()); }
+Vc_INTRINSIC AVX2:: float_m operator==(AVX2:: float_v a, AVX2:: float_v b) { return AVX::cmpeq_ps(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::   int_m operator==(AVX2::   int_v a, AVX2::   int_v b) { return AVX::cmpeq_epi32(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::  uint_m operator==(AVX2::  uint_v a, AVX2::  uint_v b) { return AVX::cmpeq_epi32(a.data(), b.data()); }
+Vc_INTRINSIC AVX2:: short_m operator==(AVX2:: short_v a, AVX2:: short_v b) { return AVX::cmpeq_epi16(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::ushort_m operator==(AVX2::ushort_v a, AVX2::ushort_v b) { return AVX::cmpeq_epi16(a.data(), b.data()); }
+
+Vc_INTRINSIC AVX2::double_m operator!=(AVX2::double_v a, AVX2::double_v b) { return AVX::cmpneq_pd(a.data(), b.data()); }
+Vc_INTRINSIC AVX2:: float_m operator!=(AVX2:: float_v a, AVX2:: float_v b) { return AVX::cmpneq_ps(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::   int_m operator!=(AVX2::   int_v a, AVX2::   int_v b) { return not_(AVX::cmpeq_epi32(a.data(), b.data())); }
+Vc_INTRINSIC AVX2::  uint_m operator!=(AVX2::  uint_v a, AVX2::  uint_v b) { return not_(AVX::cmpeq_epi32(a.data(), b.data())); }
+Vc_INTRINSIC AVX2:: short_m operator!=(AVX2:: short_v a, AVX2:: short_v b) { return not_(AVX::cmpeq_epi16(a.data(), b.data())); }
+Vc_INTRINSIC AVX2::ushort_m operator!=(AVX2::ushort_v a, AVX2::ushort_v b) { return not_(AVX::cmpeq_epi16(a.data(), b.data())); }
+
+Vc_INTRINSIC AVX2::double_m operator>=(AVX2::double_v a, AVX2::double_v b) { return AVX::cmpnlt_pd(a.data(), b.data()); }
+Vc_INTRINSIC AVX2:: float_m operator>=(AVX2:: float_v a, AVX2:: float_v b) { return AVX::cmpnlt_ps(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::   int_m operator>=(AVX2::   int_v a, AVX2::   int_v b) { return not_(AVX::cmplt_epi32(a.data(), b.data())); }
+Vc_INTRINSIC AVX2::  uint_m operator>=(AVX2::  uint_v a, AVX2::  uint_v b) { return not_(AVX::cmplt_epu32(a.data(), b.data())); }
+Vc_INTRINSIC AVX2:: short_m operator>=(AVX2:: short_v a, AVX2:: short_v b) { return not_(AVX::cmplt_epi16(a.data(), b.data())); }
+Vc_INTRINSIC AVX2::ushort_m operator>=(AVX2::ushort_v a, AVX2::ushort_v b) { return not_(AVX::cmplt_epu16(a.data(), b.data())); }
+
+Vc_INTRINSIC AVX2::double_m operator<=(AVX2::double_v a, AVX2::double_v b) { return AVX::cmple_pd(a.data(), b.data()); }
+Vc_INTRINSIC AVX2:: float_m operator<=(AVX2:: float_v a, AVX2:: float_v b) { return AVX::cmple_ps(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::   int_m operator<=(AVX2::   int_v a, AVX2::   int_v b) { return not_(AVX::cmpgt_epi32(a.data(), b.data())); }
+Vc_INTRINSIC AVX2::  uint_m operator<=(AVX2::  uint_v a, AVX2::  uint_v b) { return not_(AVX::cmpgt_epu32(a.data(), b.data())); }
+Vc_INTRINSIC AVX2:: short_m operator<=(AVX2:: short_v a, AVX2:: short_v b) { return not_(AVX::cmpgt_epi16(a.data(), b.data())); }
+Vc_INTRINSIC AVX2::ushort_m operator<=(AVX2::ushort_v a, AVX2::ushort_v b) { return not_(AVX::cmpgt_epu16(a.data(), b.data())); }
+
+Vc_INTRINSIC AVX2::double_m operator> (AVX2::double_v a, AVX2::double_v b) { return AVX::cmpgt_pd(a.data(), b.data()); }
+Vc_INTRINSIC AVX2:: float_m operator> (AVX2:: float_v a, AVX2:: float_v b) { return AVX::cmpgt_ps(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::   int_m operator> (AVX2::   int_v a, AVX2::   int_v b) { return AVX::cmpgt_epi32(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::  uint_m operator> (AVX2::  uint_v a, AVX2::  uint_v b) { return AVX::cmpgt_epu32(a.data(), b.data()); }
+Vc_INTRINSIC AVX2:: short_m operator> (AVX2:: short_v a, AVX2:: short_v b) { return AVX::cmpgt_epi16(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::ushort_m operator> (AVX2::ushort_v a, AVX2::ushort_v b) { return AVX::cmpgt_epu16(a.data(), b.data()); }
+
+Vc_INTRINSIC AVX2::double_m operator< (AVX2::double_v a, AVX2::double_v b) { return AVX::cmplt_pd(a.data(), b.data()); }
+Vc_INTRINSIC AVX2:: float_m operator< (AVX2:: float_v a, AVX2:: float_v b) { return AVX::cmplt_ps(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::   int_m operator< (AVX2::   int_v a, AVX2::   int_v b) { return AVX::cmplt_epi32(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::  uint_m operator< (AVX2::  uint_v a, AVX2::  uint_v b) { return AVX::cmplt_epu32(a.data(), b.data()); }
+Vc_INTRINSIC AVX2:: short_m operator< (AVX2:: short_v a, AVX2:: short_v b) { return AVX::cmplt_epi16(a.data(), b.data()); }
+Vc_INTRINSIC AVX2::ushort_m operator< (AVX2::ushort_v a, AVX2::ushort_v b) { return AVX::cmplt_epu16(a.data(), b.data()); }
+
 // bitwise operators {{{1
 template <typename T>
 Vc_INTRINSIC AVX2::Vector<T> operator^(AVX2::Vector<T> a, AVX2::Vector<T> b)
@@ -85,6 +128,7 @@ Vc_INTRINSIC AVX2::Vector<ushort> operator/(AVX2::Vector<ushort> a,
     const __m256 hi = _mm256_div_ps(convert<ushort, float>(hi128(a.data())),
                                     convert<ushort, float>(hi128(b.data())));
     const float_v threshold = 32767.f;
+    using Detail::operator>;
     const __m128i loShort = (Vc_IS_UNLIKELY((float_v(lo) > threshold).isNotEmpty()))
                                 ? convert<float, ushort>(lo)
                                 : convert<float, short>(lo);
@@ -200,118 +244,8 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::store(U *mem, Mask mask, Flags flag
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
-// division {{{1
-template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator/=(EntryType x)
-{
-    if (HasVectorDivision) {
-        return operator/=(AVX2::Vector<T>(x));
-    }
-    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x); });
-    return *this;
-}
-// per default fall back to scalar division
-template<typename T> inline AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator/=(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
-{
-    Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, d.m(i) / x.d.m(i)); });
-    return *this;
-}
-
-#ifdef Vc_IMPL_AVX2
-// specialize division on type
-static Vc_INTRINSIC __m256i Vc_CONST divInt(__m256i a, __m256i b)
-{
-    using namespace AVX;
-    const m256d lo1 = _mm256_cvtepi32_pd(lo128(a));
-    const m256d lo2 = _mm256_cvtepi32_pd(lo128(b));
-    const m256d hi1 = _mm256_cvtepi32_pd(hi128(a));
-    const m256d hi2 = _mm256_cvtepi32_pd(hi128(b));
-    return concat(
-            _mm256_cvttpd_epi32(_mm256_div_pd(lo1, lo2)),
-            _mm256_cvttpd_epi32(_mm256_div_pd(hi1, hi2))
-            );
-}
-template<> inline AVX2::int_v &AVX2::int_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::int_v) x)
-{
-    d.v() = divInt(d.v(), x.d.v());
-    return *this;
-}
-static inline __m256i Vc_CONST divUInt(__m256i a, __m256i b) {
-    // SSE/AVX only has signed int conversion to doubles. Therefore we first adjust the input before
-    // conversion and take the adjustment back after the conversion.
-    // It could be argued that for b this is not really important because division by a b >= 2^31 is
-    // useless. But for full correctness it cannot be ignored.
-    using namespace AVX;
-    const __m256i aa = add_epi32(a, set1_epi32(-2147483648));
-    const __m256i bb = add_epi32(b, set1_epi32(-2147483648));
-    const __m256d loa = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(aa)), set1_pd(2147483648.));
-    const __m256d hia = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(aa)), set1_pd(2147483648.));
-    const __m256d lob = _mm256_add_pd(_mm256_cvtepi32_pd(lo128(bb)), set1_pd(2147483648.));
-    const __m256d hib = _mm256_add_pd(_mm256_cvtepi32_pd(hi128(bb)), set1_pd(2147483648.));
-    // there is one remaining problem: a >= 2^31 and b == 1
-    // in that case the return value would be 2^31
-    return avx_cast<__m256i>(_mm256_blendv_ps(
-        avx_cast<__m256>(concat(_mm256_cvttpd_epi32(_mm256_div_pd(loa, lob)),
-                                          _mm256_cvttpd_epi32(_mm256_div_pd(hia, hib)))),
-        avx_cast<__m256>(a),
-        avx_cast<__m256>(cmpeq_epi32(b, setone_epi32()))));
-}
-template<> Vc_ALWAYS_INLINE AVX2::uint_v &AVX2::uint_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::uint_v) x)
-{
-    d.v() = divUInt(d.v(), x.d.v());
-    return *this;
-}
-template <typename T> static inline __m256i Vc_CONST divShort(__m256i a, __m256i b)
-{
-    using namespace AVX;
-    const __m256 lo =
-        _mm256_div_ps(convert<T, float>(lo128(a)), convert<T, float>(lo128(b)));
-    const __m256 hi =
-        _mm256_div_ps(convert<T, float>(hi128(a)), convert<T, float>(hi128(b)));
-    if (std::is_same<T, ushort>::value) {
-        const float_v threshold = 32767.f;
-        const __m128i loShort = (Vc_IS_UNLIKELY((float_v(lo) > threshold).isNotEmpty()))
-                                    ? convert<float, ushort>(lo)
-                                    : convert<float, short>(lo);
-        const __m128i hiShort = (Vc_IS_UNLIKELY((float_v(hi) > threshold).isNotEmpty()))
-                                    ? convert<float, ushort>(hi)
-                                    : convert<float, short>(hi);
-        return concat(loShort, hiShort);
-    }
-    return concat(convert<float, short>(lo), convert<float, short>(hi));
-}
-template<> Vc_ALWAYS_INLINE AVX2::short_v &AVX2::short_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::short_v) x)
-{
-    d.v() = divShort<short>(d.v(), x.d.v());
-    return *this;
-}
-template<> Vc_ALWAYS_INLINE AVX2::ushort_v &AVX2::ushort_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::ushort_v) x)
-{
-    d.v() = divShort<unsigned short>(d.v(), x.d.v());
-    return *this;
-}
-#endif
-template<> Vc_INTRINSIC AVX2::float_v &AVX2::float_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::float_v) x)
-{
-    d.v() = _mm256_div_ps(d.v(), x.d.v());
-    return *this;
-}
-template<> Vc_INTRINSIC AVX2::double_v &AVX2::double_v::operator/=(Vc_ALIGNED_PARAMETER(AVX2::double_v) x)
-{
-    d.v() = _mm256_div_pd(d.v(), x.d.v());
-    return *this;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #ifdef Vc_IMPL_AVX2
-template <typename T>
-inline Vc_PURE Vector<T, VectorAbi::Avx> Vector<T, VectorAbi::Avx>::operator%(
-    const Vector &n) const
-{
-    return *this - n * (*this / n);
-}
-
 #define Vc_OP_IMPL(T, symbol)                                                            \
     template <>                                                                          \
     Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(     \
@@ -355,38 +289,6 @@ template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator<<(int shift) const {
     return Detail::shiftLeft(d.v(), shift, T());
 }
-
-#define Vc_OP_IMPL(T, symbol)                                                            \
-    template <>                                                                          \
-    Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(     \
-        Vector x)                                                                        \
-    {                                                                                    \
-        *this = Detail::operator symbol(*this, x);                                       \
-        return *this;                                                                    \
-    }
-#ifdef Vc_IMPL_AVX2
-  Vc_OP_IMPL(int, &)
-  Vc_OP_IMPL(int, |)
-  Vc_OP_IMPL(int, ^)
-  Vc_OP_IMPL(unsigned int, &)
-  Vc_OP_IMPL(unsigned int, |)
-  Vc_OP_IMPL(unsigned int, ^)
-  Vc_OP_IMPL(short, &)
-  Vc_OP_IMPL(short, |)
-  Vc_OP_IMPL(short, ^)
-  Vc_OP_IMPL(unsigned short, &)
-  Vc_OP_IMPL(unsigned short, |)
-  Vc_OP_IMPL(unsigned short, ^)
-#endif
-#ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
-  Vc_OP_IMPL(float, &)
-  Vc_OP_IMPL(float, |)
-  Vc_OP_IMPL(float, ^)
-  Vc_OP_IMPL(double, &)
-  Vc_OP_IMPL(double, |)
-  Vc_OP_IMPL(double, ^)
-#endif
-#undef Vc_OP_IMPL
 
 // isnegative {{{1
 Vc_INTRINSIC Vc_CONST AVX2::float_m isnegative(AVX2::float_v x)
@@ -710,11 +612,13 @@ Vc_INTRINSIC Vc_CONST __m256d exponent(__m256d v)
 
 Vc_INTRINSIC Vc_CONST AVX2::float_v exponent(AVX2::float_v x)
 {
+    using Detail::operator>=;
     Vc_ASSERT((x >= x.Zero()).isFull());
     return Detail::exponent(x.data());
 }
 Vc_INTRINSIC Vc_CONST AVX2::double_v exponent(AVX2::double_v x)
 {
+    using Detail::operator>=;
     Vc_ASSERT((x >= x.Zero()).isFull());
     return Detail::exponent(x.data());
 }

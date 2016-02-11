@@ -80,7 +80,7 @@ void listInitializationImpl(Vc::index_sequence<Indexes...>)
         reference.setZero(reference > int(sizeof...(Indexes)));
         COMPARE(v, reference) << UnitTest::typeToString<Container>() << " -> "
                               << UnitTest::typeToString<decltype(data)>();
-        reference += V::Size;
+        reference += int(V::size());
     }
 }
 TEST_TYPES(V, listInitialization, (ALL_VECTORS))

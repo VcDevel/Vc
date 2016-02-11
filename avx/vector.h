@@ -240,31 +240,7 @@ public:
         Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
         Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
 
-        Vc_ALWAYS_INLINE Vector &operator%=(const Vector &x)
-        {
-            *this = *this % x;
-            return *this;
-        }
-        inline Vc_PURE Vector operator%(const Vector &x) const;
-
-#define Vc_OP(symbol, fun)                                                               \
-    Vc_INTRINSIC Vector &operator symbol##=(const Vector &x)                             \
-    {                                                                                    \
-        data() = Detail::fun(data(), x.data(), T());                                     \
-        return *this;                                                                    \
-    }
-
-        Vc_OP(+, add)
-        Vc_OP(-, sub)
-        Vc_OP(*, mul)
-#undef Vc_OP
-        inline Vector &operator/=(EntryType x);
-        inline Vector &operator/=(Vc_ALIGNED_PARAMETER(Vector) x);
-
-        // bitwise ops
-#define Vc_OP_VEC(op) Vc_INTRINSIC Vector &operator op##=(Vector x);
-    Vc_ALL_BINARY(Vc_OP_VEC)
-#undef Vc_OP_VEC
+        // shifts
 #define Vc_OP_VEC(op)                                                                    \
     Vc_INTRINSIC Vector &operator op##=(AsArg x)                                         \
     {                                                                                    \
@@ -285,22 +261,6 @@ public:
         Vc_ALWAYS_INLINE_L Vector &operator<<=(int x) Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L Vector operator>>(int x) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L Vector operator<<(int x) const Vc_ALWAYS_INLINE_R;
-
-#define Vc_OPcmp(symbol, fun)                                                            \
-    template <typename U>                                                                \
-    Vc_ALWAYS_INLINE Vc_PURE enable_if<std::is_same<Vector, U>::value, Mask>             \
-    operator symbol(U x) const                                                           \
-    {                                                                                    \
-        return Detail::fun(data(), x.data(), T());                                       \
-    }
-
-        Vc_OPcmp(==, cmpeq)
-        Vc_OPcmp(!=, cmpneq)
-        Vc_OPcmp(>=, cmpge)
-        Vc_OPcmp(>, cmpgt)
-        Vc_OPcmp(<, cmplt)
-        Vc_OPcmp(<=, cmple)
-#undef Vc_OPcmp
 
         Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
             isNegative() const

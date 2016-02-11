@@ -412,7 +412,7 @@ template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImpleme
     a(xZero && yNeg) = -C::_pi_2();
 
     // if both inputs are inf the output is +/- (3)pi/4
-    a(xInf && yInf) += copysign(C::_pi_4(), Vc::Detail::operator^(x, ~y));
+    a(xInf && yInf) += copysign(C::_pi_4(), x ^ ~y);
 
     // correct the sign of y if the result is 0
     a(a == V::Zero()) = copysign(a, y);
@@ -453,7 +453,7 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
     a(xZero && yNeg) = -C::_pi_2();
 
     // if both inputs are inf the output is +/- (3)pi/4
-    a(xInf && yInf) += copysign(C::_pi_4(), Vc::Detail::operator^(x, ~y));
+    a(xInf && yInf) += copysign(C::_pi_4(), x ^ ~y);
 
     // correct the sign of y if the result is 0
     a(a == V::Zero()) = copysign(a, y);

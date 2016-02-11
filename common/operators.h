@@ -129,88 +129,104 @@ using ReturnType = typename ReturnTypeImpl<
 
 template <typename T> struct is_a_type : public std::true_type {
 };
+
+#ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
+#define Vc_TEST_FOR_BUILTIN_OPERATOR(op_) true
+#else
+#define Vc_TEST_FOR_BUILTIN_OPERATOR(op_)                                                \
+    Detail::is_a_type<decltype(                                                          \
+        std::declval<typename Detail::ReturnType<Vector<T, Abi>, U>::EntryType>()        \
+            op_ std::declval<                                                            \
+                typename Detail::ReturnType<Vector<T, Abi>, U>::EntryType>())>::value
+#endif
 }  // namespace Detail
 
-#define Vc_GENERIC_OPERATOR(op)                                                          \
+#define Vc_GENERIC_OPERATOR(op_)                                                         \
     template <typename T, typename Abi, typename U>                                      \
     Vc_ALWAYS_INLINE enable_if<                                                          \
-        Detail::is_a_type<decltype(                                                      \
-            std::declval<typename Detail::ReturnType<Vector<T, Abi>, U>::EntryType>()    \
-                op std::declval<typename Detail::ReturnType<Vector<T, Abi>,              \
-                                                            U>::EntryType>())>::value && \
+        Vc_TEST_FOR_BUILTIN_OPERATOR(op_) &&                                             \
             std::is_convertible<Vector<T, Abi>,                                          \
                                 Detail::ReturnType<Vector<T, Abi>, U>>::value &&         \
             std::is_convertible<U, Detail::ReturnType<Vector<T, Abi>, U>>::value,        \
         Detail::ReturnType<Vector<T, Abi>, U>>                                           \
-    operator op(Vector<T, Abi> x, const U &y)                                            \
+    operator op_(Vector<T, Abi> x, const U &y)                                           \
     {                                                                                    \
         using V = Detail::ReturnType<Vector<T, Abi>, U>;                                 \
-        return Detail::operator op(V(x), V(y));                                          \
+        return Detail::operator op_(V(x), V(y));                                         \
     }                                                                                    \
     template <typename T, typename Abi, typename U>                                      \
     Vc_ALWAYS_INLINE enable_if<                                                          \
-        Detail::is_a_type<decltype(                                                      \
-            std::declval<typename Detail::ReturnType<Vector<T, Abi>, U>::EntryType>()    \
-                op std::declval<typename Detail::ReturnType<Vector<T, Abi>,              \
-                                                            U>::EntryType>())>::value && \
+        Vc_TEST_FOR_BUILTIN_OPERATOR(op_) &&                                             \
             !Traits::is_simd_vector_internal<U>::value &&                                \
             std::is_convertible<Vector<T, Abi>,                                          \
                                 Detail::ReturnType<Vector<T, Abi>, U>>::value &&         \
             std::is_convertible<U, Detail::ReturnType<Vector<T, Abi>, U>>::value,        \
         Detail::ReturnType<Vector<T, Abi>, U>>                                           \
-    operator op(const U &x, Vector<T, Abi> y)                                            \
+    operator op_(const U &x, Vector<T, Abi> y)                                           \
     {                                                                                    \
         using V = Detail::ReturnType<Vector<T, Abi>, U>;                                 \
-        return Detail::operator op(V(x), V(y));                                          \
+        return Detail::operator op_(V(x), V(y));                                         \
+    }                                                                                    \
+    template <typename T, typename Abi, typename U>                                      \
+    Vc_ALWAYS_INLINE enable_if<                                                          \
+        Vc_TEST_FOR_BUILTIN_OPERATOR(op_) &&                                             \
+            std::is_convertible<Vector<T, Abi>,                                          \
+                                Detail::ReturnType<Vector<T, Abi>, U>>::value &&         \
+            std::is_convertible<U, Detail::ReturnType<Vector<T, Abi>, U>>::value,        \
+        Vector<T, Abi> &>                                                                \
+    operator op_##=(Vector<T, Abi> &x, const U &y)                                       \
+    {                                                                                    \
+        using V = Detail::ReturnType<Vector<T, Abi>, U>;                                 \
+        x = Detail::operator op_(V(x), V(y));                                            \
+        return x;                                                                        \
     }
 
-#define Vc_LOGICAL_OPERATOR(op)                                                          \
+#define Vc_LOGICAL_OPERATOR(op_)                                                         \
     template <typename T, typename Abi>                                                  \
-    Vc_ALWAYS_INLINE typename Vector<T, Abi>::Mask operator op(Vector<T, Abi> x,         \
-                                                               Vector<T, Abi> y)         \
+    Vc_ALWAYS_INLINE typename Vector<T, Abi>::Mask operator op_(Vector<T, Abi> x,        \
+                                                                Vector<T, Abi> y)        \
     {                                                                                    \
-        return !!x op !!y;                                                               \
+        return !!x op_ !!y;                                                              \
     }                                                                                    \
     template <typename T, typename Abi, typename U>                                      \
     Vc_ALWAYS_INLINE                                                                     \
         enable_if<std::is_convertible<Vector<T, Abi>, Vector<U, Abi>>::value &&          \
                       std::is_convertible<Vector<U, Abi>, Vector<T, Abi>>::value,        \
                   typename Detail::ReturnType<Vector<T, Abi>, Vector<U, Abi>>::Mask>     \
-        operator op(Vector<T, Abi> x, Vector<U, Abi> y)                                  \
+        operator op_(Vector<T, Abi> x, Vector<U, Abi> y)                                 \
     {                                                                                    \
-        return !!x op !!y;                                                               \
+        return !!x op_ !!y;                                                              \
     }                                                                                    \
     template <typename T, typename Abi, typename U>                                      \
     Vc_ALWAYS_INLINE                                                                     \
         enable_if<std::is_same<bool, decltype(!std::declval<const U &>())>::value,       \
                   typename Vector<T, Abi>::Mask>                                         \
-        operator op(Vector<T, Abi> x, const U &y)                                        \
+        operator op_(Vector<T, Abi> x, const U &y)                                       \
     {                                                                                    \
         using M = typename Vector<T, Abi>::Mask;                                         \
-        return !!x op M(!!y);                                                            \
+        return !!x op_ M(!!y);                                                           \
     }                                                                                    \
     template <typename T, typename Abi, typename U>                                      \
     Vc_ALWAYS_INLINE                                                                     \
         enable_if<std::is_same<bool, decltype(!std::declval<const U &>())>::value,       \
                   typename Vector<T, Abi>::Mask>                                         \
-        operator op(const U &x, Vector<T, Abi> y)                                        \
+        operator op_(const U &x, Vector<T, Abi> y)                                       \
     {                                                                                    \
         using M = typename Vector<T, Abi>::Mask;                                         \
-        return M(!!x) op !!y;                                                            \
+        return M(!!x) op_ !!y;                                                           \
     }
 
-#define Vc_COMPARE_OPERATOR(op)                                                          \
+#define Vc_COMPARE_OPERATOR(op_)                                                         \
     template <typename T, typename Abi, typename U>                                      \
     Vc_ALWAYS_INLINE enable_if<                                                          \
-        !std::is_same<Vector<T, Abi>, U>::value &&                                       \
-            std::is_convertible<Vector<T, Abi>,                                          \
-                                Detail::ReturnType<Vector<T, Abi>, U>>::value &&         \
+        std::is_convertible<Vector<T, Abi>,                                              \
+                            Detail::ReturnType<Vector<T, Abi>, U>>::value &&             \
             std::is_convertible<U, Detail::ReturnType<Vector<T, Abi>, U>>::value,        \
         typename Detail::ReturnType<Vector<T, Abi>, U>::Mask>                            \
-    operator op(Vector<T, Abi> x, const U &y)                                            \
+    operator op_(Vector<T, Abi> x, const U &y)                                           \
     {                                                                                    \
         using V = Detail::ReturnType<Vector<T, Abi>, U>;                                 \
-        return V(x) op V(y);                                                             \
+        return Detail::operator op_(V(x), V(y));                                         \
     }                                                                                    \
     template <typename T, typename Abi, typename U>                                      \
     Vc_ALWAYS_INLINE enable_if<                                                          \
@@ -219,10 +235,10 @@ template <typename T> struct is_a_type : public std::true_type {
                                 Detail::ReturnType<Vector<T, Abi>, U>>::value &&         \
             std::is_convertible<U, Detail::ReturnType<Vector<T, Abi>, U>>::value,        \
         typename Detail::ReturnType<Vector<T, Abi>, U>::Mask>                            \
-    operator op(const U &x, Vector<T, Abi> y)                                            \
+    operator op_(const U &x, Vector<T, Abi> y)                                           \
     {                                                                                    \
         using V = Detail::ReturnType<Vector<T, Abi>, U>;                                 \
-        return V(x) op V(y);                                                             \
+        return Detail::operator op_(V(x), V(y));                                         \
     }
 
 Vc_ALL_LOGICAL    (Vc_LOGICAL_OPERATOR)
