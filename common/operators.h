@@ -59,37 +59,35 @@ template <typename T, typename U> struct FundamentalReturnType<T, U, false, true
     using type = T;
 };
 
-template <typename T, typename U, typename Test, typename Otherwise>
-using larger_conditional = typename std::conditional<
-    std::is_same<T, Test>::value || std::is_same<U, Test>::value, Test, Otherwise>::type;
-
-template <typename T, typename U>
-using larger_type = larger_conditional<
-    T, U, long long,
-    larger_conditional<
-        T, U, long,
-        larger_conditional<
-            T, U, int, larger_conditional<T, U, short,
-                                          larger_conditional<T, U, signed char, void>>>>>;
-
 template <typename T> struct my_make_signed : public std::make_signed<T> {
 };
 template <> struct my_make_signed<bool> {
     using type = bool;
 };
 
+template <typename TT, typename UU>
+struct higher_conversion_rank {
+    template <typename A>
+    using fix_sign =
+        typename std::conditional<(std::is_unsigned<TT>::value ||
+                                   std::is_unsigned<UU>::value),
+                                  typename std::make_unsigned<A>::type, A>::type;
+    using T = typename my_make_signed<TT>::type;
+    using U = typename my_make_signed<UU>::type;
+    template <typename Test, typename Otherwise>
+    using c = typename std::conditional<std::is_same<T, Test>::value ||
+                                            std::is_same<U, Test>::value,
+                                        Test, Otherwise>::type;
+
+    using type = fix_sign<c<long long, c<long, c<int, c<short, c<signed char, void>>>>>>;
+};
+
 template <typename T, typename U> struct FundamentalReturnType<T, U, true, true> {
-    using type = typename std::conditional<
-        (sizeof(T) > sizeof(U)), T,
-        typename std::conditional<
-            (sizeof(T) < sizeof(U)), U,
-            typename std::conditional<
-                (std::is_unsigned<T>::value || std::is_unsigned<U>::value),
-                typename std::make_unsigned<
-                    larger_type<typename my_make_signed<T>::type,
-                                typename my_make_signed<U>::type>>::type,
-                larger_type<typename my_make_signed<T>::type,
-                            typename my_make_signed<U>::type>>::type>::type>::type;
+    template <bool B, class Then, class E>
+    using c = typename std::conditional<B, Then, E>::type;
+    using type =
+        c<(sizeof(T) > sizeof(U)), T,
+          c<(sizeof(T) < sizeof(U)), U, typename higher_conversion_rank<T, U>::type>>;
 };
 static_assert(std::is_same<long, typename FundamentalReturnType<int, long>::type>::value, "");
 
