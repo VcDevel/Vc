@@ -486,36 +486,35 @@ template <typename Op, typename Arg> Arg conditionalUnpack(std::false_type, Op, 
 }
 
 /// true-/false_type that selects whether the argument with index B should be unpacked
-template <size_t A, size_t B, size_t N>
-using selectorType = std::integral_constant<bool, ((A & (1 << B)) != 0)>;
-
-/// workaround for a bug in ICC
-template <typename... Args> static constexpr size_t icc_sizeof_workaround()
-{
-    return sizeof...(Args);
-}
+template <size_t A, size_t B>
+struct selectorType : public std::integral_constant<bool, !((A & (1 << B)) != 0)> {
+};
 
 /// ends the recursion, transforms arguments, and calls \p op
 template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
-Vc_INTRINSIC decltype(std::declval<Op &>()(
-    std::declval<R &>(),
-    conditionalUnpack(selectorType<I, Indexes, icc_sizeof_workaround<Args...>()>(),
-                      std::declval<Op &>(), std::declval<Args>())...))
+Vc_INTRINSIC decltype(std::declval<Op &>()(std::declval<R &>(),
+                                           conditionalUnpack(selectorType<I, Indexes>(),
+                                                             std::declval<Op &>(),
+                                                             std::declval<Args>())...))
 unpackArgumentsAutoImpl(int, index_sequence<Indexes...>, Op op, R &&r, Args &&... args)
 {
     op(std::forward<R>(r),
-       conditionalUnpack(selectorType<I, Indexes, icc_sizeof_workaround<Args...>()>(), op,
-                         std::forward<Args>(args))...);
+       conditionalUnpack(selectorType<I, Indexes>(), op, std::forward<Args>(args))...);
 }
 
 /// the current actual_value calls don't work: recurse to I + 1
 template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
-Vc_INTRINSIC void unpackArgumentsAutoImpl(float, index_sequence<Indexes...> is, Op op,
-                                          R &&r, Args &&... args)
+Vc_INTRINSIC enable_if<(I <= (1 << sizeof...(Args))), void> unpackArgumentsAutoImpl(
+    float, index_sequence<Indexes...> is, Op op, R &&r, Args &&... args)
 {
-    static_assert(I < (1 << sizeof...(Args)),
-                  "Vc or compiler bug. Please report. Failed to find a combination of "
-                  "actual_value(arg) transformations that allows calling Op.");
+    // if R is nullptr_t then the return type cannot enforce that actually any unwrapping
+    // of the SimdArray types happens. Thus, you could get an endless loop of the
+    // SimdArray function overload calling itself, if the index goes up to (1 <<
+    // sizeof...(Args)) - 1 (which means no argument transformations via actual_value).
+    static_assert(
+        I < (1 << sizeof...(Args)) - (std::is_same<R, std::nullptr_t>::value ? 1 : 0),
+        "Vc or compiler bug. Please report. Failed to find a combination of "
+        "actual_value(arg) transformations that allows calling Op.");
     unpackArgumentsAutoImpl<I + 1, Op, R, Args...>(int(), is, op, std::forward<R>(r),
                                                    std::forward<Args>(args)...);
 }
@@ -524,13 +523,7 @@ Vc_INTRINSIC void unpackArgumentsAutoImpl(float, index_sequence<Indexes...> is, 
 template <typename Op, typename R, typename... Args>
 Vc_INTRINSIC void unpackArgumentsAuto(Op op, R &&r, Args &&... args)
 {
-    unpackArgumentsAutoImpl<
-        // if R is nullptr_t then the return type cannot enforce that actually any
-        // unwrapping of the SimdArray types happens. Thus, you could get an endless loop
-        // of the SimdArray function overload calling itself, if the index I starts at 0
-        // (0 means no argument transformations via actual_value). Therefore, start at 1
-        // if R is nullptr_t:
-        std::is_same<R, std::nullptr_t>::value ? 1 : 0>(
+    unpackArgumentsAutoImpl<0>(
         int(), make_index_sequence<sizeof...(Args)>(), op, std::forward<R>(r),
         std::forward<Args>(args)...);
 }
