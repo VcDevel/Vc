@@ -519,11 +519,35 @@ Vc_INTRINSIC enable_if<(I <= (1 << sizeof...(Args))), void> unpackArgumentsAutoI
                                                    std::forward<Args>(args)...);
 }
 
+#ifdef Vc_ICC
+template <size_t, typename... Ts> struct IccWorkaround {
+    using type = void;
+};
+template <typename... Ts> struct IccWorkaround<2, Ts...> {
+    using type = typename std::remove_pointer<typename std::decay<
+        typename std::tuple_element<1, std::tuple<Ts...>>::type>::type>::type;
+};
+#endif
+
 /// The interface to start the machinery.
 template <typename Op, typename R, typename... Args>
 Vc_INTRINSIC void unpackArgumentsAuto(Op op, R &&r, Args &&... args)
 {
-    unpackArgumentsAutoImpl<0>(
+#ifdef Vc_ICC
+    // ugly hacky workaround for ICC:
+    // The compiler fails to do SFINAE right on recursion. We have to hit the right
+    // recursionStart number from the start.
+    const int recursionStart =
+        Traits::isSimdArray<
+            typename IccWorkaround<sizeof...(Args), Args...>::type>::value &&
+                (std::is_same<Op, Common::Operations::Forward_frexp>::value ||
+                 std::is_same<Op, Common::Operations::Forward_ldexp>::value)
+            ? 2
+            : 0;
+#else
+    const int recursionStart = 0;
+#endif
+    unpackArgumentsAutoImpl<recursionStart>(
         int(), make_index_sequence<sizeof...(Args)>(), op, std::forward<R>(r),
         std::forward<Args>(args)...);
 }
