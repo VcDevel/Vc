@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2013-2016 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -115,34 +115,92 @@ TEST(hasContiguousStorage)
     hasContiguousStorageImpl(h.begin(), "std::array<int, 3>::iterator");
 }
 
-struct F0
-{
+struct F0 {
     template <typename T> void operator()(T &) const {}
 };
-struct F1
-{
+struct F1 {
     template <typename T> void operator()(const T &) const {}
 };
-struct F2
-{
+struct F2 {
     template <typename T> void operator()(T) const {}
 };
-struct F3
-{
+struct F3 {
     template <typename T> void operator()(const T) const {}
 };
-struct F4
-{
+struct F4 {
+    // this could be a reference argument but with move semantics. Then, the caller cannot
+    // see changes to the argument as the variable is in an undefined state after the
+    // call.
+    // But as forwarding reference T can also bind as T &, in which case the argument is
+    // mutable.
     template <typename T> void operator()(T &&) const {}
 };
+void fun1(int &) {}
+void fun2(const int &) {}
 
 TEST(test_is_functor_argument_immutable)
 {
-    VERIFY(!(Vc::Traits::is_functor_argument_immutable<F0, int>::value));
-    VERIFY( (Vc::Traits::is_functor_argument_immutable<F1, int>::value));
-    VERIFY( (Vc::Traits::is_functor_argument_immutable<F2, int>::value));
-    VERIFY( (Vc::Traits::is_functor_argument_immutable<F3, int>::value));
-    VERIFY(!(Vc::Traits::is_functor_argument_immutable<F4, int>::value));
+    using Vc::Traits::is_functor_argument_immutable;
+    VERIFY(!(is_functor_argument_immutable<F0, int>::value));
+    VERIFY( (is_functor_argument_immutable<F1, int>::value));
+    VERIFY( (is_functor_argument_immutable<F2, int>::value));
+    VERIFY( (is_functor_argument_immutable<F3, int>::value));
+    VERIFY(!(is_functor_argument_immutable<F4, int>::value));
+
+    VERIFY(!(is_functor_argument_immutable<decltype(fun1), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(fun2), int>::value));
+
+    int x = 0;
+    auto &&  int_lambda   = [&](int) { x += 1; };
+    auto &&  int_lambda_l = [&](int &) { x += 1; };
+    auto &&  int_lambda_r = [&](int &&) { x += 1; };
+    auto &&c_int_lambda   = [&](const int) { x += 1; };
+    auto &&c_int_lambda_l = [&](const int &) { x += 1; };
+    auto &&c_int_lambda_r = [&](const int &&) { x += 1; };
+    auto &&v_int_lambda   = [&](volatile int) { x += 1; };
+    auto &&v_int_lambda_l = [&](volatile int &) { x += 1; };
+    auto &&v_int_lambda_r = [&](volatile int &&) { x += 1; };
+    auto &&cv_int_lambda   = [&](const volatile int) { x += 1; };
+    auto &&cv_int_lambda_l = [&](const volatile int &) { x += 1; };
+    auto &&cv_int_lambda_r = [&](const volatile int &&) { x += 1; };
+    VERIFY( (is_functor_argument_immutable<decltype(   int_lambda  ), int>::value));
+    VERIFY(!(is_functor_argument_immutable<decltype(   int_lambda_l), int>::value));
+    VERIFY(!(is_functor_argument_immutable<decltype(   int_lambda_r), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype( c_int_lambda  ), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype( c_int_lambda_l), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype( c_int_lambda_r), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype( v_int_lambda  ), int>::value));
+    VERIFY(!(is_functor_argument_immutable<decltype( v_int_lambda_l), int>::value));
+    VERIFY(!(is_functor_argument_immutable<decltype( v_int_lambda_r), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(cv_int_lambda  ), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(cv_int_lambda_l), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(cv_int_lambda_r), int>::value));
+#ifdef Vc_CXX14
+    auto &&auto_lambda = [&](auto) { x += 1; };
+    auto &&auto_lambda_l = [&](auto &) { x += 1; };
+    auto &&auto_lambda_r = [&](auto &&) { x += 1; };
+    auto &&c_auto_lambda   = [&](const auto) { x += 1; };
+    auto &&c_auto_lambda_l = [&](const auto &) { x += 1; };
+    auto &&c_auto_lambda_r = [&](const auto &&) { x += 1; };
+    auto &&v_auto_lambda   = [&](volatile auto) { x += 1; };
+    auto &&v_auto_lambda_l = [&](volatile auto &) { x += 1; };
+    auto &&v_auto_lambda_r = [&](volatile auto &&) { x += 1; };
+    auto &&cv_auto_lambda   = [&](const volatile auto) { x += 1; };
+    auto &&cv_auto_lambda_l = [&](const volatile auto &) { x += 1; };
+    auto &&cv_auto_lambda_r = [&](const volatile auto &&) { x += 1; };
+    VERIFY( (is_functor_argument_immutable<decltype(auto_lambda  ), int>::value));
+    VERIFY(!(is_functor_argument_immutable<decltype(auto_lambda_l), int>::value));
+    VERIFY(!(is_functor_argument_immutable<decltype(auto_lambda_r), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(c_auto_lambda  ), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(c_auto_lambda_l), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(c_auto_lambda_r), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(v_auto_lambda  ), int>::value));
+    VERIFY(!(is_functor_argument_immutable<decltype(v_auto_lambda_l), int>::value));
+    VERIFY(!(is_functor_argument_immutable<decltype(v_auto_lambda_r), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(cv_auto_lambda  ), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(cv_auto_lambda_l), int>::value));
+    VERIFY( (is_functor_argument_immutable<decltype(cv_auto_lambda_r), int>::value));
+#endif
 }
 
 TEST(test_is_output_iterator)

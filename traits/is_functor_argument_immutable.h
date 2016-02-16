@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,23 +35,54 @@ namespace Traits
 {
 namespace is_functor_argument_immutable_impl
 {
-// this indirection for decltype is required for EDG based compilers
-template <typename F, typename A> struct workaround_edg
-{
-    typedef decltype(&F::template operator()<A>) type;
-};
+template <typename F, typename A> std::false_type test(void (F::*)(A &));
+template <typename F, typename A> std::false_type test(void (F::*)(A &) const);
+template <typename F, typename A> std:: true_type test(void (F::*)(const A &));
+template <typename F, typename A> std:: true_type test(void (F::*)(const A &) const);
+template <typename F, typename A> std:: true_type test(void (F::*)(const A &&));
+template <typename F, typename A> std:: true_type test(void (F::*)(const A &&) const);
+template <typename F, typename A> std:: true_type test(void (F::*)(const A));
+template <typename F, typename A> std:: true_type test(void (F::*)(const A) const);
+template <typename F, typename A> std:: true_type test(void (F::*)(A));
+template <typename F, typename A> std:: true_type test(void (F::*)(A) const);
 
-template <typename F, typename A,
-          typename MemberPtr = typename workaround_edg<F, A>::type,
-          typename = decltype((std::declval<F &>().*
-                               (std::declval<MemberPtr>()))(std::declval<const A &>()))>
-std::true_type test(int);
-template <typename F, typename A> std::false_type test(...);
+// This function is defined with a forwarding reference. Therefore it can also bind as T
+// &, in which case the argument is mutable.
+template <typename F, typename A> std::false_type test(void (F::*)(A &&));
+template <typename F, typename A> std::false_type test(void (F::*)(A &&) const);
+
+// generate a true_type for template operator() members in F that are callable with a
+// 'const A &' argument even if the template parameter to operator() is fixed to 'A'.
+template <typename F, typename A>
+decltype(is_functor_argument_immutable_impl::test(
+    std::declval<decltype(&F::template operator() < A > )>()))
+test2(int);
+// generate a true_type for non-template operator() members in F that are callable with a
+// 'const A &' argument.
+template <typename F, typename A>
+decltype(
+    is_functor_argument_immutable_impl::test(std::declval<decltype(&F::operator())>()))
+test2(float);
+
+template <typename A> std::false_type test3(void (*)(A &));
+template <typename A> std:: true_type test3(void (*)(const A &));
+template <typename A> std:: true_type test3(void (*)(const A));
+template <typename A> std:: true_type test3(void (*)(A));
+template <typename A> std:: true_type test3(void (*)(A &&));
+
 }  // namespace is_functor_argument_immutable_impl
 
+template <typename F, typename A, bool = std::is_function<F>::value>
+struct is_functor_argument_immutable;
 template <typename F, typename A>
-using is_functor_argument_immutable =
-    decltype(is_functor_argument_immutable_impl::test<F, A>(1));
+struct is_functor_argument_immutable<F, A, false>
+    : public decltype(is_functor_argument_immutable_impl::test2<
+                      typename std::remove_reference<F>::type, A>(int())) {
+};
+template <typename F, typename A>
+struct is_functor_argument_immutable<F, A, true>
+    : public decltype(is_functor_argument_immutable_impl::test3(std::declval<F>())) {
+};
 
 }  // namespace Traits
 }  // namespace Vc
