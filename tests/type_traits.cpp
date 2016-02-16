@@ -152,7 +152,7 @@ TEST(test_is_functor_argument_immutable)
 
     int x = 0;
     auto &&  int_lambda   = [&](int) { x += 1; };
-    auto &&  int_lambda_l = [&](int &) { x += 1; };
+    auto &&  int_lambda_l = [&](int &y) { x += 1; y += 1; };
     auto &&  int_lambda_r = [&](int &&) { x += 1; };
     auto &&c_int_lambda   = [&](const int) { x += 1; };
     auto &&c_int_lambda_l = [&](const int &) { x += 1; };
@@ -177,7 +177,7 @@ TEST(test_is_functor_argument_immutable)
     VERIFY( (is_functor_argument_immutable<decltype(cv_int_lambda_r), int>::value));
 #ifdef Vc_CXX14
     auto &&auto_lambda = [&](auto) { x += 1; };
-    auto &&auto_lambda_l = [&](auto &) { x += 1; };
+    auto &&auto_lambda_l = [&](auto &y) { x += 1; y += 1; };
     auto &&auto_lambda_r = [&](auto &&) { x += 1; };
     auto &&c_auto_lambda   = [&](const auto) { x += 1; };
     auto &&c_auto_lambda_l = [&](const auto &) { x += 1; };
