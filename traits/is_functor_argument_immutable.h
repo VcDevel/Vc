@@ -51,26 +51,25 @@ template <typename F, typename A> std:: true_type test(void (F::*)(A) const);
 template <typename F, typename A> std::false_type test(void (F::*)(A &&));
 template <typename F, typename A> std::false_type test(void (F::*)(A &&) const);
 
-template <typename F, typename A>
-using helper = decltype(is_functor_argument_immutable_impl::test(
-#ifdef Vc_ICC
-    &F::template operator() < A >
-#else
-    std::declval<decltype(&F::template operator() < A > )>()
-#endif
-    ));
-
 struct dummy {};
 
 // generate a true_type for template operator() members in F that are callable with a
 // 'const A &' argument even if the template parameter to operator() is fixed to 'A'.
 template <
-    typename F, typename A,
-    // X ensures that F is a generic lambda. We can be pretty sure that noone wrote a
+    typename F, typename A
+#ifdef Vc_ICC
+    // this ensures that F is a generic lambda. We can be pretty sure that noone wrote a
     // lambda with Vc::Traits::is_functor_argument_immutable_impl::dummy parameter
-    // type.
-    typename X = decltype(std::declval<F &>()(std::declval<dummy &>()))>
-helper<F, A> test2(int);
+    // type. In theory, this is not needed because the return type fails with a
+    // substitution failure in that case. Only ICC generates and error instead of doing
+    // SFINAE.
+    ,
+    typename = decltype(std::declval<F &>()(std::declval<dummy &>()))
+#endif
+    >
+decltype(is_functor_argument_immutable_impl::test(
+    std::declval<decltype(&F::template operator() < A > )>()))
+test2(int);
 
 // generate a true_type for non-template operator() members in F that are callable with a
 // 'const A &' argument.
