@@ -1274,7 +1274,7 @@ public:
     /**
      * Assignment to the reference assigns to the storage pointed to by the scalar
      * iterator as well as the reference object itself. (The compiler should eliminate the
-     * store to \c this if its never used since it is clearly a dead store.)
+     * store to \c this if it's never used since it is clearly a dead store.)
      */
     void operator=(const value_vector &x)
     {
@@ -1284,33 +1284,20 @@ public:
             *it = extract(x, i);
         }
     }
-
-#define Vc_OP(op_)                                                                       \
-    template <typename U>                                                                \
-    decltype(std::declval<const value_vector &>() op_ std::declval<const U &>())         \
-    operator op_(const U &x) const                                                       \
-    {                                                                                    \
-        return static_cast<const value_vector &>(*this) op_ x;                           \
-    }
-    Vc_ALL_COMPARES(Vc_OP)
-    Vc_ALL_ARITHMETICS(Vc_OP)
-    Vc_ALL_BINARY(Vc_OP)
-    Vc_ALL_LOGICAL(Vc_OP)
-    Vc_ALL_SHIFTS(Vc_OP)
-#undef Vc_OP
 };
 #define Vc_OP(op_)                                                                       \
-    template <typename T, typename V, typename U>                                        \
-    decltype(std::declval<const U &>() op_ std::declval<const V &>()) operator op_(      \
-        const U &x, const Reference<T, V, Mutable::Yes> &y)                              \
+    template <typename T0, typename V0, typename T1, typename V1>                        \
+    decltype(std::declval<const V0 &>() op_ std::declval<const V1 &>()) operator op_(    \
+        const Reference<T0, V0, Mutable::Yes> &x,                                        \
+        const Reference<T1, V1, Mutable::Yes> &y)                                        \
     {                                                                                    \
-        return x op_ static_cast<const V &>(y);                                          \
+        return static_cast<const V0 &>(x) op_ static_cast<const V1 &>(y);                \
     }
-    Vc_ALL_COMPARES(Vc_OP)
-    Vc_ALL_ARITHMETICS(Vc_OP)
-    Vc_ALL_BINARY(Vc_OP)
-    Vc_ALL_LOGICAL(Vc_OP)
-    Vc_ALL_SHIFTS(Vc_OP)
+Vc_ALL_COMPARES(Vc_OP)
+Vc_ALL_ARITHMETICS(Vc_OP)
+Vc_ALL_BINARY(Vc_OP)
+Vc_ALL_LOGICAL(Vc_OP)
+Vc_ALL_SHIFTS(Vc_OP)
 #undef Vc_OP
 
 ///\internal immutable specialization of the Reference proxy class
