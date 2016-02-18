@@ -453,7 +453,7 @@ if(TEST_OPERATOR_FAILURES)
                   )
                set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY LABELS "${impl}")
                set_tests_properties("${Vc_TEST_TARGET_PREFIX}${name}" PROPERTIES
-                  PASS_REGULAR_EXPRESSION "error: no match for 'operator..?' ;error: invalid operands of types '.*' and '.*' to binary 'operator.'"
+                  PASS_REGULAR_EXPRESSION "error: invalid operands to binary expression;error: no match for 'operator..?' ;error: invalid operands of types '.*' and '.*' to binary 'operator.'"
                   )
             endforeach()
             set(type_b ${A})
