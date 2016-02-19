@@ -53,14 +53,16 @@ function(vc_set_first_flag_of name)
 endfunction()
 
 # sets Vc_scalar_flags, Vc_sse2_flags, ...
-vc_set_first_flag_of(scalar "-mno-sse2")  # fails to compile without SSE in system headers
-vc_set_first_flag_of(sse2 "-xSSE2" "-msse2" "/arch:SSE2")
-vc_set_first_flag_of(sse4_2 "-xSSE4.2" "-msse4.2" "/arch:SSE2")
-vc_set_first_flag_of(avx "-xAVX" "-mavx" "/arch:AVX")
-vc_set_first_flag_of(avx2 "-xCORE-AVX2" "-mavx2|-mbmi2|-mfma" "/arch:AVX2")
-vc_set_first_flag_of(mic "-mmic")
-vc_set_first_flag_of(knl "-xMIC-AVX512" "-march=knl")
-vc_set_first_flag_of(avx512 "-xCORE-AVX512" "-march=skylake-avx512")
+if(Vc_X86)
+   vc_set_first_flag_of(scalar "-mno-sse2")  # fails to compile without SSE in system headers
+   vc_set_first_flag_of(sse2 "-xSSE2" "-msse2" "/arch:SSE2")
+   vc_set_first_flag_of(sse4_2 "-xSSE4.2" "-msse4.2" "/arch:SSE2")
+   vc_set_first_flag_of(avx "-xAVX" "-mavx" "/arch:AVX")
+   vc_set_first_flag_of(avx2 "-xCORE-AVX2" "-mavx2|-mbmi2|-mfma" "/arch:AVX2")
+   vc_set_first_flag_of(mic "-mmic")
+   vc_set_first_flag_of(knl "-xMIC-AVX512" "-march=knl")
+   vc_set_first_flag_of(avx512 "-xCORE-AVX512" "-march=skylake-avx512")
+endif()
 
 macro(vc_add_run_target _target)
    if("${_target}" MATCHES "_mic$")
