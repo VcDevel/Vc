@@ -50,8 +50,6 @@ inline void HelperImpl<NeonImpl>::free(void *p)
 }
 }
 
-#include "undomacros.h"
-
 #endif  // VC_NEON_HELPERIMPL_TCC_
 
 // vim: foldmethod=marker
