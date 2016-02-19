@@ -46,12 +46,6 @@ template <> struct VectorTraits<double> { typedef double Type; };
 
 // helper functions that abstract some architecture specific intrinsics go here
 
-template <typename V> class alignas(alignof(V)) VectorAlignedBaseT
-{
-public:
-    FREE_STORE_OPERATORS_ALIGNED(alignof(V))
-};
-
 }
 }
 
