@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../sse/types.h"
 #include "../avx/types.h"
 #include "../mic/types.h"
+#include "../neon/types.h"
 
 #include "utility.h"
 #include "macros.h"

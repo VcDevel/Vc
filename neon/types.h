@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -25,6 +25,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
+
+#include "../scalar/types.h"
 
 #ifndef VC_NEON_TYPES_H_
 #define VC_NEON_TYPES_H_
@@ -42,9 +44,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace NEON
 {
-constexpr std::size_t VectorAlignment = 16;
-
-template <typename T> class Vector;
+template <typename T> using Vector = Vc::Vector<T, VectorAbi::Neon>;
 typedef Vector<double>         double_v;
 typedef Vector<float>           float_v;
 typedef Vector<int>               int_v;
@@ -52,15 +52,13 @@ typedef Vector<unsigned int>     uint_v;
 typedef Vector<short>           short_v;
 typedef Vector<unsigned short> ushort_v;
 
-template <typename T> class Mask;
+template <typename T> using Mask = Vc::Mask<T, VectorAbi::Neon>;
 typedef Mask<double>         double_m;
 typedef Mask<float>           float_m;
 typedef Mask<int>               int_m;
 typedef Mask<unsigned int>     uint_m;
 typedef Mask<short>           short_m;
 typedef Mask<unsigned short> ushort_m;
-
-template <typename V = Vector<float>> class alignas(alignof(V)) VectorAlignedBaseT;
 
 template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
@@ -72,10 +70,10 @@ template <typename T> struct VectorTraits;
 
 namespace Traits
 {
-template<typename T> struct is_simd_mask_internal<NEON::Mask<T>> : public std::true_type {};
-template<typename T> struct is_simd_vector_internal<NEON::Vector<T>> : public std::true_type {};
-}
-}
+template <typename T> struct is_simd_mask_internal<NEON::Mask<T>> : public std::true_type {};
+template <typename T> struct is_simd_vector_internal<NEON::Vector<T>> : public std::true_type {};
+}  // namespace Traits
+}  // namespace Vc
 
 #endif  // VC_NEON_TYPES_H_
 

@@ -1,5 +1,5 @@
-/*{{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+/*  This file is part of the Vc library. {{{
+Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -16,7 +16,7 @@ modification, are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -29,7 +29,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_NEON_VECTOR_H_
 #define VC_NEON_VECTOR_H_
 
+#include "../scalar/vector.h"
 #include "intrinsics.h"
+#include "types.h"
 #include "mask.h"
 #include "../common/storage.h"
 #include "../common/writemaskedvector.h"
@@ -45,9 +47,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace NEON
-{
-template <typename T> class Vector
+
+#define Vc_CURRENT_CLASS_NAME Vector
+template <typename T> class Vector<T, VectorAbi::Neon>
 {
     static_assert(std::is_arithmetic<T>::value,
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
@@ -55,14 +57,14 @@ template <typename T> class Vector
 public:
     Vc_FREE_STORE_OPERATORS_ALIGNED(16)  // TODO: uses _mm_malloc / _mm_free. Needs a replacement
 
-    using VectorType = typename VectorTraits<T>::Type;
+    using VectorType = typename NEON::VectorTraits<T>::Type;
     using EntryType = T;
     using VectorEntryType = EntryType;
 
     static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
     static constexpr size_t MemoryAlignment = alignof(VectorType);
 
-    using IndexType = simdarray<int, Size>;
+    using IndexType = SimdArray<int, Size>;
     using MaskType = NEON::Mask<T>;
     using Mask = NEON::Mask<T>;
     using MaskArg = const Mask;
@@ -267,7 +269,7 @@ public:
 
     template <typename F> Vc_INTRINSIC void call(F &&f) const
     {
-        for_all_vector_entries(i, f(EntryType(d.m(i))););
+        Common::for_all_vector_entries<Size>([&](size_t i) { f(EntryType(d.m(i))); });
     }
 
     template <typename F> Vc_INTRINSIC void call(F &&f, const Mask &mask) const
@@ -280,7 +282,8 @@ public:
     template <typename F> Vc_INTRINSIC Vector<T> apply(F &&f) const
     {
         Vector<T> r;
-        for_all_vector_entries(i, r.d.m(i) = f(EntryType(d.m(i))););
+        Common::for_all_vector_entries<Size>(
+            [&](size_t i) { r.d.set(i, f(EntryType(d.m(i)))); });
         return r;
     }
 
@@ -293,39 +296,51 @@ public:
         return r;
     }
 
-    template <typename IndexT> Vc_INTRINSIC void fill(EntryType (&f)(IndexT))
+    template <typename IndexT> Vc_INTRINSIC void fill(EntryType(&f)(IndexT))
     {
-        for_all_vector_entries(i, d.m(i) = f(i););
+        Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f(i)); });
     }
-    Vc_INTRINSIC void fill(EntryType (&f)()) { for_all_vector_entries(i, d.m(i) = f();); }
+    Vc_INTRINSIC void fill(EntryType(&f)())
+    {
+        Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f()); });
+    }
 
-    Vc_INTRINSIC_L Vector copySign(AsArg reference) const Vc_INTRINSIC_R;
-    Vc_INTRINSIC_L Vector exponent() const Vc_INTRINSIC_R;
+    Vc_INTRINSIC Vc_DEPRECATED("use copysign(x, y) instead") Vector
+        copySign(AsArg reference) const
+    {
+        return Vc::copysign(*this, reference);
+    }
+
+    Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const
+    {
+        return Vc::exponent(*this);
+    }
 };
-template <typename T> constexpr size_t Vector<T>::Size;
+#undef Vc_CURRENT_CLASS_NAME
+template <typename T> constexpr size_t Vector<T, VectorAbi::Neon>::Size;
+template <typename T> constexpr size_t Vector<T, VectorAbi::Neon>::MemoryAlignment;
 
-static_assert(Traits::is_simd_vector<double_v>::value, "is_simd_vector<double_v>::value");
-static_assert(Traits::is_simd_vector<float_v>::value, "is_simd_vector< float_v>::value");
-static_assert(Traits::is_simd_vector<int_v>::value, "is_simd_vector<   int_v>::value");
-static_assert(Traits::is_simd_vector<uint_v>::value, "is_simd_vector<  uint_v>::value");
-static_assert(Traits::is_simd_vector<short_v>::value, "is_simd_vector< short_v>::value");
-static_assert(Traits::is_simd_vector<ushort_v>::value, "is_simd_vector<ushort_v>::value");
-static_assert(Traits::is_simd_mask<double_m>::value, "is_simd_mask  <double_m>::value");
-static_assert(Traits::is_simd_mask<float_m>::value, "is_simd_mask  < float_m>::value");
-static_assert(Traits::is_simd_mask<int_m>::value, "is_simd_mask  <   int_m>::value");
-static_assert(Traits::is_simd_mask<uint_m>::value, "is_simd_mask  <  uint_m>::value");
-static_assert(Traits::is_simd_mask<short_m>::value, "is_simd_mask  < short_m>::value");
-static_assert(Traits::is_simd_mask<ushort_m>::value, "is_simd_mask  <ushort_m>::value");
+static_assert(Traits::is_simd_vector<NEON::double_v>::value, "is_simd_vector<double_v>::value");
+static_assert(Traits::is_simd_vector<NEON::float_v>::value, "is_simd_vector< float_v>::value");
+static_assert(Traits::is_simd_vector<NEON::int_v>::value, "is_simd_vector<   int_v>::value");
+static_assert(Traits::is_simd_vector<NEON::uint_v>::value, "is_simd_vector<  uint_v>::value");
+static_assert(Traits::is_simd_vector<NEON::short_v>::value, "is_simd_vector< short_v>::value");
+static_assert(Traits::is_simd_vector<NEON::ushort_v>::value, "is_simd_vector<ushort_v>::value");
+static_assert(Traits::is_simd_mask<NEON::double_m>::value, "is_simd_mask  <double_m>::value");
+static_assert(Traits::is_simd_mask<NEON::float_m>::value, "is_simd_mask  < float_m>::value");
+static_assert(Traits::is_simd_mask<NEON::int_m>::value, "is_simd_mask  <   int_m>::value");
+static_assert(Traits::is_simd_mask<NEON::uint_m>::value, "is_simd_mask  <  uint_m>::value");
+static_assert(Traits::is_simd_mask<NEON::short_m>::value, "is_simd_mask  < short_m>::value");
+static_assert(Traits::is_simd_mask<NEON::ushort_m>::value, "is_simd_mask  <ushort_m>::value");
 
-static_assert(!std::is_convertible<float *, short_v>::value,
+static_assert(!std::is_convertible<float *, NEON::short_v>::value,
               "A float* should never implicitly convert to short_v. Something is broken.");
-static_assert(!std::is_convertible<int *, short_v>::value,
+static_assert(!std::is_convertible<int *, NEON::short_v>::value,
               "An int* should never implicitly convert to short_v. Something is broken.");
-static_assert(!std::is_convertible<short *, short_v>::value,
+static_assert(!std::is_convertible<short *, NEON::short_v>::value,
               "A short* should never implicitly convert to short_v. Something is broken.");
 
-}
-}
+}  // namespace Vc
 
 #include "vector.tcc"
 
