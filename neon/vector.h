@@ -53,7 +53,7 @@ template <typename T> class Vector
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
 public:
-    FREE_STORE_OPERATORS_ALIGNED(16)  // TODO: uses _mm_malloc / _mm_free. Needs a replacement
+    Vc_FREE_STORE_OPERATORS_ALIGNED(16)  // TODO: uses _mm_malloc / _mm_free. Needs a replacement
 
     using VectorType = typename VectorTraits<T>::Type;
     using EntryType = T;
@@ -189,8 +189,8 @@ public:
         static_assert(std::is_integral<T>::value,                                                  \
                       "bitwise-operators can only be used with Vectors of integral type");         \
     }
-    VC_ALL_BINARY(OP_VEC)
-    VC_ALL_SHIFTS(OP_VEC)
+    Vc_ALL_BINARY(OP_VEC)
+    Vc_ALL_SHIFTS(OP_VEC)
 #undef OP_VEC
 
     Vc_ALWAYS_INLINE_L Vector<T> &operator>>=(int x) Vc_ALWAYS_INLINE_R;

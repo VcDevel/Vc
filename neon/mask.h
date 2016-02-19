@@ -48,7 +48,7 @@ public:
     static constexpr size_t Size = Vector::Size;
     static constexpr std::size_t size() { return Size; }
 
-    FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
 
     Vc_INTRINSIC_L Mask() Vc_INTRINSIC_R;
     Vc_INTRINSIC_L Mask(VectorType x) Vc_INTRINSIC_R;
