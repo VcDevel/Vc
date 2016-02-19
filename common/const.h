@@ -38,6 +38,8 @@ namespace Detail
 static constexpr std::size_t maxSupportedAlignment =
 #ifdef Vc_MSVC
     32
+#elif defined __arm__
+    64
 #else
     CurrentImplementation::is(NeonImpl) ? 64 : 128
 #endif
