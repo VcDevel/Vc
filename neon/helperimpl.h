@@ -56,7 +56,6 @@ template<> struct HelperImpl<Vc::NeonImpl>
 }
 
 #include "helperimpl.tcc"
-#include "undomacros.h"
 
 #endif  // VC_NEON_HELPERIMPL_H_
 

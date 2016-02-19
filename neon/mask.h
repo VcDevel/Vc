@@ -123,8 +123,6 @@ private:
 }  // namespace NEON
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_NEON_MASK_H_
 
 // vim: foldmethod=marker

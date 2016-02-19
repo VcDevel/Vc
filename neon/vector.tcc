@@ -91,8 +91,6 @@ template <> Vc_INTRINSIC void int_v::setZero()
 }  // namespace NEON
 }  // namespace Vc
 
-#include "undomacros.h"
-
 #endif  // VC_NEON_VECTOR_TCC_
 
 // vim: foldmethod=marker

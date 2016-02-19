@@ -79,8 +79,6 @@ template<typename T> struct is_simd_vector_internal<NEON::Vector<T>> : public st
 }
 }
 
-#include "undomacros.h"
-
 #endif  // VC_NEON_TYPES_H_
 
 // vim: foldmethod=marker

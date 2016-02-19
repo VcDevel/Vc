@@ -67,8 +67,6 @@ template <typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T>::Mask isnan(co
 }
 }
 
-#include "undomacros.h"
-
 #endif  // VC_NEON_MATH_H_
 
 // vim: foldmethod=marker

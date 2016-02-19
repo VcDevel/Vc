@@ -39,8 +39,6 @@ namespace NEON
 }
 }
 
-#include "undomacros.h"
-
 #endif  // VC_NEON_SIMD_CAST_CALLER_TCC_
 
 // vim: foldmethod=marker

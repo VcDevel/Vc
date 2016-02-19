@@ -328,6 +328,5 @@ static_assert(!std::is_convertible<short *, short_v>::value,
 }
 
 #include "vector.tcc"
-#include "undomacros.h"
 
 #endif  // VC_NEON_VECTOR_H_

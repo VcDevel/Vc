@@ -55,8 +55,6 @@ public:
 }
 }
 
-#include "undomacros.h"
-
 #endif  // VC_NEON_INTRINSICS_H_
 
 // vim: foldmethod=marker
