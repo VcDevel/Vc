@@ -9,6 +9,7 @@ env:
     - subset=sse
     - subset=avx
     - subset=avx512
+    - subset=neon
 
 os:
     - linux
@@ -49,6 +50,11 @@ install:
           export CXX=/usr/local/opt/llvm/bin/clang++ CC=/usr/local/opt/llvm/bin/clang &&
           export LDFLAGS="-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib" &&
           export CPPFLAGS=-I/usr/local/opt/llvm/include;;
+        linux-aarch64-linux-gnu-g++)
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
+          sudo apt-get update -q &&
+          sudo apt-get install -y g++-5-aarch64-linux-gnu &&
+          export CXX=aarch64-linux-gnu-g++-5 CC=aarch64-linux-gnu-gcc-5 CMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-linux.cmake;;
       esac
 
 before_script:
