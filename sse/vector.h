@@ -182,7 +182,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             return d.m(index);
         }
 
-        Vc_INTRINSIC_L Vector Vc_VDECL operator[](SSE::Vector<int> perm) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector Vc_VDECL operator[](const SSE::int_v &perm) const Vc_INTRINSIC_R;
 
         Vc_INTRINSIC Vc_PURE Mask operator!() const
         {
