@@ -738,7 +738,7 @@ template <> Vc_INTRINSIC Vc_PURE SSE::ushort_v SSE::ushort_v::reversed() const
 // }}}1
 // permutation via operator[] {{{1
 template <>
-Vc_INTRINSIC SSE::float_v SSE::float_v::operator[](SSE::int_v
+Vc_INTRINSIC SSE::float_v SSE::float_v::operator[](const SSE::int_v &
 #ifdef Vc_IMPL_AVX
                                              perm
 #endif
