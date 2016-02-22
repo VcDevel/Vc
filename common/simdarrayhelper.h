@@ -503,7 +503,7 @@ unpackArgumentsAutoImpl(int, index_sequence<Indexes...>, Op op, R &&r, Args &&..
 
 ///\internal the current actual_value calls don't work: recurse to I + 1
 template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
-Vc_INTRINSIC enable_if<(I <= (1 << sizeof...(Args))), void> unpackArgumentsAutoImpl(
+Vc_INTRINSIC enable_if<(I <= (size_t(1) << sizeof...(Args))), void> unpackArgumentsAutoImpl(
     float, index_sequence<Indexes...> is, Op op, R &&r, Args &&... args)
 {
     // if R is nullptr_t then the return type cannot enforce that actually any unwrapping
