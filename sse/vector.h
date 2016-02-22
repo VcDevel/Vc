@@ -182,7 +182,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             return d.m(index);
         }
 
-        Vc_INTRINSIC_L Vector operator[](SSE::int_v perm) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector Vc_VDECL operator[](SSE::Vector<int> perm) const Vc_INTRINSIC_R;
 
         Vc_INTRINSIC Vc_PURE Mask operator!() const
         {
@@ -199,15 +199,15 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
         Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
 
-        Vc_ALWAYS_INLINE Vector  operator<< (AsArg shift) const { return generate([&](int i) { return get(*this, i) << get(shift, i); }); }
-        Vc_ALWAYS_INLINE Vector  operator>> (AsArg shift) const { return generate([&](int i) { return get(*this, i) >> get(shift, i); }); }
-        Vc_ALWAYS_INLINE Vector &operator<<=(AsArg shift) { return *this = *this << shift; }
-        Vc_ALWAYS_INLINE Vector &operator>>=(AsArg shift) { return *this = *this >> shift; }
+        Vc_ALWAYS_INLINE Vector Vc_VDECL  operator<< (AsArg shift) const { return generate([&](int i) { return get(*this, i) << get(shift, i); }); }
+        Vc_ALWAYS_INLINE Vector Vc_VDECL  operator>> (AsArg shift) const { return generate([&](int i) { return get(*this, i) >> get(shift, i); }); }
+        Vc_ALWAYS_INLINE Vector Vc_VDECL &operator<<=(AsArg shift) { return *this = *this << shift; }
+        Vc_ALWAYS_INLINE Vector Vc_VDECL &operator>>=(AsArg shift) { return *this = *this >> shift; }
 
-        Vc_INTRINSIC_L Vector &operator<<=(  int shift)       Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector  operator<< (  int shift) const Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector &operator>>=(  int shift)       Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector  operator>> (  int shift) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector Vc_VDECL &operator<<=(  int shift)       Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector Vc_VDECL  operator<< (  int shift) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector Vc_VDECL &operator>>=(  int shift)       Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector Vc_VDECL  operator>> (  int shift) const Vc_INTRINSIC_R;
 
         Vc_DEPRECATED("use isnegative(x) instead") Vc_INTRINSIC Vc_PURE Mask
             isNegative() const
