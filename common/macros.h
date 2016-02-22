@@ -59,8 +59,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef Vc_MSVC
 #  define Vc_CDECL __cdecl
+#  define Vc_VDECL __vectorcall
 #else
 #  define Vc_CDECL
+#  define Vc_VDECL
 #endif
 
 #if defined Vc_CLANG || defined Vc_APPLECLANG

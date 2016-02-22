@@ -124,7 +124,7 @@ Vc_INTRINSIC Vc_CONST Scalar::float_v exponent(Scalar::float_v x)
     value.f = x.data();
     return Scalar::float_v(static_cast<float>((value.i >> 23) - 0x7f));
 }
-Vc_INTRINSIC Vc_CONST Scalar::double_v exponent(Scalar::double_v x)
+Vc_INTRINSIC Vc_CONST Scalar::double_v Vc_VDECL exponent(Scalar::double_v x)
 {
     Vc_ASSERT(x.data() >= 0.);
     union { double f; long long i; } value;
@@ -181,7 +181,7 @@ Vc_INTRINSIC Vc_CONST Scalar::float_m isnegative(Scalar::float_v x)
     u.f = x.data();
     return Scalar::float_m(0u != (u.i & 0x80000000u));
 }
-Vc_INTRINSIC Vc_CONST Scalar::double_m isnegative(Scalar::double_v x)
+Vc_INTRINSIC Vc_CONST Scalar::double_m Vc_VDECL isnegative(Scalar::double_v x)
 {
     static_assert(sizeof(double) == sizeof(unsigned long long),
                   "This code assumes double and unsigned long long have the same number "

@@ -59,7 +59,7 @@ template <
     typename U,
     typename Flags = DefaultStoreTag,
     typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
-Vc_INTRINSIC_L void store(U *mem, MaskType mask, Flags flags = Flags()) const Vc_INTRINSIC_R;
+Vc_INTRINSIC_L void Vc_VDECL store(U *mem, MaskType mask, Flags flags = Flags()) const Vc_INTRINSIC_R;
 
 //@{
 /**
@@ -77,13 +77,13 @@ Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
     store<EntryType, Flags>(mem, flags);
 }
 
-Vc_INTRINSIC void store(EntryType *mem, MaskType mask) const
+Vc_INTRINSIC void Vc_VDECL store(EntryType *mem, MaskType mask) const
 {
     store<EntryType, DefaultStoreTag>(mem, mask, DefaultStoreTag());
 }
 
 template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
-Vc_INTRINSIC void store(EntryType *mem, MaskType mask, Flags flags) const
+Vc_INTRINSIC void Vc_VDECL store(EntryType *mem, MaskType mask, Flags flags) const
 {
     store<EntryType, Flags>(mem, mask, flags);
 }
