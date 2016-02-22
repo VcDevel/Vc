@@ -429,7 +429,7 @@ TEST_TYPES(V, maskConversions, ALL_TYPES) /*{{{*/
 /*}}}*/
 TEST_TYPES(V, boolConversion, ALL_TYPES) /*{{{*/
 {
-    bool mem[V::Size + 64] __attribute__((aligned(16)));
+    alignas(16) bool mem[V::Size + 64];
     UnitTest::withRandomMask<V>([&](typename V::Mask m) {
         bool *ptr = mem;
         m.store(ptr);
