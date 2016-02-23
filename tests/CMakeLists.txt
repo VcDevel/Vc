@@ -438,10 +438,11 @@ if(TEST_OPERATOR_FAILURES)
             endif()
             string(REPLACE " " ";" _implFlags "${_avx2_flag}")
          endif()
-         set(type_b ${B})
-         foreach(type_a ${A} ${B})
+         set(type_b "${B}")
+         foreach(type_a "${A}" "${B}")
             foreach(op "^" "==" "*") # "/" "+" "-" "&" "|" "!=" "<=" ">=" "<" ">")
                set(name "implicit_type_conversion_failures_${type_a}_${op}_${type_b}_${impl}")
+               string(REGEX REPLACE "[<>, ():;?]" "_" name "${name}")
                add_test(NAME "${Vc_TEST_TARGET_PREFIX}${name}" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMAND
                   env LANG=C
@@ -459,7 +460,7 @@ if(TEST_OPERATOR_FAILURES)
                   "error: invalid operands of types '.*' and '.*' to binary 'operator.'" # GCC
                   )
             endforeach()
-            set(type_b ${A})
+            set(type_b "${A}")
          endforeach()
       endforeach()
    endmacro()
@@ -481,6 +482,7 @@ if(TEST_OPERATOR_FAILURES)
    vc_test_implicit_type_conversion_failures( "short_v"      "float")
    vc_test_implicit_type_conversion_failures("ushort_v"      "int_v")
    vc_test_implicit_type_conversion_failures("ushort_v"     "uint_v")
+   vc_test_implicit_type_conversion_failures("SimdArray<int, 3>" "int_v")
 endif()
 
 # compile and link test for targets that need to link lots of stuff together

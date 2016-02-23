@@ -1266,10 +1266,12 @@ template <
              !is_integer_larger_than_int<
                  type<R>>::value)  // one of the operands is a scalar type
             ||
-            (Traits::is_simd_vector<L>::value && !Traits::isSimdArray<L>::value) ||
-            (Traits::is_simd_vector<R>::value &&
-             !Traits::isSimdArray<R>::value)  // or one of the operands is Vector<T>
-            ) > struct evaluate;
+         (  // or one of the operands is Vector<T> with Vector<T>::size() ==
+            // SimdArray::size()
+             Traits::simd_vector_size<L>::value == Traits::simd_vector_size<R>::value &&
+             ((Traits::is_simd_vector<L>::value && !Traits::isSimdArray<L>::value) ||
+              (Traits::is_simd_vector<R>::value && !Traits::isSimdArray<R>::value))))>
+struct evaluate;
 
 template <typename L, typename R, std::size_t N> struct evaluate<L, R, N, true>
 {
