@@ -1251,21 +1251,21 @@ using is_integer_larger_than_int = std::integral_constant<
                                         std::is_same<T, unsigned long>::value)>;
 
 template <
-    typename L, typename R, std::size_t N = Traits::isSimdArray<L>::value
-                                                ? Traits::simd_vector_size<L>::value
-                                                : Traits::simd_vector_size<R>::value,
-    bool = (Traits::isSimdArray<L>::value ||
-            Traits::isSimdArray<R>::value)  // one of the operands must be a SimdArray
-           &&
-           !std::is_same<type<L>, type<R>>::value  // if the operands are of the same type
+    typename L, typename R,
+    std::size_t N = Traits::isSimdArray<L>::value ? Traits::simd_vector_size<L>::value
+                                                  : Traits::simd_vector_size<R>::value,
+    bool =
+        (Traits::isSimdArray<L>::value ||
+         Traits::isSimdArray<R>::value)  // one of the operands must be a SimdArray
+        && !std::is_same<type<L>, type<R>>::value  // if the operands are of the same type
                                                    // use the member function
-           &&
-           ((std::is_arithmetic<type<L>>::value &&
-             !is_integer_larger_than_int<type<L>>::value) ||
-            (std::is_arithmetic<type<R>>::value &&
-             !is_integer_larger_than_int<
-                 type<R>>::value)  // one of the operands is a scalar type
-            ||
+        &&
+        ((std::is_arithmetic<type<L>>::value &&
+          !is_integer_larger_than_int<type<L>>::value) ||
+         (std::is_arithmetic<type<R>>::value &&
+          !is_integer_larger_than_int<type<R>>::value)  // one of the operands is a scalar
+                                                        // type
+         ||
          (  // or one of the operands is Vector<T> with Vector<T>::size() ==
             // SimdArray::size()
              Traits::simd_vector_size<L>::value == Traits::simd_vector_size<R>::value &&
