@@ -472,25 +472,25 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, SimdMaskArray<U, M, V, M>
  */
 ///@{
 
-/// transforms \p arg via actual_value
+///\internal transforms \p arg via actual_value
 template <typename Op, typename Arg>
 decltype(actual_value(std::declval<Op &>(), std::declval<Arg>())) conditionalUnpack(
     std::true_type, Op op, Arg &&arg)
 {
     return actual_value(op, std::forward<Arg>(arg));
 }
-/// forwards \p arg to its return value
+///\internal forwards \p arg to its return value
 template <typename Op, typename Arg> Arg conditionalUnpack(std::false_type, Op, Arg &&arg)
 {
     return std::forward<Arg>(arg);
 }
 
-/// true-/false_type that selects whether the argument with index B should be unpacked
+///\internal true-/false_type that selects whether the argument with index B should be unpacked
 template <size_t A, size_t B>
 struct selectorType : public std::integral_constant<bool, !((A & (1 << B)) != 0)> {
 };
 
-/// ends the recursion, transforms arguments, and calls \p op
+///\internal ends the recursion, transforms arguments, and calls \p op
 template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
 Vc_INTRINSIC decltype(std::declval<Op &>()(std::declval<R &>(),
                                            conditionalUnpack(selectorType<I, Indexes>(),
@@ -502,7 +502,7 @@ unpackArgumentsAutoImpl(int, index_sequence<Indexes...>, Op op, R &&r, Args &&..
        conditionalUnpack(selectorType<I, Indexes>(), op, std::forward<Args>(args))...);
 }
 
-/// the current actual_value calls don't work: recurse to I + 1
+///\internal the current actual_value calls don't work: recurse to I + 1
 template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
 Vc_INTRINSIC enable_if<(I <= (1 << sizeof...(Args))), void> unpackArgumentsAutoImpl(
     float, index_sequence<Indexes...> is, Op op, R &&r, Args &&... args)
@@ -529,7 +529,7 @@ template <typename... Ts> struct IccWorkaround<2, Ts...> {
 };
 #endif
 
-/// The interface to start the machinery.
+///\internal The interface to start the machinery.
 template <typename Op, typename R, typename... Args>
 Vc_INTRINSIC void unpackArgumentsAuto(Op op, R &&r, Args &&... args)
 {

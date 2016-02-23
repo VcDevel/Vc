@@ -1204,24 +1204,28 @@ inline void SimdArray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
 }
 
 // internal_data0/1 (SimdArray) {{{1
+///\internal Returns the first data member of a generic SimdArray
 template <typename T, std::size_t N, typename V, std::size_t M>
 Vc_INTRINSIC typename SimdArrayTraits<T, N>::storage_type0 &internal_data0(
     SimdArray<T, N, V, M> &x)
 {
     return x.data0;
 }
+///\internal Returns the second data member of a generic SimdArray
 template <typename T, std::size_t N, typename V, std::size_t M>
 Vc_INTRINSIC typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
     SimdArray<T, N, V, M> &x)
 {
     return x.data1;
 }
+///\internal Returns the first data member of a generic SimdArray (const overload)
 template <typename T, std::size_t N, typename V, std::size_t M>
 Vc_INTRINSIC const typename SimdArrayTraits<T, N>::storage_type0 &internal_data0(
     const SimdArray<T, N, V, M> &x)
 {
     return x.data0;
 }
+///\internal Returns the second data member of a generic SimdArray (const overload)
 template <typename T, std::size_t N, typename V, std::size_t M>
 Vc_INTRINSIC const typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
     const SimdArray<T, N, V, M> &x)
