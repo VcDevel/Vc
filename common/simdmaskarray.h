@@ -70,7 +70,7 @@ public:
     using EntryReference = typename mask_type::EntryReference;
     using Vector = SimdArray<T, N, VectorType, N>;
 
-    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type));
 
     // zero init
     SimdMaskArray() = default;
@@ -290,7 +290,7 @@ public:
         typename storage_type0::EntryReference, Common::MaskEntry<SimdMaskArray>>::type;
     using Vector = SimdArray<T, N, VectorType, VectorType::Size>;
 
-    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type));
 
     // zero init
     SimdMaskArray() = default;

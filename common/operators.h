@@ -239,10 +239,10 @@ template <typename T> struct is_a_type : public std::true_type {
         return Detail::operator op_(V(x), V(y));                                         \
     }
 
-Vc_ALL_LOGICAL    (Vc_LOGICAL_OPERATOR)
-Vc_ALL_BINARY     (Vc_GENERIC_OPERATOR)
-Vc_ALL_ARITHMETICS(Vc_GENERIC_OPERATOR)
-Vc_ALL_COMPARES   (Vc_COMPARE_OPERATOR)
+Vc_ALL_LOGICAL    (Vc_LOGICAL_OPERATOR);
+Vc_ALL_BINARY     (Vc_GENERIC_OPERATOR);
+Vc_ALL_ARITHMETICS(Vc_GENERIC_OPERATOR);
+Vc_ALL_COMPARES   (Vc_COMPARE_OPERATOR);
 
 #undef Vc_LOGICAL_OPERATOR
 #undef Vc_GENERIC_OPERATOR

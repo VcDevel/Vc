@@ -137,15 +137,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_WARN_UNUSED_RESULT
 #endif
 
-#define Vc_FREE_STORE_OPERATORS_ALIGNED(alignment) \
-        Vc_ALWAYS_INLINE void *operator new(size_t size) { return Vc::Common::aligned_malloc<alignment>(size); } \
-        Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; } \
-        Vc_ALWAYS_INLINE void *operator new[](size_t size) { return Vc::Common::aligned_malloc<alignment>(size); } \
-        Vc_ALWAYS_INLINE void *operator new[](size_t , void *p) { return p; } \
-        Vc_ALWAYS_INLINE void operator delete(void *ptr, size_t) { Vc::Common::free(ptr); } \
-        Vc_ALWAYS_INLINE void operator delete(void *, void *) {} \
-        Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t) { Vc::Common::free(ptr); } \
-        Vc_ALWAYS_INLINE void operator delete[](void *, void *) {}
+#define Vc_NOTHING_EXPECTING_SEMICOLON static_assert(true, "")
+
+#define Vc_FREE_STORE_OPERATORS_ALIGNED(alignment)                                       \
+    Vc_ALWAYS_INLINE void *operator new(size_t size)                                     \
+    {                                                                                    \
+        return Vc::Common::aligned_malloc<alignment>(size);                              \
+    }                                                                                    \
+    Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; }                   \
+    Vc_ALWAYS_INLINE void *operator new[](size_t size)                                   \
+    {                                                                                    \
+        return Vc::Common::aligned_malloc<alignment>(size);                              \
+    }                                                                                    \
+    Vc_ALWAYS_INLINE void *operator new[](size_t, void *p) { return p; }                 \
+    Vc_ALWAYS_INLINE void operator delete(void *ptr, size_t) { Vc::Common::free(ptr); }  \
+    Vc_ALWAYS_INLINE void operator delete(void *, void *) {}                             \
+    Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t)                           \
+    {                                                                                    \
+        Vc::Common::free(ptr);                                                           \
+    }                                                                                    \
+    Vc_ALWAYS_INLINE void operator delete[](void *, void *) {}                           \
+    Vc_NOTHING_EXPECTING_SEMICOLON
 
 #ifdef Vc_ASSERT
 #define Vc_EXTERNAL_ASSERT 1
@@ -211,11 +223,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     size(macro, /, a, b, c, d) \
     size(macro, %, a, b, c, d)
 
-#define Vc_APPLY_0(_list, macro)             _list(Vc_APPLY_IMPL_1_, macro, 0, 0, 0, 0)
-#define Vc_APPLY_1(_list, macro, a)          _list(Vc_APPLY_IMPL_2_, macro, a, 0, 0, 0)
-#define Vc_APPLY_2(_list, macro, a, b)       _list(Vc_APPLY_IMPL_3_, macro, a, b, 0, 0)
-#define Vc_APPLY_3(_list, macro, a, b, c)    _list(Vc_APPLY_IMPL_4_, macro, a, b, c, 0)
-#define Vc_APPLY_4(_list, macro, a, b, c, d) _list(Vc_APPLY_IMPL_5_, macro, a, b, c, d)
+#define Vc_APPLY_0(_list, macro)             _list(Vc_APPLY_IMPL_1_, macro, 0, 0, 0, 0) Vc_NOTHING_EXPECTING_SEMICOLON
+#define Vc_APPLY_1(_list, macro, a)          _list(Vc_APPLY_IMPL_2_, macro, a, 0, 0, 0) Vc_NOTHING_EXPECTING_SEMICOLON
+#define Vc_APPLY_2(_list, macro, a, b)       _list(Vc_APPLY_IMPL_3_, macro, a, b, 0, 0) Vc_NOTHING_EXPECTING_SEMICOLON
+#define Vc_APPLY_3(_list, macro, a, b, c)    _list(Vc_APPLY_IMPL_4_, macro, a, b, c, 0) Vc_NOTHING_EXPECTING_SEMICOLON
+#define Vc_APPLY_4(_list, macro, a, b, c, d) _list(Vc_APPLY_IMPL_5_, macro, a, b, c, d) Vc_NOTHING_EXPECTING_SEMICOLON
 
 #define Vc_ALL_COMPARES(macro)     Vc_APPLY_0(Vc_LIST_COMPARES, macro)
 #define Vc_ALL_LOGICAL(macro)      Vc_APPLY_0(Vc_LIST_LOGICAL, macro)

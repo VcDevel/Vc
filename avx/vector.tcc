@@ -263,15 +263,16 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::store(U *mem, Mask mask, Flags flag
         Common::unrolled_loop<std::size_t, 0, Size>(                                     \
             [&](std::size_t i) { r.d.set(i, d.m(i) symbol x.d.m(i)); });                 \
         return r;                                                                        \
-    }
-Vc_OP_IMPL(int, <<)
-Vc_OP_IMPL(int, >>)
-Vc_OP_IMPL(unsigned int, <<)
-Vc_OP_IMPL(unsigned int, >>)
-Vc_OP_IMPL(short, <<)
-Vc_OP_IMPL(short, >>)
-Vc_OP_IMPL(unsigned short, <<)
-Vc_OP_IMPL(unsigned short, >>)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_OP_IMPL(int, <<);
+Vc_OP_IMPL(int, >>);
+Vc_OP_IMPL(unsigned int, <<);
+Vc_OP_IMPL(unsigned int, >>);
+Vc_OP_IMPL(short, <<);
+Vc_OP_IMPL(short, >>);
+Vc_OP_IMPL(unsigned short, <<);
+Vc_OP_IMPL(unsigned short, >>);
 #undef Vc_OP_IMPL
 #endif
 

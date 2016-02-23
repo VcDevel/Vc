@@ -70,7 +70,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         typedef SSE::VectorHelper<typename SSE::VectorTraits<T>::VectorType> HV;
         typedef SSE::VectorHelper<T> HT;
     public:
-        Vc_FREE_STORE_OPERATORS_ALIGNED(16)
+        Vc_FREE_STORE_OPERATORS_ALIGNED(16);
 
         typedef typename SSE::VectorTraits<T>::VectorType VectorType;
         using vector_type = VectorType;
@@ -342,18 +342,19 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> abs(Vector<T, VectorAbi::Sse>
         Vector<T, VectorAbi::Sse> &lhs, M &&mask, U &&rhs)                               \
     {                                                                                    \
         lhs(mask) op_ rhs;                                                               \
-    }
-Vc_CONDITIONAL_ASSIGN(          Assign,  =)
-Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
-Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=)
-Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=)
-Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=)
-Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=)
-Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=)
-Vc_CONDITIONAL_ASSIGN(       AndAssign, &=)
-Vc_CONDITIONAL_ASSIGN(        OrAssign, |=)
-Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
-Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(          Assign,  =);
+Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=);
+Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=);
+Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=);
+Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=);
+Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=);
+Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=);
+Vc_CONDITIONAL_ASSIGN(       AndAssign, &=);
+Vc_CONDITIONAL_ASSIGN(        OrAssign, |=);
+Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=);
+Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=);
 #undef Vc_CONDITIONAL_ASSIGN
 
 #define Vc_CONDITIONAL_ASSIGN(name_, expr_)                                              \
@@ -362,11 +363,12 @@ Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
     conditional_assign(Vector<T, VectorAbi::Sse> &lhs, M &&mask)                         \
     {                                                                                    \
         return expr_;                                                                    \
-    }
-Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++)
-Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))
-Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--)
-Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++);
+Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask));
+Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--);
+Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask));
 #undef Vc_CONDITIONAL_ASSIGN
 
 }  // namespace Vc

@@ -1293,11 +1293,11 @@ public:
     {                                                                                    \
         return static_cast<const V0 &>(x) op_ static_cast<const V1 &>(y);                \
     }
-Vc_ALL_COMPARES(Vc_OP)
-Vc_ALL_ARITHMETICS(Vc_OP)
-Vc_ALL_BINARY(Vc_OP)
-Vc_ALL_LOGICAL(Vc_OP)
-Vc_ALL_SHIFTS(Vc_OP)
+Vc_ALL_COMPARES(Vc_OP);
+Vc_ALL_ARITHMETICS(Vc_OP);
+Vc_ALL_BINARY(Vc_OP);
+Vc_ALL_LOGICAL(Vc_OP);
+Vc_ALL_SHIFTS(Vc_OP);
 #undef Vc_OP
 
 ///\internal immutable specialization of the Reference proxy class

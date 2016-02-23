@@ -97,7 +97,7 @@ public:
     using Vector = SSE::Vector<T>;
 
 public:
-    Vc_FREE_STORE_OPERATORS_ALIGNED(16)
+    Vc_FREE_STORE_OPERATORS_ALIGNED(16);
     static constexpr size_t Size = SSE::VectorTraits<T>::Size;
     static constexpr size_t MemoryAlignment = Size;
     static constexpr std::size_t size() { return Size; }

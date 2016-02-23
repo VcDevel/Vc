@@ -164,7 +164,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 
 #define Vc_OP(symbol) \
         Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const { return Vector(m_data symbol x.m_data); }
-        Vc_ALL_SHIFTS(Vc_OP)
+        Vc_ALL_SHIFTS(Vc_OP);
 #undef Vc_OP
 
         Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
@@ -288,7 +288,7 @@ template <typename T> constexpr size_t Vector<T, VectorAbi::Scalar>::MemoryAlign
         lhs.data() symbol## = Vector<T, VectorAbi::Scalar>(std::forward<U>(rhs)).data(); \
         return lhs;                                                                      \
     }
-Vc_ALL_SHIFTS(Vc_OP)
+Vc_ALL_SHIFTS(Vc_OP);
 #undef Vc_OP
 
 #define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \
@@ -299,18 +299,19 @@ Vc_ALL_SHIFTS(Vc_OP)
         if (mask.isFull()) {                                                             \
             lhs op_ std::forward<U>(rhs);                                                \
         }                                                                                \
-    }
-Vc_CONDITIONAL_ASSIGN(          Assign,  =)
-Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
-Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=)
-Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=)
-Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=)
-Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=)
-Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=)
-Vc_CONDITIONAL_ASSIGN(       AndAssign, &=)
-Vc_CONDITIONAL_ASSIGN(        OrAssign, |=)
-Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
-Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(          Assign,  =);
+Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=);
+Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=);
+Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=);
+Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=);
+Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=);
+Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=);
+Vc_CONDITIONAL_ASSIGN(       AndAssign, &=);
+Vc_CONDITIONAL_ASSIGN(        OrAssign, |=);
+Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=);
+Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=);
 #undef Vc_CONDITIONAL_ASSIGN
 
 #define Vc_CONDITIONAL_ASSIGN(name_, expr_)                                              \
@@ -319,11 +320,12 @@ Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
     conditional_assign(Vector<T, VectorAbi::Scalar> &lhs, M &&mask)                      \
     {                                                                                    \
         return mask.isFull() ? (expr_) : lhs;                                            \
-    }
-Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs++)
-Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs)
-Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs--)
-Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs++);
+Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs);
+Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs--);
+Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs);
 #undef Vc_CONDITIONAL_ASSIGN
 
 }  // namespace Vc

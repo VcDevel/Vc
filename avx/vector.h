@@ -86,7 +86,7 @@ public:
     using MaskArg Vc_DEPRECATED("Use MaskArgument instead.") = typename Mask::AsArg;
     using MaskArgument = typename Mask::AsArg;
 
-    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType));
 
     Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
         using value_type = EntryType;
@@ -254,7 +254,7 @@ public:
             std::is_integral<T>::value,                                                  \
             "bitwise-operators can only be used with Vectors of integral type");         \
     }
-    Vc_ALL_SHIFTS(Vc_OP_VEC)
+    Vc_ALL_SHIFTS(Vc_OP_VEC);
 #undef Vc_OP_VEC
 
         Vc_ALWAYS_INLINE_L Vector &operator>>=(int x) Vc_ALWAYS_INLINE_R;
@@ -410,18 +410,19 @@ static_assert(!std::is_convertible<short *, AVX2::short_v>::value, "A short* sho
         AVX2::Vector<T> &lhs, M &&mask, U &&rhs)                                         \
     {                                                                                    \
         lhs(mask) op_ rhs;                                                               \
-    }
-Vc_CONDITIONAL_ASSIGN(          Assign,  =)
-Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
-Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=)
-Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=)
-Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=)
-Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=)
-Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=)
-Vc_CONDITIONAL_ASSIGN(       AndAssign, &=)
-Vc_CONDITIONAL_ASSIGN(        OrAssign, |=)
-Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
-Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(          Assign,  =);
+Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=);
+Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=);
+Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=);
+Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=);
+Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=);
+Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=);
+Vc_CONDITIONAL_ASSIGN(       AndAssign, &=);
+Vc_CONDITIONAL_ASSIGN(        OrAssign, |=);
+Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=);
+Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=);
 #undef Vc_CONDITIONAL_ASSIGN
 
 #define Vc_CONDITIONAL_ASSIGN(name_, expr_)                                              \
@@ -430,11 +431,12 @@ Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
         AVX2::Vector<T> &lhs, M &&mask)                                                  \
     {                                                                                    \
         return expr_;                                                                    \
-    }
-Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++)
-Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))
-Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--)
-Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++);
+Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask));
+Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--);
+Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask));
 #undef Vc_CONDITIONAL_ASSIGN
 
 }  // namespace Vc

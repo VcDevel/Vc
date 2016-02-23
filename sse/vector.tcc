@@ -288,8 +288,8 @@ static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const SSE::ushort_v &value, cons
     {                                                                                    \
         return impl(*this, shift);                                                       \
     }
-Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, <<, shiftLeft)
-Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, >>, shiftRight)
+Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, <<, shiftLeft);
+Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, >>, shiftRight);
 #undef Vc_OP
 #else
 
@@ -310,15 +310,16 @@ Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, >>, shiftRight)
         Common::for_all_vector_entries<Size>(                                            \
             [&](size_t i) { r.d.set(i, d.m(i) symbol x.d.m(i)); });                      \
         return r;                                                                        \
-    }
-Vc_OP_IMPL(int, <<)
-Vc_OP_IMPL(int, >>)
-Vc_OP_IMPL(unsigned int, <<)
-Vc_OP_IMPL(unsigned int, >>)
-Vc_OP_IMPL(short, <<)
-Vc_OP_IMPL(short, >>)
-Vc_OP_IMPL(unsigned short, <<)
-Vc_OP_IMPL(unsigned short, >>)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_OP_IMPL(int, <<);
+Vc_OP_IMPL(int, >>);
+Vc_OP_IMPL(unsigned int, <<);
+Vc_OP_IMPL(unsigned int, >>);
+Vc_OP_IMPL(short, <<);
+Vc_OP_IMPL(short, >>);
+Vc_OP_IMPL(unsigned short, <<);
+Vc_OP_IMPL(unsigned short, >>);
 #undef Vc_OP_IMPL
 #endif
 

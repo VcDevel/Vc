@@ -96,8 +96,8 @@ public:
             return *this;
         }
 
-        Vc_ALL_BINARY(Vc_MEM_OPERATOR_EQ)
-        Vc_ALL_ARITHMETICS(Vc_MEM_OPERATOR_EQ)
+        Vc_ALL_BINARY(Vc_MEM_OPERATOR_EQ);
+        Vc_ALL_ARITHMETICS(Vc_MEM_OPERATOR_EQ);
 };
 
 template<typename _V, typename Flags> class MemoryVectorIterator
@@ -178,9 +178,9 @@ Vc_ALWAYS_INLINE bool operator< (const MemoryVectorIterator<V, FlagsL> &l, const
     {                                                                                    \
         return x.value() op y.value();                                                   \
     }
-Vc_ALL_ARITHMETICS(Vc_VPH_OPERATOR)
-Vc_ALL_BINARY     (Vc_VPH_OPERATOR)
-Vc_ALL_COMPARES   (Vc_VPH_OPERATOR)
+Vc_ALL_ARITHMETICS(Vc_VPH_OPERATOR);
+Vc_ALL_BINARY     (Vc_VPH_OPERATOR);
+Vc_ALL_COMPARES   (Vc_VPH_OPERATOR);
 #undef Vc_VPH_OPERATOR
 
 template<typename V, typename Parent, typename Flags = Prefetch<>> class MemoryRange/*{{{*/

@@ -67,7 +67,7 @@ Vc_ALWAYS_INLINE void free(void *);
  */
 template <std::size_t Alignment> struct alignas(Alignment) AlignedBase
 {
-    Vc_FREE_STORE_OPERATORS_ALIGNED(Alignment)
+    Vc_FREE_STORE_OPERATORS_ALIGNED(Alignment);
 };
 
 /**

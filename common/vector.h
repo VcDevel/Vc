@@ -463,7 +463,7 @@ public:
      * C++)
      */
     ///@{
-    Vc_ALL_ARITHMETICS(Vc_OP)
+    Vc_ALL_ARITHMETICS(Vc_OP);
     ///@}
 
     /**
@@ -485,7 +485,7 @@ public:
      *          component-wise application of the operator.
      */
     ///@{
-    Vc_ALL_BINARY(Vc_OP)
+    Vc_ALL_BINARY(Vc_OP);
     ///@}
 
     /**
@@ -506,7 +506,7 @@ public:
      *          component-wise application of the operator.
      */
     ///@{
-    Vc_ALL_SHIFTS(Vc_OP)
+    Vc_ALL_SHIFTS(Vc_OP);
     ///@}
 #undef Vc_OP
 
@@ -529,7 +529,7 @@ public:
      */
     ///@{
 #define Vc_CMP_OP(symbol) inline Vc_PURE MaskType operator symbol(const Vector &x) const;
-    Vc_ALL_COMPARES(Vc_CMP_OP)
+    Vc_ALL_COMPARES(Vc_CMP_OP);
 #undef Vc_CMP_OP
     ///@}
 
@@ -822,9 +822,9 @@ private:
     template <typename T, typename Abi>                                                  \
     inline Vector<T, Abi> &operator symbol##=(Vector<T, Abi> &,                          \
                                               const Vector<T, Abi> &x);
-    //Vc_ALL_ARITHMETICS(Vc_OP)
-    //Vc_ALL_BINARY(Vc_OP)
-    //Vc_ALL_SHIFTS(Vc_OP)
+    //Vc_ALL_ARITHMETICS(Vc_OP);
+    //Vc_ALL_BINARY(Vc_OP);
+    //Vc_ALL_SHIFTS(Vc_OP);
 #undef Vc_OP
 
 }  // namespace Vc

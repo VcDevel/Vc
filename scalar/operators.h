@@ -42,7 +42,7 @@ namespace Detail
     {                                                                                    \
         return Scalar::Mask<T>(a.data() op_ b.data());                                   \
     }
-Vc_ALL_COMPARES(Vc_OP)
+Vc_ALL_COMPARES(Vc_OP);
 #undef Vc_OP
 
 // bitwise operators {{{1
@@ -65,7 +65,7 @@ Vc_ALL_COMPARES(Vc_OP)
         *left symbol## = *right;                                                         \
         return lhs;                                                                      \
     }
-Vc_ALL_BINARY(Vc_OP)
+Vc_ALL_BINARY(Vc_OP);
 #undef Vc_OP
 
 // arithmetic operators {{{1

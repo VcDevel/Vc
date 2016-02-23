@@ -47,7 +47,7 @@ public:
     typedef M Mask;
     static constexpr size_t Size = V::Size;
 
-    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(Mask))
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(Mask));
 
     // implicit (allows {vec, mask} in places where WriteMaskedVector is expected)
     Vc_INTRINSIC WriteMaskedVector(V *v, const Mask &k) : mask(k), vec(v)
@@ -87,9 +87,9 @@ public:
     {                                                                                    \
         operator=(static_cast<V>(*vec op std::forward<U>(x)));                           \
     }
-    Vc_ALL_BINARY(Vc_OPERATOR_)
-    Vc_ALL_ARITHMETICS(Vc_OPERATOR_)
-    Vc_ALL_SHIFTS(Vc_OPERATOR_)
+    Vc_ALL_BINARY(Vc_OPERATOR_);
+    Vc_ALL_ARITHMETICS(Vc_OPERATOR_);
+    Vc_ALL_SHIFTS(Vc_OPERATOR_);
 #undef Vc_OPERATOR_
 
     Vc_ALWAYS_INLINE void operator=(const V &x)

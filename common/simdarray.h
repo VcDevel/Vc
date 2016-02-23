@@ -315,9 +315,9 @@ public:
         data op## = rhs.data;                                                            \
         return *this;                                                                    \
     }
-    Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
-    Vc_ALL_BINARY(Vc_BINARY_OPERATOR_)
-    Vc_ALL_SHIFTS(Vc_BINARY_OPERATOR_)
+    Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_);
+    Vc_ALL_BINARY(Vc_BINARY_OPERATOR_);
+    Vc_ALL_SHIFTS(Vc_BINARY_OPERATOR_);
 #undef Vc_BINARY_OPERATOR_
 
 #define Vc_COMPARES(op)                                                                  \
@@ -325,7 +325,7 @@ public:
     {                                                                                    \
         return {data op rhs.data};                                                       \
     }
-    Vc_ALL_COMPARES(Vc_COMPARES)
+    Vc_ALL_COMPARES(Vc_COMPARES);
 #undef Vc_COMPARES
 
     /// \copydoc Vector::isNegative
@@ -356,11 +356,12 @@ public:
     Vc_INTRINSIC Vc_PURE value_type name_(mask_type mask) const                          \
     {                                                                                    \
         return data.name_(internal_data(mask));                                          \
-    }
-    Vc_REDUCTION_FUNCTION_(min)
-    Vc_REDUCTION_FUNCTION_(max)
-    Vc_REDUCTION_FUNCTION_(product)
-    Vc_REDUCTION_FUNCTION_(sum)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+    Vc_REDUCTION_FUNCTION_(min);
+    Vc_REDUCTION_FUNCTION_(max);
+    Vc_REDUCTION_FUNCTION_(product);
+    Vc_REDUCTION_FUNCTION_(sum);
 #undef Vc_REDUCTION_FUNCTION_
     Vc_INTRINSIC Vc_PURE SimdArray partialSum() const { return data.partialSum(); }
 
@@ -788,9 +789,9 @@ public:
         data1 op## = rhs.data1;                                                          \
         return *this;                                                                    \
     }
-    Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_)
-    Vc_ALL_BINARY(Vc_BINARY_OPERATOR_)
-    Vc_ALL_SHIFTS(Vc_BINARY_OPERATOR_)
+    Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATOR_);
+    Vc_ALL_BINARY(Vc_BINARY_OPERATOR_);
+    Vc_ALL_SHIFTS(Vc_BINARY_OPERATOR_);
 #undef Vc_BINARY_OPERATOR_
 
 #define Vc_COMPARES(op)                                                                  \
@@ -798,7 +799,7 @@ public:
     {                                                                                    \
         return {data0 op rhs.data0, data1 op rhs.data1};                                 \
     }
-    Vc_ALL_COMPARES(Vc_COMPARES)
+    Vc_ALL_COMPARES(Vc_COMPARES);
 #undef Vc_COMPARES
 
     /// \copydoc Vector::isNegative
@@ -861,11 +862,12 @@ public:
             return scalar_fun_(data0.name_(Split::lo(mask)),                             \
                                data1.name_(Split::hi(mask)));                            \
         }                                                                                \
-    }
-    Vc_REDUCTION_FUNCTION_(min, Vc::min, std::min)
-    Vc_REDUCTION_FUNCTION_(max, Vc::max, std::max)
-    Vc_REDUCTION_FUNCTION_(product, internal::product_helper_, internal::product_helper_)
-    Vc_REDUCTION_FUNCTION_(sum, internal::sum_helper_, internal::sum_helper_)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+    Vc_REDUCTION_FUNCTION_(min, Vc::min, std::min);
+    Vc_REDUCTION_FUNCTION_(max, Vc::max, std::max);
+    Vc_REDUCTION_FUNCTION_(product, internal::product_helper_, internal::product_helper_);
+    Vc_REDUCTION_FUNCTION_(sum, internal::sum_helper_, internal::sum_helper_);
 #undef Vc_REDUCTION_FUNCTION_
     Vc_INTRINSIC Vc_PURE SimdArray partialSum() const //{{{2
     {
@@ -1321,8 +1323,8 @@ static_assert(
         using Return = result_vector_type<L, R>;                                         \
         return Return(std::forward<L>(lhs)) op_ Return(std::forward<R>(rhs));            \
     }
-Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATORS_)
-Vc_ALL_BINARY(Vc_BINARY_OPERATORS_)
+Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATORS_);
+Vc_ALL_BINARY(Vc_BINARY_OPERATORS_);
 #undef Vc_BINARY_OPERATORS_
 #define Vc_BINARY_OPERATORS_(op_)                                                        \
     template <typename L, typename R>                                                    \
@@ -1332,7 +1334,7 @@ Vc_ALL_BINARY(Vc_BINARY_OPERATORS_)
         using Promote = result_vector_type<L, R>;                                        \
         return Promote(std::forward<L>(lhs)) op_ Promote(std::forward<R>(rhs));          \
     }
-Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_)
+Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
 #undef Vc_BINARY_OPERATORS_
 
 // math functions {{{1
@@ -1342,7 +1344,8 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_)
     {                                                                                    \
         return SimdArray<T, N, V, M>::fromOperation(                                     \
             Common::Operations::Forward_##name_(), x);                                   \
-    }
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
 
 #define Vc_FORWARD_UNARY_BOOL_OPERATOR(name_)                                            \
     template <typename T, std::size_t N, typename V, std::size_t M>                      \
@@ -1350,7 +1353,8 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_)
     {                                                                                    \
         return SimdMaskArray<T, N, V, M>::fromOperation(                                 \
             Common::Operations::Forward_##name_(), x);                                   \
-    }
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
 
 #define Vc_FORWARD_BINARY_OPERATOR(name_)                                                \
     template <typename T, std::size_t N, typename V, std::size_t M>                      \
@@ -1359,27 +1363,29 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_)
     {                                                                                    \
         return SimdArray<T, N, V, M>::fromOperation(                                     \
             Common::Operations::Forward_##name_(), x, y);                                \
-    }
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
 
-Vc_FORWARD_UNARY_OPERATOR(abs)
-Vc_FORWARD_UNARY_OPERATOR(asin)
-Vc_FORWARD_UNARY_OPERATOR(atan)
-Vc_FORWARD_BINARY_OPERATOR(atan2)
-Vc_FORWARD_UNARY_OPERATOR(ceil)
-Vc_FORWARD_BINARY_OPERATOR(copysign)
-Vc_FORWARD_UNARY_OPERATOR(cos)
-Vc_FORWARD_UNARY_OPERATOR(exp)
-Vc_FORWARD_UNARY_OPERATOR(exponent)
-Vc_FORWARD_UNARY_OPERATOR(floor)
+Vc_FORWARD_UNARY_OPERATOR(abs);
+Vc_FORWARD_UNARY_OPERATOR(asin);
+Vc_FORWARD_UNARY_OPERATOR(atan);
+Vc_FORWARD_BINARY_OPERATOR(atan2);
+Vc_FORWARD_UNARY_OPERATOR(ceil);
+Vc_FORWARD_BINARY_OPERATOR(copysign);
+Vc_FORWARD_UNARY_OPERATOR(cos);
+Vc_FORWARD_UNARY_OPERATOR(exp);
+Vc_FORWARD_UNARY_OPERATOR(exponent);
+Vc_FORWARD_UNARY_OPERATOR(floor);
 template <typename T, std::size_t N>
-SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b, const SimdArray<T, N> &c)
+SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b,
+                    const SimdArray<T, N> &c)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Forward_fma(), a, b, c);
 }
-Vc_FORWARD_UNARY_BOOL_OPERATOR(isfinite)
-Vc_FORWARD_UNARY_BOOL_OPERATOR(isinf)
-Vc_FORWARD_UNARY_BOOL_OPERATOR(isnan)
-Vc_FORWARD_UNARY_BOOL_OPERATOR(isnegative)
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isfinite);
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isinf);
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isnan);
+Vc_FORWARD_UNARY_BOOL_OPERATOR(isnegative);
 template <typename T, std::size_t N>
 SimdArray<T, N> frexp(const SimdArray<T, N> &x, SimdArray<int, N> *e)
 {
@@ -1390,22 +1396,22 @@ SimdArray<T, N> ldexp(const SimdArray<T, N> &x, const SimdArray<int, N> &e)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Forward_ldexp(), x, e);
 }
-Vc_FORWARD_UNARY_OPERATOR(log)
-Vc_FORWARD_UNARY_OPERATOR(log10)
-Vc_FORWARD_UNARY_OPERATOR(log2)
-Vc_FORWARD_UNARY_OPERATOR(reciprocal)
-Vc_FORWARD_UNARY_OPERATOR(round)
-Vc_FORWARD_UNARY_OPERATOR(rsqrt)
-Vc_FORWARD_UNARY_OPERATOR(sin)
+Vc_FORWARD_UNARY_OPERATOR(log);
+Vc_FORWARD_UNARY_OPERATOR(log10);
+Vc_FORWARD_UNARY_OPERATOR(log2);
+Vc_FORWARD_UNARY_OPERATOR(reciprocal);
+Vc_FORWARD_UNARY_OPERATOR(round);
+Vc_FORWARD_UNARY_OPERATOR(rsqrt);
+Vc_FORWARD_UNARY_OPERATOR(sin);
 template <typename T, std::size_t N>
 void sincos(const SimdArray<T, N> &x, SimdArray<T, N> *sin, SimdArray<T, N> *cos)
 {
     SimdArray<T, N>::callOperation(Common::Operations::Forward_sincos(), x, sin, cos);
 }
-Vc_FORWARD_UNARY_OPERATOR(sqrt)
-Vc_FORWARD_UNARY_OPERATOR(trunc)
-Vc_FORWARD_BINARY_OPERATOR(min)
-Vc_FORWARD_BINARY_OPERATOR(max)
+Vc_FORWARD_UNARY_OPERATOR(sqrt);
+Vc_FORWARD_UNARY_OPERATOR(trunc);
+Vc_FORWARD_BINARY_OPERATOR(min);
+Vc_FORWARD_BINARY_OPERATOR(max);
 #undef Vc_FORWARD_UNARY_OPERATOR
 #undef Vc_FORWARD_UNARY_BOOL_OPERATOR
 #undef Vc_FORWARD_BINARY_OPERATOR
@@ -1652,9 +1658,10 @@ Vc_INTRINSIC void vc_debug_(const char *, const char *, const T0 &, const Ts &..
         using R0 = typename Return::storage_type0;                                       \
         using R1 = typename Return::storage_type1;                                       \
         return {simd_cast<R0>(x, xs...), R1::Zero()};                                    \
-    }
-Vc_SIMDARRAY_CASTS(SimdArray, vector)
-Vc_SIMDARRAY_CASTS(SimdMaskArray, mask)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_SIMDARRAY_CASTS(SimdArray, vector);
+Vc_SIMDARRAY_CASTS(SimdMaskArray, mask);
 #undef Vc_SIMDARRAY_CASTS
 
 // simd_cast<SimdArray/-mask, offset>(V) {{{2
@@ -1707,9 +1714,10 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray, mask)
         using R1 = typename Return::storage_type1;                                       \
         constexpr int entries_offset = offset * Return::Size;                            \
         return {simd_cast_with_offset<R0, entries_offset>(x), R1::Zero()};               \
-    }
-Vc_SIMDARRAY_CASTS(SimdArray, vector)
-Vc_SIMDARRAY_CASTS(SimdMaskArray, mask)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_SIMDARRAY_CASTS(SimdArray, vector);
+Vc_SIMDARRAY_CASTS(SimdMaskArray, mask);
 #undef Vc_SIMDARRAY_CASTS
 
 // simd_cast<T>(xs...) from SimdArray/-mask {{{2
@@ -1813,9 +1821,10 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray, mask)
     {                                                                                    \
         vc_debug_("simd_cast{single bisectable2}(", ")\n", x);                           \
         return simd_cast<Return>(internal_data0(x), internal_data1(x));                  \
-    }
-Vc_SIMDARRAY_CASTS(SimdArray)
-Vc_SIMDARRAY_CASTS(SimdMaskArray)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_SIMDARRAY_CASTS(SimdArray);
+Vc_SIMDARRAY_CASTS(SimdMaskArray);
 #undef Vc_SIMDARRAY_CASTS
 
 // simd_cast<T, offset>(SimdArray/-mask) {{{2
@@ -1894,9 +1903,10 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray)
             r[i - offset * Return::Size] = static_cast<R>(x[i]);                         \
         }                                                                                \
         return r;                                                                        \
-    }
-Vc_SIMDARRAY_CASTS(SimdArray)
-Vc_SIMDARRAY_CASTS(SimdMaskArray)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_SIMDARRAY_CASTS(SimdArray);
+Vc_SIMDARRAY_CASTS(SimdMaskArray);
 #undef Vc_SIMDARRAY_CASTS
 // simd_cast_drop_arguments (definitions) {{{2
 template <typename Return, typename From>
@@ -2039,18 +2049,19 @@ Vc_INTRINSIC Vc_CONST Return
         SimdArray<T, N, V, VN> &lhs, M &&mask, U &&rhs)                                  \
     {                                                                                    \
         lhs(mask) op_ rhs;                                                               \
-    }
-Vc_CONDITIONAL_ASSIGN(          Assign,  =)
-Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=)
-Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=)
-Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=)
-Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=)
-Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=)
-Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=)
-Vc_CONDITIONAL_ASSIGN(       AndAssign, &=)
-Vc_CONDITIONAL_ASSIGN(        OrAssign, |=)
-Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=)
-Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(          Assign,  =);
+Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=);
+Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=);
+Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=);
+Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=);
+Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=);
+Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=);
+Vc_CONDITIONAL_ASSIGN(       AndAssign, &=);
+Vc_CONDITIONAL_ASSIGN(        OrAssign, |=);
+Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=);
+Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=);
 #undef Vc_CONDITIONAL_ASSIGN
 
 #define Vc_CONDITIONAL_ASSIGN(name_, expr_)                                              \
@@ -2059,11 +2070,12 @@ Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=)
     conditional_assign(SimdArray<T, N, V, VN> &lhs, M &&mask)                            \
     {                                                                                    \
         return expr_;                                                                    \
-    }
-Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++)
-Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask))
-Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--)
-Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask))
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++);
+Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask));
+Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--);
+Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask));
 #undef Vc_CONDITIONAL_ASSIGN
 // transpose_impl {{{1
 namespace Common

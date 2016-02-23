@@ -70,7 +70,7 @@ Vc_INTRINSIC Vc_CONST Scalar::double_v copysign(Scalar::double_v mag,
     {                                                                                    \
         return Scalar::V(std::max(x.data(), y.data()));                                  \
     }
-Vc_ALL_VECTOR_TYPES(Vc_MINMAX)
+Vc_ALL_VECTOR_TYPES(Vc_MINMAX);
 #undef Vc_MINMAX
 
 template<typename T> static Vc_ALWAYS_INLINE Scalar::Vector<T> sqrt (const Scalar::Vector<T> &x)
