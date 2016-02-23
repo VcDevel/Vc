@@ -1321,13 +1321,7 @@ static_assert(
     "result_vector_type does not work");
 
 #define Vc_BINARY_OPERATORS_(op_)                                                        \
-/**
-   \brief Applies op_ component-wise and concurrently.
-   \param lhs The left operand.
-   \param rhs The right operand.
-   \returns A SimdArray object containing the results of component-wise application of
-   op_.
- */ \
+    /*!\brief Applies op_ component-wise and concurrently.  */                           \
     template <typename L, typename R>                                                    \
     Vc_INTRINSIC result_vector_type<L, R> operator op_(L &&lhs, R &&rhs)                 \
     {                                                                                    \
@@ -1357,13 +1351,7 @@ Vc_ALL_BINARY(Vc_BINARY_OPERATORS_);
 ///@}
 #undef Vc_BINARY_OPERATORS_
 #define Vc_BINARY_OPERATORS_(op_)                                                        \
-/**
-   \brief Applies op_ component-wise and concurrently.
-   \param lhs The left operand.
-   \param rhs The right operand.
-   \returns A SimdMaskArray object containing the results of component-wise application of
-   op_.
- */ \
+    /*!\brief Applies op_ component-wise and concurrently.  */                           \
     template <typename L, typename R>                                                    \
     Vc_INTRINSIC typename result_vector_type<L, R>::mask_type operator op_(L &&lhs,      \
                                                                            R &&rhs)      \
@@ -1395,6 +1383,7 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
 
 // math functions {{{1
 #define Vc_FORWARD_UNARY_OPERATOR(name_)                                                 \
+    /*!\brief Applies the std::name_ function component-wise and concurrently. */        \
     template <typename T, std::size_t N, typename V, std::size_t M>                      \
     inline SimdArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x)                   \
     {                                                                                    \
@@ -1404,6 +1393,7 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
     Vc_NOTHING_EXPECTING_SEMICOLON
 
 #define Vc_FORWARD_UNARY_BOOL_OPERATOR(name_)                                            \
+    /*!\brief Applies the std::name_ function component-wise and concurrently. */        \
     template <typename T, std::size_t N, typename V, std::size_t M>                      \
     inline SimdMaskArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x)               \
     {                                                                                    \
@@ -1413,6 +1403,7 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
     Vc_NOTHING_EXPECTING_SEMICOLON
 
 #define Vc_FORWARD_BINARY_OPERATOR(name_)                                                \
+    /*!\brief Applies the std::name_ function component-wise and concurrently. */        \
     template <typename T, std::size_t N, typename V, std::size_t M>                      \
     inline SimdArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x,                   \
                                        const SimdArray<T, N, V, M> &y)                   \
@@ -1424,6 +1415,7 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
 
 /**
  * \name Math functions
+ * These functions evaluate the 
  */
 ///@{
 Vc_FORWARD_UNARY_OPERATOR(abs);
@@ -1436,7 +1428,7 @@ Vc_FORWARD_UNARY_OPERATOR(cos);
 Vc_FORWARD_UNARY_OPERATOR(exp);
 Vc_FORWARD_UNARY_OPERATOR(exponent);
 Vc_FORWARD_UNARY_OPERATOR(floor);
-///@}
+/// Applies the std::fma function component-wise and concurrently.
 template <typename T, std::size_t N>
 SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b,
                     const SimdArray<T, N> &c)
@@ -1447,11 +1439,13 @@ Vc_FORWARD_UNARY_BOOL_OPERATOR(isfinite);
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isinf);
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isnan);
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isnegative);
+/// Applies the std::frexp function component-wise and concurrently.
 template <typename T, std::size_t N>
 SimdArray<T, N> frexp(const SimdArray<T, N> &x, SimdArray<int, N> *e)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Forward_frexp(), x, e);
 }
+/// Applies the std::ldexp function component-wise and concurrently.
 template <typename T, std::size_t N>
 SimdArray<T, N> ldexp(const SimdArray<T, N> &x, const SimdArray<int, N> &e)
 {
@@ -1464,6 +1458,7 @@ Vc_FORWARD_UNARY_OPERATOR(reciprocal);
 Vc_FORWARD_UNARY_OPERATOR(round);
 Vc_FORWARD_UNARY_OPERATOR(rsqrt);
 Vc_FORWARD_UNARY_OPERATOR(sin);
+/// Determines sine and cosine concurrently and component-wise on \p x.
 template <typename T, std::size_t N>
 void sincos(const SimdArray<T, N> &x, SimdArray<T, N> *sin, SimdArray<T, N> *cos)
 {
@@ -1473,6 +1468,7 @@ Vc_FORWARD_UNARY_OPERATOR(sqrt);
 Vc_FORWARD_UNARY_OPERATOR(trunc);
 Vc_FORWARD_BINARY_OPERATOR(min);
 Vc_FORWARD_BINARY_OPERATOR(max);
+///@}
 #undef Vc_FORWARD_UNARY_OPERATOR
 #undef Vc_FORWARD_UNARY_BOOL_OPERATOR
 #undef Vc_FORWARD_BINARY_OPERATOR
