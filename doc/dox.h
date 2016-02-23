@@ -517,7 +517,7 @@ results with less precision than what the FPU calculates.
 
 \addtogroup SimdArray
 
-This set of (template) classes and associated functions and operators enables
+This set of class templates and associated functions and operators enables
 data-parallel algorithms and data structures requiring a user-defined number of elements
 (fixed at compile time, in contrast to \c std::valarray where the number of elements is
  only determined at run time).

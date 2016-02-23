@@ -469,7 +469,7 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
 // generic SimdArray {{{1
 /**
  * \ingroup SimdArray
- * Data-parallel type with (somewhat) arbitrary number of components.
+ * Data-parallel type with (somewhat) arbitrary number of elements.
  */
 template <typename T, std::size_t N, typename VectorType, std::size_t>
 class alignas(
@@ -508,6 +508,17 @@ public:
     using value_type = T;
     using mask_type = SimdMaskArray<T, N, vector_type>;
     using index_type = SimdArray<int, N>;
+
+    /**
+     * Returns \p N, the number of scalar components in an object of this type.
+     *
+     * The size of the SimdArray, i.e. the number of scalar elements in the vector. In
+     * contrast to Vector::size() you have control over this value via the \p N template
+     * parameter of the SimdArray class template.
+     *
+     * \returns The number of scalar values stored and manipulated concurrently by objects
+     * of this type.
+     */
     static constexpr std::size_t size() { return N; }
     using Mask = mask_type;
     using MaskType = Mask;
@@ -1310,16 +1321,49 @@ static_assert(
     "result_vector_type does not work");
 
 #define Vc_BINARY_OPERATORS_(op_)                                                        \
+/**
+   \brief Applies op_ component-wise and concurrently.
+   \param lhs The left operand.
+   \param rhs The right operand.
+   \returns A SimdArray object containing the results of component-wise application of
+   op_.
+ */ \
     template <typename L, typename R>                                                    \
     Vc_INTRINSIC result_vector_type<L, R> operator op_(L &&lhs, R &&rhs)                 \
     {                                                                                    \
         using Return = result_vector_type<L, R>;                                         \
         return Return(std::forward<L>(lhs)) op_ Return(std::forward<R>(rhs));            \
     }
+/**
+ * \name Arithmetic and Bitwise Operators
+ *
+ * Applies the operator component-wise and concurrently on \p lhs and \p rhs and returns
+ * a new SimdArray object containing the result values.
+ *
+ * This operator only participates in overload resolution if:
+ * \li At least one of the template parameters \p L or \p R is a SimdArray type.
+ * \li Either \p L or \p R is a fundamental arithmetic type but not an integral type
+ *     larger than \c int \n
+ *     or \n
+ *     \p L or \p R is a Vc::Vector type with equal number of elements (Vector::size() ==
+ *     SimdArray::size()).
+ *
+ * The return type of the operator is a SimdArray type using the more precise EntryType of
+ * \p L or \p R and the same number of elements as the SimdArray argument(s).
+ */
+///@{
 Vc_ALL_ARITHMETICS(Vc_BINARY_OPERATORS_);
 Vc_ALL_BINARY(Vc_BINARY_OPERATORS_);
+///@}
 #undef Vc_BINARY_OPERATORS_
 #define Vc_BINARY_OPERATORS_(op_)                                                        \
+/**
+   \brief Applies op_ component-wise and concurrently.
+   \param lhs The left operand.
+   \param rhs The right operand.
+   \returns A SimdMaskArray object containing the results of component-wise application of
+   op_.
+ */ \
     template <typename L, typename R>                                                    \
     Vc_INTRINSIC typename result_vector_type<L, R>::mask_type operator op_(L &&lhs,      \
                                                                            R &&rhs)      \
@@ -1327,7 +1371,26 @@ Vc_ALL_BINARY(Vc_BINARY_OPERATORS_);
         using Promote = result_vector_type<L, R>;                                        \
         return Promote(std::forward<L>(lhs)) op_ Promote(std::forward<R>(rhs));          \
     }
+/**
+ * \name Compare Operators
+ *
+ * Applies the operator component-wise and concurrently on \p lhs and \p rhs and returns
+ * a new SimdMaskArray object containing the result values.
+ *
+ * This operator only participates in overload resolution if (same rules as above):
+ * \li At least one of the template parameters \p L or \p R is a SimdArray type.
+ * \li Either \p L or \p R is a fundamental arithmetic type but not an integral type
+ *     larger than \c int \n
+ *     or \n
+ *     \p L or \p R is a Vc::Vector type with equal number of elements (Vector::size() ==
+ *     SimdArray::size()).
+ *
+ * The return type of the operator is a SimdMaskArray type using the more precise EntryType of
+ * \p L or \p R and the same number of elements as the SimdArray argument(s).
+ */
+///@{
 Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
+///@}
 #undef Vc_BINARY_OPERATORS_
 
 // math functions {{{1
@@ -1359,6 +1422,10 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
 
+/**
+ * \name Math functions
+ */
+///@{
 Vc_FORWARD_UNARY_OPERATOR(abs);
 Vc_FORWARD_UNARY_OPERATOR(asin);
 Vc_FORWARD_UNARY_OPERATOR(atan);
@@ -1369,6 +1436,7 @@ Vc_FORWARD_UNARY_OPERATOR(cos);
 Vc_FORWARD_UNARY_OPERATOR(exp);
 Vc_FORWARD_UNARY_OPERATOR(exponent);
 Vc_FORWARD_UNARY_OPERATOR(floor);
+///@}
 template <typename T, std::size_t N>
 SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b,
                     const SimdArray<T, N> &c)
