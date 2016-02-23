@@ -517,11 +517,35 @@ results with less precision than what the FPU calculates.
 
 \addtogroup SimdArray
 
-This set of (template) classes provides types that allow an arbitrarily sized set of
-values of an arithmetic type, much like a \c std::array. But in contrast to \c
-std::array the types behave like the SIMD vector types, implementing all needed
-operators and functions.
+This set of (template) classes and associated functions and operators enables
+data-parallel algorithms and data structures requiring a user-defined number of elements
+(fixed at compile time, in contrast to \c std::valarray where the number of elements is
+ only determined at run time).
+The main motivation for a user-defined number of elements is the need for type conversion
+and thus a guaranteed equal number of elements in data-parallel vectors for e.g. \c float
+and \c int.
+A typical pattern looks like this:
+\code
+using floatv = Vc::float_v;
+using doublev = Vc::SimdArray<double, floatv::size()>;
+using intv = Vc::SimdArray<int, floatv::size()>;
+using uintv = Vc::SimdArray<unsigned int, floatv::size()>;
+\endcode
 
+The second motivation for a user-defined number of elements is that many vertical
+vectorizations require a fixed number of elements (i.e. number known at development time
+and not chosen at compile time).
+The implementation can then choose how to support this number most efficiently with the
+available hardware resources.
+Consider, for example, a need for processing 12 values in parallel.
+On x86 with AVX, the implementation could build such a type from one AVX and one SSE register.
+
+In contrast to \c std::array the types behave like the Vc::Vector types, implementing the same
+operators and functions.
+The semantics with regard to implicit conversions differ slightly:
+The Vc::Vector conversion rules are safer with regard to source compatibility.
+The Vc::SimdArray conversion rules are less strict and could potentially lead to portability issues.
+Therefore, it is best to stick to the pattern of type aliases shown above.
 */
 
 /**
