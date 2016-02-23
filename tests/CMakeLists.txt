@@ -452,8 +452,11 @@ if(TEST_OPERATOR_FAILURES)
                   ${CMAKE_CURRENT_SOURCE_DIR}/implicit_type_conversion_failures.cpp
                   )
                set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY LABELS "${impl}")
-               set_tests_properties("${Vc_TEST_TARGET_PREFIX}${name}" PROPERTIES
-                  PASS_REGULAR_EXPRESSION "error: invalid operands to binary expression;error: no match for 'operator..?' ;error: invalid operands of types '.*' and '.*' to binary 'operator.'"
+               set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY PASS_REGULAR_EXPRESSION
+                  "error: no operator .* matches these operands" # ICC
+                  "error: invalid operands to binary expression" # Clang
+                  "error: no match for 'operator..?' "           # GCC
+                  "error: invalid operands of types '.*' and '.*' to binary 'operator.'" # GCC
                   )
             endforeach()
             set(type_b ${A})
