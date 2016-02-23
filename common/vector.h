@@ -155,13 +155,10 @@ public:
      * Returns the number of scalar components (\VSize{T}) in a vector of this type.
      *
      * The size of the vector. I.e. the number of scalar entries in the vector. Do not
-     * make any assumptions about the size of vectors. If you need a vector of float vs.
-     * integer of the same size make use of IndexType instead. Note that this still does
-     * not guarantee the same size (e.g. double_v on SSE has two entries but there exists
-     * no 64 bit integer vector type in Vc - which would have two entries; thus
-     * double_v::IndexType is uint_v).
+     * make any assumptions about the size of vectors. If you need vectors of \c float and
+     * \c int types use Vector::IndexType or SimdArray.
      *
-     * In addition, you can easily use if clauses that compare sizes. The compiler can
+     * You can easily use if clauses to compare Vector sizes. The compiler can
      * statically evaluate and fully optimize dead code away (very much like \#ifdef, but
      * with syntax checking).
      *
