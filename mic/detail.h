@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_MIC_DETAIL_H_
 #define VC_MIC_DETAIL_H_
 
-#include "macros.h"
+#include "casts.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -140,6 +140,31 @@ Vc_INTRINSIC    int max(__m512i a,    int) { return _mm512_reduce_max_epi32(a); 
 Vc_INTRINSIC   uint max(__m512i a,   uint) { return _mm512_reduce_max_epi32(a); }
 Vc_INTRINSIC  short max(__m512i a,  short) { return _mm512_reduce_max_epi32(a); }
 Vc_INTRINSIC ushort max(__m512i a, ushort) { return _mm512_reduce_max_epi32(a); }
+
+// abs{{{1
+Vc_INTRINSIC __m512d abs(__m512d a, double)
+{
+    const __m512i absMask =
+        _mm512_set_4to16_epi32(0xffffffff, 0x7fffffff, 0xffffffff, 0x7fffffff);
+    return MIC::mic_cast<__m512d>(_mm512_and_epi32(MIC::mic_cast<__m512i>(a), absMask));
+}
+Vc_INTRINSIC __m512 abs(__m512 a, float)
+{
+    const __m512i absMask = _mm512_set_1to16_epi32(0x7fffffff);
+    return MIC::mic_cast<__m512>(_mm512_and_epi32(MIC::mic_cast<__m512i>(a), absMask));
+}
+Vc_INTRINSIC __m512i abs(__m512i a, int)
+{
+    const __m512i minusOne = _mm512_set_1to16_epi32(-1);
+    return _mm512_mask_mullo_epi32(a, _mm512_cmplt_epi32_mask(a, zero<__m512i>()), a,
+                                   minusOne);
+}
+Vc_INTRINSIC __m512i abs(__m512i a, short)
+{
+    const __m512i minusOne = _mm512_set_1to16_epi32(-1);
+    return _mm512_mask_mullo_epi32(a, _mm512_cmplt_epi32_mask(a, zero<__m512i>()), a,
+                                   minusOne);
+}
 
 //}}}1
 }  // namespace Detail

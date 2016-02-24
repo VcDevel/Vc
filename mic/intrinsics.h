@@ -390,7 +390,6 @@ template<> struct DetermineVectorEntryType<long long> { typedef int Type; };
 template<> struct DetermineVectorEntryType<unsigned long long> { typedef unsigned int Type; };
 
 template <typename T> struct SwizzledVector;
-template <typename T> struct VectorHelper;
 template <typename T> class VectorMultiplication;
 
 alignas(16) extern const char _IndexesFromZero[16];

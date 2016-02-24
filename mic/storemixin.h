@@ -44,12 +44,6 @@ private:
     typedef typename DetermineVectorEntryType<T>::Type VectorEntryType;
     typedef MIC::Mask<T> Mask;
 
-    // helper that specializes on VectorType
-    typedef VectorHelper<VectorType> HV;
-
-    // helper that specializes on T
-    typedef VectorHelper<VectorEntryType> HT;
-
     template<typename MemType> using UpDownC = UpDownConversion<VectorEntryType, typename std::decay<MemType>::type>;
 
     VectorType  data() const { return static_cast<const Parent *>(this)->data(); }

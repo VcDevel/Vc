@@ -38,7 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "casts.h"
 #include "../common/storage.h"
 #include "mask.h"
-#include "vectorhelper.h"
 #include "storemixin.h"
 //#include "vectormultiplication.h"
 #include "writemaskedvector.h"
@@ -101,9 +100,6 @@ public:
     inline VectorType &data() { return d.v(); }
 
 protected:
-    // helper that specializes on T
-    typedef MIC::VectorHelper<VectorEntryType> HT;
-
     typedef Common::VectorMemoryUnion<VectorType, VectorEntryType> StorageType;
     StorageType d;
     Vc_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
@@ -356,48 +352,64 @@ Vc_INTRINSIC MIC::short_v  max(const MIC::short_v  &x, const MIC::short_v  &y) {
 Vc_INTRINSIC MIC::ushort_v max(const MIC::ushort_v &x, const MIC::ushort_v &y) { return _mm512_max_epu32(x.data(), y.data()); }
 Vc_INTRINSIC MIC::float_v  max(const MIC::float_v  &x, const MIC::float_v  &y) { return _mm512_max_ps   (x.data(), y.data()); }
 Vc_INTRINSIC MIC::double_v max(const MIC::double_v &x, const MIC::double_v &y) { return _mm512_max_pd   (x.data(), y.data()); }
+
+Vc_ALWAYS_INLINE MIC::double_v atan2(MIC::double_v x, MIC::double_v y)
+{
+    return _mm512_atan2_pd(x.data(), y.data());
+}
+Vc_ALWAYS_INLINE MIC::float_v atan2(MIC::float_v x, MIC::float_v y)
+{
+    return _mm512_atan2_ps(x.data(), y.data());
+}
+
 template <typename T>
-static inline MIC::Vector<T> atan2(MIC::Vector<T> x, MIC::Vector<T> y)
+Vc_ALWAYS_INLINE Vc_CONST enable_if<std::is_signed<T>::value, MIC::Vector<T>> abs(
+    MIC::Vector<T> x)
 {
-    return MIC::VectorHelper<typename MIC::Vector<T>::VectorEntryType>::atan2(x.data(),
-                                                                              y.data());
+    return Detail::abs(x.data(), T());
 }
 
-template <typename T,
-          typename =
-              enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
-                        std::is_same<T, short>::value || std::is_same<T, int>::value>>
-Vc_ALWAYS_INLINE Vc_PURE MIC::Vector<T> abs(MIC::Vector<T> x)
-{
-    return MIC::VectorHelper<typename MIC::Vector<T>::VectorEntryType>::abs(x.data());
-}
-
-#define Vc_MATH_OP1(name, call)                                                          \
-    template <typename T> static Vc_ALWAYS_INLINE Vector<T> name(const Vector<T> &x)     \
+#define Vc_MATH_OP1(name_, call_)                                                        \
+    Vc_ALWAYS_INLINE MIC::double_v name_(MIC::double_v x)                                \
     {                                                                                    \
-        typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT;               \
-        return HT::call(x.data());                                                       \
-    }
-    Vc_MATH_OP1(sqrt, sqrt)
-    Vc_MATH_OP1(rsqrt, rsqrt)
-    Vc_MATH_OP1(sin, sin)
-    Vc_MATH_OP1(cos, cos)
-    Vc_MATH_OP1(log, log)
-    Vc_MATH_OP1(log2, log2)
-    Vc_MATH_OP1(log10, log10)
-    Vc_MATH_OP1(atan, atan)
-    Vc_MATH_OP1(reciprocal, recip)
-    Vc_MATH_OP1(round, round)
-    Vc_MATH_OP1(asin, asin)
-    Vc_MATH_OP1(floor, floor)
-    Vc_MATH_OP1(ceil, ceil)
-    Vc_MATH_OP1(exp, exp)
+        return _mm512_##call_##_pd(x.data());                                            \
+    }                                                                                    \
+    Vc_ALWAYS_INLINE MIC::float_v name_(MIC::float_v x)                                  \
+    {                                                                                    \
+        return _mm512_##call_##_ps(x.data());                                            \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+    Vc_MATH_OP1(sqrt, sqrt);
+    Vc_MATH_OP1(rsqrt, rsqrt);
+    Vc_MATH_OP1(sin, sin);
+    Vc_MATH_OP1(cos, cos);
+    Vc_MATH_OP1(log, log);
+    Vc_MATH_OP1(log2, log2);
+    Vc_MATH_OP1(log10, log10);
+    Vc_MATH_OP1(atan, atan);
+    Vc_MATH_OP1(reciprocal, recip);
+    Vc_MATH_OP1(asin, asin);
+    Vc_MATH_OP1(floor, floor);
+    Vc_MATH_OP1(ceil, ceil);
+    Vc_MATH_OP1(exp, exp);
 #undef Vc_MATH_OP1
+    Vc_ALWAYS_INLINE MIC::double_v round(MIC::double_v x)
+    {
+        return _mm512_roundfxpnt_adjust_pd(x.data(), _MM_FROUND_TO_NEAREST_INT,
+                                           _MM_EXPADJ_NONE);
+    }
+    Vc_ALWAYS_INLINE MIC::float_v round(MIC::float_v x)
+    {
+        return _mm512_round_ps(x.data(), _MM_FROUND_TO_NEAREST_INT, _MM_EXPADJ_NONE);
+    }
+    template <typename T> Vc_ALWAYS_INLINE MIC::Vector<T> round(MIC::Vector<T> x)
+    {
+        return x;
+    }
 
-    template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *sin, Vector<T> *cos) {
-        typedef MIC::VectorHelper<typename Vector<T>::VectorEntryType> HT; \
-        *sin = HT::sin(x.data());
-        *cos = HT::cos(x.data());
+    template<typename T> static inline void sincos(const Vector<T> &x, Vector<T> *s, Vector<T> *c) {
+        *s = sin(x);
+        *c = cos(x);
     }
 
 #define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \
