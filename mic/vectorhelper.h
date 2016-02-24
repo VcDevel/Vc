@@ -71,13 +71,7 @@ template<> struct VectorHelper<double> {
     typedef double EntryType;
     typedef __m512d VectorType;
 #define Vc_SUFFIX pd
-    static Vc_INTRINSIC VectorType zero() { return Vc_CAT2(_mm512_setzero_, Vc_SUFFIX)(); }
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to8_, Vc_SUFFIX)(x); }
-
-    static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_pd(a); }
-    static Vc_INTRINSIC EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_pd(a); }
-    static Vc_INTRINSIC EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_pd(a); }
-    static Vc_INTRINSIC EntryType reduce_add(const VectorType &a) { return _mm512_reduce_add_pd(a); }
 
     static Vc_INTRINSIC VectorType abs(VectorType a) {
         const __m512i absMask = _mm512_set_4to16_epi32(0xffffffff, 0x7fffffff, 0xffffffff, 0x7fffffff);
@@ -101,13 +95,7 @@ template<> struct VectorHelper<float> {
     typedef float EntryType;
     typedef __m512 VectorType;
 #define Vc_SUFFIX ps
-    static Vc_INTRINSIC VectorType zero() { return Vc_CAT2(_mm512_setzero_, Vc_SUFFIX)(); }
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to16_, Vc_SUFFIX)(x); }
-
-    static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_ps(a); }
-    static Vc_INTRINSIC EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_ps(a); }
-    static Vc_INTRINSIC EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_ps(a); }
-    static Vc_INTRINSIC EntryType reduce_add(const VectorType &a) { return _mm512_reduce_add_ps(a); }
 
     static Vc_INTRINSIC VectorType abs(VectorType a) {
         const __m512i absMask = _mm512_set_1to16_epi32(0x7fffffff);
@@ -133,11 +121,6 @@ template<> struct VectorHelper<int> {
 #define Vc_SUFFIX epi32
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to16_, Vc_SUFFIX)(x); }
 
-    static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_epi32(a); }
-    static Vc_INTRINSIC EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_epi32(a); }
-    static Vc_INTRINSIC EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_epi32(a); }
-    static Vc_INTRINSIC EntryType reduce_add(const VectorType &a) { return _mm512_reduce_add_epi32(a); }
-
     static Vc_INTRINSIC VectorType abs(VectorType a) {
         VectorType zero = mic_cast<VectorType>(_mm512_setzero());
         const VectorType minusOne = _mm512_set_1to16_epi32( -1 );
@@ -154,11 +137,6 @@ template<> struct VectorHelper<unsigned int> {
     typedef unsigned int EntryType;
     typedef __m512i VectorType;
 #define Vc_SUFFIX epu32
-    static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_epi32(a); }
-    static Vc_INTRINSIC EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_epi32(a); }
-    static Vc_INTRINSIC EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_epi32(a); }
-    static Vc_INTRINSIC EntryType reduce_add(const VectorType &a) { return _mm512_reduce_add_epi32(a); }
-
     Vc_OP(max) Vc_OP(min)
 #undef Vc_SUFFIX
 #define Vc_SUFFIX epi32

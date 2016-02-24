@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "writemaskedvector.h"
 #include "sorthelper.h"
 #include "../common/where.h"
+#include "detail.h"
 #include "macros.h"
 
 #ifdef isfinite
@@ -253,10 +254,10 @@ public:
         return MIC::WriteMaskedVector<T>(this, k);
     }
 
-    inline EntryType min() const { return HT::reduce_min(d.v()); }
-    inline EntryType max() const { return HT::reduce_max(d.v()); }
-    inline EntryType product() const { return HT::reduce_mul(d.v()); }
-    inline EntryType sum() const { return HT::reduce_add(d.v()); }
+    Vc_ALWAYS_INLINE EntryType min() const { return Detail::min(d.v(), EntryType()); }
+    Vc_ALWAYS_INLINE EntryType max() const { return Detail::max(d.v(), EntryType()); }
+    Vc_ALWAYS_INLINE EntryType product() const { return Detail::mul(d.v(), EntryType()); }
+    Vc_ALWAYS_INLINE EntryType sum() const { return Detail::add(d.v(), EntryType()); }
     Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
     inline EntryType min(MaskArgument m) const;
     inline EntryType max(MaskArgument m) const;
