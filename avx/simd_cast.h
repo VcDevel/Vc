@@ -1310,7 +1310,8 @@ Vc_SIMD_CAST_AVX_2(double_v,  short_v) {
     return AVX::zeroExtend(_mm_packs_epi32(tmp0, tmp1));
 }
 Vc_SIMD_CAST_AVX_2( float_v,  short_v) {
-    using namespace AVX2;
+    using AVX2::short_v;
+    using AVX2::int_v;
     return simd_cast<short_v>(simd_cast<int_v>(x0), simd_cast<int_v>(x1));
 }
 Vc_SIMD_CAST_AVX_2(   int_v,  short_v) {
@@ -1373,7 +1374,8 @@ Vc_SIMD_CAST_AVX_2(double_v, ushort_v) {
     return AVX::zeroExtend(_mm_packs_epi32(tmp0, tmp1));
 }
 Vc_SIMD_CAST_AVX_2( float_v, ushort_v) {
-    using namespace AVX2;
+    using AVX2::ushort_v;
+    using AVX2::int_v;
     return simd_cast<ushort_v>(simd_cast<int_v>(x0), simd_cast<int_v>(x1));
 }
 Vc_SIMD_CAST_AVX_2(   int_v, ushort_v) {
