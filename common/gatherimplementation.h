@@ -82,6 +82,7 @@ Vc_ALWAYS_INLINE void executeGather(BitScanLoopT,
                                     const IT &indexes,
                                     typename V::MaskArgument mask)
 {
+#ifdef Vc_GNU_ASM
     size_t bits = mask.toInt();
     while (Vc_IS_LIKELY(bits > 0)) {
         size_t i, j;
@@ -93,15 +94,15 @@ Vc_ALWAYS_INLINE void executeGather(BitScanLoopT,
         v[i] = mem[indexes[i]];
         v[j] = mem[indexes[j]];
     }
-
-    /* Alternative from Vc::SSE (0.7)
+#else
+    // Alternative from Vc::SSE (0.7)
     int bits = mask.toInt();
     while (bits) {
         const int i = _bit_scan_forward(bits);
-        bits &= ~(1 << i); // btr?
-        d.set(i, ith_value(i));
+	bits &= bits - 1;
+	v[i] = mem[indexes[i]];
     }
-    */
+#endif  // Vc_GNU_ASM
 }
 
 template <typename V, typename MT, typename IT>
