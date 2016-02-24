@@ -36,18 +36,6 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Detail
 {
 // bitwise operators {{{1
-Vc_INTRINSIC __m512  xor_(__m512  a, __m512  b) { return MIC::_xor(a, b); }
-Vc_INTRINSIC __m512d xor_(__m512d a, __m512d b) { return MIC::_xor(a, b); }
-Vc_INTRINSIC __m512i xor_(__m512i a, __m512i b) { return _mm512_xor_si512(a, b); }
-
-Vc_INTRINSIC __m512  and_(__m512  a, __m512  b) { return MIC::_and(a, b); }
-Vc_INTRINSIC __m512d and_(__m512d a, __m512d b) { return MIC::_and(a, b); }
-Vc_INTRINSIC __m512i and_(__m512i a, __m512i b) { return _mm512_and_si512(a, b); }
-
-Vc_INTRINSIC __m512  or_(__m512  a, __m512  b) { return MIC::_or(a, b); }
-Vc_INTRINSIC __m512d or_(__m512d a, __m512d b) { return MIC::_or(a, b); }
-Vc_INTRINSIC __m512i or_(__m512i a, __m512i b) { return _mm512_or_si512(a, b); }
-
 template <typename T>
 Vc_INTRINSIC MIC::Vector<T> operator^(MIC::Vector<T> a, MIC::Vector<T> b)
 {
@@ -63,7 +51,7 @@ Vc_INTRINSIC MIC::Vector<T> operator|(MIC::Vector<T> a, MIC::Vector<T> b)
 {
     return or_(a.data(), b.data());
 }
-// }}}1
+
 // compare operators {{{1
 Vc_INTRINSIC MIC::double_m operator==(MIC::double_v a, MIC::double_v b) { return _mm512_cmp_pd_mask(a.data(), b.data(), _CMP_EQ_OQ); }
 Vc_INTRINSIC MIC:: float_m operator==(MIC:: float_v a, MIC:: float_v b) { return _mm512_cmp_ps_mask(a.data(), b.data(), _CMP_EQ_OQ); }
@@ -118,44 +106,6 @@ Vc_INTRINSIC MIC::uchar_m operator<=(MIC::uchar_v a, MIC::uchar_v b) { return _m
 Vc_INTRINSIC MIC::uchar_m operator< (MIC::uchar_v a, MIC::uchar_v b) { return _mm512_cmplt_epu32_mask (and_(a.data(), MIC::_set1(0xff)), and_(b.data(), MIC::_set1(0xff))); }
 
 // arithmetic operators {{{1
-Vc_INTRINSIC __m512  add(__m512  a, __m512  b, float ) { return _mm512_add_ps(a, b); }
-Vc_INTRINSIC __m512d add(__m512d a, __m512d b, double) { return _mm512_add_pd(a, b); }
-Vc_INTRINSIC __m512i add(__m512i a, __m512i b, int   ) { return _mm512_add_epi32(a, b); }
-Vc_INTRINSIC __m512i add(__m512i a, __m512i b, uint  ) { return _mm512_add_epi32(a, b); }
-Vc_INTRINSIC __m512i add(__m512i a, __m512i b, short ) { return _mm512_add_epi32(a, b); }
-Vc_INTRINSIC __m512i add(__m512i a, __m512i b, ushort) { return _mm512_add_epi32(a, b); }
-
-Vc_INTRINSIC __m512  sub(__m512  a, __m512  b, float ) { return _mm512_sub_ps(a, b); }
-Vc_INTRINSIC __m512d sub(__m512d a, __m512d b, double) { return _mm512_sub_pd(a, b); }
-Vc_INTRINSIC __m512i sub(__m512i a, __m512i b, int   ) { return _mm512_sub_epi32(a, b); }
-Vc_INTRINSIC __m512i sub(__m512i a, __m512i b, uint  ) { return _mm512_sub_epi32(a, b); }
-Vc_INTRINSIC __m512i sub(__m512i a, __m512i b, short ) { return _mm512_sub_epi32(a, b); }
-Vc_INTRINSIC __m512i sub(__m512i a, __m512i b, ushort) { return _mm512_sub_epi32(a, b); }
-
-Vc_INTRINSIC __m512  mul(__m512  a, __m512  b, float ) { return _mm512_mul_ps(a, b); }
-Vc_INTRINSIC __m512d mul(__m512d a, __m512d b, double) { return _mm512_mul_pd(a, b); }
-Vc_INTRINSIC __m512i mul(__m512i a, __m512i b, int   ) { return _mm512_mullo_epi32(a, b); }
-Vc_INTRINSIC __m512i mul(__m512i a, __m512i b, uint  ) { return _mm512_mullo_epi32(a, b); }
-Vc_INTRINSIC __m512i mul(__m512i a, __m512i b, short ) { return _mm512_mullo_epi32(a, b); }
-Vc_INTRINSIC __m512i mul(__m512i a, __m512i b, ushort) { return _mm512_mullo_epi32(a, b); }
-
-Vc_INTRINSIC __m512  div(__m512  a, __m512  b, float ) { return _mm512_div_ps(a, b); }
-Vc_INTRINSIC __m512d div(__m512d a, __m512d b, double) { return _mm512_div_pd(a, b); }
-Vc_INTRINSIC __m512i div(__m512i a, __m512i b, int   ) { return _mm512_div_epi32(a, b); }
-Vc_INTRINSIC __m512i div(__m512i a, __m512i b, uint  ) { return _mm512_div_epu32(a, b); }
-Vc_INTRINSIC __m512i div(__m512i a, __m512i b, short ) { return _mm512_div_epi32(a, b); }
-Vc_INTRINSIC __m512i div(__m512i a, __m512i b, ushort) {
-    // this specialization is required because overflow is well defined (mod 2^16) for
-    // unsigned short, but a / b is not independent of the high bits (in contrast to mul,
-    // add, and sub)
-    return div(and_(a, MIC::_set1(0xffff)), and_(b, MIC::_set1(0xffff)), uint());
-}
-
-Vc_INTRINSIC __m512i rem(__m512i a, __m512i b, int   ) { return _mm512_rem_epi32(a, b); }
-Vc_INTRINSIC __m512i rem(__m512i a, __m512i b, uint  ) { return _mm512_rem_epu32(a, b); }
-Vc_INTRINSIC __m512i rem(__m512i a, __m512i b, short ) { return _mm512_rem_epi32(a, b); }
-Vc_INTRINSIC __m512i rem(__m512i a, __m512i b, ushort) { return _mm512_rem_epu32(and_(a, MIC::_set1(0xffff)), and_(b, MIC::_set1(0xffff))); }
-
 template <typename T>
 Vc_INTRINSIC MIC::Vector<T> operator+(MIC::Vector<T> a, MIC::Vector<T> b)
 {
