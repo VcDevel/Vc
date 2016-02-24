@@ -33,6 +33,158 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace Detail
+{
+// bitwise operators {{{1
+Vc_INTRINSIC __m512  xor_(__m512  a, __m512  b) { return MIC::_xor(a, b); }
+Vc_INTRINSIC __m512d xor_(__m512d a, __m512d b) { return MIC::_xor(a, b); }
+Vc_INTRINSIC __m512i xor_(__m512i a, __m512i b) { return _mm512_xor_si512(a, b); }
+
+Vc_INTRINSIC __m512  and_(__m512  a, __m512  b) { return MIC::_and(a, b); }
+Vc_INTRINSIC __m512d and_(__m512d a, __m512d b) { return MIC::_and(a, b); }
+Vc_INTRINSIC __m512i and_(__m512i a, __m512i b) { return _mm512_and_si512(a, b); }
+
+Vc_INTRINSIC __m512  or_(__m512  a, __m512  b) { return MIC::_or(a, b); }
+Vc_INTRINSIC __m512d or_(__m512d a, __m512d b) { return MIC::_or(a, b); }
+Vc_INTRINSIC __m512i or_(__m512i a, __m512i b) { return _mm512_or_si512(a, b); }
+
+template <typename T>
+Vc_INTRINSIC MIC::Vector<T> operator^(MIC::Vector<T> a, MIC::Vector<T> b)
+{
+    return xor_(a.data(), b.data());
+}
+template <typename T>
+Vc_INTRINSIC MIC::Vector<T> operator&(MIC::Vector<T> a, MIC::Vector<T> b)
+{
+    return and_(a.data(), b.data());
+}
+template <typename T>
+Vc_INTRINSIC MIC::Vector<T> operator|(MIC::Vector<T> a, MIC::Vector<T> b)
+{
+    return or_(a.data(), b.data());
+}
+// }}}1
+// compare operators {{{1
+Vc_INTRINSIC MIC::double_m operator==(MIC::double_v a, MIC::double_v b) { return _mm512_cmp_pd_mask(a.data(), b.data(), _CMP_EQ_OQ); }
+Vc_INTRINSIC MIC:: float_m operator==(MIC:: float_v a, MIC:: float_v b) { return _mm512_cmp_ps_mask(a.data(), b.data(), _CMP_EQ_OQ); }
+Vc_INTRINSIC MIC::   int_m operator==(MIC::   int_v a, MIC::   int_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_EQ); }
+Vc_INTRINSIC MIC::  uint_m operator==(MIC::  uint_v a, MIC::  uint_v b) { return _mm512_cmp_epu32_mask(a.data(), b.data(), _MM_CMPINT_EQ); }
+Vc_INTRINSIC MIC:: short_m operator==(MIC:: short_v a, MIC:: short_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_EQ); }
+
+Vc_INTRINSIC MIC::double_m operator!=(MIC::double_v a, MIC::double_v b) { return _mm512_cmp_pd_mask(a.data(), b.data(), _CMP_NEQ_UQ); }
+Vc_INTRINSIC MIC:: float_m operator!=(MIC:: float_v a, MIC:: float_v b) { return _mm512_cmp_ps_mask(a.data(), b.data(), _CMP_NEQ_UQ); }
+Vc_INTRINSIC MIC::   int_m operator!=(MIC::   int_v a, MIC::   int_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_NE); }
+Vc_INTRINSIC MIC::  uint_m operator!=(MIC::  uint_v a, MIC::  uint_v b) { return _mm512_cmp_epu32_mask(a.data(), b.data(), _MM_CMPINT_NE); }
+Vc_INTRINSIC MIC:: short_m operator!=(MIC:: short_v a, MIC:: short_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_NE); }
+
+Vc_INTRINSIC MIC::double_m operator>=(MIC::double_v a, MIC::double_v b) { return _mm512_cmp_pd_mask(a.data(), b.data(), _CMP_NLT_US); }
+Vc_INTRINSIC MIC:: float_m operator>=(MIC:: float_v a, MIC:: float_v b) { return _mm512_cmp_ps_mask(a.data(), b.data(), _CMP_NLT_US); }
+Vc_INTRINSIC MIC::   int_m operator>=(MIC::   int_v a, MIC::   int_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_NLT); }
+Vc_INTRINSIC MIC::  uint_m operator>=(MIC::  uint_v a, MIC::  uint_v b) { return _mm512_cmp_epu32_mask(a.data(), b.data(), _MM_CMPINT_NLT); }
+Vc_INTRINSIC MIC:: short_m operator>=(MIC:: short_v a, MIC:: short_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_NLT); }
+
+Vc_INTRINSIC MIC::double_m operator<=(MIC::double_v a, MIC::double_v b) { return _mm512_cmp_pd_mask(a.data(), b.data(), _CMP_LE_OS); }
+Vc_INTRINSIC MIC:: float_m operator<=(MIC:: float_v a, MIC:: float_v b) { return _mm512_cmp_ps_mask(a.data(), b.data(), _CMP_LE_OS); }
+Vc_INTRINSIC MIC::   int_m operator<=(MIC::   int_v a, MIC::   int_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_LE); }
+Vc_INTRINSIC MIC::  uint_m operator<=(MIC::  uint_v a, MIC::  uint_v b) { return _mm512_cmp_epu32_mask(a.data(), b.data(), _MM_CMPINT_LE); }
+Vc_INTRINSIC MIC:: short_m operator<=(MIC:: short_v a, MIC:: short_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_LE); }
+
+Vc_INTRINSIC MIC::double_m operator> (MIC::double_v a, MIC::double_v b) { return _mm512_cmp_pd_mask(a.data(), b.data(), _CMP_NLE_US); }
+Vc_INTRINSIC MIC:: float_m operator> (MIC:: float_v a, MIC:: float_v b) { return _mm512_cmp_ps_mask(a.data(), b.data(), _CMP_NLE_US); }
+Vc_INTRINSIC MIC::   int_m operator> (MIC::   int_v a, MIC::   int_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_NLE); }
+Vc_INTRINSIC MIC::  uint_m operator> (MIC::  uint_v a, MIC::  uint_v b) { return _mm512_cmp_epu32_mask(a.data(), b.data(), _MM_CMPINT_NLE); }
+Vc_INTRINSIC MIC:: short_m operator> (MIC:: short_v a, MIC:: short_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_NLE); }
+
+Vc_INTRINSIC MIC::double_m operator< (MIC::double_v a, MIC::double_v b) { return _mm512_cmp_pd_mask(a.data(), b.data(), _CMP_LT_OS); }
+Vc_INTRINSIC MIC:: float_m operator< (MIC:: float_v a, MIC:: float_v b) { return _mm512_cmp_ps_mask(a.data(), b.data(), _CMP_LT_OS); }
+Vc_INTRINSIC MIC::   int_m operator< (MIC::   int_v a, MIC::   int_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_LT); }
+Vc_INTRINSIC MIC::  uint_m operator< (MIC::  uint_v a, MIC::  uint_v b) { return _mm512_cmp_epu32_mask(a.data(), b.data(), _MM_CMPINT_LT); }
+Vc_INTRINSIC MIC:: short_m operator< (MIC:: short_v a, MIC:: short_v b) { return _mm512_cmp_epi32_mask(a.data(), b.data(), _MM_CMPINT_LT); }
+
+// only unsigned integers have well-defined behavior on over-/underflow
+Vc_INTRINSIC MIC::ushort_m operator==(MIC::ushort_v a, MIC::ushort_v b) { return _mm512_cmpeq_epu32_mask(and_(a.data(), MIC::_set1(0xffff)), and_(b.data(), MIC::_set1(0xffff))); }
+Vc_INTRINSIC MIC::ushort_m operator!=(MIC::ushort_v a, MIC::ushort_v b) { return _mm512_cmpneq_epu32_mask(and_(a.data(), MIC::_set1(0xffff)), and_(b.data(), MIC::_set1(0xffff))); }
+Vc_INTRINSIC MIC::ushort_m operator>=(MIC::ushort_v a, MIC::ushort_v b) { return _mm512_cmpge_epu32_mask(and_(a.data(), MIC::_set1(0xffff)), and_(b.data(), MIC::_set1(0xffff))); }
+Vc_INTRINSIC MIC::ushort_m operator<=(MIC::ushort_v a, MIC::ushort_v b) { return _mm512_cmple_epu32_mask(and_(a.data(), MIC::_set1(0xffff)), and_(b.data(), MIC::_set1(0xffff))); }
+Vc_INTRINSIC MIC::ushort_m operator> (MIC::ushort_v a, MIC::ushort_v b) { return _mm512_cmpgt_epu32_mask(and_(a.data(), MIC::_set1(0xffff)), and_(b.data(), MIC::_set1(0xffff))); }
+Vc_INTRINSIC MIC::ushort_m operator< (MIC::ushort_v a, MIC::ushort_v b) { return _mm512_cmplt_epu32_mask(and_(a.data(), MIC::_set1(0xffff)), and_(b.data(), MIC::_set1(0xffff))); }
+
+// only unsigned integers have well-defined behavior on over-/underflow
+Vc_INTRINSIC MIC::uchar_m operator==(MIC::uchar_v a, MIC::uchar_v b) { return _mm512_cmpeq_epu32_mask (and_(a.data(), MIC::_set1(0xff)), and_(b.data(), MIC::_set1(0xff))); }
+Vc_INTRINSIC MIC::uchar_m operator!=(MIC::uchar_v a, MIC::uchar_v b) { return _mm512_cmpneq_epu32_mask(and_(a.data(), MIC::_set1(0xff)), and_(b.data(), MIC::_set1(0xff))); }
+Vc_INTRINSIC MIC::uchar_m operator>=(MIC::uchar_v a, MIC::uchar_v b) { return _mm512_cmpge_epu32_mask (and_(a.data(), MIC::_set1(0xff)), and_(b.data(), MIC::_set1(0xff))); }
+Vc_INTRINSIC MIC::uchar_m operator> (MIC::uchar_v a, MIC::uchar_v b) { return _mm512_cmpgt_epu32_mask (and_(a.data(), MIC::_set1(0xff)), and_(b.data(), MIC::_set1(0xff))); }
+Vc_INTRINSIC MIC::uchar_m operator<=(MIC::uchar_v a, MIC::uchar_v b) { return _mm512_cmple_epu32_mask (and_(a.data(), MIC::_set1(0xff)), and_(b.data(), MIC::_set1(0xff))); }
+Vc_INTRINSIC MIC::uchar_m operator< (MIC::uchar_v a, MIC::uchar_v b) { return _mm512_cmplt_epu32_mask (and_(a.data(), MIC::_set1(0xff)), and_(b.data(), MIC::_set1(0xff))); }
+
+// arithmetic operators {{{1
+Vc_INTRINSIC __m512  add(__m512  a, __m512  b, float ) { return _mm512_add_ps(a, b); }
+Vc_INTRINSIC __m512d add(__m512d a, __m512d b, double) { return _mm512_add_pd(a, b); }
+Vc_INTRINSIC __m512i add(__m512i a, __m512i b, int   ) { return _mm512_add_epi32(a, b); }
+Vc_INTRINSIC __m512i add(__m512i a, __m512i b, uint  ) { return _mm512_add_epi32(a, b); }
+Vc_INTRINSIC __m512i add(__m512i a, __m512i b, short ) { return _mm512_add_epi32(a, b); }
+Vc_INTRINSIC __m512i add(__m512i a, __m512i b, ushort) { return _mm512_add_epi32(a, b); }
+
+Vc_INTRINSIC __m512  sub(__m512  a, __m512  b, float ) { return _mm512_sub_ps(a, b); }
+Vc_INTRINSIC __m512d sub(__m512d a, __m512d b, double) { return _mm512_sub_pd(a, b); }
+Vc_INTRINSIC __m512i sub(__m512i a, __m512i b, int   ) { return _mm512_sub_epi32(a, b); }
+Vc_INTRINSIC __m512i sub(__m512i a, __m512i b, uint  ) { return _mm512_sub_epi32(a, b); }
+Vc_INTRINSIC __m512i sub(__m512i a, __m512i b, short ) { return _mm512_sub_epi32(a, b); }
+Vc_INTRINSIC __m512i sub(__m512i a, __m512i b, ushort) { return _mm512_sub_epi32(a, b); }
+
+Vc_INTRINSIC __m512  mul(__m512  a, __m512  b, float ) { return _mm512_mul_ps(a, b); }
+Vc_INTRINSIC __m512d mul(__m512d a, __m512d b, double) { return _mm512_mul_pd(a, b); }
+Vc_INTRINSIC __m512i mul(__m512i a, __m512i b, int   ) { return _mm512_mullo_epi32(a, b); }
+Vc_INTRINSIC __m512i mul(__m512i a, __m512i b, uint  ) { return _mm512_mullo_epi32(a, b); }
+Vc_INTRINSIC __m512i mul(__m512i a, __m512i b, short ) { return _mm512_mullo_epi32(a, b); }
+Vc_INTRINSIC __m512i mul(__m512i a, __m512i b, ushort) { return _mm512_mullo_epi32(a, b); }
+
+Vc_INTRINSIC __m512  div(__m512  a, __m512  b, float ) { return _mm512_div_ps(a, b); }
+Vc_INTRINSIC __m512d div(__m512d a, __m512d b, double) { return _mm512_div_pd(a, b); }
+Vc_INTRINSIC __m512i div(__m512i a, __m512i b, int   ) { return _mm512_div_epi32(a, b); }
+Vc_INTRINSIC __m512i div(__m512i a, __m512i b, uint  ) { return _mm512_div_epu32(a, b); }
+Vc_INTRINSIC __m512i div(__m512i a, __m512i b, short ) { return _mm512_div_epi32(a, b); }
+Vc_INTRINSIC __m512i div(__m512i a, __m512i b, ushort) {
+    // this specialization is required because overflow is well defined (mod 2^16) for
+    // unsigned short, but a / b is not independent of the high bits (in contrast to mul,
+    // add, and sub)
+    return div(and_(a, MIC::_set1(0xffff)), and_(b, MIC::_set1(0xffff)), uint());
+}
+
+Vc_INTRINSIC __m512i rem(__m512i a, __m512i b, int   ) { return _mm512_rem_epi32(a, b); }
+Vc_INTRINSIC __m512i rem(__m512i a, __m512i b, uint  ) { return _mm512_rem_epu32(a, b); }
+Vc_INTRINSIC __m512i rem(__m512i a, __m512i b, short ) { return _mm512_rem_epi32(a, b); }
+Vc_INTRINSIC __m512i rem(__m512i a, __m512i b, ushort) { return _mm512_rem_epu32(and_(a, MIC::_set1(0xffff)), and_(b, MIC::_set1(0xffff))); }
+
+template <typename T>
+Vc_INTRINSIC MIC::Vector<T> operator+(MIC::Vector<T> a, MIC::Vector<T> b)
+{
+    return add(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC MIC::Vector<T> operator-(MIC::Vector<T> a, MIC::Vector<T> b)
+{
+    return sub(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC MIC::Vector<T> operator*(MIC::Vector<T> a, MIC::Vector<T> b)
+{
+    return mul(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC MIC::Vector<T> operator/(MIC::Vector<T> a, MIC::Vector<T> b)
+{
+    return div(a.data(), b.data(), T());
+}
+template <typename T>
+Vc_INTRINSIC enable_if<std::is_integral<T>::value, MIC::Vector<T>> operator%(
+    MIC::Vector<T> a, MIC::Vector<T> b)
+{
+    return rem(a.data(), b.data(), T());
+    //return a - a / b * b;
+}
+// }}}1
+}  // namespace Detail
 
 // LoadHelper {{{1
 namespace
@@ -201,7 +353,8 @@ template <typename V> Vc_INTRINSIC V foldAfterOverflow(V vector)
 }
 Vc_INTRINSIC MIC::ushort_v foldAfterOverflow(MIC::ushort_v vector)
 {
-    return vector & 0xffffu;
+    using Detail::operator&;
+    return vector & MIC::ushort_v(0xffffu);
 }
 
 namespace MIC
@@ -383,48 +536,6 @@ template<> inline double Vector<double>::sum(MaskArgument m) const
     return _mm512_mask_reduce_add_pd(m.data(), data());
 }
 
-// (u)short compares {{{1
-// only unsigned integers have well-defined behavior on over-/underflow
-template<> Vc_ALWAYS_INLINE MIC::ushort_m MIC::ushort_v::operator==(MIC::ushort_v::AsArg x) const {
-    return _mm512_cmpeq_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xffff)), MIC::_and(x.d.v(), MIC::_set1(0xffff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::ushort_m MIC::ushort_v::operator!=(MIC::ushort_v::AsArg x) const {
-    return _mm512_cmpneq_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xffff)), MIC::_and(x.d.v(), MIC::_set1(0xffff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::ushort_m MIC::ushort_v::operator>=(MIC::ushort_v::AsArg x) const {
-    return _mm512_cmpge_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xffff)), MIC::_and(x.d.v(), MIC::_set1(0xffff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::ushort_m MIC::ushort_v::operator> (MIC::ushort_v::AsArg x) const {
-    return _mm512_cmpgt_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xffff)), MIC::_and(x.d.v(), MIC::_set1(0xffff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::ushort_m MIC::ushort_v::operator<=(MIC::ushort_v::AsArg x) const {
-    return _mm512_cmple_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xffff)), MIC::_and(x.d.v(), MIC::_set1(0xffff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::ushort_m MIC::ushort_v::operator< (MIC::ushort_v::AsArg x) const {
-    return _mm512_cmplt_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xffff)), MIC::_and(x.d.v(), MIC::_set1(0xffff)));
-}
-
-// (u)char compares {{{1
-// only unsigned integers have well-defined behavior on over-/underflow
-template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator==(MIC::uchar_v::AsArg x) const {
-    return _mm512_cmpeq_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator!=(MIC::uchar_v::AsArg x) const {
-    return _mm512_cmpneq_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator>=(MIC::uchar_v::AsArg x) const {
-    return _mm512_cmpge_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator> (MIC::uchar_v::AsArg x) const {
-    return _mm512_cmpgt_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator<=(MIC::uchar_v::AsArg x) const {
-    return _mm512_cmple_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
-}
-template<> Vc_ALWAYS_INLINE MIC::uchar_m MIC::uchar_v::operator< (MIC::uchar_v::AsArg x) const {
-    return _mm512_cmplt_epu32_mask(MIC::_and(d.v(), MIC::_set1(0xff)), MIC::_and(x.d.v(), MIC::_set1(0xff)));
-}
-
 // integer ops {{{1
 template<> Vc_ALWAYS_INLINE    MIC::int_v    MIC::int_v::operator<<(   MIC::int_v::AsArg x) const { return _mm512_sllv_epi32(d.v(), x.d.v()); }
 template<> Vc_ALWAYS_INLINE   MIC::uint_v   MIC::uint_v::operator<<(  MIC::uint_v::AsArg x) const { return _mm512_sllv_epi32(d.v(), x.d.v()); }
@@ -452,20 +563,6 @@ template<> Vc_ALWAYS_INLINE  MIC::uchar_v  MIC::uchar_v::operator>>(unsigned int
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator<<=(unsigned int x) { return *this = *this << x; }
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator>>=(unsigned int x) { return *this = *this >> x; }
 
-
-// this specialization is required because overflow is well defined (mod 2^16) for unsigned short,
-// but a / b is not independent of the high bits (in contrast to mul, add, and sub)
-template<> MIC::ushort_v &MIC::ushort_v::operator/=(MIC::ushort_v::AsArg x)
-{
-    d.v() = MIC::_div<VectorEntryType>(MIC::_and(d.v(), MIC::_set1(0xffff)),
-                                       MIC::_and(x.d.v(), MIC::_set1(0xffff)));
-    return *this;
-}
-template<> MIC::ushort_v MIC::ushort_v::operator/(MIC::ushort_v::AsArg x) const
-{
-    return MIC::ushort_v(MIC::_div<VectorEntryType>(
-        MIC::_and(d.v(), MIC::_set1(0xffff)), MIC::_and(x.d.v(), MIC::_set1(0xffff))));
-}
 // subscript operators ([]){{{1
 template <typename T>
 Vc_INTRINSIC auto Vector<T, VectorAbi::Mic>::operator[](size_t index) -> decltype(d.ref(0)) &
@@ -555,7 +652,9 @@ template <typename T>
 template <typename MT, typename IT>
 Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &&indexes) const
 {
-    const auto v = std::is_same<T, ushort>::value ? (*this & 0xffff).data() : d.v();
+    using namespace Detail;
+    const auto v =
+        std::is_same<T, ushort>::value ? (*this & Vector(0xffff)).data() : d.v();
     MicIntrinsics::scatter(mem, ensureVector(std::forward<IT>(indexes)), v, UpDownC<MT>(),
                            sizeof(MT));
 }
@@ -564,7 +663,9 @@ template <typename MT, typename IT>
 Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &&indexes,
                                                    MaskArgument mask) const
 {
-    const auto v = std::is_same<T, ushort>::value ? (*this & 0xffff).data() : d.v();
+    using namespace Detail;
+    const auto v =
+        std::is_same<T, ushort>::value ? (*this & Vector(0xffff)).data() : d.v();
     MicIntrinsics::scatter(mask.data(), mem, ensureVector(std::forward<IT>(indexes)),
                            d.v(), UpDownC<MT>(), sizeof(MT));
 }
@@ -572,11 +673,13 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::scatterImplementation(MT *mem, IT &
 // exponent {{{1
 Vc_INTRINSIC Vc_CONST MIC::float_v exponent(MIC::float_v x)
 {
+    using Detail::operator>=;
     Vc_ASSERT((x >= x.Zero()).isFull());
     return _mm512_getexp_ps(x.data());
 }
 Vc_INTRINSIC Vc_CONST MIC::double_v exponent(MIC::double_v x)
 {
+    using Detail::operator>=;
     Vc_ASSERT((x >= x.Zero()).isFull());
     return _mm512_getexp_pd(x.data());
 }
@@ -585,10 +688,13 @@ Vc_INTRINSIC Vc_CONST MIC::double_v exponent(MIC::double_v x)
 static Vc_ALWAYS_INLINE void _doRandomStep(Vector<unsigned int> &state0,
         Vector<unsigned int> &state1)
 {
+    using MIC::uint_v;
+    using namespace Detail;
     state0.load(&Common::RandomState[0]);
-    state1.load(&Common::RandomState[MIC::uint_v::Size]);
-    (state1 * 0xdeece66du + 11).store(&Common::RandomState[MIC::uint_v::Size]);
-    MIC::uint_v(MIC::_xor((state0 * 0xdeece66du + 11).data(), _mm512_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
+    state1.load(&Common::RandomState[uint_v::Size]);
+    (state1 * uint_v(0xdeece66du) + uint_v(11)).store(&Common::RandomState[uint_v::Size]);
+    uint_v(xor_((state0 * uint_v(0xdeece66du) + uint_v(11)).data(),
+                _mm512_srli_epi32(state1.data(), 16))).store(&Common::RandomState[0]);
 }
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> Vector<T, VectorAbi::Mic>::Random()
@@ -608,7 +714,8 @@ template<> Vc_ALWAYS_INLINE Vector<float> Vector<float>::Random()
 {
     Vector<unsigned int> state0, state1;
     _doRandomStep(state0, state1);
-    return HT::sub(MIC::_or(_cast(_mm512_srli_epi32(state0.data(), 2)), HV::one()), HV::one());
+    using namespace Detail;
+    return (reinterpret_components_cast<Vector<float>>(state0 >> 2) | One()) - One();
 }
 
 // _mm512_srli_epi64 is neither documented nor defined in any header, here's what it does:
@@ -631,6 +738,8 @@ template<> Vc_ALWAYS_INLINE Vector<double> Vector<double>::Random()
                 _mm512_add_epi32(_mm512_mullo_epi32(state, factor), swizzle(_mm512_mulhi_epu32(state, factor), _MM_SWIZ_REG_CDAB)),
                 MIC::_set1(11ull)));
 
+    using Detail::operator|;
+    using Detail::operator-;
     return (Vector<double>(_cast(_mm512_srli_epi64(MIC::mic_cast<__m512i>(state), 12))) | One()) - One();
 }
 // }}}1

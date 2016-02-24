@@ -79,7 +79,7 @@ private:
     friend class MIC::StoreMixin<Vector, T>;
 
 public:
-    Vc_FREE_STORE_OPERATORS_ALIGNED(64)
+    Vc_FREE_STORE_OPERATORS_ALIGNED(64);
     typedef typename MIC::VectorTypeHelper<T>::Type VectorType;
     using vector_type = VectorType;
     Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
@@ -216,36 +216,6 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // binary operators
-#ifdef Vc_ENABLE_FLOAT_BIT_OPERATORS
-#define Vc_ASSERT_
-#else
-#define Vc_ASSERT_                                                                       \
-    static_assert(std::is_integral<T>::value,                                            \
-                  "bitwise-operators can only be used with Vectors of integral type")
-#endif
-#define Vc_OP(symbol, fun)                                                               \
-    Vc_ALWAYS_INLINE Vector &operator symbol##=(AsArg x)                                 \
-    {                                                                                    \
-        Vc_ASSERT_;                                                                      \
-        d.v() = fun(d.v(), x.d.v());                                                     \
-        return *this;                                                                    \
-    }                                                                                    \
-    Vc_ALWAYS_INLINE Vector operator symbol(AsArg x) const                               \
-    {                                                                                    \
-        Vc_ASSERT_;                                                                      \
-        return Vector<T>(fun(d.v(), x.d.v()));                                           \
-    }
-
-    Vc_OP(%, MIC::mod_<EntryType>)
-    Vc_OP(*, MIC::_mul<VectorEntryType>)
-    Vc_OP(+, MIC::_add<VectorEntryType>)
-    Vc_OP(-, MIC::_sub<VectorEntryType>)
-    Vc_OP(/, MIC::_div<VectorEntryType>) // ushort_v::operator/ is specialized in vector.tcc
-    Vc_OP(|, MIC::_or)
-    Vc_OP(&, MIC::_and)
-    Vc_OP(^, MIC::_xor)
-#undef Vc_OP
-
     Vc_ALWAYS_INLINE_L Vector &operator<<=(AsArg x) Vc_ALWAYS_INLINE_R;
     Vc_ALWAYS_INLINE_L Vector &operator>>=(AsArg x) Vc_ALWAYS_INLINE_R;
     Vc_ALWAYS_INLINE_L Vector  operator<< (AsArg x) const Vc_ALWAYS_INLINE_R;
@@ -256,17 +226,6 @@ public:
     Vc_ALWAYS_INLINE_L Vector  operator<< (unsigned int x) const Vc_ALWAYS_INLINE_R;
     Vc_ALWAYS_INLINE_L Vector  operator>> (unsigned int x) const Vc_ALWAYS_INLINE_R;
 
-#define Vc_OPcmp(symbol, fun) \
-    Vc_ALWAYS_INLINE Mask operator symbol(AsArg x) const { return HT::fun(d.v(), x.d.v()); }
-
-    // ushort_v specializations are in vector.tcc!
-    Vc_OPcmp(==, cmpeq)
-    Vc_OPcmp(!=, cmpneq)
-    Vc_OPcmp(>=, cmpnlt)
-    Vc_OPcmp(>, cmpnle)
-    Vc_OPcmp(<, cmplt)
-    Vc_OPcmp(<=, cmple)
-#undef Vc_OPcmp
 
     Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
         isNegative() const

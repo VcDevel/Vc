@@ -64,7 +64,8 @@ template<typename V> struct InterleaveImpl {
     template <size_t StructSize>
     static inline __m512i fixup(const SuccessiveEntries<StructSize> &i)
     {
-        return (int_v::IndexesFromZero() * StructSize + i.data()).data();
+        using namespace Detail;
+        return (int_v::IndexesFromZero() * int_v(StructSize) + int_v(i.data())).data();
     }
 
     // deinterleave 2 {{{1

@@ -59,13 +59,6 @@ template<typename T> struct VectorHelper
         static Vc_INTRINSIC VectorType op##_s(unsigned int , const VectorType &a, const VectorType &b) { return Vc_CAT2(_mm512_##op##_, Vc_SUFFIX)(a, b); } \
         static Vc_INTRINSIC VectorType op##_s(unsigned int , const VectorType &a, const VectorType &b, const __mmask &k) { return Vc_CAT2(_mm512_mask_##op##_, Vc_SUFFIX)(a, k, a, b); } \
         static Vc_INTRINSIC VectorType op##_s(unsigned int , const VectorType &a, const VectorType &b, const __mmask &k, const VectorType &o) { return Vc_CAT2(_mm512_mask_##op##_, Vc_SUFFIX)(o, k, a, b); }
-#define Vc_OP_(op) \
-        static Vc_INTRINSIC VectorType op(const VectorType &a, const VectorType &b) { return Vc_CAT2(_mm512_##op, Vc_SUFFIX)(a, b); } \
-        static Vc_INTRINSIC VectorType op(const VectorType &a, const VectorType &b, const __mmask &k) { return Vc_CAT2(_mm512_mask_##op, Vc_SUFFIX)(a, k, a, b); } \
-        static Vc_INTRINSIC VectorType op(const VectorType &a, const VectorType &b, const __mmask &k, const VectorType &o) { return Vc_CAT2(_mm512_mask_##op, Vc_SUFFIX)(o, k, a, b); } \
-        static Vc_INTRINSIC VectorType op##_s(unsigned int , const VectorType &a, const VectorType &b) { return Vc_CAT2(_mm512_##op, Vc_SUFFIX)(a, b); } \
-        static Vc_INTRINSIC VectorType op##_s(unsigned int , const VectorType &a, const VectorType &b, const __mmask &k) { return Vc_CAT2(_mm512_mask_##op, Vc_SUFFIX)(a, k, a, b); } \
-        static Vc_INTRINSIC VectorType op##_s(unsigned int , const VectorType &a, const VectorType &b, const __mmask &k, const VectorType &o) { return Vc_CAT2(_mm512_mask_##op, Vc_SUFFIX)(o, k, a, b); }
 #define Vc_OPx(op, op2) \
         static Vc_INTRINSIC VectorType op(const VectorType &a, const VectorType &b) { return Vc_CAT2(_mm512_##op2##_, Vc_SUFFIX)(a, b); } \
         static Vc_INTRINSIC VectorType op(const VectorType &a, const VectorType &b, const __mmask &k) { return Vc_CAT2(_mm512_mask_##op2##_, Vc_SUFFIX)(a, k, a, b); } \
@@ -73,9 +66,6 @@ template<typename T> struct VectorHelper
         static Vc_INTRINSIC VectorType op##_s(unsigned int , const VectorType &a, const VectorType &b) { return Vc_CAT2(_mm512_##op2##_, Vc_SUFFIX)(a, b); } \
         static Vc_INTRINSIC VectorType op##_s(unsigned int , const VectorType &a, const VectorType &b, const __mmask &k) { return Vc_CAT2(_mm512_mask_##op2##_, Vc_SUFFIX)(a, k, a, b); } \
         static Vc_INTRINSIC VectorType op##_s(unsigned int , const VectorType &a, const VectorType &b, const __mmask &k, const VectorType &o) { return Vc_CAT2(_mm512_mask_##op2##_, Vc_SUFFIX)(o, k, a, b); }
-#define Vc_OPcmp(op, _enum_) \
-        static Vc_INTRINSIC __mmask cmp##op(VectorType a, VectorType b) { return Vc_CAT(_mm512_cmp_, Vc_SUFFIX, _mask,)(a, b, _enum_); } \
-        static Vc_INTRINSIC __mmask cmp##op(VectorType a, VectorType b, __mmask k) { return Vc_CAT(_mm512_mask_cmp_, Vc_SUFFIX, _mask,)(k, a, b, _enum_); }
 
 template<> struct VectorHelper<double> {
     typedef double EntryType;
@@ -119,13 +109,6 @@ template<> struct VectorHelper<double> {
     Vc_OP1(log) Vc_OP1(log2) Vc_OP1(log10)
     Vc_OP1(exp) Vc_OP1(exp2)
     Vc_OP1(floor) Vc_OP1(ceil)
-    Vc_OP(add) Vc_OP(sub) Vc_OP(mul) Vc_OP(div)
-    Vc_OPcmp( eq, _CMP_EQ_OQ)
-    Vc_OPcmp(neq, _CMP_NEQ_UQ)
-    Vc_OPcmp( lt, _CMP_LT_OS)
-    Vc_OPcmp(nlt, _CMP_NLT_US)
-    Vc_OPcmp( le, _CMP_LE_OS)
-    Vc_OPcmp(nle, _CMP_NLE_US)
     static Vc_INTRINSIC VectorType round(VectorType x) { return _mm512_roundfxpnt_adjust_pd(x, _MM_FROUND_TO_NEAREST_INT, _MM_EXPADJ_NONE); }
 #undef Vc_SUFFIX
 };
@@ -165,13 +148,6 @@ template<> struct VectorHelper<float> {
     Vc_OP1(log) Vc_OP1(log2) Vc_OP1(log10)
     Vc_OP1(exp) Vc_OP1(exp2)
     Vc_OP1(floor) Vc_OP1(ceil)
-    Vc_OP(add) Vc_OP(sub) Vc_OP(mul) Vc_OP(div)
-    Vc_OPcmp( eq, _CMP_EQ_OQ)
-    Vc_OPcmp(neq, _CMP_NEQ_UQ)
-    Vc_OPcmp( lt, _CMP_LT_OS)
-    Vc_OPcmp(nlt, _CMP_NLT_US)
-    Vc_OPcmp( le, _CMP_LE_OS)
-    Vc_OPcmp(nle, _CMP_NLE_US)
     static Vc_INTRINSIC VectorType round(VectorType x) { return _mm512_round_ps(x, _MM_FROUND_TO_NEAREST_INT, _MM_EXPADJ_NONE); }
 #undef Vc_SUFFIX
 };
@@ -198,18 +174,10 @@ template<> struct VectorHelper<int> {
     static Vc_INTRINSIC VectorType abs(VectorType a) {
         VectorType zero = mic_cast<VectorType>(_mm512_setzero());
         const VectorType minusOne = _mm512_set_1to16_epi32( -1 );
-        return mul(a, minusOne, cmplt(a, zero), a);
+        return _mm512_mask_mullo_epi32(a, _mm512_cmplt_epi32_mask(a, zero), a, minusOne);
     }
 
     Vc_OP(max) Vc_OP(min)
-    Vc_OP(add) Vc_OP(sub) Vc_OPx(mul, mullo) Vc_OP(div) Vc_OP(rem)
-    Vc_OP_(or_) Vc_OP_(and_) Vc_OP_(xor_)
-    Vc_OPcmp( eq, _MM_CMPINT_EQ)
-    Vc_OPcmp(neq, _MM_CMPINT_NE)
-    Vc_OPcmp( lt, _MM_CMPINT_LT)
-    Vc_OPcmp(nlt, _MM_CMPINT_NLT)
-    Vc_OPcmp( le, _MM_CMPINT_LE)
-    Vc_OPcmp(nle, _MM_CMPINT_NLE)
     Vc_OP(sllv) Vc_OP(srlv)
 #undef Vc_SUFFIX
     static Vc_INTRINSIC VectorType round(VectorType x) { return x; }
@@ -233,27 +201,16 @@ template<> struct VectorHelper<unsigned int> {
     static Vc_INTRINSIC EntryType reduce_add(const VectorType &a) { return _mm512_reduce_add_epi32(a); }
 
     Vc_OP(max) Vc_OP(min)
-    Vc_OP(div) Vc_OP(rem)
-    Vc_OPcmp( eq, _MM_CMPINT_EQ)
-    Vc_OPcmp(neq, _MM_CMPINT_NE)
-    Vc_OPcmp( lt, _MM_CMPINT_LT)
-    Vc_OPcmp(nlt, _MM_CMPINT_NLT)
-    Vc_OPcmp( le, _MM_CMPINT_LE)
-    Vc_OPcmp(nle, _MM_CMPINT_NLE)
 #undef Vc_SUFFIX
 #define Vc_SUFFIX epi32
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to16_, Vc_SUFFIX)(static_cast<int>(x)); }
 
     Vc_OP(sllv) Vc_OP(srlv)
-    Vc_OP(add) Vc_OP(sub) Vc_OPx(mul, mullo)
-    Vc_OP_(or_) Vc_OP_(and_) Vc_OP_(xor_)
 #undef Vc_SUFFIX
     static Vc_INTRINSIC VectorType round(VectorType x) { return x; }
 };
 #undef Vc_OP
-#undef Vc_OP_
 #undef Vc_OPx
-#undef Vc_OPcmp
 
 }  // namespace MIC
 }  // namespace Vc
