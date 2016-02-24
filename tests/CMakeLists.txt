@@ -457,7 +457,7 @@ if(TEST_OPERATOR_FAILURES)
                   "error: no operator .* matches these operands" # ICC
                   "error: invalid operands to binary expression" # Clang
                   "error: no match for 'operator..?' "           # GCC
-                  "error: invalid operands of types '.*' and '.*' to binary 'operator.'" # GCC
+                  "error: no match for ‘operator..?’ "           # GCC
                   )
             endforeach()
             set(type_b "${A}")
