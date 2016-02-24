@@ -44,7 +44,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "writemaskedvector.h"
 #include "sorthelper.h"
 #include "../common/where.h"
-#include "detail.h"
 #include "macros.h"
 
 #ifdef isfinite
@@ -102,9 +101,6 @@ public:
     inline VectorType &data() { return d.v(); }
 
 protected:
-    // helper that specializes on VectorType
-    typedef MIC::VectorHelper<VectorType> HV;
-
     // helper that specializes on T
     typedef MIC::VectorHelper<VectorEntryType> HT;
 
@@ -189,9 +185,18 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     //prefix
-    Vc_ALWAYS_INLINE Vector &operator++() { d.v() = MIC::_add<VectorEntryType>(d.v(), HV::one()); return *this; }
+    Vc_ALWAYS_INLINE Vector &operator++()
+    {
+        d.v() = MIC::_add<VectorEntryType>(d.v(), Detail::one(EntryType()));
+        return *this;
+    }
     //postfix
-    Vc_ALWAYS_INLINE Vector operator++(int) { const Vector<T> r = *this; d.v() = MIC::_add<VectorEntryType>(d.v(), HV::one()); return r; }
+    Vc_ALWAYS_INLINE Vector operator++(int)
+    {
+        const Vector<T> r = *this;
+        d.v() = MIC::_add<VectorEntryType>(d.v(), Detail::one(EntryType()));
+        return r;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // aliasing scalar access

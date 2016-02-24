@@ -214,8 +214,16 @@ template<> template<typename Flags> Vc_INTRINSIC __m512 LoadHelper2<MIC::float_v
 } // anonymous namespace
 
 // constants {{{1
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerZero) : d(HV::zero()) {}
-template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerOne) : d(HV::one()) {}
+template <typename T>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerZero)
+    : d(Detail::zero<VectorType>())
+{
+}
+template <typename T>
+Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(VectorSpecialInitializerOne)
+    : d(Detail::one(EntryType()))
+{
+}
 template <typename T>
 Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic>::Vector(
     VectorSpecialInitializerIndexesFromZero)
@@ -250,7 +258,7 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::load(const U *x, Flags flags)
 // zeroing {{{1
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::setZero()
 {
-    data() = HV::zero();
+    data() = Detail::zero<VectorType>();
 }
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::setZero(MaskArgument k)
 {

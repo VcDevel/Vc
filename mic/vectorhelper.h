@@ -36,15 +36,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace MIC
 {
-
-template<typename T> struct VectorHelper
-{
-    typedef typename VectorTypeHelper<T>::Type VectorType;
-    typedef typename MaskTypeHelper<T>::Type MaskType;
-    static Vc_INTRINSIC VectorType zero();
-    static Vc_INTRINSIC VectorType one();
-};
-
 #define Vc_OP1(op) \
         static Vc_INTRINSIC VectorType op(const VectorType &a) { return Vc_CAT2(_mm512_##op##_, Vc_SUFFIX)(a); } \
         static Vc_INTRINSIC VectorType op(const VectorType &a, const __mmask &k) { return Vc_CAT2(_mm512_mask_##op##_, Vc_SUFFIX)(a, k, a); } \
@@ -151,7 +142,5 @@ template<> struct VectorHelper<unsigned int> {
 
 }  // namespace MIC
 }  // namespace Vc
-
-#include "vectorhelper.tcc"
 
 #endif // VC_MIC_VECTORHELPER_H_

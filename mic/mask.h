@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_MIC_MASK_H_
 
 #include "../common/maskentry.h"
+#include "detail.h"
 #include "macros.h"
 
 #ifdef CAN_OFFLOAD
@@ -154,7 +155,7 @@ public:
     template<typename Flags>
     inline void store(bool *mem, Flags) const {
         const __m512i zero = _mm512_setzero_epi32();
-        const __m512i one = MIC::VectorHelper<__m512i>::one();
+        const __m512i one = Detail::one(int());
         const __m512i tmp = MIC::_and(zero, k, one, one);
         MicIntrinsics::store<decltype(Unaligned)>(mem, tmp, MIC::UpDownConversion<unsigned int, unsigned char>());
     }

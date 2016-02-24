@@ -35,6 +35,22 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
+// zero {{{1
+template <typename T> inline T zero();
+template <> Vc_INTRINSIC Vc_CONST __m512  zero<__m512 >() { return _mm512_setzero_ps(); }
+template <> Vc_INTRINSIC Vc_CONST __m512d zero<__m512d>() { return _mm512_setzero_pd(); }
+template <> Vc_INTRINSIC Vc_CONST __m512i zero<__m512i>() { return _mm512_setzero_epi32(); }
+
+// one {{{1
+Vc_INTRINSIC Vc_CONST __m512  one( float) { return _mm512_set1_ps(1.f); }
+Vc_INTRINSIC Vc_CONST __m512d one(double) { return _mm512_set1_pd(1.); }
+Vc_INTRINSIC Vc_CONST __m512i one(   int) { return _mm512_set1_epi32(1); }
+Vc_INTRINSIC Vc_CONST __m512i one(  uint) { return _mm512_set1_epi32(1); }
+Vc_INTRINSIC Vc_CONST __m512i one( short) { return _mm512_set1_epi32(1); }
+Vc_INTRINSIC Vc_CONST __m512i one(ushort) { return _mm512_set1_epi32(1); }
+Vc_INTRINSIC Vc_CONST __m512i one( schar) { return _mm512_set1_epi32(1); }
+Vc_INTRINSIC Vc_CONST __m512i one( uchar) { return _mm512_set1_epi32(1); }
+
 // xor_ {{{1
 Vc_INTRINSIC __m512  xor_(__m512  a, __m512  b) { return MIC::_xor(a, b); }
 Vc_INTRINSIC __m512d xor_(__m512d a, __m512d b) { return MIC::_xor(a, b); }
