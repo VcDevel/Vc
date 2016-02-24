@@ -66,10 +66,9 @@ template <
     ,
     typename = decltype(std::declval<F &>()(std::declval<dummy &>()))
 #endif
-    >
-decltype(is_functor_argument_immutable_impl::test(
-    std::declval<decltype(&F::template operator() < A > )>()))
-test2(int);
+    ,
+    typename MemberPtr = decltype(&F::template operator()<A>)>
+decltype(is_functor_argument_immutable_impl::test(std::declval<MemberPtr>())) test2(int);
 
 // generate a true_type for non-template operator() members in F that are callable with a
 // 'const A &' argument.
