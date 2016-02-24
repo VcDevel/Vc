@@ -38,7 +38,7 @@ class VectorMemoryHelper
     public:
         VectorMemoryHelper(int count)
             : mem(new char[count * sizeof(Vec) + Vc::VectorAlignment]),
-            aligned(mem + (Vc::VectorAlignment - (reinterpret_cast<unsigned long>( mem ) & ( Vc::VectorAlignment - 1 ))))
+            aligned(mem + (Vc::VectorAlignment - (reinterpret_cast<std::uintptr_t>( mem ) & ( Vc::VectorAlignment - 1 ))))
         {
         }
         ~VectorMemoryHelper() { delete[] mem; }
