@@ -29,12 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Vc;
 
-typedef unsigned short ushort;
-typedef unsigned int uint;
-typedef unsigned long ulong;
-typedef long long longlong;
-typedef unsigned long long ulonglong;
-
 static_assert(!std::is_convertible< float_v, double_v>::value, "!std::is_convertible< float_v, double_v>");
 static_assert(!std::is_convertible<   int_v, double_v>::value, "!std::is_convertible<   int_v, double_v>");
 static_assert(!std::is_convertible<  uint_v, double_v>::value, "!std::is_convertible<  uint_v, double_v>");
@@ -171,8 +165,8 @@ void testImplicitTypeConversions()
     TYPE_TEST( double_v,        uint, double_v);
     TYPE_TEST( double_v,        long, double_v);
     TYPE_TEST( double_v,       ulong, double_v);
-    TYPE_TEST( double_v,    longlong, double_v);
-    TYPE_TEST( double_v,   ulonglong, double_v);
+    TYPE_TEST( double_v,       llong, double_v);
+    TYPE_TEST( double_v,      ullong, double_v);
     TYPE_TEST( double_v,        Enum, double_v);
     TYPE_TEST( double_v,        bool, double_v);
     TYPE_TEST(   double,    double_v, double_v);
@@ -183,8 +177,8 @@ void testImplicitTypeConversions()
     TYPE_TEST(     uint,    double_v, double_v);
     TYPE_TEST(     long,    double_v, double_v);
     TYPE_TEST(    ulong,    double_v, double_v);
-    TYPE_TEST( longlong,    double_v, double_v);
-    TYPE_TEST(ulonglong,    double_v, double_v);
+    TYPE_TEST(    llong,    double_v, double_v);
+    TYPE_TEST(   ullong,    double_v, double_v);
     TYPE_TEST(     Enum,    double_v, double_v);
     TYPE_TEST(     bool,    double_v, double_v);
     // double_v done
@@ -197,8 +191,8 @@ void testImplicitTypeConversions()
     TYPE_TEST(  float_v,        uint,  float_v);
     TYPE_TEST(  float_v,        long,  float_v);
     TYPE_TEST(  float_v,       ulong,  float_v);
-    TYPE_TEST(  float_v,    longlong,  float_v);
-    TYPE_TEST(  float_v,   ulonglong,  float_v);
+    TYPE_TEST(  float_v,       llong,  float_v);
+    TYPE_TEST(  float_v,      ullong,  float_v);
     TYPE_TEST(  float_v,        Enum,  float_v);
     TYPE_TEST(  float_v,        bool,  float_v);
     TYPE_TEST(    float,     float_v,  float_v);
@@ -208,8 +202,8 @@ void testImplicitTypeConversions()
     TYPE_TEST(     uint,     float_v,  float_v);
     TYPE_TEST(     long,     float_v,  float_v);
     TYPE_TEST(    ulong,     float_v,  float_v);
-    TYPE_TEST( longlong,     float_v,  float_v);
-    TYPE_TEST(ulonglong,     float_v,  float_v);
+    TYPE_TEST(    llong,     float_v,  float_v);
+    TYPE_TEST(   ullong,     float_v,  float_v);
     TYPE_TEST(     Enum,     float_v,  float_v);
     TYPE_TEST(     bool,     float_v,  float_v);
     // double_v + float_v done
