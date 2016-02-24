@@ -100,15 +100,24 @@ static Vc_ALWAYS_INLINE MIC::double_m isnan(MIC::double_v x)
     return _mm512_cmpunord_pd_mask(x.data(), x.data());
 }
 // fma {{{1
+Vc_ALWAYS_INLINE Vector<double, VectorAbi::Mic> fma(Vector<double, VectorAbi::Mic> a,
+                                                    Vector<double, VectorAbi::Mic> b,
+                                                    Vector<double, VectorAbi::Mic> c)
+{
+    return _mm512_fmadd_pd(a.data(), b.data(), c.data());
+}
+Vc_ALWAYS_INLINE Vector<float, VectorAbi::Mic> fma(Vector<float, VectorAbi::Mic> a,
+                                                   Vector<float, VectorAbi::Mic> b,
+                                                   Vector<float, VectorAbi::Mic> c)
+{
+    return _mm512_fmadd_ps(a.data(), b.data(), c.data());
+}
 template <typename T>
 Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> fma(Vector<T, VectorAbi::Mic> a,
                                                Vector<T, VectorAbi::Mic> b,
                                                Vector<T, VectorAbi::Mic> c)
 {
-    return MIC::VectorHelper<
-        typename Vector<T, VectorAbi::Mic>::VectorEntryType>::multiplyAndAdd(a.data(),
-                                                                             b.data(),
-                                                                             c.data());
+    return _mm512_fmadd_epi32(a.data(), b.data(), c.data());
 }
 
 // frexp {{{1

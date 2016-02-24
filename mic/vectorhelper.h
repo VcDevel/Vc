@@ -71,24 +71,12 @@ template<> struct VectorHelper<double> {
     typedef double EntryType;
     typedef __m512d VectorType;
 #define Vc_SUFFIX pd
-    // double doesn't support any upconversion
-    static Vc_INTRINSIC VectorType load1(const EntryType  x) {
-        return _mm512_extload_pd(&x, _MM_UPCONV_PD_NONE, _MM_BROADCAST_1X8, _MM_HINT_NONE);
-    }
-    static Vc_INTRINSIC VectorType load4(const EntryType *x) {
-        return _mm512_extload_pd(&x, _MM_UPCONV_PD_NONE, _MM_BROADCAST_4X8, _MM_HINT_NONE);
-    }
-
     template<typename A> static Vc_INTRINSIC VectorType load(const EntryType *x, A);
     template<typename A> static Vc_INTRINSIC void store(EntryType *mem, VectorType x, A);
     template<typename A> static Vc_INTRINSIC void store(EntryType *mem, VectorType x, __mmask8 k, A);
 
     static Vc_INTRINSIC VectorType zero() { return Vc_CAT2(_mm512_setzero_, Vc_SUFFIX)(); }
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to8_, Vc_SUFFIX)(x); }
-
-    static Vc_INTRINSIC VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_fmadd_pd(v1, v2, v3); }
-    //static Vc_INTRINSIC VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask8 &k) { return _mm512_mask_fmadd_pd(v1, k, v2, v3); }
-    static Vc_INTRINSIC VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_fmsub_pd(v1, v2, v3); }
 
     static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_pd(a); }
     static Vc_INTRINSIC EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_pd(a); }
@@ -125,10 +113,6 @@ template<> struct VectorHelper<float> {
     static Vc_INTRINSIC VectorType zero() { return Vc_CAT2(_mm512_setzero_, Vc_SUFFIX)(); }
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to16_, Vc_SUFFIX)(x); }
 
-    static Vc_INTRINSIC VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_fmadd_ps(v1, v2, v3); }
-    //static Vc_INTRINSIC VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask16 &k) { return _mm512_mask_fmadd_ps(v1, k, v2, v3); }
-    static Vc_INTRINSIC VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_fmsub_ps(v1, v2, v3); }
-
     static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_ps(a); }
     static Vc_INTRINSIC EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_ps(a); }
     static Vc_INTRINSIC EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_ps(a); }
@@ -162,10 +146,6 @@ template<> struct VectorHelper<int> {
 
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to16_, Vc_SUFFIX)(x); }
 
-    static Vc_INTRINSIC VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_fmadd_epi32(v1, v2, v3); }
-    //static Vc_INTRINSIC VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask16 &k) { return _mm512_mask_fmadd_epi32(v1, k, v2, v3); }
-    //static Vc_INTRINSIC VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_sub_epi32(_mm512_mullo_epi32(v1, v2), v3); }
-
     static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_epi32(a); }
     static Vc_INTRINSIC EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_epi32(a); }
     static Vc_INTRINSIC EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_epi32(a); }
@@ -190,10 +170,6 @@ template<> struct VectorHelper<unsigned int> {
     template<typename T2, typename A> static Vc_INTRINSIC VectorType load(const T2 *x, A);
     template<typename T2, typename A> static Vc_INTRINSIC void store(T2 *mem, VectorType x, A);
     template<typename T2, typename A> static Vc_INTRINSIC void store(T2 *mem, VectorType x, __mmask16 k, A);
-
-    static Vc_INTRINSIC VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_fmadd_epi32(v1, v2, v3); }
-    //static Vc_INTRINSIC VectorType multiplyAndAdd(const VectorType &v1, const VectorType &v2, const VectorType &v3, const __mmask16 &k) { return _mm512_mask_fmadd_epi32(v1, k, v2, v3); }
-    //static Vc_INTRINSIC VectorType multiplyAndSub(const VectorType &v1, const VectorType &v2, const VectorType &v3) { return _mm512_sub_epi32(_mm512_mullo_epi32(v1, v2), v3); }
 
     static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_epi32(a); }
     static Vc_INTRINSIC EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_epi32(a); }
