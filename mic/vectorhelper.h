@@ -71,10 +71,6 @@ template<> struct VectorHelper<double> {
     typedef double EntryType;
     typedef __m512d VectorType;
 #define Vc_SUFFIX pd
-    template<typename A> static Vc_INTRINSIC VectorType load(const EntryType *x, A);
-    template<typename A> static Vc_INTRINSIC void store(EntryType *mem, VectorType x, A);
-    template<typename A> static Vc_INTRINSIC void store(EntryType *mem, VectorType x, __mmask8 k, A);
-
     static Vc_INTRINSIC VectorType zero() { return Vc_CAT2(_mm512_setzero_, Vc_SUFFIX)(); }
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to8_, Vc_SUFFIX)(x); }
 
@@ -105,11 +101,6 @@ template<> struct VectorHelper<float> {
     typedef float EntryType;
     typedef __m512 VectorType;
 #define Vc_SUFFIX ps
-
-    template<typename T2, typename A> static Vc_INTRINSIC VectorType load(const T2 *x, A);
-    template<typename T2, typename A> static Vc_INTRINSIC void store(T2 *mem, VectorType x, A);
-    template<typename T2, typename A> static Vc_INTRINSIC void store(T2 *mem, VectorType x, __mmask16 k, A);
-
     static Vc_INTRINSIC VectorType zero() { return Vc_CAT2(_mm512_setzero_, Vc_SUFFIX)(); }
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to16_, Vc_SUFFIX)(x); }
 
@@ -140,10 +131,6 @@ template<> struct VectorHelper<int> {
     typedef int EntryType;
     typedef __m512i VectorType;
 #define Vc_SUFFIX epi32
-    template<typename T2, typename A> static Vc_INTRINSIC VectorType load(const T2 *x, A);
-    template<typename T2, typename A> static Vc_INTRINSIC void store(T2 *mem, VectorType x, A);
-    template<typename T2, typename A> static Vc_INTRINSIC void store(T2 *mem, VectorType x, __mmask16 k, A);
-
     static Vc_INTRINSIC VectorType set(EntryType x) { return Vc_CAT2(_mm512_set_1to16_, Vc_SUFFIX)(x); }
 
     static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_epi32(a); }
@@ -167,10 +154,6 @@ template<> struct VectorHelper<unsigned int> {
     typedef unsigned int EntryType;
     typedef __m512i VectorType;
 #define Vc_SUFFIX epu32
-    template<typename T2, typename A> static Vc_INTRINSIC VectorType load(const T2 *x, A);
-    template<typename T2, typename A> static Vc_INTRINSIC void store(T2 *mem, VectorType x, A);
-    template<typename T2, typename A> static Vc_INTRINSIC void store(T2 *mem, VectorType x, __mmask16 k, A);
-
     static Vc_INTRINSIC EntryType reduce_max(const VectorType &a) { return _mm512_reduce_max_epi32(a); }
     static Vc_INTRINSIC EntryType reduce_min(const VectorType &a) { return _mm512_reduce_min_epi32(a); }
     static Vc_INTRINSIC EntryType reduce_mul(const VectorType &a) { return _mm512_reduce_mul_epi32(a); }
