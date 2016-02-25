@@ -432,6 +432,9 @@ public:
 
     /// \internal
     Vc_INTRINSIC SimdArray(VectorType &&x) : data(std::move(x)) {}
+
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(storage_type));
+
 private:
     storage_type data;
 };
@@ -1257,6 +1260,9 @@ public:
         : data0(std::move(x)), data1(std::move(y))
     {
     }
+
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(storage_type0));
+
 private: //{{{2
     storage_type0 data0;
     storage_type1 data1;
