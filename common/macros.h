@@ -139,24 +139,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define Vc_NOTHING_EXPECTING_SEMICOLON static_assert(true, "")
 
-#define Vc_FREE_STORE_OPERATORS_ALIGNED(alignment)                                       \
+#define Vc_FREE_STORE_OPERATORS_ALIGNED(align_)                                          \
+    /**\name new/delete overloads for correct alignment */                               \
+    /**@{*/                                                                              \
+    /*!\brief Allocates correctly aligned memory */                                      \
     Vc_ALWAYS_INLINE void *operator new(size_t size)                                     \
     {                                                                                    \
-        return Vc::Common::aligned_malloc<alignment>(size);                              \
+        return Vc::Common::aligned_malloc<align_>(size);                                 \
     }                                                                                    \
+    /*!\brief Returns \p p. */                                                           \
     Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; }                   \
+    /*!\brief Allocates correctly aligned memory */                                      \
     Vc_ALWAYS_INLINE void *operator new[](size_t size)                                   \
     {                                                                                    \
-        return Vc::Common::aligned_malloc<alignment>(size);                              \
+        return Vc::Common::aligned_malloc<align_>(size);                                 \
     }                                                                                    \
+    /*!\brief Returns \p p. */                                                           \
     Vc_ALWAYS_INLINE void *operator new[](size_t, void *p) { return p; }                 \
+    /*!\brief Frees aligned memory. */                                                   \
     Vc_ALWAYS_INLINE void operator delete(void *ptr, size_t) { Vc::Common::free(ptr); }  \
+    /*!\brief Does nothing. */                                                           \
     Vc_ALWAYS_INLINE void operator delete(void *, void *) {}                             \
+    /*!\brief Frees aligned memory. */                                                   \
     Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t)                           \
     {                                                                                    \
         Vc::Common::free(ptr);                                                           \
     }                                                                                    \
+    /*!\brief Does nothing. */                                                           \
     Vc_ALWAYS_INLINE void operator delete[](void *, void *) {}                           \
+    /**@}*/                                                                              \
     Vc_NOTHING_EXPECTING_SEMICOLON
 
 #ifdef Vc_ASSERT

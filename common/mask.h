@@ -379,6 +379,8 @@ public:
     ///\internal Called indirectly from operator[]
     void setEntry(size_t, bool x);
 
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(Mask));
+
 private:
     VectorType d;
 };

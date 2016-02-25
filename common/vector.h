@@ -820,6 +820,9 @@ public:
     inline Vc_DEPRECATED("use copysign(x, y) instead") Vector
         copySign(Vector reference) const;
     ///@}
+
+    Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(Vector));
+
 private:
     VectorType d;
 };
