@@ -173,10 +173,6 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
             return Vc::isnegative(*this);
         }
 
-        Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector &factor, const Vector &summand) {
-            m_data = m_data * factor.data() + summand.data();
-        }
-
         Vc_ALWAYS_INLINE void assign(const Vector &v, const Mask &m) {
           if (m.data()) m_data = v.m_data;
         }

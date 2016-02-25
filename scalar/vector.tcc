@@ -129,19 +129,6 @@ Vc_INTRINSIC Vc_CONST Scalar::double_v exponent(Scalar::double_v x)
     return Scalar::double_v(static_cast<double>((value.i >> 52) - 0x3ff));
 }
 
-// FMA {{{1
-template <>
-Vc_ALWAYS_INLINE void Scalar::float_v::fusedMultiplyAdd(const Scalar::float_v &f,
-                                                        const Scalar::float_v &s)
-{
-    data() = std::fma(data(), f.data(), s.data());
-}
-template <>
-Vc_ALWAYS_INLINE void Scalar::double_v::fusedMultiplyAdd(const Scalar::double_v &f,
-                                                         const Scalar::double_v &s)
-{
-    data() = std::fma(data(), f.data(), s.data());
-}
 // Random {{{1
 static Vc_ALWAYS_INLINE void _doRandomStep(Scalar::uint_v &state0, Scalar::uint_v &state1)
 {
