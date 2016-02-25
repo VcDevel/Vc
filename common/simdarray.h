@@ -486,10 +486,9 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
  *          implementation, where SimdArray types with \p T = \p (u)short require an \p N
  *          either less than short_v::size() or a multiple of short_v::size().
  */
-template <typename T, std::size_t N, typename VectorType, std::size_t>
-class alignas(
-    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType) / VectorType::size()) - 1) & 127) +
-    1) SimdArray
+template <typename T, std::size_t N, typename V, std::size_t>
+class alignas(((Common::nextPowerOfTwo(N) * (sizeof(V) / V::size()) - 1) & 127) +
+              1) SimdArray
 {
     static_assert(std::is_same<T,   double>::value ||
                   std::is_same<T,    float>::value ||
@@ -498,11 +497,10 @@ class alignas(
                   std::is_same<T,  int16_t>::value ||
                   std::is_same<T, uint16_t>::value, "SimdArray<T, N> may only be used with T = { double, float, int32_t, uint32_t, int16_t, uint16_t }");
     static_assert(
-        // either the EntryType and VectorEntryType of the main VectorType are equal
-        std::is_same<typename VectorType::EntryType,
-                     typename VectorType::VectorEntryType>::value ||
-            // or N is a multiple of VectorType::size()
-            (N % VectorType::size() == 0),
+        // either the EntryType and VectorEntryType of the main V are equal
+        std::is_same<typename V::EntryType, typename V::VectorEntryType>::value ||
+            // or N is a multiple of V::size()
+            (N % V::size() == 0),
         "SimdArray<(un)signed short, N> on MIC only works correctly for N = k * "
         "MIC::(u)short_v::size(), i.e. k * 16.");
 
@@ -520,7 +518,7 @@ public:
     /**\internal
      * This type reveals the implementation-specific type used for the data member.
      */
-    using vector_type = VectorType;
+    using vector_type = V;
     using vectorentry_type = typename storage_type0::vectorentry_type;
     typedef vectorentry_type alias_type Vc_MAY_ALIAS;
 
@@ -689,35 +687,35 @@ public:
     }
 
     // explicit casts
-    template <typename V>
+    template <typename W>
     Vc_INTRINSIC explicit SimdArray(
-        V &&x,
-        enable_if<(Traits::is_simd_vector<V>::value && Traits::simd_vector_size<V>::value == N &&
-                   !(std::is_convertible<Traits::entry_type_of<V>, T>::value &&
-                     Traits::isSimdArray<V>::value))> = nullarg)
+        W &&x,
+        enable_if<(Traits::is_simd_vector<W>::value && Traits::simd_vector_size<W>::value == N &&
+                   !(std::is_convertible<Traits::entry_type_of<W>, T>::value &&
+                     Traits::isSimdArray<W>::value))> = nullarg)
         : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
 
     // implicit casts
-    template <typename V>
+    template <typename W>
     Vc_INTRINSIC SimdArray(
-        V &&x,
-        enable_if<(Traits::isSimdArray<V>::value && Traits::simd_vector_size<V>::value == N &&
-                   std::is_convertible<Traits::entry_type_of<V>, T>::value)> = nullarg)
+        W &&x,
+        enable_if<(Traits::isSimdArray<W>::value && Traits::simd_vector_size<W>::value == N &&
+                   std::is_convertible<Traits::entry_type_of<W>, T>::value)> = nullarg)
         : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
 
     // implicit conversion to Vector<U, AnyAbi> for if Vector<U, AnyAbi>::size() == N and
     // T implicitly convertible to U
-    template <typename V,
+    template <typename W,
               typename = enable_if<
-                  Traits::is_simd_vector<V>::value && !Traits::isSimdArray<V>::value &&
-                  std::is_convertible<T, typename V::EntryType>::value && V::size() == N>>
-    operator V() const
+                  Traits::is_simd_vector<W>::value && !Traits::isSimdArray<W>::value &&
+                  std::is_convertible<T, typename W::EntryType>::value && W::size() == N>>
+    operator W() const
     {
-        return simd_cast<V>(*this);
+        return simd_cast<W>(*this);
     }
 
     //////////////////// other functions ///////////////
@@ -1264,9 +1262,10 @@ private: //{{{2
     storage_type1 data1;
 };
 #undef Vc_CURRENT_CLASS_NAME
-template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t SimdArray<T, N, VectorType, M>::Size;
-template <typename T, std::size_t N, typename VectorType, std::size_t M>
-constexpr std::size_t SimdArray<T, N, VectorType, M>::MemoryAlignment;
+template <typename T, std::size_t N, typename V, std::size_t M>
+constexpr std::size_t SimdArray<T, N, V, M>::Size;
+template <typename T, std::size_t N, typename V, std::size_t M>
+constexpr std::size_t SimdArray<T, N, V, M>::MemoryAlignment;
 
 // gatherImplementation {{{2
 template <typename T, std::size_t N, typename VectorType, std::size_t M>

@@ -261,10 +261,9 @@ constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::MemoryAlignment;
 /**
  * Data-parallel mask type with user-defined number of boolean elements.
  */
-template <typename T, std::size_t N, typename VectorType, std::size_t>
-class alignas(
-    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType) / VectorType::size()) - 1) & 127) +
-    1) SimdMaskArray
+template <typename T, std::size_t N, typename V, std::size_t>
+class alignas(((Common::nextPowerOfTwo(N) * (sizeof(V) / V::size()) - 1) & 127) +
+              1) SimdMaskArray
 {
     static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
 
@@ -275,7 +274,7 @@ public:
     using storage_type1 = SimdMaskArray<T, N - N0>;
     static_assert(storage_type0::size() == N0, "");
 
-    using vector_type = VectorType;
+    using vector_type = V;
 
     friend storage_type0 &internal_data0(SimdMaskArray &m) { return m.data0; }
     friend storage_type1 &internal_data1(SimdMaskArray &m) { return m.data1; }
@@ -301,7 +300,7 @@ public:
         std::is_same<typename storage_type0::EntryReference,
                      typename storage_type1::EntryReference>::value,
         typename storage_type0::EntryReference, Common::MaskEntry<SimdMaskArray>>::type;
-    using Vector = SimdArray<T, N, VectorType, VectorType::Size>;
+    using Vector = SimdArray<T, N, V, V::Size>;
 
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type));
 
@@ -315,8 +314,8 @@ public:
     SimdMaskArray &operator=(SimdMaskArray &&) = default;
 
     // implicit conversion from SimdMaskArray with same N
-    template <typename U, typename V>
-    Vc_INTRINSIC SimdMaskArray(const SimdMaskArray<U, N, V> &rhs)
+    template <typename U, typename W>
+    Vc_INTRINSIC SimdMaskArray(const SimdMaskArray<U, N, W> &rhs)
         : data0(Split::lo(rhs)), data1(Split::hi(rhs))
     {
     }
@@ -554,9 +553,10 @@ private:
     storage_type0 data0;
     storage_type1 data1;
 };
-template <typename T, std::size_t N, typename VectorType, std::size_t M> constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::Size;
-template <typename T, std::size_t N, typename VectorType, std::size_t M>
-constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::MemoryAlignment;
+template <typename T, std::size_t N, typename V, std::size_t M>
+constexpr std::size_t SimdMaskArray<T, N, V, M>::Size;
+template <typename T, std::size_t N, typename V, std::size_t M>
+constexpr std::size_t SimdMaskArray<T, N, V, M>::MemoryAlignment;
 
 ///}}}1
 /// @}
