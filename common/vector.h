@@ -305,11 +305,6 @@ public:
      * Constructs a vector with all entries of the vector filled with the given value.
      *
      * \param a The scalar value to broadcast to all entries of the constructed vector.
-     *
-     * \note
-     * If you want to set it to 0 or 1 use the special initializer constructors
-     * above. Calling this constructor with 0 will cause a compilation error because the
-     * compiler cannot know which constructor you meant.
      */
     inline Vector(EntryType a);
     template <typename U>
@@ -770,10 +765,22 @@ public:
     /// \name Deprecated Members
     ///@{
 
-    /// Returns the exponents of the floating-point values in the vector.
+    /**
+     * Returns the exponents of the floating-point values in the vector.
+     *
+     * \return A new vector object of the same type containing the exponents.
+     *
+     * \deprecated use Vc::exponent instead.
+     */
     inline Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const;
 
-    /// \deprecated use Vc::isnegative instead
+    /**
+     * Returns whether a value is negative.
+     *
+     * \return A new mask object indicating the sign of each vector element.
+     *
+     * \deprecated use Vc::isnegative instead.
+     */
     inline Vc_DEPRECATED("use isnegative(x) instead") MaskType isNegative() const;
 
     ///\copydoc size
@@ -791,6 +798,8 @@ public:
 
     /**
      * reinterpret_cast the vector components to construct a vector of type \p V2.
+     *
+     * \returns An object of type \p V2 with the smae bit-representation.
      *
      * \deprecated use Vc::reinterpret_components_cast instead.
      */
