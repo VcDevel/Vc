@@ -468,8 +468,23 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
 
 // generic SimdArray {{{1
 /**
- * \ingroup SimdArray
- * Data-parallel type with (somewhat) arbitrary number of elements.
+ * Data-parallel arithmetic type with user-defined number of elements.
+ *
+ * \tparam T The type of the vector's elements. The supported types currently are limited
+ *           to the types supported by Vc::Vector<T>.
+ * \tparam N The number of elements to store and process concurrently. You can choose an
+ *           arbitrary number, though not every number is a good idea.
+ *           Generally a power of two value or the sum of two power of two values might
+ *           work efficiently, though this depends a lot on the target system.
+ *
+ * \warning Choosing \p N too large (what “too large” means depends on the target) will
+ *          result in excessive compilation times and high (or too high) register
+ *          pressure, thus potentially negating the improvement from concurrent execution.
+ *          As a rule of thumb, keep \p N less or equal to `2 * float_v::size()`.
+ *
+ * \warning A special portability concern arises from a current limitation in the MIC
+ *          implementation, where SimdArray types with \p T = \p (u)short require an \p N
+ *          either less than short_v::size() or a multiple of short_v::size().
  */
 template <typename T, std::size_t N, typename VectorType, std::size_t>
 class alignas(
@@ -502,11 +517,20 @@ public:
     using storage_type1 = typename my_traits::storage_type1;
     static_assert(storage_type0::size() == N0, "");
 
+    /**\internal
+     * This type reveals the implementation-specific type used for the data member.
+     */
     using vector_type = VectorType;
     using vectorentry_type = typename storage_type0::vectorentry_type;
     typedef vectorentry_type alias_type Vc_MAY_ALIAS;
+
+    /// The type of the elements (i.e.\ \p T)
     using value_type = T;
+
+    /// The type of the mask used for masked operations and returned from comparisons.
     using mask_type = SimdMaskArray<T, N, vector_type>;
+
+    /// The type of the vector used for indexes in gather and scatter operations.
     using index_type = SimdArray<int, N>;
 
     /**
@@ -520,30 +544,76 @@ public:
      * of this type.
      */
     static constexpr std::size_t size() { return N; }
+
+    /// \copydoc mask_type
     using Mask = mask_type;
+    /// \copydoc mask_type
     using MaskType = Mask;
     using MaskArgument = const MaskType &;
     using VectorEntryType = vectorentry_type;
+    /// \copydoc value_type
     using EntryType = value_type;
+    /// \copydoc index_type
     using IndexType = index_type;
     using AsArg = const SimdArray &;
-    static constexpr std::size_t Size = size();
+
+    ///\copydoc Vector::MemoryAlignment
     static constexpr std::size_t MemoryAlignment =
         storage_type0::MemoryAlignment > storage_type1::MemoryAlignment
             ? storage_type0::MemoryAlignment
             : storage_type1::MemoryAlignment;
 
-    //////////////////// constructors //////////////////
+    /// \name Generators
+    ///@{
 
-    // zero init
+    ///\copybrief Vector::Zero
+    static Vc_INTRINSIC SimdArray Zero()
+    {
+        return SimdArray(Vc::Zero);
+    }
+
+    ///\copybrief Vector::One
+    static Vc_INTRINSIC SimdArray One()
+    {
+        return SimdArray(Vc::One);
+    }
+
+    ///\copybrief Vector::IndexesFromZero
+    static Vc_INTRINSIC SimdArray IndexesFromZero()
+    {
+        return SimdArray(Vc::IndexesFromZero);
+    }
+
+    ///\copydoc Vector::Random
+    static Vc_INTRINSIC SimdArray Random()
+    {
+        return fromOperation(Common::Operations::random());
+    }
+
+    ///\copybrief Vector::generate
+    template <typename G> static Vc_INTRINSIC SimdArray generate(const G &gen) // {{{2
+    {
+        auto tmp = storage_type0::generate(gen);  // GCC bug: the order of evaluation in
+                                                  // an initializer list is well-defined
+                                                  // (front to back), but GCC 4.8 doesn't
+                                                  // implement this correctly. Therefore
+                                                  // we enforce correct order.
+        return {std::move(tmp),
+                storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
+    }
+    ///@}
+
+    /// \name Compile-Time Constant Initialization
+    ///@{
+
+    ///\copydoc Vector::Vector()
     SimdArray() = default;
+    ///@}
 
-    // default copy ctor/operator
-    SimdArray(const SimdArray &) = default;
-    SimdArray(SimdArray &&) = default;
-    SimdArray &operator=(const SimdArray &) = default;
+    /// \name Conversion/Broadcast Constructors
+    ///@{
 
-    // broadcast
+    ///\copydoc Vector::Vector(EntryType)
     Vc_INTRINSIC SimdArray(value_type a) : data0(a), data1(a) {}
     template <
         typename U,
@@ -552,6 +622,12 @@ public:
         : SimdArray(static_cast<value_type>(a))
     {
     }
+    ///@}
+
+    // default copy ctor/operator
+    SimdArray(const SimdArray &) = default;
+    SimdArray(SimdArray &&) = default;
+    SimdArray &operator=(const SimdArray &) = default;
 
     // load ctor
     template <typename U,
@@ -697,29 +773,6 @@ public:
         storage_type1::callOperation(op, Split::hi(std::forward<Args>(args))...);
     }
 
-    ///\copydoc Vector::Zero
-    static Vc_INTRINSIC SimdArray Zero()
-    {
-        return SimdArray(Vc::Zero);
-    }
-
-    ///\copydoc Vector::One
-    static Vc_INTRINSIC SimdArray One()
-    {
-        return SimdArray(Vc::One);
-    }
-
-    ///\copydoc Vector::IndexesFromZero
-    static Vc_INTRINSIC SimdArray IndexesFromZero()
-    {
-        return SimdArray(Vc::IndexesFromZero);
-    }
-
-    ///\copydoc Vector::Random
-    static Vc_INTRINSIC SimdArray Random()
-    {
-        return fromOperation(Common::Operations::random());
-    }
 
     template <typename U, typename... Args> Vc_INTRINSIC void load(const U *mem, Args &&... args)
     {
@@ -808,30 +861,34 @@ public:
     Vc_ALL_COMPARES(Vc_COMPARES);
 #undef Vc_COMPARES
 
-    /// \copydoc Vector::isNegative
-    Vc_INTRINSIC MaskType isNegative() const
-    {
-        return {isnegative(data0), isnegative(data1)};
-    }
-
     // operator[] {{{2
-    Vc_INTRINSIC value_type operator[](std::size_t i) const
-    {
-        const auto tmp = reinterpret_cast<const alias_type *>(this);
-        return tmp[i];
-    }
+    /// \name Scalar Subscript Operators
+    ///@{
 
-    Vc_INTRINSIC alias_type &operator[](std::size_t i)
+    ///\copydoc Vector::operator[](size_t)
+    Vc_INTRINSIC alias_type &operator[](std::size_t index)
     {
         auto tmp = reinterpret_cast<alias_type *>(this);
-        return tmp[i];
+        return tmp[index];
     }
 
-    Vc_INTRINSIC Common::WriteMaskedVector<SimdArray, mask_type> operator()(const mask_type &k) //{{{2
+    ///\copydoc Vector::operator[](size_t) const
+    Vc_INTRINSIC value_type operator[](std::size_t index) const
     {
-        return {this, k};
+        const auto tmp = reinterpret_cast<const alias_type *>(this);
+        return tmp[index];
+    }
+    ///@}
+
+    // operator(){{{2
+    ///\copydoc Vector::operator()(MaskType)
+    Vc_INTRINSIC Common::WriteMaskedVector<SimdArray, mask_type> operator()(
+        const mask_type &mask)
+    {
+        return {this, mask};
     }
 
+    ///\internal
     Vc_INTRINSIC void assign(const SimdArray &v, const mask_type &k) //{{{2
     {
         data0.assign(v.data0, internal_data0(k));
@@ -840,11 +897,11 @@ public:
 
     // reductions {{{2
 #define Vc_REDUCTION_FUNCTION_(name_, binary_fun_, scalar_fun_)                          \
+private:                                                                                 \
     template <typename ForSfinae = void>                                                 \
     Vc_INTRINSIC enable_if<std::is_same<ForSfinae, void>::value &&                       \
                                storage_type0::size() == storage_type1::size(),           \
-                           value_type>                                                   \
-    name_() const                                                                        \
+                           value_type> name_##_impl() const                              \
     {                                                                                    \
         return binary_fun_(data0, data1).name_();                                        \
     }                                                                                    \
@@ -852,12 +909,15 @@ public:
     template <typename ForSfinae = void>                                                 \
     Vc_INTRINSIC enable_if<std::is_same<ForSfinae, void>::value &&                       \
                                storage_type0::size() != storage_type1::size(),           \
-                           value_type>                                                   \
-    name_() const                                                                        \
+                           value_type> name_##_impl() const                              \
     {                                                                                    \
         return scalar_fun_(data0.name_(), data1.name_());                                \
     }                                                                                    \
                                                                                          \
+public:                                                                                  \
+    /**\copybrief Vector::##name_ */                                                     \
+    Vc_INTRINSIC value_type name_() const { return name_##_impl(); }                     \
+    /**\copybrief Vector::##name_ */                                                     \
     Vc_INTRINSIC value_type name_(const mask_type &mask) const                           \
     {                                                                                    \
         if (Vc_IS_UNLIKELY(Split::lo(mask).isEmpty())) {                                 \
@@ -875,6 +935,7 @@ public:
     Vc_REDUCTION_FUNCTION_(product, internal::product_helper_, internal::product_helper_);
     Vc_REDUCTION_FUNCTION_(sum, internal::sum_helper_, internal::sum_helper_);
 #undef Vc_REDUCTION_FUNCTION_
+    ///\copybrief Vector::partialSum
     Vc_INTRINSIC Vc_PURE SimdArray partialSum() const //{{{2
     {
         auto ps0 = data0.partialSum();
@@ -884,16 +945,19 @@ public:
     }
 
     // apply {{{2
+    ///\copybrief Vector::apply(F &&) const
     template <typename F> Vc_INTRINSIC SimdArray apply(F &&f) const
     {
         return {data0.apply(f), data1.apply(f)};
     }
+    ///\copybrief Vector::apply(F &&, MaskType) const
     template <typename F> Vc_INTRINSIC SimdArray apply(F &&f, const mask_type &k) const
     {
         return {data0.apply(f, Split::lo(k)), data1.apply(f, Split::hi(k))};
     }
 
     // shifted {{{2
+    ///\copybrief Vector::shifted(int) const
     inline SimdArray shifted(int amount) const
     {
         constexpr int SSize = Size;
@@ -1013,6 +1077,7 @@ public:
     }
 
     // rotated {{{2
+    ///\copybrief Vector::rotated
     Vc_INTRINSIC SimdArray rotated(int amount) const
     {
         amount %= int(size());
@@ -1049,19 +1114,15 @@ public:
         return *this;
     }
 
-    /// \copydoc Vector::exponent
-    Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") SimdArray exponent() const
-    {
-        return {exponent(data0), exponent(data1)};
-    }
-
     // interleaveLow/-High {{{2
+    ///\internal \copydoc Vector::interleaveLow
     Vc_INTRINSIC SimdArray interleaveLow(const SimdArray &x) const
     {
         // return data0[0], x.data0[0], data0[1], x.data0[1], ...
         return {data0.interleaveLow(x.data0),
                 simd_cast<storage_type1>(data0.interleaveHigh(x.data0))};
     }
+    ///\internal \copydoc Vector::interleaveHigh
     Vc_INTRINSIC SimdArray interleaveHigh(const SimdArray &x) const
     {
         return interleaveHighImpl(
@@ -1070,10 +1131,12 @@ public:
     }
 
 private:
+    ///\internal
     Vc_INTRINSIC SimdArray interleaveHighImpl(const SimdArray &x, std::true_type) const
     {
         return {data1.interleaveLow(x.data1), data1.interleaveHigh(x.data1)};
     }
+    ///\internal
     inline SimdArray interleaveHighImpl(const SimdArray &x, std::false_type) const
     {
         return {data0.interleaveHigh(x.data0)
@@ -1083,6 +1146,7 @@ private:
     }
 
 public:
+    ///\copybrief Vector::reversed
     inline SimdArray reversed() const //{{{2
     {
         if (std::is_same<storage_type0, storage_type1>::value) {
@@ -1094,12 +1158,14 @@ public:
                         storage_type0::Size - storage_type1::Size))};
         }
     }
+    ///\copydoc Vector::sorted
     inline SimdArray sorted() const  //{{{2
     {
         return sortedImpl(
             std::integral_constant<bool, storage_type0::Size == storage_type1::Size>());
     }
 
+    ///\internal
     Vc_INTRINSIC SimdArray sortedImpl(std::true_type) const
     {
 #ifdef Vc_DEBUG_SORTED
@@ -1112,6 +1178,7 @@ public:
         return {lo.sorted(), hi.sorted()};
     }
 
+    ///\internal
     Vc_INTRINSIC SimdArray sortedImpl(std::false_type) const
     {
         using SortableArray = SimdArray<value_type, Common::nextPowerOfTwo(size())>;
@@ -1153,23 +1220,33 @@ public:
         */
     }
 
-    template <typename G> static Vc_INTRINSIC SimdArray generate(const G &gen) // {{{2
+    /// \name Deprecated Members
+    ///@{
+
+    ///\copydoc size
+    ///\deprecated Use size() instead.
+    static constexpr std::size_t Size = size();
+
+    /// \copydoc Vector::exponent
+    Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") SimdArray exponent() const
     {
-        auto tmp = storage_type0::generate(gen);  // GCC bug: the order of evaluation in
-                                                  // an initializer list is well-defined
-                                                  // (front to back), but GCC 4.8 doesn't
-                                                  // implement this correctly. Therefore
-                                                  // we enforce correct order.
-        return {std::move(tmp),
-                storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
+        return {exponent(data0), exponent(data1)};
     }
 
+    /// \copydoc Vector::isNegative
+    Vc_INTRINSIC Vc_DEPRECATED("use isnegative(x) instead") MaskType isNegative() const
+    {
+        return {isnegative(data0), isnegative(data1)};
+    }
+
+    ///\copydoc Vector::copySign
     Vc_INTRINSIC Vc_DEPRECATED("use copysign(x, y) instead") SimdArray
         copySign(const SimdArray &reference) const
     {
         return {Vc::copysign(data0, reference.data0),
                 Vc::copysign(data1, reference.data1)};
     }
+    ///@}
 
     // internal_data0/1 {{{2
     friend storage_type0 &internal_data0<>(SimdArray &x);

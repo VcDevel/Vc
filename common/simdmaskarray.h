@@ -41,7 +41,16 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 /// \addtogroup SimdArray
 /// @{
-
+// atomic SimdMaskArray {{{1
+/**\internal
+ * Specialization of `SimdMaskArray<T, N, VectorType, VectorSize>` for the case where `N
+ * == VectorSize`.
+ *
+ * This is specialized for implementation purposes: Since the general implementation uses
+ * two SimdMaskArray data members it recurses over different SimdMaskArray instantiations.
+ * The recursion is ended by this specialization, which has a single \p storage_type data
+ * member to which all functions are forwarded more or less directly.
+ */
 template <typename T, std::size_t N, typename VectorType_>
 class alignas(
     ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) & 127) +
@@ -248,6 +257,10 @@ template <typename T, std::size_t N, typename VectorType> constexpr std::size_t 
 template <typename T, std::size_t N, typename VectorType>
 constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::MemoryAlignment;
 
+// generic SimdArray {{{1
+/**
+ * Data-parallel mask type with user-defined number of boolean elements.
+ */
 template <typename T, std::size_t N, typename VectorType, std::size_t>
 class alignas(
     ((Common::nextPowerOfTwo(N) * (sizeof(VectorType) / VectorType::size()) - 1) & 127) +
@@ -545,6 +558,7 @@ template <typename T, std::size_t N, typename VectorType, std::size_t M> constex
 template <typename T, std::size_t N, typename VectorType, std::size_t M>
 constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::MemoryAlignment;
 
+///}}}1
 /// @}
 
 }  // namespace Vc
@@ -554,3 +568,5 @@ constexpr std::size_t SimdMaskArray<T, N, VectorType, M>::MemoryAlignment;
 #include "simd_cast_caller.tcc"
 
 #endif // VC_COMMON_SIMDMASKARRAY_H_
+
+// vim: foldmethod=marker
