@@ -260,8 +260,28 @@ constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::MemoryAlignment;
 // generic SimdArray {{{1
 /**
  * Data-parallel mask type with user-defined number of boolean elements.
+ *
+ * \tparam T The value type of the corresponding SimdArray. Depending on the target
+ *           platform this type determines a different bit representation to work most
+ *           efficient with SimdArray types instantiated for \p T.
+ *
+ * \tparam N The number of boolean elements to store and process concurrently. You can
+ *           choose an arbitrary number, though not every number is a good idea.
+ *           Generally, a power of two value or the sum of two power of two values might
+ *           work efficiently, though this depends a lot on the target system.
+ *
+ * \tparam V Don't change the default value unless you really know what you are doing.
+ *           This type is set to the underlying native Vc::Vector type used in the
+ *           implementation of the type.
+ *           Having it as part of the type name guards against some cases of ODR
+ *           violations (i.e. linking incompatible translation units / libraries).
+ *
+ * \tparam Wt Don't ever change the default value.
+ *           This parameter is an unfortunate implementation detail shining through.
+ *
+ * \headerfile simdmaskarray.h <Vc/SimdArray>
  */
-template <typename T, std::size_t N, typename V, std::size_t>
+template <typename T, size_t N, typename V, size_t Wt>
 class alignas(((Common::nextPowerOfTwo(N) * (sizeof(V) / V::size()) - 1) & 127) +
               1) SimdMaskArray
 {
@@ -282,29 +302,42 @@ public:
     friend const storage_type1 &internal_data1(const SimdMaskArray &m) { return m.data1; }
 
     using mask_type = SimdMaskArray;
+
+    ///\copydoc Mask::size()
     static constexpr std::size_t size() { return N; }
+    ///\copydoc Mask::Size
     static constexpr std::size_t Size = size();
+    ///\copydoc Mask::MemoryAlignment
     static constexpr std::size_t MemoryAlignment =
         storage_type0::MemoryAlignment > storage_type1::MemoryAlignment
             ? storage_type0::MemoryAlignment
             : storage_type1::MemoryAlignment;
     static_assert(Size == mask_type::Size, "size mismatch");
 
+    ///\internal
     using vectorentry_type = typename storage_type0::VectorEntryType;
+    ///\internal
     using vectorentry_reference = vectorentry_type &;
+    ///\copydoc Mask::value_type
     using value_type = typename storage_type0::EntryType;
-    using Mask = mask_type;
+    ///\copydoc Mask::Mask
+    using MaskType = mask_type;
+    ///\copydoc Mask::VectorEntryType
     using VectorEntryType = vectorentry_type;
+    ///\copydoc Mask::EntryType
     using EntryType = value_type;
+    ///\copydoc Mask::EntryReference
     using EntryReference = typename std::conditional<
         std::is_same<typename storage_type0::EntryReference,
                      typename storage_type1::EntryReference>::value,
         typename storage_type0::EntryReference, Common::MaskEntry<SimdMaskArray>>::type;
+    /// An alias for the corresponding SimdArray type.
     using Vector = SimdArray<T, N, V, V::Size>;
 
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type));
 
     // zero init
+    ///\copydoc Mask::Mask()
     SimdMaskArray() = default;
 
     // default copy ctor/operator
@@ -348,73 +381,118 @@ public:
         return simd_cast<M>(*this);
     }
 
+    ///\copybrief Mask::Mask(VectorSpecialInitializerOne)
     Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne one)
         : data0(one), data1(one)
     {
     }
+    ///\copybrief Mask::Mask(VectorSpecialInitializerZero)
     Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero zero)
         : data0(zero), data1(zero)
     {
     }
+    ///\copydoc Mask::Mask(bool)
     Vc_INTRINSIC explicit SimdMaskArray(bool b) : data0(b), data1(b) {}
 
+    ///\copydoc Mask::Zero()
     Vc_INTRINSIC static SimdMaskArray Zero() { return {storage_type0::Zero(), storage_type1::Zero()}; }
+    ///\copydoc Mask::One()
     Vc_INTRINSIC static SimdMaskArray One() { return {storage_type0::One(), storage_type1::One()}; }
 
+    ///\name Loads & Stores
+    ///@{
+
+    /**
+     * Load N boolean values from the consecutive addresses starting at \p mem.
+     *
+     * \param mem A pointer to an array of booleans.
+     * \param f A combination of flags to modify specific behavior of the load.
+     */
     template <typename Flags = DefaultLoadTag>
     Vc_INTRINSIC explicit SimdMaskArray(const bool *mem, Flags f = Flags())
         : data0(mem, f), data1(mem + storage_type0::size(), f)
     {
     }
 
+    /**
+     * Load N boolean values from the consecutive addresses starting at \p mem.
+     *
+     * \param mem A pointer to an array of booleans.
+     */
     Vc_INTRINSIC void load(const bool *mem)
     {
         data0.load(mem);
         data1.load(mem + storage_type0::size());
     }
+
+    /**
+     * Load N boolean values from the consecutive addresses starting at \p mem.
+     *
+     * \param mem A pointer to an array of booleans.
+     * \param f A combination of flags to modify specific behavior of the load.
+     */
     template <typename Flags> Vc_INTRINSIC void load(const bool *mem, Flags f)
     {
         data0.load(mem, f);
         data1.load(mem + storage_type0::size(), f);
     }
 
+    /**
+     * Store N boolean values to the consecutive addresses starting at \p mem.
+     *
+     * \param mem A pointer to an array of booleans.
+     */
     Vc_INTRINSIC void store(bool *mem) const
     {
         data0.store(mem);
         data1.store(mem + storage_type0::size());
     }
+
+    /**
+     * Store N boolean values to the consecutive addresses starting at \p mem.
+     *
+     * \param mem A pointer to an array of booleans.
+     * \param f A combination of flags to modify specific behavior of the load.
+     */
     template <typename Flags> Vc_INTRINSIC void store(bool *mem, Flags f) const
     {
         data0.store(mem, f);
         data1.store(mem + storage_type0::size(), f);
     }
+    ///@}
 
-    Vc_INTRINSIC Vc_PURE bool operator==(const SimdMaskArray &rhs) const
+    ///\copydoc Mask::operator==
+    Vc_INTRINSIC Vc_PURE bool operator==(const SimdMaskArray &mask) const
     {
-        return data0 == rhs.data0 && data1 == rhs.data1;
+        return data0 == mask.data0 && data1 == mask.data1;
     }
-    Vc_INTRINSIC Vc_PURE bool operator!=(const SimdMaskArray &rhs) const
+    ///\copydoc Mask::operator!=
+    Vc_INTRINSIC Vc_PURE bool operator!=(const SimdMaskArray &mask) const
     {
-        return data0 != rhs.data0 || data1 != rhs.data1;
+        return data0 != mask.data0 || data1 != mask.data1;
     }
 
+    ///\copybrief Mask::operator!
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator!() const
     {
         return {!data0, !data1};
     }
 
+    ///\copybrief Mask::operator&=
     Vc_INTRINSIC SimdMaskArray &operator&=(const SimdMaskArray &rhs)
     {
         data0 &= rhs.data0;
         data1 &= rhs.data1;
         return *this;
     }
+    ///\copybrief Mask::operator|=
     Vc_INTRINSIC SimdMaskArray &operator|=(const SimdMaskArray &rhs)
     {
         data0 |= rhs.data0;
         data1 |= rhs.data1;
         return *this;
     }
+    ///\copybrief Mask::operator^=
     Vc_INTRINSIC SimdMaskArray &operator^=(const SimdMaskArray &rhs)
     {
         data0 ^= rhs.data0;
@@ -422,33 +500,43 @@ public:
         return *this;
     }
 
+    ///\copybrief Mask::operator&
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator&(const SimdMaskArray &rhs) const
     {
         return {data0 & rhs.data0, data1 & rhs.data1};
     }
+    ///\copybrief Mask::operator|
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator|(const SimdMaskArray &rhs) const
     {
         return {data0 | rhs.data0, data1 | rhs.data1};
     }
+    ///\copybrief Mask::operator^
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator^(const SimdMaskArray &rhs) const
     {
         return {data0 ^ rhs.data0, data1 ^ rhs.data1};
     }
 
+    ///\copybrief Mask::operator&&
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator&&(const SimdMaskArray &rhs) const
     {
         return {data0 && rhs.data0, data1 && rhs.data1};
     }
+    ///\copybrief Mask::operator||
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator||(const SimdMaskArray &rhs) const
     {
         return {data0 || rhs.data0, data1 || rhs.data1};
     }
 
+    ///\copybrief Mask::isFull
     Vc_INTRINSIC Vc_PURE bool isFull() const { return data0.isFull() && data1.isFull(); }
+    ///\copybrief Mask::isNotEmpty
     Vc_INTRINSIC Vc_PURE bool isNotEmpty() const { return data0.isNotEmpty() || data1.isNotEmpty(); }
+    ///\copybrief Mask::isEmpty
     Vc_INTRINSIC Vc_PURE bool isEmpty() const { return data0.isEmpty() && data1.isEmpty(); }
+    ///\copybrief Mask::isMix
     Vc_INTRINSIC Vc_PURE bool isMix() const { return !isFull() && !isEmpty(); }
 
+    ///\copydoc Mask::toInt
     Vc_INTRINSIC Vc_PURE int toInt() const
     {
         return data0.toInt() | (data1.toInt() << data0.size());
@@ -487,9 +575,25 @@ public:
         }
     }
 
+    /**
+     * Return a smart reference to the boolean element at index \p index.
+     *
+     * \param index The element index to be accessed.
+     *
+     * \returns A temporary smart reference object which acts as much as an lvalue
+     * reference as possible.
+     */
     Vc_INTRINSIC Vc_PURE EntryReference operator[](size_t index) {
         return subscript_impl<EntryReference>(index);
     }
+    /**
+     * Return a copy of the boolean element at index \p index.
+     *
+     * \param index The element index to be accessed.
+     *
+     * \returns A temporary boolean object with the value of the element at index \p
+     * index.
+     */
     Vc_INTRINSIC Vc_PURE bool operator[](size_t index) const {
         if (index < storage_type0::size()) {
             return data0[index];
@@ -498,8 +602,10 @@ public:
         }
     }
 
+    ///\copybrief Mask::count
     Vc_INTRINSIC Vc_PURE int count() const { return data0.count() + data1.count(); }
 
+    ///\copydoc Mask::firstOne
     Vc_INTRINSIC Vc_PURE int firstOne() const {
         if (data0.isEmpty()) {
             return data1.firstOne() + storage_type0::size();
@@ -507,12 +613,14 @@ public:
         return data0.firstOne();
     }
 
+    ///\copybrief Mask::generate
     template <typename G> static Vc_INTRINSIC SimdMaskArray generate(const G &gen)
     {
         return {storage_type0::generate(gen),
                 storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
     }
 
+    ///\copybrief Mask::shifted
     inline Vc_PURE SimdMaskArray shifted(int amount) const
     {
         if (Vc_IS_UNLIKELY(amount == 0)) {

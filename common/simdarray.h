@@ -475,10 +475,20 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
  *
  * \tparam T The type of the vector's elements. The supported types currently are limited
  *           to the types supported by Vc::Vector<T>.
+ *
  * \tparam N The number of elements to store and process concurrently. You can choose an
  *           arbitrary number, though not every number is a good idea.
- *           Generally a power of two value or the sum of two power of two values might
+ *           Generally, a power of two value or the sum of two power of two values might
  *           work efficiently, though this depends a lot on the target system.
+ *
+ * \tparam V Don't change the default value unless you really know what you are doing.
+ *           This type is set to the underlying native Vc::Vector type used in the
+ *           implementation of the type.
+ *           Having it as part of the type name guards against some cases of ODR
+ *           violations (i.e. linking incompatible translation units / libraries).
+ *
+ * \tparam Wt Don't ever change the default value.
+ *           This parameter is an unfortunate implementation detail shining through.
  *
  * \warning Choosing \p N too large (what “too large” means depends on the target) will
  *          result in excessive compilation times and high (or too high) register
@@ -486,10 +496,13 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
  *          As a rule of thumb, keep \p N less or equal to `2 * float_v::size()`.
  *
  * \warning A special portability concern arises from a current limitation in the MIC
- *          implementation, where SimdArray types with \p T = \p (u)short require an \p N
- *          either less than short_v::size() or a multiple of short_v::size().
+ *          implementation (Intel Knights Corner), where SimdArray types with \p T = \p
+ *          (u)short require an \p N either less than short_v::size() or a multiple of
+ *          short_v::size().
+ *
+ * \headerfile simdarray.h <Vc/SimdArray>
  */
-template <typename T, std::size_t N, typename V, std::size_t>
+template <typename T, size_t N, typename V, size_t Wt>
 class alignas(((Common::nextPowerOfTwo(N) * (sizeof(V) / V::size()) - 1) & 127) +
               1) SimdArray
 {
