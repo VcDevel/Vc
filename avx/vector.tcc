@@ -469,7 +469,7 @@ inline void Vector<T, VectorAbi::Avx>::gatherImplementation(const MT *mem, IT &&
               Common::GatherScatterImplementation::SimpleLoop
 #endif
                                                 > ;
-    Common::executeGather(Selector(), *this, mem, indexes, mask);
+    Common::executeGather(Selector(), *this, mem, std::forward<IT>(indexes), mask);
 }
 
 template <typename T>
@@ -495,7 +495,7 @@ inline void Vector<T, VectorAbi::Avx>::scatterImplementation(MT *mem, IT &&index
               Common::GatherScatterImplementation::SimpleLoop
 #endif
                                                 > ;
-    Common::executeScatter(Selector(), *this, mem, indexes, mask);
+    Common::executeScatter(Selector(), *this, mem, std::forward<IT>(indexes), mask);
 }
 
 #if defined(Vc_MSVC) && Vc_MSVC >= 170000000
