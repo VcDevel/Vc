@@ -58,7 +58,7 @@ public:
         const M &m = mask;
         return m[offset];
     }
-    Vc_INTRINSIC MaskEntry &operator=(bool x)
+    Vc_INTRINSIC MaskEntry &operator=(bool x) &&
     {
         mask.setEntry(offset, x);
         return *this;
