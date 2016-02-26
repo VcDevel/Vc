@@ -51,10 +51,11 @@ template <typename V, typename MT, typename IT>
 Vc_ALWAYS_INLINE void executeGather(SetIndexZeroT,
                                     V &v,
                                     const MT *mem,
-                                    IT indexes,
+                                    IT &&indexes_,
                                     typename V::MaskArgument mask)
 {
-    indexes.setZeroInverted(static_cast<typename IT::Mask>(mask));
+    auto indexes = std::forward<IT>(indexes_);
+    indexes.setZeroInverted(static_cast<decltype(!indexes)>(mask));
     const V tmp(mem, indexes);
     where(mask) | v = tmp;
 }
