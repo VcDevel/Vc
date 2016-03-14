@@ -700,17 +700,6 @@ namespace SSE
             static Vc_ALWAYS_INLINE Vc_CONST VectorType set(const EntryType a, const EntryType b, const EntryType c, const EntryType d, const EntryType e, const EntryType f, const EntryType g, const EntryType h, const EntryType i, const EntryType j, const EntryType k, const EntryType l, const EntryType m, const EntryType n, const EntryType o, const EntryType p) { return Vc_CAT2(_mm_set_, Vc_SUFFIX)(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p); }
 
             Vc_OP(add) Vc_OP(sub)
-            Vc_OPcmp(eq)
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpneq(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpeq(a, b), _mm_setallone_si128()); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmplt(const VectorType a, const VectorType b) {
-                return _mm_cmpgt_epu8(b, a);
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpgt(const VectorType a, const VectorType b) {
-                return _mm_cmpgt_epu8(a, b);
-            }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnlt(const VectorType a, const VectorType b) { return _mm_andnot_si128(cmplt(a, b), _mm_setallone_si128()); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmple (const VectorType a, const VectorType b) { return _mm_andnot_si128(cmpgt(a, b), _mm_setallone_si128()); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType cmpnle(const VectorType a, const VectorType b) { return cmpgt(a, b); }
 
 #undef Vc_SUFFIX
             static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }

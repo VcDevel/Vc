@@ -326,8 +326,8 @@ TEST_TYPES(V, testModuloSmallNumbers, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(
     }
   }
 }
-
-TEST_TYPES(Vec, testAnd, (INT_VECTORS))
+/*
+TEST_TYPES(Vec, testAnd, (Vc::short_v))
 {
     Vec a(0x7f);
     Vec b(0xf);
@@ -337,7 +337,7 @@ TEST_TYPES(Vec, testAnd, (INT_VECTORS))
     COMPARE(c, (c & (Vec::Size - 1)));
     const typename Vec::EntryType zero = 0;
     COMPARE((c & (0x7fff - Vec::Size + 1)), Vec(zero));
-}
+}*/
 
 TEST_TYPES(Vec, testShift, (INT_VECTORS))
 {

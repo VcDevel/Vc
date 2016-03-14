@@ -206,7 +206,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     size(macro,    int_v, a, b, c, d) \
     size(macro,   uint_v, a, b, c, d) \
     size(macro,  short_v, a, b, c, d) \
-    size(macro, ushort_v, a, b, c, d)
+    size(macro, ushort_v, a, b, c, d) \
+    size(macro,  uchar_v, a, b, c, d)
 #define Vc_LIST_VECTOR_TYPES(size, macro, a, b, c, d) \
     Vc_LIST_FLOAT_VECTOR_TYPES(size, macro, a, b, c, d) \
     Vc_LIST_INT_VECTOR_TYPES(size, macro, a, b, c, d)

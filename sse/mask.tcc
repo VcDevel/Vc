@@ -27,7 +27,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "macros.h"
-#include "intrinsics.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -115,8 +114,8 @@ template <> Vc_ALWAYS_INLINE void mask_store<16>(__m128i k, bool *mem)
 template<size_t> Vc_ALWAYS_INLINE __m128 mask_load(const bool *mem);
 template<> Vc_ALWAYS_INLINE __m128 mask_load<16>(const bool *mem)
 {
-    __m128i k = _mm_loadu_si128(reinterpret_cast<const __m128i*>(mem));
-    return SseIntrinsics::_mm_cmpgt_epu8(k, _mm_setzero_si128());
+    __m128i k = _mm_load_si128(reinterpret_cast<const __m128i*>(mem));
+    return _mm_cmpgt_epi8(k, _mm_setzero_si128());
 }
 template<> Vc_ALWAYS_INLINE __m128 mask_load<8>(const bool *mem)
 {

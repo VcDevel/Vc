@@ -166,6 +166,7 @@ if(NOT ROOT_RELEASE)
    file(GLOB _header
    "sse/*"
    "avx/*"
+   "common/*"
    )
 
    add_library(Vc STATIC ${_srcs} ${_header})

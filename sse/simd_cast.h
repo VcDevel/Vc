@@ -74,31 +74,43 @@ Vc_SIMD_CAST_1(double_v,    int_v);
 Vc_SIMD_CAST_1(  uint_v,    int_v);
 Vc_SIMD_CAST_1( short_v,    int_v);
 Vc_SIMD_CAST_1(ushort_v,    int_v);
+Vc_SIMD_CAST_1( uchar_v,    int_v);
 Vc_SIMD_CAST_1( float_v,   uint_v);
 Vc_SIMD_CAST_1(double_v,   uint_v);
 Vc_SIMD_CAST_1(   int_v,   uint_v);
 Vc_SIMD_CAST_1( short_v,   uint_v);
 Vc_SIMD_CAST_1(ushort_v,   uint_v);
+Vc_SIMD_CAST_1( uchar_v,   uint_v);
 Vc_SIMD_CAST_1(double_v,  float_v);
 Vc_SIMD_CAST_1(   int_v,  float_v);
 Vc_SIMD_CAST_1(  uint_v,  float_v);
 Vc_SIMD_CAST_1( short_v,  float_v);
 Vc_SIMD_CAST_1(ushort_v,  float_v);
+Vc_SIMD_CAST_1( uchar_v,  float_v);
 Vc_SIMD_CAST_1( float_v, double_v);
 Vc_SIMD_CAST_1(   int_v, double_v);
 Vc_SIMD_CAST_1(  uint_v, double_v);
 Vc_SIMD_CAST_1( short_v, double_v);
 Vc_SIMD_CAST_1(ushort_v, double_v);
+Vc_SIMD_CAST_1( uchar_v, double_v);
 Vc_SIMD_CAST_1(   int_v,  short_v);
 Vc_SIMD_CAST_1(  uint_v,  short_v);
 Vc_SIMD_CAST_1( float_v,  short_v);
 Vc_SIMD_CAST_1(double_v,  short_v);
 Vc_SIMD_CAST_1(ushort_v,  short_v);
+Vc_SIMD_CAST_1( uchar_v,  short_v);
 Vc_SIMD_CAST_1(   int_v, ushort_v);
 Vc_SIMD_CAST_1(  uint_v, ushort_v);
 Vc_SIMD_CAST_1( float_v, ushort_v);
 Vc_SIMD_CAST_1(double_v, ushort_v);
+Vc_SIMD_CAST_1( uchar_v, ushort_v);
 Vc_SIMD_CAST_1( short_v, ushort_v);
+Vc_SIMD_CAST_1(   int_v,  uchar_v);
+Vc_SIMD_CAST_1(  uint_v,  uchar_v);
+Vc_SIMD_CAST_1( float_v,  uchar_v);
+Vc_SIMD_CAST_1(double_v,  uchar_v);
+Vc_SIMD_CAST_1( short_v,  uchar_v);
+Vc_SIMD_CAST_1(ushort_v,  uchar_v);
 
 // 2 SSE::Vector to 1 SSE::Vector {{{2
 Vc_SIMD_CAST_2(double_v,    int_v);
@@ -112,6 +124,12 @@ Vc_SIMD_CAST_2(   int_v, ushort_v);
 Vc_SIMD_CAST_2(  uint_v, ushort_v);
 Vc_SIMD_CAST_2( float_v, ushort_v);
 Vc_SIMD_CAST_2(double_v, ushort_v);
+Vc_SIMD_CAST_2(   int_v,  uchar_v);
+Vc_SIMD_CAST_2(  uint_v,  uchar_v);
+Vc_SIMD_CAST_2( float_v,  uchar_v);
+Vc_SIMD_CAST_2(double_v,  uchar_v);
+Vc_SIMD_CAST_2(ushort_v,  uchar_v);
+Vc_SIMD_CAST_2( short_v,  uchar_v);
 
 // 3 SSE::Vector to 1 SSE::Vector {{{2
 #define Vc_CAST_(To_)                                                                    \
@@ -152,6 +170,10 @@ template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x,
           enable_if<std::is_same<Return, SSE::ushort_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x,
+          enable_if<std::is_same<Return, SSE::uchar_v>::value> = nullarg);
 
 // 2 Scalar::Vector to 1 SSE::Vector {{{2
 template <typename Return, typename T>
@@ -178,6 +200,10 @@ template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1,
           enable_if<std::is_same<Return, SSE::ushort_v>::value> = nullarg);
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1,
+          enable_if<std::is_same<Return, SSE::uchar_v>::value> = nullarg);
 
 // 3 Scalar::Vector to 1 SSE::Vector {{{2
 template <typename Return, typename T>
@@ -373,6 +399,13 @@ Vc_SIMD_CAST_1(  uint_v, ushort_v) { return SSE::convert_int32_to_int16(x.data()
 Vc_SIMD_CAST_1( float_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x)); }
 Vc_SIMD_CAST_1(double_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x)); }
 Vc_SIMD_CAST_1( short_v, ushort_v) { return x.data(); }
+// to ushort_v {{{3
+Vc_SIMD_CAST_1(   int_v,  uchar_v) { return SSE::convert_int32_to_int16(x.data(), _mm_setzero_si128()); }
+Vc_SIMD_CAST_1(  uint_v,  uchar_v) { return SSE::convert_int32_to_int16(x.data(), _mm_setzero_si128()); }
+Vc_SIMD_CAST_1( float_v,  uchar_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x)); }
+Vc_SIMD_CAST_1(double_v,  uchar_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x)); }
+Vc_SIMD_CAST_1( short_v,  uchar_v) { return x.data(); }
+  
 // 2 SSE::Vector to 1 SSE::Vector {{{2
 Vc_SIMD_CAST_2(double_v,    int_v) {
 #ifdef Vc_IMPL_AVX
@@ -405,6 +438,13 @@ Vc_SIMD_CAST_2(   int_v, ushort_v) { return SSE::convert_int32_to_int16(x0.data(
 Vc_SIMD_CAST_2(  uint_v, ushort_v) { return SSE::convert_int32_to_int16(x0.data(), x1.data()); }
 Vc_SIMD_CAST_2( float_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x0), simd_cast<SSE::int_v>(x1)); }
 Vc_SIMD_CAST_2(double_v, ushort_v) { return simd_cast<SSE::ushort_v>(simd_cast<SSE::int_v>(x0, x1)); }
+  
+Vc_SIMD_CAST_2(   int_v,  uchar_v) { return SSE::convert_int32_to_int16(x0.data(), x1.data()); }
+Vc_SIMD_CAST_2(  uint_v,  uchar_v) { return SSE::convert_int32_to_int16(x0.data(), x1.data()); }
+Vc_SIMD_CAST_2( float_v,  uchar_v) { return simd_cast<SSE::uchar_v>(simd_cast<SSE::int_v>(x0), simd_cast<SSE::int_v>(x1)); }
+Vc_SIMD_CAST_2(double_v,  uchar_v) { return simd_cast<SSE::uchar_v>(simd_cast<SSE::int_v>(x0, x1)); }
+Vc_SIMD_CAST_2(ushort_v,  uchar_v) { return simd_cast<SSE::uchar_v>(x0, x1); }
+Vc_SIMD_CAST_2( short_v,  uchar_v) { return simd_cast<SSE::uchar_v>(x0, x1); }
 
 // 3 SSE::Vector to 1 SSE::Vector {{{2
 Vc_CAST_(short_v) simd_cast(double_v a, double_v b, double_v c)
@@ -467,6 +507,15 @@ Vc_INTRINSIC Vc_CONST Return
     return _mm_setr_epi16(
         x.data(), 0, 0, 0, 0, 0, 0, 0);  // FIXME: use register-register mov
 }
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x,
+          enable_if<std::is_same<Return, SSE::uchar_v>::value> )
+{
+  return _mm_setr_epi8(
+        x.data(), 0, 0, 0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0, 0, 0, 0);  // FIXME: use register-register mov
+}
 
 // 2 Scalar::Vector to 1 SSE::Vector {{{2
 template <typename Return, typename T>
@@ -520,6 +569,16 @@ Vc_INTRINSIC Vc_CONST Return
     return _mm_setr_epi16(
         x0.data(), x1.data(), 0, 0, 0, 0, 0, 0);  // FIXME: use register-register mov
 }
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0,
+          Scalar::Vector<T> x1,
+          enable_if<std::is_same<Return, SSE::uchar_v>::value> )
+{
+    return _mm_setr_epi8(
+        x0.data(), x1.data(), 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0);  // FIXME: use register-register mov
+}
 
 // 3 Scalar::Vector to 1 SSE::Vector {{{2
 template <typename Return, typename T>
@@ -558,7 +617,16 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
 {
     return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), 0, 0, 0, 0, 0);
 }
-
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          enable_if<std::is_same<Return, SSE::uchar_v>::value>)
+{
+    return _mm_setr_epi8(
+              x0.data(), x1.data(), x2.data(), 0, 0, 0, 0, 0,
+                                      0, 0, 0, 0, 0, 0, 0, 0);
+}
+  
 // 4 Scalar::Vector to 1 SSE::Vector {{{2
 template <typename Return, typename T>
 Vc_INTRINSIC Vc_CONST Return
@@ -615,6 +683,18 @@ Vc_INTRINSIC Vc_CONST Return
     return _mm_setr_epi16(
         x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0);  // FIXME: use register-register mov
 }
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0,
+          Scalar::Vector<T> x1,
+          Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3,
+          enable_if<std::is_same<Return, SSE::uchar_v>::value> )
+{
+    return _mm_setr_epi8(
+          x0.data(), x1.data(), x2.data(), x3.data(), 0, 0, 0, 0,
+                                             0, 0, 0, 0, 0, 0, 0);  // FIXME: use register-register mov
+}
 
 // 5 Scalar::Vector to 1 SSE::Vector {{{2
 template <typename Return, typename T>
@@ -632,6 +712,16 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
           enable_if<std::is_same<Return, SSE::ushort_v>::value>)
 {
     return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), 0, 0, 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4,
+          enable_if<std::is_same<Return, SSE::uchar_v>::value>)
+{
+    return _mm_setr_epi8(
+              x0.data(), x1.data(), x2.data(), x3.data(), x4.data(), 0, 0, 0,
+                                                      0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 // 6 Scalar::Vector to 1 SSE::Vector {{{2
@@ -653,6 +743,16 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
     return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
                           x5.data(), 0, 0);
 }
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          enable_if<std::is_same<Return, SSE::uchar_v>::value>)
+{
+    return _mm_setr_epi16(
+              x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+              x5.data(), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+}
 
 // 7 Scalar::Vector to 1 SSE::Vector {{{2
 template <typename Return, typename T>
@@ -672,6 +772,15 @@ simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
 {
     return _mm_setr_epi16(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
                           x5.data(), x6.data(), 0);
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0, Scalar::Vector<T> x1, Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3, Scalar::Vector<T> x4, Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6, enable_if<std::is_same<Return, SSE::uchar_v>::value>)
+{
+    return _mm_setr_epi8(x0.data(), x1.data(), x2.data(), x3.data(), x4.data(),
+                          x5.data(), x6.data(), 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 // 8 Scalar::Vector to 1 SSE::Vector {{{2
@@ -716,6 +825,28 @@ Vc_INTRINSIC Vc_CONST Return
                           x5.data(),
                           x6.data(),
                           x7.data());  // FIXME: use register-register mov
+}
+template <typename Return, typename T>
+Vc_INTRINSIC Vc_CONST Return
+simd_cast(Scalar::Vector<T> x0,
+          Scalar::Vector<T> x1,
+          Scalar::Vector<T> x2,
+          Scalar::Vector<T> x3,
+          Scalar::Vector<T> x4,
+          Scalar::Vector<T> x5,
+          Scalar::Vector<T> x6,
+          Scalar::Vector<T> x7,
+          enable_if<std::is_same<Return, SSE::uchar_v>::value> )
+{
+    return _mm_setr_epi8(x0.data(),
+                         x1.data(),
+                         x2.data(),
+                         x3.data(),
+                         x4.data(),
+                         x5.data(),
+                         x6.data(),
+                         x7.data(),
+                         0, 0, 0, 0, 0, 0, 0, 0);  // FIXME: use register-register mov
 }
 
 // SSE::Vector to Scalar::Vector {{{2

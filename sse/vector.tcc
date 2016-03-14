@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/scatterimplementation.h"
 #include "../common/transpose.h"
 #include "macros.h"
+#include "intrinsics.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -46,6 +47,7 @@ Vc_INTRINSIC SSE::   int_m operator==(SSE::   int_v a, SSE::   int_v b) { return
 Vc_INTRINSIC SSE::  uint_m operator==(SSE::  uint_v a, SSE::  uint_v b) { return _mm_cmpeq_epi32(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: short_m operator==(SSE:: short_v a, SSE:: short_v b) { return _mm_cmpeq_epi16(a.data(), b.data()); }
 Vc_INTRINSIC SSE::ushort_m operator==(SSE::ushort_v a, SSE::ushort_v b) { return _mm_cmpeq_epi16(a.data(), b.data()); }
+Vc_INTRINSIC SSE:: uchar_m operator==(SSE:: uchar_v a, SSE:: uchar_v b) { return _mm_cmpeq_epi8(a.data(), b.data()); }
 
 Vc_INTRINSIC SSE::double_m operator!=(SSE::double_v a, SSE::double_v b) { return _mm_cmpneq_pd(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: float_m operator!=(SSE:: float_v a, SSE:: float_v b) { return _mm_cmpneq_ps(a.data(), b.data()); }
@@ -53,6 +55,7 @@ Vc_INTRINSIC SSE::   int_m operator!=(SSE::   int_v a, SSE::   int_v b) { return
 Vc_INTRINSIC SSE::  uint_m operator!=(SSE::  uint_v a, SSE::  uint_v b) { return not_(_mm_cmpeq_epi32(a.data(), b.data())); }
 Vc_INTRINSIC SSE:: short_m operator!=(SSE:: short_v a, SSE:: short_v b) { return not_(_mm_cmpeq_epi16(a.data(), b.data())); }
 Vc_INTRINSIC SSE::ushort_m operator!=(SSE::ushort_v a, SSE::ushort_v b) { return not_(_mm_cmpeq_epi16(a.data(), b.data())); }
+Vc_INTRINSIC SSE:: uchar_m operator!=(SSE:: uchar_v a, SSE:: uchar_v b) { return _mm_andnot_si128((a == b).data(), SseIntrinsics::_mm_setallone_si128()); }
 
 Vc_INTRINSIC SSE::double_m operator> (SSE::double_v a, SSE::double_v b) { return _mm_cmpgt_pd(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: float_m operator> (SSE:: float_v a, SSE:: float_v b) { return _mm_cmpgt_ps(a.data(), b.data()); }
@@ -72,6 +75,7 @@ Vc_INTRINSIC SSE::ushort_m operator> (SSE::ushort_v a, SSE::ushort_v b) {
     return _mm_cmpgt_epi16(a.data(), b.data());
 #endif
 }
+Vc_INTRINSIC SSE:: uchar_m operator> (SSE:: uchar_v a, SSE:: uchar_v b) { return _mm_cmpgt_epi8(a.data(), b.data()); }
 
 Vc_INTRINSIC SSE::double_m operator< (SSE::double_v a, SSE::double_v b) { return _mm_cmplt_pd(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: float_m operator< (SSE:: float_v a, SSE:: float_v b) { return _mm_cmplt_ps(a.data(), b.data()); }
@@ -91,6 +95,7 @@ Vc_INTRINSIC SSE::ushort_m operator< (SSE::ushort_v a, SSE::ushort_v b) {
     return _mm_cmplt_epi16(a.data(), b.data());
 #endif
 }
+Vc_INTRINSIC SSE:: uchar_m operator< (SSE:: uchar_v a, SSE:: uchar_v b) { return _mm_cmplt_epi8(a.data(), b.data()); }
 
 Vc_INTRINSIC SSE::double_m operator>=(SSE::double_v a, SSE::double_v b) { return _mm_cmpnlt_pd(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: float_m operator>=(SSE:: float_v a, SSE:: float_v b) { return _mm_cmpnlt_ps(a.data(), b.data()); }
@@ -98,6 +103,7 @@ Vc_INTRINSIC SSE::   int_m operator>=(SSE::   int_v a, SSE::   int_v b) { return
 Vc_INTRINSIC SSE::  uint_m operator>=(SSE::  uint_v a, SSE::  uint_v b) { return !(a < b); }
 Vc_INTRINSIC SSE:: short_m operator>=(SSE:: short_v a, SSE:: short_v b) { return !(a < b); }
 Vc_INTRINSIC SSE::ushort_m operator>=(SSE::ushort_v a, SSE::ushort_v b) { return !(a < b); }
+Vc_INTRINSIC SSE:: uchar_m operator>=(SSE:: uchar_v a, SSE:: uchar_v b) { return !(a < b); }
 
 Vc_INTRINSIC SSE::double_m operator<=(SSE::double_v a, SSE::double_v b) { return _mm_cmple_pd(a.data(), b.data()); }
 Vc_INTRINSIC SSE:: float_m operator<=(SSE:: float_v a, SSE:: float_v b) { return _mm_cmple_ps(a.data(), b.data()); }
@@ -105,6 +111,7 @@ Vc_INTRINSIC SSE::   int_m operator<=(SSE::   int_v a, SSE::   int_v b) { return
 Vc_INTRINSIC SSE::  uint_m operator<=(SSE::  uint_v a, SSE::  uint_v b) { return !(a > b); }
 Vc_INTRINSIC SSE:: short_m operator<=(SSE:: short_v a, SSE:: short_v b) { return !(a > b); }
 Vc_INTRINSIC SSE::ushort_m operator<=(SSE::ushort_v a, SSE::ushort_v b) { return !(a > b); }
+Vc_INTRINSIC SSE:: uchar_m operator<=(SSE:: uchar_v a, SSE:: uchar_v b) { return !(a > b); }
 
 // bitwise operators {{{1
 template <typename T>
@@ -162,6 +169,13 @@ operator/(SSE::Vector<T> a, SSE::Vector<T> b)
     lo = _mm_div_ps(lo, _mm_cvtepi32_ps(HT::expand0(b.data())));
     hi = _mm_div_ps(hi, _mm_cvtepi32_ps(HT::expand1(b.data())));
     return HT::concat(_mm_cvttps_epi32(lo), _mm_cvttps_epi32(hi));
+}
+template <typename T>
+Vc_INTRINSIC
+enable_if<std::is_same<char, T>::value || std::is_same<unsigned char, T>::value, SSE::Vector<T>>
+operator/(SSE::Vector<T> a, SSE::Vector<T> b)
+{
+  return SSE::Vector<T>::generate([&](char i) { return a[i] / b[i]; });
 }
 template <typename T>
 Vc_INTRINSIC enable_if<std::is_integral<T>::value, SSE::Vector<T>> operator%(
@@ -322,8 +336,8 @@ Vc_OP_IMPL(short, <<);
 Vc_OP_IMPL(short, >>);
 Vc_OP_IMPL(unsigned short, <<);
 Vc_OP_IMPL(unsigned short, >>);
-Vc_OP_IMPL(unsigned char, <<)
-Vc_OP_IMPL(unsigned char, >>)
+Vc_OP_IMPL(unsigned char, <<);
+Vc_OP_IMPL(unsigned char, >>);
 #undef Vc_OP_IMPL
 #endif
 
