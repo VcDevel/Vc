@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2010-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2010-2016 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -26,11 +26,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 
 using namespace Vc;
 
-template<typename V> void reads()
+TEST_TYPES(V, reads, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
 
@@ -83,14 +83,14 @@ struct ReadsConstantIndex<V, 0>
     }
 };
 
-template<typename V> void readsConstantIndex()
+TEST_TYPES(V, readsConstantIndex, (ALL_VECTORS))
 {
     V a = V::Zero();
     V b = V::IndexesFromZero();
     ReadsConstantIndex<V, V::Size - 1>(a, b);
 }
 
-template<typename V> void writes()
+TEST_TYPES(V, writes, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
 
@@ -137,12 +137,4 @@ template<typename V> void writes()
     } else {
         FAIL() << "unsupported Vector::Size";
     }
-}
-
-void testmain()
-{
-    testAllTypes(reads);
-    testAllTypes(writes);
-    testAllTypes(readsConstantIndex);
-    //testAllTypes(writesConstantIndex);
 }
