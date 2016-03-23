@@ -26,11 +26,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#include "generators.h"
 #include "unittest.h"
 
 using namespace Vc;
 
-TEST_TYPES(V, reads, (ALL_VECTORS))
+TEST_TYPES(V, reads, (ALL_VECTORS, SIMD_ARRAY_LIST))
 {
     typedef typename V::EntryType T;
 
@@ -46,6 +47,25 @@ TEST_TYPES(V, reads, (ALL_VECTORS))
         const T y = i;
         COMPARE(x, y);
     }
+    // The non-const operator[] returns a smart reference that mimics an lvalue reference.
+    // But since it's not an actual lvalue reference the proxy is supposed to live as
+    // short as possible. To achieve this all move & copy operations must be disabled.
+    VERIFY(!std::is_move_constructible<decltype(a[0])>::value);
+    VERIFY(!std::is_copy_constructible<decltype(a[0])>::value);
+    VERIFY(!std::is_move_assignable<decltype(a[0])>::value);
+    VERIFY(!std::is_copy_assignable<decltype(a[0])>::value);
+    VERIFY(!std::is_reference<decltype(a[0])>::value);
+    COMPARE(typeid(decltype(a[0])), typeid(typename V::reference));
+
+    // the operator[] const overload returns an rvalue T and is therefore not constrained
+    // in the same way as the non-const operator[]
+    const V b = a;
+    VERIFY(std::is_move_constructible<decltype(b[0])>::value);
+    VERIFY(std::is_copy_constructible<decltype(b[0])>::value);
+    VERIFY(std::is_move_assignable<decltype(b[0])>::value);
+    VERIFY(std::is_copy_assignable<decltype(b[0])>::value);
+    VERIFY(!std::is_reference<decltype(b[0])>::value);
+    COMPARE(typeid(decltype(b[0])), typeid(typename V::value_type));
 }
 
 template<typename V, size_t Index>
@@ -83,58 +103,64 @@ struct ReadsConstantIndex<V, 0>
     }
 };
 
-TEST_TYPES(V, readsConstantIndex, (ALL_VECTORS))
+TEST_TYPES(V, readsConstantIndex, (ALL_VECTORS, SIMD_ARRAY_LIST))
 {
     V a = V::Zero();
     V b = V::IndexesFromZero();
     ReadsConstantIndex<V, V::Size - 1>(a, b);
 }
 
-TEST_TYPES(V, writes, (ALL_VECTORS))
+TEST_TYPES(V, writes, (ALL_VECTORS, SIMD_ARRAY_LIST))
 {
     typedef typename V::EntryType T;
 
-    V a;
-    for (size_t i = 0; i < V::Size; ++i) {
-        a[i] = static_cast<T>(i);
-    }
-    V b = V::IndexesFromZero();
-    COMPARE(a, b);
+    V a = 0;
+    std::array<T, V::size()> reference = {0};
+    int i = 0;
+    iterateNumericRange<T>([&](T x) {
+        reference[i] = x;
+        a[i] = x;
+        COMPARE(a, V(&reference[0]));
+        i = (i + 1) % V::size();
+    });
+}
 
-    const T one = 1;
-    const T two = 2;
+#define INT_OP(op, name)                                                                  \
+    template <typename V> bool test_##name##_assign(V &, float, int) { return false; }   \
+    template <typename V, typename = decltype(std::declval<V &>()[0] op## =              \
+                                                  typename V::EntryType())>              \
+    bool test_##name##_assign(V &a, int x, int y)                                        \
+    {                                                                                    \
+        using T = typename V::EntryType;                                                 \
+        COMPARE(a[0] op## = T(x), T(y));                                                 \
+        COMPARE(a[0], T(y));                                                             \
+        return true;                                                                     \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+INT_OP(%, percent);
+INT_OP(<<, lshift);
+INT_OP(>>, rshift);
+INT_OP(|, bor);
+INT_OP(&, band);
+INT_OP(^, bxor);
+#undef INT_OP
 
-    if (V::Size == 1) {
-        a(a == 0) += one;
-        a[0] += one;
-        a(a == 0) += one;
-        COMPARE(a, V(2));
-    } else if (V::Size == 4) {
-        a(a == 1) += two;
-        a[2] += one;
-        a(a == 3) += one;
-        b(b == 1) += one;
-        b(b == 2) += one;
-        b(b == 3) += one;
-        COMPARE(a, b);
-    } else if (V::Size == 8 || V::Size == 16) {
-        a(a == 2) += two;
-        a[3] += one;
-        a(a == 4) += one;
-        b(b == 2) += one;
-        b(b == 3) += one;
-        b(b == 4) += one;
-        // expected: [0, 1, 5, 5, 5, 5, 6, 7]
-        COMPARE(a, b);
-    } else if (V::Size == 2) { // a = [0, 1]; b = [0, 1]
-        a(a == 0) += two;      // a = [2, 1]
-        a[1] += one;           // a = [2, 2]
-        a(a == 2) += one;      // a = [3, 3]
-        b(b == 0) += one;      // b = [1, 1]
-        b(b == 1) += one;      // b = [2, 2]
-        b(b == 2) += one;      // b = [3, 3]
-        COMPARE(a, b);
-    } else {
-        FAIL() << "unsupported Vector::Size";
-    }
+TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
+{
+    using T = typename V::EntryType;
+    V a = 10;
+    COMPARE(a[0]  += 1, T(11)); COMPARE(a[0], T(11));
+    COMPARE(a[0]  -= 1, T(10)); COMPARE(a[0], T(10));
+    COMPARE(a[0]  *= 2, T(20)); COMPARE(a[0], T(20));
+    COMPARE(a[0]  /= 2, T(10)); COMPARE(a[0], T(10));
+    COMPARE( --a[0]   , T( 9)); COMPARE(a[0], T( 9));
+    COMPARE(   a[0]-- , T( 9)); COMPARE(a[0], T( 8));
+    COMPARE( ++a[0]   , T( 9)); COMPARE(a[0], T( 9));
+    COMPARE(   a[0]++ , T( 9)); COMPARE(a[0], T(10));
+    COMPARE(test_percent_assign<V>(a, 6, 4), std::is_integral<T>::value);
+    COMPARE(test_lshift_assign<V>(a, 1, 8), std::is_integral<T>::value);
+    COMPARE(test_rshift_assign<V>(a, 2, 2), std::is_integral<T>::value);
+    COMPARE(test_bor_assign<V>(a, 9, 11), std::is_integral<T>::value);
+    COMPARE(test_band_assign<V>(a, 13, 9), std::is_integral<T>::value);
+    COMPARE(test_bxor_assign<V>(a, 1, 8), std::is_integral<T>::value);
 }
