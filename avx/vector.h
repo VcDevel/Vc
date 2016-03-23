@@ -85,6 +85,7 @@ public:
     using MaskType = mask_type;
     using MaskArg Vc_DEPRECATED("Use MaskArgument instead.") = typename Mask::AsArg;
     using MaskArgument = typename Mask::AsArg;
+    using reference = Detail::ElementReference<Vector>;
 
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType));
 
@@ -217,8 +218,27 @@ public:
         Vc_ALWAYS_INLINE Vector operator++(int) { const Vector r = *this; data() = Detail::add(data(), Detail::one(T()), T()); return r; }
         Vc_ALWAYS_INLINE Vector operator--(int) { const Vector r = *this; data() = Detail::sub(data(), Detail::one(T()), T()); return r; }
 
-        Vc_INTRINSIC decltype(d.ref(0)) operator[](size_t index) { return d.ref(index); }
-        Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
+    private:
+        friend reference;
+        Vc_INTRINSIC static value_type get(const Vector &o, int i) noexcept
+        {
+            return o.d.m(i);
+        }
+        template <typename U>
+        Vc_INTRINSIC static void set(Vector &o, int i, U &&v) noexcept(
+            noexcept(std::declval<value_type &>() = v))
+        {
+            return o.d.set(i, v);
+        }
+
+    public:
+        Vc_ALWAYS_INLINE reference operator[](size_t index) noexcept
+        {
+            static_assert(noexcept(reference{std::declval<Vector &>(), int()}), "");
+            return {*this, int(index)};
+        }
+        Vc_ALWAYS_INLINE value_type operator[](size_t index) const noexcept
+        {
             return d.m(index);
         }
 

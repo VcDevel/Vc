@@ -57,6 +57,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         using value_type = EntryType;
         using VectorType = EntryType;
         using vector_type = VectorType;
+        using reference = Detail::ElementReference<Vector>;
 
     protected:
         VectorType m_data = VectorType();
@@ -134,13 +135,30 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         Vc_ALWAYS_INLINE Vector operator++(int) { return m_data++; }
         Vc_ALWAYS_INLINE Vector operator--(int) { return m_data--; }
 
-        Vc_ALWAYS_INLINE EntryType &operator[](size_t index) {
-            assert(index == 0); if(index) {}
-            return m_data;
+    private:
+        friend reference;
+        Vc_INTRINSIC static value_type get(const Vector &o, int i) noexcept
+        {
+            Vc_ASSERT(i == 0); if (i) {}
+            return o.m_data;
+        }
+        template <typename U>
+        Vc_INTRINSIC static void set(Vector &o, int i, U &&v) noexcept(
+            noexcept(std::declval<value_type &>() = v))
+        {
+            Vc_ASSERT(i == 0); if (i) {}
+            o.m_data = v;
         }
 
-        Vc_ALWAYS_INLINE EntryType operator[](size_t index) const {
-            assert(index == 0); if(index) {}
+    public:
+        Vc_ALWAYS_INLINE reference operator[](size_t index) noexcept
+        {
+            static_assert(noexcept(reference{std::declval<Vector &>(), int()}), "");
+            return {*this, int(index)};
+        }
+        Vc_ALWAYS_INLINE value_type operator[](size_t index) const noexcept
+        {
+            Vc_ASSERT(index == 0); if (index) {}
             return m_data;
         }
 

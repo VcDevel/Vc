@@ -443,69 +443,6 @@ inline void Vector<T, VectorAbi::Sse>::scatterImplementation(MT *mem, IT &&index
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-// operator[] {{{1
-template<typename T> Vc_INTRINSIC typename Vector<T, VectorAbi::Sse>::EntryType Vc_PURE Vector<T, VectorAbi::Sse>::operator[](size_t index) const
-{
-    return d.m(index);
-}
-#ifdef Vc_GCC
-template<> Vc_INTRINSIC double Vc_PURE SSE::double_v::operator[](size_t index) const
-{
-    if (__builtin_constant_p(index)) {
-        return SSE::extract_double_imm(d.v(), index);
-    }
-    return d.m(index);
-}
-template<> Vc_INTRINSIC float Vc_PURE SSE::float_v::operator[](size_t index) const
-{
-    return SSE::extract_float(d.v(), index);
-}
-template<> Vc_INTRINSIC int Vc_PURE SSE::int_v::operator[](size_t index) const
-{
-    if (__builtin_constant_p(index)) {
-#ifdef __x86_64__
-        if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
-        if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
-#else
-        if (index == 0) return _mm_cvtsi128_si32(d.v());
-#endif
-#ifdef Vc_IMPL_SSE4_1
-        return _mm_extract_epi32(d.v(), index);
-#endif
-    }
-    return d.m(index);
-}
-template<> Vc_INTRINSIC unsigned int Vc_PURE SSE::uint_v::operator[](size_t index) const
-{
-    if (__builtin_constant_p(index)) {
-#ifdef __x86_64__
-        if (index == 0) return _mm_cvtsi128_si64(d.v()) & 0xFFFFFFFFull;
-        if (index == 1) return _mm_cvtsi128_si64(d.v()) >> 32;
-#else
-        if (index == 0) return _mm_cvtsi128_si32(d.v());
-#endif
-#ifdef Vc_IMPL_SSE4_1
-        return _mm_extract_epi32(d.v(), index);
-#endif
-    }
-    return d.m(index);
-}
-template<> Vc_INTRINSIC short Vc_PURE SSE::short_v::operator[](size_t index) const
-{
-    if (__builtin_constant_p(index)) {
-        return _mm_extract_epi16(d.v(), index);
-    }
-    return d.m(index);
-}
-template<> Vc_INTRINSIC unsigned short Vc_PURE SSE::ushort_v::operator[](size_t index) const
-{
-    if (__builtin_constant_p(index)) {
-        return _mm_extract_epi16(d.v(), index);
-    }
-    return d.m(index);
-}
-#endif // GCC
-///////////////////////////////////////////////////////////////////////////////////////////
 // horizontal ops {{{1
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::partialSum() const
 {

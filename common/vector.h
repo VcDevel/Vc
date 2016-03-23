@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_VECTOR_H_
 
 #include <ratio>
+#include "elementreference.h"
 #include "types.h"
 #include "vectorabi.h"
 #include "vectortraits.h"
@@ -204,6 +205,8 @@ public:
     /// \copydoc IndexType
     using index_type = IndexType;
 
+    using reference = Detail::ElementReference<Vector>;
+
     /// \name Generators
     ///@{
     /**
@@ -374,7 +377,7 @@ public:
      *          check whether you can find a more vector-friendly way to do what you
      *          intended.
      */
-    inline EntryType &operator[](size_t index);
+    inline reference operator[](size_t index) noexcept;
     /**
      * This operator can be used to read scalar entries of the vector.
      *
@@ -383,7 +386,7 @@ public:
      *
      * \return a copy of the vector entry at the given \p index.
      */
-    inline EntryType operator[](size_t index) const;
+    inline EntryType operator[](size_t index) const noexcept;
     ///@}
 
     /// \name Unary Operators

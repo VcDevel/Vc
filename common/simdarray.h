@@ -107,6 +107,7 @@ public:
     using EntryType = value_type;
     using IndexType = index_type;
     using AsArg = const SimdArray &;
+    using reference = Detail::ElementReference<SimdArray>;
     static constexpr std::size_t Size = size();
     static constexpr std::size_t MemoryAlignment = storage_type::MemoryAlignment;
 
@@ -334,11 +335,26 @@ public:
         return {isnegative(data)};
     }
 
-    Vc_INTRINSIC decltype(std::declval<vector_type &>()[0]) operator[](std::size_t i)
+private:
+    friend reference;
+    Vc_INTRINSIC static value_type get(const SimdArray &o, int i) noexcept
     {
-        return data[i];
+        return o.data[i];
     }
-    Vc_INTRINSIC value_type operator[](std::size_t i) const { return data[i]; }
+    template <typename U>
+    Vc_INTRINSIC static void set(SimdArray &o, int i, U &&v) noexcept(
+        noexcept(std::declval<value_type &>() = v))
+    {
+        o.data[i] = v;
+    }
+
+public:
+    Vc_INTRINSIC reference operator[](size_t i) noexcept
+    {
+        static_assert(noexcept(reference{std::declval<SimdArray &>(), int()}), "");
+        return {*this, int(i)};
+    }
+    Vc_INTRINSIC value_type operator[](size_t i) const noexcept { return get(*this, i); }
 
     Vc_INTRINSIC Common::WriteMaskedVector<SimdArray, mask_type> operator()(const mask_type &k)
     {
@@ -570,6 +586,8 @@ public:
     /// \copydoc index_type
     using IndexType = index_type;
     using AsArg = const SimdArray &;
+
+    using reference = Detail::ElementReference<SimdArray>;
 
     ///\copydoc Vector::MemoryAlignment
     static constexpr std::size_t MemoryAlignment =
@@ -879,18 +897,31 @@ public:
     /// \name Scalar Subscript Operators
     ///@{
 
-    ///\copydoc Vector::operator[](size_t)
-    Vc_INTRINSIC alias_type &operator[](std::size_t index)
+private:
+    friend reference;
+    Vc_INTRINSIC static value_type get(const SimdArray &o, int i) noexcept
     {
-        auto tmp = reinterpret_cast<alias_type *>(this);
-        return tmp[index];
+        return reinterpret_cast<const alias_type *>(&o)[i];
+    }
+    template <typename U>
+    Vc_INTRINSIC static void set(SimdArray &o, int i, U &&v) noexcept(
+        noexcept(std::declval<value_type &>() = v))
+    {
+        reinterpret_cast<alias_type *>(&o)[i] = v;
+    }
+
+public:
+    ///\copydoc Vector::operator[](size_t)
+    Vc_INTRINSIC reference operator[](size_t i) noexcept
+    {
+        static_assert(noexcept(reference{std::declval<SimdArray &>(), int()}), "");
+        return {*this, int(i)};
     }
 
     ///\copydoc Vector::operator[](size_t) const
-    Vc_INTRINSIC value_type operator[](std::size_t index) const
+    Vc_INTRINSIC value_type operator[](size_t index) const noexcept
     {
-        const auto tmp = reinterpret_cast<const alias_type *>(this);
-        return tmp[index];
+        return get(*this, index);
     }
     ///@}
 

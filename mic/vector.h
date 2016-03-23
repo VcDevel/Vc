@@ -196,8 +196,29 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // aliasing scalar access
-    Vc_INTRINSIC_L auto operator[](size_t index)Vc_INTRINSIC_R -> decltype(d.ref(0)) &;
-    Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_INTRINSIC_R;
+private:
+    friend reference;
+    Vc_INTRINSIC static value_type get(const Vector &o, int i) noexcept
+    {
+        return o.d.m(i);
+    }
+    template <typename U>
+    Vc_INTRINSIC static void set(Vector &o, int i, U &&v) noexcept(
+        noexcept(std::declval<value_type &>() = v))
+    {
+        return o.d.set(i, v);
+    }
+
+public:
+    Vc_ALWAYS_INLINE reference operator[](size_t index) noexcept
+    {
+        static_assert(noexcept(reference{std::declval<Vector &>(), int()}), "");
+        return {*this, int(index)};
+    }
+    Vc_ALWAYS_INLINE value_type operator[](size_t index) const noexcept
+    {
+        return d.m(index);
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // unary operators

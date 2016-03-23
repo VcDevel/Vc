@@ -521,24 +521,6 @@ template<> Vc_ALWAYS_INLINE  MIC::uchar_v  MIC::uchar_v::operator>>(unsigned int
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator<<=(unsigned int x) { return *this = *this << x; }
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Mic> &Vector<T, VectorAbi::Mic>::operator>>=(unsigned int x) { return *this = *this >> x; }
 
-// subscript operators ([]){{{1
-template <typename T>
-Vc_INTRINSIC auto Vector<T, VectorAbi::Mic>::operator[](size_t index) -> decltype(d.ref(0)) &
-{
-    return d.ref(index);
-}
-template <> Vc_INTRINSIC auto MIC::ushort_v::operator[](size_t index) -> decltype(d.ref(0)) &
-{
-    // If the value over-/underflowed then the int reference returned from here is wrong. Since
-    // unsigned integers have well-defined overflow behavior we need to fix it up.
-    d.ref(index) &= 0xffffu;
-    return d.ref(index);
-}
-template <typename T>
-Vc_INTRINSIC typename Vector<T, VectorAbi::Mic>::EntryType Vector<T, VectorAbi::Mic>::operator[](size_t index) const
-{
-    return d.m(index);
-}
 // isnegative {{{1
 Vc_INTRINSIC Vc_CONST MIC::float_m isnegative(MIC::float_v x)
 {

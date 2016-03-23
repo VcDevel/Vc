@@ -96,6 +96,8 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         using WriteMaskedVector = Common::WriteMaskedVector<Vector, Mask>;
         template <typename U> using V = Vector<U, abi>;
 
+        using reference = Detail::ElementReference<Vector>;
+
 #include "../common/generalinterface.h"
 
         static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
@@ -158,8 +160,29 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC Vector operator++(int) { const Vector r = *this; data() = HT::add(data(), HT::one()); return r; }
         Vc_INTRINSIC Vector operator--(int) { const Vector r = *this; data() = HT::sub(data(), HT::one()); return r; }
 
-        Vc_INTRINSIC decltype(d.ref(0)) operator[](size_t index) { return d.ref(index); }
-        Vc_INTRINSIC_L EntryType operator[](size_t index) const Vc_PURE Vc_INTRINSIC_R;
+    private:
+        friend reference;
+        Vc_INTRINSIC static value_type get(const Vector &o, int i) noexcept
+        {
+            return o.d.m(i);
+        }
+        template <typename U>
+        Vc_INTRINSIC static void set(Vector &o, int i, U &&v) noexcept(
+            noexcept(std::declval<value_type &>() = v))
+        {
+            o.d.set(i, v);
+        }
+
+    public:
+        Vc_ALWAYS_INLINE reference operator[](size_t index) noexcept
+        {
+            static_assert(noexcept(reference{std::declval<Vector &>(), int()}), "");
+            return {*this, int(index)};
+        }
+        Vc_ALWAYS_INLINE value_type operator[](size_t index) const noexcept
+        {
+            return d.m(index);
+        }
 
         Vc_INTRINSIC_L Vector operator[](SSE::int_v perm) const Vc_INTRINSIC_R;
 
