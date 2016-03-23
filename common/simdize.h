@@ -1002,8 +1002,9 @@ template <typename S, typename T, std::size_t N, std::size_t... Indexes>
 inline void swap_impl(Adapter<S, T, N> &a, std::size_t i, S &x,
                       Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[0]))...> tmp{
-        decay_workaround(get_dispatcher<Indexes>(a)[i])...};
+    const auto &a_const = a;
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a_const)[0]))...>
+        tmp{decay_workaround(get_dispatcher<Indexes>(a_const)[i])...};
     auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(x), 0)...};
     auto &&unused2 = {(get_dispatcher<Indexes>(x) = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused2) {}
@@ -1012,9 +1013,11 @@ template <typename S, typename T, std::size_t N, std::size_t... Indexes>
 inline void swap_impl(Adapter<S, T, N> &a, std::size_t i, Adapter<S, T, N> &b,
                       std::size_t j, Vc::index_sequence<Indexes...>)
 {
-    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[0]))...> tmp{
-        decay_workaround(get_dispatcher<Indexes>(a)[i])...};
-    auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(b)[j], 0)...};
+    const auto &a_const = a;
+    const auto &b_const = b;
+    const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a_const)[0]))...>
+        tmp{decay_workaround(get_dispatcher<Indexes>(a_const)[i])...};
+    auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(b_const)[j], 0)...};
     auto &&unused2 = {(get_dispatcher<Indexes>(b)[j] = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused2) {}
 }
