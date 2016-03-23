@@ -45,6 +45,9 @@ TEST_TYPES(Vec, maskedGatherArray, ALL_TYPES)
     }
 
     It indexes = It::IndexesFromZero();
+    alignas(It::MemoryAlignment)
+        std::array<typename It::EntryType, It::size()> indexArray;
+    indexes.store(&indexArray[0], Vc::Aligned);
     for_all_masks(Vec, m) {
         const Vec a(mem, indexes, m);
         for (size_t i = 0; i < Vec::Size; ++i) {
@@ -59,13 +62,13 @@ TEST_TYPES(Vec, maskedGatherArray, ALL_TYPES)
         }
 
         // test with array of indexes instead of index-vector:
-        const Vec c(mem, &indexes[0], m);
+        const Vec c(mem, indexArray, m);
         for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(a[i], m[i] ? mem[i] : 0) << " i = " << i << ", m = " << m;
         }
 
         b = x;
-        b.gather(mem, &indexes[0], m);
+        b.gather(mem, indexArray, m);
         for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(b[i], m[i] ? mem[i] : x) << " i = " << i << ", m = " << m;
         }
