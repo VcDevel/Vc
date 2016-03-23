@@ -243,3 +243,22 @@ TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
     VERIFY(!test_band_assign(*y, 13, 9));
     VERIFY(!test_bxor_assign(*y, 1, 8));
 }
+
+TEST_TYPES(V, ensure_noexcept, (ALL_VECTORS, SIMD_ARRAY_LIST))
+{
+    V a{};
+    const V &b = a;
+    EntryType<V> x = a[0]; if (x == x) {}
+    VERIFY(noexcept(a[0]));
+    VERIFY(noexcept(x = b[0]));
+    VERIFY(noexcept(x = a[0]));
+    VERIFY(noexcept(a[0] = 1));
+    VERIFY(noexcept(a[0] += 1));
+    VERIFY(noexcept(a[0] -= 1));
+    VERIFY(noexcept(a[0] *= 1));
+    VERIFY(noexcept(a[0] /= 1));
+    VERIFY(noexcept(++a[0]));
+    VERIFY(noexcept(--a[0]));
+    VERIFY(noexcept(a[0]++));
+    VERIFY(noexcept(a[0]--));
+}
