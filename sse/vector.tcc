@@ -384,16 +384,16 @@ template <>
 template <typename MT, typename IT>
 Vc_ALWAYS_INLINE void SSE::short_v::gatherImplementation(const MT *mem, IT &&indexes)
 {
-    d.v() = set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-            mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+    d.v() = Vc::set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
+                    mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
 
 template <>
 template <typename MT, typename IT>
 Vc_ALWAYS_INLINE void SSE::ushort_v::gatherImplementation(const MT *mem, IT &&indexes)
 {
-    d.v() = set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
+    d.v() = Vc::set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
+                    mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
 }
 
 template <typename T>
