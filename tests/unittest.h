@@ -1143,22 +1143,28 @@ template <typename Vec>
 static Vc::enable_if<!Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMasks(
     size_t i)
 {
+    static_assert(Vec::size() <= 8 * sizeof(i),
+                  "allMasks cannot create all possible masks for the given type Vec.");
     using M = typename Vec::Mask;
     const Vec indexes(Vc::IndexesFromZero);
     M mask(true);
 
-    for (int j = 0; j < int(8 * sizeof(i)); ++j) {
+    for (int j = 0; j < int(Vec::size()); ++j) {
         if (i & (1u << j)) {
-            mask ^= static_cast<M>(indexes == j);
+            mask ^= indexes == j;
         }
     }
     return mask;
 }
 
-#define for_all_masks(VecType, _mask_)                                                             \
-    for (int _Vc_for_all_masks_i = 0; _Vc_for_all_masks_i == 0; ++_Vc_for_all_masks_i)             \
-        for (typename VecType::Mask _mask_ = UnitTest::allMasks<VecType>(_Vc_for_all_masks_i++);   \
-             !_mask_.isEmpty();                                                                    \
+#define for_all_masks(VecType, _mask_)                                                   \
+    static_assert(VecType::size() <= 16, "for_all_masks takes too long with "            \
+                                         "VecType::size > 16. Use withRandomMask "       \
+                                         "instead.");                                    \
+    for (int _Vc_for_all_masks_i = 0; _Vc_for_all_masks_i == 0; ++_Vc_for_all_masks_i)   \
+        for (typename VecType::Mask _mask_ =                                             \
+                 UnitTest::allMasks<VecType>(_Vc_for_all_masks_i++);                     \
+             !_mask_.isEmpty();                                                          \
              _mask_ = UnitTest::allMasks<VecType>(_Vc_for_all_masks_i++))
 
 template <typename V, int Repetitions = 10000, typename F> void withRandomMask(F &&f)
