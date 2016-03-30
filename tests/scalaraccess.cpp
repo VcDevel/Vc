@@ -152,6 +152,31 @@ INT_OP(&, band);
 INT_OP(^, bxor);
 #undef INT_OP
 
+#define UNARY_OP(op, name)                                                               \
+    template <typename V> bool test_unary_##name(V &&, ...) { return false; }            \
+    template <typename V>                                                                \
+    bool test_unary_##name(V &&a, decltype(op(std::declval<V>()[0])) x)                  \
+    {                                                                                    \
+        COMPARE(op a[0], x);                                                             \
+        return true;                                                                     \
+    }                                                                                    \
+    template <typename V> bool test_unary_##name##_nosubscript(V &&, ...)                \
+    {                                                                                    \
+        return false;                                                                    \
+    }                                                                                    \
+    template <typename V>                                                                \
+    bool test_unary_##name##_nosubscript(V &&a, decltype(op std::declval<V>()) x)        \
+    {                                                                                    \
+        COMPARE(op a, x);                                                                \
+        return true;                                                                     \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+UNARY_OP(!, not);
+UNARY_OP(+, plus);
+UNARY_OP(-, minus);
+UNARY_OP(~, bitflip);
+#undef UNARY_OP
+
 template <typename V> bool test_pre_increment(V &&, float) { return false; }
 template <typename V, typename = decltype(++std::declval<V>()[0])>
 bool test_pre_increment(V &&a, int x)
@@ -193,6 +218,10 @@ TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
 {
     using T = EntryType<V>;
     V a = 10;
+    VERIFY(test_unary_not(a, false));
+    VERIFY(test_unary_plus(a, 10));
+    VERIFY(test_unary_minus(a, -10));
+    COMPARE(test_unary_bitflip(a, ~10), std::is_integral<T>::value);
     VERIFY(test_plus_assign(a, 1, 11));
     VERIFY(test_minus_assign(a, 1, 10));
     VERIFY(test_times_assign(a, 2, 20));
@@ -209,7 +238,9 @@ TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
     COMPARE(test_bxor_assign(a, 1, 8), std::is_integral<T>::value);
 
     // assignment operators should never work on const ref
+    a = 10;
     const auto &x = a[0];
+    COMPARE(x, T(10));
     VERIFY(!test_plus_assign(x, 1, 11));
     VERIFY(!test_minus_assign(x, 1, 10));
     VERIFY(!test_times_assign(x, 2, 20));
@@ -224,6 +255,12 @@ TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
     VERIFY(!test_bor_assign(x, 9, 11));
     VERIFY(!test_band_assign(x, 13, 9));
     VERIFY(!test_bxor_assign(x, 1, 8));
+
+    // unary operators should work, though
+    VERIFY(test_unary_not_nosubscript(x, false));
+    VERIFY(test_unary_plus_nosubscript(x, 10));
+    VERIFY(test_unary_minus_nosubscript(x, -10));
+    COMPARE(test_unary_bitflip_nosubscript(x, ~10), std::is_integral<T>::value);
 
     // Just to make sure, the assignment operators also should not work on lvalue
     // references
