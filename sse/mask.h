@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_SSE_MASK_H_
 
 #include "intrinsics.h"
-#include "../common/maskentry.h"
+#include "../common/maskbool.h"
 #include "detail.h"
 #include "macros.h"
 
@@ -59,7 +59,6 @@ template <typename T> class Mask<T, VectorAbi::Sse>
     friend class Mask<uint32_t, abi>;
     friend class Mask< int16_t, abi>;
     friend class Mask<uint16_t, abi>;
-    friend class Common::MaskEntry<Mask>;
 
     /**
      * A helper type for aliasing the entries in the mask but behaving like a bool.
@@ -74,11 +73,13 @@ public:
      * The \c EntryType of masks is always bool, independent of \c T.
      */
     typedef bool EntryType;
+    using value_type = EntryType;
 
     /**
      * The return type of the non-const subscript operator.
      */
-    using EntryReference = Common::MaskEntry<Mask>;
+    using EntryReference = Detail::ElementReference<Mask>;
+    using reference = EntryReference;
 
     /**
      * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
@@ -204,14 +205,28 @@ public:
         Vc_ALWAYS_INLINE Vc_PURE __m128i dataI() const { return SSE::sse_cast<__m128i>(d.v()); }
         Vc_ALWAYS_INLINE Vc_PURE __m128d dataD() const { return SSE::sse_cast<__m128d>(d.v()); }
 
-        Vc_ALWAYS_INLINE EntryReference operator[](size_t index)
-        {
-            return {*this, index};
-        }
-        Vc_ALWAYS_INLINE Vc_PURE bool operator[](size_t index) const
-        {
-            return toInt() & (1 << index);
-        }
+private:
+    friend reference;
+    static Vc_INTRINSIC Vc_PURE value_type get(const Mask &m, int i) noexcept
+    {
+        return MaskBool(m.d.m(i));
+    }
+    template <typename U>
+    static Vc_INTRINSIC void set(Mask &m, int i,
+                                 U &&v) noexcept(noexcept(MaskBool(std::declval<U>())))
+    {
+        m.d.set(i, MaskBool(std::forward<U>(v)));
+    }
+
+public:
+    Vc_ALWAYS_INLINE reference operator[](size_t index) noexcept
+    {
+        return {*this, int(index)};
+    }
+    Vc_ALWAYS_INLINE Vc_PURE value_type operator[](size_t index) const noexcept
+    {
+        return get(*this, index);
+    }
 
         Vc_ALWAYS_INLINE Vc_PURE int count() const
         {
@@ -227,9 +242,6 @@ public:
 
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Mask shifted(int amount) const Vc_INTRINSIC_R Vc_PURE_R;
-
-        ///\internal Called indirectly from operator[]
-        void setEntry(size_t i, bool x) { d.set(i, MaskBool(x)); }
 
     private:
 #ifdef Vc_COMPILE_BENCHMARKS

@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <array>
 #include "simdarrayhelper.h"
 #include "utility.h"
-#include "maskentry.h"
+#include "maskbool.h"
 
 #include "macros.h"
 
@@ -71,12 +71,12 @@ public:
     static_assert(Size == mask_type::Size, "size mismatch");
 
     using vectorentry_type = typename mask_type::VectorEntryType;
-    using vectorentry_reference = vectorentry_type &;
     using value_type = typename mask_type::EntryType;
     using Mask = mask_type;
     using VectorEntryType = vectorentry_type;
     using EntryType = value_type;
-    using EntryReference = typename mask_type::EntryReference;
+    using EntryReference = Vc::Detail::ElementReference<storage_type, SimdMaskArray>;
+    using reference = EntryReference;
     using Vector = SimdArray<T, N, VectorType, N>;
 
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type));
@@ -209,11 +209,28 @@ public:
 
     Vc_INTRINSIC Vc_PURE int toInt() const { return data.toInt(); }
 
-    Vc_INTRINSIC Vc_PURE EntryReference operator[](size_t index)
+private:
+    friend reference;
+    static Vc_INTRINSIC value_type get(const storage_type &k, int i) noexcept
+    {
+        return k[i];
+    }
+    template <typename U>
+    static Vc_INTRINSIC void set(storage_type &k, int i, U &&v) noexcept(
+        noexcept(std::declval<storage_type &>()[0] = std::declval<U>()))
+    {
+        k[i] = std::forward<U>(v);
+    }
+
+public:
+    Vc_INTRINSIC Vc_PURE reference operator[](size_t index) noexcept
+    {
+        return {data, int(index)};
+    }
+    Vc_INTRINSIC Vc_PURE value_type operator[](size_t index) const noexcept
     {
         return data[index];
     }
-    Vc_INTRINSIC Vc_PURE bool operator[](size_t index) const { return data[index]; }
 
     Vc_INTRINSIC Vc_PURE int count() const { return data.count(); }
 
@@ -245,9 +262,6 @@ public:
 
     /// \internal
     Vc_INTRINSIC SimdMaskArray(mask_type &&x) : data(std::move(x)) {}
-
-    ///\internal Called indirectly from operator[]
-    void setEntry(size_t index, bool x) { data.setEntry(index, x); }
 
 private:
     storage_type data;
@@ -316,8 +330,7 @@ public:
 
     ///\internal
     using vectorentry_type = typename storage_type0::VectorEntryType;
-    ///\internal
-    using vectorentry_reference = vectorentry_type &;
+
     ///\copydoc Mask::value_type
     using value_type = typename storage_type0::EntryType;
     ///\copydoc Mask::Mask
@@ -327,10 +340,8 @@ public:
     ///\copydoc Mask::EntryType
     using EntryType = value_type;
     ///\copydoc Mask::EntryReference
-    using EntryReference = typename std::conditional<
-        std::is_same<typename storage_type0::EntryReference,
-                     typename storage_type1::EntryReference>::value,
-        typename storage_type0::EntryReference, Common::MaskEntry<SimdMaskArray>>::type;
+    using EntryReference = Vc::Detail::ElementReference<SimdMaskArray>;
+    using reference = EntryReference;
     /// An alias for the corresponding SimdArray type.
     using Vector = SimdArray<T, N, V, V::Size>;
 
@@ -543,38 +554,28 @@ public:
     }
 
 private:
-    template <typename R>
-    R subscript_impl(
-        size_t index,
-        enable_if<std::is_same<R, typename storage_type0::EntryReference>::value> =
-            nullarg)
+    friend reference;
+    static Vc_INTRINSIC value_type get(const SimdMaskArray &o, int i) noexcept
     {
-        if (index < storage_type0::size()) {
-            return data0[index];
+        if (i < int(o.data0.size())) {
+            return o.data0[i];
         } else {
-            return data1[index - storage_type0::size()];
+            return o.data1[i - o.data0.size()];
         }
     }
-    template <typename R>
-    R subscript_impl(
-        size_t index,
-        enable_if<!std::is_same<R, typename storage_type0::EntryReference>::value> =
-            nullarg)
+    template <typename U>
+    static Vc_INTRINSIC void set(SimdMaskArray &o, int i, U &&v) noexcept(
+        noexcept(std::declval<storage_type0 &>()[0] = std::declval<U>()) &&
+        noexcept(std::declval<storage_type1 &>()[0] = std::declval<U>()))
     {
-        return {*this, index};
+        if (i < int(o.data0.size())) {
+            o.data0[i] = std::forward<U>(v);
+        } else {
+            o.data1[i - o.data0.size()] = std::forward<U>(v);
+        }
     }
 
 public:
-    ///\internal Called indirectly from operator[]
-    void setEntry(size_t index, bool x)
-    {
-        if (index < data0.size()) {
-            data0.setEntry(index, x);
-        } else {
-            data1.setEntry(index - data0.size(), x);
-        }
-    }
-
     /**
      * Return a smart reference to the boolean element at index \p index.
      *
@@ -583,8 +584,9 @@ public:
      * \returns A temporary smart reference object which acts as much as an lvalue
      * reference as possible.
      */
-    Vc_INTRINSIC Vc_PURE EntryReference operator[](size_t index) {
-        return subscript_impl<EntryReference>(index);
+    Vc_INTRINSIC Vc_PURE reference operator[](size_t index) noexcept
+    {
+        return {*this, int(index)};
     }
     /**
      * Return a copy of the boolean element at index \p index.
@@ -594,12 +596,9 @@ public:
      * \returns A temporary boolean object with the value of the element at index \p
      * index.
      */
-    Vc_INTRINSIC Vc_PURE bool operator[](size_t index) const {
-        if (index < storage_type0::size()) {
-            return data0[index];
-        } else {
-            return data1[index - storage_type0::size()];
-        }
+    Vc_INTRINSIC Vc_PURE value_type operator[](size_t index) const noexcept
+    {
+        return get(*this, index);
     }
 
     ///\copybrief Mask::count

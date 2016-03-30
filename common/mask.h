@@ -376,9 +376,6 @@ public:
     /// Returns a mask with components shifted by \p amount places.
     Vc_INTRINSIC Vc_PURE Mask shifted(int amount) const;
 
-    ///\internal Called indirectly from operator[]
-    void setEntry(size_t, bool x);
-
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(Mask));
 
 private:

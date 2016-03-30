@@ -274,7 +274,7 @@ using enable_if_mask_converts_explicitly = enable_if<(
  */
 template <typename T> using WidthT = std::integral_constant<std::size_t, sizeof(T)>;
 
-// forward declaration of MaskBool in common/maskentry.h
+// forward declaration of MaskBool in common/maskbool.h
 template <std::size_t Bytes> class MaskBool;
 
 // forward declaration of SubscriptOperation in common/subscript.h

@@ -36,35 +36,6 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
-template<typename M> class MaskEntry
-{
-    M &mask;
-    size_t offset;
-
-public:
-    constexpr MaskEntry(M &m, size_t o) : mask(m), offset(o) {}
-
-    /**\internal
-     * allow only returning the object (it allows more, but I can't restrict it further)
-     */
-    constexpr MaskEntry(MaskEntry &&) = default;
-    MaskEntry(const MaskEntry &) = delete;
-    MaskEntry &operator=(const MaskEntry &) = delete;
-    MaskEntry &operator=(MaskEntry &&) = delete;
-
-    template <typename B, typename = enable_if<std::is_same<B, bool>::value>>
-    Vc_INTRINSIC Vc_PURE operator B() const
-    {
-        const M &m = mask;
-        return m[offset];
-    }
-    Vc_INTRINSIC MaskEntry &operator=(bool x) &&
-    {
-        mask.setEntry(offset, x);
-        return *this;
-    }
-};
-
 namespace
 {
     template<size_t Bytes> struct MaskBoolStorage;
@@ -81,23 +52,23 @@ template<size_t Bytes> class MaskBool
     typedef typename MaskBoolStorage<Bytes>::type storage_type Vc_MAY_ALIAS;
     storage_type data;
 public:
-    constexpr MaskBool(bool x) : data(x ? -1 : 0) {}
-    Vc_ALWAYS_INLINE MaskBool &operator=(bool x) { data = x ? -1 : 0; return *this; }
+    constexpr MaskBool(bool x) noexcept : data(x ? -1 : 0) {}
+    Vc_ALWAYS_INLINE MaskBool &operator=(bool x) noexcept { data = x ? -1 : 0; return *this; }
     template <typename T, typename = enable_if<(!std::is_same<T, bool>::value &&
                                                 std::is_fundamental<T>::value)>>
-    Vc_ALWAYS_INLINE MaskBool &operator=(T x)
+    Vc_ALWAYS_INLINE MaskBool &operator=(T x) noexcept
     {
         data = reinterpret_cast<const storage_type &>(x);
         return *this;
     }
 
-    Vc_ALWAYS_INLINE MaskBool(const MaskBool &) = default;
-    Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) = default;
+    Vc_ALWAYS_INLINE MaskBool(const MaskBool &) noexcept = default;
+    Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) noexcept = default;
 
     template <typename T, typename = enable_if<(std::is_same<T, bool>::value ||
                                                 (std::is_fundamental<T>::value &&
                                                  sizeof(storage_type) == sizeof(T)))>>
-    constexpr operator T() const
+    constexpr operator T() const noexcept
     {
         return std::is_same<T, bool>::value ? T((data & 1) != 0)
                                             : reinterpret_cast<const MayAlias<T> &>(data);

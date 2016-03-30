@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "intrinsics.h"
 #include "../common/storage.h"
 #include "../common/bitscanintrinsics.h"
-#include "../common/maskentry.h"
+#include "../common/maskbool.h"
 #include "detail.h"
 #include "macros.h"
 
@@ -42,8 +42,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T> class Mask<T, VectorAbi::Avx>
 {
-    friend Common::MaskEntry<Mask>;
-
 public:
     using abi = VectorAbi::Avx;
 
@@ -51,12 +49,14 @@ public:
      * The \c EntryType of masks is always bool, independent of \c T.
      */
     typedef bool EntryType;
+    using value_type = EntryType;
 
+    using MaskBool = Common::MaskBool<sizeof(T)>;
     /**
      * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
      * implementation. This type is useful for the \c sizeof operator in generic functions.
      */
-    using VectorEntryType = Common::MaskBool<sizeof(T)>;
+    using VectorEntryType = MaskBool;
 
     /**
      * The associated Vector<T> type.
@@ -97,7 +97,8 @@ public:
      */
     using VectorType = typename Storage::VectorType;
 
-    using EntryReference = Common::MaskEntry<Mask>;
+    using EntryReference = Vc::Detail::ElementReference<Mask>;
+    using reference = EntryReference;
 
         // abstracts the way Masks are passed to functions, it can easily be changed to const ref here
 #if defined Vc_MSVC && defined _WIN32
@@ -179,20 +180,34 @@ public:
         Vc_INTRINSIC VectorTypeI dataI() const { return AVX::avx_cast<VectorTypeI>(d.v()); }
         Vc_INTRINSIC VectorTypeD dataD() const { return AVX::avx_cast<VectorTypeD>(d.v()); }
 
-        Vc_INTRINSIC EntryReference operator[](size_t index)
-        {
-            return {*this, index};
-        }
-        Vc_INTRINSIC_L Vc_PURE_L bool operator[](size_t index) const Vc_INTRINSIC_R Vc_PURE_R;
+private:
+    friend reference;
+    static Vc_INTRINSIC Vc_PURE value_type get(const Mask &m, int i) noexcept
+    {
+        return m.toInt() & (1 << i);
+    }
+    template <typename U>
+    static Vc_INTRINSIC void set(Mask &m, int i,
+                                 U &&v) noexcept(noexcept(MaskBool(std::declval<U>())))
+    {
+        m.d.set(i, MaskBool(std::forward<U>(v)));
+    }
+
+public:
+    Vc_ALWAYS_INLINE reference operator[](size_t index) noexcept
+    {
+        return {*this, int(index)};
+    }
+    Vc_ALWAYS_INLINE Vc_PURE value_type operator[](size_t index) const noexcept
+    {
+        return get(*this, index);
+    }
 
         Vc_INTRINSIC Vc_PURE int count() const { return Detail::popcnt16(toInt()); }
         Vc_INTRINSIC Vc_PURE int firstOne() const { return _bit_scan_forward(toInt()); }
 
         template <typename G> static Vc_INTRINSIC_L Mask generate(G &&gen) Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Mask shifted(int amount) const Vc_INTRINSIC_R Vc_PURE_R;
-
-        ///\internal Called indirectly from operator[]
-        void setEntry(size_t i, bool x) { d.set(i, Common::MaskBool<sizeof(T)>(x)); }
 
     private:
 #ifdef Vc_COMPILE_BENCHMARKS

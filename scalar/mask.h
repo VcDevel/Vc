@@ -54,8 +54,10 @@ public:
      * The \c EntryType of masks is always bool, independent of \c T.
      */
     typedef bool EntryType;
+    using value_type = EntryType;
 
-    using EntryReference = bool &;
+    using EntryReference = Vc::Detail::ElementReference<Mask>;
+    using reference = EntryReference;
 
     /**
      * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the SIMD
@@ -123,8 +125,27 @@ public:
         Vc_ALWAYS_INLINE bool dataI() const { return m; }
         Vc_ALWAYS_INLINE bool dataD() const { return m; }
 
-        Vc_ALWAYS_INLINE EntryReference operator[](size_t) { return m; }
-        Vc_ALWAYS_INLINE bool operator[](size_t) const { return m; }
+private:
+    friend reference;
+    static Vc_INTRINSIC bool get(const Mask &o, int) noexcept { return o.m; }
+    template <typename U>
+    static Vc_INTRINSIC void set(Mask &o, int, U &&v) noexcept(
+        noexcept(std::declval<bool &>() = std::declval<U>()))
+    {
+        o.m = std::forward<U>(v);
+    }
+
+public:
+    Vc_ALWAYS_INLINE reference operator[](size_t i) noexcept
+    {
+        Vc_ASSERT(i == 0); if (i == i) {}
+        return {*this, 0};
+    }
+    Vc_ALWAYS_INLINE value_type operator[](size_t i) const noexcept
+    {
+        Vc_ASSERT(i == 0); if (i == i) {}
+        return m;
+    }
 
         Vc_ALWAYS_INLINE int count() const { return m ? 1 : 0; }
 
@@ -149,9 +170,6 @@ public:
                 return Zero();
             }
         }
-
-        ///\internal Called indirectly from operator[]
-        void setEntry(size_t, bool x) { m = x; }
 
     private:
         bool m;

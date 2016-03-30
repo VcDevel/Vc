@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_MIC_MASK_H_
 #define VC_MIC_MASK_H_
 
-#include "../common/maskentry.h"
+#include "../common/maskbool.h"
 #include "detail.h"
 #include "macros.h"
 
@@ -88,15 +88,18 @@ public:
      * The \c EntryType of masks is always bool, independent of \c T.
      */
     typedef bool EntryType;
+    using value_type = EntryType;
 
+    using MaskBool = Common::MaskBool<sizeof(T)>;
     /**
      * The \c VectorEntryType, in contrast to \c EntryType, reveals information about the
      * SIMD implementation. This type is useful for the \c sizeof operator in generic
      * functions.
      */
-    using VectorEntryType = Common::MaskBool<sizeof(T)>;
+    using VectorEntryType = MaskBool;
 
-    using EntryReference = Common::MaskEntry<Mask>;
+    using EntryReference = Vc::Detail::ElementReference<Mask>;
+    using reference = EntryReference;
 
     /**
      * The \c VectorType reveals the implementation-specific internal type used for the
@@ -183,17 +186,33 @@ public:
     inline MaskType dataI() const { return k; }
     inline MaskType dataD() const { return k; }
 
-    //internal function for MaskEntry::operator=
-    inline void setEntry(size_t index, bool value) {
-        if (value) {
-            k |= (1 << index);
+private:
+    friend reference;
+    Vc_INTRINSIC value_type get(const Mask &m, int i) noexcept
+    {
+        return static_cast<bool>(m.k & (1u << i));
+    }
+    template <typename U>
+    Vc_INTRINSIC void set(Mask &m, int i,
+                          U &&v) noexcept(noexcept(static_cast<bool>(std::decltype<U>())))
+    {
+        const auto bitmask = 1u << i;
+        if (std::forward<U>(v)) {
+            k |= bitmask;
         } else {
-            k &= ~(1 << index);
+            k &= ~bitmask;
         }
     }
 
-    inline EntryReference operator[](size_t index) { return Common::MaskEntry<Mask<T>>(*this, index); }
-    inline bool operator[](size_t index) const { return static_cast<bool>(k & (1 << index)); }
+public:
+    Vc_ALWAYS_INLINE reference operator[](size_t index) noexcept
+    {
+        return {*this, int(index)};
+    }
+    Vc_ALWAYS_INLINE value_type operator[](size_t index) const noexcept
+    {
+        return static_cast<bool>(k & (1 << index));
+    }
 
     Vc_ALWAYS_INLINE Vc_PURE int count() const {
         if (Size == 16) {

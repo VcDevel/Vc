@@ -45,10 +45,19 @@ Vc_INTRINSIC void Mask<T, VectorAbi::Avx>::load(const bool *mem, Flags f)
 }
 
 // operator[] {{{1
-template<typename T> Vc_INTRINSIC Vc_PURE bool Mask<T, VectorAbi::Avx>::operator[](size_t index) const { return toInt() & (1 << index); }
 #ifdef Vc_IMPL_AVX2
-template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask< int16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
-template<> Vc_INTRINSIC Vc_PURE bool AVX2::Mask<uint16_t>::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+template <>
+Vc_INTRINSIC Vc_PURE bool AVX2::Mask<int16_t>::get(const AVX2::Mask<int16_t> &m,
+                                                   int index) noexcept
+{
+    return m.shiftMask() & (1 << 2 * index);
+}
+template <>
+Vc_INTRINSIC Vc_PURE bool AVX2::Mask<uint16_t>::get(const AVX2::Mask<uint16_t> &m,
+                                                    int index) noexcept
+{
+    return m.shiftMask() & (1 << 2 * index);
+}
 #endif
 // operator== {{{1
 template <> Vc_INTRINSIC Vc_PURE bool AVX2::double_m::operator==(const AVX2::double_m &rhs) const

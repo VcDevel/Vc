@@ -39,6 +39,7 @@ template <typename U, typename Accessor = U> class ElementReference
 {
     using value_type = typename U::value_type;
     friend U;
+    friend Accessor;
     Vc_INTRINSIC ElementReference(U &o, int i) noexcept : index(i), obj(o) {}
 
     static constexpr bool get_noexcept =

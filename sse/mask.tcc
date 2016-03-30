@@ -188,8 +188,19 @@ template <typename T> Vc_ALWAYS_INLINE void Mask<T, VectorAbi::Sse>::load(const 
     d.v() = sse_cast<VectorType>(Detail::mask_load<Size>(mem));
 }
 
-template<> Vc_ALWAYS_INLINE Vc_PURE bool SSE:: short_m::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
-template<> Vc_ALWAYS_INLINE Vc_PURE bool SSE::ushort_m::operator[](size_t index) const { return shiftMask() & (1 << 2 * index); }
+// get / operator[] {{{1
+template <>
+Vc_INTRINSIC Vc_PURE bool SSE::short_m::get(const SSE::short_m &m, int index) noexcept
+{
+    return m.shiftMask() & (1 << 2 * index);
+}
+template <>
+Vc_INTRINSIC Vc_PURE bool SSE::ushort_m::get(const SSE::ushort_m &m, int index) noexcept
+{
+    return m.shiftMask() & (1 << 2 * index);
+}
+
+// firstOne {{{1
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE int Mask<T, VectorAbi::Sse>::firstOne() const
 {
     const int mask = toInt();
@@ -202,9 +213,8 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE int Mask<T, VectorAbi::Sse>::first
 #endif
     return bit;
 }
-/*operators{{{*/
-/*}}}*/
 
+// generate {{{1
 template <typename M, typename G>
 Vc_INTRINSIC M generate_impl(G &&gen, std::integral_constant<int, 2>)
 {
