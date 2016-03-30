@@ -261,8 +261,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(Vc_ICC) || defined(Vc_CLANG)
 #define Vc_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
-#elif defined(Vc_GCC) && Vc_GCC < 0x40500
-#define Vc_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0x1000)->member) - reinterpret_cast<const char *>(0x1000))
 #else
 #define Vc_OFFSETOF(Type, member) offsetof(Type, member)
 #endif

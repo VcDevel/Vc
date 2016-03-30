@@ -46,30 +46,10 @@ extern "C" {
 
 #include "../common/fix_clang_emmintrin.h"
 
-#if defined(Vc_CLANG) && Vc_CLANG < 0x30100
-// _mm_permute_ps is broken: http://llvm.org/bugs/show_bug.cgi?id=12401
-#undef _mm_permute_ps
-#define _mm_permute_ps(A, C) __extension__ ({ \
-  m128 __A = (A); \
-  (m128)__builtin_shufflevector((__v4sf)__A, (__v4sf) _mm_setzero_ps(), \
-                                   (C) & 0x3, ((C) & 0xc) >> 2, \
-                                   ((C) & 0x30) >> 4, ((C) & 0xc0) >> 6); })
-#endif
-
 #include "const_data.h"
 #include "../common/types.h"
 #include "macros.h"
 #include <cstdlib>
-
-#if defined(Vc_CLANG) || defined(Vc_MSVC) || (defined(Vc_GCC) && !defined(__OPTIMIZE__))
-#define Vc_REQUIRES_MACRO_FOR_IMMEDIATE_ARGUMENT
-#endif
-
-#if defined(Vc_CLANG) && Vc_CLANG <= 0x30000
-// _mm_alignr_epi8 doesn't specify its return type, thus breaking overload resolution
-#undef _mm_alignr_epi8
-#define _mm_alignr_epi8(a, b, n) ((m128i)__builtin_ia32_palignr128((a), (b), (n)))
-#endif
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -210,7 +190,7 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC m256  Vc_CONST cmpord_ps  (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_ORD_Q); }
     static Vc_INTRINSIC m256  Vc_CONST cmpunord_ps(__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
 
-#if defined(Vc_IMPL_XOP) && !defined(Vc_CLANG)
+#if defined(Vc_IMPL_XOP)
     static Vc_INTRINSIC m128i cmplt_epu16(__m128i a, __m128i b) {
         return _mm_comlt_epu16(a, b);
     }
@@ -431,11 +411,6 @@ namespace AvxIntrinsics
     Vc_AVX_TO_SSE_1_128(cvtepu16_epi32, 8)
     Vc_AVX_TO_SSE_1_128(cvtepu16_epi64, 4)
     Vc_AVX_TO_SSE_1_128(cvtepu32_epi64, 8)
-#if !defined(Vc_CLANG) || Vc_CLANG > 0x30100
-    // clang is missing _mm_minpos_epu16 from smmintrin.h
-    // http://llvm.org/bugs/show_bug.cgi?id=12399
-    //Vc_AVX_TO_SSE_1(minpos_epu16)
-#endif
 
     Vc_AVX_TO_SSE_2_NEW(packus_epi32)
 
@@ -493,31 +468,6 @@ namespace AvxIntrinsics
     // mpsadbw_epu8 (__m128i __X, __m128i __Y, const int __M)
     // stream_load_si128 (__m128i *__X)
 
-#if defined(Vc_IMPL_FMA4) && defined(Vc_CLANG) && Vc_CLANG < 0x30300
-        // clang miscompiles _mm256_macc_ps: http://llvm.org/bugs/show_bug.cgi?id=15040
-        static Vc_INTRINSIC __m256 my256_macc_ps(__m256 a, __m256 b, __m256 c) {
-            __m256 r;
-            // avoid loading c from memory as that would trigger the bug
-            asm("vfmaddps %[c], %[b], %[a], %[r]" : [r]"=x"(r) : [a]"x"(a), [b]"x"(b), [c]"x"(c));
-            return r;
-        }
-#ifdef _mm256_macc_ps
-#undef _mm256_macc_ps
-#endif
-#define _mm256_macc_ps(a, b, c) Vc::AVX::my256_macc_ps(a, b, c)
-
-        static Vc_INTRINSIC __m256d my256_macc_pd(__m256d a, __m256d b, __m256d c) {
-            __m256d r;
-            // avoid loading c from memory as that would trigger the bug
-            asm("vfmaddpd %[c], %[b], %[a], %[r]" : [r]"=x"(r) : [a]"x"(a), [b]"x"(b), [c]"x"(c));
-            return r;
-        }
-#ifdef _mm256_macc_pd
-#undef _mm256_macc_pd
-#endif
-#define _mm256_macc_pd(a, b, c) Vc::AVX::my256_macc_pd(a, b, c)
-#endif
-
 #else // Vc_IMPL_AVX2
 
 static Vc_INTRINSIC Vc_CONST m256i xor_si256(__m256i x, __m256i y) { return _mm256_xor_si256(x, y); }
@@ -571,7 +521,7 @@ static Vc_INTRINSIC m256i cmplt_epu8(__m256i a, __m256i b) {
 static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
     return cmpgt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
 }
-#if defined(Vc_IMPL_XOP) && (!defined(Vc_CLANG) || Vc_CLANG >= 0x30400)
+#if defined(Vc_IMPL_XOP)
     Vc_AVX_TO_SSE_2_NEW(comlt_epu32)
     Vc_AVX_TO_SSE_2_NEW(comgt_epu32)
     Vc_AVX_TO_SSE_2_NEW(comlt_epu16)

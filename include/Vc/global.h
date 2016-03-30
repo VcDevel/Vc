@@ -135,10 +135,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #ifdef Vc_GCC
-#  if Vc_GCC >= 0x40700 // && Vc_GCC < 0x408000)
-//     ::max_align_t was introduced with GCC 4.7. std::max_align_t took a bit longer.
-#    define Vc_HAVE_MAX_ALIGN_T 1
-#  endif
+#  define Vc_HAVE_MAX_ALIGN_T 1
 #elif !defined(Vc_CLANG) && !defined(Vc_ICC)
 //   Clang/ICC don't provide max_align_t at all
 #  define Vc_HAVE_STD_MAX_ALIGN_T 1

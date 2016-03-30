@@ -46,8 +46,6 @@ static Vc_ALWAYS_INLINE Vc_CONST int _Vc_bit_scan_reverse_asm(unsigned int x) {
 #  endif
 #elif defined(Vc_ICC)
 // for all I know ICC supports the _bit_scan_* intrinsics
-#elif defined(Vc_OPEN64)
-// TODO
 #elif defined(Vc_MSVC)
 #include "windows_fix_intrin.h"
 #pragma intrinsic(_BitScanForward)
