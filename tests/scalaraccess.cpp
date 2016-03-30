@@ -284,18 +284,29 @@ TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
 TEST_TYPES(V, ensure_noexcept, (ALL_VECTORS, SIMD_ARRAY_LIST))
 {
     V a{};
-    const V &b = a;
-    EntryType<V> x = a[0]; if (x == x) {}
-    VERIFY(noexcept(a[0]));
-    VERIFY(noexcept(x = b[0]));
-    VERIFY(noexcept(x = a[0]));
-    VERIFY(noexcept(a[0] = 1));
-    VERIFY(noexcept(a[0] += 1));
-    VERIFY(noexcept(a[0] -= 1));
-    VERIFY(noexcept(a[0] *= 1));
-    VERIFY(noexcept(a[0] /= 1));
-    VERIFY(noexcept(++a[0]));
-    VERIFY(noexcept(--a[0]));
-    VERIFY(noexcept(a[0]++));
-    VERIFY(noexcept(a[0]--));
+    {
+        const V &b = a;
+        EntryType<V> x = a[0]; if (x == x) {}
+        VERIFY(noexcept(a[0]));
+        VERIFY(noexcept(x = b[0]));
+        VERIFY(noexcept(x = a[0]));
+        VERIFY(noexcept(a[0] = 1));
+        VERIFY(noexcept(a[0] += 1));
+        VERIFY(noexcept(a[0] -= 1));
+        VERIFY(noexcept(a[0] *= 1));
+        VERIFY(noexcept(a[0] /= 1));
+        VERIFY(noexcept(++a[0]));
+        VERIFY(noexcept(--a[0]));
+        VERIFY(noexcept(a[0]++));
+        VERIFY(noexcept(a[0]--));
+    }
+    {
+        auto k0 = a == a;
+        const auto &k1 = k0;
+        bool x = false; if (x) {}
+        VERIFY(noexcept(k0[0]));
+        VERIFY(noexcept(x = k1[0]));
+        VERIFY(noexcept(x = k0[0]));
+        VERIFY(noexcept(k0[0] = 1));
+    }
 }
