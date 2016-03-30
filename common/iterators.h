@@ -106,8 +106,7 @@ public:
 
     constexpr Iterator() = default;
     constexpr Iterator(V &_v, difference_type _i) : v(&_v), i(_i) {}
-    constexpr Iterator(const Iterator &) = default;
-    constexpr Iterator &operator=(const Iterator &) = default;
+    // rely on implicit copy constructor/assignment
 
     Vc_ALWAYS_INLINE pointer operator->() const { return this; }
     using Base::operator*;
