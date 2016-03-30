@@ -138,12 +138,12 @@ private:
 public:
     Vc_ALWAYS_INLINE reference operator[](size_t i) noexcept
     {
-        Vc_ASSERT(i == 0); if (i == i) {}
+        Vc_ASSERT(i == 0); if (i) {}
         return {*this, 0};
     }
     Vc_ALWAYS_INLINE value_type operator[](size_t i) const noexcept
     {
-        Vc_ASSERT(i == 0); if (i == i) {}
+        Vc_ASSERT(i == 0); if (i) {}
         return m;
     }
 
