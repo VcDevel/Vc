@@ -361,59 +361,6 @@ TEST(testIifBuiltin)
     sfinaeIifIsNotCallable(bool(), int(), float(), int());
 }
 
-TEST_TYPES(V, rangeFor, (ALL_VECTORS))
-{
-    typedef typename V::EntryType T;
-    typedef typename V::Mask M;
-
-    {
-        V x = V::Zero();
-        for (auto i : x) {
-            COMPARE(i, T(0));
-        }
-        int n = 0;
-        for (auto &i : x) {
-            i = T(++n);
-        }
-        n = 0;
-        for (auto i : x) {
-            COMPARE(i, T(++n));
-            i = T(0);
-        }
-        n = 0;
-        for (auto i : static_cast<const V &>(x)) {
-            COMPARE(i, T(++n));
-        }
-    }
-
-    {
-        M m(Vc::One);
-        for (auto i : m) {
-            VERIFY(i);
-            i = false;
-            VERIFY(!i);
-        }
-        for (auto i : m) {
-            VERIFY(i);
-        }
-        for (auto i : static_cast<const M &>(m)) {
-            VERIFY(i);
-        }
-    }
-
-    for_all_masks(V, mask) {
-        int count = 0;
-        V test = V::Zero();
-        for (size_t i : where(mask)) {
-            VERIFY(i < V::Size);
-            test[i] = T(1);
-            ++count;
-        }
-        COMPARE(test == V::One(), mask);
-        COMPARE(count, mask.count());
-    }
-}
-
 TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(9), SIMD_ARRAYS(8)))
 {
     for (int repeat = 0; repeat < 10; ++repeat) {

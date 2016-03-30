@@ -159,4 +159,53 @@ TEST_TYPES(V, forward_iterator, (ALL_VECTORS, SIMD_ARRAY_LIST))
     COMPARE(*it, value);
 }
 
+TEST_TYPES(V, range_for, (ALL_VECTORS))
+{
+    typedef typename V::EntryType T;
+    typedef typename V::Mask M;
+
+    {
+        V x = V::Zero();
+        for (auto &&i : x) {
+            COMPARE(i, T(0));
+            VERIFY(!(std::is_assignable<decltype((i)), T>::value));
+        }
+        x = V::IndexesFromZero();
+        int n = 0;
+        for (T i : x) {
+            COMPARE(i, T(n++));
+            i = 0;
+        }
+        COMPARE(x, V::IndexesFromZero());
+    }
+
+    {
+        M m{true};
+        for (auto &&i : m) {
+            VERIFY(i);
+            VERIFY(!(std::is_assignable<decltype((i)), bool>::value));
+        }
+        for (auto i : static_cast<const M &>(m)) {
+            VERIFY(i);
+            i = false;
+            VERIFY(!i);
+        }
+        for (bool i : m) {
+            VERIFY(i);
+        }
+    }
+
+    for_all_masks(V, mask) {
+        int count = 0;
+        V test = V::Zero();
+        for (size_t i : where(mask)) {
+            VERIFY(i < V::Size);
+            test[i] = T(1);
+            ++count;
+        }
+        COMPARE(test == V::One(), mask);
+        COMPARE(count, mask.count());
+    }
+}
+
 // vim: foldmethod=marker
