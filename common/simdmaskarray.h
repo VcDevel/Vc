@@ -625,17 +625,11 @@ public:
         if (Vc_IS_UNLIKELY(amount == 0)) {
             return *this;
         }
-        SimdMaskArray r{};
-        if (amount < 0) {
-            for (int i = 0; i < int(Size) + amount; ++i) {
-                r[i - amount] = operator[](i);
-            }
-        } else {
-            for (int i = 0; i < int(Size) - amount; ++i) {
-                r[i] = operator[](i + amount);
-            }
-        }
-        return r;
+        return generate([&](unsigned i) {
+            // modulo arithmetic of unsigned makes the check for j >= 0 unnecessary
+            const unsigned j = i + amount;
+            return j < size() ? get(*this, j) : false;
+        });
     }
 
     /// \internal execute specified Operation
