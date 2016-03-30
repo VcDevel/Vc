@@ -279,6 +279,13 @@ TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
     VERIFY(!test_bor_assign(*y, 9, 11));
     VERIFY(!test_band_assign(*y, 13, 9));
     VERIFY(!test_bxor_assign(*y, 1, 8));
+
+    auto k0 = a == a;
+    const auto &k1 = k0;
+    VERIFY(test_unary_not(k0, 0));
+    VERIFY(test_unary_not(k1, 0));
+    k0 = a != a;
+    VERIFY(test_unary_not(k0, 1));
 }
 
 TEST_TYPES(V, ensure_noexcept, (ALL_VECTORS, SIMD_ARRAY_LIST))
