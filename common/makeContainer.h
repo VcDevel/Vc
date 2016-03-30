@@ -78,7 +78,7 @@ namespace Vc_VERSIONED_NAMESPACE
             static constexpr std::size_t size = (N + (V::Size - 1)) / V::Size;
             typedef Container<
                 V,
-#if defined Vc_CLANG && Vc_CLANG < 0x30700
+#if defined Vc_CLANG && Vc_CLANG < 0x30700 // TODO: when did Vc_APPLECLANG fix it?
                 // clang before 3.7.0 has a bug when returning std::array<__m256x, 1>. So
                 // increase it to std::array<__m256x, 2> and fill it with zeros. Better
                 // than returning garbage.

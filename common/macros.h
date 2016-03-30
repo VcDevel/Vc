@@ -43,7 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     using new_type_ alignas(sizeof(n_)) = type_
 #endif
 
-#ifdef Vc_CLANG
+#if defined Vc_CLANG || defined Vc_APPLECLANG
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC_R __attribute__((always_inline))
 #  define Vc_INTRINSIC Vc_INTRINSIC_L Vc_INTRINSIC_R
@@ -181,7 +181,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #endif
 
-#ifdef Vc_CLANG
+#if defined Vc_CLANG || defined Vc_APPLECLANG
 #define Vc_HAS_BUILTIN(x) __has_builtin(x)
 #else
 #define Vc_HAS_BUILTIN(x) 0
@@ -259,7 +259,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define Vc_make_unique(name) Vc_CAT(Vc_,name,_,__LINE__)
 
-#if defined(Vc_ICC) || defined(Vc_CLANG)
+#if defined(Vc_ICC) || defined(Vc_CLANG) || defined Vc_APPLECLANG
 #define Vc_OFFSETOF(Type, member) (reinterpret_cast<const char *>(&reinterpret_cast<const Type *>(0)->member) - reinterpret_cast<const char *>(0))
 #else
 #define Vc_OFFSETOF(Type, member) offsetof(Type, member)

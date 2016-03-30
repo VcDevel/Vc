@@ -313,6 +313,7 @@ Since this function is \c constexpr you can use it for compile-time decisions (e
 
 - \ref Vc_GCC
 - \ref Vc_CLANG
+- \ref Vc_APPLECLANG
 - \ref Vc_ICC
 - \ref Vc_MSVC
 - \ref Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN

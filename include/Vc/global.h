@@ -58,6 +58,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef Vc_CLANG
 /**
  * \ingroup Utilities
+ * This macro is defined to a number identifying the Apple Clang version if the current
+ * translation unit is compiled with the Apple Clang compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#undef Vc_APPLECLANG
+/**
+ * \ingroup Utilities
  * This macro is defined to a number identifying the GCC version if the current
  * translation unit is compiled with the GCC compiler.
  *
@@ -94,6 +103,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_ICC __INTEL_COMPILER_BUILD_DATE
 #elif defined(__OPENCC__)
 #define Vc_OPEN64 1
+#elif defined(__clang__) && defined(__APPLE__)
+#define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
 #elif defined(__clang__)
 #define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
 #elif defined(__GNUC__)
@@ -141,7 +152,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_HAVE_STD_MAX_ALIGN_T 1
 #endif
 
-#if defined(Vc_GCC) || defined(Vc_CLANG)
+#if defined(Vc_GCC) || defined(Vc_CLANG) || defined Vc_APPLECLANG
 #define Vc_USE_BUILTIN_VECTOR_TYPES 1
 #endif
 

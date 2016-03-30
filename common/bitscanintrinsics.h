@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_BITSCANINTRINSICS_H_
 #define VC_COMMON_BITSCANINTRINSICS_H_
 
-#if defined(Vc_GCC) || defined(Vc_CLANG)
+#if defined(Vc_GCC) || defined(Vc_CLANG) || defined(Vc_APPLECLANG)
 #  if Vc_GCC >= 0x40500
      // GCC 4.5.0 introduced _bit_scan_forward / _bit_scan_reverse
 #    include <x86intrin.h>

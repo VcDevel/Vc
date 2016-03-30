@@ -372,7 +372,7 @@ namespace SseIntrinsics
     }
     template <int index> Vc_INTRINSIC Vc_CONST int extract_epi32(__m128i v)
     {
-#ifdef Vc_CLANG
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
         typedef int int32v4 __attribute__((__vector_size__(16)));
         return static_cast<int32v4>(v)[index];
 #else
