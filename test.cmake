@@ -237,7 +237,7 @@ string(REPLACE "+" "x" CTEST_BUILD_NAME "${CTEST_BUILD_NAME}")
 # Determine build directory
 ################################################################################
 string(REGEX REPLACE "[][ ():, ]" "" CTEST_BINARY_DIRECTORY "${CTEST_BUILD_NAME}")
-set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-${dashboard_model}-${CTEST_BINARY_DIRECTORY}")
+set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-${dashboard_model}/${CTEST_BINARY_DIRECTORY}")
 
 # Give user feedback
 ################################################################################
