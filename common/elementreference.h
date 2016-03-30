@@ -92,11 +92,8 @@ public:
 #undef Vc_OP_
 
     template <typename... T>
-        Vc_INTRINSIC enable_if<
-            (sizeof...(T) == 0 &&
-             std::is_same<value_type &, decltype(++std::declval<value_type &>())>::value),
-            ElementReference &>
-        operator++(T...) &&
+        Vc_INTRINSIC enable_if<(sizeof...(T) == 0), ElementReference &> operator++(
+            T...) &&
         noexcept(noexcept(std::declval<value_type &>() =
                               Accessor::get(std::declval<U &>(), int())) &&
                  set_noexcept<decltype(++std::declval<value_type &>())>())
@@ -107,11 +104,7 @@ public:
     }
 
     template <typename... T>
-        Vc_INTRINSIC enable_if<
-            (sizeof...(T) == 1 &&
-             std::is_same<value_type &, decltype(++std::declval<value_type &>())>::value),
-            value_type>
-        operator++(T...) &&
+        Vc_INTRINSIC enable_if<(sizeof...(T) == 1), value_type> operator++(T...) &&
         noexcept(noexcept(std::declval<value_type &>() =
                               Accessor::get(std::declval<U &>(), int())) &&
                  set_noexcept<decltype(std::declval<value_type &>()++)>())
@@ -123,11 +116,8 @@ public:
     }
 
     template <typename... T>
-        Vc_INTRINSIC enable_if<
-            (sizeof...(T) == 0 &&
-             std::is_same<value_type &, decltype(--std::declval<value_type &>())>::value),
-            ElementReference &>
-        operator--(T...) &&
+        Vc_INTRINSIC enable_if<(sizeof...(T) == 0), ElementReference &> operator--(
+            T...) &&
         noexcept(noexcept(std::declval<value_type &>() =
                               Accessor::get(std::declval<U &>(), int())) &&
                  set_noexcept<decltype(--std::declval<value_type &>())>())
@@ -138,11 +128,7 @@ public:
     }
 
     template <typename... T>
-        Vc_INTRINSIC enable_if<
-            (sizeof...(T) == 1 &&
-             std::is_same<value_type &, decltype(--std::declval<value_type &>())>::value),
-            value_type>
-        operator--(T...) &&
+        Vc_INTRINSIC enable_if<(sizeof...(T) == 1), value_type> operator--(T...) &&
         noexcept(noexcept(std::declval<value_type &>() =
                               Accessor::get(std::declval<U &>(), int())) &&
                  set_noexcept<decltype(std::declval<value_type &>()--)>())
