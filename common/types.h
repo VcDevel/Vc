@@ -97,7 +97,16 @@ constexpr VectorSpecialInitializerIndexesFromZero IndexesFromZero = {};
 
 namespace Detail
 {
-template<typename T> struct MayAliasImpl { typedef T type Vc_MAY_ALIAS; };
+template<typename T> struct MayAliasImpl {
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+#endif
+    typedef T type Vc_MAY_ALIAS;
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+};
 //template<size_t Bytes> struct MayAlias<MaskBool<Bytes>> { typedef MaskBool<Bytes> type; };
 }  // namespace Detail
 /**\internal
