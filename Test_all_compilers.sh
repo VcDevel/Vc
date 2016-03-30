@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games"
 export LANG="en_US.UTF-8"
 export LANGUAGE="en_US.UTF-8"
@@ -26,9 +26,9 @@ END
   return 0
 }
 
-cxxlist="`find /usr/bin/ /usr/local/bin/ -name 'g++-*'`"
+cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++-[0-9]*'`"
 if test -z "$cxxlist"; then
-  cxxlist="`find /usr/bin/ /usr/local/bin/ -name 'g++'`"
+  cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++'`"
 fi
 if test -z "$cxxlist"; then
   # default compiler
@@ -37,7 +37,7 @@ if test -z "$cxxlist"; then
   wait
 else
   for CXX in $cxxlist; do
-    CC=`echo "$CXX"|sed 's/g++/gcc/'`
+    CC=`echo "$CXX"|sed 's/clang++/clang/;s/g++/gcc/'`
     if test -x "$CC" -a -x "$CXX"; then (
       export CC
       export CXX
