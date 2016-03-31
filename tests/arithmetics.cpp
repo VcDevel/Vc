@@ -50,6 +50,7 @@ using namespace Vc;
 
 std::default_random_engine randomEngine;
 
+// testZero{{{1
 TEST_TYPES(Vec, testZero, ALL_TYPES)
 {
     Vec a(Zero), b(Zero);
@@ -68,6 +69,7 @@ TEST_TYPES(Vec, testZero, ALL_TYPES)
     COMPARE(d, Vec(zero));
 }
 
+// testCmp{{{1
 TEST_TYPES(Vec, testCmp, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
@@ -122,6 +124,7 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
     }
 }
 
+// testIsMix{{{1
 TEST_TYPES(Vec, testIsMix, ALL_TYPES)
 {
     Vec a = Vec::IndexesFromZero();
@@ -144,6 +147,7 @@ TEST_TYPES(Vec, testIsMix, ALL_TYPES)
     }
 }
 
+// testAdd{{{1
 TEST_TYPES(Vec, testAdd, ALL_TYPES)
 {
     Vec a(Zero), b(Zero);
@@ -167,6 +171,7 @@ TEST_TYPES(Vec, testAdd, ALL_TYPES)
     }
 }
 
+// testSub{{{1
 TEST_TYPES(Vec, testSub, ALL_TYPES)
 {
     Vec a(2), b(2);
@@ -190,6 +195,7 @@ TEST_TYPES(Vec, testSub, ALL_TYPES)
     }
 }
 
+// testMul{{{1
 TEST_TYPES(V, testMul, ALL_TYPES)
 {
     for (int i = 0; i < 10000; ++i) {
@@ -206,6 +212,7 @@ TEST_TYPES(V, testMul, ALL_TYPES)
     }
 }
 
+// testMulAdd{{{1
 TEST_TYPES(Vec, testMulAdd, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
@@ -224,6 +231,7 @@ TEST_TYPES(Vec, testMulAdd, ALL_TYPES)
     }
 }
 
+// testMulSub{{{1
 TEST_TYPES(Vec, testMulSub, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
@@ -237,6 +245,7 @@ TEST_TYPES(Vec, testMulSub, ALL_TYPES)
     }
 }
 
+// testDiv{{{1
 TEST_TYPES(Vec, testDiv, ALL_TYPES)
 {
     for (int repetition = 0; repetition < 10000; ++repetition) {
@@ -272,6 +281,7 @@ TEST_TYPES(Vec, testDiv, ALL_TYPES)
     }
 }
 
+// testModulo{{{1
 TEST_TYPES(V, testModulo, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), INT_VECTORS))
 {
     using T = typename V::EntryType;
@@ -299,6 +309,7 @@ TEST_TYPES(V, testModulo, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), INT_VEC
     }
 }
 
+// testAnd{{{1
 TEST_TYPES(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
 {
     Vec a(0x7fff);
@@ -310,6 +321,7 @@ TEST_TYPES(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
     COMPARE((c & 0x7ff0), Vec(zero));
 }
 
+// testShift{{{1
 TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
 {
     typedef typename Vec::EntryType T;
@@ -357,6 +369,7 @@ TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
     }
 }
 
+// testOnesComplement{{{1
 TEST_TYPES(Vec, testOnesComplement, (INT_VECTORS, SIMD_INT_ODD_ARRAYS(17)))
 {
     Vec a(One);
@@ -366,6 +379,7 @@ TEST_TYPES(Vec, testOnesComplement, (INT_VECTORS, SIMD_INT_ODD_ARRAYS(17)))
     COMPARE(~(a + b), Vec(Zero));
 }
 
+// logicalNegation{{{1
 TEST_TYPES(V, logicalNegation, ALL_TYPES)
 {
     V a = V::Random();
@@ -373,6 +387,7 @@ TEST_TYPES(V, logicalNegation, ALL_TYPES)
     COMPARE(!V::Zero(), V() == V()) << "a = " << a;
 }
 
+// testNegate{{{1
 template<typename T> struct NegateRangeHelper
 {
     typedef int Iterator;
@@ -419,6 +434,7 @@ TEST_TYPES(Vec, testNegate, ALL_TYPES)
     }
 }
 
+// testMin{{{1
 TEST_TYPES(Vec, testMin, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
@@ -440,6 +456,7 @@ TEST_TYPES(Vec, testMin, ALL_TYPES)
     }
 }
 
+// testMax{{{1
 TEST_TYPES(Vec, testMax, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
@@ -462,6 +479,7 @@ TEST_TYPES(Vec, testMax, ALL_TYPES)
     }
 }
 
+// testProduct{{{1
 TEST_TYPES(Vec, testProduct, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
@@ -504,6 +522,7 @@ TEST_TYPES(Vec, testProduct, ALL_TYPES)
     }
 }
 
+// testSum{{{1
 TEST_TYPES(Vec, testSum, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
@@ -528,6 +547,7 @@ TEST_TYPES(Vec, testSum, ALL_TYPES)
     }
 }
 
+// testPartialSum{{{1
 TEST_TYPES(V, testPartialSum, ALL_TYPES)
 {
     V reference = V::IndexesFromZero() + 1;
@@ -540,6 +560,7 @@ TEST_TYPES(V, testPartialSum, ALL_TYPES)
     */
 }
 
+// testFma{{{1
 template <typename V, typename T> void testFmaDispatch(T)
 {
     for (int i = 0; i < 1000; ++i) {
