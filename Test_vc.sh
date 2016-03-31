@@ -19,4 +19,4 @@ case "$1" in
       ;;
 esac
 
-ctest -S "`dirname $0`/test.cmake" 2>&1 | grep -v 'Error in read script:'
+ctest -S "`dirname $0`/test.cmake"
