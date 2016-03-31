@@ -233,29 +233,14 @@ TEST_TYPES(V, rotated, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ARRAYS(15), SIMD_ARRA
 template <typename V> V shiftReference(const V &data, int shift)
 {
     constexpr int Size = V::Size;
+    VERIFY(shift <= 2 * Size && shift >= -2 * Size);
     using T = typename V::value_type;
-    return V::generate([&](int i) -> T {
-        if (shift < 0) {
-            i += shift;
-            if (i >= 0) {
-                return data[i];
-            }
-            i += Size;
-            if (i >= 0) {
-                return data[i] + 1;
-            }
-        } else {
-            i += shift;
-            if (i < Size) {
-                return data[i];
-            }
-            i -= Size;
-            if (i < Size) {
-                return data[i] + 1;
-            }
-        }
-        return 0;
-    });
+    T r[5 * Size] = {0};
+    const V d1 = data + 1;
+    d1.store(&r[Size]);
+    data.store(&r[2 * Size]);
+    d1.store(&r[3 * Size]);
+    return V{&r[2 * Size + shift], Vc::Unaligned};
 }
 
 template <typename V>
