@@ -35,6 +35,9 @@ string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
 if(git_branch MATCHES "^[0-9a-f]+$")
    # it's a hash -> make it short
    string(SUBSTRING "${git_branch}" 0 7 git_branch)
+elseif(git_branch MATCHES "^gh-[0-9]+")
+   # it's a feature branch referencing a GitHub issue number -> make it short
+   string(REGEX MATCH "^gh-[0-9]+" git_branch "${git_branch}")
 endif()
 
 # determine the (short) hostname of the build machine
