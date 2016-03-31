@@ -27,12 +27,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "unittest.h"
-#include "vectormemoryhelper.h"
-#include <Vc/cpuid.h>
-#include <Vc/iterators>
 
 using namespace Vc;
 
+// reversed{{{1
 TEST_TYPES(V, reversed, (ALL_VECTORS, SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(15)))
 {
     const V x = V::IndexesFromZero() + 1;
@@ -40,6 +38,7 @@ TEST_TYPES(V, reversed, (ALL_VECTORS, SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAY
     COMPARE(x.reversed(), reference);
 }
 
+// testCall{{{1
 template<typename T, typename Mem> struct Foo
 {
     Foo() : i(0) {}
@@ -76,6 +75,7 @@ TEST_TYPES(V, testCall, (ALL_VECTORS))
     }
 }
 
+// testForeachBit{{{1
 TEST_TYPES(V, testForeachBit, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
@@ -108,6 +108,7 @@ TEST_TYPES(V, testForeachBit, (ALL_VECTORS))
     }
 }
 
+// applyAndCall{{{1
 template<typename T> T add2(T x) { return x + T(2); }
 
 template<typename T, typename V>
@@ -168,6 +169,7 @@ TEST_TYPES(V, applyAndCall, (ALL_VECTORS))
     }
 }
 
+// fill{{{1
 template<typename T, int value> T returnConstant() { return T(value); }
 template<typename T, int value> T returnConstantOffset(int i) { return T(value) + T(i); }
 template<typename T, int value> T returnConstantOffset2(unsigned short i) { return T(value) + T(i); }
@@ -188,6 +190,7 @@ TEST_TYPES(V, fill, (ALL_VECTORS))
     COMPARE(test, static_cast<V>(V::IndexesFromZero()));
 }
 
+// shifted{{{1
 TEST_TYPES(V, shifted, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
@@ -205,6 +208,7 @@ TEST_TYPES(V, shifted, (ALL_VECTORS))
     }
 }
 
+// rotated{{{1
 TEST_TYPES(V, rotated, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ARRAYS(15), SIMD_ARRAYS(11),
                         SIMD_ARRAYS(9), SIMD_ARRAYS(8), SIMD_ARRAYS(7), SIMD_ARRAYS(3)))
 {
@@ -225,6 +229,7 @@ TEST_TYPES(V, rotated, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ARRAYS(15), SIMD_ARRA
     }
 }
 
+// shiftedIn{{{1
 template <typename V> V shiftReference(const V &data, int shift)
 {
     constexpr int Size = V::Size;
@@ -286,6 +291,7 @@ TEST_TYPES(V, shiftedIn, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(16), SIMD_ODD
     shiftedInConstant(V::Random(), std::integral_constant<int, Size>());
 }
 
+// testMallocAlignment{{{1
 TEST(testMallocAlignment)
 {
     int_v *a = Vc::malloc<int_v, Vc::AlignOnVector>(10);
@@ -310,6 +316,7 @@ TEST(testMallocAlignment)
     COMPARE((reinterpret_cast<std::uintptr_t>(&a[0]) & mask), 0ul);
 }
 
+// testIif{{{1
 template <typename A, typename B, typename C,
           typename = decltype(Vc::iif(std::declval<A>(), std::declval<B>(),
                                       std::declval<C>()))>
@@ -354,6 +361,7 @@ TEST_TYPES(V, testIif,
     }
 }
 
+// testIifBuiltin{{{1
 TEST(testIifBuiltin)
 {
     COMPARE(Vc::iif(true, 1, 2), true ? 1 : 2);
@@ -361,6 +369,7 @@ TEST(testIifBuiltin)
     sfinaeIifIsNotCallable(bool(), int(), float(), int());
 }
 
+// testNonMemberInterleave{{{1
 TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(9), SIMD_ARRAYS(8)))
 {
     for (int repeat = 0; repeat < 10; ++repeat) {
@@ -375,6 +384,7 @@ TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS
     }
 }
 
+// reinterpret_components_cast {{{1
 using CastTypes = Typelist<
 #if Vc_FLOAT_V_SIZE == Vc_INT_V_SIZE
     Typelist<float_v, int_v>,
@@ -401,3 +411,5 @@ TEST_TYPES(P, reinterpret_components_cast, (CastTypes))
         COMPARE(test[i], cvt.u);
     }
 }
+
+// vim: foldmethod=marker
