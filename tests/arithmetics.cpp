@@ -341,6 +341,12 @@ TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
             }
         }
     }
+#if defined Vc_CLANG && Vc_CLANG < 0x30500
+    // clang 3.4 ICEs on the following code with AVX2. just skip it.
+    if (std::is_same<Vc::VectorAbi::Avx, typename Vec::abi>::value) {
+        return;
+    }
+#endif
 
     Vec a(1);
     Vec b(2);
