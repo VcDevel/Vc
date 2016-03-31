@@ -45,7 +45,7 @@ TEST_TYPES(Vec, maskedGatherArray, ALL_TYPES)
     }
 
     It indexes = It::IndexesFromZero();
-    alignas(It::MemoryAlignment)
+    alignas(static_cast<std::size_t>(It::MemoryAlignment))
         std::array<typename It::EntryType, It::size()> indexArray;
     indexes.store(&indexArray[0], Vc::Aligned);
     for_all_masks(Vec, m) {
