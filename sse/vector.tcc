@@ -268,59 +268,19 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #ifdef Vc_IMPL_XOP
-static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const    SSE::int_v &value, const    SSE::int_v &count) { return _mm_sha_epi32(value.data(), count.data()); }
-static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const   SSE::uint_v &value, const   SSE::uint_v &count) { return _mm_shl_epi32(value.data(), count.data()); }
-static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const  SSE::short_v &value, const  SSE::short_v &count) { return _mm_sha_epi16(value.data(), count.data()); }
-static Vc_INTRINSIC Vc_CONST __m128i shiftLeft (const SSE::ushort_v &value, const SSE::ushort_v &count) { return _mm_shl_epi16(value.data(), count.data()); }
-static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const    SSE::int_v &value, const    SSE::int_v &count) { return shiftLeft(value,          -count ); }
-static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const   SSE::uint_v &value, const   SSE::uint_v &count) { return shiftLeft(value,   SSE::uint_v(-count)); }
-static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const  SSE::short_v &value, const  SSE::short_v &count) { return shiftLeft(value,          -count ); }
-static Vc_INTRINSIC Vc_CONST __m128i shiftRight(const SSE::ushort_v &value, const SSE::ushort_v &count) { return shiftLeft(value, SSE::ushort_v(-count)); }
-
-#define Vc_OP(T, symbol, impl)                                                           \
-    template <> Vc_INTRINSIC SSE::T &SSE::T::operator symbol##=(SSE::T::AsArg shift)     \
-    {                                                                                    \
-        d.v() = impl(*this, shift);                                                      \
-        return *this;                                                                    \
-    }                                                                                    \
-    template <>                                                                          \
-    Vc_INTRINSIC Vc_PURE SSE::T SSE::T::operator symbol(SSE::T::AsArg shift) const       \
-    {                                                                                    \
-        return impl(*this, shift);                                                       \
-    }
-Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, <<, shiftLeft);
-Vc_APPLY_2(Vc_LIST_INT_VECTOR_TYPES, Vc_OP, >>, shiftRight);
-#undef Vc_OP
-#else
-
-#define Vc_OP_IMPL(T, symbol)                                                            \
-    template <>                                                                          \
-    Vc_INTRINSIC Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::                  \
-    operator symbol##=(Vector<T, VectorAbi::Sse>::AsArg x)                               \
-    {                                                                                    \
-        Common::for_all_vector_entries<Size>(                                            \
-            [&](size_t i) { d.set(i, d.m(i) symbol x.d.m(i)); });                        \
-        return *this;                                                                    \
-    }                                                                                    \
-    template <>                                                                          \
-    inline Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::operator symbol( \
-        Vector<T, VectorAbi::Sse>::AsArg x) const                                        \
-    {                                                                                    \
-        Vector<T, VectorAbi::Sse> r;                                                     \
-        Common::for_all_vector_entries<Size>(                                            \
-            [&](size_t i) { r.d.set(i, d.m(i) symbol x.d.m(i)); });                      \
-        return r;                                                                        \
-    }                                                                                    \
-    Vc_NOTHING_EXPECTING_SEMICOLON
-Vc_OP_IMPL(int, <<);
-Vc_OP_IMPL(int, >>);
-Vc_OP_IMPL(unsigned int, <<);
-Vc_OP_IMPL(unsigned int, >>);
-Vc_OP_IMPL(short, <<);
-Vc_OP_IMPL(short, >>);
-Vc_OP_IMPL(unsigned short, <<);
-Vc_OP_IMPL(unsigned short, >>);
-#undef Vc_OP_IMPL
+template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator<<(AsArg shift) const { return _mm_sha_epi32(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator<<(AsArg shift) const { return _mm_shl_epi32(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator<<(AsArg shift) const { return _mm_sha_epi16(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator<<(AsArg shift) const { return _mm_shl_epi16(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator>>(AsArg shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator>>(AsArg shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator>>(AsArg shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator>>(AsArg shift) const { return operator<<(-shift); }
+#elif defined Vc_IMPL_AVX2
+template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator<<(AsArg x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator<<(AsArg x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator>>(AsArg x) const { return _mm_srav_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator>>(AsArg x) const { return _mm_srlv_epi32(d.v(), x.d.v()); }
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator>>=(int shift) {

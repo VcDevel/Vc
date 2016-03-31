@@ -201,12 +201,13 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
         Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
 
-        Vc_INTRINSIC_L Vector &operator<<=(AsArg shift)       Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector  operator<< (AsArg shift) const Vc_INTRINSIC_R;
+        Vc_ALWAYS_INLINE Vector  operator<< (AsArg shift) const { return generate([&](int i) { return get(*this, i) << get(shift, i); }); }
+        Vc_ALWAYS_INLINE Vector  operator>> (AsArg shift) const { return generate([&](int i) { return get(*this, i) >> get(shift, i); }); }
+        Vc_ALWAYS_INLINE Vector &operator<<=(AsArg shift) { return *this = *this << shift; }
+        Vc_ALWAYS_INLINE Vector &operator>>=(AsArg shift) { return *this = *this >> shift; }
+
         Vc_INTRINSIC_L Vector &operator<<=(  int shift)       Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector  operator<< (  int shift) const Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector &operator>>=(AsArg shift)       Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector  operator>> (AsArg shift) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector &operator>>=(  int shift)       Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector  operator>> (  int shift) const Vc_INTRINSIC_R;
 

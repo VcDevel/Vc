@@ -246,34 +246,28 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::store(U *mem, Mask mask, Flags flag
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #ifdef Vc_IMPL_AVX2
-#define Vc_OP_IMPL(T, symbol)                                                            \
-    template <>                                                                          \
-    Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator symbol##=(     \
-        AsArg x)                                                                         \
-    {                                                                                    \
-        Common::unrolled_loop<std::size_t, 0, Size>(                                     \
-            [&](std::size_t i) { d.set(i, d.m(i) symbol x.d.m(i)); });                   \
-        return *this;                                                                    \
-    }                                                                                    \
-    template <>                                                                          \
-    Vc_ALWAYS_INLINE Vc_PURE AVX2::Vector<T> Vector<T, VectorAbi::Avx>::operator symbol( \
-        AsArg x) const                                                                   \
-    {                                                                                    \
-        AVX2::Vector<T> r;                                                               \
-        Common::unrolled_loop<std::size_t, 0, Size>(                                     \
-            [&](std::size_t i) { r.d.set(i, d.m(i) symbol x.d.m(i)); });                 \
-        return r;                                                                        \
-    }                                                                                    \
-    Vc_NOTHING_EXPECTING_SEMICOLON
-Vc_OP_IMPL(int, <<);
-Vc_OP_IMPL(int, >>);
-Vc_OP_IMPL(unsigned int, <<);
-Vc_OP_IMPL(unsigned int, >>);
-Vc_OP_IMPL(short, <<);
-Vc_OP_IMPL(short, >>);
-Vc_OP_IMPL(unsigned short, <<);
-Vc_OP_IMPL(unsigned short, >>);
-#undef Vc_OP_IMPL
+template <> Vc_ALWAYS_INLINE AVX2::Vector<   int> Vector<   int, VectorAbi::Avx>::operator<<(AsArg x) const { return _mm256_sllv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE AVX2::Vector<  uint> Vector<  uint, VectorAbi::Avx>::operator<<(AsArg x) const { return _mm256_sllv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE AVX2::Vector<   int> Vector<   int, VectorAbi::Avx>::operator>>(AsArg x) const { return _mm256_srav_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE AVX2::Vector<  uint> Vector<  uint, VectorAbi::Avx>::operator>>(AsArg x) const { return _mm256_srlv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE AVX2::Vector< short> Vector< short, VectorAbi::Avx>::operator<<(AsArg x) const { return generate([&](int i) { return get(*this, i) << get(x, i); }); }
+template <> Vc_ALWAYS_INLINE AVX2::Vector<ushort> Vector<ushort, VectorAbi::Avx>::operator<<(AsArg x) const { return generate([&](int i) { return get(*this, i) << get(x, i); }); }
+template <> Vc_ALWAYS_INLINE AVX2::Vector< short> Vector< short, VectorAbi::Avx>::operator>>(AsArg x) const { return generate([&](int i) { return get(*this, i) >> get(x, i); }); }
+template <> Vc_ALWAYS_INLINE AVX2::Vector<ushort> Vector<ushort, VectorAbi::Avx>::operator>>(AsArg x) const { return generate([&](int i) { return get(*this, i) >> get(x, i); }); }
+template <typename T>
+Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator<<=(AsArg x)
+{
+    static_assert(std::is_integral<T>::value,
+                  "bitwise-operators can only be used with Vectors of integral type");
+    return *this = *this << x;
+}
+template <typename T>
+Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator>>=(AsArg x)
+{
+    static_assert(std::is_integral<T>::value,
+                  "bitwise-operators can only be used with Vectors of integral type");
+    return *this = *this >> x;
+}
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE AVX2::Vector<T> &Vector<T, VectorAbi::Avx>::operator>>=(int shift) {

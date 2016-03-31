@@ -262,12 +262,7 @@ public:
 
         // shifts
 #define Vc_OP_VEC(op)                                                                    \
-    Vc_INTRINSIC Vector &operator op##=(AsArg x)                                         \
-    {                                                                                    \
-        static_assert(                                                                   \
-            std::is_integral<T>::value,                                                  \
-            "bitwise-operators can only be used with Vectors of integral type");         \
-    }                                                                                    \
+    Vc_INTRINSIC Vector &operator op##=(AsArg x);                                        \
     Vc_INTRINSIC Vc_PURE Vector operator op(AsArg x) const                               \
     {                                                                                    \
         static_assert(                                                                   \
