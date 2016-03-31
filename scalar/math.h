@@ -94,11 +94,11 @@ Vc_ALWAYS_INLINE Vc_PURE Scalar::Vector<T> abs(Scalar::Vector<T> x)
 
 template<typename T> static Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<T> &x, Scalar::Vector<T> *sin, Scalar::Vector<T> *cos)
 {
-#if (defined(Vc_CLANG) && Vc_HAS_BUILTIN(__builtin_sincosf)) || (!defined(Vc_CLANG) && defined(__GNUC__) && !defined(_WIN32))
-    __builtin_sincosf(x.data(), &sin->data(), &cos->data());
-#elif defined(_WIN32) || defined(__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__)
     sin->data() = std::sin(x.data());
     cos->data() = std::cos(x.data());
+#elif Vc_HAS_BUILTIN(__builtin_sincosf) || defined Vc_GCC
+    __builtin_sincosf(x.data(), &sin->data(), &cos->data());
 #else
     sincosf(x.data(), &sin->data(), &cos->data());
 #endif
@@ -106,11 +106,11 @@ template<typename T> static Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<T>
 
 template<> Vc_ALWAYS_INLINE void sincos(const Scalar::Vector<double> &x, Scalar::Vector<double> *sin, Scalar::Vector<double> *cos)
 {
-#if (defined(Vc_CLANG) && Vc_HAS_BUILTIN(__builtin_sincos)) || (!defined(Vc_CLANG) && defined(__GNUC__) && !defined(_WIN32))
-    __builtin_sincos(x.data(), &sin->data(), &cos->data());
-#elif defined(_WIN32) || defined(__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__)
     sin->data() = std::sin(x.data());
     cos->data() = std::cos(x.data());
+#elif Vc_HAS_BUILTIN(__builtin_sincos) || defined Vc_GCC
+    __builtin_sincos(x.data(), &sin->data(), &cos->data());
 #else
     ::sincos(x.data(), &sin->data(), &cos->data());
 #endif
