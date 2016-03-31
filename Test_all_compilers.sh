@@ -21,6 +21,7 @@ supports32Bit() {
 #include <algorithm>
 #include <string>
 #include <iostream>
+void foo(int x) { switch (x) { case 0x0A: break; case 0x0B: break; case 0x0C: break; case 0x0D: break; case 0x0E: break; } }
 int main() { std::cout << "Hello World!\n"; return 0; }
 END
   $CXX -m32 -o /tmp/m32test /tmp/m32test.cpp >/dev/null 2>&1 || return 1
@@ -35,6 +36,7 @@ supportsx32() {
 #include <algorithm>
 #include <string>
 #include <iostream>
+void foo(int x) { switch (x) { case 0x0A: break; case 0x0B: break; case 0x0C: break; case 0x0D: break; case 0x0E: break; } }
 int main() { std::cout << "Hello World!\n"; return 0; }
 END
   $CXX -mx32 -o /tmp/mx32test /tmp/mx32test.cpp >/dev/null 2>&1 || return 1
