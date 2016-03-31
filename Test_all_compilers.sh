@@ -26,9 +26,9 @@ END
   return 0
 }
 
-cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++-[0-9]*'`"
+cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++-[0-9]*'|grep -v -- -linux-gnu`"
 if test -z "$cxxlist"; then
-  cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++'`"
+  cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++'|grep -v -- -linux-gnu`"
 fi
 if test -z "$cxxlist"; then
   # default compiler
