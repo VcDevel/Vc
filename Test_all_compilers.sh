@@ -18,11 +18,27 @@ supports32Bit() {
   test `uname -m` = "x86_64" || return 1
   CXX=${CXX:-c++}
   cat > /tmp/m32test.cpp <<END
+#include <algorithm>
+#include <string>
 #include <iostream>
 int main() { std::cout << "Hello World!\n"; return 0; }
 END
   $CXX -m32 -o /tmp/m32test /tmp/m32test.cpp >/dev/null 2>&1 || return 1
   rm /tmp/m32test*
+  return 0
+}
+
+supportsx32() {
+  test `uname -m` = "x86_64" || return 1
+  CXX=${CXX:-c++}
+  cat > /tmp/mx32test.cpp <<END
+#include <algorithm>
+#include <string>
+#include <iostream>
+int main() { std::cout << "Hello World!\n"; return 0; }
+END
+  $CXX -mx32 -o /tmp/mx32test /tmp/mx32test.cpp >/dev/null 2>&1 || return 1
+  rm /tmp/mx32test*
   return 0
 }
 
@@ -34,6 +50,7 @@ if test -z "$cxxlist"; then
   # default compiler
   runTest &
   supports32Bit && runTest -m32 &
+  supportsx32 && runTest -mx32 &
   wait
 else
   for CXX in $cxxlist; do
@@ -43,6 +60,7 @@ else
       export CXX
       runTest &
       supports32Bit && runTest -m32 &
+      supportsx32 && runTest -mx32 &
       wait
     ) fi
   done
@@ -57,6 +75,7 @@ for VcEnv in `find /opt/ -mindepth 2 -maxdepth 2 -name Vc.env`; do (
   esac
   runTest &
   supports32Bit && runTest -m32 &
+  supportsx32 && runTest -mx32 &
   wait
 ) done
 
@@ -75,5 +94,6 @@ test -n "$icclist" && for IccEnv in $icclist; do (
   . $IccEnv $arch
   runTest &
   supports32Bit && runTest -m32 &
+  supportsx32 && runTest -mx32 &
   wait
 ) done
