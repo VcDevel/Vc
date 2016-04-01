@@ -255,6 +255,7 @@ using std::get;
 
 // printPass {{{1
 static inline void printPass() { std::cout << Vc::AnsiColor::green << " PASS: " << Vc::AnsiColor::normal; }
+static inline void printSkip() { std::cout << Vc::AnsiColor::yellow << " SKIP: " << Vc::AnsiColor::normal; }
 
 // verify_vector_unit_supported {{{1
 namespace
@@ -276,6 +277,11 @@ class UnitTestFailure //{{{1
 {
 };
 
+struct SkippedTest //{{{1
+{
+    std::string message;
+};
+
 using TestFunction = void (*)(void); //{{{1
 
 class UnitTester  //{{{1
@@ -292,6 +298,7 @@ public:
         , m_finalized(false)
         , failedTests(0)
         , passedTests(0)
+        , skippedTests(0)
         , findMaximumDistance(false)
         , maximumDistance(0)
         , meanDistance(0)
@@ -306,8 +313,9 @@ public:
             plotFile.close();
         }
         m_finalized = true;
-        std::cout << "\n Testing done. " << passedTests << " tests passed. " << failedTests
-                  << " tests failed." << std::endl;
+        std::cout << "\n Testing done. " << passedTests << " tests passed. "
+                  << failedTests << " tests failed." << skippedTests << " tests skipped."
+                  << std::endl;
         return failedTests;
     }
 
@@ -329,6 +337,7 @@ private:
 
 public:
     int passedTests;
+    int skippedTests;
     bool findMaximumDistance;
     double maximumDistance;
     double meanDistance;
@@ -405,10 +414,13 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
         meanDistance = 0.;
         meanCount = 0;
         fun();
-    }
-    catch (UnitTestFailure) {}
-    catch (std::exception &e)
-    {
+    } catch (const SkippedTest &skip) {
+        UnitTest::printSkip();
+        std::cout << name << ' ' << skip.message << std::endl;
+        ++skippedTests;
+        return;
+    } catch (UnitTestFailure) {
+    } catch (std::exception &e) {
         std::cout << failString() << "┍ " << name << " threw an unexpected exception:\n";
         std::cout << failString() << "│ " << e.what() << '\n';
         global_unit_test_object_.status = false;
@@ -1083,6 +1095,20 @@ inline void Compare::writePlotData(std::fstream &file, Vc_ALIGNED_PARAMETER(T) a
 #define VERIFY(cond) UnitTest::Compare(cond, #cond, __FILE__, __LINE__) << ' '
 // FAIL {{{1
 #define FAIL() UnitTest::Compare(__FILE__, __LINE__) << ' '
+
+// Skip {{{1
+class Skip
+{
+    std::stringstream stream;
+
+public:
+    ~Skip() noexcept(false) { throw SkippedTest{stream.str()}; }
+    template <typename T> Skip &operator<<(T &&x)
+    {
+        stream << std::forward<T>(x);
+        return *this;
+    }
+};
 
 // ADD_PASS() << "text" {{{1
 class ADD_PASS
