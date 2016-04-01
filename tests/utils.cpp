@@ -134,6 +134,9 @@ class CallTester
 
 TEST_TYPES(V, applyAndCall, (ALL_VECTORS))
 {
+#if defined Vc_CLANG && Vc_CLANG >= 0x30500 && Vc_CLANG < 0x30700 && defined __i386__
+    UnitTest::Skip() << "clang 3.5 and 3.6 crash when compiling this test";
+#endif
     typedef typename V::EntryType T;
 
     const V two(T(2));
