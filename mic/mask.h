@@ -188,19 +188,19 @@ public:
 
 private:
     friend reference;
-    Vc_INTRINSIC value_type get(const Mask &m, int i) noexcept
+    Vc_INTRINSIC static value_type get(const Mask &m, int i) noexcept
     {
         return static_cast<bool>(m.k & (1u << i));
     }
     template <typename U>
-    Vc_INTRINSIC void set(Mask &m, int i,
-                          U &&v) noexcept(noexcept(static_cast<bool>(std::decltype<U>())))
+    Vc_INTRINSIC static void set(Mask &m, int i, U &&v) noexcept(
+        noexcept(static_cast<bool>(std::declval<U>())))
     {
         const auto bitmask = 1u << i;
         if (std::forward<U>(v)) {
-            k |= bitmask;
+            m.k |= bitmask;
         } else {
-            k &= ~bitmask;
+            m.k &= ~bitmask;
         }
     }
 

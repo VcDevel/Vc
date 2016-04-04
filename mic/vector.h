@@ -95,6 +95,7 @@ public:
     typedef typename Mask::AsArg MaskArgument;
     typedef Vector<T> AsArg; // for now only ICC can compile this code and it is not broken :)
     typedef VectorType VectorTypeArg;
+    using reference = Detail::ElementReference<Vector>;
 
     inline const VectorType &data() const { return d.v(); }
     inline VectorType &data() { return d.v(); }
