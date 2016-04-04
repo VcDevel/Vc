@@ -38,8 +38,8 @@ template <typename Flags>
 inline void MIC::double_m::load(const bool *mem, Flags)
 {
     __m512i ones = _mm512_setzero_epi32();
-    ones = _mm512_mask_extloadunpacklo_epi32(ones, 0xff, mem, MIC::UpDownConversion<unsigned int, unsigned char>(), _MM_HINT_NONE);
-    ones = _mm512_mask_extloadunpackhi_epi32(ones, 0xff, mem + 64, MIC::UpDownConversion<unsigned int, unsigned char>(), _MM_HINT_NONE);
+    ones = _mm512_mask_extloadunpacklo_epi32(ones, 0xff, mem, MIC::UpDownConversion<unsigned int, unsigned char>().up(), _MM_HINT_NONE);
+    ones = _mm512_mask_extloadunpackhi_epi32(ones, 0xff, mem + 64, MIC::UpDownConversion<unsigned int, unsigned char>().up(), _MM_HINT_NONE);
     //const __m512i ones = _mm512_mask_extload_epi32(_mm512_setzero_epi32(), 0xff, mem, , _MM_BROADCAST32_NONE, _MM_HINT_NONE);
     k = _mm512_cmpneq_epi32_mask(ones, _mm512_setzero_epi32());
 }
@@ -51,8 +51,8 @@ inline void MIC::double_m::store(bool *mem, Flags) const
     const __m512i zero = _mm512_setzero_epi32();
     const __m512i one = _mm512_set1_epi32(1);
     const __m512i tmp = MIC::_and(zero, static_cast<__mmask16>(k), one, one);
-    _mm512_mask_extpackstorelo_epi32(mem, 0xff, tmp, MIC::UpDownConversion<unsigned int, unsigned char>(), _MM_HINT_NONE);
-    _mm512_mask_extpackstorehi_epi32(mem + 64, 0xff, tmp, MIC::UpDownConversion<unsigned int, unsigned char>(), _MM_HINT_NONE);
+    _mm512_mask_extpackstorelo_epi32(mem, 0xff, tmp, MIC::UpDownConversion<unsigned int, unsigned char>().down(), _MM_HINT_NONE);
+    _mm512_mask_extpackstorehi_epi32(mem + 64, 0xff, tmp, MIC::UpDownConversion<unsigned int, unsigned char>().down(), _MM_HINT_NONE);
 }
 }  // namespace Vc
 
