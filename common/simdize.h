@@ -143,9 +143,8 @@ enum class Category {
  * iteratorCategories<T>(int()) returns whether iterator_traits<T>::iterator_category is a
  * valid type and whether it is derived from RandomAccessIterator or ForwardIterator.
  */
-template <typename T,
-          typename ItCat = typename iterator_traits<T>::iterator_category>
-constexpr Category iteratorCategories(int)
+template <typename T, typename ItCat = typename T::iterator_category>
+constexpr Category iteratorCategories(int, ItCat * = nullptr)
 {
     return is_base_of<std::random_access_iterator_tag, ItCat>::value
                ? Category::RandomAccessIterator
@@ -158,6 +157,14 @@ constexpr Category iteratorCategories(int)
                                  : is_base_of<std::input_iterator_tag, ItCat>::value
                                        ? Category::InputIterator
                                        : Category::None;
+}
+/**\internal
+ * This overload is selected for pointer types => RandomAccessIterator.
+ */
+template <typename T>
+constexpr enable_if<std::is_pointer<T>::value, Category> iteratorCategories(float)
+{
+    return Category::RandomAccessIterator;
 }
 /**\internal
  * This overload is selected if T does not work with iterator_traits.
