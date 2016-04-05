@@ -33,8 +33,8 @@ sets. Thus an application written with Vc can be compiled for:
 
 * AVX and AVX2
 * SSE2 up to SSE4.2 or SSE4a
-* Scalar (fallback which works everywhere)
-* MIC (for Vc 1.0)
+* Scalar
+* MIC
 * NEON (in development)
 * NVIDIA GPUs / CUDA (in development)
 
@@ -80,7 +80,8 @@ the documentation by running `doxygen` in the `doc` subdirectory.
 Alternatively, you can find nightly builds of the documentation at:
 
 * [master branch](https://web-docs.gsi.de/~mkretz/Vc-master/)
-* [1.0 branch](https://web-docs.gsi.de/~mkretz/Vc-1.0/)
+* [1.2.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.2.0/)
+* [1.1.0 branch](https://web-docs.gsi.de/~mkretz/Vc-1.1.0/)
 * [0.7 branch](https://web-docs.gsi.de/~mkretz/Vc-0.7/)
 
 ## Publications
@@ -99,8 +100,8 @@ Alternatively, you can find nightly builds of the documentation at:
 ## Communication
 
 A channel on the freenode IRC network is reserved for discussions on Vc:
-[##vc on freenode](irc://chat.freenode.net:6665/##vc)
-([via SSL](ircs://chat.freenode.net:7000/##vc))
+[##vc on freenode](irc://chat.freenode.net:6667/##vc)
+([via SSL](ircs://chat.freenode.net:6697/##vc))
 
 There exist two mailinglists:
 
@@ -113,5 +114,4 @@ Feel free to use the GitHub issue tracker for questions, too.
 
 ## License
 
-Vc up to version 0.7.4 was released under the [LGPL 3 license](http://opensource.org/licenses/LGPL-3.0).
-Since then the code was relicensed to the [3-clause BSD license](http://opensource.org/licenses/BSD-3-Clause) and subsequent releases will use the BSD.
+Vc is released under the terms of the [3-clause BSD license](http://opensource.org/licenses/BSD-3-Clause).
