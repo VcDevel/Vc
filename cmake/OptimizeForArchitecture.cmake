@@ -116,7 +116,7 @@ macro(AutodetectHostArchitecture)
          elseif(_cpu_model EQUAL 0x66)
             set(TARGET_ARCHITECTURE "cannonlake")
          elseif(_cpu_model EQUAL 0x55)
-            set(TARGET_ARCHITECTURE "skylake-xeon")
+            set(TARGET_ARCHITECTURE "skylake-avx512")
          elseif(_cpu_model EQUAL 0x4E OR _cpu_model EQUAL 0x5E)
             set(TARGET_ARCHITECTURE "skylake")
          elseif(_cpu_model EQUAL 0x3D OR _cpu_model EQUAL 0x47 OR _cpu_model EQUAL 0x56)
@@ -183,7 +183,7 @@ Using an incorrect setting here can result in crashes of the resulting binary be
 Setting the value to \"auto\" will try to optimize for the architecture where cmake is called. \
 Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Core2), \
 \"penryn\" (45nm Core2), \"nehalem\", \"westmere\", \"sandy-bridge\", \"ivy-bridge\", \
-\"haswell\", \"broadwell\", \"skylake\", \"skylake-xeon\", \"cannonlake\", \"silvermont\", \
+\"haswell\", \"broadwell\", \"skylake\", \"skylake-avx512\", \"cannonlake\", \"silvermont\", \
 \"goldmont\", \"knl\" (Knights Landing), \"atom\", \"k8\", \"k8-sse3\", \"barcelona\", \
 \"istanbul\", \"magny-cours\", \"bulldozer\", \"interlagos\", \"piledriver\", \
 \"AMD 14h\", \"AMD 16h\".")
@@ -240,13 +240,14 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
       list(APPEND _march_flag_list "skylake")
       _broadwell()
    endmacro()
-   macro(_skylake_xeon)
+   macro(_skylake_avx512)
+      list(APPEND _march_flag_list "skylake-avx512")
       _skylake()
       list(APPEND _available_vector_units_list "avx512f" "avx512cd" "avx512dq" "avx512bw" "avx512vl")
    endmacro()
    macro(_cannonlake)
       list(APPEND _march_flag_list "cannonlake")
-      _skylake_xeon()
+      _skylake_avx512()
       list(APPEND _available_vector_units_list "avx512ifma" "avx512vbmi")
    endmacro()
    macro(_knightslanding)
@@ -277,8 +278,8 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
       _knightslanding()
    elseif(TARGET_ARCHITECTURE STREQUAL "cannonlake")
       _cannonlake()
-   elseif(TARGET_ARCHITECTURE STREQUAL "skylake-xeon")
-      _skylake_xeon()
+   elseif(TARGET_ARCHITECTURE STREQUAL "skylake-xeon" OR TARGET_ARCHITECTURE STREQUAL "skylake-avx512")
+      _skylake_avx512()
    elseif(TARGET_ARCHITECTURE STREQUAL "skylake")
       _skylake()
    elseif(TARGET_ARCHITECTURE STREQUAL "broadwell")
