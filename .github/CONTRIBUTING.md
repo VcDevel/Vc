@@ -28,15 +28,34 @@ the style rules:
 
 * Naming is very important. Take time to choose a name that clearly explains the
   intended functionality & usage of the entity.
-* Type names typically use `CamelCase`.
-* Function and variable names use `camelCase`.
+* Type names typically use `CamelCase`. No underscores.
+* Function and variable names use `camelCase`. No underscores.
+* Acronyms that appear in camel case names must use lowercase letters for all
+  characters after the first characters. (e.g. `SimdArray`, `simdFunction`)
 * Traits use `lower_case_with_underscores`.
 * Macros are prefixed with `Vc_` and use `Vc_ALL_CAPITALS_WITH_UNDERSCORES`.
   Macro arguments use a single underscore suffix.
   Include guards are prefixed with `VC_` instead.
-* File names use `alllowercasewithoutunderscores`. Basically it is the type name
+* File names use `alllowercasewithoutunderscores`. Basically, it is the type name
   declared/defined in the file with all letters in lower case.
 * There are exceptions and inconsistencies in the code. Don't bother.
+
+### Design Guidelines
+
+* *Avoid out parameters.* Use the return value insted. Use `std::tuple` if you
+  need to return multiple values.
+* *Look for alternatives to in-out parameters.* An obvious exception (and thus
+  design alternative) is the implicit `this` parameter to non-static member
+  functions.
+* Consequently, *pass function parameters by const-ref or by value.*
+  Use const-ref for types that (potentially) require more than two CPU
+  registers. (Consider fundamental types and the fundamental `Vector<T>` types
+  to require one register, each.)
+  By value otherwise.
+* *Ensure const-correctness.* Member functions use the `const` qualifier if they
+  do not modify observable state. Use `mutable` members for unobservable state.
+* *Avoid macros.* Possible alternatives are constexpr variables and template
+  code.
 
 ## Git History
 
