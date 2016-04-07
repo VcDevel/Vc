@@ -24,6 +24,20 @@ the style rules:
 * No spaces in parentheses, but spaces between keywords and opening paren, i.e.
   `if (foo) { bar(); }`
 
+### Naming Rules
+
+* Naming is very important. Take time to choose a name that clearly explains the
+  intended functionality & usage of the entity.
+* Type names typically use `CamelCase`.
+* Function and variable names use `camelCase`.
+* Traits use `lower_case_with_underscores`.
+* Macros are prefixed with `Vc_` and use `Vc_ALL_CAPITALS_WITH_UNDERSCORES`.
+  Macro arguments use a single underscore suffix.
+  Include guards are prefixed with `VC_` instead.
+* File names use `alllowercasewithoutunderscores`. Basically it is the type name
+  declared/defined in the file with all letters in lower case.
+* There are exceptions and inconsistencies in the code. Don't bother.
+
 ## Git History
 
 Git history should be flat, if feasible. Feel free to use merges on your private
