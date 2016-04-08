@@ -69,6 +69,21 @@ else
   done
 fi
 
+if [[ -r /etc/profile.d/modules.sh ]]; then
+  source /etc/profile.d/modules.sh
+  for mod in `module avail -t 2>&1`; do
+    case `echo $mod|tr '[:upper:]' '[:lower:]'` in
+      *intel*|*icc*) export CC=icc CXX=icpc;;
+      *gnu*|*gcc*) export CC=gcc CXX=g++;;
+      *llvm*|*clang*) export CC=clang CXX=clang++;;
+      *) continue;;
+    esac
+    module load $mod
+    runAllTests
+    module unload $mod
+  done
+fi
+
 for VcEnv in `find /opt/ -mindepth 2 -maxdepth 2 -name Vc.env`; do (
   . "$VcEnv"
   case "$VcEnv" in
