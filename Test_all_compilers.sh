@@ -14,6 +14,13 @@ runTest() {
   CFLAGS="$1" CXXFLAGS="$1" ./Test_vc.sh Experimental
 }
 
+runAllTests() {
+  runTest &
+  supports32Bit && runTest -m32 &
+  supportsx32 && runTest -mx32 &
+  wait
+}
+
 supports32Bit() {
   test `uname -m` = "x86_64" || return 1
   CXX=${CXX:-c++}
@@ -50,20 +57,14 @@ if test -z "$cxxlist"; then
 fi
 if test -z "$cxxlist"; then
   # default compiler
-  runTest &
-  supports32Bit && runTest -m32 &
-  supportsx32 && runTest -mx32 &
-  wait
+  runAllTests
 else
   for CXX in $cxxlist; do
     CC=`echo "$CXX"|sed 's/clang++/clang/;s/g++/gcc/'`
     if test -x "$CC" -a -x "$CXX"; then (
       export CC
       export CXX
-      runTest &
-      supports32Bit && runTest -m32 &
-      supportsx32 && runTest -mx32 &
-      wait
+      runAllTests
     ) fi
   done
 fi
@@ -75,10 +76,7 @@ for VcEnv in `find /opt/ -mindepth 2 -maxdepth 2 -name Vc.env`; do (
       ( cd $HOME/src/gcc-build && ./update.sh "`dirname "$VcEnv"`" )
       ;;
   esac
-  runTest &
-  supports32Bit && runTest -m32 &
-  supportsx32 && runTest -mx32 &
-  wait
+  runAllTests
 ) done
 
 export CC=icc
@@ -94,8 +92,5 @@ case x86_64 in
 esac
 test -n "$icclist" && for IccEnv in $icclist; do (
   . $IccEnv $arch
-  runTest &
-  supports32Bit && runTest -m32 &
-  supportsx32 && runTest -mx32 &
-  wait
+  runAllTests
 ) done
