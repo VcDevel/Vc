@@ -14,7 +14,17 @@ runTest() {
   CFLAGS="$1" CXXFLAGS="$1" ./Test_vc.sh Experimental
 }
 
+tested_compilers="lsakdfjwowleqirjodfisj"
+
 runAllTests() {
+  # first make sure we don't test a compiler a second time
+  id="`which $CXX`"
+  id="`readlink -f $id`"
+  echo "$id"|grep -qF "$tested_compilers" && return
+  tested_compilers="$tested_compilers
+$id"
+
+  # alright run the ctest script
   runTest &
   supports32Bit && runTest -m32 &
   supportsx32 && runTest -mx32 &
@@ -61,11 +71,11 @@ if test -z "$cxxlist"; then
 else
   for CXX in $cxxlist; do
     CC=`echo "$CXX"|sed 's/clang++/clang/;s/g++/gcc/'`
-    if test -x "$CC" -a -x "$CXX"; then (
+    if test -x "$CC" -a -x "$CXX"; then
       export CC
       export CXX
       runAllTests
-    ) fi
+    fi
   done
 fi
 
