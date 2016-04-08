@@ -9,9 +9,10 @@ export LC_MESSAGES="en_US.UTF-8"
 unset CFLAGS CXXFLAGS
 
 cd "`dirname "$0"`"
+test -z "dashboard_model" && export dashboard_model=Experimental
 
 runTest() {
-  CFLAGS="$1" CXXFLAGS="$1" ./Test_vc.sh Experimental
+  CFLAGS="$1" CXXFLAGS="$1" ctest -S test.cmake
 }
 
 tested_compilers="lsakdfjwowleqirjodfisj"
