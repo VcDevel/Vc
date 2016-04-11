@@ -329,7 +329,7 @@ public:
 #undef Vc_COMPARES
 
     /// \copydoc Vector::isNegative
-    Vc_INTRINSIC Vc_DEPRECATED("use isnegative(x) instead") MaskType isNegative() const
+    Vc_DEPRECATED("use isnegative(x) instead") Vc_INTRINSIC MaskType isNegative() const
     {
         return {isnegative(data)};
     }
@@ -407,7 +407,7 @@ public:
     }
 
     /// \copydoc Vector::exponent
-    Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") SimdArray exponent() const
+    Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC SimdArray exponent() const
     {
         return {exponent(data)};
     }
@@ -436,7 +436,7 @@ public:
         return {VectorType::generate(gen)};
     }
 
-    Vc_INTRINSIC Vc_DEPRECATED("use copysign(x, y) instead") SimdArray
+    Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC SimdArray
         copySign(const SimdArray &reference) const
     {
         return {Vc::copysign(data, reference.data)};
@@ -1272,19 +1272,19 @@ public:
     static constexpr std::size_t Size = size();
 
     /// \copydoc Vector::exponent
-    Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") SimdArray exponent() const
+    Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC SimdArray exponent() const
     {
         return {exponent(data0), exponent(data1)};
     }
 
     /// \copydoc Vector::isNegative
-    Vc_INTRINSIC Vc_DEPRECATED("use isnegative(x) instead") MaskType isNegative() const
+    Vc_DEPRECATED("use isnegative(x) instead") Vc_INTRINSIC MaskType isNegative() const
     {
         return {isnegative(data0), isnegative(data1)};
     }
 
     ///\copydoc Vector::copySign
-    Vc_INTRINSIC Vc_DEPRECATED("use copysign(x, y) instead") SimdArray
+    Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC SimdArray
         copySign(const SimdArray &reference) const
     {
         return {Vc::copysign(data0, reference.data0),

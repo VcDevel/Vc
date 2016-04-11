@@ -276,7 +276,7 @@ public:
         Vc_ALWAYS_INLINE_L Vector operator>>(int x) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L Vector operator<<(int x) const Vc_ALWAYS_INLINE_R;
 
-        Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
+        Vc_DEPRECATED("use isnegative(x) instead") Vc_INTRINSIC Vc_PURE Mask
             isNegative() const
         {
             return Vc::isnegative(*this);
@@ -288,13 +288,13 @@ public:
         }
 
         template <typename V2>
-        Vc_ALWAYS_INLINE Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast") V2
+        Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast") Vc_ALWAYS_INLINE V2
             staticCast() const
         {
             return V2(*this);
         }
         template <typename V2>
-        Vc_ALWAYS_INLINE Vc_DEPRECATED("use reinterpret_components_cast instead") V2
+        Vc_DEPRECATED("use reinterpret_components_cast instead") Vc_ALWAYS_INLINE V2
             reinterpretCast() const
         {
             return AVX::avx_cast<typename V2::VectorType>(data());
@@ -381,13 +381,13 @@ public:
 
         template <typename G> static Vc_INTRINSIC_L Vector generate(G gen) Vc_INTRINSIC_R;
 
-        Vc_INTRINSIC Vc_DEPRECATED("use copysign(x, y) instead") Vector
+        Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC Vector
             copySign(AsArg reference) const
         {
             return Vc::copysign(*this, reference);
         }
 
-        Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const
+        Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC Vector exponent() const
         {
             Vc::exponent(*this);
         }

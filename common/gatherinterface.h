@@ -231,9 +231,11 @@ public:
      *                operator[] access.
      */
     template <typename S1, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
-        Vc_CURRENT_CLASS_NAME(const S1 *array, const EntryType S1::*member1,
-                              Vc_ALIGNED_PARAMETER(IT) indexes)
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
+                                                           const EntryType S1::*member1,
+                                                           Vc_ALIGNED_PARAMETER(IT)
+                                                               indexes)
     {
         gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1]
@@ -254,9 +256,12 @@ public:
      * \param mask    If a mask is given only the active entries will be gathered/scattered.
      */
     template <typename S1, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
-        Vc_CURRENT_CLASS_NAME(const S1 *array, const EntryType S1::*member1,
-                              Vc_ALIGNED_PARAMETER(IT) indexes, MaskArgument mask)
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
+                                                           const EntryType S1::*member1,
+                                                           Vc_ALIGNED_PARAMETER(IT)
+                                                               indexes,
+                                                           MaskArgument mask)
     {
         gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1]
@@ -279,10 +284,12 @@ public:
      *                operator[] access.
      */
     template <typename S1, typename S2, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
-        Vc_CURRENT_CLASS_NAME(const S1 *array, const S2 S1::*member1,
-                              const EntryType S2::*member2,
-                              Vc_ALIGNED_PARAMETER(IT) indexes)
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
+                                                           const S2 S1::*member1,
+                                                           const EntryType S2::*member2,
+                                                           Vc_ALIGNED_PARAMETER(IT)
+                                                               indexes)
     {
         gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1][member2]
@@ -305,10 +312,10 @@ public:
      * \param mask    If a mask is given only the active entries will be gathered/scattered.
      */
     template <typename S1, typename S2, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
-        Vc_CURRENT_CLASS_NAME(const S1 *array, const S2 S1::*member1,
-                              const EntryType S2::*member2,
-                              Vc_ALIGNED_PARAMETER(IT) indexes, MaskArgument mask)
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline Vc_CURRENT_CLASS_NAME(
+        const S1 *array, const S2 S1::*member1, const EntryType S2::*member2,
+        Vc_ALIGNED_PARAMETER(IT) indexes, MaskArgument mask)
     {
         gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1][member2]
@@ -328,10 +335,10 @@ public:
      * \param innerIndexes
      */
     template <typename S1, typename IT1, typename IT2>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
-        Vc_CURRENT_CLASS_NAME(const S1 *array, const EntryType *const S1::*ptrMember1,
-                              Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
-                              Vc_ALIGNED_PARAMETER(IT2) innerIndexes)
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline Vc_CURRENT_CLASS_NAME(
+        const S1 *array, const EntryType *const S1::*ptrMember1,
+        Vc_ALIGNED_PARAMETER(IT1) outerIndexes, Vc_ALIGNED_PARAMETER(IT2) innerIndexes)
     {
         gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
                    array, outerIndexes)[ptrMember1][innerIndexes]
@@ -351,10 +358,11 @@ public:
      * \param mask    If a mask is given only the active entries will be gathered/scattered.
      */
     template <typename S1, typename IT1, typename IT2>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector instead.")
-        Vc_CURRENT_CLASS_NAME(const S1 *array, const EntryType *const S1::*ptrMember1,
-                              Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
-                              Vc_ALIGNED_PARAMETER(IT2) innerIndexes, MaskArgument mask)
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline Vc_CURRENT_CLASS_NAME(
+        const S1 *array, const EntryType *const S1::*ptrMember1,
+        Vc_ALIGNED_PARAMETER(IT1) outerIndexes, Vc_ALIGNED_PARAMETER(IT2) innerIndexes,
+        MaskArgument mask)
     {
         gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
                    array, outerIndexes)[ptrMember1][innerIndexes]
@@ -375,8 +383,8 @@ public:
      *                operator[] access.
      */
     template <typename S1, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void gather(const S1 *array,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void gather(const S1 *array,
                                                  const EntryType S1::*member1,
                                                  Vc_ALIGNED_PARAMETER(IT) indexes)
     {
@@ -399,8 +407,8 @@ public:
      * \param mask    If a mask is given only the active entries will be gathered/scattered.
      */
     template <typename S1, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void gather(const S1 *array,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void gather(const S1 *array,
                                                  const EntryType S1::*member1,
                                                  Vc_ALIGNED_PARAMETER(IT) indexes,
                                                  MaskArgument mask)
@@ -426,8 +434,8 @@ public:
      *                operator[] access.
      */
     template <typename S1, typename S2, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void gather(const S1 *array, const S2 S1::*member1,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void gather(const S1 *array, const S2 S1::*member1,
                                                  const EntryType S2::*member2,
                                                  Vc_ALIGNED_PARAMETER(IT) indexes)
     {
@@ -452,8 +460,8 @@ public:
      * \param mask    If a mask is given only the active entries will be gathered/scattered.
      */
     template <typename S1, typename S2, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void gather(const S1 *array, const S2 S1::*member1,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void gather(const S1 *array, const S2 S1::*member1,
                                                  const EntryType S2::*member2,
                                                  Vc_ALIGNED_PARAMETER(IT) indexes,
                                                  MaskArgument mask)
@@ -476,8 +484,8 @@ public:
      * \param innerIndexes
      */
     template <typename S1, typename IT1, typename IT2>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void gather(const S1 *array,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void gather(const S1 *array,
                                                  const EntryType *const S1::*ptrMember1,
                                                  Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
                                                  Vc_ALIGNED_PARAMETER(IT2) innerIndexes)
@@ -500,8 +508,8 @@ public:
      * \param mask    If a mask is given only the active entries will be gathered/scattered.
      */
     template <typename S1, typename IT1, typename IT2>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void gather(const S1 *array,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void gather(const S1 *array,
                                                  const EntryType *const S1::*ptrMember1,
                                                  Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
                                                  Vc_ALIGNED_PARAMETER(IT2) innerIndexes,

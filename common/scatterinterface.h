@@ -128,8 +128,8 @@ public:
      *                operator[] access.
      */
     template <typename S1, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void scatter(S1 *array, EntryType S1::*member1,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void scatter(S1 *array, EntryType S1::*member1,
                                                   Vc_ALIGNED_PARAMETER(IT) indexes) const
     {
         scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
@@ -151,8 +151,8 @@ public:
      * \param mask    If a mask is given only the active entries will be gathered/scattered.
      */
     template <typename S1, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void scatter(S1 *array, EntryType S1::*member1,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void scatter(S1 *array, EntryType S1::*member1,
                                                   Vc_ALIGNED_PARAMETER(IT) indexes,
                                                   MaskArgument mask) const
     {
@@ -177,8 +177,8 @@ public:
      *                operator[] access.
      */
     template <typename S1, typename S2, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void scatter(S1 *array, S2 S1::*member1,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void scatter(S1 *array, S2 S1::*member1,
                                                   EntryType S2::*member2,
                                                   Vc_ALIGNED_PARAMETER(IT) indexes) const
     {
@@ -203,8 +203,8 @@ public:
      * \param mask    If a mask is given only the active entries will be gathered/scattered.
      */
     template <typename S1, typename S2, typename IT>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void scatter(S1 *array, S2 S1::*member1,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void scatter(S1 *array, S2 S1::*member1,
                                                   EntryType S2::*member2,
                                                   Vc_ALIGNED_PARAMETER(IT) indexes,
                                                   MaskArgument mask) const
@@ -227,8 +227,8 @@ public:
      * \param innerIndexes
      */
     template <typename S1, typename IT1, typename IT2>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void scatter(S1 *array, EntryType *S1::*ptrMember1,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void scatter(S1 *array, EntryType *S1::*ptrMember1,
                                                   Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
                                                   Vc_ALIGNED_PARAMETER(IT2)
                                                       innerIndexes) const
@@ -251,8 +251,8 @@ public:
      * \param mask    If a mask is given only the active entries will be gathered/scattered.
      */
     template <typename S1, typename IT1, typename IT2>
-    inline Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-                         "instead.") void scatter(S1 *array, EntryType *S1::*ptrMember1,
+    Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
+                  "instead.") inline void scatter(S1 *array, EntryType *S1::*ptrMember1,
                                                   Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
                                                   Vc_ALIGNED_PARAMETER(IT2) innerIndexes,
                                                   MaskArgument mask) const

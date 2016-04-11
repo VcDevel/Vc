@@ -774,7 +774,7 @@ public:
      *
      * \deprecated use Vc::exponent instead.
      */
-    inline Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const;
+    Vc_DEPRECATED("use exponent(x) instead") inline Vector exponent() const;
 
     /**
      * Returns whether a value is negative.
@@ -783,7 +783,7 @@ public:
      *
      * \deprecated use Vc::isnegative instead.
      */
-    inline Vc_DEPRECATED("use isnegative(x) instead") MaskType isNegative() const;
+    Vc_DEPRECATED("use isnegative(x) instead") inline MaskType isNegative() const;
 
     ///\copydoc size
     ///\deprecated Use Vc::Vector::size instead.
@@ -806,7 +806,7 @@ public:
      * \deprecated use Vc::reinterpret_components_cast instead.
      */
     template <typename V2>
-    inline Vc_DEPRECATED("use reinterpret_components_cast instead") V2
+    Vc_DEPRECATED("use reinterpret_components_cast instead") inline V2
         reinterpretCast() const;
 
     /**
@@ -819,7 +819,7 @@ public:
      *
      * \deprecated Use Vc::copysign instead.
      */
-    inline Vc_DEPRECATED("use copysign(x, y) instead") Vector
+    Vc_DEPRECATED("use copysign(x, y) instead") inline Vector
         copySign(Vector reference) const;
     ///@}
 

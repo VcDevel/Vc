@@ -184,7 +184,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         Vc_ALL_SHIFTS(Vc_OP);
 #undef Vc_OP
 
-        Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
+        Vc_DEPRECATED("use isnegative(x) instead") Vc_INTRINSIC Vc_PURE Mask
             isNegative() const
         {
             return Vc::isnegative(*this);
@@ -195,13 +195,13 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         }
 
         template <typename V2>
-        Vc_ALWAYS_INLINE Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast") V2
+        Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast") Vc_ALWAYS_INLINE V2
             staticCast() const
         {
             return V2(static_cast<typename V2::EntryType>(m_data));
         }
         template <typename V2>
-        Vc_ALWAYS_INLINE Vc_DEPRECATED("use reinterpret_components_cast instead") V2
+        Vc_DEPRECATED("use reinterpret_components_cast instead") Vc_ALWAYS_INLINE V2
             reinterpretCast() const
         {
             typedef typename V2::EntryType AliasT2 Vc_MAY_ALIAS;
@@ -273,13 +273,13 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
             return gen(0);
         }
 
-        Vc_INTRINSIC Vc_DEPRECATED("use copysign(x, y) instead") Vector
+        Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC Vector
             copySign(Vector reference) const
         {
             return Vc::copysign(*this, reference);
         }
 
-        Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const
+        Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC Vector exponent() const
         {
             return Vc::exponent(*this);
         }

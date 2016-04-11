@@ -210,7 +210,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC_L Vector &operator>>=(  int shift)       Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector  operator>> (  int shift) const Vc_INTRINSIC_R;
 
-        Vc_INTRINSIC Vc_PURE Vc_DEPRECATED("use isnegative(x) instead") Mask
+        Vc_DEPRECATED("use isnegative(x) instead") Vc_INTRINSIC Vc_PURE Mask
             isNegative() const
         {
             return Vc::isnegative(*this);
@@ -223,16 +223,14 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         }
 
         template <typename V2>
-        Vc_ALWAYS_INLINE Vc_PURE
-            Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast") V2
-            staticCast() const
+        Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast")
+            Vc_ALWAYS_INLINE Vc_PURE V2 staticCast() const
         {
             return SSE::convert<T, typename V2::EntryType>(data());
         }
         template <typename V2>
-        Vc_ALWAYS_INLINE Vc_PURE
-            Vc_DEPRECATED("use reinterpret_components_cast instead") V2
-            reinterpretCast() const
+        Vc_DEPRECATED("use reinterpret_components_cast instead")
+            Vc_ALWAYS_INLINE Vc_PURE V2 reinterpretCast() const
         {
             return SSE::sse_cast<typename V2::VectorType>(data());
         }
@@ -310,13 +308,13 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         template <typename G> static Vc_INTRINSIC_L Vector generate(G gen) Vc_INTRINSIC_R;
 
-        Vc_INTRINSIC Vc_DEPRECATED("use copysign(x, y) instead") Vector
+        Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC Vector
             copySign(AsArg reference) const
         {
             return Vc::copysign(*this, reference);
         }
 
-        Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const
+        Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC Vector exponent() const
         {
             return Vc::exponent(*this);
         }
