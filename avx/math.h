@@ -171,7 +171,7 @@ inline AVX2::double_v frexp(AVX2::double_v::AsArg v, SimdArray<int, 4, SSE::int_
                       _mm256_broadcast_sd(reinterpret_cast<const double *>(&AVX::c_general::frexpMask)));
     const double_m zeroMask = v == AVX2::double_v::Zero();
     ret(isnan(v) || !isfinite(v) || zeroMask) = v;
-    exponent.setZero(static_cast<SSE::int_m>(zeroMask));
+    exponent.setZero(simd_cast<SSE::int_m>(zeroMask));
     internal_data(*e) = exponent;
     return ret;
 }
@@ -199,7 +199,7 @@ inline AVX2::float_v frexp(AVX2::float_v::AsArg v, AVX2::float_v::IndexType *e)
     const __m256 exponentMaximized = or_(v.data(), exponentBits);
     float_v ret = _mm256_and_ps(exponentMaximized, avx_cast<__m256>(set1_epi32(0xbf7fffffu)));
     ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
-    e->setZero(static_cast<decltype(*e == *e)>(v == float_v::Zero()));
+    e->setZero(simd_cast<decltype(*e == *e)>(v == float_v::Zero()));
     return ret;
 }
 
@@ -212,7 +212,7 @@ inline AVX2::double_v ldexp(AVX2::double_v::AsArg v,
                             const SimdArray<int, 4, SSE::int_v, 4> &_e)
 {
     SSE::int_v e = internal_data(_e);
-    e.setZero(SSE::int_m{v == AVX2::double_v::Zero()});
+    e.setZero(simd_cast<SSE::int_m>(v == AVX2::double_v::Zero()));
     const __m256i exponentBits =
         AVX::concat(_mm_slli_epi64(_mm_unpacklo_epi32(e.data(), e.data()), 52),
                     _mm_slli_epi64(_mm_unpackhi_epi32(e.data(), e.data()), 52));
@@ -221,7 +221,7 @@ inline AVX2::double_v ldexp(AVX2::double_v::AsArg v,
 }
 inline AVX2::float_v ldexp(AVX2::float_v::AsArg v, SimdArray<int, 8, SSE::int_v, 4> e)
 {
-    e.setZero(static_cast<decltype(e == e)>(v == AVX2::float_v::Zero()));
+    e.setZero(simd_cast<decltype(e == e)>(v == AVX2::float_v::Zero()));
     e <<= 23;
     return {AVX::avx_cast<__m256>(
         AVX::concat(_mm_add_epi32(AVX::avx_cast<__m128i>(AVX::lo128(v.data())),

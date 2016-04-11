@@ -109,13 +109,13 @@ static Vc_ALWAYS_INLINE Vector<_T, Abi> foldInput(const Vector<_T, Abi> &_x, IV 
 
         const V x = abs(_x);
 #if defined(Vc_IMPL_FMA4) || defined(Vc_IMPL_FMA)
-        quadrant = static_cast<IV>(x * C::_4_pi() + V::One()); // prefer the fma here
+        quadrant = simd_cast<IV>(x * C::_4_pi() + V::One()); // prefer the fma here
         quadrant &= ~IV::One();
 #else
-        quadrant = static_cast<IV>(x * C::_4_pi());
+        quadrant = simd_cast<IV>(x * C::_4_pi());
         quadrant += quadrant & IV::One();
 #endif
-        const V y = static_cast<V>(quadrant);
+        const V y = simd_cast<V>(quadrant);
         quadrant &= 7;
 
         return ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
@@ -133,7 +133,7 @@ static Vc_ALWAYS_INLINE double_v<Abi> foldInput(const double_v<Abi> &_x,
         quadrant = simd_cast<double_int_v<Abi>>(z);
         int_m mask = (quadrant & double_int_v<Abi>::One()) != double_int_v<Abi>::Zero();
         ++quadrant(mask);
-        y(static_cast<double_m>(mask)) += V::One();
+        y(simd_cast<double_m>(mask)) += V::One();
         quadrant &= 7;
 
         // since y is an integer we don't need to split y into low and high parts until the integer
@@ -165,7 +165,7 @@ template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImpleme
 
     IV quadrant;
     const V z = foldInput(_x, quadrant);
-    const M sign = (_x < V::Zero()) ^ static_cast<M>(quadrant > 3);
+    const M sign = (_x < V::Zero()) ^ simd_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
 
     V y = sinSeries(z);
@@ -182,11 +182,11 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
     double_int_v<V::abi> quadrant;
     M sign = _x < V::Zero();
     const V x = foldInput(_x, quadrant);
-    sign ^= static_cast<M>(quadrant > 3);
+    sign ^= simd_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
 
     V y = sinSeries(x);
-    y(static_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = cosSeries(x);
+    y(simd_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = cosSeries(x);
     y(sign) = -y;
     return y;
 }
@@ -212,12 +212,12 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
 
     double_int_v<V::abi> quadrant;
     const V x = foldInput(_x, quadrant);
-    M sign = static_cast<M>(quadrant > 3);
+    M sign = simd_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
-    sign ^= static_cast<M>(quadrant > double_int_v<V::abi>::One());
+    sign ^= simd_cast<M>(quadrant > double_int_v<V::abi>::One());
 
     V y = cosSeries(x);
-    y(static_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = sinSeries(x);
+    y(simd_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = sinSeries(x);
     y(sign) = -y;
     return y;
 }
@@ -227,20 +227,20 @@ template<> template<typename V> void Trigonometric<Vc::Detail::TrigonometricImpl
 
     IV quadrant;
     const V x = foldInput(_x, quadrant);
-    M sign = static_cast<M>(quadrant > 3);
+    M sign = simd_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
 
     const V cos_s = cosSeries(x);
     const V sin_s = sinSeries(x);
 
     V c = cos_s;
-    c(static_cast<M>(quadrant == IV::One() || quadrant == 2)) = sin_s;
-    c(sign ^ static_cast<M>(quadrant > IV::One())) = -c;
+    c(simd_cast<M>(quadrant == IV::One() || quadrant == 2)) = sin_s;
+    c(sign ^ simd_cast<M>(quadrant > IV::One())) = -c;
     *_cos = c;
 
     V s = sin_s;
-    s(static_cast<M>(quadrant == IV::One() || quadrant == 2)) = cos_s;
-    s(sign ^ static_cast<M>(_x < V::Zero())) = -s;
+    s(simd_cast<M>(quadrant == IV::One() || quadrant == 2)) = cos_s;
+    s(sign ^ simd_cast<M>(_x < V::Zero())) = -s;
     *_sin = s;
 }
 template<> template<> void Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::sincos(const Vc::double_v &_x, Vc::double_v *_sin, Vc::double_v *_cos) {
@@ -249,20 +249,20 @@ template<> template<> void Trigonometric<Vc::Detail::TrigonometricImplementation
 
     double_int_v<V::abi> quadrant;
     const V x = foldInput(_x, quadrant);
-    M sign = static_cast<M>(quadrant > 3);
+    M sign = simd_cast<M>(quadrant > 3);
     quadrant(quadrant > 3) -= 4;
 
     const V cos_s = cosSeries(x);
     const V sin_s = sinSeries(x);
 
     V c = cos_s;
-    c(static_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = sin_s;
-    c(sign ^ static_cast<M>(quadrant > double_int_v<V::abi>::One())) = -c;
+    c(simd_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = sin_s;
+    c(sign ^ simd_cast<M>(quadrant > double_int_v<V::abi>::One())) = -c;
     *_cos = c;
 
     V s = sin_s;
-    s(static_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = cos_s;
-    s(sign ^ static_cast<M>(_x < V::Zero())) = -s;
+    s(simd_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = cos_s;
+    s(sign ^ simd_cast<M>(_x < V::Zero())) = -s;
     *_sin = s;
 }
 template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::asin (const V &_x) {

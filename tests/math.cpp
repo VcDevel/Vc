@@ -211,7 +211,7 @@ TEST_TYPES(V, testNaN, (RealTypes)) //{{{1
     const V inf = one / zero;
     VERIFY(all_of(Vc::isnan(V(inf * zero))));
     V nan = V::Zero();
-    const M mask(I::IndexesFromZero() == I::Zero());
+    const M mask = simd_cast<M>(I::IndexesFromZero() == I::Zero());
     nan.setQnan(mask);
     COMPARE(Vc::isnan(nan), mask);
     nan.setQnan();

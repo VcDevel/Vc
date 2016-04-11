@@ -86,11 +86,15 @@ public:
     Vc_INTRINSIC Mask(U &&rhs, Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
         : m(rhs.m) {}
 
+#if Vc_IS_VERSION_1
     // explicit cast, implemented via simd_cast (in scalar/simd_cast_caller.h)
     template <typename U>
-    Vc_INTRINSIC_L explicit Mask(U &&rhs,
-                                 Common::enable_if_mask_converts_explicitly<T, U> =
-                                     nullarg) Vc_INTRINSIC_R;
+    Vc_DEPRECATED(
+        "use simd_cast instead of explicit type casting to convert between mask types")
+        Vc_INTRINSIC_L
+        explicit Mask(U &&rhs, Common::enable_if_mask_converts_explicitly<T, U> = nullarg)
+            Vc_INTRINSIC_R;
+#endif
 
         Vc_ALWAYS_INLINE explicit Mask(const bool *mem) : m(mem[0]) {}
         template<typename Flags> Vc_ALWAYS_INLINE explicit Mask(const bool *mem, Flags) : m(mem[0]) {}

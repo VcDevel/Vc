@@ -129,11 +129,14 @@ public:
         {
         }
 
+#if Vc_IS_VERSION_1
         // explicit cast, implemented via simd_cast (in avx/simd_cast_caller.h)
         template <typename U>
-        Vc_INTRINSIC explicit Mask(U &&rhs,
-                                   Common::enable_if_mask_converts_explicitly<T, U> =
-                                       nullarg);
+        Vc_DEPRECATED("use simd_cast instead of explicit type casting to convert between "
+                      "mask types") Vc_INTRINSIC
+            explicit Mask(U &&rhs,
+                          Common::enable_if_mask_converts_explicitly<T, U> = nullarg);
+#endif
 
         template<typename Flags = DefaultLoadTag> Vc_INTRINSIC explicit Mask(const bool *mem, Flags f = Flags()) { load(mem, f); }
 

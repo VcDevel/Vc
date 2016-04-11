@@ -286,6 +286,7 @@ public:
     inline Vector(Vector<U, abi> x,
                   enable_if<Traits::is_implicit_cast_allowed<U, T>::value> = nullarg);
 
+#if Vc_IS_VERSION_1
     /**
      * Explicit conversion (i.e. `static_cast`) from the remaining Vector<U, Abi> types.
      *
@@ -297,9 +298,11 @@ public:
      *          fundamental arithmetic types.
      */
     template <typename U>
-    inline explicit Vector(
+    Vc_DEPRECATED("use simd_cast instead of explicit type casting to convert between "
+                  "vector types") inline explicit Vector(
         Vector<U, abi> x,
         enable_if<!Traits::is_implicit_cast_allowed<U, T>::value> = nullarg);
+#endif
 
     /**
      * Broadcast Constructor.

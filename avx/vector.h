@@ -157,9 +157,11 @@ public:
         {
         }
 
+#if Vc_IS_VERSION_1
         // static_cast from the remaining Vector<U, abi>
         template <typename U>
-        Vc_INTRINSIC explicit Vector(
+        Vc_DEPRECATED("use simd_cast instead of explicit type casting to convert between "
+                      "vector types") Vc_INTRINSIC explicit Vector(
             Vc_ALIGNED_PARAMETER(V<U>) x,
             typename std::enable_if<!Traits::is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
@@ -172,7 +174,10 @@ public:
         template <typename U,
                   typename = enable_if<Traits::is_simd_vector<U>::value &&
                                        !std::is_same<Vector, Traits::decay<U>>::value>>
-        Vc_INTRINSIC_L explicit Vector(U &&x) Vc_INTRINSIC_R;
+        Vc_DEPRECATED("use simd_cast instead of explicit type casting to convert between "
+                      "vector types") Vc_INTRINSIC_L
+            explicit Vector(U &&x) Vc_INTRINSIC_R;
+#endif
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast

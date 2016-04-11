@@ -32,12 +32,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+#if Vc_IS_VERSION_1
 template <typename T>
 template <typename U>
 Vc_INTRINSIC Mask<T, VectorAbi::Sse>::Mask(U &&rhs, Common::enable_if_mask_converts_explicitly<T, U>)
     : Mask(Vc::simd_cast<Mask>(std::forward<U>(rhs)))
 {
 }
+#endif
 }
 
 #endif  // Vc_SSE_SIMD_CAST_CALLER_TCC_

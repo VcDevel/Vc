@@ -115,15 +115,18 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         {
         }
 
+#if Vc_IS_VERSION_1
         // static_cast from the remaining Vector<U>
         template <typename U>
-        Vc_INTRINSIC explicit Vector(
+        Vc_DEPRECATED("use simd_cast instead of explicit type casting to convert between "
+                      "vector types") Vc_INTRINSIC explicit Vector(
             Vc_ALIGNED_PARAMETER(V<U>) x,
             typename std::enable_if<!Traits::is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
             : d(SSE::convert<U, T>(x.data()))
         {
         }
+#endif
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         // broadcast

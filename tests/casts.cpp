@@ -389,7 +389,7 @@ TEST(fullConversion)/*{{{*/
     float_v x = float_v::Random();
     float_v r;
     for (size_t i = 0; i < float_v::Size; i += double_v::Size) {
-        float_v tmp = static_cast<float_v>(0.1 * static_cast<double_v>(x.shifted(i)));
+        float_v tmp = simd_cast<float_v>(0.1 * simd_cast<double_v>(x.shifted(i)));
         r = r.shifted(double_v::Size, tmp);
     }
     for (size_t i = 0; i < float_v::Size; ++i) {

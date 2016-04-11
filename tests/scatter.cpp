@@ -48,7 +48,7 @@ TEST_TYPES(Vec, scatterArray, (ALL_TYPES)) //{{{1
     }
     typename It::Mask mask;
     for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        typename Vec::Mask castedMask(mask);
+        auto castedMask = simd_cast<typename Vec::Mask>(mask);
         if (all_of(castedMask)) {
             Vec a(&array[0], i);
             a += 1;
@@ -66,7 +66,7 @@ TEST_TYPES(Vec, scatterArray, (ALL_TYPES)) //{{{1
     COMPARE(0, std::memcmp(&array[0], &out[0], count * sizeof(typename Vec::EntryType)));
 
     for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        typename Vec::Mask castedMask(mask);
+        auto castedMask = simd_cast<typename Vec::Mask>(mask);
         if (all_of(castedMask)) {
             Vec a = array[i];
             out[i] = a + 1;
@@ -127,7 +127,7 @@ TEST_TYPES(Vec, scatterStruct, (ALL_TYPES)) //{{{1
     }
     typename It::Mask mask;
     for (It i(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        typename Vec::Mask castedMask(mask);
+        auto castedMask = simd_cast<typename Vec::Mask>(mask);
         Vec a; a(castedMask) = array[i][&S::a];
         where(castedMask) | out[i][&S::a] = a;
         Vec b; b(castedMask) = array[i][&S::b];
@@ -193,7 +193,7 @@ TEST_TYPES(Vec, scatterStruct2, (ALL_TYPES)) //{{{1
     typename It::Mask mask;
     typename Vec::Mask castedMask;
     for (It i(IndexesFromZero); !(mask = (i < scatterStruct2Count)).isEmpty(); i += Vec::Size) {
-        castedMask = static_cast<decltype(castedMask)>(mask);
+        castedMask = simd_cast<decltype(castedMask)>(mask);
         Vec a = Vec(); a(castedMask) = array[i][&S1::b][&S2::a];
         Vec b = Vec(); b(castedMask) = array[i][&S1::b][&S2::b];
         Vec c = Vec(); c(castedMask) = array[i][&S1::b][&S2::c];

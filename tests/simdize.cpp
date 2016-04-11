@@ -558,29 +558,30 @@ TEST(conditional_assignment)
 
     V v;
     UnitTest::withRandomMask<V0, 1000>([&](M0 m) {
+        using Vc::simd_cast;
         std::get<0>(v) = V0::IndexesFromZero() + 1;
         std::get<1>(v) = V1::IndexesFromZero() + 1;
         std::get<2>(v) = V2::IndexesFromZero() + 1;
 
         where(m) | v = V{};
         COMPARE(std::get<0>(v) == V0::Zero(), m) << std::get<0>(v);
-        COMPARE(std::get<1>(v) == V1::Zero(), M1(m)) << std::get<1>(v);
-        COMPARE(std::get<2>(v) == V2::Zero(), M2(m)) << std::get<2>(v);
+        COMPARE(std::get<1>(v) == V1::Zero(), simd_cast<M1>(m)) << std::get<1>(v);
+        COMPARE(std::get<2>(v) == V2::Zero(), simd_cast<M2>(m)) << std::get<2>(v);
 
         where(m) | v += V{T{V::size() + 2, V::size() + 2, V::size() + 2}};
         COMPARE(std::get<0>(v) == V0(V::size() + 2), m) << std::get<0>(v);
-        COMPARE(std::get<1>(v) == V1(V::size() + 2), M1(m)) << std::get<1>(v);
-        COMPARE(std::get<2>(v) == V2(V::size() + 2), M2(m)) << std::get<2>(v);
+        COMPARE(std::get<1>(v) == V1(V::size() + 2), simd_cast<M1>(m)) << std::get<1>(v);
+        COMPARE(std::get<2>(v) == V2(V::size() + 2), simd_cast<M2>(m)) << std::get<2>(v);
 
         where(m) | v *= V{T{2, 2, 2}};
         COMPARE(std::get<0>(v) == V0(2 * (V::size() + 2)), m) << std::get<0>(v);
-        COMPARE(std::get<1>(v) == V1(2 * (V::size() + 2)), M1(m)) << std::get<1>(v);
-        COMPARE(std::get<2>(v) == V2(2 * (V::size() + 2)), M2(m)) << std::get<2>(v);
+        COMPARE(std::get<1>(v) == V1(2 * (V::size() + 2)), simd_cast<M1>(m)) << std::get<1>(v);
+        COMPARE(std::get<2>(v) == V2(2 * (V::size() + 2)), simd_cast<M2>(m)) << std::get<2>(v);
 
         where(m) | v -= V{T{V::size() + 2, V::size() + 2, V::size() + 2}};
         COMPARE(std::get<0>(v) == V0(V::size() + 2), m) << std::get<0>(v);
-        COMPARE(std::get<1>(v) == V1(V::size() + 2), M1(m)) << std::get<1>(v);
-        COMPARE(std::get<2>(v) == V2(V::size() + 2), M2(m)) << std::get<2>(v);
+        COMPARE(std::get<1>(v) == V1(V::size() + 2), simd_cast<M1>(m)) << std::get<1>(v);
+        COMPARE(std::get<2>(v) == V2(V::size() + 2), simd_cast<M2>(m)) << std::get<2>(v);
     });
 }
 

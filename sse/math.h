@@ -101,7 +101,7 @@ inline SSE::float_v ldexp(SSE::float_v::AsArg v,
                           const SimdArray<int, 4, SSE::int_v, 4> &_e)
 {
     SSE::int_v e = internal_data(_e);
-    e.setZero(static_cast<SSE::int_m>(v == SSE::float_v::Zero()));
+    e.setZero(simd_cast<SSE::int_m>(v == SSE::float_v::Zero()));
     return reinterpret_components_cast<SSE::float_v>(
         reinterpret_components_cast<SSE::int_v>(v) + (e << 23));
 }
@@ -122,14 +122,14 @@ static inline void floor_shift(SSE::float_v &v, SSE::float_v::AsArg e)
 {
     SSE::int_v x = SSE::_mm_setallone_si128();
     x <<= 23;
-    x >>= static_cast<SSE::int_v>(e);
+    x >>= simd_cast<SSE::int_v>(e);
     v = Detail::operator&(v, reinterpret_components_cast<SSE::float_v>(x));
 }
 
 static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
 {
     const long long initialMask = 0xfff0000000000000ull;
-    const SSE::uint_v shifts = static_cast<SSE::uint_v>(e);
+    const SSE::uint_v shifts = simd_cast<SSE::uint_v>(e);
     union d_ll
     {
         long long ll;

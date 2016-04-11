@@ -113,7 +113,7 @@ TEST_TYPES(Vec, gatherArray, ALL_TYPES)
     M mask;
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         const Vec ii = incrementIndex<Vec>(i);
-        const typename Vec::Mask castedMask = static_cast<typename Vec::Mask>(mask);
+        const typename Vec::Mask castedMask = simd_cast<typename Vec::Mask>(mask);
         if (all_of(castedMask)) {
             Vec a(array, i);
             COMPARE(a, ii) << "\n       i: " << i;
@@ -165,7 +165,7 @@ TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
         const Vec i0 = Vc::simd_cast<Vec>(i);
         const Vec i1 = Vc::simd_cast<Vec>(i + 1);
         const Vec i2 = Vc::simd_cast<Vec>(i + 2);
-        const typename Vec::Mask castedMask(mask);
+        const auto castedMask = simd_cast<typename Vec::Mask>(mask);
 
         if (castedMask.isFull()) {
             Vec a = array[i][&S::a];
@@ -224,7 +224,7 @@ TEST_TYPES(Vec, gather2dim, ALL_TYPES)
     for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
         for (It j = It(IndexesFromZero); !(mask &= (j < count)).isEmpty(); j += Vec::Size) {
             const Vec i0 = Vc::simd_cast<Vec>(i * 2 + j + 1);
-            const typename Vec::Mask castedMask(mask);
+            const auto castedMask = simd_cast<typename Vec::Mask>(mask);
 
             Vec a;
             where(castedMask) | a = array[i][&S::data][j];

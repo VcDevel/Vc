@@ -146,7 +146,7 @@ template<typename Vec> void maskedStore()
         typedef typename Vec::IndexType I;
         const I tmp(IndexesFromZero);
         const typename I::Mask k = (tmp & I(One)) > 0;
-        mask = M(k);
+        mask = simd_cast<M>(k);
     }
 
     const int count = 256 * 1024 / sizeof(T);

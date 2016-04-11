@@ -244,7 +244,7 @@ TEST_TYPES(Vec, testZero, ALL_TYPES) /*{{{*/
     typedef typename Vec::IndexType I;
 
     for (size_t cut = 0; cut < Vec::Size; ++cut) {
-        const Mask mask(I(Vc::IndexesFromZero) < cut);
+        const Mask mask = Vc::simd_cast<Mask>(I::IndexesFromZero() < cut);
         //std::cout << mask << std::endl;
 
         const T aa = 4;
@@ -289,7 +289,7 @@ TEST_TYPES(Vec, testFirstOne, ALL_TYPES) /*{{{*/
     typedef typename Vec::Mask M;
 
     for (unsigned int i = 0; i < Vec::Size; ++i) {
-        const M mask(I(Vc::IndexesFromZero) == i);
+        const M mask = Vc::simd_cast<M>(I(Vc::IndexesFromZero) == i);
         COMPARE(mask.firstOne(), int(i)) << mask << ' ' << I::IndexesFromZero() << ' ' << (I::IndexesFromZero() == i);
     }
 }
@@ -403,7 +403,7 @@ TEST_TYPES(V, maskScalarAccess, ALL_TYPES) /*{{{*/
 }/*}}}*/
 template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)/*{{{*/
 {
-    MTo test(m);
+    MTo test = Vc::simd_cast<MTo>(m);
     size_t i = 0;
     for (; i < std::min(m.Size, test.Size); ++i) {
         COMPARE(test[i], m[i]) << i << " conversion from " << UnitTest::typeToString<MFrom>()

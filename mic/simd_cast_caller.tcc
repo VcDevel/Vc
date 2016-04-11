@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+#if Vc_IS_VERSION_1
 template <typename T>
 template <typename U>
 Vc_INTRINSIC Mask<T, VectorAbi::Mic>::Mask(
@@ -39,6 +40,7 @@ Vc_INTRINSIC Mask<T, VectorAbi::Mic>::Mask(
     : Mask(simd_cast<Mask>(std::forward<U>(rhs)))
 {
 }
+#endif
 }  // namespace Vc
 
 #endif  // Vc_MIC_SIMD_CAST_CALLER_TCC_

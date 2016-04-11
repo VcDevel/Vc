@@ -164,6 +164,7 @@ public:
     Vc_INTRINSIC Mask(U &&otherMask,
                       Common::enable_if_mask_converts_implicitly<T, U> = nullarg);
 
+#if Vc_IS_VERSION_1
     /**
      * Explicit conversion (static_cast) from a mask object that potentially has a
      * different \VSize{T}.
@@ -173,10 +174,13 @@ public:
      * \internal This is implemented via simd_cast in scalar/simd_cast_caller.h
      */
     template <typename U>
-    Vc_INTRINSIC_L explicit Mask(
-        U &&otherMask,
-        Common::enable_if_mask_converts_explicitly<T, U> = nullarg) Vc_INTRINSIC_R;
+    Vc_DEPRECATED(
+        "use simd_cast instead of explicit type casting to convert between mask types")
+        Vc_INTRINSIC_L
+        explicit Mask(U &&otherMask, Common::enable_if_mask_converts_explicitly<T, U> =
+                                         nullarg) Vc_INTRINSIC_R;
     ///@}
+#endif
 
     /**
      * \name Loads & Stores
