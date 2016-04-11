@@ -136,6 +136,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_WARN_UNUSED_RESULT
 #endif
 
+#ifdef Vc_CXX14
+#undef Vc_DEPRECATED
+#define Vc_DEPRECATED(msg_) [[deprecated(msg_)]]
+#endif
+
 #define Vc_NOTHING_EXPECTING_SEMICOLON static_assert(true, "")
 
 #define Vc_FREE_STORE_OPERATORS_ALIGNED(align_)                                          \
