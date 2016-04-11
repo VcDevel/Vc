@@ -51,13 +51,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * Helper macro to compare against an encoded version number.
  * Example:
  * \code
- * #if Vc_VERSION_CHECK(1, 0, 0) >= Vc_VERSION_NUMBER
+ * #if Vc_VERSION_NUMBER >= Vc_VERSION_CHECK(1, 0, 0)
  * \endcode
  */
 #define Vc_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
 //@}
 
 #define Vc_LIBRARY_ABI_VERSION 5
+
+///\internal identify Vc 2.0
+#define Vc_IS_VERSION_2 (Vc_VERSION_NUMBER >= Vc_VERSION_CHECK(1, 70, 0))
+///\internal identify Vc 1.x
+#define Vc_IS_VERSION_1 (Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1, 70, 0))
 
 namespace Vc_VERSIONED_NAMESPACE
 {
