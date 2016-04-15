@@ -748,7 +748,8 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
-#ifdef Vc_USE_MASKMOV_SCATTER
+#if defined Vc_USE_MASKMOV_SCATTER && !defined Vc_MSVC
+        // MSVC fails to compile the MMX intrinsics
         const __m64 mask = _mm_set_pi16(0, -1, -1, -1);
         const __m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v2.data());
         const __m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v2.data());
