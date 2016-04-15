@@ -705,6 +705,9 @@ public:
         : data0(mem, f), data1(mem + storage_type0::size(), f)
     {
     }
+
+// MSVC does overload resolution differently and takes the const U *mem overload (I hope)
+#ifndef Vc_MSVC
     /**\internal
      * Load from a C-array. This is basically the same function as the load constructor
      * above, except that the forwarding reference overload would steal the deal and the
@@ -726,6 +729,7 @@ public:
         : data0(&mem[0], f), data1(&mem[storage_type0::size()], f)
     {
     }
+#endif
 
     // initializer list
     Vc_INTRINSIC SimdArray(const std::initializer_list<value_type> &init)
