@@ -89,8 +89,10 @@ TEST_TYPES(V, listInitialization, (ALL_VECTORS))
     listInitializationImpl<V, std::vector<V>>(Vc::make_index_sequence<3>());
     listInitializationImpl<V, std::array<V, 9>>(Vc::make_index_sequence<9>());
     listInitializationImpl<V, std::array<V, 3>>(Vc::make_index_sequence<3>());
+#ifndef Vc_MSVC
     listInitializationImpl<V, std::deque<V>>(Vc::make_index_sequence<9>());
     listInitializationImpl<V, std::deque<V>>(Vc::make_index_sequence<3>());
+#endif
 
     // The following two crash (at least with AVX). Probably unaligned memory access.
     //listInitialization<V, std::forward_list<V>>();
