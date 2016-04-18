@@ -89,6 +89,12 @@ Vc_ALWAYS_INLINE void free(void *p)
 {
 #ifdef __MIC__
     _mm_free(p);
+#elif defined(_WIN32)
+# ifdef __GNUC__
+    return __mingw_aligned_free(p);
+# else
+    return _aligned_free(p);
+# endif
 #else
     std::free(p);
 #endif
