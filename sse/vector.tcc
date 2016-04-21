@@ -271,19 +271,19 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #ifdef Vc_IMPL_XOP
-template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator<<(AsArg shift) const { return _mm_sha_epi32(d.v(), shift.d.v()); }
-template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator<<(AsArg shift) const { return _mm_shl_epi32(d.v(), shift.d.v()); }
-template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator<<(AsArg shift) const { return _mm_sha_epi16(d.v(), shift.d.v()); }
-template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator<<(AsArg shift) const { return _mm_shl_epi16(d.v(), shift.d.v()); }
-template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator>>(AsArg shift) const { return operator<<(-shift); }
-template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator>>(AsArg shift) const { return operator<<(-shift); }
-template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator>>(AsArg shift) const { return operator<<(-shift); }
-template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator>>(AsArg shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator<<(const    SSE::int_v shift) const { return _mm_sha_epi32(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator<<(const   SSE::uint_v shift) const { return _mm_shl_epi32(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator<<(const  SSE::short_v shift) const { return _mm_sha_epi16(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator<<(const SSE::ushort_v shift) const { return _mm_shl_epi16(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator>>(const    SSE::int_v shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator>>(const   SSE::uint_v shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator>>(const  SSE::short_v shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator>>(const SSE::ushort_v shift) const { return operator<<(-shift); }
 #elif defined Vc_IMPL_AVX2
-template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator<<(AsArg x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
-template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator<<(AsArg x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
-template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator>>(AsArg x) const { return _mm_srav_epi32(d.v(), x.d.v()); }
-template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator>>(AsArg x) const { return _mm_srlv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator<<(const SSE::Vector<   int> x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator<<(const SSE::Vector<  uint> x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator>>(const SSE::Vector<   int> x) const { return _mm_srav_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator>>(const SSE::Vector<  uint> x) const { return _mm_srlv_epi32(d.v(), x.d.v()); }
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator>>=(int shift) {
