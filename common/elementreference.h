@@ -57,12 +57,8 @@ public:
     }
 
     template <typename T>
-        Vc_INTRINSIC enable_if<
-            std::is_same<void, decltype(Accessor::set(std::declval<U &>(), int(),
-                                                      std::declval<T>()))>::value,
-            ElementReference &>
-        operator=(T &&x) &&
-        noexcept(set_noexcept<T>())
+        Vc_INTRINSIC ElementReference &operator=(T &&x) &&
+        noexcept(noexcept(Accessor::set(std::declval<U &>(), int(), std::declval<T>())))
     {
         Accessor::set(obj, index, std::forward<T>(x));
         return *this;
@@ -73,14 +69,9 @@ public:
 #define Vc_OP_(op_)                                                                      \
     template <typename T, typename R = decltype(std::declval<const value_type &>()       \
                                                     op_ std::declval<T>())>              \
-        Vc_INTRINSIC enable_if<                                                          \
-            std::is_same<void, decltype(Accessor::set(std::declval<U &>(), int(),        \
-                                                      std::declval<R &&>()))>::value,    \
-            ElementReference &>                                                          \
-        operator op_##=(T &&x) &&                                                        \
-        noexcept(get_noexcept &&                                                         \
-                 set_noexcept<decltype(std::declval<const value_type &>()                \
-                                           op_ std::declval<T>())>())                    \
+        Vc_INTRINSIC ElementReference &operator op_##=(T &&x) &&                         \
+        noexcept(get_noexcept && noexcept(Accessor::set(std::declval<U &>(), int(),      \
+                                                        std::declval<R &&>())))          \
     {                                                                                    \
         const value_type &lhs = Accessor::get(obj, index);                               \
         Accessor::set(obj, index, lhs op_ std::forward<T>(x));                           \
