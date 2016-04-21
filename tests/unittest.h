@@ -1164,7 +1164,7 @@ static Vc::enable_if<!Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMas
     M mask(true);
 
     for (int j = 0; j < int(Vec::size()); ++j) {
-        if (i & (1u << j)) {
+        if (i & (size_t(1) << j)) {
             mask ^= indexes == j;
         }
     }
