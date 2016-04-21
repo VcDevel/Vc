@@ -95,19 +95,19 @@ template <typename V, typename T, bool, typename, bool> struct ReturnTypeImpl {
 };
 template <typename T, typename U, typename Abi, typename Deduced>
 struct ReturnTypeImpl<Vector<T, Abi>, Vector<U, Abi>, false, Deduced, false> {
-    using type = Vector<typename FundamentalReturnType<T, U>::type, Abi>;
+    using type = Vc::Vector<typename FundamentalReturnType<T, U>::type, Abi>;
 };
 template <typename T, typename Abi>
 struct ReturnTypeImpl<Vector<T, Abi>, int, true, T, true> {
-    using type = Vector<T, Abi>;
+    using type = Vc::Vector<T, Abi>;
 };
 template <typename T, typename Abi>
 struct ReturnTypeImpl<Vector<T, Abi>, unsigned int, true, T, true> {
-    using type = Vector<typename std::make_unsigned<T>::type, Abi>;
+    using type = Vc::Vector<typename std::make_unsigned<T>::type, Abi>;
 };
 template <typename T, typename U, typename Abi, bool Integral>
 struct ReturnTypeImpl<Vector<T, Abi>, U, true, T, Integral> {
-    using type = Vector<typename FundamentalReturnType<T, U>::type, Abi>;
+    using type = Vc::Vector<typename FundamentalReturnType<T, U>::type, Abi>;
 };
 template <typename T, typename U, typename Abi, bool Integral>
 struct ReturnTypeImpl<Vector<T, Abi>, U, false, void, Integral> {
@@ -115,7 +115,7 @@ struct ReturnTypeImpl<Vector<T, Abi>, U, false, void, Integral> {
 };
 template <typename T, typename U, typename Abi, typename V, bool Integral>
 struct ReturnTypeImpl<Vector<T, Abi>, U, false, V, Integral> {
-    using type = Vector<typename FundamentalReturnType<T, V>::type, Abi>;
+    using type = Vc::Vector<typename FundamentalReturnType<T, V>::type, Abi>;
 };
 template <typename V, typename T>
 using ReturnType = typename ReturnTypeImpl<
