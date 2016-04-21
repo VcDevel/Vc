@@ -81,7 +81,7 @@ public:
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType));
 
 private:
-    typedef Common::Storage<T, size()> Storage;
+    typedef Common::Storage<T, Size> Storage;
 
 public:
     /**
