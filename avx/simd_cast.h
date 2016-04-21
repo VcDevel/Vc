@@ -2581,8 +2581,16 @@ Vc_INTRINSIC Vc_CONST enable_if<(AVX2::is_vector<Return>::value && offset != 0),
     } else if (shift == 16) {
         return simd_cast<Return>(V{Mem::permute128<X1, Const0>(x.data())});
     } else {
+#ifdef Vc_MSVC
+#pragma warning(push)
+#pragma warning(disable : 4556)  // value of intrinsic immediate argument '-8' is out of
+                                 // range '0 - 255'
+#endif
         return simd_cast<Return>(V{AVX::avx_cast<typename V::VectorType>(
             _mm_srli_si128(AVX::avx_cast<__m128i>(AVX::hi128(x.data())), shift - 16))});
+#ifdef Vc_MSVC
+#pragma warning(pop)
+#endif
     }
 }
 // AVX2 to SSE (Vector<T>) {{{2
