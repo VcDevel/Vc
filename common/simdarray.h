@@ -962,7 +962,7 @@ public:
     ///\copydoc Vector::operator[](size_t) const
     Vc_INTRINSIC value_type operator[](size_t index) const noexcept
     {
-        return get(*this, index);
+        return get(*this, int(index));
     }
     ///@}
 
