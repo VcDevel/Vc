@@ -108,19 +108,15 @@ using select_best_vector_type =
 // SimdArray<T, N>::vector_type != SimdArray<T, N>::vector_type
 //
 // Therefore use SimdArray<T, N, V>, where V follows from the above.
-template <typename T, std::size_t N,
-          typename VectorType = Common::select_best_vector_type<T, N>,
-          std::size_t VectorSize =
-              VectorType::Size    // this last parameter is only used for
-                                  // specialization of N == VectorSize
+template <typename T, size_t N, typename V = Common::select_best_vector_type<T, N>,
+          size_t Wt = V::Size  // this last parameter is only used for specialization of N
+                               // == VectorSize
           >
 class SimdArray;
 
-template <typename T, std::size_t N,
-          typename VectorType = Common::select_best_vector_type<T, N>,
-          std::size_t VectorSize =
-              VectorType::Size    // this last parameter is only used for
-                                  // specialization of N == VectorSize
+template <typename T, size_t N, typename V = Common::select_best_vector_type<T, N>,
+          size_t Wt = V::Size  // this last parameter is only used for specialization of N
+                               // == VectorSize
           >
 class SimdMaskArray;
 
