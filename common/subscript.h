@@ -425,26 +425,37 @@ public:
      * scalars to the vector object sequentially.
      */
 
+private:
+    // The following is a workaround for MSVC 2015 Update 2. Whenever the ratio
+    // in the return type of the following operator[] is encountered with a sizeof
+    // expression that fails, MSVC decides to substitute a 0 for the sizeof instead of
+    // just leaving the ratio instantiation alone via proper SFINAE. The make_ratio helper
+    // ensures that the 0 from the sizeof failure does not reach the denominator of
+    // std::ratio where it would hit a static_assert.
+    template <intmax_t N, intmax_t D> struct make_ratio {
+        using type = std::ratio<N, D == 0 ? 1 : D>;
+    };
+
+public:
     // precondition: m_address points to a type that implements the subscript operator
-    template <
-        typename U =
-            T>  // U is only required to delay name lookup to the 2nd phase (on use).
-                // This is necessary because m_address[0][index] is only a correct
-                // expression if has_subscript_operator<T>::value is true.
-    Vc_ALWAYS_INLINE auto
-    operator[](typename std::enable_if<
+    template <typename U>
+    // U is only required to delay name lookup to the 2nd phase (on use).
+    // This is necessary because m_address[0][index] is only a correct
+    // expression if has_subscript_operator<T>::value is true.
+    Vc_ALWAYS_INLINE auto operator[](U index) -> typename std::enable_if<
 #ifndef Vc_IMPROVE_ERROR_MESSAGES
-               Traits::has_no_allocated_data<T>::value &&
+        Traits::has_no_allocated_data<T>::value &&
 #endif
-                   std::is_same<T, U>::value,
-               std::size_t>::type index)
-        -> SubscriptOperation<
+            std::is_convertible<U, size_t>::value,
+        SubscriptOperation<
             // the following decltype expression must depend on index and cannot
             // simply use [0][0] because it would yield an invalid expression in
             // case m_address[0] returns a struct/union
             typename std::remove_reference<decltype(m_address[0][index])>::type,
-            IndexVector, std::ratio_multiply<
-                             Scale, std::ratio<sizeof(T), sizeof(m_address[0][index])>>>
+            IndexVector,
+            std::ratio_multiply<
+                Scale,
+                typename make_ratio<sizeof(T), sizeof(m_address[0][index])>::type>>>::type
     {
         static_assert(Traits::has_subscript_operator<T>::value,
                       "The subscript operator was called on a type that does not implement it.\n");
