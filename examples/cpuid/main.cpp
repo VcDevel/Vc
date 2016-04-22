@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/cpuid.h>
 #include <iostream>
 
-int main()
+int Vc_CDECL main()
 {
     using Vc::CpuId;
     CpuId::init();
