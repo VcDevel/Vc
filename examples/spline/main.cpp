@@ -196,6 +196,14 @@ struct Runner
     }
     //}}}2
 };
+template <typename T> void fakeRead(T &&x)
+{
+#ifdef Vc_GNU_ASM
+    asm("" ::"m"(x));
+#else
+    x = x;
+#endif
+}
 int Vc_CDECL main()  // {{{1
 {
     // output header {{{2
@@ -254,50 +262,50 @@ int Vc_CDECL main()  // {{{1
             case Scalar:  // {{{3
                 runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline.GetValueScalar(p);
-                    asm("" ::"m"(p2));
+                    fakeRead(p2);
                 });
                 break;
             case Alice:  // {{{3
                 runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline.GetValueAlice(p);
-                    asm("" ::"m"(p2));
+                    fakeRead(p2);
                 });
                 break;
             case Autovectorized:  // {{{3
                 runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline.GetValueAutovec(p);
-                    asm("" ::"m"(p2));
+                    fakeRead(p2);
                 });
                 break;
             case Float4:  // {{{3
                 runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline.GetValue(p);
-                    asm("" ::"m"(p2));
+                    fakeRead(p2);
                 });
                 break;
             case Float16:  // {{{3
                 runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline.GetValue16(p);
-                    asm("" ::"m"(p2));
+                    fakeRead(p2);
                 });
                 break;
             case Float12:  // {{{3
                 runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline2.GetValue(p);
-                    asm("" ::"m"(p2));
+                    fakeRead(p2);
                 });
                 break;
             case Float12Interleaved:  // {{{3
                 runner.benchmark(i, [&](const Point2 &p) {
                     const auto &p2 = spline3.GetValue(p);
-                    asm("" ::"m"(p2));
+                    fakeRead(p2);
                 });
                 break;
             case Horizontal1:  // {{{3
                 runner.benchmark(i, [&](const Point2 &p) {
                     if (0 == vectorizer(p)) {
                         const auto &p2 = spline.GetValue(vectorizer.input);
-                        asm("" ::"m"(p2));
+                        fakeRead(p2);
                     }
                 });
                 break;
@@ -305,7 +313,7 @@ int Vc_CDECL main()  // {{{1
                 runner.benchmark(i, [&](const Point2 &p) {
                     if (0 == vectorizer(p)) {
                         const auto &p2 = spline2.GetValue(vectorizer.input);
-                        asm("" ::"m"(p2));
+                        fakeRead(p2);
                     }
                 });
                 break;
@@ -313,7 +321,7 @@ int Vc_CDECL main()  // {{{1
                 runner.benchmark(i, [&](const Point2 &p) {
                     if (0 == vectorizer(p)) {
                         const auto &p2 = spline3.GetValue(vectorizer.input);
-                        asm("" ::"m"(p2));
+                        fakeRead(p2);
                     }
                 });
                 break;

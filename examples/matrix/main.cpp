@@ -242,7 +242,13 @@ std::ostream &operator<<(std::ostream &out, const M<T, N> &m)
     return out << " ⎦\n";
 }
 
+#ifdef Vc_MSVC
+#pragma optimize("", off)
+template <typename T> void unused(T &&x) { x = x; }
+#pragma optimize("", on)
+#else
 template <typename T> void unused(T &&x) { asm("" ::"m"(x)); }
+#endif
 
 template <size_t N, typename F> Vc_ALWAYS_INLINE void benchmark(F &&f)
 {
@@ -279,36 +285,34 @@ template <size_t N> void run()
         }
     }
     std::cout << std::setw(2) << N;
-    benchmark<N>([&] {
-#ifdef Vc_ICC
-        asm("" :: "r"(&A), "r"(&B));
+#if defined Vc_MSVC
+    auto &&fakeModify = [](Matrix<float, N> &a, Matrix<float, N> &b) {
+        unused(a);
+        unused(b);
+    };
 #else
-        asm("" : "+m"(A), "+m"(B));
+    auto &&fakeModify = [](Matrix<float, N> &a, Matrix<float, N> &b) {
+#ifdef Vc_ICC
+        asm("" ::"r"(&a), "r"(&b));
+#else
+        asm("" : "+m"(a), "+m"(b));
 #endif
+    };
+#endif
+    benchmark<N>([&] {
+        fakeModify(A, B);
         return scalar_mul(A, B);
     });
     benchmark<N>([&] {
-#ifdef Vc_ICC
-        asm("" :: "r"(&A), "r"(&B));
-#else
-        asm("" : "+m"(A), "+m"(B));
-#endif
+        fakeModify(A, B);
         return scalar_mul_blocked(A, B);
     });
     benchmark<N>([&] {
-#ifdef Vc_ICC
-        asm("" :: "r"(&A), "r"(&B));
-#else
-        asm("" : "+m"(A), "+m"(B));
-#endif
+        fakeModify(A, B);
         return A * B;
     });
     benchmark<N>([&] {
-#ifdef Vc_ICC
-        asm("" :: "r"(&A), "r"(&B));
-#else
-        asm("" : "+m"(A), "+m"(B));
-#endif
+        fakeModify(A, B);
         return AV * BV;
     });
     std::cout << std::endl;
