@@ -111,7 +111,7 @@ inline Matrix<T, N> operator*(const Matrix<T, N> &a, const Matrix<T, N> &b)
         // The iteration over the column index of b and c uses a stride of V::size(). This
         // enables row-vector loads (from b) and stores (to c). The matrix storage is
         // padded accordingly, ensuring correct bounds and alignment.
-        for (int j = 0; j < NN; j += V::size()) {
+        for (int j = 0; j < NN; j += int(V::size())) {
             // This temporary variables are used to accumulate the results of the products
             // producing the new values for the c matrix. This variable is necessary
             // because we need a V object for data-parallel accumulation. Storing to c
@@ -133,7 +133,7 @@ inline Matrix<T, N> operator*(const Matrix<T, N> &a, const Matrix<T, N> &b)
         }
     }
     // This final loop treats the remaining NN - N0 rows.
-    for (int j = 0; j < NN; j += V::size()) {
+    for (int j = 0; j < NN; j += int(V::size())) {
         V c_ij[UnrollOuterloop];
         for (int n = N0; n < NN; ++n) {
             c_ij[n - N0] = a[n][0] * V(&b[0][j], Vc::Aligned);
