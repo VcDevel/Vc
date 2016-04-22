@@ -53,7 +53,7 @@ std::array<bool, ArraySize> contains(const PointArray &points)
     std::array<bool, ArraySize> inside;
     auto storeIt = inside.begin();
     for (const auto &p : points) {
-        contains(p).store(storeIt);
+        contains(p).store(&*storeIt);
         storeIt += double_v::Size;
     }
     return inside;
