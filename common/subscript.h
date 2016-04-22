@@ -432,21 +432,19 @@ public:
                 // This is necessary because m_address[0][index] is only a correct
                 // expression if has_subscript_operator<T>::value is true.
     Vc_ALWAYS_INLINE auto
-        operator[](enable_if<
+    operator[](typename std::enable_if<
 #ifndef Vc_IMPROVE_ERROR_MESSAGES
-                       Traits::has_no_allocated_data<T>::value &&
-                           Traits::has_subscript_operator<T>::value &&
+               Traits::has_no_allocated_data<T>::value &&
 #endif
-                           std::is_same<T, U>::value,
-                       std::size_t> index)
-            -> SubscriptOperation<
-                  // the following decltype expression must depend on index and cannot
-                  // simply use [0][0] because it would yield an invalid expression in
-                  // case m_address[0] returns a struct/union
-                  typename std::remove_reference<decltype(m_address[0][index])>::type,
-                  IndexVector,
-                  std::ratio_multiply<Scale,
-                                      std::ratio<sizeof(T), sizeof(m_address[0][index])>>>
+                   std::is_same<T, U>::value,
+               std::size_t>::type index)
+        -> SubscriptOperation<
+            // the following decltype expression must depend on index and cannot
+            // simply use [0][0] because it would yield an invalid expression in
+            // case m_address[0] returns a struct/union
+            typename std::remove_reference<decltype(m_address[0][index])>::type,
+            IndexVector, std::ratio_multiply<
+                             Scale, std::ratio<sizeof(T), sizeof(m_address[0][index])>>>
     {
         static_assert(Traits::has_subscript_operator<T>::value,
                       "The subscript operator was called on a type that does not implement it.\n");
@@ -467,22 +465,23 @@ public:
 
     // precondition: m_address points to a type that implements the subscript operator
     template <typename IT>
-    Vc_ALWAYS_INLINE enable_if<
+    Vc_ALWAYS_INLINE typename std::enable_if<
 #ifndef Vc_IMPROVE_ERROR_MESSAGES
-        Traits::has_no_allocated_data<T>::value &&Traits::has_subscript_operator<T>::value &&
+        Traits::has_no_allocated_data<T>::value &&
+            Traits::has_subscript_operator<T>::value &&
 #endif
             Traits::has_subscript_operator<IT>::value,
-        SubscriptOperation<
-            typename std::remove_reference<
-                decltype(m_address[0][std::declval<const IT &>()[0]]  // std::declval<IT>()[0] could
-                                                                      // be replaced with 0 if it
-                         // were not for two-phase lookup. We need to make the
-                         // m_address[0][0] expression dependent on IT
-                         )>::type,
-            IndexVectorScaled,
-            std::ratio<1, 1>  // reset Scale to 1 since it is applied below
-            >>
-        operator[](const IT &index)
+        SubscriptOperation<typename std::remove_reference<decltype(
+                               m_address[0][std::declval<
+                                   const IT &>()[0]]  // std::declval<IT>()[0] could
+                                                      // be replaced with 0 if it
+                               // were not for two-phase lookup. We need to make the
+                               // m_address[0][0] expression dependent on IT
+                               )>::type,
+                           IndexVectorScaled,
+                           std::ratio<1, 1>  // reset Scale to 1 since it is applied below
+                           >>::type
+    operator[](const IT &index)
     {
         static_assert(Traits::has_subscript_operator<T>::value,
                       "The subscript operator was called on a type that does not implement it.\n");
