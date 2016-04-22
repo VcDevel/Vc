@@ -1181,6 +1181,19 @@ public:
             amount += size();
         }
 
+#ifdef Vc_MSVC
+        // MSVC fails to find a SimdArray::shifted function with 2 arguments. So use store
+        // ->
+        // load to implement the function instead.
+        alignas(MemoryAlignment) T tmp[N + data0.size()];
+        data0.store(&tmp[0], Vc::Aligned);
+        data1.store(&tmp[data0.size()], Vc::Aligned);
+        data0.store(&tmp[N], Vc::Unaligned);
+        SimdArray r;
+        r.data0.load(&tmp[amount], Vc::Unaligned);
+        r.data1.load(&tmp[(amount + data0.size()) % size()], Vc::Unaligned);
+        return r;
+#else
         auto &&d0cvtd = simd_cast<storage_type1>(data0);
         auto &&d1cvtd = simd_cast<storage_type0>(data1);
         constexpr int size0 = storage_type0::size();
@@ -1206,6 +1219,7 @@ public:
                     simd_cast<storage_type1>(data0.shifted(amount - size1, d1cvtd))};
         }
         return *this;
+#endif
     }
 
     // interleaveLow/-High {{{2
@@ -1247,9 +1261,19 @@ public:
             return {simd_cast<storage_type0>(data1).reversed(),
                     simd_cast<storage_type1>(data0).reversed()};
         } else {
+#ifdef Vc_MSVC
+            // MSVC fails to find a SimdArray::shifted function with 2 arguments. So use
+            // store
+            // -> load to implement the function instead.
+            alignas(MemoryAlignment) T tmp[N];
+            data1.reversed().store(&tmp[0], Vc::Aligned);
+            data0.reversed().store(&tmp[data1.size()], Vc::Unaligned);
+            return SimdArray{&tmp[0], Vc::Aligned};
+#else
             return {data0.shifted(storage_type1::Size, data1).reversed(),
                     simd_cast<storage_type1>(data0.reversed().shifted(
                         storage_type0::Size - storage_type1::Size))};
+#endif
         }
     }
     ///\copydoc Vector::sorted
