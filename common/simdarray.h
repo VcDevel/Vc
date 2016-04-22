@@ -356,7 +356,10 @@ public:
         static_assert(noexcept(reference{std::declval<SimdArray &>(), int()}), "");
         return {*this, int(i)};
     }
-    Vc_INTRINSIC value_type operator[](size_t i) const noexcept { return get(*this, i); }
+    Vc_INTRINSIC value_type operator[](size_t i) const noexcept
+    {
+        return get(*this, int(i));
+    }
 
     Vc_INTRINSIC Common::WriteMaskedVector<SimdArray, mask_type> operator()(const mask_type &k)
     {
