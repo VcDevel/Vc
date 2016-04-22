@@ -240,7 +240,7 @@ Vc_ALWAYS_INLINE
     end(T &&x)
 {
     using TT = typename std::decay<T>::type;
-    return {std::forward<T>(x), TT::size()};
+    return {std::forward<T>(x), int(TT::size())};
 }
 
 template <typename T>
@@ -256,7 +256,7 @@ Vc_ALWAYS_INLINE enable_if<
     Traits::is_simd_mask<T>::value || Traits::is_simd_vector<T>::value, ConstIterator<T>>
 cend(const T &v)
 {
-    return {v, T::size()};
+    return {v, int(T::size())};
 }
 
 template<typename M> Vc_ALWAYS_INLINE BitmaskIterator begin(const WhereImpl::WhereMask<M> &w)
