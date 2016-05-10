@@ -80,7 +80,7 @@ else
   done
 fi
 
-if [[ -r /etc/profile.d/modules.sh ]]; then
+if test -r /etc/profile.d/modules.sh; then
   source /etc/profile.d/modules.sh
   for mod in `module avail -t 2>&1`; do
     case `echo $mod|tr '[:upper:]' '[:lower:]'` in
