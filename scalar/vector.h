@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include "types.h"
+#include "detail.h"
 #include "mask.h"
 
 #include "macros.h"

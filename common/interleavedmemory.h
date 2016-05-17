@@ -55,28 +55,19 @@ template<typename V, typename I, bool Readonly> struct InterleavedMemoryAccessBa
     {
     }
 
-    // implementations of the following are in {scalar,sse,avx}/interleavedmemory.tcc
-    inline void deinterleave(V &v0, V &v1) const;
-    inline void deinterleave(V &v0, V &v1, V &v2) const;
-    inline void deinterleave(V &v0, V &v1, V &v2, V &v3) const;
-    inline void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4) const;
-    inline void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5) const;
-    inline void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6) const;
-    inline void deinterleave(V &v0, V &v1, V &v2, V &v3, V &v4, V &v5, V &v6, V &v7) const;
-
-    inline void interleave(VArg v0, VArg v1);
-    inline void interleave(VArg v0, VArg v1, VArg v2);
-    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3);
-    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4);
-    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5);
-    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6);
-    inline void interleave(VArg v0, VArg v1, VArg v2, VArg v3, VArg v4, VArg v5, VArg v6, VArg v7);
+    // implementations of the following are in {scalar,sse,avx}/detail.h
+    template <typename... Vs> Vc_INTRINSIC void deinterleave(Vs &&... vs) const
+    {
+        Impl::deinterleave(m_data, m_indexes, std::forward<Vs>(vs)...);
+    }
 
 protected:
+    using Impl = Vc::Detail::InterleaveImpl<V, V::Size, sizeof(V)>;
+
     template <typename T, std::size_t... Indexes>
     Vc_INTRINSIC void callInterleave(T &&a, index_sequence<Indexes...>)
     {
-        interleave(a[Indexes]...);
+        Impl::interleave(m_data, m_indexes, a[Indexes]...);
     }
 };
 
@@ -110,7 +101,7 @@ struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I, Re
     Vc_ALWAYS_INLINE T deinterleave_unpack(index_sequence<Indexes...>) const
     {
         T r;
-        this->deinterleave(std::get<Indexes>(r)...);
+        Base::Impl::deinterleave(this->m_data, this->m_indexes, std::get<Indexes>(r)...);
         return r;
     }
 

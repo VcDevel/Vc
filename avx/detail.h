@@ -1212,6 +1212,45 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
         V(Mem::shuffle128<X1, Y1>(tmp4, tmp5)).store(&data[i[8]], ::Vc::Unaligned);
         V(Mem::shuffle128<X1, Y1>(tmp6, tmp7)).store(&data[i[12]], ::Vc::Unaligned);
     }/*}}}*/
+    template <typename I>  // interleave 5 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        v4.scatter(data + 4, i);
+    }
+    template <typename I>  // interleave 6 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4, const typename V::AsArg v5)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        interleave(data + 4, i, v4, v5);
+    }
+    template <typename I>  // interleave 7 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4, const typename V::AsArg v5,
+                                  const typename V::AsArg v6)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        interleave(data + 4, i, v4, v5, v6);
+    }
+    template <typename I>  // interleave 8 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4, const typename V::AsArg v5,
+                                  const typename V::AsArg v6, const typename V::AsArg v7)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        interleave(data + 4, i, v4, v5, v6, v7);
+    }
+    //}}}2
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1)
     {
@@ -1579,6 +1618,45 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[6]]), hi128(tmp6));
         _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[7]]), hi128(tmp7));
     }/*}}}*/
+    template <typename I>  // interleave 5 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        v4.scatter(data + 4, i);
+    }
+    template <typename I>  // interleave 6 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4, const typename V::AsArg v5)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        interleave(data + 4, i, v4, v5);
+    }
+    template <typename I>  // interleave 7 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4, const typename V::AsArg v5,
+                                  const typename V::AsArg v6)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        interleave(data + 4, i, v4, v5, v6);
+    }
+    template <typename I>  // interleave 8 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4, const typename V::AsArg v5,
+                                  const typename V::AsArg v6, const typename V::AsArg v7)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        interleave(data + 4, i, v4, v5, v6, v7);
+    }
+    //}}}2
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1)
     {
@@ -1723,8 +1801,9 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
     }/*}}}*/
 };
 template<typename V> struct InterleaveImpl<V, 4, 32> {
-    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
-            const typename V::AsArg v0, const typename V::AsArg v1)
+    template <typename I>  // interleave 2 args{{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1)
     {
         using namespace AVX;
         const m256d tmp0 = _mm256_unpacklo_pd(v0.data(), v1.data());
@@ -1733,9 +1812,11 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
         _mm_storeu_pd(&data[i[1]], lo128(tmp1));
         _mm_storeu_pd(&data[i[2]], hi128(tmp0));
         _mm_storeu_pd(&data[i[3]], hi128(tmp1));
-    }/*}}}*/
-    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
-            const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
+    }
+    template <typename I>  // interleave 3 args{{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2)
     {
         using namespace AVX;
 #ifdef Vc_USE_MASKMOV_SCATTER
@@ -1758,10 +1839,11 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
         interleave(data, i, v0, v1);
         v2.scatter(data + 2, i);
 #endif
-    }/*}}}*/
-    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
-            const typename V::AsArg v0, const typename V::AsArg v1,
-            const typename V::AsArg v2, const typename V::AsArg v3)
+    }
+    template <typename I>  // interleave 4 args{{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3)
     {
         using namespace AVX;
         // 0a 1a 0c 1c:
@@ -1787,7 +1869,46 @@ template<typename V> struct InterleaveImpl<V, 4, 32> {
         _mm_storeu_pd(&data[i[2]+2], hi128(tmp2));
         _mm_storeu_pd(&data[i[3]  ], hi128(tmp1));
         _mm_storeu_pd(&data[i[3]+2], hi128(tmp3));
-    }/*}}}*/
+    }
+    template <typename I>  // interleave 5 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        v4.scatter(data + 4, i);
+    }
+    template <typename I>  // interleave 6 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4, const typename V::AsArg v5)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        interleave(data + 4, i, v4, v5);
+    }
+    template <typename I>  // interleave 7 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4, const typename V::AsArg v5,
+                                  const typename V::AsArg v6)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        interleave(data + 4, i, v4, v5, v6);
+    }
+    template <typename I>  // interleave 8 args {{{2
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3,
+                                  const typename V::AsArg v4, const typename V::AsArg v5,
+                                  const typename V::AsArg v6, const typename V::AsArg v7)
+    {
+        interleave(data, i, v0, v1, v2, v3);
+        interleave(data + 4, i, v4, v5, v6, v7);
+    }
+    //}}}2
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1)
     {

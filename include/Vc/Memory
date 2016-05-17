@@ -31,15 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vector.h"
 #include "common/memory.h"
 #include "common/interleavedmemory.h"
-#ifdef Vc_IMPL_Scalar
-# include "scalar/interleavedmemory.tcc"
-#elif defined(Vc_IMPL_MIC)
-# include "mic/interleavedmemory.tcc"
-#elif defined(Vc_IMPL_AVX)
-# include "avx/interleavedmemory.tcc"
-#elif defined(Vc_IMPL_SSE)
-# include "sse/interleavedmemory.tcc"
-#endif
 
 #include "common/make_unique.h"
 namespace Vc_VERSIONED_NAMESPACE
