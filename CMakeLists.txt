@@ -285,7 +285,7 @@ else()
       ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake
       cmake/OptimizeForArchitecture.cmake
       cmake/FindVc.cmake
-      DESTINATION lib/cmake/Vc
+      DESTINATION lib${LIB_SUFFIX}/cmake/Vc
       )
 endif()
 
