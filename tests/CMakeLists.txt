@@ -342,7 +342,7 @@ if(OBJDUMP)
          )
    endmacro()
 
-   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86")
+   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "[x3-7]86")
       test_abi(abi_SSE     SSE  ${_sse2_flag})
       test_abi(abi_SSE_AVX SSE  ${_avx_flag})
       if(NOT Vc_AVX_INTRINSICS_BROKEN)
