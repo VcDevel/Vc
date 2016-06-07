@@ -7,8 +7,8 @@ set(Vc_VERSION_STRING "@Vc_VERSION_MAJOR@.@Vc_VERSION_MINOR@.@Vc_VERSION_PATCH@"
 set(Vc_INSTALL_DIR "@CMAKE_INSTALL_PREFIX@")
 
 set(Vc_LIB_DIR              "@CMAKE_INSTALL_PREFIX@/lib")
-set(Vc_INCLUDE_DIR          "@CMAKE_INSTALL_PREFIX@/include")
-set(Vc_CMAKE_MODULES_DIR    "@CMAKE_INSTALL_PREFIX@/lib/cmake/Vc")
+find_path(Vc_INCLUDE_DIR       Vc/global.h HINTS "@CMAKE_INSTALL_PREFIX@/include")
+find_path(Vc_CMAKE_MODULES_DIR AddCompilerFlag.cmake HINTS "@CMAKE_INSTALL_PREFIX@/lib/cmake/Vc")
 list(APPEND CMAKE_MODULE_PATH "${Vc_CMAKE_MODULES_DIR}")
 
 find_library(Vc_LIBRARIES Vc PATHS "${Vc_LIB_DIR}" NO_DEFAULT_PATH)
@@ -23,3 +23,10 @@ vc_set_preferred_compiler_flags()
 separate_arguments(Vc_ALL_FLAGS UNIX_COMMAND "${Vc_DEFINITIONS}")
 list(APPEND Vc_ALL_FLAGS ${Vc_COMPILE_FLAGS})
 list(APPEND Vc_ALL_FLAGS ${Vc_ARCHITECTURE_FLAGS})
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Vc
+   FOUND_VAR Vc_FOUND
+   REQUIRED_VARS Vc_LIBRARIES Vc_INCLUDE_DIR Vc_CMAKE_MODULES_DIR
+   VERSION_VAR Vc_VERSION
+   )
