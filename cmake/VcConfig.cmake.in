@@ -6,9 +6,9 @@ set(Vc_VERSION_STRING "@Vc_VERSION_MAJOR@.@Vc_VERSION_MINOR@.@Vc_VERSION_PATCH@"
 
 set(Vc_INSTALL_DIR "@CMAKE_INSTALL_PREFIX@")
 
-set(Vc_LIB_DIR              "@CMAKE_INSTALL_PREFIX@/lib")
+set(Vc_LIB_DIR              "@CMAKE_INSTALL_PREFIX@/lib@LIB_SUFFIX@")
 find_path(Vc_INCLUDE_DIR       Vc/global.h HINTS "@CMAKE_INSTALL_PREFIX@/include")
-find_path(Vc_CMAKE_MODULES_DIR AddCompilerFlag.cmake HINTS "@CMAKE_INSTALL_PREFIX@/lib/cmake/Vc")
+find_path(Vc_CMAKE_MODULES_DIR AddCompilerFlag.cmake HINTS "${Vc_LIB_DIR}/cmake/Vc")
 list(APPEND CMAKE_MODULE_PATH "${Vc_CMAKE_MODULES_DIR}")
 
 find_library(Vc_LIBRARIES Vc PATHS "${Vc_LIB_DIR}" NO_DEFAULT_PATH)
