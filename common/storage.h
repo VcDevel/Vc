@@ -145,6 +145,8 @@ using DefaultStrategy =
 template <typename ValueType, size_t Size, typename Strategy = DefaultStrategy>
 class Storage;
 
+#if !defined Vc_GCC || Vc_GCC < 0x60000
+// GCC 6 forbids `EntryType m[]` altogether
 template <typename ValueType, size_t Size>
 class Storage<ValueType, Size, AliasStrategy::Union>
 {
@@ -192,6 +194,7 @@ private:
 #endif
     } data;
 };
+#endif
 
 template <typename ValueType, size_t Size>
 class Storage<ValueType, Size, AliasStrategy::MayAlias>
