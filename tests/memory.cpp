@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 
 using namespace Vc;
 
@@ -210,32 +210,20 @@ template<typename V, unsigned int Size> struct TestVectorReorganization { static
     }
 }};
 
-template<typename V> void testEntries()
-{
-    TestWrapper<V, 128, TestEntries>::run();
-}
+TEST_TYPES(V, testEntries, (ALL_VECTORS)) { TestWrapper<V, 128, TestEntries>::run(); }
 
-template<typename V> void testEntries2D()
-{
-    TestWrapper<V, 32, TestEntries2D>::run();
-}
+TEST_TYPES(V, testEntries2D, (ALL_VECTORS)) { TestWrapper<V, 32, TestEntries2D>::run(); }
 
-template<typename V> void testVectors()
-{
-    TestWrapper<V, 128, TestVectors>::run();
-}
+TEST_TYPES(V, testVectors, (ALL_VECTORS)) { TestWrapper<V, 128, TestVectors>::run(); }
 
-template<typename V> void testVectors2D()
-{
-    TestWrapper<V, 32, TestVectors2D>::run();
-}
+TEST_TYPES(V, testVectors2D, (ALL_VECTORS)) { TestWrapper<V, 32, TestVectors2D>::run(); }
 
-template<typename V> void testVectorReorganization()
+TEST_TYPES(V, testVectorReorganization, (ALL_VECTORS))
 {
     TestWrapper<V, 128, TestVectorReorganization>::run();
 }
 
-template<typename V> void memoryOperators()
+TEST_TYPES(V, memoryOperators, (ALL_VECTORS))
 {
     Memory<V, 129> m1, m2;
     m1.setZero();
@@ -274,7 +262,7 @@ template<typename V> void memoryOperators()
     VERIFY(m1 == m2);
 }
 
-template<typename V> void testCCtor()
+TEST_TYPES(V, testCCtor, (ALL_VECTORS))
 {
     Memory<V> m1(5);
     for (size_t i = 0; i < m1.entriesCount(); ++i) {
@@ -291,7 +279,7 @@ template<typename V> void testCCtor()
 
 void *hackToStoreToStack = 0;
 
-template<typename V> void paddingMustBeZero()
+TEST_TYPES(V, paddingMustBeZero, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     { // poison the stack
@@ -304,7 +292,8 @@ template<typename V> void paddingMustBeZero()
     COMPARE(x, V::Zero());
 }
 
-template<typename V> void initializerList()
+#ifndef Vc_ICC
+TEST_TYPES(V, initializerList, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     Memory<V, 3> m = { T(1), T(2), T(3) };
@@ -312,8 +301,9 @@ template<typename V> void initializerList()
         COMPARE(m[i], T(i + 1));
     }
 }
+#endif
 
-template<typename V> void testCopyAssignment()
+TEST_TYPES(V, testCopyAssignment, (ALL_VECTORS))
 {
     using T = typename V::EntryType;
     Memory<V, 99> m1;
@@ -328,20 +318,4 @@ template<typename V> void testCopyAssignment()
     for (size_t i = 0; i < m2.entriesCount(); ++i) {
         COMPARE(m1[i], T(1));
     }
-}
-
-void testmain()
-{
-    testAllTypes(testEntries);
-    testAllTypes(paddingMustBeZero);
-#ifndef Vc_ICC
-    testAllTypes(initializerList);
-#endif
-    testAllTypes(testEntries2D);
-    testAllTypes(testVectors);
-    testAllTypes(testVectors2D);
-    testAllTypes(testVectorReorganization);
-    testAllTypes(memoryOperators);
-    testAllTypes(testCCtor);
-    testAllTypes(testCopyAssignment);
 }
