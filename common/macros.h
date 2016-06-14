@@ -42,6 +42,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     using new_type_ alignas(sizeof(n_)) = type_
 #endif
 
+#if defined Vc_GCC && Vc_GCC >= 0x60000
+#define Vc_TEMPLATES_DROP_ATTRIBUTES 1
+#endif
+
 #if defined Vc_CLANG || defined Vc_APPLECLANG
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC_R __attribute__((always_inline))

@@ -82,6 +82,8 @@ else()
          list(APPEND disabled_targets
             example_scaling_scalar
             )
+      elseif(Vc_GCC_VERSION VERSION_GREATER "5.99")
+         AddCompilerFlag(-Wno-ignored-attributes)
       endif()
    elseif(Vc_COMPILER_IS_MSVC)
       if(MSVC_VERSION LESS 1700)

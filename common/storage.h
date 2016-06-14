@@ -251,7 +251,12 @@ class Storage<ValueType, Size, AliasStrategy::VectorBuiltin>
     using Builtin = BuiltinType<ValueType, Size>;
 
 public:
-    using VectorType = IntrinsicType<ValueType, Size>;
+    using VectorType =
+#ifdef Vc_TEMPLATES_DROP_ATTRIBUTES
+        MayAlias<IntrinsicType<ValueType, Size>>;
+#else
+        IntrinsicType<ValueType, Size>;
+#endif
     using EntryType = ValueType;
 
     Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
