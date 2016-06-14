@@ -324,11 +324,19 @@ template<typename V, typename Parent, typename RowMemory> class MemoryDimensionB
          * Returns the \p i-th row in the memory.
          */
         Vc_ALWAYS_INLINE Vc_PURE RowMemory &operator[](size_t i) {
+#ifdef Vc_RECURSIVE_MEMORY
+            return p()->m_mem[i];
+#else
             return RowMemory::fromRawData(entries(i));
+#endif
         }
         /// Const overload of the above function.
         Vc_ALWAYS_INLINE Vc_PURE const RowMemory &operator[](size_t i) const {
+#ifdef Vc_RECURSIVE_MEMORY
+            return p()->m_mem[i];
+#else
             return RowMemory::fromRawData(const_cast<EntryType *>(entries(i)));
+#endif
         }
 
         /**
