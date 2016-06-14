@@ -1248,7 +1248,14 @@ template <typename T0, typename... Ts> std::string typeToString_impl(Typelist<T0
     std::stringstream s;
     s << '{' << typeToString<T0>();
     auto &&x = {(s << ", " << typeToString<Ts>(), 0)...};
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waddress"
+#endif
     if (&x == nullptr) {}  // avoid warning about unused 'x'
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
     s << '}';
     return s.str();
 }
