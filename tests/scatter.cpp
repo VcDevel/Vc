@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Vc;
 
-#define ALL_TYPES /*SIMD_ARRAYS(32), SIMD_ARRAYS(16), SIMD_ARRAYS(8), SIMD_ARRAYS(4), SIMD_ARRAYS(2), SIMD_ARRAYS(1),*/ ALL_VECTORS
+#define ALL_TYPES SIMD_ARRAY_LIST, ALL_VECTORS
 
 TEST_TYPES(Vec, scatterArray, (ALL_TYPES)) //{{{1
 {
@@ -91,7 +91,7 @@ TEST_TYPES(Vec, maskedScatterArray, (ALL_TYPES)) //{{{1
     Vc::array<T, Vec::Size> mem;
     const Vec v = Vec::IndexesFromZero() + 1;
 
-    for_all_masks(Vec, m) {
+    UnitTest::withRandomMask<Vec>([&](typename Vec::mask_type m) {
         Vec::Zero().store(&mem[0], Vc::Unaligned);
         where(m) | mem[It::IndexesFromZero()] = v;
 
@@ -99,7 +99,7 @@ TEST_TYPES(Vec, maskedScatterArray, (ALL_TYPES)) //{{{1
         reference.setZeroInverted(m);
 
         COMPARE(Vec(&mem[0], Vc::Unaligned), reference) << "m = " << m;
-    }
+    });
 }
 
 template<typename T, std::size_t Align> struct Struct //{{{1
