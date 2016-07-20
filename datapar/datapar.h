@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2016 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -25,24 +25,40 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_TYPE_TRAITS_
-#define VC_TYPE_TRAITS_
+#ifndef VC_DATAPAR_DATAPAR_H_
+#define VC_DATAPAR_DATAPAR_H_
 
-#include <type_traits>
-
-#include "traits/type_traits.h"
-#include "common/macros.h"
-namespace Vc_VERSIONED_NAMESPACE
+namespace Vc::v2
 {
-using Traits::is_simd_mask;
-using Traits::is_simd_vector;
-using Traits::is_integral;
-using Traits::is_floating_point;
-using Traits::is_arithmetic;
-using Traits::is_signed;
-using Traits::is_unsigned;
-}
+namespace detail
+{
+template <class T, class Abi> struct traits;
+}  // namespace detail
 
-#endif // VC_TYPE_TRAITS_
+template <class T, class Abi> class datapar
+{
+    using traits = detail::traits<T, Abi>;
+    using impl = typename traits::datapar_impl_type;
 
-// vim: ft=cpp foldmethod=marker
+public:
+    using value_type = T;
+    using reference = detail::smart_reference<datapar>;
+    using mask_type = mask<T, Abi>;
+    using size_type = size_t;
+    using abi_type = Abi;
+
+    static constexpr size_type size() { return traits::size(); }
+    datapar() = default;
+    datapar(const datapar &) = default;
+    datapar(datapar &&) = default;
+    datapar &operator=(const datapar &) = default;
+    datapar &operator=(datapar &&) = default;
+
+private:
+    alignas(traits::datapar_member_alignment) typename traits::datapar_member_type d = {};
+};
+}  // namespace Vc::v2
+
+#endif  // VC_DATAPAR_DATAPAR_H_
+
+// vim: foldmethod=marker

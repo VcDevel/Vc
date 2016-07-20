@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2016 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -25,24 +25,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_TYPE_TRAITS_
-#define VC_TYPE_TRAITS_
+#ifndef VC_INCLUDE_VC_DECLVAL_H_
+#define VC_INCLUDE_VC_DECLVAL_H_
 
-#include <type_traits>
-
-#include "traits/type_traits.h"
-#include "common/macros.h"
-namespace Vc_VERSIONED_NAMESPACE
+namespace Vc
 {
-using Traits::is_simd_mask;
-using Traits::is_simd_vector;
-using Traits::is_integral;
-using Traits::is_floating_point;
-using Traits::is_arithmetic;
-using Traits::is_signed;
-using Traits::is_unsigned;
-}
+inline namespace v2
+{
+namespace detail
+{
+template <class T, class U = T&&> U declval_(int);
+template <class T> T declval_(long);
+}  // namespace detail
+template <class T> decltype(detail::declval_<T>(0)) declval() noexcept;
+}  // namespace v2
+}  // namespace Vc
 
-#endif // VC_TYPE_TRAITS_
+#endif  // VC_INCLUDE_VC_DECLVAL_H_
 
-// vim: ft=cpp foldmethod=marker
+// vim: foldmethod=marker

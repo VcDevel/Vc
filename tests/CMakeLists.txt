@@ -253,6 +253,7 @@ add_custom_target(download-testdata ALL
    )
 add_dependencies(other download-testdata)
 
+vc_add_test(datapar_mask)
 vc_add_test(types)
 vc_add_test(subscript)
 vc_add_test(type_traits)

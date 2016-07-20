@@ -47,33 +47,21 @@ else()
    # TODO: check that 'decltype' compiles
    # TODO: check that 'constexpr' compiles
    if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
-      AddCompilerFlag("-std=c++14" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
+      AddCompilerFlag("-std=c++17" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
       if(MIC_NATIVE_FOUND AND NOT _mic_ok)
-         AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
+         AddCompilerFlag("-std=c++1z" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
          if(NOT _mic_ok)
-            AddCompilerFlag("-std=c++11" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
-            if(NOT _mic_ok)
-               AddCompilerFlag("-std=c++0x" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
-               if(NOT _mic_ok)
-                  message(FATAL_ERROR "Vc 1.x requires C++11, better even C++14. The MIC native compiler does not support any of the C++11 language flags.")
-               endif()
-            endif()
+            message(FATAL_ERROR "Vc 2.x requires C++17. The MIC native compiler does not support any of the C++17 language flags.")
          endif()
       endif()
       if(NOT _ok)
-         AddCompilerFlag("-std=c++1y" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
+         AddCompilerFlag("-std=c++1z" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
          if(NOT _ok)
-            AddCompilerFlag("-std=c++11" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-            if(NOT _ok)
-               AddCompilerFlag("-std=c++0x" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-               if(NOT _ok)
-                  message(FATAL_ERROR "Vc 1.x requires C++11, better even C++14. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
-               endif()
-            endif()
+            message(FATAL_ERROR "Vc 2.x requires C++17. It seems this is not available. If this was incorrectly determined please notify vc-devel@compeng.uni-frankfurt.de")
          endif()
       endif()
    elseif(Vc_MSVC_VERSION LESS 180021114)
-      message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least Visual Studio 2013 with the Nov 2013 CTP.")
+      message(FATAL_ERROR "Vc 2.x requires C++17 support.")
    endif()
 
    if(Vc_COMPILER_IS_GCC)
@@ -86,14 +74,6 @@ else()
          AddCompilerFlag(-Wno-ignored-attributes)
       endif()
    elseif(Vc_COMPILER_IS_MSVC)
-      if(MSVC_VERSION LESS 1700)
-         # MSVC before 2012 has a broken std::vector::resize implementation. STL + Vc code will probably not compile.
-         # UserWarning in VcMacros.cmake
-         list(APPEND disabled_targets
-            stlcontainer_sse
-            stlcontainer_avx
-            )
-      endif()
       # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
       # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
       AddCompilerFlag("/wd4290")

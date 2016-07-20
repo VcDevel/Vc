@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2013-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2016 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -25,24 +25,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_TYPE_TRAITS_
-#define VC_TYPE_TRAITS_
+#ifndef VC_DATAPAR_DETAIL_H_
+#define VC_DATAPAR_DETAIL_H_
 
-#include <type_traits>
-
-#include "traits/type_traits.h"
-#include "common/macros.h"
-namespace Vc_VERSIONED_NAMESPACE
+namespace Vc::v2::detail
 {
-using Traits::is_simd_mask;
-using Traits::is_simd_vector;
-using Traits::is_integral;
-using Traits::is_floating_point;
-using Traits::is_arithmetic;
-using Traits::is_signed;
-using Traits::is_unsigned;
+/**
+ * \internal
+ * Defines the implementation of a given <T, Abi>.
+ */
+template <class T, class Abi> struct traits;
+
+/**
+ * \internal
+ * Returns the next power of 2 larger than or equal to \p x.
+ */
+static constexpr std::size_t next_power_of_2(std::size_t x)
+{
+    return (x & (x - 1)) == 0 ? x : next_power_of_2((x | (x >> 1)) + 1);
 }
+}  // namespace Vc::v2::detail
+#endif  // VC_DATAPAR_DETAIL_H_
 
-#endif // VC_TYPE_TRAITS_
-
-// vim: ft=cpp foldmethod=marker
+// vim: foldmethod=marker
