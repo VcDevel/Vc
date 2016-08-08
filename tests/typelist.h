@@ -31,7 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 
 template <typename... Ts> struct Typelist;
-// concat {{{
+
+// concat {{{1
 template <typename... More> struct concat_impl;
 /**
  * Concatenate two type arguments into a single Typelist.
@@ -57,10 +58,11 @@ struct concat_impl<Typelist<As...>, Typelist<Bs...>> {
 };
 template <typename A, typename B, typename C, typename... More>
 struct concat_impl<A, B, C, More...> {
-    using type = typename concat_impl<typename concat_impl<A, B>::type, C, More...>::type;
+    using type = typename concat_impl<typename concat_impl<A, B>::type,
+                                      typename concat_impl<C, More...>::type>::type;
 };
-// }}}
-// outer_product {{{
+
+// outer_product {{{1
 template <typename A, typename B> struct outer_product_impl;
 template <typename... Bs> struct outer_product_impl<Typelist<>, Typelist<Bs...>>
 {
@@ -81,8 +83,8 @@ struct outer_product_impl<Typelist<A0, As...>, Typelist<Bs...>>
 
 template <typename A, typename B>
 using outer_product = typename outer_product_impl<A, B>::type;
-// }}}
-// extract_type_impl {{{
+
+// extract_type_impl {{{1
 struct TypelistSentinel;
 template <std::size_t N, bool N_less_4, bool N_larger_32, typename... Ts>
 struct extract_type_impl
@@ -206,8 +208,7 @@ template <typename... Ts> struct Typelist
     static constexpr std::size_t size() { return sizeof...(Ts); }
 };
 
-// }}}
-// static_asserts {{{
+// static_asserts {{{1
 static_assert(std::is_same<outer_product<Typelist<int, float>, Typelist<short, double>>,
                            Typelist<Typelist<int, short>,
                                     Typelist<int, double>,
@@ -227,7 +228,7 @@ static_assert(
                  Typelist<char, float, short>,
                  Typelist<char, float, double>>>::value,
     "outer_product does not work as expected");
-// }}}
+// }}}1
 
 #endif  // VC_TESTS_TYPELIST_H_
 
