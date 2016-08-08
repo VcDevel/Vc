@@ -62,6 +62,37 @@ struct concat_impl<A, B, C, More...> {
                                       typename concat_impl<C, More...>::type>::type;
 };
 
+// split {{{1
+template <std::size_t N, typename T> struct split_impl;
+template <typename... Ts> struct split_impl<0, Typelist<Ts...>> {
+    using first = Typelist<>;
+    using second = Typelist<Ts...>;
+};
+template <typename T, typename... Ts> struct split_impl<1, Typelist<T, Ts...>> {
+    using first = Typelist<T>;
+    using second = Typelist<Ts...>;
+};
+template <typename T0, typename T1, typename... Ts>
+struct split_impl<2, Typelist<T0, T1, Ts...>> {
+    using first = Typelist<T0, T1>;
+    using second = Typelist<Ts...>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename... Ts>
+struct split_impl<4, Typelist<T0, T1, T2, T3, Ts...>> {
+    using first = Typelist<T0, T1, T2, T3>;
+    using second = Typelist<Ts...>;
+};
+template <std::size_t N, typename... Ts> struct split_impl<N, Typelist<Ts...>> {
+private:
+    using A = split_impl<N / 2, Typelist<Ts...>>;
+    using B = split_impl<N - N / 2, typename A::second>;
+
+public:
+    using first = concat<typename A::first, typename B::first>;
+    using second = typename B::second;
+};
+template <typename T> using split = split_impl<T::size() / 2, T>;
+
 // outer_product {{{1
 template <typename A, typename B> struct outer_product_impl;
 template <typename... Bs> struct outer_product_impl<Typelist<>, Typelist<Bs...>>
