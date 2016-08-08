@@ -1403,9 +1403,38 @@ static void maybe_add(enable_if_not_list_sentinel<T> name)
     g_allTests.emplace_back(&TestWrapper<T>::run, std::move(fullname));
 }
 template <template <typename> class, typename> static void maybe_add(const void *) {}
+template <template <typename V> class TestWrapper, typename List, std::size_t N>
+struct add_impl {
+    add_impl(const char *name) {
+        using S = split<List>;
+        using A = typename S::first;
+        using B = typename S::second;
+        add_impl<TestWrapper, A, A::size()>{name};
+        add_impl<TestWrapper, B, B::size()>{name};
+    }
+};
+template <template <typename V> class TestWrapper, typename List>
+struct add_impl<TestWrapper, List, 0> {
+    add_impl(const void *) {}
+};
+template <template <typename V> class TestWrapper, typename T>
+struct add_impl<TestWrapper, Typelist<T>, 1> {
+    add_impl(const char *name) {
+        const std::string &typestring = typeToString<T>();
+        std::string fullname;
+        const auto len = std::strlen(name);
+        fullname.reserve(len + typestring.length() + 2);
+        fullname.assign(name, len);
+        fullname.push_back('<');
+        fullname.append(typestring);
+        fullname.push_back('>');
+        g_allTests.emplace_back(&TestWrapper<T>::run, std::move(fullname));
+    }
+};
 
 template <template <typename> class TestWrapper, typename List> struct TestList
 {
+#if 0
     template <std::size_t Offset = 0u> static int addTestInstantiations(const char *name)
     {
         if (Offset == 0u) {
@@ -1482,6 +1511,13 @@ template <template <typename> class TestWrapper, typename List> struct TestList
         }
         return 0;
     }
+#else
+    static int addTestInstantiations(const char *name)
+    {
+        add_impl<TestWrapper, List, List::size()>{name};
+        return 0;
+    }
+#endif
 };
 
 // hackTypelist {{{1
