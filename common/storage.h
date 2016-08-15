@@ -76,11 +76,7 @@ template <typename ValueType, size_t Size> struct IntrinsicType {
 };
 #endif
 template <typename ValueType, size_t Size, size_t Bytes = sizeof(ValueType) * Size>
-struct BuiltinType {
-    // this is required for expressions which should be substitution failures in an
-    // enable_if:
-    typedef ValueType type;
-};
+struct BuiltinType;
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 #define Vc_VECBUILTIN __attribute__((__vector_size__(16)))
 template <size_t Size> struct BuiltinType<         double   , Size, 16> { typedef          double    type Vc_VECBUILTIN; };
@@ -96,6 +92,7 @@ template <size_t Size> struct BuiltinType<unsigned short    , Size, 16> { typede
 template <size_t Size> struct BuiltinType<         char     , Size, 16> { typedef          char      type Vc_VECBUILTIN; };
 template <size_t Size> struct BuiltinType<unsigned char     , Size, 16> { typedef unsigned char      type Vc_VECBUILTIN; };
 template <size_t Size> struct BuiltinType<  signed char     , Size, 16> { typedef   signed char      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         bool     , Size, 16> { typedef unsigned char      type Vc_VECBUILTIN; };
 #undef Vc_VECBUILTIN
 #define Vc_VECBUILTIN __attribute__((__vector_size__(32)))
 template <size_t Size> struct BuiltinType<         double   , Size, 32> { typedef          double    type Vc_VECBUILTIN; };
@@ -111,6 +108,7 @@ template <size_t Size> struct BuiltinType<unsigned short    , Size, 32> { typede
 template <size_t Size> struct BuiltinType<         char     , Size, 32> { typedef          char      type Vc_VECBUILTIN; };
 template <size_t Size> struct BuiltinType<unsigned char     , Size, 32> { typedef unsigned char      type Vc_VECBUILTIN; };
 template <size_t Size> struct BuiltinType<  signed char     , Size, 32> { typedef   signed char      type Vc_VECBUILTIN; };
+template <size_t Size> struct BuiltinType<         bool     , Size, 32> { typedef unsigned char      type Vc_VECBUILTIN; };
 #undef Vc_VECBUILTIN
 #endif
 }  // namespace Detail
@@ -163,6 +161,13 @@ public:
     {
         assertCorrectAlignment(&data.v);
     }
+    template <typename U>
+    Vc_INTRINSIC explicit Storage(const U &x,
+                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
+        : data(reinterpret_cast<const VectorType &>(x))
+    {
+        assertCorrectAlignment(&data);
+    }
     Vc_INTRINSIC Storage &operator=(const VectorType &x)
     {
         data.v = x;
@@ -209,6 +214,13 @@ public:
 
     Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
     Vc_INTRINSIC Storage(const VectorType &x) : data(x)
+    {
+        assertCorrectAlignment(&data);
+    }
+    template <typename U>
+    Vc_INTRINSIC explicit Storage(const U &x,
+                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
+        : data(reinterpret_cast<const VectorType &>(x))
     {
         assertCorrectAlignment(&data);
     }
@@ -265,6 +277,13 @@ public:
     {
         assertCorrectAlignment(&data);
     }
+    template <typename U>
+    Vc_INTRINSIC explicit Storage(const U &x,
+                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
+        : data(reinterpret_cast<const MayAlias<Builtin> &>(x))
+    {
+        assertCorrectAlignment(&data);
+    }
     Vc_INTRINSIC Storage &operator=(const VectorType &x)
     {
         data = reinterpret_cast<const MayAlias<Builtin> &>(x);
@@ -274,6 +293,7 @@ public:
     Vc_INTRINSIC Storage(const Storage &) = default;
     Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 
+    Vc_INTRINSIC operator const VectorType &() const { return v(); }
     Vc_INTRINSIC Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data); }
     Vc_INTRINSIC Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data); }
 
@@ -304,6 +324,13 @@ public:
 
     Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
     Vc_INTRINSIC Storage(const VectorType &x) : data(x)
+    {
+        assertCorrectAlignment(&data);
+    }
+    template <typename U>
+    Vc_INTRINSIC explicit Storage(const U &x,
+                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
+        : data(reinterpret_cast<const VectorType &>(x))
     {
         assertCorrectAlignment(&data);
     }
