@@ -88,11 +88,9 @@ template<> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m128i k)
 /*}}}*/
 // mask_store/*{{{*/
 template <size_t> Vc_ALWAYS_INLINE void mask_store(__m128i k, bool *mem);
-template <> Vc_ALWAYS_INLINE void mask_store<4>(__m128i k, bool *mem)
+template <> Vc_ALWAYS_INLINE void mask_store<16>(__m128i k, bool *mem)
 {
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(
-        _mm_packs_epi16(_mm_srli_epi16(_mm_packs_epi32(k, _mm_setzero_si128()), 15),
-                        _mm_setzero_si128()));
+    _mm_store_si128(reinterpret_cast<__m128i *>(mem), _mm_and_si128(k, _mm_set1_epi8(1)));
 }
 template <> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
 {
@@ -104,9 +102,25 @@ template <> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
     _mm_store_sd(reinterpret_cast<MayAlias<double> *>(mem), _mm_castsi128_pd(k2));
 #endif
 }
+template <> Vc_ALWAYS_INLINE void mask_store<4>(__m128i k, bool *mem)
+{
+    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(
+        _mm_packs_epi16(_mm_srli_epi16(_mm_packs_epi32(k, _mm_setzero_si128()), 15),
+                        _mm_setzero_si128()));
+}
+template <> Vc_ALWAYS_INLINE void mask_store<2>(__m128i k, bool *mem)
+{
+    mem[0] = -SseIntrinsics::extract_epi32<1>(k);
+    mem[1] = -SseIntrinsics::extract_epi32<3>(k);
+}
 /*}}}*/
 // mask_load/*{{{*/
 template<size_t> Vc_ALWAYS_INLINE __m128 mask_load(const bool *mem);
+template<> Vc_ALWAYS_INLINE __m128 mask_load<16>(const bool *mem)
+{
+    return sse_cast<__m128>(_mm_cmpgt_epi8(
+        _mm_load_si128(reinterpret_cast<const __m128i *>(mem)), _mm_setzero_si128()));
+}
 template<> Vc_ALWAYS_INLINE __m128 mask_load<8>(const bool *mem)
 {
 #ifdef __x86_64__
@@ -121,6 +135,10 @@ template<> Vc_ALWAYS_INLINE __m128 mask_load<4>(const bool *mem)
     __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem));
     k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
     return sse_cast<__m128>(_mm_unpacklo_epi16(k, k));
+}
+template<> Vc_ALWAYS_INLINE __m128 mask_load<2>(const bool *mem)
+{
+    return sse_cast<__m128>(_mm_set_epi32(-mem[1], -mem[1], -mem[0], -mem[0]));
 }
 /*}}}*/
 // is_equal{{{
