@@ -86,6 +86,21 @@ struct split_impl<4, Typelist<T0, T1, T2, T3, Ts...>> {
     using first = Typelist<T0, T1, T2, T3>;
     using second = Typelist<Ts...>;
 };
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7, typename... Ts>
+struct split_impl<8, Typelist<T0, T1, T2, T3, T4, T5, T6, T7, Ts...>> {
+    using first = Typelist<T0, T1, T2, T3, T4, T5, T6, T7>;
+    using second = Typelist<Ts...>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7, typename T8, typename T9, typename T10, typename T11,
+          typename T12, typename T13, typename T14, typename T15, typename... Ts>
+struct split_impl<16, Typelist<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13,
+                               T14, T15, Ts...>> {
+    using first =
+        Typelist<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>;
+    using second = Typelist<Ts...>;
+};
 template <std::size_t N, typename... Ts> struct split_impl<N, Typelist<Ts...>> {
 private:
     using A = split_impl<N / 2, Typelist<Ts...>>;
@@ -96,6 +111,126 @@ public:
     using second = typename B::second;
 };
 template <typename T> using split = split_impl<T::size() / 2, T>;
+
+// split4 {{{1
+template <typename T> struct split4;
+template <typename T0> struct split4<Typelist<T0>> {
+    using type0 = Typelist<T0>;
+    using type1 = Typelist<>;
+    using type2 = Typelist<>;
+    using type3 = Typelist<>;
+};
+template <typename T0,typename T1> struct split4<Typelist<T0, T1>> {
+    using type0 = Typelist<T0>;
+    using type1 = Typelist<T1>;
+    using type2 = Typelist<>;
+    using type3 = Typelist<>;
+};
+template <typename T0, typename T1, typename T2> struct split4<Typelist<T0, T1, T2>> {
+    using type0 = Typelist<T0>;
+    using type1 = Typelist<T1>;
+    using type2 = Typelist<T2>;
+    using type3 = Typelist<>;
+};
+template <typename T0, typename T1, typename T2, typename T3>
+struct split4<Typelist<T0, T1, T2, T3>> {
+    using type0 = Typelist<T0>;
+    using type1 = Typelist<T1>;
+    using type2 = Typelist<T2>;
+    using type3 = Typelist<T3>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename T4>
+struct split4<Typelist<T0, T1, T2, T3, T4>> {
+    using type0 = Typelist<T0>;
+    using type1 = Typelist<T1>;
+    using type2 = Typelist<T2>;
+    using type3 = Typelist<T3, T4>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+struct split4<Typelist<T0, T1, T2, T3, T4, T5>> {
+    using type0 = Typelist<T0>;
+    using type1 = Typelist<T1>;
+    using type2 = Typelist<T2>;
+    using type3 = Typelist<T3, T4, T5>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6>
+struct split4<Typelist<T0, T1, T2, T3, T4, T5, T6>> {
+    using type0 = Typelist<T0, T1, T2, T3>;
+    using type1 = Typelist<T4>;
+    using type2 = Typelist<T5>;
+    using type3 = Typelist<T6>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7>
+struct split4<Typelist<T0, T1, T2, T3, T4, T5, T6, T7>> {
+    using type0 = Typelist<T0, T1, T2, T3>;
+    using type1 = Typelist<T4>;
+    using type2 = Typelist<T5>;
+    using type3 = Typelist<T6, T7>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7, typename T8>
+struct split4<Typelist<T0, T1, T2, T3, T4, T5, T6, T7, T8>> {
+    using type0 = Typelist<T0, T1, T2, T3>;
+    using type1 = Typelist<T4>;
+    using type2 = Typelist<T5>;
+    using type3 = Typelist<T6, T7, T8>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7, typename T8, typename T9>
+struct split4<Typelist<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>> {
+    using type0 = Typelist<T0, T1, T2, T3>;
+    using type1 = Typelist<T4, T5, T6, T7>;
+    using type2 = Typelist<T8>;
+    using type3 = Typelist<T9>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7, typename T8, typename T9, typename T10>
+struct split4<Typelist<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>> {
+    using type0 = Typelist<T0, T1, T2, T3>;
+    using type1 = Typelist<T4, T5, T6, T7>;
+    using type2 = Typelist<T8>;
+    using type3 = Typelist<T9, T10>;
+};
+template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5,
+          typename T6, typename T7, typename T8, typename T9, typename T10, typename T11>
+struct split4<Typelist<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>> {
+    using type0 = Typelist<T0, T1, T2, T3>;
+    using type1 = Typelist<T4, T5, T6, T7>;
+    using type2 = Typelist<T8>;
+    using type3 = Typelist<T9, T10, T11>;
+};
+namespace
+{
+constexpr std::size_t nextPowerOfTwo(std::size_t x)
+{
+    return (x & (x - 1)) == 0 ? x
+                              : nextPowerOfTwo((x | (x >> 1) | (x >> 2) | (x >> 4)) + 1);
+}
+constexpr std::size_t nextPowerOfFour(std::size_t x)
+{
+    return (nextPowerOfTwo(x) & 0x55555555u) ? nextPowerOfTwo(x) : nextPowerOfTwo(x) * 2u;
+}
+}  // unnamed namespace
+template <typename... Ts> struct split4<Typelist<Ts...>> {
+private:
+    static const auto N = sizeof...(Ts);
+    static const auto NA = nextPowerOfFour(N / 4);
+    static const auto tmp0 = nextPowerOfFour((N - NA) / 3);
+    static const auto NB = tmp0 + NA + 2 <= N ? tmp0 : tmp0 / 4;
+    static const auto tmp1 = nextPowerOfFour((N - NA - NB) / 2);
+    static const auto NC = tmp1 + NA + NB + 1 <= N ? tmp1 : tmp1 / 4;
+    using A = split_impl<NA, Typelist<Ts...>>;     // A, B+C+D
+    using B = split_impl<NB, typename A::second>;  // B, C+D
+    using C = split_impl<NC, typename B::second>;  // C, D
+
+public:
+    using type0 = typename A::first;
+    using type1 = typename B::first;
+    using type2 = typename C::first;
+    using type3 = typename C::second;
+};
 
 // outer_product {{{1
 template <typename A, typename B> struct outer_product_impl;

@@ -1410,15 +1410,23 @@ template <template <typename> class, typename> static void maybe_add(const void 
 template <template <typename V> class TestWrapper, typename List, std::size_t N>
 struct add_impl {
     add_impl(const char *name) {
-        using S = split<List>;
-        using A = typename S::first;
-        using B = typename S::second;
+        using S = split4<List>;
+        using A = typename S::type0;
+        using B = typename S::type1;
+        using C = typename S::type2;
+        using D = typename S::type3;
         add_impl<TestWrapper, A, A::size()>{name};
         add_impl<TestWrapper, B, B::size()>{name};
+        add_impl<TestWrapper, C, C::size()>{name};
+        add_impl<TestWrapper, D, D::size()>{name};
     }
 };
 template <template <typename V> class TestWrapper, typename List>
 struct add_impl<TestWrapper, List, 0> {
+    add_impl(const void *) {}
+};
+template <template <typename V> class TestWrapper>
+struct add_impl<TestWrapper, Typelist<TypelistSentinel>, 1> {
     add_impl(const void *) {}
 };
 template <template <typename V> class TestWrapper, typename T>
