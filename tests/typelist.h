@@ -32,6 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 template <typename... Ts> struct Typelist;
 
+template <template <typename...> class T, typename... Fixed> struct Template {
+    template <typename... Us> using type = T<Us..., Fixed...>;
+};
+
 // concat {{{1
 template <typename... More> struct concat_impl;
 /**
@@ -114,6 +118,32 @@ struct outer_product_impl<Typelist<A0, As...>, Typelist<Bs...>>
 
 template <typename A, typename B>
 using outer_product = typename outer_product_impl<A, B>::type;
+
+// expand_one {{{1
+template <typename A, typename B> struct expand_one_impl;
+template <typename A> struct expand_one_impl<A, Typelist<>> {
+    using type = Typelist<>;
+};
+template <typename A, typename B0, typename... Bs>
+struct expand_one_impl<A, Typelist<B0, Bs...>> {
+    using type = concat<typename A::template type<B0>,
+                        typename expand_one_impl<A, Typelist<Bs...>>::type>;
+};
+
+template <typename A, typename B>
+using expand_one = typename expand_one_impl<A, B>::type;
+
+// expand_list {{{1
+template <typename A, typename B> struct expand_list_impl;
+template <typename B> struct expand_list_impl<Typelist<>, B> {
+    using type = Typelist<>;
+};
+template <typename A0, typename... As, typename B>
+struct expand_list_impl<Typelist<A0, As...>, B> {
+    using type = concat<expand_one<A0, B>, typename expand_list_impl<Typelist<As...>, B>::type>;
+};
+template <typename A, typename B>
+using expand_list = typename expand_list_impl<A, B>::type;
 
 // extract_type_impl {{{1
 struct TypelistSentinel;
@@ -259,6 +289,20 @@ static_assert(
                  Typelist<char, float, short>,
                  Typelist<char, float, double>>>::value,
     "outer_product does not work as expected");
+
+namespace
+{
+template<typename T> struct TestType {};
+template<typename T> struct TestType2 {};
+static_assert(std::is_same<expand_one<Template<TestType>, Typelist<int, float>>,
+                           Typelist<TestType<int>, TestType<float>>>::value,
+              "expand_one is broken");
+static_assert(std::is_same<expand_list<Typelist<Template<TestType>, Template<TestType2>>,
+                                       Typelist<int, float>>,
+                           Typelist<TestType<int>, TestType<float>, TestType2<int>,
+                                    TestType2<float>>>::value,
+              "expand_list is broken");
+}  // namespace
 // }}}1
 
 #endif  // VC_TESTS_TYPELIST_H_
