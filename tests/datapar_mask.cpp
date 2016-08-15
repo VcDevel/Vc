@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#define WITH_DATAPAR 1
 #include "unittest.h"
 #include <Vc/datapar>
 

@@ -34,6 +34,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 template <typename T> inline std::string typeToString();
+#ifdef WITH_DATAPAR
+#include "typetostring_datapar.h"
+#endif
+
 // std::array<T, N> {{{2
 template <typename T, std::size_t N>
 inline std::string typeToString_impl(std::array<T, N> const &)
@@ -127,30 +131,6 @@ inline std::string typeToString_impl(
     }
     s << typeToString<T>() << "_m";
     return s.str();
-}
-
-// Vc::datapar to string {{{2
-template <int N>
-inline std::string typeToString_impl(const Vc::datapar_abi::fixed_size<N> &)
-{
-    return std::to_string(N);
-}
-inline std::string typeToString_impl(const Vc::datapar_abi::scalar &) { return "scalar"; }
-inline std::string typeToString_impl(const Vc::datapar_abi::sse &) { return "sse"; }
-inline std::string typeToString_impl(const Vc::datapar_abi::avx &) { return "avx"; }
-inline std::string typeToString_impl(const Vc::datapar_abi::avx512 &) { return "avx512"; }
-inline std::string typeToString_impl(const Vc::datapar_abi::knc &) { return "knc"; }
-
-template <class T, class A>
-inline std::string typeToString_impl(const Vc::datapar<T, A> &)
-{
-    return "datapar<" + typeToString<T>() + ", " + typeToString<A>() + '>';
-}
-
-template <class T, class A>
-inline std::string typeToString_impl(const Vc::mask<T, A> &)
-{
-    return "mask<" + typeToString<T>() + ", " + typeToString<A>() + '>';
 }
 
 // generic fallback (typeid::name) {{{2
