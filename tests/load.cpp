@@ -60,6 +60,17 @@ TEST_TYPES(Vec, checkAlignment, ALL_TYPES)
 
 void *hack_to_put_b_on_the_stack = 0;
 
+template <typename T>
+struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {
+};
+template <>
+struct memory_alignment<short_v>
+    : public std::integral_constant<size_t, short_v::MemoryAlignment> {
+};
+template <>
+struct memory_alignment<ushort_v>
+    : public std::integral_constant<size_t, ushort_v::MemoryAlignment> {
+};
 TEST_TYPES(Vec, checkMemoryAlignment, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
