@@ -913,8 +913,11 @@ private:
     template <typename T> static void printMem(const T &x)  // {{{2
     {
         constexpr std::size_t length = sizeof(T) * 2 + sizeof(T) / 4;
-        std::unique_ptr<char[]> s{new char[length + 1]};
-        std::memset(s.get(), '\'', length - 1);
+        std::unique_ptr<char[]> tmp{new char[length + 3]};
+        tmp[0] = '0';
+        tmp[1] = 'x';
+        char *s = &tmp[2];
+        std::memset(s, '\'', length - 1);
         s[length - 1] = '\0';
         s[length] = '\0';
         const auto bytes = reinterpret_cast<const std::uint8_t *>(&x);
@@ -922,8 +925,9 @@ private:
             s[i * 2 + i / 4] = hexChar(bytes[i] >> 4);
             s[i * 2 + 1 + i / 4] = hexChar(bytes[i] & 0xf);
         }
-        std::cout << s.get();
+        std::cout << tmp.get();
     }
+
     // printFirst {{{2
     static void printFirst()
     {
