@@ -309,8 +309,8 @@ template <typename A, typename B, typename C,
                                       std::declval<C>()))>
 inline void sfinaeIifIsNotCallable(A &&, B &&, C &&, int)
 {
-    FAIL() << "iif(" << UnitTest::typeToString<A>() << UnitTest::typeToString<B>()
-           << UnitTest::typeToString<C>() << ") appears to be callable.";
+    FAIL() << "iif(" << typeToString<A>() << typeToString<B>()
+           << typeToString<C>() << ") appears to be callable.";
 }
 
 template <typename A, typename B, typename C>

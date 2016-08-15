@@ -139,7 +139,7 @@ template <typename To, typename V0, typename... Vs>
 std::string extraInformation(const V0 &arg0, const Vs &... args)
 {
     std::stringstream s;
-    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20) << arg0;
+    s << "\nsimd_cast<" << typeToString<To>() << ">(" << std::setprecision(20) << arg0;
     doNothing({&(s << ", " << args)...});
     s << ')';
     return s.str();
@@ -223,7 +223,7 @@ Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
         return is_conversion_undefined<T>(input) ? result[i] : static_cast<T>(input);
     });
 
-    COMPARE(result, reference) << "simd_cast<" << UnitTest::typeToString<To>() << ", "
+    COMPARE(result, reference) << "simd_cast<" << typeToString<To>() << ", "
                                << Index << ">(" << x << ')';
 
     cast_vector_split<To, From, Index + 1>(x);
@@ -272,11 +272,11 @@ template <typename To, typename From> void mask_cast_1(const From &mask)
     std::size_t i = 0;
     for (; i < std::min(To::Size, From::Size); ++i) {
         COMPARE(casted[i], mask[i]) << "i: " << i << ", " << mask << " got converted to "
-                                    << UnitTest::typeToString<To>() << ": " << casted;
+                                    << typeToString<To>() << ": " << casted;
     }
     for (; i < To::Size; ++i) {
         COMPARE(casted[i], false) << "i: " << i << ", " << mask << " got converted to "
-                                  << UnitTest::typeToString<To>() << ": " << casted;
+                                  << typeToString<To>() << ": " << casted;
     }
 }
 // mask_cast_2 {{{1
@@ -289,16 +289,16 @@ void mask_cast_2(const From &mask0, const From &mask1,
     for (; i < From::Size; ++i) {
         COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1
                                      << " were converted to "
-                                     << UnitTest::typeToString<To>() << ": " << casted;
+                                     << typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 2 * From::Size); ++i) {
         COMPARE(casted[i], mask1[i - From::Size])
             << "i: " << i << mask0 << mask1 << " were converted to "
-            << UnitTest::typeToString<To>() << ": " << casted;
+            << typeToString<To>() << ": " << casted;
     }
     for (; i < To::Size; ++i) {
         COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << " were converted to "
-                                  << UnitTest::typeToString<To>() << ": " << casted;
+                                  << typeToString<To>() << ": " << casted;
     }
 }
 template <typename To, typename From>
@@ -317,26 +317,26 @@ void mask_cast_4(const From &mask0, const From &mask1, const From &mask2,
     for (; i < From::Size; ++i) {
         COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1 << mask2 << mask3
                                      << " were converted to "
-                                     << UnitTest::typeToString<To>() << ": " << casted;
+                                     << typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 2 * From::Size); ++i) {
         COMPARE(casted[i], mask1[i - From::Size])
             << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
-            << UnitTest::typeToString<To>() << ": " << casted;
+            << typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 3 * From::Size); ++i) {
         COMPARE(casted[i], mask2[i - 2 * From::Size])
             << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
-            << UnitTest::typeToString<To>() << ": " << casted;
+            << typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 4 * From::Size); ++i) {
         COMPARE(casted[i], mask3[i - 3 * From::Size])
             << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
-            << UnitTest::typeToString<To>() << ": " << casted;
+            << typeToString<To>() << ": " << casted;
     }
     for (; i < To::Size; ++i) {
         COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << mask2 << mask3
-                                  << " were converted to " << UnitTest::typeToString<To>()
+                                  << " were converted to " << typeToString<To>()
                                   << ": " << casted;
     }
 }
@@ -360,7 +360,7 @@ Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
         return i + Index * To::Size >= From::Size ? false : x[i + Index * To::Size];
     });
 
-    COMPARE(result, reference) << "simd_cast<" << UnitTest::typeToString<To>() << ", "
+    COMPARE(result, reference) << "simd_cast<" << typeToString<To>() << ", "
                                << Index << ">(" << x << ')';
 
     cast_mask_split<To, From, Index + 1>(x);

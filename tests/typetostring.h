@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include "typelist.h"
 #include <Vc/Vc>
-#include <Vc/datapar>
 #ifdef HAVE_CXX_ABI_H
 #include <cxxabi.h>
 #endif
