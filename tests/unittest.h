@@ -611,20 +611,7 @@ public:
         : m_ip(getIp()), m_failed(!unittest_compareHelper(a, b))
     {
         if (Vc_IS_UNLIKELY(m_failed)) {
-            printFirst();
-            printPosition(_file, _line);
-            print(_a);
-            print(" (");
-            print(std::setprecision(10));
-            print(a);
-            print(") == ");
-            print(_b);
-            print(" (");
-            print(std::setprecision(10));
-            print(b);
-            print(std::setprecision(6));
-            print(") -> ");
-            print(a == b);
+            printFailure(a, b, _a, _b, _file, _line);
         }
     }
 
@@ -926,6 +913,27 @@ private:
             s[i * 2 + 1 + i / 4] = hexChar(bytes[i] & 0xf);
         }
         std::cout << tmp.get();
+    }
+
+    // printFailure {{{2
+    template <typename T1, typename T2>
+    Vc_NEVER_INLINE void printFailure(const T1 &a, const T2 &b, const char *_a,
+                                      const char *_b, const char *_file, int _line)
+    {
+        printFirst();
+        printPosition(_file, _line);
+        print(_a);
+        print(" (");
+        print(std::setprecision(10));
+        print(a);
+        print(") == ");
+        print(_b);
+        print(" (");
+        print(std::setprecision(10));
+        print(b);
+        print(std::setprecision(6));
+        print(") -> ");
+        print(a == b);
     }
 
     // printFirst {{{2
