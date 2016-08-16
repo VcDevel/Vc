@@ -76,6 +76,8 @@ template <class M> M make_alternating_mask()
 
 TEST_TYPES(M, broadcast, ALL_TYPES)  //{{{1
 {
+    VERIFY(Vc::is_mask_v<M>);
+
     {
         M x;      // default broadcasts 0
         x = M{};  // default broadcasts 0
