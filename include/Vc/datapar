@@ -4,3 +4,4 @@
 #include "datapar/datapar.h"
 #include "datapar/fixed_size.h"
 #include "datapar/sse.h"
+#include "datapar/avx.h"

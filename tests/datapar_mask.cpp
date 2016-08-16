@@ -36,6 +36,9 @@ using fixed_mask = Vc::mask<T, Vc::datapar_abi::fixed_size<N>>;
 
 typedef expand_list<
     Typelist<
+#ifdef Vc_HAVE_FULL_AVX_ABI
+        Template<Vc::mask, Vc::datapar_abi::avx>,
+#endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
         Template<Vc::mask, Vc::datapar_abi::sse>,
 #endif
