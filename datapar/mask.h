@@ -36,7 +36,7 @@ template <class T, class Abi> class mask
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::mask_impl_type;
-    static constexpr T *tag = nullptr;
+    static constexpr std::integral_constant<size_t, traits::size()> size_tag = {};
     friend impl;
 
 public:
@@ -54,16 +54,63 @@ public:
     mask &operator=(mask &&) = default;
 
     // implicit broadcast constructor
-    mask(value_type x) : d{impl::broadcast(x, tag)} {}
+    mask(value_type x) : d{impl::broadcast(x, size_tag)} {}
 
     // implicit type conversion constructor
-    template <class U, class Abi2> mask(mask<U, Abi2> x) : d{impl::convert(x, tag)} {}
+    template <class U>
+    mask(const mask<U, datapar_abi::fixed_size<size()>> &x)
+        : mask{static_cast<const std::array<bool, size()> &>(x).data(),
+               flags::vector_aligned}
+    {
+    }
+    template <class U, class Abi2>
+    mask(mask<U, Abi2> x,
+         enable_if<(size() == mask<U, Abi2>::size()) &&
+                   std::conjunction<std::is_same<abi_type, Abi2>, std::is_integral<T>,
+                                    std::is_integral<U>,
+                                    std::negation<std::is_same<T, U>>>::value> = nullarg)
+        : d{x.d}
+    {
+    }
+    template <class U, class Abi2>
+    mask(mask<U, Abi2> x,
+         enable_if<std::conjunction<
+             std::negation<std::is_same<abi_type, Abi2>>,
+             std::is_same<abi_type, datapar_abi::fixed_size<size()>>>::value> = nullarg)
+    {
+        x.copy_to(&d[0], flags::vector_aligned);
+    }
+
 
     // load constructor
     template <class Flags>
-    mask(const value_type *mem, Flags flags)
-        : d{impl::load(mem, flags, tag)}
+    mask(const value_type *mem, Flags f)
+        : d{impl::load(mem, f, size_tag)}
     {
+    }
+    template <class Flags> mask(const value_type *mem, mask k, Flags f) : d{}
+    {
+        impl::masked_load(d, k.d, mem, f, size_tag);
+    }
+
+    // loads [mask.load]
+    template <class Flags> void copy_from(const value_type *mem, Flags f)
+    {
+        d = static_cast<decltype(d)>(impl::load(mem, f, size_tag));
+    }
+    template <class Flags> void copy_from(const value_type *mem, mask k, Flags f)
+    {
+        impl::masked_load(d, k.d, mem, f, size_tag);
+    }
+
+    // stores [mask.store]
+    template <class Flags> void copy_to(value_type *mem, Flags f) const
+    {
+        impl::store(d, mem, f, size_tag);
+    }
+    template <class Flags> void copy_to(value_type *mem, mask k, Flags f) const
+    {
+        impl::masked_store(d, mem, f, size_tag, k.d);
     }
 
     // scalar access
@@ -71,14 +118,15 @@ public:
     value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
 
     // negation
-    mask operator!() const { return {nullptr, impl::negate(d, tag)}; }
+    mask operator!() const { return {private_init, impl::negate(d, size_tag)}; }
 
     // access to internal representation (suggested extension)
     explicit operator typename traits::mask_cast_type() const { return d; }
     explicit mask(const typename traits::mask_cast_type &init) : d{init} {}
 
 private:
-    mask(nullptr_t, const typename traits::mask_member_type &init) : d{init} {}
+    static constexpr struct private_init_t {} private_init = {};
+    mask(private_init_t, const typename traits::mask_member_type &init) : d{init} {}
     alignas(traits::mask_member_alignment) typename traits::mask_member_type d = {};
 };
 

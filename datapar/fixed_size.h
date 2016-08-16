@@ -42,6 +42,9 @@ template <int N> struct fixed_size_mask_impl {
     using index_seq = std::make_index_sequence<N>;
     using mask_member_type = std::array<bool, N>;
     template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
+    using size_tag = std::integral_constant<size_t, N>;
+
+    template <typename T> static constexpr void unused(T &&) {}
 
     // broadcast {{{2
     template <size_t... I>
@@ -50,22 +53,9 @@ template <int N> struct fixed_size_mask_impl {
     {
         return {((void)I, x)...};
     }
-    template <class T> static constexpr mask_member_type broadcast(bool x, T *) noexcept
+    static constexpr mask_member_type broadcast(bool x, size_tag) noexcept
     {
         return broadcast_impl(x, index_seq{});
-    }
-
-    // convert {{{2
-    template <class U, class Abi2, size_t... I>
-    static constexpr mask_member_type convert_impl(const Vc::mask<U, Abi2> &x,
-                                                   std::index_sequence<I...>) noexcept
-    {
-        return { x[I]... };
-    }
-    template <class U, class Abi2, class T>
-    static constexpr mask_member_type convert(const Vc::mask<U, Abi2> &x, T *) noexcept
-    {
-        return convert_impl(x, index_seq{});
     }
 
     // load {{{2
@@ -75,10 +65,57 @@ template <int N> struct fixed_size_mask_impl {
     {
         return {mem[I]...};
     }
-    template <class F, class T>
-    static constexpr mask_member_type load(const bool *mem, F, T *) noexcept
+    template <class F>
+    static constexpr mask_member_type load(const bool *mem, F, size_tag) noexcept
     {
         return load_impl(mem, index_seq{});
+    }
+
+    // masked load {{{2
+    template <size_t... I>
+    static constexpr void masked_load_impl(mask_member_type &merge,
+                                           const mask_member_type &mask, const bool *mem,
+                                           std::index_sequence<I...>) noexcept
+    {
+        auto &&x = {(merge[I] = mask[I] ? mem[I] : merge[I])...};
+        unused(x);
+    }
+    template <class F>
+    static constexpr void masked_load(mask_member_type &merge,
+                                      const mask_member_type &mask, const bool *mem, F,
+                                      size_tag) noexcept
+    {
+        masked_load_impl(merge, mask, mem, index_seq{});
+    }
+
+    // store {{{2
+    template <size_t... I>
+    static constexpr void store_impl(const mask_member_type &v, bool *mem,
+                                     std::index_sequence<I...>) noexcept
+    {
+        auto &&x = {(mem[I] = v[I])...};
+        unused(x);
+    }
+    template <class F>
+    static constexpr void store(const mask_member_type &v, bool *mem, F, size_tag) noexcept
+    {
+        return store_impl(v, mem, index_seq{});
+    }
+
+    // masked store {{{2
+    template <size_t... I>
+    static constexpr void masked_store_impl(const mask_member_type &v, bool *mem,
+                                            std::index_sequence<I...>,
+                                            const mask_member_type &k) noexcept
+    {
+        auto &&x = {(k[I] ? mem[I] = v[I] : false)...};
+        unused(x);
+    }
+    template <class F>
+    static constexpr void masked_store(const mask_member_type &v, bool *mem, F, size_tag,
+                                       const mask_member_type &k) noexcept
+    {
+        return masked_store_impl(v, mem, index_seq{}, k);
     }
 
     // negation {{{2
@@ -88,18 +125,20 @@ template <int N> struct fixed_size_mask_impl {
     {
         return {!x[I]...};
     }
-    template <class T>
-    static constexpr mask_member_type negate(const mask_member_type &x, T *) noexcept
+    static constexpr mask_member_type negate(const mask_member_type &x, size_tag) noexcept
     {
         return negate_impl(x, index_seq{});
     }
 
     // smart_reference access {{{2
-    template <class T> static bool get(const mask<T> &k, int i) noexcept
+    template <class T, class A> static bool get(const Vc::mask<T, A> &k, int i) noexcept
     {
         return k.d[i];
     }
-    template <class T> static void set(mask<T> &k, int i, bool x) noexcept { k.d[i] = x; }
+    template <class T, class A> static void set(Vc::mask<T, A> &k, int i, bool x) noexcept
+    {
+        k.d[i] = x;
+    }
     // }}}2
 };
 
@@ -115,7 +154,7 @@ template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
     using mask_impl_type = fixed_size_mask_impl<N>;
     using mask_member_type = typename mask_impl_type::mask_member_type;
     static constexpr size_t mask_member_alignment = next_power_of_2(N);
-    using mask_cast_type = mask_member_type;
+    using mask_cast_type = const mask_member_type &;
 };
 // }}}1
 }  // namespace Vc_VERSIONED_NAMESPACE::detail

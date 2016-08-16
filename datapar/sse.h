@@ -29,15 +29,53 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_DATAPAR_SSE_H_
 
 #include "macros.h"
-#ifdef Vc_HAVE_SSE_ABI
 #include "../common/storage.h"
 
-namespace Vc::v2::detail {
+#ifdef Vc_HAVE_SSE_ABI
+#include "../sse/casts.h"
+#endif
+
+namespace Vc_VERSIONED_NAMESPACE::detail
+{
+struct sse_mask_impl;
+struct sse_datapar_impl;
+using Vc::Common::Storage;
+
+template <class T>
+using sse_datapar_member_type = Storage<T, datapar_size_v<T, datapar_abi::sse>>;
+template <class T>
+using sse_mask_member_type = Storage<T, datapar_size_v<T, datapar_abi::sse>>;
+
+template <class T> struct traits<T, datapar_abi::sse> {
+    static_assert(sizeof(T) <= 8,
+                  "SSE can only implement operations on element types with sizeof <= 8");
+    static constexpr size_t size() noexcept { return 16 / sizeof(T); }
+
+    using datapar_member_type = sse_datapar_member_type<T>;
+    using datapar_impl_type = sse_datapar_impl;
+    static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
+
+    using mask_member_type = sse_mask_member_type<T>;
+    using mask_impl_type = sse_mask_impl;
+    static constexpr size_t mask_member_alignment = alignof(mask_member_type);
+    using mask_cast_type = typename mask_member_type::VectorType;
+};
+
+template <>
+struct traits<long double, datapar_abi::sse>
+    : public traits<long double, datapar_abi::scalar> {
+};
+}  // namespace Vc_VERSIONED_NAMESPACE::detail
+
+#ifdef Vc_HAVE_SSE_ABI
+namespace Vc_VERSIONED_NAMESPACE::detail
+{
+using SSE::sse_cast;
 // datapar impl {{{1
 struct sse_datapar_impl {
     using abi = datapar_abi::sse;
     template <class T> static constexpr size_t size = datapar_size_v<T, abi>;
-    template <class T> using datapar_member_type = Vc::Common::Storage<T, size<T>>;
+    template <class T> using datapar_member_type = sse_datapar_member_type<T>;
 };
 
 // mask impl {{{1
@@ -45,68 +83,139 @@ struct sse_mask_impl {
     // member types {{{2
     using abi = datapar_abi::sse;
     template <class T> static constexpr size_t size = datapar_size_v<T, abi>;
-    template <class T> using mask_member_type = Vc::Common::Storage<T, size<T>>;
+    template <class T> using mask_member_type = sse_mask_member_type<T>;
     template <class T> using mask = Vc::mask<T, datapar_abi::sse>;
     template <class T> using mask_bool = Common::MaskBool<sizeof(T)>;
+    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
 
     // broadcast {{{2
-    static auto broadcast(bool x, double *) noexcept
+    static Vc_INTRINSIC auto broadcast(bool x, size_tag<2>) noexcept
     {
         return _mm_set1_pd(mask_bool<double>{x});
     }
-    static auto broadcast(bool x, float *) noexcept
+    static Vc_INTRINSIC auto broadcast(bool x, size_tag<4>) noexcept
     {
         return _mm_set1_ps(mask_bool<float>{x});
     }
-    static auto broadcast(bool x, std::int64_t *) noexcept
-    {
-        return _mm_set1_epi64x(mask_bool<std::int64_t>{x});
-    }
-    static auto broadcast(bool x, std::int32_t *) noexcept
-    {
-        return _mm_set1_epi32(mask_bool<std::int32_t>{x});
-    }
-    static auto broadcast(bool x, std::int16_t *) noexcept
+    static Vc_INTRINSIC auto broadcast(bool x, size_tag<8>) noexcept
     {
         return _mm_set1_epi16(mask_bool<std::int16_t>{x});
     }
-    static auto broadcast(bool x, std::int8_t *) noexcept
+    static Vc_INTRINSIC auto broadcast(bool x, size_tag<16>) noexcept
     {
         return _mm_set1_epi8(mask_bool<std::int8_t>{x});
     }
 
-    // convert {{{2
-    template <class U, class T>
-    static constexpr const mask_member_type<T> &convert(const mask<U> &x, T *) noexcept
+    // load {{{2
+    template <class F>
+    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<2>) noexcept
     {
-        return x.d;
+        return _mm_set_epi32(-mem[1], -mem[1], -mem[0], -mem[0]);
     }
-    template <class U, class Abi2, class T>
-    static constexpr mask_member_type<T> convert(const Vc::mask<U, Abi2> &x, T *) noexcept
+    template <class F>
+    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<4>) noexcept
     {
-        mask_member_type<T> r;
-        for (std::size_t i = 0; i < size<T>; ++i) {
-            r.set(i, mask_bool<T>{x[i]});
-        }
-        return r;
+        __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem));
+        k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
+        return sse_cast<__m128>(_mm_unpacklo_epi16(k, k));
+    }
+    template <class F>
+    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<8>) noexcept
+    {
+#ifdef Vc_IS_AMD64
+        __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
+#else
+        __m128i k = _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(mem)));
+#endif
+        return sse_cast<__m128>(
+            _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
+    }
+    template <class F>
+    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<16>) noexcept
+    {
+        return sse_cast<__m128>(
+            _mm_cmpgt_epi8(std::is_same<F, flags::vector_aligned_tag>::value
+                               ? _mm_load_si128(reinterpret_cast<const __m128i *>(mem))
+                               : _mm_loadu_si128(reinterpret_cast<const __m128i *>(mem)),
+                           _mm_setzero_si128()));
     }
 
-    // load {{{2
-    template <class T, class F>
-    static constexpr mask_member_type<T> load(const bool *mem, F, T *) noexcept
+    // masked load {{{2
+    template <class T, class F, class SizeTag>
+    static Vc_INTRINSIC void masked_load(mask_member_type<T> &merge,
+                                         mask_member_type<T> mask, const bool *mem, F,
+                                         SizeTag s) noexcept
     {
-        mask_member_type<T> r;
-        for (std::size_t i = 0; i < size<T>; ++i) {
-            r.set(i, mask_bool<T>{mem[i]});
+        for (std::size_t i = 0; i < s; ++i) {
+            if (mask.m(i)) {
+                merge.set(i, mask_bool<T>{mem[i]});
+            }
         }
-        return r;
+    }
+
+    // store {{{2
+    template <class T, class F>
+    static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
+                                   size_tag<2>) noexcept
+    {
+        const auto k = sse_cast<__m128i>(v.v());
+        mem[0] = -SseIntrinsics::extract_epi32<1>(k);
+        mem[1] = -SseIntrinsics::extract_epi32<3>(k);
+    }
+    template <class T, class F>
+    static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
+                                   size_tag<4>) noexcept
+    {
+        const auto k = sse_cast<__m128i>(v.v());
+        *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(
+            _mm_packs_epi16(_mm_srli_epi16(_mm_packs_epi32(k, _mm_setzero_si128()), 15),
+                            _mm_setzero_si128()));
+    }
+    template <class T, class F>
+    static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
+                                   size_tag<8>) noexcept
+    {
+        auto k = sse_cast<__m128i>(v.v());
+        k = _mm_srli_epi16(k, 15);
+        const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
+#ifdef Vc_IS_AMD64
+        *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);
+#else
+        _mm_store_sd(reinterpret_cast<MayAlias<double> *>(mem), _mm_castsi128_pd(k2));
+#endif
+    }
+    template <class T, class F>
+    static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
+                                   size_tag<16>) noexcept
+    {
+        auto k = sse_cast<__m128i>(v.v());
+        k = _mm_and_si128(k, _mm_set1_epi32(0x01010101));
+        if (std::is_same<F, flags::vector_aligned_tag>::value) {
+            _mm_store_si128(reinterpret_cast<__m128i *>(mem), k);
+        } else {
+            _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), k);
+        }
+    }
+
+    // masked store {{{2
+    template <class T, class F, class SizeTag>
+    static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F, SizeTag,
+                                          mask_member_type<T> k) noexcept
+    {
+        for (std::size_t i = 0; i < size<T>; ++i) {
+            if (k.m(i)) {
+                mem[i] = v.m(i);
+            }
+        }
     }
 
     // negation {{{2
-    template <class T>
-    static constexpr mask_member_type<T> negate(const mask_member_type<T> &x, T *) noexcept
+    template <class T, class SizeTag>
+    static Vc_INTRINSIC mask_member_type<T> negate(const mask_member_type<T> &x,
+                                                   SizeTag) noexcept
     {
-        return !x.builtin();
+        return Detail::not_(x.v());
+        //return !x.builtin();
     }
 
     // smart_reference access {{{2
@@ -116,53 +225,32 @@ struct sse_mask_impl {
     }
     template <class T> static void set(mask<T> &k, int i, bool x) noexcept
     {
-        k.d.set(i, x);
+        k.d.set(i, mask_bool<T>(x));
     }
     // }}}2
-};
-
-// traits {{{1
-template <class T> struct traits<T, datapar_abi::sse> {
-    static constexpr size_t size() noexcept
-    {
-        return sizeof(T) <= 8 ? 16 / sizeof(T) : 1;
-    }
-
-    using datapar_impl_type = sse_datapar_impl;
-    using datapar_member_type =
-        typename datapar_impl_type::template datapar_member_type<T>;
-    static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
-
-    using mask_impl_type = sse_mask_impl;
-    using mask_member_type = typename mask_impl_type::template mask_member_type<T>;
-    static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-    using mask_cast_type = typename mask_member_type::VectorType;
 };
 
 // mask compare base {{{1
 struct sse_compare_base {
 protected:
+    template <class T> using V = Vc::datapar<T, Vc::datapar_abi::sse>;
     template <class T> using M = Vc::mask<T, Vc::datapar_abi::sse>;
     template <class T>
     using S = typename Vc::detail::traits<T, Vc::datapar_abi::sse>::mask_cast_type;
 };
 // }}}1
-}  // namespace Vc::v2::detail
+}  // namespace Vc_VERSIONED_NAMESPACE::detail
 
 namespace std
 {
 // datapar operators {{{1
 template <class T>
-struct equal_to<Vc::datapar<T, Vc::datapar_abi::sse>> {
-private:
-    using V = Vc::datapar<T, Vc::datapar_abi::sse>;
-    using M = typename V::mask_type;
-
-
+struct equal_to<Vc::datapar<T, Vc::datapar_abi::sse>>
+    : private Vc::detail::sse_compare_base {
 public:
-    M operator()(const V &x, const V &y) const
+    M<T> operator()(const V<T> &x, const V<T> &y) const noexcept
     {
-        return {};
+        return {};  // TODO
     }
 };
 
@@ -171,17 +259,21 @@ template <class T>
 struct equal_to<Vc::mask<T, Vc::datapar_abi::sse>>
     : private Vc::detail::sse_compare_base {
 public:
-    bool operator()(const M<T> &x, const M<T> &y) const
+    bool operator()(const M<T> &x, const M<T> &y) const noexcept
     {
         return Vc::Detail::is_equal<M<T>::size()>(
             Vc::sse_cast<__m128>(static_cast<S<T>>(x)),
             Vc::sse_cast<__m128>(static_cast<S<T>>(y)));
     }
 };
+template <>
+struct equal_to<Vc::mask<long double, Vc::datapar_abi::sse>>
+    : public equal_to<Vc::mask<long double, Vc::datapar_abi::scalar>> {
+};
 // }}}1
 }  // namespace std
-
 #endif  // Vc_HAVE_SSE_ABI
+
 #endif  // VC_DATAPAR_SSE_H_
 
 // vim: foldmethod=marker
