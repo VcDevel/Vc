@@ -337,9 +337,11 @@ inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator>(
     const U &, datapar<T, Abi>);
 
 // casts [datapar.casts]
+#ifndef Vc_CLANG
 template <class T, class U, class... Us, size_t NN = U::size() + Us::size()...>
 inline std::conditional_t<(T::size() == NN), T, std::array<T, NN / T::size()>>
     datapar_cast(U, Us...);
+#endif
 
 // mask binary operators [mask.binary]
 namespace detail
