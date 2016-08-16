@@ -2,6 +2,7 @@
 #include "datapar/synopsis.h"
 #include "datapar/mask.h"
 #include "datapar/datapar.h"
+#include "datapar/ostream.h"
 #include "datapar/fixed_size.h"
 #include "datapar/sse.h"
 #include "datapar/avx.h"
