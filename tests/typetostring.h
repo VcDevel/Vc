@@ -152,7 +152,7 @@ inline std::string typeToString_impl(
 // typeToString specializations {{{2
 template <typename T> inline std::string typeToString() { return typeToString_impl(T()); }
 template <> inline std::string typeToString<void>() { return ""; }
-template <> inline std::string typeToString<long double>() { return "long double"; }
+template <> inline std::string typeToString<long double>() { return "ldoubl"; }
 template <> inline std::string typeToString<double>() { return "double"; }
 template <> inline std::string typeToString<float>() { return " float"; }
 template <> inline std::string typeToString<long long>() { return " llong"; }
