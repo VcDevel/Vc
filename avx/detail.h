@@ -1100,13 +1100,29 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
 // mask_to_int{{{1
 template <size_t Size>
 Vc_INTRINSIC_L Vc_CONST_L int mask_to_int(__m256i x) Vc_INTRINSIC_R Vc_CONST_R;
+template <size_t Size> Vc_INTRINSIC Vc_CONST int mask_to_int(__m256d x)
+{
+    return mask_to_int<Size>(AVX::avx_cast<__m256i>(x));
+}
+template <size_t Size> Vc_INTRINSIC Vc_CONST int mask_to_int(__m256 x)
+{
+    return mask_to_int<Size>(AVX::avx_cast<__m256i>(x));
+}
 template <> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(__m256i k)
 {
     return movemask(AVX::avx_cast<__m256d>(k));
 }
+template <> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(__m256d k)
+{
+    return movemask(k);
+}
 template <> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(__m256i k)
 {
     return movemask(AVX::avx_cast<__m256>(k));
+}
+template <> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(__m256  k)
+{
+    return movemask(k);
 }
 #ifdef Vc_IMPL_BMI2
 template <> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m256i k)

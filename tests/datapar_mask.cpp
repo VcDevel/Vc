@@ -30,10 +30,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/datapar>
 
 template<typename T, int N>
-using fixed_vec = Vc::datapar<T, Vc::datapar_abi::fixed_size<N>>;
-template<typename T, int N>
 using fixed_mask = Vc::mask<T, Vc::datapar_abi::fixed_size<N>>;
 
+// all_test_types / ALL_TYPES {{{1
 typedef expand_list<
     Typelist<
 #ifdef Vc_HAVE_FULL_AVX_ABI
@@ -54,6 +53,26 @@ typedef expand_list<
              long, unsigned int, short, unsigned char>> all_test_types;
 
 #define ALL_TYPES (all_test_types)
+
+// mask generator functions {{{1
+template <class M> M make_mask(const std::initializer_list<bool> &init)
+{
+    std::size_t i = 0;
+    M r;
+    for (;;) {
+        for (bool x : init) {
+            r[i] = x;
+            if (++i == M::size()) {
+                return r;
+            }
+        }
+    }
+}
+
+template <class M> M make_alternating_mask()
+{
+    return make_mask<M>({false, true});
+}
 
 TEST_TYPES(M, default_constructors, ALL_TYPES)
 {
@@ -217,10 +236,7 @@ TEST_TYPES(M, load, ALL_TYPES)
     using Vc::flags::vector_aligned;
     constexpr auto overaligned = Vc::flags::overaligned<Vc::memory_alignment<M> * 2>;
 
-    M alternating_mask{false};
-    for (std::size_t i = 1; i < alternating_mask.size(); i += 2) {
-        alternating_mask[i] = true;
-    }
+    const M alternating_mask = make_alternating_mask<M>();
 
     M x(&mem[M::size()], vector_aligned);
     COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : alternating_mask);
@@ -253,10 +269,7 @@ TEST_TYPES(M, store, ALL_TYPES)
     using Vc::flags::vector_aligned;
     constexpr auto overaligned = Vc::flags::overaligned<Vc::memory_alignment<M> * 2>;
 
-    M alternating_mask{false};
-    for (std::size_t i = 1; i < alternating_mask.size(); i += 2) {
-        alternating_mask[i] = true;
-    }
+    const M alternating_mask = make_alternating_mask<M>();
 
     M x{true};
     x.copy_to(&mem[M::size()], vector_aligned);
@@ -294,6 +307,53 @@ TEST_TYPES(M, store, ALL_TYPES)
     for (; i < 3 * M::size(); ++i) {
         COMPARE(mem[i], false);
     }
+}
+
+TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
+{
+    const M alternating_mask = make_alternating_mask<M>();
+    COMPARE(alternating_mask[0], false);  // assumption below
+    auto &&gen = make_mask<M>;
+
+    // all_of
+    VERIFY( all_of(M{true}));
+    VERIFY(!all_of(alternating_mask));
+    VERIFY(!all_of(M{false}));
+
+    // any_of
+    VERIFY( any_of(M{true}));
+    COMPARE(any_of(alternating_mask), M::size() > 1);
+    VERIFY(!any_of(M{false}));
+
+    // none_of
+    VERIFY(!none_of(M{true}));
+    COMPARE(none_of(alternating_mask), M::size() == 1);
+    VERIFY( none_of(M{false}));
+
+    // some_of
+    VERIFY(!some_of(M{true}));
+    VERIFY(!some_of(M{false}));
+    if (M::size() > 1) {
+        VERIFY(some_of(gen({true, false})));
+        VERIFY(some_of(gen({false, true})));
+        if (M::size() > 3) {
+            VERIFY(some_of(gen({0, 0, 0, 1})));
+        }
+    }
+
+    // popcount
+    COMPARE(popcount(M{true}), int(M::size()));
+    COMPARE(popcount(alternating_mask), int(M::size()) / 2);
+    COMPARE(popcount(M{false}), 0);
+    COMPARE(popcount(gen({0, 0, 1})), int(M::size()) / 3);
+    COMPARE(popcount(gen({0, 0, 0, 1})), int(M::size()) / 4);
+    COMPARE(popcount(gen({0, 0, 0, 0, 1})), int(M::size()) / 5);
+
+    // find_first_set
+    COMPARE(find_first_set(M{true}), 0);
+
+    // find_last_set
+    COMPARE(find_last_set(M{true}), int(M::size()) - 1);
 }
 
 // vim: foldmethod=marker

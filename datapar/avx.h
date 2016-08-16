@@ -267,7 +267,83 @@ protected:
     template <class T> static constexpr size_t size = M<T>::size();
 };
 // }}}1
+constexpr struct {
+    template <class T> operator T() const { return Detail::allone<T>(); }
+} allone_poly = {};
 }  // namespace Vc_VERSIONED_NAMESPACE::detail
+
+// [mask.reductions] {{{
+namespace Vc_VERSIONED_NAMESPACE
+{
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx> k)
+{
+    const auto d =
+        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    return 0 != Detail::testc(d, detail::allone_poly);
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::avx> k)
+{
+    const auto d =
+        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    return 0 == Detail::testz(d, d);
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::avx> k)
+{
+    const auto d =
+        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    return 0 != Detail::testz(d, d);
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::avx> k)
+{
+    const auto d =
+        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    return 0 != Detail::testnzc(d, detail::allone_poly);
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx> k)
+{
+    using detail::avx_cast;
+    const auto d =
+        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    switch (k.size()) {
+    case 4:
+        return Detail::popcnt4(Detail::mask_to_int<k.size()>(d));
+    case 8:
+        return Detail::popcnt8(Detail::mask_to_int<k.size()>(d));
+    case 16:
+        return Detail::popcnt32(Detail::mask_to_int<32>(d)) >> 1;
+    case 32:
+        return Detail::popcnt32(Detail::mask_to_int<k.size()>(d));
+    default:
+        Vc_UNREACHABLE();
+    }
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::avx> k)
+{
+    const auto d = detail::avx_cast<__m256i>(
+        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k));
+    return _bit_scan_forward(Detail::mask_to_int<k.size()>(d));
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx> k)
+{
+    const auto d = detail::avx_cast<__m256i>(
+        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k));
+    return _bit_scan_reverse(Detail::mask_to_int<k.size()>(d));
+}
+}  // namespace Vc_VERSIONED_NAMESPACE
+// }}}
 
 namespace std
 {
@@ -303,6 +379,8 @@ public:
             return Vc::Detail::movemask(
                        Vc::AVX::avx_cast<__m256d>(static_cast<S<T>>(x))) ==
                    Vc::Detail::movemask(Vc::AVX::avx_cast<__m256d>(static_cast<S<T>>(y)));
+        default:
+            Vc_UNREACHABLE();
         }
     }
 };

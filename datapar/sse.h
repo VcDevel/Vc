@@ -241,6 +241,86 @@ protected:
 // }}}1
 }  // namespace Vc_VERSIONED_NAMESPACE::detail
 
+// [mask.reductions] {{{
+namespace Vc_VERSIONED_NAMESPACE
+{
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::sse> k)
+{
+    const auto d = detail::sse_cast<__m128i>(
+        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+#ifdef Vc_USE_PTEST
+    return _mm_testc_si128(d, SSE::_mm_setallone_si128());  // return 1 if (0xffffffff,
+                                                            // 0xffffffff, 0xffffffff,
+                                                            // 0xffffffff) == (~0 & d.v())
+#else
+    return _mm_movemask_epi8(d) == 0xffff;
+#endif
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::sse> k)
+{
+    const auto d = detail::sse_cast<__m128i>(
+        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+#ifdef Vc_USE_PTEST
+    return 0 == _mm_testz_si128(d, d);  // return 1 if (0, 0, 0, 0) == (d.v() & d.v())
+#else
+    return _mm_movemask_epi8(d) != 0x0000;
+#endif
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::sse> k)
+{
+    const auto d = detail::sse_cast<__m128i>(
+        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+#ifdef Vc_USE_PTEST
+    return 0 != _mm_testz_si128(d, d);  // return 1 if (0, 0, 0, 0) == (d.v() & d.v())
+#else
+    return _mm_movemask_epi8(d) == 0x0000;
+#endif
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::sse> k)
+{
+    const auto d = detail::sse_cast<__m128i>(
+        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+#ifdef Vc_USE_PTEST
+    return _mm_test_mix_ones_zeros(d, SSE::_mm_setallone_si128());
+#else
+    const int tmp = _mm_movemask_epi8(d);
+    return tmp != 0 && (tmp ^ 0xffff) != 0;
+#endif
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::sse> k)
+{
+    const auto d = detail::sse_cast<__m128i>(
+        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+    return Detail::mask_count<k.size()>(d);
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::sse> k)
+{
+    const auto d = detail::sse_cast<__m128i>(
+        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+    return _bit_scan_forward(Detail::mask_to_int<k.size()>(d));
+}
+
+template <class T, class = enable_if<sizeof(T) <= 8>>
+Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::sse> k)
+{
+    const auto d = detail::sse_cast<__m128i>(
+        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+    return _bit_scan_reverse(Detail::mask_to_int<k.size()>(d));
+}
+}  // namespace Vc_VERSIONED_NAMESPACE
+// }}}
+
 namespace std
 {
 // datapar operators {{{1

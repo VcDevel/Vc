@@ -385,13 +385,82 @@ inline auto operator!=(const mask<T0, A0> &x, const mask<T1, A1> &y)
 }
 
 // reductions [mask.reductions]
-template <class T, class Abi> inline bool all_of(mask<T, Abi>);
-template <class T, class Abi> inline bool any_of(mask<T, Abi>);
-template <class T, class Abi> inline bool none_of(mask<T, Abi>);
-template <class T, class Abi> inline bool some_of(mask<T, Abi>);
-template <class T, class Abi> inline int popcount(mask<T, Abi>);
-template <class T, class Abi> inline int find_first_set(mask<T, Abi>);
-template <class T, class Abi> inline int find_last_set(mask<T, Abi>);
+template <class T, class Abi> inline bool all_of(const mask<T, Abi> &k)
+{
+    constexpr int N = datapar_size_v<T, Abi>;
+    for (int i = 0; i < N; ++i) {
+        if (!k[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <class T, class Abi> inline bool any_of(const mask<T, Abi> &k)
+{
+    constexpr int N = datapar_size_v<T, Abi>;
+    for (int i = 0; i < N; ++i) {
+        if (k[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <class T, class Abi> inline bool none_of(const mask<T, Abi> &k)
+{
+    constexpr int N = datapar_size_v<T, Abi>;
+    for (int i = 0; i < N; ++i) {
+        if (k[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <class T, class Abi> inline bool some_of(const mask<T, Abi> &k)
+{
+    constexpr int N = datapar_size_v<T, Abi>;
+    for (int i = 1; i < N; ++i) {
+        if (k[i] != k[i - 1]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <class T, class Abi> inline int popcount(const mask<T, Abi> &k)
+{
+    constexpr int N = datapar_size_v<T, Abi>;
+    int n = k[0];
+    for (int i = 1; i < N; ++i) {
+        n += k[i];
+    }
+    return n;
+}
+
+template <class T, class Abi> inline int find_first_set(const mask<T, Abi> &k)
+{
+    constexpr int N = datapar_size_v<T, Abi>;
+    for (int i = 0; i < N; ++i) {
+        if (k[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+template <class T, class Abi> inline int find_last_set(const mask<T, Abi> &k)
+{
+    constexpr int N = datapar_size_v<T, Abi>;
+    for (int i = N - 1; i >= 0; --i) {
+        if (k[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 #if !defined VC_COMMON_ALGORITHMS_H_
 constexpr bool all_of(bool x) { return x; }
 constexpr bool any_of(bool x) { return x; }
