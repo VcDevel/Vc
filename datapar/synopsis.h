@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #include "detail.h"
 #include "where.h"
+#include <type_traits>
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -81,13 +82,13 @@ using native =
 template <typename T> using native = std::conditional_t<(sizeof(T) > 8), scalar, avx>;
 #elif defined Vc_HAVE_AVX_ABI
 template <typename T>
-using native = std::conditional_t<std::is_floating_point_v<T>,
+using native = std::conditional_t<std::is_floating_point<T>::value,
                                   std::conditional_t<(sizeof(T) > 8), scalar, avx>, sse>;
 #elif defined Vc_HAVE_FULL_SSE_ABI
 template <typename T> using native = std::conditional_t<(sizeof(T) > 8), scalar, sse>;
 #elif defined Vc_HAVE_SSE_ABI
 template <typename T>
-using native = std::conditional_t<std::is_same_v<float, T>, sse, scalar>;
+using native = std::conditional_t<std::is_same<float, T>::value, sse, scalar>;
 #elif defined Vc_HAVE_FULL_KNC_ABI
 template <typename T> using native = std::conditional_t<(sizeof(T) > 8), scalar, knc>;
 #else
