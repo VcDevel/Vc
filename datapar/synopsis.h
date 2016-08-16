@@ -386,18 +386,20 @@ inline auto operator!=(const mask<T0, A0> &x, const mask<T1, A1> &y)
 
 // reductions [mask.reductions]
 template <class T, class Abi> inline bool all_of(mask<T, Abi>);
-constexpr bool all_of(bool x) { return x; }
 template <class T, class Abi> inline bool any_of(mask<T, Abi>);
-constexpr bool any_of(bool x) { return x; }
 template <class T, class Abi> inline bool none_of(mask<T, Abi>);
-constexpr bool none_of(bool x) { return !x; }
 template <class T, class Abi> inline bool some_of(mask<T, Abi>);
-constexpr bool some_of(bool) { return false; }
 template <class T, class Abi> inline int popcount(mask<T, Abi>);
-constexpr int popcount(bool x) { return x; }
 template <class T, class Abi> inline int find_first_set(mask<T, Abi>);
-constexpr int find_first_set(bool) { return 0; }
 template <class T, class Abi> inline int find_last_set(mask<T, Abi>);
+#if !defined VC_COMMON_ALGORITHMS_H_
+constexpr bool all_of(bool x) { return x; }
+constexpr bool any_of(bool x) { return x; }
+constexpr bool none_of(bool x) { return !x; }
+constexpr bool some_of(bool) { return false; }
+#endif
+constexpr int popcount(bool x) { return x; }
+constexpr int find_first_set(bool) { return 0; }
 constexpr int find_last_set(bool) { return 0; }
 
 // masked assignment [mask.where]
