@@ -74,19 +74,18 @@ template <class M> M make_alternating_mask()
     return make_mask<M>({false, true});
 }
 
-TEST_TYPES(M, default_constructors, ALL_TYPES)
+TEST_TYPES(M, broadcast, ALL_TYPES)  //{{{1
 {
-    M x;
-    x = M{};
-    x = M();
-    x = x;
-    for (std::size_t i = 0; i < M::size(); ++i) {
-        COMPARE(x[i], false);
+    {
+        M x;      // default broadcasts 0
+        x = M{};  // default broadcasts 0
+        x = M();  // default broadcasts 0
+        x = x;
+        for (std::size_t i = 0; i < M::size(); ++i) {
+            COMPARE(x[i], false);
+        }
     }
-}
 
-TEST_TYPES(M, broadcast, ALL_TYPES)
-{
     M x = true;
     M y = false;
     for (std::size_t i = 0; i < M::size(); ++i) {
@@ -97,32 +96,39 @@ TEST_TYPES(M, broadcast, ALL_TYPES)
     COMPARE(x, y);
 }
 
-TEST_TYPES(M, compares, ALL_TYPES)
+TEST_TYPES(M, operators, ALL_TYPES)  //{{{1
 {
-    M x = true, y = false;
-    VERIFY(x == x);
-    VERIFY(x != y);
-    VERIFY(y != x);
-    VERIFY(!(x != x));
-    VERIFY(!(x == y));
-    VERIFY(!(y == x));
+    {  // compares{{{2
+        M x = true, y = false;
+        VERIFY(x == x);
+        VERIFY(x != y);
+        VERIFY(y != x);
+        VERIFY(!(x != x));
+        VERIFY(!(x == y));
+        VERIFY(!(y == x));
+    }
+    {  // subscripting{{{2
+        M x = true;
+        for (std::size_t i = 0; i < M::size(); ++i) {
+            COMPARE(x[i], true);
+            x[i] = !x[i];
+        }
+        COMPARE(x, M{false});
+        for (std::size_t i = 0; i < M::size(); ++i) {
+            COMPARE(x[i], false);
+            x[i] = !x[i];
+        }
+        COMPARE(x, M{true});
+    }
+    {  // negation{{{2
+        M x = false;
+        M y = !x;
+        COMPARE(y, M{true});
+        COMPARE(!y, x);
+    }
 }
 
-TEST_TYPES(M, subscript, ALL_TYPES)
-{
-    M x=true;
-    for (std::size_t i = 0; i < M::size(); ++i) {
-        COMPARE(x[i], true);
-        x[i] = !x[i];
-    }
-    COMPARE(x, M{false});
-    for (std::size_t i = 0; i < M::size(); ++i) {
-        COMPARE(x[i], false);
-        x[i] = !x[i];
-    }
-    COMPARE(x, M{true});
-}
-
+// convert {{{1
 template <typename M, int SizeofT = sizeof(typename M::value_type)> struct ConvertType {
     using type0 = fixed_mask<float, M::size()>;
     using type1 = fixed_mask<signed short, M::size()>;
@@ -217,16 +223,9 @@ TEST_TYPES(M, convert, ALL_TYPES)
     }
 }
 
-TEST_TYPES(M, negate, ALL_TYPES)
+TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
 {
-    M x = false;
-    M y = !x;
-    COMPARE(y, M{true});
-    COMPARE(!y, x);
-}
-
-TEST_TYPES(M, load, ALL_TYPES)
-{
+    // loads {{{2
     alignas(Vc::memory_alignment<M> * 2) bool mem[3 * M::size()] = {};
     for (std::size_t i = 1; i < sizeof(mem) / sizeof(*mem); i += 2) {
         COMPARE(mem[i - 1], false);
@@ -260,18 +259,10 @@ TEST_TYPES(M, load, ALL_TYPES)
     COMPARE(x, !alternating_mask);                            // 1010
     x.copy_from(mem, alternating_mask, overaligned);          // load .1.1
     COMPARE(x, M{true});                                      // 1111
-}
 
-TEST_TYPES(M, store, ALL_TYPES)
-{
-    alignas(Vc::memory_alignment<M> * 2) bool mem[3 * M::size()] = {};
-    using Vc::flags::element_aligned;
-    using Vc::flags::vector_aligned;
-    constexpr auto overaligned = Vc::flags::overaligned<Vc::memory_alignment<M> * 2>;
-
-    const M alternating_mask = make_alternating_mask<M>();
-
-    M x{true};
+    // stores {{{2
+    memset(mem, 0, sizeof(mem));
+    x = true;
     x.copy_to(&mem[M::size()], vector_aligned);
     std::size_t i = 0;
     for (; i < M::size(); ++i) {
