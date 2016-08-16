@@ -39,10 +39,13 @@ template <class T, class Abi> class datapar
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::datapar_impl_type;
+    static constexpr std::integral_constant<size_t, traits::size()> size_tag = {};
+    static constexpr T *type_tag = nullptr;
+    friend impl;
 
 public:
     using value_type = T;
-    using reference = detail::smart_reference<datapar>;
+    using reference = detail::smart_reference<datapar, impl>;
     using mask_type = mask<T, Abi>;
     using size_type = size_t;
     using abi_type = Abi;
@@ -54,7 +57,25 @@ public:
     datapar &operator=(const datapar &) = default;
     datapar &operator=(datapar &&) = default;
 
+    // implicit broadcast constructor
+    datapar(value_type x) : d{impl::broadcast(x)} {}
+
+    // scalar access
+    reference operator[](size_type i) { return {*this, int(i)}; }
+    value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
+
+    // negation
+    mask_type operator!() const
+    {
+        return {detail::private_init, impl::negate(d, type_tag)};
+    }
+
+    // access to internal representation (suggested extension)
+    explicit operator typename traits::datapar_cast_type() const { return d; }
+    explicit datapar(const typename traits::datapar_cast_type &init) : d{init} {}
+
 private:
+    datapar(detail::private_init_t, const typename traits::datapar_member_type &init) : d{init} {}
     alignas(traits::datapar_member_alignment) typename traits::datapar_member_type d = {};
 };
 }  // namespace Vc_VERSIONED_NAMESPACE

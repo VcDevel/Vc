@@ -34,6 +34,54 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_VERSIONED_NAMESPACE::detail {
 // datapar impl {{{1
 template <int N> struct fixed_size_datapar_impl {
+    // member types {{{2
+    using index_seq = std::make_index_sequence<N>;
+    using mask_member_type = std::array<bool, N>;
+    template <class T> using datapar_member_type = std::array<T, N>;
+    template <class T> using datapar = Vc::datapar<T, datapar_abi::fixed_size<N>>;
+    using size_tag = std::integral_constant<size_t, N>;
+    template <class T> using type_tag = T *;
+
+    template <typename T> static constexpr void unused(T &&) {}
+
+    // broadcast {{{2
+    template <class T, size_t... I>
+    static constexpr datapar_member_type<T> broadcast_impl(
+        T x, std::index_sequence<I...>) noexcept
+    {
+        return {((void)I, x)...};
+    }
+    template <class T> static constexpr datapar_member_type<T> broadcast(T x) noexcept
+    {
+        return broadcast_impl(x, index_seq{});
+    }
+
+    // negation {{{2
+    template <class T, size_t... I>
+    static constexpr mask_member_type negate_impl(
+        const datapar_member_type<T> &x, std::index_sequence<I...>) noexcept
+    {
+        return {!x[I]...};
+    }
+    template <class T>
+    static constexpr mask_member_type negate(const datapar_member_type<T> &x,
+                                             type_tag<T>) noexcept
+    {
+        return negate_impl(x, index_seq{});
+    }
+
+    // smart_reference access {{{2
+    template <class T, class A>
+    static bool get(const Vc::datapar<T, A> &v, int i) noexcept
+    {
+        return v.d[i];
+    }
+    template <class T, class A>
+    static void set(Vc::datapar<T, A> &v, int i, bool x) noexcept
+    {
+        v.d[i] = x;
+    }
+    // }}}2
 };
 
 // mask impl {{{1
@@ -162,23 +210,34 @@ template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
 namespace std
 {
 // datapar operators {{{1
-template <class T, int N>
-struct equal_to<Vc::datapar<T, Vc::datapar_abi::fixed_size<N>>> {
-private:
-    using V = Vc::datapar<T, Vc::datapar_abi::fixed_size<N>>;
-    using M = typename V::mask_type;
-
-    template <size_t... I> M impl(const V &x, const V &y, index_sequence<I...>) const
-    {
-        return {(x[I] == y[I])...};
+#define Vc_CMP_OPERATIONS(funcobj_name_)                                                 \
+    template <class T, int N>                                                            \
+    struct funcobj_name_<Vc::datapar<T, Vc::datapar_abi::fixed_size<N>>> {               \
+    private:                                                                             \
+        using V = Vc::datapar<T, Vc::datapar_abi::fixed_size<N>>;                        \
+        using M = typename V::mask_type;                                                 \
+        using MM = typename Vc::detail::traits<                                          \
+            T, Vc::datapar_abi::fixed_size<N>>::mask_member_type;                        \
+                                                                                         \
+        template <size_t... I>                                                           \
+        constexpr MM impl(const V &x, const V &y, index_sequence<I...>) const            \
+        {                                                                                \
+            funcobj_name_<T> cmp;                                                        \
+            return {cmp(x[I], y[I])...};                                                 \
+        }                                                                                \
+                                                                                         \
+    public:                                                                              \
+        constexpr M operator()(const V &x, const V &y) const                             \
+        {                                                                                \
+            return static_cast<M>(impl(x, y, make_index_sequence<N>()));                 \
+        }                                                                                \
     }
-
-public:
-    M operator()(const V &x, const V &y) const
-    {
-        return impl(x, y, make_index_sequence<N>());
-    }
-};
+Vc_CMP_OPERATIONS(equal_to);
+Vc_CMP_OPERATIONS(not_equal_to);
+Vc_CMP_OPERATIONS(less);
+Vc_CMP_OPERATIONS(greater);
+Vc_CMP_OPERATIONS(less_equal);
+Vc_CMP_OPERATIONS(greater_equal);
 
 // mask operators {{{1
 template <class T, int N>

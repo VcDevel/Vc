@@ -38,6 +38,7 @@ template <class T, class Abi> class mask
     using impl = typename traits::mask_impl_type;
     static constexpr std::integral_constant<size_t, traits::size()> size_tag = {};
     friend impl;
+    friend datapar<T, Abi>;
 
 public:
     using value_type = bool;
@@ -118,15 +119,14 @@ public:
     value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
 
     // negation
-    mask operator!() const { return {private_init, impl::negate(d, size_tag)}; }
+    mask operator!() const { return {detail::private_init, impl::negate(d, size_tag)}; }
 
     // access to internal representation (suggested extension)
     explicit operator typename traits::mask_cast_type() const { return d; }
     explicit mask(const typename traits::mask_cast_type &init) : d{init} {}
 
 private:
-    static constexpr struct private_init_t {} private_init = {};
-    mask(private_init_t, const typename traits::mask_member_type &init) : d{init} {}
+    mask(detail::private_init_t, const typename traits::mask_member_type &init) : d{init} {}
     alignas(traits::mask_member_alignment) typename traits::mask_member_type d = {};
 };
 

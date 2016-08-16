@@ -244,15 +244,6 @@ template <class T, class Abi, class U> datapar<T, Abi> &operator<<=(datapar<T, A
 template <class T, class Abi, class U> datapar<T, Abi> &operator>>=(datapar<T, Abi> &, const U &);
 
 // binary operators [datapar.binary]
-namespace detail
-{
-template <class L, class R> struct return_type_impl;
-template <class L> struct return_type_impl<L, L> {
-    using type = L;
-};
-template <class L, class R> using return_type = typename return_type_impl<L, R>::type;
-}  // namespace detail
-
 template <class T, class Abi, class U>
 inline detail::return_type<datapar<T, Abi>, U> operator+ (datapar<T, Abi>, const U &);
 template <class T, class Abi, class U>
@@ -295,46 +286,72 @@ template <class T, class Abi, class U>
 inline detail::return_type<datapar<T, Abi>, U> operator>>(const U &, datapar<T, Abi>);
 
 // compares [datapar.comparison]
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator==(
-    datapar<T, Abi> x, const U &y)
+template <class T, class A, class U>
+inline detail::cmp_return_type<datapar<T, A>, U> operator==(datapar<T, A> x, const U &y)
 {
-    return std::equal_to<typename detail::return_type<datapar<T, Abi>, U>::mask_type>{}(
-        x, y);
+    return std::equal_to<detail::return_type<datapar<T, A>, U>>{}(x, y);
 }
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator!=(
-    datapar<T, Abi>, const U &);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator<=(
-    datapar<T, Abi>, const U &);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator>=(
-    datapar<T, Abi>, const U &);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator< (
-    datapar<T, Abi>, const U &);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator> (
-    datapar<T, Abi>, const U &);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator==(
-    const U &, datapar<T, Abi>);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator!=(
-    const U &, datapar<T, Abi>);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator<=(
-    const U &, datapar<T, Abi>);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator>=(
-    const U &, datapar<T, Abi>);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator< (
-    const U &, datapar<T, Abi>);
-template <class T, class Abi, class U>
-inline typename detail::return_type<datapar<T, Abi>, U>::mask_type operator>(
-    const U &, datapar<T, Abi>);
+template <class T, class A, class U>
+inline detail::cmp_return_type<datapar<T, A>, U> operator!=(datapar<T, A> x, const U &y)
+{
+    return std::not_equal_to<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U>
+inline detail::cmp_return_type<datapar<T, A>, U> operator<=(datapar<T, A> x, const U &y)
+{
+    return std::less_equal<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U>
+inline detail::cmp_return_type<datapar<T, A>, U> operator>=(datapar<T, A> x, const U &y)
+{
+    return std::greater_equal<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U>
+inline detail::cmp_return_type<datapar<T, A>, U> operator<(datapar<T, A> x, const U &y)
+{
+    return std::less<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U>
+inline detail::cmp_return_type<datapar<T, A>, U> operator>(datapar<T, A> x, const U &y)
+{
+    return std::greater<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U,
+          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
+inline detail::cmp_return_type<datapar<T, A>, U> operator==(const U &x, datapar<T, A> y)
+{
+    return std::equal_to<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U,
+          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
+inline detail::cmp_return_type<datapar<T, A>, U> operator!=(const U &x, datapar<T, A> y)
+{
+    return std::not_equal_to<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U,
+          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
+inline detail::cmp_return_type<datapar<T, A>, U> operator<=(const U &x, datapar<T, A> y)
+{
+    return std::less_equal<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U,
+          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
+inline detail::cmp_return_type<datapar<T, A>, U> operator>=(const U &x, datapar<T, A> y)
+{
+    return std::greater_equal<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U,
+          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
+inline detail::cmp_return_type<datapar<T, A>, U> operator<(const U &x, datapar<T, A> y)
+{
+    return std::less<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
+template <class T, class A, class U,
+          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
+inline detail::cmp_return_type<datapar<T, A>, U> operator>(const U &x, datapar<T, A> y)
+{
+    return std::greater<detail::return_type<datapar<T, A>, U>>{}(x, y);
+}
 
 // casts [datapar.casts]
 #ifndef Vc_CLANG

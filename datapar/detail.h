@@ -44,6 +44,20 @@ static constexpr std::size_t next_power_of_2(std::size_t x)
 {
     return (x & (x - 1)) == 0 ? x : next_power_of_2((x | (x >> 1)) + 1);
 }
+
+/**
+ * \internal
+ * Tag used for private init constructor of datapar and mask
+ */
+static constexpr struct private_init_t {} private_init = {};
+
+template <class L, class R> struct return_type_impl;
+template <class L> struct return_type_impl<L, L> {
+    using type = L;
+};
+
+template <class L, class R> using return_type = typename return_type_impl<L, R>::type;
+template <class L, class R> using cmp_return_type = typename return_type<L, R>::mask_type;
 }  // namespace Vc_VERSIONED_NAMESPACE::detail
 #endif  // VC_DATAPAR_DETAIL_H_
 
