@@ -58,6 +58,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #if defined Vc_CLANG || defined Vc_APPLECLANG
+#  define Vc_UNREACHABLE __builtin_unreachable
 #  define Vc_NEVER_INLINE [[gnu::noinline]]
 #  define Vc_INTRINSIC_L inline
 #  define Vc_INTRINSIC_R __attribute__((always_inline))
@@ -79,6 +80,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_DEPRECATED(msg)
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
+#  define Vc_UNREACHABLE __builtin_unreachable
 #  define Vc_NEVER_INLINE [[gnu::noinline]]
 #  if defined Vc_GCC && !defined __OPTIMIZE__
 #    define Vc_MAY_ALIAS
@@ -114,6 +116,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  endif
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #else
+#  define Vc_UNREACHABLE std::abort
 #  define Vc_NEVER_INLINE
 #  define Vc_FLATTEN
 #  ifdef Vc_PURE
