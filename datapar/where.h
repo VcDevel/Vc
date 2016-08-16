@@ -28,11 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_WHERE_H_
 #define VC_DATAPAR_WHERE_H_
 
-namespace Vc
-{
-inline namespace v2
-{
-namespace detail
+namespace Vc_VERSIONED_NAMESPACE::detail
 {
 template <typename T, typename U> inline void masked_assign(bool k, T &lhs, U &&rhs)
 {
@@ -143,8 +139,6 @@ private:
     const Mask &k;
     T &d;
 };
-}  // namespace detail
-}  // namespace v2
-}  // namespace Vc
+}  // namespace Vc_VERSIONED_NAMESPACE
 
 #endif  // VC_DATAPAR_WHERE_H_

@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_SMART_REFERENCE_H_
 #define VC_DATAPAR_SMART_REFERENCE_H_
 
-namespace Vc::v2::detail {
+namespace Vc_VERSIONED_NAMESPACE::detail {
 template <class U, class Accessor = U> class smart_reference
 {
     friend U;
@@ -133,7 +133,7 @@ public:
         return r;
     }
 };
-}  // namespace Vc::v2::detail
+}  // namespace Vc_VERSIONED_NAMESPACE::detail
 
 #endif  // VC_DATAPAR_SMART_REFERENCE_H_
 

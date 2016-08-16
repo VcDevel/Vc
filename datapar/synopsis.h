@@ -34,9 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "detail.h"
 #include "where.h"
 
-namespace Vc
-{
-inline namespace v2
+namespace Vc_VERSIONED_NAMESPACE
 {
 using size_t = std::size_t;
 using align_val_t =
@@ -410,8 +408,7 @@ template <class T> inline detail::where_proxy<bool, T> where(bool k, T &d)
 {
     return {k, d};
 }
-}  // namespace v2
-}  // namespace Vc
+}  // namespace Vc_VERSIONED_NAMESPACE
 
 #endif  // VC_DATAPAR_SYNOPSIS_H_
 

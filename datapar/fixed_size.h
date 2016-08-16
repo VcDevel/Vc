@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "detail.h"
 #include <array>
 
-namespace Vc::v2::detail {
+namespace Vc_VERSIONED_NAMESPACE::detail {
 // datapar impl {{{1
 template <int N> struct fixed_size_datapar_impl {
 };
@@ -118,7 +118,7 @@ template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
     using mask_cast_type = mask_member_type;
 };
 // }}}1
-}  // namespace Vc::v2::detail
+}  // namespace Vc_VERSIONED_NAMESPACE::detail
 
 namespace std
 {

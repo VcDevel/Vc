@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_DATAPAR_H_
 #define VC_DATAPAR_DATAPAR_H_
 
-namespace Vc::v2
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace detail
 {
@@ -57,7 +57,7 @@ public:
 private:
     alignas(traits::datapar_member_alignment) typename traits::datapar_member_type d = {};
 };
-}  // namespace Vc::v2
+}  // namespace Vc_VERSIONED_NAMESPACE
 
 #endif  // VC_DATAPAR_DATAPAR_H_
 
