@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_SSE_H_
 #define VC_DATAPAR_SSE_H_
 
+#include "macros.h"
+#ifdef Vc_HAVE_SSE_ABI
 #include "../common/storage.h"
 
 namespace Vc::v2::detail {
@@ -179,6 +181,7 @@ public:
 // }}}1
 }  // namespace std
 
+#endif  // Vc_HAVE_SSE_ABI
 #endif  // VC_DATAPAR_SSE_H_
 
 // vim: foldmethod=marker

@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../common/macros.h"
 #include "../common/declval.h"
+#include "macros.h"
 #include "detail.h"
 #include "where.h"
 
@@ -61,37 +62,35 @@ template <int N> struct partial_avx {};
 template <int N> struct partial_avx512 {};
 template <int N> struct partial_knc {};
 
-#ifdef __SSE2__
+#if defined Vc_IS_AMD64
 template <typename T>
 using compatible = std::conditional_t<(sizeof(T) <= 8), sse, scalar>;
-#elif defined __MIC__
+#elif defined Vc_HAVE_FULL_KNC_ABI
 template <typename T>
 using compatible = std::conditional_t<(sizeof(T) <= 8), knc, scalar>;
 #else
 template <typename> using compatible = scalar;
 #endif
 
-#if defined __AVX512F__
-#if defined __AVX512BW__
+#if defined Vc_HAVE_FULL_AVX512_ABI
 template <typename T> using native = std::conditional_t<(sizeof(T) <= 8), avx512, scalar>;
-#else
+#elif defined Vc_HAVE_AVX512_ABI
 template <typename T>
 using native =
     std::conditional_t<(sizeof(T) >= 4),
                        std::conditional_t<(sizeof(T) > 8), scalar, avx512>, avx>;
-#endif
-#elif defined __AVX2__
+#elif defined Vc_HAVE_FULL_AVX_ABI
 template <typename T> using native = std::conditional_t<(sizeof(T) > 8), scalar, avx>;
-#elif defined __AVX__
+#elif defined Vc_HAVE_AVX_ABI
 template <typename T>
 using native = std::conditional_t<std::is_floating_point_v<T>,
                                   std::conditional_t<(sizeof(T) > 8), scalar, avx>, sse>;
-#elif defined __SSE2__
+#elif defined Vc_HAVE_FULL_SSE_ABI
 template <typename T> using native = std::conditional_t<(sizeof(T) > 8), scalar, sse>;
-#elif defined __SSE__
+#elif defined Vc_HAVE_SSE_ABI
 template <typename T>
 using native = std::conditional_t<std::is_same_v<float, T>, sse, scalar>;
-#elif defined __MIC__
+#elif defined Vc_HAVE_FULL_KNC_ABI
 template <typename T> using native = std::conditional_t<(sizeof(T) > 8), scalar, knc>;
 #else
 template <typename> using native = scalar;
