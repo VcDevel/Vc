@@ -111,7 +111,7 @@ Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<ushort, float >) { return con
 Vc_INTRINSIC __m128d convert(__m128  v, ConvertTag<float , double>) { return _mm_cvtps_pd(v); }
 Vc_INTRINSIC __m128d convert(__m128d v, ConvertTag<double, double>) { return v; }
 Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<int   , double>) { return _mm_cvtepi32_pd(v); }
-Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<uint  , double>) { return _mm_add_pd(_mm_cvtepi32_pd(_mm_xor_si128(v, _mm_setmin_epi32())), _mm_set1_pd(1u << 31)); }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<uint  , double>) { return _mm_add_pd(_mm_cvtepi32_pd(_mm_xor_si128(v, setmin_epi32())), _mm_set1_pd(1u << 31)); }
 Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<short , double>) { return convert(convert(v, ConvertTag<short, int>()), ConvertTag<int, double>()); }
 Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<ushort, double>) { return convert(convert(v, ConvertTag<ushort, int>()), ConvertTag<int, double>()); }
 Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , short >) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); }

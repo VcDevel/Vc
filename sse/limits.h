@@ -49,7 +49,7 @@ template<> struct numeric_limits< ::Vc::SSE::ushort_v> : public numeric_limits<u
 template<> struct numeric_limits< ::Vc::SSE::short_v> : public numeric_limits<short>
 {
     static Vc_INTRINSIC Vc_CONST ::Vc::SSE::short_v max()           Vc_NOEXCEPT { return _mm_srli_epi16(::Vc::SSE::_mm_setallone_si128(), 1); }
-    static Vc_INTRINSIC Vc_CONST ::Vc::SSE::short_v min()           Vc_NOEXCEPT { return ::Vc::SSE::_mm_setmin_epi16(); }
+    static Vc_INTRINSIC Vc_CONST ::Vc::SSE::short_v min()           Vc_NOEXCEPT { return ::Vc::SSE::setmin_epi16(); }
     static Vc_INTRINSIC Vc_CONST ::Vc::SSE::short_v lowest()        Vc_NOEXCEPT { return min(); }
     static Vc_INTRINSIC Vc_CONST ::Vc::SSE::short_v epsilon()       Vc_NOEXCEPT { return ::Vc::SSE::short_v::Zero(); }
     static Vc_INTRINSIC Vc_CONST ::Vc::SSE::short_v round_error()   Vc_NOEXCEPT { return ::Vc::SSE::short_v::Zero(); }
@@ -73,7 +73,7 @@ template<> struct numeric_limits< ::Vc::SSE::uint_v> : public numeric_limits<uns
 template<> struct numeric_limits< ::Vc::SSE::int_v> : public numeric_limits<int>
 {
     static Vc_INTRINSIC Vc_CONST ::Vc::SSE::int_v max()           Vc_NOEXCEPT { return _mm_srli_epi32(::Vc::SSE::_mm_setallone_si128(), 1); }
-    static Vc_INTRINSIC Vc_CONST ::Vc::SSE::int_v min()           Vc_NOEXCEPT { return ::Vc::SSE::_mm_setmin_epi32(); }
+    static Vc_INTRINSIC Vc_CONST ::Vc::SSE::int_v min()           Vc_NOEXCEPT { return ::Vc::SSE::setmin_epi32(); }
     static Vc_INTRINSIC Vc_CONST ::Vc::SSE::int_v lowest()        Vc_NOEXCEPT { return min(); }
     static Vc_INTRINSIC Vc_CONST ::Vc::SSE::int_v epsilon()       Vc_NOEXCEPT { return ::Vc::SSE::int_v::Zero(); }
     static Vc_INTRINSIC Vc_CONST ::Vc::SSE::int_v round_error()   Vc_NOEXCEPT { return ::Vc::SSE::int_v::Zero(); }

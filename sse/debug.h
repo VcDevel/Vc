@@ -50,11 +50,21 @@ class DebugStream
 class DebugStream
 {
     private:
+        static char hexChar(char x) { return x + (x > 9 ? 87 : 48); }
         template<typename T, typename V> static void printVector(V _x)
         {
+            std::cerr << "0x";
+            const auto bytes = reinterpret_cast<const std::uint8_t *>(&_x);
+            for (std::size_t i = 0; i < sizeof(V); ++i) {
+                std::cerr << hexChar(bytes[i] >> 4) << hexChar(bytes[i] & 0xf);
+                if (i % 4 == 3) {
+                    std::cerr << '\'';
+                }
+            }
+
             enum { Size = sizeof(V) / sizeof(T) };
             union { V v; T m[Size]; } x = { _x };
-            std::cerr << '[' << std::setprecision(24) << x.m[0];
+            std::cerr << " = [" << std::setprecision(24) << x.m[0];
             for (int i = 1; i < Size; ++i) {
                 std::cerr << ", " << std::setprecision(24) << x.m[i];
             }
@@ -77,7 +87,7 @@ class DebugStream
             return *this;
         }
         DebugStream &operator<<(__m128i x) {
-            printVector<unsigned int, __m128i>(x);
+            printVector<int, __m128i>(x);
             return *this;
         }
 

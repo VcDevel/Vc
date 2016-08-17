@@ -58,7 +58,7 @@ Vc_INTRINSIC SSE:: float_m operator> (SSE:: float_v a, SSE:: float_v b) { return
 Vc_INTRINSIC SSE::   int_m operator> (SSE::   int_v a, SSE::   int_v b) { return _mm_cmpgt_epi32(a.data(), b.data()); }
 Vc_INTRINSIC SSE::  uint_m operator> (SSE::  uint_v a, SSE::  uint_v b) {
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
-    return SSE::_mm_cmpgt_epu32(a.data(), b.data());
+    return SSE::cmpgt_epu32(a.data(), b.data());
 #else
     return _mm_cmpgt_epi32(a.data(), b.data());
 #endif
@@ -77,7 +77,7 @@ Vc_INTRINSIC SSE:: float_m operator< (SSE:: float_v a, SSE:: float_v b) { return
 Vc_INTRINSIC SSE::   int_m operator< (SSE::   int_v a, SSE::   int_v b) { return _mm_cmplt_epi32(a.data(), b.data()); }
 Vc_INTRINSIC SSE::  uint_m operator< (SSE::  uint_v a, SSE::  uint_v b) {
 #ifndef USE_INCORRECT_UNSIGNED_COMPARE
-    return SSE::_mm_cmplt_epu32(a.data(), b.data());
+    return SSE::cmplt_epu32(a.data(), b.data());
 #else
     return _mm_cmplt_epi32(a.data(), b.data());
 #endif
