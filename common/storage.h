@@ -143,7 +143,6 @@ using DefaultStrategy =
 template <typename ValueType, size_t Size, typename Strategy = DefaultStrategy>
 class Storage;
 
-#if !defined Vc_GCC || Vc_GCC < 0x60000
 // GCC 6 forbids `EntryType m[]` altogether
 template <typename ValueType, size_t Size>
 class Storage<ValueType, Size, AliasStrategy::Union>
@@ -190,17 +189,15 @@ private:
         Vc_INTRINSIC VectorScalarUnion() : v() {}
         Vc_INTRINSIC VectorScalarUnion(VectorType vv) : v(vv) {}
         VectorType v;
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif
-        EntryType m[];
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+        // To get function parameter passed via registers the following works:
+        // EntryType m[];
+        // However:
+        // a) starting with GCC 6, GCC rejects it
+        // b) clang refuses to do lambda capture via reference of objects containing it
+        // Therefore, bite the bullet and get less efficient function calls:
+        EntryType m[Size];
     } data;
 };
-#endif
 
 template <typename ValueType, size_t Size>
 class Storage<ValueType, Size, AliasStrategy::MayAlias>
