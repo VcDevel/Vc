@@ -41,10 +41,8 @@ struct sse_mask_impl;
 struct sse_datapar_impl;
 using Vc::Common::Storage;
 
-template <class T>
-using sse_datapar_member_type = Storage<T, datapar_size_v<T, datapar_abi::sse>>;
-template <class T>
-using sse_mask_member_type = Storage<T, datapar_size_v<T, datapar_abi::sse>>;
+template <class T> using sse_datapar_member_type = Storage<T, 16 / sizeof(T)>;
+template <class T> using sse_mask_member_type = Storage<T, 16 / sizeof(T)>;
 
 template <class T> struct traits<T, datapar_abi::sse> {
     static_assert(sizeof(T) <= 8,
@@ -54,6 +52,7 @@ template <class T> struct traits<T, datapar_abi::sse> {
     using datapar_member_type = sse_datapar_member_type<T>;
     using datapar_impl_type = sse_datapar_impl;
     static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
+    using datapar_cast_type = typename datapar_member_type::VectorType;
 
     using mask_member_type = sse_mask_member_type<T>;
     using mask_impl_type = sse_mask_impl;
@@ -73,9 +72,146 @@ namespace Vc_VERSIONED_NAMESPACE::detail
 using SSE::sse_cast;
 // datapar impl {{{1
 struct sse_datapar_impl {
+    // member types {{{2
     using abi = datapar_abi::sse;
     template <class T> static constexpr size_t size = datapar_size_v<T, abi>;
     template <class T> using datapar_member_type = sse_datapar_member_type<T>;
+    template <class T> using mask_member_type = sse_mask_member_type<T>;
+    template <class T> using datapar = Vc::datapar<T, abi>;
+    template <class T> using mask = Vc::mask<T, abi>;
+    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <class T> using type_tag = T *;
+
+    // broadcast {{{2
+    static Vc_INTRINSIC datapar_member_type<double> broadcast(double x,
+                                                              size_tag<2>) noexcept
+    {
+        return _mm_set1_pd(x);
+    }
+    static Vc_INTRINSIC datapar_member_type<float> broadcast(float x,
+                                                             size_tag<4>) noexcept
+    {
+        return _mm_set1_ps(x);
+    }
+    template <class T>
+    static Vc_INTRINSIC datapar_member_type<T> broadcast(T x, size_tag<2>) noexcept
+    {
+        return _mm_set1_epi64x(x);
+    }
+    template <class T>
+    static Vc_INTRINSIC datapar_member_type<T> broadcast(T x, size_tag<4>) noexcept
+    {
+        return _mm_set1_epi32(x);
+    }
+    template <class T>
+    static Vc_INTRINSIC datapar_member_type<T> broadcast(T x, size_tag<8>) noexcept
+    {
+        return _mm_set1_epi16(x);
+    }
+    template <class T>
+    static Vc_INTRINSIC datapar_member_type<T> broadcast(T x, size_tag<16>) noexcept
+    {
+        return _mm_set1_epi8(x);
+    }
+
+    // negation {{{2
+    template <class T> static Vc_INTRINSIC mask<T> negate(datapar<T> x) noexcept
+    {
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+        return {private_init, !x.d.builtin()};
+#else
+        return equal_to(x, datapar<T>(0));
+#endif
+    }
+
+    // compares {{{2
+#if defined Vc_USE_BUILTIN_VECTOR_TYPES
+    template <class T>
+    static Vc_INTRINSIC mask<T> equal_to(datapar<T> x, datapar<T> y)
+    {
+        return {private_init, x.d.builtin() == y.d.builtin()};
+    }
+    template <class T>
+    static Vc_INTRINSIC mask<T> not_equal_to(datapar<T> x, datapar<T> y)
+    {
+        return {private_init, x.d.builtin() != y.d.builtin()};
+    }
+    template <class T>
+    static Vc_INTRINSIC mask<T> less(datapar<T> x, datapar<T> y)
+    {
+        return {private_init, x.d.builtin() < y.d.builtin()};
+    }
+    template <class T>
+    static Vc_INTRINSIC mask<T> less_equal(datapar<T> x, datapar<T> y)
+    {
+        return {private_init, x.d.builtin() <= y.d.builtin()};
+    }
+#else
+    static Vc_INTRINSIC mask<double> equal_to(datapar<double> x, datapar<double> y) { return {private_init, _mm_cmpeq_pd(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< float> equal_to(datapar< float> x, datapar< float> y) { return {private_init, _mm_cmpeq_ps(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< llong> equal_to(datapar< llong> x, datapar< llong> y) { return {private_init, SSE::cmpeq_epi64(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ullong> equal_to(datapar<ullong> x, datapar<ullong> y) { return {private_init, SSE::cmpeq_epi64(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<  long> equal_to(datapar<  long> x, datapar<  long> y) { return {private_init, sizeof(long) == 8 ? SSE::cmpeq_epi64(x.d, y.d) : _mm_cmpeq_epi32(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< ulong> equal_to(datapar< ulong> x, datapar< ulong> y) { return {private_init, sizeof(long) == 8 ? SSE::cmpeq_epi64(x.d, y.d) : _mm_cmpeq_epi32(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<   int> equal_to(datapar<   int> x, datapar<   int> y) { return {private_init, _mm_cmpeq_epi32(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<  uint> equal_to(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm_cmpeq_epi32(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< short> equal_to(datapar< short> x, datapar< short> y) { return {private_init, _mm_cmpeq_epi16(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ushort> equal_to(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm_cmpeq_epi16(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< schar> equal_to(datapar< schar> x, datapar< schar> y) { return {private_init, _mm_cmpeq_epi8(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< uchar> equal_to(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm_cmpeq_epi8(x.d, y.d)}; }
+
+    static Vc_INTRINSIC mask<double> not_equal_to(datapar<double> x, datapar<double> y) { return {private_init, _mm_cmpneq_pd(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< float> not_equal_to(datapar< float> x, datapar< float> y) { return {private_init, _mm_cmpneq_ps(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< llong> not_equal_to(datapar< llong> x, datapar< llong> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask<ullong> not_equal_to(datapar<ullong> x, datapar<ullong> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask<  long> not_equal_to(datapar<  long> x, datapar<  long> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask< ulong> not_equal_to(datapar< ulong> x, datapar< ulong> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask<   int> not_equal_to(datapar<   int> x, datapar<   int> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask<  uint> not_equal_to(datapar<  uint> x, datapar<  uint> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask< short> not_equal_to(datapar< short> x, datapar< short> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask<ushort> not_equal_to(datapar<ushort> x, datapar<ushort> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask< schar> not_equal_to(datapar< schar> x, datapar< schar> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask< uchar> not_equal_to(datapar< uchar> x, datapar< uchar> y) { return !equal_to(x, y); }
+
+    static Vc_INTRINSIC mask<double> less(datapar<double> x, datapar<double> y) { return {private_init, _mm_cmplt_pd(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< float> less(datapar< float> x, datapar< float> y) { return {private_init, _mm_cmplt_ps(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< llong> less(datapar< llong> x, datapar< llong> y) { return {private_init, SSE::cmpgt_epi64(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<ullong> less(datapar<ullong> x, datapar<ullong> y) { return {private_init, SSE::cmpgt_epu64(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<  long> less(datapar<  long> x, datapar<  long> y) { return {private_init, sizeof(long) == 8 ? SSE::cmpgt_epi64(y.d, x.d) :  _mm_cmpgt_epi32(y.d, x.d)}; }
+    static Vc_INTRINSIC mask< ulong> less(datapar< ulong> x, datapar< ulong> y) { return {private_init, sizeof(long) == 8 ? SSE::cmpgt_epu64(y.d, x.d) : SSE::cmpgt_epu32(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<   int> less(datapar<   int> x, datapar<   int> y) { return {private_init,  _mm_cmpgt_epi32(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<  uint> less(datapar<  uint> x, datapar<  uint> y) { return {private_init, SSE::cmpgt_epu32(y.d, x.d)}; }
+    static Vc_INTRINSIC mask< short> less(datapar< short> x, datapar< short> y) { return {private_init,  _mm_cmpgt_epi16(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<ushort> less(datapar<ushort> x, datapar<ushort> y) { return {private_init, SSE::cmpgt_epu16(y.d, x.d)}; }
+    static Vc_INTRINSIC mask< schar> less(datapar< schar> x, datapar< schar> y) { return {private_init,  _mm_cmpgt_epi8 (y.d, x.d)}; }
+    static Vc_INTRINSIC mask< uchar> less(datapar< uchar> x, datapar< uchar> y) { return {private_init, SSE::cmpgt_epu8 (y.d, x.d)}; }
+
+    static Vc_INTRINSIC mask<double> less_equal(datapar<double> x, datapar<double> y) { return {private_init, _mm_cmple_pd(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< float> less_equal(datapar< float> x, datapar< float> y) { return {private_init, _mm_cmple_ps(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< llong> less_equal(datapar< llong> x, datapar< llong> y) { return {private_init, Detail::not_(SSE::cmpgt_epi64(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<ullong> less_equal(datapar<ullong> x, datapar<ullong> y) { return {private_init, Detail::not_(SSE::cmpgt_epu64(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<  long> less_equal(datapar<  long> x, datapar<  long> y) { return {private_init, Detail::not_(sizeof(long) == 8 ? SSE::cmpgt_epi64(x.d, y.d) :  _mm_cmpgt_epi32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< ulong> less_equal(datapar< ulong> x, datapar< ulong> y) { return {private_init, Detail::not_(sizeof(long) == 8 ? SSE::cmpgt_epu64(x.d, y.d) : SSE::cmpgt_epu32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<   int> less_equal(datapar<   int> x, datapar<   int> y) { return {private_init, Detail::not_( _mm_cmpgt_epi32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<  uint> less_equal(datapar<  uint> x, datapar<  uint> y) { return {private_init, Detail::not_(SSE::cmpgt_epu32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< short> less_equal(datapar< short> x, datapar< short> y) { return {private_init, Detail::not_( _mm_cmpgt_epi16(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<ushort> less_equal(datapar<ushort> x, datapar<ushort> y) { return {private_init, Detail::not_(SSE::cmpgt_epu16(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< schar> less_equal(datapar< schar> x, datapar< schar> y) { return {private_init, Detail::not_( _mm_cmpgt_epi8 (x.d, y.d))}; }
+    static Vc_INTRINSIC mask< uchar> less_equal(datapar< uchar> x, datapar< uchar> y) { return {private_init, Detail::not_(SSE::cmpgt_epu8 (x.d, y.d))}; }
+#endif
+
+    // smart_reference access {{{2
+    template <class T, class A>
+    static Vc_INTRINSIC T get(Vc::datapar<T, A> v, int i) noexcept
+    {
+        return v.d.m(i);
+    }
+    template <class T, class A, class U>
+    static Vc_INTRINSIC void set(Vc::datapar<T, A> &v, int i, U &&x) noexcept
+    {
+        v.d.set(i, std::forward<U>(x));
+    }
+    // }}}2
 };
 
 // mask impl {{{1
@@ -323,17 +459,6 @@ Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::sse> k)
 
 namespace std
 {
-// datapar operators {{{1
-template <class T>
-struct equal_to<Vc::datapar<T, Vc::datapar_abi::sse>>
-    : private Vc::detail::sse_compare_base {
-public:
-    M<T> operator()(const V<T> &x, const V<T> &y) const noexcept
-    {
-        return {};  // TODO
-    }
-};
-
 // mask operators {{{1
 template <class T>
 struct equal_to<Vc::mask<T, Vc::datapar_abi::sse>>

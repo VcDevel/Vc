@@ -30,10 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace detail
-{
-template <class T, class Abi> struct traits;
-}  // namespace detail
 
 template <class T, class Abi> class datapar
 {
@@ -58,17 +54,14 @@ public:
     datapar &operator=(datapar &&) = default;
 
     // implicit broadcast constructor
-    datapar(value_type x) : d{impl::broadcast(x)} {}
+    datapar(value_type x) : d{impl::broadcast(x, size_tag)} {}
 
     // scalar access
     reference operator[](size_type i) { return {*this, int(i)}; }
     value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
 
     // negation
-    mask_type operator!() const
-    {
-        return {detail::private_init, impl::negate(d, type_tag)};
-    }
+    mask_type operator!() const { return impl::negate(*this); }
 
     // access to internal representation (suggested extension)
     explicit operator typename traits::datapar_cast_type() const { return d; }

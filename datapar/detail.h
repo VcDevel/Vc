@@ -36,6 +36,9 @@ namespace Vc_VERSIONED_NAMESPACE::detail
  */
 template <class T, class Abi> struct traits;
 
+template <class T> struct get_impl;
+template <class T> using get_impl_t = typename get_impl<T>::type;
+
 /**
  * \internal
  * Returns the next power of 2 larger than or equal to \p x.

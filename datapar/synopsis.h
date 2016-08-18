@@ -116,40 +116,6 @@ template <class T, class Abi = datapar_abi::compatible<T>>
 struct datapar_size
     : public std::integral_constant<size_t, detail::traits<T, Abi>::size()> {
 };
-/*
-template <class T, int N>
-struct datapar_size<T, datapar_abi::fixed_size<N>>
-    : public std::integral_constant<size_t, N> {
-};
-template <class T>
-struct datapar_size<T, datapar_abi::avx>
-    : public std::integral_constant<size_t, (sizeof(T) <= 8 ? 32 / sizeof(T) : 1)> {
-};
-template <class T>
-struct datapar_size<T, datapar_abi::avx512>
-    : public std::integral_constant<size_t, (sizeof(T) <= 8 ? 64 / sizeof(T) : 1)> {
-};
-template <class T>
-struct datapar_size<T, datapar_abi::knc>
-    : public std::integral_constant<size_t, (sizeof(T) > 8 ? 1 : sizeof(T) == 8 ? 8 : 16)> {
-};
-template <class T, int N>
-struct datapar_size<T, datapar_abi::partial_sse<N>>
-    : public std::integral_constant<size_t, N> {
-};
-template <class T, int N>
-struct datapar_size<T, datapar_abi::partial_avx<N>>
-    : public std::integral_constant<size_t, N> {
-};
-template <class T, int N>
-struct datapar_size<T, datapar_abi::partial_avx512<N>>
-    : public std::integral_constant<size_t, N> {
-};
-template <class T, int N>
-struct datapar_size<T, datapar_abi::partial_knc<N>>
-    : public std::integral_constant<size_t, N> {
-};
-*/
 template <class T, class Abi = datapar_abi::compatible<T>>
 constexpr size_t datapar_size_v = datapar_size<T, Abi>::value;
 
@@ -162,11 +128,13 @@ template <class T, size_t N> struct abi_for_size_impl<T, N, true, std::true_type
 template <class T> struct abi_for_size_impl<T, 1, true, std::true_type> {
     using type = datapar_abi::scalar;
 };
-#ifdef __SSE__
+#ifdef Vc_HAVE_SSE_ABI
+template <> struct abi_for_size_impl<float, 4, true, std::true_type> { using type = datapar_abi::sse; };
+#endif
+#ifdef Vc_HAVE_FULL_SSE_ABI
 template <> struct abi_for_size_impl<double, 2, true, std::true_type> { using type = datapar_abi::sse; };
 template <> struct abi_for_size_impl<std:: int64_t, 2, true, std::true_type> { using type = datapar_abi::sse; };
 template <> struct abi_for_size_impl<std::uint64_t, 2, true, std::true_type> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<float, 4, true, std::true_type> { using type = datapar_abi::sse; };
 template <> struct abi_for_size_impl<std:: int32_t, 4, true, std::true_type> { using type = datapar_abi::sse; };
 template <> struct abi_for_size_impl<std::uint32_t, 4, true, std::true_type> { using type = datapar_abi::sse; };
 template <> struct abi_for_size_impl<std:: int16_t, 8, true, std::true_type> { using type = datapar_abi::sse; };
@@ -174,11 +142,11 @@ template <> struct abi_for_size_impl<std::uint16_t, 8, true, std::true_type> { u
 template <> struct abi_for_size_impl<std:: int8_t, 16, true, std::true_type> { using type = datapar_abi::sse; };
 template <> struct abi_for_size_impl<std::uint8_t, 16, true, std::true_type> { using type = datapar_abi::sse; };
 #endif
-#ifdef __AVX__
+#ifdef Vc_HAVE_AVX_ABI
 template <> struct abi_for_size_impl<double, 4, true, std::true_type> { using type = datapar_abi::avx; };
 template <> struct abi_for_size_impl<float, 8, true, std::true_type> { using type = datapar_abi::avx; };
 #endif
-#ifdef __AVX2__
+#ifdef Vc_HAVE_FULL_AVX_ABI
 template <> struct abi_for_size_impl<std:: int64_t, 4, true, std::true_type> { using type = datapar_abi::avx; };
 template <> struct abi_for_size_impl<std::uint64_t, 4, true, std::true_type> { using type = datapar_abi::avx; };
 template <> struct abi_for_size_impl<std:: int32_t, 8, true, std::true_type> { using type = datapar_abi::avx; };
@@ -188,7 +156,7 @@ template <> struct abi_for_size_impl<std::uint16_t, 16, true, std::true_type> { 
 template <> struct abi_for_size_impl<std:: int8_t, 32, true, std::true_type> { using type = datapar_abi::avx; };
 template <> struct abi_for_size_impl<std::uint8_t, 32, true, std::true_type> { using type = datapar_abi::avx; };
 #endif
-#ifdef __AVX512F__
+#ifdef Vc_HAVE_AVX512_ABI
 template <> struct abi_for_size_impl<double, 8, true, std::true_type> { using type = datapar_abi::avx512; };
 template <> struct abi_for_size_impl<float, 16, true, std::true_type> { using type = datapar_abi::avx512; };
 template <> struct abi_for_size_impl<std:: int64_t, 8, true, std::true_type> { using type = datapar_abi::avx512; };
@@ -196,13 +164,13 @@ template <> struct abi_for_size_impl<std::uint64_t, 8, true, std::true_type> { u
 template <> struct abi_for_size_impl<std:: int32_t, 16, true, std::true_type> { using type = datapar_abi::avx512; };
 template <> struct abi_for_size_impl<std::uint32_t, 16, true, std::true_type> { using type = datapar_abi::avx512; };
 #endif
-#ifdef __AVX512BW__
+#ifdef Vc_HAVE_FULL_AVX512_ABI
 template <> struct abi_for_size_impl<std:: int16_t, 32, true, std::true_type> { using type = datapar_abi::avx512; };
 template <> struct abi_for_size_impl<std::uint16_t, 32, true, std::true_type> { using type = datapar_abi::avx512; };
 template <> struct abi_for_size_impl<std:: int8_t, 64, true, std::true_type> { using type = datapar_abi::avx512; };
 template <> struct abi_for_size_impl<std::uint8_t, 64, true, std::true_type> { using type = datapar_abi::avx512; };
 #endif
-#ifdef __MIC__
+#ifdef Vc_HAVE_FULL_KNC_ABI
 template <class T> struct abi_for_size_impl<T, datapar_size_v<T, datapar_abi::knc>, true, std::true_type> {
     using type = datapar_abi::knc;
 };
@@ -230,6 +198,16 @@ template <class T> using native_datapar = datapar<T, datapar_abi::native<T>>;
 template <class T, class Abi = datapar_abi::compatible<T>> class mask;
 template <class T, class Abi> struct is_mask<mask<T, Abi>> : public std::true_type {};
 template <class T> using native_mask = mask<T, datapar_abi::native<T>>;
+
+namespace detail
+{
+template <class T, class Abi> struct get_impl<Vc::mask<T, Abi>> {
+    using type = typename traits<T, Abi>::mask_impl_type;
+};
+template <class T, class Abi> struct get_impl<Vc::datapar<T, Abi>> {
+    using type = typename traits<T, Abi>::datapar_impl_type;
+};
+}  // namespace detail
 
 // compound assignment [datapar.cassign]
 template <class T, class Abi, class U> datapar<T, Abi> &operator +=(datapar<T, Abi> &, const U &);
@@ -287,70 +265,82 @@ inline detail::return_type<datapar<T, Abi>, U> operator>>(const U &, datapar<T, 
 
 // compares [datapar.comparison]
 template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator==(datapar<T, A> x, const U &y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator==(const datapar<T, A> &x,
+                                                            const U &y)
 {
-    return std::equal_to<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::equal_to(x, y);
 }
 template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator!=(datapar<T, A> x, const U &y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator!=(const datapar<T, A> &x,
+                                                            const U &y)
 {
-    return std::not_equal_to<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::not_equal_to(x, y);
 }
 template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator<=(datapar<T, A> x, const U &y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator<=(const datapar<T, A> &x,
+                                                            const U &y)
 {
-    return std::less_equal<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less_equal(x, y);
 }
 template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator>=(datapar<T, A> x, const U &y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator>=(const datapar<T, A> &x,
+                                                            const U &y)
 {
-    return std::greater_equal<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less_equal(y, x);
 }
 template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator<(datapar<T, A> x, const U &y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator<(const datapar<T, A> &x,
+                                                           const U &y)
 {
-    return std::less<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less(x, y);
 }
 template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator>(datapar<T, A> x, const U &y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator>(const datapar<T, A> &x,
+                                                           const U &y)
 {
-    return std::greater<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less(y, x);
 }
 template <class T, class A, class U,
           class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator==(const U &x, datapar<T, A> y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator==(const U &x,
+                                                            const datapar<T, A> &y)
 {
-    return std::equal_to<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::equal_to(x, y);
 }
 template <class T, class A, class U,
           class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator!=(const U &x, datapar<T, A> y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator!=(const U &x,
+                                                            const datapar<T, A> &y)
 {
-    return std::not_equal_to<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::not_equal_to(x, y);
 }
 template <class T, class A, class U,
           class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator<=(const U &x, datapar<T, A> y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator<=(const U &x,
+                                                            const datapar<T, A> &y)
 {
-    return std::less_equal<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less_equal(x, y);
 }
 template <class T, class A, class U,
           class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator>=(const U &x, datapar<T, A> y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator>=(const U &x,
+                                                            const datapar<T, A> &y)
 {
-    return std::greater_equal<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less_equal(y, x);
 }
 template <class T, class A, class U,
           class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator<(const U &x, datapar<T, A> y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator<(const U &x,
+                                                           const datapar<T, A> &y)
 {
-    return std::less<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less(x, y);
 }
 template <class T, class A, class U,
           class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator>(const U &x, datapar<T, A> y)
+inline detail::cmp_return_type<datapar<T, A>, U> operator>(const U &x,
+                                                           const datapar<T, A> &y)
 {
-    return std::greater<detail::return_type<datapar<T, A>, U>>{}(x, y);
+    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less(y, x);
 }
 
 // casts [datapar.casts]

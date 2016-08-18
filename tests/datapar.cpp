@@ -32,14 +32,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // all_test_types / ALL_TYPES {{{1
 typedef expand_list<
     Typelist<
-    /*
 #ifdef Vc_HAVE_FULL_AVX_ABI
         Template<Vc::datapar, Vc::datapar_abi::avx>,
 #endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
         Template<Vc::datapar, Vc::datapar_abi::sse>,
 #endif
-*/
         Template<Vc::datapar, Vc::datapar_abi::scalar>,
         Template<Vc::datapar, Vc::datapar_abi::fixed_size<2>>,
         Template<Vc::datapar, Vc::datapar_abi::fixed_size<3>>,
@@ -83,48 +81,74 @@ TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
         }
     }
 
-    V x = 1;
+    V x = 3;
     V y = 0;
     for (std::size_t i = 0; i < V::size(); ++i) {
-        COMPARE(x[i], T(1));
+        COMPARE(x[i], T(3));
         COMPARE(y[i], T(0));
     }
-    y = 1;
+    y = 3;
     COMPARE(x, y);
 }
 
-TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
+//TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
+template <class T> constexpr T genHalfBits()
+{
+    return std::numeric_limits<T>::max() >> (std::numeric_limits<T>::digits / 2);
+}
+template <> constexpr long double genHalfBits<long double>() { return 0; }
+template <> constexpr double genHalfBits<double>() { return 0; }
+template <> constexpr float genHalfBits<float>() { return 0; }
+TEST_TYPES(V, operators, ALL_TYPES)
 {
     using M = typename V::mask_type;
     using T = typename V::value_type;
+    constexpr auto min = std::numeric_limits<T>::min();
+    constexpr auto max = std::numeric_limits<T>::max();
     {  // compares{{{2
-        V x = 1, y = 0;
-        static_assert(std::is_same<decltype(x == x), M>::value, "");
-        VERIFY(all_of(x == x));
-        VERIFY(all_of(x != y));
-        VERIFY(all_of(y != x));
-        VERIFY(none_of(x != x));
-        VERIFY(none_of(x == y));
-        VERIFY(none_of(y == x));
-        VERIFY(all_of(x > y));
-        VERIFY(all_of(x >= y));
-        VERIFY(all_of(x >= x));
-        VERIFY(all_of(x <= x));
-        VERIFY(none_of(x < y));
-        VERIFY(none_of(x <= y));
+        constexpr T half = genHalfBits<T>();
+        for (T lo_ : {min, T(min + 1), T(-1), T(0), T(1), T(half - 1), half, T(half + 1),
+                      T(max - 1)}) {
+            for (T hi_ : {T(min + 1), T(-1), T(0), T(1), T(half - 1), half, T(half + 1),
+                          T(max - 1), max}) {
+                if (hi_ <= lo_) {
+                    continue;
+                }
+                for (std::size_t pos = 0; pos < V::size(); ++pos) {
+                    V lo = lo_;
+                    V hi = hi_;
+                    lo[pos] = 0;  // have a different value in the vector in case
+                    hi[pos] = 1;  // this affects neighbors
+                    COMPARE(hi, hi);
+                    VERIFY(all_of(hi != lo)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(all_of(lo != hi)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(none_of(hi != hi)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(none_of(hi == lo)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(none_of(lo == hi)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(all_of(lo < hi)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(none_of(hi < lo)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(none_of(hi <= lo)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(all_of(hi <= hi)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(all_of(hi > lo)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(none_of(lo > hi)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(all_of(hi >= lo)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(all_of(hi >= hi)) << "hi: " << hi << ", lo: " << lo;
+                }
+            }
+        }
     }
     {  // subscripting{{{2
-        V x = 1;
+        V x = max;
         for (std::size_t i = 0; i < V::size(); ++i) {
-            COMPARE(x[i], T(1));
+            COMPARE(x[i], max);
             x[i] = 0;
         }
         COMPARE(x, V{0});
         for (std::size_t i = 0; i < V::size(); ++i) {
             COMPARE(x[i], T(0));
-            x[i] = 1;
+            x[i] = max;
         }
-        COMPARE(x, V{1});
+        COMPARE(x, V{max});
     }
     {  // negation{{{2
         V x = 0;

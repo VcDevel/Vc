@@ -35,10 +35,11 @@ namespace Vc_VERSIONED_NAMESPACE::detail {
 // datapar impl {{{1
 template <int N> struct fixed_size_datapar_impl {
     // member types {{{2
-    using index_seq = std::make_index_sequence<N>;
+    static constexpr std::make_index_sequence<N> index_seq = {};
     using mask_member_type = std::array<bool, N>;
     template <class T> using datapar_member_type = std::array<T, N>;
     template <class T> using datapar = Vc::datapar<T, datapar_abi::fixed_size<N>>;
+    template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
     using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
 
@@ -51,9 +52,10 @@ template <int N> struct fixed_size_datapar_impl {
     {
         return {((void)I, x)...};
     }
-    template <class T> static constexpr datapar_member_type<T> broadcast(T x) noexcept
+    template <class T>
+    static constexpr datapar_member_type<T> broadcast(T x, size_tag) noexcept
     {
-        return broadcast_impl(x, index_seq{});
+        return broadcast_impl(x, index_seq);
     }
 
     // negation {{{2
@@ -63,23 +65,45 @@ template <int N> struct fixed_size_datapar_impl {
     {
         return {!x[I]...};
     }
-    template <class T>
-    static constexpr mask_member_type negate(const datapar_member_type<T> &x,
-                                             type_tag<T>) noexcept
+    template <class T, class A>
+    static constexpr Vc::mask<T, A> negate(const Vc::datapar<T, A> &x) noexcept
     {
-        return negate_impl(x, index_seq{});
+        return {private_init, negate_impl(x.d, index_seq)};
     }
+
+    // compares {{{2
+    template <template <typename> class Cmp, class T, size_t... I>
+    static constexpr mask_member_type cmp_impl(const datapar_member_type<T> &x,
+                                               const datapar_member_type<T> &y,
+                                               std::index_sequence<I...>)
+    {
+        Cmp<T> cmp;
+        return {cmp(x[I], y[I])...};
+    }
+#define Vc_CMP_OPERATIONS(cmp_)                                                          \
+    template <class V>                                                                   \
+    static constexpr typename V::mask_type cmp_(const V &x, const V &y)                  \
+    {                                                                                    \
+        return {private_init, cmp_impl<std::cmp_>(x.d, y.d, index_seq)};                 \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+    Vc_CMP_OPERATIONS(equal_to);
+    Vc_CMP_OPERATIONS(not_equal_to);
+    Vc_CMP_OPERATIONS(less);
+    Vc_CMP_OPERATIONS(greater);
+    Vc_CMP_OPERATIONS(less_equal);
+    Vc_CMP_OPERATIONS(greater_equal);
 
     // smart_reference access {{{2
     template <class T, class A>
-    static bool get(const Vc::datapar<T, A> &v, int i) noexcept
+    static T get(const Vc::datapar<T, A> &v, int i) noexcept
     {
         return v.d[i];
     }
-    template <class T, class A>
-    static void set(Vc::datapar<T, A> &v, int i, bool x) noexcept
+    template <class T, class A, class U>
+    static void set(Vc::datapar<T, A> &v, int i, U &&x) noexcept
     {
-        v.d[i] = x;
+        v.d[i] = std::forward<U>(x);
     }
     // }}}2
 };
@@ -87,7 +111,7 @@ template <int N> struct fixed_size_datapar_impl {
 // mask impl {{{1
 template <int N> struct fixed_size_mask_impl {
     // member types {{{2
-    using index_seq = std::make_index_sequence<N>;
+    static constexpr std::make_index_sequence<N> index_seq = {};
     using mask_member_type = std::array<bool, N>;
     template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
     using size_tag = std::integral_constant<size_t, N>;
@@ -103,7 +127,7 @@ template <int N> struct fixed_size_mask_impl {
     }
     static constexpr mask_member_type broadcast(bool x, size_tag) noexcept
     {
-        return broadcast_impl(x, index_seq{});
+        return broadcast_impl(x, index_seq);
     }
 
     // load {{{2
@@ -116,7 +140,7 @@ template <int N> struct fixed_size_mask_impl {
     template <class F>
     static constexpr mask_member_type load(const bool *mem, F, size_tag) noexcept
     {
-        return load_impl(mem, index_seq{});
+        return load_impl(mem, index_seq);
     }
 
     // masked load {{{2
@@ -133,7 +157,7 @@ template <int N> struct fixed_size_mask_impl {
                                       const mask_member_type &mask, const bool *mem, F,
                                       size_tag) noexcept
     {
-        masked_load_impl(merge, mask, mem, index_seq{});
+        masked_load_impl(merge, mask, mem, index_seq);
     }
 
     // store {{{2
@@ -147,7 +171,7 @@ template <int N> struct fixed_size_mask_impl {
     template <class F>
     static constexpr void store(const mask_member_type &v, bool *mem, F, size_tag) noexcept
     {
-        return store_impl(v, mem, index_seq{});
+        return store_impl(v, mem, index_seq);
     }
 
     // masked store {{{2
@@ -163,7 +187,7 @@ template <int N> struct fixed_size_mask_impl {
     static constexpr void masked_store(const mask_member_type &v, bool *mem, F, size_tag,
                                        const mask_member_type &k) noexcept
     {
-        return masked_store_impl(v, mem, index_seq{}, k);
+        return masked_store_impl(v, mem, index_seq, k);
     }
 
     // negation {{{2
@@ -175,7 +199,7 @@ template <int N> struct fixed_size_mask_impl {
     }
     static constexpr mask_member_type negate(const mask_member_type &x, size_tag) noexcept
     {
-        return negate_impl(x, index_seq{});
+        return negate_impl(x, index_seq);
     }
 
     // smart_reference access {{{2
@@ -209,36 +233,6 @@ template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
 
 namespace std
 {
-// datapar operators {{{1
-#define Vc_CMP_OPERATIONS(funcobj_name_)                                                 \
-    template <class T, int N>                                                            \
-    struct funcobj_name_<Vc::datapar<T, Vc::datapar_abi::fixed_size<N>>> {               \
-    private:                                                                             \
-        using V = Vc::datapar<T, Vc::datapar_abi::fixed_size<N>>;                        \
-        using M = typename V::mask_type;                                                 \
-        using MM = typename Vc::detail::traits<                                          \
-            T, Vc::datapar_abi::fixed_size<N>>::mask_member_type;                        \
-                                                                                         \
-        template <size_t... I>                                                           \
-        constexpr MM impl(const V &x, const V &y, index_sequence<I...>) const            \
-        {                                                                                \
-            funcobj_name_<T> cmp;                                                        \
-            return {cmp(x[I], y[I])...};                                                 \
-        }                                                                                \
-                                                                                         \
-    public:                                                                              \
-        constexpr M operator()(const V &x, const V &y) const                             \
-        {                                                                                \
-            return static_cast<M>(impl(x, y, make_index_sequence<N>()));                 \
-        }                                                                                \
-    }
-Vc_CMP_OPERATIONS(equal_to);
-Vc_CMP_OPERATIONS(not_equal_to);
-Vc_CMP_OPERATIONS(less);
-Vc_CMP_OPERATIONS(greater);
-Vc_CMP_OPERATIONS(less_equal);
-Vc_CMP_OPERATIONS(greater_equal);
-
 // mask operators {{{1
 template <class T, int N>
 struct equal_to<Vc::mask<T, Vc::datapar_abi::fixed_size<N>>> {

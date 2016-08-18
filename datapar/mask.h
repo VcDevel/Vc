@@ -38,7 +38,8 @@ template <class T, class Abi> class mask
     using impl = typename traits::mask_impl_type;
     static constexpr std::integral_constant<size_t, traits::size()> size_tag = {};
     friend impl;
-    friend datapar<T, Abi>;
+    friend typename traits::datapar_impl_type;  // to construct masks on return and
+                                                // inspect data on masked operations
 
 public:
     using value_type = bool;
