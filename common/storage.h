@@ -44,6 +44,49 @@ template <typename V> inline V zero();
 }  // namespace Detail
 namespace Common
 {
+namespace AliasStrategy
+{
+struct Union {};
+struct MayAlias {};
+struct VectorBuiltin {};
+struct UnionMembers {};
+}  // namespace AliasStrategy
+
+using DefaultStrategy =
+// manual selection:
+#if defined Vc_USE_ALIASSTRATEGY_VECTORBUILTIN
+#ifndef Vc_USE_BUILTIN_VECTOR_TYPES
+#define Vc_USE_BUILTIN_VECTOR_TYPES
+#endif
+    AliasStrategy::VectorBuiltin;
+#elif defined Vc_USE_ALIASSTRATEGY_UNIONMEMBERS
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+#undef Vc_USE_BUILTIN_VECTOR_TYPES
+#endif
+    AliasStrategy::UnionMembers;
+#elif defined Vc_USE_ALIASSTRATEGY_UNION
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+#undef Vc_USE_BUILTIN_VECTOR_TYPES
+#endif
+    AliasStrategy::Union;
+#elif defined Vc_USE_ALIASSTRATEGY_MAYALIAS
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+#undef Vc_USE_BUILTIN_VECTOR_TYPES
+#endif
+    AliasStrategy::MayAlias;
+// automatic selection:
+#elif defined Vc_USE_BUILTIN_VECTOR_TYPES
+    AliasStrategy::VectorBuiltin;
+#elif defined Vc_MSVC
+    AliasStrategy::UnionMembers;
+#elif defined Vc_ICC
+    AliasStrategy::Union;
+#elif defined __GNUC__
+    AliasStrategy::MayAlias;
+#else
+    AliasStrategy::Union;
+#endif
+
 namespace Detail
 {
 #ifdef Vc_IMPL_AVX
@@ -122,27 +165,6 @@ using IntrinsicType = typename Detail::IntrinsicType<ValueType, Size>::type;
 
 template <typename ValueType, size_t Size>
 using BuiltinType = typename Detail::BuiltinType<ValueType, Size>::type;
-
-namespace AliasStrategy
-{
-struct Union {};
-struct MayAlias {};
-struct VectorBuiltin {};
-struct UnionMembers {};
-}  // namespace AliasStrategy
-
-using DefaultStrategy =
-#if defined Vc_USE_BUILTIN_VECTOR_TYPES
-    AliasStrategy::VectorBuiltin;
-#elif defined Vc_MSVC
-    AliasStrategy::UnionMembers;
-#elif defined Vc_ICC
-    AliasStrategy::Union;
-#elif defined __GNUC__
-    AliasStrategy::MayAlias;
-#else
-    AliasStrategy::Union;
-#endif
 
 template <typename ValueType, size_t Size, typename Strategy = DefaultStrategy>
 class Storage;
