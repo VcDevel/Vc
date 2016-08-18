@@ -177,6 +177,7 @@ public:
     Vc_INTRINSIC Storage(const Storage &) = default;
     Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 
+    Vc_INTRINSIC operator const VectorType &() const { return v(); }
     Vc_INTRINSIC Vc_PURE VectorType &v() { return data.v; }
     Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data.v; }
 
@@ -233,6 +234,7 @@ public:
     Vc_INTRINSIC Storage(const Storage &) = default;
     Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 
+    Vc_INTRINSIC operator const VectorType &() const { return v(); }
     Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
     Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 
