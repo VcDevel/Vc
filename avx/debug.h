@@ -109,6 +109,9 @@ class DebugStream
 };
 #endif
 
+#ifdef Vc_DEBUG
+#undef Vc_DEBUG
+#endif
 #define Vc_DEBUG Vc::AVX::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 }  // namespace AVX
