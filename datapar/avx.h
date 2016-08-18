@@ -117,7 +117,7 @@ struct avx_datapar_impl {
     // negation {{{2
     template <class T> static Vc_INTRINSIC mask<T> negate(datapar<T> x) noexcept
     {
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+#if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
         return {private_init, !x.d.builtin()};
 #else
         return equal_to(x, datapar<T>(0));
@@ -383,8 +383,11 @@ struct avx_mask_impl {
     static constexpr mask_member_type<T> negate(const mask_member_type<T> &x,
                                                 SizeTag) noexcept
     {
+#if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
+        return !x.builtin();
+#else
         return Detail::not_(x.v());
-        //return !x.builtin();
+#endif
     }
 
     // smart_reference access {{{2
