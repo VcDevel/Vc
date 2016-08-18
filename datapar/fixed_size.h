@@ -220,7 +220,14 @@ template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
 
     using datapar_impl_type = fixed_size_datapar_impl<N>;
     using datapar_member_type = std::array<T, N>;
-    static constexpr size_t datapar_member_alignment = next_power_of_2(N * sizeof(T));
+    static constexpr size_t datapar_member_alignment =
+        std::min(size_t(
+#ifdef __AVX__
+                        256
+#else
+                        128
+#endif
+                        ), next_power_of_2(N * sizeof(T)));
     using datapar_cast_type = datapar_member_type;
 
     using mask_impl_type = fixed_size_mask_impl<N>;
