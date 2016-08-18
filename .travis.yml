@@ -16,18 +16,25 @@ dist: trusty
 
 install:
     - if test "$TRAVIS_OS_NAME" = "osx" -a "$CXX" = "g++"; then
-        brew update;
-        brew install gcc6 && export CXX=g++-6 CC=gcc-6;
+        brew update &&
+        brew install gcc6 &&
+        export CXX=g++-6 CC=gcc-6;
       fi
-    - if test "$TRAVIS_OS_NAME" = "linux"; then
+    - if test "$TRAVIS_OS_NAME" = "osx" -a "$CXX" = "clang++"; then
+        brew update &&
+        brew install llvm;
+      fi
+    - if test "$TRAVIS_OS_NAME" = "linux" -a "$CXX" = "g++"; then
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
         sudo apt-get update -q &&
         sudo apt-get install g++-6 -y &&
         export CXX=g++-6 CC=gcc-6;
       fi
     - if test "$TRAVIS_OS_NAME" = "linux" -a "$CXX" = "clang++"; then
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
         sudo apt-get update -q &&
-        sudo apt-get install libc++-dev libc++abi-dev -y;
+        sudo apt-get install clang-3.8 libstdc++-6-dev &&
+        export CXX=clang++-3.8 CC=clang-3.8;
       fi
 
 before_script:
