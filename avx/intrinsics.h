@@ -129,6 +129,7 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC m128i Vc_CONST _mm_setmin_epi32() { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
     static Vc_INTRINSIC m256i Vc_CONST setmin_epi16() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
     static Vc_INTRINSIC m256i Vc_CONST setmin_epi32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
+    static Vc_INTRINSIC m256i Vc_CONST setmin_epi64() { return _mm256_castpd_si256(setsignmask_pd()); }
 
     template <int i>
     static Vc_INTRINSIC Vc_CONST unsigned char extract_epu8(__m128i x)
@@ -521,15 +522,29 @@ static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
     return cmpgt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
 }
 #if defined(Vc_IMPL_XOP)
+    Vc_AVX_TO_SSE_2_NEW(comlt_epu64)
+    Vc_AVX_TO_SSE_2_NEW(comgt_epu64)
     Vc_AVX_TO_SSE_2_NEW(comlt_epu32)
     Vc_AVX_TO_SSE_2_NEW(comgt_epu32)
     Vc_AVX_TO_SSE_2_NEW(comlt_epu16)
     Vc_AVX_TO_SSE_2_NEW(comgt_epu16)
+    static Vc_INTRINSIC m256i Vc_CONST cmplt_epu64(__m256i a, __m256i b) { return comlt_epu64(a, b); }
+    static Vc_INTRINSIC m256i Vc_CONST cmpgt_epu64(__m256i a, __m256i b) { return comgt_epu64(a, b); }
     static Vc_INTRINSIC m256i Vc_CONST cmplt_epu32(__m256i a, __m256i b) { return comlt_epu32(a, b); }
     static Vc_INTRINSIC m256i Vc_CONST cmpgt_epu32(__m256i a, __m256i b) { return comgt_epu32(a, b); }
     static Vc_INTRINSIC m256i Vc_CONST cmplt_epu16(__m256i a, __m256i b) { return comlt_epu16(a, b); }
     static Vc_INTRINSIC m256i Vc_CONST cmpgt_epu16(__m256i a, __m256i b) { return comgt_epu16(a, b); }
 #else
+    static Vc_INTRINSIC m256i Vc_CONST cmplt_epu64(__m256i _a, __m256i _b) {
+        m256i a = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_a), _mm256_castsi256_ps(setmin_epi64())));
+        m256i b = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_b), _mm256_castsi256_ps(setmin_epi64())));
+        return cmplt_epi64(a, b);
+    }
+    static Vc_INTRINSIC m256i Vc_CONST cmpgt_epu64(__m256i _a, __m256i _b) {
+        m256i a = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_a), _mm256_castsi256_ps(setmin_epi64())));
+        m256i b = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_b), _mm256_castsi256_ps(setmin_epi64())));
+        return cmpgt_epi64(a, b);
+    }
     static Vc_INTRINSIC m256i Vc_CONST cmplt_epu32(__m256i _a, __m256i _b) {
         m256i a = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_a), _mm256_castsi256_ps(setmin_epi32())));
         m256i b = _mm256_castps_si256(_mm256_xor_ps(_mm256_castsi256_ps(_b), _mm256_castsi256_ps(setmin_epi32())));
