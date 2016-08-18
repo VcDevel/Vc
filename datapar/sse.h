@@ -335,8 +335,8 @@ struct sse_mask_impl {
 
     // masked store {{{2
     template <class T, class F, class SizeTag>
-    static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F, SizeTag,
-                                          mask_member_type<T> k) noexcept
+    static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F,
+                                          mask_member_type<T> k, SizeTag) noexcept
     {
         for (std::size_t i = 0; i < size<T>; ++i) {
             if (k.m(i)) {

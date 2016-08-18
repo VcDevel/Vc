@@ -184,8 +184,8 @@ template <int N> struct fixed_size_mask_impl {
         unused(x);
     }
     template <class F>
-    static constexpr void masked_store(const mask_member_type &v, bool *mem, F, size_tag,
-                                       const mask_member_type &k) noexcept
+    static constexpr void masked_store(const mask_member_type &v, bool *mem, F,
+                                       const mask_member_type &k, size_tag) noexcept
     {
         return masked_store_impl(v, mem, index_seq, k);
     }

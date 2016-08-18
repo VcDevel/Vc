@@ -112,7 +112,7 @@ public:
     }
     template <class Flags> void copy_to(value_type *mem, mask k, Flags f) const
     {
-        impl::masked_store(d, mem, f, size_tag, k.d);
+        impl::masked_store(d, mem, f, k.d, size_tag);
     }
 
     // scalar access
