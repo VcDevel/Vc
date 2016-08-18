@@ -2,10 +2,6 @@ language: cpp
 
 cache: ccache
 
-env:
-    - GCC_VERSION=5
-    - GCC_VERSION=default
-
 os:
     - linux
     - osx
@@ -14,15 +10,6 @@ compiler:
     - gcc
     - clang
 
-matrix:
-    exclude:
-        - env: GCC_VERSION=5
-          os: osx
-          compiler: clang
-        - env: GCC_VERSION=5
-          os: linux
-          compiler: clang
-
 # The following gives us Ubuntu 14.04 LTS instead of 12.04 LTS
 sudo: required
 dist: trusty
@@ -30,17 +17,13 @@ dist: trusty
 install:
     - if test "$TRAVIS_OS_NAME" = "osx" -a "$CXX" = "g++"; then
         brew update;
-        if test $GCC_VERSION = 5; then
-          brew install gcc5 && export CXX=g++-5 CC=gcc-5;
-        else
-          brew install coreutils && export CXX=g++-4.9 CC=gcc-4.9;
-        fi
+        brew install gcc6 && export CXX=g++-6 CC=gcc-6;
       fi
-    - if test "$TRAVIS_OS_NAME" = "linux" -a "$GCC_VERSION" = "5"; then
+    - if test "$TRAVIS_OS_NAME" = "linux"; then
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
         sudo apt-get update -q &&
-        sudo apt-get install g++-5 -y &&
-        export CXX=g++-5 CC=gcc-5;
+        sudo apt-get install g++-6 -y &&
+        export CXX=g++-6 CC=gcc-6;
       fi
     - if test "$TRAVIS_OS_NAME" = "linux" -a "$CXX" = "clang++"; then
         sudo apt-get update -q &&
