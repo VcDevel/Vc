@@ -341,12 +341,13 @@ macro(go)
                BUILD "${CTEST_BINARY_DIRECTORY}"
                APPEND
                RETURN_VALUE res)
+            ctest_submit(PARTS Build)
             ctest_test(
                BUILD "${CTEST_BINARY_DIRECTORY}"
                APPEND
                RETURN_VALUE test_results
                PARALLEL_LEVEL ${number_of_processors})
-            ctest_submit(PARTS Build Test)
+            ctest_submit(PARTS Test)
          else()
             foreach(label other Scalar SSE AVX AVX2 MIC)
                set_property(GLOBAL PROPERTY Label ${label})
