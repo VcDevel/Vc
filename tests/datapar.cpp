@@ -52,17 +52,35 @@ typedef expand_list<
 #define ALL_TYPES (all_test_types)
 
 // datapar generator function {{{1
-template <class V> V make_vec(const std::initializer_list<typename V::value_type> &init)
+template <class M> M make_mask(const std::initializer_list<bool> &init)
+{
+    std::size_t i = 0;
+    M r;
+    for (;;) {
+        for (bool x : init) {
+            r[i] = x;
+            if (++i == M::size()) {
+                return r;
+            }
+        }
+    }
+}
+
+template <class V>
+V make_vec(const std::initializer_list<typename V::value_type> &init,
+           typename V::value_type inc = 0)
 {
     std::size_t i = 0;
     V r;
+    typename V::value_type base = 0;
     for (;;) {
         for (auto x : init) {
-            r[i] = x;
+            r[i] = base + x;
             if (++i == V::size()) {
                 return r;
             }
         }
+        base += inc;
     }
 }
 
@@ -155,6 +173,111 @@ TEST_TYPES(V, operators, ALL_TYPES)
         COMPARE(!x, M{true});
         V y = 1;
         COMPARE(!y, M{false});
+    }
+}
+
+// loads & stores {{{1
+TEST_TYPES(
+    VU, load_store,
+    (outer_product<all_test_types, Typelist<long double, double, float, unsigned long,
+                                            int, unsigned short, signed char, long,
+                                            unsigned int, short, unsigned char>>))
+{
+    // types, tags, and constants {{{2
+    using V = typename VU::template at<0>;
+    using U = typename VU::template at<1>;
+    using T = typename V::value_type;
+    using M = typename V::mask_type;
+    auto &&gen = make_vec<V>;
+    using Vc::flags::element_aligned;
+    using Vc::flags::vector_aligned;
+    constexpr auto overaligned = Vc::flags::overaligned<Vc::memory_alignment<V> * 2>;
+    const V indexes_from_0 = gen({0, 1, 2, 3}, 4);
+    for (std::size_t i = 0; i < V::size(); ++i) {
+        COMPARE(indexes_from_0[i], T(i));
+    }
+    const V indexes_from_1 = gen({1, 2, 3, 4}, 4);
+    const V indexes_from_size = gen({V::size()}, 1);
+    const M alternating_mask = make_mask<M>({0, 1});
+
+    // loads {{{2
+    alignas(Vc::memory_alignment<V> * 2) U mem[3 * V::size()] = {};
+    for (std::size_t i = 0; i < sizeof(mem) / sizeof(*mem); ++i) {
+        mem[i] = T(i);
+    }
+
+    V x(&mem[V::size()], vector_aligned);
+    COMPARE(x, indexes_from_size);
+    x = {&mem[1], element_aligned};
+    COMPARE(x, indexes_from_1);
+    x = V{mem, overaligned};
+    COMPARE(x, indexes_from_0);
+
+    x.copy_from(&mem[V::size()], vector_aligned);
+    COMPARE(x, indexes_from_size);
+    x.copy_from(&mem[1], element_aligned);
+    COMPARE(x, indexes_from_1);
+    x.copy_from(mem, overaligned);
+    COMPARE(x, indexes_from_0);
+
+    x = indexes_from_0;
+    x.copy_from(&mem[V::size()], alternating_mask, vector_aligned);
+    COMPARE(x == indexes_from_size, alternating_mask);
+    COMPARE(x == indexes_from_0, !alternating_mask);
+    x.copy_from(&mem[1], alternating_mask, element_aligned);
+    COMPARE(x == indexes_from_1, alternating_mask);
+    COMPARE(x == indexes_from_0, !alternating_mask);
+    x.copy_from(mem, !alternating_mask, overaligned);
+    COMPARE(x == indexes_from_0, !alternating_mask);
+    COMPARE(x == indexes_from_1, alternating_mask);
+
+    // stores {{{2
+    memset(mem, 0, sizeof(mem));
+    x = indexes_from_1;
+    x.copy_to(&mem[V::size()], vector_aligned);
+    std::size_t i = 0;
+    for (; i < V::size(); ++i) {
+        COMPARE(mem[i], U(0));
+    }
+    for (; i < 2 * V::size(); ++i) {
+        COMPARE(mem[i], U(i - V::size() + 1));
+    }
+    for (; i < 3 * V::size(); ++i) {
+        COMPARE(mem[i], U(0));
+    }
+
+    memset(mem, 0, sizeof(mem));
+    x.copy_to(&mem[1], element_aligned);
+    COMPARE(mem[0], U(0));
+    for (i = 1; i <= V::size(); ++i) {
+        COMPARE(mem[i], U(i));
+    }
+    for (; i < 3 * V::size(); ++i) {
+        COMPARE(mem[i], U(0));
+    }
+
+    memset(mem, 0, sizeof(mem));
+    x.copy_to(mem, overaligned);
+    for (i = 0; i < V::size(); ++i) {
+        COMPARE(mem[i], U(i + 1));
+    }
+    for (; i < 3 * V::size(); ++i) {
+        COMPARE(mem[i], U(0));
+    }
+
+    memset(mem, 0, sizeof(mem));
+    indexes_from_0.copy_to(&mem[V::size()], alternating_mask, vector_aligned);
+    for (i = 0; i < V::size() + 1; ++i) {
+        COMPARE(mem[i], U(0));
+    }
+    for (; i < 2 * V::size(); i += 2) {
+        COMPARE(mem[i], U(i - V::size()));
+    }
+    for (i = V::size() + 2; i < 2 * V::size(); i += 2) {
+        COMPARE(mem[i], U(0));
+    }
+    for (; i < 3 * V::size(); ++i) {
+        COMPARE(mem[i], U(0));
     }
 }
 

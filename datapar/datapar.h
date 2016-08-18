@@ -56,6 +56,37 @@ public:
     // implicit broadcast constructor
     datapar(value_type x) : d{impl::broadcast(x, size_tag)} {}
 
+    // load constructor
+    template <class U, class Flags>
+    datapar(const U *mem, Flags f)
+        : d{impl::load(mem, f, type_tag)}
+    {
+    }
+    template <class U, class Flags> datapar(const U *mem, mask_type k, Flags f) : d{}
+    {
+        impl::masked_load(d, k, mem, f);
+    }
+
+    // loads [datapar.load]
+    template <class U, class Flags> void copy_from(const U *mem, Flags f)
+    {
+        d = static_cast<decltype(d)>(impl::load(mem, f, type_tag));
+    }
+    template <class U, class Flags> void copy_from(const U *mem, mask_type k, Flags f)
+    {
+        impl::masked_load(d, k, mem, f);
+    }
+
+    // stores [datapar.store]
+    template <class U, class Flags> void copy_to(U *mem, Flags f) const
+    {
+        impl::store(d, mem, f, type_tag);
+    }
+    template <class U, class Flags> void copy_to(U *mem, mask_type k, Flags f) const
+    {
+        impl::masked_store(d, mem, f, k);
+    }
+
     // scalar access
     reference operator[](size_type i) { return {*this, int(i)}; }
     value_type operator[](size_type i) const { return impl::get(*this, int(i)); }

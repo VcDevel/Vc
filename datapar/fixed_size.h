@@ -58,6 +58,65 @@ template <int N> struct fixed_size_datapar_impl {
         return broadcast_impl(x, index_seq);
     }
 
+    // load {{{2
+    template <class T, class U, size_t... I>
+    static constexpr datapar_member_type<T> load_impl(const U *mem,
+                                                      std::index_sequence<I...>) noexcept
+    {
+        return {static_cast<T>(mem[I])...};
+    }
+    template <class T, class U, class F>
+    static constexpr datapar_member_type<T> load(const U *mem, F, type_tag<T>) noexcept
+    {
+        return load_impl<T>(mem, index_seq);
+    }
+
+    // masked load {{{2
+    template <class T, class U, size_t... I>
+    static constexpr void masked_load_impl(datapar_member_type<T> &merge,
+                                           const mask_member_type &mask, const U *mem,
+                                           std::index_sequence<I...>) noexcept
+    {
+        auto &&x = {(merge[I] = mask[I] ? static_cast<T>(mem[I]) : merge[I])...};
+        unused(x);
+    }
+    template <class T, class U, class F>
+    static constexpr void masked_load(datapar_member_type<T> &merge, const mask<T> &k,
+                                      const U *mem, F) noexcept
+    {
+        masked_load_impl(merge, k.d, mem, index_seq);
+    }
+
+    // store {{{2
+    template <class T, class U, size_t... I>
+    static constexpr void store_impl(const datapar_member_type<T> &v, U *mem,
+                                     std::index_sequence<I...>) noexcept
+    {
+        auto &&x = {(mem[I] = static_cast<U>(v[I]))...};
+        unused(x);
+    }
+    template <class T, class U, class F>
+    static constexpr void store(const datapar_member_type<T> &v, U *mem, F, type_tag<T>) noexcept
+    {
+        return store_impl(v, mem, index_seq);
+    }
+
+    // masked store {{{2
+    template <class T, class U, size_t... I>
+    static constexpr void masked_store_impl(const datapar_member_type<T> &v, U *mem,
+                                            std::index_sequence<I...>,
+                                            const mask_member_type &k) noexcept
+    {
+        auto &&x = {(k[I] ? mem[I] = static_cast<U>(v[I]) : false)...};
+        unused(x);
+    }
+    template <class T, class U, class F>
+    static constexpr void masked_store(const datapar_member_type<T> &v, U *mem, F,
+                                       const mask<T> &k) noexcept
+    {
+        return masked_store_impl(v, mem, index_seq, k.d);
+    }
+
     // negation {{{2
     template <class T, size_t... I>
     static constexpr mask_member_type negate_impl(
