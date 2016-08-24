@@ -104,7 +104,10 @@ understand it:
 \par Example 1:
 
 You can modify a function to use vector types and thus implement a horizontal vectorization. The
-original scalar function could look like this:
+original scalar function could look like this (If you are confused about the adjective
+"scalar" in this context, note that the function mathematically does a vector to vector
+transformation. However, the computer computes it with \em scalar instructions, i.e. one
+value per operand.):
 \code
 void normalize(float &x, float &y, float &z)
 {
