@@ -39,7 +39,7 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 }  // namespace UnitTest
 #define Vc_ASSERT(cond) UnitTest::unittest_assert(cond, #cond, __FILE__, __LINE__);
 
-#include <Vc/Vc>
+#include <Vc/datapar>
 #include <Vc/support.h>
 #include "ulp.h"
 #include <cmath>
@@ -56,7 +56,6 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #ifdef HAVE_CXX_ABI_H
 #include <cxxabi.h>
 #endif
-#include <common/macros.h>
 #include "typetostring.h"
 
 #ifdef DOXYGEN
@@ -253,9 +252,27 @@ using std::vector;
 using std::tuple;
 using std::get;
 
+// value_type_or_T {{{1
+template <class T> typename T::value_type value_type_or_T_impl(int);
+template <class T> T value_type_or_T_impl(float);
+template <class T> using value_type_or_T = decltype(value_type_or_T_impl<T>(int()));
+
 // printPass {{{1
-static inline void printPass() { std::cout << Vc::AnsiColor::green << " PASS: " << Vc::AnsiColor::normal; }
-static inline void printSkip() { std::cout << Vc::AnsiColor::yellow << " SKIP: " << Vc::AnsiColor::normal; }
+static inline void printPass()
+{
+    static const char *str = 0;
+    if (str == 0) {
+        if (Vc::detail::mayUseColor(std::cout)) {
+            static const char *const pass = " \033[1;40;32mPASS:\033[0m ";
+            str = pass;
+        } else {
+            static const char *const pass = " PASS: ";
+            str = pass;
+        }
+    }
+    std::cout << str;
+}
+static inline void printSkip() { std::cout << Vc::detail::color::yellow << " SKIP: " << Vc::detail::color::normal; }
 
 // verify_vector_unit_supported {{{1
 namespace
@@ -331,6 +348,8 @@ public:
     bool vim_lines = false;
     std::fstream plotFile;
 
+    template <class T> T &fuzzyness();
+
 private:
     bool m_finalized;
     int failedTests;
@@ -343,6 +362,8 @@ public:
     double meanDistance;
     int meanCount;
 };
+template <> float &UnitTester::fuzzyness<float>() { return float_fuzzyness; }
+template <> double &UnitTester::fuzzyness<double>() { return double_fuzzyness; }
 
 static UnitTester global_unit_test_object_;
 
@@ -355,11 +376,11 @@ static const char *failString()  // {{{1
     }
     static const char *str = 0;
     if (str == 0) {
-        if (Vc::mayUseColor(std::cout)) {
-            static const char *fail = " \033[1;40;31mFAIL:\033[0m ";
+        if (Vc::detail::mayUseColor(std::cout)) {
+            static const char *const fail = " \033[1;40;31mFAIL:\033[0m ";
             str = fail;
         } else {
-            static const char *fail = " FAIL: ";
+            static const char *const fail = " FAIL: ";
             str = fail;
         }
     }
@@ -388,14 +409,9 @@ void initTest(int argc, char **argv)  //{{{1
     }
 }
 // setFuzzyness {{{1
-template <typename T> static inline void setFuzzyness(T);
-template <> inline void setFuzzyness<float>(float fuzz)
+template <typename T> static inline void setFuzzyness(T fuzz)
 {
-    global_unit_test_object_.float_fuzzyness = fuzz;
-}
-template <> inline void setFuzzyness<double>(double fuzz)
-{
-    global_unit_test_object_.double_fuzzyness = fuzz;
+    global_unit_test_object_.fuzzyness<T>() = fuzz;
 }
 
 void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
@@ -488,73 +504,31 @@ Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(
 }
 
 // ulpDiffToReferenceWrapper {{{1
-template <typename T, typename = Vc::enable_if<!Vc::Traits::is_simd_vector<T>::value>>
+template <typename T>
 T ulpDiffToReferenceWrapper(T a, T b)
 {
     const T diff = ulpDiffToReference(a, b);
     if (Vc_IS_UNLIKELY(global_unit_test_object_.findMaximumDistance)) {
+        using std::abs;
         global_unit_test_object_.maximumDistance =
-            std::max<double>(std::abs(diff), global_unit_test_object_.maximumDistance);
-        global_unit_test_object_.meanDistance += std::abs(diff);
+            std::max<double>(abs(diff), global_unit_test_object_.maximumDistance);
+        global_unit_test_object_.meanDistance += abs(diff);
         ++global_unit_test_object_.meanCount;
-    }
-    return diff;
-}
-template <typename T, typename = Vc::enable_if<Vc::Traits::is_simd_vector<T>::value>>
-T ulpDiffToReferenceWrapper(const T &a, const T &b)
-{
-    const T diff = ulpDiffToReference(a, b);
-    if (Vc_IS_UNLIKELY(global_unit_test_object_.findMaximumDistance)) {
-        global_unit_test_object_.maximumDistance =
-            std::max<double>(Vc::abs(diff).max(), global_unit_test_object_.maximumDistance);
-        global_unit_test_object_.meanDistance += Vc::abs(diff).sum();
-        global_unit_test_object_.meanCount += T::Size;
     }
     return diff;
 }
 // unittest_fuzzyCompareHelper {{{1
 template <typename T>
-static inline bool unittest_fuzzyCompareHelper(
-    const T &a,
-    const T &b,
-    Vc::enable_if<std::is_same<float, Vc::Traits::scalar_type<T>>::value> = Vc::nullarg)
+static inline bool unittest_fuzzyCompareHelper(const T &a, const T &b, std::true_type)
 {
-    return Vc::all_of(ulpDiffToReferenceWrapper(a, b) <= global_unit_test_object_.float_fuzzyness);
+    using U = value_type_or_T<T>;
+    return Vc::all_of(ulpDiffToReferenceWrapper(a, b) <=
+                      global_unit_test_object_.fuzzyness<U>());
 }
 template <typename T>
-static inline bool unittest_fuzzyCompareHelper(
-    const T &a,
-    const T &b,
-    Vc::enable_if<std::is_same<double, Vc::Traits::scalar_type<T>>::value> = Vc::nullarg)
-{
-    return Vc::all_of(ulpDiffToReferenceWrapper(a, b) <= global_unit_test_object_.double_fuzzyness);
-}
-template <typename T>
-static inline bool unittest_fuzzyCompareHelper(
-    const T &a,
-    const T &b,
-    Vc::enable_if<!std::is_floating_point<Vc::Traits::scalar_type<T>>::value> = Vc::nullarg)
+static inline bool unittest_fuzzyCompareHelper(const T &a, const T &b, std::false_type)
 {
     return Vc::all_of(a == b);
-}
-
-// unittest_fuzzynessHelper {{{1
-template <typename T> inline double unittest_fuzzynessHelper(const T &) { return 0.; }
-template <> inline double unittest_fuzzynessHelper<float>(const float &)
-{
-    return global_unit_test_object_.float_fuzzyness;
-}
-template <> inline double unittest_fuzzynessHelper<Vc::float_v>(const Vc::float_v &)
-{
-    return global_unit_test_object_.float_fuzzyness;
-}
-template <> inline double unittest_fuzzynessHelper<double>(const double &)
-{
-    return global_unit_test_object_.double_fuzzyness;
-}
-template <> inline double unittest_fuzzynessHelper<Vc::double_v>(const Vc::double_v &)
-{
-    return global_unit_test_object_.double_fuzzyness;
 }
 
 class Compare  //{{{1
@@ -691,14 +665,11 @@ public:
 
     // Fuzzy Compare ctor {{{2
     template <typename T>
-    Vc_ALWAYS_INLINE Compare(const T &a,
-                                       const T &b,
-                                       const char *_a,
-                                       const char *_b,
-                                       const char *_file,
-                                       int _line,
-                                       Fuzzy)
-        : m_ip(getIp()), m_failed(!unittest_fuzzyCompareHelper(a, b))
+    Vc_ALWAYS_INLINE Compare(const T &a, const T &b, const char *_a, const char *_b,
+                             const char *_file, int _line, Fuzzy)
+        : m_ip(getIp())
+        , m_failed(!unittest_fuzzyCompareHelper(
+              a, b, std::is_floating_point<value_type_or_T<T>>()))
     {
         if (Vc_IS_UNLIKELY(m_failed)) {
             printFirst();
@@ -1058,11 +1029,9 @@ template <typename T> PrintMemDecorator<T> asBytes(const T &x) { return {x}; }
 template <typename T>
 inline void Compare::printFuzzyInfo(Vc_ALIGNED_PARAMETER(T) a, Vc_ALIGNED_PARAMETER(T) b)
 {
-  printFuzzyInfoImpl(std::integral_constant<bool, Vc::is_floating_point<T>::value>(), a,
-                     b,
-                     std::is_same<T, float>::value || std::is_same<T, Vc::float_v>::value
-                         ? global_unit_test_object_.float_fuzzyness
-                         : global_unit_test_object_.double_fuzzyness);
+    using U = value_type_or_T<T>;
+    printFuzzyInfoImpl(std::is_floating_point<U>(), a, b,
+                       global_unit_test_object_.fuzzyness<U>());
 }
 template <typename T>
 static inline void writePlotDataImpl(std::true_type, std::fstream &file, Vc_ALIGNED_PARAMETER(T) ref,
@@ -1084,7 +1053,7 @@ inline void Compare::writePlotData(std::fstream &file, Vc_ALIGNED_PARAMETER(T) a
 {
     const T ref = b;
     const T dist = ulpDiffToReferenceSigned(a, b);
-    writePlotDataImpl(std::integral_constant<bool, Vc::is_simd_vector<T>::value>(), file, ref, dist);
+    writePlotDataImpl(Vc::is_datapar<T>(), file, ref, dist);
 }
 
 // FUZZY_COMPARE {{{1
@@ -1146,7 +1115,7 @@ public:
     }
 };
 // unittest_assert (called from assert macro) {{{1
-void unittest_assert(bool cond, const char *code, const char *file, int line)
+inline void unittest_assert(bool cond, const char *code, const char *file, int line)
 {
     if (!cond) {
         if (global_unit_test_object_.expect_assert_failure) {
@@ -1175,6 +1144,7 @@ void unittest_assert(bool cond, const char *code, const char *file, int line)
     }                                                                                              \
     global_unit_test_object_.expect_assert_failure = false
 // allMasks {{{1
+/*
 template <typename Vec>
 static Vc::enable_if<Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMasks(
     size_t i)
@@ -1220,6 +1190,7 @@ template <typename V, int Repetitions = 10000, typename F> void withRandomMask(F
         f(UnitTest::allMasks<V>(dist(engine)));
     }
 }
+*/
 
 // runAll and TestData {{{1
 typedef tuple<TestFunction, std::string> TestData;
@@ -1283,6 +1254,7 @@ template <typename... Ts> Typelist<Ts...> hackTypelist(void (*)(Typelist<Ts...>)
 //}}}1
 }  // namespace UnitTest
 // pre-defined type lists {{{1
+/*
 #define REAL_VECTORS                                                                     \
     Vc::double_v, Vc::float_v
 #define INT_VECTORS                                                                      \
@@ -1346,6 +1318,7 @@ using RealSimdArrays = Typelist<SIMD_REAL_ARRAY_LIST>;
 using IntVectors = Typelist<INT_VECTORS>;
 using AllVectors = Typelist<ALL_VECTORS>;
 using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
+*/
 
 // TEST_TYPES / TEST_CATCH / TEST macros {{{1
 #define REAL_TEST_TYPES(V_, name_, typelist_)                                            \

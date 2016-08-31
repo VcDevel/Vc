@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_TO_STRING_H
 #include <sstream>
 #include "typelist.h"
-#include <Vc/Vc>
+//#include <Vc/Vc>
 #ifdef HAVE_CXX_ABI_H
 #include <cxxabi.h>
 #endif
@@ -62,6 +62,7 @@ inline std::string typeToString_impl(std::integral_constant<T, N> const &)
     return s.str();
 }
 // SimdArray to string {{{2
+/*
 template <typename T, std::size_t N, typename V, std::size_t M>
 inline std::string typeToString_impl(Vc::SimdArray<T, N, V, M> const &)
 {
@@ -77,6 +78,8 @@ inline std::string typeToString_impl(Vc::SimdMaskArray<T, N, V, M> const &)
       << '>';
     return s.str();
 }
+*/
+
 // template parameter pack to a comma separated string {{{2
 template <typename T0, typename... Ts>
 std::string typeToString_impl(Typelist<T0, Ts...> const &)
@@ -96,6 +99,7 @@ std::string typeToString_impl(Typelist<T0, Ts...> const &)
     return s.str();
 }
 // Vc::<Impl>::Vector<T> to string {{{2
+/*
 template <typename V>
 inline std::string typeToString_impl(
     V const &, typename std::enable_if<Vc::is_simd_vector<V>::value, int>::type = 0)
@@ -132,13 +136,10 @@ inline std::string typeToString_impl(
     s << typeToString<T>() << "_m";
     return s.str();
 }
+*/
 
 // generic fallback (typeid::name) {{{2
-template <typename T>
-inline std::string typeToString_impl(
-    T const &,
-    typename std::enable_if<!Vc::is_simd_vector<T>::value && !Vc::is_simd_mask<T>::value,
-                            int>::type = 0)
+template <typename T> inline std::string typeToString_impl(T const &)
 {
 #ifdef HAVE_CXX_ABI_H
     char buf[1024];

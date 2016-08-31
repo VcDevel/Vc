@@ -43,8 +43,6 @@ template <int N> struct fixed_size_datapar_impl {
     using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
 
-    template <typename T> static constexpr void unused(T &&) {}
-
     // broadcast {{{2
     template <class T, size_t... I>
     static constexpr datapar_member_type<T> broadcast_impl(
@@ -80,9 +78,9 @@ template <int N> struct fixed_size_datapar_impl {
         auto &&x = {(merge[I] = mask[I] ? static_cast<T>(mem[I]) : merge[I])...};
         unused(x);
     }
-    template <class T, class U, class F>
-    static constexpr void masked_load(datapar_member_type<T> &merge, const mask<T> &k,
-                                      const U *mem, F) noexcept
+    template <class T, class A, class U, class F>
+    static constexpr void masked_load(datapar_member_type<T> &merge,
+                                      const Vc::mask<T, A> &k, const U *mem, F) noexcept
     {
         masked_load_impl(merge, k.d, mem, index_seq);
     }
@@ -110,9 +108,9 @@ template <int N> struct fixed_size_datapar_impl {
         auto &&x = {(k[I] ? mem[I] = static_cast<U>(v[I]) : false)...};
         unused(x);
     }
-    template <class T, class U, class F>
+    template <class T, class A, class U, class F>
     static constexpr void masked_store(const datapar_member_type<T> &v, U *mem, F,
-                                       const mask<T> &k) noexcept
+                                       const Vc::mask<T, A> &k) noexcept
     {
         return masked_store_impl(v, mem, index_seq, k.d);
     }
@@ -175,8 +173,6 @@ template <int N> struct fixed_size_mask_impl {
     template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
     using size_tag = std::integral_constant<size_t, N>;
 
-    template <typename T> static constexpr void unused(T &&) {}
-
     // broadcast {{{2
     template <size_t... I>
     static constexpr mask_member_type broadcast_impl(
@@ -230,23 +226,19 @@ template <int N> struct fixed_size_mask_impl {
     template <class F>
     static constexpr void store(const mask_member_type &v, bool *mem, F, size_tag) noexcept
     {
-        return store_impl(v, mem, index_seq);
+        store_impl(v, mem, index_seq);
     }
 
     // masked store {{{2
-    template <size_t... I>
-    static constexpr void masked_store_impl(const mask_member_type &v, bool *mem,
-                                            std::index_sequence<I...>,
-                                            const mask_member_type &k) noexcept
-    {
-        auto &&x = {(k[I] ? mem[I] = v[I] : false)...};
-        unused(x);
-    }
     template <class F>
     static constexpr void masked_store(const mask_member_type &v, bool *mem, F,
                                        const mask_member_type &k, size_tag) noexcept
     {
-        return masked_store_impl(v, mem, index_seq, k);
+        execute_n_times<N>([&](size_t i) {
+            if (k[i]) {
+                mem[i] = v[i];
+            }
+        });
     }
 
     // negation {{{2

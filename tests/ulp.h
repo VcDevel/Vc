@@ -28,8 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TESTS_ULP_H
 #define TESTS_ULP_H
 
-#include <Vc/Vc>
-#include <Vc/limits>
+#include <Vc/datapar>
+#include <cmath>
+#include <limits>
 
 #ifdef Vc_MSVC
 namespace std
@@ -66,13 +67,7 @@ inline T ulpDiffToReferenceSigned(T val, T ref)
     return ulpDiffToReference(val, ref) * (val - ref < 0 ? -1 : 1);
 }
 
-template<typename T> struct UlpExponentVector_ { typedef Vc::int_v Type; };
-template <typename T, std::size_t N> struct UlpExponentVector_<Vc::SimdArray<T, N>>
-{
-    using Type = Vc::SimdArray<int, N>;
-};
-
-template <typename V, typename = Vc::enable_if<Vc::is_simd_vector<V>::value>>
+template <typename V, typename = Vc::enable_if<Vc::is_datapar<V>::value>>
 static V ulpDiffToReference(const V &_val, const V &_ref)
 {
     using namespace Vc;
@@ -100,15 +95,22 @@ static V ulpDiffToReference(const V &_val, const V &_ref)
     return diff;
 }
 
-template <typename T>
-inline Vc::enable_if<Vc::is_simd_vector<T>::value && Vc::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
-    const T &_val, const T &_ref)
+template <typename T, typename A>
+inline Vc::enable_if<std::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
+    const Vc::datapar<T, A> &_val, const Vc::datapar<T, A> &_ref)
 {
     return copysign(ulpDiffToReference(_val, _ref), _val - _ref);
 }
 
+template <typename T, typename A>
+inline Vc::enable_if<!std::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
+    const Vc::datapar<T, A> &, const Vc::datapar<T, A> &)
+{
+    return 0;
+}
+
 template <typename T>
-inline Vc::enable_if<!Vc::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
+inline Vc::enable_if<!std::is_floating_point<T>::value, T> ulpDiffToReferenceSigned(
     const T &, const T &)
 {
     return 0;

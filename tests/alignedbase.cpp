@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "unittest.h"
+#include <Vc/Vc>
 
 template <std::size_t N> using Int = std::integral_constant<std::size_t, N>;
 

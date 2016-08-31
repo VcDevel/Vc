@@ -30,19 +30,92 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ostream>
 
-namespace Vc_VERSIONED_NAMESPACE {
+#if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
+#define Vc_HACK_OSTREAM_FOR_TTY 1
+#endif
+
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
+#include <unistd.h>
+#include <ext/stdio_sync_filebuf.h>
+#endif
+
+namespace Vc_VERSIONED_NAMESPACE
+{
+// color{{{1
+namespace detail
+{
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
+static bool isATty(const std::ostream &os)
+{
+    __gnu_cxx::stdio_sync_filebuf<char> *hack =
+        dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char> *>(os.rdbuf());
+    if (!hack) {
+        return false;
+    }
+    FILE *file = hack->file();
+    return 1 == isatty(fileno(file));
+}
+Vc_ALWAYS_INLINE Vc_CONST bool mayUseColor(const std::ostream &os)
+{
+    static int result = -1;
+    if (Vc_IS_UNLIKELY(result == -1)) {
+        result = isATty(os);
+    }
+    return result;
+}
+#else
+constexpr bool mayUseColor(const std::ostream &) { return false; }
+#endif
+
+namespace color
+{
+struct Color {
+    const char *data;
+};
+
+static constexpr Color red = {"\033[1;40;31m"};
+static constexpr Color green = {"\033[1;40;32m"};
+static constexpr Color yellow = {"\033[1;40;33m"};
+static constexpr Color blue = {"\033[1;40;34m"};
+static constexpr Color normal = {"\033[0m"};
+
+inline std::ostream &operator<<(std::ostream &out, const Color &c)
+{
+    if (mayUseColor(out)) {
+        out << c.data;
+    }
+    return out;
+}
+}  // namespace color
+}  // namespace detail
+
+// datapar output{{{1
+template <class T, class Abi>
+std::ostream &operator<<(std::ostream &out, const datapar<T, Abi> &v)
+{
+    using U = std::conditional_t<sizeof(T) == 1, int, T>;
+    out << detail::color::green << "v⃗[" << U(v[0]);
+    for (size_t i = 1; i < v.size(); ++i) {
+        out << (i % 4 == 0 ? " | " : ", ") << U(v[i]);
+    }
+    return out << ']' << detail::color::normal;
+}
+
+// mask output{{{1
 template <class T, class Abi>
 std::ostream &operator<<(std::ostream &out, const mask<T, Abi> &k)
 {
-    out << "m[" << (k[0] ? '1' : '0');
+    out << detail::color::blue << "m⃗[" << (k[0] ? '1' : '0');
     for (size_t i = 1; i < k.size(); ++i) {
         if (i % 4 == 0) {
             out << ' ';
         }
         out << (k[i] ? '1' : '0');
     }
-    return out << ']';
+    return out << ']' << detail::color::normal;
 }
+
+//}}}1
 }  // namespace Vc_VERSIONED_NAMESPACE
 
 #endif  // VC_DATAPAR_OSTREAM_H_

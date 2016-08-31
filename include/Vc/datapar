@@ -6,3 +6,4 @@
 #include "datapar/fixed_size.h"
 #include "datapar/sse.h"
 #include "datapar/avx.h"
+#include "datapar/avx512.h"

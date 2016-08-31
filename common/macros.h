@@ -42,6 +42,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     using new_type_ alignas(sizeof(n_)) = type_
 #endif
 
+#ifdef __SSE__
+#define Vc_HAVE_SSE
+#endif
+#ifdef __SSE2__
+#define Vc_HAVE_SSE2
+#endif
+#ifdef __SSE3__
+#define Vc_HAVE_SSE3
+#endif
+#ifdef __SSSE3__
+#define Vc_HAVE_SSSE3
+#endif
+#ifdef __SSE4_1__
+#define Vc_HAVE_SSE4_1
+#endif
+#ifdef __SSE4_2__
+#define Vc_HAVE_SSE4_2
+#endif
+#ifdef __AVX__
+#define Vc_HAVE_AVX
+#endif
+#ifdef __AVX2__
+#define Vc_HAVE_AVX2
+#define Vc_HAVE_BMI2
+#ifndef __BMI2__
+#error "expected AVX2 to imply the availability of BMI2"
+#endif
+#endif
+#ifdef __AVX512F__
+#define Vc_HAVE_AVX512F
+#endif
+#ifdef __AVX512DQ__
+#define Vc_HAVE_AVX512DQ
+#endif
+#ifdef __AVX512VL__
+#define Vc_HAVE_AVX512VL
+#endif
+#ifdef __AVX512BW__
+#define Vc_HAVE_AVX512BW
+#endif
+
 #if defined Vc_GCC && Vc_GCC >= 0x60000
 // GCC 6 drops all attributes on types passed as template arguments. This is important
 // if a may_alias gets lost and therefore needs to be readded in the implementation of

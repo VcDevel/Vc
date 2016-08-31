@@ -29,6 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_ALGORITHMS_H_
 
 #include "macros.h"
+#ifdef VC_DATAPAR_SYNOPSIS_H_
+#define Vc_HIDE_BOOL_OVERLOADS , int
+#else
+#define Vc_HIDE_BOOL_OVERLOADS
+#endif
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -45,7 +50,7 @@ template<typename Mask> constexpr bool all_of(const Mask &m) { return m.isFull()
 /** \ingroup Utilities
  *  Returns \p b
  */
-constexpr bool all_of(bool b) { return b; }
+constexpr bool all_of(bool b Vc_HIDE_BOOL_OVERLOADS) { return b; }
 
 /** \ingroup Utilities
  *  Returns whether at least one entry in the mask \p m is \c true.
@@ -54,7 +59,7 @@ template<typename Mask> constexpr bool any_of(const Mask &m) { return m.isNotEmp
 /** \ingroup Utilities
  *  Returns \p b
  */
-constexpr bool any_of(bool b) { return b; }
+constexpr bool any_of(bool b Vc_HIDE_BOOL_OVERLOADS) { return b; }
 
 /** \ingroup Utilities
  *  Returns whether all entries in the mask \p m are \c false.
@@ -63,7 +68,7 @@ template<typename Mask> constexpr bool none_of(const Mask &m) { return m.isEmpty
 /** \ingroup Utilities
  *  Returns \p !b
  */
-constexpr bool none_of(bool b) { return !b; }
+constexpr bool none_of(bool b Vc_HIDE_BOOL_OVERLOADS) { return !b; }
 
 /** \ingroup Utilities
  *  Returns whether at least one entry in \p m is \c true and at least one entry in \p m is \c
@@ -73,7 +78,7 @@ template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix()
 /** \ingroup Utilities
  *  Returns \c false
  */
-constexpr bool some_of(bool) { return false; }
+constexpr bool some_of(bool Vc_HIDE_BOOL_OVERLOADS) { return false; }
 //@}
 
 template <typename InputIt, typename UnaryFunction>

@@ -25,6 +25,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#include <utility>
+#include <functional>
+
 #ifndef VC_DATAPAR_WHERE_H_
 #define VC_DATAPAR_WHERE_H_
 

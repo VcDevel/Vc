@@ -25,37 +25,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_MACROS_H_
-#define VC_DATAPAR_MACROS_H_
+#ifndef VC_DATAPAR_FLAGS_H_
+#define VC_DATAPAR_FLAGS_H_
 
-#ifdef __MIC__
-//#define Vc_HAVE_KNC_ABI 1
-//#define Vc_HAVE_FULL_KNC_ABI 1
+namespace Vc_VERSIONED_NAMESPACE {
+using size_t = std::size_t;
+using align_val_t =
+#if __cplusplus >= 201700L
+    std::align_val_t
+#else
+    size_t
 #endif
+    ;
 
-#if defined __SSE__
-#define Vc_HAVE_SSE_ABI 1
-#ifdef __SSE2__
-#define Vc_HAVE_FULL_SSE_ABI 1
-#endif
-#endif
+namespace flags
+{
+struct element_aligned_tag {};
+struct vector_aligned_tag {};
+template <align_val_t> struct overaligned_tag {};
+constexpr element_aligned_tag element_aligned = {};
+constexpr vector_aligned_tag vector_aligned = {};
+template <align_val_t N> constexpr overaligned_tag<N> overaligned = {};
+}  // namespace flags
+}  // namespace Vc_VERSIONED_NAMESPACE
 
-#if defined __AVX__ && defined Vc_IMPL_AVX
-#define Vc_HAVE_AVX_ABI 1
-#if defined __AVX2__ && defined Vc_IMPL_AVX2
-#define Vc_HAVE_FULL_AVX_ABI 1
-#endif
-#endif
-
-#ifdef __AVX512F__
-//#define Vc_HAVE_AVX512_ABI 1
-#ifdef __AVX512BW__
-//#define Vc_HAVE_FULL_AVX512_ABI 1
-#endif
-#endif
-
-#ifdef __x86_64__
-#define Vc_IS_AMD64 1
-#endif
-
-#endif  // VC_DATAPAR_MACROS_H_
+#endif  // VC_DATAPAR_FLAGS_H_

@@ -25,37 +25,55 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_MACROS_H_
-#define VC_DATAPAR_MACROS_H_
+#ifndef VC_DATAPAR_X86_COMPARES_H_
+#define VC_DATAPAR_X86_COMPARES_H_
 
-#ifdef __MIC__
-//#define Vc_HAVE_KNC_ABI 1
-//#define Vc_HAVE_FULL_KNC_ABI 1
-#endif
+#include "storage.h"
 
-#if defined __SSE__
-#define Vc_HAVE_SSE_ABI 1
-#ifdef __SSE2__
-#define Vc_HAVE_FULL_SSE_ABI 1
+namespace Vc_VERSIONED_NAMESPACE::detail::x86
+{
+#ifdef Vc_HAVE_AVX2
+Vc_INTRINSIC Vc_CONST y_u64 cmpgt(y_u64 x, y_u64 y)
+{
+#ifdef Vc_HAVE_AVX512VL
+    return _mm256_cmpgt_epu64_mask(x, y);
+#else
+    return _mm256_cmpgt_epi64(x, y);
 #endif
-#endif
+}
 
-#if defined __AVX__ && defined Vc_IMPL_AVX
-#define Vc_HAVE_AVX_ABI 1
-#if defined __AVX2__ && defined Vc_IMPL_AVX2
-#define Vc_HAVE_FULL_AVX_ABI 1
+Vc_INTRINSIC Vc_CONST y_u32 cmpgt(y_u32 x, y_u32 y)
+{
+#ifdef Vc_HAVE_AVX512VL
+    return _mm256_cmpgt_epu32_mask(x, y);
+#else
+    return _mm256_cmpgt_epi32(x, y);
 #endif
-#endif
+}
 
-#ifdef __AVX512F__
-//#define Vc_HAVE_AVX512_ABI 1
-#ifdef __AVX512BW__
-//#define Vc_HAVE_FULL_AVX512_ABI 1
+Vc_INTRINSIC Vc_CONST y_u16 cmpgt(y_u16 x, y_u16 y)
+{
+#ifdef Vc_HAVE_AVX512VL
+    return _mm256_cmpgt_epu16_mask(x, y);
+#else
+    return _mm256_cmpgt_epi16(x, y);
 #endif
-#endif
+}
 
-#ifdef __x86_64__
-#define Vc_IS_AMD64 1
+Vc_INTRINSIC Vc_CONST y_u08 cmpgt(y_u08 x, y_u08 y)
+{
+#ifdef Vc_HAVE_AVX512VL
+    return _mm256_cmpgt_epu8_mask(x, y);
+#else
+    return _mm256_cmpgt_epi8(x, y);
 #endif
+}
 
-#endif  // VC_DATAPAR_MACROS_H_
+Vc_INTRINSIC Vc_CONST y_ulong cmpgt(y_ulong x, y_ulong y)
+{
+    return cmpgt(y_ulong_equiv(x), y_ulong_equiv(y)).v();
+}
+#endif
+}  // namespace Vc_VERSIONED_NAMESPACE::detail::x86
+
+#endif  // VC_DATAPAR_X86_COMPARES_H_
