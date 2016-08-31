@@ -29,12 +29,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_TESTS_TYPELIST_H_
 
 #include <type_traits>
+#include <utility>
 
 template <typename... Ts> struct Typelist;
 
 template <template <typename...> class T, typename... Fixed> struct Template {
     template <typename... Us> using type = T<Us..., Fixed...>;
 };
+
+// list indexing{{{1
+namespace TypelistIndexing
+{
+template <std::size_t I, typename T> struct indexed {
+    using type = T;
+};
+template <typename Is, typename... Ts> struct indexer;
+template <std::size_t... Is, typename... Ts>
+struct indexer<std::index_sequence<Is...>, Ts...> : indexed<Is, Ts>... {
+};
+template <std::size_t I, typename T> static indexed<I, T> select(indexed<I, T>);
+}  // namespace TypelistIndexing
 
 // concat {{{1
 template <typename... More> struct concat_impl;
