@@ -313,7 +313,7 @@ public:
         }
         m_finalized = true;
         std::cout << "\n Testing done. " << passedTests << " tests passed. "
-                  << failedTests << " tests failed." << skippedTests << " tests skipped."
+                  << failedTests << " tests failed. " << skippedTests << " tests skipped."
                   << std::endl;
         return failedTests;
     }
@@ -990,6 +990,8 @@ private:
             std::cout << str;
         }
     }
+    static void print(const unsigned char ch) { std::cout << int(ch); }
+    static void print(const signed char ch) { std::cout << int(ch); }
     static void print(const char ch)
     {
         if (ch == '\n') {
@@ -1046,6 +1048,11 @@ private:
     const size_t m_ip;
     const bool m_failed;
 };
+
+// asBytes{{{1
+template <typename T> struct PrintMemDecorator { T x; };
+template <typename T> PrintMemDecorator<T> asBytes(const T &x) { return {x}; }
+
 // printFuzzyInfo specializations for float and double {{{1
 template <typename T>
 inline void Compare::printFuzzyInfo(Vc_ALIGNED_PARAMETER(T) a, Vc_ALIGNED_PARAMETER(T) b)
@@ -1397,154 +1404,28 @@ template <typename TestWrapper> struct Test<TestWrapper, void> : public TestWrap
     }
 };
 
-// class TestList {{{1
-template <typename T>
-using enable_if_not_list_sentinel = typename std::enable_if<
-    !std::is_same<T, TypelistSentinel>::value, const char *>::type;
-template <template <typename V> class TestWrapper, typename T>
-static void maybe_add(enable_if_not_list_sentinel<T> name)
-{
-    const std::string &typestring = typeToString<T>();
-    std::string fullname;
-    const auto len = std::strlen(name);
-    fullname.reserve(len + typestring.length() + 2);
-    fullname.assign(name, len);
-    fullname.push_back('<');
-    fullname.append(typestring);
-    fullname.push_back('>');
-    g_allTests.emplace_back(&TestWrapper<T>::run, std::move(fullname));
-}
-template <template <typename> class, typename> static void maybe_add(const void *) {}
-template <template <typename V> class TestWrapper, typename List, std::size_t N>
-struct add_impl {
-    add_impl(const char *name) {
-        using S = split4<List>;
-        using A = typename S::type0;
-        using B = typename S::type1;
-        using C = typename S::type2;
-        using D = typename S::type3;
-        add_impl<TestWrapper, A, A::size()>{name};
-        add_impl<TestWrapper, B, B::size()>{name};
-        add_impl<TestWrapper, C, C::size()>{name};
-        add_impl<TestWrapper, D, D::size()>{name};
-    }
-};
-template <template <typename V> class TestWrapper, typename List>
-struct add_impl<TestWrapper, List, 0> {
-    add_impl(const void *) {}
-};
-template <template <typename V> class TestWrapper>
-struct add_impl<TestWrapper, Typelist<TypelistSentinel>, 1> {
-    add_impl(const void *) {}
-};
-template <template <typename V> class TestWrapper, typename T>
-struct add_impl<TestWrapper, Typelist<T>, 1> {
-    add_impl(const char *name) {
-        const std::string &typestring = typeToString<T>();
-        std::string fullname;
-        const auto len = std::strlen(name);
-        fullname.reserve(len + typestring.length() + 2);
-        fullname.assign(name, len);
-        fullname.push_back('<');
-        fullname.append(typestring);
-        fullname.push_back('>');
-        g_allTests.emplace_back(&TestWrapper<T>::run, std::move(fullname));
-    }
-};
+// addTestInstantiations {{{1
+template <std::size_t I, typename Indexer>
+using TypeAtIndex = typename decltype(TypelistIndexing::select<I>(Indexer{}))::type;
 
-template <template <typename> class TestWrapper, typename List> struct TestList
+template <template <typename> class TestWrapper, typename... Ts, std::size_t... I>
+static int addTestInstantiations(const char *name, Typelist<Ts...>,
+                                  std::index_sequence<I...>)
 {
-#if 0
-    template <std::size_t Offset = 0u> static int addTestInstantiations(const char *name)
-    {
-        if (Offset == 0u) {
-            g_allTests.reserve(g_allTests.size() + List::size());
-        }
-        maybe_add<TestWrapper, typename List::template at< 0 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at< 1 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at< 2 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at< 3 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at< 4 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at< 5 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at< 6 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at< 7 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at< 8 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at< 9 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<10 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<11 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<12 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<13 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<14 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<15 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<16 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<17 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<18 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<19 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<20 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<21 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<22 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<23 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<24 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<25 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<26 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<27 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<28 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<29 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<30 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<31 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<32 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<33 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<34 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<35 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<36 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<37 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<38 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<39 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<40 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<41 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<42 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<43 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<44 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<45 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<46 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<47 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<48 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<49 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<50 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<51 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<52 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<53 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<54 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<55 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<56 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<57 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<58 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<59 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<60 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<61 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<62 + Offset>>(name);
-        maybe_add<TestWrapper, typename List::template at<63 + Offset>>(name);
-        if (List::size() >= Offset + 64) {
-            addTestInstantiations<
-                // avoid (almost) infinite template instantiation recursion:
-                (List::size() >= Offset + 64 ? Offset + 64 : Offset)>(name);
-        }
-        return 0;
-    }
-#else
-    static int addTestInstantiations(const char *name)
-    {
-        add_impl<TestWrapper, List, List::size()>{name};
-        return 0;
-    }
-#endif
-};
+    using Indexer = TypelistIndexing::indexer<std::index_sequence<I...>, Ts...>;
+    const auto &x = {
+        (g_allTests.emplace_back(
+             &TestWrapper<TypeAtIndex<I, Indexer>>::run,
+             std::string(name) + '<' + typeToString<TypeAtIndex<I, Indexer>>() + '>'),
+         0)...};
+    auto &&unused = [](decltype(x)) {};
+    unused(x);
+    return 0;
+}
 
 // hackTypelist {{{1
-template <template <typename> class F, typename... Ts>
-UnitTest::TestList<F, Typelist<Ts...>> hackTypelist(void (*)(Ts...));
-template <template <typename> class F, typename... Ts>
-UnitTest::TestList<F, Typelist<Ts...>> hackTypelist(void (*)(Typelist<Ts...>));
+template <typename... Ts> Typelist<Ts...> hackTypelist(void (*)(Ts...));
+template <typename... Ts> Typelist<Ts...> hackTypelist(void (*)(Typelist<Ts...>));
 
 //}}}1
 }  // namespace UnitTest
@@ -1619,8 +1500,13 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
     {                                                                                    \
         static void run();                                                               \
     };                                                                                   \
-    auto test_##name_##_ = decltype(UnitTest::hackTypelist<Test##name_>(                 \
-        std::declval<void typelist_>()))::addTestInstantiations(#name_);                 \
+    namespace                                                                            \
+    {                                                                                    \
+    using list_##name_ =                                                                 \
+        decltype(UnitTest::hackTypelist(std::declval<void typelist_>()));                \
+    auto test_##name_##_ = UnitTest::addTestInstantiations<Test##name_>(                 \
+        #name_, list_##name_{}, std::make_index_sequence<list_##name_::size()>{});       \
+    }                                                                                    \
     template <typename V_> void Test##name_<V_>::run()
 
 #define FAKE_TEST_TYPES(V_, name_, typelist_)                                            \
