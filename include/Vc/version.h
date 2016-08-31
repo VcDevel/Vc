@@ -37,13 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \ingroup Utilities
  * Contains the version string of the %Vc headers. Same as Vc::versionString().
  */
-#define Vc_VERSION_STRING "1.2.0-dev"
-
-/**
- * \ingroup Utilities
- * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
- */
-#define Vc_VERSION_NUMBER 0x010201
+#define Vc_VERSION_STRING "1.70.0-dev"
 
 /**
  * \ingroup Utilities
@@ -55,9 +49,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \endcode
  */
 #define Vc_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
+
+/**
+ * \ingroup Utilities
+ * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
+ */
+#define Vc_VERSION_NUMBER (Vc_VERSION_CHECK(1, 70, 0) + 1)
 //@}
 
-#define Vc_LIBRARY_ABI_VERSION 5
+// Hack for testing the version check mechanics:
+#ifdef Vc_OVERRIDE_VERSION_NUMBER
+#undef Vc_VERSION_NUMBER
+#define Vc_VERSION_NUMBER Vc_OVERRIDE_VERSION_NUMBER
+#endif
+
+/**
+ * \internal
+ * Defines the ABI version of the Vc library. This number must match exactly between all
+ * translation units. It is also used to break linkage by using it as a suffix to the
+ * checkLibraryAbi function.
+ */
+#define Vc_LIBRARY_ABI_VERSION 6
 
 ///\internal identify Vc 2.0
 #define Vc_IS_VERSION_2 (Vc_VERSION_NUMBER >= Vc_VERSION_CHECK(1, 70, 0))
@@ -90,34 +102,43 @@ constexpr unsigned int versionNumber() { return Vc_VERSION_NUMBER; }
 }
 
 #if !defined(Vc_NO_VERSION_CHECK) && !defined(Vc_COMPILE_LIB)
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace Common
+#define Vc_CAT_IMPL(a, b) a##b
+#define Vc_CAT(a, b) Vc_CAT_IMPL(a, b)
+namespace Vc_VERSIONED_NAMESPACE::detail
 {
 /**\internal
  * This function is implemented in the libVc library and checks whether the library is
  * compatible with the version information passed via the function parameters. If it is
  * incompatible the function prints a warning and aborts.
  */
-void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber,
-                     const char *versionString);
+void Vc_CAT(checkLibraryAbi, Vc_LIBRARY_ABI_VERSION)(
+    unsigned int compileTimeAbi, unsigned int versionNumber, const char *versionString);
+
+/**\internal
+ * This constructor function is compiled into every translation unit using weak linkage,
+ * matching on the full version number. The function is therefore executed on startup
+ * (before main) for as many TUs compiled with different Vc versions as are linked into
+ * the executable (or its libraries). It calls Vc::detail::checkLibraryAbi to ensure the
+ * TU was compiled with Vc headers that are compatible to the linked libVc.
+ */
+template <unsigned int = versionNumber()> struct RunLibraryVersionCheck {
+    RunLibraryVersionCheck()
+    {
+        Vc_CAT(checkLibraryAbi, Vc_LIBRARY_ABI_VERSION)(
+            Vc_LIBRARY_ABI_VERSION, Vc_VERSION_NUMBER, Vc_VERSION_STRING);
+    }
+    static RunLibraryVersionCheck tmp;
+};
+template <unsigned int N> RunLibraryVersionCheck<N> RunLibraryVersionCheck<N>::tmp;
+
 namespace
 {
-/**\internal
- * This constructor function is compiled into every translation unit and thus executed on
- * startup (before main) for as many TUs as are linked into the executable. It calls
- * Vc::Common::checkLibraryAbi to ensure the TU was compiled with Vc headers that are
- * compatible to the linked libVc.
- */
-static struct runLibraryAbiCheck {
-    runLibraryAbiCheck()
-    {
-        checkLibraryAbi(Vc_LIBRARY_ABI_VERSION, Vc_VERSION_NUMBER, Vc_VERSION_STRING);
-    }
-} _runLibraryAbiCheck;
+static auto ctor = RunLibraryVersionCheck<>::tmp;
 }  // unnamed namespace
-}  // namespace Common
-}  // namespace Vc
+
+}  // namespace Vc_VERSIONED_NAMESPACE::detail
+#undef Vc_CAT_IMPL
+#undef Vc_CAT
 #endif
 
 #endif // VC_VERSION_H_

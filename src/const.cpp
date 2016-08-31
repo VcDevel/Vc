@@ -272,18 +272,22 @@ namespace Common
     alignas(32) const unsigned int AllBitsSet[8] = {
         0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU
     };
-
-    const char LIBRARY_VERSION[] = Vc_VERSION_STRING;
-    const unsigned int LIBRARY_VERSION_NUMBER = Vc_VERSION_NUMBER;
-    const unsigned int LIBRARY_ABI_VERSION = Vc_LIBRARY_ABI_VERSION;
-
-    void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
+}
+namespace detail
+{
+const char LIBRARY_VERSION[] = Vc_VERSION_STRING;
+const unsigned int LIBRARY_VERSION_NUMBER = Vc_VERSION_NUMBER;
+const unsigned int LIBRARY_ABI_VERSION = Vc_LIBRARY_ABI_VERSION;
+void Vc_CAT2(checkLibraryAbi, Vc_LIBRARY_ABI_VERSION)(unsigned int compileTimeAbi,
+                                                      unsigned int versionNumber,
+                                                      const char *compileTimeVersion)
+{
         if (LIBRARY_ABI_VERSION != compileTimeAbi || LIBRARY_VERSION_NUMBER < versionNumber) {
             printf("The versions of libVc.a (%s) and Vc/version.h (%s) are incompatible. Aborting.\n", LIBRARY_VERSION, compileTimeVersion);
             abort();
         }
     }
-}
+}  // namespace detail
 }
 
 namespace Vc_VERSIONED_NAMESPACE
