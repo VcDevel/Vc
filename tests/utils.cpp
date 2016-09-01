@@ -375,11 +375,8 @@ TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS
 using CastTypes = Typelist<
 #if Vc_FLOAT_V_SIZE == Vc_INT_V_SIZE
     Typelist<float_v, int_v>,
+    Typelist<float_v, uint_v>
 #endif
-#if Vc_FLOAT_V_SIZE == Vc_UINT_V_SIZE
-    Typelist<float_v, uint_v>,
-#endif
-    TypelistSentinel
     >;
 TEST_TYPES(P, reinterpret_components_cast, (CastTypes))
 {
