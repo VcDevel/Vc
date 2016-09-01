@@ -642,59 +642,82 @@ Vc_DEFINE_NONTYPE_REPLACETYPES_(  signed long long);
 Vc_DEFINE_NONTYPE_REPLACETYPES_(unsigned long long);
 #undef Vc_DEFINE_NONTYPE_REPLACETYPES_
 
-#ifdef Vc_ICC
-// FIXME: find a proper workaround implementation for ICC
-template <typename Class, typename... Args>
-constexpr bool is_constructible_with_single_brace()
+namespace is_constructible_with_single_paren_impl
 {
-    return true;
-}
+template <typename T> T create();
 template <typename Class, typename... Args>
-constexpr bool is_constructible_with_double_brace()
-{
-    return false;
-}
-#else
+typename std::conditional<sizeof(Class(create<Args>()...)), char, char>::type test(int);
+template <typename Class, typename... Args> double test(...);
+}  // namespace is_constructible_with_single_paren_impl
+
+template <typename Class, typename... Args>
+struct is_constructible_with_single_paren
+    : public std::integral_constant<
+          bool,
+          1 == sizeof(is_constructible_with_single_paren_impl::test<Class, Args...>(1))> {
+};
+static_assert(
+    !is_constructible_with_single_paren<int, std::tuple<int, int, int>>::value,
+    "is_constructible_with_single_paren<int> does not work as expected");
+static_assert(
+    is_constructible_with_single_paren<std::tuple<int, int, int>, int, int, int>::value,
+    "is_constructible_with_single_paren<tuple> does not work as expected");
+static_assert(
+    !is_constructible_with_single_paren<std::array<int, 3>, int, int, int>::value,
+    "is_constructible_with_single_paren<array> does not work as expected");
+
 namespace is_constructible_with_single_brace_impl
 {
 template <typename T> T create();
-template <typename Class, typename... Args,
-          typename = decltype((Class{create<Args>()...}))>
-std::true_type test(int);
-template <typename Class, typename... Args> std::false_type test(...);
+#ifdef Vc_ICC
+template <typename Class, typename... Args> char test(int);
+#else
+template <typename Class, typename... Args>
+typename std::conditional<sizeof(Class{create<Args>()...}), char, char>::type test(int);
+#endif
+template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_single_brace_impl
 
 template <typename Class, typename... Args>
-constexpr bool is_constructible_with_single_brace()
-{
-    return decltype(
-        is_constructible_with_single_brace_impl::test<Class, Args...>(1))::value;
-}
+struct is_constructible_with_single_brace
+    : public std::integral_constant<
+          bool,
+          1 == sizeof(is_constructible_with_single_brace_impl::test<Class, Args...>(1))> {
+};
+#ifndef Vc_ICC
 static_assert(
-    is_constructible_with_single_brace<std::tuple<int, int, int>, int, int, int>(), "");
-static_assert(is_constructible_with_single_brace<std::array<int, 3>, int, int, int>(),
-              "");
+    !is_constructible_with_single_brace<int, std::tuple<int, int, int>>::value,
+    "is_constructible_with_single_brace<int> does not work as expected");
+#endif
+static_assert(
+    is_constructible_with_single_brace<std::tuple<int, int, int>, int, int, int>::value,
+    "is_constructible_with_single_brace<tuple> does not work as expected");
+static_assert(
+    is_constructible_with_single_brace<std::array<int, 3>, int, int, int>::value,
+    "is_constructible_with_single_brace<array> does not work as expected");
 
 namespace is_constructible_with_double_brace_impl
 {
 template <typename T> T create();
-template <typename Class, typename... Args,
-          typename = decltype(Class{{create<Args>()...}})>
-std::true_type test(int);
-template <typename Class, typename... Args> std::false_type test(...);
+template <typename Class, typename... Args>
+typename std::conditional<sizeof(Class{{create<Args>()...}}), char, char>::type test(int);
+template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_double_brace_impl
 
 template <typename Class, typename... Args>
-constexpr bool is_constructible_with_double_brace()
-{
-    return decltype(
-        is_constructible_with_double_brace_impl::test<Class, Args...>(1))::value;
-}
+struct is_constructible_with_double_brace
+    : public std::integral_constant<
+          bool,
+          1 == sizeof(is_constructible_with_double_brace_impl::test<Class, Args...>(1))> {
+};
 static_assert(
-    !is_constructible_with_double_brace<std::tuple<int, int, int>, int, int, int>(), "");
-static_assert(is_constructible_with_double_brace<std::array<int, 3>, int, int, int>(),
-              "");
-#endif
+    !is_constructible_with_double_brace<int, int>::value,
+    "is_constructible_with_double_brace<int> does not work as expected");
+static_assert(
+    !is_constructible_with_double_brace<std::tuple<int, int, int>, int, int, int>::value,
+    "is_constructible_with_double_brace<tuple> does not work as expected");
+static_assert(is_constructible_with_double_brace<std::array<int, 3>, int, int, int>::value,
+              "is_constructible_with_double_brace<array> does not work as expected");
 
 template <size_t I, typename T,
           typename R = decltype(std::declval<T &>().template vc_get_<I>())>
@@ -734,7 +757,7 @@ private:
 
     /// helper for the broadcast ctor below using single braces for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, std::true_type,
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, std::false_type,
             std::false_type)
         : Base{get_dispatcher<Indexes>(x_)...}
     {
@@ -742,7 +765,7 @@ private:
 
     /// helper for the broadcast ctor below using parenthesis for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, std::false_type,
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, std::true_type,
             std::false_type)
         : Base(get_dispatcher<Indexes>(x_)...)
     {
@@ -752,13 +775,13 @@ private:
     Adapter(Vc::index_sequence<Indexes...> seq_, const Scalar &x_)
         : Adapter(seq_, x_,
                   std::integral_constant<
-                      bool, is_constructible_with_single_brace<
+                      bool, is_constructible_with_single_paren<
                                 Base, decltype(get_dispatcher<Indexes>(
-                                          std::declval<const Scalar &>()))...>()>(),
+                                          std::declval<const Scalar &>()))...>::value>(),
                   std::integral_constant<
                       bool, is_constructible_with_double_brace<
                                 Base, decltype(get_dispatcher<Indexes>(
-                                          std::declval<const Scalar &>()))...>()>())
+                                          std::declval<const Scalar &>()))...>::value>())
     {
     }
 
