@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "limits.h"
 #include "const.h"
 #include "../common/set.h"
+#include "../common/libraryversioncheck.h"  // for Detail::sorted
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE

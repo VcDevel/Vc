@@ -99,46 +99,6 @@ inline const char *versionString() { return Vc_VERSION_STRING; }
  * \returns the version of the %Vc headers encoded in an integer.
  */
 constexpr unsigned int versionNumber() { return Vc_VERSION_NUMBER; }
-}
-
-#if !defined(Vc_NO_VERSION_CHECK) && !defined(Vc_COMPILE_LIB)
-#define Vc_CAT_IMPL(a, b) a##b
-#define Vc_CAT(a, b) Vc_CAT_IMPL(a, b)
-namespace Vc_VERSIONED_NAMESPACE::detail
-{
-/**\internal
- * This function is implemented in the libVc library and checks whether the library is
- * compatible with the version information passed via the function parameters. If it is
- * incompatible the function prints a warning and aborts.
- */
-void Vc_CAT(checkLibraryAbi, Vc_LIBRARY_ABI_VERSION)(
-    unsigned int compileTimeAbi, unsigned int versionNumber, const char *versionString);
-
-/**\internal
- * This constructor function is compiled into every translation unit using weak linkage,
- * matching on the full version number. The function is therefore executed on startup
- * (before main) for as many TUs compiled with different Vc versions as are linked into
- * the executable (or its libraries). It calls Vc::detail::checkLibraryAbi to ensure the
- * TU was compiled with Vc headers that are compatible to the linked libVc.
- */
-template <unsigned int = versionNumber()> struct RunLibraryVersionCheck {
-    RunLibraryVersionCheck()
-    {
-        Vc_CAT(checkLibraryAbi, Vc_LIBRARY_ABI_VERSION)(
-            Vc_LIBRARY_ABI_VERSION, Vc_VERSION_NUMBER, Vc_VERSION_STRING);
-    }
-    static RunLibraryVersionCheck tmp;
-};
-template <unsigned int N> RunLibraryVersionCheck<N> RunLibraryVersionCheck<N>::tmp;
-
-namespace
-{
-static auto ctor = RunLibraryVersionCheck<>::tmp;
-}  // unnamed namespace
-
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
-#undef Vc_CAT_IMPL
-#undef Vc_CAT
-#endif
+}  // namespace Vc_VERSIONED_NAMESPACE
 
 #endif // VC_VERSION_H_

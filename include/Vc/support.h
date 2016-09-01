@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include "common/macros.h"
+#include "common/libraryversioncheck.h"
 namespace Vc_VERSIONED_NAMESPACE
 {
 

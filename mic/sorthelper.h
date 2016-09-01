@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <tuple>
 #include "types.h"
 #include "macros.h"
+#include "../common/libraryversioncheck.h"  // for Detail::sorted
 
 namespace Vc_VERSIONED_NAMESPACE
 {

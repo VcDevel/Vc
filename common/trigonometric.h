@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_TRIGONOMETRIC_H_
 
 #include "macros.h"
+#include "libraryversioncheck.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {

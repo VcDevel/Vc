@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_CPUID_H_
 
 #include "common/macros.h"
+#include "common/libraryversioncheck.h"
+
 namespace Vc_VERSIONED_NAMESPACE
 {
 

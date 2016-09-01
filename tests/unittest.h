@@ -40,7 +40,9 @@ static void unittest_assert(bool cond, const char *code, const char *file, int l
 #define Vc_ASSERT(cond) UnitTest::unittest_assert(cond, #cond, __FILE__, __LINE__);
 
 #include <Vc/datapar>
+#ifndef NO_ISA_CHECK
 #include <Vc/support.h>
+#endif
 #include "ulp.h"
 #include <cmath>
 #include <cstdlib>
@@ -275,6 +277,7 @@ static inline void printPass()
 static inline void printSkip() { std::cout << Vc::detail::color::yellow << " SKIP: " << Vc::detail::color::normal; }
 
 // verify_vector_unit_supported {{{1
+#ifndef NO_ISA_CHECK
 namespace
 {
 struct verify_vector_unit_supported
@@ -289,6 +292,7 @@ struct verify_vector_unit_supported
     }
 } verify_vector_unit_supported_;
 }  // unnamed namespace
+#endif  // NO_ISA_CHECK
 
 class UnitTestFailure //{{{1
 {

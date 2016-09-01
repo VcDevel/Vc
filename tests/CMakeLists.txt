@@ -160,7 +160,7 @@ function(vc_add_test2 name)
                endif()
                mic_add_executable(${target}
                   LINK_LIBRARIES Vc_MIC
-                  COMPILE_FLAGS "${Vc_MIC_FLAGS}"
+                  COMPILE_FLAGS "-DNO_ISA_CHECK"
                   SOURCES ${src}
                   OBJECTS ${_objs}
                   EXCLUDE_FROM_ALL
@@ -172,6 +172,7 @@ function(vc_add_test2 name)
                if(NOT impl STREQUAL "scalar")
                   set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
                endif()
+               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "NO_ISA_CHECK")
             endif()
             add_target_property(${target} LABELS "${label}")
             add_dependencies(build_tests ${target})
