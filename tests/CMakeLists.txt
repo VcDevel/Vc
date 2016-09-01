@@ -9,28 +9,6 @@ endif()
 # 32-bit x86 requires SSE for fp math to produce comparable results.
 AddCompilerFlag("-mfpmath=sse" CXX_FLAGS Vc_ARCHITECTURE_FLAGS CXX_RESULT _fpmath_ok)
 
-set(Vc_SCALAR_FLAGS "${Vc_ARCHITECTURE_FLAGS};-DVc_IMPL=Scalar")
-set(Vc_SSE_FLAGS    "${Vc_ARCHITECTURE_FLAGS};-DVc_IMPL=SSE")
-set(Vc_AVX_FLAGS    "${Vc_ARCHITECTURE_FLAGS};-DVc_IMPL=AVX")
-set(Vc_AVX2_FLAGS   "${Vc_ARCHITECTURE_FLAGS};-DVc_IMPL=AVX2")
-set(Vc_MIC_FLAGS    "-DVc_IMPL=MIC")
-
-if(USE_XOP)
-   set(Vc_SSE_FLAGS  "${Vc_SSE_FLAGS}+XOP")
-   set(Vc_AVX_FLAGS  "${Vc_AVX_FLAGS}+XOP")
-endif()
-if(USE_FMA)
-   set(Vc_SSE_FLAGS  "${Vc_SSE_FLAGS}+FMA")
-   set(Vc_AVX_FLAGS  "${Vc_AVX_FLAGS}+FMA")
-   set(Vc_AVX2_FLAGS "${Vc_AVX2_FLAGS}+FMA")
-elseif(USE_FMA4)
-   set(Vc_SSE_FLAGS  "${Vc_SSE_FLAGS}+FMA4")
-   set(Vc_AVX_FLAGS  "${Vc_AVX_FLAGS}+FMA4")
-endif()
-if(USE_BMI2)
-   set(Vc_AVX2_FLAGS "${Vc_AVX2_FLAGS}+BMI2")
-endif()
-
 if(DEFINED Vc_INSIDE_ROOT)
    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")  # Reset the ROOT default executable destination
    set(Vc_TEST_TARGET_PREFIX "vc-")
