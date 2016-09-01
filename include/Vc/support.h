@@ -92,9 +92,7 @@ bool isImplementationSupported(Vc::Implementation impl);
  *
  * \tparam Impl The SIMD target to test for.
  */
-template<typename Impl>
-Vc_TARGET_NO_SIMD
-static inline bool isImplementationSupported()
+template <typename Impl> Vc_TARGET_NO_SIMD inline bool isImplementationSupported()
 {
     return isImplementationSupported(Impl::current()) &&
            Impl::runs_on(extraInstructionsSupported());
@@ -128,7 +126,7 @@ Vc::Implementation bestImplementationSupported();
  * \code
  * int main()
  * {
- *   if (!Vc::currentImplementationSupported()) {
+ *   if (!Vc::requiredInstructionsSupported()) {
  *     std::cerr << "CPU or OS requirements not met for the compiled in vector unit!\n";
  *     exit -1;
  *   }
@@ -140,13 +138,16 @@ Vc::Implementation bestImplementationSupported();
  *                 instructions.
  * \return \c false otherwise
  */
-Vc_TARGET_NO_SIMD
-#ifndef DOXYGEN
-static
-#endif
-inline bool currentImplementationSupported()
+inline bool requiredInstructionsSupported()
 {
     return isImplementationSupported<Vc::CurrentImplementation>();
+}
+
+inline bool currentImplementationSupported
+[[deprecated("renamed to requiredInstructionsSupported()")]]
+()
+{
+    return requiredInstructionsSupported();
 }
 #endif // Vc_COMPILE_LIB
 //@}

@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void testCompiledImplementation()
 {
-    VERIFY(Vc::currentImplementationSupported());
+    VERIFY(Vc::requiredInstructionsSupported());
 }
 
 void testIsSupported()

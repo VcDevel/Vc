@@ -284,9 +284,9 @@ struct verify_vector_unit_supported
 {
     verify_vector_unit_supported()
     {
-        if (!Vc::currentImplementationSupported()) {
-            std::cerr
-                << "CPU or OS requirements not met for the compiled in vector unit!\n";
+        if (!Vc::requiredInstructionsSupported()) {
+            std::cerr << "CPU or OS requirements not met for the compiled in SIMD/vector "
+                         "instructions!\n";
             exit(-1);
         }
     }
