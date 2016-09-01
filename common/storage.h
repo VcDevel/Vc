@@ -155,47 +155,38 @@ public:
     using VectorType = IntrinsicType<ValueType, Size>;
     using EntryType = ValueType;
 
-    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data.v); }
-    Vc_INTRINSIC Storage(const VectorType &x) : data(x)
-    {
-        assertCorrectAlignment(&data.v);
-    }
+    union Alias {
+        Vc_INTRINSIC Alias(VectorType vv) : v(vv) {}
+        VectorType v;
+        EntryType m[Size];
+    };
+
+    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage(const VectorType &x) : data(x) { assertCorrectAlignment(&data); }
     template <typename U>
     Vc_INTRINSIC explicit Storage(const U &x,
                                   enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
-        : data(reinterpret_cast<const VectorType &>(x))
+        : data(reinterpret_cast<VectorType>(x))
     {
         assertCorrectAlignment(&data);
-    }
-    Vc_INTRINSIC Storage &operator=(const VectorType &x)
-    {
-        data.v = x;
-        return *this;
     }
 
     Vc_INTRINSIC Storage(const Storage &) = default;
     Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 
-    Vc_INTRINSIC operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data.v; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data.v; }
-
-    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data.m[i]; }
-    Vc_INTRINSIC void set(size_t i, EntryType x) { data.m[i] = x; }
+    Vc_INTRINSIC operator const VectorType &() const { return data; }
+    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
+    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
+    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return Alias(data).m[i]; }
+    Vc_INTRINSIC void set(size_t i, EntryType x)
+    {
+        Alias a(data);
+        a.m[i] = x;
+        data = a.v;
+    }
 
 private:
-    union VectorScalarUnion {
-        Vc_INTRINSIC VectorScalarUnion() : v() {}
-        Vc_INTRINSIC VectorScalarUnion(VectorType vv) : v(vv) {}
-        VectorType v;
-        // To get function parameter passed via registers the following works:
-        // EntryType m[];
-        // However:
-        // a) starting with GCC 6, GCC rejects it
-        // b) clang refuses to do lambda capture via reference of objects containing it
-        // Therefore, bite the bullet and get less efficient function calls:
-        EntryType m[Size];
-    } data;
+    VectorType data;
 };
 
 template <typename ValueType, size_t Size>
