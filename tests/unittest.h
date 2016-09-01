@@ -1496,18 +1496,22 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
 
 // TEST_TYPES / TEST_CATCH / TEST macros {{{1
 #define REAL_TEST_TYPES(V_, name_, typelist_)                                            \
-    template <typename V_> struct Test##name_                                            \
+    namespace Tests                                                                      \
     {                                                                                    \
+    template <typename V_> struct name_##_ {                                             \
         static void run();                                                               \
     };                                                                                   \
-    namespace                                                                            \
-    {                                                                                    \
-    using list_##name_ =                                                                 \
-        decltype(UnitTest::hackTypelist(std::declval<void typelist_>()));                \
-    auto test_##name_##_ = UnitTest::addTestInstantiations<Test##name_>(                 \
-        #name_, list_##name_{}, Vc::make_index_sequence<list_##name_::size()>{});        \
+    static struct name_##_ctor {                                                         \
+        name_##_ctor()                                                                   \
+        {                                                                                \
+            using list =                                                                 \
+                decltype(UnitTest::hackTypelist(std::declval<void typelist_>()));        \
+            UnitTest::addTestInstantiations<name_##_>(                                   \
+                #name_, list{}, Vc::make_index_sequence<list::size()>{});                \
+        }                                                                                \
+    } name_##_ctor_;                                                                     \
     }                                                                                    \
-    template <typename V_> void Test##name_<V_>::run()
+    template <typename V_> void Tests::name_##_<V_>::run()
 
 #define FAKE_TEST_TYPES(V_, name_, typelist_)                                            \
     template <typename V_> struct Test##name_                                            \

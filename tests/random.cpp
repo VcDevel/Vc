@@ -121,13 +121,16 @@ template<typename V, typename I> void FloatRandom()
     }
 }
 
-template <> void TestRandom<float_v>::run()
+namespace Tests
+{
+template <> void Random_<float_v>::run()
 {
     FloatRandom<float_v, SimdArray<int, float_v::size()>>();
 }
-template <> void TestRandom<double_v>::run()
+template <> void Random_<double_v>::run()
 {
     FloatRandom<double_v, SimdArray<int, double_v::size()>>();
 }
+}  // namespace Tests
 
 // vim: foldmethod=marker
