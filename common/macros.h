@@ -81,7 +81,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
 #  define Vc_UNREACHABLE __builtin_unreachable
-#  define Vc_NEVER_INLINE [[gnu::noinline]]
 #  if defined Vc_GCC && !defined __OPTIMIZE__
 #    define Vc_MAY_ALIAS
 #  else
@@ -98,7 +97,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
      // ICC miscompiles if there are functions marked as pure or const
 #    define Vc_PURE
 #    define Vc_CONST
+#    define Vc_NEVER_INLINE
 #  else
+#    define Vc_NEVER_INLINE [[gnu::noinline]]
 #    define Vc_PURE __attribute__((__pure__))
 #    define Vc_CONST __attribute__((__const__))
 #  endif
