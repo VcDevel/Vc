@@ -33,24 +33,27 @@ template<typename T, int N>
 using fixed_mask = Vc::mask<T, Vc::datapar_abi::fixed_size<N>>;
 
 // all_test_types / ALL_TYPES {{{1
-typedef expand_list<
-    Typelist<
+typedef expand_list<Typelist<
+#ifdef Vc_HAVE_FULL_AVX512_ABI
+                        Template<Vc::mask, Vc::datapar_abi::avx512>,
+#endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
-        Template<Vc::mask, Vc::datapar_abi::avx>,
+                        Template<Vc::mask, Vc::datapar_abi::avx>,
 #endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
-        Template<Vc::mask, Vc::datapar_abi::sse>,
+                        Template<Vc::mask, Vc::datapar_abi::sse>,
 #endif
-        Template<Vc::mask, Vc::datapar_abi::scalar>,
-        Template<Vc::mask, Vc::datapar_abi::fixed_size<2>>,
-        Template<Vc::mask, Vc::datapar_abi::fixed_size<3>>,
-        Template<Vc::mask, Vc::datapar_abi::fixed_size<4>>,
-        Template<Vc::mask, Vc::datapar_abi::fixed_size<8>>,
-        Template<Vc::mask, Vc::datapar_abi::fixed_size<12>>,
-        Template<Vc::mask, Vc::datapar_abi::fixed_size<16>>,
-        Template<Vc::mask, Vc::datapar_abi::fixed_size<32>>>,
-    Typelist<long double, double, float, unsigned long, int, unsigned short, signed char,
-             long, unsigned int, short, unsigned char>> all_test_types;
+                        Template<Vc::mask, Vc::datapar_abi::scalar>,
+                        Template<Vc::mask, Vc::datapar_abi::fixed_size<2>>,
+                        Template<Vc::mask, Vc::datapar_abi::fixed_size<3>>,
+                        Template<Vc::mask, Vc::datapar_abi::fixed_size<4>>,
+                        Template<Vc::mask, Vc::datapar_abi::fixed_size<8>>,
+                        Template<Vc::mask, Vc::datapar_abi::fixed_size<12>>,
+                        Template<Vc::mask, Vc::datapar_abi::fixed_size<16>>,
+                        Template<Vc::mask, Vc::datapar_abi::fixed_size<32>>>,
+                    Typelist<long double, double, float, long long, unsigned long, int,
+                             unsigned short, signed char, unsigned long long, long,
+                             unsigned int, short, unsigned char>> all_test_types;
 
 #define ALL_TYPES (all_test_types)
 
