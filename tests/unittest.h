@@ -1410,9 +1410,9 @@ using TypeAtIndex = typename decltype(TypelistIndexing::select<I>(Indexer{}))::t
 
 template <template <typename> class TestWrapper, typename... Ts, std::size_t... I>
 static int addTestInstantiations(const char *name, Typelist<Ts...>,
-                                  std::index_sequence<I...>)
+                                 Vc::index_sequence<I...>)
 {
-    using Indexer = TypelistIndexing::indexer<std::index_sequence<I...>, Ts...>;
+    using Indexer = TypelistIndexing::indexer<Vc::index_sequence<I...>, Ts...>;
     const auto &x = {
         (g_allTests.emplace_back(
              &TestWrapper<TypeAtIndex<I, Indexer>>::run,
@@ -1505,7 +1505,7 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
     using list_##name_ =                                                                 \
         decltype(UnitTest::hackTypelist(std::declval<void typelist_>()));                \
     auto test_##name_##_ = UnitTest::addTestInstantiations<Test##name_>(                 \
-        #name_, list_##name_{}, std::make_index_sequence<list_##name_::size()>{});       \
+        #name_, list_##name_{}, Vc::make_index_sequence<list_##name_::size()>{});        \
     }                                                                                    \
     template <typename V_> void Test##name_<V_>::run()
 

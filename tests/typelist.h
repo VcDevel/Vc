@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <type_traits>
 #include <utility>
+#include "../common/indexsequence.h"
 
 template <typename... Ts> struct Typelist;
 
@@ -45,7 +46,7 @@ template <std::size_t I, typename T> struct indexed {
 };
 template <typename Is, typename... Ts> struct indexer;
 template <std::size_t... Is, typename... Ts>
-struct indexer<std::index_sequence<Is...>, Ts...> : indexed<Is, Ts>... {
+struct indexer<Vc::index_sequence<Is...>, Ts...> : indexed<Is, Ts>... {
 };
 template <std::size_t I, typename T> static indexed<I, T> select(indexed<I, T>);
 }  // namespace TypelistIndexing
