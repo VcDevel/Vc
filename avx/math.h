@@ -175,6 +175,45 @@ inline AVX2::double_v frexp(AVX2::double_v::AsArg v, SimdArray<int, 4, SSE::int_
     internal_data(*e) = exponent;
     return ret;
 }
+
+#ifdef Vc_IMPL_AVX2
+inline SimdArray<double, 8, AVX2::double_v, 4> frexp(
+    const SimdArray<double, 8, AVX2::double_v, 4> &v,
+    SimdArray<int, 8, AVX2::int_v, 8> *e)
+{
+    const __m256d exponentBits = AVX::Const<double>::exponentMask().dataD();
+    const __m256d w[2] = {internal_data(internal_data0(v)).data(),
+                          internal_data(internal_data1(v)).data()};
+    const __m256i exponentPart[2] = {
+        _mm256_castpd_si256(_mm256_and_pd(w[0], exponentBits)),
+        _mm256_castpd_si256(_mm256_and_pd(w[1], exponentBits))};
+    const __m256i lo = _mm256_sub_epi32(_mm256_srli_epi64(exponentPart[0], 52),
+                                        _mm256_set1_epi32(0x3fe));   // 0.1. 2.3.
+    const __m256i hi = _mm256_sub_epi32(_mm256_srli_epi64(exponentPart[1], 52),
+                                        _mm256_set1_epi32(0x3fe));   // 4.5. 6.7.
+    const __m256i a = _mm256_unpacklo_epi32(lo, hi);                 // 04.. 26..
+    const __m256i b = _mm256_unpackhi_epi32(lo, hi);                 // 15.. 37..
+    const __m256i tmp = _mm256_unpacklo_epi32(a, b);                 // 0145 2367
+    const __m256i exponent =
+        AVX::concat(_mm_unpacklo_epi64(AVX::lo128(tmp), AVX::hi128(tmp)),
+                    _mm_unpackhi_epi64(AVX::lo128(tmp), AVX::hi128(tmp)));  // 0123 4567
+    const __m256d exponentMaximized[2] = {_mm256_or_pd(w[0], exponentBits),
+                                          _mm256_or_pd(w[1], exponentBits)};
+    const auto frexpMask =
+        _mm256_broadcast_sd(reinterpret_cast<const double *>(&AVX::c_general::frexpMask));
+    SimdArray<double, 8, AVX2::double_v, 4> ret = {
+        SimdArray<double, 4, AVX2::double_v, 4>(
+            _mm256_and_pd(exponentMaximized[0], frexpMask)),
+        SimdArray<double, 4, AVX2::double_v, 4>(
+            _mm256_and_pd(exponentMaximized[1], frexpMask))};
+    const auto zeroMask = v == v.Zero();
+    ret(isnan(v) || !isfinite(v) || zeroMask) = v;
+    internal_data(*e) =
+        Detail::andnot_(simd_cast<AVX2::int_m>(zeroMask).dataI(), exponent);
+    return ret;
+}
+#endif  // Vc_IMPL_AVX2
+
 namespace Detail
 {
 Vc_INTRINSIC AVX2::float_v::IndexType extractExponent(__m256 e)
