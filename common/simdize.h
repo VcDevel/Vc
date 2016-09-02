@@ -645,8 +645,13 @@ Vc_DEFINE_NONTYPE_REPLACETYPES_(unsigned long long);
 namespace is_constructible_with_single_paren_impl
 {
 template <typename T> T create();
+#if defined Vc_CLANG || defined Vc_APPLECLANG
+template <typename Class, typename... Args, typename = decltype(Class(create<Args>()...))>
+char test(int);
+#else
 template <typename Class, typename... Args>
 typename std::conditional<sizeof(Class(create<Args>()...)), char, char>::type test(int);
+#endif
 template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_single_paren_impl
 
@@ -671,6 +676,9 @@ namespace is_constructible_with_single_brace_impl
 template <typename T> T create();
 #ifdef Vc_ICC
 template <typename Class, typename... Args> char test(int);
+#elif defined Vc_CLANG || defined Vc_APPLECLANG
+template <typename Class, typename... Args, typename = decltype(Class{create<Args>()...})>
+char test(int);
 #else
 template <typename Class, typename... Args>
 typename std::conditional<sizeof(Class{create<Args>()...}), char, char>::type test(int);
@@ -699,8 +707,14 @@ static_assert(
 namespace is_constructible_with_double_brace_impl
 {
 template <typename T> T create();
+#if defined Vc_CLANG || defined Vc_APPLECLANG
+template <typename Class, typename... Args,
+          typename = decltype(Class{{create<Args>()...}})>
+char test(int);
+#else
 template <typename Class, typename... Args>
 typename std::conditional<sizeof(Class{{create<Args>()...}}), char, char>::type test(int);
+#endif
 template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_double_brace_impl
 
@@ -711,6 +725,9 @@ struct is_constructible_with_double_brace
           1 == sizeof(is_constructible_with_double_brace_impl::test<Class, Args...>(1))> {
 };
 static_assert(
+#if defined Vc_CLANG || defined Vc_APPLECLANG
+    !
+#endif
     !is_constructible_with_double_brace<int, int>::value,
     "is_constructible_with_double_brace<int> does not work as expected");
 static_assert(
