@@ -1414,10 +1414,10 @@ static int addTestInstantiations(const char *name, Typelist<Ts...>,
 {
     using Indexer = TypelistIndexing::indexer<Vc::index_sequence<I...>, Ts...>;
     const auto &x = {
-        (g_allTests.emplace_back(
-             &TestWrapper<TypeAtIndex<I, Indexer>>::run,
-             std::string(name) + '<' + typeToString<TypeAtIndex<I, Indexer>>() + '>'),
-         0)...};
+        0, (g_allTests.emplace_back(
+                &TestWrapper<TypeAtIndex<I, Indexer>>::run,
+                std::string(name) + '<' + typeToString<TypeAtIndex<I, Indexer>>() + '>'),
+            0)...};
     auto &&unused = [](decltype(x)) {};
     unused(x);
     return 0;
