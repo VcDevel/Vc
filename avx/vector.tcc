@@ -645,25 +645,25 @@ template<typename T> template<typename BinaryOperation> Vc_ALWAYS_INLINE AVX2::V
 }
 */
 
-template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::min(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::min(MaskArgument m) const
 {
     AVX2::Vector<T> tmp = std::numeric_limits<AVX2::Vector<T> >::max();
     tmp(m) = *this;
     return tmp.min();
 }
-template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::max(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::max(MaskArgument m) const
 {
     AVX2::Vector<T> tmp = std::numeric_limits<AVX2::Vector<T> >::min();
     tmp(m) = *this;
     return tmp.max();
 }
-template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::product(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::product(MaskArgument m) const
 {
     AVX2::Vector<T> tmp(Vc::One);
     tmp(m) = *this;
     return tmp.product();
 }
-template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::sum(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE typename Vector<T, VectorAbi::Avx>::EntryType Vector<T, VectorAbi::Avx>::sum(MaskArgument m) const
 {
     AVX2::Vector<T> tmp(Vc::Zero);
     tmp(m) = *this;

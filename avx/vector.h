@@ -209,7 +209,7 @@ public:
         Vc_INTRINSIC_L void setZeroInverted(const Mask &k) Vc_INTRINSIC_R;
 
         Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L void setQnan(MaskArg k) Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L void setQnan(MaskArgument k) Vc_INTRINSIC_R;
 
 #include "../common/gatherinterface.h"
 #include "../common/scatterinterface.h"
@@ -325,10 +325,10 @@ public:
         Vc_ALWAYS_INLINE EntryType sum() const { return Detail::add(data(), T()); }
         Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
         //template<typename BinaryOperation> Vc_ALWAYS_INLINE_L Vector partialSum(BinaryOperation op) const Vc_ALWAYS_INLINE_R;
-        Vc_ALWAYS_INLINE_L EntryType min(MaskArg m) const Vc_ALWAYS_INLINE_R;
-        Vc_ALWAYS_INLINE_L EntryType max(MaskArg m) const Vc_ALWAYS_INLINE_R;
-        Vc_ALWAYS_INLINE_L EntryType product(MaskArg m) const Vc_ALWAYS_INLINE_R;
-        Vc_ALWAYS_INLINE_L EntryType sum(MaskArg m) const Vc_ALWAYS_INLINE_R;
+        Vc_ALWAYS_INLINE_L EntryType min(MaskArgument m) const Vc_ALWAYS_INLINE_R;
+        Vc_ALWAYS_INLINE_L EntryType max(MaskArgument m) const Vc_ALWAYS_INLINE_R;
+        Vc_ALWAYS_INLINE_L EntryType product(MaskArgument m) const Vc_ALWAYS_INLINE_R;
+        Vc_ALWAYS_INLINE_L EntryType sum(MaskArgument m) const Vc_ALWAYS_INLINE_R;
 
         Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
