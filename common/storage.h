@@ -38,6 +38,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace Detail
+{
+template <typename V> inline V zero();
+}  // namespace Detail
 namespace Common
 {
 namespace Detail
@@ -161,7 +165,7 @@ public:
         EntryType m[Size];
     };
 
-    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() : data(Vc::Detail::zero<VectorType>()) {}
     Vc_INTRINSIC Storage(const VectorType &x) : data(x) { assertCorrectAlignment(&data); }
     template <typename U>
     Vc_INTRINSIC explicit Storage(const U &x,

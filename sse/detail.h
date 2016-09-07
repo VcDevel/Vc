@@ -343,7 +343,7 @@ template<> Vc_INTRINSIC Vc_CONST __m128i allone<__m128i>() { return SSE::_mm_set
 template<> Vc_INTRINSIC Vc_CONST __m128d allone<__m128d>() { return SSE::_mm_setallone_pd(); }
 
 // zero{{{1
-template <typename V> Vc_INTRINSIC_L Vc_CONST_L V zero() Vc_INTRINSIC_R Vc_CONST_R;
+template <typename V> inline V zero();
 template<> Vc_INTRINSIC Vc_CONST __m128  zero<__m128 >() { return _mm_setzero_ps(); }
 template<> Vc_INTRINSIC Vc_CONST __m128i zero<__m128i>() { return _mm_setzero_si128(); }
 template<> Vc_INTRINSIC Vc_CONST __m128d zero<__m128d>() { return _mm_setzero_pd(); }
