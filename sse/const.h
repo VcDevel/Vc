@@ -72,7 +72,7 @@ namespace SSE
         static Vc_ALWAYS_INLINE Vc_CONST V _1_sqrt2()     { return load(c_log<T>::d(15)); }
         static Vc_ALWAYS_INLINE Vc_CONST V P(int i)       { return load(c_log<T>::d(2 + i)); }
         static Vc_ALWAYS_INLINE Vc_CONST V Q(int i)       { return load(c_log<T>::d(8 + i)); }
-        static Vc_ALWAYS_INLINE Vc_CONST V min()          { return load(c_log<T>::d(14)); }
+        static Vc_ALWAYS_INLINE Vc_CONST V (min)()          { return load(c_log<T>::d(14)); }
         static Vc_ALWAYS_INLINE Vc_CONST V ln2_small()    { return load(c_log<T>::d(17)); }
         static Vc_ALWAYS_INLINE Vc_CONST V ln2_large()    { return load(c_log<T>::d(16)); }
         static Vc_ALWAYS_INLINE Vc_CONST V neginf()       { return load(c_log<T>::d(13)); }

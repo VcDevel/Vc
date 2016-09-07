@@ -63,7 +63,7 @@ template<typename Vec> void alignedStore()
             COMPARE(array[i], v[i]);
         }
 
-        v = std::numeric_limits<T>::max() + Vec::One(); // overflow
+        v = (std::numeric_limits<T>::max)() + Vec::One(); // overflow
         v.store(array, Vc::Aligned);
         for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(array[i], v[i]);

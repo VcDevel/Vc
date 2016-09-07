@@ -125,20 +125,20 @@ Vc_INTRINSIC  short mul(__m512i a,  short) { return _mm512_reduce_mul_epi32(a); 
 Vc_INTRINSIC ushort mul(__m512i a, ushort) { return _mm512_reduce_mul_epi32(a); }
 
 // horizontal min{{{1
-Vc_INTRINSIC  float min(__m512  a,  float) { return _mm512_reduce_min_ps(a); }
-Vc_INTRINSIC double min(__m512d a, double) { return _mm512_reduce_min_pd(a); }
-Vc_INTRINSIC    int min(__m512i a,    int) { return _mm512_reduce_min_epi32(a); }
-Vc_INTRINSIC   uint min(__m512i a,   uint) { return _mm512_reduce_min_epi32(a); }
-Vc_INTRINSIC  short min(__m512i a,  short) { return _mm512_reduce_min_epi32(a); }
-Vc_INTRINSIC ushort min(__m512i a, ushort) { return _mm512_reduce_min_epi32(a); }
+Vc_INTRINSIC  float (min)(__m512  a,  float) { return _mm512_reduce_min_ps(a); }
+Vc_INTRINSIC double (min)(__m512d a, double) { return _mm512_reduce_min_pd(a); }
+Vc_INTRINSIC    int (min)(__m512i a,    int) { return _mm512_reduce_min_epi32(a); }
+Vc_INTRINSIC   uint (min)(__m512i a,   uint) { return _mm512_reduce_min_epi32(a); }
+Vc_INTRINSIC  short (min)(__m512i a,  short) { return _mm512_reduce_min_epi32(a); }
+Vc_INTRINSIC ushort (min)(__m512i a, ushort) { return _mm512_reduce_min_epi32(a); }
 
 // horizontal max{{{1
-Vc_INTRINSIC  float max(__m512  a,  float) { return _mm512_reduce_max_ps(a); }
-Vc_INTRINSIC double max(__m512d a, double) { return _mm512_reduce_max_pd(a); }
-Vc_INTRINSIC    int max(__m512i a,    int) { return _mm512_reduce_max_epi32(a); }
-Vc_INTRINSIC   uint max(__m512i a,   uint) { return _mm512_reduce_max_epi32(a); }
-Vc_INTRINSIC  short max(__m512i a,  short) { return _mm512_reduce_max_epi32(a); }
-Vc_INTRINSIC ushort max(__m512i a, ushort) { return _mm512_reduce_max_epi32(a); }
+Vc_INTRINSIC  float (max)(__m512  a,  float) { return _mm512_reduce_max_ps(a); }
+Vc_INTRINSIC double (max)(__m512d a, double) { return _mm512_reduce_max_pd(a); }
+Vc_INTRINSIC    int (max)(__m512i a,    int) { return _mm512_reduce_max_epi32(a); }
+Vc_INTRINSIC   uint (max)(__m512i a,   uint) { return _mm512_reduce_max_epi32(a); }
+Vc_INTRINSIC  short (max)(__m512i a,  short) { return _mm512_reduce_max_epi32(a); }
+Vc_INTRINSIC ushort (max)(__m512i a, ushort) { return _mm512_reduce_max_epi32(a); }
 
 // abs{{{1
 Vc_INTRINSIC __m512d abs(__m512d a, double)

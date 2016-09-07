@@ -93,9 +93,9 @@ Vec incrementIndex(const typename Vec::IndexType &i,
     // if (i + 1) > std::numeric_limits<Vec>::max() it will overflow, which results in
     // undefined behavior for signed integers
     const auto overflowing =
-        Vc::simd_cast<typename Vec::Mask>(i >= IT(std::numeric_limits<T>::max()));
+        Vc::simd_cast<typename Vec::Mask>(i >= IT((std::numeric_limits<T>::max)()));
     Vec r = Vc::simd_cast<Vec>(i + IT::One());
-    where(overflowing) | r = Vc::simd_cast<Vec>(i - std::numeric_limits<T>::max() + std::numeric_limits<T>::min());
+    where(overflowing) | r = Vc::simd_cast<Vec>(i - (std::numeric_limits<T>::max)() + (std::numeric_limits<T>::min)());
     return r;
 }
 

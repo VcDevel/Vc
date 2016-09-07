@@ -126,7 +126,7 @@ TEST_TYPES(Param, testInterleavingScatter,
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
     typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
-    const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(),
+    const size_t N = std::min<size_t>((std::numeric_limits<typename I::EntryType>::max)(),
                                       1024 * 1024 / sizeof(S));
     const size_t NMask = createNMask(N);
 

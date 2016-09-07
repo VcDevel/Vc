@@ -191,12 +191,12 @@ template <typename T> Vc_ALWAYS_INLINE void Mask<T, VectorAbi::Sse>::load(const 
 template <>
 Vc_INTRINSIC Vc_PURE bool SSE::short_m::get(const SSE::short_m &m, int index) noexcept
 {
-    return m.shiftMask() & (1 << 2 * index);
+    return (m.shiftMask() & (1 << 2 * index)) ? true : false;
 }
 template <>
 Vc_INTRINSIC Vc_PURE bool SSE::ushort_m::get(const SSE::ushort_m &m, int index) noexcept
 {
-    return m.shiftMask() & (1 << 2 * index);
+    return (m.shiftMask() & (1 << 2 * index)) ? true : false;
 }
 
 // firstOne {{{1

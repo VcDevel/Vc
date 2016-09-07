@@ -262,7 +262,7 @@ template <size_t N, typename F> Vc_ALWAYS_INLINE void benchmark(F &&f)
             unused(C);
         }
         tsc.stop();
-        cycles = std::min(cycles, tsc.cycles());
+        cycles = (std::min)(cycles, tsc.cycles());
     }
     //std::cout << cycles << " Cycles for " << N *N *(N + N - 1) << " FLOP => ";
     std::cout << std::setw(19) << std::setprecision(3)

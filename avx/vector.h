@@ -312,14 +312,14 @@ public:
         Vc_INTRINSIC_L std::pair<Vector, int> minIndex() const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L std::pair<Vector, int> maxIndex() const Vc_INTRINSIC_R;
 
-        Vc_ALWAYS_INLINE EntryType min() const { return Detail::min(data(), T()); }
-        Vc_ALWAYS_INLINE EntryType max() const { return Detail::max(data(), T()); }
+        Vc_ALWAYS_INLINE EntryType (min)() const { return (Detail::min)(data(), T()); }
+        Vc_ALWAYS_INLINE EntryType (max)() const { return (Detail::max)(data(), T()); }
         Vc_ALWAYS_INLINE EntryType product() const { return Detail::mul(data(), T()); }
         Vc_ALWAYS_INLINE EntryType sum() const { return Detail::add(data(), T()); }
         Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
         //template<typename BinaryOperation> Vc_ALWAYS_INLINE_L Vector partialSum(BinaryOperation op) const Vc_ALWAYS_INLINE_R;
-        Vc_ALWAYS_INLINE_L EntryType min(MaskArg m) const Vc_ALWAYS_INLINE_R;
-        Vc_ALWAYS_INLINE_L EntryType max(MaskArg m) const Vc_ALWAYS_INLINE_R;
+        Vc_ALWAYS_INLINE_L EntryType (min)(MaskArg m) const Vc_ALWAYS_INLINE_R;
+        Vc_ALWAYS_INLINE_L EntryType (max)(MaskArg m) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L EntryType product(MaskArg m) const Vc_ALWAYS_INLINE_R;
         Vc_ALWAYS_INLINE_L EntryType sum(MaskArg m) const Vc_ALWAYS_INLINE_R;
 

@@ -220,7 +220,7 @@ namespace AVX
       , 0x4037200a9e1f25b2ull // Q[4]
 
       , 0xfff0000000000000ull // -inf
-      , 0x0010000000000000ull // min()
+      , 0x0010000000000000ull // (min)()
       , 0x3fe6a09e667f3bcdull // 1/sqrt(2)
       , 0x3fe6300000000000ull // round(ln(2) * 512) / 512
       , 0xbf2bd0105c610ca8ull // ln(2) - round(ln(2) * 512) / 512
@@ -247,7 +247,7 @@ namespace AVX
       , 0           // padding because of c_log<double>
 
       , 0xff800000u // -inf
-      , 0x00800000u // min()
+      , 0x00800000u // (min)()
       , 0x3f3504f3u // 1/sqrt(2)
       , 0x3f318000u // round(ln(2) * 512) / 512
       , 0xb95e8083u // ln(2) - round(ln(2) * 512) / 512
@@ -277,7 +277,7 @@ namespace Common
     const unsigned int LIBRARY_VERSION_NUMBER = Vc_VERSION_NUMBER;
     const unsigned int LIBRARY_ABI_VERSION = Vc_LIBRARY_ABI_VERSION;
 
-    void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
+    void cdecl checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
         if (LIBRARY_ABI_VERSION != compileTimeAbi || LIBRARY_VERSION_NUMBER < versionNumber) {
             printf("The versions of libVc.a (%s) and Vc/version.h (%s) are incompatible. Aborting.\n", LIBRARY_VERSION, compileTimeVersion);
             abort();
@@ -495,7 +495,7 @@ namespace SSE
       /*12*/ , 0x4037200a9e1f25b2ull, 0x4037200a9e1f25b2ull // Q[4]
 
       /*13*/ , 0xfff0000000000000ull, 0xfff0000000000000ull // -inf
-      /*14*/ , 0x0010000000000000ull, 0x0010000000000000ull // min()
+      /*14*/ , 0x0010000000000000ull, 0x0010000000000000ull // (min)()
       /*15*/ , 0x3fe6a09e667f3bcdull, 0x3fe6a09e667f3bcdull // 1/sqrt(2)
       /*16*/ , 0x3fe6300000000000ull, 0x3fe6300000000000ull // round(ln(2) * 512) / 512
       /*17*/ , 0xbf2bd0105c610ca8ull, 0xbf2bd0105c610ca8ull // ln(2) - round(ln(2) * 512) / 512
@@ -521,7 +521,7 @@ namespace SSE
         0,           0,           0,           0,           // padding because of c_log<double>
 
         0xff800000u, 0xff800000u, 0xff800000u, 0xff800000u, // -inf
-        0x00800000u, 0x00800000u, 0x00800000u, 0x00800000u, // min()
+        0x00800000u, 0x00800000u, 0x00800000u, 0x00800000u, // (min)()
         0x3f3504f3u, 0x3f3504f3u, 0x3f3504f3u, 0x3f3504f3u, // 1/sqrt(2)
         // ln(2) = 0x3fe62e42fefa39ef
         // ln(2) = doubleConstant< 1, 0x00062e42fefa39ef, -1>()

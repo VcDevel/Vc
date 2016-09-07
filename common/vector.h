@@ -530,7 +530,7 @@ public:
      * Example:
      * \code
      * void foo(const float_v &v) {
-     *   float min = v.min(); // smallest value in v
+     *   float min = (v.min)(); // smallest value in v
      *   float sum = v.sum(); // sum of all values in v
      * }
      * \endcode
@@ -538,9 +538,9 @@ public:
     ///@{
 
     /// Returns the smallest entry in the vector.
-    inline EntryType min() const;
+    inline EntryType (min)() const;
     /// Returns the largest entry in the vector.
-    inline EntryType max() const;
+    inline EntryType (max)() const;
     /// Returns the product of all entries in the vector.
     inline EntryType product() const;
     /// Returns the sum of all entries in the vector.
@@ -548,9 +548,9 @@ public:
     /// Returns a vector containing the sum of all entries with smaller index.
     inline Vector partialSum() const;
     /// Returns the smallest entry of the vector components selected by \p mask.
-    inline EntryType min(MaskType mask) const;
+    inline EntryType (min)(MaskType mask) const;
     /// Returns the largest entry of the vector components selected by \p mask.
-    inline EntryType max(MaskType mask) const;
+    inline EntryType (max)(MaskType mask) const;
     /// Returns the product of the vector components selected by \p mask.
     inline EntryType product(MaskType mask) const;
     /// Returns the sum of the vector components selected by \p mask.

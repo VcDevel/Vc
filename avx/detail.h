@@ -573,15 +573,15 @@ template <typename T> Vc_INTRINSIC T mul(Common::IntrinsicType<T, 32 / sizeof(T)
 }
 
 // horizontal min{{{1
-template <typename T> Vc_INTRINSIC T min(Common::IntrinsicType<T, 32 / sizeof(T)> a, T)
+template <typename T> Vc_INTRINSIC T (min)(Common::IntrinsicType<T, 32 / sizeof(T)> a, T)
 {
-    return {min(min(AVX::lo128(a), AVX::hi128(a), T()), T())};
+    return {(min)((min)(AVX::lo128(a), AVX::hi128(a), T()), T())};
 }
 
 // horizontal max{{{1
-template <typename T> Vc_INTRINSIC T max(Common::IntrinsicType<T, 32 / sizeof(T)> a, T)
+template <typename T> Vc_INTRINSIC T (max)(Common::IntrinsicType<T, 32 / sizeof(T)> a, T)
 {
-    return {max(max(AVX::lo128(a), AVX::hi128(a), T()), T())};
+    return {(max)((max)(AVX::lo128(a), AVX::hi128(a), T()), T())};
 }
 // cmpeq{{{1
 Vc_INTRINSIC __m256  cmpeq(__m256  a, __m256  b,  float) { return AvxIntrinsics::cmpeq_ps(a, b); }

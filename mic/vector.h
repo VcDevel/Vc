@@ -282,13 +282,13 @@ public:
         return MIC::WriteMaskedVector<T>(this, k);
     }
 
-    Vc_ALWAYS_INLINE EntryType min() const { return Detail::min(d.v(), EntryType()); }
-    Vc_ALWAYS_INLINE EntryType max() const { return Detail::max(d.v(), EntryType()); }
+    Vc_ALWAYS_INLINE EntryType (min)() const { return (Detail::min)(d.v(), EntryType()); }
+    Vc_ALWAYS_INLINE EntryType (max)() const { return (Detail::max)(d.v(), EntryType()); }
     Vc_ALWAYS_INLINE EntryType product() const { return Detail::mul(d.v(), EntryType()); }
     Vc_ALWAYS_INLINE EntryType sum() const { return Detail::add(d.v(), EntryType()); }
     Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
-    inline EntryType min(MaskArgument m) const;
-    inline EntryType max(MaskArgument m) const;
+    inline EntryType (min)(MaskArgument m) const;
+    inline EntryType (max)(MaskArgument m) const;
     inline EntryType product(MaskArgument m) const;
     inline EntryType sum(MaskArgument m) const;
 
@@ -367,18 +367,18 @@ public:
 template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Mic>::MemoryAlignment;
 
-Vc_INTRINSIC MIC::int_v    min(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_min_epi32(x.data(), y.data()); }
-Vc_INTRINSIC MIC::uint_v   min(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_min_epu32(x.data(), y.data()); }
-Vc_INTRINSIC MIC::short_v  min(const MIC::short_v  &x, const MIC::short_v  &y) { return _mm512_min_epi32(x.data(), y.data()); }
-Vc_INTRINSIC MIC::ushort_v min(const MIC::ushort_v &x, const MIC::ushort_v &y) { return _mm512_min_epu32(x.data(), y.data()); }
-Vc_INTRINSIC MIC::float_v  min(const MIC::float_v  &x, const MIC::float_v  &y) { return _mm512_min_ps   (x.data(), y.data()); }
-Vc_INTRINSIC MIC::double_v min(const MIC::double_v &x, const MIC::double_v &y) { return _mm512_min_pd   (x.data(), y.data()); }
-Vc_INTRINSIC MIC::int_v    max(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_max_epi32(x.data(), y.data()); }
-Vc_INTRINSIC MIC::uint_v   max(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_max_epu32(x.data(), y.data()); }
-Vc_INTRINSIC MIC::short_v  max(const MIC::short_v  &x, const MIC::short_v  &y) { return _mm512_max_epi32(x.data(), y.data()); }
-Vc_INTRINSIC MIC::ushort_v max(const MIC::ushort_v &x, const MIC::ushort_v &y) { return _mm512_max_epu32(x.data(), y.data()); }
-Vc_INTRINSIC MIC::float_v  max(const MIC::float_v  &x, const MIC::float_v  &y) { return _mm512_max_ps   (x.data(), y.data()); }
-Vc_INTRINSIC MIC::double_v max(const MIC::double_v &x, const MIC::double_v &y) { return _mm512_max_pd   (x.data(), y.data()); }
+Vc_INTRINSIC MIC::int_v    (min)(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_min_epi32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::uint_v   (min)(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_min_epu32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::short_v  (min)(const MIC::short_v  &x, const MIC::short_v  &y) { return _mm512_min_epi32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::ushort_v (min)(const MIC::ushort_v &x, const MIC::ushort_v &y) { return _mm512_min_epu32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::float_v  (min)(const MIC::float_v  &x, const MIC::float_v  &y) { return _mm512_min_ps   (x.data(), y.data()); }
+Vc_INTRINSIC MIC::double_v (min)(const MIC::double_v &x, const MIC::double_v &y) { return _mm512_min_pd   (x.data(), y.data()); }
+Vc_INTRINSIC MIC::int_v    (max)(const MIC::int_v    &x, const MIC::int_v    &y) { return _mm512_max_epi32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::uint_v   (max)(const MIC::uint_v   &x, const MIC::uint_v   &y) { return _mm512_max_epu32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::short_v  (max)(const MIC::short_v  &x, const MIC::short_v  &y) { return _mm512_max_epi32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::ushort_v (max)(const MIC::ushort_v &x, const MIC::ushort_v &y) { return _mm512_max_epu32(x.data(), y.data()); }
+Vc_INTRINSIC MIC::float_v  (max)(const MIC::float_v  &x, const MIC::float_v  &y) { return _mm512_max_ps   (x.data(), y.data()); }
+Vc_INTRINSIC MIC::double_v (max)(const MIC::double_v &x, const MIC::double_v &y) { return _mm512_max_pd   (x.data(), y.data()); }
 
 Vc_ALWAYS_INLINE MIC::double_v atan2(MIC::double_v x, MIC::double_v y)
 {

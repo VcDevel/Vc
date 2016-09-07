@@ -112,21 +112,21 @@ namespace SSE
 #undef Vc_OP3
 
 #define Vc_OP1(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a) { return Vc_CAT2(_mm_##op##_, Vc_SUFFIX)(a); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType (op)(const VectorType a) { return Vc_CAT2(_mm_##op##_, Vc_SUFFIX)(a); }
 #define Vc_OP(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op##_ , Vc_SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType (op)(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op##_ , Vc_SUFFIX)(a, b); }
 #define Vc_OP_(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op    , Vc_SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType (op)(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op    , Vc_SUFFIX)(a, b); }
 #define Vc_OPx(op, op2) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op2##_, Vc_SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType (op)(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_##op2##_, Vc_SUFFIX)(a, b); }
 #define Vc_OP_CAST_(op) \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType op(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_castps_, Vc_SUFFIX)( \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType (op)(const VectorType a, const VectorType b) { return Vc_CAT2(_mm_castps_, Vc_SUFFIX)( \
             _mm_##op##ps(Vc_CAT2(Vc_CAT2(_mm_cast, Vc_SUFFIX), _ps)(a), \
               Vc_CAT2(Vc_CAT2(_mm_cast, Vc_SUFFIX), _ps)(b))); \
         }
 #define Vc_MINMAX \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return Vc_CAT2(_mm_min_, Vc_SUFFIX)(a, b); } \
-        static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return Vc_CAT2(_mm_max_, Vc_SUFFIX)(a, b); }
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType (min)(VectorType a, VectorType b) { return Vc_CAT2(_mm_min_, Vc_SUFFIX)(a, b); } \
+        static Vc_ALWAYS_INLINE Vc_CONST VectorType (max)(VectorType a, VectorType b) { return Vc_CAT2(_mm_max_, Vc_SUFFIX)(a, b); }
 
         template<> struct VectorHelper<double> {
             typedef _M128D VectorType;
@@ -189,11 +189,11 @@ namespace SSE
             }
 
             Vc_MINMAX
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (min)(VectorType a) {
                 a = _mm_min_sd(a, _mm_unpackhi_pd(a, a));
                 return _mm_cvtsd_f64(a);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (max)(VectorType a) {
                 a = _mm_max_sd(a, _mm_unpackhi_pd(a, a));
                 return _mm_cvtsd_f64(a);
             }
@@ -267,14 +267,14 @@ namespace SSE
             }
 
             Vc_MINMAX
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
-                a = _mm_min_ps(a, _mm_movehl_ps(a, a));   // a = min(a0, a2), min(a1, a3), min(a2, a2), min(a3, a3)
-                a = _mm_min_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = min(a0, a1), a1, a2, a3
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (min)(VectorType a) {
+                a = _mm_min_ps(a, _mm_movehl_ps(a, a));   // a = (min)(a0, a2), (min)(a1, a3), (min)(a2, a2), (min)(a3, a3)
+                a = _mm_min_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = (min)(a0, a1), a1, a2, a3
                 return _mm_cvtss_f32(a);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
-                a = _mm_max_ps(a, _mm_movehl_ps(a, a));   // a = max(a0, a2), max(a1, a3), max(a2, a2), max(a3, a3)
-                a = _mm_max_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = max(a0, a1), a1, a2, a3
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (max)(VectorType a) {
+                a = _mm_max_ps(a, _mm_movehl_ps(a, a));   // a = (max)(a0, a2), (max)(a1, a3), (max)(a2, a2), (max)(a3, a3)
+                a = _mm_max_ss(a, _mm_shuffle_ps(a, a, _MM_SHUFFLE(1, 1, 1, 1))); // a = (max)(a0, a1), a1, a2, a3
                 return _mm_cvtss_f32(a);
             }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
@@ -322,18 +322,18 @@ namespace SSE
                 return Vc_CAT2(_mm_srai_, Vc_SUFFIX)(a, shift);
             }
             static Vc_ALWAYS_INLINE Vc_CONST VectorType abs(const VectorType a) { return abs_epi32(a); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epi32(a, b); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epi32(a, b); }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
-                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType (min)(VectorType a, VectorType b) { return min_epi32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType (max)(VectorType a, VectorType b) { return max_epi32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (min)(VectorType a) {
+                a = (min)(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
-                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (min)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
-                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (max)(VectorType a) {
+                a = (max)(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
-                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (max)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType add(VectorType a) {
@@ -375,18 +375,18 @@ namespace SSE
 #define Vc_SUFFIX epu32
             static Vc_ALWAYS_INLINE Vc_CONST VectorType one() { return Vc_CAT2(_mm_setone_, Vc_SUFFIX)(); }
 
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epu32(a, b); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epu32(a, b); }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
-                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType (min)(VectorType a, VectorType b) { return min_epu32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType (max)(VectorType a, VectorType b) { return max_epu32(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (min)(VectorType a) {
+                a = (min)(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
-                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (min)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
-                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (max)(VectorType a) {
+                a = (max)(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 // using lo_epi16 for speed here
-                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (max)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
                 return _mm_cvtsi128_si32(a);
             }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
@@ -477,18 +477,18 @@ namespace SSE
 
             Vc_OPx(mul, mullo)
             Vc_OP(min) Vc_OP(max)
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (min)(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
-                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
-                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
-                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                a = (min)(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (min)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (min)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (max)(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
-                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
-                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
-                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                a = (max)(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (max)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (max)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {
@@ -554,8 +554,8 @@ namespace SSE
 //X                 return mul(a, set(b));
 //X             }
 #if !defined(USE_INCORRECT_UNSIGNED_COMPARE) || Vc_IMPL_SSE4_1
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType min(VectorType a, VectorType b) { return min_epu16(a, b); }
-            static Vc_ALWAYS_INLINE Vc_CONST VectorType max(VectorType a, VectorType b) { return max_epu16(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType (min)(VectorType a, VectorType b) { return min_epu16(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST VectorType (max)(VectorType a, VectorType b) { return max_epu16(a, b); }
 #endif
 #undef Vc_SUFFIX
 #define Vc_SUFFIX epi16
@@ -572,18 +572,18 @@ namespace SSE
 #if defined(USE_INCORRECT_UNSIGNED_COMPARE) && !defined(Vc_IMPL_SSE4_1)
             Vc_OP(min) Vc_OP(max) // XXX breaks for values with MSB set
 #endif
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VectorType a) {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (min)(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
-                a = min(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
-                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
-                a = min(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                a = (min)(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (min)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (min)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VectorType a) {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (max)(VectorType a) {
                 // reminder: _MM_SHUFFLE(3, 2, 1, 0) means "no change"
-                a = max(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
-                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
-                a = max(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
+                a = (max)(a, _mm_shuffle_epi32(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (max)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 0, 3, 2)));
+                a = (max)(a, _mm_shufflelo_epi16(a, _MM_SHUFFLE(1, 1, 1, 1)));
                 return _mm_cvtsi128_si32(a); // & 0xffff is implicit
             }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VectorType a) {

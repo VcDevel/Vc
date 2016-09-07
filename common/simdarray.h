@@ -56,10 +56,10 @@ template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper_(const T &l, const T &r)
 
 // min & max declarations {{{1
 template <typename T, std::size_t N, typename V, std::size_t M>
-inline SimdArray<T, N, V, M> min(const SimdArray<T, N, V, M> &x,
+inline SimdArray<T, N, V, M> (min)(const SimdArray<T, N, V, M> &x,
                                  const SimdArray<T, N, V, M> &y);
 template <typename T, std::size_t N, typename V, std::size_t M>
-inline SimdArray<T, N, V, M> max(const SimdArray<T, N, V, M> &x,
+inline SimdArray<T, N, V, M> (max)(const SimdArray<T, N, V, M> &x,
                                  const SimdArray<T, N, V, M> &y);
 
 // SimdArray class {{{1
@@ -373,10 +373,10 @@ public:
 
     // reductions ////////////////////////////////////////////////////////
 #define Vc_REDUCTION_FUNCTION_(name_)                                                    \
-    Vc_INTRINSIC Vc_PURE value_type name_() const { return data.name_(); }               \
-    Vc_INTRINSIC Vc_PURE value_type name_(mask_type mask) const                          \
+    Vc_INTRINSIC Vc_PURE value_type (name_)() const { return (data.name_)(); }           \
+    Vc_INTRINSIC Vc_PURE value_type (name_)(mask_type mask) const                        \
     {                                                                                    \
-        return data.name_(internal_data(mask));                                          \
+        return (data.name_)(internal_data(mask));                                        \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
     Vc_REDUCTION_FUNCTION_(min);
@@ -966,7 +966,7 @@ private:                                                                        
                                storage_type0::Size == storage_type1::Size,           \
                            value_type> name_##_impl() const                              \
     {                                                                                    \
-        return binary_fun_(data0, data1).name_();                                        \
+        return (binary_fun_(data0, data1).name_)();                                        \
     }                                                                                    \
                                                                                          \
     template <typename ForSfinae = void>                                                 \
@@ -974,22 +974,22 @@ private:                                                                        
                                storage_type0::Size != storage_type1::Size,           \
                            value_type> name_##_impl() const                              \
     {                                                                                    \
-        return scalar_fun_(data0.name_(), data1.name_());                                \
+        return scalar_fun_((data0.name_)(), (data1.name_)());                                \
     }                                                                                    \
                                                                                          \
 public:                                                                                  \
     /**\copybrief Vector::##name_ */                                                     \
-    Vc_INTRINSIC value_type name_() const { return name_##_impl(); }                     \
+    Vc_INTRINSIC value_type (name_)() const { return name_##_impl(); }                     \
     /**\copybrief Vector::##name_ */                                                     \
-    Vc_INTRINSIC value_type name_(const mask_type &mask) const                           \
+    Vc_INTRINSIC value_type (name_)(const mask_type &mask) const                           \
     {                                                                                    \
         if (Vc_IS_UNLIKELY(Split::lo(mask).isEmpty())) {                                 \
-            return data1.name_(Split::hi(mask));                                         \
+            return (data1.name_)(Split::hi(mask));                                         \
         } else if (Vc_IS_UNLIKELY(Split::hi(mask).isEmpty())) {                          \
-            return data0.name_(Split::lo(mask));                                         \
+            return (data0.name_)(Split::lo(mask));                                         \
         } else {                                                                         \
-            return scalar_fun_(data0.name_(Split::lo(mask)),                             \
-                               data1.name_(Split::hi(mask)));                            \
+            return scalar_fun_((data0.name_)(Split::lo(mask)),                             \
+                               (data1.name_)(Split::hi(mask)));                            \
         }                                                                                \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
@@ -1268,8 +1268,8 @@ public:
 #endif
         const auto a = data0.sorted();
         const auto b = data1.sorted().reversed();
-        const auto lo = Vc::min(a, b);
-        const auto hi = Vc::max(a, b);
+        const auto lo = (Vc::min)(a, b);
+        const auto hi = (Vc::max)(a, b);
         return {lo.sorted(), hi.sorted()};
     }
 
@@ -1283,7 +1283,7 @@ public:
             if (limits::has_infinity) {
                 sortable[i] = limits::infinity();
             } else {
-                sortable[i] = std::numeric_limits<value_type>::max();
+                sortable[i] = (std::numeric_limits<value_type>::max)();
             }
         }
         return simd_cast<SimdArray>(sortable.sorted());
@@ -1593,7 +1593,7 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
 #define Vc_FORWARD_BINARY_OPERATOR(name_)                                                \
     /*!\brief Applies the std::name_ function component-wise and concurrently. */        \
     template <typename T, std::size_t N, typename V, std::size_t M>                      \
-    inline SimdArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x,                   \
+    inline SimdArray<T, N, V, M> (name_)(const SimdArray<T, N, V, M> &x,                   \
                                        const SimdArray<T, N, V, M> &y)                   \
     {                                                                                    \
         return SimdArray<T, N, V, M>::fromOperation(                                     \
@@ -1603,7 +1603,7 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
 
 /**
  * \name Math functions
- * These functions evaluate the 
+ * These functions evaluate the
  */
 ///@{
 Vc_FORWARD_UNARY_OPERATOR(abs);
@@ -2144,7 +2144,7 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray);
         using R = typename Return::EntryType;                                            \
         Return r = Return::Zero();                                                       \
         for (std::size_t i = offset * Return::Size;                                      \
-             i < std::min(N, (offset + 1) * Return::Size); ++i) {                        \
+             i < (std::min)(N, (offset + 1) * Return::Size); ++i) {                        \
             r[i - offset * Return::Size] = static_cast<R>(x[i]);                         \
         }                                                                                \
         return r;                                                                        \
@@ -2447,8 +2447,8 @@ private:
     using R = Vc::SimdArray<T, N, V, VN>;
 
 public:
-    static Vc_ALWAYS_INLINE Vc_CONST R max() noexcept { return numeric_limits<T>::max(); }
-    static Vc_ALWAYS_INLINE Vc_CONST R min() noexcept { return numeric_limits<T>::min(); }
+    static Vc_ALWAYS_INLINE Vc_CONST R (max)() noexcept { return (numeric_limits<T>::max)(); }
+    static Vc_ALWAYS_INLINE Vc_CONST R (min)() noexcept { return (numeric_limits<T>::min)(); }
     static Vc_ALWAYS_INLINE Vc_CONST R lowest() noexcept
     {
         return numeric_limits<T>::lowest();

@@ -389,19 +389,19 @@ Vc_CONST AVX2::double_v sorted<CurrentImplementation::current()>(AVX2::double_v 
     __m256d dcba = x_.data();
     /*
      * to find the second largest number find
-     * max(min(max(ab),max(cd)), min(max(ad),max(bc)))
+     * (max)((min)((max)(ab),(max)(cd)), (min)((max)(ad),(max)(bc)))
      *  or
-     * max(max(min(ab),min(cd)), min(max(ab),max(cd)))
+     * (max)((max)((min)(ab),(min)(cd)), (min)((max)(ab),(max)(cd)))
      *
     const __m256d adcb = avx_cast<__m256d>(AVX::concat(_mm_alignr_epi8(avx_cast<__m128i>(dc), avx_cast<__m128i>(ba), 8), _mm_alignr_epi8(avx_cast<__m128i>(ba), avx_cast<__m128i>(dc), 8)));
-    const __m256d l = _mm256_min_pd(dcba, adcb); // min(ad cd bc ab)
-    const __m256d h = _mm256_max_pd(dcba, adcb); // max(ad cd bc ab)
-    // max(h3, h1)
-    // max(min(h0,h2), min(h3,h1))
-    // min(max(l0,l2), max(l3,l1))
-    // min(l3, l1)
+    const __m256d l = _mm256_min_pd(dcba, adcb); // (min)(ad cd bc ab)
+    const __m256d h = _mm256_max_pd(dcba, adcb); // (max)(ad cd bc ab)
+    // (max)(h3, h1)
+    // (max)((min)(h0,h2), (min)(h3,h1))
+    // (min)((max)(l0,l2), (max)(l3,l1))
+    // (min)(l3, l1)
 
-    const __m256d ll = _mm256_min_pd(h, Reg::permute128<X0, X1>(h, h)); // min(h3h1 h2h0 h1h3 h0h2)
+    const __m256d ll = _mm256_min_pd(h, Reg::permute128<X0, X1>(h, h)); // (min)(h3h1 h2h0 h1h3 h0h2)
     //const __m256d hh = _mm256_max_pd(h3 ll1_3 l1 l0, h1 ll0_2 l3 l2);
     const __m256d hh = _mm256_max_pd(
             Reg::permute128<X1, Y0>(_mm256_unpackhi_pd(ll, h), l),
@@ -410,12 +410,12 @@ Vc_CONST AVX2::double_v sorted<CurrentImplementation::current()>(AVX2::double_v 
      */
 
     //////////////////////////////////////////////////////////////////////////////////
-    // max(max(ac), max(bd))
-    // max(max(min(ac),min(bd)), min(max(ac),max(bd)))
-    // min(max(min(ac),min(bd)), min(max(ac),max(bd)))
-    // min(min(ac), min(bd))
-    __m128d l = _mm_min_pd(AVX::lo128(dcba), AVX::hi128(dcba)); // min(bd) min(ac)
-    __m128d h = _mm_max_pd(AVX::lo128(dcba), AVX::hi128(dcba)); // max(bd) max(ac)
+    // (max)((max)(ac), (max)(bd))
+    // (max)((max)((min)(ac),(min)(bd)), (min)((max)(ac),(max)(bd)))
+    // (min)((max)((min)(ac),(min)(bd)), (min)((max)(ac),(max)(bd)))
+    // (min)((min)(ac), (min)(bd))
+    __m128d l = _mm_min_pd(AVX::lo128(dcba), AVX::hi128(dcba)); // (min)(bd) (min)(ac)
+    __m128d h = _mm_max_pd(AVX::lo128(dcba), AVX::hi128(dcba)); // (max)(bd) (max)(ac)
     __m128d h0_l0 = _mm_unpacklo_pd(l, h);
     __m128d h1_l1 = _mm_unpackhi_pd(l, h);
     l = _mm_min_pd(h0_l0, h1_l1);

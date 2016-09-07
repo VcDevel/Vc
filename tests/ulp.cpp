@@ -32,8 +32,8 @@ TEST_TYPES(V, testUlpDiff, (concat<RealVectors, RealSimdArrays>))  //{{{1
     typedef typename V::EntryType T;
 
     COMPARE(ulpDiffToReference(V::Zero(), V::Zero()), V::Zero());
-    COMPARE(ulpDiffToReference(std::numeric_limits<V>::min(), V::Zero()), V::One());
-    COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
+    COMPARE(ulpDiffToReference((std::numeric_limits<V>::min)(), V::Zero()), V::One());
+    COMPARE(ulpDiffToReference(V::Zero(), (std::numeric_limits<V>::min)()), V::One());
     for (size_t count = 0; count < 1024 / V::Size; ++count) {
         const V base = (V::Random() - T(0.5)) * T(1000);
         typename V::IndexType exp;

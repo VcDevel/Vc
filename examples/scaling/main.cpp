@@ -140,7 +140,7 @@ struct ScaleWorkingSetSize
             // -------------- end of the benchmarked code ----------------
             tsc.stop();
 
-            throughput = std::max(throughput, (Repetitions * M * N * float_v::Size * FLOPs) / static_cast<double>(tsc.cycles()));
+            throughput = (std::max)(throughput, (Repetitions * M * N * float_v::Size * FLOPs) / static_cast<double>(tsc.cycles()));
         }
 
         const long bytes = N * M * sizeof(float_v);

@@ -171,7 +171,7 @@ public:
 
         Vc_ALWAYS_INLINE Vc_PURE bool isFull () const { return
 #ifdef Vc_USE_PTEST
-            _mm_testc_si128(dataI(), SSE::_mm_setallone_si128()); // return 1 if (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) == (~0 & d.v())
+            _mm_testc_si128(dataI(), SSE::_mm_setallone_si128()) ? true : false; // return 1 if (0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff) == (~0 & d.v())
 #else
             _mm_movemask_epi8(dataI()) == 0xffff;
 #endif

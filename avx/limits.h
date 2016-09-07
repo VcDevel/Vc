@@ -36,17 +36,17 @@ namespace std
 {
 #define Vc_NUM_LIM(T, _max, _min)                                                        \
     template <> struct numeric_limits<Vc::AVX2::Vector<T>> : public numeric_limits<T> {  \
-        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> max() Vc_NOEXCEPT               \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> (max)() Vc_NOEXCEPT               \
         {                                                                                \
             return _max;                                                                 \
         }                                                                                \
-        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> min() Vc_NOEXCEPT               \
+        static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> (min)() Vc_NOEXCEPT               \
         {                                                                                \
             return _min;                                                                 \
         }                                                                                \
         static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> lowest() Vc_NOEXCEPT            \
         {                                                                                \
-            return min();                                                                \
+            return (min)();                                                                \
         }                                                                                \
         static Vc_INTRINSIC Vc_CONST Vc::AVX2::Vector<T> epsilon() Vc_NOEXCEPT           \
         {                                                                                \

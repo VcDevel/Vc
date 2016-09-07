@@ -97,8 +97,8 @@ typename std::enable_if<
     bool>::type
 is_conversion_undefined(From x)
 {
-    if (x > static_cast<From>(std::numeric_limits<To>::max()) ||
-        x < static_cast<From>(std::numeric_limits<To>::min())) {
+    if (x > static_cast<From>((std::numeric_limits<To>::max)()) ||
+        x < static_cast<From>((std::numeric_limits<To>::min)())) {
         return true;
     }
     return false;
@@ -150,7 +150,7 @@ static Vc::enable_if<(Vc::Traits::is_floating_point<From>::value), From> rnd()
 {
     using T = typename From::value_type;
     auto r = (From::Random() - T(0.5)) *
-             T(std::numeric_limits<typename To::value_type>::max());
+             T((std::numeric_limits<typename To::value_type>::max)());
     r.setZero(isnan(r));
     return r;
 }
@@ -239,23 +239,23 @@ TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
         T(0xc0000081u),
         T(0xc000017fu),
         T(0xc0000180u),
-        std::numeric_limits<T>::min(),
+        (std::numeric_limits<T>::min)(),
         T(0),
         T(-1),
         T(1),
-        std::numeric_limits<T>::max(),
-        T(std::numeric_limits<T>::max() - 1),
-        T(std::numeric_limits<T>::max() - 0xff),
-        T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 6 - 1)),
-        T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 6 - 1)),
-        T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 4 - 1)),
-        T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 4 - 1)),
-        T(std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 2 - 1)),
-        T(-std::numeric_limits<T>::max() / std::pow(2., sizeof(T) * 2 - 1)),
-        T(std::numeric_limits<T>::max() - 0xff),
-        T(std::numeric_limits<T>::max() - 0x55),
-        T(-std::numeric_limits<T>::min()),
-        T(-std::numeric_limits<T>::max())};
+        (std::numeric_limits<T>::max)(),
+        T((std::numeric_limits<T>::max)() - 1),
+        T((std::numeric_limits<T>::max)() - 0xff),
+        T((std::numeric_limits<T>::max)() / std::pow(2., sizeof(T) * 6 - 1)),
+        T(-(std::numeric_limits<T>::max)() / std::pow(2., sizeof(T) * 6 - 1)),
+        T((std::numeric_limits<T>::max)() / std::pow(2., sizeof(T) * 4 - 1)),
+        T(-(std::numeric_limits<T>::max)() / std::pow(2., sizeof(T) * 4 - 1)),
+        T((std::numeric_limits<T>::max)() / std::pow(2., sizeof(T) * 2 - 1)),
+        T(-(std::numeric_limits<T>::max)() / std::pow(2., sizeof(T) * 2 - 1)),
+        T((std::numeric_limits<T>::max)() - 0xff),
+        T((std::numeric_limits<T>::max)() - 0x55),
+        T(-(std::numeric_limits<T>::min)()),
+        T(-(std::numeric_limits<T>::max)())};
     rnd<To, From>().store(&testData[21], Vc::Unaligned);
     for (std::size_t i = 0; i < 21 + From::Size; i += From::Size) {
         const From v(&testData[i],
@@ -270,7 +270,7 @@ template <typename To, typename From> void mask_cast_1(const From &mask)
 {
     To casted = simd_cast<To>(mask);
     std::size_t i = 0;
-    for (; i < std::min(To::Size, From::Size); ++i) {
+    for (; i < (std::min)(To::Size, From::Size); ++i) {
         COMPARE(casted[i], mask[i]) << "i: " << i << ", " << mask << " got converted to "
                                     << UnitTest::typeToString<To>() << ": " << casted;
     }
@@ -291,7 +291,7 @@ void mask_cast_2(const From &mask0, const From &mask1,
                                      << " were converted to "
                                      << UnitTest::typeToString<To>() << ": " << casted;
     }
-    for (; i < std::min(To::Size, 2 * From::Size); ++i) {
+    for (; i < (std::min)(To::Size, 2 * From::Size); ++i) {
         COMPARE(casted[i], mask1[i - From::Size])
             << "i: " << i << mask0 << mask1 << " were converted to "
             << UnitTest::typeToString<To>() << ": " << casted;
@@ -319,17 +319,17 @@ void mask_cast_4(const From &mask0, const From &mask1, const From &mask2,
                                      << " were converted to "
                                      << UnitTest::typeToString<To>() << ": " << casted;
     }
-    for (; i < std::min(To::Size, 2 * From::Size); ++i) {
+    for (; i < (std::min)(To::Size, 2 * From::Size); ++i) {
         COMPARE(casted[i], mask1[i - From::Size])
             << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
             << UnitTest::typeToString<To>() << ": " << casted;
     }
-    for (; i < std::min(To::Size, 3 * From::Size); ++i) {
+    for (; i < (std::min)(To::Size, 3 * From::Size); ++i) {
         COMPARE(casted[i], mask2[i - 2 * From::Size])
             << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
             << UnitTest::typeToString<To>() << ": " << casted;
     }
-    for (; i < std::min(To::Size, 4 * From::Size); ++i) {
+    for (; i < (std::min)(To::Size, 4 * From::Size); ++i) {
         COMPARE(casted[i], mask3[i - 3 * From::Size])
             << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
             << UnitTest::typeToString<To>() << ": " << casted;
@@ -409,11 +409,11 @@ template<typename T1, typename T2> struct is_conversion_exact
     static constexpr bool is_float_int_conversion = std::is_floating_point<T1>::value && is_T2_integer;
 
     template <typename U, typename V> static constexpr bool can_represent(V x) {
-        return x <= std::numeric_limits<U>::max() && x >= std::numeric_limits<U>::min();
+        return x <= (std::numeric_limits<U>::max)() && x >= (std::numeric_limits<U>::min)();
     }
 
-    template<typename U> static constexpr U max() { return std::numeric_limits<U>::max() - U(1); }
-    template<typename U> static constexpr U min() { return std::numeric_limits<U>::min() + U(1); }
+    template<typename U> static constexpr U (max)() { return (std::numeric_limits<U>::max)() - U(1); }
+    template<typename U> static constexpr U (min)() { return (std::numeric_limits<U>::min)() + U(1); }
 
     static constexpr bool for_value(T1 v) {
         return (!is_float_int_conversion && !is_T2_signed) || can_represent<T2>(v);
@@ -463,7 +463,7 @@ template<typename V1, typename V2> void testNumber(double n)
 
 template<typename T> double maxHelper()
 {
-    return static_cast<double>(std::numeric_limits<T>::max());
+    return static_cast<double>((std::numeric_limits<T>::max)());
 }
 
 template<> double maxHelper<int>()
@@ -485,14 +485,14 @@ template<typename V1, typename V2> void testCast2()
     typedef typename V1::EntryType T1;
     typedef typename V2::EntryType T2;
 
-    const double max = std::min(maxHelper<T1>(), maxHelper<T2>());
-    const double min = std::max(
+    const double max = (std::min)(maxHelper<T1>(), maxHelper<T2>());
+    const double min = (std::max)(
             std::numeric_limits<T1>::is_integer ?
-                static_cast<double>(std::numeric_limits<T1>::min()) :
-                static_cast<double>(-std::numeric_limits<T1>::max()),
+                static_cast<double>((std::numeric_limits<T1>::min)()) :
+                static_cast<double>((-std::numeric_limits<T1>::max)()),
             std::numeric_limits<T2>::is_integer ?
-                static_cast<double>(std::numeric_limits<T2>::min()) :
-                static_cast<double>(-std::numeric_limits<T2>::max())
+                static_cast<double>((std::numeric_limits<T2>::min)()) :
+                static_cast<double>((-std::numeric_limits<T2>::max)())
                 );
 
     testNumber<V1, V2>(-1.);

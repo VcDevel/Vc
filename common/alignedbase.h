@@ -38,13 +38,13 @@ namespace Detail
 /**\internal
  * Break the recursion of the function below.
  */
-template <typename T> constexpr T max(T a) { return a; }
+template <typename T> constexpr T (max)(T a) { return a; }
 /**\internal
  * \returns the maximum of all specified arguments.
  */
-template <typename T, typename... Ts> constexpr T max(T a, T b, Ts... rest)
+template <typename T, typename... Ts> constexpr T (max)(T a, T b, Ts... rest)
 {
-    return a > b ? max(a, rest...) : max(b, rest...);
+    return a > b ? (max)(a, rest...) : (max)(b, rest...);
 }
 }  // namespace Detail
 namespace Common
@@ -84,7 +84,7 @@ template <std::size_t Alignment> struct alignas(Alignment) AlignedBase
  * \see Vc::AlignedBase
  */
 using VectorAlignedBase = AlignedBase<
-    Detail::max(alignof(Vector<float>), alignof(Vector<double>), alignof(Vector<ullong>),
+    (Detail::max)(alignof(Vector<float>), alignof(Vector<double>), alignof(Vector<ullong>),
                 alignof(Vector<llong>), alignof(Vector<ulong>), alignof(Vector<long>),
                 alignof(Vector<uint>), alignof(Vector<int>), alignof(Vector<ushort>),
                 alignof(Vector<short>), alignof(Vector<uchar>), alignof(Vector<schar>))>;
@@ -114,7 +114,7 @@ template <typename V> using VectorAlignedBaseT = AlignedBase<alignof(V)>;
  * \see Vc::AlignedBase
  */
 using MemoryAlignedBase = AlignedBase<
-    Detail::max(Vector<float>::MemoryAlignment, Vector<double>::MemoryAlignment,
+    (Detail::max)(Vector<float>::MemoryAlignment, Vector<double>::MemoryAlignment,
                 Vector<ullong>::MemoryAlignment, Vector<llong>::MemoryAlignment,
                 Vector<ulong>::MemoryAlignment, Vector<long>::MemoryAlignment,
                 Vector<uint>::MemoryAlignment, Vector<int>::MemoryAlignment,

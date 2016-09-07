@@ -388,9 +388,9 @@ void Canvas::toQImage(QImage *img)
     // colors have the range 0..max at this point
     // they should be transformed such that for the resulting mean and stddev:
     //    mean - stddev = 0
-    //    mean + stddev = min(min(2 * mean, max), 255)
+    //    mean + stddev = (min)((min)(2 * mean, max), 255)
     //
-    // newColor = (c - mean) * min(min(2 * mean, max), 255) * 0.5 / stddev + 127.5
+    // newColor = (c - mean) * (min)((min)(2 * mean, max), 255) * 0.5 / stddev + 127.5
 
     const float center[3] = {
         minOf(minOf(2.f * mean[0], max[0]), 255.f) * 0.5f,

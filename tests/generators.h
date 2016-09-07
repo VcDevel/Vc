@@ -34,19 +34,19 @@ iterateNumericRange(F &&f)
 {
     using L = std::numeric_limits<T>;
     constexpr int nsteps = 17;
-    const T step = L::max() / nsteps;
+    const T step = (L::max)() / nsteps;
     for (int i = 0; i < nsteps; ++i) {
         f(T(L::lowest() + i * step));
     }
     for (int i = 0; i < nsteps; ++i) {
-        f(T(L::max() - i * step));
+        f(T((L::max)() - i * step));
     }
     f(T(-1));
-    f(-L::min());
+    f(-(L::min)());
     f(-L::denorm_min());
     f(T(0));
     f(L::denorm_min());
-    f(L::min());
+    f((L::min)());
     f(T(1));
 }
 
@@ -56,16 +56,16 @@ inline typename std::enable_if<std::is_integral<T>::value>::type iterateNumericR
 {
     using L = std::numeric_limits<T>;
     constexpr int nsteps = 17;
-    const T step = L::max() / nsteps;
+    const T step = (L::max)() / nsteps;
     for (int i = 0; i < nsteps; ++i) {
-        f(T(L::max() - i * step));
+        f(T((L::max)() - i * step));
     }
     f(T(1));
     f(T(0));
     if (std::is_signed<T>::value) {
         f(T(-1));
         for (int i = 0; i < nsteps; ++i) {
-            f(T(L::min() + i * step));
+            f(T((L::min)() + i * step));
         }
     }
 }

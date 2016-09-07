@@ -223,7 +223,7 @@ static inline Vector<T, Abi> calc(V _x)
 
         const M invalidMask = x < V::Zero();
         const M infinityMask = x == V::Zero();
-        const M denormal = x <= C::min();
+        const M denormal = x <= (C::min)();
 
         x(denormal) *= V(Vc::Detail::doubleConstant<1, 0, 54>()); // 2²⁵
         V exponent = Detail::exponent(x.data());                    // = ⎣log₂(x)⎦

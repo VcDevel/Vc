@@ -405,7 +405,7 @@ template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)/*
 {
     MTo test = Vc::simd_cast<MTo>(m);
     size_t i = 0;
-    for (; i < std::min(m.Size, test.Size); ++i) {
+    for (; i < (std::min)(m.Size, test.Size); ++i) {
         COMPARE(test[i], m[i]) << i << " conversion from " << UnitTest::typeToString<MFrom>()
                                << " to " << UnitTest::typeToString<MTo>();
     }

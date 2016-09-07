@@ -122,13 +122,13 @@ TEST_TYPES(V, testMax, (AllTypes)) //{{{1
     for (size_t i = 0; i < V::Size; ++i) {
         data[i] = i;
         data[i + V::Size] = V::Size + 1 - i;
-        data[i + 2 * V::Size] = std::max(data[i], data[i + V::Size]);
+        data[i + 2 * V::Size] = (std::max)(data[i], data[i + V::Size]);
     }
     V a(&data[0]);
     V b(&data[V::Size]);
     V c(&data[2 * V::Size]);
 
-    COMPARE(Vc::max(a, b), c);
+    COMPARE((Vc::max)(a, b), c);
 }
 
 TEST_TYPES(V, testSqrt, (RealTypes)) //{{{1

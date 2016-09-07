@@ -505,7 +505,7 @@ T ulpDiffToReferenceWrapper(const T &a, const T &b)
     const T diff = ulpDiffToReference(a, b);
     if (Vc_IS_UNLIKELY(global_unit_test_object_.findMaximumDistance)) {
         global_unit_test_object_.maximumDistance =
-            std::max<double>(Vc::abs(diff).max(), global_unit_test_object_.maximumDistance);
+            std::max<double>((Vc::abs(diff).max)(), global_unit_test_object_.maximumDistance);
         global_unit_test_object_.meanDistance += Vc::abs(diff).sum();
         global_unit_test_object_.meanCount += T::Size;
     }
@@ -579,7 +579,7 @@ class Compare  //{{{1
             error *= -b;
         } else if (std::is_floating_point<T>::value) {
             // if the reference value is 0 then use the smallest normalized number
-            error *= std::numeric_limits<T>::min();
+            error *= (std::numeric_limits<T>::min)();
         } else {
             // error *= 1;  // the smallest non-zero positive number is 1...
         }

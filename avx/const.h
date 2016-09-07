@@ -96,7 +96,7 @@ namespace AVX
         static Vc_ALWAYS_INLINE Vc_CONST V _1_sqrt2()     { return V(c_log<T>::d(15)); }
         static Vc_ALWAYS_INLINE Vc_CONST V P(int i)       { return V(c_log<T>::d(2 + i)); }
         static Vc_ALWAYS_INLINE Vc_CONST V Q(int i)       { return V(c_log<T>::d(8 + i)); }
-        static Vc_ALWAYS_INLINE Vc_CONST V min()          { return V(c_log<T>::d(14)); }
+        static Vc_ALWAYS_INLINE Vc_CONST V (min)()        { return V(c_log<T>::d(14)); }
         static Vc_ALWAYS_INLINE Vc_CONST V ln2_small()    { return V(c_log<T>::d(17)); }
         static Vc_ALWAYS_INLINE Vc_CONST V ln2_large()    { return V(c_log<T>::d(16)); }
         static Vc_ALWAYS_INLINE Vc_CONST V neginf()       { return V(c_log<T>::d(13)); }

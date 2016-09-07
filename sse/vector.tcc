@@ -432,17 +432,17 @@ template<> Vc_INTRINSIC Vc_PURE unsigned int SSE::uint_v::product() const
     return (d.m(0) * d.m(1)) * (d.m(2) * d.m(3));
 }
 #endif
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::EntryType Vector<T, VectorAbi::Sse>::min(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::EntryType (Vector<T, VectorAbi::Sse>::min)(MaskArg m) const
 {
-    Vector<T, VectorAbi::Sse> tmp = std::numeric_limits<Vector<T, VectorAbi::Sse> >::max();
+    Vector<T, VectorAbi::Sse> tmp = (std::numeric_limits<Vector<T, VectorAbi::Sse> >::max)();
     tmp(m) = *this;
-    return tmp.min();
+    return (tmp.min)();
 }
-template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::EntryType Vector<T, VectorAbi::Sse>::max(MaskArg m) const
+template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::EntryType (Vector<T, VectorAbi::Sse>::max)(MaskArg m) const
 {
-    Vector<T, VectorAbi::Sse> tmp = std::numeric_limits<Vector<T, VectorAbi::Sse> >::min();
+    Vector<T, VectorAbi::Sse> tmp = (std::numeric_limits<Vector<T, VectorAbi::Sse> >::min)();
     tmp(m) = *this;
-    return tmp.max();
+    return (tmp.max)();
 }
 template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Sse>::EntryType Vector<T, VectorAbi::Sse>::product(MaskArg m) const
 {

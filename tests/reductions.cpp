@@ -40,7 +40,7 @@ TEST_TYPES(Vec, testReduceMin, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
     for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
         //std::cout << a << std::endl;
-        COMPARE(a.min(), one);
+        COMPARE((a.min)(), one);
     }
 }
 
@@ -56,7 +56,7 @@ TEST_TYPES(Vec, testReduceMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
     for (size_t i = 0; i < Vec::Size; ++i, data += Vec::Size) {
         const Vec a(&data[0]);
         //std::cout << a << std::endl;
-        COMPARE(a.max(), max);
+        COMPARE((a.max)(), max);
     }
 }
 

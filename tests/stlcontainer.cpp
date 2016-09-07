@@ -35,7 +35,7 @@ template<typename Vec> size_t alignmentMask()
 {
     if (Vec::Size == 1) {
         // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
-        return std::min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1;
+        return (std::min)(sizeof(void*), sizeof(typename Vec::EntryType)) - 1;
     }
     // AVX::VectorAlignment is too large
     return std::min<size_t>(sizeof(Vec), Vc::VectorAlignment) - 1;

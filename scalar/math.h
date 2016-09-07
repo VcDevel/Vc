@@ -61,13 +61,13 @@ Vc_INTRINSIC Vc_CONST Scalar::double_v copysign(Scalar::double_v mag,
 // }}}1
 
 #define Vc_MINMAX(V)                                                                     \
-    static Vc_ALWAYS_INLINE Scalar::V min(const Scalar::V &x, const Scalar::V &y)        \
+    static Vc_ALWAYS_INLINE Scalar::V (min)(const Scalar::V &x, const Scalar::V &y)        \
     {                                                                                    \
-        return Scalar::V(std::min(x.data(), y.data()));                                  \
+        return Scalar::V((std::min)(x.data(), y.data()));                                  \
     }                                                                                    \
-    static Vc_ALWAYS_INLINE Scalar::V max(const Scalar::V &x, const Scalar::V &y)        \
+    static Vc_ALWAYS_INLINE Scalar::V (max)(const Scalar::V &x, const Scalar::V &y)        \
     {                                                                                    \
-        return Scalar::V(std::max(x.data(), y.data()));                                  \
+        return Scalar::V((std::max)(x.data(), y.data()));                                  \
     }
 Vc_ALL_VECTOR_TYPES(Vc_MINMAX);
 #undef Vc_MINMAX

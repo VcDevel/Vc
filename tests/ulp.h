@@ -46,10 +46,10 @@ static T ulpDiffToReference(T val, T ref)
         return 0;
     }
     if (ref == T(0)) {
-        return 1 + ulpDiffToReference(std::abs(val), std::numeric_limits<T>::min());
+        return 1 + ulpDiffToReference(std::abs(val), (std::numeric_limits<T>::min)());
     }
     if (val == T(0)) {
-        return 1 + ulpDiffToReference(std::numeric_limits<T>::min(), std::abs(ref));
+        return 1 + ulpDiffToReference((std::numeric_limits<T>::min)(), std::abs(ref));
     }
 
     int exp;
@@ -86,11 +86,11 @@ static V ulpDiffToReference(const V &_val, const V &_ref)
 
     M zeroMask = ref == V::Zero();
     val  (zeroMask)= abs(val);
-    ref  (zeroMask)= std::numeric_limits<V>::min();
+    ref  (zeroMask)= (std::numeric_limits<V>::min)();
     diff (zeroMask)= V::One();
     zeroMask = val == V::Zero();
     ref  (zeroMask)= abs(ref);
-    val  (zeroMask)= std::numeric_limits<V>::min();
+    val  (zeroMask)= (std::numeric_limits<V>::min)();
     diff (zeroMask)+= V::One();
 
     typename V::IndexType exp;

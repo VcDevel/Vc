@@ -143,14 +143,14 @@ namespace AVX
                 return Vc_CAT2(_mm256_and_, Vc_SUFFIX)(a, setabsmask_pd());
             }
 
-            static Vc_INTRINSIC VectorType Vc_CONST min(VTArg a, VTArg b) { return _mm256_min_pd(a, b); }
-            static Vc_INTRINSIC VectorType Vc_CONST max(VTArg a, VTArg b) { return _mm256_max_pd(a, b); }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VTArg a) {
+            static Vc_INTRINSIC VectorType Vc_CONST (min)(VTArg a, VTArg b) { return _mm256_min_pd(a, b); }
+            static Vc_INTRINSIC VectorType Vc_CONST (max)(VTArg a, VTArg b) { return _mm256_max_pd(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (min)(VTArg a) {
                 __m128d b = _mm_min_pd(avx_cast<__m128d>(a), _mm256_extractf128_pd(a, 1));
                 b = _mm_min_sd(b, _mm_unpackhi_pd(b, b));
                 return _mm_cvtsd_f64(b);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VTArg a) {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (max)(VTArg a) {
                 __m128d b = _mm_max_pd(avx_cast<__m128d>(a), _mm256_extractf128_pd(a, 1));
                 b = _mm_max_sd(b, _mm_unpackhi_pd(b, b));
                 return _mm_cvtsd_f64(b);
@@ -214,18 +214,18 @@ namespace AVX
                 return Vc_CAT2(_mm256_and_, Vc_SUFFIX)(a, setabsmask_ps());
             }
 
-            static Vc_INTRINSIC VectorType Vc_CONST min(VTArg a, VTArg b) { return _mm256_min_ps(a, b); }
-            static Vc_INTRINSIC VectorType Vc_CONST max(VTArg a, VTArg b) { return _mm256_max_ps(a, b); }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType min(VTArg a) {
+            static Vc_INTRINSIC VectorType Vc_CONST (min)(VTArg a, VTArg b) { return _mm256_min_ps(a, b); }
+            static Vc_INTRINSIC VectorType Vc_CONST (max)(VTArg a, VTArg b) { return _mm256_max_ps(a, b); }
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (min)(VTArg a) {
                 __m128 b = _mm_min_ps(lo128(a), hi128(a));
-                b = _mm_min_ps(b, _mm_movehl_ps(b, b));   // b = min(a0, a2), min(a1, a3), min(a2, a2), min(a3, a3)
-                b = _mm_min_ss(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(1, 1, 1, 1))); // b = min(a0, a1), a1, a2, a3
+                b = _mm_min_ps(b, _mm_movehl_ps(b, b));   // b = (min)(a0, a2), (min)(a1, a3), (min)(a2, a2), (min)(a3, a3)
+                b = _mm_min_ss(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(1, 1, 1, 1))); // b = (min)(a0, a1), a1, a2, a3
                 return _mm_cvtss_f32(b);
             }
-            static Vc_ALWAYS_INLINE Vc_CONST EntryType max(VTArg a) {
+            static Vc_ALWAYS_INLINE Vc_CONST EntryType (max)(VTArg a) {
                 __m128 b = _mm_max_ps(avx_cast<__m128>(a), _mm256_extractf128_ps(a, 1));
-                b = _mm_max_ps(b, _mm_movehl_ps(b, b));   // b = max(a0, a2), max(a1, a3), max(a2, a2), max(a3, a3)
-                b = _mm_max_ss(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(1, 1, 1, 1))); // b = max(a0, a1), a1, a2, a3
+                b = _mm_max_ps(b, _mm_movehl_ps(b, b));   // b = (max)(a0, a2), (max)(a1, a3), (max)(a2, a2), (max)(a3, a3)
+                b = _mm_max_ss(b, _mm_shuffle_ps(b, b, _MM_SHUFFLE(1, 1, 1, 1))); // b = (max)(a0, a1), a1, a2, a3
                 return _mm_cvtss_f32(b);
             }
             static Vc_ALWAYS_INLINE Vc_CONST EntryType mul(VTArg a) {

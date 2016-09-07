@@ -216,13 +216,13 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
             return {this, m};
         }
 
-        Vc_ALWAYS_INLINE EntryType min() const { return m_data; }
-        Vc_ALWAYS_INLINE EntryType max() const { return m_data; }
+        Vc_ALWAYS_INLINE EntryType (min)() const { return m_data; }
+        Vc_ALWAYS_INLINE EntryType (max)() const { return m_data; }
         Vc_ALWAYS_INLINE EntryType product() const { return m_data; }
         Vc_ALWAYS_INLINE EntryType sum() const { return m_data; }
         Vc_ALWAYS_INLINE Vector partialSum() const { return *this; }
-        Vc_ALWAYS_INLINE EntryType min(Mask) const { return m_data; }
-        Vc_ALWAYS_INLINE EntryType max(Mask) const { return m_data; }
+        Vc_ALWAYS_INLINE EntryType (min)(Mask) const { return m_data; }
+        Vc_ALWAYS_INLINE EntryType (max)(Mask) const { return m_data; }
         Vc_ALWAYS_INLINE EntryType product(Mask m) const
         {
             if (m.data()) {

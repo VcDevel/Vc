@@ -68,16 +68,16 @@ Vc_DEFINE_OPERATION(random, v = V::Random());
 #define Vc_DEFINE_OPERATION_FORWARD(name_)                                               \
     struct Forward_##name_ : public tag                                                  \
     {                                                                                    \
-        template <typename... Args, typename = decltype(name_(std::declval<Args>()...))> \
-        Vc_INTRINSIC void operator()(decltype(name_(std::declval<Args>()...)) &v,        \
+        template <typename... Args, typename = decltype((name_)(std::declval<Args>()...))> \
+        Vc_INTRINSIC void operator()(decltype((name_)(std::declval<Args>()...)) &v,      \
                                      Args &&... args)                                    \
         {                                                                                \
-            v = name_(std::forward<Args>(args)...);                                      \
+            v = (name_)(std::forward<Args>(args)...);                                    \
         }                                                                                \
-        template <typename... Args, typename = decltype(name_(std::declval<Args>()...))> \
+        template <typename... Args, typename = decltype((name_)(std::declval<Args>()...))> \
         Vc_INTRINSIC void operator()(std::nullptr_t, Args && ... args)                   \
         {                                                                                \
-            name_(std::forward<Args>(args)...);                                          \
+            (name_)(std::forward<Args>(args)...);                                        \
         }                                                                                \
     }
 Vc_DEFINE_OPERATION_FORWARD(abs);

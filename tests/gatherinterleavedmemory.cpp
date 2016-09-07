@@ -176,13 +176,13 @@ TEST_TYPES(Param, testDeinterleaveGather,
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
     typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
-    const size_t N = std::min(
+    const size_t N = (std::min)(
         // indexes * StructSize may not overflow for signed integral types. That would be
         // UB and MIC::short_v will happily use it for more performance.
         std::is_integral<T>::value && std::is_signed<T>::value
-            ? static_cast<size_t>(std::numeric_limits<T>::max()) / StructSize
-            : std::numeric_limits<size_t>::max(),
-        std::min(static_cast<size_t>(std::numeric_limits<typename I::EntryType>::max()),
+            ? static_cast<size_t>((std::numeric_limits<T>::max)()) / StructSize
+            : (std::numeric_limits<size_t>::max)(),
+        (std::min)(static_cast<size_t>((std::numeric_limits<typename I::EntryType>::max)()),
                  1024u * 1024u / sizeof(S)));
     const size_t NMask = createNMask(N);
 

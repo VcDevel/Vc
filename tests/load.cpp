@@ -31,16 +31,16 @@ using namespace Vc;
 
 #define ALL_TYPES (ALL_VECTORS)
 
-template<typename T> static constexpr T min(T a, T b) { return a < b ? a : b; }
+template<typename T> static constexpr T (min)(T a, T b) { return a < b ? a : b; }
 
 template<typename Vec> constexpr unsigned long alignmentMask()
 {
     return Vec::Size == 1 ? (
             // on 32bit the maximal alignment is 4 Bytes, even for 8-Byte doubles.
-            min(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
+            (min)(sizeof(void*), sizeof(typename Vec::EntryType)) - 1
         ) : (
             // AVX::VectorAlignment is too large
-            min(sizeof(Vec), alignof(Vec)) - 1
+            (min)(sizeof(Vec), alignof(Vec)) - 1
         );
 }
 

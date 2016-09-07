@@ -242,13 +242,13 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         template<int Index>
         Vc_INTRINSIC_L Vector broadcast() const Vc_INTRINSIC_R;
 
-        Vc_INTRINSIC EntryType min() const { return HT::min(data()); }
-        Vc_INTRINSIC EntryType max() const { return HT::max(data()); }
+        Vc_INTRINSIC EntryType (min)() const { return (HT::min)(data()); }
+        Vc_INTRINSIC EntryType (max)() const { return (HT::max)(data()); }
         Vc_INTRINSIC EntryType product() const { return HT::mul(data()); }
         Vc_INTRINSIC EntryType sum() const { return HT::add(data()); }
         Vc_INTRINSIC_L Vector partialSum() const Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L EntryType min(MaskArg m) const Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L EntryType max(MaskArg m) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L EntryType (min)(MaskArg m) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L EntryType (max)(MaskArg m) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType product(MaskArg m) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType sum(MaskArg m) const Vc_INTRINSIC_R;
 
@@ -325,18 +325,18 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::MemoryAlignment;
 
-static Vc_ALWAYS_INLINE Vc_PURE SSE::int_v    min(const SSE::int_v    &x, const SSE::int_v    &y) { return SSE::min_epi32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::uint_v   min(const SSE::uint_v   &x, const SSE::uint_v   &y) { return SSE::min_epu32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::short_v  min(const SSE::short_v  &x, const SSE::short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v min(const SSE::ushort_v &x, const SSE::ushort_v &y) { return SSE::min_epu16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::float_v  min(const SSE::float_v  &x, const SSE::float_v  &y) { return _mm_min_ps(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::double_v min(const SSE::double_v &x, const SSE::double_v &y) { return _mm_min_pd(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::int_v    max(const SSE::int_v    &x, const SSE::int_v    &y) { return SSE::max_epi32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::uint_v   max(const SSE::uint_v   &x, const SSE::uint_v   &y) { return SSE::max_epu32(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::short_v  max(const SSE::short_v  &x, const SSE::short_v  &y) { return _mm_max_epi16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v max(const SSE::ushort_v &x, const SSE::ushort_v &y) { return SSE::max_epu16(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::float_v  max(const SSE::float_v  &x, const SSE::float_v  &y) { return _mm_max_ps(x.data(), y.data()); }
-static Vc_ALWAYS_INLINE Vc_PURE SSE::double_v max(const SSE::double_v &x, const SSE::double_v &y) { return _mm_max_pd(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::int_v    (min)(const SSE::int_v    &x, const SSE::int_v    &y) { return SSE::min_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::uint_v   (min)(const SSE::uint_v   &x, const SSE::uint_v   &y) { return SSE::min_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::short_v  (min)(const SSE::short_v  &x, const SSE::short_v  &y) { return _mm_min_epi16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v (min)(const SSE::ushort_v &x, const SSE::ushort_v &y) { return SSE::min_epu16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::float_v  (min)(const SSE::float_v  &x, const SSE::float_v  &y) { return _mm_min_ps(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::double_v (min)(const SSE::double_v &x, const SSE::double_v &y) { return _mm_min_pd(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::int_v    (max)(const SSE::int_v    &x, const SSE::int_v    &y) { return SSE::max_epi32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::uint_v   (max)(const SSE::uint_v   &x, const SSE::uint_v   &y) { return SSE::max_epu32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::short_v  (max)(const SSE::short_v  &x, const SSE::short_v  &y) { return _mm_max_epi16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::ushort_v (max)(const SSE::ushort_v &x, const SSE::ushort_v &y) { return SSE::max_epu16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::float_v  (max)(const SSE::float_v  &x, const SSE::float_v  &y) { return _mm_max_ps(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE SSE::double_v (max)(const SSE::double_v &x, const SSE::double_v &y) { return _mm_max_pd(x.data(), y.data()); }
 
 template <typename T,
           typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||

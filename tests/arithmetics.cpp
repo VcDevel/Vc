@@ -88,7 +88,7 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
     VERIFY((c >= a).isFull());
 
     {
-        const T max = static_cast<T>(std::numeric_limits<T>::max() * 0.95);
+        const T max = static_cast<T>((std::numeric_limits<T>::max)() * 0.95);
         const T min = 0;
         const T step = max / 200;
         T j = min;
@@ -107,8 +107,8 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
             VERIFY(none_of(Vec(j) <= Vec(Zero))) << (Vec(j) <= Vec::Zero()) << ", j = " << j << ", Vec(j) = " << Vec(j);
         }
     }
-    if (std::numeric_limits<T>::min() <= 0) {
-        const T min = static_cast<T>(std::numeric_limits<T>::min() * 0.95);
+    if ((std::numeric_limits<T>::min)() <= 0) {
+        const T min = static_cast<T>((std::numeric_limits<T>::min)() * 0.95);
         if (min == 0) {
             return;
         }
@@ -219,9 +219,9 @@ TEST_TYPES(Vec, testMulAdd, ALL_TYPES)
     for (std::size_t rep = 0; rep < 10000 / Vec::Size; ++rep) {
         Vec a = Vec::Random();
         if (std::is_floating_point<T>::value) {
-            a *= static_cast<int>(std::sqrt(std::numeric_limits<T>::max()));
+            a *= static_cast<int>(std::sqrt((std::numeric_limits<T>::max)()));
         } else if (std::is_signed<T>::value) {
-            a /= static_cast<int>(std::sqrt(std::numeric_limits<T>::max()));
+            a /= static_cast<int>(std::sqrt((std::numeric_limits<T>::max)()));
         }
         using ReferenceVector = decltype(a * a);
         ReferenceVector reference = a;
@@ -266,9 +266,9 @@ TEST_TYPES(Vec, testDiv, ALL_TYPES)
     }
 #endif
 
-    const T stepsize = std::max(T(1), T(std::numeric_limits<T>::max() / 1024));
+    const T stepsize = (std::max)(T(1), T((std::numeric_limits<T>::max)() / 1024));
     for (T divisor = 1; divisor < 5; ++divisor) {
-        for (T scalar = std::numeric_limits<T>::min(); scalar < std::numeric_limits<T>::max() - stepsize + 1; scalar += stepsize) {
+        for (T scalar = (std::numeric_limits<T>::min)(); scalar < (std::numeric_limits<T>::max)() - stepsize + 1; scalar += stepsize) {
             Vec vector(scalar);
             Vec reference(scalar / divisor);
 
@@ -324,12 +324,12 @@ TEST_TYPES(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
 TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
 {
     typedef typename Vec::EntryType T;
-    const T step = std::max<T>(1, std::numeric_limits<T>::max() / 1000);
+    const T step = std::max<T>(1, (std::numeric_limits<T>::max)() / 1000);
     enum {
         NShifts = sizeof(T) * 8
     };
-    for (Vec x = std::numeric_limits<Vec>::min() + Vec::IndexesFromZero();
-         all_of(x < std::numeric_limits<Vec>::max() - step);
+    for (Vec x = (std::numeric_limits<Vec>::min)() + Vec::IndexesFromZero();
+         all_of(x < (std::numeric_limits<Vec>::max)() - step);
          x += step) {
         for (size_t shift = 0; shift < NShifts; ++shift) {
             const Vec rightShift = x >> shift;
@@ -447,8 +447,8 @@ TEST_TYPES(Vec, testMin, ALL_TYPES)
 
     Vec v = Vec::IndexesFromZero();
 
-    COMPARE(v.min(), static_cast<T>(0));
-    COMPARE((T(Vec::Size) - v).min(), static_cast<T>(1));
+    COMPARE((v.min)(), static_cast<T>(0));
+    COMPARE(((T(Vec::Size) - v).min)(), static_cast<T>(1));
 
     const size_t max = (size_t(1) << Vec::Size) - 1;
     std::uniform_int_distribution<size_t> dist(0, max);
@@ -456,7 +456,7 @@ TEST_TYPES(Vec, testMin, ALL_TYPES)
         const size_t j = dist(randomEngine);
         Mask m = UnitTest::allMasks<Vec>(j);
         if (any_of(m)) {
-            COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
+            COMPARE((v.min)(m), static_cast<T>(m.firstOne())) << m << v;
         }
     }
 }
@@ -469,9 +469,9 @@ TEST_TYPES(Vec, testMax, ALL_TYPES)
 
     Vec v = Vec::IndexesFromZero();
 
-    COMPARE(v.max(), static_cast<T>(Vec::Size - 1));
+    COMPARE((v.max)(), static_cast<T>(Vec::Size - 1));
     v = T(Vec::Size) - v;
-    COMPARE(v.max(), static_cast<T>(Vec::Size));
+    COMPARE((v.max)(), static_cast<T>(Vec::Size));
 
     const size_t max = (size_t(1) << Vec::Size) - 1;
     std::uniform_int_distribution<size_t> dist(0, max);
@@ -479,7 +479,7 @@ TEST_TYPES(Vec, testMax, ALL_TYPES)
         const size_t j = dist(randomEngine);
         Mask m = UnitTest::allMasks<Vec>(j);
         if (any_of(m)) {
-            COMPARE(v.max(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
+            COMPARE((v.max)(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
         }
     }
 }
