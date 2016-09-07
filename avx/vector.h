@@ -307,7 +307,7 @@ public:
 
         Vc_ALWAYS_INLINE WriteMaskedVector operator()(const Mask &k)
         {
-            return {this, k};
+            return {*this, k};
         }
 
         Vc_ALWAYS_INLINE VectorType &data() { return d.v(); }

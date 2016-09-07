@@ -238,7 +238,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             return SSE::sse_cast<typename V2::VectorType>(data());
         }
 
-        Vc_INTRINSIC WriteMaskedVector operator()(const Mask &k) { return {this, k}; }
+        Vc_INTRINSIC WriteMaskedVector operator()(const Mask &k) { return {*this, k}; }
 
         Vc_ALWAYS_INLINE Vc_PURE VectorType &data() { return d.v(); }
         Vc_ALWAYS_INLINE Vc_PURE const VectorType &data() const { return d.v(); }

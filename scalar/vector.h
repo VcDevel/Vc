@@ -214,7 +214,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 
         Vc_ALWAYS_INLINE Common::WriteMaskedVector<Vector, Mask> operator()(Mask m)
         {
-            return {this, m};
+            return {*this, m};
         }
 
         Vc_ALWAYS_INLINE EntryType min() const { return m_data; }

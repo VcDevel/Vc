@@ -49,7 +49,7 @@ public:
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(Mask));
 
     // implicit (allows {vec, mask} in places where WriteMaskedVector is expected)
-    Vc_INTRINSIC WriteMaskedVector(V *v, const Mask &k) : mask(k), vec(v)
+    Vc_INTRINSIC WriteMaskedVector(V &v, const Mask &k) : mask(k), vec(v)
     {
     }
 
@@ -58,25 +58,25 @@ public:
     {
         V one = V::One();
         one.setZeroInverted(mask);
-        return *vec += one;
+        return vec += one;
     }
     Vc_INTRINSIC V &operator--()
     {
         V one = V::One();
         one.setZeroInverted(mask);
-        return *vec -= one;
+        return vec -= one;
     }
 
     // postfix
     Vc_INTRINSIC V operator++(int)
     {
-        V ret(*vec);
+        V ret(vec);
         operator++();
         return ret;
     }
     Vc_INTRINSIC V operator--(int)
     {
-        V ret(*vec);
+        V ret(vec);
         operator--();
         return ret;
     }
@@ -84,7 +84,7 @@ public:
 #define Vc_OPERATOR_(op)                                                                 \
     template <typename U> Vc_ALWAYS_INLINE void operator op##=(U &&x)                    \
     {                                                                                    \
-        operator=(static_cast<V>(*vec op std::forward<U>(x)));                           \
+        operator=(static_cast<V>(vec op std::forward<U>(x)));                            \
     }
     Vc_ALL_BINARY(Vc_OPERATOR_);
     Vc_ALL_ARITHMETICS(Vc_OPERATOR_);
@@ -93,35 +93,35 @@ public:
 
     Vc_ALWAYS_INLINE void operator=(const V &x)
     {
-        vec->assign(x, mask);
+        vec.assign(x, mask);
     }
 
     template <typename T, typename I, typename S>
     Vc_ALWAYS_INLINE void operator=(SubscriptOperation<T, I, S, true> &&x)
     {
-        vec->gather(x.gatherArguments(), mask);
+        vec.gather(x.gatherArguments(), mask);
     }
 
     template <typename F> Vc_INTRINSIC void call(const F &f) const
     {
-        return vec->call(f, mask);
+        return vec.call(f, mask);
     }
     template <typename F> Vc_INTRINSIC V apply(const F &f) const
     {
-        return vec->apply(f, mask);
+        return vec.apply(f, mask);
     }
     template <typename F> Vc_INTRINSIC void call(F &&f) const
     {
-        return vec->call(std::forward<F>(f), mask);
+        return vec.call(std::forward<F>(f), mask);
     }
     template <typename F> Vc_INTRINSIC V apply(F &&f) const
     {
-        return vec->apply(std::forward<F>(f), mask);
+        return vec.apply(std::forward<F>(f), mask);
     }
 
 private:
-    Mask mask;
-    V *const vec;
+    const Mask &mask;
+    V &vec;
 };
 }  // namespace Common
 }  // namespace Vc

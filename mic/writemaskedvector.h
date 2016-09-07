@@ -99,9 +99,9 @@ public:
         return vec->apply(std::forward<F>(f), mask);
     }
 private:
-    constexpr WriteMaskedVector(Vector<T> *v, Mask k) : vec(v), mask(k.data()) {}
-    Vector<T> *vec;
-    typename MaskTypeHelper<EntryType>::Type mask;
+    constexpr WriteMaskedVector(Vector<T> &v, const Mask &k) : vec(v), mask(k.data()) {}
+    Vector<T> &vec;
+    const typename MaskTypeHelper<EntryType>::Type mask;
 };
 
 }  // namespace MIC

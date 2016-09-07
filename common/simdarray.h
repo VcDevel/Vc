@@ -358,7 +358,7 @@ public:
 
     Vc_INTRINSIC Common::WriteMaskedVector<SimdArray, mask_type> operator()(const mask_type &k)
     {
-        return {this, k};
+        return {*this, k};
     }
 
     Vc_INTRINSIC void assign(const SimdArray &v, const mask_type &k)
@@ -948,7 +948,7 @@ public:
     Vc_INTRINSIC Common::WriteMaskedVector<SimdArray, mask_type> operator()(
         const mask_type &mask)
     {
-        return {this, mask};
+        return {*this, mask};
     }
 
     ///\internal

@@ -276,7 +276,7 @@ public:
 
     Vc_ALWAYS_INLINE MIC::WriteMaskedVector<T> operator()(MaskArgument k)
     {
-        return MIC::WriteMaskedVector<T>(this, k);
+        return MIC::WriteMaskedVector<T>(*this, k);
     }
 
     Vc_ALWAYS_INLINE EntryType min() const { return Detail::min(d.v(), EntryType()); }
