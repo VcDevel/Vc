@@ -37,75 +37,67 @@ namespace Detail
 {
 // (converting) load functions {{{1
 template <typename Flags>
-Vc_INTRINSIC Vc_PURE __m256 load(const float *x, __m256,
+Vc_INTRINSIC Vc_PURE __m256 load(const float *x, Flags, LoadTag<__m256, float>,
                                  typename Flags::EnableIfAligned = nullptr)
 {
     return _mm256_load_ps(x);
 }
 template <typename Flags>
-Vc_INTRINSIC Vc_PURE __m256 load(const float *x, __m256,
+Vc_INTRINSIC Vc_PURE __m256 load(const float *x, Flags, LoadTag<__m256, float>,
                                  typename Flags::EnableIfUnaligned = nullptr)
 {
     return _mm256_loadu_ps(x);
 }
 template <typename Flags>
-Vc_INTRINSIC Vc_PURE __m256 load(const float *x, __m256,
+Vc_INTRINSIC Vc_PURE __m256 load(const float *x, Flags, LoadTag<__m256, float>,
                                  typename Flags::EnableIfStreaming = nullptr)
 {
     return AvxIntrinsics::stream_load<__m256>(x);
 }
 
 template <typename Flags>
-Vc_INTRINSIC Vc_PURE __m256d load(const double *x, __m256d,
-                                 typename Flags::EnableIfAligned = nullptr)
+Vc_INTRINSIC Vc_PURE __m256d load(const double *x, Flags, LoadTag<__m256d, double>,
+                                  typename Flags::EnableIfAligned = nullptr)
 {
     return _mm256_load_pd(x);
 }
 template <typename Flags>
-Vc_INTRINSIC Vc_PURE __m256d load(const double *x, __m256d,
-                                 typename Flags::EnableIfUnaligned = nullptr)
+Vc_INTRINSIC Vc_PURE __m256d load(const double *x, Flags, LoadTag<__m256d, double>,
+                                  typename Flags::EnableIfUnaligned = nullptr)
 {
     return _mm256_loadu_pd(x);
 }
 template <typename Flags>
-Vc_INTRINSIC Vc_PURE __m256d load(const double *x, __m256d,
-                                 typename Flags::EnableIfStreaming = nullptr)
+Vc_INTRINSIC Vc_PURE __m256d load(const double *x, Flags, LoadTag<__m256d, double>,
+                                  typename Flags::EnableIfStreaming = nullptr)
 {
     return AvxIntrinsics::stream_load<__m256d>(x);
 }
 
 template <typename Flags, typename T, typename = enable_if<std::is_integral<T>::value>>
-Vc_INTRINSIC Vc_PURE __m256i load(const T *x, __m256i,
-                                 typename Flags::EnableIfAligned = nullptr)
+Vc_INTRINSIC Vc_PURE __m256i
+load(const T *x, Flags, LoadTag<__m256i, T>, typename Flags::EnableIfAligned = nullptr)
 {
     return _mm256_load_si256(reinterpret_cast<const __m256i *>(x));
 }
 template <typename Flags, typename T, typename = enable_if<std::is_integral<T>::value>>
-Vc_INTRINSIC Vc_PURE __m256i load(const T *x, __m256i,
-                                 typename Flags::EnableIfUnaligned = nullptr)
+Vc_INTRINSIC Vc_PURE __m256i
+load(const T *x, Flags, LoadTag<__m256i, T>, typename Flags::EnableIfUnaligned = nullptr)
 {
     return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(x));
 }
 template <typename Flags, typename T, typename = enable_if<std::is_integral<T>::value>>
-Vc_INTRINSIC Vc_PURE __m256i load(const T *x, __m256i,
-                                 typename Flags::EnableIfStreaming = nullptr)
+Vc_INTRINSIC Vc_PURE __m256i
+load(const T *x, Flags, LoadTag<__m256i, T>, typename Flags::EnableIfStreaming = nullptr)
 {
     return AvxIntrinsics::stream_load<__m256i>(x);
 }
 
-// no conversion load from any T {{{2
-template <typename V, typename T, typename Flags>
-Vc_INTRINSIC V
-    load(const T *mem, Flags, LoadTag<V, T>, enable_if<sizeof(V) == 32> = nullarg)
-{
-    return load<Flags>(mem, V());
-}
-
 // short {{{2
 template <typename Flags>
-Vc_INTRINSIC __m256i load(const ushort *mem, Flags, LoadTag<__m256i, short>)
+Vc_INTRINSIC __m256i load(const ushort *mem, Flags f, LoadTag<__m256i, short>)
 {
-    return load<Flags>(mem, __m256i());
+    return load(mem, f, LoadTag<__m256i, ushort>());
 }
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const uchar *mem, Flags f, LoadTag<__m256i, short>)
@@ -127,9 +119,9 @@ Vc_INTRINSIC __m256i load(const uchar *mem, Flags f, LoadTag<__m256i, ushort>)
 
 // int {{{2
 template <typename Flags>
-Vc_INTRINSIC __m256i load(const uint *mem, Flags, LoadTag<__m256i, int>)
+Vc_INTRINSIC __m256i load(const uint *mem, Flags f, LoadTag<__m256i, int>)
 {
-    return load<Flags>(mem, __m256i());
+    return load(mem, f, LoadTag<__m256i, uint>());
 }
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const ushort *mem, Flags f, LoadTag<__m256i, int>)
@@ -203,15 +195,15 @@ Vc_INTRINSIC __m256d load(const schar *mem, Flags f, LoadTag<__m256d, double>)
 
 // float {{{2
 template <typename Flags>
-Vc_INTRINSIC __m256 load(const double *mem, Flags, LoadTag<__m256, float>)
+Vc_INTRINSIC __m256 load(const double *mem, Flags f, LoadTag<__m256, float>)
 {
-    return AVX::concat(_mm256_cvtpd_ps(load<Flags>(&mem[0], __m256d())),
-                       _mm256_cvtpd_ps(load<Flags>(&mem[4], __m256d())));
+    return AVX::concat(_mm256_cvtpd_ps(load(&mem[0], f, LoadTag<__m256d, double>())),
+                       _mm256_cvtpd_ps(load(&mem[4], f, LoadTag<__m256d, double>())));
 }
 template <typename Flags>
-Vc_INTRINSIC __m256 load(const uint *mem, Flags, LoadTag<__m256, float>)
+Vc_INTRINSIC __m256 load(const uint *mem, Flags f, LoadTag<__m256, float>)
 {
-    const auto v = load<Flags>(mem, __m256i());
+    const auto v = load(mem, f, LoadTag<__m256i, uint>());
     return _mm256_blendv_ps(
         _mm256_cvtepi32_ps(v),
         _mm256_add_ps(_mm256_cvtepi32_ps(AVX::sub_epi32(v, AVX::set2power31_epu32())),

@@ -586,8 +586,9 @@ template <> Vc_INTRINSIC std::pair<AVX2::float_v, int> AVX2::float_v::minIndex()
 
     // 28 cycles Latency:
     __m256 x = d.v();
-    __m256 idx = _mm256_castsi256_ps(
-        Detail::load<AlignedTag>(AVX::IndexesFromZeroData<int>::address(), __m256i()));
+    __m256 idx =
+        _mm256_castsi256_ps(Detail::load(AVX::IndexesFromZeroData<int>::address(),
+                                         Vc::Aligned, Detail::LoadTag<__m256i, int>()));
     __m256 y = Mem::permute128<X1, X0>(x);
     __m256 idy = Mem::permute128<X1, X0>(idx);
     __m256 less = AVX::cmplt_ps(x, y);
@@ -754,7 +755,8 @@ template <> Vc_ALWAYS_INLINE AVX2::float_v AVX2::float_v::Random()
 
 template<> Vc_ALWAYS_INLINE AVX2::double_v AVX2::double_v::Random()
 {
-    const __m256i state = Detail::load<AlignedTag>(&Common::RandomState[0], __m256i());
+    const __m256i state = Detail::load(&Common::RandomState[0], Vc::Aligned,
+                                       Detail::LoadTag<__m256i, int>());
     for (size_t k = 0; k < 8; k += 2) {
         typedef unsigned long long uint64 Vc_MAY_ALIAS;
         const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
