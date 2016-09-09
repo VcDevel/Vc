@@ -27,6 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <type_traits>
 #include "../common/x86_prefetches.h"
+#include "interleaveimpl.h"
 #include "debug.h"
 #include "macros.h"
 
