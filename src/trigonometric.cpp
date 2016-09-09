@@ -158,9 +158,13 @@ static Vc_ALWAYS_INLINE double_v<Abi> foldInput(const double_v<Abi> &_x,
  * Calculate Taylor series with tuned coefficients.
  * Fix sign.
  */
-template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::sin(const V &_x)
+template <>
+template <>
+Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::sin(const Vc::float_v &_x)
 {
-    typedef typename V::Mask M;
+    typedef Vc::float_v V;
+    typedef V::Mask M;
     using IV = best_int_v_for<V>;
 
     IV quadrant;
@@ -174,7 +178,10 @@ template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImpleme
     return y;
 }
 
-template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::sin(const Vc::double_v &_x)
+template <>
+template <>
+Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::sin(const Vc::double_v &_x)
 {
     typedef Vc::double_v V;
     typedef V::Mask M;
@@ -190,8 +197,13 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
     y(sign) = -y;
     return y;
 }
-template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::cos(const V &_x) {
-    typedef typename V::Mask M;
+template <>
+template <>
+Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::cos(const Vc::float_v &_x)
+{
+    typedef Vc::float_v V;
+    typedef V::Mask M;
     using IV = best_int_v_for<V>;
 
     IV quadrant;
@@ -221,8 +233,13 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
     y(sign) = -y;
     return y;
 }
-template<> template<typename V> void Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::sincos(const V &_x, V *_sin, V *_cos) {
-    typedef typename V::Mask M;
+template <>
+template <>
+void Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::sincos(const Vc::float_v &_x, Vc::float_v *_sin, Vc::float_v *_cos)
+{
+    typedef Vc::float_v V;
+    typedef V::Mask M;
     using IV = best_int_v_for<V>;
 
     IV quadrant;
@@ -265,10 +282,16 @@ template<> template<> void Trigonometric<Vc::Detail::TrigonometricImplementation
     s(sign ^ simd_cast<M>(_x < V::Zero())) = -s;
     *_sin = s;
 }
-template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::asin (const V &_x) {
-    typedef typename V::EntryType T;
-    typedef Const<T, typename V::abi> C;
-    typedef typename V::Mask M;
+
+template <>
+template <>
+Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::asin(const Vc::float_v &_x)
+{
+    typedef Vc::float_v V;
+    typedef V::EntryType T;
+    typedef Const<T, V::abi> C;
+    typedef V::Mask M;
 
     const M &negative = _x < V::Zero();
 
@@ -328,10 +351,15 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
 
     return z;
 }
-template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::atan (const V &_x) {
-    typedef typename V::EntryType T;
-    typedef Const<T, typename V::abi> C;
-    typedef typename V::Mask M;
+template <>
+template <>
+Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::atan(const Vc::float_v &_x)
+{
+    using V = Vc::float_v;
+    typedef V::EntryType T;
+    typedef Const<T, V::abi> C;
+    typedef V::Mask M;
     V x = abs(_x);
     const M &gt_tan_3pi_8 = x > C::atanThrsHi();
     const M &gt_tan_pi_8  = x > C::atanThrsLo() && !gt_tan_3pi_8;
@@ -380,10 +408,16 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
     ret.setQnan(isnan(_x));
     return ret;
 }
-template<> template<typename V> V Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::atan2(const V &y, const V &x) {
-    typedef typename V::EntryType T;
-    typedef Const<T, typename V::abi> C;
-    typedef typename V::Mask M;
+template <>
+template <>
+Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::atan2(const Vc::float_v &y,
+                                                  const Vc::float_v &x)
+{
+    using V = Vc::float_v;
+    typedef V::EntryType T;
+    typedef Const<T, V::abi> C;
+    typedef V::Mask M;
 
     const M xZero = x == V::Zero();
     const M yZero = y == V::Zero();
@@ -466,11 +500,4 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
 }
 }
 
-// instantiate the non-specialized template functions above
-template Vc::float_v Vc::Common::Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::sin(const Vc::float_v &);
-template Vc::float_v Vc::Common::Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::cos(const Vc::float_v &);
-template Vc::float_v Vc::Common::Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::asin(const Vc::float_v &);
-template Vc::float_v Vc::Common::Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::atan(const Vc::float_v &);
-template Vc::float_v Vc::Common::Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::atan2(const Vc::float_v &, const Vc::float_v &);
-template void Vc::Common::Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::sincos(const Vc::float_v &, Vc::float_v *, Vc::float_v *);
 #endif
