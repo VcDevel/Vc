@@ -43,25 +43,28 @@ template <std::size_t... I> struct index_sequence
 
 /** \internal
  * This struct builds an index_sequence type from a given upper bound \p N.
- * It does so recursively via appending N - 1 to make_index_sequence_impl<N - 1>.
+ * It does so recursively via concatenation of to index sequences of length N/2.
  */
-template <std::size_t N, typename Prev = void> struct make_index_sequence_impl;
-/// \internal constructs an empty index_sequence
-template <> struct make_index_sequence_impl<0, void>
-{
+template <std::size_t N> struct make_index_sequence_impl {
+    template <std::size_t Offset, std::size_t... Ns>
+    static index_sequence<Ns..., (Ns + Offset)...> join(std::false_type,
+                                                        index_sequence<Ns...>);
+    template <std::size_t Offset, std::size_t... Ns>
+    static index_sequence<Ns..., Offset - 1, (Ns + Offset)...> join(
+        std::true_type, index_sequence<Ns...>);
+
+    using is_odd = std::integral_constant<bool, N & 1>;
+    using half = typename make_index_sequence_impl<N / 2>::type;
+    using type = decltype(join<(N + 1) / 2>(is_odd(), half()));
+};
+template <> struct make_index_sequence_impl<0> {
     using type = index_sequence<>;
 };
-/// \internal appends `N-1` to make_index_sequence<N-1>
-template <std::size_t N> struct make_index_sequence_impl<N, void>
-{
-    using type = typename make_index_sequence_impl<
-        N, typename make_index_sequence_impl<N - 1>::type>::type;
+template <> struct make_index_sequence_impl<1> {
+    using type = index_sequence<0>;
 };
-/// \internal constructs the index_sequence `Ns..., N-1`
-template <std::size_t N, std::size_t... Ns>
-struct make_index_sequence_impl<N, index_sequence<Ns...>>
-{
-    using type = index_sequence<Ns..., N - 1>;
+template <> struct make_index_sequence_impl<2> {
+    using type = index_sequence<0, 1>;
 };
 
 /** \internal
