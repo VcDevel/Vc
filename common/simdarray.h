@@ -471,13 +471,21 @@ Vc_INTRINSIC const VectorType &internal_data(const SimdArray<T, N, VectorType, N
     return x.data;
 }
 
+// unpackIfSegment {{{2
+template <typename T> T unpackIfSegment(T &&x) { return std::forward<T>(x); }
+template <typename T, size_t Pieces, size_t Index>
+auto unpackIfSegment(Common::Segment<T, Pieces, Index> &&x) -> decltype(x.asSimdArray())
+{
+    return x.asSimdArray();
+}
+
 // gatherImplementation {{{2
 template <typename T, std::size_t N, typename VectorType>
 template <typename MT, typename IT>
 inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
                                                                  IT &&indexes)
 {
-    data.gather(mem, std::forward<IT>(indexes));
+    data.gather(mem, unpackIfSegment(std::forward<IT>(indexes)));
 }
 template <typename T, std::size_t N, typename VectorType>
 template <typename MT, typename IT>
@@ -485,7 +493,7 @@ inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
                                                                  IT &&indexes,
                                                                  MaskArgument mask)
 {
-    data.gather(mem, std::forward<IT>(indexes), mask);
+    data.gather(mem, unpackIfSegment(std::forward<IT>(indexes)), mask);
 }
 
 // scatterImplementation {{{2
@@ -494,7 +502,7 @@ template <typename MT, typename IT>
 inline void SimdArray<T, N, VectorType, N>::scatterImplementation(MT *mem,
                                                                  IT &&indexes) const
 {
-    data.scatter(mem, std::forward<IT>(indexes));
+    data.scatter(mem, unpackIfSegment(std::forward<IT>(indexes)));
 }
 template <typename T, std::size_t N, typename VectorType>
 template <typename MT, typename IT>
@@ -502,7 +510,7 @@ inline void SimdArray<T, N, VectorType, N>::scatterImplementation(MT *mem,
                                                                  IT &&indexes,
                                                                  MaskArgument mask) const
 {
-    data.scatter(mem, std::forward<IT>(indexes), mask);
+    data.scatter(mem, unpackIfSegment(std::forward<IT>(indexes)), mask);
 }
 
 // generic SimdArray {{{1
