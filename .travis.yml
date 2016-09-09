@@ -22,7 +22,10 @@ install:
       fi
     - if test "$TRAVIS_OS_NAME" = "osx" -a "$CXX" = "clang++"; then
         brew update &&
-        brew install llvm;
+        brew install llvm &&
+        export CXX=/usr/local/opt/llvm/bin/clang++ CC=/usr/local/opt/llvm/bin/clang &&
+        export LDFLAGS="-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib" &&
+        export CPPFLAGS=-I/usr/local/opt/llvm/include;
       fi
     - if test "$TRAVIS_OS_NAME" = "linux" -a "$CXX" = "g++"; then
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
