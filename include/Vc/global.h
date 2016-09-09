@@ -430,14 +430,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #error "Preprocessor logic broken. Please report a bug."
 #endif
 
-#define Vc_VERSIONED_NAMESPACE Vc::v2
-
+#ifdef Vc_ICC
+namespace Vc_2 {}
+namespace Vc = Vc_2;
+#define Vc_VERSIONED_NAMESPACE Vc_2
+#else
 namespace Vc
 {
 inline namespace v2
 {
 }  // namespace v2
 }  // namespace Vc
+#define Vc_VERSIONED_NAMESPACE Vc::v2
+#endif
 
 #endif // DOXYGEN
 
