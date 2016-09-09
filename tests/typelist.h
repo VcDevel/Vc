@@ -221,7 +221,7 @@ namespace
 constexpr std::size_t nextPowerOfTwo(std::size_t x)
 {
     return (x & (x - 1)) == 0 ? x
-                              : nextPowerOfTwo((x | (x >> 1) | (x >> 2) | (x >> 4)) + 1);
+                              : nextPowerOfTwo((x | (x >> 1) | (x >> 2) | (x >> 5)) + 1);
 }
 constexpr std::size_t nextPowerOfFour(std::size_t x)
 {
