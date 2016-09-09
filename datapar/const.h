@@ -58,9 +58,8 @@ template <class X> struct constants<datapar_abi::sse, X> {
     alignas(16) static constexpr uchar  IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
     alignas(16) static constexpr uint   AllBitsSet[4] = { 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU };
-    alignas(16) static constexpr uchar  cvti16_i08_shuffle[16] = {
-        0,     2,     4,     6,     8,     10,    12,    14,
-        -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80};
+    alignas(16) static constexpr uchar cvti16_i08_shuffle[16] = {
+        0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80};
 };
 template <class X> constexpr int    constants<datapar_abi::sse, X>::absMaskFloat[4];
 template <class X> constexpr uint   constants<datapar_abi::sse, X>::signMaskFloat[4];
