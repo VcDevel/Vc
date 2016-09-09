@@ -51,9 +51,7 @@ namespace Vc_VERSIONED_NAMESPACE
  * member to which all functions are forwarded more or less directly.
  */
 template <typename T, std::size_t N, typename VectorType_>
-class alignas(
-    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) & 127) +
-    1) SimdMaskArray<T, N, VectorType_, N>
+class SimdMaskArray<T, N, VectorType_, N>
 {
 public:
     using VectorType = VectorType_;
@@ -263,7 +261,12 @@ public:
     Vc_INTRINSIC SimdMaskArray(mask_type &&x) : data(std::move(x)) {}
 
 private:
-    storage_type data;
+    // The alignas attribute attached to the class declaration above is ignored by ICC
+    // 17.0.0 (at least). So just move the alignas attribute down here where it works for
+    // all compilers.
+    alignas(Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value *
+                                     sizeof(VectorType_) / VectorType_::size()>::value)
+        storage_type data;
 };
 
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::Size;
@@ -295,10 +298,9 @@ constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::MemoryAlignment;
  * \headerfile simdmaskarray.h <Vc/SimdArray>
  */
 template <typename T, size_t N, typename V, size_t Wt>
-class alignas(((Common::nextPowerOfTwo(N) * (sizeof(V) / V::size()) - 1) & 127) +
-              1) SimdMaskArray
+class SimdMaskArray
 {
-    static constexpr std::size_t N0 = Common::nextPowerOfTwo(N - N / 2);
+    static constexpr std::size_t N0 = Common::left_size<N>();
 
     using Split = Common::Split<N0>;
 
@@ -650,7 +652,11 @@ public:
     }
 
 private:
-    storage_type0 data0;
+    // The alignas attribute attached to the class declaration above is ignored by ICC
+    // 17.0.0 (at least). So just move the alignas attribute down here where it works for
+    // all compilers.
+    alignas(Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value * sizeof(V) /
+                                     V::size()>::value) storage_type0 data0;
     storage_type1 data1;
 };
 template <typename T, std::size_t N, typename V, std::size_t M>

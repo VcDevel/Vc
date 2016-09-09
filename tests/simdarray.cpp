@@ -45,27 +45,36 @@ TEST_TYPES(V, createArray, (SIMD_ARRAY_LIST))
     VERIFY(sizeof(array) <= 2 * array.size() * sizeof(VT));
 }
 
-template <typename T, typename U> constexpr T bound(T x, U max)
-{
-    return x > max ? max : x;
-}
-
 TEST_TYPES(V, checkArrayAlignment, (SIMD_ARRAY_LIST))
 {
     using T = typename V::value_type;
     using M = typename V::mask_type;
 
-    COMPARE(alignof(V), bound(sizeof(V), 128u));  // sizeof must be at least as large as alignof to
-                                     // ensure proper padding in arrays. alignof is
-                                     // supposed to be at least as large as the actual
-                                     // data size requirements
-    COMPARE(alignof(M), bound(sizeof(M), 128u));
-    VERIFY(alignof(V) >= bound(V::Size * sizeof(T), 128u));
+    auto &&bound_to_max_alignment = [](std::size_t n) {
+#ifdef Vc_GCC
+#ifdef __AVX__
+        return n > 256u ? 256u : n;
+#else
+        return n > 128u ? 128u : n;
+#endif
+#else
+        return n;
+#endif
+    };
+
+    COMPARE(alignof(V),
+            bound_to_max_alignment(
+                sizeof(V)));  // sizeof must be at least as large as alignof to
+                              // ensure proper padding in arrays. alignof is
+                              // supposed to be at least as large as the actual
+                              // data size requirements
+    COMPARE(alignof(M), bound_to_max_alignment(sizeof(M)));
+    VERIFY(alignof(V) >= bound_to_max_alignment(V::Size * sizeof(T)));
     if (V::Size > 1) {
-        using V2 = SimdArray<T, Vc::Common::left_size(V::Size)>;
+        using V2 = SimdArray<T, Vc::Common::left_size<V::Size>()>;
         using M2 = typename V2::mask_type;
-        VERIFY(alignof(V) >= bound(2 * alignof(V2), 128u));
-        VERIFY(alignof(M) >= bound(2 * alignof(M2), 128u));
+        VERIFY(alignof(V) >= bound_to_max_alignment(2 * alignof(V2)));
+        VERIFY(alignof(M) >= bound_to_max_alignment(2 * alignof(M2)));
     }
 }
 

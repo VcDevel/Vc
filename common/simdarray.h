@@ -78,9 +78,7 @@ inline SimdArray<T, N, V, M> max(const SimdArray<T, N, V, M> &x,
  * member to which all functions are forwarded more or less directly.
  */
 template <typename T, std::size_t N, typename VectorType_>
-class alignas(
-    ((Common::nextPowerOfTwo(N) * (sizeof(VectorType_) / VectorType_::size()) - 1) & 127) +
-    1) SimdArray<T, N, VectorType_, N>
+class SimdArray<T, N, VectorType_, N>
 {
     static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value ||
                       std::is_same<T, int32_t>::value ||
@@ -452,7 +450,12 @@ public:
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(storage_type));
 
 private:
-    storage_type data;
+    // The alignas attribute attached to the class declaration above is ignored by ICC
+    // 17.0.0 (at least). So just move the alignas attribute down here where it works for
+    // all compilers.
+    alignas(Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value *
+                                     sizeof(VectorType_) / VectorType_::size()>::value)
+        storage_type data;
 };
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t SimdArray<T, N, VectorType, N>::Size;
 template <typename T, std::size_t N, typename VectorType>
@@ -535,9 +538,7 @@ inline void SimdArray<T, N, VectorType, N>::scatterImplementation(MT *mem,
  *
  * \headerfile simdarray.h <Vc/SimdArray>
  */
-template <typename T, size_t N, typename V, size_t Wt>
-class alignas(((Common::nextPowerOfTwo(N) * (sizeof(V) / V::size()) - 1) & 127) +
-              1) SimdArray
+template <typename T, size_t N, typename V, size_t Wt> class SimdArray
 {
     static_assert(std::is_same<T,   double>::value ||
                   std::is_same<T,    float>::value ||
@@ -1244,7 +1245,8 @@ public:
     ///\internal
     Vc_INTRINSIC SimdArray sortedImpl(std::false_type) const
     {
-        using SortableArray = SimdArray<value_type, Common::nextPowerOfTwo(size())>;
+        using SortableArray =
+            SimdArray<value_type, Common::NextPowerOfTwo<size()>::value>;
         auto sortable = simd_cast<SortableArray>(*this);
         for (std::size_t i = Size; i < SortableArray::Size; ++i) {
             using limits = std::numeric_limits<value_type>;
@@ -1326,7 +1328,11 @@ public:
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(storage_type0));
 
 private: //{{{2
-    storage_type0 data0;
+    // The alignas attribute attached to the class declaration above is ignored by ICC
+    // 17.0.0 (at least). So just move the alignas attribute down here where it works for
+    // all compilers.
+    alignas(Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value * sizeof(V) /
+                                     V::size()>::value) storage_type0 data0;
     storage_type1 data1;
 };
 #undef Vc_CURRENT_CLASS_NAME
@@ -1855,7 +1861,7 @@ Vc_INTRINSIC void vc_debug_(const char *, const char *, const T0 &, const Ts &..
                                      !Traits::isAtomic##SimdArrayType_<Return>::value && \
                                      !Traits::is##SimdArrayType_<From>::value &&         \
                                      Traits::is_simd_##trait_name_<From>::value &&       \
-                                     Common::left_size(Return::Size) <                   \
+                                     Common::left_size<Return::Size>() <                 \
                                          From::Size * (1 + sizeof...(Froms)) &&          \
                                      are_all_types_equal<From, Froms...>::value),        \
                                     Return>                                              \
@@ -1872,7 +1878,7 @@ Vc_INTRINSIC void vc_debug_(const char *, const char *, const T0 &, const Ts &..
                                      !Traits::isAtomic##SimdArrayType_<Return>::value && \
                                      !Traits::is##SimdArrayType_<From>::value &&         \
                                      Traits::is_simd_##trait_name_<From>::value &&       \
-                                     Common::left_size(Return::Size) >=                  \
+                                     Common::left_size<Return::Size>() >=                \
                                          From::Size * (1 + sizeof...(Froms)) &&          \
                                      are_all_types_equal<From, Froms...>::value),        \
                                     Return>                                              \
@@ -1908,7 +1914,7 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray, mask);
          !Traits::isAtomic##SimdArrayType_<Return>::value &&                             \
          !Traits::is##SimdArrayType_<From>::value &&                                     \
          Traits::is_simd_##trait_name_<From>::value &&                                   \
-         Return::Size * offset + Common::left_size(Return::Size) < From::Size),          \
+         Return::Size * offset + Common::left_size<Return::Size>() < From::Size),        \
         Return>                                                                          \
     simd_cast(From x)                                                                    \
     {                                                                                    \
@@ -1929,7 +1935,7 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray, mask);
          !Traits::isAtomic##SimdArrayType_<Return>::value &&                             \
          !Traits::is##SimdArrayType_<From>::value &&                                     \
          Traits::is_simd_##trait_name_<From>::value &&                                   \
-         Return::Size * offset + Common::left_size(Return::Size) >= From::Size),         \
+         Return::Size * offset + Common::left_size<Return::Size>() >= From::Size),       \
         Return>                                                                          \
     simd_cast(From x)                                                                    \
     {                                                                                    \
@@ -2074,13 +2080,13 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray);
     template <typename Return, int offset, typename T, std::size_t N, typename V,        \
               std::size_t M>                                                             \
     Vc_INTRINSIC Vc_CONST                                                                \
-        enable_if<(N != M && offset * Return::Size >= Common::left_size(N) &&            \
-                   offset != 0 && Common::left_size(N) % Return::Size == 0),             \
+        enable_if<(N != M && offset * Return::Size >= Common::left_size<N>() &&          \
+                   offset != 0 && Common::left_size<N>() % Return::Size == 0),           \
                   Return>                                                                \
         simd_cast(const SimdArrayType_<T, N, V, M> &x)                                   \
     {                                                                                    \
         vc_debug_("simd_cast{offset, right}(", ")\n", offset, x);                        \
-        return simd_cast<Return, offset - Common::left_size(N) / Return::Size>(          \
+        return simd_cast<Return, offset - Common::left_size<N>() / Return::Size>(        \
             internal_data1(x));                                                          \
     }                                                                                    \
     /* same as above except for odd cases where offset * Return::Size doesn't fit the    \
@@ -2088,24 +2094,24 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray);
     template <typename Return, int offset, typename T, std::size_t N, typename V,        \
               std::size_t M>                                                             \
     Vc_INTRINSIC Vc_CONST                                                                \
-        enable_if<(N != M && offset * Return::Size >= Common::left_size(N) &&            \
-                   offset != 0 && Common::left_size(N) % Return::Size != 0),             \
+        enable_if<(N != M && offset * Return::Size >= Common::left_size<N>() &&          \
+                   offset != 0 && Common::left_size<N>() % Return::Size != 0),           \
                   Return>                                                                \
         simd_cast(const SimdArrayType_<T, N, V, M> &x)                                   \
     {                                                                                    \
         vc_debug_("simd_cast{offset, right, nofit}(", ")\n", offset, x);                 \
         return simd_cast_with_offset<Return,                                             \
-                                     offset * Return::Size - Common::left_size(N)>(      \
+                                     offset * Return::Size - Common::left_size<N>()>(    \
             internal_data1(x));                                                          \
     }                                                                                    \
     /* convert from left member of SimdArray */                                          \
     template <typename Return, int offset, typename T, std::size_t N, typename V,        \
               std::size_t M>                                                             \
-    Vc_INTRINSIC Vc_CONST                                                                \
-        enable_if<(N != M && /*offset * Return::Size < Common::left_size(N) &&*/         \
-                   offset != 0 && (offset + 1) * Return::Size <= Common::left_size(N)),  \
-                  Return>                                                                \
-        simd_cast(const SimdArrayType_<T, N, V, M> &x)                                   \
+    Vc_INTRINSIC Vc_CONST enable_if<                                                     \
+        (N != M && /*offset * Return::Size < Common::left_size<N>() &&*/                 \
+         offset != 0 && (offset + 1) * Return::Size <= Common::left_size<N>()),          \
+        Return>                                                                          \
+    simd_cast(const SimdArrayType_<T, N, V, M> &x)                                       \
     {                                                                                    \
         vc_debug_("simd_cast{offset, left}(", ")\n", offset, x);                         \
         return simd_cast<Return, offset>(internal_data0(x));                             \
@@ -2114,8 +2120,8 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray);
     template <typename Return, int offset, typename T, std::size_t N, typename V,        \
               std::size_t M>                                                             \
     Vc_INTRINSIC Vc_CONST                                                                \
-        enable_if<(N != M && (offset * Return::Size < Common::left_size(N)) &&           \
-                   offset != 0 && (offset + 1) * Return::Size > Common::left_size(N)),   \
+        enable_if<(N != M && (offset * Return::Size < Common::left_size<N>()) &&         \
+                   offset != 0 && (offset + 1) * Return::Size > Common::left_size<N>()), \
                   Return>                                                                \
         simd_cast(const SimdArrayType_<T, N, V, M> &x)                                   \
     {                                                                                    \
