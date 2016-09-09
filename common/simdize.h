@@ -724,12 +724,14 @@ struct is_constructible_with_double_brace
           bool,
           1 == sizeof(is_constructible_with_double_brace_impl::test<Class, Args...>(1))> {
 };
+#if !(defined Vc_CLANG || defined Vc_APPLECLANG)
+// clang allows int{{1}} but warns that it's wrong. Thus the assertion fails. If I expect
+// the incorrect answer from clang, the assertion won't fail, but the compiler warns about
+// the trait invocation. Annoying feature...
 static_assert(
-#if defined Vc_CLANG || defined Vc_APPLECLANG
-    !
-#endif
     !is_constructible_with_double_brace<int, int>::value,
     "is_constructible_with_double_brace<int> does not work as expected");
+#endif
 static_assert(
     !is_constructible_with_double_brace<std::tuple<int, int, int>, int, int, int>::value,
     "is_constructible_with_double_brace<tuple> does not work as expected");
