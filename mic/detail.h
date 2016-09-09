@@ -167,54 +167,7 @@ Vc_INTRINSIC __m512i abs(__m512i a, short)
 
 //InterleaveImpl{{{1
 template <typename V, int Wt, size_t Sizeof> struct InterleaveImpl;
-template <typename T, int Wt, size_t Sizeof>
-struct InterleaveImpl<Vector<T, VectorAbi::Mic>, Wt, Sizeof> {
-    using V = Vector<T, VectorAbi::Mic>;
-    using IT = typename V::IndexType;
-    using VT = typename V::VectorEntryType;
-    using UpDownC = MIC::UpDownConversion<VT, T>;
-    // fixup functions{{{2
-    static Vc_INTRINSIC __m512i fixup(const SimdArray<int, 16> &i)
-    {
-        return internal_data(i).data();
-    }
-    static Vc_INTRINSIC __m512i fixup(const SimdArray<int, 8> &i)
-    {
-        return _mm512_mask_loadunpacklo_epi32(_mm512_setzero_epi32(), 0x00ff, &i);
-    }
-    template <size_t StructSize>
-    static Vc_INTRINSIC __m512i fixup(const SuccessiveEntries<StructSize> &i)
-    {
-        using namespace Detail;
-        return (int_v::IndexesFromZero() * int_v(StructSize) + int_v(i.data())).data();
-    }
-    template <size_t... IndexSeq, typename... Vs>  // interleave pack expansion{{{2
-    static Vc_INTRINSIC void interleave(T *const data, const int_v indexes,
-                                        index_sequence<IndexSeq...>, Vs &&... vs)
-    {
-        const auto &&tmp = {(vs.scatter(data + IndexSeq, i), 0)...};
-    }
-    template <typename I, typename... Vs>  // interleave interface{{{2
-    static inline void interleave(T *const data, I &&indexes, Vs &&... vs)
-    {
-        interleave(data, fixup(std::forward<I>(indexes)),
-                   make_index_sequence<sizeof...(Vs)>(), std::forward<Vs>(vs)...);
-    }
-    template <size_t... IndexSeq, typename... Vs>  // deinterleave pack expansion{{{2
-    static Vc_INTRINSIC void deinterleave(const T *const data, const int_v indexes,
-                                          index_sequence<IndexSeq...>, Vs &&... vs)
-    {
-        using Vc::MicIntrinsics::gather;
-        const auto &&tmp = {(vs = gather(i, data + IndexSeq, UpDownC()), 0)...};
-    }
-    template <typename I, typename... Vs>  // deinterleave interface{{{2
-    static inline void deinterleave(const T *const data, I &&indexes, Vs &&... vs)
-    {
-        deinterleave(data, fixup(std::forward<I>(indexes)),
-                     make_index_sequence<sizeof...(Vs)>(), std::forward<Vs>(vs)...);
-    }
-    //}}}2
-};
+
 //}}}1
 }  // namespace Detail
 }  // namespace Vc
