@@ -453,9 +453,9 @@ private:
     // The alignas attribute attached to the class declaration above is ignored by ICC
     // 17.0.0 (at least). So just move the alignas attribute down here where it works for
     // all compilers.
-    alignas(Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value *
-                                     sizeof(VectorType_) / VectorType_::size()>::value)
-        storage_type data;
+    alignas(static_cast<std::size_t>(
+        Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value * sizeof(VectorType_) /
+                                 VectorType_::size()>::value)) storage_type data;
 };
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t SimdArray<T, N, VectorType, N>::Size;
 template <typename T, std::size_t N, typename VectorType>
@@ -1339,8 +1339,9 @@ private: //{{{2
     // The alignas attribute attached to the class declaration above is ignored by ICC
     // 17.0.0 (at least). So just move the alignas attribute down here where it works for
     // all compilers.
-    alignas(Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value * sizeof(V) /
-                                     V::size()>::value) storage_type0 data0;
+    alignas(static_cast<std::size_t>(
+        Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value * sizeof(V) /
+                                 V::size()>::value)) storage_type0 data0;
     storage_type1 data1;
 };
 #undef Vc_CURRENT_CLASS_NAME
