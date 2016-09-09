@@ -38,26 +38,52 @@ namespace Common
  * \internal
  * Returns the next power of 2 larger than or equal to \p x.
  */
-static constexpr std::size_t nextPowerOfTwo(std::size_t x)
-{
-    return (x & (x - 1)) == 0 ? x : nextPowerOfTwo((x | (x >> 1)) + 1);
-}
+template <size_t x, bool = (x & (x - 1)) == 0> struct NextPowerOfTwo;
+template <size_t x>
+struct NextPowerOfTwo<x, true> : public std::integral_constant<size_t, x> {
+};
+template <size_t x>
+struct NextPowerOfTwo<x, false>
+    : public std::integral_constant<
+          size_t, NextPowerOfTwo<(x | (x >> 1) | (x >> 2) | (x >> 5)) + 1>::value> {
+};
+
+/**
+ * \internal
+ * Enforce an upper bound to an alignment value. This is necessary because some compilers
+ * implement such an upper bound and emit a warning if it is encountered.
+ */
+template <size_t A>
+struct BoundedAlignment : public std::integral_constant<size_t,
+#ifdef Vc_GCC
+                                                        ((A - 1) &
+#ifdef __AVX__
+                                                         255
+#else
+                                                         127
+#endif
+                                                         ) + 1
+#else
+                                                        A
+#endif
+                                                        > {
+};
 
 /**
  * \internal
  * Returns the size of the left/first SimdArray member.
  */
-static constexpr std::size_t left_size(std::size_t N)
+template <std::size_t N> static constexpr std::size_t left_size()
 {
-    return Common::nextPowerOfTwo(N - N / 2);
+    return Common::NextPowerOfTwo<(N + 1) / 2>::value;
 }
 /**
  * \internal
  * Returns the size of the right/second SimdArray member.
  */
-static constexpr std::size_t right_size(std::size_t N)
+template <std::size_t N> static constexpr std::size_t right_size()
 {
-    return N - left_size(N);
+    return N - left_size<N>();
 }
 
 }  // namespace Common

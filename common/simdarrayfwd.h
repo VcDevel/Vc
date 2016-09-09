@@ -129,8 +129,8 @@ class SimdMaskArray;
  * types.
  */
 template <typename T, std::size_t N> struct SimdArrayTraits {
-    static constexpr std::size_t N0 = Common::left_size(N);
-    static constexpr std::size_t N1 = Common::right_size(N);
+    static constexpr std::size_t N0 = Common::left_size<N>();
+    static constexpr std::size_t N1 = Common::right_size<N>();
 
     using storage_type0 = SimdArray<T, N0>;
     using storage_type1 = SimdArray<T, N1>;
