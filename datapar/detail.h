@@ -62,14 +62,14 @@ template <class T> static constexpr void unused(T && ) {}
 template <typename F, size_t... I>
 void execute_on_index_sequence(F && f, std::index_sequence<I...>)
 {
-    auto &&x = {(f(I), 0)...};
+    auto &&x = {(f(std::integral_constant<size_t, I>()), 0)...};
     unused(x);
 }
 
 template <typename R, typename F, size_t... I>
 R execute_on_index_sequence_with_return(F && f, std::index_sequence<I...>)
 {
-    return R{f(I)...};
+    return R{f(std::integral_constant<size_t, I>())...};
 }
 
 // execute_n_times{{{1

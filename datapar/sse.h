@@ -120,7 +120,7 @@ struct sse_datapar_impl {
                                                     type_tag<T>) noexcept
     {
         return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
-            [&](int i) { return static_cast<T>(mem[i]); });
+            [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
     // load without conversion{{{3
@@ -242,7 +242,7 @@ struct sse_datapar_impl {
                                          const U *mem, F) noexcept
     {
         // TODO: implement with V(P)MASKMOV if AVX(2) is available
-        execute_n_times<size<T>>([&](int i) {
+        execute_n_times<size<T>>([&](auto i) {
             if (k.d.m(i)) {
                 merge.set(i, static_cast<T>(mem[i]));
             }
@@ -271,7 +271,7 @@ struct sse_datapar_impl {
                                           mask<T> k) noexcept
     {
         // no SSE support for long double
-        execute_n_times<size<T>>([&](int i) {
+        execute_n_times<size<T>>([&](auto i) {
             if (k.d.m(i)) {
                 mem[i] = v.m(i);
             }
@@ -282,7 +282,7 @@ struct sse_datapar_impl {
                                           mask<T> k) noexcept
     {
         //TODO: detail::masked_store(mem, v.v(), k.d.v(), f);
-        execute_n_times<size<T>>([&](int i) {
+        execute_n_times<size<T>>([&](auto i) {
             if (k.d.m(i)) {
                 mem[i] = static_cast<T>(v.m(i));
             }

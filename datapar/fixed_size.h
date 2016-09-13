@@ -234,7 +234,7 @@ template <int N> struct fixed_size_mask_impl {
     static constexpr void masked_store(const mask_member_type &v, bool *mem, F,
                                        const mask_member_type &k, size_tag) noexcept
     {
-        execute_n_times<N>([&](size_t i) {
+        execute_n_times<N>([&](auto i) {
             if (k[i]) {
                 mem[i] = v[i];
             }
