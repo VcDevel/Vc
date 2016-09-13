@@ -347,13 +347,13 @@ TEST_TYPES(VU, load_store,
     x.copy_to(&mem[V::size()], vector_aligned);
     std::size_t i = 0;
     for (; i < V::size(); ++i) {
-        COMPARE(mem[i], U(0));
+        COMPARE(mem[i], U(0)) << "i: " << i;
     }
     for (; i < 2 * V::size(); ++i) {
-        COMPARE(mem[i], U(i - V::size() + 1));
+        COMPARE(mem[i], U(i - V::size() + 1)) << "i: " << i;
     }
     for (; i < 3 * V::size(); ++i) {
-        COMPARE(mem[i], U(0));
+        COMPARE(mem[i], U(0)) << "i: " << i;
     }
 
     /*

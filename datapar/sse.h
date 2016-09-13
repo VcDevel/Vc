@@ -250,19 +250,118 @@ struct sse_datapar_impl {
     }
 
     // store {{{2
+    // store to long double has no vector implementation{{{3
     template <class T, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, long double *mem, F,
                                    type_tag<T>) noexcept
     {
         // alignment F doesn't matter
-        execute_n_times<size<T>>([&](int i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
     }
-    template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F,
+
+    // store without conversion{{{3
+    template <class T, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, T *mem, F f,
                                    type_tag<T>) noexcept
     {
-        //TODO: detail::store(mem, v.v(), f);
-        execute_n_times<size<T>>([&](int i) { mem[i] = static_cast<U>(v.m(i)); });
+        store16(v, mem, f);
+    }
+
+    // convert and 16-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+                                   enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
+    {
+        store2(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+    }
+
+    // convert and 32-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+                                   enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
+    {
+        store4(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+    }
+
+    // convert and 64-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+                                   enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
+    {
+        store8(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+    }
+
+    // convert and 128-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+                                   enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
+    {
+        store16(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+    }
+
+    // convert and 256-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
+    {
+#ifdef Vc_HAVE_AVX
+        store32(convert<datapar_member_type<T>, avx_member_type<U>>(v), mem, f);
+#else
+        const auto tmp = convert_all<datapar_member_type<U>>(v);
+        store16(tmp[0], mem, f);
+        store16(tmp[1], mem + size<T> / 2, f);
+#endif
+    }
+
+    // convert and 512-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
+    {
+#ifdef Vc_HAVE_AVX512F
+        store64(convert_all<avx512_member_type<U>>(v), mem, f);
+#elif defined Vc_HAVE_AVX
+        const auto tmp = convert_all<avx_member_type<U>>(v);
+        store32(tmp[0], mem, f);
+        store32(tmp[1], mem + size<T> / 2, f);
+#else
+        const auto tmp = convert_all<datapar_member_type<U>>(v);
+        store16(tmp[0], mem, f);
+        store16(tmp[1], mem + size<T> * 1 / 4, f);
+        store16(tmp[2], mem + size<T> * 2 / 4, f);
+        store16(tmp[3], mem + size<T> * 3 / 4, f);
+#endif
+    }
+
+    // convert and 1024-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
+    {
+#ifdef Vc_HAVE_AVX512F
+        const auto tmp = convert_all<avx512_member_type<U>>(v);
+        store64(tmp[0], mem, f);
+        store64(tmp[1], mem + size<T> / 2, f);
+#elif defined Vc_HAVE_AVX
+        const auto tmp = convert_all<avx_member_type<U>>(v);
+        store32(tmp[0], mem, f);
+        store32(tmp[1], mem + size<T> * 1 / 4, f);
+        store32(tmp[2], mem + size<T> * 2 / 4, f);
+        store32(tmp[3], mem + size<T> * 3 / 4, f);
+#else
+        const auto tmp = convert_all<datapar_member_type<U>>(v);
+        store16(tmp[0], mem, f);
+        store16(tmp[1], mem + size<T> * 1 / 8, f);
+        store16(tmp[2], mem + size<T> * 2 / 8, f);
+        store16(tmp[3], mem + size<T> * 3 / 8, f);
+        store16(tmp[4], mem + size<T> * 4 / 8, f);
+        store16(tmp[5], mem + size<T> * 5 / 8, f);
+        store16(tmp[6], mem + size<T> * 6 / 8, f);
+        store16(tmp[7], mem + size<T> * 7 / 8, f);
+#endif
     }
 
     // masked store {{{2
@@ -465,6 +564,7 @@ struct sse_mask_impl {
     }
 
     // store {{{2
+#ifdef Vc_HAVE_SSE2
     template <class T, class F>
     static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
                                    size_tag<2>) noexcept
@@ -507,6 +607,7 @@ struct sse_mask_impl {
             _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), k);
         }
     }
+#endif  // Vc_HAVE_SSE2
 
     // masked store {{{2
     template <class T, class F, class SizeTag>

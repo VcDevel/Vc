@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_X86_H_
 #define VC_DATAPAR_X86_H_
 
+#include <limits>
+
 #include "../macros.h"
 #include "../detail.h"
 #include "../const.h"
@@ -466,6 +468,255 @@ Vc_INTRINSIC Vc_CONST __m256d signmask32(double){ return _mm256_broadcast_sd(rei
 Vc_INTRINSIC Vc_CONST __m256  signmask32( float){ return _mm256_broadcast_ss(reinterpret_cast<const float *>(&avx_const::signMaskFloat[1])); }
 #endif  // Vc_HAVE_AVX
 
+// set16/32/64{{{1
+Vc_INTRINSIC Vc_CONST __m128 set(float x0, float x1, float x2, float x3)
+{
+    return _mm_set_ps(x3, x2, x1, x0);
+}
+Vc_INTRINSIC Vc_CONST __m128d set(double x0, double x1) { return _mm_set_pd(x1, x0); }
+
+#ifdef Vc_IS_AMD64
+Vc_INTRINSIC Vc_CONST __m128i set(llong x0, llong x1) { return _mm_set_epi64x(x1, x0); }
+Vc_INTRINSIC Vc_CONST __m128i set(ullong x0, ullong x1) { return _mm_set_epi64x(x1, x0); }
+#endif
+
+Vc_INTRINSIC Vc_CONST __m128i set(int x0, int x1, int x2, int x3)
+{
+    return _mm_set_epi32(x3, x2, x1, x0);
+}
+Vc_INTRINSIC Vc_CONST __m128i set(uint x0, uint x1, uint x2, uint x3)
+{
+    return _mm_set_epi32(x3, x2, x1, x0);
+}
+
+Vc_INTRINSIC Vc_CONST __m128i set(short x0, short x1, short x2, short x3, short x4,
+                                  short x5, short x6, short x7)
+{
+    return _mm_set_epi16(x7, x6, x5, x4, x3, x2, x1, x0);
+}
+Vc_INTRINSIC Vc_CONST __m128i set(ushort x0, ushort x1, ushort x2, ushort x3, ushort x4,
+                                  ushort x5, ushort x6, ushort x7)
+{
+    return _mm_set_epi16(x7, x6, x5, x4, x3, x2, x1, x0);
+}
+
+Vc_INTRINSIC Vc_CONST __m128i set(schar x0, schar x1, schar x2, schar x3, schar x4,
+                                  schar x5, schar x6, schar x7, schar x8, schar x9,
+                                  schar x10, schar x11, schar x12, schar x13, schar x14,
+                                  schar x15)
+{
+    return _mm_set_epi8(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1,
+                         x0);
+}
+Vc_INTRINSIC Vc_CONST __m128i set(uchar x0, uchar x1, uchar x2, uchar x3, uchar x4,
+                                  uchar x5, uchar x6, uchar x7, uchar x8, uchar x9,
+                                  uchar x10, uchar x11, uchar x12, uchar x13, uchar x14,
+                                  uchar x15)
+{
+    return _mm_set_epi8(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1,
+                         x0);
+}
+
+#ifdef Vc_HAVE_AVX
+Vc_INTRINSIC Vc_CONST __m256 set(float x0, float x1, float x2, float x3, float x4,
+                                 float x5, float x6, float x7)
+{
+    return _mm256_set_ps(x7, x6, x5, x4, x3, x2, x1, x0);
+}
+
+Vc_INTRINSIC Vc_CONST __m256d set(double x0, double x1, double x2, double x3)
+{
+    return _mm256_set_pd(x3, x2, x1, x0);
+}
+
+#ifdef Vc_IS_AMD64
+Vc_INTRINSIC Vc_CONST __m256i set(llong x0, llong x1, llong x2, llong x3)
+{
+    return _mm256_set_epi64x(x3, x2, x1, x0);
+}
+Vc_INTRINSIC Vc_CONST __m256i set(ullong x0, ullong x1, ullong x2, ullong x3)
+{
+    return _mm256_set_epi64x(x3, x2, x1, x0);
+}
+#endif  // Vc_IS_AMD64
+
+Vc_INTRINSIC Vc_CONST __m256i set(int x0, int x1, int x2, int x3, int x4, int x5, int x6,
+                                  int x7)
+{
+    return _mm256_set_epi32(x7, x6, x5, x4, x3, x2, x1, x0);
+}
+Vc_INTRINSIC Vc_CONST __m256i set(uint x0, uint x1, uint x2, uint x3, uint x4, uint x5,
+                                  uint x6, uint x7)
+{
+    return _mm256_set_epi32(x7, x6, x5, x4, x3, x2, x1, x0);
+}
+
+Vc_INTRINSIC Vc_CONST __m256i set(short x0, short x1, short x2, short x3, short x4,
+                                  short x5, short x6, short x7, short x8, short x9,
+                                  short x10, short x11, short x12, short x13, short x14,
+                                  short x15)
+{
+    return _mm256_set_epi16(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2,
+                            x1, x0);
+}
+Vc_INTRINSIC Vc_CONST __m256i set(ushort x0, ushort x1, ushort x2, ushort x3, ushort x4,
+                                  ushort x5, ushort x6, ushort x7, ushort x8, ushort x9,
+                                  ushort x10, ushort x11, ushort x12, ushort x13,
+                                  ushort x14, ushort x15)
+{
+    return _mm256_set_epi16(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2,
+                            x1, x0);
+}
+
+Vc_INTRINSIC Vc_CONST __m256i set(schar x0, schar x1, schar x2, schar x3, schar x4,
+                                  schar x5, schar x6, schar x7, schar x8, schar x9,
+                                  schar x10, schar x11, schar x12, schar x13, schar x14,
+                                  schar x15, schar x16, schar x17, schar x18, schar x19,
+                                  schar x20, schar x21, schar x22, schar x23, schar x24,
+                                  schar x25, schar x26, schar x27, schar x28, schar x29,
+                                  schar x30, schar x31)
+{
+    return _mm256_set_epi8(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20,
+                           x19, x18, x17, x16, x15, x14, x13, x12, x11, x10, x9, x8, x7,
+                           x6, x5, x4, x3, x2, x1, x0);
+}
+Vc_INTRINSIC Vc_CONST __m256i set(uchar x0, uchar x1, uchar x2, uchar x3, uchar x4,
+                                  uchar x5, uchar x6, uchar x7, uchar x8, uchar x9,
+                                  uchar x10, uchar x11, uchar x12, uchar x13, uchar x14,
+                                  uchar x15, uchar x16, uchar x17, uchar x18, uchar x19,
+                                  uchar x20, uchar x21, uchar x22, uchar x23, uchar x24,
+                                  uchar x25, uchar x26, uchar x27, uchar x28, uchar x29,
+                                  uchar x30, uchar x31)
+{
+    return _mm256_set_epi8(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20,
+                           x19, x18, x17, x16, x15, x14, x13, x12, x11, x10, x9, x8, x7,
+                           x6, x5, x4, x3, x2, x1, x0);
+}
+#endif  // Vc_HAVE_AVX
+
+// generic forward for (u)long to (u)int or (u)llong
+template <typename... Ts> Vc_INTRINSIC Vc_CONST auto set(Ts... args)
+{
+    return set(static_cast<equal_int_type_t<Ts>>(args)...);
+}
+
+// broadcast16/32/64{{{1
+__m128  broadcast16( float x) { return _mm_set1_ps(x); }
+#ifdef Vc_HAVE_SSE2
+__m128d broadcast16(double x) { return _mm_set1_pd(x); }
+__m128i broadcast16( schar x) { return _mm_set1_epi8(x); }
+__m128i broadcast16( uchar x) { return _mm_set1_epi8(x); }
+__m128i broadcast16( short x) { return _mm_set1_epi16(x); }
+__m128i broadcast16(ushort x) { return _mm_set1_epi16(x); }
+__m128i broadcast16(   int x) { return _mm_set1_epi32(x); }
+__m128i broadcast16(  uint x) { return _mm_set1_epi32(x); }
+#ifdef Vc_IS_AMD64
+__m128i broadcast16( llong x) { return _mm_set1_epi64x(x); }
+__m128i broadcast16(ullong x) { return _mm_set1_epi64x(x); }
+#endif
+#endif  // Vc_HAVE_SSE2
+
+#ifdef Vc_HAVE_AVX
+__m256  broadcast32( float x) { return _mm256_set1_ps(x); }
+__m256d broadcast32(double x) { return _mm256_set1_pd(x); }
+__m256i broadcast32( schar x) { return _mm256_set1_epi8(x); }
+__m256i broadcast32( uchar x) { return _mm256_set1_epi8(x); }
+__m256i broadcast32( short x) { return _mm256_set1_epi16(x); }
+__m256i broadcast32(ushort x) { return _mm256_set1_epi16(x); }
+__m256i broadcast32(   int x) { return _mm256_set1_epi32(x); }
+__m256i broadcast32(  uint x) { return _mm256_set1_epi32(x); }
+#ifdef Vc_IS_AMD64
+__m256i broadcast32( llong x) { return _mm256_set1_epi64x(x); }
+__m256i broadcast32(ullong x) { return _mm256_set1_epi64x(x); }
+#endif
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+__m512  broadcast64( float x) { return _mm512_set1_ps(x); }
+__m512d broadcast64(double x) { return _mm512_set1_pd(x); }
+__m512i broadcast64( schar x) { return _mm512_set1_epi8(x); }
+__m512i broadcast64( uchar x) { return _mm512_set1_epi8(x); }
+__m512i broadcast64( short x) { return _mm512_set1_epi16(x); }
+__m512i broadcast64(ushort x) { return _mm512_set1_epi16(x); }
+__m512i broadcast64(   int x) { return _mm512_set1_epi32(x); }
+__m512i broadcast64(  uint x) { return _mm512_set1_epi32(x); }
+__m512i broadcast64( llong x) { return _mm512_set1_epi64(x); }
+__m512i broadcast64(ullong x) { return _mm512_set1_epi64(x); }
+#endif  // Vc_HAVE_AVX512F
+
+// lowest16/32/64{{{1
+template <class T>
+Vc_INTRINSIC Vc_CONST typename intrinsic_type_impl<T, 16>::type lowest16()
+{
+    return broadcast16(std::numeric_limits<T>::lowest());
+}
+
+#ifdef Vc_HAVE_SSE2
+template <> Vc_INTRINSIC Vc_CONST __m128i lowest16< short>() { return _mm_load_si128(reinterpret_cast<const __m128i *>(sse_const::minShort)); }
+template <> Vc_INTRINSIC Vc_CONST __m128i lowest16<   int>() { return _mm_load_si128(reinterpret_cast<const __m128i *>(sse_const::signMaskFloat)); }
+template <> Vc_INTRINSIC Vc_CONST __m128i lowest16< llong>() { return _mm_load_si128(reinterpret_cast<const __m128i *>(sse_const::signMaskDouble)); }
+template <> Vc_INTRINSIC Vc_CONST __m128i lowest16<  long>() { return lowest16<equal_int_type_t<long>>(); }
+
+template <> Vc_INTRINSIC Vc_CONST __m128i lowest16< uchar>() { return _mm_setzero_si128(); }
+template <> Vc_INTRINSIC Vc_CONST __m128i lowest16<ushort>() { return _mm_setzero_si128(); }
+template <> Vc_INTRINSIC Vc_CONST __m128i lowest16<  uint>() { return _mm_setzero_si128(); }
+template <> Vc_INTRINSIC Vc_CONST __m128i lowest16< ulong>() { return _mm_setzero_si128(); }
+template <> Vc_INTRINSIC Vc_CONST __m128i lowest16<ullong>() { return _mm_setzero_si128(); }
+#endif  // Vc_HAVE_SSE2
+
+#ifdef Vc_HAVE_AVX
+template <class T>
+Vc_INTRINSIC Vc_CONST typename intrinsic_type_impl<T, 32>::type lowest32()
+{
+    return broadcast32(std::numeric_limits<T>::lowest());
+}
+
+template <> Vc_INTRINSIC Vc_CONST __m256i lowest32<short>() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(sse_const::minShort))); }
+template <> Vc_INTRINSIC Vc_CONST __m256i lowest32<  int>() { return _mm256_castps_si256(signmask32(float())); }
+template <> Vc_INTRINSIC Vc_CONST __m256i lowest32<llong>() { return _mm256_castpd_si256(signmask32(double())); }
+template <> Vc_INTRINSIC Vc_CONST __m256i lowest32<  long>() { return lowest32<equal_int_type_t<long>>(); }
+
+template <> Vc_INTRINSIC Vc_CONST __m256i lowest32< uchar>() { return _mm256_setzero_si256(); }
+template <> Vc_INTRINSIC Vc_CONST __m256i lowest32<ushort>() { return _mm256_setzero_si256(); }
+template <> Vc_INTRINSIC Vc_CONST __m256i lowest32<  uint>() { return _mm256_setzero_si256(); }
+template <> Vc_INTRINSIC Vc_CONST __m256i lowest32< ulong>() { return _mm256_setzero_si256(); }
+template <> Vc_INTRINSIC Vc_CONST __m256i lowest32<ullong>() { return _mm256_setzero_si256(); }
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+template <class T>
+Vc_INTRINSIC Vc_CONST typename intrinsic_type_impl<T, 64>::type lowest64()
+{
+    return broadcast64(std::numeric_limits<T>::lowest());
+}
+
+template <> Vc_INTRINSIC Vc_CONST __m512i lowest64<short>() { return _mm512_broadcast_i32x4(lowest16<short>()); }
+template <> Vc_INTRINSIC Vc_CONST __m512i lowest64<  int>() { return _mm512_broadcast_i32x4(lowest16<  int>()); }
+template <> Vc_INTRINSIC Vc_CONST __m512i lowest64<llong>() { return _mm512_broadcast_i32x4(lowest16<llong>()); }
+template <> Vc_INTRINSIC Vc_CONST __m512i lowest64< long>() { return _mm512_broadcast_i32x4(lowest16< long>()); }
+
+template <> Vc_INTRINSIC Vc_CONST __m512i lowest64< uchar>() { return _mm512_setzero_si512(); }
+template <> Vc_INTRINSIC Vc_CONST __m512i lowest64<ushort>() { return _mm512_setzero_si512(); }
+template <> Vc_INTRINSIC Vc_CONST __m512i lowest64<  uint>() { return _mm512_setzero_si512(); }
+template <> Vc_INTRINSIC Vc_CONST __m512i lowest64< ulong>() { return _mm512_setzero_si512(); }
+template <> Vc_INTRINSIC Vc_CONST __m512i lowest64<ullong>() { return _mm512_setzero_si512(); }
+#endif  // Vc_HAVE_AVX512F
+
+// _2_pow_31{{{1
+template <class T> inline typename intrinsic_type_impl<T, 16>::type sse_2_pow_31();
+template <> Vc_INTRINSIC Vc_CONST __m128  sse_2_pow_31< float>() { return broadcast16( float(1u << 31)); }
+#ifdef Vc_HAVE_SSE2
+template <> Vc_INTRINSIC Vc_CONST __m128d sse_2_pow_31<double>() { return broadcast16(double(1u << 31)); }
+template <> Vc_INTRINSIC Vc_CONST __m128i sse_2_pow_31<  uint>() { return lowest16<int>(); }
+#endif  // Vc_HAVE_SSE2
+
+#ifdef Vc_HAVE_AVX
+template <class T> inline typename intrinsic_type_impl<T, 32>::type avx_2_pow_31();
+template <> Vc_INTRINSIC Vc_CONST __m256  avx_2_pow_31< float>() { return _mm256_broadcast_ss(&avx_const::_2_pow_31); }
+template <> Vc_INTRINSIC Vc_CONST __m256d avx_2_pow_31<double>() { return broadcast32(double(1u << 31)); }
+template <> Vc_INTRINSIC Vc_CONST __m256i avx_2_pow_31<  uint>() { return lowest32<int>(); }
+#endif  // Vc_HAVE_AVX
+
 // SSE intrinsics emulation{{{1
 Vc_INTRINSIC __m128i setone_epi8 ()  { return _mm_set1_epi8(1); }
 Vc_INTRINSIC __m128i setone_epu8 ()  { return setone_epi8(); }
@@ -480,11 +731,8 @@ Vc_INTRINSIC __m128d setone_pd()     { return _mm_load_pd(sse_const::oneDouble);
 Vc_INTRINSIC __m128d setabsmask_pd() { return _mm_load_pd(reinterpret_cast<const double *>(sse_const::absMaskDouble)); }
 Vc_INTRINSIC __m128  setabsmask_ps() { return _mm_load_ps(reinterpret_cast<const float *>(sse_const::absMaskFloat)); }
 
-Vc_INTRINSIC __m128i setmin_epi8 () { return _mm_set1_epi8(-0x80); }
-Vc_INTRINSIC __m128i setmin_epi16() { return _mm_load_si128(reinterpret_cast<const __m128i *>(sse_const::minShort)); }
-Vc_INTRINSIC __m128i setmin_epi32() { return _mm_load_si128(reinterpret_cast<const __m128i *>(sse_const::signMaskFloat)); }
-Vc_INTRINSIC __m128i setmin_epi64() { return _mm_load_si128(reinterpret_cast<const __m128i *>(sse_const::signMaskDouble)); }
 
+#ifdef Vc_HAVE_SSE2
 #if defined(Vc_IMPL_XOP)
 Vc_INTRINSIC __m128i cmplt_epu8 (__m128i a, __m128i b) { return _mm_comlt_epu8 (a, b); }
 Vc_INTRINSIC __m128i cmpgt_epu8 (__m128i a, __m128i b) { return _mm_comgt_epu8 (a, b); }
@@ -497,41 +745,41 @@ Vc_INTRINSIC __m128i cmpgt_epu64(__m128i a, __m128i b) { return _mm_comgt_epu64(
 #else
 Vc_INTRINSIC __m128i Vc_CONST cmplt_epu8(__m128i a, __m128i b)
 {
-    return _mm_cmplt_epi8(_mm_xor_si128(a, setmin_epi8()),
-                          _mm_xor_si128(b, setmin_epi8()));
+    return _mm_cmplt_epi8(_mm_xor_si128(a, lowest16<schar>()),
+                          _mm_xor_si128(b, lowest16<schar>()));
 }
 Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu8(__m128i a, __m128i b)
 {
-    return _mm_cmpgt_epi8(_mm_xor_si128(a, setmin_epi8()),
-                          _mm_xor_si128(b, setmin_epi8()));
+    return _mm_cmpgt_epi8(_mm_xor_si128(a, lowest16<schar>()),
+                          _mm_xor_si128(b, lowest16<schar>()));
 }
 Vc_INTRINSIC __m128i Vc_CONST cmplt_epu16(__m128i a, __m128i b)
 {
-    return _mm_cmplt_epi16(_mm_xor_si128(a, setmin_epi16()),
-                           _mm_xor_si128(b, setmin_epi16()));
+    return _mm_cmplt_epi16(_mm_xor_si128(a, lowest16<short>()),
+                           _mm_xor_si128(b, lowest16<short>()));
 }
 Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu16(__m128i a, __m128i b)
 {
-    return _mm_cmpgt_epi16(_mm_xor_si128(a, setmin_epi16()),
-                           _mm_xor_si128(b, setmin_epi16()));
+    return _mm_cmpgt_epi16(_mm_xor_si128(a, lowest16<short>()),
+                           _mm_xor_si128(b, lowest16<short>()));
 }
 Vc_INTRINSIC __m128i Vc_CONST cmplt_epu32(__m128i a, __m128i b)
 {
-    return _mm_cmplt_epi32(_mm_xor_si128(a, setmin_epi32()),
-                           _mm_xor_si128(b, setmin_epi32()));
+    return _mm_cmplt_epi32(_mm_xor_si128(a, lowest16<int>()),
+                           _mm_xor_si128(b, lowest16<int>()));
 }
 Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu32(__m128i a, __m128i b)
 {
-    return _mm_cmpgt_epi32(_mm_xor_si128(a, setmin_epi32()),
-                           _mm_xor_si128(b, setmin_epi32()));
+    return _mm_cmpgt_epi32(_mm_xor_si128(a, lowest16<int>()),
+                           _mm_xor_si128(b, lowest16<int>()));
 }
 Vc_INTRINSIC __m128i Vc_CONST cmpgt_epi64(__m128i a, __m128i b)
 {
 #ifdef Vc_IMPL_SSE4_2
     return _mm_cmpgt_epi64(a, b);
 #else
-    const auto aa = _mm_xor_si128(a, _mm_srli_epi64(setmin_epi32(), 32));
-    const auto bb = _mm_xor_si128(b, _mm_srli_epi64(setmin_epi32(), 32));
+    const auto aa = _mm_xor_si128(a, _mm_srli_epi64(lowest16<int>(), 32));
+    const auto bb = _mm_xor_si128(b, _mm_srli_epi64(lowest16<int>(), 32));
     const auto gt = _mm_cmpgt_epi32(aa, bb);
     const auto eq = _mm_cmpeq_epi32(aa, bb);
     // Algorithm:
@@ -550,8 +798,8 @@ Vc_INTRINSIC __m128i Vc_CONST cmpgt_epi64(__m128i a, __m128i b)
 }
 Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu64(__m128i a, __m128i b)
 {
-    return cmpgt_epi64(_mm_xor_si128(a, setmin_epi64()),
-                       _mm_xor_si128(b, setmin_epi64()));
+    return cmpgt_epi64(_mm_xor_si128(a, lowest16<llong>()),
+                       _mm_xor_si128(b, lowest16<llong>()));
 }
 #endif
 
@@ -635,6 +883,7 @@ template <int s> Vc_INTRINSIC Vc_CONST __m128i alignr(__m128i a, __m128i b)
     return _mm_setzero_si128();
 #endif
 }
+#endif  // Vc_HAVE_SSE2
 
 #ifdef Vc_HAVE_AVX
 template <int shift> Vc_INTRINSIC Vc_CONST __m256i alignr(__m256i s1, __m256i s2)
@@ -744,46 +993,8 @@ Vc_INTRINSIC Vc_PURE __m128i stream_load_si128(__m128i *mem)
     return _mm_stream_load_si128(mem);
 }
 #else  // Vc_HAVE_SSE4_1
-Vc_INTRINSIC Vc_CONST __m128i cmpeq_epi64(__m128i a, __m128i b) {
-    auto tmp = _mm_cmpeq_epi32(a, b);
-    return _mm_and_si128(tmp, _mm_shuffle_epi32(tmp, 1*1 + 0*4 + 3*16 + 2*64));
-}
-template <int index> Vc_INTRINSIC Vc_CONST int extract_epi32(__m128i v)
-{
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-    typedef int int32v4 __attribute__((__vector_size__(16)));
-    return reinterpret_cast<const may_alias<int32v4> &>(v)[index];
-#else
-    return _mm_cvtsi128_si32(_mm_srli_si128(v, index * 4));
-#endif
-}
-Vc_INTRINSIC Vc_CONST __m128d blendv_pd(__m128d a, __m128d b, __m128d c) {
-    return _mm_or_pd(_mm_andnot_pd(c, a), _mm_and_pd(c, b));
-}
 Vc_INTRINSIC Vc_CONST __m128  blendv_ps(__m128  a, __m128  b, __m128  c) {
     return _mm_or_ps(_mm_andnot_ps(c, a), _mm_and_ps(c, b));
-}
-Vc_INTRINSIC Vc_CONST __m128i blendv_epi8(__m128i a, __m128i b, __m128i c) {
-    return _mm_or_si128(_mm_andnot_si128(c, a), _mm_and_si128(c, b));
-}
-
-// only use the following blend functions with immediates as mask and, of course, compiling
-// with optimization
-template <int mask> Vc_INTRINSIC Vc_CONST __m128d blend_pd(__m128d a, __m128d b)
-{
-    switch (mask) {
-    case 0x0:
-        return a;
-    case 0x1:
-        return _mm_shuffle_pd(b, a, 2);
-    case 0x2:
-        return _mm_shuffle_pd(a, b, 2);
-    case 0x3:
-        return b;
-    default:
-        abort();
-        return a; // should never be reached, but MSVC needs it else it warns about 'not all control paths return a value'
-    }
 }
 template <int mask> Vc_INTRINSIC Vc_CONST __m128 blend_ps(__m128 a, __m128 b)
 {
@@ -842,6 +1053,33 @@ template <int mask> Vc_INTRINSIC Vc_CONST __m128 blend_ps(__m128 a, __m128 b)
     }
     __m128 _c = _mm_castsi128_ps(c);
     return _mm_or_ps(_mm_andnot_ps(_c, a), _mm_and_ps(_c, b));
+}
+
+#ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC Vc_CONST __m128d blendv_pd(__m128d a, __m128d b, __m128d c) {
+    return _mm_or_pd(_mm_andnot_pd(c, a), _mm_and_pd(c, b));
+}
+Vc_INTRINSIC Vc_CONST __m128i blendv_epi8(__m128i a, __m128i b, __m128i c) {
+    return _mm_or_si128(_mm_andnot_si128(c, a), _mm_and_si128(c, b));
+}
+
+// only use the following blend functions with immediates as mask and, of course, compiling
+// with optimization
+template <int mask> Vc_INTRINSIC Vc_CONST __m128d blend_pd(__m128d a, __m128d b)
+{
+    switch (mask) {
+    case 0x0:
+        return a;
+    case 0x1:
+        return _mm_shuffle_pd(b, a, 2);
+    case 0x2:
+        return _mm_shuffle_pd(a, b, 2);
+    case 0x3:
+        return b;
+    default:
+        abort();
+        return a; // should never be reached, but MSVC needs it else it warns about 'not all control paths return a value'
+    }
 }
 template <int mask> Vc_INTRINSIC Vc_CONST __m128i blend_epi16(__m128i a, __m128i b)
 {
@@ -904,6 +1142,20 @@ template <int mask> Vc_INTRINSIC Vc_CONST __m128i blend_epi16(__m128i a, __m128i
     return _mm_or_si128(_mm_andnot_si128(c, a), _mm_and_si128(c, b));
 }
 
+Vc_INTRINSIC Vc_CONST __m128i cmpeq_epi64(__m128i a, __m128i b) {
+    auto tmp = _mm_cmpeq_epi32(a, b);
+    return _mm_and_si128(tmp, _mm_shuffle_epi32(tmp, 1*1 + 0*4 + 3*16 + 2*64));
+}
+template <int index> Vc_INTRINSIC Vc_CONST int extract_epi32(__m128i v)
+{
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+    typedef int int32v4 __attribute__((__vector_size__(16)));
+    return reinterpret_cast<const may_alias<int32v4> &>(v)[index];
+#else
+    return _mm_cvtsi128_si32(_mm_srli_si128(v, index * 4));
+#endif
+}
+
 Vc_INTRINSIC Vc_CONST __m128i max_epi8 (__m128i a, __m128i b) {
     return blendv_epi8(b, a, _mm_cmpgt_epi8 (a, b));
 }
@@ -957,6 +1209,7 @@ Vc_INTRINSIC Vc_CONST __m128i cvtepi8_epi32(__m128i epi8) {
 Vc_INTRINSIC Vc_PURE __m128i stream_load_si128(__m128i *mem) {
     return _mm_load_si128(mem);
 }
+#endif  // Vc_HAVE_SSE2
 #endif  // Vc_HAVE_SSE4_1
 
 // testc{{{1
@@ -1177,6 +1430,62 @@ Vc_INTRINSIC __m256  not_(__m256  a) { return andnot_(a, allone<__m256 >()); }
 Vc_INTRINSIC __m256d not_(__m256d a) { return andnot_(a, allone<__m256d>()); }
 Vc_INTRINSIC __m256i not_(__m256i a) { return andnot_(a, allone<__m256i>()); }
 #endif  // Vc_HAVE_AVX
+
+// shift_left{{{1
+template <int n> Vc_INTRINSIC __m128  shift_left(__m128  v) { return _mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(v), n)); }
+template <int n> Vc_INTRINSIC __m128d shift_left(__m128d v) { return _mm_castsi128_pd(_mm_slli_si128(_mm_castpd_si128(v), n)); }
+template <int n> Vc_INTRINSIC __m128i shift_left(__m128i v) { return _mm_slli_si128(v, n); }
+
+#ifdef Vc_HAVE_AVX2
+template <int n> Vc_INTRINSIC __m256 shift_left(__m256 v)
+{
+    __m256i vi = _mm256_castps_si256(v);
+    return _mm256_castsi256_ps(
+        n < 16 ? _mm256_slli_si256(vi, n)
+               : _mm256_slli_si256(_mm256_permute2x128_si256(vi, vi, 0x08), n));
+}
+template <int n> Vc_INTRINSIC __m256d shift_left(__m256d v)
+{
+    __m256i vi = _mm256_castpd_si256(v);
+    return _mm256_castsi256_pd(
+        n < 16 ? _mm256_slli_si256(vi, n)
+               : _mm256_slli_si256(_mm256_permute2x128_si256(vi, vi, 0x08), n));
+}
+template <int n> Vc_INTRINSIC __m256i shift_left(__m256i v)
+{
+    return _mm256_castsi256_pd(
+        n < 16 ? _mm256_slli_si256(v, n)
+               : _mm256_slli_si256(_mm256_permute2x128_si256(v, v, 0x08), n));
+}
+#endif
+
+// shift_right{{{1
+template <int n> Vc_INTRINSIC __m128  shift_right(__m128  v) { return _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(v), n)); }
+template <int n> Vc_INTRINSIC __m128d shift_right(__m128d v) { return _mm_castsi128_pd(_mm_srli_si128(_mm_castpd_si128(v), n)); }
+template <int n> Vc_INTRINSIC __m128i shift_right(__m128i v) { return _mm_srli_si128(v, n); }
+
+#ifdef Vc_HAVE_AVX2
+template <int n> Vc_INTRINSIC __m256 shift_right(__m256 v)
+{
+    __m256i vi = _mm256_castps_si256(v);
+    return _mm256_castsi256_ps(
+        n < 16 ? _mm256_srli_si256(vi, n)
+               : _mm256_srli_si256(_mm256_permute2x128_si256(vi, vi, 0x81), n));
+}
+template <int n> Vc_INTRINSIC __m256d shift_right(__m256d v)
+{
+    __m256i vi = _mm256_castpd_si256(v);
+    return _mm256_castsi256_pd(
+        n < 16 ? _mm256_srli_si256(vi, n)
+               : _mm256_srli_si256(_mm256_permute2x128_si256(vi, vi, 0x81), n));
+}
+template <int n> Vc_INTRINSIC __m256i shift_right(__m256i v)
+{
+    return _mm256_castsi256_pd(
+        n < 16 ? _mm256_srli_si256(v, n)
+               : _mm256_srli_si256(_mm256_permute2x128_si256(v, v, 0x81), n));
+}
+#endif
 
 // add{{{1
 Vc_INTRINSIC __m128  add(__m128  a, __m128  b,  float) { return _mm_add_ps(a, b); }
@@ -1545,94 +1854,130 @@ Vc_INTRINSIC __m512i load64(const T *mem, when_unaligned<64>)
 
 // stores{{{1
 #ifdef Vc_HAVE_SSE
+template <class Flags> Vc_INTRINSIC void store4(__m128 v, float *mem, Flags)
+{
+    *mem = _mm_cvtss_f32(v);
+}
+
+template <class Flags> Vc_INTRINSIC void store8(__m128 v, float *mem, Flags)
+{
+    _mm_storel_pi(reinterpret_cast<__m64 *>(mem), v);
+}
+
 Vc_INTRINSIC void store16(__m128 v, float *mem, when_aligned<16>)
 {
-    return _mm_store_ps(mem, v);
+    _mm_store_ps(mem, v);
 }
 Vc_INTRINSIC void store16(__m128 v, float *mem, when_unaligned<16>)
 {
-    return _mm_storeu_ps(mem, v);
+    _mm_storeu_ps(mem, v);
 }
 #endif  // Vc_HAVE_SSE
 
 #ifdef Vc_HAVE_SSE2
+template <class Flags> Vc_INTRINSIC void store8(__m128d v, double *mem, Flags)
+{
+    *mem = _mm_cvtsd_f64(v);
+}
+
 Vc_INTRINSIC void store16(__m128d v, double *mem, when_aligned<16>)
 {
-    return _mm_store_pd(mem, v);
+    _mm_store_pd(mem, v);
 }
 Vc_INTRINSIC void store16(__m128d v, double *mem, when_unaligned<16>)
 {
-    return _mm_storeu_pd(mem, v);
+    _mm_storeu_pd(mem, v);
 }
+
+template <class T, class Flags> Vc_INTRINSIC void store2(__m128i v, T *mem, Flags)
+{
+    static_assert(std::is_integral<T>::value && sizeof(T) <= 2,
+                  "store4<T> is only intended for integral T with sizeof(T) <= 2");
+    *reinterpret_cast<may_alias<ushort> *>(mem) = uint(_mm_cvtsi128_si32(v));
+}
+
+template <class T, class Flags> Vc_INTRINSIC void store4(__m128i v, T *mem, Flags)
+{
+    static_assert(std::is_integral<T>::value && sizeof(T) <= 4,
+                  "store4<T> is only intended for integral T with sizeof(T) <= 4");
+    *reinterpret_cast<may_alias<int> *>(mem) = _mm_cvtsi128_si32(v);
+}
+
+template <class T, class Flags> Vc_INTRINSIC void store8(__m128i v, T *mem, Flags)
+{
+    static_assert(std::is_integral<T>::value, "store8<T> is only intended for integral T");
+    _mm_storel_epi64(reinterpret_cast<__m128i *>(mem), v);
+}
+
 template <class T> Vc_INTRINSIC void store16(__m128i v, T *mem, when_aligned<16>)
 {
     static_assert(std::is_integral<T>::value, "store16<T> is only intended for integral T");
-    return _mm_store_si128(reinterpret_cast<__m128i *>(mem), v);
+    _mm_store_si128(reinterpret_cast<__m128i *>(mem), v);
 }
 template <class T> Vc_INTRINSIC void store16(__m128i v, T *mem, when_unaligned<16>)
 {
     static_assert(std::is_integral<T>::value, "store16<T> is only intended for integral T");
-    return _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), v);
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), v);
 }
 #endif  // Vc_HAVE_SSE2
 
 #ifdef Vc_HAVE_AVX
 Vc_INTRINSIC void store32(__m256 v, float *mem, when_aligned<32>)
 {
-    return _mm256_store_ps(mem, v);
+    _mm256_store_ps(mem, v);
 }
 Vc_INTRINSIC void store32(__m256 v, float *mem, when_unaligned<32>)
 {
-    return _mm256_storeu_ps(mem, v);
+    _mm256_storeu_ps(mem, v);
 }
 Vc_INTRINSIC void store32(__m256d v, double *mem, when_aligned<32>)
 {
-    return _mm256_store_pd(mem, v);
+    _mm256_store_pd(mem, v);
 }
 Vc_INTRINSIC void store32(__m256d v, double *mem, when_unaligned<32>)
 {
-    return _mm256_storeu_pd(mem, v);
+    _mm256_storeu_pd(mem, v);
 }
 template <class T> Vc_INTRINSIC void store32(__m256i v, T *mem, when_aligned<32>)
 {
     static_assert(std::is_integral<T>::value, "store32<T> is only intended for integral T");
-    return _mm256_store_si256(reinterpret_cast<__m256i *>(mem), v);
+    _mm256_store_si256(reinterpret_cast<__m256i *>(mem), v);
 }
 template <class T> Vc_INTRINSIC void store32(__m256i v, T *mem, when_unaligned<32>)
 {
     static_assert(std::is_integral<T>::value, "store32<T> is only intended for integral T");
-    return _mm256_storeu_si256(reinterpret_cast<__m256i *>(mem), v);
+    _mm256_storeu_si256(reinterpret_cast<__m256i *>(mem), v);
 }
 #endif  // Vc_HAVE_AVX
 
 #ifdef Vc_HAVE_AVX512F
 Vc_INTRINSIC void store64(__m512 v, float *mem, when_aligned<64>)
 {
-    return _mm512_store_ps(mem, v);
+    _mm512_store_ps(mem, v);
 }
 Vc_INTRINSIC void store64(__m512 v, float *mem, when_unaligned<64>)
 {
-    return _mm512_storeu_ps(mem, v);
+    _mm512_storeu_ps(mem, v);
 }
 Vc_INTRINSIC void store64(__m512d v, double *mem, when_aligned<64>)
 {
-    return _mm512_store_pd(mem, v);
+    _mm512_store_pd(mem, v);
 }
 Vc_INTRINSIC void store64(__m512d v, double *mem, when_unaligned<64>)
 {
-    return _mm512_storeu_pd(mem, v);
+    _mm512_storeu_pd(mem, v);
 }
 template <class T>
 Vc_INTRINSIC void store64(__m512i v, T *mem, when_aligned<64>)
 {
     static_assert(std::is_integral<T>::value, "store64<T> is only intended for integral T");
-    return _mm512_store_si512(mem, v);
+    _mm512_store_si512(mem, v);
 }
 template <class T>
 Vc_INTRINSIC void store64(__m512i v, T *mem, when_unaligned<64>)
 {
     static_assert(std::is_integral<T>::value, "store64<T> is only intended for integral T");
-    return _mm512_storeu_si512(mem, v);
+    _mm512_storeu_si512(mem, v);
 }
 #endif
 

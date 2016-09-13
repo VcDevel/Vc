@@ -97,10 +97,9 @@ template <class X> struct constants<datapar_abi::avx, X> {
     static constexpr   uint signMaskFloat[2] = { 0x0u, 0x80000000u };
     static constexpr   uint highMaskFloat = 0xfffff000u;
     static constexpr  float oneFloat = 1.f;
-    static constexpr ushort minShort[2] = { 0x8000u, 0x8000u };
     alignas(float) static constexpr ushort one16[2] = { 1, 1 };
     alignas(float) static constexpr  uchar one8[4] = { 1, 1, 1, 1 };
-    static constexpr  float _2power31 = 1u << 31;
+    static constexpr  float _2_pow_31 = 1u << 31;
     static constexpr ullong highMaskDouble = 0xfffffffff8000000ull;
     static constexpr double oneDouble = 1.;
     static constexpr ullong frexpMask = 0xbfefffffffffffffull;
@@ -114,10 +113,9 @@ template <class X> constexpr   uint constants<datapar_abi::avx, X>::absMaskFloat
 template <class X> constexpr   uint constants<datapar_abi::avx, X>::signMaskFloat[2];
 template <class X> constexpr   uint constants<datapar_abi::avx, X>::highMaskFloat;
 template <class X> constexpr  float constants<datapar_abi::avx, X>::oneFloat;
-template <class X> constexpr ushort constants<datapar_abi::avx, X>::minShort[2];
 template <class X> constexpr ushort constants<datapar_abi::avx, X>::one16[2];
 template <class X> constexpr  uchar constants<datapar_abi::avx, X>::one8[4];
-template <class X> constexpr  float constants<datapar_abi::avx, X>::_2power31;
+template <class X> constexpr  float constants<datapar_abi::avx, X>::_2_pow_31;
 template <class X> constexpr ullong constants<datapar_abi::avx, X>::highMaskDouble;
 template <class X> constexpr double constants<datapar_abi::avx, X>::oneDouble;
 template <class X> constexpr ullong constants<datapar_abi::avx, X>::frexpMask;
