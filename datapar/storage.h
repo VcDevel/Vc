@@ -116,8 +116,8 @@ public:
     Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 
     Vc_INTRINSIC Vc_PURE operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data.v; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data.v; }
+    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
+    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 
     Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
     Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data & (1 << i); }
@@ -131,7 +131,7 @@ public:
     }
 
 private:
-    VectorType data = {};
+    VectorType data;
 };
 
 // Storage<Union>{{{1
@@ -146,13 +146,19 @@ public:
     using VectorType = intrinsic_type<ValueType, Size>;
     using EntryType = ValueType;
 
+    union Alias {
+        Vc_INTRINSIC Alias(VectorType vv) : v(vv) {}
+        VectorType v;
+        EntryType m[Size];
+    };
+
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data.v); }
+    Vc_INTRINSIC Storage() : data(x86::zero<VectorType>()) { assertCorrectAlignment(&data); }
 
     template <class... Args, class = enable_if<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&...init)
-        : data{static_cast<EntryType>(std::forward<Args>(init))...}
+        : data{x86::set(static_cast<EntryType>(std::forward<Args>(init))...)}
     {
     }
 
@@ -183,7 +189,7 @@ public:
 
     Vc_INTRINSIC Storage(const VectorType &x) : data(x)
     {
-        assertCorrectAlignment(&data.v);
+        assertCorrectAlignment(&data);
     }
 
     template <typename U>
@@ -204,30 +210,20 @@ public:
     Vc_INTRINSIC Storage(const Storage &) = default;
     Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 
-    Vc_INTRINSIC operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data.v; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data.v; }
+    Vc_INTRINSIC operator const VectorType &() const { return data; }
+    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
+    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 
-    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data.m[i]; }
-    Vc_INTRINSIC void set(size_t i, EntryType x) { data.m[i] = x; }
-    Vc_INTRINSIC Vc_PURE EntryType &ref(size_t i) { return data.m[i]; }
+    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return Alias(data).m[i]; }
+    Vc_INTRINSIC void set(size_t i, EntryType x)
+    {
+        Alias a(data);
+        a.m[i] = x;
+        data = a.v;
+    }
 
 private:
-    union VectorScalarUnion {
-        Vc_INTRINSIC VectorScalarUnion() : v() {}
-        Vc_INTRINSIC VectorScalarUnion(VectorType vv) : v(vv) {}
-        template <class... Args> Vc_INTRINSIC VectorScalarUnion(Args... init) : m{init...}
-        {
-        }
-        VectorType v;
-        // To get function parameter passed via registers the following works:
-        // EntryType m[];
-        // However:
-        // a) starting with GCC 6, GCC rejects it
-        // b) clang refuses to do lambda capture via reference of objects containing it
-        // Therefore, bite the bullet and get less efficient function calls:
-        EntryType m[Size];
-    } data;
+    VectorType data;
 };
 
 // Storage<MayAlias>{{{1
@@ -246,7 +242,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() : data(x86::zero<VectorType>()) { assertCorrectAlignment(&data); }
 
     template <class... Args, class = enable_if<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&...init)
@@ -315,10 +311,6 @@ public:
     {
         reinterpret_cast<may_alias<EntryType> *>(&data)[i] = x;
     }
-    Vc_INTRINSIC Vc_PURE may_alias<EntryType> &ref(size_t i)
-    {
-        return reinterpret_cast<may_alias<EntryType> *>(&data)[i];
-    }
 
 private:
     VectorType data;
@@ -345,7 +337,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() : data{} { assertCorrectAlignment(&data); }
 
     template <class... Args, class = enable_if<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
@@ -406,10 +398,6 @@ public:
 
     Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data[i]; }
     Vc_INTRINSIC void set(size_t i, EntryType x) { data[i] = x; }
-    Vc_INTRINSIC Vc_PURE may_alias<EntryType> &ref(size_t i)
-    {
-        return reinterpret_cast<may_alias<EntryType> *>(&data)[i];
-    }
 
     Vc_INTRINSIC Builtin &builtin() { return data; }
     Vc_INTRINSIC const Builtin &builtin() const { return data; }
@@ -432,7 +420,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() : data(x86::zero<VectorType>()) { assertCorrectAlignment(&data); }
 
     template <class... Args, class = enable_if<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
@@ -492,10 +480,10 @@ public:
     Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 
     Vc_INTRINSIC_L Vc_PURE_L EntryType m(size_t i) const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L EntryType &ref(size_t i) Vc_INTRINSIC_R Vc_PURE_R;
     Vc_INTRINSIC void set(size_t i, EntryType x) { ref(i) = x; }
 
 private:
+    Vc_INTRINSIC_L Vc_PURE_L EntryType &ref(size_t i) Vc_INTRINSIC_R Vc_PURE_R;
     VectorType data;
 };
 
