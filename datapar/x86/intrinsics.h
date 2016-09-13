@@ -237,6 +237,17 @@ template<> Vc_INTRINSIC __m512d intrin_cast(__m256  v) { return _mm512_castpd256
 template<> Vc_INTRINSIC __m512d intrin_cast(__m256i v) { return _mm512_castpd256_pd512(intrin_cast<__m256d>(v)); }
 template<> Vc_INTRINSIC __m512d intrin_cast(__m256d v) { return _mm512_castpd256_pd512(v); }
 
+// 512 -> 128
+template<> Vc_INTRINSIC __m128  intrin_cast(__m512  v) { return _mm512_castps512_ps128(v); }
+template<> Vc_INTRINSIC __m128  intrin_cast(__m512i v) { return _mm512_castps512_ps128(_mm512_castsi512_ps(v)); }
+template<> Vc_INTRINSIC __m128  intrin_cast(__m512d v) { return _mm512_castps512_ps128(_mm512_castpd_ps(v)); }
+template<> Vc_INTRINSIC __m128i intrin_cast(__m512  v) { return _mm512_castsi512_si128(_mm512_castps_si512(v)); }
+template<> Vc_INTRINSIC __m128i intrin_cast(__m512i v) { return _mm512_castsi512_si128(v); }
+template<> Vc_INTRINSIC __m128i intrin_cast(__m512d v) { return _mm512_castsi512_si128(_mm512_castpd_si512(v)); }
+template<> Vc_INTRINSIC __m128d intrin_cast(__m512  v) { return _mm512_castpd512_pd128(_mm512_castps_pd(v)); }
+template<> Vc_INTRINSIC __m128d intrin_cast(__m512i v) { return _mm512_castpd512_pd128(_mm512_castsi512_pd(v)); }
+template<> Vc_INTRINSIC __m128d intrin_cast(__m512d v) { return _mm512_castpd512_pd128(v); }
+
 // 512 -> 256
 template<> Vc_INTRINSIC __m256  intrin_cast(__m512  v) { return _mm512_castps512_ps256(v); }
 template<> Vc_INTRINSIC __m256  intrin_cast(__m512i v) { return _mm512_castps512_ps256(_mm512_castsi512_ps(v)); }
@@ -352,6 +363,10 @@ Vc_INTRINSIC Vc_CONST __m256i lo256(__m512i v) { return intrin_cast<__m256i>(v);
 Vc_INTRINSIC Vc_CONST __m256  hi256(__m512  v) { return extract256<1>(v); }
 Vc_INTRINSIC Vc_CONST __m256d hi256(__m512d v) { return extract256<1>(v); }
 Vc_INTRINSIC Vc_CONST __m256i hi256(__m512i v) { return extract256<1>(v); }
+
+Vc_INTRINSIC Vc_CONST __m128  lo128(__m512  v) { return intrin_cast<__m128 >(v); }
+Vc_INTRINSIC Vc_CONST __m128d lo128(__m512d v) { return intrin_cast<__m128d>(v); }
+Vc_INTRINSIC Vc_CONST __m128i lo128(__m512i v) { return intrin_cast<__m128i>(v); }
 #endif  // Vc_HAVE_AVX
 
 // concat{{{1
@@ -593,6 +608,50 @@ Vc_INTRINSIC Vc_CONST __m256i set(uchar x0, uchar x1, uchar x2, uchar x3, uchar 
                            x6, x5, x4, x3, x2, x1, x0);
 }
 #endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC Vc_CONST __m512d set(double x0, double x1, double x2, double x3, double x4,
+                                  double x5, double x6, double x7)
+{
+    return _mm512_set_pd(x7, x6, x5, x4, x3, x2, x1, x0);
+}
+
+Vc_INTRINSIC Vc_CONST __m512 set(float x0, float x1, float x2, float x3, float x4,
+                                 float x5, float x6, float x7, float x8, float x9,
+                                 float x10, float x11, float x12, float x13, float x14,
+                                 float x15)
+{
+    return _mm512_set_ps(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1,
+                         x0);
+}
+
+Vc_INTRINSIC Vc_CONST __m512i set(llong x0, llong x1, llong x2, llong x3, llong x4,
+                                  llong x5, llong x6, llong x7)
+{
+    return _mm512_set_epi64(x7, x6, x5, x4, x3, x2, x1, x0);
+}
+Vc_INTRINSIC Vc_CONST __m512i set(ullong x0, ullong x1, ullong x2, ullong x3, ullong x4,
+                                  ullong x5, ullong x6, ullong x7)
+{
+    return _mm512_set_epi64(x7, x6, x5, x4, x3, x2, x1, x0);
+}
+
+Vc_INTRINSIC Vc_CONST __m512i set(int x0, int x1, int x2, int x3, int x4, int x5, int x6,
+                                  int x7, int x8, int x9, int x10, int x11, int x12,
+                                  int x13, int x14, int x15)
+{
+    return _mm512_set_epi32(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2,
+                            x1, x0);
+}
+Vc_INTRINSIC Vc_CONST __m512i set(uint x0, uint x1, uint x2, uint x3, uint x4, uint x5,
+                                  uint x6, uint x7, uint x8, uint x9, uint x10, uint x11,
+                                  uint x12, uint x13, uint x14, uint x15)
+{
+    return _mm512_set_epi32(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2,
+                            x1, x0);
+}
+
+#endif  // Vc_HAVE_AVX512F
 
 // generic forward for (u)long to (u)int or (u)llong
 template <typename... Ts> Vc_INTRINSIC Vc_CONST auto set(Ts... args)
