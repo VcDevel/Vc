@@ -1409,14 +1409,16 @@ template <std::size_t I, typename Indexer>
 using TypeAtIndex = typename decltype(TypelistIndexing::select<I>(Indexer{}))::type;
 
 template <template <typename> class TestWrapper, typename... Ts, std::size_t... I>
-static int addTestInstantiations(const char *name, Typelist<Ts...>,
+static int addTestInstantiations(const char *basename, Typelist<Ts...>,
                                  Vc::index_sequence<I...>)
 {
     using Indexer = TypelistIndexing::indexer<Vc::index_sequence<I...>, Ts...>;
+    std::string name(basename);
+    name += '<';
     const auto &x = {
         0, (g_allTests.emplace_back(
                 &TestWrapper<TypeAtIndex<I, Indexer>>::run,
-                std::string(name) + '<' + typeToString<TypeAtIndex<I, Indexer>>() + '>'),
+                name + typeToString<TypeAtIndex<I, Indexer>>() + '>'),
             0)...};
     auto &&unused = [](decltype(x)) {};
     unused(x);
