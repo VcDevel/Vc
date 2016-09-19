@@ -422,7 +422,6 @@ endforeach()
 set(TEST_OPERATOR_FAILURES FALSE CACHE BOOL "Run implicit type conversion operator tests.")
 if(TEST_OPERATOR_FAILURES)
    macro(vc_test_implicit_type_conversion_failures A B)
-      get_property(_launch_rule GLOBAL PROPERTY RULE_LAUNCH_COMPILE)
       foreach(impl Scalar SSE AVX AVX2)
          if("${impl}" STREQUAL "Scalar")
             set(_implFlags)
@@ -447,7 +446,6 @@ if(TEST_OPERATOR_FAILURES)
                add_test(NAME "${Vc_TEST_TARGET_PREFIX}${name}" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMAND
                   env LANG=C
-                  ${_launch_rule}
                   ${CMAKE_CXX_COMPILER} ${_flags} ${_implFlags}
                   ${incdirs} -c -o "${name}.tmp"
                   "-DTYPE_A=${type_a}" "-DTEST_OP=${op}" "-DTYPE_B=${type_b}" "-DVc_IMPL=${impl}"

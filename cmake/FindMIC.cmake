@@ -218,6 +218,13 @@ if(MIC_NATIVE_FOUND)
       endforeach()
 
       get_property(_launch_rule GLOBAL PROPERTY RULE_LAUNCH_COMPILE)
+      string(REPLACE "\"" "" _launch_rule "${_launch_rule}")
+      string(REPLACE " " ";" _launch_rule "${_launch_rule}")
+      string(REPLACE "<TARGET_NAME>" "${_target}" _launch_rule "${_launch_rule}")
+      string(REPLACE "<CMAKE_CURRENT_BINARY_DIR>" "${CMAKE_CURRENT_BINARY_DIR}" _launch_rule "${_launch_rule}")
+      string(REPLACE "<OBJECT>" "${${_output}}" _launch_rule "${_launch_rule}")
+      string(REPLACE "<SOURCE>" "${_abs}" _launch_rule "${_launch_rule}")
+      string(REPLACE "<LANGUAGE>" "C++" _launch_rule "${_launch_rule}")
       add_custom_command(OUTPUT "${${_output}}"
          COMMAND ${_launch_rule} "${_compiler}" -mmic
          -DVc_IMPL=MIC
@@ -371,6 +378,10 @@ ${MIC_RANLIB} ${_output}
 
       set(_exec_output "${CMAKE_CURRENT_BINARY_DIR}/${_exec_output_name}")
       get_property(_launch_rule GLOBAL PROPERTY RULE_LAUNCH_LINK)
+      string(REPLACE "\"" "" _launch_rule "${_launch_rule}")
+      string(REPLACE " " ";" _launch_rule "${_launch_rule}")
+      string(REPLACE "<TARGET_NAME>" "${_target}" _launch_rule "${_launch_rule}")
+      string(REPLACE "<CMAKE_CURRENT_BINARY_DIR>" "${CMAKE_CURRENT_BINARY_DIR}" _launch_rule "${_launch_rule}")
       add_custom_command(OUTPUT "${_exec_output}"
          COMMAND ${_launch_rule} "${MIC_CXX}" -mmic
          "-L${MIC_SDK_DIR}/compiler/lib/mic/"
