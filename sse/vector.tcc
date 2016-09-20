@@ -557,7 +557,7 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, Ve
 template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::shifted(int amount, Vector shiftIn) const
 {
     if (amount >= -int(size())) {
-        constexpr int VectorWidth = size();
+        constexpr int VectorWidth = int(size());
         constexpr int EntryTypeSizeof = sizeof(EntryType);
         const __m128i v0 = sse_cast<__m128i>(d.v());
         const __m128i v1 = sse_cast<__m128i>(shiftIn.d.v());
@@ -597,7 +597,7 @@ template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse> Vector<T, VectorAbi:
         case 15: return fixup(SSE::alignr_epi8<15 * EntryTypeSizeof>(v1, v0));
         }
     }
-    return shiftIn.shifted(size() + amount);
+    return shiftIn.shifted(int(size()) + amount);
 }
 template<typename T> Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::rotated(int amount) const
 {
