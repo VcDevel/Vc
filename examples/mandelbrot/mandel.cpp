@@ -171,7 +171,7 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
         uint_m toStore;
         for (uint_v x = uint_v::IndexesFromZero(); !(toStore = x < width).isEmpty();
                 x += float_v::Size) {
-            const float_v c_real = x0 + static_cast<float_v>(x) * scale;
+            const float_v c_real = x0 + simd_cast<float_v>(x) * scale;
             Z z(c_real, c_imag);
             float_v n = float_v::Zero();
             float_m inside = z.norm() < S;
@@ -180,7 +180,7 @@ template<> void Mandel<VcImpl>::mandelMe(QImage &image, float x0,
                 ++n(inside);
                 inside = z.norm() < S;
             }
-            uint_v colorValue = static_cast<uint_v>((maxIt - n) * colorScale) * 0x10101;
+            uint_v colorValue = simd_cast<uint_v>((maxIt - n) * colorScale) * 0x10101;
             if (toStore.isFull()) {
                 colorValue.store(line, Vc::Unaligned);
                 line += uint_v::Size;
