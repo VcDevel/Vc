@@ -138,6 +138,7 @@ struct TestInfo
     operator bool() const { return enabled; }
     operator int() const { return id; }
     operator long() const { return id; }
+    operator long long() const { return id; }
 };
 // Runner Lambda {{{1
 struct Runner
@@ -201,7 +202,7 @@ template <typename T> void fakeRead(T &&x)
 #ifdef Vc_GNU_ASM
     asm("" ::"m"(x));
 #else
-    x = x;
+    (void)(&x == &x);
 #endif
 }
 int Vc_CDECL main()  // {{{1
