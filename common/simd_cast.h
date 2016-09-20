@@ -31,6 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 #include "macros.h"
 
+// declare a bogus simd_cast function template in the global namespace to enable ADL for
+// simd_cast<T>
+template <class> void simd_cast();
+
 namespace Vc_VERSIONED_NAMESPACE
 {
 /**
