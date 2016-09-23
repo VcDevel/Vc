@@ -45,10 +45,132 @@ template <typename V, typename DstT> struct LoadTag
 {
 };
 
+// when_(un)aligned{{{2
+class when_aligned
+{
+public:
+    template <typename F> constexpr when_aligned(F, typename F::EnableIfAligned = nullptr)
+    {
+    }
+};
+
+class when_unaligned
+{
+public:
+    template <typename F>
+    constexpr when_unaligned(F, typename F::EnableIfUnaligned = nullptr)
+    {
+    }
+};
+
+// MSVC workarounds{{{2
+#ifdef Vc_MSVC
+// work around: "fatal error C1001: An internal error has occurred in the compiler."
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128d load(const double *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, double>::value &&
+                                     std::is_same<V, __m128d>::value)> = nullarg)
+{
+    return _mm_loadu_pd(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128d load(const double *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, double>::value &&
+                                     std::is_same<V, __m128d>::value)> = nullarg)
+{
+    return _mm_loadu_pd(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128 load(const float *mem, when_aligned,
+                         enable_if<(std::is_same<DstT, float>::value &&
+                                    std::is_same<V, __m128>::value)> = nullarg)
+{
+    return _mm_loadu_ps(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128 load(const float *mem, when_unaligned,
+                         enable_if<(std::is_same<DstT, float>::value &&
+                                    std::is_same<V, __m128>::value)> = nullarg)
+{
+    return _mm_loadu_ps(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128i load(const uint *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, uint>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return SSE::VectorHelper<__m128i>::load<AlignedTag>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128i load(const uint *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, uint>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return SSE::VectorHelper<__m128i>::load<UnalignedTag>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128i load(const int *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, int>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return SSE::VectorHelper<__m128i>::load<AlignedTag>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128i load(const int *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, int>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return SSE::VectorHelper<__m128i>::load<UnalignedTag>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128i load(const short *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, short>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return SSE::VectorHelper<__m128i>::load<UnalignedTag>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128i load(const short *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, short>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return SSE::VectorHelper<__m128i>::load<AlignedTag>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128i load(const ushort *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, ushort>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return SSE::VectorHelper<__m128i>::load<UnalignedTag>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m128i load(const ushort *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, ushort>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return SSE::VectorHelper<__m128i>::load<AlignedTag>(mem);
+}
+#endif  // Vc_MSVC
+
+// generic load{{{2
 template <typename V, typename DstT, typename SrcT, typename Flags,
-          typename =
-              enable_if<(!std::is_integral<DstT>::value ||
-                         !std::is_integral<SrcT>::value || sizeof(DstT) >= sizeof(SrcT))>>
+          typename = enable_if<
+#ifdef Vc_MSVC
+              !std::is_same<DstT, SrcT>::value &&
+#endif
+              (!std::is_integral<DstT>::value || !std::is_integral<SrcT>::value ||
+               sizeof(DstT) >= sizeof(SrcT))>>
 Vc_INTRINSIC V load(const SrcT *mem, Flags flags)
 {
     return load(mem, flags, LoadTag<V, DstT>());

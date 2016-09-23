@@ -558,9 +558,7 @@ template <> Vc_INTRINSIC std::pair<AVX2::float_v, int> AVX2::float_v::minIndex()
 
     // 28 cycles Latency:
     __m256 x = d.v();
-    __m256 idx =
-        _mm256_castsi256_ps(Detail::load(AVX::IndexesFromZeroData<int>::address(),
-                                         Vc::Aligned, Detail::LoadTag<__m256i, int>()));
+    __m256 idx = Vector<float>::IndexesFromZero().data();
     __m256 y = Mem::permute128<X1, X0>(x);
     __m256 idy = Mem::permute128<X1, X0>(idx);
     __m256 less = AVX::cmplt_ps(x, y);
