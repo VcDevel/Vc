@@ -1394,8 +1394,12 @@ template <typename TestWrapper> struct Test<TestWrapper, void> : public TestWrap
 };
 
 // addTestInstantiations {{{1
+template <std::size_t I, typename Indexer> struct TypeAtIndexX {
+    typedef decltype(TypelistIndexing::select<I>(Indexer{})) T;
+    using type = typename T::type;
+};
 template <std::size_t I, typename Indexer>
-using TypeAtIndex = typename decltype(TypelistIndexing::select<I>(Indexer{}))::type;
+using TypeAtIndex = typename TypeAtIndexX<I, Indexer>::type;
 
 template <template <typename> class TestWrapper, typename... Ts, std::size_t... I>
 static int addTestInstantiations(const char *basename, Typelist<Ts...>,
