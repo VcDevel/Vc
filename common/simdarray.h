@@ -181,13 +181,12 @@ public:
 
     // implicit conversion to Vector<U, AnyAbi> for if Vector<U, AnyAbi>::size() == N and
     // T implicitly convertible to U
-    template <typename V,
-              typename = enable_if<
-                  Traits::is_simd_vector<V>::value && !Traits::isSimdArray<V>::value &&
-                  std::is_convertible<T, typename V::EntryType>::value && V::Size == N>>
-    Vc_INTRINSIC operator V() const
+    template <
+        typename U, typename A,
+        typename = enable_if<std::is_convertible<T, U>::value && Vector<U, A>::Size == N>>
+    Vc_INTRINSIC operator Vector<U, A>() const
     {
-        return simd_cast<V>(*this);
+        return simd_cast<Vector<U, A>>(data);
     }
 
 #include "gatherinterface.h"
@@ -787,13 +786,12 @@ public:
 
     // implicit conversion to Vector<U, AnyAbi> for if Vector<U, AnyAbi>::size() == N and
     // T implicitly convertible to U
-    template <typename W,
-              typename = enable_if<
-                  Traits::is_simd_vector<W>::value && !Traits::isSimdArray<W>::value &&
-                  std::is_convertible<T, typename W::EntryType>::value && W::Size == N>>
-    operator W() const
+    template <
+        typename U, typename A,
+        typename = enable_if<std::is_convertible<T, U>::value && Vector<U, A>::Size == N>>
+    operator Vector<U, A>() const
     {
-        return simd_cast<W>(*this);
+        return simd_cast<Vector<U, A>>(data0, data1);
     }
 
     //////////////////// other functions ///////////////
