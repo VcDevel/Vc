@@ -115,12 +115,10 @@ public:
                    Traits::simd_vector_size<M>::value == Size)> = nullarg) Vc_INTRINSIC_R;
 
     // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
-    template <typename M,
-              typename = enable_if<Traits::is_simd_mask<M>::value &&
-                                   !Traits::isSimdMaskArray<M>::value && M::Size == N>>
-    operator M() const
+    template <typename U, typename A, typename = enable_if<Vc::Mask<U, A>::Size == N>>
+    operator Vc::Mask<U, A>() const
     {
-        return simd_cast<M>(*this);
+        return simd_cast<Vc::Mask<U, A>>(data);
     }
 
     // load/store (from/to bool arrays)
@@ -385,12 +383,10 @@ public:
     }
 
     // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
-    template <typename M,
-              typename = enable_if<Traits::is_simd_mask<M>::value &&
-                                   !Traits::isSimdMaskArray<M>::value && M::Size == N>>
-    operator M() const
+    template <typename U, typename A, typename = enable_if<Vc::Mask<U, A>::Size == N>>
+    operator Vc::Mask<U, A>() const
     {
-        return simd_cast<M>(*this);
+        return simd_cast<Vc::Mask<U, A>>(data0, data1);
     }
 
     ///\copybrief Mask::Mask(VectorSpecialInitializerOne)
