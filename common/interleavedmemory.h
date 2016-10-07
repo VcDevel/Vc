@@ -83,17 +83,17 @@ struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I, Re
     typedef typename Base::Ta Ta;
 
     Vc_ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, typename I::AsArg indexes)
-        : Base(
-              StructSize == 1 ? indexes : StructSize == 2
-                                              ? indexes << 1
-                                              : StructSize == 4
-                                                    ? indexes << 2
-                                                    : StructSize == 8
-                                                          ? indexes << 3
-                                                          : StructSize == 16
-                                                                ? indexes << 4
-                                                                : indexes * I(StructSize),
-              data)
+        : Base(StructSize == 1u
+                   ? indexes
+                   : StructSize == 2u
+                         ? indexes << 1
+                         : StructSize == 4u
+                               ? indexes << 2
+                               : StructSize == 8u
+                                     ? indexes << 3
+                                     : StructSize == 16u ? indexes << 4
+                                                         : indexes * I(int(StructSize)),
+               data)
     {
     }
 
