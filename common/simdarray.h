@@ -2415,88 +2415,106 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask));
 // transpose_impl {{{1
 namespace Common
 {
-    template <int L, typename T, std::size_t N, typename V>
-    inline enable_if<L == 4, void> transpose_impl(
-        SimdArray<T, N, V, N> * Vc_RESTRICT r[],
-        const TransposeProxy<SimdArray<T, N, V, N>, SimdArray<T, N, V, N>,
-                             SimdArray<T, N, V, N>, SimdArray<T, N, V, N>> &proxy)
-    {
-        V *Vc_RESTRICT r2[L] = {&internal_data(*r[0]), &internal_data(*r[1]),
-                                &internal_data(*r[2]), &internal_data(*r[3])};
-        transpose_impl<L>(
-            &r2[0], TransposeProxy<V, V, V, V>{internal_data(std::get<0>(proxy.in)),
-                                               internal_data(std::get<1>(proxy.in)),
-                                               internal_data(std::get<2>(proxy.in)),
-                                               internal_data(std::get<3>(proxy.in))});
-    }
-    template <int L, typename T, typename V>
-    inline enable_if<(L == 2), void> transpose_impl(
-        SimdArray<T, 4, V, 1> *Vc_RESTRICT r[],
-        const TransposeProxy<SimdArray<T, 2, V, 1>, SimdArray<T, 2, V, 1>,
-                             SimdArray<T, 2, V, 1>, SimdArray<T, 2, V, 1>> &proxy)
-    {
-        auto &lo = *r[0];
-        auto &hi = *r[1];
-        internal_data0(internal_data0(lo)) = internal_data0(std::get<0>(proxy.in));
-        internal_data1(internal_data0(lo)) = internal_data0(std::get<1>(proxy.in));
-        internal_data0(internal_data1(lo)) = internal_data0(std::get<2>(proxy.in));
-        internal_data1(internal_data1(lo)) = internal_data0(std::get<3>(proxy.in));
-        internal_data0(internal_data0(hi)) = internal_data1(std::get<0>(proxy.in));
-        internal_data1(internal_data0(hi)) = internal_data1(std::get<1>(proxy.in));
-        internal_data0(internal_data1(hi)) = internal_data1(std::get<2>(proxy.in));
-        internal_data1(internal_data1(hi)) = internal_data1(std::get<3>(proxy.in));
-    }
-    template <int L, typename T, std::size_t N, typename V>
-    inline enable_if<(L == 4 && N > 1), void> transpose_impl(
-        SimdArray<T, N, V, 1> *Vc_RESTRICT r[],
-        const TransposeProxy<SimdArray<T, N, V, 1>, SimdArray<T, N, V, 1>,
-                             SimdArray<T, N, V, 1>, SimdArray<T, N, V, 1>> &proxy)
-    {
-        SimdArray<T, N, V, 1> *Vc_RESTRICT r0[L / 2] = {r[0], r[1]};
-        SimdArray<T, N, V, 1> *Vc_RESTRICT r1[L / 2] = {r[2], r[3]};
-        using H = SimdArray<T, 2>;
-        transpose_impl<2>(
-            &r0[0], TransposeProxy<H, H, H, H>{internal_data0(std::get<0>(proxy.in)),
-                                               internal_data0(std::get<1>(proxy.in)),
-                                               internal_data0(std::get<2>(proxy.in)),
-                                               internal_data0(std::get<3>(proxy.in))});
-        transpose_impl<2>(
-            &r1[0], TransposeProxy<H, H, H, H>{internal_data1(std::get<0>(proxy.in)),
-                                               internal_data1(std::get<1>(proxy.in)),
-                                               internal_data1(std::get<2>(proxy.in)),
-                                               internal_data1(std::get<3>(proxy.in))});
-    }
-    /* TODO:
-    template <typename T, std::size_t N, typename V, std::size_t VSize>
-    inline enable_if<(N > VSize), void> transpose_impl(
-        std::array<SimdArray<T, N, V, VSize> * Vc_RESTRICT, 4> & r,
-        const TransposeProxy<SimdArray<T, N, V, VSize>, SimdArray<T, N, V, VSize>,
-                             SimdArray<T, N, V, VSize>, SimdArray<T, N, V, VSize>> &proxy)
-    {
-        typedef SimdArray<T, N, V, VSize> SA;
-        std::array<typename SA::storage_type0 * Vc_RESTRICT, 4> r0 = {
-            {&internal_data0(*r[0]), &internal_data0(*r[1]), &internal_data0(*r[2]),
-             &internal_data0(*r[3])}};
-        transpose_impl(
-            r0, TransposeProxy<typename SA::storage_type0, typename SA::storage_type0,
-                               typename SA::storage_type0, typename SA::storage_type0>{
-                    internal_data0(std::get<0>(proxy.in)),
-                    internal_data0(std::get<1>(proxy.in)),
-                    internal_data0(std::get<2>(proxy.in)),
-                    internal_data0(std::get<3>(proxy.in))});
+template <typename T, size_t N, typename V>
+inline void transpose_impl(
+    TransposeTag<4, 4>, SimdArray<T, N, V, N> *Vc_RESTRICT r[],
+    const TransposeProxy<SimdArray<T, N, V, N>, SimdArray<T, N, V, N>,
+                         SimdArray<T, N, V, N>, SimdArray<T, N, V, N>> &proxy)
+{
+    V *Vc_RESTRICT r2[4] = {&internal_data(*r[0]), &internal_data(*r[1]),
+                            &internal_data(*r[2]), &internal_data(*r[3])};
+    transpose_impl(TransposeTag<4, 4>(), &r2[0],
+                   TransposeProxy<V, V, V, V>{internal_data(std::get<0>(proxy.in)),
+                                              internal_data(std::get<1>(proxy.in)),
+                                              internal_data(std::get<2>(proxy.in)),
+                                              internal_data(std::get<3>(proxy.in))});
+}
 
-        std::array<typename SA::storage_type1 * Vc_RESTRICT, 4> r1 = {
-            {&internal_data1(*r[0]), &internal_data1(*r[1]), &internal_data1(*r[2]),
-             &internal_data1(*r[3])}};
-        transpose_impl(
-            r1, TransposeProxy<typename SA::storage_type1, typename SA::storage_type1,
-                               typename SA::storage_type1, typename SA::storage_type1>{
-                    internal_data1(std::get<0>(proxy.in)),
-                    internal_data1(std::get<1>(proxy.in)),
-                    internal_data1(std::get<2>(proxy.in)),
-                    internal_data1(std::get<3>(proxy.in))});
-    }
-    */
+template <typename T, typename V>
+inline void transpose_impl(
+    TransposeTag<2, 4>, SimdArray<T, 4, V, 1> *Vc_RESTRICT r[],
+    const TransposeProxy<SimdArray<T, 2, V, 1>, SimdArray<T, 2, V, 1>,
+                         SimdArray<T, 2, V, 1>, SimdArray<T, 2, V, 1>> &proxy)
+{
+    auto &lo = *r[0];
+    auto &hi = *r[1];
+    internal_data0(internal_data0(lo)) = internal_data0(std::get<0>(proxy.in));
+    internal_data1(internal_data0(lo)) = internal_data0(std::get<1>(proxy.in));
+    internal_data0(internal_data1(lo)) = internal_data0(std::get<2>(proxy.in));
+    internal_data1(internal_data1(lo)) = internal_data0(std::get<3>(proxy.in));
+    internal_data0(internal_data0(hi)) = internal_data1(std::get<0>(proxy.in));
+    internal_data1(internal_data0(hi)) = internal_data1(std::get<1>(proxy.in));
+    internal_data0(internal_data1(hi)) = internal_data1(std::get<2>(proxy.in));
+    internal_data1(internal_data1(hi)) = internal_data1(std::get<3>(proxy.in));
+}
+
+template <typename T, typename V>
+inline void transpose_impl(
+    TransposeTag<4, 4>, SimdArray<T, 1, V, 1> *Vc_RESTRICT r[],
+    const TransposeProxy<SimdArray<T, 1, V, 1>, SimdArray<T, 1, V, 1>,
+                         SimdArray<T, 1, V, 1>, SimdArray<T, 1, V, 1>> &proxy)
+{
+    V *Vc_RESTRICT r2[4] = {&internal_data(*r[0]), &internal_data(*r[1]),
+                            &internal_data(*r[2]), &internal_data(*r[3])};
+    transpose_impl(TransposeTag<4, 4>(), &r2[0],
+                   TransposeProxy<V, V, V, V>{internal_data(std::get<0>(proxy.in)),
+                                              internal_data(std::get<1>(proxy.in)),
+                                              internal_data(std::get<2>(proxy.in)),
+                                              internal_data(std::get<3>(proxy.in))});
+}
+
+template <typename T, size_t N, typename V>
+inline void transpose_impl(
+    TransposeTag<4, 4>, SimdArray<T, N, V, 1> *Vc_RESTRICT r[],
+    const TransposeProxy<SimdArray<T, N, V, 1>, SimdArray<T, N, V, 1>,
+                         SimdArray<T, N, V, 1>, SimdArray<T, N, V, 1>> &proxy)
+{
+    SimdArray<T, N, V, 1> *Vc_RESTRICT r0[4 / 2] = {r[0], r[1]};
+    SimdArray<T, N, V, 1> *Vc_RESTRICT r1[4 / 2] = {r[2], r[3]};
+    using H = SimdArray<T, 2>;
+    transpose_impl(TransposeTag<2, 4>(), &r0[0],
+                   TransposeProxy<H, H, H, H>{internal_data0(std::get<0>(proxy.in)),
+                                              internal_data0(std::get<1>(proxy.in)),
+                                              internal_data0(std::get<2>(proxy.in)),
+                                              internal_data0(std::get<3>(proxy.in))});
+    transpose_impl(TransposeTag<2, 4>(), &r1[0],
+                   TransposeProxy<H, H, H, H>{internal_data1(std::get<0>(proxy.in)),
+                                              internal_data1(std::get<1>(proxy.in)),
+                                              internal_data1(std::get<2>(proxy.in)),
+                                              internal_data1(std::get<3>(proxy.in))});
+}
+
+/* TODO:
+template <typename T, std::size_t N, typename V, std::size_t VSize>
+inline enable_if<(N > VSize), void> transpose_impl(
+    std::array<SimdArray<T, N, V, VSize> * Vc_RESTRICT, 4> & r,
+    const TransposeProxy<SimdArray<T, N, V, VSize>, SimdArray<T, N, V, VSize>,
+                         SimdArray<T, N, V, VSize>, SimdArray<T, N, V, VSize>> &proxy)
+{
+    typedef SimdArray<T, N, V, VSize> SA;
+    std::array<typename SA::storage_type0 * Vc_RESTRICT, 4> r0 = {
+        {&internal_data0(*r[0]), &internal_data0(*r[1]), &internal_data0(*r[2]),
+         &internal_data0(*r[3])}};
+    transpose_impl(
+        r0, TransposeProxy<typename SA::storage_type0, typename SA::storage_type0,
+                           typename SA::storage_type0, typename SA::storage_type0>{
+                internal_data0(std::get<0>(proxy.in)),
+                internal_data0(std::get<1>(proxy.in)),
+                internal_data0(std::get<2>(proxy.in)),
+                internal_data0(std::get<3>(proxy.in))});
+
+    std::array<typename SA::storage_type1 * Vc_RESTRICT, 4> r1 = {
+        {&internal_data1(*r[0]), &internal_data1(*r[1]), &internal_data1(*r[2]),
+         &internal_data1(*r[3])}};
+    transpose_impl(
+        r1, TransposeProxy<typename SA::storage_type1, typename SA::storage_type1,
+                           typename SA::storage_type1, typename SA::storage_type1>{
+                internal_data1(std::get<0>(proxy.in)),
+                internal_data1(std::get<1>(proxy.in)),
+                internal_data1(std::get<2>(proxy.in)),
+                internal_data1(std::get<3>(proxy.in))});
+}
+*/
 }  // namespace Common
 
 // Traits static assertions {{{1

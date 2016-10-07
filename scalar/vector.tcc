@@ -221,9 +221,8 @@ template<> Vc_INTRINSIC void Scalar::double_v::setQnan(Scalar::double_v::Mask m)
 namespace Common
 {
 // transpose_impl {{{1
-template <int L>
-Vc_ALWAYS_INLINE enable_if<L == 1, void> transpose_impl(
-    Scalar::float_v *Vc_RESTRICT r[], const TransposeProxy<Scalar::float_v> &proxy)
+Vc_ALWAYS_INLINE void transpose_impl(TransposeTag<1, 1>, Scalar::float_v *Vc_RESTRICT r[],
+                                     const TransposeProxy<Scalar::float_v> &proxy)
 {
     *r[0] = std::get<0>(proxy.in).data();
 }

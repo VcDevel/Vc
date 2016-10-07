@@ -775,9 +775,8 @@ template <> template <int Index> Vc_INTRINSIC SSE::double_v SSE::double_v::broad
 namespace Common
 {
 // transpose_impl {{{1
-template <int L>
-Vc_ALWAYS_INLINE enable_if<L == 4, void> transpose_impl(
-    SSE::float_v *Vc_RESTRICT r[],
+Vc_ALWAYS_INLINE void transpose_impl(
+    TransposeTag<4, 4>, SSE::float_v *Vc_RESTRICT r[],
     const TransposeProxy<SSE::float_v, SSE::float_v, SSE::float_v, SSE::float_v> &proxy)
 {
     const auto in0 = std::get<0>(proxy.in).data();
