@@ -1772,7 +1772,7 @@ using simdize = SimdizeDetail::simdize<T, N, MT>;
         return std::get<N_>(std::tie MEMBERS_);                                          \
     }                                                                                    \
     enum : std::size_t {                                                                 \
-        tuple_size = std::tuple_size<decltype(std::tie MEMBERS_)>::value                 \
+        tuple_size = std::tuple_size<decltype(std::make_tuple MEMBERS_)>::value          \
     }
 
 }  // namespace Vc
