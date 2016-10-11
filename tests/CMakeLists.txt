@@ -413,14 +413,27 @@ endforeach()
 
 separate_arguments(_flags UNIX_COMMAND "${CMAKE_CXX_FLAGS} ${Vc_DEFINITIONS}")
 list(APPEND _flags ${Vc_COMPILE_FLAGS})
+set(_tmp)
 foreach(_f ${_flags})
    if(_f MATCHES "^-m" OR _f MATCHES "^/arch:" OR _f MATCHES "^-x")
-      list(REMOVE_ITEM _flags "${_f}")
+      # nothing
+   elseif(_f MATCHES "^/[A-Za-z]")
+      string(SUBSTRING "${_f}" 1 -1 _f)
+      list(APPEND _tmp "-${_f}")
+   else()
+      list(APPEND _tmp "${_f}")
    endif()
 endforeach()
+set(_flags "${_tmp}")
 
 set(TEST_OPERATOR_FAILURES FALSE CACHE BOOL "Run implicit type conversion operator tests.")
 if(TEST_OPERATOR_FAILURES)
+   find_program(BIN_ENV env)
+   if(NOT BIN_ENV)
+      set(CENV "")
+   else()
+      set(CENV "env;LANG=C")
+   endif()
    macro(vc_test_implicit_type_conversion_failures A B)
       foreach(impl Scalar SSE AVX AVX2)
          if("${impl}" STREQUAL "Scalar")
@@ -443,12 +456,17 @@ if(TEST_OPERATOR_FAILURES)
             foreach(op "^" "==" "*") # "/" "+" "-" "&" "|" "!=" "<=" ">=" "<" ">")
                set(name "implicit_type_conversion_failures_${type_a}_${op}_${type_b}_${impl}")
                string(REGEX REPLACE "[<>, ():;?]" "_" name "${name}")
+               if(Vc_COMPILER_IS_MSVC)
+                  set(_output)
+               else()
+                  set(_output "-o;${name}.tmp")
+               endif()
                add_test(NAME "${Vc_TEST_TARGET_PREFIX}${name}" WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
                   COMMAND
-                  env LANG=C
+                  ${CENV}
                   ${CMAKE_CXX_COMPILER} ${_flags} ${_implFlags}
-                  ${incdirs} -c -o "${name}.tmp"
                   "-DTYPE_A=${type_a}" "-DTEST_OP=${op}" "-DTYPE_B=${type_b}" "-DVc_IMPL=${impl}"
+                  ${incdirs} ${_output} -c
                   ${CMAKE_CURRENT_SOURCE_DIR}/implicit_type_conversion_failures.cpp
                   )
                set_property(TEST "${Vc_TEST_TARGET_PREFIX}${name}" PROPERTY LABELS "${impl}")
@@ -457,6 +475,9 @@ if(TEST_OPERATOR_FAILURES)
                   "error: invalid operands to binary expression" # Clang
                   "error: no match for 'operator..?' "           # GCC
                   "error: no match for ‘operator..?’ "           # GCC
+                  "error C2676: binary "                         # MSVC
+                  "error C2677: binary "                         # MSVC
+                  "error C2679: binary "                         # MSVC
                   )
             endforeach()
             set(type_b "${A}")
