@@ -247,8 +247,9 @@ Vc_ALWAYS_INLINE MIC::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
 
 // loads {{{1
 template <typename T>
-template <typename U, typename Flags, typename>
-Vc_INTRINSIC void Vector<T, VectorAbi::Mic>::load(const U *x, Flags flags)
+template <typename U, typename Flags>
+Vc_INTRINSIC typename Vector<T, VectorAbi::Mic>::template load_concept<U, Flags>::type
+Vector<T, VectorAbi::Mic>::load(const U *x, Flags flags)
 {
     Common::handleLoadPrefetches(x, flags);
     d.v() = LoadHelper<Vector<T, VectorAbi::Mic>>::load(x, flags);
