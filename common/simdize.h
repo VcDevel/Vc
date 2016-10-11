@@ -659,7 +659,13 @@ template <typename Class, typename... Args, typename = decltype(Class(create<Arg
 char test(int);
 #else
 template <typename Class, typename... Args>
-typename std::conditional<0 != sizeof(Class(create<Args>()...)), char, char>::type test(int);
+typename std::conditional<
+#ifndef Vc_ICC
+    0 !=
+#endif
+        sizeof(Class(create<Args>()...)),
+    char, char>::type
+test(int);
 #endif
 template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_single_paren_impl
@@ -690,7 +696,13 @@ template <typename Class, typename... Args, typename = decltype(Class{create<Arg
 char test(int);
 #else
 template <typename Class, typename... Args>
-typename std::conditional<0 != sizeof(Class{create<Args>()...}), char, char>::type test(int);
+typename std::conditional<
+#ifndef Vc_ICC
+    0 !=
+#endif
+        sizeof(Class{create<Args>()...}),
+    char, char>::type
+test(int);
 #endif
 template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_single_brace_impl
@@ -722,7 +734,13 @@ template <typename Class, typename... Args,
 char test(int);
 #else
 template <typename Class, typename... Args>
-typename std::conditional<0 != sizeof(Class{{create<Args>()...}}), char, char>::type test(int);
+typename std::conditional<
+#ifndef Vc_ICC
+    0 !=
+#endif
+        sizeof(Class{{create<Args>()...}}),
+    char, char>::type
+test(int);
 #endif
 template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_double_brace_impl
