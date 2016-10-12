@@ -259,7 +259,7 @@ TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
 
     // Just to make sure, the assignment operators also should not work on lvalue
     // references
-    decltype(a[0]) *y;
+    decltype(a[0]) *y = nullptr;
     VERIFY(!test_plus_assign(*y, 1, 11));
     VERIFY(!test_minus_assign(*y, 1, 10));
     VERIFY(!test_times_assign(*y, 2, 20));
