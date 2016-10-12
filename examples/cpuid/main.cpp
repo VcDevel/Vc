@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 int Vc_CDECL main()
 {
     using Vc::CpuId;
-    CpuId::init();
     std::cout << "        cacheLineSize: " << CpuId::cacheLineSize() << '\n';
     std::cout << "        processorType: " << CpuId::processorType() << '\n';
     std::cout << "      processorFamily: " << CpuId::processorFamily() << '\n';
