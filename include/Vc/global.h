@@ -124,6 +124,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_USE_BUILTIN_VECTOR_TYPES 1
 #endif
 
+#ifdef Vc_MSVC
+#  define Vc_CDECL __cdecl
+#  define Vc_VDECL __vectorcall
+#else
+#  define Vc_CDECL
+#  define Vc_VDECL
+#endif
+
 /* Define the following strings to a unique integer, which is the only type the preprocessor can
  * compare. This allows to use -DVc_IMPL=SSE3. The preprocessor will then consider Vc_IMPL and SSE3
  * to be equal. Of course, it is important to undefine the strings later on!

@@ -277,7 +277,9 @@ namespace Common
     const unsigned int LIBRARY_VERSION_NUMBER = Vc_VERSION_NUMBER;
     const unsigned int LIBRARY_ABI_VERSION = Vc_LIBRARY_ABI_VERSION;
 
-    void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber, const char *compileTimeVersion) {
+    void Vc_CDECL checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber,
+                                  const char *compileTimeVersion)
+    {
         if (LIBRARY_ABI_VERSION != compileTimeAbi || LIBRARY_VERSION_NUMBER < versionNumber) {
             printf("The versions of libVc.a (%s) and Vc/version.h (%s) are incompatible. Aborting.\n", LIBRARY_VERSION, compileTimeVersion);
             abort();

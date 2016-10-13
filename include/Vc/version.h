@@ -99,8 +99,8 @@ namespace Common
  * compatible with the version information passed via the function parameters. If it is
  * incompatible the function prints a warning and aborts.
  */
-void checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber,
-                     const char *versionString);
+void Vc_CDECL checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber,
+                              const char *versionString);
 namespace
 {
 /**\internal
