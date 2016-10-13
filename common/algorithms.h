@@ -147,20 +147,19 @@ inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
                  UnaryFunction>
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {
-    std::size_t len = count;
+    typename std::make_signed<size_t>::type len = count;
     typedef Vector<typename InputIt::value_type> V;
     typedef Scalar::Vector<typename InputIt::value_type> V1;
     for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-                   (V::MemoryAlignment - 1) &&
-               len != 0;
-         (void) --len, ++first) {
+               (V::MemoryAlignment - 1) &&
+           len != 0;
+         --len, ++first) {
         f(V1(std::addressof(*first), Vc::Aligned));
     }
-    std::size_t const lenV = count - (V::Size + 1);
-    for (; lenV != 0; (void) --lenV, first += V::Size) {
+    for (; len >= int(V::Size); len -= V::Size, first += V::Size) {
         f(V(std::addressof(*first), Vc::Aligned));
     }
-    for (; len != 0; (void) --len, ++first) {
+    for (; len != 0; --len, ++first) {
         f(V1(std::addressof(*first), Vc::Aligned));
     }
     return std::move(f);
@@ -173,24 +172,23 @@ inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
                  UnaryFunction>
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {
-    std::size_t len = count;
+    typename std::make_signed<size_t>::type len = count;
     typedef Vector<typename InputIt::value_type> V;
     typedef Scalar::Vector<typename InputIt::value_type> V1;
     for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-                   (V::MemoryAlignment - 1) &&
-               len != 0;
-         (void) --len, ++first) {
+               (V::MemoryAlignment - 1) &&
+           len != 0;
+         --len, ++first) {
         V1 tmp(std::addressof(*first), Vc::Aligned);
         f(tmp);
         tmp.store(std::addressof(*first), Vc::Aligned);
     }
-    std::size_t const lenV = count - (V::Size + 1);
-    for (; lenV != 0; (void) --lenV, first += V::Size) {
+    for (; len >= int(V::Size); len -= V::Size, first += V::Size) {
         V tmp(std::addressof(*first), Vc::Aligned);
         f(tmp);
         tmp.store(std::addressof(*first), Vc::Aligned);
     }
-    for (; len != 0; (void) --len, ++first) {
+    for (; len != 0; --len, ++first) {
         V1 tmp(std::addressof(*first), Vc::Aligned);
         f(tmp);
         tmp.store(std::addressof(*first), Vc::Aligned);
@@ -198,12 +196,14 @@ simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
     return std::move(f);
 }
 
+#ifdef Vc_CXX17
 template <typename InputIt, typename UnaryFunction>
 inline enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction>
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {
     return std::for_each_n(first, count, std::move(f));
 }
+#endif
 
 }  // namespace Vc
 

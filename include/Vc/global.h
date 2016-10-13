@@ -107,6 +107,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # error "Vc requires support for C++11."
 #elif __cplusplus >= 201402L
 # define Vc_CXX14 1
+# if __cplusplus > 201700L
+#  define Vc_CXX17 1
+# endif
 #endif
 
 #if defined(__GNUC__) && !defined(Vc_NO_INLINE_ASM)

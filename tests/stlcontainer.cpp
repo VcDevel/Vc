@@ -104,57 +104,72 @@ TEST_TYPES(V, simdForEach, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     std::vector<T> data;
-    data.reserve(99);
-    for (int i = 0; i < 99; ++i) {
-        data.push_back(T(i));
-    }
-    T reference = 1;
-    int called_with_scalar = 0;
-    int called_with_V = 0;
-    int position = 1;
-    Vc::simd_for_each(std::next(data.begin()), data.end(), [&](auto &x) {
-        const auto ref = reference + x.IndexesFromZero();
-        COMPARE(ref, x);
-        reference += x.Size;
-        x += 1;
-        if (std::is_same<decltype(x), Vc::Scalar::Vector<T> &>::value) {
-            ++called_with_scalar;
-        }
-        if (std::is_same<decltype(x), V &>::value) {
-            ++called_with_V;
-        }
-        for (std::size_t i = 0; i < x.Size; ++i) {
-            data[position++] += T(2);  // modify the container directly - if it is not
-                                       // undone by simd_for_each we have a bug
-        }
-    });
-    VERIFY(called_with_scalar > 0);
-    VERIFY(called_with_V > 0);
-    if (std::is_same<V, Vc::Scalar::Vector<T>>::value) {
-        // in this case called_with_V and called_with_scalar will have been incremented both on
-        // every call
-        COMPARE(called_with_V * V::Size + called_with_scalar, 2u * 98u);
-    } else {
-        COMPARE(called_with_V * V::Size + called_with_scalar, 98u);
-    }
+    data.resize(99);
 
-    reference = 2;
-    position = 1;
-    Vc::simd_for_each(std::next(data.begin()), data.end(), [&](auto x) {
-        const auto ref = reference + x.IndexesFromZero();
-        COMPARE(ref, x);
-        reference += x.Size;
-        x += 1;
-        for (std::size_t i = 0; i < x.Size; ++i) {
-            data[position++] += T(2);  // modify the container directly - if it is undone
-                                       // by simd_for_each we have a bug
+    for (int variant = 0; variant < 2; ++variant) {
+        std::iota(data.begin(), data.end(), T(0));
+        T reference = 1;
+        int called_with_scalar = 0;
+        int called_with_V = 0;
+        int position = 1;
+
+        auto &&test1 = [&](auto &x) {
+            const auto ref = reference + x.IndexesFromZero();
+            COMPARE(ref, x);
+            reference += x.Size;
+            x += 1;
+            if (std::is_same<decltype(x), Vc::Scalar::Vector<T> &>::value) {
+                ++called_with_scalar;
+            }
+            if (std::is_same<decltype(x), V &>::value) {
+                ++called_with_V;
+            }
+            for (std::size_t i = 0; i < x.Size; ++i) {
+                data[position++] += T(2);  // modify the container directly - if it is not
+                                           // undone by simd_for_each we have a bug
+            }
+        };
+        auto &&test2 = [&](auto x) {
+            const auto ref = reference + x.IndexesFromZero();
+            COMPARE(ref, x);
+            reference += x.Size;
+            x += 1;
+            for (std::size_t i = 0; i < x.Size; ++i) {
+                data[position++] += T(2);  // modify the container directly - if it is
+                                           // undone by simd_for_each we have a bug
+            }
+        };
+        auto &&test3 = [&reference](auto x) {
+            const auto ref = reference + x.IndexesFromZero();
+            COMPARE(ref, x) << "if ref == x + 2 then simd_for_each wrote back the "
+                               "closure argument, even though it should not have";
+            reference += x.Size;
+        };
+
+        auto &&for_each = [&](auto test) {
+            if (variant == 0) {
+                Vc::simd_for_each(std::next(data.begin()), data.end(), test);
+            } else {
+                Vc::simd_for_each_n(std::next(data.begin()), 98, test);
+            }
+        };
+        for_each(test1);
+        VERIFY(called_with_scalar > 0);
+        VERIFY(called_with_V > 0);
+        if (Vc::Scalar::is_vector<V>::value) {
+            // in this case called_with_V and called_with_scalar will have been
+            // incremented both on
+            // every call
+            COMPARE(called_with_V * V::Size + called_with_scalar, 2u * 98u);
+        } else {
+            COMPARE(called_with_V * V::Size + called_with_scalar, 98u);
         }
-    });
-    reference = 4;
-    Vc::simd_for_each(std::next(data.begin()), data.end(), [&reference](auto x) {
-        const auto ref = reference + x.IndexesFromZero();
-        COMPARE(ref, x) << "if ref == x + 2 then simd_for_each wrote back the closure argument, even though it should not have";
-        reference += x.Size;
-    });
+
+        reference = 2;
+        position = 1;
+        for_each(test2);
+        reference = 4;
+        for_each(test3);
+    }
 }
 #endif
