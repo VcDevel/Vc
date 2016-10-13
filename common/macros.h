@@ -128,7 +128,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  endif
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #else
-#  define Vc_UNREACHABLE std::abort
 #  define Vc_NEVER_INLINE
 #  define Vc_FLATTEN
 #  ifdef Vc_PURE
@@ -148,6 +147,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define Vc_INTRINSIC inline __forceinline
 #    define Vc_INTRINSIC_L Vc_INTRINSIC
 #    define Vc_INTRINSIC_R
+namespace Vc_VERSIONED_NAMESPACE {
+namespace detail
+{
+static Vc_INTRINSIC void unreachable() { __assume(0); }
+}  // namespace detail
+}
+#    define Vc_UNREACHABLE Vc::detail::unreachable
 #  else
 #    define Vc_ALWAYS_INLINE
 #    define Vc_ALWAYS_INLINE_L
@@ -161,6 +167,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define Vc_INTRINSIC
 #    define Vc_INTRINSIC_L
 #    define Vc_INTRINSIC_R
+#    define Vc_UNREACHABLE std::abort
 #  endif
 #  define Vc_IS_UNLIKELY(x) x
 #  define Vc_IS_LIKELY(x) x

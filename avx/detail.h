@@ -1230,6 +1230,8 @@ Vc_INTRINSIC void mask_store(__m256i k, bool *mem, Flags)
             _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), bools);
         }
     } break;
+    default:
+        Vc_UNREACHABLE();
     }
 }
 
@@ -1258,6 +1260,8 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
         return AVX::avx_cast<__m128>(
             _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
     }
+    default:
+        Vc_UNREACHABLE();
     }
 }
 
@@ -1296,6 +1300,8 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
         return AVX::avx_cast<__m256>(
             AVX::concat(_mm_unpacklo_epi8(k128, k128), _mm_unpackhi_epi8(k128, k128)));
     }
+    default:
+        Vc_UNREACHABLE();
     }
 }
 
