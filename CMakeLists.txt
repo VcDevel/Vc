@@ -229,3 +229,17 @@ endif(BUILD_EXAMPLES)
 
 # Hide Vc_IMPL as it is only meant for users of Vc
 mark_as_advanced(Vc_IMPL)
+
+find_program(BIN_CAT cat)
+if(BIN_CAT)
+   file(REMOVE ${CMAKE_BINARY_DIR}/help.txt)
+   add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/help.txt
+      COMMAND ${CMAKE_MAKE_PROGRAM} help > ${CMAKE_BINARY_DIR}/help.txt
+      VERBATIM
+      )
+   add_custom_target(cached_help
+      ${BIN_CAT} ${CMAKE_BINARY_DIR}/help.txt
+      DEPENDS ${CMAKE_BINARY_DIR}/help.txt
+      VERBATIM
+      )
+endif()
