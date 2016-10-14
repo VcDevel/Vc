@@ -137,6 +137,11 @@ using return_type = typename std::enable_if<
     V>::type;
 template <class L, class R> using cmp_return_type = typename return_type<L, R>::mask_type;
 
+// mask_return_type{{{1
+template <class T0, class A0, class T1, class A1> struct mask_return_type_impl;
+template <class T0, class A0, class T1, class A1>
+using mask_return_type = typename mask_return_type_impl<T0, A0, T1, A1>::type;
+
 // is_aligned(_v){{{1
 template <class Flag, size_t Alignment> struct is_aligned;
 template <size_t Alignment>

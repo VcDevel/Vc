@@ -643,6 +643,37 @@ struct avx_mask_impl {
 #endif
     }
 
+    // logical and bitwise operators {{{2
+    template <class T>
+    static Vc_INTRINSIC mask<T> logical_and(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, detail::and_(x.d, y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC mask<T> logical_or(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, detail::or_(x.d, y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC mask<T> bit_and(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, detail::and_(x.d, y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC mask<T> bit_or(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, detail::or_(x.d, y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC mask<T> bit_xor(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, detail::xor_(x.d, y.d)};
+    }
+
     // smart_reference access {{{2
     template <class T> static bool get(const mask<T> &k, int i) noexcept
     {

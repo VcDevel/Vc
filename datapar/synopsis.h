@@ -317,29 +317,11 @@ inline std::conditional_t<(T::size() == NN), T, std::array<T, NN / T::size()>>
 #endif
 
 // mask binary operators [mask.binary]
-namespace detail
-{
-template <class T0, class A0, class T1, class A1> struct mask_return_type_impl {
-
-};
-template <class T0, class A0, class T1, class A1>
-using mask_return_type = typename mask_return_type_impl<T0, A0, T1, A1>::type;
-}  // namespace detail
-template <class T0, class A0, class T1, class A1>
-inline detail::mask_return_type<T0, A0, T1, A1> operator&&(const mask<T0, A0> &,
-                                                           const mask<T1, A1> &);
-template <class T0, class A0, class T1, class A1>
-inline detail::mask_return_type<T0, A0, T1, A1> operator||(const mask<T0, A0> &,
-                                                           const mask<T1, A1> &);
-template <class T0, class A0, class T1, class A1>
-inline detail::mask_return_type<T0, A0, T1, A1> operator&(const mask<T0, A0> &,
-                                                          const mask<T1, A1> &);
-template <class T0, class A0, class T1, class A1>
-inline detail::mask_return_type<T0, A0, T1, A1> operator|(const mask<T0, A0> &,
-                                                          const mask<T1, A1> &);
-template <class T0, class A0, class T1, class A1>
-inline detail::mask_return_type<T0, A0, T1, A1> operator^(const mask<T0, A0> &,
-                                                          const mask<T1, A1> &);
+template <class T0, class A0, class T1, class A1, class R = detail::mask_return_type<T0, A0, T1, A1>> Vc_INTRINSIC R operator&&(const mask<T0, A0> &x, const mask<T1, A1> &y) { return detail::get_impl_t<R>::logical_and(static_cast<R>(x), static_cast<R>(y)); }
+template <class T0, class A0, class T1, class A1, class R = detail::mask_return_type<T0, A0, T1, A1>> Vc_INTRINSIC R operator||(const mask<T0, A0> &x, const mask<T1, A1> &y) { return detail::get_impl_t<R>::logical_or (static_cast<R>(x), static_cast<R>(y)); }
+template <class T0, class A0, class T1, class A1, class R = detail::mask_return_type<T0, A0, T1, A1>> Vc_INTRINSIC R operator& (const mask<T0, A0> &x, const mask<T1, A1> &y) { return detail::get_impl_t<R>::    bit_and(static_cast<R>(x), static_cast<R>(y)); }
+template <class T0, class A0, class T1, class A1, class R = detail::mask_return_type<T0, A0, T1, A1>> Vc_INTRINSIC R operator| (const mask<T0, A0> &x, const mask<T1, A1> &y) { return detail::get_impl_t<R>::    bit_or (static_cast<R>(x), static_cast<R>(y)); }
+template <class T0, class A0, class T1, class A1, class R = detail::mask_return_type<T0, A0, T1, A1>> Vc_INTRINSIC R operator^ (const mask<T0, A0> &x, const mask<T1, A1> &y) { return detail::get_impl_t<R>::    bit_xor(static_cast<R>(x), static_cast<R>(y)); }
 
 // mask compares [mask.comparison]
 template <class T0, class A0, class T1, class A1>
