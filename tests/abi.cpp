@@ -1,11 +1,14 @@
-#include <Vc/Vc>
+#include <Vc/datapar>
 
-Vc::float_v test(Vc::float_v a, Vc::float_v b)
+using float_v = Vc::datapar<float, Vc::datapar_abi::native<float>>;
+using float_m = typename float_v::mask_type;
+
+float_v test(float_v a, float_v b)
 {
     return a + b;
 }
 
-Vc::float_m mask_test(Vc::float_m a, Vc::float_m b)
+float_m mask_test(float_m a, float_m b)
 {
     return a & b;
 }
