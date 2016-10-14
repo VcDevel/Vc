@@ -93,7 +93,7 @@ typedef expand_list<Typelist<
                              unsigned int, short, unsigned char>> reduced_test_types;
 
 // datapar generator function {{{1
-template <class M> M make_mask(const std::initializer_list<bool> &init)
+template <class M> inline M make_mask(const std::initializer_list<bool> &init)
 {
     std::size_t i = 0;
     M r;
@@ -108,8 +108,8 @@ template <class M> M make_mask(const std::initializer_list<bool> &init)
 }
 
 template <class V>
-V make_vec(const std::initializer_list<typename V::value_type> &init,
-           typename V::value_type inc = 0)
+inline V make_vec(const std::initializer_list<typename V::value_type> &init,
+                  typename V::value_type inc = 0)
 {
     std::size_t i = 0;
     V r;
