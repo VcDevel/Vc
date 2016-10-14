@@ -65,12 +65,13 @@ public:
                flags::vector_aligned}
     {
     }
-    template <class U, class Abi2>
-    mask(mask<U, Abi2> x,
-         enable_if<(size() == mask<U, Abi2>::size()) &&
-                   std::conjunction<std::is_same<abi_type, Abi2>, std::is_integral<T>,
-                                    std::is_integral<U>,
-                                    std::negation<std::is_same<T, U>>>::value> = nullarg)
+    template <class U>
+    mask(mask<U, Abi> x,
+         enable_if<(size() == mask<U, Abi>::size()) &&
+                   std::conjunction<
+                       std::is_integral<T>, std::is_integral<U>,
+                       std::negation<std::is_same<Abi, datapar_abi::fixed_size<size()>>>,
+                       std::negation<std::is_same<T, U>>>::value> = nullarg)
         : d{x.d}
     {
     }
