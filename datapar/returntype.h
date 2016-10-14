@@ -39,7 +39,10 @@ template <class A, class B, bool arithmetic_A = std::is_arithmetic<A>::value,
 struct common;
 
 // - A if A equals B
-template <class A, bool Arith, bool Float> struct common<A, A, Arith, Arith, Float> {
+template <class A> struct common<A, A, true, true, true> {
+    using type = A;
+};
+template <class A> struct common<A, A, true, true, false> {
     using type = A;
 };
 
