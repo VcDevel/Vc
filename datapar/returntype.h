@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "synopsis.h"
 
 namespace Vc_VERSIONED_NAMESPACE::detail {
-// common<A, B>{{{2
+// common<A, B>{{{1
 template <class A, class B, bool arithmetic_A = std::is_arithmetic<A>::value,
           bool arithmetic_B = std::is_arithmetic<B>::value,
           bool any_float = std::disjunction<std::is_floating_point<A>,
@@ -90,7 +90,7 @@ template <class A, class B> struct common<A, B, true, true, false> {
                                std::make_unsigned_t<typename C::type>>>>;
 };
 
-// commonabi(V0, V1, T){{{2
+// commonabi(V0, V1, T){{{1
 template <class V0, class V1, class T, class A0 = typename V0::abi_type,
           class A1 = typename V1::abi_type>
 struct commonabi;
@@ -111,7 +111,7 @@ template <class V0, class V1, class T, class A0, class A1> struct commonabi {
         other_abi, datapar_abi::fixed_size<V0::size()>>;
 };
 
-// return_type_impl{{{2
+// return_type_impl{{{1
 template <class T, class V, class A>
 std::enable_if_t<!std::is_same<T, datapar<V, A>>::value, datapar<V, A>>
     deduce_implicit_datapar_conversion(datapar<V, A>);
@@ -178,7 +178,7 @@ template <class L> struct return_type_impl<L, L> {
     using type = L;
 };
 
-// mask_return_type_impl{{{2
+// mask_return_type_impl{{{1
 template <class T, class A> struct mask_return_type_impl<T, A, T, A> {
     using type = mask<T, A>;
 };
