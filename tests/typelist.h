@@ -75,10 +75,14 @@ template <typename... As, typename... Bs>
 struct concat_impl<Typelist<As...>, Typelist<Bs...>> {
     using type = Typelist<As..., Bs...>;
 };
-template <typename A, typename B, typename C, typename... More>
-struct concat_impl<A, B, C, More...> {
+template <typename A, typename B, typename C> struct concat_impl<A, B, C> {
+    using type = typename concat_impl<typename concat_impl<A, B>::type, C>::type;
+};
+template <typename A, typename B, typename C, typename D, typename... More>
+struct concat_impl<A, B, C, D, More...> {
     using type = typename concat_impl<typename concat_impl<A, B>::type,
-                                      typename concat_impl<C, More...>::type>::type;
+                                      typename concat_impl<C, D>::type,
+                                      typename concat_impl<More...>::type>::type;
 };
 
 // split {{{1
@@ -258,12 +262,15 @@ struct outer_product_impl<Typelist<A0>, Typelist<Bs...>>
 {
     using type = Typelist<concat<A0, Bs>...>;
 };
-template <typename A0, typename... As, typename... Bs>
-struct outer_product_impl<Typelist<A0, As...>, Typelist<Bs...>>
-{
+template <typename A0, typename A1, typename... Bs>
+struct outer_product_impl<Typelist<A0, A1>, Typelist<Bs...>> {
+    using type = Typelist<concat<A0, Bs>..., concat<A1, Bs>...>;
+};
+template <typename A0, typename A1, typename A2, typename... As, typename... Bs>
+struct outer_product_impl<Typelist<A0, A1, A2, As...>, Typelist<Bs...>> {
+    using tmp = typename outer_product_impl<Typelist<As...>, Typelist<Bs...>>::type;
     using type =
-        concat<Typelist<concat<A0, Bs>...>,
-               typename outer_product_impl<Typelist<As...>, Typelist<Bs...>>::type>;
+        concat<Typelist<concat<A0, Bs>..., concat<A1, Bs>..., concat<A2, Bs>...>, tmp>;
 };
 
 template <typename A, typename B>
