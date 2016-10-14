@@ -82,7 +82,7 @@ template <class X> constexpr uint   constants<datapar_abi::sse, X>::AllBitsSet[4
 template <class X> constexpr uchar  constants<datapar_abi::sse, X>::cvti16_i08_shuffle[16];
 #endif  // Vc_HAVE_SSE_ABI
 
-#ifdef Vc_HAVE_AVX_ABI
+#ifdef Vc_HAVE_AVX
 template <class X> struct constants<datapar_abi::avx, X> {
     alignas(64) static constexpr ullong IndexesFromZero64[ 4] = { 0, 1, 2, 3 };
     alignas(32) static constexpr uint   IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -119,7 +119,7 @@ template <class X> constexpr  float constants<datapar_abi::avx, X>::_2_pow_31;
 template <class X> constexpr ullong constants<datapar_abi::avx, X>::highMaskDouble;
 template <class X> constexpr double constants<datapar_abi::avx, X>::oneDouble;
 template <class X> constexpr ullong constants<datapar_abi::avx, X>::frexpMask;
-#endif  // Vc_HAVE_AVX_ABI
+#endif  // Vc_HAVE_AVX
 
 }  // namespace Vc_VERSIONED_NAMESPACE::detail
 #endif  // VC_DATAPAR_CONST_H_
