@@ -1757,7 +1757,8 @@ template <> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m256i k)
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
     return _mm256_movepi16_mask(k);
 #else
-    return _mm256_movemask_epi8(_mm256_packs_epi16(k, zero<__m256i>()));
+    return _mm256_movemask_epi8(_mm256_packs_epi16(k, intrin_cast<__m256i>(hi128(k)))) &
+           0xffff;
 #endif
 }
 
