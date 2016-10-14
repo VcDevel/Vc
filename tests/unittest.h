@@ -1344,21 +1344,25 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
     template <typename V_> void Tests::name_##_<V_>::run()
 
 #define FAKE_TEST_TYPES(V_, name_, typelist_)                                            \
-    template <typename V_> struct Test##name_                                            \
+    namespace Tests                                                                      \
     {                                                                                    \
+    template <typename V_> struct name_##_ {                                             \
         static void run();                                                               \
     };                                                                                   \
-    template <typename V_> void Test##name_<V_>::run()
+    }                                                                                    \
+    template <typename V_> void Tests::name_##_<V_>::run()
 
 #define REAL_TEST(name_)                                                                 \
-    struct Test##name_                                                                   \
+    namespace Tests                                                                      \
     {                                                                                    \
+    struct name_##_ {                                                                    \
         static void run();                                                               \
     };                                                                                   \
-    UnitTest::Test<Test##name_> test_##name_##_(#name_);                                 \
-    void Test##name_::run()
+    UnitTest::Test<name_##_> test_##name_##_(#name_);                                    \
+    }                                                                                    \
+    void Tests::name_##_::run()
 
-#define FAKE_TEST(name_) template <typename UnitTest_T_> void name_()
+#define FAKE_TEST(name_) template <typename UnitTest_T_> void name_##_()
 
 #define REAL_TEST_CATCH(name_, exception_)                                               \
     struct Test##name_                                                                   \
