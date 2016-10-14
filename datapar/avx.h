@@ -448,7 +448,7 @@ Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx> k)
     case 8:
         return detail::popcnt8(detail::mask_to_int<k.size()>(d));
     case 16:
-        return detail::popcnt32(detail::mask_to_int<32>(d)) >> 1;
+        return detail::popcnt32(detail::mask_to_int<32>(d)) / 2;
     case 32:
         return detail::popcnt32(detail::mask_to_int<k.size()>(d));
     default:
@@ -459,16 +459,19 @@ Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx> k)
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::avx> k)
 {
-    const auto d = detail::intrin_cast<__m256i>(
-        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k));
+    const auto d =
+        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
     return detail::bit_scan_forward(detail::mask_to_int<k.size()>(d));
 }
 
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx> k)
 {
-    const auto d = detail::intrin_cast<__m256i>(
-        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k));
+    const auto d =
+        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    if (k.size() == 16) {
+        return detail::bit_scan_reverse(detail::mask_to_int<32>(d)) / 2;
+    }
     return detail::bit_scan_reverse(detail::mask_to_int<k.size()>(d));
 }
 }  // namespace Vc_VERSIONED_NAMESPACE
