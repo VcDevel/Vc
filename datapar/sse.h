@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "storage.h"
 #include "x86/intrinsics.h"
 #include "x86/convert.h"
+#include "x86/arithmetics.h"
 #include "maskbool.h"
 #include "bitscan.h"
 
@@ -397,6 +398,62 @@ struct sse_datapar_impl {
         return equal_to(x, datapar<T>(0));
 #endif
     }
+
+    // arithmetic operators {{{2
+#ifdef Vc_HAVE_SSE2
+#define Vc_SSE2_ARITHMETIC_OP_(name_)                                                    \
+    static Vc_INTRINSIC datapar<double> name_(datapar<double> x, datapar<double> y)      \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<ullong> name_(datapar<ullong> x, datapar<ullong> y)      \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<llong> name_(datapar<llong> x, datapar<llong> y)         \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<uint> name_(datapar<uint> x, datapar<uint> y)            \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<int> name_(datapar<int> x, datapar<int> y)               \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<ushort> name_(datapar<ushort> x, datapar<ushort> y)      \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<short> name_(datapar<short> x, datapar<short> y)         \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<uchar> name_(datapar<uchar> x, datapar<uchar> y)         \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<schar> name_(datapar<schar> x, datapar<schar> y)         \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }
+#else
+#define Vc_SSE2_ARITHMETIC_OP_(name_)
+#endif
+#define Vc_ARITHMETIC_OP_(name_)                                                         \
+    static Vc_INTRINSIC datapar<float> name_(datapar<float> x, datapar<float> y)         \
+    {                                                                                    \
+        return {private_init, x86::name_(x.d, y.d)};                                     \
+    }                                                                                    \
+    Vc_SSE2_ARITHMETIC_OP_(name_) Vc_NOTHING_EXPECTING_SEMICOLON
+
+    Vc_ARITHMETIC_OP_(plus);
+    Vc_ARITHMETIC_OP_(minus);
+    Vc_ARITHMETIC_OP_(multiplies);
+    Vc_ARITHMETIC_OP_(divides);
+#undef Vc_ARITHMETIC_OP_
+#undef Vc_SSE2_ARITHMETIC_OP_
 
     // compares {{{2
 #if defined Vc_USE_BUILTIN_VECTOR_TYPES

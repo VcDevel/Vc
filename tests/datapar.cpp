@@ -29,6 +29,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unittest.h"
 #include <Vc/datapar>
 
+using schar = signed char;
+using uchar = unsigned char;
+using llong = long long;
+using ullong = unsigned long long;
+
+using vschar = Vc::datapar<schar>;
+using vuchar = Vc::datapar<uchar>;
+using vshort = Vc::datapar<short>;
+using vushort = Vc::datapar<ushort>;
+using vint = Vc::datapar<int>;
+using vuint = Vc::datapar<uint>;
+using vlong = Vc::datapar<long>;
+using vulong = Vc::datapar<ulong>;
+using vllong = Vc::datapar<llong>;
+using vullong = Vc::datapar<ullong>;
+using vfloat = Vc::datapar<float>;
+using vdouble = Vc::datapar<double>;
+using vldouble = Vc::datapar<long double>;
+
+template <typename T>
+using v8 = Vc::datapar<T, Vc::datapar_abi::fixed_size<vschar::size()>>;
+template <typename T>
+using v16 = Vc::datapar<T, Vc::datapar_abi::fixed_size<vshort::size()>>;
+template <typename T>
+using v32 = Vc::datapar<T, Vc::datapar_abi::fixed_size<vint::size()>>;
+template <typename T>
+using v64 = Vc::datapar<T, Vc::datapar_abi::fixed_size<vllong::size()>>;
+
 // all_test_types / ALL_TYPES {{{1
 typedef expand_list<Typelist<
 #ifdef Vc_HAVE_FULL_AVX_ABI
@@ -404,4 +432,99 @@ TEST_TYPES(VU, load_store,
     */
 }
 
+TEST(operator_conversions)  //{{{1
+{
+    COMPARE(typeid(vint() + vuint()), typeid(vuint));
+    COMPARE(typeid(int() + vuint()), typeid(vuint));
+    COMPARE(typeid(uint() + vint()), typeid(vuint));
+    COMPARE(typeid(vuint() + int()), typeid(vuint));
+    COMPARE(typeid(vint() + uint()), typeid(vuint));
+
+    COMPARE(typeid(vint() + float()), typeid(v32<float>));
+    COMPARE(typeid(vint() + v32<float>()), typeid(v32<float>));
+    COMPARE(typeid(int() + v32<float>()), typeid(v32<float>));
+    COMPARE(typeid(float() + vint()), typeid(v32<float>));
+    COMPARE(typeid(v32<float>() + vint()), typeid(v32<float>));
+    COMPARE(typeid(v32<float>() + int()), typeid(v32<float>));
+
+    COMPARE(typeid(vuint() + float()), typeid(v32<float>));
+    COMPARE(typeid(vuint() + v32<float>()), typeid(v32<float>));
+    COMPARE(typeid(uint() + v32<float>()), typeid(v32<float>));
+    COMPARE(typeid(float() + vuint()), typeid(v32<float>));
+    COMPARE(typeid(v32<float>() + vuint()), typeid(v32<float>));
+    COMPARE(typeid(v32<float>() + uint()), typeid(v32<float>));
+
+    COMPARE(typeid(vint() + double()), typeid(v32<double>));
+    COMPARE(typeid(vint() + v32<double>()), typeid(v32<double>));
+    COMPARE(typeid(int() + v32<double>()), typeid(v32<double>));
+    COMPARE(typeid(double() + vint()), typeid(v32<double>));
+    COMPARE(typeid(v32<double>() + vint()), typeid(v32<double>));
+    COMPARE(typeid(v32<double>() + int()), typeid(v32<double>));
+
+    COMPARE(typeid(vuint() + double()), typeid(v32<double>));
+    COMPARE(typeid(vuint() + v32<double>()), typeid(v32<double>));
+    COMPARE(typeid(uint() + v32<double>()), typeid(v32<double>));
+    COMPARE(typeid(double() + vuint()), typeid(v32<double>));
+    COMPARE(typeid(v32<double>() + vuint()), typeid(v32<double>));
+    COMPARE(typeid(v32<double>() + uint()), typeid(v32<double>));
+
+    COMPARE(typeid(vint() + long()), typeid(v32<long>));
+    COMPARE(typeid(vint() + v32<long>()), typeid(v32<long>));
+    COMPARE(typeid(int() + v32<long>()), typeid(v32<long>));
+    COMPARE(typeid(long() + vint()), typeid(v32<long>));
+    COMPARE(typeid(v32<long>() + vint()), typeid(v32<long>));
+    COMPARE(typeid(v32<long>() + int()), typeid(v32<long>));
+
+    COMPARE(typeid(vint() + ulong()), typeid(v32<ulong>));
+    COMPARE(typeid(vint() + v32<ulong>()), typeid(v32<ulong>));
+    COMPARE(typeid(int() + v32<ulong>()), typeid(v32<ulong>));
+    COMPARE(typeid(ulong() + vint()), typeid(v32<ulong>));
+    COMPARE(typeid(v32<ulong>() + vint()), typeid(v32<ulong>));
+    COMPARE(typeid(v32<ulong>() + int()), typeid(v32<ulong>));
+
+    COMPARE(typeid(vint() + llong()), typeid(v32<llong>));
+    COMPARE(typeid(vint() + v32<llong>()), typeid(v32<llong>));
+    COMPARE(typeid(int() + v32<llong>()), typeid(v32<llong>));
+    COMPARE(typeid(llong() + vint()), typeid(v32<llong>));
+    COMPARE(typeid(v32<llong>() + vint()), typeid(v32<llong>));
+    COMPARE(typeid(v32<llong>() + int()), typeid(v32<llong>));
+
+    COMPARE(typeid(vint() + ullong()), typeid(v32<ullong>));
+    COMPARE(typeid(vint() + v32<ullong>()), typeid(v32<ullong>));
+    COMPARE(typeid(int() + v32<ullong>()), typeid(v32<ullong>));
+    COMPARE(typeid(ullong() + vint()), typeid(v32<ullong>));
+    COMPARE(typeid(v32<ullong>() + vint()), typeid(v32<ullong>));
+    COMPARE(typeid(v32<ullong>() + int()), typeid(v32<ullong>));
+
+    COMPARE(typeid(vint() + short()), typeid(vint));
+    COMPARE(typeid(vint() + v32<short>()), typeid(vint));
+    COMPARE(typeid(int() + v32<short>()), typeid(v32<short>));
+    COMPARE(typeid(short() + vint()), typeid(vint));
+    COMPARE(typeid(v32<short>() + vint()), typeid(vint));
+    COMPARE(typeid(v32<short>() + int()), typeid(v32<short>));
+
+    COMPARE(typeid(vint() + ushort()), typeid(vint));
+    COMPARE(typeid(vint() + v32<ushort>()), typeid(vint));
+    COMPARE(typeid(int() + v32<ushort>()), typeid(v32<ushort>));
+    COMPARE(typeid(ushort() + vint()), typeid(vint));
+    COMPARE(typeid(v32<ushort>() + vint()), typeid(vint));
+    COMPARE(typeid(v32<ushort>() + int()), typeid(v32<ushort>));
+
+    COMPARE(typeid(vint() + schar()), typeid(vint));
+    COMPARE(typeid(vint() + v32<schar>()), typeid(vint));
+    COMPARE(typeid(int() + v32<schar>()), typeid(v32<schar>));
+    COMPARE(typeid(schar() + vint()), typeid(vint));
+    COMPARE(typeid(v32<schar>() + vint()), typeid(vint));
+    COMPARE(typeid(v32<schar>() + int()), typeid(v32<schar>));
+
+    COMPARE(typeid(vint() + uchar()), typeid(vint));
+    COMPARE(typeid(vint() + v32<uchar>()), typeid(vint));
+    COMPARE(typeid(int() + v32<uchar>()), typeid(v32<uchar>));
+    COMPARE(typeid(uchar() + vint()), typeid(vint));
+    COMPARE(typeid(v32<uchar>() + vint()), typeid(vint));
+    COMPARE(typeid(v32<uchar>() + int()), typeid(v32<uchar>));
+
+    COMPARE(typeid(int() + vshort()), typeid(vshort));
+    COMPARE(typeid(uint() + vshort()), typeid(vushort));
+}
 // vim: foldmethod=marker

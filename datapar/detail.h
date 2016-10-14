@@ -131,11 +131,10 @@ static constexpr struct private_init_t {} private_init = {};
 
 // (cmp_)return_type{{{1
 template <class L, class R> struct return_type_impl;
-template <class L> struct return_type_impl<L, L> {
-    using type = L;
-};
-
-template <class L, class R> using return_type = typename return_type_impl<L, R>::type;
+template <class L, class R, class V = typename return_type_impl<L, R>::type>
+using return_type = typename std::enable_if<
+    std::conjunction<std::is_convertible<R, V>, std::is_convertible<L, V>>::value,
+    V>::type;
 template <class L, class R> using cmp_return_type = typename return_type<L, R>::mask_type;
 
 // is_aligned(_v){{{1

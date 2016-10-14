@@ -128,6 +128,77 @@ template <int N> struct fixed_size_datapar_impl {
         return {private_init, negate_impl(x.d, index_seq)};
     }
 
+    // arithmetic operators {{{2
+    template <class T>
+    static inline datapar<T> plus(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] + y.d[i]); })};
+    }
+
+    template <class T>
+    static inline datapar<T> minus(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] - y.d[i]); })};
+    }
+
+    template <class T>
+    static inline datapar<T> multiplies(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] * y.d[i]); })};
+    }
+
+    template <class T>
+    static inline datapar<T> divides(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] / y.d[i]); })};
+    }
+
+    template <class T>
+    static inline datapar<T> modulus(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] % y.d[i]); })};
+    }
+
+    template <class T>
+    static inline datapar<T> bit_and(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] & y.d[i]); })};
+    }
+
+    template <class T>
+    static inline datapar<T> bit_or(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] | y.d[i]); })};
+    }
+
+    template <class T>
+    static inline datapar<T> bit_xor(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] ^ y.d[i]); })};
+    }
+
+    template <class T>
+    static inline datapar<T> bit_shift_left(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] << y.d[i]); })};
+    }
+
+    template <class T>
+    static inline datapar<T> bit_shift_right(const datapar<T> &x, const datapar<T> &y)
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
+                                  auto i) { return static_cast<T>(x.d[i] >> y.d[i]); })};
+    }
+
     // compares {{{2
     template <template <typename> class Cmp, class T, size_t... I>
     static constexpr mask_member_type cmp_impl(const datapar_member_type<T> &x,
