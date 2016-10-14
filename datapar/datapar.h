@@ -30,11 +30,64 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace detail
+{
+// allow_conversion_ctor2{{{1
+template <class T0, class T1, class A, bool = std::is_same<T0, T1>::value,
+          bool = std::conjunction<std::is_integral<T0>, std::is_integral<T1>>::value>
+struct allow_conversion_ctor2 : public std::false_type {
+};
+
+template <class T0, class T1, int N>
+struct allow_conversion_ctor2<T0, T1, datapar_abi::fixed_size<N>, false, true>
+    : public std::false_type {
+    // disallow 2nd conversion ctor (equal Abi), if the Abi is a fixed_size instance
+};
+
+template <class T0, class T1, int N>
+struct allow_conversion_ctor2<T0, T1, datapar_abi::fixed_size<N>, false, false>
+    : public std::false_type {
+    // disallow 2nd conversion ctor (equal Abi), if the Abi is a fixed_size instance
+};
+
+template <class T, class A>
+struct allow_conversion_ctor2<T, T, A, true, true> : public std::false_type {
+    // disallow 2nd conversion ctor (equal Abi), if the value_types are equal (copy ctor)
+};
+
+template <class T0, class T1, class A>
+struct allow_conversion_ctor2<T0, T1, A, false, true>
+    : public std::is_same<std::make_signed_t<T0>, std::make_signed_t<T1>> {
+    // disallow 2nd conversion ctor (equal Abi), the integers only differ in sign
+};
+
+template <class T0, class T1, class A>
+struct allow_conversion_ctor2<T0, T1, A, false, false> : public std::false_type {
+    // disallow 2nd conversion ctor (equal Abi), any value_type is not integral
+};
+
+// allow_conversion_ctor3{{{1
+template <class T0, class A0, class T1, class A1, bool = std::is_same<A0, A1>::value>
+struct allow_conversion_ctor3 : public std::false_type {
+    // disallow 3rd conversion ctor if A0 is not fixed_size<datapar_size_v<T1, A1>>
+};
+
+template <class T0, class T1, class A1>
+struct allow_conversion_ctor3<T0, datapar_abi::fixed_size<datapar_size_v<T1, A1>>, T1, A1,
+                              false  // disallow 3rd conversion ctor if the Abi types are
+                                     // equal (disambiguate copy ctor and the two
+                                     // preceding conversion ctors)
+                              > : public std::is_convertible<T1, T0> {
+};
+
+//}}}1
+}  // namespace detail
 
 template <class T, class Abi> class datapar
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::datapar_impl_type;
+    using cast_type = typename traits::datapar_cast_type;
     static constexpr std::integral_constant<size_t, traits::size()> size_tag = {};
     static constexpr T *type_tag = nullptr;
     friend impl;
@@ -55,6 +108,36 @@ public:
 
     // implicit broadcast constructor
     datapar(value_type x) : d{impl::broadcast(x, size_tag)} {}
+
+    // implicit type conversion constructor
+    // 1st conversion ctor: convert from fixed_size<size()>
+    template <class U>
+    datapar(const datapar<U, datapar_abi::fixed_size<size()>> &x,
+            std::enable_if_t<std::is_convertible<U, value_type>::value, void *> = nullptr)
+        : datapar{static_cast<const std::array<U, size()> &>(x).data(),
+                  flags::vector_aligned}
+    {
+    }
+
+    // 2nd conversion ctor: convert equal Abi, integers that only differ in signedness
+    template <class U>
+    datapar(datapar<U, Abi> x,
+            std::enable_if_t<detail::allow_conversion_ctor2<value_type, U, Abi>::value, void *> =
+                nullptr)
+        : d{static_cast<cast_type>(x)}
+    {
+    }
+
+    // 3rd conversion ctor: convert from non-fixed_size to fixed_size if U is convertible to
+    // value_type
+    template <class U, class Abi2>
+    datapar(
+        datapar<U, Abi2> x,
+        std::enable_if_t<detail::allow_conversion_ctor3<value_type, Abi, U, Abi2>::value,
+                         void *> = nullptr)
+    {
+        x.copy_to(d.data(), flags::overaligned<alignof(datapar)>);
+    }
 
     // load constructor
     template <class U, class Flags>
@@ -116,8 +199,8 @@ public:
     //value_type max(mask_type) const;
 
     // access to internal representation (suggested extension)
-    explicit operator typename traits::datapar_cast_type() const { return d; }
-    explicit datapar(const typename traits::datapar_cast_type &init) : d{init} {}
+    explicit operator cast_type() const { return d; }
+    explicit datapar(const cast_type &init) : d{init} {}
 
 private:
     datapar(detail::private_init_t, const typename traits::datapar_member_type &init) : d{init} {}

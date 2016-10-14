@@ -284,7 +284,7 @@ template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
         (
 #endif
                  next_power_of_2(N * sizeof(T)));
-    using datapar_cast_type = datapar_member_type;
+    using datapar_cast_type = const datapar_member_type &;
 
     using mask_impl_type = fixed_size_mask_impl<N>;
     using mask_member_type = typename mask_impl_type::mask_member_type;
