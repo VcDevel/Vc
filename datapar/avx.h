@@ -110,6 +110,221 @@ struct avx_datapar_impl {
         return _mm256_set1_epi8(x);
     }
 
+    // load {{{2
+    // from long double has no vector implementation{{{3
+    template <class T, class F>
+    static Vc_INTRINSIC datapar_member_type<T> load(const long double *mem, F,
+                                                    type_tag<T>) noexcept
+    {
+        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+    }
+
+    // load without conversion{{{3
+    template <class T, class F>
+    static Vc_INTRINSIC intrinsic_type<T> load(const T *mem, F f, type_tag<T>) noexcept
+    {
+        return detail::load32(mem, f);
+    }
+
+    // convert from an SSE load{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
+    {
+        // TODO
+        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+    }
+
+    // convert from a half SSE load{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, F, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
+    {
+        // TODO
+        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+    }
+
+    // convert from a quarter SSE load{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, F, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
+    {
+        // TODO
+        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+    }
+
+    // convert from a 1/8th SSE load{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, F, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
+    {
+        // TODO
+        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+    }
+
+    // convert from an AVX/2-SSE load{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
+    {
+        // TODO
+        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+    }
+
+    // convert from an AVX512/2-AVX/4-SSE load{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
+    {
+        // TODO
+        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+    }
+
+    // convert from a 2-AVX512/4-AVX/8-SSE load{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
+    {
+        // TODO
+        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+    }
+
+    // masked load {{{2
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void masked_load(datapar_member_type<T> &merge, mask<T> k,
+                                         const U *mem, F) noexcept
+    {
+        // TODO: implement with V(P)MASKMOV if AVX(2) is available
+        execute_n_times<size<T>>([&](auto i) {
+            if (k.d.m(i)) {
+                merge.set(i, static_cast<T>(mem[i]));
+            }
+        });
+    }
+
+    // store {{{2
+    // store to long double has no vector implementation{{{3
+    template <class T, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, long double *mem, F,
+                                   type_tag<T>) noexcept
+    {
+        // alignment F doesn't matter
+        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+    }
+
+    // store without conversion{{{3
+    template <class T, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, T *mem, F f,
+                                   type_tag<T>) noexcept
+    {
+        store32(v, mem, f);
+    }
+
+    // convert and 16-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+                                   enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
+    {
+        // TODO
+        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+    }
+
+    // convert and 32-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+                                   enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
+    {
+        // TODO
+        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+    }
+
+    // convert and 64-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+                                   enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
+    {
+        // TODO
+        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+    }
+
+    // convert and 128-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+                                   enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
+    {
+        // TODO
+        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+    }
+
+    // convert and 256-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
+    {
+        // TODO
+        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+    }
+
+    // convert and 512-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
+    {
+        // TODO
+        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+    }
+
+    // convert and 1024-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
+    {
+        // TODO
+        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+    }
+
+    // masked store {{{2
+    template <class T, class F>
+    static Vc_INTRINSIC void masked_store(datapar_member_type<T> v, long double *mem, F,
+                                          mask<T> k) noexcept
+    {
+        // no SSE support for long double
+        execute_n_times<size<T>>([&](auto i) {
+            if (k.d.m(i)) {
+                mem[i] = v.m(i);
+            }
+        });
+    }
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void masked_store(datapar_member_type<T> v, U *mem, F,
+                                          mask<T> k) noexcept
+    {
+        //TODO: detail::masked_store(mem, v.v(), k.d.v(), f);
+        execute_n_times<size<T>>([&](auto i) {
+            if (k.d.m(i)) {
+                mem[i] = static_cast<T>(v.m(i));
+            }
+        });
+    }
+
     // negation {{{2
     template <class T> static Vc_INTRINSIC mask<T> negate(datapar<T> x) noexcept
     {

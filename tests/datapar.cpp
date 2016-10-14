@@ -32,26 +32,37 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // all_test_types / ALL_TYPES {{{1
 typedef expand_list<Typelist<
 #ifdef Vc_HAVE_FULL_AVX_ABI
-                        //Template<Vc::datapar, Vc::datapar_abi::avx>,
+                        Template<Vc::datapar, Vc::datapar_abi::avx>,
 #endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
-                        Template<Vc::datapar, Vc::datapar_abi::sse>//,
-#else
-                        Template<Vc::datapar, Vc::datapar_abi::scalar>
+                        Template<Vc::datapar, Vc::datapar_abi::sse>,
 #endif
-                        /*Template<Vc::datapar, Vc::datapar_abi::scalar>,
+                        Template<Vc::datapar, Vc::datapar_abi::scalar>,
                         Template<Vc::datapar, Vc::datapar_abi::fixed_size<2>>,
                         Template<Vc::datapar, Vc::datapar_abi::fixed_size<3>>,
                         Template<Vc::datapar, Vc::datapar_abi::fixed_size<4>>,
                         Template<Vc::datapar, Vc::datapar_abi::fixed_size<8>>,
                         Template<Vc::datapar, Vc::datapar_abi::fixed_size<12>>,
                         Template<Vc::datapar, Vc::datapar_abi::fixed_size<16>>,
-                        Template<Vc::datapar, Vc::datapar_abi::fixed_size<32>>*/>,
+                        Template<Vc::datapar, Vc::datapar_abi::fixed_size<32>>>,
                     Typelist<long double, double, float, long long, unsigned long, int,
                              unsigned short, signed char, unsigned long long, long,
                              unsigned int, short, unsigned char>> all_test_types;
 
 #define ALL_TYPES (all_test_types)
+
+// reduced_test_types {{{1
+typedef expand_list<Typelist<
+#ifdef Vc_HAVE_FULL_AVX_ABI
+                        Template<Vc::datapar, Vc::datapar_abi::avx>,
+#endif
+#ifdef Vc_HAVE_FULL_SSE_ABI
+                        Template<Vc::datapar, Vc::datapar_abi::sse>,
+#endif
+                        Template<Vc::datapar, Vc::datapar_abi::scalar>>,
+                    Typelist<long double, double, float, long long, unsigned long, int,
+                             unsigned short, signed char, unsigned long long, long,
+                             unsigned int, short, unsigned char>> reduced_test_types;
 
 // datapar generator function {{{1
 template <class M> M make_mask(const std::initializer_list<bool> &init)
@@ -86,7 +97,7 @@ V make_vec(const std::initializer_list<typename V::value_type> &init,
     }
 }
 
-XTEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
+TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
 {
     using T = typename V::value_type;
     VERIFY(Vc::is_datapar_v<V>);
@@ -120,7 +131,7 @@ template <> constexpr long double genHalfBits<long double>() { return 0; }
 template <> constexpr double genHalfBits<double>() { return 0; }
 template <> constexpr float genHalfBits<float>() { return 0; }
 
-XTEST_TYPES(V, operators, ALL_TYPES)  //{{{1
+TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
 {
     using M = typename V::mask_type;
     using T = typename V::value_type;
@@ -228,7 +239,7 @@ inline Vc::mask<T, A> is_conversion_undefined(const Vc::datapar<T, A> &x)
 
 // loads & stores {{{1
 TEST_TYPES(VU, load_store,
-           (outer_product<all_test_types,
+           (outer_product<reduced_test_types,
                           Typelist<long double, double, float, long long, unsigned long,
                                    int, unsigned short, signed char, unsigned long long,
                                    long, unsigned int, short, unsigned char>>))
