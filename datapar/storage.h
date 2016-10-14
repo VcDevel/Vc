@@ -214,6 +214,7 @@ public:
     Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
     Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 
+    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
     Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return Alias(data).m[i]; }
     Vc_INTRINSIC void set(size_t i, EntryType x)
     {
@@ -303,6 +304,7 @@ public:
     Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
     Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 
+    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
     Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const
     {
         return reinterpret_cast<const may_alias<EntryType> *>(&data)[i];
@@ -396,6 +398,7 @@ public:
     Vc_INTRINSIC Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data); }
     Vc_INTRINSIC Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data); }
 
+    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
     Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data[i]; }
     Vc_INTRINSIC void set(size_t i, EntryType x) { data[i] = x; }
 
@@ -479,6 +482,7 @@ public:
     Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
     Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 
+    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
     Vc_INTRINSIC_L Vc_PURE_L EntryType m(size_t i) const Vc_INTRINSIC_R Vc_PURE_R;
     Vc_INTRINSIC void set(size_t i, EntryType x) { ref(i) = x; }
 
