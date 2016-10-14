@@ -566,7 +566,7 @@ template <> Vc_INTRINSIC y_i32 convert_to<y_i32>(x_i64 v) {
 template <> Vc_INTRINSIC y_i32 convert_to<y_i32>(y_i64 v0)
 {
 #ifdef Vc_HAVE_AVX512VL
-    return _mm256_cvtepi64_epi32(v0);
+    return zeroExtend(_mm256_cvtepi64_epi32(v0));
 #else
     return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), 0, 0, 0, 0};
 #endif
@@ -1770,7 +1770,7 @@ template <> Vc_INTRINSIC y_f64 convert_to<y_f64>(x_u32 v)
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cvtepu32_pd(v);
 #elif defined Vc_HAVE_AVX512F
-    return lo256(_mm256_cvtepu32_pd(intrin_cast<__m256i>(v)));
+    return lo256(_mm512_cvtepu32_pd(intrin_cast<__m256i>(v)));
 #else
     return _mm256_add_pd(_mm256_cvtepi32_pd(xor_(v, lowest16<int>())),
                          broadcast32(double(1u << 31)));
@@ -1922,7 +1922,7 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_f64 v0)
 // from llong{{{2
 template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(x_i64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-    return _mm_cvtepi64_ps(v);
+    return zeroExtend(_mm_cvtepi64_ps(v));
 #else
     return {v.m(0), v.m(1), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
 #endif
@@ -1931,7 +1931,7 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(x_i64 v) {
 template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_i64 v0)
 {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-    return _mm256_cvtepi64_ps(v0);
+    return zeroExtend(_mm256_cvtepi64_ps(v0));
 #elif defined Vc_HAVE_AVX512DQ
     return _mm512_cvtepi64_ps(zeroExtend(v0));
 #else
@@ -1942,7 +1942,7 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_i64 v0)
 // from ullong{{{2
 template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(x_u64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-    return _mm_cvtepu64_ps(v);
+    return zeroExtend(_mm_cvtepu64_ps(v));
 #else
     return {v.m(0), v.m(1), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
 #endif
@@ -1951,7 +1951,7 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(x_u64 v) {
 template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_u64 v0)
 {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-    return _mm256_cvtepu64_ps(v0);
+    return zeroExtend(_mm256_cvtepu64_ps(v0));
 #elif defined Vc_HAVE_AVX512DQ
     return _mm512_cvtepu64_ps(zeroExtend(v0));
 #else
@@ -1993,7 +1993,7 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_u32 v)
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cvtepu32_ps(v);
 #elif defined Vc_HAVE_AVX512F
-    return lo256(_mm512_cvtepu32_ps(intrin_cast<__m512i>(v));
+    return lo256(_mm512_cvtepu32_ps(intrin_cast<__m512i>(v)));
 #else
     // this is complicated because cvtepi32_ps only supports signed input. Thus, all
     // input values with the MSB set would produce a negative result. We can reuse the
