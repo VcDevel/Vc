@@ -347,9 +347,25 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
 
     // find_first_set
     COMPARE(find_first_set(M{true}), 0);
+    if (M::size() > 1) {
+        COMPARE(find_first_set(gen({0, 1})), 1);
+    }
+    if (M::size() > 2) {
+        COMPARE(find_first_set(gen({0, 0, 1})), 2);
+    }
 
     // find_last_set
     COMPARE(find_last_set(M{true}), int(M::size()) - 1);
+    if (M::size() > 1) {
+        if (M::size() & 1) {
+            COMPARE(find_last_set(gen({1, 0})), int(M::size()) - 1);
+        } else {
+            COMPARE(find_last_set(gen({1, 0})), int(M::size()) - 2);
+        }
+    }
+    if (M::size() > 3 && (M::size() & 3) == 0) {
+        COMPARE(find_last_set(gen({1, 0, 0, 0})), int(M::size()) - 4);
+    }
 }
 
 // vim: foldmethod=marker
