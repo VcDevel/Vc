@@ -28,9 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_INCLUDE_VC_DECLVAL_H_
 #define VC_INCLUDE_VC_DECLVAL_H_
 
-namespace Vc
-{
-inline namespace v2
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace detail
 {
@@ -38,8 +36,7 @@ template <class T, class U = T&&> U declval_(int);
 template <class T> T declval_(long);
 }  // namespace detail
 template <class T> decltype(detail::declval_<T>(0)) declval() noexcept;
-}  // namespace v2
-}  // namespace Vc
+}  // namespace Vc_VERSIONED_NAMESPACE
 
 #endif  // VC_INCLUDE_VC_DECLVAL_H_
 
