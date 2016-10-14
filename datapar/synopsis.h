@@ -106,57 +106,57 @@ constexpr size_t datapar_size_v = datapar_size<T, Abi>::value;
 
 namespace detail
 {
-template <class T, size_t N, bool, class> struct abi_for_size_impl;
-template <class T, size_t N> struct abi_for_size_impl<T, N, true, std::true_type> {
+template <class T, size_t N, bool, bool> struct abi_for_size_impl;
+template <class T, size_t N> struct abi_for_size_impl<T, N, true, true> {
     using type = datapar_abi::fixed_size<N>;
 };
-template <class T> struct abi_for_size_impl<T, 1, true, std::true_type> {
+template <class T> struct abi_for_size_impl<T, 1, true, true> {
     using type = datapar_abi::scalar;
 };
 #ifdef Vc_HAVE_SSE_ABI
-template <> struct abi_for_size_impl<float, 4, true, std::true_type> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<float, 4, true, true> { using type = datapar_abi::sse; };
 #endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
-template <> struct abi_for_size_impl<double, 2, true, std::true_type> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<std:: int64_t, 2, true, std::true_type> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<std::uint64_t, 2, true, std::true_type> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<std:: int32_t, 4, true, std::true_type> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<std::uint32_t, 4, true, std::true_type> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<std:: int16_t, 8, true, std::true_type> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<std::uint16_t, 8, true, std::true_type> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<std:: int8_t, 16, true, std::true_type> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<std::uint8_t, 16, true, std::true_type> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<double, 2, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<std:: int64_t, 2, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<std::uint64_t, 2, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<std:: int32_t, 4, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<std::uint32_t, 4, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<std:: int16_t, 8, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<std::uint16_t, 8, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<std:: int8_t, 16, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<std::uint8_t, 16, true, true> { using type = datapar_abi::sse; };
 #endif
 #ifdef Vc_HAVE_AVX_ABI
-template <> struct abi_for_size_impl<double, 4, true, std::true_type> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<float, 8, true, std::true_type> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<double, 4, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<float, 8, true, true> { using type = datapar_abi::avx; };
 #endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
-template <> struct abi_for_size_impl<std:: int64_t, 4, true, std::true_type> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<std::uint64_t, 4, true, std::true_type> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<std:: int32_t, 8, true, std::true_type> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<std::uint32_t, 8, true, std::true_type> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<std:: int16_t, 16, true, std::true_type> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<std::uint16_t, 16, true, std::true_type> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<std:: int8_t, 32, true, std::true_type> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<std::uint8_t, 32, true, std::true_type> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<std:: int64_t, 4, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<std::uint64_t, 4, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<std:: int32_t, 8, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<std::uint32_t, 8, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<std:: int16_t, 16, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<std::uint16_t, 16, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<std:: int8_t, 32, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<std::uint8_t, 32, true, true> { using type = datapar_abi::avx; };
 #endif
 #ifdef Vc_HAVE_AVX512_ABI
-template <> struct abi_for_size_impl<double, 8, true, std::true_type> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<float, 16, true, std::true_type> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<std:: int64_t, 8, true, std::true_type> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<std::uint64_t, 8, true, std::true_type> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<std:: int32_t, 16, true, std::true_type> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<std::uint32_t, 16, true, std::true_type> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<double, 8, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<float, 16, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<std:: int64_t, 8, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<std::uint64_t, 8, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<std:: int32_t, 16, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<std::uint32_t, 16, true, true> { using type = datapar_abi::avx512; };
 #endif
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-template <> struct abi_for_size_impl<std:: int16_t, 32, true, std::true_type> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<std::uint16_t, 32, true, std::true_type> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<std:: int8_t, 64, true, std::true_type> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<std::uint8_t, 64, true, std::true_type> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<std:: int16_t, 32, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<std::uint16_t, 32, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<std:: int8_t, 64, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<std::uint8_t, 64, true, true> { using type = datapar_abi::avx512; };
 #endif
 #ifdef Vc_HAVE_FULL_KNC_ABI
-template <class T> struct abi_for_size_impl<T, datapar_size_v<T, datapar_abi::knc>, true, std::true_type> {
+template <class T> struct abi_for_size_impl<T, datapar_size_v<T, datapar_abi::knc>, true, true> {
     using type = datapar_abi::knc;
 };
 #endif
@@ -164,12 +164,13 @@ template <class T> struct abi_for_size_impl<T, datapar_size_v<T, datapar_abi::kn
 template <class T, size_t N>
 struct abi_for_size
     : public detail::abi_for_size_impl<T, N, (N <= datapar_abi::max_fixed_size),
-                                       std::is_arithmetic<T>> {
+                                       std::is_arithmetic<T>::value> {
 };
 template <size_t N> struct abi_for_size<bool, N> {
 };
 template <class T> struct abi_for_size<T, 0> {
 };
+template <class T, size_t N> using abi_for_size_t = typename abi_for_size<T, N>::type;
 
 template <class T, class U = typename T::value_type>
 constexpr size_t memory_alignment = detail::next_power_of_2(sizeof(U) * T::size());
