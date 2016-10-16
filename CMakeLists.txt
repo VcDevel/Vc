@@ -214,6 +214,17 @@ set(cmake_install_files
    cmake/FindMIC.cmake
    )
 
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake
+    DESTINATION cmake
+    )
+
+install(FILES
+    ${cmake_install_files}
+    DESTINATION cmake/Vc/
+    )
+
 #Release# option(BUILD_TESTING "Build the testing tree." OFF)
 include (CTest)
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
