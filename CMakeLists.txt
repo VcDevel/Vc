@@ -203,7 +203,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfig.cmake.in
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfigVersion.cmake.in
    ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake @ONLY)
 
-set(cmake_install_files
+install(FILES
    cmake/UserWarning.cmake
    cmake/VcMacros.cmake
    cmake/AddCompilerFlag.cmake
@@ -212,6 +212,11 @@ set(cmake_install_files
    cmake/CheckMicCCompilerFlag.cmake
    cmake/CheckMicCXXCompilerFlag.cmake
    cmake/FindMIC.cmake
+   cmake/OptimizeForArchitecture.cmake
+   cmake/FindVc.cmake
+   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake
+   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake
+   DESTINATION lib${LIB_SUFFIX}/cmake/Vc
    )
 
 #Release# option(BUILD_TESTING "Build the testing tree." OFF)
