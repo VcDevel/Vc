@@ -251,7 +251,11 @@ endforeach()
 add_custom_target(download-testdata ALL
    DEPENDS ${_deps}
    )
-add_dependencies(other download-testdata)
+add_dependencies(Scalar download-testdata)
+add_dependencies(SSE download-testdata)
+add_dependencies(AVX download-testdata)
+add_dependencies(AVX2 download-testdata)
+add_dependencies(MIC download-testdata)
 
 vc_add_test(types)
 vc_add_test(subscript)

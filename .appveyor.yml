@@ -6,6 +6,12 @@ platform:
    #- x86
 
 clone_depth: 50
+
+environment:
+  matrix:
+    - subset: sse
+    - subset: avx
+
 build_script:
 - cmd: >-
     CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %PLATFORM%
