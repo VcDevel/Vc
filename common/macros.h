@@ -42,6 +42,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     using new_type_ alignas(sizeof(n_)) = type_
 #endif
 
+// On Windows (WIN32) we might see macros called min and max. Just undefine them and hope
+// noone (re)defines them (NOMINMAX should help).
+#ifdef WIN32
+#define NOMINMAX 1
+#if defined min
+#undef min
+#endif
+#if defined max
+#undef max
+#endif
+#endif  // WIN32
+
 #if defined Vc_GCC && Vc_GCC >= 0x60000
 // GCC 6 drops all attributes on types passed as template arguments. This is important
 // if a may_alias gets lost and therefore needs to be readded in the implementation of
@@ -95,7 +107,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_ALWAYS_INLINE_R __attribute__((__always_inline__))
 #  define Vc_ALWAYS_INLINE Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE_R
 #  ifdef Vc_ICC
-     // ICC miscompiles if there are functions marked as pure or const
+// ICC miscompiles if there are functions marked as pure or const
 #    define Vc_PURE
 #    define Vc_CONST
 #    define Vc_NEVER_INLINE
