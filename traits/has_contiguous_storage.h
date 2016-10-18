@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -53,8 +53,25 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
+namespace has_contiguous_storage_detail
+{
+template <typename T>
+std::is_base_of<std::random_access_iterator_tag,
+                typename std::iterator_traits<typename T::iterator>::iterator_category>
+test(int);  // this is only a heuristic. Having a RandomAccessIterator does not guarantee
+            // contiguous storage
+template <typename T>
+std::is_base_of<std::random_access_iterator_tag,
+                typename std::iterator_traits<T>::iterator_category>
+test(long);  // this is only a heuristic. Having a RandomAccessIterator does not guarantee
+             // contiguous storage
+template <typename T> std::false_type test(...);
+}  // namespace has_contiguous_storage_detail
 
-template <typename T> struct has_contiguous_storage_impl : public std::false_type {};
+template <typename T>
+struct has_contiguous_storage_impl
+    : public decltype(has_contiguous_storage_detail::test<T>(int())) {
+};
 
 template <typename T>
 struct has_contiguous_storage
@@ -64,6 +81,7 @@ struct has_contiguous_storage
 };
 
 // spezializations:
+template <typename T> struct has_contiguous_storage_impl<const T *> : public std::true_type {};
 template <typename T> struct has_contiguous_storage_impl<T *> : public std::true_type {};
 template <typename T> struct has_contiguous_storage_impl<std::unique_ptr<T[]>> : public std::true_type {};
 template <typename T> struct has_contiguous_storage_impl<std::initializer_list<T>> : public std::true_type {};
