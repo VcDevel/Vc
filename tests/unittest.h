@@ -28,6 +28,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UNITTEST_H
 #define UNITTEST_H
 
+#ifdef WIN32
+// just to break min/max
+#include <windows.h>
+#endif  // WIN32
+
 #include "typelist.h"
 
 #ifdef Vc_ASSERT

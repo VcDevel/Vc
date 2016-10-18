@@ -305,13 +305,6 @@ macro(vc_set_preferred_compiler_flags)
       endif()
       vc_add_compiler_flag(Vc_COMPILE_FLAGS "/Gv") # default to __vectorcall
 
-      # get rid of the min/max macros
-      set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DNOMINMAX")
-
-      # MSVC doesn't implement the XOP or FMA4 intrinsics
-      #set(Vc_XOP_INTRINSICS_BROKEN true)
-      #set(Vc_FMA4_INTRINSICS_BROKEN true)
-
       if(MSVC_VERSION LESS 1900)
          UserWarning("MSVC before 2015 does not support enough of C++11")
       endif()
