@@ -1612,14 +1612,14 @@ public:
 
     Iterator &operator+=(difference_type n)
     {
-        scalar_it += n * Size;
+        scalar_it += n * difference_type(Size);
         return *this;
     }
     Iterator operator+(difference_type n) const { return Iterator(*this) += n; }
 
     Iterator &operator-=(difference_type n)
     {
-        scalar_it -= n * Size;
+        scalar_it -= n * difference_type(Size);
         return *this;
     }
     Iterator operator-(difference_type n) const { return Iterator(*this) -= n; }
@@ -1642,22 +1642,22 @@ public:
      */
     bool operator<(const Iterator &rhs) const
     {
-        return scalar_it + Size <= rhs.scalar_it;
+        return rhs.scalar_it - scalar_it >= difference_type(Size);
     }
 
     bool operator>(const Iterator &rhs) const
     {
-        return scalar_it >= rhs.scalar_it + Size;
+        return scalar_it - rhs.scalar_it >= difference_type(Size);
     }
 
     bool operator<=(const Iterator &rhs) const
     {
-        return scalar_it + (Size - 1) <= rhs.scalar_it;
+        return rhs.scalar_it - scalar_it >= difference_type(Size) - 1;
     }
 
     bool operator>=(const Iterator &rhs) const
     {
-        return scalar_it >= rhs.scalar_it + (Size - 1);
+        return scalar_it - rhs.scalar_it >= difference_type(Size) - 1;
     }
 
     reference operator[](difference_type i) { return *(*this + i); }
