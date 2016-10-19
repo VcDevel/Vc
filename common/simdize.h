@@ -1486,11 +1486,19 @@ public:
      */
     bool operator==(const Iterator &rhs) const
     {
-        T it(scalar_it);
-        for (size_t i = 1; i < Size; ++i) {
-            Vc_ASSERT((++it != rhs.scalar_it));
+#ifndef NDEBUG
+        if (scalar_it == rhs.scalar_it) {
+            return true;
+        } else {
+            T it(scalar_it);
+            for (size_t i = 1; i < Size; ++i) {
+                Vc_ASSERT((++it != rhs.scalar_it));
+            }
+            return false;
         }
+#else
         return scalar_it == rhs.scalar_it;
+#endif
     }
     /**
      * Returns whether the two iterators point to different scalar entries.
@@ -1502,11 +1510,7 @@ public:
      */
     bool operator!=(const Iterator &rhs) const
     {
-        T it(scalar_it);
-        for (size_t i = 1; i < Size; ++i) {
-            Vc_ASSERT((++it != rhs.scalar_it));
-        }
-        return scalar_it != rhs.scalar_it;
+        return !operator==(rhs);
     }
 
     pointer operator->() { return scalar_it; }
