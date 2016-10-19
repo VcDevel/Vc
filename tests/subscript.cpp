@@ -349,7 +349,8 @@ TEST_TYPES(V, fixedWidthGatherScatter32, (SIMD_ARRAYS(32)))
 
 TEST(promotionOfIndexVectorType)
 {
-    Vc::array<Vc::array<int, 1024>, 1024> data;
+    Vc::vector<Vc::array<int, 1024>> data;
+    data.resize(1024);
     int *ptr = &data[0][0];
     for (std::size_t i = 0; i < 1024 * 1024; ++i) {
         ptr[i] = i;
