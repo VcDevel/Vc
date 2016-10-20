@@ -1684,8 +1684,8 @@ Vc_FORWARD_UNARY_OPERATOR(exponent);
 Vc_FORWARD_UNARY_OPERATOR(floor);
 /// Applies the std::fma function component-wise and concurrently.
 template <typename T, std::size_t N>
-SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b,
-                    const SimdArray<T, N> &c)
+inline SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b,
+                           const SimdArray<T, N> &c)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Forward_fma(), a, b, c);
 }
@@ -1695,13 +1695,13 @@ Vc_FORWARD_UNARY_BOOL_OPERATOR(isnan);
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isnegative);
 /// Applies the std::frexp function component-wise and concurrently.
 template <typename T, std::size_t N>
-SimdArray<T, N> frexp(const SimdArray<T, N> &x, SimdArray<int, N> *e)
+inline SimdArray<T, N> frexp(const SimdArray<T, N> &x, SimdArray<int, N> *e)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Forward_frexp(), x, e);
 }
 /// Applies the std::ldexp function component-wise and concurrently.
 template <typename T, std::size_t N>
-SimdArray<T, N> ldexp(const SimdArray<T, N> &x, const SimdArray<int, N> &e)
+inline SimdArray<T, N> ldexp(const SimdArray<T, N> &x, const SimdArray<int, N> &e)
 {
     return SimdArray<T, N>::fromOperation(Common::Operations::Forward_ldexp(), x, e);
 }

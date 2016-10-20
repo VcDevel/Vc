@@ -473,13 +473,14 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, SimdMaskArray<U, M, V, M>
 
 ///\internal transforms \p arg via actual_value
 template <typename Op, typename Arg>
-decltype(actual_value(std::declval<Op &>(), std::declval<Arg>())) conditionalUnpack(
-    std::true_type, Op op, Arg &&arg)
+Vc_INTRINSIC decltype(actual_value(std::declval<Op &>(), std::declval<Arg>()))
+conditionalUnpack(std::true_type, Op op, Arg &&arg)
 {
     return actual_value(op, std::forward<Arg>(arg));
 }
 ///\internal forwards \p arg to its return value
-template <typename Op, typename Arg> Arg conditionalUnpack(std::false_type, Op, Arg &&arg)
+template <typename Op, typename Arg>
+Vc_INTRINSIC Arg conditionalUnpack(std::false_type, Op, Arg &&arg)
 {
     return std::forward<Arg>(arg);
 }
