@@ -1485,6 +1485,19 @@ const typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
     return x.data1;
 }
 
+// MSVC workaround for SimdArray(storage_type0, storage_type1) ctor{{{1
+// MSVC sometimes stores x to data1. By first broadcasting 0 and then assigning y
+// in the body the bug is supressed.
+#if defined Vc_MSVC && defined Vc_IMPL_SSE
+template <>
+Vc_INTRINSIC SimdArray<double, 8, SSE::Vector<double>, 2>::SimdArray(
+    SimdArray<double, 4> &&x, SimdArray<double, 4> &&y)
+    : data0(x), data1(0)
+{
+    data1 = y;
+}
+#endif
+
 // binary operators {{{1
 namespace result_vector_type_internal
 {
