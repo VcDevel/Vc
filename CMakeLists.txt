@@ -236,6 +236,7 @@ endif(BUILD_EXAMPLES)
 mark_as_advanced(Vc_IMPL)
 
 find_program(BIN_CAT cat)
+mark_as_advanced(BIN_CAT)
 if(BIN_CAT)
    file(REMOVE ${CMAKE_BINARY_DIR}/help.txt)
    add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/help.txt
