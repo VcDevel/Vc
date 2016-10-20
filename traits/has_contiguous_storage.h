@@ -55,14 +55,14 @@ namespace Traits
 {
 namespace has_contiguous_storage_detail
 {
-template <typename T>
+template <typename T, typename It = typename T::iterator>
 std::is_base_of<std::random_access_iterator_tag,
-                typename std::iterator_traits<typename T::iterator>::iterator_category>
+                typename It::iterator_category>
 test(int);  // this is only a heuristic. Having a RandomAccessIterator does not guarantee
             // contiguous storage
 template <typename T>
 std::is_base_of<std::random_access_iterator_tag,
-                typename std::iterator_traits<T>::iterator_category>
+                typename T::iterator_category>
 test(long);  // this is only a heuristic. Having a RandomAccessIterator does not guarantee
              // contiguous storage
 template <typename T> std::false_type test(...);
