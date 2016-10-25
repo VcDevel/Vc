@@ -228,18 +228,41 @@ namespace Common
  */
 template<size_t StructSize> class SuccessiveEntries
 {
-    std::size_t m_first;
+#ifdef Vc_MSVC
+    // scatterinterleavedmemory fails with garbage values in m_first if size_type is a
+    // 64-bit integer type. Using a 32-bit type seems to work around the miscompilation.
+    using size_type = unsigned;
+#else
+    using size_type = size_t;
+#endif
+    const size_type m_first;
+
 public:
     typedef SuccessiveEntries AsArg;
-    constexpr SuccessiveEntries(size_t first) : m_first(first) {}
-    constexpr Vc_PURE size_t operator[](size_t offset) const { return m_first + offset * StructSize; }
-    constexpr Vc_PURE size_t data() const { return m_first; }
-    constexpr Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first + rhs.m_first); }
-    constexpr Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const { return SuccessiveEntries(m_first * rhs.m_first); }
-    constexpr Vc_PURE SuccessiveEntries operator<<(std::size_t x) const { return {m_first << x}; }
+    Vc_INTRINSIC SuccessiveEntries(size_type first) : m_first(first) {}
+    Vc_INTRINSIC Vc_PURE size_type operator[](size_type offset) const
+    {
+        return m_first + offset * StructSize;
+    }
+    Vc_INTRINSIC Vc_PURE size_type data() const { return m_first; }
+    Vc_INTRINSIC Vc_PURE SuccessiveEntries operator+(const SuccessiveEntries &rhs) const
+    {
+        return SuccessiveEntries(m_first + rhs.m_first);
+    }
+    Vc_INTRINSIC Vc_PURE SuccessiveEntries operator*(const SuccessiveEntries &rhs) const
+    {
+        return SuccessiveEntries(m_first * rhs.m_first);
+    }
+    Vc_INTRINSIC Vc_PURE SuccessiveEntries operator<<(size_type x) const
+    {
+        return {m_first << x};
+    }
 
-    friend SuccessiveEntries &internal_data(SuccessiveEntries &x) { return x; }
-    friend const SuccessiveEntries &internal_data(const SuccessiveEntries &x)
+    friend Vc_INTRINSIC SuccessiveEntries &internal_data(SuccessiveEntries &x)
+    {
+        return x;
+    }
+    friend Vc_INTRINSIC const SuccessiveEntries &internal_data(const SuccessiveEntries &x)
     {
         return x;
     }
