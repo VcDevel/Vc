@@ -1692,6 +1692,22 @@ inline SimdArray<T, N> fma(const SimdArray<T, N> &a, const SimdArray<T, N> &b,
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isfinite);
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isinf);
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isnan);
+#if defined Vc_MSVC && defined Vc_IMPL_SSE
+inline SimdMaskArray<double, 8, SSE::Vector<double>, 2> isnan(
+    const SimdArray<double, 8, SSE::Vector<double>, 2> &x)
+{
+    using V = SSE::Vector<double>;
+    const SimdArray<double, 4, V, 2> &x0 = internal_data0(x);
+    const SimdArray<double, 4, V, 2> &x1 = internal_data1(x);
+    SimdMaskArray<double, 4, V, 2> r0;
+    SimdMaskArray<double, 4, V, 2> r1;
+    internal_data(internal_data0(r0)) = isnan(internal_data(internal_data0(x0)));
+    internal_data(internal_data1(r0)) = isnan(internal_data(internal_data1(x0)));
+    internal_data(internal_data0(r1)) = isnan(internal_data(internal_data0(x1)));
+    internal_data(internal_data1(r1)) = isnan(internal_data(internal_data1(x1)));
+    return {std::move(r0), std::move(r1)};
+}
+#endif
 Vc_FORWARD_UNARY_BOOL_OPERATOR(isnegative);
 /// Applies the std::frexp function component-wise and concurrently.
 template <typename T, std::size_t N>
