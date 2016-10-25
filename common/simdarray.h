@@ -1033,12 +1033,12 @@ public:                                                                         
 
     // apply {{{2
     ///\copybrief Vector::apply(F &&) const
-    template <typename F> Vc_INTRINSIC SimdArray apply(F &&f) const
+    template <typename F> inline SimdArray apply(F &&f) const
     {
         return {data0.apply(f), data1.apply(f)};
     }
     ///\copybrief Vector::apply(F &&, MaskType) const
-    template <typename F> Vc_INTRINSIC SimdArray apply(F &&f, const mask_type &k) const
+    template <typename F> inline SimdArray apply(F &&f, const mask_type &k) const
     {
         return {data0.apply(f, Split::lo(k)), data1.apply(f, Split::hi(k))};
     }
