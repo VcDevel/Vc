@@ -181,9 +181,18 @@ template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecia
 {
 }
 
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero)
-    : d(HV::template load<AlignedTag>(Detail::IndexesFromZero<EntryType, Size>()))
+template <typename T>
+Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero)
+    : d(Detail::load16(Detail::IndexesFromZero<EntryType, Size>(), Aligned))
 {
+#if defined Vc_GCC && Vc_GCC < 0x40903 && defined Vc_IMPL_AVX2
+    // GCC 4.9.2 (at least) miscompiles SSE::short_v::IndexesFromZero() if used implicitly
+    // from SimdArray<short, 9> compiling for AVX2 to vpmovsxwd (sign extending load from
+    // a 8x 16-bit constant to 8x 32-bit register)
+    if (std::is_same<T, short>::value) {
+        asm("" ::"x"(d.v()));
+    }
+#endif
 }
 
 template <>
