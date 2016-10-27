@@ -104,7 +104,7 @@ TEST_TYPES(V, simdForEach, (ALL_VECTORS))
 {
     typedef typename V::EntryType T;
     std::vector<T> data;
-    data.resize(99);
+    data.resize(100);
 
     for (int variant = 0; variant < 2; ++variant) {
         std::iota(data.begin(), data.end(), T(0));
@@ -147,10 +147,11 @@ TEST_TYPES(V, simdForEach, (ALL_VECTORS))
         };
 
         auto &&for_each = [&](auto test) {
+            auto b = std::next(data.begin());
             if (variant == 0) {
-                Vc::simd_for_each(std::next(data.begin()), data.end(), test);
+                Vc::simd_for_each(b, data.end(), test);
             } else {
-                Vc::simd_for_each_n(std::next(data.begin()), 98, test);
+                Vc::simd_for_each_n(b, data.size() - 1, test);
             }
         };
         for_each(test1);
@@ -158,11 +159,11 @@ TEST_TYPES(V, simdForEach, (ALL_VECTORS))
         VERIFY(called_with_V > 0);
         if (Vc::Scalar::is_vector<V>::value) {
             // in this case called_with_V and called_with_scalar will have been
-            // incremented both on
-            // every call
-            COMPARE(called_with_V * V::Size + called_with_scalar, 2u * 98u);
+            // incremented both on every call
+            COMPARE(called_with_V, called_with_scalar);
+            COMPARE(called_with_scalar, int(data.size() - 1));
         } else {
-            COMPARE(called_with_V * V::Size + called_with_scalar, 98u);
+            COMPARE(called_with_V * V::Size + called_with_scalar, data.size() - 1);
         }
 
         reference = 2;
