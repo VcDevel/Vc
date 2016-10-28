@@ -39,6 +39,38 @@ sets. Thus an application written with Vc can be compiled for:
 * NEON (in development)
 * NVIDIA GPUs / CUDA (in development)
 
+## Examples
+
+### Scalar Product
+
+Let's start from the code for calculating a 3D scalar product using builtin floats:
+```cpp
+using Vec3D = std::array<float, 3>;
+float scalar_product(Vec3D a, Vec3D b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+```
+Using Vc, we can easily vectorize the code using the `float_v` type:
+```cpp
+using Vc::float_v
+using Vec3D = std::array<float_v, 3>;
+float_v scalar_product(Vec3D a, Vec3D b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+```
+The above will scale to 1, 4, 8, 16, etc. scalar products calculated in parallel, depending
+on the target hardware's capabilities.
+
+For comparison, the same vectorization using Intel SSE intrinsics is more verbose and uses
+prefix notation (i.e. function calls):
+```cpp
+using Vec3D = std::array<__m128, 3>;
+__m128 scalar_product(Vec3D a, Vec3D b) {
+  return _mm_add_ps(_mm_add_ps(_mm_mul_ps(a[0], b[0]), _mm_mul_ps(a[1], b[1])),
+                    _mm_mul_ps(a[2], b[2]));
+}
+```
+The above will neither scale to AVX, MIC, etc. nor is it portable to other SIMD ISAs.
 
 ## Build Requirements
 
