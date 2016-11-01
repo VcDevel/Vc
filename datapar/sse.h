@@ -414,6 +414,18 @@ struct sse_datapar_impl {
     {                                                                                    \
         return {private_init, x86::name_(x.d, y.d)};                                     \
     }                                                                                    \
+    static Vc_INTRINSIC datapar<ulong> name_(datapar<ulong> x, datapar<ulong> y)         \
+    {                                                                                    \
+        using S = x86::x_ulong_equiv;                                                    \
+        S tmp = x86::name_(S{x.d}, S{y.d});                                              \
+        return {private_init, x86::x_ulong(tmp)};                                        \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<long> name_(datapar<long> x, datapar<long> y)            \
+    {                                                                                    \
+        using S = x86::x_long_equiv;                                                     \
+        S tmp = x86::name_(S{x.d}, S{y.d});                                              \
+        return {private_init, x86::x_long(tmp)};                                         \
+    }                                                                                    \
     static Vc_INTRINSIC datapar<uint> name_(datapar<uint> x, datapar<uint> y)            \
     {                                                                                    \
         return {private_init, x86::name_(x.d, y.d)};                                     \
