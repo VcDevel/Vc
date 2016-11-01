@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #define WITH_DATAPAR 1
+//#define UNITTEST_ONLY_XTEST 1
 #include "unittest.h"
 #include <Vc/datapar>
 
@@ -61,6 +62,9 @@ using vl = typename std::conditional<sizeof(long) == sizeof(llong), v64<T>, v32<
 
 // all_test_types / ALL_TYPES {{{1
 typedef expand_list<Typelist<
+#ifdef Vc_HAVE_FULL_AVX512_ABI
+                        //Template<Vc::datapar, Vc::datapar_abi::avx512>,
+#endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
                         Template<Vc::datapar, Vc::datapar_abi::avx>,
 #endif
@@ -83,6 +87,9 @@ typedef expand_list<Typelist<
 
 // reduced_test_types {{{1
 typedef expand_list<Typelist<
+#ifdef Vc_HAVE_FULL_AVX512_ABI
+                        //Template<Vc::datapar, Vc::datapar_abi::avx512>,
+#endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
                         Template<Vc::datapar, Vc::datapar_abi::avx>,
 #endif
@@ -442,7 +449,7 @@ template <class A, class B, class Expected> void binary_op_return_type()  //{{{1
     UnitTest::ADD_PASS() << name;
 }
 
-XTEST(operator_conversions)  //{{{1
+TEST(operator_conversions)  //{{{1
 {
     // float{{{2
     binary_op_return_type<vfloat, vfloat, vfloat>();
