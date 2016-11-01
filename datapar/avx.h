@@ -130,7 +130,7 @@ struct avx_datapar_impl {
     // convert from an SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
+        const U *mem, F, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
     {
         // TODO
@@ -174,7 +174,7 @@ struct avx_datapar_impl {
     // convert from an AVX/2-SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
+        const U *mem, F, type_tag<T>,
         enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
@@ -185,7 +185,7 @@ struct avx_datapar_impl {
     // convert from an AVX512/2-AVX/4-SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
+        const U *mem, F, type_tag<T>,
         enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
@@ -196,7 +196,7 @@ struct avx_datapar_impl {
     // convert from a 2-AVX512/4-AVX/8-SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
+        const U *mem, F, type_tag<T>,
         enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
@@ -237,7 +237,7 @@ struct avx_datapar_impl {
 
     // convert and 16-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
         // TODO
@@ -246,7 +246,7 @@ struct avx_datapar_impl {
 
     // convert and 32-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
     {
         // TODO
@@ -255,7 +255,7 @@ struct avx_datapar_impl {
 
     // convert and 64-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
     {
         // TODO
@@ -264,7 +264,7 @@ struct avx_datapar_impl {
 
     // convert and 128-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
     {
         // TODO
@@ -274,7 +274,7 @@ struct avx_datapar_impl {
     // convert and 256-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(
-        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        datapar_member_type<T> v, U *mem, F , type_tag<T>,
         enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
@@ -284,7 +284,7 @@ struct avx_datapar_impl {
     // convert and 512-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(
-        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        datapar_member_type<T> v, U *mem, F , type_tag<T>,
         enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
@@ -294,7 +294,7 @@ struct avx_datapar_impl {
     // convert and 1024-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(
-        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        datapar_member_type<T> v, U *mem, F, type_tag<T>,
         enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
