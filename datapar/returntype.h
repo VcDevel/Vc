@@ -89,7 +89,8 @@ template <class A, class B> struct common<A, B, true, true, false> {
         std::conditional_t<
             (sizeof(A) < sizeof(B)),
             B,  // - Otherwise, B if sizeof(A) < sizeof(B)
-            std::conditional_t<std::is_signed<A>::value == std::is_signed<B>::value, C,
+            std::conditional_t<std::is_signed<A>::value == std::is_signed<B>::value,
+                               typename C::type,
                                std::make_unsigned_t<typename C::type>>>>;
 };
 
