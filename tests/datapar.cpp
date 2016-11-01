@@ -805,6 +805,86 @@ XTEST(operator_conversions)  //{{{1
     binary_op_return_type<v64<llong>, v64<float>, v64<float>>();
     binary_op_return_type<v64<llong>, v64<double>, v64<double>>();
 
+    // ullong{{{2
+    binary_op_return_type<vullong, vllong, vullong>();
+    binary_op_return_type<vullong, vullong, vullong>();
+    binary_op_return_type<vullong, schar, vullong>();
+    binary_op_return_type<vullong, uchar, vullong>();
+    binary_op_return_type<vullong, short, vullong>();
+    binary_op_return_type<vullong, ushort, vullong>();
+    binary_op_return_type<vullong, int, vullong>();
+    binary_op_return_type<vullong, uint, vullong>();
+    binary_op_return_type<vullong, long, vullong>();
+    binary_op_return_type<vullong, ulong, vullong>();
+    binary_op_return_type<vullong, llong, vullong>();
+    binary_op_return_type<vullong, ullong, vullong>();
+    binary_op_return_type<vullong, float, v64<float>>();
+    binary_op_return_type<vullong, double, v64<double>>();
+    binary_op_return_type<vullong, v64<schar>, vullong>();
+    binary_op_return_type<vullong, v64<uchar>, vullong>();
+    binary_op_return_type<vullong, v64<short>, vullong>();
+    binary_op_return_type<vullong, v64<ushort>, vullong>();
+    binary_op_return_type<vullong, v64<int>, vullong>();
+    binary_op_return_type<vullong, v64<uint>, vullong>();
+    binary_op_return_type<vullong, v64<long>, vullong>();
+    binary_op_return_type<vullong, v64<ulong>, vullong>();
+    binary_op_return_type<vullong, v64<llong>, vullong>();
+    binary_op_return_type<vullong, v64<ullong>, vullong>();
+    binary_op_return_type<vullong, v64<float>, v64<float>>();
+    binary_op_return_type<vullong, v64<double>, v64<double>>();
+
+    binary_op_return_type<v32<ullong>, schar, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, uchar, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, short, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, ushort, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, int, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, uint, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, long, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, ulong, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, llong, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, ullong, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, float, v32<float>>();
+    binary_op_return_type<v32<ullong>, double, v32<double>>();
+    binary_op_return_type<v32<ullong>, v32<schar>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<uchar>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<short>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<ushort>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<int>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<uint>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<long>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<ulong>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<llong>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<ullong>, v32<ullong>>();
+    binary_op_return_type<v32<ullong>, v32<float>, v32<float>>();
+    binary_op_return_type<v32<ullong>, v32<double>, v32<double>>();
+
+    binary_op_return_type<v64<ullong>, vllong, vullong>();
+    binary_op_return_type<v64<ullong>, vullong, vullong>();
+    binary_op_return_type<v64<ullong>, schar, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, uchar, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, short, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, ushort, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, int, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, uint, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, long, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, ulong, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, llong, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, ullong, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, float, v64<float>>();
+    binary_op_return_type<v64<ullong>, double, v64<double>>();
+    binary_op_return_type<v64<ullong>, v64<schar>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<uchar>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<short>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<ushort>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<int>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<uint>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<long>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<ulong>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<llong>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<ullong>, v64<ullong>>();
+    binary_op_return_type<v64<ullong>, v64<float>, v64<float>>();
+    binary_op_return_type<v64<ullong>, v64<double>, v64<double>>();
+
     // int{{{2
     binary_op_return_type<vint, vint, vint>();
     binary_op_return_type<vint, vuint, vuint>();
@@ -1081,6 +1161,63 @@ XTEST(operator_conversions)  //{{{1
     binary_op_return_type<v8<schar>, v8<ullong>, v8<ullong>>();
     binary_op_return_type<v8<schar>, v8<float>, v8<float>>();
     binary_op_return_type<v8<schar>, v8<double>, v8<double>>();
+
+    // uchar{{{2
+    binary_op_return_type<vuchar, vschar, vuchar>();
+    binary_op_return_type<vuchar, vuchar, vuchar>();
+    binary_op_return_type<vuchar, schar, vuchar>();
+    binary_op_return_type<vuchar, uchar, vuchar>();
+    // the following 4 are possibly surprising:
+    binary_op_return_type<vuchar, short, v8<short>>();
+    binary_op_return_type<vuchar, ushort, v8<ushort>>();
+    binary_op_return_type<vuchar, int, vuchar>();
+    binary_op_return_type<vuchar, uint, vuchar>();
+    binary_op_return_type<vuchar, long, v8<long>>();
+    binary_op_return_type<vuchar, ulong, v8<ulong>>();
+    binary_op_return_type<vuchar, llong, v8<llong>>();
+    binary_op_return_type<vuchar, ullong, v8<ullong>>();
+    binary_op_return_type<vuchar, float, v8<float>>();
+    binary_op_return_type<vuchar, double, v8<double>>();
+    binary_op_return_type<vuchar, v8<schar>, vuchar>();
+    binary_op_return_type<vuchar, v8<uchar>, vuchar>();
+    binary_op_return_type<vuchar, v8<short>, v8<short>>();
+    binary_op_return_type<vuchar, v8<ushort>, v8<ushort>>();
+    binary_op_return_type<vuchar, v8<int>, v8<int>>();
+    binary_op_return_type<vuchar, v8<uint>, v8<uint>>();
+    binary_op_return_type<vuchar, v8<long>, v8<long>>();
+    binary_op_return_type<vuchar, v8<ulong>, v8<ulong>>();
+    binary_op_return_type<vuchar, v8<llong>, v8<llong>>();
+    binary_op_return_type<vuchar, v8<ullong>, v8<ullong>>();
+    binary_op_return_type<vuchar, v8<float>, v8<float>>();
+    binary_op_return_type<vuchar, v8<double>, v8<double>>();
+
+    binary_op_return_type<v8<uchar>, vschar, vuchar>();
+    binary_op_return_type<v8<uchar>, vuchar, vuchar>();
+    binary_op_return_type<v8<uchar>, schar, v8<uchar>>();
+    binary_op_return_type<v8<uchar>, uchar, v8<uchar>>();
+    // the following 4 are possibly surprising:
+    binary_op_return_type<v8<uchar>, short, v8<short>>();
+    binary_op_return_type<v8<uchar>, ushort, v8<ushort>>();
+    binary_op_return_type<v8<uchar>, int, v8<uchar>>();
+    binary_op_return_type<v8<uchar>, uint, v8<uchar>>();
+    binary_op_return_type<v8<uchar>, long, v8<long>>();
+    binary_op_return_type<v8<uchar>, ulong, v8<ulong>>();
+    binary_op_return_type<v8<uchar>, llong, v8<llong>>();
+    binary_op_return_type<v8<uchar>, ullong, v8<ullong>>();
+    binary_op_return_type<v8<uchar>, float, v8<float>>();
+    binary_op_return_type<v8<uchar>, double, v8<double>>();
+    binary_op_return_type<v8<uchar>, v8<schar>, v8<uchar>>();
+    binary_op_return_type<v8<uchar>, v8<uchar>, v8<uchar>>();
+    binary_op_return_type<v8<uchar>, v8<short>, v8<short>>();
+    binary_op_return_type<v8<uchar>, v8<ushort>, v8<ushort>>();
+    binary_op_return_type<v8<uchar>, v8<int>, v8<int>>();
+    binary_op_return_type<v8<uchar>, v8<uint>, v8<uint>>();
+    binary_op_return_type<v8<uchar>, v8<long>, v8<long>>();
+    binary_op_return_type<v8<uchar>, v8<ulong>, v8<ulong>>();
+    binary_op_return_type<v8<uchar>, v8<llong>, v8<llong>>();
+    binary_op_return_type<v8<uchar>, v8<ullong>, v8<ullong>>();
+    binary_op_return_type<v8<uchar>, v8<float>, v8<float>>();
+    binary_op_return_type<v8<uchar>, v8<double>, v8<double>>();
 
     // misc{{{2
     binary_op_return_type<int, v32<long>, v32<long>>();
