@@ -43,22 +43,20 @@ static Vc_ALWAYS_INLINE Vc_CONST int _Vc_bit_scan_reverse_asm(unsigned int x) {
 }
 #    define _bit_scan_reverse(x) _Vc_bit_scan_reverse_asm(x)
 #  endif
-#elif defined(Vc_ICC)
-// for all I know ICC supports the _bit_scan_* intrinsics
-#elif defined(Vc_MSVC)
-#include "windows_fix_intrin.h"
-#pragma intrinsic(_BitScanForward)
-#pragma intrinsic(_BitScanReverse)
+#elif defined(_WIN32)
+#include "intrin.h"
 static inline __forceinline unsigned long _bit_scan_forward(unsigned long x) {
-    unsigned long index;
-    _BitScanForward(&index, x);
-    return index;
+	unsigned long index;
+	_BitScanForward(&index, x);
+	return index;
 }
 static inline __forceinline unsigned long _bit_scan_reverse(unsigned long x) {
-    unsigned long index;
-    _BitScanReverse(&index, x);
-    return index;
+	unsigned long index;
+	_BitScanReverse(&index, x);
+	return index;
 }
+#elif defined(Vc_ICC)
+// for all I know ICC supports the _bit_scan_* intrinsics
 #else
 // just assume the compiler can do it
 #endif

@@ -161,13 +161,13 @@ static Vc::enable_if<(!Vc::Traits::is_floating_point<From>::value), From> rnd()
 }
 // cast_vector_impl {{{1
 template <typename To, typename From, typename... Froms>
-Vc::enable_if<(To::size() <= sizeof...(Froms) * From::size()), void> cast_vector_impl(
+Vc::enable_if<(To::Size <= sizeof...(Froms) * From::Size), void> cast_vector_impl(
     const From &, const Froms &...)
 {
 }
 
 template <typename To, typename From, typename... Froms>
-Vc::enable_if<(To::size() > sizeof...(Froms) * From::size()), void> cast_vector_impl(
+Vc::enable_if<(To::Size > sizeof...(Froms) * From::Size), void> cast_vector_impl(
     const From &x0, const Froms &... xs)
 {
     using T = typename To::EntryType;
@@ -282,7 +282,7 @@ template <typename To, typename From> void mask_cast_1(const From &mask)
 // mask_cast_2 {{{1
 template <typename To, typename From>
 void mask_cast_2(const From &mask0, const From &mask1,
-                 Vc::enable_if<(To::size() > From::size())> = Vc::nullarg)
+                 Vc::enable_if<(To::Size > From::Size)> = Vc::nullarg)
 {
     To casted = simd_cast<To>(mask0, mask1);
     std::size_t i = 0;
@@ -303,14 +303,14 @@ void mask_cast_2(const From &mask0, const From &mask1,
 }
 template <typename To, typename From>
 void mask_cast_2(const From &, const From &,
-                 Vc::enable_if<!(To::size() > From::size())> = Vc::nullarg)
+                 Vc::enable_if<!(To::Size > From::Size)> = Vc::nullarg)
 {
 }
 // mask_cast_4 {{{1
 template <typename To, typename From>
 void mask_cast_4(const From &mask0, const From &mask1, const From &mask2,
                  const From &mask3,
-                 Vc::enable_if<(To::size() > 2 * From::size())> = Vc::nullarg)
+                 Vc::enable_if<(To::Size > 2 * From::Size)> = Vc::nullarg)
 {
     To casted = simd_cast<To>(mask0, mask1, mask2, mask3);
     std::size_t i = 0;
@@ -342,7 +342,7 @@ void mask_cast_4(const From &mask0, const From &mask1, const From &mask2,
 }
 template <typename To, typename From>
 void mask_cast_4(const From &, const From &, const From &, const From &,
-                 Vc::enable_if<!(To::size() > 2 * From::size())> = Vc::nullarg)
+                 Vc::enable_if<!(To::Size > 2 * From::Size)> = Vc::nullarg)
 {
 }
 // cast_mask_split {{{1

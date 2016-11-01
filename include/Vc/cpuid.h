@@ -251,6 +251,21 @@ class CpuId
         static bool   s_noL2orL3;
 };
 
+#ifndef Vc_COMPILE_LIB
+namespace detail
+{
+template <int = 0> struct RunCpuIdInit {
+    RunCpuIdInit() { CpuId::init(); }
+    static RunCpuIdInit tmp;
+};
+template <int N> RunCpuIdInit<N> RunCpuIdInit<N>::tmp;
+namespace
+{
+static auto ctor = RunCpuIdInit<>::tmp;
+}  // unnamed namespace
+}  // namespace detail
+#endif
+
 }
 
 #endif // VC_CPUID_H_

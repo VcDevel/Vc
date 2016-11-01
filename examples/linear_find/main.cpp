@@ -133,7 +133,7 @@ inline std::array<Iterator, V::size()> find_parallel(Iterator first, Iterator la
         const auto mask = *first == value && !found;
         if (any_of(mask)) {
             found |= mask;
-            for (int i : where(mask)) {
+            for (std::size_t i : where(mask)) {
                 matches[i] = first;
             }
             if (all_of(found)) {
@@ -156,7 +156,7 @@ inline _InputIterator simple_find(_InputIterator first, _InputIterator last,
   return first;
 }
 
-int main()
+int Vc_CDECL main()
 {
     std::cout << std::setw(15) << "N";
     std::cout << std::setw(15) << "std" << std::setw(15) << "stddev";

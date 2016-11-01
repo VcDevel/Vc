@@ -130,7 +130,7 @@ public:
     template <typename S1, typename IT>
     Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
                   "instead.") inline void scatter(S1 *array, EntryType S1::*member1,
-                                                  Vc_ALIGNED_PARAMETER(IT) indexes) const
+                                                  IT indexes) const
     {
         scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
                     array, indexes)[member1]
@@ -153,8 +153,7 @@ public:
     template <typename S1, typename IT>
     Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
                   "instead.") inline void scatter(S1 *array, EntryType S1::*member1,
-                                                  Vc_ALIGNED_PARAMETER(IT) indexes,
-                                                  MaskArgument mask) const
+                                                  IT indexes, MaskArgument mask) const
     {
         scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
                     array, indexes)[member1]
@@ -180,7 +179,7 @@ public:
     Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
                   "instead.") inline void scatter(S1 *array, S2 S1::*member1,
                                                   EntryType S2::*member2,
-                                                  Vc_ALIGNED_PARAMETER(IT) indexes) const
+                                                  IT indexes) const
     {
         scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
                     array, indexes)[member1][member2]
@@ -205,8 +204,7 @@ public:
     template <typename S1, typename S2, typename IT>
     Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
                   "instead.") inline void scatter(S1 *array, S2 S1::*member1,
-                                                  EntryType S2::*member2,
-                                                  Vc_ALIGNED_PARAMETER(IT) indexes,
+                                                  EntryType S2::*member2, IT indexes,
                                                   MaskArgument mask) const
     {
         scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
@@ -229,9 +227,8 @@ public:
     template <typename S1, typename IT1, typename IT2>
     Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
                   "instead.") inline void scatter(S1 *array, EntryType *S1::*ptrMember1,
-                                                  Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
-                                                  Vc_ALIGNED_PARAMETER(IT2)
-                                                      innerIndexes) const
+                                                  IT1 outerIndexes,
+                                                  IT2 innerIndexes) const
     {
         scatter(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
                     array, outerIndexes)[ptrMember1][innerIndexes]
@@ -253,8 +250,7 @@ public:
     template <typename S1, typename IT1, typename IT2>
     Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
                   "instead.") inline void scatter(S1 *array, EntryType *S1::*ptrMember1,
-                                                  Vc_ALIGNED_PARAMETER(IT1) outerIndexes,
-                                                  Vc_ALIGNED_PARAMETER(IT2) innerIndexes,
+                                                  IT1 outerIndexes, IT2 innerIndexes,
                                                   MaskArgument mask) const
     {
         scatter(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(

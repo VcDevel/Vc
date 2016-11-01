@@ -34,21 +34,12 @@ namespace Traits
 {
 namespace is_functor_argument_immutable_impl
 {
-template <typename F, typename A> std::false_type test(void (F::*)(A &));
-template <typename F, typename A> std::false_type test(void (F::*)(A &) const);
-template <typename F, typename A> std:: true_type test(void (F::*)(const A &));
-template <typename F, typename A> std:: true_type test(void (F::*)(const A &) const);
-template <typename F, typename A> std:: true_type test(void (F::*)(const A &&));
-template <typename F, typename A> std:: true_type test(void (F::*)(const A &&) const);
-template <typename F, typename A> std:: true_type test(void (F::*)(const A));
-template <typename F, typename A> std:: true_type test(void (F::*)(const A) const);
-template <typename F, typename A> std:: true_type test(void (F::*)(A));
-template <typename F, typename A> std:: true_type test(void (F::*)(A) const);
-
-// This function is defined with a forwarding reference. Therefore it can also bind as T
-// &, in which case the argument is mutable.
-template <typename F, typename A> std::false_type test(void (F::*)(A &&));
-template <typename F, typename A> std::false_type test(void (F::*)(A &&) const);
+template <typename F, typename A> std::true_type   test(void (F::*)(A));
+template <typename F, typename A> std::true_type   test(void (F::*)(A) const);
+template <typename F, typename A> std::is_const<A> test(void (F::*)(A &));
+template <typename F, typename A> std::is_const<A> test(void (F::*)(A &) const);
+template <typename F, typename A> std::is_const<A> test(void (F::*)(A &&));
+template <typename F, typename A> std::is_const<A> test(void (F::*)(A &&) const);
 
 struct dummy {};
 
@@ -66,8 +57,16 @@ template <
     typename = decltype(std::declval<F &>()(std::declval<dummy &>()))
 #endif
     ,
-    typename MemberPtr = decltype(&F::template operator()<A>)>
+#ifdef Vc_MSVC
+// MSVC fails if the template keyword is used to *correctly* tell the compiler that <A> is
+// an explicit template instantiation of operator()
+#define Vc_TEMPLATE_
+#else
+#define Vc_TEMPLATE_ template
+#endif
+    typename MemberPtr = decltype(&F::Vc_TEMPLATE_ operator()<A>)>
 decltype(is_functor_argument_immutable_impl::test(std::declval<MemberPtr>())) test2(int);
+#undef Vc_TEMPLATE_
 
 // generate a true_type for non-template operator() members in F that are callable with a
 // 'const A &' argument.
@@ -76,11 +75,9 @@ decltype(
     is_functor_argument_immutable_impl::test(std::declval<decltype(&F::operator())>()))
 test2(float);
 
-template <typename A> std::false_type test3(void (*)(A &));
-template <typename A> std:: true_type test3(void (*)(const A &));
-template <typename A> std:: true_type test3(void (*)(const A));
-template <typename A> std:: true_type test3(void (*)(A));
-template <typename A> std:: true_type test3(void (*)(A &&));
+template <typename A> std::true_type   test3(void(*)(A));
+template <typename A> std::is_const<A> test3(void(*)(A &));
+template <typename A> std::is_const<A> test3(void(*)(A &&));
 
 }  // namespace is_functor_argument_immutable_impl
 

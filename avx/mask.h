@@ -70,15 +70,9 @@ public:
     using VectorTypeI = AVX::IntegerVectorType<VectorTypeF>;
 
 private:
-#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-    typedef const VectorTypeF &VArg;
-    typedef const VectorTypeD &VdArg;
-    typedef const VectorTypeI &ViArg;
-#else
     typedef const VectorTypeF VArg;
     typedef const VectorTypeD VdArg;
     typedef const VectorTypeI ViArg;
-#endif
 
 public:
     static constexpr size_t Size = sizeof(VectorTypeF) / sizeof(T);
@@ -87,7 +81,7 @@ public:
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType));
 
 private:
-    typedef Common::Storage<T, size()> Storage;
+    typedef Common::Storage<T, Size> Storage;
 
 public:
     /**

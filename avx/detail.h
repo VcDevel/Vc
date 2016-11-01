@@ -93,45 +93,245 @@ load(const T *x, Flags, LoadTag<__m256i, T>, typename Flags::EnableIfStreaming =
     return AvxIntrinsics::stream_load<__m256i>(x);
 }
 
+// load32{{{2
+Vc_INTRINSIC __m256 load32(const float *mem, when_aligned)
+{
+    return _mm256_load_ps(mem);
+}
+Vc_INTRINSIC __m256 load32(const float *mem, when_unaligned)
+{
+    return _mm256_loadu_ps(mem);
+}
+Vc_INTRINSIC __m256 load32(const float *mem, when_streaming)
+{
+    return AvxIntrinsics::stream_load<__m256>(mem);
+}
+Vc_INTRINSIC __m256d load32(const double *mem, when_aligned)
+{
+    return _mm256_load_pd(mem);
+}
+Vc_INTRINSIC __m256d load32(const double *mem, when_unaligned)
+{
+    return _mm256_loadu_pd(mem);
+}
+Vc_INTRINSIC __m256d load32(const double *mem, when_streaming)
+{
+    return AvxIntrinsics::stream_load<__m256d>(mem);
+}
+template <class T> Vc_INTRINSIC __m256i load32(const T *mem, when_aligned)
+{
+    static_assert(std::is_integral<T>::value, "load32<T> is only intended for integral T");
+    return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
+}
+template <class T> Vc_INTRINSIC __m256i load32(const T *mem, when_unaligned)
+{
+    static_assert(std::is_integral<T>::value, "load32<T> is only intended for integral T");
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
+}
+template <class T> Vc_INTRINSIC __m256i load32(const T *mem, when_streaming)
+{
+    static_assert(std::is_integral<T>::value, "load32<T> is only intended for integral T");
+    return AvxIntrinsics::stream_load<__m256i>(mem);
+}
+
+// MSVC workarounds{{{2
+#ifdef Vc_MSVC
+// work around: "fatal error C1001: An internal error has occurred in the compiler."
+Vc_INTRINSIC __m256i load(const uint *mem, when_aligned, LoadTag<__m256i, int>)
+{
+    return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+Vc_INTRINSIC __m256d load(const double *mem, when_unaligned, LoadTag<__m256d, double>)
+{
+    return _mm256_loadu_pd(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256 load(const float *mem, when_aligned,
+                         enable_if<(std::is_same<DstT, float>::value &&
+                                    std::is_same<V, __m256>::value)> = nullarg)
+{
+    return _mm256_load_ps(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256 load(const float *mem, when_unaligned,
+                         enable_if<(std::is_same<DstT, float>::value &&
+                                    std::is_same<V, __m256>::value)> = nullarg)
+{
+    return _mm256_loadu_ps(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256 load(const float *mem, when_streaming,
+                         enable_if<(std::is_same<DstT, float>::value &&
+                                    std::is_same<V, __m256>::value)> = nullarg)
+{
+    return AvxIntrinsics::stream_load<__m256>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256d load(const double *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, double>::value &&
+                                     std::is_same<V, __m256d>::value)> = nullarg)
+{
+    return _mm256_load_pd(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256d load(const double *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, double>::value &&
+                                     std::is_same<V, __m256d>::value)> = nullarg)
+{
+    return _mm256_loadu_pd(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256d load(const double *mem, when_streaming,
+                          enable_if<(std::is_same<DstT, double>::value &&
+                                     std::is_same<V, __m256d>::value)> = nullarg)
+{
+    return AvxIntrinsics::stream_load<__m256d>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const uint *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, uint>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const uint *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, uint>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const uint *mem, when_streaming,
+                          enable_if<(std::is_same<DstT, uint>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return AvxIntrinsics::stream_load<__m256i>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const int *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, int>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const int *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, int>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const int *mem, when_streaming,
+                          enable_if<(std::is_same<DstT, int>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return AvxIntrinsics::stream_load<__m256i>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const short *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, short>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const short *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, short>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const short *mem, when_streaming,
+                          enable_if<(std::is_same<DstT, short>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return AvxIntrinsics::stream_load<__m256i>(mem);
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const ushort *mem, when_unaligned,
+                          enable_if<(std::is_same<DstT, ushort>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const ushort *mem, when_aligned,
+                          enable_if<(std::is_same<DstT, ushort>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
+}
+
+template <typename V, typename DstT>
+Vc_INTRINSIC __m256i load(const ushort *mem, when_streaming,
+                          enable_if<(std::is_same<DstT, ushort>::value &&
+                                     std::is_same<V, __m256i>::value)> = nullarg)
+{
+    return AvxIntrinsics::stream_load<__m256i>(mem);
+}
+
+#endif  // Vc_MSVC
+
 // short {{{2
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const ushort *mem, Flags f, LoadTag<__m256i, short>)
 {
-    return load(mem, f, LoadTag<__m256i, ushort>());
+    return load32(mem, f);
 }
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const uchar *mem, Flags f, LoadTag<__m256i, short>)
 {
-    return AVX::cvtepu8_epi16(load(mem, f, LoadTag<__m128i, uchar>()));
+    return AVX::cvtepu8_epi16(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const schar *mem, Flags f, LoadTag<__m256i, short>)
 {
-    return AVX::cvtepi8_epi16(load(mem, f, LoadTag<__m128i, schar>()));
+    return AVX::cvtepi8_epi16(load16(mem, f));
 }
 
 // ushort {{{2
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const uchar *mem, Flags f, LoadTag<__m256i, ushort>)
 {
-    return AVX::cvtepu8_epi16(load(mem, f, LoadTag<__m128i, uchar>()));
+    return AVX::cvtepu8_epi16(load16(mem, f));
 }
 
 // int {{{2
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const uint *mem, Flags f, LoadTag<__m256i, int>)
 {
-    return load(mem, f, LoadTag<__m256i, uint>());
+    return load32(mem, f);
 }
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const ushort *mem, Flags f, LoadTag<__m256i, int>)
 {
-    return AVX::cvtepu16_epi32(load(mem, f, LoadTag<__m128i, ushort>()));
+    return AVX::cvtepu16_epi32(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const short *mem, Flags f, LoadTag<__m256i, int>)
 {
-    return AVX::cvtepi16_epi32(load(mem, f, LoadTag<__m128i, short>()));
+    return AVX::cvtepi16_epi32(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, int>)
@@ -148,7 +348,7 @@ Vc_INTRINSIC __m256i load(const schar *mem, Flags, LoadTag<__m256i, int>)
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const ushort *mem, Flags f, LoadTag<__m256i, uint>)
 {
-    return AVX::cvtepu16_epi32(load(mem, f, LoadTag<__m128i, ushort>()));
+    return AVX::cvtepu16_epi32(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, uint>)
@@ -160,55 +360,60 @@ Vc_INTRINSIC __m256i load(const uchar *mem, Flags, LoadTag<__m256i, uint>)
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const float *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::convert<float, double>(load<__m128, float>(mem, f));
+    return AVX::convert<float, double>(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const uint *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::convert<uint, double>(load<__m128i, uint>(mem, f));
+    return AVX::convert<uint, double>(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const int *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const ushort *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const short *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const uchar *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256d load(const schar *mem, Flags f, LoadTag<__m256d, double>)
 {
-    return AVX::convert<int, double>(load<__m128i, int>(mem, f));
+    return AVX::convert<int, double>(load16(mem, f));
 }
 
 // float {{{2
 template <typename Flags>
 Vc_INTRINSIC __m256 load(const double *mem, Flags f, LoadTag<__m256, float>)
 {
-    return AVX::concat(_mm256_cvtpd_ps(load(&mem[0], f, LoadTag<__m256d, double>())),
-                       _mm256_cvtpd_ps(load(&mem[4], f, LoadTag<__m256d, double>())));
+    return AVX::concat(_mm256_cvtpd_ps(load32(&mem[0], f)),
+                       _mm256_cvtpd_ps(load32(&mem[4], f)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256 load(const uint *mem, Flags f, LoadTag<__m256, float>)
 {
-    const auto v = load(mem, f, LoadTag<__m256i, uint>());
+    const auto v = load32(mem, f);
     return _mm256_blendv_ps(
         _mm256_cvtepi32_ps(v),
         _mm256_add_ps(_mm256_cvtepi32_ps(AVX::sub_epi32(v, AVX::set2power31_epu32())),
                       AVX::set2power31_ps()),
         _mm256_castsi256_ps(AVX::cmplt_epi32(v, _mm256_setzero_si256())));
+}
+template <typename Flags>
+Vc_INTRINSIC __m256 load(const int *mem, Flags f, LoadTag<__m256, float>)
+{
+    return AVX::convert<int, float>(load32(mem, f));
 }
 template <typename T, typename Flags,
           typename = enable_if<!std::is_same<T, float>::value>>
@@ -219,12 +424,12 @@ Vc_INTRINSIC __m256 load(const T *mem, Flags f, LoadTag<__m256, float>)
 template <typename Flags>
 Vc_INTRINSIC __m256 load(const ushort *mem, Flags f, LoadTag<__m256, float>)
 {
-    return AVX::convert<ushort, float>(load<__m128i, ushort>(mem, f));
+    return AVX::convert<ushort, float>(load16(mem, f));
 }
 template <typename Flags>
 Vc_INTRINSIC __m256 load(const short *mem, Flags f, LoadTag<__m256, float>)
 {
-    return AVX::convert<short, float>(load<__m128i, short>(mem, f));
+    return AVX::convert<short, float>(load16(mem, f));
 }
 /*
 template<typename Flags> struct LoadHelper<float, unsigned char, Flags> {
@@ -732,17 +937,15 @@ Vc_INTRINSIC __m256i avx_broadcast( uchar x) { return _mm256_set1_epi8(x); }
 // sorted{{{1
 template <Vc::Implementation Impl, typename T,
           typename = enable_if<(Impl >= AVXImpl && Impl <= AVX2Impl)>>
-Vc_CONST_L AVX2::Vector<T> sorted(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x) Vc_CONST_R;
-template <typename T>
-Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(Vc_ALIGNED_PARAMETER(AVX2::Vector<T>) x)
+Vc_CONST_L AVX2::Vector<T> sorted(AVX2::Vector<T> x) Vc_CONST_R;
+template <typename T> Vc_INTRINSIC Vc_CONST AVX2::Vector<T> sorted(AVX2::Vector<T> x)
 {
     return sorted<CurrentImplementation::current()>(x);
 }
 
 // shifted{{{1
 template <typename T, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(V v, int amount)
 {
     using namespace AVX;
     constexpr int S = sizeof(T);
@@ -827,8 +1030,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32), V> shifted(
 }
 
 template <typename T, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(V v, int amount)
 {
     using namespace AVX;
     switch (amount) {
@@ -856,8 +1058,8 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> shifted(
 }
 // rotated{{{1
 template <typename T, size_t N, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(V v,
+                                                                               int amount)
 {
     using namespace AVX;
     const __m128i vLo = avx_cast<__m128i>(lo128(v));
@@ -878,8 +1080,8 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 4), V> rotated(
 }
 
 template <typename T, size_t N, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(V v,
+                                                                               int amount)
 {
     using namespace AVX;
     const __m128i vLo = avx_cast<__m128i>(lo128(v));
@@ -914,7 +1116,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 8), V> rotated(
 #ifdef Vc_IMPL_AVX2
 template <typename T, size_t N, typename V>
 static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 32 && N == 16), V> rotated(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+    V v, int amount)
 {
     using namespace AVX;
     const __m128i vLo = avx_cast<__m128i>(lo128(v));
@@ -1028,6 +1230,8 @@ Vc_INTRINSIC void mask_store(__m256i k, bool *mem, Flags)
             _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), bools);
         }
     } break;
+    default:
+        Vc_UNREACHABLE();
     }
 }
 
@@ -1056,6 +1260,8 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
         return AVX::avx_cast<__m128>(
             _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
     }
+    default:
+        Vc_UNREACHABLE();
     }
 }
 
@@ -1094,6 +1300,8 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
         return AVX::avx_cast<__m256>(
             AVX::concat(_mm_unpacklo_epi8(k128, k128), _mm_unpackhi_epi8(k128, k128)));
     }
+    default:
+        Vc_UNREACHABLE();
     }
 }
 

@@ -42,6 +42,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     using new_type_ alignas(sizeof(n_)) = type_
 #endif
 
+// On Windows (WIN32) we might see macros called min and max. Just undefine them and hope
+// noone (re)defines them (NOMINMAX should help).
+#ifdef WIN32
+#define NOMINMAX 1
+#if defined min
+#undef min
+#endif
+#if defined max
+#undef max
+#endif
+#endif  // WIN32
+
 #ifdef __SSE__
 #define Vc_HAVE_SSE
 #endif
@@ -119,6 +131,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define Vc_RESTRICT __restrict__
 #  define Vc_DEPRECATED(msg)
+#  define Vc_DEPRECATED_ALIAS(msg)
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
 #  define Vc_UNREACHABLE __builtin_unreachable
@@ -135,7 +148,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_ALWAYS_INLINE_R __attribute__((__always_inline__))
 #  define Vc_ALWAYS_INLINE Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE_R
 #  ifdef Vc_ICC
-     // ICC miscompiles if there are functions marked as pure or const
+// ICC miscompiles if there are functions marked as pure or const
 #    define Vc_PURE
 #    define Vc_CONST
 #    define Vc_NEVER_INLINE
@@ -153,12 +166,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  define Vc_RESTRICT __restrict__
 #  ifdef Vc_ICC
 #    define Vc_DEPRECATED(msg)
+#    define Vc_DEPRECATED_ALIAS(msg)
 #  else
 #    define Vc_DEPRECATED(msg) __attribute__((__deprecated__(msg)))
+#    define Vc_DEPRECATED_ALIAS(msg) __attribute__((__deprecated__(msg)))
 #  endif
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #else
-#  define Vc_UNREACHABLE std::abort
 #  define Vc_NEVER_INLINE
 #  define Vc_FLATTEN
 #  ifdef Vc_PURE
@@ -178,6 +192,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define Vc_INTRINSIC inline __forceinline
 #    define Vc_INTRINSIC_L Vc_INTRINSIC
 #    define Vc_INTRINSIC_R
+namespace Vc_VERSIONED_NAMESPACE {
+namespace detail
+{
+static Vc_INTRINSIC void unreachable() { __assume(0); }
+}  // namespace detail
+}
+#    define Vc_UNREACHABLE Vc::detail::unreachable
 #  else
 #    define Vc_ALWAYS_INLINE
 #    define Vc_ALWAYS_INLINE_L
@@ -191,11 +212,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define Vc_INTRINSIC
 #    define Vc_INTRINSIC_L
 #    define Vc_INTRINSIC_R
+#    define Vc_UNREACHABLE std::abort
 #  endif
 #  define Vc_IS_UNLIKELY(x) x
 #  define Vc_IS_LIKELY(x) x
 #  define Vc_RESTRICT __restrict
 #  define Vc_DEPRECATED(msg) __declspec(deprecated(msg))
+#  define Vc_DEPRECATED_ALIAS(msg)
 #  define Vc_WARN_UNUSED_RESULT
 #endif
 
@@ -317,12 +340,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define Vc_EXACT_TYPE(_test, _reference, _type) \
     typename std::enable_if<std::is_same<_test, _reference>::value, _type>::type
-
-#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-#define Vc_ALIGNED_PARAMETER(_Type) const _Type &
-#else
-#define Vc_ALIGNED_PARAMETER(_Type) const _Type
-#endif
 
 #define Vc_make_unique(name) Vc_CAT(Vc_,name,_,__LINE__)
 

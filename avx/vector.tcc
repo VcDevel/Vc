@@ -237,15 +237,15 @@ template <> template <typename G> Vc_INTRINSIC AVX2::ushort_v AVX2::ushort_v::ge
 // constants {{{1
 template <typename T> Vc_INTRINSIC Vector<T, VectorAbi::Avx>::Vector(VectorSpecialInitializerZero) : d{} {}
 
-template <> Vc_INTRINSIC AVX2::double_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_pd()) {}
-template <> Vc_INTRINSIC  AVX2::float_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_ps()) {}
+template <> Vc_INTRINSIC Vector<double, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_pd()) {}
+template <> Vc_INTRINSIC Vector< float, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_ps()) {}
 #ifdef Vc_IMPL_AVX2
-template <> Vc_INTRINSIC    AVX2::int_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi32()) {}
-template <> Vc_INTRINSIC   AVX2::uint_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu32()) {}
-template <> Vc_INTRINSIC  AVX2::short_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi16()) {}
-template <> Vc_INTRINSIC AVX2::ushort_v::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu16()) {}
-template <> Vc_INTRINSIC AVX2::Vector<  signed char>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi8()) {}
-template <> Vc_INTRINSIC AVX2::Vector<unsigned char>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu8()) {}
+template <> Vc_INTRINSIC Vector<   int, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi32()) {}
+template <> Vc_INTRINSIC Vector<  uint, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu32()) {}
+template <> Vc_INTRINSIC Vector< short, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi16()) {}
+template <> Vc_INTRINSIC Vector<ushort, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu16()) {}
+template <> Vc_INTRINSIC Vector< schar, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epi8()) {}
+template <> Vc_INTRINSIC Vector< uchar, VectorAbi::Avx>::Vector(VectorSpecialInitializerOne) : d(AVX::setone_epu8()) {}
 #endif
 
 template <typename T>
@@ -256,12 +256,12 @@ Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx>::Vector(
 }
 
 template <>
-Vc_ALWAYS_INLINE AVX2::float_v::Vector(VectorSpecialInitializerIndexesFromZero)
+Vc_ALWAYS_INLINE Vector<float, VectorAbi::Avx>::Vector(VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<int>::address(), Vc::Aligned)
 {
 }
 template <>
-Vc_ALWAYS_INLINE AVX2::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
+Vc_ALWAYS_INLINE Vector<double, VectorAbi::Avx>::Vector(VectorSpecialInitializerIndexesFromZero)
     : Vector(AVX::IndexesFromZeroData<int>::address(), Vc::Aligned)
 {
 }
@@ -270,8 +270,12 @@ Vc_ALWAYS_INLINE AVX2::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
 // load member functions {{{1
 // general load, implemented via LoadHelper {{{2
 template <typename DstT>
-template <typename SrcT, typename Flags, typename>
-Vc_INTRINSIC void Vector<DstT, VectorAbi::Avx>::load(const SrcT *mem, Flags flags)
+template <typename SrcT, typename Flags>
+Vc_INTRINSIC typename Vector<DstT, VectorAbi::Avx>::
+#ifndef Vc_MSVC
+template
+#endif
+load_concept<SrcT, Flags>::type Vector<DstT, VectorAbi::Avx>::load(const SrcT *mem, Flags flags)
 {
     Common::handleLoadPrefetches(mem, flags);
     d.v() = Detail::load<VectorType, DstT>(mem, flags);
@@ -292,19 +296,19 @@ template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZeroInverte
     data() = Detail::and_(AVX::avx_cast<VectorType>(k.data()), data());
 }
 
-template<> Vc_INTRINSIC void AVX2::double_v::setQnan()
+template<> Vc_INTRINSIC void Vector<double, VectorAbi::Avx>::setQnan()
 {
     data() = Detail::allone<VectorType>();
 }
-template<> Vc_INTRINSIC void AVX2::double_v::setQnan(MaskArgument k)
+template<> Vc_INTRINSIC void Vector<double, VectorAbi::Avx>::setQnan(MaskArgument k)
 {
     data() = _mm256_or_pd(data(), k.dataD());
 }
-template<> Vc_INTRINSIC void AVX2::float_v::setQnan()
+template<> Vc_INTRINSIC void Vector<float, VectorAbi::Avx>::setQnan()
 {
     data() = Detail::allone<VectorType>();
 }
-template<> Vc_INTRINSIC void AVX2::float_v::setQnan(MaskArgument k)
+template<> Vc_INTRINSIC void Vector<float, VectorAbi::Avx>::setQnan(MaskArgument k)
 {
     data() = _mm256_or_ps(data(), k.data());
 }
@@ -466,7 +470,7 @@ inline void Vector<T, VectorAbi::Avx>::gatherImplementation(const MT *mem, IT &&
               Common::GatherScatterImplementation::SimpleLoop
 #endif
                                                 > ;
-    Common::executeGather(Selector(), *this, mem, indexes, mask);
+    Common::executeGather(Selector(), *this, mem, std::forward<IT>(indexes), mask);
 }
 
 template <typename T>
@@ -492,40 +496,8 @@ inline void Vector<T, VectorAbi::Avx>::scatterImplementation(MT *mem, IT &&index
               Common::GatherScatterImplementation::SimpleLoop
 #endif
                                                 > ;
-    Common::executeScatter(Selector(), *this, mem, indexes, mask);
+    Common::executeScatter(Selector(), *this, mem, std::forward<IT>(indexes), mask);
 }
-
-#if defined(Vc_MSVC) && Vc_MSVC >= 170000000
-// MSVC miscompiles the store mem[indexes[1]] = d.m(1) for T = (u)short
-template <>
-template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void AVX2::short_v::scatterImplementation(MT *mem, IT &&indexes) const
-{
-    const unsigned int tmp = d.v()._d.__m128i_u32[0];
-    mem[indexes[0]] = tmp & 0xffff;
-    mem[indexes[1]] = tmp >> 16;
-    mem[indexes[2]] = _mm_extract_epi16(d.v(), 2);
-    mem[indexes[3]] = _mm_extract_epi16(d.v(), 3);
-    mem[indexes[4]] = _mm_extract_epi16(d.v(), 4);
-    mem[indexes[5]] = _mm_extract_epi16(d.v(), 5);
-    mem[indexes[6]] = _mm_extract_epi16(d.v(), 6);
-    mem[indexes[7]] = _mm_extract_epi16(d.v(), 7);
-}
-template <>
-template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void AVX2::ushort_v::scatterImplementation(MT *mem, IT &&indexes) const
-{
-    const unsigned int tmp = d.v()._d.__m128i_u32[0];
-    mem[indexes[0]] = tmp & 0xffff;
-    mem[indexes[1]] = tmp >> 16;
-    mem[indexes[2]] = _mm_extract_epi16(d.v(), 2);
-    mem[indexes[3]] = _mm_extract_epi16(d.v(), 3);
-    mem[indexes[4]] = _mm_extract_epi16(d.v(), 4);
-    mem[indexes[5]] = _mm_extract_epi16(d.v(), 5);
-    mem[indexes[6]] = _mm_extract_epi16(d.v(), 6);
-    mem[indexes[7]] = _mm_extract_epi16(d.v(), 7);
-}
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 // operator- {{{1
@@ -587,9 +559,7 @@ template <> Vc_INTRINSIC std::pair<AVX2::float_v, int> AVX2::float_v::minIndex()
 
     // 28 cycles Latency:
     __m256 x = d.v();
-    __m256 idx =
-        _mm256_castsi256_ps(Detail::load(AVX::IndexesFromZeroData<int>::address(),
-                                         Vc::Aligned, Detail::LoadTag<__m256i, int>()));
+    __m256 idx = Vector<float>::IndexesFromZero().data();
     __m256 y = Mem::permute128<X1, X0>(x);
     __m256 idy = Mem::permute128<X1, X0>(idx);
     __m256 less = AVX::cmplt_ps(x, y);
@@ -609,7 +579,9 @@ template <> Vc_INTRINSIC std::pair<AVX2::float_v, int> AVX2::float_v::minIndex()
     idx = _mm256_blendv_ps(idy, idx, less);
 
     const auto index = _mm_cvtsi128_si32(AVX::avx_cast<__m128i>(idx));
+#ifdef Vc_GNU_ASM
     __asm__ __volatile__(""); // help GCC to order the instructions better
+#endif
     x = _mm256_blendv_ps(y, x, less);
     return std::make_pair(x, index);
 }
@@ -903,7 +875,7 @@ Vc_INTRINSIC Vc_PURE AVX2::ushort_v AVX2::ushort_v::operator[](
         AVX::avx_cast<__m256d>(Mem::permuteLo<X3, X2, X1, X0>(d.v())))));
 }
 #endif
-template <> Vc_INTRINSIC AVX2::float_v AVX2::float_v::operator[](const IndexType &/*perm*/) const
+template <> Vc_INTRINSIC AVX2::float_v Vector<float, VectorAbi::Avx>::operator[](const IndexType &/*perm*/) const
 {
     // TODO
     return *this;

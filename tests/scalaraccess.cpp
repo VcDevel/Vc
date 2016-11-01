@@ -67,8 +67,7 @@ TEST_TYPES(V, reads, (ALL_VECTORS, SIMD_ARRAY_LIST))
     COMPARE(typeid(decltype(b[0])), typeid(typename V::value_type));
 }
 
-template<typename V, size_t Index>
-inline void readsConstantIndexTest(Vc_ALIGNED_PARAMETER(V) a, Vc_ALIGNED_PARAMETER(V) b)
+template <typename V, size_t Index> inline void readsConstantIndexTest(V a, V b)
 {
     typedef typename V::EntryType T;
     {
@@ -85,7 +84,7 @@ inline void readsConstantIndexTest(Vc_ALIGNED_PARAMETER(V) a, Vc_ALIGNED_PARAMET
 template<typename V, size_t Index>
 struct ReadsConstantIndex
 {
-    ReadsConstantIndex(Vc_ALIGNED_PARAMETER(V) a, Vc_ALIGNED_PARAMETER(V) b)
+    ReadsConstantIndex(V a, V b)
     {
         readsConstantIndexTest<V, Index>(a, b);
         ReadsConstantIndex<V, Index - 1>(a, b);
@@ -96,10 +95,7 @@ struct ReadsConstantIndex
 template<typename V>
 struct ReadsConstantIndex<V, 0>
 {
-    ReadsConstantIndex(Vc_ALIGNED_PARAMETER(V) a, Vc_ALIGNED_PARAMETER(V) b)
-    {
-        readsConstantIndexTest<V, 0>(a, b);
-    }
+    ReadsConstantIndex(V a, V b) { readsConstantIndexTest<V, 0>(a, b); }
 };
 
 TEST_TYPES(V, readsConstantIndex, (ALL_VECTORS, SIMD_ARRAY_LIST))
@@ -263,7 +259,7 @@ TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
 
     // Just to make sure, the assignment operators also should not work on lvalue
     // references
-    decltype(a[0]) *y;
+    decltype(a[0]) *y = nullptr;
     VERIFY(!test_plus_assign(*y, 1, 11));
     VERIFY(!test_minus_assign(*y, 1, 10));
     VERIFY(!test_times_assign(*y, 2, 20));

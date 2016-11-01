@@ -57,6 +57,8 @@ TEST_TYPES(V, checkArrayAlignment, (SIMD_ARRAY_LIST))
 #else
         return n > 128u ? 128u : n;
 #endif
+#elif defined Vc_MSVC
+        return n > 32u ? 32u : n;
 #else
         return n;
 #endif

@@ -104,7 +104,10 @@ protected:
     StorageType d;
     Vc_DEPRECATED("renamed to data()") inline const VectorType vdata() const { return d.v(); }
 
-    template<typename V> static Vc_INTRINSIC VectorType _cast(Vc_ALIGNED_PARAMETER(V) x) { return MIC::mic_cast<VectorType>(x); }
+    template <typename V> static Vc_INTRINSIC VectorType _cast(V x)
+    {
+        return MIC::mic_cast<VectorType>(x);
+    }
 
 public:
     template <typename MemType>
@@ -133,7 +136,7 @@ public:
     // implict conversion from compatible Vector<U>
     template <typename U>
     Vc_INTRINSIC Vector(
-        Vc_ALIGNED_PARAMETER(Vector<U>) x,
+        Vector<U> x,
         typename std::enable_if<Traits::is_implicit_cast_allowed<U, T>::value,
                                 void *>::type = nullptr)
         : d(MIC::convert<U, T>(x.data()))
@@ -146,7 +149,7 @@ public:
     Vc_DEPRECATED("use simd_cast instead of explicit type casting to "
                   "convert between vector types") Vc_INTRINSIC
         explicit Vector(
-            Vc_ALIGNED_PARAMETER(Vector<U>) x,
+            Vector<U> x,
             typename std::enable_if<!Traits::is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
         : d(MIC::convert<U, T>(x.data()))

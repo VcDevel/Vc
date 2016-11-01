@@ -28,6 +28,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef UNITTEST_H
 #define UNITTEST_H
 
+#ifdef WIN32
+// just to break min/max
+#include <windows.h>
+#endif  // WIN32
+
 #include "typelist.h"
 
 #ifdef Vc_ASSERT
@@ -999,15 +1004,10 @@ private:
             print("):\n");
         }
     }
+    template <typename T> static inline void writePlotData(std::fstream &file, T a, T b);
+    template <typename T> static inline void printFuzzyInfo(T, T);
     template <typename T>
-    static inline void writePlotData(std::fstream &file,
-                                     Vc_ALIGNED_PARAMETER(T) a,
-                                     Vc_ALIGNED_PARAMETER(T) b);
-    template <typename T>
-    static inline void printFuzzyInfo(Vc_ALIGNED_PARAMETER(T), Vc_ALIGNED_PARAMETER(T));
-    template <typename T>
-    static inline void printFuzzyInfoImpl(std::true_type, Vc_ALIGNED_PARAMETER(T) a,
-                                          Vc_ALIGNED_PARAMETER(T) b, double fuzzyness)
+    static inline void printFuzzyInfoImpl(std::true_type, T a, T b, double fuzzyness)
     {
         print("\ndistance: ");
         print(ulpDiffToReferenceSigned(a, b));
@@ -1016,8 +1016,7 @@ private:
         print(" ulp");
     }
     template <typename T>
-    static inline void printFuzzyInfoImpl(std::false_type, Vc_ALIGNED_PARAMETER(T),
-                                          Vc_ALIGNED_PARAMETER(T), double)
+    static inline void printFuzzyInfoImpl(std::false_type, T, T, double)
     {
     }
     // member variables {{{2
@@ -1030,30 +1029,25 @@ template <typename T> struct PrintMemDecorator { T x; };
 template <typename T> PrintMemDecorator<T> asBytes(const T &x) { return {x}; }
 
 // printFuzzyInfo specializations for float and double {{{1
-template <typename T>
-inline void Compare::printFuzzyInfo(Vc_ALIGNED_PARAMETER(T) a, Vc_ALIGNED_PARAMETER(T) b)
+template <typename T> inline void Compare::printFuzzyInfo(T a, T b)
 {
     using U = value_type_or_T<T>;
     printFuzzyInfoImpl(std::is_floating_point<U>(), a, b,
                        global_unit_test_object_.fuzzyness<U>());
 }
 template <typename T>
-static inline void writePlotDataImpl(std::true_type, std::fstream &file, Vc_ALIGNED_PARAMETER(T) ref,
-                       Vc_ALIGNED_PARAMETER(T) dist)
+static inline void writePlotDataImpl(std::true_type, std::fstream &file, T ref, T dist)
 {
     for (size_t i = 0; i < T::Size; ++i) {
         file << std::setprecision(12) << ref[i] << "\t" << dist[i] << "\n";
     }
 }
 template <typename T>
-static inline void writePlotDataImpl(std::false_type, std::fstream &file, Vc_ALIGNED_PARAMETER(T) ref,
-                       Vc_ALIGNED_PARAMETER(T) dist)
+static inline void writePlotDataImpl(std::false_type, std::fstream &file, T ref, T dist)
 {
     file << std::setprecision(12) << ref << "\t" << dist << "\n";
 }
-template <typename T>
-inline void Compare::writePlotData(std::fstream &file, Vc_ALIGNED_PARAMETER(T) a,
-                                   Vc_ALIGNED_PARAMETER(T) b)
+template <typename T> inline void Compare::writePlotData(std::fstream &file, T a, T b)
 {
     const T ref = b;
     const T dist = ulpDiffToReferenceSigned(a, b);
@@ -1169,7 +1163,7 @@ static Vc::enable_if<!Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMas
     M mask(true);
 
     for (int j = 0; j < int(Vec::size()); ++j) {
-        if (i & (1u << j)) {
+        if (i & (size_t(1) << j)) {
             mask ^= indexes == j;
         }
     }
@@ -1233,18 +1227,24 @@ template <typename TestWrapper> struct Test<TestWrapper, void> : public TestWrap
 };
 
 // addTestInstantiations {{{1
+template <std::size_t I, typename Indexer> struct TypeAtIndexX {
+    typedef decltype(TypelistIndexing::select<I>(Indexer{})) T;
+    using type = typename T::type;
+};
 template <std::size_t I, typename Indexer>
-using TypeAtIndex = typename decltype(TypelistIndexing::select<I>(Indexer{}))::type;
+using TypeAtIndex = typename TypeAtIndexX<I, Indexer>::type;
 
 template <template <typename> class TestWrapper, typename... Ts, std::size_t... I>
-static int addTestInstantiations(const char *name, Typelist<Ts...>,
+static int addTestInstantiations(const char *basename, Typelist<Ts...>,
                                  Vc::index_sequence<I...>)
 {
     using Indexer = TypelistIndexing::indexer<Vc::index_sequence<I...>, Ts...>;
+    std::string name(basename);
+    name += '<';
     const auto &x = {
         0, (g_allTests.emplace_back(
                 &TestWrapper<TypeAtIndex<I, Indexer>>::run,
-                std::string(name) + '<' + typeToString<TypeAtIndex<I, Indexer>>() + '>'),
+                name + typeToString<TypeAtIndex<I, Indexer>>() + '>'),
             0)...};
     auto &&unused = [](decltype(x)) {};
     unused(x);
@@ -1394,7 +1394,7 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
 #define TEST_CATCH(name_, exception_) REAL_TEST_CATCH(name_, exception_)
 #endif
 
-int main(int argc, char **argv)  //{{{1
+int Vc_CDECL main(int argc, char **argv)  //{{{1
 {
     UnitTest::initTest(argc, argv);
     UnitTest::runAll();

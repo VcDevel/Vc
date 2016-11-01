@@ -51,10 +51,11 @@ template <typename V, typename MT, typename IT>
 Vc_ALWAYS_INLINE void executeGather(SetIndexZeroT,
                                     V &v,
                                     const MT *mem,
-                                    IT indexes,
+                                    IT &&indexes_,
                                     typename V::MaskArgument mask)
 {
-    indexes.setZeroInverted(static_cast<typename IT::Mask>(mask));
+    auto indexes = std::forward<IT>(indexes_);
+    indexes.setZeroInverted(static_cast<decltype(!indexes)>(mask));
     const V tmp(mem, indexes);
     where(mask) | v = tmp;
 }
@@ -82,6 +83,7 @@ Vc_ALWAYS_INLINE void executeGather(BitScanLoopT,
                                     const IT &indexes,
                                     typename V::MaskArgument mask)
 {
+#ifdef Vc_GNU_ASM
     size_t bits = mask.toInt();
     while (Vc_IS_LIKELY(bits > 0)) {
         size_t i, j;
@@ -93,15 +95,15 @@ Vc_ALWAYS_INLINE void executeGather(BitScanLoopT,
         v[i] = mem[indexes[i]];
         v[j] = mem[indexes[j]];
     }
-
-    /* Alternative from Vc::SSE (0.7)
+#else
+    // Alternative from Vc::SSE (0.7)
     int bits = mask.toInt();
     while (bits) {
         const int i = _bit_scan_forward(bits);
-        bits &= ~(1 << i); // btr?
-        d.set(i, ith_value(i));
+	bits &= bits - 1;
+	v[i] = mem[indexes[i]];
     }
-    */
+#endif  // Vc_GNU_ASM
 }
 
 template <typename V, typename MT, typename IT>
@@ -110,7 +112,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     const MT *mem,
                                     const IT &indexes,
                                     typename V::MaskArgument mask,
-                                    enable_if<V::size() == 16> = nullarg)
+                                    enable_if<V::Size == 16> = nullarg)
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
@@ -186,7 +188,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     const MT *mem,
                                     const IT &indexes,
                                     typename V::MaskArgument mask,
-                                    enable_if<V::size() == 8> = nullarg)
+                                    enable_if<V::Size == 8> = nullarg)
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
@@ -230,7 +232,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     const MT *mem,
                                     const IT &indexes,
                                     typename V::MaskArgument mask,
-                                    enable_if<V::size() == 4> = nullarg)
+                                    enable_if<V::Size == 4> = nullarg)
 {
     unsigned int bits = mask.toInt();
     unsigned int low, high = 0;
@@ -258,7 +260,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
                                     const MT *mem,
                                     const IT &indexes,
                                     typename V::MaskArgument mask,
-                                    enable_if<V::size() == 2> = nullarg)
+                                    enable_if<V::Size == 2> = nullarg)
 {
     unsigned int bits = mask.toInt();
     unsigned int low;

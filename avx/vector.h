@@ -82,7 +82,7 @@ public:
     using mask_type = typename traits_type::mask_type;
     using Mask = mask_type;
     using MaskType = mask_type;
-    using MaskArg Vc_DEPRECATED("Use MaskArgument instead.") = typename Mask::AsArg;
+    using MaskArg Vc_DEPRECATED_ALIAS("Use MaskArgument instead.") = typename Mask::AsArg;
     using MaskArgument = typename Mask::AsArg;
     using reference = Detail::ElementReference<Vector>;
 
@@ -107,13 +107,8 @@ public:
                                           SimdArray<int, Size, SSE::int_v, 4>,
                                           SimdArray<int, Size, Scalar::int_v, 1>>::type IndexType;
 #endif
-#ifdef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
-        typedef const Vector<T, abi> &AsArg;
-        typedef const VectorType &VectorTypeArg;
-#else
         typedef Vector<T, abi> AsArg;
         typedef VectorType VectorTypeArg;
-#endif
 
     protected:
         template <typename U> using V = Vector<U, abi>;
@@ -125,8 +120,7 @@ public:
         typedef AVX::VectorHelper<T> HT;
 
         // cast any m256/m128 to VectorType
-        template <typename V>
-        static Vc_INTRINSIC VectorType _cast(Vc_ALIGNED_PARAMETER(V) v)
+        template <typename V> static Vc_INTRINSIC VectorType _cast(V v)
         {
             return AVX::avx_cast<VectorType>(v);
         }
@@ -150,9 +144,8 @@ public:
         // implict conversion from compatible Vector<U, abi>
         template <typename U>
         Vc_INTRINSIC Vector(
-            Vc_ALIGNED_PARAMETER(V<U>) x,
-            typename std::enable_if<Traits::is_implicit_cast_allowed<U, T>::value,
-                                    void *>::type = nullptr)
+            V<U> x, typename std::enable_if<Traits::is_implicit_cast_allowed<U, T>::value,
+                                            void *>::type = nullptr)
             : d(AVX::convert<U, T>(x.data()))
         {
         }
@@ -162,7 +155,7 @@ public:
         template <typename U>
         Vc_DEPRECATED("use simd_cast instead of explicit type casting to convert between "
                       "vector types") Vc_INTRINSIC explicit Vector(
-            Vc_ALIGNED_PARAMETER(V<U>) x,
+            V<U> x,
             typename std::enable_if<!Traits::is_implicit_cast_allowed<U, T>::value,
                                     void *>::type = nullptr)
             : d(Detail::zeroExtendIfNeeded(AVX::convert<U, T>(x.data())))

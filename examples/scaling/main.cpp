@@ -149,7 +149,7 @@ struct ScaleWorkingSetSize
     }
 };
 
-int main()
+int Vc_CDECL main()
 {
     ScaleWorkingSetSize<256, 4, 10, 2>()();
     printf("%10s | %4s | %4s\n", "Working-Set Size", "FLOPs per Byte", "Throughput (FLOPs/Cycle)");

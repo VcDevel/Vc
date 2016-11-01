@@ -55,9 +55,11 @@ struct NextPowerOfTwo<x, false>
  */
 template <size_t A>
 struct BoundedAlignment : public std::integral_constant<size_t,
-#ifdef Vc_GCC
+#if defined Vc_MSVC || defined Vc_GCC
                                                         ((A - 1) &
-#ifdef __AVX__
+#ifdef Vc_MSVC
+                                                         31
+#elif defined __AVX__
                                                          255
 #else
                                                          127

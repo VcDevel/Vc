@@ -1,5 +1,6 @@
 #include <Vc/Vc>
 #include <Vc/IO>
+#include <Vc/support.h>
 
 #define CAT(a, b) a##b
 #define name(a, b) CAT(a, b)

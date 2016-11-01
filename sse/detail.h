@@ -45,10 +45,134 @@ template <typename V, typename DstT> struct LoadTag
 {
 };
 
+// when_(un)aligned{{{2
+class when_aligned
+{
+public:
+    template <typename F> constexpr when_aligned(F, typename F::EnableIfAligned = nullptr)
+    {
+    }
+};
+
+class when_unaligned
+{
+public:
+    template <typename F>
+    constexpr when_unaligned(F, typename F::EnableIfUnaligned = nullptr)
+    {
+    }
+};
+
+class when_streaming
+{
+public:
+    template <typename F>
+    constexpr when_streaming(F, typename F::EnableIfStreaming = nullptr)
+    {
+    }
+};
+
+// load16{{{2
+Vc_INTRINSIC __m128 load16(const float *mem, when_aligned)
+{
+    return _mm_load_ps(mem);
+}
+Vc_INTRINSIC __m128 load16(const float *mem, when_unaligned)
+{
+    return _mm_loadu_ps(mem);
+}
+Vc_INTRINSIC __m128 load16(const float *mem, when_streaming)
+{
+    return SseIntrinsics::_mm_stream_load(mem);
+}
+Vc_INTRINSIC __m128d load16(const double *mem, when_aligned)
+{
+    return _mm_load_pd(mem);
+}
+Vc_INTRINSIC __m128d load16(const double *mem, when_unaligned)
+{
+    return _mm_loadu_pd(mem);
+}
+Vc_INTRINSIC __m128d load16(const double *mem, when_streaming)
+{
+    return SseIntrinsics::_mm_stream_load(mem);
+}
+template <class T> Vc_INTRINSIC __m128i load16(const T *mem, when_aligned)
+{
+    static_assert(std::is_integral<T>::value, "load16<T> is only intended for integral T");
+    return _mm_load_si128(reinterpret_cast<const __m128i *>(mem));
+}
+template <class T> Vc_INTRINSIC __m128i load16(const T *mem, when_unaligned)
+{
+    static_assert(std::is_integral<T>::value, "load16<T> is only intended for integral T");
+    return _mm_loadu_si128(reinterpret_cast<const __m128i *>(mem));
+}
+template <class T> Vc_INTRINSIC __m128i load16(const T *mem, when_streaming)
+{
+    static_assert(std::is_integral<T>::value, "load16<T> is only intended for integral T");
+    return SseIntrinsics::_mm_stream_load(mem);
+}
+
+// MSVC workarounds{{{2
+#ifdef Vc_MSVC
+// work around: "fatal error C1001: An internal error has occurred in the compiler."
+template <typename V, typename DstT, typename F>
+Vc_INTRINSIC __m128d load(const double *mem, F f,
+                          enable_if<(std::is_same<DstT, double>::value &&
+                                     std::is_same<V, __m128d>::value)> = nullarg)
+{
+    return load16(mem, f);
+}
+
+template <typename V, typename DstT, typename F>
+Vc_INTRINSIC __m128 load(const float *mem, F f,
+                         enable_if<(std::is_same<DstT, float>::value &&
+                                    std::is_same<V, __m128>::value)> = nullarg)
+{
+    return load16(mem, f);
+}
+
+template <typename V, typename DstT, typename F>
+Vc_INTRINSIC __m128i load(const uint *mem, F f,
+                          enable_if<(std::is_same<DstT, uint>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return load16(mem, f);
+}
+
+template <typename V, typename DstT, typename F>
+Vc_INTRINSIC __m128i load(const int *mem, F f,
+                          enable_if<(std::is_same<DstT, int>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return load16(mem, f);
+}
+
+template <typename V, typename DstT, typename F>
+Vc_INTRINSIC __m128i load(const short *mem, F f,
+                          enable_if<(std::is_same<DstT, short>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return load16(mem, f);
+}
+
+template <typename V, typename DstT, typename F>
+Vc_INTRINSIC __m128i load(const ushort *mem, F f,
+                          enable_if<(std::is_same<DstT, ushort>::value &&
+                                     std::is_same<V, __m128i>::value)> = nullarg)
+{
+    return load16(mem, f);
+}
+#endif  // Vc_MSVC
+
+// generic load{{{2
 template <typename V, typename DstT, typename SrcT, typename Flags,
-          typename =
-              enable_if<(!std::is_integral<DstT>::value ||
-                         !std::is_integral<SrcT>::value || sizeof(DstT) >= sizeof(SrcT))>>
+          typename = enable_if<
+#ifdef Vc_MSVC
+              !std::is_same<DstT, SrcT>::value &&
+#endif
+              (!std::is_integral<DstT>::value || !std::is_integral<SrcT>::value ||
+               sizeof(DstT) >= sizeof(SrcT))>>
 Vc_INTRINSIC V load(const SrcT *mem, Flags flags)
 {
     return load(mem, flags, LoadTag<V, DstT>());
@@ -650,9 +774,8 @@ Vc_INTRINSIC  uchar max(__m128i a,  uchar) {
 
 // sorted{{{1
 template <Vc::Implementation, typename T>
-Vc_CONST_L SSE::Vector<T> sorted(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) x) Vc_CONST_R;
-template <typename T>
-Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(Vc_ALIGNED_PARAMETER(SSE::Vector<T>) x)
+Vc_CONST_L SSE::Vector<T> sorted(SSE::Vector<T> x) Vc_CONST_R;
+template <typename T> Vc_INTRINSIC Vc_CONST SSE::Vector<T> sorted(SSE::Vector<T> x)
 {
     static_assert(!CurrentImplementation::is(ScalarImpl),
                   "Detail::sorted can only be instantiated if a non-Scalar "
@@ -672,8 +795,7 @@ template <typename V> constexpr int sanitize(int n)
 
 // rotated{{{1
 template <typename T, size_t N, typename V>
-static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> rotated(
-    Vc_ALIGNED_PARAMETER(V) v, int amount)
+static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> rotated(V v, int amount)
 {
     using namespace SSE;
     switch (static_cast<unsigned int>(amount) % N) {
@@ -750,7 +872,8 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
     {
-#ifdef Vc_USE_MASKMOV_SCATTER
+#if defined Vc_USE_MASKMOV_SCATTER && !defined Vc_MSVC
+        // MSVC fails to compile the MMX intrinsics
         const __m64 mask = _mm_set_pi16(0, -1, -1, -1);
         const __m128i tmp0 = _mm_unpacklo_epi16(v0.data(), v2.data());
         const __m128i tmp1 = _mm_unpackhi_epi16(v0.data(), v2.data());

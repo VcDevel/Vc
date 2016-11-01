@@ -13,4 +13,4 @@ float_m mask_test(float_m a, float_m b)
     return a & b;
 }
 
-int main() { return 0; }
+int Vc_CDECL main() { return 0; }

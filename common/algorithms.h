@@ -144,6 +144,72 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
     return std::for_each(first, last, std::move(f));
 }
 
+///////////////////////////////////////////////////////////////////////////////
+template <typename InputIt, typename UnaryFunction>
+inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
+                     Traits::is_functor_argument_immutable<
+                         UnaryFunction, Vector<typename InputIt::value_type>>::value,
+                 UnaryFunction>
+simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
+{
+    typename std::make_signed<size_t>::type len = count;
+    typedef Vector<typename InputIt::value_type> V;
+    typedef Scalar::Vector<typename InputIt::value_type> V1;
+    for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
+               (V::MemoryAlignment - 1) &&
+           len != 0;
+         --len, ++first) {
+        f(V1(std::addressof(*first), Vc::Aligned));
+    }
+    for (; len >= int(V::Size); len -= V::Size, first += V::Size) {
+        f(V(std::addressof(*first), Vc::Aligned));
+    }
+    for (; len != 0; --len, ++first) {
+        f(V1(std::addressof(*first), Vc::Aligned));
+    }
+    return std::move(f);
+}
+
+template <typename InputIt, typename UnaryFunction>
+inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
+                     !Traits::is_functor_argument_immutable<
+                         UnaryFunction, Vector<typename InputIt::value_type>>::value,
+                 UnaryFunction>
+simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
+{
+    typename std::make_signed<size_t>::type len = count;
+    typedef Vector<typename InputIt::value_type> V;
+    typedef Scalar::Vector<typename InputIt::value_type> V1;
+    for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
+               (V::MemoryAlignment - 1) &&
+           len != 0;
+         --len, ++first) {
+        V1 tmp(std::addressof(*first), Vc::Aligned);
+        f(tmp);
+        tmp.store(std::addressof(*first), Vc::Aligned);
+    }
+    for (; len >= int(V::Size); len -= V::Size, first += V::Size) {
+        V tmp(std::addressof(*first), Vc::Aligned);
+        f(tmp);
+        tmp.store(std::addressof(*first), Vc::Aligned);
+    }
+    for (; len != 0; --len, ++first) {
+        V1 tmp(std::addressof(*first), Vc::Aligned);
+        f(tmp);
+        tmp.store(std::addressof(*first), Vc::Aligned);
+    }
+    return std::move(f);
+}
+
+#ifdef Vc_CXX17
+template <typename InputIt, typename UnaryFunction>
+inline enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction>
+simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
+{
+    return std::for_each_n(first, count, std::move(f));
+}
+#endif
+
 }  // namespace Vc
 
 #endif // VC_COMMON_ALGORITHMS_H_

@@ -216,6 +216,12 @@ constexpr size_t determine_tuple_size(size_t = T::tuple_size)
     return TupleSize;
 }
 
+// workaround for MSVC limitation: constexpr functions in template arguments
+// confuse the compiler
+template <typename T> struct determine_tuple_size_
+: public std::integral_constant<size_t, determine_tuple_size<T>()>
+{};
+
 namespace
 {
 template <typename T> struct The_simdization_for_the_requested_type_is_not_implemented;
@@ -260,7 +266,7 @@ using simdize = typename SimdizeDetail::ReplaceTypes<T, N, MT>::type;
  */
 template <typename T, size_t N, typename MT>
 struct ReplaceTypes<T, N, MT, Category::ArithmeticVectorizable>
-    : public conditional<(N == 0 || Vector<T>::size() == N), Vector<T>, SimdArray<T, N>>
+    : public conditional<(N == 0 || Vector<T>::Size == N), Vector<T>, SimdArray<T, N>>
 {
 };
 
@@ -270,7 +276,7 @@ struct ReplaceTypes<T, N, MT, Category::ArithmeticVectorizable>
  */
 template <size_t N, typename MT>
 struct ReplaceTypes<bool, N, MT, Category::ArithmeticVectorizable>
-    : public conditional<(N == 0 || Mask<MT>::size() == N), Mask<MT>,
+    : public conditional<(N == 0 || Mask<MT>::Size == N), Mask<MT>,
                          SimdMaskArray<MT, N>>
 {
 };
@@ -305,7 +311,7 @@ private:
      * If \p U::size() yields a constant expression convertible to size_t then value will
      * be equal to U::size(), 0 otherwise.
      */
-    template <typename U, size_t M = U::size()>
+    template <typename U, size_t M = U::Size>
     static std::integral_constant<size_t, M> size_or_0(int);
     template <typename U> static std::integral_constant<size_t, 0> size_or_0(...);
 
@@ -356,50 +362,53 @@ template <typename R0, typename R1, typename R2> struct SubstitutedBase<3, R0, R
               ValueT... Values>
     using SubstitutedWithValues = C<R0, R1, R2, Values...>;
 };
+#if defined Vc_ICC || defined Vc_MSVC
+#define Vc_VALUE_PACK_EXPANSION_IS_BROKEN 1
+#endif
 ///\internal Specialization for four type parameters.
 template <typename... Replaced> struct SubstitutedBase<4, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT,
               template <typename, typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 ///\internal Specialization for five type parameters.
 template <typename... Replaced> struct SubstitutedBase<5, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 ///\internal Specialization for six type parameters.
 template <typename... Replaced> struct SubstitutedBase<6, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 ///\internal Specialization for seven type parameters.
 template <typename... Replaced> struct SubstitutedBase<7, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 ///\internal Specialization for eight type parameters.
 template <typename... Replaced> struct SubstitutedBase<8, Replaced...> {
-#ifndef Vc_ICC
+#ifndef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
     template <typename ValueT, template <typename, typename, typename, typename, typename,
                                          typename, typename, typename, ValueT...> class C,
               ValueT... Values>
     using SubstitutedWithValues = C<Replaced..., Values...>;
-#endif // Vc_ICC
+#endif // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 };
 
 /**\internal
@@ -473,7 +482,7 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
  * templates with non-type parameters. This is impossible to express with variadic
  * templates and therefore requires a lot of code duplication.
  */
-#ifdef Vc_ICC
+#ifdef Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 // ICC barfs on packs of values
 #define Vc_DEFINE_NONTYPE_REPLACETYPES_(ValueType_)                                      \
     template <template <typename, ValueType_...> class C, typename T, ValueType_ Value0, \
@@ -626,7 +635,7 @@ struct ReplaceTypes<C<Ts...>, N, MT, Category::ClassTemplate>
             C<T0, T1, T2, Value0, Values...>,                                            \
             Adapter<C<T0, T1, T2, Value0, Values...>, Substituted, NN>> type;            \
     }
-#endif  // Vc_ICC
+#endif  // Vc_VALUE_PACK_EXPANSION_IS_BROKEN
 Vc_DEFINE_NONTYPE_REPLACETYPES_(bool);
 Vc_DEFINE_NONTYPE_REPLACETYPES_(wchar_t);
 Vc_DEFINE_NONTYPE_REPLACETYPES_(char);
@@ -650,7 +659,13 @@ template <typename Class, typename... Args, typename = decltype(Class(create<Arg
 char test(int);
 #else
 template <typename Class, typename... Args>
-typename std::conditional<sizeof(Class(create<Args>()...)), char, char>::type test(int);
+typename std::conditional<
+#ifndef Vc_ICC
+    0 !=
+#endif
+        sizeof(Class(create<Args>()...)),
+    char, char>::type
+test(int);
 #endif
 template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_single_paren_impl
@@ -681,7 +696,13 @@ template <typename Class, typename... Args, typename = decltype(Class{create<Arg
 char test(int);
 #else
 template <typename Class, typename... Args>
-typename std::conditional<sizeof(Class{create<Args>()...}), char, char>::type test(int);
+typename std::conditional<
+#ifndef Vc_ICC
+    0 !=
+#endif
+        sizeof(Class{create<Args>()...}),
+    char, char>::type
+test(int);
 #endif
 template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_single_brace_impl
@@ -713,7 +734,13 @@ template <typename Class, typename... Args,
 char test(int);
 #else
 template <typename Class, typename... Args>
-typename std::conditional<sizeof(Class{{create<Args>()...}}), char, char>::type test(int);
+typename std::conditional<
+#ifndef Vc_ICC
+    0 !=
+#endif
+        sizeof(Class{{create<Args>()...}}),
+    char, char>::type
+test(int);
 #endif
 template <typename Class, typename... Args> double test(...);
 }  // namespace is_constructible_with_double_brace_impl
@@ -833,7 +860,7 @@ public:
     Adapter &operator=(Adapter &&) = default;
 
     /// Broadcast constructor
-    template <typename U, size_t TupleSize = determine_tuple_size<Scalar>(),
+    template <typename U, size_t TupleSize = determine_tuple_size_<Scalar>::value,
               typename Seq = Vc::make_index_sequence<TupleSize>,
               typename = enable_if<std::is_convertible<U, Scalar>::value>>
     Adapter(U &&x_)
@@ -882,27 +909,27 @@ public:
  * require the compares to be bool based.
  */
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator==(
+inline void operator==(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator!=(
+inline void operator!=(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator<=(
+inline void operator<=(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator>=(
+inline void operator>=(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator<(
+inline void operator<(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, size_t N>
-inline bool operator>(
+inline void operator>(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 
@@ -1374,7 +1401,7 @@ template <typename T, size_t N,
           IteratorDetails::Mutable M =
               (Traits::is_output_iterator<T>::value ? Mutable::Yes : Mutable::No),
           typename V = simdize<typename std::iterator_traits<T>::value_type, N>,
-          size_t Size = V::size(),
+          size_t Size = V::Size,
           typename = typename std::iterator_traits<T>::iterator_category>
 class Iterator;
 
@@ -1459,11 +1486,19 @@ public:
      */
     bool operator==(const Iterator &rhs) const
     {
-        T it(scalar_it);
-        for (size_t i = 1; i < Size; ++i) {
-            Vc_ASSERT((++it != rhs.scalar_it));
+#ifndef NDEBUG
+        if (scalar_it == rhs.scalar_it) {
+            return true;
+        } else {
+            T it(scalar_it);
+            for (size_t i = 1; i < Size; ++i) {
+                Vc_ASSERT((++it != rhs.scalar_it));
+            }
+            return false;
         }
+#else
         return scalar_it == rhs.scalar_it;
+#endif
     }
     /**
      * Returns whether the two iterators point to different scalar entries.
@@ -1475,11 +1510,7 @@ public:
      */
     bool operator!=(const Iterator &rhs) const
     {
-        T it(scalar_it);
-        for (size_t i = 1; i < Size; ++i) {
-            Vc_ASSERT((++it != rhs.scalar_it));
-        }
-        return scalar_it != rhs.scalar_it;
+        return !operator==(rhs);
     }
 
     pointer operator->() { return scalar_it; }
@@ -1585,14 +1616,14 @@ public:
 
     Iterator &operator+=(difference_type n)
     {
-        scalar_it += n * Size;
+        scalar_it += n * difference_type(Size);
         return *this;
     }
     Iterator operator+(difference_type n) const { return Iterator(*this) += n; }
 
     Iterator &operator-=(difference_type n)
     {
-        scalar_it -= n * Size;
+        scalar_it -= n * difference_type(Size);
         return *this;
     }
     Iterator operator-(difference_type n) const { return Iterator(*this) -= n; }
@@ -1615,22 +1646,22 @@ public:
      */
     bool operator<(const Iterator &rhs) const
     {
-        return scalar_it + Size <= rhs.scalar_it;
+        return rhs.scalar_it - scalar_it >= difference_type(Size);
     }
 
     bool operator>(const Iterator &rhs) const
     {
-        return scalar_it >= rhs.scalar_it + Size;
+        return scalar_it - rhs.scalar_it >= difference_type(Size);
     }
 
     bool operator<=(const Iterator &rhs) const
     {
-        return scalar_it + (Size - 1) <= rhs.scalar_it;
+        return rhs.scalar_it - scalar_it >= difference_type(Size) - 1;
     }
 
     bool operator>=(const Iterator &rhs) const
     {
-        return scalar_it >= rhs.scalar_it + (Size - 1);
+        return scalar_it - rhs.scalar_it >= difference_type(Size) - 1;
     }
 
     reference operator[](difference_type i) { return *(*this + i); }
@@ -1677,13 +1708,13 @@ struct ReplaceTypes<T, N, MT, Category::RandomAccessIterator>
  */
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::size() == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size_<S>::value && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &, const U &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M, typename U,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size_<S>::value && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask, const U &rhs)
 {
     using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;
@@ -1693,13 +1724,13 @@ Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset>
-Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size<S>() && M::size() == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset >= determine_tuple_size_<S>::value && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &, const M &)
 {
 }
 template <Vc::Operator Op, typename S, typename T, std::size_t N, typename M,
           std::size_t Offset = 0>
-Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size<S>() && M::size() == N), void>
+Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size_<S>::value && M::Size == N), void>
     conditional_assign(Adapter<S, T, N> &lhs, const M &mask)
 {
     using V = typename std::decay<decltype(get_dispatcher<Offset>(lhs))>::type;
@@ -1763,7 +1794,7 @@ using simdize = SimdizeDetail::simdize<T, N, MT>;
         return std::get<N_>(std::tie MEMBERS_);                                          \
     }                                                                                    \
     enum : std::size_t {                                                                 \
-        tuple_size = std::tuple_size<decltype(std::tie MEMBERS_)>::value                 \
+        tuple_size = std::tuple_size<decltype(std::make_tuple MEMBERS_)>::value          \
     }
 
 }  // namespace Vc

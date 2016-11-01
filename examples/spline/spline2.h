@@ -142,7 +142,7 @@ inline float Spline2::GetSpline2(float *v, float x)
 }
 
 // spline 3-st order,  4 points, da = a - point 1 {{{1
-template <typename T> static __attribute__((always_inline)) inline T GetSpline3(T v0, T v1, T v2, T v3, T x)
+template <typename T> static Vc_ALWAYS_INLINE T GetSpline3(T v0, T v1, T v2, T v3, T x)
 {
     const T dv = v2 - v1;
     const T z0 = 0.5f * (v2 - v0);
@@ -150,7 +150,7 @@ template <typename T> static __attribute__((always_inline)) inline T GetSpline3(
     return (x * x) * ((z1 - dv) * (x - 1) + (z0 - dv) * (x - 2)) + (z0 * x + v1);
 }
 
-template <typename T> static __attribute__((always_inline)) inline T GetSpline3(const T v[], T x)
+template <typename T> static Vc_ALWAYS_INLINE T GetSpline3(const T v[], T x)
 {
     return GetSpline3(v[0], v[1], v[2], v[3], x);
 }

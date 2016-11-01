@@ -41,8 +41,8 @@ namespace MIC
 template<typename T> struct SortHelper
 {
     typedef typename VectorTypeHelper<T>::Type VectorType;
-    static VectorType sort(Vc_ALIGNED_PARAMETER(VectorType));
-    template<typename... Vs> static std::tuple<Vs...> sort(Vc_ALIGNED_PARAMETER(std::tuple<Vs...>));
+    static VectorType sort(VectorType);
+    template <typename... Vs> static std::tuple<Vs...> sort(std::tuple<Vs...>);
 };
 
 }  // namespace MIC

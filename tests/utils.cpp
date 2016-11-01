@@ -359,11 +359,15 @@ TEST(testIifBuiltin)
 // testNonMemberInterleave{{{1
 TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(9), SIMD_ARRAYS(8)))
 {
+    using T = typename V::EntryType;
     for (int repeat = 0; repeat < 10; ++repeat) {
         std::array<V, 2> testValues = {V::IndexesFromZero(), V::IndexesFromZero() + int(V::Size)};
         std::array<V, 2> references;
-        for (size_t i = 0; i < 2 * V::Size; ++i) {
-            references[i / V::Size][i % V::Size] = testValues[i & 1][i >> 1];
+        for (size_t i = 0; i < V::Size; ++i) {
+            size_t ii = 2 * i;
+            references[ii / V::Size][ii % V::Size] = T(i);
+            ++ii;
+            references[ii / V::Size][ii % V::Size] = T(i + V::Size);
         }
         std::tie(testValues[0], testValues[1]) = interleave(testValues[0], testValues[1]);
         COMPARE(testValues[0], references[0]);

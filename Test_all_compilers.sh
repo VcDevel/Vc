@@ -39,6 +39,7 @@ supports32Bit() {
 #include <algorithm>
 #include <string>
 #include <iostream>
+#include <cerrno>
 void foo(int x) { switch (x) { case 0x0A: break; case 0x0B: break; case 0x0C: break; case 0x0D: break; case 0x0E: break; } }
 int main() { std::cout << "Hello World!\n"; return 0; }
 END
@@ -54,6 +55,7 @@ supportsx32() {
 #include <algorithm>
 #include <string>
 #include <iostream>
+#include <cerrno>
 void foo(int x) { switch (x) { case 0x0A: break; case 0x0B: break; case 0x0C: break; case 0x0D: break; case 0x0E: break; } }
 int main() { std::cout << "Hello World!\n"; return 0; }
 END

@@ -138,7 +138,8 @@ template<> Vc_ALWAYS_INLINE __m128 mask_load<4>(const bool *mem)
 }
 template<> Vc_ALWAYS_INLINE __m128 mask_load<2>(const bool *mem)
 {
-    return sse_cast<__m128>(_mm_set_epi32(-mem[1], -mem[1], -mem[0], -mem[0]));
+    return sse_cast<__m128>(
+        _mm_set_epi32(-int(mem[1]), -int(mem[1]), -int(mem[0]), -int(mem[0])));
 }
 /*}}}*/
 // is_equal{{{

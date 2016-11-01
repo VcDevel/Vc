@@ -129,7 +129,7 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
     using simd_array_type = SimdArray<
         typename std::conditional<Traits::is_simd_vector<type_decayed>::value,
                                   typename type_decayed::EntryType, float>::type,
-        type_decayed::size() / Pieces>;
+        type_decayed::Size / Pieces>;
 
     type data;
 
@@ -156,7 +156,7 @@ struct Segment<T_ *, Pieces_, Index_> {
     using simd_array_type = SimdArray<
         typename std::conditional<Traits::is_simd_vector<type_decayed>::value,
                                   typename type_decayed::VectorEntryType, float>::type,
-        type_decayed::size() / Pieces> *;
+        type_decayed::Size / Pieces> *;
 
     type data;
 
@@ -473,20 +473,21 @@ static Vc_INTRINSIC typename V::Mask *actual_value(Op, SimdMaskArray<U, M, V, M>
 
 ///\internal transforms \p arg via actual_value
 template <typename Op, typename Arg>
-decltype(actual_value(std::declval<Op &>(), std::declval<Arg>())) conditionalUnpack(
-    std::true_type, Op op, Arg &&arg)
+Vc_INTRINSIC decltype(actual_value(std::declval<Op &>(), std::declval<Arg>()))
+conditionalUnpack(std::true_type, Op op, Arg &&arg)
 {
     return actual_value(op, std::forward<Arg>(arg));
 }
 ///\internal forwards \p arg to its return value
-template <typename Op, typename Arg> Arg conditionalUnpack(std::false_type, Op, Arg &&arg)
+template <typename Op, typename Arg>
+Vc_INTRINSIC Arg conditionalUnpack(std::false_type, Op, Arg &&arg)
 {
     return std::forward<Arg>(arg);
 }
 
 ///\internal true-/false_type that selects whether the argument with index B should be unpacked
 template <size_t A, size_t B>
-struct selectorType : public std::integral_constant<bool, !((A & (1 << B)) != 0)> {
+struct selectorType : public std::integral_constant<bool, !((A & (size_t(1) << B)) != 0)> {
 };
 
 ///\internal ends the recursion, transforms arguments, and calls \p op
@@ -503,7 +504,7 @@ unpackArgumentsAutoImpl(int, index_sequence<Indexes...>, Op op, R &&r, Args &&..
 
 ///\internal the current actual_value calls don't work: recurse to I + 1
 template <size_t I, typename Op, typename R, typename... Args, size_t... Indexes>
-Vc_INTRINSIC enable_if<(I <= (1 << sizeof...(Args))), void> unpackArgumentsAutoImpl(
+Vc_INTRINSIC enable_if<(I <= (size_t(1) << sizeof...(Args))), void> unpackArgumentsAutoImpl(
     float, index_sequence<Indexes...> is, Op op, R &&r, Args &&... args)
 {
     // if R is nullptr_t then the return type cannot enforce that actually any unwrapping

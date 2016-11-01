@@ -111,7 +111,7 @@ inline Matrix<T, N> operator*(const Matrix<T, N> &a, const Matrix<T, N> &b)
         // The iteration over the column index of b and c uses a stride of V::size(). This
         // enables row-vector loads (from b) and stores (to c). The matrix storage is
         // padded accordingly, ensuring correct bounds and alignment.
-        for (int j = 0; j < NN; j += V::size()) {
+        for (int j = 0; j < NN; j += int(V::size())) {
             // This temporary variables are used to accumulate the results of the products
             // producing the new values for the c matrix. This variable is necessary
             // because we need a V object for data-parallel accumulation. Storing to c
@@ -133,7 +133,7 @@ inline Matrix<T, N> operator*(const Matrix<T, N> &a, const Matrix<T, N> &b)
         }
     }
     // This final loop treats the remaining NN - N0 rows.
-    for (int j = 0; j < NN; j += V::size()) {
+    for (int j = 0; j < NN; j += int(V::size())) {
         V c_ij[UnrollOuterloop];
         for (int n = N0; n < NN; ++n) {
             c_ij[n - N0] = a[n][0] * V(&b[0][j], Vc::Aligned);
@@ -242,7 +242,13 @@ std::ostream &operator<<(std::ostream &out, const M<T, N> &m)
     return out << " ⎦\n";
 }
 
+#ifdef Vc_MSVC
+#pragma optimize("", off)
+template <typename T> void unused(T &&x) { x = x; }
+#pragma optimize("", on)
+#else
 template <typename T> void unused(T &&x) { asm("" ::"m"(x)); }
+#endif
 
 template <size_t N, typename F> Vc_ALWAYS_INLINE void benchmark(F &&f)
 {
@@ -279,42 +285,40 @@ template <size_t N> void run()
         }
     }
     std::cout << std::setw(2) << N;
-    benchmark<N>([&] {
-#ifdef Vc_ICC
-        asm("" :: "r"(&A), "r"(&B));
+#if defined Vc_MSVC
+    auto &&fakeModify = [](Matrix<float, N> &a, Matrix<float, N> &b) {
+        unused(a);
+        unused(b);
+    };
 #else
-        asm("" : "+m"(A), "+m"(B));
+    auto &&fakeModify = [](Matrix<float, N> &a, Matrix<float, N> &b) {
+#ifdef Vc_ICC
+        asm("" ::"r"(&a), "r"(&b));
+#else
+        asm("" : "+m"(a), "+m"(b));
 #endif
+    };
+#endif
+    benchmark<N>([&] {
+        fakeModify(A, B);
         return scalar_mul(A, B);
     });
     benchmark<N>([&] {
-#ifdef Vc_ICC
-        asm("" :: "r"(&A), "r"(&B));
-#else
-        asm("" : "+m"(A), "+m"(B));
-#endif
+        fakeModify(A, B);
         return scalar_mul_blocked(A, B);
     });
     benchmark<N>([&] {
-#ifdef Vc_ICC
-        asm("" :: "r"(&A), "r"(&B));
-#else
-        asm("" : "+m"(A), "+m"(B));
-#endif
+        fakeModify(A, B);
         return A * B;
     });
     benchmark<N>([&] {
-#ifdef Vc_ICC
-        asm("" :: "r"(&A), "r"(&B));
-#else
-        asm("" : "+m"(A), "+m"(B));
-#endif
+        fakeModify(A, B);
         return AV * BV;
     });
     std::cout << std::endl;
 }
 
-int main()
+int Vc_CDECL main()
 {
     std::cout << " N             scalar   scalar & blocked          Vector<T>           valarray\n";
     run< 4>();

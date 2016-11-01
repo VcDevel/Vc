@@ -303,21 +303,10 @@ macro(vc_set_preferred_compiler_flags)
          AddCompilerFlag("/wd4748") # Disable warning "/GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function" (I don't get it)
          add_definitions(-D_CRT_SECURE_NO_WARNINGS)
       endif()
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "/Gv") # default to __vectorcall
 
-      # MSVC does not support inline assembly on 64 bit! :(
-      # searching the help for xgetbv doesn't turn up anything. So just fall back to not supporting AVX on Windows :(
-      # TODO: apparently MSVC 2010 SP1 added _xgetbv
-      set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVc_NO_XGETBV")
-
-      # get rid of the min/max macros
-      set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DNOMINMAX")
-
-      # MSVC doesn't implement the XOP or FMA4 intrinsics
-      set(Vc_XOP_INTRINSICS_BROKEN true)
-      set(Vc_FMA4_INTRINSICS_BROKEN true)
-
-      if(MSVC_VERSION LESS 1700)
-         UserWarning("MSVC before 2012 has a broken std::vector::resize implementation. STL + Vc code will probably not compile.")
+      if(MSVC_VERSION LESS 1900)
+         UserWarning("MSVC before 2015 does not support enough of C++11")
       endif()
    elseif(Vc_COMPILER_IS_CLANG)
       ##################################################################################################

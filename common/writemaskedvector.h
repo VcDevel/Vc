@@ -120,7 +120,15 @@ public:
     }
 
 private:
+#ifdef Vc_ICC
+    // If ICC gets a by-value copy of Mask here, it'll generate a lot of superfluous
+    // stack-register copies.
     const Mask &mask;
+#else
+    // If Clang gets a const-ref Mask here, it'll miscompile some of the masked assignment
+    // statements.
+    const Mask mask;
+#endif
     V &vec;
 };
 }  // namespace Common

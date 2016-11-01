@@ -91,14 +91,14 @@ public:
     // conversion (casts)
     template <typename U, typename V>
     Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
-                                   enable_if<N == V::size()> = nullarg) Vc_INTRINSIC_R;
+                                   enable_if<N == V::Size> = nullarg) Vc_INTRINSIC_R;
     template <typename U, typename V>
     Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
-                                   enable_if<(N > V::size() && N <= 2 * V::size())> = nullarg)
+                                   enable_if<(N > V::Size && N <= 2 * V::Size)> = nullarg)
         Vc_INTRINSIC_R;
     template <typename U, typename V>
     Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
-                                   enable_if<(N > 2 * V::size() && N <= 4 * V::size())> = nullarg)
+                                   enable_if<(N > 2 * V::Size && N <= 4 * V::Size)> = nullarg)
         Vc_INTRINSIC_R;
 
     // conversion from any Segment object (could be SimdMaskArray or Mask<T>)
@@ -115,12 +115,10 @@ public:
                    Traits::simd_vector_size<M>::value == Size)> = nullarg) Vc_INTRINSIC_R;
 
     // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
-    template <typename M,
-              typename = enable_if<Traits::is_simd_mask<M>::value &&
-                                   !Traits::isSimdMaskArray<M>::value && M::size() == N>>
-    operator M() const
+    template <typename U, typename A, typename = enable_if<Vc::Mask<U, A>::Size == N>>
+    operator Vc::Mask<U, A>() const
     {
-        return simd_cast<M>(*this);
+        return simd_cast<Vc::Mask<U, A>>(data);
     }
 
     // load/store (from/to bool arrays)
@@ -264,9 +262,9 @@ private:
     // The alignas attribute attached to the class declaration above is ignored by ICC
     // 17.0.0 (at least). So just move the alignas attribute down here where it works for
     // all compilers.
-    alignas(Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value *
-                                     sizeof(VectorType_) / VectorType_::size()>::value)
-        storage_type data;
+    alignas(static_cast<std::size_t>(
+        Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value * sizeof(VectorType_) /
+                                 VectorType_::size()>::value)) storage_type data;
 };
 
 template <typename T, std::size_t N, typename VectorType> constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::Size;
@@ -385,12 +383,10 @@ public:
     }
 
     // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
-    template <typename M,
-              typename = enable_if<Traits::is_simd_mask<M>::value &&
-                                   !Traits::isSimdMaskArray<M>::value && M::size() == N>>
-    operator M() const
+    template <typename U, typename A, typename = enable_if<Vc::Mask<U, A>::Size == N>>
+    operator Vc::Mask<U, A>() const
     {
-        return simd_cast<M>(*this);
+        return simd_cast<Vc::Mask<U, A>>(data0, data1);
     }
 
     ///\copybrief Mask::Mask(VectorSpecialInitializerOne)
@@ -655,8 +651,9 @@ private:
     // The alignas attribute attached to the class declaration above is ignored by ICC
     // 17.0.0 (at least). So just move the alignas attribute down here where it works for
     // all compilers.
-    alignas(Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value * sizeof(V) /
-                                     V::size()>::value) storage_type0 data0;
+    alignas(static_cast<std::size_t>(
+        Common::BoundedAlignment<Common::NextPowerOfTwo<N>::value * sizeof(V) /
+                                 V::size()>::value)) storage_type0 data0;
     storage_type1 data1;
 };
 template <typename T, std::size_t N, typename V, std::size_t M>

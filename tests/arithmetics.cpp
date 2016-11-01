@@ -635,6 +635,12 @@ TEST_TYPES(V, testFma, ALL_TYPES)
         }
 #endif
     }
+#elif defined Vc_MSVC
+    if (std::is_same<typename V::abi, VectorAbi::Scalar>::value) {
+        if (std::is_floating_point<T>::value) {
+            UnitTest::EXPECT_FAILURE();
+        }
+    }
 #endif
     testFmaDispatch<V>(T());
 }

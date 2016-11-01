@@ -119,28 +119,28 @@ namespace Vc_VERSIONED_NAMESPACE
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
 simd_cast(From x, enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-                             SSE::Vector<typename To::EntryType>::size() == To::size())> =
+                             SSE::Vector<typename To::EntryType>::Size == To::Size)> =
                       nullarg);
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To simd_cast(
     From x0, From x1,
     enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-               SSE::Vector<typename To::EntryType>::size() == To::size())> = nullarg);
+               SSE::Vector<typename To::EntryType>::Size == To::Size)> = nullarg);
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To simd_cast(
     From x0, From x1, From x2,
     enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-               SSE::Vector<typename To::EntryType>::size() == To::size())> = nullarg);
+               SSE::Vector<typename To::EntryType>::Size == To::Size)> = nullarg);
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To simd_cast(
     From x0, From x1, From x2, From x3,
     enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-               SSE::Vector<typename To::EntryType>::size() == To::size())> = nullarg);
+               SSE::Vector<typename To::EntryType>::Size == To::Size)> = nullarg);
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To simd_cast(
     From x0, From x1, From x2, From x3, From x4, From x5, From x6, From x7,
     enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-               SSE::Vector<typename To::EntryType>::size() == To::size())> = nullarg);
+               SSE::Vector<typename To::EntryType>::Size == To::Size)> = nullarg);
 
 // Declarations: Vector casts without offset {{{1
 // AVX2::Vector {{{2
@@ -1182,7 +1182,7 @@ simd_cast(AVX2::Mask<T> x);
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
 simd_cast(From x, enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-                             SSE::Vector<typename To::EntryType>::size() == To::size())>)
+                             SSE::Vector<typename To::EntryType>::Size == To::Size)>)
 {
     return simd_cast<SSE::Vector<typename To::EntryType>>(x).data();
 }
@@ -1190,7 +1190,7 @@ template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
 simd_cast(From x0, From x1,
           enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-                     SSE::Vector<typename To::EntryType>::size() == To::size())>)
+                     SSE::Vector<typename To::EntryType>::Size == To::Size)>)
 {
     return simd_cast<SSE::Vector<typename To::EntryType>>(x0, x1).data();
 }
@@ -1198,7 +1198,7 @@ template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
 simd_cast(From x0, From x1, From x2,
           enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-                     SSE::Vector<typename To::EntryType>::size() == To::size())>)
+                     SSE::Vector<typename To::EntryType>::Size == To::Size)>)
 {
     return simd_cast<SSE::Vector<typename To::EntryType>>(x0, x1, x2).data();
 }
@@ -1206,7 +1206,7 @@ template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
 simd_cast(From x0, From x1, From x2, From x3,
           enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-                     SSE::Vector<typename To::EntryType>::size() == To::size())>)
+                     SSE::Vector<typename To::EntryType>::Size == To::Size)>)
 {
     return simd_cast<SSE::Vector<typename To::EntryType>>(x0, x1, x2, x3).data();
 }
@@ -1214,7 +1214,7 @@ template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
 simd_cast(From x0, From x1, From x2, From x3, From x4, From x5, From x6, From x7,
           enable_if<(AVX2::is_vector<To>::value && SSE::is_vector<From>::value &&
-                     SSE::Vector<typename To::EntryType>::size() == To::size())>)
+                     SSE::Vector<typename To::EntryType>::Size == To::Size)>)
 {
     return simd_cast<SSE::Vector<typename To::EntryType>>(x0, x1, x2, x3, x4, x5, x6, x7)
         .data();
@@ -1310,7 +1310,8 @@ Vc_SIMD_CAST_AVX_2(double_v,  short_v) {
     return AVX::zeroExtend(_mm_packs_epi32(tmp0, tmp1));
 }
 Vc_SIMD_CAST_AVX_2( float_v,  short_v) {
-    using namespace AVX2;
+    using AVX2::short_v;
+    using AVX2::int_v;
     return simd_cast<short_v>(simd_cast<int_v>(x0), simd_cast<int_v>(x1));
 }
 Vc_SIMD_CAST_AVX_2(   int_v,  short_v) {
@@ -1373,7 +1374,8 @@ Vc_SIMD_CAST_AVX_2(double_v, ushort_v) {
     return AVX::zeroExtend(_mm_packs_epi32(tmp0, tmp1));
 }
 Vc_SIMD_CAST_AVX_2( float_v, ushort_v) {
-    using namespace AVX2;
+    using AVX2::ushort_v;
+    using AVX2::int_v;
     return simd_cast<ushort_v>(simd_cast<int_v>(x0), simd_cast<int_v>(x1));
 }
 Vc_SIMD_CAST_AVX_2(   int_v, ushort_v) {
@@ -2579,8 +2581,16 @@ Vc_INTRINSIC Vc_CONST enable_if<(AVX2::is_vector<Return>::value && offset != 0),
     } else if (shift == 16) {
         return simd_cast<Return>(V{Mem::permute128<X1, Const0>(x.data())});
     } else {
+#ifdef Vc_MSVC
+#pragma warning(push)
+#pragma warning(disable : 4556)  // value of intrinsic immediate argument '-8' is out of
+                                 // range '0 - 255'
+#endif
         return simd_cast<Return>(V{AVX::avx_cast<typename V::VectorType>(
             _mm_srli_si128(AVX::avx_cast<__m128i>(AVX::hi128(x.data())), shift - 16))});
+#ifdef Vc_MSVC
+#pragma warning(pop)
+#endif
     }
 }
 // AVX2 to SSE (Vector<T>) {{{2
@@ -2631,7 +2641,7 @@ template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(const AVX2::Mask<T> &k,
           enable_if<(AVX2::is_mask<Return>::value && offset == 1 &&
-                     AVX2::Mask<T>::size() == Return::size() * 2)> = nullarg)
+                     AVX2::Mask<T>::Size == Return::Size * 2)> = nullarg)
 {
     const auto tmp = AVX::hi128(k.dataI());
     return AVX::concat(_mm_unpacklo_epi8(tmp, tmp), _mm_unpackhi_epi8(tmp, tmp));
@@ -2640,7 +2650,7 @@ template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(const AVX2::Mask<T> &k,
           enable_if<(AVX2::is_mask<Return>::value && offset == 1 &&
-                     AVX2::Mask<T>::size() == Return::size() * 4)> = nullarg)
+                     AVX2::Mask<T>::Size == Return::Size * 4)> = nullarg)
 {
     auto tmp = AVX::lo128(k.dataI());
     tmp = _mm_unpackhi_epi8(tmp, tmp);
@@ -2650,7 +2660,7 @@ template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(const AVX2::Mask<T> &k,
           enable_if<(AVX2::is_mask<Return>::value && offset == 2 &&
-                     AVX2::Mask<T>::size() == Return::size() * 4)> = nullarg)
+                     AVX2::Mask<T>::Size == Return::Size * 4)> = nullarg)
 {
     auto tmp = AVX::hi128(k.dataI());
     tmp = _mm_unpacklo_epi8(tmp, tmp);
@@ -2660,7 +2670,7 @@ template <typename Return, int offset, typename T>
 Vc_INTRINSIC Vc_CONST Return
 simd_cast(const AVX2::Mask<T> &k,
           enable_if<(AVX2::is_mask<Return>::value && offset == 3 &&
-                     AVX2::Mask<T>::size() == Return::size() * 4)> = nullarg)
+                     AVX2::Mask<T>::Size == Return::Size * 4)> = nullarg)
 {
     auto tmp = AVX::hi128(k.dataI());
     tmp = _mm_unpackhi_epi8(tmp, tmp);

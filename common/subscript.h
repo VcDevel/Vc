@@ -262,8 +262,12 @@ enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertInd
 
 // a plain pointer won't work. Because we need some information on the number of values in
 // the index argument
+#ifndef Vc_MSVC
+// MSVC treats the function as usable in SFINAE context if it is deleted. If it's not declared we
+// seem to get what we wanted (except for bad diagnostics)
 template <typename T>
 enable_if<std::is_pointer<T>::value, void> convertIndexVector(T indexVector) = delete;
+#endif
 
 // an initializer_list works, but is runtime-sized (before C++14, at least) so we have to
 // fall back to std::vector
@@ -289,14 +293,21 @@ enable_if<(std::is_integral<T>::value && sizeof(T) < sizeof(int)),
     return {std::begin(indexVector), std::end(indexVector)};
 }
 
-template <typename T, typename = decltype(convertIndexVector(std::declval<T>()))>
-std::true_type is_valid_indexvector(T &&);
+template <typename T>
+std::true_type is_valid_indexvector(
+    T &&, Traits::decay<decltype(convertIndexVector(std::declval<T>()))> * = nullptr);
 std::false_type is_valid_indexvector(...);
+
+template <typename IndexVector, typename Test = decltype(is_valid_indexvector(std::declval<const IndexVector &>()))>
+struct is_valid_indexvector_ : public std::integral_constant<bool, Test::value>
+{};
+static_assert(!is_valid_indexvector_<const int *>::value, "Pointer is incorrectly classified as valid index vector type");
+static_assert( is_valid_indexvector_<const int[4]>::value, "C-Array is incorrectly classified as invalid index vector type");
 
 // SubscriptOperation {{{1
 template <
     typename T, typename IndexVector, typename Scale = std::ratio<1, 1>,
-    bool = decltype(is_valid_indexvector(std::declval<const IndexVector &>()))::value>
+    bool = is_valid_indexvector_<IndexVector>::value>
 class SubscriptOperation
 {
     const IndexVector m_indexes;
@@ -414,28 +425,37 @@ public:
      * scalars to the vector object sequentially.
      */
 
+private:
+    // The following is a workaround for MSVC 2015 Update 2. Whenever the ratio
+    // in the return type of the following operator[] is encountered with a sizeof
+    // expression that fails, MSVC decides to substitute a 0 for the sizeof instead of
+    // just leaving the ratio instantiation alone via proper SFINAE. The make_ratio helper
+    // ensures that the 0 from the sizeof failure does not reach the denominator of
+    // std::ratio where it would hit a static_assert.
+    template <intmax_t N, intmax_t D> struct make_ratio {
+        using type = std::ratio<N, D == 0 ? 1 : D>;
+    };
+
+public:
     // precondition: m_address points to a type that implements the subscript operator
-    template <
-        typename U =
-            T>  // U is only required to delay name lookup to the 2nd phase (on use).
-                // This is necessary because m_address[0][index] is only a correct
-                // expression if has_subscript_operator<T>::value is true.
-    Vc_ALWAYS_INLINE auto
-        operator[](enable_if<
+    template <typename U>
+    // U is only required to delay name lookup to the 2nd phase (on use).
+    // This is necessary because m_address[0][index] is only a correct
+    // expression if has_subscript_operator<T>::value is true.
+    Vc_ALWAYS_INLINE auto operator[](U index) -> typename std::enable_if<
 #ifndef Vc_IMPROVE_ERROR_MESSAGES
-                       Traits::has_no_allocated_data<T>::value &&
-                           Traits::has_subscript_operator<T>::value &&
+        Traits::has_no_allocated_data<T>::value &&
 #endif
-                           std::is_same<T, U>::value,
-                       std::size_t> index)
-            -> SubscriptOperation<
-                  // the following decltype expression must depend on index and cannot
-                  // simply use [0][0] because it would yield an invalid expression in
-                  // case m_address[0] returns a struct/union
-                  typename std::remove_reference<decltype(m_address[0][index])>::type,
-                  IndexVector,
-                  std::ratio_multiply<Scale,
-                                      std::ratio<sizeof(T), sizeof(m_address[0][index])>>>
+            std::is_convertible<U, size_t>::value,
+        SubscriptOperation<
+            // the following decltype expression must depend on index and cannot
+            // simply use [0][0] because it would yield an invalid expression in
+            // case m_address[0] returns a struct/union
+            typename std::remove_reference<decltype(m_address[0][index])>::type,
+            IndexVector,
+            std::ratio_multiply<
+                Scale,
+                typename make_ratio<sizeof(T), sizeof(m_address[0][index])>::type>>>::type
     {
         static_assert(Traits::has_subscript_operator<T>::value,
                       "The subscript operator was called on a type that does not implement it.\n");
@@ -456,22 +476,23 @@ public:
 
     // precondition: m_address points to a type that implements the subscript operator
     template <typename IT>
-    Vc_ALWAYS_INLINE enable_if<
+    Vc_ALWAYS_INLINE typename std::enable_if<
 #ifndef Vc_IMPROVE_ERROR_MESSAGES
-        Traits::has_no_allocated_data<T>::value &&Traits::has_subscript_operator<T>::value &&
+        Traits::has_no_allocated_data<T>::value &&
+            Traits::has_subscript_operator<T>::value &&
 #endif
             Traits::has_subscript_operator<IT>::value,
-        SubscriptOperation<
-            typename std::remove_reference<
-                decltype(m_address[0][std::declval<const IT &>()[0]]  // std::declval<IT>()[0] could
-                                                                      // be replaced with 0 if it
-                         // were not for two-phase lookup. We need to make the
-                         // m_address[0][0] expression dependent on IT
-                         )>::type,
-            IndexVectorScaled,
-            std::ratio<1, 1>  // reset Scale to 1 since it is applied below
-            >>
-        operator[](const IT &index)
+        SubscriptOperation<typename std::remove_reference<decltype(
+                               m_address[0][std::declval<
+                                   const IT &>()[0]]  // std::declval<IT>()[0] could
+                                                      // be replaced with 0 if it
+                               // were not for two-phase lookup. We need to make the
+                               // m_address[0][0] expression dependent on IT
+                               )>::type,
+                           IndexVectorScaled,
+                           std::ratio<1, 1>  // reset Scale to 1 since it is applied below
+                           >>::type
+    operator[](const IT &index)
     {
         static_assert(Traits::has_subscript_operator<T>::value,
                       "The subscript operator was called on a type that does not implement it.\n");
@@ -531,13 +552,12 @@ Vc_ALWAYS_INLINE SubscriptOperation<
     return {std::addressof(*begin(c)), std::forward<IndexVector>(indexes)};
 }
 
-
-static_assert(!Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int>::value, "");
-static_assert(!Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int[4]>::value, "");
-static_assert(!Traits::has_subscript_operator<SubscriptOperation<std::vector<int>, const int *>, int[4]>::value, "");
-static_assert( Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int[4]>, int>::value, "");
-static_assert( Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int[4]>, int[4]>::value, "");
-static_assert(!Traits::has_subscript_operator<SubscriptOperation<std::vector<int>, const int[4]>, int[4]>::value, "");
+static_assert(!Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int>::value, "has_subscript_operator fails");
+static_assert(!Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int[4]>::value, "has_subscript_operator fails");
+static_assert(!Traits::has_subscript_operator<SubscriptOperation<std::vector<int>, const int *>, int[4]>::value, "has_subscript_operator fails");
+static_assert( Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int[4]>, int>::value, "has_subscript_operator fails");
+static_assert( Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int[4]>, int[4]>::value, "has_subscript_operator fails");
+static_assert(!Traits::has_subscript_operator<SubscriptOperation<std::vector<int>, const int[4]>, int[4]>::value, "has_subscript_operator fails");
 
 /**
  * \internal

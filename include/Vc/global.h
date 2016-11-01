@@ -81,18 +81,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #define Vc_MSVC _MSC_FULL_VER
 #undef Vc_MSVC
-/**
- * \ingroup Utilities
- * This macro is defined if the compiler disallows passing over-aligned types by value. If
- * this is the case you must use parameter passing by const-ref exclusively.
- *
- * \note This is a bug in the compiler (or rather it's restriction to inefficient function
- * call conventions). You may be able to work around the issue with a better (i.e. sane)
- * calling
- * convention.
- */
-#define Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
-#undef Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN
 //@}
 
 #else  // DOXYGEN
@@ -102,7 +90,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_ICC __INTEL_COMPILER_BUILD_DATE
 #elif defined(__OPENCC__)
 #define Vc_OPEN64 1
-#elif defined(__clang__) && defined(__APPLE__)
+#elif defined(__clang__) && defined(__APPLE__) && __clang_major__ >= 6
+// this is going to break :-(
 #define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
 #elif defined(__clang__)
 #define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
@@ -114,35 +103,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_UNSUPPORTED_COMPILER 1
 #endif
 
-#if __cplusplus < 201103
-#if (defined Vc_MSVC && Vc_MSVC >= 160000000)
-// these compilers still work, even if they don't define __cplusplus as expected
-#else
-#error "Vc requires support for C++11."
-#endif
+#if __cplusplus < 201103 && (!defined Vc_MSVC || _MSC_VER < 1900)
+# error "Vc requires support for C++11."
 #elif __cplusplus >= 201402L
 # define Vc_CXX14 1
+# if __cplusplus > 201700L
+#  define Vc_CXX17 1
+# endif
 #endif
 
-// Features/Quirks defines
-#if defined Vc_MSVC && defined _WIN32
-// the Win32 ABI can't handle function parameters with alignment >= 16
-#define Vc_PASSING_VECTOR_BY_VALUE_IS_BROKEN 1
-#endif
 #if defined(__GNUC__) && !defined(Vc_NO_INLINE_ASM)
 #define Vc_GNU_ASM 1
 #endif
-
-#if defined(Vc_MSVC) && Vc_MSVC < 180000000
-// MSVC doesn't know constexpr and noexcept
-// first include the check that forbids macroizing keywords >:)
-#include <xkeycheck.h>
-#ifndef constexpr
-#define constexpr inline __forceinline
-#endif
-#define Vc_NO_NOEXCEPT 1
-#endif
-
 
 #ifdef Vc_GCC
 #  define Vc_HAVE_MAX_ALIGN_T 1
@@ -153,6 +125,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(Vc_GCC) || defined(Vc_CLANG) || defined Vc_APPLECLANG
 #define Vc_USE_BUILTIN_VECTOR_TYPES 1
+#endif
+
+#ifdef Vc_MSVC
+#  define Vc_CDECL __cdecl
+#  define Vc_VDECL __vectorcall
+#else
+#  define Vc_CDECL
+#  define Vc_VDECL
 #endif
 
 /* Define the following strings to a unique integer, which is the only type the preprocessor can

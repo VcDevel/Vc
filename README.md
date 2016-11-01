@@ -35,9 +35,42 @@ sets. Thus an application written with Vc can be compiled for:
 * SSE2 up to SSE4.2 or SSE4a
 * Scalar
 * MIC
+* AVX-512 (in development)
 * NEON (in development)
 * NVIDIA GPUs / CUDA (in development)
 
+## Examples
+
+### Scalar Product
+
+Let's start from the code for calculating a 3D scalar product using builtin floats:
+```cpp
+using Vec3D = std::array<float, 3>;
+float scalar_product(Vec3D a, Vec3D b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+```
+Using Vc, we can easily vectorize the code using the `float_v` type:
+```cpp
+using Vc::float_v
+using Vec3D = std::array<float_v, 3>;
+float_v scalar_product(Vec3D a, Vec3D b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+```
+The above will scale to 1, 4, 8, 16, etc. scalar products calculated in parallel, depending
+on the target hardware's capabilities.
+
+For comparison, the same vectorization using Intel SSE intrinsics is more verbose and uses
+prefix notation (i.e. function calls):
+```cpp
+using Vec3D = std::array<__m128, 3>;
+__m128 scalar_product(Vec3D a, Vec3D b) {
+  return _mm_add_ps(_mm_add_ps(_mm_mul_ps(a[0], b[0]), _mm_mul_ps(a[1], b[1])),
+                    _mm_mul_ps(a[2], b[2]));
+}
+```
+The above will neither scale to AVX, MIC, etc. nor is it portable to other SIMD ISAs.
 
 ## Build Requirements
 
@@ -48,7 +81,7 @@ C++11 Compiler:
 * GCC >= 4.8.1
 * clang >= 3.4
 * ICC >= 15.0.3
-* Visual Studio (not ready for Vc 1.0 yet)
+* Visual Studio 2015 (64-bit target)
 
 
 ## Building and Installing Vc
@@ -80,8 +113,9 @@ the documentation by running `doxygen` in the `doc` subdirectory.
 Alternatively, you can find nightly builds of the documentation at:
 
 * [master branch](https://web-docs.gsi.de/~mkretz/Vc-master/)
+* [1.3.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.3.0/)
 * [1.2.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.2.0/)
-* [1.1.0 branch](https://web-docs.gsi.de/~mkretz/Vc-1.1.0/)
+* [1.1.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.1.0/)
 * [0.7 branch](https://web-docs.gsi.de/~mkretz/Vc-0.7/)
 
 ## Publications
@@ -96,6 +130,8 @@ Alternatively, you can find nightly builds of the documentation at:
   and Multithreading", University of Heidelberg,
   2009.](http://code.compeng.uni-frankfurt.de/attachments/13/Diplomarbeit.pdf)
 
+[Work on integrating the functionality of Vc in the C++ standard library.](
+https://github.com/VcDevel/Vc/wiki/ISO-Standardization-of-the-Vector-classes)
 
 ## Communication
 
@@ -103,14 +139,9 @@ A channel on the freenode IRC network is reserved for discussions on Vc:
 [##vc on freenode](irc://chat.freenode.net:6667/##vc)
 ([via SSL](ircs://chat.freenode.net:6697/##vc))
 
-There exist two mailinglists:
-
-* [List for users of Vc, i.e. developers that use
-  Vc](https://compeng.uni-frankfurt.de/mailman/listinfo/vc)
-* [List to discuss the development of Vc
-  itself](https://compeng.uni-frankfurt.de/mailman/listinfo/vc-devel)
-
-Feel free to use the GitHub issue tracker for questions, too.
+Feel free to use the GitHub issue tracker for questions.
+Alternatively, there's a [mailinglist for users of
+Vc](https://compeng.uni-frankfurt.de/mailman/listinfo/vc)
 
 ## License
 

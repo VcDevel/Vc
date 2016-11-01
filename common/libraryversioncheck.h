@@ -51,7 +51,7 @@ void Vc_CAT2(checkLibraryAbi, Vc_LIBRARY_ABI_VERSION) [[gnu::weak]](
     unused(compileTimeAbi, versionNumber, versionString);
 }
 #else
-void Vc_CAT2(checkLibraryAbi, Vc_LIBRARY_ABI_VERSION)(
+void Vc_CDECL Vc_CAT2(checkLibraryAbi, Vc_LIBRARY_ABI_VERSION)(
     unsigned int compileTimeAbi, unsigned int versionNumber, const char *versionString);
 #endif
 

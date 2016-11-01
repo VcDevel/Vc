@@ -20,9 +20,9 @@ float_v foo1(float_v::AsArg a)
     return b;
 }
 
-int main()
+int Vc_CDECL main()
 {
     float_v x = float_v::Random();
     x = fooLib0A(fooLib0B(fooLib1A(fooLib1B(fooLib2(fooLib3(foo0(foo1(x))))))));
-    return static_cast<int>(x.sum());
+    return static_cast<int>(x.sum()) >> 8;
 }

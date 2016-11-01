@@ -93,6 +93,7 @@ TEST_TYPES(V, gathers, ALL_TYPES)
         data2[i] = i;
     }
 
+    static_assert(Vc::Common::is_valid_indexvector_<const IT &>::value, "");
     V test = data[IT::IndexesFromZero()];
     COMPARE(test, V::IndexesFromZero());
     test = data2[IT::IndexesFromZero()];
@@ -348,7 +349,8 @@ TEST_TYPES(V, fixedWidthGatherScatter32, (SIMD_ARRAYS(32)))
 
 TEST(promotionOfIndexVectorType)
 {
-    Vc::array<Vc::array<int, 1024>, 1024> data;
+    Vc::vector<Vc::array<int, 1024>> data;
+    data.resize(1024);
     int *ptr = &data[0][0];
     for (std::size_t i = 0; i < 1024 * 1024; ++i) {
         ptr[i] = i;

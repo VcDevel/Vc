@@ -31,6 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 #include "macros.h"
 
+// declare a bogus simd_cast function template in the global namespace to enable ADL for
+// simd_cast<T>
+template <class> void simd_cast();
+
 namespace Vc_VERSIONED_NAMESPACE
 {
 /**
@@ -44,8 +48,8 @@ namespace Vc_VERSIONED_NAMESPACE
  *          underlying arithmetic types.
  */
 template <typename To, typename From>
-Vc_INTRINSIC Vc_CONST enable_if<std::is_same<To, Traits::decay<From>>::value, To>
-    simd_cast(From &&x)
+Vc_INTRINSIC Vc_CONST To
+simd_cast(From &&x, enable_if<std::is_same<To, Traits::decay<From>>::value> = nullarg)
 {
     return std::forward<From>(x);
 }

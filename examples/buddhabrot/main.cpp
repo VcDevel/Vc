@@ -37,6 +37,11 @@
 typedef float float_v;
 typedef int int_v;
 typedef bool int_m;
+#ifdef _MSC_VER
+#define Vc_CDECL __cdecl
+#else
+#define Vc_CDECL
+#endif
 #else
 #include <Vc/Vc>
 
@@ -591,7 +596,7 @@ static void usage(const char *argv0)
         ;
 }
 
-int main(int argc, char **argv)
+int Vc_CDECL main(int argc, char **argv)
 {
     QCoreApplication app(argc, argv);
     const QStringList &args = QCoreApplication::arguments();

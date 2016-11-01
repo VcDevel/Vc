@@ -28,6 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unittest.h"
 #include <Vc/type_traits>
 #include <memory>
+#include <list>
+#include <map>
+#include <unordered_map>
 
 using Vc::float_v;
 using Vc::double_v;
@@ -108,10 +111,18 @@ TEST(hasContiguousStorage)
     hasContiguousStorageImpl(e, "std::initializer_list 1");
     hasContiguousStorageImpl(f, "std::initializer_list 2");
     hasContiguousStorageImpl(g, "std::vector<int>");
-    // no way to specialize for vector::iterator...
-    // hasContiguousStorageImpl(g.begin(), "std::vector<int>::iterator");
+    hasContiguousStorageImpl(g.begin(), "std::vector<int>::iterator");
+    hasContiguousStorageImpl(g.cbegin(), "std::vector<int>::iterator");
     hasContiguousStorageImpl(h, "std::array<int, 3>");
     hasContiguousStorageImpl(h.begin(), "std::array<int, 3>::iterator");
+    hasContiguousStorageImpl(h.cbegin(), "std::array<int, 3>::iterator");
+    VERIFY(!(Vc::Traits::has_contiguous_storage<std::list<int>>::value));
+    VERIFY(!(Vc::Traits::has_contiguous_storage<std::list<int>::iterator>::value));
+    VERIFY(!(Vc::Traits::has_contiguous_storage<std::list<int>::const_iterator>::value));
+    VERIFY(!(Vc::Traits::has_contiguous_storage<std::map<int, int>>::value));
+    VERIFY(!(Vc::Traits::has_contiguous_storage<std::map<int, int>::iterator>::value));
+    VERIFY(!(Vc::Traits::has_contiguous_storage<std::unordered_map<int, int>>::value));
+    VERIFY(!(Vc::Traits::has_contiguous_storage<std::unordered_map<int, int>::iterator>::value));
 }
 
 struct F0 {

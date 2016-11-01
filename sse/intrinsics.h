@@ -28,9 +28,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_INTRINSICS_H_
 #define VC_SSE_INTRINSICS_H_
 
-#include "../common/windows_fix_intrin.h"
-
+#ifdef Vc_MSVC
+#include <intrin.h>
+#else
 #include <x86intrin.h>
+#endif
+
 #include "../common/storage.h"
 #include "const_data.h"
 #include <cstdlib>

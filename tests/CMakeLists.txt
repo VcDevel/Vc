@@ -4,6 +4,7 @@ add_definitions(-DCOMPILE_FOR_UNIT_TESTS) # -DVC_CHECK_ALIGNMENT)
 if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
    AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
+   AddCompilerFlag("/wd4503") # Disable warning "decorated name length exceeded, name was truncated"
 endif()
 
 # 32-bit x86 requires SSE for fp math to produce comparable results.
@@ -65,7 +66,9 @@ if(Vc_X86)
 endif()
 
 macro(vc_add_run_target _target)
-   if("${_target}" MATCHES "_mic$")
+   if("${CMAKE_GENERATOR}" MATCHES "Visual Studio")
+      # do nothing. This just clutters the solution explorer
+   elseif("${_target}" MATCHES "_mic$")
       if(MIC_NATIVELOAD)
          get_target_property(_exe "${_target}" OUTPUT_NAME)
          add_custom_target(run_${_target}
@@ -220,7 +223,18 @@ endforeach()
 add_custom_target(download-testdata ALL
    DEPENDS ${_deps}
    )
-add_dependencies(other download-testdata)
+add_dependencies(Scalar download-testdata)
+if(Vc_X86)
+   add_dependencies(SSE2 download-testdata)
+   add_dependencies(SSE4_2 download-testdata)
+   add_dependencies(AVX download-testdata)
+   add_dependencies(AVX2 download-testdata)
+   add_dependencies(MIC download-testdata)
+   add_dependencies(KNL download-testdata)
+   add_dependencies(AVX512 download-testdata)
+elseif(Vc_ARM)
+   add_dependencies(NEON download-testdata)
+endif()
 
 find_program(OBJDUMP objdump)
 mark_as_advanced(OBJDUMP)
@@ -307,11 +321,18 @@ endforeach()
 
 separate_arguments(_flags UNIX_COMMAND "${CMAKE_CXX_FLAGS} ${Vc_DEFINITIONS}")
 list(APPEND _flags ${Vc_COMPILE_FLAGS})
+set(_tmp)
 foreach(_f ${_flags})
    if(_f MATCHES "^-m" OR _f MATCHES "^/arch:" OR _f MATCHES "^-x")
-      list(REMOVE_ITEM _flags "${_f}")
+      # nothing
+   elseif(_f MATCHES "^/[A-Za-z]")
+      string(SUBSTRING "${_f}" 1 -1 _f)
+      list(APPEND _tmp "-${_f}")
+   else()
+      list(APPEND _tmp "${_f}")
    endif()
 endforeach()
+set(_flags "${_tmp}")
 
 # compile and link test for targets that need to link lots of stuff together
 add_library(linkTestLibDynamic1 SHARED EXCLUDE_FROM_ALL linkTestLib0.cpp linkTestLib1.cpp)

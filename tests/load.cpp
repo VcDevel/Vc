@@ -201,7 +201,7 @@ TEST_TYPES(
             v = Vec(&data[i], Vc::Unaligned);
         }
         for (size_t j = 0; j < Vec::Size; ++j) {
-            COMPARE(v[j], static_cast<VecT>(data[i + j]));
+            COMPARE(v[j], static_cast<VecT>(data[i + j])) << "j: " << j;
         }
     }
     for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
@@ -214,7 +214,7 @@ TEST_TYPES(
             v.load(&data[i], Vc::Unaligned);
         }
         for (size_t j = 0; j < Vec::Size; ++j) {
-            COMPARE(v[j], static_cast<VecT>(data[i + j]));
+            COMPARE(v[j], static_cast<VecT>(data[i + j])) << "j: " << j;
         }
     }
     for (size_t i = 0; i < 128 - Vec::Size + 1; ++i) {
@@ -227,7 +227,7 @@ TEST_TYPES(
             v = Vec(&data[i], Vc::Streaming | Vc::Unaligned);
         }
         for (size_t j = 0; j < Vec::Size; ++j) {
-            COMPARE(v[j], static_cast<VecT>(data[i + j]));
+            COMPARE(v[j], static_cast<VecT>(data[i + j])) << "j: " << j;
         }
     }
 }

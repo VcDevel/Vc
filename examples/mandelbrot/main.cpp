@@ -22,6 +22,7 @@
 */
 
 #include "main.h"
+#include <common/macros.h>
 
 #include <QApplication>
 #include <QPainter>
@@ -150,7 +151,7 @@ void MainWindow::recreateImage()
     m_mandelVc.brot(m_rect1.size(), m_x, m_y, m_scale);
 }
 
-int main(int argc, char **argv)
+int Vc_CDECL main(int argc, char **argv)
 {
     QApplication app(argc, argv);
     MainWindow w;

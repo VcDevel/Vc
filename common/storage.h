@@ -375,7 +375,7 @@ template <> Vc_INTRINSIC Vc_PURE          double &Storage<         double, 2, Al
 template <> Vc_INTRINSIC Vc_PURE          float  &Storage<         float , 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128_f32[i]; }
 template <> Vc_INTRINSIC Vc_PURE   signed int    &Storage<  signed int   , 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i32[i]; }
 template <> Vc_INTRINSIC Vc_PURE   signed short  &Storage<  signed short , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed char   &Storage<  signed char  ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed char   &Storage<  signed char  ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return reinterpret_cast<signed char &>(data.m128i_i8[i]); }
 template <> Vc_INTRINSIC Vc_PURE unsigned int    &Storage<unsigned int   , 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u32[i]; }
 template <> Vc_INTRINSIC Vc_PURE unsigned short  &Storage<unsigned short , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u16[i]; }
 template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u8[i]; }
@@ -394,7 +394,7 @@ template <> Vc_INTRINSIC Vc_PURE          double &Storage<         double, 4, Al
 template <> Vc_INTRINSIC Vc_PURE          float  &Storage<         float , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256_f32[i]; }
 template <> Vc_INTRINSIC Vc_PURE   signed int    &Storage<  signed int   , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i32[i]; }
 template <> Vc_INTRINSIC Vc_PURE   signed short  &Storage<  signed short ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed char   &Storage<  signed char  ,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE   signed char   &Storage<  signed char  ,32, AliasStrategy::UnionMembers>::ref(size_t i) { return reinterpret_cast<signed char &>(data.m256i_i8[i]); }
 template <> Vc_INTRINSIC Vc_PURE unsigned int    &Storage<unsigned int   , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u32[i]; }
 template <> Vc_INTRINSIC Vc_PURE unsigned short  &Storage<unsigned short ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u16[i]; }
 template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u8[i]; }

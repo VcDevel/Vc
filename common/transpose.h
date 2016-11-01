@@ -33,6 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace Common
+{
 template <typename... Inputs> struct TransposeProxy
 {
     TransposeProxy(const Inputs &... inputs) : in{inputs...} {}
@@ -40,7 +42,11 @@ template <typename... Inputs> struct TransposeProxy
     std::tuple<const Inputs &...> in;
 };
 
-template <typename... Vs> TransposeProxy<Vs...> transpose(Vs... vs)
+template <int LhsLength, size_t RhsLength> struct TransposeTag {
+};
+}  // namespace Common
+
+template <typename... Vs> Common::TransposeProxy<Vs...> transpose(Vs... vs)
 {
     return {vs...};
 }

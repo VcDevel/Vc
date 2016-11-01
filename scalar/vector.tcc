@@ -53,8 +53,12 @@ Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerIndexe
 
 // load member functions{{{1
 template <typename T>
-template <typename U, typename Flags, typename>
-Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::load(const U *mem, Flags)
+template <typename U, typename Flags>
+Vc_INTRINSIC typename Vector<T, VectorAbi::Scalar>::
+#ifndef Vc_MSVC
+template
+#endif
+load_concept<U, Flags>::type Vector<T, VectorAbi::Scalar>::load(const U *mem, Flags)
 {
     m_data = mem[0];
 }
@@ -120,7 +124,7 @@ Vc_INTRINSIC Vc_CONST Scalar::float_v exponent(Scalar::float_v x)
     value.f = x.data();
     return Scalar::float_v(static_cast<float>((value.i >> 23) - 0x7f));
 }
-Vc_INTRINSIC Vc_CONST Scalar::double_v exponent(Scalar::double_v x)
+Vc_INTRINSIC Vc_CONST Scalar::double_v Vc_VDECL exponent(Scalar::double_v x)
 {
     Vc_ASSERT(x.data() >= 0.);
     union { double f; long long i; } value;
@@ -177,7 +181,7 @@ Vc_INTRINSIC Vc_CONST Scalar::float_m isnegative(Scalar::float_v x)
     u.f = x.data();
     return Scalar::float_m(0u != (u.i & 0x80000000u));
 }
-Vc_INTRINSIC Vc_CONST Scalar::double_m isnegative(Scalar::double_v x)
+Vc_INTRINSIC Vc_CONST Scalar::double_m Vc_VDECL isnegative(Scalar::double_v x)
 {
     static_assert(sizeof(double) == sizeof(unsigned long long),
                   "This code assumes double and unsigned long long have the same number "
@@ -206,7 +210,7 @@ template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::setQnan(Mas
         setQnan();
     }
 }
-template<> Vc_INTRINSIC void Scalar::double_v::setQnan(Mask m)
+template<> Vc_INTRINSIC void Scalar::double_v::setQnan(Scalar::double_v::Mask m)
 {
     if (m.data()) {
         setQnan();
@@ -217,9 +221,8 @@ template<> Vc_INTRINSIC void Scalar::double_v::setQnan(Mask m)
 namespace Common
 {
 // transpose_impl {{{1
-template <int L>
-Vc_ALWAYS_INLINE enable_if<L == 1, void> transpose_impl(
-    Scalar::float_v *Vc_RESTRICT r[], const TransposeProxy<Scalar::float_v> &proxy)
+Vc_ALWAYS_INLINE void transpose_impl(TransposeTag<1, 1>, Scalar::float_v *Vc_RESTRICT r[],
+                                     const TransposeProxy<Scalar::float_v> &proxy)
 {
     *r[0] = std::get<0>(proxy.in).data();
 }

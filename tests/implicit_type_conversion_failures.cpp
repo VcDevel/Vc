@@ -6,7 +6,7 @@
 
 using namespace Vc;
 
-int main()
+int Vc_CDECL main()
 {
     TYPE_A() TEST_OP TYPE_B();
     return 0;

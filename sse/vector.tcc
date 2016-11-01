@@ -182,27 +182,40 @@ template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecia
 {
 }
 
-template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero)
-    : d(HV::template load<AlignedTag>(Detail::IndexesFromZero<EntryType, Size>()))
+template <typename T>
+Vc_INTRINSIC Vector<T, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero)
+    : d(Detail::load16(Detail::IndexesFromZero<EntryType, Size>(), Aligned))
 {
+#if defined Vc_GCC && Vc_GCC < 0x40903 && defined Vc_IMPL_AVX2
+    // GCC 4.9.2 (at least) miscompiles SSE::short_v::IndexesFromZero() if used implicitly
+    // from SimdArray<short, 9> compiling for AVX2 to vpmovsxwd (sign extending load from
+    // a 8x 16-bit constant to 8x 32-bit register)
+    if (std::is_same<T, short>::value) {
+        asm("" ::"x"(d.v()));
+    }
+#endif
 }
 
 template <>
-Vc_INTRINSIC SSE::float_v::Vector(VectorSpecialInitializerIndexesFromZero)
+Vc_INTRINSIC Vector<float, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero)
     : d(SSE::convert<int, float>(SSE::int_v::IndexesFromZero().data()))
 {
 }
 
 template <>
-Vc_INTRINSIC SSE::double_v::Vector(VectorSpecialInitializerIndexesFromZero)
+Vc_INTRINSIC Vector<double, VectorAbi::Sse>::Vector(VectorSpecialInitializerIndexesFromZero)
     : d(SSE::convert<int, double>(SSE::int_v::IndexesFromZero().data()))
 {
 }
 
 // load member functions {{{1
 template <typename DstT>
-template <typename SrcT, typename Flags, typename>
-Vc_INTRINSIC void Vector<DstT, VectorAbi::Sse>::load(const SrcT *mem, Flags flags)
+template <typename SrcT, typename Flags>
+Vc_INTRINSIC typename Vector<DstT, VectorAbi::Sse>::
+#ifndef Vc_MSVC
+template
+#endif
+load_concept<SrcT, Flags>::type Vector<DstT, VectorAbi::Sse>::load(const SrcT *mem, Flags flags)
 {
     Common::handleLoadPrefetches(mem, flags);
     d.v() = Detail::load<VectorType, DstT>(mem, flags);
@@ -228,7 +241,7 @@ template<> Vc_INTRINSIC void SSE::double_v::setQnan()
 {
     data() = SSE::_mm_setallone_pd();
 }
-template<> Vc_INTRINSIC void SSE::double_v::setQnan(const Mask &k)
+template<> Vc_INTRINSIC void Vector<double, VectorAbi::Sse>::setQnan(const Mask &k)
 {
     data() = _mm_or_pd(data(), k.dataD());
 }
@@ -236,7 +249,7 @@ template<> Vc_INTRINSIC void SSE::float_v::setQnan()
 {
     data() = SSE::_mm_setallone_ps();
 }
-template<> Vc_INTRINSIC void SSE::float_v::setQnan(const Mask &k)
+template<> Vc_INTRINSIC void Vector<float, VectorAbi::Sse>::setQnan(const Mask &k)
 {
     data() = _mm_or_ps(data(), k.data());
 }
@@ -268,19 +281,19 @@ template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T
 ///////////////////////////////////////////////////////////////////////////////////////////
 // integer ops {{{1
 #ifdef Vc_IMPL_XOP
-template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator<<(AsArg shift) const { return _mm_sha_epi32(d.v(), shift.d.v()); }
-template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator<<(AsArg shift) const { return _mm_shl_epi32(d.v(), shift.d.v()); }
-template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator<<(AsArg shift) const { return _mm_sha_epi16(d.v(), shift.d.v()); }
-template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator<<(AsArg shift) const { return _mm_shl_epi16(d.v(), shift.d.v()); }
-template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator>>(AsArg shift) const { return operator<<(-shift); }
-template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator>>(AsArg shift) const { return operator<<(-shift); }
-template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator>>(AsArg shift) const { return operator<<(-shift); }
-template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator>>(AsArg shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator<<(const    SSE::int_v shift) const { return _mm_sha_epi32(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator<<(const   SSE::uint_v shift) const { return _mm_shl_epi32(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator<<(const  SSE::short_v shift) const { return _mm_sha_epi16(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator<<(const SSE::ushort_v shift) const { return _mm_shl_epi16(d.v(), shift.d.v()); }
+template <> Vc_ALWAYS_INLINE    SSE::int_v    SSE::int_v::operator>>(const    SSE::int_v shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE   SSE::uint_v   SSE::uint_v::operator>>(const   SSE::uint_v shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE  SSE::short_v  SSE::short_v::operator>>(const  SSE::short_v shift) const { return operator<<(-shift); }
+template <> Vc_ALWAYS_INLINE SSE::ushort_v SSE::ushort_v::operator>>(const SSE::ushort_v shift) const { return operator<<(-shift); }
 #elif defined Vc_IMPL_AVX2
-template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator<<(AsArg x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
-template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator<<(AsArg x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
-template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator>>(AsArg x) const { return _mm_srav_epi32(d.v(), x.d.v()); }
-template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator>>(AsArg x) const { return _mm_srlv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator<<(const SSE::Vector<   int> x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator<<(const SSE::Vector<  uint> x) const { return _mm_sllv_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<   int> Vector<   int, VectorAbi::Sse>::operator>>(const SSE::Vector<   int> x) const { return _mm_srav_epi32(d.v(), x.d.v()); }
+template <> Vc_ALWAYS_INLINE SSE::Vector<  uint> Vector<  uint, VectorAbi::Sse>::operator>>(const SSE::Vector<  uint> x) const { return _mm_srlv_epi32(d.v(), x.d.v()); }
 #endif
 
 template<typename T> Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> &Vector<T, VectorAbi::Sse>::operator>>=(int shift) {
@@ -554,7 +567,7 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, Ve
 template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::shifted(int amount, Vector shiftIn) const
 {
     if (amount >= -int(size())) {
-        constexpr int VectorWidth = size();
+        constexpr int VectorWidth = int(size());
         constexpr int EntryTypeSizeof = sizeof(EntryType);
         const __m128i v0 = sse_cast<__m128i>(d.v());
         const __m128i v1 = sse_cast<__m128i>(shiftIn.d.v());
@@ -594,7 +607,7 @@ template<typename T> Vc_INTRINSIC Vector<T, VectorAbi::Sse> Vector<T, VectorAbi:
         case 15: return fixup(SSE::alignr_epi8<15 * EntryTypeSizeof>(v1, v0));
         }
     }
-    return shiftIn.shifted(size() + amount);
+    return shiftIn.shifted(int(size()) + amount);
 }
 template<typename T> Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::rotated(int amount) const
 {
@@ -620,7 +633,7 @@ template<typename T> Vc_INTRINSIC Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, Ve
 // sorted {{{1
 namespace Detail
 {
-inline Vc_CONST SSE::double_v sorted(Vc_ALIGNED_PARAMETER(SSE::double_v) x_)
+inline Vc_CONST SSE::double_v sorted(SSE::double_v x_)
 {
     const __m128d x = x_.data();
     const __m128d y = _mm_shuffle_pd(x, x, _MM_SHUFFLE2(0, 1));
@@ -735,7 +748,7 @@ template <> Vc_INTRINSIC Vc_PURE SSE::ushort_v SSE::ushort_v::reversed() const
 // }}}1
 // permutation via operator[] {{{1
 template <>
-Vc_INTRINSIC SSE::float_v SSE::float_v::operator[](SSE::int_v
+Vc_INTRINSIC SSE::float_v SSE::float_v::operator[](const SSE::int_v &
 #ifdef Vc_IMPL_AVX
                                              perm
 #endif
@@ -772,9 +785,8 @@ template <> template <int Index> Vc_INTRINSIC SSE::double_v SSE::double_v::broad
 namespace Common
 {
 // transpose_impl {{{1
-template <int L>
-Vc_ALWAYS_INLINE enable_if<L == 4, void> transpose_impl(
-    SSE::float_v *Vc_RESTRICT r[],
+Vc_ALWAYS_INLINE void transpose_impl(
+    TransposeTag<4, 4>, SSE::float_v *Vc_RESTRICT r[],
     const TransposeProxy<SSE::float_v, SSE::float_v, SSE::float_v, SSE::float_v> &proxy)
 {
     const auto in0 = std::get<0>(proxy.in).data();
