@@ -427,16 +427,101 @@ constexpr int find_first_set(bool) { return 0; }
 constexpr int find_last_set(bool) { return 0; }
 
 // masked assignment [mask.where]
+template <typename Mask, typename T> class where_expression
+{
+public:
+    where_expression() = delete;
+    where_expression(const where_expression &) = delete;
+    where_expression(where_expression &&) = delete;
+    where_expression &operator=(const where_expression &) = delete;
+    where_expression &operator=(where_expression &&) = delete;
+    Vc_INTRINSIC where_expression(const Mask &kk, T &dd) : k(kk), d(dd) {}
+    template <class U> Vc_INTRINSIC void operator=(U &&x) { masked_assign(k, d, std::forward<U>(x)); }
+    template <class U> Vc_INTRINSIC void operator+=(U &&x)
+    {
+        detail::masked_cassign<std::plus>(k, d, std::forward<U>(x));
+    }
+    template <class U> Vc_INTRINSIC void operator-=(U &&x)
+    {
+        detail::masked_cassign<std::minus>(k, d, std::forward<U>(x));
+    }
+    template <class U> Vc_INTRINSIC void operator*=(U &&x)
+    {
+        detail::masked_cassign<std::multiplies>(k, d, std::forward<U>(x));
+    }
+    template <class U> Vc_INTRINSIC void operator/=(U &&x)
+    {
+        detail::masked_cassign<std::divides>(k, d, std::forward<U>(x));
+    }
+    template <class U> Vc_INTRINSIC void operator%=(U &&x)
+    {
+        detail::masked_cassign<std::modulus>(k, d, std::forward<U>(x));
+    }
+    template <class U> Vc_INTRINSIC void operator&=(U &&x)
+    {
+        detail::masked_cassign<std::bit_and>(k, d, std::forward<U>(x));
+    }
+    template <class U> Vc_INTRINSIC void operator|=(U &&x)
+    {
+        detail::masked_cassign<std::bit_or>(k, d, std::forward<U>(x));
+    }
+    template <class U> Vc_INTRINSIC void operator^=(U &&x)
+    {
+        detail::masked_cassign<std::bit_xor>(k, d, std::forward<U>(x));
+    }
+    template <class U> Vc_INTRINSIC void operator<<=(U &&x)
+    {
+        detail::masked_cassign<detail::shift_left>(k, d, std::forward<U>(x));
+    }
+    template <class U> Vc_INTRINSIC void operator>>=(U &&x)
+    {
+        detail::masked_cassign<detail::shift_right>(k, d, std::forward<U>(x));
+    }
+    Vc_INTRINSIC T &operator++()
+    {
+        return detail::masked_unary<detail::pre_increment>(k, d);
+    }
+    Vc_INTRINSIC T operator++(int)
+    {
+        return detail::masked_unary<detail::post_increment>(k, d);
+    }
+    Vc_INTRINSIC T &operator--()
+    {
+        return detail::masked_unary<detail::pre_decrement>(k, d);
+    }
+    Vc_INTRINSIC T operator--(int)
+    {
+        return detail::masked_unary<detail::post_decrement>(k, d);
+    }
+    Vc_INTRINSIC T operator-() const { return detail::masked_unary<std::negate>(k, d); }
+    Vc_INTRINSIC auto operator!() const
+    {
+        return detail::masked_unary<std::logical_not>(k, d);
+    }
+
+private:
+    const Mask &k;
+    T &d;
+};
+
 template <class T0, class A0, class T1, class A1>
-inline detail::where_proxy<mask<T1, A1>, datapar<T1, A1>> where(const mask<T0, A0> &k,
-                                                                datapar<T1, A1> &d)
+Vc_INTRINSIC where_expression<mask<T1, A1>, datapar<T1, A1>> where(const mask<T0, A0> &k,
+                                                                   datapar<T1, A1> &d)
 {
     return {k, d};
 }
-template <class T> inline detail::where_proxy<bool, T> where(bool k, T &d)
+template <class T> Vc_INTRINSIC where_expression<bool, T> where(bool k, T &d)
 {
     return {k, d};
 }
+
+// reductions [datapar.reductions]
+template <class BinaryOperation = std::plus<>, class T, class Abi>
+T reduce(const datapar<T, Abi> &, BinaryOperation = BinaryOperation());
+template <class BinaryOperation = std::plus<>, class M, class T, class Abi>
+T reduce(const where_expression<M, datapar<T, Abi>> &x, T init,
+         BinaryOperation binary_op = BinaryOperation());
+
 }  // namespace Vc_VERSIONED_NAMESPACE
 
 #endif  // VC_DATAPAR_SYNOPSIS_H_

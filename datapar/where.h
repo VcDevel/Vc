@@ -82,66 +82,6 @@ template <class = void> struct post_decrement {
     template <typename T> constexpr T operator()(T &a) const { return a--; }
 };
 
-template <typename Mask, typename T> class where_proxy
-{
-public:
-    where_proxy() = delete;
-    where_proxy(const where_proxy &) = delete;
-    where_proxy(where_proxy &&) = delete;
-    where_proxy &operator=(const where_proxy &) = delete;
-    where_proxy &operator=(where_proxy &&) = delete;
-    constexpr where_proxy(const Mask &kk, T &dd) : k(kk), d(dd) {}
-    template <class U> void operator=(U &&x) { masked_assign(k, d, std::forward<U>(x)); }
-    template <class U> void operator+=(U &&x)
-    {
-        masked_cassign<std::plus>(k, d, std::forward<U>(x));
-    }
-    template <class U> void operator-=(U &&x)
-    {
-        masked_cassign<std::minus>(k, d, std::forward<U>(x));
-    }
-    template <class U> void operator*=(U &&x)
-    {
-        masked_cassign<std::multiplies>(k, d, std::forward<U>(x));
-    }
-    template <class U> void operator/=(U &&x)
-    {
-        masked_cassign<std::divides>(k, d, std::forward<U>(x));
-    }
-    template <class U> void operator%=(U &&x)
-    {
-        masked_cassign<std::modulus>(k, d, std::forward<U>(x));
-    }
-    template <class U> void operator&=(U &&x)
-    {
-        masked_cassign<std::bit_and>(k, d, std::forward<U>(x));
-    }
-    template <class U> void operator|=(U &&x)
-    {
-        masked_cassign<std::bit_or>(k, d, std::forward<U>(x));
-    }
-    template <class U> void operator^=(U &&x)
-    {
-        masked_cassign<std::bit_xor>(k, d, std::forward<U>(x));
-    }
-    template <class U> void operator<<=(U &&x)
-    {
-        masked_cassign<shift_left>(k, d, std::forward<U>(x));
-    }
-    template <class U> void operator>>=(U &&x)
-    {
-        masked_cassign<shift_right>(k, d, std::forward<U>(x));
-    }
-    T &operator++() { return masked_unary<pre_increment>(k, d); }
-    T operator++(int) { return masked_unary<post_increment>(k, d); }
-    T &operator--() { return masked_unary<pre_decrement>(k, d); }
-    T operator--(int) { return masked_unary<post_decrement>(k, d); }
-    T operator-() const { return masked_unary<std::negate>(k, d); }
-    auto operator!() const { return masked_unary<std::logical_not>(k, d); }
-private:
-    const Mask &k;
-    T &d;
-};
 }  // namespace Vc_VERSIONED_NAMESPACE
 
 #endif  // VC_DATAPAR_WHERE_H_
