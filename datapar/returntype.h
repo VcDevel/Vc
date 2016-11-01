@@ -62,6 +62,7 @@ template <class A, class B> struct common<A, B, true, true, true> {
     using type = decltype(A() + B());
 };
 
+// - Otherwise, the integer conversion rank determines the result type
 template <typename T> struct make_signed_or_bool : public std::make_signed<T> {
 };
 template <> struct make_signed_or_bool<bool> {
@@ -167,8 +168,10 @@ template <class L> struct return_type_impl2<L, int, false, true> {
 };
 
 template <class L> struct return_type_impl2<L, uint, false, true> {
-    using type =
-        datapar<std::make_unsigned_t<typename L::value_type>, typename L::abi_type>;
+    using LT = typename L::value_type;
+    using A = typename L::abi_type;
+    using type = std::conditional_t<(sizeof(LT) <= sizeof(int)),
+                                    datapar<std::make_unsigned_t<LT>, A>, L>;
 };
 
 template <class L, class R> struct return_type_impl : public return_type_impl2<L, R> {
