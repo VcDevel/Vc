@@ -35,28 +35,24 @@ using uchar = unsigned char;
 using llong = long long;
 using ullong = unsigned long long;
 
-using vschar = Vc::datapar<schar>;
-using vuchar = Vc::datapar<uchar>;
-using vshort = Vc::datapar<short>;
-using vushort = Vc::datapar<ushort>;
-using vint = Vc::datapar<int>;
-using vuint = Vc::datapar<uint>;
-using vlong = Vc::datapar<long>;
-using vulong = Vc::datapar<ulong>;
-using vllong = Vc::datapar<llong>;
-using vullong = Vc::datapar<ullong>;
-using vfloat = Vc::datapar<float>;
-using vdouble = Vc::datapar<double>;
-using vldouble = Vc::datapar<long double>;
+using vschar = Vc::native_datapar<schar>;
+using vuchar = Vc::native_datapar<uchar>;
+using vshort = Vc::native_datapar<short>;
+using vushort = Vc::native_datapar<ushort>;
+using vint = Vc::native_datapar<int>;
+using vuint = Vc::native_datapar<uint>;
+using vlong = Vc::native_datapar<long>;
+using vulong = Vc::native_datapar<ulong>;
+using vllong = Vc::native_datapar<llong>;
+using vullong = Vc::native_datapar<ullong>;
+using vfloat = Vc::native_datapar<float>;
+using vdouble = Vc::native_datapar<double>;
+using vldouble = Vc::native_datapar<long double>;
 
-template <typename T>
-using v8 = Vc::datapar<T, Vc::datapar_abi::fixed_size<vschar::size()>>;
-template <typename T>
-using v16 = Vc::datapar<T, Vc::datapar_abi::fixed_size<vshort::size()>>;
-template <typename T>
-using v32 = Vc::datapar<T, Vc::datapar_abi::fixed_size<vint::size()>>;
-template <typename T>
-using v64 = Vc::datapar<T, Vc::datapar_abi::fixed_size<vllong::size()>>;
+template <typename T> using v8  = Vc::fixed_size_datapar<T, vschar::size()>;
+template <typename T> using v16 = Vc::fixed_size_datapar<T, vshort::size()>;
+template <typename T> using v32 = Vc::fixed_size_datapar<T, vint::size()>;
+template <typename T> using v64 = Vc::fixed_size_datapar<T, vllong::size()>;
 template <typename T>
 using vl = typename std::conditional<sizeof(long) == sizeof(llong), v64<T>, v32<T>>::type;
 

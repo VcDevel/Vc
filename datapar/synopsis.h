@@ -185,11 +185,13 @@ constexpr size_t memory_alignment = detail::next_power_of_2(sizeof(U) * T::size(
 template <class T, class Abi = datapar_abi::compatible<T>> class datapar;
 template <class T, class Abi> struct is_datapar<datapar<T, Abi>> : public std::true_type {};
 template <class T> using native_datapar = datapar<T, datapar_abi::native<T>>;
+template <class T, int N> using fixed_size_datapar = datapar<T, datapar_abi::fixed_size<N>>;
 
 // class template mask [mask]
 template <class T, class Abi = datapar_abi::compatible<T>> class mask;
 template <class T, class Abi> struct is_mask<mask<T, Abi>> : public std::true_type {};
 template <class T> using native_mask = mask<T, datapar_abi::native<T>>;
+template <class T, int N> using fixed_size_mask = mask<T, datapar_abi::fixed_size<N>>;
 
 namespace detail
 {
