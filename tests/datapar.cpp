@@ -576,7 +576,7 @@ TEST(operator_conversions)  //{{{1
     binary_op_return_type<vlong, short, vlong>();
     binary_op_return_type<vlong, ushort, vlong>();
     binary_op_return_type<vlong, int, vlong>();
-    binary_op_return_type<vlong, uint, Vc::datapar<decltype(long() + uint())>>();
+    binary_op_return_type<vlong, uint, Vc::native_datapar<decltype(long() + uint())>>();
     binary_op_return_type<vlong, long, vlong>();
     binary_op_return_type<vlong, ulong, vulong>();
     binary_op_return_type<vlong, llong, vl<llong>>();
@@ -588,7 +588,7 @@ TEST(operator_conversions)  //{{{1
     binary_op_return_type<vlong, vl<short>, vlong>();
     binary_op_return_type<vlong, vl<ushort>, vlong>();
     binary_op_return_type<vlong, vl<int>, vlong>();
-    binary_op_return_type<vlong, vl<uint>, Vc::datapar<decltype(long() + uint())>>();
+    binary_op_return_type<vlong, vl<uint>, Vc::native_datapar<decltype(long() + uint())>>();
     binary_op_return_type<vlong, vl<long>, vlong>();
     binary_op_return_type<vlong, vl<ulong>, vulong>();
     binary_op_return_type<vlong, vl<llong>, vl<llong>>();
@@ -736,9 +736,9 @@ TEST(operator_conversions)  //{{{1
     binary_op_return_type<vllong, short, vllong>();
     binary_op_return_type<vllong, ushort, vllong>();
     binary_op_return_type<vllong, int, vllong>();
-    binary_op_return_type<vllong, uint, Vc::datapar<decltype(llong() + uint())>>();
+    binary_op_return_type<vllong, uint, Vc::native_datapar<decltype(llong() + uint())>>();
     binary_op_return_type<vllong, long, vllong>();
-    binary_op_return_type<vllong, ulong, Vc::datapar<decltype(llong() + ulong())>>();
+    binary_op_return_type<vllong, ulong, Vc::native_datapar<decltype(llong() + ulong())>>();
     binary_op_return_type<vllong, llong, vllong>();
     binary_op_return_type<vllong, ullong, vullong>();
     binary_op_return_type<vllong, float, v64<float>>();
@@ -748,9 +748,9 @@ TEST(operator_conversions)  //{{{1
     binary_op_return_type<vllong, v64<short>, vllong>();
     binary_op_return_type<vllong, v64<ushort>, vllong>();
     binary_op_return_type<vllong, v64<int>, vllong>();
-    binary_op_return_type<vllong, v64<uint>, Vc::datapar<decltype(llong() + uint())>>();
+    binary_op_return_type<vllong, v64<uint>, Vc::native_datapar<decltype(llong() + uint())>>();
     binary_op_return_type<vllong, v64<long>, vllong>();
-    binary_op_return_type<vllong, v64<ulong>, Vc::datapar<decltype(llong() + ulong())>>();
+    binary_op_return_type<vllong, v64<ulong>, Vc::native_datapar<decltype(llong() + ulong())>>();
     binary_op_return_type<vllong, v64<llong>, vllong>();
     binary_op_return_type<vllong, v64<ullong>, vullong>();
     binary_op_return_type<vllong, v64<float>, v64<float>>();
