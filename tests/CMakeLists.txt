@@ -25,6 +25,14 @@ if(Vc_COMPILER_IS_CLANG)
    AddCompilerFlag(-Wno-tautological-compare)
 endif()
 
+function(get_target_executable VAR TARGET)
+   get_target_property(exe "${TARGET}" OUTPUT_NAME)
+   if(NOT exe)
+      set(exe "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}")
+   endif()
+   set(${VAR} "${exe}" PARENT_SCOPE)
+endfunction()
+
 CHECK_CXX_SOURCE_COMPILES("#include <cxxabi.h>
 int main() { return 0; }" cxx_abi_header_works)
 if(cxx_abi_header_works)
@@ -32,7 +40,7 @@ if(cxx_abi_header_works)
 endif()
 
 set(all_target_variants)
-function(vc_set_first_flag_of name)
+function(vc_target_setup name sde_cpuid)
    foreach(flags ${ARGN})
       string(REPLACE "|" ";" flags "${flags}")
       set(result)
@@ -47,6 +55,7 @@ function(vc_set_first_flag_of name)
          set(Vc_${name}_flags ${result} PARENT_SCOPE)
          list(APPEND all_target_variants ${name})
          set(all_target_variants ${all_target_variants} PARENT_SCOPE)
+         set(sde_cpuid_${name} "-${sde_cpuid}" PARENT_SCOPE)
          return()
       endif()
    endforeach()
@@ -55,29 +64,27 @@ endfunction()
 
 # sets Vc_scalar_flags, Vc_sse2_flags, ...
 if(Vc_X86)
-   vc_set_first_flag_of(scalar "-mno-sse2")  # fails to compile without SSE in system headers
-   vc_set_first_flag_of(sse2 "-xSSE2" "-msse2" "/arch:SSE2")
-   vc_set_first_flag_of(sse4_2 "-xSSE4.2" "-msse4.2" "/arch:SSE2")
-   vc_set_first_flag_of(avx "-xAVX" "-mavx" "/arch:AVX")
-   vc_set_first_flag_of(avx2 "-xCORE-AVX2" "-mavx2|-mbmi2|-mfma" "/arch:AVX2")
-   vc_set_first_flag_of(mic "-mmic")
-   vc_set_first_flag_of(knl "-xMIC-AVX512" "-march=knl")
-   vc_set_first_flag_of(avx512 "-xCORE-AVX512" "-march=skylake-avx512")
+   vc_target_setup(scalar mrm "-mno-sse2")  # fails to compile without SSE in system headers
+   vc_target_setup(sse2 mrm "-xSSE2" "-msse2" "/arch:SSE2")
+   vc_target_setup(sse4_2 nhm "-xSSE4.2" "-msse4.2" "/arch:SSE2")
+   vc_target_setup(avx snb "-xAVX" "-mavx" "/arch:AVX")
+   vc_target_setup(avx2 hsw "-xCORE-AVX2" "-mavx2|-mbmi2|-mfma" "/arch:AVX2")
+   vc_target_setup(mic "" "-mmic")
+   vc_target_setup(knl knl "-xMIC-AVX512" "-march=knl")
+   vc_target_setup(avx512 skx "-xCORE-AVX512" "-march=skylake-avx512")
 endif()
 
-macro(vc_add_run_target _target)
+macro(vc_add_run_target _target emulator)
    if("${CMAKE_GENERATOR}" MATCHES "Visual Studio")
       # do nothing. This just clutters the solution explorer
-   elseif("${_target}" MATCHES "_mic$")
-      if(MIC_NATIVELOAD)
-         get_target_property(_exe "${_target}" OUTPUT_NAME)
-         add_custom_target(run_${_target}
-            ${MIC_NATIVELOAD} "${_exe}" -a "-v"
-            DEPENDS ${_target}
-            COMMENT "Execute ${_target} test"
-            VERBATIM
-            )
-      endif()
+   elseif(emulator)
+      get_target_executable(_exe "${_target}")
+      add_custom_target(run_${_target}
+         ${emulator} "${_exe}" "-v" # FIXME: MIC_NATIVELOAD needs `emulator exe -a -v`
+         DEPENDS ${_target}
+         COMMENT "Execute ${_target} test"
+         VERBATIM
+         )
    else()
       add_custom_target(run_${_target}
          ${_target} -v
@@ -109,11 +116,18 @@ function(vc_add_test2 name)
          list(APPEND flags "${Vc_${impl}_flags}")
          string(TOUPPER "${impl}" label)
          set(use_var "USE_${label}")
+         set(emulator FALSE)
          if(impl STREQUAL "scalar")
             set(label Scalar)
             set(use_var TRUE)
          elseif(impl STREQUAL "mic")
             set(use_var "MIC_NATIVE_FOUND")
+            if(MIC_NATIVELOAD)
+               set(emulator ${MIC_NATIVELOAD})
+            endif()
+         elseif(Vc_X86 AND INTEL_SDE AND NOT ${use_var})
+            set(use_var TRUE)
+            set(emulator "${INTEL_SDE};${sde_cpuid_${name}};--")
          endif()
          if(NOT Vc_${impl}_flags)
             continue()
@@ -162,21 +176,17 @@ function(vc_add_test2 name)
             add_target_property(${target} LABELS "${label}")
             add_dependencies(build_tests ${target})
             add_dependencies(${label} ${target})
-            if(impl STREQUAL "mic")
-               if(${use_var} AND MIC_NATIVELOAD)
-                  get_target_property(_exe "${target}" OUTPUT_NAME)
+            if(${use_var})
+               if(emulator)
+                  get_target_executable(_exe "${target}")
                   add_test(NAME ${Vc_TEST_TARGET_PREFIX}${target}
-                     COMMAND "${MIC_NATIVELOAD}" "${_exe}"
+                     COMMAND "${emulator}" "${_exe}"
                      )
-               endif()
-            else()
-               if(${use_var})
+               else()
                   add_test(${Vc_TEST_TARGET_PREFIX}${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
                endif()
-            endif()
-            if(${use_var} AND (NOT impl STREQUAL "mic" OR MIC_NATIVELOAD))
                set_property(TEST ${Vc_TEST_TARGET_PREFIX}${target} PROPERTY LABELS "${label}")
-               vc_add_run_target(${target})
+               vc_add_run_target(${target} "${emulator}")
                list(APPEND run_targets "run_${target}")
             endif()
             if(impl STREQUAL "scalar")
@@ -254,10 +264,7 @@ if(OBJDUMP)
       add_dependencies(${_impl} ${_target})
       add_dependencies(build_tests ${_target})
 
-      get_target_property(_exe ${_target} OUTPUT_NAME)
-      if(NOT _exe)
-         set(_exe ${_target})
-      endif()
+      get_target_executable(_exe "${_target}")
 
       add_test(NAME ${_test}
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -304,7 +311,7 @@ macro(vc_add_general_test _name)
    add_dependencies(other ${_name})
    add_test(${Vc_TEST_TARGET_PREFIX}${_name} "${CMAKE_CURRENT_BINARY_DIR}/${_name}")
    set_property(TEST ${Vc_TEST_TARGET_PREFIX}${_name} PROPERTY LABELS "other")
-   vc_add_run_target(${_name})
+   vc_add_run_target(${_name} FALSE)
 endmacro()
 
 if(_last_target_arch STREQUAL "auto" AND NOT Vc_AVX_INTRINSICS_BROKEN)

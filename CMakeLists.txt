@@ -99,6 +99,13 @@ endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+# Look for the Intel SDE if we're running on x86
+if(Vc_X86)
+   file(GLOB SDE_DIRS /opt/intel/*)
+   find_program(INTEL_SDE sde ${SDE_DIRS}
+      DOC "Path to the Intel Software Development Emulator")
+endif()
+
 add_custom_target(other VERBATIM)
 add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
 if(Vc_X86)
