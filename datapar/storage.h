@@ -377,7 +377,7 @@ public:
     template <typename U>
     Vc_INTRINSIC Storage(
         const U &x,
-        enable_if<is_intrinsic_v<U> && sizeof(U) == sizeof(VectorType)> = nullarg)
+        enable_if<is_builtin_vector_v<U> && sizeof(U) == sizeof(VectorType)> = nullarg)
         : data(reinterpret_cast<Builtin>(x))
     {
         assertCorrectAlignment(&data);

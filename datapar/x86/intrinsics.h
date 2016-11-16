@@ -147,6 +147,52 @@ template <> struct is_intrinsic<__m512i> : public std::true_type {};
 #endif  // Vc_HAVE_AVX512F
 template <class T> constexpr bool is_intrinsic_v = is_intrinsic<T>::value;
 
+// is_builtin_vector{{{1
+template <class T> struct is_builtin_vector : public std::false_type {};
+template <> struct is_builtin_vector<builtin_type<float, 4>> : public std::true_type {};
+#ifdef Vc_HAVE_SSE2
+template <> struct is_builtin_vector<builtin_type<double, 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< llong, 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<ullong, 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  long, 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< ulong, 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<   int, 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  uint, 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< short, 8>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<ushort, 8>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< schar,16>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< uchar,16>> : public std::true_type {};
+#endif  // Vc_HAVE_SSE2
+#ifdef Vc_HAVE_AVX
+template <> struct is_builtin_vector<builtin_type< float, 4 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<double, 2 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< llong, 2 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<ullong, 2 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  long, 2 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< ulong, 2 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<   int, 4 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  uint, 4 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< short, 8 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<ushort, 8 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< schar,16 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< uchar,16 * 2>> : public std::true_type {};
+#endif  // Vc_HAVE_AVX
+#ifdef Vc_HAVE_AVX512F
+template <> struct is_builtin_vector<builtin_type< float, 4 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<double, 2 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< llong, 2 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<ullong, 2 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  long, 2 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< ulong, 2 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<   int, 4 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  uint, 4 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< short, 8 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<ushort, 8 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< schar,16 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< uchar,16 * 4>> : public std::true_type {};
+#endif  // Vc_HAVE_AVX512F
+template <class T> constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
+
 // intrin_cast{{{1
 template<typename T> Vc_INTRINSIC_L T intrin_cast(__m128  v) Vc_INTRINSIC_R;
 template<typename T> Vc_INTRINSIC_L T intrin_cast(__m128i v) Vc_INTRINSIC_R;

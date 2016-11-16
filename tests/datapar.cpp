@@ -215,11 +215,18 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
         }
         COMPARE(x, V{max});
     }
-    {  // negation{{{2
+    {  // not{{{2
         V x = 0;
         COMPARE(!x, M{true});
         V y = 1;
         COMPARE(!y, M{false});
+    }
+
+    {  // unary minus{{{2
+        V x = 0;
+        COMPARE(-x, V(-T(0)));
+        V y = 1;
+        COMPARE(-y, V(-T(1)));
     }
 }
 
@@ -1231,4 +1238,5 @@ TEST(operator_conversions)  //{{{1
     binary_op_return_type<int, v32<schar>, v32<schar>>();
     binary_op_return_type<int, v32<uchar>, v32<uchar>>();
 }
+
 // vim: foldmethod=marker

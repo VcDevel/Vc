@@ -32,6 +32,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace detail
 {
+template <class Derived> struct generic_datapar_impl;
 // allow_conversion_ctor2{{{1
 template <class T0, class T1, class A, bool = std::is_same<T0, T1>::value,
           bool = std::conjunction<std::is_integral<T0>, std::is_integral<T1>>::value>
@@ -91,6 +92,7 @@ template <class T, class Abi> class datapar
     static constexpr std::integral_constant<size_t, traits::size()> size_tag = {};
     static constexpr T *type_tag = nullptr;
     friend impl;
+    friend detail::generic_datapar_impl<impl>;
 
 public:
     using value_type = T;
@@ -186,7 +188,7 @@ public:
 
     // unary operators (for any T)
     datapar operator+() const { return *this; }
-    //datapar operator-() const;
+    datapar operator-() const { return impl::unary_minus(*this); }
 
     // reductions
     //value_type sum() const;

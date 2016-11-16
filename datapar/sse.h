@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "x86/arithmetics.h"
 #include "maskbool.h"
 #include "bitscan.h"
+#include "genericimpl.h"
 
 namespace Vc_VERSIONED_NAMESPACE::detail
 {
@@ -70,7 +71,7 @@ struct traits<long double, datapar_abi::sse>
 namespace Vc_VERSIONED_NAMESPACE::detail
 {
 // datapar impl {{{1
-struct sse_datapar_impl {
+struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     // member types {{{2
     using abi = datapar_abi::sse;
     template <class T> static constexpr size_t size = datapar_size_v<T, abi>;
@@ -81,6 +82,12 @@ struct sse_datapar_impl {
     template <class T> using mask = Vc::mask<T, abi>;
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
+
+    // data {{{2
+    template <class T> static Vc_INTRINSIC auto data(datapar<T> x) noexcept
+    {
+        return x.d;
+    }
 
     // broadcast {{{2
     static Vc_INTRINSIC intrinsic_type<float> broadcast(float x, size_tag<4>) noexcept

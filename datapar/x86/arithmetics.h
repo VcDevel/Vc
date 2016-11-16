@@ -83,6 +83,21 @@ Vc_INTRINSIC __m128i minus(x_i16 a, x_i16 b) { return _mm_sub_epi16(a, b); }
 Vc_INTRINSIC __m128i minus(x_u16 a, x_u16 b) { return _mm_sub_epi16(a, b); }
 Vc_INTRINSIC __m128i minus(x_i08 a, x_i08 b) { return _mm_sub_epi8 (a, b); }
 Vc_INTRINSIC __m128i minus(x_u08 a, x_u08 b) { return _mm_sub_epi8 (a, b); }
+
+#ifdef Vc_HAVE_AVX
+Vc_INTRINSIC __m256  minus(y_f32 a, y_f32 b) { return _mm256_sub_ps(a, b); }
+Vc_INTRINSIC __m256d minus(y_f64 a, y_f64 b) { return _mm256_sub_pd(a, b); }
+#endif  // Vc_HAVE_AVX
+#ifdef Vc_HAVE_AVX2
+Vc_INTRINSIC __m256i minus(y_i64 a, y_i64 b) { return _mm256_sub_epi64(a, b); }
+Vc_INTRINSIC __m256i minus(y_u64 a, y_u64 b) { return _mm256_sub_epi64(a, b); }
+Vc_INTRINSIC __m256i minus(y_i32 a, y_i32 b) { return _mm256_sub_epi32(a, b); }
+Vc_INTRINSIC __m256i minus(y_u32 a, y_u32 b) { return _mm256_sub_epi32(a, b); }
+Vc_INTRINSIC __m256i minus(y_i16 a, y_i16 b) { return _mm256_sub_epi16(a, b); }
+Vc_INTRINSIC __m256i minus(y_u16 a, y_u16 b) { return _mm256_sub_epi16(a, b); }
+Vc_INTRINSIC __m256i minus(y_i08 a, y_i08 b) { return _mm256_sub_epi8 (a, b); }
+Vc_INTRINSIC __m256i minus(y_u08 a, y_u08 b) { return _mm256_sub_epi8 (a, b); }
+#endif  // Vc_HAVE_AVX2
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // multiplies{{{1
@@ -190,6 +205,37 @@ Vc_INTRINSIC x_u08 divides(x_u08 a, x_u08 b) {
                 24)));
 }
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
+
+// unary_minus{{{1
+template <typename T> Vc_INTRINSIC auto unary_minus(T v) { return minus(T{}, v); }
+Vc_INTRINSIC __m128  unary_minus(x_f32 v) { return xor_(v, signmask16(float())); }
+Vc_INTRINSIC __m128d unary_minus(x_f64 v) { return xor_(v, signmask16(double())); }
+#ifdef Vc_HAVE_SSSE3
+Vc_INTRINSIC __m128i unary_minus(x_i32 v) { return _mm_sign_epi32(v, allone<__m128i>()); }
+Vc_INTRINSIC __m128i unary_minus(x_u32 v) { return _mm_sign_epi32(v, allone<__m128i>()); }
+Vc_INTRINSIC __m128i unary_minus(x_i16 v) { return _mm_sign_epi16(v, allone<__m128i>()); }
+Vc_INTRINSIC __m128i unary_minus(x_u16 v) { return _mm_sign_epi16(v, allone<__m128i>()); }
+Vc_INTRINSIC __m128i unary_minus(x_i08 v) { return _mm_sign_epi8 (v, allone<__m128i>()); }
+Vc_INTRINSIC __m128i unary_minus(x_u08 v) { return _mm_sign_epi8 (v, allone<__m128i>()); }
+#endif  // Vc_HAVE_SSSE3
+
+#ifdef Vc_HAVE_AVX
+Vc_INTRINSIC __m256  unary_minus(y_f32 v) { return xor_(v, signmask32(float())); }
+Vc_INTRINSIC __m256d unary_minus(y_f64 v) { return xor_(v, signmask32(double())); }
+#endif  // Vc_HAVE_AVX
+#ifdef Vc_HAVE_AVX2
+Vc_INTRINSIC __m256i unary_minus(y_i32 v) { return _mm256_sign_epi32(v, allone<__m256i>()); }
+Vc_INTRINSIC __m256i unary_minus(y_u32 v) { return _mm256_sign_epi32(v, allone<__m256i>()); }
+Vc_INTRINSIC __m256i unary_minus(y_i16 v) { return _mm256_sign_epi16(v, allone<__m256i>()); }
+Vc_INTRINSIC __m256i unary_minus(y_u16 v) { return _mm256_sign_epi16(v, allone<__m256i>()); }
+Vc_INTRINSIC __m256i unary_minus(y_i08 v) { return _mm256_sign_epi8 (v, allone<__m256i>()); }
+Vc_INTRINSIC __m256i unary_minus(y_u08 v) { return _mm256_sign_epi8 (v, allone<__m256i>()); }
+#endif  // Vc_HAVE_AVX2
+
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC __m512  unary_minus(z_f32 v) { return xor_(v, signmask64(float())); }
+Vc_INTRINSIC __m512d unary_minus(z_f64 v) { return xor_(v, signmask64(double())); }
+#endif  // Vc_HAVE_AVX512F
 
 //}}}1
 }  // namespace Vc_VERSIONED_NAMESPACE::detail::x86

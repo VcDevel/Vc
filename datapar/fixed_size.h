@@ -128,6 +128,13 @@ template <int N> struct fixed_size_datapar_impl {
         return {private_init, negate_impl(x.d, index_seq)};
     }
 
+    // unary minus {{{2
+    template <class T, class A>
+    static inline Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>(
+                                  [&](auto i) { return static_cast<T>(-x.d[i]); })};
+    }
+
     // arithmetic operators {{{2
     template <class T, class A>
     static inline Vc::datapar<T, A> plus(const Vc::datapar<T, A> &x,
