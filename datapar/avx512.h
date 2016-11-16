@@ -57,6 +57,7 @@ template <class T> struct traits<T, datapar_abi::avx512> {
     static_assert(sizeof(T) <= 8,
                   "AVX can only implement operations on element types with sizeof <= 8");
     static constexpr size_t size() noexcept { return 64 / sizeof(T); }
+    using abi_type = datapar_abi::avx512;
 
     using datapar_member_type = avx512_datapar_member_type<T>;
     using datapar_impl_type = avx512_datapar_impl;
@@ -67,6 +68,15 @@ template <class T> struct traits<T, datapar_abi::avx512> {
     using mask_impl_type = avx512_mask_impl;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
     using mask_cast_type = typename mask_member_type::VectorType;
+
+    static Vc_INTRINSIC auto data(datapar<T, abi_type> v)
+    {
+        return static_cast<datapar_cast_type>(v);
+    }
+    static Vc_INTRINSIC auto data(mask<T, abi_type> k)
+    {
+        return static_cast<mask_cast_type>(k);
+    }
 };
 
 template <>
@@ -109,7 +119,7 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     template <class T>
     static Vc_INTRINSIC intrinsic_type<T> broadcast(T x, size_tag<8>) noexcept
     {
-        return _mm512_set1_epi64x(x);
+        return _mm512_set1_epi64(x);
     }
     template <class T>
     static Vc_INTRINSIC intrinsic_type<T> broadcast(T x, size_tag<16>) noexcept
@@ -130,15 +140,11 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     // negation {{{2
     template <class T> static Vc_INTRINSIC mask<T> negate(datapar<T> x) noexcept
     {
-#if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
-        return {private_init, !x.d.builtin()};
-#else
         return equal_to(x, datapar<T>(0));
-#endif
     }
 
     // compares {{{2
-#if defined Vc_USE_BUILTIN_VECTOR_TYPES
+#if 0  // defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>
     static Vc_INTRINSIC mask<T> equal_to(datapar<T> x, datapar<T> y)
     {
@@ -160,20 +166,20 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
         return {private_init, x.d.builtin() <= y.d.builtin()};
     }
 #else  // Vc_USE_BUILTIN_VECTOR_TYPES
-    static Vc_INTRINSIC mask<double> equal_to    (datapar<double> x, datapar<double> y) { return {private_init, _mm512_cmpeq_pd_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<double> not_equal_to(datapar<double> x, datapar<double> y) { return {private_init, _mm512_cmpneq_pd_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<double> less        (datapar<double> x, datapar<double> y) { return {private_init, _mm512_cmplt_pd_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<double> less_equal  (datapar<double> x, datapar<double> y) { return {private_init, _mm512_cmple_pd_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> equal_to    (datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmpeq_ps_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> not_equal_to(datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmpnew_ps_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> less        (datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmplt_ps_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> less_equal  (datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmple_ps_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<double> equal_to    (datapar<double> x, datapar<double> y) { return {private_init, _mm512_cmp_pd_mask(x.d, y.d, _MM_CMPINT_EQ)}; }
+    static Vc_INTRINSIC mask<double> not_equal_to(datapar<double> x, datapar<double> y) { return {private_init, _mm512_cmp_pd_mask(x.d, y.d, _MM_CMPINT_NE)}; }
+    static Vc_INTRINSIC mask<double> less        (datapar<double> x, datapar<double> y) { return {private_init, _mm512_cmp_pd_mask(x.d, y.d, _MM_CMPINT_LT)}; }
+    static Vc_INTRINSIC mask<double> less_equal  (datapar<double> x, datapar<double> y) { return {private_init, _mm512_cmp_pd_mask(x.d, y.d, _MM_CMPINT_LE)}; }
+    static Vc_INTRINSIC mask< float> equal_to    (datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmp_ps_mask(x.d, y.d, _MM_CMPINT_EQ)}; }
+    static Vc_INTRINSIC mask< float> not_equal_to(datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmp_ps_mask(x.d, y.d, _MM_CMPINT_NE)}; }
+    static Vc_INTRINSIC mask< float> less        (datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmp_ps_mask(x.d, y.d, _MM_CMPINT_LT)}; }
+    static Vc_INTRINSIC mask< float> less_equal  (datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmp_ps_mask(x.d, y.d, _MM_CMPINT_LE)}; }
 
 #ifdef Vc_HAVE_FULL_AVX512_ABI
     static Vc_INTRINSIC mask< llong> equal_to(datapar< llong> x, datapar< llong> y) { return {private_init, _mm512_cmpeq_epi64_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<ullong> equal_to(datapar<ullong> x, datapar<ullong> y) { return {private_init, _mm512_cmpeq_epi64_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<  long> equal_to(datapar<  long> x, datapar<  long> y) { return {private_init, sizeof(long) == 8 ? _mm512_cmpeq_epi64_mask(x.d, y.d) : _mm512_cmpeq_epi32_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< ulong> equal_to(datapar< ulong> x, datapar< ulong> y) { return {private_init, sizeof(long) == 8 ? _mm512_cmpeq_epi64_mask(x.d, y.d) : _mm512_cmpeq_epi32_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<  long> equal_to(datapar<  long> x, datapar<  long> y) { return {private_init, detail::cmpeq_long_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< ulong> equal_to(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::cmpeq_long_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<   int> equal_to(datapar<   int> x, datapar<   int> y) { return {private_init, _mm512_cmpeq_epi32_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<  uint> equal_to(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm512_cmpeq_epi32_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask< short> equal_to(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmpeq_epi16_mask(x.d, y.d)}; }
@@ -192,27 +198,27 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     static Vc_INTRINSIC mask< schar> not_equal_to(datapar< schar> x, datapar< schar> y) { return !equal_to(x, y); }
     static Vc_INTRINSIC mask< uchar> not_equal_to(datapar< uchar> x, datapar< uchar> y) { return !equal_to(x, y); }
 
-    static Vc_INTRINSIC mask< llong> less(datapar< llong> x, datapar< llong> y) { return {private_init, _mm512_cmpgt_epi64_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<ullong> less(datapar<ullong> x, datapar<ullong> y) { return {private_init, _mm512_cmpgt_epu64_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<  long> less(datapar<  long> x, datapar<  long> y) { return {private_init, sizeof(long) == 8 ? _mm512_cmpgt_epi64_mask(y.d, x.d) : _mm512_cmpgt_epi32_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< ulong> less(datapar< ulong> x, datapar< ulong> y) { return {private_init, sizeof(long) == 8 ? _mm512_cmpgt_epu64_mask(y.d, x.d) : _mm512_cmpgt_epu32_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<   int> less(datapar<   int> x, datapar<   int> y) { return {private_init, _mm512_cmpgt_epi32_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<  uint> less(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm512_cmpgt_epu32_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< short> less(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmpgt_epi16_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<ushort> less(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm512_cmpgt_epu16_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< schar> less(datapar< schar> x, datapar< schar> y) { return {private_init, _mm512_cmpgt_epi8_mask (y.d, x.d)}; }
-    static Vc_INTRINSIC mask< uchar> less(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm512_cmpgt_epu8_mask (y.d, x.d)}; }
+    static Vc_INTRINSIC mask< llong> less(datapar< llong> x, datapar< llong> y) { return {private_init, _mm512_cmplt_epi64_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ullong> less(datapar<ullong> x, datapar<ullong> y) { return {private_init, _mm512_cmplt_epu64_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<  long> less(datapar<  long> x, datapar<  long> y) { return {private_init, detail::cmplt_long_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< ulong> less(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::cmplt_ulong_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<   int> less(datapar<   int> x, datapar<   int> y) { return {private_init, _mm512_cmplt_epi32_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<  uint> less(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm512_cmplt_epu32_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< short> less(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmplt_epi16_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ushort> less(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm512_cmplt_epu16_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< schar> less(datapar< schar> x, datapar< schar> y) { return {private_init, _mm512_cmplt_epi8_mask (x.d, y.d)}; }
+    static Vc_INTRINSIC mask< uchar> less(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm512_cmplt_epu8_mask (x.d, y.d)}; }
 
-    static Vc_INTRINSIC mask< llong> less_equal(datapar< llong> x, datapar< llong> y) { return {private_init, _mm512_cmple_epi64_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<ullong> less_equal(datapar<ullong> x, datapar<ullong> y) { return {private_init, _mm512_cmple_epu64_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<  long> less_equal(datapar<  long> x, datapar<  long> y) { return {private_init, sizeof(long) == 8 ? _mm512_cmple_epi64_mask(y.d, x.d) : _mm512_cmple_epi32_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< ulong> less_equal(datapar< ulong> x, datapar< ulong> y) { return {private_init, sizeof(long) == 8 ? _mm512_cmple_epu64_mask(y.d, x.d) : _mm512_cmple_epu32_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<   int> less_equal(datapar<   int> x, datapar<   int> y) { return {private_init, _mm512_cmple_epi32_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<  uint> less_equal(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm512_cmple_epu32_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< short> less_equal(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmple_epi16_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<ushort> less_equal(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm512_cmple_epu16_mask(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< schar> less_equal(datapar< schar> x, datapar< schar> y) { return {private_init, _mm512_cmple_epi8_mask (y.d, x.d)}; }
-    static Vc_INTRINSIC mask< uchar> less_equal(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm512_cmple_epu8_mask (y.d, x.d)}; }
+    static Vc_INTRINSIC mask< llong> less_equal(datapar< llong> x, datapar< llong> y) { return {private_init, _mm512_cmple_epi64_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ullong> less_equal(datapar<ullong> x, datapar<ullong> y) { return {private_init, _mm512_cmple_epu64_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<  long> less_equal(datapar<  long> x, datapar<  long> y) { return {private_init, detail::cmple_long_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< ulong> less_equal(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::cmple_ulong_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<   int> less_equal(datapar<   int> x, datapar<   int> y) { return {private_init, _mm512_cmple_epi32_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<  uint> less_equal(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm512_cmple_epu32_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< short> less_equal(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmple_epi16_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ushort> less_equal(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm512_cmple_epu16_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< schar> less_equal(datapar< schar> x, datapar< schar> y) { return {private_init, _mm512_cmple_epi8_mask (x.d, y.d)}; }
+    static Vc_INTRINSIC mask< uchar> less_equal(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm512_cmple_epu8_mask (x.d, y.d)}; }
 #endif  // Vc_HAVE_FULL_AVX512_ABI
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
@@ -271,7 +277,7 @@ struct avx512_mask_impl {
 #endif  // Vc_HAVE_AVX512BW
     }
     template <class F>
-    static Vc_INTRINSIC __mmask16 load(const bool *mem, F, size_tag<16>) noexcept
+    static Vc_INTRINSIC __mmask16 load(const bool *mem, F f, size_tag<16>) noexcept
     {
         const auto a = load16(mem, f);
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
@@ -367,7 +373,7 @@ struct avx512_mask_impl {
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
         _mm_storel_epi64(reinterpret_cast<__m128i *>(mem),
-                         and_(one16(uchar), _mm_movm_epi8(v.v())));
+                         and_(one16(uchar()), _mm_movm_epi8(v.v())));
 #elif defined Vc_HAVE_AVX512DQ
         _mm_storel_epi64(
             reinterpret_cast<__m128i *>(mem),
@@ -382,7 +388,7 @@ struct avx512_mask_impl {
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
         _mm_store_si128(reinterpret_cast<__m128i *>(mem),
-                        and_(one16(uchar), _mm_movm_epi8(v.v())));
+                        and_(one16(uchar()), _mm_movm_epi8(v.v())));
         unused(f);
 #elif defined Vc_HAVE_AVX512DQ
         store16(_mm512_cvtepi32_epi8(_mm512_srli_epi32(_mm512_movm_epi32(v.v()), 31)),
@@ -399,7 +405,7 @@ struct avx512_mask_impl {
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
         _mm256_store_si256(reinterpret_cast<__m256i *>(mem),
-                           and_(one32(uchar), _mm256_movm_epi8(v.v())));
+                           and_(one32(uchar()), _mm256_movm_epi8(v.v())));
 #elif defined Vc_HAVE_AVX512DQ
         store32(
             concat(_mm512_cvtepi32_epi8(_mm512_srli_epi32(_mm512_movm_epi32(v.v()), 31)),
@@ -421,7 +427,7 @@ struct avx512_mask_impl {
     static constexpr void store(mask_member_type<T> v, bool *mem, F, size_tag<64>) noexcept
     {
 #if defined Vc_HAVE_AVX512BW
-        _mm512_store_si512(mem, and_(one64(uchar), _mm512_movm_epi8(v.v())));
+        _mm512_store_si512(mem, and_(one64(uchar()), _mm512_movm_epi8(v.v())));
 #elif defined Vc_HAVE_AVX512DQ
         store64(concat(concat(_mm512_cvtepi32_epi8(
                                   _mm512_srli_epi32(_mm512_movm_epi32(v.v()), 31)),
@@ -458,28 +464,28 @@ struct avx512_mask_impl {
     static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F,
                                           mask_member_type<T> k, size_tag<8>) noexcept
     {
-        _mm_mask_storeu_epi8(mem, k.v(), and_(one16(uchar), _mm_movm_epi8(v.v())));
+        _mm_mask_storeu_epi8(mem, k.v(), and_(one16(uchar()), _mm_movm_epi8(v.v())));
     }
 
     template <class T, class F>
     static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F,
                                           mask_member_type<T> k, size_tag<16>) noexcept
     {
-        _mm_mask_storeu_epi8(mem, k.v(), and_(one16(uchar), _mm_movm_epi8(v.v())));
+        _mm_mask_storeu_epi8(mem, k.v(), and_(one16(uchar()), _mm_movm_epi8(v.v())));
     }
 
     template <class T, class F>
     static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F,
                                           mask_member_type<T> k, size_tag<32>) noexcept
     {
-        _mm256_mask_storeu_epi8(mem, k.v(), and_(one32(uchar), _mm256_movm_epi8(v.v())));
+        _mm256_mask_storeu_epi8(mem, k.v(), and_(one32(uchar()), _mm256_movm_epi8(v.v())));
     }
 
     template <class T, class F>
     static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F,
                                           mask_member_type<T> k, size_tag<64>) noexcept
     {
-        _mm512_mask_storeu_epi8(mem, k.v(), and_(one64(uchar), _mm512_movm_epi8(v.v())));
+        _mm512_mask_storeu_epi8(mem, k.v(), and_(one64(uchar()), _mm512_movm_epi8(v.v())));
     }
 
 #else   // defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
@@ -497,8 +503,7 @@ struct avx512_mask_impl {
 
     // negation {{{2
     template <class T, class SizeTag>
-    static Vc_INTRINSIC mask_member_type<T> negate(const mask_member_type<T> &x,
-                                                   SizeTag) noexcept
+    static Vc_INTRINSIC T negate(const T &x, SizeTag) noexcept
     {
         return ~x.v();
     }
@@ -533,11 +538,12 @@ namespace Vc_VERSIONED_NAMESPACE
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
 {
+    const auto &v = detail::traits<T, datapar_abi::avx512>::data(k);
     switch (k.size()) {
-    case 8:  return k.d.v() == 0xffU;
-    case 16: return k.d.v() == 0xffffU;
-    case 32: return k.d.v() == 0xffffffffU;
-    case 64: return k.d.v() == 0xffffffffffffffffULL;
+    case 8:  return v == 0xffU;
+    case 16: return v == 0xffffU;
+    case 32: return v == 0xffffffffU;
+    case 64: return v == 0xffffffffffffffffULL;
     default: Vc_UNREACHABLE();
     }
     // TODO: use _mm512_kortestc somehow?
@@ -546,37 +552,38 @@ Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::avx512> k)
 {
-    return k.d.v() != 0U;
+    const auto &v = detail::traits<T, datapar_abi::avx512>::data(k);
+    return v != 0U;
 }
 
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::avx512> k)
 {
-    return k.d.v() == 0U;
+    const auto &v = detail::traits<T, datapar_abi::avx512>::data(k);
+    return v == 0U;
 }
 
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::avx512> k)
 {
-    const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx512>::mask_cast_type>(k);
-    return 0 != detail::testnzc(d, detail::allone_poly);
+    const auto &v = detail::traits<T, datapar_abi::avx512>::data(k);
+    return 0 != detail::testnzc(v, detail::allone_poly);
 }
 
 Vc_ALWAYS_INLINE int popcount(mask<short, datapar_abi::avx512> k)
 {
-    return detail::popcount32(detail::mask_to_int<32>(
+    return detail::popcnt32(detail::mask_to_int<32>(
                static_cast<
-                   typename detail::traits<T, datapar_abi::avx512>::mask_cast_type>(
+                   typename detail::traits<short, datapar_abi::avx512>::mask_cast_type>(
                    k))) >>
            1;
 }
 
 Vc_ALWAYS_INLINE int popcount(mask<ushort, datapar_abi::avx512> k)
 {
-    return detail::popcount32(detail::mask_to_int<32>(
+    return detail::popcnt32(detail::mask_to_int<32>(
                static_cast<
-                   typename detail::traits<T, datapar_abi::avx512>::mask_cast_type>(
+                   typename detail::traits<ushort, datapar_abi::avx512>::mask_cast_type>(
                    k))) >>
            1;
 }
@@ -586,11 +593,12 @@ Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx512> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::avx512>::mask_cast_type>(k);
-    const auto n = mask_to_int<k.size()>(d);
+    const auto n = detail::mask_to_int<k.size()>(d);
     switch (k.size()) {
     case  4: return detail::popcnt4(n);
     case  8: return detail::popcnt8(n);
     case 32: return detail::popcnt32(n);
+    case 64: return detail::popcnt64(n);
     default: Vc_UNREACHABLE();
     }
 }
@@ -598,14 +606,16 @@ Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx512> k)
 Vc_ALWAYS_INLINE int find_first_set(mask<short, datapar_abi::avx512> k)
 {
     const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx512>::mask_cast_type>(k);
+        static_cast<typename detail::traits<short, datapar_abi::avx512>::mask_cast_type>(
+            k);
     return detail::bit_scan_forward(detail::mask_to_int<32>(d)) >> 1;
 }
 
 Vc_ALWAYS_INLINE int find_first_set(mask<ushort, datapar_abi::avx512> k)
 {
     const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx512>::mask_cast_type>(k);
+        static_cast<typename detail::traits<ushort, datapar_abi::avx512>::mask_cast_type>(
+            k);
     return detail::bit_scan_forward(detail::mask_to_int<32>(d)) >> 1;
 }
 
@@ -636,7 +646,7 @@ struct equal_to<Vc::mask<T, Vc::datapar_abi::avx512>>
 public:
     Vc_ALWAYS_INLINE bool operator()(const M<T> &x, const M<T> &y) const
     {
-        return static_cast<S<T>>(x).v() == static_cast<S<T>>(y).v();
+        return static_cast<S<T>>(x) == static_cast<S<T>>(y);
     }
 };
 template <>

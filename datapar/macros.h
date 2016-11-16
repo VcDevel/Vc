@@ -48,9 +48,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifdef __AVX512F__
-//#define Vc_HAVE_AVX512_ABI 1
+#define Vc_HAVE_AVX512_ABI 1
 #ifdef __AVX512BW__
-//#define Vc_HAVE_FULL_AVX512_ABI 1
+#define Vc_HAVE_FULL_AVX512_ABI 1
 #endif
 #endif
 

@@ -520,6 +520,21 @@ Vc_INTRINSIC Vc_CONST __m256i one32(  long) { return one32(equal_int_type_t<long
 Vc_INTRINSIC Vc_CONST __m256i one32( ulong) { return one32(equal_int_type_t<ulong>()); }
 #endif
 
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC Vc_CONST __m512  one64( float) { return _mm512_broadcastss_ps(_mm_load_ss(&avx_const::oneFloat)); }
+Vc_INTRINSIC Vc_CONST __m512d one64(double) { return _mm512_broadcastsd_pd(_mm_load_sd(&avx_const::oneDouble)); }
+Vc_INTRINSIC Vc_CONST __m512i one64( llong) { return _mm512_set1_epi64(1ll); }
+Vc_INTRINSIC Vc_CONST __m512i one64(ullong) { return _mm512_set1_epi64(1ll); }
+Vc_INTRINSIC Vc_CONST __m512i one64(   int) { return _mm512_set1_epi32(1); }
+Vc_INTRINSIC Vc_CONST __m512i one64(  uint) { return _mm512_set1_epi32(1); }
+Vc_INTRINSIC Vc_CONST __m512i one64( short) { return _mm512_set1_epi16(1); }
+Vc_INTRINSIC Vc_CONST __m512i one64(ushort) { return _mm512_set1_epi16(1); }
+Vc_INTRINSIC Vc_CONST __m512i one64( schar) { return _mm512_broadcast_i32x4(one16(schar())); }
+Vc_INTRINSIC Vc_CONST __m512i one64( uchar) { return one64(schar()); }
+Vc_INTRINSIC Vc_CONST __m512i one64(  long) { return one64(equal_int_type_t<long>()); }
+Vc_INTRINSIC Vc_CONST __m512i one64( ulong) { return one64(equal_int_type_t<ulong>()); }
+#endif  // Vc_HAVE_AVX512F
+
 // signmask{{{1
 Vc_INTRINSIC Vc_CONST __m128d signmask16(double){ return _mm_load_pd(reinterpret_cast<const double *>(sse_const::signMaskDouble)); }
 Vc_INTRINSIC Vc_CONST __m128  signmask16( float){ return _mm_load_ps(reinterpret_cast<const float *>(sse_const::signMaskFloat)); }
@@ -527,6 +542,11 @@ Vc_INTRINSIC Vc_CONST __m128  signmask16( float){ return _mm_load_ps(reinterpret
 #ifdef Vc_HAVE_AVX
 Vc_INTRINSIC Vc_CONST __m256d signmask32(double){ return _mm256_broadcast_sd(reinterpret_cast<const double *>(&avx_const::signMaskFloat[0])); }
 Vc_INTRINSIC Vc_CONST __m256  signmask32( float){ return _mm256_broadcast_ss(reinterpret_cast<const float *>(&avx_const::signMaskFloat[1])); }
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC Vc_CONST __m512d signmask64(double){ return _mm512_broadcast_f64x4(signmask32(double())); }
+Vc_INTRINSIC Vc_CONST __m512  signmask64( float){ return _mm512_broadcast_f32x4(signmask16(float())); }
 #endif  // Vc_HAVE_AVX
 
 // set16/32/64{{{1
@@ -1474,6 +1494,12 @@ Vc_INTRINSIC __m256i xor_(__m256i a, __m256i b) {
 }
 #endif  // Vc_HAVE_AVX
 
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC __m512  xor_(__m512  a, __m512  b) { return _mm512_xor_ps(a, b); }
+Vc_INTRINSIC __m512d xor_(__m512d a, __m512d b) { return _mm512_xor_pd(a, b); }
+Vc_INTRINSIC __m512i xor_(__m512i a, __m512i b) { return _mm512_xor_epi32(a, b); }
+#endif  // Vc_HAVE_AVX512F
+
 // or_{{{1
 Vc_INTRINSIC __m128 or_(__m128 a, __m128 b) { return _mm_or_ps(a, b); }
 Vc_INTRINSIC __m128d or_(__m128d a, __m128d b) { return _mm_or_pd(a, b); }
@@ -1639,6 +1665,20 @@ Vc_INTRINSIC Vc_CONST unsigned int popcnt32(unsigned int n)
     return n;
 #endif
 }
+Vc_INTRINSIC Vc_CONST unsigned int popcnt64(ullong n)
+{
+#ifdef Vc_IMPL_POPCNT
+    return _mm_popcnt_u64(n);
+#else
+    n = (n & 0x5555555555555555ULL) + ((n >> 1) & 0x5555555555555555ULL);
+    n = (n & 0x3333333333333333ULL) + ((n >> 2) & 0x3333333333333333ULL);
+    n = (n & 0x0f0f0f0f0f0f0f0fULL) + ((n >> 4) & 0x0f0f0f0f0f0f0f0fULL);
+    n = (n & 0x00ff00ff00ff00ffULL) + ((n >> 8) & 0x00ff00ff00ff00ffULL);
+    n = (n & 0x0000ffff0000ffffULL) + ((n >>16) & 0x0000ffff0000ffffULL);
+    n = (n & 0x00000000ffffffffULL) + ((n >>32) & 0x00000000ffffffffULL);
+    return n;
+#endif
+}
 
 // mask_count{{{1
 template <size_t Size> int mask_count(__m128 );
@@ -1695,6 +1735,12 @@ template <size_t Size> inline int mask_to_int(__m256 ) { static_assert(Size == S
 template <size_t Size> inline int mask_to_int(__m256d) { static_assert(Size == Size, "Size value not implemented"); return 0; }
 template <size_t Size> inline int mask_to_int(__m256i) { static_assert(Size == Size, "Size value not implemented"); return 0; }
 #endif  // Vc_HAVE_AVX
+#ifdef Vc_HAVE_AVX512F
+template <size_t Size> inline uint mask_to_int(__mmask8  k) { return k; }
+template <size_t Size> inline uint mask_to_int(__mmask16 k) { return k; }
+template <size_t Size> inline uint mask_to_int(__mmask32 k) { return k; }
+template <size_t Size> inline ullong mask_to_int(__mmask64 k) { return k; }
+#endif  // Vc_HAVE_AVX512F
 
 template<> Vc_INTRINSIC Vc_CONST int mask_to_int<2>(__m128i k)
 {
@@ -1792,6 +1838,59 @@ template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<16>(__m128 k1, __m128 k2)
     return _mm_movemask_epi8(_mm_castps_si128(k1)) !=
            _mm_movemask_epi8(_mm_castps_si128(k2));
 }
+
+// long cmp{{{1
+#ifdef Vc_HAVE_AVX512F
+template <int = sizeof(long)> Vc_INTRINSIC auto cmpeq_long_mask(__m512i x, __m512i y);
+template <> Vc_INTRINSIC auto cmpeq_long_mask<8>(__m512i x, __m512i y)
+{
+    return _mm512_cmpeq_epi64_mask(x, y);
+}
+template <> Vc_INTRINSIC auto cmpeq_long_mask<4>(__m512i x, __m512i y)
+{
+    return _mm512_cmpeq_epi32_mask(x, y);
+}
+
+template <int = sizeof(long)> Vc_INTRINSIC auto cmplt_long_mask(__m512i x, __m512i y);
+template <> Vc_INTRINSIC auto cmplt_long_mask<8>(__m512i x, __m512i y)
+{
+    return _mm512_cmplt_epi64_mask(x, y);
+}
+template <> Vc_INTRINSIC auto cmplt_long_mask<4>(__m512i x, __m512i y)
+{
+    return _mm512_cmplt_epi32_mask(x, y);
+}
+
+template <int = sizeof(long)> Vc_INTRINSIC auto cmplt_ulong_mask(__m512i x, __m512i y);
+template <> Vc_INTRINSIC auto cmplt_ulong_mask<8>(__m512i x, __m512i y)
+{
+    return _mm512_cmplt_epu64_mask(x, y);
+}
+template <> Vc_INTRINSIC auto cmplt_ulong_mask<4>(__m512i x, __m512i y)
+{
+    return _mm512_cmplt_epu32_mask(x, y);
+}
+
+template <int = sizeof(long)> Vc_INTRINSIC auto cmple_long_mask(__m512i x, __m512i y);
+template <> Vc_INTRINSIC auto cmple_long_mask<8>(__m512i x, __m512i y)
+{
+    return _mm512_cmple_epi64_mask(x, y);
+}
+template <> Vc_INTRINSIC auto cmple_long_mask<4>(__m512i x, __m512i y)
+{
+    return _mm512_cmple_epi32_mask(x, y);
+}
+
+template <int = sizeof(long)> Vc_INTRINSIC auto cmple_ulong_mask(__m512i x, __m512i y);
+template <> Vc_INTRINSIC auto cmple_ulong_mask<8>(__m512i x, __m512i y)
+{
+    return _mm512_cmple_epu64_mask(x, y);
+}
+template <> Vc_INTRINSIC auto cmple_ulong_mask<4>(__m512i x, __m512i y)
+{
+    return _mm512_cmple_epu32_mask(x, y);
+}
+#endif  // Vc_HAVE_AVX512F
 
 // loads{{{1
 /**

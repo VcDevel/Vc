@@ -158,8 +158,8 @@ template <> struct abi_for_size_impl<  uint, 16, true, true> { using type = data
 #ifdef Vc_HAVE_FULL_AVX512_ABI
 template <> struct abi_for_size_impl< short, 32, true, true> { using type = datapar_abi::avx512; };
 template <> struct abi_for_size_impl<ushort, 32, true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl< schar, 64, true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl< uchar, 64, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl< schar, 64, false, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl< uchar, 64, false, true> { using type = datapar_abi::avx512; };
 #endif
 #ifdef Vc_HAVE_FULL_KNC_ABI
 template <class T> struct abi_for_size_impl<T, datapar_size_v<T, datapar_abi::knc>, true, true> {
