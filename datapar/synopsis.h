@@ -238,83 +238,71 @@ template <class T, class Abi, class U, class R = detail::return_type<datapar<T, 
 template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator>>(const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_shift_right(static_cast<R>(x), static_cast<R>(y)); }
 
 // compares [datapar.comparison]
-template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator==(const datapar<T, A> &x,
-                                                            const U &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>>
+Vc_INTRINSIC typename R::mask_type operator==(const datapar<T, A> &x, const U &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::equal_to(x, y);
+    return detail::get_impl_t<R>::equal_to(static_cast<R>(x), static_cast<R>(y));
 }
-template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator!=(const datapar<T, A> &x,
-                                                            const U &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>>
+Vc_INTRINSIC typename R::mask_type operator!=(const datapar<T, A> &x, const U &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::not_equal_to(x, y);
+    return detail::get_impl_t<R>::not_equal_to(static_cast<R>(x), static_cast<R>(y));
 }
-template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator<=(const datapar<T, A> &x,
-                                                            const U &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>>
+Vc_INTRINSIC typename R::mask_type operator<=(const datapar<T, A> &x, const U &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less_equal(x, y);
+    return detail::get_impl_t<R>::less_equal(static_cast<R>(x), static_cast<R>(y));
 }
-template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator>=(const datapar<T, A> &x,
-                                                            const U &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>>
+Vc_INTRINSIC typename R::mask_type operator>=(const datapar<T, A> &x, const U &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less_equal(y, x);
+    return detail::get_impl_t<R>::less_equal(static_cast<R>(y), static_cast<R>(x));
 }
-template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator<(const datapar<T, A> &x,
-                                                           const U &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>>
+Vc_INTRINSIC typename R::mask_type operator<(const datapar<T, A> &x, const U &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less(x, y);
+    return detail::get_impl_t<R>::less(static_cast<R>(x), static_cast<R>(y));
 }
-template <class T, class A, class U>
-inline detail::cmp_return_type<datapar<T, A>, U> operator>(const datapar<T, A> &x,
-                                                           const U &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>>
+Vc_INTRINSIC typename R::mask_type operator>(const datapar<T, A> &x, const U &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less(y, x);
+    return detail::get_impl_t<R>::less(static_cast<R>(y), static_cast<R>(x));
 }
-template <class T, class A, class U,
-          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator==(const U &x,
-                                                            const datapar<T, A> &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
+          class = enable_if<!is_datapar_v<U>>>
+Vc_INTRINSIC typename R::mask_type operator==(const U &x, const datapar<T, A> &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::equal_to(x, y);
+    return detail::get_impl_t<R>::equal_to(static_cast<R>(x), static_cast<R>(y));
 }
-template <class T, class A, class U,
-          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator!=(const U &x,
-                                                            const datapar<T, A> &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
+          class = enable_if<!is_datapar_v<U>>>
+Vc_INTRINSIC typename R::mask_type operator!=(const U &x, const datapar<T, A> &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::not_equal_to(x, y);
+    return detail::get_impl_t<R>::not_equal_to(static_cast<R>(x), static_cast<R>(y));
 }
-template <class T, class A, class U,
-          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator<=(const U &x,
-                                                            const datapar<T, A> &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
+          class = enable_if<!is_datapar_v<U>>>
+Vc_INTRINSIC typename R::mask_type operator<=(const U &x, const datapar<T, A> &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less_equal(x, y);
+    return detail::get_impl_t<R>::less_equal(static_cast<R>(x), static_cast<R>(y));
 }
-template <class T, class A, class U,
-          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator>=(const U &x,
-                                                            const datapar<T, A> &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
+          class = enable_if<!is_datapar_v<U>>>
+Vc_INTRINSIC typename R::mask_type operator>=(const U &x, const datapar<T, A> &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less_equal(y, x);
+    return detail::get_impl_t<R>::less_equal(static_cast<R>(y), static_cast<R>(x));
 }
-template <class T, class A, class U,
-          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator<(const U &x,
-                                                           const datapar<T, A> &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
+          class = enable_if<!is_datapar_v<U>>>
+Vc_INTRINSIC typename R::mask_type operator<(const U &x, const datapar<T, A> &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less(x, y);
+    return detail::get_impl_t<R>::less(static_cast<R>(x), static_cast<R>(y));
 }
-template <class T, class A, class U,
-          class = enable_if<!std::is_same<U, datapar<T, A>>::value>>
-inline detail::cmp_return_type<datapar<T, A>, U> operator>(const U &x,
-                                                           const datapar<T, A> &y)
+template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
+          class = enable_if<!is_datapar_v<U>>>
+Vc_INTRINSIC typename R::mask_type operator>(const U &x, const datapar<T, A> &y)
 {
-    return detail::get_impl_t<detail::return_type<datapar<T, A>, U>>::less(y, x);
+    return detail::get_impl_t<R>::less(static_cast<R>(y), static_cast<R>(x));
 }
 
 // casts [datapar.casts]
