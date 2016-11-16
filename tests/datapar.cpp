@@ -59,7 +59,7 @@ using vl = typename std::conditional<sizeof(long) == sizeof(llong), v64<T>, v32<
 // all_test_types / ALL_TYPES {{{1
 typedef expand_list<Typelist<
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-                        //Template<Vc::datapar, Vc::datapar_abi::avx512>,
+                        Template<Vc::datapar, Vc::datapar_abi::avx512>,
 #endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
                         Template<Vc::datapar, Vc::datapar_abi::avx>,
@@ -224,10 +224,53 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
 
     {  // unary minus{{{2
         V x = 0;
-        COMPARE(-x, V(-T(0)));
+        COMPARE(-x, V(T(-T(0))));
         V y = 1;
-        COMPARE(-y, V(-T(1)));
+        COMPARE(-y, V(T(-T(1))));
     }
+
+    {  // plus{{{2
+        V x = 0;
+        V y = 0;
+        COMPARE(x + y, x);
+        COMPARE(x = x + T(1), V(1));
+        COMPARE(x + x, V(2));
+        y = make_vec<V>({1, 2, 3, 4, 5, 6, 7});
+        COMPARE(x = x + y, make_vec<V>({2, 3, 4, 5, 6, 7, 8}));
+        COMPARE(x = x + -y, V(1));
+    }
+
+    {  // minus{{{2
+        V x = 1;
+        V y = 0;
+        COMPARE(x - y, x);
+        COMPARE(x - T(1), y);
+        COMPARE(y, x - T(1));
+        COMPARE(x - x, y);
+        y = make_vec<V>({1, 2, 3, 4, 5, 6, 7});
+        COMPARE(x = y - x, make_vec<V>({0, 1, 2, 3, 4, 5, 6}));
+        COMPARE(x = y - x, V(1));
+    }
+
+    {  // multiplies{{{2
+        V x = 1;
+        V y = 0;
+        COMPARE(x * y, y);
+        COMPARE(x = x * T(2), V(2));
+        COMPARE(x * x, V(4));
+        y = make_vec<V>({1, 2, 3, 4, 5, 6, 7});
+        COMPARE(x = x * y, make_vec<V>({2, 4, 6, 8, 10, 12, 14}));
+    }
+
+    {  // divides{{{2
+        V x = 2;
+        COMPARE(x / x, V(1));
+        COMPARE(T(3) / x, V(T(3) / T(2)));
+        COMPARE(x / T(3), V(T(2) / T(3)));
+        V y = make_vec<V>({1, 2, 3, 4, 5, 6, 7});
+        COMPARE(y / x, make_vec<V>({T(.5), T(1), T(1.5), T(2), T(2.5), T(3), T(3.5)}));
+    }
+
 }
 
 // is_conversion_undefined {{{1

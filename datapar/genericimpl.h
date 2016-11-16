@@ -67,6 +67,23 @@ template <class Derived> struct generic_datapar_impl {
         using detail::x86::unary_minus;
         return make_datapar<T, A>(unary_minus(adjust_for_long(Derived::data(x))));
     }
+
+    // arithmetic operators {{{2
+#define Vc_ARITHMETIC_OP_(name_)                                                         \
+    template <class T, class A>                                                          \
+    static Vc_INTRINSIC datapar<T, A> name_(datapar<T, A> x, datapar<T, A> y)            \
+    {                                                                                    \
+        return make_datapar<T, A>(                                                       \
+            detail::name_(adjust_for_long(x.d), adjust_for_long(y.d)));                  \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+
+    Vc_ARITHMETIC_OP_(plus);
+    Vc_ARITHMETIC_OP_(minus);
+    Vc_ARITHMETIC_OP_(multiplies);
+    Vc_ARITHMETIC_OP_(divides);
+#undef Vc_ARITHMETIC_OP_
+
 };
 //}}}1
 }  // namespace Vc_VERSIONED_NAMESPACE::detail
