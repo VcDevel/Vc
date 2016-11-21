@@ -531,7 +531,7 @@ template <> Vc_INTRINSIC y_i32 convert_to<y_i32>(x_f32 v)
 
 template <> Vc_INTRINSIC y_i32 convert_to<y_i32>(y_f32 v0)
 {
-    return _mm256_cvtps_epi32(v0);
+    return _mm256_cvttps_epi32(v0);
 }
 
 // from double{{{2
@@ -548,9 +548,9 @@ template <> Vc_INTRINSIC y_i32 convert_to<y_i32>(y_f64 v)
 template <> Vc_INTRINSIC y_i32 convert_to<y_i32>(y_f64 v0, y_f64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtpd_epi32(concat(v0, v1));
+    return _mm512_cvttpd_epi32(concat(v0, v1));
 #else
-    return concat(_mm256_cvtpd_epi32(v0), _mm256_cvtpd_epi32(v1));
+    return concat(_mm256_cvttpd_epi32(v0), _mm256_cvttpd_epi32(v1));
 #endif
 }
 
@@ -925,10 +925,10 @@ Vc_INTRINSIC x_i16 convert_to<x_i16>(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3)
 template <> Vc_INTRINSIC x_i16 convert_to<x_i16>(y_f64 v0, y_f64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return convert_to<x_i16>(y_i32(_mm512_cvtpd_epi32(concat(v0, v1))));
+    return convert_to<x_i16>(y_i32(_mm512_cvttpd_epi32(concat(v0, v1))));
 #else
-    return convert_to<x_i16>(x_i32(_mm256_cvtpd_epi32(v0)),
-                             x_i32(_mm256_cvtpd_epi32(v1)));
+    return convert_to<x_i16>(x_i32(_mm256_cvttpd_epi32(v0)),
+                             x_i32(_mm256_cvttpd_epi32(v1)));
 #endif
 }
 #endif  // Vc_HAVE_AVX
@@ -936,7 +936,7 @@ template <> Vc_INTRINSIC x_i16 convert_to<x_i16>(y_f64 v0, y_f64 v1)
 #ifdef Vc_HAVE_AVX512F
 template <> Vc_INTRINSIC x_i16 convert_to<x_i16>(z_f64 v0)
 {
-    return convert_to<x_i16>(y_i32(_mm512_cvtpd_epi32(v0)));
+    return convert_to<x_i16>(y_i32(_mm512_cvttpd_epi32(v0)));
 }
 #endif  // Vc_HAVE_AVX512F
 
@@ -1131,12 +1131,12 @@ template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(y_f64 v0, y_f64 v1, y_f64 v2, y
 #ifdef Vc_HAVE_AVX512F
 template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(z_f64 v0)
 {
-    return convert_to<y_i16>(y_i32(_mm512_cvtpd_epi32(v0)));
+    return convert_to<y_i16>(y_i32(_mm512_cvttpd_epi32(v0)));
 }
 
 template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(z_f64 v0, z_f64 v1)
 {
-    return _mm512_cvtepi32_epi16(concat(_mm512_cvtpd_epi32(v0), _mm512_cvtpd_epi32(v1)));
+    return _mm512_cvtepi32_epi16(concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1)));
 }
 #endif  // Vc_HAVE_AVX512F
 
