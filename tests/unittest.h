@@ -513,8 +513,11 @@ Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(
 }
 
 // ulpDiffToReferenceWrapper {{{1
-template <typename T>
-T ulpDiffToReferenceWrapper(T a, T b)
+namespace detail
+{
+using std::abs;
+template <typename T, typename U = decltype(abs(std::declval<const T &>()))>
+T ulpDiffToReferenceWrapper(T a, T b, int)
 {
     const T diff = ulpDiffToReference(a, b);
     if (Vc_IS_UNLIKELY(global_unit_test_object_.findMaximumDistance)) {
@@ -526,12 +529,24 @@ T ulpDiffToReferenceWrapper(T a, T b)
     }
     return diff;
 }
+
+template <typename T>
+T ulpDiffToReferenceWrapper(const T a, const T b, float)
+{
+    T diff;
+    for (size_t i = 0; i < a.size(); ++i) {
+        diff[i] = ulpDiffToReference(a[i], b[i]);
+    }
+    return diff;
+}
+}  // namespace detail
+
 // unittest_fuzzyCompareHelper {{{1
 template <typename T>
 static inline bool unittest_fuzzyCompareHelper(const T &a, const T &b, std::true_type)
 {
     using U = value_type_or_T<T>;
-    return Vc::all_of(ulpDiffToReferenceWrapper(a, b) <=
+    return Vc::all_of(detail::ulpDiffToReferenceWrapper(a, b, int()) <=
                       global_unit_test_object_.fuzzyness<U>());
 }
 template <typename T>
@@ -584,20 +599,64 @@ public:
     struct Mem {};
 
     // Normal Compare ctor {{{2
+#if (defined __x86_64__ || defined __amd64__ || defined __i686__ || defined __i386__) && !defined __SSE2__
+#define Vc_NEED_FUZZY_FLOAT_COMPARE_ 1
+#else
+#define Vc_NEED_FUZZY_FLOAT_COMPARE_ 0
+#endif
     template <typename T1, typename T2>
     Vc_ALWAYS_INLINE Compare(
-        const T1 &a,
-        const T2 &b,
-        const char *_a,
-        const char *_b,
-        const char *_file,
-        typename std::enable_if<Vc::Traits::has_equality_operator<T1, T2>::value, int>::type _line)
+        const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file,
+        typename std::enable_if<Vc::Traits::has_equality_operator<T1, T2>::value
+#if Vc_NEED_FUZZY_FLOAT_COMPARE_
+                                    &&
+                                    !std::is_floating_point<value_type_or_T<T1>>::value &&
+                                    !std::is_floating_point<value_type_or_T<T2>>::value
+#endif
+                                ,
+                                int>::type _line)
         : m_ip(getIp()), m_failed(!unittest_compareHelper(a, b))
     {
         if (Vc_IS_UNLIKELY(m_failed)) {
             printFailure(a, b, _a, _b, _file, _line);
         }
     }
+
+#if Vc_NEED_FUZZY_FLOAT_COMPARE_
+    template <typename T1, typename T2,
+              typename T = typename std::common_type<T1, T2>::type>
+    Vc_ALWAYS_INLINE Compare(
+        const T1 &a, const T2 &b, const char *_a, const char *_b, const char *_file,
+        typename std::enable_if<Vc::Traits::has_equality_operator<T1, T2>::value &&
+                                    std::is_floating_point<value_type_or_T<T>>::value,
+                                int>::type _line)
+        : m_ip(getIp())
+        , m_failed(!Vc::all_of(detail::ulpDiffToReferenceWrapper(T(a), T(b), int()) <= 1))
+    {
+        if (Vc_IS_UNLIKELY(m_failed)) {
+            printFirst();
+            printPosition(_file, _line);
+            print(_a);
+            print(" (");
+            print(std::setprecision(10));
+            print(a);
+            print(") ≈ ");
+            print(_b);
+            print(" (");
+            print(std::setprecision(10));
+            print(b);
+            print(std::setprecision(6));
+            print(") -> ");
+            print(a == b);
+            print("\ndistance: ");
+            print(detail::ulpDiffToReferenceWrapper(T(a), T(b), int()));
+            print(" ulp, allowed distance: ±");
+            print(1);
+            print(" ulp (automatic fuzzy compare to work around x87 quirks)");
+        }
+    }
+#endif
+#undef Vc_NEED_FUZZY_FLOAT_COMPARE_
 
     template <typename T1, typename T2>
     Vc_ALWAYS_INLINE Compare(
