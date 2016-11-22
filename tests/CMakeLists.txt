@@ -180,7 +180,7 @@ function(vc_add_test2 name)
                if(emulator)
                   get_target_executable(_exe "${target}")
                   add_test(NAME ${Vc_TEST_TARGET_PREFIX}${target}
-                     COMMAND "${emulator}" "${_exe}"
+                     COMMAND ${emulator} "${_exe}"
                      )
                else()
                   add_test(${Vc_TEST_TARGET_PREFIX}${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
