@@ -273,7 +273,7 @@ struct avx512_mask_impl {
         return _mm_test_epi8_mask(a, a);
 #else
         const auto b = _mm512_cvtepi8_epi64(a);
-        return _mm_test_epi64_mask(b, b);
+        return _mm512_test_epi64_mask(b, b);
 #endif  // Vc_HAVE_AVX512BW
     }
     template <class F>
@@ -284,7 +284,7 @@ struct avx512_mask_impl {
         return _mm_test_epi8_mask(a, a);
 #else
         const auto b = _mm512_cvtepi8_epi32(a);
-        return _mm_test_epi32_mask(b, b);
+        return _mm512_test_epi32_mask(b, b);
 #endif  // Vc_HAVE_AVX512BW
     }
     template <class F>
@@ -296,7 +296,7 @@ struct avx512_mask_impl {
 #else
         const auto a = _mm512_cvtepi8_epi32(load16(mem, f));
         const auto b = _mm512_cvtepi8_epi32(load16(mem + 16, f));
-        return _mm_test_epi32_mask(a, a) | (_mm_test_epi32_mask(b, b) << 16);
+        return _mm512_test_epi32_mask(a, a) | (_mm512_test_epi32_mask(b, b) << 16);
 #endif  // Vc_HAVE_AVX512BW
     }
     template <class F>
@@ -310,8 +310,8 @@ struct avx512_mask_impl {
         const auto b = _mm512_cvtepi8_epi32(load16(mem + 16, f));
         const auto c = _mm512_cvtepi8_epi32(load16(mem + 32, f));
         const auto d = _mm512_cvtepi8_epi32(load16(mem + 48, f));
-        return _mm_test_epi32_mask(a, a) | (_mm_test_epi32_mask(b, b) << 16) |
-               (_mm_test_epi32_mask(b, b) << 32) | (_mm_test_epi32_mask(b, b) << 48);
+        return _mm512_test_epi32_mask(a, a) | (_mm512_test_epi32_mask(b, b) << 16) |
+               (_mm512_test_epi32_mask(b, b) << 32) | (_mm512_test_epi32_mask(b, b) << 48);
 #endif  // Vc_HAVE_AVX512BW
     }
 
