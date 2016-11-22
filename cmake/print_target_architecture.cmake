@@ -1,5 +1,5 @@
 get_filename_component(_currentDir "${CMAKE_CURRENT_LIST_FILE}" PATH)
-include("${_currentDir}/cmake/OptimizeForArchitecture.cmake")
+include("${_currentDir}/OptimizeForArchitecture.cmake")
 
 if(arch STREQUAL "linux")
    set(CMAKE_SYSTEM_NAME "Linux")
@@ -12,4 +12,4 @@ else()
 endif()
 
 AutodetectHostArchitecture()
-message("${TARGET_ARCHITECTURE}")
+message(STATUS "${TARGET_ARCHITECTURE}")

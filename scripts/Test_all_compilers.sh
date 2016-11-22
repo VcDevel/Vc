@@ -8,7 +8,7 @@ export LC_TIME="en_US.UTF-8"
 export LC_MESSAGES="en_US.UTF-8"
 unset CFLAGS CXXFLAGS
 
-cd "`dirname "$0"`"
+cd "`dirname "$0"`/.."
 test -z "dashboard_model" && export dashboard_model=Experimental
 
 runTest() {

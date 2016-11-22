@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd "`dirname "$0"`"
+cd "`dirname "$0"`/.."
 
 # Read version number
 eval `awk '/VC_VERSION_NUMBER 0x[0-9]+/ { h=$3 }

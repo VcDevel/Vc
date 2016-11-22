@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd "`dirname "$0"`"
+cd "`dirname "$0"`/.."
 
 # Read version number
 eval `awk '/Vc_VERSION_NUMBER 0x[0-9]+/ { h=$3 }
@@ -45,7 +45,7 @@ git tag -m "Vc $versionString release" -s "$versionString" || exit
 git archive --format=tar --prefix="Vc-$versionString/" "$versionString" | gzip > ../"Vc-$versionString.tar.gz"
 
 # Create API docs tarball
-./makeApidox.sh
+scripts/makeApidox.sh
 mv doc/html/*.qch "../Vc-${versionString}.qch"
 mv doc/html "Vc-docs-$versionString" && tar -czf "../Vc-docs-$versionString".tar.gz "Vc-docs-$versionString"
 rm -rf "Vc-docs-$versionString"

@@ -1,6 +1,8 @@
+#!ctest -S
 if(NOT CTEST_SOURCE_DIRECTORY)
-   get_filename_component(CTEST_SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_FILE}" PATH)
+   get_filename_component(CTEST_SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
 endif()
+get_filename_component(PROJECT_DIRECTORY "${CTEST_SOURCE_DIRECTORY}" DIRECTORY)
 
 # Dashboard Model
 ################################################################################
@@ -32,7 +34,7 @@ set(ENV{LANG} "en_US")
 
 # determine the git branch we're testing
 ################################################################################
-file(READ "${CTEST_SOURCE_DIRECTORY}/.git/HEAD" git_branch)
+file(READ "${PROJECT_DIRECTORY}/.git/HEAD" git_branch)
 string(STRIP "${git_branch}" git_branch)
 # -> ref: refs/heads/foobar
 string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
@@ -136,7 +138,7 @@ endif()
 set(compiler)
 macro(extract_msvc_compiler_info CL)
    if(CL)
-      execute_process(COMMAND ${CL} /nologo -EP "${CTEST_SOURCE_DIRECTORY}/cmake/msvc_version.c" OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE COMPILER_VERSION)
+      execute_process(COMMAND ${CL} /nologo -EP "${PROJECT_DIRECTORY}/cmake/msvc_version.c" OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE COMPILER_VERSION)
       string(STRIP "${COMPILER_VERSION}" COMPILER_VERSION)
       if("${CL}" MATCHES "amd64")
          set(COMPILER_VERSION "${COMPILER_VERSION} amd64")
@@ -223,7 +225,8 @@ endif()
 if(target_architecture)
    set(tmp ${target_architecture})
 else()
-   execute_process(COMMAND cmake -Darch=${arch} -P ${CTEST_SOURCE_DIRECTORY}/print_target_architecture.cmake OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE tmp)
+   execute_process(COMMAND cmake -Darch=${arch} -P ${PROJECT_DIRECTORY}/cmake/print_target_architecture.cmake OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE tmp)
+   string(REPLACE "-- " "" tmp "${tmp}")
 endif()
 if(build_type STREQUAL "Release")
    set(build_type_short "Rel")
@@ -254,11 +257,11 @@ string(REPLACE "+" "x" CTEST_BUILD_NAME "${CTEST_BUILD_NAME}")
 # Determine build directory
 ################################################################################
 string(REGEX REPLACE "[][ ():, ]" "" CTEST_BINARY_DIRECTORY "${CTEST_BUILD_NAME}")
-set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-${dashboard_model}/${CTEST_BINARY_DIRECTORY}")
+set(CTEST_BINARY_DIRECTORY "${PROJECT_DIRECTORY}/build-${dashboard_model}/${CTEST_BINARY_DIRECTORY}")
 
 # Give user feedback
 ################################################################################
-#message("src:        ${CTEST_SOURCE_DIRECTORY}")
+#message("src:        ${PROJECT_DIRECTORY}")
 #message("obj:        ${CTEST_BINARY_DIRECTORY}")
 message("build name: ${CTEST_BUILD_NAME}")
 message("site:       ${CTEST_SITE}")
@@ -266,13 +269,13 @@ message("model:      ${dashboard_model}")
 
 Set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY_ONCE TRUE)
 
-list(APPEND CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
-if(EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
-   list(APPEND CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
+list(APPEND CTEST_NOTES_FILES "${PROJECT_DIRECTORY}/.git/HEAD")
+if(EXISTS "${PROJECT_DIRECTORY}/.git/refs/heads/${git_branch}")
+   list(APPEND CTEST_NOTES_FILES "${PROJECT_DIRECTORY}/.git/refs/heads/${git_branch}")
 endif()
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
-ctest_read_custom_files(${CTEST_SOURCE_DIRECTORY})
+ctest_read_custom_files(${PROJECT_DIRECTORY})
 set(CTEST_USE_LAUNCHERS 0) # launchers once lead to much improved error/warning
                            # message logging. Nowadays they lead to no warning/
                            # error messages on the dashboard at all.
@@ -329,7 +332,7 @@ macro(go)
    CTEST_START (${dashboard_model})
    set(res 0)
    if(NOT ${dashboard_model} STREQUAL "Experimental")
-      CTEST_UPDATE (SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE res)
+      CTEST_UPDATE (SOURCE "${PROJECT_DIRECTORY}" RETURN_VALUE res)
       if(res GREATER 0)
          ctest_submit(PARTS Update)
       endif()
@@ -338,6 +341,7 @@ macro(go)
    # enter the following section for Continuous builds only if the CTEST_UPDATE above found changes
    if(NOT ${dashboard_model} STREQUAL "Continuous" OR res GREATER 0)
       CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
+         SOURCE "${PROJECT_DIRECTORY}"
          OPTIONS "${configure_options}"
          APPEND
          RETURN_VALUE res)
