@@ -69,14 +69,20 @@ using y_long_equiv = Storage<equal_int_type_t<long>, y_long::size()>;
 using y_ulong_equiv = Storage<equal_int_type_t<ulong>, y_ulong::size()>;
 
 template <typename T, size_t N>
-Vc_INTRINSIC Vc_CONST Storage<T, N / 2> lo128(Storage<T, N> x)
+Vc_INTRINSIC Vc_CONST Storage<T, 16 / sizeof(T)> lo128(Storage<T, N> x)
 {
     return lo128(x.v());
 }
 template <typename T, size_t N>
-Vc_INTRINSIC Vc_CONST Storage<T, N / 2> hi128(Storage<T, N> x)
+Vc_INTRINSIC Vc_CONST Storage<T, 16 / sizeof(T)> hi128(Storage<T, N> x)
 {
     return hi128(x.v());
+}
+
+template <int offset, typename T, size_t N>
+Vc_INTRINSIC Vc_CONST Storage<T, 16 / sizeof(T)> extract128(Storage<T, N> x)
+{
+    return extract128<offset>(x.v());
 }
 #endif  // Vc_HAVE_AVX
 
@@ -97,12 +103,12 @@ using z_long_equiv = Storage<equal_int_type_t<long>, z_long::size()>;
 using z_ulong_equiv = Storage<equal_int_type_t<ulong>, z_ulong::size()>;
 
 template <typename T, size_t N>
-Vc_INTRINSIC Vc_CONST Storage<T, N / 2> lo256(Storage<T, N> x)
+Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> lo256(Storage<T, N> x)
 {
     return lo256(x.v());
 }
 template <typename T, size_t N>
-Vc_INTRINSIC Vc_CONST Storage<T, N / 2> hi256(Storage<T, N> x)
+Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> hi256(Storage<T, N> x)
 {
     return hi256(x.v());
 }

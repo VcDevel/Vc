@@ -72,6 +72,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef __SSE4_2__
 #define Vc_HAVE_SSE4_2
 #endif
+#ifdef __XOP__
+#define Vc_HAVE_XOP
+#endif
 #ifdef __AVX__
 #define Vc_HAVE_AVX
 #endif

@@ -37,8 +37,11 @@ Vc_INTRINSIC Vc_CONST y_u64 cmpgt(y_u64 x, y_u64 y)
 {
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cmpgt_epu64_mask(x, y);
+#elif defined Vc_HAVE_XOP
+    return concat(_mm256_comgt_epu64(lo128(x), lo128(y)),
+                  _mm256_comgt_epu64(hi128(x), hi128(y)));
 #else
-    return _mm256_cmpgt_epi64(x, y);
+    return _mm256_cmpgt_epi64(xor_(x, lowest32<llong>()), xor_(y, lowest32<llong>()));
 #endif
 }
 
@@ -46,8 +49,11 @@ Vc_INTRINSIC Vc_CONST y_u32 cmpgt(y_u32 x, y_u32 y)
 {
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cmpgt_epu32_mask(x, y);
+#elif defined Vc_HAVE_XOP
+    return concat(_mm256_comgt_epu32(lo128(x), lo128(y)),
+                  _mm256_comgt_epu32(hi128(x), hi128(y)));
 #else
-    return _mm256_cmpgt_epi32(x, y);
+    return _mm256_cmpgt_epi32(xor_(x, lowest32<int>()), xor_(y, lowest32<int>()));
 #endif
 }
 
@@ -55,8 +61,11 @@ Vc_INTRINSIC Vc_CONST y_u16 cmpgt(y_u16 x, y_u16 y)
 {
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cmpgt_epu16_mask(x, y);
+#elif defined Vc_HAVE_XOP
+    return concat(_mm256_comgt_epu16(lo128(x), lo128(y)),
+                  _mm256_comgt_epu16(hi128(x), hi128(y)));
 #else
-    return _mm256_cmpgt_epi16(x, y);
+    return _mm256_cmpgt_epi16(xor_(x, lowest32<short>()), xor_(y, lowest32<short>()));
 #endif
 }
 
@@ -64,8 +73,11 @@ Vc_INTRINSIC Vc_CONST y_u08 cmpgt(y_u08 x, y_u08 y)
 {
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cmpgt_epu8_mask(x, y);
+#elif defined Vc_HAVE_XOP
+    return concat(_mm256_comgt_epu8(lo128(x), lo128(y)),
+                  _mm256_comgt_epu8(hi128(x), hi128(y)));
 #else
-    return _mm256_cmpgt_epi8(x, y);
+    return _mm256_cmpgt_epi8(xor_(x, lowest32<schar>()), xor_(y, lowest32<schar>()));
 #endif
 }
 

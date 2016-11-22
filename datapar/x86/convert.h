@@ -163,8 +163,12 @@ template <typename To> Vc_INTRINSIC To convert_to(y_u64, y_u64, y_u64, y_u64, y_
 
 #ifdef Vc_HAVE_AVX512F
 template <typename To> Vc_INTRINSIC To convert_to(z_f32);
+template <typename To> Vc_INTRINSIC To convert_to(z_f32, z_f32);
+template <typename To> Vc_INTRINSIC To convert_to(z_f32, z_f32, z_f32, z_f32);
 template <typename To> Vc_INTRINSIC To convert_to(z_f64);
 template <typename To> Vc_INTRINSIC To convert_to(z_f64, z_f64);
+template <typename To> Vc_INTRINSIC To convert_to(z_f64, z_f64, z_f64, z_f64);
+template <typename To> Vc_INTRINSIC To convert_to(z_f64, z_f64, z_f64, z_f64, z_f64, z_f64, z_f64, z_f64);
 template <typename To> Vc_INTRINSIC To convert_to(z_i08);
 template <typename To> Vc_INTRINSIC To convert_to(z_u08);
 template <typename To> Vc_INTRINSIC To convert_to(z_i16);
@@ -190,6 +194,8 @@ template <typename To> Vc_INTRINSIC To convert_to(z_u64, z_u64, z_u64, z_u64, z_
 //}}}1
 
 #ifdef Vc_HAVE_SSE2
+//--------------------llong & ullong{{{1
+//
 // convert_to<x_i64>{{{1
 // from float{{{2
 template <> Vc_INTRINSIC x_i64 convert_to<x_i64>(x_f32 v) {
@@ -400,7 +406,8 @@ template <> Vc_INTRINSIC x_u64 convert_to<x_u64>(x_i08 v) { return _mm_unpacklo_
 
 // from uchar{{{2
 template <> Vc_INTRINSIC x_u64 convert_to<x_u64>(x_u08 v) { return _mm_unpacklo_epi32(_mm_unpacklo_epi16(_mm_unpacklo_epi8(v, zero<__m128i>()), zero<__m128i>()), zero<__m128i>()); }
-
+//--------------------int & uint{{{1
+//
 // convert_to<x_i32>{{{1
 // from float{{{2
 template <> Vc_INTRINSIC x_i32 convert_to<x_i32>(x_f32 v) { return _mm_cvttps_epi32(v); }
@@ -631,6 +638,67 @@ template <> Vc_INTRINSIC y_i32 convert_to<y_i32>(x_u08 v) {
 
 //}}2
 #endif  // Vc_HAVE_AVX
+
+//convert_to<z_i32>{{{1
+#ifdef Vc_HAVE_AVX512F
+//from llong{{{2
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(z_i64 v0)
+{
+    return zeroExtend(_mm512_cvtepi64_epi32(v0));
+}
+
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(z_i64 v0, z_i64 v1)
+{
+    return concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1));
+}
+
+//from ullong{{{2
+
+//from int{{{2
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(z_i32 v0) { return v0; }
+
+//from uint{{{2
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(z_u32 v0) { return v0.v(); }
+
+//from short{{{2
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(y_i16 v0)
+{
+    return _mm512_cvtepi16_epi32(v0);
+}
+
+//from ushort{{{2
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(y_u16 v0)
+{
+    return _mm512_cvtepu16_epi32(v0);
+}
+
+//from schar{{{2
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(x_i08 v0)
+{
+    return _mm512_cvtepi8_epi32(v0);
+}
+
+// from uchar{{{2
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(x_u08 v0)
+{
+    return _mm512_cvtepu8_epi32(v0);
+}
+
+//from double{{{2
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(z_f64 v0, z_f64 v1)
+{
+    return concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1));
+}
+
+//from float{{{2
+template <> Vc_INTRINSIC z_i32 convert_to<z_i32>(z_f32 v0)
+{
+    return _mm512_cvttps_epi32(v0);
+}
+
+//}}}2
+#endif  // Vc_HAVE_AVX512F
+
 // convert_to<x_u32>{{{1
 // from float{{{2
 template <> Vc_INTRINSIC x_u32 convert_to<x_u32>(x_f32 v) {
@@ -715,6 +783,25 @@ template <> Vc_INTRINSIC x_u32 convert_to<x_u32>(x_u08 v) {
 #endif
 }
 
+//convert_to<z_u32>{{{1
+#ifdef Vc_HAVE_AVX512F
+//from double{{{2
+template <> Vc_INTRINSIC z_u32 convert_to<z_u32>(z_f64 v0, z_f64 v1)
+{
+    return concat(_mm512_cvttpd_epu32(v0), _mm512_cvttpd_epu32(v1));
+}
+
+//from float{{{2
+template <> Vc_INTRINSIC z_u32 convert_to<z_u32>(z_f32 v0)
+{
+    return _mm512_cvttps_epu32(v0);
+}
+
+//}}}2
+#endif  // Vc_HAVE_AVX512F
+
+//--------------------short & ushort{{{1
+//
 // convert_to<x_i16>{{{1
 // from llong{{{2
 template <> Vc_INTRINSIC x_i16 convert_to<x_i16>(x_i64 v) {
@@ -1158,8 +1245,45 @@ template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(y_f32 v0, y_f32 v1)
 
 //}}}2
 #endif  // Vc_HAVE_AVX2
-// convert_to<x_u16>{{{1
-// from short{{{2
+
+// convert_to<z_i16>{{{1
+#ifdef Vc_HAVE_AVX512F
+//from llong{{{2
+
+//from ullong{{{2
+
+// from int{{{2
+template <> Vc_INTRINSIC z_i16 convert_to<z_i16>(z_i32 v0, z_i32 v1)
+{
+    return concat(_mm512_cvtepi32_epi16(v0), _mm512_cvtepi32_epi16(v1));
+}
+
+//from uint{{{2
+
+//from short{{{2
+
+//from ushort{{{2
+
+//from schar{{{2
+
+//from uchar{{{2
+
+//from double{{{2
+template <> Vc_INTRINSIC z_i16 convert_to<z_i16>(z_f64 v0, z_f64 v1, z_f64 v2, z_f64 v3)
+{
+    return convert_to<z_i16>(convert_to<z_i32>(v0, v1), convert_to<z_i32>(v2, v3));
+}
+
+//from float{{{2
+template <> Vc_INTRINSIC z_i16 convert_to<z_i16>(z_f32 v0, z_f32 v1)
+{
+    return convert_to<z_i16>(convert_to<z_i32>(v0), convert_to<z_i32>(v1));
+}
+
+//}}}2
+#endif  // Vc_HAVE_AVX512F
+    // convert_to<x_u16>{{{1
+    // from short{{{2
 template <> Vc_INTRINSIC x_u16 convert_to<x_u16>(x_i16 v) { return v.v(); }
 
 // from ushort{{{2
@@ -1225,6 +1349,8 @@ template <> Vc_INTRINSIC x_u16 convert_to<x_u16>(y_f32 v)
 }
 #endif  // Vc_HAVE_AVX
 
+//--------------------schar & uchar{{{1
+//
 // convert_to<x_i08>{{{1
 // from llong{{{2
 template <> Vc_INTRINSIC x_i08 convert_to<x_i08>(x_i64 v) {
@@ -1636,6 +1762,92 @@ Vc_INTRINSIC x_i08 convert_to<x_i08>(z_f64 v0, z_f64 v1)
 }
 #endif  // Vc_HAVE_AVX512F
 
+// convert_to<y_i08>{{{1
+#ifdef Vc_HAVE_AVX2
+//from llong{{{2
+
+//from ullong{{{2
+
+// from int{{{2
+template <> Vc_INTRINSIC y_i08 convert_to<y_i08>(y_i32 v0, y_i32 v1, y_i32 v2, y_i32 v3)
+{
+#ifdef Vc_HAVE_AVX512F
+    return concat(_mm512_cvtepi32_epi8(concat(v0, v1)),
+                  _mm512_cvtepi32_epi8(concat(v2, v3)));
+#else   // Vc_HAVE_AVX512F
+    return concat(convert_to<x_i08>(v0, v1), convert_to<x_i08>(v2, v3));
+#endif  // Vc_HAVE_AVX512F
+}
+
+//from uint{{{2
+
+//from short{{{2
+
+//from ushort{{{2
+
+//from schar{{{2
+
+//from uchar{{{2
+
+//from double{{{2
+template <>
+Vc_INTRINSIC y_i08 convert_to<y_i08>(y_f64 v0, y_f64 v1, y_f64 v2, y_f64 v3, y_f64 v4,
+                                     y_f64 v5, y_f64 v6, y_f64 v7)
+{
+    return convert_to<y_i08>(convert_to<y_i32>(v0, v1), convert_to<y_i32>(v2, v3),
+                             convert_to<y_i32>(v4, v5), convert_to<y_i32>(v6, v7));
+}
+
+//from float{{{2
+template <> Vc_INTRINSIC y_i08 convert_to<y_i08>(y_f32 v0, y_f32 v1, y_f32 v2, y_f32 v3)
+{
+    return convert_to<y_i08>(convert_to<y_i32>(v0), convert_to<y_i32>(v1),
+                             convert_to<y_i32>(v2), convert_to<y_i32>(v3));
+}
+
+//}}}2
+#endif  // Vc_HAVE_AVX2
+// convert_to<z_i08>{{{1
+#ifdef Vc_HAVE_AVX512F
+//from llong{{{2
+
+//from ullong{{{2
+
+// from int{{{2
+template <> Vc_INTRINSIC z_i08 convert_to<z_i08>(z_i32 v0, z_i32 v1, z_i32 v2, z_i32 v3)
+{
+    return concat(concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1)),
+                  concat(_mm512_cvtepi32_epi8(v2), _mm512_cvtepi32_epi8(v3)));
+}
+
+//from uint{{{2
+
+//from short{{{2
+
+//from ushort{{{2
+
+//from schar{{{2
+
+//from uchar{{{2
+
+//from double{{{2
+template <>
+Vc_INTRINSIC z_i08 convert_to<z_i08>(z_f64 v0, z_f64 v1, z_f64 v2, z_f64 v3, z_f64 v4,
+                                     z_f64 v5, z_f64 v6, z_f64 v7)
+{
+    return convert_to<z_i08>(convert_to<z_i32>(v0, v1), convert_to<z_i32>(v2, v3),
+                             convert_to<z_i32>(v4, v5), convert_to<z_i32>(v6, v7));
+}
+
+//from float{{{2
+template <> Vc_INTRINSIC z_i08 convert_to<z_i08>(z_f32 v0, z_f32 v1, z_f32 v2, z_f32 v3)
+{
+    return convert_to<z_i08>(convert_to<z_i32>(v0), convert_to<z_i32>(v1),
+                             convert_to<z_i32>(v2), convert_to<z_i32>(v3));
+}
+
+//}}}2
+#endif  // Vc_HAVE_AVX512F
 // convert_to<x_u08>{{{1
 // from schar{{{2
 template <> Vc_INTRINSIC x_u08 convert_to<x_u08>(x_i08 v) { return v.v(); }
@@ -1645,10 +1857,12 @@ template <> Vc_INTRINSIC x_u08 convert_to<x_u08>(x_u08 v) { return v; }
 
 // from float{{{2
 template <> Vc_INTRINSIC x_u08 convert_to<x_u08>(x_f32 v) { return convert_to<x_u08>(convert_to<x_i32>(v)); }
+
 template <> Vc_INTRINSIC x_u08 convert_to<x_u08>(x_f32 v0, x_f32 v1)
 {
     return _mm_unpacklo_epi32(convert_to<x_u08>(v0), convert_to<x_u08>(v1));
 }
+
 template <>
 Vc_INTRINSIC x_u08 convert_to<x_u08>(x_f32 v0, x_f32 v1, x_f32 v2, x_f32 v3)
 {
@@ -1682,6 +1896,49 @@ Vc_INTRINSIC x_u08 convert_to<x_u08>(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3, x_f
                              convert_to<x_i32>(v4, v5), convert_to<x_i32>(v6, v7));
 }
 
+// convert_to<z_u08>{{{1
+#ifdef Vc_HAVE_AVX512F
+//from llong{{{2
+
+//from ullong{{{2
+
+// from int{{{2
+template <> Vc_INTRINSIC z_u08 convert_to<z_u08>(z_i32 v0, z_i32 v1, z_i32 v2, z_i32 v3)
+{
+    return concat(concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1)),
+                  concat(_mm512_cvtepi32_epi8(v2), _mm512_cvtepi32_epi8(v3)));
+}
+
+//from uint{{{2
+
+//from short{{{2
+
+//from ushort{{{2
+
+//from schar{{{2
+
+//from uchar{{{2
+
+//from double{{{2
+template <>
+Vc_INTRINSIC z_u08 convert_to<z_u08>(z_f64 v0, z_f64 v1, z_f64 v2, z_f64 v3, z_f64 v4,
+                                     z_f64 v5, z_f64 v6, z_f64 v7)
+{
+    return convert_to<z_u08>(convert_to<z_i32>(v0, v1), convert_to<z_i32>(v2, v3),
+                             convert_to<z_i32>(v4, v5), convert_to<z_i32>(v6, v7));
+}
+
+//from float{{{2
+template <> Vc_INTRINSIC z_u08 convert_to<z_u08>(z_f32 v0, z_f32 v1, z_f32 v2, z_f32 v3)
+{
+    return convert_to<z_u08>(convert_to<z_i32>(v0), convert_to<z_i32>(v1),
+                             convert_to<z_i32>(v2), convert_to<z_i32>(v3));
+}
+
+//}}}2
+#endif  // Vc_HAVE_AVX512F
+//--------------------double{{{1
+//
 // convert_to<x_f64>{{{1
 // from float{{{2
 template <> Vc_INTRINSIC x_f64 convert_to<x_f64>(x_f32 v) { return _mm_cvtps_pd(v); }
@@ -1790,6 +2047,8 @@ template <> Vc_INTRINSIC y_f64 convert_to<y_f64>(x_i08 v) { return convert_to<y_
 template <> Vc_INTRINSIC y_f64 convert_to<y_f64>(x_u08 v) { return convert_to<y_f64>(convert_to<x_i32>(v)); }
 #endif  // Vc_HAVE_AVX
 
+//--------------------float{{{1
+//
 // convert_to<x_f32>{{{1
 // from float{{{2
 template <> Vc_INTRINSIC x_f32 convert_to<x_f32>(x_f32 v) { return v; }
@@ -2080,6 +2339,101 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_u08 v)
 
 #endif  // Vc_HAVE_AVX
 
+//convert_to<z_f32>{{{1
+#ifdef Vc_HAVE_AVX512F
+// from float{{{2
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(y_f32 v0, y_f32 v1) { return concat(v0, v1); }
+
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(z_f32 v) { return v; }
+
+// from double{{{2
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(y_f64 v)
+{
+    return zeroExtend64(_mm256_cvtpd_ps(v));
+}
+
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(y_f64 v0, y_f64 v1)
+{
+    return zeroExtend(_mm512_cvtpd_ps(concat(v0, v1)));
+}
+
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(y_f64 v0, y_f64 v1, y_f64 v2, y_f64 v3)
+{
+    return concat(_mm512_cvtpd_ps(concat(v0, v1)), _mm512_cvtpd_ps(concat(v2, v3)));
+}
+
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(z_f64 v0)
+{
+    return zeroExtend(_mm512_cvtpd_ps(v0));
+}
+
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(z_f64 v0, z_f64 v1)
+{
+    return concat(_mm512_cvtpd_ps(v0), _mm512_cvtpd_ps(v1));
+}
+
+// from llong{{{2
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(z_i64 v0)
+{
+    return zeroExtend(_mm512_cvtepi64_ps(v0));
+}
+
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(z_i64 v0, z_i64 v1)
+{
+    return concat(_mm512_cvtepi64_ps(v0), _mm512_cvtepi64_ps(v1));
+}
+
+// from ullong{{{2
+#ifdef Vc_HAVE_AVX512DQ
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(z_u64 v0)
+{
+    return zeroExtend(_mm512_cvtepu64_ps(v0));
+}
+
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(z_u64 v0, z_u64 v1)
+{
+    return concat(_mm512_cvtepu64_ps(v0), _mm512_cvtepu64_ps(v1));
+}
+#endif  // Vc_HAVE_AVX512DQ
+
+// from int{{{2
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(z_i32 v0)
+{
+    return _mm512_cvtepi32_ps(v0);
+}
+
+// from uint{{{2
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(z_u32 v0)
+{
+    return _mm512_cvtepu32_ps(v0);
+}
+
+// from short{{{2
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(y_i16 v0)
+{
+    return convert_to<z_f32>(convert_to<z_i32>(v0));
+}
+
+// from ushort{{{2
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(y_u16 v0)
+{
+    return convert_to<z_f32>(convert_to<z_i32>(v0));
+}
+
+// from schar{{{2
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(x_i08 v0)
+{
+    return convert_to<z_f32>(convert_to<z_i32>(v0));
+}
+
+// from uchar{{{2
+template <> Vc_INTRINSIC z_f32 convert_to<z_f32>(x_u08 v0)
+{
+    return convert_to<z_f32>(convert_to<z_i32>(v0));
+}
+
+#endif  // Vc_HAVE_AVX512F
+
 //}}}1
 #endif  // Vc_HAVE_SSE2
 
@@ -2244,9 +2598,11 @@ template <typename To> Vc_INTRINSIC To convert_to(x_u64 v0, x_u64 v1, x_u64 v2, 
 #ifdef Vc_HAVE_AVX
 template <typename To> Vc_INTRINSIC To convert_to(y_f32 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To convert_to(y_f32 v0, y_f32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To convert_to(y_f32 v0, y_f32 v1, y_f32 v2, y_f32 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
 template <typename To> Vc_INTRINSIC To convert_to(y_f64 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To convert_to(y_f64 v0, y_f64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
 template <typename To> Vc_INTRINSIC To convert_to(y_f64 v0, y_f64 v1, y_f64 v2, y_f64 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
+template <typename To> Vc_INTRINSIC To convert_to(y_f64 v0, y_f64 v1, y_f64 v2, y_f64 v3, y_f64 v4, y_f64 v5, y_f64 v6, y_f64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
 template <typename To> Vc_INTRINSIC To convert_to(y_i08 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To convert_to(y_u08 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To convert_to(y_i16 v0) { return equivalent_conversion<To>::convert(v0); }
@@ -2271,6 +2627,7 @@ template <typename To> Vc_INTRINSIC To convert_to(y_u64 v0, y_u64 v1, y_u64 v2, 
 
 #ifdef Vc_HAVE_AVX512F
 template <typename To> Vc_INTRINSIC To convert_to(z_f32 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To convert_to(z_f32 v0, z_f32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
 template <typename To> Vc_INTRINSIC To convert_to(z_f64 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To convert_to(z_f64 v0, z_f64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
 template <typename To> Vc_INTRINSIC To convert_to(z_i08 v0) { return equivalent_conversion<To>::convert(v0); }

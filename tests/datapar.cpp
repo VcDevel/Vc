@@ -260,6 +260,11 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
         COMPARE(x * x, V(4));
         y = make_vec<V>({1, 2, 3, 4, 5, 6, 7});
         COMPARE(x = x * y, make_vec<V>({2, 4, 6, 8, 10, 12, 14}));
+        y = 2;
+        for (T n : {T(std::numeric_limits<T>::max() - 1), std::numeric_limits<T>::min()}) {
+            x = n / 2;
+            COMPARE(x * y, V(n));
+        }
     }
 
     {  // divides{{{2
@@ -269,8 +274,25 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
         COMPARE(x / T(3), V(T(2) / T(3)));
         V y = make_vec<V>({1, 2, 3, 4, 5, 6, 7});
         COMPARE(y / x, make_vec<V>({T(.5), T(1), T(1.5), T(2), T(2.5), T(3), T(3.5)}));
-    }
 
+        y = make_vec<V>({std::numeric_limits<T>::max(), std::numeric_limits<T>::min()});
+        V ref = make_vec<V>(
+            {T(std::numeric_limits<T>::max() / 2), T(std::numeric_limits<T>::min() / 2)});
+        COMPARE(y / x, ref);
+
+        y = make_vec<V>({std::numeric_limits<T>::min(), std::numeric_limits<T>::max()});
+        ref = make_vec<V>(
+            {T(std::numeric_limits<T>::min() / 2), T(std::numeric_limits<T>::max() / 2)});
+        COMPARE(y / x, ref);
+
+        y = make_vec<V>(
+            {std::numeric_limits<T>::max(), T(std::numeric_limits<T>::min() + 1)});
+        COMPARE(y / y, V(1));
+
+        ref = make_vec<V>({T(2 / std::numeric_limits<T>::max()),
+                           T(2 / (std::numeric_limits<T>::min() + 1))});
+        COMPARE(x / y, ref);
+    }
 }
 
 // is_conversion_undefined {{{1
