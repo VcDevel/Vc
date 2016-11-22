@@ -11,5 +11,5 @@ else()
    message(FATAL_ERROR "unhandled system")
 endif()
 
-AutodetectHostArchitecture()
+OFA_AutodetectHostArchitecture()
 message(STATUS "${TARGET_ARCHITECTURE}")

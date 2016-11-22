@@ -186,6 +186,8 @@ macro(OFA_AutodetectHostArchitecture)
       OFA_AutodetectX86()
    elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(arm|aarch32|aarch64)")
       OFA_AutodetectArm()
+   else()
+      message(FATAL_ERROR "OptimizeForArchitecture.cmake does not implement support for CMAKE_SYSTEM_PROCESSOR: ${CMAKE_SYSTEM_PROCESSOR}")
    endif()
 endmacro()
 

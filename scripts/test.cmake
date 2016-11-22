@@ -225,7 +225,12 @@ endif()
 if(target_architecture)
    set(tmp ${target_architecture})
 else()
-   execute_process(COMMAND cmake -Darch=${arch} -P ${PROJECT_DIRECTORY}/cmake/print_target_architecture.cmake OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE tmp)
+   execute_process(
+      COMMAND cmake
+      "-Darch=${arch}"
+      "-DCMAKE_SYSTEM_PROCESSOR=${CMAKE_SYSTEM_PROCESSOR}"
+      -P ${PROJECT_DIRECTORY}/cmake/print_target_architecture.cmake
+      OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE tmp)
    string(REPLACE "-- " "" tmp "${tmp}")
 endif()
 if(build_type STREQUAL "Release")
