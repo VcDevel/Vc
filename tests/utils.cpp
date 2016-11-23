@@ -400,4 +400,48 @@ TEST_TYPES(P, reinterpret_components_cast, (CastTypes))
     }
 }
 
+TEST_TYPES(V, swap, (ALL_VECTORS, SIMD_ARRAY_LIST))
+{
+    using T = typename V::EntryType;
+    V x = V::IndexesFromZero();
+    V y = V::IndexesFromZero();
+    using std::swap;
+    swap(x[0], y[V::size() - 1]);
+    COMPARE(x[0], T(V::size() - 1));
+    COMPARE(y[V::size() - 1], T(0));
+
+    T z = std::numeric_limits<T>::max();
+    swap(y[0], z);
+    COMPARE(y[0], std::numeric_limits<T>::max());
+    COMPARE(z, T(0));
+
+    swap(z, y[0]);
+    COMPARE(y[0], T(0));
+    COMPARE(z, std::numeric_limits<T>::max());
+
+    using M = typename V::MaskType;
+    const int i = M::size() > 1 ? 1 : 0;
+    M a(false);
+    M b = a;
+    b[i] = true;
+    COMPARE(a[0], false);
+    COMPARE(b[i], true);
+
+    swap(a[0], b[i]);
+    COMPARE(a[0], true);
+    COMPARE(b[i], false);
+
+    swap(b[i], a[0]);
+    COMPARE(a[0], false);
+    COMPARE(b[i], true);
+
+    bool c = true;
+    swap(a[0], c);
+    COMPARE(a[0], true);
+    COMPARE(c, false);
+
+    swap(c, a[0]);
+    COMPARE(a[0], false);
+    COMPARE(c, true);
+}
 // vim: foldmethod=marker

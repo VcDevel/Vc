@@ -128,10 +128,29 @@ public:
         return r;
     }
 
+    friend void swap(ElementReference &&a, ElementReference &&b) {
+        value_type tmp(a);
+        static_cast<ElementReference &&>(a) = static_cast<value_type>(b);
+        static_cast<ElementReference &&>(b) = tmp;
+    }
+
+    friend void swap(value_type &a, ElementReference &&b) {
+        value_type tmp(a);
+        a = static_cast<value_type>(b);
+        static_cast<ElementReference &&>(b) = tmp;
+    }
+
+    friend void swap(ElementReference &&a, value_type &b) {
+        value_type tmp(a);
+        static_cast<ElementReference &&>(a) = b;
+        b = tmp;
+    }
+
 private:
     int index;
     U &obj;
 };
+
 }  // namespace Detail
 }  // namespace Vc
 
