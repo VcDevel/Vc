@@ -12,4 +12,4 @@ else()
 endif()
 
 AutodetectHostArchitecture()
-message("${TARGET_ARCHITECTURE}")
+message(STATUS "${TARGET_ARCHITECTURE}")
