@@ -1,3 +1,4 @@
+#!ctest -S
 if(NOT CTEST_SOURCE_DIRECTORY)
    get_filename_component(CTEST_SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_FILE}" PATH)
 endif()
