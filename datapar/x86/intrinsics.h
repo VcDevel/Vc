@@ -241,9 +241,9 @@ template<typename T> Vc_INTRINSIC_L T intrin_cast(__m512i v) Vc_INTRINSIC_R;
 template<typename T> Vc_INTRINSIC_L T intrin_cast(__m512d v) Vc_INTRINSIC_R;
 #endif  // Vc_HAVE_AVX512F
 
+template<> Vc_INTRINSIC __m128  intrin_cast(__m128  v) { return v; }
 #ifdef Vc_HAVE_SSE2
 // 128 -> 128
-template<> Vc_INTRINSIC __m128  intrin_cast(__m128  v) { return v; }
 template<> Vc_INTRINSIC __m128  intrin_cast(__m128i v) { return _mm_castsi128_ps(v); }
 template<> Vc_INTRINSIC __m128  intrin_cast(__m128d v) { return _mm_castpd_ps(v); }
 template<> Vc_INTRINSIC __m128i intrin_cast(__m128  v) { return _mm_castps_si128(v); }
