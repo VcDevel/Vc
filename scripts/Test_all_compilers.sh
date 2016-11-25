@@ -12,7 +12,7 @@ cd "`dirname "$0"`/.."
 test -z "dashboard_model" && export dashboard_model=Experimental
 
 runTest() {
-  CFLAGS="$1" CXXFLAGS="$1" ctest -S test.cmake
+  CFLAGS="$1" CXXFLAGS="$1" ctest -S scripts/test.cmake
 }
 
 tested_compilers="lsakdfjwowleqirjodfisj"
