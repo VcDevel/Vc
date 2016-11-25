@@ -261,7 +261,7 @@ template <int = 0> struct RunCpuIdInit {
 template <int N> RunCpuIdInit<N> RunCpuIdInit<N>::tmp;
 namespace
 {
-static auto ctor = RunCpuIdInit<>::tmp;
+static auto cpuid_init_ctor = RunCpuIdInit<>::tmp;
 }  // unnamed namespace
 }  // namespace detail
 #endif

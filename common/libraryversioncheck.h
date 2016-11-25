@@ -74,7 +74,7 @@ template <unsigned int N> RunLibraryVersionCheck<N> RunLibraryVersionCheck<N>::t
 
 namespace
 {
-static auto ctor = RunLibraryVersionCheck<>::tmp;
+static auto library_version_check_ctor = RunLibraryVersionCheck<>::tmp;
 }  // unnamed namespace
 
 }  // namespace Vc_VERSIONED_NAMESPACE::detail
