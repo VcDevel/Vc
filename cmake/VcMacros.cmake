@@ -460,11 +460,8 @@ macro(vc_compile_for_all_implementations _srcs _src)
    endif()
    if(NOT Vc_AVX2_INTRINSICS_BROKEN)
       # The necessary list is not clear to me yet. At this point I'll only consider Intel CPUs, in
-      # which case AVX2 implies the availability of FMA and BMI2
-      #_vc_compile_one_implementation(${_srcs} AVX2  "-mavx2")
-      #_vc_compile_one_implementation(${_srcs} AVX2+BMI2 "-mavx2 -mbmi2")
-      _vc_compile_one_implementation(${_srcs} AVX2+FMA+BMI2 "-xCORE-AVX2" "-mavx2 -mfma -mbmi2" "/arch:AVX2")
-      #_vc_compile_one_implementation(${_srcs} AVX2+FMA "-mavx2 -mfma")
+      # which case AVX2 implies the availability of FMA, BMI, BMI2, and LZCNT
+      _vc_compile_one_implementation(${_srcs} AVX2 "-xCORE-AVX2" "-mavx2 -mfma -mbmi -mbmi2 -mlzcnt" "/arch:AVX2")
    endif()
    list(LENGTH _only_targets _len)
    if(_len GREATER 0)
