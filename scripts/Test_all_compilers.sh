@@ -64,61 +64,75 @@ END
   return 0
 }
 
-cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++-[0-9]*'|grep -v -- -linux-gnu`"
-if test -z "$cxxlist"; then
-  cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++'|grep -v -- -linux-gnu`"
-fi
-if test -z "$cxxlist"; then
-  # default compiler
-  runAllTests
-else
-  for CXX in $cxxlist; do
-    CC=`echo "$CXX"|sed 's/clang++/clang/;s/g++/gcc/'`
-    if test -x "$CC" -a -x "$CXX"; then
-      export CC
-      export CXX
-      runAllTests
-    fi
-  done
-fi
-
-if test -r /etc/profile.d/modules.sh; then
-  source /etc/profile.d/modules.sh
-  for mod in `module avail -t 2>&1`; do
-    case `echo $mod|tr '[:upper:]' '[:lower:]'` in
-      *intel*|*icc*) export CC=icc CXX=icpc;;
-      *gnu*|*gcc*) export CC=gcc CXX=g++;;
-      *llvm*|*clang*) export CC=clang CXX=clang++;;
-      *) continue;;
-    esac
-    module load $mod
+system_compilers() {
+  cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++-[0-9]*'|grep -v -- -linux-gnu`"
+  if test -z "$cxxlist"; then
+    cxxlist="`find /usr/bin/ /usr/local/bin/ -name '*++'|grep -v -- -linux-gnu`"
+  fi
+  if test -z "$cxxlist"; then
+    # default compiler
     runAllTests
-    module unload $mod
-  done
-fi
+  else
+    for CXX in $cxxlist; do
+      CC=`echo "$CXX"|sed 's/clang++/clang/;s/g++/gcc/'`
+      if test -x "$CC" -a -x "$CXX"; then
+        export CC
+        export CXX
+        runAllTests
+      fi
+    done
+  fi
+}
 
-for VcEnv in `find /opt/ -mindepth 2 -maxdepth 2 -name Vc.env`; do (
-  . "$VcEnv"
-  case "$VcEnv" in
-    *-snapshot/Vc.env)
-      ( cd $HOME/src/gcc-build && ./update.sh "`dirname "$VcEnv"`" )
+modules_compilers() {
+  if test -r /etc/profile.d/modules.sh; then
+    source /etc/profile.d/modules.sh
+    for mod in `module avail -t 2>&1`; do
+      case `echo $mod|tr '[:upper:]' '[:lower:]'` in
+        *intel*|*icc*) export CC=icc CXX=icpc;;
+        *gnu*|*gcc*) export CC=gcc CXX=g++;;
+        *llvm*|*clang*) export CC=clang CXX=clang++;;
+        *) continue;;
+      esac
+      module load $mod
+      runAllTests
+      module unload $mod
+    done
+  fi
+}
+
+gccbuild_compilers() {
+  for VcEnv in `find /opt/ -mindepth 2 -maxdepth 2 -name Vc.env`; do (
+    . "$VcEnv"
+    case "$VcEnv" in
+      *-snapshot/Vc.env)
+        ( cd $HOME/src/gcc-build && ./update.sh "`dirname "$VcEnv"`" )
+        ;;
+    esac
+    runAllTests
+  ) done
+}
+
+icc_compilers() {
+  export CC=icc
+  export CXX=icpc
+  icclist="`find /opt/intel/compiler* -name 'iccvars.sh' | xargs readlink -e | sort -ur`"
+  case `uname -m` in
+    x86_64)
+      COMPILERVARS_ARCHITECTURE=intel64
+      ;;
+    i[345678]86)
+      COMPILERVARS_ARCHITECTURE=ia32
       ;;
   esac
-  runAllTests
-) done
+  export COMPILERVARS_ARCHITECTURE
+  test -n "$icclist" && for IccEnv in $icclist; do (
+    . $IccEnv $COMPILERVARS_ARCHITECTURE
+    runAllTests
+  ) done
+}
 
-export CC=icc
-export CXX=icpc
-icclist="`find /opt/ -name 'iccvars.sh'`"
-case x86_64 in
-  x86_64)
-    arch=intel64
-    ;;
-  i[345678]86)
-    arch=ia32
-    ;;
-esac
-test -n "$icclist" && for IccEnv in $icclist; do (
-  . $IccEnv $arch
-  runAllTests
-) done
+system_compilers
+modules_compilers
+gccbuild_compilers
+icc_compilers
