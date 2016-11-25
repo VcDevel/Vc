@@ -144,8 +144,14 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
     {
+#ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
             detail::load16(mem, f));
+#else
+        unused(f);
+        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+#endif
     }
 
     // convert from a half SSE load{{{3
@@ -154,9 +160,14 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         const U *mem, F, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
     {
+#ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
             intrin_cast<detail::intrinsic_type<U, size<U>>>(
                 _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem))));
+#else
+        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+#endif
     }
 
     // convert from a quarter SSE load{{{3
@@ -165,9 +176,14 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         const U *mem, F, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
     {
+#ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
             intrin_cast<detail::intrinsic_type<U, size<U>>>(
                 _mm_load_ss(reinterpret_cast<const may_alias<float> *>(mem))));
+#else
+        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+#endif
     }
 
     // convert from a 1/8th SSE load{{{3
@@ -176,9 +192,14 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         const U *mem, F, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
+#ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
             intrin_cast<detail::intrinsic_type<U, size<U>>>(
                 _mm_cvtsi32_si128(*reinterpret_cast<const may_alias<uint16_t> *>(mem))));
+#else
+        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
+#endif
     }
 
     // AVX and AVX-512 datapar_member_type aliases{{{3
@@ -197,9 +218,13 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 #ifdef Vc_HAVE_AVX
         return convert<avx_member_type<U>, datapar_member_type<T>>(
             detail::load32(mem, f));
-#else
+#elif defined Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
             load(mem, f, type_tag<U>()), load(mem + size<U>, f, type_tag<U>()));
+#else
+        unused(f);
+        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+            [&](auto i) { return static_cast<T>(mem[i]); });
 #endif
     }
 
@@ -288,7 +313,12 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
     {
+#ifdef Vc_HAVE_FULL_SSE_ABI
         store4(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+#else
+        unused(f);
+        execute_n_times<size<T>>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
+#endif
     }
 
     // convert and 64-bit store{{{3
@@ -296,7 +326,12 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
     {
+#ifdef Vc_HAVE_FULL_SSE_ABI
         store8(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+#else
+        unused(f);
+        execute_n_times<size<T>>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
+#endif
     }
 
     // convert and 128-bit store{{{3
@@ -304,7 +339,12 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
     {
+#ifdef Vc_HAVE_FULL_SSE_ABI
         store16(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+#else
+        unused(f);
+        execute_n_times<size<T>>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
+#endif
     }
 
     // convert and 256-bit store{{{3
@@ -315,10 +355,15 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     {
 #ifdef Vc_HAVE_AVX
         store32(convert<datapar_member_type<T>, avx_member_type<U>>(v), mem, f);
-#else
+#elif defined Vc_HAVE_FULL_SSE_ABI
+        // without the full SSE ABI there cannot be any vectorized converting loads
+        // because only float vectors exist
         const auto tmp = convert_all<datapar_member_type<U>>(v);
         store16(tmp[0], mem, f);
         store16(tmp[1], mem + size<T> / 2, f);
+#else
+        execute_n_times<size<T>>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
+        detail::unused(f);
 #endif
     }
 
@@ -698,11 +743,118 @@ protected:
 // [mask.reductions] {{{
 namespace Vc_VERSIONED_NAMESPACE
 {
+Vc_ALWAYS_INLINE bool all_of(mask<float, datapar_abi::sse> k)
+{
+    const __m128 d(k);
+#if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
+    return _mm_testc_ps(d, detail::allone<__m128>());
+#elif defined Vc_USE_PTEST
+    const auto dd = intrin_cast<__m128i>(d);
+    return _mm_testc_si128(dd, detail::allone<__m128i>());
+#else
+    return _mm_movemask_ps(d) == 0xf;
+#endif
+}
+
+Vc_ALWAYS_INLINE bool any_of(mask<float, datapar_abi::sse> k)
+{
+    const __m128 d(k);
+#if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
+    return 0 == _mm_testz_ps(d, d);
+#elif defined Vc_USE_PTEST
+    const auto dd = intrin_cast<__m128i>(d);
+    return 0 == _mm_testz_si128(dd, dd);
+#else
+    return _mm_movemask_ps(d) != 0;
+#endif
+}
+
+Vc_ALWAYS_INLINE bool none_of(mask<float, datapar_abi::sse> k)
+{
+    const __m128 d(k);
+#if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
+    return 0 != _mm_testz_ps(d, d);
+#elif defined Vc_USE_PTEST
+    const auto dd = intrin_cast<__m128i>(d);
+    return 0 != _mm_testz_si128(dd, dd);
+#else
+    return _mm_movemask_ps(d) == 0;
+#endif
+}
+
+Vc_ALWAYS_INLINE bool some_of(mask<float, datapar_abi::sse> k)
+{
+    const __m128 d(k);
+#if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
+    return _mm_testnzc_ps(d, allone<__m128>());
+#elif defined Vc_USE_PTEST
+    const auto dd = intrin_cast<__m128i>(d);
+    return _mm_testnzc_si128(dd, allone<__m128i>());
+#else
+    const int tmp = _mm_movemask_ps(d);
+    return tmp != 0 && (tmp ^ 0xf) != 0;
+#endif
+}
+
+#ifdef Vc_HAVE_SSE2
+Vc_ALWAYS_INLINE bool all_of(mask<double, datapar_abi::sse> k)
+{
+    __m128d d(k);
+#ifdef Vc_USE_PTEST
+#ifdef Vc_HAVE_AVX
+    return _mm_testc_pd(d, detail::allone<__m128d>());
+#else
+    return _mm_testc_si128(d, detail::allone<__m128i>());
+#endif
+#else
+    return _mm_movemask_pd(d) == 0x3;
+#endif
+}
+
+Vc_ALWAYS_INLINE bool any_of(mask<double, datapar_abi::sse> k)
+{
+    const __m128d d(k);
+#if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
+    return 0 == _mm_testz_pd(d, d);
+#elif defined Vc_USE_PTEST
+    const auto dd = intrin_cast<__m128i>(d);
+    return 0 == _mm_testz_si128(dd, dd);
+#else
+    return _mm_movemask_pd(d) != 0;
+#endif
+}
+
+Vc_ALWAYS_INLINE bool none_of(mask<double, datapar_abi::sse> k)
+{
+    const __m128d d(k);
+#if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
+    return 0 != _mm_testz_pd(d, d);
+#elif defined Vc_USE_PTEST
+    const auto dd = intrin_cast<__m128i>(d);
+    return 0 != _mm_testz_si128(dd, dd);
+#else
+    return _mm_movemask_pd(d) == 0;
+#endif
+}
+
+Vc_ALWAYS_INLINE bool some_of(mask<double, datapar_abi::sse> k)
+{
+    const __m128d d(k);
+#if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
+    return _mm_testnzc_pd(d, allone<__m128d>());
+#elif defined Vc_USE_PTEST
+    const auto dd = intrin_cast<__m128i>(d);
+    return _mm_testnzc_si128(dd, allone<__m128i>());
+#else
+    const int tmp = _mm_movemask_pd(d);
+    return tmp == 1 || tmp == 2;
+#endif
+}
+
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::sse> k)
 {
-    const auto d = detail::intrin_cast<__m128i>(
-        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+    const __m128i d(k);
 #ifdef Vc_USE_PTEST
     return _mm_testc_si128(d, detail::allone<__m128i>());  // return 1 if (0xffffffff,
                                                            // 0xffffffff, 0xffffffff,
@@ -715,8 +867,7 @@ Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::sse> k)
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::sse> k)
 {
-    const auto d = detail::intrin_cast<__m128i>(
-        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+    const __m128i d(k);
 #ifdef Vc_USE_PTEST
     return 0 == _mm_testz_si128(d, d);  // return 1 if (0, 0, 0, 0) == (d.v() & d.v())
 #else
@@ -727,8 +878,7 @@ Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::sse> k)
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::sse> k)
 {
-    const auto d = detail::intrin_cast<__m128i>(
-        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+    const __m128i d(k);
 #ifdef Vc_USE_PTEST
     return 0 != _mm_testz_si128(d, d);  // return 1 if (0, 0, 0, 0) == (d.v() & d.v())
 #else
@@ -739,8 +889,7 @@ Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::sse> k)
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::sse> k)
 {
-    const auto d = detail::intrin_cast<__m128i>(
-        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+    const __m128i d(k);
 #ifdef Vc_USE_PTEST
     return _mm_test_mix_ones_zeros(d, detail::allone<__m128i>());
 #else
@@ -748,6 +897,7 @@ Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::sse> k)
     return tmp != 0 && (tmp ^ 0xffff) != 0;
 #endif
 }
+#endif
 
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::sse> k)
