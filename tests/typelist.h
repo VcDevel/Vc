@@ -59,6 +59,9 @@ template <typename... More> struct concat_impl;
 template <typename... Ts> using concat = typename concat_impl<Ts...>::type;
 
 // concat implementation:
+template <> struct concat_impl<> {
+    using type = Typelist<>;
+};
 template <typename A> struct concat_impl<A> {
     using type = A;
 };
