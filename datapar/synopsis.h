@@ -160,6 +160,11 @@ template <> struct abi_for_size_impl< short, 32, true, true> { using type = data
 template <> struct abi_for_size_impl<ushort, 32, true, true> { using type = datapar_abi::avx512; };
 template <> struct abi_for_size_impl< schar, 64, false, true> { using type = datapar_abi::avx512; };
 template <> struct abi_for_size_impl< uchar, 64, false, true> { using type = datapar_abi::avx512; };
+// fixed_size must support 64 entries because schar and uchar have 64 entries. Everything in
+// between max_fixed_size and 64 doesn't have to be supported.
+template <class T> struct abi_for_size_impl<T, 64, false, true> {
+    using type = datapar_abi::fixed_size<64>;
+};
 #endif
 #ifdef Vc_HAVE_FULL_KNC_ABI
 template <class T> struct abi_for_size_impl<T, datapar_size_v<T, datapar_abi::knc>, true, true> {
