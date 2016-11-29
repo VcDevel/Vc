@@ -744,6 +744,10 @@ protected:
     template <class T> using M = Vc::mask<T, abi>;
     template <class T> using S = typename Vc::detail::traits<T, abi>::mask_cast_type;
     template <class T> static constexpr size_t size = M<T>::size();
+    template <class T> static Vc_INTRINSIC auto data(M<T> k)
+    {
+        return static_cast<S<T>>(k);
+    }
 };
 // }}}1
 }  // namespace Vc_VERSIONED_NAMESPACE::detail
@@ -830,7 +834,7 @@ struct equal_to<Vc::mask<T, Vc::datapar_abi::avx512>>
 public:
     Vc_ALWAYS_INLINE bool operator()(const M<T> &x, const M<T> &y) const
     {
-        return static_cast<S<T>>(x) == static_cast<S<T>>(y);
+        return data(x) == data(y);
     }
 };
 template <>
