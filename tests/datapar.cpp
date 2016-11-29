@@ -30,87 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unittest.h"
 #include <Vc/datapar>
 
-using schar = signed char;
-using uchar = unsigned char;
-using llong = long long;
-using ullong = unsigned long long;
-
-using vschar = Vc::native_datapar<schar>;
-using vuchar = Vc::native_datapar<uchar>;
-using vshort = Vc::native_datapar<short>;
-using vushort = Vc::native_datapar<ushort>;
-using vint = Vc::native_datapar<int>;
-using vuint = Vc::native_datapar<uint>;
-using vlong = Vc::native_datapar<long>;
-using vulong = Vc::native_datapar<ulong>;
-using vllong = Vc::native_datapar<llong>;
-using vullong = Vc::native_datapar<ullong>;
-using vfloat = Vc::native_datapar<float>;
-using vdouble = Vc::native_datapar<double>;
-using vldouble = Vc::native_datapar<long double>;
-
-template <typename T> using vi8  = Vc::fixed_size_datapar<T, vschar::size()>;
-template <typename T> using vi16 = Vc::fixed_size_datapar<T, vshort::size()>;
-template <typename T> using vf32 = Vc::fixed_size_datapar<T, vfloat::size()>;
-template <typename T> using vi32 = Vc::fixed_size_datapar<T, vint::size()>;
-template <typename T> using vf64 = Vc::fixed_size_datapar<T, vdouble::size()>;
-template <typename T> using vi64 = Vc::fixed_size_datapar<T, vllong::size()>;
-template <typename T>
-using vl = typename std::conditional<sizeof(long) == sizeof(llong), vi64<T>, vi32<T>>::type;
-
-// native_test_types {{{1
-typedef concat<
-#if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
-    expand_list<Typelist<Template<Vc::datapar, Vc::datapar_abi::avx512>>,
-                Typelist<double, float, long long, unsigned long, int, unsigned long long,
-                         long, unsigned int>>,
-#endif
-#if defined Vc_HAVE_AVX_ABI && !defined Vc_HAVE_FULL_AVX_ABI
-    Vc::datapar<float, Vc::datapar_abi::avx>, Vc::datapar<double, Vc::datapar_abi::avx>,
-#endif
-#if defined Vc_HAVE_SSE_ABI && !defined Vc_HAVE_FULL_SSE_ABI
-    Vc::datapar<float, Vc::datapar_abi::sse>,
-#endif
-    expand_list<concat<
-#ifdef Vc_HAVE_FULL_AVX512_ABI
-                    Template<Vc::datapar, Vc::datapar_abi::avx512>,
-#endif
-#ifdef Vc_HAVE_FULL_AVX_ABI
-                    Template<Vc::datapar, Vc::datapar_abi::avx>,
-#endif
-#ifdef Vc_HAVE_FULL_SSE_ABI
-                    Template<Vc::datapar, Vc::datapar_abi::sse>,
-#endif
-                    Typelist<>>,
-                Typelist<long double, double, float, long long, unsigned long, int,
-                         unsigned short, signed char, unsigned long long, long,
-                         unsigned int, short, unsigned char>>> native_test_types;
-
-// all_test_types / ALL_TYPES {{{1
-typedef concat<
-    native_test_types,
-    expand_list<Typelist<Template<Vc::datapar, Vc::datapar_abi::scalar>,
-                         // Template<Vc::datapar, Vc::datapar_abi::fixed_size<2>>,
-                         Template<Vc::datapar, Vc::datapar_abi::fixed_size<3>>,
-                         // Template<Vc::datapar, Vc::datapar_abi::fixed_size<4>>,
-                         // Template<Vc::datapar, Vc::datapar_abi::fixed_size<8>>,
-                         Template<Vc::datapar, Vc::datapar_abi::fixed_size<12>>,
-                         // Template<Vc::datapar, Vc::datapar_abi::fixed_size<16>>,
-                         Template<Vc::datapar, Vc::datapar_abi::fixed_size<
-                                                   Vc::datapar_abi::max_fixed_size>>>,
-                Typelist<long double, double, float, long long, unsigned long, int,
-                         unsigned short, signed char, unsigned long long, long,
-                         unsigned int, short, unsigned char>>> all_test_types;
-
-#define ALL_TYPES (all_test_types)
-
-// reduced_test_types {{{1
-typedef concat<native_test_types,
-               expand_list<Typelist<Template<Vc::datapar, Vc::datapar_abi::scalar>>,
-                           Typelist<long double, double, float, long long, unsigned long,
-                                    int, unsigned short, signed char, unsigned long long,
-                                    long, unsigned int, short, unsigned char>>>
-    reduced_test_types;
+template <class T, class A> using base_template = Vc::datapar<T, A>;
+#include "testtypes.h"
 
 // datapar generator function {{{1
 template <class M> inline M make_mask(const std::initializer_list<bool> &init)
