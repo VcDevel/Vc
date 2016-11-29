@@ -120,7 +120,7 @@ public:
     Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 
     Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
-    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data & (1 << i); }
+    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data & (VectorType(1) << i); }
     Vc_INTRINSIC void set(size_t i, EntryType x)
     {
         if (x) {
