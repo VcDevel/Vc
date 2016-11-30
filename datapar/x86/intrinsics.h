@@ -1774,6 +1774,21 @@ Vc_INTRINSIC Vc_CONST unsigned int popcnt64(ullong n)
 
 // mask_count{{{1
 template <size_t Size> int mask_count(__m128 );
+template<> Vc_INTRINSIC Vc_CONST int mask_count<4>(__m128  k)
+{
+#ifdef Vc_IMPL_POPCNT
+    return _mm_popcnt_u32(_mm_movemask_ps(k));
+#elif defined Vc_HAVE_SSE2
+    auto x = _mm_srli_epi32(_mm_castps_si128(k), 31);
+    x = _mm_add_epi32(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
+    x = _mm_add_epi32(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
+    return _mm_cvtsi128_si32(x);
+#else
+    return popcnt4(_mm_movemask_ps(k));
+#endif
+}
+
+#ifdef Vc_HAVE_SSE2
 template <size_t Size> int mask_count(__m128i);
 template <size_t Size> int mask_count(__m128d);
 template<> Vc_INTRINSIC Vc_CONST int mask_count<2>(__m128d k)
@@ -1786,17 +1801,6 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<2>(__m128i k)
     return mask_count<2>(_mm_castsi128_pd(k));
 }
 
-template<> Vc_INTRINSIC Vc_CONST int mask_count<4>(__m128  k)
-{
-#ifdef Vc_IMPL_POPCNT
-    return _mm_popcnt_u32(_mm_movemask_ps(k));
-#else
-    auto x = _mm_srli_epi32(_mm_castps_si128(k), 31);
-    x = _mm_add_epi32(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
-    x = _mm_add_epi32(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
-    return _mm_cvtsi128_si32(x);
-#endif
-}
 template<> Vc_INTRINSIC Vc_CONST int mask_count<4>(__m128i k)
 {
     return mask_count<4>(_mm_castsi128_ps(k));
@@ -1819,9 +1823,14 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<16>(__m128i k)
 {
     return popcnt16(_mm_movemask_epi8(k));
 }
+#endif  // Vc_HAVE_SSE2
 
 // mask_to_int{{{1
+template <size_t Size> inline int mask_to_int(__m128 ) { static_assert(Size == Size, "Size value not implemented"); return 0; }
+#ifdef Vc_HAVE_SSE2
+template <size_t Size> inline int mask_to_int(__m128d) { static_assert(Size == Size, "Size value not implemented"); return 0; }
 template <size_t Size> inline int mask_to_int(__m128i) { static_assert(Size == Size, "Size value not implemented"); return 0; }
+#endif  // Vc_HAVE_SSE2
 #ifdef Vc_HAVE_AVX
 template <size_t Size> inline int mask_to_int(__m256 ) { static_assert(Size == Size, "Size value not implemented"); return 0; }
 template <size_t Size> inline int mask_to_int(__m256d) { static_assert(Size == Size, "Size value not implemented"); return 0; }
@@ -1834,6 +1843,15 @@ template <size_t Size> inline uint mask_to_int(__mmask32 k) { return k; }
 template <size_t Size> inline ullong mask_to_int(__mmask64 k) { return k; }
 #endif  // Vc_HAVE_AVX512F
 
+template<> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(__m128 k)
+{
+    return _mm_movemask_ps(k);
+}
+#ifdef Vc_HAVE_SSE2
+template<> Vc_INTRINSIC Vc_CONST int mask_to_int<2>(__m128d k)
+{
+    return _mm_movemask_pd(k);
+}
 template<> Vc_INTRINSIC Vc_CONST int mask_to_int<2>(__m128i k)
 {
     return _mm_movemask_pd(_mm_castsi128_pd(k));
@@ -1850,6 +1868,7 @@ template<> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(__m128i k)
 {
     return _mm_movemask_epi8(k);
 }
+#endif  // Vc_HAVE_SSE2
 
 #ifdef Vc_HAVE_AVX
 template <> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(__m256d k)

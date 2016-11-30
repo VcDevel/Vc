@@ -54,6 +54,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #endif  // WIN32
 
+#ifdef __MMX__
+#define Vc_HAVE_MMX
+#endif
 #ifdef __SSE__
 #define Vc_HAVE_SSE
 #endif

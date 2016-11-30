@@ -571,16 +571,23 @@ struct sse_mask_impl {
 
     // load {{{2
     template <class F>
-    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<2>) noexcept
-    {
-        return _mm_set_epi32(-mem[1], -mem[1], -mem[0], -mem[0]);
-    }
-    template <class F>
     static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<4>) noexcept
     {
+#ifdef Vc_HAVE_SSE2
         __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem));
         k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
         return intrin_cast<__m128>(_mm_unpacklo_epi16(k, k));
+#elif defined Vc_HAVE_MMX
+        __m128 k = _mm_cvtpi8_ps(_mm_cvtsi32_si64(*reinterpret_cast<const int *>(mem)));
+        _mm_empty();
+        return _mm_cmpgt_ps(k, detail::zero<__m128>());
+#endif  // Vc_HAVE_SSE2
+    }
+#ifdef Vc_HAVE_SSE2
+    template <class F>
+    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<2>) noexcept
+    {
+        return _mm_set_epi32(-mem[1], -mem[1], -mem[0], -mem[0]);
     }
     template <class F>
     static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<8>) noexcept
@@ -602,6 +609,7 @@ struct sse_mask_impl {
                                : _mm_loadu_si128(reinterpret_cast<const __m128i *>(mem)),
                            _mm_setzero_si128()));
     }
+#endif  // Vc_HAVE_SSE2
 
     // masked load {{{2
     template <class T, class F, class SizeTag>
@@ -617,6 +625,17 @@ struct sse_mask_impl {
     }
 
     // store {{{2
+#ifdef Vc_HAVE_MMX
+    template <class F>
+    static Vc_INTRINSIC void store(mask_member_type<float> v, bool *mem, F,
+                                   size_tag<4>) noexcept
+    {
+        const __m128 k(v);
+        const __m64 kk = _mm_cvtps_pi8(and_(k, detail::one16(float())));
+        *reinterpret_cast<may_alias<int32_t> *>(mem) = _mm_cvtsi64_si32(kk);
+        _mm_empty();
+    }
+#endif  // Vc_HAVE_MMX
 #ifdef Vc_HAVE_SSE2
     template <class T, class F>
     static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
@@ -910,16 +929,16 @@ Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::sse> k)
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::sse> k)
 {
-    const auto d = detail::intrin_cast<__m128i>(
-        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+    const auto d =
+        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k);
     return detail::bit_scan_forward(detail::mask_to_int<k.size()>(d));
 }
 
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::sse> k)
 {
-    const auto d = detail::intrin_cast<__m128i>(
-        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k));
+    const auto d =
+        static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k);
     return detail::bit_scan_reverse(detail::mask_to_int<k.size()>(d));
 }
 }  // namespace Vc_VERSIONED_NAMESPACE
