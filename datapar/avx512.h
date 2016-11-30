@@ -807,7 +807,7 @@ template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
-    return k.size() == 64 ? _lzcnt_u64(v) : _lzcnt_u32(v);
+    return k.size() == 64 ? _tzcnt_u64(v) : _tzcnt_u32(v);
 }
 
 template <class T, class = enable_if<sizeof(T) <= 8>>
@@ -815,10 +815,10 @@ Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
     switch (k.size()) {
-    case  8: return _tzcnt_u32(v) - 24;
-    case 16: return _tzcnt_u32(v) - 16;
-    case 32: return _tzcnt_u32(v);
-    case 64: return _tzcnt_u64(v);
+    case  8: return 31 - _lzcnt_u32(v);
+    case 16: return 31 - _lzcnt_u32(v);
+    case 32: return 31 - _lzcnt_u32(v);
+    case 64: return 63 - _lzcnt_u64(v);
     default: Vc_UNREACHABLE();
     }
 }
