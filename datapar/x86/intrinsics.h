@@ -1558,8 +1558,21 @@ Vc_INTRINSIC __m256i xor_(__m256i a, __m256i b) {
 #endif  // Vc_HAVE_AVX
 
 #ifdef Vc_HAVE_AVX512F
+#ifdef Vc_HAVE_AVX512DQ
 Vc_INTRINSIC __m512  xor_(__m512  a, __m512  b) { return _mm512_xor_ps(a, b); }
 Vc_INTRINSIC __m512d xor_(__m512d a, __m512d b) { return _mm512_xor_pd(a, b); }
+#else   // Vc_HAVE_AVX512DQ
+Vc_INTRINSIC __m512 xor_(__m512 a, __m512 b)
+{
+    return intrin_cast<__m512>(
+        _mm512_xor_epi32(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)));
+}
+Vc_INTRINSIC __m512d xor_(__m512d a, __m512d b)
+{
+    return intrin_cast<__m512d>(
+        _mm512_xor_epi64(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)));
+}
+#endif  // Vc_HAVE_AVX512DQ
 Vc_INTRINSIC __m512i xor_(__m512i a, __m512i b) { return _mm512_xor_epi32(a, b); }
 #endif  // Vc_HAVE_AVX512F
 

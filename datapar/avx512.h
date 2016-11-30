@@ -391,17 +391,12 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     static Vc_INTRINSIC mask< float> less        (datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmp_ps_mask(x.d, y.d, _MM_CMPINT_LT)}; }
     static Vc_INTRINSIC mask< float> less_equal  (datapar< float> x, datapar< float> y) { return {private_init, _mm512_cmp_ps_mask(x.d, y.d, _MM_CMPINT_LE)}; }
 
-#ifdef Vc_HAVE_FULL_AVX512_ABI
     static Vc_INTRINSIC mask< llong> equal_to(datapar< llong> x, datapar< llong> y) { return {private_init, _mm512_cmpeq_epi64_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<ullong> equal_to(datapar<ullong> x, datapar<ullong> y) { return {private_init, _mm512_cmpeq_epi64_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<  long> equal_to(datapar<  long> x, datapar<  long> y) { return {private_init, detail::cmpeq_long_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask< ulong> equal_to(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::cmpeq_long_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<   int> equal_to(datapar<   int> x, datapar<   int> y) { return {private_init, _mm512_cmpeq_epi32_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<  uint> equal_to(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm512_cmpeq_epi32_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< short> equal_to(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmpeq_epi16_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<ushort> equal_to(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm512_cmpeq_epi16_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< schar> equal_to(datapar< schar> x, datapar< schar> y) { return {private_init, _mm512_cmpeq_epi8_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< uchar> equal_to(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm512_cmpeq_epi8_mask(x.d, y.d)}; }
 
     static Vc_INTRINSIC mask< llong> not_equal_to(datapar< llong> x, datapar< llong> y) { return !equal_to(x, y); }
     static Vc_INTRINSIC mask<ullong> not_equal_to(datapar<ullong> x, datapar<ullong> y) { return !equal_to(x, y); }
@@ -409,10 +404,6 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     static Vc_INTRINSIC mask< ulong> not_equal_to(datapar< ulong> x, datapar< ulong> y) { return !equal_to(x, y); }
     static Vc_INTRINSIC mask<   int> not_equal_to(datapar<   int> x, datapar<   int> y) { return !equal_to(x, y); }
     static Vc_INTRINSIC mask<  uint> not_equal_to(datapar<  uint> x, datapar<  uint> y) { return !equal_to(x, y); }
-    static Vc_INTRINSIC mask< short> not_equal_to(datapar< short> x, datapar< short> y) { return !equal_to(x, y); }
-    static Vc_INTRINSIC mask<ushort> not_equal_to(datapar<ushort> x, datapar<ushort> y) { return !equal_to(x, y); }
-    static Vc_INTRINSIC mask< schar> not_equal_to(datapar< schar> x, datapar< schar> y) { return !equal_to(x, y); }
-    static Vc_INTRINSIC mask< uchar> not_equal_to(datapar< uchar> x, datapar< uchar> y) { return !equal_to(x, y); }
 
     static Vc_INTRINSIC mask< llong> less(datapar< llong> x, datapar< llong> y) { return {private_init, _mm512_cmplt_epi64_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<ullong> less(datapar<ullong> x, datapar<ullong> y) { return {private_init, _mm512_cmplt_epu64_mask(x.d, y.d)}; }
@@ -420,10 +411,6 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     static Vc_INTRINSIC mask< ulong> less(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::cmplt_ulong_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<   int> less(datapar<   int> x, datapar<   int> y) { return {private_init, _mm512_cmplt_epi32_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<  uint> less(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm512_cmplt_epu32_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< short> less(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmplt_epi16_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<ushort> less(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm512_cmplt_epu16_mask(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< schar> less(datapar< schar> x, datapar< schar> y) { return {private_init, _mm512_cmplt_epi8_mask (x.d, y.d)}; }
-    static Vc_INTRINSIC mask< uchar> less(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm512_cmplt_epu8_mask (x.d, y.d)}; }
 
     static Vc_INTRINSIC mask< llong> less_equal(datapar< llong> x, datapar< llong> y) { return {private_init, _mm512_cmple_epi64_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<ullong> less_equal(datapar<ullong> x, datapar<ullong> y) { return {private_init, _mm512_cmple_epu64_mask(x.d, y.d)}; }
@@ -431,6 +418,23 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     static Vc_INTRINSIC mask< ulong> less_equal(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::cmple_ulong_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<   int> less_equal(datapar<   int> x, datapar<   int> y) { return {private_init, _mm512_cmple_epi32_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<  uint> less_equal(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm512_cmple_epu32_mask(x.d, y.d)}; }
+
+#ifdef Vc_HAVE_FULL_AVX512_ABI
+    static Vc_INTRINSIC mask< short> equal_to(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmpeq_epi16_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ushort> equal_to(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm512_cmpeq_epi16_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< schar> equal_to(datapar< schar> x, datapar< schar> y) { return {private_init, _mm512_cmpeq_epi8_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< uchar> equal_to(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm512_cmpeq_epi8_mask(x.d, y.d)}; }
+
+    static Vc_INTRINSIC mask< short> not_equal_to(datapar< short> x, datapar< short> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask<ushort> not_equal_to(datapar<ushort> x, datapar<ushort> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask< schar> not_equal_to(datapar< schar> x, datapar< schar> y) { return !equal_to(x, y); }
+    static Vc_INTRINSIC mask< uchar> not_equal_to(datapar< uchar> x, datapar< uchar> y) { return !equal_to(x, y); }
+
+    static Vc_INTRINSIC mask< short> less(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmplt_epi16_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ushort> less(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm512_cmplt_epu16_mask(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< schar> less(datapar< schar> x, datapar< schar> y) { return {private_init, _mm512_cmplt_epi8_mask (x.d, y.d)}; }
+    static Vc_INTRINSIC mask< uchar> less(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm512_cmplt_epu8_mask (x.d, y.d)}; }
+
     static Vc_INTRINSIC mask< short> less_equal(datapar< short> x, datapar< short> y) { return {private_init, _mm512_cmple_epi16_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask<ushort> less_equal(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm512_cmple_epu16_mask(x.d, y.d)}; }
     static Vc_INTRINSIC mask< schar> less_equal(datapar< schar> x, datapar< schar> y) { return {private_init, _mm512_cmple_epi8_mask (x.d, y.d)}; }

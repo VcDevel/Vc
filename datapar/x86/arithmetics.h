@@ -195,8 +195,31 @@ Vc_INTRINSIC __m256i multiplies(y_u08 a, y_u08 b) { return multiplies(y_i08(a), 
 #ifdef Vc_HAVE_AVX512F
 Vc_INTRINSIC __m512  multiplies(z_f32 a, z_f32 b) { return _mm512_mul_ps(a, b); }
 Vc_INTRINSIC __m512d multiplies(z_f64 a, z_f64 b) { return _mm512_mul_pd(a, b); }
-Vc_INTRINSIC __m512i multiplies(z_i64 a, z_i64 b) { return _mm512_mullo_epi64(a, b); }
-Vc_INTRINSIC __m512i multiplies(z_u64 a, z_u64 b) { return _mm512_mullo_epi64(a, b); }
+Vc_INTRINSIC __m512i multiplies(z_i64 a, z_i64 b) {
+#ifdef Vc_HAVE_AVX512DQ
+    return _mm512_mullo_epi64(a, b);
+#else   // Vc_HAVE_AVX512DQ
+    const __m512i r0 = _mm512_mul_epu32(a, b);
+    const __m512i aShift = _mm512_permutex_epi64(a, 0xe1);  // permute neighbor elements
+    const __m512i bShift = _mm512_permutex_epi64(b, 0xe1);
+    const __m512i r1 = _mm512_permutex_epi64(_mm512_mul_epu32(aShift, b), 0xe1);
+    const __m512i r2 = _mm512_permutex_epi64(_mm512_mul_epu32(a, bShift), 0xe1);
+    return _mm512_add_epi64(_mm512_add_epi64(r0, r1), r2);
+#endif  // Vc_HAVE_AVX512DQ
+}
+Vc_INTRINSIC __m512i multiplies(z_u64 a, z_u64 b) {
+#ifdef Vc_HAVE_AVX512DQ
+    return _mm512_mullo_epi64(a, b);
+#else   // Vc_HAVE_AVX512DQ
+    const __m512i r0 = _mm512_mul_epu32(a, b);
+    const __m512i aShift = _mm512_permutex_epi64(a, 0xe1);  // permute neighbor elements
+    const __m512i bShift = _mm512_permutex_epi64(b, 0xe1);
+    const __m512i r1 = _mm512_permutex_epi64(_mm512_mul_epu32(aShift, b), 0xe1);
+    const __m512i r2 = _mm512_permutex_epi64(_mm512_mul_epu32(a, bShift), 0xe1);
+    const __m512i r3 = _mm512_mul_epu32(aShift, bShift);
+    return _mm512_add_epi64(_mm512_add_epi64(r0, r1), _mm512_add_epi64(r2, r3));
+#endif  // Vc_HAVE_AVX512DQ
+}
 Vc_INTRINSIC __m512i multiplies(z_i32 a, z_i32 b) { return _mm512_mullo_epi32(a, b); }
 Vc_INTRINSIC __m512i multiplies(z_u32 a, z_u32 b) { return _mm512_mullo_epi32(a, b); }
 #ifdef Vc_HAVE_AVX512BW
