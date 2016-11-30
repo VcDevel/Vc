@@ -90,12 +90,12 @@ TEST_TYPES(M, operators, ALL_TYPES)  //{{{1
     {  // subscripting{{{2
         M x = true;
         for (std::size_t i = 0; i < M::size(); ++i) {
-            COMPARE(x[i], true);
+            COMPARE(x[i], true) << "\nx: " << x << ", i: " << i;
             x[i] = !x[i];
         }
         COMPARE(x, M{false});
         for (std::size_t i = 0; i < M::size(); ++i) {
-            COMPARE(x[i], false);
+            COMPARE(x[i], false) << "\nx: " << x << ", i: " << i;
             x[i] = !x[i];
         }
         COMPARE(x, M{true});
