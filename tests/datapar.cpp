@@ -201,6 +201,15 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
             x = n / 2;
             COMPARE(x * y, V(n));
         }
+        if (std::is_integral<T>::value && std::is_unsigned<T>::value) {
+            // test modulo arithmetics
+            T n = std::numeric_limits<T>::max();
+            x = n;
+            for (T m : {T(2), T(7), T(std::numeric_limits<T>::max() / 127), std::numeric_limits<T>::max()}) {
+                y = m;
+                COMPARE(x * y, V(T(n * m)));
+            }
+        }
     }
 
     {  // divides{{{2
