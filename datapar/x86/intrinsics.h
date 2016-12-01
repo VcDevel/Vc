@@ -788,10 +788,10 @@ Vc_INTRINSIC Vc_CONST __m512i set(short x0, short x1, short x2, short x3, short 
                                   short x25, short x26, short x27, short x28, short x29,
                                   short x30, short x31)
 {
-    return concat(
-        set(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20, x19, x18, x17,
-            x16),
-        set(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1, x0));
+    return concat(_mm256_set_epi16(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4,
+                                   x3, x2, x1, x0),
+                  _mm256_set_epi16(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21,
+                                   x20, x19, x18, x17, x16));
 }
 
 Vc_INTRINSIC Vc_CONST __m512i set(ushort x0, ushort x1, ushort x2, ushort x3, ushort x4,
@@ -802,10 +802,10 @@ Vc_INTRINSIC Vc_CONST __m512i set(ushort x0, ushort x1, ushort x2, ushort x3, us
                                   ushort x25, ushort x26, ushort x27, ushort x28, ushort x29,
                                   ushort x30, ushort x31)
 {
-    return concat(
-        set(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20, x19, x18, x17,
-            x16),
-        set(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1, x0));
+    return concat(_mm256_set_epi16(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4,
+                                   x3, x2, x1, x0),
+                  _mm256_set_epi16(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21,
+                                   x20, x19, x18, x17, x16));
 }
 
 Vc_INTRINSIC Vc_CONST __m512i
@@ -819,12 +819,12 @@ set(schar x0, schar x1, schar x2, schar x3, schar x4, schar x5, schar x6, schar 
     schar x51, schar x52, schar x53, schar x54, schar x55, schar x56, schar x57,
     schar x58, schar x59, schar x60, schar x61, schar x62, schar x63)
 {
-    return concat(
-        set(x63, x62, x61, x60, x59, x58, x57, x56, x55, x54, x53, x52, x51, x50, x49,
-            x48, x47, x46, x45, x44, x43, x42, x41, x40, x39, x38, x37, x36, x35, x34,
-            x33, x32),
-        set(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20, x19, x18, x17,
-            x16, x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1, x0));
+    return concat(_mm256_set_epi8(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21,
+                                  x20, x19, x18, x17, x16, x15, x14, x13, x12, x11, x10,
+                                  x9, x8, x7, x6, x5, x4, x3, x2, x1, x0),
+                  _mm256_set_epi8(x63, x62, x61, x60, x59, x58, x57, x56, x55, x54, x53,
+                                  x52, x51, x50, x49, x48, x47, x46, x45, x44, x43, x42,
+                                  x41, x40, x39, x38, x37, x36, x35, x34, x33, x32));
 }
 
 Vc_INTRINSIC Vc_CONST __m512i
@@ -838,12 +838,12 @@ set(uchar x0, uchar x1, uchar x2, uchar x3, uchar x4, uchar x5, uchar x6, uchar 
     uchar x51, uchar x52, uchar x53, uchar x54, uchar x55, uchar x56, uchar x57,
     uchar x58, uchar x59, uchar x60, uchar x61, uchar x62, uchar x63)
 {
-    return concat(
-        set(x63, x62, x61, x60, x59, x58, x57, x56, x55, x54, x53, x52, x51, x50, x49,
-            x48, x47, x46, x45, x44, x43, x42, x41, x40, x39, x38, x37, x36, x35, x34,
-            x33, x32),
-        set(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20, x19, x18, x17,
-            x16, x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1, x0));
+    return concat(_mm256_set_epi8(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21,
+                                  x20, x19, x18, x17, x16, x15, x14, x13, x12, x11, x10,
+                                  x9, x8, x7, x6, x5, x4, x3, x2, x1, x0),
+                  _mm256_set_epi8(x63, x62, x61, x60, x59, x58, x57, x56, x55, x54, x53,
+                                  x52, x51, x50, x49, x48, x47, x46, x45, x44, x43, x42,
+                                  x41, x40, x39, x38, x37, x36, x35, x34, x33, x32));
 }
 
 #endif  // Vc_HAVE_AVX512F
