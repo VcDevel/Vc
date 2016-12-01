@@ -86,6 +86,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_HAVE_BMI1
 #define Vc_HAVE_BMI2
 #define Vc_HAVE_LZCNT
+#if !defined Vc_ICC
 #ifndef __BMI__
 #error "expected AVX2 to imply the availability of BMI1"
 #endif
@@ -95,7 +96,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __LZCNT__
 #error "expected AVX2 to imply the availability of LZCNT"
 #endif
-#endif
+#endif // !ICC
+#endif // __AVX2__
 #ifdef __AVX512F__
 #define Vc_HAVE_AVX512F
 #endif
