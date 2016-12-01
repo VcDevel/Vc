@@ -32,6 +32,45 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 
+#ifdef Vc_CXX17
+using std::conjunction;
+using std::disjunction;
+using std::negation;
+
+#else   // Vc_CXX17
+
+// conjunction
+template <class... Ts>
+struct conjunction : std::true_type {};
+
+template <class A> struct conjunction<A> : public A {};
+
+template <class A, class... Ts>
+struct conjunction<A, Ts...>
+    : public std::conditional<A::value, conjunction<Ts...>, A>::type {
+};
+
+// disjunction
+template <class... Ts>
+struct disjunction : std::false_type {};
+
+template <class A> struct disjunction<A> : public A {};
+
+template <class A, class... Ts>
+struct disjunction<A, Ts...>
+    : public std::conditional<A::value, A, disjunction<Ts...>>::type {
+};
+
+// negation
+template <class T> struct negation : public std::integral_constant<bool, !T::value> {
+};
+
+#endif  // Vc_CXX17
+
+template <class... Ts> constexpr bool conjunction_v = conjunction<Ts...>::value;
+template <class... Ts> constexpr bool disjunction_v = disjunction<Ts...>::value;
+template <class T> constexpr bool negation_v = negation<T>::value;
+
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_TYPE_TRAITS_H_

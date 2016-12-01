@@ -35,8 +35,8 @@ namespace detail {
 // common<A, B>{{{1
 template <class A, class B, bool arithmetic_A = std::is_arithmetic<A>::value,
           bool arithmetic_B = std::is_arithmetic<B>::value,
-          bool any_float = std::disjunction<std::is_floating_point<A>,
-                                            std::is_floating_point<B>>::value>
+          bool any_float =
+              disjunction_v<std::is_floating_point<A>, std::is_floating_point<B>>>
 struct common;
 
 // - A if A equals B
@@ -111,10 +111,9 @@ template <class V0, class V1, class T, class Abi> struct commonabi<V0, V1, T, Ab
 template <class V0, class V1, class T, class A0, class A1> struct commonabi {
     using other_abi = abi_for_size_t<T, V0::size()>;
     using other_datapar = datapar<T, other_abi>;
-    using type = std::conditional_t<
-        std::conjunction<std::is_convertible<V0, other_datapar>,
-                         std::is_convertible<V1, other_datapar>>::value,
-        other_abi, datapar_abi::fixed_size<V0::size()>>;
+    using type = std::conditional_t<conjunction_v<std::is_convertible<V0, other_datapar>,
+                                                  std::is_convertible<V1, other_datapar>>,
+                                    other_abi, datapar_abi::fixed_size<V0::size()>>;
 };
 
 // return_type_impl{{{1

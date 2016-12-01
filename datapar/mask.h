@@ -66,19 +66,20 @@ public:
     }
     template <class U>
     mask(mask<U, Abi> x,
-         enable_if<(size() == mask<U, Abi>::size()) &&
-                   std::conjunction<
-                       std::is_integral<T>, std::is_integral<U>,
-                       std::negation<std::is_same<Abi, datapar_abi::fixed_size<size()>>>,
-                       std::negation<std::is_same<T, U>>>::value> = nullarg)
+         enable_if<
+             (size() == mask<U, Abi>::size()) &&
+             conjunction_v<std::is_integral<T>, std::is_integral<U>,
+                           negation<std::is_same<Abi, datapar_abi::fixed_size<size()>>>,
+                           negation<std::is_same<T, U>>>> = nullarg)
         : d{x.d}
     {
     }
     template <class U, class Abi2>
     mask(mask<U, Abi2> x,
-         enable_if<std::conjunction<
-             std::negation<std::is_same<abi_type, Abi2>>,
-             std::is_same<abi_type, datapar_abi::fixed_size<size()>>>::value> = nullarg)
+         enable_if<
+             conjunction_v<negation<std::is_same<abi_type, Abi2>>,
+                           std::is_same<abi_type, datapar_abi::fixed_size<size()>>>> =
+             nullarg)
     {
         x.copy_to(&d[0], flags::vector_aligned);
     }

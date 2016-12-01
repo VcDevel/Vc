@@ -34,7 +34,7 @@ namespace detail
 template <class Derived> struct generic_datapar_impl;
 // allow_conversion_ctor2{{{1
 template <class T0, class T1, class A, bool = std::is_same<T0, T1>::value,
-          bool = std::conjunction<std::is_integral<T0>, std::is_integral<T1>>::value>
+          bool = conjunction_v<std::is_integral<T0>, std::is_integral<T1>>>
 struct allow_conversion_ctor2 : public std::false_type {
 };
 

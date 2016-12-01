@@ -325,10 +325,9 @@ template <class T0, class A0, class T1, class A1, class R = detail::mask_return_
 
 // mask compares [mask.comparison]
 template <class T0, class A0, class T1, class A1>
-inline std::enable_if_t<
-    std::disjunction<std::is_convertible<mask<T0, A0>, mask<T1, A1>>,
-                     std::is_convertible<mask<T1, A1>, mask<T0, A0>>>::value,
-    bool>
+inline std::enable_if_t<disjunction_v<std::is_convertible<mask<T0, A0>, mask<T1, A1>>,
+                                      std::is_convertible<mask<T1, A1>, mask<T0, A0>>>,
+                        bool>
 operator==(const mask<T0, A0> &x, const mask<T1, A1> &y)
 {
     return std::equal_to<mask<T0, A0>>{}(x, y);

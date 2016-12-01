@@ -134,8 +134,7 @@ static constexpr struct private_init_t {} private_init = {};
 template <class L, class R> struct return_type_impl;
 template <class L, class R, class V = typename return_type_impl<L, R>::type>
 using return_type = typename std::enable_if<
-    std::conjunction<std::is_convertible<R, V>, std::is_convertible<L, V>>::value,
-    V>::type;
+    conjunction_v<std::is_convertible<R, V>, std::is_convertible<L, V>>, V>::type;
 template <class L, class R> using cmp_return_type = typename return_type<L, R>::mask_type;
 
 // mask_return_type{{{1
