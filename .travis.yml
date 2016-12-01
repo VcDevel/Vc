@@ -48,7 +48,7 @@ before_script:
     - export NUMBER_OF_PROCESSORS=2
 
 script:
-    - ctest -V -S test.cmake
+    - ctest -V -S scripts/test.cmake
 
 notifications:
     email: false
