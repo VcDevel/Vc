@@ -14,6 +14,7 @@ include (AddTargetProperty)
 include (OptimizeForArchitecture)
 
 vc_determine_compiler()
+set(ENABLE_MIC FALSE) # disable MIC for now as the compiler doesn't support C++14
 find_package(MIC)
 
 option(USE_CCACHE "If enabled, ccache will be used (if it exists on the system) to speed up recompiles." OFF)
