@@ -780,6 +780,72 @@ Vc_INTRINSIC Vc_CONST __m512i set(uint x0, uint x1, uint x2, uint x3, uint x4, u
                             x1, x0);
 }
 
+Vc_INTRINSIC Vc_CONST __m512i set(short x0, short x1, short x2, short x3, short x4,
+                                  short x5, short x6, short x7, short x8, short x9,
+                                  short x10, short x11, short x12, short x13, short x14,
+                                  short x15, short x16, short x17, short x18, short x19,
+                                  short x20, short x21, short x22, short x23, short x24,
+                                  short x25, short x26, short x27, short x28, short x29,
+                                  short x30, short x31)
+{
+    return concat(
+        set(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20, x19, x18, x17,
+            x16),
+        set(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1, x0));
+}
+
+Vc_INTRINSIC Vc_CONST __m512i set(ushort x0, ushort x1, ushort x2, ushort x3, ushort x4,
+                                  ushort x5, ushort x6, ushort x7, ushort x8, ushort x9,
+                                  ushort x10, ushort x11, ushort x12, ushort x13, ushort x14,
+                                  ushort x15, ushort x16, ushort x17, ushort x18, ushort x19,
+                                  ushort x20, ushort x21, ushort x22, ushort x23, ushort x24,
+                                  ushort x25, ushort x26, ushort x27, ushort x28, ushort x29,
+                                  ushort x30, ushort x31)
+{
+    return concat(
+        set(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20, x19, x18, x17,
+            x16),
+        set(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1, x0));
+}
+
+Vc_INTRINSIC Vc_CONST __m512i
+set(schar x0, schar x1, schar x2, schar x3, schar x4, schar x5, schar x6, schar x7,
+    schar x8, schar x9, schar x10, schar x11, schar x12, schar x13, schar x14, schar x15,
+    schar x16, schar x17, schar x18, schar x19, schar x20, schar x21, schar x22,
+    schar x23, schar x24, schar x25, schar x26, schar x27, schar x28, schar x29,
+    schar x30, schar x31, schar x32, schar x33, schar x34, schar x35, schar x36,
+    schar x37, schar x38, schar x39, schar x40, schar x41, schar x42, schar x43,
+    schar x44, schar x45, schar x46, schar x47, schar x48, schar x49, schar x50,
+    schar x51, schar x52, schar x53, schar x54, schar x55, schar x56, schar x57,
+    schar x58, schar x59, schar x60, schar x61, schar x62, schar x63)
+{
+    return concat(
+        set(x63, x62, x61, x60, x59, x58, x57, x56, x55, x54, x53, x52, x51, x50, x49,
+            x48, x47, x46, x45, x44, x43, x42, x41, x40, x39, x38, x37, x36, x35, x34,
+            x33, x32),
+        set(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20, x19, x18, x17,
+            x16, x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1, x0));
+}
+
+Vc_INTRINSIC Vc_CONST __m512i
+set(uchar x0, uchar x1, uchar x2, uchar x3, uchar x4, uchar x5, uchar x6, uchar x7,
+    uchar x8, uchar x9, uchar x10, uchar x11, uchar x12, uchar x13, uchar x14, uchar x15,
+    uchar x16, uchar x17, uchar x18, uchar x19, uchar x20, uchar x21, uchar x22,
+    uchar x23, uchar x24, uchar x25, uchar x26, uchar x27, uchar x28, uchar x29,
+    uchar x30, uchar x31, uchar x32, uchar x33, uchar x34, uchar x35, uchar x36,
+    uchar x37, uchar x38, uchar x39, uchar x40, uchar x41, uchar x42, uchar x43,
+    uchar x44, uchar x45, uchar x46, uchar x47, uchar x48, uchar x49, uchar x50,
+    uchar x51, uchar x52, uchar x53, uchar x54, uchar x55, uchar x56, uchar x57,
+    uchar x58, uchar x59, uchar x60, uchar x61, uchar x62, uchar x63)
+{
+    return concat(
+        set(x63, x62, x61, x60, x59, x58, x57, x56, x55, x54, x53, x52, x51, x50, x49,
+            x48, x47, x46, x45, x44, x43, x42, x41, x40, x39, x38, x37, x36, x35, x34,
+            x33, x32),
+        set(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20, x19, x18, x17,
+            x16, x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1, x0));
+}
+
 #endif  // Vc_HAVE_AVX512F
 
 // generic forward for (u)long to (u)int or (u)llong
