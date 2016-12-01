@@ -621,6 +621,7 @@ struct avx512_mask_impl {
             _pdep_u64(v.v(), 0x0101010101010101ULL);
         *reinterpret_cast<may_alias<ullong> *>(mem + 8) =
             _pdep_u64(v.v() >> 8, 0x0101010101010101ULL);
+        unused(f);
 #endif
     }
     template <class F>
