@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if !defined(Vc_NO_VERSION_CHECK) && !defined(Vc_COMPILE_LIB)
 #include <Vc/version.h>
 #include "macros.h"
-#warning "libraryversioncheck.h included"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
