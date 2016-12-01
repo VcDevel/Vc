@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/transpose.h"
 #include "operators.h"
 #include "macros.h"
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 // special value constructors{{{1
 template <typename T>
@@ -228,5 +227,5 @@ Vc_ALWAYS_INLINE void transpose_impl(TransposeTag<1, 1>, Scalar::float_v *Vc_RES
 }
 // }}}1
 }  // namespace Common
-}
+Vc_VERSIONED_NAMESPACE_END
 // vim: foldmethod=marker

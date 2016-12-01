@@ -25,8 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SSE
 {
 
@@ -106,9 +105,7 @@ inline void deinterleave(Vector<unsigned int> &a, Vector<unsigned int> &b, Vecto
 }
 
 }
-}
-namespace Vc_VERSIONED_NAMESPACE
-{
+
 namespace Detail
 {
 template<typename A> inline void deinterleave(
@@ -187,4 +184,4 @@ template<typename A> inline void deinterleave(
     Vc::SSE::deinterleave(a, b);
 }
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END

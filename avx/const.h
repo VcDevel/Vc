@@ -33,8 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "const_data.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace AVX
 {
     template<typename T> struct IndexesFromZeroData;
@@ -115,6 +114,6 @@ namespace AVX2
 using AVX::IndexesFromZeroData;
 using AVX::Const;
 }  // namespace AVX2
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_AVX_CONST_H_

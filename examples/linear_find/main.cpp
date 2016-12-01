@@ -63,8 +63,7 @@ struct less<Vc::SimdArray<T, N>>
 };
 }  // namespace std
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <class Iterator, class T, class C>
 inline Iterator lower_bound(Iterator first, Iterator last,
                                    const T &value, C comp)
@@ -143,7 +142,7 @@ inline std::array<Iterator, V::size()> find_parallel(Iterator first, Iterator la
     }
     return matches;
 }
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 template <typename _InputIterator, typename _Tp>
 inline _InputIterator simple_find(_InputIterator first, _InputIterator last,

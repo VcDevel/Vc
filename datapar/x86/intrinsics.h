@@ -37,7 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef Vc_HAVE_SSE
 #include <x86intrin.h>
 
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 namespace x86
 {
@@ -2313,7 +2314,8 @@ Vc_INTRINSIC void store64(__m512i v, T *mem, when_unaligned<64>)
 // }}}1
 }  // namespace x86
 using namespace x86;
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 #endif  // Vc_HAVE_SSE
 
 #endif  // VC_DATAPAR_X86_H_

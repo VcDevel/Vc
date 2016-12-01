@@ -32,8 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <initializer_list>
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
     namespace
     {
@@ -146,6 +145,6 @@ namespace Vc_VERSIONED_NAMESPACE
         return makeContainer<Container, T>(list);
     }
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_MAKECONTAINER_H_

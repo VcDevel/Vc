@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 #include <Vc/global.h>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 
@@ -87,6 +86,6 @@ template <int sign, unsigned int mantissa, int exponent> constexpr float floatCo
 }
 
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_CONST_H_

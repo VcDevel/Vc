@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_VECTORABI_H_
 #define VC_COMMON_VECTORABI_H_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace VectorAbi
 {
 struct Scalar {};
@@ -68,7 +67,7 @@ static_assert(std::is_same<Best<float>, Scalar>::value, "");
 static_assert(std::is_same<Best<int>, Scalar>::value, "");
 #endif
 }  // namespace VectorAbi
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_COMMON_VECTORABI_H_
 

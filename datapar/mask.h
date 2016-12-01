@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "smart_reference.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <class T, class Abi> class mask
 {
     using traits = detail::traits<T, Abi>;
@@ -132,7 +131,7 @@ private:
     alignas(traits::mask_member_alignment) typename traits::mask_member_type d = {};
 };
 
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 #endif  // VC_DATAPAR_MASK_H_
 
 // vim: foldmethod=marker

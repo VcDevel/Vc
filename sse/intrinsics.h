@@ -46,8 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SseIntrinsics
 {
     using SSE::c_general;
@@ -169,12 +168,11 @@ namespace SseIntrinsics
     }
 #endif
 }  // namespace SseIntrinsics
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 // SSSE3
 #ifdef Vc_IMPL_SSSE3
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SseIntrinsics
 {
     // not overriding _mm_set1_epi8 because this one should only be used for non-constants
@@ -186,12 +184,11 @@ namespace SseIntrinsics
         return _mm_alignr_epi8(a, b, s & 0x1fu);
     }
 }  // namespace SseIntrinsics
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #else
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SseIntrinsics
 {
     Vc_INTRINSIC Vc_CONST __m128i abs_epi8 (__m128i a) {
@@ -255,13 +252,12 @@ namespace SseIntrinsics
         return _mm_setzero_si128();
     }
 }  // namespace SseIntrinsics
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 #endif
 
 // SSE4.1
 #ifdef Vc_IMPL_SSE4_1
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SseIntrinsics
 {
 Vc_INTRINSIC Vc_CONST __m128i cmpeq_epi64(__m128i a, __m128i b)
@@ -357,11 +353,10 @@ Vc_INTRINSIC Vc_PURE __m128i stream_load_si128(__m128i *mem)
     return _mm_stream_load_si128(mem);
 }
 }  // namespace SseIntrinsics
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 #else
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SseIntrinsics
 {
     Vc_INTRINSIC Vc_CONST __m128i cmpeq_epi64(__m128i a, __m128i b) {
@@ -578,12 +573,11 @@ namespace SseIntrinsics
         return _mm_load_si128(mem);
     }
 }  // namespace SseIntrinsics
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 #endif
 
 // SSE4.2
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SseIntrinsics
 {
     static Vc_INTRINSIC Vc_CONST float extract_float_imm(const __m128 v, const size_t i) {
@@ -687,10 +681,9 @@ namespace SseIntrinsics
 #endif
 
 }  // namespace SseIntrinsics
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SSE
 {
 using namespace SseIntrinsics;
@@ -737,7 +730,7 @@ template <typename T> struct VectorTraits
 
 template <typename T> struct VectorHelperSize;
 }  // namespace SSE
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #if defined(Vc_GCC) && !defined(__OPTIMIZE__)
 #pragma GCC diagnostic pop

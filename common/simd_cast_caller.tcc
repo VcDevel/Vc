@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_SIMD_CAST_CALLER_TCC_
 
 #include "macros.h"
-namespace Vc_VERSIONED_NAMESPACE {
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 template <typename T, std::size_t N, typename VectorType>
 template <typename U, typename V>
@@ -78,7 +78,7 @@ Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
 {
 }
 
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_COMMON_SIMD_CAST_CALLER_TCC_
 

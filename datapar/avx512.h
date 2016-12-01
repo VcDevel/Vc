@@ -34,7 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "x86/convert.h"
 #include "x86/compares.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 struct avx512_mask_impl;
 struct avx512_datapar_impl;
@@ -84,10 +85,12 @@ template <>
 struct traits<long double, datapar_abi::avx512>
     : public traits<long double, datapar_abi::scalar> {
 };
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #ifdef Vc_HAVE_AVX512_ABI
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 // datapar impl {{{1
 struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
@@ -754,11 +757,11 @@ protected:
     }
 };
 // }}}1
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 // [mask.reductions] {{{
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
 {
@@ -826,7 +829,7 @@ Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx512> k)
     default: Vc_UNREACHABLE();
     }
 }
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 // }}}
 
 namespace std

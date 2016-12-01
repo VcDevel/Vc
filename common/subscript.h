@@ -36,8 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #include <assert.h>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 // AdaptSubscriptOperator {{{1
@@ -592,7 +591,7 @@ struct is_subscript_operation_internal<Common::SubscriptOperation<T, IndexVector
 
 using Common::subscript_operator;
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_SUBSCRIPT_H_
 

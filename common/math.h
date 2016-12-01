@@ -35,8 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "const.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 #ifdef Vc_IMPL_SSE
 // for SSE, AVX, and AVX2
 #include "logarithm.h"
@@ -123,7 +122,7 @@ inline SSE::double_v exp(SSE::double_v::AsArg _x) {
     }
 
 #endif
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #undef Vc_COMMON_MATH_H_INTERNAL
 

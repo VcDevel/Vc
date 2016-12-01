@@ -76,8 +76,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ///\internal identify Vc 1.x
 #define Vc_IS_VERSION_1 (Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1, 70, 0))
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**
  * \ingroup Utilities
  * \headerfile version.h <Vc/version.h>
@@ -99,6 +98,6 @@ inline const char *versionString() { return Vc_VERSION_STRING; }
  * \returns the version of the %Vc headers encoded in an integer.
  */
 constexpr unsigned int versionNumber() { return Vc_VERSION_NUMBER; }
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_VERSION_H_

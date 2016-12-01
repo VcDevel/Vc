@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_PREFETCHES_TCC_
 #define VC_SSE_PREFETCHES_TCC_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr, VectorAbi::Sse)
@@ -57,6 +56,6 @@ Vc_ALWAYS_INLINE void prefetchForModify(const void *addr, VectorAbi::Sse)
 #endif
 }
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SSE_PREFETCHES_TCC_

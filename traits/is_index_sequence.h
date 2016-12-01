@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../common/indexsequence.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits
 {
 
@@ -43,7 +42,7 @@ static_assert(!is_index_sequence<int>::value, "");
 static_assert(is_index_sequence<make_index_sequence<2>>::value, "");
 
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_IS_INDEX_SEQUENCE_H_
 

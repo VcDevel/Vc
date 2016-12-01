@@ -34,8 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "shuffle.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace AVX
 {
 namespace Casts
@@ -298,6 +297,6 @@ Vc_INTRINSIC auto convert(typename AVX::VectorTypeHelper<From>::Type v)
     return convert(lo128(v), ConvertTag<From, To>());
 }
 }  // namespace AVX
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_AVX_CASTS_H_

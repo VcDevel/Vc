@@ -32,8 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "type_traits.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 // Scalar::Vector to Scalar::Vector
 template <typename To, typename From>
@@ -92,7 +91,7 @@ Vc_INTRINSIC Vc_CONST enable_if<
     return r;
 }
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_SCALAR_SIMD_CAST_H_
 

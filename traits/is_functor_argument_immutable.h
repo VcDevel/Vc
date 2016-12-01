@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_TRAITS_IS_FUNCTOR_ARGUMENT_IMMUTABLE_H_
 #define VC_TRAITS_IS_FUNCTOR_ARGUMENT_IMMUTABLE_H_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits
 {
 namespace is_functor_argument_immutable_impl
@@ -94,7 +93,7 @@ struct is_functor_argument_immutable<F, A, true>
 };
 
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_TRAITS_IS_FUNCTOR_ARGUMENT_IMMUTABLE_H_
 

@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 
@@ -116,6 +115,6 @@ template<class StorageType> class AliasingEntryHelper
 };
 
 }  // namespace Common
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_ALIASINGENTRYHELPER_H_

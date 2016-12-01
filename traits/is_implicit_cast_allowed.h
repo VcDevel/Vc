@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_TRAITS_IS_IMPLICIT_CAST_ALLOWED_H_
 #define VC_TRAITS_IS_IMPLICIT_CAST_ALLOWED_H_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits
 {
 template <typename From, typename To, bool = std::is_integral<From>::value>
@@ -61,7 +60,7 @@ static_assert(is_implicit_cast_allowed<  int8_t,  uint8_t>::value, "");
 static_assert(is_implicit_cast_allowed< uint8_t,   int8_t>::value, "");
 
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_TRAITS_IS_IMPLICIT_CAST_ALLOWED_H_
 

@@ -1632,7 +1632,9 @@ PREDEFINED             = DOXYGEN \
                          Vc_CONST_L \
                          Vc_CONST_R \
                          Vc_WARN_UNUSED_RESULT \
-                         Vc_VERSIONED_NAMESPACE=Vc
+                         Vc_VERSIONED_NAMESPACE=Vc \
+                         Vc_VERSIONED_NAMESPACE_BEGIN="namespace Vc {" \
+                         Vc_VERSIONED_NAMESPACE_END=}
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then
 # this tag can be used to specify a list of macro names that should be expanded.

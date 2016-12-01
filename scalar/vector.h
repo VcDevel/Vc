@@ -42,8 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 #define Vc_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector<T, VectorAbi::Scalar>
 {
@@ -345,7 +344,7 @@ Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs--);
 Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs);
 #undef Vc_CONDITIONAL_ASSIGN
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #include "vector.tcc"
 #include "simd_cast.h"

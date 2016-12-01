@@ -35,8 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/libraryversioncheck.h"  // for Detail::sorted
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 // compare operators {{{1
@@ -804,6 +803,6 @@ Vc_ALWAYS_INLINE void transpose_impl(
 }
 // }}}1
 }  // namespace Common
-}
+Vc_VERSIONED_NAMESPACE_END
 
 // vim: foldmethod=marker

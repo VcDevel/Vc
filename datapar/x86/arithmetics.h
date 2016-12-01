@@ -30,7 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "storage.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail::x86
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
+{
+namespace x86
 {
 // plus{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
@@ -515,6 +518,7 @@ Vc_INTRINSIC __m512d unary_minus(z_f64 v) { return xor_(v, signmask64(double()))
 #endif  // Vc_HAVE_AVX512F
 
 //}}}1
-}  // namespace Vc_VERSIONED_NAMESPACE::detail::x86
+}}  // namespace detail::x86
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_X86_ARITHMETICS_H_

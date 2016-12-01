@@ -25,8 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template <typename V, typename M, typename A>
@@ -37,4 +36,4 @@ inline void deinterleave(V &a, V &b, const M *m, A)
     b.data() = MicIntrinsics::gather(i.data(), m + 1, MIC::UpDownConversion<typename V::VectorEntryType, M>());
 }
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END

@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template <typename T, int Wt, size_t Sizeof>
@@ -91,7 +90,7 @@ struct InterleaveImpl<Vector<T, VectorAbi::Mic>, Wt, Sizeof> {
     //}}}2
 };
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_MIC_INTERLEAVEIMPL_H_
 

@@ -34,7 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "x86/convert.h"
 #include "x86/compares.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 struct avx_mask_impl;
 struct avx_datapar_impl;
@@ -62,10 +63,12 @@ template <>
 struct traits<long double, datapar_abi::avx>
     : public traits<long double, datapar_abi::scalar> {
 };
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #ifdef Vc_HAVE_AVX_ABI
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 // datapar impl {{{1
 struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
@@ -652,11 +655,11 @@ protected:
 constexpr struct {
     template <class T> operator T() const { return detail::allone<T>(); }
 } allone_poly = {};
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 // [mask.reductions] {{{
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx> k)
 {
@@ -726,7 +729,7 @@ Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx> k)
     }
     return detail::bit_scan_reverse(detail::mask_to_int<k.size()>(d));
 }
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 // }}}
 
 namespace std

@@ -35,8 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_HIDE_BOOL_OVERLOADS
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**
  * \ingroup Utilities
  *
@@ -210,6 +209,6 @@ simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 }
 #endif
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_ALGORITHMS_H_

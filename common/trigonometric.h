@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #include "libraryversioncheck.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template<Vc::Implementation Impl> struct MapImpl { enum Dummy { Value = Impl }; };
@@ -77,6 +76,6 @@ template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> atan(const Vecto
 template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> atan2(const Vector<T, Abi> &y, const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::atan2(y, x); }
 template <typename T, typename Abi> Vc_INTRINSIC void sincos(const Vector<T, Abi> &x, Vector<T, Abi> *sin, Vector<T, Abi> *cos) { Detail::Trig<T, Abi>::sincos(x, sin, cos); }
 #endif
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_TRIGONOMETRIC_H_

@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 // copysign {{{1
 Vc_INTRINSIC Vc_CONST MIC::float_v copysign(MIC::float_v mag, MIC::float_v sign)
 {
@@ -162,7 +161,7 @@ Vc_ALWAYS_INLINE MIC::float_v ldexp(MIC::float_v::AsArg v, MIC::float_v::IndexTy
     return (v.reinterpretCast<MIC::int_v>() + (e << 23)).reinterpretCast<MIC::float_v>();
 }
 //}}}1
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_MIC_MATH_H_
 

@@ -28,13 +28,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_TRAITS_DECAY_H_
 #define VC_TRAITS_DECAY_H_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits
 {
 template <typename T> using decay = typename std::decay<T>::type;
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_TRAITS_DECAY_H_
 

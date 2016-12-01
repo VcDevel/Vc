@@ -30,14 +30,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Permutation
 {
 struct ReversedTag {};
 constexpr ReversedTag Reversed{};
 }  // namespace Permutation
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_COMMON_PERMUTATION_H_
 

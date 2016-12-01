@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "intrinsics.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
     enum VecPos {
         X0, X1, X2, X3, X4, X5, X6, X7,
         Y0, Y1, Y2, Y3, Y4, Y5, Y6, Y7,
@@ -179,6 +178,6 @@ namespace Reg
             return Mem::blend<Dst0, Dst1, Dst2, Dst3>(x, y);
         }
 }  // namespace Reg
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SSE_SHUFFLE_H_

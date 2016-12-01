@@ -36,8 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma offload_attribute(push, target(mic))
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 template<unsigned int VectorSize> struct MaskHelper;
 template<> struct MaskHelper<8> {
@@ -260,7 +259,7 @@ private:
 template <typename T> constexpr size_t Mask<T, VectorAbi::Mic>::Size;
 template <typename T> constexpr size_t Mask<T, VectorAbi::Mic>::MemoryAlignment;
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #include "mask.tcc"
 

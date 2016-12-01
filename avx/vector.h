@@ -48,8 +48,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef isnan
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template <typename T, typename Abi> struct VectorTraits
@@ -451,7 +450,7 @@ Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--);
 Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask));
 #undef Vc_CONDITIONAL_ASSIGN
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #include "vector.tcc"
 #include "simd_cast.h"

@@ -32,8 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #if defined(Vc_IMPL_SSE) || defined(Vc_IMPL_AVX)
 #include <common/macros.h>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 
@@ -499,6 +498,6 @@ template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplem
 }
 
 }
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif

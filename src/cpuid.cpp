@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/cpuid.h>
 #include <Vc/global.h>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 CpuId::uint   CpuId::s_ecx0 = 0;
 CpuId::uint   CpuId::s_logicalProcessors = 0;
@@ -60,11 +59,10 @@ bool   CpuId::s_noL2orL3 = false;
 
 #ifdef _WIN32
 
-}
+Vc_VERSIONED_NAMESPACE_END
 // better not include intrin.h inside the Vc namespace :)
 #include <intrin.h>
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 #define Vc_CPUID(leaf) \
     do { \
@@ -643,6 +641,6 @@ void CpuId::interpret(uchar byte, bool *checkLeaf4)
     }
 }
 
-}
+Vc_VERSIONED_NAMESPACE_END
 
 // vim: sw=4 sts=4 et tw=100

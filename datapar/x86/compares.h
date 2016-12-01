@@ -30,7 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "storage.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail::x86
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
+{
+namespace x86
 {
 #ifdef Vc_HAVE_AVX2
 Vc_INTRINSIC Vc_CONST y_u64 cmpgt(y_u64 x, y_u64 y)
@@ -86,6 +89,7 @@ Vc_INTRINSIC Vc_CONST y_ulong cmpgt(y_ulong x, y_ulong y)
     return cmpgt(y_ulong_equiv(x), y_ulong_equiv(y)).v();
 }
 #endif
-}  // namespace Vc_VERSIONED_NAMESPACE::detail::x86
+}}  // namespace detail::x86
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_X86_COMPARES_H_

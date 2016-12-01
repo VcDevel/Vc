@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <xmmintrin.h>
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 
@@ -131,7 +130,7 @@ using Common::prefetchForOneRead;
 using Common::prefetchClose;
 using Common::prefetchMid;
 using Common::prefetchFar;
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_X86_PREFETCHES_H_
 

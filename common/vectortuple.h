@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "transpose.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 
@@ -137,6 +136,6 @@ constexpr Common::VectorReferenceArray<sizeof...(Vs) + 1,
     return {std::forward<V>(a), std::forward<Vs>(b)...};
 }
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_VECTORTUPLE_H_

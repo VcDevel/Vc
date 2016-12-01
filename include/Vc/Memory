@@ -33,10 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/interleavedmemory.h"
 
 #include "common/make_unique.h"
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 using Common::make_unique;
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_MEMORY_
 

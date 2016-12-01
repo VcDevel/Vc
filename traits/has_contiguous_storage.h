@@ -49,8 +49,7 @@ _LIBCPP_END_NAMESPACE_STD
 }  // namespace std
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits
 {
 namespace has_contiguous_storage_detail
@@ -90,6 +89,6 @@ template <typename T, std::size_t N> struct has_contiguous_storage_impl<std::arr
 template <typename T, typename A> struct has_contiguous_storage_impl<std::vector<T, A>> : public std::true_type {};
 
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_TRAITS_HAS_CONTIGUOUS_STORAGE_H_

@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mic/sorthelper.h>
 #include <mic/macros.h>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace MIC
 {
 
@@ -401,4 +400,4 @@ template <> __m512d SortHelper<double>::sort(VectorType in)
 }
 
 }
-}
+Vc_VERSIONED_NAMESPACE_END

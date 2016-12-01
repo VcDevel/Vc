@@ -36,8 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template <typename V> inline V zero();
@@ -405,6 +404,6 @@ template <typename VectorType, typename EntryType>
 using VectorMemoryUnion = Storage<EntryType, sizeof(VectorType) / sizeof(EntryType)>;
 
 }  // namespace Common
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_STORAGE_H_

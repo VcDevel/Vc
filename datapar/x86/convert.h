@@ -30,7 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "storage.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail::x86
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
+{
+namespace x86
 {
 // convert_builtin{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
@@ -2728,6 +2731,7 @@ Vc_INTRINSIC To convert_all(From v, enable_if<!(From::size() > To::size())> = nu
 }
 
 // }}}1
-}  // namespace Vc_VERSIONED_NAMESPACE::detail::x86
+}}  // namespace detail::x86
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_X86_CONVERT_H_

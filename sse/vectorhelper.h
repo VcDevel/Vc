@@ -34,8 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "const_data.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SSE
 {
 #define Vc_OP0(name, code) static Vc_ALWAYS_INLINE Vc_CONST VectorType name() { return code; }
@@ -619,7 +618,7 @@ namespace SSE
 #undef Vc_MINMAX
 
 }  // namespace SSE
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #include "vectorhelper.tcc"
 

@@ -32,8 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vector.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SSE
 {
     template<typename T> struct Const
@@ -91,6 +90,6 @@ namespace SSE
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask(int bits) { return _mm_castsi128_ps(_mm_slli_epi32(_mm_setallone_si128(), bits)); }
     template<> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask(int bits) { return _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), bits)); }
 }  // namespace SSE
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SSE_CONST_H_

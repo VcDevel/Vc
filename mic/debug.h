@@ -34,8 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iomanip>
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace MIC
 {
 
@@ -91,6 +90,6 @@ class DebugStream
 #define Vc_DEBUG Vc::MIC::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
 
 }  // namespace MIC
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_MIC_DEBUG_H_

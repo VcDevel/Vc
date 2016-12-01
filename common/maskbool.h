@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 
@@ -97,6 +96,6 @@ static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
 static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
 
 }  // namespace Common
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_MASKENTRY_H_

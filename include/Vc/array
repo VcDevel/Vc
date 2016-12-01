@@ -44,8 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "common/subscript.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <class T, size_t Size> struct array {
     // types:
     typedef array self_;
@@ -229,7 +228,7 @@ static_assert(has_no_allocated_data<Vc::array<int, 256> &>::value, "");
 static_assert(has_no_allocated_data<Vc::array<int, 256> &&>::value, "");
 
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 namespace std
 {

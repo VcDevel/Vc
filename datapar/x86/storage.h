@@ -30,7 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../storage.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail::x86
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
+{
+namespace x86
 {
 
 #ifdef Vc_HAVE_SSE
@@ -114,6 +117,7 @@ Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> hi256(Storage<T, N> x)
 }
 #endif  // Vc_HAVE_AVX512F
 
-}  // namespace Vc_VERSIONED_NAMESPACE::detail::x86
+}}  // namespace detail::x86
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_X86_STORAGE_H_

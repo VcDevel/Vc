@@ -31,7 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_WHERE_H_
 #define VC_DATAPAR_WHERE_H_
 
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 template <typename T, typename U> inline void masked_assign(bool k, T &lhs, U &&rhs)
 {
@@ -82,6 +83,7 @@ template <class = void> struct post_decrement {
     template <typename T> constexpr T operator()(T &a) const { return a--; }
 };
 
-}  // namespace Vc_VERSIONED_NAMESPACE
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_WHERE_H_

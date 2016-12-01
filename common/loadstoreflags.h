@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../traits/type_traits.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 /**
  * Hint for \ref Prefetch to select prefetches that mark the memory as exclusive.
@@ -243,6 +242,6 @@ struct is_loadstoreflag_internal<Prefetch<L1, L2, ExclusiveOrShared>> : public s
 {
 };
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_LOADSTOREFLAGS_H_

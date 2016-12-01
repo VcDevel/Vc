@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/data.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace MIC
 {
 
@@ -54,6 +53,6 @@ struct alignas(64) c_general
 };
 
 }  // namespace MIC
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_MIC_CONST_DATA_H_

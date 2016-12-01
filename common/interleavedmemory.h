@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 /**
@@ -327,6 +326,6 @@ inline Common::InterleavedMemoryWrapper<S, V> make_interleave_wrapper(S *s)
 {
     return Common::InterleavedMemoryWrapper<S, V>(s);
 }
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_INTERLEAVEDMEMORY_H_

@@ -29,8 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define COMMON_OPERATORS_H_
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template <typename T, typename Abi, typename U>
@@ -253,5 +252,5 @@ Vc_ALL_COMPARES   (Vc_COMPARE_OPERATOR);
 #undef Vc_COMPARE_OPERATOR
 #undef Vc_INVALID_OPERATOR
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 #endif  // COMMON_OPERATORS_H_

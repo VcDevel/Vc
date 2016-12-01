@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_DATAPAR_H_
 #define VC_DATAPAR_DATAPAR_H_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
 template <class Derived> struct generic_datapar_impl;
@@ -208,7 +207,7 @@ private:
     datapar(detail::private_init_t, const typename traits::datapar_member_type &init) : d{init} {}
     alignas(traits::datapar_member_alignment) typename traits::datapar_member_type d = {};
 };
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_DATAPAR_H_
 

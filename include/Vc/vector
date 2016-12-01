@@ -27,8 +27,7 @@
 #include "common/subscript.h"
 #include <vector>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**
  * \ingroup Utilities
  * An adapted `std::vector` container with an additional subscript operator which
@@ -56,7 +55,7 @@ template <typename T, typename A>
 struct has_contiguous_storage_impl<Vc::vector<T, A>> : public std::true_type {};
 }  // namespace Traits
 
-}  // namespace
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_VECTOR_
 // vim: ft=cpp

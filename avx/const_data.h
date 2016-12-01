@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/data.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace AVX
 {
 
@@ -75,10 +74,9 @@ template<> struct c_log<double>
 };
 
 }  // namespace AVX
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace AVX2
 {
     using AVX::_IndexesFromZero8;
@@ -88,6 +86,6 @@ namespace AVX2
     using AVX::c_trig;
     using AVX::c_log;
 }  // namespace AVX2
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_AVX_CONST_DATA_H_

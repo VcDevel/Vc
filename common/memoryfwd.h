@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_MEMORYFWD_H_
 #define VC_COMMON_MEMORYFWD_H_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 template <typename V, std::size_t Size1 = 0, std::size_t Size2 = 0,
@@ -41,6 +40,6 @@ class MemoryBase;
 }  // namespace Common
 
 using Common::Memory;
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_MEMORYFWD_H_

@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <Vc/global.h>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /** \internal
  * Helper class for a sequence of size_t values from 0 to N. This type will be included in
  * C++14.
@@ -72,7 +71,7 @@ template <> struct make_index_sequence_impl<2> {
  */
 template <std::size_t N>
 using make_index_sequence = typename make_index_sequence_impl<N>::type;
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_COMMON_INDEXSEQUENCE_H_
 

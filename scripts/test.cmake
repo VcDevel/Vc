@@ -324,10 +324,9 @@ if(target_architecture)
    list(APPEND configure_options "-DTARGET_ARCHITECTURE=${target_architecture}")
 endif()
 
-if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\."
-      OR "${COMPILER_VERSION}" MATCHES "GCC 5\\."
-      OR "${COMPILER_VERSION}" MATCHES "clang 3\\.")
-   message(FATAL_ERROR "Compiler too old for C++17 (${COMPILER_VERSION})")
+if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[012345678]\\."
+      OR "${COMPILER_VERSION}" MATCHES "clang 3\\.[0123456]")
+   message(FATAL_ERROR "Compiler too old for C++14 (${COMPILER_VERSION})")
 endif()
 
 macro(go)

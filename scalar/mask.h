@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "types.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <typename T> class Mask<T, VectorAbi::Scalar>
 {
     friend class Mask<  double, VectorAbi::Scalar>;
@@ -180,6 +179,6 @@ public:
 template <typename T> constexpr size_t Mask<T, VectorAbi::Scalar>::Size;
 template <typename T> constexpr size_t Mask<T, VectorAbi::Scalar>::MemoryAlignment;
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SCALAR_MASK_H_

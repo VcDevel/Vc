@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <utility>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace MIC
 {
 
@@ -105,6 +104,6 @@ private:
 };
 
 }  // namespace MIC
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_MIC_WRITEMASKEDVECTOR_H_

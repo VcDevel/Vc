@@ -25,8 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 // store {{{1
 template <typename T>
 template <typename Flags>
@@ -287,6 +286,6 @@ template<> Vc_INTRINSIC AVX2::Mask<16, 16>::operator std::array<bool, 16>() cons
 }
 */
 
-}
+Vc_VERSIONED_NAMESPACE_END
 
 // vim: foldmethod=marker

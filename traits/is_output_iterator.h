@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <iterator>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits
 {
 namespace is_output_iterator_impl
@@ -59,7 +58,7 @@ static_assert(is_output_iterator<int *>::value, "");
 static_assert(!is_output_iterator<const int *>::value, "");
 
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_TRAITS_IS_OUTPUT_ITERATOR_H_
 

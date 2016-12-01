@@ -35,8 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // simd_cast<T>
 template <class> void simd_cast();
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**
  * Casts the argument \p x from type \p From to type \p To.
  *
@@ -63,6 +62,6 @@ simd_cast(From &&x, enable_if<std::is_same<To, Traits::decay<From>>::value> = nu
  */
 template <typename To> Vc_INTRINSIC Vc_CONST To simd_cast() { return To(); }
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_SIMD_CAST_H_

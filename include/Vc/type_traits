@@ -32,8 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "traits/type_traits.h"
 #include "common/macros.h"
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 using Traits::is_simd_mask;
 using Traits::is_simd_vector;
 using Traits::is_integral;
@@ -41,7 +40,7 @@ using Traits::is_floating_point;
 using Traits::is_arithmetic;
 using Traits::is_signed;
 using Traits::is_unsigned;
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_TYPE_TRAITS_
 

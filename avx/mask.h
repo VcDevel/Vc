@@ -37,8 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "detail.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <typename T> class Mask<T, VectorAbi::Avx>
 {
 public:
@@ -214,7 +213,7 @@ public:
 template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::Size;
 template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::MemoryAlignment;
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #include "mask.tcc"
 

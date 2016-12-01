@@ -34,8 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/loadstoreflags.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace MicIntrinsics
 {
     using MIC::c_general;
@@ -359,10 +358,9 @@ Vc_INTRINSIC enable_if<std::is_same<T, ushort>::value, __m512i> mod_(__m512i a, 
     static Vc_INTRINSIC __m512i mask_mov(__m512i r, __mmask16 k, __m512i a) { return _mm512_mask_mov_epi32(r, k, a); }
 
 }
-}
+Vc_VERSIONED_NAMESPACE_END
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace MIC
 {
 using namespace MicIntrinsics;
@@ -575,6 +573,6 @@ template <> struct UpDownConversion<int, unsigned int>
     constexpr operator _MM_UPCONV_EPI32_ENUM() const { return _MM_UPCONV_EPI32_NONE; }
 };
 }  // namespace MIC
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_MIC_INTRINSICS_H_

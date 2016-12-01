@@ -206,12 +206,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define Vc_INTRINSIC inline __forceinline
 #    define Vc_INTRINSIC_L Vc_INTRINSIC
 #    define Vc_INTRINSIC_R
-namespace Vc_VERSIONED_NAMESPACE {
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
 static Vc_INTRINSIC void unreachable() { __assume(0); }
 }  // namespace detail
-}
+Vc_VERSIONED_NAMESPACE_END
 #    define Vc_UNREACHABLE Vc::detail::unreachable
 #  else
 #    define Vc_ALWAYS_INLINE

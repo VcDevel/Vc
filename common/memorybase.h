@@ -33,8 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iterator>
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 
@@ -788,7 +787,7 @@ inline void copyVectors(MemoryBase<V, ParentL, Dimension, RowMemoryL> &dst,
 } // namespace Detail
 
 }  // namespace Common
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_MEMORYBASE_H_
 

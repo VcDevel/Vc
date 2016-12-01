@@ -36,8 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /// \addtogroup SimdArray
 /// @{
 // atomic SimdMaskArray {{{1
@@ -664,7 +663,7 @@ constexpr std::size_t SimdMaskArray<T, N, V, M>::MemoryAlignment;
 ///}}}1
 /// @}
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 // XXX: this include should be in <Vc/vector.h>. But at least clang 3.4 then fails to compile the
 // code. Not sure yet what is going on, but it looks a lot like a bug in clang.

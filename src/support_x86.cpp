@@ -39,8 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_TARGET_NO_SIMD
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 Vc_TARGET_NO_SIMD
 static inline bool xgetbvCheck(unsigned int bits)
@@ -130,7 +129,7 @@ unsigned int extraInstructionsSupported()
     return flags;
 }
 
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #undef Vc_TARGET_NO_SIMD
 

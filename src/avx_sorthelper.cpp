@@ -29,8 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <avx/debug.h>
 #include <avx/macros.h>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 #ifdef Vc_IMPL_AVX2
@@ -539,6 +538,6 @@ Vc_CONST AVX2::double_v sorted<CurrentImplementation::current()>(AVX2::double_v 
 }
 
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 // vim: foldmethod=marker

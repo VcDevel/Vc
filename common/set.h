@@ -29,8 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_SET_H_
 
 #include "macros.h"
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace
 {
     static Vc_INTRINSIC Vc_CONST __m128i set(unsigned short x0, unsigned short x1, unsigned short x2, unsigned short x3,
@@ -87,6 +86,6 @@ namespace
                 static_cast<unsigned short>(x6), static_cast<unsigned short>(x7));
     }
 }  // anonymous namespace
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_SET_H_

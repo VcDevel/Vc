@@ -34,8 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "detail.h"
 #include "where.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace datapar_abi
 {
 constexpr int max_fixed_size = 32;
@@ -523,7 +522,7 @@ template <class BinaryOperation = std::plus<>, class M, class T, class Abi>
 T reduce(const where_expression<M, datapar<T, Abi>> &x, T init,
          BinaryOperation binary_op = BinaryOperation());
 
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_SYNOPSIS_H_
 

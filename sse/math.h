@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "const.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 // copysign {{{1
 Vc_INTRINSIC Vc_CONST SSE::float_v copysign(SSE::float_v mag, SSE::float_v sign)
 {
@@ -205,7 +204,7 @@ Vc_ALWAYS_INLINE Vector<T, VectorAbi::Sse> fma(Vector<T, VectorAbi::Sse> a,
     return a;
 }
 // }}}1
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SSE_MATH_H_
 

@@ -33,8 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 // Declarations: helper macros Vc_SIMD_CAST_AVX_[124] & Vc_SIMD_CAST_[124] {{{1
 #define Vc_SIMD_CAST_AVX_1(from_, to_)                                                   \
     template <typename To>                                                               \
@@ -2728,7 +2727,7 @@ Vc_INTRINSIC Vc_CONST enable_if<(offset != 0 && SSE::is_mask<Return>::value &&
 #undef Vc_SIMD_CAST_OFFSET
 // }}}1
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_AVX_SIMD_CAST_H_
 

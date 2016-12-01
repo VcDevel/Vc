@@ -32,8 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "limits.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 // min & max {{{1
 #ifdef Vc_IMPL_AVX2
 Vc_ALWAYS_INLINE AVX2::int_v    min(const AVX2::int_v    &x, const AVX2::int_v    &y) { return _mm256_min_epi32(x.data(), y.data()); }
@@ -309,7 +308,7 @@ Vc_ALWAYS_INLINE Vector<T, VectorAbi::Avx> fma(Vector<T, VectorAbi::Avx> a,
 }
 
 // }}}1
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_AVX_MATH_H_
 

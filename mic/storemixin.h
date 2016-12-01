@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <type_traits>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace MIC
 {
 
@@ -80,5 +79,5 @@ public:
 };
 
 }  // namespace MIC
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 #endif // VC_MIC_STOREMIXIN_H_

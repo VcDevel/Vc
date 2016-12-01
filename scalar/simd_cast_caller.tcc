@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 #if Vc_IS_VERSION_1
 template <typename T>
 template <typename U>
@@ -41,7 +40,7 @@ Vc_INTRINSIC Mask<T, VectorAbi::Scalar>::Mask(
 {
 }
 #endif
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // Vc_SCALAR_SIMD_CAST_CALLER_TCC_
 

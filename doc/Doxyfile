@@ -1977,6 +1977,8 @@ PREDEFINED             = DOXYGEN \
                          Vc_CONST_L \
                          Vc_CONST_R \
                          Vc_VERSIONED_NAMESPACE=Vc \
+                         Vc_VERSIONED_NAMESPACE_BEGIN="namespace Vc {" \
+                         Vc_VERSIONED_NAMESPACE_END=} \
                          Vc_DEPRECATED(x)=
 
 # If the MACRO_EXPANSION and EXPAND_ONLY_PREDEF tags are set to YES then this

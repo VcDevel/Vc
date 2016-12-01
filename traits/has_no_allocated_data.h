@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <array>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits
 {
 
@@ -101,6 +100,6 @@ static_assert(!has_no_allocated_data<const int *const>::value, "");
 static_assert(!has_no_allocated_data<int *const>::value, "");
 
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_TRAITS_HAS_NO_ALLOCATED_DATA_H_

@@ -45,8 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # include "neon/vector.h"
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**
  * \name Vector Type Aliases
  * \ingroup Vectors
@@ -186,7 +185,7 @@ using  uchar_m = Mask< uchar>;
     static_assert(short_v::Size  == Vc_SHORT_V_SIZE , "Vc_SHORT_V_SIZE macro defined to an incorrect value ");
     static_assert(ushort_v::Size == Vc_USHORT_V_SIZE, "Vc_USHORT_V_SIZE macro defined to an incorrect value");
   }
-}
+Vc_VERSIONED_NAMESPACE_END
 
 
 // finally define the non-member operators
@@ -197,7 +196,7 @@ using  uchar_m = Mask< uchar>;
 //#include "common/simd_cast_caller.tcc"
 
 #include "common/alignedbase.h"
-namespace Vc_VERSIONED_NAMESPACE {
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**
  * \ingroup Vectors
  *
@@ -220,7 +219,7 @@ constexpr std::size_t VectorAlignment = alignof(VectorAlignedBase);
  * \see Vc::Vector<T, Abi>::MemoryAlignment
  */
 constexpr std::size_t MemoryAlignment = alignof(MemoryAlignedBase);
-} // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 
 #define Vc_VECTOR_DECLARED_ 1
 

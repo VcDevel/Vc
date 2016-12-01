@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../sse/helperimpl.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template <typename A>
@@ -112,7 +111,7 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *addr, VectorAbi::Avx)
     prefetchFar(addr, VectorAbi::Sse());
 }
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #include "deinterleave.tcc"
 

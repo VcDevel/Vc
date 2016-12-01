@@ -33,8 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #warning "libraryversioncheck.h included"
 
-namespace Vc_VERSIONED_NAMESPACE::detail
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail {
 /**\internal
  * This function is implemented in the libVc library and checks whether the library is
  * compatible with the version information passed via the function parameters. If it is
@@ -77,7 +77,8 @@ namespace
 static auto library_version_check_ctor = RunLibraryVersionCheck<>::tmp;
 }  // unnamed namespace
 
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 #endif  // !defined(Vc_NO_VERSION_CHECK) && !defined(Vc_COMPILE_LIB)
 
 #endif  // VC_COMMON_LIBRARYVERSIONCHECK_H_

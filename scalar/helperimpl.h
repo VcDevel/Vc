@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template <typename T, typename M, typename A>
@@ -48,6 +47,6 @@ Vc_ALWAYS_INLINE void prefetchClose(const void *, VectorAbi::Scalar) {}
 Vc_ALWAYS_INLINE void prefetchMid(const void *, VectorAbi::Scalar) {}
 Vc_ALWAYS_INLINE void prefetchFar(const void *, VectorAbi::Scalar) {}
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SCALAR_DEINTERLEAVE_H_

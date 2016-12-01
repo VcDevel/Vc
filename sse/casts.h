@@ -32,8 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "types.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SSE
 {
 using uint = unsigned int;
@@ -141,7 +140,7 @@ Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, ushort>) { return con
 
 // }}}1
 }  // namespace SSE
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SSE_CASTS_H_
 

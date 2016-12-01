@@ -39,8 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "is_index_sequence.h"
 #include "is_implicit_cast_allowed.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 // meta-programming helpers
 struct enable_if_default_type
 {
@@ -181,7 +180,7 @@ template <typename T> struct scalar_type_internal<T, true> { using type = typena
 template <typename T> using scalar_type = typename scalar_type_internal<decay<T>, is_simd_vector<T>::value>::type;
 
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #include "entry_type_of.h"
 

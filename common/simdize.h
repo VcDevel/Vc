@@ -86,8 +86,7 @@ std::cout << '(' << most_distant.x << ", " << most_distant.y << ", " << most_dis
 // prints (7, 8, 9) with float_v::size() == 8
 \endcode
  */
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**\internal
  * \ingroup Simdize
  * This namespace contains all the required code for implementing simdize<T>. None of this
@@ -935,7 +934,7 @@ inline void operator>(
 
 /** @}*/
 }  // namespace SimdizeDetail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 namespace std
 {
@@ -973,8 +972,7 @@ public:
 };
 }  // namespace std
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SimdizeDetail
 {
 /**\addtogroup Simdize
@@ -1797,7 +1795,7 @@ using simdize = SimdizeDetail::simdize<T, N, MT>;
         tuple_size = std::tuple_size<decltype(std::make_tuple MEMBERS_)>::value          \
     }
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 namespace std
 {

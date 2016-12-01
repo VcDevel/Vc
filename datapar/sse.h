@@ -37,7 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "bitscan.h"
 #include "genericimpl.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 struct sse_mask_impl;
 struct sse_datapar_impl;
@@ -65,10 +66,12 @@ template <>
 struct traits<long double, datapar_abi::sse>
     : public traits<long double, datapar_abi::scalar> {
 };
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #ifdef Vc_HAVE_SSE_ABI
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 // datapar impl {{{1
 struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
@@ -757,11 +760,11 @@ protected:
     using S = typename Vc::detail::traits<T, Vc::datapar_abi::sse>::mask_cast_type;
 };
 // }}}1
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 // [mask.reductions] {{{
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 Vc_ALWAYS_INLINE bool all_of(mask<float, datapar_abi::sse> k)
 {
     const __m128 d(k);
@@ -941,7 +944,7 @@ Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::sse> k)
         static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k);
     return detail::bit_scan_reverse(detail::mask_to_int<k.size()>(d));
 }
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 // }}}
 
 namespace std

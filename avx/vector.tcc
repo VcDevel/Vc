@@ -34,8 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/libraryversioncheck.h"  // for Detail::sorted
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 // compare operators {{{1
@@ -914,6 +913,6 @@ template <> template <int Index> Vc_INTRINSIC AVX2::double_v AVX2::double_v::bro
     return Mem::permute<Inner, Inner>(Mem::permute128<Outer, Outer>(d.v()));
 }
 // }}}1
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 // vim: foldmethod=marker

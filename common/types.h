@@ -38,8 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "permutation.h"
 #include "vectorabi.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template<typename T, typename Abi> class Mask;
 template<typename T, typename Abi> class Vector;
 
@@ -359,7 +358,7 @@ template <std::size_t Size, typename F> Vc_INTRINSIC void for_all_vector_entries
 }
 
 }  // namespace Common
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #include "vector.h"
 #include "mask.h"

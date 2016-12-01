@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sse/vector.h>
 #include <sse/macros.h>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template <>
@@ -197,6 +196,6 @@ Vc_CONST SSE::float_v sorted<CurrentImplementation::current()>(SSE::float_v x_)
 }
 
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 // vim: foldmethod=marker

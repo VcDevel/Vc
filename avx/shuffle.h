@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../sse/shuffle.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template <int... Dst> struct Permutation {};
@@ -239,7 +238,7 @@ namespace Mem
             return _mm256_insertf128_ps(_mm256_castps128_ps256(lo), hi, 1);
         }
 }  // namespace Mem
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
     // little endian has the lo bits on the right and high bits on the left
     // with vectors this becomes greatly confusing:
@@ -247,8 +246,7 @@ namespace Mem
     // Reg: dcba
     //
     // The shuffles and permutes above use memory ordering. The ones below use register ordering:
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Reg
 {
         template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x, __m256 y) {
@@ -303,6 +301,6 @@ namespace Reg
             return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
         }
 }  // namespace Reg
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_AVX_SHUFFLE_H_

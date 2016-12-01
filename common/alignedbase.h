@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "types.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 /**\internal
@@ -130,7 +129,7 @@ using MemoryAlignedBase = AlignedBase<
  * \see Vc::VectorAlignedBaseT
  */
 template <typename V> using MemoryAlignedBaseT = AlignedBase<V::MemoryAlignment>;
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_COMMON_ALIGNEDBASE_H_
 

@@ -37,8 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "loadstoreflags.h"
 #include "writemaskedvector.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**
  * \ingroup Math
  * Copies the sign(s) of \p sign to the value(s) in \p magnitude and returns the resulting
@@ -841,7 +840,7 @@ reinterpret_components_cast(const Vector<T, Abi> &x)
     //Vc_ALL_SHIFTS(Vc_OP);
 #undef Vc_OP
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_COMMON_VECTOR_H_
 

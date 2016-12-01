@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_TRAITS_ENTRY_TYPE_OF_H_
 #define VC_TRAITS_ENTRY_TYPE_OF_H_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits
 {
 namespace entry_type_of_internal
@@ -53,7 +52,7 @@ template <typename T> struct entry_type<T, false>
 template <typename T> using entry_type_of = typename entry_type_of_internal::entry_type<T>::type;
 
 }  // namespace Traits
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_TRAITS_ENTRY_TYPE_OF_H_
 

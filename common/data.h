@@ -29,8 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_CONST_DATA_H_
 
 #include "macros.h"
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 
@@ -38,6 +37,6 @@ alignas(64) extern unsigned int RandomState[];
 alignas(32) extern const unsigned int AllBitsSet[8];
 
 }  // namespace Common
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_CONST_DATA_H_

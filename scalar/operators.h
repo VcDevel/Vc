@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 // compare operators {{{1
@@ -95,7 +94,7 @@ Vc_INTRINSIC Scalar::Vector<T> operator%(Scalar::Vector<T> a, Scalar::Vector<T> 
 }
 // }}}1
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_SCALAR_OPERATORS_H_
 

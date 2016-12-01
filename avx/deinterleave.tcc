@@ -25,8 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace AVX2
 {
 
@@ -287,4 +286,4 @@ Vc_ALWAYS_INLINE void deinterleave(AVX2::Vector<T> &Vc_RESTRICT a,
 }
 
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END

@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <>
 template <typename Flags>
 inline void MIC::double_m::load(const bool *mem, Flags)
@@ -53,6 +52,6 @@ inline void MIC::double_m::store(bool *mem, Flags) const
     _mm512_mask_extpackstorelo_epi32(mem, 0xff, tmp, MIC::UpDownConversion<unsigned int, unsigned char>().down(), _MM_HINT_NONE);
     _mm512_mask_extpackstorehi_epi32(mem + 64, 0xff, tmp, MIC::UpDownConversion<unsigned int, unsigned char>().down(), _MM_HINT_NONE);
 }
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_MIC_MASK_TCC_

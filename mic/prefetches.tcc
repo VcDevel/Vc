@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_MIC_PREFETCHES_TCC_
 #define VC_MIC_PREFETCHES_TCC_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 Vc_ALWAYS_INLINE void prefetchForOneRead(const void *addr, VectorAbi::Mic)
@@ -53,6 +52,6 @@ Vc_ALWAYS_INLINE void prefetchForModify(const void *addr, VectorAbi::Mic)
     _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_ET0);
 }
 }  // namespace Detail
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_MIC_PREFETCHES_TCC_

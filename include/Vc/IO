@@ -42,8 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ext/stdio_sync_filebuf.h>
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace
 {
 #ifdef Vc_HACK_OSTREAM_FOR_TTY
@@ -261,7 +260,7 @@ inline std::ostream &operator<<(std::ostream &out, const SimdMaskArray<T, N> &m)
     }
     return out << AnsiColor::blue << "»" << AnsiColor::normal;
 }
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_IO_
 

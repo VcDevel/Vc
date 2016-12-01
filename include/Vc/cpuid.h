@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/macros.h"
 #include "common/libraryversioncheck.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 /**
  * \ingroup Utilities
@@ -266,6 +265,6 @@ static auto cpuid_init_ctor = RunCpuIdInit<>::tmp;
 }  // namespace detail
 #endif
 
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_CPUID_H_

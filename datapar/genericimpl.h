@@ -30,7 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "detail.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail {
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail {
 // datapar impl {{{1
 template <class Derived> struct generic_datapar_impl {
     // adjust_for_long{{{2
@@ -86,6 +87,7 @@ template <class Derived> struct generic_datapar_impl {
 
 };
 //}}}1
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_GENERICIMPL_H_

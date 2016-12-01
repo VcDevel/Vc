@@ -31,7 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #include "x86/intrinsics.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 // AliasStrategy{{{1
 namespace AliasStrategy
@@ -532,6 +533,7 @@ template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,32, Al
 #endif  // Vc_MSVC
 
 //}}}1
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_STORAGE_H_

@@ -28,7 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_MASKBOOL_H_
 #define VC_DATAPAR_MASKBOOL_H_
 
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 namespace
 {
@@ -91,6 +92,7 @@ constexpr bool operator!=(A &&a, B &&b)
 static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
 static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
 
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_MASKBOOL_H_

@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "types.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Scalar
 {
 namespace Traits
@@ -43,7 +42,7 @@ template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
 }  // namespace Traits
 }
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_SCALAR_TYPE_TRAITS_H_
 

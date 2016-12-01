@@ -38,8 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SSE
 {
 
@@ -900,7 +899,7 @@ Vc_INTRINSIC Vc_CONST Return simd_cast(
 #undef Vc_SIMD_CAST_8
 // }}}1
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SSE_SIMD_CAST_H_
 

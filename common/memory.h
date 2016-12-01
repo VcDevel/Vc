@@ -38,8 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "malloc.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**
  * Allocates memory on the Heap with alignment and padding suitable for vectorized access.
  *
@@ -674,7 +673,7 @@ using Common::prefetchForModify;
 using Common::prefetchClose;
 using Common::prefetchMid;
 using Common::prefetchFar;
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 namespace std
 {

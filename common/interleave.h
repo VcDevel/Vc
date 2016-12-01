@@ -30,8 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /** \ingroup Utilities
  Interleaves the entries from \p a and \p b into two vectors of the same type. The order
  in the returned vector contains the elements `a[0], b[0], a[1], b[1], a[2], b[2], a[3],
@@ -56,7 +55,7 @@ std::pair<V, V> interleave(const V &a, const V &b)
 {
     return {a.interleaveLow(b), a.interleaveHigh(b)};
 }
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_COMMON_INTERLEAVE_H_
 

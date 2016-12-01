@@ -39,8 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ext/stdio_sync_filebuf.h>
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 // color{{{1
 namespace detail
 {
@@ -116,6 +115,6 @@ std::ostream &operator<<(std::ostream &out, const mask<T, Abi> &k)
 }
 
 //}}}1
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_OSTREAM_H_

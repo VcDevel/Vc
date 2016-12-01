@@ -30,7 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "synopsis.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail {
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail {
 
 template <class T, class = void> struct constants;
 
@@ -121,5 +122,6 @@ template <class X> constexpr double constants<datapar_abi::avx, X>::oneDouble;
 template <class X> constexpr ullong constants<datapar_abi::avx, X>::frexpMask;
 #endif  // Vc_HAVE_AVX
 
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 #endif  // VC_DATAPAR_CONST_H_

@@ -42,8 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "common/macros.h"
 #include "common/libraryversioncheck.h"
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 /**
  * \name Micro-Architecture Feature Tests
@@ -152,7 +151,7 @@ inline bool currentImplementationSupported
 #endif // Vc_COMPILE_LIB
 //@}
 
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #undef Vc_TARGET_NO_SIMD
 

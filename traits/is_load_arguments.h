@@ -28,8 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_TRAITS_IS_LOAD_ARGUMENTS_H_
 #define VC_TRAITS_IS_LOAD_ARGUMENTS_H_
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits
 {
 template <typename T> struct is_load_store_flag;
@@ -43,7 +42,7 @@ struct is_load_arguments<U, F> : public std::integral_constant<
 {
 };
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_TRAITS_IS_LOAD_ARGUMENTS_H_
 

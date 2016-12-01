@@ -27,8 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 /*mask_count{{{*/
@@ -302,6 +301,6 @@ template <typename T> Vc_INTRINSIC Vc_PURE Mask<T, VectorAbi::Sse> Mask<T, Vecto
 }
 // }}}1
 
-}
+Vc_VERSIONED_NAMESPACE_END
 
 // vim: foldmethod=marker

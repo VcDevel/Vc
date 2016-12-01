@@ -36,8 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/const.h"
 #include "common/macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace AVX
 {
     using Detail::doubleConstant;
@@ -256,10 +255,9 @@ namespace AVX
       , 0x3fb8aa3bu // log2(e)
     };
 }
-}
+Vc_VERSIONED_NAMESPACE_END
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
     alignas(64) unsigned int RandomState[16] = {
@@ -289,10 +287,9 @@ void Vc_CDECL Vc_CAT2(checkLibraryAbi,
         }
     }
 }  // namespace detail
-}
+Vc_VERSIONED_NAMESPACE_END
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace SSE
 {
     using Detail::doubleConstant;
@@ -546,4 +543,4 @@ namespace SSE
         //floatConstant< 1, 0x001a209a, -2>(), // log10(2)
     };
 }
-}
+Vc_VERSIONED_NAMESPACE_END

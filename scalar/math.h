@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdlib>
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 // copysign {{{1
 Vc_INTRINSIC Scalar::float_v copysign(Scalar::float_v mag, Scalar::float_v sign)
 {
@@ -269,7 +268,7 @@ Vc_ALWAYS_INLINE Vector<T, VectorAbi::Scalar> fma(Vector<T, VectorAbi::Scalar> a
 }
 
 // }}}1
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SCALAR_MATH_H_
 

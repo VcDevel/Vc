@@ -29,8 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/global.h>
 #include <Vc/support.h>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 bool isImplementationSupported(Implementation impl)
 {
@@ -58,6 +57,6 @@ unsigned int extraInstructionsSupported()
   return 0;
 }
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 // vim: foldmethod=marker

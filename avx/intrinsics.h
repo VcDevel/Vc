@@ -48,8 +48,7 @@ extern "C" {
 #include "macros.h"
 #include <cstdlib>
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace AvxIntrinsics
 {
     using AVX::c_general;
@@ -664,10 +663,9 @@ Vc_INTRINSIC Vc_PURE __m128i _mm_cvtsi64_si128(int64_t x) {
 #endif
 
 }  // namespace AvxIntrinsics
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace AVX
 {
     using namespace AvxIntrinsics;
@@ -718,6 +716,6 @@ namespace AVX
     template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
     template<typename T> struct VectorHelperSize;
 }  // namespace AVX
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_AVX_INTRINSICS_H_

@@ -422,6 +422,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace Vc_2 {}
 namespace Vc = Vc_2;
 #define Vc_VERSIONED_NAMESPACE Vc_2
+#define Vc_VERSIONED_NAMESPACE_BEGIN namespace Vc_2 {
+#define Vc_VERSIONED_NAMESPACE_END }
 #else
 namespace Vc
 {
@@ -430,12 +432,13 @@ inline namespace v2
 }  // namespace v2
 }  // namespace Vc
 #define Vc_VERSIONED_NAMESPACE Vc::v2
+#define Vc_VERSIONED_NAMESPACE_BEGIN namespace Vc { inline namespace v2 {
+#define Vc_VERSIONED_NAMESPACE_END }}
 #endif
 
 #endif // DOXYGEN
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 typedef   signed char        int8_t;
 typedef unsigned char       uint8_t;
@@ -627,7 +630,7 @@ using CurrentImplementation = ImplementationT<
 #endif
     >;
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #include "version.h"
 

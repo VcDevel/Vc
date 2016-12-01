@@ -33,8 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace MIC
 {
 // MIC <-> MIC Vector casts {{{1
@@ -590,7 +589,7 @@ Vc_INTRINSIC enable_if<MIC::is_mask<Return>::value, Return> simd_cast(Scalar::Ma
 
 }  // namespace MIC
 using MIC::simd_cast;
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_MIC_SIMD_CAST_H_
 

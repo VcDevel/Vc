@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "debug.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 // bitwise operators {{{1
@@ -944,6 +943,6 @@ template <> Vc_INTRINSIC Vc_PURE MIC::double_v MIC::double_v::reversed() const
 
 // }}}1
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 // vim: foldmethod=marker

@@ -45,8 +45,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "transpose.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 // internal namespace (product & sum helper) {{{1
 namespace internal
 {
@@ -2558,7 +2557,7 @@ static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4> &&>::value, ""
 // }}}1
 /// @}
 
-} // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 
 // numeric_limits {{{1
 namespace std

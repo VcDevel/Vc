@@ -36,8 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "utility.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Common
 {
 /// \addtogroup SimdArray
@@ -165,7 +164,7 @@ template <typename T, std::size_t N, typename V, std::size_t M> struct is_unsign
 template<typename T, std::size_t N> struct has_no_allocated_data_impl<Vc::SimdArray<T, N>> : public std::true_type {};
 }  // namespace Traits
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_COMMON_SIMDARRAYFWD_H_
 

@@ -32,7 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "flags.h"
 #include "type_traits.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 // integer type aliases{{{1
 using uchar = unsigned char;
@@ -184,7 +185,8 @@ public:
 };
 
 //}}}1
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 #endif  // VC_DATAPAR_DETAIL_H_
 
 // vim: foldmethod=marker

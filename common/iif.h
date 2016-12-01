@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/type_traits>
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 /**
  * \ingroup Utilities
  *
@@ -92,6 +91,6 @@ template<typename T> constexpr T iif (bool condition, const T &trueValue, const 
     return condition ? trueValue : falseValue;
 }
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_COMMON_IIF_H_

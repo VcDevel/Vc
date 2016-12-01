@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_FLAGS_H_
 #define VC_DATAPAR_FLAGS_H_
 
-namespace Vc_VERSIONED_NAMESPACE {
+Vc_VERSIONED_NAMESPACE_BEGIN
 using size_t = std::size_t;
 using align_val_t =
 #if __cplusplus >= 201700L
@@ -47,6 +47,6 @@ constexpr element_aligned_tag element_aligned = {};
 constexpr vector_aligned_tag vector_aligned = {};
 template <align_val_t N> constexpr overaligned_tag<N> overaligned = {};
 }  // namespace flags
-}  // namespace Vc_VERSIONED_NAMESPACE
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_FLAGS_H_

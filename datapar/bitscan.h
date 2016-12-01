@@ -31,7 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #include <x86intrin.h>
 
-namespace Vc_VERSIONED_NAMESPACE::detail {
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail {
 #if defined(Vc_ICC) || (defined(Vc_GCC) && Vc_GCC >= 0x40500)
 Vc_ALWAYS_INLINE Vc_CONST auto bit_scan_forward(unsigned int x)
 {
@@ -68,6 +69,7 @@ Vc_ALWAYS_INLINE Vc_CONST unsigned long bit_scan_reverse(unsigned long x) {
     return index;
 }
 #endif
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_BITSCAN_H_

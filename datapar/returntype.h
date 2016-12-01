@@ -30,7 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "synopsis.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail {
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail {
 // common<A, B>{{{1
 template <class A, class B, bool arithmetic_A = std::is_arithmetic<A>::value,
           bool arithmetic_B = std::is_arithmetic<B>::value,
@@ -197,6 +198,7 @@ template <class T0, class A0, class T1, class A1> struct mask_return_type_impl {
 };
 
 //}}}2
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_RETURNTYPE_H_

@@ -39,8 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_USHORT_V_SIZE 1
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Scalar
 {
 template <typename T> using Vector = Vc::Vector<T, VectorAbi::Scalar>;
@@ -70,6 +69,6 @@ namespace Traits
 template <typename T> struct is_simd_mask_internal<Scalar::Mask<T>> : public std::true_type {};
 template <typename T> struct is_simd_vector_internal<Scalar::Vector<T>> : public std::true_type {};
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif // VC_SCALAR_TYPES_H_
