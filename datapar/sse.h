@@ -808,10 +808,10 @@ Vc_ALWAYS_INLINE bool some_of(mask<float, datapar_abi::sse> k)
 {
     const __m128 d(k);
 #if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
-    return _mm_testnzc_ps(d, allone<__m128>());
+    return _mm_testnzc_ps(d, detail::allone<__m128>());
 #elif defined Vc_USE_PTEST
     const auto dd = intrin_cast<__m128i>(d);
-    return _mm_testnzc_si128(dd, allone<__m128i>());
+    return _mm_testnzc_si128(dd, detail::allone<__m128i>());
 #else
     const int tmp = _mm_movemask_ps(d);
     return tmp != 0 && (tmp ^ 0xf) != 0;
@@ -863,10 +863,10 @@ Vc_ALWAYS_INLINE bool some_of(mask<double, datapar_abi::sse> k)
 {
     const __m128d d(k);
 #if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
-    return _mm_testnzc_pd(d, allone<__m128d>());
+    return _mm_testnzc_pd(d, detail::allone<__m128d>());
 #elif defined Vc_USE_PTEST
     const auto dd = intrin_cast<__m128i>(d);
-    return _mm_testnzc_si128(dd, allone<__m128i>());
+    return _mm_testnzc_si128(dd, detail::allone<__m128i>());
 #else
     const int tmp = _mm_movemask_pd(d);
     return tmp == 1 || tmp == 2;
