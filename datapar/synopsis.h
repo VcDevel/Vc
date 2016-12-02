@@ -310,7 +310,7 @@ Vc_INTRINSIC typename R::mask_type operator>(const U &x, const datapar<T, A> &y)
 }
 
 // casts [datapar.casts]
-#ifndef Vc_CLANG
+#if defined Vc_CXX17
 template <class T, class U, class... Us, size_t NN = U::size() + Us::size()...>
 inline std::conditional_t<(T::size() == NN), T, std::array<T, NN / T::size()>>
     datapar_cast(U, Us...);
