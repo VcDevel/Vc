@@ -48,7 +48,8 @@ using avx_const = constants<datapar_abi::avx>;
 #endif  // Vc_HAVE_AVX
 
 // builtin_type{{{1
-template <typename ValueType, size_t Bytes> struct builtin_type_impl;
+template <typename ValueType, size_t Bytes> struct builtin_type_impl {};
+
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 template <> struct builtin_type_impl<         double   , 16> { typedef          double    type [[gnu::vector_size(16)]]; };
 template <> struct builtin_type_impl<         float    , 16> { typedef          float     type [[gnu::vector_size(16)]]; };
@@ -94,7 +95,7 @@ template <> struct builtin_type_impl<         char     , 64> { typedef          
 template <> struct builtin_type_impl<unsigned char     , 64> { typedef unsigned char      type [[gnu::vector_size(64)]]; };
 template <> struct builtin_type_impl<  signed char     , 64> { typedef   signed char      type [[gnu::vector_size(64)]]; };
 template <> struct builtin_type_impl<         bool     , 64> { typedef unsigned char      type [[gnu::vector_size(64)]]; };
-#endif
+#endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 template <typename T, size_t Size>
 using builtin_type = typename builtin_type_impl<T, Size * sizeof(T)>::type;
@@ -150,6 +151,7 @@ template <class T> constexpr bool is_intrinsic_v = is_intrinsic<T>::value;
 
 // is_builtin_vector{{{1
 template <class T> struct is_builtin_vector : public std::false_type {};
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 template <> struct is_builtin_vector<builtin_type<float, 4>> : public std::true_type {};
 #ifdef Vc_HAVE_SSE2
 template <> struct is_builtin_vector<builtin_type<double, 2>> : public std::true_type {};
@@ -192,6 +194,7 @@ template <> struct is_builtin_vector<builtin_type<ushort, 8 * 4>> : public std::
 template <> struct is_builtin_vector<builtin_type< schar,16 * 4>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type< uchar,16 * 4>> : public std::true_type {};
 #endif  // Vc_HAVE_AVX512F
+#endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 template <class T> constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
 
 // zeroExtend{{{1
