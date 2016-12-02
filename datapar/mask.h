@@ -54,12 +54,15 @@ public:
     mask &operator=(const mask &) = default;
     mask &operator=(mask &&) = default;
 
+    // non-std; required to work around ICC ICEs
+    static constexpr size_type size_v = traits::size();
+
     // implicit broadcast constructor
     mask(value_type x) : d{impl::broadcast(x, size_tag)} {}
 
     // implicit type conversion constructor
     template <class U>
-    mask(const mask<U, datapar_abi::fixed_size<size()>> &x)
+    mask(const mask<U, datapar_abi::fixed_size<size_v>> &x)
         : mask{static_cast<const std::array<bool, size()> &>(x).data(),
                flags::vector_aligned}
     {
@@ -69,7 +72,7 @@ public:
          enable_if<
              (size() == mask<U, Abi>::size()) &&
              conjunction_v<std::is_integral<T>, std::is_integral<U>,
-                           negation<std::is_same<Abi, datapar_abi::fixed_size<size()>>>,
+                           negation<std::is_same<Abi, datapar_abi::fixed_size<size_v>>>,
                            negation<std::is_same<T, U>>>> = nullarg)
         : d{x.d}
     {
@@ -78,7 +81,7 @@ public:
     mask(mask<U, Abi2> x,
          enable_if<
              conjunction_v<negation<std::is_same<abi_type, Abi2>>,
-                           std::is_same<abi_type, datapar_abi::fixed_size<size()>>>> =
+                           std::is_same<abi_type, datapar_abi::fixed_size<size_v>>>> =
              nullarg)
     {
         x.copy_to(&d[0], flags::vector_aligned);
