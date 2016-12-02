@@ -230,16 +230,16 @@ template <class T, class Abi, class U, class R = detail::return_type<datapar<T, 
 template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC R operator^ (const datapar<T, Abi> &x, const U &y) { return detail::get_impl_t<R>::bit_xor(static_cast<R>(x), static_cast<R>(y)); }
 template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC R operator<<(const datapar<T, Abi> &x, const U &y) { return detail::get_impl_t<R>::bit_shift_left(static_cast<R>(x), static_cast<R>(y)); }
 template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC R operator>>(const datapar<T, Abi> &x, const U &y) { return detail::get_impl_t<R>::bit_shift_right(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator+ (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::plus(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator- (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::minus(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator* (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::multiplies(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator/ (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::divides(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator% (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::modulus(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator& (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_and(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator| (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_or(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator^ (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_xor(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator<<(const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_shift_left(static_cast<R>(x), static_cast<R>(y)); }
-template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<!is_datapar_v<U>, R> operator>>(const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_shift_right(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator+ (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::plus(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator- (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::minus(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator* (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::multiplies(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator/ (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::divides(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator% (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::modulus(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator& (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_and(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator| (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_or(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator^ (const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_xor(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator<<(const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_shift_left(static_cast<R>(x), static_cast<R>(y)); }
+template <class T, class Abi, class U, class R = detail::return_type<datapar<T, Abi>, U>> Vc_INTRINSIC std::enable_if_t<negation_v<is_datapar<U>>, R> operator>>(const U &x, const datapar<T, Abi> &y) { return detail::get_impl_t<R>::bit_shift_right(static_cast<R>(x), static_cast<R>(y)); }
 
 // compares [datapar.comparison]
 template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>>
@@ -273,37 +273,37 @@ Vc_INTRINSIC typename R::mask_type operator>(const datapar<T, A> &x, const U &y)
     return detail::get_impl_t<R>::less(static_cast<R>(y), static_cast<R>(x));
 }
 template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
-          class = enable_if<!is_datapar_v<U>>>
+          class = enable_if<negation_v<is_datapar<U>>>>
 Vc_INTRINSIC typename R::mask_type operator==(const U &x, const datapar<T, A> &y)
 {
     return detail::get_impl_t<R>::equal_to(static_cast<R>(x), static_cast<R>(y));
 }
 template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
-          class = enable_if<!is_datapar_v<U>>>
+          class = enable_if<negation_v<is_datapar<U>>>>
 Vc_INTRINSIC typename R::mask_type operator!=(const U &x, const datapar<T, A> &y)
 {
     return detail::get_impl_t<R>::not_equal_to(static_cast<R>(x), static_cast<R>(y));
 }
 template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
-          class = enable_if<!is_datapar_v<U>>>
+          class = enable_if<negation_v<is_datapar<U>>>>
 Vc_INTRINSIC typename R::mask_type operator<=(const U &x, const datapar<T, A> &y)
 {
     return detail::get_impl_t<R>::less_equal(static_cast<R>(x), static_cast<R>(y));
 }
 template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
-          class = enable_if<!is_datapar_v<U>>>
+          class = enable_if<negation_v<is_datapar<U>>>>
 Vc_INTRINSIC typename R::mask_type operator>=(const U &x, const datapar<T, A> &y)
 {
     return detail::get_impl_t<R>::less_equal(static_cast<R>(y), static_cast<R>(x));
 }
 template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
-          class = enable_if<!is_datapar_v<U>>>
+          class = enable_if<negation_v<is_datapar<U>>>>
 Vc_INTRINSIC typename R::mask_type operator<(const U &x, const datapar<T, A> &y)
 {
     return detail::get_impl_t<R>::less(static_cast<R>(x), static_cast<R>(y));
 }
 template <class T, class A, class U, class R = detail::return_type<datapar<T, A>, U>,
-          class = enable_if<!is_datapar_v<U>>>
+          class = enable_if<negation_v<is_datapar<U>>>>
 Vc_INTRINSIC typename R::mask_type operator>(const U &x, const datapar<T, A> &y)
 {
     return detail::get_impl_t<R>::less(static_cast<R>(y), static_cast<R>(x));
