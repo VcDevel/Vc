@@ -33,37 +33,34 @@ namespace detail
 {
 template <class Derived> struct generic_datapar_impl;
 // allow_conversion_ctor2{{{1
-template <class T0, class T1, class A, bool = std::is_same<T0, T1>::value,
-          bool = conjunction_v<std::is_integral<T0>, std::is_integral<T1>>>
-struct allow_conversion_ctor2 : public std::false_type {
-};
-
-template <class T0, class T1, int N>
-struct allow_conversion_ctor2<T0, T1, datapar_abi::fixed_size<N>, false, true>
-    : public std::false_type {
-    // disallow 2nd conversion ctor (equal Abi), if the Abi is a fixed_size instance
-};
-
-template <class T0, class T1, int N>
-struct allow_conversion_ctor2<T0, T1, datapar_abi::fixed_size<N>, false, false>
-    : public std::false_type {
-    // disallow 2nd conversion ctor (equal Abi), if the Abi is a fixed_size instance
-};
-
-template <class T, class A>
-struct allow_conversion_ctor2<T, T, A, true, true> : public std::false_type {
-    // disallow 2nd conversion ctor (equal Abi), if the value_types are equal (copy ctor)
-};
+template <class T0, class T1, class A, bool BothIntegral> struct allow_conversion_ctor2_1;
 
 template <class T0, class T1, class A>
-struct allow_conversion_ctor2<T0, T1, A, false, true>
+struct allow_conversion_ctor2
+    : public allow_conversion_ctor2_1<
+          T0, T1, A, conjunction_v<std::is_integral<T0>, std::is_integral<T1>>> {
+};
+
+// disallow 2nd conversion ctor (equal Abi), if the value_types are equal (copy ctor)
+template <class T, class A> struct allow_conversion_ctor2<T, T, A> : public std::false_type {};
+
+// disallow 2nd conversion ctor (equal Abi), if the Abi is a fixed_size instance
+template <class T0, class T1, int N>
+struct allow_conversion_ctor2<T0, T1, datapar_abi::fixed_size<N>> : public std::false_type {};
+
+// disallow 2nd conversion ctor (equal Abi), if both of the above are true
+template <class T, int N>
+struct allow_conversion_ctor2<T, T, datapar_abi::fixed_size<N>> : public std::false_type {};
+
+// disallow 2nd conversion ctor (equal Abi), the integers only differ in sign
+template <class T0, class T1, class A>
+struct allow_conversion_ctor2_1<T0, T1, A, true>
     : public std::is_same<std::make_signed_t<T0>, std::make_signed_t<T1>> {
-    // disallow 2nd conversion ctor (equal Abi), the integers only differ in sign
 };
 
+// disallow 2nd conversion ctor (equal Abi), any value_type is not integral
 template <class T0, class T1, class A>
-struct allow_conversion_ctor2<T0, T1, A, false, false> : public std::false_type {
-    // disallow 2nd conversion ctor (equal Abi), any value_type is not integral
+struct allow_conversion_ctor2_1<T0, T1, A, false> : public std::false_type {
 };
 
 // allow_conversion_ctor3{{{1
