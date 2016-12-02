@@ -1730,6 +1730,13 @@ Vc_INTRINSIC __m256i not_(__m256i a) { return andnot_(a, allone<__m256i>()); }
 Vc_INTRINSIC __m512  not_(__m512  a) { return andnot_(a, allone<__m512 >()); }
 Vc_INTRINSIC __m512d not_(__m512d a) { return andnot_(a, allone<__m512d>()); }
 Vc_INTRINSIC __m512i not_(__m512i a) { return andnot_(a, allone<__m512i>()); }
+
+Vc_INTRINSIC __mmask8  not_(__mmask8  a) { return ~a; }
+Vc_INTRINSIC __mmask16 not_(__mmask16 a) { return ~a; }
+#ifdef Vc_HAVE_AVX512BW
+Vc_INTRINSIC __mmask32 not_(__mmask32 a) { return ~a; }
+Vc_INTRINSIC __mmask64 not_(__mmask64 a) { return ~a; }
+#endif  // Vc_HAVE_AVX512BW
 #endif  // Vc_HAVE_AVX512F
 
 // shift_left{{{1
