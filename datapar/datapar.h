@@ -105,7 +105,7 @@ public:
     datapar &operator=(datapar &&) = default;
 
     // implicit broadcast constructor
-    datapar(value_type x) : d{impl::broadcast(x, size_tag)} {}
+    datapar(value_type x) : d(impl::broadcast(x, size_tag)) {}
 
     // implicit type conversion constructor
     // 1st conversion ctor: convert from fixed_size<size()>
@@ -140,7 +140,7 @@ public:
     // load constructor
     template <class U, class Flags>
     datapar(const U *mem, Flags f)
-        : d{impl::load(mem, f, type_tag)}
+        : d(impl::load(mem, f, type_tag))
     {
     }
     template <class U, class Flags> datapar(const U *mem, mask_type k, Flags f) : d{}
@@ -201,7 +201,7 @@ public:
     explicit datapar(const cast_type &init) : d{init} {}
 
 private:
-    datapar(detail::private_init_t, const typename traits::datapar_member_type &init) : d{init} {}
+    datapar(detail::private_init_t, const typename traits::datapar_member_type &init) : d(init) {}
     alignas(traits::datapar_member_alignment) typename traits::datapar_member_type d = {};
 };
 Vc_VERSIONED_NAMESPACE_END

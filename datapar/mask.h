@@ -58,7 +58,7 @@ public:
     static constexpr size_type size_v = traits::size();
 
     // implicit broadcast constructor
-    mask(value_type x) : d{impl::broadcast(x, size_tag)} {}
+    mask(value_type x) : d(impl::broadcast(x, size_tag)) {}
 
     // implicit type conversion constructor
     template <class U>
@@ -90,7 +90,7 @@ public:
     // load constructor
     template <class Flags>
     mask(const value_type *mem, Flags f)
-        : d{impl::load(mem, f, size_tag)}
+        : d(impl::load(mem, f, size_tag))
     {
     }
     template <class Flags> mask(const value_type *mem, mask k, Flags f) : d{}
@@ -130,7 +130,7 @@ public:
     explicit mask(const typename traits::mask_cast_type &init) : d{init} {}
 
 private:
-    mask(detail::private_init_t, const typename traits::mask_member_type &init) : d{init} {}
+    mask(detail::private_init_t, const typename traits::mask_member_type &init) : d(init) {}
     alignas(traits::mask_member_alignment) typename traits::mask_member_type d = {};
 };
 
