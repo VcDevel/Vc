@@ -100,7 +100,7 @@ if(Vc_COMPILER_IS_CLANG OR Vc_COMPILER_IS_GCC)
    set(alias_strategies ${alias_strategies} MayAlias VectorBuiltin)
 elseif(Vc_COMPILER_IS_INTEL)
    # ICC can parse (aka ignore) may_alias...
-   set(alias_strategies ${alias_strategies} MayAlias VectorBuiltin)
+   set(alias_strategies ${alias_strategies} MayAlias)
 elseif(Vc_COMPILER_IS_MSVC)
    set(alias_strategies ${alias_strategies} UnionMembers)
 endif()
