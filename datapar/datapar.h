@@ -38,7 +38,7 @@ template <class T0, class T1, class A, bool BothIntegral> struct allow_conversio
 template <class T0, class T1, class A>
 struct allow_conversion_ctor2
     : public allow_conversion_ctor2_1<
-          T0, T1, A, conjunction_v<std::is_integral<T0>, std::is_integral<T1>>> {
+          T0, T1, A, conjunction<std::is_integral<T0>, std::is_integral<T1>>::value> {
 };
 
 // disallow 2nd conversion ctor (equal Abi), if the value_types are equal (copy ctor)
