@@ -77,7 +77,7 @@ namespace detail
 struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     // member types {{{2
     using abi = datapar_abi::sse;
-    template <class T> static constexpr size_t size = datapar_size_v<T, abi>;
+    template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }
     template <class T> using datapar_member_type = sse_datapar_member_type<T>;
     template <class T> using intrinsic_type = typename datapar_member_type<T>::VectorType;
     template <class T> using mask_member_type = sse_mask_member_type<T>;
@@ -130,7 +130,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     static Vc_INTRINSIC datapar_member_type<T> load(const long double *mem, F,
                                                     type_tag<T>) noexcept
     {
-        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
@@ -152,7 +152,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
             detail::load16(mem, f));
 #else
         unused(f);
-        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+        return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
 #endif
     }
@@ -165,10 +165,10 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>>>(
+            intrin_cast<detail::intrinsic_type<U, size<U>()>>(
                 _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem))));
 #else
-        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+        return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
 #endif
     }
@@ -181,10 +181,10 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>>>(
+            intrin_cast<detail::intrinsic_type<U, size<U>()>>(
                 _mm_load_ss(reinterpret_cast<const may_alias<float> *>(mem))));
 #else
-        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+        return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
 #endif
     }
@@ -197,10 +197,10 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>>>(
+            intrin_cast<detail::intrinsic_type<U, size<U>()>>(
                 _mm_cvtsi32_si128(*reinterpret_cast<const may_alias<uint16_t> *>(mem))));
 #else
-        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+        return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
 #endif
     }
@@ -223,10 +223,10 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
             detail::load32(mem, f));
 #elif defined Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            load(mem, f, type_tag<U>()), load(mem + size<U>, f, type_tag<U>()));
+            load(mem, f, type_tag<U>()), load(mem + size<U>(), f, type_tag<U>()));
 #else
         unused(f);
-        return generate_from_n_evaluations<size<T>, intrinsic_type<T>>(
+        return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
 #endif
     }
@@ -241,12 +241,12 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         return convert<avx512_member_type<U>, datapar_member_type<T>>(load64(mem, f));
 #elif defined Vc_HAVE_AVX
         return convert<avx_member_type<U>, datapar_member_type<T>>(
-            detail::load32(mem, f), detail::load32(mem + 2 * size<U>, f));
+            detail::load32(mem, f), detail::load32(mem + 2 * size<U>(), f));
 #else
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            load(mem, f, type_tag<U>()), load(mem + size<U>, f, type_tag<U>()),
-            load(mem + 2 * size<U>, f, type_tag<U>()),
-            load(mem + 3 * size<U>, f, type_tag<U>()));
+            load(mem, f, type_tag<U>()), load(mem + size<U>(), f, type_tag<U>()),
+            load(mem + 2 * size<U>(), f, type_tag<U>()),
+            load(mem + 3 * size<U>(), f, type_tag<U>()));
 #endif
     }
 
@@ -258,17 +258,17 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     {
 #ifdef Vc_HAVE_AVX512F
         return convert<avx512_member_type<U>, datapar_member_type<T>>(
-            load64(mem, f), load64(mem + 4 * size<U>, f));
+            load64(mem, f), load64(mem + 4 * size<U>(), f));
 #elif defined Vc_HAVE_AVX
         return convert<avx_member_type<U>, datapar_member_type<T>>(
-            load32(mem, f), load32(mem + 2 * size<U>, f), load32(mem + 4 * size<U>, f),
-            load32(mem + 6 * size<U>, f));
+            load32(mem, f), load32(mem + 2 * size<U>(), f), load32(mem + 4 * size<U>(), f),
+            load32(mem + 6 * size<U>(), f));
 #else
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            load16(mem, f), load16(mem + size<U>, f), load16(mem + 2 * size<U>, f),
-            load16(mem + 3 * size<U>, f), load16(mem + 4 * size<U>, f),
-            load16(mem + 5 * size<U>, f), load16(mem + 6 * size<U>, f),
-            load16(mem + 7 * size<U>, f));
+            load16(mem, f), load16(mem + size<U>(), f), load16(mem + 2 * size<U>(), f),
+            load16(mem + 3 * size<U>(), f), load16(mem + 4 * size<U>(), f),
+            load16(mem + 5 * size<U>(), f), load16(mem + 6 * size<U>(), f),
+            load16(mem + 7 * size<U>(), f));
 #endif
     }
 
@@ -278,7 +278,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
                                          const U *mem, F) noexcept
     {
         // TODO: implement with V(P)MASKMOV if AVX(2) is available
-        execute_n_times<size<T>>([&](auto i) {
+        execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
                 merge.set(i, static_cast<T>(mem[i]));
             }
@@ -292,7 +292,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
                                    type_tag<T>) noexcept
     {
         // alignment F doesn't matter
-        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // store without conversion{{{3
@@ -320,7 +320,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         store4(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
 #else
         unused(f);
-        execute_n_times<size<T>>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
 #endif
     }
 
@@ -333,7 +333,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         store8(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
 #else
         unused(f);
-        execute_n_times<size<T>>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
 #endif
     }
 
@@ -346,7 +346,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         store16(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
 #else
         unused(f);
-        execute_n_times<size<T>>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
 #endif
     }
 
@@ -363,9 +363,9 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         // because only float vectors exist
         const auto tmp = convert_all<datapar_member_type<U>>(v);
         store16(tmp[0], mem, f);
-        store16(tmp[1], mem + size<T> / 2, f);
+        store16(tmp[1], mem + size<T>() / 2, f);
 #else
-        execute_n_times<size<T>>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
         detail::unused(f);
 #endif
     }
@@ -381,13 +381,13 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 #elif defined Vc_HAVE_AVX
         const auto tmp = convert_all<avx_member_type<U>>(v);
         store32(tmp[0], mem, f);
-        store32(tmp[1], mem + size<T> / 2, f);
+        store32(tmp[1], mem + size<T>() / 2, f);
 #else
         const auto tmp = convert_all<datapar_member_type<U>>(v);
         store16(tmp[0], mem, f);
-        store16(tmp[1], mem + size<T> * 1 / 4, f);
-        store16(tmp[2], mem + size<T> * 2 / 4, f);
-        store16(tmp[3], mem + size<T> * 3 / 4, f);
+        store16(tmp[1], mem + size<T>() * 1 / 4, f);
+        store16(tmp[2], mem + size<T>() * 2 / 4, f);
+        store16(tmp[3], mem + size<T>() * 3 / 4, f);
 #endif
     }
 
@@ -400,23 +400,23 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 #ifdef Vc_HAVE_AVX512F
         const auto tmp = convert_all<avx512_member_type<U>>(v);
         store64(tmp[0], mem, f);
-        store64(tmp[1], mem + size<T> / 2, f);
+        store64(tmp[1], mem + size<T>() / 2, f);
 #elif defined Vc_HAVE_AVX
         const auto tmp = convert_all<avx_member_type<U>>(v);
         store32(tmp[0], mem, f);
-        store32(tmp[1], mem + size<T> * 1 / 4, f);
-        store32(tmp[2], mem + size<T> * 2 / 4, f);
-        store32(tmp[3], mem + size<T> * 3 / 4, f);
+        store32(tmp[1], mem + size<T>() * 1 / 4, f);
+        store32(tmp[2], mem + size<T>() * 2 / 4, f);
+        store32(tmp[3], mem + size<T>() * 3 / 4, f);
 #else
         const auto tmp = convert_all<datapar_member_type<U>>(v);
         store16(tmp[0], mem, f);
-        store16(tmp[1], mem + size<T> * 1 / 8, f);
-        store16(tmp[2], mem + size<T> * 2 / 8, f);
-        store16(tmp[3], mem + size<T> * 3 / 8, f);
-        store16(tmp[4], mem + size<T> * 4 / 8, f);
-        store16(tmp[5], mem + size<T> * 5 / 8, f);
-        store16(tmp[6], mem + size<T> * 6 / 8, f);
-        store16(tmp[7], mem + size<T> * 7 / 8, f);
+        store16(tmp[1], mem + size<T>() * 1 / 8, f);
+        store16(tmp[2], mem + size<T>() * 2 / 8, f);
+        store16(tmp[3], mem + size<T>() * 3 / 8, f);
+        store16(tmp[4], mem + size<T>() * 4 / 8, f);
+        store16(tmp[5], mem + size<T>() * 5 / 8, f);
+        store16(tmp[6], mem + size<T>() * 6 / 8, f);
+        store16(tmp[7], mem + size<T>() * 7 / 8, f);
 #endif
     }
 
@@ -426,7 +426,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
                                           mask<T> k) noexcept
     {
         // no SSE support for long double
-        execute_n_times<size<T>>([&](auto i) {
+        execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
                 mem[i] = v.m(i);
             }
@@ -437,7 +437,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
                                           mask<T> k) noexcept
     {
         //TODO: detail::masked_store(mem, v.v(), k.d.v(), f);
-        execute_n_times<size<T>>([&](auto i) {
+        execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
                 mem[i] = static_cast<T>(v.m(i));
             }
@@ -548,7 +548,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 struct sse_mask_impl {
     // member types {{{2
     using abi = datapar_abi::sse;
-    template <class T> static constexpr size_t size = datapar_size_v<T, abi>;
+    template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }
     template <class T> using mask_member_type = sse_mask_member_type<T>;
     template <class T> using mask = Vc::mask<T, datapar_abi::sse>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
@@ -689,7 +689,7 @@ struct sse_mask_impl {
     static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F,
                                           mask_member_type<T> k, SizeTag) noexcept
     {
-        for (std::size_t i = 0; i < size<T>; ++i) {
+        for (std::size_t i = 0; i < size<T>(); ++i) {
             if (k.m(i)) {
                 mem[i] = v.m(i);
             }

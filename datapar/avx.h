@@ -74,7 +74,7 @@ namespace detail
 struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // member types {{{2
     using abi = datapar_abi::avx;
-    template <class T> static constexpr size_t size = datapar_size_v<T, abi>;
+    template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }
     template <class T> using datapar_member_type = avx_datapar_member_type<T>;
     template <class T> using intrinsic_type = typename datapar_member_type<T>::VectorType;
     template <class T> using mask_member_type = avx_mask_member_type<T>;
@@ -125,7 +125,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     static Vc_INTRINSIC datapar_member_type<T> load(const long double *mem, F,
                                                     type_tag<T>) noexcept
     {
-        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
@@ -143,7 +143,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
     {
         // TODO
-        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
@@ -154,7 +154,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
     {
         // TODO
-        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
@@ -165,7 +165,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
     {
         // TODO
-        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
@@ -176,7 +176,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
         // TODO
-        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
@@ -187,7 +187,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
-        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
@@ -198,7 +198,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
-        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
@@ -209,7 +209,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
-        return generate_from_n_evaluations<size<T>, datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
 
@@ -219,7 +219,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
                                          const U *mem, F) noexcept
     {
         // TODO: implement with V(P)MASKMOV if AVX(2) is available
-        execute_n_times<size<T>>([&](auto i) {
+        execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
                 merge.set(i, static_cast<T>(mem[i]));
             }
@@ -233,7 +233,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
                                    type_tag<T>) noexcept
     {
         // alignment F doesn't matter
-        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // store without conversion{{{3
@@ -250,7 +250,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
                                    enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
         // TODO
-        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // convert and 32-bit store{{{3
@@ -259,7 +259,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
                                    enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
     {
         // TODO
-        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // convert and 64-bit store{{{3
@@ -268,7 +268,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
                                    enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
     {
         // TODO
-        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // convert and 128-bit store{{{3
@@ -277,7 +277,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
                                    enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
     {
         // TODO
-        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // convert and 256-bit store{{{3
@@ -287,7 +287,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
-        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // convert and 512-bit store{{{3
@@ -297,7 +297,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
-        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // convert and 1024-bit store{{{3
@@ -307,7 +307,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
-        execute_n_times<size<T>>([&](auto i) { mem[i] = v.m(i); });
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // masked store {{{2
@@ -316,7 +316,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
                                           mask<T> k) noexcept
     {
         // no SSE support for long double
-        execute_n_times<size<T>>([&](auto i) {
+        execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
                 mem[i] = v.m(i);
             }
@@ -327,7 +327,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
                                           mask<T> k) noexcept
     {
         //TODO: detail::masked_store(mem, v.v(), k.d.v(), f);
-        execute_n_times<size<T>>([&](auto i) {
+        execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
                 mem[i] = static_cast<T>(v.m(i));
             }
@@ -441,7 +441,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
 struct avx_mask_impl {
     // member types {{{2
     using abi = datapar_abi::avx;
-    template <class T> static constexpr size_t size = datapar_size_v<T, abi>;
+    template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }
     template <class T> using mask_member_type = avx_mask_member_type<T>;
     template <class T> using mask = Vc::mask<T, datapar_abi::avx>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
@@ -519,7 +519,7 @@ struct avx_mask_impl {
                                          mask_member_type<T> mask, const bool *mem, F,
                                          SizeTag) noexcept
     {
-        for (std::size_t i = 0; i < size<T>; ++i) {
+        for (std::size_t i = 0; i < size<T>(); ++i) {
             if (mask.m(i)) {
                 merge.set(i, mask_bool<T>{mem[i]});
             }
@@ -580,7 +580,7 @@ struct avx_mask_impl {
     static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F,
                                           mask_member_type<T> k, SizeTag) noexcept
     {
-        for (std::size_t i = 0; i < size<T>; ++i) {
+        for (std::size_t i = 0; i < size<T>(); ++i) {
             if (k.m(i)) {
                 mem[i] = v.m(i);
             }
@@ -649,7 +649,7 @@ protected:
     template <class T> using M = Vc::mask<T, Vc::datapar_abi::avx>;
     template <class T>
     using S = typename Vc::detail::traits<T, Vc::datapar_abi::avx>::mask_cast_type;
-    template <class T> static constexpr size_t size = M<T>::size();
+    template <class T> static constexpr size_t size() { return M<T>::size(); }
 };
 // }}}1
 constexpr struct {
