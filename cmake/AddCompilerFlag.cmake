@@ -131,6 +131,15 @@ macro(AddCompilerFlag _flag)
       set(_cxx_code "#include <iostream>
       #include <cstdio>
       int main() { return 0; }")
+   elseif("${_flag}" STREQUAL "-march=knl"
+         OR "${_flag}" STREQUAL "-march=skylake-avx512"
+         OR "${_flag}" MATCHES "^-mavx512.")
+      # Make sure the intrinsics are there
+      set(_cxx_code "#include <immintrin.h>
+      __m512 foo(__m256 v) {
+        return _mm512_castpd_ps(_mm512_insertf64x4(_mm512_setzero_pd(), _mm256_castps_pd(v), 0x0));
+      }
+      int main() { return 0; }")
    else()
       set(_cxx_code "#include <cstdio>
       int main() { return 0; }")
