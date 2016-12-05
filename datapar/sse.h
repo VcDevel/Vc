@@ -555,13 +555,14 @@ struct sse_mask_impl {
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
 
     // broadcast {{{2
-    static Vc_INTRINSIC auto broadcast(bool x, size_tag<2>) noexcept
-    {
-        return _mm_set1_pd(mask_bool<double>{x});
-    }
     static Vc_INTRINSIC auto broadcast(bool x, size_tag<4>) noexcept
     {
         return _mm_set1_ps(mask_bool<float>{x});
+    }
+#ifdef Vc_HAVE_SSE2
+    static Vc_INTRINSIC auto broadcast(bool x, size_tag<2>) noexcept
+    {
+        return _mm_set1_pd(mask_bool<double>{x});
     }
     static Vc_INTRINSIC auto broadcast(bool x, size_tag<8>) noexcept
     {
@@ -571,6 +572,7 @@ struct sse_mask_impl {
     {
         return _mm_set1_epi8(mask_bool<std::int8_t>{x});
     }
+#endif  // Vc_HAVE_SSE2
 
     // load {{{2
     template <class F>
@@ -956,9 +958,8 @@ struct equal_to<Vc::mask<T, Vc::datapar_abi::sse>>
 public:
     bool operator()(const M<T> &x, const M<T> &y) const noexcept
     {
-        return Vc::detail::is_equal<M<T>::size()>(
-            Vc::detail::intrin_cast<__m128>(static_cast<S<T>>(x)),
-            Vc::detail::intrin_cast<__m128>(static_cast<S<T>>(y)));
+        return Vc::detail::is_equal<M<T>::size()>(static_cast<S<T>>(x),
+                                                  static_cast<S<T>>(y));
     }
 };
 template <>

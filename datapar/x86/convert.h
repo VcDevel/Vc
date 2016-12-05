@@ -2185,6 +2185,9 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_f64 v0)
     return zeroExtend(_mm256_cvtpd_ps(v0));
 }
 
+//}}}2
+#endif  // Vc_HAVE_AVX
+#ifdef Vc_HAVE_AVX2
 // from llong{{{2
 template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(x_i64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
@@ -2343,8 +2346,8 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_u08 v)
 {
     return convert_to<y_f32>(convert_to<y_i32>(v));
 }
-
-#endif  // Vc_HAVE_AVX
+//}}}2
+#endif  // Vc_HAVE_AVX2
 
 //convert_to<z_f32>{{{1
 #ifdef Vc_HAVE_AVX512F
