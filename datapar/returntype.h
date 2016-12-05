@@ -151,7 +151,7 @@ template <class L, class R> struct return_type_impl3<L, R, false, true> {
         datapar<common_value_type, typename commonabi<L, RV, common_value_type>::type>;
 };
 
-template <class L, class R, bool = is_datapar_v<R>,  // is_datapar<L> is implicit
+template <class L, class R, bool = is_datapar<R>::value,  // is_datapar<L> is implicit
           bool = std::is_integral<typename L::value_type>::value>
 struct return_type_impl2 : public return_type_impl3<L, R> {
 };
