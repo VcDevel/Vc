@@ -205,12 +205,12 @@ Vc_INTRINSIC Vc_CONST __m256i zeroExtend(__m128i v) { return _mm256_permute2f128
 Vc_INTRINSIC Vc_CONST __m256d zeroExtend(__m128d v) { return _mm256_permute2f128_pd   (_mm256_castpd128_pd256(v), _mm256_castpd128_pd256(v), 0x80); }
 
 #ifdef Vc_HAVE_AVX512F
-Vc_INTRINSIC Vc_CONST __m512  zeroExtend(__m256  v) { return _mm512_castpd_ps(_mm512_insertf64x4(_mm512_setzero_pd(), _mm256_castps_pd(v), 0x0); }
+Vc_INTRINSIC Vc_CONST __m512  zeroExtend(__m256  v) { return _mm512_castpd_ps(_mm512_insertf64x4(_mm512_setzero_pd(), _mm256_castps_pd(v), 0x0)); }
 Vc_INTRINSIC Vc_CONST __m512d zeroExtend(__m256d v) { return _mm512_insertf64x4(_mm512_setzero_pd(), v, 0x0); }
 Vc_INTRINSIC Vc_CONST __m512i zeroExtend(__m256i v) { return _mm512_inserti64x4(_mm512_setzero_si512(), v, 0x0); }
 
 Vc_INTRINSIC Vc_CONST __m512  zeroExtend64(__m128  v) { return _mm512_insertf32x4(_mm512_setzero_ps(), v, 0x0); }
-Vc_INTRINSIC Vc_CONST __m512d zeroExtend64(__m128d v) { return _mm512_castps_pd(_mm512_insertf32x4(_mm512_setzero_ps(), _mm_castpd_ps(v), 0x0); }
+Vc_INTRINSIC Vc_CONST __m512d zeroExtend64(__m128d v) { return _mm512_castps_pd(_mm512_insertf32x4(_mm512_setzero_ps(), _mm_castpd_ps(v), 0x0)); }
 Vc_INTRINSIC Vc_CONST __m512i zeroExtend64(__m128i v) { return _mm512_inserti32x4(_mm512_setzero_si512(), v, 0x0); }
 #endif  // Vc_HAVE_AVX512F
 #else   // defined Vc_MSVC || defined Vc_CLANG || defined Vc_APPLECLANG
