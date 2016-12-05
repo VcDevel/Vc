@@ -125,6 +125,10 @@ macro(AddCompilerFlag _flag)
       __m128 foo(__m128 x) { return _mm_fmadd_ps(x, x, x); }
       int main() { return 0; }")
       set(_cxx_code "${_c_code}")
+   elseif("${_flag}" STREQUAL "-std=c++14" OR "${_flag}" STREQUAL "-std=c++1y")
+      set(_cxx_code "#include <utility>
+      template <std::size_t... I> void foo(std::index_sequence<I...>) {}
+      int main() { foo(std::make_index_sequence<4>()); return 0; }")
    elseif("${_flag}" STREQUAL "-stdlib=libc++")
       # Compiling with libc++ not only requires a compiler that understands it, but also
       # the libc++ headers itself
