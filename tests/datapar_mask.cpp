@@ -206,7 +206,8 @@ TEST_TYPES(M, convert, ALL_TYPES)
 TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
 {
     // loads {{{2
-    alignas(Vc::memory_alignment<M> * 2) bool mem[3 * M::size()] = {};
+    alignas(Vc::memory_alignment<M> * 2) bool mem[3 * M::size()];
+    std::memset(mem, 0, sizeof(mem));
     for (std::size_t i = 1; i < sizeof(mem) / sizeof(*mem); i += 2) {
         COMPARE(mem[i - 1], false);
         mem[i] = true;
