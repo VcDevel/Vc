@@ -2719,6 +2719,8 @@ Vc_INTRINSIC std::array<To, From::size() / To::size()> convert_all(
 {
     constexpr size_t N = From::size() / To::size();
     return generate_from_n_evaluations<N, std::array<To, N>>([&](auto i) {
+        using namespace Vc::detail::x86;  // ICC needs this to find convert and
+                                          // shift_right below.
         return convert<From, To>(
             shift_right<i * To::size() * sizeof(From) / From::size()>(v));
     });
