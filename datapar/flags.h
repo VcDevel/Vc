@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_FLAGS_H_
 #define VC_DATAPAR_FLAGS_H_
 
+#include <cstddef>
+
 Vc_VERSIONED_NAMESPACE_BEGIN
 using size_t = std::size_t;
 using align_val_t =
