@@ -14,7 +14,6 @@ include (AddTargetProperty)
 include (OptimizeForArchitecture)
 
 vc_determine_compiler()
-set(ENABLE_MIC FALSE) # disable MIC for now as the compiler doesn't support C++14
 find_package(MIC)
 
 option(USE_CCACHE "If enabled, ccache will be used (if it exists on the system) to speed up recompiles." OFF)
@@ -33,7 +32,10 @@ if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off
    if(MIC_NATIVE_FOUND AND NOT _mic_ok)
       AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
       if(NOT _mic_ok)
-         message(FATAL_ERROR "Vc 2.x requires C++14. The MIC native compiler does not support any of the C++14 language flags.")
+         message(WARNING "Vc 2.x requires C++14. The MIC native compiler does not support C++14. MIC build disabled.")
+         set(ENABLE_MIC FALSE)
+         set(MIC_NATIVE_FOUND FALSE)
+         set(MIC_FOUND FALSE)
       endif()
    endif()
    if(NOT _ok)
