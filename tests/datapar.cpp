@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unittest.h"
 #include <Vc/datapar>
 
-template <class T, class A> using base_template = Vc::datapar<T, A>;
+template <class... Ts> using base_template = Vc::datapar<Ts...>;
 #include "testtypes.h"
 
 // datapar generator function {{{1
