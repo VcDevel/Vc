@@ -110,7 +110,7 @@ if(Vc_X86)
 endif()
 
 add_custom_target(other VERBATIM)
-add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
+add_custom_target(NoSIMD COMMENT "build non-SIMD code" VERBATIM)
 if(Vc_X86)
    add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
    add_custom_target(SSE2 COMMENT "build SSE2 code" VERBATIM)

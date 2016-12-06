@@ -41,7 +41,7 @@ include("${_currentDir}/CheckMicCCompilerFlag.cmake")
 include("${_currentDir}/CheckMicCXXCompilerFlag.cmake")
 
 macro(AddCompilerFlag _flag)
-   string(REGEX REPLACE "[-.+/:= ]" "_" _flag_esc "${_flag}")
+   string(REGEX REPLACE "[-.+/:= ;]" "_" _flag_esc "${_flag}")
 
    set(_c_flags "CMAKE_C_FLAGS")
    set(_cxx_flags "CMAKE_CXX_FLAGS")
@@ -144,6 +144,10 @@ macro(AddCompilerFlag _flag)
         return _mm512_castpd_ps(_mm512_insertf64x4(_mm512_setzero_pd(), _mm256_castps_pd(v), 0x0));
       }
       int main() { return 0; }")
+   elseif("${_flag}" STREQUAL "-mno-sse" OR "${_flag}" STREQUAL "-mno-sse2")
+      set(_cxx_code "#include <cstdio>
+      #include <cstdlib>
+      int main() { return std::atof(\"0\"); }")
    else()
       set(_cxx_code "#include <cstdio>
       int main() { return 0; }")

@@ -50,9 +50,7 @@ template <int N> struct partial_avx {};
 template <int N> struct partial_avx512 {};
 template <int N> struct partial_knc {};
 
-#if defined Vc_TEST_SCALAR
-template <typename> using compatible = scalar;
-#elif defined Vc_IS_AMD64
+#if defined Vc_IS_AMD64
 #if !defined Vc_HAVE_SSE2
 #error "Use of SSE2 is required on AMD64"
 #endif
