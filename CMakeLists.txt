@@ -49,12 +49,7 @@ elseif(Vc_MSVC_VERSION LESS 180021114)
 endif()
 
 if(Vc_COMPILER_IS_GCC)
-   if(Vc_GCC_VERSION VERSION_GREATER "5.0.0" AND Vc_GCC_VERSION VERSION_LESS "6.0.0")
-      UserWarning("GCC 5 goes into an endless loop comiling example_scaling_scalar. Therefore, this target is disabled.")
-      list(APPEND disabled_targets
-         example_scaling_scalar
-         )
-   elseif(Vc_GCC_VERSION VERSION_GREATER "5.99")
+   if(Vc_GCC_VERSION VERSION_GREATER "5.99")
       AddCompilerFlag(-Wno-ignored-attributes)
    endif()
 elseif(Vc_COMPILER_IS_MSVC)
