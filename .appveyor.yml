@@ -1,4 +1,4 @@
-version: 1.0.{build}
+version: 2.0.{build}
 os: Visual Studio 2015
 configuration: Release
 platform:
@@ -16,4 +16,4 @@ build_script:
 - cmd: >-
     CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %PLATFORM%
 
-    ctest -VV -S C:\projects\vc\test.cmake
+    ctest -VV -S C:\projects\vc\scripts\test.cmake
