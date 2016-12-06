@@ -32,7 +32,7 @@ if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off
    if(MIC_NATIVE_FOUND AND NOT _mic_ok)
       AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
       if(NOT _mic_ok)
-         message(WARNING "Vc 2.x requires C++14. The MIC native compiler does not support C++14. MIC build disabled.")
+         message(STATUS "Vc 2.x requires C++14. The MIC native compiler does not support C++14. MIC build disabled.")
          set(ENABLE_MIC FALSE)
          set(MIC_NATIVE_FOUND FALSE)
          set(MIC_FOUND FALSE)
