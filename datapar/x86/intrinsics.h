@@ -157,8 +157,8 @@ template <> struct is_builtin_vector<builtin_type<float, 4>> : public std::true_
 template <> struct is_builtin_vector<builtin_type<double, 2>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type< llong, 2>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<ullong, 2>> : public std::true_type {};
-template <> struct is_builtin_vector<builtin_type<  long, 2>> : public std::true_type {};
-template <> struct is_builtin_vector<builtin_type< ulong, 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  long, 16 / sizeof( long)>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< ulong, 16 / sizeof(ulong)>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<   int, 4>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<  uint, 4>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type< short, 8>> : public std::true_type {};
@@ -171,8 +171,8 @@ template <> struct is_builtin_vector<builtin_type< float, 4 * 2>> : public std::
 template <> struct is_builtin_vector<builtin_type<double, 2 * 2>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type< llong, 2 * 2>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<ullong, 2 * 2>> : public std::true_type {};
-template <> struct is_builtin_vector<builtin_type<  long, 2 * 2>> : public std::true_type {};
-template <> struct is_builtin_vector<builtin_type< ulong, 2 * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  long, 16 / sizeof( long) * 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< ulong, 16 / sizeof(ulong) * 2>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<   int, 4 * 2>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<  uint, 4 * 2>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type< short, 8 * 2>> : public std::true_type {};
@@ -185,8 +185,8 @@ template <> struct is_builtin_vector<builtin_type< float, 4 * 4>> : public std::
 template <> struct is_builtin_vector<builtin_type<double, 2 * 4>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type< llong, 2 * 4>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<ullong, 2 * 4>> : public std::true_type {};
-template <> struct is_builtin_vector<builtin_type<  long, 2 * 4>> : public std::true_type {};
-template <> struct is_builtin_vector<builtin_type< ulong, 2 * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  long, 16 / sizeof( long) * 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< ulong, 16 / sizeof(ulong) * 4>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<   int, 4 * 4>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<  uint, 4 * 4>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type< short, 8 * 4>> : public std::true_type {};
@@ -632,10 +632,8 @@ Vc_INTRINSIC Vc_CONST __m128 set(float x0, float x1, float x2, float x3)
 #ifdef Vc_HAVE_SSE2
 Vc_INTRINSIC Vc_CONST __m128d set(double x0, double x1) { return _mm_set_pd(x1, x0); }
 
-#ifdef Vc_IS_AMD64
 Vc_INTRINSIC Vc_CONST __m128i set(llong x0, llong x1) { return _mm_set_epi64x(x1, x0); }
 Vc_INTRINSIC Vc_CONST __m128i set(ullong x0, ullong x1) { return _mm_set_epi64x(x1, x0); }
-#endif
 
 Vc_INTRINSIC Vc_CONST __m128i set(int x0, int x1, int x2, int x3)
 {
@@ -687,7 +685,6 @@ Vc_INTRINSIC Vc_CONST __m256d set(double x0, double x1, double x2, double x3)
     return _mm256_set_pd(x3, x2, x1, x0);
 }
 
-#ifdef Vc_IS_AMD64
 Vc_INTRINSIC Vc_CONST __m256i set(llong x0, llong x1, llong x2, llong x3)
 {
     return _mm256_set_epi64x(x3, x2, x1, x0);
@@ -696,7 +693,6 @@ Vc_INTRINSIC Vc_CONST __m256i set(ullong x0, ullong x1, ullong x2, ullong x3)
 {
     return _mm256_set_epi64x(x3, x2, x1, x0);
 }
-#endif  // Vc_IS_AMD64
 
 Vc_INTRINSIC Vc_CONST __m256i set(int x0, int x1, int x2, int x3, int x4, int x5, int x6,
                                   int x7)
@@ -878,10 +874,8 @@ Vc_INTRINSIC __m128i broadcast16( short x) { return _mm_set1_epi16(x); }
 Vc_INTRINSIC __m128i broadcast16(ushort x) { return _mm_set1_epi16(x); }
 Vc_INTRINSIC __m128i broadcast16(   int x) { return _mm_set1_epi32(x); }
 Vc_INTRINSIC __m128i broadcast16(  uint x) { return _mm_set1_epi32(x); }
-#ifdef Vc_IS_AMD64
 Vc_INTRINSIC __m128i broadcast16( llong x) { return _mm_set1_epi64x(x); }
 Vc_INTRINSIC __m128i broadcast16(ullong x) { return _mm_set1_epi64x(x); }
-#endif
 #endif  // Vc_HAVE_SSE2
 
 #ifdef Vc_HAVE_AVX
@@ -893,10 +887,8 @@ Vc_INTRINSIC __m256i broadcast32( short x) { return _mm256_set1_epi16(x); }
 Vc_INTRINSIC __m256i broadcast32(ushort x) { return _mm256_set1_epi16(x); }
 Vc_INTRINSIC __m256i broadcast32(   int x) { return _mm256_set1_epi32(x); }
 Vc_INTRINSIC __m256i broadcast32(  uint x) { return _mm256_set1_epi32(x); }
-#ifdef Vc_IS_AMD64
 Vc_INTRINSIC __m256i broadcast32( llong x) { return _mm256_set1_epi64x(x); }
 Vc_INTRINSIC __m256i broadcast32(ullong x) { return _mm256_set1_epi64x(x); }
-#endif
 #endif  // Vc_HAVE_AVX
 
 #ifdef Vc_HAVE_AVX512F
@@ -1738,7 +1730,11 @@ Vc_INTRINSIC Vc_CONST unsigned int popcnt32(unsigned int n)
 Vc_INTRINSIC Vc_CONST unsigned int popcnt64(ullong n)
 {
 #ifdef Vc_IMPL_POPCNT
+#ifdef Vc_IS_AMD64
     return _mm_popcnt_u64(n);
+#else   // Vc_IS_AMD64
+    return _mm_popcnt_u32(n) + _mm_popcnt_u32(n >> 32u);
+#endif  // Vc_IS_AMD64
 #else
     n = (n & 0x5555555555555555ULL) + ((n >> 1) & 0x5555555555555555ULL);
     n = (n & 0x3333333333333333ULL) + ((n >> 2) & 0x3333333333333333ULL);
@@ -1749,6 +1745,42 @@ Vc_INTRINSIC Vc_CONST unsigned int popcnt64(ullong n)
     return n;
 #endif
 }
+
+// firstbit{{{1
+#ifdef Vc_HAVE_BMI1
+Vc_INTRINSIC int firstbit(unsigned long long bits)
+{
+#ifdef Vc_IS_AMD64
+    return _tzcnt_u64(bits);
+#else
+    uint lo = bits;
+    uint hi = bits >> 32u;
+    if (lo == 0u) {
+        return 32u + _tzcnt_u32(hi);
+    } else {
+        return _tzcnt_u32(lo);
+    }
+#endif
+}
+#endif  // Vc_HAVE_BMI1
+
+// lastbit{{{1
+#ifdef Vc_HAVE_BMI1
+Vc_INTRINSIC int lastbit(unsigned long long bits)
+{
+#ifdef Vc_IS_AMD64
+    return 63u - _lzcnt_u64(bits);
+#else
+    uint lo = bits;
+    uint hi = bits >> 32u;
+    if (hi == 0u) {
+        return 31u - _lzcnt_u32(lo);
+    } else {
+        return 63u - _lzcnt_u32(hi);
+    }
+#endif
+}
+#endif  // Vc_HAVE_BMI1
 
 // mask_count{{{1
 template <size_t Size> int mask_count(__m128 );

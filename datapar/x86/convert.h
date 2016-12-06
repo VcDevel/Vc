@@ -724,12 +724,13 @@ template <> Vc_INTRINSIC x_u32 convert_to<x_u32>(x_f64 v) {
 #elif defined Vc_HAVE_SSE4_1
     return _mm_xor_si128(
         _mm_cvttpd_epi32(_mm_sub_pd(_mm_floor_pd(v), _mm_set1_pd(0x80000000u))),
-        _mm_cvtsi64_si128(0x8000000080000000ull));
+        _mm_loadl_epi64(reinterpret_cast<const __m128i*>(sse_const::signMaskFloat)));
 #else
     return blendv_epi8(
         _mm_cvttpd_epi32(v),
-        _mm_xor_si128(_mm_cvttpd_epi32(_mm_sub_pd(v, _mm_set1_pd(0x80000000u))),
-                      _mm_cvtsi64_si128(0x8000000080000000ull)),
+        _mm_xor_si128(
+            _mm_cvttpd_epi32(_mm_sub_pd(v, _mm_set1_pd(0x80000000u))),
+            _mm_loadl_epi64(reinterpret_cast<const __m128i*>(sse_const::signMaskFloat))),
         _mm_castpd_si128(_mm_cmpge_pd(v, _mm_set1_pd(0x80000000u))));
 #endif
 }
@@ -1511,11 +1512,8 @@ template <> Vc_INTRINSIC x_i08 convert_to<x_i08>(x_i32 v0, x_i32 v1)
     auto c = _mm_unpacklo_epi8(a, b);  // 0246 .... .... ....
     auto d = _mm_unpackhi_epi8(a, b);  // 1357 .... .... ....
     auto e = _mm_unpacklo_epi8(c, d);  // 0123 4567 .... ....
-#ifdef Vc_CLANG
-    return detail::and_(e, _mm_cvtsi64_si128(-1LL));
-#else   // Vc_CLANG
-    return detail::and_(e, _mm_cvtsi64x_si128(-1LL));
-#endif  // Vc_CLANG
+    return detail::and_(
+        e, _mm_loadl_epi64(reinterpret_cast<const __m128i*>(sse_const::AllBitsSet)));
 #endif
 }
 

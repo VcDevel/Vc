@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #define WITH_DATAPAR 1
+//#define UNITTEST_ONLY_XTEST 1
 #include "unittest.h"
 #include <Vc/datapar>
 
@@ -322,6 +323,18 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
     COMPARE(popcount(gen({0, 0, 0, 0, 1})), int(M::size()) / 5);
 
     // find_first_set
+    {
+        M x(false);
+        for (int i = int(M::size() / 2 - 1); i >= 0; --i) {
+            x[i] = true;
+            COMPARE(find_first_set(x), i) << x;
+        }
+        x = M(false);
+        for (int i = int(M::size() - 1); i >= 0; --i) {
+            x[i] = true;
+            COMPARE(find_first_set(x), i) << x;
+        }
+    }
     COMPARE(find_first_set(M{true}), 0);
     if (M::size() > 1) {
         COMPARE(find_first_set(gen({0, 1})), 1);
@@ -331,16 +344,19 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
     }
 
     // find_last_set
-    COMPARE(find_last_set(M{true}), int(M::size()) - 1);
-    if (M::size() > 1) {
-        if (M::size() & 1) {
-            COMPARE(find_last_set(gen({1, 0})), int(M::size()) - 1);
-        } else {
-            COMPARE(find_last_set(gen({1, 0})), int(M::size()) - 2);
+    {
+        M x(false);
+        for (int i = 0; i < int(M::size()); ++i) {
+            x[i] = true;
+            COMPARE(find_last_set(x), i) << x;
         }
     }
+    COMPARE(find_last_set(M{true}), int(M::size()) - 1);
+    if (M::size() > 1) {
+        COMPARE(find_last_set(gen({1, 0})), int(M::size()) - 2 + int(M::size() & 1));
+    }
     if (M::size() > 3 && (M::size() & 3) == 0) {
-        COMPARE(find_last_set(gen({1, 0, 0, 0})), int(M::size()) - 4);
+        COMPARE(find_last_set(gen({1, 0, 0, 0})), int(M::size()) - 4 - int(M::size() & 3));
     }
 }
 

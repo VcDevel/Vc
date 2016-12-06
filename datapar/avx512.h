@@ -602,9 +602,14 @@ struct avx512_mask_impl {
         _mm_storel_epi64(
             reinterpret_cast<__m128i *>(mem),
             _mm512_cvtepi64_epi8(_mm512_srli_epi64(_mm512_movm_epi64(v.v()), 63)));
-#else
+#elif defined Vc_IS_AMD64
         *reinterpret_cast<may_alias<ullong> *>(mem) =
             _pdep_u64(v.v(), 0x0101010101010101ULL);
+#else
+        *reinterpret_cast<may_alias<uint> *>(mem) =
+            _pdep_u32(v.v(), 0x01010101U);
+        *reinterpret_cast<may_alias<uint> *>(mem + 4) =
+            _pdep_u32(v.v() >> 4, 0x01010101U);
 #endif
     }
     template <class F>
@@ -617,11 +622,18 @@ struct avx512_mask_impl {
 #elif defined Vc_HAVE_AVX512DQ
         store16(_mm512_cvtepi32_epi8(_mm512_srli_epi32(_mm512_movm_epi32(v.v()), 31)),
                 mem, f);
-#else
+#elif defined Vc_IS_AMD64
         *reinterpret_cast<may_alias<ullong> *>(mem) =
             _pdep_u64(v.v(), 0x0101010101010101ULL);
         *reinterpret_cast<may_alias<ullong> *>(mem + 8) =
             _pdep_u64(v.v() >> 8, 0x0101010101010101ULL);
+        unused(f);
+#else
+        execute_n_times<4>([&](auto i) {
+            constexpr uint offset = 4u * i;
+            *reinterpret_cast<may_alias<uint> *>(mem + offset) =
+                _pdep_u32(v.v() >> offset, 0x01010101U);
+        });
         unused(f);
 #endif
     }
@@ -637,7 +649,7 @@ struct avx512_mask_impl {
                    _mm512_cvtepi32_epi8(
                        _mm512_srli_epi32(_mm512_movm_epi32(v.v() >> 16), 31))),
             mem, f);
-#else
+#elif defined Vc_IS_AMD64
         *reinterpret_cast<may_alias<ullong> *>(mem) =
             _pdep_u64(v.v(), 0x0101010101010101ULL);
         *reinterpret_cast<may_alias<ullong> *>(mem + 8) =
@@ -646,6 +658,12 @@ struct avx512_mask_impl {
             _pdep_u64(v.v() >> 16, 0x0101010101010101ULL);
         *reinterpret_cast<may_alias<ullong> *>(mem + 24) =
             _pdep_u64(v.v() >> 24, 0x0101010101010101ULL);
+#else
+        execute_n_times<8>([&](auto i) {
+            constexpr uint offset = 4u * i;
+            *reinterpret_cast<may_alias<uint> *>(mem + offset) =
+                _pdep_u32(v.v() >> offset, 0x01010101U);
+        });
 #endif
     }
     template <class F>
@@ -663,7 +681,7 @@ struct avx512_mask_impl {
                               _mm512_cvtepi32_epi8(
                                   _mm512_srli_epi32(_mm512_movm_epi32(v.v() >> 48), 31)))),
                 mem, f);
-#else
+#elif defined Vc_IS_AMD64
         *reinterpret_cast<may_alias<ullong> *>(mem) =
             _pdep_u64(v.v(), 0x0101010101010101ULL);
         *reinterpret_cast<may_alias<ullong> *>(mem + 8) =
@@ -680,6 +698,12 @@ struct avx512_mask_impl {
             _pdep_u64(v.v() >> 48, 0x0101010101010101ULL);
         *reinterpret_cast<may_alias<ullong> *>(mem + 56) =
             _pdep_u64(v.v() >> 56, 0x0101010101010101ULL);
+#else
+        execute_n_times<16>([&](auto i) {
+            constexpr uint offset = 4u * i;
+            *reinterpret_cast<may_alias<uint> *>(mem + offset) =
+                _pdep_u32(v.v() >> offset, 0x01010101U);
+        });
 #endif
     }
 
@@ -812,11 +836,23 @@ Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx512> k)
     }
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::avx512> k)
+template <class T>
+Vc_ALWAYS_INLINE enable_if<(sizeof(T) <= 8), int> find_first_set(
+    mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
-    return k.size() == 64 ? _tzcnt_u64(v) : _tzcnt_u32(v);
+    return _tzcnt_u32(v);
+}
+
+Vc_ALWAYS_INLINE int find_first_set(mask<signed char, datapar_abi::avx512> k)
+{
+    const auto v = detail::traits<signed char, datapar_abi::avx512>::data(k);
+    return detail::firstbit(v);
+}
+Vc_ALWAYS_INLINE int find_first_set(mask<unsigned char, datapar_abi::avx512> k)
+{
+    const auto v = detail::traits<unsigned char, datapar_abi::avx512>::data(k);
+    return detail::firstbit(v);
 }
 
 template <class T, class = enable_if<sizeof(T) <= 8>>
@@ -827,7 +863,7 @@ Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx512> k)
     case  8: return 31 - _lzcnt_u32(v);
     case 16: return 31 - _lzcnt_u32(v);
     case 32: return 31 - _lzcnt_u32(v);
-    case 64: return 63 - _lzcnt_u64(v);
+    case 64: return detail::lastbit(v);
     default: Vc_UNREACHABLE();
     }
 }

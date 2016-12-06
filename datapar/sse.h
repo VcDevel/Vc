@@ -601,7 +601,7 @@ struct sse_mask_impl {
 #ifdef Vc_IS_AMD64
         __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
 #else
-        __m128i k = _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(mem)));
+        __m128i k = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
 #endif
         return intrin_cast<__m128>(
             _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
