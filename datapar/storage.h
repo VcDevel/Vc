@@ -95,7 +95,9 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 // Storage decl{{{1
 template <typename ValueType, size_t Size, typename Strategy = DefaultStrategy>
 class Storage;
+//}}}1
 
+#if defined Vc_HAVE_SSE  // need at least one SIMD ISA to make sense
 // Storage<bool>{{{1
 template <size_t Size> struct bool_storage_member_type;
 template <size_t Size> class Storage<bool, Size, DefaultStrategy>
@@ -533,6 +535,7 @@ template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,32, Al
 #endif  // Vc_MSVC
 
 //}}}1
+#endif  // Vc_HAVE_SSE
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 

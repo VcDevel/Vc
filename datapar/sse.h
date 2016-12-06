@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_DATAPAR_SSE_H_
 
 #include "macros.h"
+#ifdef Vc_HAVE_SSE
 #include "storage.h"
 #include "x86/intrinsics.h"
 #include "x86/convert.h"
@@ -969,6 +970,7 @@ struct equal_to<Vc::mask<long double, Vc::datapar_abi::sse>>
 // }}}1
 }  // namespace std
 #endif  // Vc_HAVE_SSE_ABI
+#endif  // Vc_HAVE_SSE
 
 #endif  // VC_DATAPAR_SSE_H_
 
