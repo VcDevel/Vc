@@ -56,7 +56,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #endif
 
-#ifdef __x86_64__
+#if defined __x86_64__ || defined __amd64__ || defined __amd64 || defined __x86_64
 #define Vc_IS_AMD64 1
 #endif
 
