@@ -28,28 +28,30 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_MACROS_H_
 #define VC_DATAPAR_MACROS_H_
 
+#include "../common/macros.h"
+
 #ifdef __MIC__
 //#define Vc_HAVE_KNC_ABI 1
 //#define Vc_HAVE_FULL_KNC_ABI 1
 #endif
 
-#if defined __SSE__
+#if defined Vc_HAVE_SSE
 #define Vc_HAVE_SSE_ABI 1
-#ifdef __SSE2__
+#ifdef Vc_HAVE_SSE2
 #define Vc_HAVE_FULL_SSE_ABI 1
 #endif
 #endif
 
-#if defined __AVX__ && defined Vc_IMPL_AVX
+#if defined Vc_HAVE_AVX && defined Vc_IMPL_AVX
 #define Vc_HAVE_AVX_ABI 1
-#if defined __AVX2__ && defined Vc_IMPL_AVX2
+#if defined Vc_HAVE_AVX2 && defined Vc_IMPL_AVX2
 #define Vc_HAVE_FULL_AVX_ABI 1
 #endif
 #endif
 
-#ifdef __AVX512F__
+#ifdef Vc_HAVE_AVX512F
 #define Vc_HAVE_AVX512_ABI 1
-#ifdef __AVX512BW__
+#ifdef Vc_HAVE_AVX512BW
 #define Vc_HAVE_FULL_AVX512_ABI 1
 #endif
 #endif
