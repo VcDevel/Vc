@@ -194,7 +194,7 @@ install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
 install(DIRECTORY include/Vc/ DESTINATION include/Vc)
 
 # Install all implementation headers
-install(DIRECTORY scalar sse avx mic common traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY common datapar traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 # read version parts from version.h to be put into VcConfig.cmake
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define Vc_VERSION_STRING ")
