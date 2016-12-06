@@ -630,6 +630,7 @@ struct avx512_mask_impl {
         unused(f);
 #else
         execute_n_times<4>([&](auto i) {
+            using namespace Vc::detail;
             constexpr uint offset = 4u * i;
             *reinterpret_cast<may_alias<uint> *>(mem + offset) =
                 _pdep_u32(v.v() >> offset, 0x01010101U);
@@ -660,6 +661,7 @@ struct avx512_mask_impl {
             _pdep_u64(v.v() >> 24, 0x0101010101010101ULL);
 #else
         execute_n_times<8>([&](auto i) {
+            using namespace Vc::detail;
             constexpr uint offset = 4u * i;
             *reinterpret_cast<may_alias<uint> *>(mem + offset) =
                 _pdep_u32(v.v() >> offset, 0x01010101U);
@@ -700,6 +702,7 @@ struct avx512_mask_impl {
             _pdep_u64(v.v() >> 56, 0x0101010101010101ULL);
 #else
         execute_n_times<16>([&](auto i) {
+            using namespace Vc::detail;
             constexpr uint offset = 4u * i;
             *reinterpret_cast<may_alias<uint> *>(mem + offset) =
                 _pdep_u32(v.v() >> offset, 0x01010101U);
