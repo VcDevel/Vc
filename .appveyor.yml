@@ -11,6 +11,7 @@ environment:
   matrix:
     - subset: sse
     - subset: avx
+    - subset: avx512
 
 build_script:
 - cmd: >-

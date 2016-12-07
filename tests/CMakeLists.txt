@@ -1,6 +1,6 @@
 include(AddFileDependencies)
 
-add_definitions(-DCOMPILE_FOR_UNIT_TESTS) # -DVC_CHECK_ALIGNMENT)
+add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
 if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
    AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
@@ -10,37 +10,29 @@ endif()
 # 32-bit x86 requires SSE for fp math to produce comparable results.
 AddCompilerFlag("-mfpmath=sse" CXX_FLAGS Vc_ARCHITECTURE_FLAGS CXX_RESULT _fpmath_ok)
 
-if(DEFINED Vc_INSIDE_ROOT)
-   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "")  # Reset the ROOT default executable destination
-   set(Vc_TEST_TARGET_PREFIX "vc-")
-else()
-   set(Vc_TEST_TARGET_PREFIX "")
-endif()
-
-# don't warn about sanity checks:
-if(Vc_COMPILER_IS_CLANG)
+if(Vc_COMPILER_IS_CLANG) # don't warn about sanity checks#{{{
    # GCC does not complain about the following flags until much later. Therefore
    # the AddCompilerFlag logic doesn't work as intended.
    AddCompilerFlag(-Wno-tautological-constant-out-of-range-compare)
    AddCompilerFlag(-Wno-tautological-compare)
-endif()
+endif()#}}}
 
-function(get_target_executable VAR TARGET)
+function(get_target_executable VAR TARGET)#{{{
    get_target_property(exe "${TARGET}" OUTPUT_NAME)
    if(NOT exe)
       set(exe "${CMAKE_CURRENT_BINARY_DIR}/${TARGET}")
    endif()
    set(${VAR} "${exe}" PARENT_SCOPE)
-endfunction()
+endfunction()#}}}
 
+# typeToString can use cxxabi for demangling
 CHECK_CXX_SOURCE_COMPILES("#include <cxxabi.h>
 int main() { return 0; }" cxx_abi_header_works)
 if(cxx_abi_header_works)
    add_definitions(-DHAVE_CXX_ABI_H)
 endif()
 
-set(all_target_variants)
-function(vc_target_setup name sde_cpuid)
+function(vc_target_setup name sde_cpuid)#{{{
    foreach(flags ${ARGN})
       string(REPLACE "|" ";" flags "${flags}")
       set(result)
@@ -48,14 +40,14 @@ function(vc_target_setup name sde_cpuid)
       if(ok)
          message(STATUS "Building tests for ${name}: enabled")
          set(Vc_${name}_flags ${result} PARENT_SCOPE)
-         list(APPEND all_target_variants ${name})
-         set(all_target_variants ${all_target_variants} PARENT_SCOPE)
+         list(APPEND vc_all_target_variants ${name})
+         set(vc_all_target_variants ${vc_all_target_variants} PARENT_SCOPE)
          set(sde_cpuid_${name} "-${sde_cpuid}" PARENT_SCOPE)
          return()
       endif()
    endforeach()
    message(STATUS "Building tests for ${name}: disabled")
-endfunction()
+endfunction()#}}}
 
 # sets Vc_nosimd_flags, Vc_sse2_flags, ...
 if(Vc_X86)
@@ -69,7 +61,7 @@ if(Vc_X86)
    vc_target_setup(avx512 skx "-xCORE-AVX512" "-march=skylake-avx512")
 endif()
 
-macro(vc_add_run_target _target emulator)
+macro(vc_add_run_target _target emulator)#{{{
    if("${CMAKE_GENERATOR}" MATCHES "Visual Studio")
       # do nothing. This just clutters the solution explorer
    elseif(emulator)
@@ -88,9 +80,9 @@ macro(vc_add_run_target _target emulator)
          VERBATIM
          )
    endif()
-endmacro()
+endmacro()#}}}
 
-set(alias_strategies Union)
+set(alias_strategies Union)#{{{
 if(Vc_COMPILER_IS_CLANG OR Vc_COMPILER_IS_GCC)
    set(alias_strategies ${alias_strategies} MayAlias VectorBuiltin)
 elseif(Vc_COMPILER_IS_INTEL)
@@ -98,12 +90,12 @@ elseif(Vc_COMPILER_IS_INTEL)
    set(alias_strategies ${alias_strategies} MayAlias)
 elseif(Vc_COMPILER_IS_MSVC)
    set(alias_strategies ${alias_strategies} UnionMembers)
-endif()
+endif()#}}}
 
-function(vc_add_test2 name)
+function(vc_add_test name) #{{{
    set(src "${name}.cpp")
    set(run_targets)
-   foreach(impl ${all_target_variants})
+   foreach(impl ${vc_all_target_variants})
       set(_target "${name}_${impl}")
       list(FIND disabled_targets ${_target} disabled)
       if(disabled EQUAL -1)
@@ -172,13 +164,13 @@ function(vc_add_test2 name)
             if(${use_var})
                if(emulator)
                   get_target_executable(_exe "${target}")
-                  add_test(NAME ${Vc_TEST_TARGET_PREFIX}${target}
+                  add_test(NAME ${target}
                      COMMAND ${emulator} "${_exe}"
                      )
                else()
-                  add_test(${Vc_TEST_TARGET_PREFIX}${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
+                  add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
                endif()
-               set_property(TEST ${Vc_TEST_TARGET_PREFIX}${target} PROPERTY LABELS "${label}")
+               set_property(TEST ${target} PROPERTY LABELS "${label}")
                vc_add_run_target(${target} "${emulator}")
                list(APPEND run_targets "run_${target}")
             endif()
@@ -195,53 +187,57 @@ function(vc_add_test2 name)
          )
       add_dependencies(run_${name}_all ${run_targets})
    endif()
-endfunction()
+endfunction() #}}}
 
-vc_add_test2(datapar_mask)
-vc_add_test2(datapar)
+vc_add_test(datapar_mask)
+vc_add_test(datapar)
 
-set(_deps)
-foreach(fun sincos asin acos atan ln log2 log10)
-   foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-      add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-         COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-         COMMENT "Downloading Test Data: ${filename}"
-         VERBATIM
-         )
-      if(MIC_OBJCOPY)
-         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o"
-            COMMAND ${MIC_OBJCOPY} -I binary -O elf64-k1om -B k1om ${filename} ${filename}.k1om.o
-            DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+function(vc_download_testdata)#{{{
+   set(_deps)
+   foreach(fun sincos asin acos atan ln log2 log10)
+      foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+            COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Converting Test Data: ${filename}.k1om.o"
+            COMMENT "Downloading Test Data: ${filename}"
             VERBATIM
             )
-         list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o")
-      endif()
-      list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
+         if(MIC_OBJCOPY)
+            add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o"
+               COMMAND ${MIC_OBJCOPY} -I binary -O elf64-k1om -B k1om ${filename} ${filename}.k1om.o
+               DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+               WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+               COMMENT "Converting Test Data: ${filename}.k1om.o"
+               VERBATIM
+               )
+            list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o")
+         endif()
+         list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
+      endforeach()
    endforeach()
-endforeach()
-add_custom_target(download-testdata ALL
-   DEPENDS ${_deps}
-   )
-add_dependencies(NoSIMD download-testdata)
-if(Vc_X86)
-   add_dependencies(SSE2 download-testdata)
-   add_dependencies(SSE4_2 download-testdata)
-   add_dependencies(AVX download-testdata)
-   add_dependencies(AVX2 download-testdata)
-   add_dependencies(MIC download-testdata)
-   add_dependencies(KNL download-testdata)
-   add_dependencies(AVX512 download-testdata)
-elseif(Vc_ARM)
-   add_dependencies(NEON download-testdata)
-endif()
+   add_custom_target(download-testdata ALL
+      DEPENDS ${_deps}
+      )
 
+   add_dependencies(NoSIMD download-testdata)
+   if(Vc_X86)
+      add_dependencies(SSE2 download-testdata)
+      add_dependencies(SSE4_2 download-testdata)
+      add_dependencies(AVX download-testdata)
+      add_dependencies(AVX2 download-testdata)
+      add_dependencies(MIC download-testdata)
+      add_dependencies(KNL download-testdata)
+      add_dependencies(AVX512 download-testdata)
+   elseif(Vc_ARM)
+      add_dependencies(NEON download-testdata)
+   endif()
+endfunction()
+vc_download_testdata()#}}}
+
+# ABI tests#{{{
 find_program(OBJDUMP objdump)
 mark_as_advanced(OBJDUMP)
-
 if(OBJDUMP)
    macro(test_abi _target _impl)
       set(_test test_${_target})
@@ -293,19 +289,19 @@ if(OBJDUMP)
          test_abi(abi_MIC MIC)
       endif()
    endif()
-endif()
+endif()#}}}
 
-macro(vc_add_general_test _name)
+macro(vc_add_general_test _name)#{{{
    add_executable(${_name} EXCLUDE_FROM_ALL ${_name}.cpp )
    target_link_libraries(${_name} Vc)
    add_target_property(${_name} LABELS "other")
    set_property(TARGET ${_name} APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
    add_dependencies(build_tests ${_name})
    add_dependencies(other ${_name})
-   add_test(${Vc_TEST_TARGET_PREFIX}${_name} "${CMAKE_CURRENT_BINARY_DIR}/${_name}")
-   set_property(TEST ${Vc_TEST_TARGET_PREFIX}${_name} PROPERTY LABELS "other")
+   add_test(${_name} "${CMAKE_CURRENT_BINARY_DIR}/${_name}")
+   set_property(TEST ${_name} PROPERTY LABELS "other")
    vc_add_run_target(${_name} FALSE)
-endmacro()
+endmacro()#}}}
 
 if(_last_target_arch STREQUAL "auto" AND NOT Vc_AVX_INTRINSICS_BROKEN)
    vc_add_general_test(supportfunctions)
@@ -313,28 +309,7 @@ endif()
 vc_add_general_test(alignmentinheritance)
 vc_add_general_test(alignedbase)
 
-get_property(_incdirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-set(incdirs)
-foreach(_d ${_incdirs})
-   list(APPEND incdirs "-I${_d}")
-endforeach()
-
-separate_arguments(_flags UNIX_COMMAND "${CMAKE_CXX_FLAGS} ${Vc_DEFINITIONS}")
-list(APPEND _flags ${Vc_COMPILE_FLAGS})
-set(_tmp)
-foreach(_f ${_flags})
-   if(_f MATCHES "^-m" OR _f MATCHES "^/arch:" OR _f MATCHES "^-x")
-      # nothing
-   elseif(_f MATCHES "^/[A-Za-z]")
-      string(SUBSTRING "${_f}" 1 -1 _f)
-      list(APPEND _tmp "-${_f}")
-   else()
-      list(APPEND _tmp "${_f}")
-   endif()
-endforeach()
-set(_flags "${_tmp}")
-
-# compile and link test for targets that need to link lots of stuff together
+# compile and link test for targets that need to link lots of stuff together#{{{
 add_library(linkTestLibDynamic1 SHARED EXCLUDE_FROM_ALL linkTestLib0.cpp linkTestLib1.cpp)
 add_library(linkTestLibDynamic2 SHARED EXCLUDE_FROM_ALL linkTestLib0.cpp linkTestLib1.cpp)
 add_library(linkTestLibStatic STATIC EXCLUDE_FROM_ALL linkTestLib2.cpp linkTestLib3.cpp)
@@ -350,8 +325,9 @@ set_property(TARGET linkTestLibDynamic2 APPEND PROPERTY COMPILE_OPTIONS "${Vc_AR
 set_property(TARGET linkTestLibStatic APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
 set_property(TARGET linkTest APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
 target_link_libraries(linkTestLibStatic Vc)
-target_link_libraries(linkTest Vc linkTestLibDynamic1 linkTestLibDynamic2 linkTestLibStatic)
+target_link_libraries(linkTest Vc linkTestLibDynamic1 linkTestLibDynamic2 linkTestLibStatic)#}}}
 
 # Use the following program to generate the sincos-reference-*.dat files
 #add_executable(convert-sincos-reference EXCLUDE_FROM_ALL convert-sincos-reference.cpp)
 
+# vim: foldmethod=marker commentstring=#%s

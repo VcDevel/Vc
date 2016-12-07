@@ -2,6 +2,11 @@ language: cpp
 
 cache: ccache
 
+env:
+    - subset=sse
+    - subset=avx
+    - subset=avx512
+
 os:
     - linux
     - osx
