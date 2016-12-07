@@ -35,7 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../const.h"
 
 #ifdef Vc_HAVE_SSE
+
+#ifdef Vc_MSVC
+#include <intrin.h>
+#else   // Vc_MSVC
 #include <x86intrin.h>
+#endif  // Vc_MSVC
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
