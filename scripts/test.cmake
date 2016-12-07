@@ -278,7 +278,7 @@ if(EXISTS "${PROJECT_DIRECTORY}/.git/refs/heads/${git_branch}")
 endif()
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
-ctest_read_custom_files(${PROJECT_DIRECTORY})
+ctest_read_custom_files(${CTEST_SOURCE_DIRECTORY})
 set(CTEST_USE_LAUNCHERS 0) # launchers once lead to much improved error/warning
                            # message logging. Nowadays they lead to no warning/
                            # error messages on the dashboard at all.
