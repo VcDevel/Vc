@@ -104,13 +104,16 @@ public:
     datapar &operator=(const datapar &) = default;
     datapar &operator=(datapar &&) = default;
 
+    // non-std; required to work around MSVC error C2975
+    static constexpr size_type size_v = traits::size();
+
     // implicit broadcast constructor
     datapar(value_type x) : d(impl::broadcast(x, size_tag)) {}
 
     // implicit type conversion constructor
     // 1st conversion ctor: convert from fixed_size<size()>
     template <class U>
-    datapar(const datapar<U, datapar_abi::fixed_size<size()>> &x,
+    datapar(const datapar<U, datapar_abi::fixed_size<size_v>> &x,
             std::enable_if_t<std::is_convertible<U, value_type>::value, void *> = nullptr)
         : datapar{static_cast<const std::array<U, size()> &>(x).data(),
                   flags::vector_aligned}
