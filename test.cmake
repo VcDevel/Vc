@@ -382,15 +382,25 @@ macro(go)
                   RETURN_VALUE res)
                ctest_submit(PARTS Build)
                if(res EQUAL 0 AND NOT skip_tests)
-                  ctest_test(
-                     BUILD "${CTEST_BINARY_DIRECTORY}"
-                     APPEND
-                     RETURN_VALUE res
-                     PARALLEL_LEVEL ${number_of_processors}
-                     INCLUDE_LABEL "^${label}$")
-                  ctest_submit(PARTS Test)
-                  if(NOT res EQUAL 0)
-                     set(test_results ${res})
+                  execute_process(
+                     COMMAND ${CMAKE_CTEST_COMMAND} -N -L "^${label}$"
+                     WORKING_DIRECTORY "${CTEST_BINARY_DIRECTORY}"
+                     OUTPUT_VARIABLE tmp
+                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+                  if(tmp MATCHES "Total Tests: 0")
+                     message("No tests were defined. Skipping tests.")
+                  else()
+                     ctest_test(
+                        BUILD "${CTEST_BINARY_DIRECTORY}"
+                        APPEND
+                        RETURN_VALUE res
+                        PARALLEL_LEVEL ${number_of_processors}
+                        INCLUDE_LABEL "^${label}$")
+                     ctest_submit(PARTS Test)
+                     if(NOT res EQUAL 0)
+                        message("ctest_test returned non-zero result: ${res}")
+                        set(test_results ${res})
+                     endif()
                   endif()
                endif()
             endforeach()
