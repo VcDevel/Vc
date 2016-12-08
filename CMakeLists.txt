@@ -125,8 +125,29 @@ endif()#}}}
 ##################################################################
 if(Vc_X86)
    file(GLOB SDE_DIRS /opt/intel/*)
-   find_program(INTEL_SDE sde ${SDE_DIRS}
+   find_program(INTEL_SDE sde ${SDE_DIRS} "$ENV{HOME}/.cache/sde/"
       DOC "Path to the Intel Software Development Emulator")
+   # if running a dashboard cycle and no installed SDE was found, download and use it automatically
+   if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "" AND NOT INTEL_SDE)
+      find_program(_bin_sh sh)
+      find_program(_wget wget)
+      if(_bin_sh AND _wget AND DEFINED ENV{HOME})
+         option(DOWNLOAD_INTEL_SDE "Download the Intel Software Development Emulator to execute tests on different ISAs" ON)
+         if(DOWNLOAD_INTEL_SDE)
+            message(STATUS "Downloading Intel SDE:")
+            file(MAKE_DIRECTORY "$ENV{HOME}/.cache/sde")
+            execute_process(COMMAND ${_bin_sh} "${CMAKE_SOURCE_DIR}/scripts/download_intel_sde.sh"
+               WORKING_DIRECTORY "$ENV{HOME}/.cache/sde"
+               TIMEOUT 20
+               RESULT_VARIABLE res)
+            if(${res} EQUAL 0)
+               find_program(INTEL_SDE sde "$ENV{HOME}/.cache/sde/" NO_DEFAULT_PATH
+                  DOC "Path to the Intel Software Development Emulator")
+            endif()
+         endif()
+      endif()
+      mark_as_advanced(_bin_sh _wget)
+   endif()
 endif()#}}}
 
 # Set up make targets#{{{
