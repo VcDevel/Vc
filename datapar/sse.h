@@ -828,7 +828,8 @@ Vc_ALWAYS_INLINE bool all_of(mask<double, datapar_abi::sse> k)
 #ifdef Vc_HAVE_AVX
     return _mm_testc_pd(d, detail::allone<__m128d>());
 #else
-    return _mm_testc_si128(d, detail::allone<__m128i>());
+    const auto dd = detail::intrin_cast<__m128i>(d);
+    return _mm_testc_si128(dd, detail::allone<__m128i>());
 #endif
 #else
     return _mm_movemask_pd(d) == 0x3;
