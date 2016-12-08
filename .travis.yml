@@ -1,6 +1,9 @@
 language: cpp
 
-cache: ccache
+cache:
+    ccache: true
+    directories:
+        - $HOME/.cache/sde
 
 env:
     - subset=sse
