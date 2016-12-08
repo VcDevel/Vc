@@ -33,7 +33,7 @@ install:
         if test $GCC_VERSION = 5; then
           brew install gcc5 && export CXX=g++-5 CC=gcc-5;
         else
-          brew install coreutils && export CXX=g++-4.9 CC=gcc-4.9;
+          export CXX=g++-4.9 CC=gcc-4.9;
         fi
       fi
     - if test "$TRAVIS_OS_NAME" = "osx" -a "$CXX" = "clang++"; then
