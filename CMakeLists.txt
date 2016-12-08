@@ -121,9 +121,9 @@ if(UNIX AND Vc_COMPILER_IS_CLANG)
    endif()
 endif()#}}}
 
-# Look for the Intel SDE if we're running on x86#{{{
+# Look for the Intel SDE if we're running on x86 and Linux#{{{
 ##################################################################
-if(Vc_X86)
+if(Vc_X86 AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
    file(GLOB SDE_DIRS /opt/intel/*)
    find_program(INTEL_SDE sde ${SDE_DIRS} "$ENV{HOME}/.cache/sde/"
       DOC "Path to the Intel Software Development Emulator")
