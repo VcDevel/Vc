@@ -1,1 +1,1 @@
-file(DOWNLOAD "http://web-docs.gsi.de/~mkretz/Vc-testdata/${filename}" "./${filename}")
+file(DOWNLOAD "https://github.com/VcDevel/vc-testdata/raw/master/${filename}" "./${filename}")
