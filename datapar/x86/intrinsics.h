@@ -1752,9 +1752,9 @@ Vc_INTRINSIC Vc_CONST unsigned int popcnt64(ullong n)
 }
 
 // firstbit{{{1
-#ifdef Vc_HAVE_BMI1
-Vc_INTRINSIC int firstbit(unsigned long long bits)
+Vc_INTRINSIC Vc_CONST int firstbit(ullong bits)
 {
+#ifdef Vc_HAVE_BMI1
 #ifdef Vc_IS_AMD64
     return _tzcnt_u64(bits);
 #else
@@ -1766,13 +1766,39 @@ Vc_INTRINSIC int firstbit(unsigned long long bits)
         return _tzcnt_u32(lo);
     }
 #endif
-}
+#else   // Vc_HAVE_BMI1
+    return __builtin_ctzll(bits);
 #endif  // Vc_HAVE_BMI1
+}
+Vc_INTRINSIC Vc_CONST auto firstbit(llong bits)
+{
+    return firstbit(ullong(bits));
+}
+
+Vc_INTRINSIC Vc_CONST auto firstbit(uint x)
+{
+#if defined Vc_ICC || defined Vc_GCC
+    return _bit_scan_forward(x);
+#elif defined Vc_CLANG || defined Vc_APPLECLANG
+    return __builtin_ctz(x);
+#elif defined Vc_MSVC
+#pragma intrinsic(_BitScanForward)
+    unsigned long index;
+    _BitScanForward(&index, x);
+    return index;
+#else
+#error "Implementation for firstbit(uint) is missing"
+#endif
+}
+Vc_INTRINSIC Vc_CONST auto firstbit(int bits)
+{
+    return firstbit(uint(bits));
+}
 
 // lastbit{{{1
-#ifdef Vc_HAVE_BMI1
-Vc_INTRINSIC int lastbit(unsigned long long bits)
+Vc_INTRINSIC Vc_CONST int lastbit(ullong bits)
 {
+#ifdef Vc_HAVE_BMI1
 #ifdef Vc_IS_AMD64
     return 63u - _lzcnt_u64(bits);
 #else
@@ -1784,8 +1810,34 @@ Vc_INTRINSIC int lastbit(unsigned long long bits)
         return 63u - _lzcnt_u32(hi);
     }
 #endif
-}
+#else   // Vc_HAVE_BMI1
+    return 63 - __builtin_clzll(bits);
 #endif  // Vc_HAVE_BMI1
+}
+Vc_INTRINSIC Vc_CONST auto lastbit(llong bits)
+{
+    return lastbit(ullong(bits));
+}
+
+Vc_INTRINSIC Vc_CONST auto lastbit(uint x)
+{
+#if defined Vc_ICC || defined Vc_GCC
+    return _bit_scan_reverse(x);
+#elif defined Vc_CLANG || defined Vc_APPLECLANG
+    return 31 - __builtin_clz(x);
+#elif defined(Vc_MSVC)
+#pragma intrinsic(_BitScanReverse)
+    unsigned long index;
+    _BitScanReverse(&index, x);
+    return index;
+#else
+#error "Implementation for lastbit(uint) is missing"
+#endif
+}
+Vc_INTRINSIC Vc_CONST auto lastbit(int bits)
+{
+    return lastbit(uint(bits));
+}
 
 // mask_count{{{1
 template <size_t Size> int mask_count(__m128 );

@@ -35,7 +35,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "x86/convert.h"
 #include "x86/arithmetics.h"
 #include "maskbool.h"
-#include "bitscan.h"
 #include "genericimpl.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
@@ -937,7 +936,7 @@ Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::sse> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k);
-    return detail::bit_scan_forward(detail::mask_to_int<k.size()>(d));
+    return detail::firstbit(detail::mask_to_int<k.size()>(d));
 }
 
 template <class T, class = enable_if<sizeof(T) <= 8>>
@@ -945,7 +944,7 @@ Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::sse> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k);
-    return detail::bit_scan_reverse(detail::mask_to_int<k.size()>(d));
+    return detail::lastbit(detail::mask_to_int<k.size()>(d));
 }
 Vc_VERSIONED_NAMESPACE_END
 // }}}
