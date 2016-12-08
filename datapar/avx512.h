@@ -35,6 +35,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "x86/convert.h"
 #include "x86/compares.h"
 
+// clang 3.9 doesn't have the _MM_CMPINT_XX constants defined {{{
+#ifndef _MM_CMPINT_EQ
+#define _MM_CMPINT_EQ 0x0
+#endif
+#ifndef _MM_CMPINT_LT
+#define _MM_CMPINT_LT 0x1
+#endif
+#ifndef _MM_CMPINT_LE
+#define _MM_CMPINT_LE 0x2
+#endif
+#ifndef _MM_CMPINT_UNUSED
+#define _MM_CMPINT_UNUSED 0x3
+#endif
+#ifndef _MM_CMPINT_NE
+#define _MM_CMPINT_NE 0x4
+#endif
+#ifndef _MM_CMPINT_NLT
+#define _MM_CMPINT_NLT 0x5
+#endif
+#ifndef _MM_CMPINT_GE
+#define _MM_CMPINT_GE 0x5
+#endif
+#ifndef _MM_CMPINT_NLE
+#define _MM_CMPINT_NLE 0x6
+#endif
+#ifndef _MM_CMPINT_GT
+#define _MM_CMPINT_GT 0x6
+#endif /*}}}*/
+
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
