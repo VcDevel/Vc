@@ -238,7 +238,14 @@ class Storage<ValueType, Size, AliasStrategy::MayAlias>
                       std::is_arithmetic<ValueType>::value,
                   "Only works for fundamental arithmetic types.");
 
-    struct[[gnu::may_alias]] aliased_construction { may_alias<ValueType> d[Size]; };
+    struct
+#ifndef Vc_MSVC
+        [[gnu::may_alias]]
+#endif
+        aliased_construction
+    {
+        may_alias<ValueType> d[Size];
+    };
 
 public:
     using VectorType = intrinsic_type<ValueType, Size>;
