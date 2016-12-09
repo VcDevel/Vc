@@ -639,41 +639,36 @@ constexpr struct {
 Vc_VERSIONED_NAMESPACE_END
 
 // [mask.reductions] {{{
-Vc_VERSIONED_NAMESPACE_BEGIN
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx> k)
+Vc_VERSIONED_NAMESPACE_BEGIN;
+template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
     return 0 != detail::testc(d, detail::allone_poly);
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::avx> k)
+template <class T> Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::avx> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
     return 0 == detail::testz(d, d);
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::avx> k)
+template <class T> Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::avx> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
     return 0 != detail::testz(d, d);
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::avx> k)
+template <class T> Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::avx> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
     return 0 != detail::testnzc(d, detail::allone_poly);
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx> k)
+template <class T> Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
@@ -691,16 +686,14 @@ Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx> k)
     }
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::avx> k)
+template <class T> Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::avx> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
     return detail::firstbit(detail::mask_to_int<k.size()>(d));
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx> k)
+template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
@@ -709,6 +702,15 @@ Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx> k)
     }
     return detail::lastbit(detail::mask_to_int<k.size()>(d));
 }
+
+Vc_ALWAYS_INLINE bool all_of(mask<long double, datapar_abi::avx> k) { return all_of(k[0]); }
+Vc_ALWAYS_INLINE bool any_of(mask<long double, datapar_abi::avx> k) { return any_of(k[0]); }
+Vc_ALWAYS_INLINE bool none_of(mask<long double, datapar_abi::avx> k) { return none_of(k[0]); }
+Vc_ALWAYS_INLINE bool some_of(mask<long double, datapar_abi::avx> k) { return some_of(k[0]); }
+Vc_ALWAYS_INLINE int popcount(mask<long double, datapar_abi::avx> k) { return popcount(k[0]); }
+Vc_ALWAYS_INLINE int find_first_set(mask<long double, datapar_abi::avx> k) { return find_first_set(k[0]); }
+Vc_ALWAYS_INLINE int find_last_set(mask<long double, datapar_abi::avx> k) { return find_last_set(k[0]); }
+
 Vc_VERSIONED_NAMESPACE_END
 // }}}
 

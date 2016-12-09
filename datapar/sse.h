@@ -863,8 +863,7 @@ Vc_ALWAYS_INLINE bool some_of(mask<double, datapar_abi::sse> k)
 #endif
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_USE_PTEST
@@ -876,8 +875,7 @@ Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::sse> k)
 #endif
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_USE_PTEST
@@ -887,8 +885,7 @@ Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::sse> k)
 #endif
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_USE_PTEST
@@ -898,8 +895,7 @@ Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::sse> k)
 #endif
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_USE_PTEST
@@ -911,29 +907,35 @@ Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::sse> k)
 }
 #endif
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::sse> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k);
     return detail::mask_count<k.size()>(d);
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::sse> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k);
     return detail::firstbit(detail::mask_to_int<k.size()>(d));
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::sse> k)
 {
     const auto d =
         static_cast<typename detail::traits<T, datapar_abi::sse>::mask_cast_type>(k);
     return detail::lastbit(detail::mask_to_int<k.size()>(d));
 }
+
+Vc_ALWAYS_INLINE bool all_of(mask<long double, datapar_abi::sse> k) { return all_of(k[0]); }
+Vc_ALWAYS_INLINE bool any_of(mask<long double, datapar_abi::sse> k) { return any_of(k[0]); }
+Vc_ALWAYS_INLINE bool none_of(mask<long double, datapar_abi::sse> k) { return none_of(k[0]); }
+Vc_ALWAYS_INLINE bool some_of(mask<long double, datapar_abi::sse> k) { return some_of(k[0]); }
+Vc_ALWAYS_INLINE int popcount(mask<long double, datapar_abi::sse> k) { return popcount(k[0]); }
+Vc_ALWAYS_INLINE int find_first_set(mask<long double, datapar_abi::sse> k) { return find_first_set(k[0]); }
+Vc_ALWAYS_INLINE int find_last_set(mask<long double, datapar_abi::sse> k) { return find_last_set(k[0]); }
+
 Vc_VERSIONED_NAMESPACE_END
 // }}}
 
