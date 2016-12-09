@@ -57,8 +57,8 @@ if(Vc_X86)
    vc_target_setup(avx snb "-xAVX" "-mavx" "/arch:AVX")
    vc_target_setup(avx2 hsw "-xCORE-AVX2" "-mavx2|-mbmi|-mbmi2|-mlzcnt|-mfma" "/arch:AVX2")
    #vc_target_setup(mic "" "-mmic")
-   vc_target_setup(knl knl "-xMIC-AVX512" "-march=knl")
-   vc_target_setup(avx512 skx "-xCORE-AVX512" "-march=skylake-avx512")
+   vc_target_setup(knl knl "-xMIC-AVX512" "-march=knl" "/arch:KNL")
+   vc_target_setup(avx512 skx "-xCORE-AVX512" "-march=skylake-avx512" "/arch:AVX512")
 endif()
 
 macro(vc_add_run_target _target emulator run_target_list)#{{{
