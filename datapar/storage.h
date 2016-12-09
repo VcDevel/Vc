@@ -433,12 +433,15 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data(x86::zero<VectorType>()) { assertCorrectAlignment(&data); }
-
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&... init)
-        : data{static_cast<EntryType>(std::forward<Args>(init))...}
+    Vc_INTRINSIC Storage() : data(x86::zero<VectorType>())
     {
+        assertCorrectAlignment(&data);
+    }
+
+    template <class T> Vc_INTRINSIC Storage(const std::initializer_list<T> &init)
+    {
+        Vc_ASSERT(init.size() == Size);
+        execute_n_times<Size>([&](auto i) { ref(i) = static_cast<EntryType>(init.begin()[i]); });
     }
 
 #ifdef Vc_HAVE_AVX512BW
@@ -471,6 +474,15 @@ public:
         assertCorrectAlignment(&data);
     }
 
+#ifdef Vc_MSVC
+    template <class U>
+    Vc_INTRINSIC explicit Storage(U x) : data(reinterpret_cast<const VectorType &>(x))
+    {
+        static_assert(sizeof(U) == sizeof(VectorType),
+                      "invalid call to converting Storage constructor");
+        assertCorrectAlignment(&data);
+    }
+#else  // Vc_MSVC
     template <typename U>
     Vc_INTRINSIC explicit Storage(const U &x,
                                   enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
@@ -478,10 +490,16 @@ public:
     {
         assertCorrectAlignment(&data);
     }
+#endif  // Vc_MSVC
 
+    static const VectorType &adjustVectorType(const VectorType &x) { return x; }
+    template <typename T> static VectorType adjustVectorType(const T &x)
+    {
+        return reinterpret_cast<VectorType>(x);
+    }
     template <typename U>
-    Vc_INTRINSIC explicit Storage(Storage<U, Size, AliasStrategy::UnionMembers> x)
-        : data(reinterpret_cast<VectorType>(x.v()))
+    Vc_INTRINSIC explicit Storage(const Storage<U, Size, AliasStrategy::UnionMembers> &x)
+        : data(adjustVectorType(x.v()))
     {
         assertCorrectAlignment(&data);
     }
