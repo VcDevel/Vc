@@ -516,47 +516,69 @@ public:
     Vc_INTRINSIC void set(size_t i, EntryType x) { ref(i) = x; }
 
 private:
-    Vc_INTRINSIC_L Vc_PURE_L EntryType &ref(size_t i) Vc_INTRINSIC_R Vc_PURE_R;
+    Vc_INTRINSIC_L Vc_PURE_L typename std::conditional<
+        std::is_same<EntryType, signed char>::value, char,
+        typename std::conditional<
+            std::is_same<EntryType, long>::value, int,
+            typename std::conditional<std::is_same<EntryType, ulong>::value, uint,
+                                      EntryType>::type>::type>::type &
+    ref(size_t i) Vc_INTRINSIC_R Vc_PURE_R;
     VectorType data;
 };
 
 #ifdef Vc_MSVC
-template <> Vc_INTRINSIC Vc_PURE          double Storage<         double, 2, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128d_f64[i]; }
-template <> Vc_INTRINSIC Vc_PURE          float  Storage<         float , 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128_f32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed int    Storage<  signed int   , 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed short  Storage<  signed short , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed char   Storage<  signed char  ,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i8[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned int    Storage<unsigned int   , 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned short  Storage<unsigned short , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u16[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned char   Storage<unsigned char  ,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u8[i]; }
+template <> Vc_INTRINSIC Vc_PURE double Storage<double, 2, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128d_f64[i]; }
+template <> Vc_INTRINSIC Vc_PURE  float Storage< float, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128_f32[i]; }
+template <> Vc_INTRINSIC Vc_PURE  llong Storage< llong, 2, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i64[i]; }
+template <> Vc_INTRINSIC Vc_PURE   long Storage<  long, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE    int Storage<   int, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE  short Storage< short, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i16[i]; }
+template <> Vc_INTRINSIC Vc_PURE  schar Storage< schar,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE ullong Storage<ullong, 2, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u64[i]; }
+template <> Vc_INTRINSIC Vc_PURE  ulong Storage< ulong, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   uint Storage<  uint, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE ushort Storage<ushort, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u16[i]; }
+template <> Vc_INTRINSIC Vc_PURE  uchar Storage< uchar,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u8[i]; }
 
-template <> Vc_INTRINSIC Vc_PURE          double &Storage<         double, 2, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128d_f64[i]; }
-template <> Vc_INTRINSIC Vc_PURE          float  &Storage<         float , 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128_f32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed int    &Storage<  signed int   , 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed short  &Storage<  signed short , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed char   &Storage<  signed char  ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i8[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned int    &Storage<unsigned int   , 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned short  &Storage<unsigned short , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u16[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u8[i]; }
+template <> Vc_INTRINSIC Vc_PURE double &Storage<double, 2, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128d_f64[i]; }
+template <> Vc_INTRINSIC Vc_PURE  float &Storage< float, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128_f32[i]; }
+template <> Vc_INTRINSIC Vc_PURE  llong &Storage< llong, 2, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i64[i]; }
+template <> Vc_INTRINSIC Vc_PURE    int &Storage<  long, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE    int &Storage<   int, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE  short &Storage< short, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i16[i]; }
+template <> Vc_INTRINSIC Vc_PURE   char &Storage< schar,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE ullong &Storage<ullong, 2, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u64[i]; }
+template <> Vc_INTRINSIC Vc_PURE   uint &Storage< ulong, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   uint &Storage<  uint, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE ushort &Storage<ushort, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u16[i]; }
+template <> Vc_INTRINSIC Vc_PURE  uchar &Storage< uchar,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u8[i]; }
 
 #ifdef Vc_HAVE_AVX
-template <> Vc_INTRINSIC Vc_PURE          double Storage<         double, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256d_f64[i]; }
-template <> Vc_INTRINSIC Vc_PURE          float  Storage<         float , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256_f32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed int    Storage<  signed int   , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed short  Storage<  signed short ,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed char   Storage<  signed char  ,32, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i8[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned int    Storage<unsigned int   , 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned short  Storage<unsigned short ,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u16[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned char   Storage<unsigned char  ,32, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u8[i]; }
+template <> Vc_INTRINSIC Vc_PURE double Storage<double, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256d_f64[i]; }
+template <> Vc_INTRINSIC Vc_PURE  float Storage< float, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256_f32[i]; }
+template <> Vc_INTRINSIC Vc_PURE  llong Storage< llong, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i64[i]; }
+template <> Vc_INTRINSIC Vc_PURE   long Storage<  long, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE    int Storage<   int, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE  short Storage< short,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i16[i]; }
+template <> Vc_INTRINSIC Vc_PURE  schar Storage< schar,32, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE ullong Storage<ullong, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u64[i]; }
+template <> Vc_INTRINSIC Vc_PURE  ulong Storage< ulong, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   uint Storage<  uint, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE ushort Storage<ushort,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u16[i]; }
+template <> Vc_INTRINSIC Vc_PURE  uchar Storage< uchar,32, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u8[i]; }
 
-template <> Vc_INTRINSIC Vc_PURE          double &Storage<         double, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256d_f64[i]; }
-template <> Vc_INTRINSIC Vc_PURE          float  &Storage<         float , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256_f32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed int    &Storage<  signed int   , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed short  &Storage<  signed short ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE   signed char   &Storage<  signed char  ,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i8[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned int    &Storage<unsigned int   , 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned short  &Storage<unsigned short ,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u16[i]; }
-template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u8[i]; }
+template <> Vc_INTRINSIC Vc_PURE double &Storage<double, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256d_f64[i]; }
+template <> Vc_INTRINSIC Vc_PURE  float &Storage< float, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256_f32[i]; }
+template <> Vc_INTRINSIC Vc_PURE  llong &Storage< llong, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i64[i]; }
+template <> Vc_INTRINSIC Vc_PURE    int &Storage<  long, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE    int &Storage<   int, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i32[i]; }
+template <> Vc_INTRINSIC Vc_PURE  short &Storage< short,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i16[i]; }
+template <> Vc_INTRINSIC Vc_PURE   char &Storage< schar,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i8[i]; }
+template <> Vc_INTRINSIC Vc_PURE ullong &Storage<ullong, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u64[i]; }
+template <> Vc_INTRINSIC Vc_PURE   uint &Storage< ulong, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE   uint &Storage<  uint, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u32[i]; }
+template <> Vc_INTRINSIC Vc_PURE ushort &Storage<ushort,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u16[i]; }
+template <> Vc_INTRINSIC Vc_PURE  uchar &Storage< uchar,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u8[i]; }
 #endif
 #endif  // Vc_MSVC
 
@@ -566,3 +588,5 @@ template <> Vc_INTRINSIC Vc_PURE unsigned char   &Storage<unsigned char  ,32, Al
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_STORAGE_H_
+
+// vim: foldmethod=marker
