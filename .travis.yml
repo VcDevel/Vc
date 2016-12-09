@@ -49,6 +49,10 @@ install:
       fi
 
 before_script:
+    # ptrace_scope=0 is required on Ubuntu for SDE to work
+    - if test "$TRAVIS_OS_NAME" = "linux"; then
+        echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope;
+      fi
     - $CXX --version
     - cmake --version
     - export dashboard_model=Experimental
