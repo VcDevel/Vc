@@ -61,24 +61,27 @@ if(Vc_X86)
    vc_target_setup(avx512 skx "-xCORE-AVX512" "-march=skylake-avx512")
 endif()
 
-macro(vc_add_run_target _target emulator)#{{{
+macro(vc_add_run_target _target emulator run_target_list)#{{{
    if("${CMAKE_GENERATOR}" MATCHES "Visual Studio")
       # do nothing. This just clutters the solution explorer
-   elseif(emulator)
-      get_target_executable(_exe "${_target}")
-      add_custom_target(run_${_target}
-         ${emulator} "${_exe}" "-v" # FIXME: MIC_NATIVELOAD needs `emulator exe -a -v`
-         DEPENDS ${_target}
-         COMMENT "Execute ${_target} test"
-         VERBATIM
-         )
    else()
-      add_custom_target(run_${_target}
-         ${_target} -v
-         DEPENDS ${_target}
-         COMMENT "Execute ${_target} test"
-         VERBATIM
-         )
+      if(emulator)
+         get_target_executable(_exe "${_target}")
+         add_custom_target(run_${_target}
+            ${emulator} "${_exe}" "-v" # FIXME: MIC_NATIVELOAD needs `emulator exe -a -v`
+            DEPENDS ${_target}
+            COMMENT "Execute ${_target} test"
+            VERBATIM
+            )
+      else()
+         add_custom_target(run_${_target}
+            ${_target} -v
+            DEPENDS ${_target}
+            COMMENT "Execute ${_target} test"
+            VERBATIM
+            )
+      endif()
+      list(APPEND ${run_target_list} "run_${target}")
    endif()
 endmacro()#}}}
 
@@ -171,8 +174,7 @@ function(vc_add_test name) #{{{
                   add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
                endif()
                set_property(TEST ${target} PROPERTY LABELS "${label}")
-               vc_add_run_target(${target} "${emulator}")
-               list(APPEND run_targets "run_${target}")
+               vc_add_run_target(${target} "${emulator}" run_targets)
             endif()
             if(impl STREQUAL "nosimd")
                break()
@@ -300,7 +302,7 @@ macro(vc_add_general_test _name)#{{{
    add_dependencies(other ${_name})
    add_test(${_name} "${CMAKE_CURRENT_BINARY_DIR}/${_name}")
    set_property(TEST ${_name} PROPERTY LABELS "other")
-   vc_add_run_target(${_name} FALSE)
+   vc_add_run_target(${_name} FALSE _ignore)
 endmacro()#}}}
 
 if(_last_target_arch STREQUAL "auto" AND NOT Vc_AVX_INTRINSICS_BROKEN)
