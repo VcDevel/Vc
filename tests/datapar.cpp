@@ -314,7 +314,7 @@ TEST_TYPES(VU, load_store,
         COMPARE(indexes_from_0[i], T(i));
     }
     const V indexes_from_1 = gen({1, 2, 3, 4}, 4);
-    const V indexes_from_size = gen({V::size()}, 1);
+    const V indexes_from_size = gen({T(V::size())}, 1);
     const M alternating_mask = make_mask<M>({0, 1});
 
     // loads {{{2
@@ -351,8 +351,8 @@ TEST_TYPES(VU, load_store,
 
     constexpr auto mem_size =
         test_values_size > 3 * V::size() ? test_values_size : 3 * V::size();
-    alignas(Vc::memory_alignment<V, U> * 2) U mem[mem_size] = {};
-    alignas(Vc::memory_alignment<V, T> * 2) T reference[mem_size] = {};
+    alignas(Vc::memory_alignment_v<V, U> * 2) U mem[mem_size] = {};
+    alignas(Vc::memory_alignment_v<V, T> * 2) T reference[mem_size] = {};
     for (std::size_t i = 0; i < test_values_size; ++i) {
         mem[i] = test_values[i];
         reference[i] = static_cast<T>(mem[i]);
