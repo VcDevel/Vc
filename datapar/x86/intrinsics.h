@@ -1781,6 +1781,11 @@ Vc_INTRINSIC Vc_CONST auto firstbit(llong bits)
     return firstbit(ullong(bits));
 }
 
+#ifdef Vc_MSVC
+#pragma intrinsic(_BitScanForward)
+#pragma intrinsic(_BitScanReverse)
+#endif
+
 Vc_INTRINSIC Vc_CONST auto firstbit(uint x)
 {
 #if defined Vc_ICC || defined Vc_GCC
@@ -1788,7 +1793,6 @@ Vc_INTRINSIC Vc_CONST auto firstbit(uint x)
 #elif defined Vc_CLANG || defined Vc_APPLECLANG
     return __builtin_ctz(x);
 #elif defined Vc_MSVC
-#pragma intrinsic(_BitScanForward)
     unsigned long index;
     _BitScanForward(&index, x);
     return index;
@@ -1832,7 +1836,6 @@ Vc_INTRINSIC Vc_CONST auto lastbit(uint x)
 #elif defined Vc_CLANG || defined Vc_APPLECLANG
     return 31 - __builtin_clz(x);
 #elif defined(Vc_MSVC)
-#pragma intrinsic(_BitScanReverse)
     unsigned long index;
     _BitScanReverse(&index, x);
     return index;
