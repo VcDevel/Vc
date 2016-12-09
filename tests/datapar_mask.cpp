@@ -207,7 +207,13 @@ TEST_TYPES(M, convert, ALL_TYPES)
 TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
 {
     // loads {{{2
-    alignas(Vc::memory_alignment<M> * 2) bool mem[3 * M::size()];
+    constexpr size_t alignment = 2 * Vc::memory_alignment_v<M
+#ifdef Vc_MSVC
+                                                            ,
+                                                            bool
+#endif
+                                                            >;
+    alignas(alignment) bool mem[3 * M::size()];
     std::memset(mem, 0, sizeof(mem));
     for (std::size_t i = 1; i < sizeof(mem) / sizeof(*mem); i += 2) {
         COMPARE(mem[i - 1], false);
@@ -215,7 +221,12 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
     }
     using Vc::flags::element_aligned;
     using Vc::flags::vector_aligned;
+#ifdef Vc_MSVC
+    using TT = Vc::flags::overaligned_tag<alignment>;
+    constexpr TT overaligned = {};
+#else
     constexpr auto overaligned = Vc::flags::overaligned<Vc::memory_alignment<M> * 2>;
+#endif
 
     const M alternating_mask = make_alternating_mask<M>();
 

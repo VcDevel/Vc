@@ -181,7 +181,12 @@ template <class T> struct abi_for_size<T, 0> {
 template <class T, size_t N> using abi_for_size_t = typename abi_for_size<T, N>::type;
 
 template <class T, class U = typename T::value_type>
-constexpr size_t memory_alignment = detail::next_power_of_2(sizeof(U) * T::size());
+struct memory_alignment
+    : public std::integral_constant<size_t,
+                                    detail::next_power_of_2(sizeof(U) * T::size())> {
+};
+template <class T, class U = typename T::value_type>
+constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
 
 // class template datapar [datapar]
 template <class T, class Abi = datapar_abi::compatible<T>> class datapar;
