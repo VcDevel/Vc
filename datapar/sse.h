@@ -579,7 +579,7 @@ struct sse_mask_impl {
     template <class F>
     static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<2>) noexcept
     {
-        return _mm_set_epi32(-mem[1], -mem[1], -mem[0], -mem[0]);
+        return _mm_set_epi32(-int(mem[1]), -int(mem[1]), -int(mem[0]), -int(mem[0]));
     }
     template <class F>
     static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<8>) noexcept
