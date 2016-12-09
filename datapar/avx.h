@@ -506,7 +506,8 @@ struct avx_mask_impl {
 
     // store {{{2
     template <class T, class F>
-    static constexpr void store(mask_member_type<T> v, bool *mem, F, size_tag<4>) noexcept
+    static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
+                                   size_tag<4>) noexcept
     {
         auto k = intrin_cast<__m256i>(v.v());
 #ifdef Vc_HAVE_AVX2
@@ -519,7 +520,8 @@ struct avx_mask_impl {
 #endif
     }
     template <class T, class F>
-    static constexpr void store(mask_member_type<T> v, bool *mem, F, size_tag<8>) noexcept
+    static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
+                                   size_tag<8>) noexcept
     {
         auto k = intrin_cast<__m256i>(v.v());
         const auto k2 =
@@ -533,8 +535,8 @@ struct avx_mask_impl {
 #endif
     }
     template <class T, class F>
-    static constexpr void store(mask_member_type<T> v, bool *mem, F f,
-                                size_tag<16>) noexcept
+    static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F f,
+                                   size_tag<16>) noexcept
     {
 #ifdef Vc_HAVE_AVX2
         auto x =_mm256_srli_epi16(v, 15);
@@ -546,8 +548,8 @@ struct avx_mask_impl {
         store16(bools, mem, f);
     }
     template <class T, class F>
-    static constexpr void store(mask_member_type<T> v, bool *mem, F f,
-                                size_tag<32>) noexcept
+    static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F f,
+                                   size_tag<32>) noexcept
     {
         const auto bools = detail::and_(one32(uchar()), v.v());
         store32(bools, mem, f);

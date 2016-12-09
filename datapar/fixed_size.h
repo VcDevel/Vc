@@ -46,85 +46,86 @@ template <int N> struct fixed_size_datapar_impl {
 
     // broadcast {{{2
     template <class T, size_t... I>
-    static constexpr datapar_member_type<T> broadcast_impl(
+    static Vc_INTRINSIC datapar_member_type<T> broadcast_impl(
         T x, std::index_sequence<I...>) noexcept
     {
         return {((void)I, x)...};
     }
     template <class T>
-    static constexpr datapar_member_type<T> broadcast(T x, size_tag) noexcept
+    static inline datapar_member_type<T> broadcast(T x, size_tag) noexcept
     {
         return broadcast_impl(x, index_seq);
     }
 
     // load {{{2
     template <class T, class U, size_t... I>
-    static constexpr datapar_member_type<T> load_impl(const U *mem,
-                                                      std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC datapar_member_type<T> load_impl(
+        const U *mem, std::index_sequence<I...>) noexcept
     {
         return {static_cast<T>(mem[I])...};
     }
     template <class T, class U, class F>
-    static constexpr datapar_member_type<T> load(const U *mem, F, type_tag<T>) noexcept
+    static inline datapar_member_type<T> load(const U *mem, F, type_tag<T>) noexcept
     {
         return load_impl<T>(mem, index_seq);
     }
 
     // masked load {{{2
     template <class T, class U, size_t... I>
-    static constexpr void masked_load_impl(datapar_member_type<T> &merge,
-                                           const mask_member_type &mask, const U *mem,
-                                           std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC void masked_load_impl(datapar_member_type<T> &merge,
+                                              const mask_member_type &mask, const U *mem,
+                                              std::index_sequence<I...>) noexcept
     {
         auto &&x = {(merge[I] = mask[I] ? static_cast<T>(mem[I]) : merge[I])...};
         unused(x);
     }
     template <class T, class A, class U, class F>
-    static constexpr void masked_load(datapar_member_type<T> &merge,
-                                      const Vc::mask<T, A> &k, const U *mem, F) noexcept
+    static inline void masked_load(datapar_member_type<T> &merge, const Vc::mask<T, A> &k,
+                                   const U *mem, F) noexcept
     {
         masked_load_impl(merge, k.d, mem, index_seq);
     }
 
     // store {{{2
     template <class T, class U, size_t... I>
-    static constexpr void store_impl(const datapar_member_type<T> &v, U *mem,
-                                     std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC void store_impl(const datapar_member_type<T> &v, U *mem,
+                                        std::index_sequence<I...>) noexcept
     {
         auto &&x = {(mem[I] = static_cast<U>(v[I]))...};
         unused(x);
     }
     template <class T, class U, class F>
-    static constexpr void store(const datapar_member_type<T> &v, U *mem, F, type_tag<T>) noexcept
+    static inline void store(const datapar_member_type<T> &v, U *mem, F,
+                             type_tag<T>) noexcept
     {
         return store_impl(v, mem, index_seq);
     }
 
     // masked store {{{2
     template <class T, class U, size_t... I>
-    static constexpr void masked_store_impl(const datapar_member_type<T> &v, U *mem,
-                                            std::index_sequence<I...>,
-                                            const mask_member_type &k) noexcept
+    static Vc_INTRINSIC void masked_store_impl(const datapar_member_type<T> &v, U *mem,
+                                               std::index_sequence<I...>,
+                                               const mask_member_type &k) noexcept
     {
         auto &&x = {(k[I] ? mem[I] = static_cast<U>(v[I]) : false)...};
         unused(x);
     }
     template <class T, class A, class U, class F>
-    static constexpr void masked_store(const datapar_member_type<T> &v, U *mem, F,
-                                       const Vc::mask<T, A> &k) noexcept
+    static inline void masked_store(const datapar_member_type<T> &v, U *mem, F,
+                                    const Vc::mask<T, A> &k) noexcept
     {
         return masked_store_impl(v, mem, index_seq, k.d);
     }
 
     // negation {{{2
     template <class T, size_t... I>
-    static constexpr mask_member_type negate_impl(
-        const datapar_member_type<T> &x, std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC mask_member_type negate_impl(const datapar_member_type<T> &x,
+                                                     std::index_sequence<I...>) noexcept
     {
         return {!x[I]...};
     }
     template <class T, class A>
-    static constexpr Vc::mask<T, A> negate(const Vc::datapar<T, A> &x) noexcept
+    static inline Vc::mask<T, A> negate(const Vc::datapar<T, A> &x) noexcept
     {
         return {private_init, negate_impl(x.d, index_seq)};
     }
@@ -219,16 +220,15 @@ template <int N> struct fixed_size_datapar_impl {
 
     // compares {{{2
     template <template <typename> class Cmp, class T, size_t... I>
-    static constexpr mask_member_type cmp_impl(const datapar_member_type<T> &x,
-                                               const datapar_member_type<T> &y,
-                                               std::index_sequence<I...>)
+    static Vc_INTRINSIC mask_member_type cmp_impl(const datapar_member_type<T> &x,
+                                                  const datapar_member_type<T> &y,
+                                                  std::index_sequence<I...>)
     {
         Cmp<T> cmp;
         return {cmp(x[I], y[I])...};
     }
 #define Vc_CMP_OPERATIONS(cmp_)                                                          \
-    template <class V>                                                                   \
-    static constexpr typename V::mask_type cmp_(const V &x, const V &y)                  \
+    template <class V> static inline typename V::mask_type cmp_(const V &x, const V &y)  \
     {                                                                                    \
         return {private_init, cmp_impl<std::cmp_>(x.d, y.d, index_seq)};                 \
     }                                                                                    \
@@ -265,65 +265,65 @@ template <int N> struct fixed_size_mask_impl {
 
     // broadcast {{{2
     template <size_t... I>
-    static constexpr mask_member_type broadcast_impl(
-        bool x, std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC mask_member_type
+    broadcast_impl(bool x, std::index_sequence<I...>) noexcept
     {
         return {((void)I, x)...};
     }
     template <class T>
-    static constexpr mask_member_type broadcast(bool x, type_tag<T>) noexcept
+    static inline mask_member_type broadcast(bool x, type_tag<T>) noexcept
     {
         return broadcast_impl(x, index_seq);
     }
 
     // load {{{2
     template <size_t... I>
-    static constexpr mask_member_type load_impl(const bool *mem,
-                                                std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC mask_member_type load_impl(const bool *mem,
+                                                   std::index_sequence<I...>) noexcept
     {
         return {mem[I]...};
     }
     template <class F>
-    static constexpr mask_member_type load(const bool *mem, F, size_tag) noexcept
+    static inline mask_member_type load(const bool *mem, F, size_tag) noexcept
     {
         return load_impl(mem, index_seq);
     }
 
     // masked load {{{2
     template <size_t... I>
-    static constexpr void masked_load_impl(mask_member_type &merge,
-                                           const mask_member_type &mask, const bool *mem,
-                                           std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC void masked_load_impl(mask_member_type &merge,
+                                              const mask_member_type &mask,
+                                              const bool *mem,
+                                              std::index_sequence<I...>) noexcept
     {
         auto &&x = {(merge[I] = mask[I] ? mem[I] : merge[I])...};
         unused(x);
     }
     template <class F>
-    static constexpr void masked_load(mask_member_type &merge,
-                                      const mask_member_type &mask, const bool *mem, F,
-                                      size_tag) noexcept
+    static inline void masked_load(mask_member_type &merge, const mask_member_type &mask,
+                                   const bool *mem, F, size_tag) noexcept
     {
         masked_load_impl(merge, mask, mem, index_seq);
     }
 
     // store {{{2
     template <size_t... I>
-    static constexpr void store_impl(const mask_member_type &v, bool *mem,
-                                     std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC void store_impl(const mask_member_type &v, bool *mem,
+                                        std::index_sequence<I...>) noexcept
     {
         auto &&x = {(mem[I] = v[I])...};
         unused(x);
     }
     template <class F>
-    static constexpr void store(const mask_member_type &v, bool *mem, F, size_tag) noexcept
+    static inline void store(const mask_member_type &v, bool *mem, F, size_tag) noexcept
     {
         store_impl(v, mem, index_seq);
     }
 
     // masked store {{{2
     template <class F>
-    static constexpr void masked_store(const mask_member_type &v, bool *mem, F,
-                                       const mask_member_type &k, size_tag) noexcept
+    static inline void masked_store(const mask_member_type &v, bool *mem, F,
+                                    const mask_member_type &k, size_tag) noexcept
     {
         execute_n_times<N>([&](auto i) {
             if (k[i]) {
@@ -334,12 +334,12 @@ template <int N> struct fixed_size_mask_impl {
 
     // negation {{{2
     template <size_t... I>
-    static constexpr mask_member_type negate_impl(const mask_member_type &x,
-                                                  std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC mask_member_type negate_impl(const mask_member_type &x,
+                                                     std::index_sequence<I...>) noexcept
     {
         return {!x[I]...};
     }
-    static constexpr mask_member_type negate(const mask_member_type &x, size_tag) noexcept
+    static inline mask_member_type negate(const mask_member_type &x, size_tag) noexcept
     {
         return negate_impl(x, index_seq);
     }
