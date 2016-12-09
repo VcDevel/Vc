@@ -163,6 +163,7 @@ public:
     Vc_INTRINSIC Storage(Args &&...init)
         : data(x86::set(static_cast<EntryType>(std::forward<Args>(init))...))
     {
+        assertCorrectAlignment(&data);
     }
 
 #ifdef Vc_HAVE_AVX512BW
@@ -170,11 +171,13 @@ public:
         : data(intrin_cast<VectorType>(
               convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
     {
+        assertCorrectAlignment(&data);
     }
     inline Storage(__mmask32 k)
         : data(intrin_cast<VectorType>(
               convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
     {
+        assertCorrectAlignment(&data);
     }
 #endif  // Vc_HAVE_AVX512BW
 #if defined Vc_HAVE_AVX512DQ || (defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL)
@@ -182,11 +185,13 @@ public:
         : data(intrin_cast<VectorType>(
               convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
     {
+        assertCorrectAlignment(&data);
     }
     inline Storage(__mmask8 k)
         : data(intrin_cast<VectorType>(
               convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
     {
+        assertCorrectAlignment(&data);
     }
 #endif  // Vc_HAVE_AVX512BW
 
@@ -450,11 +455,13 @@ public:
         : data(intrin_cast<VectorType>(
               convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
     {
+        assertCorrectAlignment(&data);
     }
     inline Storage(__mmask32 k)
         : data(intrin_cast<VectorType>(
               convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
     {
+        assertCorrectAlignment(&data);
     }
 #endif  // Vc_HAVE_AVX512BW
 #if defined Vc_HAVE_AVX512DQ || (defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL)
@@ -462,11 +469,13 @@ public:
         : data(intrin_cast<VectorType>(
               convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
     {
+        assertCorrectAlignment(&data);
     }
     inline Storage(__mmask8 k)
         : data(intrin_cast<VectorType>(
               convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
     {
+        assertCorrectAlignment(&data);
     }
 #endif  // Vc_HAVE_AVX512BW
 
