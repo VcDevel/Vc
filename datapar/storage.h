@@ -201,16 +201,27 @@ public:
     }
 
     template <typename U>
-    Vc_INTRINSIC explicit Storage(const U &x,
-                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
+    Vc_INTRINSIC explicit Storage(const U &x
+#ifndef Vc_MSVC
+                                  ,
+                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg
+#endif
+                                  )
         : data(reinterpret_cast<const VectorType &>(x))
     {
+        static_assert(sizeof(U) == sizeof(VectorType),
+                      "invalid call to converting Storage constructor");
         assertCorrectAlignment(&data);
     }
 
+    static const VectorType &adjustVectorType(const VectorType &x) { return x; }
+    template <typename T> static VectorType adjustVectorType(const T &x)
+    {
+        return reinterpret_cast<VectorType>(x);
+    }
     template <typename U>
-    Vc_INTRINSIC explicit Storage(Storage<U, Size, AliasStrategy::Union> x)
-        : data(reinterpret_cast<VectorType>(x.v()))
+    Vc_INTRINSIC explicit Storage(const Storage<U, Size, AliasStrategy::Union> &x)
+        : data(adjustVectorType(x.v()))
     {
         assertCorrectAlignment(&data);
     }
@@ -484,23 +495,19 @@ public:
         assertCorrectAlignment(&data);
     }
 
-#ifdef Vc_MSVC
-    template <class U>
-    Vc_INTRINSIC explicit Storage(U x) : data(reinterpret_cast<const VectorType &>(x))
+    template <typename U>
+    Vc_INTRINSIC explicit Storage(const U &x
+#ifndef Vc_MSVC
+                                  ,enable_if<sizeof(U) == sizeof(VectorType)> = nullarg
+#else  // Vc_MSVC
+    )
+    : data(reinterpret_cast<const VectorType &>(x))
+#endif  // Vc_MSVC
     {
         static_assert(sizeof(U) == sizeof(VectorType),
                       "invalid call to converting Storage constructor");
         assertCorrectAlignment(&data);
     }
-#else  // Vc_MSVC
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(const U &x,
-                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
-        : data(reinterpret_cast<const VectorType &>(x))
-    {
-        assertCorrectAlignment(&data);
-    }
-#endif  // Vc_MSVC
 
     static const VectorType &adjustVectorType(const VectorType &x) { return x; }
     template <typename T> static VectorType adjustVectorType(const T &x)
