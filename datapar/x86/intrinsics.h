@@ -879,6 +879,8 @@ Vc_INTRINSIC __m128i broadcast16( short x) { return _mm_set1_epi16(x); }
 Vc_INTRINSIC __m128i broadcast16(ushort x) { return _mm_set1_epi16(x); }
 Vc_INTRINSIC __m128i broadcast16(   int x) { return _mm_set1_epi32(x); }
 Vc_INTRINSIC __m128i broadcast16(  uint x) { return _mm_set1_epi32(x); }
+Vc_INTRINSIC __m128i broadcast16(  long x) { return sizeof( long) == 4 ? _mm_set1_epi32(x) : _mm_set1_epi64x(x); }
+Vc_INTRINSIC __m128i broadcast16( ulong x) { return sizeof(ulong) == 4 ? _mm_set1_epi32(x) : _mm_set1_epi64x(x); }
 Vc_INTRINSIC __m128i broadcast16( llong x) { return _mm_set1_epi64x(x); }
 Vc_INTRINSIC __m128i broadcast16(ullong x) { return _mm_set1_epi64x(x); }
 #endif  // Vc_HAVE_SSE2
@@ -892,6 +894,8 @@ Vc_INTRINSIC __m256i broadcast32( short x) { return _mm256_set1_epi16(x); }
 Vc_INTRINSIC __m256i broadcast32(ushort x) { return _mm256_set1_epi16(x); }
 Vc_INTRINSIC __m256i broadcast32(   int x) { return _mm256_set1_epi32(x); }
 Vc_INTRINSIC __m256i broadcast32(  uint x) { return _mm256_set1_epi32(x); }
+Vc_INTRINSIC __m256i broadcast32(  long x) { return sizeof( long) == 4 ? _mm256_set1_epi32(x) : _mm256_set1_epi64x(x); }
+Vc_INTRINSIC __m256i broadcast32( ulong x) { return sizeof(ulong) == 4 ? _mm256_set1_epi32(x) : _mm256_set1_epi64x(x); }
 Vc_INTRINSIC __m256i broadcast32( llong x) { return _mm256_set1_epi64x(x); }
 Vc_INTRINSIC __m256i broadcast32(ullong x) { return _mm256_set1_epi64x(x); }
 #endif  // Vc_HAVE_AVX
@@ -905,6 +909,8 @@ Vc_INTRINSIC __m512i broadcast64( short x) { return _mm512_set1_epi16(x); }
 Vc_INTRINSIC __m512i broadcast64(ushort x) { return _mm512_set1_epi16(x); }
 Vc_INTRINSIC __m512i broadcast64(   int x) { return _mm512_set1_epi32(x); }
 Vc_INTRINSIC __m512i broadcast64(  uint x) { return _mm512_set1_epi32(x); }
+Vc_INTRINSIC __m512i broadcast64(  long x) { return sizeof( long) == 4 ? _mm512_set1_epi32(x) : _mm512_set1_epi64(x); }
+Vc_INTRINSIC __m512i broadcast64( ulong x) { return sizeof(ulong) == 4 ? _mm512_set1_epi32(x) : _mm512_set1_epi64(x); }
 Vc_INTRINSIC __m512i broadcast64( llong x) { return _mm512_set1_epi64(x); }
 Vc_INTRINSIC __m512i broadcast64(ullong x) { return _mm512_set1_epi64(x); }
 #endif  // Vc_HAVE_AVX512F
