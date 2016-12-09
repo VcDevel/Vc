@@ -60,13 +60,13 @@ public:
     Vc_ALWAYS_INLINE MaskBool(const MaskBool &) noexcept = default;
     Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) noexcept = default;
 
-    template <typename T, typename = enable_if<(std::is_same<T, bool>::value ||
-                                                (std::is_fundamental<T>::value &&
-                                                 sizeof(storage_type) == sizeof(T)))>>
+    constexpr operator bool() const noexcept { return (data & 1) != 0; }
+    constexpr operator storage_type() const noexcept { return data; }
+    template <typename T, typename = enable_if<(std::is_fundamental<T>::value &&
+                                                sizeof(storage_type) == sizeof(T))>>
     constexpr operator T() const noexcept
     {
-        return std::is_same<T, bool>::value ? T((data & 1) != 0)
-                                            : reinterpret_cast<const may_alias<T> &>(data);
+        return reinterpret_cast<const may_alias<T> &>(data);
     }
 } Vc_MAY_ALIAS;
 
