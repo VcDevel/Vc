@@ -447,35 +447,12 @@ struct avx_mask_impl {
     template <class T> using mask = Vc::mask<T, datapar_abi::avx>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <class T> using type_tag = T *;
 
     // broadcast {{{2
-    static Vc_INTRINSIC __m256d broadcast(bool x, size_tag<4>) noexcept
+    template <typename T> static Vc_INTRINSIC auto broadcast(bool x, type_tag<T>) noexcept
     {
-        return _mm256_set1_pd(mask_bool<double>{x});
-    }
-    static Vc_INTRINSIC __m256 broadcast(bool x, size_tag<8>) noexcept
-    {
-        return _mm256_set1_ps(mask_bool<float>{x});
-    }
-    static Vc_INTRINSIC __m256i broadcast(bool x, size_tag<16>) noexcept
-    {
-#ifdef Vc_HAVE_AVX2
-        return _mm256_set1_epi16(mask_bool<std::int16_t>{x});
-#else
-        const std::uint32_t tmp = x ? 0x00010001u : 0u;
-        return intrin_cast<__m256i>(
-            _mm256_set1_ps(reinterpret_cast<const may_alias<float> &>(tmp)));
-#endif
-    }
-    static __m256i broadcast(bool x, size_tag<32>) noexcept
-    {
-#ifdef Vc_HAVE_AVX2
-        return _mm256_set1_epi8(mask_bool<std::int8_t>{x});
-#else
-        const std::uint32_t tmp = x ? 0x01010101u : 0u;
-        return intrin_cast<__m256i>(
-            _mm256_set1_ps(reinterpret_cast<const may_alias<float> &>(tmp)));
-#endif
+        return detail::broadcast32(T(mask_bool<T>{x}));
     }
 
     // load {{{2

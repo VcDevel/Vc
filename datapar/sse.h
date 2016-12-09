@@ -553,26 +553,13 @@ struct sse_mask_impl {
     template <class T> using mask = Vc::mask<T, datapar_abi::sse>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <class T> using type_tag = T *;
 
     // broadcast {{{2
-    static Vc_INTRINSIC auto broadcast(bool x, size_tag<4>) noexcept
+    template <class T> static Vc_INTRINSIC auto broadcast(bool x, type_tag<T>) noexcept
     {
-        return _mm_set1_ps(mask_bool<float>{x});
+        return detail::broadcast16(T(mask_bool<T>{x}));
     }
-#ifdef Vc_HAVE_SSE2
-    static Vc_INTRINSIC auto broadcast(bool x, size_tag<2>) noexcept
-    {
-        return _mm_set1_pd(mask_bool<double>{x});
-    }
-    static Vc_INTRINSIC auto broadcast(bool x, size_tag<8>) noexcept
-    {
-        return _mm_set1_epi16(mask_bool<std::int16_t>{x});
-    }
-    static Vc_INTRINSIC auto broadcast(bool x, size_tag<16>) noexcept
-    {
-        return _mm_set1_epi8(mask_bool<std::int8_t>{x});
-    }
-#endif  // Vc_HAVE_SSE2
 
     // load {{{2
     template <class F>

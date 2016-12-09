@@ -261,6 +261,7 @@ template <int N> struct fixed_size_mask_impl {
     using mask_member_type = std::array<bool, N>;
     template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
     using size_tag = std::integral_constant<size_t, N>;
+    template <class T> using type_tag = T *;
 
     // broadcast {{{2
     template <size_t... I>
@@ -269,7 +270,8 @@ template <int N> struct fixed_size_mask_impl {
     {
         return {((void)I, x)...};
     }
-    static constexpr mask_member_type broadcast(bool x, size_tag) noexcept
+    template <class T>
+    static constexpr mask_member_type broadcast(bool x, type_tag<T>) noexcept
     {
         return broadcast_impl(x, index_seq);
     }

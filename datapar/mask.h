@@ -36,6 +36,7 @@ template <class T, class Abi> class mask
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::mask_impl_type;
     static constexpr std::integral_constant<size_t, traits::size()> size_tag = {};
+    static constexpr T *type_tag = nullptr;
     friend impl;
     friend typename traits::datapar_impl_type;  // to construct masks on return and
                                                 // inspect data on masked operations
@@ -58,7 +59,7 @@ public:
     static constexpr size_type size_v = traits::size();
 
     // implicit broadcast constructor
-    mask(value_type x) : d(impl::broadcast(x, size_tag)) {}
+    mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
 
     // implicit type conversion constructor
     template <class U>
