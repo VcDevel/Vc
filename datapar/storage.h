@@ -438,10 +438,11 @@ public:
         assertCorrectAlignment(&data);
     }
 
-    template <class T> Vc_INTRINSIC Storage(const std::initializer_list<T> &init)
+    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
+    Vc_INTRINSIC Storage(Args &&...init)
+        : data(x86::set(static_cast<EntryType>(std::forward<Args>(init))...))
     {
-        Vc_ASSERT(init.size() == Size);
-        execute_n_times<Size>([&](auto i) { ref(i) = static_cast<EntryType>(init.begin()[i]); });
+        assertCorrectAlignment(&data);
     }
 
 #ifdef Vc_HAVE_AVX512BW
