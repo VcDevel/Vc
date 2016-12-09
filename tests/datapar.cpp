@@ -302,7 +302,13 @@ TEST_TYPES(VU, load_store,
     auto &&gen = make_vec<V>;
     using Vc::flags::element_aligned;
     using Vc::flags::vector_aligned;
-    constexpr auto overaligned = Vc::flags::overaligned<Vc::memory_alignment<V, U> * 2>;
+    constexpr size_t alignment = 2 * Vc::memory_alignment_v<V, U>;
+#ifdef Vc_MSVC
+    using TT = Vc::flags::overaligned_tag<alignment>;
+    constexpr TT overaligned = {};
+#else
+    constexpr auto overaligned = Vc::flags::overaligned<alignment>;
+#endif
     const V indexes_from_0 = gen({0, 1, 2, 3}, 4);
     for (std::size_t i = 0; i < V::size(); ++i) {
         COMPARE(indexes_from_0[i], T(i));
