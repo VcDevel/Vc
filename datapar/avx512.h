@@ -498,23 +498,28 @@ struct avx512_mask_impl {
     template <class T> using mask = Vc::mask<T, abi>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <class T> using type_tag = T *;
 
     // broadcast {{{2
-    static Vc_INTRINSIC __mmask8 broadcast(bool x, size_tag<8>) noexcept
+    static Vc_INTRINSIC __mmask8 broadcast_impl(bool x, size_tag<8>) noexcept
     {
         return static_cast<__mmask8>(x) * ~__mmask8();
     }
-    static Vc_INTRINSIC __mmask16 broadcast(bool x, size_tag<16>) noexcept
+    static Vc_INTRINSIC __mmask16 broadcast_impl(bool x, size_tag<16>) noexcept
     {
         return static_cast<__mmask16>(x) * ~__mmask16();
     }
-    static Vc_INTRINSIC __mmask32 broadcast(bool x, size_tag<32>) noexcept
+    static Vc_INTRINSIC __mmask32 broadcast_impl(bool x, size_tag<32>) noexcept
     {
         return static_cast<__mmask32>(x) * ~__mmask32();
     }
-    static Vc_INTRINSIC __mmask64 broadcast(bool x, size_tag<64>) noexcept
+    static Vc_INTRINSIC __mmask64 broadcast_impl(bool x, size_tag<64>) noexcept
     {
         return static_cast<__mmask64>(x) * ~__mmask64();
+    }
+    template <typename T> static Vc_INTRINSIC auto broadcast(bool x, type_tag<T>) noexcept
+    {
+        return broadcast_impl(x, size_tag<size<T>()>());
     }
 
     // load {{{2
