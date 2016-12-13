@@ -2566,8 +2566,13 @@ template <typename To> struct equivalent_conversion<To, scalar_conversion_fallba
     {
         using T = typename To::EntryType;
         auto&& tmp = {v0, vs...};
+#ifdef Vc_MSVC
         constexpr size_t nargs = 1 + sizeof...(Fs);
+#endif
         return generate_from_n_evaluations<To::size(), To>([&](auto i) {
+#ifndef Vc_MSVC
+            constexpr size_t nargs = 1 + sizeof...(Fs);
+#endif
             if (i < From::size() * nargs) {
                 return static_cast<T>(tmp.begin()[i / From::size()].m(i % From::size()));
             } else {
