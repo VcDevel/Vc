@@ -5,6 +5,8 @@ if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
    AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
    AddCompilerFlag("/wd4503") # Disable warning "decorated name length exceeded, name was truncated"
+   AddCompilerFlag("/wd4752") # Disable warning "found Intel(R) Advanced Vector Extensions; consider using /arch:AVX"
+   AddCompilerFlag("/bigobj") # work around "fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj"
 endif()
 
 # 32-bit x86 requires SSE for fp math to produce comparable results.
