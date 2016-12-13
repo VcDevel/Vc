@@ -839,29 +839,25 @@ Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
     // TODO: use _mm512_kortestc somehow?
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
     return v != 0U;
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
     return v == 0U;
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
     return v != 0 && !all_of(k);
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
     switch (k.size()) {
@@ -873,9 +869,7 @@ Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx512> k)
     }
 }
 
-template <class T>
-Vc_ALWAYS_INLINE enable_if<(sizeof(T) <= 8), int> find_first_set(
-    mask<T, datapar_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
     return _tzcnt_u32(v);
@@ -892,8 +886,7 @@ Vc_ALWAYS_INLINE int find_first_set(mask<unsigned char, datapar_abi::avx512> k)
     return detail::firstbit(v);
 }
 
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
     switch (k.size()) {
@@ -904,6 +897,15 @@ Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx512> k)
     default: Vc_UNREACHABLE();
     }
 }
+
+Vc_ALWAYS_INLINE bool all_of(const mask<long double, datapar_abi::avx512> k) { return all_of(k[0]); }
+Vc_ALWAYS_INLINE bool any_of(const mask<long double, datapar_abi::avx512> k) { return any_of(k[0]); }
+Vc_ALWAYS_INLINE bool none_of(const mask<long double, datapar_abi::avx512> k) { return none_of(k[0]); }
+Vc_ALWAYS_INLINE bool some_of(const mask<long double, datapar_abi::avx512> k) { return some_of(k[0]); }
+Vc_ALWAYS_INLINE int popcount(const mask<long double, datapar_abi::avx512> k) { return popcount(k[0]); }
+Vc_ALWAYS_INLINE int find_first_set(const mask<long double, datapar_abi::avx512> k) { return find_first_set(k[0]); }
+Vc_ALWAYS_INLINE int find_last_set(const mask<long double, datapar_abi::avx512> k) { return find_last_set(k[0]); }
+
 Vc_VERSIONED_NAMESPACE_END
 // }}}
 
