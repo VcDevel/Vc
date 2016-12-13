@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_DATAPAR_X86_H_
 
 #include <limits>
+#include <climits>
 
 #include "../macros.h"
 #include "../detail.h"
@@ -1776,10 +1777,6 @@ Vc_INTRINSIC Vc_CONST int firstbit(ullong bits)
     return __builtin_ctzll(bits);
 #endif  // Vc_HAVE_BMI1
 }
-Vc_INTRINSIC Vc_CONST auto firstbit(llong bits)
-{
-    return firstbit(ullong(bits));
-}
 
 #ifdef Vc_MSVC
 #pragma intrinsic(_BitScanForward)
@@ -1800,8 +1797,16 @@ Vc_INTRINSIC Vc_CONST auto firstbit(uint x)
 #error "Implementation for firstbit(uint) is missing"
 #endif
 }
-Vc_INTRINSIC Vc_CONST auto firstbit(int bits)
+
+Vc_INTRINSIC Vc_CONST auto firstbit(llong bits) { return firstbit(ullong(bits)); }
+#if LONG_MAX == LLONG_MAX
+Vc_INTRINSIC Vc_CONST auto firstbit(ulong bits) { return firstbit(ullong(bits)); }
+Vc_INTRINSIC Vc_CONST auto firstbit(long bits) { return firstbit(ullong(bits)); }
+#endif  // long uses 64 bits
+template <class T> Vc_INTRINSIC Vc_CONST auto firstbit(T bits)
 {
+    static_assert(sizeof(T) <= sizeof(uint),
+                  "there's a missing overload to call the 64-bit variant");
     return firstbit(uint(bits));
 }
 
@@ -1824,10 +1829,6 @@ Vc_INTRINSIC Vc_CONST int lastbit(ullong bits)
     return 63 - __builtin_clzll(bits);
 #endif  // Vc_HAVE_BMI1
 }
-Vc_INTRINSIC Vc_CONST auto lastbit(llong bits)
-{
-    return lastbit(ullong(bits));
-}
 
 Vc_INTRINSIC Vc_CONST auto lastbit(uint x)
 {
@@ -1843,8 +1844,16 @@ Vc_INTRINSIC Vc_CONST auto lastbit(uint x)
 #error "Implementation for lastbit(uint) is missing"
 #endif
 }
-Vc_INTRINSIC Vc_CONST auto lastbit(int bits)
+
+Vc_INTRINSIC Vc_CONST auto lastbit(llong bits) { return lastbit(ullong(bits)); }
+#if LONG_MAX == LLONG_MAX
+Vc_INTRINSIC Vc_CONST auto lastbit(ulong bits) { return lastbit(ullong(bits)); }
+Vc_INTRINSIC Vc_CONST auto lastbit(long bits) { return lastbit(ullong(bits)); }
+#endif  // long uses 64 bits
+template <class T> Vc_INTRINSIC Vc_CONST auto lastbit(T bits)
 {
+    static_assert(sizeof(T) <= sizeof(uint),
+                  "there's a missing overload to call the 64-bit variant");
     return lastbit(uint(bits));
 }
 
