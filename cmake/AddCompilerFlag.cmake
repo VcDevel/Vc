@@ -137,6 +137,8 @@ macro(AddCompilerFlag _flag)
       int main() { return 0; }")
    elseif("${_flag}" STREQUAL "-march=knl"
          OR "${_flag}" STREQUAL "-march=skylake-avx512"
+         OR "${_flag}" STREQUAL "/arch:AVX512"
+         OR "${_flag}" STREQUAL "/arch:KNL"
          OR "${_flag}" MATCHES "^-mavx512.")
       # Make sure the intrinsics are there
       set(_cxx_code "#include <immintrin.h>
