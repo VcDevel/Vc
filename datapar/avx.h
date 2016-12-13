@@ -639,7 +639,7 @@ constexpr struct {
 Vc_VERSIONED_NAMESPACE_END
 
 // [mask.reductions] {{{
-Vc_VERSIONED_NAMESPACE_BEGIN;
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx> k)
 {
     const auto d =
