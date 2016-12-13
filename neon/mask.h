@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "intrinsics.h"
 #include "../common/storage.h"
-#include "../common/maskentry.h"
+#include "../common/maskbool.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE

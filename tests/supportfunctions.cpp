@@ -43,6 +43,7 @@ void testIsSupported()
     COMPARE(Vc::isImplementationSupported(Vc::SSE42Impl), CpuId::hasSse42());
     COMPARE(Vc::isImplementationSupported(Vc::AVXImpl  ), CpuId::hasOsxsave() && CpuId::hasAvx());
     COMPARE(Vc::isImplementationSupported(Vc::AVX2Impl ), CpuId::hasOsxsave() && CpuId::hasAvx2());
+    // For ARM, we need to find a way to detect NEON (/proc/self/auxv)
 }
 
 void testBestImplementation()
