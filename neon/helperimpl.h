@@ -33,29 +33,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Internal
+namespace Detail
 {
-
-template<> struct HelperImpl<Vc::NeonImpl>
-{
-    template<typename V, typename M, typename A>
-    static Vc_ALWAYS_INLINE void deinterleave(V &a, V &b, const M *mem, A);
-
-    static Vc_ALWAYS_INLINE void prefetchForOneRead(const void *);
-    static Vc_ALWAYS_INLINE void prefetchForModify(const void *);
-    static Vc_ALWAYS_INLINE void prefetchClose(const void *);
-    static Vc_ALWAYS_INLINE void prefetchMid(const void *);
-    static Vc_ALWAYS_INLINE void prefetchFar(const void *);
-
-    template<Vc::MallocAlignment A>
-    static Vc_ALWAYS_INLINE_L void *malloc(size_t n) Vc_ALWAYS_INLINE_R;
-    static Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
-};
-
-}
-}
-
-#include "helperimpl.tcc"
+template<typename V, typename M, typename A>
+inline void deinterleave(V &a, V &b, const M *mem, A);
+Vc_ALWAYS_INLINE_L void prefetchForOneRead(const void *);
+Vc_ALWAYS_INLINE_L void prefetchForModify(const void *);
+Vc_ALWAYS_INLINE_L void prefetchClose(const void *);
+Vc_ALWAYS_INLINE_L void prefetchMid(const void *);
+Vc_ALWAYS_INLINE_L void prefetchFar(const void *);
+} // namespace Detail
+} // namespace Vc
 
 #endif  // VC_NEON_HELPERIMPL_H_
 

@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace NEON
+namespace NeonIntrinsics
 {
 
 template <> struct VectorTraits<int> { typedef int32x4_t Type; };

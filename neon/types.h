@@ -60,12 +60,13 @@ typedef Mask<unsigned int>     uint_m;
 typedef Mask<short>           short_m;
 typedef Mask<unsigned short> ushort_m;
 
+template <typename T> struct Const;
+
 template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
-
-template <typename T> struct VectorTraits;
+//template <typename T> struct VectorTraits;
 }
 
 namespace Traits

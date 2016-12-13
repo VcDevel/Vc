@@ -343,5 +343,6 @@ static_assert(!std::is_convertible<short *, NEON::short_v>::value,
 }  // namespace Vc
 
 #include "vector.tcc"
+#include "simd_cast.h"
 
 #endif  // VC_NEON_VECTOR_H_
