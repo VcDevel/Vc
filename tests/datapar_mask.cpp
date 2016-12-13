@@ -225,7 +225,7 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
     using TT = Vc::flags::overaligned_tag<alignment>;
     constexpr TT overaligned = {};
 #else
-    constexpr auto overaligned = Vc::flags::overaligned<Vc::memory_alignment<M> * 2>;
+    constexpr auto overaligned = Vc::flags::overaligned<alignment>;
 #endif
 
     const M alternating_mask = make_alternating_mask<M>();

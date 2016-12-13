@@ -494,15 +494,14 @@ public:
     {
         assertCorrectAlignment(&data);
     }
-
     template <typename U>
     Vc_INTRINSIC explicit Storage(const U &x
 #ifndef Vc_MSVC
-                                  ,enable_if<sizeof(U) == sizeof(VectorType)> = nullarg
-#else  // Vc_MSVC
-    )
-    : data(reinterpret_cast<const VectorType &>(x))
+                                  ,
+                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg
 #endif  // Vc_MSVC
+                                  )
+        : data(reinterpret_cast<const VectorType &>(x))
     {
         static_assert(sizeof(U) == sizeof(VectorType),
                       "invalid call to converting Storage constructor");
