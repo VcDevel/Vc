@@ -169,6 +169,7 @@ elseif(Vc_ARM)
    add_custom_target(NEON COMMENT "build NEON code" VERBATIM)
 endif()#}}}
 
+if(NOT Vc_COMPILER_IS_MSVC)
 # Build libVc#{{{
 ##################################################################
 set(libvc_compile_flags "-DVc_COMPILE_LIB")
@@ -220,6 +221,7 @@ install(DIRECTORY include/Vc/ DESTINATION include/Vc)
 
 # private headers
 install(DIRECTORY common datapar traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")#}}}
+endif()
 
 # Generate & install cmake config#{{{
 ##################################################################

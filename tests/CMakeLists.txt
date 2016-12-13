@@ -336,11 +336,12 @@ macro(vc_add_general_test _name)#{{{
    vc_add_run_target(${_name} FALSE _ignore)
 endmacro()#}}}
 
-if(_last_target_arch STREQUAL "auto" AND NOT Vc_AVX_INTRINSICS_BROKEN)
-   vc_add_general_test(supportfunctions)
-endif()
-vc_add_general_test(alignmentinheritance)
-vc_add_general_test(alignedbase)
+if(NOT Vc_COMPILER_IS_MSVC)
+   if(_last_target_arch STREQUAL "auto" AND NOT Vc_AVX_INTRINSICS_BROKEN)
+      vc_add_general_test(supportfunctions)
+   endif()
+   vc_add_general_test(alignmentinheritance)
+   vc_add_general_test(alignedbase)
 
 # compile and link test for targets that need to link lots of stuff together#{{{
 add_library(linkTestLibDynamic1 SHARED EXCLUDE_FROM_ALL linkTestLib0.cpp linkTestLib1.cpp)
@@ -359,6 +360,7 @@ set_property(TARGET linkTestLibStatic APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCH
 set_property(TARGET linkTest APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
 target_link_libraries(linkTestLibStatic Vc)
 target_link_libraries(linkTest Vc linkTestLibDynamic1 linkTestLibDynamic2 linkTestLibStatic)#}}}
+endif()
 
 # Use the following program to generate the sincos-reference-*.dat files
 #add_executable(convert-sincos-reference EXCLUDE_FROM_ALL convert-sincos-reference.cpp)
