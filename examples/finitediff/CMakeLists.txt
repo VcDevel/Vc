@@ -1,1 +1,1 @@
-build_example(finitediff main.cpp DISABLE Scalar)
+build_example(finitediff main.cpp DISABLE NoSIMD)

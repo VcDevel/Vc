@@ -139,7 +139,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * compare. This allows to use -DVc_IMPL=SSE3. The preprocessor will then consider Vc_IMPL and SSE3
  * to be equal. Of course, it is important to undefine the strings later on!
  */
-#define Scalar 0x00100000
+#define NoSIMD 0x00100000
 #define SSE    0x00200000
 #define SSE2   0x00300000
 #define SSE3   0x00400000
@@ -272,7 +272,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define Vc_IMPL_AVX 1
 #  elif (Vc_IMPL & IMPL_MASK) == AVX // AVX supersedes SSE
 #    define Vc_IMPL_AVX 1
-#  elif (Vc_IMPL & IMPL_MASK) == Scalar
+#  elif (Vc_IMPL & IMPL_MASK) == NoSIMD
 #    define Vc_IMPL_Scalar 1
 #  elif (Vc_IMPL & IMPL_MASK) == SSE4_2
 #    define Vc_IMPL_SSE4_2 1
@@ -379,7 +379,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #  error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
 # endif
 
-#undef Scalar
+#undef NoSIMD
 #undef SSE
 #undef SSE2
 #undef SSE3
