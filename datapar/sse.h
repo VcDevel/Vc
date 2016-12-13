@@ -928,13 +928,13 @@ template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::sse> 
     return detail::lastbit(detail::mask_to_int<k.size()>(d));
 }
 
-Vc_ALWAYS_INLINE bool all_of(mask<long double, datapar_abi::sse> k) { return all_of(k[0]); }
-Vc_ALWAYS_INLINE bool any_of(mask<long double, datapar_abi::sse> k) { return any_of(k[0]); }
-Vc_ALWAYS_INLINE bool none_of(mask<long double, datapar_abi::sse> k) { return none_of(k[0]); }
-Vc_ALWAYS_INLINE bool some_of(mask<long double, datapar_abi::sse> k) { return some_of(k[0]); }
-Vc_ALWAYS_INLINE int popcount(mask<long double, datapar_abi::sse> k) { return popcount(k[0]); }
-Vc_ALWAYS_INLINE int find_first_set(mask<long double, datapar_abi::sse> k) { return find_first_set(k[0]); }
-Vc_ALWAYS_INLINE int find_last_set(mask<long double, datapar_abi::sse> k) { return find_last_set(k[0]); }
+Vc_ALWAYS_INLINE bool all_of(const mask<long double, datapar_abi::sse> k) { return all_of(k[0]); }
+Vc_ALWAYS_INLINE bool any_of(const mask<long double, datapar_abi::sse> k) { return any_of(k[0]); }
+Vc_ALWAYS_INLINE bool none_of(const mask<long double, datapar_abi::sse> k) { return none_of(k[0]); }
+Vc_ALWAYS_INLINE bool some_of(const mask<long double, datapar_abi::sse> k) { return some_of(k[0]); }
+Vc_ALWAYS_INLINE int popcount(const mask<long double, datapar_abi::sse> k) { return popcount(k[0]); }
+Vc_ALWAYS_INLINE int find_first_set(const mask<long double, datapar_abi::sse> k) { return find_first_set(k[0]); }
+Vc_ALWAYS_INLINE int find_last_set(const mask<long double, datapar_abi::sse> k) { return find_last_set(k[0]); }
 
 Vc_VERSIONED_NAMESPACE_END
 // }}}
