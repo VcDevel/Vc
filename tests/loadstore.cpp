@@ -258,7 +258,6 @@ TEST_TYPES(VU, load_store,
         COMPARE(mem[i], U(0)) << "i: " << i;
     }
 
-    /*
     memset(mem, 0, sizeof(mem));
     x.copy_to(&mem[1], element_aligned);
     COMPARE(mem[0], U(0));
@@ -292,6 +291,5 @@ TEST_TYPES(VU, load_store,
     for (; i < 3 * V::size(); ++i) {
         COMPARE(mem[i], U(0));
     }
-    */
 }
 
