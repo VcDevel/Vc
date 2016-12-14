@@ -32,6 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unittest.h"
 #include <Vc/datapar>
 
+#ifndef TESTTYPES
+#error "Please define TESTTYPES to the list of fundamental types to be tested with datapar/mask."
+#endif
+
 using schar = signed char;
 using uchar = unsigned char;
 using ushort = unsigned short;
@@ -39,6 +43,7 @@ using uint = unsigned int;
 using ulong = unsigned long;
 using llong = long long;
 using ullong = unsigned long long;
+using ldouble = long double;
 
 // vT {{{1
 using vschar = Vc::native_datapar<schar>;
@@ -69,11 +74,11 @@ using vl = typename std::conditional<sizeof(long) == sizeof(llong), vi64<T>, vi3
 typedef concat<
 #if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
     expand_list<Typelist<Template<base_template, Vc::datapar_abi::avx512>>,
-                Typelist<double, float, long long, unsigned long, int, unsigned long long,
-                         long, unsigned int>>,
+                Typelist<double, float, llong, ulong, int, ullong, long, uint>>,
 #endif
 #if defined Vc_HAVE_AVX_ABI && !defined Vc_HAVE_FULL_AVX_ABI
-    base_template<float, Vc::datapar_abi::avx>, base_template<double, Vc::datapar_abi::avx>,
+    base_template<float, Vc::datapar_abi::avx>,
+    base_template<double, Vc::datapar_abi::avx>,
 #endif
 #if defined Vc_HAVE_SSE_ABI && !defined Vc_HAVE_FULL_SSE_ABI
     base_template<float, Vc::datapar_abi::sse>,
@@ -89,9 +94,7 @@ typedef concat<
                     Template<base_template, Vc::datapar_abi::sse>,
 #endif
                     Typelist<>>,
-                Typelist<long double, double, float, long long, unsigned long, int,
-                         unsigned short, signed char, unsigned long long, long,
-                         unsigned int, short, unsigned char>>> native_test_types;
+                Typelist<TESTTYPES>>> native_test_types;
 
 // all_test_types / ALL_TYPES {{{1
 typedef concat<
@@ -104,20 +107,15 @@ typedef concat<
                          Template<base_template, Vc::datapar_abi::fixed_size<12>>,
                          // Template<base_template, Vc::datapar_abi::fixed_size<16>>,
                          Template<base_template, Vc::datapar_abi::fixed_size<
-                                                   Vc::datapar_abi::max_fixed_size>>>,
-                Typelist<long double, double, float, long long, unsigned long, int,
-                         unsigned short, signed char, unsigned long long, long,
-                         unsigned int, short, unsigned char>>> all_test_types;
+                                                     Vc::datapar_abi::max_fixed_size>>>,
+                Typelist<TESTTYPES>>> all_test_types;
 
 #define ALL_TYPES (all_test_types)
 
 // reduced_test_types {{{1
 typedef concat<native_test_types,
                expand_list<Typelist<Template<base_template, Vc::datapar_abi::scalar>>,
-                           Typelist<long double, double, float, long long, unsigned long,
-                                    int, unsigned short, signed char, unsigned long long,
-                                    long, unsigned int, short, unsigned char>>>
-    reduced_test_types;
+                           Typelist<TESTTYPES>>> reduced_test_types;
 
 //}}}1
 #endif  // TESTS_TESTTYPES_H_

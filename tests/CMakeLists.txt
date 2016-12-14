@@ -142,63 +142,68 @@ function(vc_add_test name) #{{{
          set(use_var TRUE)
          set(emulator "${INTEL_SDE};${sde_cpuid_${impl}};--")
       endif()
-      foreach(alias ${alias_strategies})
-         if(impl STREQUAL "nosimd")
-            set(target ${_target})
-         else()
-            string(TOLOWER "${_target}_${alias}" target)
-            string(TOUPPER ${alias} alias_flag)
-            set(alias_flag "Vc_USE_ALIASSTRATEGY_${alias_flag}")
-         endif()
-         if(impl STREQUAL "mic")
-            set(_objs)
-            if("${_name}" STREQUAL "trigonometric")
-               foreach(fun sincos asin acos atan)
-                  foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-                     set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
-                  endforeach()
-               endforeach()
-            elseif("${_name}" STREQUAL "logarithm")
-               foreach(fun ln log2 log10)
-                  foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-                     set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
-                  endforeach()
-               endforeach()
-            endif()
-            mic_add_executable(${target}
-               LINK_LIBRARIES Vc_MIC
-               COMPILE_FLAGS "-DNO_ISA_CHECK"
-               SOURCES ${src}
-               OBJECTS ${_objs}
-               EXCLUDE_FROM_ALL
-               )
-         else()
-            add_executable(${target} EXCLUDE_FROM_ALL ${src})
-            #target_link_libraries(${target} Vc)
-            set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS "${flags}")
-            if(NOT impl STREQUAL "nosimd")
-               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
-            endif()
-            set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "NO_ISA_CHECK")
-         endif()
-         add_target_property(${target} LABELS "${label}")
-         add_dependencies(build_tests ${target})
-         add_dependencies(${label} ${target})
-         if(${use_var})
-            if(emulator)
-               get_target_executable(_exe "${target}")
-               add_test(NAME ${target}
-                  COMMAND ${emulator} "${_exe}"
-                  )
+      foreach(types "ldouble,float,double,schar,uchar" "llong,long,ullong,ulong" "int,short,uint,ushort")
+         set(types_flag "TESTTYPES=${types}")
+         foreach(alias ${alias_strategies})
+            if(impl STREQUAL "nosimd")#{{{
+               set(target ${_target})
             else()
-               add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
+               string(TOLOWER "${_target}_${alias}" target)
+               string(TOUPPER ${alias} alias_flag)
+               set(alias_flag "Vc_USE_ALIASSTRATEGY_${alias_flag}")
+            endif()#}}}
+            string(REPLACE "," "_" target "${target}_${types}")
+            if(impl STREQUAL "mic")
+               set(_objs)#{{{
+               if("${_name}" STREQUAL "trigonometric")
+                  foreach(fun sincos asin acos atan)
+                     foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+                        set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
+                     endforeach()
+                  endforeach()
+               elseif("${_name}" STREQUAL "logarithm")
+                  foreach(fun ln log2 log10)
+                     foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+                        set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
+                     endforeach()
+                  endforeach()
+               endif()
+               mic_add_executable(${target}
+                  LINK_LIBRARIES Vc_MIC
+                  COMPILE_FLAGS "-DNO_ISA_CHECK" "-D${types_flag}"
+                  SOURCES ${src}
+                  OBJECTS ${_objs}
+                  EXCLUDE_FROM_ALL
+                  )#}}}
+            else()
+               add_executable(${target} EXCLUDE_FROM_ALL ${src})
+               #target_link_libraries(${target} Vc)
+               set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS "${flags}")
+               if(NOT impl STREQUAL "nosimd")
+                  set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
+               endif()
+               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "NO_ISA_CHECK")
+               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${types_flag}")
             endif()
-            set_property(TEST ${target} PROPERTY LABELS "${label}")
-            vc_add_run_target(${target} "${emulator}" run_targets)
-         endif()
-         if(impl STREQUAL "nosimd")
-            break()
-         endif()
+            add_target_property(${target} LABELS "${label}")
+            add_dependencies(build_tests ${target})
+            add_dependencies(${label} ${target})
+            if(${use_var}) # add test and run target#{{{
+               if(emulator)
+                  get_target_executable(_exe "${target}")
+                  add_test(NAME ${target}
+                     COMMAND ${emulator} "${_exe}"
+                     )
+               else()
+                  add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
+               endif()
+               set_property(TEST ${target} PROPERTY LABELS "${label}")
+               vc_add_run_target(${target} "${emulator}" run_targets)
+            endif()#}}}
+            if(impl STREQUAL "nosimd")
+               break()
+            endif()
+         endforeach()
       endforeach()
    endforeach()
    if(run_targets)
@@ -210,6 +215,7 @@ function(vc_add_test name) #{{{
    endif()
 endfunction() #}}}
 
+vc_add_test(loadstore)
 vc_add_test(datapar_mask)
 vc_add_test(datapar)
 
