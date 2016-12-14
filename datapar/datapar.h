@@ -124,7 +124,7 @@ public:
 
     // 2nd conversion ctor: convert equal Abi, integers that only differ in signedness
     template <class U>
-    datapar(datapar<U, Abi> x,
+    datapar(const datapar<U, Abi> &x,
             std::enable_if_t<detail::allow_conversion_ctor2<value_type, U, Abi>::value, void *> =
                 nullptr)
         : d{static_cast<cast_type>(x)}
@@ -135,7 +135,7 @@ public:
     // value_type
     template <class U, class Abi2>
     datapar(
-        datapar<U, Abi2> x,
+        const datapar<U, Abi2> &x,
         std::enable_if_t<detail::allow_conversion_ctor3<value_type, Abi, U, Abi2>::value,
                          void *> = nullptr)
     {
@@ -148,7 +148,7 @@ public:
         : d(impl::load(mem, f, type_tag))
     {
     }
-    template <class U, class Flags> datapar(const U *mem, mask_type k, Flags f) : d{}
+    template <class U, class Flags> datapar(const U *mem, const mask_type &k, Flags f) : d{}
     {
         impl::masked_load(d, k, mem, f);
     }
@@ -158,7 +158,7 @@ public:
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, type_tag));
     }
-    template <class U, class Flags> void copy_from(const U *mem, mask_type k, Flags f)
+    template <class U, class Flags> void Vc_VDECL copy_from(const U *mem, mask_type k, Flags f)
     {
         impl::masked_load(d, k, mem, f);
     }
@@ -168,7 +168,7 @@ public:
     {
         impl::store(d, mem, f, type_tag);
     }
-    template <class U, class Flags> void copy_to(U *mem, mask_type k, Flags f) const
+    template <class U, class Flags> void Vc_VDECL copy_to(U *mem, mask_type k, Flags f) const
     {
         impl::masked_store(d, mem, f, k);
     }

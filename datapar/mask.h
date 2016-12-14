@@ -74,7 +74,7 @@ public:
     {
     }
     template <class U>
-    mask(mask<U, Abi> x,
+    mask(const mask<U, Abi> &x,
          enable_if<
              (size() == mask<U, Abi>::size()) &&
              conjunction<std::is_integral<T>, std::is_integral<U>,
@@ -84,7 +84,7 @@ public:
     {
     }
     template <class U, class Abi2>
-    mask(mask<U, Abi2> x,
+    mask(const mask<U, Abi2> &x,
          enable_if<conjunction<
              negation<std::is_same<abi_type, Abi2>>,
              std::is_same<abi_type, datapar_abi::fixed_size<size_v>>>::value> = nullarg)
@@ -109,7 +109,7 @@ public:
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, size_tag));
     }
-    template <class Flags> void copy_from(const value_type *mem, mask k, Flags f)
+    template <class Flags> void Vc_VDECL copy_from(const value_type *mem, mask k, Flags f)
     {
         impl::masked_load(d, k.d, mem, f, size_tag);
     }
@@ -119,7 +119,7 @@ public:
     {
         impl::store(d, mem, f, size_tag);
     }
-    template <class Flags> void copy_to(value_type *mem, mask k, Flags f) const
+    template <class Flags> void Vc_VDECL copy_to(value_type *mem, mask k, Flags f) const
     {
         impl::masked_store(d, mem, f, k.d, size_tag);
     }

@@ -316,7 +316,6 @@ macro(vc_set_preferred_compiler_flags)
          AddCompilerFlag("/wd4748") # Disable warning "/GS can not protect parameters and local variables from local buffer overrun because optimizations are disabled in function" (I don't get it)
          add_definitions(-D_CRT_SECURE_NO_WARNINGS)
       endif()
-      vc_add_compiler_flag(Vc_COMPILE_FLAGS "/Gv") # default to __vectorcall
 
       if(MSVC_VERSION LESS 1900)
          UserWarning("MSVC before 2015 does not support enough of C++11")

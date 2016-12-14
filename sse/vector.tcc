@@ -646,18 +646,18 @@ Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Sse> Vector<T, VectorAbi::Sse>::so
     return Detail::sorted(*this);
 }
 // interleaveLow/-High {{{1
-template <> Vc_INTRINSIC SSE::double_v SSE::double_v::interleaveLow (SSE::double_v x) const { return _mm_unpacklo_pd(data(), x.data()); }
-template <> Vc_INTRINSIC SSE::double_v SSE::double_v::interleaveHigh(SSE::double_v x) const { return _mm_unpackhi_pd(data(), x.data()); }
-template <> Vc_INTRINSIC  SSE::float_v  SSE::float_v::interleaveLow ( SSE::float_v x) const { return _mm_unpacklo_ps(data(), x.data()); }
-template <> Vc_INTRINSIC  SSE::float_v  SSE::float_v::interleaveHigh( SSE::float_v x) const { return _mm_unpackhi_ps(data(), x.data()); }
-template <> Vc_INTRINSIC    SSE::int_v    SSE::int_v::interleaveLow (   SSE::int_v x) const { return _mm_unpacklo_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC    SSE::int_v    SSE::int_v::interleaveHigh(   SSE::int_v x) const { return _mm_unpackhi_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC   SSE::uint_v   SSE::uint_v::interleaveLow (  SSE::uint_v x) const { return _mm_unpacklo_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC   SSE::uint_v   SSE::uint_v::interleaveHigh(  SSE::uint_v x) const { return _mm_unpackhi_epi32(data(), x.data()); }
-template <> Vc_INTRINSIC  SSE::short_v  SSE::short_v::interleaveLow ( SSE::short_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC  SSE::short_v  SSE::short_v::interleaveHigh( SSE::short_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC SSE::ushort_v SSE::ushort_v::interleaveLow (SSE::ushort_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
-template <> Vc_INTRINSIC SSE::ushort_v SSE::ushort_v::interleaveHigh(SSE::ushort_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC SSE::double_v Vc_VDECL SSE::double_v::interleaveLow (SSE::double_v x) const { return _mm_unpacklo_pd(data(), x.data()); }
+template <> Vc_INTRINSIC SSE::double_v Vc_VDECL SSE::double_v::interleaveHigh(SSE::double_v x) const { return _mm_unpackhi_pd(data(), x.data()); }
+template <> Vc_INTRINSIC  SSE::float_v Vc_VDECL  SSE::float_v::interleaveLow ( SSE::float_v x) const { return _mm_unpacklo_ps(data(), x.data()); }
+template <> Vc_INTRINSIC  SSE::float_v Vc_VDECL  SSE::float_v::interleaveHigh( SSE::float_v x) const { return _mm_unpackhi_ps(data(), x.data()); }
+template <> Vc_INTRINSIC    SSE::int_v Vc_VDECL    SSE::int_v::interleaveLow (   SSE::int_v x) const { return _mm_unpacklo_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC    SSE::int_v Vc_VDECL    SSE::int_v::interleaveHigh(   SSE::int_v x) const { return _mm_unpackhi_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC   SSE::uint_v Vc_VDECL   SSE::uint_v::interleaveLow (  SSE::uint_v x) const { return _mm_unpacklo_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC   SSE::uint_v Vc_VDECL   SSE::uint_v::interleaveHigh(  SSE::uint_v x) const { return _mm_unpackhi_epi32(data(), x.data()); }
+template <> Vc_INTRINSIC  SSE::short_v Vc_VDECL  SSE::short_v::interleaveLow ( SSE::short_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC  SSE::short_v Vc_VDECL  SSE::short_v::interleaveHigh( SSE::short_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC SSE::ushort_v Vc_VDECL SSE::ushort_v::interleaveLow (SSE::ushort_v x) const { return _mm_unpacklo_epi16(data(), x.data()); }
+template <> Vc_INTRINSIC SSE::ushort_v Vc_VDECL SSE::ushort_v::interleaveHigh(SSE::ushort_v x) const { return _mm_unpackhi_epi16(data(), x.data()); }
 // }}}1
 // generate {{{1
 template <> template <typename G> Vc_INTRINSIC SSE::double_v SSE::double_v::generate(G gen)

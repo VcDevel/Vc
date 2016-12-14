@@ -39,14 +39,14 @@ template <class Derived> struct generic_datapar_impl {
 
     // adjust_for_long{{{2
     template <size_t Size>
-    static Vc_INTRINSIC Storage<equal_int_type_t<long>, Size> adjust_for_long(
-        Storage<long, Size> x)
+    static Vc_INTRINSIC Storage<equal_int_type_t<long>, Size> Vc_VDECL
+    adjust_for_long(Storage<long, Size> x)
     {
         return {x.v()};
     }
     template <size_t Size>
-    static Vc_INTRINSIC Storage<equal_int_type_t<ulong>, Size> adjust_for_long(
-        Storage<ulong, Size> x)
+    static Vc_INTRINSIC Storage<equal_int_type_t<ulong>, Size> Vc_VDECL
+    adjust_for_long(Storage<ulong, Size> x)
     {
         return {x.v()};
     }
@@ -75,7 +75,7 @@ template <class Derived> struct generic_datapar_impl {
     // arithmetic operators {{{2
 #define Vc_ARITHMETIC_OP_(name_)                                                         \
     template <class T, class A>                                                          \
-    static Vc_INTRINSIC datapar<T, A> name_(datapar<T, A> x, datapar<T, A> y)            \
+    static Vc_INTRINSIC datapar<T, A> Vc_VDECL name_(datapar<T, A> x, datapar<T, A> y)   \
     {                                                                                    \
         return make_datapar<T, A>(                                                       \
             detail::name_(adjust_for_long(x.d), adjust_for_long(y.d)));                  \

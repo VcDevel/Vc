@@ -251,7 +251,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         Vc_INTRINSIC_L EntryType product(MaskArg m) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L EntryType sum(MaskArg m) const Vc_INTRINSIC_R;
 
-        Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector Vc_VDECL shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
         Vc_INTRINSIC_L Vc_PURE_L Vector reversed() const Vc_INTRINSIC_R Vc_PURE_R;
@@ -306,7 +306,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         template <typename G> static Vc_INTRINSIC_L Vector generate(G gen) Vc_INTRINSIC_R;
 
-        Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC Vector
+        Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC Vector Vc_VDECL
             copySign(AsArg reference) const
         {
             return Vc::copysign(*this, reference);
@@ -317,8 +317,8 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             return Vc::exponent(*this);
         }
 
-        Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
-        Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector Vc_VDECL interleaveLow(Vector x) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector Vc_VDECL interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
 #undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Sse>::Size;

@@ -36,7 +36,7 @@ namespace detail
 namespace x86
 {
 #ifdef Vc_HAVE_AVX2
-Vc_INTRINSIC Vc_CONST y_u64 cmpgt(y_u64 x, y_u64 y)
+Vc_INTRINSIC Vc_CONST y_u64 Vc_VDECL cmpgt(y_u64 x, y_u64 y)
 {
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cmpgt_epu64_mask(x, y);
@@ -48,7 +48,7 @@ Vc_INTRINSIC Vc_CONST y_u64 cmpgt(y_u64 x, y_u64 y)
 #endif
 }
 
-Vc_INTRINSIC Vc_CONST y_u32 cmpgt(y_u32 x, y_u32 y)
+Vc_INTRINSIC Vc_CONST y_u32 Vc_VDECL cmpgt(y_u32 x, y_u32 y)
 {
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cmpgt_epu32_mask(x, y);
@@ -60,7 +60,7 @@ Vc_INTRINSIC Vc_CONST y_u32 cmpgt(y_u32 x, y_u32 y)
 #endif
 }
 
-Vc_INTRINSIC Vc_CONST y_u16 cmpgt(y_u16 x, y_u16 y)
+Vc_INTRINSIC Vc_CONST y_u16 Vc_VDECL cmpgt(y_u16 x, y_u16 y)
 {
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cmpgt_epu16_mask(x, y);
@@ -72,7 +72,7 @@ Vc_INTRINSIC Vc_CONST y_u16 cmpgt(y_u16 x, y_u16 y)
 #endif
 }
 
-Vc_INTRINSIC Vc_CONST y_u08 cmpgt(y_u08 x, y_u08 y)
+Vc_INTRINSIC Vc_CONST y_u08 Vc_VDECL cmpgt(y_u08 x, y_u08 y)
 {
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cmpgt_epu8_mask(x, y);
@@ -84,7 +84,7 @@ Vc_INTRINSIC Vc_CONST y_u08 cmpgt(y_u08 x, y_u08 y)
 #endif
 }
 
-Vc_INTRINSIC Vc_CONST y_ulong cmpgt(y_ulong x, y_ulong y)
+Vc_INTRINSIC Vc_CONST y_ulong Vc_VDECL cmpgt(y_ulong x, y_ulong y)
 {
     return cmpgt(y_ulong_equiv(x), y_ulong_equiv(y)).v();
 }
