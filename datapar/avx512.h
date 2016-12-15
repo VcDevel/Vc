@@ -867,14 +867,19 @@ Vc_ALWAYS_INLINE int find_first_set(mask<unsigned char, datapar_abi::avx512> k)
 
 template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx512> k)
 {
-    const auto v = detail::data(k);
-    switch (k.size()) {
-    case  8: return 31 - _lzcnt_u32(v);
-    case 16: return 31 - _lzcnt_u32(v);
-    case 32: return 31 - _lzcnt_u32(v);
-    case 64: return detail::lastbit(__mmask64(v));
-    default: Vc_UNREACHABLE();
-    }
+    return 31 - _lzcnt_u32(detail::data(k));
+}
+
+Vc_ALWAYS_INLINE int find_last_set(mask<signed char, datapar_abi::avx512> k)
+{
+    const __mmask64 v = detail::data(k);
+    return detail::lastbit(v);
+}
+
+Vc_ALWAYS_INLINE int find_last_set(mask<unsigned char, datapar_abi::avx512> k)
+{
+    const __mmask64 v = detail::data(k);
+    return detail::lastbit(v);
 }
 
 Vc_ALWAYS_INLINE bool all_of(const mask<long double, datapar_abi::avx512> k) { return all_of(k[0]); }
