@@ -84,12 +84,6 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
 
-    // data{{{2
-    template <class T> static Vc_INTRINSIC auto data(datapar<T> x) noexcept
-    {
-        return x.d;
-    }
-
     // broadcast {{{2
     static Vc_INTRINSIC intrinsic_type<double> broadcast(double x, size_tag<4>) noexcept
     {

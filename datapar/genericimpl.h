@@ -66,7 +66,7 @@ template <class Derived> struct generic_datapar_impl {
     static Vc_INTRINSIC Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept
     {
         using detail::x86::unary_minus;
-        return make_datapar<T, A>(unary_minus(adjust_for_long(Derived::data(x))));
+        return make_datapar<T, A>(unary_minus(adjust_for_long(detail::data(x))));
     }
 
     // arithmetic operators {{{2

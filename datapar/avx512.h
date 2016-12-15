@@ -89,7 +89,6 @@ template <class T> struct traits<T, datapar_abi::avx512> {
     static_assert(sizeof(T) <= 8,
                   "AVX can only implement operations on element types with sizeof <= 8");
     static constexpr size_t size() noexcept { return 64 / sizeof(T); }
-    using abi_type = datapar_abi::avx512;
 
     using datapar_member_type = avx512_datapar_member_type<T>;
     using datapar_impl_type = avx512_datapar_impl;
@@ -100,15 +99,6 @@ template <class T> struct traits<T, datapar_abi::avx512> {
     using mask_impl_type = avx512_mask_impl;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
     using mask_cast_type = typename mask_member_type::VectorType;
-
-    static Vc_INTRINSIC auto data(datapar<T, abi_type> v)
-    {
-        return static_cast<datapar_cast_type>(v);
-    }
-    static Vc_INTRINSIC auto data(mask<T, abi_type> k)
-    {
-        return static_cast<mask_cast_type>(k);
-    }
 };
 
 template <>
@@ -134,12 +124,6 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     template <class T> using mask = Vc::mask<T, abi>;
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
-
-    // data{{{2
-    template <class T> static Vc_INTRINSIC auto data(datapar<T> x) noexcept
-    {
-        return x.d;
-    }
 
     // broadcast {{{2
     static Vc_INTRINSIC intrinsic_type<double> broadcast(double x, size_tag<8>) noexcept
@@ -812,12 +796,7 @@ protected:
     using abi = Vc::datapar_abi::avx512;
     template <class T> using V = Vc::datapar<T, abi>;
     template <class T> using M = Vc::mask<T, abi>;
-    template <class T> using S = typename Vc::detail::traits<T, abi>::mask_cast_type;
     template <class T> static constexpr size_t size() { return M<T>::size(); }
-    template <class T> static Vc_INTRINSIC auto data(M<T> k)
-    {
-        return static_cast<S<T>>(k);
-    }
 };
 // }}}1
 }  // namespace detail
@@ -828,7 +807,7 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 template <class T, class = enable_if<sizeof(T) <= 8>>
 Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
 {
-    const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
+    const auto v = detail::data(k);
     switch (k.size()) {
     case 8:  return v == 0xffU;
     case 16: return v == 0xffffU;
@@ -841,25 +820,25 @@ Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
 
 template <class T> Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::avx512> k)
 {
-    const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
+    const auto v = detail::data(k);
     return v != 0U;
 }
 
 template <class T> Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::avx512> k)
 {
-    const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
+    const auto v = detail::data(k);
     return v == 0U;
 }
 
 template <class T> Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::avx512> k)
 {
-    const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
+    const auto v = detail::data(k);
     return v != 0 && !all_of(k);
 }
 
 template <class T> Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx512> k)
 {
-    const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
+    const auto v = detail::data(k);
     switch (k.size()) {
     case  8: return detail::popcnt8(v);
     case 16: return detail::popcnt16(v);
@@ -871,24 +850,24 @@ template <class T> Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::avx512> k)
 
 template <class T> Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::avx512> k)
 {
-    const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
+    const auto v = detail::data(k);
     return _tzcnt_u32(v);
 }
 
 Vc_ALWAYS_INLINE int find_first_set(mask<signed char, datapar_abi::avx512> k)
 {
-    const auto v = detail::traits<signed char, datapar_abi::avx512>::data(k);
+    const __mmask64 v = detail::data(k);
     return detail::firstbit(v);
 }
 Vc_ALWAYS_INLINE int find_first_set(mask<unsigned char, datapar_abi::avx512> k)
 {
-    const auto v = detail::traits<unsigned char, datapar_abi::avx512>::data(k);
+    const __mmask64 v = detail::data(k);
     return detail::firstbit(v);
 }
 
 template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx512> k)
 {
-    const auto v = detail::traits<T, datapar_abi::avx512>::data(k);
+    const auto v = detail::data(k);
     switch (k.size()) {
     case  8: return 31 - _lzcnt_u32(v);
     case 16: return 31 - _lzcnt_u32(v);
@@ -918,7 +897,7 @@ struct equal_to<Vc::mask<T, Vc::datapar_abi::avx512>>
 public:
     Vc_ALWAYS_INLINE bool operator()(const M<T> &x, const M<T> &y) const
     {
-        return data(x) == data(y);
+        return Vc::detail::data(x) == Vc::detail::data(y);
     }
 };
 template <>

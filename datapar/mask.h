@@ -31,6 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "smart_reference.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
+{
+template <class T, class A> inline auto data(const mask<T, A> &x);
+}  // namespace detail
+
 template <class T, class Abi> class mask
 {
     using traits = detail::traits<T, Abi>;
@@ -131,9 +136,15 @@ public:
     explicit mask(const typename traits::mask_cast_type &init) : d{init} {}
 
 private:
+    friend auto detail::data<T, abi_type>(const mask &);
     mask(detail::private_init_t, const typename traits::mask_member_type &init) : d(init) {}
     alignas(traits::mask_member_alignment) typename traits::mask_member_type d = {};
 };
+
+namespace detail
+{
+template <class T, class A> Vc_INTRINSIC auto data(const mask<T, A> &x) { return x.d; }
+}  // namespace detail
 
 Vc_VERSIONED_NAMESPACE_END
 #endif  // VC_DATAPAR_MASK_H_

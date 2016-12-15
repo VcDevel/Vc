@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+template <class T, class A> inline auto data(const datapar<T, A> &x);
+
 template <class Derived> struct generic_datapar_impl;
 // allow_conversion_ctor2{{{1
 template <class T0, class T1, class A, bool BothIntegral> struct allow_conversion_ctor2_1;
@@ -204,9 +206,16 @@ public:
     explicit datapar(const cast_type &init) : d{init} {}
 
 private:
+    friend auto detail::data<value_type, abi_type>(const datapar &);
     datapar(detail::private_init_t, const typename traits::datapar_member_type &init) : d(init) {}
     alignas(traits::datapar_member_alignment) typename traits::datapar_member_type d = {};
 };
+
+namespace detail
+{
+template <class T, class A> Vc_INTRINSIC auto data(const datapar<T, A> &x) { return x.d; }
+}  // namespace detail
+
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_DATAPAR_H_
