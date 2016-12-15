@@ -88,6 +88,38 @@ template <class Derived> struct generic_datapar_impl {
 };
 //}}}1
 }  // namespace detail
+
+// where implementation {{{1
+template <class T, class A>
+inline void Vc_VDECL masked_assign(mask<T, A> k, datapar<T, A> &lhs,
+                                   const datapar<T, A> &rhs)
+{
+    lhs = static_cast<datapar<T, A>>(
+        detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs)));
+}
+
+// special case for long double because it falls back to using fixed_size<1>
+template <class A>
+inline void Vc_VDECL masked_assign(const mask<long double, A> &k,
+                                   datapar<long double, A> &lhs,
+                                   const datapar<long double, A> &rhs)
+{
+    if (k[0]) {
+        lhs[0] = rhs[0];
+    }
+}
+
+// special case for long double & fixed_size to disambiguate with the above
+template <int N>
+inline void Vc_VDECL
+masked_assign(const mask<long double, datapar_abi::fixed_size<N>> &k,
+              datapar<long double, datapar_abi::fixed_size<N>> &lhs,
+              const datapar<long double, datapar_abi::fixed_size<N>> &rhs)
+{
+    masked_assign<long double, N>(k, lhs, rhs);
+}
+
+//}}}1
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_GENERICIMPL_H_

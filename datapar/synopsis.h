@@ -439,7 +439,11 @@ public:
     where_expression &operator=(const where_expression &) = delete;
     where_expression &operator=(where_expression &&) = delete;
     Vc_INTRINSIC where_expression(const Mask &kk, T &dd) : k(kk), d(dd) {}
-    template <class U> Vc_INTRINSIC void operator=(U &&x) { masked_assign(k, d, std::forward<U>(x)); }
+    template <class U> Vc_INTRINSIC void operator=(U &&x)
+    {
+        using detail::masked_assign;
+        masked_assign(k, d, std::forward<U>(x));
+    }
     template <class U> Vc_INTRINSIC void operator+=(U &&x)
     {
         detail::masked_cassign<std::plus>(k, d, std::forward<U>(x));

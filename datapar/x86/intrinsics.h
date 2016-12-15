@@ -1337,6 +1337,69 @@ Vc_INTRINSIC Vc_PURE __m128i stream_load_si128(__m128i *mem) {
 #endif  // Vc_HAVE_SSE2
 #endif  // Vc_HAVE_SSE4_1
 
+// blend{{{1
+Vc_INTRINSIC Vc_CONST __m128 blend(__m128 mask, __m128 at0, __m128 at1)
+{
+    return blendv_ps(at0, at1, mask);
+}
+
+#ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC Vc_CONST __m128d blend(__m128d mask, __m128d at0, __m128d at1)
+{
+    return blendv_pd(at0, at1, mask);
+}
+Vc_INTRINSIC Vc_CONST __m128i blend(__m128i mask, __m128i at0, __m128i at1)
+{
+    return blendv_epi8(at0, at1, mask);
+}
+#endif  // Vc_HAVE_SSE2
+
+#ifdef Vc_HAVE_AVX
+Vc_INTRINSIC Vc_CONST __m256  blend(__m256  mask, __m256  at0, __m256  at1)
+{
+    return _mm256_blendv_ps(at0, at1, mask);
+}
+Vc_INTRINSIC Vc_CONST __m256d blend(__m256d mask, __m256d at0, __m256d at1)
+{
+    return _mm256_blendv_pd(at0, at1, mask);
+}
+#ifdef Vc_HAVE_AVX2
+Vc_INTRINSIC Vc_CONST __m256i blend(__m256i mask, __m256i at0, __m256i at1)
+{
+    return _mm256_blendv_epi8(at0, at1, mask);
+}
+#endif  // Vc_HAVE_AVX2
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC Vc_CONST __m512  blend(__mmask16 mask, __m512 at0, __m512 at1)
+{
+    return _mm512_mask_mov_ps(at0, mask, at1);
+}
+Vc_INTRINSIC Vc_CONST __m512d blend(__mmask8 mask, __m512d at0, __m512d at1)
+{
+    return _mm512_mask_mov_pd(at0, mask, at1);
+}
+Vc_INTRINSIC Vc_CONST __m512i blend(__mmask8 mask, __m512i at0, __m512i at1)
+{
+    return _mm512_mask_mov_epi64(at0, mask, at1);
+}
+Vc_INTRINSIC Vc_CONST __m512i blend(__mmask16 mask, __m512i at0, __m512i at1)
+{
+    return _mm512_mask_mov_epi32(at0, mask, at1);
+}
+#ifdef Vc_HAVE_AVX512BW
+Vc_INTRINSIC Vc_CONST __m512i blend(__mmask32 mask, __m512i at0, __m512i at1)
+{
+    return _mm512_mask_mov_epi16(at0, mask, at1);
+}
+Vc_INTRINSIC Vc_CONST __m512i blend(__mmask64 mask, __m512i at0, __m512i at1)
+{
+    return _mm512_mask_mov_epi8(at0, mask, at1);
+}
+#endif  // Vc_HAVE_AVX512BW
+#endif  // Vc_HAVE_AVX512F
+
 // testc{{{1
 #ifdef Vc_HAVE_SSE4_1
 Vc_INTRINSIC Vc_CONST int testc(__m128  a, __m128  b) { return _mm_testc_si128(_mm_castps_si128(a), _mm_castps_si128(b)); }

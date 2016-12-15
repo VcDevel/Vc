@@ -415,8 +415,24 @@ template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
     static constexpr size_t mask_member_alignment = next_power_of_2(N);
     using mask_cast_type = const mask_member_type &;
 };
+
 // }}}1
 }  // namespace detail
+
+// where implementation {{{1
+template <typename T, int N>
+static Vc_INTRINSIC void masked_assign(const mask<T, datapar_abi::fixed_size<N>> &k,
+                                       datapar<T, datapar_abi::fixed_size<N>> &lhs,
+                                       const datapar<T, datapar_abi::fixed_size<N>> &rhs)
+{
+    detail::execute_n_times<N>([&](auto i) {
+        if (k[i]) {
+            lhs[i] = rhs[i];
+        }
+    });
+}
+
+// }}}1
 Vc_VERSIONED_NAMESPACE_END
 
 namespace std
