@@ -872,7 +872,7 @@ template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx51
     case  8: return 31 - _lzcnt_u32(v);
     case 16: return 31 - _lzcnt_u32(v);
     case 32: return 31 - _lzcnt_u32(v);
-    case 64: return detail::lastbit(v);
+    case 64: return detail::lastbit(__mmask64(v));
     default: Vc_UNREACHABLE();
     }
 }
