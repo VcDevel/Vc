@@ -1415,14 +1415,7 @@ Vc_INTRINSIC Vc_CONST int testc(__m256i a, __m256i b) { return _mm256_testc_si25
 
 // testallset{{{1
 #ifdef Vc_HAVE_AVX512F
-Vc_INTRINSIC Vc_CONST bool testallset(__mmask8 a)
-{
-#ifdef Vc_GCC
-    return a == 0xffU;
-#else
-    return _mm512_kortestc(a, __mmask16(0xff00U));
-#endif
-}
+Vc_INTRINSIC Vc_CONST bool testallset(__mmask8 a) { return a == 0xffU; }
 
 Vc_INTRINSIC Vc_CONST bool testallset(__mmask16 a)
 {
