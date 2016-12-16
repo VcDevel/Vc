@@ -40,6 +40,7 @@ template <typename T, typename U> inline void masked_assign(bool k, T &lhs, U &&
         lhs = std::forward<U>(rhs);
     }
 }
+
 template <template <typename> class Op, typename T, typename U>
 inline void masked_cassign(bool k, T &lhs, U &&rhs)
 {
@@ -47,6 +48,7 @@ inline void masked_cassign(bool k, T &lhs, U &&rhs)
         lhs = Op<void>{}(lhs, std::forward<T>(rhs));
     }
 }
+
 template <template <typename> class Op, typename T> inline auto masked_unary(bool k, T &d)
 {
     return k ? Op<void>{}(d) : d;

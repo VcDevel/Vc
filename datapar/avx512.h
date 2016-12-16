@@ -801,6 +801,49 @@ protected:
 // }}}1
 }  // namespace detail
 
+// where implementation {{{1
+#define Vc_MASKED_CASSIGN_SPECIALIZATION(TYPE_, TYPE_SUFFIX_, OP_, OP_NAME_)             \
+    template <>                                                                          \
+    inline void Vc_VDECL masked_cassign<OP_, TYPE_, datapar_abi::avx512, 1>(             \
+        mask<TYPE_, datapar_abi::avx512> k, datapar<TYPE_, datapar_abi::avx512> & lhs,   \
+        const datapar<TYPE_, datapar_abi::avx512> &rhs)                                  \
+    {                                                                                    \
+        const auto kv = detail::data(k);                                                 \
+        const auto lv = detail::data(lhs);                                               \
+        const auto rv = detail::data(rhs);                                               \
+        lhs = datapar<TYPE_, datapar_abi::avx512>(                                       \
+            _mm512_mask_##OP_NAME_##_##TYPE_SUFFIX_(lv, kv, lv, rv));                    \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+
+Vc_MASKED_CASSIGN_SPECIALIZATION(        double,  pd  , std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(         float,  ps  , std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: llong, epi64, std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail::ullong, epi64, std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(          long, epi64, std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: ulong, epi64, std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(           int, epi32, std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail::  uint, epi32, std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(         short, epi16, std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail::ushort, epi16, std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: schar, epi8 , std::plus, add);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: uchar, epi8 , std::plus, add);
+
+Vc_MASKED_CASSIGN_SPECIALIZATION(        double,  pd  , std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(         float,  ps  , std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: llong, epi64, std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail::ullong, epi64, std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(          long, epi64, std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: ulong, epi64, std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(           int, epi32, std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail::  uint, epi32, std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(         short, epi16, std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail::ushort, epi16, std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: schar, epi8 , std::minus, sub);
+Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: uchar, epi8 , std::minus, sub);
+
+// }}}1
+
 // [mask.reductions] {{{
 template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
 {

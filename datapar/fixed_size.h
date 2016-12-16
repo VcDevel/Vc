@@ -449,6 +449,33 @@ static Vc_INTRINSIC
     });
 }
 
+template <template <typename> class Op, typename T, int N>
+inline void masked_cassign(const fixed_size_mask<T, N> &k, fixed_size_datapar<T, N> &lhs,
+                           const fixed_size_datapar<T, N> &rhs)
+{
+    detail::execute_n_times<N>([&](auto i) {
+        if (k[i]) {
+            lhs[i] = Op<T>{}(lhs[i], rhs[i]);
+        }
+    });
+}
+
+// Optimization for the case where the RHS is a scalar. No need to broadcast the scalar to a datapar
+// first.
+template <template <typename> class Op, typename T, int N, class U>
+inline enable_if<std::is_convertible<U, fixed_size_datapar<T, N>>::value &&
+                     std::is_arithmetic<U>::value,
+                 void>
+masked_cassign(const fixed_size_mask<T, N> &k, fixed_size_datapar<T, N> &lhs,
+               const U &rhs)
+{
+    detail::execute_n_times<N>([&](auto i) {
+        if (k[i]) {
+            lhs[i] = Op<T>{}(lhs[i], rhs);
+        }
+    });
+}
+
 // }}}1
 Vc_VERSIONED_NAMESPACE_END
 

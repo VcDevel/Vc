@@ -446,43 +446,53 @@ public:
     }
     template <class U> Vc_INTRINSIC void operator+=(U &&x)
     {
-        detail::masked_cassign<std::plus>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<std::plus>(k, d, std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator-=(U &&x)
     {
-        detail::masked_cassign<std::minus>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<std::minus>(k, d, std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator*=(U &&x)
     {
-        detail::masked_cassign<std::multiplies>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<std::multiplies>(k, d, std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator/=(U &&x)
     {
-        detail::masked_cassign<std::divides>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<std::divides>(k, d, std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator%=(U &&x)
     {
-        detail::masked_cassign<std::modulus>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<std::modulus>(k, d, std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator&=(U &&x)
     {
-        detail::masked_cassign<std::bit_and>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<std::bit_and>(k, d, std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator|=(U &&x)
     {
-        detail::masked_cassign<std::bit_or>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<std::bit_or>(k, d, std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator^=(U &&x)
     {
-        detail::masked_cassign<std::bit_xor>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<std::bit_xor>(k, d, std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator<<=(U &&x)
     {
-        detail::masked_cassign<detail::shift_left>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<detail::shift_left>(k, d, std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator>>=(U &&x)
     {
-        detail::masked_cassign<detail::shift_right>(k, d, std::forward<U>(x));
+        using detail::masked_cassign;
+        masked_cassign<detail::shift_right>(k, d, std::forward<U>(x));
     }
     Vc_INTRINSIC T &operator++()
     {

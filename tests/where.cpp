@@ -67,6 +67,10 @@ inline V make_vec(const std::initializer_list<typename V::value_type> &init,
 }
 //}}}1
 
+template <class V> struct Convertible {
+    operator V() const { return V(4); }
+};
+
 TEST_TYPES(V, where, (all_test_types))
 {
     using M = typename V::mask_type;
@@ -77,7 +81,23 @@ TEST_TYPES(V, where, (all_test_types))
     where(alternating_mask, x) = indexes;
     COMPARE(alternating_mask, x == indexes);
 
-    where(!alternating_mask, x) = T(1);
+    where(!alternating_mask, x) = T(2);
+    COMPARE(!alternating_mask, x == T(2));
+
+    where(!alternating_mask, x) = Convertible<V>();
+    COMPARE(!alternating_mask, x == T(4));
+
+    x = 0;
+    COMPARE(x, T(0));
+    where(alternating_mask, x) += indexes;
+    COMPARE(alternating_mask, x == indexes);
+
+    x = 10;
+    COMPARE(x, T(10));
+    where(!alternating_mask, x) += T(1);
+    COMPARE(!alternating_mask, x == T(11));
+    where(alternating_mask, x) -= Convertible<V>();
+    COMPARE(alternating_mask, x == T(6));
 }
 
 TEST_TYPES(T, where_fundamental, (int, float, double, short))
