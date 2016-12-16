@@ -76,3 +76,13 @@ TEST_TYPES(V, where, (all_test_types))
     where(alternating_mask, x) = indexes;
     COMPARE(alternating_mask, x == indexes);
 }
+
+TEST_TYPES(T, where_fundamental, (int, float, double, short))
+{
+    using Vc::where;
+    T x = T();
+    where(true, x) = x + 1;
+    COMPARE(x, T(1));
+    where(false, x) = x - 1;
+    COMPARE(x, T(1));
+}
