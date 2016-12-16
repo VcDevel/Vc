@@ -70,11 +70,14 @@ inline V make_vec(const std::initializer_list<typename V::value_type> &init,
 TEST_TYPES(V, where, (all_test_types))
 {
     using M = typename V::mask_type;
+    using T = typename V::value_type;
     const V indexes = make_vec<V>({1, 2, 3, 4}, 4);
     const M alternating_mask = make_mask<M>({true, false});
     V x = 0;
     where(alternating_mask, x) = indexes;
     COMPARE(alternating_mask, x == indexes);
+
+    where(!alternating_mask, x) = T(1);
 }
 
 TEST_TYPES(T, where_fundamental, (int, float, double, short))
@@ -85,4 +88,6 @@ TEST_TYPES(T, where_fundamental, (int, float, double, short))
     COMPARE(x, T(1));
     where(false, x) = x - 1;
     COMPARE(x, T(1));
+    where(true, x) += T(1);
+    COMPARE(x, T(2));
 }

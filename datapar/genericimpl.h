@@ -98,6 +98,13 @@ inline void Vc_VDECL masked_assign(mask<T, A> k, datapar<T, A> &lhs,
         detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs)));
 }
 
+template <class T, class A, class U>
+inline enable_if<std::is_convertible<U, datapar<T, A>>::value, void> masked_assign(
+    const mask<T, A> &k, datapar<T, A> &lhs, const U &rhs)
+{
+    masked_assign(k, lhs, datapar<T, A>(rhs));
+}
+
 // special case for long double because it falls back to using fixed_size<1>
 template <class A>
 inline void Vc_VDECL masked_assign(const mask<long double, A> &k,
