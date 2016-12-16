@@ -1406,11 +1406,44 @@ Vc_INTRINSIC Vc_CONST int testc(__m128  a, __m128  b) { return _mm_testc_si128(_
 Vc_INTRINSIC Vc_CONST int testc(__m128d a, __m128d b) { return _mm_testc_si128(_mm_castpd_si128(a), _mm_castpd_si128(b)); }
 Vc_INTRINSIC Vc_CONST int testc(__m128i a, __m128i b) { return _mm_testc_si128(a, b); }
 #endif  // Vc_HAVE_SSE4_1
+
 #ifdef Vc_HAVE_AVX
 Vc_INTRINSIC Vc_CONST int testc(__m256  a, __m256  b) { return _mm256_testc_ps(a, b); }
 Vc_INTRINSIC Vc_CONST int testc(__m256d a, __m256d b) { return _mm256_testc_pd(a, b); }
 Vc_INTRINSIC Vc_CONST int testc(__m256i a, __m256i b) { return _mm256_testc_si256(a, b); }
 #endif  // Vc_HAVE_AVX
+
+// testallset{{{1
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC Vc_CONST bool testallset(__mmask8 a)
+{
+#ifdef Vc_GCC
+    return a == 0xffU;
+#else
+    return _mm512_kortestc(a, __mmask16(0xff00U));
+#endif
+}
+
+Vc_INTRINSIC Vc_CONST bool testallset(__mmask16 a)
+{
+#ifdef Vc_GCC
+    // GCC ICEs on _mm512_kortestc
+    return a == 0xffffU;
+#else
+    return _mm512_kortestc(a, a);
+#endif
+}
+
+#ifdef Vc_HAVE_AVX512BW
+Vc_INTRINSIC Vc_CONST bool testallset(__mmask32 a) { return a == 0xffffffffU; }
+// return _mm512_kortestc(a, a) && _mm512_kortestc(a >> 16, a >> 16); }
+Vc_INTRINSIC Vc_CONST bool testallset(__mmask64 a) { return a == 0xffffffffffffffffULL; }
+/*{
+    return _mm512_kortestc(a, a) && _mm512_kortestc(a >> 16, a >> 16) &&
+           _mm512_kortestc(a >> 32, a >> 32) && _mm512_kortestc(a >> 48, a >> 48);
+}*/
+#endif  // Vc_HAVE_AVX512BW
+#endif  // Vc_HAVE_AVX512F
 
 // testz{{{1
 #ifdef Vc_HAVE_SSE4_1

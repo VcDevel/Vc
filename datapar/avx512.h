@@ -800,22 +800,12 @@ protected:
 };
 // }}}1
 }  // namespace detail
-Vc_VERSIONED_NAMESPACE_END
 
 // [mask.reductions] {{{
-Vc_VERSIONED_NAMESPACE_BEGIN
-template <class T, class = enable_if<sizeof(T) <= 8>>
-Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
 {
     const auto v = detail::data(k);
-    switch (k.size()) {
-    case 8:  return v == 0xffU;
-    case 16: return v == 0xffffU;
-    case 32: return v == 0xffffffffU;
-    case 64: return v == 0xffffffffffffffffULL;
-    default: Vc_UNREACHABLE();
-    }
-    // TODO: use _mm512_kortestc somehow?
+    return detail::x86::testallset(v);
 }
 
 template <class T> Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::avx512> k)
