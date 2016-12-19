@@ -438,7 +438,7 @@ public:
     where_expression(where_expression &&) = delete;
     where_expression &operator=(const where_expression &) = delete;
     where_expression &operator=(where_expression &&) = delete;
-    Vc_INTRINSIC where_expression(const Mask &kk, T &dd) : k(kk), d(dd) {}
+    Vc_INTRINSIC where_expression(const Mask kk, T &dd) : k(kk), d(dd) {}
     template <class U> Vc_INTRINSIC void operator=(U &&x)
     {
         using detail::masked_assign;
@@ -517,13 +517,13 @@ public:
     }
 
 private:
-    const Mask &k;
+    const Mask k;
     T &d;
 };
 
 template <class T0, class A0, class T1, class A1>
-Vc_INTRINSIC where_expression<mask<T1, A1>, datapar<T1, A1>> where(const mask<T0, A0> &k,
-                                                                   datapar<T1, A1> &d)
+Vc_INTRINSIC where_expression<const mask<T1, A1> &, datapar<T1, A1>> where(
+    const mask<T0, A0> &k, datapar<T1, A1> &d)
 {
     return {k, d};
 }
