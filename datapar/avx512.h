@@ -100,7 +100,6 @@ template <class T> struct traits<T, datapar_abi::avx512> {
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
     using mask_cast_type = typename mask_member_type::VectorType;
 };
-
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
@@ -772,6 +771,37 @@ struct avx512_mask_impl {
     static Vc_INTRINSIC T negate(const T &x, SizeTag) noexcept
     {
         return ~x.v();
+    }
+
+    // logical and bitwise operators {{{2
+    template <class T>
+    static Vc_INTRINSIC mask<T> logical_and(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, mask_member_type<size<T>()>(x.d & y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC mask<T> logical_or(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, mask_member_type<size<T>()>(x.d | y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC mask<T> bit_and(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, mask_member_type<size<T>()>(x.d & y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC mask<T> bit_or(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, mask_member_type<size<T>()>(x.d | y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC mask<T> bit_xor(const mask<T> &x, const mask<T> &y)
+    {
+        return {private_init, mask_member_type<size<T>()>(x.d ^ y.d)};
     }
 
     // smart_reference access {{{2
