@@ -203,7 +203,7 @@ public:
 
     // access to internal representation (suggested extension)
     explicit operator cast_type() const { return d; }
-    explicit datapar(const cast_type &init) : d{init} {}
+    explicit datapar(const cast_type &init) : d(init) {}
 
 private:
     friend auto detail::data<value_type, abi_type>(const datapar &);
