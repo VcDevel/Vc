@@ -487,6 +487,17 @@ masked_cassign(const fixed_size_mask<T, N> &k, fixed_size_datapar<T, N> &lhs,
     });
 }
 
+template <template <typename> class Op, typename T, int N>
+inline fixed_size_datapar<T, N> masked_unary(const fixed_size_mask<T, N> &k,
+                                             const fixed_size_datapar<T, N> &v)
+{
+    return static_cast<fixed_size_datapar<T, N>>(
+        detail::generate_from_n_evaluations<N, std::array<T, N>>([&](auto i) {
+            using detail::data;
+            return data(k)[i] ? Op<T>{}(data(v)[i]) : data(v)[i];
+        }));
+}
+
 // }}}1
 Vc_VERSIONED_NAMESPACE_END
 

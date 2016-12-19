@@ -98,6 +98,28 @@ TEST_TYPES(V, where, (all_test_types))
     COMPARE(!alternating_mask, x == T(11));
     where(alternating_mask, x) -= Convertible<V>();
     COMPARE(alternating_mask, x == T(6));
+    where(alternating_mask, x) /= T(2);
+    COMPARE(alternating_mask, x == T(3));
+    where(alternating_mask, x) *= T(3);
+    COMPARE(alternating_mask, x == T(9));
+
+    x = 10;
+    where(alternating_mask, x)++;
+    COMPARE(alternating_mask, x == T(11));
+    ++where(alternating_mask, x);
+    COMPARE(alternating_mask, x == T(12));
+    where(alternating_mask, x)--;
+    COMPARE(alternating_mask, x == T(11));
+    --where(alternating_mask, x);
+    --where(alternating_mask, x);
+    COMPARE(alternating_mask, x == T(9));
+    COMPARE(alternating_mask, -where(alternating_mask, x) == T(-T(9)));
+
+    x = 10;
+    where(alternating_mask, x) = 0;
+    COMPARE(!x, alternating_mask);
+    COMPARE(!where(alternating_mask, x), alternating_mask);
+    COMPARE(!where(!alternating_mask, x), M(false));
 }
 
 TEST_TYPES(T, where_fundamental, (int, float, double, short))

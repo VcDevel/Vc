@@ -72,17 +72,17 @@ template <> struct shift_right<void> {
         return std::forward<L>(a) >> std::forward<R>(b);
     }
 };
-template <class = void> struct pre_increment {
-    template <typename T> constexpr T &operator()(T &a) const { return ++a; }
+template <class T = void> struct increment {
+    constexpr T operator()(T a) const { return ++a; }
 };
-template <class = void> struct post_increment {
-    template <typename T> constexpr T operator()(T &a) const { return a++; }
+template <> struct increment<void> {
+    template <typename T> constexpr T operator()(T a) const { return ++a; }
 };
-template <class = void> struct pre_decrement {
-    template <typename T> constexpr T &operator()(T &a) const { return --a; }
+template <class T = void> struct decrement {
+    constexpr T operator()(T a) const { return --a; }
 };
-template <class = void> struct post_decrement {
-    template <typename T> constexpr T operator()(T &a) const { return a--; }
+template <> struct decrement<void> {
+    template <typename T> constexpr T operator()(T a) const { return --a; }
 };
 
 }  // namespace detail

@@ -511,27 +511,32 @@ public:
         using detail::masked_cassign;
         masked_cassign<detail::shift_right>(k, d, std::forward<U>(x));
     }
-    Vc_INTRINSIC T &operator++()
+    Vc_INTRINSIC void operator++()
     {
-        return detail::masked_unary<detail::pre_increment>(k, d);
+        using detail::masked_unary;
+        d = masked_unary<detail::increment>(k, d);
     }
-    Vc_INTRINSIC T operator++(int)
+    Vc_INTRINSIC void operator++(int)
     {
-        return detail::masked_unary<detail::post_increment>(k, d);
+        using detail::masked_unary;
+        d = masked_unary<detail::increment>(k, d);
     }
-    Vc_INTRINSIC T &operator--()
+    Vc_INTRINSIC void operator--()
     {
-        return detail::masked_unary<detail::pre_decrement>(k, d);
+        using detail::masked_unary;
+        d = masked_unary<detail::decrement>(k, d);
     }
-    Vc_INTRINSIC T operator--(int)
+    Vc_INTRINSIC void operator--(int)
     {
-        return detail::masked_unary<detail::post_decrement>(k, d);
+        using detail::masked_unary;
+        d = masked_unary<detail::decrement>(k, d);
     }
-    Vc_INTRINSIC T operator-() const { return detail::masked_unary<std::negate>(k, d); }
-    Vc_INTRINSIC auto operator!() const
+    Vc_INTRINSIC T operator-() const
     {
-        return detail::masked_unary<std::logical_not>(k, d);
+        using detail::masked_unary;
+        return masked_unary<std::negate>(k, d);
     }
+    Vc_INTRINSIC auto operator!() const { return k && !d; }
 
 private:
     const Mask k;

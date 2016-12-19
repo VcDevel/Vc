@@ -156,6 +156,17 @@ masked_cassign(mask<T, A> k, datapar<T, A> &lhs, const U &rhs)
     masked_cassign<Op>(k, lhs, datapar<T, A>(rhs));
 }
 
+template <template <typename> class Op, typename T, class A,
+          int = 1  // the int parameter is used to disambiguate the function template
+                   // specialization for the avx512 ABI
+          >
+inline datapar<T, A> Vc_VDECL masked_unary(mask<T, A> k, datapar<T, A> v)
+{
+    Op<datapar<T, A>> op;
+    return static_cast<datapar<T, A>>(
+        detail::x86::blend(detail::data(k), detail::data(v), detail::data(op(v))));
+}
+
 //}}}1
 Vc_VERSIONED_NAMESPACE_END
 
