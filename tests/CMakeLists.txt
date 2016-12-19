@@ -10,7 +10,10 @@ endif()
 # 32-bit x86 requires SSE for fp math to produce comparable results.
 AddCompilerFlag("-mfpmath=sse" CXX_FLAGS Vc_ARCHITECTURE_FLAGS CXX_RESULT _fpmath_ok)
 
-AddCompilerFlag("-fsanitize=undefined")
+option(ENABLE_UBSAN "Enable build of unit tests with undefined behavior sanitizer" OFF)
+if(ENABLE_UBSAN)
+   AddCompilerFlag("-fsanitize=undefined")
+endif()
 
 if(Vc_COMPILER_IS_CLANG) # don't warn about sanity checks#{{{
    # GCC does not complain about the following flags until much later. Therefore
