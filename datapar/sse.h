@@ -61,11 +61,6 @@ template <class T> struct traits<T, datapar_abi::sse> {
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
     using mask_cast_type = typename mask_member_type::VectorType;
 };
-
-template <>
-struct traits<long double, datapar_abi::sse>
-    : public traits<long double, datapar_abi::scalar> {
-};
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
@@ -923,14 +918,6 @@ template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::sse> 
     return detail::lastbit(detail::mask_to_int<k.size()>(d));
 }
 
-Vc_ALWAYS_INLINE bool all_of(const mask<long double, datapar_abi::sse> k) { return all_of(k[0]); }
-Vc_ALWAYS_INLINE bool any_of(const mask<long double, datapar_abi::sse> k) { return any_of(k[0]); }
-Vc_ALWAYS_INLINE bool none_of(const mask<long double, datapar_abi::sse> k) { return none_of(k[0]); }
-Vc_ALWAYS_INLINE bool some_of(const mask<long double, datapar_abi::sse> k) { return some_of(k[0]); }
-Vc_ALWAYS_INLINE int popcount(const mask<long double, datapar_abi::sse> k) { return popcount(k[0]); }
-Vc_ALWAYS_INLINE int find_first_set(const mask<long double, datapar_abi::sse> k) { return find_first_set(k[0]); }
-Vc_ALWAYS_INLINE int find_last_set(const mask<long double, datapar_abi::sse> k) { return find_last_set(k[0]); }
-
 Vc_VERSIONED_NAMESPACE_END
 // }}}
 
@@ -946,10 +933,6 @@ public:
         return Vc::detail::is_equal<M<T>::size()>(static_cast<S<T>>(x),
                                                   static_cast<S<T>>(y));
     }
-};
-template <>
-struct equal_to<Vc::mask<long double, Vc::datapar_abi::sse>>
-    : public equal_to<Vc::mask<long double, Vc::datapar_abi::scalar>> {
 };
 // }}}1
 }  // namespace std

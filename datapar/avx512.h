@@ -101,10 +101,6 @@ template <class T> struct traits<T, datapar_abi::avx512> {
     using mask_cast_type = typename mask_member_type::VectorType;
 };
 
-template <>
-struct traits<long double, datapar_abi::avx512>
-    : public traits<long double, datapar_abi::scalar> {
-};
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
@@ -915,14 +911,6 @@ Vc_ALWAYS_INLINE int find_last_set(mask<unsigned char, datapar_abi::avx512> k)
     return detail::lastbit(v);
 }
 
-Vc_ALWAYS_INLINE bool all_of(const mask<long double, datapar_abi::avx512> k) { return all_of(k[0]); }
-Vc_ALWAYS_INLINE bool any_of(const mask<long double, datapar_abi::avx512> k) { return any_of(k[0]); }
-Vc_ALWAYS_INLINE bool none_of(const mask<long double, datapar_abi::avx512> k) { return none_of(k[0]); }
-Vc_ALWAYS_INLINE bool some_of(const mask<long double, datapar_abi::avx512> k) { return some_of(k[0]); }
-Vc_ALWAYS_INLINE int popcount(const mask<long double, datapar_abi::avx512> k) { return popcount(k[0]); }
-Vc_ALWAYS_INLINE int find_first_set(const mask<long double, datapar_abi::avx512> k) { return find_first_set(k[0]); }
-Vc_ALWAYS_INLINE int find_last_set(const mask<long double, datapar_abi::avx512> k) { return find_last_set(k[0]); }
-
 Vc_VERSIONED_NAMESPACE_END
 // }}}
 
@@ -937,10 +925,6 @@ public:
     {
         return Vc::detail::data(x) == Vc::detail::data(y);
     }
-};
-template <>
-struct equal_to<Vc::mask<long double, Vc::datapar_abi::avx512>>
-    : public equal_to<Vc::mask<long double, Vc::datapar_abi::scalar>> {
 };
 // }}}1
 }  // namespace std

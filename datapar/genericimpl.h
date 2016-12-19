@@ -156,43 +156,6 @@ masked_cassign(mask<T, A> k, datapar<T, A> &lhs, const U &rhs)
     masked_cassign<Op>(k, lhs, datapar<T, A>(rhs));
 }
 
-// special case for long double because it falls back to using fixed_size<1>
-template <class A>
-inline void Vc_VDECL masked_assign(const mask<long double, A> &k,
-                                   datapar<long double, A> &lhs,
-                                   const datapar<long double, A> &rhs)
-{
-    if (k[0]) {
-        lhs[0] = rhs[0];
-    }
-}
-
-template <template <typename> class Op, class A>
-inline void Vc_VDECL masked_cassign(mask<long double, A> k, datapar<long double, A> &lhs,
-                                    const datapar<long double, A> &rhs)
-{
-    if (k[0]) {
-        lhs[0] = Op<long double>{}(lhs[0], rhs[0]);
-    }
-}
-
-// special case for long double & fixed_size to disambiguate with the above
-template <int N>
-inline void masked_assign(const mask<long double, datapar_abi::fixed_size<N>> &k,
-                          datapar<long double, datapar_abi::fixed_size<N>> &lhs,
-                          const datapar<long double, datapar_abi::fixed_size<N>> &rhs)
-{
-    masked_assign<long double, N>(k, lhs, rhs);
-}
-
-template <template <typename> class Op, int N>
-inline void masked_cassign(const fixed_size_mask<long double, N> &k,
-                           fixed_size_datapar<long double, N> &lhs,
-                           const fixed_size_datapar<long double, N> &rhs)
-{
-    masked_cassign<Op, long double, N>(k, lhs, rhs);
-}
-
 //}}}1
 Vc_VERSIONED_NAMESPACE_END
 
