@@ -224,6 +224,20 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
                            T(2 / (std::numeric_limits<T>::min() + 1))});
         COMPARE(x / y, ref);
     }
+
+    {  // increment & decrement {{{2
+        const V from0 = make_vec<V>({0, 1, 2, 3}, 4);
+        V x = from0;
+        COMPARE(x++, from0);
+        COMPARE(x, from0 + 1);
+        COMPARE(++x, from0 + 2);
+        COMPARE(x, from0 + 2);
+
+        COMPARE(x--, from0 + 2);
+        COMPARE(x, from0 + 1);
+        COMPARE(--x, from0);
+        COMPARE(x, from0);
+    }
 }
 
 template <class A, class B, class Expected> void binary_op_return_type()  //{{{1

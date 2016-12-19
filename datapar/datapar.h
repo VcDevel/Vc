@@ -178,10 +178,10 @@ public:
     value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
 
     // increment and decrement:
-    //datapar &operator++();
-    //datapar operator++(int);
-    //datapar &operator--();
-    //datapar operator--(int);
+    datapar &operator++() { impl::increment(d); return *this; }
+    datapar operator++(int) { datapar r = *this; impl::increment(d); return r; }
+    datapar &operator--() { impl::decrement(d); return *this; }
+    datapar operator--(int) { datapar r = *this; impl::decrement(d); return r; }
 
     // unary operators (for integral T)
     mask_type operator!() const { return impl::negate(*this); }

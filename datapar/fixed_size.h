@@ -218,6 +218,17 @@ template <int N> struct fixed_size_datapar_impl {
                                   auto i) { return static_cast<T>(x.d[i] >> y.d[i]); })};
     }
 
+    // increment & decrement{{{2
+    template <class T> static inline void increment(datapar_member_type<T> &x)
+    {
+        execute_n_times<N>([&](auto i) { ++x[i]; });
+    }
+
+    template <class T> static inline void decrement(datapar_member_type<T> &x)
+    {
+        execute_n_times<N>([&](auto i) { --x[i]; });
+    }
+
     // compares {{{2
     template <template <typename> class Cmp, class T, size_t... I>
     static Vc_INTRINSIC mask_member_type cmp_impl(const datapar_member_type<T> &x,

@@ -34,6 +34,9 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
 // datapar impl {{{1
 template <class Derived> struct generic_datapar_impl {
+    // member types {{{2
+    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+
     // adjust_for_long{{{2
     template <size_t Size>
     static Vc_INTRINSIC Storage<equal_int_type_t<long>, Size> adjust_for_long(
@@ -85,6 +88,36 @@ template <class Derived> struct generic_datapar_impl {
     Vc_ARITHMETIC_OP_(divides);
 #undef Vc_ARITHMETIC_OP_
 
+    // increment & decrement{{{2
+    template <class T, size_t N> static Vc_INTRINSIC void increment(Storage<T, N> &x)
+    {
+        x = detail::plus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
+    }
+    template <size_t N> static Vc_INTRINSIC void increment(Storage<long, N> &x)
+    {
+        x = detail::plus(adjust_for_long(x), Storage<equal_int_type_t<long>, N>(
+                                                 Derived::broadcast(1L, size_tag<N>())));
+    }
+    template <size_t N> static Vc_INTRINSIC void increment(Storage<ulong, N> &x)
+    {
+        x = detail::plus(adjust_for_long(x), Storage<equal_int_type_t<ulong>, N>(
+                                                 Derived::broadcast(1L, size_tag<N>())));
+    }
+
+    template <class T, size_t N> static Vc_INTRINSIC void decrement(Storage<T, N> &x)
+    {
+        x = detail::minus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
+    }
+    template <size_t N> static Vc_INTRINSIC void decrement(Storage<long, N> &x)
+    {
+        x = detail::minus(adjust_for_long(x), Storage<equal_int_type_t<long>, N>(
+                                                  Derived::broadcast(1L, size_tag<N>())));
+    }
+    template <size_t N> static Vc_INTRINSIC void decrement(Storage<ulong, N> &x)
+    {
+        x = detail::minus(adjust_for_long(x), Storage<equal_int_type_t<ulong>, N>(
+                                                  Derived::broadcast(1L, size_tag<N>())));
+    }
 };
 //}}}1
 }  // namespace detail
