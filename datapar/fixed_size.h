@@ -493,7 +493,7 @@ inline fixed_size_datapar<T, N> masked_unary(const fixed_size_mask<T, N> &k,
 {
     return static_cast<fixed_size_datapar<T, N>>(
         detail::generate_from_n_evaluations<N, std::array<T, N>>([&](auto i) {
-            using detail::data;
+            using Vc_VERSIONED_NAMESPACE::detail::data;
             return data(k)[i] ? Op<T>{}(data(v)[i]) : data(v)[i];
         }));
 }
