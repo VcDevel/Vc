@@ -429,6 +429,22 @@ template <typename... Ts> struct Typelist
     static constexpr std::size_t size() { return sizeof...(Ts); }
 };
 
+// filter_list {{{1
+namespace detail
+{
+template <class R, class T> struct apply_filter {
+    using type = Typelist<T>;
+};
+template <class R> struct apply_filter<R, R> {
+    using type = Typelist<>;
+};
+}  // namespace detail
+
+template <class ToRemove, class List> struct filter_list;
+template <class ToRemove, class... Ts> struct filter_list<ToRemove, Typelist<Ts...>> {
+    using type = concat<typename detail::apply_filter<ToRemove, Ts>::type...>;
+};
+
 // static_asserts {{{1
 static_assert(std::is_same<outer_product<Typelist<int, float>, Typelist<short, double>>,
                            Typelist<Typelist<int, short>,
