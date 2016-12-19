@@ -45,6 +45,8 @@ using llong = long long;
 using ullong = unsigned long long;
 using ldouble = long double;
 
+using testtypes_wo_ldouble = typename filter_list<long double, Typelist<TESTTYPES>>::type;
+
 // vT {{{1
 using vschar = Vc::native_datapar<schar>;
 using vuchar = Vc::native_datapar<uchar>;
@@ -94,7 +96,7 @@ typedef concat<
                     Template<base_template, Vc::datapar_abi::sse>,
 #endif
                     Typelist<>>,
-                Typelist<TESTTYPES>>> native_test_types;
+                testtypes_wo_ldouble>> native_test_types;
 
 // all_test_types / ALL_TYPES {{{1
 typedef concat<
