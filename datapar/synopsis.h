@@ -50,39 +50,56 @@ template <int N> struct partial_avx {};
 template <int N> struct partial_avx512 {};
 template <int N> struct partial_knc {};
 
+namespace detail
+{
+template <class T, class A0, class A1> struct fallback_abi_for_long_double {
+    using type = A0;
+};
+template <class A0, class A1> struct fallback_abi_for_long_double<long double, A0, A1> {
+    using type = A1;
+};
+template <class T, class A0, class A1>
+using fallback_abi_for_long_double_t =
+    typename fallback_abi_for_long_double<T, A0, A1>::type;
+}  // namespace detail
+
 #if defined Vc_IS_AMD64
 #if !defined Vc_HAVE_SSE2
 #error "Use of SSE2 is required on AMD64"
 #endif
 template <typename T>
-using compatible = std::conditional_t<(sizeof(T) <= 8), sse, scalar>;
+using compatible = detail::fallback_abi_for_long_double_t<T, sse, scalar>;
 #elif defined Vc_HAVE_FULL_KNC_ABI
 template <typename T>
-using compatible = std::conditional_t<(sizeof(T) <= 8), knc, scalar>;
+using compatible = detail::fallback_abi_for_long_double_t<T, knc, scalar>;
 #else
 template <typename> using compatible = scalar;
 #endif
 
 #if defined Vc_HAVE_FULL_AVX512_ABI
-template <typename T> using native = std::conditional_t<(sizeof(T) <= 8), avx512, scalar>;
+template <typename T>
+using native = detail::fallback_abi_for_long_double_t<T, avx512, scalar>;
 #elif defined Vc_HAVE_AVX512_ABI
 template <typename T>
 using native =
     std::conditional_t<(sizeof(T) >= 4),
-                       std::conditional_t<(sizeof(T) > 8), scalar, avx512>, avx>;
+                       detail::fallback_abi_for_long_double_t<T, avx512, scalar>, avx>;
 #elif defined Vc_HAVE_FULL_AVX_ABI
-template <typename T> using native = std::conditional_t<(sizeof(T) > 8), scalar, avx>;
+template <typename T> using native = detail::fallback_abi_for_long_double_t<T, avx, scalar>;
 #elif defined Vc_HAVE_AVX_ABI
 template <typename T>
-using native = std::conditional_t<std::is_floating_point<T>::value,
-                                  std::conditional_t<(sizeof(T) > 8), scalar, avx>, sse>;
+using native =
+    std::conditional_t<std::is_floating_point<T>::value,
+                       detail::fallback_abi_for_long_double_t<T, avx, scalar>, sse>;
 #elif defined Vc_HAVE_FULL_SSE_ABI
-template <typename T> using native = std::conditional_t<(sizeof(T) > 8), scalar, sse>;
+template <typename T>
+using native = detail::fallback_abi_for_long_double_t<T, sse, scalar>;
 #elif defined Vc_HAVE_SSE_ABI
 template <typename T>
 using native = std::conditional_t<std::is_same<float, T>::value, sse, scalar>;
 #elif defined Vc_HAVE_FULL_KNC_ABI
-template <typename T> using native = std::conditional_t<(sizeof(T) > 8), scalar, knc>;
+template <typename T>
+using native = detail::fallback_abi_for_long_double_t<T, knc, scalar>;
 #else
 template <typename> using native = scalar;
 #endif
