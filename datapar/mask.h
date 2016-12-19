@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-template <class T, class A> inline auto data(const mask<T, A> &x);
+template <class T, class A> Vc_INTRINSIC_L auto data(const mask<T, A> &x) Vc_INTRINSIC_R;
 }  // namespace detail
 
 template <class T, class Abi> class mask

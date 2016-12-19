@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-template <class T, class A> inline auto data(const datapar<T, A> &x);
+template <class T, class A> Vc_INTRINSIC_L auto data(const datapar<T, A> &x) Vc_INTRINSIC_R;
 
 template <class Derived> struct generic_datapar_impl;
 // allow_conversion_ctor2{{{1
