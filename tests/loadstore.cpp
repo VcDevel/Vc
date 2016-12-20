@@ -84,15 +84,31 @@ template <> constexpr float genHalfBits<float>() { return 0; }
  *
  * undefined
  * =========
- * §4.9 p1 (floating-integral conversions)
+ * §4.9/1  (floating-point conversions)
+ *   If the source value is neither exactly represented in the destination type nor between
+ *   two adjacent destination values the result is undefined.
+ *
+ * §4.10/1 (floating-integral conversions)
  *  floating point type can be converted to integer type.
  *  The behavior is undefined if the truncated value cannot be
  *  represented in the destination type.
- *      p2
+ *
+ * §4.10/2
  *  integer can be converted to floating point type.
  *  If the value being converted is outside the range of values that can be represented, the
  *  behavior is undefined.
  */
+template <typename To, typename From>
+inline typename std::enable_if<(std::is_floating_point<From>::value &&
+                                std::is_floating_point<To>::value &&
+                                sizeof(From) > sizeof(To)),
+                               bool>::type
+is_conversion_undefined(From x)
+{
+    return x > static_cast<From>(std::numeric_limits<To>::max()) ||
+           x < static_cast<From>(std::numeric_limits<To>::min());
+}
+
 template <typename To, typename From>
 inline typename std::enable_if<(std::is_arithmetic<From>::value &&
                                 std::is_floating_point<From>::value &&
@@ -103,10 +119,12 @@ is_conversion_undefined(From x)
     return x > static_cast<From>(std::numeric_limits<To>::max()) ||
            x < static_cast<From>(std::numeric_limits<To>::min());
 }
+
 template <typename To, typename From>
 inline typename std::enable_if<(std::is_arithmetic<From>::value &&
-                                !(std::is_floating_point<From>::value &&
-                                  std::is_integral<To>::value)),
+                                (!std::is_floating_point<From>::value ||
+                                 (!std::is_integral<To>::value &&
+                                  sizeof(From) <= sizeof(To)))),
                                bool>::type is_conversion_undefined(From)
 {
     return false;
@@ -157,6 +175,8 @@ TEST_TYPES(VU, load_store,
     constexpr U max = std::numeric_limits<U>::max();
     constexpr U half = genHalfBits<U>();
 
+    auto &&avoid_ub = [](auto x) { return is_conversion_undefined<U>(x) ? U(0) : U(x); };
+
     const U test_values[] = {U(0xc0000080u),
                              U(0xc0000081u),
                              U(0xc000017fu),
@@ -173,14 +193,14 @@ TEST_TYPES(VU, load_store,
                              max,
                              U(max - 0xff),
                              U(max / std::pow(2., sizeof(T) * 6 - 1)),
-                             U(-max / std::pow(2., sizeof(T) * 6 - 1)),
+                             avoid_ub(-max / std::pow(2., sizeof(T) * 6 - 1)),
                              U(max / std::pow(2., sizeof(T) * 4 - 1)),
-                             U(-max / std::pow(2., sizeof(T) * 4 - 1)),
+                             avoid_ub(-max / std::pow(2., sizeof(T) * 4 - 1)),
                              U(max / std::pow(2., sizeof(T) * 2 - 1)),
-                             U(-max / std::pow(2., sizeof(T) * 2 - 1)),
+                             avoid_ub(-max / std::pow(2., sizeof(T) * 2 - 1)),
                              U(max - 0xff),
                              U(max - 0x55),
-                             U(-min),
+                             U(-(min + 1)),
                              U(-max)};
     constexpr auto test_values_size = sizeof(test_values) / sizeof(U);
 
@@ -189,8 +209,14 @@ TEST_TYPES(VU, load_store,
     alignas(Vc::memory_alignment_v<V, U> * 2) U mem[mem_size] = {};
     alignas(Vc::memory_alignment_v<V, T> * 2) T reference[mem_size] = {};
     for (std::size_t i = 0; i < test_values_size; ++i) {
-        mem[i] = test_values[i];
-        reference[i] = static_cast<T>(mem[i]);
+        const U value = test_values[i];
+        if (is_conversion_undefined<T>(value)) {
+            mem[i] = 0;
+            reference[i] = 0;
+        } else {
+            mem[i] = value;
+            reference[i] = static_cast<T>(value);
+        }
     }
     for (std::size_t i = test_values_size; i < mem_size; ++i) {
         mem[i] = U(i);
@@ -199,6 +225,7 @@ TEST_TYPES(VU, load_store,
 
     V x(&mem[V::size()], vector_aligned);
     auto &&compare = [&](const std::size_t offset) {
+        static int n = 0;
         for (auto i = 0ul; i < V::size(); ++i) {
             if (is_conversion_undefined<T>(mem[i + offset])) {
                 continue;
@@ -208,8 +235,10 @@ TEST_TYPES(VU, load_store,
                 << "\nbefore conversion: " << mem[i + offset]
                 << "\n   offset = " << offset
                 << "\n        x = " << UnitTest::asBytes(x) << " = " << x
-                << "\nreference = " << UnitTest::asBytes(ref) << " = " << ref;
+                << "\nreference = " << UnitTest::asBytes(ref) << " = " << ref
+                << "\ncall no. " << n;
         }
+        ++n;
     };
     compare(V::size());
     x = {&mem[1], element_aligned};

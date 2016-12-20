@@ -179,20 +179,33 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     }
 
     // convert from a 1/8th SSE load{{{3
+#ifdef Vc_HAVE_FULL_SSE_ABI
+    template <class T, class U>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, when_aligned<alignof(uint16_t)>, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
+    {
+        return convert<datapar_member_type<U>, datapar_member_type<T>>(
+            intrin_cast<detail::intrinsic_type<U, size<U>()>>(
+                _mm_cvtsi32_si128(*reinterpret_cast<const may_alias<uint16_t> *>(mem))));
+    }
+
+    template <class T, class U>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, when_unaligned<alignof(uint16_t)>, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
+    {
+        return datapar_member_type<T>(T(mem[0]), T(mem[1]));
+    }
+#else   // Vc_HAVE_FULL_SSE_ABI
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
         const U *mem, F, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
-#ifdef Vc_HAVE_FULL_SSE_ABI
-        return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>()>>(
-                _mm_cvtsi32_si128(*reinterpret_cast<const may_alias<uint16_t> *>(mem))));
-#else
-        return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
-#endif
+        return datapar_member_type<T>(T(mem[0]), T(mem[1]));
     }
+#endif  // Vc_HAVE_FULL_SSE_ABI
 
     // AVX and AVX-512 datapar_member_type aliases{{{3
     template <class T>

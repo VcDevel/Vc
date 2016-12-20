@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <limits>
 #include <climits>
+#include <cstring>
 
 #include "../macros.h"
 #include "../detail.h"
@@ -2271,12 +2272,22 @@ Vc_INTRINSIC __m512i load64(const T *mem, when_unaligned<64>)
 
 // stores{{{1
 #ifdef Vc_HAVE_SSE
-template <class Flags> Vc_INTRINSIC void store4(__m128 v, float *mem, Flags)
+Vc_INTRINSIC void store4(__m128 v, float *mem, when_aligned<alignof(float)>)
 {
     *mem = _mm_cvtss_f32(v);
 }
 
-template <class Flags> Vc_INTRINSIC void store8(__m128 v, float *mem, Flags)
+Vc_INTRINSIC void store4(__m128 v, float *mem, when_unaligned<alignof(float)>)
+{
+    *mem = _mm_cvtss_f32(v);
+}
+
+Vc_INTRINSIC void store8(__m128 v, float *mem, when_aligned<alignof(__m64)>)
+{
+    _mm_storel_pi(reinterpret_cast<__m64 *>(mem), v);
+}
+
+Vc_INTRINSIC void store8(__m128 v, float *mem, when_unaligned<alignof(__m64)>)
 {
     _mm_storel_pi(reinterpret_cast<__m64 *>(mem), v);
 }
@@ -2292,7 +2303,12 @@ Vc_INTRINSIC void store16(__m128 v, float *mem, when_unaligned<16>)
 #endif  // Vc_HAVE_SSE
 
 #ifdef Vc_HAVE_SSE2
-template <class Flags> Vc_INTRINSIC void store8(__m128d v, double *mem, Flags)
+Vc_INTRINSIC void store8(__m128d v, double *mem, when_aligned<alignof(double)>)
+{
+    *mem = _mm_cvtsd_f64(v);
+}
+
+Vc_INTRINSIC void store8(__m128d v, double *mem, when_unaligned<alignof(double)>)
 {
     *mem = _mm_cvtsd_f64(v);
 }
@@ -2306,21 +2322,43 @@ Vc_INTRINSIC void store16(__m128d v, double *mem, when_unaligned<16>)
     _mm_storeu_pd(mem, v);
 }
 
-template <class T, class Flags> Vc_INTRINSIC void store2(__m128i v, T *mem, Flags)
+template <class T> Vc_INTRINSIC void store2(__m128i v, T *mem, when_aligned<alignof(ushort)>)
 {
     static_assert(std::is_integral<T>::value && sizeof(T) <= 2,
                   "store4<T> is only intended for integral T with sizeof(T) <= 2");
     *reinterpret_cast<may_alias<ushort> *>(mem) = uint(_mm_cvtsi128_si32(v));
 }
 
-template <class T, class Flags> Vc_INTRINSIC void store4(__m128i v, T *mem, Flags)
+template <class T> Vc_INTRINSIC void store2(__m128i v, T *mem, when_unaligned<alignof(ushort)>)
+{
+    static_assert(std::is_integral<T>::value && sizeof(T) <= 2,
+                  "store4<T> is only intended for integral T with sizeof(T) <= 2");
+    const uint tmp(_mm_cvtsi128_si32(v));
+    std::memcpy(mem, &tmp, 2);
+}
+
+template <class T> Vc_INTRINSIC void store4(__m128i v, T *mem, when_aligned<alignof(int)>)
 {
     static_assert(std::is_integral<T>::value && sizeof(T) <= 4,
                   "store4<T> is only intended for integral T with sizeof(T) <= 4");
     *reinterpret_cast<may_alias<int> *>(mem) = _mm_cvtsi128_si32(v);
 }
 
-template <class T, class Flags> Vc_INTRINSIC void store8(__m128i v, T *mem, Flags)
+template <class T> Vc_INTRINSIC void store4(__m128i v, T *mem, when_unaligned<alignof(int)>)
+{
+    static_assert(std::is_integral<T>::value && sizeof(T) <= 4,
+                  "store4<T> is only intended for integral T with sizeof(T) <= 4");
+    const int tmp = _mm_cvtsi128_si32(v);
+    std::memcpy(mem, &tmp, 4);
+}
+
+template <class T> Vc_INTRINSIC void store8(__m128i v, T *mem, when_aligned<8>)
+{
+    static_assert(std::is_integral<T>::value, "store8<T> is only intended for integral T");
+    _mm_storel_epi64(reinterpret_cast<__m128i *>(mem), v);
+}
+
+template <class T> Vc_INTRINSIC void store8(__m128i v, T *mem, when_unaligned<8>)
 {
     static_assert(std::is_integral<T>::value, "store8<T> is only intended for integral T");
     _mm_storel_epi64(reinterpret_cast<__m128i *>(mem), v);
