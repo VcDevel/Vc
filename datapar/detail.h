@@ -61,26 +61,27 @@ template <class T> static constexpr void unused(T && ) {}
 
 // execute_on_index_sequence{{{1
 template <typename F, size_t... I>
-void execute_on_index_sequence(F && f, std::index_sequence<I...>)
+Vc_INTRINSIC void execute_on_index_sequence(F && f, std::index_sequence<I...>)
 {
     auto &&x = {(f(std::integral_constant<size_t, I>()), 0)...};
     unused(x);
 }
 
 template <typename R, typename F, size_t... I>
-R execute_on_index_sequence_with_return(F && f, std::index_sequence<I...>)
+Vc_INTRINSIC R execute_on_index_sequence_with_return(F && f, std::index_sequence<I...>)
 {
     return R{f(std::integral_constant<size_t, I>())...};
 }
 
 // execute_n_times{{{1
-template <size_t N, typename F> void execute_n_times(F && f)
+template <size_t N, typename F> Vc_INTRINSIC void execute_n_times(F && f)
 {
     execute_on_index_sequence(std::forward<F>(f), std::make_index_sequence<N>{});
 }
 
 // generate_from_n_evaluations{{{1
-template <size_t N, typename R, typename F> R generate_from_n_evaluations(F && f)
+template <size_t N, typename R, typename F>
+Vc_INTRINSIC R generate_from_n_evaluations(F && f)
 {
     return execute_on_index_sequence_with_return<R>(std::forward<F>(f),
                                                     std::make_index_sequence<N>{});
