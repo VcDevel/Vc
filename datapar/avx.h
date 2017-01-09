@@ -234,7 +234,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         store32(v, mem, f);
     }
 
-    // convert and 16-bit store{{{3
+    // convert and 32-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
@@ -243,7 +243,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
-    // convert and 32-bit store{{{3
+    // convert and 64-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
@@ -252,7 +252,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
-    // convert and 64-bit store{{{3
+    // convert and 128-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
@@ -261,20 +261,10 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
-    // convert and 128-bit store{{{3
+    // convert and 256-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
-    {
-        // TODO
-        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
-    }
-
-    // convert and 256-bit store{{{3
-    template <class T, class U, class F>
-    static Vc_INTRINSIC void store(
-        datapar_member_type<T> v, U *mem, F , type_tag<T>,
-        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -284,13 +274,23 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(
         datapar_member_type<T> v, U *mem, F , type_tag<T>,
-        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
+        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
 
     // convert and 1024-bit store{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F , type_tag<T>,
+        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
+    {
+        // TODO
+        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
+    }
+
+    // convert and 2048-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(
         datapar_member_type<T> v, U *mem, F, type_tag<T>,
