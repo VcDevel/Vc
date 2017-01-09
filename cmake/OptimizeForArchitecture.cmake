@@ -111,7 +111,7 @@ macro(AutodetectHostArchitecture)
             set(TARGET_ARCHITECTURE "knl")  # Knights Landing
          elseif(_cpu_model EQUAL 92)
             set(TARGET_ARCHITECTURE "goldmont")
-         elseif(_cpu_model EQUAL 90)
+         elseif(_cpu_model EQUAL 90 OR _cpu_model EQUAL 76)
             set(TARGET_ARCHITECTURE "silvermont")
          elseif(_cpu_model EQUAL 102)
             set(TARGET_ARCHITECTURE "cannonlake")
@@ -119,8 +119,6 @@ macro(AutodetectHostArchitecture)
             set(TARGET_ARCHITECTURE "skylake-avx512")
          elseif(_cpu_model EQUAL 78 OR _cpu_model EQUAL 94) # 4E, 5E
             set(TARGET_ARCHITECTURE "skylake")
-         elseif(_cpu_model EQUAL 61 OR _cpu_model EQUAL 76)
-            set(TARGET_ARCHITECTURE "braswell")
          elseif(_cpu_model EQUAL 61 OR _cpu_model EQUAL 71 OR _cpu_model EQUAL 86)
             set(TARGET_ARCHITECTURE "broadwell")
          elseif(_cpu_model EQUAL 60 OR _cpu_model EQUAL 69 OR _cpu_model EQUAL 70 OR _cpu_model EQUAL 63)
@@ -185,7 +183,7 @@ Using an incorrect setting here can result in crashes of the resulting binary be
 Setting the value to \"auto\" will try to optimize for the architecture where cmake is called. \
 Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Core2), \
 \"penryn\" (45nm Core2), \"nehalem\", \"westmere\", \"sandy-bridge\", \"ivy-bridge\", \
-\"haswell\", \"broadwell\", \"braswell\", \"skylake\", \"skylake-avx512\", \"cannonlake\", \"silvermont\", \
+\"haswell\", \"broadwell\", \"skylake\", \"skylake-avx512\", \"cannonlake\", \"silvermont\", \
 \"goldmont\", \"knl\" (Knights Landing), \"atom\", \"k8\", \"k8-sse3\", \"barcelona\", \
 \"istanbul\", \"magny-cours\", \"bulldozer\", \"interlagos\", \"piledriver\", \
 \"AMD 14h\", \"AMD 16h\".")
@@ -215,11 +213,6 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
    macro(_westmere)
       list(APPEND _march_flag_list "westmere")
       _nehalem()
-   endmacro()
-   macro(_braswell)
-      list(APPEND _march_flag_list "braswell")
-      _westmere()
-      list(APPEND _available_vector_units_list "rdrnd")
    endmacro()
    macro(_sandybridge)
       list(APPEND _march_flag_list "sandybridge")
@@ -262,6 +255,15 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
       _broadwell()
       list(APPEND _available_vector_units_list "avx512f" "avx512pf" "avx512er" "avx512cd")
    endmacro()
+   macro(_silvermont)
+      list(APPEND _march_flag_list "silvermont")
+      _westmere()
+      list(APPEND _available_vector_units_list "rdrnd")
+   endmacro()
+   macro(_goldmont)
+      list(APPEND _march_flag_list "goldmont")
+      _silvermont()
+   endmacro()
 
    if(TARGET_ARCHITECTURE STREQUAL "core")
       list(APPEND _march_flag_list "core2")
@@ -289,8 +291,6 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
       _skylake_avx512()
    elseif(TARGET_ARCHITECTURE STREQUAL "skylake")
       _skylake()
-   elseif(TARGET_ARCHITECTURE STREQUAL "braswell")
-      _braswell()
    elseif(TARGET_ARCHITECTURE STREQUAL "broadwell")
       _broadwell()
    elseif(TARGET_ARCHITECTURE STREQUAL "haswell")
@@ -303,6 +303,10 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
       _westmere()
    elseif(TARGET_ARCHITECTURE STREQUAL "nehalem")
       _nehalem()
+   elseif(TARGET_ARCHITECTURE STREQUAL "goldmont")
+      _goldmont()
+   elseif(TARGET_ARCHITECTURE STREQUAL "silvermont")
+      _silvermont()
    elseif(TARGET_ARCHITECTURE STREQUAL "atom")
       list(APPEND _march_flag_list "atom")
       list(APPEND _march_flag_list "core2")
