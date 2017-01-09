@@ -1050,7 +1050,7 @@ template <> Vc_INTRINSIC x_i16 convert_to<x_i16>(y_f32 v0)
 #endif  // Vc_HAVE_AVX
 
 // convert_to<y_i16>{{{1
-#ifdef Vc_HAVE_AVX2
+#ifdef Vc_HAVE_AVX
 // from llong{{{2
 template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(x_i64 v) {
 #ifdef Vc_HAVE_AVX512VL
@@ -1062,6 +1062,7 @@ template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(x_i64 v) {
 #endif
 }
 
+#ifdef Vc_HAVE_AVX2
 template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(y_i64 v0)
 {
 #ifdef Vc_HAVE_AVX512F
@@ -1103,6 +1104,7 @@ template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(y_i64 v0, y_i64 v1, y_i64 v2, y
                   _mm_unpackhi_epi32(lo128(g), hi128(g)));  // 0123 4567 89AB CDEF
 #endif
 }
+#endif  // Vc_HAVE_AVX2
 
 #ifdef Vc_HAVE_AVX512F
 template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(z_i64 v0)
@@ -1182,20 +1184,28 @@ template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(y_u16 v) { return v.v(); }
 
 // from schar{{{2
 template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(x_i08 v) {
-   return _mm256_cvtepi8_epi16(v);
+#ifdef Vc_HAVE_AVX2
+    return _mm256_cvtepi8_epi16(v);
+#else   // Vc_HAVE_AVX2
+    return concat(_mm_cvtepi8_epi16(v), _mm_cvtepi8_epi16(_mm_unpackhi_epi64(v, v)));
+#endif  // Vc_HAVE_AVX2
 }
 
 template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(y_i08 v) {
-   return _mm256_cvtepi8_epi16(lo128(v));
+    return convert_to<y_i16>(lo128(v));
 }
 
 // from uchar{{{2
 template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(x_u08 v) {
-   return _mm256_cvtepu8_epi16(v);
+#ifdef Vc_HAVE_AVX2
+    return _mm256_cvtepu8_epi16(v);
+#else   // Vc_HAVE_AVX2
+    return concat(_mm_cvtepu8_epi16(v), _mm_cvtepu8_epi16(_mm_unpackhi_epi64(v, v)));
+#endif  // Vc_HAVE_AVX2
 }
 
 template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(y_u08 v) {
-   return _mm256_cvtepu8_epi16(lo128(v));
+    return convert_to<y_i16>(lo128(v));
 }
 
 // from double{{{2
@@ -1248,7 +1258,7 @@ template <> Vc_INTRINSIC y_i16 convert_to<y_i16>(y_f32 v0, y_f32 v1)
 }
 
 //}}}2
-#endif  // Vc_HAVE_AVX2
+#endif  // Vc_HAVE_AVX
 
 // convert_to<z_i16>{{{1
 #ifdef Vc_HAVE_AVX512F
@@ -2748,3 +2758,5 @@ Vc_INTRINSIC To convert_all(From v, enable_if<!(From::size() > To::size())> = nu
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_X86_CONVERT_H_
+
+// vim: foldmethod=marker
