@@ -1778,7 +1778,7 @@ Vc_INTRINSIC x_i08 convert_to<x_i08>(z_f64 v0, z_f64 v1)
 #endif  // Vc_HAVE_AVX512F
 
 // convert_to<y_i08>{{{1
-#ifdef Vc_HAVE_AVX2
+#ifdef Vc_HAVE_AVX
 //from llong{{{2
 
 //from ullong{{{2
@@ -1821,7 +1821,7 @@ template <> Vc_INTRINSIC y_i08 convert_to<y_i08>(y_f32 v0, y_f32 v1, y_f32 v2, y
 }
 
 //}}}2
-#endif  // Vc_HAVE_AVX2
+#endif  // Vc_HAVE_AVX
 // convert_to<z_i08>{{{1
 #ifdef Vc_HAVE_AVX512F
 //from llong{{{2
@@ -2194,8 +2194,6 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_f64 v0)
 }
 
 //}}}2
-#endif  // Vc_HAVE_AVX
-#ifdef Vc_HAVE_AVX2
 // from llong{{{2
 template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(x_i64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
@@ -2307,7 +2305,13 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_u32 v)
             _mm256_cvtepi32_ps(and_(v, broadcast32(0x7ffffe00))),
             _mm256_add_ps(avx_2_pow_31<float>(),
                           _mm256_cvtepi32_ps(and_(v, broadcast32(0x000001ff))))),
-        _mm256_castsi256_ps(_mm256_cmpgt_epi32(y_i32(), v)));
+        _mm256_castsi256_ps(
+#ifdef Vc_HAVE_AVX2
+            _mm256_cmpgt_epi32(y_i32(), v)
+#else   // Vc_HAVE_AVX2
+            concat(_mm_cmpgt_epi32(x_i32(), lo128(v)), _mm_cmpgt_epi32(x_i32(), hi128(v)))
+#endif  // Vc_HAVE_AVX2
+                ));
 #endif
 }
 
@@ -2355,7 +2359,7 @@ template <> Vc_INTRINSIC y_f32 convert_to<y_f32>(y_u08 v)
     return convert_to<y_f32>(convert_to<y_i32>(v));
 }
 //}}}2
-#endif  // Vc_HAVE_AVX2
+#endif  // Vc_HAVE_AVX
 
 //convert_to<z_f32>{{{1
 #ifdef Vc_HAVE_AVX512F
