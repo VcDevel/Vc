@@ -87,14 +87,16 @@ public:
 
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType));
 
+#ifndef Vc_MSVC
     Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
-        using value_type = EntryType;
-        typedef EntryType VectorEntryType;
-        static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
-        static constexpr size_t MemoryAlignment = alignof(VectorType);
-        enum Constants {
-            HasVectorDivision = AVX::HasVectorDivisionHelper<T>::Value
-        };
+#else
+    using EntryType = T;
+#endif
+    using value_type = EntryType;
+    typedef EntryType VectorEntryType;
+    static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
+    static constexpr size_t MemoryAlignment = alignof(VectorType);
+    enum Constants { HasVectorDivision = AVX::HasVectorDivisionHelper<T>::Value };
 #ifdef Vc_IMPL_AVX2
         typedef typename std::conditional<
             (Size >= 8), SimdArray<int, Size, AVX2::int_v, 8>,

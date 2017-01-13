@@ -138,7 +138,12 @@ public:
 private:
     friend auto detail::data<T, abi_type>(const mask &);
     mask(detail::private_init_t, const typename traits::mask_member_type &init) : d(init) {}
-    alignas(traits::mask_member_alignment) typename traits::mask_member_type d = {};
+//#ifndef Vc_MSVC
+    // MSVC refuses by value mask arguments, even if vectorcall__ is used:
+    // error C2719: 'k': formal parameter with requested alignment of 16 won't be aligned
+    alignas(traits::mask_member_alignment)
+//#endif
+        typename traits::mask_member_type d = {};
 };
 
 namespace detail
