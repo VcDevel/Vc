@@ -26,10 +26,9 @@ runAllTests() {
 $id"
 
   # alright run the ctest script
-  runTest &
-  supports32Bit && runTest -m32 &
-  supportsx32 && runTest -mx32 &
-  wait
+  runTest
+  supports32Bit && runTest -m32
+  supportsx32 && runTest -mx32
 }
 
 supports32Bit() {
