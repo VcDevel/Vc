@@ -49,10 +49,6 @@ namespace detail
 {
 namespace x86
 {
-using sse_const = constants<datapar_abi::sse>;
-#ifdef Vc_HAVE_AVX
-using avx_const = constants<datapar_abi::avx>;
-#endif  // Vc_HAVE_AVX
 
 // builtin_type{{{1
 template <typename ValueType, size_t Bytes> struct builtin_type_impl {};

@@ -30,13 +30,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "synopsis.h"
 
+#if defined Vc_MSVC && Vc_MSVC < 191024903
+#define Vc_WORK_AROUND_ICE
+#endif
+
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
 
 template <class T, class = void> struct constants;
 
 #ifdef Vc_HAVE_SSE_ABI
+#ifdef Vc_WORK_AROUND_ICE
+namespace x86
+{
+namespace sse_const
+{
+#define constexpr const
+#else
 template <class X> struct constants<datapar_abi::sse, X> {
+#endif
     alignas(64) static constexpr int    absMaskFloat[4] = {0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
     alignas(16) static constexpr uint   signMaskFloat[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
     alignas(16) static constexpr uint   highMaskFloat[4] = {0xfffff000u, 0xfffff000u, 0xfffff000u, 0xfffff000u};
@@ -61,6 +73,11 @@ template <class X> struct constants<datapar_abi::sse, X> {
     alignas(16) static constexpr uint   AllBitsSet[4] = { 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU };
     alignas(16) static constexpr uchar cvti16_i08_shuffle[16] = {
         0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80};
+#ifdef Vc_WORK_AROUND_ICE
+#undef constexpr
+}  // namespace sse_const
+}  // namespace x86
+#else   // Vc_WORK_AROUND_ICE
 };
 template <class X> alignas(64) constexpr int    constants<datapar_abi::sse, X>::absMaskFloat[4];
 template <class X> alignas(16) constexpr uint   constants<datapar_abi::sse, X>::signMaskFloat[4];
@@ -81,10 +98,23 @@ template <class X> alignas(16) constexpr ushort constants<datapar_abi::sse, X>::
 template <class X> alignas(16) constexpr uchar  constants<datapar_abi::sse, X>::IndexesFromZero16[16];
 template <class X> alignas(16) constexpr uint   constants<datapar_abi::sse, X>::AllBitsSet[4];
 template <class X> alignas(16) constexpr uchar  constants<datapar_abi::sse, X>::cvti16_i08_shuffle[16];
+namespace x86
+{
+using sse_const = constants<datapar_abi::sse>;
+}  // namespace x86
+#endif  // Vc_WORK_AROUND_ICE
 #endif  // Vc_HAVE_SSE_ABI
 
 #ifdef Vc_HAVE_AVX
+#ifdef Vc_WORK_AROUND_ICE
+namespace x86
+{
+namespace avx_const
+{
+#define constexpr const
+#else   // Vc_WORK_AROUND_ICE
 template <class X> struct constants<datapar_abi::avx, X> {
+#endif  // Vc_WORK_AROUND_ICE
     alignas(64) static constexpr ullong IndexesFromZero64[ 4] = { 0, 1, 2, 3 };
     alignas(32) static constexpr uint   IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
     alignas(32) static constexpr ushort IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
@@ -104,6 +134,12 @@ template <class X> struct constants<datapar_abi::avx, X> {
     static constexpr ullong highMaskDouble = 0xfffffffff8000000ull;
     static constexpr double oneDouble = 1.;
     static constexpr ullong frexpMask = 0xbfefffffffffffffull;
+#ifdef Vc_WORK_AROUND_ICE
+#undef constexpr
+#undef Vc_WORK_AROUND_ICE
+}  // namespace avx_const
+}  // namespace x86
+#else   // Vc_WORK_AROUND_ICE
 };
 template <class X> alignas(64) constexpr ullong constants<datapar_abi::avx, X>::IndexesFromZero64[ 4];
 template <class X> alignas(32) constexpr uint   constants<datapar_abi::avx, X>::IndexesFromZero32[ 8];
@@ -120,6 +156,11 @@ template <class X> constexpr  float constants<datapar_abi::avx, X>::_2_pow_31;
 template <class X> constexpr ullong constants<datapar_abi::avx, X>::highMaskDouble;
 template <class X> constexpr double constants<datapar_abi::avx, X>::oneDouble;
 template <class X> constexpr ullong constants<datapar_abi::avx, X>::frexpMask;
+namespace x86
+{
+using avx_const = constants<datapar_abi::avx>;
+}  // namespace x86
+#endif  // Vc_WORK_AROUND_ICE
 #endif  // Vc_HAVE_AVX
 
 }  // namespace detail
