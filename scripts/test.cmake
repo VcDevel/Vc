@@ -88,7 +88,7 @@ else()
    execute_process(COMMAND
       reg query "HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0" /v Identifier
       OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE processorId)
-   if("${processorId}" MATCHES "AMD64")
+   if("${processorId}" MATCHES "(Intel|AMD)64")
       set(chip "amd64")
    elseif("${processorId}" MATCHES "x86")
       set(chip "x86")
