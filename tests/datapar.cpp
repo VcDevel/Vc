@@ -755,7 +755,7 @@ TEST(operator_conversions)  //{{{1
     binary_op_return_type<vuint, ushort, vuint>();
     binary_op_return_type<vuint, int, vuint>();
     binary_op_return_type<vuint, uint, vuint>();
-    binary_op_return_type<vuint, long, vi32<long>>();
+    binary_op_return_type<vuint, long, vi32<decltype(uint() + long())>>();
     binary_op_return_type<vuint, ulong, vi32<ulong>>();
     binary_op_return_type<vuint, llong, vi32<llong>>();
     binary_op_return_type<vuint, ullong, vi32<ullong>>();
@@ -767,7 +767,7 @@ TEST(operator_conversions)  //{{{1
     binary_op_return_type<vuint, vi32<ushort>, vuint>();
     binary_op_return_type<vuint, vi32<int>, vuint>();
     binary_op_return_type<vuint, vi32<uint>, vuint>();
-    binary_op_return_type<vuint, vi32<long>, vi32<long>>();
+    binary_op_return_type<vuint, vi32<long>, vi32<decltype(uint() + long())>>();
     binary_op_return_type<vuint, vi32<ulong>, vi32<ulong>>();
     binary_op_return_type<vuint, vi32<llong>, vi32<llong>>();
     binary_op_return_type<vuint, vi32<ullong>, vi32<ullong>>();
@@ -782,7 +782,7 @@ TEST(operator_conversions)  //{{{1
     binary_op_return_type<vi32<uint>, ushort, vi32<uint>>();
     binary_op_return_type<vi32<uint>, int, vi32<uint>>();
     binary_op_return_type<vi32<uint>, uint, vi32<uint>>();
-    binary_op_return_type<vi32<uint>, long, vi32<long>>();
+    binary_op_return_type<vi32<uint>, long, vi32<decltype(uint() + long())>>();
     binary_op_return_type<vi32<uint>, ulong, vi32<ulong>>();
     binary_op_return_type<vi32<uint>, llong, vi32<llong>>();
     binary_op_return_type<vi32<uint>, ullong, vi32<ullong>>();
@@ -794,7 +794,7 @@ TEST(operator_conversions)  //{{{1
     binary_op_return_type<vi32<uint>, vi32<ushort>, vi32<uint>>();
     binary_op_return_type<vi32<uint>, vi32<int>, vi32<uint>>();
     binary_op_return_type<vi32<uint>, vi32<uint>, vi32<uint>>();
-    binary_op_return_type<vi32<uint>, vi32<long>, vi32<long>>();
+    binary_op_return_type<vi32<uint>, vi32<long>, vi32<decltype(uint() + long())>>();
     binary_op_return_type<vi32<uint>, vi32<ulong>, vi32<ulong>>();
     binary_op_return_type<vi32<uint>, vi32<llong>, vi32<llong>>();
     binary_op_return_type<vi32<uint>, vi32<ullong>, vi32<ullong>>();
