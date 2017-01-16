@@ -136,7 +136,13 @@ public:
     explicit mask(const typename traits::mask_cast_type &init) : d{init} {}
 
 private:
+#ifdef Vc_MSVC
+    // Work around "warning C4396: the inline specifier cannot be used when a friend
+    // declaration refers to a specialization of a function template"
+    template <class U, class A> friend auto detail::data(const mask<U, A> &);
+#else
     friend auto detail::data<T, abi_type>(const mask &);
+#endif
     mask(detail::private_init_t, const typename traits::mask_member_type &init) : d(init) {}
 //#ifndef Vc_MSVC
     // MSVC refuses by value mask arguments, even if vectorcall__ is used:

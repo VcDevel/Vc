@@ -206,7 +206,13 @@ public:
     explicit datapar(const cast_type &init) : d(init) {}
 
 private:
+#ifdef Vc_MSVC
+    // Work around "warning C4396: the inline specifier cannot be used when a friend
+    // declaration refers to a specialization of a function template"
+    template <class U, class A> friend auto detail::data(const datapar<U, A> &);
+#else
     friend auto detail::data<value_type, abi_type>(const datapar &);
+#endif
     datapar(detail::private_init_t, const typename traits::datapar_member_type &init) : d(init) {}
     alignas(traits::datapar_member_alignment) typename traits::datapar_member_type d = {};
 };
