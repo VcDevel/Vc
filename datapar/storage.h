@@ -274,6 +274,7 @@ public:
     template <class... Args, class = enable_if<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&...init)
     {
+        assertCorrectAlignment(&data);
         reinterpret_cast<aliased_construction &>(data) = {
             {static_cast<EntryType>(std::forward<Args>(init))...}};
     }
