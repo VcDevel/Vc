@@ -57,20 +57,23 @@ template<typename T> struct c_trig
 {
     alignas(64) static const T data[];
 };
+template <> alignas(64) const float c_trig<float>::data[];
+template <> alignas(64) const double c_trig<double>::data[];
 
 template<typename T> struct c_log
 {
     typedef float floatAlias Vc_MAY_ALIAS;
     static Vc_ALWAYS_INLINE float d(int i) { return *reinterpret_cast<const floatAlias *>(&data[i]); }
-    alignas(64) static const unsigned int data[];
+    alignas(64) static const unsigned int data[21];
 };
+template<> alignas(64) const unsigned int c_log<float>::data[21];
 
 template<> struct c_log<double>
 {
     enum VectorSize { Size = 16 / sizeof(double) };
     typedef double doubleAlias Vc_MAY_ALIAS;
     static Vc_ALWAYS_INLINE double d(int i) { return *reinterpret_cast<const doubleAlias *>(&data[i]); }
-    alignas(64) static const unsigned long long data[];
+    alignas(64) static const unsigned long long data[21];
 };
 
 }  // namespace AVX

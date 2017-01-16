@@ -61,19 +61,22 @@ template<typename T> struct c_trig
 {
     alignas(64) static const T data[];
 };
+template <> alignas(64) const float c_trig<float>::data[];
+template <> alignas(64) const double c_trig<double>::data[];
 
 template<typename T> struct c_log
 {
     enum VectorSize { Size = 16 / sizeof(T) };
     static Vc_ALWAYS_INLINE Vc_CONST const float *d(int i) { return reinterpret_cast<const  float *>(&data[i * Size]); }
-    alignas(64) static const unsigned int data[];
+    alignas(64) static const unsigned int data[21 * Size];
 };
+template<> alignas(64) const unsigned int c_log<float>::data[21 * 4];
 
 template<> struct c_log<double>
 {
     enum VectorSize { Size = 16 / sizeof(double) };
     static Vc_ALWAYS_INLINE Vc_CONST const double *d(int i) { return reinterpret_cast<const double *>(&data[i * Size]); }
-    alignas(64) static const unsigned long long data[];
+    alignas(64) static const unsigned long long data[21 * Size];
 };
 
 }  // namespace SSE
