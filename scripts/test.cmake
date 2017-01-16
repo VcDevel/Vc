@@ -6,9 +6,11 @@ get_filename_component(PROJECT_DIRECTORY "${CTEST_SOURCE_DIRECTORY}" DIRECTORY)
 
 # Dashboard Model
 ################################################################################
-set(dashboard_model "$ENV{dashboard_model}")
 if(NOT dashboard_model)
-   set(dashboard_model "Experimental")
+   set(dashboard_model "$ENV{dashboard_model}")
+   if(NOT dashboard_model)
+      set(dashboard_model "Experimental")
+   endif()
 endif()
 
 # Set build variables from environment variables
