@@ -126,81 +126,95 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         return detail::load32(mem, f);
     }
 
+    // convert from an AVX load{{{3
+    template <class T, class U, class F>
+    static Vc_INTRINSIC intrinsic_type<T> load(
+        const U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
+    {
+        return convert<datapar_member_type<U>, datapar_member_type<T>>(load32(mem, f));
+    }
+
     // convert from an SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
+        const U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(
+            load16(mem, f));
     }
 
     // convert from a half SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
-    {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
-    }
-
-    // convert from a quarter SSE load{{{3
-    template <class T, class U, class F>
-    static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(load8(mem, f));
     }
 
-    // convert from a 1/8th SSE load{{{3
+    // convert from a 1/4th SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(load4(mem, f));
     }
 
-    // convert from an AVX/2-SSE load{{{3
+    // convert from an AVX512/2-AVX load{{{3
+    template <class T>
+    using avx512_member_type =
+        typename traits<T, datapar_abi::avx512>::datapar_member_type;
+
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+#ifdef Vc_HAVE_AVX512F
+        return convert<avx512_member_type<U>, datapar_member_type<T>>(
+            load64(mem, f));
+#else
+        return convert<datapar_member_type<U>, datapar_member_type<T>>(
+            load32(mem, f), load32(mem + size<U>(), f));
+#endif
     }
 
-    // convert from an AVX512/2-AVX/4-SSE load{{{3
+    // convert from an 2-AVX512/4-AVX load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+#ifdef Vc_HAVE_AVX512F
+        return convert<avx512_member_type<U>, datapar_member_type<T>>(
+            load64(mem, f), load64(mem + size<U>(), f));
+#else
+        return convert<datapar_member_type<U>, datapar_member_type<T>>(
+            load32(mem, f), load32(mem + size<U>(), f), load32(mem + 2 * size<U>(), f),
+            load32(mem + 3 * size<U>(), f));
+#endif
     }
 
-    // convert from a 2-AVX512/4-AVX/8-SSE load{{{3
+    // convert from a 4-AVX512/8-AVX load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+#ifdef Vc_HAVE_AVX512F
+        return convert<avx512_member_type<U>, datapar_member_type<T>>(
+            load64(mem, f), load64(mem + size<U>(), f), load64(mem + 2 * size<U>(), f),
+            load64(mem + 3 * size<U>(), f));
+#else
+        return convert<datapar_member_type<U>, datapar_member_type<T>>(
+            load32(mem, f), load32(mem + size<U>(), f), load32(mem + 2 * size<U>(), f),
+            load32(mem + 3 * size<U>(), f), load32(mem + 4 * size<U>(), f),
+            load32(mem + 5 * size<U>(), f), load32(mem + 6 * size<U>(), f),
+            load32(mem + 7 * size<U>(), f));
+#endif
     }
 
     // masked load {{{2

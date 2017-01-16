@@ -430,7 +430,11 @@ template <int offset> Vc_INTRINSIC __m128i extract128(__m512i a)
 #ifdef Vc_HAVE_AVX512F
 template <int offset> Vc_INTRINSIC __m256 extract256(__m512 a)
 {
+#ifdef Vc_HAVE_AVX512DQ
     return _mm512_extractf32x8_ps(a, offset);
+#else
+    return _mm256_castpd_ps(_mm512_extractf64x4_pd(_mm512_castps_pd(a), offset));
+#endif
 }
 template <int offset> Vc_INTRINSIC __m256d extract256(__m512d a)
 {
@@ -1744,10 +1748,20 @@ template <int n> Vc_INTRINSIC __m256i shift_left(__m256i v)
 
 // shift_right{{{1
 template <int n> Vc_INTRINSIC __m128  shift_right(__m128  v);
+template <> Vc_INTRINSIC __m128  shift_right< 0>(__m128  v) { return v; }
+template <> Vc_INTRINSIC __m128  shift_right<16>(__m128   ) { return _mm_setzero_ps(); }
+
 #ifdef Vc_HAVE_SSE2
 template <int n> Vc_INTRINSIC __m128  shift_right(__m128  v) { return _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(v), n)); }
 template <int n> Vc_INTRINSIC __m128d shift_right(__m128d v) { return _mm_castsi128_pd(_mm_srli_si128(_mm_castpd_si128(v), n)); }
 template <int n> Vc_INTRINSIC __m128i shift_right(__m128i v) { return _mm_srli_si128(v, n); }
+
+template <> Vc_INTRINSIC __m128  shift_right< 8>(__m128  v) { return _mm_castpd_ps(_mm_unpackhi_pd(_mm_castps_pd(v), _mm_setzero_pd())); }
+template <> Vc_INTRINSIC __m128d shift_right< 0>(__m128d v) { return v; }
+template <> Vc_INTRINSIC __m128d shift_right< 8>(__m128d v) { return _mm_unpackhi_pd(v, _mm_setzero_pd()); }
+template <> Vc_INTRINSIC __m128d shift_right<16>(__m128d  ) { return _mm_setzero_pd(); }
+template <> Vc_INTRINSIC __m128i shift_right< 0>(__m128i v) { return v; }
+template <> Vc_INTRINSIC __m128i shift_right<16>(__m128i  ) { return _mm_setzero_si128(); }
 #endif  // Vc_HAVE_SSE2
 
 #ifdef Vc_HAVE_AVX2
@@ -2174,6 +2188,65 @@ template <> Vc_INTRINSIC auto cmple_ulong_mask<4>(__m512i x, __m512i y)
  *
  * \note The number in the suffix signifies the number of Bytes
  */
+#ifdef Vc_HAVE_SSE2
+template <class T> Vc_INTRINSIC __m128i load2(const T *mem, when_aligned<2>)
+{
+    static_assert(sizeof(T) == 1, "expected argument with sizeof == 1");
+    return _mm_cvtsi32_si128(*reinterpret_cast<const unsigned short *>(mem));
+}
+template <class T> Vc_INTRINSIC __m128i load2(const T *mem, when_unaligned<2>)
+{
+    static_assert(sizeof(T) == 1, "expected argument with sizeof == 1");
+    short tmp;
+    std::memcpy(&tmp, mem, 2);
+    return _mm_cvtsi32_si128(tmp);
+}
+#endif  // Vc_HAVE_SSE2
+
+template <class F> Vc_INTRINSIC __m128 load4(const float *mem, F)
+{
+    return _mm_load_ss(mem);
+}
+
+#ifdef Vc_HAVE_SSE2
+template <class F> Vc_INTRINSIC __m128i load4(const int *mem, F)
+{
+    return _mm_cvtsi32_si128(mem[0]);
+}
+template <class F> Vc_INTRINSIC __m128i load4(const unsigned int *mem, F)
+{
+    return _mm_cvtsi32_si128(mem[0]);
+}
+template <class T, class F> Vc_INTRINSIC __m128i load4(const T *mem, F)
+{
+    static_assert(sizeof(T) <= 2, "expected argument with sizeof <= 2");
+    int tmp;
+    std::memcpy(&tmp, mem, 4);
+    return _mm_cvtsi32_si128(tmp);
+}
+#endif  // Vc_HAVE_SSE2
+
+template <class F> Vc_INTRINSIC __m128 load8(const float *mem, F)
+{
+#ifdef Vc_HAVE_SSE2
+    return _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const double *>(mem)));
+#else
+    return _mm_loadl_pi(_mm_undefined_ps(), reinterpret_cast<const __m64 *>(mem));
+#endif
+}
+
+#ifdef Vc_HAVE_SSE2
+template <class F> Vc_INTRINSIC __m128d load8(const double *mem, F)
+{
+    return _mm_load_sd(mem);
+}
+template <class T, class F> Vc_INTRINSIC __m128i load8(const T *mem, F)
+{
+    static_assert(std::is_integral<T>::value, "load8<T> is only intended for integral T");
+    return _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+}
+#endif  // Vc_HAVE_SSE2
+
 #ifdef Vc_HAVE_SSE
 Vc_INTRINSIC __m128 load16(const float *mem, when_aligned<16>)
 {

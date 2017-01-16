@@ -170,78 +170,71 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     // convert from an AVX512 load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<datapar_member_type<U>, datapar_member_type<T>>(load64(mem, f));
     }
 
     // convert from an AVX load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<avx_datapar_member_type<U>, datapar_member_type<T>>(load32(mem, f));
     }
 
     // convert from an SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(load16(mem, f));
     }
 
     // convert from a half SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(load8(mem, f));
     }
 
     // convert from a 2-AVX512 load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<datapar_member_type<U>, datapar_member_type<T>>(
+            load64(mem, f), load64(mem + size<U>(), f));
     }
 
     // convert from a 4-AVX512 load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<datapar_member_type<U>, datapar_member_type<T>>(
+            load64(mem, f), load64(mem + size<U>(), f), load64(mem + 2 * size<U>(), f),
+            load64(mem + 3 * size<U>(), f));
     }
 
     // convert from a 8-AVX512 load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
-            [&](auto i) { return static_cast<T>(mem[i]); });
+        return convert<datapar_member_type<U>, datapar_member_type<T>>(
+            load64(mem, f), load64(mem + size<U>(), f), load64(mem + 2 * size<U>(), f),
+            load64(mem + 3 * size<U>(), f), load64(mem + 4 * size<U>(), f),
+            load64(mem + 5 * size<U>(), f), load64(mem + 6 * size<U>(), f),
+            load64(mem + 7 * size<U>(), f));
     }
 
     // masked load {{{2
@@ -277,68 +270,82 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
 
     // convert and 64-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
-                                   enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
-        // TODO
-        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
+        store8(convert<datapar_member_type<T>, sse_datapar_member_type<U>>(v), mem, f);
     }
 
     // convert and 128-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
-                                   enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
     {
-        // TODO
-        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
+        store16(convert<datapar_member_type<T>, sse_datapar_member_type<U>>(v), mem, f);
     }
 
     // convert and 256-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
-                                   enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
+    static Vc_INTRINSIC void store(
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+        enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
     {
-        // TODO
-        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
+        store32(convert<datapar_member_type<T>, avx_datapar_member_type<U>>(v), mem, f);
     }
 
     // convert and 512-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F , type_tag<T>,
+    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
+        store64(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
     }
 
     // convert and 1024-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(
-        datapar_member_type<T> v, U *mem, F , type_tag<T>,
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
+        store64(convert<avx_datapar_member_type<T>, datapar_member_type<U>>(lo256(v)), mem, f);
+        store64(convert<avx_datapar_member_type<T>, datapar_member_type<U>>(hi256(v)),
+                mem + size<U>(), f);
     }
 
     // convert and 2048-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(
-        datapar_member_type<T> v, U *mem, F , type_tag<T>,
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(lo128(v)), mem, f);
+        store64(
+            convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<1>(v)),
+            mem + size<U>(), f);
+        store64(
+            convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<2>(v)),
+            mem + 2 * size<U>(), f);
+        store64(
+            convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<3>(v)),
+            mem + 3 * size<U>(), f);
     }
 
     // convert and 4096-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(
-        datapar_member_type<T> v, U *mem, F, type_tag<T>,
+        datapar_member_type<T> v, U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
     {
-        // TODO
-        execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(lo128(v)), mem, f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(lo128(v))), mem + 1 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<1>(v)), mem + 2 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(extract128<1>(v))), mem + 3 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<1>(v)), mem + 4 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(extract128<1>(v))), mem + 5 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<1>(v)), mem + 6 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(extract128<1>(v))), mem + 7 * size<U>(), f);
     }
 
     // masked store {{{2

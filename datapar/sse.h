@@ -149,32 +149,32 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     // convert from a half SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>()>>(
-                _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem))));
+            intrin_cast<detail::intrinsic_type<U, size<U>()>>(load8(mem, f)));
 #else
         return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
+        unused(f);
 #endif
     }
 
     // convert from a quarter SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
+        const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>()>>(
-                _mm_load_ss(reinterpret_cast<const may_alias<float> *>(mem))));
+            intrin_cast<detail::intrinsic_type<U, size<U>()>>(load4(mem, f)));
 #else
         return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
+        unused(f);
 #endif
     }
 
@@ -186,8 +186,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>()>>(
-                _mm_cvtsi32_si128(*reinterpret_cast<const may_alias<uint16_t> *>(mem))));
+            intrin_cast<detail::intrinsic_type<U, size<U>()>>(load2(mem, flags::vector_aligned)));
     }
 
     template <class T, class U>
