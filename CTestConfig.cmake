@@ -7,8 +7,6 @@ set(CTEST_DROP_LOCATION "/submit.php?project=Vc")
 
 set(CTEST_DROP_SITE_CDASH TRUE)
 
-set(CTEST_USE_LAUNCHERS TRUE)
-
 set(CTEST_UPDATE_TYPE "git")
 
 find_program(GITCOMMAND git)

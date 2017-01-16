@@ -293,6 +293,7 @@ endif()
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 ctest_read_custom_files(${CTEST_SOURCE_DIRECTORY})
+set(CTEST_USE_LAUNCHERS TRUE)
 if(WIN32)
    set(MAKE_ARGS "-k")
 else()
