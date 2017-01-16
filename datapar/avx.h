@@ -678,6 +678,7 @@ template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(mask<T, datapar_abi::a
         return detail::popcnt32(detail::mask_to_int<k.size()>(d));
     default:
         Vc_UNREACHABLE();
+        return 0;
     }
 }
 
@@ -729,6 +730,7 @@ public:
                        Vc::detail::intrin_cast<__m256d>(static_cast<S<T>>(y)));
         default:
             Vc_UNREACHABLE();
+            return false;
         }
     }
 };
