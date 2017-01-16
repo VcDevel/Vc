@@ -30,6 +30,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <array>
 #include <iterator>
+#ifdef Vc_MSVC
+#include <intrin.h> // for _BitScanForward
+#endif  // Vc_MSVC
 #include "where.h"
 #include "elementreference.h"
 #include "macros.h"
