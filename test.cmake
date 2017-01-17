@@ -267,6 +267,13 @@ endif()
 
 # Build the CTEST_BUILD_NAME string
 ################################################################################
+file(STRINGS "${CTEST_SOURCE_DIRECTORY}/include/Vc/version.h"
+   Vc_VERSION_STRING
+   REGEX "#define +Vc_VERSION_STRING "
+   )
+string(REGEX REPLACE "\"$" "" Vc_VERSION_STRING "${Vc_VERSION_STRING}")
+string(REGEX REPLACE "^.*\"" "" Vc_VERSION_STRING "${Vc_VERSION_STRING}")
+
 if(DEFINED target_architecture)
    set(tmp ${target_architecture})
 else()
@@ -286,7 +293,7 @@ elseif(build_type STREQUAL "None")
 else()
    set(build_type_short "${build_type}")
 endif()
-string(STRIP "${git_branch} ${COMPILER_VERSION} ${CXXFLAGS} ${build_type_short} ${tmp} ${chip} ${os_ident}" CTEST_BUILD_NAME)
+string(STRIP "${Vc_VERSION_STRING} ${git_branch} ${COMPILER_VERSION} ${CXXFLAGS} ${build_type_short} ${tmp} ${chip} ${os_ident}" CTEST_BUILD_NAME)
 if(DEFINED subset)
    set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME} ${subset}")
 endif()
