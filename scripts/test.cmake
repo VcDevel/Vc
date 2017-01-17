@@ -59,9 +59,35 @@ string(STRIP "${git_branch}" git_branch)
 string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
 # -> foobar
 if(git_branch MATCHES "^[0-9a-f]+$")
-   # it's a hash -> make it short
-   string(SUBSTRING "${git_branch}" 0 7 git_branch)
-elseif(git_branch MATCHES "^gh-[0-9]+")
+   # it's a hash -> try harder to find a branch name
+   find_program(GIT git)
+   unset(git_branch_out)
+   if(GIT)
+      execute_process(COMMAND
+         "${GIT}" branch -a --contains=${git_branch} -v --abbrev=0
+         WORKING_DIRECTORY "${PROJECT_DIRECTORY}"
+         OUTPUT_VARIABLE git_branch_out
+         OUTPUT_STRIP_TRAILING_WHITESPACE
+         )
+      #message("${git_branch_out}")
+      string(REPLACE "\n" ";" git_branch_out "${git_branch_out}")
+      #message("${git_branch_out}")
+      foreach(i IN LISTS git_branch_out)
+         string(REGEX MATCH "[^() ]+ +${git_branch}" i "${i}")
+         string(REGEX REPLACE "^.*/" "" i "${i}")
+         string(REGEX REPLACE " *${git_branch}.*$" "" i "${i}")
+         if(NOT "${i}" MATCHES "^ *$")
+            set(git_branch "${i}")
+            break()
+         endif()
+      endforeach()
+   endif()
+   if(git_branch MATCHES "^[0-9a-f]+$")
+      # still just a hash -> make it shorter
+      string(SUBSTRING "${git_branch}" 0 7 git_branch)
+   endif()
+endif()
+if(git_branch MATCHES "^gh-[0-9]+")
    # it's a feature branch referencing a GitHub issue number -> make it short
    string(REGEX MATCH "^gh-[0-9]+" git_branch "${git_branch}")
 endif()
