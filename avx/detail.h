@@ -1302,7 +1302,7 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
     }
     default:
         Vc_UNREACHABLE();
-        return {};
+        return R();
     }
 }
 
