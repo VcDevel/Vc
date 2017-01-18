@@ -1,5 +1,6 @@
-/*  This file is part of the Vc library. {{{
-Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
+/*  This file 
+ *  is part of the Vc library. {{{
+Copyright © 2017 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -40,8 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_USHORT_V_SIZE 8
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace NEON
 {
 template <typename T> using Vector = Vc::Vector<T, VectorAbi::Neon>;
@@ -74,7 +74,7 @@ namespace Traits
 template <typename T> struct is_simd_mask_internal<NEON::Mask<T>> : public std::true_type {};
 template <typename T> struct is_simd_vector_internal<NEON::Vector<T>> : public std::true_type {};
 }  // namespace Traits
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_NEON_TYPES_H_
 
