@@ -1,6 +1,6 @@
 
 /*  This file is part of the Vc library. {{{
-Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
+Copyright © 2014-2017 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../common/maskentry.h"
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 template <typename T> class Mask<T, VectorAbi::Neon>
 {
 public:
@@ -112,7 +111,7 @@ public:
 private:
     VectorType data; // TODO: Mask type member corresponding to Vector<T>
 };
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_NEON_MASK_H_
 
