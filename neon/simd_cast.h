@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2017 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
-}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_NEON_SIMD_CAST_H_
 
