@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
+Copyright © 2017 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Detail
 {
 template<typename V, typename M, typename A>
@@ -43,7 +42,7 @@ Vc_ALWAYS_INLINE_L void prefetchClose(const void *);
 Vc_ALWAYS_INLINE_L void prefetchMid(const void *);
 Vc_ALWAYS_INLINE_L void prefetchFar(const void *);
 } // namespace Detail
-} // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_NEON_HELPERIMPL_H_
 
