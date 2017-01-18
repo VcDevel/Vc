@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_BITSCANINTRINSICS_H_
 #define VC_COMMON_BITSCANINTRINSICS_H_
 
-#if defined(Vc_GCC) || defined(Vc_CLANG) || defined(Vc_APPLECLANG)
+#if defined(Vc_X86) && defined(Vc_GCC) || defined(Vc_CLANG) || defined(Vc_APPLECLANG)
 #  if Vc_GCC >= 0x40500
      // GCC 4.5.0 introduced _bit_scan_forward / _bit_scan_reverse
 #    include <x86intrin.h>
@@ -43,7 +43,7 @@ static Vc_ALWAYS_INLINE Vc_CONST int _Vc_bit_scan_reverse_asm(unsigned int x) {
 }
 #    define _bit_scan_reverse(x) _Vc_bit_scan_reverse_asm(x)
 #  endif
-#elif defined(_WIN32)
+#elif defined(Vc_X86) && defined(_WIN32)
 #include "intrin.h"
 static inline __forceinline unsigned long _bit_scan_forward(unsigned long x) {
 	unsigned long index;
@@ -55,10 +55,12 @@ static inline __forceinline unsigned long _bit_scan_reverse(unsigned long x) {
 	_BitScanReverse(&index, x);
 	return index;
 }
-#elif defined(Vc_ICC)
+#elif defined(Vc_X86) && defined(Vc_ICC)
 // for all I know ICC supports the _bit_scan_* intrinsics
+#elif defined(Vc_ARM)
+#  include "arm_neon.h"
 #else
-// just assume the compiler can do it
+//  just assume the compiler can do it
 #endif
 
 
