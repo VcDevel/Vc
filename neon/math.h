@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014 Matthias Kretz <kretz@kde.org>
+Copyright © 2017 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 Vc_ALWAYS_INLINE NEON::int_v    min(const NEON::int_v    &x, const NEON::int_v &y);
 Vc_ALWAYS_INLINE NEON::uint_v   min(const NEON::uint_v   &x, const NEON::uint_v &y);
@@ -62,7 +61,7 @@ template <typename T> Vc_ALWAYS_INLINE Vc_PURE NEON::Mask<T> isfinite(const NEON
 template <typename T> Vc_ALWAYS_INLINE Vc_PURE NEON::Mask<T> isinf(const NEON::Vector<T> &x);
 template <typename T> Vc_ALWAYS_INLINE Vc_PURE NEON::Mask<T> isnan(const NEON::Vector<T> &x);
 
-}  // namespace Vc
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_NEON_MATH_H_
 
