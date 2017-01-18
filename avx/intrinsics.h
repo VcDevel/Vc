@@ -48,6 +48,28 @@ extern "C" {
 #include "macros.h"
 #include <cstdlib>
 
+#if (defined Vc_CLANG && Vc_CLANG >= 0x30900)
+#ifdef _mm256_permute2f128_si256
+#undef _mm256_permute2f128_si256
+#define _mm256_permute2f128_si256(V1, V2, M) __extension__ ({ \
+  (__m256i)__builtin_ia32_vperm2f128_si256((__v8si)(__m256i)(V1), \
+                                           (__v8si)(__m256i)(V2), (char)(M)); })
+#endif
+
+#ifdef _mm256_permute2f128_ps
+#undef _mm256_permute2f128_ps
+#define _mm256_permute2f128_ps(V1, V2, M) __extension__ ({ \
+  (__m256)__builtin_ia32_vperm2f128_ps256((__v8sf)(__m256)(V1), \
+                                          (__v8sf)(__m256)(V2), (char)(M)); })
+#endif
+
+#ifdef _mm256_permute2x128_si256
+#undef _mm256_permute2x128_si256
+#define _mm256_permute2x128_si256(V1, V2, M) __extension__ ({ \
+  (__m256i)__builtin_ia32_permti256((__m256i)(V1), (__m256i)(V2), (char)(M)); })
+#endif
+#endif
+
 namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AvxIntrinsics
