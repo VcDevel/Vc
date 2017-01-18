@@ -1,6 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
-All rights reserved.
+Copyright © 2017 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -32,10 +31,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../scalar/vector.h"
 #include "intrinsics.h"
 #include "types.h"
+#include "vectorhelper.h"
 #include "mask.h"
-#include "../common/storage.h"
 #include "../common/writemaskedvector.h"
-#include "../traits/type_traits.h"
+#include "../common/aliasingentryhelper.h"
+#include "../common/memoryfwd.h"
+#include "../common/loadstoreflags.h"
+#include <algorithm>
+#include <cmath>
+#include "detail.h"
+
 #include "macros.h"
 
 #ifdef isfinite
@@ -45,8 +50,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef isnan
 #endif
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 
 #define Vc_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector<T, VectorAbi::Neon>
@@ -54,293 +58,327 @@ template <typename T> class Vector<T, VectorAbi::Neon>
     static_assert(std::is_arithmetic<T>::value,
                   "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 
-public:
-    Vc_FREE_STORE_OPERATORS_ALIGNED(16)  // TODO: uses _mm_malloc / _mm_free. Needs a replacement
+    protected:
+#ifdef Vc_COMPILE_BENCHMARKS
+    public:
+#endif
+        typedef typename Neon::VectorTraits<T>::StorageType StorageType;
+        StorageType d;
+        typedef typename Neon::VectorTraits<T>::GatherMaskType GatherMask;
+        typedef Neon::VectorHelper<typename Neon::VectorTraits<T>::VectorType> HV;
+        typedef Neon::VectorHelper<T> HT;
+    public:
+        Vc_FREE_STORE_OPERATORS_ALIGNED(16);
 
-    using VectorType = typename NEON::VectorTraits<T>::Type;
-    using EntryType = T;
-    using VectorEntryType = EntryType;
+        typedef typename Neon::VectorTraits<T>::VectorType VectorType;
+        using vector_type = VectorType;
+        static constexpr size_t Size = Neon::VectorTraits<T>::Size;
+        static constexpr size_t MemoryAlignment = alignof(VectorType);
+        typedef typename Neon::VectorTraits<T>::EntryType EntryType;
+        using value_type = EntryType;
+        using VectorEntryType = EntryType;
+        typedef typename std::conditional<(Size >= 4),
+                                          SimdArray<int, Size, Neon::int_v, 4>,
+                                          SimdArray<int, Size, Scalar::int_v, 1>>::type IndexType;
+        typedef typename Neon::VectorTraits<T>::MaskType Mask;
+        using MaskType = Mask;
+        using mask_type = Mask;
+        typedef typename Mask::Argument MaskArg;
+        typedef typename Mask::Argument MaskArgument;
+        typedef const Vector AsArg;
+        using abi = VectorAbi::Neon;
+        using WriteMaskedVector = Common::WriteMaskedVector<Vector, Mask>;
+        template <typename U> using V = Vector<U, abi>;
 
-    static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
-    static constexpr size_t MemoryAlignment = alignof(VectorType);
+        using reference = Detail::ElementReference<Vector>;
 
-    using IndexType = SimdArray<int, Size>;
-    using MaskType = NEON::Mask<T>;
-    using Mask = NEON::Mask<T>;
-    using MaskArg = const Mask;
-    using MaskArgument = const Mask;
-    using AsArg = const Vector;
-
-    // STL style member types:
-    using vector_type = VectorType;
-    using value_type = EntryType;
-    using index_type = IndexType;
-    using mask_type = MaskType;
-
-private:
-    using StorageType = Common::VectorMemoryUnion<VectorType, EntryType>;
-    StorageType d;
-
-public:
 #include "../common/generalinterface.h"
 
-    static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
+        static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // internal: required to enable returning objects of VectorType from functions with return
-    // type Vector<T>
-    template <typename U,
-              typename = enable_if<std::is_convertible<U, VectorType>::value &&
-                                   !std::is_same<VectorType, EntryType>::
-                                        value>  // we have a problem with double_v where
-                                                // EntryType == VectorType == double. In
-                                                // that case we need to disable this
-                                                // constructor overload to resolve the
-                                                // otherwise resulting ambiguity
-              >
-    Vc_INTRINSIC Vector(U x)
-        : d(x)
-    {
-    }
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // internal: required to enable returning objects of VectorType
+        Vc_ALWAYS_INLINE Vector(VectorType x) : d(x) {}
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // copy
-    Vc_INTRINSIC Vector(const Vector &x) = default;
-    Vc_INTRINSIC Vector &operator=(const Vector &v)
-    {
-        d.v() = v.d.v();
-        return *this;
-    }
+        // implict conversion from compatible Vector<U>
+        template <typename U>
+        Vc_INTRINSIC Vector(
+            V<U> x, typename std::enable_if<Traits::is_implicit_cast_allowed<U, T>::value,
+                                            void *>::type = nullptr)
+            : d(Neon::convert<U, T>(x.data()))
+        {
+        }
 
-#include "../common/vector/casts.h"
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // broadcast
+        Vc_INTRINSIC Vector(EntryType a) : d(HT::set(a)) {}
+        template <typename U>
+        Vc_INTRINSIC Vector(U a,
+                            typename std::enable_if<std::is_same<U, int>::value &&
+                                                        !std::is_same<U, EntryType>::value,
+                                                    void *>::type = nullptr)
+            : Vector(static_cast<EntryType>(a))
+        {
+        }
+
 #include "../common/loadinterface.h"
 #include "../common/storeinterface.h"
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // zeroing
-    Vc_INTRINSIC_L void setZero() Vc_INTRINSIC_R;
-    Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;
-    Vc_INTRINSIC_L void setZeroInverted(const Mask &k) Vc_INTRINSIC_R;
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // zeroing
+        Vc_INTRINSIC_L void setZero() Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L void setZeroInverted(const Mask &k) Vc_INTRINSIC_R;
 
-    Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
-    Vc_INTRINSIC_L void setQnan(MaskArg k) Vc_INTRINSIC_R;
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // swizzles
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> &abcd() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> cdab() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> badc() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> aaaa() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> bbbb() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> cccc() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> dddd() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> bcad() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> bcda() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> dabc() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> acbd() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> dbca() const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC_L Vc_PURE_L const Vector<T> dcba() const Vc_INTRINSIC_R Vc_PURE_R;
+        Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L void setQnan(const Mask &k) Vc_INTRINSIC_R;
 
 #include "../common/gatherinterface.h"
 #include "../common/scatterinterface.h"
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    // prefix
-    Vc_ALWAYS_INLINE Vector &operator++();
-    Vc_ALWAYS_INLINE Vector &operator--();
-    // postfix
-    Vc_ALWAYS_INLINE Vector operator++(int);
-    Vc_ALWAYS_INLINE Vector operator--(int);
+        //prefix
+        Vc_INTRINSIC Vector &operator++() { data() = HT::add(data(), HT::one()); return *this; }
+        Vc_INTRINSIC Vector &operator--() { data() = HT::sub(data(), HT::one()); return *this; }
+        //postfix
+        Vc_INTRINSIC Vector operator++(int) { const Vector r = *this; data() = HT::add(data(), HT::one()); return r; }
+        Vc_INTRINSIC Vector operator--(int) { const Vector r = *this; data() = HT::sub(data(), HT::one()); return r; }
 
-    Vc_INTRINSIC decltype(d.m(0)) operator[](size_t index) { return d.m(index); }
-    Vc_ALWAYS_INLINE EntryType operator[](size_t index) const { return d.m(index); }
+    private:
+        friend reference;
+        Vc_INTRINSIC static value_type get(const Vector &o, int i) noexcept
+        {
+            return o.d.m(i);
+        }
+        template <typename U>
+        Vc_INTRINSIC static void set(Vector &o, int i, U &&v) noexcept(
+            noexcept(std::declval<value_type &>() = v))
+        {
+            o.d.set(i, v);
+        }
 
-    Vc_INTRINSIC Vc_PURE Mask operator!() const { return *this == Zero(); }
-    Vc_ALWAYS_INLINE Vector operator~() const;
-    Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
-    Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
+    public:
+        Vc_ALWAYS_INLINE reference operator[](size_t index) noexcept
+        {
+            static_assert(noexcept(reference{std::declval<Vector &>(), int()}), "");
+            return {*this, int(index)};
+        }
+        Vc_ALWAYS_INLINE value_type operator[](size_t index) const noexcept
+        {
+            return d.m(index);
+        }
 
-    Vc_ALWAYS_INLINE Vector &operator%=(const Vector &x)
-    {
-        *this = *this % x;
-        return *this;
-    }
-    inline Vc_PURE Vector operator%(const Vector &x) const;
+        Vc_INTRINSIC_L Vector Vc_VDECL operator[](const Neon::int_v &perm) const Vc_INTRINSIC_R;
 
-#define OP(symbol)                                                                            \
-    Vc_ALWAYS_INLINE Vector &operator symbol##=(const Vector &x);                                  \
-    Vc_ALWAYS_INLINE Vc_PURE Vector operator symbol(const Vector &x) const;
+        Vc_INTRINSIC Vc_PURE Mask operator!() const
+        {
+            return *this == Zero();
+        }
+        Vc_INTRINSIC Vc_PURE Vector operator~() const
+        {
+#ifndef Vc_ENABLE_FLOAT_BIT_OPERATORS
+            static_assert(std::is_integral<T>::value,
+                          "bit-complement can only be used with Vectors of integral type");
+#endif
+            return Detail::andnot_(data(), HV::allone());
+        }
+        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector operator-() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
+        Vc_INTRINSIC Vc_PURE Vector operator+() const { return *this; }
 
-    OP(+)
-    OP(-)
-    OP(*)
-#undef OP
-    inline Vector &operator/=(EntryType x);
-    inline Vector &operator/=(Vector x);
-    inline Vc_PURE_L Vector operator/(Vector x) const Vc_PURE_R;
+        Vc_ALWAYS_INLINE Vector  Vc_VDECL operator<< (AsArg shift) const { return generate([&](int i) { return get(*this, i) << get(shift, i); }); }
+        Vc_ALWAYS_INLINE Vector  Vc_VDECL operator>> (AsArg shift) const { return generate([&](int i) { return get(*this, i) >> get(shift, i); }); }
+        Vc_ALWAYS_INLINE Vector &Vc_VDECL operator<<=(AsArg shift) { return *this = *this << shift; }
+        Vc_ALWAYS_INLINE Vector &Vc_VDECL operator>>=(AsArg shift) { return *this = *this >> shift; }
 
-// bitwise ops
-#define OP_VEC(op)                                                                                 \
-    Vc_INTRINSIC Vector &operator op##=(AsArg x)                                                   \
-    {                                                                                              \
-        static_assert(std::is_integral<T>::value,                                                  \
-                      "bitwise-operators can only be used with Vectors of integral type");         \
-    }                                                                                              \
-    Vc_INTRINSIC Vc_PURE Vector operator op(AsArg x) const                                         \
-    {                                                                                              \
-        static_assert(std::is_integral<T>::value,                                                  \
-                      "bitwise-operators can only be used with Vectors of integral type");         \
-    }
-    Vc_ALL_BINARY(OP_VEC)
-    Vc_ALL_SHIFTS(OP_VEC)
-#undef OP_VEC
+        Vc_INTRINSIC_L Vector &Vc_VDECL operator<<=(  int shift)       Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector  Vc_VDECL operator<< (  int shift) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector &Vc_VDECL operator>>=(  int shift)       Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector  Vc_VDECL operator>> (  int shift) const Vc_INTRINSIC_R;
 
-    Vc_ALWAYS_INLINE_L Vector<T> &operator>>=(int x) Vc_ALWAYS_INLINE_R;
-    Vc_ALWAYS_INLINE_L Vector<T> &operator<<=(int x) Vc_ALWAYS_INLINE_R;
-    Vc_ALWAYS_INLINE_L Vector<T> operator>>(int x) const Vc_ALWAYS_INLINE_R;
-    Vc_ALWAYS_INLINE_L Vector<T> operator<<(int x) const Vc_ALWAYS_INLINE_R;
+        Vc_DEPRECATED("use isnegative(x) instead") Vc_INTRINSIC Vc_PURE Mask
+            isNegative() const
+        {
+            return Vc::isnegative(*this);
+        }
 
-#define OPcmp(symbol, fun)                                                                         \
-    Vc_ALWAYS_INLINE Vc_PURE Mask operator symbol(const Vector &x) const;
+        Vc_ALWAYS_INLINE void assign(const Vector &v, const Mask &mask)
+        {
+            const VectorType k = Neon::neon_cast<VectorType>(mask.data());
+            data() = HV::blend(data(), v.data(), k);
+        }
 
-    OPcmp(==, cmpeq)
-    OPcmp(!=, cmpneq)
-    OPcmp(>=, cmpnlt)
-    OPcmp(>, cmpnle)
-    OPcmp(<, cmplt)
-    OPcmp(<=, cmple)
-#undef OPcmp
-    Vc_INTRINSIC_L Vc_PURE_L Mask isNegative() const Vc_PURE_R Vc_INTRINSIC_R;
+        template <typename V2>
+        Vc_DEPRECATED("Use simd_cast instead of Vector::staticCast")
+            Vc_ALWAYS_INLINE Vc_PURE V2 staticCast() const
+        {
+            return Neon::convert<T, typename V2::EntryType>(data());
+        }
+        template <typename V2>
+        Vc_DEPRECATED("use reinterpret_components_cast instead")
+            Vc_ALWAYS_INLINE Vc_PURE V2 reinterpretCast() const
+        {
+            return Neon::neon_cast<typename V2::VectorType>(data());
+        }
 
-    Vc_ALWAYS_INLINE void fusedMultiplyAdd(const Vector<T> &factor, const Vector<T> &summand);
+        Vc_INTRINSIC WriteMaskedVector operator()(const Mask &k) { return {*this, k}; }
 
-    Vc_ALWAYS_INLINE void assign(const Vector<T> &v, const Mask &mask);
+        Vc_ALWAYS_INLINE Vc_PURE VectorType &data() { return d.v(); }
+        Vc_ALWAYS_INLINE Vc_PURE const VectorType &data() const { return d.v(); }
 
-    template <typename V2> Vc_ALWAYS_INLINE V2 staticCast() const { return V2(*this); }
-    template <typename V2> Vc_ALWAYS_INLINE V2 reinterpretCast() const;
+        template<int Index>
+        Vc_INTRINSIC_L Vector broadcast() const Vc_INTRINSIC_R;
 
-    /*
-    Vc_ALWAYS_INLINE Common::WriteMaskedVector<T> operator()(const Mask &k)
-    {
-        return Common::WriteMaskedVector<T>(this, k);
-    }
-    */
+        Vc_INTRINSIC EntryType min() const { return HT::min(data()); }
+        Vc_INTRINSIC EntryType max() const { return HT::max(data()); }
+        Vc_INTRINSIC EntryType product() const { return HT::mul(data()); }
+        Vc_INTRINSIC EntryType sum() const { return HT::add(data()); }
+        Vc_INTRINSIC_L Vector partialSum() const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L EntryType min(MaskArg m) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L EntryType max(MaskArg m) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L EntryType product(MaskArg m) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L EntryType sum(MaskArg m) const Vc_INTRINSIC_R;
 
-    /**
-     * \return \p true  This vector was completely filled. m2 might be 0 or != 0. You still have
-     *                  to test this.
-     *         \p false This vector was not completely filled. m2 is all 0.
-     */
-    // inline bool pack(Mask &m1, Vector<T> &v2, Mask &m2) {
-    // return VectorHelper<T>::pack(data(), m1.data, v2.data(), m2.data);
-    //}
+        Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vc_PURE_L Vector reversed() const Vc_INTRINSIC_R Vc_PURE_R;
+        Vc_ALWAYS_INLINE_L Vc_PURE_L Vector sorted() const Vc_ALWAYS_INLINE_R Vc_PURE_R;
 
-    Vc_ALWAYS_INLINE VectorType &data() { return d.v(); }
-    Vc_ALWAYS_INLINE const VectorType &data() const { return d.v(); }
-
-    Vc_ALWAYS_INLINE EntryType min() const;
-    Vc_ALWAYS_INLINE EntryType max() const;
-    Vc_ALWAYS_INLINE EntryType product() const;
-    Vc_ALWAYS_INLINE EntryType sum() const;
-    Vc_ALWAYS_INLINE_L Vector partialSum() const Vc_ALWAYS_INLINE_R;
-    // template<typename BinaryOperation> Vc_ALWAYS_INLINE_L Vector partialSum(BinaryOperation op)
-    // const Vc_ALWAYS_INLINE_R;
-    Vc_ALWAYS_INLINE_L EntryType min(MaskArg m) const Vc_ALWAYS_INLINE_R;
-    Vc_ALWAYS_INLINE_L EntryType max(MaskArg m) const Vc_ALWAYS_INLINE_R;
-    Vc_ALWAYS_INLINE_L EntryType product(MaskArg m) const Vc_ALWAYS_INLINE_R;
-    Vc_ALWAYS_INLINE_L EntryType sum(MaskArg m) const Vc_ALWAYS_INLINE_R;
-
-    Vc_INTRINSIC_L Vector shifted(int amount, Vector shiftIn) const Vc_INTRINSIC_R;
-    Vc_INTRINSIC_L Vector shifted(int amount) const Vc_INTRINSIC_R;
-    Vc_INTRINSIC_L Vector rotated(int amount) const Vc_INTRINSIC_R;
-    Vc_ALWAYS_INLINE Vector sorted() const;
-
-    template <typename F> void callWithValuesSorted(F &&f)
-    {
-        EntryType value = d.m(0);
-        f(value);
-        for (size_t i = 1; i < Size; ++i) {
-            if (d.m(i) != value) {
-                value = d.m(i);
-                f(value);
+        template <typename F> void callWithValuesSorted(F &&f)
+        {
+            EntryType value = d.m(0);
+            f(value);
+            for (std::size_t i = 1; i < Size; ++i) {
+                if (d.m(i) != value) {
+                    value = d.m(i);
+                    f(value);
+                }
             }
         }
-    }
 
-    template <typename F> Vc_INTRINSIC void call(F &&f) const
-    {
-        Common::for_all_vector_entries<Size>([&](size_t i) { f(EntryType(d.m(i))); });
-    }
-
-    template <typename F> Vc_INTRINSIC void call(F &&f, const Mask &mask) const
-    {
-        for (size_t i : where(mask)) {
-            f(EntryType(d.m(i)));
+        template <typename F> Vc_INTRINSIC void call(F &&f) const
+        {
+            Common::for_all_vector_entries<Size>([&](size_t i) { f(EntryType(d.m(i))); });
         }
-    }
 
-    template <typename F> Vc_INTRINSIC Vector<T> apply(F &&f) const
-    {
-        Vector<T> r;
-        Common::for_all_vector_entries<Size>(
-            [&](size_t i) { r.d.set(i, f(EntryType(d.m(i)))); });
-        return r;
-    }
-
-    template <typename F> Vc_INTRINSIC Vector<T> apply(F &&f, const Mask &mask) const
-    {
-        Vector<T> r(*this);
-        for (size_t i : where(mask)) {
-            r.d.m(i) = f(EntryType(r.d.m(i)));
+        template <typename F> Vc_INTRINSIC void call(F &&f, const Mask &mask) const
+        {
+            for(size_t i : where(mask)) {
+                f(EntryType(d.m(i)));
+            }
         }
-        return r;
-    }
 
-    template <typename IndexT> Vc_INTRINSIC void fill(EntryType(&f)(IndexT))
-    {
-        Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f(i)); });
-    }
-    Vc_INTRINSIC void fill(EntryType(&f)())
-    {
-        Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f()); });
-    }
+        template <typename F> Vc_INTRINSIC Vector apply(F &&f) const
+        {
+            Vector r;
+            Common::for_all_vector_entries<Size>(
+                [&](size_t i) { r.d.set(i, f(EntryType(d.m(i)))); });
+            return r;
+        }
+        template <typename F> Vc_INTRINSIC Vector apply(F &&f, const Mask &mask) const
+        {
+            Vector r(*this);
+            for (size_t i : where(mask)) {
+                r.d.set(i, f(EntryType(r.d.m(i))));
+            }
+            return r;
+        }
 
-    Vc_INTRINSIC Vc_DEPRECATED("use copysign(x, y) instead") Vector
-        copySign(AsArg reference) const
-    {
-        return Vc::copysign(*this, reference);
-    }
+        template<typename IndexT> Vc_INTRINSIC void fill(EntryType (&f)(IndexT)) {
+            Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f(i)); });
+        }
+        Vc_INTRINSIC void fill(EntryType (&f)()) {
+            Common::for_all_vector_entries<Size>([&](size_t i) { d.set(i, f()); });
+        }
 
-    Vc_INTRINSIC Vc_DEPRECATED("use exponent(x) instead") Vector exponent() const
-    {
-        return Vc::exponent(*this);
-    }
+        template <typename G> static Vc_INTRINSIC_L Vector generate(G gen) Vc_INTRINSIC_R;
+
+        Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC Vector
+            copySign(AsArg reference) const
+        {
+            return Vc::copysign(*this, reference);
+        }
+
+        Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC Vector exponent() const
+        {
+            return Vc::exponent(*this);
+        }
+
+        Vc_INTRINSIC_L Vector interleaveLow(Vector x) const Vc_INTRINSIC_R;
+        Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 };
 #undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Neon>::Size;
-template <typename T> constexpr size_t Vector<T, VectorAbi::Neon>::MemoryAlignment;
+template <typename T> constexpr size_t Vector<T, VectorAbi::Neon >::MemoryAlignment;
 
-static_assert(Traits::is_simd_vector<NEON::double_v>::value, "is_simd_vector<double_v>::value");
-static_assert(Traits::is_simd_vector<NEON::float_v>::value, "is_simd_vector< float_v>::value");
-static_assert(Traits::is_simd_vector<NEON::int_v>::value, "is_simd_vector<   int_v>::value");
-static_assert(Traits::is_simd_vector<NEON::uint_v>::value, "is_simd_vector<  uint_v>::value");
-static_assert(Traits::is_simd_vector<NEON::short_v>::value, "is_simd_vector< short_v>::value");
-static_assert(Traits::is_simd_vector<NEON::ushort_v>::value, "is_simd_vector<ushort_v>::value");
-static_assert(Traits::is_simd_mask<NEON::double_m>::value, "is_simd_mask  <double_m>::value");
-static_assert(Traits::is_simd_mask<NEON::float_m>::value, "is_simd_mask  < float_m>::value");
-static_assert(Traits::is_simd_mask<NEON::int_m>::value, "is_simd_mask  <   int_m>::value");
-static_assert(Traits::is_simd_mask<NEON::uint_m>::value, "is_simd_mask  <  uint_m>::value");
-static_assert(Traits::is_simd_mask<NEON::short_m>::value, "is_simd_mask  < short_m>::value");
-static_assert(Traits::is_simd_mask<NEON::ushort_m>::value, "is_simd_mask  <ushort_m>::value");
+static Vc_ALWAYS_INLINE Vc_PURE Neon::int_v    min(const Neon::int_v    &x, const Neon::int_v    &y) { return Neon::vmin_s32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE Neon::uint_v   min(const Neon::uint_v   &x, const Neon::uint_v   &y) { return Neon::vmin_u32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE Neon::short_v  min(const Neon::short_v  &x, const Neon::short_v  &y) { return Neon::vmin_s16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE Neon::ushort_v min(const Neon::ushort_v &x, const Neon::ushort_v &y) { return Neon::vmin_u16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE Neon::float_v  min(const Neon::float_v  &x, const Neon::float_v  &y) { return Neon::vminq_f32(x.data(), y.data()); }
+// Aarch64 (armv8) finally supports double precision. TODO: add directive for aarch32/aarch64 separation
+static Vc_ALWAYS_INLINE Vc_PURE Neon::double_v min(const Neon::double_v &x, const Neon::double_v &y) { return Neon::vmax_f64(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE Neon::int_v    max(const Neon::int_v    &x, const Neon::int_v    &y) { return Neon::vmax_s32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE Neon::uint_v   max(const Neon::uint_v   &x, const Neon::uint_v   &y) { return Neon::vmax_u32(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE Neon::short_v  max(const Neon::short_v  &x, const Neon::short_v  &y) { return Neon::vmax_s16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE Neon::ushort_v max(const Neon::ushort_v &x, const Neon::ushort_v &y) { return Neon::vmax_u16(x.data(), y.data()); }
+static Vc_ALWAYS_INLINE Vc_PURE Neon::float_v  max(const Neon::float_v  &x, const Neon::float_v  &y) { return Neon::vmaxq_f32(x.data(), y.data()); }
+// Aarch64 (armv8) finally supports double precision. TODO: add directive for aarch32/aarch64 separation 
+static Vc_ALWAYS_INLINE Vc_PURE Neon::double_v max(const Neon::double_v &x, const Neon::double_v &y) { return Neon::vmax_f64(x.data(), y.data()); }
 
-static_assert(!std::is_convertible<float *, NEON::short_v>::value,
-              "A float* should never implicitly convert to short_v. Something is broken.");
-static_assert(!std::is_convertible<int *, NEON::short_v>::value,
-              "An int* should never implicitly convert to short_v. Something is broken.");
-static_assert(!std::is_convertible<short *, NEON::short_v>::value,
-              "A short* should never implicitly convert to short_v. Something is broken.");
+template <typename T,
+          typename = enable_if<std::is_same<T, double>::value || std::is_same<T, float>::value ||
+                               std::is_same<T, short>::value ||
+                               std::is_same<T, int>::value>>
+Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Neon> abs(Vector<T, VectorAbi::Neon> x)
+{
+    return Neon::VectorHelper<T>::abs(x.data());
+}
 
-}  // namespace Vc
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Neon> sqrt (const Vector<T, VectorAbi::Neon> &x) { return Neon::VectorHelper<T>::sqrt(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Neon> rsqrt(const Vector<T, VectorAbi::Neon> &x) { return Neon::VectorHelper<T>::rsqrt(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Neon> reciprocal(const Vector<T, VectorAbi::Neon> &x) { return Neon::VectorHelper<T>::reciprocal(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE Vector<T, VectorAbi::Neon> round(const Vector<T, VectorAbi::Neon> &x) { return Neon::VectorHelper<T>::round(x.data()); }
+
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Neon>::Mask isfinite(const Vector<T, VectorAbi::Neon> &x) { return Neon::VectorHelper<T>::isFinite(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Neon>::Mask isinf(const Vector<T, VectorAbi::Neon> &x) { return Neon::VectorHelper<T>::isInfinite(x.data()); }
+  template<typename T> Vc_ALWAYS_INLINE Vc_PURE typename Vector<T, VectorAbi::Neon>::Mask isnan(const Vector<T, VectorAbi::Neon> &x) { return Neon::VectorHelper<T>::isNaN(x.data()); }
+
+#define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \
+    template <Operator O, typename T, typename M, typename U>                            \
+    Vc_INTRINSIC enable_if<O == Operator::name_, void> conditional_assign(               \
+        Vector<T, VectorAbi::Sse> &lhs, M &&mask, U &&rhs)                               \
+    {                                                                                    \
+        lhs(mask) op_ rhs;                                                               \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(          Assign,  =);
+Vc_CONDITIONAL_ASSIGN(      PlusAssign, +=);
+Vc_CONDITIONAL_ASSIGN(     MinusAssign, -=);
+Vc_CONDITIONAL_ASSIGN(  MultiplyAssign, *=);
+Vc_CONDITIONAL_ASSIGN(    DivideAssign, /=);
+Vc_CONDITIONAL_ASSIGN( RemainderAssign, %=);
+Vc_CONDITIONAL_ASSIGN(       XorAssign, ^=);
+Vc_CONDITIONAL_ASSIGN(       AndAssign, &=);
+Vc_CONDITIONAL_ASSIGN(        OrAssign, |=);
+Vc_CONDITIONAL_ASSIGN( LeftShiftAssign,<<=);
+Vc_CONDITIONAL_ASSIGN(RightShiftAssign,>>=);
+#undef Vc_CONDITIONAL_ASSIGN
+
+#define Vc_CONDITIONAL_ASSIGN(name_, expr_)                                              \
+    template <Operator O, typename T, typename M>                                        \
+    Vc_INTRINSIC enable_if<O == Operator::name_, Vector<T, VectorAbi::Neon>>              \
+    conditional_assign(Vector<T, VectorAbi::Neon> &lhs, M &&mask)                         \
+    {                                                                                    \
+        return expr_;                                                                    \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+Vc_CONDITIONAL_ASSIGN(PostIncrement, lhs(mask)++);
+Vc_CONDITIONAL_ASSIGN( PreIncrement, ++lhs(mask));
+Vc_CONDITIONAL_ASSIGN(PostDecrement, lhs(mask)--);
+Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask));
+#undef Vc_CONDITIONAL_ASSIGN
+
+Vc_VERSIONED_NAMESPACE_END
 
 #include "vector.tcc"
 #endif  // VC_NEON_VECTOR_H_
