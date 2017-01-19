@@ -43,22 +43,30 @@ using Vc::float_v;
  * The Runner recursively calls operator() on the Work template class with varying arguments for N
  * and FLOPs.
  */
-template<template<std::size_t N, std::size_t M, int, int> class Work, std::size_t N = 256, std::size_t M = 4, int FLOPs = 2> struct Runner
+template<template<std::size_t N, std::size_t M, int, int> class Work, std::size_t N = 256, std::size_t M = 4> struct Runner
 {
     static void run() {
-        Work<N, M, (N > 4096 ? 1 : 4096 / N), FLOPs>()();
-        Runner<Work, N, M, int(FLOPs * 1.5)>::run();
-    }
-};
-
-template<template<std::size_t N, std::size_t M, int, int> class Work, std::size_t N, std::size_t M> struct Runner<Work, N, M, 211>
-{
-    static void run() {
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 2>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 3>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 4>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 6>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 9>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 13>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 19>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 28>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 42>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 63>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 94>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 141>()();
+        Work<N, M, (N > 4096 ? 1 : 4096 / N), 211>()();
         Runner<Work, N * 2, M>::run();
     }
 };
-template<template<std::size_t N, std::size_t M, int, int> class Work, std::size_t M, int FLOPs> struct Runner<Work, 256 * 1024 * 1024, M, FLOPs>
-{
+
+template <template <std::size_t N, std::size_t M, int, int> class Work, std::size_t M>
+struct Runner<Work, 256 * 1024 * 32,  // don't make this number larger, otherwise GCC6
+                                      // blows up with Vc::Scalar to 10GB of memory usage
+              M> {
     static void run() {
     }
 };
