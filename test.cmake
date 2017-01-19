@@ -17,6 +17,9 @@ endmacro()
 # Dashboard Model
 ################################################################################
 read_argument(dashboard_model "Experimental")
+set(is_continuous FALSE)
+set(is_experimental FALSE)
+set(is_nightly FALSE)
 if(${dashboard_model} STREQUAL "Continuous")
    set(is_continuous TRUE)
 elseif(${dashboard_model} STREQUAL "Experimental")
@@ -54,12 +57,20 @@ set(ENV{LANG} "en_US")
 # determine the git branch we're testing
 ################################################################################
 file(READ "${CTEST_SOURCE_DIRECTORY}/.git/HEAD" git_branch)
-string(STRIP "${git_branch}" git_branch)
-# -> ref: refs/heads/foobar
-string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
-# -> foobar
-if(git_branch MATCHES "^[0-9a-f]+$")
-   # it's a hash -> try harder to find a branch name
+string(STRIP "${git_branch}" git_branch)                         # -> ref: refs/heads/user/foobar
+string(REPLACE "ref: refs/heads/" "" git_branch "${git_branch}") # -> user/foobar
+if(NOT git_branch MATCHES "^[0-9a-f]+$")                         # an actual branch name, not a hash
+   # read the associated hash
+   if(EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
+      file(READ "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}" git_hash LIMIT 7)
+      string(STRIP "${git_hash}" git_hash)
+   endif()
+   string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
+else()
+   # a long hash -> make it shorter
+   string(SUBSTRING "${git_branch}" 0 7 git_hash)
+
+   # try harder to find a branch name
    find_program(GIT git)
    unset(git_branch_out)
    if(GIT)
@@ -83,8 +94,8 @@ if(git_branch MATCHES "^[0-9a-f]+$")
       endforeach()
    endif()
    if(git_branch MATCHES "^[0-9a-f]+$")
-      # still just a hash -> make it shorter
-      string(SUBSTRING "${git_branch}" 0 7 git_branch)
+      # still just a hash -> make it empty because the hash is communicated via git_hash
+      set(git_branch "")
    endif()
 endif()
 if(git_branch MATCHES "^gh-[0-9]+")
@@ -140,24 +151,6 @@ else()
    else()
       set(chip "unknown")
    endif()
-endif()
-
-# determine a short description of the OS we're running on
-################################################################################
-if(arch STREQUAL "linux")
-   execute_process(COMMAND lsb_release -d COMMAND cut -f2 OUTPUT_VARIABLE os_ident)
-   string(REGEX REPLACE "\\(.*\\)" "" os_ident "${os_ident}") # shorten the Distribution string, stripping everything in parens
-   string(REPLACE "Scientific Linux SL" "SL" os_ident "${os_ident}")
-   string(REPLACE " release" "" os_ident "${os_ident}")
-   string(REPLACE " GNU/Linux" "" os_ident "${os_ident}")
-   string(REPLACE "openSUSE" "Suse" os_ident "${os_ident}")
-   string(REPLACE " User Edition" "" os_ident "${os_ident}")
-   string(STRIP "${os_ident}" os_ident)
-elseif(arch STREQUAL "darwin")
-   set(os_ident "OSX")
-else()
-   set(os_ident "${arch}")
-   string(REPLACE "Windows" "Win" os_ident "${os_ident}")
 endif()
 
 # Determine the processor count (number_of_processors)
@@ -267,13 +260,6 @@ endif()
 
 # Build the CTEST_BUILD_NAME string
 ################################################################################
-file(STRINGS "${CTEST_SOURCE_DIRECTORY}/include/Vc/version.h"
-   Vc_VERSION_STRING
-   REGEX "#define +Vc_VERSION_STRING "
-   )
-string(REGEX REPLACE "\"$" "" Vc_VERSION_STRING "${Vc_VERSION_STRING}")
-string(REGEX REPLACE "^.*\"" "" Vc_VERSION_STRING "${Vc_VERSION_STRING}")
-
 if(DEFINED target_architecture)
    set(tmp ${target_architecture})
 else()
@@ -293,7 +279,8 @@ elseif(build_type STREQUAL "None")
 else()
    set(build_type_short "${build_type}")
 endif()
-string(STRIP "${Vc_VERSION_STRING} ${git_branch} ${COMPILER_VERSION} ${CXXFLAGS} ${build_type_short} ${tmp} ${chip} ${os_ident}" CTEST_BUILD_NAME)
+
+string(STRIP "${git_hash} ${git_branch} ${COMPILER_VERSION} ${CXXFLAGS} ${build_type_short} ${tmp}" CTEST_BUILD_NAME)
 if(DEFINED subset)
    set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME} ${subset}")
 endif()
@@ -306,7 +293,7 @@ string(REPLACE "+" "x" CTEST_BUILD_NAME "${CTEST_BUILD_NAME}")
 
 # Determine build directory
 ################################################################################
-string(REGEX REPLACE "[][ ():, ]" "" CTEST_BINARY_DIRECTORY "${CTEST_BUILD_NAME}")
+string(REGEX REPLACE "[][ ():, |!*]" "" CTEST_BINARY_DIRECTORY "${CTEST_BUILD_NAME}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/build-${dashboard_model}/${CTEST_BINARY_DIRECTORY}")
 
 # Give user feedback
@@ -320,9 +307,18 @@ message("model:      ${dashboard_model}")
 Set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY_ONCE TRUE)
 
 list(APPEND CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/HEAD")
-if(EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
-   list(APPEND CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
+
+# attach information on the OS
+################################################################################
+if(arch STREQUAL "linux")
+   execute_process(COMMAND lsb_release -idrc OUTPUT_VARIABLE os_ident)
+elseif(arch STREQUAL "darwin")
+   execute_process(COMMAND system_profiler SPSoftwareDataType OUTPUT_VARIABLE os_ident)
+else()
+   set(os_ident "${arch}")
 endif()
+file(WRITE "${CTEST_SOURCE_DIRECTORY}/os_ident.txt" "${os_ident}")
+list(APPEND CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/os_ident.txt")
 
 include(${CTEST_SOURCE_DIRECTORY}/CTestConfig.cmake)
 ctest_read_custom_files(${CTEST_SOURCE_DIRECTORY})
@@ -378,11 +374,31 @@ if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[01234567]\\."
    message(FATAL_ERROR "Compiler too old for C++11 (${COMPILER_VERSION})")
 endif()
 
+if(chip STREQUAL "x86")
+   set(arch_abi "x86 32-bit")
+elseif(chip STREQUAL "amd64")
+   if(CXXFLAGS MATCHES "-m32")
+      set(arch_abi "x86 32-bit")
+   elseif(CXXFLAGS MATCHES "-mx32")
+      set(arch_abi "x86 x32")
+   else()
+      set(arch_abi "x86 64-bit")
+   endif()
+else()
+   set(arch_abi "${chip}")
+endif()
+
 macro(go)
-   # SubProjects currently don't improve the overview but rather make the dashboard more cumbersume to navigate
-   #set_property(GLOBAL PROPERTY SubProject "master: ${compiler}")
+   # On Continuous builds this string may change and thus must be inside go()
+   file(STRINGS "${CTEST_SOURCE_DIRECTORY}/include/Vc/version.h"
+      Vc_VERSION_STRING
+      REGEX "#define +Vc_VERSION_STRING "
+      )
+   string(REGEX REPLACE "\"$" "" Vc_VERSION_STRING "${Vc_VERSION_STRING}")
+   string(REGEX REPLACE "^.*\"" "" Vc_VERSION_STRING "${Vc_VERSION_STRING}")
+
    set_property(GLOBAL PROPERTY Label other)
-   CTEST_START (${dashboard_model})
+   CTEST_START (${dashboard_model} TRACK "${dashboard_model} ${Vc_VERSION_STRING} ${arch_abi}")
    set(res 0)
    if(NOT is_experimental)
       CTEST_UPDATE (SOURCE "${CTEST_SOURCE_DIRECTORY}" RETURN_VALUE res)
@@ -392,7 +408,7 @@ macro(go)
    endif()
 
    # enter the following section for Continuous builds only if the CTEST_UPDATE above found changes
-   if(NOT ${dashboard_model} STREQUAL "Continuous" OR res GREATER 0)
+   if(NOT is_continuous OR res GREATER 0)
       CTEST_CONFIGURE (BUILD "${CTEST_BINARY_DIRECTORY}"
          OPTIONS "${configure_options}"
          APPEND
