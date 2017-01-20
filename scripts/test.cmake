@@ -63,7 +63,8 @@ string(REPLACE "ref: refs/heads/" "" git_branch "${git_branch}") # -> user/fooba
 if(NOT git_branch MATCHES "^[0-9a-f]+$")                         # an actual branch name, not a hash
    # read the associated hash
    if(EXISTS "${PROJECT_DIRECTORY}/.git/refs/heads/${git_branch}")
-      file(READ "${PROJECT_DIRECTORY}/.git/refs/heads/${git_branch}" git_hash LIMIT 7)
+      set(git_hash_file "${PROJECT_DIRECTORY}/.git/refs/heads/${git_branch}")
+      file(READ "${git_hash_file}" git_hash LIMIT 7)
       string(STRIP "${git_hash}" git_hash)
    endif()
    string(REGEX REPLACE "^.*/" "" git_branch "${git_branch}")
@@ -286,7 +287,15 @@ else()
    set(build_type_short "${build_type}")
 endif()
 
-string(STRIP "${git_hash} ${git_branch} ${COMPILER_VERSION} ${CXXFLAGS} ${build_type_short} ${tmp}" CTEST_BUILD_NAME)
+string(STRIP "${git_branch} ${COMPILER_VERSION} ${CXXFLAGS} ${build_type_short} ${tmp}" CTEST_BUILD_NAME)
+if(NOT is_nightly)
+   # nightly builds shouldn't contain the git hash, since it makes expected builds impossible
+   string(STRIP "${git_hash} ${CTEST_BUILD_NAME}" CTEST_BUILD_NAME)
+   # instead make sure the hash is included in the notes
+   if(DEFINED git_hash_file)
+      list(APPEND CTEST_NOTES_FILES "${git_hash_file}")
+   endif()
+endif()
 if(DEFINED subset)
    set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME} ${subset}")
 endif()
