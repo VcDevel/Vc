@@ -2126,8 +2126,8 @@ template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(z_i64 v0) {
 
 // from ullong{{{2
 template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(z_u64 v0) {
-#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-    return _mm256_cvtepu64_pd(v0);
+#ifdef Vc_HAVE_AVX512DQ
+    return _mm512_cvtepu64_pd(v0);
 #else
     return _mm512_fmadd_pd(
         _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(_mm512_srli_epi64(v0, 4))),
@@ -2136,32 +2136,65 @@ template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(z_u64 v0) {
 }
 
 // from int{{{2
-template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_i32 v) { return _mm256_cvtepi32_pd(v); }
+template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_i32 v)
+{
+    return zeroExtend(_mm256_cvtepi32_pd(v));
+}
+
+template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(y_i32 v)
+{
+    return _mm512_cvtepi32_pd(v);
+}
+
+template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(z_i32 v)
+{
+    return _mm512_cvtepi32_pd(lo256(v));
+}
 
 // from uint{{{2
 template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_u32 v)
 {
 #ifdef Vc_HAVE_AVX512VL
-    return _mm256_cvtepu32_pd(v);
-#elif defined Vc_HAVE_AVX512F
-    return lo256(_mm512_cvtepu32_pd(intrin_cast<__m256i>(v)));
+    return zeroExtend(_mm256_cvtepu32_pd(v));
 #else
-    return _mm256_add_pd(_mm256_cvtepi32_pd(xor_(v, lowest16<int>())),
-                         broadcast32(double(1u << 31)));
+    return _mm512_cvtepu32_pd(zeroExtend(v));
 #endif
 }
 
+template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(y_u32 v)
+{
+    return _mm512_cvtepu32_pd(v);
+}
+
+template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(z_u32 v)
+{
+    return _mm512_cvtepu32_pd(lo256(v));
+}
+
 // from short{{{2
-template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_i16 v) { return convert_to<z_f64>(convert_to<x_i32>(v)); }
+template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_i16 v)
+{
+    return convert_to<z_f64>(convert_to<y_i32>(v));
+}
 
 // from ushort{{{2
-template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_u16 v) { return convert_to<z_f64>(convert_to<x_i32>(v)); }
+template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_u16 v)
+{
+    return convert_to<z_f64>(convert_to<y_i32>(v));
+}
 
 // from schar{{{2
-template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_i08 v) { return convert_to<z_f64>(convert_to<x_i32>(v)); }
+template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_i08 v)
+{
+    return convert_to<z_f64>(convert_to<y_i32>(v));
+}
 
 // from uchar{{{2
-template <> Vc_INTRINSIC y_f64 Vc_VDECL convert_to<y_f64>(x_u08 v) { return convert_to<y_f64>(convert_to<x_i32>(v)); }
+template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_u08 v)
+{
+    return convert_to<z_f64>(convert_to<y_i32>(v));
+}
+
 #endif  // Vc_HAVE_AVX512F
 
 //--------------------float{{{1
@@ -2357,7 +2390,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(z_u64 v0)
     return _mm512_cvtepu64_ps(v0);
 #else
     return _mm256_fmadd_ps(
-        lo256(_mm512_cvtepu32_ps(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 4)))),
+        lo256(_mm512_cvtepu32_ps(intrin_cast<__m512i>(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 4))))),
         _mm256_set1_ps(0x100000000LL),
         lo256(_mm512_cvtepu32_ps(intrin_cast<__m512i>(_mm512_cvtepi64_epi32(v0)))));
 #endif
