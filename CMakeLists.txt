@@ -124,9 +124,26 @@ endif()#}}}
 # Look for the Intel SDE if we're running on x86 and Linux#{{{
 ##################################################################
 if(Vc_X86 AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+   macro(Vc_find_sde)
+      find_program(INTEL_SDE sde64 ${ARGN} DOC "Path to the Intel Software Development Emulator")
+      if(INTEL_SDE)
+         execute_process(COMMAND ${INTEL_SDE} -help RESULT_VARIABLE _sde_usable OUTPUT_QUIET ERROR_QUIET)
+         if(NOT _sde_usable LESS 2)
+            unset(INTEL_SDE CACHE)
+            find_program(INTEL_SDE sde ${ARGN} NO_DEFAULT_PATH DOC "Path to the Intel Software Development Emulator")
+            if(INTEL_SDE)
+               execute_process(COMMAND ${INTEL_SDE} -help RESULT_VARIABLE _sde_usable OUTPUT_QUIET ERROR_QUIET)
+               if(NOT _sde_usable LESS 2)
+                  set(INTEL_SDE FALSE)
+               endif()
+            endif()
+         endif()
+      endif()
+   endmacro()
+
    file(GLOB SDE_DIRS /opt/intel/*)
-   find_program(INTEL_SDE sde ${SDE_DIRS} "$ENV{HOME}/.cache/sde/"
-      DOC "Path to the Intel Software Development Emulator")
+   Vc_find_sde(${SDE_DIRS} "$ENV{HOME}/.cache/sde/")
+
    # if running a dashboard cycle and no installed SDE was found, download and use it automatically
    if(NOT "$ENV{DASHBOARD_TEST_FROM_CTEST}" STREQUAL "" AND NOT INTEL_SDE)
       find_program(_bin_sh sh)
@@ -141,8 +158,7 @@ if(Vc_X86 AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
                TIMEOUT 20
                RESULT_VARIABLE res)
             if(${res} EQUAL 0)
-               find_program(INTEL_SDE sde "$ENV{HOME}/.cache/sde/" NO_DEFAULT_PATH
-                  DOC "Path to the Intel Software Development Emulator")
+               Vc_find_sde("$ENV{HOME}/.cache/sde/" NO_DEFAULT_PATH)
             endif()
          endif()
       endif()
