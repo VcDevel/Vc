@@ -117,6 +117,12 @@ Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> Vc_VDECL hi256(Storage<T, N> x)
 }
 #endif  // Vc_HAVE_AVX512F
 
+template <class T, size_t N>
+Vc_INTRINSIC Vc_CONST Storage<T, 2 * N> Vc_VDECL concat(Storage<T, N> a, Storage<T, N> b)
+{
+    return concat(a.v(), b.v());
+}
+
 }}  // namespace detail::x86
 Vc_VERSIONED_NAMESPACE_END
 
