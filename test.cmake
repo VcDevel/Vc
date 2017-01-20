@@ -280,7 +280,15 @@ else()
    set(build_type_short "${build_type}")
 endif()
 
-string(STRIP "${git_hash} ${git_branch} ${COMPILER_VERSION} ${CXXFLAGS} ${build_type_short} ${tmp}" CTEST_BUILD_NAME)
+string(STRIP "${git_branch} ${COMPILER_VERSION} ${CXXFLAGS} ${build_type_short} ${tmp}" CTEST_BUILD_NAME)
+if(NOT is_nightly)
+   # nightly builds shouldn't contain the git hash, since it makes expected builds impossible
+   string(STRIP "${git_hash} ${CTEST_BUILD_NAME}" CTEST_BUILD_NAME)
+   # instead make sure the hash is included in the notes
+   if(EXISTS "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
+      list(APPEND CTEST_NOTES_FILES "${CTEST_SOURCE_DIRECTORY}/.git/refs/heads/${git_branch}")
+   endif()
+endif()
 if(DEFINED subset)
    set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME} ${subset}")
 endif()
