@@ -323,49 +323,156 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_i64 v) { return zero
 template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(y_i64 v) { return v; }
 
 // from int{{{2
-#ifdef Vc_HAVE_AVX2
 template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_i32 v) {
+#ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi32_epi64(v);
+#else
+    return concat(_mm_cvtepi32_epi64(v), _mm_cvtepi32_epi64(_mm_unpackhi_epi64(v, v)));
+#endif
 }
-#endif  // Vc_HAVE_AVX2
 
 // from uint{{{2
-#ifdef Vc_HAVE_AVX2
 template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_u32 v) {
+#ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu32_epi64(v);
+#else
+    return concat(_mm_cvtepu32_epi64(v), _mm_cvtepu32_epi64(_mm_unpackhi_epi64(v, v)));
+#endif
 }
-#endif  // Vc_HAVE_AVX2
 
 // from short{{{2
-#ifdef Vc_HAVE_AVX2
 template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_i16 v) {
+#ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi16_epi64(v);
+#else
+    return concat(_mm_cvtepi16_epi64(v), _mm_cvtepi16_epi64(_mm_srli_si128(v, 4)));
+#endif
 }
-#endif  // Vc_HAVE_AVX2
 
 // from ushort{{{2
-#ifdef Vc_HAVE_AVX2
 template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_u16 v) {
+#ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu16_epi64(v);
+#else
+    return concat(_mm_cvtepu16_epi64(v), _mm_cvtepu16_epi64(_mm_srli_si128(v, 4)));
+#endif
 }
-#endif  // Vc_HAVE_AVX2
 
 // from schar{{{2
-#ifdef Vc_HAVE_AVX2
 template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_i08 v) {
+#ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi8_epi64(v);
+#else
+    return concat(_mm_cvtepi8_epi64(v), _mm_cvtepi8_epi64(_mm_srli_si128(v, 2)));
+#endif
 }
-#endif  // Vc_HAVE_AVX2
 
 // from uchar{{{2
-#ifdef Vc_HAVE_AVX2
 template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_u08 v) {
+#ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu8_epi64(v);
+#else
+    return concat(_mm_cvtepu8_epi64(v), _mm_cvtepu8_epi64(_mm_srli_si128(v, 2)));
+#endif
 }
-#endif  // Vc_HAVE_AVX2
 
 //}}}2
 #endif  // Vc_HAVE_AVX
+
+// convert_to<z_i64>{{{1
+#ifdef Vc_HAVE_AVX512F
+// from float{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_f32 v) {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+    return zeroExtend(_mm256_cvttps_epi64(v));
+#elif defined Vc_HAVE_AVX512DQ
+    return _mm512_cvttps_epi64(zeroExtend(v));
+#else
+    return {v.m(0), v.m(1), v.m(2), v.m(3), 0, 0, 0, 0};
+#endif
+}
+
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_f32 v)
+{
+#ifdef Vc_HAVE_AVX512DQ
+    return _mm512_cvttps_epi64(v);
+#else
+    return {v.m(0), v.m(1), v.m(2), v.m(3), v.m(4), v.m(5), v.m(6), v.m(7)};
+#endif
+}
+
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_f32 v0, x_f32 v1)
+{
+    return convert_to<z_i64>(concat(v0, v1));
+}
+
+// from double{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_f64 v) {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+    return zeroExtend(zeroExtend(_mm_cvttpd_epi64(v)));
+#else
+    return {v.m(0), v.m(1), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+#endif
+}
+
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_f64 v) {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+    return zeroExtend(_mm256_cvttpd_epi64(v));
+#elif defined Vc_HAVE_AVX512DQ
+    return _mm512_cvttpd_epi64(zeroExtend(v));
+#else
+    return {v.m(0), v.m(1), v.m(2), v.m(3), 0.f, 0.f, 0.f, 0.f};
+#endif
+}
+
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(z_f64 v) {
+#if defined Vc_HAVE_AVX512DQ
+    return _mm512_cvttpd_epi64(v);
+#else
+    return {v.m(0), v.m(1), v.m(2), v.m(3), v.m(4), v.m(5), v.m(6), v.m(7)};
+#endif
+}
+
+// from ullong{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_u64 v) { return zeroExtend(v.v()); }
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(z_u64 v) { return v.v(); }
+
+// from llong{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_i64 v) { return zeroExtend(v.v()); }
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(z_i64 v) { return v; }
+
+// from int{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_i32 v) {
+    return _mm512_cvtepi32_epi64(v);
+}
+
+// from uint{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_u32 v) {
+    return _mm512_cvtepu32_epi64(v);
+}
+
+// from short{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_i16 v) {
+    return _mm512_cvtepi16_epi64(v);
+}
+
+// from ushort{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_u16 v) {
+    return _mm512_cvtepu16_epi64(v);
+}
+
+// from schar{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_i08 v) {
+    return _mm512_cvtepi8_epi64(v);
+}
+
+// from uchar{{{2
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_u08 v) {
+    return _mm512_cvtepu8_epi64(v);
+}
+
+//}}}2
+#endif  // Vc_HAVE_AVX512F
 
 // convert_to<x_u64>{{{1
 // from float{{{2
@@ -1131,31 +1238,6 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(z_i64 v0, z_i64 v1)
 #endif  // Vc_HAVE_AVX512F
 
 // from ullong{{{2
-template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(x_u64 v) {
-    return convert_to<y_i16>(x_i64(v));
-}
-
-template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_u64 v0, y_u64 v1)
-{
-    return convert_to<y_i16>(y_i64(v0), y_i64(v1));
-}
-
-template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_u64 v0, y_u64 v1, y_u64 v2, y_u64 v3)
-{
-    return convert_to<y_i16>(y_i64(v0), y_i64(v1), y_i64(v2), y_i64(v3));
-}
-
-#ifdef Vc_HAVE_AVX512F
-template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(z_u64 v0)
-{
-    return convert_to<y_i16>(z_i64(v0));
-}
-
-template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(z_u64 v0, z_u64 v1)
-{
-    return convert_to<y_i16>(z_i64(v0), z_i64(v1));
-}
-#endif  // Vc_HAVE_AVX512F
 
 // from int{{{2
 template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(x_i32 v) {
@@ -1282,10 +1364,31 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(z_f32 v0)
 // convert_to<z_i16>{{{1
 #ifdef Vc_HAVE_AVX512F
 //from llong{{{2
+template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i64 v0)
+{
+    return zeroExtend(zeroExtend(_mm512_cvtepi64_epi16(v0)));
+}
+
+template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i64 v0, z_i64 v1)
+{
+    return zeroExtend(concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1)));
+}
+
+template <>
+Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i64 v0, z_i64 v1, z_i64 v2, z_i64 v3)
+{
+    return concat(concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1)),
+                  concat(_mm512_cvtepi64_epi16(v2), _mm512_cvtepi64_epi16(v3)));
+}
 
 //from ullong{{{2
 
 // from int{{{2
+template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i32 v0)
+{
+    return zeroExtend(_mm512_cvtepi32_epi16(v0));
+}
+
 template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i32 v0, z_i32 v1)
 {
     return concat(_mm512_cvtepi32_epi16(v0), _mm512_cvtepi32_epi16(v1));
@@ -1294,12 +1397,30 @@ template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i32 v0, z_i32 v1)
 //from uint{{{2
 
 //from short{{{2
+template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i16 v0) { return v0; }
 
 //from ushort{{{2
+template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_u16 v0) { return v0.v(); }
 
 //from schar{{{2
+template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(y_i08 v0)
+{
+#ifdef Vc_HAVE_AVX512BW
+    return _mm512_cvtepi8_epi16(v0);
+#else
+    return concat(_mm256_cvtepi8_epi16(lo128(v0)), _mm256_cvtepi8_epi16(hi128(v0)));
+#endif
+}
 
 //from uchar{{{2
+template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(y_u08 v0)
+{
+#ifdef Vc_HAVE_AVX512BW
+    return _mm512_cvtepu8_epi16(v0);
+#else
+    return concat(_mm256_cvtepu8_epi16(lo128(v0)), _mm256_cvtepu8_epi16(hi128(v0)));
+#endif
+}
 
 //from double{{{2
 template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_f64 v0, z_f64 v1, z_f64 v2, z_f64 v3)
@@ -1866,6 +1987,35 @@ template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_f32 v0, z_f32 v1)
 // convert_to<z_i08>{{{1
 #ifdef Vc_HAVE_AVX512F
 //from llong{{{2
+template <>
+Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i64 v0, z_i64 v1, z_i64 v2, z_i64 v3,
+                                              z_i64 v4, z_i64 v5, z_i64 v6, z_i64 v7)
+{
+    return concat(
+        concat(_mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)),
+               _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v2), _mm512_cvtepi64_epi8(v3))),
+        concat(_mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v4), _mm512_cvtepi64_epi8(v5)),
+               _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v6), _mm512_cvtepi64_epi8(v7))));
+}
+
+template <>
+Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i64 v0, z_i64 v1, z_i64 v2, z_i64 v3)
+{
+    return zeroExtend(
+        concat(_mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)),
+               _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v2), _mm512_cvtepi64_epi8(v3))));
+}
+
+template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i64 v0, z_i64 v1)
+{
+    return zeroExtend(zeroExtend(
+        _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1))));
+}
+
+template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i64 v0)
+{
+    return zeroExtend(zeroExtend(_mm512_cvtepi64_epi8(v0)));
+}
 
 //from ullong{{{2
 
@@ -1876,15 +2026,36 @@ template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i32 v0, z_i32 v1, z_
                   concat(_mm512_cvtepi32_epi8(v2), _mm512_cvtepi32_epi8(v3)));
 }
 
+template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i32 v0, z_i32 v1)
+{
+    return zeroExtend(concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1)));
+}
+
+template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i32 v0)
+{
+    return zeroExtend(zeroExtend(_mm512_cvtepi32_epi8(v0)));
+}
+
 //from uint{{{2
 
 //from short{{{2
+template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i16 v0, z_i16 v1)
+{
+    return concat(_mm512_cvtepi16_epi8(v0), _mm512_cvtepi16_epi8(v1));
+}
+
+template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i16 v0)
+{
+    return zeroExtend(_mm512_cvtepi16_epi8(v0));
+}
 
 //from ushort{{{2
 
 //from schar{{{2
+template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i08 v0) { return v0; }
 
 //from uchar{{{2
+template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_u08 v0) { return v0.v(); }
 
 //from double{{{2
 template <>
@@ -2328,6 +2499,22 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_f64 v0)
     return zeroExtend(_mm256_cvtpd_ps(v0));
 }
 
+template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_f64 v0, y_f64 v1)
+{
+#if defined Vc_HAVE_AVX512F
+    return _mm512_cvtpd_ps(concat(v0, v1));
+#else
+    return concat(_mm256_cvtpd_ps(v0), _mm256_cvtpd_ps(v1));
+#endif
+}
+
+#ifdef Vc_HAVE_AVX512F
+template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(z_f64 v0)
+{
+    return _mm512_cvtpd_ps(v0);
+}
+#endif  // Vc_HAVE_AVX512F
+
 //}}}2
 // from llong{{{2
 template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(x_i64 v) {
@@ -2363,6 +2550,15 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(z_i64 v0)
 }
 #endif  // Vc_HAVE_AVX512F
 
+template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_i64 v0, y_i64 v1)
+{
+#ifdef Vc_HAVE_AVX512F
+    return convert_to<y_f32>(concat(v0, v1));
+#else
+    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), v1.m(0), v1.m(1), v1.m(2), v1.m(3)};
+#endif
+}
+
 // from ullong{{{2
 template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(x_u64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
@@ -2396,6 +2592,15 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(z_u64 v0)
 #endif
 }
 #endif  // Vc_HAVE_AVX512F
+
+template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_u64 v0, y_u64 v1)
+{
+#ifdef Vc_HAVE_AVX512F
+    return convert_to<y_f32>(concat(v0, v1));
+#else
+    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), v1.m(0), v1.m(1), v1.m(2), v1.m(3)};
+#endif
+}
 
 // from int{{{2
 template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(x_i32 v)
