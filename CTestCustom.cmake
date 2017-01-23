@@ -12,6 +12,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION ${CTEST_CUSTOM_WARNING_EXCEPTION}
    "include/qt4" # -Wuninitialized in QWeakPointer(X *ptr)
    " note: " # Notes are additional lines from errors (or warnings) that we don't want to count as additional warnings
    "clang: warning: argument unused during compilation: '-stdlib=libc"
+   "clang 3.6.x miscompiles AVX code" # a preprocessor warning for users of Vc, irrelevant for the dashboard
    )
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION ${CTEST_CUSTOM_ERROR_EXCEPTION}
