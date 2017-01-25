@@ -383,7 +383,7 @@ template <int offset> Vc_INTRINSIC __m512d insert256(__m512d a, __m256d b)
 }
 template <int offset> Vc_INTRINSIC __m512i insert256(__m512i a, __m256i b)
 {
-    return _mm512_castpd_si512(_mm512_insertf64x4(_mm512_castsi512_pd(a), _mm256_castsi256_pd(b), offset));
+    return _mm512_inserti64x4(a, b, offset);
 }
 #endif  // Vc_HAVE_AVX512F
 
