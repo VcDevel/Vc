@@ -342,10 +342,10 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
         store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(lo128(v))), mem + 1 * size<U>(), f);
         store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<1>(v)), mem + 2 * size<U>(), f);
         store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(extract128<1>(v))), mem + 3 * size<U>(), f);
-        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<1>(v)), mem + 4 * size<U>(), f);
-        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(extract128<1>(v))), mem + 5 * size<U>(), f);
-        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<1>(v)), mem + 6 * size<U>(), f);
-        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(extract128<1>(v))), mem + 7 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<2>(v)), mem + 4 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(extract128<2>(v))), mem + 5 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(extract128<3>(v)), mem + 6 * size<U>(), f);
+        store64(convert<sse_datapar_member_type<T>, datapar_member_type<U>>(x86::shift_right<8>(extract128<3>(v))), mem + 7 * size<U>(), f);
     }
 
     // masked store {{{2

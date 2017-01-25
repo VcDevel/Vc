@@ -189,8 +189,9 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
     {
 #ifdef Vc_HAVE_AVX512F
-        return convert<avx512_member_type<U>, datapar_member_type<T>>(
-            load64(mem, f), load64(mem + size<U>(), f));
+        using LoadT = avx512_member_type<U>;
+        constexpr auto N = LoadT::size();
+        return convert<LoadT, datapar_member_type<T>>(load64(mem, f), load64(mem + N, f));
 #else
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
             load32(mem, f), load32(mem + size<U>(), f), load32(mem + 2 * size<U>(), f),
@@ -205,15 +206,18 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
     {
 #ifdef Vc_HAVE_AVX512F
-        return convert<avx512_member_type<U>, datapar_member_type<T>>(
-            load64(mem, f), load64(mem + size<U>(), f), load64(mem + 2 * size<U>(), f),
-            load64(mem + 3 * size<U>(), f));
+        using LoadT = avx512_member_type<U>;
+        constexpr auto N = LoadT::size();
+        return convert<LoadT, datapar_member_type<T>>(load64(mem, f), load64(mem + N, f),
+                                                      load64(mem + 2 * N, f),
+                                                      load64(mem + 3 * N, f));
 #else
+        using LoadT = datapar_member_type<U>;
+        constexpr auto N = LoadT::size();
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
-            load32(mem, f), load32(mem + size<U>(), f), load32(mem + 2 * size<U>(), f),
-            load32(mem + 3 * size<U>(), f), load32(mem + 4 * size<U>(), f),
-            load32(mem + 5 * size<U>(), f), load32(mem + 6 * size<U>(), f),
-            load32(mem + 7 * size<U>(), f));
+            load32(mem, f), load32(mem + N, f), load32(mem + 2 * N, f),
+            load32(mem + 3 * N, f), load32(mem + 4 * N, f), load32(mem + 5 * N, f),
+            load32(mem + 6 * N, f), load32(mem + 7 * N, f));
 #endif
     }
 
