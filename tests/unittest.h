@@ -501,7 +501,8 @@ void UnitTester::runTestInt(TestFunction fun, const char *name)  //{{{1
 template <typename T1, typename T2>
 Vc_ALWAYS_INLINE bool unittest_compareHelper(const T1 &a, const T2 &b)
 {
-    return Vc::all_of(a == b);
+    using Vc::all_of;
+    return all_of(a == b);
 }
 
 template <>
