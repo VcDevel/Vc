@@ -174,13 +174,37 @@ TEST_TYPES(VU, load_store,
 
     auto &&avoid_ub = [](auto x) { return is_conversion_undefined<U>(x) ? U(0) : U(x); };
 
-    const U test_values[] = {U(0xc0000080u),
-                             U(0xc0000081u),
-                             U(0xc000017fu),
-                             U(0xc0000180u),
+    const U test_values[] = {U(0xc0000080U),
+                             U(0xc0000081U),
+                             U(0xc0000082U),
+                             U(0xc0000084U),
+                             U(0xc0000088U),
+                             U(0xc0000090U),
+                             U(0xc00000A0U),
+                             U(0xc00000C0U),
+                             U(0xc000017fU),
+                             U(0xc0000180U),
+                             U(0x100000001LL),
+                             U(0x100000011LL),
+                             U(0x100000111LL),
+                             U(0x100001111LL),
+                             U(0x100011111LL),
+                             U(0x100111111LL),
+                             U(0x101111111LL),
+                             U(-0x100000001LL),
+                             U(-0x100000011LL),
+                             U(-0x100000111LL),
+                             U(-0x100001111LL),
+                             U(-0x100011111LL),
+                             U(-0x100111111LL),
+                             U(-0x101111111LL),
                              min,
                              U(min + 1),
                              U(-1),
+                             U(-10),
+                             U(-100),
+                             U(-1000),
+                             U(-10000),
                              U(0),
                              U(1),
                              U(half - 1),
@@ -223,25 +247,26 @@ TEST_TYPES(VU, load_store,
     V x(&mem[V::size()], vector_aligned);
     auto &&compare = [&](const std::size_t offset) {
         static int n = 0;
+        const V ref(&reference[offset], element_aligned);
         for (auto i = 0ul; i < V::size(); ++i) {
             if (is_conversion_undefined<T>(mem[i + offset])) {
                 continue;
             }
-            V ref(&reference[offset], element_aligned);
             COMPARE(x[i], reference[i + offset])
                 << "\nbefore conversion: " << mem[i + offset]
                 << "\n   offset = " << offset
                 << "\n        x = " << UnitTest::asBytes(x) << " = " << x
                 << "\nreference = " << UnitTest::asBytes(ref) << " = " << ref
+                << "\nx == ref  = " << UnitTest::asBytes(x == ref) << " = " << (x == ref)
                 << "\ncall no. " << n;
         }
         ++n;
     };
     compare(V::size());
-    x = {&mem[1], element_aligned};
-    compare(1);
     x = V{mem, overaligned};
     compare(0);
+    x = {&mem[1], element_aligned};
+    compare(1);
 
     x.copy_from(&mem[V::size()], vector_aligned);
     compare(V::size());
