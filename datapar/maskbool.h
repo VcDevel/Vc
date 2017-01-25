@@ -79,30 +79,74 @@ public:
         return reinterpret_cast<const may_alias<T> &>(data);
     }
 #endif
+
+    template <typename A>
+    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
+    operator==(A &&a, MaskBool &&b)
+    {
+        return static_cast<bool>(a) == static_cast<bool>(b);
+    }
+    template <typename A>
+    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
+    operator==(A &&a, const MaskBool &b)
+    {
+        return static_cast<bool>(a) == static_cast<bool>(b);
+    }
+    template <typename A>
+    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
+    operator==(MaskBool &&b, A &&a)
+    {
+        return static_cast<bool>(a) == static_cast<bool>(b);
+    }
+    template <typename A>
+    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
+    operator==(const MaskBool &b, A &&a)
+    {
+        return static_cast<bool>(a) == static_cast<bool>(b);
+    }
+
+    template <typename A>
+    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
+    operator!=(A &&a, MaskBool &&b)
+    {
+        return static_cast<bool>(a) != static_cast<bool>(b);
+    }
+    template <typename A>
+    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
+    operator!=(A &&a, const MaskBool &b)
+    {
+        return static_cast<bool>(a) != static_cast<bool>(b);
+    }
+    template <typename A>
+    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
+    operator!=(MaskBool &&b, A &&a)
+    {
+        return static_cast<bool>(a) != static_cast<bool>(b);
+    }
+    template <typename A>
+    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
+    operator!=(const MaskBool &b, A &&a)
+    {
+        return static_cast<bool>(a) != static_cast<bool>(b);
+    }
 } Vc_MAY_ALIAS;
 
-template <typename A,
-          typename B,
-          typename std::enable_if<
-              std::is_convertible<A, bool>::value &&std::is_convertible<B, bool>::value,
-              int>::type = 0>
-constexpr bool operator==(A &&a, B &&b)
-{
-    return static_cast<bool>(a) == static_cast<bool>(b);
-}
-template <typename A,
-          typename B,
-          typename std::enable_if<
-              std::is_convertible<A, bool>::value &&std::is_convertible<B, bool>::value,
-              int>::type = 0>
-constexpr bool operator!=(A &&a, B &&b)
-{
-    return static_cast<bool>(a) != static_cast<bool>(b);
-}
-
 static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
+static_assert(MaskBool<4>(true) == true, "true == MaskBool<4>(true)");
 static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
+static_assert(MaskBool<4>(false) != true, "true != MaskBool<4>(false)");
 
+namespace tests
+{
+namespace
+{
+// Assert that MaskBools operator== doesn't grab unrelated types. The test should compare "1 == 2"
+// because A() implicitly converts to int(1). If the MaskBool operator were used, the executed
+// compare is bool(1) == bool(2) and thus different and detectable.
+struct A { constexpr operator int() const { return 1; } };
+static_assert(!(A() == 2), "MaskBools operator== was incorrectly found and used");
+}  // unnamed namespace
+}  // namespace tests
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
