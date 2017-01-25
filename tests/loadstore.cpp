@@ -99,36 +99,33 @@ template <> constexpr float genHalfBits<float>() { return 0; }
  *  behavior is undefined.
  */
 template <typename To, typename From>
-inline typename std::enable_if<(std::is_floating_point<From>::value &&
-                                std::is_floating_point<To>::value &&
-                                sizeof(From) > sizeof(To)),
-                               bool>::type
-is_conversion_undefined(From x)
+constexpr bool is_conversion_undefined_impl(From x, std::true_type)
 {
-    return x > static_cast<From>(std::numeric_limits<To>::max()) ||
-           x < static_cast<From>(std::numeric_limits<To>::min());
+    return x > static_cast<long double>(std::numeric_limits<To>::max()) ||
+           x < static_cast<long double>(std::numeric_limits<To>::min());
 }
 
 template <typename To, typename From>
-inline typename std::enable_if<(std::is_arithmetic<From>::value &&
-                                std::is_floating_point<From>::value &&
-                                std::is_integral<To>::value),
-                               bool>::type
-is_conversion_undefined(From x)
-{
-    return x > static_cast<From>(std::numeric_limits<To>::max()) ||
-           x < static_cast<From>(std::numeric_limits<To>::min());
-}
-
-template <typename To, typename From>
-inline typename std::enable_if<(std::is_arithmetic<From>::value &&
-                                (!std::is_floating_point<From>::value ||
-                                 (!std::is_integral<To>::value &&
-                                  sizeof(From) <= sizeof(To)))),
-                               bool>::type is_conversion_undefined(From)
+constexpr bool is_conversion_undefined_impl(From, std::false_type)
 {
     return false;
 }
+
+template <typename To, typename From> constexpr bool is_conversion_undefined(From x)
+{
+    static_assert(std::is_arithmetic<From>::value,
+                  "this overload is only meant for builtin arithmetic types");
+    return is_conversion_undefined_impl<To, From>(
+        x, std::integral_constant<bool, (std::is_floating_point<From>::value &&
+                                         (std::is_integral<To>::value ||
+                                          (std::is_floating_point<To>::value &&
+                                           sizeof(From) > sizeof(To))))>());
+}
+
+static_assert(is_conversion_undefined<uint>(float(0x100000000LL)),
+              "testing my expectations of is_conversion_undefined");
+static_assert(!is_conversion_undefined<float>(llong(0x100000000LL)),
+              "testing my expectations of is_conversion_undefined");
 
 template <typename To, typename T, typename A>
 inline Vc::mask<T, A> is_conversion_undefined(const Vc::datapar<T, A> &x)
