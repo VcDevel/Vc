@@ -104,7 +104,8 @@ template <size_t Size> class Storage<bool, Size, DefaultStrategy>
 {
 public:
     using VectorType = typename bool_storage_member_type<Size>::type;
-    using EntryType = bool;
+    using value_type = bool;
+    using EntryType = value_type;
 
     static constexpr size_t size() { return Size; }
     Vc_INTRINSIC Storage() = default;
@@ -147,7 +148,8 @@ class Storage<ValueType, Size, AliasStrategy::Union>
 
 public:
     using VectorType = intrinsic_type<ValueType, Size>;
-    using EntryType = ValueType;
+    using value_type = ValueType;
+    using EntryType = value_type;
 
     union Alias {
         Vc_INTRINSIC Alias(VectorType vv) : v(vv) {}
@@ -265,7 +267,8 @@ class Storage<ValueType, Size, AliasStrategy::MayAlias>
 
 public:
     using VectorType = intrinsic_type<ValueType, Size>;
-    using EntryType = ValueType;
+    using value_type = ValueType;
+    using EntryType = value_type;
 
     static constexpr size_t size() { return Size; }
 
@@ -362,7 +365,8 @@ public:
 #else
         intrinsic_type<ValueType, Size>;
 #endif
-    using EntryType = ValueType;
+    using value_type = ValueType;
+    using EntryType = value_type;
 
     static constexpr size_t size() { return Size; }
 
@@ -446,7 +450,8 @@ class Storage<ValueType, Size, AliasStrategy::UnionMembers>
 
 public:
     using VectorType = intrinsic_type<ValueType, Size>;
-    using EntryType = ValueType;
+    using value_type = ValueType;
+    using EntryType = value_type;
 
     static constexpr size_t size() { return Size; }
 
