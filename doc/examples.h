@@ -119,7 +119,7 @@
  * This pattern can be very efficient if the interleaved data members are always accessed together.
  * This optimizes for data locality and thus cache usage.
  *
- * \subsection ex_polarcoord_data_vectors Interleaved Vectors
+ * \subsection ex_polarcoord_data_vectors Interleaved Vectors / Array of Vectorized Structs (AoVS)
  *
  * If you can change the data structures, it might be a good option to store interleaved vectors:
  * \code
