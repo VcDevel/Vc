@@ -2846,8 +2846,8 @@ template <> struct fallback_int_type< uchar> { using type = schar; };
 template <> struct fallback_int_type<ushort> { using type = short; };
 template <> struct fallback_int_type<  uint> { using type = int; };
 template <> struct fallback_int_type<ullong> { using type = llong; };
-template <> struct fallback_int_type<  long> { using type = equal_int_type_t<long>; };
-template <> struct fallback_int_type< ulong> { using type = equal_int_type_t<long>; };
+template <> struct fallback_int_type<  long> { using type = equal_int_type_t< long>; };
+template <> struct fallback_int_type< ulong> { using type = equal_int_type_t<ulong>; };
 
 template <typename T>
 using equivalent_storage_t =
