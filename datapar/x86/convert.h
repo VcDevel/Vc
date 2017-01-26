@@ -2913,8 +2913,7 @@ Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1, From v2, From v3, From v4, Fr
 
 // convert_all function{{{1
 template <typename To, typename From>
-Vc_INTRINSIC std::array<To, From::size() / To::size()> Vc_VDECL convert_all(
-    From v, enable_if<(From::size() > To::size())> = nullarg)
+Vc_INTRINSIC auto Vc_VDECL convert_all_impl(From v, std::true_type)
 {
     constexpr size_t N = From::size() / To::size();
     return generate_from_n_evaluations<N, std::array<To, N>>([&](auto i) {
@@ -2930,9 +2929,15 @@ Vc_INTRINSIC std::array<To, From::size() / To::size()> Vc_VDECL convert_all(
 }
 
 template <typename To, typename From>
-Vc_INTRINSIC To Vc_VDECL convert_all(From v, enable_if<!(From::size() > To::size())> = nullarg)
+Vc_INTRINSIC To Vc_VDECL convert_all_impl(From v, std::false_type)
 {
     return convert<From, To>(v);
+}
+
+template <typename To, typename From> Vc_INTRINSIC auto Vc_VDECL convert_all(From v)
+{
+    return convert_all_impl<To, From>(
+        v, std::integral_constant<bool, (From::size() > To::size())>());
 }
 
 // }}}1
