@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_X86_CONVERT_H_
 #define VC_DATAPAR_X86_CONVERT_H_
 
+#include <iostream>
+#include <iomanip>
 #include "storage.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
@@ -531,7 +533,8 @@ template <> Vc_INTRINSIC x_i32 Vc_VDECL convert_to<x_i32>(x_i64 v) {
 #ifdef Vc_HAVE_AVX512VL
     return _mm_cvtepi64_epi32(v);
 #else
-    return {v.m(0), v.m(1), 0, 0};
+    return _mm_unpacklo_epi64(_mm_shuffle_epi32(v, 8), _mm_setzero_si128());
+    //return {v.m(0), v.m(1), 0, 0};
 #endif
 }
 
@@ -539,8 +542,11 @@ template <> Vc_INTRINSIC x_i32 Vc_VDECL convert_to<x_i32>(x_i64 v0, x_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cvtepi64_epi32(concat(v0, v1));
+#elif defined Vc_HAVE_AVX512F
+    return lo128(_mm512_cvtepi64_epi32(intrin_cast<__m512i>(concat(v0, v1))));
 #else
-    return {v0.m(0), v0.m(1), v1.m(0), v1.m(1)};
+    return _mm_unpacklo_epi64(_mm_shuffle_epi32(v0, 8), _mm_shuffle_epi32(v1, 8));
+    //return {v0.m(0), v0.m(1), v1.m(0), v1.m(1)};
 #endif
 }
 
@@ -634,21 +640,32 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_f64 v0, y_f64 v1)
 #endif
 }
 
+#ifdef Vc_HAVE_AVX512F
+template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(z_f64 v0)
+{
+    return _mm512_cvttpd_epi32(v0);
+}
+#endif
+
 // from llong{{{2
 template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_i64 v) {
-#ifdef Vc_HAVE_AVX512VL
-    return zeroExtend(_mm_cvtepi64_epi32(v));
-#else
-    return {v.m(0), v.m(1), 0, 0, 0, 0, 0, 0};
-#endif
+    return zeroExtend(convert_to<x_i32>(v));
 }
 
 template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_i64 v0)
 {
 #ifdef Vc_HAVE_AVX512VL
     return zeroExtend(_mm256_cvtepi64_epi32(v0));
+#elif defined Vc_HAVE_AVX512F
+    return _mm512_cvtepi64_epi32(zeroExtend(v0));
+#elif defined Vc_HAVE_AVX2
+    const auto vabxxcdxx = _mm256_shuffle_epi32(v0, 8);
+    const auto v00ab00cd = _mm256_srli_si256(vabxxcdxx, 8);
+    return _mm256_permute4x64_epi64(v00ab00cd, 1 + 4 * 3); // abcd0000
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), 0, 0, 0, 0};
+    return intrin_cast<__m256i>(zeroExtend(
+        _mm_shuffle_ps(_mm_castsi128_ps(lo128(v0)), _mm_castsi128_ps(hi128(v0)),
+                       0x01 * 0 + 0x04 * 2 + 0x10 * 0 + 0x40 * 2)));
 #endif
 }
 
@@ -656,11 +673,26 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_i64 v0, y_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
     return _mm512_cvtepi64_epi32(concat(v0, v1));
+#elif defined Vc_HAVE_AVX2
+    const auto v0_abxxcdxx = _mm256_shuffle_epi32(v0, 8);
+    const auto v1_efxxghxx = _mm256_shuffle_epi32(v1, 8);
+    const auto v_abefcdgh = _mm256_unpacklo_epi64(v0_abxxcdxx, v1_efxxghxx);
+    return _mm256_permute4x64_epi64(v_abefcdgh, 0x01 * 0 + 0x04 * 2 + 0x10 * 1 + 0x40 * 3); // abcdefgh
 #else
-    // TODO: can be improved with shuffles
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), v1.m(0), v1.m(1), v1.m(2), v1.m(3)};
+    return intrin_cast<__m256i>(
+        concat(_mm_shuffle_ps(intrin_cast<__m128>(v0), hi128(intrin_cast<__m256>(v0)),
+                              0x01 * 0 + 0x04 * 2 + 0x10 * 0 + 0x40 * 2),
+               _mm_shuffle_ps(intrin_cast<__m128>(v1), hi128(intrin_cast<__m256>(v1)),
+                              0x01 * 0 + 0x04 * 2 + 0x10 * 0 + 0x40 * 2)));
 #endif
 }
+
+#ifdef Vc_HAVE_AVX512F
+template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(z_i64 v0)
+{
+    return _mm512_cvtepi64_epi32(v0);
+}
+#endif
 
 // from ullong{{{2
 
@@ -1477,11 +1509,10 @@ Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(y_i64 v0, y_i64 v1, y_i64 v2, y_i6
 #endif  // Vc_HAVE_AVX
 
 #ifdef Vc_HAVE_AVX512F
-template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(z_i64 v0, z_i64 v1)
+template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(z_i64 v0)
 {
-    return _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1));
+    return _mm512_cvtepi64_epi8(v0);
 }
-#endif  // Vc_HAVE_AVX512F
 
 template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(z_i64 v0, z_i64 v1)
 {
@@ -1726,6 +1757,15 @@ Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(y_f64 v0, y_f64 v1, y_f64 v2, y_f6
 #endif  // Vc_HAVE_AVX
 
 #ifdef Vc_HAVE_AVX512F
+template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(z_f64 v0)
+{
+#ifdef Vc_HAVE_AVX512VL
+    return _mm256_cvtepi32_epi8(_mm512_cvttpd_epi32(v0));
+#else
+    return _mm512_cvtepi32_epi8(zeroExtend(_mm512_cvttpd_epi32(v0)));
+#endif
+}
+
 template <>
 Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(z_f64 v0, z_f64 v1)
 {
@@ -1736,6 +1776,70 @@ Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(z_f64 v0, z_f64 v1)
 // convert_to<y_i08> (signed char, 32){{{1
 #ifdef Vc_HAVE_AVX
 //from llong{{{2
+#ifdef Vc_HAVE_AVX512F
+template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_i64 v0)
+{
+    return zeroExtend(_mm512_cvtepi64_epi8(v0));
+}
+
+template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_i64 v0, z_i64 v1)
+{
+    return zeroExtend(_mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)));
+}
+
+template <>
+Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_i64 v0, z_i64 v1, z_i64 v2, z_i64 v3)
+{
+    return concat(_mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)),
+                  _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v2), _mm512_cvtepi64_epi8(v3)));
+}
+#endif
+
+template <>
+Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i64 v0, y_i64 v1, y_i64 v2, y_i64 v3)
+{
+    return zeroExtend(convert_to<x_i08>(v0, v1, v2, v3));
+}
+
+template <>
+Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i64 v0, y_i64 v1, y_i64 v2, y_i64 v3,
+                                              y_i64 v4, y_i64 v5, y_i64 v6, y_i64 v7)
+{
+#ifdef Vc_HAVE_AVX512F
+    return convert_to<y_i08>(concat(v0, v1), concat(v2, v3), concat(v4, v5),
+                             concat(v6, v7));
+#elif defined Vc_HAVE_AVX2
+    auto a = or_(
+        or_(or_(_mm256_srli_epi64(_mm256_slli_epi64(v0, 56), 56),
+                _mm256_srli_epi64(_mm256_slli_epi64(v1, 56), 48)),
+            or_(_mm256_srli_epi64(_mm256_slli_epi64(v2, 56), 40),
+                _mm256_srli_epi64(_mm256_slli_epi64(v3, 56),
+                                  32))),  // 048C .... 159D .... 26AE .... 37BF ....
+        or_(or_(_mm256_srli_epi64(_mm256_slli_epi64(v4, 56), 24),
+                _mm256_srli_epi64(_mm256_slli_epi64(v5, 56), 16)),
+            or_(_mm256_srli_epi64(_mm256_slli_epi64(v6, 56), 8),
+                _mm256_slli_epi64(v7, 56)))   // .... GKOS .... HLPT .... IMQU .... JNRV
+        );                                    // 048C GKOS 159D HLPT 26AE IMQU 37BF JNRV
+    auto b = _mm256_unpackhi_epi64(a, a);     // 159D HLPT 159D HLPT 37BF JNRV 37BF JNRV
+    auto c = _mm256_unpacklo_epi8(a, b);      // 0145 89CD GHKL OPST 2367 ABEF IJMN QRUV
+    return concat(_mm_unpacklo_epi16(lo128(c), hi128(c)),   // 0123 4567 89AB CDEF
+                  _mm_unpackhi_epi16(lo128(c), hi128(c)));  // GHIJ KLMN OPQR STUV
+#else
+    // I don't care for non-AVX2 users that convert between non-float AVX vectors
+    return generate_from_n_evaluations<32, y_i08>([&](auto i) {
+        switch (i / 4) {
+        case 0: return static_cast<schar>(v0[i % 4]); break;
+        case 1: return static_cast<schar>(v1[i % 4]); break;
+        case 2: return static_cast<schar>(v2[i % 4]); break;
+        case 3: return static_cast<schar>(v3[i % 4]); break;
+        case 4: return static_cast<schar>(v4[i % 4]); break;
+        case 5: return static_cast<schar>(v5[i % 4]); break;
+        case 6: return static_cast<schar>(v6[i % 4]); break;
+        case 7: return static_cast<schar>(v7[i % 4]); break;
+        }
+    });
+#endif
+}
 
 // from int{{{2
 template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i32 v0, y_i32 v1, y_i32 v2, y_i32 v3)
@@ -1756,6 +1860,44 @@ template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_i32 v0, z_i32 v1)
 #endif  // Vc_HAVE_AVX512F
 
 //from short{{{2
+#ifdef Vc_HAVE_AVX512F
+template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_i16 v0)
+{
+#ifdef Vc_HAVE_AVX512BW
+    return _mm512_cvtepi16_epi8(v0);
+#else
+    const auto mask = _mm512_set1_epi32(0x00ff00ff);
+    auto a = and_(v0, mask);
+    auto l0 = lo256(a);                      // a0b0 c0d0 e0f0 g0h0 i0j0 k0l0 m0n0 o0p0
+    auto h0 = hi256(a);                      // q0r0 s0t0 u0v0 w0x0 y0z0 A0B0 C0D0 E0F0
+    auto l1 = _mm256_unpacklo_epi8(l0, h0);  // aq00 br00 cs00 dt00 iy00 jz00 kA00 lB00
+    auto h1 = _mm256_unpackhi_epi8(l0, h0);  // eu00 fv00 gw00 hx00 mC00 nD00 oE00 pF00
+    l0 = _mm256_unpacklo_epi8(l1, h1);       // aequ 0000 bfrv 0000 imyC 0000 jnzD 0000
+    h0 = _mm256_unpackhi_epi8(l1, h1);       // cgsw 0000 dhtx 0000 koAE 0000 lpBF 0000
+    l1 = _mm256_unpacklo_epi8(l0, h0);       // aceg qsuw 0000 0000 ikmo yACE 0000 0000
+    h1 = _mm256_unpackhi_epi8(l0, h0);       // bdfh rtvx 0000 0000 jlnp zBDF 0000 0000
+    l0 = _mm256_unpacklo_epi8(l1, h1);       // abcd efgh qrst uvwx ijkl mnop yzAB CDEF
+    return _mm256_permute4x64_epi64(l0, 0xd8);
+#endif  // Vc_HAVE_AVX512BW
+}
+#endif  // Vc_HAVE_AVX512F
+
+template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i16 v0)
+{
+    return zeroExtend(convert_to<x_i08>(v0));
+}
+
+template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i16 v0, y_i16 v1)
+{
+#ifdef Vc_HAVE_AVX512F
+    return _mm512_cvtepi16_epi8(concat(v0, v1));
+#else
+    return concat(convert_to<x_i08>(v0), convert_to<x_i08>(v1));
+#endif
+}
+
+//from schar{{{2
+template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i08 v0) { return v0; }
 
 //from double{{{2
 template <>
@@ -1769,7 +1911,9 @@ Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_f64 v0, y_f64 v1, y_f64 v2, y_f6
 #ifdef Vc_HAVE_AVX512F
 template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_f64 v0, z_f64 v1, z_f64 v2, z_f64 v3)
 {
-    return convert_to<y_i08>(convert_to<z_i32>(v0, v1), convert_to<z_i32>(v2, v3));
+    return concat(
+        _mm512_cvtepi32_epi8(concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1))),
+        _mm512_cvtepi32_epi8(concat(_mm512_cvttpd_epi32(v2), _mm512_cvttpd_epi32(v3))));
 }
 #endif  // Vc_HAVE_AVX512F
 
@@ -2070,8 +2214,8 @@ template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(z_i64 v0) {
     return _mm512_cvtepi64_pd(v0);
 #else
     return _mm512_fmadd_pd(
-        _mm512_cvtepi32_pd(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 4))),
-        _mm512_set1_pd(0x100000000LL), _mm512_cvtepi32_pd(_mm512_cvtepi64_epi32(v0)));
+        _mm512_cvtepi32_pd(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32))),
+        _mm512_set1_pd(0x100000000LL), _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(v0)));
 #endif
 }
 
@@ -2081,7 +2225,7 @@ template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(z_u64 v0) {
     return _mm512_cvtepu64_pd(v0);
 #else
     return _mm512_fmadd_pd(
-        _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(_mm512_srli_epi64(v0, 4))),
+        _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(_mm512_srli_epi64(v0, 32))),
         _mm512_set1_pd(0x100000000LL), _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(v0)));
 #endif
 }
@@ -2137,7 +2281,7 @@ template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_u16 v)
 // from schar{{{2
 template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_i08 v)
 {
-    return convert_to<z_f64>(convert_to<y_i32>(v));
+    return _mm512_cvtepi32_pd(convert_to<y_i32>(v));
 }
 
 // from uchar{{{2
@@ -2322,10 +2466,16 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(z_i64 v0)
 #ifdef Vc_HAVE_AVX512DQ
     return _mm512_cvtepi64_ps(v0);
 #else
-    return _mm256_fmadd_ps(
-        _mm256_cvtepi32_ps(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 4))),
-        _mm256_set1_ps(0x100000000LL),
-        lo256(_mm512_cvtepu32_ps(intrin_cast<__m512i>(_mm512_cvtepi64_epi32(v0)))));
+    return _mm512_cvtpd_ps(convert_to<z_f64>(v0));
+    /* The above solution should be more efficient.
+    y_f32 hi32 = _mm256_cvtepi32_ps(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32)));
+    y_u32 lo32 = _mm512_cvtepi64_epi32(v0);
+    y_f32 hi16 = _mm256_mul_ps(_mm256_cvtepi32_ps(_mm256_srli_epi32(lo32, 16)),
+                               _mm256_set1_ps(0x10000));
+    y_f32 lo16 = _mm256_cvtepi32_ps(and_(_mm256_set1_epi32(0xffff), lo32));
+    return _mm256_add_ps(_mm256_fmadd_ps(hi32, _mm256_set1_ps(0x100000000LL), hi16),
+                         lo16);
+                         */
 #endif
 }
 #endif  // Vc_HAVE_AVX512F
@@ -2334,6 +2484,22 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_i64 v0, y_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
     return convert_to<y_f32>(concat(v0, v1));
+#elif defined Vc_HAVE_AVX2
+    // v0 = aAbB cCdD
+    // v1 = eEfF gGhH
+    auto a = _mm256_unpacklo_epi32(v0, v1);                    // aeAE cgCG
+    auto b = _mm256_unpackhi_epi32(v0, v1);                    // bfBF dhDH
+    y_u32 lo32 = _mm256_unpacklo_epi32(a, b);  // abef cdgh
+    y_f32 hi16 = _mm256_mul_ps(_mm256_set1_ps(0x10000),
+                               _mm256_cvtepi32_ps(_mm256_srli_epi32(lo32, 16)));
+    y_f32 lo16 = _mm256_cvtepi32_ps(and_(_mm256_set1_epi32(0x0000ffffu), lo32));
+    y_f32 hi32 = _mm256_cvtepi32_ps(_mm256_unpackhi_epi32(a, b));  // ABEF CDGH
+    const y_f32 scale = _mm256_set1_ps(0x100000000LL);
+    y_f32 result = _mm256_add_ps(_mm256_fmadd_ps(hi32, scale, hi16), lo16);  // abef cdgh
+    result = _mm256_castpd_ps(concat(
+        _mm_unpacklo_pd(_mm_castps_pd(lo128(result)), _mm_castps_pd(hi128(result))),
+        _mm_unpackhi_pd(_mm_castps_pd(lo128(result)), _mm_castps_pd(hi128(result)))));
+    return result;
 #else
     return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), v1.m(0), v1.m(1), v1.m(2), v1.m(3)};
 #endif
@@ -2366,7 +2532,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(z_u64 v0)
     return _mm512_cvtepu64_ps(v0);
 #else
     return _mm256_fmadd_ps(
-        lo256(_mm512_cvtepu32_ps(intrin_cast<__m512i>(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 4))))),
+        lo256(_mm512_cvtepu32_ps(intrin_cast<__m512i>(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32))))),
         _mm256_set1_ps(0x100000000LL),
         lo256(_mm512_cvtepu32_ps(intrin_cast<__m512i>(_mm512_cvtepi64_epi32(v0)))));
 #endif
@@ -2553,26 +2719,39 @@ template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_i64 v0, z_i64 v1)
 #ifdef Vc_HAVE_AVX512DQ
     return concat(_mm512_cvtepi64_ps(v0), _mm512_cvtepi64_ps(v1));
 #else
-    return _mm512_fmadd_ps(
-        _mm512_cvtepi32_ps(concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 4)),
-                                  _mm512_cvtepi64_epi32(_mm512_srai_epi64(v1, 4)))),
-        _mm512_set1_ps(0x100000000LL),
-        _mm512_cvtepi32_ps(concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1))));
+    z_f32 hi32 =
+        _mm512_cvtepi32_ps(concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32)),
+                                  _mm512_cvtepi64_epi32(_mm512_srai_epi64(v1, 32))));
+    const z_u32 lo32 = concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1));
+    // split low 32-bits, because if hi32 is a small negative number, the 24-bit mantissa may lose
+    // important information if any of the high 8 bits of lo32 is set, leading to catastrophic
+    // cancelation in the FMA
+    z_f32 hi16 = _mm512_cvtepu32_ps(and_(_mm512_set1_epi32(0xffff0000u), lo32));
+    z_f32 lo16 = _mm512_cvtepi32_ps(and_(_mm512_set1_epi32(0x0000ffffu), lo32));
+    const z_f32 scale = _mm512_set1_ps(0x100000000LL);
+    const z_f32 result = _mm512_add_ps(_mm512_fmadd_ps(hi32, scale, hi16), lo16);
+    return result;
 #endif
 }
 
 // from ullong{{{2
-#ifdef Vc_HAVE_AVX512DQ
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_u64 v0)
 {
-    return zeroExtend(_mm512_cvtepu64_ps(v0));
+    return zeroExtend(convert_to<y_f32>(v0));
 }
 
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_u64 v0, z_u64 v1)
 {
+#ifdef Vc_HAVE_AVX512DQ
     return concat(_mm512_cvtepu64_ps(v0), _mm512_cvtepu64_ps(v1));
-}
+#else
+    return _mm512_fmadd_ps(
+        _mm512_cvtepu32_ps(concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32)),
+                                  _mm512_cvtepi64_epi32(_mm512_srai_epi64(v1, 32)))),
+        _mm512_set1_ps(0x100000000LL),
+        _mm512_cvtepu32_ps(concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1))));
 #endif  // Vc_HAVE_AVX512DQ
+}
 
 // from int{{{2
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_i32 v0)
