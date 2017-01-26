@@ -32,25 +32,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/datapar>
 
 // Vc::datapar to string
-template <int N>
-inline std::string typeToString_impl(const Vc::datapar_abi::fixed_size<N> &)
+template <int N> inline std::string typeToString_impl(Vc::datapar_abi::fixed_size<N> *)
 {
     return std::to_string(N);
 }
-inline std::string typeToString_impl(const Vc::datapar_abi::scalar &) { return "scalar"; }
-inline std::string typeToString_impl(const Vc::datapar_abi::sse &) { return "sse"; }
-inline std::string typeToString_impl(const Vc::datapar_abi::avx &) { return "avx"; }
-inline std::string typeToString_impl(const Vc::datapar_abi::avx512 &) { return "avx512"; }
-inline std::string typeToString_impl(const Vc::datapar_abi::knc &) { return "knc"; }
-
-template <class T, class A>
-inline std::string typeToString_impl(const Vc::datapar<T, A> &)
+inline std::string typeToString_impl(Vc::datapar_abi::scalar *) { return "scalar"; }
+inline std::string typeToString_impl(Vc::datapar_abi::sse *) { return "sse"; }
+inline std::string typeToString_impl(Vc::datapar_abi::avx *) { return "avx"; }
+inline std::string typeToString_impl(Vc::datapar_abi::avx512 *) { return "avx512"; }
+inline std::string typeToString_impl(Vc::datapar_abi::knc *) { return "knc"; }
+template <class T, class A> inline std::string typeToString_impl(Vc::datapar<T, A> *)
 {
     return "datapar<" + typeToString<T>() + ", " + typeToString<A>() + '>';
 }
-
-template <class T, class A>
-inline std::string typeToString_impl(const Vc::mask<T, A> &)
+template <class T, class A> inline std::string typeToString_impl(Vc::mask<T, A> *)
 {
     return "mask<" + typeToString<T>() + ", " + typeToString<A>() + '>';
 }
