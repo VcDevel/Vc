@@ -490,23 +490,6 @@ template <> Vc_INTRINSIC x_u64 Vc_VDECL convert_to<x_u64>(x_f64 v) {
 #endif
 }
 
-// from int{{{2
-template <> Vc_INTRINSIC x_u64 Vc_VDECL convert_to<x_u64>(x_i32 v) { return _mm_unpacklo_epi32(v, zero<__m128i>()); }
-
-// from uint{{{2
-template <> Vc_INTRINSIC x_u64 Vc_VDECL convert_to<x_u64>(x_u32 v) { return _mm_unpacklo_epi32(v, zero<__m128i>()); }
-
-// from short{{{2
-template <> Vc_INTRINSIC x_u64 Vc_VDECL convert_to<x_u64>(x_i16 v) { return _mm_unpacklo_epi32(_mm_unpacklo_epi16(v, zero<__m128i>()), zero<__m128i>()); }
-
-// from ushort{{{2
-template <> Vc_INTRINSIC x_u64 Vc_VDECL convert_to<x_u64>(x_u16 v) { return _mm_unpacklo_epi32(_mm_unpacklo_epi16(v, zero<__m128i>()), zero<__m128i>()); }
-
-// from schar{{{2
-template <> Vc_INTRINSIC x_u64 Vc_VDECL convert_to<x_u64>(x_i08 v) { return _mm_unpacklo_epi32(_mm_unpacklo_epi16(_mm_unpacklo_epi8(v, zero<__m128i>()), zero<__m128i>()), zero<__m128i>()); }
-
-// from uchar{{{2
-template <> Vc_INTRINSIC x_u64 Vc_VDECL convert_to<x_u64>(x_u08 v) { return _mm_unpacklo_epi32(_mm_unpacklo_epi16(_mm_unpacklo_epi8(v, zero<__m128i>()), zero<__m128i>()), zero<__m128i>()); }
 //--------------------int & uint{{{1
 //
 // convert_to<x_i32> (int, 4){{{1
