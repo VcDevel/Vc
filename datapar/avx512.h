@@ -156,8 +156,26 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     static Vc_INTRINSIC datapar_member_type<T> load(const long double *mem, F,
                                                     type_tag<T>) noexcept
     {
+#if defined Vc_GCC && Vc_GCC < 0x60000
+        // GCC 5.4 ICEs with:
+        // datapar/detail.h|74 col 1| error: unrecognizable insn:
+        // ||  }
+        // ||  ^
+        // || (insn 43 42 44 2 (set (reg:V16SF 121 [ D.470376 ])
+        // ||         (vec_merge:V16SI (reg:V16SF 144)
+        // ||             (reg:V16SF 121 [ D.470376 ])
+        // ||             (reg:HI 145))) datapar/storage.h:277 -1
+        // ||      (nil))
+        // datapar/detail.h|74 col 1| internal compiler error: in extract_insn, at recog.c:2343
+        alignas(sizeof(T) * size<T>()) T tmp[size<T>()];
+        for (size_t i = 0; i < size<T>(); ++i) {
+            tmp[i] = static_cast<T>(mem[i]);
+        }
+        return load(&tmp[0], flags::vector_aligned, type_tag<T>());
+#else
         return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
+#endif
     }
 
     // load without conversion{{{3
