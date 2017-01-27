@@ -471,12 +471,19 @@ struct avx_mask_impl {
     template <class F>
     static Vc_INTRINSIC __m256 load(const bool *mem, F, size_tag<4>) noexcept
     {
+#ifdef Vc_MSVC
+        return intrin_cast<__m256>(x86::set(mem[0] ? 0xffffffffffffffffULL : 0ULL,
+                                            mem[1] ? 0xffffffffffffffffULL : 0ULL,
+                                            mem[2] ? 0xffffffffffffffffULL : 0ULL,
+                                            mem[3] ? 0xffffffffffffffffULL : 0ULL));
+#else
         __m128i k = intrin_cast<__m128i>(_mm_and_ps(
             _mm_set1_ps(*reinterpret_cast<const may_alias<float> *>(mem)),
             intrin_cast<__m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))));
         k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
         return intrin_cast<__m256>(
             concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
+#endif
     }
     template <class F>
     static Vc_INTRINSIC __m256 load(const bool *mem, F, size_tag<8>) noexcept
