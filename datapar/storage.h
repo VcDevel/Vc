@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_STORAGE_H_
 #define VC_DATAPAR_STORAGE_H_
 
+#include <iosfwd>
+
 #include "macros.h"
 #include "x86/intrinsics.h"
 
@@ -603,6 +605,18 @@ template <> Vc_INTRINSIC Vc_PURE ushort &Storage<ushort,16, AliasStrategy::Union
 template <> Vc_INTRINSIC Vc_PURE  uchar &Storage< uchar,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u8[i]; }
 #endif
 #endif  // Vc_MSVC
+
+// Storage ostream operators{{{1
+template <class CharT, class T, size_t N>
+inline std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> & s,
+                                             const Storage<T, N> &v)
+{
+    s << '[' << v[0];
+    for (size_t i = 1; i < N; ++i) {
+        s << ((i % 4) ? " " : " | ") << v[i];
+    }
+    return s << ']';
+}
 
 //}}}1
 #endif  // Vc_HAVE_SSE
