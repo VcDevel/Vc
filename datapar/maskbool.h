@@ -80,56 +80,51 @@ public:
     }
 #endif
 
-    template <typename A>
-    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
-    operator==(A &&a, MaskBool &&b)
+#ifdef Vc_MSVC
+};
+#define friend template<size_t N>
+#define MaskBool MaskBool<N>
+#endif
+
+    friend constexpr bool operator==(bool a, MaskBool &&b)
+    {
+        return a == static_cast<bool>(b);
+    }
+    friend constexpr bool operator==(bool a, const MaskBool &b)
+    {
+        return a == static_cast<bool>(b);
+    }
+    friend constexpr bool operator==(MaskBool &&b, bool a)
     {
         return static_cast<bool>(a) == static_cast<bool>(b);
     }
-    template <typename A>
-    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
-    operator==(A &&a, const MaskBool &b)
-    {
-        return static_cast<bool>(a) == static_cast<bool>(b);
-    }
-    template <typename A>
-    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
-    operator==(MaskBool &&b, A &&a)
-    {
-        return static_cast<bool>(a) == static_cast<bool>(b);
-    }
-    template <typename A>
-    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
-    operator==(const MaskBool &b, A &&a)
+    friend constexpr bool operator==(const MaskBool &b, bool a)
     {
         return static_cast<bool>(a) == static_cast<bool>(b);
     }
 
-    template <typename A>
-    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
-    operator!=(A &&a, MaskBool &&b)
+    friend constexpr bool operator!=(bool a, MaskBool &&b)
     {
-        return static_cast<bool>(a) != static_cast<bool>(b);
+        return a != static_cast<bool>(b);
     }
-    template <typename A>
-    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
-    operator!=(A &&a, const MaskBool &b)
+    friend constexpr bool operator!=(bool a, const MaskBool &b)
     {
-        return static_cast<bool>(a) != static_cast<bool>(b);
+        return a != static_cast<bool>(b);
     }
-    template <typename A>
-    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
-    operator!=(MaskBool &&b, A &&a)
+    friend constexpr bool operator!=(MaskBool &&b, bool a)
     {
-        return static_cast<bool>(a) != static_cast<bool>(b);
+        return a != static_cast<bool>(b);
     }
-    template <typename A>
-    friend constexpr std::enable_if_t<std::is_convertible<A, bool>::value, bool>
-    operator!=(const MaskBool &b, A &&a)
+    friend constexpr bool operator!=(const MaskBool &b, bool a)
     {
-        return static_cast<bool>(a) != static_cast<bool>(b);
+        return a != static_cast<bool>(b);
     }
+#ifdef Vc_MSVC
+#undef friend
+#undef MaskBool
+#else
 } Vc_MAY_ALIAS;
+#endif
 
 static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
 static_assert(MaskBool<4>(true) == true, "true == MaskBool<4>(true)");

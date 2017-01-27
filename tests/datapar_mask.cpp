@@ -55,6 +55,12 @@ template <class M> M make_alternating_mask()
 
 TEST_TYPES(M, broadcast, ALL_TYPES)  //{{{1
 {
+    static_assert(std::is_convertible<typename M::reference, bool>::value,
+                  "A smart_reference<mask> must be convertible to bool.");
+    static_assert(std::is_same<bool, decltype(std::declval<const typename M::reference &>() == true)>::value,
+                  "A smart_reference<mask> must be comparable against bool.");
+    static_assert(Vc::Traits::has_equality_operator<typename M::reference, bool>::value,
+                  "A smart_reference<mask> must be comparable against bool.");
     VERIFY(Vc::is_mask_v<M>);
 
     {
