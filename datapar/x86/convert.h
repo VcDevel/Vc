@@ -1422,49 +1422,9 @@ template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_f32 v0, z_f32 v1)
 
 //}}}2
 #endif  // Vc_HAVE_AVX512F
-    // convert_to<x_u16>{{{1
-// from double{{{2
-template <> Vc_INTRINSIC x_u16 Vc_VDECL convert_to<x_u16>(x_f64 v)
-{
-    return convert_to<x_u16>(convert_to<x_i32>(v));
-}
 
-template <> Vc_INTRINSIC x_u16 Vc_VDECL convert_to<x_u16>(x_f64 v0, x_f64 v1)
-{
-    return convert_to<x_u16>(convert_to<x_i32>(v0, v1));
-}
-
-template <>
-Vc_INTRINSIC x_u16 Vc_VDECL convert_to<x_u16>(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3)
-{
-    return convert_to<x_u16>(convert_to<x_i32>(v0, v1), convert_to<x_i32>(v2, v3));
-}
-
-#ifdef Vc_HAVE_AVX
-template <> Vc_INTRINSIC x_u16 Vc_VDECL convert_to<x_u16>(y_f64 v0, y_f64 v1)
-{
-    return convert_to<x_u16>(convert_to<y_i32>(v0, v1));
-}
-#endif  // Vc_HAVE_AVX
-
-// from float{{{2
-template <> Vc_INTRINSIC x_u16 Vc_VDECL convert_to<x_u16>(x_f32 v)
-{
-    return convert_to<x_u16>(convert_to<x_i32>(v));
-}
-
-template <> Vc_INTRINSIC x_u16 Vc_VDECL convert_to<x_u16>(x_f32 v0, x_f32 v1)
-{
-    return convert_to<x_u16>(convert_to<x_i32>(v0), convert_to<x_i32>(v1));
-}
-
-#ifdef Vc_HAVE_AVX
-template <> Vc_INTRINSIC x_u16 Vc_VDECL convert_to<x_u16>(y_f32 v)
-{
-    return convert_to<x_u16>(convert_to<y_i32>(v));
-}
-#endif  // Vc_HAVE_AVX
-
+// no unsigned specializations needed, conversion goes via int32{{{1
+//
 //--------------------schar & uchar{{{1
 //
 // convert_to<x_i08> (signed char, 16){{{1
@@ -2049,81 +2009,11 @@ template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_f32 v0, z_f32 v1, z_
 
 //}}}2
 #endif  // Vc_HAVE_AVX512F
-// convert_to<x_u08>{{{1
-// from schar{{{2
-template <> Vc_INTRINSIC x_u08 Vc_VDECL convert_to<x_u08>(x_i08 v) { return v.v(); }
-
-// from float{{{2
-template <> Vc_INTRINSIC x_u08 Vc_VDECL convert_to<x_u08>(x_f32 v) { return convert_to<x_u08>(convert_to<x_i32>(v)); }
-
-template <> Vc_INTRINSIC x_u08 Vc_VDECL convert_to<x_u08>(x_f32 v0, x_f32 v1)
-{
-    return _mm_unpacklo_epi32(convert_to<x_u08>(v0), convert_to<x_u08>(v1));
-}
-
-template <>
-Vc_INTRINSIC x_u08 Vc_VDECL convert_to<x_u08>(x_f32 v0, x_f32 v1, x_f32 v2, x_f32 v3)
-{
-    return _mm_unpacklo_epi64(
-        _mm_unpacklo_epi32(convert_to<x_u08>(v0), convert_to<x_u08>(v1)),
-        _mm_unpacklo_epi32(convert_to<x_u08>(v2), convert_to<x_u08>(v3)));
-}
-
-// from double{{{2
-template <> Vc_INTRINSIC x_u08 Vc_VDECL convert_to<x_u08>(x_f64 v)
-{
-    return convert_to<x_u08>(convert_to<x_i32>(v));
-}
-
-template <> Vc_INTRINSIC x_u08 Vc_VDECL convert_to<x_u08>(x_f64 v0, x_f64 v1)
-{
-    return convert_to<x_u08>(convert_to<x_i32>(v0, v1));
-}
-
-template <>
-Vc_INTRINSIC x_u08 Vc_VDECL convert_to<x_u08>(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3)
-{
-    return convert_to<x_u08>(convert_to<x_i32>(v0, v1), convert_to<x_i32>(v2, v3));
-}
-
-template <>
-Vc_INTRINSIC x_u08 Vc_VDECL convert_to<x_u08>(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3, x_f64 v4,
-                                     x_f64 v5, x_f64 v6, x_f64 v7)
-{
-    return convert_to<x_u08>(convert_to<x_i32>(v0, v1), convert_to<x_i32>(v2, v3),
-                             convert_to<x_i32>(v4, v5), convert_to<x_i32>(v6, v7));
-}
-
-// convert_to<z_u08>{{{1
-#ifdef Vc_HAVE_AVX512F
-// from int{{{2
-template <> Vc_INTRINSIC z_u08 Vc_VDECL convert_to<z_u08>(z_i32 v0, z_i32 v1, z_i32 v2, z_i32 v3)
-{
-    return concat(concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1)),
-                  concat(_mm512_cvtepi32_epi8(v2), _mm512_cvtepi32_epi8(v3)));
-}
-
-//from double{{{2
-template <>
-Vc_INTRINSIC z_u08 Vc_VDECL convert_to<z_u08>(z_f64 v0, z_f64 v1, z_f64 v2, z_f64 v3, z_f64 v4,
-                                     z_f64 v5, z_f64 v6, z_f64 v7)
-{
-    return convert_to<z_u08>(convert_to<z_i32>(v0, v1), convert_to<z_i32>(v2, v3),
-                             convert_to<z_i32>(v4, v5), convert_to<z_i32>(v6, v7));
-}
-
-//from float{{{2
-template <> Vc_INTRINSIC z_u08 Vc_VDECL convert_to<z_u08>(z_f32 v0, z_f32 v1, z_f32 v2, z_f32 v3)
-{
-    return convert_to<z_u08>(convert_to<z_i32>(v0), convert_to<z_i32>(v1),
-                             convert_to<z_i32>(v2), convert_to<z_i32>(v3));
-}
-
-//}}}2
-#endif  // Vc_HAVE_AVX512F
+// no unsigned specializations needed, conversion goes via int32{{{1
+//
 //--------------------double{{{1
 //
-// convert_to<x_f64>{{{1
+// convert_to<x_f64> (double, 2){{{1
 // from float{{{2
 template <> Vc_INTRINSIC x_f64 Vc_VDECL convert_to<x_f64>(x_f32 v) { return _mm_cvtps_pd(v); }
 
@@ -2176,7 +2066,7 @@ template <> Vc_INTRINSIC x_f64 Vc_VDECL convert_to<x_f64>(x_i08 v) { return conv
 // from uchar{{{2
 template <> Vc_INTRINSIC x_f64 Vc_VDECL convert_to<x_f64>(x_u08 v) { return convert_to<x_f64>(convert_to<x_i32>(v)); }
 
-// convert_to<y_f64>{{{1
+// convert_to<y_f64> (double, 4){{{1
 #ifdef Vc_HAVE_AVX
 // from float{{{2
 template <> Vc_INTRINSIC y_f64 Vc_VDECL convert_to<y_f64>(x_f32 v) { return _mm256_cvtps_pd(v); }
@@ -2231,7 +2121,7 @@ template <> Vc_INTRINSIC y_f64 Vc_VDECL convert_to<y_f64>(x_i08 v) { return conv
 template <> Vc_INTRINSIC y_f64 Vc_VDECL convert_to<y_f64>(x_u08 v) { return convert_to<y_f64>(convert_to<x_i32>(v)); }
 #endif  // Vc_HAVE_AVX
 
-// convert_to<z_f64>{{{1
+// convert_to<z_f64> (double, 8){{{1
 #ifdef Vc_HAVE_AVX512F
 // from float{{{2
 template <> Vc_INTRINSIC z_f64 Vc_VDECL convert_to<z_f64>(x_f32 v) { return zeroExtend(_mm256_cvtps_pd(v)); }
@@ -2983,9 +2873,13 @@ template <typename To> struct equivalent_conversion<To, scalar_conversion_fallba
 
 // convert_to implementations invoking the fallbacks{{{1
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0, x_f32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0, x_f32 v1, x_f32 v2, x_f32 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
 #ifdef Vc_HAVE_SSE2
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3, x_f64 v4, x_f64 v5, x_f64 v6, x_f64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i08 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u08 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i16 v0) { return equivalent_conversion<To>::convert(v0); }
@@ -3041,9 +2935,11 @@ template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(y_u64 v0, y_u64 v1, y
 #ifdef Vc_HAVE_AVX512F
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_f32 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_f32 v0, z_f32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_f32 v0, z_f32 v1, z_f32 v2, z_f32 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_f64 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_f64 v0, z_f64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_f64 v0, z_f64 v1, z_f64 v2, z_f64 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_f64 v0, z_f64 v1, z_f64 v2, z_f64 v3, z_f64 v4, z_f64 v5, z_f64 v6, z_f64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_i08 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_u08 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_i16 v0) { return equivalent_conversion<To>::convert(v0); }
