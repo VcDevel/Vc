@@ -288,13 +288,10 @@ else()
 endif()
 
 string(STRIP "${git_branch} ${COMPILER_VERSION} ${CXXFLAGS} ${build_type_short} ${tmp}" CTEST_BUILD_NAME)
-if(NOT is_nightly)
+if(is_experimental)
    # nightly builds shouldn't contain the git hash, since it makes expected builds impossible
+   # continuous builds will always submit with the hash of the repo before the update, so it's kind of useless
    string(STRIP "${git_hash} ${CTEST_BUILD_NAME}" CTEST_BUILD_NAME)
-   # instead make sure the hash is included in the notes
-   if(DEFINED git_hash_file)
-      list(APPEND CTEST_NOTES_FILES "${git_hash_file}")
-   endif()
 endif()
 if(DEFINED subset)
    set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME} ${subset}")
@@ -322,6 +319,11 @@ message("model:      ${dashboard_model}")
 Set(CTEST_START_WITH_EMPTY_BINARY_DIRECTORY_ONCE TRUE)
 
 list(APPEND CTEST_NOTES_FILES "${PROJECT_DIRECTORY}/.git/HEAD")
+if(is_nightly AND DEFINED git_hash_file)
+   # make sure the hash is included in the notes for nightlies (which don't have the hash as part of the build name)
+   # Continuous build have the information in the Update part they submit
+   list(APPEND CTEST_NOTES_FILES "${git_hash_file}")
+endif()
 
 # attach information on the OS
 ################################################################################
