@@ -111,14 +111,19 @@ macro(vc_add_run_target _target emulator run_target_list)#{{{
    endif()
 endmacro()#}}}
 
-set(alias_strategies Union)#{{{
+#alias_strategies{{{
+if(APPLE)
+   set(alias_strategies) # compiles too long and is not needed
+else()
+   set(alias_strategies Union)
+endif()
 if(Vc_COMPILER_IS_CLANG OR Vc_COMPILER_IS_GCC)
-   set(alias_strategies ${alias_strategies} MayAlias VectorBuiltin)
+   list(APPEND alias_strategies MayAlias VectorBuiltin)
 elseif(Vc_COMPILER_IS_INTEL)
    # ICC can parse (aka ignore) may_alias...
-   set(alias_strategies ${alias_strategies} MayAlias)
+   list(APPEND alias_strategies MayAlias)
 elseif(Vc_COMPILER_IS_MSVC)
-   set(alias_strategies ${alias_strategies} UnionMembers)
+   list(APPEND alias_strategies UnionMembers)
 endif()#}}}
 
 function(vc_add_test name) #{{{
