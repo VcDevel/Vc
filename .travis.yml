@@ -18,6 +18,11 @@ compiler:
     - gcc
     - clang
 
+matrix:
+  exclude:
+    - env: subset=avx512
+      os: osx
+
 # The following gives us Ubuntu 14.04 LTS instead of 12.04 LTS
 sudo: required
 dist: trusty
