@@ -484,6 +484,21 @@ Vc_INTRINSIC z_u08 Vc_VDECL divides(z_u08 a, z_u08 b) {
 #endif// Vc_HAVE_AVX512F
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
+// modulus{{{1
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+template <class T, size_t N> Vc_INTRINSIC auto modulus(Storage<T, N> a, Storage<T, N> b)
+{
+    static_assert(std::is_integral<T>::value, "modulus is only supported for integral types");
+    return a.builtin() % b.builtin();
+}
+#else   // Vc_USE_BUILTIN_VECTOR_TYPES
+template <class T, size_t N> Vc_INTRINSIC auto modulus(Storage<T, N> a, Storage<T, N> b)
+{
+    static_assert(std::is_integral<T>::value, "modulus is only supported for integral types");
+    return minus(a, multiplies(divides(a, b), b));
+}
+#endif  // Vc_USE_BUILTIN_VECTOR_TYPES
+
 // unary_minus{{{1
 template <typename T> Vc_INTRINSIC auto Vc_VDECL unary_minus(T v) { return minus(T{}, v); }
 Vc_INTRINSIC __m128  Vc_VDECL unary_minus(x_f32 v) { return xor_(v, signmask16(float())); }

@@ -225,6 +225,23 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
         COMPARE(x / y, ref);
     }
 
+    {  // modulus{{{2
+        V x = make_vec<V>({3, 4}, 2);
+        COMPARE(x % x, V(0));
+        V y = x - 1;
+        COMPARE(x % y, V(1));
+        y = x + 1;
+        COMPARE(x % y, x);
+        if (std::is_signed<T>::value) {
+            x = -x;
+            COMPARE(x % y, x);
+            x = -y;
+            COMPARE(x % y, V(0));
+            x = x - 1;
+            COMPARE(x % y, V(-1));
+        }
+    }
+
     {  // increment & decrement {{{2
         const V from0 = make_vec<V>({0, 1, 2, 3}, 4);
         V x = from0;
