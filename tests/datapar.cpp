@@ -29,28 +29,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #include "unittest.h"
 #include <Vc/datapar>
+#include "make_vec.h"
 
 template <class... Ts> using base_template = Vc::datapar<Ts...>;
 #include "testtypes.h"
-
-// datapar generator function {{{1
-template <class V>
-inline V make_vec(const std::initializer_list<typename V::value_type> &init,
-                  typename V::value_type inc = 0)
-{
-    std::size_t i = 0;
-    V r;
-    typename V::value_type base = 0;
-    for (;;) {
-        for (auto x : init) {
-            r[i] = base + x;
-            if (++i == V::size()) {
-                return r;
-            }
-        }
-        base += inc;
-    }
-}
 
 TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
 {
