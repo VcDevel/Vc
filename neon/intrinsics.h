@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
+Copyright © 2017 Matthias Kretz <kretz@kde.org>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_NEON_INTRINSICS_H_
 
 #include "arm_neon.h"
-#include "macros.h"
+#include "../common/storage.h"
+#include "const_data.h"
+#include <cstdlib>
+#include "types.h"
+#include "debug.h"
 
-namespace Vc_VERSIONED_NAMESPACE
-{
+Vc_VERSIONED_NAMESPACE_BEGIN
 namespace NeonIntrinsics
 {
 
-template <> struct VectorTraits<int> { typedef int32x4_t Type; };
-template <> struct VectorTraits<unsigned int> { typedef uint32x4_t Type; };
-template <> struct VectorTraits<short> { typedef int16x8_t Type; };
-template <> struct VectorTraits<unsigned short> { typedef uint16x8_t Type; };
-template <> struct VectorTraits<float> { typedef float32x4_t Type; };
-template <> struct VectorTraits<double> { typedef double Type; };
-
-// helper functions that abstract some architecture specific intrinsics go here
 
 }
-}
+Vc_VERSIONED_NAMESPACE_END
+
+#if defined(Vc_GCC) && !defined(__OPTIMIZE__)
+#pragma GCC diagnostic pop
+#endif
+
+#include "shuffle.h"
 
 #endif  // VC_NEON_INTRINSICS_H_
 
