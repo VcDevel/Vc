@@ -38,6 +38,10 @@ template <template <typename...> class T, typename... Fixed> struct Template {
     template <typename... Us> using type = T<Us..., Fixed...>;
 };
 
+template <template <typename> class T> struct Template1 {
+    template <typename U> using type = T<U>;
+};
+
 // list indexing{{{1
 namespace TypelistIndexing
 {

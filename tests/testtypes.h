@@ -72,6 +72,10 @@ template <typename T> using vi64 = Vc::fixed_size_datapar<T, vllong::size()>;
 template <typename T>
 using vl = typename std::conditional<sizeof(long) == sizeof(llong), vi64<T>, vi32<T>>::type;
 
+// current_native_test_types {{{1
+using current_native_test_types =
+    expand_one<Template1<Vc::native_datapar>, Typelist<TESTTYPES>>;
+
 // native_test_types {{{1
 typedef concat<
 #if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
