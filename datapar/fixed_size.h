@@ -130,6 +130,25 @@ template <int N> struct fixed_size_datapar_impl {
         return {private_init, negate_impl(x.d, index_seq)};
     }
 
+    // min, max, clamp {{{2
+    template <class T>
+    static inline datapar<T> min(const datapar<T> &a, const datapar<T> &b)
+    {
+        auto &&x = data(a);
+        auto &&y = data(b);
+        return generate_from_n_evaluations<N, datapar_member_type<T>>(
+            [&](auto i) { return std::min(x[i], y[i]); });
+    }
+
+    template <class T>
+    static inline datapar<T> max(const datapar<T> &a, const datapar<T> &b)
+    {
+        auto &&x = data(a);
+        auto &&y = data(b);
+        return generate_from_n_evaluations<N, datapar_member_type<T>>(
+            [&](auto i) { return std::max(x[i], y[i]); });
+    }
+
     // unary minus {{{2
     template <class T, class A>
     static inline Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept {

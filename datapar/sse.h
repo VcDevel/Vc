@@ -460,6 +460,65 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 #endif
     }
 
+    // min, max, clamp {{{2
+    static Vc_INTRINSIC datapar<double> min(datapar<double> a, datapar<double> b)
+    {
+        return datapar<double>(_mm_min_pd(data(a), data(b)));
+    }
+
+    static Vc_INTRINSIC datapar<float> min(datapar<float> a, datapar<float> b)
+    {
+        return datapar<float>(_mm_min_ps(data(a), data(b)));
+    }
+
+    static Vc_INTRINSIC datapar<schar> min(datapar<schar> a, datapar<schar> b)
+    {
+#ifdef Vc_HAVE_SSE4_1
+        return datapar<schar>(_mm_min_epi8(data(a), data(b)));
+#else
+        auto x = data(a);
+        auto y = data(b);
+        return datapar<schar>(or_(
+            _mm_srli_epi16(_mm_min_epi16(_mm_slli_epi16(x, 8), _mm_slli_epi16(y, 8)), 8);
+            _mm_min_epi16(and_(x, _mm_set1_epi16(0xff00)),
+                          and_(y, _mm_set1_epi16(0xff00)))));
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<uchar> min(datapar<uchar> a, datapar<uchar> b)
+    {
+        return datapar<uchar>(_mm_min_epu8(data(a), data(b)));
+    }
+
+    static Vc_INTRINSIC datapar<double> max(datapar<double> a, datapar<double> b)
+    {
+        return datapar<double>(_mm_max_pd(data(a), data(b)));
+    }
+
+    static Vc_INTRINSIC datapar<float> max(datapar<float> a, datapar<float> b)
+    {
+        return datapar<float>(_mm_max_ps(data(a), data(b)));
+    }
+
+    static Vc_INTRINSIC datapar<schar> max(datapar<schar> a, datapar<schar> b)
+    {
+#ifdef Vc_HAVE_SSE4_1
+        return datapar<schar>(_mm_max_epi8(data(a), data(b)));
+#else
+        auto x = data(a);
+        auto y = data(b);
+        return datapar<schar>(or_(
+            _mm_srli_epi16(_mm_max_epi16(_mm_slli_epi16(x, 8), _mm_slli_epi16(y, 8)), 8);
+            _mm_max_epi16(and_(x, _mm_set1_epi16(0xff00)),
+                          and_(y, _mm_set1_epi16(0xff00)))));
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<uchar> max(datapar<uchar> a, datapar<uchar> b)
+    {
+        return datapar<uchar>(_mm_max_epu8(data(a), data(b)));
+    }
+
     // compares {{{2
 #if defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>
