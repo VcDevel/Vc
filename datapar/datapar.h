@@ -110,13 +110,43 @@ public:
     static constexpr size_type size_v = traits::size();
 
     // implicit broadcast constructor
-    datapar(value_type x) : d(impl::broadcast(x, size_tag)) {}
+    template <class U,
+              class = std::enable_if_t<conjunction<
+                  std::is_convertible<U, value_type>,
+                  disjunction<
+                      std::is_same<U, value_type>, std::is_same<U, int>,
+                      conjunction<std::is_same<U, uint>, std::is_unsigned<value_type>>,
+                      negation<detail::is_narrowing_conversion<U, value_type>>>>::value>>
+    datapar(const U &x)
+        : d(impl::broadcast(static_cast<value_type>(x), size_tag))
+    {
+    }
 
-    // implicit type conversion constructor
+    // implicit type conversion constructor (convert from fixed_size to fixed_size)
+    template <class U>
+    datapar(
+        const datapar<U, datapar_abi::fixed_size<size_v>> &x,
+        std::enable_if_t<
+            conjunction<std::is_same<datapar_abi::fixed_size<size_v>, abi_type>,
+                        negation<detail::is_narrowing_conversion<U, value_type>>,
+                        detail::converts_to_higher_integer_rank<U, value_type>>::value,
+            void *> = nullptr)
+        : datapar{static_cast<const std::array<U, size()> &>(x).data(),
+                  flags::vector_aligned}
+    {
+    }
+
+    // explicit type conversion constructor
     // 1st conversion ctor: convert from fixed_size<size()>
     template <class U>
-    datapar(const datapar<U, datapar_abi::fixed_size<size_v>> &x,
-            std::enable_if_t<std::is_convertible<U, value_type>::value, void *> = nullptr)
+    explicit datapar(
+        const datapar<U, datapar_abi::fixed_size<size_v>> &x,
+        std::enable_if_t<
+            disjunction<conjunction<negation<std::is_same<datapar_abi::fixed_size<size_v>,
+                                                          abi_type>>,
+                                    std::is_convertible<U, value_type>>,
+                        detail::is_narrowing_conversion<U, value_type>>::value,
+            void *> = nullptr)
         : datapar{static_cast<const std::array<U, size()> &>(x).data(),
                   flags::vector_aligned}
     {
@@ -124,9 +154,10 @@ public:
 
     // 2nd conversion ctor: convert equal Abi, integers that only differ in signedness
     template <class U>
-    datapar(const datapar<U, Abi> &x,
-            std::enable_if_t<detail::allow_conversion_ctor2<value_type, U, Abi>::value, void *> =
-                nullptr)
+    explicit datapar(
+        const datapar<U, Abi> &x,
+        std::enable_if_t<detail::allow_conversion_ctor2<value_type, U, Abi>::value,
+                         void *> = nullptr)
         : d{static_cast<cast_type>(x)}
     {
     }
@@ -134,7 +165,7 @@ public:
     // 3rd conversion ctor: convert from non-fixed_size to fixed_size if U is convertible to
     // value_type
     template <class U, class Abi2>
-    datapar(
+    explicit datapar(
         const datapar<U, Abi2> &x,
         std::enable_if_t<detail::allow_conversion_ctor3<value_type, Abi, U, Abi2>::value,
                          void *> = nullptr)

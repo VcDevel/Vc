@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_DETAIL_H_
 #define VC_DATAPAR_DETAIL_H_
 
+#include <limits>
 #include "macros.h"
 #include "flags.h"
 #include "type_traits.h"
@@ -131,17 +132,66 @@ static constexpr std::size_t next_power_of_2(std::size_t x)
  */
 static constexpr struct private_init_t {} private_init = {};
 
-// (cmp_)return_type{{{1
-template <class L, class R> struct return_type_impl;
-template <class L, class R, class V = typename return_type_impl<L, R>::type>
-using return_type = typename std::enable_if<
-    conjunction<std::is_convertible<R, V>, std::is_convertible<L, V>>::value, V>::type;
-template <class L, class R> using cmp_return_type = typename return_type<L, R>::mask_type;
+// identity/id{{{1
+template <class T> struct identity {
+    using type = T;
+};
+template <class T> using id = typename identity<T>::type;
 
-// mask_return_type{{{1
-template <class T0, class A0, class T1, class A1> struct mask_return_type_impl;
-template <class T0, class A0, class T1, class A1>
-using mask_return_type = typename mask_return_type_impl<T0, A0, T1, A1>::type;
+// bool_constant{{{1
+template <bool Value> using bool_constant = std::integral_constant<bool, Value>;
+
+// is_narrowing_conversion<From, To>{{{1
+template <class From, class To, bool = std::is_arithmetic<From>::value,
+          bool = std::is_arithmetic<To>::value>
+struct is_narrowing_conversion;
+
+template <class From, class To>
+struct is_narrowing_conversion<From, To, true, true>
+    : public bool_constant<(
+          std::numeric_limits<From>::digits > std::numeric_limits<To>::digits ||
+          std::numeric_limits<From>::max() > std::numeric_limits<To>::max() ||
+          std::numeric_limits<From>::lowest() < std::numeric_limits<To>::lowest() ||
+          (std::is_signed<From>::value && std::is_unsigned<To>::value))> {
+};
+
+template <class T> struct is_narrowing_conversion<T, T, true, true> : public std::false_type {
+};
+
+bool     converted_to_arithmetic(bool    );
+char     converted_to_arithmetic(char    );
+schar    converted_to_arithmetic(schar   );
+uchar    converted_to_arithmetic(uchar   );
+wchar_t  converted_to_arithmetic(wchar_t );
+char16_t converted_to_arithmetic(char16_t);
+char32_t converted_to_arithmetic(char32_t);
+short    converted_to_arithmetic(short   );
+ushort   converted_to_arithmetic(ushort  );
+int      converted_to_arithmetic(int     );
+uint     converted_to_arithmetic(uint    );
+long     converted_to_arithmetic(long    );
+ulong    converted_to_arithmetic(ulong   );
+llong    converted_to_arithmetic(llong   );
+ullong   converted_to_arithmetic(ullong  );
+float    converted_to_arithmetic(float   );
+double   converted_to_arithmetic(double  );
+long double converted_to_arithmetic(long double);
+//template <class T> void converted_to_arithmetic(const T &);
+
+template <class From, class To>
+struct is_narrowing_conversion<From, To, false, true>
+    : public is_narrowing_conversion<decltype(converted_to_arithmetic(declval<From>())),
+                                     To> {
+};
+
+// converts_to_higher_integer_rank{{{1
+template <class From, class To, bool = (sizeof(From) < sizeof(To))>
+struct converts_to_higher_integer_rank : public std::true_type {
+};
+template <class From, class To>
+struct converts_to_higher_integer_rank<From, To, false>
+    : public std::is_same<decltype(declval<From>() + declval<To>()), To> {
+};
 
 // is_aligned(_v){{{1
 template <class Flag, size_t Alignment> struct is_aligned;
