@@ -239,81 +239,12 @@ template <class T, class Abi, class U> datapar<T, Abi> &operator ^=(datapar<T, A
 template <class T, class Abi, class U> datapar<T, Abi> &operator<<=(datapar<T, Abi> &, const U &);
 template <class T, class Abi, class U> datapar<T, Abi> &operator>>=(datapar<T, Abi> &, const U &);
 
-// binary operators [datapar.binary]
-#define Vc_OP(op_, fun_) \
-template <class T, class A> datapar<T, A> operator op_(const datapar<T, A> &x, const datapar<T, A> &y)     { return detail::get_impl_t<datapar<T, A>>::fun_(x, y); } \
-template <class T, class A> datapar<T, A> operator op_(const datapar<T, A> &x, const detail::id<datapar<T, A>> &y) { return detail::get_impl_t<datapar<T, A>>::fun_(x, y); } \
-template <class T, class A> datapar<T, A> operator op_(const detail::id<datapar<T, A>> &x, const datapar<T, A> &y) { return detail::get_impl_t<datapar<T, A>>::fun_(x, y); }
-Vc_OP(+, plus)
-Vc_OP(-, minus)
-Vc_OP(*, multiplies)
-Vc_OP(/, divides)
-#undef Vc_OP
-
-#define Vc_OP(op_, fun_) \
-template <class T, class A> enable_if<std::is_integral<T>::value, datapar<T, A>> operator op_(const datapar<T, A> &x, const datapar<T, A> &y)     { return detail::get_impl_t<datapar<T, A>>::fun_(x, y); } \
-template <class T, class A> enable_if<std::is_integral<T>::value, datapar<T, A>> operator op_(const datapar<T, A> &x, const detail::id<datapar<T, A>> &y) { return detail::get_impl_t<datapar<T, A>>::fun_(x, y); } \
-template <class T, class A> enable_if<std::is_integral<T>::value, datapar<T, A>> operator op_(const detail::id<datapar<T, A>> &x, const datapar<T, A> &y) { return detail::get_impl_t<datapar<T, A>>::fun_(x, y); }
-Vc_OP(%, modulus)
-Vc_OP(&, bit_and)
-Vc_OP(|, bit_or)
-Vc_OP(^, bit_xor)
-Vc_OP(<<, bit_shift_left)
-Vc_OP(>>, bit_shift_right)
-#undef Vc_OP
-
-// compares [datapar.comparison]
-#define Vc_OP(op_, fun_) \
-template <class T, class A> mask<T, A> operator op_(const datapar<T, A> &x, const datapar<T, A> &y)     { return detail::get_impl_t<datapar<T, A>>::fun_(x, y); } \
-template <class T, class A> mask<T, A> operator op_(const datapar<T, A> &x, const detail::id<datapar<T, A>> &y) { return detail::get_impl_t<datapar<T, A>>::fun_(x, y); } \
-template <class T, class A> mask<T, A> operator op_(const detail::id<datapar<T, A>> &x, const datapar<T, A> &y) { return detail::get_impl_t<datapar<T, A>>::fun_(x, y); }
-Vc_OP(==, equal_to)
-Vc_OP(!=, not_equal_to)
-Vc_OP(< , less)
-Vc_OP(<=, less_equal)
-#undef Vc_OP
-#define Vc_OP(op_, fun_) \
-template <class T, class A> mask<T, A> operator op_(const datapar<T, A> &x, const datapar<T, A> &y)     { return detail::get_impl_t<datapar<T, A>>::fun_(y, x); } \
-template <class T, class A> mask<T, A> operator op_(const datapar<T, A> &x, const detail::id<datapar<T, A>> &y) { return detail::get_impl_t<datapar<T, A>>::fun_(y, x); } \
-template <class T, class A> mask<T, A> operator op_(const detail::id<datapar<T, A>> &x, const datapar<T, A> &y) { return detail::get_impl_t<datapar<T, A>>::fun_(y, x); }
-Vc_OP(> , less)
-Vc_OP(>=, less_equal)
-#undef Vc_OP
-
 // casts [datapar.casts]
 #if defined Vc_CXX17
 template <class T, class U, class... Us, size_t NN = U::size() + Us::size()...>
 inline std::conditional_t<(T::size() == NN), T, std::array<T, NN / T::size()>>
     datapar_cast(U, Us...);
 #endif
-
-// mask binary operators [mask.binary]
-#define Vc_OP(op_, fun_) \
-template <class T, class A> mask<T, A> operator op_(const mask<T, A> &x, const mask<T, A> &y)     { return detail::get_impl_t<mask<T, A>>::fun_(x, y); } \
-template <class T, class A> mask<T, A> operator op_(const mask<T, A> &x, const detail::id<mask<T, A>> &y) { return detail::get_impl_t<mask<T, A>>::fun_(x, y); } \
-template <class T, class A> mask<T, A> operator op_(const detail::id<mask<T, A>> &x, const mask<T, A> &y) { return detail::get_impl_t<mask<T, A>>::fun_(x, y); }
-Vc_OP(&&, logical_and)
-Vc_OP(||, logical_or)
-Vc_OP(& , bit_and)
-Vc_OP(| , bit_or)
-Vc_OP(^ , bit_xor)
-#undef Vc_OP
-
-// mask compares [mask.comparison]
-template <class T0, class A0, class T1, class A1>
-inline std::enable_if_t<
-    disjunction<std::is_convertible<mask<T0, A0>, mask<T1, A1>>,
-                std::is_convertible<mask<T1, A1>, mask<T0, A0>>>::value,
-    bool>
-operator==(const mask<T0, A0> &x, const mask<T1, A1> &y)
-{
-    return std::equal_to<mask<T0, A0>>{}(x, y);
-}
-template <class T0, class A0, class T1, class A1>
-inline auto operator!=(const mask<T0, A0> &x, const mask<T1, A1> &y)
-{
-    return !operator==(x, y);
-}
 
 // reductions [mask.reductions]
 template <class T, class Abi> inline bool all_of(const mask<T, Abi> &k)

@@ -82,7 +82,27 @@ struct allow_conversion_ctor3<T0, datapar_abi::fixed_size<datapar_size_v<T1, A1>
 //}}}1
 }  // namespace detail
 
-template <class T, class Abi> class datapar
+template <class V, bool> class datapar_int_operators;
+
+template <class V> class datapar_int_operators<V, false>
+{
+};
+
+template <class V> class datapar_int_operators<V, true>
+{
+    using impl = detail::get_impl_t<V>;
+
+public:
+    friend V operator%(const V &x, const V &y) { return impl::modulus(x, y); }
+    friend V operator&(const V &x, const V &y) { return impl::bit_and(x, y); }
+    friend V operator|(const V &x, const V &y) { return impl::bit_or(x, y); }
+    friend V operator^(const V &x, const V &y) { return impl::bit_xor(x, y); }
+    friend V operator<<(const V &x, const V &y) { return impl::bit_shift_left(x, y); }
+    friend V operator>>(const V &x, const V &y) { return impl::bit_shift_right(x, y); }
+};
+
+template <class T, class Abi>
+class datapar : public datapar_int_operators<datapar<T, Abi>, std::is_integral<T>::value>
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::datapar_impl_type;
@@ -235,6 +255,50 @@ public:
     // access to internal representation (suggested extension)
     explicit operator cast_type() const { return d; }
     explicit datapar(const cast_type &init) : d(init) {}
+
+    // binary operators [datapar.binary]
+    friend datapar operator+(const datapar &x, const datapar &y)
+    {
+        return impl::plus(x, y);
+    }
+    friend datapar operator-(const datapar &x, const datapar &y)
+    {
+        return impl::minus(x, y);
+    }
+    friend datapar operator*(const datapar &x, const datapar &y)
+    {
+        return impl::multiplies(x, y);
+    }
+    friend datapar operator/(const datapar &x, const datapar &y)
+    {
+        return impl::divides(x, y);
+    }
+
+    // compares [datapar.comparison]
+    friend mask_type operator==(const datapar &x, const datapar &y)
+    {
+        return impl::equal_to(x, y);
+    }
+    friend mask_type operator!=(const datapar &x, const datapar &y)
+    {
+        return impl::not_equal_to(x, y);
+    }
+    friend mask_type operator<(const datapar &x, const datapar &y)
+    {
+        return impl::less(x, y);
+    }
+    friend mask_type operator<=(const datapar &x, const datapar &y)
+    {
+        return impl::less_equal(x, y);
+    }
+    friend mask_type operator>(const datapar &x, const datapar &y)
+    {
+        return impl::less(y, x);
+    }
+    friend mask_type operator>=(const datapar &x, const datapar &y)
+    {
+        return impl::less_equal(y, x);
+    }
 
 private:
 #ifdef Vc_MSVC

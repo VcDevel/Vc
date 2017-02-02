@@ -135,6 +135,27 @@ public:
     explicit operator typename traits::mask_cast_type() const { return d; }
     explicit mask(const typename traits::mask_cast_type &init) : d{init} {}
 
+    // mask binary operators [mask.binary]
+    friend mask operator&&(const mask &x, const mask &y)
+    {
+        return impl::logical_and(x, y);
+    }
+    friend mask operator||(const mask &x, const mask &y)
+    {
+        return impl::logical_or(x, y);
+    }
+    friend mask operator&(const mask &x, const mask &y) { return impl::bit_and(x, y); }
+    friend mask operator|(const mask &x, const mask &y) { return impl::bit_or(x, y); }
+    friend mask operator^(const mask &x, const mask &y) { return impl::bit_xor(x, y); }
+
+    // mask compares [mask.comparison]
+    friend bool
+    operator==(const mask &x, const mask &y)
+    {
+        return std::equal_to<mask>{}(x, y);
+    }
+    friend bool operator!=(const mask &x, const mask &y) { return !operator==(x, y); }
+
 private:
 #ifdef Vc_MSVC
     // Work around "warning C4396: the inline specifier cannot be used when a friend
