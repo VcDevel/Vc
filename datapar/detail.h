@@ -68,6 +68,11 @@ Vc_INTRINSIC void execute_on_index_sequence(F && f, std::index_sequence<I...>)
     unused(x);
 }
 
+template <typename F>
+Vc_INTRINSIC void execute_on_index_sequence(F &&, std::index_sequence<>)
+{
+}
+
 template <typename R, typename F, size_t... I>
 Vc_INTRINSIC R execute_on_index_sequence_with_return(F && f, std::index_sequence<I...>)
 {
@@ -125,12 +130,33 @@ static constexpr std::size_t next_power_of_2(std::size_t x)
     return (x & (x - 1)) == 0 ? x : next_power_of_2((x | (x >> 1)) + 1);
 }
 
+// default_neutral_element{{{1
+template <class T, class BinaryOperation> struct default_neutral_element;
+template <class T, class X> struct default_neutral_element<T, std::plus<X>> {
+    static constexpr T value = 0;
+};
+template <class T, class X> struct default_neutral_element<T, std::multiplies<X>> {
+    static constexpr T value = 1;
+};
+template <class T, class X> struct default_neutral_element<T, std::bit_and<X>> {
+    static constexpr T value = ~T(0);
+};
+template <class T, class X> struct default_neutral_element<T, std::bit_or<X>> {
+    static constexpr T value = 0;
+};
+template <class T, class X> struct default_neutral_element<T, std::bit_xor<X>> {
+    static constexpr T value = 0;
+};
+
 // private_init{{{1
 /**
  * \internal
  * Tag used for private init constructor of datapar and mask
  */
 static constexpr struct private_init_t {} private_init = {};
+
+// size_tag{{{1
+template <size_t N> static constexpr std::integral_constant<size_t, N> size_tag = {};
 
 // identity/id{{{1
 template <class T> struct identity {

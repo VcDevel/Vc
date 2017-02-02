@@ -426,13 +426,22 @@ public:
     Vc_INTRINSIC auto operator!() const { return k && !d; }
 
 private:
+    friend Vc_INTRINSIC const Mask &get_mask(const where_expression &x) { return x.k; }
+    friend Vc_INTRINSIC T &get_lvalue(where_expression &x) { return x.d; }
+    friend Vc_INTRINSIC const T &get_lvalue(const where_expression &x) { return x.d; }
     const Mask k;
     T &d;
 };
 
-template <class T0, class A0, class T1, class A1>
-Vc_INTRINSIC where_expression<const mask<T1, A1> &, datapar<T1, A1>> where(
-    const mask<T0, A0> &k, datapar<T1, A1> &d)
+template <class T, class A>
+Vc_INTRINSIC where_expression<const mask<T, A> &, datapar<T, A>> where(
+    const typename datapar<T, A>::mask_type &k, datapar<T, A> &d)
+{
+    return {k, d};
+}
+template <class T, class A>
+Vc_INTRINSIC const where_expression<const mask<T, A> &, const datapar<T, A>> where(
+    const typename datapar<T, A>::mask_type &k, const datapar<T, A> &d)
 {
     return {k, d};
 }
@@ -440,13 +449,30 @@ template <class T> Vc_INTRINSIC where_expression<bool, T> where(bool k, T &d)
 {
     return {k, d};
 }
+template <class T>
+Vc_INTRINSIC const where_expression<bool, const T> where(bool k, const T &d)
+{
+    return {k, d};
+}
 
 // reductions [datapar.reductions]
 template <class BinaryOperation = std::plus<>, class T, class Abi>
-T reduce(const datapar<T, Abi> &, BinaryOperation = BinaryOperation());
-template <class BinaryOperation = std::plus<>, class M, class T, class Abi>
-T reduce(const where_expression<M, datapar<T, Abi>> &x, T init,
-         BinaryOperation binary_op = BinaryOperation());
+T reduce(const datapar<T, Abi> &v, BinaryOperation binary_op = BinaryOperation())
+{
+    using V = datapar<T, Abi>;
+    return detail::get_impl_t<V>::reduce(detail::size_tag<V::size()>, v, binary_op);
+}
+template <class BinaryOperation = std::plus<>, class M, class V>
+typename V::value_type reduce(
+    const where_expression<M, V> &x,
+    typename V::value_type neutral_element =
+        detail::default_neutral_element<typename V::value_type, BinaryOperation>::value,
+    BinaryOperation binary_op = BinaryOperation())
+{
+    std::remove_cv_t<V> tmp = neutral_element;
+    masked_assign(get_mask(x), tmp, get_lvalue(x));
+    return reduce(tmp, binary_op);
+}
 
 // algorithms [datapar.alg]
 template <class T, class A>

@@ -460,63 +460,235 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 #endif
     }
 
+    // reductions {{{2
+    template <class BinaryOperation>
+    static Vc_INTRINSIC double Vc_VDECL reduce(size_tag<2>, datapar<double> x,
+                                               BinaryOperation &binary_op)
+    {
+        using V = datapar<double>;
+        auto intrin_ = data(x);
+        intrin_ = data(binary_op(x, V(_mm_unpackhi_pd(intrin_, intrin_))));
+        return _mm_cvtsd_f64(intrin_);
+    }
+
+    template <class BinaryOperation>
+    static Vc_INTRINSIC float Vc_VDECL reduce(size_tag<4>, datapar<float> x,
+                                              BinaryOperation &binary_op)
+    {
+        using V = datapar<float>;
+        auto intrin_ = data(x);
+        intrin_ = data(
+            binary_op(x, V(_mm_shuffle_ps(intrin_, intrin_, _MM_SHUFFLE(0, 1, 2, 3)))));
+        intrin_ = data(binary_op(V(intrin_), V(_mm_unpackhi_ps(intrin_, intrin_))));
+        return _mm_cvtss_f32(intrin_);
+    }
+
+    template <class T, class BinaryOperation>
+    static Vc_INTRINSIC T Vc_VDECL reduce(size_tag<2>, const datapar<T> x,
+                                          BinaryOperation &binary_op)
+    {
+        return binary_op(x[0], x[1]);
+    }
+
+    template <class T, class BinaryOperation>
+    static Vc_INTRINSIC T Vc_VDECL reduce(size_tag<4>, datapar<T> x,
+                                          BinaryOperation &binary_op)
+    {
+        using V = datapar<T>;
+        auto intrin_ = data(x);
+        intrin_ =
+            data(binary_op(x, V(_mm_shuffle_epi32(intrin_, _MM_SHUFFLE(0, 1, 2, 3)))));
+        intrin_ = data(binary_op(V(intrin_), V(_mm_unpackhi_epi64(intrin_, intrin_))));
+        return _mm_cvtsi128_si32(intrin_);
+    }
+
+    template <class T, class BinaryOperation>
+    static Vc_INTRINSIC T Vc_VDECL reduce(size_tag<8>, datapar<T> x,
+                                          BinaryOperation &binary_op)
+    {
+        using V = datapar<T>;
+        auto intrin_ = data(x);
+        intrin_ = data(binary_op(V(_mm_unpacklo_epi16(intrin_, intrin_)),
+                                 V(_mm_unpackhi_epi16(intrin_, intrin_))));
+        intrin_ = data(binary_op(V(_mm_unpacklo_epi32(intrin_, intrin_)),
+                                 V(_mm_unpackhi_epi32(intrin_, intrin_))));
+        return binary_op(V(intrin_), V(_mm_unpackhi_epi64(intrin_, intrin_)))[0];
+    }
+
+    template <class T, class BinaryOperation>
+    static Vc_INTRINSIC T Vc_VDECL reduce(size_tag<16>, datapar<T> x,
+                                          BinaryOperation &binary_op)
+    {
+        using V = datapar<T>;
+        auto intrin_ = data(x);
+        intrin_ = data(binary_op(V(_mm_unpacklo_epi8(intrin_, intrin_)),
+                                 V(_mm_unpackhi_epi8(intrin_, intrin_))));
+        intrin_ = data(binary_op(V(_mm_unpacklo_epi16(intrin_, intrin_)),
+                                 V(_mm_unpackhi_epi16(intrin_, intrin_))));
+        intrin_ = data(binary_op(V(_mm_unpacklo_epi32(intrin_, intrin_)),
+                                 V(_mm_unpackhi_epi32(intrin_, intrin_))));
+        return binary_op(V(intrin_), V(_mm_unpackhi_epi64(intrin_, intrin_)))[0];
+    }
+
     // min, max, clamp {{{2
     static Vc_INTRINSIC datapar<double> min(datapar<double> a, datapar<double> b)
     {
-        return datapar<double>(_mm_min_pd(data(a), data(b)));
+        return {private_init, _mm_min_pd(data(a), data(b))};
     }
 
     static Vc_INTRINSIC datapar<float> min(datapar<float> a, datapar<float> b)
     {
-        return datapar<float>(_mm_min_ps(data(a), data(b)));
+        return {private_init, _mm_min_ps(data(a), data(b))};
+    }
+
+    static Vc_INTRINSIC datapar<llong> min(datapar<llong> a, datapar<llong> b)
+    {
+        auto x = data(a), y = data(b);
+#if defined Vc_HAVE_AVX512F && defined Vc_HAVE_AVX512VL
+        return {private_init, _mm_min_epi64(x, y)};
+#else
+        return {private_init, blendv_epi8(x, y, cmpgt_epi64(x, y))};
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<ullong> min(datapar<ullong> a, datapar<ullong> b)
+    {
+        auto x = data(a), y = data(b);
+#if defined Vc_HAVE_AVX512F && defined Vc_HAVE_AVX512VL
+        return {private_init, _mm_min_epu64(x, y)};
+#else
+        return {private_init, blendv_epi8(x, y, cmpgt_epu64(x, y))};
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<int> min(datapar<int> a, datapar<int> b)
+    {
+        auto x = data(a), y = data(b);
+#ifdef Vc_HAVE_SSE4_1
+        return {private_init, _mm_min_epi32(x, y)};
+#else
+        return {private_init, blendv_epi8(x, y, _mm_cmpgt_epi32(x, y))};
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<uint> min(datapar<uint> a, datapar<uint> b)
+    {
+        auto x = data(a), y = data(b);
+#ifdef Vc_HAVE_SSE4_1
+        return {private_init, _mm_min_epu32(x, y)};
+#else
+        return {private_init, blendv_epi8(x, y, cmpgt_epu32(x, y))};
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<short> min(datapar<short> a, datapar<short> b)
+    {
+        return {private_init, _mm_min_epi16(data(a), data(b))};
+    }
+
+    static Vc_INTRINSIC datapar<ushort> min(datapar<ushort> a, datapar<ushort> b)
+    {
+        auto x = data(a), y = data(b);
+#ifdef Vc_HAVE_SSE4_1
+        return {private_init, _mm_min_epu16(x, y)};
+#else
+        return {private_init, blendv_epi8(x, y, cmpgt_epu16(x, y))};
+#endif
     }
 
     static Vc_INTRINSIC datapar<schar> min(datapar<schar> a, datapar<schar> b)
     {
 #ifdef Vc_HAVE_SSE4_1
-        return datapar<schar>(_mm_min_epi8(data(a), data(b)));
+        return {private_init, _mm_min_epi8(data(a), data(b))};
 #else
-        auto x = data(a);
-        auto y = data(b);
-        return datapar<schar>(or_(
-            _mm_srli_epi16(_mm_min_epi16(_mm_slli_epi16(x, 8), _mm_slli_epi16(y, 8)), 8);
-            _mm_min_epi16(and_(x, _mm_set1_epi16(0xff00)),
-                          and_(y, _mm_set1_epi16(0xff00)))));
+        auto x = data(a), y = data(b);
+        return {private_init, blendv_epi8(x, y, _mm_cmpgt_epi8(x, y))};
 #endif
     }
 
     static Vc_INTRINSIC datapar<uchar> min(datapar<uchar> a, datapar<uchar> b)
     {
-        return datapar<uchar>(_mm_min_epu8(data(a), data(b)));
+        return {private_init, _mm_min_epu8(data(a), data(b))};
     }
 
     static Vc_INTRINSIC datapar<double> max(datapar<double> a, datapar<double> b)
     {
-        return datapar<double>(_mm_max_pd(data(a), data(b)));
+        return {private_init, _mm_max_pd(data(a), data(b))};
     }
 
     static Vc_INTRINSIC datapar<float> max(datapar<float> a, datapar<float> b)
     {
-        return datapar<float>(_mm_max_ps(data(a), data(b)));
+        return {private_init, _mm_max_ps(data(a), data(b))};
+    }
+
+    static Vc_INTRINSIC datapar<llong> max(datapar<llong> a, datapar<llong> b)
+    {
+        auto x = data(a), y = data(b);
+#if defined Vc_HAVE_AVX512F && defined Vc_HAVE_AVX512VL
+        return {private_init, _mm_max_epi64(x, y)};
+#else
+        return {private_init, blendv_epi8(y, x, cmpgt_epi64(x, y))};
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<ullong> max(datapar<ullong> a, datapar<ullong> b)
+    {
+        auto x = data(a), y = data(b);
+#if defined Vc_HAVE_AVX512F && defined Vc_HAVE_AVX512VL
+        return {private_init, _mm_max_epu64(x, y)};
+#else
+        return {private_init, blendv_epi8(y, x, cmpgt_epu64(x, y))};
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<int> max(datapar<int> a, datapar<int> b)
+    {
+        auto x = data(a), y = data(b);
+#ifdef Vc_HAVE_SSE4_1
+        return {private_init, _mm_max_epi32(x, y)};
+#else
+        return {private_init, blendv_epi8(y, x, _mm_cmpgt_epi32(x, y))};
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<uint> max(datapar<uint> a, datapar<uint> b)
+    {
+        auto x = data(a), y = data(b);
+#ifdef Vc_HAVE_SSE4_1
+        return {private_init, _mm_max_epu32(x, y)};
+#else
+        return {private_init, blendv_epi8(y, x, cmpgt_epu32(x, y))};
+#endif
+    }
+
+    static Vc_INTRINSIC datapar<short> max(datapar<short> a, datapar<short> b)
+    {
+        return {private_init, _mm_max_epi16(data(a), data(b))};
+    }
+
+    static Vc_INTRINSIC datapar<ushort> max(datapar<ushort> a, datapar<ushort> b)
+    {
+        auto x = data(a), y = data(b);
+#ifdef Vc_HAVE_SSE4_1
+        return {private_init, _mm_max_epu16(x, y)};
+#else
+        return {private_init, blendv_epi8(y, x, cmpgt_epu16(x, y))};
+#endif
     }
 
     static Vc_INTRINSIC datapar<schar> max(datapar<schar> a, datapar<schar> b)
     {
 #ifdef Vc_HAVE_SSE4_1
-        return datapar<schar>(_mm_max_epi8(data(a), data(b)));
+        return {private_init, _mm_max_epi8(data(a), data(b))};
 #else
-        auto x = data(a);
-        auto y = data(b);
-        return datapar<schar>(or_(
-            _mm_srli_epi16(_mm_max_epi16(_mm_slli_epi16(x, 8), _mm_slli_epi16(y, 8)), 8);
-            _mm_max_epi16(and_(x, _mm_set1_epi16(0xff00)),
-                          and_(y, _mm_set1_epi16(0xff00)))));
+        auto x = data(a), y = data(b);
+        return {private_init, blendv_epi8(y, x, _mm_cmpgt_epi8(x, y))};
 #endif
     }
 
     static Vc_INTRINSIC datapar<uchar> max(datapar<uchar> a, datapar<uchar> b)
     {
-        return datapar<uchar>(_mm_max_epu8(data(a), data(b)));
+        return {private_init, _mm_max_epu8(data(a), data(b))};
     }
 
     // compares {{{2

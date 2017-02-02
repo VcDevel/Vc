@@ -1269,6 +1269,33 @@ template <> void operator_conversions_<vuchar>::run()  //{{{2
 }  //}}}2
 }  // namespace Tests
 
+TEST_TYPES(V, reductions, ALL_TYPES)  //{{{1
+{
+    using T = typename V::value_type;
+    V x = 1;
+    COMPARE(reduce(x), T(V::size()));
+    COMPARE(Vc::reduce<std::multiplies<>>(x), T(1));
+
+    const V y = 2;
+    COMPARE(reduce(y), T(2 * V::size()));
+    COMPARE(reduce(where(y > 2, y)), T(0));
+    COMPARE(reduce(where(y == 2, y)), T(2 * V::size()));
+
+    const V z = make_vec<V>({1, 2}, 2);
+    COMPARE(Vc::reduce(z, [](auto a, auto b) {
+                using std::min;
+                return min(a, b);
+            }), T(1));
+    COMPARE(Vc::reduce(z, [](auto a, auto b) {
+                using std::max;
+                return max(a, b);
+            }), T(V::size()));
+    COMPARE(Vc::reduce(where(z > 1, z), 117, [](auto a, auto b) {
+                using std::min;
+                return min(a, b);
+            }), T(V::size() == 1 ? 117 : 2));
+}
+
 //}}}1
 
 // vim: foldmethod=marker

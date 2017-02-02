@@ -130,6 +130,15 @@ template <int N> struct fixed_size_datapar_impl {
         return {private_init, negate_impl(x.d, index_seq)};
     }
 
+    // reductions {{{2
+    template <class T, class BinaryOperation>
+    static inline T reduce(size_tag, const datapar<T> &x, BinaryOperation &binary_op)
+    {
+        T r = x[0];
+        execute_n_times<N - 1>([&](auto i) { r = binary_op(r, x[i + 1]); });
+        return r;
+    }
+
     // min, max, clamp {{{2
     template <class T>
     static inline datapar<T> min(const datapar<T> &a, const datapar<T> &b)
