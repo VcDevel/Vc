@@ -42,6 +42,13 @@ template <template <typename> class T> struct Template1 {
     template <typename U> using type = T<U>;
 };
 
+// list size{{{1
+template <class T> struct list_size;
+template <class... Ts>
+struct list_size<Typelist<Ts...>>
+    : public std::integral_constant<std::size_t, sizeof...(Ts)> {
+};
+
 // list indexing{{{1
 namespace TypelistIndexing
 {
@@ -448,6 +455,18 @@ template <class ToRemove, class List> struct filter_list;
 template <class ToRemove, class... Ts> struct filter_list<ToRemove, Typelist<Ts...>> {
     using type = concat<typename detail::apply_filter<ToRemove, Ts>::type...>;
 };
+
+template <class Rem0, class... Remove, class... Ts>
+struct filter_list<Typelist<Rem0, Remove...>, Typelist<Ts...>> {
+    using tmp = concat<typename detail::apply_filter<Rem0, Ts>::type...>;
+    using type = typename filter_list<Typelist<Remove...>, tmp>::type;
+};
+
+template <class... Ts>
+struct filter_list<Typelist<>, Typelist<Ts...>> {
+    using type = Typelist<Ts...>;
+};
+
 
 // static_asserts {{{1
 static_assert(std::is_same<outer_product<Typelist<int, float>, Typelist<short, double>>,

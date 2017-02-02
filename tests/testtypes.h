@@ -46,6 +46,13 @@ using ullong = unsigned long long;
 using ldouble = long double;
 
 using testtypes_wo_ldouble = typename filter_list<long double, Typelist<TESTTYPES>>::type;
+using testtypes_64_32 = typename filter_list<Typelist<ushort, short, uchar, schar>,
+                                            testtypes_wo_ldouble>::type;
+using testtypes_fp = typename filter_list<Typelist<ullong, llong, ulong, long, uint, int>,
+                                          testtypes_64_32>::type;
+using testtypes_float = typename filter_list<double, testtypes_fp>::type;
+static_assert(list_size<testtypes_fp>::value <= 2, "filtering the list failed");
+static_assert(list_size<testtypes_float>::value <= 1, "filtering the list failed");
 
 // vT {{{1
 using vschar = Vc::native_datapar<schar>;
@@ -79,15 +86,13 @@ using current_native_test_types =
 // native_test_types {{{1
 typedef concat<
 #if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
-    expand_list<Typelist<Template<base_template, Vc::datapar_abi::avx512>>,
-                Typelist<double, float, llong, ulong, int, ullong, long, uint>>,
+    expand_one<Template<base_template, Vc::datapar_abi::avx512>, testtypes_64_32>,
 #endif
 #if defined Vc_HAVE_AVX_ABI && !defined Vc_HAVE_FULL_AVX_ABI
-    base_template<float, Vc::datapar_abi::avx>,
-    base_template<double, Vc::datapar_abi::avx>,
+    expand_one<Template<base_template, Vc::datapar_abi::avx>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_SSE_ABI && !defined Vc_HAVE_FULL_SSE_ABI
-    base_template<float, Vc::datapar_abi::sse>,
+    expand_one<Template<base_template, Vc::datapar_abi::sse>, testtypes_float>,
 #endif
     expand_list<concat<
 #ifdef Vc_HAVE_FULL_AVX512_ABI
