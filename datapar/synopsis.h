@@ -486,11 +486,17 @@ datapar<T, A> max(const datapar<T, A> &a, const datapar<T, A> &b)
     return detail::get_impl_t<datapar<T, A>>::max(a, b);
 }
 template <class T, class A>
-std::pair<datapar<T, A>, datapar<T, A>> minmax(const datapar<T, A> &,
-                                               const datapar<T, A> &);
+std::pair<datapar<T, A>, datapar<T, A>> minmax(const datapar<T, A> &a,
+                                               const datapar<T, A> &b)
+{
+    return detail::get_impl_t<datapar<T, A>>::minmax(a, b);
+}
 template <class T, class A>
 datapar<T, A> clamp(const datapar<T, A> &v, const datapar<T, A> &lo,
-                    const datapar<T, A> &hi);
+                    const datapar<T, A> &hi)
+{
+    return min(hi, max(lo, v));
+}
 
 Vc_VERSIONED_NAMESPACE_END
 

@@ -1275,6 +1275,8 @@ TEST_TYPES(V, reductions, ALL_TYPES)  //{{{1
     V x = 1;
     COMPARE(reduce(x), T(V::size()));
     COMPARE(Vc::reduce<std::multiplies<>>(x), T(1));
+    x = make_vec<V>({1, 2}, 2);
+    COMPARE(reduce(x), T((1 + V::size()) * V::size() / 2));
 
     const V y = 2;
     COMPARE(reduce(y), T(2 * V::size()));

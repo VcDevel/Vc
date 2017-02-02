@@ -357,6 +357,83 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
 #endif
     }
 
+    // reductions {{{2
+    template <class T, class BinaryOperation, size_t N>
+    static Vc_INTRINSIC T Vc_VDECL reduce(size_tag<N>, datapar<T> x,
+                                          BinaryOperation &binary_op)
+    {
+        using V = Vc::datapar<T, datapar_abi::sse>;
+        return sse_datapar_impl::reduce(size_tag<N / 2>(),
+                                        binary_op(V(lo128(data(x))), V(hi128(data(x)))),
+                                        binary_op);
+    }
+
+    // min, max {{{2
+#define Vc_MINMAX_(T_, suffix_)                                                          \
+    static Vc_INTRINSIC datapar<T_> min(datapar<T_> a, datapar<T_> b)                    \
+    {                                                                                    \
+        return {private_init, _mm256_min_##suffix_(data(a), data(b))};                   \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<T_> max(datapar<T_> a, datapar<T_> b)                    \
+    {                                                                                    \
+        return {private_init, _mm256_max_##suffix_(data(a), data(b))};                   \
+    }                                                                                    \
+    static Vc_INTRINSIC std::pair<datapar<T_>, datapar<T_>> minmax(datapar<T_> a,        \
+                                                                   datapar<T_> b)        \
+    {                                                                                    \
+        return {{private_init, _mm256_min_##suffix_(data(a), data(b))},                  \
+                {private_init, _mm256_max_##suffix_(data(a), data(b))}};                 \
+    }                                                                                    \
+    static_assert(true, "")
+    Vc_MINMAX_(double, pd);
+    Vc_MINMAX_( float, ps);
+    Vc_MINMAX_(   int, epi32);
+    Vc_MINMAX_(  uint, epu32);
+    Vc_MINMAX_( short, epi16);
+    Vc_MINMAX_(ushort, epu16);
+    Vc_MINMAX_( schar, epi8);
+    Vc_MINMAX_( uchar, epu8);
+#ifdef Vc_HAVE_AVX512VL
+    Vc_MINMAX_( llong, epi64);
+    Vc_MINMAX_(ullong, epu64);
+#else
+    static Vc_INTRINSIC datapar<llong> min(datapar<llong> a, datapar<llong> b)
+    {
+        auto x = data(a), y = data(b);
+        return {private_init, _mm256_blendv_epi8(x, y, _mm256_cmpgt_epi64(x, y))};
+    }
+    static Vc_INTRINSIC datapar<llong> max(datapar<llong> a, datapar<llong> b)
+    {
+        auto x = data(a), y = data(b);
+        return {private_init, _mm256_blendv_epi8(y, x, _mm256_cmpgt_epi64(x, y))};
+    }
+    static Vc_INTRINSIC std::pair<datapar<llong>, datapar<llong>> minmax(datapar<llong> a,
+                                                                         datapar<llong> b)
+    {
+        auto x = data(a), y = data(b);
+        return {{private_init, _mm256_blendv_epi8(x, y, _mm256_cmpgt_epi64(x, y))},
+                {private_init, _mm256_blendv_epi8(y, x, _mm256_cmpgt_epi64(x, y))}};
+    }
+    static Vc_INTRINSIC datapar<ullong> min(datapar<ullong> a, datapar<ullong> b)
+    {
+        auto x = data(a), y = data(b);
+        return {private_init, _mm256_blendv_epi8(x, y, cmpgt(x, y))};
+    }
+    static Vc_INTRINSIC datapar<ullong> max(datapar<ullong> a, datapar<ullong> b)
+    {
+        auto x = data(a), y = data(b);
+        return {private_init, _mm256_blendv_epi8(y, x, cmpgt(x, y))};
+    }
+    static Vc_INTRINSIC std::pair<datapar<ullong>, datapar<ullong>> minmax(
+        datapar<ullong> a, datapar<ullong> b)
+    {
+        auto x = data(a), y = data(b);
+        return {{private_init, _mm256_blendv_epi8(x, y, cmpgt(x, y))},
+                {private_init, _mm256_blendv_epi8(y, x, cmpgt(x, y))}};
+    }
+#endif
+#undef Vc_MINMAX_
+
     // compares {{{2
 #if defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>

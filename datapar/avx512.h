@@ -396,6 +396,46 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
         return equal_to(x, datapar<T>(0));
     }
 
+    // reductions {{{2
+    template <class T, class BinaryOperation, size_t N>
+    static Vc_INTRINSIC T Vc_VDECL reduce(size_tag<N>, datapar<T> x,
+                                          BinaryOperation &binary_op)
+    {
+        using V = Vc::datapar<T, datapar_abi::avx>;
+        return avx_datapar_impl::reduce(size_tag<N / 2>(),
+                                        binary_op(V(lo256(data(x))), V(hi256(data(x)))),
+                                        binary_op);
+    }
+
+    // min, max {{{2
+#define Vc_MINMAX_(T_, suffix_)                                                          \
+    static Vc_INTRINSIC datapar<T_> min(datapar<T_> a, datapar<T_> b)                    \
+    {                                                                                    \
+        return {private_init, _mm512_min_##suffix_(data(a), data(b))};                   \
+    }                                                                                    \
+    static Vc_INTRINSIC datapar<T_> max(datapar<T_> a, datapar<T_> b)                    \
+    {                                                                                    \
+        return {private_init, _mm512_max_##suffix_(data(a), data(b))};                   \
+    }                                                                                    \
+    static Vc_INTRINSIC std::pair<datapar<T_>, datapar<T_>> minmax(datapar<T_> a,        \
+                                                                   datapar<T_> b)        \
+    {                                                                                    \
+        return {{private_init, _mm512_min_##suffix_(data(a), data(b))},                  \
+                {private_init, _mm512_max_##suffix_(data(a), data(b))}};                 \
+    }                                                                                    \
+    static_assert(true, "")
+    Vc_MINMAX_(double, pd);
+    Vc_MINMAX_( float, ps);
+    Vc_MINMAX_( llong, epi64);
+    Vc_MINMAX_(ullong, epu64);
+    Vc_MINMAX_(   int, epi32);
+    Vc_MINMAX_(  uint, epu32);
+    Vc_MINMAX_( short, epi16);
+    Vc_MINMAX_(ushort, epu16);
+    Vc_MINMAX_( schar, epi8);
+    Vc_MINMAX_( uchar, epu8);
+#undef Vc_MINMAX_
+
     // compares {{{2
 #if 0  // defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>
