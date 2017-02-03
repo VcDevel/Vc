@@ -46,10 +46,7 @@ template <class... Ts> using base_template = Vc::datapar<Ts...>;
 #include "testtypes.h"
 
 // more operator objects {{{1
-template <class T = void> struct assignment {
-    constexpr T &operator()(T &a, const T &b) const { return a = b; }
-};
-template <> struct assignment<void> {
+struct assignment {
     template <class A, class B>
     constexpr decltype(std::declval<A>() = std::declval<B>()) operator()(A &&a,
                                                                          B &&b) const
@@ -109,6 +106,9 @@ template <class A, class B>
 constexpr bool has_less_bits =
     std::numeric_limits<A>::digits < std::numeric_limits<B>::digits;
 
+enum unscoped_enum { foo };  //{{{1
+enum class scoped_enum { bar };  //{{{1
+struct convertible { operator int(); operator float(); };  //{{{1
 TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
 {
     using T = typename V::value_type;
@@ -144,32 +144,36 @@ TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
     y = 3;
     COMPARE(x, y);
 
-    COMPARE((operator_is_substitution_failure<V &, long double, assignment<>>),
+    VERIFY(!(operator_is_substitution_failure<V &, unscoped_enum, assignment>));
+    VERIFY( (operator_is_substitution_failure<V &, scoped_enum, assignment>));
+    COMPARE((operator_is_substitution_failure<V &, convertible, assignment>),
+            (!std::is_convertible<convertible, T>::value));
+    COMPARE((operator_is_substitution_failure<V &, long double, assignment>),
             (sizeof(long double) > sizeof(T) || std::is_integral<T>::value));
-    COMPARE((operator_is_substitution_failure<V &, double, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, double, assignment>),
             (sizeof(double) > sizeof(T) || std::is_integral<T>::value));
-    COMPARE((operator_is_substitution_failure<V &, float, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, float, assignment>),
             (sizeof(float) > sizeof(T) || std::is_integral<T>::value));
-    COMPARE((operator_is_substitution_failure<V &, long long, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, long long, assignment>),
             (has_less_bits<T, long long> || std::is_unsigned<T>::value));
-    COMPARE((operator_is_substitution_failure<V &, unsigned long long, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, unsigned long long, assignment>),
             (has_less_bits<T, unsigned long long>));
-    COMPARE((operator_is_substitution_failure<V &, long, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, long, assignment>),
             (has_less_bits<T, long> || std::is_unsigned<T>::value));
-    COMPARE((operator_is_substitution_failure<V &, unsigned long, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, unsigned long, assignment>),
             (has_less_bits<T, unsigned long>));
     // int broadcast *always* works:
-    VERIFY(!(operator_is_substitution_failure<V &, int, assignment<>>));
+    VERIFY(!(operator_is_substitution_failure<V &, int, assignment>));
     // uint broadcast works for any unsigned T:
-    COMPARE((operator_is_substitution_failure<V &, unsigned int, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, unsigned int, assignment>),
             (!std::is_unsigned<T>::value && has_less_bits<T, unsigned int>));
-    COMPARE((operator_is_substitution_failure<V &, short, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, short, assignment>),
             (has_less_bits<T, short> || std::is_unsigned<T>::value));
-    COMPARE((operator_is_substitution_failure<V &, unsigned short, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, unsigned short, assignment>),
             (has_less_bits<T, unsigned short>));
-    COMPARE((operator_is_substitution_failure<V &, signed char, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, signed char, assignment>),
             (has_less_bits<T, signed char> || std::is_unsigned<T>::value));
-    COMPARE((operator_is_substitution_failure<V &, unsigned char, assignment<>>),
+    COMPARE((operator_is_substitution_failure<V &, unsigned char, assignment>),
             (has_less_bits<T, unsigned char>));
 }
 

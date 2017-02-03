@@ -184,30 +184,9 @@ struct is_narrowing_conversion<From, To, true, true>
 template <class T> struct is_narrowing_conversion<T, T, true, true> : public std::false_type {
 };
 
-bool     converted_to_arithmetic(bool    );
-char     converted_to_arithmetic(char    );
-schar    converted_to_arithmetic(schar   );
-uchar    converted_to_arithmetic(uchar   );
-wchar_t  converted_to_arithmetic(wchar_t );
-char16_t converted_to_arithmetic(char16_t);
-char32_t converted_to_arithmetic(char32_t);
-short    converted_to_arithmetic(short   );
-ushort   converted_to_arithmetic(ushort  );
-int      converted_to_arithmetic(int     );
-uint     converted_to_arithmetic(uint    );
-long     converted_to_arithmetic(long    );
-ulong    converted_to_arithmetic(ulong   );
-llong    converted_to_arithmetic(llong   );
-ullong   converted_to_arithmetic(ullong  );
-float    converted_to_arithmetic(float   );
-double   converted_to_arithmetic(double  );
-long double converted_to_arithmetic(long double);
-//template <class T> void converted_to_arithmetic(const T &);
-
 template <class From, class To>
 struct is_narrowing_conversion<From, To, false, true>
-    : public is_narrowing_conversion<decltype(converted_to_arithmetic(declval<From>())),
-                                     To> {
+    : public negation<std::is_convertible<From, To>> {
 };
 
 // converts_to_higher_integer_rank{{{1
