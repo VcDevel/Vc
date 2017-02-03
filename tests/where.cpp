@@ -38,6 +38,22 @@ template <class V> struct Convertible {
     operator V() const { return V(4); }
 };
 
+template <class M, class T> constexpr bool where_is_ill_formed_impl(M, T, float)
+{
+    return true;
+}
+template <class M, class T>
+constexpr auto where_is_ill_formed_impl(M m, T v, int)
+    -> std::conditional_t<true, bool, decltype(Vc::where(m, v))>
+{
+    return false;
+}
+
+template <class M, class T> constexpr bool where_is_ill_formed(M m, T v)
+{
+    return where_is_ill_formed_impl(m, v, int());
+}
+
 TEST_TYPES(V, where, (all_test_types))
 {
     using M = typename V::mask_type;
@@ -87,6 +103,11 @@ TEST_TYPES(V, where, (all_test_types))
     COMPARE(!x, alternating_mask);
     COMPARE(!where(alternating_mask, x), alternating_mask);
     COMPARE(!where(!alternating_mask, x), M(false));
+
+    const auto y = x;
+    VERIFY(where_is_ill_formed(true, y));
+    VERIFY(where_is_ill_formed(true, x));
+    VERIFY(where_is_ill_formed(true, V(x)));
 }
 
 TEST_TYPES(T, where_fundamental, (int, float, double, short))

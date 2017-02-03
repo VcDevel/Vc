@@ -449,11 +449,8 @@ template <class T> Vc_INTRINSIC where_expression<bool, T> where(bool k, T &d)
 {
     return {k, d};
 }
-template <class T>
-Vc_INTRINSIC const where_expression<bool, const T> where(bool k, const T &d)
-{
-    return {k, d};
-}
+template <class T, class A> void where(bool k, datapar<T, A> &d) = delete;
+template <class T, class A> void where(bool k, const datapar<T, A> &d) = delete;
 
 // reductions [datapar.reductions]
 template <class BinaryOperation = std::plus<>, class T, class Abi>

@@ -63,8 +63,8 @@ public:
     // non-std; required to work around ICC ICEs
     static constexpr size_type size_v = traits::size();
 
-    // implicit broadcast constructor
-    mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
+    // explicit broadcast constructor
+    explicit mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
 
     // implicit type conversion constructor
     template <class U>
