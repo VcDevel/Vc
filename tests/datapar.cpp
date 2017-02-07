@@ -177,6 +177,15 @@ TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
             (has_less_bits<T, unsigned char>));
 }
 
+XTEST_TYPES(V, generators, (ALL_TYPES))  //{{{1
+{
+    using T = typename V::value_type;
+    V x([](int) { return T(1); });
+    COMPARE(x, V(1));
+    x = V([](auto i) { return T(i); });
+    COMPARE(x, make_vec<V>({0, 1}, 2));
+}
+
 //operators helpers  //{{{1
 template <class T> constexpr T genHalfBits()
 {

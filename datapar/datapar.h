@@ -106,6 +106,7 @@ class datapar : public datapar_int_operators<datapar<T, Abi>, std::is_integral<T
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::datapar_impl_type;
+    using member_type = typename traits::datapar_member_type;
     using cast_type = typename traits::datapar_cast_type;
     static constexpr std::integral_constant<size_t, traits::size()> size_tag = {};
     static constexpr T *type_tag = nullptr;
@@ -191,6 +192,19 @@ public:
                          void *> = nullptr)
     {
         x.copy_to(d.data(), flags::overaligned<alignof(datapar)>);
+    }
+
+    // generator constructor
+    template <class F>
+    explicit datapar(
+        F &&gen,
+        enable_if<std::is_same<
+            value_type, decltype(declval<F>()(
+                            declval<std::integral_constant<size_t, 0> &>()))>::value> =
+            nullarg)
+        : d(detail::generate_from_n_evaluations<size(), member_type>(
+              [&gen](auto element_idx_) { return gen(element_idx_); }))
+    {
     }
 
     // load constructor
@@ -308,8 +322,8 @@ private:
 #else
     friend auto detail::data<value_type, abi_type>(const datapar &);
 #endif
-    datapar(detail::private_init_t, const typename traits::datapar_member_type &init) : d(init) {}
-    alignas(traits::datapar_member_alignment) typename traits::datapar_member_type d = {};
+    datapar(detail::private_init_t, const member_type &init) : d(init) {}
+    alignas(traits::datapar_member_alignment) member_type d = {};
 };
 
 namespace detail
