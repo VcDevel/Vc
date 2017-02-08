@@ -396,7 +396,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
 #ifdef Vc_HAVE_AVX512VL
     Vc_MINMAX_( llong, epi64);
     Vc_MINMAX_(ullong, epu64);
-#else
+#elif defined Vc_HAVE_AVX2
     static Vc_INTRINSIC datapar<llong> min(datapar<llong> a, datapar<llong> b)
     {
         auto x = data(a), y = data(b);
