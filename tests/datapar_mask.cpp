@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #include "unittest.h"
 #include <Vc/datapar>
+#include "metahelpers.h"
 
 template <class... Ts> using base_template = Vc::mask<Ts...>;
 #include "testtypes.h"
@@ -297,6 +298,74 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
     for (; i < 3 * M::size(); ++i) {
         COMPARE(mem[i], false);
     }
+}
+
+template <class A, class B, class Expected = A> void binary_op_return_type()  //{{{1
+{
+    static_assert(std::is_same<A, Expected>::value, "");
+    const auto name = typeToString<A>() + " + " + typeToString<B>();
+    COMPARE(typeid(A() & B()), typeid(Expected)) << name;
+    COMPARE(typeid(B() & A()), typeid(Expected)) << name;
+    UnitTest::ADD_PASS() << name;
+}
+
+TEST_TYPES(M, operator_conversions, (current_native_mask_test_types))  //{{{1
+{
+    // binary ops without conversions work
+    binary_op_return_type<M, M>();
+
+    // nothing else works: no implicit conv. or ambiguous
+    using Vc::mask;
+    using Vc::native_mask;
+    using Vc::fixed_size_mask;
+    auto &&is = [](auto x) { return std::is_same<M, native_mask<decltype(x)>>::value; };
+    auto &&sfinae_test = [](auto x) {
+        return operator_is_substitution_failure<M, decltype(x), std::bit_and<>>;
+    };
+    using ldouble = long double;
+    if (!is(ldouble())) VERIFY(sfinae_test(native_mask<ldouble>()));
+    if (!is(double ())) VERIFY(sfinae_test(native_mask<double >()));
+    if (!is(float  ())) VERIFY(sfinae_test(native_mask<float  >()));
+    if (!is(ullong ())) VERIFY(sfinae_test(native_mask<ullong >()));
+    if (!is(llong  ())) VERIFY(sfinae_test(native_mask<llong  >()));
+    if (!is(ulong  ())) VERIFY(sfinae_test(native_mask<ulong  >()));
+    if (!is(long   ())) VERIFY(sfinae_test(native_mask<long   >()));
+    if (!is(uint   ())) VERIFY(sfinae_test(native_mask<uint   >()));
+    if (!is(int    ())) VERIFY(sfinae_test(native_mask<int    >()));
+    if (!is(ushort ())) VERIFY(sfinae_test(native_mask<ushort >()));
+    if (!is(short  ())) VERIFY(sfinae_test(native_mask<short  >()));
+    if (!is(uchar  ())) VERIFY(sfinae_test(native_mask<uchar  >()));
+    if (!is(schar  ())) VERIFY(sfinae_test(native_mask<schar  >()));
+
+    VERIFY(sfinae_test(bool()));
+
+    VERIFY(sfinae_test(mask<ldouble>()));
+    VERIFY(sfinae_test(mask<double >()));
+    VERIFY(sfinae_test(mask<float  >()));
+    VERIFY(sfinae_test(mask<ullong >()));
+    VERIFY(sfinae_test(mask<llong  >()));
+    VERIFY(sfinae_test(mask<ulong  >()));
+    VERIFY(sfinae_test(mask<long   >()));
+    VERIFY(sfinae_test(mask<uint   >()));
+    VERIFY(sfinae_test(mask<int    >()));
+    VERIFY(sfinae_test(mask<ushort >()));
+    VERIFY(sfinae_test(mask<short  >()));
+    VERIFY(sfinae_test(mask<uchar  >()));
+    VERIFY(sfinae_test(mask<schar  >()));
+
+    VERIFY(sfinae_test(fixed_size_mask<ldouble, 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<double , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<float  , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<ullong , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<llong  , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<ulong  , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<long   , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<uint   , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<int    , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<ushort , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<short  , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<uchar  , 2>()));
+    VERIFY(sfinae_test(fixed_size_mask<schar  , 2>()));
 }
 
 TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
