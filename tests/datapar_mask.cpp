@@ -73,20 +73,20 @@ TEST_TYPES(M, broadcast, ALL_TYPES)  //{{{1
         }
     }
 
-    M x = true;
-    M y = false;
+    M x(true);
+    M y(false);
     for (std::size_t i = 0; i < M::size(); ++i) {
         COMPARE(x[i], true);
         COMPARE(y[i], false);
     }
-    y = true;
+    y = M(true);
     COMPARE(x, y);
 }
 
 TEST_TYPES(M, operators, ALL_TYPES)  //{{{1
 {
     {  // compares{{{2
-        M x = true, y = false;
+        M x(true), y(false);
         VERIFY(x == x);
         VERIFY(x != y);
         VERIFY(y != x);
@@ -95,7 +95,7 @@ TEST_TYPES(M, operators, ALL_TYPES)  //{{{1
         VERIFY(!(y == x));
     }
     {  // subscripting{{{2
-        M x = true;
+        M x(true);
         for (std::size_t i = 0; i < M::size(); ++i) {
             COMPARE(x[i], true) << "\nx: " << x << ", i: " << i;
             x[i] = !x[i];
@@ -108,7 +108,7 @@ TEST_TYPES(M, operators, ALL_TYPES)  //{{{1
         COMPARE(x, M{true});
     }
     {  // negation{{{2
-        M x = false;
+        M x(false);
         M y = !x;
         COMPARE(y, M{true});
         COMPARE(!y, x);
@@ -180,7 +180,7 @@ TEST_TYPES(M, convert, ALL_TYPES)
 {
     {
         using M2 = typename ConvertType<M>::type0;
-        M2 x = true;
+        M2 x ( true);
         M y = x;
         COMPARE(y, M{true});
         x[0] = false;
@@ -195,7 +195,7 @@ TEST_TYPES(M, convert, ALL_TYPES)
     }
     {
         using M2 = typename ConvertType<M>::type1;
-        M2 x = true;
+        M2 x(true);
         M y = x;
         COMPARE(y, M{true});
         x[0] = false;
@@ -253,7 +253,7 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
     x = !alternating_mask;
     x.copy_from(&mem[M::size()], alternating_mask, vector_aligned);
     COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : M{true});
-    x = true;                                                 // 1111
+    x = M(true);                                              // 1111
     x.copy_from(&mem[1], alternating_mask, element_aligned);  // load .0.0
     COMPARE(x, !alternating_mask);                            // 1010
     x.copy_from(mem, alternating_mask, overaligned);          // load .1.1
@@ -261,7 +261,7 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
 
     // stores {{{2
     memset(mem, 0, sizeof(mem));
-    x = true;
+    x = M(true);
     x.copy_to(&mem[M::size()], vector_aligned);
     std::size_t i = 0;
     for (; i < M::size(); ++i) {
