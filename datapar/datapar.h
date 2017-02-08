@@ -256,16 +256,6 @@ public:
     datapar operator+() const { return *this; }
     datapar operator-() const { return impl::unary_minus(*this); }
 
-    // reductions
-    //value_type sum() const;
-    //value_type sum(mask_type) const;
-    //value_type product() const;
-    //value_type product(mask_type) const;
-    //value_type min() const;
-    //value_type min(mask_type) const;
-    //value_type max() const;
-    //value_type max(mask_type) const;
-
     // access to internal representation (suggested extension)
     explicit operator cast_type() const { return d; }
     explicit datapar(const cast_type &init) : d(init) {}
