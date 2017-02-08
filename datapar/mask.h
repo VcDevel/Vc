@@ -154,11 +154,7 @@ public:
     friend mask &operator^=(mask &x, const mask &y) { return x = impl::bit_xor(x, y); }
 
     // mask compares [mask.comparison]
-    friend bool
-    operator==(const mask &x, const mask &y)
-    {
-        return std::equal_to<mask>{}(x, y);
-    }
+    friend bool operator==(const mask &x, const mask &y) { return std::equal_to<mask>{}(x, y); }
     friend bool operator!=(const mask &x, const mask &y) { return !operator==(x, y); }
 
 private:
