@@ -278,10 +278,9 @@ public:
 
     template <class... Args, class = enable_if<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&...init)
+        : data(x86::set(static_cast<EntryType>(std::forward<Args>(init))...))
     {
         assertCorrectAlignment(&data);
-        reinterpret_cast<aliased_construction &>(data) = {
-            {static_cast<EntryType>(std::forward<Args>(init))...}};
     }
 
 #ifdef Vc_HAVE_AVX512BW
