@@ -144,9 +144,14 @@ public:
     {
         return impl::logical_or(x, y);
     }
+
     friend mask operator&(const mask &x, const mask &y) { return impl::bit_and(x, y); }
     friend mask operator|(const mask &x, const mask &y) { return impl::bit_or(x, y); }
     friend mask operator^(const mask &x, const mask &y) { return impl::bit_xor(x, y); }
+
+    friend mask &operator&=(mask &x, const mask &y) { return x = impl::bit_and(x, y); }
+    friend mask &operator|=(mask &x, const mask &y) { return x = impl::bit_or (x, y); }
+    friend mask &operator^=(mask &x, const mask &y) { return x = impl::bit_xor(x, y); }
 
     // mask compares [mask.comparison]
     friend bool

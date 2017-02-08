@@ -93,6 +93,13 @@ template <class V> class datapar_int_operators<V, true>
     using impl = detail::get_impl_t<V>;
 
 public:
+    friend V &operator %=(V &lhs, const V &x) { return lhs = lhs  % x; }
+    friend V &operator &=(V &lhs, const V &x) { return lhs = lhs  & x; }
+    friend V &operator |=(V &lhs, const V &x) { return lhs = lhs  | x; }
+    friend V &operator ^=(V &lhs, const V &x) { return lhs = lhs  ^ x; }
+    friend V &operator<<=(V &lhs, const V &x) { return lhs = lhs << x; }
+    friend V &operator>>=(V &lhs, const V &x) { return lhs = lhs >> x; }
+
     friend V operator%(const V &x, const V &y) { return impl::modulus(x, y); }
     friend V operator&(const V &x, const V &y) { return impl::bit_and(x, y); }
     friend V operator|(const V &x, const V &y) { return impl::bit_or(x, y); }
@@ -259,6 +266,12 @@ public:
     // access to internal representation (suggested extension)
     explicit operator cast_type() const { return d; }
     explicit datapar(const cast_type &init) : d(init) {}
+
+    // compound assignment [datapar.cassign]
+    friend datapar &operator+=(datapar &lhs, const datapar &x) { return lhs = lhs + x; }
+    friend datapar &operator-=(datapar &lhs, const datapar &x) { return lhs = lhs - x; }
+    friend datapar &operator*=(datapar &lhs, const datapar &x) { return lhs = lhs * x; }
+    friend datapar &operator/=(datapar &lhs, const datapar &x) { return lhs = lhs / x; }
 
     // binary operators [datapar.binary]
     friend datapar operator+(const datapar &x, const datapar &y)

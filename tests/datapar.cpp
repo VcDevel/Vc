@@ -144,6 +144,8 @@ integral_operators()
             COMPARE(x % y, V(0));
             x = x - 1;
             COMPARE(x % y, V(-1));
+            x %= y;
+            COMPARE(x, V(-1));
         }
     }
 
@@ -154,12 +156,6 @@ template <class V>
 std::enable_if_t<!std::is_integral<typename V::value_type>::value, void>
 integral_operators()
 {
-    VERIFY((operator_is_substitution_failure<V, V, std::modulus<>>));
-    VERIFY((operator_is_substitution_failure<V, V, std::bit_and<>>));
-    VERIFY((operator_is_substitution_failure<V, V, std::bit_or<>>));
-    VERIFY((operator_is_substitution_failure<V, V, std::bit_xor<>>));
-    VERIFY((operator_is_substitution_failure<V, V, bit_shift_left<>>));
-    VERIFY((operator_is_substitution_failure<V, V, bit_shift_right<>>));
 }
 
 TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
@@ -236,6 +232,10 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
         y = make_vec<V>({1, 2, 3, 4, 5, 6, 7});
         COMPARE(x = x + y, make_vec<V>({2, 3, 4, 5, 6, 7, 8}));
         COMPARE(x = x + -y, V(1));
+        COMPARE(x += y, make_vec<V>({2, 3, 4, 5, 6, 7, 8}));
+        COMPARE(x, make_vec<V>({2, 3, 4, 5, 6, 7, 8}));
+        COMPARE(x += -y, V(1));
+        COMPARE(x, V(1));
     }
 
     {  // minus{{{2
@@ -248,6 +248,10 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
         y = make_vec<V>({1, 2, 3, 4, 5, 6, 7});
         COMPARE(x = y - x, make_vec<V>({0, 1, 2, 3, 4, 5, 6}));
         COMPARE(x = y - x, V(1));
+        COMPARE(y -= x, make_vec<V>({0, 1, 2, 3, 4, 5, 6}));
+        COMPARE(y, make_vec<V>({0, 1, 2, 3, 4, 5, 6}));
+        COMPARE(y -= y, V(0));
+        COMPARE(y, V(0));
     }
 
     {  // multiplies{{{2
@@ -272,6 +276,9 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
                 COMPARE(x * y, V(T(n * m)));
             }
         }
+        x = 2;
+        COMPARE(x *= make_vec<V>({1, 2, 3}), make_vec<V>({2, 4, 6}));
+        COMPARE(x, make_vec<V>({2, 4, 6}));
     }
 
     {  // divides{{{2
@@ -299,6 +306,8 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
         ref = make_vec<V>({T(2 / std::numeric_limits<T>::max()),
                            T(2 / (std::numeric_limits<T>::min() + 1))});
         COMPARE(x / y, ref);
+        COMPARE(x /= y, ref);
+        COMPARE(x, ref);
     }
 
     {  // increment & decrement {{{2
@@ -316,6 +325,19 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
     }
 
     integral_operators<V>();
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V, V, std::modulus<>>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V, V, std::bit_and<>>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V, V, std::bit_or<>>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V, V, std::bit_xor<>>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V, V, bit_shift_left>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V, V, bit_shift_right>));
+
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V &, V, assign_modulus>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V &, V, assign_bit_and>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V &, V, assign_bit_or>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V &, V, assign_bit_xor>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V &, V, assign_bit_shift_left>));
+    COMPARE(!std::is_integral<T>::value, (operator_is_substitution_failure<V &, V, assign_bit_shift_right>));
 }
 
 template <class A, class B, class Expected = A> void binary_op_return_type()  //{{{1
