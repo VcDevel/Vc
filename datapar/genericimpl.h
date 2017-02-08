@@ -126,17 +126,18 @@ template <class Derived> struct generic_datapar_impl {
 // where implementation {{{1
 template <class T, class A>
 inline void Vc_VDECL masked_assign(mask<T, A> k, datapar<T, A> &lhs,
-                                   const datapar<T, A> &rhs)
+                                   const detail::id<datapar<T, A>> &rhs)
 {
     lhs = static_cast<datapar<T, A>>(
         detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs)));
 }
 
-template <class T, class A, class U>
-inline enable_if<std::is_convertible<U, datapar<T, A>>::value, void> masked_assign(
-    const mask<T, A> &k, datapar<T, A> &lhs, const U &rhs)
+template <class T, class A>
+inline void Vc_VDECL masked_assign(mask<T, A> k, mask<T, A> &lhs,
+                                   const detail::id<mask<T, A>> &rhs)
 {
-    masked_assign(k, lhs, datapar<T, A>(rhs));
+    lhs = static_cast<mask<T, A>>(
+        detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs)));
 }
 
 template <template <typename> class Op, typename T, class A,

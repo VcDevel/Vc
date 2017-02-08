@@ -1373,6 +1373,14 @@ Vc_INTRINSIC Vc_CONST __m256i blend(__m256i mask, __m256i at0, __m256i at1)
 #endif  // Vc_HAVE_AVX
 
 #ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC Vc_CONST __mmask8 blend(__mmask8 mask, __mmask8 at0, __mmask8 at1)
+{
+    return (mask & at1) | (~mask & at0);
+}
+Vc_INTRINSIC Vc_CONST __mmask16 blend(__mmask16 mask, __mmask16 at0, __mmask16 at1)
+{
+    return _mm512_kor(_mm512_kand(mask, at1), _mm512_kandn(mask, at0));
+}
 Vc_INTRINSIC Vc_CONST __m512  blend(__mmask16 mask, __m512 at0, __m512 at1)
 {
     return _mm512_mask_mov_ps(at0, mask, at1);
@@ -1390,6 +1398,14 @@ Vc_INTRINSIC Vc_CONST __m512i blend(__mmask16 mask, __m512i at0, __m512i at1)
     return _mm512_mask_mov_epi32(at0, mask, at1);
 }
 #ifdef Vc_HAVE_AVX512BW
+Vc_INTRINSIC Vc_CONST __mmask32 blend(__mmask32 mask, __mmask32 at0, __mmask32 at1)
+{
+    return (mask & at1) | (~mask & at0);
+}
+Vc_INTRINSIC Vc_CONST __mmask64 blend(__mmask64 mask, __mmask64 at0, __mmask64 at1)
+{
+    return (mask & at1) | (~mask & at0);
+}
 Vc_INTRINSIC Vc_CONST __m512i blend(__mmask32 mask, __m512i at0, __m512i at1)
 {
     return _mm512_mask_mov_epi16(at0, mask, at1);

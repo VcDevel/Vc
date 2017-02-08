@@ -460,9 +460,23 @@ template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
 
 // where implementation {{{1
 template <typename T, int N>
-static Vc_INTRINSIC void masked_assign(const mask<T, datapar_abi::fixed_size<N>> &k,
-                                       datapar<T, datapar_abi::fixed_size<N>> &lhs,
-                                       const datapar<T, datapar_abi::fixed_size<N>> &rhs)
+static Vc_INTRINSIC void masked_assign(
+    const mask<T, datapar_abi::fixed_size<N>> &k,
+    datapar<T, datapar_abi::fixed_size<N>> &lhs,
+    const detail::id<datapar<T, datapar_abi::fixed_size<N>>> &rhs)
+{
+    detail::execute_n_times<N>([&](auto i) {
+        if (k[i]) {
+            lhs[i] = rhs[i];
+        }
+    });
+}
+
+template <typename T, int N>
+static Vc_INTRINSIC void masked_assign(
+    const mask<T, datapar_abi::fixed_size<N>> &k,
+    mask<T, datapar_abi::fixed_size<N>> &lhs,
+    const detail::id<mask<T, datapar_abi::fixed_size<N>>> &rhs)
 {
     detail::execute_n_times<N>([&](auto i) {
         if (k[i]) {

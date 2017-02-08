@@ -322,15 +322,12 @@ constexpr int find_first_set(bool) { return 0; }
 constexpr int find_last_set(bool) { return 0; }
 
 // masked assignment [mask.where]
-template <typename Mask, typename T> class where_expression
+template <typename M, typename T> class where_expression
 {
 public:
-    where_expression() = delete;
     where_expression(const where_expression &) = delete;
-    where_expression(where_expression &&) = delete;
     where_expression &operator=(const where_expression &) = delete;
-    where_expression &operator=(where_expression &&) = delete;
-    Vc_INTRINSIC where_expression(const Mask kk, T &dd) : k(kk), d(dd) {}
+    Vc_INTRINSIC where_expression(const M &kk, T &dd) : k(kk), d(dd) {}
     template <class U> Vc_INTRINSIC void operator=(U &&x)
     {
         using detail::masked_assign;
@@ -411,25 +408,36 @@ public:
         using detail::masked_unary;
         return masked_unary<std::negate>(k, d);
     }
-    Vc_INTRINSIC auto operator!() const { return k && !d; }
 
 private:
-    friend Vc_INTRINSIC const Mask &get_mask(const where_expression &x) { return x.k; }
+    friend Vc_INTRINSIC const M &get_mask(const where_expression &x) { return x.k; }
     friend Vc_INTRINSIC T &get_lvalue(where_expression &x) { return x.d; }
     friend Vc_INTRINSIC const T &get_lvalue(const where_expression &x) { return x.d; }
-    const Mask k;
+    std::conditional_t<std::is_same<M, bool>::value, const M, const M &> k;
     T &d;
 };
 
 template <class T, class A>
-Vc_INTRINSIC where_expression<const mask<T, A> &, datapar<T, A>> where(
+Vc_INTRINSIC where_expression<mask<T, A>, datapar<T, A>> where(
     const typename datapar<T, A>::mask_type &k, datapar<T, A> &d)
 {
     return {k, d};
 }
 template <class T, class A>
-Vc_INTRINSIC const where_expression<const mask<T, A> &, const datapar<T, A>> where(
+Vc_INTRINSIC const where_expression<mask<T, A>, const datapar<T, A>> where(
     const typename datapar<T, A>::mask_type &k, const datapar<T, A> &d)
+{
+    return {k, d};
+}
+template <class T, class A>
+Vc_INTRINSIC where_expression<mask<T, A>, mask<T, A>> where(
+    const std::remove_const_t<mask<T, A>> &k, mask<T, A> &d)
+{
+    return {k, d};
+}
+template <class T, class A>
+Vc_INTRINSIC const where_expression<mask<T, A>, const mask<T, A>> where(
+    const std::remove_const_t<mask<T, A>> &k, const mask<T, A> &d)
 {
     return {k, d};
 }

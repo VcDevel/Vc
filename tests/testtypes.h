@@ -82,6 +82,8 @@ using vl = typename std::conditional<sizeof(long) == sizeof(llong), vi64<T>, vi3
 // current_native_test_types {{{1
 using current_native_test_types =
     expand_one<Template1<Vc::native_datapar>, Typelist<TESTTYPES>>;
+using current_native_mask_test_types =
+    expand_one<Template1<Vc::native_mask>, Typelist<TESTTYPES>>;
 
 // native_test_types {{{1
 typedef concat<

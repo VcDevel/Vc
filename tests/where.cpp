@@ -98,16 +98,18 @@ TEST_TYPES(V, where, (all_test_types))
     COMPARE(alternating_mask, x == T(9));
     COMPARE(alternating_mask, -where(alternating_mask, x) == T(-T(9)));
 
-    x = 10;
-    where(alternating_mask, x) = 0;
-    COMPARE(!x, alternating_mask);
-    COMPARE(!where(alternating_mask, x), alternating_mask);
-    COMPARE(!where(!alternating_mask, x), M(false));
-
     const auto y = x;
     VERIFY(where_is_ill_formed(true, y));
     VERIFY(where_is_ill_formed(true, x));
     VERIFY(where_is_ill_formed(true, V(x)));
+
+    M test = alternating_mask;
+    where(alternating_mask, test) = M(true);
+    COMPARE(test, alternating_mask);
+    where(alternating_mask, test) = M(false);
+    COMPARE(test, M(false));
+    where(alternating_mask, test) = M(true);
+    COMPARE(test, alternating_mask);
 }
 
 TEST_TYPES(T, where_fundamental, (int, float, double, short))
