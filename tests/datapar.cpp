@@ -30,81 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unittest.h"
 #include <Vc/datapar>
 #include "make_vec.h"
-#include <climits>
-
-#if LONG_MAX == INT_MAX
-#define LONG_IS_INT 1
-#define LONG_IS_LLONG 0
-#elif LONG_MAX == LLONG_MAX
-#define LONG_IS_INT 0
-#define LONG_IS_LLONG 1
-#else
-#error "What else could long be?"
-#endif
+#include "metahelpers.h"
 
 template <class... Ts> using base_template = Vc::datapar<Ts...>;
 #include "testtypes.h"
-
-// more operator objects {{{1
-struct assignment {
-    template <class A, class B>
-    constexpr decltype(std::declval<A>() = std::declval<B>()) operator()(A &&a,
-                                                                         B &&b) const
-        noexcept(noexcept(std::forward<A>(a) = std::forward<B>(b)))
-    {
-        return std::forward<A>(a) = std::forward<B>(b);
-    }
-};
-
-template <class T = void> struct bit_shift_left {
-    constexpr T operator()(const T &a, const T &b) const { return a << b; }
-};
-template <> struct bit_shift_left<void> {
-    template <class A, class B>
-    constexpr decltype(std::declval<A>() << std::declval<B>()) operator()(A &&a,
-                                                                          B &&b) const
-        noexcept(noexcept(std::forward<A>(a) << std::forward<B>(b)))
-    {
-        return std::forward<A>(a) << std::forward<B>(b);
-    }
-};
-
-template <class T = void> struct bit_shift_right {
-    constexpr T operator()(const T &a, const T &b) const { return a >> b; }
-};
-template <> struct bit_shift_right<void> {
-    template <class A, class B>
-    constexpr decltype(std::declval<A>() >> std::declval<B>()) operator()(A &&a,
-                                                                          B &&b) const
-        noexcept(noexcept(std::forward<A>(a) >> std::forward<B>(b)))
-    {
-        return std::forward<A>(a) >> std::forward<B>(b);
-    }
-};
-
-// operator_is_substitution_failure {{{1
-template <class A, class B, class Op = std::plus<>>
-constexpr bool operator_is_substitution_failure_impl(float)
-{
-    return true;
-}
-
-template <class A, class B, class Op = std::plus<>>
-constexpr std::conditional_t<true, bool,
-                             decltype(Op()(Vc::declval<A>(), Vc::declval<B>()))>
-operator_is_substitution_failure_impl(int)
-{
-    return false;
-}
-
-template <class... Ts>
-constexpr bool operator_is_substitution_failure =
-    operator_is_substitution_failure_impl<Ts...>(int());
-
-// traits {{{1
-template <class A, class B>
-constexpr bool has_less_bits =
-    std::numeric_limits<A>::digits < std::numeric_limits<B>::digits;
 
 enum unscoped_enum { foo };  //{{{1
 enum class scoped_enum { bar };  //{{{1
