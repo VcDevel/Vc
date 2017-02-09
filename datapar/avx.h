@@ -378,12 +378,6 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     {                                                                                    \
         return {private_init, _mm256_max_##suffix_(data(a), data(b))};                   \
     }                                                                                    \
-    static Vc_INTRINSIC std::pair<datapar<T_>, datapar<T_>> minmax(datapar<T_> a,        \
-                                                                   datapar<T_> b)        \
-    {                                                                                    \
-        return {{private_init, _mm256_min_##suffix_(data(a), data(b))},                  \
-                {private_init, _mm256_max_##suffix_(data(a), data(b))}};                 \
-    }                                                                                    \
     static_assert(true, "")
     Vc_MINMAX_(double, pd);
     Vc_MINMAX_( float, ps);
@@ -407,13 +401,6 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         auto x = data(a), y = data(b);
         return {private_init, _mm256_blendv_epi8(y, x, _mm256_cmpgt_epi64(x, y))};
     }
-    static Vc_INTRINSIC std::pair<datapar<llong>, datapar<llong>> minmax(datapar<llong> a,
-                                                                         datapar<llong> b)
-    {
-        auto x = data(a), y = data(b);
-        return {{private_init, _mm256_blendv_epi8(x, y, _mm256_cmpgt_epi64(x, y))},
-                {private_init, _mm256_blendv_epi8(y, x, _mm256_cmpgt_epi64(x, y))}};
-    }
     static Vc_INTRINSIC datapar<ullong> min(datapar<ullong> a, datapar<ullong> b)
     {
         auto x = data(a), y = data(b);
@@ -424,15 +411,39 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
         auto x = data(a), y = data(b);
         return {private_init, _mm256_blendv_epi8(y, x, cmpgt(x, y))};
     }
-    static Vc_INTRINSIC std::pair<datapar<ullong>, datapar<ullong>> minmax(
-        datapar<ullong> a, datapar<ullong> b)
-    {
-        auto x = data(a), y = data(b);
-        return {{private_init, _mm256_blendv_epi8(x, y, cmpgt(x, y))},
-                {private_init, _mm256_blendv_epi8(y, x, cmpgt(x, y))}};
-    }
 #endif
 #undef Vc_MINMAX_
+
+#if defined Vc_HAVE_AVX2
+    static Vc_INTRINSIC datapar<long> min(datapar<long> a, datapar<long> b)
+    {
+        return datapar<long>{data(min(datapar<equal_int_type_t<long>>(data(a)),
+                                      datapar<equal_int_type_t<long>>(data(b))))};
+    }
+    static Vc_INTRINSIC datapar<long> max(datapar<long> a, datapar<long> b)
+    {
+        return datapar<long>{data(max(datapar<equal_int_type_t<long>>(data(a)),
+                                      datapar<equal_int_type_t<long>>(data(b))))};
+    }
+
+    static Vc_INTRINSIC datapar<ulong> min(datapar<ulong> a, datapar<ulong> b)
+    {
+        return datapar<ulong>{data(min(datapar<equal_int_type_t<ulong>>(data(a)),
+                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+    }
+    static Vc_INTRINSIC datapar<ulong> max(datapar<ulong> a, datapar<ulong> b)
+    {
+        return datapar<ulong>{data(max(datapar<equal_int_type_t<ulong>>(data(a)),
+                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+    }
+#endif  // Vc_HAVE_AVX2
+
+    template <class T>
+    static Vc_INTRINSIC std::pair<datapar<T>, datapar<T>> minmax(datapar<T> a,
+                                                                 datapar<T> b)
+    {
+        return {min(a, b), max(a, b)};
+    }
 
     // compares {{{2
 #if defined Vc_USE_BUILTIN_VECTOR_TYPES

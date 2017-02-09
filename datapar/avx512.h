@@ -417,12 +417,6 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     {                                                                                    \
         return {private_init, _mm512_max_##suffix_(data(a), data(b))};                   \
     }                                                                                    \
-    static Vc_INTRINSIC std::pair<datapar<T_>, datapar<T_>> minmax(datapar<T_> a,        \
-                                                                   datapar<T_> b)        \
-    {                                                                                    \
-        return {{private_init, _mm512_min_##suffix_(data(a), data(b))},                  \
-                {private_init, _mm512_max_##suffix_(data(a), data(b))}};                 \
-    }                                                                                    \
     static_assert(true, "")
     Vc_MINMAX_(double, pd);
     Vc_MINMAX_( float, ps);
@@ -435,6 +429,35 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     Vc_MINMAX_( schar, epi8);
     Vc_MINMAX_( uchar, epu8);
 #undef Vc_MINMAX_
+    static Vc_INTRINSIC datapar<long> min(datapar<long> a, datapar<long> b)
+    {
+        return datapar<long>{data(min(datapar<equal_int_type_t<long>>(data(a)),
+                                      datapar<equal_int_type_t<long>>(data(b))))};
+    }
+    static Vc_INTRINSIC datapar<long> max(datapar<long> a, datapar<long> b)
+    {
+        return datapar<long>{data(max(datapar<equal_int_type_t<long>>(data(a)),
+                                      datapar<equal_int_type_t<long>>(data(b))))};
+    }
+
+    static Vc_INTRINSIC datapar<ulong> min(datapar<ulong> a, datapar<ulong> b)
+    {
+        return datapar<ulong>{data(min(datapar<equal_int_type_t<ulong>>(data(a)),
+                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+    }
+    static Vc_INTRINSIC datapar<ulong> max(datapar<ulong> a, datapar<ulong> b)
+    {
+        return datapar<ulong>{data(max(datapar<equal_int_type_t<ulong>>(data(a)),
+                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC std::pair<datapar<T>, datapar<T>> minmax(datapar<T> a,
+                                                                 datapar<T> b)
+    {
+        return {min(a, b), max(a, b)};
+    }
+
 
     // compares {{{2
 #if 0  // defined Vc_USE_BUILTIN_VECTOR_TYPES

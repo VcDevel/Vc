@@ -1252,15 +1252,24 @@ TEST_TYPES(V, reductions, ALL_TYPES)  //{{{1
     COMPARE(Vc::reduce(z, [](auto a, auto b) {
                 using std::min;
                 return min(a, b);
-            }), T(1));
+            }), T(1)) << "z: " << z;
     COMPARE(Vc::reduce(z, [](auto a, auto b) {
                 using std::max;
                 return max(a, b);
-            }), T(V::size()));
+            }), T(V::size())) << "z: " << z;
     COMPARE(Vc::reduce(where(z > 1, z), 117, [](auto a, auto b) {
                 using std::min;
                 return min(a, b);
-            }), T(V::size() == 1 ? 117 : 2));
+            }), T(V::size() == 1 ? 117 : 2)) << "z: " << z;
+}
+
+TEST_TYPES(V, algorithms, ALL_TYPES)  //{{{1
+{
+    using T = typename V::value_type;
+    V a{[](auto i) -> T { return i & 1u; }};
+    V b{[](auto i) -> T { return (i + 1u) & 1u; }};
+    COMPARE(min(a, b), V{0});
+    COMPARE(max(a, b), V{1});
 }
 
 //}}}1

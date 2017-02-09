@@ -691,6 +691,35 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
         return {private_init, _mm_max_epu8(data(a), data(b))};
     }
 
+    static Vc_INTRINSIC datapar<long> min(datapar<long> a, datapar<long> b)
+    {
+        return datapar<long>{data(min(datapar<equal_int_type_t<long>>(data(a)),
+                                      datapar<equal_int_type_t<long>>(data(b))))};
+    }
+    static Vc_INTRINSIC datapar<long> max(datapar<long> a, datapar<long> b)
+    {
+        return datapar<long>{data(max(datapar<equal_int_type_t<long>>(data(a)),
+                                      datapar<equal_int_type_t<long>>(data(b))))};
+    }
+
+    static Vc_INTRINSIC datapar<ulong> min(datapar<ulong> a, datapar<ulong> b)
+    {
+        return datapar<ulong>{data(min(datapar<equal_int_type_t<ulong>>(data(a)),
+                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+    }
+    static Vc_INTRINSIC datapar<ulong> max(datapar<ulong> a, datapar<ulong> b)
+    {
+        return datapar<ulong>{data(max(datapar<equal_int_type_t<ulong>>(data(a)),
+                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC std::pair<datapar<T>, datapar<T>> minmax(datapar<T> a,
+                                                                 datapar<T> b)
+    {
+        return {min(a, b), max(a, b)};
+    }
+
     // compares {{{2
 #if defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>
