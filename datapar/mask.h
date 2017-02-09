@@ -68,11 +68,14 @@ public:
 
     // implicit type conversion constructor
     template <class U>
-    mask(const mask<U, datapar_abi::fixed_size<size_v>> &x)
+    mask(const mask<U, datapar_abi::fixed_size<size_v>> &x,
+         enable_if<conjunction<std::is_same<abi_type, datapar_abi::fixed_size<size_v>>,
+                               std::is_same<U, U>>::value> = nullarg)
         : mask{static_cast<const std::array<bool, size()> &>(x).data(),
                flags::vector_aligned}
     {
     }
+    /* reference implementation for explicit mask casts
     template <class U>
     mask(const mask<U, Abi> &x,
          enable_if<
@@ -91,6 +94,7 @@ public:
     {
         x.copy_to(&d[0], flags::vector_aligned);
     }
+    */
 
 
     // load constructor

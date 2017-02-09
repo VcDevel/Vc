@@ -116,99 +116,79 @@ TEST_TYPES(M, operators, ALL_TYPES)  //{{{1
     }
 }
 
-// convert {{{1
-template <typename M, int SizeofT = sizeof(typename M::value_type)> struct ConvertType {
-    using type0 = Vc::fixed_size_mask<float, M::size()>;
-    using type1 = Vc::fixed_size_mask<signed short, M::size()>;
-};
-#ifdef Vc_HAVE_FULL_SSE_ABI
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<2>>, 8> {
-    using type0 = Vc::mask<double, Vc::datapar_abi::sse>;
-    using type1 = Vc::mask<std::uint64_t, Vc::datapar_abi::sse>;
-};
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<4>>, 4> {
-    using type0 = Vc::mask<float, Vc::datapar_abi::sse>;
-    using type1 = Vc::mask<std::uint32_t, Vc::datapar_abi::sse>;
-};
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<8>>, 2> {
-    using type0 = Vc::mask<std::int16_t, Vc::datapar_abi::sse>;
-    using type1 = Vc::mask<std::uint16_t, Vc::datapar_abi::sse>;
-};
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<16>>, 1> {
-    using type0 = Vc::mask<std::int8_t, Vc::datapar_abi::sse>;
-    using type1 = Vc::mask<std::uint8_t, Vc::datapar_abi::sse>;
-};
-#endif
-#ifdef Vc_HAVE_FULL_AVX_ABI
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<4>>, 8> {
-    using type0 = Vc::mask<double, Vc::datapar_abi::avx>;
-    using type1 = Vc::mask<std::uint64_t, Vc::datapar_abi::avx>;
-};
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<8>>, 4> {
-    using type0 = Vc::mask<float, Vc::datapar_abi::avx>;
-    using type1 = Vc::mask<std::uint32_t, Vc::datapar_abi::avx>;
-};
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<16>>, 2> {
-    using type0 = Vc::mask<std::int16_t, Vc::datapar_abi::avx>;
-    using type1 = Vc::mask<std::uint16_t, Vc::datapar_abi::avx>;
-};
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<32>>, 1> {
-    using type0 = Vc::mask<std::int8_t, Vc::datapar_abi::avx>;
-    using type1 = Vc::mask<std::uint8_t, Vc::datapar_abi::avx>;
-};
-#endif
-#ifdef Vc_HAVE_AVX512_ABI
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<8>>, 8> {
-    using type0 = Vc::mask<double, Vc::datapar_abi::avx>;
-    using type1 = Vc::mask<std::uint64_t, Vc::datapar_abi::avx>;
-};
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<16>>, 4> {
-    using type0 = Vc::mask<float, Vc::datapar_abi::avx>;
-    using type1 = Vc::mask<std::uint32_t, Vc::datapar_abi::avx>;
-};
-#endif
-#ifdef Vc_HAVE_FULL_AVX512_ABI
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<32>>, 2> {
-    using type0 = Vc::mask<std::int16_t, Vc::datapar_abi::avx>;
-    using type1 = Vc::mask<std::uint16_t, Vc::datapar_abi::avx>;
-};
-template <typename T> struct ConvertType<Vc::mask<T, Vc::datapar_abi::fixed_size<64>>, 1> {
-    using type0 = Vc::mask<std::int8_t, Vc::datapar_abi::avx>;
-    using type1 = Vc::mask<std::uint8_t, Vc::datapar_abi::avx>;
-};
-#endif
-TEST_TYPES(M, convert, ALL_TYPES)
+// implicit_conversions {{{1
+template <class M, class M2>
+constexpr bool assign_should_work =
+    std::is_same<M, M2>::value ||
+    (std::is_same<typename M::abi_type, Vc::datapar_abi::fixed_size<M::size()>>::value &&
+     std::is_same<typename M::abi_type, typename M2::abi_type>::value);
+
+template <class L, class R>
+std::enable_if_t<assign_should_work<L, R>> implicit_conversions_test()
 {
-    {
-        using M2 = typename ConvertType<M>::type0;
-        M2 x ( true);
-        M y = x;
-        COMPARE(y, M{true});
-        x[0] = false;
-        COMPARE(x[0], false);
-        y = x;
-        COMPARE(y[0], false);
-        for (std::size_t i = 1; i < M::size(); ++i) {
-            COMPARE(y[i], true);
-        }
-        M2 z = y;
-        COMPARE(z, x);
-    }
-    {
-        using M2 = typename ConvertType<M>::type1;
-        M2 x(true);
-        M y = x;
-        COMPARE(y, M{true});
-        x[0] = false;
-        COMPARE(x[0], false);
-        y = x;
-        COMPARE(y[0], false);
-        for (std::size_t i = 1; i < M::size(); ++i) {
-            COMPARE(y[i], true);
-        }
-        M2 z = y;
-        COMPARE(z, x);
-    }
+    L x = R(true);
+    COMPARE(x, L(true));
+    x = R(false);
+    COMPARE(x, L(false));
+    R y(false);
+    y[0] = true;
+    x = y;
+    L ref(false);
+    ref[0] = true;
+    COMPARE(x, ref);
+}
+
+template <class L, class R>
+std::enable_if_t<!assign_should_work<L, R>> implicit_conversions_test()
+{
+    VERIFY((operator_is_substitution_failure<L &, R, assignment>));
+}
+
+TEST_TYPES(M, implicit_conversions, ALL_TYPES)
+{
+    using Vc::mask;
+    using Vc::native_mask;
+    using Vc::fixed_size_mask;
+
+    implicit_conversions_test<M, mask<ldouble>>();
+    implicit_conversions_test<M, mask<double>>();
+    implicit_conversions_test<M, mask<float>>();
+    implicit_conversions_test<M, mask<ullong>>();
+    implicit_conversions_test<M, mask<llong>>();
+    implicit_conversions_test<M, mask<ulong>>();
+    implicit_conversions_test<M, mask<long>>();
+    implicit_conversions_test<M, mask<uint>>();
+    implicit_conversions_test<M, mask<int>>();
+    implicit_conversions_test<M, mask<ushort>>();
+    implicit_conversions_test<M, mask<short>>();
+    implicit_conversions_test<M, mask<uchar>>();
+    implicit_conversions_test<M, mask<schar>>();
+    implicit_conversions_test<M, native_mask<ldouble>>();
+    implicit_conversions_test<M, native_mask<double>>();
+    implicit_conversions_test<M, native_mask<float>>();
+    implicit_conversions_test<M, native_mask<ullong>>();
+    implicit_conversions_test<M, native_mask<llong>>();
+    implicit_conversions_test<M, native_mask<ulong>>();
+    implicit_conversions_test<M, native_mask<long>>();
+    implicit_conversions_test<M, native_mask<uint>>();
+    implicit_conversions_test<M, native_mask<int>>();
+    implicit_conversions_test<M, native_mask<ushort>>();
+    implicit_conversions_test<M, native_mask<short>>();
+    implicit_conversions_test<M, native_mask<uchar>>();
+    implicit_conversions_test<M, native_mask<schar>>();
+    implicit_conversions_test<M, fixed_size_mask<ldouble, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<double, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<float, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<ullong, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<llong, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<ulong, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<long, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<uint, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<int, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<ushort, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<short, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<uchar, M::size()>>();
+    implicit_conversions_test<M, fixed_size_mask<schar, M::size()>>();
 }
 
 TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
@@ -300,58 +280,36 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
     }
 }
 
-template <class A, class B, class Expected = A> void binary_op_return_type()  //{{{1
-{
-    static_assert(std::is_same<A, Expected>::value, "");
-    const auto name = typeToString<A>() + " + " + typeToString<B>();
-    COMPARE(typeid(A() & B()), typeid(Expected)) << name;
-    COMPARE(typeid(B() & A()), typeid(Expected)) << name;
-    UnitTest::ADD_PASS() << name;
-}
-
 TEST_TYPES(M, operator_conversions, (current_native_mask_test_types))  //{{{1
 {
     // binary ops without conversions work
-    binary_op_return_type<M, M>();
+    COMPARE(typeid(M() & M()), typeid(M));
 
     // nothing else works: no implicit conv. or ambiguous
     using Vc::mask;
     using Vc::native_mask;
     using Vc::fixed_size_mask;
-    auto &&is = [](auto x) { return std::is_same<M, native_mask<decltype(x)>>::value; };
     auto &&sfinae_test = [](auto x) {
         return operator_is_substitution_failure<M, decltype(x), std::bit_and<>>;
     };
-    using ldouble = long double;
-    if (!is(ldouble())) VERIFY(sfinae_test(native_mask<ldouble>()));
-    if (!is(double ())) VERIFY(sfinae_test(native_mask<double >()));
-    if (!is(float  ())) VERIFY(sfinae_test(native_mask<float  >()));
-    if (!is(ullong ())) VERIFY(sfinae_test(native_mask<ullong >()));
-    if (!is(llong  ())) VERIFY(sfinae_test(native_mask<llong  >()));
-    if (!is(ulong  ())) VERIFY(sfinae_test(native_mask<ulong  >()));
-    if (!is(long   ())) VERIFY(sfinae_test(native_mask<long   >()));
-    if (!is(uint   ())) VERIFY(sfinae_test(native_mask<uint   >()));
-    if (!is(int    ())) VERIFY(sfinae_test(native_mask<int    >()));
-    if (!is(ushort ())) VERIFY(sfinae_test(native_mask<ushort >()));
-    if (!is(short  ())) VERIFY(sfinae_test(native_mask<short  >()));
-    if (!is(uchar  ())) VERIFY(sfinae_test(native_mask<uchar  >()));
-    if (!is(schar  ())) VERIFY(sfinae_test(native_mask<schar  >()));
-
     VERIFY(sfinae_test(bool()));
 
-    VERIFY(sfinae_test(mask<ldouble>()));
-    VERIFY(sfinae_test(mask<double >()));
-    VERIFY(sfinae_test(mask<float  >()));
-    VERIFY(sfinae_test(mask<ullong >()));
-    VERIFY(sfinae_test(mask<llong  >()));
-    VERIFY(sfinae_test(mask<ulong  >()));
-    VERIFY(sfinae_test(mask<long   >()));
-    VERIFY(sfinae_test(mask<uint   >()));
-    VERIFY(sfinae_test(mask<int    >()));
-    VERIFY(sfinae_test(mask<ushort >()));
-    VERIFY(sfinae_test(mask<short  >()));
-    VERIFY(sfinae_test(mask<uchar  >()));
-    VERIFY(sfinae_test(mask<schar  >()));
+    {
+        auto &&is = [](auto x) { return std::is_same<M, mask<decltype(x)>>::value; };
+        COMPARE(!is(ldouble()), sfinae_test(mask<ldouble>()));
+        COMPARE(!is(double ()), sfinae_test(mask<double >()));
+        COMPARE(!is(float  ()), sfinae_test(mask<float  >()));
+        COMPARE(!is(ullong ()), sfinae_test(mask<ullong >()));
+        COMPARE(!is(llong  ()), sfinae_test(mask<llong  >()));
+        COMPARE(!is(ulong  ()), sfinae_test(mask<ulong  >()));
+        COMPARE(!is(long   ()), sfinae_test(mask<long   >()));
+        COMPARE(!is(uint   ()), sfinae_test(mask<uint   >()));
+        COMPARE(!is(int    ()), sfinae_test(mask<int    >()));
+        COMPARE(!is(ushort ()), sfinae_test(mask<ushort >()));
+        COMPARE(!is(short  ()), sfinae_test(mask<short  >()));
+        COMPARE(!is(uchar  ()), sfinae_test(mask<uchar  >()));
+        COMPARE(!is(schar  ()), sfinae_test(mask<schar  >()));
+    }
 
     VERIFY(sfinae_test(fixed_size_mask<ldouble, 2>()));
     VERIFY(sfinae_test(fixed_size_mask<double , 2>()));
@@ -366,6 +324,23 @@ TEST_TYPES(M, operator_conversions, (current_native_mask_test_types))  //{{{1
     VERIFY(sfinae_test(fixed_size_mask<short  , 2>()));
     VERIFY(sfinae_test(fixed_size_mask<uchar  , 2>()));
     VERIFY(sfinae_test(fixed_size_mask<schar  , 2>()));
+
+    {
+        auto &&is = [](auto x) { return std::is_same<M, native_mask<decltype(x)>>::value; };
+        if (!is(ldouble())) VERIFY(sfinae_test(native_mask<ldouble>()));
+        if (!is(double ())) VERIFY(sfinae_test(native_mask<double >()));
+        if (!is(float  ())) VERIFY(sfinae_test(native_mask<float  >()));
+        if (!is(ullong ())) VERIFY(sfinae_test(native_mask<ullong >()));
+        if (!is(llong  ())) VERIFY(sfinae_test(native_mask<llong  >()));
+        if (!is(ulong  ())) VERIFY(sfinae_test(native_mask<ulong  >()));
+        if (!is(long   ())) VERIFY(sfinae_test(native_mask<long   >()));
+        if (!is(uint   ())) VERIFY(sfinae_test(native_mask<uint   >()));
+        if (!is(int    ())) VERIFY(sfinae_test(native_mask<int    >()));
+        if (!is(ushort ())) VERIFY(sfinae_test(native_mask<ushort >()));
+        if (!is(short  ())) VERIFY(sfinae_test(native_mask<short  >()));
+        if (!is(uchar  ())) VERIFY(sfinae_test(native_mask<uchar  >()));
+        if (!is(schar  ())) VERIFY(sfinae_test(native_mask<schar  >()));
+    }
 }
 
 TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
