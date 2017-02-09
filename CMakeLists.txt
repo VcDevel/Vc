@@ -57,6 +57,16 @@ if(Vc_COMPILER_IS_GCC)
    if(Vc_GCC_VERSION VERSION_GREATER "5.99")
       AddCompilerFlag(-Wno-ignored-attributes)
    endif()
+elseif(Vc_COMPILER_IS_CLANG)
+   if(Vc_CLANG_VERSION VERSION_LESS 4.0.50)
+      # Clang ICEs with AVX512 on the loadstore test
+      list(APPEND disabled_targets
+         loadstore_avx512_vectorbuiltin_int_short_uint_ushort
+         loadstore_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
+         datapar_avx512_vectorbuiltin_int_short_uint_ushort
+         datapar_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
+         )
+   endif()
 elseif(Vc_COMPILER_IS_MSVC)
    # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
    # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
