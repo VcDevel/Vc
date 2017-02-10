@@ -158,6 +158,14 @@ template <int N> struct fixed_size_datapar_impl {
                                   [&](auto i) { return std::max(x[i], y[i]); })};
     }
 
+    // complement {{{2
+    template <class T, class A>
+    static inline Vc::datapar<T, A> complement(const Vc::datapar<T, A> &x) noexcept
+    {
+        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>(
+                                  [&](auto i) { return static_cast<T>(~x.d[i]); })};
+    }
+
     // unary minus {{{2
     template <class T, class A>
     static inline Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept {

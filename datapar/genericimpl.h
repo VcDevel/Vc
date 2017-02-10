@@ -64,6 +64,14 @@ template <class Derived> struct generic_datapar_impl {
         return {private_init, static_cast<V>(x)};
     }
 
+    // complement {{{2
+    template <class T, class A>
+    static Vc_INTRINSIC Vc::datapar<T, A> complement(const Vc::datapar<T, A> &x) noexcept
+    {
+        using detail::x86::complement;
+        return make_datapar<T, A>(complement(adjust_for_long(detail::data(x))));
+    }
+
     // unary minus {{{2
     template <class T, class A>
     static Vc_INTRINSIC Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept

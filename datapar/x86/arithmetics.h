@@ -499,6 +499,15 @@ template <class T, size_t N> Vc_INTRINSIC auto modulus(Storage<T, N> a, Storage<
 }
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
+// complement{{{1
+template <typename T> Vc_INTRINSIC auto Vc_VDECL complement(T v) {
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+    return ~v.builtin();
+#else
+    return not_(v);
+#endif
+}
+
 // unary_minus{{{1
 template <typename T> Vc_INTRINSIC auto Vc_VDECL unary_minus(T v) { return minus(T{}, v); }
 Vc_INTRINSIC __m128  Vc_VDECL unary_minus(x_f32 v) { return xor_(v, signmask16(float())); }

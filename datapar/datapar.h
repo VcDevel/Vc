@@ -269,7 +269,7 @@ public:
 
     // unary operators (for integral T)
     mask_type operator!() const { return impl::negate(*this); }
-    //datapar operator~() const;
+    datapar operator~() const { return impl::complement(*this); }
 
     // unary operators (for any T)
     datapar operator+() const { return *this; }

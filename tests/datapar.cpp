@@ -131,6 +131,11 @@ std::enable_if_t<std::is_integral<typename V::value_type>::value, void>
 integral_operators()
 {
     using T = typename V::value_type;
+    {  // complement{{{2
+        COMPARE(~V(), V(~T()));
+        COMPARE(~V(~T()), V());
+    }
+
     {  // modulus{{{2
         V x = make_vec<V>({3, 4}, 2);
         COMPARE(x % x, V(0));
