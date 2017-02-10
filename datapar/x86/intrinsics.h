@@ -2198,6 +2198,23 @@ template <> Vc_INTRINSIC auto cmple_ulong_mask<4>(__m512i x, __m512i y)
 #endif  // Vc_HAVE_AVX512F
 
 // loads{{{1
+#ifndef Vc_CHECK_ALIGNMENT
+template <class V, class T>
+static Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *)
+{
+}
+#else
+template <class V, class T>
+static Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *ptr)
+{
+    constexpr size_t s = alignof(V);
+    static_assert((s & (s - 1)) == 0, "");
+    if ((reinterpret_cast<size_t>(ptr) & (s - 1)) != 0) {
+        std::fprintf(stderr, "A load with incorrect alignment has just been called. Look at the stacktrace to find the guilty load.\n");
+        std::abort();
+    }
+}
+#endif
 /**
  * \internal
  * Abstraction for simplifying load operations in the SSE/AVX/AVX512 implementations
@@ -2207,6 +2224,7 @@ template <> Vc_INTRINSIC auto cmple_ulong_mask<4>(__m512i x, __m512i y)
 #ifdef Vc_HAVE_SSE2
 template <class T> Vc_INTRINSIC __m128i load2(const T *mem, when_aligned<2>)
 {
+    assertCorrectAlignment<unsigned short>(mem);
     static_assert(sizeof(T) == 1, "expected argument with sizeof == 1");
     return _mm_cvtsi32_si128(*reinterpret_cast<const unsigned short *>(mem));
 }
@@ -2221,16 +2239,19 @@ template <class T> Vc_INTRINSIC __m128i load2(const T *mem, when_unaligned<2>)
 
 template <class F> Vc_INTRINSIC __m128 load4(const float *mem, F)
 {
+    assertCorrectAlignment<float>(mem);
     return _mm_load_ss(mem);
 }
 
 #ifdef Vc_HAVE_SSE2
 template <class F> Vc_INTRINSIC __m128i load4(const int *mem, F)
 {
+    assertCorrectAlignment<int>(mem);
     return _mm_cvtsi32_si128(mem[0]);
 }
 template <class F> Vc_INTRINSIC __m128i load4(const unsigned int *mem, F)
 {
+    assertCorrectAlignment<unsigned int>(mem);
     return _mm_cvtsi32_si128(mem[0]);
 }
 template <class T, class F> Vc_INTRINSIC __m128i load4(const T *mem, F)
@@ -2245,8 +2266,10 @@ template <class T, class F> Vc_INTRINSIC __m128i load4(const T *mem, F)
 template <class F> Vc_INTRINSIC __m128 load8(const float *mem, F)
 {
 #ifdef Vc_HAVE_SSE2
+    assertCorrectAlignment<double>(mem);
     return _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const double *>(mem)));
 #else
+    assertCorrectAlignment<__m64>(mem);
     return _mm_loadl_pi(_mm_undefined_ps(), reinterpret_cast<const __m64 *>(mem));
 #endif
 }
@@ -2254,10 +2277,12 @@ template <class F> Vc_INTRINSIC __m128 load8(const float *mem, F)
 #ifdef Vc_HAVE_SSE2
 template <class F> Vc_INTRINSIC __m128d load8(const double *mem, F)
 {
+    assertCorrectAlignment<double>(mem);
     return _mm_load_sd(mem);
 }
 template <class T, class F> Vc_INTRINSIC __m128i load8(const T *mem, F)
 {
+    assertCorrectAlignment<T>(mem);
     static_assert(std::is_integral<T>::value, "load8<T> is only intended for integral T");
     return _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
 }
@@ -2266,6 +2291,7 @@ template <class T, class F> Vc_INTRINSIC __m128i load8(const T *mem, F)
 #ifdef Vc_HAVE_SSE
 Vc_INTRINSIC __m128 load16(const float *mem, when_aligned<16>)
 {
+    assertCorrectAlignment<__m128>(mem);
     return _mm_load_ps(mem);
 }
 Vc_INTRINSIC __m128 load16(const float *mem, when_unaligned<16>)
@@ -2277,6 +2303,7 @@ Vc_INTRINSIC __m128 load16(const float *mem, when_unaligned<16>)
 #ifdef Vc_HAVE_SSE2
 Vc_INTRINSIC __m128d load16(const double *mem, when_aligned<16>)
 {
+    assertCorrectAlignment<__m128d>(mem);
     return _mm_load_pd(mem);
 }
 Vc_INTRINSIC __m128d load16(const double *mem, when_unaligned<16>)
@@ -2285,6 +2312,7 @@ Vc_INTRINSIC __m128d load16(const double *mem, when_unaligned<16>)
 }
 template <class T> Vc_INTRINSIC __m128i load16(const T *mem, when_aligned<16>)
 {
+    assertCorrectAlignment<__m128i>(mem);
     static_assert(std::is_integral<T>::value, "load16<T> is only intended for integral T");
     return _mm_load_si128(reinterpret_cast<const __m128i *>(mem));
 }
@@ -2298,6 +2326,7 @@ template <class T> Vc_INTRINSIC __m128i load16(const T *mem, when_unaligned<16>)
 #ifdef Vc_HAVE_AVX
 Vc_INTRINSIC __m256 load32(const float *mem, when_aligned<32>)
 {
+    assertCorrectAlignment<__m256>(mem);
     return _mm256_load_ps(mem);
 }
 Vc_INTRINSIC __m256 load32(const float *mem, when_unaligned<32>)
@@ -2306,6 +2335,7 @@ Vc_INTRINSIC __m256 load32(const float *mem, when_unaligned<32>)
 }
 Vc_INTRINSIC __m256d load32(const double *mem, when_aligned<32>)
 {
+    assertCorrectAlignment<__m256d>(mem);
     return _mm256_load_pd(mem);
 }
 Vc_INTRINSIC __m256d load32(const double *mem, when_unaligned<32>)
@@ -2314,6 +2344,7 @@ Vc_INTRINSIC __m256d load32(const double *mem, when_unaligned<32>)
 }
 template <class T> Vc_INTRINSIC __m256i load32(const T *mem, when_aligned<32>)
 {
+    assertCorrectAlignment<__m256i>(mem);
     static_assert(std::is_integral<T>::value, "load32<T> is only intended for integral T");
     return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
 }
@@ -2327,6 +2358,7 @@ template <class T> Vc_INTRINSIC __m256i load32(const T *mem, when_unaligned<32>)
 #ifdef Vc_HAVE_AVX512F
 Vc_INTRINSIC __m512 load64(const float *mem, when_aligned<64>)
 {
+    assertCorrectAlignment<__m512>(mem);
     return _mm512_load_ps(mem);
 }
 Vc_INTRINSIC __m512 load64(const float *mem, when_unaligned<64>)
@@ -2335,6 +2367,7 @@ Vc_INTRINSIC __m512 load64(const float *mem, when_unaligned<64>)
 }
 Vc_INTRINSIC __m512d load64(const double *mem, when_aligned<64>)
 {
+    assertCorrectAlignment<__m512d>(mem);
     return _mm512_load_pd(mem);
 }
 Vc_INTRINSIC __m512d load64(const double *mem, when_unaligned<64>)
@@ -2344,6 +2377,7 @@ Vc_INTRINSIC __m512d load64(const double *mem, when_unaligned<64>)
 template <class T>
 Vc_INTRINSIC __m512i load64(const T *mem, when_aligned<64>)
 {
+    assertCorrectAlignment<__m512i>(mem);
     static_assert(std::is_integral<T>::value, "load64<T> is only intended for integral T");
     return _mm512_load_si512(mem);
 }
@@ -2493,6 +2527,7 @@ template <class T> Vc_INTRINSIC void store32(__m256i v, T *mem, when_unaligned<3
 #ifdef Vc_HAVE_AVX512F
 Vc_INTRINSIC void store64(__m512 v, float *mem, when_aligned<64>)
 {
+    assertCorrectAlignment<__m512>(mem);
     _mm512_store_ps(mem, v);
 }
 Vc_INTRINSIC void store64(__m512 v, float *mem, when_unaligned<64>)
@@ -2501,6 +2536,7 @@ Vc_INTRINSIC void store64(__m512 v, float *mem, when_unaligned<64>)
 }
 Vc_INTRINSIC void store64(__m512d v, double *mem, when_aligned<64>)
 {
+    assertCorrectAlignment<__m512d>(mem);
     _mm512_store_pd(mem, v);
 }
 Vc_INTRINSIC void store64(__m512d v, double *mem, when_unaligned<64>)
@@ -2510,6 +2546,7 @@ Vc_INTRINSIC void store64(__m512d v, double *mem, when_unaligned<64>)
 template <class T>
 Vc_INTRINSIC void store64(__m512i v, T *mem, when_aligned<64>)
 {
+    assertCorrectAlignment<__m512i>(mem);
     static_assert(std::is_integral<T>::value, "store64<T> is only intended for integral T");
     _mm512_store_si512(mem, v);
 }

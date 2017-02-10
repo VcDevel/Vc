@@ -88,8 +88,8 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 {
     const size_t s = alignof(_T);
     if((reinterpret_cast<size_t>(ptr) & ((s ^ (s & (s - 1))) - 1)) != 0) {
-        fprintf(stderr, "A vector with incorrect alignment has just been created. Look at the stacktrace to find the guilty object.\n");
-        abort();
+        std::fprintf(stderr, "A vector with incorrect alignment has just been created. Look at the stacktrace to find the guilty object.\n");
+        std::abort();
     }
 }
 #endif
