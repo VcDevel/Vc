@@ -155,6 +155,74 @@ integral_operators()
         }
     }
 
+    {  // bit_and{{{2
+        V x = make_vec<V>({3, 4, 5}, 8);
+        COMPARE(x & x, x);
+        COMPARE(x & ~x, V());
+        COMPARE(x & V(), V());
+        COMPARE(V() & x, V());
+        V y = make_vec<V>({1, 5, 3}, 8);
+        COMPARE(x & y, make_vec<V>({1, 4, 1}, 8));
+        x &= y;
+        COMPARE(x, make_vec<V>({1, 4, 1}, 8));
+    }
+
+    {  // bit_or{{{2
+        V x = make_vec<V>({3, 4, 5}, 8);
+        COMPARE(x | x, x);
+        COMPARE(x | ~x, ~V());
+        COMPARE(x | V(), x);
+        COMPARE(V() | x, x);
+        V y = make_vec<V>({1, 5, 3}, 8);
+        COMPARE(x | y, make_vec<V>({3, 5, 7}, 8));
+        x |= y;
+        COMPARE(x, make_vec<V>({3, 5, 7}, 8));
+    }
+
+    {  // bit_xor{{{2
+        V x = make_vec<V>({3, 4, 5}, 8);
+        COMPARE(x ^ x, V());
+        COMPARE(x ^ ~x, ~V());
+        COMPARE(x ^ V(), x);
+        COMPARE(V() ^ x, x);
+        V y = make_vec<V>({1, 5, 3}, 8);
+        COMPARE(x ^ y, make_vec<V>({2, 1, 6}, 0));
+        x ^= y;
+        COMPARE(x, make_vec<V>({2, 1, 6}, 0));
+    }
+
+    {  // bit_shift_left{{{2
+        COMPARE(V() << 1, V());
+        // Note:
+        // - negative RHS or RHS >= #bits is UB
+        // - negative LHS is UB
+        // - shifting into (or over) the sign bit is UB
+        // - unsigned LHS overflow is modulo arithmetic
+        constexpr int nbits(sizeof(T) * CHAR_BIT);
+        for (int i = 0; i < nbits - 1; ++i) {
+            COMPARE(V(1) << i, V(T(1) << i));
+        }
+        if (std::is_unsigned<T>::value) {
+            constexpr int shift_count = nbits - 1;
+            COMPARE(V(1) << shift_count, V(T(1) << shift_count));
+            constexpr T max =  // avoid overflow warning in the last COMPARE
+                std::is_unsigned<T>::value ? std::numeric_limits<T>::max() : T(1);
+            COMPARE(V(max) << shift_count, V(max << shift_count));
+        }
+    }
+
+    {  // bit_shift_right{{{2
+        // Note:
+        // - negative LHS is implementation defined
+        // - negative RHS or RHS >= #bits is UB
+        // - no other UB
+        COMPARE(V(0) >> V(1), V(0));
+        COMPARE(V(1) >> V(1), V(0));
+        COMPARE(V(2) >> V(1), V(1));
+        COMPARE(V(3) >> V(1), V(1));
+        COMPARE(V(7) >> V(2), V(1));
+    }
+
     //}}}2
 }
 

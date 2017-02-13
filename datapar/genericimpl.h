@@ -95,6 +95,11 @@ template <class Derived> struct generic_datapar_impl {
     Vc_ARITHMETIC_OP_(multiplies);
     Vc_ARITHMETIC_OP_(divides);
     Vc_ARITHMETIC_OP_(modulus);
+    Vc_ARITHMETIC_OP_(bit_and);
+    Vc_ARITHMETIC_OP_(bit_or);
+    Vc_ARITHMETIC_OP_(bit_xor);
+    Vc_ARITHMETIC_OP_(bit_shift_left);
+    Vc_ARITHMETIC_OP_(bit_shift_right);
 #undef Vc_ARITHMETIC_OP_
 
     // increment & decrement{{{2
