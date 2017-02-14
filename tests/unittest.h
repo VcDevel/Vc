@@ -517,7 +517,7 @@ Vc_ALWAYS_INLINE bool unittest_compareHelper<std::type_info, std::type_info>(
 namespace detail
 {
 using std::abs;
-template <typename T, typename U = decltype(abs(std::declval<const T &>()))>
+template <typename T, typename U = decltype(abs(Vc::declval<const T &>()))>
 T ulpDiffToReferenceWrapper(T a, T b, int)
 {
     const T diff = ulpDiffToReference(a, b);
@@ -985,7 +985,7 @@ private:
         }
     }
     // print overloads {{{2
-    template <typename T, typename = decltype(std::cout << std::declval<const T &>())>
+    template <typename T, typename = decltype(std::cout << Vc::declval<const T &>())>
     static inline void printImpl(const T &x, int)
     {
         std::cout << x;
@@ -1208,7 +1208,7 @@ static Vc::enable_if<Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMask
     size_t i)
 {
     using M = typename Vec::Mask;
-    decltype(std::declval<const M &>().data()) tmp = ((1 << Vec::Size) - 1) - i;
+    decltype(Vc::declval<const M &>().data()) tmp = ((1 << Vec::Size) - 1) - i;
     return M(tmp);
 }
 
@@ -1395,7 +1395,7 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
         name_##_ctor()                                                                   \
         {                                                                                \
             using list =                                                                 \
-                decltype(UnitTest::hackTypelist(std::declval<void typelist_>()));        \
+                decltype(UnitTest::hackTypelist(Vc::declval<void typelist_>()));         \
             UnitTest::addTestInstantiations<name_##_>(                                   \
                 #name_, list{}, Vc::make_index_sequence<list::size()>{});                \
         }                                                                                \
