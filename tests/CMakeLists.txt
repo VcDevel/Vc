@@ -301,7 +301,7 @@ vc_download_testdata()#}}}
 # ABI tests#{{{
 find_program(OBJDUMP objdump)
 mark_as_advanced(OBJDUMP)
-if(OBJDUMP)
+if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
    macro(test_abi _target _impl)
       set(_test test_${_target})
       if("${_impl}" STREQUAL "MIC")
