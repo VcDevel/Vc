@@ -431,15 +431,10 @@ template <class A, class B, class Expected = A> void binary_op_return_type()  //
     UnitTest::ADD_PASS() << name;
 }
 
-TEST_TYPES(V, operator_conversions, (current_native_test_types))  //{{{1
-{
-    static_assert(std::is_same<V, void>::value,
-                  "missing operator_conversions specialization");
-}
-
-namespace Tests
-{
-template <> void operator_conversions_<vfloat>::run()  //{{{2
+// operator_conversions {{{1
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vfloat>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vfloat, vfloat>();
     binary_op_return_type<vfloat, int>();
@@ -496,7 +491,10 @@ template <> void operator_conversions_<vfloat>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vf32<float>, vf32<ullong>>));
 }
 
-template <> void operator_conversions_<vdouble>::run()  //{{{2
+
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vdouble>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vdouble, vdouble, vdouble>();
     binary_op_return_type<vdouble, int, vdouble>();
@@ -566,7 +564,9 @@ template <> void operator_conversions_<vdouble>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vf32<double>, ullong>));
 }
 
-template <> void operator_conversions_<vldouble>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vldouble>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vldouble, vldouble>();
     binary_op_return_type<vldouble, schar>();
@@ -617,7 +617,9 @@ template <> void operator_conversions_<vldouble>::run()  //{{{2
             (!std::is_same<A, vldouble::abi_type>::value));
 }
 
-template <> void operator_conversions_<vlong>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vlong>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vlong, vlong, vlong>();
     binary_op_return_type<vlong, schar, vlong>();
@@ -709,7 +711,9 @@ template <> void operator_conversions_<vlong>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vi64<long>, vi64<double>>));
 }
 
-template <> void operator_conversions_<vulong>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vulong>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vulong, vulong, vulong>();
     binary_op_return_type<vulong, uchar, vulong>();
@@ -790,7 +794,9 @@ template <> void operator_conversions_<vulong>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<double>>));
 }
 
-template <> void operator_conversions_<vllong>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vllong>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vllong, vllong, vllong>();
     binary_op_return_type<vllong, schar, vllong>();
@@ -879,7 +885,9 @@ template <> void operator_conversions_<vllong>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vi64<llong>, vi64<double>>));
 }
 
-template <> void operator_conversions_<vullong>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vullong>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vullong, vullong, vullong>();
     binary_op_return_type<vullong, uchar, vullong>();
@@ -960,7 +968,9 @@ template <> void operator_conversions_<vullong>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vi64<ullong>, vi64<double>>));
 }
 
-template <> void operator_conversions_<vint>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vint>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vint, vint, vint>();
     binary_op_return_type<vint, schar, vint>();
@@ -1019,7 +1029,9 @@ template <> void operator_conversions_<vint>::run()  //{{{2
     binary_op_return_type<vi32<long>  , vi32<int>>();
 }
 
-template <> void operator_conversions_<vuint>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vuint>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vuint, vuint, vuint>();
     binary_op_return_type<vuint, uchar, vuint>();
@@ -1082,7 +1094,9 @@ template <> void operator_conversions_<vuint>::run()  //{{{2
 #endif
 }
 
-template <> void operator_conversions_<vshort>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vshort>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vshort, vshort, vshort>();
     binary_op_return_type<vshort, schar, vshort>();
@@ -1140,7 +1154,9 @@ template <> void operator_conversions_<vshort>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vi16<short>, vi16<ullong>>));
 }
 
-template <> void operator_conversions_<vushort>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vushort>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vushort, vushort, vushort>();
     binary_op_return_type<vushort, uchar, vushort>();
@@ -1198,7 +1214,9 @@ template <> void operator_conversions_<vushort>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vi16<ushort>, vi16<short>>));
 }
 
-template <> void operator_conversions_<vschar>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vschar>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vschar, vschar, vschar>();
     binary_op_return_type<vschar, schar, vschar>();
@@ -1256,7 +1274,9 @@ template <> void operator_conversions_<vschar>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vi8<schar>, vi8<ullong>>));
 }
 
-template <> void operator_conversions_<vuchar>::run()  //{{{2
+template <class V>
+void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vuchar>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vuchar, vuchar, vuchar>();
     binary_op_return_type<vuchar, uchar, vuchar>();
@@ -1313,7 +1333,10 @@ template <> void operator_conversions_<vuchar>::run()  //{{{2
     VERIFY((operator_is_substitution_failure<vi8<uchar>, double>));
     VERIFY((operator_is_substitution_failure<vi8<uchar>, vi8<schar>>));
 }  //}}}2
-}  // namespace Tests
+TEST_TYPES(V, operator_conversions, (current_native_test_types))  //{{{2
+{
+    operator_conversions_impl<V>();
+}
 
 TEST_TYPES(V, reductions, ALL_TYPES)  //{{{1
 {
