@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TESTS_METAHELPERS_H_
 
 #include <climits>
+#include <cfloat>
 
 #if LONG_MAX == INT_MAX
 #define LONG_IS_INT 1
@@ -38,6 +39,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define LONG_IS_LLONG 1
 #else
 #error "What else could long be?"
+#endif
+
+#if LDBL_MANT_DIG == DBL_MANT_DIG
+#define LDOUBLE_IS_DOUBLE 1
+#else
+#define LDOUBLE_IS_DOUBLE 0
 #endif
 
 // more operator objects {{{1
