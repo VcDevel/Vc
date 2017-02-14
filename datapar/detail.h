@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_DATAPAR_DETAIL_H_
 
 #include <limits>
+#include <functional>
 #include "macros.h"
 #include "flags.h"
 #include "type_traits.h"
