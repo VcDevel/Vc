@@ -38,18 +38,18 @@ template <class V> struct Convertible {
     operator V() const { return V(4); }
 };
 
-template <class M, class T> constexpr bool where_is_ill_formed_impl(M, T, float)
+template <class M, class T> constexpr bool where_is_ill_formed_impl(M, const T &, float)
 {
     return true;
 }
 template <class M, class T>
-constexpr auto where_is_ill_formed_impl(M m, T v, int)
+constexpr auto where_is_ill_formed_impl(M m, const T &v, int)
     -> std::conditional_t<true, bool, decltype(Vc::where(m, v))>
 {
     return false;
 }
 
-template <class M, class T> constexpr bool where_is_ill_formed(M m, T v)
+template <class M, class T> constexpr bool where_is_ill_formed(M m, const T &v)
 {
     return where_is_ill_formed_impl(m, v, int());
 }
