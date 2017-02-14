@@ -417,9 +417,13 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
 template <class A, class B, class Expected = A> void binary_op_return_type()  //{{{1
 {
     static_assert(std::is_same<A, Expected>::value, "");
+    using AC = std::add_const_t<A>;
+    using BC = std::add_const_t<B>;
     const auto name = typeToString<A>() + " + " + typeToString<B>();
     COMPARE(typeid(A() + B()), typeid(Expected)) << name;
     COMPARE(typeid(B() + A()), typeid(Expected)) << name;
+    COMPARE(typeid(AC() + BC()), typeid(Expected)) << name;
+    COMPARE(typeid(BC() + AC()), typeid(Expected)) << name;
     UnitTest::ADD_PASS() << name;
 }
 

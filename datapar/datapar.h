@@ -138,15 +138,15 @@ public:
     static constexpr size_type size_v = traits::size();
 
     // implicit broadcast constructor
-    template <class U,
+    template <class U, class U_ = std::decay_t<U>,
               class = std::enable_if_t<conjunction<
                   std::is_convertible<U, value_type>,
                   disjunction<
-                      std::is_same<U, value_type>, std::is_same<U, int>,
-                      conjunction<std::is_same<U, uint>, std::is_unsigned<value_type>>,
-                      negation<detail::is_narrowing_conversion<U, value_type>>>>::value>>
-    datapar(const U &x)
-        : d(impl::broadcast(static_cast<value_type>(x), size_tag))
+                      std::is_same<U_, value_type>, std::is_same<U_, int>,
+                      conjunction<std::is_same<U_, uint>, std::is_unsigned<value_type>>,
+                      negation<detail::is_narrowing_conversion<U_, value_type>>>>::value>>
+    datapar(U &&x)
+        : d(impl::broadcast(static_cast<value_type>(std::forward<U>(x)), size_tag))
     {
     }
 
