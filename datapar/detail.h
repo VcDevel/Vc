@@ -173,6 +173,12 @@ template <class From, class To, bool = std::is_arithmetic<From>::value,
           bool = std::is_arithmetic<To>::value>
 struct is_narrowing_conversion;
 
+#ifdef Vc_MSVC
+// ignore "warning C4018: '<': signed/unsigned mismatch" in the following trait. The implicit
+// conversions will do the right thing here.
+#pragma warning(push)
+#pragma warning(disable : 4018)
+#endif
 template <class From, class To>
 struct is_narrowing_conversion<From, To, true, true>
     : public bool_constant<(
@@ -181,7 +187,12 @@ struct is_narrowing_conversion<From, To, true, true>
           std::numeric_limits<From>::lowest() < std::numeric_limits<To>::lowest() ||
           (std::is_signed<From>::value && std::is_unsigned<To>::value))> {
 };
+#ifdef Vc_MSVC
+#pragma warning(pop)
+#endif
 
+template <class T> struct is_narrowing_conversion<bool, T, true, true> : public std::true_type {};
+template <> struct is_narrowing_conversion<bool, bool, true, true> : public std::false_type {};
 template <class T> struct is_narrowing_conversion<T, T, true, true> : public std::false_type {
 };
 
