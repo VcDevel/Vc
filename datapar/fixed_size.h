@@ -416,19 +416,19 @@ template <int N> struct fixed_size_mask_impl {
     template <class T> static inline mask<T> bit_and(const mask<T> &x, const mask<T> &y)
     {
         return {private_init, generate_from_n_evaluations<N, mask_member_type>(
-                                  [&](auto i) { return x.d[i] & y.d[i]; })};
+                                  [&](auto i) { return bool(x.d[i] & y.d[i]); })};
     }
 
     template <class T> static inline mask<T> bit_or(const mask<T> &x, const mask<T> &y)
     {
         return {private_init, generate_from_n_evaluations<N, mask_member_type>(
-                                  [&](auto i) { return x.d[i] | y.d[i]; })};
+                                  [&](auto i) { return bool(x.d[i] | y.d[i]); })};
     }
 
     template <class T> static inline mask<T> bit_xor(const mask<T> &x, const mask<T> &y)
     {
         return {private_init, generate_from_n_evaluations<N, mask_member_type>(
-                                  [&](auto i) { return x.d[i] ^ y.d[i]; })};
+                                  [&](auto i) { return bool(x.d[i] ^ y.d[i]); })};
     }
 
     // smart_reference access {{{2
