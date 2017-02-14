@@ -112,6 +112,11 @@ TEST_TYPES(VU, load_store,
                                    int, unsigned short, signed char, unsigned long long,
                                    long, unsigned int, short, unsigned char>>))
 {
+#ifdef Vc_MSVC
+// disable "warning C4756: overflow in constant arithmetic" - I don't care.
+#pragma warning(disable : 4756)
+#endif
+
     // types, tags, and constants {{{2
     using V = typename VU::template at<0>;
     using U = typename VU::template at<1>;
