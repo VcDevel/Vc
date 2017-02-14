@@ -106,7 +106,7 @@ TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
             (has_less_bits<T, unsigned char>));
 }
 
-TEST_TYPES(V, generators, (ALL_TYPES))  //{{{1
+TEST_TYPES(V, generators, ALL_TYPES)  //{{{1
 {
     using T = typename V::value_type;
     V x([](int) { return T(1); });
