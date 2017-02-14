@@ -149,7 +149,13 @@ Vc_INTRINSIC __m128i Vc_VDECL multiplies(x_i64 a, x_i64 b) {
     return x_i64{a[0] * b[0], a[1] * b[1]};
 #endif
 }
-Vc_INTRINSIC __m128i Vc_VDECL multiplies(x_u64 a, x_u64 b) { return multiplies(x_i64(a), x_i64(b)); }
+Vc_INTRINSIC __m128i Vc_VDECL multiplies(x_u64 a, x_u64 b) {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+    return _mm_mullo_epi64(a, b);
+#else
+    return x_u64{a[0] * b[0], a[1] * b[1]};
+#endif
+}
 Vc_INTRINSIC __m128i Vc_VDECL multiplies(x_i32 a, x_i32 b) {
 #ifdef Vc_HAVE_SSE4_1
     return _mm_mullo_epi32(a, b);

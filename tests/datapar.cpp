@@ -347,7 +347,11 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
             x = n;
             for (T m : {T(2), T(7), T(std::numeric_limits<T>::max() / 127), std::numeric_limits<T>::max()}) {
                 y = m;
-                COMPARE(x * y, V(T(n * m)));
+                // if T is of lower rank than int, `n * m` will promote to int before executing the
+                // multiplication. In this case an overflow will be UB (and ubsan will
+                // warn about it). The solution is to cast to uint in that case.
+                using U = std::conditional_t<(sizeof(T) < sizeof(int)), unsigned, T>;
+                COMPARE(x * y, V(T(U(n) * U(m))));
             }
         }
         x = 2;
