@@ -92,7 +92,7 @@ public:
              negation<std::is_same<abi_type, Abi2>>,
              std::is_same<abi_type, datapar_abi::fixed_size<size_v>>>::value> = nullarg)
     {
-        x.copy_to(&d[0], flags::vector_aligned);
+        x.memstore(&d[0], flags::vector_aligned);
     }
     */
 
@@ -109,21 +109,21 @@ public:
     }
 
     // loads [mask.load]
-    template <class Flags> void copy_from(const value_type *mem, Flags f)
+    template <class Flags> void memload(const value_type *mem, Flags f)
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, size_tag));
     }
-    template <class Flags> void Vc_VDECL copy_from(const value_type *mem, mask k, Flags f)
+    template <class Flags> void Vc_VDECL memload(const value_type *mem, mask k, Flags f)
     {
         impl::masked_load(d, k.d, mem, f, size_tag);
     }
 
     // stores [mask.store]
-    template <class Flags> void copy_to(value_type *mem, Flags f) const
+    template <class Flags> void memstore(value_type *mem, Flags f) const
     {
         impl::store(d, mem, f, size_tag);
     }
-    template <class Flags> void Vc_VDECL copy_to(value_type *mem, mask k, Flags f) const
+    template <class Flags> void Vc_VDECL memstore(value_type *mem, mask k, Flags f) const
     {
         impl::masked_store(d, mem, f, k.d, size_tag);
     }

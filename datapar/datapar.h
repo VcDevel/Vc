@@ -198,7 +198,7 @@ public:
         std::enable_if_t<detail::allow_conversion_ctor3<value_type, Abi, U, Abi2>::value,
                          void *> = nullptr)
     {
-        x.copy_to(d.data(), flags::overaligned<alignof(datapar)>);
+        x.memstore(d.data(), flags::overaligned<alignof(datapar)>);
     }
 
     // generator constructor
@@ -238,21 +238,21 @@ public:
     }
 
     // loads [datapar.load]
-    template <class U, class Flags> void copy_from(const U *mem, Flags f)
+    template <class U, class Flags> void memload(const U *mem, Flags f)
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, type_tag));
     }
-    template <class U, class Flags> void Vc_VDECL copy_from(const U *mem, mask_type k, Flags f)
+    template <class U, class Flags> void Vc_VDECL memload(const U *mem, mask_type k, Flags f)
     {
         impl::masked_load(d, k, mem, f);
     }
 
     // stores [datapar.store]
-    template <class U, class Flags> void copy_to(U *mem, Flags f) const
+    template <class U, class Flags> void memstore(U *mem, Flags f) const
     {
         impl::store(d, mem, f, type_tag);
     }
-    template <class U, class Flags> void Vc_VDECL copy_to(U *mem, mask_type k, Flags f) const
+    template <class U, class Flags> void Vc_VDECL memstore(U *mem, mask_type k, Flags f) const
     {
         impl::masked_store(d, mem, f, k);
     }

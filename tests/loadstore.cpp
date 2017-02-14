@@ -238,15 +238,15 @@ TEST_TYPES(VU, load_store,
     x = {&mem[1], element_aligned};
     compare(1);
 
-    x.copy_from(&mem[V::size()], vector_aligned);
+    x.memload(&mem[V::size()], vector_aligned);
     compare(V::size());
-    x.copy_from(&mem[1], element_aligned);
+    x.memload(&mem[1], element_aligned);
     compare(1);
-    x.copy_from(mem, overaligned);
+    x.memload(mem, overaligned);
     compare(0);
 
     for (std::size_t i = 0; i < mem_size - V::size(); ++i) {
-        x.copy_from(&mem[i], element_aligned);
+        x.memload(&mem[i], element_aligned);
         compare(i);
     }
 
@@ -254,20 +254,20 @@ TEST_TYPES(VU, load_store,
         mem[i] = U(i);
     }
     x = indexes_from_0;
-    x.copy_from(&mem[V::size()], alternating_mask, vector_aligned);
+    x.memload(&mem[V::size()], alternating_mask, vector_aligned);
     COMPARE(x == indexes_from_size, alternating_mask);
     COMPARE(x == indexes_from_0, !alternating_mask);
-    x.copy_from(&mem[1], alternating_mask, element_aligned);
+    x.memload(&mem[1], alternating_mask, element_aligned);
     COMPARE(x == indexes_from_1, alternating_mask);
     COMPARE(x == indexes_from_0, !alternating_mask);
-    x.copy_from(mem, !alternating_mask, overaligned);
+    x.memload(mem, !alternating_mask, overaligned);
     COMPARE(x == indexes_from_0, !alternating_mask);
     COMPARE(x == indexes_from_1, alternating_mask);
 
     // stores {{{2
     memset(mem, 0, sizeof(mem));
     x = indexes_from_1;
-    x.copy_to(&mem[V::size()], vector_aligned);
+    x.memstore(&mem[V::size()], vector_aligned);
     std::size_t i = 0;
     for (; i < V::size(); ++i) {
         COMPARE(mem[i], U(0)) << "i: " << i;
@@ -280,7 +280,7 @@ TEST_TYPES(VU, load_store,
     }
 
     memset(mem, 0, sizeof(mem));
-    x.copy_to(&mem[1], element_aligned);
+    x.memstore(&mem[1], element_aligned);
     COMPARE(mem[0], U(0));
     for (i = 1; i <= V::size(); ++i) {
         COMPARE(mem[i], U(i));
@@ -290,7 +290,7 @@ TEST_TYPES(VU, load_store,
     }
 
     memset(mem, 0, sizeof(mem));
-    x.copy_to(mem, overaligned);
+    x.memstore(mem, overaligned);
     for (i = 0; i < V::size(); ++i) {
         COMPARE(mem[i], U(i + 1));
     }
@@ -299,7 +299,7 @@ TEST_TYPES(VU, load_store,
     }
 
     memset(mem, 0, sizeof(mem));
-    indexes_from_0.copy_to(&mem[V::size()], alternating_mask, vector_aligned);
+    indexes_from_0.memstore(&mem[V::size()], alternating_mask, vector_aligned);
     for (i = 0; i < V::size() + 1; ++i) {
         COMPARE(mem[i], U(0));
     }
