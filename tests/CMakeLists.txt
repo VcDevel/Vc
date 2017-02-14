@@ -164,7 +164,12 @@ function(vc_add_test name) #{{{
          set(use_var TRUE)
          set(emulator "${INTEL_SDE};${sde_cpuid_${impl}};--")
       endif()
-      foreach(types "ldouble,float,double,schar,uchar" "llong,long,ullong,ulong" "int,short,uint,ushort")
+      if(Vc_COMPILER_IS_MSVC)
+         set(type_split "ldouble,float" "double,schar,uchar" "llong,long" "ullong,ulong" "int,short" "uint,ushort")
+      else()
+         set(type_split "ldouble,float,double,schar,uchar" "llong,long,ullong,ulong" "int,short,uint,ushort")
+      endif()
+      foreach(types ${type_split})
          set(types_flag "TESTTYPES=${types}")
          foreach(alias ${alias_strategies})
             if(impl STREQUAL "nosimd")#{{{
