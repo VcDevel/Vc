@@ -58,6 +58,23 @@ template <> struct equal_int_type<ulong, 4> { using type =   uint; };
 template <> struct equal_int_type<ulong, 8> { using type = ullong; };
 template <class T> using equal_int_type_t = typename equal_int_type<T>::type;
 
+// promote_preserving_unsigned{{{1
+// work around crazy semantics of unsigned integers of lower rank than int:
+// Before applying an operator the operands are promoted to int. In which case over- or
+// underflow is UB, even though the operand types were unsigned.
+template <class T> static Vc_INTRINSIC const T &promote_preserving_unsigned(const T &x)
+{
+    return x;
+}
+static Vc_INTRINSIC unsigned int promote_preserving_unsigned(const unsigned char &x)
+{
+    return x;
+}
+static Vc_INTRINSIC unsigned int promote_preserving_unsigned(const unsigned short &x)
+{
+    return x;
+}
+
 // unused{{{1
 template <class T> static constexpr void unused(T && ) {}
 
