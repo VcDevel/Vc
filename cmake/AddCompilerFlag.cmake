@@ -146,6 +146,7 @@ macro(AddCompilerFlag _flag)
       __m512 foo(__m256 v) {
         return _mm512_castpd_ps(_mm512_insertf64x4(_mm512_setzero_pd(), _mm256_castps_pd(v), 0x0));
       }
+      __m512i bar() { return _mm512_setzero_si512(); }
       int main() { return 0; }")
    elseif("${_flag}" STREQUAL "-mno-sse" OR "${_flag}" STREQUAL "-mno-sse2")
       set(_cxx_code "#include <cstdio>
