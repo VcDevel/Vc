@@ -474,7 +474,6 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vfloat, vf32<llong>>));
     VERIFY((operator_is_substitution_failure<vfloat, vf32<ullong>>));
     VERIFY((operator_is_substitution_failure<vfloat, vf32<float>>));
-    VERIFY((operator_is_substitution_failure<vfloat, vf32<double>>));
 
     VERIFY((operator_is_substitution_failure<vf32<float>, vfloat>));
     VERIFY((operator_is_substitution_failure<vf32<float>, uint>));
@@ -489,6 +488,8 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vf32<float>, vf32<ulong>>));
     VERIFY((operator_is_substitution_failure<vf32<float>, vf32<llong>>));
     VERIFY((operator_is_substitution_failure<vf32<float>, vf32<ullong>>));
+
+    VERIFY((operator_is_substitution_failure<vfloat, vf32<double>>));
 }
 
 
@@ -531,8 +532,6 @@ void operator_conversions_impl(
     binary_op_return_type<vf64<double>, vf64<uint>>();
     binary_op_return_type<vf64<double>, vf64<float>>();
 
-    VERIFY((operator_is_substitution_failure<vdouble, long>));
-    VERIFY((operator_is_substitution_failure<vdouble, ulong>));
     VERIFY((operator_is_substitution_failure<vdouble, llong>));
     VERIFY((operator_is_substitution_failure<vdouble, ullong>));
     VERIFY((operator_is_substitution_failure<vdouble, vf64<schar>>));
@@ -549,19 +548,33 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vdouble, vf64<double>>));
 
     VERIFY((operator_is_substitution_failure<vf64<double>, vdouble>));
-    VERIFY((operator_is_substitution_failure<vf64<double>, long>));
-    VERIFY((operator_is_substitution_failure<vf64<double>, ulong>));
     VERIFY((operator_is_substitution_failure<vf64<double>, llong>));
     VERIFY((operator_is_substitution_failure<vf64<double>, ullong>));
-    VERIFY((operator_is_substitution_failure<vf64<double>, vf64<long>>));
-    VERIFY((operator_is_substitution_failure<vf64<double>, vf64<ulong>>));
     VERIFY((operator_is_substitution_failure<vf64<double>, vf64<llong>>));
     VERIFY((operator_is_substitution_failure<vf64<double>, vf64<ullong>>));
 
-    VERIFY((operator_is_substitution_failure<vf32<double>, long>));
-    VERIFY((operator_is_substitution_failure<vf32<double>, ulong>));
     VERIFY((operator_is_substitution_failure<vf32<double>, llong>));
     VERIFY((operator_is_substitution_failure<vf32<double>, ullong>));
+
+#if LONG_IS_LLONG
+    VERIFY((operator_is_substitution_failure<vdouble, long>));
+    VERIFY((operator_is_substitution_failure<vdouble, ulong>));
+    VERIFY((operator_is_substitution_failure<vf64<double>, long>));
+    VERIFY((operator_is_substitution_failure<vf64<double>, ulong>));
+    VERIFY((operator_is_substitution_failure<vf64<double>, vf64<long>>));
+    VERIFY((operator_is_substitution_failure<vf64<double>, vf64<ulong>>));
+    VERIFY((operator_is_substitution_failure<vf32<double>, long>));
+    VERIFY((operator_is_substitution_failure<vf32<double>, ulong>));
+#else
+    binary_op_return_type<vdouble, long>();
+    binary_op_return_type<vdouble, ulong>();
+    binary_op_return_type<vf64<double>, long>();
+    binary_op_return_type<vf64<double>, ulong>();
+    binary_op_return_type<vf64<double>, vf64<long>>();
+    binary_op_return_type<vf64<double>, vf64<ulong>>();
+    binary_op_return_type<vf32<double>, long>();
+    binary_op_return_type<vf32<double>, ulong>();
+#endif
 }
 
 template <class V>
@@ -631,6 +644,33 @@ template <class V>
 void operator_conversions_impl(
     Vc::enable_if<std::is_same<V, vlong>::value> = Vc::nullarg)  //{{{2
 {
+    VERIFY((operator_is_substitution_failure<vi32<long>, double>));
+    VERIFY((operator_is_substitution_failure<vi32<long>, float>));
+    VERIFY((operator_is_substitution_failure<vi32<long>, vi32<float>>));
+#if LONG_IS_LLONG
+    binary_op_return_type<vlong, uint>();
+    binary_op_return_type<vlong, llong>();
+    binary_op_return_type<vi32<long>, uint>();
+    binary_op_return_type<vi32<long>, llong>();
+    binary_op_return_type<vi64<long>, uint>();
+    binary_op_return_type<vi64<long>, llong>();
+    binary_op_return_type<vi32<long>, vi32<uint>>();
+    binary_op_return_type<vi64<long>, vi64<uint>>();
+    VERIFY((operator_is_substitution_failure<vi32<long>, vi32<double>>));
+    VERIFY((operator_is_substitution_failure<vi64<long>, vi64<double>>));
+#else
+    VERIFY((operator_is_substitution_failure<vlong, uint>));
+    VERIFY((operator_is_substitution_failure<vlong, llong>));
+    VERIFY((operator_is_substitution_failure<vi32<long>, uint>));
+    VERIFY((operator_is_substitution_failure<vi32<long>, llong>));
+    VERIFY((operator_is_substitution_failure<vi64<long>, uint>));
+    VERIFY((operator_is_substitution_failure<vi64<long>, llong>));
+    VERIFY((operator_is_substitution_failure<vi32<long>, vi32<uint>>));
+    VERIFY((operator_is_substitution_failure<vi64<long>, vi64<uint>>));
+    binary_op_return_type<vi32<double>, vi32<long>>();
+    binary_op_return_type<vi64<double>, vi64<long>>();
+#endif
+
     binary_op_return_type<vlong, vlong, vlong>();
     binary_op_return_type<vlong, schar, vlong>();
     binary_op_return_type<vlong, uchar, vlong>();
@@ -675,8 +715,6 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vl<long>, vulong>));
     VERIFY((operator_is_substitution_failure<vi32<long>, ulong>));
     VERIFY((operator_is_substitution_failure<vi32<long>, ullong>));
-    VERIFY((operator_is_substitution_failure<vi32<long>, float>));
-    VERIFY((operator_is_substitution_failure<vi32<long>, double>));
     binary_op_return_type<vi32<long>, vi32<schar>>();
     binary_op_return_type<vi32<long>, vi32<uchar>>();
     binary_op_return_type<vi32<long>, vi32<short>>();
@@ -684,8 +722,6 @@ void operator_conversions_impl(
     binary_op_return_type<vi32<long>, vi32<int>>();
     VERIFY((operator_is_substitution_failure<vi32<long>, vi32<ulong>>));
     VERIFY((operator_is_substitution_failure<vi32<long>, vi32<ullong>>));
-    VERIFY((operator_is_substitution_failure<vi32<long>, vi32<float>>));
-    VERIFY((operator_is_substitution_failure<vi32<long>, vi32<double>>));
     VERIFY((operator_is_substitution_failure<vi64<long>, ulong>));
     VERIFY((operator_is_substitution_failure<vi64<long>, ullong>));
     VERIFY((operator_is_substitution_failure<vi64<long>, float>));
@@ -698,37 +734,33 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi64<long>, vi64<ulong>>));
     VERIFY((operator_is_substitution_failure<vi64<long>, vi64<ullong>>));
     VERIFY((operator_is_substitution_failure<vi64<long>, vi64<float>>));
-    VERIFY((operator_is_substitution_failure<vi64<long>, vi64<double>>));
 
-#if LONG_IS_LLONG
-    binary_op_return_type<vlong, uint>();
-    binary_op_return_type<vlong, llong>();
-    binary_op_return_type<vi32<long>, uint>();
-    binary_op_return_type<vi32<long>, llong>();
-    binary_op_return_type<vi64<long>, uint>();
-    binary_op_return_type<vi64<long>, llong>();
-    binary_op_return_type<vi32<long>, vi32<uint>>();
     binary_op_return_type<vi32<llong>, vi32<long>>();
-    binary_op_return_type<vi64<long>, vi64<uint>>();
     binary_op_return_type<vi64<llong>, vi64<long>>();
-#else
-    VERIFY((operator_is_substitution_failure<vlong, uint>));
-    VERIFY((operator_is_substitution_failure<vlong, llong>));
-    VERIFY((operator_is_substitution_failure<vi32<long>, uint>));
-    VERIFY((operator_is_substitution_failure<vi32<long>, llong>));
-    VERIFY((operator_is_substitution_failure<vi64<long>, uint>));
-    VERIFY((operator_is_substitution_failure<vi64<long>, llong>));
-    VERIFY((operator_is_substitution_failure<vi32<long>, vi32<uint>>));
-    VERIFY((operator_is_substitution_failure<vi32<long>, vi32<llong>>));
-    VERIFY((operator_is_substitution_failure<vi64<long>, vi64<uint>>));
-    VERIFY((operator_is_substitution_failure<vi64<long>, vi64<llong>>));
-#endif
 }
 
 template <class V>
 void operator_conversions_impl(
     Vc::enable_if<std::is_same<V, vulong>::value> = Vc::nullarg)  //{{{2
 {
+#if LONG_IS_LLONG
+    binary_op_return_type<vulong, ullong, vulong>();
+    binary_op_return_type<vi32<ulong>, ullong, vi32<ulong>>();
+    binary_op_return_type<vi64<ulong>, ullong, vi64<ulong>>();
+    VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<llong>>));
+    VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<double>>));
+    VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<llong>>));
+    VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<double>>));
+#else
+    VERIFY((operator_is_substitution_failure<vulong, ullong>));
+    VERIFY((operator_is_substitution_failure<vi32<ulong>, ullong>));
+    VERIFY((operator_is_substitution_failure<vi64<ulong>, ullong>));
+    binary_op_return_type<vi32<llong>, vi32<ulong>>();
+    binary_op_return_type<vi32<double>, vi32<ulong>>();
+    binary_op_return_type<vi64<llong>, vi64<ulong>>();
+    binary_op_return_type<vi64<double>, vi64<ulong>>();
+#endif
+
     binary_op_return_type<vulong, vulong, vulong>();
     binary_op_return_type<vulong, uchar, vulong>();
     binary_op_return_type<vulong, ushort, vulong>();
@@ -748,6 +780,11 @@ void operator_conversions_impl(
     binary_op_return_type<vi64<ulong>, ulong, vi64<ulong>>();
     binary_op_return_type<vi64<ulong>, vi64<ulong>, vi64<ulong>>();
 
+    VERIFY((operator_is_substitution_failure<vi32<ulong>, llong>));
+    VERIFY((operator_is_substitution_failure<vi32<ulong>, float>));
+    VERIFY((operator_is_substitution_failure<vi32<ulong>, double>));
+    VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<float>>));
+    VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<float>>));
     VERIFY((operator_is_substitution_failure<vulong, schar>));
     VERIFY((operator_is_substitution_failure<vulong, short>));
     VERIFY((operator_is_substitution_failure<vulong, vlong>));
@@ -772,9 +809,6 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi32<ulong>, schar>));
     VERIFY((operator_is_substitution_failure<vi32<ulong>, short>));
     VERIFY((operator_is_substitution_failure<vi32<ulong>, long>));
-    VERIFY((operator_is_substitution_failure<vi32<ulong>, llong>));
-    VERIFY((operator_is_substitution_failure<vi32<ulong>, float>));
-    VERIFY((operator_is_substitution_failure<vi32<ulong>, double>));
     VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<schar>>));
     binary_op_return_type<vi32<ulong>, vi32<uchar>>();
     VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<short>>));
@@ -782,9 +816,7 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<int>>));
     binary_op_return_type<vi32<ulong>, vi32<uint>>();
     VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<long>>));
-    VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<llong>>));
-    VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<float>>));
-    VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<double>>));
+    binary_op_return_type<vi32<ullong>, vi32<ulong>>();
     VERIFY((operator_is_substitution_failure<vi64<ulong>, schar>));
     VERIFY((operator_is_substitution_failure<vi64<ulong>, short>));
     VERIFY((operator_is_substitution_failure<vi64<ulong>, long>));
@@ -798,23 +830,7 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<int>>));
     binary_op_return_type<vi64<ulong>, vi64<uint>>();
     VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<long>>));
-    VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<llong>>));
-    VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<float>>));
-    VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<double>>));
-
-#if LONG_IS_LLONG
-    binary_op_return_type<vulong, ullong, vulong>();
-    binary_op_return_type<vi32<ulong>, ullong, vi32<ulong>>();
-    binary_op_return_type<vi64<ulong>, ullong, vi64<ulong>>();
-    binary_op_return_type<vi32<ullong>, vi32<ulong>>();
     binary_op_return_type<vi64<ullong>, vi64<ulong>>();
-#else
-    VERIFY((operator_is_substitution_failure<vulong, ullong>));
-    VERIFY((operator_is_substitution_failure<vi32<ulong>, ullong>));
-    VERIFY((operator_is_substitution_failure<vi64<ulong>, ullong>));
-    VERIFY((operator_is_substitution_failure<vi32<ulong>, vi32<ullong>>));
-    VERIFY((operator_is_substitution_failure<vi64<ulong>, vi64<ullong>>));
-#endif
 }
 
 template <class V>
@@ -857,12 +873,17 @@ void operator_conversions_impl(
     binary_op_return_type<vi32<llong>, vi32<long>  >();
 #if LONG_IS_LLONG
     VERIFY((operator_is_substitution_failure<vi32<llong>, vi32<ulong>>));
+    VERIFY((operator_is_substitution_failure<vi32<llong>, ulong>));
+    VERIFY((operator_is_substitution_failure<vi64<llong>, ulong>));
+    VERIFY((operator_is_substitution_failure<vllong, ulong>));
 #else
     binary_op_return_type<vi32<llong> , vi32<ulong>>();
+    binary_op_return_type<vi32<llong> , ulong>();
+    binary_op_return_type<vi64<llong> , ulong>();
+    binary_op_return_type<vllong , ulong>();
 #endif
 
     VERIFY((operator_is_substitution_failure<vllong, vullong>));
-    VERIFY((operator_is_substitution_failure<vllong, ulong>));
     VERIFY((operator_is_substitution_failure<vllong, ullong>));
     VERIFY((operator_is_substitution_failure<vllong, float>));
     VERIFY((operator_is_substitution_failure<vllong, double>));
@@ -878,7 +899,6 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vllong, vi64<ullong>>));
     VERIFY((operator_is_substitution_failure<vllong, vi64<float>>));
     VERIFY((operator_is_substitution_failure<vllong, vi64<double>>));
-    VERIFY((operator_is_substitution_failure<vi32<llong>, ulong>));
     VERIFY((operator_is_substitution_failure<vi32<llong>, ullong>));
     VERIFY((operator_is_substitution_failure<vi32<llong>, float>));
     VERIFY((operator_is_substitution_failure<vi32<llong>, double>));
@@ -887,7 +907,6 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi32<llong>, vi32<double>>));
     VERIFY((operator_is_substitution_failure<vi64<llong>, vllong>));
     VERIFY((operator_is_substitution_failure<vi64<llong>, vullong>));
-    VERIFY((operator_is_substitution_failure<vi64<llong>, ulong>));
     VERIFY((operator_is_substitution_failure<vi64<llong>, ullong>));
     VERIFY((operator_is_substitution_failure<vi64<llong>, float>));
     VERIFY((operator_is_substitution_failure<vi64<llong>, double>));
@@ -1015,9 +1034,16 @@ void operator_conversions_impl(
     binary_op_return_type<vi32<llong> , vi32<int>>();
     binary_op_return_type<vi32<double>, vi32<int>>();
 
+    // order is important for MSVC. This compiler is just crazy: It considers operators from
+    // unrelated datapar template instantiations as candidates - but only after they have been
+    // tested. So e.g. vi32<int> + llong will produce a vi32<llong> if a vi32<llong> operator test
+    // is done before the vi32<int> + llong test.
+    VERIFY((operator_is_substitution_failure<vi32<int>, double>));
+    VERIFY((operator_is_substitution_failure<vi32<int>, float>));
+    VERIFY((operator_is_substitution_failure<vi32<int>, llong>));
+    VERIFY((operator_is_substitution_failure<vi32<int>, vi32<float>>));
     VERIFY((operator_is_substitution_failure<vint, vuint>));
     VERIFY((operator_is_substitution_failure<vint, uint>));
-    VERIFY((operator_is_substitution_failure<vint, long>));
     VERIFY((operator_is_substitution_failure<vint, ulong>));
     VERIFY((operator_is_substitution_failure<vint, llong>));
     VERIFY((operator_is_substitution_failure<vint, ullong>));
@@ -1038,24 +1064,32 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi32<int>, vint>));
     VERIFY((operator_is_substitution_failure<vi32<int>, vuint>));
     VERIFY((operator_is_substitution_failure<vi32<int>, uint>));
-    VERIFY((operator_is_substitution_failure<vi32<int>, long>));
     VERIFY((operator_is_substitution_failure<vi32<int>, ulong>));
-    VERIFY((operator_is_substitution_failure<vi32<int>, llong>));
     VERIFY((operator_is_substitution_failure<vi32<int>, ullong>));
-    VERIFY((operator_is_substitution_failure<vi32<int>, float>));
-    VERIFY((operator_is_substitution_failure<vi32<int>, double>));
     VERIFY((operator_is_substitution_failure<vi32<int>, vi32<uint>>));
     VERIFY((operator_is_substitution_failure<vi32<int>, vi32<ulong>>));
     VERIFY((operator_is_substitution_failure<vi32<int>, vi32<ullong>>));
-    VERIFY((operator_is_substitution_failure<vi32<int>, vi32<float>>));
 
     binary_op_return_type<vi32<long>  , vi32<int>>();
+#if LONG_IS_LLONG
+    VERIFY((operator_is_substitution_failure<vint, long>));
+    VERIFY((operator_is_substitution_failure<vi32<int>, long>));
+#else
+    binary_op_return_type<vint, long>();
+    binary_op_return_type<vi32<int>, long>();
+#endif
 }
 
 template <class V>
 void operator_conversions_impl(
     Vc::enable_if<std::is_same<V, vuint>::value> = Vc::nullarg)  //{{{2
 {
+    VERIFY((operator_is_substitution_failure<vi32<uint>, llong>));
+    VERIFY((operator_is_substitution_failure<vi32<uint>, ullong>));
+    VERIFY((operator_is_substitution_failure<vi32<uint>, float>));
+    VERIFY((operator_is_substitution_failure<vi32<uint>, double>));
+    VERIFY((operator_is_substitution_failure<vi32<uint>, vi32<float>>));
+
     binary_op_return_type<vuint, vuint, vuint>();
     binary_op_return_type<vuint, uchar, vuint>();
     binary_op_return_type<vuint, ushort, vuint>();
@@ -1077,7 +1111,6 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vuint, short>));
     VERIFY((operator_is_substitution_failure<vuint, vint>));
     VERIFY((operator_is_substitution_failure<vuint, long>));
-    VERIFY((operator_is_substitution_failure<vuint, ulong>));
     VERIFY((operator_is_substitution_failure<vuint, llong>));
     VERIFY((operator_is_substitution_failure<vuint, ullong>));
     VERIFY((operator_is_substitution_failure<vuint, float>));
@@ -1099,20 +1132,18 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi32<uint>, vint>));
     VERIFY((operator_is_substitution_failure<vi32<uint>, vuint>));
     VERIFY((operator_is_substitution_failure<vi32<uint>, long>));
-    VERIFY((operator_is_substitution_failure<vi32<uint>, ulong>));
-    VERIFY((operator_is_substitution_failure<vi32<uint>, llong>));
-    VERIFY((operator_is_substitution_failure<vi32<uint>, ullong>));
-    VERIFY((operator_is_substitution_failure<vi32<uint>, float>));
-    VERIFY((operator_is_substitution_failure<vi32<uint>, double>));
     VERIFY((operator_is_substitution_failure<vi32<uint>, vi32<schar>>));
     VERIFY((operator_is_substitution_failure<vi32<uint>, vi32<short>>));
     VERIFY((operator_is_substitution_failure<vi32<uint>, vi32<int>>));
-    VERIFY((operator_is_substitution_failure<vi32<uint>, vi32<float>>));
 
     binary_op_return_type<vi32<ulong> , vi32<uint>>();
 #if LONG_IS_LLONG
+    VERIFY((operator_is_substitution_failure<vuint, ulong>));
+    VERIFY((operator_is_substitution_failure<vi32<uint>, ulong>));
     binary_op_return_type<vi32<long>  , vi32<uint>>();
 #else
+    binary_op_return_type<vuint, ulong>();
+    binary_op_return_type<vi32<uint>, ulong>();
     VERIFY((operator_is_substitution_failure<vi32<uint>, vi32<long>>));
 #endif
 }
@@ -1140,6 +1171,8 @@ void operator_conversions_impl(
     binary_op_return_type<vi16<float> , vi16<short>>();
     binary_op_return_type<vi16<double>, vi16<short>>();
 
+    VERIFY((operator_is_substitution_failure<vi16<short>, double>));
+    VERIFY((operator_is_substitution_failure<vi16<short>, llong>));
     VERIFY((operator_is_substitution_failure<vshort, vushort>));
     VERIFY((operator_is_substitution_failure<vshort, ushort>));
     VERIFY((operator_is_substitution_failure<vshort, uint>));
@@ -1167,10 +1200,8 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi16<short>, uint>));
     VERIFY((operator_is_substitution_failure<vi16<short>, long>));
     VERIFY((operator_is_substitution_failure<vi16<short>, ulong>));
-    VERIFY((operator_is_substitution_failure<vi16<short>, llong>));
     VERIFY((operator_is_substitution_failure<vi16<short>, ullong>));
     VERIFY((operator_is_substitution_failure<vi16<short>, float>));
-    VERIFY((operator_is_substitution_failure<vi16<short>, double>));
     VERIFY((operator_is_substitution_failure<vi16<short>, vi16<ushort>>));
     VERIFY((operator_is_substitution_failure<vi16<short>, vi16<uint>>));
     VERIFY((operator_is_substitution_failure<vi16<short>, vi16<ulong>>));
@@ -1202,6 +1233,9 @@ void operator_conversions_impl(
     binary_op_return_type<vi16<float> , vi16<ushort>>();
     binary_op_return_type<vi16<double>, vi16<ushort>>();
 
+    VERIFY((operator_is_substitution_failure<vi16<ushort>, llong>));
+    VERIFY((operator_is_substitution_failure<vi16<ushort>, ullong>));
+    VERIFY((operator_is_substitution_failure<vi16<ushort>, double>));
     VERIFY((operator_is_substitution_failure<vushort, schar>));
     VERIFY((operator_is_substitution_failure<vushort, short>));
     VERIFY((operator_is_substitution_failure<vushort, vshort>));
@@ -1229,10 +1263,7 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi16<ushort>, vushort>));
     VERIFY((operator_is_substitution_failure<vi16<ushort>, long>));
     VERIFY((operator_is_substitution_failure<vi16<ushort>, ulong>));
-    VERIFY((operator_is_substitution_failure<vi16<ushort>, llong>));
-    VERIFY((operator_is_substitution_failure<vi16<ushort>, ullong>));
     VERIFY((operator_is_substitution_failure<vi16<ushort>, float>));
-    VERIFY((operator_is_substitution_failure<vi16<ushort>, double>));
     VERIFY((operator_is_substitution_failure<vi16<ushort>, vi16<schar>>));
     VERIFY((operator_is_substitution_failure<vi16<ushort>, vi16<short>>));
 }
@@ -1255,6 +1286,8 @@ void operator_conversions_impl(
     binary_op_return_type<vi8<float> , vi8<schar>>();
     binary_op_return_type<vi8<double>, vi8<schar>>();
 
+    VERIFY((operator_is_substitution_failure<vi8<schar>, llong>));
+    VERIFY((operator_is_substitution_failure<vi8<schar>, double>));
     VERIFY((operator_is_substitution_failure<vschar, vuchar>));
     VERIFY((operator_is_substitution_failure<vschar, uchar>));
     VERIFY((operator_is_substitution_failure<vschar, short>));
@@ -1286,10 +1319,8 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi8<schar>, uint>));
     VERIFY((operator_is_substitution_failure<vi8<schar>, long>));
     VERIFY((operator_is_substitution_failure<vi8<schar>, ulong>));
-    VERIFY((operator_is_substitution_failure<vi8<schar>, llong>));
     VERIFY((operator_is_substitution_failure<vi8<schar>, ullong>));
     VERIFY((operator_is_substitution_failure<vi8<schar>, float>));
-    VERIFY((operator_is_substitution_failure<vi8<schar>, double>));
     VERIFY((operator_is_substitution_failure<vi8<schar>, vi8<uchar>>));
     VERIFY((operator_is_substitution_failure<vi8<schar>, vi8<ushort>>));
     VERIFY((operator_is_substitution_failure<vi8<schar>, vi8<uint>>));
@@ -1301,6 +1332,8 @@ template <class V>
 void operator_conversions_impl(
     Vc::enable_if<std::is_same<V, vuchar>::value> = Vc::nullarg)  //{{{2
 {
+    VERIFY((operator_is_substitution_failure<vi8<uchar>, llong>));
+
     binary_op_return_type<vuchar, vuchar, vuchar>();
     binary_op_return_type<vuchar, uchar, vuchar>();
     binary_op_return_type<vuchar, int, vuchar>();
@@ -1321,6 +1354,8 @@ void operator_conversions_impl(
     binary_op_return_type<vi8<float> , vi8<uchar>>();
     binary_op_return_type<vi8<double>, vi8<uchar>>();
 
+    VERIFY((operator_is_substitution_failure<vi8<uchar>, ullong>));
+    VERIFY((operator_is_substitution_failure<vi8<uchar>, double>));
     VERIFY((operator_is_substitution_failure<vuchar, schar>));
     VERIFY((operator_is_substitution_failure<vuchar, vschar>));
     VERIFY((operator_is_substitution_failure<vuchar, short>));
@@ -1350,10 +1385,7 @@ void operator_conversions_impl(
     VERIFY((operator_is_substitution_failure<vi8<uchar>, ushort>));
     VERIFY((operator_is_substitution_failure<vi8<uchar>, long>));
     VERIFY((operator_is_substitution_failure<vi8<uchar>, ulong>));
-    VERIFY((operator_is_substitution_failure<vi8<uchar>, llong>));
-    VERIFY((operator_is_substitution_failure<vi8<uchar>, ullong>));
     VERIFY((operator_is_substitution_failure<vi8<uchar>, float>));
-    VERIFY((operator_is_substitution_failure<vi8<uchar>, double>));
     VERIFY((operator_is_substitution_failure<vi8<uchar>, vi8<schar>>));
 }  //}}}2
 TEST_TYPES(V, operator_conversions, (current_native_test_types))  //{{{2

@@ -165,7 +165,7 @@ function(vc_add_test name) #{{{
          set(emulator "${INTEL_SDE};${sde_cpuid_${impl}};--")
       endif()
       if(Vc_COMPILER_IS_MSVC)
-         set(type_split "ldouble,float" "double,schar,uchar" "llong,long" "ullong,ulong" "int,short" "uint,ushort")
+         set(type_split "ldouble,float,double" "uint,llong" "long,uchar" "int,ushort" "short,ulong" "schar,ullong")
       else()
          set(type_split "ldouble,float,double,schar,uchar" "llong,long,ullong,ulong" "int,short,uint,ushort")
       endif()
