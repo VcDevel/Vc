@@ -214,7 +214,6 @@ function(vc_add_test name) #{{{
                   )#}}}
             else()
                add_executable(${target} EXCLUDE_FROM_ALL ${src})
-               #target_link_libraries(${target} Vc)
                set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS "${flags}")
                if(NOT impl STREQUAL "nosimd")
                   set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
@@ -310,7 +309,6 @@ if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
          mic_add_executable(${_target} SOURCES abi.cpp LINK_LIBRARIES Vc_MIC COMPILE_FLAGS "-DVc_IMPL=${_impl};${ARGN};-O2")
       else()
          add_executable(${_target} EXCLUDE_FROM_ALL abi.cpp)
-         #target_link_libraries(${_target} Vc)
          set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS "Vc_IMPL=${_impl}")
          set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS "${ARGN};-O2")
       endif()
@@ -356,25 +354,6 @@ if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
    endif()
 endif()#}}}
 
-macro(vc_add_general_test _name)#{{{
-   add_executable(${_name} EXCLUDE_FROM_ALL ${_name}.cpp )
-   target_link_libraries(${_name} Vc)
-   add_target_property(${_name} LABELS "other")
-   set_property(TARGET ${_name} APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
-   add_dependencies(build_tests ${_name})
-   add_dependencies(other ${_name})
-   add_test(${_name} "${CMAKE_CURRENT_BINARY_DIR}/${_name}")
-   set_property(TEST ${_name} PROPERTY LABELS "other")
-   vc_add_run_target(${_name} FALSE _ignore)
-endmacro()#}}}
-
-if(NOT Vc_COMPILER_IS_MSVC)
-   if(_last_target_arch STREQUAL "auto" AND NOT Vc_AVX_INTRINSICS_BROKEN)
-      #vc_add_general_test(supportfunctions)
-   endif()
-   vc_add_general_test(alignmentinheritance)
-   vc_add_general_test(alignedbase)
-
 # compile and link test for targets that need to link lots of stuff together#{{{
 add_library(linkTestLibDynamic1 SHARED EXCLUDE_FROM_ALL linkTestLib0.cpp linkTestLib1.cpp)
 add_library(linkTestLibDynamic2 SHARED EXCLUDE_FROM_ALL linkTestLib0.cpp linkTestLib1.cpp)
@@ -382,17 +361,13 @@ add_library(linkTestLibStatic STATIC EXCLUDE_FROM_ALL linkTestLib2.cpp linkTestL
 add_executable(linkTest EXCLUDE_FROM_ALL linkTest0.cpp linkTest1.cpp)
 add_dependencies(build_tests linkTest)
 add_dependencies(other linkTest)
-target_link_libraries(linkTestLibDynamic1 Vc)
-target_link_libraries(linkTestLibDynamic2 Vc)
 add_target_property(linkTestLibDynamic1 COMPILE_FLAGS "-DPOSTFIX=A")
 add_target_property(linkTestLibDynamic2 COMPILE_FLAGS "-DPOSTFIX=B")
 set_property(TARGET linkTestLibDynamic1 APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
 set_property(TARGET linkTestLibDynamic2 APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
 set_property(TARGET linkTestLibStatic APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
 set_property(TARGET linkTest APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
-target_link_libraries(linkTestLibStatic Vc)
-target_link_libraries(linkTest Vc linkTestLibDynamic1 linkTestLibDynamic2 linkTestLibStatic)#}}}
-endif()
+target_link_libraries(linkTest linkTestLibDynamic1 linkTestLibDynamic2 linkTestLibStatic)#}}}
 
 # Use the following program to generate the sincos-reference-*.dat files
 #add_executable(convert-sincos-reference EXCLUDE_FROM_ALL convert-sincos-reference.cpp)

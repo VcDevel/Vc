@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_SUPPORT_H_
 
 #ifndef VC_GLOBAL_H_
-#error "Vc/global.h must be included first!"
+#error "Vc/detail/global.h must be included first!"
 #endif
 
 #include <Vc/cpuid.h>

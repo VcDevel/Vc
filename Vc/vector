@@ -24,7 +24,7 @@
 #ifndef VC_VECTOR_
 #define VC_VECTOR_
 
-#include "common/subscript.h"
+#include "detail/subscript.h"
 #include <vector>
 
 Vc_VERSIONED_NAMESPACE_BEGIN

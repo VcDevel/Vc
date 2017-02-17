@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <type_traits>
 #include <utility>
-#include "../common/indexsequence.h"
+#include <Vc/detail/indexsequence.h>
 
 template <typename... Ts> struct Typelist;
 

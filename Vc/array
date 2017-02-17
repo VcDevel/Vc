@@ -42,7 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <stdexcept>
 
-#include "common/subscript.h"
+#include "detail/subscript.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 template <class T, size_t Size> struct array {

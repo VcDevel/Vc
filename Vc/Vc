@@ -27,14 +27,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef VC_VC_
 #define VC_VC_
-#include "vector.h"
-#include "IO"
-#include "Memory"
-#include "Utils"
+#include "datapar"
 #include "Allocator"
-#include "iterators"
-#include "SimdArray"
-#include "simdize"
+#include "array"
+#include "vector"
+
+Vc_VERSIONED_NAMESPACE_BEGIN
+using double_v = native_datapar<double>;
+using float_v = native_datapar<float>;
+using ullong_v = native_datapar<unsigned long long>;
+using llong_v = native_datapar<long long>;
+using ulong_v = native_datapar<unsigned long>;
+using long_v = native_datapar<long>;
+using uint_v = native_datapar<unsigned int>;
+using int_v = native_datapar<int>;
+using ushort_v = native_datapar<unsigned short>;
+using short_v = native_datapar<short>;
+using uchar_v = native_datapar<unsigned char>;
+using schar_v = native_datapar<signed char>;
+Vc_VERSIONED_NAMESPACE_END
 #endif // VC_VC_
 
 // vim: ft=cpp foldmethod=marker

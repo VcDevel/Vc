@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_CPUID_H_
 #define VC_CPUID_H_
 
-#include "common/macros.h"
-#include "common/libraryversioncheck.h"
+#include "detail/macros.h"
+#include "detail/libraryversioncheck.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 

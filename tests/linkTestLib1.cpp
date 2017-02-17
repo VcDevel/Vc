@@ -1,6 +1,4 @@
 #include <Vc/Vc>
-#include <Vc/IO>
-#include <Vc/support.h>
 
 #define CAT(a, b) a##b
 #define name(a, b) CAT(a, b)
@@ -10,9 +8,9 @@ float_v
 #ifdef Vc_MSVC
 __declspec(dllexport)
 #endif
-name(fooLib1, POSTFIX)(float_v::AsArg a)
+name(fooLib1, POSTFIX)(const float_v &a)
 {
-    const float_v b = sin(a + float_v::One());
+    const float_v b = min(a, float_v(1));
     std::cerr << b;
     return b;
 }

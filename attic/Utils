@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_UTILS_
 #define VC_UTILS_
 
-#include "global.h"
+#include "detail/global.h"
 
 #ifdef Vc_IMPL_Scalar
 # define VECTOR_NAMESPACE Scalar

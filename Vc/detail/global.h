@@ -103,9 +103,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_UNSUPPORTED_COMPILER 1
 #endif
 
-#if __cplusplus < 201103 && (!defined Vc_MSVC || _MSC_VER < 1900)
-# error "Vc requires support for C++11."
-#elif __cplusplus >= 201402L
+#if __cplusplus < 201402L
+# error "Vc requires support for C++14."
 # define Vc_CXX14 1
 # if __cplusplus > 201700L
 #  define Vc_CXX17 1
@@ -632,7 +631,7 @@ using CurrentImplementation = ImplementationT<
 
 Vc_VERSIONED_NAMESPACE_END
 
-#include "version.h"
+#include "../version.h"
 
 #endif // VC_GLOBAL_H_
 

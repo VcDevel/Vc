@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 
 #include "traits/type_traits.h"
-#include "common/macros.h"
+#include "detail/macros.h"
 Vc_VERSIONED_NAMESPACE_BEGIN
 using Traits::is_simd_mask;
 using Traits::is_simd_vector;

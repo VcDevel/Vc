@@ -1,12 +1,9 @@
 #include <Vc/Vc>
-#include <Vc/IO>
-#include <Vc/datapar>
-#include <Vc/support.h>
 
 using namespace Vc;
-float_v foo0(float_v::AsArg a)
+float_v foo0(const float_v &a)
 {
-    const float_v b = sin(a + float_v::One());
+    const float_v b = max(a, float_v(1));
     const Vc::datapar<float> c = 1;
     std::cerr << b << c;
     return b;

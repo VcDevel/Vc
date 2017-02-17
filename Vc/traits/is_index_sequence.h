@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_IS_INDEX_SEQUENCE_H_
 #define VC_IS_INDEX_SEQUENCE_H_
 
-#include "../common/indexsequence.h"
+#include "../detail/indexsequence.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace Traits

@@ -95,7 +95,7 @@ add_definitions(${Vc_DEFINITIONS})
 add_compile_options(${Vc_COMPILE_FLAGS})
 AddCompilerFlag(-ftemplate-depth=128 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)#}}}
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})#}}}
 
 # Option for building against libc++ with Clang#{{{
 ##################################################################
@@ -195,7 +195,7 @@ elseif(Vc_ARM)
    add_custom_target(NEON COMMENT "build NEON code" VERBATIM)
 endif()#}}}
 
-if(NOT Vc_COMPILER_IS_MSVC)
+if(FALSE) # disabled for now
 # Build libVc#{{{
 ##################################################################
 set(libvc_compile_flags "-DVc_COMPILE_LIB")
@@ -234,25 +234,23 @@ if(MIC_NATIVE_FOUND)
    add_dependencies(MIC Vc_MIC)
 endif()#}}}
 
-# Install libVc(_MIC) and headers#{{{
+# Install libVc(_MIC)#{{{
 ##################################################################
 install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
 if(MIC_NATIVE_FOUND)
    get_target_property(outputName Vc_MIC OUTPUT_NAME)
    install(FILES ${outputName} DESTINATION lib${LIB_SUFFIX})
+endif()#}}}
 endif()
 
-# public headers
-install(DIRECTORY include/Vc/ DESTINATION include/Vc)
-
-# private headers
-install(DIRECTORY common datapar traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")#}}}
-endif()
+# Install headers#{{{
+##################################################################
+install(DIRECTORY Vc/ DESTINATION include/Vc)
 
 # Generate & install cmake config#{{{
 ##################################################################
 # read version parts from version.h to be put into VcConfig.cmake
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define Vc_VERSION_STRING ")
+file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/Vc/version.h _version_lines REGEX "^#define Vc_VERSION_STRING ")
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _version_matches "${_version_lines}")
 set(Vc_VERSION_MAJOR ${CMAKE_MATCH_1})
 set(Vc_VERSION_MINOR ${CMAKE_MATCH_2})
@@ -293,7 +291,8 @@ endif(BUILD_TESTING)#}}}
 ##################################################################
 set(BUILD_EXAMPLES FALSE CACHE BOOL "Build examples.")
 if(BUILD_EXAMPLES)
-   add_subdirectory(examples)
+   message(STATUS "Examples not ported to Vc 2. Disabled.")
+   #add_subdirectory(examples)
 endif(BUILD_EXAMPLES)#}}}
 
 # Hack for caching `make help`#{{{
