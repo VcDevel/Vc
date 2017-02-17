@@ -412,7 +412,7 @@ endif()
 
 macro(go)
    # On Continuous builds this string may change and thus must be inside go()
-   file(STRINGS "${PROJECT_DIRECTORY}/include/Vc/version.h"
+   file(STRINGS "${PROJECT_DIRECTORY}/Vc/version.h"
       Vc_VERSION_STRING
       REGEX "#define +Vc_VERSION_STRING "
       )
