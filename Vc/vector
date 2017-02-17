@@ -47,7 +47,7 @@ Vc_VERSIONED_NAMESPACE_BEGIN
  * \endcode
  */
 template <typename T, typename Allocator = std::allocator<T>>
-using vector = Common::AdaptSubscriptOperator<std::vector<T, Allocator>>;
+using vector = detail::AdaptSubscriptOperator<std::vector<T, Allocator>>;
 
 namespace Traits
 {

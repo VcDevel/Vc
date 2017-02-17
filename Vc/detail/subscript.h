@@ -32,13 +32,41 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ratio>
 #include <type_traits>
 #include <vector>
-#include "types.h"
 #include "macros.h"
-#include <assert.h>
+#include <cassert>
 
 Vc_VERSIONED_NAMESPACE_BEGIN
-namespace Common
+
+template <class T, size_t Size> struct array;
+
+namespace detail
 {
+/**
+ * \internal
+ * Helper type to pass along the two arguments for a gather operation.
+ *
+ * \tparam IndexVector  Normally an integer SIMD vector, but an array or std::vector also
+ *                      works (though often not as efficient).
+ */
+template <typename T, typename IndexVector> struct gather_arguments
+{
+    const IndexVector indexes;
+    const T *const address;
+};
+
+/**
+ * \internal
+ * Helper type to pass along the two arguments for a scatter operation.
+ *
+ * \tparam IndexVector  Normally an integer SIMD vector, but an array or std::vector also
+ *                      works (though often not as efficient).
+ */
+template <typename T, typename IndexVector> struct scatter_arguments
+{
+    const IndexVector indexes;
+    T *const address;
+};
+
 // AdaptSubscriptOperator {{{1
 template <typename Base> class AdaptSubscriptOperator : public Base
 {
@@ -229,34 +257,35 @@ enable_if<
 template <typename IV>
 enable_if<
     (Traits::is_simd_vector<IV>::value && sizeof(typename IV::EntryType) < sizeof(int)),
-    SimdArray<int, IV::Size>>
+    fixed_size_datapar<int, IV::Size>>
     convertIndexVector(const IV &indexVector)
 {
-    return static_cast<SimdArray<int, IV::Size>>(indexVector);
+    return static_cast<fixed_size_datapar<int, IV::Size>>(indexVector);
 }
 
 // helper for promoting int types to int or higher
 template<typename T> using promoted_type = decltype(std::declval<T>() + 1);
 
 // std::array, Vc::array, and C-array are fixed size and can therefore be converted to a
-// SimdArray of the same size
+// fixed_size_datapar of the same size
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertIndexVector(
-    const std::array<T, N> &indexVector)
+enable_if<std::is_integral<T>::value, fixed_size_datapar<promoted_type<T>, N>>
+convertIndexVector(const std::array<T, N> &indexVector)
 {
-    return {std::addressof(indexVector[0]), Vc::Unaligned};
+    return {std::addressof(indexVector[0]), Vc::flags::element_aligned};
 }
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertIndexVector(
-    const Vc::array<T, N> &indexVector)
+enable_if<std::is_integral<T>::value, fixed_size_datapar<promoted_type<T>, N>>
+convertIndexVector(const Vc::array<T, N> &indexVector)
 {
-    return {std::addressof(indexVector[0]), Vc::Unaligned};
+    return {std::addressof(indexVector[0]), Vc::flags::element_aligned};
 }
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertIndexVector(
-    const T (&indexVector)[N])
+enable_if<std::is_integral<T>::value, fixed_size_datapar<promoted_type<T>, N>>
+convertIndexVector(const T(&indexVector)[N])
 {
-    return SimdArray<promoted_type<T>, N>{std::addressof(indexVector[0]), Vc::Unaligned};
+    return fixed_size_datapar<promoted_type<T>, N>{std::addressof(indexVector[0]),
+                                                   Vc::flags::element_aligned};
 }
 
 // a plain pointer won't work. Because we need some information on the number of values in
@@ -344,14 +373,14 @@ public:
     {
     }
 
-    Vc_ALWAYS_INLINE GatherArguments<T, IndexVectorScaled> gatherArguments() const
+    Vc_ALWAYS_INLINE gather_arguments<T, IndexVectorScaled> gatherArguments() const
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
         return {applyScale<Scale>(convertIndexVector(m_indexes)), m_address};
     }
 
-    Vc_ALWAYS_INLINE ScatterArguments<T, IndexVectorScaled> scatterArguments() const
+    Vc_ALWAYS_INLINE scatter_arguments<T, IndexVectorScaled> scatterArguments() const
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
@@ -568,7 +597,7 @@ static_assert(!Traits::has_subscript_operator<SubscriptOperation<std::vector<int
  * the world is a happier place. :)
  */
 template <typename Container, typename I>
-Vc_ALWAYS_INLINE Vc::Common::SubscriptOperation<
+Vc_ALWAYS_INLINE Vc::detail::SubscriptOperation<
     typename std::remove_reference<decltype(std::declval<Container>()[0])>::type,
     const std::initializer_list<I> &> subscript_operator(Container &&vec,
                                                    const std::initializer_list<I> &indexes)
@@ -577,19 +606,19 @@ Vc_ALWAYS_INLINE Vc::Common::SubscriptOperation<
 }
 //}}}1
 
-}  // namespace Common
+}  // namespace detail
 
-using Common::subscript_operator;
+using detail::subscript_operator;
 
 namespace Traits
 {
 template <typename T, typename IndexVector, typename Scale>
-struct is_subscript_operation_internal<Common::SubscriptOperation<T, IndexVector, Scale>> : public std::true_type
+struct is_subscript_operation_internal<detail::SubscriptOperation<T, IndexVector, Scale>> : public std::true_type
 {
 };
 }  // namespace Traits
 
-using Common::subscript_operator;
+using detail::subscript_operator;
 
 Vc_VERSIONED_NAMESPACE_END
 
