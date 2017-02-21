@@ -12,6 +12,7 @@ environment:
     - subset: sse
     - subset: avx
     - subset: avx512
+    - subset: neon
 
 build_script:
 - cmd: >-
