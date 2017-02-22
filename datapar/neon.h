@@ -473,78 +473,81 @@ Vc_VERSIONED_NAMESPACE_END
 
 // [mask.reductions] {{{
 Vc_VERSIONED_NAMESPACE_BEGIN
+
+//NEON really doesn't have mask reduction implentation?
+
 Vc_ALWAYS_INLINE bool all_of(mask<float, datapar_abi::Neon> k)
 {
     const float32x4_t d(k);
-    return _mm_movemask_ps(d) == 0xf;
+    return movemask_f32(d) == 0xf;
 }
 
 Vc_ALWAYS_INLINE bool any_of(mask<float, datapar_abi::Neon> k)
 {
     const float32x4_t d(k);
-    return _mm_movemask_ps(d) != 0;
+    return movemask_f32(d) != 0;
 }
 
 Vc_ALWAYS_INLINE bool none_of(mask<float, datapar_abi::Neon> k)
 {
     const float32x4_t d(k);
-    return _mm_movemask_ps(d) == 0;
+    return movemask_f32(d) == 0;
 }
 
 Vc_ALWAYS_INLINE bool some_of(mask<float, datapar_abi::Neon> k)
 {
     const float32x4_t d(k);
-    const int tmp = _mm_movemask_ps(d);
+    const int tmp = movemask_f32(d);
     return tmp != 0 && (tmp ^ 0xf) != 0;
 }
 
 Vc_ALWAYS_INLINE bool all_of(mask<double, datapar_abi::Neon> k)
 {
     float64x2_t d(k);
-    return _mm_movemask_pd(d) == 0x3;
+    return movemask_f64(d) == 0x3;
 }
 
 Vc_ALWAYS_INLINE bool any_of(mask<double, datapar_abi::Neon> k)
 {
     const float64x2_t d(k);
-    return _mm_movemask_pd(d) != 0;
+    return movemask_f64(d) != 0;
 }
 
 Vc_ALWAYS_INLINE bool none_of(mask<double, datapar_abi::Neon> k)
 {
     const float64x2_t d(k);
-    return _mm_movemask_pd(d) == 0;
+    return movemask_f64(d) == 0;
 }
 
 Vc_ALWAYS_INLINE bool some_of(mask<double, datapar_abi::Neon> k)
 {
     const float64x2_t d(k);
-    const int tmp = _mm_movemask_pd(d);
+    const int tmp = movemask_f64(d);
     return tmp == 1 || tmp == 2;
 }
 
 template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::Neon> k)
 {
     const int32x4_t d(k);
-    return _mm_movemask_epi8(d) == 0xffff;
+    return movemask_s32(d) == 0xffff;
 }
 
 template <class T> Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::Neon> k)
 {
     const int32x4_t d(k);
-    return _mm_movemask_epi8(d) != 0x0000;
+    return movemask_s32(d) != 0x0000;
 }
 
 template <class T> Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::Neon> k)
 {
     const int32x4_t d(k);
-    return _mm_movemask_epi8(d) == 0x0000;
+    return movemask_s32(d) == 0x0000;
 }
 
 template <class T> Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::Neon> k)
 {
     const int32x4_t d(k);
-    const int tmp = _mm_movemask_epi8(d);
+    const int tmp = movemask_s32(d);
     return tmp != 0 && (tmp ^ 0xffff) != 0;
 }
 
@@ -585,7 +588,7 @@ public:
                                                   static_cast<S<T>>(y));
     }
 };
-// }}}1 
+// }}}1   
 }  // namespace std
 #endif  // Vc_HAVE_NEON
 
