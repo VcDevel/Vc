@@ -285,6 +285,20 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
             }
         });
     }
+#ifdef Vc_HAVE_AVX
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<double> &merge, mask<double> k,
+                                                  const double *mem, F) noexcept
+    {
+        return _mm_blendv_pd(merge.d, _mm_maskload_pd(mem, data(k)), data(k));
+    }
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<float> &merge, mask<float> k,
+                                                  const float *mem, F) noexcept
+    {
+        return _mm_blendv_ps(merge.d, _mm_maskload_ps(mem, data(k)), data(k));
+    }
+#endif  // Vc_HAVE_AVX
 
     // store {{{2
     // store to long double has no vector implementation{{{3
