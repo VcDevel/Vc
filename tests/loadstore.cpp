@@ -259,13 +259,13 @@ TEST_TYPES(VU, load_store,
         mem[i] = U(i);
     }
     x = indexes_from_0;
-    x.memload(&mem[V::size()], alternating_mask, vector_aligned);
+    where(alternating_mask, x).memload(&mem[V::size()], vector_aligned);
     COMPARE(x == indexes_from_size, alternating_mask);
     COMPARE(x == indexes_from_0, !alternating_mask);
-    x.memload(&mem[1], alternating_mask, element_aligned);
+    where(alternating_mask, x).memload(&mem[1], element_aligned);
     COMPARE(x == indexes_from_1, alternating_mask);
     COMPARE(x == indexes_from_0, !alternating_mask);
-    x.memload(mem, !alternating_mask, overaligned);
+    where(!alternating_mask, x).memload(mem, overaligned);
     COMPARE(x == indexes_from_0, !alternating_mask);
     COMPARE(x == indexes_from_1, alternating_mask);
 
@@ -304,7 +304,7 @@ TEST_TYPES(VU, load_store,
     }
 
     memset(mem, 0, sizeof(mem));
-    indexes_from_0.memstore(&mem[V::size()], alternating_mask, vector_aligned);
+    where(alternating_mask, indexes_from_0).memstore(&mem[V::size()], vector_aligned);
     for (i = 0; i < V::size() + 1; ++i) {
         COMPARE(mem[i], U(0));
     }

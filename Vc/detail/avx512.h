@@ -257,13 +257,13 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
 
     // masked load {{{2
     template <class T, class U, class F>
-    static Vc_INTRINSIC void masked_load(datapar_member_type<T> &merge, mask<T> k,
-                                         const U *mem, F) noexcept
+    static Vc_INTRINSIC void masked_load(datapar<T> &merge, mask<T> k, const U *mem,
+                                         F) noexcept
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
-                merge.set(i, static_cast<T>(mem[i]));
+                merge.d.set(i, static_cast<T>(mem[i]));
             }
         });
     }

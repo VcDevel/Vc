@@ -275,13 +275,13 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     // masked load {{{2
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar_member_type<T> &merge,
-                                                  mask<T> k, const U *mem, F) noexcept
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<T> &merge, mask<T> k,
+                                                  const U *mem, F) noexcept
     {
         // TODO: implement with V(P)MASKMOV if AVX(2) is available
         execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
-                merge.set(i, static_cast<T>(mem[i]));
+                merge.d.set(i, static_cast<T>(mem[i]));
             }
         });
     }

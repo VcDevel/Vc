@@ -324,6 +324,8 @@ constexpr int find_last_set(bool) { return 0; }
 // masked assignment [mask.where]
 template <typename M, typename T> class where_expression
 {
+    using V = std::remove_const_t<T>;
+
 public:
     where_expression(const where_expression &) = delete;
     where_expression &operator=(const where_expression &) = delete;
@@ -403,10 +405,19 @@ public:
         using detail::masked_unary;
         d = masked_unary<detail::decrement>(k, d);
     }
-    Vc_INTRINSIC T operator-() const
+    Vc_INTRINSIC V operator-() const
     {
         using detail::masked_unary;
         return masked_unary<std::negate>(k, d);
+    }
+
+    template <class U, class Flags> Vc_INTRINSIC void memload(const U *mem, Flags f)
+    {
+        detail::get_impl_t<V>::masked_load(d, k, mem, f);
+    }
+    template <class U, class Flags> Vc_INTRINSIC void memstore(U *mem, Flags f) const
+    {
+        detail::get_impl_t<V>::masked_store(detail::data(d), mem, f, k);
     }
 
 private:

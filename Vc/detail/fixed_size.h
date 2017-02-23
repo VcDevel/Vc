@@ -80,10 +80,10 @@ template <int N> struct fixed_size_datapar_impl {
         unused(x);
     }
     template <class T, class A, class U, class F>
-    static inline void masked_load(datapar_member_type<T> &merge, const Vc::mask<T, A> &k,
+    static inline void masked_load(datapar<T> &merge, const Vc::mask<T, A> &k,
                                    const U *mem, F) noexcept
     {
-        masked_load_impl(merge, k.d, mem, index_seq);
+        masked_load_impl(merge.d, k.d, mem, index_seq);
     }
 
     // store {{{2
