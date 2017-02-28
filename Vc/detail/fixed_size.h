@@ -111,10 +111,10 @@ template <int N> struct fixed_size_datapar_impl {
         unused(x);
     }
     template <class T, class A, class U, class F>
-    static inline void masked_store(const datapar_member_type<T> &v, U *mem, F,
+    static inline void masked_store(const datapar<T> &v, U *mem, F,
                                     const Vc::mask<T, A> &k) noexcept
     {
-        return masked_store_impl(v, mem, index_seq, k.d);
+        return masked_store_impl(v.d, mem, index_seq, k.d);
     }
 
     // negation {{{2

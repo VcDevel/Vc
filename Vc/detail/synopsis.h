@@ -417,7 +417,7 @@ public:
     }
     template <class U, class Flags> Vc_INTRINSIC void memstore(U *mem, Flags f) const
     {
-        detail::get_impl_t<V>::masked_store(detail::data(d), mem, f, k);
+        detail::get_impl_t<V>::masked_store(d, mem, f, k);
     }
 
 private:
