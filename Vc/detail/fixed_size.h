@@ -187,77 +187,84 @@ template <int N> struct fixed_size_datapar_impl {
     static inline Vc::datapar<T, A> minus(const Vc::datapar<T, A> &x,
                                           const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(promote_preserving_unsigned(x.d[i]) -
-                                          promote_preserving_unsigned(y.d[i]));
-                })};
+        return {
+            private_init,
+            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
+                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) -
+                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
+            })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> multiplies(const Vc::datapar<T, A> &x,
                                                const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(promote_preserving_unsigned(x.d[i]) *
-                                          promote_preserving_unsigned(y.d[i]));
-                })};
+        return {
+            private_init,
+            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
+                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) *
+                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
+            })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> divides(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(promote_preserving_unsigned(x.d[i]) /
-                                          promote_preserving_unsigned(y.d[i]));
-                })};
+        return {
+            private_init,
+            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
+                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) /
+                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
+            })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> modulus(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(promote_preserving_unsigned(x.d[i]) %
-                                          promote_preserving_unsigned(y.d[i]));
-                })};
+        return {
+            private_init,
+            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
+                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) %
+                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
+            })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_and(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(promote_preserving_unsigned(x.d[i]) &
-                                          promote_preserving_unsigned(y.d[i]));
-                })};
+        return {
+            private_init,
+            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
+                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) &
+                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
+            })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_or(const Vc::datapar<T, A> &x,
                                            const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(promote_preserving_unsigned(x.d[i]) |
-                                          promote_preserving_unsigned(y.d[i]));
-                })};
+        return {
+            private_init,
+            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
+                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) |
+                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
+            })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_xor(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(promote_preserving_unsigned(x.d[i]) ^
-                                          promote_preserving_unsigned(y.d[i]));
-                })};
+        return {
+            private_init,
+            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
+                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) ^
+                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
+            })};
     }
 
     template <class T, class A>
@@ -266,7 +273,8 @@ template <int N> struct fixed_size_datapar_impl {
     {
         return {private_init,
                 generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(promote_preserving_unsigned(x.d[i]) << y.d[i]);
+                    return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i])
+                                          << y.d[i]);
                 })};
     }
 
@@ -276,7 +284,8 @@ template <int N> struct fixed_size_datapar_impl {
     {
         return {private_init,
                 generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(promote_preserving_unsigned(x.d[i]) >> y.d[i]);
+                    return static_cast<T>(
+                        Vc::detail::promote_preserving_unsigned(x.d[i]) >> y.d[i]);
                 })};
     }
 
