@@ -269,6 +269,14 @@ TEST_TYPES(VU, load_store,
     COMPARE(x == indexes_from_0, !alternating_mask);
     COMPARE(x == indexes_from_1, alternating_mask);
 
+    x = where(alternating_mask, V()).memload(&mem[V::size()], vector_aligned);
+    COMPARE(x == indexes_from_size, alternating_mask);
+    COMPARE(x == 0, !alternating_mask);
+
+    x = where(!alternating_mask, V()).memload(&mem[1], element_aligned);
+    COMPARE(x == indexes_from_1, !alternating_mask);
+    COMPARE(x == 0, alternating_mask);
+
     // stores {{{2
     memset(mem, 0, sizeof(mem));
     x = indexes_from_1;

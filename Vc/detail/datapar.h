@@ -233,10 +233,6 @@ public:
         : d(impl::load(mem, f, type_tag))
     {
     }
-    template <class U, class Flags> datapar(const U *mem, const mask_type &k, Flags f) : d{}
-    {
-        impl::masked_load(*this, k, mem, f);
-    }
 
     // loads [datapar.load]
     template <class U, class Flags> void memload(const U *mem, Flags f)

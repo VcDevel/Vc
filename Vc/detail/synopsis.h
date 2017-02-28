@@ -415,6 +415,13 @@ public:
     {
         detail::get_impl_t<V>::masked_load(d, k, mem, f);
     }
+    template <class U, class Flags>
+    Vc_NODISCARD Vc_INTRINSIC V memload(const U *mem, Flags f) const
+    {
+        V r = d;
+        detail::get_impl_t<V>::masked_load(r, k, mem, f);
+        return r;
+    }
     template <class U, class Flags> Vc_INTRINSIC void memstore(U *mem, Flags f) const
     {
         detail::get_impl_t<V>::masked_store(d, mem, f, k);

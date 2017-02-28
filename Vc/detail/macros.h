@@ -231,6 +231,14 @@ Vc_VERSIONED_NAMESPACE_END
 #  define Vc_WARN_UNUSED_RESULT
 #endif
 
+#ifdef Vc_CXX17
+#  define Vc_NODISCARD [[nodiscard]]
+#elif defined __GNUC__
+#  define Vc_NODISCARD [[gnu::warn_unused_result]]
+#else
+#  define Vc_NODISCARD
+#endif
+
 #define Vc_NOTHING_EXPECTING_SEMICOLON static_assert(true, "")
 
 #ifdef Vc_CXX17
