@@ -82,6 +82,13 @@ public:
         const value_type &lhs = Accessor::get(obj, index);                               \
         Accessor::set(obj, index, lhs op_ std::forward<T>(x));                           \
         return *this;                                                                    \
+    }                                                                                    \
+    template <typename T>                                                                \
+    Vc_INTRINSIC decltype(declval<const value_type &>() op_ declval<T>()) operator op_(  \
+        T &&x) const noexcept(get_noexcept)                                              \
+    {                                                                                    \
+        const value_type &lhs = Accessor::get(obj, index);                               \
+        return lhs op_ std::forward<T>(x);                                               \
     }
     Vc_ALL_ARITHMETICS(Vc_OP_);
     Vc_ALL_SHIFTS(Vc_OP_);

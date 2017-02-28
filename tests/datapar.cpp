@@ -282,6 +282,11 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
             x[i] = max;
         }
         COMPARE(x, V{max});
+        COMPARE(typeid(x[0] * x[0]), typeid(T() * T()));
+        COMPARE(typeid(x[0] * T()), typeid(T() * T()));
+        COMPARE(typeid(T() * x[0]), typeid(T() * T()));
+        COMPARE(typeid(x * x[0]), typeid(x));
+        COMPARE(typeid(x[0] * x), typeid(x));
     }
     {  // not{{{2
         V x = 0;
