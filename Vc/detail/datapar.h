@@ -218,8 +218,8 @@ public:
     template <class U, U... Indexes>
     static datapar seq(std::integer_sequence<U, Indexes...>)
     {
-        alignas(
-            memory_alignment<datapar>::value) static constexpr value_type mem[size()] = {
+        constexpr auto N = size();
+        alignas(memory_alignment<datapar>::value) static constexpr value_type mem[N] = {
             value_type(Indexes)...};
         return datapar(mem, flags::vector_aligned);
     }

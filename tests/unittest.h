@@ -1378,7 +1378,7 @@ using AllSimdArrays = Typelist<SIMD_ARRAY_LIST>;
         name_##_ctor()                                                                   \
         {                                                                                \
             using list =                                                                 \
-                decltype(UnitTest::hackTypelist(Vc::declval<void typelist_>()));         \
+                decltype(UnitTest::hackTypelist(std::declval<void typelist_>()));        \
             UnitTest::addTestInstantiations<name_##_>(                                   \
                 #name_, list{}, Vc::make_index_sequence<list::size()>{});                \
         }                                                                                \
