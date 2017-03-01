@@ -1820,6 +1820,7 @@ Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i64 v0, y_i64 v1, y_i64 v2, y_i6
 #else
     // I don't care for non-AVX2 users that convert between non-float AVX vectors
     return generate_from_n_evaluations<32, y_i08>([&](auto i) {
+        using namespace Vc::detail;
         switch (i / 4) {
         case 0: return static_cast<schar>(v0[i % 4]); break;
         case 1: return static_cast<schar>(v1[i % 4]); break;
