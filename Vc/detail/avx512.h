@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_AVX512_H_
 #define VC_DATAPAR_AVX512_H_
 
+#include "avx.h"
 #include "macros.h"
 #ifdef Vc_HAVE_SSE
 #include "storage.h"

@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_MASK_H_
 #define VC_DATAPAR_MASK_H_
 
+#include "synopsis.h"
 #include "smart_reference.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN

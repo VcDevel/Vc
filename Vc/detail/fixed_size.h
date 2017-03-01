@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_FIXED_SIZE_H_
 #define VC_DATAPAR_FIXED_SIZE_H_
 
+#include "datapar.h"
 #include "detail.h"
 #include <array>
 

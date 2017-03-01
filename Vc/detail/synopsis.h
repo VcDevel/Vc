@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_SYNOPSIS_H_
 #define VC_DATAPAR_SYNOPSIS_H_
 
+#include "global.h"
 #include "macros.h"
 #include "declval.h"
 #include "macros.h"

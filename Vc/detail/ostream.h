@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_DATAPAR_OSTREAM_H_
 
 #include <ostream>
+#include "datapar.h"
 
 #if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
 #define Vc_HACK_OSTREAM_FOR_TTY 1
