@@ -122,6 +122,8 @@ constexpr bool assign_should_work =
     std::is_same<M, M2>::value ||
     (std::is_same<typename M::abi_type, Vc::datapar_abi::fixed_size<M::size()>>::value &&
      std::is_same<typename M::abi_type, typename M2::abi_type>::value);
+template <class M, class M2>
+constexpr bool assign_should_not_work = !assign_should_work<M, M2>;
 
 template <class L, class R>
 std::enable_if_t<assign_should_work<L, R>> implicit_conversions_test()
@@ -139,7 +141,7 @@ std::enable_if_t<assign_should_work<L, R>> implicit_conversions_test()
 }
 
 template <class L, class R>
-std::enable_if_t<!assign_should_work<L, R>> implicit_conversions_test()
+std::enable_if_t<assign_should_not_work<L, R>> implicit_conversions_test()
 {
     VERIFY((operator_is_substitution_failure<L &, R, assignment>));
 }
