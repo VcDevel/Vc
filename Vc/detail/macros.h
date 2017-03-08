@@ -53,6 +53,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #endif  // WIN32
 
+// ARM{{{
+#ifdef __aarch64__
+#define Vc_IS_AARCH64 1
+#endif  // __aarch64__
+
+#ifdef __ARM_NEON
+#define Vc_HAVE_NEON
+#define Vc_HAVE_NEON_ABI 1
+#define Vc_HAVE_FULL_NEON_ABI 1
+#endif  // Vc_HAVE_NEON
+//}}}
+// x86{{{
+#if defined __x86_64__ || defined __amd64__ || defined __amd64 || defined __x86_64
+#define Vc_IS_AMD64 1
+#endif
+
 #ifdef __MMX__
 #define Vc_HAVE_MMX
 #endif
@@ -109,6 +125,36 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef __AVX512BW__
 #define Vc_HAVE_AVX512BW
 #endif
+#ifdef __MIC__
+#define Vc_HAVE_KNC
+#endif
+
+#ifdef Vc_HAVE_KNC
+//#define Vc_HAVE_KNC_ABI 1
+//#define Vc_HAVE_FULL_KNC_ABI 1
+#endif
+
+#if defined Vc_HAVE_SSE
+#define Vc_HAVE_SSE_ABI 1
+#ifdef Vc_HAVE_SSE2
+#define Vc_HAVE_FULL_SSE_ABI 1
+#endif
+#endif
+
+#if defined Vc_HAVE_AVX && defined Vc_IMPL_AVX
+#define Vc_HAVE_AVX_ABI 1
+#if defined Vc_HAVE_AVX2 && defined Vc_IMPL_AVX2
+#define Vc_HAVE_FULL_AVX_ABI 1
+#endif
+#endif
+
+#ifdef Vc_HAVE_AVX512F
+#define Vc_HAVE_AVX512_ABI 1
+#ifdef Vc_HAVE_AVX512BW
+#define Vc_HAVE_FULL_AVX512_ABI 1
+#endif
+#endif
+//}}}
 
 #if defined Vc_GCC && Vc_GCC >= 0x60000
 // GCC 6 drops all attributes on types passed as template arguments. This is important
@@ -362,36 +408,6 @@ Vc_VERSIONED_NAMESPACE_END
 #define Vc_INTRINSIC inline
 #define Vc_INTRINSIC_L inline
 #define Vc_INTRINSIC_R
-#endif
-
-#ifdef __MIC__
-//#define Vc_HAVE_KNC_ABI 1
-//#define Vc_HAVE_FULL_KNC_ABI 1
-#endif
-
-#if defined Vc_HAVE_SSE
-#define Vc_HAVE_SSE_ABI 1
-#ifdef Vc_HAVE_SSE2
-#define Vc_HAVE_FULL_SSE_ABI 1
-#endif
-#endif
-
-#if defined Vc_HAVE_AVX && defined Vc_IMPL_AVX
-#define Vc_HAVE_AVX_ABI 1
-#if defined Vc_HAVE_AVX2 && defined Vc_IMPL_AVX2
-#define Vc_HAVE_FULL_AVX_ABI 1
-#endif
-#endif
-
-#ifdef Vc_HAVE_AVX512F
-#define Vc_HAVE_AVX512_ABI 1
-#ifdef Vc_HAVE_AVX512BW
-#define Vc_HAVE_FULL_AVX512_ABI 1
-#endif
-#endif
-
-#if defined __x86_64__ || defined __amd64__ || defined __amd64 || defined __x86_64
-#define Vc_IS_AMD64 1
 #endif
 
 #endif  // VC_DATAPAR_MACROS_H_
