@@ -1,4 +1,5 @@
 #include <Vc/Vc>
+#include <iostream>
 
 #define CAT(a, b) a##b
 #define name(a, b) CAT(a, b)
