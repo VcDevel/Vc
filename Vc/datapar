@@ -7,3 +7,6 @@
 #include "detail/sse.h"
 #include "detail/avx.h"
 #include "detail/avx512.h"
+#include "detail/neon.h"
+
+// vim: ft=cpp

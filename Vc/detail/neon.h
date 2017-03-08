@@ -64,7 +64,6 @@ template <class T> struct traits<T, datapar_abi::neon> {
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-#ifdef Vc_HAVE_NEON_ABI
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {

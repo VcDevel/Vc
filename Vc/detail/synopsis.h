@@ -45,6 +45,7 @@ struct sse {};
 struct avx {};
 struct avx512 {};
 struct knc {};
+struct neon {};
 
 template <int N> struct partial_sse {};
 template <int N> struct partial_avx {};
@@ -73,6 +74,9 @@ using compatible = detail::fallback_abi_for_long_double_t<T, sse, scalar>;
 #elif defined Vc_HAVE_FULL_KNC_ABI
 template <typename T>
 using compatible = detail::fallback_abi_for_long_double_t<T, knc, scalar>;
+#elif defined Vc_IS_AARCH64
+template <typename T>
+using compatible = detail::fallback_abi_for_long_double_t<T, neon, scalar>;
 #else
 template <typename> using compatible = scalar;
 #endif
@@ -101,6 +105,9 @@ using native = std::conditional_t<std::is_same<float, T>::value, sse, scalar>;
 #elif defined Vc_HAVE_FULL_KNC_ABI
 template <typename T>
 using native = detail::fallback_abi_for_long_double_t<T, knc, scalar>;
+#elif defined Vc_HAVE_FULL_NEON_ABI
+template <typename T>
+using native = detail::fallback_abi_for_long_double_t<T, neon, scalar>;
 #else
 template <typename> using native = scalar;
 #endif
@@ -185,6 +192,20 @@ template <class T> struct abi_for_size_impl<T, 64, false, true> {
 template <class T> struct abi_for_size_impl<T, datapar_size_v<T, datapar_abi::knc>, true, true> {
     using type = datapar_abi::knc;
 };
+#endif
+#ifdef Vc_HAVE_FULL_NEON_ABI
+template <> struct abi_for_size_impl<double,  2, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl< float,  4, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl< llong,  2, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl<ullong,  2, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl<  long, 16 / sizeof(long), true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl< ulong, 16 / sizeof(long), true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl<   int,  4, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl<  uint,  4, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl< short,  8, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl<ushort,  8, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl< schar, 16, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = datapar_abi::neon; };
 #endif
 }  // namespace detail
 template <class T, size_t N>

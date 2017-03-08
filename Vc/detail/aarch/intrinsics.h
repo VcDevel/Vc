@@ -32,12 +32,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../macros.h"
 #include "../detail.h"
 #include "../const.h"
+#include <arm_neon.h>
 
-namespace Vc_VERSIONED_NAMESPACE::detail
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
 {
 namespace aarch
 {
-using aarch_const = constants<datapar_abi::aarch>;
+using aarch_const = constants<datapar_abi::neon>;
 
 // builtin_type{{{1
 template <typename ValueType, size_t Bytes> struct builtin_type_impl;
@@ -600,6 +602,7 @@ template <class T> Vc_INTRINSIC void store16(int32x4_t v, T *mem, when_unaligned
 // }}}1
 }  // namespace aarch
 using namespace aarch;
-}  // namespace Vc_VERSIONED_NAMESPACE::detail
+}  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_AARCH_H_
