@@ -333,15 +333,13 @@ template <class T, class Abi> inline int find_last_set(const mask<T, Abi> &k)
     return -1;
 }
 
-#if !defined VC_COMMON_ALGORITHMS_H_
-constexpr bool all_of(bool x) { return x; }
-constexpr bool any_of(bool x) { return x; }
-constexpr bool none_of(bool x) { return !x; }
-constexpr bool some_of(bool) { return false; }
-#endif
-constexpr int popcount(bool x) { return x; }
-constexpr int find_first_set(bool) { return 0; }
-constexpr int find_last_set(bool) { return 0; }
+constexpr bool all_of(detail::exact_bool x) { return x; }
+constexpr bool any_of(detail::exact_bool x) { return x; }
+constexpr bool none_of(detail::exact_bool x) { return !x; }
+constexpr bool some_of(detail::exact_bool) { return false; }
+constexpr int popcount(detail::exact_bool x) { return x; }
+constexpr int find_first_set(detail::exact_bool) { return 0; }
+constexpr int find_last_set(detail::exact_bool) { return 0; }
 
 // masked assignment [mask.where]
 template <typename M, typename T> class where_expression
@@ -481,7 +479,8 @@ Vc_INTRINSIC const where_expression<mask<T, A>, const mask<T, A>> where(
 {
     return {k, d};
 }
-template <class T> Vc_INTRINSIC where_expression<bool, T> where(bool k, T &d)
+template <class T>
+Vc_INTRINSIC where_expression<bool, T> where(detail::exact_bool k, T &d)
 {
     return {k, d};
 }

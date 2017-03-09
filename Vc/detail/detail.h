@@ -75,6 +75,16 @@ static Vc_INTRINSIC unsigned int promote_preserving_unsigned(const unsigned shor
     return x;
 }
 
+// exact_bool{{{1
+class exact_bool {
+    const bool d;
+
+public:
+    constexpr exact_bool(bool b) : d(b) {}
+    exact_bool(int) = delete;
+    constexpr operator bool() const { return d; }
+};
+
 // unused{{{1
 template <class T> static constexpr void unused(T && ) {}
 
