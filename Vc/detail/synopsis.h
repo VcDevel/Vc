@@ -342,14 +342,59 @@ constexpr int find_first_set(detail::exact_bool) { return 0; }
 constexpr int find_last_set(detail::exact_bool) { return 0; }
 
 // masked assignment [mask.where]
-template <typename M, typename T> class where_expression
+template <typename M, typename T> class const_where_expression
 {
     using V = std::remove_const_t<T>;
 
 public:
+    const_where_expression(const const_where_expression &) = delete;
+    const_where_expression &operator=(const const_where_expression &) = delete;
+
+    Vc_INTRINSIC const_where_expression(const M &kk, T &dd) : k(kk), d(dd) {}
+
+    Vc_INTRINSIC V operator-() const &&
+    {
+        using detail::masked_unary;
+        return masked_unary<std::negate>(k, d);
+    }
+
+    template <class U, class Flags>
+    Vc_NODISCARD Vc_INTRINSIC V memload(const U *mem, Flags f) const &&
+    {
+        V r = d;
+        detail::get_impl_t<V>::masked_load(r, k, mem, f);
+        return r;
+    }
+
+    template <class U, class Flags> Vc_INTRINSIC void memstore(U *mem, Flags f) const &&
+    {
+        detail::get_impl_t<V>::masked_store(d, mem, f, k);
+    }
+
+protected:
+    friend Vc_INTRINSIC const M &get_mask(const const_where_expression &x) { return x.k; }
+    friend Vc_INTRINSIC T &get_lvalue(const_where_expression &x) { return x.d; }
+    friend Vc_INTRINSIC const T &get_lvalue(const const_where_expression &x) { return x.d; }
+    std::conditional_t<std::is_same<M, bool>::value, const M, const M &> k;
+    T &d;
+};
+
+template <typename M, typename T>
+class where_expression : public const_where_expression<M, T>
+{
+    static_assert(!std::is_const<T>::value, "where_expression may only be instantiated with a non-const T parameter");
+    using const_where_expression<M, T>::k;
+    using const_where_expression<M, T>::d;
+
+public:
     where_expression(const where_expression &) = delete;
     where_expression &operator=(const where_expression &) = delete;
-    Vc_INTRINSIC where_expression(const M &kk, T &dd) : k(kk), d(dd) {}
+
+    Vc_INTRINSIC where_expression(const M &kk, T &dd)
+        : const_where_expression<M, T>(kk, dd)
+    {
+    }
+
     template <class U> Vc_INTRINSIC void operator=(U &&x)
     {
         using detail::masked_assign;
@@ -425,34 +470,12 @@ public:
         using detail::masked_unary;
         d = masked_unary<detail::decrement>(k, d);
     }
-    Vc_INTRINSIC V operator-() const
-    {
-        using detail::masked_unary;
-        return masked_unary<std::negate>(k, d);
-    }
 
+    // intentionally hides const_where_expression::memload
     template <class U, class Flags> Vc_INTRINSIC void memload(const U *mem, Flags f)
     {
-        detail::get_impl_t<V>::masked_load(d, k, mem, f);
+        detail::get_impl_t<T>::masked_load(d, k, mem, f);
     }
-    template <class U, class Flags>
-    Vc_NODISCARD Vc_INTRINSIC V memload(const U *mem, Flags f) const
-    {
-        V r = d;
-        detail::get_impl_t<V>::masked_load(r, k, mem, f);
-        return r;
-    }
-    template <class U, class Flags> Vc_INTRINSIC void memstore(U *mem, Flags f) const
-    {
-        detail::get_impl_t<V>::masked_store(d, mem, f, k);
-    }
-
-private:
-    friend Vc_INTRINSIC const M &get_mask(const where_expression &x) { return x.k; }
-    friend Vc_INTRINSIC T &get_lvalue(where_expression &x) { return x.d; }
-    friend Vc_INTRINSIC const T &get_lvalue(const where_expression &x) { return x.d; }
-    std::conditional_t<std::is_same<M, bool>::value, const M, const M &> k;
-    T &d;
 };
 
 template <class T, class A>
@@ -462,7 +485,7 @@ Vc_INTRINSIC where_expression<mask<T, A>, datapar<T, A>> where(
     return {k, d};
 }
 template <class T, class A>
-Vc_INTRINSIC const where_expression<mask<T, A>, const datapar<T, A>> where(
+Vc_INTRINSIC const_where_expression<mask<T, A>, const datapar<T, A>> where(
     const typename datapar<T, A>::mask_type &k, const datapar<T, A> &d)
 {
     return {k, d};
@@ -474,7 +497,7 @@ Vc_INTRINSIC where_expression<mask<T, A>, mask<T, A>> where(
     return {k, d};
 }
 template <class T, class A>
-Vc_INTRINSIC const where_expression<mask<T, A>, const mask<T, A>> where(
+Vc_INTRINSIC const_where_expression<mask<T, A>, const mask<T, A>> where(
     const std::remove_const_t<mask<T, A>> &k, const mask<T, A> &d)
 {
     return {k, d};
@@ -496,7 +519,7 @@ T reduce(const datapar<T, Abi> &v, BinaryOperation binary_op = BinaryOperation()
 }
 template <class BinaryOperation = std::plus<>, class M, class V>
 typename V::value_type reduce(
-    const where_expression<M, V> &x,
+    const const_where_expression<M, V> &x,
     typename V::value_type neutral_element =
         detail::default_neutral_element<typename V::value_type, BinaryOperation>::value,
     BinaryOperation binary_op = BinaryOperation())
