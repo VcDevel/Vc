@@ -103,8 +103,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_UNSUPPORTED_COMPILER 1
 #endif
 
-#if __cplusplus < 201402L && !defined Vc_ICC
-# error "Vc requires support for C++14."
+#if !(defined Vc_ICC || (defined Vc_MSVC && Vc_MSVC >= 191025017) || __cplusplus >= 201402L)
+#error "Vc requires support for C++14."
 #endif
 
 #define Vc_CXX14 1
