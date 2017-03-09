@@ -1,5 +1,5 @@
 /*{{{
-    Copyright © 2014-2015 Matthias Kretz <kretz@kde.org>
+    Copyright © 2014-2016 Matthias Kretz <kretz@kde.org>
 
     Permission to use, copy, modify, and distribute this software
     and its documentation for any purpose and without fee is hereby

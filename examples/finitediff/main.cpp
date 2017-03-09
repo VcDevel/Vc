@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2010 Jochen Gerhard <gerhard@compeng.uni-frankfurt.de>
-    Copyright (C) 2010-2015 Matthias Kretz <kretz@kde.org>
+    Copyright (C) 2010-2016 Matthias Kretz <kretz@kde.org>
 
     Permission to use, copy, modify, and distribute this software
     and its documentation for any purpose and without fee is hereby
