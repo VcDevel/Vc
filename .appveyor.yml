@@ -16,6 +16,6 @@ environment:
 
 build_script:
 - cmd: >-
-    CALL "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %PLATFORM%
+    CALL "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat" -arch=%PLATFORM% -host_arch=%PLATFORM% -no_logo
 
     ctest -VV -S C:\projects\vc\scripts\test.cmake
