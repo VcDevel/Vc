@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2010-2017 Matthias Kretz <kretz@kde.org>
+Copyright © 2017 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -25,55 +25,40 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_VERSION_H_
-#define VC_VERSION_H_
+#ifndef VC_FWDDECL_H_
+#define VC_FWDDECL_H_
 
-/**
- * \name Version Macros
- * \ingroup Utilities
- */
-//@{
-/**
- * \ingroup Utilities
- * Contains the version string of the %Vc headers. Same as Vc::versionString().
- */
-#define Vc_VERSION_STRING "1.70.0-dev"
+//#include "detail/macros.h"
 
-/**
- * \ingroup Utilities
- *
- * Helper macro to compare against an encoded version number.
- * Example:
- * \code
- * #if Vc_VERSION_NUMBER >= Vc_VERSION_CHECK(1, 0, 0)
- * \endcode
- */
-#define Vc_VERSION_CHECK(major, minor, patch) ((major << 16) | (minor << 8) | (patch << 1))
-
-/**
- * \ingroup Utilities
- * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
- */
-#define Vc_VERSION_NUMBER (Vc_VERSION_CHECK(1, 70, 0) + 1)
-//@}
-
-// Hack for testing the version check mechanics:
-#ifdef Vc_OVERRIDE_VERSION_NUMBER
-#undef Vc_VERSION_NUMBER
-#define Vc_VERSION_NUMBER Vc_OVERRIDE_VERSION_NUMBER
+#if 0  // def Vc_ICC
+namespace Vc_2 {}
+namespace Vc = Vc_2;
+#define Vc_VERSIONED_NAMESPACE Vc_2
+#define Vc_VERSIONED_NAMESPACE_BEGIN namespace Vc_2 {
+#define Vc_VERSIONED_NAMESPACE_END }
+#else
+namespace Vc
+{
+inline namespace v2
+{
+}  // namespace v2
+}  // namespace Vc
+#define Vc_VERSIONED_NAMESPACE Vc::v2
+#define Vc_VERSIONED_NAMESPACE_BEGIN namespace Vc { inline namespace v2 {
+#define Vc_VERSIONED_NAMESPACE_END }}
 #endif
 
-/**
- * \internal
- * Defines the ABI version of the Vc library. This number must match exactly between all
- * translation units. It is also used to break linkage by using it as a suffix to the
- * checkLibraryAbi function.
- */
-#define Vc_LIBRARY_ABI_VERSION 6
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace datapar_abi
+{
+template <int N> struct fixed_size;
+using scalar = fixed_size<1>;
+}  // namespace datapar_abi
 
-///\internal identify Vc 2.0
-#define Vc_IS_VERSION_2 (Vc_VERSION_NUMBER < Vc_VERSION_CHECK(2, 70, 0))
-///\internal identify Vc 1.x
-#define Vc_IS_VERSION_1 0
+template <class T> struct is_datapar;
+template <class T> struct is_mask;
+template <class T, class Abi> class datapar;
+template <class T, class Abi> class mask;
+Vc_VERSIONED_NAMESPACE_END
 
-#endif // VC_VERSION_H_
+#endif  // VC_FWDDECL_H_

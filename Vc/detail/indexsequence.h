@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_INDEXSEQUENCE_H_
 #define VC_COMMON_INDEXSEQUENCE_H_
 
-#include "global.h"
+#include "../fwddecl.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 /** \internal

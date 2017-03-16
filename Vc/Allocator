@@ -128,6 +128,13 @@ Vc_VERSIONED_NAMESPACE_BEGIN
     {
     private:
         enum Constants {
+#ifdef Vc_GCC
+#  define Vc_HAVE_MAX_ALIGN_T 1
+#elif !defined(Vc_CLANG) && !defined(Vc_ICC)
+//   Clang/ICC don't provide max_align_t at all
+#  define Vc_HAVE_STD_MAX_ALIGN_T 1
+#endif
+
 #ifdef Vc_HAVE_STD_MAX_ALIGN_T
             NaturalAlignment = alignof(std::max_align_t),
 #elif defined(Vc_HAVE_MAX_ALIGN_T)

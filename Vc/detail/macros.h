@@ -28,8 +28,113 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_MACROS_H_
 #define VC_DATAPAR_MACROS_H_
 
-#include "global.h"
+#include "../version.h"
 
+// warning macro {{{
+#define Vc_PRAGMA_(x_) _Pragma(#x_)
+#ifdef __GNUC__
+#define Vc_CPP_WARNING(msg) Vc_PRAGMA_(GCC warning msg)
+#else
+#define Vc_CPP_WARNING(msg) Vc_PRAGMA_(message "warning: " msg)
+#endif
+// }}}
+
+// warning for Vc 1.x code {{{
+#if defined VC_IMPL || defined Vc_IMPL
+Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
+               "Instructions are restricted solely via compiler flags. "
+               "The vector ABI is chosen via code. "
+               "The default vector ABI is currently not selectable.")
+#endif
+// }}}
+
+// Starting with compiler identification. This is a prerequisite for getting the following
+// macro definitions right.
+// {{{
+
+#ifdef DOXYGEN
+/**
+ * \name Compiler Identification Macros
+ * \ingroup Utilities
+ */
+//@{
+/**
+ * \ingroup Utilities
+ * This macro is defined to a number identifying the ICC version if the current
+ * translation unit is compiled with the Intel compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_ICC __INTEL_COMPILER_BUILD_DATE
+#undef Vc_ICC
+/**
+ * \ingroup Utilities
+ * This macro is defined to a number identifying the Clang version if the current
+ * translation unit is compiled with the Clang compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#undef Vc_CLANG
+/**
+ * \ingroup Utilities
+ * This macro is defined to a number identifying the Apple Clang version if the current
+ * translation unit is compiled with the Apple Clang compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#undef Vc_APPLECLANG
+/**
+ * \ingroup Utilities
+ * This macro is defined to a number identifying the GCC version if the current
+ * translation unit is compiled with the GCC compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
+/**
+ * \ingroup Utilities
+ * This macro is defined to a number identifying the Microsoft Visual C++ version if
+ * the current translation unit is compiled with the Visual C++ (MSVC) compiler.
+ *
+ * For any other compiler this macro is not defined.
+ */
+#define Vc_MSVC _MSC_FULL_VER
+#undef Vc_MSVC
+//@}
+#endif  // DOXYGEN
+
+#ifdef __INTEL_COMPILER
+#  define Vc_ICC __INTEL_COMPILER_BUILD_DATE
+#elif defined __clang__ && defined __apple_build_version__
+#  define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#elif defined(__clang__)
+#  define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#elif defined(__GNUC__)
+#  define Vc_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
+#elif defined(_MSC_VER)
+#  define Vc_MSVC _MSC_FULL_VER
+#else
+#  define Vc_UNSUPPORTED_COMPILER 1
+#endif
+//}}}
+
+// Ensure C++14 feature that are required. Define Vc_CXX17 if C++17 is available.{{{
+#if !(defined Vc_ICC || (defined Vc_MSVC && Vc_MSVC >= 191025017) || __cplusplus >= 201402L)
+#error "Vc requires support for C++14."
+#endif
+
+#define Vc_CXX14 1
+#if __cplusplus > 201700L
+#  define Vc_CXX17 1
+#endif
+// }}}
+
+// C++ does not allow attaching overalignment to an existing type via an alias. In
+// general, that seems to be the right thing to do. However some workarounds require
+// special measures, so here's a macro for doing it with a compilier specific extension.
+// {{{
 #ifdef Vc_MSVC
 #define Vc_ALIGNED_TYPEDEF(n_, type_, new_type_)                                      \
     typedef __declspec(align(n_)) type_ new_type_
@@ -40,9 +145,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_ALIGNED_TYPEDEF(n_, type_, new_type_)                                      \
     using new_type_ alignas(sizeof(n_)) = type_
 #endif
+// }}}
 
 // On Windows (WIN32) we might see macros called min and max. Just undefine them and hope
-// noone (re)defines them (NOMINMAX should help).
+// noone (re)defines them (defining NOMINMAX should help).
+// {{{
 #ifdef WIN32
 #define NOMINMAX 1
 #if defined min
@@ -52,7 +159,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #undef max
 #endif
 #endif  // WIN32
+// }}}
 
+// ISA extension detection. The following defines all the Vc_HAVE_XXX macros
 // ARM{{{
 #ifdef __aarch64__
 #define Vc_IS_AARCH64 1
@@ -65,42 +174,43 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif  // Vc_HAVE_NEON
 //}}}
 // x86{{{
-#if defined __x86_64__ || defined __amd64__ || defined __amd64 || defined __x86_64
+#if defined __x86_64__ || defined __amd64__ || defined __amd64 || defined __x86_64 ||    \
+    defined _M_AMD64
 #define Vc_IS_AMD64 1
 #endif
 
 #ifdef __MMX__
-#define Vc_HAVE_MMX
+#define Vc_HAVE_MMX 1
 #endif
-#ifdef __SSE__
-#define Vc_HAVE_SSE
+#if defined __SSE__ || defined Vc_IS_AMD64 || (defined _M_IX86_FP && _M_IX86_FP >= 1)
+#define Vc_HAVE_SSE 1
 #endif
-#ifdef __SSE2__
-#define Vc_HAVE_SSE2
+#if defined __SSE2__ || defined Vc_IS_AMD64 || (defined _M_IX86_FP && _M_IX86_FP >= 2)
+#define Vc_HAVE_SSE2 1
 #endif
 #ifdef __SSE3__
-#define Vc_HAVE_SSE3
+#define Vc_HAVE_SSE3 1
 #endif
 #ifdef __SSSE3__
-#define Vc_HAVE_SSSE3
+#define Vc_HAVE_SSSE3 1
 #endif
 #ifdef __SSE4_1__
-#define Vc_HAVE_SSE4_1
+#define Vc_HAVE_SSE4_1 1
 #endif
 #ifdef __SSE4_2__
-#define Vc_HAVE_SSE4_2
+#define Vc_HAVE_SSE4_2 1
 #endif
 #ifdef __XOP__
-#define Vc_HAVE_XOP
+#define Vc_HAVE_XOP 1
 #endif
 #ifdef __AVX__
-#define Vc_HAVE_AVX
+#define Vc_HAVE_AVX 1
 #endif
 #ifdef __AVX2__
-#define Vc_HAVE_AVX2
-#define Vc_HAVE_BMI1
-#define Vc_HAVE_BMI2
-#define Vc_HAVE_LZCNT
+#define Vc_HAVE_AVX2 1
+#define Vc_HAVE_BMI1 1
+#define Vc_HAVE_BMI2 1
+#define Vc_HAVE_LZCNT 1
 #if !defined Vc_ICC && !defined Vc_MSVC
 #ifndef __BMI__
 #error "expected AVX2 to imply the availability of BMI1"
@@ -113,20 +223,36 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #endif // !ICC && !MSVC
 #endif // __AVX2__
+#ifdef __SSE4A__
+#  define Vc_HAVE_SSE4A 1
+#endif
+#ifdef __FMA__
+#  define Vc_HAVE_FMA 1
+#endif
+#ifdef __FMA4__
+#  define Vc_HAVE_FMA4 1
+#endif
+#ifdef __F16C__
+#  define Vc_HAVE_F16C 1
+#endif
+#if defined __POPCNT__ ||                                                                \
+    (defined Vc_ICC && (defined Vc_HAVE_SSE4_2 || defined Vc_HAVE_SSE4A))
+#  define Vc_HAVE_POPCNT 1
+#endif
 #ifdef __AVX512F__
-#define Vc_HAVE_AVX512F
+#define Vc_HAVE_AVX512F 1
 #endif
 #ifdef __AVX512DQ__
-#define Vc_HAVE_AVX512DQ
+#define Vc_HAVE_AVX512DQ 1
 #endif
 #ifdef __AVX512VL__
-#define Vc_HAVE_AVX512VL
+#define Vc_HAVE_AVX512VL 1
 #endif
 #ifdef __AVX512BW__
-#define Vc_HAVE_AVX512BW
+#define Vc_HAVE_AVX512BW 1
 #endif
 #ifdef __MIC__
-#define Vc_HAVE_KNC
+#define Vc_HAVE_KNC 1
 #endif
 
 #ifdef Vc_HAVE_KNC
@@ -141,9 +267,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 #endif
 
-#if defined Vc_HAVE_AVX && defined Vc_IMPL_AVX
+#if defined Vc_HAVE_AVX
 #define Vc_HAVE_AVX_ABI 1
-#if defined Vc_HAVE_AVX2 && defined Vc_IMPL_AVX2
+#if defined Vc_HAVE_AVX2
 #define Vc_HAVE_FULL_AVX_ABI 1
 #endif
 #endif
@@ -156,18 +282,42 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 //}}}
 
+// Vc_TEMPLATES_DROP_ATTRIBUTES: GCC 6 drops all attributes on types passed as template
+// arguments. This is important if a may_alias gets lost and therefore needs to be readded
+// in the implementation of the class template.
+// {{{
 #if defined Vc_GCC && Vc_GCC >= 0x60000
-// GCC 6 drops all attributes on types passed as template arguments. This is important
-// if a may_alias gets lost and therefore needs to be readded in the implementation of
-// the class template.
 #define Vc_TEMPLATES_DROP_ATTRIBUTES 1
 #endif
+// }}}
 
-// GCC 6 optimizes the RowMemory::fromRawData hack away (common/memorybase.h). Therefore
-// the 2D Memory class is implemented recursively using 1D Memory members. Since this is
-// an ABI break this is only enabled for GCC 6. With Vc 2.x all implementations should do
-// this.
-#define Vc_RECURSIVE_MEMORY 1
+// Vc_GNU_ASM: defined if GCC compatible inline asm is possible and Vc_NO_INLINE_ASM is
+// not defined
+// {{{
+#if defined(__GNUC__) && !defined(Vc_NO_INLINE_ASM)
+#define Vc_GNU_ASM 1
+#endif
+// }}}
+
+// Vc_USE_BUILTIN_VECTOR_TYPES: defined for GCC and Clang
+// TODO: rename to Vc_HAVE_BUILTIN_VECTOR_TYPES
+// {{{
+#if defined(Vc_GCC) || defined(Vc_CLANG) || defined Vc_APPLECLANG
+#define Vc_USE_BUILTIN_VECTOR_TYPES 1
+#endif
+// }}}
+
+// __cdecl and __vectorcall Windows calling convention macros. Every function with a by
+// value datapar/mask object needs to be declared with Vc_VDECL.
+// {{{
+#ifdef Vc_MSVC
+#  define Vc_CDECL __cdecl
+#  define Vc_VDECL __vectorcall
+#else
+#  define Vc_CDECL
+#  define Vc_VDECL
+#endif
+// }}}
 
 #if defined Vc_CLANG || defined Vc_APPLECLANG
 #  define Vc_UNREACHABLE __builtin_unreachable
@@ -248,13 +398,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #    define Vc_INTRINSIC inline __forceinline
 #    define Vc_INTRINSIC_L Vc_INTRINSIC
 #    define Vc_INTRINSIC_R
-Vc_VERSIONED_NAMESPACE_BEGIN
-namespace detail
-{
-static Vc_INTRINSIC void unreachable() { __assume(0); }
-}  // namespace detail
-Vc_VERSIONED_NAMESPACE_END
-#    define Vc_UNREACHABLE Vc::detail::unreachable
+#    define Vc_UNREACHABLE [] { __assume(0); }
 #  else
 #    define Vc_ALWAYS_INLINE
 #    define Vc_ALWAYS_INLINE_L
