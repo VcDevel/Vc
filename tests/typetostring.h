@@ -34,9 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 template <typename T> inline std::string typeToString();
-#ifdef WITH_DATAPAR
 #include "typetostring_datapar.h"
-#endif
 
 // std::array<T, N> {{{2
 template <typename T, std::size_t N>

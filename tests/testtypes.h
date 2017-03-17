@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TESTS_TESTTYPES_H_
 #define TESTS_TESTTYPES_H_
 
-#define WITH_DATAPAR 1
 #include "unittest.h"
 #include <Vc/datapar>
 
