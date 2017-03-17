@@ -514,7 +514,7 @@ template <> Vc_INTRINSIC y_u64 Vc_VDECL convert_to<y_u64>(y_f64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvttpd_epu64(v);
 #elif defined Vc_HAVE_AVX512DQ
-    return lo256(_mm512_cvttpd_epu64(intrin_cast<__m512d>(v));
+    return lo256(_mm512_cvttpd_epu64(intrin_cast<__m512d>(v)));
 #else
     return {v.m(0), v.m(1), v.m(2), v.m(3)};
 #endif
