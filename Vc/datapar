@@ -1,3 +1,10 @@
+#include "detail/macros.h"
+
+#if defined Vc_GCC && Vc_GCC >= 0x60000
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
+
 #include "detail/global.h"
 #include "detail/synopsis.h"
 #include "detail/mask.h"
@@ -8,5 +15,9 @@
 #include "detail/avx.h"
 #include "detail/avx512.h"
 #include "detail/neon.h"
+
+#if defined Vc_GCC && Vc_GCC >= 0x60000
+#pragma GCC diagnostic pop
+#endif
 
 // vim: ft=cpp
