@@ -43,42 +43,48 @@ struct Union {};
 struct MayAlias {};
 struct VectorBuiltin {};
 struct UnionMembers {};
-}  // namespace AliasStrategy
 
-using DefaultStrategy =
+using Default =
 // manual selection:
 #if defined Vc_USE_ALIASSTRATEGY_VECTORBUILTIN
 #ifndef Vc_USE_BUILTIN_VECTOR_TYPES
-#define Vc_USE_BUILTIN_VECTOR_TYPES
+#define Vc_USE_BUILTIN_VECTOR_TYPES 1
 #endif
-    AliasStrategy::VectorBuiltin;
+    VectorBuiltin;
 #elif defined Vc_USE_ALIASSTRATEGY_UNIONMEMBERS
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 #undef Vc_USE_BUILTIN_VECTOR_TYPES
 #endif
-    AliasStrategy::UnionMembers;
+    UnionMembers;
 #elif defined Vc_USE_ALIASSTRATEGY_UNION
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 #undef Vc_USE_BUILTIN_VECTOR_TYPES
 #endif
-    AliasStrategy::Union;
+    Union;
 #elif defined Vc_USE_ALIASSTRATEGY_MAYALIAS
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 #undef Vc_USE_BUILTIN_VECTOR_TYPES
 #endif
-    AliasStrategy::MayAlias;
+    MayAlias;
 // automatic selection:
 #elif defined Vc_USE_BUILTIN_VECTOR_TYPES
-    AliasStrategy::VectorBuiltin;
+    VectorBuiltin;
 #elif defined Vc_MSVC
-    AliasStrategy::UnionMembers;
+    UnionMembers;
 #elif defined Vc_ICC
-    AliasStrategy::Union;
+    Union;
 #elif defined __GNUC__
-    AliasStrategy::MayAlias;
+    MayAlias;
 #else
-    AliasStrategy::Union;
+    Union;
 #endif
+
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+    static_assert(std::is_same<Default, VectorBuiltin>::value, "");
+#else
+    static_assert(!std::is_same<Default, VectorBuiltin>::value, "");
+#endif
+}  // namespace AliasStrategy
 
 // assertCorrectAlignment{{{1
 #ifndef Vc_CHECK_ALIGNMENT
@@ -95,14 +101,14 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 #endif
 
 // Storage decl{{{1
-template <typename ValueType, size_t Size, typename Strategy = DefaultStrategy>
+template <typename ValueType, size_t Size, typename Strategy = AliasStrategy::Default>
 class Storage;
 //}}}1
 
 #if defined Vc_HAVE_SSE  // need at least one SIMD ISA to make sense
 // Storage<bool>{{{1
 template <size_t Size> struct bool_storage_member_type;
-template <size_t Size> class Storage<bool, Size, DefaultStrategy>
+template <size_t Size> class Storage<bool, Size, AliasStrategy::Default>
 {
 public:
     using VectorType = typename bool_storage_member_type<Size>::type;
