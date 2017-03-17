@@ -202,37 +202,7 @@ macro(vc_set_preferred_compiler_flags)
    set(Vc_FMA4_INTRINSICS_BROKEN false)
 
    if(Vc_COMPILER_IS_OPEN64)
-      ##################################################################################################
-      #                                             Open64                                             #
-      ##################################################################################################
-      if(_add_warning_flags)
-         AddCompilerFlag("-W")
-         AddCompilerFlag("-Wall")
-         AddCompilerFlag("-Wimplicit")
-         AddCompilerFlag("-Wswitch")
-         AddCompilerFlag("-Wformat")
-         AddCompilerFlag("-Wchar-subscripts")
-         AddCompilerFlag("-Wparentheses")
-         AddCompilerFlag("-Wmultichar")
-         AddCompilerFlag("-Wtrigraphs")
-         AddCompilerFlag("-Wpointer-arith")
-         AddCompilerFlag("-Wcast-align")
-         AddCompilerFlag("-Wreturn-type")
-         AddCompilerFlag("-pedantic")
-         AddCompilerFlag("-Wno-long-long")
-         AddCompilerFlag("-Wshadow")
-         AddCompilerFlag("-Wold-style-cast")
-         AddCompilerFlag("-Wno-variadic-macros")
-      endif()
-      if(_add_buildtype_flags)
-         vc_set_gnu_buildtype_flags()
-      endif()
-
-      vc_check_assembler()
-
-      # Open64 4.5.1 still doesn't ship immintrin.h
-      set(Vc_AVX_INTRINSICS_BROKEN true)
-      set(Vc_AVX2_INTRINSICS_BROKEN true)
+      message(FATAL_ERROR "Open64 does not support C++14. Sorry.")
    elseif(Vc_COMPILER_IS_GCC)
       ##################################################################################################
       #                                              GCC                                               #
