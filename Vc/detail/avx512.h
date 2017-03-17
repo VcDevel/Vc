@@ -740,11 +740,10 @@ struct avx512_mask_impl {
 #endif
     }
     template <class F>
-    static constexpr void store(mask_member_type<32> v, bool *mem, F, size_tag<32>) noexcept
+    static constexpr void store(mask_member_type<32> v, bool *mem, F f, size_tag<32>) noexcept
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
-        _mm256_store_si256(reinterpret_cast<__m256i *>(mem),
-                           and_(one32(uchar()), _mm256_movm_epi8(v.v())));
+        store32(and_(one32(uchar()), _mm256_movm_epi8(v.v())), mem, f);
 #elif defined Vc_HAVE_AVX512DQ
         store32(
             concat(_mm512_cvtepi32_epi8(_mm512_srli_epi32(_mm512_movm_epi32(v.v()), 31)),
@@ -760,6 +759,7 @@ struct avx512_mask_impl {
             _pdep_u64(v.v() >> 16, 0x0101010101010101ULL);
         *reinterpret_cast<may_alias<ullong> *>(mem + 24) =
             _pdep_u64(v.v() >> 24, 0x0101010101010101ULL);
+        unused(f);
 #else
         execute_n_times<8>([&](auto i) {
             using namespace Vc::detail;
@@ -767,6 +767,7 @@ struct avx512_mask_impl {
             *reinterpret_cast<may_alias<uint> *>(mem + offset) =
                 _pdep_u32(v.v() >> offset, 0x01010101U);
         });
+        unused(f);
 #endif
     }
     template <class F>
