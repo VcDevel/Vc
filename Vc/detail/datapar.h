@@ -94,6 +94,8 @@ template <class V> class datapar_int_operators<V, true>
 {
     using impl = detail::get_impl_t<V>;
 
+    const V &derived() const { return *static_cast<const V *>(this); }
+
 public:
     friend V &operator %=(V &lhs, const V &x) { return lhs = lhs  % x; }
     friend V &operator &=(V &lhs, const V &x) { return lhs = lhs  & x; }
@@ -108,6 +110,9 @@ public:
     friend V operator^(const V &x, const V &y) { return impl::bit_xor(x, y); }
     friend V operator<<(const V &x, const V &y) { return impl::bit_shift_left(x, y); }
     friend V operator>>(const V &x, const V &y) { return impl::bit_shift_right(x, y); }
+
+    // unary operators (for integral T)
+    V operator~() const { return impl::complement(derived()); }
 };
 
 template <class T, class Abi>
@@ -258,11 +263,8 @@ public:
     datapar &operator--() { impl::decrement(d); return *this; }
     datapar operator--(int) { datapar r = *this; impl::decrement(d); return r; }
 
-    // unary operators (for integral T)
-    mask_type operator!() const { return impl::negate(*this); }
-    datapar operator~() const { return impl::complement(*this); }
-
     // unary operators (for any T)
+    mask_type operator!() const { return impl::negate(*this); }
     datapar operator+() const { return *this; }
     datapar operator-() const { return impl::unary_minus(*this); }
 
