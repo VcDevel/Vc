@@ -30,7 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "storage.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail::aarch
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
+{
+namespace aarch
 {
 // plus{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
@@ -39,7 +42,7 @@ template <class T, size_t N> Vc_INTRINSIC auto plus(Storage<T, N> a, Storage<T, 
     return a.builtin() + b.builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
-Vc_INTRINSIC float32x4_t Vc_VDECL plus(x_f32 a, x_f32 b) { return vadd_f32(a, b); }
+//Vc_INTRINSIC float32x4_t Vc_VDECL plus(x_f32 a, x_f32 b) { return vadd_f32(a, b); }
 //...
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
@@ -50,7 +53,7 @@ template <class T, size_t N> Vc_INTRINSIC auto minus(Storage<T, N> a, Storage<T,
     return a.builtin() - b.builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
-Vc_INTRINSIC float32x4_t Vc_VDECL minus(x_f32 a, x_f32 b) { return vsub_f32(a, b); }
+//Vc_INTRINSIC float32x4_t Vc_VDECL minus(x_f32 a, x_f32 b) { return vsub_f32(a, b); }
 //...
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
@@ -61,7 +64,7 @@ template <class T, size_t N> Vc_INTRINSIC auto multiplies(Storage<T, N> a, Stora
     return a.builtin() * b.builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
-Vc_INTRINSIC float32x4_t Vc_VDECL multiplies(x_f32 a, x_f32 b) { return vmul_n_f32(a, b); }
+//Vc_INTRINSIC float32x4_t Vc_VDECL multiplies(x_f32 a, x_f32 b) { return vmul_n_f32(a, b); }
 //...
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
@@ -72,11 +75,12 @@ template <class T, size_t N> Vc_INTRINSIC auto divides(Storage<T, N> a, Storage<
     return a.builtin() / b.builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
-Vc_INTRINSIC x_f32 Vc_VDECL divides(x_f32 a, x_f32 b) { return /*?(a, b)*/; }
+//Vc_INTRINSIC x_f32 Vc_VDECL divides(x_f32 a, x_f32 b) {}
 //...
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 //}}}1
-}  // namespace Vc_VERSIONED_NAMESPACE::detail::aarch
+}}  // namespaces 
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_AARCH_ARITHMETICS_H_

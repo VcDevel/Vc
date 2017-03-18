@@ -30,6 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "detail.h"
 
+#ifndef Vc_HAVE_NEON
+
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
 // datapar impl {{{1
@@ -184,5 +186,7 @@ inline datapar<T, A> Vc_VDECL masked_unary(mask<T, A> k, datapar<T, A> v)
 
 //}}}1
 Vc_VERSIONED_NAMESPACE_END
+
+#endif
 
 #endif  // VC_DATAPAR_GENERICIMPL_H_

@@ -122,15 +122,16 @@ template<typename T> Vc_INTRINSIC_L T intrin_cast(float64x2_t v) Vc_INTRINSIC_R;
 // 128 -> 128
 // TBD
 template<> Vc_INTRINSIC float32x4_t  intrin_cast(float32x4_t  v) { return v; }
-template<> Vc_INTRINSIC float32x4_t  intrin_cast(int32x4_t v) { return ; }
-template<> Vc_INTRINSIC float32x4_t  intrin_cast(float64x2_t v) { return ; }
-template<> Vc_INTRINSIC int32x4_t intrin_cast(float32x4_t  v) { return ; }
+template<> Vc_INTRINSIC float32x4_t  intrin_cast(int32x4_t v) { return vcvtq_f32_s32(v); }
+template<> Vc_INTRINSIC float32x4_t  intrin_cast(float64x2_t v) { return vreinterpretq_f32_f64(v); }
+template<> Vc_INTRINSIC int32x4_t intrin_cast(float32x4_t  v) { return vcvtq_s32_f32(v); }
 template<> Vc_INTRINSIC int32x4_t intrin_cast(int32x4_t v) { return v; }
-template<> Vc_INTRINSIC int32x4_t intrin_cast(float64x2_t v) { return ; }
-template<> Vc_INTRINSIC float64x2_t intrin_cast(float32x4_t  v) { return ; }
-template<> Vc_INTRINSIC float64x2_t intrin_cast(int32x4_t v) { return ; }
+template<> Vc_INTRINSIC int32x4_t intrin_cast(float64x2_t v) { return vreinterpretq_s32_f64(v); }
+template<> Vc_INTRINSIC float64x2_t intrin_cast(float32x4_t  v) { return vreinterpretq_f64_f32(v); }
+template<> Vc_INTRINSIC float64x2_t intrin_cast(int32x4_t v) { return vreinterpretq_f64_s32(v); }
 template<> Vc_INTRINSIC float64x2_t intrin_cast(float64x2_t v) { return v; }
 
+// allone{{{1
 template <typename V> Vc_INTRINSIC_L Vc_CONST_L V allone() Vc_INTRINSIC_R Vc_CONST_R;
 template <> Vc_INTRINSIC Vc_CONST float32x4_t allone<float32x4_t>()
 {
@@ -138,7 +139,7 @@ template <> Vc_INTRINSIC Vc_CONST float32x4_t allone<float32x4_t>()
 }
 template <> Vc_INTRINSIC Vc_CONST int32x4_t allone<int32x4_t>()
 {
-    return vld1q_s32(reinterpret_cast<const int32x4_t *>(neon_const::AllBitsSet);
+    return vld1q_s32(reinterpret_cast<const int32_t *>(neon_const::AllBitsSet));
 }
 template <> Vc_INTRINSIC Vc_CONST float64x2_t allone<float64x2_t>()
 {
@@ -154,13 +155,13 @@ template<> Vc_INTRINSIC Vc_CONST float64x2_t zero<float64x2_t>() { return vdupq_
 // one16/32{{{1
 Vc_INTRINSIC Vc_CONST float32x4_t  one16( float) { return vld1q_f32(neon_const::oneFloat); }
 Vc_INTRINSIC Vc_CONST float64x2_t one16(double) { return vld1q_f64(neon_const::oneDouble); }
-Vc_INTRINSIC Vc_CONST int32x4_t one16( schar) { return vld1q_s32(reinterpret_cast<const int32x4_t *>(neon_const::one8)); }
+Vc_INTRINSIC Vc_CONST int32x4_t one16( schar) { return vld1q_s32(reinterpret_cast<const int32_t *>(neon_const::one8)); }
 Vc_INTRINSIC Vc_CONST int32x4_t one16( uchar) { return one16(schar()); }
-Vc_INTRINSIC Vc_CONST int32x4_t one16( short) { return vld1q_s32(reinterpret_cast<const int32x4_t *>(neon_const::one16)); }
+Vc_INTRINSIC Vc_CONST int32x4_t one16( short) { return vld1q_s32(reinterpret_cast<const int32_t *>(neon_const::one16)); }
 Vc_INTRINSIC Vc_CONST int32x4_t one16(ushort) { return one16(short()); }
-Vc_INTRINSIC Vc_CONST int32x4_t one16(   int) { return vld1q_s32(reinterpret_cast<const int32x4_t *>(neon_const::one32)); }
+Vc_INTRINSIC Vc_CONST int32x4_t one16(   int) { return vld1q_s32(reinterpret_cast<const int32_t *>(neon_const::one32)); }
 Vc_INTRINSIC Vc_CONST int32x4_t one16(  uint) { return one16(int()); }
-Vc_INTRINSIC Vc_CONST int32x4_t one16( llong) { return vld1q_s32(reinterpret_cast<const int32x4_t *>(neon_const::one64)); }
+Vc_INTRINSIC Vc_CONST int32x4_t one16( llong) { return vld1q_s32(reinterpret_cast<const int32_t *>(neon_const::one64)); }
 Vc_INTRINSIC Vc_CONST int32x4_t one16(ullong) { return one16(llong()); }
 Vc_INTRINSIC Vc_CONST int32x4_t one16(  long) { return one16(equal_int_type_t<long>()); }
 Vc_INTRINSIC Vc_CONST int32x4_t one16( ulong) { return one16(equal_int_type_t<ulong>()); }
@@ -177,49 +178,49 @@ Vc_INTRINSIC Vc_CONST float32x4_t set(float x0, float x1, float x2, float x3)
 }
 Vc_INTRINSIC Vc_CONST float64x2_t set(double x0, double x1)
 {
-	double __attribute__((aligned(16))) data[2] = { x0, x1};
+	double __attribute__((aligned(16))) data[2] = { x0, x1 };
 	return vld1q_f64(data);
 }
 
 Vc_INTRINSIC Vc_CONST int32x4_t set(int x0, int x1, int x2, int x3)
 {
-    int __attribute__((aligned(16))) data[4] = { x0, x1, x3, x4 };
+    int __attribute__((aligned(16))) data[4] = { x0, x1, x2, x3 };
 	return vld1q_s32(data);
 }
-Vc_INTRINSIC Vc_CONST int32x4_t set(uint x0, uint x1, uint x2, uint x3)
+Vc_INTRINSIC Vc_CONST uint32x4_t set(uint x0, uint x1, uint x2, uint x3)
 {
     uint __attribute__((aligned(16))) data[4] = { x0, x1, x2, x3 };
 	return vld1q_u32(data);
 }
 
-Vc_INTRINSIC Vc_CONST int32x4_t set(short x0, short x1, short x2, short x3, short x4,
+Vc_INTRINSIC Vc_CONST int16x8_t set(short x0, short x1, short x2, short x3, short x4,
                                   short x5, short x6, short x7)
 {
     short __attribute__((aligned(16))) data[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
-	return vld1q_s16(data);
+	return  vld1q_s16(data);
 }
 
-Vc_INTRINSIC Vc_CONST int32x4_t set(ushort x0, ushort x1, ushort x2, ushort x3, ushort x4,
+Vc_INTRINSIC Vc_CONST uint16x8_t set(ushort x0, ushort x1, ushort x2, ushort x3, ushort x4,
                                   ushort x5, ushort x6, ushort x7)
 {
     ushort __attribute__((aligned(16))) data[8] = { x0, x1, x2, x3, x4, x5, x6, x7 };
 	return vld1q_u16(data);
 }
 
-Vc_INTRINSIC Vc_CONST int32x4_t set(schar x0, schar x1, schar x2, schar x3, schar x4,
+Vc_INTRINSIC Vc_CONST int8x16_t set(schar x0, schar x1, schar x2, schar x3, schar x4,
                                   schar x5, schar x6, schar x7, schar x8, schar x9,
                                   schar x10, schar x11, schar x12, schar x13, schar x14,
                                   schar x15)
 {
-    schar __attribute__((aligned(16))) data[8] = { x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15 };
+    schar __attribute__((aligned(16))) data[16] = { x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15 };
 	return vld1q_s8(data);
 }
-Vc_INTRINSIC Vc_CONST int32x4_t set(uchar x0, uchar x1, uchar x2, uchar x3, uchar x4,
+Vc_INTRINSIC Vc_CONST uint8x16_t set(uchar x0, uchar x1, uchar x2, uchar x3, uchar x4,
                                   uchar x5, uchar x6, uchar x7, uchar x8, uchar x9,
                                   uchar x10, uchar x11, uchar x12, uchar x13, uchar x14,
                                   uchar x15)
 {
-    uchar __attribute__((aligned(16))) data[8] = { x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15 };
+    uchar __attribute__((aligned(16))) data[16] = { x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15 };
     return vld1q_u8(data);
 }
 
@@ -232,19 +233,16 @@ template <typename... Ts> Vc_INTRINSIC Vc_CONST auto set(Ts... args)
 // broadcast16/32/64{{{1
 Vc_INTRINSIC float32x4_t  broadcast16( float x) { return vdupq_n_f32(x); }
 Vc_INTRINSIC float64x2_t broadcast16(double x) { return vdupq_n_f64(x); }
-Vc_INTRINSIC int32x4_t broadcast16( schar x) { return vdupq_n_s8(x); }
-Vc_INTRINSIC int32x4_t broadcast16( uchar x) { return vdupq_n_u8(x); }
-Vc_INTRINSIC int32x4_t broadcast16( short x) { return vdupq_n_s16(x); }
-Vc_INTRINSIC int32x4_t broadcast16(ushort x) { return vdupq_n_u16(x); }
+Vc_INTRINSIC int8x16_t broadcast16( schar x) { return vdupq_n_s8(x); }
+Vc_INTRINSIC uint8x16_t broadcast16( uchar x) { return vdupq_n_u8(x); }
+Vc_INTRINSIC int16x8_t broadcast16( short x) { return vdupq_n_s16(x); }
+Vc_INTRINSIC uint16x8_t broadcast16(ushort x) { return vdupq_n_u16(x); }
 Vc_INTRINSIC int32x4_t broadcast16(   int x) { return vdupq_n_s32(x); }
-Vc_INTRINSIC int32x4_t broadcast16(  uint x) { return vdupq_n_u32(x); }
-Vc_INTRINSIC int32x4_t broadcast16(  long x) { return sizeof( long) == 4 ? vdupq_n_s32(x) : vdupq_n_s64(x); }
-Vc_INTRINSIC int32x4_t broadcast16( ulong x) { return sizeof(ulong) == 4 ? vdupq_n_u32(x) : vdupq_n_u64(x); }
-//TBD
-Vc_INTRINSIC int32x4_t broadcast16( llong x) { return ; }
-Vc_INTRINSIC int32x4_t broadcast16(ullong x) { return ; }
+Vc_INTRINSIC uint32x4_t broadcast16(  uint x) { return vdupq_n_u32(x); }
+//Vc_INTRINSIC int32x4_t broadcast16(  long x) { return sizeof( long) == 4 ? vdupq_n_s32(x) : vdupq_n_s64(x); }
+//Vc_INTRINSIC int32x4_t broadcast16( ulong x) { return sizeof(ulong) == 4 ? vdupq_n_u32(x) : vdupq_n_u64(x); }
 
-
+/*
 // lowest16/32/64{{{1
 template <class T>
 Vc_INTRINSIC Vc_CONST typename intrinsic_type_impl<T, 16>::type lowest16()
@@ -252,22 +250,22 @@ Vc_INTRINSIC Vc_CONST typename intrinsic_type_impl<T, 16>::type lowest16()
     return broadcast16(std::numeric_limits<T>::lowest());
 }
 
-template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16< short>() { return  vld1q_s16(reinterpret_cast<const int32x4_t *>(neon_const::minShort)); }
-template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16<   int>() { return  vld1q_s32(reinterpret_cast<const int32x4_t *>(neon_const::signMaskFloat)); }
-template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16< llong>() { return  vld1q_s64(reinterpret_cast<const int32x4_t *>(neon_const::signMaskDouble)); }
+template <> Vc_INTRINSIC Vc_CONST int16x8_t lowest16< short>() { return  vld1q_s16(reinterpret_cast<const int32_t *>(neon_const::minShort)); }
+template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16<   int>() { return  vld1q_s32(reinterpret_cast<const int32_t *>(neon_const::signMaskFloat)); }
+template <> Vc_INTRINSIC Vc_CONST int64x2_t lowest16< llong>() { return  vld1q_s64(reinterpret_cast<const int64_t *>(neon_const::signMaskDouble)); }
 template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16<  long>() { return lowest16<equal_int_type_t<long>>(); }
 
-template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16< uchar>() { return vdupq_n_u8(0); }
-template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16<ushort>() { return vdupq_n_u16(0); }
-template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16<  uint>() { return vdupq_n_s32(0); }
-template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16< ulong>() { return vdupq_n_u64(0); }
-template <> Vc_INTRINSIC Vc_CONST int32x4_t lowest16<ullong>() { return ; }
+template <> Vc_INTRINSIC Vc_CONST uint8x16_t lowest16< uchar>() { return vdupq_n_u8(0); }
+template <> Vc_INTRINSIC Vc_CONST uint16x8_t lowest16<ushort>() { return vdupq_n_u16(0); }
+template <> Vc_INTRINSIC Vc_CONST uint32x4_t lowest16<  uint>() { return vdupq_n_u32(0); }
+template <> Vc_INTRINSIC Vc_CONST uint64x2_t lowest16< ulong>() { return vdupq_n_u64(0); }
 
 // _2_pow_31{{{1
 template <class T> inline typename intrinsic_type_impl<T, 16>::type neon_2_pow_31();
 template <> Vc_INTRINSIC Vc_CONST float32x4_t  neon_2_pow_31< float>() { return broadcast16( float(1u << 31)); }
 template <> Vc_INTRINSIC Vc_CONST float64x2_t neon_2_pow_31<double>() { return broadcast16(double(1u << 31)); }
 template <> Vc_INTRINSIC Vc_CONST int32x4_t neon_2_pow_31<  uint>() { return lowest16<int>(); }
+*/
 
 // Blend{{{1
 
@@ -276,6 +274,12 @@ template <> Vc_INTRINSIC Vc_CONST int32x4_t neon_2_pow_31<  uint>() { return low
 // Bit compare{{{1
 
 // movemask{{{1
+Vc_INTRINSIC Vc_CONST int movemask_f32(float32x4_t a){}
+Vc_INTRINSIC Vc_CONST int movemask_f64(float64x2_t a){}
+Vc_INTRINSIC Vc_CONST int movemask_s32(int32x4_t a){}
+Vc_INTRINSIC Vc_CONST int movemask_s16(int16x8_t a){}
+Vc_INTRINSIC Vc_CONST int movemask_s8(int8x16_t a){}
+/*
 Vc_INTRINSIC Vc_CONST int movemask_f32(float32x4_t  a){
 	static const int32x4_t movemask = { 1, 2, 4, 8 };
 	static const int32x4_t highbit = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
@@ -294,26 +298,6 @@ Vc_INTRINSIC Vc_CONST int movemask_f64(float64x2_t a) {
     int32x2_t t3 = vorr_s32(vget_low_s32(t2), vget_high_s32(t2));
     return vget_lane_s32(t3, 0) | vget_lane_s32(t3, 1)
  }
-Vc_INTRINSIC Vc_CONST int movemask_s32(int32x4_t a)
-{
-	uint8x16_t input = (uint8x16_t)_a;
-	const int8_t __attribute__((aligned(16))) xr[8] = { -7, -6, -5, -4, -3, -2, -1, 0 };
-	uint8x8_t mask_and = vdup_n_u8(0x80);
-	int8x8_t mask_shift = vld1_s8(xr);
-	uint8x8_t lo = vget_low_u8(input);
-	uint8x8_t hi = vget_high_u8(input);
-	lo = vand_u8(lo, mask_and);
-	lo = vshl_u8(lo, mask_shift);
-	hi = vand_u8(hi, mask_and);
-	hi = vshl_u8(hi, mask_shift);
-	lo = vpadd_u8(lo, lo);
-	lo = vpadd_u8(lo, lo);
-	lo = vpadd_u8(lo, lo);
-	hi = vpadd_u8(hi, hi);
-	hi = vpadd_u8(hi, hi);
-	hi = vpadd_u8(hi, hi);
-	return ((hi[0] << 8) | (lo[0] & 0xFF));
-}
 
 Vc_INTRINSIC Vc_CONST int movemask_s32(int32x4_t a)
 {
@@ -377,20 +361,8 @@ Vc_INTRINSIC Vc_CONST int movemask_s8(int8x16_t a)
     hi = vpadd_u8(hi, hi);
     return ((hi[0] << 8) | (lo[0] & 0xFF));
 }
-
+*/
 // negate{{{1
-Vc_ALWAYS_INLINE Vc_CONST float32x4_t negate(float32x4_t v, std::integral_constant<std::size_t, 4>)
-{
-    return veorq_f32(v, signmask16(floa
-
-t()));
-//	return vnegq_f64(v);
-}
-Vc_ALWAYS_INLINE Vc_CONST float64x2_t negate(float64x2_t v, std::integral_constant<std::size_t, 8>)
-{
-    return veorq_f64(v, signmask16(double()));
-//  return vnegq_f32(v);
-}
 Vc_ALWAYS_INLINE Vc_CONST int32x4_t negate(int32x4_t v, std::integral_constant<std::size_t, 4>)
 {
 	return vnegq_s32(v);
@@ -401,37 +373,31 @@ Vc_ALWAYS_INLINE Vc_CONST int32x4_t negate(int32x4_t v, std::integral_constant<s
 }
 
 // xor_{{{1
-Vc_INTRINSIC float32x4_t  xor_(float32x4_t  a, float32x4_t  b) { return vnegq_s32(a, b); }
-Vc_INTRINSIC float64x2_t xor_(float64x2_t a, float64x2_t b) { return vnegq_s64(a, b); }
-Vc_INTRINSIC int32x4_t xor_(int32x4_t a, int32x4_t b) { return vnegq_s32(a, b); }
+Vc_INTRINSIC int64x2_t xor_(int64x2_t a, int64x2_t b) { return veorq_s64(a, b); }
+Vc_INTRINSIC int32x4_t xor_(int32x4_t a, int32x4_t b) { return veorq_s32(a, b); }
 
 // or_{{{1
-Vc_INTRINSIC float32x4_t or_(float32x4_t a, float32x4_t b) { return vorrq_f32(a, b); }
-Vc_INTRINSIC float64x2_t or_(float64x2_t a, float64x2_t b) { return vorrq_f64(a, b); }
+Vc_INTRINSIC int64x2_t or_(int64x2_t a, int64x2_t b) { return vorrq_s64(a, b); }
 Vc_INTRINSIC int32x4_t or_(int32x4_t a, int32x4_t b) { return vorrq_s32(a, b); }
 
 // and_{{{1
-Vc_INTRINSIC float32x4_t and_(float32x4_t a, float32x4_t b) { return vandq_f32(a, b); }
-Vc_INTRINSIC float64x2_t and_(float64x2_t a, float64x2_t b) { return vandq_f64(a, b); }
+Vc_INTRINSIC int64x2_t and_(int64x2_t a, int64x2_t b) { return vandq_s64(a, b); }
 Vc_INTRINSIC int32x4_t and_(int32x4_t a, int32x4_t b) { return vandq_s32(a, b); }
 
 // andnot_{{{1
-Vc_INTRINSIC float32x4_t andnot_(float32x4_t a, float32x4_t b) { return vbicq_f32(a, b); }
-Vc_INTRINSIC float64x2_t andnot_(float64x2_t a, float64x2_t b) { return vbicq_f64(a, b); }
+Vc_INTRINSIC int64x2_t andnot_(int64x2_t a, int64x2_t b) { return vbicq_s64(a, b); }
 Vc_INTRINSIC int32x4_t andnot_(int32x4_t a, int32x4_t b) { return vbicq_s32(a, b); }
 
 // shift_left{{{1
-template <int n> Vc_INTRINSIC float32x4_t  shift_left(float32x4_t  v) { return vshlq_n_f32(v, n); }
-template <int n> Vc_INTRINSIC float64x2_t shift_left(float64x2_t v) { return vshlq_n_f64(v, n); }
+template <int n> Vc_INTRINSIC int64x2_t shift_left(int64x2_t v) { return vshlq_n_s64(v, n); }
 template <int n> Vc_INTRINSIC int32x4_t shift_left(int32x4_t v) { return vshlq_n_s32(v, n); }
 
 // shift_right{{{1
-template <int n> Vc_INTRINSIC float32x4_t  shift_right(float32x4_t  v) { return vshrq_n_f32(v, n); }
-template <int n> Vc_INTRINSIC float64x2_t shift_right(float64x2_t v) { return vshrq_n_f64(v, n); }
+template <int n> Vc_INTRINSIC int64x2_t shift_right(int64x2_t v) { return vshrq_n_s64(v, n); }
 template <int n> Vc_INTRINSIC int32x4_t shift_right(int32x4_t v) { return vshrq_n_s32(v, n); }
 
 // popcnt{{{1
-// Not available?
+// Not available for arm NEON?
 Vc_INTRINSIC Vc_CONST unsigned int popcnt4(unsigned int n) {}
 Vc_INTRINSIC Vc_CONST unsigned int popcnt8(unsigned int n) {}
 Vc_INTRINSIC Vc_CONST unsigned int popcnt16(unsigned int n) {}
@@ -459,6 +425,8 @@ template<> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(int32x4_t k) {}
 template<> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(int32x4_t k) {}
 template<> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(int32x4_t k) {}
 
+
+/*
 // is_equal{{{1
 template <size_t Size>
 Vc_INTRINSIC_L Vc_CONST_L bool is_equal(float32x4_t, float32x4_t) Vc_INTRINSIC_R Vc_CONST_R;
@@ -503,6 +471,7 @@ template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<16>(float32x4_t k1, float32x
     return movemask_s8(*(const int8x16_t  *)&(k1)) !=
            movemask_s8(*(const int8x16_t  *)&(k2));
 }
+*/
 
 // loads{{{1
 /**
@@ -532,19 +501,19 @@ Vc_INTRINSIC float64x2_t load16(const double *mem, when_unaligned<16>)
 template <class T> Vc_INTRINSIC int32x4_t load16(const T *mem, when_aligned<16>)
 {
     static_assert(std::is_integral<T>::value, "load16<T> is only intended for integral T");
-    return vld1q_s32(reinterpret_cast<const int32x4_t *>(mem));
+    return vld1q_s32(reinterpret_cast<const int32_t *>(mem));
 }
 
 template <class T> Vc_INTRINSIC int32x4_t load16(const T *mem, when_unaligned<16>)
 {
     static_assert(std::is_integral<T>::value, "load16<T> is only intended for integral T");
-    return vld1q_s32(reinterpret_cast<const int32x4_t *>(mem));
+    return vld1q_s32(reinterpret_cast<const int32_t *>(mem));
 }
 
 // stores{{{1
 template <class Flags> Vc_INTRINSIC void store4(float32x4_t v, float *mem, Flags)
 {
-    *mem = vgetq_lane_f32(a, 0);
+    *mem = vgetq_lane_f32(v, 0);
 }
 template <class Flags> Vc_INTRINSIC void store8(float32x4_t v, float *mem, Flags) {}
 Vc_INTRINSIC void store16(float32x4_t v, float *mem, when_aligned<16>)
@@ -571,31 +540,31 @@ template <class T, class Flags> Vc_INTRINSIC void store2(int32x4_t v, T *mem, Fl
 {
     static_assert(std::is_integral<T>::value && sizeof(T) <= 2,
                   "store4<T> is only intended for integral T with sizeof(T) <= 2");
-    *reinterpret_cast<may_alias<ushort> *>(mem) = uint(vgetq_lane_s32(a, 0));
+    *reinterpret_cast<may_alias<ushort> *>(mem) = uint(vgetq_lane_s32(v, 0));
 }
 
 template <class T, class Flags> Vc_INTRINSIC void store4(int32x4_t v, T *mem, Flags)
 {
     static_assert(std::is_integral<T>::value && sizeof(T) <= 4,
                   "store4<T> is only intended for integral T with sizeof(T) <= 4");
-    *reinterpret_cast<may_alias<int> *>(mem) = vgetq_lane_s32(a, 0);
+    *reinterpret_cast<may_alias<int> *>(mem) = vgetq_lane_s32(v, 0);
 }
 
 template <class T, class Flags> Vc_INTRINSIC void store8(int32x4_t v, T *mem, Flags)
 {
     static_assert(std::is_integral<T>::value, "store8<T> is only intended for integral T");
-    *mem = (int32x4_t)vsetq_lane_s64((int64_t)vget_low_s32(b), *(int64x2_t*)a, 0);
+    *mem = (int32x4_t)vsetq_lane_s64((int64_t)vget_low_s32(v), *(int64x2_t*)v, 0);
 }
 
 template <class T> Vc_INTRINSIC void store16(int32x4_t v, T *mem, when_aligned<16>)
 {
     static_assert(std::is_integral<T>::value, "store16<T> is only intended for integral T");
-    vst1q_s32(reinterpret_cast<int32x4_t *>(mem), v);
+    vst1q_s32(reinterpret_cast<int32_t *>(mem), v);
 }
 template <class T> Vc_INTRINSIC void store16(int32x4_t v, T *mem, when_unaligned<16>)
 {
     static_assert(std::is_integral<T>::value, "store16<T> is only intended for integral T");
-    vst1q_s32(reinterpret_cast<int32x4_t *>(mem), v);
+    vst1q_s32(reinterpret_cast<int32_t *>(mem), v);
 }
 
 

@@ -31,7 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iosfwd>
 
 #include "macros.h"
+#ifdef Vc_HAVE_NEON
+#include "aarch/intrinsics.h"
+#else 
 #include "x86/intrinsics.h"
+#endif
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
