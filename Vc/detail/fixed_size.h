@@ -444,6 +444,20 @@ public:
         return {private_init, apply([y](auto xx) { return xx >> y; }, x.d)};
     }
 
+    // sqrt {{{2
+    template <class T, class A>
+    static inline Vc::datapar<T, A> sqrt(const Vc::datapar<T, A> &x) noexcept
+    {
+        return {private_init, apply([](auto xx) { return Vc::sqrt(xx); }, x.d)};
+    }
+
+    // abs {{{2
+    template <class T, class A>
+    static inline Vc::datapar<T, A> abs(const Vc::datapar<T, A> &x) noexcept
+    {
+        return {private_init, apply([](auto xx) { return Vc::abs(xx); }, x.d)};
+    }
+
     // increment & decrement{{{2
     template <class... Ts> static inline void increment(datapar_tuple<Ts...> &x)
     {

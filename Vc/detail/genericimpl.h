@@ -121,6 +121,22 @@ template <class Derived> struct generic_datapar_impl {
         return make_datapar<T, A>(detail::bit_shift_right(adjust_for_long(x.d), y));
     }
 
+    // sqrt {{{2
+    template <class T, class A>
+    static Vc_INTRINSIC Vc::datapar<T, A> sqrt(const Vc::datapar<T, A> &x) noexcept
+    {
+        using detail::x86::sqrt;
+        return make_datapar<T, A>(sqrt(adjust_for_long(detail::data(x))));
+    }
+
+    // abs {{{2
+    template <class T, class A>
+    static Vc_INTRINSIC Vc::datapar<T, A> abs(const Vc::datapar<T, A> &x) noexcept
+    {
+        using detail::x86::abs;
+        return make_datapar<T, A>(abs(adjust_for_long(detail::data(x))));
+    }
+
     // increment & decrement{{{2
     template <class T, size_t N> static Vc_INTRINSIC void increment(Storage<T, N> &x)
     {

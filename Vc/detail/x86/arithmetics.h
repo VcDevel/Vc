@@ -1127,7 +1127,24 @@ Vc_INTRINSIC __m512  Vc_VDECL unary_minus(z_f32 v) { return xor_(v, signmask64(f
 Vc_INTRINSIC __m512d Vc_VDECL unary_minus(z_f64 v) { return xor_(v, signmask64(double())); }
 #endif  // Vc_HAVE_AVX512F
 
+// sqrt{{{1
+Vc_INTRINSIC __m128  Vc_VDECL sqrt(x_f32 v) { return _mm_sqrt_ps(v); }
+#ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC __m128d Vc_VDECL sqrt(x_f64 v) { return _mm_sqrt_pd(v); }
+#endif  // Vc_HAVE_SSE2
+
+#ifdef Vc_HAVE_AVX
+Vc_INTRINSIC __m256  Vc_VDECL sqrt(y_f32 v) { return _mm256_sqrt_ps(v); }
+Vc_INTRINSIC __m256d Vc_VDECL sqrt(y_f64 v) { return _mm256_sqrt_pd(v); }
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC __m512  Vc_VDECL sqrt(z_f32 v) { return _mm512_sqrt_ps(v); }
+Vc_INTRINSIC __m512d Vc_VDECL sqrt(z_f64 v) { return _mm512_sqrt_pd(v); }
+#endif  // Vc_HAVE_AVX512F
+
 //}}}1
+
 }}  // namespace detail::x86
 Vc_VERSIONED_NAMESPACE_END
 

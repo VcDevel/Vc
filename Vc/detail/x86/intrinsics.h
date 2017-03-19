@@ -1070,22 +1070,34 @@ template <int n> Vc_INTRINSIC __m256i srli_epi16(__m256i v)
 #endif
 }
 
-// SSE intrinsics emulation{{{1
-Vc_INTRINSIC __m128  setone_ps()     { return _mm_load_ps(sse_const::oneFloat); }
-Vc_INTRINSIC __m128  setabsmask_ps() { return _mm_load_ps(reinterpret_cast<const float *>(sse_const::absMaskFloat)); }
+// SSE/AVX intrinsics emulation{{{1
+Vc_INTRINSIC __m128  setone_ps16()   { return _mm_load_ps(sse_const::oneFloat); }
 
 #ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC __m128d setone_pd16()   { return _mm_load_pd(sse_const::oneDouble); }
 Vc_INTRINSIC __m128i setone_epi8 ()  { return _mm_set1_epi8(1); }
 Vc_INTRINSIC __m128i setone_epu8 ()  { return setone_epi8(); }
 Vc_INTRINSIC __m128i setone_epi16()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(sse_const::one16)); }
 Vc_INTRINSIC __m128i setone_epu16()  { return setone_epi16(); }
 Vc_INTRINSIC __m128i setone_epi32()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(sse_const::one32)); }
 Vc_INTRINSIC __m128i setone_epu32()  { return setone_epi32(); }
-
-Vc_INTRINSIC __m128d setone_pd()     { return _mm_load_pd(sse_const::oneDouble); }
-
-Vc_INTRINSIC __m128d setabsmask_pd() { return _mm_load_pd(reinterpret_cast<const double *>(sse_const::absMaskDouble)); }
 #endif  // Vc_HAVE_SSE2
+
+Vc_INTRINSIC __m128  setabsmask_ps_16() { return _mm_load_ps(reinterpret_cast<const float *>(sse_const::absMaskFloat)); }
+
+#ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC __m128d setabsmask_pd_16() { return _mm_load_pd(reinterpret_cast<const double *>(sse_const::absMaskDouble)); }
+#endif  // Vc_HAVE_SSE2
+
+#ifdef Vc_HAVE_AVX
+Vc_INTRINSIC __m256  setabsmask_ps_32() { return _mm256_broadcast_ss(reinterpret_cast<const float *>(&avx_const::absMaskFloat[1])); }
+Vc_INTRINSIC __m256d setabsmask_pd_32() { return _mm256_broadcast_sd(reinterpret_cast<const double *>(&avx_const::absMaskFloat[0])); }
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC __m512  setabsmask_ps_64() { return broadcast64(*reinterpret_cast<const float *>(&avx_const::absMaskFloat[1])); }
+Vc_INTRINSIC __m512d setabsmask_pd_64() { return broadcast64(*reinterpret_cast<const double *>(&avx_const::absMaskFloat[0])); }
+#endif // Vc_HAVE_AVX512F
 
 #ifdef Vc_HAVE_SSE2
 #if defined(Vc_IMPL_XOP)
@@ -1810,6 +1822,23 @@ Vc_INTRINSIC __mmask16 not_(__mmask16 a) { return ~a; }
 Vc_INTRINSIC __mmask32 not_(__mmask32 a) { return ~a; }
 Vc_INTRINSIC __mmask64 not_(__mmask64 a) { return ~a; }
 #endif  // Vc_HAVE_AVX512BW
+#endif  // Vc_HAVE_AVX512F
+
+// abs{{{1
+Vc_INTRINSIC __m128  abs(__m128  a) { return and_(a, setabsmask_ps_16()); }
+
+#ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC __m128d abs(__m128d a) { return and_(a, setabsmask_pd_16()); }
+#endif // Vc_HAVE_SSE2
+
+#ifdef Vc_HAVE_AVX
+Vc_INTRINSIC __m256  abs(__m256  a) { return and_(a, setabsmask_ps_32()); }
+Vc_INTRINSIC __m256d abs(__m256d a) { return and_(a, setabsmask_pd_32()); }
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC __m512  abs(__m512  a) { return and_(a, setabsmask_ps_64()); }
+Vc_INTRINSIC __m512d abs(__m512d a) { return and_(a, setabsmask_pd_64()); }
 #endif  // Vc_HAVE_AVX512F
 
 // shift_left{{{1
