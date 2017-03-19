@@ -83,6 +83,8 @@ elseif(Vc_COMPILER_IS_MSVC)
 elseif(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
    AddCompilerFlag("-fp-model source")
+   # Intel complains about non-POD class types being passed through ellipses in the test suite; silence those warnings.
+   AddCompilerFlag("-wd1595")
 endif()#}}}
 
 # Set default CMAKE_BUILD_TYPE to Release#{{{
