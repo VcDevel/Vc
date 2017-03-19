@@ -429,4 +429,7 @@ target_link_libraries(linkTest linkTestLibDynamic1 linkTestLibDynamic2 linkTestL
 # Use the following program to generate the sincos-reference-*.dat files
 #add_executable(convert-sincos-reference EXCLUDE_FROM_ALL convert-sincos-reference.cpp)
 
+# version.h test - make sure it can be included on its own.
+add_executable(version_hTest EXCLUDE_FROM_ALL version_h.cpp)
+
 # vim: foldmethod=marker commentstring=#%s
