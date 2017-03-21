@@ -1,4 +1,5 @@
 include(AddFileDependencies)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/virtest)
 
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
 if(Vc_COMPILER_IS_MSVC)

@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef TESTS_TESTTYPES_H_
 #define TESTS_TESTTYPES_H_
 
-#include "unittest.h"
+#include <vir/typelist.h>
 #include <Vc/datapar>
 
 #ifndef TESTTYPES
@@ -44,14 +44,17 @@ using llong = long long;
 using ullong = unsigned long long;
 using ldouble = long double;
 
-using testtypes_wo_ldouble = typename filter_list<long double, Typelist<TESTTYPES>>::type;
-using testtypes_64_32 = typename filter_list<Typelist<ushort, short, uchar, schar>,
-                                            testtypes_wo_ldouble>::type;
-using testtypes_fp = typename filter_list<Typelist<ullong, llong, ulong, long, uint, int>,
-                                          testtypes_64_32>::type;
-using testtypes_float = typename filter_list<double, testtypes_fp>::type;
-static_assert(list_size<testtypes_fp>::value <= 2, "filtering the list failed");
-static_assert(list_size<testtypes_float>::value <= 1, "filtering the list failed");
+using testtypes_wo_ldouble =
+    typename vir::filter_list<long double, vir::Typelist<TESTTYPES>>::type;
+using testtypes_64_32 =
+    typename vir::filter_list<vir::Typelist<ushort, short, uchar, schar>,
+                              testtypes_wo_ldouble>::type;
+using testtypes_fp =
+    typename vir::filter_list<vir::Typelist<ullong, llong, ulong, long, uint, int>,
+                              testtypes_64_32>::type;
+using testtypes_float = typename vir::filter_list<double, testtypes_fp>::type;
+static_assert(vir::list_size<testtypes_fp>::value <= 2, "filtering the list failed");
+static_assert(vir::list_size<testtypes_float>::value <= 1, "filtering the list failed");
 
 // vT {{{1
 using vschar = Vc::native_datapar<schar>;
@@ -80,54 +83,57 @@ using vl = typename std::conditional<sizeof(long) == sizeof(llong), vi64<T>, vi3
 
 // current_native_test_types {{{1
 using current_native_test_types =
-    expand_one<Template1<Vc::native_datapar>, Typelist<TESTTYPES>>;
+    vir::expand_one<vir::Template1<Vc::native_datapar>, vir::Typelist<TESTTYPES>>;
 using current_native_mask_test_types =
-    expand_one<Template1<Vc::native_mask>, Typelist<TESTTYPES>>;
+    vir::expand_one<vir::Template1<Vc::native_mask>, vir::Typelist<TESTTYPES>>;
 
 // native_test_types {{{1
-typedef concat<
+typedef vir::concat<
 #if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
-    expand_one<Template<base_template, Vc::datapar_abi::avx512>, testtypes_64_32>,
+    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::avx512>,
+                    testtypes_64_32>,
 #endif
 #if defined Vc_HAVE_AVX_ABI && !defined Vc_HAVE_FULL_AVX_ABI
-    expand_one<Template<base_template, Vc::datapar_abi::avx>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::avx>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_SSE_ABI && !defined Vc_HAVE_FULL_SSE_ABI
-    expand_one<Template<base_template, Vc::datapar_abi::sse>, testtypes_float>,
+    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::sse>, testtypes_float>,
 #endif
-    expand_list<concat<
+    vir::expand_list<vir::concat<
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-                    Template<base_template, Vc::datapar_abi::avx512>,
+                         vir::Template<base_template, Vc::datapar_abi::avx512>,
 #endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
-                    Template<base_template, Vc::datapar_abi::avx>,
+                         vir::Template<base_template, Vc::datapar_abi::avx>,
 #endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
-                    Template<base_template, Vc::datapar_abi::sse>,
+                         vir::Template<base_template, Vc::datapar_abi::sse>,
 #endif
-                    Typelist<>>,
-                testtypes_wo_ldouble>> native_test_types;
+                         vir::Typelist<>>,
+                     testtypes_wo_ldouble>> native_test_types;
 
 // all_test_types / ALL_TYPES {{{1
-typedef concat<
+typedef vir::concat<
     native_test_types,
-    expand_list<Typelist<Template<base_template, Vc::datapar_abi::scalar>,
-                         // Template<base_template, Vc::datapar_abi::fixed_size<2>>,
-                         Template<base_template, Vc::datapar_abi::fixed_size<3>>,
-                         // Template<base_template, Vc::datapar_abi::fixed_size<4>>,
-                         // Template<base_template, Vc::datapar_abi::fixed_size<8>>,
-                         Template<base_template, Vc::datapar_abi::fixed_size<12>>,
-                         // Template<base_template, Vc::datapar_abi::fixed_size<16>>,
-                         Template<base_template, Vc::datapar_abi::fixed_size<
-                                                     Vc::datapar_abi::max_fixed_size>>>,
-                Typelist<TESTTYPES>>> all_test_types;
+    vir::expand_list<
+        vir::Typelist<vir::Template<base_template, Vc::datapar_abi::scalar>,
+                      // vir::Template<base_template, Vc::datapar_abi::fixed_size<2>>,
+                      vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
+                      // vir::Template<base_template, Vc::datapar_abi::fixed_size<4>>,
+                      // vir::Template<base_template, Vc::datapar_abi::fixed_size<8>>,
+                      vir::Template<base_template, Vc::datapar_abi::fixed_size<12>>,
+                      // vir::Template<base_template, Vc::datapar_abi::fixed_size<16>>,
+                      vir::Template<base_template, Vc::datapar_abi::fixed_size<
+                                                       Vc::datapar_abi::max_fixed_size>>>,
+        vir::Typelist<TESTTYPES>>> all_test_types;
 
-#define ALL_TYPES (all_test_types)
+#define ALL_TYPES all_test_types
 
 // reduced_test_types {{{1
-typedef concat<native_test_types,
-               expand_list<Typelist<Template<base_template, Vc::datapar_abi::scalar>>,
-                           Typelist<TESTTYPES>>> reduced_test_types;
+typedef vir::concat<
+    native_test_types,
+    vir::expand_list<vir::Typelist<vir::Template<base_template, Vc::datapar_abi::scalar>>,
+                     vir::Typelist<TESTTYPES>>> reduced_test_types;
 
 //}}}1
 #endif  // TESTS_TESTTYPES_H_

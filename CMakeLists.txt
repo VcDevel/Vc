@@ -246,6 +246,7 @@ endif()
 # Install headers#{{{
 ##################################################################
 install(DIRECTORY Vc/ DESTINATION include/Vc)
+# }}}
 
 # Generate & install cmake config#{{{
 ##################################################################
@@ -283,8 +284,12 @@ install(FILES
 include (CTest)
 configure_file(${CMAKE_SOURCE_DIR}/scripts/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
 if(BUILD_TESTING)
-   add_custom_target(build_tests ALL VERBATIM)
-   add_subdirectory(tests)
+   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/virtest")
+      add_custom_target(build_tests ALL VERBATIM)
+      add_subdirectory(tests)
+   else()
+      message(WARNING "Please clone https://github.com/mattkretz/virtest to the tests/virtest subdirectory to enable unit tests.")
+   endif()
 endif(BUILD_TESTING)#}}}
 
 # Examples#{{{

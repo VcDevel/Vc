@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 //#define UNITTEST_ONLY_XTEST 1
-#include "unittest.h"
+#include <vir/test.h>
 #include <Vc/datapar>
 #include "make_vec.h"
 
@@ -106,10 +106,10 @@ inline Vc::mask<T, A> is_conversion_undefined(const Vc::datapar<T, A> &x)
 
 // loads & stores {{{1
 TEST_TYPES(VU, load_store,
-           (outer_product<reduced_test_types,
+           outer_product<reduced_test_types,
                           Typelist<long double, double, float, long long, unsigned long,
                                    int, unsigned short, signed char, unsigned long long,
-                                   long, unsigned int, short, unsigned char>>))
+                                   long, unsigned int, short, unsigned char>>)
 {
 #ifdef Vc_MSVC
 // disable "warning C4756: overflow in constant arithmetic" - I don't care.
@@ -229,9 +229,9 @@ TEST_TYPES(VU, load_store,
             COMPARE(x[i], reference[i + offset])
                 << "\nbefore conversion: " << mem[i + offset]
                 << "\n   offset = " << offset
-                << "\n        x = " << UnitTest::asBytes(x) << " = " << x
-                << "\nreference = " << UnitTest::asBytes(ref) << " = " << ref
-                << "\nx == ref  = " << UnitTest::asBytes(x == ref) << " = " << (x == ref)
+                << "\n        x = " << asBytes(x) << " = " << x
+                << "\nreference = " << asBytes(ref) << " = " << ref
+                << "\nx == ref  = " << asBytes(x == ref) << " = " << (x == ref)
                 << "\ncall no. " << n;
         }
         ++n;

@@ -25,9 +25,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef TESTS_METAHELPERS_H_
-#define TESTS_METAHELPERS_H_
+#ifndef VC_TESTS_METAHELPERS_H_
+#define VC_TESTS_METAHELPERS_H_
 
+#include <vir/metahelpers.h>
 #include <climits>
 #include <cfloat>
 
@@ -140,49 +141,16 @@ struct assign_bit_shift_right {
 
 // operator_is_substitution_failure {{{1
 template <class A, class B, class Op = std::plus<>>
-constexpr bool operator_is_substitution_failure_impl(float)
-{
-    return true;
-}
-
-template <class A, class B, class Op = std::plus<>>
-constexpr std::conditional_t<true, bool,
-                             decltype(Op()(Vc::declval<A>(), Vc::declval<B>()))>
-operator_is_substitution_failure_impl(int)
-{
-    return false;
-}
-
-template <class... Ts>
-constexpr bool operator_is_substitution_failure =
-    operator_is_substitution_failure_impl<Ts...>(int());
+constexpr bool is_substitution_failure =
+    vir::test::operator_is_substitution_failure<A, B, Op>();
 
 // sfinae_is_callable{{{1
-template <class F, class... Args>
-constexpr auto sfinae_is_callable_impl(int, F &&f, Args &&... args)
-    -> std::conditional_t<true, bool,
-                          decltype(std::forward<F>(f)(std::forward<Args>(args)...))>
-{
-    return true;
-}
-template <class F, class... Args>
-constexpr bool sfinae_is_callable_impl(float, const F &, const Args &...)
-{
-    return false;
-}
-template <class F, class... Args>
-constexpr bool sfinae_is_callable(F &&f, Args &&... args)
-{
-    return sfinae_is_callable_impl(int(), std::forward<F>(f),
-                                   std::forward<Args>(args)...);
-}
+using vir::test::sfinae_is_callable;
 
 // traits {{{1
-template <class A, class B>
-constexpr bool has_less_bits =
-    std::numeric_limits<A>::digits < std::numeric_limits<B>::digits;
+using vir::test::has_less_bits;
 
 //}}}1
 
-#endif  // TESTS_METAHELPERS_H_
+#endif  // VC_TESTS_METAHELPERS_H_
 // vim: foldmethod=marker

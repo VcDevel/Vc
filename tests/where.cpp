@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 //#define UNITTEST_ONLY_XTEST 1
-#include "unittest.h"
+#include <vir/test.h>
 #include <Vc/datapar>
 #include "make_vec.h"
 
@@ -53,7 +53,7 @@ template <class M, class T> constexpr bool where_is_ill_formed(M m, const T &v)
     return where_is_ill_formed_impl(m, v, int());
 }
 
-TEST_TYPES(V, where, (all_test_types))
+TEST_TYPES(V, where, all_test_types)
 {
     using M = typename V::mask_type;
     using T = typename V::value_type;
@@ -111,7 +111,7 @@ TEST_TYPES(V, where, (all_test_types))
     COMPARE(test, alternating_mask);
 }
 
-TEST_TYPES(T, where_fundamental, (int, float, double, short))
+TEST_TYPES(T, where_fundamental, int, float, double, short)
 {
     using Vc::where;
     T x = T();

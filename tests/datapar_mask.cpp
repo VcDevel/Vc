@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 //#define UNITTEST_ONLY_XTEST 1
-#include "unittest.h"
+#include <vir/test.h>
 #include <Vc/datapar>
 #include "metahelpers.h"
 
@@ -142,7 +142,7 @@ std::enable_if_t<assign_should_work<L, R>> implicit_conversions_test()
 template <class L, class R>
 std::enable_if_t<assign_should_not_work<L, R>> implicit_conversions_test()
 {
-    VERIFY((operator_is_substitution_failure<L &, R, assignment>));
+    VERIFY((is_substitution_failure<L &, R, assignment>));
 }
 
 TEST_TYPES(M, implicit_conversions, ALL_TYPES)
@@ -281,7 +281,7 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
     }
 }
 
-TEST_TYPES(M, operator_conversions, (current_native_mask_test_types))  //{{{1
+TEST_TYPES(M, operator_conversions, current_native_mask_test_types)  //{{{1
 {
     // binary ops without conversions work
     COMPARE(typeid(M() & M()), typeid(M));
@@ -291,7 +291,7 @@ TEST_TYPES(M, operator_conversions, (current_native_mask_test_types))  //{{{1
     using Vc::native_mask;
     using Vc::fixed_size_mask;
     auto &&sfinae_test = [](auto x) {
-        return operator_is_substitution_failure<M, decltype(x), std::bit_and<>>;
+        return is_substitution_failure<M, decltype(x), std::bit_and<>>;
     };
     VERIFY(sfinae_test(bool()));
 
