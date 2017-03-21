@@ -105,15 +105,14 @@ std::ostream &operator<<(std::ostream &out, const datapar<T, Abi> &v)
 template <class T, class Abi>
 std::ostream &operator<<(std::ostream &out, const mask<T, Abi> &k)
 {
-    using namespace detail::color;
     auto &&printBool = [&](bool b) {
         if (b) {
-            out << yellow << '1';
+            out << detail::color::yellow << '1';
         } else {
-            out << blue << '1';
+            out << detail::color::blue << '1';
         }
     };
-    out << blue << "m⃗[";
+    out << detail::color::blue << "m⃗[";
     printBool(k[0]);
     for (size_t i = 1; i < k.size(); ++i) {
         if (i % 4 == 0) {
@@ -121,7 +120,7 @@ std::ostream &operator<<(std::ostream &out, const mask<T, Abi> &k)
         }
         printBool(k[i]);
     }
-    return out << ']' << normal;
+    return out << ']' << detail::color::normal;
 }
 
 //}}}1
