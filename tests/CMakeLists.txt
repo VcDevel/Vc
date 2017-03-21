@@ -252,7 +252,7 @@ function(vc_add_test name) #{{{
 endfunction() #}}}
 
 vc_add_test(loadstore)
-vc_add_test(datapar_mask)
+vc_add_test(mask)
 vc_add_test(datapar)
 vc_add_test(where)
 
@@ -297,7 +297,7 @@ function(vc_download_testdata)#{{{
       add_dependencies(NEON download-testdata)
    endif()
 endfunction()
-vc_download_testdata()#}}}
+#Not needed yet: vc_download_testdata()#}}}
 
 # ABI tests#{{{
 find_program(OBJDUMP objdump)
