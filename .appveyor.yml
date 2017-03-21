@@ -11,8 +11,8 @@ environment:
   matrix:
     - subset: sse
     - subset: avx
+    - subset: avx2
     - subset: avx512
-    - subset: neon
 
 install:
 - cmd: git submodule update --init --recursive

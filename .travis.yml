@@ -8,6 +8,7 @@ cache:
 env:
     - arch=x86_64  subset=sse
     - arch=x86_64  subset=avx
+    - arch=x86_64  subset=avx2
     - arch=x86_64  subset=avx512
     - arch=aarch64 subset=neon
 
@@ -58,12 +59,12 @@ install:
         linux-g++-aarch64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
           sudo apt-get update -q &&
-          sudo apt-get install -y g++-5-aarch64-linux-gnu &&
+          sudo apt-get install -y g++-\*-aarch64-linux-gnu &&
           export CXX=aarch64-linux-gnu-g++-5 CC=aarch64-linux-gnu-gcc-5 CMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-linux.cmake;;
         linux-clang++-aarch64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
           sudo apt-get update -q &&
-          sudo apt-get install -y libstdc++-5-dev-arm64-cross binutils-aarch64-linux-gnu clang-3.8 &&
+          sudo apt-get install -y libstdc++-\*-dev-arm64-cross binutils-aarch64-linux-gnu clang-3.8 &&
           export CPATH=/usr/aarch64-linux-gnu/include &&
           export CXX="clang++-3.8 -target aarch64-linux-gnu" CC="clang-3.8 -target aarch64-linux-gnu" &&
           export CMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-linux.cmake;;
