@@ -288,7 +288,7 @@ if(BUILD_TESTING)
       add_custom_target(build_tests ALL VERBATIM)
       add_subdirectory(tests)
    else()
-      message(WARNING "Please clone https://github.com/mattkretz/virtest to the tests/virtest subdirectory to enable unit tests.")
+      message(FATAL_ERROR "Unit tests enabled but virtest is missing. Call 'git submodule update' to clone the required unit test framework.")
    endif()
 endif(BUILD_TESTING)#}}}
 
