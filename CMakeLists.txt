@@ -284,7 +284,7 @@ install(FILES
 include (CTest)
 configure_file(${CMAKE_SOURCE_DIR}/scripts/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
 if(BUILD_TESTING)
-   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/virtest")
+   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/virtest/vir/test.h")
       add_custom_target(build_tests ALL VERBATIM)
       add_subdirectory(tests)
    else()
