@@ -28,15 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_FWDDECL_H_
 #define VC_FWDDECL_H_
 
-//#include "detail/macros.h"
-
-#if 0  // def Vc_ICC
-namespace Vc_2 {}
-namespace Vc = Vc_2;
-#define Vc_VERSIONED_NAMESPACE Vc_2
-#define Vc_VERSIONED_NAMESPACE_BEGIN namespace Vc_2 {
-#define Vc_VERSIONED_NAMESPACE_END }
-#else
 namespace Vc
 {
 inline namespace v2
@@ -46,13 +37,17 @@ inline namespace v2
 #define Vc_VERSIONED_NAMESPACE Vc::v2
 #define Vc_VERSIONED_NAMESPACE_BEGIN namespace Vc { inline namespace v2 {
 #define Vc_VERSIONED_NAMESPACE_END }}
-#endif
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace datapar_abi
 {
 template <int N> struct fixed_size;
 using scalar = fixed_size<1>;
+struct sse;
+struct avx;
+struct avx512;
+struct knc;
+struct neon;
 }  // namespace datapar_abi
 
 template <class T> struct is_datapar;
