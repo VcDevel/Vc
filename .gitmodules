@@ -1,0 +1,3 @@
+[submodule "tests/virtest"]
+	path = tests/virtest
+	url = https://github.com/mattkretz/virtest
