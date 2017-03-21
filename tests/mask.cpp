@@ -357,10 +357,10 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
     using Vc::all_of;
     VERIFY( all_of(true));
     VERIFY(!all_of(false));
-    VERIFY( sfinae_is_callable([](auto x) -> decltype(Vc::all_of(x)) { return {}; }, true));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::all_of(x)) { return {}; }, int()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::all_of(x)) { return {}; }, float()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::all_of(x)) { return {}; }, char()));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::all_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::all_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::all_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::all_of(x)) { return {}; }));
 
     // any_of
     VERIFY( any_of(M{true}));
@@ -369,10 +369,10 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
     using Vc::any_of;
     VERIFY( any_of(true));
     VERIFY(!any_of(false));
-    VERIFY( sfinae_is_callable([](auto x) -> decltype(Vc::any_of(x)) { return {}; }, true));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::any_of(x)) { return {}; }, int()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::any_of(x)) { return {}; }, float()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::any_of(x)) { return {}; }, char()));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::any_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::any_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::any_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::any_of(x)) { return {}; }));
 
     // none_of
     VERIFY(!none_of(M{true}));
@@ -381,10 +381,10 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
     using Vc::none_of;
     VERIFY(!none_of(true));
     VERIFY( none_of(false));
-    VERIFY( sfinae_is_callable([](auto x) -> decltype(Vc::none_of(x)) { return {}; }, true));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::none_of(x)) { return {}; }, int()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::none_of(x)) { return {}; }, float()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::none_of(x)) { return {}; }, char()));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::none_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::none_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::none_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::none_of(x)) { return {}; }));
 
     // some_of
     VERIFY(!some_of(M{true}));
@@ -399,10 +399,10 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
     using Vc::some_of;
     VERIFY(!some_of(true));
     VERIFY(!some_of(false));
-    VERIFY( sfinae_is_callable([](auto x) -> decltype(Vc::some_of(x)) { return {}; }, true));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::some_of(x)) { return {}; }, int()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::some_of(x)) { return {}; }, float()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::some_of(x)) { return {}; }, char()));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::some_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::some_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::some_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::some_of(x)) { return {}; }));
 
     // popcount
     COMPARE(popcount(M{true}), int(M::size()));
@@ -413,10 +413,10 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
     COMPARE(popcount(gen({0, 0, 0, 0, 1})), int(M::size()) / 5);
     COMPARE(Vc::popcount(true), 1);
     COMPARE(Vc::popcount(false), 0);
-    VERIFY( sfinae_is_callable([](auto x) -> decltype(Vc::popcount(x)) { return {}; }, true));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::popcount(x)) { return {}; }, int()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::popcount(x)) { return {}; }, float()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::popcount(x)) { return {}; }, char()));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::popcount(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::popcount(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::popcount(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::popcount(x)) { return {}; }));
 
     // find_first_set
     {
@@ -439,10 +439,10 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
         COMPARE(find_first_set(gen({0, 0, 1})), 2);
     }
     COMPARE(Vc::find_first_set(true), 0);
-    VERIFY( sfinae_is_callable([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }, true));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }, int()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }, float()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }, char()));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }));
 
     // find_last_set
     {
@@ -460,10 +460,10 @@ TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
         COMPARE(find_last_set(gen({1, 0, 0, 0})), int(M::size()) - 4 - int(M::size() & 3));
     }
     COMPARE(Vc::find_last_set(true), 0);
-    VERIFY( sfinae_is_callable([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }, true));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }, int()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }, float()));
-    VERIFY(!sfinae_is_callable([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }, char()));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
 }
 
 // vim: foldmethod=marker
