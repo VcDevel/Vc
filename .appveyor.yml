@@ -5,7 +5,7 @@ platform:
    - x64
    #- x86
 
-clone_depth: 50
+clone_depth: 5
 
 environment:
   matrix:
@@ -13,6 +13,9 @@ environment:
     - subset: avx
     - subset: avx512
     - subset: neon
+
+install:
+- cmd: git submodule update --init --recursive
 
 build_script:
 - cmd: >-
