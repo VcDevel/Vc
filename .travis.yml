@@ -58,13 +58,17 @@ install:
           export CPPFLAGS=-I/usr/local/opt/llvm/include;;
         linux-g++-aarch64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main' &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial-updates main' &&
           sudo apt-get update -q &&
-          sudo apt-get install -y g++-\*-aarch64-linux-gnu &&
+          sudo apt-get install -y g++-5-aarch64-linux-gnu &&
           export CXX=aarch64-linux-gnu-g++-5 CC=aarch64-linux-gnu-gcc-5 CMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-linux.cmake;;
         linux-clang++-aarch64)
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
+          sudo apt-get install -y clang-3.8 &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main' &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial-updates main' &&
           sudo apt-get update -q &&
-          sudo apt-get install -y libstdc++-\*-dev-arm64-cross binutils-aarch64-linux-gnu clang-3.8 &&
+          sudo apt-get install -y libstdc++-5-dev-arm64-cross gcc-5-aarch64-linux-gnu &&
           export CPATH=/usr/aarch64-linux-gnu/include &&
           export CXX="clang++-3.8 -target aarch64-linux-gnu" CC="clang-3.8 -target aarch64-linux-gnu" &&
           export CMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-linux.cmake;;
