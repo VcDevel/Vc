@@ -37,19 +37,12 @@ namespace aarch
 {
 using x_f64 = Storage<double,  2>;
 using x_f32 = Storage< float,  4>;
-using x_i08 = Storage< schar, 16>;
+using x_s08 = Storage< schar, 16>;
 using x_u08 = Storage< uchar, 16>;
-using x_i16 = Storage< short,  8>;
+using x_s16 = Storage< short,  8>;
 using x_u16 = Storage<ushort,  8>;
-using x_i32 = Storage<   int,  4>;
+using x_s32 = Storage<   int,  4>;
 using x_u32 = Storage<  uint,  4>;
-using x_i64 = Storage< llong,  2>;
-using x_u64 = Storage<ullong,  2>;
-using x_long = Storage<long,   16 / sizeof(long)>;
-using x_ulong = Storage<ulong, 16 / sizeof(ulong)>;
-//using x_long_equiv = Storage<equal_int_type_t<long>, x_long::size()>;
-//using x_ulong_equiv = Storage<equal_int_type_t<ulong>, x_ulong::size()>;
-
 }}
 Vc_VERSIONED_NAMESPACE_END
 

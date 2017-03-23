@@ -114,6 +114,24 @@ template <> struct is_intrinsic<float64x2_t> : public std::true_type {};
 template <> struct is_intrinsic<int32x4_t> : public std::true_type {};
 template <class T> constexpr bool is_intrinsic_v = is_intrinsic<T>::value;
 
+// is_builtin_vector{{{1
+template <class T> struct is_builtin_vector : public std::false_type {};
+#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
+template <> struct is_builtin_vector<builtin_type<float, 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<double, 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< llong, 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<ullong, 2>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  long, 16 / sizeof( long)>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< ulong, 16 / sizeof(ulong)>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<   int, 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<  uint, 4>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< short, 8>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type<ushort, 8>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< schar,16>> : public std::true_type {};
+template <> struct is_builtin_vector<builtin_type< uchar,16>> : public std::true_type {};
+#endif
+template <class T> constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
+
 // intrin_cast{{{1
 template<typename T> Vc_INTRINSIC_L T intrin_cast(float32x4_t  v) Vc_INTRINSIC_R;
 template<typename T> Vc_INTRINSIC_L T intrin_cast(int32x4_t v) Vc_INTRINSIC_R;
@@ -267,7 +285,10 @@ template <> Vc_INTRINSIC Vc_CONST float64x2_t neon_2_pow_31<double>() { return b
 template <> Vc_INTRINSIC Vc_CONST int32x4_t neon_2_pow_31<  uint>() { return lowest16<int>(); }
 */
 
-// Blend{{{1
+// blend{{{1
+Vc_INTRINSIC Vc_CONST float32x4_t blend(float32x4_t mask, float32x4_t at0, float32x4_t at1){}
+Vc_INTRINSIC Vc_CONST float64x2_t blend(float64x2_t mask, float64x4_t at0, float64x2_t at1){}
+Vc_INTRINSIC Vc_CONST int32x4_t blend(int32x4_t mask, int32x4_t at0, int32x4_t at1){}
 
 // NEON intrinsics emulation{{{1
 

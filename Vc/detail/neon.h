@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_NEON_H_
 #define VC_DATAPAR_NEON_H_
 
+#include "fixed_size.h"
 #include "macros.h"
 #ifdef Vc_HAVE_NEON
 #include "storage.h"
@@ -35,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "aarch/convert.h"
 #include "aarch/arithmetics.h"
 #include "maskbool.h"
-#include "genericimpl.h"
+#include "genericaarchimpl.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -321,7 +322,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
      // }}}2
 */
 };
-
+ 
 // mask impl {{{1
 struct neon_mask_impl {
      // memb er types {{{2

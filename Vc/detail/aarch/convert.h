@@ -111,26 +111,18 @@ template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3, x_f64 v4, x_f64 v5, x_f64 v6, x_f64 v7);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i08);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s08);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u08);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i16);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i16, x_i16);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s16);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s16, x_s16);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u16);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u16, x_u16);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i32);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i32, x_i32);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i32, x_i32, x_i32, x_i32);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s32);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s32, x_s32);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s32, x_s32, x_s32, x_s32);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32, x_u32);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32, x_u32, x_u32, x_u32);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i64);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i64, x_i64);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i64, x_i64, x_i64, x_i64);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i64, x_i64, x_i64, x_i64, x_i64, x_i64, x_i64, x_i64);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u64);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u64, x_u64);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u64, x_u64, x_u64, x_u64);
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u64, x_u64, x_u64, x_u64, x_u64, x_u64, x_u64, x_u64);
 //}}}1
 
 // generic (u)long forwarding to (u)(llong|int){{{1
@@ -201,9 +193,6 @@ template <typename T> struct fallback_int_type { using type = scalar_conversion_
 template <> struct fallback_int_type< uchar> { using type = schar; };
 template <> struct fallback_int_type<ushort> { using type = short; };
 template <> struct fallback_int_type<  uint> { using type = int; };
-template <> struct fallback_int_type<ullong> { using type = llong; };
-template <> struct fallback_int_type<  long> { using type = equal_int_type_t< long>; };
-template <> struct fallback_int_type< ulong> { using type = equal_int_type_t<ulong>; };
 
 template <typename T>
 using equivalent_storage_t =
@@ -308,14 +297,6 @@ template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i32 v0, x_i32 v1, x
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32 v0) { return equivalent_conversion<To>::convert(v0); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32 v0, x_u32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32 v0, x_u32 v1, x_u32 v2, x_u32 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i64 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i64 v0, x_i64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i64 v0, x_i64 v1, x_i64 v2, x_i64 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i64 v0, x_i64 v1, x_i64 v2, x_i64 v3, x_i64 v4, x_i64 v5, x_i64 v6, x_i64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u64 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u64 v0, x_u64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u64 v0, x_u64 v1, x_u64 v2, x_u64 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
-template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u64 v0, x_u64 v1, x_u64 v2, x_u64 v3, x_u64 v4, x_u64 v5, x_u64 v6, x_u64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
 */
 // convert function{{{1
 template <typename From, typename To> Vc_INTRINSIC To Vc_VDECL convert(From v)
