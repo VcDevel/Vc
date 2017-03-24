@@ -342,6 +342,15 @@ constexpr int find_first_set(detail::exact_bool) { return 0; }
 constexpr int find_last_set(detail::exact_bool) { return 0; }
 
 // masked assignment [mask.where]
+#ifdef Vc_EXPERIMENTAL
+namespace detail {
+template <class T, class A> class masked_datapar_impl;
+template <class T, class A>
+masked_datapar_impl<T, A> masked_datapar(const typename datapar<T, A>::mask_type &k,
+                                         datapar<T, A> &v);
+}  // namespace detail
+#endif  // Vc_EXPERIMENTAL
+
 template <typename M, typename T> class const_where_expression
 {
     using V = std::remove_const_t<T>;
@@ -476,7 +485,86 @@ public:
     {
         detail::get_impl_t<T>::masked_load(d, k, mem, f);
     }
+
+#ifdef Vc_EXPERIMENTAL
+    template <class F>
+    std::enable_if_t<
+        conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+                                     declval<const M &>(), declval<T &>()))),
+                                 void>>::value,
+        where_expression &&>
+    apply(F &&f) &&
+    {
+        std::forward<F>(f)(detail::masked_datapar(k, d));
+        return std::move(*this);
+    }
+
+    template <class F>
+    std::enable_if_t<
+        conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+                                     declval<const M &>(), declval<T &>()))),
+                                 void>>::value,
+        where_expression &&>
+    apply_inv(F &&f) &&
+    {
+        std::forward<F>(f)(detail::masked_datapar(!k, d));
+        return std::move(*this);
+    }
+#endif  // Vc_EXPERIMENTAL
 };
+
+#ifdef Vc_EXPERIMENTAL
+template <typename M, typename... Ts> class where_expression<M, std::tuple<Ts &...>>
+{
+    const M &k;
+    std::tuple<Ts &...> d;
+
+public:
+    where_expression(const where_expression &) = delete;
+    where_expression &operator=(const where_expression &) = delete;
+
+    Vc_INTRINSIC where_expression(const M &kk, std::tuple<Ts &...> &&dd) : k(kk), d(dd) {}
+
+private:
+    template <class F, std::size_t... Is>
+    Vc_INTRINSIC void apply_helper(F &&f, const M &mask, std::index_sequence<Is...>)
+    {
+        return std::forward<F>(f)(detail::masked_datapar(mask, std::get<Is>(d))...);
+    }
+
+public:
+    template <class F>
+    std::enable_if_t<
+        conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+                                     declval<const M &>(), declval<Ts &>())...)),
+                                 void>>::value,
+        where_expression &&>
+    apply(F &&f) &&
+    {
+        apply_helper(std::forward<F>(f), k, std::make_index_sequence<sizeof...(Ts)>());
+        return std::move(*this);
+    }
+
+    template <class F>
+    std::enable_if_t<
+        conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+                                     declval<const M &>(), declval<Ts &>())...)),
+                                 void>>::value,
+        where_expression &&>
+    apply_inv(F &&f) &&
+    {
+        apply_helper(std::forward<F>(f), !k, std::make_index_sequence<sizeof...(Ts)>());
+        return std::move(*this);
+    }
+};
+
+template <class T, class A, class... Vs>
+Vc_INTRINSIC where_expression<mask<T, A>, std::tuple<datapar<T, A> &, Vs &...>> where(
+    const typename datapar<T, A>::mask_type &k, datapar<T, A> &v0, Vs &... vs)
+{
+    return {k, {v0, vs...}};
+}
+#endif  // Vc_EXPERIMENTAL
 
 template <class T, class A>
 Vc_INTRINSIC where_expression<mask<T, A>, datapar<T, A>> where(

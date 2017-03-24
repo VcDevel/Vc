@@ -255,6 +255,7 @@ vc_add_test(loadstore)
 vc_add_test(mask)
 vc_add_test(datapar)
 vc_add_test(where)
+vc_add_test(experimental)
 
 function(vc_download_testdata)#{{{
    set(_deps)
