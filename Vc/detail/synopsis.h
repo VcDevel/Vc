@@ -111,6 +111,15 @@ using native = detail::fallback_abi_for_long_double_t<T, neon, scalar>;
 #else
 template <typename> using native = scalar;
 #endif
+
+namespace detail
+{
+#if defined Vc_DEFAULT_ABI
+template <typename T> using default_abi = Vc_DEFAULT_ABI<T>;
+#else
+template <typename T> using default_abi = compatible<T>;
+#endif
+}  // namespace detail
 }  // namespace datapar_abi
 
 template <class T> struct is_datapar : public std::false_type {};
@@ -119,11 +128,11 @@ template <class T> constexpr bool is_datapar_v = is_datapar<T>::value;
 template <class T> struct is_mask : public std::false_type {};
 template <class T> constexpr bool is_mask_v = is_mask<T>::value;
 
-template <class T, class Abi = datapar_abi::compatible<T>>
+template <class T, class Abi = datapar_abi::detail::default_abi<T>>
 struct datapar_size
     : public std::integral_constant<size_t, detail::traits<T, Abi>::size()> {
 };
-template <class T, class Abi = datapar_abi::compatible<T>>
+template <class T, class Abi = datapar_abi::detail::default_abi<T>>
 constexpr size_t datapar_size_v = datapar_size<T, Abi>::value;
 
 namespace detail
@@ -228,13 +237,13 @@ template <class T, class U = typename T::value_type>
 constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
 
 // class template datapar [datapar]
-template <class T, class Abi = datapar_abi::compatible<T>> class datapar;
+template <class T, class Abi = datapar_abi::detail::default_abi<T>> class datapar;
 template <class T, class Abi> struct is_datapar<datapar<T, Abi>> : public std::true_type {};
 template <class T> using native_datapar = datapar<T, datapar_abi::native<T>>;
 template <class T, int N> using fixed_size_datapar = datapar<T, datapar_abi::fixed_size<N>>;
 
 // class template mask [mask]
-template <class T, class Abi = datapar_abi::compatible<T>> class mask;
+template <class T, class Abi = datapar_abi::detail::default_abi<T>> class mask;
 template <class T, class Abi> struct is_mask<mask<T, Abi>> : public std::true_type {};
 template <class T> using native_mask = mask<T, datapar_abi::native<T>>;
 template <class T, int N> using fixed_size_mask = mask<T, datapar_abi::fixed_size<N>>;
