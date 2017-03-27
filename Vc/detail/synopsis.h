@@ -430,7 +430,7 @@ public:
 
 #ifdef Vc_EXPERIMENTAL
     template <class F>
-    std::enable_if_t<
+    Vc_INTRINSIC std::enable_if_t<
         conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
                                      declval<const M &>(), declval<T &>()))),
                                  void>>::value,
@@ -442,7 +442,7 @@ public:
     }
 
     template <class F>
-    std::enable_if_t<
+    Vc_INTRINSIC std::enable_if_t<
         conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
                                      declval<const M &>(), declval<T &>()))),
                                  void>>::value,
@@ -476,7 +476,7 @@ private:
 
 public:
     template <class F>
-    std::enable_if_t<
+    Vc_INTRINSIC std::enable_if_t<
         conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
                                      declval<const M &>(), declval<Ts &>())...)),
                                  void>>::value,
@@ -488,7 +488,7 @@ public:
     }
 
     template <class F>
-    std::enable_if_t<
+    Vc_INTRINSIC std::enable_if_t<
         conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
                                      declval<const M &>(), declval<Ts &>())...)),
                                  void>>::value,
@@ -542,13 +542,14 @@ template <class T, class A> void where(bool k, const datapar<T, A> &d) = delete;
 
 // reductions [datapar.reductions]
 template <class BinaryOperation = std::plus<>, class T, class Abi>
-T reduce(const datapar<T, Abi> &v, BinaryOperation binary_op = BinaryOperation())
+Vc_INTRINSIC T reduce(const datapar<T, Abi> &v,
+                      BinaryOperation binary_op = BinaryOperation())
 {
     using V = datapar<T, Abi>;
     return detail::get_impl_t<V>::reduce(detail::size_tag<V::size()>, v, binary_op);
 }
 template <class BinaryOperation = std::plus<>, class M, class V>
-typename V::value_type reduce(
+Vc_INTRINSIC typename V::value_type reduce(
     const const_where_expression<M, V> &x,
     typename V::value_type neutral_element =
         detail::default_neutral_element<typename V::value_type, BinaryOperation>::value,
@@ -561,24 +562,24 @@ typename V::value_type reduce(
 
 // algorithms [datapar.alg]
 template <class T, class A>
-datapar<T, A> min(const datapar<T, A> &a, const datapar<T, A> &b)
+Vc_INTRINSIC datapar<T, A> min(const datapar<T, A> &a, const datapar<T, A> &b)
 {
     return detail::get_impl_t<datapar<T, A>>::min(a, b);
 }
 template <class T, class A>
-datapar<T, A> max(const datapar<T, A> &a, const datapar<T, A> &b)
+Vc_INTRINSIC datapar<T, A> max(const datapar<T, A> &a, const datapar<T, A> &b)
 {
     return detail::get_impl_t<datapar<T, A>>::max(a, b);
 }
 template <class T, class A>
-std::pair<datapar<T, A>, datapar<T, A>> minmax(const datapar<T, A> &a,
-                                               const datapar<T, A> &b)
+Vc_INTRINSIC std::pair<datapar<T, A>, datapar<T, A>> minmax(const datapar<T, A> &a,
+                                                            const datapar<T, A> &b)
 {
     return detail::get_impl_t<datapar<T, A>>::minmax(a, b);
 }
 template <class T, class A>
-datapar<T, A> clamp(const datapar<T, A> &v, const datapar<T, A> &lo,
-                    const datapar<T, A> &hi)
+Vc_INTRINSIC datapar<T, A> clamp(const datapar<T, A> &v, const datapar<T, A> &lo,
+                                 const datapar<T, A> &hi)
 {
     return min(hi, max(lo, v));
 }
