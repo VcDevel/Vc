@@ -584,6 +584,76 @@ inline fixed_size_datapar<T, N> masked_unary(const fixed_size_mask<T, N> &k,
         }));
 }
 
+// [mask.reductions] {{{1
+template <class T, int N> inline bool all_of(const fixed_size_mask<T, N> &k)
+{
+    for (int i = 0; i < N; ++i) {
+        if (!k[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <class T, int N> inline bool any_of(const fixed_size_mask<T, N> &k)
+{
+    for (int i = 0; i < N; ++i) {
+        if (k[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <class T, int N> inline bool none_of(const fixed_size_mask<T, N> &k)
+{
+    for (int i = 0; i < N; ++i) {
+        if (k[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <class T, int N> inline bool some_of(const fixed_size_mask<T, N> &k)
+{
+    for (int i = 1; i < N; ++i) {
+        if (k[i] != k[i - 1]) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <class T, int N> inline int popcount(const fixed_size_mask<T, N> &k)
+{
+    int n = k[0];
+    for (int i = 1; i < N; ++i) {
+        n += k[i];
+    }
+    return n;
+}
+
+template <class T, int N> inline int find_first_set(const fixed_size_mask<T, N> &k)
+{
+    for (int i = 0; i < N; ++i) {
+        if (k[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+template <class T, int N> inline int find_last_set(const fixed_size_mask<T, N> &k)
+{
+    for (int i = N - 1; i >= 0; --i) {
+        if (k[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 // }}}1
 Vc_VERSIONED_NAMESPACE_END
 
