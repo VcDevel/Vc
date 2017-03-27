@@ -694,7 +694,8 @@ struct avx512_mask_impl {
 
     // store {{{2
     template <class F>
-    static constexpr void store(mask_member_type<8> v, bool *mem, F, size_tag<8>) noexcept
+    static Vc_INTRINSIC void store(mask_member_type<8> v, bool *mem, F,
+                                   size_tag<8>) noexcept
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
         _mm_storel_epi64(reinterpret_cast<__m128i *>(mem),
@@ -714,7 +715,8 @@ struct avx512_mask_impl {
 #endif
     }
     template <class F>
-    static constexpr void store(mask_member_type<16> v, bool *mem, F f, size_tag<16>) noexcept
+    static Vc_INTRINSIC void store(mask_member_type<16> v, bool *mem, F f,
+                                   size_tag<16>) noexcept
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
         _mm_store_si128(reinterpret_cast<__m128i *>(mem),
@@ -740,7 +742,8 @@ struct avx512_mask_impl {
 #endif
     }
     template <class F>
-    static constexpr void store(mask_member_type<32> v, bool *mem, F f, size_tag<32>) noexcept
+    static Vc_INTRINSIC void store(mask_member_type<32> v, bool *mem, F f,
+                                   size_tag<32>) noexcept
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
         store32(and_(one32(uchar()), _mm256_movm_epi8(v.v())), mem, f);
@@ -771,8 +774,8 @@ struct avx512_mask_impl {
 #endif
     }
     template <class F>
-    static constexpr void store(mask_member_type<64> v, bool *mem, F f,
-                                size_tag<64>) noexcept
+    static Vc_INTRINSIC void store(mask_member_type<64> v, bool *mem, F f,
+                                   size_tag<64>) noexcept
     {
 #if defined Vc_HAVE_AVX512BW
         store64(and_(one64(uchar()), _mm512_movm_epi8(v.v())), mem, f);
