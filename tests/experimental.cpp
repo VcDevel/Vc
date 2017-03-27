@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vir/test.h>
 #include <Vc/Vc>
 
-template <class T, class A> using base_template = Vc::datapar<T, A>;
+template <class... Ts> using base_template = Vc::datapar<Ts...>;
 #include "testtypes.h"
 
 TEST_TYPES(V, where_apply, all_test_types)
