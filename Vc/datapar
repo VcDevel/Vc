@@ -12,6 +12,7 @@
 #include "detail/maskeddatapar.h"
 #include "detail/ostream.h"
 #include "detail/fixed_size.h"
+#include "detail/scalar.h"
 #include "detail/sse.h"
 #include "detail/avx.h"
 #include "detail/avx512.h"

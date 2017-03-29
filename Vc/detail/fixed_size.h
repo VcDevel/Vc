@@ -322,6 +322,7 @@ template <int N> struct fixed_size_datapar_impl {
     Vc_CMP_OPERATIONS(greater);
     Vc_CMP_OPERATIONS(less_equal);
     Vc_CMP_OPERATIONS(greater_equal);
+#undef Vc_CMP_OPERATIONS
 
     // smart_reference access {{{2
     template <class T, class A>

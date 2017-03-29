@@ -40,7 +40,7 @@ namespace datapar_abi
 {
 constexpr int max_fixed_size = 32;
 template <int N> struct fixed_size {};
-using scalar = fixed_size<1>;
+struct scalar {};
 struct sse {};
 struct avx {};
 struct avx512 {};
