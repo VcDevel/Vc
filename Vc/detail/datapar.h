@@ -116,7 +116,12 @@ public:
 };
 
 template <class T, class Abi>
-class datapar : public datapar_int_operators<datapar<T, Abi>, std::is_integral<T>::value>
+class datapar
+    : public detail::datapar_int_operators<
+          datapar<T, Abi>,
+          conjunction<std::is_integral<T>,
+                      std::is_destructible<typename detail::traits<T, Abi>::datapar_base>>::value>,
+      public detail::traits<T, Abi>::datapar_base
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::datapar_impl_type;

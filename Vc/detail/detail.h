@@ -141,8 +141,34 @@ template <typename T> using may_alias = typename may_alias_impl<T>::type;
     /**
      * \internal
      * Defines the implementation of a given <T, Abi>.
+     *
+     * Implementations must ensure that only valid <T, Abi> instantiations are possible.
+     * Static assertions in the type definition do not suffice. It is important that
+     * SFINAE works.
      */
-template <class T, class Abi> struct traits;
+template <class T, class Abi> struct traits {
+    static constexpr size_t size() noexcept { return 0; }
+    static constexpr size_t datapar_member_alignment = 1;
+    struct datapar_impl_type;
+    struct datapar_member_type {};
+    struct datapar_cast_type;
+    struct datapar_base {
+        datapar_base() = delete;
+        datapar_base(const datapar_base &) = delete;
+        datapar_base &operator=(const datapar_base &) = delete;
+        ~datapar_base() = delete;
+    };
+    static constexpr size_t mask_member_alignment = 1;
+    struct mask_impl_type;
+    struct mask_member_type {};
+    struct mask_cast_type;
+    struct mask_base {
+        mask_base() = delete;
+        mask_base(const mask_base &) = delete;
+        mask_base &operator=(const mask_base &) = delete;
+        ~mask_base() = delete;
+    };
+};
 
 // get_impl(_t){{{1
 template <class T> struct get_impl;

@@ -474,7 +474,8 @@ template <int N> struct fixed_size_mask_impl {
 };
 
 // traits {{{1
-template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
+template <class T, int N, bool = ((N <= 32 && N >= 0) || N == 64)>
+struct fixed_size_traits {
     static constexpr size_t size() noexcept { return N; }
 
     using datapar_impl_type = fixed_size_datapar_impl<N>;
@@ -493,12 +494,31 @@ template <class T, int N> struct traits<T, datapar_abi::fixed_size<N>> {
 #endif
                  next_power_of_2(N * sizeof(T)));
     using datapar_cast_type = const datapar_member_type &;
+    struct datapar_base {};
 
     using mask_impl_type = fixed_size_mask_impl<N>;
     using mask_member_type = typename mask_impl_type::mask_member_type;
     static constexpr size_t mask_member_alignment = next_power_of_2(N);
     using mask_cast_type = const mask_member_type &;
+    struct mask_base {};
 };
+template <class T, int N>
+struct fixed_size_traits<T, N, false> : public traits<void, void> {
+};
+template <int N> struct traits<long double, datapar_abi::fixed_size<N>> : public fixed_size_traits<long double, N> {};
+template <int N> struct traits<double, datapar_abi::fixed_size<N>> : public fixed_size_traits<double, N> {};
+template <int N> struct traits< float, datapar_abi::fixed_size<N>> : public fixed_size_traits< float, N> {};
+template <int N> struct traits<ullong, datapar_abi::fixed_size<N>> : public fixed_size_traits<ullong, N> {};
+template <int N> struct traits< llong, datapar_abi::fixed_size<N>> : public fixed_size_traits< llong, N> {};
+template <int N> struct traits< ulong, datapar_abi::fixed_size<N>> : public fixed_size_traits< ulong, N> {};
+template <int N> struct traits<  long, datapar_abi::fixed_size<N>> : public fixed_size_traits<  long, N> {};
+template <int N> struct traits<  uint, datapar_abi::fixed_size<N>> : public fixed_size_traits<  uint, N> {};
+template <int N> struct traits<   int, datapar_abi::fixed_size<N>> : public fixed_size_traits<   int, N> {};
+template <int N> struct traits<ushort, datapar_abi::fixed_size<N>> : public fixed_size_traits<ushort, N> {};
+template <int N> struct traits< short, datapar_abi::fixed_size<N>> : public fixed_size_traits< short, N> {};
+template <int N> struct traits< uchar, datapar_abi::fixed_size<N>> : public fixed_size_traits< uchar, N> {};
+template <int N> struct traits< schar, datapar_abi::fixed_size<N>> : public fixed_size_traits< schar, N> {};
+template <int N> struct traits<  char, datapar_abi::fixed_size<N>> : public fixed_size_traits<  char, N> {};
 
 // }}}1
 }  // namespace detail

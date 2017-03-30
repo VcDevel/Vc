@@ -37,7 +37,7 @@ namespace detail
 template <class T, class A> Vc_INTRINSIC_L auto data(const mask<T, A> &x) Vc_INTRINSIC_R;
 }  // namespace detail
 
-template <class T, class Abi> class mask
+template <class T, class Abi> class mask : public detail::traits<T, Abi>::mask_base
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::mask_impl_type;

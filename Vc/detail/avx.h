@@ -45,7 +45,7 @@ struct avx_datapar_impl;
 template <class T> using avx_datapar_member_type = Storage<T, 32 / sizeof(T)>;
 template <class T> using avx_mask_member_type = Storage<T, 32 / sizeof(T)>;
 
-template <class T> struct traits<T, datapar_abi::avx> {
+template <class T> struct avx_traits {
     static_assert(sizeof(T) <= 8,
                   "AVX can only implement operations on element types with sizeof <= 8");
     static constexpr size_t size() noexcept { return 32 / sizeof(T); }
@@ -54,12 +54,32 @@ template <class T> struct traits<T, datapar_abi::avx> {
     using datapar_impl_type = avx_datapar_impl;
     static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
     using datapar_cast_type = typename datapar_member_type::VectorType;
+    struct datapar_base {};
 
     using mask_member_type = avx_mask_member_type<T>;
     using mask_impl_type = avx_mask_impl;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
     using mask_cast_type = typename mask_member_type::VectorType;
+    struct mask_base {};
 };
+
+#ifdef Vc_HAVE_AVX_ABI
+template <> struct traits<double, datapar_abi::avx> : public avx_traits<double> {};
+template <> struct traits< float, datapar_abi::avx> : public avx_traits< float> {};
+#ifdef Vc_HAVE_FULL_AVX_ABI
+template <> struct traits<ullong, datapar_abi::avx> : public avx_traits<ullong> {};
+template <> struct traits< llong, datapar_abi::avx> : public avx_traits< llong> {};
+template <> struct traits< ulong, datapar_abi::avx> : public avx_traits< ulong> {};
+template <> struct traits<  long, datapar_abi::avx> : public avx_traits<  long> {};
+template <> struct traits<  uint, datapar_abi::avx> : public avx_traits<  uint> {};
+template <> struct traits<   int, datapar_abi::avx> : public avx_traits<   int> {};
+template <> struct traits<ushort, datapar_abi::avx> : public avx_traits<ushort> {};
+template <> struct traits< short, datapar_abi::avx> : public avx_traits< short> {};
+template <> struct traits< uchar, datapar_abi::avx> : public avx_traits< uchar> {};
+template <> struct traits< schar, datapar_abi::avx> : public avx_traits< schar> {};
+template <> struct traits<  char, datapar_abi::avx> : public avx_traits<  char> {};
+#endif  // Vc_HAVE_FULL_AVX_ABI
+#endif  // Vc_HAVE_AVX_ABI
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
@@ -381,12 +401,14 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     static_assert(true, "")
     Vc_MINMAX_(double, pd);
     Vc_MINMAX_( float, ps);
+#ifdef Vc_HAVE_AVX2
     Vc_MINMAX_(   int, epi32);
     Vc_MINMAX_(  uint, epu32);
     Vc_MINMAX_( short, epi16);
     Vc_MINMAX_(ushort, epu16);
     Vc_MINMAX_( schar, epi8);
     Vc_MINMAX_( uchar, epu8);
+#endif  // Vc_HAVE_AVX2
 #ifdef Vc_HAVE_AVX512VL
     Vc_MINMAX_( llong, epi64);
     Vc_MINMAX_(ullong, epu64);

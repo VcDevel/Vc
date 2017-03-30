@@ -139,6 +139,8 @@ function(vc_add_test name) #{{{
       endif()
    endmacro()
 
+   cmake_parse_arguments("" "NO_TESTTYPES" "" "" ${ARGN})
+
    set(src "${name}.cpp")
    set(run_targets)
    foreach(impl ${vc_all_target_variants})
@@ -166,13 +168,14 @@ function(vc_add_test name) #{{{
          set(use_var TRUE)
          set(emulator "${INTEL_SDE};${sde_cpuid_${impl}};--")
       endif()
-      if(Vc_COMPILER_IS_MSVC)
+      if(_NO_TESTTYPES)
+         set(type_split " ")
+      elseif(Vc_COMPILER_IS_MSVC)
          set(type_split "ldouble,float,double" "uint,llong" "long,uchar" "int,ushort" "short,ulong" "schar,ullong")
       else()
          set(type_split "ldouble,float,double,schar,uchar" "llong,long,ullong,ulong" "int,short,uint,ushort")
       endif()
       foreach(types ${type_split})
-         set(types_flag "TESTTYPES=${types}")
          foreach(alias ${alias_strategies})
             if(impl STREQUAL "nosimd")#{{{
                set(target ${_target})
@@ -185,13 +188,20 @@ function(vc_add_test name) #{{{
             if(disabled)
                continue()
             endif()
-            string(REPLACE "," "_" target "${target}_${types}")
+            if(NOT _NO_TESTTYPES)
+               string(REPLACE "," "_" target "${target}_${types}")
+            endif()
             check_target_disabled(target)
             if(disabled)
                continue()
             endif()
             if(impl STREQUAL "mic")
                set(_objs)#{{{
+               if(_NO_TESTTYPES)
+                  unset(types_flag)
+               else()
+                  set(types_flag "-DTESTTYPES=${types}")
+               endif()
                if("${_name}" STREQUAL "trigonometric")
                   foreach(fun sincos asin acos atan)
                      foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
@@ -207,7 +217,7 @@ function(vc_add_test name) #{{{
                endif()
                mic_add_executable(${target}
                   LINK_LIBRARIES Vc_MIC
-                  COMPILE_FLAGS "-DNO_ISA_CHECK" "-D${types_flag}"
+                  COMPILE_FLAGS "-DNO_ISA_CHECK" "${types_flag}"
                   SOURCES ${src}
                   OBJECTS ${_objs}
                   EXCLUDE_FROM_ALL
@@ -219,7 +229,9 @@ function(vc_add_test name) #{{{
                   set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
                endif()
                set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "NO_ISA_CHECK")
-               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${types_flag}")
+               if(NOT _NO_TESTTYPES)
+                  set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "TESTTYPES=${types}")
+               endif()
             endif()
             add_target_property(${target} LABELS "${label}")
             add_dependencies(build_tests ${target})
@@ -251,6 +263,7 @@ function(vc_add_test name) #{{{
    endif()
 endfunction() #}}}
 
+vc_add_test(sfinae NO_TESTTYPES)
 vc_add_test(loadstore)
 vc_add_test(mask)
 vc_add_test(datapar)

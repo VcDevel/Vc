@@ -314,19 +314,35 @@ struct scalar_mask_impl {
 };
 
 // traits {{{1
-template <class T> struct traits<T, datapar_abi::scalar> {
+template <class T> struct scalar_traits {
     static constexpr size_t size() noexcept { return 1; }
 
     using datapar_impl_type = scalar_datapar_impl;
     using datapar_member_type = T;
     static constexpr size_t datapar_member_alignment = alignof(T);
     using datapar_cast_type = const std::array<T, 1>;
+    struct datapar_base {};
 
     using mask_impl_type = scalar_mask_impl;
     using mask_member_type = bool;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
     using mask_cast_type = const std::bitset<1>;
+    struct mask_base {};
 };
+template <> struct traits<long double, datapar_abi::scalar> : public scalar_traits<long double> {};
+template <> struct traits<double, datapar_abi::scalar> : public scalar_traits<double> {};
+template <> struct traits< float, datapar_abi::scalar> : public scalar_traits< float> {};
+template <> struct traits<ullong, datapar_abi::scalar> : public scalar_traits<ullong> {};
+template <> struct traits< llong, datapar_abi::scalar> : public scalar_traits< llong> {};
+template <> struct traits< ulong, datapar_abi::scalar> : public scalar_traits< ulong> {};
+template <> struct traits<  long, datapar_abi::scalar> : public scalar_traits<  long> {};
+template <> struct traits<  uint, datapar_abi::scalar> : public scalar_traits<  uint> {};
+template <> struct traits<   int, datapar_abi::scalar> : public scalar_traits<   int> {};
+template <> struct traits<ushort, datapar_abi::scalar> : public scalar_traits<ushort> {};
+template <> struct traits< short, datapar_abi::scalar> : public scalar_traits< short> {};
+template <> struct traits< uchar, datapar_abi::scalar> : public scalar_traits< uchar> {};
+template <> struct traits< schar, datapar_abi::scalar> : public scalar_traits< schar> {};
+template <> struct traits<  char, datapar_abi::scalar> : public scalar_traits<  char> {};
 
 // }}}1
 }  // namespace detail

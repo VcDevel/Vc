@@ -47,21 +47,45 @@ struct sse_datapar_impl;
 template <class T> using sse_datapar_member_type = Storage<T, 16 / sizeof(T)>;
 template <class T> using sse_mask_member_type = Storage<T, 16 / sizeof(T)>;
 
-template <class T> struct traits<T, datapar_abi::sse> {
+template <class T> struct sse_traits {
     static_assert(sizeof(T) <= 8,
                   "SSE can only implement operations on element types with sizeof <= 8");
+    static_assert(std::is_arithmetic<T>::value,
+                  "SSE can only vectorize arithmetic types");
+    static_assert(!std::is_same<T, bool>::value, "SSE cannot vectorize bool");
+
     static constexpr size_t size() noexcept { return 16 / sizeof(T); }
 
     using datapar_member_type = sse_datapar_member_type<T>;
     using datapar_impl_type = sse_datapar_impl;
     static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
     using datapar_cast_type = typename datapar_member_type::VectorType;
+    struct datapar_base {};
 
     using mask_member_type = sse_mask_member_type<T>;
     using mask_impl_type = sse_mask_impl;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
     using mask_cast_type = typename mask_member_type::VectorType;
+    struct mask_base {};
 };
+
+#ifdef Vc_HAVE_SSE_ABI
+template <> struct traits< float, datapar_abi::sse> : public sse_traits< float> {};
+#ifdef Vc_HAVE_FULL_SSE_ABI
+template <> struct traits<double, datapar_abi::sse> : public sse_traits<double> {};
+template <> struct traits<ullong, datapar_abi::sse> : public sse_traits<ullong> {};
+template <> struct traits< llong, datapar_abi::sse> : public sse_traits< llong> {};
+template <> struct traits< ulong, datapar_abi::sse> : public sse_traits< ulong> {};
+template <> struct traits<  long, datapar_abi::sse> : public sse_traits<  long> {};
+template <> struct traits<  uint, datapar_abi::sse> : public sse_traits<  uint> {};
+template <> struct traits<   int, datapar_abi::sse> : public sse_traits<   int> {};
+template <> struct traits<ushort, datapar_abi::sse> : public sse_traits<ushort> {};
+template <> struct traits< short, datapar_abi::sse> : public sse_traits< short> {};
+template <> struct traits< uchar, datapar_abi::sse> : public sse_traits< uchar> {};
+template <> struct traits< schar, datapar_abi::sse> : public sse_traits< schar> {};
+template <> struct traits<  char, datapar_abi::sse> : public sse_traits<  char> {};
+#endif  // Vc_HAVE_FULL_SSE_ABI
+#endif  // Vc_HAVE_SSE_ABI
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 

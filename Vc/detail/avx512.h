@@ -86,21 +86,46 @@ template <class T> using avx512_datapar_member_type = Storage<T, 64 / sizeof(T)>
 template <class T> using avx512_mask_member_type = Storage<bool, 64 / sizeof(T)>;
 template <size_t N> using avx512_mask_member_type_n = Storage<bool, N>;
 
-template <class T> struct traits<T, datapar_abi::avx512> {
+template <class T> struct avx512_traits {
     static_assert(sizeof(T) <= 8,
                   "AVX can only implement operations on element types with sizeof <= 8");
+    static_assert(std::is_arithmetic<T>::value,
+                  "AVX512 can only vectorize arithmetic types");
+    static_assert(!std::is_same<T, bool>::value, "AVX512 cannot vectorize bool");
     static constexpr size_t size() noexcept { return 64 / sizeof(T); }
 
+#ifdef Vc_HAVE_AVX512_ABI
     using datapar_member_type = avx512_datapar_member_type<T>;
     using datapar_impl_type = avx512_datapar_impl;
     static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
     using datapar_cast_type = typename datapar_member_type::VectorType;
+    struct datapar_base {};
 
     using mask_member_type = avx512_mask_member_type<T>;
     using mask_impl_type = avx512_mask_impl;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
     using mask_cast_type = typename mask_member_type::VectorType;
+    struct mask_base {};
+#endif  // Vc_HAVE_AVX512_ABI
 };
+
+#ifdef Vc_HAVE_AVX512_ABI
+template <> struct traits<double, datapar_abi::avx512> : public avx512_traits<double> {};
+template <> struct traits< float, datapar_abi::avx512> : public avx512_traits< float> {};
+template <> struct traits<ullong, datapar_abi::avx512> : public avx512_traits<ullong> {};
+template <> struct traits< llong, datapar_abi::avx512> : public avx512_traits< llong> {};
+template <> struct traits< ulong, datapar_abi::avx512> : public avx512_traits< ulong> {};
+template <> struct traits<  long, datapar_abi::avx512> : public avx512_traits<  long> {};
+template <> struct traits<  uint, datapar_abi::avx512> : public avx512_traits<  uint> {};
+template <> struct traits<   int, datapar_abi::avx512> : public avx512_traits<   int> {};
+#ifdef Vc_HAVE_FULL_AVX512_ABI
+template <> struct traits<ushort, datapar_abi::avx512> : public avx512_traits<ushort> {};
+template <> struct traits< short, datapar_abi::avx512> : public avx512_traits< short> {};
+template <> struct traits< uchar, datapar_abi::avx512> : public avx512_traits< uchar> {};
+template <> struct traits< schar, datapar_abi::avx512> : public avx512_traits< schar> {};
+template <> struct traits<  char, datapar_abi::avx512> : public avx512_traits<  char> {};
+#endif  // Vc_HAVE_FULL_AVX512_ABI
+#endif  // Vc_HAVE_AVX512_ABI
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
@@ -424,10 +449,12 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     Vc_MINMAX_(ullong, epu64);
     Vc_MINMAX_(   int, epi32);
     Vc_MINMAX_(  uint, epu32);
+#ifdef Vc_HAVE_FULL_AVX512_ABI
     Vc_MINMAX_( short, epi16);
     Vc_MINMAX_(ushort, epu16);
     Vc_MINMAX_( schar, epi8);
     Vc_MINMAX_( uchar, epu8);
+#endif  // Vc_HAVE_FULL_AVX512_ABI
 #undef Vc_MINMAX_
     static Vc_INTRINSIC datapar<long> min(datapar<long> a, datapar<long> b)
     {
@@ -937,10 +964,12 @@ Vc_MASKED_CASSIGN_SPECIALIZATION(          long, epi64, std::plus, add);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: ulong, epi64, std::plus, add);
 Vc_MASKED_CASSIGN_SPECIALIZATION(           int, epi32, std::plus, add);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail::  uint, epi32, std::plus, add);
+#ifdef Vc_HAVE_FULL_AVX512_ABI
 Vc_MASKED_CASSIGN_SPECIALIZATION(         short, epi16, std::plus, add);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail::ushort, epi16, std::plus, add);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: schar, epi8 , std::plus, add);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: uchar, epi8 , std::plus, add);
+#endif  // Vc_HAVE_FULL_AVX512_ABI
 
 Vc_MASKED_CASSIGN_SPECIALIZATION(        double,  pd  , std::minus, sub);
 Vc_MASKED_CASSIGN_SPECIALIZATION(         float,  ps  , std::minus, sub);
@@ -950,10 +979,12 @@ Vc_MASKED_CASSIGN_SPECIALIZATION(          long, epi64, std::minus, sub);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: ulong, epi64, std::minus, sub);
 Vc_MASKED_CASSIGN_SPECIALIZATION(           int, epi32, std::minus, sub);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail::  uint, epi32, std::minus, sub);
+#ifdef Vc_HAVE_FULL_AVX512_ABI
 Vc_MASKED_CASSIGN_SPECIALIZATION(         short, epi16, std::minus, sub);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail::ushort, epi16, std::minus, sub);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: schar, epi8 , std::minus, sub);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: uchar, epi8 , std::minus, sub);
+#endif  // Vc_HAVE_FULL_AVX512_ABI
 
 // }}}1
 
@@ -1000,6 +1031,7 @@ template <class T> Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::avx5
     return _tzcnt_u32(v);
 }
 
+#ifdef Vc_HAVE_FULL_AVX512_ABI
 Vc_ALWAYS_INLINE int find_first_set(mask<signed char, datapar_abi::avx512> k)
 {
     const __mmask64 v = detail::data(k);
@@ -1010,12 +1042,14 @@ Vc_ALWAYS_INLINE int find_first_set(mask<unsigned char, datapar_abi::avx512> k)
     const __mmask64 v = detail::data(k);
     return detail::firstbit(v);
 }
+#endif  // Vc_HAVE_FULL_AVX512_ABI
 
 template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::avx512> k)
 {
     return 31 - _lzcnt_u32(detail::data(k));
 }
 
+#ifdef Vc_HAVE_FULL_AVX512_ABI
 Vc_ALWAYS_INLINE int find_last_set(mask<signed char, datapar_abi::avx512> k)
 {
     const __mmask64 v = detail::data(k);
@@ -1027,6 +1061,7 @@ Vc_ALWAYS_INLINE int find_last_set(mask<unsigned char, datapar_abi::avx512> k)
     const __mmask64 v = detail::data(k);
     return detail::lastbit(v);
 }
+#endif  // Vc_HAVE_FULL_AVX512_ABI
 
 Vc_VERSIONED_NAMESPACE_END
 // }}}

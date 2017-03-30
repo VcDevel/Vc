@@ -44,10 +44,14 @@ using llong = long long;
 using ullong = unsigned long long;
 using ldouble = long double;
 
-using testtypes_wo_ldouble =
-    typename vir::filter_list<long double, vir::Typelist<TESTTYPES>>::type;
+using all_native_abis =
+    vir::Typelist<Vc::datapar_abi::scalar, Vc::datapar_abi::sse, Vc::datapar_abi::avx,
+                  Vc::datapar_abi::avx512, Vc::datapar_abi::neon>;
+
+using testtypes = vir::Typelist<TESTTYPES>;
+using testtypes_wo_ldouble = typename vir::filter_list<long double, testtypes>::type;
 using testtypes_64_32 =
-    typename vir::filter_list<vir::Typelist<ushort, short, uchar, schar>,
+    typename vir::filter_list<vir::Typelist<ushort, short, uchar, schar, char>,
                               testtypes_wo_ldouble>::type;
 using testtypes_fp =
     typename vir::filter_list<vir::Typelist<ullong, llong, ulong, long, uint, int>,
@@ -83,9 +87,9 @@ using vl = typename std::conditional<sizeof(long) == sizeof(llong), vi64<T>, vi3
 
 // current_native_test_types {{{1
 using current_native_test_types =
-    vir::expand_one<vir::Template1<Vc::native_datapar>, vir::Typelist<TESTTYPES>>;
+    vir::expand_one<vir::Template1<Vc::native_datapar>, testtypes>;
 using current_native_mask_test_types =
-    vir::expand_one<vir::Template1<Vc::native_mask>, vir::Typelist<TESTTYPES>>;
+    vir::expand_one<vir::Template1<Vc::native_mask>, testtypes>;
 
 // native_test_types {{{1
 typedef vir::concat<
@@ -125,7 +129,7 @@ typedef vir::concat<
                       // vir::Template<base_template, Vc::datapar_abi::fixed_size<16>>,
                       vir::Template<base_template, Vc::datapar_abi::fixed_size<
                                                        Vc::datapar_abi::max_fixed_size>>>,
-        vir::Typelist<TESTTYPES>>> all_test_types;
+        testtypes>> all_test_types;
 
 #define ALL_TYPES all_test_types
 
@@ -133,7 +137,7 @@ typedef vir::concat<
 typedef vir::concat<
     native_test_types,
     vir::expand_list<vir::Typelist<vir::Template<base_template, Vc::datapar_abi::scalar>>,
-                     vir::Typelist<TESTTYPES>>> reduced_test_types;
+                     testtypes>> reduced_test_types;
 
 //}}}1
 #endif  // TESTS_TESTTYPES_H_
