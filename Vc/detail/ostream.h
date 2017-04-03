@@ -109,7 +109,7 @@ std::ostream &operator<<(std::ostream &out, const mask<T, Abi> &k)
         if (b) {
             out << detail::color::yellow << '1';
         } else {
-            out << detail::color::blue << '1';
+            out << detail::color::blue << '0';
         }
     };
     out << detail::color::blue << "m⃗[";
