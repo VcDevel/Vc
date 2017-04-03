@@ -36,7 +36,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "aarch/convert.h"
 #include "aarch/arithmetics.h"
 #include "maskbool.h"
-#include "genericaarchimpl.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -63,6 +62,157 @@ template <class T> struct traits<T, datapar_abi::neon> {
     using mask_cast_type = typename mask_member_type::VectorType;
 };
 }  // namespace detail
+Vc_VERSIONED_NAMESPACE_END
+
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail {
+// datapar impl {{{1
+template <class Derived> struct generic_datapar_impl {
+    // member types {{{2
+    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+
+    // adjust_for_long{{{2
+    template <size_t Size>
+    static Vc_INTRINSIC Storage<equal_int_type_t<long>, Size> Vc_VDECL
+    adjust_for_long(Storage<long, Size> x)
+    {
+        return {x.v()};
+    }
+    template <size_t Size>
+    static Vc_INTRINSIC Storage<equal_int_type_t<ulong>, Size> Vc_VDECL
+    adjust_for_long(Storage<ulong, Size> x)
+    {
+        return {x.v()};
+    }
+    template <class T, size_t Size>
+    static Vc_INTRINSIC const Storage<T, Size> &adjust_for_long(const Storage<T, Size> &x)
+    {
+        return x;
+    }
+
+    template <class T, class A, class U>
+    static Vc_INTRINSIC Vc::datapar<T, A> make_datapar(const U &x)
+    {
+        using traits = typename Vc::datapar<T, A>::traits;
+        using V = typename traits::datapar_member_type;
+        return {private_init, static_cast<V>(x)};
+    }
+
+    // complement {{{2
+    template <class T, class A>
+    static Vc_INTRINSIC Vc::datapar<T, A> complement(const Vc::datapar<T, A> &x) noexcept
+    {
+        using detail::aarch::complement;
+        return make_datapar<T, A>(complement(adjust_for_long(detail::data(x))));
+    }
+
+    // unary minus {{{2
+    template <class T, class A>
+    static Vc_INTRINSIC Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept
+    {
+        using detail::aarch::unary_minus;
+        return make_datapar<T, A>(unary_minus(adjust_for_long(detail::data(x))));
+    }
+
+    // arithmetic operators {{{2
+#define Vc_ARITHMETIC_OP_(name_)                                                         \
+    template <class T, class A>                                                          \
+    static Vc_INTRINSIC datapar<T, A> Vc_VDECL name_(datapar<T, A> x, datapar<T, A> y)   \
+    {                                                                                    \
+        return make_datapar<T, A>(                                                       \
+            detail::name_(adjust_for_long(x.d), adjust_for_long(y.d)));                  \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+
+    Vc_ARITHMETIC_OP_(plus);
+    Vc_ARITHMETIC_OP_(minus);
+    Vc_ARITHMETIC_OP_(multiplies);
+    Vc_ARITHMETIC_OP_(divides);
+    Vc_ARITHMETIC_OP_(modulus);
+    Vc_ARITHMETIC_OP_(bit_and);
+    Vc_ARITHMETIC_OP_(bit_or);
+    Vc_ARITHMETIC_OP_(bit_xor);
+    Vc_ARITHMETIC_OP_(bit_shift_left);
+    Vc_ARITHMETIC_OP_(bit_shift_right);
+#undef Vc_ARITHMETIC_OP_
+
+    // increment & decrement{{{2
+    template <class T, size_t N> static Vc_INTRINSIC void increment(Storage<T, N> &x)
+    {
+        x = detail::plus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
+    }
+    template <size_t N> static Vc_INTRINSIC void increment(Storage<long, N> &x)
+    {
+        x = detail::plus(adjust_for_long(x), Storage<equal_int_type_t<long>, N>(
+                                                 Derived::broadcast(1L, size_tag<N>())));
+    }
+    template <size_t N> static Vc_INTRINSIC void increment(Storage<ulong, N> &x)
+    {
+        x = detail::plus(adjust_for_long(x), Storage<equal_int_type_t<ulong>, N>(
+                                                 Derived::broadcast(1L, size_tag<N>())));
+    }
+
+    template <class T, size_t N> static Vc_INTRINSIC void decrement(Storage<T, N> &x)
+    {
+        x = detail::minus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
+    }
+    template <size_t N> static Vc_INTRINSIC void decrement(Storage<long, N> &x)
+    {
+        x = detail::minus(adjust_for_long(x), Storage<equal_int_type_t<long>, N>(
+                                                  Derived::broadcast(1L, size_tag<N>())));
+    }
+    template <size_t N> static Vc_INTRINSIC void decrement(Storage<ulong, N> &x)
+    {
+        x = detail::minus(adjust_for_long(x), Storage<equal_int_type_t<ulong>, N>(
+                                                  Derived::broadcast(1L, size_tag<N>())));
+    }
+};
+//}}}1
+}  // namespace detail
+
+// where implementation {{{1
+template <class T, class A>
+inline void Vc_VDECL masked_assign(mask<T, A> k, datapar<T, A> &lhs,
+                                   const detail::id<datapar<T, A>> &rhs)
+{
+    lhs = static_cast<datapar<T, A>>(
+        detail::aarch::blend(detail::data(k), detail::data(lhs), detail::data(rhs)));
+}
+
+template <class T, class A>
+inline void Vc_VDECL masked_assign(mask<T, A> k, mask<T, A> &lhs,
+                                   const detail::id<mask<T, A>> &rhs)
+{
+    lhs = static_cast<mask<T, A>>(
+        detail::aarch::blend(detail::data(k), detail::data(lhs), detail::data(rhs)));
+}
+
+template <template <typename> class Op, typename T, class A,
+          int = 1>
+inline void Vc_VDECL masked_cassign(mask<T, A> k, datapar<T, A> &lhs,
+                                    const datapar<T, A> &rhs)
+{
+    lhs = static_cast<datapar<T, A>>(detail::aarch::blend(
+        detail::data(k), detail::data(lhs), detail::data(Op<void>{}(lhs, rhs))));
+}
+
+template <template <typename> class Op, typename T, class A, class U>
+inline enable_if<std::is_convertible<U, datapar<T, A>>::value, void> Vc_VDECL
+masked_cassign(mask<T, A> k, datapar<T, A> &lhs, const U &rhs)
+{
+    masked_cassign<Op>(k, lhs, datapar<T, A>(rhs));
+}
+
+template <template <typename> class Op, typename T, class A,
+          int = 1>
+inline datapar<T, A> Vc_VDECL masked_unary(mask<T, A> k, datapar<T, A> v)
+{
+    Op<datapar<T, A>> op;
+    return static_cast<datapar<T, A>>(
+        detail::aarch::blend(detail::data(k), detail::data(v), detail::data(op(v))));
+}
+
+//}}}1
 Vc_VERSIONED_NAMESPACE_END
 
 #ifdef Vc_HAVE_NEON_ABI
@@ -321,8 +471,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     }
      // }}}2
 */
-};
- 
+}; 
 // mask impl {{{1
 struct neon_mask_impl {
      // memb er types {{{2
