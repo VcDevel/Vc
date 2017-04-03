@@ -113,7 +113,6 @@ template <class Derived> struct generic_datapar_impl {
         using detail::aarch::unary_minus;
         return make_datapar<T, A>(unary_minus(adjust_for_long(detail::data(x))));
     }
-
     // arithmetic operators {{{2
 #define Vc_ARITHMETIC_OP_(name_)                                                         \
     template <class T, class A>                                                          \
@@ -135,8 +134,7 @@ template <class Derived> struct generic_datapar_impl {
     Vc_ARITHMETIC_OP_(bit_shift_left);
     Vc_ARITHMETIC_OP_(bit_shift_right);
 #undef Vc_ARITHMETIC_OP_
-
-    // increment & decrement{{{2
+    //  increment & decrement{{{2
     template <class T, size_t N> static Vc_INTRINSIC void increment(Storage<T, N> &x)
     {
         x = detail::plus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
@@ -221,7 +219,7 @@ namespace detail
 {
 // datapar impl {{{1
 struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
-    // member types {{{2 
+    // member types {{{2
     using abi = datapar_abi::neon;
     template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }
     template <class T> using datapar_member_type = neon_datapar_member_type<T>;
@@ -231,7 +229,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     template <class T> using mask = Vc::mask<T, abi>;
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
-    /** 
+    /**
     // broadcast {{{2
     static Vc_INTRINSIC intrinsic_type<float> broadcast(float x, size_tag<4>) noexcept
     {
@@ -274,14 +272,12 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
-  
      // load without conversion{{{3
     template <class T, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(const T *mem, F f, type_tag<T>) noexcept
     {
         return detail::load16(mem, f);
     }
-   
     // store {{{2
     // store to long double has no vector implementation{{{3
     template <class T, class F>
@@ -291,7 +287,6 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         // alignment F doesn't matter
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
     }
-  
     // store without conversion{{{3
     template <class T, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, T *mem, F f,
@@ -300,14 +295,13 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         store16(v, mem, f);
     }
   /**
-      // convert and 16-bit store{{{3
+    // convert and 16-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
     {
         store2(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
     }
-
     // convert and 32-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
@@ -320,7 +314,6 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
 #endif
     }
-  
     // convert and 64-bit  store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
@@ -333,7 +326,6 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
 #endif
     }
- 
     // convert and 128-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
@@ -346,9 +338,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
 #endif
     }
- 
- 
-     // masked store {{{2
+    // masked store {{{2
     template <class T, class F>
     static Vc_INTRINSIC void masked_store(datapar<T> v, long double *mem, F,
                                           mask<T> k) noexcept
@@ -371,8 +361,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
             }
         });
     }
-  
-     // negation {{{2
+      // negation {{{2
     template <class T> static Vc_INTRINSIC mask<T> negate(datapar<T> x) noexcept
     {
 #if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
@@ -381,8 +370,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         return equal_to(x, datapar<T>(0));
 #endif
     }
-   
-     // compares {{{2
+      // compares {{{2
 #if defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>
     static Vc_INTRINSIC mask<T> equal_to(datapar<T> x, datapar<T> y)
@@ -457,7 +445,6 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     static Vc_INTRINSIC mask< schar> less_equal(datapar< schar> x, datapar< schar> y) { return {private_init, detail::not_( vcle_s8(x.d, y.d))}; }
     static Vc_INTRINSIC mask< uchar> less_equal(datapar< uchar> x, datapar< uchar> y) { return {private_init, detail::not_( vcle_u8(x.d, y.d))}; }
 #endif
-   
      // smart_reference access {{{2
     template <class T, class A>
     static Vc_INTRINSIC T get(Vc::datapar<T, A> v, int i) noexcept
@@ -469,9 +456,9 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     {
         v.d.set(i, std::forward<U>(x));
     }
-     // }}}2
+      // }}}2
 */
-}; 
+};
 // mask impl {{{1
 struct neon_mask_impl {
      // memb er types {{{2
@@ -482,7 +469,6 @@ struct neon_mask_impl {
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
-
     // broadcast {{{2
     template <class T> static Vc_INTRINSIC auto broadcast(bool x, type_tag<T>) noexcept
     {
@@ -520,7 +506,6 @@ struct neon_mask_impl {
             }
         }
     }
-
     // store {{{2
     template <class T, class F>
     static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
@@ -542,8 +527,7 @@ struct neon_mask_impl {
                                    size_tag<16>) noexcept
     {
     }
- 
-     // masked store {{{2
+    // masked store {{{2
     template <class T, class F, class SizeTag>
     static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F,
                                           mask_member_type<T> k, SizeTag) noexcept
@@ -566,7 +550,7 @@ struct neon_mask_impl {
         return detail::not_(x.v());
 #endif
     }
- 	*/
+ 	 */
     // logical and bitwise operator s {{{2
     template <class T>
     static Vc_INTRINSIC mask<T> logical_and(const mask<T> &x, const mask<T> &y)
@@ -597,7 +581,7 @@ struct neon_mask_impl {
         return {private_init, detail::xor_(x.d, y.d)};
     }
 
-    // smart_reference access {{{2 
+    // smart_reference access {{{2
     template <class T> static bool get(const mask<T> &k, int i) noexcept
     {
         return k.d.m(i);
@@ -608,8 +592,7 @@ struct neon_mask_impl {
     }
     // }}}2
 };
-   
-// mask  compare base {{{1
+//  mask  compare base {{{1
 struct neon_compare_base {
 protected:
     template <class T> using V = Vc::datapar<T, Vc::datapar_abi::neon>;
@@ -618,7 +601,7 @@ protected:
     using S = typename Vc::detail::traits<T, Vc::datapar_abi::neon>::mask_cast_type;
 };
 
-// }}}1 
+// }}}1
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
@@ -726,7 +709,7 @@ template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::neon>
 }
 */
 Vc_VERSIONED_NAMESPACE_END
-// }}}  
+// }}}
 
 /*
 namespace std

@@ -177,7 +177,8 @@ Vc_INTRINSIC int32x4_t Vc_VDECL unary_minus(x_s08 v) {}
 Vc_INTRINSIC int32x4_t Vc_VDECL unary_minus(x_u08 v) {}
 
 //}}}1
-}}  // namespaces 
+}  // aarch
+}  // detail 
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_AARCH_ARITHMETICS_H_
