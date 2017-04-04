@@ -185,4 +185,5 @@ inline datapar<T, A> Vc_VDECL masked_unary(mask<T, A> k, datapar<T, A> v)
 //}}}1
 Vc_VERSIONED_NAMESPACE_END
 
+
 #endif  // VC_DATAPAR_GENERICIMPL_H_

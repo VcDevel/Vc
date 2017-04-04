@@ -30,7 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "storage.h"
 
-namespace Vc_VERSIONED_NAMESPACE::detail::aarch
+Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
+{
+namespace aarch
 {
 // convert_builtin{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
@@ -101,55 +104,41 @@ Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3, From v4, Fro
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // convert_to declarations{{{1
-template <typename To> Vc_INTRINSIC To convert_to(x_f32 v0);
-template <typename To> Vc_INTRINSIC To convert_to(x_f32 v0, x_f32 v1);
-template <typename To> Vc_INTRINSIC To convert_to(x_f32 v0, x_f32 v1, x_f32 v2, x_f32 v3);
-template <typename To> Vc_INTRINSIC To convert_to(x_f64 v0);
-template <typename To> Vc_INTRINSIC To convert_to(x_f64 v0, x_f64 v1);
-template <typename To> Vc_INTRINSIC To convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3);
-template <typename To> Vc_INTRINSIC To convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3, x_f64 v4, x_f64 v5, x_f64 v6, x_f64 v7);
-template <typename To> Vc_INTRINSIC To convert_to(x_i08);
-template <typename To> Vc_INTRINSIC To convert_to(x_u08);
-template <typename To> Vc_INTRINSIC To convert_to(x_i16);
-template <typename To> Vc_INTRINSIC To convert_to(x_i16, x_i16);
-template <typename To> Vc_INTRINSIC To convert_to(x_u16);
-template <typename To> Vc_INTRINSIC To convert_to(x_u16, x_u16);
-template <typename To> Vc_INTRINSIC To convert_to(x_i32);
-template <typename To> Vc_INTRINSIC To convert_to(x_i32, x_i32);
-template <typename To> Vc_INTRINSIC To convert_to(x_i32, x_i32, x_i32, x_i32);
-template <typename To> Vc_INTRINSIC To convert_to(x_u32);
-template <typename To> Vc_INTRINSIC To convert_to(x_u32, x_u32);
-template <typename To> Vc_INTRINSIC To convert_to(x_u32, x_u32, x_u32, x_u32);
-template <typename To> Vc_INTRINSIC To convert_to(x_i64);
-template <typename To> Vc_INTRINSIC To convert_to(x_i64, x_i64);
-template <typename To> Vc_INTRINSIC To convert_to(x_i64, x_i64, x_i64, x_i64);
-template <typename To> Vc_INTRINSIC To convert_to(x_i64, x_i64, x_i64, x_i64, x_i64, x_i64, x_i64, x_i64);
-template <typename To> Vc_INTRINSIC To convert_to(x_u64);
-template <typename To> Vc_INTRINSIC To convert_to(x_u64, x_u64);
-template <typename To> Vc_INTRINSIC To convert_to(x_u64, x_u64, x_u64, x_u64);
-template <typename To> Vc_INTRINSIC To convert_to(x_u64, x_u64, x_u64, x_u64, x_u64, x_u64, x_u64, x_u64);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0, x_f32 v1);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0, x_f32 v1, x_f32 v2, x_f32 v3);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3, x_f64 v4, x_f64 v5, x_f64 v6, x_f64 v7);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s08);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u08);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s16);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s16, x_s16);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u16);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u16, x_u16);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s32);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s32, x_s32);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_s32, x_s32, x_s32, x_s32);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32, x_u32);
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32, x_u32, x_u32, x_u32);
 //}}}1
-
-// from ullong{{{2
-template <> Vc_INTRINSIC x_i64 convert_to<x_i64>(x_u64 v) { return v.v(); }
-
-// from llong{{{2
-template <> Vc_INTRINSIC x_i64 convert_to<x_i64>(x_i64 v) { return v; }
 
 // generic (u)long forwarding to (u)(llong|int){{{1
 
-template <typename To, size_t N> Vc_INTRINSIC To convert_to(Storage<long, N> v)
+template <typename To, size_t N> Vc_INTRINSIC To Vc_VDECL convert_to(Storage<long, N> v)
 {
     return convert_to<To>(Storage<equal_int_type_t<long>, N>(v));
 }
 template <typename To, size_t N>
-Vc_INTRINSIC To convert_to(Storage<long, N> v0, Storage<long, N> v1)
+Vc_INTRINSIC To Vc_VDECL convert_to(Storage<long, N> v0, Storage<long, N> v1)
 {
     return convert_to<To>(Storage<equal_int_type_t<long>, N>(v0),
                           Storage<equal_int_type_t<long>, N>(v1));
 }
 template <typename To, size_t N>
-Vc_INTRINSIC To convert_to(Storage<long, N> v0, Storage<long, N> v1, Storage<long, N> v2,
+Vc_INTRINSIC To Vc_VDECL convert_to(Storage<long, N> v0, Storage<long, N> v1, Storage<long, N> v2,
                            Storage<long, N> v3)
 {
     return convert_to<To>(
@@ -157,7 +146,7 @@ Vc_INTRINSIC To convert_to(Storage<long, N> v0, Storage<long, N> v1, Storage<lon
         Storage<equal_int_type_t<long>, N>(v2), Storage<equal_int_type_t<long>, N>(v3));
 }
 template <typename To, size_t N>
-Vc_INTRINSIC To convert_to(Storage<long, N> v0, Storage<long, N> v1, Storage<long, N> v2,
+Vc_INTRINSIC To Vc_VDECL convert_to(Storage<long, N> v0, Storage<long, N> v1, Storage<long, N> v2,
                            Storage<long, N> v3, Storage<long, N> v4, Storage<long, N> v5,
                            Storage<long, N> v6, Storage<long, N> v7)
 {
@@ -168,18 +157,18 @@ Vc_INTRINSIC To convert_to(Storage<long, N> v0, Storage<long, N> v1, Storage<lon
         Storage<equal_int_type_t<long>, N>(v6), Storage<equal_int_type_t<long>, N>(v7));
 }
 
-template <typename To, size_t N> Vc_INTRINSIC To convert_to(Storage<ulong, N> v)
+template <typename To, size_t N> Vc_INTRINSIC To Vc_VDECL convert_to(Storage<ulong, N> v)
 {
     return convert_to<To>(Storage<equal_int_type_t<ulong>, N>(v));
 }
 template <typename To, size_t N>
-Vc_INTRINSIC To convert_to(Storage<ulong, N> v0, Storage<ulong, N> v1)
+Vc_INTRINSIC To Vc_VDECL convert_to(Storage<ulong, N> v0, Storage<ulong, N> v1)
 {
     return convert_to<To>(Storage<equal_int_type_t<ulong>, N>(v0),
                           Storage<equal_int_type_t<ulong>, N>(v1));
 }
 template <typename To, size_t N>
-Vc_INTRINSIC To convert_to(Storage<ulong, N> v0, Storage<ulong, N> v1, Storage<ulong, N> v2,
+Vc_INTRINSIC To Vc_VDECL convert_to(Storage<ulong, N> v0, Storage<ulong, N> v1, Storage<ulong, N> v2,
                            Storage<ulong, N> v3)
 {
     return convert_to<To>(
@@ -187,7 +176,7 @@ Vc_INTRINSIC To convert_to(Storage<ulong, N> v0, Storage<ulong, N> v1, Storage<u
         Storage<equal_int_type_t<ulong>, N>(v2), Storage<equal_int_type_t<ulong>, N>(v3));
 }
 template <typename To, size_t N>
-Vc_INTRINSIC To convert_to(Storage<ulong, N> v0, Storage<ulong, N> v1, Storage<ulong, N> v2,
+Vc_INTRINSIC To Vc_VDECL convert_to(Storage<ulong, N> v0, Storage<ulong, N> v1, Storage<ulong, N> v2,
                            Storage<ulong, N> v3, Storage<ulong, N> v4, Storage<ulong, N> v5,
                            Storage<ulong, N> v6, Storage<ulong, N> v7)
 {
@@ -204,9 +193,6 @@ template <typename T> struct fallback_int_type { using type = scalar_conversion_
 template <> struct fallback_int_type< uchar> { using type = schar; };
 template <> struct fallback_int_type<ushort> { using type = short; };
 template <> struct fallback_int_type<  uint> { using type = int; };
-template <> struct fallback_int_type<ullong> { using type = llong; };
-template <> struct fallback_int_type<  long> { using type = equal_int_type_t<long>; };
-template <> struct fallback_int_type< ulong> { using type = equal_int_type_t<long>; };
 
 template <typename T>
 using equivalent_storage_t =
@@ -217,7 +203,7 @@ Vc_INTRINSIC std::conditional_t<
     (std::is_integral<typename To::EntryType>::value &&
      sizeof(typename To::EntryType) <= sizeof(typename From::EntryType)),
     Storage<std::make_signed_t<typename From::EntryType>, From::size()>, From>
-maybe_make_signed(From v)
+    Vc_VDECL maybe_make_signed(From v)
 {
     static_assert(
         std::is_unsigned<typename From::EntryType>::value,
@@ -231,20 +217,45 @@ maybe_make_signed(From v)
 template <typename To,
           typename Fallback = typename fallback_int_type<typename To::EntryType>::type>
 struct equivalent_conversion {
-    template <typename F0, typename... From>
-    static Vc_INTRINSIC Vc_CONST
-        std::enable_if_t<std::is_unsigned<typename F0::EntryType>::value, To>
-        convert(F0 v0, From... vs)
+    template <size_t N, typename... From>
+    static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<uchar, N> v0, From... vs)
+    {
+        using S = Storage<Fallback, To::size()>;
+        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
+    }
+
+    template <size_t N, typename... From>
+    static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<ushort, N> v0, From... vs)
+    {
+        using S = Storage<Fallback, To::size()>;
+        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
+    }
+
+    template <size_t N, typename... From>
+    static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<uint, N> v0, From... vs)
+    {
+        using S = Storage<Fallback, To::size()>;
+        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
+    }
+
+    template <size_t N, typename... From>
+    static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<ulong, N> v0, From... vs)
+    {
+        using S = Storage<Fallback, To::size()>;
+        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
+    }
+
+    template <size_t N, typename... From>
+    static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<ullong, N> v0, From... vs)
     {
         using S = Storage<Fallback, To::size()>;
         return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
     }
 
     template <typename F0, typename... From>
-    static Vc_INTRINSIC Vc_CONST
-        std::enable_if_t<!std::is_unsigned<typename F0::EntryType>::value, To>
-        convert(F0 v0, From... vs)
+    static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(F0 v0, From... vs)
     {
+        static_assert(!std::is_unsigned<typename F0::EntryType>::value, "overload error");
         using S = Storage<Fallback, To::size()>;
         return convert_to<S>(v0, vs...).v();
     }
@@ -253,47 +264,42 @@ struct equivalent_conversion {
 // fallback: scalar aggregate conversion{{{1
 template <typename To> struct equivalent_conversion<To, scalar_conversion_fallback_tag> {
     template <typename From, typename... Fs>
-    static Vc_INTRINSIC Vc_CONST To convert(From v0, Fs... vs)
+    static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(From v0, Fs... vs)
     {
-        using T = typename To::EntryType;
-        return generate_from_n_evaluations<To::size(), To>([&](auto i) {
-            if (i < From::size() * (1 + sizeof...(Fs))) {
-                auto&& tmp = {v0, vs...};
-                return static_cast<T>(tmp.begin()[i / From::size()].m(i % From::size()));
-            } else {
-                return T();
-            }
-        });
+        using F = typename From::value_type;
+        using T = typename To::value_type;
+        static_assert(sizeof(F) >= sizeof(T) && std::is_integral<T>::value &&
+                          std::is_unsigned<F>::value,
+                      "missing an implementation for convert<To>(From, Fs...)");
+        using S = Storage<typename fallback_int_type<F>::type, From::size()>;
+        return convert_to<To>(S(v0), S(vs)...);
     }
 };
 
 // convert_to implementations invoking the fallbacks{{{1
-template <typename To> Vc_INTRINSIC To convert_to(x_f32 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_f64 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_f64 v0, x_f64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i08 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u08 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i16 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i16 v0, x_i16 v1) { return equivalent_conversion<To>::convert(v0, v1); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u16 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u16 v0, x_u16 v1) { return equivalent_conversion<To>::convert(v0, v1); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i32 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i32 v0, x_i32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i32 v0, x_i32 v1, x_i32 v2, x_i32 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u32 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u32 v0, x_u32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u32 v0, x_u32 v1, x_u32 v2, x_u32 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i64 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i64 v0, x_i64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i64 v0, x_i64 v1, x_i64 v2, x_i64 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
-template <typename To> Vc_INTRINSIC To convert_to(x_i64 v0, x_i64 v1, x_i64 v2, x_i64 v3, x_i64 v4, x_i64 v5, x_i64 v6, x_i64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u64 v0) { return equivalent_conversion<To>::convert(v0); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u64 v0, x_u64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u64 v0, x_u64 v1, x_u64 v2, x_u64 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
-template <typename To> Vc_INTRINSIC To convert_to(x_u64 v0, x_u64 v1, x_u64 v2, x_u64 v3, x_u64 v4, x_u64 v5, x_u64 v6, x_u64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
-
+/*
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0, x_f32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0, x_f32 v1, x_f32 v2, x_f32 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f64 v0, x_f64 v1, x_f64 v2, x_f64 v3, x_f64 v4, x_f64 v5, x_f64 v6, x_f64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i08 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u08 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i16 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i16 v0, x_i16 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u16 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u16 v0, x_u16 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i32 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i32 v0, x_i32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_i32 v0, x_i32 v1, x_i32 v2, x_i32 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32 v0) { return equivalent_conversion<To>::convert(v0); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32 v0, x_u32 v1) { return equivalent_conversion<To>::convert(v0, v1); }
+template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_u32 v0, x_u32 v1, x_u32 v2, x_u32 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
+*/
 // convert function{{{1
-template <typename From, typename To> Vc_INTRINSIC To convert(From v)
+template <typename From, typename To> Vc_INTRINSIC To Vc_VDECL convert(From v)
 {
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
     constexpr auto N = From::size() < To::size() ? From::size() : To::size();
@@ -303,7 +309,7 @@ template <typename From, typename To> Vc_INTRINSIC To convert(From v)
 #endif
 }
 
-template <typename From, typename To> Vc_INTRINSIC To convert(From v0, From v1)
+template <typename From, typename To> Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1)
 {
     static_assert(To::size() >= 2 * From::size(),
                   "convert(v0, v1) requires the input to fit into the output");
@@ -317,7 +323,7 @@ template <typename From, typename To> Vc_INTRINSIC To convert(From v0, From v1)
 }
 
 template <typename From, typename To>
-Vc_INTRINSIC To convert(From v0, From v1, From v2, From v3)
+Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1, From v2, From v3)
 {
     static_assert(To::size() >= 4 * From::size(),
                   "convert(v0, v1, v2, v3) requires the input to fit into the output");
@@ -332,7 +338,7 @@ Vc_INTRINSIC To convert(From v0, From v1, From v2, From v3)
 }
 
 template <typename From, typename To>
-Vc_INTRINSIC To convert(From v0, From v1, From v2, From v3, From v4, From v5, From v6,
+Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1, From v2, From v3, From v4, From v5, From v6,
                         From v7)
 {
     static_assert(To::size() >= 8 * From::size(),
@@ -349,25 +355,40 @@ Vc_INTRINSIC To convert(From v0, From v1, From v2, From v3, From v4, From v5, Fr
 #endif
 }
 
+/*
 // convert_all function{{{1
 template <typename To, typename From>
-Vc_INTRINSIC std::array<To, From::size() / To::size()> convert_all(
-    From v, enable_if<(From::size() > To::size())> = nullarg)
+Vc_INTRINSIC auto Vc_VDECL convert_all_impl(From v, std::true_type)
 {
     constexpr size_t N = From::size() / To::size();
     return generate_from_n_evaluations<N, std::array<To, N>>([&](auto i) {
-        return convert<From, To>(
-            shift_right<i * To::size() * sizeof(From) / From::size()>(v));
+        using namespace Vc::detail::x86;  // ICC needs this to find convert and
+                                          // shift_right below.
+        constexpr int shift = decltype(i)::value  // MSVC needs this instead of a simple
+                                                  // `i`, apparently their conversion
+                                                  // operator is not (considered)
+                                                  // constexpr.
+                              * To::size() * sizeof(From) / From::size();
+        return convert<From, To>(shift_right<shift>(v));
     });
 }
 
+*/
+
 template <typename To, typename From>
-Vc_INTRINSIC To convert_all(From v, enable_if<!(From::size() > To::size())> = nullarg)
+Vc_INTRINSIC To Vc_VDECL convert_all_impl(From v, std::false_type)
 {
     return convert<From, To>(v);
 }
-V
+
+template <typename To, typename From> Vc_INTRINSIC auto Vc_VDECL convert_all(From v)
+{
+    return convert_all_impl<To, From>(
+        v, std::integral_constant<bool, (From::size() > To::size())>());
+}
+
 // }}}1
-}  // namespace Vc_VERSIONED_NAMESPACE::detail::aarch
+}}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_AARCH_CONVERT_H_
