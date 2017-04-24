@@ -133,6 +133,85 @@ template <class Derived> struct generic_datapar_impl {
                                                   Derived::broadcast(1L, size_tag<N>())));
     }
 };
+// mask impl {{{1
+template <class abi, template <class> class mask_member_type> struct generic_mask_impl {
+    // member types {{{2
+    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <class T> using type_tag = T *;
+
+    // to_bitset {{{2
+    template <class T, size_t N>
+    static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
+                                                 std::integral_constant<int, 1>) noexcept
+    {
+        return x86::movemask(v);
+    }
+    template <class T>
+    static Vc_INTRINSIC std::bitset<8> to_bitset(Storage<T, 8> v,
+                                                 std::integral_constant<int, 2>) noexcept
+    {
+        return x86::movemask(_mm_packs_epi16(v, zero<__m128i>()));
+    }
+    template <class T, size_t N>
+    static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
+                                                 std::integral_constant<int, 4>) noexcept
+    {
+        return x86::movemask(Storage<float, N>(v.v()));
+    }
+    template <class T, size_t N>
+    static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
+                                                 std::integral_constant<int, 8>) noexcept
+    {
+        return x86::movemask(Storage<double, N>(v.v()));
+    }
+    template <class T, size_t N>
+    static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v) noexcept
+    {
+        static_assert(N <= sizeof(uint) * CHAR_BIT,
+                      "Needs missing 64-bit implementation");
+        if (std::is_integral<T>::value && sizeof(T) > 1) {
+#ifdef Vc_HAVE_BMI2
+            switch (sizeof(T)) {
+            case 2: return _pext_u32(x86::movemask(v), 0xaaaaaaaa);
+            case 4: return _pext_u32(x86::movemask(v), 0x88888888);
+            case 8: return _pext_u32(x86::movemask(v), 0x80808080);
+            default: Vc_UNREACHABLE();
+            }
+#else
+            return to_bitset(v, std::integral_constant<int, sizeof(T)>());
+#endif
+        } else {
+            return x86::movemask(v);
+        }
+    }
+
+    // from_bitset{{{2
+    template <size_t N, class T>
+    static Vc_INTRINSIC mask_member_type<T> from_bitset(std::bitset<N> bits, type_tag<T>)
+    {
+        using U = std::conditional_t<sizeof(T) == 8, ullong,
+                  std::conditional_t<sizeof(T) == 4, uint,
+                  std::conditional_t<sizeof(T) == 2, ushort,
+                  std::conditional_t<sizeof(T) == 1, uchar, void>>>>;
+        using V = datapar<U, abi>;
+        constexpr size_t bits_per_element = sizeof(U) * CHAR_BIT;
+        if (bits_per_element >= N) {
+            V tmp(static_cast<U>(bits.to_ullong()));                  // broadcast
+            tmp &= V([](auto i) { return static_cast<U>(1 << i); });  // mask bit index
+            return detail::data(tmp != V());
+        } else {
+            V tmp([&](auto i) {
+                return static_cast<U>(bits.to_ullong() >>
+                                      (bits_per_element * (i / bits_per_element)));
+            });
+            tmp &= V([](auto i) {
+                return static_cast<U>(1 << (i % bits_per_element));
+            });  // mask bit index
+            return detail::data(tmp != V());
+        }
+    }
+
+};
 //}}}1
 }  // namespace detail
 

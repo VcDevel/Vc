@@ -269,6 +269,7 @@ vc_add_test(mask)
 vc_add_test(datapar)
 vc_add_test(where)
 vc_add_test(experimental)
+vc_add_test(bitset_conversions)
 
 function(vc_download_testdata)#{{{
    set(_deps)

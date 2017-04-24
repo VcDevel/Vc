@@ -561,7 +561,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
 };
 
 // mask impl {{{1
-struct avx_mask_impl {
+struct avx_mask_impl : public generic_mask_impl<datapar_abi::avx, avx_mask_member_type> {
     // member types {{{2
     using abi = datapar_abi::avx;
     template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }

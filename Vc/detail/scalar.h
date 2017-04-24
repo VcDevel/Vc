@@ -228,6 +228,16 @@ struct scalar_mask_impl {
     using size_tag = std::integral_constant<size_t, 1>;
     template <class T> using type_tag = T *;
 
+    // to_bitset {{{2
+    static Vc_INTRINSIC std::bitset<1> to_bitset(bool x) noexcept { return unsigned(x); }
+
+    // from_bitset {{{2
+    template <class T>
+    static Vc_INTRINSIC bool from_bitset(std::bitset<1> bs, type_tag<T>) noexcept
+    {
+        return bs[0];
+    }
+
     // broadcast {{{2
     template <class T> static Vc_INTRINSIC bool broadcast(bool x, type_tag<T>) noexcept
     {

@@ -850,7 +850,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 };
 
 // mask impl {{{1
-struct sse_mask_impl {
+struct sse_mask_impl : public generic_mask_impl<datapar_abi::sse, sse_mask_member_type> {
     // member types {{{2
     using abi = datapar_abi::sse;
     template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }

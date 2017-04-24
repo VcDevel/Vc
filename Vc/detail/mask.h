@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "synopsis.h"
 #include "smart_reference.h"
+#include <bitset>
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -63,6 +64,10 @@ public:
 
     // non-std; required to work around ICC ICEs
     static constexpr size_type size_v = traits::size();
+
+    // bitset interface
+    static mask from_bitset(std::bitset<size()> bs) { return {detail::bitset_init, bs}; }
+    std::bitset<size()> to_bitset() const { return impl::to_bitset(d); }
 
     // explicit broadcast constructor
     explicit mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
@@ -170,7 +175,14 @@ private:
 #else
     friend auto detail::data<T, abi_type>(const mask &);
 #endif
-    mask(detail::private_init_t, const typename traits::mask_member_type &init) : d(init) {}
+    Vc_INTRINSIC mask(detail::private_init_t, typename traits::mask_member_type init)
+        : d(init)
+    {
+    }
+    Vc_INTRINSIC mask(detail::bitset_init_t, std::bitset<size_v> init)
+        : d(impl::from_bitset(init, type_tag))
+    {
+    }
 //#ifndef Vc_MSVC
     // MSVC refuses by value mask arguments, even if vectorcall__ is used:
     // error C2719: 'k': formal parameter with requested alignment of 16 won't be aligned

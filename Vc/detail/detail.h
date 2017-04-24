@@ -202,12 +202,13 @@ template <class T, class X> struct default_neutral_element<T, std::bit_xor<X>> {
     static constexpr T value = 0;
 };
 
-// private_init{{{1
+// private_init, bitset_init{{{1
 /**
  * \internal
  * Tag used for private init constructor of datapar and mask
  */
 static constexpr struct private_init_t {} private_init = {};
+static constexpr struct bitset_init_t {} bitset_init = {};
 
 // size_tag{{{1
 template <size_t N> static constexpr std::integral_constant<size_t, N> size_tag = {};
