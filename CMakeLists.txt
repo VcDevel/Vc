@@ -93,7 +93,7 @@ endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")#}}
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
 add_definitions(${Vc_DEFINITIONS})
 add_compile_options(${Vc_COMPILE_FLAGS})
-AddCompilerFlag(-ftemplate-depth=128 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
+AddCompilerFlag(-ftemplate-depth=512 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})#}}}
 
