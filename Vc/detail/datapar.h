@@ -81,9 +81,7 @@ struct allow_conversion_ctor3<T0, datapar_abi::fixed_size<datapar_size_v<T1, A1>
                               > : public std::is_convertible<T1, T0> {
 };
 
-//}}}1
-}  // namespace detail
-
+// datapar_int_operators{{{1
 template <class V, bool> class datapar_int_operators;
 
 template <class V> class datapar_int_operators<V, false>
@@ -114,6 +112,9 @@ public:
     // unary operators (for integral T)
     V operator~() const { return impl::complement(derived()); }
 };
+
+//}}}1
+}  // namespace detail
 
 template <class T, class Abi>
 class datapar
