@@ -910,13 +910,9 @@ struct sse_mask_impl : public generic_mask_impl<datapar_abi::sse, sse_mask_membe
             _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
     }
     template <class F>
-    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<16>) noexcept
+    static Vc_INTRINSIC auto load(const bool *mem, F f, size_tag<16>) noexcept
     {
-        return intrin_cast<__m128>(
-            _mm_cmpgt_epi8(std::is_same<F, flags::vector_aligned_tag>::value
-                               ? _mm_load_si128(reinterpret_cast<const __m128i *>(mem))
-                               : _mm_loadu_si128(reinterpret_cast<const __m128i *>(mem)),
-                           _mm_setzero_si128()));
+        return intrin_cast<__m128>(_mm_cmpgt_epi8(load16(mem, f), _mm_setzero_si128()));
     }
 #endif  // Vc_HAVE_SSE2
 
