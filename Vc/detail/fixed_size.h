@@ -216,16 +216,14 @@ template <int N> struct fixed_size_datapar_impl {
     }
 
     // negation {{{2
-    template <class T, size_t... I>
-    static Vc_INTRINSIC mask_member_type negate_impl(const datapar_member_type<T> &x,
-                                                     std::index_sequence<I...>) noexcept
-    {
-        return {!x[I]...};
-    }
     template <class T, class A>
     static inline Vc::mask<T, A> negate(const Vc::datapar<T, A> &x) noexcept
     {
-        return {private_init, negate_impl(x.d, index_seq<T>)};
+        mask_member_type bits = 0;
+        for_each(x.d, [&bits](auto native, auto offset) {
+            bits |= mask_member_type((!native).to_bitset().to_ullong()) << offset;
+        });
+        return {private_init, bits};
     }
 
     // reductions {{{2
@@ -241,34 +239,34 @@ template <int N> struct fixed_size_datapar_impl {
     template <class T>
     static inline datapar<T> min(const datapar<T> &a, const datapar<T> &b)
     {
-        auto &&x = data(a);
-        auto &&y = data(b);
-        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>(
-                                  [&](auto i) { return std::min(x[i], y[i]); })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>([&](
+                    auto i) { return std::min(std::get<i>(a.d), std::get<i>(b.d)); })};
     }
 
     template <class T>
     static inline datapar<T> max(const datapar<T> &a, const datapar<T> &b)
     {
-        auto &&x = data(a);
-        auto &&y = data(b);
-        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>(
-                                  [&](auto i) { return std::max(x[i], y[i]); })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>([&](
+                    auto i) { return std::max(std::get<i>(a.d), std::get<i>(b.d)); })};
     }
 
     // complement {{{2
     template <class T, class A>
     static inline Vc::datapar<T, A> complement(const Vc::datapar<T, A> &x) noexcept
     {
-        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>(
-                                  [&](auto i) { return static_cast<T>(~x.d[i]); })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return ~std::get<i>(x.d); })};
     }
 
     // unary minus {{{2
     template <class T, class A>
     static inline Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept {
-        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>(
-                                  [&](auto i) { return static_cast<T>(-x.d[i]); })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return -std::get<i>(x.d); })};
     }
 
     // arithmetic operators {{{2
@@ -277,92 +275,72 @@ template <int N> struct fixed_size_datapar_impl {
     static inline Vc::datapar<T, A> plus(const Vc::datapar<T, A> &x,
                                          const Vc::datapar<T, A> &y)
     {
-        return {private_init, generate_from_n_evaluations<N, datapar_member_type<T>>([&](
-                                  auto i) { return static_cast<T>(x.d[i] + y.d[i]); })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) + std::get<i>(y.d); })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> minus(const Vc::datapar<T, A> &x,
                                           const Vc::datapar<T, A> &y)
     {
-        return {
-            private_init,
-            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) -
-                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
-            })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) - std::get<i>(y.d); })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> multiplies(const Vc::datapar<T, A> &x,
                                                const Vc::datapar<T, A> &y)
     {
-        return {
-            private_init,
-            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) *
-                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
-            })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) * std::get<i>(y.d); })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> divides(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {
-            private_init,
-            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) /
-                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
-            })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) / std::get<i>(y.d); })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> modulus(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {
-            private_init,
-            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) %
-                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
-            })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) % std::get<i>(y.d); })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_and(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {
-            private_init,
-            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) &
-                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
-            })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) & std::get<i>(y.d); })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_or(const Vc::datapar<T, A> &x,
                                            const Vc::datapar<T, A> &y)
     {
-        return {
-            private_init,
-            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) |
-                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
-            })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) | std::get<i>(y.d); })};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_xor(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {
-            private_init,
-            generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i]) ^
-                                      Vc::detail::promote_preserving_unsigned(y.d[i]));
-            })};
+        return {private_init,
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) ^ std::get<i>(y.d); })};
     }
 
     template <class T, class A>
@@ -370,10 +348,8 @@ template <int N> struct fixed_size_datapar_impl {
                                                    const Vc::datapar<T, A> &y)
     {
         return {private_init,
-                generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(Vc::detail::promote_preserving_unsigned(x.d[i])
-                                          << y.d[i]);
-                })};
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) << std::get<i>(y.d); })};
     }
 
     template <class T, class A>
@@ -381,32 +357,22 @@ template <int N> struct fixed_size_datapar_impl {
                                                     const Vc::datapar<T, A> &y)
     {
         return {private_init,
-                generate_from_n_evaluations<N, datapar_member_type<T>>([&](auto i) {
-                    return static_cast<T>(
-                        Vc::detail::promote_preserving_unsigned(x.d[i]) >> y.d[i]);
-                })};
+                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+                    [&](auto i) { return std::get<i>(x.d) >> std::get<i>(y.d); })};
     }
 
     // increment & decrement{{{2
     template <class... Ts> static inline void increment(std::tuple<Ts...> &x)
     {
-        for_each(x, [](auto &native) { ++native; });
+        for_each(x, [](auto &native, int) { ++native; });
     }
 
     template <class... Ts> static inline void decrement(std::tuple<Ts...> &x)
     {
-        for_each(x, [](auto &native) { --native; });
+        for_each(x, [](auto &native, int) { --native; });
     }
 
     // compares {{{2
-    template <template <typename> class Cmp, class T, size_t... I>
-    static Vc_INTRINSIC mask_member_type cmp_impl(const datapar_member_type<T> &x,
-                                                  const datapar_member_type<T> &y,
-                                                  std::index_sequence<I...>)
-    {
-        Cmp<T> cmp;
-        return {cmp(x[I], y[I])...};
-    }
 #define Vc_CMP_OPERATIONS(cmp_)                                                          \
     template <class V> static inline typename V::mask_type cmp_(const V &x, const V &y)  \
     {                                                                                    \
