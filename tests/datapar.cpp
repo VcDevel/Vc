@@ -58,16 +58,16 @@ TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
         COMPARE(x, V{});
 
         for (std::size_t i = 0; i < V::size(); ++i) {
-            COMPARE(T(x[i]), T(0));
-            COMPARE(x[i], T(0));
+            COMPARE(T(x[i]), T(0)) << "i = " << i;
+            COMPARE(x[i], T(0)) << "i = " << i;
         }
     }
 
     V x = 3;
     V y = T(0);
     for (std::size_t i = 0; i < V::size(); ++i) {
-        COMPARE(x[i], T(3));
-        COMPARE(y[i], T(0));
+        COMPARE(x[i], T(3)) << "i = " << i;
+        COMPARE(y[i], T(0)) << "i = " << i;
     }
     y = 3;
     COMPARE(x, y);

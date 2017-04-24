@@ -36,6 +36,7 @@ namespace detail {
 template <class Derived> struct generic_datapar_impl {
     // member types {{{2
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <class T> using type_tag = T *;
 
     // adjust_for_long{{{2
     template <size_t Size>
@@ -62,6 +63,14 @@ template <class Derived> struct generic_datapar_impl {
         using traits = typename Vc::datapar<T, A>::traits;
         using V = typename traits::datapar_member_type;
         return {private_init, static_cast<V>(x)};
+    }
+
+    // generator {{{2
+    template <class F, class T, size_t N>
+    static Vc_INTRINSIC Storage<T, N> generator(F &&gen, type_tag<T>, size_tag<N>)
+    {
+        return detail::generate_from_n_evaluations<N, Storage<T, N>>(
+            [&gen](auto element_idx_) { return gen(element_idx_); });
     }
 
     // complement {{{2

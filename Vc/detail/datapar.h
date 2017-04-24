@@ -223,8 +223,7 @@ public:
             value_type, decltype(declval<F>()(
                             declval<std::integral_constant<size_t, 0> &>()))>::value> =
             nullarg)
-        : d(detail::generate_from_n_evaluations<size(), member_type>(
-              [&gen](auto element_idx_) { return gen(element_idx_); }))
+        : d(impl::generator(std::forward<F>(gen), type_tag, size_tag))
     {
     }
 

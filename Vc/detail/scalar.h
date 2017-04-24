@@ -53,6 +53,13 @@ struct scalar_datapar_impl {
         return x;
     }
 
+    // generator {{{2
+    template <class F, class T>
+    static Vc_INTRINSIC T generator(F &&gen, type_tag<T>, size_tag)
+    {
+        return gen(std::integral_constant<size_t, 0>());
+    }
+
     // load {{{2
     template <class T, class U, class F>
     static inline T load(const U *mem, F, type_tag<T>) noexcept

@@ -137,9 +137,24 @@ template <int N> struct fixed_size_datapar_impl {
     template <class T>
     static inline datapar_member_type<T> broadcast(T x, size_tag) noexcept
     {
-        return broadcast_impl(x, index_seq);
+        return broadcast_impl(x, index_seq<T>);
     }
 
+    // generator {{{2
+    template <class F, class T>
+    static Vc_INTRINSIC datapar_member_type<T> generator(F &&gen, type_tag<T>, size_tag)
+    {
+        return detail::generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
+            [&gen](auto tuple_idx_) {
+                return [&](auto i_) {
+                    constexpr size_t ii_ = decltype(tuple_idx_)::value;
+                    constexpr size_t prev_elements =
+                        number_of_elements<datapar_member_type<T>>(
+                            std::make_index_sequence<ii_>());
+                    return gen(std::integral_constant<size_t, prev_elements + i_>());
+                };
+            });
+    }
     // load {{{2
     template <class T, class U, size_t... I>
     static Vc_INTRINSIC datapar_member_type<T> load_impl(
@@ -150,7 +165,7 @@ template <int N> struct fixed_size_datapar_impl {
     template <class T, class U, class F>
     static inline datapar_member_type<T> load(const U *mem, F, type_tag<T>) noexcept
     {
-        return load_impl<T>(mem, index_seq);
+        return load_impl<T>(mem, index_seq<T>);
     }
 
     // masked load {{{2
@@ -166,7 +181,7 @@ template <int N> struct fixed_size_datapar_impl {
     static inline void masked_load(datapar<T> &merge, const Vc::mask<T, A> &k,
                                    const U *mem, F) noexcept
     {
-        masked_load_impl(merge.d, k.d, mem, index_seq);
+        masked_load_impl(merge.d, k.d, mem, index_seq<T>);
     }
 
     // store {{{2
@@ -181,7 +196,7 @@ template <int N> struct fixed_size_datapar_impl {
     static inline void store(const datapar_member_type<T> &v, U *mem, F,
                              type_tag<T>) noexcept
     {
-        return store_impl(v, mem, index_seq);
+        return store_impl(v, mem, index_seq<T>);
     }
 
     // masked store {{{2
@@ -197,7 +212,7 @@ template <int N> struct fixed_size_datapar_impl {
     static inline void masked_store(const datapar<T> &v, U *mem, F,
                                     const Vc::mask<T, A> &k) noexcept
     {
-        return masked_store_impl(v.d, mem, index_seq, k.d);
+        return masked_store_impl(v.d, mem, index_seq<T>, k.d);
     }
 
     // negation {{{2
@@ -210,7 +225,7 @@ template <int N> struct fixed_size_datapar_impl {
     template <class T, class A>
     static inline Vc::mask<T, A> negate(const Vc::datapar<T, A> &x) noexcept
     {
-        return {private_init, negate_impl(x.d, index_seq)};
+        return {private_init, negate_impl(x.d, index_seq<T>)};
     }
 
     // reductions {{{2
@@ -373,14 +388,14 @@ template <int N> struct fixed_size_datapar_impl {
     }
 
     // increment & decrement{{{2
-    template <class T> static inline void increment(datapar_member_type<T> &x)
+    template <class... Ts> static inline void increment(std::tuple<Ts...> &x)
     {
-        execute_n_times<N>([&](auto i) { ++x[i]; });
+        for_each(x, [](auto &native) { ++native; });
     }
 
-    template <class T> static inline void decrement(datapar_member_type<T> &x)
+    template <class... Ts> static inline void decrement(std::tuple<Ts...> &x)
     {
-        execute_n_times<N>([&](auto i) { --x[i]; });
+        for_each(x, [](auto &native) { --native; });
     }
 
     // compares {{{2
@@ -395,7 +410,13 @@ template <int N> struct fixed_size_datapar_impl {
 #define Vc_CMP_OPERATIONS(cmp_)                                                          \
     template <class V> static inline typename V::mask_type cmp_(const V &x, const V &y)  \
     {                                                                                    \
-        return {private_init, cmp_impl<std::cmp_>(x.d, y.d, index_seq)};                 \
+        mask_member_type bits = 0;                                                       \
+        detail::for_each(x.d, y.d, [&bits](auto native_x, auto native_y, auto offset) {  \
+            bits |= mask_member_type(                                                    \
+                        std::cmp_<>()(native_x, native_y).to_bitset().to_ullong())       \
+                    << offset;                                                           \
+        });                                                                              \
+        return {private_init, bits};                                                     \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
     Vc_CMP_OPERATIONS(equal_to);
@@ -410,12 +431,22 @@ template <int N> struct fixed_size_datapar_impl {
     template <class T, class A>
     static T get(const Vc::datapar<T, A> &v, int i) noexcept
     {
-        return v.d[i];
+        T r{};
+        for_each(v.d, [&](auto native, int offset) {
+            if (offset <= i && i - offset < int(native.size())) {
+                r = native[i - offset];
+            }
+        });
+        return r;
     }
     template <class T, class A, class U>
     static void set(Vc::datapar<T, A> &v, int i, U &&x) noexcept
     {
-        v.d[i] = std::forward<U>(x);
+        for_each(v.d, [&](auto &native, int offset) {
+            if (offset <= i && i - offset < int(native.size())) {
+                native[i - offset] = std::forward<U>(x);
+            }
+        });
     }
     // }}}2
 };
