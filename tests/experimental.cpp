@@ -51,3 +51,8 @@ TEST_TYPES(V, where_apply, all_test_types)
         COMPARE(b, V([split](int i) { return i > split ? T(0) : T(2); }));
     }
 }
+
+TEST_TYPES(V, generators, ALL_TYPES)
+{
+    COMPARE(V::seq(), make_vec<V>({0, 1}, 2));
+}

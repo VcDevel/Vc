@@ -112,7 +112,6 @@ TEST_TYPES(V, generators, ALL_TYPES)  //{{{1
     COMPARE(x, V(1));
     x = V([](auto i) { return T(i); });
     COMPARE(x, make_vec<V>({0, 1}, 2));
-    COMPARE(V::seq(), make_vec<V>({0, 1}, 2));
 }
 
 //operators helpers  //{{{1

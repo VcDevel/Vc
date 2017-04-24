@@ -228,6 +228,7 @@ public:
     {
     }
 
+#ifdef Vc_EXPERIMENTAL
     template <class U, U... Indexes>
     static datapar seq(std::integer_sequence<U, Indexes...>)
     {
@@ -239,6 +240,7 @@ public:
     static datapar seq() {
         return seq(std::make_index_sequence<size()>());
     }
+#endif  // Vc_EXPERIMENTAL
 
     // load constructor
     template <class U, class Flags>
