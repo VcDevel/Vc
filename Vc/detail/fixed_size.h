@@ -31,15 +31,97 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "datapar.h"
 #include "detail.h"
 #include <array>
+#include <tuple>
+
+/**
+ * The fixed_size ABI gives the following guarantees:
+ *  - datapar objects are passed via the stack
+ *  - memory layout of `datapar<T, N>` is equivalent to `std::array<T, N>`
+ *  - alignment of `datapar<T, N>` is `N * sizeof(T)` if N is a power-of-2 value,
+ *    otherwise `next_power_of_2(N * sizeof(T))` (Note: if the alignment were to
+ *    exceed the system/compiler maximum, it is bounded to that maximum)
+ *  - mask objects are passed like std::bitset<N>
+ *  - memory layout of `mask<T, N>` is equivalent to `std::bitset<N>`
+ *  - alignment of `mask<T, N>` is equal to the alignment of `std::bitset<N>`
+ */
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
+// select_best_vector_type_t<T, N>{{{1
+/**
+ * \internal
+ * Selects the best SIMD type out of a typelist to store N scalar values.
+ */
+struct dummy {
+    static constexpr size_t size() { return ~size_t(); }
+};
+
+template <class T, int N, class A, class... More>
+struct select_best_vector_type {
+    using V = std::conditional_t<std::is_destructible<datapar<T, A>>::value,
+                                 datapar<T, A>, dummy>;
+    using type =
+        std::conditional_t<(N >= V::size()), V,
+                           typename select_best_vector_type<T, N, More...>::type>;
+};
+template <class T, int N, class A> struct select_best_vector_type<T, N, A> {
+    using type = datapar<T, A>;
+};
+template <class T, int N>
+using select_best_vector_type_t = typename select_best_vector_type<T, N,
+      datapar_abi::avx512,
+      datapar_abi::avx,
+      datapar_abi::neon,
+      datapar_abi::sse,
+      datapar_abi::scalar
+      >::type;
+
+// fixed_size_storage<T, N>{{{1
+template <class T, int N, class Tuple, class Next = select_best_vector_type_t<T, N>,
+          int Remain = N - int(Next::size())>
+struct fixed_size_storage_builder;
+
+template <class T, int N, class... Ts, class Next>
+struct fixed_size_storage_builder<T, N, std::tuple<Ts...>, Next, 0> {
+    using type = std::tuple<Ts..., Next>;
+};
+
+template <class T, int N, class... Ts, class Next, int Remain>
+struct fixed_size_storage_builder<T, N, std::tuple<Ts...>, Next, Remain> {
+    using type =
+        typename fixed_size_storage_builder<T, Remain, std::tuple<Ts..., Next>>::type;
+};
+
+template <class T, int N>
+using fixed_size_storage = typename fixed_size_storage_builder<T, N, std::tuple<>>::type;
+
+namespace tests {
+using float1 = datapar<float, datapar_abi::scalar>;
+using float4 = datapar<float, datapar_abi::sse>;
+using float8 = datapar<float, datapar_abi::avx>;
+using float16 = datapar<float, datapar_abi::avx512>;
+static_assert(std::is_same<fixed_size_storage<float, 1>, std::tuple<float1>>::value, "fixed_size_storage failure");
+static_assert(std::is_same<fixed_size_storage<float, 2>, std::tuple<float1, float1>>::value, "fixed_size_storage failure");
+static_assert(std::is_same<fixed_size_storage<float, 3>, std::tuple<float1, float1, float1>>::value, "fixed_size_storage failure");
+static_assert(std::is_same<fixed_size_storage<float, 4>, std::tuple<float4>>::value, "fixed_size_storage failure");
+static_assert(std::is_same<fixed_size_storage<float, 5>, std::tuple<float4, float1>>::value, "fixed_size_storage failure");
+#ifdef Vc_HAVE_AVX_ABI
+static_assert(std::is_same<fixed_size_storage<float, 8>, std::tuple<float8>>::value, "fixed_size_storage failure");
+static_assert(std::is_same<fixed_size_storage<float, 12>, std::tuple<float8, float4>>::value, "fixed_size_storage failure");
+static_assert(std::is_same<fixed_size_storage<float, 13>, std::tuple<float8, float4, float1>>::value, "fixed_size_storage failure");
+#endif
+}  // namespace tests
+
 // datapar impl {{{1
 template <int N> struct fixed_size_datapar_impl {
     // member types {{{2
-    static constexpr std::make_index_sequence<N> index_seq = {};
-    using mask_member_type = std::array<bool, N>;
-    template <class T> using datapar_member_type = std::array<T, N>;
+    using mask_member_type = std::bitset<N>;
+    template <class T> using datapar_member_type = fixed_size_storage<T, N>;
+    template <class T>
+    static constexpr std::size_t tuple_size =
+        std::tuple_size<datapar_member_type<T>>::value;
+    template <class T>
+    static constexpr std::make_index_sequence<tuple_size<T>> index_seq = {};
     template <class T> using datapar = Vc::datapar<T, datapar_abi::fixed_size<N>>;
     template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
     using size_tag = std::integral_constant<size_t, N>;
@@ -340,37 +422,52 @@ template <int N> struct fixed_size_datapar_impl {
 
 // mask impl {{{1
 template <int N> struct fixed_size_mask_impl {
+    static_assert(sizeof(ullong) * CHAR_BIT >= N,
+                  "The fixed_size implementation relies on one "
+                  "ullong being able to store all boolean "
+                  "elements.");  // required in load & store
+
     // member types {{{2
     static constexpr std::make_index_sequence<N> index_seq = {};
-    using mask_member_type = std::array<bool, N>;
+    using mask_member_type = std::bitset<N>;
     template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
     using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
 
-    // broadcast {{{2
-    template <size_t... I>
-    static Vc_INTRINSIC mask_member_type
-    broadcast_impl(bool x, std::index_sequence<I...>) noexcept
+    // to_bitset {{{2
+    static Vc_INTRINSIC mask_member_type to_bitset(const mask_member_type &bs) noexcept
     {
-        return {((void)I, x)...};
+        return bs;
     }
+
+    // from_bitset {{{2
     template <class T>
-    static inline mask_member_type broadcast(bool x, type_tag<T>) noexcept
+    static Vc_INTRINSIC mask_member_type from_bitset(const mask_member_type &bs,
+                                                     type_tag<T>) noexcept
     {
-        return broadcast_impl(x, index_seq);
+        return bs;
+    }
+
+    // broadcast {{{2
+    template <class T>
+    static Vc_INTRINSIC mask_member_type broadcast(bool x, type_tag<T>) noexcept
+    {
+        return ullong(x) * ((1llu << N) - 1llu);
     }
 
     // load {{{2
-    template <size_t... I>
-    static Vc_INTRINSIC mask_member_type load_impl(const bool *mem,
-                                                   std::index_sequence<I...>) noexcept
-    {
-        return {mem[I]...};
-    }
     template <class F>
-    static inline mask_member_type load(const bool *mem, F, size_tag) noexcept
+    static inline mask_member_type load(const bool *mem, F f, size_tag) noexcept
     {
-        return load_impl(mem, index_seq);
+        // TODO: uchar is not necessarily the best type to use here. For smaller N ushort,
+        // uint, ullong, float, and double can be more efficient.
+        ullong r = 0;
+        using Vs = fixed_size_storage<uchar, N>;
+        detail::for_each(Vs{}, [&](auto v, auto i) {
+            typename decltype(v)::mask_type k(&mem[i], f);
+            r |= k.to_bitset().to_ullong() << i;
+        });
+        return r;
     }
 
     // masked load {{{2
@@ -387,21 +484,103 @@ template <int N> struct fixed_size_mask_impl {
     static inline void masked_load(mask_member_type &merge, const mask_member_type &mask,
                                    const bool *mem, F, size_tag) noexcept
     {
-        masked_load_impl(merge, mask, mem, index_seq);
+        // TODO: optimize with maskload intrinsics
+        masked_load_impl(merge, mask, mem, std::make_index_sequence<N>());
     }
 
     // store {{{2
-    template <size_t... I>
-    static Vc_INTRINSIC void store_impl(const mask_member_type &v, bool *mem,
-                                        std::index_sequence<I...>) noexcept
-    {
-        auto &&x = {(mem[I] = v[I])...};
-        unused(x);
-    }
     template <class F>
-    static inline void store(const mask_member_type &v, bool *mem, F, size_tag) noexcept
+    static inline void store(mask_member_type bs, bool *mem, F f, size_tag) noexcept
     {
-        store_impl(v, mem, index_seq);
+#ifdef Vc_HAVE_AVX512BW
+        unused(f);
+        const __m512i bool64 =
+            and_(_mm512_movm_epi8(bs.to_ullong()), x86::one64(uchar()));
+        std::memcpy(mem, &bool64, N);
+#elif defined Vc_HAVE_BMI2
+#ifdef Vc_IS_AMD64
+        unused(f);
+        execute_n_times<N / 8>([&](auto i) {
+            constexpr size_t offset = i * 8;
+            const ullong bool8 =
+                _pdep_u64(bs.to_ullong() >> offset, 0x0101010101010101ULL);
+            std::memcpy(&mem[offset], &bool8, 8);
+        });
+        if (N % 8 > 0) {
+            constexpr size_t offset = (N / 8) * 8;
+            const ullong bool8 =
+                _pdep_u64(bs.to_ullong() >> offset, 0x0101010101010101ULL);
+            std::memcpy(&mem[offset], &bool8, N % 8);
+        }
+#else   // Vc_IS_AMD64
+        unused(f);
+        execute_n_times<N / 4>([&](auto i) {
+            constexpr size_t offset = i * 4;
+            const ullong bool4 =
+                _pdep_u32(bs.to_ullong() >> offset, 0x01010101U);
+            std::memcpy(&mem[offset], &bool4, 4);
+        });
+        if (N % 4 > 0) {
+            constexpr size_t offset = (N / 4) * 4;
+            const ullong bool4 =
+                _pdep_u32(bs.to_ullong() >> offset, 0x01010101U);
+            std::memcpy(&mem[offset], &bool4, N % 4);
+        }
+#endif  // Vc_IS_AMD64
+#elif defined Vc_HAVE_SSE2   // !AVX512BW && !BMI2
+        using V = datapar<uchar, datapar_abi::sse>;
+        ullong bits = bs.to_ullong();
+        execute_n_times<(N + 15) / 16>([&](auto i) {
+            constexpr size_t offset = i * 16;
+            constexpr size_t remaining = N - offset;
+            if (remaining == 1) {
+                mem[offset] = static_cast<bool>(bits >> offset);
+            } else if (remaining <= 4) {
+                const uint bool4 = ((bits >> offset) * 0x00204081U) & 0x01010101U;
+                std::memcpy(&mem[offset], &bool4, remaining);
+            } else if (remaining <= 7) {
+                const ullong bool8 =
+                    ((bits >> offset) * 0x40810204081ULL) & 0x0101010101010101ULL;
+                std::memcpy(&mem[offset], &bool8, remaining);
+            } else {
+                auto tmp = _mm_cvtsi32_si128(bits >> offset);
+                tmp = _mm_unpacklo_epi8(tmp, tmp);
+                tmp = _mm_unpacklo_epi16(tmp, tmp);
+                tmp = _mm_unpacklo_epi32(tmp, tmp);
+                V tmp2(tmp);
+                tmp2 &= V([](auto j) {
+                    return static_cast<uchar>(1 << (j % CHAR_BIT));
+                });  // mask bit index
+                const __m128i bool16 =
+                    _mm_add_epi8(data(tmp2 == V()),
+                                 x86::one16(uchar()));  // 0xff -> 0x00 | 0x00 -> 0x01
+                if (remaining >= 16) {
+                    x86::store16(bool16, &mem[offset], f);
+                } else if (remaining & 3) {
+                    _mm_maskmoveu_si128(bool16,
+                                        _mm_srli_si128(allone<__m128i>(), 16 - remaining),
+                                        reinterpret_cast<char *>(&mem[offset]));
+                } else  // at this point: 8 < remaining < 16
+                    if (remaining >= 8) {
+                    x86::store8(bool16, &mem[offset], f);
+                    if (remaining == 12) {
+                        x86::store4(_mm_unpackhi_epi64(bool16, bool16), &mem[offset + 8],
+                                    f);
+                    }
+                }
+            }
+        });
+#else
+        // TODO: uchar is not necessarily the best type to use here. For smaller N ushort,
+        // uint, ullong, float, and double can be more efficient.
+        using Vs = fixed_size_storage<uchar, N>;
+        detail::for_each(Vs{}, [&](auto v, auto i) {
+            using M = typename decltype(v)::mask_type;
+            M::from_bitset(bs.to_ullong() >> i).memstore(&mem[i], f);
+        });
+//#else
+        //execute_n_times<N>([&](auto i) { mem[i] = bs[i]; });
+#endif  // Vc_HAVE_BMI2
     }
 
     // masked store {{{2
@@ -417,58 +596,53 @@ template <int N> struct fixed_size_mask_impl {
     }
 
     // negation {{{2
-    template <size_t... I>
-    static Vc_INTRINSIC mask_member_type negate_impl(const mask_member_type &x,
-                                                     std::index_sequence<I...>) noexcept
+    static Vc_INTRINSIC mask_member_type negate(const mask_member_type &x,
+                                                size_tag) noexcept
     {
-        return {!x[I]...};
-    }
-    static inline mask_member_type negate(const mask_member_type &x, size_tag) noexcept
-    {
-        return negate_impl(x, index_seq);
+        return ~x;
     }
 
     // logical and bitwise operators {{{2
     template <class T>
-    static inline mask<T> logical_and(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC mask<T> logical_and(const mask<T> &x, const mask<T> &y) noexcept
     {
-        return {private_init, generate_from_n_evaluations<N, mask_member_type>(
-                                  [&](auto i) { return x.d[i] && y.d[i]; })};
+        return {bitset_init, x.d & y.d};
     }
 
     template <class T>
-    static inline mask<T> logical_or(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC mask<T> logical_or(const mask<T> &x, const mask<T> &y) noexcept
     {
-        return {private_init, generate_from_n_evaluations<N, mask_member_type>(
-                                  [&](auto i) { return x.d[i] || y.d[i]; })};
+        return {bitset_init, x.d | y.d};
     }
 
-    template <class T> static inline mask<T> bit_and(const mask<T> &x, const mask<T> &y)
+    template <class T>
+    static Vc_INTRINSIC mask<T> bit_and(const mask<T> &x, const mask<T> &y) noexcept
     {
-        return {private_init, generate_from_n_evaluations<N, mask_member_type>(
-                                  [&](auto i) { return bool(x.d[i] & y.d[i]); })};
+        return {bitset_init, x.d & y.d};
     }
 
-    template <class T> static inline mask<T> bit_or(const mask<T> &x, const mask<T> &y)
+    template <class T>
+    static Vc_INTRINSIC mask<T> bit_or(const mask<T> &x, const mask<T> &y) noexcept
     {
-        return {private_init, generate_from_n_evaluations<N, mask_member_type>(
-                                  [&](auto i) { return bool(x.d[i] | y.d[i]); })};
+        return {bitset_init, x.d | y.d};
     }
 
-    template <class T> static inline mask<T> bit_xor(const mask<T> &x, const mask<T> &y)
+    template <class T>
+    static Vc_INTRINSIC mask<T> bit_xor(const mask<T> &x, const mask<T> &y) noexcept
     {
-        return {private_init, generate_from_n_evaluations<N, mask_member_type>(
-                                  [&](auto i) { return bool(x.d[i] ^ y.d[i]); })};
+        return {bitset_init, x.d ^ y.d};
     }
 
     // smart_reference access {{{2
-    template <class T, class A> static bool get(const Vc::mask<T, A> &k, int i) noexcept
+    template <class T, class A>
+    static Vc_INTRINSIC bool get(const Vc::mask<T, A> &k, int i) noexcept
     {
         return k.d[i];
     }
-    template <class T, class A> static void set(Vc::mask<T, A> &k, int i, bool x) noexcept
+    template <class T, class A>
+    static Vc_INTRINSIC void set(Vc::mask<T, A> &k, int i, bool x) noexcept
     {
-        k.d[i] = x;
+        k.d.set(i, x);
     }
     // }}}2
 };
@@ -479,7 +653,7 @@ struct fixed_size_traits {
     static constexpr size_t size() noexcept { return N; }
 
     using datapar_impl_type = fixed_size_datapar_impl<N>;
-    using datapar_member_type = std::array<T, N>;
+    using datapar_member_type = fixed_size_storage<T, N>;
     static constexpr size_t datapar_member_alignment =
 #ifdef Vc_GCC
         std::min(size_t(
@@ -493,14 +667,21 @@ struct fixed_size_traits {
         (
 #endif
                  next_power_of_2(N * sizeof(T)));
-    using datapar_cast_type = const datapar_member_type &;
+    using datapar_cast_type = const std::array<T, N> &;
     struct datapar_base {};
 
     using mask_impl_type = fixed_size_mask_impl<N>;
-    using mask_member_type = typename mask_impl_type::mask_member_type;
-    static constexpr size_t mask_member_alignment = next_power_of_2(N);
-    using mask_cast_type = const mask_member_type &;
-    struct mask_base {};
+    using mask_member_type = std::bitset<N>;
+    static constexpr size_t mask_member_alignment = alignof(mask_member_type);
+    class mask_cast_type
+    {
+        mask_cast_type() = delete;
+    };
+    struct mask_base {
+        //explicit operator std::bitset<size()>() const { return impl::to_bitset(d); }
+        // empty. The std::bitset interface suffices
+    };
+
 };
 template <class T, int N>
 struct fixed_size_traits<T, N, false> : public traits<void, void> {

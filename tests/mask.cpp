@@ -192,7 +192,7 @@ TEST_TYPES(M, implicit_conversions, ALL_TYPES)
     implicit_conversions_test<M, fixed_size_mask<schar, M::size()>>();
 }
 
-TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
+TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
 {
     // loads {{{2
     constexpr size_t alignment = 2 * Vc::memory_alignment_v<M
@@ -219,7 +219,8 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
     const M alternating_mask = make_alternating_mask<M>();
 
     M x(&mem[M::size()], vector_aligned);
-    COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : alternating_mask);
+    COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : alternating_mask)
+        << x.to_bitset() << ", alternating_mask: " << alternating_mask.to_bitset();
     x = {&mem[1], element_aligned};
     COMPARE(x, !alternating_mask);
     x = M{mem, overaligned};
@@ -250,7 +251,7 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
         COMPARE(mem[i], false);
     }
     for (; i < 2 * M::size(); ++i) {
-        COMPARE(mem[i], true);
+        COMPARE(mem[i], true) << "i: " << i << ", x: " << x;
     }
     for (; i < 3 * M::size(); ++i) {
         COMPARE(mem[i], false);
@@ -265,13 +266,14 @@ TEST_TYPES(M, load_store, ALL_TYPES)  //{{{1
         COMPARE(mem[i], false);
     }
     memset(mem, 0, sizeof(mem));
-    x.memstore(mem, overaligned);
+    alternating_mask.memstore(mem, overaligned);
     for (i = 0; i < M::size(); ++i) {
-        COMPARE(mem[i], true);
+        COMPARE(mem[i], (i & 1) == 1);
     }
     for (; i < 3 * M::size(); ++i) {
         COMPARE(mem[i], false);
     }
+    x.memstore(mem, overaligned);
     (!x).memstore(mem, alternating_mask, overaligned);
     for (i = 0; i < M::size(); ++i) {
         COMPARE(mem[i], i % 2 == 0);

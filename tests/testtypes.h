@@ -133,6 +133,23 @@ typedef vir::concat<
 
 #define ALL_TYPES all_test_types
 
+// many_fixed_size_types {{{1
+using many_fixed_size_types = vir::expand_list<
+    vir::Typelist<vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<4>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<5>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<6>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<7>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<8>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<9>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<10>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<11>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<12>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<13>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<14>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<15>>,
+                  vir::Template<base_template, Vc::datapar_abi::fixed_size<17>>>,
+    testtypes_float>;
 // reduced_test_types {{{1
 typedef vir::concat<
     native_test_types,

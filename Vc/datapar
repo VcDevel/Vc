@@ -11,12 +11,12 @@
 #include "detail/datapar.h"
 #include "detail/maskeddatapar.h"
 #include "detail/ostream.h"
-#include "detail/fixed_size.h"
 #include "detail/scalar.h"
 #include "detail/sse.h"
 #include "detail/avx.h"
 #include "detail/avx512.h"
 #include "detail/neon.h"
+#include "detail/fixed_size.h"
 
 #if defined Vc_GCC && Vc_GCC >= 0x60000
 #pragma GCC diagnostic pop

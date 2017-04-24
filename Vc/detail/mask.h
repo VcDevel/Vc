@@ -81,8 +81,7 @@ public:
     mask(const mask<U, datapar_abi::fixed_size<size_v>> &x,
          enable_if<conjunction<std::is_same<abi_type, datapar_abi::fixed_size<size_v>>,
                                std::is_same<U, U>>::value> = nullarg)
-        : mask{static_cast<const std::array<bool, size()> &>(x).data(),
-               flags::vector_aligned}
+        : mask{detail::bitset_init, detail::data(x)}
     {
     }
     /* reference implementation for explicit mask casts

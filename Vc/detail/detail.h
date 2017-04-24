@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <limits>
 #include <functional>
+#include <tuple>
 #include "macros.h"
 #include "flags.h"
 #include "type_traits.h"
@@ -119,6 +120,53 @@ Vc_INTRINSIC R generate_from_n_evaluations(F && f)
 {
     return execute_on_index_sequence_with_return<R>(std::forward<F>(f),
                                                     std::make_index_sequence<N>{});
+}
+
+// for_each(tuple, Fun) {{{1
+template <class Tup, size_t... Is>
+constexpr size_t number_of_elements(std::index_sequence<Is...>)
+{
+    size_t sum = 0;
+    std::initializer_list<size_t> &&x = {
+        (sum += std::tuple_element_t<Is, Tup>::size())...};
+    unused(x);
+    return sum;
+}
+
+template <class... Ts, class F>
+Vc_INTRINSIC void for_each(const std::tuple<Ts...> &t_, F &&fun_)
+{
+    execute_on_index_sequence([&](auto i_) {
+        constexpr size_t ii_ = decltype(i_)::value;
+        constexpr size_t prev_elements =
+            number_of_elements<std::tuple<Ts...>>(std::make_index_sequence<ii_>());
+        fun_(std::get<ii_>(t_), std::integral_constant<size_t, prev_elements>());
+    }, std::make_index_sequence<sizeof...(Ts)>());
+}
+
+template <class... Ts, class F>
+Vc_INTRINSIC void for_each(std::tuple<Ts...> &t_, F &&fun_)
+{
+    execute_on_index_sequence([&](auto i_) {
+        constexpr size_t ii_ = decltype(i_)::value;
+        constexpr size_t prev_elements =
+            number_of_elements<std::tuple<Ts...>>(std::make_index_sequence<ii_>());
+        fun_(std::get<ii_>(t_), std::integral_constant<size_t, prev_elements>());
+    }, std::make_index_sequence<sizeof...(Ts)>());
+}
+
+// for_each(tuple, tuple, Fun) {{{1
+template <class... Ts, class F>
+Vc_INTRINSIC void for_each(const std::tuple<Ts...> &a_, const std::tuple<Ts...> &b_,
+                           F &&fun_)
+{
+    execute_on_index_sequence([&](auto i_) {
+        constexpr size_t ii_ = decltype(i_)::value;
+        constexpr size_t prev_elements =
+            number_of_elements<std::tuple<Ts...>>(std::make_index_sequence<ii_>());
+        fun_(std::get<ii_>(a_), std::get<ii_>(b_),
+             std::integral_constant<size_t, prev_elements>());
+    }, std::make_index_sequence<sizeof...(Ts)>());
 }
 
 // may_alias{{{1

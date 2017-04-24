@@ -28,7 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_SSE_H_
 #define VC_DATAPAR_SSE_H_
 
-#include "fixed_size.h"
 #include "macros.h"
 #ifdef Vc_HAVE_SSE
 #include "storage.h"
