@@ -786,32 +786,17 @@ inline fixed_size_datapar<T, N> masked_unary(const fixed_size_mask<T, N> &k,
 // [mask.reductions] {{{1
 template <class T, int N> inline bool all_of(const fixed_size_mask<T, N> &k)
 {
-    for (int i = 0; i < N; ++i) {
-        if (!k[i]) {
-            return false;
-        }
-    }
-    return true;
+    return data(k).all();
 }
 
 template <class T, int N> inline bool any_of(const fixed_size_mask<T, N> &k)
 {
-    for (int i = 0; i < N; ++i) {
-        if (k[i]) {
-            return true;
-        }
-    }
-    return false;
+    return data(k).any();
 }
 
 template <class T, int N> inline bool none_of(const fixed_size_mask<T, N> &k)
 {
-    for (int i = 0; i < N; ++i) {
-        if (k[i]) {
-            return false;
-        }
-    }
-    return true;
+    return data(k).none();
 }
 
 template <class T, int N> inline bool some_of(const fixed_size_mask<T, N> &k)
@@ -826,11 +811,7 @@ template <class T, int N> inline bool some_of(const fixed_size_mask<T, N> &k)
 
 template <class T, int N> inline int popcount(const fixed_size_mask<T, N> &k)
 {
-    int n = k[0];
-    for (int i = 1; i < N; ++i) {
-        n += k[i];
-    }
-    return n;
+    return data(k).count();
 }
 
 template <class T, int N> inline int find_first_set(const fixed_size_mask<T, N> &k)
