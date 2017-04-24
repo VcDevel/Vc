@@ -65,6 +65,10 @@ public:
     // non-std; required to work around ICC ICEs
     static constexpr size_type size_v = traits::size();
 
+    // access to internal representation (suggested extension)
+    explicit mask(typename traits::mask_cast_type init) : d{init} {}
+    // conversions to internal type is done in mask_base
+
     // bitset interface
     static mask from_bitset(std::bitset<size()> bs) { return {detail::bitset_init, bs}; }
     std::bitset<size()> to_bitset() const { return impl::to_bitset(d); }
@@ -140,10 +144,6 @@ public:
 
     // negation
     mask operator!() const { return {detail::private_init, impl::negate(d, size_tag)}; }
-
-    // access to internal representation (suggested extension)
-    explicit operator typename traits::mask_cast_type() const { return d; }
-    explicit mask(const typename traits::mask_cast_type &init) : d{init} {}
 
     // mask binary operators [mask.binary]
     friend mask operator&&(const mask &x, const mask &y)

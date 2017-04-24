@@ -104,8 +104,21 @@ template <class T> struct avx512_traits {
     using mask_member_type = avx512_mask_member_type<T>;
     using mask_impl_type = avx512_mask_impl;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-    using mask_cast_type = typename mask_member_type::VectorType;
-    struct mask_base {};
+    class mask_cast_type
+    {
+        using U = typename mask_member_type::VectorType;
+        U d;
+
+    public:
+        mask_cast_type(U x) : d(x) {}
+        operator mask_member_type() const { return d; }
+    };
+    struct mask_base {
+        explicit operator typename mask_member_type::VectorType() const
+        {
+            return data(*static_cast<const mask<T, datapar_abi::avx512> *>(this));
+        }
+    };
 #endif  // Vc_HAVE_AVX512_ABI
 };
 

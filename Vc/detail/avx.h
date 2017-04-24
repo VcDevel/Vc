@@ -59,8 +59,21 @@ template <class T> struct avx_traits {
     using mask_member_type = avx_mask_member_type<T>;
     using mask_impl_type = avx_mask_impl;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-    using mask_cast_type = typename mask_member_type::VectorType;
-    struct mask_base {};
+    class mask_cast_type
+    {
+        using U = typename mask_member_type::VectorType;
+        U d;
+
+    public:
+        mask_cast_type(U x) : d(x) {}
+        operator mask_member_type() const { return d; }
+    };
+    struct mask_base {
+        explicit operator typename mask_member_type::VectorType() const
+        {
+            return data(*static_cast<const mask<T, datapar_abi::avx> *>(this));
+        }
+    };
 };
 
 #ifdef Vc_HAVE_AVX_ABI
@@ -763,36 +776,31 @@ Vc_VERSIONED_NAMESPACE_END
 Vc_VERSIONED_NAMESPACE_BEGIN
 template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(mask<T, datapar_abi::avx> k)
 {
-    const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    const auto d = detail::data(k);
     return 0 != detail::testc(d, detail::allone_poly);
 }
 
 template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(mask<T, datapar_abi::avx> k)
 {
-    const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    const auto d = detail::data(k);
     return 0 == detail::testz(d, d);
 }
 
 template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(mask<T, datapar_abi::avx> k)
 {
-    const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    const auto d = detail::data(k);
     return 0 != detail::testz(d, d);
 }
 
 template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(mask<T, datapar_abi::avx> k)
 {
-    const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    const auto d = detail::data(k);
     return 0 != detail::testnzc(d, detail::allone_poly);
 }
 
 template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(mask<T, datapar_abi::avx> k)
 {
-    const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    const auto d = detail::data(k);
     switch (k.size()) {
     case 4:
         return detail::popcnt4(detail::mask_to_int<k.size()>(d));
@@ -810,15 +818,13 @@ template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(mask<T, datapar_abi::a
 
 template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_first_set(mask<T, datapar_abi::avx> k)
 {
-    const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    const auto d = detail::data(k);
     return detail::firstbit(detail::mask_to_int<k.size()>(d));
 }
 
 template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(mask<T, datapar_abi::avx> k)
 {
-    const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::avx>::mask_cast_type>(k);
+    const auto d = detail::data(k);
     if (k.size() == 16) {
         return detail::lastbit(detail::mask_to_int<32>(d)) / 2;
     }
