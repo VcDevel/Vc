@@ -34,6 +34,7 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
 template <class T, class A> Vc_INTRINSIC_L auto data(const datapar<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> Vc_INTRINSIC_L auto &data(datapar<T, A> & x) Vc_INTRINSIC_R;
 
 template <class Derived> struct generic_datapar_impl;
 // allow_conversion_ctor2{{{1
@@ -334,8 +335,10 @@ private:
     // Work around "warning C4396: the inline specifier cannot be used when a friend
     // declaration refers to a specialization of a function template"
     template <class U, class A> friend auto detail::data(const datapar<U, A> &);
+    template <class U, class A> friend auto &detail::data(datapar<U, A> &);
 #else
     friend auto detail::data<value_type, abi_type>(const datapar &);
+    friend auto &detail::data<value_type, abi_type>(datapar &);
 #endif
     datapar(detail::private_init_t, const member_type &init) : d(init) {}
     alignas(traits::datapar_member_alignment) member_type d = {};
@@ -344,6 +347,7 @@ private:
 namespace detail
 {
 template <class T, class A> Vc_INTRINSIC auto data(const datapar<T, A> &x) { return x.d; }
+template <class T, class A> Vc_INTRINSIC auto &data(datapar<T, A> &x) { return x.d; }
 }  // namespace detail
 
 Vc_VERSIONED_NAMESPACE_END

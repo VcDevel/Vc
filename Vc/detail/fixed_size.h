@@ -694,11 +694,13 @@ static Vc_INTRINSIC void masked_assign(
     datapar<T, datapar_abi::fixed_size<N>> &lhs,
     const detail::id<datapar<T, datapar_abi::fixed_size<N>>> &rhs)
 {
-    detail::execute_n_times<N>([&](auto i) {
-        if (k[i]) {
-            lhs[i] = rhs[i];
-        }
-    });
+    const std::bitset<N> bits = k.to_bitset();
+    for_each(detail::data(lhs), detail::data(rhs),
+             [&](auto &native_lhs, auto native_rhs, auto offset) {
+                 using M = typename decltype(native_rhs)::mask_type;
+                 masked_assign(M::from_bitset((bits >> offset).to_ullong()), native_lhs,
+                               native_rhs);
+             });
 }
 
 template <typename T, int N>

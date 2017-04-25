@@ -590,6 +590,29 @@ struct avx_mask_impl : public generic_mask_impl<datapar_abi::avx, avx_mask_membe
         return detail::broadcast32(T(mask_bool<T>{x}));
     }
 
+    // from_bitset overloads {{{2
+    using generic_mask_impl<abi, avx_mask_member_type>::from_bitset;
+
+    static Vc_INTRINSIC mask_member_type<float> from_bitset(std::bitset<8> bits,
+                                                            type_tag<float>)
+    {
+        return _mm256_cmp_ps(
+            _mm256_and_ps(_mm256_castsi256_ps(_mm256_set1_epi32(bits.to_ulong())),
+                          _mm256_castsi256_ps(_mm256_setr_epi32(0x01, 0x02, 0x04, 0x08,
+                                                                0x10, 0x20, 0x40, 0x80))),
+            _mm256_setzero_ps(), _CMP_NEQ_UQ);
+    }
+
+    static Vc_INTRINSIC mask_member_type<double> from_bitset(std::bitset<4> bits,
+                                                            type_tag<double>)
+    {
+        return _mm256_cmp_pd(
+            _mm256_and_pd(
+                _mm256_castsi256_pd(_mm256_set1_epi64x(bits.to_ulong())),
+                _mm256_castsi256_pd(_mm256_setr_epi64x(0x01, 0x02, 0x04, 0x08))),
+            _mm256_setzero_pd(), _CMP_NEQ_UQ);
+    }
+
     // load {{{2
     template <class F>
     static Vc_INTRINSIC __m256 load(const bool *mem, F, size_tag<4>) noexcept

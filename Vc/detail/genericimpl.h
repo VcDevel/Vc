@@ -207,7 +207,8 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
         if (bits_per_element >= N) {
             V tmp(static_cast<U>(bits.to_ullong()));                  // broadcast
             tmp &= V([](auto i) { return static_cast<U>(1 << i); });  // mask bit index
-            return detail::data(tmp != V());
+            return detail::intrin_cast<detail::intrinsic_type<T, N>>(
+                detail::data(tmp != V()));
         } else {
             V tmp([&](auto i) {
                 return static_cast<U>(bits.to_ullong() >>
@@ -216,10 +217,10 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
             tmp &= V([](auto i) {
                 return static_cast<U>(1 << (i % bits_per_element));
             });  // mask bit index
-            return detail::data(tmp != V());
+            return detail::intrin_cast<detail::intrinsic_type<T, N>>(
+                detail::data(tmp != V()));
         }
     }
-
 };
 //}}}1
 }  // namespace detail

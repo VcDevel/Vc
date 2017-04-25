@@ -617,7 +617,7 @@ struct avx512_mask_impl
 
     // from_bitset{{{2
     template <size_t N, class T>
-    mask_member_type<N> from_bitset(std::bitset<N> bits, type_tag<T>)
+    static Vc_INTRINSIC mask_member_type<N> from_bitset(std::bitset<N> bits, type_tag<T>)
     {
         return bits.to_ullong();
     }

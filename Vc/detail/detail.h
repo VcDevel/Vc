@@ -263,7 +263,22 @@ Vc_INTRINSIC void for_each(datapar_tuple<T, A0, A1, As...> &t_, F &&fun_)
     for_each<Offset + t_.first.size()>(t_.second, std::forward<F>(fun_));
 }
 
-// for_each(datapar_tuple, datapar_tuple, Fun) {{{2
+// for_each(datapar_tuple &, const datapar_tuple &, Fun) {{{2
+template <size_t Offset = 0, class T, class A0, class F>
+Vc_INTRINSIC void for_each(datapar_tuple<T, A0> &a_, const datapar_tuple<T, A0> &b_,
+                           F &&fun_)
+{
+    std::forward<F>(fun_)(a_.first, b_.first, std::integral_constant<size_t, Offset>());
+}
+template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
+Vc_INTRINSIC void for_each(datapar_tuple<T, A0, A1, As...> & a_,
+                           const datapar_tuple<T, A0, A1, As...> &b_, F &&fun_)
+{
+    fun_(a_.first, b_.first, std::integral_constant<size_t, Offset>());
+    for_each<Offset + a_.first.size()>(a_.second, b_.second, std::forward<F>(fun_));
+}
+
+// for_each(const datapar_tuple &, const datapar_tuple &, Fun) {{{2
 template <size_t Offset = 0, class T, class A0, class F>
 Vc_INTRINSIC void for_each(const datapar_tuple<T, A0> &a_, const datapar_tuple<T, A0> &b_,
                            F &&fun_)
