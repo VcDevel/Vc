@@ -127,6 +127,86 @@ static_assert(std::is_same<fixed_size_storage<float, 13>,
 #endif
 }  // namespace tests
 
+// n_abis_in_tuple {{{1
+template <class T> struct seq_op;
+template <size_t I0, size_t... Is> struct seq_op<std::index_sequence<I0, Is...>> {
+    using first_plus_one = std::index_sequence<I0 + 1, Is...>;
+    using notfirst_plus_one = std::index_sequence<I0, (Is + 1)...>;
+    template <size_t First, size_t Add>
+    using prepend = std::index_sequence<First, I0 + Add, (Is + Add)...>;
+};
+
+template <class T> struct n_abis_in_tuple;
+template <class T> struct n_abis_in_tuple<datapar_tuple<T>> {
+    using counts = std::index_sequence<0>;
+    using begins = std::index_sequence<0>;
+};
+template <class T, class A> struct n_abis_in_tuple<datapar_tuple<T, A>> {
+    using counts = std::index_sequence<1>;
+    using begins = std::index_sequence<0>;
+};
+template <class T, class A0, class... As>
+struct n_abis_in_tuple<datapar_tuple<T, A0, A0, As...>> {
+    using counts = typename seq_op<
+        typename n_abis_in_tuple<datapar_tuple<T, A0, As...>>::counts>::first_plus_one;
+    using begins = typename seq_op<typename n_abis_in_tuple<
+        datapar_tuple<T, A0, As...>>::begins>::notfirst_plus_one;
+};
+template <class T, class A0, class A1, class... As>
+struct n_abis_in_tuple<datapar_tuple<T, A0, A1, As...>> {
+    using counts = typename seq_op<typename n_abis_in_tuple<
+        datapar_tuple<T, A1, As...>>::counts>::template prepend<1, 0>;
+    using begins = typename seq_op<typename n_abis_in_tuple<
+        datapar_tuple<T, A1, As...>>::begins>::template prepend<0, 1>;
+};
+
+namespace tests
+{
+static_assert(
+    std::is_same<n_abis_in_tuple<datapar_tuple<int, datapar_abi::sse, datapar_abi::sse,
+                                                datapar_abi::scalar, datapar_abi::scalar,
+                                                datapar_abi::scalar>>::counts,
+                 std::index_sequence<2, 3>>::value,
+    "");
+static_assert(
+    std::is_same<n_abis_in_tuple<datapar_tuple<int, datapar_abi::sse, datapar_abi::sse,
+                                                datapar_abi::scalar, datapar_abi::scalar,
+                                                datapar_abi::scalar>>::begins,
+                 std::index_sequence<0, 2>>::value,
+    "");
+}  // namespace tests
+
+// tree_reduction {{{1
+template <size_t Count, size_t Begin> struct tree_reduction {
+    static_assert(Count > 0,
+                  "tree_reduction requires at least one datapar object to work with");
+    template <class T, class... As, class BinaryOperation>
+    auto operator()(const datapar_tuple<T, As...> &tup,
+                    const BinaryOperation &binary_op) const noexcept
+    {
+        constexpr size_t left = next_power_of_2(Count) / 2;
+        constexpr size_t right = Count - left;
+        return binary_op(tree_reduction<left, Begin>()(tup, binary_op),
+                         tree_reduction<right, Begin + left>()(tup, binary_op));
+    }
+};
+template <size_t Begin> struct tree_reduction<1, Begin> {
+    template <class T, class... As, class BinaryOperation>
+    auto operator()(const datapar_tuple<T, As...> &tup, const BinaryOperation &) const
+        noexcept
+    {
+        return detail::get<Begin>(tup);
+    }
+};
+template <size_t Begin> struct tree_reduction<2, Begin> {
+    template <class T, class... As, class BinaryOperation>
+    auto operator()(const datapar_tuple<T, As...> &tup,
+                    const BinaryOperation &binary_op) const noexcept
+    {
+        return binary_op(detail::get<Begin>(tup), detail::get<Begin + 1>(tup));
+    }
+};
+
 // datapar impl {{{1
 template <int N> struct fixed_size_datapar_impl {
     // member types {{{2
@@ -238,12 +318,33 @@ template <int N> struct fixed_size_datapar_impl {
     }
 
     // reductions {{{2
-    template <class T, class BinaryOperation>
-    static inline T reduce(size_tag, const datapar<T> &x, BinaryOperation &binary_op)
+private:
+    template <class T, class... As, class BinaryOperation, size_t... Counts,
+              size_t... Begins>
+    static inline T reduce(const datapar_tuple<T, As...> &tup,
+                           const BinaryOperation &binary_op,
+                           std::index_sequence<Counts...>, std::index_sequence<Begins...>)
     {
-        T r = x[0];
-        execute_n_times<N - 1>([&](auto i) { r = binary_op(r, x[i + 1]); });
-        return r;
+        // TODO: E.g. <AVX, SSE, Scalar> should not reduce as
+        // reduce(reduce(AVX), reduce(SSE), Scalar) but rather as
+        // reduce(reduce(lo(AVX), hi(AVX), SSE), Scalar)
+        // If multiple AVX objects are present, they should reduce to a single AVX object
+        // first
+        const auto scalars =
+            detail::make_tuple(Vc::datapar<T, datapar_abi::scalar>(Vc::reduce(
+                detail::tree_reduction<Counts, Begins>()(tup, binary_op), binary_op))...);
+        return detail::data(
+            detail::tree_reduction<scalars.tuple_size, 0>()(scalars, binary_op));
+    }
+
+public:
+    template <class T, class BinaryOperation>
+    static inline T reduce(size_tag, const datapar<T> &x,
+                           const BinaryOperation &binary_op)
+    {
+        using ranges = n_abis_in_tuple<datapar_member_type<T>>;
+        return fixed_size_datapar_impl::reduce(x.d, binary_op, typename ranges::counts(),
+                                               typename ranges::begins());
     }
 
     // min, max, clamp {{{2

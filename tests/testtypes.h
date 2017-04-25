@@ -120,15 +120,18 @@ typedef vir::concat<
 typedef vir::concat<
     native_test_types,
     vir::expand_list<
-        vir::Typelist<vir::Template<base_template, Vc::datapar_abi::scalar>,
-                      // vir::Template<base_template, Vc::datapar_abi::fixed_size<2>>,
-                      vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
-                      // vir::Template<base_template, Vc::datapar_abi::fixed_size<4>>,
-                      // vir::Template<base_template, Vc::datapar_abi::fixed_size<8>>,
-                      vir::Template<base_template, Vc::datapar_abi::fixed_size<12>>,
-                      // vir::Template<base_template, Vc::datapar_abi::fixed_size<16>>,
-                      vir::Template<base_template, Vc::datapar_abi::fixed_size<
-                                                       Vc::datapar_abi::max_fixed_size>>>,
+        vir::Typelist<
+            vir::Template<base_template, Vc::datapar_abi::scalar>,
+            // vir::Template<base_template, Vc::datapar_abi::fixed_size<2>>,
+            vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
+            // vir::Template<base_template, Vc::datapar_abi::fixed_size<4>>,
+            // vir::Template<base_template, Vc::datapar_abi::fixed_size<8>>,
+            vir::Template<base_template, Vc::datapar_abi::fixed_size<12>>,
+            // vir::Template<base_template, Vc::datapar_abi::fixed_size<16>>,
+            vir::Template<base_template, Vc::datapar_abi::fixed_size<
+                                             Vc::datapar_abi::max_fixed_size - 1>>,
+            vir::Template<base_template,
+                          Vc::datapar_abi::fixed_size<Vc::datapar_abi::max_fixed_size>>>,
         testtypes>> all_test_types;
 
 #define ALL_TYPES all_test_types

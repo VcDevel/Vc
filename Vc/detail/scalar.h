@@ -102,7 +102,7 @@ struct scalar_datapar_impl {
 
     // reductions {{{2
     template <class T, class BinaryOperation>
-    static inline T reduce(size_tag, const datapar<T> &x, BinaryOperation &binary_op)
+    static inline T reduce(size_tag, const datapar<T> &x, BinaryOperation &)
     {
         return x.d;
     }
