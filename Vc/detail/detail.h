@@ -30,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <limits>
 #include <functional>
-#include <tuple>
 #include "macros.h"
 #include "flags.h"
 #include "type_traits.h"
@@ -122,51 +121,161 @@ Vc_INTRINSIC R generate_from_n_evaluations(F && f)
                                                     std::make_index_sequence<N>{});
 }
 
-// for_each(tuple, Fun) {{{1
-template <class Tup, size_t... Is>
-constexpr size_t number_of_elements(std::index_sequence<Is...>)
+// datapar_tuple {{{1
+// why not std::tuple?
+// 1. std::tuple gives no guarantee about the storage order, but I require storage
+//    equivalent to std::array<T, N>
+// 2. much less code to instantiate: I require a very small subset of std::tuple
+//    functionality
+// 3. direct access to the element type (first template argument)
+// 4. enforces equal element type, only different Abi types are allowed
+
+template <class T, class... Abis> struct datapar_tuple;
+// datapar_tuple specializations {{{2
+template <class T> struct datapar_tuple<T> {
+    static constexpr size_t tuple_size = 0;
+    //static constexpr size_t element_count = 0;
+};
+template <class T, class Abi0> struct datapar_tuple<T, Abi0> {
+    using first_type = Vc::datapar<T, Abi0>;
+    static constexpr size_t tuple_size = 1;
+    //static constexpr size_t element_count = first_type::size();
+    first_type first;
+
+    template <size_t Offset = 0, class F>
+    static Vc_INTRINSIC datapar_tuple generate(F &&gen)
+    {
+        return {gen(first_type(), std::integral_constant<size_t, Offset>())};
+    }
+
+    template <class F, class... More>
+    friend Vc_INTRINSIC datapar_tuple apply(F &&fun, const datapar_tuple &x,
+                                            const More &... more)
+    {
+        return {fun(x.first, more.first...)};
+    }
+};
+template <class T, class Abi0, class... Abis> struct datapar_tuple<T, Abi0, Abis...> {
+    using first_type = Vc::datapar<T, Abi0>;
+    using second_type = datapar_tuple<T, Abis...>;
+    static constexpr size_t tuple_size = sizeof...(Abis) + 1;
+    //static constexpr size_t element_count = first_type::size + second_type::element_count;
+    first_type first;
+    second_type second;
+
+    template <size_t Offset = 0, class F>
+    static Vc_INTRINSIC datapar_tuple generate(F &&gen)
+    {
+        return {gen(first_type(), std::integral_constant<size_t, Offset>()),
+                second_type::template generate<Offset + first_type::size()>(
+                    std::forward<F>(gen))};
+    }
+
+    template <class F, class... More>
+    friend Vc_INTRINSIC datapar_tuple apply(F &&fun, const datapar_tuple &x,
+                                            const More &... more)
+    {
+        return {fun(x.first, more.first...),
+                apply(std::forward<F>(fun), x.second, more.second...)};
+    }
+};
+
+// make_tuple {{{2
+template <class T, class A0> datapar_tuple<T, A0> make_tuple(const Vc::datapar<T, A0> &x0)
 {
-    size_t sum = 0;
-    std::initializer_list<size_t> &&x = {
-        (sum += std::tuple_element_t<Is, Tup>::size())...};
-    unused(x);
-    return sum;
+    return {x0};
+}
+template <class T, class A0, class... As>
+datapar_tuple<T, A0, As...> make_tuple(const Vc::datapar<T, A0> &x0,
+                                       const Vc::datapar<T, As> &... xs)
+{
+    return {x0, make_tuple(xs...)};
 }
 
-template <class... Ts, class F>
-Vc_INTRINSIC void for_each(const std::tuple<Ts...> &t_, F &&fun_)
+// get<N> {{{2
+namespace datapar_tuple_impl
 {
-    execute_on_index_sequence([&](auto i_) {
-        constexpr size_t ii_ = decltype(i_)::value;
-        constexpr size_t prev_elements =
-            number_of_elements<std::tuple<Ts...>>(std::make_index_sequence<ii_>());
-        fun_(std::get<ii_>(t_), std::integral_constant<size_t, prev_elements>());
-    }, std::make_index_sequence<sizeof...(Ts)>());
+template <class T, class... Abis>
+auto get_impl(const datapar_tuple<T, Abis...> &t, std::integral_constant<size_t, 0>)
+{
+    return t.first;
+}
+template <size_t N, class T, class... Abis>
+auto get_impl(const datapar_tuple<T, Abis...> &t, std::integral_constant<size_t, N>)
+{
+    return get_impl(t.second, std::integral_constant<size_t, N - 1>());
+}
+}  // namespace datapar_tuple_impl
+template <size_t N, class T, class... Abis> auto get(const datapar_tuple<T, Abis...> &t)
+{
+    return datapar_tuple_impl::get_impl(t, std::integral_constant<size_t, N>());
 }
 
-template <class... Ts, class F>
-Vc_INTRINSIC void for_each(std::tuple<Ts...> &t_, F &&fun_)
+// tuple_element {{{2
+template <size_t I, class T> struct tuple_element;
+template <class T, class A0, class... As>
+struct tuple_element<0, datapar_tuple<T, A0, As...>> {
+    using type = Vc::datapar<T, A0>;
+};
+template <size_t I, class T, class A0, class... As>
+struct tuple_element<I, datapar_tuple<T, A0, As...>> {
+    using type = typename tuple_element<I - 1, datapar_tuple<T, As...>>::type;
+};
+template <size_t I, class T> using tuple_element_t = typename tuple_element<I, T>::type;
+
+// number_of_preceding_elements {{{2
+template <size_t I, class T> struct number_of_preceding_elements;
+template <class T, class A0, class... As>
+struct number_of_preceding_elements<0, datapar_tuple<T, A0, As...>>
+    : public std::integral_constant<size_t, 0> {
+};
+template <size_t I, class T, class A0, class... As>
+struct number_of_preceding_elements<I, datapar_tuple<T, A0, As...>>
+    : public std::integral_constant<
+          size_t,
+          datapar<T, A0>::size() +
+              number_of_preceding_elements<I - 1, datapar_tuple<T, As...>>::value> {
+};
+
+// for_each(const datapar_tuple &, Fun) {{{2
+template <size_t Offset = 0, class T, class A0, class F>
+Vc_INTRINSIC void for_each(const datapar_tuple<T, A0> &t_, F &&fun_)
 {
-    execute_on_index_sequence([&](auto i_) {
-        constexpr size_t ii_ = decltype(i_)::value;
-        constexpr size_t prev_elements =
-            number_of_elements<std::tuple<Ts...>>(std::make_index_sequence<ii_>());
-        fun_(std::get<ii_>(t_), std::integral_constant<size_t, prev_elements>());
-    }, std::make_index_sequence<sizeof...(Ts)>());
+    std::forward<F>(fun_)(t_.first, std::integral_constant<size_t, Offset>());
+}
+template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
+Vc_INTRINSIC void for_each(const datapar_tuple<T, A0, A1, As...> &t_, F &&fun_)
+{
+    fun_(t_.first, std::integral_constant<size_t, Offset>());
+    for_each<Offset + t_.first.size()>(t_.second, std::forward<F>(fun_));
 }
 
-// for_each(tuple, tuple, Fun) {{{1
-template <class... Ts, class F>
-Vc_INTRINSIC void for_each(const std::tuple<Ts...> &a_, const std::tuple<Ts...> &b_,
+// for_each(datapar_tuple &, Fun) {{{2
+template <size_t Offset = 0, class T, class A0, class F>
+Vc_INTRINSIC void for_each(datapar_tuple<T, A0> &t_, F &&fun_)
+{
+    std::forward<F>(fun_)(t_.first, std::integral_constant<size_t, Offset>());
+}
+template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
+Vc_INTRINSIC void for_each(datapar_tuple<T, A0, A1, As...> &t_, F &&fun_)
+{
+    fun_(t_.first, std::integral_constant<size_t, Offset>());
+    for_each<Offset + t_.first.size()>(t_.second, std::forward<F>(fun_));
+}
+
+// for_each(datapar_tuple, datapar_tuple, Fun) {{{2
+template <size_t Offset = 0, class T, class A0, class F>
+Vc_INTRINSIC void for_each(const datapar_tuple<T, A0> &a_, const datapar_tuple<T, A0> &b_,
                            F &&fun_)
 {
-    execute_on_index_sequence([&](auto i_) {
-        constexpr size_t ii_ = decltype(i_)::value;
-        constexpr size_t prev_elements =
-            number_of_elements<std::tuple<Ts...>>(std::make_index_sequence<ii_>());
-        fun_(std::get<ii_>(a_), std::get<ii_>(b_),
-             std::integral_constant<size_t, prev_elements>());
-    }, std::make_index_sequence<sizeof...(Ts)>());
+    std::forward<F>(fun_)(a_.first, b_.first, std::integral_constant<size_t, Offset>());
+}
+template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
+Vc_INTRINSIC void for_each(const datapar_tuple<T, A0, A1, As...> &a_,
+                           const datapar_tuple<T, A0, A1, As...> &b_, F &&fun_)
+{
+    fun_(a_.first, b_.first, std::integral_constant<size_t, Offset>());
+    for_each<Offset + a_.first.size()>(a_.second, b_.second, std::forward<F>(fun_));
 }
 
 // may_alias{{{1

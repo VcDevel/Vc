@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "datapar.h"
 #include "detail.h"
 #include <array>
-#include <tuple>
 
 /**
  * The fixed_size ABI gives the following guarantees:
@@ -81,34 +80,50 @@ template <class T, int N, class Tuple, class Next = select_best_vector_type_t<T,
           int Remain = N - int(Next::size())>
 struct fixed_size_storage_builder;
 
-template <class T, int N, class... Ts, class Next>
-struct fixed_size_storage_builder<T, N, std::tuple<Ts...>, Next, 0> {
-    using type = std::tuple<Ts..., Next>;
+template <class T, int N, class... As, class Next>
+struct fixed_size_storage_builder<T, N, datapar_tuple<T, As...>, Next, 0> {
+    using type = datapar_tuple<T, As..., typename Next::abi_type>;
 };
 
-template <class T, int N, class... Ts, class Next, int Remain>
-struct fixed_size_storage_builder<T, N, std::tuple<Ts...>, Next, Remain> {
-    using type =
-        typename fixed_size_storage_builder<T, Remain, std::tuple<Ts..., Next>>::type;
+template <class T, int N, class... As, class Next, int Remain>
+struct fixed_size_storage_builder<T, N, datapar_tuple<T, As...>, Next, Remain> {
+    using type = typename fixed_size_storage_builder<
+        T, Remain, datapar_tuple<T, As..., typename Next::abi_type>>::type;
 };
 
 template <class T, int N>
-using fixed_size_storage = typename fixed_size_storage_builder<T, N, std::tuple<>>::type;
+using fixed_size_storage = typename fixed_size_storage_builder<T, N, datapar_tuple<T>>::type;
 
 namespace tests {
-using float1 = datapar<float, datapar_abi::scalar>;
-using float4 = datapar<float, datapar_abi::sse>;
-using float8 = datapar<float, datapar_abi::avx>;
-using float16 = datapar<float, datapar_abi::avx512>;
-static_assert(std::is_same<fixed_size_storage<float, 1>, std::tuple<float1>>::value, "fixed_size_storage failure");
-static_assert(std::is_same<fixed_size_storage<float, 2>, std::tuple<float1, float1>>::value, "fixed_size_storage failure");
-static_assert(std::is_same<fixed_size_storage<float, 3>, std::tuple<float1, float1, float1>>::value, "fixed_size_storage failure");
-static_assert(std::is_same<fixed_size_storage<float, 4>, std::tuple<float4>>::value, "fixed_size_storage failure");
-static_assert(std::is_same<fixed_size_storage<float, 5>, std::tuple<float4, float1>>::value, "fixed_size_storage failure");
+using datapar_abi::scalar;
+using datapar_abi::sse;
+using datapar_abi::avx;
+using datapar_abi::avx512;
+static_assert(
+    std::is_same<fixed_size_storage<float, 1>, datapar_tuple<float, scalar>>::value,
+    "fixed_size_storage failure");
+static_assert(std::is_same<fixed_size_storage<float, 2>,
+                           datapar_tuple<float, scalar, scalar>>::value,
+              "fixed_size_storage failure");
+static_assert(std::is_same<fixed_size_storage<float, 3>,
+                           datapar_tuple<float, scalar, scalar, scalar>>::value,
+              "fixed_size_storage failure");
+static_assert(
+    std::is_same<fixed_size_storage<float, 4>, datapar_tuple<float, sse>>::value,
+    "fixed_size_storage failure");
+static_assert(
+    std::is_same<fixed_size_storage<float, 5>, datapar_tuple<float, sse, scalar>>::value,
+    "fixed_size_storage failure");
 #ifdef Vc_HAVE_AVX_ABI
-static_assert(std::is_same<fixed_size_storage<float, 8>, std::tuple<float8>>::value, "fixed_size_storage failure");
-static_assert(std::is_same<fixed_size_storage<float, 12>, std::tuple<float8, float4>>::value, "fixed_size_storage failure");
-static_assert(std::is_same<fixed_size_storage<float, 13>, std::tuple<float8, float4, float1>>::value, "fixed_size_storage failure");
+static_assert(
+    std::is_same<fixed_size_storage<float, 8>, datapar_tuple<float, avx>>::value,
+    "fixed_size_storage failure");
+static_assert(
+    std::is_same<fixed_size_storage<float, 12>, datapar_tuple<float, avx, sse>>::value,
+    "fixed_size_storage failure");
+static_assert(std::is_same<fixed_size_storage<float, 13>,
+                           datapar_tuple<float, avx, sse, scalar>>::value,
+              "fixed_size_storage failure");
 #endif
 }  // namespace tests
 
@@ -118,8 +133,7 @@ template <int N> struct fixed_size_datapar_impl {
     using mask_member_type = std::bitset<N>;
     template <class T> using datapar_member_type = fixed_size_storage<T, N>;
     template <class T>
-    static constexpr std::size_t tuple_size =
-        std::tuple_size<datapar_member_type<T>>::value;
+    static constexpr std::size_t tuple_size = datapar_member_type<T>::tuple_size;
     template <class T>
     static constexpr std::make_index_sequence<tuple_size<T>> index_seq = {};
     template <class T> using datapar = Vc::datapar<T, datapar_abi::fixed_size<N>>;
@@ -144,17 +158,14 @@ template <int N> struct fixed_size_datapar_impl {
     template <class F, class T>
     static Vc_INTRINSIC datapar_member_type<T> generator(F &&gen, type_tag<T>, size_tag)
     {
-        return detail::generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-            [&gen](auto tuple_idx_) {
-                return [&](auto i_) {
-                    constexpr size_t ii_ = decltype(tuple_idx_)::value;
-                    constexpr size_t prev_elements =
-                        number_of_elements<datapar_member_type<T>>(
-                            std::make_index_sequence<ii_>());
-                    return gen(std::integral_constant<size_t, prev_elements + i_>());
-                };
+        return datapar_member_type<T>::generate([&gen](auto native, auto offset_) {
+            return decltype(native)([&](auto i_) {
+                return gen(std::integral_constant<size_t, decltype(offset_)::value +
+                                                              decltype(i_)::value>());
             });
+        });
     }
+
     // load {{{2
     template <class T, class U, size_t... I>
     static Vc_INTRINSIC datapar_member_type<T> load_impl(
@@ -240,33 +251,28 @@ template <int N> struct fixed_size_datapar_impl {
     static inline datapar<T> min(const datapar<T> &a, const datapar<T> &b)
     {
         return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>([&](
-                    auto i) { return std::min(std::get<i>(a.d), std::get<i>(b.d)); })};
+                apply([](auto aa, auto bb) { return Vc::min(aa, bb); }, a.d, b.d)};
     }
 
     template <class T>
     static inline datapar<T> max(const datapar<T> &a, const datapar<T> &b)
     {
         return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>([&](
-                    auto i) { return std::max(std::get<i>(a.d), std::get<i>(b.d)); })};
+                apply([](auto aa, auto bb) { return Vc::max(aa, bb); }, a.d, b.d)};
     }
 
     // complement {{{2
     template <class T, class A>
     static inline Vc::datapar<T, A> complement(const Vc::datapar<T, A> &x) noexcept
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return ~std::get<i>(x.d); })};
+        return {private_init, apply([](auto xx) { return ~xx; }, x.d)};
     }
 
     // unary minus {{{2
     template <class T, class A>
-    static inline Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return -std::get<i>(x.d); })};
+    static inline Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept
+    {
+        return {private_init, apply([](auto xx) { return -xx; }, x.d)};
     }
 
     // arithmetic operators {{{2
@@ -275,99 +281,79 @@ template <int N> struct fixed_size_datapar_impl {
     static inline Vc::datapar<T, A> plus(const Vc::datapar<T, A> &x,
                                          const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) + std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx + yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> minus(const Vc::datapar<T, A> &x,
                                           const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) - std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx - yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> multiplies(const Vc::datapar<T, A> &x,
                                                const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) * std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx * yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> divides(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) / std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx / yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> modulus(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) % std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx % yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_and(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) & std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx & yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_or(const Vc::datapar<T, A> &x,
                                            const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) | std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx | yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_xor(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) ^ std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx ^ yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_shift_left(const Vc::datapar<T, A> &x,
                                                    const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) << std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx << yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_shift_right(const Vc::datapar<T, A> &x,
                                                     const Vc::datapar<T, A> &y)
     {
-        return {private_init,
-                generate_from_n_evaluations<tuple_size<T>, datapar_member_type<T>>(
-                    [&](auto i) { return std::get<i>(x.d) >> std::get<i>(y.d); })};
+        return {private_init, apply([&](auto xx, auto yy) { return xx >> yy; }, x.d, y.d)};
     }
 
     // increment & decrement{{{2
-    template <class... Ts> static inline void increment(std::tuple<Ts...> &x)
+    template <class... Ts> static inline void increment(datapar_tuple<Ts...> &x)
     {
         for_each(x, [](auto &native, int) { ++native; });
     }
 
-    template <class... Ts> static inline void decrement(std::tuple<Ts...> &x)
+    template <class... Ts> static inline void decrement(datapar_tuple<Ts...> &x)
     {
         for_each(x, [](auto &native, int) { --native; });
     }
