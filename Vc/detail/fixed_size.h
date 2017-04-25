@@ -641,8 +641,9 @@ template <int N> struct fixed_size_mask_impl {
                 if (remaining >= 16) {
                     x86::store16(bool16, &mem[offset], f);
                 } else if (remaining & 3) {
+                    constexpr int to_shift = 16 - int(remaining);
                     _mm_maskmoveu_si128(bool16,
-                                        _mm_srli_si128(allone<__m128i>(), 16 - remaining),
+                                        _mm_srli_si128(allone<__m128i>(), to_shift),
                                         reinterpret_cast<char *>(&mem[offset]));
                 } else  // at this point: 8 < remaining < 16
                     if (remaining >= 8) {
