@@ -42,9 +42,6 @@ namespace detail
 struct avx_mask_impl;
 struct avx_datapar_impl;
 
-template <class T> using avx_datapar_member_type = Storage<T, 32 / sizeof(T)>;
-template <class T> using avx_mask_member_type = Storage<T, 32 / sizeof(T)>;
-
 // avx_traits {{{1
 template <class T> struct avx_traits {
     static_assert(sizeof(T) <= 8,
@@ -203,9 +200,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     }
 
     // convert from an AVX512/2-AVX load{{{3
-    template <class T>
-    using avx512_member_type =
-        typename traits<T, datapar_abi::avx512>::datapar_member_type;
+    template <class T> using avx512_member_type = avx512_datapar_member_type<T>;
 
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(

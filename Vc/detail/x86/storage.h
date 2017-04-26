@@ -33,6 +33,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+template <class T> using sse_datapar_member_type = Storage<T, 16 / sizeof(T)>;
+template <class T> using sse_mask_member_type = Storage<T, 16 / sizeof(T)>;
+
+template <class T> using avx_datapar_member_type = Storage<T, 32 / sizeof(T)>;
+template <class T> using avx_mask_member_type = Storage<T, 32 / sizeof(T)>;
+
+template <class T> using avx512_datapar_member_type = Storage<T, 64 / sizeof(T)>;
+template <class T> using avx512_mask_member_type = Storage<bool, 64 / sizeof(T)>;
+template <size_t N> using avx512_mask_member_type_n = Storage<bool, N>;
+
 namespace x86
 {
 

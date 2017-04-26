@@ -43,9 +43,6 @@ namespace detail
 struct sse_mask_impl;
 struct sse_datapar_impl;
 
-template <class T> using sse_datapar_member_type = Storage<T, 16 / sizeof(T)>;
-template <class T> using sse_mask_member_type = Storage<T, 16 / sizeof(T)>;
-
 // sse_traits {{{1
 template <class T> struct sse_traits {
     static_assert(sizeof(T) <= 8,
@@ -248,11 +245,8 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 #endif  // Vc_HAVE_FULL_SSE_ABI
 
     // AVX and AVX-512 datapar_member_type aliases{{{3
-    template <class T>
-    using avx_member_type = typename traits<T, datapar_abi::avx>::datapar_member_type;
-    template <class T>
-    using avx512_member_type =
-        typename traits<T, datapar_abi::avx512>::datapar_member_type;
+    template <class T> using avx_member_type = avx_datapar_member_type<T>;
+    template <class T> using avx512_member_type = avx512_datapar_member_type<T>;
 
     // convert from an AVX/2-SSE load{{{3
     template <class T, class U, class F>

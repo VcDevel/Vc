@@ -82,10 +82,6 @@ template <> struct bool_storage_member_type<64> { using type = __mmask64; };
 #endif  // Vc_HAVE_AVX512F
 
 // traits<T, datapar_abi::avx512>{{{1
-template <class T> using avx512_datapar_member_type = Storage<T, 64 / sizeof(T)>;
-template <class T> using avx512_mask_member_type = Storage<bool, 64 / sizeof(T)>;
-template <size_t N> using avx512_mask_member_type_n = Storage<bool, N>;
-
 template <class T> struct avx512_traits {
     static_assert(sizeof(T) <= 8,
                   "AVX can only implement operations on element types with sizeof <= 8");
