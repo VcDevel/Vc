@@ -156,7 +156,7 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     template <class T> using mask_member_type = avx512_mask_member_type<T>;
     template <class T> using datapar = Vc::datapar<T, abi>;
     template <class T> using mask = Vc::mask<T, abi>;
-    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // broadcast {{{2
@@ -605,7 +605,7 @@ struct avx512_mask_impl
     template <size_t N> using mask_member_type = avx512_mask_member_type_n<N>;
     template <class T> using mask = Vc::mask<T, abi>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
-    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // to_bitset {{{2

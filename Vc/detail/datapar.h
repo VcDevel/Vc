@@ -222,8 +222,7 @@ public:
         F &&gen,
         enable_if<std::is_same<
             value_type, decltype(declval<F>()(
-                            declval<std::integral_constant<size_t, 0> &>()))>::value> =
-            nullarg)
+                            declval<detail::size_constant<0> &>()))>::value> = nullarg)
         : d(impl::generator(std::forward<F>(gen), type_tag, size_tag))
     {
     }

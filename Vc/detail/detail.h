@@ -37,6 +37,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+// size_constant {{{1
+template <size_t X> using size_constant = std::integral_constant<size_t, X>;
+
 // integer type aliases{{{1
 using uchar = unsigned char;
 using schar = signed char;
@@ -92,7 +95,7 @@ template <class T> static constexpr void unused(T && ) {}
 template <typename F, size_t... I>
 Vc_INTRINSIC void execute_on_index_sequence(F && f, std::index_sequence<I...>)
 {
-    auto &&x = {(f(std::integral_constant<size_t, I>()), 0)...};
+    auto &&x = {(f(size_constant<I>()), 0)...};
     unused(x);
 }
 
@@ -104,7 +107,7 @@ Vc_INTRINSIC void execute_on_index_sequence(F &&, std::index_sequence<>)
 template <typename R, typename F, size_t... I>
 Vc_INTRINSIC R execute_on_index_sequence_with_return(F && f, std::index_sequence<I...>)
 {
-    return R{f(std::integral_constant<size_t, I>())...};
+    return R{f(size_constant<I>())...};
 }
 
 // execute_n_times{{{1
@@ -145,7 +148,7 @@ template <class T, class Abi0> struct datapar_tuple<T, Abi0> {
     template <size_t Offset = 0, class F>
     static Vc_INTRINSIC datapar_tuple generate(F &&gen)
     {
-        return {gen(first_type(), std::integral_constant<size_t, Offset>())};
+        return {gen(first_type(), size_constant<Offset>())};
     }
 
     template <class F, class... More>
@@ -166,7 +169,7 @@ template <class T, class Abi0, class... Abis> struct datapar_tuple<T, Abi0, Abis
     template <size_t Offset = 0, class F>
     static Vc_INTRINSIC datapar_tuple generate(F &&gen)
     {
-        return {gen(first_type(), std::integral_constant<size_t, Offset>()),
+        return {gen(first_type(), size_constant<Offset>()),
                 second_type::template generate<Offset + first_type::size()>(
                     std::forward<F>(gen))};
     }
@@ -196,19 +199,19 @@ datapar_tuple<T, A0, As...> make_tuple(const Vc::datapar<T, A0> &x0,
 namespace datapar_tuple_impl
 {
 template <class T, class... Abis>
-auto get_impl(const datapar_tuple<T, Abis...> &t, std::integral_constant<size_t, 0>)
+auto get_impl(const datapar_tuple<T, Abis...> &t, size_constant<0>)
 {
     return t.first;
 }
 template <size_t N, class T, class... Abis>
-auto get_impl(const datapar_tuple<T, Abis...> &t, std::integral_constant<size_t, N>)
+auto get_impl(const datapar_tuple<T, Abis...> &t, size_constant<N>)
 {
-    return get_impl(t.second, std::integral_constant<size_t, N - 1>());
+    return get_impl(t.second, size_constant<N - 1>());
 }
 }  // namespace datapar_tuple_impl
 template <size_t N, class T, class... Abis> auto get(const datapar_tuple<T, Abis...> &t)
 {
-    return datapar_tuple_impl::get_impl(t, std::integral_constant<size_t, N>());
+    return datapar_tuple_impl::get_impl(t, size_constant<N>());
 }
 
 // tuple_element {{{2
@@ -227,7 +230,7 @@ template <size_t I, class T> using tuple_element_t = typename tuple_element<I, T
 template <size_t I, class T> struct number_of_preceding_elements;
 template <class T, class A0, class... As>
 struct number_of_preceding_elements<0, datapar_tuple<T, A0, As...>>
-    : public std::integral_constant<size_t, 0> {
+    : public size_constant<0> {
 };
 template <size_t I, class T, class A0, class... As>
 struct number_of_preceding_elements<I, datapar_tuple<T, A0, As...>>
@@ -241,12 +244,12 @@ struct number_of_preceding_elements<I, datapar_tuple<T, A0, As...>>
 template <size_t Offset = 0, class T, class A0, class F>
 Vc_INTRINSIC void for_each(const datapar_tuple<T, A0> &t_, F &&fun_)
 {
-    std::forward<F>(fun_)(t_.first, std::integral_constant<size_t, Offset>());
+    std::forward<F>(fun_)(t_.first, size_constant<Offset>());
 }
 template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
 Vc_INTRINSIC void for_each(const datapar_tuple<T, A0, A1, As...> &t_, F &&fun_)
 {
-    fun_(t_.first, std::integral_constant<size_t, Offset>());
+    fun_(t_.first, size_constant<Offset>());
     for_each<Offset + t_.first.size()>(t_.second, std::forward<F>(fun_));
 }
 
@@ -254,12 +257,12 @@ Vc_INTRINSIC void for_each(const datapar_tuple<T, A0, A1, As...> &t_, F &&fun_)
 template <size_t Offset = 0, class T, class A0, class F>
 Vc_INTRINSIC void for_each(datapar_tuple<T, A0> &t_, F &&fun_)
 {
-    std::forward<F>(fun_)(t_.first, std::integral_constant<size_t, Offset>());
+    std::forward<F>(fun_)(t_.first, size_constant<Offset>());
 }
 template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
 Vc_INTRINSIC void for_each(datapar_tuple<T, A0, A1, As...> &t_, F &&fun_)
 {
-    fun_(t_.first, std::integral_constant<size_t, Offset>());
+    fun_(t_.first, size_constant<Offset>());
     for_each<Offset + t_.first.size()>(t_.second, std::forward<F>(fun_));
 }
 
@@ -268,13 +271,13 @@ template <size_t Offset = 0, class T, class A0, class F>
 Vc_INTRINSIC void for_each(datapar_tuple<T, A0> &a_, const datapar_tuple<T, A0> &b_,
                            F &&fun_)
 {
-    std::forward<F>(fun_)(a_.first, b_.first, std::integral_constant<size_t, Offset>());
+    std::forward<F>(fun_)(a_.first, b_.first, size_constant<Offset>());
 }
 template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
 Vc_INTRINSIC void for_each(datapar_tuple<T, A0, A1, As...> & a_,
                            const datapar_tuple<T, A0, A1, As...> &b_, F &&fun_)
 {
-    fun_(a_.first, b_.first, std::integral_constant<size_t, Offset>());
+    fun_(a_.first, b_.first, size_constant<Offset>());
     for_each<Offset + a_.first.size()>(a_.second, b_.second, std::forward<F>(fun_));
 }
 
@@ -283,13 +286,13 @@ template <size_t Offset = 0, class T, class A0, class F>
 Vc_INTRINSIC void for_each(const datapar_tuple<T, A0> &a_, const datapar_tuple<T, A0> &b_,
                            F &&fun_)
 {
-    std::forward<F>(fun_)(a_.first, b_.first, std::integral_constant<size_t, Offset>());
+    std::forward<F>(fun_)(a_.first, b_.first, size_constant<Offset>());
 }
 template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
 Vc_INTRINSIC void for_each(const datapar_tuple<T, A0, A1, As...> &a_,
                            const datapar_tuple<T, A0, A1, As...> &b_, F &&fun_)
 {
-    fun_(a_.first, b_.first, std::integral_constant<size_t, Offset>());
+    fun_(a_.first, b_.first, size_constant<Offset>());
     for_each<Offset + a_.first.size()>(a_.second, b_.second, std::forward<F>(fun_));
 }
 
@@ -383,7 +386,7 @@ static constexpr struct private_init_t {} private_init = {};
 static constexpr struct bitset_init_t {} bitset_init = {};
 
 // size_tag{{{1
-template <size_t N> static constexpr std::integral_constant<size_t, N> size_tag = {};
+template <size_t N> static constexpr size_constant<N> size_tag = {};
 
 // identity/id{{{1
 template <class T> struct identity {

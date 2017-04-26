@@ -115,7 +115,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     template <class T> using mask_member_type = sse_mask_member_type<T>;
     template <class T> using datapar = Vc::datapar<T, abi>;
     template <class T> using mask = Vc::mask<T, abi>;
-    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // broadcast {{{2
@@ -869,7 +869,7 @@ struct sse_mask_impl : public generic_mask_impl<datapar_abi::sse, sse_mask_membe
     template <class T> using mask_member_type = sse_mask_member_type<T>;
     template <class T> using mask = Vc::mask<T, datapar_abi::sse>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
-    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // broadcast {{{2

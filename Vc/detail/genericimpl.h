@@ -35,7 +35,7 @@ namespace detail {
 // datapar impl {{{1
 template <class Derived> struct generic_datapar_impl {
     // member types {{{2
-    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // adjust_for_long{{{2
@@ -145,7 +145,7 @@ template <class Derived> struct generic_datapar_impl {
 // mask impl {{{1
 template <class abi, template <class> class mask_member_type> struct generic_mask_impl {
     // member types {{{2
-    template <size_t N> using size_tag = std::integral_constant<size_t, N>;
+    template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // to_bitset {{{2

@@ -218,7 +218,7 @@ template <int N> struct fixed_size_datapar_impl {
     static constexpr std::make_index_sequence<tuple_size<T>> index_seq = {};
     template <class T> using datapar = Vc::datapar<T, datapar_abi::fixed_size<N>>;
     template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
-    using size_tag = std::integral_constant<size_t, N>;
+    using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // broadcast {{{2
@@ -240,8 +240,8 @@ template <int N> struct fixed_size_datapar_impl {
     {
         return datapar_member_type<T>::generate([&gen](auto native, auto offset_) {
             return decltype(native)([&](auto i_) {
-                return gen(std::integral_constant<size_t, decltype(offset_)::value +
-                                                              decltype(i_)::value>());
+                return gen(
+                    size_constant<decltype(offset_)::value + decltype(i_)::value>());
             });
         });
     }
@@ -515,7 +515,7 @@ template <int N> struct fixed_size_mask_impl {
     static constexpr std::make_index_sequence<N> index_seq = {};
     using mask_member_type = std::bitset<N>;
     template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
-    using size_tag = std::integral_constant<size_t, N>;
+    using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // to_bitset {{{2

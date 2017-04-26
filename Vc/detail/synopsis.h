@@ -230,8 +230,7 @@ template <class T, size_t N> using abi_for_size_t = typename abi_for_size<T, N>:
 
 template <class T, class U = typename T::value_type>
 struct memory_alignment
-    : public std::integral_constant<size_t,
-                                    detail::next_power_of_2(sizeof(U) * T::size())> {
+    : public detail::size_constant<detail::next_power_of_2(sizeof(U) * T::size())> {
 };
 template <class T, class U = typename T::value_type>
 constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;

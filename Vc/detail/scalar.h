@@ -44,7 +44,7 @@ struct scalar_datapar_impl {
     template <class T> using datapar_member_type = T;
     template <class T> using datapar = Vc::datapar<T, datapar_abi::scalar>;
     template <class T> using mask = Vc::mask<T, datapar_abi::scalar>;
-    using size_tag = std::integral_constant<size_t, 1>;
+    using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
     // broadcast {{{2
@@ -57,7 +57,7 @@ struct scalar_datapar_impl {
     template <class F, class T>
     static Vc_INTRINSIC T generator(F &&gen, type_tag<T>, size_tag)
     {
-        return gen(std::integral_constant<size_t, 0>());
+        return gen(size_constant<0>());
     }
 
     // load {{{2
@@ -232,7 +232,7 @@ struct scalar_datapar_impl {
 struct scalar_mask_impl {
     // member types {{{2
     template <class T> using mask = Vc::mask<T, datapar_abi::scalar>;
-    using size_tag = std::integral_constant<size_t, 1>;
+    using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
     // to_bitset {{{2
