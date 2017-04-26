@@ -9,6 +9,7 @@ if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4752") # Disable warning "found Intel(R) Advanced Vector Extensions; consider using /arch:AVX"
    AddCompilerFlag("/bigobj") # work around "fatal error C1128: number of sections exceeded object file format limit: compile with /bigobj"
 endif()
+AddCompilerFlag("-fmax-errors=10") # Don't go too crazy on errors
 
 # 32-bit x86 requires SSE for fp math to produce comparable results.
 AddCompilerFlag("-mfpmath=sse" CXX_FLAGS Vc_ARCHITECTURE_FLAGS CXX_RESULT _fpmath_ok)
