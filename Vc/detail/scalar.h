@@ -373,8 +373,8 @@ static Vc_INTRINSIC void masked_assign(
     const mask<T, datapar_abi::scalar> &k, datapar<T, datapar_abi::scalar> &lhs,
     const detail::id<datapar<T, datapar_abi::scalar>> &rhs)
 {
-    if (k.d) {
-        lhs.d = rhs.d;
+    if (detail::data(k)) {
+        detail::data(lhs) = detail::data(rhs);
     }
 }
 
