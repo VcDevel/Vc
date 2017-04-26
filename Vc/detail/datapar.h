@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-template <class T, class A> Vc_INTRINSIC_L auto data(const datapar<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> Vc_INTRINSIC_L const auto &data(const datapar<T, A> &x) Vc_INTRINSIC_R;
 template <class T, class A> Vc_INTRINSIC_L auto &data(datapar<T, A> & x) Vc_INTRINSIC_R;
 
 template <class Derived> struct generic_datapar_impl;
@@ -174,8 +174,7 @@ public:
                         negation<detail::is_narrowing_conversion<U, value_type>>,
                         detail::converts_to_higher_integer_rank<U, value_type>>::value,
             void *> = nullptr)
-        : datapar{static_cast<const std::array<U, size()> &>(x).data(),
-                  flags::vector_aligned}
+        : datapar{static_cast<std::array<U, size()>>(x).data(), flags::vector_aligned}
     {
     }
 
@@ -190,8 +189,7 @@ public:
                                     std::is_convertible<U, value_type>>,
                         detail::is_narrowing_conversion<U, value_type>>::value,
             void *> = nullptr)
-        : datapar{static_cast<const std::array<U, size()> &>(x).data(),
-                  flags::vector_aligned}
+        : datapar{static_cast<std::array<U, size()>>(x).data(), flags::vector_aligned}
     {
     }
 
@@ -276,7 +274,6 @@ public:
     datapar operator-() const { return impl::unary_minus(*this); }
 
     // access to internal representation (suggested extension)
-    explicit operator cast_type() const { return d; }
     explicit datapar(const cast_type &init) : d(init) {}
 
     // compound assignment [datapar.cassign]
@@ -333,10 +330,10 @@ private:
 #ifdef Vc_MSVC
     // Work around "warning C4396: the inline specifier cannot be used when a friend
     // declaration refers to a specialization of a function template"
-    template <class U, class A> friend auto detail::data(const datapar<U, A> &);
+    template <class U, class A> friend const auto &detail::data(const datapar<U, A> &);
     template <class U, class A> friend auto &detail::data(datapar<U, A> &);
 #else
-    friend auto detail::data<value_type, abi_type>(const datapar &);
+    friend const auto &detail::data<value_type, abi_type>(const datapar &);
     friend auto &detail::data<value_type, abi_type>(datapar &);
 #endif
     datapar(detail::private_init_t, const member_type &init) : d(init) {}
@@ -345,7 +342,10 @@ private:
 
 namespace detail
 {
-template <class T, class A> Vc_INTRINSIC auto data(const datapar<T, A> &x) { return x.d; }
+template <class T, class A> Vc_INTRINSIC const auto &data(const datapar<T, A> &x)
+{
+    return x.d;
+}
 template <class T, class A> Vc_INTRINSIC auto &data(datapar<T, A> &x) { return x.d; }
 }  // namespace detail
 

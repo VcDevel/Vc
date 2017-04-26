@@ -59,7 +59,12 @@ template <class T> struct sse_traits {
     using datapar_impl_type = sse_datapar_impl;
     static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
     using datapar_cast_type = typename datapar_member_type::VectorType;
-    struct datapar_base {};
+    struct datapar_base {
+        explicit operator datapar_cast_type() const
+        {
+            return data(*static_cast<const datapar<T, datapar_abi::sse> *>(this));
+        }
+    };
 
     using mask_member_type = sse_mask_member_type<T>;
     using mask_impl_type = sse_mask_impl;

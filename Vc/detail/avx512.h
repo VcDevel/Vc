@@ -99,7 +99,12 @@ template <class T> struct avx512_traits {
     using datapar_impl_type = avx512_datapar_impl;
     static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
     using datapar_cast_type = typename datapar_member_type::VectorType;
-    struct datapar_base {};
+    struct datapar_base {
+        explicit operator datapar_cast_type() const
+        {
+            return data(*static_cast<const datapar<T, datapar_abi::avx512> *>(this));
+        }
+    };
 
     using mask_member_type = avx512_mask_member_type<T>;
     using mask_impl_type = avx512_mask_impl;

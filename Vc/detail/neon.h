@@ -55,11 +55,23 @@ template <class T> struct traits<T, datapar_abi::neon> {
     using datapar_impl_type = neon_datapar_impl;
     static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
     using datapar_cast_type = typename datapar_member_type::VectorType;
+    struct datapar_base {
+        explicit operator datapar_cast_type() const
+        {
+            return data(*static_cast<const datapar<T, datapar_abi::neon> *>(this));
+        }
+    };
 
     using mask_member_type = neon_mask_member_type<T>;
     using mask_impl_type = neon_mask_impl;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
     using mask_cast_type = typename mask_member_type::VectorType;
+    struct mask_base {
+        explicit operator typename mask_member_type::VectorType() const
+        {
+            return data(*static_cast<const mask<T, datapar_abi::neon> *>(this));
+        }
+    };
 };
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

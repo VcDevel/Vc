@@ -753,7 +753,21 @@ struct fixed_size_traits {
 #endif
                  next_power_of_2(N * sizeof(T)));
     using datapar_cast_type = const std::array<T, N> &;
-    struct datapar_base {};
+    struct datapar_base {
+        explicit operator const datapar_member_type &() const
+        {
+            return data(*static_cast<const fixed_size_datapar<T, N> *>(this));
+        }
+        explicit operator std::array<T, N>() const
+        {
+            std::array<T, N> r;
+            // datapar_member_type can be larger because of higher alignment
+            static_assert(sizeof(r) <= sizeof(datapar_member_type), "");
+            std::memcpy(r.data(), &static_cast<const datapar_member_type &>(*this),
+                        sizeof(r));
+            return r;
+        }
+    };
 
     using mask_impl_type = fixed_size_mask_impl<N>;
     using mask_member_type = std::bitset<N>;

@@ -337,8 +337,13 @@ template <class T> struct scalar_traits {
     using datapar_impl_type = scalar_datapar_impl;
     using datapar_member_type = T;
     static constexpr size_t datapar_member_alignment = alignof(T);
-    using datapar_cast_type = const std::array<T, 1>;
-    struct datapar_base {};
+    using datapar_cast_type = std::array<T, 1>;
+    struct datapar_base {
+        explicit operator datapar_cast_type() const
+        {
+            return {data(*static_cast<const datapar<T, datapar_abi::scalar> *>(this))};
+        }
+    };
 
     using mask_impl_type = scalar_mask_impl;
     using mask_member_type = bool;
