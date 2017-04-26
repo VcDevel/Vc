@@ -92,7 +92,6 @@ template <class T> struct avx512_traits {
     static_assert(std::is_arithmetic<T>::value,
                   "AVX512 can only vectorize arithmetic types");
     static_assert(!std::is_same<T, bool>::value, "AVX512 cannot vectorize bool");
-    static constexpr size_t size() noexcept { return 64 / sizeof(T); }
 
 #ifdef Vc_HAVE_AVX512_ABI
     using datapar_member_type = avx512_datapar_member_type<T>;

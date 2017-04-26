@@ -45,10 +45,10 @@ struct avx_datapar_impl;
 template <class T> using avx_datapar_member_type = Storage<T, 32 / sizeof(T)>;
 template <class T> using avx_mask_member_type = Storage<T, 32 / sizeof(T)>;
 
+// avx_traits {{{1
 template <class T> struct avx_traits {
     static_assert(sizeof(T) <= 8,
                   "AVX can only implement operations on element types with sizeof <= 8");
-    static constexpr size_t size() noexcept { return 32 / sizeof(T); }
 
     using datapar_member_type = avx_datapar_member_type<T>;
     using datapar_impl_type = avx_datapar_impl;

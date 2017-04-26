@@ -49,7 +49,6 @@ template <class T> using neon_mask_member_type = Storage<T, 16 / sizeof(T)>;
 template <class T> struct traits<T, datapar_abi::neon> {
     static_assert(sizeof(T) <= 8,
                   "NEON can only implement operations on element types with sizeof <= 8");
-    static constexpr size_t size() noexcept { return 16 / sizeof(T); }
 
     using datapar_member_type = neon_datapar_member_type<T>;
     using datapar_impl_type = neon_datapar_impl;

@@ -128,10 +128,13 @@ template <class T> constexpr bool is_datapar_v = is_datapar<T>::value;
 template <class T> struct is_mask : public std::false_type {};
 template <class T> constexpr bool is_mask_v = is_mask<T>::value;
 
-template <class T, class Abi = datapar_abi::detail::default_abi<T>>
-struct datapar_size
-    : public std::integral_constant<size_t, detail::traits<T, Abi>::size()> {
-};
+template <class T, class Abi = datapar_abi::detail::default_abi<T>> struct datapar_size;
+template <class T> struct datapar_size<T, datapar_abi::scalar> : public detail::size_constant<1> {};
+template <class T> struct datapar_size<T, datapar_abi::sse   > : public detail::size_constant<16 / sizeof(T)> {};
+template <class T> struct datapar_size<T, datapar_abi::avx   > : public detail::size_constant<32 / sizeof(T)> {};
+template <class T> struct datapar_size<T, datapar_abi::avx512> : public detail::size_constant<64 / sizeof(T)> {};
+template <class T> struct datapar_size<T, datapar_abi::neon  > : public detail::size_constant<16 / sizeof(T)> {};
+template <class T, int N> struct datapar_size<T, datapar_abi::fixed_size<N>> : public detail::size_constant<N> {};
 template <class T, class Abi = datapar_abi::detail::default_abi<T>>
 constexpr size_t datapar_size_v = datapar_size<T, Abi>::value;
 

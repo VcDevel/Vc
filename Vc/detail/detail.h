@@ -312,17 +312,16 @@ template <typename T> using may_alias [[gnu::may_alias]] = T;
 template <typename T> using may_alias = typename may_alias_impl<T>::type;
 #endif
 
-    // traits forward declaration{{{1
-    /**
-     * \internal
-     * Defines the implementation of a given <T, Abi>.
-     *
-     * Implementations must ensure that only valid <T, Abi> instantiations are possible.
-     * Static assertions in the type definition do not suffice. It is important that
-     * SFINAE works.
-     */
+// traits forward declaration{{{1
+/**
+ * \internal
+ * Defines the implementation of a given <T, Abi>.
+ *
+ * Implementations must ensure that only valid <T, Abi> instantiations are possible.
+ * Static assertions in the type definition do not suffice. It is important that
+ * SFINAE works.
+ */
 template <class T, class Abi> struct traits {
-    static constexpr size_t size() noexcept { return 0; }
     static constexpr size_t datapar_member_alignment = 1;
     struct datapar_impl_type;
     struct datapar_member_type {};

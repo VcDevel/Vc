@@ -332,8 +332,6 @@ struct scalar_mask_impl {
 
 // traits {{{1
 template <class T> struct scalar_traits {
-    static constexpr size_t size() noexcept { return 1; }
-
     using datapar_impl_type = scalar_datapar_impl;
     using datapar_member_type = T;
     static constexpr size_t datapar_member_alignment = alignof(T);

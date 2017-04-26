@@ -51,16 +51,15 @@ namespace detail {
  * \internal
  * Selects the best SIMD type out of a typelist to store N scalar values.
  */
-struct dummy {
-    static constexpr size_t size() { return ~size_t(); }
+struct dummy : public size_constant<~size_t()> {
 };
 
 template <class T, int N, class A, class... More>
 struct select_best_vector_type {
     using V = std::conditional_t<std::is_destructible<datapar<T, A>>::value,
-                                 datapar<T, A>, dummy>;
+                                 datapar_size<T, A>, dummy>;
     using type =
-        std::conditional_t<(N >= V::size()), V,
+        std::conditional_t<(N >= V::value), datapar<T, A>,
                            typename select_best_vector_type<T, N, More...>::type>;
 };
 template <class T, int N, class A> struct select_best_vector_type<T, N, A> {

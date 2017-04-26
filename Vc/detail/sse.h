@@ -46,14 +46,13 @@ struct sse_datapar_impl;
 template <class T> using sse_datapar_member_type = Storage<T, 16 / sizeof(T)>;
 template <class T> using sse_mask_member_type = Storage<T, 16 / sizeof(T)>;
 
+// sse_traits {{{1
 template <class T> struct sse_traits {
     static_assert(sizeof(T) <= 8,
                   "SSE can only implement operations on element types with sizeof <= 8");
     static_assert(std::is_arithmetic<T>::value,
                   "SSE can only vectorize arithmetic types");
     static_assert(!std::is_same<T, bool>::value, "SSE cannot vectorize bool");
-
-    static constexpr size_t size() noexcept { return 16 / sizeof(T); }
 
     using datapar_member_type = sse_datapar_member_type<T>;
     using datapar_impl_type = sse_datapar_impl;
