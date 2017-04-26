@@ -301,67 +301,6 @@ Vc_INTRINSIC Vc_CONST int movemask_s32(int32x4_t a){}
 Vc_INTRINSIC Vc_CONST int movemask_s16(int16x8_t a){}
 Vc_INTRINSIC Vc_CONST int movemask_s8(int8x16_t a){}
 /*
-Vc_INTRINSIC Vc_CONST int movemask_f32(float32x4_t  a){
-	static const int32x4_t movemask = { 1, 2, 4, 8 };
-	static const int32x4_t highbit = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
-	int32x4_t t0 = vreinterpretq_s32_f32(a);
-	int32x4_t t1 = vtstq_s32(t0, highbit);
-	int32x4_t t2 = vandq_s32(t1, movemask);
-	int32x2_t t3 = vorr_s32(vget_low_s32(t2), vget_high_s32(t2));
-	return vget_lane_s32(t3, 0) | vget_lane_s32(t3, 1);
-}
-Vc_INTRINSIC Vc_CONST int movemask_f64(float64x2_t a) {
-	static const int32x4_t movemask = { 1, 2, 4, 8 };
-    static const int32x4_t highbit = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
-    int32x4_t t0 = vreinterpretq_s32_f64(a);
-    int32x4_t t1 = vtstq_s32(t0, highbit);
-    int32x4_t t2 = vandq_s32(t1, movemask);
-    int32x2_t t3 = vorr_s32(vget_low_s32(t2), vget_high_s32(t2));
-    return vget_lane_s32(t3, 0) | vget_lane_s32(t3, 1)
- }
-
-Vc_INTRINSIC Vc_CONST int movemask_s32(int32x4_t a)
-{
-    uint8x16_t input = (uint8x16_t)_a;
-    const int8_t __attribute__((aligned(16))) xr[8] = { -7, -6, -5, -4, -3, -2, -1, 0 };
-    uint8x8_t mask_and = vdup_n_u8(0x80);
-    int8x8_t mask_shift = vld1_s8(xr);
-    uint8x8_t lo = vget_low_u8(input);
-    uint8x8_t hi = vget_high_u8(input);
-    lo = vand_u8(lo, mask_and);
-    lo = vshl_u8(lo, mask_shift);
-    hi = vand_u8(hi, mask_and);
-    hi = vshl_u8(hi, mask_shift);
-    lo = vpadd_u8(lo, lo);
-    lo = vpadd_u8(lo, lo);
-    lo = vpadd_u8(lo, lo);
-    hi = vpadd_u8(hi, hi);
-    hi = vpadd_u8(hi, hi);
-    hi = vpadd_u8(hi, hi);
-    return ((hi[0] << 8) | (lo[0] & 0xFF));
-}
-
-Vc_INTRINSIC Vc_CONST int movemask_s16(int16x8_t a)
-{
-    uint8x16_t input = (uint8x16_t)_a;
-    const int8_t __attribute__((aligned(16))) xr[8] = { -7, -6, -5, -4, -3, -2, -1, 0 };
-    uint8x8_t mask_and = vdup_n_u8(0x80);
-    int8x8_t mask_shift = vld1_s8(xr);
-    uint8x8_t lo = vget_low_u8(input);
-    uint8x8_t hi = vget_high_u8(input);
-    lo = vand_u8(lo, mask_and);
-    lo = vshl_u8(lo, mask_shift);
-    hi = vand_u8(hi, mask_and);
-    hi = vshl_u8(hi, mask_shift);
-    lo = vpadd_u8(lo, lo);
-    lo = vpadd_u8(lo, lo);
-    lo = vpadd_u8(lo, lo);
-    hi = vpadd_u8(hi, hi);
-    hi = vpadd_u8(hi, hi);
-    hi = vpadd_u8(hi, hi);
-    return ((hi[0] << 8) | (lo[0] & 0xFF));
-}
-
 Vc_INTRINSIC Vc_CONST int movemask_s8(int8x16_t a)
 {
     uint8x16_t input = (uint8x16_t)_a;
@@ -446,53 +385,51 @@ template<> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(int32x4_t k) {}
 template<> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(int32x4_t k) {}
 template<> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(int32x4_t k) {}
 
-
-/*
 // is_equal{{{1
 template <size_t Size>
 Vc_INTRINSIC_L Vc_CONST_L bool is_equal(float32x4_t, float32x4_t) Vc_INTRINSIC_R Vc_CONST_R;
 template <size_t Size>
 Vc_INTRINSIC_L Vc_CONST_L bool is_not_equal(float32x4_t, float32x4_t) Vc_INTRINSIC_R Vc_CONST_R;
+// TBD: should be changed according new changes from TC
 template <> Vc_INTRINSIC Vc_CONST bool is_equal<2>(float32x4_t k1, float32x4_t k2)
 {
-    return movemask_f64(*(const float64x2_t *)&(k1)) == movemask_f64(*(const float64x2_t *)&(k2));
+    //return movemask_f64(*(const float64x2_t *)&(k1)) == movemask_f64(*(const float64x2_t *)&(k2));
 }
 template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<2>(float32x4_t k1, float32x4_t k2)
 {
-    return movemask_f64(*(const float64x2_t *)&(k1)) != movemask_f64(*(const float64x2_t *)&(k2));
+    //return movemask_f64(*(const float64x2_t *)&(k1)) != movemask_f64(*(const float64x2_t *)&(k2));
 }
 
 template <> Vc_INTRINSIC Vc_CONST bool is_equal<4>(float32x4_t k1, float32x4_t k2)
 {
-    return movemask_f32(k1) == movemask_f32(k2);
+    //return movemask_f32(k1) == movemask_f32(k2);
 }
 template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<4>(float32x4_t k1, float32x4_t k2)
 {
-    return movemask_f32(k1) != movemask_f32(k2);
+    //return movemask_f32(k1) != movemask_f32(k2);
 }
 
 template <> Vc_INTRINSIC Vc_CONST bool is_equal<8>(float32x4_t k1, float32x4_t k2)
 {
-    return movemask_s16(*(const int16x8_t *)&(k1)) ==
-           movemask_s16(*(const int16x8_t  *)&(k2));
+    //return movemask_s16(*(const int16x8_t *)&(k1)) ==
+    //       movemask_s16(*(const int16x8_t  *)&(k2));
 }
 template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<8>(float32x4_t k1, float32x4_t k2)
 {
-    return movemask_s16(*(const int16x8_t *)&(k1)) !=
-           movemask_s16(*(const int16x8t_t *)&(k2));
+    //return movemask_s16(*(const int16x8_t *)&(k1)) !=
+    //       movemask_s16(*(const int16x8t_t *)&(k2));
 }
 
 template <> Vc_INTRINSIC Vc_CONST bool is_equal<16>(float32x4_t k1, float32x4_t k2)
 {
-    return movemask_s16(*(const int8x16_t *)&(k1)) ==
-           movemask_s8(*(const int8x16_t *)&(k2));
+    //return movemask_s16(*(const int8x16_t *)&(k1)) ==
+    //       movemask_s8(*(const int8x16_t *)&(k2));
 }
 template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<16>(float32x4_t k1, float32x4_t k2)
 {
-    return movemask_s8(*(const int8x16_t  *)&(k1)) !=
-           movemask_s8(*(const int8x16_t  *)&(k2));
+    //return movemask_s8(*(const int8x16_t  *)&(k1)) !=
+    //       movemask_s8(*(const int8x16_t  *)&(k2));
 }
-*/
 
 // loads{{{1
 /**

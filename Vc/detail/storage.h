@@ -631,7 +631,7 @@ inline std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> & s,
 #elif defined Vc_HAVE_NEON
 // Storage<bool>{{{1
 template <size_t Size> struct bool_storage_member_type;
-template <size_t Size> class Storage<bool, Size, DefaultStrategy>
+template <size_t Size> class Storage<bool, Size, AliasStrategy::Default>
 {
 public:
     using VectorType = typename bool_storage_member_type<Size>::type;
