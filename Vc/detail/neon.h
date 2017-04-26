@@ -308,8 +308,8 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         unused(f);
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
 #endif
-    } 
-    // convert and 64-bit  store{{{3
+    }
+    // convert and 64-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
@@ -320,7 +320,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         unused(f);
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
 #endif
-    } 
+    }
     // convert and 128-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
@@ -332,7 +332,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         unused(f);
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
 #endif
-    } 
+    }
     // masked store {{{2
     template <class T, class U, class F>
     static Vc_INTRINSIC void masked_store(datapar<T> v, U *mem, F,
@@ -353,7 +353,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
 #else
         return equal_to(x, datapar<T>(0));
 #endif
-    } 
+    }
     // compares {{{2
 #if defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>
@@ -444,7 +444,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
 }; 
 // mask impl {{{1
 struct neon_mask_impl {
-     // member types {{{2
+    // member types {{{2
     using abi = datapar_abi::neon;
     template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }
     template <class T> using mask_member_type = neon_mask_member_type<T>;
@@ -528,7 +528,7 @@ struct neon_mask_impl {
 #else
         return detail::not_(x.v());
 #endif
-    } 
+    }
     // logical and bitwise operator s {{{2
     template <class T>
     static Vc_INTRINSIC mask<T> logical_and(const mask<T> &x, const mask<T> &y)
