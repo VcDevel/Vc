@@ -267,7 +267,7 @@ function(vc_add_test name) #{{{
 endfunction() #}}}
 
 vc_add_test(sfinae NO_TESTTYPES)
-vc_add_test(loadstore)
+vc_add_test(loadstore SINGLE_TESTTYPE)
 vc_add_test(mask)
 vc_add_test(datapar)
 vc_add_test(where)

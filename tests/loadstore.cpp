@@ -106,7 +106,7 @@ inline Vc::mask<T, A> is_conversion_undefined(const Vc::datapar<T, A> &x)
 
 // loads & stores {{{1
 TEST_TYPES(VU, load_store,
-           outer_product<reduced_test_types,
+           outer_product<all_test_types,
                           Typelist<long double, double, float, long long, unsigned long,
                                    int, unsigned short, signed char, unsigned long long,
                                    long, unsigned int, short, unsigned char>>)
