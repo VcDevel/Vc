@@ -70,7 +70,6 @@ namespace detail {
 template <class Derived> struct generic_datapar_impl {
     // member types {{{2
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
- 
     // adjust_for_long{{{2
     template <size_t Size>
     static Vc_INTRINSIC Storage<equal_int_type_t<long>, Size> Vc_VDECL
@@ -97,7 +96,6 @@ template <class Derived> struct generic_datapar_impl {
         using V = typename traits::datapar_member_type;
         return {private_init, static_cast<V>(x)};
     }
- 
     // complement {{{2
     template <class T, class A>
     static Vc_INTRINSIC Vc::datapar<T, A> complement(const Vc::datapar<T, A> &x) noexcept
@@ -105,15 +103,14 @@ template <class Derived> struct generic_datapar_impl {
         using detail::aarch::complement;
         return make_datapar<T, A>(complement(adjust_for_long(detail::data(x))));
     }
- 
     // unary minus {{{2
     template <class T, class A>
     static Vc_INTRINSIC Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept
     {
         using detail::aarch::unary_minus;
         return make_datapar<T, A>(unary_minus(adjust_for_long(detail::data(x))));
-    } 
-    // arithmetic operators {{{2 
+    }
+    // arithmetic operators {{{2
 #define Vc_ARITHMETIC_OP_(name_)                                                         \
     template <class T, class A>                                                          \
     static Vc_INTRINSIC datapar<T, A> Vc_VDECL name_(datapar<T, A> x, datapar<T, A> y)   \
@@ -149,7 +146,6 @@ template <class Derived> struct generic_datapar_impl {
         x = detail::plus(adjust_for_long(x), Storage<equal_int_type_t<ulong>, N>(
                                                  Derived::broadcast(1L, size_tag<N>())));
     }
-
     template <class T, size_t N> static Vc_INTRINSIC void decrement(Storage<T, N> &x)
     {
         x = detail::minus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
@@ -229,7 +225,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
     // broadcast {{{2
-    /*
+/*
     static Vc_INTRINSIC intrinsic_type<float> broadcast(float x, size_tag<4>) noexcept
     {
         return vld1q_dup_f32(x);
@@ -238,7 +234,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     {
         return vld1q_dub_f64(x);
     }
-	*/
+*/
     template <class T>
     static Vc_INTRINSIC intrinsic_type<T> broadcast(T x, size_tag<2>) noexcept
     {
@@ -258,7 +254,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     static Vc_INTRINSIC intrinsic_type<T> broadcast(T x, size_tag<16>) noexcept
     {
         return vld1_dub_s8(x);
-    } 
+    }
     // load {{{2
     // from long double has no vector implementation{{{3
     template <class T, class F>
@@ -273,7 +269,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     static Vc_INTRINSIC intrinsic_type<T> load(const T *mem, F f, type_tag<T>) noexcept
     {
         return detail::load16(mem, f);
-    }   
+    }
     // store {{{2
     // store to long double has no vector implementation{{{3
     template <class T, class F>
@@ -282,7 +278,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     {
         // alignment F doesn't matter
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
-    } 
+    }
     // store without conversion{{{3
     template <class T, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, T *mem, F f,
@@ -428,7 +424,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     static Vc_INTRINSIC mask<ushort> less_equal(datapar<ushort> x, datapar<ushort> y) { return {private_init, detail::not_( vcle_u16(x.d, y.d))}; }
     static Vc_INTRINSIC mask< schar> less_equal(datapar< schar> x, datapar< schar> y) { return {private_init, detail::not_( vcle_s8(x.d, y.d))}; }
     static Vc_INTRINSIC mask< uchar> less_equal(datapar< uchar> x, datapar< uchar> y) { return {private_init, detail::not_( vcle_u8(x.d, y.d))}; }
-#endif 
+#endif
     // smart_reference access {{{2
     template <class T, class A>
     static Vc_INTRINSIC T get(Vc::datapar<T, A> v, int i) noexcept
@@ -441,7 +437,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         v.d.set(i, std::forward<U>(x));
     }
     // }}}2
-}; 
+};
 // mask impl {{{1
 struct neon_mask_impl {
     // member types {{{2
@@ -473,7 +469,7 @@ struct neon_mask_impl {
     template <class F>
     static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<16>) noexcept
     {
-    } 
+    }
     // masked load {{{2
     template <class T, class F, class SizeTag>
     static Vc_INTRINSIC void masked_load(mask_member_type<T> &merge,
