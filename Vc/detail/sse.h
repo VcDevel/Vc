@@ -1022,15 +1022,6 @@ struct sse_mask_impl {
     // }}}2
 };
 
-// mask compare base {{{1
-struct sse_compare_base {
-protected:
-    template <class T> using V = Vc::datapar<T, Vc::datapar_abi::sse>;
-    template <class T> using M = Vc::mask<T, Vc::datapar_abi::sse>;
-    template <class T>
-    using S = typename Vc::detail::traits<T, Vc::datapar_abi::sse>::mask_cast_type;
-};
-
 // }}}1
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
@@ -1214,21 +1205,6 @@ template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(mask<T, datapar_a
 Vc_VERSIONED_NAMESPACE_END
 // }}}
 
-namespace std
-{
-// mask operators {{{1
-template <class T>
-struct equal_to<Vc::mask<T, Vc::datapar_abi::sse>>
-    : private Vc::detail::sse_compare_base {
-public:
-    bool operator()(const M<T> &x, const M<T> &y) const noexcept
-    {
-        return Vc::detail::is_equal<M<T>::size()>(static_cast<S<T>>(x),
-                                                  static_cast<S<T>>(y));
-    }
-};
-// }}}1
-}  // namespace std
 #endif  // Vc_HAVE_SSE_ABI
 #endif  // Vc_HAVE_SSE
 

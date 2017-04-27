@@ -730,15 +730,6 @@ struct avx_mask_impl {
     // }}}2
 };
 
-// mask compare base {{{1
-struct avx_compare_base {
-protected:
-    template <class T> using V = Vc::datapar<T, Vc::datapar_abi::avx>;
-    template <class T> using M = Vc::mask<T, Vc::datapar_abi::avx>;
-    template <class T>
-    using S = typename Vc::detail::traits<T, Vc::datapar_abi::avx>::mask_cast_type;
-    template <class T> static constexpr size_t size() { return M<T>::size(); }
-};
 // }}}1
 constexpr struct {
     template <class T> operator T() const { return detail::allone<T>(); }
@@ -815,40 +806,6 @@ template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(mask<T, datapar_a
 Vc_VERSIONED_NAMESPACE_END
 // }}}
 
-namespace std
-{
-// mask operators {{{1
-template <class T>
-struct equal_to<Vc::mask<T, Vc::datapar_abi::avx>>
-    : private Vc::detail::avx_compare_base {
-public:
-    Vc_ALWAYS_INLINE bool operator()(const M<T> &x, const M<T> &y) const
-    {
-        switch (sizeof(T)) {
-        case 1:
-        case 2:
-            return Vc::detail::movemask(
-                       Vc::detail::intrin_cast<__m256i>(static_cast<S<T>>(x))) ==
-                   Vc::detail::movemask(
-                       Vc::detail::intrin_cast<__m256i>(static_cast<S<T>>(y)));
-        case 4:
-            return Vc::detail::movemask(
-                       Vc::detail::intrin_cast<__m256>(static_cast<S<T>>(x))) ==
-                   Vc::detail::movemask(
-                       Vc::detail::intrin_cast<__m256>(static_cast<S<T>>(y)));
-        case 8:
-            return Vc::detail::movemask(
-                       Vc::detail::intrin_cast<__m256d>(static_cast<S<T>>(x))) ==
-                   Vc::detail::movemask(
-                       Vc::detail::intrin_cast<__m256d>(static_cast<S<T>>(y)));
-        default:
-            Vc_UNREACHABLE();
-            return false;
-        }
-    }
-};
-// }}}1
-}  // namespace std
 #endif  // Vc_HAVE_AVX_ABI
 
 #endif  // Vc_HAVE_SSE

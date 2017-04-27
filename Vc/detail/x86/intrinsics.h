@@ -2108,42 +2108,6 @@ template <> Vc_INTRINSIC Vc_CONST int mask_to_int<32>(__m256i k)
 #endif  // Vc_HAVE_AVX2
 #endif  // Vc_HAVE_AVX
 
-// is_equal{{{1
-template <size_t> inline bool is_equal(__m128, __m128);
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<4>(__m128 k1, __m128 k2)
-{
-    return _mm_movemask_ps(k1) == _mm_movemask_ps(k2);
-}
-
-#ifdef Vc_HAVE_SSE2
-template <size_t> inline bool is_equal(__m128d, __m128d);
-template <size_t> inline bool is_equal(__m128i, __m128i);
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<2>(__m128d k1, __m128d k2)
-{
-    return _mm_movemask_pd(k1) == _mm_movemask_pd(k2);
-}
-
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<2>(__m128i k1, __m128i k2)
-{
-    return _mm_movemask_pd(_mm_castsi128_pd(k1)) == _mm_movemask_pd(_mm_castsi128_pd(k2));
-}
-
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<4>(__m128i k1, __m128i k2)
-{
-    return _mm_movemask_ps(_mm_castsi128_ps(k1)) == _mm_movemask_ps(_mm_castsi128_ps(k2));
-}
-
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<8>(__m128i k1, __m128i k2)
-{
-    return _mm_movemask_epi8(k1) == _mm_movemask_epi8(k2);
-}
-
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<16>(__m128i k1, __m128i k2)
-{
-    return _mm_movemask_epi8(k1) == _mm_movemask_epi8(k2);
-}
-#endif  // Vc_HAVE_SSE2
-
 // long cmp{{{1
 #ifdef Vc_HAVE_AVX512F
 template <int = sizeof(long)> Vc_INTRINSIC auto cmpeq_long_mask(__m512i x, __m512i y);

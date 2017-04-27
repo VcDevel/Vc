@@ -87,12 +87,12 @@ TEST_TYPES(M, operators, ALL_TYPES)  //{{{1
 {
     {  // compares{{{2
         M x(true), y(false);
-        VERIFY(x == x);
-        VERIFY(x != y);
-        VERIFY(y != x);
-        VERIFY(!(x != x));
-        VERIFY(!(x == y));
-        VERIFY(!(y == x));
+        VERIFY(all_of(x == x));
+        VERIFY(all_of(x != y));
+        VERIFY(all_of(y != x));
+        VERIFY(!all_of(x != x));
+        VERIFY(!all_of(x == y));
+        VERIFY(!all_of(y == x));
     }
     {  // subscripting{{{2
         M x(true);

@@ -911,14 +911,6 @@ struct avx512_mask_impl {
     // }}}2
 };
 
-// mask compare base {{{1
-struct avx512_compare_base {
-protected:
-    using abi = Vc::datapar_abi::avx512;
-    template <class T> using V = Vc::datapar<T, abi>;
-    template <class T> using M = Vc::mask<T, abi>;
-    template <class T> static constexpr size_t size() { return M<T>::size(); }
-};
 // }}}1
 }  // namespace detail
 
@@ -1039,22 +1031,7 @@ Vc_ALWAYS_INLINE int find_last_set(mask<unsigned char, datapar_abi::avx512> k)
 Vc_VERSIONED_NAMESPACE_END
 // }}}
 
-namespace std
-{
-// mask operators {{{1
-template <class T>
-struct equal_to<Vc::mask<T, Vc::datapar_abi::avx512>>
-    : private Vc::detail::avx512_compare_base {
-public:
-    Vc_ALWAYS_INLINE bool operator()(const M<T> &x, const M<T> &y) const
-    {
-        return Vc::detail::data(x) == Vc::detail::data(y);
-    }
-};
-// }}}1
-}  // namespace std
 #endif  // Vc_HAVE_AVX512_ABI
-
 #endif  // Vc_HAVE_SSE
 #endif  // VC_DATAPAR_AVX512_H_
 
