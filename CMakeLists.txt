@@ -152,6 +152,8 @@ if(Vc_X86 AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
    endmacro()
 
    file(GLOB SDE_DIRS /opt/intel/*)
+   list(SORT SDE_DIRS)
+   list(REVERSE SDE_DIRS)
    Vc_find_sde(${SDE_DIRS} "$ENV{HOME}/.cache/sde/")
 
    # if running a dashboard cycle and no installed SDE was found, download and use it automatically
