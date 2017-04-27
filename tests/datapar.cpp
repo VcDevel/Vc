@@ -237,6 +237,12 @@ TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
     constexpr auto min = std::numeric_limits<T>::min();
     constexpr auto max = std::numeric_limits<T>::max();
     {  // compares{{{2
+        COMPARE(V(0) == make_vec<V>({0, 1}, 0), make_mask<M>({1, 0}));
+        COMPARE(V(0) == make_vec<V>({0, 1, 2}, 0), make_mask<M>({1, 0, 0}));
+        COMPARE(V(1) == make_vec<V>({0, 1, 2}, 0), make_mask<M>({0, 1, 0}));
+        COMPARE(V(2) == make_vec<V>({0, 1, 2}, 0), make_mask<M>({0, 0, 1}));
+        COMPARE(V(0) <  make_vec<V>({0, 1, 2}, 0), make_mask<M>({0, 1, 1}));
+
         constexpr T half = genHalfBits<T>();
         for (T lo_ : {min, T(min + 1), T(-1), T(0), T(1), T(half - 1), half, T(half + 1),
                       T(max - 1)}) {
