@@ -140,7 +140,7 @@ function(vc_add_test name) #{{{
       endif()
    endmacro()
 
-   cmake_parse_arguments("" "NO_TESTTYPES" "" "" ${ARGN})
+   cmake_parse_arguments("" "NO_TESTTYPES;SINGLE_TESTTYPE" "" "" ${ARGN})
 
    set(src "${name}.cpp")
    set(run_targets)
@@ -171,6 +171,8 @@ function(vc_add_test name) #{{{
       endif()
       if(_NO_TESTTYPES)
          set(type_split " ")
+      elseif(_SINGLE_TESTTYPE)
+         set(type_split "ldouble" "float" "double" "uint" "llong" "long" "uchar" "int" "ushort" "short" "ulong" "schar" "ullong")
       elseif(Vc_COMPILER_IS_MSVC)
          set(type_split "ldouble,float,double" "uint,llong" "long,uchar" "int,ushort" "short,ulong" "schar,ullong")
       else()
