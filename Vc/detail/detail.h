@@ -124,6 +124,22 @@ Vc_INTRINSIC R generate_from_n_evaluations(F && f)
                                                     std::make_index_sequence<N>{});
 }
 
+// may_alias{{{1
+template <typename T> struct may_alias_impl {
+    typedef T type Vc_MAY_ALIAS;
+};
+/**\internal
+ * Helper may_alias<T> that turns T into the type to be used for an aliasing pointer. This
+ * adds the may_alias attribute to T (with compilers that support it). But for MaskBool this
+ * attribute is already part of the type and applying it a second times leads to warnings/errors,
+ * therefore MaskBool is simply forwarded as is.
+ */
+#ifdef Vc_ICC
+template <typename T> using may_alias [[gnu::may_alias]] = T;
+#else
+template <typename T> using may_alias = typename may_alias_impl<T>::type;
+#endif
+
 // datapar_tuple {{{1
 // why not std::tuple?
 // 1. std::tuple gives no guarantee about the storage order, but I require storage
@@ -157,6 +173,9 @@ template <class T, class Abi0> struct datapar_tuple<T, Abi0> {
     {
         return {fun(x.first, more.first...)};
     }
+
+    T operator[](size_t i) const noexcept { return first[i]; }
+    void set(size_t i, T val) noexcept { first[i] = val; }
 };
 template <class T, class Abi0, class... Abis> struct datapar_tuple<T, Abi0, Abis...> {
     using first_type = Vc::datapar<T, Abi0>;
@@ -180,6 +199,27 @@ template <class T, class Abi0, class... Abis> struct datapar_tuple<T, Abi0, Abis
     {
         return {fun(x.first, more.first...),
                 apply(std::forward<F>(fun), x.second, more.second...)};
+    }
+
+    T operator[](size_t i) const noexcept
+    {
+#ifdef __GNUC__
+        return reinterpret_cast<const may_alias<T> *>(this)[i];
+#else
+        return i < first.size() ? first[i] : second[i - first.size()];
+#endif
+    }
+    void set(size_t i, T val) noexcept
+    {
+#ifdef __GNUC__
+        reinterpret_cast<may_alias<T> *>(this)[i] = val;
+#else
+        if (i < first.size()) {
+            first[i] = val;
+        } else {
+            second.set(i - first.size(), val);
+        }
+#endif
     }
 };
 
@@ -295,22 +335,6 @@ Vc_INTRINSIC void for_each(const datapar_tuple<T, A0, A1, As...> &a_,
     fun_(a_.first, b_.first, size_constant<Offset>());
     for_each<Offset + a_.first.size()>(a_.second, b_.second, std::forward<F>(fun_));
 }
-
-// may_alias{{{1
-template <typename T> struct may_alias_impl {
-    typedef T type Vc_MAY_ALIAS;
-};
-/**\internal
- * Helper may_alias<T> that turns T into the type to be used for an aliasing pointer. This
- * adds the may_alias attribute to T (with compilers that support it). But for MaskBool this
- * attribute is already part of the type and applying it a second times leads to warnings/errors,
- * therefore MaskBool is simply forwarded as is.
- */
-#ifdef Vc_ICC
-template <typename T> using may_alias [[gnu::may_alias]] = T;
-#else
-template <typename T> using may_alias = typename may_alias_impl<T>::type;
-#endif
 
 // traits forward declaration{{{1
 /**

@@ -481,24 +481,14 @@ public:
 
     // smart_reference access {{{2
     template <class T, class A>
-    static T get(const Vc::datapar<T, A> &v, int i) noexcept
+    static Vc_INTRINSIC T get(const Vc::datapar<T, A> &v, int i) noexcept
     {
-        T r{};
-        for_each(v.d, [&](auto native, int offset) {
-            if (offset <= i && i - offset < int(native.size())) {
-                r = native[i - offset];
-            }
-        });
-        return r;
+        return v.d[i];
     }
     template <class T, class A, class U>
-    static void set(Vc::datapar<T, A> &v, int i, U &&x) noexcept
+    static Vc_INTRINSIC void set(Vc::datapar<T, A> &v, int i, U &&x) noexcept
     {
-        for_each(v.d, [&](auto &native, int offset) {
-            if (offset <= i && i - offset < int(native.size())) {
-                native[i - offset] = std::forward<U>(x);
-            }
-        });
+        v.d.set(i, std::forward<U>(x));
     }
     // }}}2
 };
