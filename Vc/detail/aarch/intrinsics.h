@@ -385,52 +385,6 @@ template<> Vc_INTRINSIC Vc_CONST int mask_to_int<4>(int32x4_t k) {}
 template<> Vc_INTRINSIC Vc_CONST int mask_to_int<8>(int32x4_t k) {}
 template<> Vc_INTRINSIC Vc_CONST int mask_to_int<16>(int32x4_t k) {}
 
-// is_equal{{{1
-template <size_t Size>
-Vc_INTRINSIC_L Vc_CONST_L bool is_equal(float32x4_t, float32x4_t) Vc_INTRINSIC_R Vc_CONST_R;
-template <size_t Size>
-Vc_INTRINSIC_L Vc_CONST_L bool is_not_equal(float32x4_t, float32x4_t) Vc_INTRINSIC_R Vc_CONST_R;
-// TBD: should be changed according new changes from TC
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<2>(float32x4_t k1, float32x4_t k2)
-{
-    //return movemask_f64(*(const float64x2_t *)&(k1)) == movemask_f64(*(const float64x2_t *)&(k2));
-}
-template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<2>(float32x4_t k1, float32x4_t k2)
-{
-    //return movemask_f64(*(const float64x2_t *)&(k1)) != movemask_f64(*(const float64x2_t *)&(k2));
-}
-
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<4>(float32x4_t k1, float32x4_t k2)
-{
-    //return movemask_f32(k1) == movemask_f32(k2);
-}
-template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<4>(float32x4_t k1, float32x4_t k2)
-{
-    //return movemask_f32(k1) != movemask_f32(k2);
-}
-
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<8>(float32x4_t k1, float32x4_t k2)
-{
-    //return movemask_s16(*(const int16x8_t *)&(k1)) ==
-    //       movemask_s16(*(const int16x8_t  *)&(k2));
-}
-template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<8>(float32x4_t k1, float32x4_t k2)
-{
-    //return movemask_s16(*(const int16x8_t *)&(k1)) !=
-    //       movemask_s16(*(const int16x8t_t *)&(k2));
-}
-
-template <> Vc_INTRINSIC Vc_CONST bool is_equal<16>(float32x4_t k1, float32x4_t k2)
-{
-    //return movemask_s16(*(const int8x16_t *)&(k1)) ==
-    //       movemask_s8(*(const int8x16_t *)&(k2));
-}
-template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<16>(float32x4_t k1, float32x4_t k2)
-{
-    //return movemask_s8(*(const int8x16_t  *)&(k1)) !=
-    //       movemask_s8(*(const int8x16_t  *)&(k2));
-}
-
 // loads{{{1
 /**
  * \internal
