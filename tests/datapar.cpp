@@ -37,7 +37,7 @@ template <class... Ts> using base_template = Vc::datapar<Ts...>;
 enum unscoped_enum { foo };  //{{{1
 enum class scoped_enum { bar };  //{{{1
 struct convertible { operator int(); operator float(); };  //{{{1
-TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
+TEST_TYPES(V, broadcast, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
     VERIFY(Vc::is_datapar_v<V>);
@@ -105,7 +105,7 @@ TEST_TYPES(V, broadcast, ALL_TYPES)  //{{{1
             (has_less_bits<T, unsigned char>()));
 }
 
-TEST_TYPES(V, generators, ALL_TYPES)  //{{{1
+TEST_TYPES(V, generators, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
     V x([](int) { return T(1); });
@@ -230,7 +230,7 @@ integral_operators()
 {
 }
 
-TEST_TYPES(V, operators, ALL_TYPES)  //{{{1
+TEST_TYPES(V, operators, all_test_types)  //{{{1
 {
     using M = typename V::mask_type;
     using T = typename V::value_type;
@@ -1403,7 +1403,7 @@ TEST_TYPES(V, operator_conversions, current_native_test_types)  //{{{2
     operator_conversions_impl<V>();
 }
 
-TEST_TYPES(V, reductions, ALL_TYPES)  //{{{1
+TEST_TYPES(V, reductions, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
     V x = 1;
@@ -1432,7 +1432,7 @@ TEST_TYPES(V, reductions, ALL_TYPES)  //{{{1
             }), T(V::size() == 1 ? 117 : 2)) << "z: " << z;
 }
 
-TEST_TYPES(V, algorithms, ALL_TYPES)  //{{{1
+TEST_TYPES(V, algorithms, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
     V a{[](auto i) -> T { return i & 1u; }};

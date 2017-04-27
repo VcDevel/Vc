@@ -53,7 +53,7 @@ template <class M> M make_alternating_mask()
     return make_mask<M>({false, true});
 }
 
-TEST_TYPES(M, broadcast, ALL_TYPES)  //{{{1
+TEST_TYPES(M, broadcast, all_test_types)  //{{{1
 {
     static_assert(std::is_convertible<typename M::reference, bool>::value,
                   "A smart_reference<mask> must be convertible to bool.");
@@ -83,7 +83,7 @@ TEST_TYPES(M, broadcast, ALL_TYPES)  //{{{1
     COMPARE(x, y);
 }
 
-TEST_TYPES(M, operators, ALL_TYPES)  //{{{1
+TEST_TYPES(M, operators, all_test_types)  //{{{1
 {
     {  // compares{{{2
         M x(true), y(false);
@@ -145,7 +145,7 @@ std::enable_if_t<assign_should_not_work<L, R>> implicit_conversions_test()
     VERIFY((is_substitution_failure<L &, R, assignment>));
 }
 
-TEST_TYPES(M, implicit_conversions, ALL_TYPES)
+TEST_TYPES(M, implicit_conversions, all_test_types)
 {
     using Vc::mask;
     using Vc::native_mask;
@@ -346,7 +346,7 @@ TEST_TYPES(M, operator_conversions, current_native_mask_test_types)  //{{{1
     }
 }
 
-TEST_TYPES(M, reductions, ALL_TYPES)  //{{{1
+TEST_TYPES(M, reductions, all_test_types)  //{{{1
 {
     const M alternating_mask = make_alternating_mask<M>();
     COMPARE(alternating_mask[0], false);  // assumption below

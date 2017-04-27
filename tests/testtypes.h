@@ -116,7 +116,7 @@ typedef vir::concat<
                          vir::Typelist<>>,
                      testtypes_wo_ldouble>> native_test_types;
 
-// all_test_types / ALL_TYPES {{{1
+// all_test_types {{{1
 typedef vir::concat<
     native_test_types,
     vir::expand_list<
@@ -133,8 +133,6 @@ typedef vir::concat<
             vir::Template<base_template,
                           Vc::datapar_abi::fixed_size<Vc::datapar_abi::max_fixed_size>>>,
         testtypes>> all_test_types;
-
-#define ALL_TYPES all_test_types
 
 // many_fixed_size_types {{{1
 using many_fixed_size_types = vir::expand_list<

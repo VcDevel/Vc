@@ -52,7 +52,7 @@ TEST_TYPES(V, where_apply, all_test_types)
     }
 }
 
-TEST_TYPES(V, generators, ALL_TYPES)
+TEST_TYPES(V, generators, all_test_types)
 {
     COMPARE(V::seq(), make_vec<V>({0, 1}, 2));
 }
