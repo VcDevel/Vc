@@ -246,63 +246,47 @@ template <int N> struct fixed_size_datapar_impl {
     }
 
     // load {{{2
-    template <class T, class U, size_t... I>
-    static Vc_INTRINSIC datapar_member_type<T> load_impl(
-        const U *mem, std::index_sequence<I...>) noexcept
-    {
-        return {static_cast<T>(mem[I])...};
-    }
     template <class T, class U, class F>
-    static inline datapar_member_type<T> load(const U *mem, F, type_tag<T>) noexcept
+    static inline datapar_member_type<T> load(const U *mem, F f, type_tag<T>) noexcept
     {
-        return load_impl<T>(mem, index_seq<T>);
+        return datapar_member_type<T>::generate([&](auto native, auto offset) {
+                                                return decltype(native){&mem[offset], f};
+                                                });
     }
 
     // masked load {{{2
-    template <class T, class U, size_t... I>
-    static Vc_INTRINSIC void masked_load_impl(datapar_member_type<T> &merge,
-                                              const mask_member_type &mask, const U *mem,
-                                              std::index_sequence<I...>) noexcept
-    {
-        auto &&x = {(merge[I] = mask[I] ? static_cast<T>(mem[I]) : merge[I])...};
-        unused(x);
-    }
     template <class T, class A, class U, class F>
     static inline void masked_load(datapar<T> &merge, const Vc::mask<T, A> &k,
-                                   const U *mem, F) noexcept
+                                   const U *mem, F f) noexcept
     {
-        masked_load_impl(merge.d, k.d, mem, index_seq<T>);
+        const auto bits = k.to_bitset();
+        detail::for_each(data(merge), [&](auto &native, auto offset) {
+                         using M = typename std::remove_reference_t<decltype(native)>::mask_type;
+                         where(M::from_bitset((bits >> offset).to_ullong()), native)
+                             .memload(&mem[offset], f);
+                         });
     }
 
     // store {{{2
-    template <class T, class U, size_t... I>
-    static Vc_INTRINSIC void store_impl(const datapar_member_type<T> &v, U *mem,
-                                        std::index_sequence<I...>) noexcept
-    {
-        auto &&x = {(mem[I] = static_cast<U>(v[I]))...};
-        unused(x);
-    }
     template <class T, class U, class F>
-    static inline void store(const datapar_member_type<T> &v, U *mem, F,
+    static inline void store(const datapar_member_type<T> &v, U *mem, F f,
                              type_tag<T>) noexcept
     {
-        return store_impl(v, mem, index_seq<T>);
+        detail::for_each(
+            v, [&](auto native, auto offset) { native.memstore(&mem[offset], f); });
     }
 
     // masked store {{{2
-    template <class T, class U, size_t... I>
-    static Vc_INTRINSIC void masked_store_impl(const datapar_member_type<T> &v, U *mem,
-                                               std::index_sequence<I...>,
-                                               const mask_member_type &k) noexcept
-    {
-        auto &&x = {(k[I] ? mem[I] = static_cast<U>(v[I]) : false)...};
-        unused(x);
-    }
     template <class T, class A, class U, class F>
-    static inline void masked_store(const datapar<T> &v, U *mem, F,
+    static inline void masked_store(const datapar<T> &v, U *mem, F f,
                                     const Vc::mask<T, A> &k) noexcept
     {
-        return masked_store_impl(v.d, mem, index_seq<T>, k.d);
+        const auto bits = k.to_bitset();
+        detail::for_each(data(v), [&](auto native, auto offset) {
+                         using M = typename decltype(native)::mask_type;
+                         where(M::from_bitset((bits >> offset).to_ullong()), native)
+                             .memstore(&mem[offset], f);
+                         });
     }
 
     // negation {{{2
