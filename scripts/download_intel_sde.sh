@@ -1,6 +1,6 @@
 #!/bin/sh
 login_url=https://software.intel.com/protected-download/267266/144917
-download_url=https://software.intel.com/system/files/managed/2f/ac/sde-external-7.49.0-2016-07-07-lin.tar.bz2
+download_url=https://software.intel.com/system/files/managed/d7/1b/sde-external-7.58.0-2017-01-23-lin.tar.bz2
 cookies=`mktemp` || exit
 wget --save-cookies $cookies --keep-session-cookies -q -O - $login_url | \
   grep -A9999 'form-item-accept-license' | \
