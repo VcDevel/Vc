@@ -161,6 +161,14 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     {
         return x86::movemask(_mm_packs_epi16(v, zero<__m128i>()));
     }
+#ifdef Vc_HAVE_AVX2
+    template <class T>
+    static Vc_INTRINSIC std::bitset<16> to_bitset(Storage<T, 16> v,
+                                                 std::integral_constant<int, 2>) noexcept
+    {
+        return x86::movemask(_mm_packs_epi16(x86::lo128(v), x86::hi128(v)));
+    }
+#endif  // Vc_HAVE_AVX2
     template <class T, size_t N>
     static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
                                                  std::integral_constant<int, 4>) noexcept
@@ -179,7 +187,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
         static_assert(N <= sizeof(uint) * CHAR_BIT,
                       "Needs missing 64-bit implementation");
         if (std::is_integral<T>::value && sizeof(T) > 1) {
-#ifdef Vc_HAVE_BMI2
+#if 0 //defined Vc_HAVE_BMI2
             switch (sizeof(T)) {
             case 2: return _pext_u32(x86::movemask(v), 0xaaaaaaaa);
             case 4: return _pext_u32(x86::movemask(v), 0x88888888);
