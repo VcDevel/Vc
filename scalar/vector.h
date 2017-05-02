@@ -52,7 +52,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 
     public:
         using abi = VectorAbi::Scalar;
-    Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
+        using EntryType = typename Common::ensure_alignment_equals_sizeof<T>::type;
         using VectorEntryType = EntryType;
         using value_type = EntryType;
         using VectorType = EntryType;

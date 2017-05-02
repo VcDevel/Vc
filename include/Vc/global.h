@@ -103,6 +103,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_UNSUPPORTED_COMPILER 1
 #endif
 
+#if defined Vc_GCC && Vc_GCC >= 0x60000
+#define Vc_RESET_DIAGNOSTICS _Pragma("GCC diagnostic pop")
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+#else
+#define Vc_RESET_DIAGNOSTICS
+#endif
+
 #if __cplusplus < 201103 && (!defined Vc_MSVC || _MSC_VER < 1900)
 # error "Vc requires support for C++11."
 #elif __cplusplus >= 201402L

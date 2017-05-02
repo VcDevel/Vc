@@ -290,8 +290,7 @@ Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
     Vc::CurrentImplementation::current()>>::asin(const Vc::float_v &_x)
 {
     typedef Vc::float_v V;
-    typedef V::EntryType T;
-    typedef Const<T, V::abi> C;
+    typedef Const<float, V::abi> C;
     typedef V::Mask M;
 
     const M &negative = _x < V::Zero();
@@ -358,8 +357,7 @@ Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
     Vc::CurrentImplementation::current()>>::atan(const Vc::float_v &_x)
 {
     using V = Vc::float_v;
-    typedef V::EntryType T;
-    typedef Const<T, V::abi> C;
+    typedef Const<float, V::abi> C;
     typedef V::Mask M;
     V x = abs(_x);
     const M &gt_tan_3pi_8 = x > C::atanThrsHi();
@@ -416,8 +414,7 @@ Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
                                                   const Vc::float_v &x)
 {
     using V = Vc::float_v;
-    typedef V::EntryType T;
-    typedef Const<T, V::abi> C;
+    typedef Const<float, V::abi> C;
     typedef V::Mask M;
 
     const M xZero = x == V::Zero();

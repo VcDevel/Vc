@@ -23,6 +23,10 @@
 
 #include "unittest.h"
 
+#if defined Vc_GCC && Vc_GCC >= 0x60000
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
+
 #define ALL_TYPES (ALL_VECTORS, SIMD_ARRAYS(32))
 
 TEST_TYPES(V, check_EntryType, ALL_TYPES)

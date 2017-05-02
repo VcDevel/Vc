@@ -88,7 +88,7 @@ public:
 
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType));
 
-    Vc_ALIGNED_TYPEDEF(sizeof(T), T, EntryType);
+    using EntryType = typename Common::ensure_alignment_equals_sizeof<T>::type;
         using value_type = EntryType;
         typedef EntryType VectorEntryType;
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);

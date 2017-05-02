@@ -283,4 +283,6 @@ namespace std
 } // namespace std
 #endif
 
+Vc_RESET_DIAGNOSTICS
+
 #endif // VC_VECTOR_H_
