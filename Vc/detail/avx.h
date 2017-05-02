@@ -149,7 +149,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // from long double has no vector implementation{{{3
     template <class T, class F>
     static Vc_INTRINSIC datapar_member_type<T> load(const long double *mem, F,
-                                                    type_tag<T>) noexcept
+                                                    type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
@@ -157,7 +157,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
 
     // load without conversion{{{3
     template <class T, class F>
-    static Vc_INTRINSIC intrinsic_type<T> load(const T *mem, F f, type_tag<T>) noexcept
+    static Vc_INTRINSIC intrinsic_type<T> load(const T *mem, F f, type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         return detail::load32(mem, f);
     }
@@ -166,7 +166,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
+        enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<datapar_member_type<U>, datapar_member_type<T>>(load32(mem, f));
     }
@@ -175,7 +175,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
+        enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(
             load16(mem, f));
@@ -185,7 +185,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
+        enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(load8(mem, f));
     }
@@ -194,7 +194,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
+        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(load4(mem, f));
     }
@@ -205,7 +205,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
+        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         return convert<avx512_member_type<U>, datapar_member_type<T>>(
@@ -220,7 +220,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
+        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         using LoadT = avx512_member_type<U>;
@@ -237,7 +237,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
+        enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         using LoadT = avx512_member_type<U>;
@@ -258,7 +258,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // masked load {{{2
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<T> &merge, mask<T> k,
-                                                  const U *mem, F) noexcept
+                                                  const U *mem, F) Vc_NOEXCEPT_OR_IN_TEST
     {
         // TODO: implement with V(P)MASKMOV if AVX(2) is available
         execute_n_times<size<T>()>([&](auto i) {
@@ -272,7 +272,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // store to long double has no vector implementation{{{3
     template <class T, class F>
     static Vc_INTRINSIC void Vc_VDECL store(datapar_member_type<T> v, long double *mem, F,
-                                            type_tag<T>) noexcept
+                                            type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         // alignment F doesn't matter
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -281,7 +281,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // store without conversion{{{3
     template <class T, class F>
     static Vc_INTRINSIC void Vc_VDECL store(datapar_member_type<T> v, T *mem, F f,
-                                            type_tag<T>) noexcept
+                                            type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         store32(v, mem, f);
     }
@@ -290,7 +290,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL
     store(datapar_member_type<T> v, U *mem, F, type_tag<T>,
-          enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
+          enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -300,7 +300,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL
     store(datapar_member_type<T> v, U *mem, F, type_tag<T>,
-          enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
+          enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -310,7 +310,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL
     store(datapar_member_type<T> v, U *mem, F, type_tag<T>,
-          enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
+          enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -320,7 +320,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL
     store(datapar_member_type<T> v, U *mem, F, type_tag<T>,
-          enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
+          enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -330,7 +330,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL
     store(datapar_member_type<T> v, U *mem, F, type_tag<T>,
-          enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) noexcept
+          enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -340,7 +340,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL
     store(datapar_member_type<T> v, U *mem, F, type_tag<T>,
-          enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) noexcept
+          enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -350,7 +350,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL
     store(datapar_member_type<T> v, U *mem, F, type_tag<T>,
-          enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) noexcept
+          enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         // TODO
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -359,7 +359,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // masked store {{{2
     template <class T, class F>
     static Vc_INTRINSIC void Vc_VDECL masked_store(datapar<T> v, long double *mem, F,
-                                                   mask<T> k) noexcept
+                                                   mask<T> k) Vc_NOEXCEPT_OR_IN_TEST
     {
         // no SSE support for long double
         execute_n_times<size<T>()>([&](auto i) {
@@ -370,7 +370,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     }
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL masked_store(datapar<T> v, U *mem, F,
-                                                   mask<T> k) noexcept
+                                                   mask<T> k) Vc_NOEXCEPT_OR_IN_TEST
     {
         //TODO: detail::masked_store(mem, v.v(), k.d.v(), f);
         execute_n_times<size<T>()>([&](auto i) {

@@ -278,14 +278,14 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     //  from long double has no vector implementation{{{3
     template <class T, class F>
     static Vc_INTRINSIC datapar_member_type<T> load(const long double *mem, F,
-                                                    type_tag<T>) noexcept
+                                                    type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
      // load without conversion{{{3
     template <class T, class F>
-    static Vc_INTRINSIC intrinsic_type<T> load(const T *mem, F f, type_tag<T>) noexcept
+    static Vc_INTRINSIC intrinsic_type<T> load(const T *mem, F f, type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         return detail::load16(mem, f);
     }
@@ -293,7 +293,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     // store to long double has no vector implementation{{{3
     template <class T, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, long double *mem, F,
-                                   type_tag<T>) noexcept
+                                   type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         // alignment F doesn't matter
         execute_n_times<size<T>()>([&](auto i) { mem[i] = v.m(i); });
@@ -301,7 +301,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     // store without conversion{{{3
     template <class T, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, T *mem, F f,
-                                   type_tag<T>) noexcept
+                                   type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         store16(v, mem, f);
     }
@@ -309,14 +309,14 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     // convert and 16-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
-                                   enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) noexcept
+                                   enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
         store2(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
     }
     // convert and 32-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
-                                   enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) noexcept
+                                   enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_AARCH_ABI
         store4(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
@@ -328,7 +328,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     // convert and 64-bit  store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
-                                   enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) noexcept
+                                   enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_AARCH_ABI
         store8(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
@@ -340,7 +340,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     // convert and 128-bit store{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
-                                   enable_if<sizeof(T) == sizeof(U)> = nullarg) noexcept
+                                   enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_AARCH_ABI
         store16(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
@@ -352,7 +352,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     // masked store {{{2
     template <class T, class F>
     static Vc_INTRINSIC void masked_store(datapar<T> v, long double *mem, F,
-                                          mask<T> k) noexcept
+                                          mask<T> k) Vc_NOEXCEPT_OR_IN_TEST
     {
         // no support for long double?
         execute_n_times<size<T>()>([&](auto i) {
@@ -363,7 +363,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     }
     template <class T, class U, class F>
     static Vc_INTRINSIC void masked_store(datapar<T> v, U *mem, F,
-                                          mask<T> k) noexcept
+                                          mask<T> k) Vc_NOEXCEPT_OR_IN_TEST
     {
         //TODO: detail::masked_store(mem, v.v(), k.d.v(), f);
         execute_n_times<size<T>()>([&](auto i) {

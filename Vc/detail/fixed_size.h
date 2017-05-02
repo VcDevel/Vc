@@ -247,7 +247,8 @@ template <int N> struct fixed_size_datapar_impl {
 
     // load {{{2
     template <class T, class U, class F>
-    static inline datapar_member_type<T> load(const U *mem, F f, type_tag<T>) noexcept
+    static inline datapar_member_type<T> load(const U *mem, F f,
+                                              type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         return datapar_member_type<T>::generate([&](auto native, auto offset) {
                                                 return decltype(native){&mem[offset], f};
@@ -257,7 +258,7 @@ template <int N> struct fixed_size_datapar_impl {
     // masked load {{{2
     template <class T, class A, class U, class F>
     static inline void masked_load(datapar<T> &merge, const Vc::mask<T, A> &k,
-                                   const U *mem, F f) noexcept
+                                   const U *mem, F f) Vc_NOEXCEPT_OR_IN_TEST
     {
         const auto bits = k.to_bitset();
         detail::for_each(data(merge), [&](auto &native, auto offset) {
@@ -270,7 +271,7 @@ template <int N> struct fixed_size_datapar_impl {
     // store {{{2
     template <class T, class U, class F>
     static inline void store(const datapar_member_type<T> &v, U *mem, F f,
-                             type_tag<T>) noexcept
+                             type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         detail::for_each(
             v, [&](auto native, auto offset) { native.memstore(&mem[offset], f); });
@@ -279,7 +280,7 @@ template <int N> struct fixed_size_datapar_impl {
     // masked store {{{2
     template <class T, class A, class U, class F>
     static inline void masked_store(const datapar<T> &v, U *mem, F f,
-                                    const Vc::mask<T, A> &k) noexcept
+                                    const Vc::mask<T, A> &k) Vc_NOEXCEPT_OR_IN_TEST
     {
         const auto bits = k.to_bitset();
         detail::for_each(data(v), [&](auto native, auto offset) {

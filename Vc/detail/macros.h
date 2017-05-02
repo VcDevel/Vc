@@ -478,6 +478,12 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #endif
 #endif
 
+#ifdef COMPILE_FOR_UNIT_TESTS
+#define Vc_NOEXCEPT_OR_IN_TEST
+#else
+#define Vc_NOEXCEPT_OR_IN_TEST noexcept
+#endif
+
 #if defined Vc_CLANG || defined Vc_APPLECLANG
 #define Vc_HAS_BUILTIN(x) __has_builtin(x)
 #else
