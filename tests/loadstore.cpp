@@ -125,6 +125,28 @@ TEST_TYPES(VU, load_store,
     auto &&gen = make_vec<V>;
     using Vc::flags::element_aligned;
     using Vc::flags::vector_aligned;
+    constexpr size_t stride_alignment =
+        V::size() & 1 ? 1 : V::size() & 2
+                                ? 2
+                                : V::size() & 4
+                                      ? 4
+                                      : V::size() & 8
+                                            ? 8
+                                            : V::size() & 16
+                                                  ? 16
+                                                  : V::size() & 32
+                                                        ? 32
+                                                        : V::size() & 64
+                                                              ? 64
+                                                              : V::size() & 128
+                                                                    ? 128
+                                                                    : V::size() & 256
+                                                                          ? 256
+                                                                          : 512;
+    using stride_aligned_t =
+        std::conditional_t<V::size() == stride_alignment, decltype(vector_aligned),
+                           Vc::flags::overaligned_tag<stride_alignment * sizeof(U)>>;
+    constexpr stride_aligned_t stride_aligned = {};
     constexpr size_t alignment = 2 * Vc::memory_alignment_v<V, U>;
 #ifdef Vc_MSVC
     using TT = Vc::flags::overaligned_tag<alignment>;
@@ -219,7 +241,7 @@ TEST_TYPES(VU, load_store,
         reference[i] = mem[i];
     }
 
-    V x(&mem[V::size()], vector_aligned);
+    V x(&mem[V::size()], stride_aligned);
     auto &&compare = [&](const std::size_t offset) {
         static int n = 0;
         const V ref(&reference[offset], element_aligned);
@@ -243,11 +265,11 @@ TEST_TYPES(VU, load_store,
     x = {&mem[1], element_aligned};
     compare(1);
 
-    x.memload(&mem[V::size()], vector_aligned);
+    x.memload(&mem[V::size()], stride_aligned);
     compare(V::size());
     x.memload(&mem[1], element_aligned);
     compare(1);
-    x.memload(mem, overaligned);
+    x.memload(mem, vector_aligned);
     compare(0);
 
     for (std::size_t i = 0; i < mem_size - V::size(); ++i) {
@@ -259,7 +281,7 @@ TEST_TYPES(VU, load_store,
         mem[i] = U(i);
     }
     x = indexes_from_0;
-    where(alternating_mask, x).memload(&mem[V::size()], vector_aligned);
+    where(alternating_mask, x).memload(&mem[V::size()], stride_aligned);
     COMPARE(x == indexes_from_size, alternating_mask);
     COMPARE(x == indexes_from_0, !alternating_mask);
     where(alternating_mask, x).memload(&mem[1], element_aligned);
@@ -269,7 +291,7 @@ TEST_TYPES(VU, load_store,
     COMPARE(x == indexes_from_0, !alternating_mask);
     COMPARE(x == indexes_from_1, alternating_mask);
 
-    x = where(alternating_mask, V()).memload(&mem[V::size()], vector_aligned);
+    x = where(alternating_mask, V()).memload(&mem[V::size()], stride_aligned);
     COMPARE(x == indexes_from_size, alternating_mask);
     COMPARE(x == 0, !alternating_mask);
 
@@ -280,7 +302,7 @@ TEST_TYPES(VU, load_store,
     // stores {{{2
     memset(mem, 0, sizeof(mem));
     x = indexes_from_1;
-    x.memstore(&mem[V::size()], vector_aligned);
+    x.memstore(&mem[V::size()], stride_aligned);
     std::size_t i = 0;
     for (; i < V::size(); ++i) {
         COMPARE(mem[i], U(0)) << "i: " << i;
@@ -303,7 +325,7 @@ TEST_TYPES(VU, load_store,
     }
 
     memset(mem, 0, sizeof(mem));
-    x.memstore(mem, overaligned);
+    x.memstore(mem, vector_aligned);
     for (i = 0; i < V::size(); ++i) {
         COMPARE(mem[i], U(i + 1));
     }
@@ -312,7 +334,7 @@ TEST_TYPES(VU, load_store,
     }
 
     memset(mem, 0, sizeof(mem));
-    where(alternating_mask, indexes_from_0).memstore(&mem[V::size()], vector_aligned);
+    where(alternating_mask, indexes_from_0).memstore(&mem[V::size()], stride_aligned);
     for (i = 0; i < V::size() + 1; ++i) {
         COMPARE(mem[i], U(0));
     }
