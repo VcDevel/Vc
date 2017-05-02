@@ -160,14 +160,14 @@ public:
                 std::is_same<U_, value_type>, std::is_same<U_, int>,
                 conjunction<std::is_same<U_, detail::uint>, std::is_unsigned<value_type>>,
                 negation<detail::is_narrowing_conversion<U_, value_type>>>>::value>>
-    datapar(U &&x)
+    Vc_ALWAYS_INLINE datapar(U &&x)
         : d(impl::broadcast(static_cast<value_type>(std::forward<U>(x)), size_tag))
     {
     }
 
     // implicit type conversion constructor (convert from fixed_size to fixed_size)
     template <class U>
-    datapar(
+    Vc_ALWAYS_INLINE datapar(
         const datapar<U, datapar_abi::fixed_size<size_v>> &x,
         std::enable_if_t<
             conjunction<std::is_same<datapar_abi::fixed_size<size_v>, abi_type>,
@@ -181,7 +181,7 @@ public:
     // explicit type conversion constructor
     // 1st conversion ctor: convert from fixed_size<size()>
     template <class U>
-    explicit datapar(
+    explicit Vc_ALWAYS_INLINE datapar(
         const datapar<U, datapar_abi::fixed_size<size_v>> &x,
         std::enable_if_t<
             disjunction<conjunction<negation<std::is_same<datapar_abi::fixed_size<size_v>,
@@ -195,7 +195,7 @@ public:
 
     // 2nd conversion ctor: convert equal Abi, integers that only differ in signedness
     template <class U>
-    explicit datapar(
+    explicit Vc_ALWAYS_INLINE datapar(
         const datapar<U, Abi> &x,
         std::enable_if_t<detail::allow_conversion_ctor2<value_type, U, Abi>::value,
                          void *> = nullptr)
@@ -206,7 +206,7 @@ public:
     // 3rd conversion ctor: convert from non-fixed_size to fixed_size if U is convertible to
     // value_type
     template <class U, class Abi2>
-    explicit datapar(
+    explicit Vc_ALWAYS_INLINE datapar(
         const datapar<U, Abi2> &x,
         std::enable_if_t<detail::allow_conversion_ctor3<value_type, Abi, U, Abi2>::value,
                          void *> = nullptr)
@@ -216,7 +216,7 @@ public:
 
     // generator constructor
     template <class F>
-    explicit datapar(
+    explicit Vc_ALWAYS_INLINE datapar(
         F &&gen,
         enable_if<std::is_same<
             value_type, decltype(declval<F>()(
@@ -227,101 +227,101 @@ public:
 
 #ifdef Vc_EXPERIMENTAL
     template <class U, U... Indexes>
-    static datapar seq(std::integer_sequence<U, Indexes...>)
+    static Vc_ALWAYS_INLINE datapar seq(std::integer_sequence<U, Indexes...>)
     {
         constexpr auto N = size();
         alignas(memory_alignment<datapar>::value) static constexpr value_type mem[N] = {
             value_type(Indexes)...};
         return datapar(mem, flags::vector_aligned);
     }
-    static datapar seq() {
+    static Vc_ALWAYS_INLINE datapar seq() {
         return seq(std::make_index_sequence<size()>());
     }
 #endif  // Vc_EXPERIMENTAL
 
     // load constructor
     template <class U, class Flags>
-    datapar(const U *mem, Flags f)
+    Vc_ALWAYS_INLINE datapar(const U *mem, Flags f)
         : d(impl::load(mem, f, type_tag))
     {
     }
 
     // loads [datapar.load]
-    template <class U, class Flags> void memload(const U *mem, Flags f)
+    template <class U, class Flags> Vc_ALWAYS_INLINE void memload(const U *mem, Flags f)
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, type_tag));
     }
 
     // stores [datapar.store]
-    template <class U, class Flags> void memstore(U *mem, Flags f) const
+    template <class U, class Flags> Vc_ALWAYS_INLINE void memstore(U *mem, Flags f) const
     {
         impl::store(d, mem, f, type_tag);
     }
 
     // scalar access
-    reference operator[](size_type i) { return {*this, int(i)}; }
-    value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
+    Vc_ALWAYS_INLINE reference operator[](size_type i) { return {*this, int(i)}; }
+    Vc_ALWAYS_INLINE value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
 
     // increment and decrement:
-    datapar &operator++() { impl::increment(d); return *this; }
-    datapar operator++(int) { datapar r = *this; impl::increment(d); return r; }
-    datapar &operator--() { impl::decrement(d); return *this; }
-    datapar operator--(int) { datapar r = *this; impl::decrement(d); return r; }
+    Vc_ALWAYS_INLINE datapar &operator++() { impl::increment(d); return *this; }
+    Vc_ALWAYS_INLINE datapar operator++(int) { datapar r = *this; impl::increment(d); return r; }
+    Vc_ALWAYS_INLINE datapar &operator--() { impl::decrement(d); return *this; }
+    Vc_ALWAYS_INLINE datapar operator--(int) { datapar r = *this; impl::decrement(d); return r; }
 
     // unary operators (for any T)
-    mask_type operator!() const { return impl::negate(*this); }
-    datapar operator+() const { return *this; }
-    datapar operator-() const { return impl::unary_minus(*this); }
+    Vc_ALWAYS_INLINE mask_type operator!() const { return impl::negate(*this); }
+    Vc_ALWAYS_INLINE datapar operator+() const { return *this; }
+    Vc_ALWAYS_INLINE datapar operator-() const { return impl::unary_minus(*this); }
 
     // access to internal representation (suggested extension)
-    explicit datapar(const cast_type &init) : d(init) {}
+    explicit Vc_ALWAYS_INLINE datapar(const cast_type &init) : d(init) {}
 
     // compound assignment [datapar.cassign]
-    friend datapar &operator+=(datapar &lhs, const datapar &x) { return lhs = lhs + x; }
-    friend datapar &operator-=(datapar &lhs, const datapar &x) { return lhs = lhs - x; }
-    friend datapar &operator*=(datapar &lhs, const datapar &x) { return lhs = lhs * x; }
-    friend datapar &operator/=(datapar &lhs, const datapar &x) { return lhs = lhs / x; }
+    friend Vc_ALWAYS_INLINE datapar &operator+=(datapar &lhs, const datapar &x) { return lhs = lhs + x; }
+    friend Vc_ALWAYS_INLINE datapar &operator-=(datapar &lhs, const datapar &x) { return lhs = lhs - x; }
+    friend Vc_ALWAYS_INLINE datapar &operator*=(datapar &lhs, const datapar &x) { return lhs = lhs * x; }
+    friend Vc_ALWAYS_INLINE datapar &operator/=(datapar &lhs, const datapar &x) { return lhs = lhs / x; }
 
     // binary operators [datapar.binary]
-    friend datapar operator+(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE datapar operator+(const datapar &x, const datapar &y)
     {
         return impl::plus(x, y);
     }
-    friend datapar operator-(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE datapar operator-(const datapar &x, const datapar &y)
     {
         return impl::minus(x, y);
     }
-    friend datapar operator*(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE datapar operator*(const datapar &x, const datapar &y)
     {
         return impl::multiplies(x, y);
     }
-    friend datapar operator/(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE datapar operator/(const datapar &x, const datapar &y)
     {
         return impl::divides(x, y);
     }
 
     // compares [datapar.comparison]
-    friend mask_type operator==(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE mask_type operator==(const datapar &x, const datapar &y)
     {
         return impl::equal_to(x, y);
     }
-    friend mask_type operator!=(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE mask_type operator!=(const datapar &x, const datapar &y)
     {
         return impl::not_equal_to(x, y);
     }
-    friend mask_type operator<(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE mask_type operator<(const datapar &x, const datapar &y)
     {
         return impl::less(x, y);
     }
-    friend mask_type operator<=(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE mask_type operator<=(const datapar &x, const datapar &y)
     {
         return impl::less_equal(x, y);
     }
-    friend mask_type operator>(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE mask_type operator>(const datapar &x, const datapar &y)
     {
         return impl::less(y, x);
     }
-    friend mask_type operator>=(const datapar &x, const datapar &y)
+    friend Vc_ALWAYS_INLINE mask_type operator>=(const datapar &x, const datapar &y)
     {
         return impl::less_equal(y, x);
     }
@@ -336,7 +336,7 @@ private:
     friend const auto &detail::data<value_type, abi_type>(const datapar &);
     friend auto &detail::data<value_type, abi_type>(datapar &);
 #endif
-    datapar(detail::private_init_t, const member_type &init) : d(init) {}
+    Vc_INTRINSIC datapar(detail::private_init_t, const member_type &init) : d(init) {}
     alignas(traits::datapar_member_alignment) member_type d = {};
 };
 

@@ -66,19 +66,19 @@ public:
     static constexpr size_type size_v = datapar_size_v<T, Abi>;
 
     // access to internal representation (suggested extension)
-    explicit mask(typename traits::mask_cast_type init) : d{init} {}
+    explicit Vc_ALWAYS_INLINE mask(typename traits::mask_cast_type init) : d{init} {}
     // conversions to internal type is done in mask_base
 
     // bitset interface
-    static mask from_bitset(std::bitset<size()> bs) { return {detail::bitset_init, bs}; }
-    std::bitset<size()> to_bitset() const { return impl::to_bitset(d); }
+    static Vc_ALWAYS_INLINE mask from_bitset(std::bitset<size()> bs) { return {detail::bitset_init, bs}; }
+    std::bitset<size()> Vc_ALWAYS_INLINE to_bitset() const { return impl::to_bitset(d); }
 
     // explicit broadcast constructor
-    explicit mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
+    explicit Vc_ALWAYS_INLINE mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
 
     // implicit type conversion constructor
     template <class U>
-    mask(const mask<U, datapar_abi::fixed_size<size_v>> &x,
+    Vc_ALWAYS_INLINE mask(const mask<U, datapar_abi::fixed_size<size_v>> &x,
          enable_if<conjunction<std::is_same<abi_type, datapar_abi::fixed_size<size_v>>,
                                std::is_same<U, U>>::value> = nullarg)
         : mask{detail::bitset_init, detail::data(x)}
@@ -108,63 +108,63 @@ public:
 
     // load constructor
     template <class Flags>
-    mask(const value_type *mem, Flags f)
+    Vc_ALWAYS_INLINE mask(const value_type *mem, Flags f)
         : d(impl::load(mem, f, size_tag))
     {
     }
-    template <class Flags> mask(const value_type *mem, mask k, Flags f) : d{}
+    template <class Flags> Vc_ALWAYS_INLINE mask(const value_type *mem, mask k, Flags f) : d{}
     {
         impl::masked_load(d, k.d, mem, f, size_tag);
     }
 
     // loads [mask.load]
-    template <class Flags> void memload(const value_type *mem, Flags f)
+    template <class Flags> Vc_ALWAYS_INLINE void memload(const value_type *mem, Flags f)
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, size_tag));
     }
-    template <class Flags> void Vc_VDECL memload(const value_type *mem, mask k, Flags f)
+    template <class Flags> Vc_ALWAYS_INLINE void Vc_VDECL memload(const value_type *mem, mask k, Flags f)
     {
         impl::masked_load(d, k.d, mem, f, size_tag);
     }
 
     // stores [mask.store]
-    template <class Flags> void memstore(value_type *mem, Flags f) const
+    template <class Flags> Vc_ALWAYS_INLINE void memstore(value_type *mem, Flags f) const
     {
         impl::store(d, mem, f, size_tag);
     }
-    template <class Flags> void Vc_VDECL memstore(value_type *mem, mask k, Flags f) const
+    template <class Flags> Vc_ALWAYS_INLINE void Vc_VDECL memstore(value_type *mem, mask k, Flags f) const
     {
         impl::masked_store(d, mem, f, k.d, size_tag);
     }
 
     // scalar access
-    reference operator[](size_type i) { return {*this, int(i)}; }
-    value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
+    Vc_ALWAYS_INLINE reference operator[](size_type i) { return {*this, int(i)}; }
+    Vc_ALWAYS_INLINE value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
 
     // negation
-    mask operator!() const { return {detail::private_init, impl::negate(d, size_tag)}; }
+    Vc_ALWAYS_INLINE mask operator!() const { return {detail::private_init, impl::negate(d, size_tag)}; }
 
     // mask binary operators [mask.binary]
-    friend mask operator&&(const mask &x, const mask &y)
+    friend Vc_ALWAYS_INLINE mask operator&&(const mask &x, const mask &y)
     {
         return impl::logical_and(x, y);
     }
-    friend mask operator||(const mask &x, const mask &y)
+    friend Vc_ALWAYS_INLINE mask operator||(const mask &x, const mask &y)
     {
         return impl::logical_or(x, y);
     }
 
-    friend mask operator&(const mask &x, const mask &y) { return impl::bit_and(x, y); }
-    friend mask operator|(const mask &x, const mask &y) { return impl::bit_or(x, y); }
-    friend mask operator^(const mask &x, const mask &y) { return impl::bit_xor(x, y); }
+    friend Vc_ALWAYS_INLINE mask operator&(const mask &x, const mask &y) { return impl::bit_and(x, y); }
+    friend Vc_ALWAYS_INLINE mask operator|(const mask &x, const mask &y) { return impl::bit_or(x, y); }
+    friend Vc_ALWAYS_INLINE mask operator^(const mask &x, const mask &y) { return impl::bit_xor(x, y); }
 
-    friend mask &operator&=(mask &x, const mask &y) { return x = impl::bit_and(x, y); }
-    friend mask &operator|=(mask &x, const mask &y) { return x = impl::bit_or (x, y); }
-    friend mask &operator^=(mask &x, const mask &y) { return x = impl::bit_xor(x, y); }
+    friend Vc_ALWAYS_INLINE mask &operator&=(mask &x, const mask &y) { return x = impl::bit_and(x, y); }
+    friend Vc_ALWAYS_INLINE mask &operator|=(mask &x, const mask &y) { return x = impl::bit_or (x, y); }
+    friend Vc_ALWAYS_INLINE mask &operator^=(mask &x, const mask &y) { return x = impl::bit_xor(x, y); }
 
     // mask compares [mask.comparison]
-    friend mask operator==(const mask &x, const mask &y) { return !operator!=(x, y); }
-    friend mask operator!=(const mask &x, const mask &y) { return impl::bit_xor(x, y); }
+    friend Vc_ALWAYS_INLINE mask operator==(const mask &x, const mask &y) { return !operator!=(x, y); }
+    friend Vc_ALWAYS_INLINE mask operator!=(const mask &x, const mask &y) { return impl::bit_xor(x, y); }
 
 private:
 #ifdef Vc_MSVC
