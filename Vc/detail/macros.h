@@ -471,10 +471,9 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #define Vc_EXTERNAL_ASSERT 1
 #else
 #ifdef NDEBUG
-#define Vc_ASSERT(x)
+#define Vc_ASSERT(x) Vc::detail::dummy_assert{}
 #else
-#include <cassert>
-#define Vc_ASSERT(x) assert(x);
+#define Vc_ASSERT(x) Vc::detail::real_assert(x)
 #endif
 #endif
 

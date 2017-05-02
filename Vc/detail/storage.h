@@ -90,20 +90,6 @@ using Default =
 #endif
 }  // namespace AliasStrategy
 
-// assertCorrectAlignment{{{1
-#ifndef Vc_CHECK_ALIGNMENT
-template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *){}
-#else
-template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const _T *ptr)
-{
-    const size_t s = alignof(_T);
-    if((reinterpret_cast<size_t>(ptr) & ((s ^ (s & (s - 1))) - 1)) != 0) {
-        std::fprintf(stderr, "A vector with incorrect alignment has just been created. Look at the stacktrace to find the guilty object.\n");
-        std::abort();
-    }
-}
-#endif
-
 // Storage decl{{{1
 template <typename ValueType, size_t Size, typename Strategy = AliasStrategy::Default>
 class Storage;

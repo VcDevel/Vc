@@ -2162,23 +2162,6 @@ template <> Vc_INTRINSIC auto cmple_ulong_mask<4>(__m512i x, __m512i y)
 #endif  // Vc_HAVE_AVX512F
 
 // loads{{{1
-#ifndef Vc_CHECK_ALIGNMENT
-template <class V, class T>
-static Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *)
-{
-}
-#else
-template <class V, class T>
-static Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *ptr)
-{
-    constexpr size_t s = alignof(V);
-    static_assert((s & (s - 1)) == 0, "");
-    if ((reinterpret_cast<size_t>(ptr) & (s - 1)) != 0) {
-        std::fprintf(stderr, "A load with incorrect alignment has just been called. Look at the stacktrace to find the guilty load.\n");
-        std::abort();
-    }
-}
-#endif
 /**
  * \internal
  * Abstraction for simplifying load operations in the SSE/AVX/AVX512 implementations

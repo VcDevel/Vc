@@ -37,6 +37,79 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+// dummy_assert {{{1
+struct dummy_assert {
+    template <class T> Vc_INTRINSIC dummy_assert &operator<<(T &&) noexcept
+    {
+        return *this;
+    }
+};
+
+// real_assert {{{1
+struct real_assert {
+    Vc_INTRINSIC real_assert(bool ok, const char *code, const char *file, int line)
+        : failed(!ok)
+    {
+        if (Vc_IS_UNLIKELY(failed)) {
+            printFirst(code, file, line);
+        }
+    }
+    Vc_INTRINSIC ~real_assert()
+    {
+        if (Vc_IS_UNLIKELY(failed)) {
+            finalize();
+        }
+    }
+    template <class T> Vc_INTRINSIC real_assert &operator<<(T &&x) const
+    {
+        if (Vc_IS_UNLIKELY(failed)) {
+            print(std::forward<T>(x));
+        }
+        return *this;
+    }
+
+private:
+    void printFirst(const char *code, const char *file, int line)
+    {
+        std::cerr << file << ':' << line << ": assert(" << code << ") failed.";
+    }
+    template <class T> void print(T &&x) const { std::cerr << std::forward<T>(x); }
+    void finalize()
+    {
+        std::cerr << std::endl;
+        std::abort();
+    }
+    bool failed;
+};
+
+// assertCorrectAlignment {{{1
+#if defined Vc_CHECK_ALIGNMENT || defined COMPILE_FOR_UNIT_TESTS
+template <class V = void, class T>
+Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *ptr)
+{
+    auto &&is_aligned = [](const T *p) -> bool {
+        constexpr size_t s =
+            alignof(std::conditional_t<std::is_same<void, V>::value, T, V>);
+        return (reinterpret_cast<size_t>(p) & (s - 1)) == 0;
+    };
+#ifdef COMPILE_FOR_UNIT_TESTS
+    Vc_ASSERT(is_aligned(ptr))
+        << " ptr = " << ptr << ", expected alignment = "
+        << alignof(std::conditional_t<std::is_same<void, V>::value, T, V>);
+#else
+    if (!is_aligned(ptr)) {
+        std::fprintf(stderr, "A load with incorrect alignment has just been called. Look at the stacktrace to find the guilty load.\n");
+        std::abort();
+    }
+#endif
+}
+#else
+template <class V = void, class T>
+Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *)
+{
+}
+#endif
+
 // size_constant {{{1
 template <size_t X> using size_constant = std::integral_constant<size_t, X>;
 
