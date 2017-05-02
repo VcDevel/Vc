@@ -97,7 +97,7 @@ Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *ptr)
         << " ptr = " << ptr << ", expected alignment = "
         << alignof(std::conditional_t<std::is_same<void, V>::value, T, V>);
 #else
-    if (!is_aligned(ptr)) {
+    if (Vc_IS_UNLIKELY(!is_aligned(ptr))) {
         std::fprintf(stderr, "A load with incorrect alignment has just been called. Look at the stacktrace to find the guilty load.\n");
         std::abort();
     }
