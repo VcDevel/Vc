@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 //#define UNITTEST_ONLY_XTEST 1
+#include <vir/testassert.h>
 #include <vir/test.h>
 #include <Vc/datapar>
 #include "make_vec.h"
