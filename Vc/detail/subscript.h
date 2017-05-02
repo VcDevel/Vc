@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <type_traits>
 #include <vector>
 #include "macros.h"
-#include <cassert>
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 
