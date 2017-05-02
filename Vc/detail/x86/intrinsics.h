@@ -2212,11 +2212,10 @@ template <class T, class F> Vc_INTRINSIC __m128i load4(const T *mem, F)
 
 template <class F> Vc_INTRINSIC __m128 load8(const float *mem, F)
 {
+    assertCorrectAlignment<float>(mem);
 #ifdef Vc_HAVE_SSE2
-    assertCorrectAlignment<double>(mem);
     return _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const double *>(mem)));
 #else
-    assertCorrectAlignment<__m64>(mem);
     return _mm_loadl_pi(_mm_undefined_ps(), reinterpret_cast<const __m64 *>(mem));
 #endif
 }
