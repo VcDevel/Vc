@@ -170,7 +170,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     // convert from an SSE load{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC intrinsic_type<T> load(
+    static inline intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
@@ -186,7 +186,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     // convert from a half SSE load{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC intrinsic_type<T> load(
+    static inline intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
@@ -202,7 +202,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     // convert from a quarter SSE load{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC intrinsic_type<T> load(
+    static inline intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
@@ -250,7 +250,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     // convert from an AVX/2-SSE load{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC intrinsic_type<T> load(
+    static inline intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
@@ -269,7 +269,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     // convert from an AVX512/2-AVX/4-SSE load{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC intrinsic_type<T> load(
+    static inline intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
@@ -288,7 +288,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     // convert from a 2-AVX512/4-AVX/8-SSE load{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC intrinsic_type<T> load(
+    static inline intrinsic_type<T> load(
         const U *mem, F f, type_tag<T>,
         enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
@@ -310,7 +310,7 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     // masked load {{{2
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<T> &merge, mask<T> k, const U *mem,
+    static inline void Vc_VDECL masked_load(datapar<T> &merge, mask<T> k, const U *mem,
                                             F) Vc_NOEXCEPT_OR_IN_TEST
     {
         // TODO: implement with V(P)MASKMOV if AVX(2) is available
