@@ -101,6 +101,18 @@ template <typename T, size_t Bytes> struct intrinsic_type_impl {
 };
 
 template <> struct intrinsic_type_impl<double, 16> { using type = float64x2_t; };
+template <> struct intrinsic_type_impl<float, 16> { using type = float32x4_t; };
+
+template <> struct intrinsic_type_impl<char, 16> { using type = int8x16_t; };
+template <> struct intrinsic_type_impl<short, 16> { using type = int16x8_t; };
+template <> struct intrinsic_type_impl<int, 16> { using type = int32x4_t; };
+template <> struct intrinsic_type_impl<long, 16> { using type = int64x2_t; };
+
+template <> struct intrinsic_type_impl<unsigned char, 16> { using type = uint8x16_t; };
+template <> struct intrinsic_type_impl<unsigned short, 16> { using type = uint16x8_t; };
+template <> struct intrinsic_type_impl<unsigned int, 16> { using type = uint32x4_t; };
+template <> struct intrinsic_type_impl<unsigned long, 16> { using type = uint64x2_t; };
+
 template <typename T> struct intrinsic_type_impl<T, 16> { using type = int32x4_t; };
 
 template <typename T, size_t Size>

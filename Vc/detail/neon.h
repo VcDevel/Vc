@@ -229,40 +229,43 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     template <class T> using mask = Vc::mask<T, abi>;
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
     template <class T> using type_tag = T *;
-    /**
+    
     // broadcast {{{2
     static Vc_INTRINSIC intrinsic_type<float> broadcast(float x, size_tag<4>) noexcept
     {
-        return vld1q_dup_f32(x);
+        return vdupq_n_f32(x);
     }
+    
 #ifdef Vc_HAVE_AARCH64
     static Vc_INTRINSIC intrinsic_type<double> broadcast(double x, size_tag<2>) noexcept
     {
-        return vld1q_dub_f64(x);
+        return vdupq_n_f64(x);
     }
 #endif
 
     template <class T>
     static Vc_INTRINSIC intrinsic_type<T> broadcast(T x, size_tag<2>) noexcept
     {
-        return vld1_dub_f64(x);
+        return vdupq_n_s64 (x);
     }
+
     template <class T>
     static Vc_INTRINSIC intrinsic_type<T> broadcast(T x, size_tag<4>) noexcept
     {
-        return vld1_dub_f32(x);
+        return vdupq_n_s32 (x);
     }
+
     template <class T>
     static Vc_INTRINSIC intrinsic_type<T> broadcast(T x, size_tag<8>) noexcept
     {
-        return vld1_dub_f16(x);
+        return vdupq_n_s16 (x);
     }
     template <class T>
     static Vc_INTRINSIC intrinsic_type<T> broadcast(T x, size_tag<16>) noexcept
     {
-        return vld1_dub_f8(x);
+        return vdupq_n_s8 (x);
     }
-    */
+    
     //  load {{{2
     //  from long double has no vector implementation{{{3
     template <class T, class F>
