@@ -78,12 +78,19 @@ using std::enable_if_t;
 // none
 template <class... Ts> struct none : public negation<any<Ts...>> {};
 
+// sizeof
+template <class T, std::size_t Expected>
+struct has_expected_sizeof : public std::integral_constant<bool, sizeof(T) == Expected> {
+};
+
 // value aliases
 template <class... Ts>
 constexpr bool conjunction_v = all<Ts...>::value;
 template <class... Ts> constexpr bool disjunction_v = any<Ts...>::value;
 template <class T> constexpr bool negation_v = negation<T>::value;
 template <class... Ts> constexpr bool none_v = none<Ts...>::value;
+template <class T, std::size_t Expected>
+constexpr bool has_expected_sizeof_v = has_expected_sizeof<T, Expected>::value;
 
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

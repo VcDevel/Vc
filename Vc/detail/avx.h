@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #ifdef Vc_HAVE_SSE
 #include "storage.h"
+#include "concepts.h"
 #include "x86/intrinsics.h"
 #include "x86/convert.h"
 #include "x86/compares.h"
@@ -165,8 +166,8 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // convert from an AVX load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T), T> *mem, F f, type_tag<T>,
+        tag<1> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<datapar_member_type<U>, datapar_member_type<T>>(load32(mem, f));
     }
@@ -174,8 +175,8 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // convert from an SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) / 2, T> *mem, F f, type_tag<T>,
+        tag<2> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(
             load16(mem, f));
@@ -184,8 +185,8 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // convert from a half SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) / 4, T> *mem, F f, type_tag<T>,
+        tag<3> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(load8(mem, f));
     }
@@ -193,8 +194,8 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // convert from a 1/4th SSE load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) / 8, T> *mem, F f, type_tag<T>,
+        tag<4> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<sse_datapar_member_type<U>, datapar_member_type<T>>(load4(mem, f));
     }
@@ -204,8 +205,8 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
 
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) * 2, T> *mem, F f, type_tag<T>,
+        tag<5> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         return convert<avx512_member_type<U>, datapar_member_type<T>>(
@@ -219,8 +220,8 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // convert from an 2-AVX512/4-AVX load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) * 4, T> *mem, F f, type_tag<T>,
+        tag<6> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         using LoadT = avx512_member_type<U>;
@@ -236,8 +237,8 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     // convert from a 4-AVX512/8-AVX load{{{3
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) * 8, T> *mem, F f, type_tag<T>,
+        tag<7> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         using LoadT = avx512_member_type<U>;

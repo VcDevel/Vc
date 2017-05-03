@@ -170,9 +170,9 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     // convert from an SSE load{{{3
     template <class T, class U, class F>
-    static inline intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+    static inline intrinsic_type<T> load(const convertible_memory<U, sizeof(T), T> *mem,
+                                         F f, type_tag<T>,
+                                         tag<1> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
@@ -187,8 +187,8 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     // convert from a half SSE load{{{3
     template <class T, class U, class F>
     static inline intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) / 2, T> *mem, F f, type_tag<T>,
+        tag<2> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
@@ -203,8 +203,8 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     // convert from a quarter SSE load{{{3
     template <class T, class U, class F>
     static inline intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) / 4, T> *mem, F f, type_tag<T>,
+        tag<3> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
@@ -220,8 +220,8 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 #ifdef Vc_HAVE_FULL_SSE_ABI
     template <class T, class U>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, when_aligned<alignof(uint16_t)>, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) / 8, T> *mem,
+        when_aligned<alignof(uint16_t)>, type_tag<T>, tag<4> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<datapar_member_type<U>, datapar_member_type<T>>(
             intrin_cast<detail::intrinsic_type<U, size<U>()>>(load2(mem, flags::vector_aligned)));
@@ -229,16 +229,17 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 
     template <class T, class U>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, when_unaligned<alignof(uint16_t)>, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) / 8, T> *mem,
+        when_unaligned<alignof(uint16_t)>, type_tag<T>,
+        tag<4> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
         return datapar_member_type<T>(T(mem[0]), T(mem[1]));
     }
 #else   // Vc_HAVE_FULL_SSE_ABI
     template <class T, class U, class F>
     static Vc_INTRINSIC intrinsic_type<T> load(
-        const U *mem, F, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) / 8, T> *mem, F, type_tag<T>,
+        tag<4> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
         return datapar_member_type<T>(T(mem[0]), T(mem[1]));
     }
@@ -251,8 +252,8 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     // convert from an AVX/2-SSE load{{{3
     template <class T, class U, class F>
     static inline intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) * 2, T> *mem, F f, type_tag<T>,
+        tag<5> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX
         return convert<avx_member_type<U>, datapar_member_type<T>>(
@@ -270,8 +271,8 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     // convert from an AVX512/2-AVX/4-SSE load{{{3
     template <class T, class U, class F>
     static inline intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) * 4, T> *mem, F f, type_tag<T>,
+        tag<6> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         return convert<avx512_member_type<U>, datapar_member_type<T>>(load64(mem, f));
@@ -289,8 +290,8 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     // convert from a 2-AVX512/4-AVX/8-SSE load{{{3
     template <class T, class U, class F>
     static inline intrinsic_type<T> load(
-        const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        const convertible_memory<U, sizeof(T) * 8, T> *mem, F f, type_tag<T>,
+        tag<7> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         return convert<avx512_member_type<U>, datapar_member_type<T>>(
