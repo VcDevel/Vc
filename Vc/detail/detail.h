@@ -37,6 +37,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+// unused{{{1
+template <class T> static constexpr void unused(T && ) {}
+
 // dummy_assert {{{1
 struct dummy_assert {
     template <class T> Vc_INTRINSIC dummy_assert &operator<<(T &&) noexcept
@@ -96,6 +99,7 @@ Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *ptr)
     Vc_ASSERT(is_aligned(ptr))
         << " ptr = " << ptr << ", expected alignment = "
         << alignof(std::conditional_t<std::is_same<void, V>::value, T, V>);
+    detail::unused(is_aligned);
 #else
     if (Vc_IS_UNLIKELY(!is_aligned(ptr))) {
         std::fprintf(stderr, "A load with incorrect alignment has just been called. Look at the stacktrace to find the guilty load.\n");
@@ -166,9 +170,6 @@ public:
     exact_bool(int) = delete;
     constexpr operator bool() const { return d; }
 };
-
-// unused{{{1
-template <class T> static constexpr void unused(T && ) {}
 
 // execute_on_index_sequence{{{1
 template <typename F, size_t... I>
