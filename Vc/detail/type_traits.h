@@ -31,34 +31,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../traits/type_traits.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail {
 
 #ifdef Vc_CXX17
-using std::conjunction;
-using std::disjunction;
+using all = std::conjunction;
+using any = std::disjunction;
 using std::negation;
 
 #else   // Vc_CXX17
 
-// conjunction
+// all
 template <class... Ts>
-struct conjunction : std::true_type {};
+struct all : std::true_type {};
 
-template <class A> struct conjunction<A> : public A {};
+template <class A> struct all<A> : public A {};
 
 template <class A, class... Ts>
-struct conjunction<A, Ts...>
-    : public std::conditional<A::value, conjunction<Ts...>, A>::type {
+struct all<A, Ts...>
+    : public std::conditional<A::value, all<Ts...>, A>::type {
 };
 
-// disjunction
+// any
 template <class... Ts>
-struct disjunction : std::false_type {};
+struct any : std::false_type {};
 
-template <class A> struct disjunction<A> : public A {};
+template <class A> struct any<A> : public A {};
 
 template <class A, class... Ts>
-struct disjunction<A, Ts...>
-    : public std::conditional<A::value, A, disjunction<Ts...>>::type {
+struct any<A, Ts...>
+    : public std::conditional<A::value, A, any<Ts...>>::type {
 };
 
 // negation
@@ -67,10 +68,24 @@ template <class T> struct negation : public std::integral_constant<bool, !T::val
 
 #endif  // Vc_CXX17
 
-template <class... Ts> constexpr bool conjunction_v = conjunction<Ts...>::value;
-template <class... Ts> constexpr bool disjunction_v = disjunction<Ts...>::value;
-template <class T> constexpr bool negation_v = negation<T>::value;
+// imports
+using std::is_convertible;
+using std::is_same;
+using std::is_signed;
+using std::is_unsigned;
+using std::enable_if_t;
 
+// none
+template <class... Ts> struct none : public negation<any<Ts...>> {};
+
+// value aliases
+template <class... Ts>
+constexpr bool conjunction_v = all<Ts...>::value;
+template <class... Ts> constexpr bool disjunction_v = any<Ts...>::value;
+template <class T> constexpr bool negation_v = negation<T>::value;
+template <class... Ts> constexpr bool none_v = none<Ts...>::value;
+
+}  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_TYPE_TRAITS_H_

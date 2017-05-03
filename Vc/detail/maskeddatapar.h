@@ -78,7 +78,7 @@ masked_datapar_impl<T, A> masked_datapar(const typename datapar<T, A>::mask_type
 template <class T, class A, class OnTrue, class OnFalse, class... Vs>
 // TODO: require mask<T, A> to be convertible to Vs::mask_type forall Vs
 std::enable_if_t<
-    conjunction<std::is_same<decltype(declval<OnTrue>()(detail::masked_datapar(
+detail::all<std::is_same<decltype(declval<OnTrue>()(detail::masked_datapar(
                                  declval<mask<T, A> &>(), declval<Vs>())...)),
                              void>,
                 std::is_same<decltype(declval<OnFalse>()(detail::masked_datapar(
@@ -94,7 +94,7 @@ where(mask<T, A> k, OnTrue &&on_true, OnFalse &&on_false, Vs &&... vs)
 template <class T, class A, class OnTrue, class... Vs>
 // TODO: require mask<T, A> to be convertible to Vs::mask_type forall Vs
 std::enable_if_t<
-    conjunction<std::is_same<decltype(declval<OnTrue>()(detail::masked_datapar(
+detail::all<std::is_same<decltype(declval<OnTrue>()(detail::masked_datapar(
                                  declval<mask<T, A> &>(), declval<Vs>())...)),
                              void>>::value,
     void>

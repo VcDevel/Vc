@@ -433,7 +433,7 @@ public:
 #ifdef Vc_EXPERIMENTAL
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+        detail::all<std::is_same<decltype(declval<F>()(detail::masked_datapar(
                                      declval<const M &>(), declval<T &>()))),
                                  void>>::value,
         where_expression &&>
@@ -445,7 +445,7 @@ public:
 
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+        detail::all<std::is_same<decltype(declval<F>()(detail::masked_datapar(
                                      declval<const M &>(), declval<T &>()))),
                                  void>>::value,
         where_expression &&>
@@ -479,7 +479,7 @@ private:
 public:
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+        detail::all<std::is_same<decltype(declval<F>()(detail::masked_datapar(
                                      declval<const M &>(), declval<Ts &>())...)),
                                  void>>::value,
         where_expression &&>
@@ -491,7 +491,7 @@ public:
 
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        conjunction<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+        detail::all<std::is_same<decltype(declval<F>()(detail::masked_datapar(
                                      declval<const M &>(), declval<Ts &>())...)),
                                  void>>::value,
         where_expression &&>

@@ -43,7 +43,7 @@ template <class T0, class T1, class A, bool BothIntegral> struct allow_conversio
 template <class T0, class T1, class A>
 struct allow_conversion_ctor2
     : public allow_conversion_ctor2_1<
-          T0, T1, A, conjunction<std::is_integral<T0>, std::is_integral<T1>>::value> {
+          T0, T1, A, detail::all<std::is_integral<T0>, std::is_integral<T1>>::value> {
 };
 
 // disallow 2nd conversion ctor (equal Abi), if the value_types are equal (copy ctor)
@@ -121,7 +121,7 @@ template <class T, class Abi>
 class datapar
     : public detail::datapar_int_operators<
           datapar<T, Abi>,
-          conjunction<std::is_integral<T>,
+          detail::all<std::is_integral<T>,
                       std::is_destructible<typename detail::traits<T, Abi>::datapar_base>>::value>,
       public detail::traits<T, Abi>::datapar_base
 {
@@ -170,8 +170,8 @@ public:
     Vc_ALWAYS_INLINE datapar(
         const datapar<U, datapar_abi::fixed_size<size_v>> &x,
         std::enable_if_t<
-            conjunction<std::is_same<datapar_abi::fixed_size<size_v>, abi_type>,
-                        negation<detail::is_narrowing_conversion<U, value_type>>,
+            detail::all<std::is_same<datapar_abi::fixed_size<size_v>, abi_type>,
+                        detail::negation<detail::is_narrowing_conversion<U, value_type>>,
                         detail::converts_to_higher_integer_rank<U, value_type>>::value,
             void *> = nullptr)
         : datapar{static_cast<std::array<U, size()>>(x).data(), flags::vector_aligned}
@@ -184,8 +184,8 @@ public:
     explicit Vc_ALWAYS_INLINE datapar(
         const datapar<U, datapar_abi::fixed_size<size_v>> &x,
         std::enable_if_t<
-            disjunction<conjunction<negation<std::is_same<datapar_abi::fixed_size<size_v>,
-                                                          abi_type>>,
+            detail::any<detail::all<detail::negation<std::is_same<
+                                        datapar_abi::fixed_size<size_v>, abi_type>>,
                                     std::is_convertible<U, value_type>>,
                         detail::is_narrowing_conversion<U, value_type>>::value,
             void *> = nullptr)

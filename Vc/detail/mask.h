@@ -79,7 +79,7 @@ public:
     // implicit type conversion constructor
     template <class U>
     Vc_ALWAYS_INLINE mask(const mask<U, datapar_abi::fixed_size<size_v>> &x,
-         enable_if<conjunction<std::is_same<abi_type, datapar_abi::fixed_size<size_v>>,
+         enable_if<detail::all<std::is_same<abi_type, datapar_abi::fixed_size<size_v>>,
                                std::is_same<U, U>>::value> = nullarg)
         : mask{detail::bitset_init, detail::data(x)}
     {
@@ -89,16 +89,16 @@ public:
     mask(const mask<U, Abi> &x,
          enable_if<
              (size() == mask<U, Abi>::size()) &&
-             conjunction<std::is_integral<T>, std::is_integral<U>,
-                         negation<std::is_same<Abi, datapar_abi::fixed_size<size_v>>>,
-                         negation<std::is_same<T, U>>>::value> = nullarg)
+             detail::all<std::is_integral<T>, std::is_integral<U>,
+             detail::negation<std::is_same<Abi, datapar_abi::fixed_size<size_v>>>,
+             detail::negation<std::is_same<T, U>>>::value> = nullarg)
         : d{x.d}
     {
     }
     template <class U, class Abi2>
     mask(const mask<U, Abi2> &x,
-         enable_if<conjunction<
-             negation<std::is_same<abi_type, Abi2>>,
+         enable_if<detail::all<
+         detail::negation<std::is_same<abi_type, Abi2>>,
              std::is_same<abi_type, datapar_abi::fixed_size<size_v>>>::value> = nullarg)
     {
         x.memstore(&d[0], flags::vector_aligned);

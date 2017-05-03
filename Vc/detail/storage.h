@@ -107,8 +107,8 @@ public:
 
     static constexpr size_t size() { return Size; }
     Vc_INTRINSIC Storage() = default;
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&...init)
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
+    Vc_INTRINSIC Storage(Args &&... init)
         : data{static_cast<EntryType>(std::forward<Args>(init))...}
     {
     }
@@ -159,8 +159,8 @@ public:
 
     Vc_INTRINSIC Storage() : data(x86::zero<VectorType>()) { assertCorrectAlignment(&data); }
 
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&...init)
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
+    Vc_INTRINSIC Storage(Args &&... init)
         : data(x86::set(static_cast<EntryType>(std::forward<Args>(init))...))
     {
         assertCorrectAlignment(&data);
@@ -272,8 +272,8 @@ public:
 
     Vc_INTRINSIC Storage() : data(x86::zero<VectorType>()) { assertCorrectAlignment(&data); }
 
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&...init)
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
+    Vc_INTRINSIC Storage(Args &&... init)
         : data(x86::set(static_cast<EntryType>(std::forward<Args>(init))...))
     {
         assertCorrectAlignment(&data);
@@ -369,7 +369,7 @@ public:
 
     Vc_INTRINSIC Storage() : data{} { assertCorrectAlignment(&data); }
 
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
         : data{static_cast<EntryType>(std::forward<Args>(init))...}
     {
@@ -457,8 +457,8 @@ public:
         assertCorrectAlignment(&data);
     }
 
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&...init)
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
+    Vc_INTRINSIC Storage(Args &&... init)
         : data(x86::set(static_cast<EntryType>(std::forward<Args>(init))...))
     {
         assertCorrectAlignment(&data);
@@ -626,8 +626,8 @@ public:
 
     static constexpr size_t size() { return Size; }
     Vc_INTRINSIC Storage() = default;
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&...init)
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
+    Vc_INTRINSIC Storage(Args &&... init)
         : data{static_cast<EntryType>(std::forward<Args>(init))...}
     {
     }
@@ -678,8 +678,8 @@ public:
 
     Vc_INTRINSIC Storage() : data(aarch::zero<VectorType>()) { assertCorrectAlignment(&data); }
 
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&...init)
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
+    Vc_INTRINSIC Storage(Args &&... init)
         : data(aarch::set(static_cast<EntryType>(std::forward<Args>(init))...))
     {
         assertCorrectAlignment(&data);
@@ -753,8 +753,8 @@ public:
 
     Vc_INTRINSIC Storage() : data(aarch::zero<VectorType>()) { assertCorrectAlignment(&data); }
 
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&...init)
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
+    Vc_INTRINSIC Storage(Args &&... init)
         : data(aarch::set(static_cast<EntryType>(std::forward<Args>(init))...))
     {
         assertCorrectAlignment(&data);
@@ -824,7 +824,7 @@ public:
 
     Vc_INTRINSIC Storage() : data{} { assertCorrectAlignment(&data); }
 
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
         : data{static_cast<EntryType>(std::forward<Args>(init))...}
     {
@@ -886,8 +886,8 @@ public:
         assertCorrectAlignment(&data);
     }
 
-    template <class... Args, class = enable_if<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&...init)
+    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
+    Vc_INTRINSIC Storage(Args &&... init)
         : data(aarch::set(static_cast<EntryType>(std::forward<Args>(init))...))
     {
         assertCorrectAlignment(&data);
