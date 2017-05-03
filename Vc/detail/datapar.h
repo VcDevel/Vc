@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_DATAPAR_DATAPAR_H_
 
 #include "mask.h"
+#include "concepts.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -152,15 +153,8 @@ public:
     static constexpr size_type size_v = size_tag;
 
     // implicit broadcast constructor
-    template <
-        class U, class U_ = std::decay_t<U>,
-        class = std::enable_if_t<conjunction<
-            std::is_convertible<U, value_type>,
-            disjunction<
-                std::is_same<U_, value_type>, std::is_same<U_, int>,
-                conjunction<std::is_same<U_, detail::uint>, std::is_unsigned<value_type>>,
-                negation<detail::is_narrowing_conversion<U_, value_type>>>>::value>>
-    Vc_ALWAYS_INLINE datapar(U &&x)
+    template <class U>
+    Vc_ALWAYS_INLINE datapar(detail::value_preserving_or_int<U, value_type> &&x)
         : d(impl::broadcast(static_cast<value_type>(std::forward<U>(x)), size_tag))
     {
     }

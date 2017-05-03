@@ -41,6 +41,14 @@ template <class T, size_t ExpectedSizeof, class DstT,
                                   is_convertible<T, DstT>>::value>>
 using convertible_memory = T;
 
+template <class From, class To, class DecayedFrom = std::decay_t<From>,
+          class = enable_if_t<all<
+              is_convertible<From, To>,
+              any<is_same<DecayedFrom, To>, is_same<DecayedFrom, int>,
+                  all<is_same<DecayedFrom, uint>, is_unsigned<To>>,
+                  negation<detail::is_narrowing_conversion<DecayedFrom, To>>>>::value>>
+using value_preserving_or_int = From;
+
 /**\internal
  * Tag type for overload disambiguation. Typically default initialized via `tag<1> = {}`.
  */
