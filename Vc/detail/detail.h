@@ -113,6 +113,12 @@ Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *)
 // size_constant {{{1
 template <size_t X> using size_constant = std::integral_constant<size_t, X>;
 
+// size_tag_type {{{1
+template <class T, class A>
+auto size_tag_type_f(int)->size_constant<datapar_size<T, A>::value>;
+template <class T, class A> auto size_tag_type_f(float)->size_constant<0>;
+template <class T, class A> using size_tag_type = decltype(size_tag_type_f<T, A>(0));
+
 // integer type aliases{{{1
 using uchar = unsigned char;
 using schar = signed char;

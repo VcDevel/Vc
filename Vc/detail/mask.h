@@ -42,7 +42,7 @@ template <class T, class Abi> class mask : public detail::traits<T, Abi>::mask_b
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::mask_impl_type;
-    static constexpr detail::size_constant<datapar_size_v<T, Abi>> size_tag = {};
+    static constexpr detail::size_tag_type<T, Abi> size_tag = {};
     static constexpr T *type_tag = nullptr;
     friend impl;
     friend typename traits::datapar_impl_type;  // to construct masks on return and
@@ -55,7 +55,7 @@ public:
     using size_type = size_t;
     using abi_type = Abi;
 
-    static constexpr size_type size() { return datapar_size_v<T, Abi>; }
+    static constexpr size_type size() { return size_tag; }
     mask() = default;
     mask(const mask &) = default;
     mask(mask &&) = default;
@@ -63,7 +63,7 @@ public:
     mask &operator=(mask &&) = default;
 
     // non-std; required to work around ICC ICEs
-    static constexpr size_type size_v = datapar_size_v<T, Abi>;
+    static constexpr size_type size_v = size_tag;
 
     // access to internal representation (suggested extension)
     explicit Vc_ALWAYS_INLINE mask(typename traits::mask_cast_type init) : d{init} {}

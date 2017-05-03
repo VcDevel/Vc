@@ -129,7 +129,7 @@ class datapar
     using impl = typename traits::datapar_impl_type;
     using member_type = typename traits::datapar_member_type;
     using cast_type = typename traits::datapar_cast_type;
-    static constexpr detail::size_constant<datapar_size_v<T, Abi>> size_tag = {};
+    static constexpr detail::size_tag_type<T, Abi> size_tag = {};
     static constexpr T *type_tag = nullptr;
     friend impl;
     friend detail::generic_datapar_impl<impl>;
@@ -141,7 +141,7 @@ public:
     using size_type = size_t;
     using abi_type = Abi;
 
-    static constexpr size_type size() { return datapar_size_v<T, Abi>; }
+    static constexpr size_type size() { return size_tag; }
     datapar() = default;
     datapar(const datapar &) = default;
     datapar(datapar &&) = default;
@@ -149,7 +149,7 @@ public:
     datapar &operator=(datapar &&) = default;
 
     // non-std; required to work around MSVC error C2975
-    static constexpr size_type size_v = datapar_size_v<T, Abi>;
+    static constexpr size_type size_v = size_tag;
 
     // implicit broadcast constructor
     template <

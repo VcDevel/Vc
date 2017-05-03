@@ -54,6 +54,9 @@ template <class T> struct is_datapar;
 template <class T> struct is_mask;
 template <class T, class Abi> class datapar;
 template <class T, class Abi> class mask;
+
+template <class T, class Abi> struct datapar_size;
+
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_FWDDECL_H_
