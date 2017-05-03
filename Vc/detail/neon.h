@@ -131,7 +131,7 @@ template <class Derived> struct generic_datapar_impl {
     Vc_ARITHMETIC_OP_(bit_shift_left);
     Vc_ARITHMETIC_OP_(bit_shift_right);
 #undef Vc_ARITHMETIC_OP_
-     //  increment & decrement{{{2
+    //  increment & decrement{{{2
     template <class T, size_t N> static Vc_INTRINSIC void increment(Storage<T, N> &x)
     {
         x = detail::plus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
