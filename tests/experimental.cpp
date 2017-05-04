@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define Vc_EXPERIMENTAL 1
 #include <vir/test.h>
 #include <Vc/Vc>
+#include "make_vec.h"
 
 template <class... Ts> using base_template = Vc::datapar<Ts...>;
 #include "testtypes.h"
