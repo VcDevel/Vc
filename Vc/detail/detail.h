@@ -28,8 +28,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DATAPAR_DETAIL_H_
 #define VC_DATAPAR_DETAIL_H_
 
-#include <limits>
 #include <functional>
+#ifndef NDEBUG
+#include <iostream>
+#endif  // NDEBUG
+#include <limits>
 #include "macros.h"
 #include "flags.h"
 #include "type_traits.h"
@@ -41,13 +44,14 @@ namespace detail
 template <class T> static constexpr void unused(T && ) {}
 
 // dummy_assert {{{1
+#ifdef NDEBUG
 struct dummy_assert {
     template <class T> Vc_INTRINSIC dummy_assert &operator<<(T &&) noexcept
     {
         return *this;
     }
 };
-
+#else   // NDEBUG
 // real_assert {{{1
 struct real_assert {
     Vc_INTRINSIC real_assert(bool ok, const char *code, const char *file, int line)
@@ -84,6 +88,7 @@ private:
     }
     bool failed;
 };
+#endif  // NDEBUG
 
 // assertCorrectAlignment {{{1
 #if defined Vc_CHECK_ALIGNMENT || defined COMPILE_FOR_UNIT_TESTS
