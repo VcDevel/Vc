@@ -209,6 +209,28 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
     }
     using Vc::flags::element_aligned;
     using Vc::flags::vector_aligned;
+    constexpr size_t stride_alignment =
+        M::size() & 1 ? 1 : M::size() & 2
+                                ? 2
+                                : M::size() & 4
+                                      ? 4
+                                      : M::size() & 8
+                                            ? 8
+                                            : M::size() & 16
+                                                  ? 16
+                                                  : M::size() & 32
+                                                        ? 32
+                                                        : M::size() & 64
+                                                              ? 64
+                                                              : M::size() & 128
+                                                                    ? 128
+                                                                    : M::size() & 256
+                                                                          ? 256
+                                                                          : 512;
+    using stride_aligned_t =
+        std::conditional_t<M::size() == stride_alignment, decltype(vector_aligned),
+                           Vc::flags::overaligned_tag<stride_alignment * sizeof(bool)>>;
+    constexpr stride_aligned_t stride_aligned = {};
 #ifdef Vc_MSVC
     using TT = Vc::flags::overaligned_tag<alignment>;
     constexpr TT overaligned = {};
@@ -218,7 +240,7 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
 
     const M alternating_mask = make_alternating_mask<M>();
 
-    M x(&mem[M::size()], vector_aligned);
+    M x(&mem[M::size()], stride_aligned);
     COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : alternating_mask)
         << x.to_bitset() << ", alternating_mask: " << alternating_mask.to_bitset();
     x = {&mem[1], element_aligned};
@@ -226,15 +248,15 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
     x = M{mem, overaligned};
     COMPARE(x, alternating_mask);
 
-    x.memload(&mem[M::size()], vector_aligned);
+    x.memload(&mem[M::size()], stride_aligned);
     COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : alternating_mask);
     x.memload(&mem[1], element_aligned);
     COMPARE(x, !alternating_mask);
-    x.memload(mem, overaligned);
+    x.memload(mem, vector_aligned);
     COMPARE(x, alternating_mask);
 
     x = !alternating_mask;
-    x.memload(&mem[M::size()], alternating_mask, vector_aligned);
+    x.memload(&mem[M::size()], alternating_mask, stride_aligned);
     COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : M{true});
     x = M(true);                                              // 1111
     x.memload(&mem[1], alternating_mask, element_aligned);    // load .0.0
@@ -245,7 +267,7 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
     // stores {{{2
     memset(mem, 0, sizeof(mem));
     x = M(true);
-    x.memstore(&mem[M::size()], vector_aligned);
+    x.memstore(&mem[M::size()], stride_aligned);
     std::size_t i = 0;
     for (; i < M::size(); ++i) {
         COMPARE(mem[i], false);
@@ -273,7 +295,7 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
     for (; i < 3 * M::size(); ++i) {
         COMPARE(mem[i], false);
     }
-    x.memstore(mem, overaligned);
+    x.memstore(mem, vector_aligned);
     (!x).memstore(mem, alternating_mask, overaligned);
     for (i = 0; i < M::size(); ++i) {
         COMPARE(mem[i], i % 2 == 0);
