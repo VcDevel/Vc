@@ -265,37 +265,37 @@ Vc_INTRINSIC __m128d load(const float *mem, Flags, LoadTag<__m128d, double>)
         _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<const __m64 *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const uint *mem, Flags f, LoadTag<__m128d, double>)
+Vc_INTRINSIC __m128d load(const uint *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<uint, double>(
         _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const int *mem, Flags f, LoadTag<__m128d, double>)
+Vc_INTRINSIC __m128d load(const int *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<int, double>(
         _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const ushort *mem, Flags f, LoadTag<__m128d, double>)
+Vc_INTRINSIC __m128d load(const ushort *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<ushort, double>(
         _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const short *mem, Flags f, LoadTag<__m128d, double>)
+Vc_INTRINSIC __m128d load(const short *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<short, double>(
         _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const uchar *mem, Flags f, LoadTag<__m128d, double>)
+Vc_INTRINSIC __m128d load(const uchar *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<uchar, double>(
         _mm_set1_epi16(*reinterpret_cast<const MayAlias<short> *>(mem)));
 }
 template <typename Flags>
-Vc_INTRINSIC __m128d load(const schar *mem, Flags f, LoadTag<__m128d, double>)
+Vc_INTRINSIC __m128d load(const schar *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<char, double>(
         _mm_set1_epi16(*reinterpret_cast<const MayAlias<short> *>(mem)));
