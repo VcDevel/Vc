@@ -77,14 +77,16 @@ constexpr bool some_of(bool) { return false; }
 //@}
 
 template <typename InputIt, typename UnaryFunction>
-inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
-                     Traits::is_functor_argument_immutable<
-                         UnaryFunction, Vector<typename InputIt::value_type>>::value,
-                 UnaryFunction>
+inline enable_if<
+    std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
+        Traits::is_functor_argument_immutable<
+            UnaryFunction,
+            Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
+    UnaryFunction>
 simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 {
-    typedef Vector<typename InputIt::value_type> V;
-    typedef Scalar::Vector<typename InputIt::value_type> V1;
+    typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
+    typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
     for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
                    (V::MemoryAlignment - 1) &&
                first != last;
@@ -102,14 +104,16 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 }
 
 template <typename InputIt, typename UnaryFunction>
-inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
-                     !Traits::is_functor_argument_immutable<
-                         UnaryFunction, Vector<typename InputIt::value_type>>::value,
-                 UnaryFunction>
+inline enable_if<
+    std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
+        !Traits::is_functor_argument_immutable<
+            UnaryFunction,
+            Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
+    UnaryFunction>
 simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 {
-    typedef Vector<typename InputIt::value_type> V;
-    typedef Scalar::Vector<typename InputIt::value_type> V1;
+    typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
+    typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
     for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
                    (V::MemoryAlignment - 1) &&
                first != last;
@@ -133,7 +137,9 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 }
 
 template <typename InputIt, typename UnaryFunction>
-inline enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction>
+inline enable_if<
+    !std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value,
+    UnaryFunction>
 simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 {
     return std::for_each(first, last, std::move(f));
@@ -141,15 +147,17 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 
 ///////////////////////////////////////////////////////////////////////////////
 template <typename InputIt, typename UnaryFunction>
-inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
-                     Traits::is_functor_argument_immutable<
-                         UnaryFunction, Vector<typename InputIt::value_type>>::value,
-                 UnaryFunction>
+inline enable_if<
+    std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
+        Traits::is_functor_argument_immutable<
+            UnaryFunction,
+            Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
+    UnaryFunction>
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {
     typename std::make_signed<size_t>::type len = count;
-    typedef Vector<typename InputIt::value_type> V;
-    typedef Scalar::Vector<typename InputIt::value_type> V1;
+    typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
+    typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
     for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
                (V::MemoryAlignment - 1) &&
            len != 0;
@@ -166,15 +174,17 @@ simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 }
 
 template <typename InputIt, typename UnaryFunction>
-inline enable_if<std::is_arithmetic<typename InputIt::value_type>::value &&
-                     !Traits::is_functor_argument_immutable<
-                         UnaryFunction, Vector<typename InputIt::value_type>>::value,
-                 UnaryFunction>
+inline enable_if<
+    std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
+        !Traits::is_functor_argument_immutable<
+            UnaryFunction,
+            Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
+    UnaryFunction>
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {
     typename std::make_signed<size_t>::type len = count;
-    typedef Vector<typename InputIt::value_type> V;
-    typedef Scalar::Vector<typename InputIt::value_type> V1;
+    typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
+    typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
     for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
                (V::MemoryAlignment - 1) &&
            len != 0;
@@ -198,7 +208,9 @@ simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 
 #ifdef Vc_CXX17
 template <typename InputIt, typename UnaryFunction>
-inline enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction>
+inline enable_if<
+    !std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value,
+    UnaryFunction>
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {
     return std::for_each_n(first, count, std::move(f));
