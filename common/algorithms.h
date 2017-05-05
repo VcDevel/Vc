@@ -93,7 +93,7 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
          ++first) {
         f(V1(std::addressof(*first), Vc::Aligned));
     }
-    const auto lastV = last - (V::Size + 1);
+    const auto lastV = last - V::Size + 1;
     for (; first < lastV; first += V::Size) {
         f(V(std::addressof(*first), Vc::Aligned));
     }
@@ -122,7 +122,7 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
         f(tmp);
         tmp.store(std::addressof(*first), Vc::Aligned);
     }
-    const auto lastV = last - (V::Size + 1);
+    const auto lastV = last - V::Size + 1;
     for (; first < lastV; first += V::Size) {
         V tmp(std::addressof(*first), Vc::Aligned);
         f(tmp);
