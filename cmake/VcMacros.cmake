@@ -126,7 +126,7 @@ macro(vc_determine_compiler)
 endmacro()
 
 macro(vc_determine_target_isa)
-   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64)")
+   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64|amd64)")
       set(Vc_X86 TRUE)
    elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(arm|aarch32|aarch64)")
       set(Vc_ARM TRUE)
