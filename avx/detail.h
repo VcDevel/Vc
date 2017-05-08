@@ -461,7 +461,7 @@ shifted(T k)
 {
     return AVX::avx_cast<T>(
         AVX::alignr<amount>(Mem::permute128<X1, Const0>(AVX::avx_cast<__m256i>(k)),
-                            Mem::permute128<X0, X1>(AVX::avx_cast<__m256i>(k))));
+                            AVX::avx_cast<__m256i>(k)));
 }
 template <int amount, typename T>
 Vc_INTRINSIC Vc_CONST enable_if<(sizeof(T) == 32 && amount <= -16), T> shifted(T k)
