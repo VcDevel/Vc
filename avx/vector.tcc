@@ -758,10 +758,21 @@ template<typename T> Vc_INTRINSIC AVX2::Vector<T> Vector<T, VectorAbi::Avx>::shi
 {
 #ifdef __GNUC__
     if (__builtin_constant_p(amount)) {
-        switch (amount * 2) {
-        case int(Size):
+        const __m256i a = AVX::avx_cast<__m256i>(d.v());
+        const __m256i b = AVX::avx_cast<__m256i>(shiftIn.d.v());
+        switch (amount) {
+        case 1:
+#ifdef Vc_IMPL_AVX2
+            return AVX::avx_cast<VectorType>(_mm256_alignr_epi8(
+                _mm256_permute2x128_si256(a, b, 0x21), a, sizeof(EntryType)));
+#else  // Vc_IMPL_AVX2
+            return AVX::avx_cast<VectorType>(AVX::concat(
+                _mm_alignr_epi8(AVX::hi128(a), AVX::lo128(a), sizeof(EntryType)),
+                _mm_alignr_epi8(AVX::lo128(b), AVX::hi128(a), sizeof(EntryType))));
+#endif  // Vc_IMPL_AVX2
+        case int(Size / 2):
             return shifted_shortcut(d.v(), shiftIn.d.v(), WidthT());
-        case -int(Size):
+        case -int(Size / 2):
             return shifted_shortcut(shiftIn.d.v(), d.v(), WidthT());
         }
     }
