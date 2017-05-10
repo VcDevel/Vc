@@ -60,8 +60,8 @@ install:
           export CXX=clang++-3.8 CC=clang-3.8;;
         osx-g++-current)
           brew update &&
-          brew install gcc6 &&
-          export CXX=g++-6 CC=gcc-6;;
+          brew install gcc7 &&
+          export CXX=g++-7 CC=gcc-7;;
         osx-g++-previous)
           brew update &&
           brew install gcc5 &&
