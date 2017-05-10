@@ -383,8 +383,8 @@ static Vc_INTRINSIC void masked_assign(
     const mask<T, datapar_abi::scalar> &k, mask<T, datapar_abi::scalar> &lhs,
     const detail::id<mask<T, datapar_abi::scalar>> &rhs)
 {
-    if (k.d) {
-        lhs.d = rhs.d;
+    if (detail::data(k)) {
+        detail::data(lhs) = detail::data(rhs);
     }
 }
 
@@ -398,8 +398,8 @@ static Vc_INTRINSIC
     masked_assign(const mask<T, datapar_abi::scalar> &k,
                   datapar<T, datapar_abi::scalar> &lhs, const U &rhs)
 {
-    if (k.d) {
-        lhs.d = rhs;
+    if (detail::data(k)) {
+        lhs = rhs;
     }
 }
 
@@ -408,8 +408,8 @@ inline void masked_cassign(const detail::scalar_mask<T> &k,
                            detail::scalar_datapar<T> &lhs,
                            const detail::scalar_datapar<T> &rhs)
 {
-    if (k.d) {
-        lhs.d = Op<T>{}(lhs.d, rhs.d);
+    if (detail::data(k)) {
+        detail::data(lhs) = Op<T>{}(detail::data(lhs), detail::data(rhs));
     }
 }
 
@@ -422,8 +422,8 @@ inline enable_if<std::is_convertible<U, detail::scalar_datapar<T>>::value &&
 masked_cassign(const detail::scalar_mask<T> &k, detail::scalar_datapar<T> &lhs,
                const U &rhs)
 {
-    if (k.d) {
-        lhs.d = Op<T>{}(lhs.d, rhs);
+    if (detail::data(k)) {
+        detail::data(lhs) = Op<T>{}(detail::data(lhs), rhs);
     }
 }
 
@@ -431,7 +431,7 @@ template <template <typename> class Op, typename T>
 inline detail::scalar_datapar<T> masked_unary(const detail::scalar_mask<T> &k,
                                               const detail::scalar_datapar<T> &v)
 {
-    return static_cast<T>(k.d ? Op<T>{}(v.d) : v.d);
+    return static_cast<T>(detail::data(k) ? Op<T>{}(detail::data(v)) : detail::data(v));
 }
 
 // [mask.reductions] {{{1

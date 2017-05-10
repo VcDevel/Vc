@@ -35,7 +35,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-template <class T, class A> Vc_INTRINSIC_L auto data(const mask<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> Vc_INTRINSIC_L const auto &data(const mask<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> Vc_INTRINSIC_L auto &data(mask<T, A> &x) Vc_INTRINSIC_R;
 }  // namespace detail
 
 template <class T, class Abi> class mask : public detail::traits<T, Abi>::mask_base
@@ -170,9 +171,11 @@ private:
 #ifdef Vc_MSVC
     // Work around "warning C4396: the inline specifier cannot be used when a friend
     // declaration refers to a specialization of a function template"
-    template <class U, class A> friend auto detail::data(const mask<U, A> &);
+    template <class U, class A> friend const auto &detail::data(const mask<U, A> &);
+    template <class U, class A> friend auto &detail::data(mask<U, A> &);
 #else
-    friend auto detail::data<T, abi_type>(const mask &);
+    friend const auto &detail::data<T, abi_type>(const mask &);
+    friend auto &detail::data<T, abi_type>(mask &);
 #endif
     Vc_INTRINSIC mask(detail::private_init_t, typename traits::mask_member_type init)
         : d(init)
@@ -192,7 +195,8 @@ private:
 
 namespace detail
 {
-template <class T, class A> Vc_INTRINSIC auto data(const mask<T, A> &x) { return x.d; }
+template <class T, class A> Vc_INTRINSIC const auto &data(const mask<T, A> &x) { return x.d; }
+template <class T, class A> Vc_INTRINSIC auto &data(mask<T, A> &x) { return x.d; }
 }  // namespace detail
 
 Vc_VERSIONED_NAMESPACE_END
