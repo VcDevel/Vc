@@ -110,6 +110,9 @@ template <class T> struct avx512_traits {
         U d;
 
     public:
+        mask_cast_type(bool) = delete;  // better safe than sorry: bool is implicitly
+                                        // convertible to __mmask. This catches the
+                                        // conversion and turns it into a hard error.
         mask_cast_type(U x) : d(x) {}
         operator mask_member_type() const { return d; }
     };

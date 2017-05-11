@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-template <typename T, typename U> inline void masked_assign(bool k, T &lhs, U &&rhs)
+template <typename T, typename U> inline void masked_assign(exact_bool k, T &lhs, U &&rhs)
 {
     if (k) {
         lhs = std::forward<U>(rhs);
@@ -42,14 +42,14 @@ template <typename T, typename U> inline void masked_assign(bool k, T &lhs, U &&
 }
 
 template <template <typename> class Op, typename T, typename U>
-inline void masked_cassign(bool k, T &lhs, U &&rhs)
+inline void masked_cassign(exact_bool k, T &lhs, U &&rhs)
 {
     if (k) {
         lhs = Op<void>{}(lhs, std::forward<T>(rhs));
     }
 }
 
-template <template <typename> class Op, typename T> inline auto masked_unary(bool k, T &d)
+template <template <typename> class Op, typename T> inline auto masked_unary(exact_bool k, T &d)
 {
     return k ? Op<void>{}(d) : d;
 }
