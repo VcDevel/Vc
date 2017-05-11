@@ -238,16 +238,16 @@ template <class T, class A>
 inline void Vc_VDECL masked_assign(mask<T, A> k, datapar<T, A> &lhs,
                                    const detail::id<datapar<T, A>> &rhs)
 {
-    lhs = static_cast<datapar<T, A>>(
-        detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs)));
+    detail::data(lhs) =
+        detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs));
 }
 
 template <class T, class A>
 inline void Vc_VDECL masked_assign(mask<T, A> k, mask<T, A> &lhs,
                                    const detail::id<mask<T, A>> &rhs)
 {
-    lhs = static_cast<mask<T, A>>(
-        detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs)));
+    detail::data(lhs) =
+        detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs));
 }
 
 template <template <typename> class Op, typename T, class A,
@@ -257,8 +257,8 @@ template <template <typename> class Op, typename T, class A,
 inline void Vc_VDECL masked_cassign(mask<T, A> k, datapar<T, A> &lhs,
                                     const datapar<T, A> &rhs)
 {
-    lhs = static_cast<datapar<T, A>>(detail::x86::blend(
-        detail::data(k), detail::data(lhs), detail::data(Op<void>{}(lhs, rhs))));
+    detail::data(lhs) = detail::x86::blend(detail::data(k), detail::data(lhs),
+                                           detail::data(Op<void>{}(lhs, rhs)));
 }
 
 template <template <typename> class Op, typename T, class A, class U>
