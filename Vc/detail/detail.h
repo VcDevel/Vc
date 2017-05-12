@@ -291,7 +291,7 @@ template <class T, class Abi0, class... Abis> struct datapar_tuple<T, Abi0, Abis
 #ifdef __GNUC__
         return reinterpret_cast<const may_alias<T> *>(this)[i];
 #else
-        return i < first.size() ? first[i] : second[i - first.size()];
+        return i < first_type::size() ? first[i] : second[i - first_type::size()];
 #endif
     }
     void set(size_t i, T val) noexcept
@@ -299,10 +299,10 @@ template <class T, class Abi0, class... Abis> struct datapar_tuple<T, Abi0, Abis
 #ifdef __GNUC__
         reinterpret_cast<may_alias<T> *>(this)[i] = val;
 #else
-        if (i < first.size()) {
+        if (i < first_type::size()) {
             first[i] = val;
         } else {
-            second.set(i - first.size(), val);
+            second.set(i - first_type::size(), val);
         }
 #endif
     }
@@ -375,7 +375,7 @@ template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
 Vc_INTRINSIC void for_each(const datapar_tuple<T, A0, A1, As...> &t_, F &&fun_)
 {
     fun_(t_.first, size_constant<Offset>());
-    for_each<Offset + t_.first.size()>(t_.second, std::forward<F>(fun_));
+    for_each<Offset + datapar_size<T, A0>::value>(t_.second, std::forward<F>(fun_));
 }
 
 // for_each(datapar_tuple &, Fun) {{{2
@@ -388,7 +388,7 @@ template <size_t Offset = 0, class T, class A0, class A1, class... As, class F>
 Vc_INTRINSIC void for_each(datapar_tuple<T, A0, A1, As...> &t_, F &&fun_)
 {
     fun_(t_.first, size_constant<Offset>());
-    for_each<Offset + t_.first.size()>(t_.second, std::forward<F>(fun_));
+    for_each<Offset + datapar_size<T, A0>::value>(t_.second, std::forward<F>(fun_));
 }
 
 // for_each(datapar_tuple &, const datapar_tuple &, Fun) {{{2
@@ -403,7 +403,7 @@ Vc_INTRINSIC void for_each(datapar_tuple<T, A0, A1, As...> & a_,
                            const datapar_tuple<T, A0, A1, As...> &b_, F &&fun_)
 {
     fun_(a_.first, b_.first, size_constant<Offset>());
-    for_each<Offset + a_.first.size()>(a_.second, b_.second, std::forward<F>(fun_));
+    for_each<Offset + datapar_size<T, A0>::value>(a_.second, b_.second, std::forward<F>(fun_));
 }
 
 // for_each(const datapar_tuple &, const datapar_tuple &, Fun) {{{2
@@ -418,7 +418,7 @@ Vc_INTRINSIC void for_each(const datapar_tuple<T, A0, A1, As...> &a_,
                            const datapar_tuple<T, A0, A1, As...> &b_, F &&fun_)
 {
     fun_(a_.first, b_.first, size_constant<Offset>());
-    for_each<Offset + a_.first.size()>(a_.second, b_.second, std::forward<F>(fun_));
+    for_each<Offset + datapar_size<T, A0>::value>(a_.second, b_.second, std::forward<F>(fun_));
 }
 
 // traits forward declaration{{{1
