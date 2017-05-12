@@ -153,9 +153,9 @@ public:
     static constexpr size_type size_v = size_tag;
 
     // implicit broadcast constructor
-    template <class U>
-    Vc_ALWAYS_INLINE datapar(detail::value_preserving_or_int<U, value_type> &&x)
-        : d(impl::broadcast(static_cast<value_type>(std::forward<U>(x)), size_tag))
+    template <class U, class = detail::value_preserving_or_int<U, value_type>>
+    Vc_ALWAYS_INLINE datapar(U &&x)
+        : d(impl::broadcast(static_cast<value_type>(x), size_tag))
     {
     }
 
