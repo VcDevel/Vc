@@ -61,8 +61,10 @@ elseif(Vc_COMPILER_IS_CLANG)
    if(Vc_CLANG_VERSION VERSION_LESS 4.0.50)
       # Clang ICEs with AVX512 on the loadstore test
       list(APPEND disabled_targets
-         loadstore_avx512_vectorbuiltin_int_short_uint_ushort
-         loadstore_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
+         loadstore_avx512_vectorbuiltin_ushort
+         loadstore_avx512_vectorbuiltin_short
+         loadstore_avx512_vectorbuiltin_uchar
+         loadstore_avx512_vectorbuiltin_schar
          datapar_avx512_vectorbuiltin_int_short_uint_ushort
          datapar_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
          )
