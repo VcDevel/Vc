@@ -256,13 +256,13 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
     COMPARE(x, alternating_mask);
 
     x = !alternating_mask;
-    x.memload(&mem[M::size()], alternating_mask, stride_aligned);
+    where(alternating_mask, x).memload(&mem[M::size()], stride_aligned);
     COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : M{true});
-    x = M(true);                                              // 1111
-    x.memload(&mem[1], alternating_mask, element_aligned);    // load .0.0
-    COMPARE(x, !alternating_mask);                            // 1010
-    x.memload(mem, alternating_mask, overaligned);            // load .1.1
-    COMPARE(x, M{true});                                      // 1111
+    x = M(true);                                                   // 1111
+    where(alternating_mask, x).memload(&mem[1], element_aligned);  // load .0.0
+    COMPARE(x, !alternating_mask);                                 // 1010
+    where(alternating_mask, x).memload(mem, overaligned);          // load .1.1
+    COMPARE(x, M{true});                                           // 1111
 
     // stores {{{2
     memset(mem, 0, sizeof(mem));
@@ -296,7 +296,7 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
         COMPARE(mem[i], false);
     }
     x.memstore(mem, vector_aligned);
-    (!x).memstore(mem, alternating_mask, overaligned);
+    where(alternating_mask, !x).memstore(mem, overaligned);
     for (i = 0; i < M::size(); ++i) {
         COMPARE(mem[i], i % 2 == 0);
     }

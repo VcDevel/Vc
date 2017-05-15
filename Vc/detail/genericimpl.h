@@ -147,6 +147,32 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     // member types {{{2
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
+    template <class T> using mask = Vc::mask<T, abi>;
+
+    // masked load {{{2
+    template <class T, class F>
+    static inline void Vc_VDECL masked_load(mask<T> &merge, mask<T> mask, const bool *mem,
+                                            F) noexcept
+    {
+        constexpr auto N = datapar_size_v<T, abi>;
+        detail::execute_n_times<N>([&](auto i) {
+            if (detail::data(mask)[i]) {
+                detail::data(merge).set(i, MaskBool<sizeof(T)>{mem[i]});
+            }
+        });
+    }
+
+    // masked store {{{2
+    template <class T, class F>
+    static inline void Vc_VDECL masked_store(mask<T> v, bool *mem, F, mask<T> k) noexcept
+    {
+        constexpr auto N = datapar_size_v<T, abi>;
+        detail::execute_n_times<N>([&](auto i) {
+            if (detail::data(k)[i]) {
+                mem[i] = detail::data(v)[i];
+            }
+        });
+    }
 
     // to_bitset {{{2
     template <class T, size_t N>

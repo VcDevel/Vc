@@ -657,19 +657,6 @@ struct avx_mask_impl : public generic_mask_impl<datapar_abi::avx, avx_mask_membe
         return _mm256_cmpgt_epi8(load32(mem, f), zero<__m256i>());
     }
 
-    // masked load {{{2
-    template <class T, class F, class SizeTag>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(mask_member_type<T> &merge,
-                                                  mask_member_type<T> mask,
-                                                  const bool *mem, F, SizeTag) noexcept
-    {
-        for (std::size_t i = 0; i < size<T>(); ++i) {
-            if (mask.m(i)) {
-                merge.set(i, mask_bool<T>{mem[i]});
-            }
-        }
-    }
-
     // store {{{2
     template <class T, class F>
     static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
@@ -719,19 +706,6 @@ struct avx_mask_impl : public generic_mask_impl<datapar_abi::avx, avx_mask_membe
     {
         const auto bools = detail::and_(one32(uchar()), v.v());
         store32(bools, mem, f);
-    }
-
-    // masked store {{{2
-    template <class T, class F, class SizeTag>
-    static Vc_INTRINSIC void Vc_VDECL masked_store(mask_member_type<T> v, bool *mem, F,
-                                                   mask_member_type<T> k,
-                                                   SizeTag) noexcept
-    {
-        for (std::size_t i = 0; i < size<T>(); ++i) {
-            if (k.m(i)) {
-                mem[i] = v.m(i);
-            }
-        }
     }
 
     // negation {{{2

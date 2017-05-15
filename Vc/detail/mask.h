@@ -123,19 +123,11 @@ public:
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, size_tag));
     }
-    template <class Flags> Vc_ALWAYS_INLINE void Vc_VDECL memload(const value_type *mem, mask k, Flags f)
-    {
-        impl::masked_load(d, k.d, mem, f, size_tag);
-    }
 
     // stores [mask.store]
     template <class Flags> Vc_ALWAYS_INLINE void memstore(value_type *mem, Flags f) const
     {
         impl::store(d, mem, f, size_tag);
-    }
-    template <class Flags> Vc_ALWAYS_INLINE void Vc_VDECL memstore(value_type *mem, mask k, Flags f) const
-    {
-        impl::masked_store(d, mem, f, k.d, size_tag);
     }
 
     // scalar access

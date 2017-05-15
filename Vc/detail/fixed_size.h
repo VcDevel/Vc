@@ -529,21 +529,15 @@ template <int N> struct fixed_size_mask_impl {
     }
 
     // masked load {{{2
-    template <size_t... I>
-    static Vc_INTRINSIC void masked_load_impl(mask_member_type &merge,
-                                              const mask_member_type &mask,
-                                              const bool *mem,
-                                              std::index_sequence<I...>) noexcept
+    template <class T, class F>
+    static inline void masked_load(mask<T> &merge, const mask<T> &mask, const bool *mem,
+                                   F) noexcept
     {
-        auto &&x = {(merge[I] = mask[I] ? mem[I] : merge[I])...};
-        unused(x);
-    }
-    template <class F>
-    static inline void masked_load(mask_member_type &merge, const mask_member_type &mask,
-                                   const bool *mem, F, size_tag) noexcept
-    {
-        // TODO: optimize with maskload intrinsics
-        masked_load_impl(merge, mask, mem, std::make_index_sequence<N>());
+        execute_n_times<N>([&](auto i) {
+            if (detail::data(mask)[i]) {
+                detail::data(merge)[i] = mem[i];
+            }
+        });
     }
 
     // store {{{2
@@ -643,13 +637,13 @@ template <int N> struct fixed_size_mask_impl {
     }
 
     // masked store {{{2
-    template <class F>
-    static inline void masked_store(const mask_member_type &v, bool *mem, F,
-                                    const mask_member_type &k, size_tag) noexcept
+    template <class T, class F>
+    static inline void masked_store(const mask<T> &v, bool *mem, F,
+                                    const mask<T> &k) noexcept
     {
         execute_n_times<N>([&](auto i) {
-            if (k[i]) {
-                mem[i] = v[i];
+            if (detail::data(k)[i]) {
+                mem[i] = detail::data(v)[i];
             }
         });
     }

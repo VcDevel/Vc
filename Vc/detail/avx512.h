@@ -700,53 +700,54 @@ struct avx512_mask_impl
 
     // masked load {{{2
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
-    template <class F>
     static Vc_INTRINSIC void masked_load(mask_member_type<8> &merge,
-                                         mask_member_type<8> mask, const bool *mem, F,
-                                             size_tag<8>) noexcept
+                                         mask_member_type<8> mask,
+                                         const bool *mem) noexcept
     {
         const auto a = _mm_mask_loadu_epi8(zero<__m128i>(), mask.v(), mem);
         merge = (merge & ~mask) | _mm_test_epi8_mask(a, a);
     }
 
-    template <class F>
     static Vc_INTRINSIC void masked_load(mask_member_type<16> &merge,
-                                         mask_member_type<16> mask, const bool *mem, F,
-                                         size_tag<16>) noexcept
+                                         mask_member_type<16> mask,
+                                         const bool *mem) noexcept
     {
         const auto a = _mm_mask_loadu_epi8(zero<__m128i>(), mask.v(), mem);
         merge = (merge & ~mask) | _mm_test_epi8_mask(a, a);
     }
 
-    template <class F>
     static Vc_INTRINSIC void masked_load(mask_member_type<32> &merge,
-                                         mask_member_type<32> mask, const bool *mem, F,
-                                         size_tag<32>) noexcept
+                                         mask_member_type<32> mask,
+                                         const bool *mem) noexcept
     {
         const auto a = _mm256_mask_loadu_epi8(zero<__m256i>(), mask.v(), mem);
         merge = (merge & ~mask) | _mm256_test_epi8_mask(a, a);
     }
 
-    template <class F>
     static Vc_INTRINSIC void masked_load(mask_member_type<64> &merge,
-                                         mask_member_type<64> mask, const bool *mem, F,
-                                         size_tag<64>) noexcept
+                                         mask_member_type<64> mask,
+                                         const bool *mem) noexcept
     {
         const auto a = _mm512_mask_loadu_epi8(zero<__m512i>(), mask.v(), mem);
         merge = (merge & ~mask) | _mm512_test_epi8_mask(a, a);
     }
 
-#else
-    template <class F, size_t N>
-    static Vc_INTRINSIC void masked_load(mask_member_type<N> &merge,
-                                         mask_member_type<N> mask, const bool *mem, F,
-                                         size_tag<N>) noexcept
+    template <class T, class F>
+    static Vc_INTRINSIC void masked_load(mask<T> &merge, mask<T> mask, const bool *mem,
+                                         F) noexcept
     {
-        for (std::size_t i = 0; i < N; ++i) {
-            if (mask[i]) {
-                merge.set(i, mem[i]);
+        (masked_load)(detail::data(merge), detail::data(mask), mem);
+    }
+#else
+    template <class T, class F>
+    static Vc_INTRINSIC void masked_load(mask<T> &merge, mask<T> mask, const bool *mem,
+                                         F) noexcept
+    {
+        detail::execute_n_times<size<T>()>([&](auto i) {
+            if (detail::data(mask)[i]) {
+                detail::data(merge).set(i, mem[i]);
             }
-        }
+        });
     }
 #endif
 
@@ -878,44 +879,45 @@ struct avx512_mask_impl
 
     // masked store {{{2
 #if defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
-    template <class F>
-    static Vc_INTRINSIC void masked_store(mask_member_type<8> v, bool *mem, F,
-                                          mask_member_type<8> k, size_tag<8>) noexcept
+    static Vc_INTRINSIC void masked_store(mask_member_type<8> v, bool *mem,
+                                          mask_member_type<8> k) noexcept
     {
         _mm_mask_storeu_epi8(mem, k.v(), and_(one16(uchar()), _mm_movm_epi8(v.v())));
     }
 
-    template <class F>
-    static Vc_INTRINSIC void masked_store(mask_member_type<16> v, bool *mem, F,
-                                          mask_member_type<16> k, size_tag<16>) noexcept
+    static Vc_INTRINSIC void masked_store(mask_member_type<16> v, bool *mem,
+                                          mask_member_type<16> k) noexcept
     {
         _mm_mask_storeu_epi8(mem, k.v(), and_(one16(uchar()), _mm_movm_epi8(v.v())));
     }
 
-    template <class F>
-    static Vc_INTRINSIC void masked_store(mask_member_type<32> v, bool *mem, F,
-                                          mask_member_type<32> k, size_tag<32>) noexcept
+    static Vc_INTRINSIC void masked_store(mask_member_type<32> v, bool *mem,
+                                          mask_member_type<32> k) noexcept
     {
         _mm256_mask_storeu_epi8(mem, k.v(), and_(one32(uchar()), _mm256_movm_epi8(v.v())));
     }
 
-    template <class F>
-    static Vc_INTRINSIC void masked_store(mask_member_type<64> v, bool *mem, F,
-                                          mask_member_type<64> k, size_tag<64>) noexcept
+    static Vc_INTRINSIC void masked_store(mask_member_type<64> v, bool *mem,
+                                          mask_member_type<64> k) noexcept
     {
         _mm512_mask_storeu_epi8(mem, k.v(), and_(one64(uchar()), _mm512_movm_epi8(v.v())));
     }
 
-#else   // defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
-    template <class F, size_t N>
-    static Vc_INTRINSIC void masked_store(mask_member_type<N> v, bool *mem, F,
-                                          mask_member_type<N> k, size_tag<N>) noexcept
+    template <class T, class F>
+    static Vc_INTRINSIC void masked_store(mask<T> v, bool *mem, F, mask<T> k) noexcept
     {
-        for (std::size_t i = 0; i < N; ++i) {
-            if (k[i]) {
-                mem[i] = v.m(i);
+        return (masked_store)(detail::data(v), mem, detail::data(k));
+    }
+
+#else   // defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
+    template <class T, class F>
+    static Vc_INTRINSIC void masked_store(mask<T> v, bool *mem, F, mask<T> k) noexcept
+    {
+        detail::execute_n_times<size<T>()>([&](auto i) {
+            if (detail::data(k)[i]) {
+                mem[i] = detail::data(v)[i];
             }
-        }
+        });
     }
 #endif  // defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
 

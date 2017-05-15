@@ -915,19 +915,6 @@ struct sse_mask_impl : public generic_mask_impl<datapar_abi::sse, sse_mask_membe
     }
 #endif  // Vc_HAVE_SSE2
 
-    // masked load {{{2
-    template <class T, class F, class SizeTag>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(mask_member_type<T> &merge,
-                                                  mask_member_type<T> mask,
-                                                  const bool *mem, F, SizeTag s) noexcept
-    {
-        for (std::size_t i = 0; i < s; ++i) {
-            if (mask.m(i)) {
-                merge.set(i, mask_bool<T>{mem[i]});
-            }
-        }
-    }
-
     // store {{{2
 #ifdef Vc_HAVE_MMX
     template <class F>
@@ -984,19 +971,6 @@ struct sse_mask_impl : public generic_mask_impl<datapar_abi::sse, sse_mask_membe
         }
     }
 #endif  // Vc_HAVE_SSE2
-
-    // masked store {{{2
-    template <class T, class F, class SizeTag>
-    static Vc_INTRINSIC void Vc_VDECL masked_store(mask_member_type<T> v, bool *mem, F,
-                                                   mask_member_type<T> k,
-                                                   SizeTag) noexcept
-    {
-        for (std::size_t i = 0; i < size<T>(); ++i) {
-            if (k.m(i)) {
-                mem[i] = v.m(i);
-            }
-        }
-    }
 
     // negation {{{2
     template <class T, class SizeTag>

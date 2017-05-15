@@ -259,12 +259,12 @@ struct scalar_mask_impl {
     }
 
     // masked load {{{2
-    template <class F>
-    static inline void masked_load(bool &merge, bool mask,
-                                   const bool *mem, F, size_tag) noexcept
+    template <class T, class F>
+    static Vc_INTRINSIC void masked_load(mask<T> &merge, mask<T> mask, const bool *mem,
+                                         F) noexcept
     {
-        if (mask) {
-            merge = mem[0];
+        if (detail::data(mask)) {
+            detail::data(merge) = mem[0];
         }
     }
 
@@ -275,11 +275,11 @@ struct scalar_mask_impl {
     }
 
     // masked store {{{2
-    template <class F>
-    static inline void masked_store(bool v, bool *mem, F, bool k, size_tag) noexcept
+    template <class T, class F>
+    static Vc_INTRINSIC void masked_store(mask<T> v, bool *mem, F, mask<T> k) noexcept
     {
-        if (k) {
-            mem[0] = v;
+        if (detail::data(k)) {
+            mem[0] = detail::data(v);
         }
     }
 
