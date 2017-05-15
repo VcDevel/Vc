@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #include "detail.h"
 #include "where.h"
+#include "concepts.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace datapar_abi
@@ -298,6 +299,18 @@ masked_datapar_impl<T, A> masked_datapar(const typename datapar<T, A>::mask_type
 template <typename M, typename T> class const_where_expression
 {
     using V = std::remove_const_t<T>;
+    struct Wrapper {
+        using value_type = V;
+    };
+
+protected:
+    using value_type =
+        typename std::conditional_t<std::is_arithmetic<V>::value, Wrapper, V>::value_type;
+    friend Vc_INTRINSIC const M &get_mask(const const_where_expression &x) { return x.k; }
+    friend Vc_INTRINSIC T &get_lvalue(const_where_expression &x) { return x.d; }
+    friend Vc_INTRINSIC const T &get_lvalue(const const_where_expression &x) { return x.d; }
+    std::conditional_t<std::is_same<M, bool>::value, const M, const M &> k;
+    T &d;
 
 public:
     const_where_expression(const const_where_expression &) = delete;
@@ -312,30 +325,27 @@ public:
     }
 
     template <class U, class Flags>
-    Vc_NODISCARD Vc_INTRINSIC V memload(const U *mem, Flags f) const &&
+    Vc_NODISCARD Vc_INTRINSIC V
+    memload(const detail::loadstore_ptr_type<U, value_type> *mem, Flags f) const &&
     {
         V r = d;
         detail::get_impl_t<V>::masked_load(r, k, mem, f);
         return r;
     }
 
-    template <class U, class Flags> Vc_INTRINSIC void memstore(U *mem, Flags f) const &&
+    template <class U, class Flags>
+    Vc_INTRINSIC void memstore(detail::loadstore_ptr_type<U, value_type> *mem,
+                               Flags f) const &&
     {
         detail::get_impl_t<V>::masked_store(d, mem, f, k);
     }
-
-protected:
-    friend Vc_INTRINSIC const M &get_mask(const const_where_expression &x) { return x.k; }
-    friend Vc_INTRINSIC T &get_lvalue(const_where_expression &x) { return x.d; }
-    friend Vc_INTRINSIC const T &get_lvalue(const const_where_expression &x) { return x.d; }
-    std::conditional_t<std::is_same<M, bool>::value, const M, const M &> k;
-    T &d;
 };
 
 template <typename M, typename T>
 class where_expression : public const_where_expression<M, T>
 {
     static_assert(!std::is_const<T>::value, "where_expression may only be instantiated with a non-const T parameter");
+    using typename const_where_expression<M, T>::value_type;
     using const_where_expression<M, T>::k;
     using const_where_expression<M, T>::d;
 
@@ -425,7 +435,9 @@ public:
     }
 
     // intentionally hides const_where_expression::memload
-    template <class U, class Flags> Vc_INTRINSIC void memload(const U *mem, Flags f)
+    template <class U, class Flags>
+    Vc_INTRINSIC void memload(const detail::loadstore_ptr_type<U, value_type> *mem,
+                              Flags f)
     {
         detail::get_impl_t<T>::masked_load(d, k, mem, f);
     }
@@ -536,6 +548,11 @@ Vc_INTRINSIC const_where_expression<mask<T, A>, const mask<T, A>> where(
 }
 template <class T>
 Vc_INTRINSIC where_expression<bool, T> where(detail::exact_bool k, T &d)
+{
+    return {k, d};
+}
+template <class T>
+Vc_INTRINSIC const_where_expression<bool, const T> where(detail::exact_bool k, const T &d)
 {
     return {k, d};
 }

@@ -55,6 +55,20 @@ using value_preserving_or_int = From;
 template <int...> struct tag {
 };
 
+/**\internal
+ * Deduces to an arithmetic type, but not bool.
+ */
+template <class T, class = enable_if_t<is_arithmetic_not_bool<T>::value>>
+using arithmetic = T;
+
+/**\internal
+ * Deduces to a type allowed for load/store with the given value type.
+ */
+template <
+    class Ptr, class ValueType,
+    class = enable_if_t<detail::is_possible_loadstore_conversion<Ptr, ValueType>::value>>
+using loadstore_ptr_type = Ptr;
+
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 

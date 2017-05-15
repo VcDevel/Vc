@@ -241,13 +241,15 @@ public:
     }
 
     // loads [datapar.load]
-    template <class U, class Flags> Vc_ALWAYS_INLINE void memload(const U *mem, Flags f)
+    template <class U, class Flags>
+    Vc_ALWAYS_INLINE void memload(const detail::arithmetic<U> *mem, Flags f)
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, type_tag));
     }
 
     // stores [datapar.store]
-    template <class U, class Flags> Vc_ALWAYS_INLINE void memstore(U *mem, Flags f) const
+    template <class U, class Flags>
+    Vc_ALWAYS_INLINE void memstore(detail::arithmetic<U> *mem, Flags f) const
     {
         impl::store(d, mem, f, type_tag);
     }

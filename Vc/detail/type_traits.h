@@ -69,6 +69,7 @@ template <class T> struct negation : public std::integral_constant<bool, !T::val
 #endif  // Vc_CXX17
 
 // imports
+using std::is_arithmetic;
 using std::is_convertible;
 using std::is_same;
 using std::is_signed;
@@ -77,6 +78,20 @@ using std::enable_if_t;
 
 // none
 template <class... Ts> struct none : public negation<any<Ts...>> {};
+
+// is_arithmetic_not_bool
+template <class T> struct is_arithmetic_not_bool : public std::is_arithmetic<T> {
+};
+template <> struct is_arithmetic_not_bool<bool> : public std::false_type {
+};
+
+// is_possible_loadstore_conversion
+template <class Ptr, class ValueType>
+struct is_possible_loadstore_conversion
+    : all<is_arithmetic_not_bool<Ptr>, is_arithmetic_not_bool<ValueType>> {
+};
+template <> struct is_possible_loadstore_conversion<bool, bool> : std::true_type {
+};
 
 // sizeof
 template <class T, std::size_t Expected>

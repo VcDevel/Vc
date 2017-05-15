@@ -226,3 +226,90 @@ TEST_TYPES(V, is_unusable,
     VERIFY(!std::is_copy_constructible<V>::value);
     VERIFY(!std::is_copy_assignable<V>::value);
 }
+
+// loadstore_pointer_types {{{1
+struct call_memload {
+    template <class V, class T>
+    auto operator()(V &&v, const T *mem)
+        -> decltype(v.memload(mem, Vc::flags::element_aligned));
+};
+struct call_masked_memload {
+    template <class M, class V, class T>
+    auto operator()(const M &k, V &&v, const T *mem)
+        -> decltype(Vc::where(k, v).memload(mem, Vc::flags::element_aligned));
+};
+struct call_memstore {
+    template <class V, class T>
+    auto operator()(V &&v, T *mem)
+        -> decltype(v.memstore(mem, Vc::flags::element_aligned));
+};
+struct call_masked_memstore {
+    template <class M, class V, class T>
+    auto operator()(const M &k, V &&v, T *mem)
+        -> decltype(Vc::where(k, v).memstore(mem, Vc::flags::element_aligned));
+};
+TEST_TYPES(V, loadstore_pointer_types, all_test_types)
+{
+    using vir::test::sfinae_is_callable;
+    using M = typename V::mask_type;
+    struct Foo {
+    };
+    VERIFY( (sfinae_is_callable<V &, const int *>(call_memload())));
+    VERIFY( (sfinae_is_callable<V &, const float *>(call_memload())));
+    VERIFY(!(sfinae_is_callable<V &, const bool *>(call_memload())));
+    VERIFY(!(sfinae_is_callable<V &, const Foo *>(call_memload())));
+    VERIFY( (sfinae_is_callable<const V &, int *>(call_memstore())));
+    VERIFY( (sfinae_is_callable<const V &, float *>(call_memstore())));
+    VERIFY(!(sfinae_is_callable<const V &, bool *>(call_memstore())));
+    VERIFY(!(sfinae_is_callable<const V &, Foo *>(call_memstore())));
+
+    VERIFY( (sfinae_is_callable<M, const V &, const int *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<M, const V &, const float *>(call_masked_memload())));
+    VERIFY(!(sfinae_is_callable<M, const V &, const Foo *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<M, const V &, int *>(call_masked_memstore())));
+    VERIFY( (sfinae_is_callable<M, const V &, float *>(call_masked_memstore())));
+    VERIFY(!(sfinae_is_callable<M, const V &, Foo *>(call_masked_memstore())));
+
+    VERIFY( (sfinae_is_callable<M, V &, const int *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<M, V &, const float *>(call_masked_memload())));
+    VERIFY(!(sfinae_is_callable<M, V &, const Foo *>(call_masked_memload())));
+
+    VERIFY( (sfinae_is_callable<M &, const bool *>(call_memload())));
+    VERIFY(!(sfinae_is_callable<M &, const int *>(call_memload())));
+    VERIFY(!(sfinae_is_callable<M &, const Foo *>(call_memload())));
+    VERIFY( (sfinae_is_callable<M &, bool *>(call_memstore())));
+    VERIFY(!(sfinae_is_callable<M &, int *>(call_memstore())));
+    VERIFY(!(sfinae_is_callable<M &, Foo *>(call_memstore())));
+
+    VERIFY( (sfinae_is_callable<M, M &, const bool *>(call_masked_memload())));
+    VERIFY(!(sfinae_is_callable<M, M &, const int *>(call_masked_memload())));
+    VERIFY(!(sfinae_is_callable<M, M &, const Foo *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<M, M &, bool *>(call_masked_memstore())));
+    VERIFY(!(sfinae_is_callable<M, M &, int *>(call_masked_memstore())));
+    VERIFY(!(sfinae_is_callable<M, M &, Foo *>(call_masked_memstore())));
+
+    VERIFY( (sfinae_is_callable<M, const M &, const bool *>(call_masked_memload())));
+    VERIFY(!(sfinae_is_callable<M, const M &, const int *>(call_masked_memload())));
+    VERIFY(!(sfinae_is_callable<M, const M &, const Foo *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<M, const M &, bool *>(call_masked_memstore())));
+    VERIFY(!(sfinae_is_callable<M, const M &, int *>(call_masked_memstore())));
+    VERIFY(!(sfinae_is_callable<M, const M &, Foo *>(call_masked_memstore())));
+}
+
+TEST(masked_loadstore_builtin) {
+    VERIFY( (sfinae_is_callable<bool, const int &, const int *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<bool, const int &, const float *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<bool, const bool &, const bool *>(call_masked_memload())));
+    VERIFY(!(sfinae_is_callable<bool, const bool &, const int *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<bool, const int &, int *>(call_masked_memstore())));
+    VERIFY( (sfinae_is_callable<bool, const int &, float *>(call_masked_memstore())));
+    VERIFY( (sfinae_is_callable<bool, const bool &, bool *>(call_masked_memstore())));
+    VERIFY(!(sfinae_is_callable<bool, const bool &, int *>(call_masked_memstore())));
+
+    VERIFY( (sfinae_is_callable<bool, int &, const int *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<bool, int &, const float *>(call_masked_memload())));
+    VERIFY( (sfinae_is_callable<bool, bool &, const bool *>(call_masked_memload())));
+    VERIFY(!(sfinae_is_callable<bool, bool &, const int *>(call_masked_memload())));
+}
+
+// vim: foldmethod=marker

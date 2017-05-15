@@ -85,6 +85,28 @@ template <> struct decrement<void> {
     template <typename T> constexpr T operator()(T a) const { return --a; }
 };
 
+template <class T> struct get_impl {
+    static_assert(
+        std::is_arithmetic<T>::value,
+        "Vc chose the wrong implementation class. This should not be possible.");
+
+    template <class U, class F>
+    Vc_INTRINSIC void masked_load(T &d, bool k, const U *mem, F)
+    {
+        if (k) {
+            d = static_cast<T>(mem[0]);
+        }
+    }
+};
+template <> struct get_impl<bool> {
+    template <class F> Vc_INTRINSIC void masked_load(bool &d, bool k, const bool *mem, F)
+    {
+        if (k) {
+            d = mem[0];
+        }
+    }
+};
+
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
