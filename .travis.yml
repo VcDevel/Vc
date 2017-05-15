@@ -49,7 +49,7 @@ install:
         osx-g++-x86_64)
           brew update &&
           brew install gcc6 &&
-          export CXX=g++-6 CC=gcc-6;;
+          export CXX=g++-7 CC=gcc-7;;
         osx-clang++-x86_64)
           brew update &&
           brew install llvm &&
