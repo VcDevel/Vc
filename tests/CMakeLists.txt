@@ -1,6 +1,10 @@
 include(AddFileDependencies)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/virtest)
 
+if(NOT "$ENV{TRAVIS_OS_NAME}" STREQUAL "")
+   set(CMAKE_CXX_FLAGS_RELEASE "-O0 -DNDEBUG") # try to not time out, -O0 is faster
+endif()
+
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS)
 if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
