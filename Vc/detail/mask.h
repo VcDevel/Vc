@@ -56,7 +56,11 @@ public:
     using size_type = size_t;
     using abi_type = Abi;
 
-    static constexpr size_type size() { return size_tag; }
+    static constexpr size_type size()
+    {
+        constexpr size_type N = size_tag;
+        return N;
+    }
     mask() = default;
     mask(const mask &) = default;
     mask(mask &&) = default;
