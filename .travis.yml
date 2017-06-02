@@ -69,11 +69,13 @@ install:
         osx-g++-default)
           export CXX=g++-4.9 CC=gcc-4.9;;
         osx-clang++-current)
-          brew update &&
-          brew install llvm &&
-          export CXX=/usr/local/opt/llvm/bin/clang++ CC=/usr/local/opt/llvm/bin/clang &&
-          export LDFLAGS="-L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib" &&
-          export CPPFLAGS=-I/usr/local/opt/llvm/include;;
+          wget http://releases.llvm.org/4.0.0/clang+llvm-4.0.0-x86_64-apple-darwin.tar.xz &&
+          tar xf clang+llvm-4.0.0-x86_64-apple-darwin.tar.xz &&
+          cd clang+llvm-4.0.0-x86_64-apple-darwin &&
+          export CXX=$PWD/bin/clang++ CC=$PWD/bin/clang &&
+          export LDFLAGS="-L$PWD/lib -Wl,-rpath,$PWD/lib" &&
+          export CPPFLAGS=-I$PWD/include &&
+          cd ..;;
         osx-clang++-previous)
           exit 1;;
         osx-clang++-default)
