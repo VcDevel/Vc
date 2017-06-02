@@ -573,7 +573,8 @@ Vc_ALWAYS_INLINE
 // gathers {{{1
 template <typename T>
 template <typename MT, typename IT>
-Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::Mic>::gatherImplementation(const MT *mem, IT &&indexes)
+Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::Mic>::gatherImplementation(
+    const MT *mem, const IT &indexes)
 {
     d.v() = MicIntrinsics::gather(ensureVector(std::forward<IT>(indexes)), mem,
                                   UpDownC<MT>());
@@ -581,8 +582,8 @@ Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::Mic>::gatherImplementation(const 
 
 template <typename T>
 template <typename MT, typename IT>
-Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::Mic>::gatherImplementation(const MT *mem, IT &&indexes,
-                                                          MaskArgument mask)
+Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::Mic>::gatherImplementation(
+    const MT *mem, const IT &indexes, MaskArgument mask)
 {
     d.v() = MicIntrinsics::gather(
         d.v(), mask.data(), ensureVector(std::forward<IT>(indexes)), mem, UpDownC<MT>());

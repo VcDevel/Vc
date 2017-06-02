@@ -493,17 +493,17 @@ auto unpackIfSegment(Common::Segment<T, Pieces, Index> &&x) -> decltype(x.asSimd
 template <typename T, std::size_t N, typename VectorType>
 template <typename MT, typename IT>
 inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
-                                                                 IT &&indexes)
+                                                                 const IT &indexes)
 {
-    data.gather(mem, unpackIfSegment(std::forward<IT>(indexes)));
+    data.gather(mem, unpackIfSegment(indexes));
 }
 template <typename T, std::size_t N, typename VectorType>
 template <typename MT, typename IT>
 inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
-                                                                 IT &&indexes,
+                                                                 const IT &indexes,
                                                                  MaskArgument mask)
 {
-    data.gather(mem, unpackIfSegment(std::forward<IT>(indexes)), mask);
+    data.gather(mem, unpackIfSegment(indexes), mask);
 }
 
 // scatterImplementation {{{2
@@ -1401,23 +1401,19 @@ constexpr std::size_t SimdArray<T, N, V, M>::MemoryAlignment;
 template <typename T, std::size_t N, typename VectorType, std::size_t M>
 template <typename MT, typename IT>
 inline void SimdArray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
-                                                                 IT &&indexes)
+                                                                 const IT &indexes)
 {
-    data0.gather(mem, Split::lo(Common::Operations::gather(),
-                                indexes));  // don't forward indexes - it could move and
-                                            // thus break the next line
-    data1.gather(mem, Split::hi(Common::Operations::gather(), std::forward<IT>(indexes)));
+    data0.gather(mem, Split::lo(Common::Operations::gather(), indexes));
+    data1.gather(mem, Split::hi(Common::Operations::gather(), indexes));
 }
 template <typename T, std::size_t N, typename VectorType, std::size_t M>
 template <typename MT, typename IT>
 inline void SimdArray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
-                                                                 IT &&indexes, MaskArgument mask)
+                                                                 const IT &indexes,
+                                                                 MaskArgument mask)
 {
-    data0.gather(mem, Split::lo(Common::Operations::gather(), indexes),
-                 Split::lo(mask));  // don't forward indexes - it could move and
-                                    // thus break the next line
-    data1.gather(mem, Split::hi(Common::Operations::gather(), std::forward<IT>(indexes)),
-                 Split::hi(mask));
+    data0.gather(mem, Split::lo(Common::Operations::gather(), indexes), Split::lo(mask));
+    data1.gather(mem, Split::hi(Common::Operations::gather(), indexes), Split::hi(mask));
 }
 
 // scatterImplementation {{{2

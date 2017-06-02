@@ -53,14 +53,14 @@ private:
     // enable_if<std::can_convert<MT, EntryType>::value &&
     // has_subscript_operator<IT>::value>
     template <typename MT, typename IT>
-    inline void gatherImplementation(const MT *mem, IT &&indexes);
+    inline void gatherImplementation(const MT *mem, const IT &indexes);
 
     /**\internal
      * This overload of the above function adds a \p mask argument to disable memory
      * accesses at the \p indexes offsets where \p mask is \c false.
      */
     template <typename MT, typename IT>
-    inline void gatherImplementation(const MT *mem, IT &&indexes, MaskArgument mask);
+    inline void gatherImplementation(const MT *mem, const IT &indexes, MaskArgument mask);
 
     /**\internal
      * Overload for the case of C-arrays or %Vc vector objects.
@@ -72,9 +72,9 @@ private:
      */
     template <typename IT, typename = enable_if<std::is_pointer<IT>::value ||
                                                 Traits::is_simd_vector<IT>::value>>
-    static Vc_INTRINSIC IT adjustIndexParameter(IT &&indexes)
+    static Vc_INTRINSIC const IT &adjustIndexParameter(const IT &indexes)
     {
-        return std::forward<IT>(indexes);
+        return indexes;
     }
 
     /**\internal
@@ -87,12 +87,13 @@ private:
      * \param indexes An object to be used for gather or scatter.
      * \returns A pointer to the first object in the \p indexes container.
      */
-    template <typename IT,
-              typename = enable_if<
-                  !std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
-                  std::is_lvalue_reference<decltype(std::declval<IT>()[0])>::value>>
-    static Vc_INTRINSIC decltype(std::addressof(std::declval<IT>()[0]))
-        adjustIndexParameter(IT &&i)
+    template <
+        typename IT,
+        typename = enable_if<
+            !std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+            std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value>>
+    static Vc_INTRINSIC decltype(std::addressof(std::declval<const IT &>()[0]))
+    adjustIndexParameter(const IT &i)
     {
         return std::addressof(i[0]);
     }
@@ -105,13 +106,13 @@ private:
      * \returns Forwards the \p indexes parameter.
      */
     template <typename IT>
-    static Vc_INTRINSIC
-        enable_if<!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
-                      !std::is_lvalue_reference<decltype(std::declval<IT>()[0])>::value,
-                  IT>
-            adjustIndexParameter(IT &&i)
+    static Vc_INTRINSIC enable_if<
+        !std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+            !std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value,
+        IT>
+    adjustIndexParameter(const IT &i)
     {
-        return std::forward<IT>(i);
+        return i;
     }
 
 public:
@@ -179,39 +180,38 @@ public:
     /// Gather constructor
     template <typename MT, typename IT,
               typename = enable_if<Traits::has_subscript_operator<IT>::value>>
-    Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes)
+    Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes)
     {
         Vc_ASSERT_GATHER_PARAMETER_TYPES_;
-        gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
+        gatherImplementation(mem, adjustIndexParameter(indexes));
     }
 
     /// Masked gather constructor
     template <typename MT, typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
-    Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, IT &&indexes, MaskArgument mask)
+    Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes,
+                                       MaskArgument mask)
     {
         Vc_ASSERT_GATHER_PARAMETER_TYPES_;
-        gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
+        gatherImplementation(mem, adjustIndexParameter(indexes), mask);
     }
 
     /// Gather function
-    template <typename MT,
-              typename IT,
+    template <typename MT, typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
-    Vc_INTRINSIC void gather(const MT *mem, IT &&indexes)
+    Vc_INTRINSIC void gather(const MT *mem, const IT &indexes)
     {
         Vc_ASSERT_GATHER_PARAMETER_TYPES_;
-        gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)));
+        gatherImplementation(mem, adjustIndexParameter(indexes));
     }
 
     /// Masked gather function
-    template <typename MT,
-              typename IT,
+    template <typename MT, typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
-    Vc_INTRINSIC void gather(const MT *mem, IT &&indexes, MaskArgument mask)
+    Vc_INTRINSIC void gather(const MT *mem, const IT &indexes, MaskArgument mask)
     {
         Vc_ASSERT_GATHER_PARAMETER_TYPES_;
-        gatherImplementation(mem, adjustIndexParameter(std::forward<IT>(indexes)), mask);
+        gatherImplementation(mem, adjustIndexParameter(indexes), mask);
     }
     ///@}
 

@@ -81,8 +81,8 @@ Vc_INTRINSIC void Vector<T, VectorAbi::Scalar>::store(U *mem, Mask mask, Flags) 
 // gather {{{1
 template <typename T>
 template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::gatherImplementation(const MT *mem,
-                                                                         IT &&indexes)
+Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::gatherImplementation(
+    const MT *mem, const IT &indexes)
 {
     m_data = mem[indexes[0]];
 }
@@ -90,7 +90,7 @@ Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::gatherImplementation(const M
 template <typename T>
 template <typename MT, typename IT>
 Vc_ALWAYS_INLINE void Vector<T, VectorAbi::Scalar>::gatherImplementation(
-    const MT *mem, IT &&indexes, MaskArgument mask)
+    const MT *mem, const IT &indexes, MaskArgument mask)
 {
     if (mask.data()) {
         m_data = mem[indexes[0]];
