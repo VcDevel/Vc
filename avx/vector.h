@@ -206,6 +206,51 @@ public:
 
 #include "../common/gatherinterface.h"
 #include "../common/scatterinterface.h"
+#ifdef Vc_IMPL_AVX2
+        Vc_INTRINSIC_L void gatherImplementation(
+            const EntryType *mem,
+            typename std::conditional<
+                Size == 8, AVX2::int_v,
+                typename std::conditional<Size == 4, SSE::int_v, void *>::type>::type
+                indexes) Vc_INTRINSIC_R;
+
+        template <class MT, class U>
+        Vc_INTRINSIC
+            enable_if<std::is_arithmetic<MT>::value && std::is_integral<U>::value &&
+                          (sizeof(MT) >= sizeof(short)),
+                      void>
+            gatherImplementation(const MT *mem, const SimdArray<U, Size> &indexes)
+        {
+            *this = simd_cast<Vector>(SimdArray<MT, Size>(mem, indexes));
+        }
+
+        template <class U>
+        Vc_INTRINSIC enable_if<std::is_integral<U>::value && sizeof(EntryType) == 2, void>
+        gatherImplementation(const EntryType *mem, const SimdArray<U, 16> &indexes)
+        {
+            const auto lo = simd_cast<AVX2::int_v, 0>(indexes);
+            const auto hi = simd_cast<AVX2::int_v, 1>(indexes);
+            *this = simd_cast<Vector>(
+                AVX2::int_v(_mm256_i32gather_epi32(
+                    reinterpret_cast<const MayAlias<int> *>(mem), lo.data(), 2)),
+                AVX2::int_v(_mm256_i32gather_epi32(
+                    reinterpret_cast<const MayAlias<int> *>(mem), hi.data(), 2)));
+        }
+
+        template <class U, class V, std::size_t Wt>
+        Vc_INTRINSIC enable_if<std::is_integral<U>::value && Size == 8, void>
+        gatherImplementation(const EntryType *mem, const SimdArray<U, 8, V, Wt> &indexes)
+        {
+            gatherImplementation(mem, simd_cast<AVX2::int_v>(indexes));
+        }
+
+        template <class U, class V, std::size_t Wt>
+        Vc_INTRINSIC enable_if<std::is_integral<U>::value && Size == 4, void>
+        gatherImplementation(const EntryType *mem, const SimdArray<U, 4, V, Wt> &indexes)
+        {
+            gatherImplementation(mem, simd_cast<SSE::int_v>(indexes));
+        }
+#endif  // Vc_IMPL_AVX2
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix
