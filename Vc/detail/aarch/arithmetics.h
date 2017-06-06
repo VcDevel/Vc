@@ -42,7 +42,14 @@ template <class T, size_t N> Vc_INTRINSIC auto plus(Storage<T, N> a, Storage<T, 
     return a.builtin() + b.builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
-Vc_INTRINSIC float32x4_t Vc_VDECL plus(x_f32 a, x_f32 b) {/* return vaddq_f32(a, b);*/ }
+Vc_INTRINSIC float64x2_t Vc_VDECL plus(x_f64 a, x_f64 b) { return vaddq_f64(a, b); }
+Vc_INTRINSIC float32x4_t Vc_VDECL plus(x_f32 a, x_f32 b) { return vaddq_f32(a, b); }
+Vc_INTRINSIC int8x16_t Vc_VDECL plus(x_s08 a, x_s08 b) { return vaddq_s8(a, b); }
+Vc_INTRINSIC uint8x16_t Vc_VDECL plus(x_u08 a, x_u08 b) { return vaddq_u8(a, b); }
+Vc_INTRINSIC int16x8_t Vc_VDECL plus(x_s16 a, x_s16 b) { return vaddq_s16(a, b); }
+Vc_INTRINSIC uint16x8_t Vc_VDECL plus(x_u16 a, x_u16 b) { return vaddq_u16(a, b); }
+Vc_INTRINSIC int32x4_t Vc_VDECL plus(x_s32 a, x_s32 b) { return vaddq_s32(a, b); }
+Vc_INTRINSIC uint32x4_t Vc_VDECL plus(x_u32 a, x_u32 b) { return vaddq_u32(a, b); }
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // minus{{{1
@@ -52,7 +59,14 @@ template <class T, size_t N> Vc_INTRINSIC auto minus(Storage<T, N> a, Storage<T,
     return a.builtin() - b.builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
-Vc_INTRINSIC float32x4_t Vc_VDECL minus(x_f32 a, x_f32 b) {/* return vsubq_f32(a, b);*/ }
+Vc_INTRINSIC float64x2_t Vc_VDECL minus(x_f64 a, x_f64 b) { return vsubq_f64(a, b); }
+Vc_INTRINSIC float32x4_t Vc_VDECL minus(x_f32 a, x_f32 b) { return vsubq_f32(a, b); }
+Vc_INTRINSIC int8x16_t Vc_VDECL minus(x_s08 a, x_s08 b) { return vsubq_s8(a, b); }
+Vc_INTRINSIC uint8x16_t Vc_VDECL minus(x_u08 a, x_u08 b) { return vsubq_u8(a, b); }
+Vc_INTRINSIC int16x8_t Vc_VDECL minus(x_s16 a, x_s16 b) { return vsubq_s16(a, b); }
+Vc_INTRINSIC uint16x8_t Vc_VDECL minus(x_u16 a, x_u16 b) { return vsubq_u16(a, b); }
+Vc_INTRINSIC int32x4_t Vc_VDECL minus(x_s32 a, x_s32 b) { return vsubq_s32(a, b); }
+Vc_INTRINSIC uint32x4_t Vc_VDECL minus(x_u32 a, x_u32 b) { return vsubq_u32(a, b); }
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // multiplies{{{1
@@ -62,7 +76,14 @@ template <class T, size_t N> Vc_INTRINSIC auto multiplies(Storage<T, N> a, Stora
     return a.builtin() * b.builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
-Vc_INTRINSIC float32x4_t Vc_VDECL multiplies(x_f32 a, x_f32 b) {/*return vmulq_n_f32(a, b);*/ }
+Vc_INTRINSIC float64x2_t Vc_VDECL multiplies(x_f64 a, x_f64 b) { return vmulq_f64(a, b); }
+Vc_INTRINSIC float32x4_t Vc_VDECL multiplies(x_f32 a, x_f32 b) { return vmulq_f32(a, b); }
+Vc_INTRINSIC int8x16_t Vc_VDECL multiplies(x_s08 a, x_s08 b) { return vmulq_s8(a, b); }
+Vc_INTRINSIC uint8x16_t Vc_VDECL multiplies(x_u08 a, x_u08 b) { return vmulq_u8(a, b); }
+Vc_INTRINSIC int16x8_t Vc_VDECL multiplies(x_s16 a, x_s16 b) { return vmulq_s16(a, b); }
+Vc_INTRINSIC uint16x8_t Vc_VDECL multiplies(x_u16 a, x_u16 b) { return vmulq_u16(a, b); }
+Vc_INTRINSIC uint32x4_t Vc_VDECL multiplies(x_s32 a, x_s32 b) { return vmulq_s32(a, b); }
+Vc_INTRINSIC int32x4_t Vc_VDECL multiplies(x_u32 a, x_u32 b) { return vmulq_u32(a, b); }
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // divides{{{1
@@ -72,7 +93,14 @@ template <class T, size_t N> Vc_INTRINSIC auto divides(Storage<T, N> a, Storage<
     return a.builtin() / b.builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
-Vc_INTRINSIC x_f32 Vc_VDECL divides(x_f32 a, x_f32 b) {}
+Vc_INTRINSIC float64x2_t Vc_VDECL divides(x_f64 a, x_f64 b) { return vmulq_f64(a, b); }
+Vc_INTRINSIC float32x4_t Vc_VDECL divides(x_f32 a, x_f32 b) { return vmulq_f32(a, b); }
+Vc_INTRINSIC int8x16_t Vc_VDECL divides(x_s08 a, x_s08 b) { }
+Vc_INTRINSIC uint8x16_t Vc_VDECL divides(x_u08 a, x_u08 b) { }
+Vc_INTRINSIC int16x8_t Vc_VDECL divides(x_s16 a, x_s16 b) { }
+Vc_INTRINSIC uint16x8_t Vc_VDECL divides(x_u16 a, x_u16 b) { }
+Vc_INTRINSIC int32x4_t Vc_VDECL divides(x_s32 a, x_s32 b) { }
+Vc_INTRINSIC uint32x4_t Vc_VDECL divides(x_u32 a, x_u32 b) { }
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
@@ -178,7 +206,7 @@ Vc_INTRINSIC int32x4_t Vc_VDECL unary_minus(x_u08 v) {}
 
 //}}}1
 }  // aarch
-}  // detail 
+}  // detail
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DATAPAR_AARCH_ARITHMETICS_H_
