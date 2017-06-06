@@ -6,11 +6,11 @@ cache:
         - $HOME/.cache/sde
 
 env:
-    - arch=x86_64  subset=sse
-    - arch=x86_64  subset=avx
-    - arch=x86_64  subset=avx2
-    - arch=x86_64  subset=avx512
-    - arch=aarch64 subset=neon
+    - arch=x86_64  subset=sse    VcSkipTests=loadstore
+    - arch=x86_64  subset=avx    VcSkipTests=loadstore
+    - arch=x86_64  subset=avx2   VcSkipTests=loadstore
+    - arch=x86_64  subset=avx512 VcSkipTests=loadstore
+    - arch=aarch64 subset=neon   VcSkipTests=loadstore
 
 os:
     - linux
