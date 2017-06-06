@@ -1,6 +1,7 @@
 #!/bin/sh
 login_url=https://software.intel.com/protected-download/267266/144917
-download_url=https://software.intel.com/system/files/managed/d7/1b/sde-external-7.58.0-2017-01-23-lin.tar.bz2
+download_url=https://software.intel.com/system/files/managed/2f/12/sde-external-8.4.0-2017-05-23-lin.tar.bz2
+#OSX: download_url=https://software.intel.com/system/files/managed/2f/12/sde-external-8.4.0-2017-05-23-mac.tar.bz2
 cookies=`mktemp` || exit
 wget --save-cookies $cookies --keep-session-cookies -q -O - $login_url | \
   grep -A9999 'form-item-accept-license' | \
