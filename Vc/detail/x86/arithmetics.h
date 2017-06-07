@@ -611,8 +611,9 @@ Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, x_u08 b) { return lo128(bit_shift_lef
 Vc_INTRINSIC x_i16 bit_shift_left(x_i16 a, x_i16 b)
 {
     // left shift into or over the sign bit is UB => OR suffices
-    return or_(_mm_sllv_epi32(a, and_(b, broadcast16(0x0000ffffu))),
-               _mm_sllv_epi32(and_(a, broadcast16(0xffff0000u)), _mm_srli_epi32(b, 16)));
+    return _mm_blend_epi16(
+        _mm_sllv_epi32(a, and_(b, broadcast16(0x0000ffffu))),
+        _mm_sllv_epi32(and_(a, broadcast16(0xffff0000u)), _mm_srli_epi32(b, 16)), 0xaa);
 }
 Vc_INTRINSIC x_u16 bit_shift_left(x_u16 a, x_u16 b)
 {
@@ -624,37 +625,39 @@ Vc_INTRINSIC x_i08 bit_shift_left(x_i08 a, x_i08 b)
 {
     // exploit UB: The behavior is undefined if the right operand is [...] greater than or
     // equal to the length in bits of the promoted left operand.
-    const auto mask1 = broadcast16(0x00ff00ffu);
-    const auto mask2 = broadcast16(0xff00ff00u);
-    const auto a1 = and_(a, mask1);
-    const auto a2 = and_(a, mask2);
-    const auto s1 = _mm_sllv_epi32(a1,                and_(b, broadcast16(0x000000ffu))     );
-    const auto s2 = _mm_sllv_epi32(a2, _mm_srli_epi32(and_(b, broadcast16(0x0000ff00u)),  8));
-    const auto s3 = _mm_sllv_epi32(a1, _mm_srli_epi32(and_(b, broadcast16(0x00ff0000u)), 16));
-    const auto s4 = _mm_sllv_epi32(a2, _mm_srli_epi32(     b,                            24));
-    return _mm_blendv_epi8(or_(s1, s3), or_(s2, s4), mask2);
+    // left shift into or over the sign bit is UB => never spills into a neighbor
+    // => valid input range for each element of b is [0, 7]
+    // => only the 3 low bits of b are relevant
+    // do a =<< 4 where b[2] is set
+    a = _mm_blendv_epi8(a, _mm_slli_epi16(a, 4), _mm_slli_epi16(b, 5));
+    // do a =<< 2 where b[1] is set
+    a = _mm_blendv_epi8(a, _mm_slli_epi16(a, 2), _mm_slli_epi16(b, 6));
+    // do a =<< 1 where b[0] is set
+    return _mm_blendv_epi8(a, _mm_add_epi8(a, a), _mm_slli_epi16(b, 7));
 }
 Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, x_u08 b)
 {
     // exploit UB: The behavior is undefined if the right operand is [...] greater than or
     // equal to the length in bits of the promoted left operand.
-    const auto mask1 = broadcast16(0x00ff00ffu);
-    const auto mask2 = broadcast16(0xff00ff00u);
-    const auto a1 = and_(a, mask1);
-    const auto a2 = and_(a, mask2);
-    const auto s1 = _mm_sllv_epi32(a1,                and_(b, broadcast16(0x000000ffu))     );
-    const auto s2 = _mm_sllv_epi32(a2, _mm_srli_epi32(and_(b, broadcast16(0x0000ff00u)),  8));
-    const auto s3 = _mm_sllv_epi32(a1, _mm_srli_epi32(and_(b, broadcast16(0x00ff0000u)), 16));
-    const auto s4 = _mm_sllv_epi32(a2, _mm_srli_epi32(     b,                            24));
-    return _mm_blendv_epi8(or_(s1, s3), or_(s2, s4), mask2);
+    // => valid input range for each element of b is [0, 7]
+    // => only the 3 low bits of b are relevant
+    // do a =<< 4 where b[2] is set
+    a = _mm_blendv_epi8(a, and_(_mm_slli_epi16(a, 4), broadcast16(0xf0f0f0f0u)),
+                        _mm_slli_epi16(b, 5));
+    // do a =<< 2 where b[1] is set
+    a = _mm_blendv_epi8(a, and_(_mm_slli_epi16(a, 2), broadcast16(0xfcfcfcfcu)),
+                        _mm_slli_epi16(b, 6));
+    // do a =<< 1 where b[0] is set
+    return _mm_blendv_epi8(a, _mm_add_epi8(a, a), _mm_slli_epi16(b, 7));
 }
 
 Vc_INTRINSIC y_i16 bit_shift_left(y_i16 a, y_i16 b)
 {
     // left shift into or over the sign bit is UB => OR suffices
-    return or_(
+    return _mm256_blend_epi16(
         _mm256_sllv_epi32(a, and_(b, broadcast32(0x0000ffffu))),
-        _mm256_sllv_epi32(and_(a, broadcast32(0xffff0000u)), _mm256_srli_epi32(b, 16)));
+        _mm256_sllv_epi32(and_(a, broadcast32(0xffff0000u)), _mm256_srli_epi32(b, 16)),
+        0xaa);
 }
 Vc_INTRINSIC y_u16 bit_shift_left(y_u16 a, y_u16 b)
 {
@@ -667,29 +670,30 @@ Vc_INTRINSIC y_i08 bit_shift_left(y_i08 a, y_i08 b)
 {
     // exploit UB: The behavior is undefined if the right operand is [...] greater than or
     // equal to the length in bits of the promoted left operand.
-    const auto mask1 = broadcast32(0x00ff00ffu);
-    const auto mask2 = broadcast32(0xff00ff00u);
-    const auto a1 = and_(a, mask1);
-    const auto a2 = and_(a, mask2);
-    const auto s1 = _mm256_sllv_epi32(a1,                   and_(b, broadcast32(0x000000ffu))     );
-    const auto s2 = _mm256_sllv_epi32(a2, _mm256_srli_epi32(and_(b, broadcast32(0x0000ff00u)),  8));
-    const auto s3 = _mm256_sllv_epi32(a1, _mm256_srli_epi32(and_(b, broadcast32(0x00ff0000u)), 16));
-    const auto s4 = _mm256_sllv_epi32(a2, _mm256_srli_epi32(     b,                            24));
-    return _mm256_blendv_epi8(or_(s1, s3), or_(s2, s4), mask2);
+    // left shift into or over the sign bit is UB => never spills into a neighbor
+    // => valid input range for each element of b is [0, 7]
+    // => only the 3 low bits of b are relevant
+    // do a =<< 4 where b[2] is set
+    a = _mm256_blendv_epi8(a, _mm256_slli_epi16(a, 4), _mm256_slli_epi16(b, 5));
+    // do a =<< 2 where b[1] is set
+    a = _mm256_blendv_epi8(a, _mm256_slli_epi16(a, 2), _mm256_slli_epi16(b, 6));
+    // do a =<< 1 where b[0] is set
+    return _mm256_blendv_epi8(a, _mm256_add_epi8(a, a), _mm256_slli_epi16(b, 7));
 }
 Vc_INTRINSIC y_u08 bit_shift_left(y_u08 a, y_u08 b)
 {
     // exploit UB: The behavior is undefined if the right operand is [...] greater than or
     // equal to the length in bits of the promoted left operand.
-    const auto mask1 = broadcast32(0x00ff00ffu);
-    const auto mask2 = broadcast32(0xff00ff00u);
-    const auto a1 = and_(a, mask1);
-    const auto a2 = and_(a, mask2);
-    const auto s1 = _mm256_sllv_epi32(a1,                   and_(b, broadcast32(0x000000ffu))     );
-    const auto s2 = _mm256_sllv_epi32(a2, _mm256_srli_epi32(and_(b, broadcast32(0x0000ff00u)),  8));
-    const auto s3 = _mm256_sllv_epi32(a1, _mm256_srli_epi32(and_(b, broadcast32(0x00ff0000u)), 16));
-    const auto s4 = _mm256_sllv_epi32(a2, _mm256_srli_epi32(     b,                            24));
-    return _mm256_blendv_epi8(or_(s1, s3), or_(s2, s4), mask2);
+    // => valid input range for each element of b is [0, 7]
+    // => only the 3 low bits of b are relevant
+    // do a =<< 4 where b[2] is set
+    a = _mm256_blendv_epi8(a, and_(_mm256_slli_epi16(a, 4), broadcast32(0xf0f0f0f0u)),
+                           _mm256_slli_epi16(b, 5));
+    // do a =<< 2 where b[1] is set
+    a = _mm256_blendv_epi8(a, and_(_mm256_slli_epi16(a, 2), broadcast32(0xfcfcfcfcu)),
+                           _mm256_slli_epi16(b, 6));
+    // do a =<< 1 where b[0] is set
+    return _mm256_blendv_epi8(a, _mm256_add_epi8(a, a), _mm256_slli_epi16(b, 7));
 }
 
 /* Not actually part of datapar_abi::avx512:
@@ -769,71 +773,33 @@ Vc_INTRINSIC z_u32 bit_shift_right(z_u32 a, z_u32 b) { return _mm512_srlv_epi32(
 Vc_INTRINSIC z_i16 bit_shift_right(z_i16 a, z_i16 b) { return _mm512_srav_epi16(a, b); }
 Vc_INTRINSIC z_u16 bit_shift_right(z_u16 a, z_u16 b) { return _mm512_srlv_epi16(a, b); }
 Vc_INTRINSIC y_i08 bit_shift_right(y_i08 a, y_i08 b) { return _mm512_cvtepi16_epi8(_mm512_srav_epi16(_mm512_cvtepi8_epi16(a), _mm512_cvtepi8_epi16(b))); }
-Vc_INTRINSIC y_u08 bit_shift_right(y_u08 a, y_u08 b) { return _mm512_cvtepi16_epi8(_mm512_srlv_epi16(_mm512_cvtepi8_epi16(a), _mm512_cvtepi8_epi16(b))); }
+Vc_INTRINSIC y_u08 bit_shift_right(y_u08 a, y_u08 b)
+{
+    return _mm512_cvtepi16_epi8(
+        _mm512_srlv_epi16(_mm512_cvtepu8_epi16(a), _mm512_cvtepu8_epi16(b)));
+}
 Vc_INTRINSIC z_i08 bit_shift_right(z_i08 a, z_i08 b) { return concat(bit_shift_right(lo256(a), lo256(b)), bit_shift_right(hi256(a), hi256(b))); }
 Vc_INTRINSIC z_u08 bit_shift_right(z_u08 a, z_u08 b) { return concat(bit_shift_right(lo256(a), lo256(b)), bit_shift_right(hi256(a), hi256(b))); }
 #ifdef Vc_HAVE_AVX512VL
 Vc_INTRINSIC y_i16 bit_shift_right(y_i16 a, y_i16 b) { return _mm256_srav_epi16(a, b); }
 Vc_INTRINSIC y_u16 bit_shift_right(y_u16 a, y_u16 b) { return _mm256_srlv_epi16(a, b); }
-Vc_INTRINSIC x_i16 bit_shift_right(x_i16 a, x_i16 b) { return _mm_srav_epi16(a, b); }
-Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b) { return _mm_srlv_epi16(a, b); }
-Vc_INTRINSIC x_i08 bit_shift_right(x_i08 a, x_i08 b) { return _mm256_cvtepi16_epi8(_mm256_srav_epi16(_mm256_cvtepi8_epi16(a), _mm256_cvtepi8_epi16(b))); }
-Vc_INTRINSIC x_u08 bit_shift_right(x_u08 a, x_u08 b) { return _mm256_cvtepi16_epi8(_mm256_srlv_epi16(_mm256_cvtepi8_epi16(a), _mm256_cvtepi8_epi16(b))); }
 #else   // Vc_HAVE_AVX512VL
 Vc_INTRINSIC y_i16 bit_shift_right(y_i16 a, y_i16 b) { return lo256(_mm512_srav_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)); }
 Vc_INTRINSIC y_u16 bit_shift_right(y_u16 a, y_u16 b) { return lo256(_mm512_srlv_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)); }
-Vc_INTRINSIC x_i16 bit_shift_right(x_i16 a, x_i16 b) { return lo128(_mm512_srav_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)); }
-Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b) { return lo128(_mm512_srlv_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)); }
-Vc_INTRINSIC x_i08 bit_shift_right(x_i08 a, x_i08 b) { return lo128(bit_shift_right(y_i08(intrin_cast<__m256i>(a)), y_i08(intrin_cast<__m256i>(b)))); }
-Vc_INTRINSIC x_u08 bit_shift_right(x_u08 a, x_u08 b) { return lo128(bit_shift_right(y_u08(intrin_cast<__m256i>(a)), y_u08(intrin_cast<__m256i>(b)))); }
 #endif  // Vc_HAVE_AVX512VL
 #else   // Vc_HAVE_AVX512BW
-Vc_INTRINSIC x_i16 bit_shift_right(x_i16 a, x_i16 b)
-{
-    return _mm_blend_epi16(_mm_srav_epi32(and_(a, broadcast16(0x0000ffffu)),
-                                          and_(b, broadcast16(0x0000ffffu))),
-                           _mm_srav_epi32(a, _mm_srli_epi32(b, 16)), 0xaa);
-}
-Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b)
-{
-    return _mm_blend_epi16(_mm_srlv_epi32(and_(a, broadcast16(0x0000ffffu)),
-                                          and_(b, broadcast16(0x0000ffffu))),
-                           _mm_srlv_epi32(a, _mm_srli_epi32(b, 16)), 0xaa);
-}
-Vc_INTRINSIC x_i08 bit_shift_right(x_i08 a, x_i08 b)
-{
-    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
-    // equal to the length in bits of the promoted left operand.
-    const auto mask1 = broadcast16(0x00ff00ffu);
-    const auto mask2 = broadcast16(0xff00ff00u);
-    const auto a1 = and_(a, mask1);
-    const auto a2 = and_(a, mask2);
-    const auto s1 = _mm_srav_epi32(a1,                and_(b, broadcast16(0x000000ffu))     );
-    const auto s2 = _mm_srav_epi32(a2, _mm_srli_epi32(and_(b, broadcast16(0x0000ff00u)),  8));
-    const auto s3 = _mm_srav_epi32(a1, _mm_srli_epi32(and_(b, broadcast16(0x00ff0000u)), 16));
-    const auto s4 = _mm_srav_epi32(a2, _mm_srli_epi32(     b,                            24));
-    return _mm_blendv_epi8(or_(s1, s3), or_(s2, s4), mask2);
-}
-Vc_INTRINSIC x_u08 bit_shift_right(x_u08 a, x_u08 b)
-{
-    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
-    // equal to the length in bits of the promoted left operand.
-    const auto mask1 = broadcast16(0x00ff00ffu);
-    const auto mask2 = broadcast16(0xff00ff00u);
-    const auto a1 = and_(a, mask1);
-    const auto a2 = and_(a, mask2);
-    const auto s1 = _mm_srlv_epi32(a1,                and_(b, broadcast16(0x000000ffu))     );
-    const auto s2 = _mm_srlv_epi32(a2, _mm_srli_epi32(and_(b, broadcast16(0x0000ff00u)),  8));
-    const auto s3 = _mm_srlv_epi32(a1, _mm_srli_epi32(and_(b, broadcast16(0x00ff0000u)), 16));
-    const auto s4 = _mm_srlv_epi32(a2, _mm_srli_epi32(     b,                            24));
-    return _mm_blendv_epi8(or_(s1, s3), or_(s2, s4), mask2);
-}
 
 Vc_INTRINSIC y_i16 bit_shift_right(y_i16 a, y_i16 b)
 {
-    return _mm256_blend_epi16(_mm256_srav_epi32(and_(a, broadcast32(0x0000ffffu)),
-                                                and_(b, broadcast32(0x0000ffffu))),
-                              _mm256_srav_epi32(a, _mm256_srli_epi32(b, 16)), 0xaa);
+    auto lo32 = _mm256_srli_epi32(
+        _mm256_srav_epi32(_mm256_unpacklo_epi16(_mm256_setzero_si256(), a),
+                          _mm256_unpacklo_epi16(b, _mm256_setzero_si256())),
+        16);
+    auto hi32 = _mm256_srli_epi32(
+        _mm256_srav_epi32(_mm256_unpackhi_epi16(_mm256_setzero_si256(), a),
+                          _mm256_unpackhi_epi16(b, _mm256_setzero_si256())),
+        16);
+    return _mm256_packus_epi32(lo32, hi32);
 }
 Vc_INTRINSIC y_u16 bit_shift_right(y_u16 a, y_u16 b)
 {
@@ -841,33 +807,37 @@ Vc_INTRINSIC y_u16 bit_shift_right(y_u16 a, y_u16 b)
                                                 and_(b, broadcast32(0x0000ffffu))),
                               _mm256_srlv_epi32(a, _mm256_srli_epi32(b, 16)), 0xaa);
 }
+
 Vc_INTRINSIC y_i08 bit_shift_right(y_i08 a, y_i08 b)
 {
     // exploit UB: The behavior is undefined if the right operand is [...] greater than or
     // equal to the length in bits of the promoted left operand.
-    const auto mask1 = broadcast32(0x00ff00ffu);
-    const auto mask2 = broadcast32(0xff00ff00u);
-    const auto a1 = and_(a, mask1);
-    const auto a2 = and_(a, mask2);
-    const auto s1 = _mm256_srav_epi32(a1,                   and_(b, broadcast32(0x000000ffu))     );
-    const auto s2 = _mm256_srav_epi32(a2, _mm256_srli_epi32(and_(b, broadcast32(0x0000ff00u)),  8));
-    const auto s3 = _mm256_srav_epi32(a1, _mm256_srli_epi32(and_(b, broadcast32(0x00ff0000u)), 16));
-    const auto s4 = _mm256_srav_epi32(a2, _mm256_srli_epi32(     b,                            24));
-    return _mm256_blendv_epi8(or_(s1, s3), or_(s2, s4), mask2);
+    // => valid input range for each element of b is [0, 7]
+    // => only the 3 low bits of b are relevant
+    // do a =<< 4 where b[2] is set
+    return convert<y_i32, y_i08>(
+        _mm256_srav_epi32(_mm256_cvtepi8_epi32(lo128(a)), _mm256_cvtepi8_epi32(lo128(b))),
+        _mm256_srav_epi32(_mm256_cvtepi8_epi32(_mm_unpackhi_epi64(lo128(a), lo128(a))),
+                          _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(lo128(b), lo128(b)))),
+        _mm256_srav_epi32(_mm256_cvtepi8_epi32(hi128(a)), _mm256_cvtepi8_epi32(hi128(b))),
+        _mm256_srav_epi32(_mm256_cvtepi8_epi32(_mm_unpackhi_epi64(hi128(a), hi128(a))),
+                          _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(hi128(b), hi128(b)))));
 }
 Vc_INTRINSIC y_u08 bit_shift_right(y_u08 a, y_u08 b)
 {
     // exploit UB: The behavior is undefined if the right operand is [...] greater than or
     // equal to the length in bits of the promoted left operand.
-    const auto mask1 = broadcast32(0x00ff00ffu);
-    const auto mask2 = broadcast32(0xff00ff00u);
-    const auto a1 = and_(a, mask1);
-    const auto a2 = and_(a, mask2);
-    const auto s1 = _mm256_srlv_epi32(a1,                   and_(b, broadcast32(0x000000ffu))     );
-    const auto s2 = _mm256_srlv_epi32(a2, _mm256_srli_epi32(and_(b, broadcast32(0x0000ff00u)),  8));
-    const auto s3 = _mm256_srlv_epi32(a1, _mm256_srli_epi32(and_(b, broadcast32(0x00ff0000u)), 16));
-    const auto s4 = _mm256_srlv_epi32(a2, _mm256_srli_epi32(     b,                            24));
-    return _mm256_blendv_epi8(or_(s1, s3), or_(s2, s4), mask2);
+    // => valid input range for each element of b is [0, 7]
+    // => only the 3 low bits of b are relevant
+    // do a =<< 4 where b[2] is set
+    a = _mm256_blendv_epi8(a, and_(_mm256_srli_epi16(a, 4), broadcast32(0x0f0f0f0fu)),
+                           _mm256_slli_epi16(b, 5));
+    // do a =<< 2 where b[1] is set
+    a = _mm256_blendv_epi8(a, and_(_mm256_srli_epi16(a, 2), broadcast32(0x3f3f3f3fu)),
+                           _mm256_slli_epi16(b, 6));
+    // do a =<< 1 where b[0] is set
+    return _mm256_blendv_epi8(a, and_(_mm256_srli_epi16(a, 1), broadcast32(0x7f7f7f7f)),
+                              _mm256_slli_epi16(b, 7));
 }
 
 /* Not actually part of datapar_abi::avx512:
@@ -888,7 +858,230 @@ Vc_INTRINSIC z_i08 bit_shift_right(z_i08 a, z_i08 b)
 Vc_INTRINSIC z_u08 bit_shift_right(z_u08 a, z_u08 b) { return z_u08(bit_shift_right(z_i08(a), z_i08(b))); }
 */
 #endif  // Vc_HAVE_AVX512BW
+#else  // no AVX2
+
+Vc_INTRINSIC x_i32 bit_shift_right(x_i32 a, x_i32 b)
+{
+    const auto r0 = _mm_sra_epi32(a, _mm_unpacklo_epi32(b, _mm_setzero_si128()));
+    const auto r1 = _mm_sra_epi32(a, _mm_srli_epi64(b, 32));
+    const auto r2 = _mm_sra_epi32(a, _mm_unpackhi_epi32(b, _mm_setzero_si128()));
+    const auto r3 = _mm_sra_epi32(a, _mm_srli_si128(b, 12));
+#ifdef Vc_HAVE_SSE4_1
+    return _mm_blend_epi16(_mm_blend_epi16(r1, r0, 0x3), _mm_blend_epi16(r3, r2, 0x30),
+                           0xf0);
+#else   // Vc_HAVE_SSE4_1
+    return _mm_unpacklo_epi64(_mm_unpacklo_epi32(r0, _mm_srli_si128(r1, 4)),
+                              _mm_unpackhi_epi32(r2, _mm_srli_si128(r3, 4)));
+#endif  // Vc_HAVE_SSE4_1
+}
+Vc_INTRINSIC x_u32 bit_shift_right(x_u32 a, x_u32 b)
+{
+    const auto r0 = _mm_srl_epi32(a, _mm_unpacklo_epi32(b, _mm_setzero_si128()));
+    const auto r1 = _mm_srl_epi32(a, _mm_srli_epi64(b, 32));
+    const auto r2 = _mm_srl_epi32(a, _mm_unpackhi_epi32(b, _mm_setzero_si128()));
+    const auto r3 = _mm_srl_epi32(a, _mm_srli_si128(b, 12));
+#ifdef Vc_HAVE_SSE4_1
+    return _mm_blend_epi16(_mm_blend_epi16(r1, r0, 0x3), _mm_blend_epi16(r3, r2, 0x30),
+                           0xf0);
+#else   // Vc_HAVE_SSE4_1
+    return _mm_unpacklo_epi64(_mm_unpacklo_epi32(r0, _mm_srli_si128(r1, 4)),
+                              _mm_unpackhi_epi32(r2, _mm_srli_si128(r3, 4)));
+#endif  // Vc_HAVE_SSE4_1
+}
+
 #endif  // Vc_HAVE_AVX2
+
+// x_i16 and x_u16 {{{2
+#if defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
+
+Vc_INTRINSIC x_i16 bit_shift_right(x_i16 a, x_i16 b) { return _mm_srav_epi16(a, b); }
+Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b) { return _mm_srlv_epi16(a, b); }
+
+#elif defined Vc_HAVE_AVX512BW
+
+Vc_INTRINSIC x_i16 bit_shift_right(x_i16 a, x_i16 b)
+{
+    return lo128(_mm512_srav_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b));
+}
+Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b)
+{
+    return lo128(_mm512_srlv_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b));
+}
+
+#elif defined Vc_HAVE_AVX2
+
+// _mm256_sr[al]v_epi32 require AVX2
+Vc_INTRINSIC x_i16 bit_shift_right(x_i16 a, x_i16 b)
+{
+    return x86::convert_to<x_i16>(
+        y_i32(_mm256_srav_epi32(convert_to<y_i32>(a), convert_to<y_i32>(b))));
+}
+Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b)
+{
+    return x86::convert_to<x_u16>(
+        y_u32(_mm256_srlv_epi32(convert_to<y_u32>(a), convert_to<y_u32>(b))));
+}
+
+#elif defined Vc_HAVE_SSE4_1
+
+Vc_INTRINSIC x_i16 bit_shift_right(x_i16 a, x_i16 b)
+{
+    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
+    // equal to the length in bits of the promoted left operand.
+    // => valid input range for each element of b is [0, 15]
+    // => only the 4 low bits of b are relevant
+    // shift by 4 and duplicate to high byte
+    b = or_(_mm_slli_epi32(b, 4), _mm_slli_epi32(b, 12));
+    //b = multiplies(b, broadcast16(0x10101010));
+    // do a =>> 8 where b[3] is set
+    a = _mm_blendv_epi8(a, _mm_srai_epi16(a, 8), b);
+    // do a =>> 4 where b[2] is set
+    a = _mm_blendv_epi8(a, _mm_srai_epi16(a, 4), b = _mm_add_epi16(b, b));
+    // do a =>> 2 where b[1] is set
+    a = _mm_blendv_epi8(a, _mm_srai_epi16(a, 2), b = _mm_add_epi16(b, b));
+    // do a =>> 1 where b[0] is set
+    return _mm_blendv_epi8(a, _mm_srai_epi16(a, 1), _mm_add_epi16(b, b));
+}
+Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b)
+{
+    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
+    // equal to the length in bits of the promoted left operand.
+    // => valid input range for each element of b is [0, 15]
+    // => only the 4 low bits of b are relevant
+    // shift by 4 and duplicate to high byte
+    b = or_(_mm_slli_epi16(b, 4), _mm_slli_epi16(b, 12));
+    //b = multiplies(b, broadcast16(0x10101010));
+    // do a =>> 8 where b[3] is set
+    a = _mm_blendv_epi8(a, _mm_srli_epi16(a, 8), b);
+    // do a =>> 4 where b[2] is set
+    a = _mm_blendv_epi8(a, _mm_srli_epi16(a, 4), b = _mm_add_epi16(b, b));
+    // do a =>> 2 where b[1] is set
+    a = _mm_blendv_epi8(a, _mm_srli_epi16(a, 2), b = _mm_add_epi16(b, b));
+    // do a =>> 1 where b[0] is set
+    return _mm_blendv_epi8(a, _mm_srli_epi16(a, 1), _mm_add_epi16(b, b));
+}
+
+#else   // no SSE4 (_mm_blendv_epi8)
+
+Vc_INTRINSIC x_i16 bit_shift_right(x_i16 a, x_i16 b)
+{
+    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
+    // equal to the length in bits of the promoted left operand.
+    // => valid input range for each element of b is [0, 15]
+    // => only the 4 low bits of b are relevant
+    // do a =>> 8 where b[3] is set
+    a = blendv_epi8(a, _mm_srai_epi16(a, 8), _mm_cmpgt_epi16(b, broadcast16(0x00070007)));
+    // do a =>> 4 where b[2] is set
+    a = blendv_epi8(
+        a, _mm_srai_epi16(a, 4),
+        _mm_cmpgt_epi16(and_(b, broadcast16(0x00040004)), _mm_setzero_si128()));
+    // do a =>> 2 where b[1] is set
+    a = blendv_epi8(
+        a, _mm_srai_epi16(a, 2),
+        _mm_cmpgt_epi16(and_(b, broadcast16(0x00020002)), _mm_setzero_si128()));
+    // do a =>> 1 where b[0] is set
+    return blendv_epi8(
+        a, _mm_srai_epi16(a, 1),
+        _mm_cmpgt_epi16(and_(b, broadcast16(0x00010001)), _mm_setzero_si128()));
+}
+Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b)
+{
+    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
+    // equal to the length in bits of the promoted left operand.
+    // => valid input range for each element of b is [0, 15]
+    // => only the 4 low bits of b are relevant
+    // do a =>> 8 where b[3] is set
+    a = blendv_epi8(a, _mm_srli_epi16(a, 8), _mm_cmpgt_epi16(b, broadcast16(0x00070007)));
+    // do a =>> 4 where b[2] is set
+    a = blendv_epi8(
+        a, _mm_srli_epi16(a, 4),
+        _mm_cmpgt_epi16(and_(b, broadcast16(0x00040004)), _mm_setzero_si128()));
+    // do a =>> 2 where b[1] is set
+    a = blendv_epi8(
+        a, _mm_srli_epi16(a, 2),
+        _mm_cmpgt_epi16(and_(b, broadcast16(0x00020002)), _mm_setzero_si128()));
+    // do a =>> 1 where b[0] is set
+    return blendv_epi8(
+        a, _mm_srli_epi16(a, 1),
+        _mm_cmpgt_epi16(and_(b, broadcast16(0x00010001)), _mm_setzero_si128()));
+}
+
+#endif  // Vc_HAVE_AVX512BW
+
+// x_i08 and x_u08 {{{2
+#if defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
+
+Vc_INTRINSIC x_i08 bit_shift_right(x_i08 a, x_i08 b)
+{
+    return _mm256_cvtepi16_epi8(
+        _mm256_srav_epi16(_mm256_cvtepi8_epi16(a), _mm256_cvtepi8_epi16(b)));
+}
+Vc_INTRINSIC x_u08 bit_shift_right(x_u08 a, x_u08 b)
+{
+    return _mm256_cvtepi16_epi8(
+        _mm256_srlv_epi16(_mm256_cvtepu8_epi16(a), _mm256_cvtepu8_epi16(b)));
+}
+
+#elif defined Vc_HAVE_AVX512BW
+
+Vc_INTRINSIC x_i08 bit_shift_right(x_i08 a, x_i08 b)
+{
+    return lo128(
+        bit_shift_right(y_i08(intrin_cast<__m256i>(a)), y_i08(intrin_cast<__m256i>(b))));
+}
+Vc_INTRINSIC x_u08 bit_shift_right(x_u08 a, x_u08 b)
+{
+    return lo128(
+        bit_shift_right(y_u08(intrin_cast<__m256i>(a)), y_u08(intrin_cast<__m256i>(b))));
+}
+
+#elif defined Vc_HAVE_SSE4_1
+
+Vc_INTRINSIC x_i08 bit_shift_right(x_i08 a, x_i08 b)
+{
+    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
+    // equal to the length in bits of the promoted left operand.
+    // => valid input range for each element of b is [0, 7]
+    // => only the 3 low bits of b are relevant
+    // do a =<< 4 where b[2] is set
+    auto bit7 = and_(a, broadcast16(0x00800080));
+    _mm_srai_epi16(_mm_slli_epi16(a, 8), 4);
+    a = _mm_blendv_epi8(a,
+                        _mm_srai_epi16(or_(_mm_sub_epi16(_mm_slli_epi16(bit7, 5), bit7),
+                                           and_(a, broadcast16(0xf8f8f8f8u))),
+                                       4),
+                        _mm_slli_epi16(b, 5));
+    // do a =<< 2 where b[1] is set
+    a = _mm_blendv_epi8(a,
+                        _mm_srai_epi16(or_(_mm_sub_epi16(_mm_slli_epi16(bit7, 3), bit7),
+                                           and_(a, broadcast16(0xfcfcfcfcu))),
+                                       2),
+                        _mm_slli_epi16(b, 6));
+    // do a =<< 1 where b[0] is set
+    return _mm_blendv_epi8(
+        a, _mm_srai_epi16(or_(_mm_slli_epi16(bit7, 1), and_(a, broadcast16(0xfefefefeu))),
+                          1),
+        _mm_slli_epi16(b, 7));
+}
+Vc_INTRINSIC x_u08 bit_shift_right(x_u08 a, x_u08 b)
+{
+    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
+    // equal to the length in bits of the promoted left operand.
+    // => valid input range for each element of b is [0, 7]
+    // => only the 3 low bits of b are relevant
+    // do a =<< 4 where b[2] is set
+    a = _mm_blendv_epi8(a, and_(_mm_srli_epi16(a, 4), broadcast16(0x0f0f0f0fu)),
+                        _mm_slli_epi16(b, 5));
+    // do a =<< 2 where b[1] is set
+    a = _mm_blendv_epi8(a, and_(_mm_srli_epi16(a, 2), broadcast16(0x3f3f3f3fu)),
+                        _mm_slli_epi16(b, 6));
+    // do a =<< 1 where b[0] is set
+    return _mm_blendv_epi8(a, and_(_mm_srli_epi16(a, 1), broadcast16(0x7f7f7f7f)),
+                           _mm_slli_epi16(b, 7));
+}
+
+#endif  // Vc_HAVE_AVX512BW
+
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // complement{{{1
