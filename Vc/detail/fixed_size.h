@@ -366,63 +366,63 @@ public:
     static inline Vc::datapar<T, A> plus(const Vc::datapar<T, A> &x,
                                          const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx + yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx + yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> minus(const Vc::datapar<T, A> &x,
                                           const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx - yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx - yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> multiplies(const Vc::datapar<T, A> &x,
                                                const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx * yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx * yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> divides(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx / yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx / yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> modulus(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx % yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx % yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_and(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx & yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx & yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_or(const Vc::datapar<T, A> &x,
                                            const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx | yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx | yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_xor(const Vc::datapar<T, A> &x,
                                             const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx ^ yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx ^ yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_shift_left(const Vc::datapar<T, A> &x,
                                                    const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx << yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx << yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
@@ -435,7 +435,7 @@ public:
     static inline Vc::datapar<T, A> bit_shift_right(const Vc::datapar<T, A> &x,
                                                     const Vc::datapar<T, A> &y)
     {
-        return {private_init, apply([&](auto xx, auto yy) { return xx >> yy; }, x.d, y.d)};
+        return {private_init, apply([](auto xx, auto yy) { return xx >> yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
