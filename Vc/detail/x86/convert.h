@@ -1078,7 +1078,7 @@ template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(y_i32 v0)
         v0, _mm256_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80, -0x80,
                              -0x80, -0x80, -0x80, 0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80,
                              -0x80, -0x80, -0x80, -0x80, -0x80, -0x80));
-    return _mm_unpacklo_epi64(lo128(a), hi128(a));
+    return lo128(_mm256_permute4x64_epi64(a, 0xe8)); // a[0] a[2] | a[2] a[3]
 #else
     return convert_to<x_i16>(lo128(v0), hi128(v0));
 #endif
