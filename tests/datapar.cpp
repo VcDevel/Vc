@@ -197,6 +197,15 @@ integral_operators()
         // - shifting into (or over) the sign bit is UB
         // - unsigned LHS overflow is modulo arithmetic
         constexpr int nbits(sizeof(T) * CHAR_BIT);
+        {
+            V seq = make_vec<V>({0, 1}, 2);
+            seq %= nbits - 1;
+            COMPARE(make_vec<V>({0, 1}, 0) << seq,
+                    V([&](auto i) { return T(T(i & 1) << seq[i]); }));
+            COMPARE(make_vec<V>({1, 0}, 0) << seq,
+                    V([&](auto i) { return T(T(~i & 1) << seq[i]); }));
+            COMPARE(V(1) << seq, V([&](auto i) { return T(T(1) << seq[i]); }));
+        }
         for (int i = 0; i < nbits - 1; ++i) {
             COMPARE(V(1) << i, V(T(1) << i));
         }
@@ -205,20 +214,33 @@ integral_operators()
             COMPARE(V(1) << shift_count, V(T(1) << shift_count));
             constexpr T max =  // avoid overflow warning in the last COMPARE
                 std::is_unsigned<T>::value ? std::numeric_limits<T>::max() : T(1);
-            COMPARE(V(max) << shift_count, V(max << shift_count));
+            COMPARE(V(max) << shift_count, V(max << shift_count)) << "shift_count: " << shift_count;
         }
     }
 
     {  // bit_shift_right{{{2
+        constexpr int nbits(sizeof(T) * CHAR_BIT);
         // Note:
         // - negative LHS is implementation defined
         // - negative RHS or RHS >= #bits is UB
         // - no other UB
+        COMPARE(V(~T()) >> V(0), V(~T()));
+        for (int s = 1; s < nbits; ++s) {
+            COMPARE(V(~T()) >> V(s), V(T(~T()) >> s)) << "s: " << s;
+        }
+        for (int s = 1; s < nbits; ++s) {
+            COMPARE(V(~T(1)) >> V(s), V(T(~T(1)) >> s)) << "s: " << s;
+        }
         COMPARE(V(0) >> V(1), V(0));
         COMPARE(V(1) >> V(1), V(0));
         COMPARE(V(2) >> V(1), V(1));
         COMPARE(V(3) >> V(1), V(1));
         COMPARE(V(7) >> V(2), V(1));
+        {
+            V seq = make_vec<V>({0, 1}, 2);
+            seq %= nbits - 1;
+            COMPARE(V(1) >> seq, V([&](auto i) { return T(T(1) >> seq[i]); }));
+        }
     }
 
     //}}}2
