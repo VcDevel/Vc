@@ -426,10 +426,22 @@ public:
     }
 
     template <class T, class A>
+    static inline Vc::datapar<T, A> bit_shift_left(const Vc::datapar<T, A> &x, int y)
+    {
+        return {private_init, apply([y](auto xx) { return xx << y; }, x.d)};
+    }
+
+    template <class T, class A>
     static inline Vc::datapar<T, A> bit_shift_right(const Vc::datapar<T, A> &x,
                                                     const Vc::datapar<T, A> &y)
     {
         return {private_init, apply([&](auto xx, auto yy) { return xx >> yy; }, x.d, y.d)};
+    }
+
+    template <class T, class A>
+    static inline Vc::datapar<T, A> bit_shift_right(const Vc::datapar<T, A> &x, int y)
+    {
+        return {private_init, apply([y](auto xx) { return xx >> y; }, x.d)};
     }
 
     // increment & decrement{{{2

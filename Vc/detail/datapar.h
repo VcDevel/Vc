@@ -103,6 +103,8 @@ public:
     friend V &operator ^=(V &lhs, const V &x) { return lhs = lhs  ^ x; }
     friend V &operator<<=(V &lhs, const V &x) { return lhs = lhs << x; }
     friend V &operator>>=(V &lhs, const V &x) { return lhs = lhs >> x; }
+    friend V &operator<<=(V &lhs, int x) { return lhs = lhs << x; }
+    friend V &operator>>=(V &lhs, int x) { return lhs = lhs >> x; }
 
     friend V operator%(const V &x, const V &y) { return impl::modulus(x, y); }
     friend V operator&(const V &x, const V &y) { return impl::bit_and(x, y); }
@@ -110,6 +112,8 @@ public:
     friend V operator^(const V &x, const V &y) { return impl::bit_xor(x, y); }
     friend V operator<<(const V &x, const V &y) { return impl::bit_shift_left(x, y); }
     friend V operator>>(const V &x, const V &y) { return impl::bit_shift_right(x, y); }
+    friend V operator<<(const V &x, int y) { return impl::bit_shift_left(x, y); }
+    friend V operator>>(const V &x, int y) { return impl::bit_shift_right(x, y); }
 
     // unary operators (for integral T)
     V operator~() const { return impl::complement(derived()); }

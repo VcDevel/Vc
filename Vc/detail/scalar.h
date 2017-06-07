@@ -197,11 +197,24 @@ struct scalar_datapar_impl {
                                << detail::promote_preserving_unsigned(y.d))};
     }
 
+    template <class T> static inline datapar<T> bit_shift_left(const datapar<T> &x, int y)
+    {
+        return {private_init,
+                static_cast<T>(detail::promote_preserving_unsigned(x.d) << y)};
+    }
+
     template <class T>
     static inline datapar<T> bit_shift_right(const datapar<T> &x, const datapar<T> &y)
     {
         return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) >>
                                              detail::promote_preserving_unsigned(y.d))};
+    }
+
+    template <class T>
+    static inline datapar<T> bit_shift_right(const datapar<T> &x, int y)
+    {
+        return {private_init,
+                static_cast<T>(detail::promote_preserving_unsigned(x.d) >> y)};
     }
 
     // increment & decrement{{{2

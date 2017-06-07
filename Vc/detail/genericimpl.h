@@ -110,6 +110,16 @@ template <class Derived> struct generic_datapar_impl {
     Vc_ARITHMETIC_OP_(bit_shift_left);
     Vc_ARITHMETIC_OP_(bit_shift_right);
 #undef Vc_ARITHMETIC_OP_
+    template <class T, class A>
+    static Vc_INTRINSIC datapar<T, A> Vc_VDECL bit_shift_left(datapar<T, A> x, int y)
+    {
+        return make_datapar<T, A>(detail::bit_shift_left(adjust_for_long(x.d), y));
+    }
+    template <class T, class A>
+    static Vc_INTRINSIC datapar<T, A> Vc_VDECL bit_shift_right(datapar<T, A> x, int y)
+    {
+        return make_datapar<T, A>(detail::bit_shift_right(adjust_for_long(x.d), y));
+    }
 
     // increment & decrement{{{2
     template <class T, size_t N> static Vc_INTRINSIC void increment(Storage<T, N> &x)
