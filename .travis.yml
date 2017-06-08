@@ -11,6 +11,7 @@ env:
     - arch=x86_64  subset=avx    VcSkipTests=loadstore
     - arch=x86_64  subset=avx2   VcSkipTests=loadstore
     - arch=x86_64  subset=avx512 VcSkipTests=loadstore
+    - arch=x86_64  subset=knl    VcSkipTests=loadstore
     - arch=aarch64 subset=neon   VcSkipTests=loadstore
 
 os:
@@ -25,6 +26,8 @@ compiler:
 matrix:
   exclude:
     - env: arch=x86_64  subset=avx512
+      os: osx
+    - env: arch=x86_64  subset=knl
       os: osx
     - env: arch=aarch64 subset=neon
       os: osx
