@@ -38,8 +38,10 @@ install:
     - case "$TRAVIS_OS_NAME-$CXX-$arch" in
         linux-g++-x86_64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main' &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial-updates main' &&
           sudo apt-get update -q &&
-          sudo apt-get install g++-6 -y &&
+          sudo apt-get install g++-6 binutils -y &&
           export CXX=g++-6 CC=gcc-6;;
         linux-clang++-x86_64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
