@@ -175,7 +175,9 @@ macro(OFA_AutodetectX86)
          endif(_cpu_model GREATER 2)
       endif(_cpu_family EQUAL 6)
    elseif(_vendor_id STREQUAL "AuthenticAMD")
-      if(_cpu_family EQUAL 22) # 16h
+      if(_cpu_family EQUAL 23)
+         set(TARGET_ARCHITECTURE "zen")
+      elseif(_cpu_family EQUAL 22) # 16h
          set(TARGET_ARCHITECTURE "AMD 16h")
       elseif(_cpu_family EQUAL 21) # 15h
          if(_cpu_model LESS 2)
@@ -339,6 +341,10 @@ macro(OFA_HandleX86Options)
    elseif(TARGET_ARCHITECTURE STREQUAL "AMD 14h")
       list(APPEND _march_flag_list "btver1")
       list(APPEND _available_vector_units_list "sse" "sse2" "sse3" "ssse3" "sse4a")
+   elseif(TARGET_ARCHITECTURE STREQUAL "zen")
+      list(APPEND _march_flag_list "znver1")
+      _skylake()
+      list(APPEND _available_vector_units_list "sse4a")
    elseif(TARGET_ARCHITECTURE STREQUAL "piledriver")
       list(APPEND _march_flag_list "bdver2")
       list(APPEND _march_flag_list "bdver1")
@@ -570,7 +576,7 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
 \"haswell\", \"broadwell\", \"skylake\", \"skylake-xeon\", \"kaby-lake\", \"cannonlake\", \"silvermont\", \
 \"goldmont\", \"knl\" (Knights Landing), \"atom\", \"k8\", \"k8-sse3\", \"barcelona\", \
 \"istanbul\", \"magny-cours\", \"bulldozer\", \"interlagos\", \"piledriver\", \
-\"AMD 14h\", \"AMD 16h\".")
+\"AMD 14h\", \"AMD 16h\", \"zen\".")
    elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(arm|aarch32|aarch64)")
       set(TARGET_ARCHITECTURE "auto" CACHE STRING "CPU architecture to optimize for. \
 Using an incorrect setting here can result in crashes of the resulting binary because of invalid instructions used. \
