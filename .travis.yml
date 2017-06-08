@@ -6,7 +6,8 @@ cache:
         - $HOME/.cache/sde
 
 env:
-    - arch=x86_64  subset=sse    VcSkipTests=loadstore
+    - arch=x86_64  subset=sse2   VcSkipTests=loadstore
+    - arch=x86_64  subset=sse4   VcSkipTests=loadstore
     - arch=x86_64  subset=avx    VcSkipTests=loadstore
     - arch=x86_64  subset=avx2   VcSkipTests=loadstore
     - arch=x86_64  subset=avx512 VcSkipTests=loadstore
