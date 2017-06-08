@@ -9,12 +9,15 @@ execute_process(
    )
 if(${found_lto_plugin} EQUAL 0)
    execute_process(COMMAND "${CMAKE_AR} --plugin ${lto_plugin} --version"
-      OUTPUT_QUIET ERROR_QUIET
+      OUTPUT_VARIABLE tmp
+      ERROR_VARIABLE tmp
       RESULT_VARIABLE ar_plugin_switch_available)
    if(${ar_plugin_switch_available} EQUAL 0)
       set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qc --plugin ${lto_plugin} <TARGET> <LINK_FLAGS> <OBJECTS>")
       set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> q  --plugin ${lto_plugin} <TARGET> <LINK_FLAGS> <OBJECTS>")
       set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> --plugin ${lto_plugin} <TARGET>")
+   else()
+      message(STATUS "${CMAKE_AR} doesn't support '--plugin': ${tmp}")
    endif()
    AddCompilerFlag(-flto=4) # Hopefully faster "code build test" cycles
 endif()
