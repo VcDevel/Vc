@@ -8,9 +8,14 @@ execute_process(
    OUTPUT_STRIP_TRAILING_WHITESPACE
    )
 if(${found_lto_plugin} EQUAL 0)
-   set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qc --plugin ${lto_plugin} <TARGET> <LINK_FLAGS> <OBJECTS>")
-   set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> q  --plugin ${lto_plugin} <TARGET> <LINK_FLAGS> <OBJECTS>")
-   set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> --plugin ${lto_plugin} <TARGET>")
+   execute_process(COMMAND "${CMAKE_AR} --plugin ${lto_plugin} --version"
+      OUTPUT_QUIET ERROR_QUIET
+      RESULT_VARIABLE ar_plugin_switch_available)
+   if(${ar_plugin_switch_available} EQUAL 0)
+      set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> qc --plugin ${lto_plugin} <TARGET> <LINK_FLAGS> <OBJECTS>")
+      set(CMAKE_CXX_ARCHIVE_APPEND "<CMAKE_AR> q  --plugin ${lto_plugin} <TARGET> <LINK_FLAGS> <OBJECTS>")
+      set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> --plugin ${lto_plugin} <TARGET>")
+   endif()
    AddCompilerFlag(-flto=4) # Hopefully faster "code build test" cycles
 endif()
 
