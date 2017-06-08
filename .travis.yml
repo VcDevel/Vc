@@ -25,14 +25,14 @@ compiler:
 # The whitespace in "env:" lines must match the definition above!
 matrix:
   exclude:
-    - env: arch=x86_64  subset=avx512
+    - env: arch=x86_64  subset=avx512 VcSkipTests=loadstore
       os: osx
-    - env: arch=x86_64  subset=knl
+    - env: arch=x86_64  subset=knl    VcSkipTests=loadstore
       os: osx
-    - env: arch=aarch64 subset=neon
+    - env: arch=aarch64 subset=neon   VcSkipTests=loadstore
       os: osx
   allow_failures:
-    - env: arch=aarch64 subset=neon
+    - env: arch=aarch64 subset=neon   VcSkipTests=loadstore
 
 # The following gives us Ubuntu 14.04 LTS instead of 12.04 LTS
 sudo: required
