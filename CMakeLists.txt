@@ -178,6 +178,14 @@ if(Vc_X86 AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
       endif()
       mark_as_advanced(_bin_sh _wget)
    endif()
+
+   if(INTEL_SDE)
+      execute_process(COMMAND ${INTEL_SDE} -version OUTPUT_VARIABLE sde_version ERROR_QUIET)
+      string(REGEX MATCH "Version: +[0-9.]+" sde_version "${sde_version}")
+      message(STATUS "Intel SDE ${sde_version}")
+   else()
+      message(STATUS "Intel SDE not found.")
+   endif()
 endif()#}}}
 
 # Set up make targets#{{{
