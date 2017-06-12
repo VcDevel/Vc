@@ -2339,6 +2339,7 @@ Vc_INTRINSIC __m512i load64(const T *mem, when_unaligned<64>)
 #ifdef Vc_HAVE_SSE
 Vc_INTRINSIC void store4(__m128 v, float *mem, when_aligned<alignof(float)>)
 {
+    assertCorrectAlignment<float>(mem);
     *mem = _mm_cvtss_f32(v);
 }
 
@@ -2349,6 +2350,7 @@ Vc_INTRINSIC void store4(__m128 v, float *mem, when_unaligned<alignof(float)>)
 
 Vc_INTRINSIC void store8(__m128 v, float *mem, when_aligned<alignof(__m64)>)
 {
+    assertCorrectAlignment<__m64>(mem);
     _mm_storel_pi(reinterpret_cast<__m64 *>(mem), v);
 }
 
@@ -2359,6 +2361,7 @@ Vc_INTRINSIC void store8(__m128 v, float *mem, when_unaligned<alignof(__m64)>)
 
 Vc_INTRINSIC void store16(__m128 v, float *mem, when_aligned<16>)
 {
+    assertCorrectAlignment<__m128>(mem);
     _mm_store_ps(mem, v);
 }
 Vc_INTRINSIC void store16(__m128 v, float *mem, when_unaligned<16>)
@@ -2370,6 +2373,7 @@ Vc_INTRINSIC void store16(__m128 v, float *mem, when_unaligned<16>)
 #ifdef Vc_HAVE_SSE2
 Vc_INTRINSIC void store8(__m128d v, double *mem, when_aligned<alignof(double)>)
 {
+    assertCorrectAlignment<double>(mem);
     *mem = _mm_cvtsd_f64(v);
 }
 
@@ -2380,6 +2384,7 @@ Vc_INTRINSIC void store8(__m128d v, double *mem, when_unaligned<alignof(double)>
 
 Vc_INTRINSIC void store16(__m128d v, double *mem, when_aligned<16>)
 {
+    assertCorrectAlignment<__m128d>(mem);
     _mm_store_pd(mem, v);
 }
 Vc_INTRINSIC void store16(__m128d v, double *mem, when_unaligned<16>)
@@ -2389,6 +2394,7 @@ Vc_INTRINSIC void store16(__m128d v, double *mem, when_unaligned<16>)
 
 template <class T> Vc_INTRINSIC void store2(__m128i v, T *mem, when_aligned<alignof(ushort)>)
 {
+    assertCorrectAlignment<ushort>(mem);
     static_assert(std::is_integral<T>::value && sizeof(T) <= 2,
                   "store4<T> is only intended for integral T with sizeof(T) <= 2");
     *reinterpret_cast<may_alias<ushort> *>(mem) = uint(_mm_cvtsi128_si32(v));
@@ -2404,6 +2410,7 @@ template <class T> Vc_INTRINSIC void store2(__m128i v, T *mem, when_unaligned<al
 
 template <class T> Vc_INTRINSIC void store4(__m128i v, T *mem, when_aligned<alignof(int)>)
 {
+    assertCorrectAlignment<int>(mem);
     static_assert(std::is_integral<T>::value && sizeof(T) <= 4,
                   "store4<T> is only intended for integral T with sizeof(T) <= 4");
     *reinterpret_cast<may_alias<int> *>(mem) = _mm_cvtsi128_si32(v);
@@ -2419,6 +2426,7 @@ template <class T> Vc_INTRINSIC void store4(__m128i v, T *mem, when_unaligned<al
 
 template <class T> Vc_INTRINSIC void store8(__m128i v, T *mem, when_aligned<8>)
 {
+    assertCorrectAlignment<__m64>(mem);
     static_assert(std::is_integral<T>::value, "store8<T> is only intended for integral T");
     _mm_storel_epi64(reinterpret_cast<__m128i *>(mem), v);
 }
@@ -2431,6 +2439,7 @@ template <class T> Vc_INTRINSIC void store8(__m128i v, T *mem, when_unaligned<8>
 
 template <class T> Vc_INTRINSIC void store16(__m128i v, T *mem, when_aligned<16>)
 {
+    assertCorrectAlignment<__m128i>(mem);
     static_assert(std::is_integral<T>::value, "store16<T> is only intended for integral T");
     _mm_store_si128(reinterpret_cast<__m128i *>(mem), v);
 }
@@ -2444,6 +2453,7 @@ template <class T> Vc_INTRINSIC void store16(__m128i v, T *mem, when_unaligned<1
 #ifdef Vc_HAVE_AVX
 Vc_INTRINSIC void store32(__m256 v, float *mem, when_aligned<32>)
 {
+    assertCorrectAlignment<__m256>(mem);
     _mm256_store_ps(mem, v);
 }
 Vc_INTRINSIC void store32(__m256 v, float *mem, when_unaligned<32>)
@@ -2452,6 +2462,7 @@ Vc_INTRINSIC void store32(__m256 v, float *mem, when_unaligned<32>)
 }
 Vc_INTRINSIC void store32(__m256d v, double *mem, when_aligned<32>)
 {
+    assertCorrectAlignment<__m256d>(mem);
     _mm256_store_pd(mem, v);
 }
 Vc_INTRINSIC void store32(__m256d v, double *mem, when_unaligned<32>)
@@ -2460,6 +2471,7 @@ Vc_INTRINSIC void store32(__m256d v, double *mem, when_unaligned<32>)
 }
 template <class T> Vc_INTRINSIC void store32(__m256i v, T *mem, when_aligned<32>)
 {
+    assertCorrectAlignment<__m256i>(mem);
     static_assert(std::is_integral<T>::value, "store32<T> is only intended for integral T");
     _mm256_store_si256(reinterpret_cast<__m256i *>(mem), v);
 }
