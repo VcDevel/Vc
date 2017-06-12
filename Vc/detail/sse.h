@@ -916,7 +916,7 @@ struct sse_mask_impl : public generic_mask_impl<datapar_abi::sse, sse_mask_membe
 #endif  // Vc_HAVE_SSE2
 
     // store {{{2
-#ifdef Vc_HAVE_MMX
+#if !defined Vc_HAVE_SSE2 && defined Vc_HAVE_MMX
     template <class F>
     static Vc_INTRINSIC void store(mask_member_type<float> v, bool *mem, F,
                                    size_tag<4>) noexcept
