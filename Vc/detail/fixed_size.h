@@ -557,10 +557,9 @@ template <int N> struct fixed_size_mask_impl {
     static inline void store(mask_member_type bs, bool *mem, F f, size_tag) noexcept
     {
 #ifdef Vc_HAVE_AVX512BW
-        unused(f);
         const __m512i bool64 =
             and_(_mm512_movm_epi8(bs.to_ullong()), x86::one64(uchar()));
-        std::memcpy(mem, &bool64, N);
+        detail::x86::store_n_bytes(size_constant<N>(), bool64, mem, f);
 #elif defined Vc_HAVE_BMI2
 #ifdef Vc_IS_AMD64
         unused(f);

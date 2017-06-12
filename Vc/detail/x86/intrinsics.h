@@ -2504,6 +2504,90 @@ Vc_INTRINSIC void store64(__m512i v, T *mem, when_unaligned<64>)
 }
 #endif
 
+#ifdef Vc_HAVE_AVX512F
+template <class T, class F, size_t N>
+Vc_INTRINSIC void store_n_bytes(size_constant<N>, __m512i v, T *mem, F)
+{
+    std::memcpy(mem, &v, N);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<4>, __m512i v, T *mem, F f)
+{
+    store4(lo128(v), mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<8>, __m512i v, T *mem, F f)
+{
+    store8(lo128(v), mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<16>, __m512i v, T *mem, F f)
+{
+    store16(lo128(v), mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<32>, __m512i v, T *mem, F f)
+{
+    store32(lo256(v), mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<64>, __m512i v, T *mem, F f)
+{
+    store64(v, mem, f);
+}
+#endif  // Vc_HAVE_AVX512F
+
+#ifdef Vc_HAVE_AVX
+template <class T, class F, size_t N>
+Vc_INTRINSIC void store_n_bytes(size_constant<N>, __m256i v, T *mem, F)
+{
+    std::memcpy(mem, &v, N);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<4>, __m256i v, T *mem, F f)
+{
+    store4(lo128(v), mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<8>, __m256i v, T *mem, F f)
+{
+    store8(lo128(v), mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<16>, __m256i v, T *mem, F f)
+{
+    store16(lo128(v), mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<32>, __m256i v, T *mem, F f)
+{
+    store32(v, mem, f);
+}
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_SSE2
+template <class T, class F, size_t N>
+Vc_INTRINSIC void store_n_bytes(size_constant<N>, __m128i v, T *mem, F)
+{
+    std::memcpy(mem, &v, N);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<4>, __m128i v, T *mem, F f)
+{
+    store4(v, mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<8>, __m128i v, T *mem, F f)
+{
+    store8(v, mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC void store_n_bytes(size_constant<16>, __m128i v, T *mem, F f)
+{
+    store16(v, mem, f);
+}
+#endif  // Vc_HAVE_SSE2
+
 // }}}1
 }  // namespace x86
 using namespace x86;
