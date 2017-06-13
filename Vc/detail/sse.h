@@ -959,16 +959,12 @@ struct sse_mask_impl : public generic_mask_impl<datapar_abi::sse, sse_mask_membe
 #endif
     }
     template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
+    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F f,
                                             size_tag<16>) noexcept
     {
         auto k = intrin_cast<__m128i>(v.v());
         k = _mm_and_si128(k, _mm_set1_epi32(0x01010101));
-        if (std::is_same<F, flags::vector_aligned_tag>::value) {
-            _mm_store_si128(reinterpret_cast<__m128i *>(mem), k);
-        } else {
-            _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), k);
-        }
+        x86::store16(k, mem, f);
     }
 #endif  // Vc_HAVE_SSE2
 

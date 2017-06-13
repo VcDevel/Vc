@@ -778,9 +778,7 @@ struct avx512_mask_impl
                                    size_tag<16>) noexcept
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
-        _mm_store_si128(reinterpret_cast<__m128i *>(mem),
-                        and_(one16(uchar()), _mm_movm_epi8(v.v())));
-        unused(f);
+        x86::store16(and_(one16(uchar()), _mm_movm_epi8(v.v())), mem, f);
 #elif defined Vc_HAVE_AVX512DQ
         store16(_mm512_cvtepi32_epi8(_mm512_srli_epi32(_mm512_movm_epi32(v.v()), 31)),
                 mem, f);
