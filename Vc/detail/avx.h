@@ -676,9 +676,8 @@ struct avx_mask_impl : public generic_mask_impl<datapar_abi::avx, avx_mask_membe
     static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
                                             size_tag<8>) noexcept
     {
-        auto k = intrin_cast<__m256i>(v.v());
-        const auto k2 =
-            _mm_srli_epi16(_mm_packs_epi16(lo128(k), hi128(k)), 15);
+        const auto k = intrin_cast<__m256i>(v.v());
+        const auto k2 = x86::srli_epi16<15>(_mm_packs_epi16(lo128(k), hi128(k)));
         const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
 #ifdef Vc_IS_AMD64
         *reinterpret_cast<may_alias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
@@ -692,7 +691,7 @@ struct avx_mask_impl : public generic_mask_impl<datapar_abi::avx, avx_mask_membe
                                             size_tag<16>) noexcept
     {
 #ifdef Vc_HAVE_AVX2
-        auto x =_mm256_srli_epi16(v, 15);
+        const auto x = x86::srli_epi16<15>(v);
         const auto bools = _mm_packs_epi16(lo128(x), hi128(x));
 #else
         const auto bools =

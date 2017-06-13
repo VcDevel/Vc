@@ -941,16 +941,16 @@ struct sse_mask_impl : public generic_mask_impl<datapar_abi::sse, sse_mask_membe
                                             size_tag<4>) noexcept
     {
         const auto k = intrin_cast<__m128i>(v.v());
+        __m128i k2 = _mm_packs_epi32(k, _mm_setzero_si128());
         *reinterpret_cast<may_alias<int32_t> *>(mem) = _mm_cvtsi128_si32(
-            _mm_packs_epi16(_mm_srli_epi16(_mm_packs_epi32(k, _mm_setzero_si128()), 15),
-                            _mm_setzero_si128()));
+            _mm_packs_epi16(x86::srli_epi16<15>(k2), _mm_setzero_si128()));
     }
     template <class T, class F>
     static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
                                             size_tag<8>) noexcept
     {
         auto k = intrin_cast<__m128i>(v.v());
-        k = _mm_srli_epi16(k, 15);
+        k = x86::srli_epi16<15>(k);
         const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
 #ifdef Vc_IS_AMD64
         *reinterpret_cast<may_alias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);

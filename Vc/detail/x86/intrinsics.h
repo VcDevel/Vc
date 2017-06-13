@@ -990,6 +990,86 @@ template <> Vc_INTRINSIC Vc_CONST __m256d avx_2_pow_31<double>() { return broadc
 template <> Vc_INTRINSIC Vc_CONST __m256i avx_2_pow_31<  uint>() { return lowest32<int>(); }
 #endif  // Vc_HAVE_AVX
 
+static Vc_INTRINSIC __m128i shift_msb_to_lsb(__m128i v)
+{
+#if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
+    !defined Vc_HAVE_AVX512VL
+    // GCC miscompiles to `vpsrlw xmm0, xmm0, xmm16` for KNL even though AVX512VL is
+    // not available.
+    asm("vpsrlw $15,%0,%0" : "+x"(v));
+    return v;
+#else
+    return _mm_srli_epi16(v, 15);
+#endif
+}
+
+#ifdef Vc_HAVE_AVX2
+static Vc_INTRINSIC __m256i shift_msb_to_lsb(__m256i v)
+{
+#if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
+    !defined Vc_HAVE_AVX512VL
+    // GCC miscompiles to `vpsrlw xmm0, xmm0, xmm16` for KNL even though AVX512VL is
+    // not available.
+    asm("vpsrlw $15,%0,%0" : "+x"(v));
+    return v;
+#else
+    return _mm256_srli_epi16(v, 15);
+#endif
+}
+#endif  // Vc_HAVE_AVX2
+
+// slli_epi16{{{1
+template <int n> Vc_INTRINSIC __m128i slli_epi16(__m128i v)
+{
+#if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
+    !defined Vc_HAVE_AVX512VL
+    // GCC miscompiles to `vpsllw xmm0, xmm0, xmm16` for KNL even though AVX512VL is
+    // not available.
+    asm("vpsllw %1,%0,%0" : "+x"(v) : "i"(n));
+    return v;
+#else
+    return _mm_slli_epi16(v, n);
+#endif
+}
+template <int n> Vc_INTRINSIC __m256i slli_epi16(__m256i v)
+{
+#if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
+    !defined Vc_HAVE_AVX512VL
+    // GCC miscompiles to `vpsllw xmm0, xmm0, xmm16` for KNL even though AVX512VL is
+    // not available.
+    asm("vpsllw %1,%0,%0" : "+x"(v) : "i"(n));
+    return v;
+#else
+    return _mm256_slli_epi16(v, n);
+#endif
+}
+
+// srli_epi16{{{1
+template <int n> Vc_INTRINSIC __m128i srli_epi16(__m128i v)
+{
+#if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
+    !defined Vc_HAVE_AVX512VL
+    // GCC miscompiles to `vpsllw xmm0, xmm0, xmm16` for KNL even though AVX512VL is
+    // not available.
+    asm("vpsrlw %1,%0,%0" : "+x"(v) : "i"(n));
+    return v;
+#else
+    return _mm_srli_epi16(v, n);
+#endif
+}
+template <int n> Vc_INTRINSIC __m256i srli_epi16(__m256i v)
+{
+#if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
+    !defined Vc_HAVE_AVX512VL
+    // GCC miscompiles to `vpsllw xmm0, xmm0, xmm16` for KNL even though AVX512VL is
+    // not available.
+    asm("vpsrlw %1,%0,%0" : "+x"(v) : "i"(n));
+    return v;
+#else
+    return _mm256_srli_epi16(v, n);
+#endif
+}
+
 // SSE intrinsics emulation{{{1
 Vc_INTRINSIC __m128  setone_ps()     { return _mm_load_ps(sse_const::oneFloat); }
 Vc_INTRINSIC __m128  setabsmask_ps() { return _mm_load_ps(reinterpret_cast<const float *>(sse_const::absMaskFloat)); }
@@ -1093,7 +1173,7 @@ Vc_INTRINSIC Vc_CONST __m128i abs_epi16(__m128i a) {
     return _mm_abs_epi16(a);
 #else
     __m128i negative = _mm_cmplt_epi16(a, _mm_setzero_si128());
-    return _mm_add_epi16(_mm_xor_si128(a, negative), _mm_srli_epi16(negative, 15));
+    return _mm_add_epi16(_mm_xor_si128(a, negative), srli_epi16<15>(negative));
 #endif
 }
 
@@ -2012,7 +2092,7 @@ template<> Vc_INTRINSIC Vc_CONST int mask_count<8>(__m128i k)
 #ifdef Vc_IMPL_POPCNT
     return _mm_popcnt_u32(_mm_movemask_epi8(k)) / 2;
 #else
-    auto x = _mm_srli_epi16(k, 15);
+    auto x = srli_epi16<15>(k);
     x = _mm_add_epi16(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
     x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)));
     x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)));

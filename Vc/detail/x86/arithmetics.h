@@ -172,8 +172,8 @@ Vc_INTRINSIC __m128i Vc_VDECL multiplies(x_i16 a, x_i16 b) { return _mm_mullo_ep
 Vc_INTRINSIC __m128i Vc_VDECL multiplies(x_u16 a, x_u16 b) { return _mm_mullo_epi16(a, b); }
 Vc_INTRINSIC __m128i Vc_VDECL multiplies(x_i08 a, x_i08 b) {
     return or_(
-        and_(_mm_mullo_epi16(a, b), _mm_srli_epi16(allone<__m128i>(), 8)),
-        _mm_slli_epi16(_mm_mullo_epi16(_mm_srli_si128(a, 1), _mm_srli_si128(b, 1)), 8));
+        and_(_mm_mullo_epi16(a, b), srli_epi16<8>(allone<__m128i>())),
+        slli_epi16<8>(_mm_mullo_epi16(_mm_srli_si128(a, 1), _mm_srli_si128(b, 1))));
 }
 Vc_INTRINSIC __m128i Vc_VDECL multiplies(x_u08 a, x_u08 b) { return multiplies(x_i08(a), x_i08(b)); }
 
@@ -194,9 +194,9 @@ Vc_INTRINSIC __m256i Vc_VDECL multiplies(y_u32 a, y_u32 b) { return _mm256_mullo
 Vc_INTRINSIC __m256i Vc_VDECL multiplies(y_i16 a, y_i16 b) { return _mm256_mullo_epi16(a, b); }
 Vc_INTRINSIC __m256i Vc_VDECL multiplies(y_u16 a, y_u16 b) { return _mm256_mullo_epi16(a, b); }
 Vc_INTRINSIC __m256i Vc_VDECL multiplies(y_i08 a, y_i08 b) {
-    return or_(
-        and_(_mm256_mullo_epi16(a, b), _mm256_srli_epi16(allone<__m256i>(), 8)),
-        _mm256_slli_epi16(_mm256_mullo_epi16(_mm256_srli_si256(a, 1), _mm256_srli_si256(b, 1)), 8));
+    return or_(and_(_mm256_mullo_epi16(a, b), srli_epi16<8>(allone<__m256i>())),
+               slli_epi16<8>(
+                   _mm256_mullo_epi16(_mm256_srli_si256(a, 1), _mm256_srli_si256(b, 1))));
 }
 Vc_INTRINSIC __m256i Vc_VDECL multiplies(y_u08 a, y_u08 b) { return multiplies(y_i08(a), y_i08(b)); }
 #endif  // Vc_HAVE_AVX2
@@ -629,11 +629,11 @@ Vc_INTRINSIC x_i08 bit_shift_left(x_i08 a, x_i08 b)
     // => valid input range for each element of b is [0, 7]
     // => only the 3 low bits of b are relevant
     // do a =<< 4 where b[2] is set
-    a = _mm_blendv_epi8(a, _mm_slli_epi16(a, 4), _mm_slli_epi16(b, 5));
+    a = _mm_blendv_epi8(a, slli_epi16<4>(a), slli_epi16<5>(b));
     // do a =<< 2 where b[1] is set
-    a = _mm_blendv_epi8(a, _mm_slli_epi16(a, 2), _mm_slli_epi16(b, 6));
+    a = _mm_blendv_epi8(a, slli_epi16<2>(a), slli_epi16<6>(b));
     // do a =<< 1 where b[0] is set
-    return _mm_blendv_epi8(a, _mm_add_epi8(a, a), _mm_slli_epi16(b, 7));
+    return _mm_blendv_epi8(a, _mm_add_epi8(a, a), slli_epi16<7>(b));
 }
 Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, x_u08 b)
 {
@@ -642,13 +642,13 @@ Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, x_u08 b)
     // => valid input range for each element of b is [0, 7]
     // => only the 3 low bits of b are relevant
     // do a =<< 4 where b[2] is set
-    a = _mm_blendv_epi8(a, and_(_mm_slli_epi16(a, 4), broadcast16(0xf0f0f0f0u)),
-                        _mm_slli_epi16(b, 5));
+    a = _mm_blendv_epi8(a, and_(slli_epi16<4>(a), broadcast16(0xf0f0f0f0u)),
+                        slli_epi16<5>(b));
     // do a =<< 2 where b[1] is set
-    a = _mm_blendv_epi8(a, and_(_mm_slli_epi16(a, 2), broadcast16(0xfcfcfcfcu)),
-                        _mm_slli_epi16(b, 6));
+    a = _mm_blendv_epi8(a, and_(slli_epi16<2>(a), broadcast16(0xfcfcfcfcu)),
+                        slli_epi16<6>(b));
     // do a =<< 1 where b[0] is set
-    return _mm_blendv_epi8(a, _mm_add_epi8(a, a), _mm_slli_epi16(b, 7));
+    return _mm_blendv_epi8(a, _mm_add_epi8(a, a), slli_epi16<7>(b));
 }
 
 Vc_INTRINSIC y_i16 bit_shift_left(y_i16 a, y_i16 b)
@@ -674,11 +674,11 @@ Vc_INTRINSIC y_i08 bit_shift_left(y_i08 a, y_i08 b)
     // => valid input range for each element of b is [0, 7]
     // => only the 3 low bits of b are relevant
     // do a =<< 4 where b[2] is set
-    a = _mm256_blendv_epi8(a, _mm256_slli_epi16(a, 4), _mm256_slli_epi16(b, 5));
+    a = _mm256_blendv_epi8(a, slli_epi16<4>(a), slli_epi16<5>(b));
     // do a =<< 2 where b[1] is set
-    a = _mm256_blendv_epi8(a, _mm256_slli_epi16(a, 2), _mm256_slli_epi16(b, 6));
+    a = _mm256_blendv_epi8(a, slli_epi16<2>(a), slli_epi16<6>(b));
     // do a =<< 1 where b[0] is set
-    return _mm256_blendv_epi8(a, _mm256_add_epi8(a, a), _mm256_slli_epi16(b, 7));
+    return _mm256_blendv_epi8(a, _mm256_add_epi8(a, a), slli_epi16<7>(b));
 }
 Vc_INTRINSIC y_u08 bit_shift_left(y_u08 a, y_u08 b)
 {
@@ -687,13 +687,13 @@ Vc_INTRINSIC y_u08 bit_shift_left(y_u08 a, y_u08 b)
     // => valid input range for each element of b is [0, 7]
     // => only the 3 low bits of b are relevant
     // do a =<< 4 where b[2] is set
-    a = _mm256_blendv_epi8(a, and_(_mm256_slli_epi16(a, 4), broadcast32(0xf0f0f0f0u)),
-                           _mm256_slli_epi16(b, 5));
+    a = _mm256_blendv_epi8(a, and_(slli_epi16<4>(a), broadcast32(0xf0f0f0f0u)),
+                           slli_epi16<5>(b));
     // do a =<< 2 where b[1] is set
-    a = _mm256_blendv_epi8(a, and_(_mm256_slli_epi16(a, 2), broadcast32(0xfcfcfcfcu)),
-                           _mm256_slli_epi16(b, 6));
+    a = _mm256_blendv_epi8(a, and_(slli_epi16<2>(a), broadcast32(0xfcfcfcfcu)),
+                           slli_epi16<6>(b));
     // do a =<< 1 where b[0] is set
-    return _mm256_blendv_epi8(a, _mm256_add_epi8(a, a), _mm256_slli_epi16(b, 7));
+    return _mm256_blendv_epi8(a, _mm256_add_epi8(a, a), slli_epi16<7>(b));
 }
 
 /* Not actually part of datapar_abi::avx512:
@@ -830,14 +830,14 @@ Vc_INTRINSIC y_u08 bit_shift_right(y_u08 a, y_u08 b)
     // => valid input range for each element of b is [0, 7]
     // => only the 3 low bits of b are relevant
     // do a =<< 4 where b[2] is set
-    a = _mm256_blendv_epi8(a, and_(_mm256_srli_epi16(a, 4), broadcast32(0x0f0f0f0fu)),
-                           _mm256_slli_epi16(b, 5));
+    a = _mm256_blendv_epi8(a, and_(srli_epi16<4>(a), broadcast32(0x0f0f0f0fu)),
+                           slli_epi16<5>(b));
     // do a =<< 2 where b[1] is set
-    a = _mm256_blendv_epi8(a, and_(_mm256_srli_epi16(a, 2), broadcast32(0x3f3f3f3fu)),
-                           _mm256_slli_epi16(b, 6));
+    a = _mm256_blendv_epi8(a, and_(srli_epi16<2>(a), broadcast32(0x3f3f3f3fu)),
+                           slli_epi16<6>(b));
     // do a =<< 1 where b[0] is set
-    return _mm256_blendv_epi8(a, and_(_mm256_srli_epi16(a, 1), broadcast32(0x7f7f7f7f)),
-                              _mm256_slli_epi16(b, 7));
+    return _mm256_blendv_epi8(a, and_(srli_epi16<1>(a), broadcast32(0x7f7f7f7f)),
+                              slli_epi16<7>(b));
 }
 
 /* Not actually part of datapar_abi::avx512:
@@ -949,16 +949,16 @@ Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b)
     // => valid input range for each element of b is [0, 15]
     // => only the 4 low bits of b are relevant
     // shift by 4 and duplicate to high byte
-    b = or_(_mm_slli_epi16(b, 4), _mm_slli_epi16(b, 12));
+    b = or_(slli_epi16<4>(b), slli_epi16<12>(b));
     //b = multiplies(b, broadcast16(0x10101010));
     // do a =>> 8 where b[3] is set
-    a = _mm_blendv_epi8(a, _mm_srli_epi16(a, 8), b);
+    a = _mm_blendv_epi8(a, srli_epi16<8>(a), b);
     // do a =>> 4 where b[2] is set
-    a = _mm_blendv_epi8(a, _mm_srli_epi16(a, 4), b = _mm_add_epi16(b, b));
+    a = _mm_blendv_epi8(a, srli_epi16<4>(a), b = _mm_add_epi16(b, b));
     // do a =>> 2 where b[1] is set
-    a = _mm_blendv_epi8(a, _mm_srli_epi16(a, 2), b = _mm_add_epi16(b, b));
+    a = _mm_blendv_epi8(a, srli_epi16<2>(a), b = _mm_add_epi16(b, b));
     // do a =>> 1 where b[0] is set
-    return _mm_blendv_epi8(a, _mm_srli_epi16(a, 1), _mm_add_epi16(b, b));
+    return _mm_blendv_epi8(a, srli_epi16<1>(a), _mm_add_epi16(b, b));
 }
 
 #else   // no SSE4 (_mm_blendv_epi8)
@@ -991,18 +991,18 @@ Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b)
     // => valid input range for each element of b is [0, 15]
     // => only the 4 low bits of b are relevant
     // do a =>> 8 where b[3] is set
-    a = blendv_epi8(a, _mm_srli_epi16(a, 8), _mm_cmpgt_epi16(b, broadcast16(0x00070007)));
+    a = blendv_epi8(a, srli_epi16<8>(a), _mm_cmpgt_epi16(b, broadcast16(0x00070007)));
     // do a =>> 4 where b[2] is set
     a = blendv_epi8(
-        a, _mm_srli_epi16(a, 4),
+        a, srli_epi16<4>(a),
         _mm_cmpgt_epi16(and_(b, broadcast16(0x00040004)), _mm_setzero_si128()));
     // do a =>> 2 where b[1] is set
     a = blendv_epi8(
-        a, _mm_srli_epi16(a, 2),
+        a, srli_epi16<2>(a),
         _mm_cmpgt_epi16(and_(b, broadcast16(0x00020002)), _mm_setzero_si128()));
     // do a =>> 1 where b[0] is set
     return blendv_epi8(
-        a, _mm_srli_epi16(a, 1),
+        a, srli_epi16<1>(a),
         _mm_cmpgt_epi16(and_(b, broadcast16(0x00010001)), _mm_setzero_si128()));
 }
 
@@ -1045,23 +1045,23 @@ Vc_INTRINSIC x_i08 bit_shift_right(x_i08 a, x_i08 b)
     // => only the 3 low bits of b are relevant
     // do a =<< 4 where b[2] is set
     auto bit7 = and_(a, broadcast16(0x00800080));
-    _mm_srai_epi16(_mm_slli_epi16(a, 8), 4);
+    _mm_srai_epi16(slli_epi16<8>(a), 4);
     a = _mm_blendv_epi8(a,
-                        _mm_srai_epi16(or_(_mm_sub_epi16(_mm_slli_epi16(bit7, 5), bit7),
+                        _mm_srai_epi16(or_(_mm_sub_epi16(slli_epi16<5>(bit7), bit7),
                                            and_(a, broadcast16(0xf8f8f8f8u))),
                                        4),
-                        _mm_slli_epi16(b, 5));
+                        slli_epi16<5>(b));
     // do a =<< 2 where b[1] is set
     a = _mm_blendv_epi8(a,
-                        _mm_srai_epi16(or_(_mm_sub_epi16(_mm_slli_epi16(bit7, 3), bit7),
+                        _mm_srai_epi16(or_(_mm_sub_epi16(slli_epi16<3>(bit7), bit7),
                                            and_(a, broadcast16(0xfcfcfcfcu))),
                                        2),
-                        _mm_slli_epi16(b, 6));
+                        slli_epi16<6>(b));
     // do a =<< 1 where b[0] is set
     return _mm_blendv_epi8(
-        a, _mm_srai_epi16(or_(_mm_slli_epi16(bit7, 1), and_(a, broadcast16(0xfefefefeu))),
+        a, _mm_srai_epi16(or_(slli_epi16<1>(bit7), and_(a, broadcast16(0xfefefefeu))),
                           1),
-        _mm_slli_epi16(b, 7));
+        slli_epi16<7>(b));
 }
 Vc_INTRINSIC x_u08 bit_shift_right(x_u08 a, x_u08 b)
 {
@@ -1070,14 +1070,14 @@ Vc_INTRINSIC x_u08 bit_shift_right(x_u08 a, x_u08 b)
     // => valid input range for each element of b is [0, 7]
     // => only the 3 low bits of b are relevant
     // do a =<< 4 where b[2] is set
-    a = _mm_blendv_epi8(a, and_(_mm_srli_epi16(a, 4), broadcast16(0x0f0f0f0fu)),
-                        _mm_slli_epi16(b, 5));
+    a = _mm_blendv_epi8(a, and_(srli_epi16<4>(a), broadcast16(0x0f0f0f0fu)),
+                        slli_epi16<5>(b));
     // do a =<< 2 where b[1] is set
-    a = _mm_blendv_epi8(a, and_(_mm_srli_epi16(a, 2), broadcast16(0x3f3f3f3fu)),
-                        _mm_slli_epi16(b, 6));
+    a = _mm_blendv_epi8(a, and_(srli_epi16<2>(a), broadcast16(0x3f3f3f3fu)),
+                        slli_epi16<6>(b));
     // do a =<< 1 where b[0] is set
-    return _mm_blendv_epi8(a, and_(_mm_srli_epi16(a, 1), broadcast16(0x7f7f7f7f)),
-                           _mm_slli_epi16(b, 7));
+    return _mm_blendv_epi8(a, and_(srli_epi16<1>(a), broadcast16(0x7f7f7f7f)),
+                           slli_epi16<7>(b));
 }
 
 #endif  // Vc_HAVE_AVX512BW
