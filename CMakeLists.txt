@@ -257,7 +257,7 @@ endif()
 
 # Install headers#{{{
 ##################################################################
-install(DIRECTORY Vc/ DESTINATION include/Vc)
+install(DIRECTORY Vc/ DESTINATION include/Vc PATTERN "*.orig" EXCLUDE)
 # }}}
 
 # Generate & install cmake config#{{{
