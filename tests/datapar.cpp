@@ -313,6 +313,19 @@ TEST_TYPES(V, operators, all_test_types)  //{{{1
         COMPARE(typeid(T() * x[0]), typeid(T() * T()));
         COMPARE(typeid(x * x[0]), typeid(x));
         COMPARE(typeid(x[0] * x), typeid(x));
+
+        x = V([](auto i) -> T { return i; });
+        for (std::size_t i = 0; i < V::size(); ++i) {
+            COMPARE(x[i], T(i));
+        }
+        for (std::size_t i = 0; i + 1 < V::size(); i += 2) {
+            using std::swap;
+            swap(x[i], x[i + 1]);
+        }
+        for (std::size_t i = 0; i + 1 < V::size(); i += 2) {
+            COMPARE(x[i], T(i + 1));
+            COMPARE(x[i + 1], T(i));
+        }
     }
     {  // not{{{2
         V x = 0;

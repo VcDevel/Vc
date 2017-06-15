@@ -140,6 +140,35 @@ public:
         Accessor::set(obj, index, --x);
         return r;
     }
+
+    friend inline void swap(smart_reference &&a, smart_reference &&b) noexcept(
+        all<std::is_nothrow_constructible<value_type, smart_reference &>,
+            std::is_nothrow_assignable<smart_reference &&, value_type &&>>::value)
+    {
+        value_type tmp(a);
+        static_cast<smart_reference &&>(a) = static_cast<value_type>(b);
+        static_cast<smart_reference &&>(b) = std::move(tmp);
+    }
+
+    friend inline void swap(value_type &a, smart_reference &&b) noexcept(
+        all<std::is_nothrow_constructible<value_type, value_type &&>,
+            std::is_nothrow_assignable<value_type &, value_type &&>,
+            std::is_nothrow_assignable<smart_reference &&, value_type &&>>::value)
+    {
+        value_type tmp(std::move(a));
+        a = static_cast<value_type>(b);
+        static_cast<smart_reference &&>(b) = std::move(tmp);
+    }
+
+    friend inline void swap(smart_reference &&a, value_type &b) noexcept(
+        all<std::is_nothrow_constructible<value_type, smart_reference &>,
+            std::is_nothrow_assignable<value_type &, value_type &&>,
+            std::is_nothrow_assignable<smart_reference &&, value_type &&>>::value)
+    {
+        value_type tmp(a);
+        static_cast<smart_reference &&>(a) = std::move(b);
+        b = std::move(tmp);
+    }
 };
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
