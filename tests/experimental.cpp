@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+//#define UNITTEST_ONLY_XTEST 1
 #define Vc_EXPERIMENTAL 1
 #include <vir/test.h>
 #include <Vc/Vc>
@@ -57,3 +58,75 @@ TEST_TYPES(V, generators, all_test_types)
 {
     COMPARE(V::seq(), make_vec<V>({0, 1}, 2));
 }
+
+#ifdef __cpp_fold_expressions
+template <class V> void concat_small(std::false_type) {}
+template <class V> void concat_small(std::true_type)
+{
+    using T = typename V::value_type;
+    V a(0), b(1), c(2);
+    auto x = concat(a, b, c);
+    COMPARE(x.size(), a.size() * 3);
+    std::size_t i = 0;
+    for (; i < a.size(); ++i) {
+        COMPARE(x[i], T(0));
+    }
+    for (; i < 2 * a.size(); ++i) {
+        COMPARE(x[i], T(1));
+    }
+    for (; i < 3 * a.size(); ++i) {
+        COMPARE(x[i], T(2));
+    }
+}
+
+template <class V> void concat_ge4(std::false_type) {}
+template <class V> void concat_ge4(std::true_type)
+{
+    using T = typename V::value_type;
+    V a([](auto i) -> T { return i; });
+    constexpr auto N0 = V::size() / 4u;
+    constexpr auto N1 = V::size() - 2 * N0;
+    using V0 = Vc::datapar<T, Vc::abi_for_size_t<T, N0>>;
+    using V1 = Vc::datapar<T, Vc::abi_for_size_t<T, N1>>;
+    auto x = Vc::split<N0, N0, N1>(a);
+    COMPARE(std::tuple_size<decltype(x)>::value, 3u);
+    COMPARE(std::get<0>(x), V0([](auto i) -> T { return i; }));
+    COMPARE(std::get<1>(x), V0([](auto i) -> T { return i + N0; }));
+    COMPARE(std::get<2>(x), V1([](auto i) -> T { return i + 2 * N0; }));
+    auto b = concat(std::get<1>(x), std::get<2>(x), std::get<0>(x));
+    // a and b may have different types if a was fixed_size<N> such that another ABI tag exists with
+    // equal N, then b will have the non-fixed-size ABI tag.
+    COMPARE(a.size(), b.size());
+    COMPARE(b, decltype(b)([](auto i) -> T { return (N0 + i) % V::size(); }));
+}
+
+template <class V> void concat_even(std::false_type) {}
+template <class V> void concat_even(std::true_type)
+{
+    using T = typename V::value_type;
+    using V2 = Vc::datapar<T, Vc::abi_for_size_t<T, 2>>;
+    using V3 = Vc::datapar<T, Vc::abi_for_size_t<T, V::size() / 2>>;
+
+    V a([](auto i) -> T { return i; });
+
+    std::array<V2, V::size() / 2> v2s = Vc::split<V2>(a);
+    int offset = 0;
+    for (V2 test : v2s) {
+        COMPARE(test, V2([&](auto i) -> T { return i + offset; }));
+        offset += 2;
+    }
+
+    std::array<V3, 2> v3s = Vc::split<V3>(a);
+    COMPARE(v3s[0], V3([](auto i) -> T { return i; }));
+    COMPARE(v3s[1], V3([](auto i) -> T { return i + V3::size(); }));
+}
+
+
+TEST_TYPES(V, split_concat, all_test_types)
+{
+    concat_small<V>(
+        std::integral_constant<bool, V::size() * 3 <= Vc::datapar_abi::max_fixed_size>());
+    concat_ge4<V>(std::integral_constant<bool, (V::size() >= 4)>());
+    concat_even<V>(std::integral_constant<bool, ((V::size() & 1) == 0)>());
+}
+#endif  // __cpp_fold_expressions

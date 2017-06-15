@@ -262,11 +262,147 @@ template <class T, class Abi> struct get_impl<Vc::datapar<T, Abi>> {
 }  // namespace detail
 
 // casts [datapar.casts]
-#if defined Vc_CXX17
-template <class T, class U, class... Us, size_t NN = U::size() + Us::size()...>
-inline std::conditional_t<(T::size() == NN), T, std::array<T, NN / T::size()>>
-    datapar_cast(U, Us...);
-#endif
+template <class T, class U, class A>
+Vc_INTRINSIC auto
+static_datapar_cast(const datapar<U, A> &x)
+{
+    return datapar<
+        T, std::conditional_t<
+               detail::any<std::is_same<T, U>,
+                           detail::all<std::is_integral<T>, std::is_integral<U>,
+                                       std::is_same<std::make_unsigned_t<T>,
+                                                    std::make_unsigned_t<U>>>>::value,
+               A, datapar_abi::fixed_size<datapar<U, A>::size()>>>(
+        [&x](auto i) { return static_cast<T>(x[i]); });
+}
+
+template <class T, int N>
+Vc_INTRINSIC fixed_size_datapar<T, N> to_fixed_size(const fixed_size_datapar<T, N> &x)
+{
+    return x;
+}
+
+template <class T, int N>
+Vc_INTRINSIC fixed_size_mask<T, N> to_fixed_size(const fixed_size_mask<T, N> &x)
+{
+    return x;
+}
+
+template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const datapar<T, A> &x)
+{
+    return datapar<T, datapar_abi::fixed_size<datapar_size_v<T, A>>>(
+        [&x](auto i) { return x[i]; });
+}
+
+template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const mask<T, A> &x)
+{
+    constexpr int N = mask<T, A>::size();
+    fixed_size_mask<T, N> r;
+    detail::execute_n_times<N>([&](auto i) { r[i] = x[i]; });
+    return r;
+}
+
+template <class T, int N>
+Vc_INTRINSIC std::enable_if_t<(N == native_datapar<T>::size()), native_datapar<T>>
+to_native(const fixed_size_datapar<T, N> &x)
+{
+    alignas(memory_alignment_v<native_datapar<T>>) T mem[N];
+    x.memstore(mem, flags::vector_aligned);
+    return {mem, flags::vector_aligned};
+}
+
+template <class T, size_t N>
+Vc_INTRINSIC std::enable_if_t<(N == native_mask<T>::size()), native_mask<T>> to_native(
+    const fixed_size_mask<T, N> &x)
+{
+    return native_mask<T>([&](auto i) { return x[i]; });
+}
+
+template <class T, size_t N>
+Vc_INTRINSIC std::enable_if_t<(N == datapar<T>::size()), datapar<T>> to_compatible(
+    const datapar<T, datapar_abi::fixed_size<N>> &x)
+{
+    alignas(memory_alignment_v<datapar<T>>) T mem[N];
+    x.memstore(mem, flags::vector_aligned);
+    return {mem, flags::vector_aligned};
+}
+
+template <class T, size_t N>
+Vc_INTRINSIC std::enable_if_t<(N == mask<T>::size()), mask<T>> to_compatible(
+    const mask<T, datapar_abi::fixed_size<N>> &x)
+{
+    return mask<T>([&](auto i) { return x[i]; });
+}
+
+#if defined __cpp_fold_expressions && defined Vc_EXPERIMENTAL
+template <size_t... Sizes, class T, class A>
+std::enable_if_t<((Sizes + ...) == datapar<T, A>::size()),
+                 std::tuple<datapar<T, abi_for_size_t<T, Sizes>>...>>
+split(const datapar<T, A> &x)
+{
+    std::tuple<datapar<T, abi_for_size_t<T, Sizes>>...> tup;
+    size_t offset = 0;
+    detail::execute_n_times<sizeof...(Sizes)>([&](auto i) {
+        auto &v_i = std::get<i>(tup);
+        constexpr size_t N = v_i.size();
+        detail::execute_n_times<N>([&](auto j) { v_i[j] = x[j + offset]; });
+        offset += N;
+    });
+    return tup;
+}
+
+template <class V, class T, class A>
+std::enable_if_t<(is_datapar<V>::value && datapar_size_v<T, A> % V::size() == 0),
+                 std::array<V, datapar_size_v<T, A> / V::size()>>
+split(const datapar<T, A> &x)
+{
+    constexpr size_t Parts = datapar_size_v<T, A> / V::size();
+    std::array<V, Parts> r;
+    size_t offset = 0;
+    detail::execute_n_times<Parts>([&](auto i) {
+        detail::execute_n_times<V::size()>([&](auto j) { r[i][j] = x[j + offset]; });
+        offset += V::size();
+    });
+    return r;
+}
+
+namespace detail
+{
+template <class T, class...> struct typelist
+{
+    using first_type = T;
+};
+
+template <size_t N, class T, class List,
+          bool = (N < datapar_size_v<T, typename List::first_type>)>
+struct subscript_in_pack;
+
+template <size_t N, class T, class A, class... As>
+struct subscript_in_pack<N, T, detail::typelist<A, As...>, true> {
+    static Vc_INTRINSIC T get(const datapar<T, A> &x, const datapar<T, As> &...)
+    {
+        return x[N];
+    }
+};
+template <size_t N, class T, class A, class... As>
+struct subscript_in_pack<N, T, detail::typelist<A, As...>, false> {
+    static Vc_INTRINSIC T get(const datapar<T, A> &, const datapar<T, As> &... xs)
+    {
+        return subscript_in_pack<N - datapar<T, A>::size(), T,
+                                 detail::typelist<As...>>::get(xs...);
+    }
+};
+}  // namespace detail
+
+template <class T, class... As>
+datapar<T, abi_for_size_t<T, (datapar_size_v<T, As> + ...)>> concat(
+    const datapar<T, As> &... xs)
+{
+    return datapar<T, abi_for_size_t<T, (datapar_size_v<T, As> + ...)>>([&](auto i) {
+        return detail::subscript_in_pack<i, T, detail::typelist<As...>>::get(xs...);
+    });
+}
+#endif  // defined __cpp_fold_expressions && defined Vc_EXPERIMENTAL
 
 // reductions [mask.reductions]
 // implementation per ABI in fixed_size.h, sse.h, avx.h, etc.

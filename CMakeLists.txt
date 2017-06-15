@@ -28,23 +28,20 @@ if(USE_CCACHE)
    endif()
 endif()#}}}
 
-# Check for C++14 support in the compiler#{{{
+# Check for C++17/14 support in the compiler#{{{
 ##################################################################
-if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
-   AddCompilerFlag("-std=c++14" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
-   if(MIC_NATIVE_FOUND AND NOT _mic_ok)
-      AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
-      if(NOT _mic_ok)
-         message(STATUS "Vc 2.x requires C++14. The MIC native compiler does not support C++14. MIC build disabled.")
-         set(ENABLE_MIC FALSE)
-         set(MIC_NATIVE_FOUND FALSE)
-         set(MIC_FOUND FALSE)
-      endif()
-   endif()
+if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++14 on/off
+   AddCompilerFlag("-std=c++17" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
    if(NOT _ok)
-      AddCompilerFlag("-std=c++1y" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
+      AddCompilerFlag("-std=c++1z" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
       if(NOT _ok)
-         message(FATAL_ERROR "Vc 2.x requires C++14. It seems this is not available. If this was incorrectly determined please open an issue on https://github.com/VcDevel/Vc")
+         AddCompilerFlag("-std=c++14" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
+         if(NOT _ok)
+            AddCompilerFlag("-std=c++1y" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
+            if(NOT _ok)
+               message(FATAL_ERROR "Vc 2.x requires C++14. It seems this is not available. If this was incorrectly determined please open an issue on https://github.com/VcDevel/Vc")
+            endif()
+         endif()
       endif()
    endif()
 elseif(Vc_MSVC_VERSION LESS 180021114)
