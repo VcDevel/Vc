@@ -57,6 +57,16 @@ if(Vc_COMPILER_IS_GCC)
    if(Vc_GCC_VERSION VERSION_GREATER "5.99")
       AddCompilerFlag(-Wno-ignored-attributes)
    endif()
+   # GCC compiles too long on loadstore.
+   # As a compromise drop 1/3 of the tests by skipping the Union AliasStrategy.
+   list(APPEND disabled_targets
+      loadstore_sse2_union
+      loadstore_sse4_2_union
+      loadstore_avx_union
+      loadstore_avx2_union
+      loadstore_avx512_union
+      loadstore_knl_union
+      )
 elseif(Vc_COMPILER_IS_CLANG)
    if(Vc_CLANG_VERSION VERSION_LESS 4.0.50)
       # Clang ICEs with AVX512 on the loadstore test

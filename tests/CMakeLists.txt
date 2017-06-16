@@ -167,7 +167,10 @@ function(vc_add_test name) #{{{
          set(disabled FALSE)
       else()
          set(disabled TRUE)
-         message(STATUS "Skipping unit test ${${_t}}. Disabled.")
+         if(NOT DEFINED printed_${${_t}})
+            message(STATUS "Skipping unit test ${${_t}}. Disabled.")
+            set(printed_${${_t}} TRUE)
+         endif()
       endif()
    endmacro()
 
