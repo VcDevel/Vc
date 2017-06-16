@@ -7,12 +7,19 @@ cache:
 
 env:
     - arch=x86_64  subset=sse2   VcSkipTests=loadstore
+    - arch=x86_64  subset=sse2   VcOnlyTests=loadstore
     - arch=x86_64  subset=sse4   VcSkipTests=loadstore
+    - arch=x86_64  subset=sse4   VcOnlyTests=loadstore
     - arch=x86_64  subset=avx    VcSkipTests=loadstore
+    - arch=x86_64  subset=avx    VcOnlyTests=loadstore
     - arch=x86_64  subset=avx2   VcSkipTests=loadstore
+    - arch=x86_64  subset=avx2   VcOnlyTests=loadstore
     - arch=x86_64  subset=avx512 VcSkipTests=loadstore
+    - arch=x86_64  subset=avx512 VcOnlyTests=loadstore
     - arch=x86_64  subset=knl    VcSkipTests=loadstore
+    - arch=x86_64  subset=knl    VcOnlyTests=loadstore
     - arch=aarch64 subset=neon   VcSkipTests=loadstore
+    - arch=aarch64 subset=neon   VcOnlyTests=loadstore
 
 os:
     - linux
@@ -27,12 +34,19 @@ matrix:
   exclude:
     - env: arch=x86_64  subset=avx512 VcSkipTests=loadstore
       os: osx
+    - env: arch=x86_64  subset=avx512 VcOnlyTests=loadstore
+      os: osx
     - env: arch=x86_64  subset=knl    VcSkipTests=loadstore
       os: osx
+    - env: arch=x86_64  subset=knl    VcOnlyTests=loadstore
+      os: osx
     - env: arch=aarch64 subset=neon   VcSkipTests=loadstore
+      os: osx
+    - env: arch=aarch64 subset=neon   VcOnlyTests=loadstore
       os: osx
   allow_failures:
     - env: arch=aarch64 subset=neon   VcSkipTests=loadstore
+    - env: arch=aarch64 subset=neon   VcOnlyTests=loadstore
 
 # The following gives us Ubuntu 14.04 LTS instead of 12.04 LTS
 sudo: required

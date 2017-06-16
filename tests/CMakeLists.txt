@@ -153,6 +153,14 @@ elseif(Vc_COMPILER_IS_MSVC)
 endif()#}}}
 
 function(vc_add_test name) #{{{
+   if($ENV{VcSkipTests} MATCHES "${name}")
+      return()
+   endif()
+   set(_only "$ENV{VcOnlyTests}")
+   if(NOT ("${_only}" STREQUAL "" OR "${_only}" MATCHES "${name}"))
+      return()
+   endif()
+
    macro(check_target_disabled _t)
       list(FIND disabled_targets ${${_t}} disabled)
       if(disabled EQUAL -1)
@@ -292,9 +300,7 @@ function(vc_add_test name) #{{{
 endfunction() #}}}
 
 vc_add_test(sfinae NO_TESTTYPES)
-if(NOT $ENV{VcSkipTests} MATCHES "loadstore")
-   vc_add_test(loadstore SINGLE_TESTTYPE)
-endif()
+vc_add_test(loadstore SINGLE_TESTTYPE)
 vc_add_test(mask)
 vc_add_test(datapar)
 vc_add_test(where)
