@@ -32,6 +32,18 @@ compiler:
 # The whitespace in "env:" lines must match the definition above!
 matrix:
   exclude:
+    - env: arch=x86_64  subset=sse2   VcOnlyTests=loadstore
+      os: osx
+      compiler: gcc
+    - env: arch=x86_64  subset=sse4   VcOnlyTests=loadstore
+      os: osx
+      compiler: gcc
+    - env: arch=x86_64  subset=avx    VcOnlyTests=loadstore
+      os: osx
+      compiler: gcc
+    - env: arch=x86_64  subset=avx2   VcOnlyTests=loadstore
+      os: osx
+      compiler: gcc
     - env: arch=x86_64  subset=avx512 VcSkipTests=loadstore
       os: osx
     - env: arch=x86_64  subset=avx512 VcOnlyTests=loadstore
