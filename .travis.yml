@@ -57,6 +57,11 @@ matrix:
     - env: arch=aarch64 subset=neon   VcOnlyTests=loadstore
       os: osx
   allow_failures:
+      # GCC on OS X sometimes times out. Those spurious failures are not useful
+      # and GCC is tested well enough on Linux anyway. CDash will also show failures
+      # if they are submitted.
+    - os: osx
+      compiler: gcc
     - env: arch=aarch64 subset=neon   VcSkipTests=loadstore
     - env: arch=aarch64 subset=neon   VcOnlyTests=loadstore
 
