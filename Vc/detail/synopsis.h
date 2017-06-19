@@ -344,7 +344,7 @@ split(const datapar<T, A> &x)
     size_t offset = 0;
     detail::execute_n_times<sizeof...(Sizes)>([&](auto i) {
         auto &v_i = std::get<i>(tup);
-        constexpr size_t N = v_i.size();
+        constexpr size_t N = std::decay_t<decltype(v_i)>::size();
         detail::execute_n_times<N>([&](auto j) { v_i[j] = x[j + offset]; });
         offset += N;
     });
