@@ -747,7 +747,7 @@ Vc_INTRINSIC datapar<T, Abi> sqrt(const datapar<T, Abi> &x)
 }
 
 template <class T, class Abi>
-Vc_INTRINSIC datapar<T, Abi> abs(const datapar<T, Abi> &x)
+Vc_INTRINSIC datapar<T, Abi> abs(const datapar<detail::SignedArithmetic<T>, Abi> &x)
 {
     return detail::get_impl_t<datapar<T, Abi>>::abs(x);
 }

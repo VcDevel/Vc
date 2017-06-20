@@ -34,6 +34,12 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
 /**\internal
+ * Deduces to a type T which is signed.
+ */
+template <class T, class = std::enable_if_t<std::is_signed<T>::value>>
+using SignedArithmetic = T;
+
+/**\internal
  * Deduces to a type T which is convertible to DstT with `sizeof(T) == ExpectedSizeof`.
  */
 template <class T, size_t ExpectedSizeof, class DstT,
