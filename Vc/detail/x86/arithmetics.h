@@ -1127,6 +1127,114 @@ Vc_INTRINSIC __m512  Vc_VDECL unary_minus(z_f32 v) { return xor_(v, signmask64(f
 Vc_INTRINSIC __m512d Vc_VDECL unary_minus(z_f64 v) { return xor_(v, signmask64(double())); }
 #endif  // Vc_HAVE_AVX512F
 
+// abs{{{1
+#ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC Vc_CONST __m128i abs(x_i08 a)
+{
+#ifdef Vc_HAVE_SSSE3
+    return _mm_abs_epi8(a);
+#else
+    __m128i negative = _mm_cmplt_epi8(a, _mm_setzero_si128());
+    return _mm_add_epi8(_mm_xor_si128(a, negative),
+                        _mm_and_si128(negative, setone_epi8()));
+#endif
+}
+
+Vc_INTRINSIC Vc_CONST __m128i abs(x_i16 a)
+{
+#ifdef Vc_HAVE_SSSE3
+    return _mm_abs_epi16(a);
+#else
+    __m128i negative = _mm_cmplt_epi16(a, _mm_setzero_si128());
+    return _mm_add_epi16(_mm_xor_si128(a, negative), srli_epi16<15>(negative));
+#endif
+}
+
+Vc_INTRINSIC Vc_CONST __m128i abs(x_i32 a)
+{
+#ifdef Vc_HAVE_SSSE3
+    return _mm_abs_epi32(a);
+#else
+    // positive value:
+    //   negative == 0
+    //   a unchanged after xor
+    //   0 >> 31 -> 0
+    //   a + 0 -> a
+    // negative value:
+    //   negative == -1
+    //   a xor -1 -> -a - 1
+    //   -1 >> 31 -> 1
+    //   -a - 1 + 1 -> -a
+    __m128i negative = _mm_cmplt_epi32(a, _mm_setzero_si128());
+    return _mm_add_epi32(_mm_xor_si128(a, negative), _mm_srli_epi32(negative, 31));
+#endif
+}
+
+Vc_INTRINSIC Vc_CONST __m128i abs(x_i64 a)
+{
+#ifdef Vc_HAVE_AVX512VL
+    return _mm_abs_epi64(a);
+#else
+    // positive value:
+    //   negative == 0
+    //   a unchanged after xor
+    //   0 >> 31 -> 0
+    //   a + 0 -> a
+    // negative value:
+    //   negative == -1
+    //   a xor -1 -> -a - 1
+    //   -1 >> 31 -> 1
+    //   -a - 1 + 1 -> -a
+#if defined Vc_HAVE_SSE4_2
+    __m128i negative = _mm_cmpgt_epi64(_mm_setzero_si128(), a);
+#else
+    __m128i negative =
+        _mm_sub_epi64(xor_(_mm_srli_epi64(a, 63),  // negative -> 1, positive -> 0
+                           _mm_set1_epi64x(1)),    // negative -> 0, positive -> 1
+                      _mm_set1_epi64x(1));         // negative -> ~0, positive -> 0
+#endif
+    return _mm_add_epi64(xor_(a, negative), _mm_srli_epi64(a, 63));
+#endif
+}
+#endif  // Vc_HAVE_SSE2
+
+Vc_INTRINSIC __m128  abs(x_f32 a) { return and_(a, setabsmask_ps_16()); }
+#ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC __m128d abs(x_f64 a) { return and_(a, setabsmask_pd_16()); }
+#endif // Vc_HAVE_SSE2
+
+#ifdef Vc_HAVE_AVX
+Vc_INTRINSIC __m256  abs(y_f32 a) { return and_(a, setabsmask_ps_32()); }
+Vc_INTRINSIC __m256d abs(y_f64 a) { return and_(a, setabsmask_pd_32()); }
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX2
+Vc_INTRINSIC Vc_CONST __m256i abs(y_i08 a) { return _mm256_abs_epi8(a); }
+Vc_INTRINSIC Vc_CONST __m256i abs(y_i16 a) { return _mm256_abs_epi16(a); }
+Vc_INTRINSIC Vc_CONST __m256i abs(y_i32 a) { return _mm256_abs_epi32(a); }
+Vc_INTRINSIC Vc_CONST __m256i abs(y_i64 a)
+{
+#ifdef Vc_HAVE_AVX512VL
+    return _mm256_abs_epi64(a);
+#else
+    __m256i negative = _mm256_cmpgt_epi64(_mm256_setzero_si256(), a);
+    return _mm256_add_epi64(xor_(a, negative), _mm256_srli_epi64(a, 63));
+#endif
+}
+#endif  // Vc_HAVE_AVX2
+
+#ifdef Vc_HAVE_AVX512F
+Vc_INTRINSIC __m512  abs(z_f32 a) { return and_(a, setabsmask_ps_64()); }
+Vc_INTRINSIC __m512d abs(z_f64 a) { return and_(a, setabsmask_pd_64()); }
+
+#ifdef Vc_HAVE_AVX512BW
+Vc_INTRINSIC Vc_CONST __m512i abs(z_i08 a) { return _mm512_abs_epi8(a); }
+Vc_INTRINSIC Vc_CONST __m512i abs(z_i16 a) { return _mm512_abs_epi16(a); }
+#endif  // Vc_HAVE_AVX512BW
+Vc_INTRINSIC Vc_CONST __m512i abs(z_i32 a) { return _mm512_abs_epi32(a); }
+Vc_INTRINSIC Vc_CONST __m512i abs(z_i64 a) { return _mm512_abs_epi64(a); }
+#endif  // Vc_HAVE_AVX512F
+
 // sqrt{{{1
 Vc_INTRINSIC __m128  Vc_VDECL sqrt(x_f32 v) { return _mm_sqrt_ps(v); }
 #ifdef Vc_HAVE_SSE2

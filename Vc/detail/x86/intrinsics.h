@@ -1170,44 +1170,6 @@ Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu64(__m128i a, __m128i b)
 }
 #endif
 
-Vc_INTRINSIC Vc_CONST __m128i abs_epi8(__m128i a) {
-#ifdef Vc_HAVE_SSSE3
-    return _mm_abs_epi8(a);
-#else
-    __m128i negative = _mm_cmplt_epi8(a, _mm_setzero_si128());
-    return _mm_add_epi8(_mm_xor_si128(a, negative),
-                        _mm_and_si128(negative, setone_epi8()));
-#endif
-}
-
-Vc_INTRINSIC Vc_CONST __m128i abs_epi16(__m128i a) {
-#ifdef Vc_HAVE_SSSE3
-    return _mm_abs_epi16(a);
-#else
-    __m128i negative = _mm_cmplt_epi16(a, _mm_setzero_si128());
-    return _mm_add_epi16(_mm_xor_si128(a, negative), srli_epi16<15>(negative));
-#endif
-}
-
-Vc_INTRINSIC Vc_CONST __m128i abs_epi32(__m128i a) {
-#ifdef Vc_HAVE_SSSE3
-    return _mm_abs_epi32(a);
-#else
-    // positive value:
-    //   negative == 0
-    //   a unchanged after xor
-    //   0 >> 31 -> 0
-    //   a + 0 -> a
-    // negative value:
-    //   negative == -1
-    //   a xor -1 -> -a - 1
-    //   -1 >> 31 -> 1
-    //   -a - 1 + 1 -> -a
-    __m128i negative = _mm_cmplt_epi32(a, _mm_setzero_si128());
-    return _mm_add_epi32(_mm_xor_si128(a, negative), _mm_srli_epi32(negative, 31));
-#endif
-}
-
 template <int s> Vc_INTRINSIC Vc_CONST __m128i alignr(__m128i a, __m128i b)
 {
 #ifdef Vc_HAVE_SSSE3
@@ -1822,23 +1784,6 @@ Vc_INTRINSIC __mmask16 not_(__mmask16 a) { return ~a; }
 Vc_INTRINSIC __mmask32 not_(__mmask32 a) { return ~a; }
 Vc_INTRINSIC __mmask64 not_(__mmask64 a) { return ~a; }
 #endif  // Vc_HAVE_AVX512BW
-#endif  // Vc_HAVE_AVX512F
-
-// abs{{{1
-Vc_INTRINSIC __m128  abs(__m128  a) { return and_(a, setabsmask_ps_16()); }
-
-#ifdef Vc_HAVE_SSE2
-Vc_INTRINSIC __m128d abs(__m128d a) { return and_(a, setabsmask_pd_16()); }
-#endif // Vc_HAVE_SSE2
-
-#ifdef Vc_HAVE_AVX
-Vc_INTRINSIC __m256  abs(__m256  a) { return and_(a, setabsmask_ps_32()); }
-Vc_INTRINSIC __m256d abs(__m256d a) { return and_(a, setabsmask_pd_32()); }
-#endif  // Vc_HAVE_AVX
-
-#ifdef Vc_HAVE_AVX512F
-Vc_INTRINSIC __m512  abs(__m512  a) { return and_(a, setabsmask_ps_64()); }
-Vc_INTRINSIC __m512d abs(__m512d a) { return and_(a, setabsmask_pd_64()); }
 #endif  // Vc_HAVE_AVX512F
 
 // shift_left{{{1
