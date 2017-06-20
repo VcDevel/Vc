@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "datapar.h"
 #include "detail.h"
 #include <bitset>
+#include <cmath>
+#include <cstdlib>
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
@@ -215,6 +217,18 @@ struct scalar_datapar_impl {
     {
         return {private_init,
                 static_cast<T>(detail::promote_preserving_unsigned(x.d) >> y)};
+    }
+
+    // abs{{{2
+    template <class T> static inline datapar<T> abs(datapar<T> x)
+    {
+        return {private_init, T(std::abs(data(x)))};
+    }
+
+    // sqrt{{{2
+    template <class T> static inline datapar<T> sqrt(datapar<T> x)
+    {
+        return {private_init, std::sqrt(data(x))};
     }
 
     // increment & decrement{{{2
