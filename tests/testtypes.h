@@ -116,6 +116,23 @@ typedef vir::concat<
                          vir::Typelist<>>,
                      testtypes_wo_ldouble>> native_test_types;
 
+// native_real_test_types {{{1
+using native_real_test_types = vir::concat<
+#if defined Vc_HAVE_AVX512_ABI
+    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::avx512>, testtypes_fp>,
+#endif
+#if defined Vc_HAVE_AVX_ABI
+    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::avx>, testtypes_fp>,
+#endif
+#if defined Vc_HAVE_SSE_ABI
+#if defined Vc_HAVE_FULL_SSE_ABI
+    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::sse>, testtypes_fp>,
+#else
+    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::sse>, testtypes_float>,
+#endif
+#endif
+    vir::Typelist<>>;
+
 // all_test_types {{{1
 typedef vir::concat<
     native_test_types,
@@ -133,6 +150,20 @@ typedef vir::concat<
             vir::Template<base_template,
                           Vc::datapar_abi::fixed_size<Vc::datapar_abi::max_fixed_size>>>,
         testtypes>> all_test_types;
+
+// real_test_types {{{1
+using real_test_types = vir::concat<
+    native_real_test_types,
+    vir::expand_list<
+        vir::Typelist<
+            vir::Template<base_template, Vc::datapar_abi::scalar>,
+            vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
+            vir::Template<base_template, Vc::datapar_abi::fixed_size<12>>,
+            vir::Template<base_template, Vc::datapar_abi::fixed_size<
+                                             Vc::datapar_abi::max_fixed_size - 1>>,
+            vir::Template<base_template,
+                          Vc::datapar_abi::fixed_size<Vc::datapar_abi::max_fixed_size>>>,
+        testtypes_fp>>;
 
 // many_fixed_size_types {{{1
 using many_fixed_size_types = vir::expand_list<
