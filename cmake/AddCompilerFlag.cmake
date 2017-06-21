@@ -130,6 +130,9 @@ macro(AddCompilerFlag _flag)
       template <int N> constexpr int var_temp = N;
       template <std::size_t... I> void foo(std::index_sequence<I...>) {}
       int main() { foo(std::make_index_sequence<4>()); return 0; }")
+   elseif("${_flag}" STREQUAL "-std=c++17" OR "${_flag}" STREQUAL "-std=c++1z")
+      set(_cxx_code "#include <functional>
+      int main() { return 0; }")
    elseif("${_flag}" STREQUAL "-stdlib=libc++")
       # Compiling with libc++ not only requires a compiler that understands it, but also
       # the libc++ headers itself
