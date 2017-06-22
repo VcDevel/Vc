@@ -310,29 +310,104 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     }
 
     // masked load {{{2
+    // fallback {{{3
     template <class T, class U, class F>
     static inline void Vc_VDECL masked_load(datapar<T> &merge, mask<T> k, const U *mem,
                                             F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        // TODO: implement with V(P)MASKMOV if AVX(2) is available
         execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
                 merge.d.set(i, static_cast<T>(mem[i]));
             }
         });
     }
+
+    // 8-bit and 16-bit integers with AVX512VL/BW {{{3
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<schar> &merge, mask<schar> k,
+                                                  const schar *mem,
+                                                  F) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        merge.d = _mm_mask_loadu_epi8(merge.d, _mm_movemask_epi8(data(k)), mem);
+    }
+
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<uchar> &merge, mask<uchar> k,
+                                                  const uchar *mem,
+                                                  F) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        merge.d = _mm_mask_loadu_epi8(merge.d, _mm_movemask_epi8(data(k)), mem);
+    }
+
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<short> &merge, mask<short> k,
+                                                  const short *mem,
+                                                  F) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        merge.d = _mm_mask_loadu_epi16(merge.d, x86::movemask_epi16(data(k)), mem);
+    }
+
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<ushort> &merge, mask<ushort> k,
+                                                  const ushort *mem,
+                                                  F) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        merge.d = _mm_mask_loadu_epi16(merge.d, x86::movemask_epi16(data(k)), mem);
+    }
+
+#endif  // AVX512VL && AVX512BW
+
+    // 32-bit and 64-bit integers with AVX2 {{{3
+#ifdef Vc_HAVE_AVX2
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<int> &merge, mask<int> k,
+                                                  const int *mem,
+                                                  F) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        merge.d = or_(andnot_(data(k), merge.d), _mm_maskload_epi32(mem, data(k)));
+    }
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<uint> &merge, mask<uint> k,
+                                                  const uint *mem,
+                                                  F) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        merge.d = or_(
+            andnot_(data(k), merge.d),
+            _mm_maskload_epi32(reinterpret_cast<const detail::may_alias<int> *>(mem), data(k)));
+    }
+
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<llong> &merge, mask<llong> k,
+                                                  const llong *mem,
+                                                  F) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        merge.d = or_(andnot_(data(k), merge.d), _mm_maskload_epi64(mem, data(k)));
+    }
+    template <class F>
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<ullong> &merge, mask<ullong> k,
+                                                  const ullong *mem,
+                                                  F) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        merge.d = or_(
+            andnot_(data(k), merge.d),
+            _mm_maskload_epi64(reinterpret_cast<const may_alias<long long> *>(mem), data(k)));
+    }
+#endif  // Vc_HAVE_AVX2
+
+    // 32-bit and 64-bit floats with AVX {{{3
 #ifdef Vc_HAVE_AVX
     template <class F>
     static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<double> &merge, mask<double> k,
                                                   const double *mem, F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm_blendv_pd(merge.d, _mm_maskload_pd(mem, _mm_castpd_si128(data(k))), data(k));
+        merge.d = or_(andnot_(data(k), merge.d), _mm_maskload_pd(mem, _mm_castpd_si128(data(k))));
     }
     template <class F>
     static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<float> &merge, mask<float> k,
                                                   const float *mem, F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm_blendv_ps(merge.d, _mm_maskload_ps(mem, _mm_castps_si128(data(k))), data(k));
+        merge.d = or_(andnot_(data(k), merge.d), _mm_maskload_ps(mem, _mm_castps_si128(data(k))));
     }
 #endif  // Vc_HAVE_AVX
 

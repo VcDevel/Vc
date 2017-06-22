@@ -2963,6 +2963,13 @@ template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_u64 v0, z_u64 v1, z
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_u64 v0, z_u64 v1, z_u64 v2, z_u64 v3, z_u64 v4, z_u64 v5, z_u64 v6, z_u64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
 #endif  // Vc_HAVE_AVX512F
 
+// convert from scalars{{{1
+template <typename To, typename... From>
+Vc_INTRINSIC To Vc_VDECL convert_to(arithmetic<From>... scalars)
+{
+    return x86::set(static_cast<typename To::value_type>(scalars)...);
+}
+
 // convert function{{{1
 template <typename From, typename To> Vc_INTRINSIC To Vc_VDECL convert(From v)
 {

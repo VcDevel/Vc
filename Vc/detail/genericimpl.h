@@ -211,16 +211,18 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     static Vc_INTRINSIC std::bitset<8> to_bitset(Storage<T, 8> v,
                                                  std::integral_constant<int, 2>) noexcept
     {
-        return x86::movemask(_mm_packs_epi16(v, zero<__m128i>()));
+        return x86::movemask_epi16(v);
     }
+
 #ifdef Vc_HAVE_AVX2
     template <class T>
     static Vc_INTRINSIC std::bitset<16> to_bitset(Storage<T, 16> v,
                                                  std::integral_constant<int, 2>) noexcept
     {
-        return x86::movemask(_mm_packs_epi16(x86::lo128(v), x86::hi128(v)));
+        return x86::movemask_epi16(v);
     }
 #endif  // Vc_HAVE_AVX2
+
     template <class T, size_t N>
     static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
                                                  std::integral_constant<int, 4>) noexcept
@@ -282,21 +284,19 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
         }
     }
 };
-//}}}1
-}  // namespace detail
 
 // where implementation {{{1
 template <class T, class A>
-inline void Vc_VDECL masked_assign(mask<T, A> k, datapar<T, A> &lhs,
-                                   const detail::id<datapar<T, A>> &rhs)
+Vc_INTRINSIC void Vc_VDECL masked_assign(mask<T, A> k, datapar<T, A> &lhs,
+                                         const detail::id<datapar<T, A>> &rhs)
 {
     detail::data(lhs) =
         detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs));
 }
 
 template <class T, class A>
-inline void Vc_VDECL masked_assign(mask<T, A> k, mask<T, A> &lhs,
-                                   const detail::id<mask<T, A>> &rhs)
+Vc_INTRINSIC void Vc_VDECL masked_assign(mask<T, A> k, mask<T, A> &lhs,
+                                         const detail::id<mask<T, A>> &rhs)
 {
     detail::data(lhs) =
         detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs));
@@ -306,15 +306,15 @@ template <template <typename> class Op, typename T, class A,
           int = 1  // the int parameter is used to disambiguate the function template
                    // specialization for the avx512 ABI
           >
-inline void Vc_VDECL masked_cassign(mask<T, A> k, datapar<T, A> &lhs,
-                                    const datapar<T, A> &rhs)
+Vc_INTRINSIC void Vc_VDECL masked_cassign(mask<T, A> k, datapar<T, A> &lhs,
+                                          const datapar<T, A> &rhs)
 {
     detail::data(lhs) = detail::x86::blend(detail::data(k), detail::data(lhs),
                                            detail::data(Op<void>{}(lhs, rhs)));
 }
 
 template <template <typename> class Op, typename T, class A, class U>
-inline enable_if<std::is_convertible<U, datapar<T, A>>::value, void> Vc_VDECL
+Vc_INTRINSIC enable_if<std::is_convertible<U, datapar<T, A>>::value, void> Vc_VDECL
 masked_cassign(mask<T, A> k, datapar<T, A> &lhs, const U &rhs)
 {
     masked_cassign<Op>(k, lhs, datapar<T, A>(rhs));
@@ -324,7 +324,7 @@ template <template <typename> class Op, typename T, class A,
           int = 1  // the int parameter is used to disambiguate the function template
                    // specialization for the avx512 ABI
           >
-inline datapar<T, A> Vc_VDECL masked_unary(mask<T, A> k, datapar<T, A> v)
+Vc_INTRINSIC datapar<T, A> Vc_VDECL masked_unary(mask<T, A> k, datapar<T, A> v)
 {
     Op<datapar<T, A>> op;
     return static_cast<datapar<T, A>>(
@@ -332,6 +332,7 @@ inline datapar<T, A> Vc_VDECL masked_unary(mask<T, A> k, datapar<T, A> v)
 }
 
 //}}}1
+}  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
 
