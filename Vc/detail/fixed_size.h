@@ -747,6 +747,9 @@ struct fixed_size_traits {
                  next_power_of_2(N * sizeof(T)));
     using datapar_cast_type = const std::array<T, N> &;
     struct datapar_base {
+        datapar_base() = default;
+        Vc_INTRINSIC datapar_base(const datapar_base &) {}
+
         explicit operator const datapar_member_type &() const
         {
             return data(*static_cast<const fixed_size_datapar<T, N> *>(this));
