@@ -307,7 +307,7 @@ template <template <typename> class Op, typename T, class A,
                    // specialization for the avx512 ABI
           >
 Vc_INTRINSIC void Vc_VDECL masked_cassign(mask<T, A> k, datapar<T, A> &lhs,
-                                          const datapar<T, A> &rhs)
+                                          const datapar<T, A> rhs)
 {
     detail::data(lhs) = detail::x86::blend(detail::data(k), detail::data(lhs),
                                            detail::data(Op<void>{}(lhs, rhs)));

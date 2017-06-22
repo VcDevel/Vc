@@ -1058,15 +1058,12 @@ struct avx512_mask_impl
     // }}}2
 };
 
-// }}}1
-}  // namespace detail
-
 // where implementation {{{1
 #define Vc_MASKED_CASSIGN_SPECIALIZATION(TYPE_, TYPE_SUFFIX_, OP_, OP_NAME_)             \
     template <>                                                                          \
-    inline void Vc_VDECL detail::masked_cassign<OP_, TYPE_, datapar_abi::avx512, 1>(     \
+    Vc_INTRINSIC void Vc_VDECL masked_cassign<OP_, TYPE_, datapar_abi::avx512, 1>(       \
         mask<TYPE_, datapar_abi::avx512> k, datapar<TYPE_, datapar_abi::avx512> & lhs,   \
-        const datapar<TYPE_, datapar_abi::avx512> &rhs)                                  \
+        const datapar<TYPE_, datapar_abi::avx512> rhs)                                   \
     {                                                                                    \
         const auto kv = detail::data(k);                                                 \
         const auto lv = detail::data(lhs);                                               \
@@ -1107,6 +1104,8 @@ Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: uchar, epi8 , std::minus, sub);
 #endif  // Vc_HAVE_FULL_AVX512_ABI
 
 // }}}1
+}  // namespace detail
+
 
 // [mask.reductions] {{{
 template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)
