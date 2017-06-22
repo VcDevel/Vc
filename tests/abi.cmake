@@ -1,5 +1,5 @@
 #######################################################################
-# test Vector<T> ABI
+# test native_datapar<T> ABI
 #######################################################################
 
 execute_process(
@@ -32,6 +32,8 @@ elseif("${IMPL}" STREQUAL AVX OR "${IMPL}" STREQUAL AVX2)
    endif()
 elseif("${IMPL}" STREQUAL MIC)
    set(reference "^vaddps %zmm(0,%zmm1|1,%zmm0),%zmm0 retq")
+elseif("${IMPL}" STREQUAL AVX512 OR "${IMPL}" STREQUAL KNL)
+   set(reference "^vaddps %zmm(0,%zmm1|1,%zmm0),%zmm0 retq")
 else()
    message(FATAL_ERROR "Unknown IMPL '${IMPL}'")
 endif()
@@ -63,7 +65,11 @@ execute_process(
    COMMAND xargs echo
    OUTPUT_VARIABLE asm)
 string(STRIP "${asm}" asm)
-string(REPLACE "add" "and" reference "${reference}")
+if("${IMPL}" STREQUAL AVX512 OR "${IMPL}" STREQUAL KNL)
+   set(reference "^and %e[sd]i,%e[sd]i mov %e[sd]i,%eax ret")
+else()
+   string(REPLACE "add" "and" reference "${reference}")
+endif()
 if("${asm}" MATCHES "${reference}")
    if(expect_failure)
       message(FATAL_ERROR "Warning: unexpected pass. The test was flagged as EXPECT_FAILURE but passed instead.")

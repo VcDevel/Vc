@@ -369,37 +369,47 @@ endfunction()
 find_program(OBJDUMP objdump)
 mark_as_advanced(OBJDUMP)
 if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
-   macro(test_abi _target _impl abi)
-      set(_test test_${_target})
-      if("${_impl}" STREQUAL "MIC")
-         mic_add_executable(${_target} SOURCES abi.cpp LINK_LIBRARIES Vc_MIC COMPILE_FLAGS "-DVc_ABI=${abi};${ARGN};-O2")
-      else()
-         add_executable(${_target} EXCLUDE_FROM_ALL abi.cpp)
-         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS "Vc_ABI=${abi}")
-         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS "${ARGN};-O2")
-      endif()
-      add_target_property(${_target} LABELS "${_impl}")
-      add_dependencies(${_impl} ${_target})
-      add_dependencies(build_tests ${_target})
+   set(run_targets)
+   macro(test_abi target _impl abi)
+      foreach(subtype native fixed_size)
+         if("${subtype}" STREQUAL "fixed_size")
+            set(suffix "_fixed_size")
+         else()
+            set(suffix "")
+         endif()
+         set(_target "${target}${suffix}")
+         set(_test test_${_target})
+         if("${_impl}" STREQUAL "MIC")
+            mic_add_executable(${_target} SOURCES abi${suffix}.cpp LINK_LIBRARIES Vc_MIC COMPILE_FLAGS "-DVc_ABI=${abi};${ARGN};-O2")
+         else()
+            add_executable(${_target} EXCLUDE_FROM_ALL abi${suffix}.cpp)
+            set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS "Vc_ABI=${abi}")
+            set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS "${ARGN};-O2")
+         endif()
+         add_target_property(${_target} LABELS "${_impl}")
+         add_dependencies(${_impl} ${_target})
+         add_dependencies(build_tests ${_target})
 
-      get_target_executable(_exe "${_target}")
+         get_target_executable(_exe "${_target}")
 
-      add_test(NAME ${_test}
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-         COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
-         -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
-         -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
-         )
-      set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
-      add_custom_target(run_${_target}
-         ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
-         -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
-         -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-         DEPENDS ${_target}
-         COMMENT "Execute ${_target} test"
-         VERBATIM
-         )
+         add_test(NAME ${_test}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+            -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/abi${suffix}.cmake
+            )
+         set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
+         add_custom_target(run_${_target}
+            ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+            -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/abi${suffix}.cmake
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            DEPENDS ${_target}
+            COMMENT "Execute ${_target} test"
+            VERBATIM
+            )
+         list(APPEND run_targets "run_${_target}")
+      endforeach()
    endmacro()
 
    if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "[x3-7]86")
@@ -408,9 +418,8 @@ if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
       if(NOT Vc_AVX_INTRINSICS_BROKEN)
          test_abi(abi_AVX     AVX avx ${Vc_avx_flags})
          test_abi(abi_AVX2    AVX2 avx ${Vc_avx2_flags})
-         # TODO:
-         #test_abi(abi_AVX512  AVX512 avx512 ${Vc_avx512_flags})
-         #test_abi(abi_KNL     KNL knl ${Vc_knl_flags})
+         test_abi(abi_AVX512  AVX512 avx512 ${Vc_avx512_flags})
+         test_abi(abi_KNL     KNL avx512 ${Vc_knl_flags})
       endif()
    endif()
    if(MIC_NATIVE_FOUND)
@@ -420,6 +429,14 @@ if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
          set(OBJDUMP "${MIC_OBJDUMP}")
          test_abi(abi_MIC MIC)
       endif()
+   endif()
+
+   if(run_targets)
+      add_custom_target(run_abi_all
+         COMMENT "Execute all ABI tests"
+         VERBATIM
+         )
+      add_dependencies(run_abi_all ${run_targets})
    endif()
 endif()#}}}
 
