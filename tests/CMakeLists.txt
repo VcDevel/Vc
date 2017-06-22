@@ -174,9 +174,14 @@ function(vc_add_test name) #{{{
       endif()
    endmacro()
 
-   cmake_parse_arguments("" "NO_TESTTYPES;SINGLE_TESTTYPE" "" "" ${ARGN})
+   cmake_parse_arguments("" "NO_TESTTYPES;SINGLE_TESTTYPE;EXCLUDE_FROM_ALL" "SOURCE" "DEFINITIONS" ${ARGN})
 
-   set(src "${name}.cpp")
+   if(_SOURCE)
+      set(src "${_SOURCE}")
+   else()
+      set(src "${name}.cpp")
+   endif()
+
    set(run_targets)
    foreach(impl ${vc_all_target_variants})
       set(_target "${name}_${impl}")
@@ -262,6 +267,7 @@ function(vc_add_test name) #{{{
                   )#}}}
             else()
                add_executable(${target} EXCLUDE_FROM_ALL ${src})
+               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${_DEFINITIONS}")
                set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS "${flags}")
                set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS "${link_flags}")
                if(NOT impl STREQUAL "nosimd")
@@ -272,9 +278,11 @@ function(vc_add_test name) #{{{
                   set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "TESTTYPES=${types}")
                endif()
             endif()
-            add_target_property(${target} LABELS "${label}")
-            add_dependencies(build_tests ${target})
-            add_dependencies(${label} ${target})
+            if(NOT _EXCLUDE_FROM_ALL)
+               add_target_property(${target} LABELS "${label}")
+               add_dependencies(build_tests ${target})
+               add_dependencies(${label} ${target})
+            endif()
             if(${use_var}) # add test and run target#{{{
                if(emulator)
                   get_target_executable(_exe "${target}")
@@ -284,7 +292,9 @@ function(vc_add_test name) #{{{
                else()
                   add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
                endif()
-               set_property(TEST ${target} PROPERTY LABELS "${label}")
+               if(NOT _EXCLUDE_FROM_ALL)
+                  set_property(TEST ${target} PROPERTY LABELS "${label}")
+               endif()
                vc_add_run_target(${target} "${emulator}" run_targets)
             endif()#}}}
             if(impl STREQUAL "nosimd")
@@ -303,7 +313,8 @@ function(vc_add_test name) #{{{
 endfunction() #}}}
 
 vc_add_test(sfinae NO_TESTTYPES)
-vc_add_test(loadstore SINGLE_TESTTYPE)
+vc_add_test(loadstore SINGLE_TESTTYPE DEFINITIONS ONE_RANDOM_CONVERTING_LOAD_STORE)
+vc_add_test(allcvt_loadstore SINGLE_TESTTYPE SOURCE loadstore.cpp SINGLE_TESTTYPE EXCLUDE_FROM_ALL)
 vc_add_test(mask)
 vc_add_test(datapar)
 vc_add_test(math)
