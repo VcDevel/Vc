@@ -1541,9 +1541,9 @@ Vc_INTRINSIC Vc_CONST int movemask(__m128i a) { return _mm_movemask_epi8(a); }
 
 Vc_INTRINSIC Vc_CONST int movemask_epi16(__m128i a) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
-    return _mm_cmp_epi16_mask(a, zero<__m128>(), _MM_CMPINT_NE);
+    return _mm_cmp_epi16_mask(a, zero<__m128i>(), _MM_CMPINT_NE);
 #else
-    return _mm_movemask_epi8(_mm_packs_epi16(a, zero<__m128>()));
+    return _mm_movemask_epi8(_mm_packs_epi16(a, zero<__m128i>()));
 #endif
 }
 #endif  // Vc_HAVE_SSE2
@@ -1561,7 +1561,7 @@ Vc_INTRINSIC Vc_CONST int movemask(__m256  a) { return _mm256_movemask_ps(a); }
 
 Vc_INTRINSIC Vc_CONST int movemask_epi16(__m256i a) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
-    return _mm256_cmp_epi16_mask(a, zero<__m256>(), _MM_CMPINT_NE);
+    return _mm256_cmp_epi16_mask(a, zero<__m256i>(), _MM_CMPINT_NE);
 #else
     return _mm_movemask_epi8(_mm_packs_epi16(lo128(a), hi128(a)));
 #endif
