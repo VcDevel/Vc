@@ -37,7 +37,8 @@ namespace x86
 {
 // plus{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-template <class T, size_t N> Vc_INTRINSIC auto plus(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> plus(Storage<T, N> a, Storage<T, N> b)
 {
     return a.builtin() + b.builtin();
 }
@@ -86,7 +87,7 @@ Vc_INTRINSIC __m512i Vc_VDECL plus(z_u08 a, z_u08 b) { return _mm512_add_epi8(a,
 
 // minus{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-template <class T, size_t N> Vc_INTRINSIC auto minus(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N> Vc_INTRINSIC Storage<T, N> minus(Storage<T, N> a, Storage<T, N> b)
 {
     return a.builtin() - b.builtin();
 }
@@ -135,7 +136,7 @@ Vc_INTRINSIC __m512i Vc_VDECL minus(z_u08 a, z_u08 b) { return _mm512_sub_epi8(a
 
 // multiplies{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-template <class T, size_t N> Vc_INTRINSIC auto Vc_VDECL multiplies(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N> Vc_INTRINSIC Storage<T, N> Vc_VDECL multiplies(Storage<T, N> a, Storage<T, N> b)
 {
     return a.builtin() * b.builtin();
 }
@@ -235,7 +236,7 @@ Vc_INTRINSIC __m512i Vc_VDECL multiplies(z_u08 a, z_u08 b) { return multiplies(z
 // divides{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 // builtin{{{2
-template <class T, size_t N> Vc_INTRINSIC auto divides(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N> Vc_INTRINSIC Storage<T, N> divides(Storage<T, N> a, Storage<T, N> b)
 {
     return a.builtin() / b.builtin();
 }
@@ -492,13 +493,13 @@ Vc_INTRINSIC z_u08 Vc_VDECL divides(z_u08 a, z_u08 b) {
 
 // modulus{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-template <class T, size_t N> Vc_INTRINSIC auto modulus(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N> Vc_INTRINSIC Storage<T, N> modulus(Storage<T, N> a, Storage<T, N> b)
 {
     static_assert(std::is_integral<T>::value, "modulus is only supported for integral types");
     return a.builtin() % b.builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
-template <class T, size_t N> Vc_INTRINSIC auto modulus(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N> Vc_INTRINSIC Storage<T, N> modulus(Storage<T, N> a, Storage<T, N> b)
 {
     static_assert(std::is_integral<T>::value, "modulus is only supported for integral types");
     return minus(a, multiplies(divides(a, b), b));
@@ -506,7 +507,7 @@ template <class T, size_t N> Vc_INTRINSIC auto modulus(Storage<T, N> a, Storage<
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // bit_and{{{1
-template <class T, size_t N> Vc_INTRINSIC auto bit_and(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N> Vc_INTRINSIC Storage<T, N> bit_and(Storage<T, N> a, Storage<T, N> b)
 {
     static_assert(std::is_integral<T>::value, "bit_and is only supported for integral types");
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
@@ -517,7 +518,7 @@ template <class T, size_t N> Vc_INTRINSIC auto bit_and(Storage<T, N> a, Storage<
 }
 
 // bit_or{{{1
-template <class T, size_t N> Vc_INTRINSIC auto bit_or(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N> Vc_INTRINSIC Storage<T, N> bit_or(Storage<T, N> a, Storage<T, N> b)
 {
     static_assert(std::is_integral<T>::value, "bit_or is only supported for integral types");
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
@@ -528,7 +529,7 @@ template <class T, size_t N> Vc_INTRINSIC auto bit_or(Storage<T, N> a, Storage<T
 }
 
 // bit_xor{{{1
-template <class T, size_t N> Vc_INTRINSIC auto bit_xor(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N> Vc_INTRINSIC Storage<T, N> bit_xor(Storage<T, N> a, Storage<T, N> b)
 {
     static_assert(std::is_integral<T>::value, "bit_xor is only supported for integral types");
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
@@ -540,12 +541,15 @@ template <class T, size_t N> Vc_INTRINSIC auto bit_xor(Storage<T, N> a, Storage<
 
 // bit_shift_left{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-template <class T, size_t N> Vc_INTRINSIC auto bit_shift_left(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, Storage<T, N> b)
 {
-    static_assert(std::is_integral<T>::value, "bit_shift_left is only supported for integral types");
+    static_assert(std::is_integral<T>::value,
+                  "bit_shift_left is only supported for integral types");
     return a.builtin() << b.builtin();
 }
-template <class T, size_t N> Vc_INTRINSIC auto bit_shift_left(Storage<T, N> a, int b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, int b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_left is only supported for integral types");
     return a.builtin() << detail::data(datapar<T, abi_for_size_t<T, N>>(b)).builtin();
@@ -553,13 +557,15 @@ template <class T, size_t N> Vc_INTRINSIC auto bit_shift_left(Storage<T, N> a, i
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // generic scalar fallback
-template <class T, size_t N> Vc_INTRINSIC auto bit_shift_left(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, Storage<T, N> b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_left is only supported for integral types");
     return generate_from_n_evaluations<N, Storage<T, N>>(
         [&](auto i) { return a[i] << b[i]; });
 }
-template <class T, size_t N> Vc_INTRINSIC auto bit_shift_left(Storage<T, N> a, int b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, int b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_left is only supported for integral types");
     return generate_from_n_evaluations<N, Storage<T, N>>(
@@ -719,12 +725,14 @@ Vc_INTRINSIC z_u08 bit_shift_left(z_u08 a, z_u08 b) { return z_u08(bit_shift_lef
 
 // bit_shift_right{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-template <class T, size_t N> Vc_INTRINSIC auto bit_shift_right(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_shift_right(Storage<T, N> a, Storage<T, N> b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_right is only supported for integral types");
     return a.builtin() >> b.builtin();
 }
-template <class T, size_t N> Vc_INTRINSIC auto bit_shift_right(Storage<T, N> a, int b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_shift_right(Storage<T, N> a, int b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_right is only supported for integral types");
     return a.builtin() >> detail::data(datapar<T, abi_for_size_t<T, N>>(b)).builtin();
@@ -732,14 +740,16 @@ template <class T, size_t N> Vc_INTRINSIC auto bit_shift_right(Storage<T, N> a, 
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // generic scalar fallback
-template <class T, size_t N> Vc_INTRINSIC auto bit_shift_right(Storage<T, N> a, Storage<T, N> b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_shift_right(Storage<T, N> a, Storage<T, N> b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_right is only supported for integral types");
     return generate_from_n_evaluations<N, Storage<T, N>>(
         [&](auto i) { return a[i] >> b[i]; });
 }
 
-template <class T, size_t N> Vc_INTRINSIC auto bit_shift_right(Storage<T, N> a, int b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_shift_right(Storage<T, N> a, int b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_right is only supported for integral types");
     return generate_from_n_evaluations<N, Storage<T, N>>(
@@ -1085,7 +1095,7 @@ Vc_INTRINSIC x_u08 bit_shift_right(x_u08 a, x_u08 b)
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // complement{{{1
-template <typename T> Vc_INTRINSIC auto Vc_VDECL complement(T v) {
+template <typename T> Vc_INTRINSIC T Vc_VDECL complement(T v) {
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
     return ~v.builtin();
 #else
@@ -1095,7 +1105,7 @@ template <typename T> Vc_INTRINSIC auto Vc_VDECL complement(T v) {
 
 //}}}1
 // unary_minus{{{1
-template <typename T> Vc_INTRINSIC auto Vc_VDECL unary_minus(T v) { return minus(T{}, v); }
+template <typename T> Vc_INTRINSIC T Vc_VDECL unary_minus(T v) { return minus(T{}, v); }
 Vc_INTRINSIC __m128  Vc_VDECL unary_minus(x_f32 v) { return xor_(v, signmask16(float())); }
 #ifdef Vc_HAVE_SSE2
 Vc_INTRINSIC __m128d Vc_VDECL unary_minus(x_f64 v) { return xor_(v, signmask16(double())); }

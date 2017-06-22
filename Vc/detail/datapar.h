@@ -94,7 +94,12 @@ template <class V> class datapar_int_operators<V, true>
 {
     using impl = detail::get_impl_t<V>;
 
-    const V &derived() const { return *static_cast<const V *>(this); }
+    Vc_INTRINSIC const V &derived() const { return *static_cast<const V *>(this); }
+
+    template <class T> static Vc_INTRINSIC V make_derived(T &&d)
+    {
+        return {detail::private_init, std::forward<T>(d)};
+    }
 
 public:
     friend V &operator %=(V &lhs, const V &x) { return lhs = lhs  % x; }
@@ -106,17 +111,20 @@ public:
     friend V &operator<<=(V &lhs, int x) { return lhs = lhs << x; }
     friend V &operator>>=(V &lhs, int x) { return lhs = lhs >> x; }
 
-    friend V operator%(const V &x, const V &y) { return impl::modulus(x, y); }
-    friend V operator&(const V &x, const V &y) { return impl::bit_and(x, y); }
-    friend V operator|(const V &x, const V &y) { return impl::bit_or(x, y); }
-    friend V operator^(const V &x, const V &y) { return impl::bit_xor(x, y); }
-    friend V operator<<(const V &x, const V &y) { return impl::bit_shift_left(x, y); }
-    friend V operator>>(const V &x, const V &y) { return impl::bit_shift_right(x, y); }
-    friend V operator<<(const V &x, int y) { return impl::bit_shift_left(x, y); }
-    friend V operator>>(const V &x, int y) { return impl::bit_shift_right(x, y); }
+    friend V operator% (const V &x, const V &y) { return datapar_int_operators::make_derived(impl::modulus        (data(x), data(y))); }
+    friend V operator& (const V &x, const V &y) { return datapar_int_operators::make_derived(impl::bit_and        (data(x), data(y))); }
+    friend V operator| (const V &x, const V &y) { return datapar_int_operators::make_derived(impl::bit_or         (data(x), data(y))); }
+    friend V operator^ (const V &x, const V &y) { return datapar_int_operators::make_derived(impl::bit_xor        (data(x), data(y))); }
+    friend V operator<<(const V &x, const V &y) { return datapar_int_operators::make_derived(impl::bit_shift_left (data(x), data(y))); }
+    friend V operator>>(const V &x, const V &y) { return datapar_int_operators::make_derived(impl::bit_shift_right(data(x), data(y))); }
+    friend V operator<<(const V &x, int y)      { return datapar_int_operators::make_derived(impl::bit_shift_left (data(x), y)); }
+    friend V operator>>(const V &x, int y)      { return datapar_int_operators::make_derived(impl::bit_shift_right(data(x), y)); }
 
     // unary operators (for integral T)
-    V operator~() const { return impl::complement(derived()); }
+    V operator~() const
+    {
+        return {private_init, impl::complement(derived().d)};
+    }
 };
 
 //}}}1
@@ -138,6 +146,7 @@ class datapar
     static constexpr T *type_tag = nullptr;
     friend impl;
     friend detail::generic_datapar_impl<impl>;
+    friend detail::datapar_int_operators<datapar, true>;
 
 public:
     using value_type = T;
@@ -273,9 +282,15 @@ public:
     Vc_ALWAYS_INLINE datapar operator--(int) { datapar r = *this; impl::decrement(d); return r; }
 
     // unary operators (for any T)
-    Vc_ALWAYS_INLINE mask_type operator!() const { return impl::negate(*this); }
+    Vc_ALWAYS_INLINE mask_type operator!() const
+    {
+        return {detail::private_init, impl::negate(d)};
+    }
     Vc_ALWAYS_INLINE datapar operator+() const { return *this; }
-    Vc_ALWAYS_INLINE datapar operator-() const { return impl::unary_minus(*this); }
+    Vc_ALWAYS_INLINE datapar operator-() const
+    {
+        return {detail::private_init, impl::unary_minus(d)};
+    }
 
     // access to internal representation (suggested extension)
     explicit Vc_ALWAYS_INLINE datapar(const cast_type &init) : d(init) {}
@@ -289,48 +304,52 @@ public:
     // binary operators [datapar.binary]
     friend Vc_ALWAYS_INLINE datapar operator+(const datapar &x, const datapar &y)
     {
-        return impl::plus(x, y);
+        return {detail::private_init, impl::plus(x.d, y.d)};
     }
     friend Vc_ALWAYS_INLINE datapar operator-(const datapar &x, const datapar &y)
     {
-        return impl::minus(x, y);
+        return {detail::private_init, impl::minus(x.d, y.d)};
     }
     friend Vc_ALWAYS_INLINE datapar operator*(const datapar &x, const datapar &y)
     {
-        return impl::multiplies(x, y);
+        return {detail::private_init, impl::multiplies(x.d, y.d)};
     }
     friend Vc_ALWAYS_INLINE datapar operator/(const datapar &x, const datapar &y)
     {
-        return impl::divides(x, y);
+        return {detail::private_init, impl::divides(x.d, y.d)};
     }
 
     // compares [datapar.comparison]
     friend Vc_ALWAYS_INLINE mask_type operator==(const datapar &x, const datapar &y)
     {
-        return impl::equal_to(x, y);
+        return datapar::make_mask(impl::equal_to(x.d, y.d));
     }
     friend Vc_ALWAYS_INLINE mask_type operator!=(const datapar &x, const datapar &y)
     {
-        return impl::not_equal_to(x, y);
+        return datapar::make_mask(impl::not_equal_to(x.d, y.d));
     }
     friend Vc_ALWAYS_INLINE mask_type operator<(const datapar &x, const datapar &y)
     {
-        return impl::less(x, y);
+        return datapar::make_mask(impl::less(x.d, y.d));
     }
     friend Vc_ALWAYS_INLINE mask_type operator<=(const datapar &x, const datapar &y)
     {
-        return impl::less_equal(x, y);
+        return datapar::make_mask(impl::less_equal(x.d, y.d));
     }
     friend Vc_ALWAYS_INLINE mask_type operator>(const datapar &x, const datapar &y)
     {
-        return impl::less(y, x);
+        return datapar::make_mask(impl::less(y.d, x.d));
     }
     friend Vc_ALWAYS_INLINE mask_type operator>=(const datapar &x, const datapar &y)
     {
-        return impl::less_equal(y, x);
+        return datapar::make_mask(impl::less_equal(y.d, x.d));
     }
 
 private:
+    static Vc_INTRINSIC mask_type make_mask(typename mask_type::member_type k)
+    {
+        return {detail::private_init, k};
+    }
 #ifdef Vc_MSVC
     // Work around "warning C4396: the inline specifier cannot be used when a friend
     // declaration refers to a specialization of a function template"

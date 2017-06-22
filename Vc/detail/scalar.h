@@ -97,10 +97,7 @@ struct scalar_datapar_impl {
     }
 
     // negation {{{2
-    template <class T> static inline mask<T> negate(const datapar<T> &x) noexcept
-    {
-        return {private_init, !x.d};
-    }
+    template <class T> static inline bool negate(T x) noexcept { return !x; }
 
     // reductions {{{2
     template <class T, class BinaryOperation>
@@ -123,113 +120,81 @@ struct scalar_datapar_impl {
     }
 
     // complement {{{2
-    template <class T> static inline datapar<T> complement(const datapar<T> &x) noexcept
+    template <class T> static inline T complement(T x) noexcept
     {
-        return {private_init, static_cast<T>(~x.d)};
+        return static_cast<T>(~x);
     }
 
     // unary minus {{{2
-    template <class T> static inline datapar<T> unary_minus(const datapar<T> &x) noexcept
+    template <class T> static inline T unary_minus(T x) noexcept
     {
-        return {private_init, static_cast<T>(-x.d)};
+        return static_cast<T>(-x);
     }
 
     // arithmetic operators {{{2
-    template <class T>
-    static inline datapar<T> plus(const datapar<T> &x, const datapar<T> &y)
+    template <class T> static inline T plus(T x, T y)
     {
-        return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) +
-                                             detail::promote_preserving_unsigned(y.d))};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) +
+                              detail::promote_preserving_unsigned(y));
     }
 
-    template <class T>
-    static inline datapar<T> minus(const datapar<T> &x, const datapar<T> &y)
+    template <class T> static inline T minus(T x, T y)
     {
-        return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) -
-                                             detail::promote_preserving_unsigned(y.d))};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) -
+                              detail::promote_preserving_unsigned(y));
     }
 
-    template <class T>
-    static inline datapar<T> multiplies(const datapar<T> &x, const datapar<T> &y)
+    template <class T> static inline T multiplies(T x, T y)
     {
-        return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) *
-                                             detail::promote_preserving_unsigned(y.d))};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) *
+                              detail::promote_preserving_unsigned(y));
     }
 
-    template <class T>
-    static inline datapar<T> divides(const datapar<T> &x, const datapar<T> &y)
+    template <class T> static inline T divides(T x, T y)
     {
-        return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) /
-                                             detail::promote_preserving_unsigned(y.d))};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) /
+                              detail::promote_preserving_unsigned(y));
     }
 
-    template <class T>
-    static inline datapar<T> modulus(const datapar<T> &x, const datapar<T> &y)
+    template <class T> static inline T modulus(T x, T y)
     {
-        return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) %
-                                             detail::promote_preserving_unsigned(y.d))};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) %
+                              detail::promote_preserving_unsigned(y));
     }
 
-    template <class T>
-    static inline datapar<T> bit_and(const datapar<T> &x, const datapar<T> &y)
+    template <class T> static inline T bit_and(T x, T y)
     {
-        return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) &
-                                             detail::promote_preserving_unsigned(y.d))};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) &
+                              detail::promote_preserving_unsigned(y));
     }
 
-    template <class T>
-    static inline datapar<T> bit_or(const datapar<T> &x, const datapar<T> &y)
+    template <class T> static inline T bit_or(T x, T y)
     {
-        return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) |
-                                             detail::promote_preserving_unsigned(y.d))};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) |
+                              detail::promote_preserving_unsigned(y));
     }
 
-    template <class T>
-    static inline datapar<T> bit_xor(const datapar<T> &x, const datapar<T> &y)
+    template <class T> static inline T bit_xor(T x, T y)
     {
-        return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) ^
-                                             detail::promote_preserving_unsigned(y.d))};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) ^
+                              detail::promote_preserving_unsigned(y));
     }
 
-    template <class T>
-    static inline datapar<T> bit_shift_left(const datapar<T> &x, const datapar<T> &y)
+    template <class T> static inline T bit_shift_left(T x, int y)
     {
-        return {private_init,
-                static_cast<T>(detail::promote_preserving_unsigned(x.d)
-                               << detail::promote_preserving_unsigned(y.d))};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) << y);
     }
 
-    template <class T> static inline datapar<T> bit_shift_left(const datapar<T> &x, int y)
+    template <class T> static inline T bit_shift_right(T x, int y)
     {
-        return {private_init,
-                static_cast<T>(detail::promote_preserving_unsigned(x.d) << y)};
-    }
-
-    template <class T>
-    static inline datapar<T> bit_shift_right(const datapar<T> &x, const datapar<T> &y)
-    {
-        return {private_init, static_cast<T>(detail::promote_preserving_unsigned(x.d) >>
-                                             detail::promote_preserving_unsigned(y.d))};
-    }
-
-    template <class T>
-    static inline datapar<T> bit_shift_right(const datapar<T> &x, int y)
-    {
-        return {private_init,
-                static_cast<T>(detail::promote_preserving_unsigned(x.d) >> y)};
+        return static_cast<T>(detail::promote_preserving_unsigned(x) >> y);
     }
 
     // abs{{{2
-    template <class T> static inline datapar<T> abs(datapar<T> x)
-    {
-        return {private_init, T(std::abs(data(x)))};
-    }
+    template <class T> static inline T abs(T x) { return T(std::abs(x)); }
 
     // sqrt{{{2
-    template <class T> static inline datapar<T> sqrt(datapar<T> x)
-    {
-        return {private_init, std::sqrt(data(x))};
-    }
+    template <class T> static inline T sqrt(T x) { return std::sqrt(x); }
 
     // increment & decrement{{{2
     template <class T> static inline void increment(T &x) { ++x; }
@@ -237,9 +202,9 @@ struct scalar_datapar_impl {
 
     // compares {{{2
 #define Vc_CMP_OPERATIONS(cmp_)                                                          \
-    template <class V> static inline typename V::mask_type cmp_(const V &x, const V &y)  \
+    template <class T> static inline bool cmp_(T x, T y)                                 \
     {                                                                                    \
-        return {private_init, std::cmp_<typename V::value_type>()(x.d, y.d)};            \
+        return std::cmp_<T>()(x, y);                                                     \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
     Vc_CMP_OPERATIONS(equal_to);

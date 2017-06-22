@@ -743,13 +743,15 @@ Vc_INTRINSIC datapar<T, A> clamp(const datapar<T, A> &v, const datapar<T, A> &lo
 template <class T, class Abi>
 Vc_INTRINSIC datapar<T, Abi> sqrt(const datapar<T, Abi> &x)
 {
-    return detail::get_impl_t<datapar<T, Abi>>::sqrt(x);
+    return static_cast<datapar<T, Abi>>(
+        detail::get_impl_t<datapar<T, Abi>>::sqrt(data(x)));
 }
 
 template <class T, class Abi>
 Vc_INTRINSIC datapar<T, Abi> abs(const datapar<detail::SignedArithmetic<T>, Abi> &x)
 {
-    return detail::get_impl_t<datapar<T, Abi>>::abs(x);
+    return static_cast<datapar<T, Abi>>(
+        detail::get_impl_t<datapar<T, Abi>>::abs(data(x)));
 }
 
 Vc_VERSIONED_NAMESPACE_END

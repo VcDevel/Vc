@@ -257,7 +257,7 @@ template <int N> struct fixed_size_datapar_impl {
 
     // masked load {{{2
     template <class T, class A, class U, class F>
-    static inline void masked_load(datapar<T> &merge, const Vc::mask<T, A> &k,
+    static inline void masked_load(datapar<T> &merge, const Vc::mask<T, A> k,
                                    const U *mem, F f) Vc_NOEXCEPT_OR_IN_TEST
     {
         const auto bits = k.to_bitset();
@@ -270,7 +270,7 @@ template <int N> struct fixed_size_datapar_impl {
 
     // store {{{2
     template <class T, class U, class F>
-    static inline void store(const datapar_member_type<T> &v, U *mem, F f,
+    static inline void store(const datapar_member_type<T> v, U *mem, F f,
                              type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         detail::for_each(
@@ -279,8 +279,8 @@ template <int N> struct fixed_size_datapar_impl {
 
     // masked store {{{2
     template <class T, class A, class U, class F>
-    static inline void masked_store(const datapar<T> &v, U *mem, F f,
-                                    const Vc::mask<T, A> &k) Vc_NOEXCEPT_OR_IN_TEST
+    static inline void masked_store(const datapar<T> v, U *mem, F f,
+                                    const Vc::mask<T, A> k) Vc_NOEXCEPT_OR_IN_TEST
     {
         const auto bits = k.to_bitset();
         detail::for_each(data(v), [&](auto native, auto offset) {
@@ -291,21 +291,21 @@ template <int N> struct fixed_size_datapar_impl {
     }
 
     // negation {{{2
-    template <class T, class A>
-    static inline Vc::mask<T, A> negate(const Vc::datapar<T, A> &x) noexcept
+    template <class T, class... As>
+    static inline mask_member_type negate(datapar_tuple<T, As...> x) noexcept
     {
         mask_member_type bits = 0;
-        for_each(x.d, [&bits](auto native, auto offset) {
+        for_each(x, [&bits](auto native, auto offset) {
             bits |= mask_member_type((!native).to_bitset().to_ullong()) << offset;
         });
-        return {private_init, bits};
+        return bits;
     }
 
     // reductions {{{2
 private:
     template <class T, class... As, class BinaryOperation, size_t... Counts,
               size_t... Begins>
-    static inline T reduce(const datapar_tuple<T, As...> &tup,
+    static inline T reduce(const datapar_tuple<T, As...> tup,
                            const BinaryOperation &binary_op,
                            std::index_sequence<Counts...>, std::index_sequence<Begins...>)
     {
@@ -323,8 +323,7 @@ private:
 
 public:
     template <class T, class BinaryOperation>
-    static inline T reduce(size_tag, const datapar<T> &x,
-                           const BinaryOperation &binary_op)
+    static inline T reduce(size_tag, const datapar<T> x, const BinaryOperation &binary_op)
     {
         using ranges = n_abis_in_tuple<datapar_member_type<T>>;
         return fixed_size_datapar_impl::reduce(x.d, binary_op, typename ranges::counts(),
@@ -333,129 +332,81 @@ public:
 
     // min, max, clamp {{{2
     template <class T>
-    static inline datapar<T> min(const datapar<T> &a, const datapar<T> &b)
+    static inline datapar<T> min(const datapar<T> a, const datapar<T> b)
     {
         return {private_init,
                 apply([](auto aa, auto bb) { return Vc::min(aa, bb); }, a.d, b.d)};
     }
 
     template <class T>
-    static inline datapar<T> max(const datapar<T> &a, const datapar<T> &b)
+    static inline datapar<T> max(const datapar<T> a, const datapar<T> b)
     {
         return {private_init,
                 apply([](auto aa, auto bb) { return Vc::max(aa, bb); }, a.d, b.d)};
     }
 
     // complement {{{2
-    template <class T, class A>
-    static inline Vc::datapar<T, A> complement(const Vc::datapar<T, A> &x) noexcept
+    template <class T, class... As>
+    static inline datapar_tuple<T, As...> complement(datapar_tuple<T, As...> x) noexcept
     {
-        return {private_init, apply([](auto xx) { return ~xx; }, x.d)};
+        return apply([](auto xx) { return ~xx; }, x);
     }
 
     // unary minus {{{2
-    template <class T, class A>
-    static inline Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept
+    template <class T, class... As>
+    static inline datapar_tuple<T, As...> unary_minus(datapar_tuple<T, As...> x) noexcept
     {
-        return {private_init, apply([](auto xx) { return -xx; }, x.d)};
+        return apply([](auto xx) { return -xx; }, x);
     }
 
     // arithmetic operators {{{2
 
-    template <class T, class A>
-    static inline Vc::datapar<T, A> plus(const Vc::datapar<T, A> &x,
-                                         const Vc::datapar<T, A> &y)
+#define Vc_FIXED_OP(name_, op_)                                                          \
+    template <class T, class... As>                                                      \
+    static inline datapar_tuple<T, As...> name_(datapar_tuple<T, As...> x,               \
+                                                datapar_tuple<T, As...> y)               \
+    {                                                                                    \
+        return apply([](auto xx, auto yy) { return xx op_ yy; }, x, y);                  \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+
+    Vc_FIXED_OP(plus, +);
+    Vc_FIXED_OP(minus, -);
+    Vc_FIXED_OP(multiplies, *);
+    Vc_FIXED_OP(divides, /);
+    Vc_FIXED_OP(modulus, %);
+    Vc_FIXED_OP(bit_and, &);
+    Vc_FIXED_OP(bit_or, |);
+    Vc_FIXED_OP(bit_xor, ^);
+    Vc_FIXED_OP(bit_shift_left, <<);
+    Vc_FIXED_OP(bit_shift_right, >>);
+#undef Vc_FIXED_OP
+
+    template <class T, class... As>
+    static inline datapar_tuple<T, As...> bit_shift_left(datapar_tuple<T, As...> x, int y)
     {
-        return {private_init, apply([](auto xx, auto yy) { return xx + yy; }, x.d, y.d)};
+        return apply([y](auto xx) { return xx << y; }, x);
     }
 
-    template <class T, class A>
-    static inline Vc::datapar<T, A> minus(const Vc::datapar<T, A> &x,
-                                          const Vc::datapar<T, A> &y)
+    template <class T, class... As>
+    static inline datapar_tuple<T, As...> bit_shift_right(datapar_tuple<T, As...> x,
+                                                          int y)
     {
-        return {private_init, apply([](auto xx, auto yy) { return xx - yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> multiplies(const Vc::datapar<T, A> &x,
-                                               const Vc::datapar<T, A> &y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx * yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> divides(const Vc::datapar<T, A> &x,
-                                            const Vc::datapar<T, A> &y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx / yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> modulus(const Vc::datapar<T, A> &x,
-                                            const Vc::datapar<T, A> &y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx % yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_and(const Vc::datapar<T, A> &x,
-                                            const Vc::datapar<T, A> &y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx & yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_or(const Vc::datapar<T, A> &x,
-                                           const Vc::datapar<T, A> &y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx | yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_xor(const Vc::datapar<T, A> &x,
-                                            const Vc::datapar<T, A> &y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx ^ yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_shift_left(const Vc::datapar<T, A> &x,
-                                                   const Vc::datapar<T, A> &y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx << yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_shift_left(const Vc::datapar<T, A> &x, int y)
-    {
-        return {private_init, apply([y](auto xx) { return xx << y; }, x.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_shift_right(const Vc::datapar<T, A> &x,
-                                                    const Vc::datapar<T, A> &y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx >> yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_shift_right(const Vc::datapar<T, A> &x, int y)
-    {
-        return {private_init, apply([y](auto xx) { return xx >> y; }, x.d)};
+        return apply([y](auto xx) { return xx >> y; }, x);
     }
 
     // sqrt {{{2
-    template <class T, class A>
-    static inline Vc::datapar<T, A> sqrt(const Vc::datapar<T, A> &x) noexcept
+    template <class T, class... As>
+    static inline datapar_tuple<T, As...> sqrt(datapar_tuple<T, As...> x) noexcept
     {
-        return {private_init, apply([](auto xx) { return Vc::sqrt(xx); }, x.d)};
+        return apply([](auto xx) { return Vc::sqrt(xx); }, x);
     }
 
     // abs {{{2
-    template <class T, class A>
-    static inline Vc::datapar<T, A> abs(const Vc::datapar<T, A> &x) noexcept
+    template <class T, class... As>
+    static inline datapar_tuple<T, As...> abs(datapar_tuple<T, As...> x) noexcept
     {
-        return {private_init, apply([](auto xx) { return Vc::abs(xx); }, x.d)};
+        return apply([](auto xx) { return Vc::abs(xx); }, x);
     }
 
     // increment & decrement{{{2
@@ -471,15 +422,17 @@ public:
 
     // compares {{{2
 #define Vc_CMP_OPERATIONS(cmp_)                                                          \
-    template <class V> static inline typename V::mask_type cmp_(const V &x, const V &y)  \
+    template <class T, class... As>                                                      \
+    static inline mask_member_type cmp_(datapar_tuple<T, As...> x,                       \
+                                        datapar_tuple<T, As...> y)                       \
     {                                                                                    \
         mask_member_type bits = 0;                                                       \
-        detail::for_each(x.d, y.d, [&bits](auto native_x, auto native_y, auto offset) {  \
+        detail::for_each(x, y, [&bits](auto native_x, auto native_y, auto offset) {      \
             bits |= mask_member_type(                                                    \
                         std::cmp_<>()(native_x, native_y).to_bitset().to_ullong())       \
                     << offset;                                                           \
         });                                                                              \
-        return {private_init, bits};                                                     \
+        return bits;                                                                     \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
     Vc_CMP_OPERATIONS(equal_to);
@@ -745,7 +698,14 @@ struct fixed_size_traits {
         (
 #endif
                  next_power_of_2(N * sizeof(T)));
-    using datapar_cast_type = const std::array<T, N> &;
+    struct datapar_cast_type {
+        datapar_cast_type(const std::array<T, N> &);
+        datapar_cast_type(datapar_member_type dd) : d(dd) {}
+        explicit operator datapar_member_type() const { return d; }
+
+    private:
+        datapar_member_type d;
+    };
     struct datapar_base {
         datapar_base() = default;
         Vc_INTRINSIC datapar_base(const datapar_base &) {}

@@ -57,14 +57,6 @@ template <class Derived> struct generic_datapar_impl {
         return x;
     }
 
-    template <class T, class A, class U>
-    static Vc_INTRINSIC Vc::datapar<T, A> make_datapar(const U &x)
-    {
-        using traits = typename Vc::datapar<T, A>::traits;
-        using V = typename traits::datapar_member_type;
-        return {private_init, static_cast<V>(x)};
-    }
-
     // generator {{{2
     template <class F, class T, size_t N>
     static Vc_INTRINSIC Storage<T, N> generator(F &&gen, type_tag<T>, size_tag<N>)
@@ -74,98 +66,95 @@ template <class Derived> struct generic_datapar_impl {
     }
 
     // complement {{{2
-    template <class T, class A>
-    static Vc_INTRINSIC Vc::datapar<T, A> complement(const Vc::datapar<T, A> &x) noexcept
+    template <class T, size_t N>
+    static Vc_INTRINSIC Storage<T, N> complement(Storage<T, N> x) noexcept
     {
-        using detail::x86::complement;
-        return make_datapar<T, A>(complement(adjust_for_long(detail::data(x))));
+        return static_cast<typename Storage<T, N>::VectorType>(
+            detail::x86::complement(adjust_for_long(x)));
     }
 
     // unary minus {{{2
-    template <class T, class A>
-    static Vc_INTRINSIC Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept
+    template <class T, size_t N>
+    static Vc_INTRINSIC Storage<T, N> unary_minus(Storage<T, N> x) noexcept
     {
         using detail::x86::unary_minus;
-        return make_datapar<T, A>(unary_minus(adjust_for_long(detail::data(x))));
+        return static_cast<typename Storage<T, N>::VectorType>(
+            unary_minus(adjust_for_long(x)));
     }
 
     // arithmetic operators {{{2
 #define Vc_ARITHMETIC_OP_(name_)                                                         \
-    template <class T, class A>                                                          \
-    static Vc_INTRINSIC datapar<T, A> Vc_VDECL name_(datapar<T, A> x, datapar<T, A> y)   \
+    template <size_t N>                                                                  \
+    static Vc_INTRINSIC Storage<long, N> Vc_VDECL name_(Storage<long, N> x,              \
+                                                        Storage<long, N> y)              \
     {                                                                                    \
-        return make_datapar<T, A>(                                                       \
-            detail::name_(adjust_for_long(x.d), adjust_for_long(y.d)));                  \
+        using Adjusted = detail::Storage<equal_int_type_t<long>, N>;                     \
+        return static_cast<typename Adjusted::VectorType>(                               \
+            detail::name_(Adjusted(x.v()), Adjusted(y.v())));                            \
+    }                                                                                    \
+    template <size_t N>                                                                  \
+    static Vc_INTRINSIC Storage<unsigned long, N> Vc_VDECL name_(                        \
+        Storage<unsigned long, N> x, Storage<unsigned long, N> y)                        \
+    {                                                                                    \
+        using Adjusted = detail::Storage<equal_int_type_t<unsigned long>, N>;            \
+        return static_cast<typename Adjusted::VectorType>(                               \
+            detail::name_(Adjusted(x.v()), Adjusted(y.v())));                            \
+    }                                                                                    \
+    template <class T, size_t N>                                                         \
+    static Vc_INTRINSIC Storage<T, N> Vc_VDECL name_(Storage<T, N> x, Storage<T, N> y)   \
+    {                                                                                    \
+        return detail::name_(x, y);                                                      \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
-
-    Vc_ARITHMETIC_OP_(plus);
-    Vc_ARITHMETIC_OP_(minus);
-    Vc_ARITHMETIC_OP_(multiplies);
-    Vc_ARITHMETIC_OP_(divides);
-    Vc_ARITHMETIC_OP_(modulus);
-    Vc_ARITHMETIC_OP_(bit_and);
-    Vc_ARITHMETIC_OP_(bit_or);
-    Vc_ARITHMETIC_OP_(bit_xor);
-    Vc_ARITHMETIC_OP_(bit_shift_left);
-    Vc_ARITHMETIC_OP_(bit_shift_right);
+        Vc_ARITHMETIC_OP_(plus);
+        Vc_ARITHMETIC_OP_(minus);
+        Vc_ARITHMETIC_OP_(multiplies);
+        Vc_ARITHMETIC_OP_(divides);
+        Vc_ARITHMETIC_OP_(modulus);
+        Vc_ARITHMETIC_OP_(bit_and);
+        Vc_ARITHMETIC_OP_(bit_or);
+        Vc_ARITHMETIC_OP_(bit_xor);
+        Vc_ARITHMETIC_OP_(bit_shift_left);
+        Vc_ARITHMETIC_OP_(bit_shift_right);
 #undef Vc_ARITHMETIC_OP_
-    template <class T, class A>
-    static Vc_INTRINSIC datapar<T, A> Vc_VDECL bit_shift_left(datapar<T, A> x, int y)
+
+    template <class T, size_t N>
+    static Vc_INTRINSIC Storage<T, N> Vc_VDECL bit_shift_left(Storage<T, N> x, int y)
     {
-        return make_datapar<T, A>(detail::bit_shift_left(adjust_for_long(x.d), y));
+        return static_cast<typename Storage<T, N>::VectorType>(
+            detail::bit_shift_left(adjust_for_long(x), y));
     }
-    template <class T, class A>
-    static Vc_INTRINSIC datapar<T, A> Vc_VDECL bit_shift_right(datapar<T, A> x, int y)
+    template <class T, size_t N>
+    static Vc_INTRINSIC Storage<T, N> Vc_VDECL bit_shift_right(Storage<T, N> x, int y)
     {
-        return make_datapar<T, A>(detail::bit_shift_right(adjust_for_long(x.d), y));
+        return static_cast<typename Storage<T, N>::VectorType>(
+            detail::bit_shift_right(adjust_for_long(x), y));
     }
 
     // sqrt {{{2
-    template <class T, class A>
-    static Vc_INTRINSIC Vc::datapar<T, A> sqrt(const Vc::datapar<T, A> &x) noexcept
+    template <class T, size_t N>
+    static Vc_INTRINSIC Storage<T, N> sqrt(Storage<T, N> x) noexcept
     {
         using detail::x86::sqrt;
-        return make_datapar<T, A>(sqrt(adjust_for_long(detail::data(x))));
+        return sqrt(adjust_for_long(x));
     }
 
     // abs {{{2
-    template <class T, class A>
-    static Vc_INTRINSIC Vc::datapar<T, A> abs(const Vc::datapar<T, A> &x) noexcept
+    template <class T, size_t N>
+    static Vc_INTRINSIC Storage<T, N> abs(Storage<T, N> x) noexcept
     {
         using detail::x86::abs;
-        return make_datapar<T, A>(abs(adjust_for_long(detail::data(x))));
+        return abs(adjust_for_long(x));
     }
 
     // increment & decrement{{{2
     template <class T, size_t N> static Vc_INTRINSIC void increment(Storage<T, N> &x)
     {
-        x = detail::plus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
+        x = plus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
     }
-    template <size_t N> static Vc_INTRINSIC void increment(Storage<long, N> &x)
-    {
-        x = detail::plus(adjust_for_long(x), Storage<equal_int_type_t<long>, N>(
-                                                 Derived::broadcast(1L, size_tag<N>())));
-    }
-    template <size_t N> static Vc_INTRINSIC void increment(Storage<ulong, N> &x)
-    {
-        x = detail::plus(adjust_for_long(x), Storage<equal_int_type_t<ulong>, N>(
-                                                 Derived::broadcast(1L, size_tag<N>())));
-    }
-
     template <class T, size_t N> static Vc_INTRINSIC void decrement(Storage<T, N> &x)
     {
-        x = detail::minus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
-    }
-    template <size_t N> static Vc_INTRINSIC void decrement(Storage<long, N> &x)
-    {
-        x = detail::minus(adjust_for_long(x), Storage<equal_int_type_t<long>, N>(
-                                                  Derived::broadcast(1L, size_tag<N>())));
-    }
-    template <size_t N> static Vc_INTRINSIC void decrement(Storage<ulong, N> &x)
-    {
-        x = detail::minus(adjust_for_long(x), Storage<equal_int_type_t<ulong>, N>(
-                                                  Derived::broadcast(1L, size_tag<N>())));
+        x = minus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
     }
 };
 // mask impl {{{1

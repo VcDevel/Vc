@@ -43,8 +43,10 @@ template <class T, class Abi> class mask : public detail::traits<T, Abi>::mask_b
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::mask_impl_type;
+    using member_type = typename traits::mask_member_type;
     static constexpr detail::size_tag_type<T, Abi> size_tag = {};
     static constexpr T *type_tag = nullptr;
+    friend class datapar<T, Abi>;  // to construct masks on return
     friend impl;
     friend typename traits::datapar_impl_type;  // to construct masks on return and
                                                 // inspect data on masked operations

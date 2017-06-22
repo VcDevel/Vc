@@ -576,12 +576,14 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     }
 
     // negation {{{2
-    template <class T> static Vc_INTRINSIC mask<T> Vc_VDECL negate(datapar<T> x) noexcept
+    template <class T>
+    static Vc_INTRINSIC mask_member_type<T> Vc_VDECL
+    negate(datapar_member_type<T> x) noexcept
     {
 #if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
-        return {private_init, !x.d.builtin()};
+        return !x.builtin();
 #else
-        return equal_to(x, datapar<T>(0));
+        return equal_to(x, datapar<T>(0).d);
 #endif
     }
 
@@ -848,77 +850,77 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
     // compares {{{2
 #if defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>
-    static Vc_INTRINSIC mask<T> equal_to(datapar<T> x, datapar<T> y)
+    static Vc_INTRINSIC mask_member_type<T> equal_to(datapar_member_type<T> x, datapar_member_type<T> y)
     {
-        return {private_init, x.d.builtin() == y.d.builtin()};
+        return x.builtin() == y.builtin();
     }
     template <class T>
-    static Vc_INTRINSIC mask<T> not_equal_to(datapar<T> x, datapar<T> y)
+    static Vc_INTRINSIC mask_member_type<T> not_equal_to(datapar_member_type<T> x, datapar_member_type<T> y)
     {
-        return {private_init, x.d.builtin() != y.d.builtin()};
+        return x.builtin() != y.builtin();
     }
     template <class T>
-    static Vc_INTRINSIC mask<T> less(datapar<T> x, datapar<T> y)
+    static Vc_INTRINSIC mask_member_type<T> less(datapar_member_type<T> x, datapar_member_type<T> y)
     {
-        return {private_init, x.d.builtin() < y.d.builtin()};
+        return x.builtin() < y.builtin();
     }
     template <class T>
-    static Vc_INTRINSIC mask<T> less_equal(datapar<T> x, datapar<T> y)
+    static Vc_INTRINSIC mask_member_type<T> less_equal(datapar_member_type<T> x, datapar_member_type<T> y)
     {
-        return {private_init, x.d.builtin() <= y.d.builtin()};
+        return x.builtin() <= y.builtin();
     }
 #else
-    static Vc_INTRINSIC mask<double> Vc_VDECL equal_to(datapar<double> x, datapar<double> y) { return {private_init, _mm_cmpeq_pd(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> Vc_VDECL equal_to(datapar< float> x, datapar< float> y) { return {private_init, _mm_cmpeq_ps(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< llong> Vc_VDECL equal_to(datapar< llong> x, datapar< llong> y) { return {private_init, cmpeq_epi64(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<ullong> Vc_VDECL equal_to(datapar<ullong> x, datapar<ullong> y) { return {private_init, cmpeq_epi64(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<  long> Vc_VDECL equal_to(datapar<  long> x, datapar<  long> y) { return {private_init, sizeof(long) == 8 ? cmpeq_epi64(x.d, y.d) : _mm_cmpeq_epi32(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< ulong> Vc_VDECL equal_to(datapar< ulong> x, datapar< ulong> y) { return {private_init, sizeof(long) == 8 ? cmpeq_epi64(x.d, y.d) : _mm_cmpeq_epi32(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<   int> Vc_VDECL equal_to(datapar<   int> x, datapar<   int> y) { return {private_init, _mm_cmpeq_epi32(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<  uint> Vc_VDECL equal_to(datapar<  uint> x, datapar<  uint> y) { return {private_init, _mm_cmpeq_epi32(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< short> Vc_VDECL equal_to(datapar< short> x, datapar< short> y) { return {private_init, _mm_cmpeq_epi16(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<ushort> Vc_VDECL equal_to(datapar<ushort> x, datapar<ushort> y) { return {private_init, _mm_cmpeq_epi16(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< schar> Vc_VDECL equal_to(datapar< schar> x, datapar< schar> y) { return {private_init, _mm_cmpeq_epi8(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< uchar> Vc_VDECL equal_to(datapar< uchar> x, datapar< uchar> y) { return {private_init, _mm_cmpeq_epi8(x.d, y.d)}; }
+    static Vc_INTRINSIC mask_member_type<double> Vc_VDECL equal_to(datapar_member_type<double> x, datapar_member_type<double> y) { return _mm_cmpeq_pd(x, y); }
+    static Vc_INTRINSIC mask_member_type< float> Vc_VDECL equal_to(datapar_member_type< float> x, datapar_member_type< float> y) { return _mm_cmpeq_ps(x, y); }
+    static Vc_INTRINSIC mask_member_type< llong> Vc_VDECL equal_to(datapar_member_type< llong> x, datapar_member_type< llong> y) { return cmpeq_epi64(x, y); }
+    static Vc_INTRINSIC mask_member_type<ullong> Vc_VDECL equal_to(datapar_member_type<ullong> x, datapar_member_type<ullong> y) { return cmpeq_epi64(x, y); }
+    static Vc_INTRINSIC mask_member_type<  long> Vc_VDECL equal_to(datapar_member_type<  long> x, datapar_member_type<  long> y) { return sizeof(long) == 8 ? cmpeq_epi64(x, y) : _mm_cmpeq_epi32(x, y); }
+    static Vc_INTRINSIC mask_member_type< ulong> Vc_VDECL equal_to(datapar_member_type< ulong> x, datapar_member_type< ulong> y) { return sizeof(long) == 8 ? cmpeq_epi64(x, y) : _mm_cmpeq_epi32(x, y); }
+    static Vc_INTRINSIC mask_member_type<   int> Vc_VDECL equal_to(datapar_member_type<   int> x, datapar_member_type<   int> y) { return _mm_cmpeq_epi32(x, y); }
+    static Vc_INTRINSIC mask_member_type<  uint> Vc_VDECL equal_to(datapar_member_type<  uint> x, datapar_member_type<  uint> y) { return _mm_cmpeq_epi32(x, y); }
+    static Vc_INTRINSIC mask_member_type< short> Vc_VDECL equal_to(datapar_member_type< short> x, datapar_member_type< short> y) { return _mm_cmpeq_epi16(x, y); }
+    static Vc_INTRINSIC mask_member_type<ushort> Vc_VDECL equal_to(datapar_member_type<ushort> x, datapar_member_type<ushort> y) { return _mm_cmpeq_epi16(x, y); }
+    static Vc_INTRINSIC mask_member_type< schar> Vc_VDECL equal_to(datapar_member_type< schar> x, datapar_member_type< schar> y) { return _mm_cmpeq_epi8(x, y); }
+    static Vc_INTRINSIC mask_member_type< uchar> Vc_VDECL equal_to(datapar_member_type< uchar> x, datapar_member_type< uchar> y) { return _mm_cmpeq_epi8(x, y); }
 
-    static Vc_INTRINSIC mask<double> Vc_VDECL not_equal_to(datapar<double> x, datapar<double> y) { return {private_init, _mm_cmpneq_pd(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> Vc_VDECL not_equal_to(datapar< float> x, datapar< float> y) { return {private_init, _mm_cmpneq_ps(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< llong> Vc_VDECL not_equal_to(datapar< llong> x, datapar< llong> y) { return {private_init, detail::not_(cmpeq_epi64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<ullong> Vc_VDECL not_equal_to(datapar<ullong> x, datapar<ullong> y) { return {private_init, detail::not_(cmpeq_epi64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<  long> Vc_VDECL not_equal_to(datapar<  long> x, datapar<  long> y) { return {private_init, detail::not_(sizeof(long) == 8 ? cmpeq_epi64(x.d, y.d) : _mm_cmpeq_epi32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< ulong> Vc_VDECL not_equal_to(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::not_(sizeof(long) == 8 ? cmpeq_epi64(x.d, y.d) : _mm_cmpeq_epi32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<   int> Vc_VDECL not_equal_to(datapar<   int> x, datapar<   int> y) { return {private_init, detail::not_(_mm_cmpeq_epi32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<  uint> Vc_VDECL not_equal_to(datapar<  uint> x, datapar<  uint> y) { return {private_init, detail::not_(_mm_cmpeq_epi32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< short> Vc_VDECL not_equal_to(datapar< short> x, datapar< short> y) { return {private_init, detail::not_(_mm_cmpeq_epi16(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<ushort> Vc_VDECL not_equal_to(datapar<ushort> x, datapar<ushort> y) { return {private_init, detail::not_(_mm_cmpeq_epi16(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< schar> Vc_VDECL not_equal_to(datapar< schar> x, datapar< schar> y) { return {private_init, detail::not_(_mm_cmpeq_epi8(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< uchar> Vc_VDECL not_equal_to(datapar< uchar> x, datapar< uchar> y) { return {private_init, detail::not_(_mm_cmpeq_epi8(x.d, y.d))}; }
+    static Vc_INTRINSIC mask_member_type<double> Vc_VDECL not_equal_to(datapar_member_type<double> x, datapar_member_type<double> y) { return _mm_cmpneq_pd(x, y); }
+    static Vc_INTRINSIC mask_member_type< float> Vc_VDECL not_equal_to(datapar_member_type< float> x, datapar_member_type< float> y) { return _mm_cmpneq_ps(x, y); }
+    static Vc_INTRINSIC mask_member_type< llong> Vc_VDECL not_equal_to(datapar_member_type< llong> x, datapar_member_type< llong> y) { return detail::not_(cmpeq_epi64(x, y)); }
+    static Vc_INTRINSIC mask_member_type<ullong> Vc_VDECL not_equal_to(datapar_member_type<ullong> x, datapar_member_type<ullong> y) { return detail::not_(cmpeq_epi64(x, y)); }
+    static Vc_INTRINSIC mask_member_type<  long> Vc_VDECL not_equal_to(datapar_member_type<  long> x, datapar_member_type<  long> y) { return detail::not_(sizeof(long) == 8 ? cmpeq_epi64(x, y) : _mm_cmpeq_epi32(x, y)); }
+    static Vc_INTRINSIC mask_member_type< ulong> Vc_VDECL not_equal_to(datapar_member_type< ulong> x, datapar_member_type< ulong> y) { return detail::not_(sizeof(long) == 8 ? cmpeq_epi64(x, y) : _mm_cmpeq_epi32(x, y)); }
+    static Vc_INTRINSIC mask_member_type<   int> Vc_VDECL not_equal_to(datapar_member_type<   int> x, datapar_member_type<   int> y) { return detail::not_(_mm_cmpeq_epi32(x, y)); }
+    static Vc_INTRINSIC mask_member_type<  uint> Vc_VDECL not_equal_to(datapar_member_type<  uint> x, datapar_member_type<  uint> y) { return detail::not_(_mm_cmpeq_epi32(x, y)); }
+    static Vc_INTRINSIC mask_member_type< short> Vc_VDECL not_equal_to(datapar_member_type< short> x, datapar_member_type< short> y) { return detail::not_(_mm_cmpeq_epi16(x, y)); }
+    static Vc_INTRINSIC mask_member_type<ushort> Vc_VDECL not_equal_to(datapar_member_type<ushort> x, datapar_member_type<ushort> y) { return detail::not_(_mm_cmpeq_epi16(x, y)); }
+    static Vc_INTRINSIC mask_member_type< schar> Vc_VDECL not_equal_to(datapar_member_type< schar> x, datapar_member_type< schar> y) { return detail::not_(_mm_cmpeq_epi8(x, y)); }
+    static Vc_INTRINSIC mask_member_type< uchar> Vc_VDECL not_equal_to(datapar_member_type< uchar> x, datapar_member_type< uchar> y) { return detail::not_(_mm_cmpeq_epi8(x, y)); }
 
-    static Vc_INTRINSIC mask<double> Vc_VDECL less(datapar<double> x, datapar<double> y) { return {private_init, _mm_cmplt_pd(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> Vc_VDECL less(datapar< float> x, datapar< float> y) { return {private_init, _mm_cmplt_ps(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< llong> Vc_VDECL less(datapar< llong> x, datapar< llong> y) { return {private_init, cmpgt_epi64(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<ullong> Vc_VDECL less(datapar<ullong> x, datapar<ullong> y) { return {private_init, cmpgt_epu64(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<  long> Vc_VDECL less(datapar<  long> x, datapar<  long> y) { return {private_init, sizeof(long) == 8 ? cmpgt_epi64(y.d, x.d) :  _mm_cmpgt_epi32(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< ulong> Vc_VDECL less(datapar< ulong> x, datapar< ulong> y) { return {private_init, sizeof(long) == 8 ? cmpgt_epu64(y.d, x.d) : cmpgt_epu32(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<   int> Vc_VDECL less(datapar<   int> x, datapar<   int> y) { return {private_init,  _mm_cmpgt_epi32(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<  uint> Vc_VDECL less(datapar<  uint> x, datapar<  uint> y) { return {private_init, cmpgt_epu32(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< short> Vc_VDECL less(datapar< short> x, datapar< short> y) { return {private_init,  _mm_cmpgt_epi16(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<ushort> Vc_VDECL less(datapar<ushort> x, datapar<ushort> y) { return {private_init, cmpgt_epu16(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< schar> Vc_VDECL less(datapar< schar> x, datapar< schar> y) { return {private_init,  _mm_cmpgt_epi8 (y.d, x.d)}; }
-    static Vc_INTRINSIC mask< uchar> Vc_VDECL less(datapar< uchar> x, datapar< uchar> y) { return {private_init, cmpgt_epu8 (y.d, x.d)}; }
+    static Vc_INTRINSIC mask_member_type<double> Vc_VDECL less(datapar_member_type<double> x, datapar_member_type<double> y) { return _mm_cmplt_pd(x, y); }
+    static Vc_INTRINSIC mask_member_type< float> Vc_VDECL less(datapar_member_type< float> x, datapar_member_type< float> y) { return _mm_cmplt_ps(x, y); }
+    static Vc_INTRINSIC mask_member_type< llong> Vc_VDECL less(datapar_member_type< llong> x, datapar_member_type< llong> y) { return cmpgt_epi64(y, x); }
+    static Vc_INTRINSIC mask_member_type<ullong> Vc_VDECL less(datapar_member_type<ullong> x, datapar_member_type<ullong> y) { return cmpgt_epu64(y, x); }
+    static Vc_INTRINSIC mask_member_type<  long> Vc_VDECL less(datapar_member_type<  long> x, datapar_member_type<  long> y) { return sizeof(long) == 8 ? cmpgt_epi64(y, x) :  _mm_cmpgt_epi32(y, x); }
+    static Vc_INTRINSIC mask_member_type< ulong> Vc_VDECL less(datapar_member_type< ulong> x, datapar_member_type< ulong> y) { return sizeof(long) == 8 ? cmpgt_epu64(y, x) : cmpgt_epu32(y, x); }
+    static Vc_INTRINSIC mask_member_type<   int> Vc_VDECL less(datapar_member_type<   int> x, datapar_member_type<   int> y) { return  _mm_cmpgt_epi32(y, x); }
+    static Vc_INTRINSIC mask_member_type<  uint> Vc_VDECL less(datapar_member_type<  uint> x, datapar_member_type<  uint> y) { return cmpgt_epu32(y, x); }
+    static Vc_INTRINSIC mask_member_type< short> Vc_VDECL less(datapar_member_type< short> x, datapar_member_type< short> y) { return  _mm_cmpgt_epi16(y, x); }
+    static Vc_INTRINSIC mask_member_type<ushort> Vc_VDECL less(datapar_member_type<ushort> x, datapar_member_type<ushort> y) { return cmpgt_epu16(y, x); }
+    static Vc_INTRINSIC mask_member_type< schar> Vc_VDECL less(datapar_member_type< schar> x, datapar_member_type< schar> y) { return  _mm_cmpgt_epi8 (y, x); }
+    static Vc_INTRINSIC mask_member_type< uchar> Vc_VDECL less(datapar_member_type< uchar> x, datapar_member_type< uchar> y) { return cmpgt_epu8 (y, x); }
 
-    static Vc_INTRINSIC mask<double> Vc_VDECL less_equal(datapar<double> x, datapar<double> y) { return {private_init, _mm_cmple_pd(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> Vc_VDECL less_equal(datapar< float> x, datapar< float> y) { return {private_init, _mm_cmple_ps(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< llong> Vc_VDECL less_equal(datapar< llong> x, datapar< llong> y) { return {private_init, detail::not_(cmpgt_epi64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<ullong> Vc_VDECL less_equal(datapar<ullong> x, datapar<ullong> y) { return {private_init, detail::not_(cmpgt_epu64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<  long> Vc_VDECL less_equal(datapar<  long> x, datapar<  long> y) { return {private_init, detail::not_(sizeof(long) == 8 ? cmpgt_epi64(x.d, y.d) :  _mm_cmpgt_epi32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< ulong> Vc_VDECL less_equal(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::not_(sizeof(long) == 8 ? cmpgt_epu64(x.d, y.d) : cmpgt_epu32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<   int> Vc_VDECL less_equal(datapar<   int> x, datapar<   int> y) { return {private_init, detail::not_( _mm_cmpgt_epi32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<  uint> Vc_VDECL less_equal(datapar<  uint> x, datapar<  uint> y) { return {private_init, detail::not_(cmpgt_epu32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< short> Vc_VDECL less_equal(datapar< short> x, datapar< short> y) { return {private_init, detail::not_( _mm_cmpgt_epi16(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<ushort> Vc_VDECL less_equal(datapar<ushort> x, datapar<ushort> y) { return {private_init, detail::not_(cmpgt_epu16(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< schar> Vc_VDECL less_equal(datapar< schar> x, datapar< schar> y) { return {private_init, detail::not_( _mm_cmpgt_epi8 (x.d, y.d))}; }
-    static Vc_INTRINSIC mask< uchar> Vc_VDECL less_equal(datapar< uchar> x, datapar< uchar> y) { return {private_init, detail::not_(cmpgt_epu8 (x.d, y.d))}; }
+    static Vc_INTRINSIC mask_member_type<double> Vc_VDECL less_equal(datapar_member_type<double> x, datapar_member_type<double> y) { return _mm_cmple_pd(x, y); }
+    static Vc_INTRINSIC mask_member_type< float> Vc_VDECL less_equal(datapar_member_type< float> x, datapar_member_type< float> y) { return _mm_cmple_ps(x, y); }
+    static Vc_INTRINSIC mask_member_type< llong> Vc_VDECL less_equal(datapar_member_type< llong> x, datapar_member_type< llong> y) { return detail::not_(cmpgt_epi64(x, y)); }
+    static Vc_INTRINSIC mask_member_type<ullong> Vc_VDECL less_equal(datapar_member_type<ullong> x, datapar_member_type<ullong> y) { return detail::not_(cmpgt_epu64(x, y)); }
+    static Vc_INTRINSIC mask_member_type<  long> Vc_VDECL less_equal(datapar_member_type<  long> x, datapar_member_type<  long> y) { return detail::not_(sizeof(long) == 8 ? cmpgt_epi64(x, y) :  _mm_cmpgt_epi32(x, y)); }
+    static Vc_INTRINSIC mask_member_type< ulong> Vc_VDECL less_equal(datapar_member_type< ulong> x, datapar_member_type< ulong> y) { return detail::not_(sizeof(long) == 8 ? cmpgt_epu64(x, y) : cmpgt_epu32(x, y)); }
+    static Vc_INTRINSIC mask_member_type<   int> Vc_VDECL less_equal(datapar_member_type<   int> x, datapar_member_type<   int> y) { return detail::not_( _mm_cmpgt_epi32(x, y)); }
+    static Vc_INTRINSIC mask_member_type<  uint> Vc_VDECL less_equal(datapar_member_type<  uint> x, datapar_member_type<  uint> y) { return detail::not_(cmpgt_epu32(x, y)); }
+    static Vc_INTRINSIC mask_member_type< short> Vc_VDECL less_equal(datapar_member_type< short> x, datapar_member_type< short> y) { return detail::not_( _mm_cmpgt_epi16(x, y)); }
+    static Vc_INTRINSIC mask_member_type<ushort> Vc_VDECL less_equal(datapar_member_type<ushort> x, datapar_member_type<ushort> y) { return detail::not_(cmpgt_epu16(x, y)); }
+    static Vc_INTRINSIC mask_member_type< schar> Vc_VDECL less_equal(datapar_member_type< schar> x, datapar_member_type< schar> y) { return detail::not_( _mm_cmpgt_epi8 (x, y)); }
+    static Vc_INTRINSIC mask_member_type< uchar> Vc_VDECL less_equal(datapar_member_type< uchar> x, datapar_member_type< uchar> y) { return detail::not_(cmpgt_epu8 (x, y)); }
 #endif
 
     // smart_reference access {{{2
