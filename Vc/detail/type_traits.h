@@ -34,8 +34,8 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
 
 #ifdef Vc_CXX17
-using all = std::conjunction;
-using any = std::disjunction;
+template <class... Ts> using all = std::conjunction<Ts...>;
+template <class... Ts> using any = std::disjunction<Ts...>;
 using std::negation;
 
 #else   // Vc_CXX17
