@@ -284,15 +284,15 @@ function(vc_add_test name) #{{{
                add_dependencies(${label} ${target})
             endif()
             if(${use_var}) # add test and run target#{{{
-               if(emulator)
-                  get_target_executable(_exe "${target}")
-                  add_test(NAME ${target}
-                     COMMAND ${emulator} "${_exe}"
-                     )
-               else()
-                  add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
-               endif()
                if(NOT _EXCLUDE_FROM_ALL)
+                  if(emulator)
+                     get_target_executable(_exe "${target}")
+                     add_test(NAME ${target}
+                        COMMAND ${emulator} "${_exe}"
+                        )
+                  else()
+                     add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
+                  endif()
                   set_property(TEST ${target} PROPERTY LABELS "${label}")
                endif()
                vc_add_run_target(${target} "${emulator}" run_targets)
