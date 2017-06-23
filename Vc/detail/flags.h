@@ -32,22 +32,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 using size_t = std::size_t;
-using align_val_t =
-#if __cplusplus >= 201700L
-    std::align_val_t
-#else
-    size_t
-#endif
-    ;
 
 namespace flags
 {
 struct element_aligned_tag {};
 struct vector_aligned_tag {};
-template <align_val_t> struct overaligned_tag {};
+template <size_t> struct overaligned_tag {};
 constexpr element_aligned_tag element_aligned = {};
 constexpr vector_aligned_tag vector_aligned = {};
-template <align_val_t N> constexpr overaligned_tag<N> overaligned = {};
+template <size_t N> constexpr overaligned_tag<N> overaligned = {};
 }  // namespace flags
 Vc_VERSIONED_NAMESPACE_END
 
