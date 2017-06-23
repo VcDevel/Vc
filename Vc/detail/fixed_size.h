@@ -361,80 +361,37 @@ public:
 
     // arithmetic operators {{{2
 
-    template <class T, class A>
-    static inline Vc::datapar<T, A> plus(const Vc::datapar<T, A> x,
-                                         const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx + yy; }, x.d, y.d)};
-    }
+#define Vc_FIXED_OP(name_, op_)                                                          \
+    template <class T, class... As>                                                      \
+    static inline datapar_tuple<T, As...> name_##_impl(datapar_tuple<T, As...> x,        \
+                                                       datapar_tuple<T, As...> y)        \
+    {                                                                                    \
+        return apply([](auto xx, auto yy) { return xx op_ yy; }, x, y);                  \
+    }                                                                                    \
+    template <class T, class A>                                                          \
+    static Vc_INTRINSIC Vc::datapar<T, A> name_(const Vc::datapar<T, A> &x,              \
+                                                const Vc::datapar<T, A> &y)              \
+    {                                                                                    \
+        return {private_init, name_##_impl(x.d, y.d)};                                   \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
 
-    template <class T, class A>
-    static inline Vc::datapar<T, A> minus(const Vc::datapar<T, A> x,
-                                          const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx - yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> multiplies(const Vc::datapar<T, A> x,
-                                               const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx * yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> divides(const Vc::datapar<T, A> x,
-                                            const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx / yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> modulus(const Vc::datapar<T, A> x,
-                                            const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx % yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_and(const Vc::datapar<T, A> x,
-                                            const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx & yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_or(const Vc::datapar<T, A> x,
-                                           const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx | yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_xor(const Vc::datapar<T, A> x,
-                                            const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx ^ yy; }, x.d, y.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_shift_left(const Vc::datapar<T, A> x,
-                                                   const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx << yy; }, x.d, y.d)};
-    }
+    Vc_FIXED_OP(plus, +);
+    Vc_FIXED_OP(minus, -);
+    Vc_FIXED_OP(multiplies, *);
+    Vc_FIXED_OP(divides, /);
+    Vc_FIXED_OP(modulus, %);
+    Vc_FIXED_OP(bit_and, &);
+    Vc_FIXED_OP(bit_or, |);
+    Vc_FIXED_OP(bit_xor, ^);
+    Vc_FIXED_OP(bit_shift_left, <<);
+    Vc_FIXED_OP(bit_shift_right, >>);
+#undef Vc_FIXED_OP
 
     template <class T, class A>
     static inline Vc::datapar<T, A> bit_shift_left(const Vc::datapar<T, A> x, int y)
     {
         return {private_init, apply([y](auto xx) { return xx << y; }, x.d)};
-    }
-
-    template <class T, class A>
-    static inline Vc::datapar<T, A> bit_shift_right(const Vc::datapar<T, A> x,
-                                                    const Vc::datapar<T, A> y)
-    {
-        return {private_init, apply([](auto xx, auto yy) { return xx >> yy; }, x.d, y.d)};
     }
 
     template <class T, class A>
