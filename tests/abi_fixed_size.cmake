@@ -18,7 +18,7 @@ foreach(fun 1 2 4 8 Max)
       set(reference "mov[a-z]* +\\(%[a-z]+\\),%.*mov[a-z]* +%[a-z0-9]+,\\(%[a-z]+\\)")
    else()
       set(x86_32 FALSE)
-      set(reference "mov[a-z]* +\\(%rsi\\),%.*mov[a-z]* +%[a-z0-9]+,\\(%rdi\\)")
+      set(reference "mov[a-z0-9]* +\\(%rsi\\),%.*mov[a-z0-9]* +%[a-z0-9]+,\\(%rdi\\)")
    endif()
 
    if("${asm}" MATCHES "${reference}")

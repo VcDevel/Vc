@@ -66,7 +66,7 @@ execute_process(
    OUTPUT_VARIABLE asm)
 string(STRIP "${asm}" asm)
 if("${IMPL}" STREQUAL AVX512 OR "${IMPL}" STREQUAL KNL)
-   set(reference "^and %e[sd]i,%e[sd]i mov %e[sd]i,%eax ret")
+   set(reference "^(and %e[sd]i,%e[sd]i mov %e[sd]i|mov %e[sd]i,%eax and %e[sd]i),%eax ret")
 else()
    string(REPLACE "add" "and" reference "${reference}")
 endif()
