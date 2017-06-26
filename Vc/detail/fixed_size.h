@@ -281,16 +281,17 @@ template <int N> struct fixed_size_datapar_impl {
     }
 
     // masked store {{{2
-    template <class T, class A, class U, class F>
-    static inline void masked_store(const datapar<T> v, U *mem, F f,
-                                    const Vc::mask<T, A> k) Vc_NOEXCEPT_OR_IN_TEST
+    template <class T, class... As, class U, class F>
+    static inline void masked_store(const datapar_tuple<T, As...> v, U *mem, F f,
+                                    const mask_member_type bits) Vc_NOEXCEPT_OR_IN_TEST
     {
-        const auto bits = k.to_bitset();
-        detail::for_each(data(v), [&](auto native, auto offset) {
-                         using M = typename decltype(native)::mask_type;
-                         where(M::from_bitset((bits >> offset).to_ullong()), native)
-                             .memstore(&mem[offset], f);
-                         });
+        detail::for_each(v, [&](auto native, auto offset) {
+            using M = typename decltype(native)::mask_type;
+            detail::get_impl_t<decltype(native)>::masked_store(
+                detail::data(native), &mem[offset], f,
+                detail::get_impl_t<M>::from_bitset(
+                    std::bitset<M::size()>((bits >> offset).to_ullong()), type_tag<T>()));
+        });
     }
 
     // negation {{{2
@@ -650,13 +651,13 @@ template <int N> struct fixed_size_mask_impl {
     }
 
     // masked store {{{2
-    template <class T, class F>
-    static inline void masked_store(const mask<T> &v, bool *mem, F,
-                                    const mask<T> &k) noexcept
+    template <class F>
+    static inline void masked_store(const mask_member_type v, bool *mem, F,
+                                    const mask_member_type k) noexcept
     {
         execute_n_times<N>([&](auto i) {
-            if (detail::data(k)[i]) {
-                mem[i] = detail::data(v)[i];
+            if (k[i]) {
+                mem[i] = v[i];
             }
         });
     }

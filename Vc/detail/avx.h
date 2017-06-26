@@ -450,24 +450,25 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
 
     // masked store {{{2
     template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_store(datapar<T> v, long double *mem, F,
-                                                   mask<T> k) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void Vc_VDECL
+    masked_store(datapar_member_type<T> v, long double *mem, F,
+                 mask_member_type<T> k) Vc_NOEXCEPT_OR_IN_TEST
     {
         // no SSE support for long double
         execute_n_times<size<T>()>([&](auto i) {
-            if (k.d.m(i)) {
-                mem[i] = v.d.m(i);
+            if (k.m(i)) {
+                mem[i] = v.m(i);
             }
         });
     }
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_store(datapar<T> v, U *mem, F,
-                                                   mask<T> k) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void Vc_VDECL masked_store(
+        datapar_member_type<T> v, U *mem, F, mask_member_type<T> k) Vc_NOEXCEPT_OR_IN_TEST
     {
         //TODO: detail::masked_store(mem, v.v(), k.d.v(), f);
         execute_n_times<size<T>()>([&](auto i) {
-            if (k.d.m(i)) {
-                mem[i] = static_cast<T>(v.d.m(i));
+            if (k.m(i)) {
+                mem[i] = static_cast<T>(v.m(i));
             }
         });
     }

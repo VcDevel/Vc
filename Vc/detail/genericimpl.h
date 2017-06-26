@@ -199,13 +199,13 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     }
 
     // masked store {{{2
-    template <class T, class F>
-    static inline void Vc_VDECL masked_store(mask<T> v, bool *mem, F, mask<T> k) noexcept
+    template <class T, size_t N, class F>
+    static inline void Vc_VDECL masked_store(const Storage<T, N> v, bool *mem, F,
+                                             const Storage<T, N> k) noexcept
     {
-        constexpr auto N = datapar_size_v<T, abi>;
         detail::execute_n_times<N>([&](auto i) {
-            if (detail::data(k)[i]) {
-                mem[i] = detail::data(v)[i];
+            if (k[i]) {
+                mem[i] = v[i];
             }
         });
     }

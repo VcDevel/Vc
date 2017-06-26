@@ -473,7 +473,7 @@ public:
     Vc_INTRINSIC void memstore(detail::loadstore_ptr_type<U, value_type> *mem,
                                Flags f) const &&
     {
-        detail::get_impl_t<V>::masked_store(d, mem, f, k);
+        detail::get_impl_t<V>::masked_store(detail::data(d), mem, f, detail::data(k));
     }
 };
 

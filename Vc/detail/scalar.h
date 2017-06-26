@@ -86,12 +86,11 @@ struct scalar_datapar_impl {
     }
 
     // masked store {{{2
-    template <class T, class A, class U, class F>
-    static inline void masked_store(const datapar<T> &v, U *mem, F,
-                                    const Vc::mask<T, A> &k) noexcept
+    template <class T, class U, class F>
+    static inline void masked_store(const T v, U *mem, F, const bool k) noexcept
     {
-        if (k[0]) {
-            mem[0] = v.d;
+        if (k) {
+            mem[0] = v;
         }
     }
 
@@ -286,11 +285,12 @@ struct scalar_mask_impl {
     }
 
     // masked store {{{2
-    template <class T, class F>
-    static Vc_INTRINSIC void masked_store(mask<T> v, bool *mem, F, mask<T> k) noexcept
+    template <class F>
+    static Vc_INTRINSIC void masked_store(const bool v, bool *mem, F,
+                                          const bool k) noexcept
     {
-        if (detail::data(k)) {
-            mem[0] = detail::data(v);
+        if (k) {
+            mem[0] = v;
         }
     }
 
