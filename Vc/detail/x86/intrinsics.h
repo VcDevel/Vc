@@ -1597,6 +1597,48 @@ inline typename convert_mask_return_type<VectorSize>::type convert_mask(__mmask3
 template <size_t EntrySize, size_t VectorSize>
 inline typename convert_mask_return_type<VectorSize>::type convert_mask(__mmask64);
 
+template <size_t EntrySize, size_t VectorSize>
+inline typename convert_mask_return_type<VectorSize>::type convert_mask(std::bitset<2> bs)
+{
+    static_assert(VectorSize / EntrySize == 2, "");
+    return convert_mask<EntrySize, VectorSize>(__mmask8(bs.to_ullong()));
+}
+template <size_t EntrySize, size_t VectorSize>
+inline typename convert_mask_return_type<VectorSize>::type convert_mask(std::bitset<4> bs)
+{
+    static_assert(VectorSize / EntrySize == 4, "");
+    return convert_mask<EntrySize, VectorSize>(__mmask8(bs.to_ullong()));
+}
+
+template <size_t EntrySize, size_t VectorSize>
+inline typename convert_mask_return_type<VectorSize>::type convert_mask(std::bitset<8> bs)
+{
+    static_assert(VectorSize / EntrySize == 8, "");
+    return convert_mask<EntrySize, VectorSize>(__mmask8(bs.to_ullong()));
+}
+
+template <size_t EntrySize, size_t VectorSize>
+inline typename convert_mask_return_type<VectorSize>::type convert_mask(std::bitset<16> bs)
+{
+    static_assert(VectorSize / EntrySize == 16, "");
+    return convert_mask<EntrySize, VectorSize>(__mmask16(bs.to_ullong()));
+}
+
+template <size_t EntrySize, size_t VectorSize>
+inline typename convert_mask_return_type<VectorSize>::type convert_mask(std::bitset<32> bs)
+{
+    static_assert(VectorSize / EntrySize == 32, "");
+    return convert_mask<EntrySize, VectorSize>(__mmask32(bs.to_ullong()));
+}
+
+template <size_t EntrySize, size_t VectorSize>
+inline typename convert_mask_return_type<VectorSize>::type convert_mask(std::bitset<64> bs)
+{
+    static_assert(VectorSize / EntrySize == 64, "");
+    return convert_mask<EntrySize, VectorSize>(__mmask64(bs.to_ullong()));
+}
+
+
 #ifdef Vc_HAVE_AVX512VL
 #ifdef Vc_HAVE_AVX512BW
 template <> Vc_INTRINSIC __m128i convert_mask<1, 16>(__mmask16 k) { return _mm_movm_epi8 (k); }
@@ -1610,6 +1652,20 @@ template <> Vc_INTRINSIC __m128i convert_mask<4, 16>(__mmask8  k) { return _mm_m
 template <> Vc_INTRINSIC __m128i convert_mask<8, 16>(__mmask8  k) { return _mm_movm_epi64(k); }
 template <> Vc_INTRINSIC __m256i convert_mask<4, 32>(__mmask8  k) { return _mm256_movm_epi32(k); }
 template <> Vc_INTRINSIC __m256i convert_mask<8, 32>(__mmask8  k) { return _mm256_movm_epi64(k); }
+#endif  // Vc_HAVE_AVX512DQ
+#else   // Vc_HAVE_AVX512VL
+#ifdef Vc_HAVE_AVX512BW
+template <> Vc_INTRINSIC __m128i convert_mask<1, 16>(__mmask16 k) { return lo128(_mm512_movm_epi8 (k)); }
+template <> Vc_INTRINSIC __m128i convert_mask<2, 16>(__mmask8  k) { return lo128(_mm512_movm_epi16(k)); }
+template <> Vc_INTRINSIC __m256i convert_mask<1, 32>(__mmask32 k) { return lo256(_mm512_movm_epi8 (k)); }
+template <> Vc_INTRINSIC __m256i convert_mask<2, 32>(__mmask16 k) { return lo256(_mm512_movm_epi16(k)); }
+#endif  // Vc_HAVE_AVX512BW
+
+#ifdef Vc_HAVE_AVX512DQ
+template <> Vc_INTRINSIC __m128i convert_mask<4, 16>(__mmask8  k) { return lo128(_mm512_movm_epi32(k)); }
+template <> Vc_INTRINSIC __m128i convert_mask<8, 16>(__mmask8  k) { return lo128(_mm512_movm_epi64(k)); }
+template <> Vc_INTRINSIC __m256i convert_mask<4, 32>(__mmask8  k) { return lo256(_mm512_movm_epi32(k)); }
+template <> Vc_INTRINSIC __m256i convert_mask<8, 32>(__mmask8  k) { return lo256(_mm512_movm_epi64(k)); }
 #endif  // Vc_HAVE_AVX512DQ
 #endif  // Vc_HAVE_AVX512VL
 

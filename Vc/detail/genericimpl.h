@@ -270,6 +270,18 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     template <size_t N, class T>
     static Vc_INTRINSIC mask_member_type<T> from_bitset(std::bitset<N> bits, type_tag<T>)
     {
+#ifdef Vc_HAVE_AVX512BW
+        if (sizeof(T) <= 2u) {
+            return detail::intrin_cast<detail::intrinsic_type<T, N>>(
+                x86::convert_mask<sizeof(T), sizeof(mask_member_type<T>)>(bits));
+        }
+#endif  // Vc_HAVE_AVX512BW
+#ifdef Vc_HAVE_AVX512DQ
+        if (sizeof(T) >= 4u) {
+            return detail::intrin_cast<detail::intrinsic_type<T, N>>(
+                x86::convert_mask<sizeof(T), sizeof(mask_member_type<T>)>(bits));
+        }
+#endif  // Vc_HAVE_AVX512DQ
         using U = std::conditional_t<sizeof(T) == 8, ullong,
                   std::conditional_t<sizeof(T) == 4, uint,
                   std::conditional_t<sizeof(T) == 2, ushort,
