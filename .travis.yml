@@ -6,20 +6,13 @@ cache:
         - $HOME/.cache/sde
 
 env:
-    - arch=x86_64  subset=sse2   VcSkipTests=loadstore
-    - arch=x86_64  subset=sse2   VcOnlyTests=loadstore
-    - arch=x86_64  subset=sse4   VcSkipTests=loadstore
-    - arch=x86_64  subset=sse4   VcOnlyTests=loadstore
-    - arch=x86_64  subset=avx    VcSkipTests=loadstore
-    - arch=x86_64  subset=avx    VcOnlyTests=loadstore
-    - arch=x86_64  subset=avx2   VcSkipTests=loadstore
-    - arch=x86_64  subset=avx2   VcOnlyTests=loadstore
-    - arch=x86_64  subset=avx512 VcSkipTests=loadstore
-    - arch=x86_64  subset=avx512 VcOnlyTests=loadstore
-    - arch=x86_64  subset=knl    VcSkipTests=loadstore
-    - arch=x86_64  subset=knl    VcOnlyTests=loadstore
-    - arch=aarch64 subset=neon   VcSkipTests=loadstore
-    - arch=aarch64 subset=neon   VcOnlyTests=loadstore
+    - arch=x86_64  subset=sse2
+    - arch=x86_64  subset=sse4
+    - arch=x86_64  subset=avx
+    - arch=x86_64  subset=avx2
+    - arch=x86_64  subset=avx512
+    - arch=x86_64  subset=knl
+    - arch=aarch64 subset=neon
 
 os:
     - linux
@@ -32,29 +25,11 @@ compiler:
 # The whitespace in "env:" lines must match the definition above!
 matrix:
   exclude:
-    - env: arch=x86_64  subset=sse2   VcOnlyTests=loadstore
+    - env: arch=x86_64  subset=avx512
       os: osx
-      compiler: gcc
-    - env: arch=x86_64  subset=sse4   VcOnlyTests=loadstore
+    - env: arch=x86_64  subset=knl
       os: osx
-      compiler: gcc
-    - env: arch=x86_64  subset=avx    VcOnlyTests=loadstore
-      os: osx
-      compiler: gcc
-    - env: arch=x86_64  subset=avx2   VcOnlyTests=loadstore
-      os: osx
-      compiler: gcc
-    - env: arch=x86_64  subset=avx512 VcSkipTests=loadstore
-      os: osx
-    - env: arch=x86_64  subset=avx512 VcOnlyTests=loadstore
-      os: osx
-    - env: arch=x86_64  subset=knl    VcSkipTests=loadstore
-      os: osx
-    - env: arch=x86_64  subset=knl    VcOnlyTests=loadstore
-      os: osx
-    - env: arch=aarch64 subset=neon   VcSkipTests=loadstore
-      os: osx
-    - env: arch=aarch64 subset=neon   VcOnlyTests=loadstore
+    - env: arch=aarch64 subset=neon
       os: osx
   allow_failures:
       # GCC on OS X sometimes times out. Those spurious failures are not useful
@@ -62,8 +37,7 @@ matrix:
       # if they are submitted.
     - os: osx
       compiler: gcc
-    - env: arch=aarch64 subset=neon   VcSkipTests=loadstore
-    - env: arch=aarch64 subset=neon   VcOnlyTests=loadstore
+    - env: arch=aarch64 subset=neon
 
 # The following gives us Ubuntu 14.04 LTS instead of 12.04 LTS
 sudo: required
