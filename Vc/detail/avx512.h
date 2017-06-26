@@ -306,8 +306,8 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
             data(detail::get<Indexes>(uncvted))...);
     }
     template <class T, class U, class F>
-    static Vc_INTRINSIC void masked_load(datapar<T> &merge, mask<T> k, const U *mem,
-                                         F f) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void masked_load(datapar_member_type<T> &merge, mask<T> k,
+                                         const U *mem, F f) Vc_NOEXCEPT_OR_IN_TEST
     {
         static_assert(!std::is_same<T, U>::value, "");
         const auto uncvted = static_cast<typename detail::traits<
@@ -315,18 +315,17 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
             where(to_fixed_size(k), fixed_size_datapar<U, size<T>()>()).memload(mem, f));
         detail::masked_assign(
             k, merge,
-            {private_init,
-             convert_helper<T>(uncvted, std::make_index_sequence<uncvted.tuple_size>())});
+            convert_helper<T>(uncvted, std::make_index_sequence<uncvted.tuple_size>()));
     }
 
     // fallback for non-converting masked loads {{{3
     template <class T, class F>
-    static Vc_INTRINSIC void masked_load(datapar<T> &merge, mask<T> k, const T *mem,
-                                         F ) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void masked_load(datapar_member_type<T> &merge, mask<T> k,
+                                         const T *mem, F) Vc_NOEXCEPT_OR_IN_TEST
     {
         execute_n_times<size<T>()>([&](auto i) {
             if (k.d.m(i)) {
-                merge.d.set(i, static_cast<T>(mem[i]));
+                merge.set(i, static_cast<T>(mem[i]));
             }
         });
     }
@@ -334,70 +333,69 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     // 8-bit and 16-bit integers with AVX512BW {{{3
 #if defined Vc_HAVE_AVX512BW
     template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<schar> &merge, mask<schar> k,
-                                                  const schar *mem,
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar_member_type<schar> &merge,
+                                                  mask<schar> k, const schar *mem,
                                                   F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm512_mask_loadu_epi8(merge.d, data(k), mem);
+        merge = _mm512_mask_loadu_epi8(merge, data(k), mem);
     }
 
     template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<uchar> &merge, mask<uchar> k,
-                                                  const uchar *mem,
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar_member_type<uchar> &merge,
+                                                  mask<uchar> k, const uchar *mem,
                                                   F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm512_mask_loadu_epi8(merge.d, data(k), mem);
+        merge = _mm512_mask_loadu_epi8(merge, data(k), mem);
     }
 
     template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<short> &merge, mask<short> k,
-                                                  const short *mem,
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar_member_type<short> &merge,
+                                                  mask<short> k, const short *mem,
                                                   F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm512_mask_loadu_epi16(merge.d, data(k), mem);
+        merge = _mm512_mask_loadu_epi16(merge, data(k), mem);
     }
 
     template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<ushort> &merge, mask<ushort> k,
-                                                  const ushort *mem,
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar_member_type<ushort> &merge,
+                                                  mask<ushort> k, const ushort *mem,
                                                   F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm512_mask_loadu_epi16(merge.d, data(k), mem);
+        merge = _mm512_mask_loadu_epi16(merge, data(k), mem);
     }
 
 #endif  // AVX512BW
 
     // 32-bit and 64-bit integers {{{3
     template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<int> &merge, mask<int> k,
-                                                  const int *mem,
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar_member_type<int> &merge,
+                                                  mask<int> k, const int *mem,
                                                   F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm512_mask_loadu_epi32(merge.d, data(k), mem);
+        merge = _mm512_mask_loadu_epi32(merge, data(k), mem);
     }
     template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<uint> &merge, mask<uint> k,
-                                                  const uint *mem,
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar_member_type<uint> &merge,
+                                                  mask<uint> k, const uint *mem,
                                                   F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm512_mask_loadu_epi32(merge.d, data(k), mem);
+        merge = _mm512_mask_loadu_epi32(merge, data(k), mem);
     }
 
     template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<llong> &merge, mask<llong> k,
-                                                  const llong *mem,
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar_member_type<llong> &merge,
+                                                  mask<llong> k, const llong *mem,
                                                   F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm512_mask_loadu_epi64(merge.d, data(k), mem);
+        merge = _mm512_mask_loadu_epi64(merge, data(k), mem);
     }
     template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar<ullong> &merge, mask<ullong> k,
-                                                  const ullong *mem,
+    static Vc_INTRINSIC void Vc_VDECL masked_load(datapar_member_type<ullong> &merge,
+                                                  mask<ullong> k, const ullong *mem,
                                                   F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        merge.d = _mm512_mask_loadu_epi64(merge.d, data(k), mem);
+        merge = _mm512_mask_loadu_epi64(merge, data(k), mem);
     }
-
 
     // store {{{2
     // store to long double has no vector implementation{{{3

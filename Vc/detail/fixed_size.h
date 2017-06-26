@@ -256,16 +256,16 @@ template <int N> struct fixed_size_datapar_impl {
     }
 
     // masked load {{{2
-    template <class T, class A, class U, class F>
-    static inline void masked_load(datapar<T> &merge, const Vc::mask<T, A> k,
+    template <class T, class... As, class A, class U, class F>
+    static inline void masked_load(datapar_tuple<T, As...> &merge, const Vc::mask<T, A> k,
                                    const U *mem, F f) Vc_NOEXCEPT_OR_IN_TEST
     {
         const auto bits = k.to_bitset();
-        detail::for_each(data(merge), [&](auto &native, auto offset) {
-                         using M = typename std::remove_reference_t<decltype(native)>::mask_type;
-                         where(M::from_bitset((bits >> offset).to_ullong()), native)
-                             .memload(&mem[offset], f);
-                         });
+        detail::for_each(merge, [&](auto &native, auto offset) {
+            using M = typename std::remove_reference_t<decltype(native)>::mask_type;
+            where(M::from_bitset((bits >> offset).to_ullong()), native)
+                .memload(&mem[offset], f);
+        });
     }
 
     // store {{{2
@@ -760,19 +760,17 @@ template <int N> struct traits<  char, datapar_abi::fixed_size<N>> : public fixe
 }  // namespace detail
 
 // where implementation {{{1
-template <typename T, int N>
-static Vc_INTRINSIC void masked_assign(
-    const mask<T, datapar_abi::fixed_size<N>> &k,
-    datapar<T, datapar_abi::fixed_size<N>> &lhs,
-    const detail::id<datapar<T, datapar_abi::fixed_size<N>>> &rhs)
+template <typename T, int N, class... As>
+static Vc_INTRINSIC void masked_assign(const mask<T, datapar_abi::fixed_size<N>> &k,
+                                       detail::datapar_tuple<T, As...> &lhs,
+                                       detail::id<detail::datapar_tuple<T, As...>> rhs)
 {
     const std::bitset<N> bits = k.to_bitset();
-    detail::for_each(detail::data(lhs), detail::data(rhs),
-                     [&](auto &native_lhs, auto native_rhs, auto offset) {
-                         using M = typename decltype(native_rhs)::mask_type;
-                         masked_assign(M::from_bitset((bits >> offset).to_ullong()),
-                                       native_lhs, native_rhs);
-                     });
+    detail::for_each(lhs, rhs, [&](auto &native_lhs, auto native_rhs, auto offset) {
+        using M = typename decltype(native_rhs)::mask_type;
+        masked_assign(M::from_bitset((bits >> offset).to_ullong()), native_lhs,
+                      native_rhs);
+    });
 }
 
 template <typename T, int N>
@@ -787,16 +785,16 @@ static Vc_INTRINSIC void masked_assign(
 
 // Optimization for the case where the RHS is a scalar. No need to broadcast the scalar to a datapar
 // first.
-template <class T, int N, class U>
+template <class T, int N, class U, class... As>
 static Vc_INTRINSIC
     enable_if<std::is_convertible<U, datapar<T, datapar_abi::fixed_size<N>>>::value &&
                   std::is_arithmetic<U>::value,
               void>
     masked_assign(const mask<T, datapar_abi::fixed_size<N>> &k,
-                  datapar<T, datapar_abi::fixed_size<N>> &lhs, const U &rhs)
+                  detail::datapar_tuple<T, As...> &lhs, const U &rhs)
 {
     const std::bitset<N> bits = k.to_bitset();
-    detail::for_each(detail::data(lhs), [&](auto &native_lhs, auto offset) {
+    detail::for_each(lhs, [&](auto &native_lhs, auto offset) {
         using M = typename std::decay_t<decltype(native_lhs)>::mask_type;
         masked_assign(M::from_bitset((bits >> offset).to_ullong()), native_lhs, rhs);
     });

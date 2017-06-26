@@ -275,12 +275,11 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
 };
 
 // where implementation {{{1
-template <class T, class A>
-Vc_INTRINSIC void Vc_VDECL masked_assign(mask<T, A> k, datapar<T, A> &lhs,
-                                         const detail::id<datapar<T, A>> &rhs)
+template <class T, class A, size_t N>
+Vc_INTRINSIC void Vc_VDECL masked_assign(mask<T, A> k, Storage<T, N> &lhs,
+                                         detail::id<Storage<T, N>> rhs)
 {
-    detail::data(lhs) =
-        detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs));
+    lhs = detail::x86::blend(detail::data(k), lhs, rhs);
 }
 
 template <class T, class A>

@@ -465,7 +465,7 @@ public:
     memload(const detail::loadstore_ptr_type<U, value_type> *mem, Flags f) const &&
     {
         V r = d;
-        detail::get_impl_t<V>::masked_load(r, k, mem, f);
+        detail::get_impl_t<V>::masked_load(data(r), k, mem, f);
         return r;
     }
 
@@ -497,7 +497,7 @@ public:
     template <class U> Vc_INTRINSIC void operator=(U &&x)
     {
         using detail::masked_assign;
-        masked_assign(k, d, std::forward<U>(x));
+        masked_assign(k, data(d), std::forward<U>(x));
     }
     template <class U> Vc_INTRINSIC void operator+=(U &&x)
     {
@@ -575,7 +575,7 @@ public:
     Vc_INTRINSIC void memload(const detail::loadstore_ptr_type<U, value_type> *mem,
                               Flags f)
     {
-        detail::get_impl_t<T>::masked_load(d, k, mem, f);
+        detail::get_impl_t<T>::masked_load(data(d), k, mem, f);
     }
 
 #ifdef Vc_EXPERIMENTAL
@@ -711,7 +711,7 @@ Vc_INTRINSIC typename V::value_type reduce(
     BinaryOperation binary_op = BinaryOperation())
 {
     std::remove_cv_t<V> tmp = neutral_element;
-    masked_assign(get_mask(x), tmp, get_lvalue(x));
+    masked_assign(get_mask(x), data(tmp), get_lvalue(x));
     return reduce(tmp, binary_op);
 }
 

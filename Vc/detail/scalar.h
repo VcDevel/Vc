@@ -71,11 +71,11 @@ struct scalar_datapar_impl {
 
     // masked load {{{2
     template <class T, class A, class U, class F>
-    static inline void masked_load(datapar<T> &merge, const Vc::mask<T, A> &k,
-                                   const U *mem, F) noexcept
+    static inline void masked_load(T &merge, const Vc::mask<T, A> &k, const U *mem,
+                                   F) noexcept
     {
         if (k.d) {
-            merge.d = static_cast<T>(mem[0]);
+            merge = static_cast<T>(mem[0]);
         }
     }
 
