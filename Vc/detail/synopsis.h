@@ -465,7 +465,7 @@ public:
     memload(const detail::loadstore_ptr_type<U, value_type> *mem, Flags f) const &&
     {
         V r = d;
-        detail::get_impl_t<V>::masked_load(data(r), k, mem, f);
+        detail::get_impl_t<V>::masked_load(detail::data(r), detail::data(k), mem, f);
         return r;
     }
 
@@ -484,6 +484,8 @@ class where_expression : public const_where_expression<M, T>
     using typename const_where_expression<M, T>::value_type;
     using const_where_expression<M, T>::k;
     using const_where_expression<M, T>::d;
+    static_assert(std::is_same<typename M::abi_type, typename T::abi_type>::value, "");
+    static_assert(M::size() == T::size(), "");
 
 public:
     where_expression(const where_expression &) = delete;
@@ -496,8 +498,9 @@ public:
 
     template <class U> Vc_INTRINSIC void operator=(U &&x)
     {
-        using detail::masked_assign;
-        masked_assign(k, data(d), std::forward<U>(x));
+        Vc::detail::get_impl_t<T>::masked_assign(
+            detail::data(k), detail::data(d),
+            detail::to_value_type_or_member_type<T>(std::forward<U>(x)));
     }
     template <class U> Vc_INTRINSIC void operator+=(U &&x)
     {
@@ -575,7 +578,7 @@ public:
     Vc_INTRINSIC void memload(const detail::loadstore_ptr_type<U, value_type> *mem,
                               Flags f)
     {
-        detail::get_impl_t<T>::masked_load(data(d), k, mem, f);
+        detail::get_impl_t<T>::masked_load(detail::data(d), detail::data(k), mem, f);
     }
 
 #ifdef Vc_EXPERIMENTAL
@@ -603,6 +606,58 @@ public:
         return std::move(*this);
     }
 #endif  // Vc_EXPERIMENTAL
+};
+
+template <typename T>
+class where_expression<bool, T> : public const_where_expression<bool, T>
+{
+    using M = bool;
+    using typename const_where_expression<M, T>::value_type;
+    using const_where_expression<M, T>::k;
+    using const_where_expression<M, T>::d;
+
+public:
+    where_expression(const where_expression &) = delete;
+    where_expression &operator=(const where_expression &) = delete;
+
+    Vc_INTRINSIC where_expression(const M &kk, T &dd)
+        : const_where_expression<M, T>(kk, dd)
+    {
+    }
+
+#define Vc_OP_(op_)                                                                      \
+    template <class U> Vc_INTRINSIC void operator op_(U &&x)                             \
+    {                                                                                    \
+        if (k) {                                                                         \
+            d op_ std::forward<U>(x);                                                    \
+        }                                                                                \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+    Vc_OP_(=);
+    Vc_OP_(+=);
+    Vc_OP_(-=);
+    Vc_OP_(*=);
+    Vc_OP_(/=);
+    Vc_OP_(%=);
+    Vc_OP_(&=);
+    Vc_OP_(|=);
+    Vc_OP_(^=);
+    Vc_OP_(<<=);
+    Vc_OP_(>>=);
+#undef Vc_OP_
+    Vc_INTRINSIC void operator++()    { if (k) { ++d; } }
+    Vc_INTRINSIC void operator++(int) { if (k) { ++d; } }
+    Vc_INTRINSIC void operator--()    { if (k) { --d; } }
+    Vc_INTRINSIC void operator--(int) { if (k) { --d; } }
+
+    // intentionally hides const_where_expression::memload
+    template <class U, class Flags>
+    Vc_INTRINSIC void memload(const detail::loadstore_ptr_type<U, value_type> *mem, Flags)
+    {
+        if (k) {
+            d = mem[0];
+        }
+    }
 };
 
 #ifdef Vc_EXPERIMENTAL
@@ -710,8 +765,10 @@ Vc_INTRINSIC typename V::value_type reduce(
         detail::default_neutral_element<typename V::value_type, BinaryOperation>::value,
     BinaryOperation binary_op = BinaryOperation())
 {
-    std::remove_cv_t<V> tmp = neutral_element;
-    masked_assign(get_mask(x), data(tmp), get_lvalue(x));
+    using VV = std::remove_cv_t<V>;
+    VV tmp = neutral_element;
+    detail::get_impl_t<VV>::masked_assign(detail::data(get_mask(x)), detail::data(tmp),
+                                          detail::data(get_lvalue(x)));
     return reduce(tmp, binary_op);
 }
 

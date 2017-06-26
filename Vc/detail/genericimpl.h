@@ -156,7 +156,29 @@ template <class Derived> struct generic_datapar_impl {
     {
         x = minus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
     }
+
+    // masked_assign{{{2
+    template <class T, class K, size_t N>
+    static Vc_INTRINSIC void Vc_VDECL masked_assign(Storage<K, N> k, Storage<T, N> &lhs,
+                                             detail::id<Storage<T, N>> rhs)
+    {
+        lhs = detail::x86::blend(k, lhs, rhs);
+    }
+    template <class T, class K, size_t N>
+    static Vc_INTRINSIC void Vc_VDECL masked_assign(Storage<K, N> k, Storage<T, N> &lhs,
+                                                    detail::id<T> rhs)
+    {
+#ifdef __GNUC__
+        if (__builtin_constant_p(rhs) && rhs == 0 && std::is_same<K, T>::value) {
+            lhs = x86::andnot_(k, lhs);
+            return;
+        }
+#endif  // __GNUC__
+        lhs =
+            detail::x86::blend(k, lhs, x86::broadcast(rhs, size_constant<sizeof(lhs)>()));
+    }
 };
+
 // mask impl {{{1
 template <class abi, template <class> class mask_member_type> struct generic_mask_impl {
     // member types {{{2
@@ -165,14 +187,13 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     template <class T> using mask = Vc::mask<T, abi>;
 
     // masked load {{{2
-    template <class T, class F>
-    static inline void Vc_VDECL masked_load(mask<T> &merge, mask<T> mask, const bool *mem,
-                                            F) noexcept
+    template <class T, size_t N, class F>
+    static inline void Vc_VDECL masked_load(Storage<T, N> &merge, Storage<T, N> mask,
+                                            const bool *mem, F) noexcept
     {
-        constexpr auto N = datapar_size_v<T, abi>;
         detail::execute_n_times<N>([&](auto i) {
-            if (detail::data(mask)[i]) {
-                detail::data(merge).set(i, MaskBool<sizeof(T)>{mem[i]});
+            if (mask[i]) {
+                merge.set(i, MaskBool<sizeof(T)>{mem[i]});
             }
         });
     }
@@ -272,24 +293,33 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
                 detail::data(tmp != V()));
         }
     }
+
+    // masked_assign{{{2
+    template <class T, size_t N>
+    static Vc_INTRINSIC void Vc_VDECL masked_assign(Storage<T, N> k, Storage<T, N> &lhs,
+                                                    detail::id<Storage<T, N>> rhs)
+    {
+        lhs = detail::x86::blend(k, lhs, rhs);
+    }
+    template <class T, size_t N>
+    static Vc_INTRINSIC void Vc_VDECL masked_assign(Storage<T, N> k, Storage<T, N> &lhs,
+                                                    bool rhs)
+    {
+#ifdef __GNUC__
+        if (__builtin_constant_p(rhs)) {
+            if (rhs == false) {
+                lhs = x86::andnot_(k, lhs);
+            } else {
+                lhs = x86::or_(k, lhs);
+            }
+            return;
+        }
+#endif  // __GNUC__
+        lhs = detail::x86::blend(k, lhs, detail::data(mask<T>(rhs)));
+    }
 };
 
 // where implementation {{{1
-template <class T, class A, size_t N>
-Vc_INTRINSIC void Vc_VDECL masked_assign(mask<T, A> k, Storage<T, N> &lhs,
-                                         detail::id<Storage<T, N>> rhs)
-{
-    lhs = detail::x86::blend(detail::data(k), lhs, rhs);
-}
-
-template <class T, class A>
-Vc_INTRINSIC void Vc_VDECL masked_assign(mask<T, A> k, mask<T, A> &lhs,
-                                         const detail::id<mask<T, A>> &rhs)
-{
-    detail::data(lhs) =
-        detail::x86::blend(detail::data(k), detail::data(lhs), detail::data(rhs));
-}
-
 template <template <typename> class Op, typename T, class A,
           int = 1  // the int parameter is used to disambiguate the function template
                    // specialization for the avx512 ABI

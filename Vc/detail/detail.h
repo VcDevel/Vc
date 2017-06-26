@@ -588,6 +588,27 @@ public:
     }
 };
 
+// data(datapar/mask) {{{1
+template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::datapar<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::datapar<T, A> & x) Vc_INTRINSIC_R;
+
+template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::mask<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::mask<T, A> &x) Vc_INTRINSIC_R;
+
+// to_value_type_or_member_type {{{1
+template <class V>
+Vc_INTRINSIC auto to_value_type_or_member_type(const V &x)->decltype(detail::data(x))
+{
+    return detail::data(x);
+}
+
+template <class V>
+Vc_INTRINSIC const typename V::value_type &to_value_type_or_member_type(
+    const typename V::value_type &x)
+{
+    return x;
+}
+
 //}}}1
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

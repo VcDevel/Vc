@@ -70,11 +70,10 @@ struct scalar_datapar_impl {
     }
 
     // masked load {{{2
-    template <class T, class A, class U, class F>
-    static inline void masked_load(T &merge, const Vc::mask<T, A> &k, const U *mem,
-                                   F) noexcept
+    template <class T, class U, class F>
+    static inline void masked_load(T &merge, bool k, const U *mem, F) noexcept
     {
-        if (k.d) {
+        if (k) {
             merge = static_cast<T>(mem[0]);
         }
     }
@@ -228,6 +227,15 @@ struct scalar_datapar_impl {
         unused(i);
         v.d = std::forward<U>(x);
     }
+
+    // masked_assign {{{2
+    template <typename T> static Vc_INTRINSIC void masked_assign(bool k, T &lhs, T rhs)
+    {
+        if (k) {
+            lhs = rhs;
+        }
+    }
+
     // }}}2
 };
 
@@ -262,12 +270,12 @@ struct scalar_mask_impl {
     }
 
     // masked load {{{2
-    template <class T, class F>
-    static Vc_INTRINSIC void masked_load(mask<T> &merge, mask<T> mask, const bool *mem,
+    template <class F>
+    static Vc_INTRINSIC void masked_load(bool &merge, bool mask, const bool *mem,
                                          F) noexcept
     {
-        if (detail::data(mask)) {
-            detail::data(merge) = mem[0];
+        if (mask) {
+            merge = mem[0];
         }
     }
 
@@ -330,6 +338,15 @@ struct scalar_mask_impl {
         detail::unused(i);
         k.d = x;
     }
+
+    // masked_assign {{{2
+    static Vc_INTRINSIC void masked_assign(bool k, bool &lhs, bool rhs)
+    {
+        if (k) {
+            lhs = rhs;
+        }
+    }
+
     // }}}2
 };
 
@@ -371,41 +388,6 @@ template <> struct traits<  char, datapar_abi::scalar> : public scalar_traits<  
 }  // namespace detail
 
 // where implementation {{{1
-template <typename T>
-static Vc_INTRINSIC void masked_assign(
-    const mask<T, datapar_abi::scalar> &k, datapar<T, datapar_abi::scalar> &lhs,
-    const detail::id<datapar<T, datapar_abi::scalar>> &rhs)
-{
-    if (detail::data(k)) {
-        detail::data(lhs) = detail::data(rhs);
-    }
-}
-
-template <typename T>
-static Vc_INTRINSIC void masked_assign(
-    const mask<T, datapar_abi::scalar> &k, mask<T, datapar_abi::scalar> &lhs,
-    const detail::id<mask<T, datapar_abi::scalar>> &rhs)
-{
-    if (detail::data(k)) {
-        detail::data(lhs) = detail::data(rhs);
-    }
-}
-
-// Optimization for the case where the RHS is a scalar. No need to broadcast the scalar to a datapar
-// first.
-template <class T, class U>
-static Vc_INTRINSIC
-    enable_if<std::is_convertible<U, datapar<T, datapar_abi::scalar>>::value &&
-                  std::is_arithmetic<U>::value,
-              void>
-    masked_assign(const mask<T, datapar_abi::scalar> &k,
-                  datapar<T, datapar_abi::scalar> &lhs, const U &rhs)
-{
-    if (detail::data(k)) {
-        lhs = rhs;
-    }
-}
-
 template <template <typename> class Op, typename T>
 inline void masked_cassign(const detail::scalar_mask<T> &k,
                            detail::scalar_datapar<T> &lhs,

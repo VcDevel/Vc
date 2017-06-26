@@ -256,15 +256,18 @@ template <int N> struct fixed_size_datapar_impl {
     }
 
     // masked load {{{2
-    template <class T, class... As, class A, class U, class F>
-    static inline void masked_load(datapar_tuple<T, As...> &merge, const Vc::mask<T, A> k,
-                                   const U *mem, F f) Vc_NOEXCEPT_OR_IN_TEST
+    template <class T, class... As, class U, class F>
+    static inline void masked_load(datapar_tuple<T, As...> &merge,
+                                   const mask_member_type bits, const U *mem,
+                                   F f) Vc_NOEXCEPT_OR_IN_TEST
     {
-        const auto bits = k.to_bitset();
         detail::for_each(merge, [&](auto &native, auto offset) {
-            using M = typename std::remove_reference_t<decltype(native)>::mask_type;
-            where(M::from_bitset((bits >> offset).to_ullong()), native)
-                .memload(&mem[offset], f);
+            using V = std::decay_t<decltype(native)>;
+            using M = typename V::mask_type;
+            detail::get_impl_t<V>::masked_load(
+                detail::data(native),
+                detail::data(M::from_bitset((bits >> offset).to_ullong())), &mem[offset],
+                f);
         });
     }
 
@@ -454,6 +457,38 @@ public:
     {
         v.d.set(i, std::forward<U>(x));
     }
+
+    // masked_assign {{{2
+    template <typename T, class... As>
+    static Vc_INTRINSIC void masked_assign(
+        const mask_member_type bits, detail::datapar_tuple<T, As...> &lhs,
+        const detail::id<detail::datapar_tuple<T, As...>> rhs)
+    {
+        detail::for_each(lhs, rhs, [&](auto &native_lhs, auto native_rhs, auto offset) {
+            using V = std::decay_t<decltype(native_lhs)>;
+            using M = typename V::mask_type;
+            detail::get_impl_t<V>::masked_assign(
+                detail::data(M::from_bitset((bits >> offset).to_ullong())),
+                detail::data(native_lhs), detail::data(native_rhs));
+        });
+    }
+
+    // Optimization for the case where the RHS is a scalar. No need to broadcast the
+    // scalar to a datapar first.
+    template <typename T, class... As>
+    static Vc_INTRINSIC void masked_assign(const mask_member_type bits,
+                                           detail::datapar_tuple<T, As...> &lhs,
+                                           const detail::id<T> rhs)
+    {
+        detail::for_each(lhs, [&](auto &native_lhs, auto offset) {
+            using V = std::decay_t<decltype(native_lhs)>;
+            using M = typename V::mask_type;
+            detail::get_impl_t<V>::masked_assign(
+                detail::data(M::from_bitset((bits >> offset).to_ullong())),
+                detail::data(native_lhs), rhs);
+        });
+    }
+
     // }}}2
 };
 
@@ -508,13 +543,13 @@ template <int N> struct fixed_size_mask_impl {
     }
 
     // masked load {{{2
-    template <class T, class F>
-    static inline void masked_load(mask<T> &merge, const mask<T> &mask, const bool *mem,
-                                   F) noexcept
+    template <class F>
+    static inline void masked_load(mask_member_type &merge, mask_member_type mask,
+                                   const bool *mem, F) noexcept
     {
         execute_n_times<N>([&](auto i) {
-            if (detail::data(mask)[i]) {
-                detail::data(merge)[i] = mem[i];
+            if (mask[i]) {
+                merge[i] = mem[i];
             }
         });
     }
@@ -675,6 +710,26 @@ template <int N> struct fixed_size_mask_impl {
     {
         k.d.set(i, x);
     }
+
+    // masked_assign {{{2
+    static Vc_INTRINSIC void masked_assign(const mask_member_type k,
+                                           mask_member_type &lhs,
+                                           const mask_member_type rhs)
+    {
+        lhs = (lhs & ~k) | (rhs & k);
+    }
+
+    // Optimization for the case where the RHS is a scalar.
+    static Vc_INTRINSIC void masked_assign(const mask_member_type k,
+                                           mask_member_type &lhs, const bool rhs)
+    {
+        if (rhs) {
+            lhs |= k;
+        } else {
+            lhs &= ~k;
+        }
+    }
+
     // }}}2
 };
 
@@ -760,46 +815,6 @@ template <int N> struct traits<  char, datapar_abi::fixed_size<N>> : public fixe
 }  // namespace detail
 
 // where implementation {{{1
-template <typename T, int N, class... As>
-static Vc_INTRINSIC void masked_assign(const mask<T, datapar_abi::fixed_size<N>> &k,
-                                       detail::datapar_tuple<T, As...> &lhs,
-                                       detail::id<detail::datapar_tuple<T, As...>> rhs)
-{
-    const std::bitset<N> bits = k.to_bitset();
-    detail::for_each(lhs, rhs, [&](auto &native_lhs, auto native_rhs, auto offset) {
-        using M = typename decltype(native_rhs)::mask_type;
-        masked_assign(M::from_bitset((bits >> offset).to_ullong()), native_lhs,
-                      native_rhs);
-    });
-}
-
-template <typename T, int N>
-static Vc_INTRINSIC void masked_assign(
-    const mask<T, datapar_abi::fixed_size<N>> &k,
-    mask<T, datapar_abi::fixed_size<N>> &lhs,
-    const detail::id<mask<T, datapar_abi::fixed_size<N>>> &rhs)
-{
-    const std::bitset<N> mask = k.to_bitset();
-    lhs = lhs.from_bitset((lhs.to_bitset() & ~mask) | (rhs.to_bitset() & mask));
-}
-
-// Optimization for the case where the RHS is a scalar. No need to broadcast the scalar to a datapar
-// first.
-template <class T, int N, class U, class... As>
-static Vc_INTRINSIC
-    enable_if<std::is_convertible<U, datapar<T, datapar_abi::fixed_size<N>>>::value &&
-                  std::is_arithmetic<U>::value,
-              void>
-    masked_assign(const mask<T, datapar_abi::fixed_size<N>> &k,
-                  detail::datapar_tuple<T, As...> &lhs, const U &rhs)
-{
-    const std::bitset<N> bits = k.to_bitset();
-    detail::for_each(lhs, [&](auto &native_lhs, auto offset) {
-        using M = typename std::decay_t<decltype(native_lhs)>::mask_type;
-        masked_assign(M::from_bitset((bits >> offset).to_ullong()), native_lhs, rhs);
-    });
-}
-
 template <template <typename> class Op, typename T, int N>
 inline void masked_cassign(const fixed_size_mask<T, N> &k, fixed_size_datapar<T, N> &lhs,
                            const fixed_size_datapar<T, N> &rhs)

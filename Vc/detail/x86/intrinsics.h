@@ -886,6 +886,10 @@ Vc_INTRINSIC __m128i broadcast16( ulong x) { return sizeof(ulong) == 4 ? _mm_set
 Vc_INTRINSIC __m128i broadcast16( llong x) { return _mm_set1_epi64x(x); }
 Vc_INTRINSIC __m128i broadcast16(ullong x) { return _mm_set1_epi64x(x); }
 #endif  // Vc_HAVE_SSE2
+template <class T> Vc_INTRINSIC auto broadcast(T x, size_constant<16>)
+{
+    return broadcast16(x);
+}
 
 #ifdef Vc_HAVE_AVX
 Vc_INTRINSIC __m256  broadcast32( float x) { return _mm256_set1_ps(x); }
@@ -900,6 +904,10 @@ Vc_INTRINSIC __m256i broadcast32(  long x) { return sizeof( long) == 4 ? _mm256_
 Vc_INTRINSIC __m256i broadcast32( ulong x) { return sizeof(ulong) == 4 ? _mm256_set1_epi32(x) : _mm256_set1_epi64x(x); }
 Vc_INTRINSIC __m256i broadcast32( llong x) { return _mm256_set1_epi64x(x); }
 Vc_INTRINSIC __m256i broadcast32(ullong x) { return _mm256_set1_epi64x(x); }
+template <class T> Vc_INTRINSIC auto broadcast(T x, size_constant<32>)
+{
+    return broadcast32(x);
+}
 #endif  // Vc_HAVE_AVX
 
 #ifdef Vc_HAVE_AVX512F
@@ -915,6 +923,10 @@ Vc_INTRINSIC __m512i broadcast64(  long x) { return sizeof( long) == 4 ? _mm512_
 Vc_INTRINSIC __m512i broadcast64( ulong x) { return sizeof(ulong) == 4 ? _mm512_set1_epi32(x) : _mm512_set1_epi64(x); }
 Vc_INTRINSIC __m512i broadcast64( llong x) { return _mm512_set1_epi64(x); }
 Vc_INTRINSIC __m512i broadcast64(ullong x) { return _mm512_set1_epi64(x); }
+template <class T> Vc_INTRINSIC auto broadcast(T x, size_constant<64>)
+{
+    return broadcast64(x);
+}
 #endif  // Vc_HAVE_AVX512F
 
 // lowest16/32/64{{{1
@@ -1781,6 +1793,15 @@ Vc_INTRINSIC __m256i andnot_(__m256i a, __m256i b) {
 Vc_INTRINSIC __m512  andnot_(__m512  a, __m512  b) { return _mm512_andnot_ps(a, b); }
 Vc_INTRINSIC __m512d andnot_(__m512d a, __m512d b) { return _mm512_andnot_pd(a, b); }
 Vc_INTRINSIC __m512i andnot_(__m512i a, __m512i b) { return _mm512_andnot_epi32(a, b); }
+
+Vc_INTRINSIC __m512d andnot_(__mmask8  k, __m512d a) { return _mm512_maskz_mov_pd(~k, a); }
+Vc_INTRINSIC __m512  andnot_(__mmask16 k, __m512  a) { return _mm512_maskz_mov_ps(~k, a); }
+Vc_INTRINSIC __m512i andnot_(__mmask8  k, __m512i a) { return _mm512_maskz_mov_epi64(~k, a); }
+Vc_INTRINSIC __m512i andnot_(__mmask16 k, __m512i a) { return _mm512_maskz_mov_epi32(~k, a); }
+#ifdef Vc_HAVE_AVX512BW
+Vc_INTRINSIC __m512i andnot_(__mmask32 k, __m512i a) { return _mm512_maskz_mov_epi16(~k, a); }
+Vc_INTRINSIC __m512i andnot_(__mmask64 k, __m512i a) { return _mm512_maskz_mov_epi8 (~k, a); }
+#endif  // Vc_HAVE_AVX512BW
 #endif  // Vc_HAVE_AVX512F
 
 // not_{{{1

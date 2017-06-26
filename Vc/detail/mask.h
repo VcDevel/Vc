@@ -33,12 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <bitset>
 
 Vc_VERSIONED_NAMESPACE_BEGIN
-namespace detail
-{
-template <class T, class A> Vc_INTRINSIC_L const auto &data(const mask<T, A> &x) Vc_INTRINSIC_R;
-template <class T, class A> Vc_INTRINSIC_L auto &data(mask<T, A> &x) Vc_INTRINSIC_R;
-}  // namespace detail
-
 template <class T, class Abi> class mask : public detail::traits<T, Abi>::mask_base
 {
     using traits = detail::traits<T, Abi>;

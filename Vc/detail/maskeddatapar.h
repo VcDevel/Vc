@@ -49,14 +49,17 @@ public:
     masked_datapar_impl(const mask_type &kk, datapar<T, A> &vv) : k(kk), v(vv) {}
     masked_datapar_impl &operator=(const masked_datapar_impl &rhs)
     {
-        masked_assign(k, v, rhs.v);
+        Vc::detail::get_impl_t<datapar_type>::masked_assign(
+            Vc::detail::data(k), Vc::detail::data(v), Vc::detail::data(rhs.v));
         return *this;
     }
     template <class U>
     std::enable_if_t<!is_masked_datapar<std::decay_t<U>>::value, masked_datapar_impl &>
     operator=(U &&rhs)
     {
-        masked_assign(k, v, std::forward<U>(rhs));
+        Vc::detail::get_impl_t<datapar_type>::masked_assign(
+            Vc::detail::data(k), Vc::detail::data(v),
+            detail::to_value_type_or_member_type<datapar_type>(std::forward<U>(rhs)));
         return *this;
     }
 
