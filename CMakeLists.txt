@@ -66,7 +66,7 @@ if(Vc_COMPILER_IS_GCC)
       )
 elseif(Vc_COMPILER_IS_CLANG)
    if(Vc_CLANG_VERSION VERSION_LESS 4.0.50)
-      # Clang ICEs with AVX512 on the loadstore test
+      # Clang ICEs with AVX512 when using vector builtins
       list(APPEND disabled_targets
          allcvt_loadstore_avx512_vectorbuiltin_ushort
          allcvt_loadstore_avx512_vectorbuiltin_short
@@ -78,6 +78,8 @@ elseif(Vc_COMPILER_IS_CLANG)
          loadstore_avx512_vectorbuiltin_schar
          operators_avx512_vectorbuiltin_int_short_uint_ushort
          operators_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
+         datapar_avx512_vectorbuiltin_int_short_uint_ushort
+         datapar_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
          )
    endif()
 elseif(Vc_COMPILER_IS_MSVC)
