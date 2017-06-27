@@ -235,6 +235,22 @@ struct scalar_datapar_impl {
         }
     }
 
+    // masked_cassign {{{2
+    template <template <typename> class Op, typename T>
+    static Vc_INTRINSIC void masked_cassign(const bool k, T &lhs, const T rhs)
+    {
+        if (k) {
+            lhs = Op<T>{}(lhs, rhs);
+        }
+    }
+
+    // masked_unary {{{2
+    template <template <typename> class Op, typename T>
+    static Vc_INTRINSIC T masked_unary(const bool k, const T v)
+    {
+        return static_cast<T>(k ? Op<T>{}(v) : v);
+    }
+
     // }}}2
 };
 
@@ -386,38 +402,6 @@ template <> struct traits<  char, datapar_abi::scalar> : public scalar_traits<  
 
 // }}}1
 }  // namespace detail
-
-// where implementation {{{1
-template <template <typename> class Op, typename T>
-inline void masked_cassign(const detail::scalar_mask<T> &k,
-                           detail::scalar_datapar<T> &lhs,
-                           const detail::scalar_datapar<T> &rhs)
-{
-    if (detail::data(k)) {
-        detail::data(lhs) = Op<T>{}(detail::data(lhs), detail::data(rhs));
-    }
-}
-
-// Optimization for the case where the RHS is a scalar. No need to broadcast the scalar to a datapar
-// first.
-template <template <typename> class Op, typename T, class U>
-inline enable_if<std::is_convertible<U, detail::scalar_datapar<T>>::value &&
-                     std::is_arithmetic<U>::value,
-                 void>
-masked_cassign(const detail::scalar_mask<T> &k, detail::scalar_datapar<T> &lhs,
-               const U &rhs)
-{
-    if (detail::data(k)) {
-        detail::data(lhs) = Op<T>{}(detail::data(lhs), rhs);
-    }
-}
-
-template <template <typename> class Op, typename T>
-inline detail::scalar_datapar<T> masked_unary(const detail::scalar_mask<T> &k,
-                                              const detail::scalar_datapar<T> &v)
-{
-    return static_cast<T>(detail::data(k) ? Op<T>{}(detail::data(v)) : detail::data(v));
-}
 
 // [mask.reductions] {{{1
 template <class T> inline bool all_of(const detail::scalar_mask<T> &k) { return k[0]; }

@@ -162,6 +162,13 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
+    // make_datapar {{{2
+    template <class T>
+    static Vc_INTRINSIC datapar<T> make_datapar(datapar_member_type<T> x)
+    {
+        return {detail::private_init, x};
+    }
+
     // broadcast {{{2
     static Vc_INTRINSIC intrinsic_type<double> broadcast(double x, size_tag<8>) noexcept
     {
@@ -1057,18 +1064,18 @@ struct avx512_mask_impl
     // }}}2
 };
 
-// where implementation {{{1
+// generic_datapar_impl::masked_cassign specializations {{{1
 #define Vc_MASKED_CASSIGN_SPECIALIZATION(TYPE_, TYPE_SUFFIX_, OP_, OP_NAME_)             \
     template <>                                                                          \
-    Vc_INTRINSIC void Vc_VDECL masked_cassign<OP_, TYPE_, datapar_abi::avx512, 1>(       \
-        mask<TYPE_, datapar_abi::avx512> k, datapar<TYPE_, datapar_abi::avx512> & lhs,   \
-        const datapar<TYPE_, datapar_abi::avx512> rhs)                                   \
+    template <>                                                                          \
+    Vc_INTRINSIC void Vc_VDECL                                                           \
+    generic_datapar_impl<avx512_datapar_impl>::masked_cassign<OP_, TYPE_, bool,          \
+                                                              64 / sizeof(TYPE_)>(       \
+        const Storage<bool, 64 / sizeof(TYPE_)> k,                                       \
+        Storage<TYPE_, 64 / sizeof(TYPE_)> &lhs,                                         \
+        const detail::id<Storage<TYPE_, 64 / sizeof(TYPE_)>> rhs)                        \
     {                                                                                    \
-        const auto kv = detail::data(k);                                                 \
-        const auto lv = detail::data(lhs);                                               \
-        const auto rv = detail::data(rhs);                                               \
-        lhs = datapar<TYPE_, datapar_abi::avx512>(                                       \
-            _mm512_mask_##OP_NAME_##_##TYPE_SUFFIX_(lv, kv, lv, rv));                    \
+        lhs = _mm512_mask_##OP_NAME_##_##TYPE_SUFFIX_(lhs, k, lhs, rhs);                 \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
 
@@ -1101,10 +1108,10 @@ Vc_MASKED_CASSIGN_SPECIALIZATION(detail::ushort, epi16, std::minus, sub);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: schar, epi8 , std::minus, sub);
 Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: uchar, epi8 , std::minus, sub);
 #endif  // Vc_HAVE_FULL_AVX512_ABI
+#undef Vc_MASKED_CASSIGN_SPECIALIZATION
 
 // }}}1
 }  // namespace detail
-
 
 // [mask.reductions] {{{
 template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::avx512> k)

@@ -445,7 +445,7 @@ protected:
     friend Vc_INTRINSIC const M &get_mask(const const_where_expression &x) { return x.k; }
     friend Vc_INTRINSIC T &get_lvalue(const_where_expression &x) { return x.d; }
     friend Vc_INTRINSIC const T &get_lvalue(const const_where_expression &x) { return x.d; }
-    std::conditional_t<std::is_same<M, bool>::value, const M, const M &> k;
+    const M &k;
     T &d;
 
 public:
@@ -456,8 +456,8 @@ public:
 
     Vc_INTRINSIC V operator-() const &&
     {
-        using detail::masked_unary;
-        return masked_unary<std::negate>(k, d);
+        return V(detail::get_impl_t<V>::template masked_unary<std::negate>(
+            detail::data(k), detail::data(d)));
     }
 
     template <class U, class Flags>
@@ -474,6 +474,48 @@ public:
                                Flags f) const &&
     {
         detail::get_impl_t<V>::masked_store(detail::data(d), mem, f, detail::data(k));
+    }
+};
+
+template <typename T> class const_where_expression<bool, T>
+{
+    using M = bool;
+    using V = std::remove_const_t<T>;
+    struct Wrapper {
+        using value_type = V;
+    };
+
+protected:
+    using value_type =
+        typename std::conditional_t<std::is_arithmetic<V>::value, Wrapper, V>::value_type;
+    friend Vc_INTRINSIC const M &get_mask(const const_where_expression &x) { return x.k; }
+    friend Vc_INTRINSIC T &get_lvalue(const_where_expression &x) { return x.d; }
+    friend Vc_INTRINSIC const T &get_lvalue(const const_where_expression &x) { return x.d; }
+    const bool k;
+    T &d;
+
+public:
+    const_where_expression(const const_where_expression &) = delete;
+    const_where_expression &operator=(const const_where_expression &) = delete;
+
+    Vc_INTRINSIC const_where_expression(const bool kk, T &dd) : k(kk), d(dd) {}
+
+    Vc_INTRINSIC V operator-() const && { return k ? -d : d; }
+
+    template <class U, class Flags>
+    Vc_NODISCARD Vc_INTRINSIC V
+    memload(const detail::loadstore_ptr_type<U, value_type> *mem, Flags) const &&
+    {
+        return k ? static_cast<V>(mem[0]) : d;
+    }
+
+    template <class U, class Flags>
+    Vc_INTRINSIC void memstore(detail::loadstore_ptr_type<U, value_type> *mem,
+                               Flags) const &&
+    {
+        if (k) {
+            mem[0] = d;
+        }
     }
 };
 
@@ -502,75 +544,46 @@ public:
             detail::data(k), detail::data(d),
             detail::to_value_type_or_member_type<T>(std::forward<U>(x)));
     }
-    template <class U> Vc_INTRINSIC void operator+=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<std::plus>(k, d, std::forward<U>(x));
-    }
-    template <class U> Vc_INTRINSIC void operator-=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<std::minus>(k, d, std::forward<U>(x));
-    }
-    template <class U> Vc_INTRINSIC void operator*=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<std::multiplies>(k, d, std::forward<U>(x));
-    }
-    template <class U> Vc_INTRINSIC void operator/=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<std::divides>(k, d, std::forward<U>(x));
-    }
-    template <class U> Vc_INTRINSIC void operator%=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<std::modulus>(k, d, std::forward<U>(x));
-    }
-    template <class U> Vc_INTRINSIC void operator&=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<std::bit_and>(k, d, std::forward<U>(x));
-    }
-    template <class U> Vc_INTRINSIC void operator|=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<std::bit_or>(k, d, std::forward<U>(x));
-    }
-    template <class U> Vc_INTRINSIC void operator^=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<std::bit_xor>(k, d, std::forward<U>(x));
-    }
-    template <class U> Vc_INTRINSIC void operator<<=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<detail::shift_left>(k, d, std::forward<U>(x));
-    }
-    template <class U> Vc_INTRINSIC void operator>>=(U &&x)
-    {
-        using detail::masked_cassign;
-        masked_cassign<detail::shift_right>(k, d, std::forward<U>(x));
-    }
+
+#define Vc_OP_(op_, name_)                                                               \
+    template <class U> Vc_INTRINSIC void operator op_##=(U &&x)                          \
+    {                                                                                    \
+        Vc::detail::get_impl_t<T>::template masked_cassign<name_>(                       \
+            detail::data(k), detail::data(d),                                            \
+            detail::to_value_type_or_member_type<T>(std::forward<U>(x)));                \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+    Vc_OP_(+, std::plus);
+    Vc_OP_(-, std::minus);
+    Vc_OP_(*, std::multiplies);
+    Vc_OP_(/, std::divides);
+    Vc_OP_(%, std::modulus);
+    Vc_OP_(&, std::bit_and);
+    Vc_OP_(|, std::bit_or);
+    Vc_OP_(^, std::bit_xor);
+    Vc_OP_(<<, detail::shift_left);
+    Vc_OP_(>>, detail::shift_right);
+#undef Vc_OP_
+
     Vc_INTRINSIC void operator++()
     {
-        using detail::masked_unary;
-        d = masked_unary<detail::increment>(k, d);
+        detail::data(d) = detail::get_impl_t<T>::template masked_unary<detail::increment>(
+            detail::data(k), detail::data(d));
     }
     Vc_INTRINSIC void operator++(int)
     {
-        using detail::masked_unary;
-        d = masked_unary<detail::increment>(k, d);
+        detail::data(d) = detail::get_impl_t<T>::template masked_unary<detail::increment>(
+            detail::data(k), detail::data(d));
     }
     Vc_INTRINSIC void operator--()
     {
-        using detail::masked_unary;
-        d = masked_unary<detail::decrement>(k, d);
+        detail::data(d) = detail::get_impl_t<T>::template masked_unary<detail::decrement>(
+            detail::data(k), detail::data(d));
     }
     Vc_INTRINSIC void operator--(int)
     {
-        using detail::masked_unary;
-        d = masked_unary<detail::decrement>(k, d);
+        detail::data(d) = detail::get_impl_t<T>::template masked_unary<detail::decrement>(
+            detail::data(k), detail::data(d));
     }
 
     // intentionally hides const_where_expression::memload

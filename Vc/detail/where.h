@@ -34,19 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-template <template <typename> class Op, typename T, typename U>
-inline void masked_cassign(exact_bool k, T &lhs, U &&rhs)
-{
-    if (k) {
-        lhs = Op<void>{}(lhs, std::forward<T>(rhs));
-    }
-}
-
-template <template <typename> class Op, typename T> inline auto masked_unary(exact_bool k, T &d)
-{
-    return k ? Op<void>{}(d) : d;
-}
-
 template <class T = void> struct shift_left {
     constexpr T operator()(const T &a, const T &b) const { return a << b; }
 };

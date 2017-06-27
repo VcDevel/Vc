@@ -206,6 +206,18 @@ template <size_t Begin> struct tree_reduction<2, Begin> {
     }
 };
 
+// partial_bitset_to_member_type {{{1
+template <class V, size_t N>
+Vc_INTRINSIC auto partial_bitset_to_member_type(std::bitset<N> shifted_bits)
+{
+    static_assert(V::size() <= N, "");
+    using M = typename V::mask_type;
+    using T = typename V::value_type;
+    constexpr T *type_tag = nullptr;
+    return detail::get_impl_t<M>::from_bitset(
+        std::bitset<V::size()>(shifted_bits.to_ullong()), type_tag);
+}
+
 // datapar impl {{{1
 template <int N> struct fixed_size_datapar_impl {
     // member types {{{2
@@ -263,11 +275,9 @@ template <int N> struct fixed_size_datapar_impl {
     {
         detail::for_each(merge, [&](auto &native, auto offset) {
             using V = std::decay_t<decltype(native)>;
-            using M = typename V::mask_type;
             detail::get_impl_t<V>::masked_load(
-                detail::data(native),
-                detail::data(M::from_bitset((bits >> offset).to_ullong())), &mem[offset],
-                f);
+                detail::data(native), partial_bitset_to_member_type<V>(bits >> offset),
+                &mem[offset], f);
         });
     }
 
@@ -286,11 +296,9 @@ template <int N> struct fixed_size_datapar_impl {
                                     const mask_member_type bits) Vc_NOEXCEPT_OR_IN_TEST
     {
         detail::for_each(v, [&](auto native, auto offset) {
-            using M = typename decltype(native)::mask_type;
             detail::get_impl_t<decltype(native)>::masked_store(
                 detail::data(native), &mem[offset], f,
-                detail::get_impl_t<M>::from_bitset(
-                    std::bitset<M::size()>((bits >> offset).to_ullong()), type_tag<T>()));
+                partial_bitset_to_member_type<decltype(native)>(bits >> offset));
         });
     }
 
@@ -467,9 +475,8 @@ public:
     {
         detail::for_each(lhs, rhs, [&](auto &native_lhs, auto native_rhs, auto offset) {
             using V = std::decay_t<decltype(native_lhs)>;
-            using M = typename V::mask_type;
             detail::get_impl_t<V>::masked_assign(
-                detail::data(M::from_bitset((bits >> offset).to_ullong())),
+                partial_bitset_to_member_type<V>(bits >> offset),
                 detail::data(native_lhs), detail::data(native_rhs));
         });
     }
@@ -483,11 +490,54 @@ public:
     {
         detail::for_each(lhs, [&](auto &native_lhs, auto offset) {
             using V = std::decay_t<decltype(native_lhs)>;
-            using M = typename V::mask_type;
             detail::get_impl_t<V>::masked_assign(
-                detail::data(M::from_bitset((bits >> offset).to_ullong())),
+                partial_bitset_to_member_type<V>(bits >> offset),
                 detail::data(native_lhs), rhs);
         });
+    }
+
+    // masked_cassign {{{2
+    template <template <typename> class Op, typename T, class... As>
+    static inline void masked_cassign(const mask_member_type bits,
+                                      detail::datapar_tuple<T, As...> &lhs,
+                                      const detail::datapar_tuple<T, As...> rhs)
+    {
+        detail::for_each(lhs, rhs,
+                         [&](auto &native_lhs, auto native_rhs, auto offset) {
+                             using V = decltype(native_rhs);
+                             detail::get_impl_t<V>::template masked_cassign<Op>(
+                                 partial_bitset_to_member_type<V>(bits >> offset),
+                                 detail::data(native_lhs), detail::data(native_rhs));
+                         });
+    }
+
+    // Optimization for the case where the RHS is a scalar. No need to broadcast the
+    // scalar to a datapar
+    // first.
+    template <template <typename> class Op, typename T, class... As>
+    static inline void masked_cassign(const mask_member_type bits,
+                                      detail::datapar_tuple<T, As...> &lhs, const T rhs)
+    {
+        detail::for_each(lhs, [&](auto &native_lhs, auto offset) {
+            using V = std::decay_t<decltype(native_lhs)>;
+            detail::get_impl_t<V>::template masked_cassign<Op>(
+                partial_bitset_to_member_type<V>(bits >> offset),
+                detail::data(native_lhs), rhs);
+        });
+    }
+
+    // masked_unary {{{2
+    template <template <typename> class Op, class T, class... As>
+    static inline detail::datapar_tuple<T, As...> masked_unary(
+        const mask_member_type bits, const detail::datapar_tuple<T, As...> v)
+    {
+        detail::datapar_tuple<T, As...> r;
+        detail::for_each(r, v, [&](auto &native_r, auto native_v, auto offset) {
+            using V = decltype(native_v);
+            detail::data(native_r) = detail::get_impl_t<V>::template masked_unary<Op>(
+                partial_bitset_to_member_type<V>(bits >> offset), detail::data(native_v));
+        });
+        return r;
     }
 
     // }}}2
@@ -814,51 +864,6 @@ template <int N> struct traits<  char, datapar_abi::fixed_size<N>> : public fixe
 
 // }}}1
 }  // namespace detail
-
-// where implementation {{{1
-template <template <typename> class Op, typename T, int N>
-inline void masked_cassign(const fixed_size_mask<T, N> &k, fixed_size_datapar<T, N> &lhs,
-                           const fixed_size_datapar<T, N> &rhs)
-{
-    const std::bitset<N> bits = k.to_bitset();
-    detail::for_each(detail::data(lhs), detail::data(rhs),
-                     [&](auto &native_lhs, auto native_rhs, auto offset) {
-                         using M = typename decltype(native_rhs)::mask_type;
-                         masked_cassign<Op>(M::from_bitset((bits >> offset).to_ullong()),
-                                            native_lhs, native_rhs);
-                     });
-}
-
-// Optimization for the case where the RHS is a scalar. No need to broadcast the scalar to a datapar
-// first.
-template <template <typename> class Op, typename T, int N, class U>
-inline enable_if<std::is_convertible<U, fixed_size_datapar<T, N>>::value &&
-                     std::is_arithmetic<U>::value,
-                 void>
-masked_cassign(const fixed_size_mask<T, N> &k, fixed_size_datapar<T, N> &lhs,
-               const U &rhs)
-{
-    const std::bitset<N> bits = k.to_bitset();
-    detail::for_each(detail::data(lhs), [&](auto &native_lhs, auto offset) {
-        using M = typename std::decay_t<decltype(native_lhs)>::mask_type;
-        masked_cassign<Op>(M::from_bitset((bits >> offset).to_ullong()), native_lhs, rhs);
-    });
-}
-
-template <template <typename> class Op, typename T, int N>
-inline fixed_size_datapar<T, N> masked_unary(const fixed_size_mask<T, N> &k,
-                                             const fixed_size_datapar<T, N> &v)
-{
-    fixed_size_datapar<T, N> r;
-    const std::bitset<N> bits = k.to_bitset();
-    detail::for_each(detail::data(r), detail::data(v), [&](auto &native_r, auto native_v,
-                                                           auto offset) {
-        using M = typename decltype(native_v)::mask_type;
-        native_r =
-            masked_unary<Op>(M::from_bitset((bits >> offset).to_ullong()), native_v);
-    });
-    return r;
-}
 
 // [mask.reductions] {{{1
 template <class T, int N> inline bool all_of(const fixed_size_mask<T, N> &k)

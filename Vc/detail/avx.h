@@ -116,6 +116,13 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
+    // make_datapar {{{2
+    template <class T>
+    static Vc_INTRINSIC datapar<T> make_datapar(datapar_member_type<T> x)
+    {
+        return {detail::private_init, x};
+    }
+
     // broadcast {{{2
     static Vc_INTRINSIC intrinsic_type<double> broadcast(double x, size_tag<4>) noexcept
     {

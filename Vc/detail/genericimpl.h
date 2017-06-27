@@ -38,6 +38,12 @@ template <class Derived> struct generic_datapar_impl {
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
+    template <class T, size_t N>
+    static Vc_INTRINSIC auto Vc_VDECL datapar(Storage<T, N> x)
+    {
+        return Derived::make_datapar(x);
+    }
+
     // adjust_for_long{{{2
     template <size_t Size>
     static Vc_INTRINSIC Storage<equal_int_type_t<long>, Size> Vc_VDECL
@@ -177,6 +183,39 @@ template <class Derived> struct generic_datapar_impl {
         lhs =
             detail::x86::blend(k, lhs, x86::broadcast(rhs, size_constant<sizeof(lhs)>()));
     }
+
+    // masked_cassign {{{2
+    template <template <typename> class Op, class T, class K, size_t N>
+    static Vc_INTRINSIC void Vc_VDECL masked_cassign(const Storage<K, N> k,
+                                                     Storage<T, N> &lhs,
+                                                     const detail::id<Storage<T, N>> rhs)
+    {
+        lhs = detail::x86::blend(k, lhs,
+                                 detail::data(Op<void>{}(datapar(lhs), datapar(rhs))));
+    }
+
+    template <template <typename> class Op, class T, class K, size_t N>
+    static Vc_INTRINSIC void Vc_VDECL masked_cassign(const Storage<K, N> k,
+                                                     Storage<T, N> &lhs,
+                                                     const detail::id<T> rhs)
+    {
+        lhs = detail::x86::blend(
+            k, lhs,
+            detail::data(Op<void>{}(
+                datapar(lhs), datapar<T, N>(Derived::broadcast(rhs, size_tag<N>())))));
+    }
+
+    // masked_unary {{{2
+    template <template <typename> class Op, class T, class K, size_t N>
+    static Vc_INTRINSIC Storage<T, N> Vc_VDECL masked_unary(const Storage<K, N> k,
+                                                            const Storage<T, N> v)
+    {
+        auto vv = datapar(v);
+        Op<decltype(vv)> op;
+        return detail::x86::blend(k, v, detail::data(op(vv)));
+    }
+
+    //}}}2
 };
 
 // mask impl {{{1
@@ -329,37 +368,9 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
 #endif  // __GNUC__
         lhs = detail::x86::blend(k, lhs, detail::data(mask<T>(rhs)));
     }
+
+    //}}}2
 };
-
-// where implementation {{{1
-template <template <typename> class Op, typename T, class A,
-          int = 1  // the int parameter is used to disambiguate the function template
-                   // specialization for the avx512 ABI
-          >
-Vc_INTRINSIC void Vc_VDECL masked_cassign(mask<T, A> k, datapar<T, A> &lhs,
-                                          const datapar<T, A> rhs)
-{
-    detail::data(lhs) = detail::x86::blend(detail::data(k), detail::data(lhs),
-                                           detail::data(Op<void>{}(lhs, rhs)));
-}
-
-template <template <typename> class Op, typename T, class A, class U>
-Vc_INTRINSIC enable_if<std::is_convertible<U, datapar<T, A>>::value, void> Vc_VDECL
-masked_cassign(mask<T, A> k, datapar<T, A> &lhs, const U &rhs)
-{
-    masked_cassign<Op>(k, lhs, datapar<T, A>(rhs));
-}
-
-template <template <typename> class Op, typename T, class A,
-          int = 1  // the int parameter is used to disambiguate the function template
-                   // specialization for the avx512 ABI
-          >
-Vc_INTRINSIC datapar<T, A> Vc_VDECL masked_unary(mask<T, A> k, datapar<T, A> v)
-{
-    Op<datapar<T, A>> op;
-    return static_cast<datapar<T, A>>(
-        detail::x86::blend(detail::data(k), detail::data(v), detail::data(op(v))));
-}
 
 //}}}1
 }  // namespace detail
