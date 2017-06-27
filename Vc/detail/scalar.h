@@ -214,17 +214,17 @@ struct scalar_datapar_impl {
 #undef Vc_CMP_OPERATIONS
 
     // smart_reference access {{{2
-    template <class T> static T get(const datapar<T> &v, int i) noexcept
+    template <class T> static T get(const T v, int i) noexcept
     {
         Vc_ASSERT(i == 0);
         unused(i);
-        return v.d;
+        return v;
     }
-    template <class T, class U> static void set(datapar<T> &v, int i, U &&x) noexcept
+    template <class T, class U> static void set(T &v, int i, U &&x) noexcept
     {
         Vc_ASSERT(i == 0);
         unused(i);
-        v.d = std::forward<U>(x);
+        v = std::forward<U>(x);
     }
 
     // masked_assign {{{2
@@ -342,17 +342,17 @@ struct scalar_mask_impl {
     }
 
     // smart_reference access {{{2
-    template <class T> static bool get(const mask<T> &k, int i) noexcept
+    static bool get(const bool k, int i) noexcept
     {
         Vc_ASSERT(i == 0);
         detail::unused(i);
-        return k.d;
+        return k;
     }
-    template <class T> static void set(mask<T> &k, int i, bool x) noexcept
+    static void set(bool &k, int i, bool x) noexcept
     {
         Vc_ASSERT(i == 0);
         detail::unused(i);
-        k.d = x;
+        k = x;
     }
 
     // masked_assign {{{2

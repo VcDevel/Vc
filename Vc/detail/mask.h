@@ -47,7 +47,7 @@ template <class T, class Abi> class mask : public detail::traits<T, Abi>::mask_b
 
 public:
     using value_type = bool;
-    using reference = detail::smart_reference<mask, impl>;
+    using reference = detail::smart_reference<member_type, impl, mask, value_type>;
     using datapar_type = datapar<T, Abi>;
     using size_type = size_t;
     using abi_type = Abi;
@@ -131,8 +131,8 @@ public:
     }
 
     // scalar access
-    Vc_ALWAYS_INLINE reference operator[](size_type i) { return {*this, int(i)}; }
-    Vc_ALWAYS_INLINE value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
+    Vc_ALWAYS_INLINE reference operator[](size_type i) { return {d, int(i)}; }
+    Vc_ALWAYS_INLINE value_type operator[](size_type i) const { return impl::get(d, int(i)); }
 
     // negation
     Vc_ALWAYS_INLINE mask operator!() const { return {detail::private_init, impl::negate(d, size_tag)}; }

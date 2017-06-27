@@ -935,15 +935,15 @@ struct sse_datapar_impl : public generic_datapar_impl<sse_datapar_impl> {
 #endif
 
     // smart_reference access {{{2
-    template <class T, class A>
-    static Vc_INTRINSIC T Vc_VDECL get(Vc::datapar<T, A> v, int i) noexcept
+    template <class T>
+    static Vc_INTRINSIC T Vc_VDECL get(datapar_member_type<T> v, int i) noexcept
     {
-        return v.d.m(i);
+        return v.m(i);
     }
-    template <class T, class A, class U>
-    static Vc_INTRINSIC void set(Vc::datapar<T, A> &v, int i, U &&x) noexcept
+    template <class T, class U>
+    static Vc_INTRINSIC void set(datapar_member_type<T> &v, int i, U &&x) noexcept
     {
-        v.d.set(i, std::forward<U>(x));
+        v.set(i, std::forward<U>(x));
     }
     // }}}2
 };
@@ -1100,13 +1100,13 @@ struct sse_mask_impl : public generic_mask_impl<datapar_abi::sse, sse_mask_membe
     }
 
     // smart_reference access {{{2
-    template <class T> static bool get(const mask<T> &k, int i) noexcept
+    template <class T> static bool get(const mask_member_type<T> k, int i) noexcept
     {
-        return k.d.m(i);
+        return k.m(i);
     }
-    template <class T> static void set(mask<T> &k, int i, bool x) noexcept
+    template <class T> static void set(mask_member_type<T> &k, int i, bool x) noexcept
     {
-        k.d.set(i, mask_bool<T>(x));
+        k.set(i, mask_bool<T>(x));
     }
     // }}}2
 };

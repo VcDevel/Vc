@@ -683,15 +683,14 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
     // smart_reference access {{{2
-    template <class T, class A>
-    static Vc_INTRINSIC T get(Vc::datapar<T, A> v, int i) noexcept
+    template <class T> static Vc_INTRINSIC T get(datapar_member_type<T> v, int i) noexcept
     {
-        return v.d.m(i);
+        return v.m(i);
     }
-    template <class T, class A, class U>
-    static Vc_INTRINSIC void set(Vc::datapar<T, A> &v, int i, U &&x) noexcept
+    template <class T, class U>
+    static Vc_INTRINSIC void set(datapar_member_type<T> &v, int i, U &&x) noexcept
     {
-        v.d.set(i, std::forward<U>(x));
+        v.set(i, std::forward<U>(x));
     }
     // }}}2
 };
@@ -1053,13 +1052,15 @@ struct avx512_mask_impl
     }
 
     // smart_reference access {{{2
-    template <class T> static bool get(const mask<T> &k, int i) noexcept
+    template <size_t N>
+    static Vc_INTRINSIC bool get(mask_member_type<N> k, int i) noexcept
     {
-        return k.d.m(i);
+        return k.m(i);
     }
-    template <class T> static void set(mask<T> &k, int i, bool x) noexcept
+    template <size_t N>
+    static Vc_INTRINSIC void set(mask_member_type<N> &k, int i, bool x) noexcept
     {
-        k.d.set(i, x);
+        k.set(i, x);
     }
     // }}}2
 };

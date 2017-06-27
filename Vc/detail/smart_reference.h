@@ -30,10 +30,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
-template <class U, class Accessor = U> class smart_reference
+template <class U, class Accessor = U, class Friend = U,
+          class ValueType = typename U::value_type>
+class smart_reference
 {
-    friend U;
     friend Accessor;
+    friend Friend;
     Vc_INTRINSIC smart_reference(U &o, int i) noexcept : index(i), obj(o) {}
     static constexpr bool get_noexcept = noexcept(Accessor::get(declval<U &>(), int()));
     template <typename T> static constexpr bool set_noexcept()
@@ -45,7 +47,7 @@ template <class U, class Accessor = U> class smart_reference
     U &obj;
 
 public:
-    using value_type = typename U::value_type;
+    using value_type = ValueType;
 
     Vc_INTRINSIC smart_reference(const smart_reference &) = delete;
 

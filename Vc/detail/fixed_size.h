@@ -456,15 +456,15 @@ public:
 #undef Vc_CMP_OPERATIONS
 
     // smart_reference access {{{2
-    template <class T, class A>
-    static Vc_INTRINSIC T get(const Vc::datapar<T, A> &v, int i) noexcept
+    template <class T, class... As>
+    static Vc_INTRINSIC T get(const datapar_tuple<T, As...> &v, int i) noexcept
     {
-        return v.d[i];
+        return v[i];
     }
-    template <class T, class A, class U>
-    static Vc_INTRINSIC void set(Vc::datapar<T, A> &v, int i, U &&x) noexcept
+    template <class T, class... As, class U>
+    static Vc_INTRINSIC void set(datapar_tuple<T, As...> &v, int i, U &&x) noexcept
     {
-        v.d.set(i, std::forward<U>(x));
+        v.set(i, std::forward<U>(x));
     }
 
     // masked_assign {{{2
@@ -751,15 +751,13 @@ template <int N> struct fixed_size_mask_impl {
     }
 
     // smart_reference access {{{2
-    template <class T, class A>
-    static Vc_INTRINSIC bool get(const Vc::mask<T, A> &k, int i) noexcept
+    static Vc_INTRINSIC bool get(const mask_member_type k, int i) noexcept
     {
-        return k.d[i];
+        return k[i];
     }
-    template <class T, class A>
-    static Vc_INTRINSIC void set(Vc::mask<T, A> &k, int i, bool x) noexcept
+    static Vc_INTRINSIC void set(mask_member_type &k, int i, bool x) noexcept
     {
-        k.d.set(i, x);
+        k.set(i, x);
     }
 
     // masked_assign {{{2

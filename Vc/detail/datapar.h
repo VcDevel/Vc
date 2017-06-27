@@ -147,7 +147,7 @@ class datapar
 
 public:
     using value_type = T;
-    using reference = detail::smart_reference<datapar, impl>;
+    using reference = detail::smart_reference<member_type, impl, datapar, value_type>;
     using mask_type = mask<T, Abi>;
     using size_type = size_t;
     using abi_type = Abi;
@@ -269,8 +269,8 @@ public:
     }
 
     // scalar access
-    Vc_ALWAYS_INLINE reference operator[](size_type i) { return {*this, int(i)}; }
-    Vc_ALWAYS_INLINE value_type operator[](size_type i) const { return impl::get(*this, int(i)); }
+    Vc_ALWAYS_INLINE reference operator[](size_type i) { return {d, int(i)}; }
+    Vc_ALWAYS_INLINE value_type operator[](size_type i) const { return impl::get(d, int(i)); }
 
     // increment and decrement:
     Vc_ALWAYS_INLINE datapar &operator++() { impl::increment(d); return *this; }
