@@ -105,16 +105,14 @@ struct scalar_datapar_impl {
     }
 
     // min, max, clamp {{{2
-    template <class T>
-    static inline datapar<T> min(const datapar<T> &a, const datapar<T> &b)
+    template <class T> static inline T min(const T a, const T b)
     {
-        return {private_init, std::min(a.d, b.d)};
+        return std::min(a, b);
     }
 
-    template <class T>
-    static inline datapar<T> max(const datapar<T> &a, const datapar<T> &b)
+    template <class T> static inline T max(const T a, const T b)
     {
-        return {private_init, std::max(a.d, b.d)};
+        return std::max(a, b);
     }
 
     // complement {{{2

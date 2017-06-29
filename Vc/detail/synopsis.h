@@ -789,24 +789,31 @@ Vc_INTRINSIC typename V::value_type reduce(
 template <class T, class A>
 Vc_INTRINSIC datapar<T, A> min(const datapar<T, A> &a, const datapar<T, A> &b)
 {
-    return detail::get_impl_t<datapar<T, A>>::min(a, b);
+    return static_cast<datapar<T, A>>(
+        detail::get_impl_t<datapar<T, A>>::min(detail::data(a), detail::data(b)));
 }
 template <class T, class A>
 Vc_INTRINSIC datapar<T, A> max(const datapar<T, A> &a, const datapar<T, A> &b)
 {
-    return detail::get_impl_t<datapar<T, A>>::max(a, b);
+    return static_cast<datapar<T, A>>(
+        detail::get_impl_t<datapar<T, A>>::max(detail::data(a), detail::data(b)));
 }
 template <class T, class A>
 Vc_INTRINSIC std::pair<datapar<T, A>, datapar<T, A>> minmax(const datapar<T, A> &a,
                                                             const datapar<T, A> &b)
 {
-    return detail::get_impl_t<datapar<T, A>>::minmax(a, b);
+    const auto pair_of_members =
+        detail::get_impl_t<datapar<T, A>>::minmax(detail::data(a), detail::data(b));
+    return {static_cast<datapar<T, A>>(pair_of_members.first),
+            static_cast<datapar<T, A>>(pair_of_members.second)};
 }
 template <class T, class A>
 Vc_INTRINSIC datapar<T, A> clamp(const datapar<T, A> &v, const datapar<T, A> &lo,
                                  const datapar<T, A> &hi)
 {
-    return min(hi, max(lo, v));
+    using Impl = detail::get_impl_t<datapar<T, A>>;
+    return static_cast<datapar<T, A>>(
+        Impl::min(detail::data(hi), Impl::max(detail::data(lo), detail::data(v))));
 }
 
 // math functions

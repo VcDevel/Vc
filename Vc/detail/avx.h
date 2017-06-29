@@ -481,12 +481,14 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     }
 
     // negation {{{2
-    template <class T> static Vc_INTRINSIC mask_member_type<T> Vc_VDECL negate(datapar_member_type<T> x) noexcept
+    template <class T>
+    static Vc_INTRINSIC mask_member_type<T> Vc_VDECL
+    negate(datapar_member_type<T> x) noexcept
     {
 #if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
         return !x.builtin();
 #else
-        return equal_to(x, datapar<T>(0).d);
+        return equal_to(x, x86::zero<intrinsic_type<T>>());
 #endif
     }
 
@@ -503,15 +505,17 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
 
     // min, max {{{2
 #define Vc_MINMAX_(T_, suffix_)                                                          \
-    static Vc_INTRINSIC datapar<T_> min(datapar<T_> a, datapar<T_> b)                    \
+    static Vc_INTRINSIC datapar_member_type<T_> min(datapar_member_type<T_> a,           \
+                                                    datapar_member_type<T_> b)           \
     {                                                                                    \
-        return {private_init, _mm256_min_##suffix_(data(a), data(b))};                   \
+        return _mm256_min_##suffix_(a, b);                                               \
     }                                                                                    \
-    static Vc_INTRINSIC datapar<T_> max(datapar<T_> a, datapar<T_> b)                    \
+    static Vc_INTRINSIC datapar_member_type<T_> max(datapar_member_type<T_> a,           \
+                                                    datapar_member_type<T_> b)           \
     {                                                                                    \
-        return {private_init, _mm256_max_##suffix_(data(a), data(b))};                   \
+        return _mm256_max_##suffix_(a, b);                                               \
     }                                                                                    \
-    static_assert(true, "")
+    Vc_NOTHING_EXPECTING_SEMICOLON
     Vc_MINMAX_(double, pd);
     Vc_MINMAX_( float, ps);
 #ifdef Vc_HAVE_AVX2
@@ -526,56 +530,63 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
     Vc_MINMAX_( llong, epi64);
     Vc_MINMAX_(ullong, epu64);
 #elif defined Vc_HAVE_AVX2
-    static Vc_INTRINSIC datapar<llong> min(datapar<llong> a, datapar<llong> b)
+    static Vc_INTRINSIC datapar_member_type<llong> min(datapar_member_type<llong> a,
+                                                       datapar_member_type<llong> b)
     {
-        auto x = data(a), y = data(b);
-        return {private_init, _mm256_blendv_epi8(x, y, _mm256_cmpgt_epi64(x, y))};
+        return _mm256_blendv_epi8(a, b, _mm256_cmpgt_epi64(a, b));
     }
-    static Vc_INTRINSIC datapar<llong> max(datapar<llong> a, datapar<llong> b)
+    static Vc_INTRINSIC datapar_member_type<llong> max(datapar_member_type<llong> a,
+                                                       datapar_member_type<llong> b)
     {
-        auto x = data(a), y = data(b);
-        return {private_init, _mm256_blendv_epi8(y, x, _mm256_cmpgt_epi64(x, y))};
+        return _mm256_blendv_epi8(b, a, _mm256_cmpgt_epi64(a, b));
+    } static Vc_INTRINSIC datapar_member_type<ullong> min(datapar_member_type<ullong> a,
+                                                          datapar_member_type<ullong> b)
+    {
+        return _mm256_blendv_epi8(a, b, cmpgt(a, b));
     }
-    static Vc_INTRINSIC datapar<ullong> min(datapar<ullong> a, datapar<ullong> b)
+    static Vc_INTRINSIC datapar_member_type<ullong> max(datapar_member_type<ullong> a,
+                                                        datapar_member_type<ullong> b)
     {
-        auto x = data(a), y = data(b);
-        return {private_init, _mm256_blendv_epi8(x, y, cmpgt(x, y))};
-    }
-    static Vc_INTRINSIC datapar<ullong> max(datapar<ullong> a, datapar<ullong> b)
-    {
-        auto x = data(a), y = data(b);
-        return {private_init, _mm256_blendv_epi8(y, x, cmpgt(x, y))};
+        return _mm256_blendv_epi8(b, a, cmpgt(a, b));
     }
 #endif
 #undef Vc_MINMAX_
 
 #if defined Vc_HAVE_AVX2
-    static Vc_INTRINSIC datapar<long> min(datapar<long> a, datapar<long> b)
+    static Vc_INTRINSIC datapar_member_type<long> min(datapar_member_type<long> a,
+                                                      datapar_member_type<long> b)
     {
-        return datapar<long>{data(min(datapar<equal_int_type_t<long>>(data(a)),
-                                      datapar<equal_int_type_t<long>>(data(b))))};
+        return min(datapar_member_type<equal_int_type_t<long>>(a.v()),
+                   datapar_member_type<equal_int_type_t<long>>(b.v()))
+            .v();
     }
-    static Vc_INTRINSIC datapar<long> max(datapar<long> a, datapar<long> b)
+    static Vc_INTRINSIC datapar_member_type<long> max(datapar_member_type<long> a,
+                                                      datapar_member_type<long> b)
     {
-        return datapar<long>{data(max(datapar<equal_int_type_t<long>>(data(a)),
-                                      datapar<equal_int_type_t<long>>(data(b))))};
+        return max(datapar_member_type<equal_int_type_t<long>>(a.v()),
+                   datapar_member_type<equal_int_type_t<long>>(b.v()))
+            .v();
     }
 
-    static Vc_INTRINSIC datapar<ulong> min(datapar<ulong> a, datapar<ulong> b)
+    static Vc_INTRINSIC datapar_member_type<ulong> min(datapar_member_type<ulong> a,
+                                                       datapar_member_type<ulong> b)
     {
-        return datapar<ulong>{data(min(datapar<equal_int_type_t<ulong>>(data(a)),
-                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+        return min(datapar_member_type<equal_int_type_t<ulong>>(a.v()),
+                   datapar_member_type<equal_int_type_t<ulong>>(b.v()))
+            .v();
     }
-    static Vc_INTRINSIC datapar<ulong> max(datapar<ulong> a, datapar<ulong> b)
+    static Vc_INTRINSIC datapar_member_type<ulong> max(datapar_member_type<ulong> a,
+                                                       datapar_member_type<ulong> b)
     {
-        return datapar<ulong>{data(max(datapar<equal_int_type_t<ulong>>(data(a)),
-                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+        return max(datapar_member_type<equal_int_type_t<ulong>>(a.v()),
+                   datapar_member_type<equal_int_type_t<ulong>>(b.v()))
+            .v();
     }
 #endif  // Vc_HAVE_AVX2
 
     template <class T>
-    static Vc_INTRINSIC std::pair<datapar<T>, datapar<T>> minmax(datapar<T> a,
-                                                                 datapar<T> b)
+    static Vc_INTRINSIC std::pair<datapar_member_type<T>, datapar_member_type<T>> minmax(
+        datapar_member_type<T> a, datapar_member_type<T> b)
     {
         return {min(a, b), max(a, b)};
     }

@@ -547,15 +547,17 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
 
     // min, max {{{2
 #define Vc_MINMAX_(T_, suffix_)                                                          \
-    static Vc_INTRINSIC datapar<T_> min(datapar<T_> a, datapar<T_> b)                    \
+    static Vc_INTRINSIC datapar_member_type<T_> min(datapar_member_type<T_> a,           \
+                                                    datapar_member_type<T_> b)           \
     {                                                                                    \
-        return {private_init, _mm512_min_##suffix_(data(a), data(b))};                   \
+        return _mm512_min_##suffix_(a, b);                                               \
     }                                                                                    \
-    static Vc_INTRINSIC datapar<T_> max(datapar<T_> a, datapar<T_> b)                    \
+    static Vc_INTRINSIC datapar_member_type<T_> max(datapar_member_type<T_> a,           \
+                                                    datapar_member_type<T_> b)           \
     {                                                                                    \
-        return {private_init, _mm512_max_##suffix_(data(a), data(b))};                   \
+        return _mm512_max_##suffix_(a, b);                                               \
     }                                                                                    \
-    static_assert(true, "")
+    Vc_NOTHING_EXPECTING_SEMICOLON
     Vc_MINMAX_(double, pd);
     Vc_MINMAX_( float, ps);
     Vc_MINMAX_( llong, epi64);
@@ -569,31 +571,35 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     Vc_MINMAX_( uchar, epu8);
 #endif  // Vc_HAVE_FULL_AVX512_ABI
 #undef Vc_MINMAX_
-    static Vc_INTRINSIC datapar<long> min(datapar<long> a, datapar<long> b)
+    static Vc_INTRINSIC __m512i min(datapar_member_type<long> a,
+                                    datapar_member_type<long> b)
     {
-        return datapar<long>{data(min(datapar<equal_int_type_t<long>>(data(a)),
-                                      datapar<equal_int_type_t<long>>(data(b))))};
+        return min(datapar_member_type<equal_int_type_t<long>>(a),
+                   datapar_member_type<equal_int_type_t<long>>(b));
     }
-    static Vc_INTRINSIC datapar<long> max(datapar<long> a, datapar<long> b)
+    static Vc_INTRINSIC __m512i max(datapar_member_type<long> a,
+                                    datapar_member_type<long> b)
     {
-        return datapar<long>{data(max(datapar<equal_int_type_t<long>>(data(a)),
-                                      datapar<equal_int_type_t<long>>(data(b))))};
+        return max(datapar_member_type<equal_int_type_t<long>>(a),
+                   datapar_member_type<equal_int_type_t<long>>(b));
     }
 
-    static Vc_INTRINSIC datapar<ulong> min(datapar<ulong> a, datapar<ulong> b)
+    static Vc_INTRINSIC __m512i min(datapar_member_type<ulong> a,
+                                    datapar_member_type<ulong> b)
     {
-        return datapar<ulong>{data(min(datapar<equal_int_type_t<ulong>>(data(a)),
-                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+        return min(datapar_member_type<equal_int_type_t<ulong>>(a),
+                   datapar_member_type<equal_int_type_t<ulong>>(b));
     }
-    static Vc_INTRINSIC datapar<ulong> max(datapar<ulong> a, datapar<ulong> b)
+    static Vc_INTRINSIC __m512i max(datapar_member_type<ulong> a,
+                                    datapar_member_type<ulong> b)
     {
-        return datapar<ulong>{data(max(datapar<equal_int_type_t<ulong>>(data(a)),
-                                       datapar<equal_int_type_t<ulong>>(data(b))))};
+        return max(datapar_member_type<equal_int_type_t<ulong>>(a),
+                   datapar_member_type<equal_int_type_t<ulong>>(b));
     }
 
     template <class T>
-    static Vc_INTRINSIC std::pair<datapar<T>, datapar<T>> minmax(datapar<T> a,
-                                                                 datapar<T> b)
+    static Vc_INTRINSIC std::pair<datapar_member_type<T>, datapar_member_type<T>> minmax(
+        datapar_member_type<T> a, datapar_member_type<T> b)
     {
         return {min(a, b), max(a, b)};
     }

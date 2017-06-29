@@ -343,18 +343,18 @@ public:
     }
 
     // min, max, clamp {{{2
-    template <class T>
-    static inline datapar<T> min(const datapar<T> a, const datapar<T> b)
+    template <class T, class... As>
+    static inline datapar_tuple<T, As...> min(const datapar_tuple<T, As...> a,
+                                              const datapar_tuple<T, As...> b)
     {
-        return {private_init,
-                apply([](auto aa, auto bb) { return Vc::min(aa, bb); }, a.d, b.d)};
+        return apply([](auto aa, auto bb) { return Vc::min(aa, bb); }, a, b);
     }
 
-    template <class T>
-    static inline datapar<T> max(const datapar<T> a, const datapar<T> b)
+    template <class T, class... As>
+    static inline datapar_tuple<T, As...> max(const datapar_tuple<T, As...> a,
+                                              const datapar_tuple<T, As...> b)
     {
-        return {private_init,
-                apply([](auto aa, auto bb) { return Vc::max(aa, bb); }, a.d, b.d)};
+        return apply([](auto aa, auto bb) { return Vc::max(aa, bb); }, a, b);
     }
 
     // complement {{{2
