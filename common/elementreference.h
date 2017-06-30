@@ -51,6 +51,25 @@ template <typename U, typename Accessor = U> class ElementReference
 public:
     Vc_INTRINSIC ElementReference(const ElementReference &) = delete;
 
+    /**
+     * Move Constructor
+     *
+     * this is the only way to constructor an ElementReference in user code
+     *
+     * \note
+     * Please be aware that this class models the concept of a reference
+     * and as such it can have the same lifetime issue as a standard C++
+     * reference.
+     *
+     * \note
+     * C++ 17 support copy-elision, which in turn allows to
+     * the ElementReference obtained via operator[] from a function
+     * and avoid copying. C++11 and C++14 don't offer this, thus we add
+     * the move constructor, to allow them to move the data and thus avoid
+     * copying (which was prohibited by the deleted constructor above
+     */
+    Vc_INTRINSIC ElementReference(ElementReference &&) = default;
+
     Vc_INTRINSIC operator value_type() const noexcept(get_noexcept)
     {
         return Accessor::get(obj, index);

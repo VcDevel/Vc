@@ -49,7 +49,7 @@ TEST_TYPES(V, reads, (ALL_VECTORS, SIMD_ARRAY_LIST))
     // The non-const operator[] returns a smart reference that mimics an lvalue reference.
     // But since it's not an actual lvalue reference the proxy is supposed to live as
     // short as possible. To achieve this all move & copy operations must be disabled.
-    VERIFY(!std::is_move_constructible<decltype(a[0])>::value);
+    VERIFY(std::is_move_constructible<decltype(a[0])>::value);
     VERIFY(!std::is_copy_constructible<decltype(a[0])>::value);
     VERIFY(!std::is_move_assignable<decltype(a[0])>::value);
     VERIFY(!std::is_copy_assignable<decltype(a[0])>::value);
