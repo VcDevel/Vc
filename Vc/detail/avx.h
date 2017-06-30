@@ -488,7 +488,7 @@ struct avx_datapar_impl : public generic_datapar_impl<avx_datapar_impl> {
 #if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
         return !x.builtin();
 #else
-        return equal_to(x, x86::zero<intrinsic_type<T>>());
+        return equal_to(x, datapar_member_type<T>(x86::zero<intrinsic_type<T>>()));
 #endif
     }
 
