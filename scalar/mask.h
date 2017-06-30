@@ -139,6 +139,12 @@ private:
     }
 
 public:
+    /**
+     * \note the returned object models the concept of a reference and
+     * as such it can exist longer than the data it is referencing.
+     * \note to avoid lifetime issues, we strongly advice not to store
+     * any reference objects.
+     */
     Vc_ALWAYS_INLINE reference operator[](size_t i) noexcept
     {
         Vc_ASSERT(i == 0); if (i) {}

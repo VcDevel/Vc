@@ -135,7 +135,7 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
 
     static constexpr std::size_t EntryOffset = Index * type_decayed::Size / Pieces;
 
-    // no non-const operator[] needed (and problematic because of non-movable ElementReference)
+    // no non-const operator[] needed
     decltype(std::declval<const type &>()[0]) operator[](size_t i) const { return data[i + EntryOffset]; }
 
     simd_array_type asSimdArray() const
