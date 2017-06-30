@@ -127,4 +127,7 @@ Standard: Cpp11
 #    If true, IndentWidth consecutive spaces will be replaced with tab characters.
 UseTab: false
 
+MacroBlockBegin: '^Vc_[A-Z0-9_]+_BEGIN$'
+MacroBlockEnd: '^Vc_[A-Z0-9_]+_END$'
+
 # vim: ft=yaml
