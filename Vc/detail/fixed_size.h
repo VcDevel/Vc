@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "datapar.h"
 #include "detail.h"
+#include "datapar_tuple.h"
 #include <array>
 
 /**

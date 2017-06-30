@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "macros.h"
 #ifdef Vc_HAVE_SSE
 #include "storage.h"
+#include "datapar_tuple.h"
 #include "x86/intrinsics.h"
 #include "x86/convert.h"
 #include "x86/compares.h"
