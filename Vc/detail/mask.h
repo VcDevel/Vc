@@ -182,7 +182,7 @@ private:
     // error C2719: 'k': formal parameter with requested alignment of 16 won't be aligned
     alignas(traits::mask_member_alignment)
 //#endif
-        typename traits::mask_member_type d = {};
+        typename traits::mask_member_type d;
 };
 
 namespace detail

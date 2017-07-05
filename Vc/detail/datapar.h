@@ -357,7 +357,7 @@ private:
     friend auto &detail::data<value_type, abi_type>(datapar &);
 #endif
     Vc_INTRINSIC datapar(detail::private_init_t, const member_type &init) : d(init) {}
-    alignas(traits::datapar_member_alignment) member_type d = {};
+    alignas(traits::datapar_member_alignment) member_type d;
 };
 
 namespace detail

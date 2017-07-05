@@ -37,7 +37,7 @@ template <class... Ts> using base_template = Vc::mask<Ts...>;
 template <class M> M make_mask(const std::initializer_list<bool> &init)
 {
     std::size_t i = 0;
-    M r;
+    M r = {};
     for (;;) {
         for (bool x : init) {
             r[i] = x;
@@ -64,9 +64,15 @@ TEST_TYPES(M, broadcast, all_test_types)  //{{{1
     VERIFY(Vc::is_mask_v<M>);
 
     {
-        M x;      // default broadcasts 0
+        M x;      // uninitialized
         x = M{};  // default broadcasts 0
+        COMPARE(x, M(false));
+        COMPARE(x, M());
+        COMPARE(x, M{});
         x = M();  // default broadcasts 0
+        COMPARE(x, M(false));
+        COMPARE(x, M());
+        COMPARE(x, M{});
         x = x;
         for (std::size_t i = 0; i < M::size(); ++i) {
             COMPARE(x[i], false);
