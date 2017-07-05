@@ -310,8 +310,7 @@ struct avx512_datapar_impl : public generic_datapar_impl<avx512_datapar_impl> {
     static Vc_INTRINSIC datapar_member_type<T> convert_helper(
         const datapar_tuple<U, Abis...> &uncvted, std::index_sequence<Indexes...>)
     {
-        return x86::convert_to<datapar_member_type<T>>(
-            data(detail::get<Indexes>(uncvted))...);
+        return x86::convert_to<datapar_member_type<T>>(detail::get<Indexes>(uncvted)...);
     }
     template <class T, class U, class F>
     static Vc_INTRINSIC void masked_load(datapar_member_type<T> &merge, mask_member_type<T> k,
