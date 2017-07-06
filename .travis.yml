@@ -42,6 +42,7 @@ matrix:
 # The following gives us Ubuntu 14.04 LTS instead of 12.04 LTS
 sudo: required
 dist: trusty
+group: deprecated-2017Q2
 
 install:
     - case "$TRAVIS_OS_NAME-$CXX-$arch" in
