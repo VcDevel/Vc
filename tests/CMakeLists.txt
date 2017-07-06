@@ -370,7 +370,49 @@ endfunction()
 find_program(OBJDUMP objdump)
 mark_as_advanced(OBJDUMP)
 if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
+   set(alias_strategies2 Union)
+   if(Vc_COMPILER_IS_CLANG OR Vc_COMPILER_IS_GCC)
+      list(APPEND alias_strategies2 MayAlias VectorBuiltin)
+   elseif(Vc_COMPILER_IS_INTEL)
+      list(APPEND alias_strategies2 MayAlias)
+   elseif(Vc_COMPILER_IS_MSVC)
+      list(APPEND alias_strategies2 UnionMembers)
+   endif()
+
    set(run_targets)
+   macro(test_uninitialized _impl)
+      foreach(alias ${alias_strategies})
+         set(_target "uninit_${_impl}_${alias}")
+         set(_test test_${_target})
+         string(TOUPPER ${alias} alias_flag)
+         set(alias_flag "Vc_USE_ALIASSTRATEGY_${alias_flag}")
+         add_executable(${_target} EXCLUDE_FROM_ALL uninit.cpp)
+         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS "${ARGN};-O2")
+         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
+         add_target_property(${_target} LABELS "${_impl}")
+         add_dependencies(${_impl} ${_target})
+         add_dependencies(build_tests ${_target})
+         get_target_executable(_exe "${_target}")
+         add_test(NAME ${_test}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+            -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/uninit.cmake
+            )
+         set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
+         add_custom_target(run_${_target}
+            ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+            -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/uninit.cmake
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            DEPENDS ${_target}
+            COMMENT "Execute ${_target} test"
+            VERBATIM
+            )
+         list(APPEND run_targets "run_${_target}")
+      endforeach()
+   endmacro()
+
    macro(test_abi target _impl abi)
       foreach(subtype native fixed_size)
          if("${subtype}" STREQUAL "fixed_size")
@@ -414,6 +456,10 @@ if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
    endmacro()
 
    if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "[x3-7]86")
+      test_uninitialized(SSE ${Vc_sse2_flags})
+      test_uninitialized(AVX ${Vc_avx_flags})
+      test_uninitialized(KNL ${Vc_knl_flags})
+
       test_abi(abi_SSE     SSE sse ${Vc_sse2_flags})
       test_abi(abi_SSE_AVX SSE sse ${Vc_avx_flags})
       if(NOT Vc_AVX_INTRINSICS_BROKEN)
