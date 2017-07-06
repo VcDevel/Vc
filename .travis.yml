@@ -63,7 +63,7 @@ install:
         osx-g++-x86_64)
           brew update &&
           brew install gcc6 &&
-          export CXX=g++-7 CC=gcc-7;;
+          export CXX=g++-6 CC=gcc-6;;
         osx-clang++-x86_64)
           wget http://releases.llvm.org/4.0.0/clang+llvm-4.0.0-x86_64-apple-darwin.tar.xz &&
           tar xf clang+llvm-4.0.0-x86_64-apple-darwin.tar.xz &&
