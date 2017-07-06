@@ -157,7 +157,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data(x86::zero<VectorType>()) { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() = default;
 
     template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
@@ -270,7 +270,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data(x86::zero<VectorType>()) { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() = default;
 
     template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
@@ -367,7 +367,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data{} { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() = default;
 
     template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
@@ -452,10 +452,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data(x86::zero<VectorType>())
-    {
-        assertCorrectAlignment(&data);
-    }
+    Vc_INTRINSIC Storage() = default;
 
     template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
@@ -676,7 +673,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data(aarch::zero<VectorType>()) { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() = default;
 
     template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
@@ -751,7 +748,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data(aarch::zero<VectorType>()) { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() = default;
 
     template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
@@ -822,7 +819,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data{} { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage() = default;
 
     template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
@@ -881,10 +878,7 @@ public:
 
     static constexpr size_t size() { return Size; }
 
-    Vc_INTRINSIC Storage() : data(aarch::zero<VectorType>())
-    {
-        assertCorrectAlignment(&data);
-    }
+    Vc_INTRINSIC torage() = default;
 
     template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
     Vc_INTRINSIC Storage(Args &&... init)
