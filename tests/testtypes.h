@@ -138,7 +138,11 @@ typedef vir::concat<
     native_test_types,
     vir::expand_list<
         vir::Typelist<
+#ifndef Vc_HAVE_AVX512F
+            // reduce compile times when AVX512 is available (already builds avx and sse
+            // ABIs)
             vir::Template<base_template, Vc::datapar_abi::scalar>,
+#endif  // Vc_HAVE_AVX512F
             // vir::Template<base_template, Vc::datapar_abi::fixed_size<2>>,
             vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
             // vir::Template<base_template, Vc::datapar_abi::fixed_size<4>>,
@@ -156,7 +160,11 @@ using real_test_types = vir::concat<
     native_real_test_types,
     vir::expand_list<
         vir::Typelist<
+#ifndef Vc_HAVE_AVX512F
+            // reduce compile times when AVX512 is available (already builds avx and sse
+            // ABIs)
             vir::Template<base_template, Vc::datapar_abi::scalar>,
+#endif  // Vc_HAVE_AVX512F
             vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
             vir::Template<base_template, Vc::datapar_abi::fixed_size<12>>,
             vir::Template<base_template, Vc::datapar_abi::fixed_size<
@@ -183,10 +191,15 @@ using many_fixed_size_types = vir::expand_list<
                   vir::Template<base_template, Vc::datapar_abi::fixed_size<17>>>,
     testtypes_float>;
 // reduced_test_types {{{1
+#ifdef Vc_HAVE_AVX512F
+// reduce compile times when AVX512 is available
+using reduced_test_types = native_test_types;
+#else   // Vc_HAVE_AVX512F
 typedef vir::concat<
     native_test_types,
     vir::expand_list<vir::Typelist<vir::Template<base_template, Vc::datapar_abi::scalar>>,
                      testtypes>> reduced_test_types;
+#endif  // Vc_HAVE_AVX512F
 
 //}}}1
 #endif  // TESTS_TESTTYPES_H_
