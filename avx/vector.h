@@ -206,7 +206,8 @@ public:
 
 #include "../common/gatherinterface.h"
 #include "../common/scatterinterface.h"
-#ifdef Vc_IMPL_AVX2
+#if defined Vc_IMPL_AVX2 && !defined Vc_MSVC
+        // skip this code for MSVC because it fails to do overload resolution correctly
         Vc_INTRINSIC_L void gatherImplementation(
             const EntryType *mem,
             typename std::conditional<
@@ -250,7 +251,7 @@ public:
         {
             gatherImplementation(mem, simd_cast<SSE::int_v>(indexes));
         }
-#endif  // Vc_IMPL_AVX2
+#endif  // Vc_IMPL_AVX2 && !MSVC
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //prefix

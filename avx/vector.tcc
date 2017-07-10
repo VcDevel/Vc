@@ -410,34 +410,37 @@ inline void AVX2::float_v::gatherImplementation(const MT *mem, const IT &indexes
 }
 
 #ifdef Vc_IMPL_AVX2
+#ifndef Vc_MSVC
+// skip this code for MSVC because it fails to do overload resolution correctly
 template <>
-Vc_INTRINSIC void AVX2::double_v::gatherImplementation(const EntryType *mem,
+Vc_INTRINSIC void AVX2::double_v::gatherImplementation(const double *mem,
                                                        SSE::int_v indexes)
 {
     d.v() = _mm256_i32gather_pd(mem, indexes.data(), sizeof(double));
 }
 
 template <>
-Vc_INTRINSIC void AVX2::float_v::gatherImplementation(const EntryType *mem,
+Vc_INTRINSIC void AVX2::float_v::gatherImplementation(const float *mem,
                                                       AVX2::int_v indexes)
 {
     d.v() = _mm256_i32gather_ps(mem, indexes.data(), sizeof(float));
 }
 
 template <>
-Vc_INTRINSIC void AVX2::int_v::gatherImplementation(const EntryType *mem,
+Vc_INTRINSIC void AVX2::int_v::gatherImplementation(const int *mem,
                                                     AVX2::int_v indexes)
 {
     d.v() = _mm256_i32gather_epi32(mem, indexes.data(), sizeof(int));
 }
 
 template <>
-Vc_INTRINSIC void AVX2::uint_v::gatherImplementation(const EntryType *mem,
+Vc_INTRINSIC void AVX2::uint_v::gatherImplementation(const uint *mem,
                                                      AVX2::int_v indexes)
 {
     d.v() = _mm256_i32gather_epi32(reinterpret_cast<const MayAlias<int> *>(mem), indexes.data(),
                                    sizeof(unsigned));
 }
+#endif  // !Vc_MSVC
 
 template <>
 template <typename MT, typename IT>
