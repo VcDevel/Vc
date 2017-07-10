@@ -61,7 +61,7 @@ install:
         osx-g++-current)
           brew update &&
           brew install gcc6 &&
-          export CXX=g++-7 CC=gcc-7;;
+          export CXX=g++-6 CC=gcc-6;;
         osx-g++-previous)
           brew update &&
           brew install gcc5 &&
