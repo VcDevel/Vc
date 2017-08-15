@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <bitset>
 
 Vc_VERSIONED_NAMESPACE_BEGIN
-template <class T, class Abi> class mask : public detail::traits<T, Abi>::mask_base
+template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::mask_base
 {
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::mask_impl_type;
@@ -47,7 +47,7 @@ template <class T, class Abi> class mask : public detail::traits<T, Abi>::mask_b
 
 public:
     using value_type = bool;
-    using reference = detail::smart_reference<member_type, impl, mask, value_type>;
+    using reference = detail::smart_reference<member_type, impl, simd_mask, value_type>;
     using simd_type = simd<T, Abi>;
     using size_type = size_t;
     using abi_type = Abi;
@@ -57,39 +57,39 @@ public:
         constexpr size_type N = size_tag;
         return N;
     }
-    mask() = default;
-    mask(const mask &) = default;
-    mask(mask &&) = default;
-    mask &operator=(const mask &) = default;
-    mask &operator=(mask &&) = default;
+    simd_mask() = default;
+    simd_mask(const simd_mask &) = default;
+    simd_mask(simd_mask &&) = default;
+    simd_mask &operator=(const simd_mask &) = default;
+    simd_mask &operator=(simd_mask &&) = default;
 
     // non-std; required to work around ICC ICEs
     static constexpr size_type size_v = size_tag;
 
     // access to internal representation (suggested extension)
-    explicit Vc_ALWAYS_INLINE mask(typename traits::mask_cast_type init) : d{init} {}
+    explicit Vc_ALWAYS_INLINE simd_mask(typename traits::mask_cast_type init) : d{init} {}
     // conversions to internal type is done in mask_base
 
     // bitset interface
-    static Vc_ALWAYS_INLINE mask from_bitset(std::bitset<size()> bs) { return {detail::bitset_init, bs}; }
+    static Vc_ALWAYS_INLINE simd_mask from_bitset(std::bitset<size()> bs) { return {detail::bitset_init, bs}; }
     std::bitset<size()> Vc_ALWAYS_INLINE to_bitset() const { return impl::to_bitset(d); }
 
     // explicit broadcast constructor
-    explicit Vc_ALWAYS_INLINE mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
+    explicit Vc_ALWAYS_INLINE simd_mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
 
     // implicit type conversion constructor
     template <class U>
-    Vc_ALWAYS_INLINE mask(const mask<U, simd_abi::fixed_size<size_v>> &x,
+    Vc_ALWAYS_INLINE simd_mask(const simd_mask<U, simd_abi::fixed_size<size_v>> &x,
          enable_if<detail::all<std::is_same<abi_type, simd_abi::fixed_size<size_v>>,
                                std::is_same<U, U>>::value> = nullarg)
-        : mask{detail::bitset_init, detail::data(x)}
+        : simd_mask{detail::bitset_init, detail::data(x)}
     {
     }
-    /* reference implementation for explicit mask casts
+    /* reference implementation for explicit simd_mask casts
     template <class U>
-    mask(const mask<U, Abi> &x,
+    simd_mask(const simd_mask<U, Abi> &x,
          enable_if<
-             (size() == mask<U, Abi>::size()) &&
+             (size() == simd_mask<U, Abi>::size()) &&
              detail::all<std::is_integral<T>, std::is_integral<U>,
              detail::negation<std::is_same<Abi, simd_abi::fixed_size<size_v>>>,
              detail::negation<std::is_same<T, U>>>::value> = nullarg)
@@ -97,7 +97,7 @@ public:
     {
     }
     template <class U, class Abi2>
-    mask(const mask<U, Abi2> &x,
+    simd_mask(const simd_mask<U, Abi2> &x,
          enable_if<detail::all<
          detail::negation<std::is_same<abi_type, Abi2>>,
              std::is_same<abi_type, simd_abi::fixed_size<size_v>>>::value> = nullarg)
@@ -109,22 +109,22 @@ public:
 
     // load constructor
     template <class Flags>
-    Vc_ALWAYS_INLINE mask(const value_type *mem, Flags f)
+    Vc_ALWAYS_INLINE simd_mask(const value_type *mem, Flags f)
         : d(impl::load(mem, f, size_tag))
     {
     }
-    template <class Flags> Vc_ALWAYS_INLINE mask(const value_type *mem, mask k, Flags f) : d{}
+    template <class Flags> Vc_ALWAYS_INLINE simd_mask(const value_type *mem, simd_mask k, Flags f) : d{}
     {
         impl::masked_load(d, k.d, mem, f, size_tag);
     }
 
-    // loads [mask.load]
+    // loads [simd_mask.load]
     template <class Flags> Vc_ALWAYS_INLINE void memload(const value_type *mem, Flags f)
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, size_tag));
     }
 
-    // stores [mask.store]
+    // stores [simd_mask.store]
     template <class Flags> Vc_ALWAYS_INLINE void memstore(value_type *mem, Flags f) const
     {
         impl::store(d, mem, f, size_tag);
@@ -135,50 +135,50 @@ public:
     Vc_ALWAYS_INLINE value_type operator[](size_type i) const { return impl::get(d, int(i)); }
 
     // negation
-    Vc_ALWAYS_INLINE mask operator!() const { return {detail::private_init, impl::negate(d, size_tag)}; }
+    Vc_ALWAYS_INLINE simd_mask operator!() const { return {detail::private_init, impl::negate(d, size_tag)}; }
 
-    // mask binary operators [mask.binary]
-    friend Vc_ALWAYS_INLINE mask operator&&(const mask &x, const mask &y)
+    // simd_mask binary operators [simd_mask.binary]
+    friend Vc_ALWAYS_INLINE simd_mask operator&&(const simd_mask &x, const simd_mask &y)
     {
         return impl::logical_and(x, y);
     }
-    friend Vc_ALWAYS_INLINE mask operator||(const mask &x, const mask &y)
+    friend Vc_ALWAYS_INLINE simd_mask operator||(const simd_mask &x, const simd_mask &y)
     {
         return impl::logical_or(x, y);
     }
 
-    friend Vc_ALWAYS_INLINE mask operator&(const mask &x, const mask &y) { return impl::bit_and(x, y); }
-    friend Vc_ALWAYS_INLINE mask operator|(const mask &x, const mask &y) { return impl::bit_or(x, y); }
-    friend Vc_ALWAYS_INLINE mask operator^(const mask &x, const mask &y) { return impl::bit_xor(x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask operator&(const simd_mask &x, const simd_mask &y) { return impl::bit_and(x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask operator|(const simd_mask &x, const simd_mask &y) { return impl::bit_or(x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask operator^(const simd_mask &x, const simd_mask &y) { return impl::bit_xor(x, y); }
 
-    friend Vc_ALWAYS_INLINE mask &operator&=(mask &x, const mask &y) { return x = impl::bit_and(x, y); }
-    friend Vc_ALWAYS_INLINE mask &operator|=(mask &x, const mask &y) { return x = impl::bit_or (x, y); }
-    friend Vc_ALWAYS_INLINE mask &operator^=(mask &x, const mask &y) { return x = impl::bit_xor(x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask &operator&=(simd_mask &x, const simd_mask &y) { return x = impl::bit_and(x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask &operator|=(simd_mask &x, const simd_mask &y) { return x = impl::bit_or (x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask &operator^=(simd_mask &x, const simd_mask &y) { return x = impl::bit_xor(x, y); }
 
-    // mask compares [mask.comparison]
-    friend Vc_ALWAYS_INLINE mask operator==(const mask &x, const mask &y) { return !operator!=(x, y); }
-    friend Vc_ALWAYS_INLINE mask operator!=(const mask &x, const mask &y) { return impl::bit_xor(x, y); }
+    // simd_mask compares [simd_mask.comparison]
+    friend Vc_ALWAYS_INLINE simd_mask operator==(const simd_mask &x, const simd_mask &y) { return !operator!=(x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask operator!=(const simd_mask &x, const simd_mask &y) { return impl::bit_xor(x, y); }
 
 private:
 #ifdef Vc_MSVC
     // Work around "warning C4396: the inline specifier cannot be used when a friend
     // declaration refers to a specialization of a function template"
-    template <class U, class A> friend const auto &detail::data(const mask<U, A> &);
-    template <class U, class A> friend auto &detail::data(mask<U, A> &);
+    template <class U, class A> friend const auto &detail::data(const simd_mask<U, A> &);
+    template <class U, class A> friend auto &detail::data(simd_mask<U, A> &);
 #else
-    friend const auto &detail::data<T, abi_type>(const mask &);
-    friend auto &detail::data<T, abi_type>(mask &);
+    friend const auto &detail::data<T, abi_type>(const simd_mask &);
+    friend auto &detail::data<T, abi_type>(simd_mask &);
 #endif
-    Vc_INTRINSIC mask(detail::private_init_t, typename traits::mask_member_type init)
+    Vc_INTRINSIC simd_mask(detail::private_init_t, typename traits::mask_member_type init)
         : d(init)
     {
     }
-    Vc_INTRINSIC mask(detail::bitset_init_t, std::bitset<size_v> init)
+    Vc_INTRINSIC simd_mask(detail::bitset_init_t, std::bitset<size_v> init)
         : d(impl::from_bitset(init, type_tag))
     {
     }
 //#ifndef Vc_MSVC
-    // MSVC refuses by value mask arguments, even if vectorcall__ is used:
+    // MSVC refuses by value simd_mask arguments, even if vectorcall__ is used:
     // error C2719: 'k': formal parameter with requested alignment of 16 won't be aligned
     alignas(traits::mask_member_alignment)
 //#endif
@@ -187,8 +187,8 @@ private:
 
 namespace detail
 {
-template <class T, class A> Vc_INTRINSIC const auto &data(const mask<T, A> &x) { return x.d; }
-template <class T, class A> Vc_INTRINSIC auto &data(mask<T, A> &x) { return x.d; }
+template <class T, class A> Vc_INTRINSIC const auto &data(const simd_mask<T, A> &x) { return x.d; }
+template <class T, class A> Vc_INTRINSIC auto &data(simd_mask<T, A> &x) { return x.d; }
 }  // namespace detail
 
 Vc_VERSIONED_NAMESPACE_END

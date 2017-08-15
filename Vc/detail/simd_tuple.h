@@ -72,7 +72,7 @@ struct tuple_element_meta : public detail::traits<T, Abi>::simd_impl_type {
     static constexpr size_t offset = Offset;
     static constexpr size_t size() { return simd_size<T, Abi>::value; }
     static constexpr size_constant<size()> size_tag = {};
-    static constexpr maskimpl mask = {};
+    static constexpr maskimpl simd_mask = {};
 
     template <size_t N>
     static Vc_INTRINSIC typename traits::mask_member_type make_mask(std::bitset<N> bits)

@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SIMD_SIMD_H_
 #define VC_SIMD_SIMD_H_
 
-#include "mask.h"
+#include "simd_mask.h"
 #include "concepts.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
@@ -148,7 +148,7 @@ class simd
 public:
     using value_type = T;
     using reference = detail::smart_reference<member_type, impl, simd, value_type>;
-    using mask_type = mask<T, Abi>;
+    using mask_type = simd_mask<T, Abi>;
     using size_type = size_t;
     using abi_type = Abi;
 

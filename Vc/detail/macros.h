@@ -308,7 +308,7 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 // }}}
 
 // __cdecl and __vectorcall Windows calling convention macros. Every function with a by
-// value simd/mask object needs to be declared with Vc_VDECL.
+// value simd/simd_mask object needs to be declared with Vc_VDECL.
 // {{{
 #ifdef Vc_MSVC
 #  define Vc_CDECL __cdecl

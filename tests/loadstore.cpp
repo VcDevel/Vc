@@ -96,9 +96,9 @@ static_assert(!is_conversion_undefined<float>(llong(0x100000000LL)),
               "testing my expectations of is_conversion_undefined");
 
 template <typename To, typename T, typename A>
-inline Vc::mask<T, A> is_conversion_undefined(const Vc::simd<T, A> &x)
+inline Vc::simd_mask<T, A> is_conversion_undefined(const Vc::simd<T, A> &x)
 {
-    Vc::mask<T, A> k = false;
+    Vc::simd_mask<T, A> k = false;
     for (std::size_t i = 0; i < x.size(); ++i) {
         k[i] = is_conversion_undefined(x[i]);
     }

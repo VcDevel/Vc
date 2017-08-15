@@ -218,12 +218,12 @@ template <class Derived> struct generic_simd_impl {
     //}}}2
 };
 
-// mask impl {{{1
+// simd_mask impl {{{1
 template <class abi, template <class> class mask_member_type> struct generic_mask_impl {
     // member types {{{2
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
-    template <class T> using mask = Vc::mask<T, abi>;
+    template <class T> using simd_mask = Vc::simd_mask<T, abi>;
 
     // masked load {{{2
     template <class T, size_t N, class F>
@@ -366,7 +366,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
             return;
         }
 #endif  // __GNUC__
-        lhs = detail::x86::blend(k, lhs, detail::data(mask<T>(rhs)));
+        lhs = detail::x86::blend(k, lhs, detail::data(simd_mask<T>(rhs)));
     }
 
     //}}}2

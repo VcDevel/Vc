@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/simd>
 
 #ifndef TESTTYPES
-#error "Please define TESTTYPES to the list of fundamental types to be tested with simd/mask."
+#error "Please define TESTTYPES to the list of fundamental types to be tested with simd/simd_mask."
 #endif
 
 using schar = signed char;

@@ -30,10 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/simd>
 #include "metahelpers.h"
 
-template <class... Ts> using base_template = Vc::mask<Ts...>;
+template <class... Ts> using base_template = Vc::simd_mask<Ts...>;
 #include "testtypes.h"
 
-// mask generator functions {{{1
+// simd_mask generator functions {{{1
 template <class M> M make_mask(const std::initializer_list<bool> &init)
 {
     std::size_t i = 0;
@@ -56,11 +56,11 @@ template <class M> M make_alternating_mask()
 TEST_TYPES(M, broadcast, all_test_types)  //{{{1
 {
     static_assert(std::is_convertible<typename M::reference, bool>::value,
-                  "A smart_reference<mask> must be convertible to bool.");
+                  "A smart_reference<simd_mask> must be convertible to bool.");
     static_assert(std::is_same<bool, decltype(std::declval<const typename M::reference &>() == true)>::value,
-                  "A smart_reference<mask> must be comparable against bool.");
+                  "A smart_reference<simd_mask> must be comparable against bool.");
     static_assert(Vc::Traits::has_equality_operator<typename M::reference, bool>::value,
-                  "A smart_reference<mask> must be comparable against bool.");
+                  "A smart_reference<simd_mask> must be comparable against bool.");
     VERIFY(Vc::is_mask_v<M>);
 
     {
@@ -153,23 +153,23 @@ std::enable_if_t<assign_should_not_work<L, R>> implicit_conversions_test()
 
 TEST_TYPES(M, implicit_conversions, all_test_types)
 {
-    using Vc::mask;
+    using Vc::simd_mask;
     using Vc::native_mask;
     using Vc::fixed_size_mask;
 
-    implicit_conversions_test<M, mask<ldouble>>();
-    implicit_conversions_test<M, mask<double>>();
-    implicit_conversions_test<M, mask<float>>();
-    implicit_conversions_test<M, mask<ullong>>();
-    implicit_conversions_test<M, mask<llong>>();
-    implicit_conversions_test<M, mask<ulong>>();
-    implicit_conversions_test<M, mask<long>>();
-    implicit_conversions_test<M, mask<uint>>();
-    implicit_conversions_test<M, mask<int>>();
-    implicit_conversions_test<M, mask<ushort>>();
-    implicit_conversions_test<M, mask<short>>();
-    implicit_conversions_test<M, mask<uchar>>();
-    implicit_conversions_test<M, mask<schar>>();
+    implicit_conversions_test<M, simd_mask<ldouble>>();
+    implicit_conversions_test<M, simd_mask<double>>();
+    implicit_conversions_test<M, simd_mask<float>>();
+    implicit_conversions_test<M, simd_mask<ullong>>();
+    implicit_conversions_test<M, simd_mask<llong>>();
+    implicit_conversions_test<M, simd_mask<ulong>>();
+    implicit_conversions_test<M, simd_mask<long>>();
+    implicit_conversions_test<M, simd_mask<uint>>();
+    implicit_conversions_test<M, simd_mask<int>>();
+    implicit_conversions_test<M, simd_mask<ushort>>();
+    implicit_conversions_test<M, simd_mask<short>>();
+    implicit_conversions_test<M, simd_mask<uchar>>();
+    implicit_conversions_test<M, simd_mask<schar>>();
     implicit_conversions_test<M, native_mask<ldouble>>();
     implicit_conversions_test<M, native_mask<double>>();
     implicit_conversions_test<M, native_mask<float>>();
@@ -317,7 +317,7 @@ TEST_TYPES(M, operator_conversions, current_native_mask_test_types)  //{{{1
     COMPARE(typeid(M() & M()), typeid(M));
 
     // nothing else works: no implicit conv. or ambiguous
-    using Vc::mask;
+    using Vc::simd_mask;
     using Vc::native_mask;
     using Vc::fixed_size_mask;
     auto &&sfinae_test = [](auto x) {
@@ -326,20 +326,20 @@ TEST_TYPES(M, operator_conversions, current_native_mask_test_types)  //{{{1
     VERIFY(sfinae_test(bool()));
 
     {
-        auto &&is = [](auto x) { return std::is_same<M, mask<decltype(x)>>::value; };
-        COMPARE(!is(ldouble()), sfinae_test(mask<ldouble>()));
-        COMPARE(!is(double ()), sfinae_test(mask<double >()));
-        COMPARE(!is(float  ()), sfinae_test(mask<float  >()));
-        COMPARE(!is(ullong ()), sfinae_test(mask<ullong >()));
-        COMPARE(!is(llong  ()), sfinae_test(mask<llong  >()));
-        COMPARE(!is(ulong  ()), sfinae_test(mask<ulong  >()));
-        COMPARE(!is(long   ()), sfinae_test(mask<long   >()));
-        COMPARE(!is(uint   ()), sfinae_test(mask<uint   >()));
-        COMPARE(!is(int    ()), sfinae_test(mask<int    >()));
-        COMPARE(!is(ushort ()), sfinae_test(mask<ushort >()));
-        COMPARE(!is(short  ()), sfinae_test(mask<short  >()));
-        COMPARE(!is(uchar  ()), sfinae_test(mask<uchar  >()));
-        COMPARE(!is(schar  ()), sfinae_test(mask<schar  >()));
+        auto &&is = [](auto x) { return std::is_same<M, simd_mask<decltype(x)>>::value; };
+        COMPARE(!is(ldouble()), sfinae_test(simd_mask<ldouble>()));
+        COMPARE(!is(double ()), sfinae_test(simd_mask<double >()));
+        COMPARE(!is(float  ()), sfinae_test(simd_mask<float  >()));
+        COMPARE(!is(ullong ()), sfinae_test(simd_mask<ullong >()));
+        COMPARE(!is(llong  ()), sfinae_test(simd_mask<llong  >()));
+        COMPARE(!is(ulong  ()), sfinae_test(simd_mask<ulong  >()));
+        COMPARE(!is(long   ()), sfinae_test(simd_mask<long   >()));
+        COMPARE(!is(uint   ()), sfinae_test(simd_mask<uint   >()));
+        COMPARE(!is(int    ()), sfinae_test(simd_mask<int    >()));
+        COMPARE(!is(ushort ()), sfinae_test(simd_mask<ushort >()));
+        COMPARE(!is(short  ()), sfinae_test(simd_mask<short  >()));
+        COMPARE(!is(uchar  ()), sfinae_test(simd_mask<uchar  >()));
+        COMPARE(!is(schar  ()), sfinae_test(simd_mask<schar  >()));
     }
 
     VERIFY(sfinae_test(fixed_size_mask<ldouble, 2>()));

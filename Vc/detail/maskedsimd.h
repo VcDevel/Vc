@@ -43,7 +43,7 @@ public:
     using value_type = T;
     using abi_type = A;
     using simd_type = simd<T, A>;
-    using mask_type = mask<T, A>;
+    using mask_type = simd_mask<T, A>;
 
     // C++17: use 'simd<T, A>' to enable deduction
     masked_simd_impl(const mask_type &kk, simd<T, A> &vv) : k(kk), v(vv) {}
@@ -79,29 +79,29 @@ masked_simd_impl<T, A> masked_simd(const typename simd<T, A>::mask_type &k,
 
 /*
 template <class T, class A, class OnTrue, class OnFalse, class... Vs>
-// TODO: require mask<T, A> to be convertible to Vs::mask_type forall Vs
+// TODO: require simd_mask<T, A> to be convertible to Vs::mask_type forall Vs
 std::enable_if_t<
 detail::all<std::is_same<decltype(declval<OnTrue>()(detail::masked_simd(
-                                 declval<mask<T, A> &>(), declval<Vs>())...)),
+                                 declval<simd_mask<T, A> &>(), declval<Vs>())...)),
                              void>,
                 std::is_same<decltype(declval<OnFalse>()(detail::masked_simd(
-                                 declval<mask<T, A> &>(), declval<Vs>())...)),
+                                 declval<simd_mask<T, A> &>(), declval<Vs>())...)),
                              void>>::value,
     void>
-where(mask<T, A> k, OnTrue &&on_true, OnFalse &&on_false, Vs &&... vs)
+where(simd_mask<T, A> k, OnTrue &&on_true, OnFalse &&on_false, Vs &&... vs)
 {
     std::forward<OnTrue>(on_true)(detail::masked_simd(k, std::forward<Vs>(vs))...);
     std::forward<OnFalse>(on_false)(detail::masked_simd(!k, std::forward<Vs>(vs))...);
 }
 
 template <class T, class A, class OnTrue, class... Vs>
-// TODO: require mask<T, A> to be convertible to Vs::mask_type forall Vs
+// TODO: require simd_mask<T, A> to be convertible to Vs::mask_type forall Vs
 std::enable_if_t<
 detail::all<std::is_same<decltype(declval<OnTrue>()(detail::masked_simd(
-                                 declval<mask<T, A> &>(), declval<Vs>())...)),
+                                 declval<simd_mask<T, A> &>(), declval<Vs>())...)),
                              void>>::value,
     void>
-where(mask<T, A> k, OnTrue &&on_true, Vs &&... vs)
+where(simd_mask<T, A> k, OnTrue &&on_true, Vs &&... vs)
 {
     std::forward<OnTrue>(on_true)(detail::masked_simd(k, std::forward<Vs>(vs))...);
 }

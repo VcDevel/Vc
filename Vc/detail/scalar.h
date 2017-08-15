@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
-template <class T> using scalar_mask = mask<T, simd_abi::scalar>;
+template <class T> using scalar_mask = simd_mask<T, simd_abi::scalar>;
 template <class T> using scalar_simd = simd<T, simd_abi::scalar>;
 
 // simd impl {{{1
@@ -45,7 +45,7 @@ struct scalar_simd_impl {
     using mask_member_type = bool;
     template <class T> using simd_member_type = T;
     template <class T> using simd = Vc::simd<T, simd_abi::scalar>;
-    template <class T> using mask = Vc::mask<T, simd_abi::scalar>;
+    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::scalar>;
     using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
@@ -252,10 +252,10 @@ struct scalar_simd_impl {
     // }}}2
 };
 
-// mask impl {{{1
+// simd_mask impl {{{1
 struct scalar_mask_impl {
     // member types {{{2
-    template <class T> using mask = Vc::mask<T, simd_abi::scalar>;
+    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::scalar>;
     using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
@@ -313,28 +313,28 @@ struct scalar_mask_impl {
 
     // logical and bitwise operators {{{2
     template <class T>
-    static inline mask<T> logical_and(const mask<T> &x, const mask<T> &y)
+    static inline simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, x.d && y.d};
     }
 
     template <class T>
-    static inline mask<T> logical_or(const mask<T> &x, const mask<T> &y)
+    static inline simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, x.d || y.d};
     }
 
-    template <class T> static inline mask<T> bit_and(const mask<T> &x, const mask<T> &y)
+    template <class T> static inline simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, x.d && y.d};
     }
 
-    template <class T> static inline mask<T> bit_or(const mask<T> &x, const mask<T> &y)
+    template <class T> static inline simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, x.d || y.d};
     }
 
-    template <class T> static inline mask<T> bit_xor(const mask<T> &x, const mask<T> &y)
+    template <class T> static inline simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, x.d != y.d};
     }
@@ -401,7 +401,7 @@ template <> struct traits<  char, simd_abi::scalar> : public scalar_traits<  cha
 // }}}1
 }  // namespace detail
 
-// [mask.reductions] {{{1
+// [simd_mask.reductions] {{{1
 template <class T> inline bool all_of(const detail::scalar_mask<T> &k) { return k[0]; }
 template <class T> inline bool any_of(const detail::scalar_mask<T> &k) { return k[0]; }
 template <class T> inline bool none_of(const detail::scalar_mask<T> &k) { return !k[0]; }
@@ -414,10 +414,10 @@ Vc_VERSIONED_NAMESPACE_END
 
 namespace std
 {
-// mask operators {{{1
-template <class T> struct equal_to<Vc::mask<T, Vc::simd_abi::scalar>> {
+// simd_mask operators {{{1
+template <class T> struct equal_to<Vc::simd_mask<T, Vc::simd_abi::scalar>> {
 private:
-    using M = Vc::mask<T, Vc::simd_abi::scalar>;
+    using M = Vc::simd_mask<T, Vc::simd_abi::scalar>;
 
 public:
     bool operator()(const M &x, const M &y) const { return x[0] == y[0]; }

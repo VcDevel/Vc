@@ -77,7 +77,7 @@ template <class T> struct sse_traits {
     struct mask_base {
         explicit operator typename mask_member_type::VectorType() const
         {
-            return data(*static_cast<const mask<T, simd_abi::sse> *>(this));
+            return data(*static_cast<const simd_mask<T, simd_abi::sse> *>(this));
         }
     };
 };
@@ -115,7 +115,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     template <class T> using intrinsic_type = typename simd_member_type<T>::VectorType;
     template <class T> using mask_member_type = sse_mask_member_type<T>;
     template <class T> using simd = Vc::simd<T, abi>;
-    template <class T> using mask = Vc::mask<T, abi>;
+    template <class T> using simd_mask = Vc::simd_mask<T, abi>;
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
@@ -964,13 +964,13 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     // }}}2
 };
 
-// mask impl {{{1
+// simd_mask impl {{{1
 struct sse_mask_impl : public generic_mask_impl<simd_abi::sse, sse_mask_member_type> {
     // member types {{{2
     using abi = simd_abi::sse;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <class T> using mask_member_type = sse_mask_member_type<T>;
-    template <class T> using mask = Vc::mask<T, simd_abi::sse>;
+    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::sse>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
@@ -1085,31 +1085,31 @@ struct sse_mask_impl : public generic_mask_impl<simd_abi::sse, sse_mask_member_t
 
     // logical and bitwise operators {{{2
     template <class T>
-    static Vc_INTRINSIC mask<T> logical_and(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, detail::and_(x.d, y.d)};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> logical_or(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, detail::or_(x.d, y.d)};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> bit_and(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, detail::and_(x.d, y.d)};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> bit_or(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, detail::or_(x.d, y.d)};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> bit_xor(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, detail::xor_(x.d, y.d)};
     }
@@ -1130,9 +1130,9 @@ struct sse_mask_impl : public generic_mask_impl<simd_abi::sse, sse_mask_member_t
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-// [mask.reductions] {{{
+// [simd_mask.reductions] {{{
 Vc_VERSIONED_NAMESPACE_BEGIN
-Vc_ALWAYS_INLINE bool Vc_VDECL all_of(mask<float, simd_abi::sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<float, simd_abi::sse> k)
 {
     const __m128 d(k);
 #if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
@@ -1145,7 +1145,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL all_of(mask<float, simd_abi::sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL any_of(mask<float, simd_abi::sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<float, simd_abi::sse> k)
 {
     const __m128 d(k);
 #if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
@@ -1158,7 +1158,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL any_of(mask<float, simd_abi::sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL none_of(mask<float, simd_abi::sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<float, simd_abi::sse> k)
 {
     const __m128 d(k);
 #if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
@@ -1171,7 +1171,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL none_of(mask<float, simd_abi::sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL some_of(mask<float, simd_abi::sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<float, simd_abi::sse> k)
 {
     const __m128 d(k);
 #if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
@@ -1186,7 +1186,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL some_of(mask<float, simd_abi::sse> k)
 }
 
 #ifdef Vc_HAVE_SSE2
-Vc_ALWAYS_INLINE bool Vc_VDECL all_of(mask<double, simd_abi::sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<double, simd_abi::sse> k)
 {
     __m128d d(k);
 #ifdef Vc_USE_PTEST
@@ -1201,7 +1201,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL all_of(mask<double, simd_abi::sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL any_of(mask<double, simd_abi::sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<double, simd_abi::sse> k)
 {
     const __m128d d(k);
 #if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
@@ -1214,7 +1214,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL any_of(mask<double, simd_abi::sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL none_of(mask<double, simd_abi::sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<double, simd_abi::sse> k)
 {
     const __m128d d(k);
 #if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
@@ -1227,7 +1227,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL none_of(mask<double, simd_abi::sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL some_of(mask<double, simd_abi::sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<double, simd_abi::sse> k)
 {
     const __m128d d(k);
 #if defined Vc_USE_PTEST && defined Vc_HAVE_AVX
@@ -1241,7 +1241,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL some_of(mask<double, simd_abi::sse> k)
 #endif
 }
 
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(mask<T, simd_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<T, simd_abi::sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_USE_PTEST
@@ -1253,7 +1253,7 @@ template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(mask<T, simd_abi::sse> 
 #endif
 }
 
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(mask<T, simd_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<T, simd_abi::sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_USE_PTEST
@@ -1263,7 +1263,7 @@ template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(mask<T, simd_abi::sse> 
 #endif
 }
 
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(mask<T, simd_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<T, simd_abi::sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_USE_PTEST
@@ -1273,7 +1273,7 @@ template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(mask<T, simd_abi::sse>
 #endif
 }
 
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(mask<T, simd_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<T, simd_abi::sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_USE_PTEST
@@ -1285,19 +1285,19 @@ template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(mask<T, simd_abi::sse>
 }
 #endif
 
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(mask<T, simd_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(simd_mask<T, simd_abi::sse> k)
 {
     const auto d = detail::data(k);
     return detail::mask_count<k.size()>(d);
 }
 
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_first_set(mask<T, simd_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_first_set(simd_mask<T, simd_abi::sse> k)
 {
     const auto d = detail::data(k);
     return detail::firstbit(detail::mask_to_int<k.size()>(d));
 }
 
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(mask<T, simd_abi::sse> k)
+template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(simd_mask<T, simd_abi::sse> k)
 {
     const auto d = detail::data(k);
     return detail::lastbit(detail::mask_to_int<k.size()>(d));

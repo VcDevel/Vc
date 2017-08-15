@@ -120,7 +120,7 @@ template <class T> struct avx512_traits {
     struct mask_base {
         explicit operator typename mask_member_type::VectorType() const
         {
-            return data(*static_cast<const mask<T, simd_abi::avx512> *>(this));
+            return data(*static_cast<const simd_mask<T, simd_abi::avx512> *>(this));
         }
     };
 #endif  // Vc_HAVE_AVX512_ABI
@@ -159,7 +159,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     template <class T> using intrinsic_type = typename simd_member_type<T>::VectorType;
     template <class T> using mask_member_type = avx512_mask_member_type<T>;
     template <class T> using simd = Vc::simd<T, abi>;
-    template <class T> using mask = Vc::mask<T, abi>;
+    template <class T> using simd_mask = Vc::simd_mask<T, abi>;
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
@@ -608,22 +608,22 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     // compares {{{2
 #if 0  // defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>
-    static Vc_INTRINSIC mask<T> equal_to(simd_member_type<T> x, simd_member_type<T> y)
+    static Vc_INTRINSIC simd_mask<T> equal_to(simd_member_type<T> x, simd_member_type<T> y)
     {
         return x.builtin() == y.builtin()};
     }
     template <class T>
-    static Vc_INTRINSIC mask<T> not_equal_to(simd_member_type<T> x, simd_member_type<T> y)
+    static Vc_INTRINSIC simd_mask<T> not_equal_to(simd_member_type<T> x, simd_member_type<T> y)
     {
         return x.builtin() != y.builtin()};
     }
     template <class T>
-    static Vc_INTRINSIC mask<T> less(simd_member_type<T> x, simd_member_type<T> y)
+    static Vc_INTRINSIC simd_mask<T> less(simd_member_type<T> x, simd_member_type<T> y)
     {
         return x.builtin() < y.builtin()};
     }
     template <class T>
-    static Vc_INTRINSIC mask<T> less_equal(simd_member_type<T> x, simd_member_type<T> y)
+    static Vc_INTRINSIC simd_mask<T> less_equal(simd_member_type<T> x, simd_member_type<T> y)
     {
         return x.builtin() <= y.builtin()};
     }
@@ -701,14 +701,14 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     // }}}2
 };
 
-// mask impl {{{1
+// simd_mask impl {{{1
 struct avx512_mask_impl
     : public generic_mask_impl<simd_abi::avx512, avx512_mask_member_type> {
     // member types {{{2
     using abi = simd_abi::avx512;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <size_t N> using mask_member_type = avx512_mask_member_type_n<N>;
-    template <class T> using mask = Vc::mask<T, abi>;
+    template <class T> using simd_mask = Vc::simd_mask<T, abi>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
@@ -1028,31 +1028,31 @@ struct avx512_mask_impl
 
     // logical and bitwise operators {{{2
     template <class T>
-    static Vc_INTRINSIC mask<T> logical_and(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, mask_member_type<size<T>()>(x.d & y.d)};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> logical_or(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, mask_member_type<size<T>()>(x.d | y.d)};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> bit_and(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, mask_member_type<size<T>()>(x.d & y.d)};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> bit_or(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, mask_member_type<size<T>()>(x.d | y.d)};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> bit_xor(const mask<T> &x, const mask<T> &y)
+    static Vc_INTRINSIC simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y)
     {
         return {private_init, mask_member_type<size<T>()>(x.d ^ y.d)};
     }
@@ -1120,32 +1120,32 @@ Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: uchar, epi8 , std::minus, sub);
 // }}}1
 }  // namespace detail
 
-// [mask.reductions] {{{
-template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, simd_abi::avx512> k)
+// [simd_mask.reductions] {{{
+template <class T> Vc_ALWAYS_INLINE bool all_of(simd_mask<T, simd_abi::avx512> k)
 {
     const auto v = detail::data(k);
     return detail::x86::testallset(v);
 }
 
-template <class T> Vc_ALWAYS_INLINE bool any_of(mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool any_of(simd_mask<T, simd_abi::avx512> k)
 {
     const auto v = detail::data(k);
     return v != 0U;
 }
 
-template <class T> Vc_ALWAYS_INLINE bool none_of(mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool none_of(simd_mask<T, simd_abi::avx512> k)
 {
     const auto v = detail::data(k);
     return v == 0U;
 }
 
-template <class T> Vc_ALWAYS_INLINE bool some_of(mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool some_of(simd_mask<T, simd_abi::avx512> k)
 {
     const auto v = detail::data(k);
     return v != 0 && !all_of(k);
 }
 
-template <class T> Vc_ALWAYS_INLINE int popcount(mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE int popcount(simd_mask<T, simd_abi::avx512> k)
 {
     const auto v = detail::data(k);
     switch (k.size()) {
@@ -1157,38 +1157,38 @@ template <class T> Vc_ALWAYS_INLINE int popcount(mask<T, simd_abi::avx512> k)
     }
 }
 
-template <class T> Vc_ALWAYS_INLINE int find_first_set(mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE int find_first_set(simd_mask<T, simd_abi::avx512> k)
 {
     const auto v = detail::data(k);
     return _tzcnt_u32(v);
 }
 
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-Vc_ALWAYS_INLINE int find_first_set(mask<signed char, simd_abi::avx512> k)
+Vc_ALWAYS_INLINE int find_first_set(simd_mask<signed char, simd_abi::avx512> k)
 {
     const __mmask64 v = detail::data(k);
     return detail::firstbit(v);
 }
-Vc_ALWAYS_INLINE int find_first_set(mask<unsigned char, simd_abi::avx512> k)
+Vc_ALWAYS_INLINE int find_first_set(simd_mask<unsigned char, simd_abi::avx512> k)
 {
     const __mmask64 v = detail::data(k);
     return detail::firstbit(v);
 }
 #endif  // Vc_HAVE_FULL_AVX512_ABI
 
-template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE int find_last_set(simd_mask<T, simd_abi::avx512> k)
 {
     return 31 - _lzcnt_u32(detail::data(k));
 }
 
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-Vc_ALWAYS_INLINE int find_last_set(mask<signed char, simd_abi::avx512> k)
+Vc_ALWAYS_INLINE int find_last_set(simd_mask<signed char, simd_abi::avx512> k)
 {
     const __mmask64 v = detail::data(k);
     return detail::lastbit(v);
 }
 
-Vc_ALWAYS_INLINE int find_last_set(mask<unsigned char, simd_abi::avx512> k)
+Vc_ALWAYS_INLINE int find_last_set(simd_mask<unsigned char, simd_abi::avx512> k)
 {
     const __mmask64 v = detail::data(k);
     return detail::lastbit(v);

@@ -245,15 +245,15 @@ template <class T, class Abi> struct is_simd<simd<T, Abi>> : public std::true_ty
 template <class T> using native_simd = simd<T, simd_abi::native<T>>;
 template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
 
-// class template mask [mask]
-template <class T, class Abi = simd_abi::detail::default_abi<T>> class mask;
-template <class T, class Abi> struct is_mask<mask<T, Abi>> : public std::true_type {};
-template <class T> using native_mask = mask<T, simd_abi::native<T>>;
-template <class T, int N> using fixed_size_mask = mask<T, simd_abi::fixed_size<N>>;
+// class template simd_mask [simd_mask]
+template <class T, class Abi = simd_abi::detail::default_abi<T>> class simd_mask;
+template <class T, class Abi> struct is_mask<simd_mask<T, Abi>> : public std::true_type {};
+template <class T> using native_mask = simd_mask<T, simd_abi::native<T>>;
+template <class T, int N> using fixed_size_mask = simd_mask<T, simd_abi::fixed_size<N>>;
 
 namespace detail
 {
-template <class T, class Abi> struct get_impl<Vc::mask<T, Abi>> {
+template <class T, class Abi> struct get_impl<Vc::simd_mask<T, Abi>> {
     using type = typename traits<T, Abi>::mask_impl_type;
 };
 template <class T, class Abi> struct get_impl<Vc::simd<T, Abi>> {
@@ -294,9 +294,9 @@ template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const simd<T, A> &x)
         [&x](auto i) { return x[i]; });
 }
 
-template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const mask<T, A> &x)
+template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const simd_mask<T, A> &x)
 {
-    constexpr int N = mask<T, A>::size();
+    constexpr int N = simd_mask<T, A>::size();
     fixed_size_mask<T, N> r;
     detail::execute_n_times<N>([&](auto i) { r[i] = x[i]; });
     return r;
@@ -328,21 +328,21 @@ Vc_INTRINSIC std::enable_if_t<(N == simd<T>::size()), simd<T>> to_compatible(
 }
 
 template <class T, size_t N>
-Vc_INTRINSIC std::enable_if_t<(N == mask<T>::size()), mask<T>> to_compatible(
-    const mask<T, simd_abi::fixed_size<N>> &x)
+Vc_INTRINSIC std::enable_if_t<(N == simd_mask<T>::size()), simd_mask<T>> to_compatible(
+    const simd_mask<T, simd_abi::fixed_size<N>> &x)
 {
-    return mask<T>([&](auto i) { return x[i]; });
+    return simd_mask<T>([&](auto i) { return x[i]; });
 }
 
-// reductions [mask.reductions]
+// reductions [simd_mask.reductions]
 // implementation per ABI in fixed_size.h, sse.h, avx.h, etc.
-template <class T, class Abi> inline bool all_of(const mask<T, Abi> &k);
-template <class T, class Abi> inline bool any_of(const mask<T, Abi> &k);
-template <class T, class Abi> inline bool none_of(const mask<T, Abi> &k);
-template <class T, class Abi> inline bool some_of(const mask<T, Abi> &k);
-template <class T, class Abi> inline int popcount(const mask<T, Abi> &k);
-template <class T, class Abi> inline int find_first_set(const mask<T, Abi> &k);
-template <class T, class Abi> inline int find_last_set(const mask<T, Abi> &k);
+template <class T, class Abi> inline bool all_of(const simd_mask<T, Abi> &k);
+template <class T, class Abi> inline bool any_of(const simd_mask<T, Abi> &k);
+template <class T, class Abi> inline bool none_of(const simd_mask<T, Abi> &k);
+template <class T, class Abi> inline bool some_of(const simd_mask<T, Abi> &k);
+template <class T, class Abi> inline int popcount(const simd_mask<T, Abi> &k);
+template <class T, class Abi> inline int find_first_set(const simd_mask<T, Abi> &k);
+template <class T, class Abi> inline int find_last_set(const simd_mask<T, Abi> &k);
 
 constexpr bool all_of(detail::exact_bool x) { return x; }
 constexpr bool any_of(detail::exact_bool x) { return x; }
@@ -352,7 +352,7 @@ constexpr int popcount(detail::exact_bool x) { return x; }
 constexpr int find_first_set(detail::exact_bool) { return 0; }
 constexpr int find_last_set(detail::exact_bool) { return 0; }
 
-// masked assignment [mask.where]
+// masked assignment [simd_mask.where]
 #ifdef Vc_EXPERIMENTAL
 namespace detail {
 template <class T, class A> class masked_simd_impl;
@@ -617,9 +617,9 @@ public:
 
 private:
     template <class F, std::size_t... Is>
-    Vc_INTRINSIC void apply_helper(F &&f, const M &mask, std::index_sequence<Is...>)
+    Vc_INTRINSIC void apply_helper(F &&f, const M &simd_mask, std::index_sequence<Is...>)
     {
-        return std::forward<F>(f)(detail::masked_simd(mask, std::get<Is>(d))...);
+        return std::forward<F>(f)(detail::masked_simd(simd_mask, std::get<Is>(d))...);
     }
 
 public:
@@ -649,7 +649,7 @@ public:
 };
 
 template <class T, class A, class... Vs>
-Vc_INTRINSIC where_expression<mask<T, A>, std::tuple<simd<T, A> &, Vs &...>> where(
+Vc_INTRINSIC where_expression<simd_mask<T, A>, std::tuple<simd<T, A> &, Vs &...>> where(
     const typename simd<T, A>::mask_type &k, simd<T, A> &v0, Vs &... vs)
 {
     return {k, {v0, vs...}};
@@ -657,26 +657,26 @@ Vc_INTRINSIC where_expression<mask<T, A>, std::tuple<simd<T, A> &, Vs &...>> whe
 #endif  // Vc_EXPERIMENTAL
 
 template <class T, class A>
-Vc_INTRINSIC where_expression<mask<T, A>, simd<T, A>> where(
+Vc_INTRINSIC where_expression<simd_mask<T, A>, simd<T, A>> where(
     const typename simd<T, A>::mask_type &k, simd<T, A> &d)
 {
     return {k, d};
 }
 template <class T, class A>
-Vc_INTRINSIC const_where_expression<mask<T, A>, const simd<T, A>> where(
+Vc_INTRINSIC const_where_expression<simd_mask<T, A>, const simd<T, A>> where(
     const typename simd<T, A>::mask_type &k, const simd<T, A> &d)
 {
     return {k, d};
 }
 template <class T, class A>
-Vc_INTRINSIC where_expression<mask<T, A>, mask<T, A>> where(
-    const std::remove_const_t<mask<T, A>> &k, mask<T, A> &d)
+Vc_INTRINSIC where_expression<simd_mask<T, A>, simd_mask<T, A>> where(
+    const std::remove_const_t<simd_mask<T, A>> &k, simd_mask<T, A> &d)
 {
     return {k, d};
 }
 template <class T, class A>
-Vc_INTRINSIC const_where_expression<mask<T, A>, const mask<T, A>> where(
-    const std::remove_const_t<mask<T, A>> &k, const mask<T, A> &d)
+Vc_INTRINSIC const_where_expression<simd_mask<T, A>, const simd_mask<T, A>> where(
+    const std::remove_const_t<simd_mask<T, A>> &k, const simd_mask<T, A> &d)
 {
     return {k, d};
 }

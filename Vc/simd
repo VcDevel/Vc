@@ -8,7 +8,7 @@
 #include "detail/global.h"
 #include "detail/synopsis.h"
 #include "detail/split.h"
-#include "detail/mask.h"
+#include "detail/simd_mask.h"
 #include "detail/simd.h"
 #include "detail/maskedsimd.h"
 #include "detail/ostream.h"

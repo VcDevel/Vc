@@ -40,9 +40,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *  - alignment of `simd<T, N>` is `N * sizeof(T)` if N is a power-of-2 value,
  *    otherwise `next_power_of_2(N * sizeof(T))` (Note: if the alignment were to
  *    exceed the system/compiler maximum, it is bounded to that maximum)
- *  - mask objects are passed like std::bitset<N>
- *  - memory layout of `mask<T, N>` is equivalent to `std::bitset<N>`
- *  - alignment of `mask<T, N>` is equal to the alignment of `std::bitset<N>`
+ *  - simd_mask objects are passed like std::bitset<N>
+ *  - memory layout of `simd_mask<T, N>` is equivalent to `std::bitset<N>`
+ *  - alignment of `simd_mask<T, N>` is equal to the alignment of `std::bitset<N>`
  */
 
 Vc_VERSIONED_NAMESPACE_BEGIN
@@ -230,7 +230,7 @@ template <int N> struct fixed_size_simd_impl {
     template <class T>
     static constexpr std::make_index_sequence<tuple_size<T>> index_seq = {};
     template <class T> using simd = Vc::simd<T, simd_abi::fixed_size<N>>;
-    template <class T> using mask = Vc::mask<T, simd_abi::fixed_size<N>>;
+    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::fixed_size<N>>;
     using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
@@ -519,7 +519,7 @@ public:
     // }}}2
 };
 
-// mask impl {{{1
+// simd_mask impl {{{1
 template <int N> struct fixed_size_mask_impl {
     static_assert(sizeof(ullong) * CHAR_BIT >= N,
                   "The fixed_size implementation relies on one "
@@ -529,7 +529,7 @@ template <int N> struct fixed_size_mask_impl {
     // member types {{{2
     static constexpr std::make_index_sequence<N> index_seq = {};
     using mask_member_type = std::bitset<N>;
-    template <class T> using mask = Vc::mask<T, simd_abi::fixed_size<N>>;
+    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::fixed_size<N>>;
     using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
@@ -564,7 +564,7 @@ template <int N> struct fixed_size_mask_impl {
         using Vs = fixed_size_storage<uchar, N>;
         detail::for_each(Vs{}, [&](auto meta, auto) {
             r |= meta.mask_to_shifted_ullong(
-                meta.mask.load(&mem[meta.offset], f, size_constant<meta.size()>()));
+                meta.simd_mask.load(&mem[meta.offset], f, size_constant<meta.size()>()));
         });
         return r;
     }
@@ -696,31 +696,31 @@ template <int N> struct fixed_size_mask_impl {
 
     // logical and bitwise operators {{{2
     template <class T>
-    static Vc_INTRINSIC mask<T> logical_and(const mask<T> &x, const mask<T> &y) noexcept
+    static Vc_INTRINSIC simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
     {
         return {bitset_init, x.d & y.d};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> logical_or(const mask<T> &x, const mask<T> &y) noexcept
+    static Vc_INTRINSIC simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
     {
         return {bitset_init, x.d | y.d};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> bit_and(const mask<T> &x, const mask<T> &y) noexcept
+    static Vc_INTRINSIC simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
     {
         return {bitset_init, x.d & y.d};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> bit_or(const mask<T> &x, const mask<T> &y) noexcept
+    static Vc_INTRINSIC simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
     {
         return {bitset_init, x.d | y.d};
     }
 
     template <class T>
-    static Vc_INTRINSIC mask<T> bit_xor(const mask<T> &x, const mask<T> &y) noexcept
+    static Vc_INTRINSIC simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
     {
         return {bitset_init, x.d ^ y.d};
     }
@@ -838,7 +838,7 @@ template <int N> struct traits<  char, simd_abi::fixed_size<N>> : public fixed_s
 // }}}1
 }  // namespace detail
 
-// [mask.reductions] {{{1
+// [simd_mask.reductions] {{{1
 template <class T, int N> inline bool all_of(const fixed_size_mask<T, N> &k)
 {
     return data(k).all();
@@ -894,11 +894,11 @@ Vc_VERSIONED_NAMESPACE_END
 
 namespace std
 {
-// mask operators {{{1
+// simd_mask operators {{{1
 template <class T, int N>
-struct equal_to<Vc::mask<T, Vc::simd_abi::fixed_size<N>>> {
+struct equal_to<Vc::simd_mask<T, Vc::simd_abi::fixed_size<N>>> {
 private:
-    using M = Vc::mask<T, Vc::simd_abi::fixed_size<N>>;
+    using M = Vc::simd_mask<T, Vc::simd_abi::fixed_size<N>>;
 
 public:
     bool operator()(const M &x, const M &y) const

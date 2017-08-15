@@ -101,9 +101,9 @@ std::ostream &operator<<(std::ostream &out, const simd<T, Abi> &v)
     return out << ']' << detail::color::normal;
 }
 
-// mask output{{{1
+// simd_mask output{{{1
 template <class T, class Abi>
-std::ostream &operator<<(std::ostream &out, const mask<T, Abi> &k)
+std::ostream &operator<<(std::ostream &out, const simd_mask<T, Abi> &k)
 {
     auto &&printBool = [&](bool b) {
         if (b) {

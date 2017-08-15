@@ -256,7 +256,7 @@ namespace std
 #endif
     };
     template <class T, class A>
-    class allocator<Vc::mask<T, A>> : public ::Vc::Allocator<Vc::mask<T, A>>
+    class allocator<Vc::simd_mask<T, A>> : public ::Vc::Allocator<Vc::simd_mask<T, A>>
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };

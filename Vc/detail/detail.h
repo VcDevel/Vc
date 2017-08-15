@@ -292,7 +292,7 @@ template <class T, class X> struct default_neutral_element<T, std::bit_xor<X>> {
 // private_init, bitset_init{{{1
 /**
  * \internal
- * Tag used for private init constructor of simd and mask
+ * Tag used for private init constructor of simd and simd_mask
  */
 static constexpr struct private_init_t {} private_init = {};
 static constexpr struct bitset_init_t {} bitset_init = {};
@@ -392,12 +392,12 @@ public:
     }
 };
 
-// data(simd/mask) {{{1
+// data(simd/simd_mask) {{{1
 template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::simd<T, A> &x) Vc_INTRINSIC_R;
 template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::simd<T, A> & x) Vc_INTRINSIC_R;
 
-template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::mask<T, A> &x) Vc_INTRINSIC_R;
-template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::mask<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::simd_mask<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::simd_mask<T, A> &x) Vc_INTRINSIC_R;
 
 // to_value_type_or_member_type {{{1
 template <class V>
