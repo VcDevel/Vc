@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_STORAGE_H_
-#define VC_DATAPAR_STORAGE_H_
+#ifndef VC_SIMD_STORAGE_H_
+#define VC_SIMD_STORAGE_H_
 
 #include <iosfwd>
 
@@ -948,6 +948,6 @@ inline std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> & s,
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_STORAGE_H_
+#endif  // VC_SIMD_STORAGE_H_
 
 // vim: foldmethod=marker

@@ -29,10 +29,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TESTS_TESTTYPES_H_
 
 #include <vir/typelist.h>
-#include <Vc/datapar>
+#include <Vc/simd>
 
 #ifndef TESTTYPES
-#error "Please define TESTTYPES to the list of fundamental types to be tested with datapar/mask."
+#error "Please define TESTTYPES to the list of fundamental types to be tested with simd/mask."
 #endif
 
 using schar = signed char;
@@ -45,8 +45,8 @@ using ullong = unsigned long long;
 using ldouble = long double;
 
 using all_native_abis =
-    vir::Typelist<Vc::datapar_abi::scalar, Vc::datapar_abi::sse, Vc::datapar_abi::avx,
-                  Vc::datapar_abi::avx512, Vc::datapar_abi::neon>;
+    vir::Typelist<Vc::simd_abi::scalar, Vc::simd_abi::sse, Vc::simd_abi::avx,
+                  Vc::simd_abi::avx512, Vc::simd_abi::neon>;
 
 using testtypes = vir::Typelist<TESTTYPES>;
 using testtypes_wo_ldouble = typename vir::filter_list<long double, testtypes>::type;
@@ -61,57 +61,57 @@ static_assert(vir::list_size<testtypes_fp>::value <= 2, "filtering the list fail
 static_assert(vir::list_size<testtypes_float>::value <= 1, "filtering the list failed");
 
 // vT {{{1
-using vschar = Vc::native_datapar<schar>;
-using vuchar = Vc::native_datapar<uchar>;
-using vshort = Vc::native_datapar<short>;
-using vushort = Vc::native_datapar<ushort>;
-using vint = Vc::native_datapar<int>;
-using vuint = Vc::native_datapar<uint>;
-using vlong = Vc::native_datapar<long>;
-using vulong = Vc::native_datapar<ulong>;
-using vllong = Vc::native_datapar<llong>;
-using vullong = Vc::native_datapar<ullong>;
-using vfloat = Vc::native_datapar<float>;
-using vdouble = Vc::native_datapar<double>;
-using vldouble = Vc::native_datapar<long double>;
+using vschar = Vc::native_simd<schar>;
+using vuchar = Vc::native_simd<uchar>;
+using vshort = Vc::native_simd<short>;
+using vushort = Vc::native_simd<ushort>;
+using vint = Vc::native_simd<int>;
+using vuint = Vc::native_simd<uint>;
+using vlong = Vc::native_simd<long>;
+using vulong = Vc::native_simd<ulong>;
+using vllong = Vc::native_simd<llong>;
+using vullong = Vc::native_simd<ullong>;
+using vfloat = Vc::native_simd<float>;
+using vdouble = Vc::native_simd<double>;
+using vldouble = Vc::native_simd<long double>;
 
 // viN/vfN {{{1
-template <typename T> using vi8  = Vc::fixed_size_datapar<T, vschar::size()>;
-template <typename T> using vi16 = Vc::fixed_size_datapar<T, vshort::size()>;
-template <typename T> using vf32 = Vc::fixed_size_datapar<T, vfloat::size()>;
-template <typename T> using vi32 = Vc::fixed_size_datapar<T, vint::size()>;
-template <typename T> using vf64 = Vc::fixed_size_datapar<T, vdouble::size()>;
-template <typename T> using vi64 = Vc::fixed_size_datapar<T, vllong::size()>;
+template <typename T> using vi8  = Vc::fixed_size_simd<T, vschar::size()>;
+template <typename T> using vi16 = Vc::fixed_size_simd<T, vshort::size()>;
+template <typename T> using vf32 = Vc::fixed_size_simd<T, vfloat::size()>;
+template <typename T> using vi32 = Vc::fixed_size_simd<T, vint::size()>;
+template <typename T> using vf64 = Vc::fixed_size_simd<T, vdouble::size()>;
+template <typename T> using vi64 = Vc::fixed_size_simd<T, vllong::size()>;
 template <typename T>
 using vl = typename std::conditional<sizeof(long) == sizeof(llong), vi64<T>, vi32<T>>::type;
 
 // current_native_test_types {{{1
 using current_native_test_types =
-    vir::expand_one<vir::Template1<Vc::native_datapar>, testtypes>;
+    vir::expand_one<vir::Template1<Vc::native_simd>, testtypes>;
 using current_native_mask_test_types =
     vir::expand_one<vir::Template1<Vc::native_mask>, testtypes>;
 
 // native_test_types {{{1
 typedef vir::concat<
 #if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
-    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::avx512>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::avx512>,
                     testtypes_64_32>,
 #endif
 #if defined Vc_HAVE_AVX_ABI && !defined Vc_HAVE_FULL_AVX_ABI
-    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::avx>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::avx>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_SSE_ABI && !defined Vc_HAVE_FULL_SSE_ABI
-    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::sse>, testtypes_float>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::sse>, testtypes_float>,
 #endif
     vir::expand_list<vir::concat<
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-                         vir::Template<base_template, Vc::datapar_abi::avx512>,
+                         vir::Template<base_template, Vc::simd_abi::avx512>,
 #endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
-                         vir::Template<base_template, Vc::datapar_abi::avx>,
+                         vir::Template<base_template, Vc::simd_abi::avx>,
 #endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
-                         vir::Template<base_template, Vc::datapar_abi::sse>,
+                         vir::Template<base_template, Vc::simd_abi::sse>,
 #endif
                          vir::Typelist<>>,
                      testtypes_wo_ldouble>> native_test_types;
@@ -119,16 +119,16 @@ typedef vir::concat<
 // native_real_test_types {{{1
 using native_real_test_types = vir::concat<
 #if defined Vc_HAVE_AVX512_ABI
-    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::avx512>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::avx512>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_AVX_ABI
-    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::avx>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::avx>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_SSE_ABI
 #if defined Vc_HAVE_FULL_SSE_ABI
-    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::sse>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::sse>, testtypes_fp>,
 #else
-    vir::expand_one<vir::Template<base_template, Vc::datapar_abi::sse>, testtypes_float>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::sse>, testtypes_float>,
 #endif
 #endif
     vir::Typelist<>>;
@@ -141,18 +141,18 @@ typedef vir::concat<
 #ifndef Vc_HAVE_AVX512F
             // reduce compile times when AVX512 is available (already builds avx and sse
             // ABIs)
-            vir::Template<base_template, Vc::datapar_abi::scalar>,
+            vir::Template<base_template, Vc::simd_abi::scalar>,
 #endif  // Vc_HAVE_AVX512F
-            // vir::Template<base_template, Vc::datapar_abi::fixed_size<2>>,
-            vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
-            // vir::Template<base_template, Vc::datapar_abi::fixed_size<4>>,
-            // vir::Template<base_template, Vc::datapar_abi::fixed_size<8>>,
-            vir::Template<base_template, Vc::datapar_abi::fixed_size<12>>,
-            // vir::Template<base_template, Vc::datapar_abi::fixed_size<16>>,
-            vir::Template<base_template, Vc::datapar_abi::fixed_size<
-                                             Vc::datapar_abi::max_fixed_size - 1>>,
+            // vir::Template<base_template, Vc::simd_abi::fixed_size<2>>,
+            vir::Template<base_template, Vc::simd_abi::fixed_size<3>>,
+            // vir::Template<base_template, Vc::simd_abi::fixed_size<4>>,
+            // vir::Template<base_template, Vc::simd_abi::fixed_size<8>>,
+            vir::Template<base_template, Vc::simd_abi::fixed_size<12>>,
+            // vir::Template<base_template, Vc::simd_abi::fixed_size<16>>,
+            vir::Template<base_template, Vc::simd_abi::fixed_size<
+                                             Vc::simd_abi::max_fixed_size - 1>>,
             vir::Template<base_template,
-                          Vc::datapar_abi::fixed_size<Vc::datapar_abi::max_fixed_size>>>,
+                          Vc::simd_abi::fixed_size<Vc::simd_abi::max_fixed_size>>>,
         testtypes>> all_test_types;
 
 // real_test_types {{{1
@@ -163,32 +163,32 @@ using real_test_types = vir::concat<
 #ifndef Vc_HAVE_AVX512F
             // reduce compile times when AVX512 is available (already builds avx and sse
             // ABIs)
-            vir::Template<base_template, Vc::datapar_abi::scalar>,
+            vir::Template<base_template, Vc::simd_abi::scalar>,
 #endif  // Vc_HAVE_AVX512F
-            vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
-            vir::Template<base_template, Vc::datapar_abi::fixed_size<12>>,
-            vir::Template<base_template, Vc::datapar_abi::fixed_size<
-                                             Vc::datapar_abi::max_fixed_size - 1>>,
+            vir::Template<base_template, Vc::simd_abi::fixed_size<3>>,
+            vir::Template<base_template, Vc::simd_abi::fixed_size<12>>,
+            vir::Template<base_template, Vc::simd_abi::fixed_size<
+                                             Vc::simd_abi::max_fixed_size - 1>>,
             vir::Template<base_template,
-                          Vc::datapar_abi::fixed_size<Vc::datapar_abi::max_fixed_size>>>,
+                          Vc::simd_abi::fixed_size<Vc::simd_abi::max_fixed_size>>>,
         testtypes_fp>>;
 
 // many_fixed_size_types {{{1
 using many_fixed_size_types = vir::expand_list<
-    vir::Typelist<vir::Template<base_template, Vc::datapar_abi::fixed_size<3>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<4>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<5>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<6>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<7>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<8>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<9>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<10>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<11>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<12>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<13>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<14>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<15>>,
-                  vir::Template<base_template, Vc::datapar_abi::fixed_size<17>>>,
+    vir::Typelist<vir::Template<base_template, Vc::simd_abi::fixed_size<3>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<4>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<5>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<6>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<7>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<8>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<9>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<10>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<11>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<12>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<13>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<14>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<15>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<17>>>,
     testtypes_float>;
 // reduced_test_types {{{1
 #ifdef Vc_HAVE_AVX512F
@@ -197,7 +197,7 @@ using reduced_test_types = native_test_types;
 #else   // Vc_HAVE_AVX512F
 typedef vir::concat<
     native_test_types,
-    vir::expand_list<vir::Typelist<vir::Template<base_template, Vc::datapar_abi::scalar>>,
+    vir::expand_list<vir::Typelist<vir::Template<base_template, Vc::simd_abi::scalar>>,
                      testtypes>> reduced_test_types;
 #endif  // Vc_HAVE_AVX512F
 

@@ -28,8 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <utility>
 #include <functional>
 
-#ifndef VC_DATAPAR_WHERE_H_
-#define VC_DATAPAR_WHERE_H_
+#ifndef VC_SIMD_WHERE_H_
+#define VC_SIMD_WHERE_H_
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -90,4 +90,4 @@ template <> struct get_impl<bool> {
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_WHERE_H_
+#endif  // VC_SIMD_WHERE_H_

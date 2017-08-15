@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_MACROS_H_
-#define VC_DATAPAR_MACROS_H_
+#ifndef VC_SIMD_MACROS_H_
+#define VC_SIMD_MACROS_H_
 
 #include "../version.h"
 
@@ -308,7 +308,7 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 // }}}
 
 // __cdecl and __vectorcall Windows calling convention macros. Every function with a by
-// value datapar/mask object needs to be declared with Vc_VDECL.
+// value simd/mask object needs to be declared with Vc_VDECL.
 // {{{
 #ifdef Vc_MSVC
 #  define Vc_CDECL __cdecl
@@ -559,4 +559,4 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #define Vc_INTRINSIC_R
 #endif
 
-#endif  // VC_DATAPAR_MACROS_H_
+#endif  // VC_SIMD_MACROS_H_

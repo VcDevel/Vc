@@ -34,7 +34,7 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
 template <class V, size_t Parts, class T, class A, size_t... Indexes>
-std::array<V, Parts> split_to_array(const datapar<T, A> &x,
+std::array<V, Parts> split_to_array(const simd<T, A> &x,
                                     std::index_sequence<Indexes...>)
 {
     // this could be much simpler:
@@ -44,27 +44,27 @@ std::array<V, Parts> split_to_array(const datapar<T, A> &x,
     // Sadly GCC has a bug: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47226. The
     // following works around it by placing the pack outside of the code section of the
     // lambda:
-    return {[](size_t j, const datapar<T, A> &y) {
+    return {[](size_t j, const simd<T, A> &y) {
         return V([&](auto i) { return y[i + j * V::size()]; });
     }(Indexes, x)...};
 }
 }  // namespace detail
 
-template <class V, class T, class A, size_t Parts = datapar_size_v<T, A> / V::size()>
-std::enable_if_t<(is_datapar<V>::value && datapar_size_v<T, A> == Parts * V::size()),
+template <class V, class T, class A, size_t Parts = simd_size_v<T, A> / V::size()>
+std::enable_if_t<(is_simd<V>::value && simd_size_v<T, A> == Parts * V::size()),
                  std::array<V, Parts>>
-split(const datapar<T, A> &x)
+split(const simd<T, A> &x)
 {
     return detail::split_to_array<V, Parts>(x, std::make_index_sequence<Parts>());
 }
 
 #if defined __cpp_fold_expressions && defined Vc_EXPERIMENTAL
 template <size_t... Sizes, class T, class A>
-std::enable_if_t<((Sizes + ...) == datapar<T, A>::size()),
-                 std::tuple<datapar<T, abi_for_size_t<T, Sizes>>...>>
-split(const datapar<T, A> &x)
+std::enable_if_t<((Sizes + ...) == simd<T, A>::size()),
+                 std::tuple<simd<T, abi_for_size_t<T, Sizes>>...>>
+split(const simd<T, A> &x)
 {
-    std::tuple<datapar<T, abi_for_size_t<T, Sizes>>...> tup;
+    std::tuple<simd<T, abi_for_size_t<T, Sizes>>...> tup;
     size_t offset = 0;
     detail::execute_n_times<sizeof...(Sizes)>([&](auto i) {
         auto &v_i = std::get<i>(tup);
@@ -83,31 +83,31 @@ template <class T, class...> struct typelist
 };
 
 template <size_t N, class T, class List,
-          bool = (N < datapar_size_v<T, typename List::first_type>)>
+          bool = (N < simd_size_v<T, typename List::first_type>)>
 struct subscript_in_pack;
 
 template <size_t N, class T, class A, class... As>
 struct subscript_in_pack<N, T, detail::typelist<A, As...>, true> {
-    static Vc_INTRINSIC T get(const datapar<T, A> &x, const datapar<T, As> &...)
+    static Vc_INTRINSIC T get(const simd<T, A> &x, const simd<T, As> &...)
     {
         return x[N];
     }
 };
 template <size_t N, class T, class A, class... As>
 struct subscript_in_pack<N, T, detail::typelist<A, As...>, false> {
-    static Vc_INTRINSIC T get(const datapar<T, A> &, const datapar<T, As> &... xs)
+    static Vc_INTRINSIC T get(const simd<T, A> &, const simd<T, As> &... xs)
     {
-        return subscript_in_pack<N - datapar<T, A>::size(), T,
+        return subscript_in_pack<N - simd<T, A>::size(), T,
                                  detail::typelist<As...>>::get(xs...);
     }
 };
 }  // namespace detail
 
 template <class T, class... As>
-datapar<T, abi_for_size_t<T, (datapar_size_v<T, As> + ...)>> concat(
-    const datapar<T, As> &... xs)
+simd<T, abi_for_size_t<T, (simd_size_v<T, As> + ...)>> concat(
+    const simd<T, As> &... xs)
 {
-    return datapar<T, abi_for_size_t<T, (datapar_size_v<T, As> + ...)>>([&](auto i) {
+    return simd<T, abi_for_size_t<T, (simd_size_v<T, As> + ...)>>([&](auto i) {
         return detail::subscript_in_pack<i, T, detail::typelist<As...>>::get(xs...);
     });
 }

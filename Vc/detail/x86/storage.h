@@ -25,21 +25,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_X86_STORAGE_H_
-#define VC_DATAPAR_X86_STORAGE_H_
+#ifndef VC_SIMD_X86_STORAGE_H_
+#define VC_SIMD_X86_STORAGE_H_
 
 #include "../storage.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-template <class T> using sse_datapar_member_type = Storage<T, 16 / sizeof(T)>;
+template <class T> using sse_simd_member_type = Storage<T, 16 / sizeof(T)>;
 template <class T> using sse_mask_member_type = Storage<T, 16 / sizeof(T)>;
 
-template <class T> using avx_datapar_member_type = Storage<T, 32 / sizeof(T)>;
+template <class T> using avx_simd_member_type = Storage<T, 32 / sizeof(T)>;
 template <class T> using avx_mask_member_type = Storage<T, 32 / sizeof(T)>;
 
-template <class T> using avx512_datapar_member_type = Storage<T, 64 / sizeof(T)>;
+template <class T> using avx512_simd_member_type = Storage<T, 64 / sizeof(T)>;
 template <class T> using avx512_mask_member_type = Storage<bool, 64 / sizeof(T)>;
 template <size_t N> using avx512_mask_member_type_n = Storage<bool, N>;
 
@@ -136,4 +136,4 @@ Vc_INTRINSIC Vc_CONST Storage<T, 2 * N> Vc_VDECL concat(Storage<T, N> a, Storage
 }}  // namespace detail::x86
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_X86_STORAGE_H_
+#endif  // VC_SIMD_X86_STORAGE_H_

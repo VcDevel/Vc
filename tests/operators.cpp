@@ -27,11 +27,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/datapar>
+#include <Vc/simd>
 #include "make_vec.h"
 #include "metahelpers.h"
 
-template <class... Ts> using base_template = Vc::datapar<Ts...>;
+template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
 
 //operators helpers  //{{{1

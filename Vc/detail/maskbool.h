@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_MASKBOOL_H_
-#define VC_DATAPAR_MASKBOOL_H_
+#ifndef VC_SIMD_MASKBOOL_H_
+#define VC_SIMD_MASKBOOL_H_
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -145,4 +145,4 @@ static_assert(!(A() == 2), "MaskBools operator== was incorrectly found and used"
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_MASKBOOL_H_
+#endif  // VC_SIMD_MASKBOOL_H_

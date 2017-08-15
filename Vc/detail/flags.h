@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_FLAGS_H_
-#define VC_DATAPAR_FLAGS_H_
+#ifndef VC_SIMD_FLAGS_H_
+#define VC_SIMD_FLAGS_H_
 
 #include <cstddef>
 
@@ -44,4 +44,4 @@ template <size_t N> constexpr overaligned_tag<N> overaligned = {};
 }  // namespace flags
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_FLAGS_H_
+#endif  // VC_SIMD_FLAGS_H_

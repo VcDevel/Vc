@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_X86_CONVERT_H_
-#define VC_DATAPAR_X86_CONVERT_H_
+#ifndef VC_SIMD_X86_CONVERT_H_
+#define VC_SIMD_X86_CONVERT_H_
 
 #include <iostream>
 #include <iomanip>
@@ -3060,6 +3060,6 @@ template <typename To, typename From> Vc_INTRINSIC auto Vc_VDECL convert_all(Fro
 }}  // namespace detail::x86
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_X86_CONVERT_H_
+#endif  // VC_SIMD_X86_CONVERT_H_
 
 // vim: foldmethod=marker

@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/Vc>
 #include "make_vec.h"
 
-template <class... Ts> using base_template = Vc::datapar<Ts...>;
+template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
 
 TEST_TYPES(V, where_apply, all_test_types)
@@ -86,8 +86,8 @@ template <class V> void concat_ge4(std::true_type)
     V a([](auto i) -> T { return i; });
     constexpr auto N0 = V::size() / 4u;
     constexpr auto N1 = V::size() - 2 * N0;
-    using V0 = Vc::datapar<T, Vc::abi_for_size_t<T, N0>>;
-    using V1 = Vc::datapar<T, Vc::abi_for_size_t<T, N1>>;
+    using V0 = Vc::simd<T, Vc::abi_for_size_t<T, N0>>;
+    using V1 = Vc::simd<T, Vc::abi_for_size_t<T, N1>>;
     auto x = Vc::split<N0, N0, N1>(a);
     COMPARE(std::tuple_size<decltype(x)>::value, 3u);
     COMPARE(std::get<0>(x), V0([](auto i) -> T { return i; }));
@@ -104,8 +104,8 @@ template <class V> void concat_even(std::false_type) {}
 template <class V> void concat_even(std::true_type)
 {
     using T = typename V::value_type;
-    using V2 = Vc::datapar<T, Vc::abi_for_size_t<T, 2>>;
-    using V3 = Vc::datapar<T, Vc::abi_for_size_t<T, V::size() / 2>>;
+    using V2 = Vc::simd<T, Vc::abi_for_size_t<T, 2>>;
+    using V3 = Vc::simd<T, Vc::abi_for_size_t<T, V::size() / 2>>;
 
     V a([](auto i) -> T { return i; });
 
@@ -125,7 +125,7 @@ template <class V> void concat_even(std::true_type)
 TEST_TYPES(V, split_concat, all_test_types)
 {
     concat_small<V>(
-        std::integral_constant<bool, V::size() * 3 <= Vc::datapar_abi::max_fixed_size>());
+        std::integral_constant<bool, V::size() * 3 <= Vc::simd_abi::max_fixed_size>());
     concat_ge4<V>(std::integral_constant<bool, (V::size() >= 4)>());
     concat_even<V>(std::integral_constant<bool, ((V::size() & 1) == 0)>());
 }

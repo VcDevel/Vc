@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_X86_ARITHMETICS_H_
-#define VC_DATAPAR_X86_ARITHMETICS_H_
+#ifndef VC_SIMD_X86_ARITHMETICS_H_
+#define VC_SIMD_X86_ARITHMETICS_H_
 
 #include "storage.h"
 
@@ -552,7 +552,7 @@ template <class T, size_t N>
 Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, int b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_left is only supported for integral types");
-    return a.builtin() << detail::data(datapar<T, abi_for_size_t<T, N>>(b)).builtin();
+    return a.builtin() << detail::data(simd<T, abi_for_size_t<T, N>>(b)).builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
 
@@ -702,7 +702,7 @@ Vc_INTRINSIC y_u08 bit_shift_left(y_u08 a, y_u08 b)
     return _mm256_blendv_epi8(a, _mm256_add_epi8(a, a), slli_epi16<7>(b));
 }
 
-/* Not actually part of datapar_abi::avx512:
+/* Not actually part of simd_abi::avx512:
 Vc_INTRINSIC z_i16 bit_shift_left(z_i16 a, z_i16 b) { return or_(_mm512_sllv_epi32(and_(a, broadcast64(0x0000ffffu)), and_(b, broadcast64(0x0000ffffu))), _mm512_sllv_epi32(and_(a, broadcast64(0xffff0000u)), _mm512_srli_epi32(b, 16))); }
 Vc_INTRINSIC z_u16 bit_shift_left(z_u16 a, z_u16 b) { return or_(_mm512_sllv_epi32(and_(a, broadcast64(0x0000ffffu)), and_(b, broadcast64(0x0000ffffu))), _mm512_sllv_epi32(and_(a, broadcast64(0xffff0000u)), _mm512_srli_epi32(b, 16))); }
 Vc_INTRINSIC z_i08 bit_shift_left(z_i08 a, z_i08 b)
@@ -735,7 +735,7 @@ template <class T, size_t N>
 Vc_INTRINSIC Storage<T, N> bit_shift_right(Storage<T, N> a, int b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_right is only supported for integral types");
-    return a.builtin() >> detail::data(datapar<T, abi_for_size_t<T, N>>(b)).builtin();
+    return a.builtin() >> detail::data(simd<T, abi_for_size_t<T, N>>(b)).builtin();
 }
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
 
@@ -850,7 +850,7 @@ Vc_INTRINSIC y_u08 bit_shift_right(y_u08 a, y_u08 b)
                               slli_epi16<7>(b));
 }
 
-/* Not actually part of datapar_abi::avx512:
+/* Not actually part of simd_abi::avx512:
 Vc_INTRINSIC z_i16 bit_shift_right(z_i16 a, z_i16 b) { return or_(_mm512_sllv_epi32(and_(a, broadcast64(0x0000ffffu)), and_(b, broadcast64(0x0000ffffu))), _mm512_sllv_epi32(and_(a, broadcast64(0xffff0000u)), _mm512_srli_epi32(b, 16))); }
 Vc_INTRINSIC z_u16 bit_shift_right(z_u16 a, z_u16 b) { return or_(_mm512_sllv_epi32(and_(a, broadcast64(0x0000ffffu)), and_(b, broadcast64(0x0000ffffu))), _mm512_sllv_epi32(and_(a, broadcast64(0xffff0000u)), _mm512_srli_epi32(b, 16))); }
 Vc_INTRINSIC z_i08 bit_shift_right(z_i08 a, z_i08 b)
@@ -1266,4 +1266,4 @@ Vc_INTRINSIC __m512d Vc_VDECL sqrt(z_f64 v) { return _mm512_sqrt_pd(v); }
 }}  // namespace detail::x86
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_X86_ARITHMETICS_H_
+#endif  // VC_SIMD_X86_ARITHMETICS_H_

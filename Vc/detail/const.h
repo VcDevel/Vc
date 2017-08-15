@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_CONST_H_
-#define VC_DATAPAR_CONST_H_
+#ifndef VC_SIMD_CONST_H_
+#define VC_SIMD_CONST_H_
 
 #include "synopsis.h"
 
@@ -47,7 +47,7 @@ namespace sse_const
 {
 #define constexpr const
 #else
-template <class X> struct constants<datapar_abi::sse, X> {
+template <class X> struct constants<simd_abi::sse, X> {
 #endif
     alignas(64) static constexpr int    absMaskFloat[4] = {0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
     alignas(16) static constexpr uint   signMaskFloat[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
@@ -79,28 +79,28 @@ template <class X> struct constants<datapar_abi::sse, X> {
 }  // namespace x86
 #else   // Vc_WORK_AROUND_ICE
 };
-template <class X> alignas(64) constexpr int    constants<datapar_abi::sse, X>::absMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::sse, X>::signMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::sse, X>::highMaskFloat[4];
-template <class X> alignas(16) constexpr float  constants<datapar_abi::sse, X>::oneFloat[4];
-template <class X> alignas(16) constexpr short  constants<datapar_abi::sse, X>::minShort[8];
-template <class X> alignas(16) constexpr uchar  constants<datapar_abi::sse, X>::one8[16];
-template <class X> alignas(16) constexpr ushort constants<datapar_abi::sse, X>::one16[8];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::sse, X>::one32[4];
-template <class X> alignas(16) constexpr ullong constants<datapar_abi::sse, X>::one64[2];
-template <class X> alignas(16) constexpr double constants<datapar_abi::sse, X>::oneDouble[2];
-template <class X> alignas(16) constexpr ullong constants<datapar_abi::sse, X>::highMaskDouble[2];
-template <class X> alignas(16) constexpr llong  constants<datapar_abi::sse, X>::absMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<datapar_abi::sse, X>::signMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<datapar_abi::sse, X>::frexpMask[2];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::sse, X>::IndexesFromZero4[4];
-template <class X> alignas(16) constexpr ushort constants<datapar_abi::sse, X>::IndexesFromZero8[8];
-template <class X> alignas(16) constexpr uchar  constants<datapar_abi::sse, X>::IndexesFromZero16[16];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::sse, X>::AllBitsSet[4];
-template <class X> alignas(16) constexpr uchar  constants<datapar_abi::sse, X>::cvti16_i08_shuffle[16];
+template <class X> alignas(64) constexpr int    constants<simd_abi::sse, X>::absMaskFloat[4];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::signMaskFloat[4];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::highMaskFloat[4];
+template <class X> alignas(16) constexpr float  constants<simd_abi::sse, X>::oneFloat[4];
+template <class X> alignas(16) constexpr short  constants<simd_abi::sse, X>::minShort[8];
+template <class X> alignas(16) constexpr uchar  constants<simd_abi::sse, X>::one8[16];
+template <class X> alignas(16) constexpr ushort constants<simd_abi::sse, X>::one16[8];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::one32[4];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::one64[2];
+template <class X> alignas(16) constexpr double constants<simd_abi::sse, X>::oneDouble[2];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::highMaskDouble[2];
+template <class X> alignas(16) constexpr llong  constants<simd_abi::sse, X>::absMaskDouble[2];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::signMaskDouble[2];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::frexpMask[2];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::IndexesFromZero4[4];
+template <class X> alignas(16) constexpr ushort constants<simd_abi::sse, X>::IndexesFromZero8[8];
+template <class X> alignas(16) constexpr uchar  constants<simd_abi::sse, X>::IndexesFromZero16[16];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::AllBitsSet[4];
+template <class X> alignas(16) constexpr uchar  constants<simd_abi::sse, X>::cvti16_i08_shuffle[16];
 namespace x86
 {
-using sse_const = constants<datapar_abi::sse>;
+using sse_const = constants<simd_abi::sse>;
 }  // namespace x86
 #endif  // Vc_WORK_AROUND_ICE
 #endif  // Vc_HAVE_SSE_ABI
@@ -113,7 +113,7 @@ namespace neon_const
 {
 #define constexpr const
 #else
-template <class X> struct constants<datapar_abi::neon, X> {
+template <class X> struct constants<simd_abi::neon, X> {
 #endif
     alignas(64) static constexpr int    absMaskFloat[4] = {0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
     alignas(16) static constexpr uint   signMaskFloat[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
@@ -143,27 +143,27 @@ template <class X> struct constants<datapar_abi::neon, X> {
 }  // namespace aarch
 #else   // Vc_WORK_AROUND_ICE
 };
-template <class X> alignas(64) constexpr int    constants<datapar_abi::neon, X>::absMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::neon, X>::signMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::neon, X>::highMaskFloat[4];
-template <class X> alignas(16) constexpr float  constants<datapar_abi::neon, X>::oneFloat[4];
-template <class X> alignas(16) constexpr short  constants<datapar_abi::neon, X>::minShort[8];
-template <class X> alignas(16) constexpr uchar  constants<datapar_abi::neon, X>::one8[16];
-template <class X> alignas(16) constexpr ushort constants<datapar_abi::neon, X>::one16[8];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::neon, X>::one32[4];
-template <class X> alignas(16) constexpr ullong constants<datapar_abi::neon, X>::one64[2];
-template <class X> alignas(16) constexpr double constants<datapar_abi::neon, X>::oneDouble[2];
-template <class X> alignas(16) constexpr ullong constants<datapar_abi::neon, X>::highMaskDouble[2];
-template <class X> alignas(16) constexpr llong  constants<datapar_abi::neon, X>::absMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<datapar_abi::neon, X>::signMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<datapar_abi::neon, X>::frexpMask[2];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::neon, X>::IndexesFromZero4[4];
-template <class X> alignas(16) constexpr ushort constants<datapar_abi::neon, X>::IndexesFromZero8[8];
-template <class X> alignas(16) constexpr uchar  constants<datapar_abi::neon, X>::IndexesFromZero16[16];
-template <class X> alignas(16) constexpr uint   constants<datapar_abi::neon, X>::AllBitsSet[4];
+template <class X> alignas(64) constexpr int    constants<simd_abi::neon, X>::absMaskFloat[4];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::signMaskFloat[4];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::highMaskFloat[4];
+template <class X> alignas(16) constexpr float  constants<simd_abi::neon, X>::oneFloat[4];
+template <class X> alignas(16) constexpr short  constants<simd_abi::neon, X>::minShort[8];
+template <class X> alignas(16) constexpr uchar  constants<simd_abi::neon, X>::one8[16];
+template <class X> alignas(16) constexpr ushort constants<simd_abi::neon, X>::one16[8];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::one32[4];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::one64[2];
+template <class X> alignas(16) constexpr double constants<simd_abi::neon, X>::oneDouble[2];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::highMaskDouble[2];
+template <class X> alignas(16) constexpr llong  constants<simd_abi::neon, X>::absMaskDouble[2];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::signMaskDouble[2];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::frexpMask[2];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::IndexesFromZero4[4];
+template <class X> alignas(16) constexpr ushort constants<simd_abi::neon, X>::IndexesFromZero8[8];
+template <class X> alignas(16) constexpr uchar  constants<simd_abi::neon, X>::IndexesFromZero16[16];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::AllBitsSet[4];
 namespace aarch
 {
-using neon_const = constants<datapar_abi::neon>;
+using neon_const = constants<simd_abi::neon>;
 }  // namespace aarch
 #endif  // Vc_WORK_AROUND_ICE
 #endif  // Vc_HAVE_NEON
@@ -176,7 +176,7 @@ namespace avx_const
 {
 #define constexpr const
 #else   // Vc_WORK_AROUND_ICE
-template <class X> struct constants<datapar_abi::avx, X> {
+template <class X> struct constants<simd_abi::avx, X> {
 #endif  // Vc_WORK_AROUND_ICE
     alignas(64) static constexpr ullong IndexesFromZero64[ 4] = { 0, 1, 2, 3 };
     alignas(32) static constexpr uint   IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -204,28 +204,28 @@ template <class X> struct constants<datapar_abi::avx, X> {
 }  // namespace x86
 #else   // Vc_WORK_AROUND_ICE
 };
-template <class X> alignas(64) constexpr ullong constants<datapar_abi::avx, X>::IndexesFromZero64[ 4];
-template <class X> alignas(32) constexpr uint   constants<datapar_abi::avx, X>::IndexesFromZero32[ 8];
-template <class X> alignas(32) constexpr ushort constants<datapar_abi::avx, X>::IndexesFromZero16[16];
-template <class X> alignas(32) constexpr uchar  constants<datapar_abi::avx, X>::IndexesFromZero8 [32];
-template <class X> alignas(32) constexpr uint   constants<datapar_abi::avx, X>::AllBitsSet[8];
-template <class X> constexpr   uint constants<datapar_abi::avx, X>::absMaskFloat[2];
-template <class X> constexpr   uint constants<datapar_abi::avx, X>::signMaskFloat[2];
-template <class X> constexpr   uint constants<datapar_abi::avx, X>::highMaskFloat;
-template <class X> constexpr  float constants<datapar_abi::avx, X>::oneFloat;
-template <class X> alignas(float) constexpr ushort constants<datapar_abi::avx, X>::one16[2];
-template <class X> alignas(float) constexpr  uchar constants<datapar_abi::avx, X>::one8[4];
-template <class X> constexpr  float constants<datapar_abi::avx, X>::_2_pow_31;
-template <class X> constexpr ullong constants<datapar_abi::avx, X>::highMaskDouble;
-template <class X> constexpr double constants<datapar_abi::avx, X>::oneDouble;
-template <class X> constexpr ullong constants<datapar_abi::avx, X>::frexpMask;
+template <class X> alignas(64) constexpr ullong constants<simd_abi::avx, X>::IndexesFromZero64[ 4];
+template <class X> alignas(32) constexpr uint   constants<simd_abi::avx, X>::IndexesFromZero32[ 8];
+template <class X> alignas(32) constexpr ushort constants<simd_abi::avx, X>::IndexesFromZero16[16];
+template <class X> alignas(32) constexpr uchar  constants<simd_abi::avx, X>::IndexesFromZero8 [32];
+template <class X> alignas(32) constexpr uint   constants<simd_abi::avx, X>::AllBitsSet[8];
+template <class X> constexpr   uint constants<simd_abi::avx, X>::absMaskFloat[2];
+template <class X> constexpr   uint constants<simd_abi::avx, X>::signMaskFloat[2];
+template <class X> constexpr   uint constants<simd_abi::avx, X>::highMaskFloat;
+template <class X> constexpr  float constants<simd_abi::avx, X>::oneFloat;
+template <class X> alignas(float) constexpr ushort constants<simd_abi::avx, X>::one16[2];
+template <class X> alignas(float) constexpr  uchar constants<simd_abi::avx, X>::one8[4];
+template <class X> constexpr  float constants<simd_abi::avx, X>::_2_pow_31;
+template <class X> constexpr ullong constants<simd_abi::avx, X>::highMaskDouble;
+template <class X> constexpr double constants<simd_abi::avx, X>::oneDouble;
+template <class X> constexpr ullong constants<simd_abi::avx, X>::frexpMask;
 namespace x86
 {
-using avx_const = constants<datapar_abi::avx>;
+using avx_const = constants<simd_abi::avx>;
 }  // namespace x86
 #endif  // Vc_WORK_AROUND_ICE
 #endif  // Vc_HAVE_AVX
 
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
-#endif  // VC_DATAPAR_CONST_H_
+#endif  // VC_SIMD_CONST_H_

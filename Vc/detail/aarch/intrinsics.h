@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_AARCH_H_
-#define VC_DATAPAR_AARCH_H_
+#ifndef VC_SIMD_AARCH_H_
+#define VC_SIMD_AARCH_H_
 
 #include <limits>
 #include "../macros.h"
@@ -39,7 +39,7 @@ namespace detail
 {
 namespace aarch
 {
-using aarch_const = constants<datapar_abi::neon>;
+using aarch_const = constants<simd_abi::neon>;
 
 // builtin_type{{{1
 template <typename ValueType, size_t Bytes> struct builtin_type_impl;
@@ -595,4 +595,4 @@ using namespace aarch;
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_AARCH_H_
+#endif  // VC_SIMD_AARCH_H_

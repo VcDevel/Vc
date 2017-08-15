@@ -25,23 +25,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_GENERICIMPL_H_
-#define VC_DATAPAR_GENERICIMPL_H_
+#ifndef VC_SIMD_GENERICIMPL_H_
+#define VC_SIMD_GENERICIMPL_H_
 
 #include "detail.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
-// datapar impl {{{1
-template <class Derived> struct generic_datapar_impl {
+// simd impl {{{1
+template <class Derived> struct generic_simd_impl {
     // member types {{{2
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     template <class T, size_t N>
-    static Vc_INTRINSIC auto Vc_VDECL datapar(Storage<T, N> x)
+    static Vc_INTRINSIC auto Vc_VDECL simd(Storage<T, N> x)
     {
-        return Derived::make_datapar(x);
+        return Derived::make_simd(x);
     }
 
     // adjust_for_long{{{2
@@ -191,7 +191,7 @@ template <class Derived> struct generic_datapar_impl {
                                                      const detail::id<Storage<T, N>> rhs)
     {
         lhs = detail::x86::blend(k, lhs,
-                                 detail::data(Op<void>{}(datapar(lhs), datapar(rhs))));
+                                 detail::data(Op<void>{}(simd(lhs), simd(rhs))));
     }
 
     template <template <typename> class Op, class T, class K, size_t N>
@@ -202,7 +202,7 @@ template <class Derived> struct generic_datapar_impl {
         lhs = detail::x86::blend(
             k, lhs,
             detail::data(Op<void>{}(
-                datapar(lhs), datapar<T, N>(Derived::broadcast(rhs, size_tag<N>())))));
+                simd(lhs), simd<T, N>(Derived::broadcast(rhs, size_tag<N>())))));
     }
 
     // masked_unary {{{2
@@ -210,7 +210,7 @@ template <class Derived> struct generic_datapar_impl {
     static Vc_INTRINSIC Storage<T, N> Vc_VDECL masked_unary(const Storage<K, N> k,
                                                             const Storage<T, N> v)
     {
-        auto vv = datapar(v);
+        auto vv = simd(v);
         Op<decltype(vv)> op;
         return detail::x86::blend(k, v, detail::data(op(vv)));
     }
@@ -325,7 +325,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
                   std::conditional_t<sizeof(T) == 4, uint,
                   std::conditional_t<sizeof(T) == 2, ushort,
                   std::conditional_t<sizeof(T) == 1, uchar, void>>>>;
-        using V = datapar<U, abi>;
+        using V = simd<U, abi>;
         constexpr size_t bits_per_element = sizeof(U) * CHAR_BIT;
         if (bits_per_element >= N) {
             V tmp(static_cast<U>(bits.to_ullong()));                  // broadcast
@@ -377,4 +377,4 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
 Vc_VERSIONED_NAMESPACE_END
 
 
-#endif  // VC_DATAPAR_GENERICIMPL_H_
+#endif  // VC_SIMD_GENERICIMPL_H_

@@ -1,8 +1,8 @@
 #######################################################################
-# test that uninitialized datapar/mask produces no code
+# test that uninitialized simd/mask produces no code
 #######################################################################
 
-foreach(variant native_datapar native_mask fixed_datapar)
+foreach(variant native_simd native_mask fixed_simd)
    # fixed_mask uses bitset, which always initializes to null
    execute_process(
       COMMAND ${OBJDUMP} --no-show-raw-insn -dC -j .text ${BINARY}

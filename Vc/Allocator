@@ -242,11 +242,11 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 
 Vc_VERSIONED_NAMESPACE_END
 
-#include "datapar"
+#include "simd"
 namespace std
 {
     template <class T, class A>
-    class allocator<Vc::datapar<T, A>> : public ::Vc::Allocator<Vc::datapar<T, A>>
+    class allocator<Vc::simd<T, A>> : public ::Vc::Allocator<Vc::simd<T, A>>
     {
     public:
         template<typename U> struct rebind { typedef ::std::allocator<U> other; };

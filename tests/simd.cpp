@@ -27,11 +27,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/datapar>
+#include <Vc/simd>
 #include "make_vec.h"
 #include "metahelpers.h"
 
-template <class... Ts> using base_template = Vc::datapar<Ts...>;
+template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
 
 enum unscoped_enum { foo };  //{{{1
@@ -40,7 +40,7 @@ struct convertible { operator int(); operator float(); };  //{{{1
 TEST_TYPES(V, broadcast, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
-    VERIFY(Vc::is_datapar_v<V>);
+    VERIFY(Vc::is_simd_v<V>);
 
     {
         V x;      // not initialized
@@ -303,37 +303,37 @@ void operator_conversions_impl(
     binary_op_return_type<vf64<long double>, double>();
     binary_op_return_type<vf64<long double>, vf64<long double>>();
 
-    using Vc::datapar;
-    using A = Vc::datapar_abi::fixed_size<vldouble::size()>;
-    binary_op_return_type<datapar<long double, A>, schar>();
-    binary_op_return_type<datapar<long double, A>, uchar>();
-    binary_op_return_type<datapar<long double, A>, short>();
-    binary_op_return_type<datapar<long double, A>, ushort>();
-    binary_op_return_type<datapar<long double, A>, int>();
-    binary_op_return_type<datapar<long double, A>, uint>();
-    binary_op_return_type<datapar<long double, A>, long>();
-    binary_op_return_type<datapar<long double, A>, ulong>();
-    binary_op_return_type<datapar<long double, A>, float>();
-    binary_op_return_type<datapar<long double, A>, double>();
+    using Vc::simd;
+    using A = Vc::simd_abi::fixed_size<vldouble::size()>;
+    binary_op_return_type<simd<long double, A>, schar>();
+    binary_op_return_type<simd<long double, A>, uchar>();
+    binary_op_return_type<simd<long double, A>, short>();
+    binary_op_return_type<simd<long double, A>, ushort>();
+    binary_op_return_type<simd<long double, A>, int>();
+    binary_op_return_type<simd<long double, A>, uint>();
+    binary_op_return_type<simd<long double, A>, long>();
+    binary_op_return_type<simd<long double, A>, ulong>();
+    binary_op_return_type<simd<long double, A>, float>();
+    binary_op_return_type<simd<long double, A>, double>();
 
 #if LDOUBLE_IS_DOUBLE
     VERIFY((is_substitution_failure<vldouble, llong>));
     VERIFY((is_substitution_failure<vldouble, ullong>));
     VERIFY((is_substitution_failure<vf64<ldouble>, llong>));
     VERIFY((is_substitution_failure<vf64<ldouble>, ullong>));
-    VERIFY((is_substitution_failure<datapar<ldouble, A>, llong>));
-    VERIFY((is_substitution_failure<datapar<ldouble, A>, ullong>));
+    VERIFY((is_substitution_failure<simd<ldouble, A>, llong>));
+    VERIFY((is_substitution_failure<simd<ldouble, A>, ullong>));
 #else
     binary_op_return_type<vldouble, llong>();
     binary_op_return_type<vldouble, ullong>();
     binary_op_return_type<vf64<long double>, llong>();
     binary_op_return_type<vf64<long double>, ullong>();
-    binary_op_return_type<datapar<long double, A>, llong>();
-    binary_op_return_type<datapar<long double, A>, ullong>();
+    binary_op_return_type<simd<long double, A>, llong>();
+    binary_op_return_type<simd<long double, A>, ullong>();
 #endif
 
     VERIFY((is_substitution_failure<vf64<long double>, vldouble>));
-    COMPARE((is_substitution_failure<datapar<long double, A>, vldouble>),
+    COMPARE((is_substitution_failure<simd<long double, A>, vldouble>),
             (!std::is_same<A, vldouble::abi_type>::value));
 }
 
@@ -732,7 +732,7 @@ void operator_conversions_impl(
     binary_op_return_type<vi32<double>, vi32<int>>();
 
     // order is important for MSVC. This compiler is just crazy: It considers operators from
-    // unrelated datapar template instantiations as candidates - but only after they have been
+    // unrelated simd template instantiations as candidates - but only after they have been
     // tested. So e.g. vi32<int> + llong will produce a vi32<llong> if a vi32<llong> operator test
     // is done before the vi32<int> + llong test.
     VERIFY((is_substitution_failure<vi32<int>, double>));

@@ -25,19 +25,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_FIXED_SIZE_H_
-#define VC_DATAPAR_FIXED_SIZE_H_
+#ifndef VC_SIMD_FIXED_SIZE_H_
+#define VC_SIMD_FIXED_SIZE_H_
 
-#include "datapar.h"
+#include "simd.h"
 #include "detail.h"
-#include "datapar_tuple.h"
+#include "simd_tuple.h"
 #include <array>
 
 /**
  * The fixed_size ABI gives the following guarantees:
- *  - datapar objects are passed via the stack
- *  - memory layout of `datapar<T, N>` is equivalent to `std::array<T, N>`
- *  - alignment of `datapar<T, N>` is `N * sizeof(T)` if N is a power-of-2 value,
+ *  - simd objects are passed via the stack
+ *  - memory layout of `simd<T, N>` is equivalent to `std::array<T, N>`
+ *  - alignment of `simd<T, N>` is `N * sizeof(T)` if N is a power-of-2 value,
  *    otherwise `next_power_of_2(N * sizeof(T))` (Note: if the alignment were to
  *    exceed the system/compiler maximum, it is bounded to that maximum)
  *  - mask objects are passed like std::bitset<N>
@@ -57,22 +57,22 @@ struct dummy : public size_constant<~size_t()> {
 
 template <class T, int N, class A, class... More>
 struct select_best_vector_type {
-    using V = std::conditional_t<std::is_destructible<datapar<T, A>>::value,
-                                 datapar_size<T, A>, dummy>;
+    using V = std::conditional_t<std::is_destructible<simd<T, A>>::value,
+                                 simd_size<T, A>, dummy>;
     using type =
-        std::conditional_t<(N >= V::value), datapar<T, A>,
+        std::conditional_t<(N >= V::value), simd<T, A>,
                            typename select_best_vector_type<T, N, More...>::type>;
 };
 template <class T, int N, class A> struct select_best_vector_type<T, N, A> {
-    using type = datapar<T, A>;
+    using type = simd<T, A>;
 };
 template <class T, int N>
 using select_best_vector_type_t = typename select_best_vector_type<T, N,
-      datapar_abi::avx512,
-      datapar_abi::avx,
-      datapar_abi::neon,
-      datapar_abi::sse,
-      datapar_abi::scalar
+      simd_abi::avx512,
+      simd_abi::avx,
+      simd_abi::neon,
+      simd_abi::sse,
+      simd_abi::scalar
       >::type;
 
 // fixed_size_storage<T, N>{{{1
@@ -81,48 +81,48 @@ template <class T, int N, class Tuple, class Next = select_best_vector_type_t<T,
 struct fixed_size_storage_builder;
 
 template <class T, int N, class... As, class Next>
-struct fixed_size_storage_builder<T, N, datapar_tuple<T, As...>, Next, 0> {
-    using type = datapar_tuple<T, As..., typename Next::abi_type>;
+struct fixed_size_storage_builder<T, N, simd_tuple<T, As...>, Next, 0> {
+    using type = simd_tuple<T, As..., typename Next::abi_type>;
 };
 
 template <class T, int N, class... As, class Next, int Remain>
-struct fixed_size_storage_builder<T, N, datapar_tuple<T, As...>, Next, Remain> {
+struct fixed_size_storage_builder<T, N, simd_tuple<T, As...>, Next, Remain> {
     using type = typename fixed_size_storage_builder<
-        T, Remain, datapar_tuple<T, As..., typename Next::abi_type>>::type;
+        T, Remain, simd_tuple<T, As..., typename Next::abi_type>>::type;
 };
 
 template <class T, int N>
-using fixed_size_storage = typename fixed_size_storage_builder<T, N, datapar_tuple<T>>::type;
+using fixed_size_storage = typename fixed_size_storage_builder<T, N, simd_tuple<T>>::type;
 
 namespace tests {
-using datapar_abi::scalar;
-using datapar_abi::sse;
-using datapar_abi::avx;
-using datapar_abi::avx512;
+using simd_abi::scalar;
+using simd_abi::sse;
+using simd_abi::avx;
+using simd_abi::avx512;
 static_assert(
-    std::is_same<fixed_size_storage<float, 1>, datapar_tuple<float, scalar>>::value,
+    std::is_same<fixed_size_storage<float, 1>, simd_tuple<float, scalar>>::value,
     "fixed_size_storage failure");
 static_assert(std::is_same<fixed_size_storage<float, 2>,
-                           datapar_tuple<float, scalar, scalar>>::value,
+                           simd_tuple<float, scalar, scalar>>::value,
               "fixed_size_storage failure");
 static_assert(std::is_same<fixed_size_storage<float, 3>,
-                           datapar_tuple<float, scalar, scalar, scalar>>::value,
+                           simd_tuple<float, scalar, scalar, scalar>>::value,
               "fixed_size_storage failure");
 static_assert(
-    std::is_same<fixed_size_storage<float, 4>, datapar_tuple<float, sse>>::value,
+    std::is_same<fixed_size_storage<float, 4>, simd_tuple<float, sse>>::value,
     "fixed_size_storage failure");
 static_assert(
-    std::is_same<fixed_size_storage<float, 5>, datapar_tuple<float, sse, scalar>>::value,
+    std::is_same<fixed_size_storage<float, 5>, simd_tuple<float, sse, scalar>>::value,
     "fixed_size_storage failure");
 #ifdef Vc_HAVE_AVX_ABI
 static_assert(
-    std::is_same<fixed_size_storage<float, 8>, datapar_tuple<float, avx>>::value,
+    std::is_same<fixed_size_storage<float, 8>, simd_tuple<float, avx>>::value,
     "fixed_size_storage failure");
 static_assert(
-    std::is_same<fixed_size_storage<float, 12>, datapar_tuple<float, avx, sse>>::value,
+    std::is_same<fixed_size_storage<float, 12>, simd_tuple<float, avx, sse>>::value,
     "fixed_size_storage failure");
 static_assert(std::is_same<fixed_size_storage<float, 13>,
-                           datapar_tuple<float, avx, sse, scalar>>::value,
+                           simd_tuple<float, avx, sse, scalar>>::value,
               "fixed_size_storage failure");
 #endif
 }  // namespace tests
@@ -137,41 +137,41 @@ template <size_t I0, size_t... Is> struct seq_op<std::index_sequence<I0, Is...>>
 };
 
 template <class T> struct n_abis_in_tuple;
-template <class T> struct n_abis_in_tuple<datapar_tuple<T>> {
+template <class T> struct n_abis_in_tuple<simd_tuple<T>> {
     using counts = std::index_sequence<0>;
     using begins = std::index_sequence<0>;
 };
-template <class T, class A> struct n_abis_in_tuple<datapar_tuple<T, A>> {
+template <class T, class A> struct n_abis_in_tuple<simd_tuple<T, A>> {
     using counts = std::index_sequence<1>;
     using begins = std::index_sequence<0>;
 };
 template <class T, class A0, class... As>
-struct n_abis_in_tuple<datapar_tuple<T, A0, A0, As...>> {
+struct n_abis_in_tuple<simd_tuple<T, A0, A0, As...>> {
     using counts = typename seq_op<
-        typename n_abis_in_tuple<datapar_tuple<T, A0, As...>>::counts>::first_plus_one;
+        typename n_abis_in_tuple<simd_tuple<T, A0, As...>>::counts>::first_plus_one;
     using begins = typename seq_op<typename n_abis_in_tuple<
-        datapar_tuple<T, A0, As...>>::begins>::notfirst_plus_one;
+        simd_tuple<T, A0, As...>>::begins>::notfirst_plus_one;
 };
 template <class T, class A0, class A1, class... As>
-struct n_abis_in_tuple<datapar_tuple<T, A0, A1, As...>> {
+struct n_abis_in_tuple<simd_tuple<T, A0, A1, As...>> {
     using counts = typename seq_op<typename n_abis_in_tuple<
-        datapar_tuple<T, A1, As...>>::counts>::template prepend<1, 0>;
+        simd_tuple<T, A1, As...>>::counts>::template prepend<1, 0>;
     using begins = typename seq_op<typename n_abis_in_tuple<
-        datapar_tuple<T, A1, As...>>::begins>::template prepend<0, 1>;
+        simd_tuple<T, A1, As...>>::begins>::template prepend<0, 1>;
 };
 
 namespace tests
 {
 static_assert(
-    std::is_same<n_abis_in_tuple<datapar_tuple<int, datapar_abi::sse, datapar_abi::sse,
-                                                datapar_abi::scalar, datapar_abi::scalar,
-                                                datapar_abi::scalar>>::counts,
+    std::is_same<n_abis_in_tuple<simd_tuple<int, simd_abi::sse, simd_abi::sse,
+                                                simd_abi::scalar, simd_abi::scalar,
+                                                simd_abi::scalar>>::counts,
                  std::index_sequence<2, 3>>::value,
     "");
 static_assert(
-    std::is_same<n_abis_in_tuple<datapar_tuple<int, datapar_abi::sse, datapar_abi::sse,
-                                                datapar_abi::scalar, datapar_abi::scalar,
-                                                datapar_abi::scalar>>::begins,
+    std::is_same<n_abis_in_tuple<simd_tuple<int, simd_abi::sse, simd_abi::sse,
+                                                simd_abi::scalar, simd_abi::scalar,
+                                                simd_abi::scalar>>::begins,
                  std::index_sequence<0, 2>>::value,
     "");
 }  // namespace tests
@@ -179,9 +179,9 @@ static_assert(
 // tree_reduction {{{1
 template <size_t Count, size_t Begin> struct tree_reduction {
     static_assert(Count > 0,
-                  "tree_reduction requires at least one datapar object to work with");
+                  "tree_reduction requires at least one simd object to work with");
     template <class T, class... As, class BinaryOperation>
-    auto operator()(const datapar_tuple<T, As...> &tup,
+    auto operator()(const simd_tuple<T, As...> &tup,
                     const BinaryOperation &binary_op) const noexcept
     {
         constexpr size_t left = next_power_of_2(Count) / 2;
@@ -192,19 +192,19 @@ template <size_t Count, size_t Begin> struct tree_reduction {
 };
 template <size_t Begin> struct tree_reduction<1, Begin> {
     template <class T, class... As, class BinaryOperation>
-    auto operator()(const datapar_tuple<T, As...> &tup, const BinaryOperation &) const
+    auto operator()(const simd_tuple<T, As...> &tup, const BinaryOperation &) const
         noexcept
     {
-        return detail::get_datapar<Begin>(tup);
+        return detail::get_simd<Begin>(tup);
     }
 };
 template <size_t Begin> struct tree_reduction<2, Begin> {
     template <class T, class... As, class BinaryOperation>
-    auto operator()(const datapar_tuple<T, As...> &tup,
+    auto operator()(const simd_tuple<T, As...> &tup,
                     const BinaryOperation &binary_op) const noexcept
     {
-        return binary_op(detail::get_datapar<Begin>(tup),
-                         detail::get_datapar<Begin + 1>(tup));
+        return binary_op(detail::get_simd<Begin>(tup),
+                         detail::get_simd<Begin + 1>(tup));
     }
 };
 
@@ -220,33 +220,33 @@ Vc_INTRINSIC auto partial_bitset_to_member_type(std::bitset<N> shifted_bits)
         std::bitset<V::size()>(shifted_bits.to_ullong()), type_tag);
 }
 
-// datapar impl {{{1
-template <int N> struct fixed_size_datapar_impl {
+// simd impl {{{1
+template <int N> struct fixed_size_simd_impl {
     // member types {{{2
     using mask_member_type = std::bitset<N>;
-    template <class T> using datapar_member_type = fixed_size_storage<T, N>;
+    template <class T> using simd_member_type = fixed_size_storage<T, N>;
     template <class T>
-    static constexpr std::size_t tuple_size = datapar_member_type<T>::tuple_size;
+    static constexpr std::size_t tuple_size = simd_member_type<T>::tuple_size;
     template <class T>
     static constexpr std::make_index_sequence<tuple_size<T>> index_seq = {};
-    template <class T> using datapar = Vc::datapar<T, datapar_abi::fixed_size<N>>;
-    template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
+    template <class T> using simd = Vc::simd<T, simd_abi::fixed_size<N>>;
+    template <class T> using mask = Vc::mask<T, simd_abi::fixed_size<N>>;
     using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // broadcast {{{2
     template <class T>
-    static inline datapar_member_type<T> broadcast(T x, size_tag) noexcept
+    static inline simd_member_type<T> broadcast(T x, size_tag) noexcept
     {
-        return datapar_member_type<T>::generate(
+        return simd_member_type<T>::generate(
             [&](auto meta) { return meta.broadcast(x, size_constant<meta.size()>()); });
     }
 
     // generator {{{2
     template <class F, class T>
-    static Vc_INTRINSIC datapar_member_type<T> generator(F &&gen, type_tag<T>, size_tag)
+    static Vc_INTRINSIC simd_member_type<T> generator(F &&gen, type_tag<T>, size_tag)
     {
-        return datapar_member_type<T>::generate([&gen](auto meta) {
+        return simd_member_type<T>::generate([&gen](auto meta) {
             return meta.generator(
                 [&](auto i_) {
                     return gen(size_constant<meta.offset + decltype(i_)::value>());
@@ -257,16 +257,16 @@ template <int N> struct fixed_size_datapar_impl {
 
     // load {{{2
     template <class T, class U, class F>
-    static inline datapar_member_type<T> load(const U *mem, F f,
+    static inline simd_member_type<T> load(const U *mem, F f,
                                               type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
-        return datapar_member_type<T>::generate(
+        return simd_member_type<T>::generate(
             [&](auto meta) { return meta.load(&mem[meta.offset], f, type_tag<T>()); });
     }
 
     // masked load {{{2
     template <class T, class... As, class U, class F>
-    static inline void masked_load(datapar_tuple<T, As...> &merge,
+    static inline void masked_load(simd_tuple<T, As...> &merge,
                                    const mask_member_type bits, const U *mem,
                                    F f) Vc_NOEXCEPT_OR_IN_TEST
     {
@@ -277,7 +277,7 @@ template <int N> struct fixed_size_datapar_impl {
 
     // store {{{2
     template <class T, class U, class F>
-    static inline void store(const datapar_member_type<T> v, U *mem, F f,
+    static inline void store(const simd_member_type<T> v, U *mem, F f,
                              type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         detail::for_each(v, [&](auto meta, auto native) {
@@ -287,7 +287,7 @@ template <int N> struct fixed_size_datapar_impl {
 
     // masked store {{{2
     template <class T, class... As, class U, class F>
-    static inline void masked_store(const datapar_tuple<T, As...> v, U *mem, F f,
+    static inline void masked_store(const simd_tuple<T, As...> v, U *mem, F f,
                                     const mask_member_type bits) Vc_NOEXCEPT_OR_IN_TEST
     {
         detail::for_each(v, [&](auto meta, auto native) {
@@ -297,7 +297,7 @@ template <int N> struct fixed_size_datapar_impl {
 
     // negation {{{2
     template <class T, class... As>
-    static inline mask_member_type negate(datapar_tuple<T, As...> x) noexcept
+    static inline mask_member_type negate(simd_tuple<T, As...> x) noexcept
     {
         mask_member_type bits = 0;
         for_each(x, [&bits](auto meta, auto native) {
@@ -310,7 +310,7 @@ template <int N> struct fixed_size_datapar_impl {
 private:
     template <class T, class... As, class BinaryOperation, size_t... Counts,
               size_t... Begins>
-    static inline T reduce(const datapar_tuple<T, As...> tup,
+    static inline T reduce(const simd_tuple<T, As...> tup,
                            const BinaryOperation &binary_op,
                            std::index_sequence<Counts...>, std::index_sequence<Begins...>)
     {
@@ -320,7 +320,7 @@ private:
         // If multiple AVX objects are present, they should reduce to a single AVX object
         // first
         const auto scalars =
-            detail::make_tuple(Vc::datapar<T, datapar_abi::scalar>(Vc::reduce(
+            detail::make_tuple(Vc::simd<T, simd_abi::scalar>(Vc::reduce(
                 detail::tree_reduction<Counts, Begins>()(tup, binary_op), binary_op))...);
         return detail::data(
             detail::tree_reduction<scalars.tuple_size, 0>()(scalars, binary_op));
@@ -328,38 +328,38 @@ private:
 
 public:
     template <class T, class BinaryOperation>
-    static inline T reduce(size_tag, const datapar<T> x, const BinaryOperation &binary_op)
+    static inline T reduce(size_tag, const simd<T> x, const BinaryOperation &binary_op)
     {
-        using ranges = n_abis_in_tuple<datapar_member_type<T>>;
-        return fixed_size_datapar_impl::reduce(x.d, binary_op, typename ranges::counts(),
+        using ranges = n_abis_in_tuple<simd_member_type<T>>;
+        return fixed_size_simd_impl::reduce(x.d, binary_op, typename ranges::counts(),
                                                typename ranges::begins());
     }
 
     // min, max, clamp {{{2
     template <class T, class... As>
-    static inline datapar_tuple<T, As...> min(const datapar_tuple<T, As...> a,
-                                              const datapar_tuple<T, As...> b)
+    static inline simd_tuple<T, As...> min(const simd_tuple<T, As...> a,
+                                              const simd_tuple<T, As...> b)
     {
         return apply([](auto impl, auto aa, auto bb) { return impl.min(aa, bb); }, a, b);
     }
 
     template <class T, class... As>
-    static inline datapar_tuple<T, As...> max(const datapar_tuple<T, As...> a,
-                                              const datapar_tuple<T, As...> b)
+    static inline simd_tuple<T, As...> max(const simd_tuple<T, As...> a,
+                                              const simd_tuple<T, As...> b)
     {
         return apply([](auto impl, auto aa, auto bb) { return impl.max(aa, bb); }, a, b);
     }
 
     // complement {{{2
     template <class T, class... As>
-    static inline datapar_tuple<T, As...> complement(datapar_tuple<T, As...> x) noexcept
+    static inline simd_tuple<T, As...> complement(simd_tuple<T, As...> x) noexcept
     {
         return apply([](auto impl, auto xx) { return impl.complement(xx); }, x);
     }
 
     // unary minus {{{2
     template <class T, class... As>
-    static inline datapar_tuple<T, As...> unary_minus(datapar_tuple<T, As...> x) noexcept
+    static inline simd_tuple<T, As...> unary_minus(simd_tuple<T, As...> x) noexcept
     {
         return apply([](auto impl, auto xx) { return impl.unary_minus(xx); }, x);
     }
@@ -368,8 +368,8 @@ public:
 
 #define Vc_FIXED_OP(name_, op_)                                                          \
     template <class T, class... As>                                                      \
-    static inline datapar_tuple<T, As...> name_(datapar_tuple<T, As...> x,               \
-                                                datapar_tuple<T, As...> y)               \
+    static inline simd_tuple<T, As...> name_(simd_tuple<T, As...> x,               \
+                                                simd_tuple<T, As...> y)               \
     {                                                                                    \
         return apply([](auto impl, auto xx, auto yy) { return impl.name_(xx, yy); }, x,  \
                      y);                                                                 \
@@ -389,13 +389,13 @@ public:
 #undef Vc_FIXED_OP
 
     template <class T, class... As>
-    static inline datapar_tuple<T, As...> bit_shift_left(datapar_tuple<T, As...> x, int y)
+    static inline simd_tuple<T, As...> bit_shift_left(simd_tuple<T, As...> x, int y)
     {
         return apply([y](auto impl, auto xx) { return impl.bit_shift_left(xx, y); }, x);
     }
 
     template <class T, class... As>
-    static inline datapar_tuple<T, As...> bit_shift_right(datapar_tuple<T, As...> x,
+    static inline simd_tuple<T, As...> bit_shift_right(simd_tuple<T, As...> x,
                                                           int y)
     {
         return apply([y](auto impl, auto xx) { return impl.bit_shift_right(xx, y); }, x);
@@ -403,25 +403,25 @@ public:
 
     // sqrt {{{2
     template <class T, class... As>
-    static inline datapar_tuple<T, As...> sqrt(datapar_tuple<T, As...> x) noexcept
+    static inline simd_tuple<T, As...> sqrt(simd_tuple<T, As...> x) noexcept
     {
         return apply([](auto impl, auto xx) { return impl.sqrt(xx); }, x);
     }
 
     // abs {{{2
     template <class T, class... As>
-    static inline datapar_tuple<T, As...> abs(datapar_tuple<T, As...> x) noexcept
+    static inline simd_tuple<T, As...> abs(simd_tuple<T, As...> x) noexcept
     {
         return apply([](auto impl, auto xx) { return impl.abs(xx); }, x);
     }
 
     // increment & decrement{{{2
-    template <class... Ts> static inline void increment(datapar_tuple<Ts...> &x)
+    template <class... Ts> static inline void increment(simd_tuple<Ts...> &x)
     {
         for_each(x, [](auto meta, auto &native) { meta.increment(native); });
     }
 
-    template <class... Ts> static inline void decrement(datapar_tuple<Ts...> &x)
+    template <class... Ts> static inline void decrement(simd_tuple<Ts...> &x)
     {
         for_each(x, [](auto meta, auto &native) { meta.decrement(native); });
     }
@@ -429,8 +429,8 @@ public:
     // compares {{{2
 #define Vc_CMP_OPERATIONS(cmp_)                                                          \
     template <class T, class... As>                                                      \
-    static inline mask_member_type cmp_(datapar_tuple<T, As...> x,                       \
-                                        datapar_tuple<T, As...> y)                       \
+    static inline mask_member_type cmp_(simd_tuple<T, As...> x,                       \
+                                        simd_tuple<T, As...> y)                       \
     {                                                                                    \
         mask_member_type bits = 0;                                                       \
         detail::for_each(x, y, [&bits](auto meta, auto native_x, auto native_y) {        \
@@ -449,12 +449,12 @@ public:
 
     // smart_reference access {{{2
     template <class T, class... As>
-    static Vc_INTRINSIC T get(const datapar_tuple<T, As...> &v, int i) noexcept
+    static Vc_INTRINSIC T get(const simd_tuple<T, As...> &v, int i) noexcept
     {
         return v[i];
     }
     template <class T, class... As, class U>
-    static Vc_INTRINSIC void set(datapar_tuple<T, As...> &v, int i, U &&x) noexcept
+    static Vc_INTRINSIC void set(simd_tuple<T, As...> &v, int i, U &&x) noexcept
     {
         v.set(i, std::forward<U>(x));
     }
@@ -462,8 +462,8 @@ public:
     // masked_assign {{{2
     template <typename T, class... As>
     static Vc_INTRINSIC void masked_assign(
-        const mask_member_type bits, detail::datapar_tuple<T, As...> &lhs,
-        const detail::id<detail::datapar_tuple<T, As...>> rhs)
+        const mask_member_type bits, detail::simd_tuple<T, As...> &lhs,
+        const detail::id<detail::simd_tuple<T, As...>> rhs)
     {
         detail::for_each(lhs, rhs, [&](auto meta, auto &native_lhs, auto native_rhs) {
             meta.masked_assign(meta.make_mask(bits), native_lhs, native_rhs);
@@ -471,10 +471,10 @@ public:
     }
 
     // Optimization for the case where the RHS is a scalar. No need to broadcast the
-    // scalar to a datapar first.
+    // scalar to a simd first.
     template <typename T, class... As>
     static Vc_INTRINSIC void masked_assign(const mask_member_type bits,
-                                           detail::datapar_tuple<T, As...> &lhs,
+                                           detail::simd_tuple<T, As...> &lhs,
                                            const detail::id<T> rhs)
     {
         detail::for_each(lhs, [&](auto meta, auto &native_lhs) {
@@ -485,8 +485,8 @@ public:
     // masked_cassign {{{2
     template <template <typename> class Op, typename T, class... As>
     static inline void masked_cassign(const mask_member_type bits,
-                                      detail::datapar_tuple<T, As...> &lhs,
-                                      const detail::datapar_tuple<T, As...> rhs)
+                                      detail::simd_tuple<T, As...> &lhs,
+                                      const detail::simd_tuple<T, As...> rhs)
     {
         detail::for_each(lhs, rhs, [&](auto meta, auto &native_lhs, auto native_rhs) {
             meta.template masked_cassign<Op>(meta.make_mask(bits), native_lhs,
@@ -495,11 +495,11 @@ public:
     }
 
     // Optimization for the case where the RHS is a scalar. No need to broadcast the
-    // scalar to a datapar
+    // scalar to a simd
     // first.
     template <template <typename> class Op, typename T, class... As>
     static inline void masked_cassign(const mask_member_type bits,
-                                      detail::datapar_tuple<T, As...> &lhs, const T rhs)
+                                      detail::simd_tuple<T, As...> &lhs, const T rhs)
     {
         detail::for_each(lhs, [&](auto meta, auto &native_lhs) {
             meta.template masked_cassign<Op>(meta.make_mask(bits), native_lhs, rhs);
@@ -508,8 +508,8 @@ public:
 
     // masked_unary {{{2
     template <template <typename> class Op, class T, class... As>
-    static inline detail::datapar_tuple<T, As...> masked_unary(
-        const mask_member_type bits, const detail::datapar_tuple<T, As...> v)
+    static inline detail::simd_tuple<T, As...> masked_unary(
+        const mask_member_type bits, const detail::simd_tuple<T, As...> v)
     {
         return v.apply_wrapped([&bits](auto meta, auto native) {
             return meta.template masked_unary<Op>(meta.make_mask(bits), native);
@@ -529,7 +529,7 @@ template <int N> struct fixed_size_mask_impl {
     // member types {{{2
     static constexpr std::make_index_sequence<N> index_seq = {};
     using mask_member_type = std::bitset<N>;
-    template <class T> using mask = Vc::mask<T, datapar_abi::fixed_size<N>>;
+    template <class T> using mask = Vc::mask<T, simd_abi::fixed_size<N>>;
     using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
@@ -620,7 +620,7 @@ template <int N> struct fixed_size_mask_impl {
         }
 #endif  // Vc_IS_AMD64
 #elif defined Vc_HAVE_SSE2   // !AVX512BW && !BMI2
-        using V = datapar<uchar, datapar_abi::sse>;
+        using V = simd<uchar, simd_abi::sse>;
         ullong bits = bs.to_ullong();
         execute_n_times<(N + 15) / 16>([&](auto i) {
             constexpr size_t offset = i * 16;
@@ -762,9 +762,9 @@ template <class T, int N, bool = ((N <= 32 && N >= 0) || N == 64)>
 struct fixed_size_traits {
     static constexpr size_t size() noexcept { return N; }
 
-    using datapar_impl_type = fixed_size_datapar_impl<N>;
-    using datapar_member_type = fixed_size_storage<T, N>;
-    static constexpr size_t datapar_member_alignment =
+    using simd_impl_type = fixed_size_simd_impl<N>;
+    using simd_member_type = fixed_size_storage<T, N>;
+    static constexpr size_t simd_member_alignment =
 #ifdef Vc_GCC
         std::min(size_t(
 #ifdef __AVX__
@@ -777,28 +777,28 @@ struct fixed_size_traits {
         (
 #endif
                  next_power_of_2(N * sizeof(T)));
-    struct datapar_cast_type {
-        datapar_cast_type(const std::array<T, N> &);
-        datapar_cast_type(datapar_member_type dd) : d(dd) {}
-        explicit operator datapar_member_type() const { return d; }
+    struct simd_cast_type {
+        simd_cast_type(const std::array<T, N> &);
+        simd_cast_type(simd_member_type dd) : d(dd) {}
+        explicit operator simd_member_type() const { return d; }
 
     private:
-        datapar_member_type d;
+        simd_member_type d;
     };
-    struct datapar_base {
-        datapar_base() = default;
-        Vc_INTRINSIC datapar_base(const datapar_base &) {}
+    struct simd_base {
+        simd_base() = default;
+        Vc_INTRINSIC simd_base(const simd_base &) {}
 
-        explicit operator const datapar_member_type &() const
+        explicit operator const simd_member_type &() const
         {
-            return data(*static_cast<const fixed_size_datapar<T, N> *>(this));
+            return data(*static_cast<const fixed_size_simd<T, N> *>(this));
         }
         explicit operator std::array<T, N>() const
         {
             std::array<T, N> r;
-            // datapar_member_type can be larger because of higher alignment
-            static_assert(sizeof(r) <= sizeof(datapar_member_type), "");
-            std::memcpy(r.data(), &static_cast<const datapar_member_type &>(*this),
+            // simd_member_type can be larger because of higher alignment
+            static_assert(sizeof(r) <= sizeof(simd_member_type), "");
+            std::memcpy(r.data(), &static_cast<const simd_member_type &>(*this),
                         sizeof(r));
             return r;
         }
@@ -820,20 +820,20 @@ struct fixed_size_traits {
 template <class T, int N>
 struct fixed_size_traits<T, N, false> : public traits<void, void> {
 };
-template <int N> struct traits<long double, datapar_abi::fixed_size<N>> : public fixed_size_traits<long double, N> {};
-template <int N> struct traits<double, datapar_abi::fixed_size<N>> : public fixed_size_traits<double, N> {};
-template <int N> struct traits< float, datapar_abi::fixed_size<N>> : public fixed_size_traits< float, N> {};
-template <int N> struct traits<ullong, datapar_abi::fixed_size<N>> : public fixed_size_traits<ullong, N> {};
-template <int N> struct traits< llong, datapar_abi::fixed_size<N>> : public fixed_size_traits< llong, N> {};
-template <int N> struct traits< ulong, datapar_abi::fixed_size<N>> : public fixed_size_traits< ulong, N> {};
-template <int N> struct traits<  long, datapar_abi::fixed_size<N>> : public fixed_size_traits<  long, N> {};
-template <int N> struct traits<  uint, datapar_abi::fixed_size<N>> : public fixed_size_traits<  uint, N> {};
-template <int N> struct traits<   int, datapar_abi::fixed_size<N>> : public fixed_size_traits<   int, N> {};
-template <int N> struct traits<ushort, datapar_abi::fixed_size<N>> : public fixed_size_traits<ushort, N> {};
-template <int N> struct traits< short, datapar_abi::fixed_size<N>> : public fixed_size_traits< short, N> {};
-template <int N> struct traits< uchar, datapar_abi::fixed_size<N>> : public fixed_size_traits< uchar, N> {};
-template <int N> struct traits< schar, datapar_abi::fixed_size<N>> : public fixed_size_traits< schar, N> {};
-template <int N> struct traits<  char, datapar_abi::fixed_size<N>> : public fixed_size_traits<  char, N> {};
+template <int N> struct traits<long double, simd_abi::fixed_size<N>> : public fixed_size_traits<long double, N> {};
+template <int N> struct traits<double, simd_abi::fixed_size<N>> : public fixed_size_traits<double, N> {};
+template <int N> struct traits< float, simd_abi::fixed_size<N>> : public fixed_size_traits< float, N> {};
+template <int N> struct traits<ullong, simd_abi::fixed_size<N>> : public fixed_size_traits<ullong, N> {};
+template <int N> struct traits< llong, simd_abi::fixed_size<N>> : public fixed_size_traits< llong, N> {};
+template <int N> struct traits< ulong, simd_abi::fixed_size<N>> : public fixed_size_traits< ulong, N> {};
+template <int N> struct traits<  long, simd_abi::fixed_size<N>> : public fixed_size_traits<  long, N> {};
+template <int N> struct traits<  uint, simd_abi::fixed_size<N>> : public fixed_size_traits<  uint, N> {};
+template <int N> struct traits<   int, simd_abi::fixed_size<N>> : public fixed_size_traits<   int, N> {};
+template <int N> struct traits<ushort, simd_abi::fixed_size<N>> : public fixed_size_traits<ushort, N> {};
+template <int N> struct traits< short, simd_abi::fixed_size<N>> : public fixed_size_traits< short, N> {};
+template <int N> struct traits< uchar, simd_abi::fixed_size<N>> : public fixed_size_traits< uchar, N> {};
+template <int N> struct traits< schar, simd_abi::fixed_size<N>> : public fixed_size_traits< schar, N> {};
+template <int N> struct traits<  char, simd_abi::fixed_size<N>> : public fixed_size_traits<  char, N> {};
 
 // }}}1
 }  // namespace detail
@@ -896,9 +896,9 @@ namespace std
 {
 // mask operators {{{1
 template <class T, int N>
-struct equal_to<Vc::mask<T, Vc::datapar_abi::fixed_size<N>>> {
+struct equal_to<Vc::mask<T, Vc::simd_abi::fixed_size<N>>> {
 private:
-    using M = Vc::mask<T, Vc::datapar_abi::fixed_size<N>>;
+    using M = Vc::mask<T, Vc::simd_abi::fixed_size<N>>;
 
 public:
     bool operator()(const M &x, const M &y) const
@@ -913,6 +913,6 @@ public:
 // }}}1
 }  // namespace std
 
-#endif  // VC_DATAPAR_FIXED_SIZE_H_
+#endif  // VC_SIMD_FIXED_SIZE_H_
 
 // vim: foldmethod=marker

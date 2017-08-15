@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_AARCH_COMPARES_H_
-#define VC_DATAPAR_AARCH_COMPARES_H_
+#ifndef VC_SIMD_AARCH_COMPARES_H_
+#define VC_SIMD_AARCH_COMPARES_H_
 
 #include "storage.h"
 
@@ -48,4 +48,4 @@ Vc_INTRINSIC Vc_CONST y_u08 cmptg(y_u08 x, y_u08)
 }
 }  // namespace Vc_VERSIONED_NAMESPACE::detail::aarch
 
-#endif  // VC_DATAPAR_AARCH_COMPARES_H_
+#endif  // VC_SIMD_AARCH_COMPARES_H_

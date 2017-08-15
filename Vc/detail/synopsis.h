@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_SYNOPSIS_H_
-#define VC_DATAPAR_SYNOPSIS_H_
+#ifndef VC_SIMD_SYNOPSIS_H_
+#define VC_SIMD_SYNOPSIS_H_
 
 #include "global.h"
 #include "macros.h"
@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "concepts.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
-namespace datapar_abi
+namespace simd_abi
 {
 constexpr int max_fixed_size = 32;
 template <int N> struct fixed_size {};
@@ -121,109 +121,109 @@ template <typename T> using default_abi = Vc_DEFAULT_ABI<T>;
 template <typename T> using default_abi = compatible<T>;
 #endif
 }  // namespace detail
-}  // namespace datapar_abi
+}  // namespace simd_abi
 
-template <class T> struct is_datapar : public std::false_type {};
-template <class T> constexpr bool is_datapar_v = is_datapar<T>::value;
+template <class T> struct is_simd : public std::false_type {};
+template <class T> constexpr bool is_simd_v = is_simd<T>::value;
 
 template <class T> struct is_mask : public std::false_type {};
 template <class T> constexpr bool is_mask_v = is_mask<T>::value;
 
-template <class T, class Abi = datapar_abi::detail::default_abi<T>> struct datapar_size;
-template <class T> struct datapar_size<T, datapar_abi::scalar> : public detail::size_constant<1> {};
-template <class T> struct datapar_size<T, datapar_abi::sse   > : public detail::size_constant<16 / sizeof(T)> {};
-template <class T> struct datapar_size<T, datapar_abi::avx   > : public detail::size_constant<32 / sizeof(T)> {};
-template <class T> struct datapar_size<T, datapar_abi::avx512> : public detail::size_constant<64 / sizeof(T)> {};
-template <class T> struct datapar_size<T, datapar_abi::neon  > : public detail::size_constant<16 / sizeof(T)> {};
-template <class T, int N> struct datapar_size<T, datapar_abi::fixed_size<N>> : public detail::size_constant<N> {};
-template <class T, class Abi = datapar_abi::detail::default_abi<T>>
-constexpr size_t datapar_size_v = datapar_size<T, Abi>::value;
+template <class T, class Abi = simd_abi::detail::default_abi<T>> struct simd_size;
+template <class T> struct simd_size<T, simd_abi::scalar> : public detail::size_constant<1> {};
+template <class T> struct simd_size<T, simd_abi::sse   > : public detail::size_constant<16 / sizeof(T)> {};
+template <class T> struct simd_size<T, simd_abi::avx   > : public detail::size_constant<32 / sizeof(T)> {};
+template <class T> struct simd_size<T, simd_abi::avx512> : public detail::size_constant<64 / sizeof(T)> {};
+template <class T> struct simd_size<T, simd_abi::neon  > : public detail::size_constant<16 / sizeof(T)> {};
+template <class T, int N> struct simd_size<T, simd_abi::fixed_size<N>> : public detail::size_constant<N> {};
+template <class T, class Abi = simd_abi::detail::default_abi<T>>
+constexpr size_t simd_size_v = simd_size<T, Abi>::value;
 
 namespace detail
 {
 template <class T, size_t N, bool, bool> struct abi_for_size_impl;
 template <class T, size_t N> struct abi_for_size_impl<T, N, true, true> {
-    using type = datapar_abi::fixed_size<N>;
+    using type = simd_abi::fixed_size<N>;
 };
 template <class T> struct abi_for_size_impl<T, 1, true, true> {
-    using type = datapar_abi::scalar;
+    using type = simd_abi::scalar;
 };
 #ifdef Vc_HAVE_SSE_ABI
-template <> struct abi_for_size_impl<float, 4, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<float, 4, true, true> { using type = simd_abi::sse; };
 #endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
-template <> struct abi_for_size_impl<double, 2, true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl< llong, 2, true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<ullong, 2, true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<  long, 16 / sizeof(long), true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl< ulong, 16 / sizeof(long), true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<   int, 4, true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<  uint, 4, true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl< short, 8, true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl<ushort, 8, true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl< schar, 16, true, true> { using type = datapar_abi::sse; };
-template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = datapar_abi::sse; };
+template <> struct abi_for_size_impl<double, 2, true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl< llong, 2, true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl<ullong, 2, true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl<  long, 16 / sizeof(long), true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl< ulong, 16 / sizeof(long), true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl<   int, 4, true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl<  uint, 4, true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl< short, 8, true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl<ushort, 8, true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl< schar, 16, true, true> { using type = simd_abi::sse; };
+template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = simd_abi::sse; };
 #endif
 #ifdef Vc_HAVE_AVX_ABI
-template <> struct abi_for_size_impl<double, 4, true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<float, 8, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl<double, 4, true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl<float, 8, true, true> { using type = simd_abi::avx; };
 #endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
-template <> struct abi_for_size_impl< llong,  4, true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<ullong,  4, true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<  long, 32 / sizeof(long), true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl< ulong, 32 / sizeof(long), true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<   int,  8, true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<  uint,  8, true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl< short, 16, true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl<ushort, 16, true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl< schar, 32, true, true> { using type = datapar_abi::avx; };
-template <> struct abi_for_size_impl< uchar, 32, true, true> { using type = datapar_abi::avx; };
+template <> struct abi_for_size_impl< llong,  4, true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl<ullong,  4, true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl<  long, 32 / sizeof(long), true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl< ulong, 32 / sizeof(long), true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl<   int,  8, true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl<  uint,  8, true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl< short, 16, true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl<ushort, 16, true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl< schar, 32, true, true> { using type = simd_abi::avx; };
+template <> struct abi_for_size_impl< uchar, 32, true, true> { using type = simd_abi::avx; };
 #endif
 #ifdef Vc_HAVE_AVX512_ABI
-template <> struct abi_for_size_impl<double, 8, true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<float, 16, true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl< llong,  8, true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<ullong,  8, true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<  long, 64 / sizeof(long), true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl< ulong, 64 / sizeof(long), true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<   int, 16, true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<  uint, 16, true, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl<double, 8, true, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl<float, 16, true, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl< llong,  8, true, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl<ullong,  8, true, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl<  long, 64 / sizeof(long), true, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl< ulong, 64 / sizeof(long), true, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl<   int, 16, true, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl<  uint, 16, true, true> { using type = simd_abi::avx512; };
 #endif
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-template <> struct abi_for_size_impl< short, 32, true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl<ushort, 32, true, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl< schar, 64, false, true> { using type = datapar_abi::avx512; };
-template <> struct abi_for_size_impl< uchar, 64, false, true> { using type = datapar_abi::avx512; };
+template <> struct abi_for_size_impl< short, 32, true, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl<ushort, 32, true, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl< schar, 64, false, true> { using type = simd_abi::avx512; };
+template <> struct abi_for_size_impl< uchar, 64, false, true> { using type = simd_abi::avx512; };
 // fixed_size must support 64 entries because schar and uchar have 64 entries. Everything in
 // between max_fixed_size and 64 doesn't have to be supported.
 template <class T> struct abi_for_size_impl<T, 64, false, true> {
-    using type = datapar_abi::fixed_size<64>;
+    using type = simd_abi::fixed_size<64>;
 };
 #endif
 #ifdef Vc_HAVE_FULL_KNC_ABI
-template <class T> struct abi_for_size_impl<T, datapar_size_v<T, datapar_abi::knc>, true, true> {
-    using type = datapar_abi::knc;
+template <class T> struct abi_for_size_impl<T, simd_size_v<T, simd_abi::knc>, true, true> {
+    using type = simd_abi::knc;
 };
 #endif
 #ifdef Vc_HAVE_FULL_NEON_ABI
-template <> struct abi_for_size_impl<double,  2, true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl< float,  4, true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl< llong,  2, true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl<ullong,  2, true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl<  long, 16 / sizeof(long), true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl< ulong, 16 / sizeof(long), true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl<   int,  4, true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl<  uint,  4, true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl< short,  8, true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl<ushort,  8, true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl< schar, 16, true, true> { using type = datapar_abi::neon; };
-template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = datapar_abi::neon; };
+template <> struct abi_for_size_impl<double,  2, true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl< float,  4, true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl< llong,  2, true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl<ullong,  2, true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl<  long, 16 / sizeof(long), true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl< ulong, 16 / sizeof(long), true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl<   int,  4, true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl<  uint,  4, true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl< short,  8, true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl<ushort,  8, true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl< schar, 16, true, true> { using type = simd_abi::neon; };
+template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = simd_abi::neon; };
 #endif
 }  // namespace detail
 template <class T, size_t N>
 struct abi_for_size
-    : public detail::abi_for_size_impl<T, N, (N <= datapar_abi::max_fixed_size),
+    : public detail::abi_for_size_impl<T, N, (N <= simd_abi::max_fixed_size),
                                        std::is_arithmetic<T>::value> {
 };
 template <size_t N> struct abi_for_size<bool, N> {
@@ -239,45 +239,45 @@ struct memory_alignment
 template <class T, class U = typename T::value_type>
 constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
 
-// class template datapar [datapar]
-template <class T, class Abi = datapar_abi::detail::default_abi<T>> class datapar;
-template <class T, class Abi> struct is_datapar<datapar<T, Abi>> : public std::true_type {};
-template <class T> using native_datapar = datapar<T, datapar_abi::native<T>>;
-template <class T, int N> using fixed_size_datapar = datapar<T, datapar_abi::fixed_size<N>>;
+// class template simd [simd]
+template <class T, class Abi = simd_abi::detail::default_abi<T>> class simd;
+template <class T, class Abi> struct is_simd<simd<T, Abi>> : public std::true_type {};
+template <class T> using native_simd = simd<T, simd_abi::native<T>>;
+template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
 
 // class template mask [mask]
-template <class T, class Abi = datapar_abi::detail::default_abi<T>> class mask;
+template <class T, class Abi = simd_abi::detail::default_abi<T>> class mask;
 template <class T, class Abi> struct is_mask<mask<T, Abi>> : public std::true_type {};
-template <class T> using native_mask = mask<T, datapar_abi::native<T>>;
-template <class T, int N> using fixed_size_mask = mask<T, datapar_abi::fixed_size<N>>;
+template <class T> using native_mask = mask<T, simd_abi::native<T>>;
+template <class T, int N> using fixed_size_mask = mask<T, simd_abi::fixed_size<N>>;
 
 namespace detail
 {
 template <class T, class Abi> struct get_impl<Vc::mask<T, Abi>> {
     using type = typename traits<T, Abi>::mask_impl_type;
 };
-template <class T, class Abi> struct get_impl<Vc::datapar<T, Abi>> {
-    using type = typename traits<T, Abi>::datapar_impl_type;
+template <class T, class Abi> struct get_impl<Vc::simd<T, Abi>> {
+    using type = typename traits<T, Abi>::simd_impl_type;
 };
 }  // namespace detail
 
-// casts [datapar.casts]
+// casts [simd.casts]
 template <class T, class U, class A>
 Vc_INTRINSIC auto
-static_datapar_cast(const datapar<U, A> &x)
+static_simd_cast(const simd<U, A> &x)
 {
-    return datapar<
+    return simd<
         T, std::conditional_t<
                detail::any<std::is_same<T, U>,
                            detail::all<std::is_integral<T>, std::is_integral<U>,
                                        std::is_same<std::make_unsigned_t<T>,
                                                     std::make_unsigned_t<U>>>>::value,
-               A, datapar_abi::fixed_size<datapar<U, A>::size()>>>(
+               A, simd_abi::fixed_size<simd<U, A>::size()>>>(
         [&x](auto i) { return static_cast<T>(x[i]); });
 }
 
 template <class T, int N>
-Vc_INTRINSIC fixed_size_datapar<T, N> to_fixed_size(const fixed_size_datapar<T, N> &x)
+Vc_INTRINSIC fixed_size_simd<T, N> to_fixed_size(const fixed_size_simd<T, N> &x)
 {
     return x;
 }
@@ -288,9 +288,9 @@ Vc_INTRINSIC fixed_size_mask<T, N> to_fixed_size(const fixed_size_mask<T, N> &x)
     return x;
 }
 
-template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const datapar<T, A> &x)
+template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const simd<T, A> &x)
 {
-    return datapar<T, datapar_abi::fixed_size<datapar_size_v<T, A>>>(
+    return simd<T, simd_abi::fixed_size<simd_size_v<T, A>>>(
         [&x](auto i) { return x[i]; });
 }
 
@@ -303,10 +303,10 @@ template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const mask<T, A> &x)
 }
 
 template <class T, int N>
-Vc_INTRINSIC std::enable_if_t<(N == native_datapar<T>::size()), native_datapar<T>>
-to_native(const fixed_size_datapar<T, N> &x)
+Vc_INTRINSIC std::enable_if_t<(N == native_simd<T>::size()), native_simd<T>>
+to_native(const fixed_size_simd<T, N> &x)
 {
-    alignas(memory_alignment_v<native_datapar<T>>) T mem[N];
+    alignas(memory_alignment_v<native_simd<T>>) T mem[N];
     x.memstore(mem, flags::vector_aligned);
     return {mem, flags::vector_aligned};
 }
@@ -319,17 +319,17 @@ Vc_INTRINSIC std::enable_if_t<(N == native_mask<T>::size()), native_mask<T>> to_
 }
 
 template <class T, size_t N>
-Vc_INTRINSIC std::enable_if_t<(N == datapar<T>::size()), datapar<T>> to_compatible(
-    const datapar<T, datapar_abi::fixed_size<N>> &x)
+Vc_INTRINSIC std::enable_if_t<(N == simd<T>::size()), simd<T>> to_compatible(
+    const simd<T, simd_abi::fixed_size<N>> &x)
 {
-    alignas(memory_alignment_v<datapar<T>>) T mem[N];
+    alignas(memory_alignment_v<simd<T>>) T mem[N];
     x.memstore(mem, flags::vector_aligned);
     return {mem, flags::vector_aligned};
 }
 
 template <class T, size_t N>
 Vc_INTRINSIC std::enable_if_t<(N == mask<T>::size()), mask<T>> to_compatible(
-    const mask<T, datapar_abi::fixed_size<N>> &x)
+    const mask<T, simd_abi::fixed_size<N>> &x)
 {
     return mask<T>([&](auto i) { return x[i]; });
 }
@@ -355,10 +355,10 @@ constexpr int find_last_set(detail::exact_bool) { return 0; }
 // masked assignment [mask.where]
 #ifdef Vc_EXPERIMENTAL
 namespace detail {
-template <class T, class A> class masked_datapar_impl;
+template <class T, class A> class masked_simd_impl;
 template <class T, class A>
-masked_datapar_impl<T, A> masked_datapar(const typename datapar<T, A>::mask_type &k,
-                                         datapar<T, A> &v);
+masked_simd_impl<T, A> masked_simd(const typename simd<T, A>::mask_type &k,
+                                         simd<T, A> &v);
 }  // namespace detail
 #endif  // Vc_EXPERIMENTAL
 
@@ -527,25 +527,25 @@ public:
 #ifdef Vc_EXPERIMENTAL
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        detail::all<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+        detail::all<std::is_same<decltype(declval<F>()(detail::masked_simd(
                                      declval<const M &>(), declval<T &>()))),
                                  void>>::value,
         where_expression &&>
     apply(F &&f) &&
     {
-        std::forward<F>(f)(detail::masked_datapar(k, d));
+        std::forward<F>(f)(detail::masked_simd(k, d));
         return std::move(*this);
     }
 
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        detail::all<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+        detail::all<std::is_same<decltype(declval<F>()(detail::masked_simd(
                                      declval<const M &>(), declval<T &>()))),
                                  void>>::value,
         where_expression &&>
     apply_inv(F &&f) &&
     {
-        std::forward<F>(f)(detail::masked_datapar(!k, d));
+        std::forward<F>(f)(detail::masked_simd(!k, d));
         return std::move(*this);
     }
 #endif  // Vc_EXPERIMENTAL
@@ -619,13 +619,13 @@ private:
     template <class F, std::size_t... Is>
     Vc_INTRINSIC void apply_helper(F &&f, const M &mask, std::index_sequence<Is...>)
     {
-        return std::forward<F>(f)(detail::masked_datapar(mask, std::get<Is>(d))...);
+        return std::forward<F>(f)(detail::masked_simd(mask, std::get<Is>(d))...);
     }
 
 public:
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        detail::all<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+        detail::all<std::is_same<decltype(declval<F>()(detail::masked_simd(
                                      declval<const M &>(), declval<Ts &>())...)),
                                  void>>::value,
         where_expression &&>
@@ -637,7 +637,7 @@ public:
 
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        detail::all<std::is_same<decltype(declval<F>()(detail::masked_datapar(
+        detail::all<std::is_same<decltype(declval<F>()(detail::masked_simd(
                                      declval<const M &>(), declval<Ts &>())...)),
                                  void>>::value,
         where_expression &&>
@@ -649,22 +649,22 @@ public:
 };
 
 template <class T, class A, class... Vs>
-Vc_INTRINSIC where_expression<mask<T, A>, std::tuple<datapar<T, A> &, Vs &...>> where(
-    const typename datapar<T, A>::mask_type &k, datapar<T, A> &v0, Vs &... vs)
+Vc_INTRINSIC where_expression<mask<T, A>, std::tuple<simd<T, A> &, Vs &...>> where(
+    const typename simd<T, A>::mask_type &k, simd<T, A> &v0, Vs &... vs)
 {
     return {k, {v0, vs...}};
 }
 #endif  // Vc_EXPERIMENTAL
 
 template <class T, class A>
-Vc_INTRINSIC where_expression<mask<T, A>, datapar<T, A>> where(
-    const typename datapar<T, A>::mask_type &k, datapar<T, A> &d)
+Vc_INTRINSIC where_expression<mask<T, A>, simd<T, A>> where(
+    const typename simd<T, A>::mask_type &k, simd<T, A> &d)
 {
     return {k, d};
 }
 template <class T, class A>
-Vc_INTRINSIC const_where_expression<mask<T, A>, const datapar<T, A>> where(
-    const typename datapar<T, A>::mask_type &k, const datapar<T, A> &d)
+Vc_INTRINSIC const_where_expression<mask<T, A>, const simd<T, A>> where(
+    const typename simd<T, A>::mask_type &k, const simd<T, A> &d)
 {
     return {k, d};
 }
@@ -690,15 +690,15 @@ Vc_INTRINSIC const_where_expression<bool, const T> where(detail::exact_bool k, c
 {
     return {k, d};
 }
-template <class T, class A> void where(bool k, datapar<T, A> &d) = delete;
-template <class T, class A> void where(bool k, const datapar<T, A> &d) = delete;
+template <class T, class A> void where(bool k, simd<T, A> &d) = delete;
+template <class T, class A> void where(bool k, const simd<T, A> &d) = delete;
 
-// reductions [datapar.reductions]
+// reductions [simd.reductions]
 template <class BinaryOperation = std::plus<>, class T, class Abi>
-Vc_INTRINSIC T reduce(const datapar<T, Abi> &v,
+Vc_INTRINSIC T reduce(const simd<T, Abi> &v,
                       BinaryOperation binary_op = BinaryOperation())
 {
-    using V = datapar<T, Abi>;
+    using V = simd<T, Abi>;
     return detail::get_impl_t<V>::reduce(detail::size_tag<V::size()>, v, binary_op);
 }
 template <class BinaryOperation = std::plus<>, class M, class V>
@@ -715,54 +715,54 @@ Vc_INTRINSIC typename V::value_type reduce(
     return reduce(tmp, binary_op);
 }
 
-// algorithms [datapar.alg]
+// algorithms [simd.alg]
 template <class T, class A>
-Vc_INTRINSIC datapar<T, A> min(const datapar<T, A> &a, const datapar<T, A> &b)
+Vc_INTRINSIC simd<T, A> min(const simd<T, A> &a, const simd<T, A> &b)
 {
-    return static_cast<datapar<T, A>>(
-        detail::get_impl_t<datapar<T, A>>::min(detail::data(a), detail::data(b)));
+    return static_cast<simd<T, A>>(
+        detail::get_impl_t<simd<T, A>>::min(detail::data(a), detail::data(b)));
 }
 template <class T, class A>
-Vc_INTRINSIC datapar<T, A> max(const datapar<T, A> &a, const datapar<T, A> &b)
+Vc_INTRINSIC simd<T, A> max(const simd<T, A> &a, const simd<T, A> &b)
 {
-    return static_cast<datapar<T, A>>(
-        detail::get_impl_t<datapar<T, A>>::max(detail::data(a), detail::data(b)));
+    return static_cast<simd<T, A>>(
+        detail::get_impl_t<simd<T, A>>::max(detail::data(a), detail::data(b)));
 }
 template <class T, class A>
-Vc_INTRINSIC std::pair<datapar<T, A>, datapar<T, A>> minmax(const datapar<T, A> &a,
-                                                            const datapar<T, A> &b)
+Vc_INTRINSIC std::pair<simd<T, A>, simd<T, A>> minmax(const simd<T, A> &a,
+                                                            const simd<T, A> &b)
 {
     const auto pair_of_members =
-        detail::get_impl_t<datapar<T, A>>::minmax(detail::data(a), detail::data(b));
-    return {static_cast<datapar<T, A>>(pair_of_members.first),
-            static_cast<datapar<T, A>>(pair_of_members.second)};
+        detail::get_impl_t<simd<T, A>>::minmax(detail::data(a), detail::data(b));
+    return {static_cast<simd<T, A>>(pair_of_members.first),
+            static_cast<simd<T, A>>(pair_of_members.second)};
 }
 template <class T, class A>
-Vc_INTRINSIC datapar<T, A> clamp(const datapar<T, A> &v, const datapar<T, A> &lo,
-                                 const datapar<T, A> &hi)
+Vc_INTRINSIC simd<T, A> clamp(const simd<T, A> &v, const simd<T, A> &lo,
+                                 const simd<T, A> &hi)
 {
-    using Impl = detail::get_impl_t<datapar<T, A>>;
-    return static_cast<datapar<T, A>>(
+    using Impl = detail::get_impl_t<simd<T, A>>;
+    return static_cast<simd<T, A>>(
         Impl::min(detail::data(hi), Impl::max(detail::data(lo), detail::data(v))));
 }
 
 // math functions
 template <class T, class Abi>
-Vc_INTRINSIC datapar<T, Abi> sqrt(const datapar<T, Abi> &x)
+Vc_INTRINSIC simd<T, Abi> sqrt(const simd<T, Abi> &x)
 {
-    return static_cast<datapar<T, Abi>>(
-        detail::get_impl_t<datapar<T, Abi>>::sqrt(data(x)));
+    return static_cast<simd<T, Abi>>(
+        detail::get_impl_t<simd<T, Abi>>::sqrt(data(x)));
 }
 
 template <class T, class Abi>
-Vc_INTRINSIC datapar<T, Abi> abs(const datapar<detail::SignedArithmetic<T>, Abi> &x)
+Vc_INTRINSIC simd<T, Abi> abs(const simd<detail::SignedArithmetic<T>, Abi> &x)
 {
-    return static_cast<datapar<T, Abi>>(
-        detail::get_impl_t<datapar<T, Abi>>::abs(data(x)));
+    return static_cast<simd<T, Abi>>(
+        detail::get_impl_t<simd<T, Abi>>::abs(data(x)));
 }
 
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_SYNOPSIS_H_
+#endif  // VC_SIMD_SYNOPSIS_H_
 
 // vim: foldmethod=marker

@@ -78,8 +78,8 @@ elseif(Vc_COMPILER_IS_CLANG)
          loadstore_avx512_vectorbuiltin_schar
          operators_avx512_vectorbuiltin_int_short_uint_ushort
          operators_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
-         datapar_avx512_vectorbuiltin_int_short_uint_ushort
-         datapar_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
+         simd_avx512_vectorbuiltin_int_short_uint_ushort
+         simd_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
          )
    endif()
 elseif(Vc_COMPILER_IS_MSVC)

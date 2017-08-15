@@ -12,7 +12,7 @@ float_v foo0(const float_v &a);
 float_v foo1(const float_v &a)
 {
     const float_v b = max(a, float_v(1));
-    const Vc::datapar<float> c = 1;
+    const Vc::simd<float> c = 1;
     std::cerr << b << c;
     return b;
 }

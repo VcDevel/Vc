@@ -27,12 +27,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/datapar>
+#include <Vc/simd>
 #include "metahelpers.h"
 #include <cmath>    // abs & sqrt
 #include <cstdlib>  // integer abs
 
-template <class... Ts> using base_template = Vc::datapar<Ts...>;
+template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
 
 template <class V> void test_abs(std::false_type)

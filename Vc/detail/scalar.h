@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DETAIL_SCALAR_H_
 #define VC_DETAIL_SCALAR_H_
 
-#include "datapar.h"
+#include "simd.h"
 #include "detail.h"
 #include <bitset>
 #include <cmath>
@@ -36,16 +36,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
-template <class T> using scalar_mask = mask<T, datapar_abi::scalar>;
-template <class T> using scalar_datapar = datapar<T, datapar_abi::scalar>;
+template <class T> using scalar_mask = mask<T, simd_abi::scalar>;
+template <class T> using scalar_simd = simd<T, simd_abi::scalar>;
 
-// datapar impl {{{1
-struct scalar_datapar_impl {
+// simd impl {{{1
+struct scalar_simd_impl {
     // member types {{{2
     using mask_member_type = bool;
-    template <class T> using datapar_member_type = T;
-    template <class T> using datapar = Vc::datapar<T, datapar_abi::scalar>;
-    template <class T> using mask = Vc::mask<T, datapar_abi::scalar>;
+    template <class T> using simd_member_type = T;
+    template <class T> using simd = Vc::simd<T, simd_abi::scalar>;
+    template <class T> using mask = Vc::mask<T, simd_abi::scalar>;
     using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
@@ -99,7 +99,7 @@ struct scalar_datapar_impl {
 
     // reductions {{{2
     template <class T, class BinaryOperation>
-    static inline T reduce(size_tag, const datapar<T> &x, BinaryOperation &)
+    static inline T reduce(size_tag, const simd<T> &x, BinaryOperation &)
     {
         return x.d;
     }
@@ -255,7 +255,7 @@ struct scalar_datapar_impl {
 // mask impl {{{1
 struct scalar_mask_impl {
     // member types {{{2
-    template <class T> using mask = Vc::mask<T, datapar_abi::scalar>;
+    template <class T> using mask = Vc::mask<T, simd_abi::scalar>;
     using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
@@ -366,14 +366,14 @@ struct scalar_mask_impl {
 
 // traits {{{1
 template <class T> struct scalar_traits {
-    using datapar_impl_type = scalar_datapar_impl;
-    using datapar_member_type = T;
-    static constexpr size_t datapar_member_alignment = alignof(T);
-    using datapar_cast_type = std::array<T, 1>;
-    struct datapar_base {
-        explicit operator datapar_cast_type() const
+    using simd_impl_type = scalar_simd_impl;
+    using simd_member_type = T;
+    static constexpr size_t simd_member_alignment = alignof(T);
+    using simd_cast_type = std::array<T, 1>;
+    struct simd_base {
+        explicit operator simd_cast_type() const
         {
-            return {data(*static_cast<const datapar<T, datapar_abi::scalar> *>(this))};
+            return {data(*static_cast<const simd<T, simd_abi::scalar> *>(this))};
         }
     };
 
@@ -383,20 +383,20 @@ template <class T> struct scalar_traits {
     using mask_cast_type = const std::bitset<1>;
     struct mask_base {};
 };
-template <> struct traits<long double, datapar_abi::scalar> : public scalar_traits<long double> {};
-template <> struct traits<double, datapar_abi::scalar> : public scalar_traits<double> {};
-template <> struct traits< float, datapar_abi::scalar> : public scalar_traits< float> {};
-template <> struct traits<ullong, datapar_abi::scalar> : public scalar_traits<ullong> {};
-template <> struct traits< llong, datapar_abi::scalar> : public scalar_traits< llong> {};
-template <> struct traits< ulong, datapar_abi::scalar> : public scalar_traits< ulong> {};
-template <> struct traits<  long, datapar_abi::scalar> : public scalar_traits<  long> {};
-template <> struct traits<  uint, datapar_abi::scalar> : public scalar_traits<  uint> {};
-template <> struct traits<   int, datapar_abi::scalar> : public scalar_traits<   int> {};
-template <> struct traits<ushort, datapar_abi::scalar> : public scalar_traits<ushort> {};
-template <> struct traits< short, datapar_abi::scalar> : public scalar_traits< short> {};
-template <> struct traits< uchar, datapar_abi::scalar> : public scalar_traits< uchar> {};
-template <> struct traits< schar, datapar_abi::scalar> : public scalar_traits< schar> {};
-template <> struct traits<  char, datapar_abi::scalar> : public scalar_traits<  char> {};
+template <> struct traits<long double, simd_abi::scalar> : public scalar_traits<long double> {};
+template <> struct traits<double, simd_abi::scalar> : public scalar_traits<double> {};
+template <> struct traits< float, simd_abi::scalar> : public scalar_traits< float> {};
+template <> struct traits<ullong, simd_abi::scalar> : public scalar_traits<ullong> {};
+template <> struct traits< llong, simd_abi::scalar> : public scalar_traits< llong> {};
+template <> struct traits< ulong, simd_abi::scalar> : public scalar_traits< ulong> {};
+template <> struct traits<  long, simd_abi::scalar> : public scalar_traits<  long> {};
+template <> struct traits<  uint, simd_abi::scalar> : public scalar_traits<  uint> {};
+template <> struct traits<   int, simd_abi::scalar> : public scalar_traits<   int> {};
+template <> struct traits<ushort, simd_abi::scalar> : public scalar_traits<ushort> {};
+template <> struct traits< short, simd_abi::scalar> : public scalar_traits< short> {};
+template <> struct traits< uchar, simd_abi::scalar> : public scalar_traits< uchar> {};
+template <> struct traits< schar, simd_abi::scalar> : public scalar_traits< schar> {};
+template <> struct traits<  char, simd_abi::scalar> : public scalar_traits<  char> {};
 
 // }}}1
 }  // namespace detail
@@ -415,9 +415,9 @@ Vc_VERSIONED_NAMESPACE_END
 namespace std
 {
 // mask operators {{{1
-template <class T> struct equal_to<Vc::mask<T, Vc::datapar_abi::scalar>> {
+template <class T> struct equal_to<Vc::mask<T, Vc::simd_abi::scalar>> {
 private:
-    using M = Vc::mask<T, Vc::datapar_abi::scalar>;
+    using M = Vc::mask<T, Vc::simd_abi::scalar>;
 
 public:
     bool operator()(const M &x, const M &y) const { return x[0] == y[0]; }

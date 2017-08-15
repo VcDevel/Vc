@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/datapar>
+#include <Vc/simd>
 #include "metahelpers.h"
 
 template <class... Ts> using base_template = Vc::mask<Ts...>;
@@ -125,7 +125,7 @@ TEST_TYPES(M, operators, all_test_types)  //{{{1
 template <class M, class M2>
 constexpr bool assign_should_work =
     std::is_same<M, M2>::value ||
-    (std::is_same<typename M::abi_type, Vc::datapar_abi::fixed_size<M::size()>>::value &&
+    (std::is_same<typename M::abi_type, Vc::simd_abi::fixed_size<M::size()>>::value &&
      std::is_same<typename M::abi_type, typename M2::abi_type>::value);
 template <class M, class M2>
 constexpr bool assign_should_not_work = !assign_should_work<M, M2>;

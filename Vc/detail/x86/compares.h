@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_X86_COMPARES_H_
-#define VC_DATAPAR_X86_COMPARES_H_
+#ifndef VC_SIMD_X86_COMPARES_H_
+#define VC_SIMD_X86_COMPARES_H_
 
 #include "storage.h"
 
@@ -92,4 +92,4 @@ Vc_INTRINSIC Vc_CONST y_ulong Vc_VDECL cmpgt(y_ulong x, y_ulong y)
 }}  // namespace detail::x86
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_X86_COMPARES_H_
+#endif  // VC_SIMD_X86_COMPARES_H_

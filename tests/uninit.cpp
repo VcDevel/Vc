@@ -1,18 +1,18 @@
-#include <Vc/datapar>
+#include <Vc/simd>
 
-void test_fixed_datapar(void *mem)
+void test_fixed_simd(void *mem)
 {
-    new(mem) Vc::fixed_size_datapar<float, Vc::datapar_abi::max_fixed_size>;
+    new(mem) Vc::fixed_size_simd<float, Vc::simd_abi::max_fixed_size>;
 }
 
 void test_fixed_mask(void *mem)
 {
-    new(mem) Vc::fixed_size_mask<float, Vc::datapar_abi::max_fixed_size>;
+    new(mem) Vc::fixed_size_mask<float, Vc::simd_abi::max_fixed_size>;
 }
 
-void test_native_datapar(void *mem)
+void test_native_simd(void *mem)
 {
-    new(mem) Vc::native_datapar<float>;
+    new(mem) Vc::native_simd<float>;
 }
 
 void test_native_mask(void *mem)

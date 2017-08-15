@@ -39,7 +39,7 @@ inline namespace v2
 #define Vc_VERSIONED_NAMESPACE_END }}
 
 Vc_VERSIONED_NAMESPACE_BEGIN
-namespace datapar_abi
+namespace simd_abi
 {
 template <int N> struct fixed_size;
 struct scalar;
@@ -48,14 +48,14 @@ struct avx;
 struct avx512;
 struct knc;
 struct neon;
-}  // namespace datapar_abi
+}  // namespace simd_abi
 
-template <class T> struct is_datapar;
+template <class T> struct is_simd;
 template <class T> struct is_mask;
-template <class T, class Abi> class datapar;
+template <class T, class Abi> class simd;
 template <class T, class Abi> class mask;
 
-template <class T, class Abi> struct datapar_size;
+template <class T, class Abi> struct simd_size;
 
 Vc_VERSIONED_NAMESPACE_END
 

@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_TYPE_TRAITS_H_
-#define VC_DATAPAR_TYPE_TRAITS_H_
+#ifndef VC_SIMD_TYPE_TRAITS_H_
+#define VC_SIMD_TYPE_TRAITS_H_
 
 #include "../traits/type_traits.h"
 
@@ -110,4 +110,4 @@ constexpr bool has_expected_sizeof_v = has_expected_sizeof<T, Expected>::value;
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_TYPE_TRAITS_H_
+#endif  // VC_SIMD_TYPE_TRAITS_H_

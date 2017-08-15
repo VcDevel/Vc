@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_NEON_H_
-#define VC_DATAPAR_NEON_H_
+#ifndef VC_SIMD_NEON_H_
+#define VC_SIMD_NEON_H_
 
 #include "fixed_size.h"
 #include "macros.h"
@@ -41,23 +41,23 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
 struct neon_mask_impl;
-struct neon_datapar_impl;
+struct neon_simd_impl;
 
-template <class T> using neon_datapar_member_type = Storage<T, 16 / sizeof(T)>;
+template <class T> using neon_simd_member_type = Storage<T, 16 / sizeof(T)>;
 template <class T> using neon_mask_member_type = Storage<T, 16 / sizeof(T)>;
 
-template <class T> struct traits<T, datapar_abi::neon> {
+template <class T> struct traits<T, simd_abi::neon> {
     static_assert(sizeof(T) <= 8,
                   "NEON can only implement operations on element types with sizeof <= 8");
 
-    using datapar_member_type = neon_datapar_member_type<T>;
-    using datapar_impl_type = neon_datapar_impl;
-    static constexpr size_t datapar_member_alignment = alignof(datapar_member_type);
-    using datapar_cast_type = typename datapar_member_type::VectorType;
-    struct datapar_base {
-        explicit operator datapar_cast_type() const
+    using simd_member_type = neon_simd_member_type<T>;
+    using simd_impl_type = neon_simd_impl;
+    static constexpr size_t simd_member_alignment = alignof(simd_member_type);
+    using simd_cast_type = typename simd_member_type::VectorType;
+    struct simd_base {
+        explicit operator simd_cast_type() const
         {
-            return data(*static_cast<const datapar<T, datapar_abi::neon> *>(this));
+            return data(*static_cast<const simd<T, simd_abi::neon> *>(this));
         }
     };
 
@@ -68,7 +68,7 @@ template <class T> struct traits<T, datapar_abi::neon> {
     struct mask_base {
         explicit operator typename mask_member_type::VectorType() const
         {
-            return data(*static_cast<const mask<T, datapar_abi::neon> *>(this));
+            return data(*static_cast<const mask<T, simd_abi::neon> *>(this));
         }
     };
 };
@@ -77,8 +77,8 @@ Vc_VERSIONED_NAMESPACE_END
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
-// datapar impl {{{1
-template <class Derived> struct generic_datapar_impl {
+// simd impl {{{1
+template <class Derived> struct generic_simd_impl {
     // member types {{{2
     template <size_t N> using size_tag = std::integral_constant<size_t, N>;
 
@@ -102,34 +102,34 @@ template <class Derived> struct generic_datapar_impl {
     }
 
     template <class T, class A, class U>
-    static Vc_INTRINSIC Vc::datapar<T, A> make_datapar(const U &x)
+    static Vc_INTRINSIC Vc::simd<T, A> make_simd(const U &x)
     {
-        using traits = typename Vc::datapar<T, A>::traits;
-        using V = typename traits::datapar_member_type;
+        using traits = typename Vc::simd<T, A>::traits;
+        using V = typename traits::simd_member_type;
         return {private_init, static_cast<V>(x)};
     }
 
     // complement {{{2
     template <class T, class A>
-    static Vc_INTRINSIC Vc::datapar<T, A> complement(const Vc::datapar<T, A> &x) noexcept
+    static Vc_INTRINSIC Vc::simd<T, A> complement(const Vc::simd<T, A> &x) noexcept
     {
         using detail::aarch::complement;
-        return make_datapar<T, A>(complement(adjust_for_long(detail::data(x))));
+        return make_simd<T, A>(complement(adjust_for_long(detail::data(x))));
     }
 
     // unary minus {{{2
     template <class T, class A>
-    static Vc_INTRINSIC Vc::datapar<T, A> unary_minus(const Vc::datapar<T, A> &x) noexcept
+    static Vc_INTRINSIC Vc::simd<T, A> unary_minus(const Vc::simd<T, A> &x) noexcept
     {
         using detail::aarch::unary_minus;
-        return make_datapar<T, A>(unary_minus(adjust_for_long(detail::data(x))));
+        return make_simd<T, A>(unary_minus(adjust_for_long(detail::data(x))));
     }
     // arithmetic operators {{{2
 #define Vc_ARITHMETIC_OP_(name_)                                                         \
     template <class T, class A>                                                          \
-    static Vc_INTRINSIC datapar<T, A> Vc_VDECL name_(datapar<T, A> x, datapar<T, A> y)   \
+    static Vc_INTRINSIC simd<T, A> Vc_VDECL name_(simd<T, A> x, simd<T, A> y)   \
     {                                                                                    \
-        return make_datapar<T, A>(                                                       \
+        return make_simd<T, A>(                                                       \
             detail::name_(adjust_for_long(x.d), adjust_for_long(y.d)));                  \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
@@ -181,10 +181,10 @@ template <class Derived> struct generic_datapar_impl {
 
 // where implementation {{{1
 template <class T, class A>
-inline void Vc_VDECL masked_assign(mask<T, A> k, datapar<T, A> &lhs,
-                                   const detail::id<datapar<T, A>> &rhs)
+inline void Vc_VDECL masked_assign(mask<T, A> k, simd<T, A> &lhs,
+                                   const detail::id<simd<T, A>> &rhs)
 {
-    lhs = static_cast<datapar<T, A>>(
+    lhs = static_cast<simd<T, A>>(
         detail::aarch::blend(detail::data(k), detail::data(lhs), detail::data(rhs)));
 }
 
@@ -198,26 +198,26 @@ inline void Vc_VDECL masked_assign(mask<T, A> k, mask<T, A> &lhs,
 
 template <template <typename> class Op, typename T, class A,
           int = 1>
-inline void Vc_VDECL masked_cassign(mask<T, A> k, datapar<T, A> &lhs,
-                                    const datapar<T, A> &rhs)
+inline void Vc_VDECL masked_cassign(mask<T, A> k, simd<T, A> &lhs,
+                                    const simd<T, A> &rhs)
 {
-    lhs = static_cast<datapar<T, A>>(detail::aarch::blend(
+    lhs = static_cast<simd<T, A>>(detail::aarch::blend(
         detail::data(k), detail::data(lhs), detail::data(Op<void>{}(lhs, rhs))));
 }
 
 template <template <typename> class Op, typename T, class A, class U>
-inline enable_if<std::is_convertible<U, datapar<T, A>>::value, void> Vc_VDECL
-masked_cassign(mask<T, A> k, datapar<T, A> &lhs, const U &rhs)
+inline enable_if<std::is_convertible<U, simd<T, A>>::value, void> Vc_VDECL
+masked_cassign(mask<T, A> k, simd<T, A> &lhs, const U &rhs)
 {
-    masked_cassign<Op>(k, lhs, datapar<T, A>(rhs));
+    masked_cassign<Op>(k, lhs, simd<T, A>(rhs));
 }
 
 template <template <typename> class Op, typename T, class A,
           int = 1>
-inline datapar<T, A> Vc_VDECL masked_unary(mask<T, A> k, datapar<T, A> v)
+inline simd<T, A> Vc_VDECL masked_unary(mask<T, A> k, simd<T, A> v)
 {
-    Op<datapar<T, A>> op;
-    return static_cast<datapar<T, A>>(
+    Op<simd<T, A>> op;
+    return static_cast<simd<T, A>>(
         detail::aarch::blend(detail::data(k), detail::data(v), detail::data(op(v))));
 }
 
@@ -228,15 +228,15 @@ Vc_VERSIONED_NAMESPACE_END
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-// datapar impl {{{1
-struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
+// simd impl {{{1
+struct neon_simd_impl : public generic_simd_impl<neon_simd_impl> {
     // member types {{{2
-    using abi = datapar_abi::neon;
-    template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }
-    template <class T> using datapar_member_type = neon_datapar_member_type<T>;
-    template <class T> using intrinsic_type = typename datapar_member_type<T>::VectorType;
+    using abi = simd_abi::neon;
+    template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
+    template <class T> using simd_member_type = neon_simd_member_type<T>;
+    template <class T> using intrinsic_type = typename simd_member_type<T>::VectorType;
     template <class T> using mask_member_type = neon_mask_member_type<T>;
-    template <class T> using datapar = Vc::datapar<T, abi>;
+    template <class T> using simd = Vc::simd<T, abi>;
     template <class T> using mask = Vc::mask<T, abi>;
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
@@ -277,10 +277,10 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     //  load {{{2
     //  from long double has no vector implementation{{{3
     template <class T, class F>
-    static Vc_INTRINSIC datapar_member_type<T> load(const long double *mem, F,
+    static Vc_INTRINSIC simd_member_type<T> load(const long double *mem, F,
                                                     type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
-        return generate_from_n_evaluations<size<T>(), datapar_member_type<T>>(
+        return generate_from_n_evaluations<size<T>(), simd_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
     }
      // load without conversion{{{3
@@ -292,7 +292,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     // store {{{2
     // store to long double has no vector implementation{{{3
     template <class T, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, long double *mem, F,
+    static Vc_INTRINSIC void store(simd_member_type<T> v, long double *mem, F,
                                    type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         // alignment F doesn't matter
@@ -300,7 +300,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     }
     // store without conversion{{{3
     template <class T, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, T *mem, F f,
+    static Vc_INTRINSIC void store(simd_member_type<T> v, T *mem, F f,
                                    type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         store16(v, mem, f);
@@ -308,18 +308,18 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
   /**
     // convert and 16-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+    static Vc_INTRINSIC void store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
-        store2(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+        store2(convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
     }
     // convert and 32-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+    static Vc_INTRINSIC void store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_AARCH_ABI
-        store4(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+        store4(convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
 #else
         unused(f);
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
@@ -327,11 +327,11 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     }
     // convert and 64-bit  store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+    static Vc_INTRINSIC void store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_AARCH_ABI
-        store8(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+        store8(convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
 #else
         unused(f);
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
@@ -339,11 +339,11 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     }
     // convert and 128-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void store(datapar_member_type<T> v, U *mem, F f, type_tag<T>,
+    static Vc_INTRINSIC void store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
                                    enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_AARCH_ABI
-        store16(convert<datapar_member_type<T>, datapar_member_type<U>>(v), mem, f);
+        store16(convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
 #else
         unused(f);
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
@@ -351,7 +351,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
     }
     // masked store {{{2
     template <class T, class F>
-    static Vc_INTRINSIC void masked_store(datapar<T> v, long double *mem, F,
+    static Vc_INTRINSIC void masked_store(simd<T> v, long double *mem, F,
                                           mask<T> k) Vc_NOEXCEPT_OR_IN_TEST
     {
         // no support for long double?
@@ -362,7 +362,7 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         });
     }
     template <class T, class U, class F>
-    static Vc_INTRINSIC void masked_store(datapar<T> v, U *mem, F,
+    static Vc_INTRINSIC void masked_store(simd<T> v, U *mem, F,
                                           mask<T> k) Vc_NOEXCEPT_OR_IN_TEST
     {
         //TODO: detail::masked_store(mem, v.v(), k.d.v(), f);
@@ -373,97 +373,97 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
         });
     }
       // negation {{{2
-    template <class T> static Vc_INTRINSIC mask<T> negate(datapar<T> x) noexcept
+    template <class T> static Vc_INTRINSIC mask<T> negate(simd<T> x) noexcept
     {
 #if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
         return {private_init, !x.d.builtin()};
 #else
-        return equal_to(x, datapar<T>(0));
+        return equal_to(x, simd<T>(0));
 #endif
     }
       // compares {{{2
 #if defined Vc_USE_BUILTIN_VECTOR_TYPES
     template <class T>
-    static Vc_INTRINSIC mask<T> equal_to(datapar<T> x, datapar<T> y)
+    static Vc_INTRINSIC mask<T> equal_to(simd<T> x, simd<T> y)
     {
         return {private_init, x.d.builtin() == y.d.builtin()};
     }
     template <class T>
-    static Vc_INTRINSIC mask<T> not_equal_to(datapar<T> x, datapar<T> y)
+    static Vc_INTRINSIC mask<T> not_equal_to(simd<T> x, simd<T> y)
     {
         return {private_init, x.d.builtin() != y.d.builtin()};
     }
     template <class T>
-    static Vc_INTRINSIC mask<T> less(datapar<T> x, datapar<T> y)
+    static Vc_INTRINSIC mask<T> less(simd<T> x, simd<T> y)
     {
         return {private_init, x.d.builtin() < y.d.builtin()};
     }
     template <class T>
-    static Vc_INTRINSIC mask<T> less_equal(datapar<T> x, datapar<T> y)
+    static Vc_INTRINSIC mask<T> less_equal(simd<T> x, simd<T> y)
     {
         return {private_init, x.d.builtin() <= y.d.builtin()};
     }
 #else
-    static Vc_INTRINSIC mask<double> equal_to(datapar<double> x, datapar<double> y) { return {private_init, vceqq_f64(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> equal_to(datapar< float> x, datapar< float> y) { return {private_init, vceqq_f32(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< llong> equal_to(datapar< llong> x, datapar< llong> y) { return {private_init, vceqq_s64(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<ullong> equal_to(datapar<ullong> x, datapar<ullong> y) { return {private_init, vceqq_u64(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<  long> equal_to(datapar<  long> x, datapar<  long> y) { return {private_init, not_(sizeof(long) == 8 ?  vceqq_s64(x.d, y.d) : vceqq_s32(x.d, y.d)); }
-    static Vc_INTRINSIC mask< ulong> equal_to(datapar< ulong> x, datapar< ulong> y) { return {private_init, not_(sizeof(long) == 8 ?  vceqq_u64(x.d, y.d) : vceqq_u32(x.d, y.d)); }
-    static Vc_INTRINSIC mask<   int> equal_to(datapar<   int> x, datapar<   int> y) { return {private_init, vceqq_s32(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<  uint> equal_to(datapar<  uint> x, datapar<  uint> y) { return {private_init, vceqq_u32(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< short> equal_to(datapar< short> x, datapar< short> y) { return {private_init, vceqq_s16(x.d, y.d)}; }
-    static Vc_INTRINSIC mask<ushort> equal_to(datapar<ushort> x, datapar<ushort> y) { return {private_init, vceqq_u16(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< schar> equal_to(datapar< schar> x, datapar< schar> y) { return {private_init, vceqq_s8(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< uchar> equal_to(datapar< uchar> x, datapar< uchar> y) { return {private_init, vceqq_u8(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<double> equal_to(simd<double> x, simd<double> y) { return {private_init, vceqq_f64(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< float> equal_to(simd< float> x, simd< float> y) { return {private_init, vceqq_f32(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< llong> equal_to(simd< llong> x, simd< llong> y) { return {private_init, vceqq_s64(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ullong> equal_to(simd<ullong> x, simd<ullong> y) { return {private_init, vceqq_u64(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<  long> equal_to(simd<  long> x, simd<  long> y) { return {private_init, not_(sizeof(long) == 8 ?  vceqq_s64(x.d, y.d) : vceqq_s32(x.d, y.d)); }
+    static Vc_INTRINSIC mask< ulong> equal_to(simd< ulong> x, simd< ulong> y) { return {private_init, not_(sizeof(long) == 8 ?  vceqq_u64(x.d, y.d) : vceqq_u32(x.d, y.d)); }
+    static Vc_INTRINSIC mask<   int> equal_to(simd<   int> x, simd<   int> y) { return {private_init, vceqq_s32(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<  uint> equal_to(simd<  uint> x, simd<  uint> y) { return {private_init, vceqq_u32(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< short> equal_to(simd< short> x, simd< short> y) { return {private_init, vceqq_s16(x.d, y.d)}; }
+    static Vc_INTRINSIC mask<ushort> equal_to(simd<ushort> x, simd<ushort> y) { return {private_init, vceqq_u16(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< schar> equal_to(simd< schar> x, simd< schar> y) { return {private_init, vceqq_s8(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< uchar> equal_to(simd< uchar> x, simd< uchar> y) { return {private_init, vceqq_u8(x.d, y.d)}; }
 
-    static Vc_INTRINSIC mask<double> not_equal_to(datapar<double> x, datapar<double> y) { return {private_init, detail::not_(vceqq_f64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< float> not_equal_to(datapar< float> x, datapar< float> y) { return {private_init, detail::not_(vceqq_f32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< llong> not_equal_to(datapar< llong> x, datapar< llong> y) { return {private_init, detail::not_(vceqq_s64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<ullong> not_equal_to(datapar<ullong> x, datapar<ullong> y) { return {private_init, detail::not_(vceqq_u64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<  long> not_equal_to(datapar<  long> x, datapar<  long> y) { return {private_init, detail::not_(sizeof(long) == 8 ? vceqq_s64(x.d, y.d) : vceqq_s32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< ulong> not_equal_to(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::not_(sizeof(long) == 8 ? vceqq_u64(x.d, y.d) : vceqq_u32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<   int> not_equal_to(datapar<   int> x, datapar<   int> y) { return {private_init, detail::not_(vceqq_s32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<  uint> not_equal_to(datapar<  uint> x, datapar<  uint> y) { return {private_init, detail::not_(vceqq_u32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< short> not_equal_to(datapar< short> x, datapar< short> y) { return {private_init, detail::not_(vceqq_s16(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<ushort> not_equal_to(datapar<ushort> x, datapar<ushort> y) { return {private_init, detail::not_(vceqq_u16(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< schar> not_equal_to(datapar< schar> x, datapar< schar> y) { return {private_init, detail::not_(vceqq_s8(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< uchar> not_equal_to(datapar< uchar> x, datapar< uchar> y) { return {private_init, detail::not_(vceqq_u8(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<double> not_equal_to(simd<double> x, simd<double> y) { return {private_init, detail::not_(vceqq_f64(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< float> not_equal_to(simd< float> x, simd< float> y) { return {private_init, detail::not_(vceqq_f32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< llong> not_equal_to(simd< llong> x, simd< llong> y) { return {private_init, detail::not_(vceqq_s64(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<ullong> not_equal_to(simd<ullong> x, simd<ullong> y) { return {private_init, detail::not_(vceqq_u64(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<  long> not_equal_to(simd<  long> x, simd<  long> y) { return {private_init, detail::not_(sizeof(long) == 8 ? vceqq_s64(x.d, y.d) : vceqq_s32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< ulong> not_equal_to(simd< ulong> x, simd< ulong> y) { return {private_init, detail::not_(sizeof(long) == 8 ? vceqq_u64(x.d, y.d) : vceqq_u32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<   int> not_equal_to(simd<   int> x, simd<   int> y) { return {private_init, detail::not_(vceqq_s32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<  uint> not_equal_to(simd<  uint> x, simd<  uint> y) { return {private_init, detail::not_(vceqq_u32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< short> not_equal_to(simd< short> x, simd< short> y) { return {private_init, detail::not_(vceqq_s16(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<ushort> not_equal_to(simd<ushort> x, simd<ushort> y) { return {private_init, detail::not_(vceqq_u16(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< schar> not_equal_to(simd< schar> x, simd< schar> y) { return {private_init, detail::not_(vceqq_s8(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< uchar> not_equal_to(simd< uchar> x, simd< uchar> y) { return {private_init, detail::not_(vceqq_u8(x.d, y.d))}; }
 
-    static Vc_INTRINSIC mask<double> less(datapar<double> x, datapar<double> y) { return {private_init, vclt_f64(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< float> less(datapar< float> x, datapar< float> y) { return {private_init, vclt_f32(x.d, y.d)}; }
-    static Vc_INTRINSIC mask< llong> less(datapar< llong> x, datapar< llong> y) { return {private_init, vclt_s64(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<ullong> less(datapar<ullong> x, datapar<ullong> y) { return {private_init, vclt_u64(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<  long> less(datapar<  long> x, datapar<  long> y) { return {private_init, sizeof(long) == 8 ? vclt_s64(y.d, x.d) :  vclt_s32(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< ulong> less(datapar< ulong> x, datapar< ulong> y) { return {private_init, sizeof(long) == 8 ? vclt_u64(y.d, x.d) : vclt_u32(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<   int> less(datapar<   int> x, datapar<   int> y) { return {private_init, vclt_s32(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<  uint> less(datapar<  uint> x, datapar<  uint> y) { return {private_init, vclt_u32(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< short> less(datapar< short> x, datapar< short> y) { return {private_init, vclt_s16(y.d, x.d)}; }
-    static Vc_INTRINSIC mask<ushort> less(datapar<ushort> x, datapar<ushort> y) { return {private_init, vclt_u16(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< schar> less(datapar< schar> x, datapar< schar> y) { return {private_init, vclt_s8(y.d, x.d)}; }
-    static Vc_INTRINSIC mask< uchar> less(datapar< uchar> x, datapar< uchar> y) { return {private_init, vclt_u8(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<double> less(simd<double> x, simd<double> y) { return {private_init, vclt_f64(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< float> less(simd< float> x, simd< float> y) { return {private_init, vclt_f32(x.d, y.d)}; }
+    static Vc_INTRINSIC mask< llong> less(simd< llong> x, simd< llong> y) { return {private_init, vclt_s64(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<ullong> less(simd<ullong> x, simd<ullong> y) { return {private_init, vclt_u64(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<  long> less(simd<  long> x, simd<  long> y) { return {private_init, sizeof(long) == 8 ? vclt_s64(y.d, x.d) :  vclt_s32(y.d, x.d)}; }
+    static Vc_INTRINSIC mask< ulong> less(simd< ulong> x, simd< ulong> y) { return {private_init, sizeof(long) == 8 ? vclt_u64(y.d, x.d) : vclt_u32(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<   int> less(simd<   int> x, simd<   int> y) { return {private_init, vclt_s32(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<  uint> less(simd<  uint> x, simd<  uint> y) { return {private_init, vclt_u32(y.d, x.d)}; }
+    static Vc_INTRINSIC mask< short> less(simd< short> x, simd< short> y) { return {private_init, vclt_s16(y.d, x.d)}; }
+    static Vc_INTRINSIC mask<ushort> less(simd<ushort> x, simd<ushort> y) { return {private_init, vclt_u16(y.d, x.d)}; }
+    static Vc_INTRINSIC mask< schar> less(simd< schar> x, simd< schar> y) { return {private_init, vclt_s8(y.d, x.d)}; }
+    static Vc_INTRINSIC mask< uchar> less(simd< uchar> x, simd< uchar> y) { return {private_init, vclt_u8(y.d, x.d)}; }
 
-    static Vc_INTRINSIC mask<double> less_equal(datapar<double> x, datapar<double> y) { return {private_init, detail::not_(vcle_f64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< float> less_equal(datapar< float> x, datapar< float> y) { return {private_init, detail::not_(vcle_f32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< llong> less_equal(datapar< llong> x, datapar< llong> y) { return {private_init, detail::not_(vcle_s64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<ullong> less_equal(datapar<ullong> x, datapar<ullong> y) { return {private_init, detail::not_(vcle_u64(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<  long> less_equal(datapar<  long> x, datapar<  long> y) { return {private_init, detail::not_(sizeof(long) == 8 ?  vcle_s64(x.d, y.d) : vcle_s32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< ulong> less_equal(datapar< ulong> x, datapar< ulong> y) { return {private_init, detail::not_(sizeof(long) == 8 ?  vcle_u64(x.d, y.d) :  vcle_u32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<   int> less_equal(datapar<   int> x, datapar<   int> y) { return {private_init, detail::not_( vcle_s32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<  uint> less_equal(datapar<  uint> x, datapar<  uint> y) { return {private_init, detail::not_( vcle_u32(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< short> less_equal(datapar< short> x, datapar< short> y) { return {private_init, detail::not_( vcle_s16(x.d, y.d))}; }
-    static Vc_INTRINSIC mask<ushort> less_equal(datapar<ushort> x, datapar<ushort> y) { return {private_init, detail::not_( vcle_u16(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< schar> less_equal(datapar< schar> x, datapar< schar> y) { return {private_init, detail::not_( vcle_s8(x.d, y.d))}; }
-    static Vc_INTRINSIC mask< uchar> less_equal(datapar< uchar> x, datapar< uchar> y) { return {private_init, detail::not_( vcle_u8(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<double> less_equal(simd<double> x, simd<double> y) { return {private_init, detail::not_(vcle_f64(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< float> less_equal(simd< float> x, simd< float> y) { return {private_init, detail::not_(vcle_f32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< llong> less_equal(simd< llong> x, simd< llong> y) { return {private_init, detail::not_(vcle_s64(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<ullong> less_equal(simd<ullong> x, simd<ullong> y) { return {private_init, detail::not_(vcle_u64(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<  long> less_equal(simd<  long> x, simd<  long> y) { return {private_init, detail::not_(sizeof(long) == 8 ?  vcle_s64(x.d, y.d) : vcle_s32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< ulong> less_equal(simd< ulong> x, simd< ulong> y) { return {private_init, detail::not_(sizeof(long) == 8 ?  vcle_u64(x.d, y.d) :  vcle_u32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<   int> less_equal(simd<   int> x, simd<   int> y) { return {private_init, detail::not_( vcle_s32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<  uint> less_equal(simd<  uint> x, simd<  uint> y) { return {private_init, detail::not_( vcle_u32(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< short> less_equal(simd< short> x, simd< short> y) { return {private_init, detail::not_( vcle_s16(x.d, y.d))}; }
+    static Vc_INTRINSIC mask<ushort> less_equal(simd<ushort> x, simd<ushort> y) { return {private_init, detail::not_( vcle_u16(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< schar> less_equal(simd< schar> x, simd< schar> y) { return {private_init, detail::not_( vcle_s8(x.d, y.d))}; }
+    static Vc_INTRINSIC mask< uchar> less_equal(simd< uchar> x, simd< uchar> y) { return {private_init, detail::not_( vcle_u8(x.d, y.d))}; }
 #endif
      // smart_reference access {{{2
     template <class T, class A>
-    static Vc_INTRINSIC T get(Vc::datapar<T, A> v, int i) noexcept
+    static Vc_INTRINSIC T get(Vc::simd<T, A> v, int i) noexcept
     {
         return v.d.m(i);
     }
     template <class T, class A, class U>
-    static Vc_INTRINSIC void set(Vc::datapar<T, A> &v, int i, U &&x) noexcept
+    static Vc_INTRINSIC void set(Vc::simd<T, A> &v, int i, U &&x) noexcept
     {
         v.d.set(i, std::forward<U>(x));
     }
@@ -473,10 +473,10 @@ struct neon_datapar_impl : public generic_datapar_impl<neon_datapar_impl> {
 // mask impl {{{1
 struct neon_mask_impl {
      // memb er types {{{2
-    using abi = datapar_abi::neon;
-    template <class T> static constexpr size_t size() { return datapar_size_v<T, abi>; }
+    using abi = simd_abi::neon;
+    template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <class T> using mask_member_type = neon_mask_member_type<T>;
-    template <class T> using mask = Vc::mask<T, datapar_abi::neon>;
+    template <class T> using mask = Vc::mask<T, simd_abi::neon>;
     template <class T> using mask_bool = MaskBool<sizeof(T)>;
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
@@ -614,99 +614,99 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 
 /*
 
-Vc_ALWAYS_INLINE bool all_of(mask<float, datapar_abi::neon> k)
+Vc_ALWAYS_INLINE bool all_of(mask<float, simd_abi::neon> k)
 {
     const float32x4_t d(k);
     return movemask_f32(d) == 0xf;
 }
 
-Vc_ALWAYS_INLINE bool any_of(mask<float, datapar_abi::neon> k)
+Vc_ALWAYS_INLINE bool any_of(mask<float, simd_abi::neon> k)
 {
     const float32x4_t d(k);
     return movemask_f32(d) != 0;
 }
 
-Vc_ALWAYS_INLINE bool none_of(mask<float, datapar_abi::neon> k)
+Vc_ALWAYS_INLINE bool none_of(mask<float, simd_abi::neon> k)
 {
     const float32x4_t d(k);
     return movemask_f32(d) == 0;
 }
 
-Vc_ALWAYS_INLINE bool some_of(mask<float, datapar_abi::neon> k)
+Vc_ALWAYS_INLINE bool some_of(mask<float, simd_abi::neon> k)
 {
     const float32x4_t d(k);
     const int tmp = movemask_f32(d);
     return tmp != 0 && (tmp ^ 0xf) != 0;
 }
 
-Vc_ALWAYS_INLINE bool all_of(mask<double, datapar_abi::neon> k)
+Vc_ALWAYS_INLINE bool all_of(mask<double, simd_abi::neon> k)
 {
     float64x2_t d(k);
     return movemask_f64(d) == 0x3;
 }
 
-Vc_ALWAYS_INLINE bool any_of(mask<double, datapar_abi::neon> k)
+Vc_ALWAYS_INLINE bool any_of(mask<double, simd_abi::neon> k)
 {
     const float64x2_t d(k);
     return movemask_f64(d) != 0;
 }
 
-Vc_ALWAYS_INLINE bool none_of(mask<double, datapar_abi::neon> k)
+Vc_ALWAYS_INLINE bool none_of(mask<double, simd_abi::neon> k)
 {
     const float64x2_t d(k);
     return movemask_f64(d) == 0;
 }
 
-Vc_ALWAYS_INLINE bool some_of(mask<double, datapar_abi::neon> k)
+Vc_ALWAYS_INLINE bool some_of(mask<double, simd_abi::neon> k)
 {
     const float64x2_t d(k);
     const int tmp = movemask_f64(d);
     return tmp == 1 || tmp == 2;
 }
 
-template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, datapar_abi::neon> k)
+template <class T> Vc_ALWAYS_INLINE bool all_of(mask<T, simd_abi::neon> k)
 {
     const int32x4_t d(k);
     return movemask_s32(d) == 0xffff;
 }
 
-template <class T> Vc_ALWAYS_INLINE bool any_of(mask<T, datapar_abi::neon> k)
+template <class T> Vc_ALWAYS_INLINE bool any_of(mask<T, simd_abi::neon> k)
 {
     const int32x4_t d(k);
     return movemask_s32(d) != 0x0000;
 }
 
-template <class T> Vc_ALWAYS_INLINE bool none_of(mask<T, datapar_abi::neon> k)
+template <class T> Vc_ALWAYS_INLINE bool none_of(mask<T, simd_abi::neon> k)
 {
     const int32x4_t d(k);
     return movemask_s32(d) == 0x0000;
 }
 
-template <class T> Vc_ALWAYS_INLINE bool some_of(mask<T, datapar_abi::neon> k)
+template <class T> Vc_ALWAYS_INLINE bool some_of(mask<T, simd_abi::neon> k)
 {
     const int32x4_t d(k);
     const int tmp = movemask_s32(d);
     return tmp != 0 && (tmp ^ 0xffff) != 0;
 }
 
-template <class T> Vc_ALWAYS_INLINE int popcount(mask<T, datapar_abi::neon> k)
+template <class T> Vc_ALWAYS_INLINE int popcount(mask<T, simd_abi::neon> k)
 {
     const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::neon>::mask_cast_type>(k);
+        static_cast<typename detail::traits<T, simd_abi::neon>::mask_cast_type>(k);
     return detail::mask_count<k.size()>(d);
 }
 
-template <class T> Vc_ALWAYS_INLINE int find_first_set(mask<T, datapar_abi::neon> k)
+template <class T> Vc_ALWAYS_INLINE int find_first_set(mask<T, simd_abi::neon> k)
 {
     const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::neon>::mask_cast_type>(k);
+        static_cast<typename detail::traits<T, simd_abi::neon>::mask_cast_type>(k);
     return detail::firstbit(detail::mask_to_int<k.size()>(d));
 }
 
-template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, datapar_abi::neon> k)
+template <class T> Vc_ALWAYS_INLINE int find_last_set(mask<T, simd_abi::neon> k)
 {
     const auto d =
-        static_cast<typename detail::traits<T, datapar_abi::neon>::mask_cast_type>(k);
+        static_cast<typename detail::traits<T, simd_abi::neon>::mask_cast_type>(k);
     return detail::lastbit(detail::mask_to_int<k.size()>(d));
 }
 */
@@ -716,6 +716,6 @@ Vc_VERSIONED_NAMESPACE_END
 #endif  // Vc_HAVE_NEON_ABI
 #endif  // Vc_HAVE_NEON
 
-#endif  // VC_DATAPAR_NEON_H_
+#endif  // VC_SIMD_NEON_H_
 
 // vim: foldmethod=marker

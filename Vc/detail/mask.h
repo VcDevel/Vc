@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_MASK_H_
-#define VC_DATAPAR_MASK_H_
+#ifndef VC_SIMD_MASK_H_
+#define VC_SIMD_MASK_H_
 
 #include "synopsis.h"
 #include "smart_reference.h"
@@ -40,15 +40,15 @@ template <class T, class Abi> class mask : public detail::traits<T, Abi>::mask_b
     using member_type = typename traits::mask_member_type;
     static constexpr detail::size_tag_type<T, Abi> size_tag = {};
     static constexpr T *type_tag = nullptr;
-    friend class datapar<T, Abi>;  // to construct masks on return
+    friend class simd<T, Abi>;  // to construct masks on return
     friend impl;
-    friend typename traits::datapar_impl_type;  // to construct masks on return and
+    friend typename traits::simd_impl_type;  // to construct masks on return and
                                                 // inspect data on masked operations
 
 public:
     using value_type = bool;
     using reference = detail::smart_reference<member_type, impl, mask, value_type>;
-    using datapar_type = datapar<T, Abi>;
+    using simd_type = simd<T, Abi>;
     using size_type = size_t;
     using abi_type = Abi;
 
@@ -79,8 +79,8 @@ public:
 
     // implicit type conversion constructor
     template <class U>
-    Vc_ALWAYS_INLINE mask(const mask<U, datapar_abi::fixed_size<size_v>> &x,
-         enable_if<detail::all<std::is_same<abi_type, datapar_abi::fixed_size<size_v>>,
+    Vc_ALWAYS_INLINE mask(const mask<U, simd_abi::fixed_size<size_v>> &x,
+         enable_if<detail::all<std::is_same<abi_type, simd_abi::fixed_size<size_v>>,
                                std::is_same<U, U>>::value> = nullarg)
         : mask{detail::bitset_init, detail::data(x)}
     {
@@ -91,7 +91,7 @@ public:
          enable_if<
              (size() == mask<U, Abi>::size()) &&
              detail::all<std::is_integral<T>, std::is_integral<U>,
-             detail::negation<std::is_same<Abi, datapar_abi::fixed_size<size_v>>>,
+             detail::negation<std::is_same<Abi, simd_abi::fixed_size<size_v>>>,
              detail::negation<std::is_same<T, U>>>::value> = nullarg)
         : d{x.d}
     {
@@ -100,7 +100,7 @@ public:
     mask(const mask<U, Abi2> &x,
          enable_if<detail::all<
          detail::negation<std::is_same<abi_type, Abi2>>,
-             std::is_same<abi_type, datapar_abi::fixed_size<size_v>>>::value> = nullarg)
+             std::is_same<abi_type, simd_abi::fixed_size<size_v>>>::value> = nullarg)
     {
         x.memstore(&d[0], flags::vector_aligned);
     }
@@ -192,6 +192,6 @@ template <class T, class A> Vc_INTRINSIC auto &data(mask<T, A> &x) { return x.d;
 }  // namespace detail
 
 Vc_VERSIONED_NAMESPACE_END
-#endif  // VC_DATAPAR_MASK_H_
+#endif  // VC_SIMD_MASK_H_
 
 // vim: foldmethod=marker

@@ -1,5 +1,5 @@
 #######################################################################
-# test fixed_size_datapar<T> ABI
+# test fixed_size_simd<T> ABI
 #######################################################################
 
 foreach(fun 1 2 4 8 Max)
@@ -22,7 +22,7 @@ foreach(fun 1 2 4 8 Max)
    endif()
 
    if("${asm}" MATCHES "${reference}")
-      message("PASS: datapar<T, fixed_size<${fun}>> ABI")
+      message("PASS: simd<T, fixed_size<${fun}>> ABI")
    else()
       message(FATAL_ERROR "Failed.\n'${asm}'\n  does not match\n'${reference}'")
    endif()

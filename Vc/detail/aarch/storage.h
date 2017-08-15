@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_AARCH_STORAGE_H_
-#define VC_DATAPAR_AARCH_STORAGE_H_
+#ifndef VC_SIMD_AARCH_STORAGE_H_
+#define VC_SIMD_AARCH_STORAGE_H_
 
 #include "../storage.h"
 
@@ -46,4 +46,4 @@ using x_u32 = Storage<  uint,  4>;
 }}
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_AARCH_STORAGE_H_
+#endif  // VC_SIMD_AARCH_STORAGE_H_

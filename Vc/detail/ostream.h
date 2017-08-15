@@ -25,11 +25,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_OSTREAM_H_
-#define VC_DATAPAR_OSTREAM_H_
+#ifndef VC_SIMD_OSTREAM_H_
+#define VC_SIMD_OSTREAM_H_
 
 #include <ostream>
-#include "datapar.h"
+#include "simd.h"
 
 #if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
 #define Vc_HACK_OSTREAM_FOR_TTY 1
@@ -89,9 +89,9 @@ inline std::ostream &operator<<(std::ostream &out, const Color &c)
 }  // namespace color
 }  // namespace detail
 
-// datapar output{{{1
+// simd output{{{1
 template <class T, class Abi>
-std::ostream &operator<<(std::ostream &out, const datapar<T, Abi> &v)
+std::ostream &operator<<(std::ostream &out, const simd<T, Abi> &v)
 {
     using U = std::conditional_t<sizeof(T) == 1, int, T>;
     out << detail::color::green << "v⃗[" << U(v[0]);
@@ -126,4 +126,4 @@ std::ostream &operator<<(std::ostream &out, const mask<T, Abi> &k)
 //}}}1
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_OSTREAM_H_
+#endif  // VC_SIMD_OSTREAM_H_

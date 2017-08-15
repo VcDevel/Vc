@@ -256,34 +256,34 @@ enable_if<
 template <typename IV>
 enable_if<
     (Traits::is_simd_vector<IV>::value && sizeof(typename IV::EntryType) < sizeof(int)),
-    fixed_size_datapar<int, IV::Size>>
+    fixed_size_simd<int, IV::Size>>
     convertIndexVector(const IV &indexVector)
 {
-    return static_cast<fixed_size_datapar<int, IV::Size>>(indexVector);
+    return static_cast<fixed_size_simd<int, IV::Size>>(indexVector);
 }
 
 // helper for promoting int types to int or higher
 template<typename T> using promoted_type = decltype(std::declval<T>() + 1);
 
 // std::array, Vc::array, and C-array are fixed size and can therefore be converted to a
-// fixed_size_datapar of the same size
+// fixed_size_simd of the same size
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, fixed_size_datapar<promoted_type<T>, N>>
+enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const std::array<T, N> &indexVector)
 {
     return {std::addressof(indexVector[0]), Vc::flags::element_aligned};
 }
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, fixed_size_datapar<promoted_type<T>, N>>
+enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const Vc::array<T, N> &indexVector)
 {
     return {std::addressof(indexVector[0]), Vc::flags::element_aligned};
 }
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, fixed_size_datapar<promoted_type<T>, N>>
+enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const T(&indexVector)[N])
 {
-    return fixed_size_datapar<promoted_type<T>, N>{std::addressof(indexVector[0]),
+    return fixed_size_simd<promoted_type<T>, N>{std::addressof(indexVector[0]),
                                                    Vc::flags::element_aligned};
 }
 

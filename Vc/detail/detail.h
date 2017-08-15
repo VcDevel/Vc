@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_DETAIL_H_
-#define VC_DATAPAR_DETAIL_H_
+#ifndef VC_SIMD_DETAIL_H_
+#define VC_SIMD_DETAIL_H_
 
 #include <functional>
 #ifndef NDEBUG
@@ -124,7 +124,7 @@ template <size_t X> using size_constant = std::integral_constant<size_t, X>;
 
 // size_tag_type {{{1
 template <class T, class A>
-auto size_tag_type_f(int)->size_constant<datapar_size<T, A>::value>;
+auto size_tag_type_f(int)->size_constant<simd_size<T, A>::value>;
 template <class T, class A> auto size_tag_type_f(float)->size_constant<0>;
 template <class T, class A> using size_tag_type = decltype(size_tag_type_f<T, A>(0));
 
@@ -235,15 +235,15 @@ template <typename T> using may_alias = typename may_alias_impl<T>::type;
  * SFINAE works.
  */
 template <class T, class Abi> struct traits {
-    static constexpr size_t datapar_member_alignment = 1;
-    struct datapar_impl_type;
-    struct datapar_member_type {};
-    struct datapar_cast_type;
-    struct datapar_base {
-        datapar_base() = delete;
-        datapar_base(const datapar_base &) = delete;
-        datapar_base &operator=(const datapar_base &) = delete;
-        ~datapar_base() = delete;
+    static constexpr size_t simd_member_alignment = 1;
+    struct simd_impl_type;
+    struct simd_member_type {};
+    struct simd_cast_type;
+    struct simd_base {
+        simd_base() = delete;
+        simd_base(const simd_base &) = delete;
+        simd_base &operator=(const simd_base &) = delete;
+        ~simd_base() = delete;
     };
     static constexpr size_t mask_member_alignment = 1;
     struct mask_impl_type;
@@ -292,7 +292,7 @@ template <class T, class X> struct default_neutral_element<T, std::bit_xor<X>> {
 // private_init, bitset_init{{{1
 /**
  * \internal
- * Tag used for private init constructor of datapar and mask
+ * Tag used for private init constructor of simd and mask
  */
 static constexpr struct private_init_t {} private_init = {};
 static constexpr struct bitset_init_t {} bitset_init = {};
@@ -392,9 +392,9 @@ public:
     }
 };
 
-// data(datapar/mask) {{{1
-template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::datapar<T, A> &x) Vc_INTRINSIC_R;
-template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::datapar<T, A> & x) Vc_INTRINSIC_R;
+// data(simd/mask) {{{1
+template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::simd<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::simd<T, A> & x) Vc_INTRINSIC_R;
 
 template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::mask<T, A> &x) Vc_INTRINSIC_R;
 template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::mask<T, A> &x) Vc_INTRINSIC_R;
@@ -416,6 +416,6 @@ Vc_INTRINSIC const typename V::value_type &to_value_type_or_member_type(
 //}}}1
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
-#endif  // VC_DATAPAR_DETAIL_H_
+#endif  // VC_SIMD_DETAIL_H_
 
 // vim: foldmethod=marker

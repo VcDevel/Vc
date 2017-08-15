@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_DATAPAR_AARCH_CONVERT_H_
-#define VC_DATAPAR_AARCH_CONVERT_H_
+#ifndef VC_SIMD_AARCH_CONVERT_H_
+#define VC_SIMD_AARCH_CONVERT_H_
 
 #include "storage.h"
 
@@ -391,4 +391,4 @@ template <typename To, typename From> Vc_INTRINSIC auto Vc_VDECL convert_all(Fro
 }}
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DATAPAR_AARCH_CONVERT_H_
+#endif  // VC_SIMD_AARCH_CONVERT_H_
