@@ -226,9 +226,9 @@ public:
     template <class F>
     explicit Vc_ALWAYS_INLINE simd(
         F &&gen,
-        enable_if<std::is_same<
-            value_type, decltype(declval<F>()(
-                            declval<detail::size_constant<0> &>()))>::value> = nullarg)
+        detail::value_preserving_or_int<
+            decltype(declval<F>()(declval<detail::size_constant<0> &>())), value_type> * =
+            nullptr)
         : d(impl::generator(std::forward<F>(gen), type_tag, size_tag))
     {
     }
