@@ -1,6 +1,6 @@
 #!/bin/sh
 login_url=https://software.intel.com/protected-download/267266/144917
-download_url=https://software.intel.com/system/files/managed/2f/12/sde-external-8.4.0-2017-05-23-lin.tar.bz2
+download_url=https://software.intel.com/system/files/managed/6e/1f/sde-external-8.9.0-2017-08-06-lin.tar.bz2
 #OSX: download_url=https://software.intel.com/system/files/managed/2f/12/sde-external-8.4.0-2017-05-23-mac.tar.bz2
 cookies=`mktemp` || exit
 wget --save-cookies $cookies --keep-session-cookies -q -O - $login_url | \
