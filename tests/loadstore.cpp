@@ -33,77 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
-
-//operators helpers  //{{{1
-template <class T> constexpr T genHalfBits()
-{
-    return std::numeric_limits<T>::max() >> (std::numeric_limits<T>::digits / 2);
-}
-template <> constexpr long double genHalfBits<long double>() { return 0; }
-template <> constexpr double genHalfBits<double>() { return 0; }
-template <> constexpr float genHalfBits<float>() { return 0; }
-
-// is_conversion_undefined {{{1
-/* implementation-defined
- * ======================
- * §4.7 p3 (integral conversions)
- *  If the destination type is signed, the value is unchanged if it can be represented in the
- *  destination type (and bit-field width); otherwise, the value is implementation-defined.
- *
- * undefined
- * =========
- * §4.9/1  (floating-point conversions)
- *   If the source value is neither exactly represented in the destination type nor between
- *   two adjacent destination values the result is undefined.
- *
- * §4.10/1 (floating-integral conversions)
- *  floating point type can be converted to integer type.
- *  The behavior is undefined if the truncated value cannot be
- *  represented in the destination type.
- *
- * §4.10/2
- *  integer can be converted to floating point type.
- *  If the value being converted is outside the range of values that can be represented, the
- *  behavior is undefined.
- */
-template <typename To, typename From>
-constexpr bool is_conversion_undefined_impl(From x, std::true_type)
-{
-    return x > static_cast<long double>(std::numeric_limits<To>::max()) ||
-           x < static_cast<long double>(std::numeric_limits<To>::min());
-}
-
-template <typename To, typename From>
-constexpr bool is_conversion_undefined_impl(From, std::false_type)
-{
-    return false;
-}
-
-template <typename To, typename From> constexpr bool is_conversion_undefined(From x)
-{
-    static_assert(std::is_arithmetic<From>::value,
-                  "this overload is only meant for builtin arithmetic types");
-    return is_conversion_undefined_impl<To, From>(
-        x, std::integral_constant<bool, (std::is_floating_point<From>::value &&
-                                         (std::is_integral<To>::value ||
-                                          (std::is_floating_point<To>::value &&
-                                           sizeof(From) > sizeof(To))))>());
-}
-
-static_assert(is_conversion_undefined<uint>(float(0x100000000LL)),
-              "testing my expectations of is_conversion_undefined");
-static_assert(!is_conversion_undefined<float>(llong(0x100000000LL)),
-              "testing my expectations of is_conversion_undefined");
-
-template <typename To, typename T, typename A>
-inline Vc::simd_mask<T, A> is_conversion_undefined(const Vc::simd<T, A> &x)
-{
-    Vc::simd_mask<T, A> k = false;
-    for (std::size_t i = 0; i < x.size(); ++i) {
-        k[i] = is_conversion_undefined(x[i]);
-    }
-    return k;
-}
+#include "conversions.h"
 
 // loads & stores {{{1
 using AllMemTypes = vir::Typelist<long double, double, float, long long, unsigned long,
@@ -172,80 +102,18 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
     const M alternating_mask = make_mask<M>({0, 1});
 
     // loads {{{2
-    constexpr U min = std::numeric_limits<U>::min();
-    constexpr U max = std::numeric_limits<U>::max();
-    constexpr U half = genHalfBits<U>();
-
-    auto &&avoid_ub = [](auto x) { return is_conversion_undefined<U>(x) ? U(0) : U(x); };
-
-    const U test_values[] = {U(0xc0000080U),
-                             U(0xc0000081U),
-                             U(0xc0000082U),
-                             U(0xc0000084U),
-                             U(0xc0000088U),
-                             U(0xc0000090U),
-                             U(0xc00000A0U),
-                             U(0xc00000C0U),
-                             U(0xc000017fU),
-                             U(0xc0000180U),
-                             U(0x100000001LL),
-                             U(0x100000011LL),
-                             U(0x100000111LL),
-                             U(0x100001111LL),
-                             U(0x100011111LL),
-                             U(0x100111111LL),
-                             U(0x101111111LL),
-                             U(-0x100000001LL),
-                             U(-0x100000011LL),
-                             U(-0x100000111LL),
-                             U(-0x100001111LL),
-                             U(-0x100011111LL),
-                             U(-0x100111111LL),
-                             U(-0x101111111LL),
-                             U(std::numeric_limits<T>::max() - 1),
-                             U(std::numeric_limits<T>::max() * 0.75),
-                             min,
-                             U(min + 1),
-                             U(-1),
-                             U(-10),
-                             U(-100),
-                             U(-1000),
-                             U(-10000),
-                             U(0),
-                             U(1),
-                             U(half - 1),
-                             half,
-                             U(half + 1),
-                             U(max - 1),
-                             max,
-                             U(max - 0xff),
-                             U(max / std::pow(2., sizeof(T) * 6 - 1)),
-                             avoid_ub(-max / std::pow(2., sizeof(T) * 6 - 1)),
-                             U(max / std::pow(2., sizeof(T) * 4 - 1)),
-                             avoid_ub(-max / std::pow(2., sizeof(T) * 4 - 1)),
-                             U(max / std::pow(2., sizeof(T) * 2 - 1)),
-                             avoid_ub(-max / std::pow(2., sizeof(T) * 2 - 1)),
-                             U(max - 0xff),
-                             U(max - 0x55),
-                             U(-(min + 1)),
-                             U(-max)};
-    constexpr auto test_values_size = sizeof(test_values) / sizeof(U);
+    const cvt_inputs<T, U> test_values;
 
     constexpr auto mem_size =
-        test_values_size > 3 * V::size() ? test_values_size : 3 * V::size();
+        test_values.size() > 3 * V::size() ? test_values.size() : 3 * V::size();
     alignas(Vc::memory_alignment_v<V, U> * 2) U mem[mem_size] = {};
     alignas(Vc::memory_alignment_v<V, T> * 2) T reference[mem_size] = {};
-    for (std::size_t i = 0; i < test_values_size; ++i) {
+    for (std::size_t i = 0; i < test_values.size(); ++i) {
         const U value = test_values[i];
-        if (is_conversion_undefined<T>(value)) {
-            mem[i] = 0;
-            reference[i] = 0;
-        } else {
-            mem[i] = value;
-            reference[i] = static_cast<T>(value);
-        }
+        mem[i] = value;
+        reference[i] = static_cast<T>(value);
     }
-    for (std::size_t i = test_values_size; i < mem_size; ++i) {
+    for (std::size_t i = test_values.size(); i < mem_size; ++i) {
         mem[i] = U(i);
         reference[i] = mem[i];
     }
@@ -286,7 +154,7 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
         compare(i);
     }
 
-    for (std::size_t i = 0; i < test_values_size; ++i) {
+    for (std::size_t i = 0; i < test_values.size(); ++i) {
         mem[i] = U(i);
     }
     x = indexes_from_0;
