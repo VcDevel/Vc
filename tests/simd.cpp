@@ -105,13 +105,29 @@ TEST_TYPES(V, broadcast, all_test_types)  //{{{1
             (has_less_bits<T, unsigned char>()));
 }
 
+template <class V> struct call_generator {  // {{{1
+    template <class F> auto operator()(const F &f) -> decltype(V(f));
+};
+
 TEST_TYPES(V, generators, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
     V x([](int) { return T(1); });
     COMPARE(x, V(1));
+    x = V([](int) { return 1; });  // unconditionally returns int from generator lambda
+    COMPARE(x, V(1));
     x = V([](auto i) { return T(i); });
     COMPARE(x, make_vec<V>({0, 1}, 2));
+
+    VERIFY((sfinae_is_callable<int (&)(int)>(call_generator<V>())));  // int always works
+    COMPARE(sfinae_is_callable<schar (&)(int)>(call_generator<V>()),
+            std::is_signed<T>::value);
+    COMPARE(sfinae_is_callable<uchar (&)(int)>(call_generator<V>()),
+            !(std::is_same<T, schar>::value));
+    COMPARE(sfinae_is_callable<float (&)(int)>(call_generator<V>()),
+            (std::is_floating_point<T>::value));
+    COMPARE(sfinae_is_callable<ullong (&)(int)>(call_generator<V>()),
+            std::numeric_limits<T>::max() == std::numeric_limits<ullong>::max());
 }
 
 template <class A, class B, class Expected = A> void binary_op_return_type()  //{{{1
