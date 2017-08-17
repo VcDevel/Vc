@@ -45,6 +45,7 @@ using vir::concat;
 using Vc::simd;
 using Vc::simd_mask;
 
+// type lists {{{1
 using all_valid_scalars = expand_list<Typelist<Template<simd, Vc::simd_abi::scalar>,
                                                Template<simd_mask, Vc::simd_abi::scalar>>,
                                       testtypes>;
@@ -151,7 +152,8 @@ using all_valid_simd = concat<
 #endif
     Typelist<>>;
 
-TEST_TYPES(V, is_usable, concat<all_valid_scalars, all_valid_simd, all_valid_fixed_size>)
+TEST_TYPES(V, is_usable,  //{{{1
+           concat<all_valid_scalars, all_valid_simd, all_valid_fixed_size>)
 {
     VERIFY(std::is_destructible<V>::value);
     VERIFY(std::is_copy_constructible<V>::value);
@@ -215,7 +217,7 @@ using unusable_simd_types =
 #endif
                        >>;
 
-TEST_TYPES(V, is_unusable,
+TEST_TYPES(V, is_unusable,  //{{{1
            concat<expand_list<unusable_abis, testtypes_wo_ldouble>, unusable_simd_types,
                   unusable_fixed_size,
                   expand_list<Typelist<Template1<dummy_simd>, Template1<dummy_mask>,
