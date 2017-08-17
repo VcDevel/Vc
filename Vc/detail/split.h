@@ -58,7 +58,7 @@ split(const simd<T, A> &x)
     return detail::split_to_array<V, Parts>(x, std::make_index_sequence<Parts>());
 }
 
-#if defined __cpp_fold_expressions && defined Vc_EXPERIMENTAL
+#if defined __cpp_fold_expressions
 template <size_t... Sizes, class T, class A>
 std::enable_if_t<((Sizes + ...) == simd<T, A>::size()),
                  std::tuple<simd<T, abi_for_size_t<T, Sizes>>...>>
@@ -111,7 +111,7 @@ simd<T, abi_for_size_t<T, (simd_size_v<T, As> + ...)>> concat(
         return detail::subscript_in_pack<i, T, detail::typelist<As...>>::get(xs...);
     });
 }
-#endif  // defined __cpp_fold_expressions && defined Vc_EXPERIMENTAL
+#endif  // defined __cpp_fold_expressions
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DETAIL_SPLIT_H_
