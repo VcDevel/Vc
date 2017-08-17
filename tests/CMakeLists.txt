@@ -313,7 +313,7 @@ function(vc_add_test name) #{{{
 endfunction() #}}}
 
 vc_add_test(sfinae NO_TESTTYPES)
-vc_add_test(loadstore SINGLE_TESTTYPE DEFINITIONS ONE_RANDOM_CONVERTING_LOAD_STORE)
+vc_add_test(loadstore SINGLE_TESTTYPE DEFINITIONS ONE_RANDOM_ARITHMETIC_TYPE)
 vc_add_test(allcvt_loadstore SINGLE_TESTTYPE SOURCE loadstore.cpp SINGLE_TESTTYPE EXCLUDE_FROM_ALL)
 vc_add_test(mask)
 vc_add_test(simd)

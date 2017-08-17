@@ -60,6 +60,20 @@ using testtypes_float = typename vir::filter_list<double, testtypes_fp>::type;
 static_assert(vir::list_size<testtypes_fp>::value <= 2, "filtering the list failed");
 static_assert(vir::list_size<testtypes_float>::value <= 1, "filtering the list failed");
 
+// (all_)arithmetic_types {{{1
+using all_arithmetic_types =
+    vir::Typelist<long double, double, float, long long, unsigned long, int,
+                  unsigned short, signed char, unsigned long long, long, unsigned int,
+                  short, unsigned char>;
+#ifdef ONE_RANDOM_ARITHMETIC_TYPE
+constexpr const char *const vc_compile_time = __TIME__;
+using arithmetic_types = vir::Typelist<
+    all_arithmetic_types::at<((vc_compile_time[6] - '0') * 10 + (vc_compile_time[7] - '0')) %
+                             all_arithmetic_types::size()>>;
+#else
+using arithmetic_types = all_arithmetic_types;
+#endif
+
 // vT {{{1
 using vschar = Vc::native_simd<schar>;
 using vuchar = Vc::native_simd<uchar>;

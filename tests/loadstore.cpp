@@ -36,18 +36,9 @@ template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "conversions.h"
 
 // loads & stores {{{1
-using AllMemTypes = vir::Typelist<long double, double, float, long long, unsigned long,
-                                  int, unsigned short, signed char, unsigned long long,
-                                  long, unsigned int, short, unsigned char>;
-#ifdef ONE_RANDOM_CONVERTING_LOAD_STORE
-constexpr const char *const compile_time = __TIME__;
 using MemTypes =
-    vir::concat<testtypes,
-                AllMemTypes::at<((compile_time[6] - '0') * 10 + (compile_time[7] - '0')) %
-                                AllMemTypes::size()>>;
-#else
-using MemTypes = AllMemTypes;
-#endif
+    std::conditional_t<arithmetic_types::size() == 1,
+                       vir::concat<testtypes, arithmetic_types>, arithmetic_types>;
 
 TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
 {
