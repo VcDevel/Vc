@@ -47,6 +47,11 @@ template <class T, size_t ExpectedSizeof, class DstT,
                                   is_convertible<T, DstT>>::value>>
 using convertible_memory = T;
 
+template <class From, class To,
+          class = enable_if_t<
+              negation<detail::is_narrowing_conversion<std::decay_t<From>, To>>::value>>
+using value_preserving = From;
+
 template <class From, class To, class DecayedFrom = std::decay_t<From>,
           class = enable_if_t<all<
               is_convertible<From, To>,

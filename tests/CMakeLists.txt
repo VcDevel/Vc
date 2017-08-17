@@ -318,6 +318,8 @@ vc_add_test(allcvt_loadstore SINGLE_TESTTYPE SOURCE loadstore.cpp SINGLE_TESTTYP
 vc_add_test(mask)
 vc_add_test(simd)
 vc_add_test(operators)
+vc_add_test(casts DEFINITIONS ONE_RANDOM_ARITHMETIC_TYPE)
+vc_add_test(allcvt_casts SOURCE casts.cpp EXCLUDE_FROM_ALL)
 vc_add_test(math)
 vc_add_test(where)
 vc_add_test(experimental)

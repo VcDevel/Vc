@@ -107,6 +107,12 @@ template <class... Ts> constexpr bool none_v = none<Ts...>::value;
 template <class T, std::size_t Expected>
 constexpr bool has_expected_sizeof_v = has_expected_sizeof<T, Expected>::value;
 
+// value_type_or_identity
+template <class T> typename T::value_type value_type_or_identity_impl(int);
+template <class T> T value_type_or_identity_impl(float);
+template <class T>
+using value_type_or_identity = decltype(value_type_or_identity_impl<T>(int()));
+
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 

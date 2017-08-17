@@ -262,18 +262,62 @@ template <class T, class Abi> struct get_impl<Vc::simd<T, Abi>> {
 }  // namespace detail
 
 // casts [simd.casts]
-template <class T, class U, class A>
-Vc_INTRINSIC auto
-static_simd_cast(const simd<U, A> &x)
+namespace detail
 {
-    return simd<
-        T, std::conditional_t<
-               detail::any<std::is_same<T, U>,
-                           detail::all<std::is_integral<T>, std::is_integral<U>,
-                                       std::is_same<std::make_unsigned_t<T>,
-                                                    std::make_unsigned_t<U>>>>::value,
-               A, simd_abi::fixed_size<simd<U, A>::size()>>>(
-        [&x](auto i) { return static_cast<T>(x[i]); });
+// To is either simd<T, A0> or an arithmetic type
+// From is simd<U, A1>
+template <class From, class To> struct static_simd_cast_return_type2;
+template <class From, class To>
+struct static_simd_cast_return_type : public static_simd_cast_return_type2<From, To> {
+};
+template <class From> struct static_simd_cast_return_type<From, From> {
+    // no type change requested => trivial
+    using type = From;
+};
+template <class U, class A1>
+struct static_simd_cast_return_type2<simd<U, A1>, U> {
+    // no type change requested => trivial
+    using type = simd<U, A1>;
+};
+template <class U, class A1, class T>
+struct static_simd_cast_return_type2<simd<U, A1>, T> {
+    static_assert(!is_simd_v<T>,
+                  "this specialization should never match for T = simd<...>");
+    template <class TT>
+    using make_unsigned_t =
+        typename std::conditional_t<std::is_integral<TT>::value, std::make_unsigned<TT>,
+                                    identity<TT>>::type;
+    // T is arithmetic and not U
+    using type =
+        simd<T,
+             std::conditional_t<detail::all<std::is_integral<T>, std::is_integral<U>,
+                                            std::is_same<make_unsigned_t<T>,
+                                                         make_unsigned_t<U>>>::value,
+                                A1, simd_abi::fixed_size<simd_size_v<U, A1>>>>;
+};
+template <class U, class A1, class T, class A0>
+struct static_simd_cast_return_type2<simd<U, A1>, simd<T, A0>>
+    : public std::enable_if<(simd_size_v<U, A1> == simd_size_v<T, A0>), simd<T, A0>> {
+};
+}  // namespace detail
+
+template <class T, class U, class A,
+          class R = typename detail::static_simd_cast_return_type<simd<U, A>, T>::type>
+Vc_INTRINSIC R static_simd_cast(const simd<U, A> &x)
+{
+#ifdef __cpp_if_constexpr
+    if constexpr(std::is_same<R, simd<U, A>>::value) {
+        return x;
+    }
+#endif  // __cpp_if_constexpr
+    return R([&x](auto i) { return static_cast<typename R::value_type>(x[i]); });
+}
+
+template <class T, class U, class A, class To = detail::value_type_or_identity<T>>
+Vc_INTRINSIC auto simd_cast(const simd<detail::value_preserving<U, To>, A> &x)
+    ->decltype(static_simd_cast<T>(x))
+{
+    return static_simd_cast<T>(x);
 }
 
 template <class T, int N>
