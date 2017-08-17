@@ -186,6 +186,7 @@ public:
     {
     }
 
+#ifdef Vc_EXPERIMENTAL
     // explicit type conversion constructor
     // 1st conversion ctor: convert from fixed_size<size()>
     template <class U>
@@ -221,6 +222,7 @@ public:
     {
         x.memstore(d.data(), flags::overaligned<alignof(simd)>);
     }
+#endif  // Vc_EXPERIMENTAL
 
     // generator constructor
     template <class F>
