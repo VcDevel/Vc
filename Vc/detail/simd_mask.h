@@ -102,7 +102,7 @@ public:
          detail::negation<std::is_same<abi_type, Abi2>>,
              std::is_same<abi_type, simd_abi::fixed_size<size_v>>>::value> = nullarg)
     {
-        x.memstore(&d[0], flags::vector_aligned);
+        x.copy_to(&d[0], flags::vector_aligned);
     }
     */
 
@@ -119,13 +119,13 @@ public:
     }
 
     // loads [simd_mask.load]
-    template <class Flags> Vc_ALWAYS_INLINE void memload(const value_type *mem, Flags f)
+    template <class Flags> Vc_ALWAYS_INLINE void copy_from(const value_type *mem, Flags f)
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, size_tag));
     }
 
     // stores [simd_mask.store]
-    template <class Flags> Vc_ALWAYS_INLINE void memstore(value_type *mem, Flags f) const
+    template <class Flags> Vc_ALWAYS_INLINE void copy_to(value_type *mem, Flags f) const
     {
         impl::store(d, mem, f, size_tag);
     }

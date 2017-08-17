@@ -254,26 +254,26 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
     x = M{mem, overaligned};
     COMPARE(x, alternating_mask);
 
-    x.memload(&mem[M::size()], stride_aligned);
+    x.copy_from(&mem[M::size()], stride_aligned);
     COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : alternating_mask);
-    x.memload(&mem[1], element_aligned);
+    x.copy_from(&mem[1], element_aligned);
     COMPARE(x, !alternating_mask);
-    x.memload(mem, vector_aligned);
+    x.copy_from(mem, vector_aligned);
     COMPARE(x, alternating_mask);
 
     x = !alternating_mask;
-    where(alternating_mask, x).memload(&mem[M::size()], stride_aligned);
+    where(alternating_mask, x).copy_from(&mem[M::size()], stride_aligned);
     COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : M{true});
     x = M(true);                                                   // 1111
-    where(alternating_mask, x).memload(&mem[1], element_aligned);  // load .0.0
+    where(alternating_mask, x).copy_from(&mem[1], element_aligned);  // load .0.0
     COMPARE(x, !alternating_mask);                                 // 1010
-    where(alternating_mask, x).memload(mem, overaligned);          // load .1.1
+    where(alternating_mask, x).copy_from(mem, overaligned);          // load .1.1
     COMPARE(x, M{true});                                           // 1111
 
     // stores {{{2
     memset(mem, 0, sizeof(mem));
     x = M(true);
-    x.memstore(&mem[M::size()], stride_aligned);
+    x.copy_to(&mem[M::size()], stride_aligned);
     std::size_t i = 0;
     for (; i < M::size(); ++i) {
         COMPARE(mem[i], false);
@@ -285,7 +285,7 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
         COMPARE(mem[i], false);
     }
     memset(mem, 0, sizeof(mem));
-    x.memstore(&mem[1], element_aligned);
+    x.copy_to(&mem[1], element_aligned);
     COMPARE(mem[0], false);
     for (i = 1; i <= M::size(); ++i) {
         COMPARE(mem[i], true);
@@ -294,15 +294,15 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
         COMPARE(mem[i], false);
     }
     memset(mem, 0, sizeof(mem));
-    alternating_mask.memstore(mem, overaligned);
+    alternating_mask.copy_to(mem, overaligned);
     for (i = 0; i < M::size(); ++i) {
         COMPARE(mem[i], (i & 1) == 1);
     }
     for (; i < 3 * M::size(); ++i) {
         COMPARE(mem[i], false);
     }
-    x.memstore(mem, vector_aligned);
-    where(alternating_mask, !x).memstore(mem, overaligned);
+    x.copy_to(mem, vector_aligned);
+    where(alternating_mask, !x).copy_to(mem, overaligned);
     for (i = 0; i < M::size(); ++i) {
         COMPARE(mem[i], i % 2 == 0);
     }

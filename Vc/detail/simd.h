@@ -220,7 +220,7 @@ public:
         std::enable_if_t<detail::allow_conversion_ctor3<value_type, Abi, U, Abi2>::value,
                          void *> = nullptr)
     {
-        x.memstore(d.data(), flags::overaligned<alignof(simd)>);
+        x.copy_to(d.data(), flags::overaligned<alignof(simd)>);
     }
 #endif  // Vc_EXPERIMENTAL
 
@@ -258,14 +258,14 @@ public:
 
     // loads [simd.load]
     template <class U, class Flags>
-    Vc_ALWAYS_INLINE void memload(const detail::arithmetic<U> *mem, Flags f)
+    Vc_ALWAYS_INLINE void copy_from(const detail::arithmetic<U> *mem, Flags f)
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, type_tag));
     }
 
     // stores [simd.store]
     template <class U, class Flags>
-    Vc_ALWAYS_INLINE void memstore(detail::arithmetic<U> *mem, Flags f) const
+    Vc_ALWAYS_INLINE void copy_to(detail::arithmetic<U> *mem, Flags f) const
     {
         impl::store(d, mem, f, type_tag);
     }

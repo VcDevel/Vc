@@ -351,7 +351,7 @@ Vc_INTRINSIC std::enable_if_t<(N == native_simd<T>::size()), native_simd<T>>
 to_native(const fixed_size_simd<T, N> &x)
 {
     alignas(memory_alignment_v<native_simd<T>>) T mem[N];
-    x.memstore(mem, flags::vector_aligned);
+    x.copy_to(mem, flags::vector_aligned);
     return {mem, flags::vector_aligned};
 }
 
@@ -367,7 +367,7 @@ Vc_INTRINSIC std::enable_if_t<(N == simd<T>::size()), simd<T>> to_compatible(
     const simd<T, simd_abi::fixed_size<N>> &x)
 {
     alignas(memory_alignment_v<simd<T>>) T mem[N];
-    x.memstore(mem, flags::vector_aligned);
+    x.copy_to(mem, flags::vector_aligned);
     return {mem, flags::vector_aligned};
 }
 
@@ -436,7 +436,7 @@ public:
 
     template <class U, class Flags>
     Vc_NODISCARD Vc_INTRINSIC V
-    memload(const detail::loadstore_ptr_type<U, value_type> *mem, Flags f) const &&
+    copy_from(const detail::loadstore_ptr_type<U, value_type> *mem, Flags f) const &&
     {
         V r = d;
         detail::get_impl_t<V>::masked_load(detail::data(r), detail::data(k), mem, f);
@@ -444,8 +444,8 @@ public:
     }
 
     template <class U, class Flags>
-    Vc_INTRINSIC void memstore(detail::loadstore_ptr_type<U, value_type> *mem,
-                               Flags f) const &&
+    Vc_INTRINSIC void copy_to(detail::loadstore_ptr_type<U, value_type> *mem,
+                              Flags f) const &&
     {
         detail::get_impl_t<V>::masked_store(detail::data(d), mem, f, detail::data(k));
     }
@@ -478,14 +478,14 @@ public:
 
     template <class U, class Flags>
     Vc_NODISCARD Vc_INTRINSIC V
-    memload(const detail::loadstore_ptr_type<U, value_type> *mem, Flags) const &&
+    copy_from(const detail::loadstore_ptr_type<U, value_type> *mem, Flags) const &&
     {
         return k ? static_cast<V>(mem[0]) : d;
     }
 
     template <class U, class Flags>
-    Vc_INTRINSIC void memstore(detail::loadstore_ptr_type<U, value_type> *mem,
-                               Flags) const &&
+    Vc_INTRINSIC void copy_to(detail::loadstore_ptr_type<U, value_type> *mem,
+                              Flags) const &&
     {
         if (k) {
             mem[0] = d;
@@ -560,10 +560,10 @@ public:
             detail::data(k), detail::data(d));
     }
 
-    // intentionally hides const_where_expression::memload
+    // intentionally hides const_where_expression::copy_from
     template <class U, class Flags>
-    Vc_INTRINSIC void memload(const detail::loadstore_ptr_type<U, value_type> *mem,
-                              Flags f)
+    Vc_INTRINSIC void copy_from(const detail::loadstore_ptr_type<U, value_type> *mem,
+                                Flags f)
     {
         detail::get_impl_t<T>::masked_load(detail::data(d), detail::data(k), mem, f);
     }
@@ -637,9 +637,10 @@ public:
     Vc_INTRINSIC void operator--()    { if (k) { --d; } }
     Vc_INTRINSIC void operator--(int) { if (k) { --d; } }
 
-    // intentionally hides const_where_expression::memload
+    // intentionally hides const_where_expression::copy_from
     template <class U, class Flags>
-    Vc_INTRINSIC void memload(const detail::loadstore_ptr_type<U, value_type> *mem, Flags)
+    Vc_INTRINSIC void copy_from(const detail::loadstore_ptr_type<U, value_type> *mem,
+                                Flags)
     {
         if (k) {
             d = mem[0];

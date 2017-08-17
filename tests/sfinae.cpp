@@ -231,22 +231,22 @@ TEST_TYPES(V, is_unusable,
 struct call_memload {
     template <class V, class T>
     auto operator()(V &&v, const T *mem)
-        -> decltype(v.memload(mem, Vc::flags::element_aligned));
+        -> decltype(v.copy_from(mem, Vc::flags::element_aligned));
 };
 struct call_masked_memload {
     template <class M, class V, class T>
     auto operator()(const M &k, V &&v, const T *mem)
-        -> decltype(Vc::where(k, v).memload(mem, Vc::flags::element_aligned));
+        -> decltype(Vc::where(k, v).copy_from(mem, Vc::flags::element_aligned));
 };
 struct call_memstore {
     template <class V, class T>
     auto operator()(V &&v, T *mem)
-        -> decltype(v.memstore(mem, Vc::flags::element_aligned));
+        -> decltype(v.copy_to(mem, Vc::flags::element_aligned));
 };
 struct call_masked_memstore {
     template <class M, class V, class T>
     auto operator()(const M &k, V &&v, T *mem)
-        -> decltype(Vc::where(k, v).memstore(mem, Vc::flags::element_aligned));
+        -> decltype(Vc::where(k, v).copy_to(mem, Vc::flags::element_aligned));
 };
 TEST_TYPES(V, loadstore_pointer_types, all_test_types)
 {
