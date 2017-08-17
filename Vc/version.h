@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \ingroup Utilities
  * Contains the version string of the %Vc headers. Same as Vc::versionString().
  */
-#define Vc_VERSION_STRING "1.70.0-dev"
+#define Vc_VERSION_STRING "1.71.0-dev"
 
 /**
  * \ingroup Utilities
@@ -54,7 +54,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * \ingroup Utilities
  * Contains the encoded version number of the %Vc headers. Same as Vc::versionNumber().
  */
-#define Vc_VERSION_NUMBER (Vc_VERSION_CHECK(1, 70, 0) + 1)
+#define Vc_VERSION_NUMBER (Vc_VERSION_CHECK(1, 71, 0) + 1)
 //@}
 
 // Hack for testing the version check mechanics:
