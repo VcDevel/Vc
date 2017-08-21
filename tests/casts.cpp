@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vir/test.h>
 #include <Vc/Vc>
 #include "make_vec.h"
+#include <vir/metahelpers.h>
 
 template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
@@ -129,6 +130,45 @@ template <class V> void casts_integral(std::true_type) {
 
 template <class V> void casts_integral(std::false_type) {}
 
+template <class V, class To> struct gen_seq_t {
+    using From = typename V::value_type;
+    const size_t N = cvt_input_data<From, To>.size();
+    size_t offset = 0;
+    void operator++() { offset += V::size(); }
+    explicit operator bool() const { return offset < N; }
+    From operator()(size_t i) const
+    {
+        i += offset;
+        return i < N ? cvt_input_data<From, To>[i] : From(i);
+    }
+};
+
+template <class V, class To> void casts_widen(std::true_type) {
+    constexpr auto N = V::size();
+    using From = typename V::value_type;
+    using W = Vc::fixed_size_simd<To, N>;
+
+    for (gen_seq_t<V, To> gen_seq; gen_seq; ++gen_seq) {
+        const V seq(gen_seq);
+        COMPARE(Vc::simd_cast<V>(seq), seq);
+        COMPARE(Vc::simd_cast<W>(seq), W(gen_cast<To, N>(seq)));
+        auto test = Vc::simd_cast<To>(seq);
+        // decltype(test) is not W if
+        // a) V::abi_type is not fixed_size and
+        // b.1) V::value_type and To are integral and of equal rank or
+        // b.2) V::value_type and To are equal
+        COMPARE(test, decltype(test)(gen_cast<To, N>(seq)));
+        if (std::is_same<To, From>::value) {
+            COMPARE(typeid(decltype(test)), typeid(V));
+        }
+    }
+}
+template <class V, class To> void casts_widen(std::false_type) {}
+
+template <class To> struct foo {
+    template <class T> auto operator()(const T &v) -> decltype(Vc::simd_cast<To>(v));
+};
+
 TEST_TYPES(V_To, casts, outer_product<all_test_types, arithmetic_types>)
 {
     using V = typename V_To::template at<0>;
@@ -140,18 +180,16 @@ TEST_TYPES(V_To, casts, outer_product<all_test_types, arithmetic_types>)
     constexpr auto N = V::size();
     using W = Vc::fixed_size_simd<To, N>;
 
-    struct {
-        const size_t N = cvt_input_data<From, To>.size();
-        size_t offset = 0;
-        void operator++() { offset += V::size(); }
-        explicit operator bool() const { return offset < N; }
-        From operator()(size_t i) const {
-            i += offset;
-            return i < N ? cvt_input_data<From, To>[i] : From(i);
-        }
-    } gen_seq;
+    using is_simd_cast_allowed =
+        decltype(vir::test::sfinae_is_callable_t<const V &>(foo<To>()));
 
-    for (; gen_seq; ++gen_seq) {
+    COMPARE(is_simd_cast_allowed::value,
+            std::numeric_limits<From>::digits <= std::numeric_limits<To>::digits &&
+                std::numeric_limits<From>::max() <= std::numeric_limits<To>::max() &&
+                !(std::is_signed<From>::value && std::is_unsigned<To>::value));
+    casts_widen<V, To>(is_simd_cast_allowed());
+
+    for (gen_seq_t<V, To> gen_seq; gen_seq; ++gen_seq) {
         const V seq(gen_seq);
         COMPARE(Vc::static_simd_cast<V>(seq), seq);
         COMPARE(Vc::static_simd_cast<W>(seq), W(gen_cast<To, N>(seq)));
