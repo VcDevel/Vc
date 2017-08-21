@@ -1,5 +1,10 @@
 # Vc: portable, zero-overhead C++ types for explicitly data-parallel programming
 
+*NOTE*: This is the development version, implementing https://wg21.link/p0214.
+For production use consider the latest release or the 1.3 branch.
+
+## Introduction
+
 Recent generations of CPUs, and GPUs in particular, require data-parallel codes
 for full efficiency. Data parallelism requires that the same sequence of
 operations is applied to different input data. CPUs and GPUs can thus reduce
@@ -34,10 +39,10 @@ sets. Thus an application written with Vc can be compiled for:
 * AVX and AVX2
 * SSE2 up to SSE4.2 or SSE4a
 * Scalar
-* MIC
-* AVX-512 (in development)
+* MIC (only before Vc 2.0)
+* AVX-512
 * NEON (in development)
-* NVIDIA GPUs / CUDA (in development)
+* NVIDIA GPUs / CUDA (research)
 
 ## Examples
 
@@ -76,12 +81,12 @@ The above will neither scale to AVX, MIC, etc. nor is it portable to other SIMD 
 
 cmake >= 3.0
 
-C++11 Compiler:
+C++14 Compiler:
 
-* GCC >= 4.8.1
-* clang >= 3.4
-* ICC >= 15.0.3
-* Visual Studio 2015 (64-bit target)
+* GCC >= 5.1
+* clang >= 3.7
+* ICC >= 17
+* Visual Studio 2017 (64-bit target)
 
 
 ## Building and Installing Vc
