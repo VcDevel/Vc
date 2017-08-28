@@ -41,6 +41,7 @@ TEST_TYPES(V, broadcast, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
     VERIFY(Vc::is_simd_v<V>);
+    VERIFY(Vc::is_abi_tag_v<typename V::abi_type>);
 
     {
         V x;      // not initialized

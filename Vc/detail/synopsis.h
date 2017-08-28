@@ -45,13 +45,13 @@ struct scalar {};
 struct sse {};
 struct avx {};
 struct avx512 {};
-struct knc {};
+//struct knc {};
 struct neon {};
 
-template <int N> struct partial_sse {};
-template <int N> struct partial_avx {};
-template <int N> struct partial_avx512 {};
-template <int N> struct partial_knc {};
+//template <int N> struct partial_sse {};
+//template <int N> struct partial_avx {};
+//template <int N> struct partial_avx512 {};
+//template <int N> struct partial_knc {};
 
 namespace detail
 {
@@ -122,6 +122,15 @@ template <typename T> using default_abi = compatible<T>;
 #endif
 }  // namespace detail
 }  // namespace simd_abi
+
+template <class T> struct is_abi_tag : public std::false_type {};
+template <> struct is_abi_tag<simd_abi::scalar> : public std::true_type {};
+template <int N> struct is_abi_tag<simd_abi::fixed_size<N>> : public std::true_type {};
+template <> struct is_abi_tag<simd_abi::sse> : public std::true_type {};
+template <> struct is_abi_tag<simd_abi::avx> : public std::true_type {};
+template <> struct is_abi_tag<simd_abi::avx512> : public std::true_type {};
+template <> struct is_abi_tag<simd_abi::neon> : public std::true_type {};
+template <class T> constexpr bool is_abi_tag_v = is_abi_tag<T>::value;
 
 template <class T> struct is_simd : public std::false_type {};
 template <class T> constexpr bool is_simd_v = is_simd<T>::value;
