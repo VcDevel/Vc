@@ -61,7 +61,7 @@ TEST_TYPES(M, broadcast, all_test_types)  //{{{1
                   "A smart_reference<simd_mask> must be comparable against bool.");
     static_assert(Vc::Traits::has_equality_operator<typename M::reference, bool>::value,
                   "A smart_reference<simd_mask> must be comparable against bool.");
-    VERIFY(Vc::is_mask_v<M>);
+    VERIFY(Vc::is_simd_mask_v<M>);
 
     {
         M x;      // uninitialized

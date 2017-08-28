@@ -126,8 +126,8 @@ template <typename T> using default_abi = compatible<T>;
 template <class T> struct is_simd : public std::false_type {};
 template <class T> constexpr bool is_simd_v = is_simd<T>::value;
 
-template <class T> struct is_mask : public std::false_type {};
-template <class T> constexpr bool is_mask_v = is_mask<T>::value;
+template <class T> struct is_simd_mask : public std::false_type {};
+template <class T> constexpr bool is_simd_mask_v = is_simd_mask<T>::value;
 
 template <class T, class Abi = simd_abi::detail::default_abi<T>> struct simd_size;
 template <class T> struct simd_size<T, simd_abi::scalar> : public detail::size_constant<1> {};
@@ -247,7 +247,7 @@ template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N
 
 // class template simd_mask [simd_mask]
 template <class T, class Abi = simd_abi::detail::default_abi<T>> class simd_mask;
-template <class T, class Abi> struct is_mask<simd_mask<T, Abi>> : public std::true_type {};
+template <class T, class Abi> struct is_simd_mask<simd_mask<T, Abi>> : public std::true_type {};
 template <class T> using native_mask = simd_mask<T, simd_abi::native<T>>;
 template <class T, int N> using fixed_size_mask = simd_mask<T, simd_abi::fixed_size<N>>;
 

@@ -51,7 +51,7 @@ struct neon;
 }  // namespace simd_abi
 
 template <class T> struct is_simd;
-template <class T> struct is_mask;
+template <class T> struct is_simd_mask;
 template <class T, class Abi> class simd;
 template <class T, class Abi> class simd_mask;
 
