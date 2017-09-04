@@ -183,7 +183,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         tag<1> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
-        return convert<simd_member_type<U>, simd_member_type<T>>(
+        return x86::convert<simd_member_type<U>, simd_member_type<T>>(
             detail::load16(mem, f));
 #else
         unused(f);
@@ -199,7 +199,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         tag<2> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
-        return convert<simd_member_type<U>, simd_member_type<T>>(
+        return x86::convert<simd_member_type<U>, simd_member_type<T>>(
             intrin_cast<detail::intrinsic_type<U, size<U>()>>(load8(mem, f)));
 #else
         return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
@@ -215,7 +215,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         tag<3> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
-        return convert<simd_member_type<U>, simd_member_type<T>>(
+        return x86::convert<simd_member_type<U>, simd_member_type<T>>(
             intrin_cast<detail::intrinsic_type<U, size<U>()>>(load4(mem, f)));
 #else
         return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
@@ -231,7 +231,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         const convertible_memory<U, sizeof(T) / 8, T> *mem,
         when_aligned<alignof(uint16_t)>, type_tag<T>, tag<4> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
-        return convert<simd_member_type<U>, simd_member_type<T>>(
+        return x86::convert<simd_member_type<U>, simd_member_type<T>>(
             intrin_cast<detail::intrinsic_type<U, size<U>()>>(load2(mem, flags::vector_aligned)));
     }
 
@@ -264,10 +264,10 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         tag<5> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX
-        return convert<avx_member_type<U>, simd_member_type<T>>(
+        return x86::convert<avx_member_type<U>, simd_member_type<T>>(
             detail::load32(mem, f));
 #elif defined Vc_HAVE_FULL_SSE_ABI
-        return convert<simd_member_type<U>, simd_member_type<T>>(
+        return x86::convert<simd_member_type<U>, simd_member_type<T>>(
             load(mem, f, type_tag<U>()), load(mem + size<U>(), f, type_tag<U>()));
 #else
         unused(f);
@@ -283,12 +283,12 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         tag<6> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
-        return convert<avx512_member_type<U>, simd_member_type<T>>(load64(mem, f));
+        return x86::convert<avx512_member_type<U>, simd_member_type<T>>(load64(mem, f));
 #elif defined Vc_HAVE_AVX
-        return convert<avx_member_type<U>, simd_member_type<T>>(
+        return x86::convert<avx_member_type<U>, simd_member_type<T>>(
             detail::load32(mem, f), detail::load32(mem + 2 * size<U>(), f));
 #else
-        return convert<simd_member_type<U>, simd_member_type<T>>(
+        return x86::convert<simd_member_type<U>, simd_member_type<T>>(
             load(mem, f, type_tag<U>()), load(mem + size<U>(), f, type_tag<U>()),
             load(mem + 2 * size<U>(), f, type_tag<U>()),
             load(mem + 3 * size<U>(), f, type_tag<U>()));
@@ -302,14 +302,14 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         tag<7> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
-        return convert<avx512_member_type<U>, simd_member_type<T>>(
+        return x86::convert<avx512_member_type<U>, simd_member_type<T>>(
             load64(mem, f), load64(mem + 4 * size<U>(), f));
 #elif defined Vc_HAVE_AVX
-        return convert<avx_member_type<U>, simd_member_type<T>>(
+        return x86::convert<avx_member_type<U>, simd_member_type<T>>(
             load32(mem, f), load32(mem + 2 * size<U>(), f), load32(mem + 4 * size<U>(), f),
             load32(mem + 6 * size<U>(), f));
 #else
-        return convert<simd_member_type<U>, simd_member_type<T>>(
+        return x86::convert<simd_member_type<U>, simd_member_type<T>>(
             load16(mem, f), load16(mem + size<U>(), f), load16(mem + 2 * size<U>(), f),
             load16(mem + 3 * size<U>(), f), load16(mem + 4 * size<U>(), f),
             load16(mem + 5 * size<U>(), f), load16(mem + 6 * size<U>(), f),
@@ -447,7 +447,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
           enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
-        store2(convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
+        store2(x86::convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
     }
 
     // convert and 32-bit store{{{3
@@ -457,7 +457,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
           enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
-        store4(convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
+        store4(x86::convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
 #else
         unused(f);
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
@@ -471,7 +471,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
           enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
-        store8(convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
+        store8(x86::convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
 #else
         unused(f);
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
@@ -485,7 +485,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
           enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
-        store16(convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
+        store16(x86::convert<simd_member_type<T>, simd_member_type<U>>(v), mem, f);
 #else
         unused(f);
         execute_n_times<size<T>()>([&](auto i) { mem[i] = static_cast<U>(v[i]); });
@@ -499,7 +499,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
           enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX
-        store32(convert<simd_member_type<T>, avx_member_type<U>>(v), mem, f);
+        store32(x86::convert<simd_member_type<T>, avx_member_type<U>>(v), mem, f);
 #elif defined Vc_HAVE_FULL_SSE_ABI
         // without the full SSE ABI there cannot be any vectorized converting loads
         // because only float vectors exist
