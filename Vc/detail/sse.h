@@ -1185,6 +1185,17 @@ struct simd_converter<From, simd_abi::scalar, To, simd_abi::sse> {
         r.set(7, static_cast<To>(h));
         return r;
     }
+    Vc_INTRINSIC R operator()(From x0, From x1, From x2, From x3, From x4, From x5,
+                              From x6, From x7, From x8, From x9, From x10, From x11,
+                              From x12, From x13, From x14, From x15)
+    {
+        return R(static_cast<To>(x0), static_cast<To>(x1), static_cast<To>(x2),
+                 static_cast<To>(x3), static_cast<To>(x4), static_cast<To>(x5),
+                 static_cast<To>(x6), static_cast<To>(x7), static_cast<To>(x8),
+                 static_cast<To>(x9), static_cast<To>(x10), static_cast<To>(x11),
+                 static_cast<To>(x12), static_cast<To>(x13), static_cast<To>(x14),
+                 static_cast<To>(x15));
+    }
 };
 
 // }}}1
