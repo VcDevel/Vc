@@ -98,14 +98,14 @@ template <> constexpr long double genHalfBits<long double>() { return 0; }
 template <> constexpr double genHalfBits<double>() { return 0; }
 template <> constexpr float genHalfBits<float>() { return 0; }
 
-template <class U, class T> constexpr U avoid_ub(U x)
+template <class U, class T, class UU> constexpr U avoid_ub(UU x)
 {
-    return is_conversion_undefined<T>(x) ? U(0) : U(x);
+    return is_conversion_undefined<T>(U(x)) ? U(0) : U(x);
 }
-template <class U, class T>
-constexpr U avoid_ub(std::enable_if_t<!std::is_same<T, U>::value, T> x)
+
+template <class U, class T, class UU> constexpr U avoid_ub2(UU x)
 {
-    return is_conversion_undefined<U>(x) ? U(0) : avoid_ub<U, T>(U(x));
+    return is_conversion_undefined<U>(x) ? U(0) : avoid_ub<U, T>(x);
 }
 
 // conversion test input data //{{{1
@@ -155,11 +155,11 @@ static const std::array<U, 51> cvt_input_data = {{
     avoid_ub<U, T>(-(std::numeric_limits<U>::min() + 1)),
     avoid_ub<U, T>(-std::numeric_limits<U>::max()),
     avoid_ub<U, T>(std::numeric_limits<U>::max() / std::pow(2., sizeof(T) * 6 - 1)),
-    avoid_ub<U, T>(-std::numeric_limits<U>::max() / std::pow(2., sizeof(T) * 6 - 1)),
+    avoid_ub2<U, T>(-std::numeric_limits<U>::max() / std::pow(2., sizeof(T) * 6 - 1)),
     avoid_ub<U, T>(std::numeric_limits<U>::max() / std::pow(2., sizeof(T) * 4 - 1)),
-    avoid_ub<U, T>(-std::numeric_limits<U>::max() / std::pow(2., sizeof(T) * 4 - 1)),
+    avoid_ub2<U, T>(-std::numeric_limits<U>::max() / std::pow(2., sizeof(T) * 4 - 1)),
     avoid_ub<U, T>(std::numeric_limits<U>::max() / std::pow(2., sizeof(T) * 2 - 1)),
-    avoid_ub<U, T>(-std::numeric_limits<U>::max() / std::pow(2., sizeof(T) * 2 - 1)),
+    avoid_ub2<U, T>(-std::numeric_limits<U>::max() / std::pow(2., sizeof(T) * 2 - 1)),
     avoid_ub<U, T>(std::numeric_limits<T>::max() - 1),
     avoid_ub<U, T>(std::numeric_limits<T>::max() * 0.75),
 }};
