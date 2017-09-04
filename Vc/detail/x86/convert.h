@@ -1884,7 +1884,7 @@ template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i16 v0)
 template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i16 v0, y_i16 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtepi16_epi8(concat(v0, v1));
+    return convert_to<y_i08>(concat(v0, v1));
 #else
     return concat(convert_to<x_i08>(v0), convert_to<x_i08>(v1));
 #endif
@@ -2781,8 +2781,8 @@ Vc_INTRINSIC To Vc_VDECL convert_to(Storage<ulong, N> v0, Storage<ulong, N> v1, 
 }
 
 // generic forwarding for down-conversions to unsigned int{{{1
-struct scalar_conversion_fallback_tag {};
-template <typename T> struct fallback_int_type { using type = scalar_conversion_fallback_tag; };
+struct try_fallback_on_argument {};
+template <typename T> struct fallback_int_type { using type = try_fallback_on_argument; };
 template <> struct fallback_int_type< uchar> { using type = schar; };
 template <> struct fallback_int_type<ushort> { using type = short; };
 template <> struct fallback_int_type<  uint> { using type = int; };
@@ -2857,16 +2857,31 @@ struct equivalent_conversion {
     }
 };
 
-// fallback: scalar aggregate conversion{{{1
-template <typename To> struct equivalent_conversion<To, scalar_conversion_fallback_tag> {
+// fallback: cast integral arguments to signed and call again {{{1
+template <typename To> struct equivalent_conversion<To, try_fallback_on_argument> {
+    template <typename From,
+              typename = decltype(concat(declval<From>(), declval<From>()))>
+    static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(From v0, From v1)
+    {
+        return convert_to<To>(concat(v0, v1));
+    }
+
+    template <typename From,
+              typename = decltype(concat(declval<From>(), declval<From>()))>
+    static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(From v0, From v1, From v2, From v3)
+    {
+        return convert_to<To>(concat(v0, v1), concat(v2, v3));
+    }
+
     template <typename From, typename... Fs>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(From v0, Fs... vs)
     {
         using F = typename From::value_type;
-        using T = typename To::value_type;
-        static_assert(sizeof(F) >= sizeof(T) && std::is_integral<T>::value &&
-                          std::is_unsigned<F>::value,
-                      "missing an implementation for convert<To>(From, Fs...)");
+        using Fallback = typename fallback_int_type<F>::type;
+        static_assert(!std::is_same<Fallback, try_fallback_on_argument>::value,
+                      "The From & To value types are not usable for a fallback "
+                      "conversion. There's a missing implementation for "
+                      "convert<To>(From, Fs...)");
         using S = Storage<typename fallback_int_type<F>::type, From::size()>;
         return convert_to<To>(S(v0), S(vs)...);
     }

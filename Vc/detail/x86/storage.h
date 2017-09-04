@@ -127,11 +127,23 @@ Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> Vc_VDECL hi256(Storage<T, N> x)
 }
 #endif  // Vc_HAVE_AVX512F
 
-template <class T, size_t N>
-Vc_INTRINSIC Vc_CONST Storage<T, 2 * N> Vc_VDECL concat(Storage<T, N> a, Storage<T, N> b)
+#ifdef Vc_HAVE_AVX
+template <class T>
+Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> Vc_VDECL
+    concat(Storage<T, 16 / sizeof(T)> a, Storage<T, 16 / sizeof(T)> b)
 {
     return concat(a.v(), b.v());
 }
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+template <class T>
+Vc_INTRINSIC Vc_CONST Storage<T, 64 / sizeof(T)> Vc_VDECL
+    concat(Storage<T, 32 / sizeof(T)> a, Storage<T, 32 / sizeof(T)> b)
+{
+    return concat(a.v(), b.v());
+}
+#endif  // Vc_HAVE_AVX512F
 
 // extract_part {{{1
 // identity {{{2
