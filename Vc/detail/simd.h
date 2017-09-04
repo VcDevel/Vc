@@ -146,7 +146,7 @@ class simd
     friend detail::simd_int_operators<simd, true>;
 
     template <class TT, class U, class A, class R>
-    friend R static_simd_cast(const simd<U, A> &);
+    friend R Vc::static_simd_cast(const simd<U, A> &);
 
 public:
     using value_type = T;

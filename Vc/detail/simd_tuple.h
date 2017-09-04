@@ -211,12 +211,13 @@ Vc_INTRINSIC simd_tuple<T, A0> make_tuple(
     return {arg0};
 }
 
-template <class T, class A0, class... Abis>
-Vc_INTRINSIC simd_tuple<T, A0, Abis...> make_tuple(
+template <class T, class A0, class A1, class... Abis>
+Vc_INTRINSIC simd_tuple<T, A0, A1, Abis...> make_tuple(
     const typename detail::traits<T, A0>::simd_member_type &arg0,
+    const typename detail::traits<T, A1>::simd_member_type &arg1,
     const typename detail::traits<T, Abis>::simd_member_type &... args)
 {
-    return {arg0, make_tuple<T, Abis...>(args...)};
+    return {arg0, make_tuple<T, A1, Abis...>(arg1, args...)};
 }
 
 // to_tuple {{{1
@@ -244,9 +245,9 @@ Vc_INTRINSIC simd_tuple<T, A1s...> tuple_concat(const simd_tuple<T>,
 {
     return right;
 }
-template <class T, class... A0s, class... A1s>
-Vc_INTRINSIC simd_tuple<T, A0s..., A1s...> tuple_concat(const simd_tuple<T, A0s...> left,
-                                                        const simd_tuple<T, A1s...> right)
+template <class T, class A00, class... A0s, class... A1s>
+Vc_INTRINSIC simd_tuple<T, A00, A0s..., A1s...> tuple_concat(
+    const simd_tuple<T, A00, A0s...> left, const simd_tuple<T, A1s...> right)
 {
     return {left.first, tuple_concat(left.second, right)};
 }
