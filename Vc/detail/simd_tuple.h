@@ -98,13 +98,18 @@ tuple_element_meta<T, Abi, Offset> make_meta(const simd_tuple<T, Abi, As...> &)
 // empty {{{2
 template <class T> struct simd_tuple<T> {
     static constexpr size_t tuple_size = 0;
+    static constexpr size_t size() { return 0; }
 };
 
 // 1 member {{{2
 template <class T, class Abi0> struct simd_tuple<T, Abi0> {
     using first_type = typename detail::traits<T, Abi0>::simd_member_type;
+    using second_type = simd_tuple<T>;
+    using first_abi = Abi0;
     static constexpr size_t tuple_size = 1;
+    static constexpr size_t size() { return simd_size_v<T, Abi0>; }
     first_type first;
+    static constexpr second_type second = {};
 
     template <size_t Offset = 0, class F>
     static Vc_INTRINSIC simd_tuple generate(F &&gen)
@@ -132,8 +137,10 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
 // 2 or more {{{2
 template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...> {
     using first_type = typename detail::traits<T, Abi0>::simd_member_type;
+    using first_abi = Abi0;
     using second_type = simd_tuple<T, Abis...>;
     static constexpr size_t tuple_size = sizeof...(Abis) + 1;
+    static constexpr size_t size() { return simd_size_v<T, Abi0> + second_type::size(); }
     first_type first;
     second_type second;
 
@@ -195,6 +202,53 @@ Vc_INTRINSIC simd_tuple<T, A0, As...> make_tuple(const Vc::simd<T, A0> &x0,
                                                     const Vc::simd<T, As> &... xs)
 {
     return {detail::data(x0), make_tuple(xs...)};
+}
+
+template <class T, class A0>
+Vc_INTRINSIC simd_tuple<T, A0> make_tuple(
+    const typename detail::traits<T, A0>::simd_member_type &arg0)
+{
+    return {arg0};
+}
+
+template <class T, class A0, class... Abis>
+Vc_INTRINSIC simd_tuple<T, A0, Abis...> make_tuple(
+    const typename detail::traits<T, A0>::simd_member_type &arg0,
+    const typename detail::traits<T, Abis>::simd_member_type &... args)
+{
+    return {arg0, make_tuple<T, Abis...>(args...)};
+}
+
+// to_tuple {{{1
+template <size_t, class T> using to_tuple_helper = T;
+template <class T, class A0, size_t... Indexes>
+Vc_INTRINSIC simd_tuple<T, to_tuple_helper<Indexes, A0>...> to_tuple_impl(
+    std::index_sequence<Indexes...>,
+    const std::array<typename detail::traits<T, A0>::simd_member_type, sizeof...(Indexes)>
+        &args)
+{
+    return make_tuple<T, to_tuple_helper<Indexes, A0>...>(args[Indexes]...);
+}
+
+template <class T, class A0, size_t N>
+Vc_INTRINSIC auto to_tuple(
+    const std::array<typename detail::traits<T, A0>::simd_member_type, N> &args)
+{
+    return to_tuple_impl<T, A0>(std::make_index_sequence<N>(), args);
+}
+
+// tuple_concat {{{1
+template <class T, class... A1s>
+Vc_INTRINSIC simd_tuple<T, A1s...> tuple_concat(const simd_tuple<T>,
+                                                const simd_tuple<T, A1s...> right)
+{
+    return right;
+}
+template <class T, class... A0s, class... A1s>
+Vc_INTRINSIC simd_tuple<T, A0s..., A1s...> tuple_concat(const simd_tuple<T, A0s...> left,
+                                                        const simd_tuple<T, A1s...> right)
+{
+    return {left.first, tuple_concat(left.second, right)};
 }
 
 // get_simd<N> {{{1

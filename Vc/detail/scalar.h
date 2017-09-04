@@ -364,6 +364,18 @@ struct scalar_mask_impl {
     // }}}2
 };
 
+// simd_converter scalar -> scalar {{{1
+template <class T> struct simd_converter<T, simd_abi::scalar, T, simd_abi::scalar> {
+    Vc_INTRINSIC T operator()(T a) { return a; }
+};
+template <class From, class To>
+struct simd_converter<From, simd_abi::scalar, To, simd_abi::scalar> {
+    Vc_INTRINSIC To operator()(From a)
+    {
+        return static_cast<To>(a);
+    }
+};
+
 // traits {{{1
 template <class T> struct scalar_traits {
     using simd_impl_type = scalar_simd_impl;

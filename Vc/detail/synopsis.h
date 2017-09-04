@@ -319,7 +319,8 @@ Vc_INTRINSIC R static_simd_cast(const simd<U, A> &x)
         return x;
     }
 #endif  // __cpp_if_constexpr
-    return R([&x](auto i) { return static_cast<typename R::value_type>(x[i]); });
+    detail::simd_converter<U, A, typename R::value_type, typename R::abi_type> c;
+    return R(detail::private_init, c(detail::data(x)));
 }
 
 template <class T, class U, class A, class To = detail::value_type_or_identity<T>>

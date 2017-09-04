@@ -1126,6 +1126,100 @@ struct sse_mask_impl : public generic_mask_impl<simd_abi::sse, sse_mask_member_t
     // }}}2
 };
 
+// simd_converter sse -> scalar {{{1
+template <class From, class To>
+struct simd_converter<From, simd_abi::sse, To, simd_abi::scalar> {
+    using Arg = sse_simd_member_type<From>;
+
+    Vc_INTRINSIC std::array<To, Arg::size()> operator()(Arg a)
+    {
+        return impl(std::make_index_sequence<Arg::size()>(), a);
+    }
+
+    template <size_t... Indexes>
+    Vc_INTRINSIC std::array<To, Arg::size()> impl(std::index_sequence<Indexes...>, Arg a)
+    {
+        return {static_cast<To>(a[Indexes])...};
+    }
+};
+
+// }}}1
+// simd_converter scalar -> sse {{{1
+template <class From, class To>
+struct simd_converter<From, simd_abi::scalar, To, simd_abi::sse> {
+    using R = sse_simd_member_type<To>;
+
+    Vc_INTRINSIC R operator()(From a)
+    {
+        R r{};
+        r.set(0, static_cast<To>(a));
+        return r;
+    }
+    Vc_INTRINSIC R operator()(From a, From b)
+    {
+        R r{};
+        r.set(0, static_cast<To>(a));
+        r.set(1, static_cast<To>(b));
+        return r;
+    }
+    Vc_INTRINSIC R operator()(From a, From b, From c, From d)
+    {
+        R r{};
+        r.set(0, static_cast<To>(a));
+        r.set(1, static_cast<To>(b));
+        r.set(2, static_cast<To>(c));
+        r.set(3, static_cast<To>(d));
+        return r;
+    }
+    Vc_INTRINSIC R operator()(From a, From b, From c, From d, From e, From f, From g,
+                              From h)
+    {
+        R r{};
+        r.set(0, static_cast<To>(a));
+        r.set(1, static_cast<To>(b));
+        r.set(2, static_cast<To>(c));
+        r.set(3, static_cast<To>(d));
+        r.set(4, static_cast<To>(e));
+        r.set(5, static_cast<To>(f));
+        r.set(6, static_cast<To>(g));
+        r.set(7, static_cast<To>(h));
+        return r;
+    }
+};
+
+// }}}1
+// simd_converter sse -> sse {{{1
+template <class T> struct simd_converter<T, simd_abi::sse, T, simd_abi::sse> {
+    using Arg = sse_simd_member_type<T>;
+    Vc_INTRINSIC const Arg &operator()(const Arg &x) { return x; }
+};
+
+template <class From, class To>
+struct simd_converter<From, simd_abi::sse, To, simd_abi::sse> {
+    using Arg = sse_simd_member_type<From>;
+
+    Vc_INTRINSIC auto operator()(Arg a)
+    {
+        return x86::convert_all<sse_simd_member_type<To>>(a);
+    }
+    Vc_INTRINSIC sse_simd_member_type<To> operator()(Arg a, Arg b)
+    {
+        static_assert(sizeof(From) >= 2 * sizeof(To), "");
+        return x86::convert<Arg, sse_simd_member_type<To>>(a, b);
+    }
+    Vc_INTRINSIC sse_simd_member_type<To> operator()(Arg a, Arg b, Arg c, Arg d)
+    {
+        static_assert(sizeof(From) >= 4 * sizeof(To), "");
+        return x86::convert<Arg, sse_simd_member_type<To>>(a, b, c, d);
+    }
+    Vc_INTRINSIC sse_simd_member_type<To> operator()(Arg a, Arg b, Arg c, Arg d, Arg e,
+                                                     Arg f, Arg g, Arg h)
+    {
+        static_assert(sizeof(From) >= 8 * sizeof(To), "");
+        return x86::convert<Arg, sse_simd_member_type<To>>(a, b, c, d, e, f, g, h);
+    }
+};
+
 // }}}1
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

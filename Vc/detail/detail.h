@@ -399,6 +399,12 @@ template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::simd<T, A> & x) Vc_INT
 template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::simd_mask<T, A> &x) Vc_INTRINSIC_R;
 template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::simd_mask<T, A> &x) Vc_INTRINSIC_R;
 
+// simd_converter {{{1
+template <class FromT, class FromA, class ToT, class ToA> struct simd_converter;
+template <class T, class A> struct simd_converter<T, A, T, A> {
+    template <class U> Vc_INTRINSIC const U &operator()(const U &x) { return x; }
+};
+
 // to_value_type_or_member_type {{{1
 template <class V>
 Vc_INTRINSIC auto to_value_type_or_member_type(const V &x)->decltype(detail::data(x))

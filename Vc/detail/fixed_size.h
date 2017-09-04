@@ -757,6 +757,202 @@ template <int N> struct fixed_size_mask_impl {
     // }}}2
 };
 
+// simd_converter scalar -> fixed_size<1> {{{1
+template <class From, class To>
+struct simd_converter<From, simd_abi::scalar, To, simd_abi::fixed_size<1>> {
+    simd_tuple<To, simd_abi::scalar> operator()(From x) { return {static_cast<To>(x)}; }
+};
+
+// simd_converter fixed_size<1> -> scalar {{{1
+template <class From, class To>
+struct simd_converter<From, simd_abi::fixed_size<1>, To, simd_abi::scalar> {
+    To operator()(simd_tuple<To, simd_abi::scalar> x)
+    {
+        return {static_cast<To>(x.first)};
+    }
+};
+
+// simd_converter fixed_size<N> -> fixed_size<N> {{{1
+template <class T, int N>
+struct simd_converter<T, simd_abi::fixed_size<N>, T, simd_abi::fixed_size<N>> {
+    using arg = fixed_size_storage<T, N>;
+    Vc_INTRINSIC const arg &operator()(const arg &x) { return x; }
+};
+
+template <size_t ChunkSize, class T> struct determine_required_input_chunks;
+
+template <class T, class... Abis>
+struct determine_required_input_chunks<0, simd_tuple<T, Abis...>>
+    : public std::integral_constant<size_t, 0> {
+};
+
+template <size_t ChunkSize, class T, class Abi0, class... Abis>
+struct determine_required_input_chunks<ChunkSize, simd_tuple<T, Abi0, Abis...>>
+    : public std::integral_constant<
+          size_t, determine_required_input_chunks<ChunkSize - simd_size_v<T, Abi0>,
+                                                  simd_tuple<T, Abis...>>::value> {
+};
+
+template <class From, class To> struct fixed_size_converter {
+    struct OneToMultipleChunks {
+    };
+    template <int N> struct MultipleToOneChunk {
+    };
+    struct EqualChunks {
+    };
+    template <class FromAbi, class ToAbi, size_t ToSize = simd_size_v<To, ToAbi>,
+              size_t FromSize = simd_size_v<From, FromAbi>>
+    using ChunkRelation = std::conditional_t<
+        (ToSize < FromSize), OneToMultipleChunks,
+        std::conditional_t<(ToSize == FromSize), EqualChunks,
+                           MultipleToOneChunk<int(ToSize / FromSize)>>>;
+
+    template <class... Abis>
+    using return_type = fixed_size_storage<To, simd_tuple<From, Abis...>::size()>;
+
+
+protected:
+    template <class T> Vc_INTRINSIC auto strip_n_chunks(size_constant<0>, const T &x)
+    {
+        return x;
+    }
+    template <size_t K, class T>
+    Vc_INTRINSIC auto strip_n_chunks(size_constant<K>, const T &x)
+    {
+        return strip_n_chunks(size_constant<K - 1>(), x.second);
+    }
+
+    // OneToMultipleChunks {{{2
+    template <class A0>
+    Vc_INTRINSIC return_type<A0> impl(OneToMultipleChunks, const simd_tuple<From, A0> &x)
+    {
+        using R = return_type<A0>;
+        simd_converter<From, A0, To, typename R::first_abi> native_cvt;
+        auto &&multiple_return_chunks = native_cvt(x.first);
+        return detail::to_tuple<To, typename R::first_abi>(multiple_return_chunks);
+    }
+
+    template <class... Abis>
+    Vc_INTRINSIC return_type<Abis...> impl(OneToMultipleChunks,
+                                           const simd_tuple<From, Abis...> &x)
+    {
+        using R = return_type<Abis...>;
+        using arg = simd_tuple<From, Abis...>;
+        constexpr size_t first_chunk = simd_size_v<From, typename arg::first_abi>;
+        simd_converter<From, typename arg::first_abi, To, typename R::first_abi>
+            native_cvt;
+        auto &&multiple_return_chunks = native_cvt(x.first);
+        constexpr size_t n_output_chunks =
+            first_chunk / simd_size_v<To, typename R::first_abi>;
+        return detail::tuple_concat(
+            detail::to_tuple<To, typename R::first_abi>(multiple_return_chunks),
+            impl(ChunkRelation<typename arg::second_type::first_abi,
+                               typename tuple_element<n_output_chunks, R>::type::abi_type>(),
+                 x.second));
+    }
+
+    // MultipleToOneChunk {{{2
+    template <int N, class A0, class... Abis>
+    Vc_INTRINSIC return_type<A0, Abis...> impl(MultipleToOneChunk<N>,
+                                               const simd_tuple<From, A0, Abis...> &x)
+    {
+        return impl_mto(std::integral_constant<bool, sizeof...(Abis) + 1 == N>(),
+                        std::make_index_sequence<N>(), x);
+    }
+
+    template <size_t... Indexes, class A0, class... Abis>
+    Vc_INTRINSIC return_type<A0, Abis...> impl_mto(std::true_type,
+                                                   std::index_sequence<Indexes...>,
+                                                   const simd_tuple<From, A0, Abis...> &x)
+    {
+        using R = return_type<A0, Abis...>;
+        simd_converter<From, A0, To, typename R::first_abi> native_cvt;
+        return {native_cvt(detail::get<Indexes>(x)...)};
+    }
+
+    template <size_t... Indexes, class A0, class... Abis>
+    Vc_INTRINSIC return_type<A0, Abis...> impl_mto(std::false_type,
+                                                   std::index_sequence<Indexes...>,
+                                                   const simd_tuple<From, A0, Abis...> &x)
+    {
+        using R = return_type<A0, Abis...>;
+        simd_converter<From, A0, To, typename R::first_abi> native_cvt;
+        return {
+            native_cvt(detail::get<Indexes>(x)...),
+            impl(
+                ChunkRelation<
+                    typename tuple_element<sizeof...(Indexes),
+                                           simd_tuple<From, A0, Abis...>>::type::abi_type,
+                    typename R::second_type::first_abi>(),
+                strip_n_chunks(size_constant<sizeof...(Indexes)>(), x))};
+    }
+
+    // EqualChunks {{{2
+    template <class A0>
+    Vc_INTRINSIC return_type<A0> impl(EqualChunks, const simd_tuple<From, A0> &x)
+    {
+        simd_converter<From, A0, To, typename return_type<A0>::first_abi> native_cvt;
+        return {native_cvt(x.first)};
+    }
+
+    template <class A0, class A1, class... Abis>
+    Vc_INTRINSIC return_type<A0, A1, Abis...> impl(
+        EqualChunks, const simd_tuple<From, A0, A1, Abis...> &x)
+    {
+        using R = return_type<A0, A1, Abis...>;
+        using Rem = typename R::second_type;
+        simd_converter<From, A0, To, typename R::first_abi> native_cvt;
+        return {native_cvt(x.first),
+                impl(ChunkRelation<A1, typename Rem::first_abi>(), x.second)};
+    }
+
+    //}}}2
+};
+
+template <class From, class To, int N>
+struct simd_converter<From, simd_abi::fixed_size<N>, To, simd_abi::fixed_size<N>>
+    : public fixed_size_converter<From, To> {
+    using base = fixed_size_converter<From, To>;
+    using return_type = fixed_size_storage<To, N>;
+    using arg = fixed_size_storage<From, N>;
+
+    Vc_INTRINSIC return_type operator()(const arg &x)
+    {
+        using CR = typename base::template ChunkRelation<typename arg::first_abi,
+                                                         typename return_type::first_abi>;
+        return base::impl(CR(), x);
+    }
+};
+
+// simd_converter "native" -> fixed_size<N> {{{1
+// i.e. 1 register to ? registers
+template <class From, class A, class To, int N>
+struct simd_converter<From, A, To, simd_abi::fixed_size<N>> {
+    using traits = detail::traits<From, A>;
+    using arg = typename traits::simd_member_type;
+    using return_type = fixed_size_storage<To, N>;
+    static_assert(N == simd_size_v<From, A>,
+                  "simd_converter to fixed_size only works for equal element counts");
+
+    Vc_INTRINSIC return_type operator()(arg x)
+    {
+        return impl(std::make_index_sequence<return_type::tuple_size>(), x);
+    }
+
+private:
+    return_type impl(std::index_sequence<0>, arg x)
+    {
+        simd_converter<From, A, To, typename return_type::first_abi> native_cvt;
+        return {native_cvt(x)};
+    }
+    template <size_t... Indexes> return_type impl(std::index_sequence<Indexes...>, arg x)
+    {
+        simd_converter<From, A, To, typename return_type::first_abi> native_cvt;
+        const auto &tmp = native_cvt(x);
+        return {tmp[Indexes]...};
+    }
+};
+
 // traits {{{1
 template <class T, int N, bool = ((N <= 32 && N >= 0) || N == 64)>
 struct fixed_size_traits {
