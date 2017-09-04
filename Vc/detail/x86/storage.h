@@ -133,6 +133,87 @@ Vc_INTRINSIC Vc_CONST Storage<T, 2 * N> Vc_VDECL concat(Storage<T, N> a, Storage
     return concat(a.v(), b.v());
 }
 
+// extract_part {{{1
+// identity {{{2
+template <class T>
+Vc_INTRINSIC const Storage<T, 16 / sizeof(T)>& Vc_VDECL
+    extract_part_impl(std::true_type, size_constant<0>, size_constant<1>,
+                      const Storage<T, 16 / sizeof(T)>& x)
+{
+    return x;
+}
+
+// AVX to SSE splits {{{2
+#ifdef Vc_HAVE_AVX
+template <class T>
+Vc_INTRINSIC Storage<T, 16 / sizeof(T)> Vc_VDECL extract_part_impl(
+    std::true_type, size_constant<0>, size_constant<2>, Storage<T, 32 / sizeof(T)> x)
+{
+    return lo128(x);
+}
+template <class T>
+Vc_INTRINSIC Storage<T, 16 / sizeof(T)> Vc_VDECL extract_part_impl(
+    std::true_type, size_constant<1>, size_constant<2>, Storage<T, 32 / sizeof(T)> x)
+{
+    return hi128(x);
+}
+#endif  // Vc_HAVE_AVX
+
+// AVX512 to AVX or SSE splits {{{2
+#ifdef Vc_HAVE_AVX512F
+template <class T, size_t Index>
+Vc_INTRINSIC Storage<T, 16 / sizeof(T)> Vc_VDECL extract_part_impl(
+    std::true_type, size_constant<Index>, size_constant<4>, Storage<T, 64 / sizeof(T)> x)
+{
+    return extract128<Index>(x);
+}
+
+template <class T>
+Vc_INTRINSIC Storage<T, 32 / sizeof(T)> Vc_VDECL extract_part_impl(
+    std::true_type, size_constant<0>, size_constant<2>, Storage<T, 64 / sizeof(T)> x)
+{
+    return lo256(x);
+}
+template <class T>
+Vc_INTRINSIC Storage<T, 32 / sizeof(T)> Vc_VDECL extract_part_impl(
+    std::true_type, size_constant<1>, size_constant<2>, Storage<T, 64 / sizeof(T)> x)
+{
+    return hi256(x);
+}
+#endif  // Vc_HAVE_AVX512F
+
+// partial SSE (shifts) {{{2
+template <class T, size_t Index, size_t Total, size_t N>
+Vc_INTRINSIC Storage<T, 16 / sizeof(T)> Vc_VDECL extract_part_impl(std::false_type,
+                                                                   size_constant<Index>,
+                                                                   size_constant<Total>,
+                                                                   Storage<T, N> x)
+{
+    constexpr int split = sizeof(x) / 16;
+    constexpr int shift = (sizeof(x) / Total * Index) % 16;
+    return x86::shift_right<shift>(
+        extract_part_impl<T>(std::true_type(), size_constant<Index * split / Total>(),
+                             size_constant<split>(), x));
+}
+
+// public interface {{{2
+template <size_t Index, size_t Total, class T, size_t N>
+Vc_INTRINSIC Vc_CONST Storage<T, std::max(16 / sizeof(T), N / Total)> Vc_VDECL
+extract_part(Storage<T, N> x)
+{
+    constexpr size_t NewN = N / Total;
+    static_assert(Total > 1, "Total must be greater than 1");
+    static_assert(NewN * Total == N, "N must be divisible by Total");
+    return extract_part_impl<T>(
+        std::integral_constant<bool, (sizeof(T) * NewN >= 16)>(),  // dispatch on whether
+                                                                   // the result is a
+                                                                   // partial SSE register
+                                                                   // or larger
+        std::integral_constant<size_t, Index>(), std::integral_constant<size_t, Total>(),
+        x);
+}
+
+// }}}1
 }}  // namespace detail::x86
 Vc_VERSIONED_NAMESPACE_END
 

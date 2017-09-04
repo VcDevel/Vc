@@ -3035,12 +3035,8 @@ Vc_INTRINSIC auto Vc_VDECL convert_all_impl(From v, std::true_type)
     return generate_from_n_evaluations<N, std::array<To, N>>([&](auto i) {
         using namespace Vc::detail::x86;  // ICC needs this to find convert and
                                           // shift_right below.
-        constexpr int shift = decltype(i)::value  // MSVC needs this instead of a simple
-                                                  // `i`, apparently their conversion
-                                                  // operator is not (considered)
-                                                  // constexpr.
-                              * To::size() * sizeof(From) / From::size();
-        return convert<From, To>(shift_right<shift>(v));
+        auto part = x86::extract_part<decltype(i)::value, N>(v);
+        return convert<decltype(part), To>(part);
     });
 }
 

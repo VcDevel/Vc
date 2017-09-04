@@ -872,6 +872,202 @@ struct avx_mask_impl : public generic_mask_impl<simd_abi::avx, avx_mask_member_t
     // }}}2
 };
 
+// simd_converter avx -> scalar {{{1
+template <class From, class To>
+struct simd_converter<From, simd_abi::avx, To, simd_abi::scalar> {
+    using Arg = avx_simd_member_type<From>;
+
+    Vc_INTRINSIC std::array<To, Arg::size()> operator()(Arg a)
+    {
+        return impl(std::make_index_sequence<Arg::size()>(), a);
+    }
+
+    template <size_t... Indexes>
+    Vc_INTRINSIC std::array<To, Arg::size()> impl(std::index_sequence<Indexes...>, Arg a)
+    {
+        return {static_cast<To>(a[Indexes])...};
+    }
+};
+
+// }}}1
+// simd_converter scalar -> avx {{{1
+template <class From, class To>
+struct simd_converter<From, simd_abi::scalar, To, simd_abi::avx> {
+    using R = avx_simd_member_type<To>;
+
+    Vc_INTRINSIC R operator()(From a)
+    {
+        R r{};
+        r.set(0, static_cast<To>(a));
+        return r;
+    }
+    Vc_INTRINSIC R operator()(From a, From b)
+    {
+        R r{};
+        r.set(0, static_cast<To>(a));
+        r.set(1, static_cast<To>(b));
+        return r;
+    }
+    Vc_INTRINSIC R operator()(From a, From b, From c, From d)
+    {
+        R r{};
+        r.set(0, static_cast<To>(a));
+        r.set(1, static_cast<To>(b));
+        r.set(2, static_cast<To>(c));
+        r.set(3, static_cast<To>(d));
+        return r;
+    }
+    Vc_INTRINSIC R operator()(From a, From b, From c, From d, From e, From f, From g,
+                              From h)
+    {
+        R r{};
+        r.set(0, static_cast<To>(a));
+        r.set(1, static_cast<To>(b));
+        r.set(2, static_cast<To>(c));
+        r.set(3, static_cast<To>(d));
+        r.set(4, static_cast<To>(e));
+        r.set(5, static_cast<To>(f));
+        r.set(6, static_cast<To>(g));
+        r.set(7, static_cast<To>(h));
+        return r;
+    }
+    Vc_INTRINSIC R operator()(From x0, From x1, From x2, From x3, From x4, From x5,
+                              From x6, From x7, From x8, From x9, From x10, From x11,
+                              From x12, From x13, From x14, From x15)
+    {
+        R r{};
+        r.set(0, static_cast<To>(x0));
+        r.set(1, static_cast<To>(x1));
+        r.set(2, static_cast<To>(x2));
+        r.set(3, static_cast<To>(x3));
+        r.set(4, static_cast<To>(x4));
+        r.set(5, static_cast<To>(x5));
+        r.set(6, static_cast<To>(x6));
+        r.set(7, static_cast<To>(x7));
+        r.set(8, static_cast<To>(x8));
+        r.set(9, static_cast<To>(x9));
+        r.set(10, static_cast<To>(x10));
+        r.set(11, static_cast<To>(x11));
+        r.set(12, static_cast<To>(x12));
+        r.set(13, static_cast<To>(x13));
+        r.set(14, static_cast<To>(x14));
+        r.set(15, static_cast<To>(x15));
+        return r;
+    }
+    Vc_INTRINSIC R operator()(From x0, From x1, From x2, From x3, From x4, From x5,
+                              From x6, From x7, From x8, From x9, From x10, From x11,
+                              From x12, From x13, From x14, From x15, From x16, From x17,
+                              From x18, From x19, From x20, From x21, From x22, From x23,
+                              From x24, From x25, From x26, From x27, From x28, From x29,
+                              From x30, From x31)
+    {
+        return R(static_cast<To>(x0), static_cast<To>(x1), static_cast<To>(x2),
+                 static_cast<To>(x3), static_cast<To>(x4), static_cast<To>(x5),
+                 static_cast<To>(x6), static_cast<To>(x7), static_cast<To>(x8),
+                 static_cast<To>(x9), static_cast<To>(x10), static_cast<To>(x11),
+                 static_cast<To>(x12), static_cast<To>(x13), static_cast<To>(x14),
+                 static_cast<To>(x15), static_cast<To>(x16), static_cast<To>(x17),
+                 static_cast<To>(x18), static_cast<To>(x19), static_cast<To>(x20),
+                 static_cast<To>(x21), static_cast<To>(x22), static_cast<To>(x23),
+                 static_cast<To>(x24), static_cast<To>(x25), static_cast<To>(x26),
+                 static_cast<To>(x27), static_cast<To>(x28), static_cast<To>(x29),
+                 static_cast<To>(x30), static_cast<To>(x31));
+    }
+};
+
+// }}}1
+// simd_converter sse -> avx {{{1
+template <class From, class To>
+struct simd_converter<From, simd_abi::sse, To, simd_abi::avx> {
+    using Arg = sse_simd_member_type<From>;
+
+    Vc_INTRINSIC auto operator()(Arg a)
+    {
+        return x86::convert_all<avx_simd_member_type<To>>(a);
+    }
+    Vc_INTRINSIC avx_simd_member_type<To> operator()(Arg a, Arg b)
+    {
+        static_assert(sizeof(From) >= 1 * sizeof(To), "");
+        return x86::convert<Arg, avx_simd_member_type<To>>(a, b);
+    }
+    Vc_INTRINSIC avx_simd_member_type<To> operator()(Arg a, Arg b, Arg c, Arg d)
+    {
+        static_assert(sizeof(From) >= 2 * sizeof(To), "");
+        return x86::convert<Arg, avx_simd_member_type<To>>(a, b, c, d);
+    }
+    Vc_INTRINSIC avx_simd_member_type<To> operator()(Arg x0, Arg x1, Arg x2, Arg x3,
+                                                     Arg x4, Arg x5, Arg x6, Arg x7)
+    {
+        static_assert(sizeof(From) >= 4 * sizeof(To), "");
+        return x86::convert<Arg, avx_simd_member_type<To>>(x0, x1, x2, x3, x4, x5, x6,
+                                                           x7);
+    }
+    Vc_INTRINSIC avx_simd_member_type<To> operator()(Arg x0, Arg x1, Arg x2, Arg x3,
+                                                     Arg x4, Arg x5, Arg x6, Arg x7,
+                                                     Arg x8, Arg x9, Arg x10, Arg x11,
+                                                     Arg x12, Arg x13, Arg x14, Arg x15)
+    {
+        static_assert(sizeof(From) >= 8 * sizeof(To), "");
+        return x86::convert<Arg, avx_simd_member_type<To>>(
+            x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15);
+    }
+};
+
+// }}}1
+// simd_converter avx -> sse {{{1
+template <class From, class To>
+struct simd_converter<From, simd_abi::avx, To, simd_abi::sse> {
+    using Arg = avx_simd_member_type<From>;
+
+    Vc_INTRINSIC auto operator()(Arg a)
+    {
+        return x86::convert_all<sse_simd_member_type<To>>(a);
+    }
+    Vc_INTRINSIC sse_simd_member_type<To> operator()(Arg a, Arg b)
+    {
+        static_assert(sizeof(From) >= 4 * sizeof(To), "");
+        return x86::convert<Arg, sse_simd_member_type<To>>(a, b);
+    }
+    Vc_INTRINSIC sse_simd_member_type<To> operator()(Arg a, Arg b, Arg c, Arg d)
+    {
+        static_assert(sizeof(From) >= 8 * sizeof(To), "");
+        return x86::convert<Arg, sse_simd_member_type<To>>(a, b, c, d);
+    }
+};
+
+// }}}1
+// simd_converter avx -> avx {{{1
+template <class T> struct simd_converter<T, simd_abi::avx, T, simd_abi::avx> {
+    using Arg = avx_simd_member_type<T>;
+    Vc_INTRINSIC const Arg &operator()(const Arg &x) { return x; }
+};
+
+template <class From, class To>
+struct simd_converter<From, simd_abi::avx, To, simd_abi::avx> {
+    using Arg = avx_simd_member_type<From>;
+
+    Vc_INTRINSIC auto operator()(Arg a)
+    {
+        return x86::convert_all<avx_simd_member_type<To>>(a);
+    }
+    Vc_INTRINSIC avx_simd_member_type<To> operator()(Arg a, Arg b)
+    {
+        static_assert(sizeof(From) >= 2 * sizeof(To), "");
+        return x86::convert<Arg, avx_simd_member_type<To>>(a, b);
+    }
+    Vc_INTRINSIC avx_simd_member_type<To> operator()(Arg a, Arg b, Arg c, Arg d)
+    {
+        static_assert(sizeof(From) >= 4 * sizeof(To), "");
+        return x86::convert<Arg, avx_simd_member_type<To>>(a, b, c, d);
+    }
+    Vc_INTRINSIC avx_simd_member_type<To> operator()(Arg a, Arg b, Arg c, Arg d, Arg e,
+                                                     Arg f, Arg g, Arg h)
+    {
+        static_assert(sizeof(From) >= 8 * sizeof(To), "");
+        return x86::convert<Arg, avx_simd_member_type<To>>(a, b, c, d, e, f, g, h);
+    }
+};
+
 // }}}1
 constexpr struct {
     template <class T> operator T() const { return detail::allone<T>(); }
