@@ -145,9 +145,6 @@ class simd
     friend detail::generic_simd_impl<impl>;
     friend detail::simd_int_operators<simd, true>;
 
-    template <class TT, class U, class A, class R>
-    friend R Vc::static_simd_cast(const simd<U, A> &);
-
 public:
     using value_type = T;
     using reference = detail::smart_reference<member_type, impl, simd, value_type>;
@@ -347,6 +344,9 @@ public:
         return simd::make_mask(impl::less_equal(y.d, x.d));
     }
 
+    // "private" because of the first arguments's namespace
+    Vc_INTRINSIC simd(detail::private_init_t, const member_type &init) : d(init) {}
+
 private:
     static Vc_INTRINSIC mask_type make_mask(typename mask_type::member_type k)
     {
@@ -361,7 +361,6 @@ private:
     friend const auto &detail::data<value_type, abi_type>(const simd &);
     friend auto &detail::data<value_type, abi_type>(simd &);
 #endif
-    Vc_INTRINSIC simd(detail::private_init_t, const member_type &init) : d(init) {}
     alignas(traits::simd_member_alignment) member_type d;
 };
 
