@@ -1068,6 +1068,28 @@ struct simd_converter<From, simd_abi::avx, To, simd_abi::avx> {
     }
 };
 
+// split_to_array {{{1
+template <class T> struct split_to_array<simd<T, simd_abi::sse>, 2> {
+    using V = simd<T, simd_abi::sse>;
+    std::array<V, 2> operator()(simd<T, simd_abi::avx> x, std::index_sequence<0, 1>)
+    {
+        const auto xx = detail::data(x);
+        return {V(detail::private_init, lo128(xx)), V(detail::private_init, hi128(xx))};
+    }
+};
+
+// split_to_tuple {{{1
+template <class T>
+struct split_to_tuple<std::tuple<simd<T, simd_abi::sse>, simd<T, simd_abi::sse>>,
+                      simd_abi::avx> {
+    using V = simd<T, simd_abi::sse>;
+    std::tuple<V, V> operator()(simd<T, simd_abi::avx> x)
+    {
+        const auto xx = detail::data(x);
+        return {V(detail::private_init, lo128(xx)), V(detail::private_init, hi128(xx))};
+    }
+};
+
 // }}}1
 constexpr struct {
     template <class T> operator T() const { return detail::allone<T>(); }

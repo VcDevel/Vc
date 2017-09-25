@@ -64,16 +64,40 @@ template <class V> void concat_ge4(std::true_type)
     constexpr auto N1 = V::size() - 2 * N0;
     using V0 = Vc::simd<T, Vc::abi_for_size_t<T, N0>>;
     using V1 = Vc::simd<T, Vc::abi_for_size_t<T, N1>>;
-    auto x = Vc::split<N0, N0, N1>(a);
-    COMPARE(std::tuple_size<decltype(x)>::value, 3u);
-    COMPARE(std::get<0>(x), V0([](auto i) -> T { return i; }));
-    COMPARE(std::get<1>(x), V0([](auto i) -> T { return i + N0; }));
-    COMPARE(std::get<2>(x), V1([](auto i) -> T { return i + 2 * N0; }));
-    auto b = concat(std::get<1>(x), std::get<2>(x), std::get<0>(x));
-    // a and b may have different types if a was fixed_size<N> such that another ABI tag exists with
-    // equal N, then b will have the non-fixed-size ABI tag.
-    COMPARE(a.size(), b.size());
-    COMPARE(b, decltype(b)([](auto i) -> T { return (N0 + i) % V::size(); }));
+    {
+        auto x = Vc::split<N0, N0, N1>(a);
+        COMPARE(std::tuple_size<decltype(x)>::value, 3u);
+        COMPARE(std::get<0>(x), V0([](auto i) -> T { return i; }));
+        COMPARE(std::get<1>(x), V0([](auto i) -> T { return i + N0; }));
+        COMPARE(std::get<2>(x), V1([](auto i) -> T { return i + 2 * N0; }));
+        auto b = concat(std::get<1>(x), std::get<2>(x), std::get<0>(x));
+        // a and b may have different types if a was fixed_size<N> such that another ABI
+        // tag exists with equal N, then b will have the non-fixed-size ABI tag.
+        COMPARE(a.size(), b.size());
+        COMPARE(b, decltype(b)([](auto i) -> T { return (N0 + i) % V::size(); }));
+    }{
+        auto x = Vc::split<N0, N1, N0>(a);
+        COMPARE(std::tuple_size<decltype(x)>::value, 3u);
+        COMPARE(std::get<0>(x), V0([](auto i) -> T { return i; }));
+        COMPARE(std::get<1>(x), V1([](auto i) -> T { return i + N0; }));
+        COMPARE(std::get<2>(x), V0([](auto i) -> T { return i + N0 + N1; }));
+        auto b = concat(std::get<1>(x), std::get<2>(x), std::get<0>(x));
+        // a and b may have different types if a was fixed_size<N> such that another ABI
+        // tag exists with equal N, then b will have the non-fixed-size ABI tag.
+        COMPARE(a.size(), b.size());
+        COMPARE(b, decltype(b)([](auto i) -> T { return (N0 + i) % V::size(); }));
+    }{
+        auto x = Vc::split<N1, N0, N0>(a);
+        COMPARE(std::tuple_size<decltype(x)>::value, 3u);
+        COMPARE(std::get<0>(x), V1([](auto i) -> T { return i; }));
+        COMPARE(std::get<1>(x), V0([](auto i) -> T { return i + N1; }));
+        COMPARE(std::get<2>(x), V0([](auto i) -> T { return i + N0 + N1; }));
+        auto b = concat(std::get<1>(x), std::get<2>(x), std::get<0>(x));
+        // a and b may have different types if a was fixed_size<N> such that another ABI
+        // tag exists with equal N, then b will have the non-fixed-size ABI tag.
+        COMPARE(a.size(), b.size());
+        COMPARE(b, decltype(b)([](auto i) -> T { return (N1 + i) % V::size(); }));
+    }
 }
 
 template <class V> void concat_even(std::false_type) {}

@@ -1391,6 +1391,101 @@ struct simd_converter<From, simd_abi::avx512, To, simd_abi::avx512> {
     }
 };
 
+// split_to_array {{{1
+template <class T> struct split_to_array<simd<T, simd_abi::avx>, 2> {
+    using V = simd<T, simd_abi::avx>;
+    std::array<V, 2> operator()(simd<T, simd_abi::avx512> x, std::index_sequence<0, 1>)
+    {
+        const auto xx = detail::data(x);
+        return {V(detail::private_init, lo256(xx)), V(detail::private_init, hi256(xx))};
+    }
+};
+
+template <class T> struct split_to_array<simd<T, simd_abi::sse>, 4> {
+    using V = simd<T, simd_abi::sse>;
+    std::array<V, 4> operator()(simd<T, simd_abi::avx512> x,
+                                std::index_sequence<0, 1, 2, 3>)
+    {
+        const auto xx = detail::data(x);
+        return {V(detail::private_init, lo128(xx)),
+                V(detail::private_init, extract128<1>(xx)),
+                V(detail::private_init, extract128<2>(xx)),
+                V(detail::private_init, extract128<3>(xx))};
+    }
+};
+
+// split_to_tuple {{{1
+template <class T>
+struct split_to_tuple<std::tuple<simd<T, simd_abi::avx>, simd<T, simd_abi::avx>>,
+                      simd_abi::avx512> {
+    using V = simd<T, simd_abi::avx>;
+    std::tuple<V, V> operator()(simd<T, simd_abi::avx512> x)
+    {
+        const auto xx = detail::data(x);
+        return {V(detail::private_init, lo256(xx)), V(detail::private_init, hi256(xx))};
+    }
+};
+
+template <class T>
+struct split_to_tuple<std::tuple<simd<T, simd_abi::sse>, simd<T, simd_abi::sse>,
+                                 simd<T, simd_abi::sse>, simd<T, simd_abi::sse>>,
+                      simd_abi::avx512> {
+    using V = simd<T, simd_abi::sse>;
+    std::tuple<V, V, V, V> operator()(simd<T, simd_abi::avx512> x)
+    {
+        const auto xx = detail::data(x);
+        return {V(detail::private_init, lo128(xx)),
+                V(detail::private_init, extract128<1>(xx)),
+                V(detail::private_init, extract128<2>(xx)),
+                V(detail::private_init, extract128<3>(xx))};
+    }
+};
+
+template <class T>
+struct split_to_tuple<
+    std::tuple<simd<T, simd_abi::avx>, simd<T, simd_abi::sse>, simd<T, simd_abi::sse>>,
+    simd_abi::avx512> {
+    using V0 = simd<T, simd_abi::avx>;
+    using V1 = simd<T, simd_abi::sse>;
+    std::tuple<V0, V1, V1> operator()(simd<T, simd_abi::avx512> x)
+    {
+        const auto xx = detail::data(x);
+        return {V0(detail::private_init, lo256(xx)),
+                V1(detail::private_init, extract128<2>(xx)),
+                V1(detail::private_init, extract128<3>(xx))};
+    }
+};
+
+template <class T>
+struct split_to_tuple<
+    std::tuple<simd<T, simd_abi::sse>, simd<T, simd_abi::sse>, simd<T, simd_abi::avx>>,
+    simd_abi::avx512> {
+    using V0 = simd<T, simd_abi::sse>;
+    using V1 = simd<T, simd_abi::avx>;
+    std::tuple<V0, V0, V1> operator()(simd<T, simd_abi::avx512> x)
+    {
+        const auto xx = detail::data(x);
+        return {V0(detail::private_init, lo128(xx)),
+                V0(detail::private_init, extract128<1>(xx)),
+                V1(detail::private_init, hi256(xx))};
+    }
+};
+
+template <class T>
+struct split_to_tuple<
+    std::tuple<simd<T, simd_abi::sse>, simd<T, simd_abi::avx>, simd<T, simd_abi::sse>>,
+    simd_abi::avx512> {
+    using V0 = simd<T, simd_abi::sse>;
+    using V1 = simd<T, simd_abi::avx>;
+    std::tuple<V0, V1, V0> operator()(simd<T, simd_abi::avx512> x)
+    {
+        const auto xx = detail::data(x);
+        return {V0(detail::private_init, lo128(xx)),
+                V1(detail::private_init, extract256_center(xx)),
+                V0(detail::private_init, extract128<3>(xx))};
+    }
+};
+
 // }}}1
 // generic_simd_impl::masked_cassign specializations {{{1
 #define Vc_MASKED_CASSIGN_SPECIALIZATION(TYPE_, TYPE_SUFFIX_, OP_, OP_NAME_)             \

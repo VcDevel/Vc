@@ -953,6 +953,80 @@ private:
     }
 };
 
+// split_to_tuple {{{1
+template <class T, class A0, class... As, int N>
+struct split_to_tuple<std::tuple<simd<T, A0>, simd<T, As>...>, simd_abi::fixed_size<N>> {
+    template <class A> using V = simd<T, A>;
+    std::tuple<V<A0>, V<As>...> operator()(const simd<T, simd_abi::fixed_size<N>> &x)
+    {
+        using STup = fixed_size_storage<T, N>;
+        return impl(A0(), detail::data(x), std::make_index_sequence<1 + sizeof...(As)>(),
+                    std::make_index_sequence<STup::tuple_size>());
+    }
+
+private:
+    template <int N0> using Stor = fixed_size_storage<T, N0>;
+    template <std::size_t I, int N0>
+    using tuple_abi = typename tuple_element<I, Stor<N0>>::abi_type;
+
+    template <int N0, class... Bs, size_t... Indexes>
+    std::tuple<V<A0>, V<As>...> impl2(
+        const detail::simd_tuple<T, tuple_abi<Indexes, N0>..., Bs...> &x,
+        std::index_sequence<Indexes...>)
+    {
+        return std::tuple_cat(
+            std::tuple<V<A0>>(
+                {private_init, detail::make_tuple(detail::get_simd<Indexes>(x)...)}),
+            split_to_tuple<std::tuple<V<As>...>, simd_abi::fixed_size<N - N0>>()(
+                {private_init, tuple_pop_front(size_constant<sizeof...(Indexes)>(), x)}));
+    }
+
+    template <int N0, size_t... Indexes0, size_t... Indexes1>
+    std::tuple<V<A0>, V<As>...> impl(simd_abi::fixed_size<N0>,
+                                     const detail::simd_tuple<T, A0, As...> &x,
+                                     std::index_sequence<Indexes0...>,
+                                     std::index_sequence<Indexes1...>)
+    {
+        return impl2<N0>(x, std::make_index_sequence<Stor<N0>::tuple_size>());
+    }
+
+    template <class NotFixedAbi, size_t... Indexes>
+    std::tuple<V<A0>, V<As>...> impl(NotFixedAbi,
+                                     const detail::simd_tuple<T, A0, As...> &x,
+                                     std::index_sequence<Indexes...>,
+                                     std::index_sequence<Indexes...>)
+    {
+        return {detail::get_simd<Indexes>(x)...};
+    }
+
+    template <class NotFixedAbi, class... Bs, size_t... Indexes0, size_t... Indexes1>
+    std::tuple<V<A0>, V<As>...> impl(NotFixedAbi, const detail::simd_tuple<T, Bs...> &x,
+                                     std::index_sequence<Indexes0...>,
+                                     std::index_sequence<Indexes1...>)
+    {
+        std::size_t offset = 0;
+        return {V<A0>(reinterpret_cast<const detail::may_alias<T> *>(&x) +
+                          (offset += V<A0>::size()) - V<A0>::size(),
+                      flags::vector_aligned),
+                V<As>(reinterpret_cast<const detail::may_alias<T> *>(&x) +
+                          (offset += V<As>::size()) - V<As>::size(),
+                      flags::element_aligned)...};
+    }
+
+    template <class NotFixedAbi, class... Bs, size_t... Indexes0, size_t... Indexes1>
+    std::tuple<V<A0>, V<As>...> impl(NotFixedAbi,
+                                     const detail::simd_tuple<T, A0, Bs...> &x,
+                                     std::index_sequence<Indexes0...>,
+                                     std::index_sequence<Indexes1...>)
+    {
+        return std::tuple_cat(std::tuple<V<A0>>({private_init, x.first}),
+                              split_to_tuple<std::tuple<V<As>...>,
+                                             simd_abi::fixed_size<N - V<A0>::size()>>()(
+                                  {private_init, x.second}));
+    }
+};
+
+// }}}1
 // traits {{{1
 template <class T, int N, bool = ((N <= 32 && N >= 0) || N == 64)>
 struct fixed_size_traits {

@@ -33,46 +33,63 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-template <class V, size_t Parts, class T, class A, size_t... Indexes>
-std::array<V, Parts> split_to_array(const simd<T, A> &x,
+template <class V, size_t Parts> struct split_to_array {
+    template <class A, size_t... Indexes>
+    std::array<V, Parts> operator()(const simd<typename V::value_type, A> &x,
                                     std::index_sequence<Indexes...>)
-{
-    // this could be much simpler:
-    //
-    // return {V([&](auto i) { return x[i + Indexes * V::size()]; })...};
-    //
-    // Sadly GCC has a bug: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47226. The
-    // following works around it by placing the pack outside of the code section of the
-    // lambda:
-    return {[](size_t j, const simd<T, A> &y) {
-        return V([&](auto i) { return y[i + j * V::size()]; });
-    }(Indexes, x)...};
-}
+    {
+        // this could be much simpler:
+        //
+        // return {V([&](auto i) { return x[i + Indexes * V::size()]; })...};
+        //
+        // Sadly GCC has a bug: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=47226. The
+        // following works around it by placing the pack outside of the code section of
+        // the lambda:
+        return {[](size_t j, const simd<typename V::value_type, A> &y) {
+            return V([&](auto i) { return y[i + j * V::size()]; });
+        }(Indexes, x)...};
+    }
+};
 }  // namespace detail
 
-template <class V, class T, class A, size_t Parts = simd_size_v<T, A> / V::size()>
-std::enable_if_t<(is_simd<V>::value && simd_size_v<T, A> == Parts * V::size()),
+template <class V, class A,
+          size_t Parts = simd_size_v<typename V::value_type, A> / V::size()>
+std::enable_if_t<(is_simd<V>::value &&
+                  simd_size_v<typename V::value_type, A> == Parts * V::size()),
                  std::array<V, Parts>>
-split(const simd<T, A> &x)
+split(const simd<typename V::value_type, A> &x)
 {
-    return detail::split_to_array<V, Parts>(x, std::make_index_sequence<Parts>());
+    return detail::split_to_array<V, Parts>()(x, std::make_index_sequence<Parts>());
 }
 
 #if defined __cpp_fold_expressions
+namespace detail
+{
+template <class Tuple, class From> struct split_to_tuple {
+    using T = typename std::tuple_element<0, Tuple>::type::value_type;
+    Vc_INTRINSIC Tuple operator()(const simd<T, From> &x)
+    {
+        Tuple tup;
+        size_t offset = 0;
+        detail::execute_n_times<std::tuple_size<Tuple>::value>([&](auto i) {
+            auto &v_i = std::get<i>(tup);
+            constexpr size_t N = std::decay_t<decltype(v_i)>::size();
+            detail::execute_n_times<N>([&](auto j) { v_i[j] = x[j + offset]; });
+            offset += N;
+        });
+        return tup;
+    }
+};
+}  // namespace detail
+
 template <size_t... Sizes, class T, class A>
-std::enable_if_t<((Sizes + ...) == simd<T, A>::size()),
-                 std::tuple<simd<T, abi_for_size_t<T, Sizes>>...>>
+Vc_NEVER_INLINE
+//std::enable_if_t<((Sizes + ...) == simd<T, A>::size()),
+                 std::tuple<simd<T, abi_for_size_t<T, Sizes>>...>//>
 split(const simd<T, A> &x)
 {
-    std::tuple<simd<T, abi_for_size_t<T, Sizes>>...> tup;
-    size_t offset = 0;
-    detail::execute_n_times<sizeof...(Sizes)>([&](auto i) {
-        auto &v_i = std::get<i>(tup);
-        constexpr size_t N = std::decay_t<decltype(v_i)>::size();
-        detail::execute_n_times<N>([&](auto j) { v_i[j] = x[j + offset]; });
-        offset += N;
-    });
-    return tup;
+    return detail::split_to_tuple<std::tuple<simd<T, abi_for_size_t<T, Sizes>>...>, A>()(
+        x);
 }
 
 namespace detail
