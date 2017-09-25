@@ -127,6 +127,17 @@ static_assert(std::is_same<fixed_size_storage<float, 13>,
 #endif
 }  // namespace tests
 
+// tuple_pop_front {{{1
+template <class T> Vc_INTRINSIC auto tuple_pop_front(size_constant<0>, const T &x)
+{
+    return x;
+}
+template <size_t K, class T>
+Vc_INTRINSIC auto tuple_pop_front(size_constant<K>, const T &x)
+{
+    return tuple_pop_front(size_constant<K - 1>(), x.second);
+}
+
 // n_abis_in_tuple {{{1
 template <class T> struct seq_op;
 template <size_t I0, size_t... Is> struct seq_op<std::index_sequence<I0, Is...>> {
@@ -812,16 +823,6 @@ template <class From, class To> struct fixed_size_converter {
 
 
 protected:
-    template <class T> Vc_INTRINSIC auto strip_n_chunks(size_constant<0>, const T &x)
-    {
-        return x;
-    }
-    template <size_t K, class T>
-    Vc_INTRINSIC auto strip_n_chunks(size_constant<K>, const T &x)
-    {
-        return strip_n_chunks(size_constant<K - 1>(), x.second);
-    }
-
     // OneToMultipleChunks {{{2
     template <class A0>
     Vc_INTRINSIC return_type<A0> impl(OneToMultipleChunks, const simd_tuple<From, A0> &x)
@@ -884,7 +885,7 @@ protected:
                     typename tuple_element<sizeof...(Indexes),
                                            simd_tuple<From, A0, Abis...>>::type::abi_type,
                     typename R::second_type::first_abi>(),
-                strip_n_chunks(size_constant<sizeof...(Indexes)>(), x))};
+                tuple_pop_front(size_constant<sizeof...(Indexes)>(), x))};
     }
 
     // EqualChunks {{{2
