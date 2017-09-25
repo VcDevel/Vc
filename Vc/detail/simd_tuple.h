@@ -39,7 +39,7 @@ template <class T> T subscript_read(arithmetic<T> x, size_t) noexcept { return x
 template <class T>
 void subscript_write(arithmetic<T> &x, size_t, detail::id<T> y) noexcept
 {
-    return x = y;
+    x = y;
 }
 
 template <class T> typename T::value_type subscript_read(const T &x, size_t i) noexcept
