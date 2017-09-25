@@ -3050,6 +3050,9 @@ Vc_INTRINSIC auto Vc_VDECL convert_all_impl(From v, std::true_type)
     return generate_from_n_evaluations<N, std::array<To, N>>([&](auto i) {
         using namespace Vc::detail::x86;  // ICC needs this to find convert and
                                           // shift_right below.
+#ifdef Vc_MSVC
+        constexpr size_t N = From::size() / To::size();
+#endif
         auto part = x86::extract_part<decltype(i)::value, N>(v);
         return convert<decltype(part), To>(part);
     });

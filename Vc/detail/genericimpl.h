@@ -338,6 +338,9 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
                                       (bits_per_element * (i / bits_per_element)));
             });
             tmp &= V([](auto i) {
+#ifdef Vc_MSVC
+                constexpr size_t bits_per_element = sizeof(U) * CHAR_BIT;
+#endif
                 return static_cast<U>(1 << (i % bits_per_element));
             });  // mask bit index
             return detail::intrin_cast<detail::intrinsic_type<T, N>>(
