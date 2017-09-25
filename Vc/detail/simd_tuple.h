@@ -68,7 +68,7 @@ struct tuple_element_meta : public detail::traits<T, Abi>::simd_impl_type {
     using traits = detail::traits<T, Abi>;
     using maskimpl = typename traits::mask_impl_type;
     using member_type = typename traits::simd_member_type;
-    using simd_type = simd<T, Abi>;
+    using simd_type = Vc::simd<T, Abi>;
     static constexpr size_t offset = Offset;
     static constexpr size_t size() { return simd_size<T, Abi>::value; }
     static constexpr size_constant<simd_size<T, Abi>::value> size_tag = {};
