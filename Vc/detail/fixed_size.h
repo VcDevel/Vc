@@ -219,6 +219,78 @@ template <size_t Begin> struct tree_reduction<2, Begin> {
     }
 };
 
+// vec_to_scalar_reduction {{{1
+// This helper function implements the second step in a generic fixed_size reduction.
+// -  Input: a tuple of native simd (or scalar) objects of decreasing size.
+// - Output: a scalar (the reduction).
+// - Approach:
+//   1. reduce the first two tuple elements
+//      a) If the number of elements differs by a factor of 2, split the first object into
+//         two objects of the second type and reduce all three to one object of second
+//         type.
+//      b) If the number of elements differs by a factor of 4, split the first object into
+//         two equally sized objects, reduce, and split to two objects of the second type.
+//         Finally, reduce all three remaining objects to one object of second type.
+//      c) Otherwise use Vc::reduce to reduce both inputs to a scalar, and binary_op to
+//         reduce to a single scalar.
+//
+//      (This optimizes all native cases on x86, e.g. <AVX512, SSE, Scalar>.)
+//
+//   2. Concate the result of (1) with the remaining tuple elements to recurse into
+//      vec_to_scalar_reduction.
+//
+//   3. If vec_to_scalar_reduction is called with a one-element tuple, call Vc::reduce to
+//      reduce to a scalar and return.
+template <class T, class A0, class A1, class BinaryOperation>
+Vc_INTRINSIC simd<T, A1> vec_to_scalar_reduction_first_pair(
+    const simd<T, A0> left, const simd<T, A1> right, const BinaryOperation &binary_op,
+    size_constant<2>) noexcept
+{
+    const std::array<simd<T, A1>, 2> splitted = split<simd<T, A1>>(left);
+    return binary_op(binary_op(splitted[0], right), splitted[1]);
+}
+
+template <class T, class A0, class A1, class BinaryOperation>
+Vc_INTRINSIC simd<T, A1> vec_to_scalar_reduction_first_pair(
+    const simd<T, A0> left, const simd<T, A1> right, const BinaryOperation &binary_op,
+    size_constant<4>) noexcept
+{
+    constexpr auto N0 = simd_size_v<T, A0> / 2;
+    const auto left2 = split<simd<T, abi_for_size_t<T, N0>>>(left);
+    const std::array<simd<T, A1>, 2> splitted =
+        split<simd<T, A1>>(binary_op(left2[0], left2[1]));
+    return binary_op(binary_op(splitted[0], right), splitted[1]);
+}
+
+template <class T, class A0, class A1, class BinaryOperation, size_t Factor>
+Vc_INTRINSIC simd<T, simd_abi::scalar> vec_to_scalar_reduction_first_pair(
+    const simd<T, A0> left, const simd<T, A1> right, const BinaryOperation &binary_op,
+    size_constant<Factor>) noexcept
+{
+    return binary_op(Vc::reduce(left, binary_op), Vc::reduce(right, binary_op));
+}
+
+template <class T, class A0, class BinaryOperation>
+Vc_INTRINSIC T vec_to_scalar_reduction(const simd_tuple<T, A0> &tup,
+                                       const BinaryOperation &binary_op) noexcept
+{
+    return Vc::reduce(simd<T, A0>(detail::private_init, tup.first), binary_op);
+}
+
+template <class T, class A0, class A1, class... As, class BinaryOperation>
+Vc_INTRINSIC T vec_to_scalar_reduction(const simd_tuple<T, A0, A1, As...> &tup,
+                                       const BinaryOperation &binary_op) noexcept
+{
+    return vec_to_scalar_reduction(
+        detail::tuple_concat(
+            detail::make_tuple(
+                vec_to_scalar_reduction_first_pair<T, A0, A1, BinaryOperation>(
+                    {private_init, tup.first}, {private_init, tup.second.first},
+                    binary_op, size_constant<simd_size_v<T, A0> / simd_size_v<T, A1>>())),
+            tup.second.second),
+        binary_op);
+}
+
 // partial_bitset_to_member_type {{{1
 template <class V, size_t N>
 Vc_INTRINSIC auto partial_bitset_to_member_type(std::bitset<N> shifted_bits)
@@ -325,16 +397,11 @@ private:
                            const BinaryOperation &binary_op,
                            std::index_sequence<Counts...>, std::index_sequence<Begins...>)
     {
-        // TODO: E.g. <AVX, SSE, Scalar> should not reduce as
-        // reduce(reduce(AVX), reduce(SSE), Scalar) but rather as
-        // reduce(reduce(lo(AVX), hi(AVX), SSE), Scalar)
-        // If multiple AVX objects are present, they should reduce to a single AVX object
-        // first
-        const auto scalars =
-            detail::make_tuple(Vc::simd<T, simd_abi::scalar>(Vc::reduce(
-                detail::tree_reduction<Counts, Begins>()(tup, binary_op), binary_op))...);
-        return detail::data(
-            detail::tree_reduction<scalars.tuple_size, 0>()(scalars, binary_op));
+        // 1. reduce all tuple elements with equal ABI to a single element in the output
+        // tuple
+        const auto reduced_vec = detail::make_tuple(detail::tree_reduction<Counts, Begins>()(tup, binary_op)...);
+        // 2. split and reduce until a scalar results
+        return detail::vec_to_scalar_reduction(reduced_vec, binary_op);
     }
 
 public:
