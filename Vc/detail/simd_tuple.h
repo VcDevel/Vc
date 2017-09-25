@@ -173,8 +173,8 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
 #ifdef __GNUC__
         return reinterpret_cast<const may_alias<T> *>(this)[i];
 #else
-        return i < first_type::size() ? subscript_read(first, i)
-                                      : second[i - first_type::size()];
+        return i < simd_size_v<T, Abi0> ? subscript_read(first, i)
+                                        : second[i - simd_size_v<T, Abi0>];
 #endif
     }
     void set(size_t i, T val) noexcept
@@ -182,10 +182,10 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
 #ifdef __GNUC__
         reinterpret_cast<may_alias<T> *>(this)[i] = val;
 #else
-        if (i < first_type::size()) {
+        if (i < simd_size_v<T, Abi0>) {
             subscript_write(first, i, val);
         } else {
-            second.set(i - first_type::size(), val);
+            second.set(i - simd_size_v<T, Abi0>, val);
         }
 #endif
     }
