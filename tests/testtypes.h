@@ -90,12 +90,12 @@ using vdouble = Vc::native_simd<double>;
 using vldouble = Vc::native_simd<long double>;
 
 // viN/vfN {{{1
-template <typename T> using vi8  = Vc::fixed_size_simd<T, vschar::size()>;
-template <typename T> using vi16 = Vc::fixed_size_simd<T, vshort::size()>;
-template <typename T> using vf32 = Vc::fixed_size_simd<T, vfloat::size()>;
-template <typename T> using vi32 = Vc::fixed_size_simd<T, vint::size()>;
-template <typename T> using vf64 = Vc::fixed_size_simd<T, vdouble::size()>;
-template <typename T> using vi64 = Vc::fixed_size_simd<T, vllong::size()>;
+template <typename T> using vi8  = Vc::fixed_size_simd<T, vschar::size_v>;
+template <typename T> using vi16 = Vc::fixed_size_simd<T, vshort::size_v>;
+template <typename T> using vf32 = Vc::fixed_size_simd<T, vfloat::size_v>;
+template <typename T> using vi32 = Vc::fixed_size_simd<T, vint::size_v>;
+template <typename T> using vf64 = Vc::fixed_size_simd<T, vdouble::size_v>;
+template <typename T> using vi64 = Vc::fixed_size_simd<T, vllong::size_v>;
 template <typename T>
 using vl = typename std::conditional<sizeof(long) == sizeof(llong), vi64<T>, vi32<T>>::type;
 

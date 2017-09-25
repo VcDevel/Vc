@@ -71,8 +71,8 @@ public:
     // conversions to internal type is done in mask_base
 
     // bitset interface
-    static Vc_ALWAYS_INLINE simd_mask from_bitset(std::bitset<size()> bs) { return {detail::bitset_init, bs}; }
-    std::bitset<size()> Vc_ALWAYS_INLINE to_bitset() const { return impl::to_bitset(d); }
+    static Vc_ALWAYS_INLINE simd_mask from_bitset(std::bitset<size_v> bs) { return {detail::bitset_init, bs}; }
+    std::bitset<size_v> Vc_ALWAYS_INLINE to_bitset() const { return impl::to_bitset(d); }
 
     // explicit broadcast constructor
     explicit Vc_ALWAYS_INLINE simd_mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
