@@ -114,7 +114,7 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
     static constexpr second_type second = {};
 
     template <size_t Offset = 0, class F>
-    static Vc_INTRINSIC simd_tuple generate(F &&gen)
+    static Vc_INTRINSIC simd_tuple generate(F &&gen, detail::size_constant<Offset> = {})
     {
         return {gen(tuple_element_meta<T, Abi0, Offset>())};
     }
@@ -148,11 +148,12 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
     second_type second;
 
     template <size_t Offset = 0, class F>
-    static Vc_INTRINSIC simd_tuple generate(F &&gen)
+    static Vc_INTRINSIC simd_tuple generate(F &&gen, detail::size_constant<Offset> = {})
     {
         return {gen(tuple_element_meta<T, Abi0, Offset>()),
-                second_type::template generate<Offset + simd_size<T, Abi0>::value>(
-                    std::forward<F>(gen))};
+                second_type::generate(
+                    std::forward<F>(gen),
+                    detail::size_constant<Offset + simd_size_v<T, Abi0>>())};
     }
 
     template <size_t Offset = 0, class F, class... More>
