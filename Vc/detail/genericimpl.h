@@ -329,7 +329,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
         constexpr size_t bits_per_element = sizeof(U) * CHAR_BIT;
         if (bits_per_element >= N) {
             V tmp(static_cast<U>(bits.to_ullong()));                  // broadcast
-            tmp &= V([](auto i) { return static_cast<U>(1 << i); });  // mask bit index
+            tmp &= V([](auto i) { return static_cast<U>(1ull << i); });  // mask bit index
             return detail::intrin_cast<detail::intrinsic_type<T, N>>(
                 detail::data(tmp != V()));
         } else {
@@ -341,7 +341,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
 #ifdef Vc_MSVC
                 constexpr size_t bits_per_element = sizeof(U) * CHAR_BIT;
 #endif
-                return static_cast<U>(1 << (i % bits_per_element));
+                return static_cast<U>(1ull << (i % bits_per_element));
             });  // mask bit index
             return detail::intrin_cast<detail::intrinsic_type<T, N>>(
                 detail::data(tmp != V()));
