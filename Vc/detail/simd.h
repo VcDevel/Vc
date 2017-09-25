@@ -32,6 +32,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "concepts.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
+
+#ifdef Vc_MSVC
+#pragma warning(push)
+#pragma warning(disable : 4624)  // "warning C4624: 'Vc::v2::simd<T,A>': destructor
+                                 // was implicitly defined as deleted", yes, that's the
+                                 // intention. No need to warn me about it.
+#endif
+
 namespace detail
 {
 template <class Derived> struct generic_simd_impl;
@@ -363,6 +371,10 @@ private:
 #endif
     alignas(traits::simd_member_alignment) member_type d;
 };
+
+#ifdef Vc_MSVC
+#pragma warning(pop)
+#endif
 
 namespace detail
 {

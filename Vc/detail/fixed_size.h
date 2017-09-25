@@ -393,7 +393,7 @@ template <int N> struct fixed_size_simd_impl {
 private:
     template <class T, class... As, class BinaryOperation, size_t... Counts,
               size_t... Begins>
-    static inline T reduce(const simd_tuple<T, As...> tup,
+    static inline T reduce(const simd_tuple<T, As...> &tup,
                            const BinaryOperation &binary_op,
                            std::index_sequence<Counts...>, std::index_sequence<Begins...>)
     {
@@ -406,7 +406,7 @@ private:
 
 public:
     template <class T, class BinaryOperation>
-    static inline T reduce(size_tag, const simd<T> x, const BinaryOperation &binary_op)
+    static inline T reduce(size_tag, const simd<T> &x, const BinaryOperation &binary_op)
     {
         using ranges = n_abis_in_tuple<simd_member_type<T>>;
         return fixed_size_simd_impl::reduce(x.d, binary_op, typename ranges::counts(),
