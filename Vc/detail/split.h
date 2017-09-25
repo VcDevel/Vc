@@ -62,7 +62,6 @@ split(const simd<typename V::value_type, A> &x)
     return detail::split_to_array<V, Parts>()(x, std::make_index_sequence<Parts>());
 }
 
-#if defined __cpp_fold_expressions
 namespace detail
 {
 template <class Tuple, class From> struct split_to_tuple {
@@ -120,6 +119,7 @@ struct subscript_in_pack<N, T, detail::typelist<A, As...>, false> {
 };
 }  // namespace detail
 
+#if defined __cpp_fold_expressions
 template <class T, class... As>
 simd<T, abi_for_size_t<T, (simd_size_v<T, As> + ...)>> concat(
     const simd<T, As> &... xs)
