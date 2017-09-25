@@ -886,7 +886,7 @@ template <class From, class To> struct fixed_size_converter {
                            MultipleToOneChunk<int(ToSize / FromSize)>>>;
 
     template <class... Abis>
-    using return_type = fixed_size_storage<To, simd_tuple<From, Abis...>::size()>;
+    using return_type = fixed_size_storage<To, simd_tuple<From, Abis...>::size_v>;
 
 
 protected:

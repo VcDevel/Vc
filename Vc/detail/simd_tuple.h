@@ -99,6 +99,7 @@ tuple_element_meta<T, Abi, Offset> make_meta(const simd_tuple<T, Abi, As...> &)
 template <class T> struct simd_tuple<T> {
     static constexpr size_t tuple_size = 0;
     static constexpr size_t size() { return 0; }
+    static constexpr size_t size_v = 0;
 };
 
 // 1 member {{{2
@@ -108,6 +109,7 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
     using first_abi = Abi0;
     static constexpr size_t tuple_size = 1;
     static constexpr size_t size() { return simd_size_v<T, Abi0>; }
+    static constexpr size_t size_v = simd_size_v<T, Abi0>;
     first_type first;
     static constexpr second_type second = {};
 
@@ -141,6 +143,7 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
     using second_type = simd_tuple<T, Abis...>;
     static constexpr size_t tuple_size = sizeof...(Abis) + 1;
     static constexpr size_t size() { return simd_size_v<T, Abi0> + second_type::size(); }
+    static constexpr size_t size_v = simd_size_v<T, Abi0> + second_type::size();
     first_type first;
     second_type second;
 
