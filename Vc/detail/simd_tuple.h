@@ -245,11 +245,19 @@ Vc_INTRINSIC simd_tuple<T, A1s...> tuple_concat(const simd_tuple<T>,
 {
     return right;
 }
-template <class T, class A00, class... A0s, class... A1s>
-Vc_INTRINSIC simd_tuple<T, A00, A0s..., A1s...> tuple_concat(
-    const simd_tuple<T, A00, A0s...> left, const simd_tuple<T, A1s...> right)
+
+template <class T, class A00, class... A0s, class A10, class... A1s>
+Vc_INTRINSIC simd_tuple<T, A00, A0s..., A10, A1s...> tuple_concat(
+    const simd_tuple<T, A00, A0s...> left, const simd_tuple<T, A10, A1s...> right)
 {
     return {left.first, tuple_concat(left.second, right)};
+}
+
+template <class T, class A00, class... A0s>
+Vc_INTRINSIC simd_tuple<T, A00, A0s...> tuple_concat(
+    const simd_tuple<T, A00, A0s...> left, const simd_tuple<T>)
+{
+    return left;
 }
 
 // get_simd<N> {{{1
