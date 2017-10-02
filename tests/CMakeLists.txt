@@ -193,7 +193,13 @@ function(vc_add_test name) #{{{
       if(DEFINED Vc_${impl}_flags)
          list(APPEND flags "${Vc_${impl}_flags}")
       endif()
+
       string(REPLACE ";" " " link_flags "${flags}")
+      if(Vc_COMPILER_IS_MSVC)
+         # MS LNK warns about /arch: flags
+         string(REGEX REPLACE "/arch:[^ ]*" "" link_flags "${link_flags}")
+      endif()
+
       string(TOUPPER "${impl}" label)
       set(use_var "USE_${label}")
       set(emulator FALSE)
