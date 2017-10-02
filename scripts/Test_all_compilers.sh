@@ -11,7 +11,7 @@ cd "`dirname "$0"`/.."
 test -z "dashboard_model" && export dashboard_model=Experimental
 
 runTest() {
-  CFLAGS="$1" CXXFLAGS="$1" ctest -S scripts/test.cmake
+  CFLAGS="$1" CXXFLAGS="$1" ctest -S scripts/test.cmake || true
 }
 
 tested_compilers="lsakdfjwowleqirjodfisj"
@@ -26,8 +26,8 @@ $id"
 
   # alright run the ctest script
   runTest
-  supports32Bit && runTest -m32
-  supportsx32 && runTest -mx32
+  supports32Bit && runTest -m32 || true
+  supportsx32 && runTest -mx32 || true
 }
 
 supports32Bit() {
