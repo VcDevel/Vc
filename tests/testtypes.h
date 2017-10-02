@@ -148,7 +148,7 @@ using native_real_test_types = vir::concat<
     vir::Typelist<>>;
 
 // all_test_types {{{1
-typedef vir::concat<
+using all_test_types = vir::concat<
     native_test_types,
     vir::expand_list<
         vir::Typelist<
@@ -167,7 +167,13 @@ typedef vir::concat<
                                              Vc::simd_abi::max_fixed_size - 1>>,
             vir::Template<base_template,
                           Vc::simd_abi::fixed_size<Vc::simd_abi::max_fixed_size>>>,
-        testtypes>> all_test_types;
+#ifdef Vc_MSVC
+        // work around ICE: MSVC crashes for simd<long double, fixed_size<N>>
+        typename vir::filter_list<long double, testtypes>::type
+#else
+        testtypes
+#endif
+        >>;
 
 // real_test_types {{{1
 using real_test_types = vir::concat<
