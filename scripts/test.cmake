@@ -392,6 +392,7 @@ if(NOT "$ENV{CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
 endif()
 
 if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[0123456789]\\."
+      OR "${COMPILER_VERSION}" MATCHES "ICC 1[0123456]"
       OR "${COMPILER_VERSION}" MATCHES "clang 3\\.[0123456]")
    message(FATAL_ERROR "Compiler too old for C++14 (${COMPILER_VERSION})")
 endif()
