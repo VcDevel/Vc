@@ -93,7 +93,7 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
     const M alternating_mask = make_mask<M>({0, 1});
 
     // loads {{{2
-    const cvt_inputs<T, U> test_values;
+    cvt_inputs<T, U> test_values;
 
     constexpr auto mem_size =
         test_values.size() > 3 * V::size() ? test_values.size() : 3 * V::size();
