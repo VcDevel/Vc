@@ -209,8 +209,10 @@ Vc_INTRINSIC Storage<T, 16 / sizeof(T)> Vc_VDECL extract_part_impl(std::false_ty
 }
 
 // public interface {{{2
+template <class T> constexpr T constexpr_max(T a, T b) { return a > b ? a : b; }
+
 template <size_t Index, size_t Total, class T, size_t N>
-Vc_INTRINSIC Vc_CONST Storage<T, std::max(16 / sizeof(T), N / Total)> Vc_VDECL
+Vc_INTRINSIC Vc_CONST Storage<T, constexpr_max(16 / sizeof(T), N / Total)> Vc_VDECL
 extract_part(Storage<T, N> x)
 {
     constexpr size_t NewN = N / Total;
