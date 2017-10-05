@@ -112,6 +112,7 @@ gccbuild_compilers() {
 }
 
 icc_compilers() {
+  test -d /opt/intel || return
   export CC=icc
   export CXX=icpc
   icclist="`find /opt/intel/compiler* -name 'iccvars.sh' | xargs readlink -e | sort -ur`"
