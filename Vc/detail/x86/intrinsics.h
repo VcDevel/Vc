@@ -1043,6 +1043,7 @@ template <int n> Vc_INTRINSIC __m128i slli_epi16(__m128i v)
     return _mm_slli_epi16(v, n);
 #endif
 }
+#ifdef Vc_HAVE_AVX2
 template <int n> Vc_INTRINSIC __m256i slli_epi16(__m256i v)
 {
 #if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
@@ -1055,6 +1056,7 @@ template <int n> Vc_INTRINSIC __m256i slli_epi16(__m256i v)
     return _mm256_slli_epi16(v, n);
 #endif
 }
+#endif  // Vc_HAVE_AVX2
 
 // srli_epi16{{{1
 template <int n> Vc_INTRINSIC __m128i srli_epi16(__m128i v)
@@ -1069,6 +1071,7 @@ template <int n> Vc_INTRINSIC __m128i srli_epi16(__m128i v)
     return _mm_srli_epi16(v, n);
 #endif
 }
+#ifdef Vc_HAVE_AVX2
 template <int n> Vc_INTRINSIC __m256i srli_epi16(__m256i v)
 {
 #if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
@@ -1081,6 +1084,7 @@ template <int n> Vc_INTRINSIC __m256i srli_epi16(__m256i v)
     return _mm256_srli_epi16(v, n);
 #endif
 }
+#endif  // Vc_HAVE_AVX2
 
 // SSE/AVX intrinsics emulation{{{1
 Vc_INTRINSIC __m128  setone_ps16()   { return _mm_load_ps(sse_const::oneFloat); }
