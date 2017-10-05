@@ -900,7 +900,7 @@ template <> Vc_INTRINSIC x_u32 Vc_VDECL convert_to<x_u32>(x_f64 v0, x_f64 v1)
 }
 
 //convert_to<y_u32>{{{1
-#ifdef Vc_HAVE_AVX
+#ifdef Vc_HAVE_AVX2
 //from double{{{2
 template <> Vc_INTRINSIC y_u32 Vc_VDECL convert_to<y_u32>(y_f64 v0, y_f64 v1)
 {
@@ -944,7 +944,7 @@ template <> Vc_INTRINSIC y_u32 Vc_VDECL convert_to<y_u32>(y_f32 v0)
 }
 
 //}}}2
-#endif  // Vc_HAVE_AVX512F
+#endif  // Vc_HAVE_AVX2
 
 //convert_to<z_u32>{{{1
 #ifdef Vc_HAVE_AVX512F
