@@ -127,6 +127,7 @@ macro(AddCompilerFlag _flag)
       set(_cxx_code "${_c_code}")
    elseif("${_flag}" STREQUAL "-std=c++14" OR "${_flag}" STREQUAL "-std=c++1y")
       set(_cxx_code "#include <utility>
+      struct A { friend auto f(); };
       template <int N> constexpr int var_temp = N;
       template <std::size_t... I> void foo(std::index_sequence<I...>) {}
       int main() { foo(std::make_index_sequence<4>()); return 0; }")
