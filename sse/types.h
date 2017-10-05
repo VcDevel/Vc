@@ -65,10 +65,7 @@ template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
-}  // namespace SSE
 
-namespace Traits
-{
 template <class T> struct is_valid_vector_argument
   : public std::false_type {};
 
@@ -85,9 +82,15 @@ template <> struct is_valid_vector_argument<short>
 template <> struct is_valid_vector_argument<ushort>
   : public std::true_type {};
 
+  
+
+}  // namespace SSE
+
+namespace Traits
+{
 template <class T> struct
 is_simd_vector_internal<Vector<T, VectorAbi::Sse>>
-  : public is_valid_vector_argument<T> {};
+  : public SSE::is_valid_vector_argument<T> {};
 
 
 template<typename T> struct is_simd_mask_internal<Mask<T, VectorAbi::Sse>>
