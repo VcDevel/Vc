@@ -67,12 +67,27 @@ template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
+
+template<typename T> struct is_valid_vector_argument  : public std::false_type {};
+
+template <> struct is_valid_vector_argument<double> : public std::true_type {};
+template <> struct is_valid_vector_argument<float>  : public std::true_type {};
+template <> struct is_valid_vector_argument<int>    : public std::true_type {};
+template <> struct is_valid_vector_argument<uint>   : public std::true_type {};
+template <> struct is_valid_vector_argument<short>  : public std::true_type {};
+template <> struct is_valid_vector_argument<ushort> : public std::true_type {};
+template <> struct is_valid_vector_argument<schar>  : public std::true_type {};
+template <> struct is_valid_vector_argument<uchar>  : public std::true_type {};
 }  // namespace MIC
 
 namespace Traits
 {
-template <typename T> struct is_simd_mask_internal<MIC::Mask<T>> : public std::true_type {};
-template <typename T> struct is_simd_vector_internal<MIC::Vector<T>> : public std::true_type {};
+template <typename T> struct is_simd_mask_internal<MIC::Mask<T>>
+  : public std::true_type {};
+
+template <typename T> struct
+is_simd_vector_internal<Vector<T, VectorAbi::Mic>>
+  : public MIC::is_valid_vector_argument<T> {};
 }  // namespace Traits
 }  // namespace Vc
 
