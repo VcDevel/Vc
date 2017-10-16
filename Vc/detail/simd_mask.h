@@ -167,6 +167,12 @@ public:
     friend Vc_ALWAYS_INLINE simd_mask operator==(const simd_mask &x, const simd_mask &y) { return !operator!=(x, y); }
     friend Vc_ALWAYS_INLINE simd_mask operator!=(const simd_mask &x, const simd_mask &y) { return impl::bit_xor(x, y); }
 
+    // "private" because of the first arguments's namespace
+    Vc_INTRINSIC simd_mask(detail::private_init_t, typename traits::mask_member_type init)
+        : d(init)
+    {
+    }
+
 private:
 #ifdef Vc_MSVC
     // Work around "warning C4396: the inline specifier cannot be used when a friend
@@ -177,10 +183,6 @@ private:
     friend const auto &detail::data<T, abi_type>(const simd_mask &);
     friend auto &detail::data<T, abi_type>(simd_mask &);
 #endif
-    Vc_INTRINSIC simd_mask(detail::private_init_t, typename traits::mask_member_type init)
-        : d(init)
-    {
-    }
     Vc_INTRINSIC simd_mask(detail::bitset_init_t, std::bitset<size_v> init)
         : d(impl::from_bitset(init, type_tag))
     {
