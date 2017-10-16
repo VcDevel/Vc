@@ -552,22 +552,23 @@ detail::ldoublev<Abi> fma(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y,
                           detail::ldoublev<Abi> z);
 
 template <class Abi>
-detail::samesize<int, detail::floatv<Abi>> fpclassify(detail::floatv<Abi> x);
+detail::samesize<int, detail::floatv<Abi>> fpclassify(detail::floatv<Abi> x)
+{
+    return {detail::private_init,
+            detail::get_impl_t<decltype(x)>::fpclassify(detail::data(x))};
+}
 template <class Abi>
-detail::samesize<int, detail::doublev<Abi>> fpclassify(detail::doublev<Abi> x);
+detail::samesize<int, detail::doublev<Abi>> fpclassify(detail::doublev<Abi> x)
+{
+    return {detail::private_init,
+            detail::get_impl_t<decltype(x)>::fpclassify(detail::data(x))};
+}
 template <class Abi>
-detail::samesize<int, detail::ldoublev<Abi>> fpclassify(detail::ldoublev<Abi> x);
-
-template <class Abi> simd_mask<float, Abi> isfinite(detail::floatv<Abi> x);
-template <class Abi> simd_mask<double, Abi> isfinite(detail::doublev<Abi> x);
-template <class Abi> simd_mask<long double, Abi> isfinite(detail::ldoublev<Abi> x);
-
-template <class Abi>
-detail::samesize<int, detail::floatv<Abi>> isinf(detail::floatv<Abi> x);
-template <class Abi>
-detail::samesize<int, detail::doublev<Abi>> isinf(detail::doublev<Abi> x);
-template <class Abi>
-detail::samesize<int, detail::ldoublev<Abi>> isinf(detail::ldoublev<Abi> x);
+detail::samesize<int, detail::ldoublev<Abi>> fpclassify(detail::ldoublev<Abi> x)
+{
+    return {detail::private_init,
+            detail::get_impl_t<decltype(x)>::fpclassify(detail::data(x))};
+}
 
 #define Vc_MATH_CLASS_(name_)                                                            \
     template <class Abi> simd_mask<float, Abi> name_(detail::floatv<Abi> x)              \
@@ -586,53 +587,40 @@ detail::samesize<int, detail::ldoublev<Abi>> isinf(detail::ldoublev<Abi> x);
                 detail::get_impl_t<decltype(x)>::name_(detail::data(x))};                \
     }
 
+Vc_MATH_CLASS_(isfinite)
+Vc_MATH_CLASS_(isinf)
 Vc_MATH_CLASS_(isnan)
 Vc_MATH_CLASS_(isnormal)
 Vc_MATH_CLASS_(signbit)
+#undef Vc_MATH_CLASS_
 
-template <class Abi>
-simd_mask<float, Abi> isgreater(detail::floatv<Abi> x, detail::floatv<Abi> y);
-template <class Abi>
-simd_mask<double, Abi> isgreater(detail::doublev<Abi> x, detail::doublev<Abi> y);
-template <class Abi>
-simd_mask<long double, Abi> isgreater(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y);
+#define Vc_MATH_CMP_(name_)                                                              \
+    template <class Abi>                                                                 \
+    simd_mask<float, Abi> name_(detail::floatv<Abi> x, detail::floatv<Abi> y)            \
+    {                                                                                    \
+        return {detail::private_init, detail::get_impl_t<decltype(x)>::name_(            \
+                                          detail::data(x), detail::data(y))};            \
+    }                                                                                    \
+    template <class Abi>                                                                 \
+    simd_mask<double, Abi> name_(detail::doublev<Abi> x, detail::doublev<Abi> y)         \
+    {                                                                                    \
+        return {detail::private_init, detail::get_impl_t<decltype(x)>::name_(            \
+                                          detail::data(x), detail::data(y))};            \
+    }                                                                                    \
+    template <class Abi>                                                                 \
+    simd_mask<long double, Abi> name_(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y)  \
+    {                                                                                    \
+        return {detail::private_init, detail::get_impl_t<decltype(x)>::name_(            \
+                                          detail::data(x), detail::data(y))};            \
+    }
 
-template <class Abi>
-simd_mask<float, Abi> isgreaterequal(detail::floatv<Abi> x, detail::floatv<Abi> y);
-template <class Abi>
-simd_mask<double, Abi> isgreaterequal(detail::doublev<Abi> x, detail::doublev<Abi> y);
-template <class Abi>
-simd_mask<long double, Abi> isgreaterequal(detail::ldoublev<Abi> x,
-                                           detail::ldoublev<Abi> y);
-
-template <class Abi>
-simd_mask<float, Abi> isless(detail::floatv<Abi> x, detail::floatv<Abi> y);
-template <class Abi>
-simd_mask<double, Abi> isless(detail::doublev<Abi> x, detail::doublev<Abi> y);
-template <class Abi>
-simd_mask<long double, Abi> isless(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y);
-
-template <class Abi>
-simd_mask<float, Abi> islessequal(detail::floatv<Abi> x, detail::floatv<Abi> y);
-template <class Abi>
-simd_mask<double, Abi> islessequal(detail::doublev<Abi> x, detail::doublev<Abi> y);
-template <class Abi>
-simd_mask<long double, Abi> islessequal(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y);
-
-template <class Abi>
-simd_mask<float, Abi> islessgreater(detail::floatv<Abi> x, detail::floatv<Abi> y);
-template <class Abi>
-simd_mask<double, Abi> islessgreater(detail::doublev<Abi> x, detail::doublev<Abi> y);
-template <class Abi>
-simd_mask<long double, Abi> islessgreater(detail::ldoublev<Abi> x,
-                                          detail::ldoublev<Abi> y);
-
-template <class Abi>
-simd_mask<float, Abi> isunordered(detail::floatv<Abi> x, detail::floatv<Abi> y);
-template <class Abi>
-simd_mask<double, Abi> isunordered(detail::doublev<Abi> x, detail::doublev<Abi> y);
-template <class Abi>
-simd_mask<long double, Abi> isunordered(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y);
+Vc_MATH_CMP_(isgreater)
+Vc_MATH_CMP_(isgreaterequal)
+Vc_MATH_CMP_(isless)
+Vc_MATH_CMP_(islessequal)
+Vc_MATH_CMP_(islessgreater)
+Vc_MATH_CMP_(isunordered)
+#undef Vc_MATH_CMP_
 
 template <class V> struct simd_div_t {
     V quot, rem;
@@ -653,7 +641,6 @@ simd_div_t<detail::llongv<Abi>> simd_div(detail::llongv<Abi> numer,
                                          detail::llongv<Abi> denom);
 
 #undef Vc_MATH_CALL_
-#undef Vc_MATH_CLASS_
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DETAIL_MATH_H_

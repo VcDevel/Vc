@@ -494,16 +494,24 @@ public:
     Vc_APPLY_ON_TUPLE_(ceil);
 #undef Vc_APPLY_ON_TUPLE_
 
-#define Vc_APPLY_ON_TUPLE_(name_)                                                        \
+    template <class T, class... As>
+    static inline fixed_size_storage<int, N> fpclassify(simd_tuple<T, As...> x) noexcept
+    {
+        return apply([](auto impl, auto xx) { return impl.fpclassify(xx); }, x);
+    }
+
+#define Vc_TEST_ON_TUPLE_(name_)                                                        \
     template <class T, class... As>                                                      \
     static inline mask_member_type name_(simd_tuple<T, As...> x) noexcept                \
     {                                                                                    \
         return test([](auto impl, auto xx) { return impl.name_(xx); }, x);               \
     }
-    Vc_APPLY_ON_TUPLE_(isnan);
-    Vc_APPLY_ON_TUPLE_(isnormal);
-    Vc_APPLY_ON_TUPLE_(signbit);
-#undef Vc_APPLY_ON_TUPLE_
+    Vc_TEST_ON_TUPLE_(isinf);
+    Vc_TEST_ON_TUPLE_(isfinite);
+    Vc_TEST_ON_TUPLE_(isnan);
+    Vc_TEST_ON_TUPLE_(isnormal);
+    Vc_TEST_ON_TUPLE_(signbit);
+#undef Vc_TEST_ON_TUPLE_
 
     // increment & decrement{{{2
     template <class... Ts> static inline void increment(simd_tuple<Ts...> &x)
@@ -535,6 +543,7 @@ public:
         Vc_CMP_OPERATIONS(greater);
         Vc_CMP_OPERATIONS(less_equal);
         Vc_CMP_OPERATIONS(greater_equal);
+        Vc_CMP_OPERATIONS(isunordered);
 #undef Vc_CMP_OPERATIONS
 
     // smart_reference access {{{2

@@ -187,7 +187,7 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
         return detail::traits<T, Abi0>::mask_impl_type::to_bitset(
                    fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...))
                    .to_ullong() |
-               (test(fun, x.second, more.second...) << simd_size_v<T, Abi0>).to_ullong();
+               (test(fun, x.second, more.second...).to_ullong() << simd_size_v<T, Abi0>);
     }
 
     T operator[](size_t i) const noexcept

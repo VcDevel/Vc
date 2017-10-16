@@ -1446,6 +1446,94 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         return _mm_cmpunord_pd(x, x);
     }
 
+    // isfinite {{{3
+    static Vc_INTRINSIC mask_member_type<float> isfinite(simd_member_type<float> x)
+    {
+        return _mm_cmpord_ps(x, _mm_mul_ps(_mm_setzero_ps(), x));
+    }
+    static Vc_INTRINSIC mask_member_type<double> isfinite(simd_member_type<double> x)
+    {
+        return _mm_cmpord_pd(x, _mm_mul_pd(_mm_setzero_pd(), x));
+    }
+
+    // isinf {{{3
+    static Vc_INTRINSIC mask_member_type<float> isinf(simd_member_type<float> x)
+    {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+        return _mm_fpclass_ps_mask(x, 0x08) | _mm_fpclass_ps_mask(x, 0x10);
+#else
+        return intrin_cast<__m128>(
+            _mm_cmpeq_epi32(_mm_castps_si128(abs(x)), broadcast16(0x7f800000u)));
+#endif
+    }
+    static Vc_INTRINSIC mask_member_type<double> isinf(simd_member_type<double> x)
+    {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+        return _mm_fpclass_pd_mask(x, 0x08) | _mm_fpclass_pd_mask(x, 0x10);
+#else
+        return intrin_cast<__m128d>(
+            equal_to(simd_member_type<llong>(abs(x)),
+                     simd_member_type<llong>(broadcast16(0x7ff0000000000000ull))));
+#endif
+    }
+
+    // isnormal {{{3
+    static Vc_INTRINSIC mask_member_type<float> isnormal(simd_member_type<float> x)
+    {
+        // subnormals -> 0
+        // 0 -> 0
+        // inf -> inf
+        // -inf -> inf
+        // nan -> inf
+        // normal value -> positive value / not 0
+        const auto tmp =
+            and_(x, intrin_cast<__m128>(broadcast16(0x7f800000u)));
+        return _mm_cmpord_ps(
+            _mm_mul_ps(broadcast16(std::numeric_limits<float>::infinity()),
+                       tmp),                     // NaN if tmp == 0
+            _mm_mul_ps(_mm_setzero_ps(), tmp));  // NaN if tmp == inf
+    }
+    static Vc_INTRINSIC mask_member_type<double> isnormal(simd_member_type<double> x)
+    {
+        const auto tmp =
+            and_(x, intrin_cast<__m128d>(broadcast16(0x7ff0'0000'0000'0000ull)));
+        return _mm_cmpord_pd(
+            _mm_mul_pd(broadcast16(std::numeric_limits<double>::infinity()),
+                       tmp),                     // NaN if tmp == 0
+            _mm_mul_pd(_mm_setzero_pd(), tmp));  // NaN if tmp == inf
+    }
+
+    // signbit {{{3
+    static Vc_INTRINSIC mask_member_type<float> signbit(simd_member_type<float> x)
+    {
+        return _mm_srai_epi32(and_(intrin_cast<__m128i>(x), broadcast16(0x80000000u)),
+                              31);
+    }
+    static Vc_INTRINSIC mask_member_type<double> signbit(simd_member_type<double> x)
+    {
+        const auto signbit = broadcast16(0x8000000000000000ull);
+#ifdef Vc_HAVE_AVX2
+        return _mm_srai_epi64(and_(intrin_cast<__m128i>(x), signbit), 63);
+#elif defined Vc_HAVE_SSSE3
+        return _mm_cmpeq_epi64(and_(intrin_cast<__m128i>(x), signbit), signbit);
+#else
+        const auto tmp = and_(intrin_cast<__m128i>(x), signbit);
+        return or_(_mm_srai_epi32(tmp, 31), _mm_srai_epi32(_mm_srli_si128(tmp, 32), 31));
+#endif
+    }
+
+    // isunordered {{{3
+    static Vc_INTRINSIC mask_member_type<float> isunordered(simd_member_type<float> x,
+                                                            simd_member_type<float> y)
+    {
+        return _mm_cmpunord_ps(x, y);
+    }
+    static Vc_INTRINSIC mask_member_type<double> isunordered(simd_member_type<double> x,
+                                                             simd_member_type<double> y)
+    {
+        return _mm_cmpunord_pd(x, y);
+    }
+
     // smart_reference access {{{2
     template <class T>
     static Vc_INTRINSIC T Vc_VDECL get(simd_member_type<T> v, int i) noexcept

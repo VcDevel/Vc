@@ -194,9 +194,13 @@ struct scalar_simd_impl {
     template <class T> static inline T floor(T x) { return std::floor(x); }
     template <class T> static inline T ceil(T x) { return std::ceil(x); }
 
+    template <class T> static inline int fpclassify(T x) { return std::fpclassify(x); }
+    template <class T> static inline bool isfinite(T x) { return std::isfinite(x); }
+    template <class T> static inline bool isinf(T x) { return std::isinf(x); }
     template <class T> static inline bool isnan(T x) { return std::isnan(x); }
     template <class T> static inline bool isnormal(T x) { return std::isnormal(x); }
     template <class T> static inline bool signbit(T x) { return std::signbit(x); }
+    template <class T> static inline bool isunordered(T x, T y) { return std::isunordered(x, y); }
 
     // increment & decrement{{{2
     template <class T> static inline void increment(T &x) { ++x; }
