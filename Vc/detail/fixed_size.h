@@ -479,19 +479,31 @@ public:
         return apply([y](auto impl, auto xx) { return impl.bit_shift_right(xx, y); }, x);
     }
 
-    // sqrt {{{2
-    template <class T, class... As>
-    static inline simd_tuple<T, As...> sqrt(simd_tuple<T, As...> x) noexcept
-    {
-        return apply([](auto impl, auto xx) { return impl.sqrt(xx); }, x);
+    // math {{{2
+#define Vc_APPLY_ON_TUPLE_(name_)                                                        \
+    template <class T, class... As>                                                      \
+    static inline simd_tuple<T, As...> name_(simd_tuple<T, As...> x) noexcept            \
+    {                                                                                    \
+        return apply([](auto impl, auto xx) { return impl.name_(xx); }, x);              \
     }
+    Vc_APPLY_ON_TUPLE_(sqrt);
+    Vc_APPLY_ON_TUPLE_(abs);
+    Vc_APPLY_ON_TUPLE_(logb);
+    Vc_APPLY_ON_TUPLE_(trunc);
+    Vc_APPLY_ON_TUPLE_(floor);
+    Vc_APPLY_ON_TUPLE_(ceil);
+#undef Vc_APPLY_ON_TUPLE_
 
-    // abs {{{2
-    template <class T, class... As>
-    static inline simd_tuple<T, As...> abs(simd_tuple<T, As...> x) noexcept
-    {
-        return apply([](auto impl, auto xx) { return impl.abs(xx); }, x);
+#define Vc_APPLY_ON_TUPLE_(name_)                                                        \
+    template <class T, class... As>                                                      \
+    static inline mask_member_type name_(simd_tuple<T, As...> x) noexcept                \
+    {                                                                                    \
+        return test([](auto impl, auto xx) { return impl.name_(xx); }, x);               \
     }
+    Vc_APPLY_ON_TUPLE_(isnan);
+    Vc_APPLY_ON_TUPLE_(isnormal);
+    Vc_APPLY_ON_TUPLE_(signbit);
+#undef Vc_APPLY_ON_TUPLE_
 
     // increment & decrement{{{2
     template <class... Ts> static inline void increment(simd_tuple<Ts...> &x)
@@ -1018,6 +1030,34 @@ private:
         simd_converter<From, A, To, typename return_type::first_abi> native_cvt;
         const auto &tmp = native_cvt(x);
         return {tmp[Indexes]...};
+    }
+};
+
+// simd_converter fixed_size<N> -> "native" {{{1
+// i.e. ? register to 1 registers
+template <class From, int N, class To, class A>
+struct simd_converter<From, simd_abi::fixed_size<N>, To, A> {
+    using traits = detail::traits<To, A>;
+    using return_type = typename traits::simd_member_type;
+    using arg = fixed_size_storage<From, N>;
+    static_assert(N == simd_size_v<To, A>,
+                  "simd_converter to fixed_size only works for equal element counts");
+
+    Vc_INTRINSIC return_type operator()(arg x)
+    {
+        return impl(std::make_index_sequence<arg::tuple_size>(), x);
+    }
+
+private:
+    return_type impl(std::index_sequence<0>, arg x)
+    {
+        simd_converter<From, typename arg::first_abi, To, A> native_cvt;
+        return {native_cvt(x.first)};
+    }
+    template <size_t... Indexes> return_type impl(std::index_sequence<Indexes...>, arg x)
+    {
+        simd_converter<From, typename arg::first_abi, To, A> native_cvt;
+        return native_cvt(detail::get<Indexes>(x)...);
     }
 };
 

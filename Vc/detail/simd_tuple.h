@@ -132,6 +132,14 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
         return {fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...)};
     }
 
+    template <class F, class... More>
+    friend Vc_INTRINSIC std::bitset<size_v> test(F &&fun, const simd_tuple &x,
+                                                 const More &... more)
+    {
+        return detail::traits<T, Abi0>::mask_impl_type::to_bitset(
+            fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...));
+    }
+
     T operator[](size_t i) const noexcept { return subscript_read(first, i); }
     void set(size_t i, T val) noexcept { subscript_write(first, i, val); }
 };
@@ -170,6 +178,16 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
     {
         return {fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...),
                 apply(std::forward<F>(fun), x.second, more.second...)};
+    }
+
+    template <class F, class... More>
+    friend Vc_INTRINSIC std::bitset<size_v> test(F &&fun, const simd_tuple &x,
+                                                 const More &... more)
+    {
+        return detail::traits<T, Abi0>::mask_impl_type::to_bitset(
+                   fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...))
+                   .to_ullong() |
+               (test(fun, x.second, more.second...) << simd_size_v<T, Abi0>).to_ullong();
     }
 
     T operator[](size_t i) const noexcept

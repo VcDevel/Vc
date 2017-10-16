@@ -1,0 +1,3 @@
+#include "detail/math.h"
+
+// vim: ft=cpp

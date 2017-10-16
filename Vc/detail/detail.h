@@ -419,6 +419,13 @@ Vc_INTRINSIC const typename V::value_type &to_value_type_or_member_type(
     return x;
 }
 
+// rebind_simd {{{1
+template <class T, class SimdType, size_t N = SimdType::size()>
+using rebind_simd = simd<T, typename abi_for_size<T, N>::type>;
+
+template <class T, class SimdType, size_t N = SimdType::size()>
+using rebind_mask = simd_mask<T, typename abi_for_size<T, N>::type>;
+
 //}}}1
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

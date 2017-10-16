@@ -688,6 +688,86 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
 #endif  // Vc_HAVE_FULL_AVX512_ABI
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
+    // math {{{2
+    // sqrt {{{3
+    static Vc_INTRINSIC simd_member_type<float> sqrt(simd_member_type<float> x)
+    {
+        return _mm512_sqrt_ps(x);
+    }
+    static Vc_INTRINSIC simd_member_type<double> sqrt(simd_member_type<double> x)
+    {
+        return _mm512_sqrt_pd(x);
+    }
+
+    // logb {{{3
+    static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb_positive(simd_member_type<float> v)
+    {
+        return _mm512_getexp_ps(v);
+    }
+    static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb_positive(simd_member_type<double> v)
+    {
+        return _mm512_getexp_pd(v);
+    }
+
+    static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb(simd_member_type<float> v)
+    {
+        return _mm512_fixupimm_ps(logb_positive(abs(v)), v, broadcast64(0x00550433),
+                                  0x00);
+    }
+    static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb(simd_member_type<double> v)
+    {
+        return _mm512_fixupimm_pd(logb_positive(abs(v)), v, broadcast64(0x00550433),
+                                  0x00);
+    }
+
+    // trunc {{{3
+    static Vc_INTRINSIC simd_member_type<float> trunc(simd_member_type<float> x)
+    {
+        return _mm512_roundscale_round_ps(x, 0x03, _MM_FROUND_CUR_DIRECTION);
+    }
+    static Vc_INTRINSIC simd_member_type<double> trunc(simd_member_type<double> x)
+    {
+        return _mm512_roundscale_round_pd(x, 0x03, _MM_FROUND_CUR_DIRECTION);
+    }
+
+    // floor {{{3
+    static Vc_INTRINSIC simd_member_type<float> floor(simd_member_type<float> x)
+    {
+        return _mm512_roundscale_round_ps(x, 0x01, _MM_FROUND_CUR_DIRECTION);
+    }
+    static Vc_INTRINSIC simd_member_type<double> floor(simd_member_type<double> x)
+    {
+        return _mm512_roundscale_round_pd(x, 0x01, _MM_FROUND_CUR_DIRECTION);
+    }
+
+    // ceil {{{3
+    static Vc_INTRINSIC simd_member_type<float> ceil(simd_member_type<float> x)
+    {
+        return _mm512_roundscale_round_ps(x, 0x02, _MM_FROUND_CUR_DIRECTION);
+    }
+    static Vc_INTRINSIC simd_member_type<double> ceil(simd_member_type<double> x)
+    {
+        return _mm512_roundscale_round_pd(x, 0x02, _MM_FROUND_CUR_DIRECTION);
+    }
+
+    // isnan {{{3
+    static Vc_INTRINSIC mask_member_type<float> isnan(simd_member_type<float> x)
+    {
+#ifdef Vc_HAVE_AVX512DQ
+        return _mm512_fpclass_ps_mask(x, 0x01) | _mm512_fpclass_ps_mask(x, 0x80);
+#else   // Vc_HAVE_AVX512DQ
+        return _mm512_cmpunord_ps_mask(x, x);
+#endif  // Vc_HAVE_AVX512DQ
+    }
+    static Vc_INTRINSIC mask_member_type<double> isnan(simd_member_type<double> x)
+    {
+#ifdef Vc_HAVE_AVX512DQ
+        return _mm512_fpclass_pd_mask(x, 0x01) | _mm512_fpclass_pd_mask(x, 0x80);
+#else   // Vc_HAVE_AVX512DQ
+        return _mm512_cmpunord_pd_mask(x, x);
+#endif  // Vc_HAVE_AVX512DQ
+    }
+
     // smart_reference access {{{2
     template <class T> static Vc_INTRINSIC T get(simd_member_type<T> v, int i) noexcept
     {

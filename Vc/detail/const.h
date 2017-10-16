@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2016-2017 Matthias Kretz <kretz@kde.org>
+Copyright © 2017 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -25,207 +25,243 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#ifndef VC_SIMD_CONST_H_
-#define VC_SIMD_CONST_H_
+#ifndef VC_DETAIL_CONST_H_
+#define VC_DETAIL_CONST_H_
 
 #include "synopsis.h"
 
-#if defined Vc_MSVC && Vc_MSVC < 191024903
-#define Vc_WORK_AROUND_ICE
-#endif
-
 Vc_VERSIONED_NAMESPACE_BEGIN
-namespace detail {
-
-template <class T, class = void> struct constants;
-
-#ifdef Vc_HAVE_SSE_ABI
-#ifdef Vc_WORK_AROUND_ICE
-namespace x86
+namespace detail
 {
-namespace sse_const
-{
-#define constexpr const
-#else
-template <class X> struct constants<simd_abi::sse, X> {
-#endif
-    alignas(64) static constexpr int    absMaskFloat[4] = {0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
-    alignas(16) static constexpr uint   signMaskFloat[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
-    alignas(16) static constexpr uint   highMaskFloat[4] = {0xfffff000u, 0xfffff000u, 0xfffff000u, 0xfffff000u};
-    alignas(16) static constexpr float  oneFloat[4] = {1.f, 1.f, 1.f, 1.f};
+template <int exponent, bool = (exponent < 0),
+          bool = (exponent < std::numeric_limits<unsigned>::digits)>
+struct double_2_pow_impl;
 
-    alignas(16) static constexpr short  minShort[8] = {-0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000};
-    alignas(16) static constexpr uchar  one8[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    alignas(16) static constexpr ushort one16[8] = {1, 1, 1, 1, 1, 1, 1, 1};
-    alignas(16) static constexpr uint   one32[4] = {1, 1, 1, 1};
-    alignas(16) static constexpr ullong one64[2] = {1, 1};
-
-    alignas(16) static constexpr double oneDouble[2] = {1., 1.};
-    alignas(16) static constexpr ullong highMaskDouble[2] = {0xfffffffff8000000ull, 0xfffffffff8000000ull};
-    alignas(16) static constexpr llong  absMaskDouble[2] = {0x7fffffffffffffffll, 0x7fffffffffffffffll};
-    alignas(16) static constexpr ullong signMaskDouble[2] = {0x8000000000000000ull, 0x8000000000000000ull};
-    alignas(16) static constexpr ullong frexpMask[2] = {0xbfefffffffffffffull, 0xbfefffffffffffffull};
-
-    alignas(16) static constexpr uint   IndexesFromZero4[4] = { 0, 1, 2, 3 };
-    alignas(16) static constexpr ushort IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    alignas(16) static constexpr uchar  IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-
-    alignas(16) static constexpr uint   AllBitsSet[4] = { 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU };
-    alignas(16) static constexpr uchar cvti16_i08_shuffle[16] = {
-        0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80};
-#ifdef Vc_WORK_AROUND_ICE
-#undef constexpr
-}  // namespace sse_const
-}  // namespace x86
-#else   // Vc_WORK_AROUND_ICE
+template <> struct double_2_pow_impl<0, false, true> {
+    static constexpr double value = 1.;
 };
-template <class X> alignas(64) constexpr int    constants<simd_abi::sse, X>::absMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::signMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::highMaskFloat[4];
-template <class X> alignas(16) constexpr float  constants<simd_abi::sse, X>::oneFloat[4];
-template <class X> alignas(16) constexpr short  constants<simd_abi::sse, X>::minShort[8];
-template <class X> alignas(16) constexpr uchar  constants<simd_abi::sse, X>::one8[16];
-template <class X> alignas(16) constexpr ushort constants<simd_abi::sse, X>::one16[8];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::one32[4];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::one64[2];
-template <class X> alignas(16) constexpr double constants<simd_abi::sse, X>::oneDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::highMaskDouble[2];
-template <class X> alignas(16) constexpr llong  constants<simd_abi::sse, X>::absMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::signMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::frexpMask[2];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::IndexesFromZero4[4];
-template <class X> alignas(16) constexpr ushort constants<simd_abi::sse, X>::IndexesFromZero8[8];
-template <class X> alignas(16) constexpr uchar  constants<simd_abi::sse, X>::IndexesFromZero16[16];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::AllBitsSet[4];
-template <class X> alignas(16) constexpr uchar  constants<simd_abi::sse, X>::cvti16_i08_shuffle[16];
-namespace x86
-{
-using sse_const = constants<simd_abi::sse>;
-}  // namespace x86
-#endif  // Vc_WORK_AROUND_ICE
-#endif  // Vc_HAVE_SSE_ABI
-
-#ifdef Vc_HAVE_NEON
-#ifdef Vc_WORK_AROUND_ICE
-namespace aarch
-{
-namespace neon_const
-{
-#define constexpr const
-#else
-template <class X> struct constants<simd_abi::neon, X> {
-#endif
-    alignas(64) static constexpr int    absMaskFloat[4] = {0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
-    alignas(16) static constexpr uint   signMaskFloat[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
-    alignas(16) static constexpr uint   highMaskFloat[4] = {0xfffff000u, 0xfffff000u, 0xfffff000u, 0xfffff000u};
-    alignas(16) static constexpr float  oneFloat[4] = {1.f, 1.f, 1.f, 1.f};
-
-    alignas(16) static constexpr short  minShort[8] = {-0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000};
-    alignas(16) static constexpr uchar  one8[16] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    alignas(16) static constexpr ushort one16[8] = {1, 1, 1, 1, 1, 1, 1, 1};
-    alignas(16) static constexpr uint   one32[4] = {1, 1, 1, 1};
-    alignas(16) static constexpr ullong one64[2] = {1, 1};
-
-    alignas(16) static constexpr double oneDouble[2] = {1., 1.};
-    alignas(16) static constexpr ullong highMaskDouble[2] = {0xfffffffff8000000ull, 0xfffffffff8000000ull};
-    alignas(16) static constexpr llong  absMaskDouble[2] = {0x7fffffffffffffffll, 0x7fffffffffffffffll};
-    alignas(16) static constexpr ullong signMaskDouble[2] = {0x8000000000000000ull, 0x8000000000000000ull};
-    alignas(16) static constexpr ullong frexpMask[2] = {0xbfefffffffffffffull, 0xbfefffffffffffffull};
-
-    alignas(16) static constexpr uint   IndexesFromZero4[4] = { 0, 1, 2, 3 };
-    alignas(16) static constexpr ushort IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    alignas(16) static constexpr uchar  IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-
-    alignas(16) static constexpr uint   AllBitsSet[4] = { 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU };
-#ifdef Vc_WORK_AROUND_ICE
-#undef constexpr
-}  // namespace neon_const
-}  // namespace aarch
-#else   // Vc_WORK_AROUND_ICE
+template <int exponent> struct double_2_pow_impl<exponent, true, true> {
+    static constexpr double value = 1. / double_2_pow_impl<-exponent>::value;
 };
-template <class X> alignas(64) constexpr int    constants<simd_abi::neon, X>::absMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::signMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::highMaskFloat[4];
-template <class X> alignas(16) constexpr float  constants<simd_abi::neon, X>::oneFloat[4];
-template <class X> alignas(16) constexpr short  constants<simd_abi::neon, X>::minShort[8];
-template <class X> alignas(16) constexpr uchar  constants<simd_abi::neon, X>::one8[16];
-template <class X> alignas(16) constexpr ushort constants<simd_abi::neon, X>::one16[8];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::one32[4];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::one64[2];
-template <class X> alignas(16) constexpr double constants<simd_abi::neon, X>::oneDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::highMaskDouble[2];
-template <class X> alignas(16) constexpr llong  constants<simd_abi::neon, X>::absMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::signMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::frexpMask[2];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::IndexesFromZero4[4];
-template <class X> alignas(16) constexpr ushort constants<simd_abi::neon, X>::IndexesFromZero8[8];
-template <class X> alignas(16) constexpr uchar  constants<simd_abi::neon, X>::IndexesFromZero16[16];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::AllBitsSet[4];
-namespace aarch
-{
-using neon_const = constants<simd_abi::neon>;
-}  // namespace aarch
-#endif  // Vc_WORK_AROUND_ICE
-#endif  // Vc_HAVE_NEON
-
-#ifdef Vc_HAVE_AVX
-#ifdef Vc_WORK_AROUND_ICE
-namespace x86
-{
-namespace avx_const
-{
-#define constexpr const
-#else   // Vc_WORK_AROUND_ICE
-template <class X> struct constants<simd_abi::avx, X> {
-#endif  // Vc_WORK_AROUND_ICE
-    alignas(64) static constexpr ullong IndexesFromZero64[ 4] = { 0, 1, 2, 3 };
-    alignas(32) static constexpr uint   IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    alignas(32) static constexpr ushort IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-    alignas(32) static constexpr uchar  IndexesFromZero8 [32] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
-
-    alignas(32) static constexpr uint AllBitsSet[8] = {
-        0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU
-    };
-
-    static constexpr   uint absMaskFloat[2] = { 0xffffffffu, 0x7fffffffu };
-    static constexpr   uint signMaskFloat[2] = { 0x0u, 0x80000000u };
-    static constexpr   uint highMaskFloat = 0xfffff000u;
-    static constexpr  float oneFloat = 1.f;
-    alignas(float) static constexpr ushort one16[2] = { 1, 1 };
-    alignas(float) static constexpr  uchar one8[4] = { 1, 1, 1, 1 };
-    static constexpr  float _2_pow_31 = 1u << 31;
-    static constexpr ullong highMaskDouble = 0xfffffffff8000000ull;
-    static constexpr double oneDouble = 1.;
-    static constexpr ullong frexpMask = 0xbfefffffffffffffull;
-#ifdef Vc_WORK_AROUND_ICE
-#undef constexpr
-#undef Vc_WORK_AROUND_ICE
-}  // namespace avx_const
-}  // namespace x86
-#else   // Vc_WORK_AROUND_ICE
+template <int exponent> struct double_2_pow_impl<exponent, false, true> {
+    static constexpr double value = (1u << exponent);
 };
-template <class X> alignas(64) constexpr ullong constants<simd_abi::avx, X>::IndexesFromZero64[ 4];
-template <class X> alignas(32) constexpr uint   constants<simd_abi::avx, X>::IndexesFromZero32[ 8];
-template <class X> alignas(32) constexpr ushort constants<simd_abi::avx, X>::IndexesFromZero16[16];
-template <class X> alignas(32) constexpr uchar  constants<simd_abi::avx, X>::IndexesFromZero8 [32];
-template <class X> alignas(32) constexpr uint   constants<simd_abi::avx, X>::AllBitsSet[8];
-template <class X> constexpr   uint constants<simd_abi::avx, X>::absMaskFloat[2];
-template <class X> constexpr   uint constants<simd_abi::avx, X>::signMaskFloat[2];
-template <class X> constexpr   uint constants<simd_abi::avx, X>::highMaskFloat;
-template <class X> constexpr  float constants<simd_abi::avx, X>::oneFloat;
-template <class X> alignas(float) constexpr ushort constants<simd_abi::avx, X>::one16[2];
-template <class X> alignas(float) constexpr  uchar constants<simd_abi::avx, X>::one8[4];
-template <class X> constexpr  float constants<simd_abi::avx, X>::_2_pow_31;
-template <class X> constexpr ullong constants<simd_abi::avx, X>::highMaskDouble;
-template <class X> constexpr double constants<simd_abi::avx, X>::oneDouble;
-template <class X> constexpr ullong constants<simd_abi::avx, X>::frexpMask;
-namespace x86
-{
-using avx_const = constants<simd_abi::avx>;
-}  // namespace x86
-#endif  // Vc_WORK_AROUND_ICE
-#endif  // Vc_HAVE_AVX
+template <int exponent> struct double_2_pow_impl<exponent, false, false> {
+    static constexpr double value =
+        (~0u + 1.) *
+        double_2_pow_impl<exponent - std::numeric_limits<unsigned>::digits>::value;
+};
 
+template <int exponent>
+constexpr double double_2_pow = double_2_pow_impl<exponent>::value;
+
+template <int sign, unsigned long long mantissa, int exponent>
+constexpr double double_const = (static_cast<double>((mantissa & 0x000fffffffffffffull) |
+                                                     0x0010000000000000ull) /
+                                 0x0010000000000000ull) *
+                                double_2_pow<exponent> * sign;
+template <int sign, unsigned int mantissa, int exponent>
+constexpr float float_const = (float((mantissa & 0x007fffffu) | 0x00800000u) /
+                               0x00800000u) *
+                              float(double_2_pow<exponent>) * sign;
+
+template <class T, class = void> struct constants {
+    static constexpr float f32_pi_4      = float_const< 1, 0x490FDB, -1>;
+    static constexpr float f32_pi_4_hi   = float_const< 1, 0x491000, -1>;
+    static constexpr float f32_pi_4_rem1 = float_const<-1, 0x157000, -19>;
+    static constexpr float f32_pi_4_rem2 = float_const<-1, 0x6F4B9F, -32>;
+
+    static constexpr float f32_1_16 = 0.0625f;
+    static constexpr float f32_16 = 16.f;
+    static constexpr float f32_cos_c0 = 4.166664568298827e-2f;  // ~ 1/4!
+    static constexpr float f32_cos_c1 = -1.388731625493765e-3f; // ~-1/6!
+    static constexpr float f32_cos_c2 = 2.443315711809948e-5f;  // ~ 1/8!
+    static constexpr float f32_sin_c0 = -1.6666654611e-1f; // ~-1/3!
+    static constexpr float f32_sin_c1 = 8.3321608736e-3f;  // ~ 1/5!
+    static constexpr float f32_sin_c2 = -1.9515295891e-4f; // ~-1/7!
+    static constexpr float f32_loss_threshold = 8192.f; // loss threshold
+    static constexpr float f32_4_pi = float_const< 1, 0x22F983, 0>; // 1.27323949337005615234375 = 4/π
+    static constexpr float f32_pi_2 = float_const< 1, 0x490FDB, 0>; // π/2
+    static constexpr float f32_pi = float_const< 1, 0x490FDB, 1>; // π
+    static constexpr float f32_atan_p0 = 8.05374449538e-2f; // atan P coefficients
+    static constexpr float f32_atan_p1 = 1.38776856032e-1f; // atan P coefficients
+    static constexpr float f32_atan_p2 = 1.99777106478e-1f; // atan P coefficients
+    static constexpr float f32_atan_p3 = 3.33329491539e-1f; // atan P coefficients
+    static constexpr float f32_atan_threshold_hi = 2.414213562373095f; // tan( 3/8 π )
+    static constexpr float f32_atan_threshold_lo = 0.414213562373095f; // tan( 1/8 π ) lower threshold for special casing in atan
+    static constexpr float f32_pi_2_rem = float_const<-1, 0x3BBD2E, -25>; // remainder of pi/2
+    static constexpr float f32_small_asin_input = 1.e-4f; // small asin input threshold
+    static constexpr float f32_large_asin_input = 0.f; // padding (for alignment with double)
+    static constexpr float f32_asin_c0_0 = 4.2163199048e-2f; // asinCoeff0
+    static constexpr float f32_asin_c0_1 = 2.4181311049e-2f; // asinCoeff0
+    static constexpr float f32_asin_c0_2 = 4.5470025998e-2f; // asinCoeff0
+    static constexpr float f32_asin_c0_3 = 7.4953002686e-2f; // asinCoeff0
+    static constexpr float f32_asin_c0_4 = 1.6666752422e-1f; // asinCoeff0
+
+    static constexpr double f64_pi_4      = double_const< 1, 0x921fb54442d18, -1>; // π/4
+    static constexpr double f64_pi_4_hi   = double_const< 1, 0x921fb40000000, -1>; // π/4 - 30bits precision
+    static constexpr double f64_pi_4_rem1 = double_const< 1, 0x4442d00000000, -25>; // π/4 remainder1 - 32bits precision
+    static constexpr double f64_pi_4_rem2 = double_const< 1, 0x8469898cc5170, -49>; // π/4 remainder2
+    static constexpr double f64_1_16 = 0.0625;
+    static constexpr double f64_16 = 16.;
+    static constexpr double f64_cos_c0  = double_const< 1, 0x555555555554b, -5 >; // ~ 1/4!
+    static constexpr double f64_cos_c1  = double_const<-1, 0x6c16c16c14f91, -10>; // ~-1/6!
+    static constexpr double f64_cos_c2  = double_const< 1, 0xa01a019c844f5, -16>; // ~ 1/8!
+    static constexpr double f64_cos_c3  = double_const<-1, 0x27e4f7eac4bc6, -22>; // ~-1/10!
+    static constexpr double f64_cos_c4  = double_const< 1, 0x1ee9d7b4e3f05, -29>; // ~ 1/12!
+    static constexpr double f64_cos_c5  = double_const<-1, 0x8fa49a0861a9b, -37>; // ~-1/14!
+    static constexpr double f64_sin_c0  = double_const<-1, 0x5555555555548, -3 >; // ~-1/3!
+    static constexpr double f64_sin_c1  = double_const< 1, 0x111111110f7d0, -7 >; // ~ 1/5!
+    static constexpr double f64_sin_c2  = double_const<-1, 0xa01a019bfdf03, -13>; // ~-1/7!
+    static constexpr double f64_sin_c3  = double_const< 1, 0x71de3567d48a1, -19>; // ~ 1/9!
+    static constexpr double f64_sin_c4  = double_const<-1, 0xae5e5a9291f5d, -26>; // ~-1/11!
+    static constexpr double f64_sin_c5  = double_const< 1, 0x5d8fd1fd19ccd, -33>; // ~ 1/13!
+    static constexpr double f64_4_pi    = double_const< 1, 0x8BE60DB939105, 0 >; // 4/π
+    static constexpr double f64_pi_2    = double_const< 1, 0x921fb54442d18, 0 >; // π/2
+    static constexpr double f64_pi      = double_const< 1, 0x921fb54442d18, 1 >; // π
+    static constexpr double f64_atan_p0 = double_const<-1, 0xc007fa1f72594, -1>; // atan P coefficients
+    static constexpr double f64_atan_p1 = double_const<-1, 0x028545b6b807a, 4 >; // atan P coefficients
+    static constexpr double f64_atan_p2 = double_const<-1, 0x2c08c36880273, 6 >; // atan P coefficients
+    static constexpr double f64_atan_p3 = double_const<-1, 0xeb8bf2d05ba25, 6 >; // atan P coefficients
+    static constexpr double f64_atan_p4 = double_const<-1, 0x03669fd28ec8e, 6 >; // atan P coefficients
+    static constexpr double f64_atan_q0 = double_const< 1, 0x8dbc45b14603c, 4 >; // atan Q coefficients
+    static constexpr double f64_atan_q1 = double_const< 1, 0x4a0dd43b8fa25, 7 >; // atan Q coefficients
+    static constexpr double f64_atan_q2 = double_const< 1, 0xb0e18d2e2be3b, 8 >; // atan Q coefficients
+    static constexpr double f64_atan_q3 = double_const< 1, 0xe563f13b049ea, 8 >; // atan Q coefficients
+    static constexpr double f64_atan_q4 = double_const< 1, 0x8519efbbd62ec, 7 >; // atan Q coefficients
+    static constexpr double f64_atan_threshold_hi = double_const< 1, 0x3504f333f9de6, 1>; // tan( 3/8 π )
+    static constexpr double f64_atan_threshold_lo = 0.66;                                 // lower threshold for special casing in atan
+    static constexpr double f64_pi_2_rem = double_const< 1, 0x1A62633145C07, -54>; // remainder of pi/2
+    static constexpr double f64_small_asin_input = 1.e-8; // small asin input threshold
+    static constexpr double f64_large_asin_input = 0.625; // large asin input threshold
+    static constexpr double f64_asin_c0_0 = double_const< 1, 0x84fc3988e9f08, -9>; // asinCoeff0
+    static constexpr double f64_asin_c0_1 = double_const<-1, 0x2079259f9290f, -1>; // asinCoeff0
+    static constexpr double f64_asin_c0_2 = double_const< 1, 0xbdff5baf33e6a, 2 >; // asinCoeff0
+    static constexpr double f64_asin_c0_3 = double_const<-1, 0x991aaac01ab68, 4 >; // asinCoeff0
+    static constexpr double f64_asin_c0_4 = double_const< 1, 0xc896240f3081d, 4 >; // asinCoeff0
+    static constexpr double f64_asin_c1_0 = double_const<-1, 0x5f2a2b6bf5d8c, 4 >; // asinCoeff1
+    static constexpr double f64_asin_c1_1 = double_const< 1, 0x26219af6a7f42, 7 >; // asinCoeff1
+    static constexpr double f64_asin_c1_2 = double_const<-1, 0x7fe08959063ee, 8 >; // asinCoeff1
+    static constexpr double f64_asin_c1_3 = double_const< 1, 0x56709b0b644be, 8 >; // asinCoeff1
+    static constexpr double f64_asin_c2_0 = double_const< 1, 0x16b9b0bd48ad3, -8>; // asinCoeff2
+    static constexpr double f64_asin_c2_1 = double_const<-1, 0x34341333e5c16, -1>; // asinCoeff2
+    static constexpr double f64_asin_c2_2 = double_const< 1, 0x5c74b178a2dd9, 2 >; // asinCoeff2
+    static constexpr double f64_asin_c2_3 = double_const<-1, 0x04331de27907b, 4 >; // asinCoeff2
+    static constexpr double f64_asin_c2_4 = double_const< 1, 0x39007da779259, 4 >; // asinCoeff2
+    static constexpr double f64_asin_c2_5 = double_const<-1, 0x0656c06ceafd5, 3 >; // asinCoeff2
+    static constexpr double f64_asin_c3_0 = double_const<-1, 0xd7b590b5e0eab, 3 >; // asinCoeff3
+    static constexpr double f64_asin_c3_1 = double_const< 1, 0x19fc025fe9054, 6 >; // asinCoeff3
+    static constexpr double f64_asin_c3_2 = double_const<-1, 0x265bb6d3576d7, 7 >; // asinCoeff3
+    static constexpr double f64_asin_c3_3 = double_const< 1, 0x1705684ffbf9d, 7 >; // asinCoeff3
+    static constexpr double f64_asin_c3_4 = double_const<-1, 0x898220a3607ac, 5 >; // asinCoeff3
+};
+
+template <class Abi,class T> struct trig;
+
+template <class Abi> struct trig<Abi, float> {
+    using C = constants<Abi>;
+
+    static Vc_INTRINSIC Vc_CONST simd<float, Abi> load(const float *arr)
+    {
+        return {arr, flags::vector_aligned};
+    }
+    static Vc_INTRINSIC Vc_CONST simd<float, Abi> load(float arr)
+    {
+        return arr;
+    }
+
+    static Vc_INTRINSIC simd<float, Abi> pi_4() { return load(C::f32_pi_4); }
+    static Vc_INTRINSIC simd<float, Abi> pi_4_hi() { return load(C::f32_pi_4_hi); }
+    static Vc_INTRINSIC simd<float, Abi> pi_4_rem1() { return load(C::f32_pi_4_rem1); }
+    static Vc_INTRINSIC simd<float, Abi> pi_4_rem2() { return load(C::f32_pi_4_rem2); }
+    static Vc_INTRINSIC simd<float, Abi> _1_16() { return load(C::f32_1_16); }
+    static Vc_INTRINSIC simd<float, Abi> _16() { return load(C::f32_16); }
+    static Vc_INTRINSIC simd<float, Abi> cos_c0() { return load(C::f32_cos_c0); }
+    static Vc_INTRINSIC simd<float, Abi> cos_c1() { return load(C::f32_cos_c1); }
+    static Vc_INTRINSIC simd<float, Abi> cos_c2() { return load(C::f32_cos_c2); }
+    static Vc_INTRINSIC simd<float, Abi> sin_c0() { return load(C::f32_sin_c0); }
+    static Vc_INTRINSIC simd<float, Abi> sin_c1() { return load(C::f32_sin_c1); }
+    static Vc_INTRINSIC simd<float, Abi> sin_c2() { return load(C::f32_sin_c2); }
+    static Vc_INTRINSIC simd<float, Abi> loss_threshold() { return load(C::f32_loss_threshold); }
+    static Vc_INTRINSIC simd<float, Abi> _4_pi() { return load(C::f32_4_pi); }
+    static Vc_INTRINSIC simd<float, Abi> pi_2() { return load(C::f32_pi_2); }
+    static Vc_INTRINSIC simd<float, Abi> pi() { return load(C::f32_pi); }
+    static Vc_INTRINSIC simd<float, Abi> atan_p0() { return load(C::f32_atan_p0); }
+    static Vc_INTRINSIC simd<float, Abi> atan_p1() { return load(C::f32_atan_p1); }
+    static Vc_INTRINSIC simd<float, Abi> atan_p2() { return load(C::f32_atan_p2); }
+    static Vc_INTRINSIC simd<float, Abi> atan_p3() { return load(C::f32_atan_p3); }
+    static Vc_INTRINSIC simd<float, Abi> atan_threshold_hi() { return load(C::f32_atan_threshold_hi); }
+    static Vc_INTRINSIC simd<float, Abi> atan_threshold_lo() { return load(C::f32_atan_threshold_lo); }
+    static Vc_INTRINSIC simd<float, Abi> pi_2_rem() { return load(C::f32_pi_2_rem); }
+    static Vc_INTRINSIC simd<float, Abi> small_asin_input() { return load(C::f32_small_asin_input); }
+    static Vc_INTRINSIC simd<float, Abi> large_asin_input() { return load(C::f32_large_asin_input); }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_0() { return load(C::f32_asin_c0_0); }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_1() { return load(C::f32_asin_c0_1); }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_2() { return load(C::f32_asin_c0_2); }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_3() { return load(C::f32_asin_c0_3); }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_4() { return load(C::f32_asin_c0_4); }
+};
+
+template <class Abi> struct trig<Abi, double> {
+    using C = constants<Abi>;
+
+    static Vc_INTRINSIC Vc_CONST simd<double, Abi> load(const double *arr)
+    {
+        return {arr, flags::vector_aligned};
+    }
+    static Vc_INTRINSIC Vc_CONST simd<double, Abi> load(double arr)
+    {
+        return arr;
+    }
+
+    static Vc_INTRINSIC simd<double, Abi> pi_4() { return load(C::f64_pi_4); }
+    static Vc_INTRINSIC simd<double, Abi> pi_4_hi() { return load(C::f64_pi_4_hi); }
+    static Vc_INTRINSIC simd<double, Abi> pi_4_rem1() { return load(C::f64_pi_4_rem1); }
+    static Vc_INTRINSIC simd<double, Abi> pi_4_rem2() { return load(C::f64_pi_4_rem2); }
+    static Vc_INTRINSIC simd<double, Abi> _1_16() { return load(C::f64_1_16); }
+    static Vc_INTRINSIC simd<double, Abi> _16() { return load(C::f64_16); }
+    static Vc_INTRINSIC simd<double, Abi> cos_c0() { return load(C::f64_cos_c0); }
+    static Vc_INTRINSIC simd<double, Abi> cos_c1() { return load(C::f64_cos_c1); }
+    static Vc_INTRINSIC simd<double, Abi> cos_c2() { return load(C::f64_cos_c2); }
+    static Vc_INTRINSIC simd<double, Abi> cos_c3() { return load(C::f64_cos_c3); }
+    static Vc_INTRINSIC simd<double, Abi> cos_c4() { return load(C::f64_cos_c4); }
+    static Vc_INTRINSIC simd<double, Abi> cos_c5() { return load(C::f64_cos_c5); }
+    static Vc_INTRINSIC simd<double, Abi> sin_c0() { return load(C::f64_sin_c0); }
+    static Vc_INTRINSIC simd<double, Abi> sin_c1() { return load(C::f64_sin_c1); }
+    static Vc_INTRINSIC simd<double, Abi> sin_c2() { return load(C::f64_sin_c2); }
+    static Vc_INTRINSIC simd<double, Abi> sin_c3() { return load(C::f64_sin_c3); }
+    static Vc_INTRINSIC simd<double, Abi> sin_c4() { return load(C::f64_sin_c4); }
+    static Vc_INTRINSIC simd<double, Abi> sin_c5() { return load(C::f64_sin_c5); }
+    static Vc_INTRINSIC simd<double, Abi> loss_threshold() { return load(C::f64_loss_threshold); }
+    static Vc_INTRINSIC simd<double, Abi> _4_pi() { return load(C::f64_4_pi); }
+    static Vc_INTRINSIC simd<double, Abi> pi_2() { return load(C::f64_pi_2); }
+    static Vc_INTRINSIC simd<double, Abi> pi() { return load(C::f64_pi); }
+    static Vc_INTRINSIC simd<double, Abi> atan_p0() { return load(C::f64_atan_p0); }
+    static Vc_INTRINSIC simd<double, Abi> atan_p1() { return load(C::f64_atan_p1); }
+    static Vc_INTRINSIC simd<double, Abi> atan_p2() { return load(C::f64_atan_p2); }
+    static Vc_INTRINSIC simd<double, Abi> atan_p3() { return load(C::f64_atan_p3); }
+    static Vc_INTRINSIC simd<double, Abi> atan_threshold_hi() { return load(C::f64_atan_threshold_hi); }
+    static Vc_INTRINSIC simd<double, Abi> atan_threshold_lo() { return load(C::f64_atan_threshold_lo); }
+    static Vc_INTRINSIC simd<double, Abi> pi_2_rem() { return load(C::f64_pi_2_rem); }
+    static Vc_INTRINSIC simd<double, Abi> small_asin_input() { return load(C::f64_small_asin_input); }
+    static Vc_INTRINSIC simd<double, Abi> large_asin_input() { return load(C::f64_large_asin_input); }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_0() { return load(C::f64_asin_c0_0); }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_1() { return load(C::f64_asin_c0_1); }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_2() { return load(C::f64_asin_c0_2); }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_3() { return load(C::f64_asin_c0_3); }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_4() { return load(C::f64_asin_c0_4); }
+};
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
-#endif  // VC_SIMD_CONST_H_
+
+#ifdef Vc_HAVE_SSE
+#include "x86/const.h"
+#endif  // Vc_HAVE_SSE
+
+#ifdef Vc_HAVE_NEON
+#include "aarch/const.h"
+#endif  // Vc_HAVE_NEON
+
+#endif  // VC_DETAIL_CONST_H_
+
+// vim: foldmethod=marker

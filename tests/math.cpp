@@ -28,12 +28,35 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
 #include <Vc/simd>
+#include <Vc/math>
 #include "metahelpers.h"
 #include <cmath>    // abs & sqrt
 #include <cstdlib>  // integer abs
 
 template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
+
+template <class V>
+V epilogue_load(const typename V::value_type *mem, const std::size_t size)
+{
+    const int rem = size % V::size();
+    return where(V([](int i) { return i; }) < rem, V(0))
+        .copy_from(mem + size / V::size() * V::size(), Vc::flags::element_aligned);
+}
+
+template <class V, class... F>
+void test_values(const std::initializer_list<typename V::value_type> &inputs, F &&... fun_pack)
+{
+    auto &&do_test = [&](V in, auto &&fun) {
+        V expected([&](auto i) { return fun(in[i]); });
+        COMPARE(fun(in), expected) << "input: " << in;
+        return 0;
+    };
+    for (auto it = inputs.begin(); it + V::size() <= inputs.end(); it += V::size()) {
+        auto &&tmp = {(fun_pack(V(&it[0], Vc::flags::element_aligned)), 0)...};
+    }
+    auto &&tmp = {(fun_pack(epilogue_load<V>(inputs.begin(), inputs.size())), 0)...};
+}
 
 template <class V> void test_abs(std::false_type)
 {
@@ -60,4 +83,106 @@ TEST_TYPES(V, testSqrt, real_test_types)  //{{{1
     V input([](auto i) { return T(i); });
     V expected([](auto i) { return std::sqrt(T(i)); });
     COMPARE(sqrt(input), expected);
+}
+
+TEST_TYPES(V, logb, real_test_types)  //{{{1
+{
+    using std::logb;
+    using T = typename V::value_type;
+    const V input([](auto i) { return T(i); });
+    const V expected([&input](auto i) { return std::logb(input[i]); });
+    COMPARE(logb(input), expected);
+}
+
+TEST_TYPES(V, fpclassify, real_test_types)  //{{{1
+{
+    using limits = std::numeric_limits<typename V::value_type>;
+    test_values<V>(
+        {limits::infinity(), -limits::infinity(), limits::max(), limits::denorm_min(),
+         -0., 0., limits::quiet_NaN(), limits::signaling_NaN()},
+        [](V input) {
+            COMPARE(isnan(input),
+                    !V([&](auto i) { return std::isnan(input[i]) ? 0 : 1; }))
+                << input;
+        });
+}
+
+TEST_TYPES(V, trunc_ceil_floor, real_test_types)  //{{{1
+{
+    using limits = std::numeric_limits<typename V::value_type>;
+    test_values<V>({2.1,
+                    2.0,
+                    2.9,
+                    2.5,
+                    2.499,
+                    1.5,
+                    1.499,
+                    1.99,
+                    0.99,
+                    0.5,
+                    0.499,
+                    0.,
+                    -2.1,
+                    -2.0,
+                    -2.9,
+                    -2.5,
+                    -2.499,
+                    -1.5,
+                    -1.499,
+                    -1.99,
+                    -0.99,
+                    -0.5,
+                    -0.499,
+                    -0.,
+                    3 << 21,
+                    3 << 22,
+                    3 << 23,
+                    -(3 << 21),
+                    -(3 << 22),
+                    -(3 << 23),
+                    limits::infinity(),
+                    -limits::infinity(),
+                    limits::denorm_min(),
+                    limits::max(),
+                    limits::min(),
+                    limits::lowest(),
+                    -limits::denorm_min(),
+                    -limits::max(),
+                    -limits::min(),
+                    -limits::lowest()},
+                   [](V input) {
+                       const V expected([&](auto i) { return std::trunc(input[i]); });
+                       COMPARE(trunc(input), expected) << input;
+                   },
+                   [](V input) {
+                       const V expected([&](auto i) { return std::ceil(input[i]); });
+                       COMPARE(ceil(input), expected) << input;
+                   },
+                   [](V input) {
+                       const V expected([&](auto i) { return std::floor(input[i]); });
+                       COMPARE(floor(input), expected) << input;
+                   });
+
+    test_values<V>({limits::quiet_NaN(), limits::signaling_NaN()},
+                   [](V input) {
+                       const V expected([&](auto i) { return std::trunc(input[i]); });
+                       COMPARE(isnan(trunc(input)), isnan(expected)) << input;
+                   },
+                   [](V input) {
+                       const V expected([&](auto i) { return std::ceil(input[i]); });
+                       COMPARE(isnan(ceil(input)), isnan(expected)) << input;
+                   },
+                   [](V input) {
+                       const V expected([&](auto i) { return std::floor(input[i]); });
+                       COMPARE(isnan(floor(input)), isnan(expected)) << input;
+                   });
+}
+
+TEST_TYPES(V, testSin, real_test_types)  //{{{1
+{
+    using std::sin;
+    using T = typename V::value_type;
+    const V input([](auto i) { return T(i * 0.01); });
+    const V expected([&input](auto i) { return std::sin(input[i]); });
+    COMPARE(sin(input), expected);
 }

@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "concepts.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
+// simd_abi {{{1
 namespace simd_abi
 {
 constexpr int max_fixed_size = 32;
@@ -123,6 +124,7 @@ template <typename T> using default_abi = compatible<T>;
 }  // namespace detail
 }  // namespace simd_abi
 
+// traits {{{1
 template <class T> struct is_abi_tag : public std::false_type {};
 template <> struct is_abi_tag<simd_abi::scalar> : public std::true_type {};
 template <int N> struct is_abi_tag<simd_abi::fixed_size<N>> : public std::true_type {};
@@ -248,13 +250,13 @@ struct memory_alignment
 template <class T, class U = typename T::value_type>
 constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
 
-// class template simd [simd]
+// class template simd [simd] {{{1
 template <class T, class Abi = simd_abi::detail::default_abi<T>> class simd;
 template <class T, class Abi> struct is_simd<simd<T, Abi>> : public std::true_type {};
 template <class T> using native_simd = simd<T, simd_abi::native<T>>;
 template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
 
-// class template simd_mask [simd_mask]
+// class template simd_mask [simd_mask] {{{1
 template <class T, class Abi = simd_abi::detail::default_abi<T>> class simd_mask;
 template <class T, class Abi> struct is_simd_mask<simd_mask<T, Abi>> : public std::true_type {};
 template <class T> using native_mask = simd_mask<T, simd_abi::native<T>>;
@@ -270,7 +272,8 @@ template <class T, class Abi> struct get_impl<Vc::simd<T, Abi>> {
 };
 }  // namespace detail
 
-// casts [simd.casts]
+// casts [simd.casts] {{{1
+// static_simd_cast {{{2
 namespace detail
 {
 // To is either simd<T, A0> or an arithmetic type
@@ -323,6 +326,26 @@ Vc_INTRINSIC R static_simd_cast(const simd<U, A> &x)
     return R(detail::private_init, c(detail::data(x)));
 }
 
+template <class T, class U, class A,
+          class R = typename detail::static_simd_cast_return_type<
+              simd<U, A>, typename T::simd_type>::type>
+Vc_INTRINSIC typename R::mask_type static_simd_cast(const simd_mask<U, A> &x)
+{
+    using RM = typename R::mask_type;
+#ifdef __cpp_if_constexpr
+    if constexpr(std::is_same<RM, simd_mask<U, A>>::value) {
+        return x;
+    }
+#endif  // __cpp_if_constexpr
+    if (sizeof(simd_mask<U, A>) == sizeof(RM) && simd_mask<U, A>::size() == RM::size()) {
+        return reinterpret_cast<const RM &>(x);
+    }
+    return RM::from_bitset(x.to_bitset());
+    //detail::simd_converter<U, A, typename R::value_type, typename R::abi_type> cvt;
+    //return R(detail::private_init, cvt(detail::data(x)));
+}
+
+// simd_cast {{{2
 template <class T, class U, class A, class To = detail::value_type_or_identity<T>>
 Vc_INTRINSIC auto simd_cast(const simd<detail::value_preserving<U, To>, A> &x)
     ->decltype(static_simd_cast<T>(x))
@@ -330,6 +353,14 @@ Vc_INTRINSIC auto simd_cast(const simd<detail::value_preserving<U, To>, A> &x)
     return static_simd_cast<T>(x);
 }
 
+template <class T, class U, class A, class To = detail::value_type_or_identity<T>>
+Vc_INTRINSIC auto simd_cast(const simd_mask<detail::value_preserving<U, To>, A> &x)
+    ->decltype(static_simd_cast<T>(x))
+{
+    return static_simd_cast<T>(x);
+}
+
+// to_fixed_size {{{2
 template <class T, int N>
 Vc_INTRINSIC fixed_size_simd<T, N> to_fixed_size(const fixed_size_simd<T, N> &x)
 {
@@ -356,6 +387,7 @@ template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const simd_mask<T, A
     return r;
 }
 
+// to_native {{{2
 template <class T, int N>
 Vc_INTRINSIC std::enable_if_t<(N == native_simd<T>::size()), native_simd<T>>
 to_native(const fixed_size_simd<T, N> &x)
@@ -372,6 +404,7 @@ Vc_INTRINSIC std::enable_if_t<(N == native_mask<T>::size()), native_mask<T>> to_
     return native_mask<T>([&](auto i) { return x[i]; });
 }
 
+// to_compatible {{{2
 template <class T, size_t N>
 Vc_INTRINSIC std::enable_if_t<(N == simd<T>::size()), simd<T>> to_compatible(
     const simd<T, simd_abi::fixed_size<N>> &x)
@@ -388,7 +421,7 @@ Vc_INTRINSIC std::enable_if_t<(N == simd_mask<T>::size()), simd_mask<T>> to_comp
     return simd_mask<T>([&](auto i) { return x[i]; });
 }
 
-// reductions [simd_mask.reductions]
+// reductions [simd_mask.reductions] {{{1
 // implementation per ABI in fixed_size.h, sse.h, avx.h, etc.
 template <class T, class Abi> inline bool all_of(const simd_mask<T, Abi> &k);
 template <class T, class Abi> inline bool any_of(const simd_mask<T, Abi> &k);
@@ -406,7 +439,7 @@ constexpr int popcount(detail::exact_bool x) { return x; }
 constexpr int find_first_set(detail::exact_bool) { return 0; }
 constexpr int find_last_set(detail::exact_bool) { return 0; }
 
-// masked assignment [simd_mask.where]
+// masked assignment [simd_mask.where] {{{1
 #ifdef Vc_EXPERIMENTAL
 namespace detail {
 template <class T, class A> class masked_simd_impl;
@@ -416,6 +449,7 @@ masked_simd_impl<T, A> masked_simd(const typename simd<T, A>::mask_type &k,
 }  // namespace detail
 #endif  // Vc_EXPERIMENTAL
 
+// where_expression {{{1
 template <typename M, typename T> class const_where_expression
 {
     using V = std::remove_const_t<T>;
@@ -711,6 +745,7 @@ Vc_INTRINSIC where_expression<simd_mask<T, A>, std::tuple<simd<T, A> &, Vs &...>
 }
 #endif  // Vc_EXPERIMENTAL
 
+// where {{{1
 template <class T, class A>
 Vc_INTRINSIC where_expression<simd_mask<T, A>, simd<T, A>> where(
     const typename simd<T, A>::mask_type &k, simd<T, A> &d)
@@ -748,7 +783,7 @@ Vc_INTRINSIC const_where_expression<bool, const T> where(detail::exact_bool k, c
 template <class T, class A> void where(bool k, simd<T, A> &d) = delete;
 template <class T, class A> void where(bool k, const simd<T, A> &d) = delete;
 
-// reductions [simd.reductions]
+// reductions [simd.reductions] {{{1
 template <class BinaryOperation = std::plus<>, class T, class Abi>
 Vc_INTRINSIC T reduce(const simd<T, Abi> &v,
                       BinaryOperation binary_op = BinaryOperation())
@@ -770,7 +805,7 @@ Vc_INTRINSIC typename V::value_type reduce(
     return reduce(tmp, binary_op);
 }
 
-// algorithms [simd.alg]
+// algorithms [simd.alg] {{{1
 template <class T, class A>
 Vc_INTRINSIC simd<T, A> min(const simd<T, A> &a, const simd<T, A> &b)
 {
@@ -801,21 +836,7 @@ Vc_INTRINSIC simd<T, A> clamp(const simd<T, A> &v, const simd<T, A> &lo,
         Impl::min(detail::data(hi), Impl::max(detail::data(lo), detail::data(v))));
 }
 
-// math functions
-template <class T, class Abi>
-Vc_INTRINSIC simd<T, Abi> sqrt(const simd<T, Abi> &x)
-{
-    return static_cast<simd<T, Abi>>(
-        detail::get_impl_t<simd<T, Abi>>::sqrt(data(x)));
-}
-
-template <class T, class Abi>
-Vc_INTRINSIC simd<T, Abi> abs(const simd<detail::SignedArithmetic<T>, Abi> &x)
-{
-    return static_cast<simd<T, Abi>>(
-        detail::get_impl_t<simd<T, Abi>>::abs(data(x)));
-}
-
+// }}}1
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_SIMD_SYNOPSIS_H_

@@ -186,11 +186,17 @@ struct scalar_simd_impl {
         return static_cast<T>(detail::promote_preserving_unsigned(x) >> y);
     }
 
-    // abs{{{2
+    // math {{{2
     template <class T> static inline T abs(T x) { return T(std::abs(x)); }
-
-    // sqrt{{{2
     template <class T> static inline T sqrt(T x) { return std::sqrt(x); }
+    template <class T> static inline T logb(T x) { return std::logb(x); }
+    template <class T> static inline T trunc(T x) { return std::trunc(x); }
+    template <class T> static inline T floor(T x) { return std::floor(x); }
+    template <class T> static inline T ceil(T x) { return std::ceil(x); }
+
+    template <class T> static inline bool isnan(T x) { return std::isnan(x); }
+    template <class T> static inline bool isnormal(T x) { return std::isnormal(x); }
+    template <class T> static inline bool signbit(T x) { return std::signbit(x); }
 
     // increment & decrement{{{2
     template <class T> static inline void increment(T &x) { ++x; }

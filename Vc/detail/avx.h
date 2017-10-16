@@ -103,6 +103,262 @@ Vc_VERSIONED_NAMESPACE_END
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+// simd_mask impl {{{1
+struct avx_mask_impl : public generic_mask_impl<simd_abi::avx, avx_mask_member_type> {
+    // member types {{{2
+    using abi = simd_abi::avx;
+    template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
+    template <class T> using mask_member_type = avx_mask_member_type<T>;
+    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::avx>;
+    template <class T> using mask_bool = MaskBool<sizeof(T)>;
+    template <size_t N> using size_tag = size_constant<N>;
+    template <class T> using type_tag = T *;
+
+    // broadcast {{{2
+    template <typename T> static Vc_INTRINSIC auto broadcast(bool x, type_tag<T>) noexcept
+    {
+        return detail::broadcast32(T(mask_bool<T>{x}));
+    }
+
+    // from_bitset overloads {{{2
+    using generic_mask_impl<abi, avx_mask_member_type>::from_bitset;
+
+    static Vc_INTRINSIC mask_member_type<float> from_bitset(std::bitset<8> bits,
+                                                            type_tag<float>)
+    {
+        return _mm256_cmp_ps(
+            _mm256_and_ps(_mm256_castsi256_ps(_mm256_set1_epi32(bits.to_ulong())),
+                          _mm256_castsi256_ps(_mm256_setr_epi32(0x01, 0x02, 0x04, 0x08,
+                                                                0x10, 0x20, 0x40, 0x80))),
+            _mm256_setzero_ps(), _CMP_NEQ_UQ);
+    }
+
+    static Vc_INTRINSIC mask_member_type<double> from_bitset(std::bitset<4> bits,
+                                                            type_tag<double>)
+    {
+        return _mm256_cmp_pd(
+            _mm256_and_pd(
+                _mm256_castsi256_pd(_mm256_set1_epi64x(bits.to_ulong())),
+                _mm256_castsi256_pd(_mm256_setr_epi64x(0x01, 0x02, 0x04, 0x08))),
+            _mm256_setzero_pd(), _CMP_NEQ_UQ);
+    }
+
+    // load {{{2
+    template <class F>
+    static Vc_INTRINSIC __m256 load(const bool *mem, F, size_tag<4>) noexcept
+    {
+#ifdef Vc_MSVC
+        return intrin_cast<__m256>(x86::set(mem[0] ? 0xffffffffffffffffULL : 0ULL,
+                                            mem[1] ? 0xffffffffffffffffULL : 0ULL,
+                                            mem[2] ? 0xffffffffffffffffULL : 0ULL,
+                                            mem[3] ? 0xffffffffffffffffULL : 0ULL));
+#else
+        __m128i k = intrin_cast<__m128i>(_mm_and_ps(
+            _mm_set1_ps(*reinterpret_cast<const may_alias<float> *>(mem)),
+            intrin_cast<__m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))));
+        k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
+        return intrin_cast<__m256>(
+            concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
+#endif
+    }
+    template <class F>
+    static Vc_INTRINSIC __m256 load(const bool *mem, F, size_tag<8>) noexcept
+    {
+#ifdef Vc_IS_AMD64
+        __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const may_alias<int64_t> *>(mem));
+#else
+        __m128i k = _mm_castpd_si128(
+            _mm_load_sd(reinterpret_cast<const may_alias<double> *>(mem)));
+#endif
+        k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
+        return intrin_cast<__m256>(
+            concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k)));
+    }
+    template <class F>
+    static Vc_INTRINSIC __m256i load(const bool *mem, F f, size_tag<16>) noexcept
+    {
+        const auto k128 = _mm_cmpgt_epi8(load16(mem, f), zero<__m128i>());
+        return concat(_mm_unpacklo_epi8(k128, k128), _mm_unpackhi_epi8(k128, k128));
+    }
+    template <class F>
+    static Vc_INTRINSIC __m256i load(const bool *mem, F f, size_tag<32>) noexcept
+    {
+        return _mm256_cmpgt_epi8(load32(mem, f), zero<__m256i>());
+    }
+
+    // store {{{2
+    template <class T, class F>
+    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
+                                            size_tag<4>) noexcept
+    {
+        auto k = intrin_cast<__m256i>(v.v());
+#ifdef Vc_HAVE_AVX2
+        *reinterpret_cast<may_alias<int32_t> *>(mem) = _mm256_movemask_epi8(k) & 0x01010101;
+#else
+        *reinterpret_cast<may_alias<int32_t> *>(mem) =
+            (_mm_movemask_epi8(lo128(k)) |
+             (_mm_movemask_epi8(hi128(k)) << 16)) &
+            0x01010101;
+#endif
+    }
+    template <class T, class F>
+    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
+                                            size_tag<8>) noexcept
+    {
+        const auto k = intrin_cast<__m256i>(v.v());
+        const auto k2 = x86::srli_epi16<15>(_mm_packs_epi16(lo128(k), hi128(k)));
+        const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
+#ifdef Vc_IS_AMD64
+        *reinterpret_cast<may_alias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
+#else
+        *reinterpret_cast<may_alias<int32_t> *>(mem) = _mm_cvtsi128_si32(k3);
+        *reinterpret_cast<may_alias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
+#endif
+    }
+    template <class T, class F>
+    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F f,
+                                            size_tag<16>) noexcept
+    {
+#ifdef Vc_HAVE_AVX2
+        const auto x = x86::srli_epi16<15>(v);
+        const auto bools = _mm_packs_epi16(lo128(x), hi128(x));
+#else
+        const auto bools =
+            detail::and_(one16(uchar()), _mm_packs_epi16(lo128(v.v()), hi128(v.v())));
+#endif
+        store16(bools, mem, f);
+    }
+    template <class T, class F>
+    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F f,
+                                            size_tag<32>) noexcept
+    {
+        const auto bools = detail::and_(one32(uchar()), v.v());
+        store32(bools, mem, f);
+    }
+
+    // negation {{{2
+    template <class T, class SizeTag>
+    static Vc_INTRINSIC mask_member_type<T> negate(const mask_member_type<T> &x,
+                                                   SizeTag) noexcept
+    {
+#if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
+        return !x.builtin();
+#else
+        return detail::not_(x.v());
+#endif
+    }
+
+    // logical and bitwise operators {{{2
+    template <class T>
+    static Vc_INTRINSIC simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y)
+    {
+        return {private_init, detail::and_(x.d, y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y)
+    {
+        return {private_init, detail::or_(x.d, y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y)
+    {
+        return {private_init, detail::and_(x.d, y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y)
+    {
+        return {private_init, detail::or_(x.d, y.d)};
+    }
+
+    template <class T>
+    static Vc_INTRINSIC simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y)
+    {
+        return {private_init, detail::xor_(x.d, y.d)};
+    }
+
+    // smart_reference access {{{2
+    template <class T> static bool get(const mask_member_type<T> k, int i) noexcept
+    {
+        return k.m(i);
+    }
+    template <class T> static void set(mask_member_type<T> &k, int i, bool x) noexcept
+    {
+        k.set(i, mask_bool<T>(x));
+    }
+    // }}}2
+};
+
+// }}}1
+
+constexpr struct {
+    template <class T> operator T() const { return detail::allone<T>(); }
+} allone_poly = {};
+}  // namespace detail
+
+// [simd_mask.reductions] {{{
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<T, simd_abi::avx> k)
+{
+    const auto d = detail::data(k);
+    return 0 != detail::testc(d, detail::allone_poly);
+}
+
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<T, simd_abi::avx> k)
+{
+    const auto d = detail::data(k);
+    return 0 == detail::testz(d, d);
+}
+
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<T, simd_abi::avx> k)
+{
+    const auto d = detail::data(k);
+    return 0 != detail::testz(d, d);
+}
+
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<T, simd_abi::avx> k)
+{
+    const auto d = detail::data(k);
+    return 0 != detail::testnzc(d, detail::allone_poly);
+}
+
+template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(simd_mask<T, simd_abi::avx> k)
+{
+    const auto d = detail::data(k);
+    switch (k.size()) {
+    case 4:
+        return detail::popcnt4(detail::mask_to_int<k.size()>(d));
+    case 8:
+        return detail::popcnt8(detail::mask_to_int<k.size()>(d));
+    case 16:
+        return detail::popcnt32(detail::mask_to_int<32>(d)) / 2;
+    case 32:
+        return detail::popcnt32(detail::mask_to_int<k.size()>(d));
+    default:
+        Vc_UNREACHABLE();
+        return 0;
+    }
+}
+
+template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_first_set(simd_mask<T, simd_abi::avx> k)
+{
+    const auto d = detail::data(k);
+    return detail::firstbit(detail::mask_to_int<k.size()>(d));
+}
+
+template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(simd_mask<T, simd_abi::avx> k)
+{
+    const auto d = detail::data(k);
+    if (k.size() == 16) {
+        return detail::lastbit(detail::mask_to_int<32>(d)) / 2;
+    }
+    return detail::lastbit(detail::mask_to_int<k.size()>(d));
+}
+// }}}
+
+namespace detail
+{
 // simd impl {{{1
 struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     // member types {{{2
@@ -670,6 +926,122 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
 #endif
 #endif
 
+    // math {{{2
+    // sqrt {{{3
+    static Vc_INTRINSIC simd_member_type<float> sqrt(simd_member_type<float> x)
+    {
+        return _mm256_sqrt_ps(x);
+    }
+    static Vc_INTRINSIC simd_member_type<double> sqrt(simd_member_type<double> x)
+    {
+        return _mm256_sqrt_pd(x);
+    }
+
+    // logb {{{3
+    static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb_positive(simd_member_type<float> v)
+    {
+#ifdef Vc_HAVE_AVX512VL
+        return _mm256_getexp_ps(v);
+#elif defined Vc_HAVE_AVX2
+        __m256i tmp = _mm256_srli_epi32(intrin_cast<__m256i>(v), 23);
+        tmp = _mm256_sub_epi32(tmp, x86::broadcast32(0x7f));
+        return _mm256_cvtepi32_ps(tmp);
+#else
+        __m128i tmp0 = _mm_srli_epi32(intrin_cast<__m128i>(v), 23);
+        __m128i tmp1 = _mm_srli_epi32(intrin_cast<__m128i>(hi128(v)), 23);
+        tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
+        tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
+        return _mm256_cvtepi32_ps(concat(tmp0, tmp1));
+#endif
+    }
+    static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb_positive(simd_member_type<double> v)
+    {
+#ifdef Vc_HAVE_AVX512VL
+        return _mm256_getexp_pd(v);
+#elif defined Vc_HAVE_AVX2
+        y_i64 tmp = _mm256_srli_epi64(intrin_cast<__m256i>(v), 52);
+        tmp = _mm256_sub_epi64(tmp, _mm256_set1_epi64x(0x3ff));
+        return convert_to<y_f64>(tmp);
+#else
+        x_i64 tmp0 = _mm_srli_epi64(intrin_cast<__m128i>(v), 52);
+        x_i64 tmp1 = _mm_srli_epi64(intrin_cast<__m128i>(hi128(v)), 52);
+        tmp0 = _mm_sub_epi64(tmp0, _mm_set1_epi64x(0x3ff));
+        tmp1 = _mm_sub_epi64(tmp1, _mm_set1_epi64x(0x3ff));
+        return convert_to<y_f64>(tmp0, tmp1);
+#endif
+    }
+
+#ifdef Vc_HAVE_AVX512VL
+    static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb(simd_member_type<float> v)
+    {
+        return _mm256_fixupimm_ps(logb_positive(abs(v)), v, broadcast32(0x00550433),
+                                  0x00);
+    }
+    static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb(simd_member_type<double> v)
+    {
+        return _mm256_fixupimm_pd(logb_positive(abs(v)), v, broadcast32(0x00550433),
+                                  0x00);
+    }
+#else   // Vc_HAVE_AVX512VL
+    template <class T>
+    static Vc_INTRINSIC Vc_CONST simd_member_type<T> logb(simd_member_type<T> v)
+    {
+        const auto is_zero = equal_to(v, simd_member_type<T>(broadcast32(T())));
+        const auto is_negative = less(v, simd_member_type<T>(broadcast32(T())));
+        simd_member_type<T> r = logb_positive(v);
+        // TODO: is_nan, is_infinity
+        if (Vc_IS_UNLIKELY(
+                any_of(simd_mask<T>(detail::private_init, or_(is_zero, is_negative))))) {
+            masked_assign(is_zero, r,
+                          broadcast32(std::is_same<T, float>::value ? T(-HUGE_VALF)
+                                                                    : T(-HUGE_VAL)));
+            masked_assign(is_negative, r,
+                          broadcast32(std::numeric_limits<T>::infinity()));
+        }
+        return r;
+    }
+#endif
+
+    // trunc {{{3
+    static Vc_INTRINSIC simd_member_type<float> trunc(simd_member_type<float> x)
+    {
+        return _mm256_round_ps(x, 0x3);
+    }
+    static Vc_INTRINSIC simd_member_type<double> trunc(simd_member_type<double> x)
+    {
+        return _mm256_round_pd(x, 0x3);
+    }
+
+    // floor {{{3
+    static Vc_INTRINSIC simd_member_type<float> floor(simd_member_type<float> x)
+    {
+        return _mm256_round_ps(x, 0x1);
+    }
+    static Vc_INTRINSIC simd_member_type<double> floor(simd_member_type<double> x)
+    {
+        return _mm256_round_pd(x, 0x1);
+    }
+
+    // ceil {{{3
+    static Vc_INTRINSIC simd_member_type<float> ceil(simd_member_type<float> x)
+    {
+        return _mm256_round_ps(x, 0x2);
+    }
+    static Vc_INTRINSIC simd_member_type<double> ceil(simd_member_type<double> x)
+    {
+        return _mm256_round_pd(x, 0x2);
+    }
+
+    // isnan {{{3
+    static Vc_INTRINSIC mask_member_type<float> isnan(simd_member_type<float> x)
+    {
+        return _mm256_cmp_ps(x, x, _CMP_UNORD_Q);
+    }
+    static Vc_INTRINSIC mask_member_type<double> isnan(simd_member_type<double> x)
+    {
+        return _mm256_cmp_pd(x, x, _CMP_UNORD_Q);
+    }
+
     // smart_reference access {{{2
     template <class T>
     static Vc_INTRINSIC T Vc_VDECL get(simd_member_type<T> v, int i) noexcept
@@ -680,194 +1052,6 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     static Vc_INTRINSIC void set(simd_member_type<T> &v, int i, U &&x) noexcept
     {
         v.set(i, std::forward<U>(x));
-    }
-    // }}}2
-};
-
-// simd_mask impl {{{1
-struct avx_mask_impl : public generic_mask_impl<simd_abi::avx, avx_mask_member_type> {
-    // member types {{{2
-    using abi = simd_abi::avx;
-    template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
-    template <class T> using mask_member_type = avx_mask_member_type<T>;
-    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::avx>;
-    template <class T> using mask_bool = MaskBool<sizeof(T)>;
-    template <size_t N> using size_tag = size_constant<N>;
-    template <class T> using type_tag = T *;
-
-    // broadcast {{{2
-    template <typename T> static Vc_INTRINSIC auto broadcast(bool x, type_tag<T>) noexcept
-    {
-        return detail::broadcast32(T(mask_bool<T>{x}));
-    }
-
-    // from_bitset overloads {{{2
-    using generic_mask_impl<abi, avx_mask_member_type>::from_bitset;
-
-    static Vc_INTRINSIC mask_member_type<float> from_bitset(std::bitset<8> bits,
-                                                            type_tag<float>)
-    {
-        return _mm256_cmp_ps(
-            _mm256_and_ps(_mm256_castsi256_ps(_mm256_set1_epi32(bits.to_ulong())),
-                          _mm256_castsi256_ps(_mm256_setr_epi32(0x01, 0x02, 0x04, 0x08,
-                                                                0x10, 0x20, 0x40, 0x80))),
-            _mm256_setzero_ps(), _CMP_NEQ_UQ);
-    }
-
-    static Vc_INTRINSIC mask_member_type<double> from_bitset(std::bitset<4> bits,
-                                                            type_tag<double>)
-    {
-        return _mm256_cmp_pd(
-            _mm256_and_pd(
-                _mm256_castsi256_pd(_mm256_set1_epi64x(bits.to_ulong())),
-                _mm256_castsi256_pd(_mm256_setr_epi64x(0x01, 0x02, 0x04, 0x08))),
-            _mm256_setzero_pd(), _CMP_NEQ_UQ);
-    }
-
-    // load {{{2
-    template <class F>
-    static Vc_INTRINSIC __m256 load(const bool *mem, F, size_tag<4>) noexcept
-    {
-#ifdef Vc_MSVC
-        return intrin_cast<__m256>(x86::set(mem[0] ? 0xffffffffffffffffULL : 0ULL,
-                                            mem[1] ? 0xffffffffffffffffULL : 0ULL,
-                                            mem[2] ? 0xffffffffffffffffULL : 0ULL,
-                                            mem[3] ? 0xffffffffffffffffULL : 0ULL));
-#else
-        __m128i k = intrin_cast<__m128i>(_mm_and_ps(
-            _mm_set1_ps(*reinterpret_cast<const may_alias<float> *>(mem)),
-            intrin_cast<__m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))));
-        k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
-        return intrin_cast<__m256>(
-            concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
-#endif
-    }
-    template <class F>
-    static Vc_INTRINSIC __m256 load(const bool *mem, F, size_tag<8>) noexcept
-    {
-#ifdef Vc_IS_AMD64
-        __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const may_alias<int64_t> *>(mem));
-#else
-        __m128i k = _mm_castpd_si128(
-            _mm_load_sd(reinterpret_cast<const may_alias<double> *>(mem)));
-#endif
-        k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
-        return intrin_cast<__m256>(
-            concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k)));
-    }
-    template <class F>
-    static Vc_INTRINSIC __m256i load(const bool *mem, F f, size_tag<16>) noexcept
-    {
-        const auto k128 = _mm_cmpgt_epi8(load16(mem, f), zero<__m128i>());
-        return concat(_mm_unpacklo_epi8(k128, k128), _mm_unpackhi_epi8(k128, k128));
-    }
-    template <class F>
-    static Vc_INTRINSIC __m256i load(const bool *mem, F f, size_tag<32>) noexcept
-    {
-        return _mm256_cmpgt_epi8(load32(mem, f), zero<__m256i>());
-    }
-
-    // store {{{2
-    template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
-                                            size_tag<4>) noexcept
-    {
-        auto k = intrin_cast<__m256i>(v.v());
-#ifdef Vc_HAVE_AVX2
-        *reinterpret_cast<may_alias<int32_t> *>(mem) = _mm256_movemask_epi8(k) & 0x01010101;
-#else
-        *reinterpret_cast<may_alias<int32_t> *>(mem) =
-            (_mm_movemask_epi8(lo128(k)) |
-             (_mm_movemask_epi8(hi128(k)) << 16)) &
-            0x01010101;
-#endif
-    }
-    template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
-                                            size_tag<8>) noexcept
-    {
-        const auto k = intrin_cast<__m256i>(v.v());
-        const auto k2 = x86::srli_epi16<15>(_mm_packs_epi16(lo128(k), hi128(k)));
-        const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
-#ifdef Vc_IS_AMD64
-        *reinterpret_cast<may_alias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
-#else
-        *reinterpret_cast<may_alias<int32_t> *>(mem) = _mm_cvtsi128_si32(k3);
-        *reinterpret_cast<may_alias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
-#endif
-    }
-    template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F f,
-                                            size_tag<16>) noexcept
-    {
-#ifdef Vc_HAVE_AVX2
-        const auto x = x86::srli_epi16<15>(v);
-        const auto bools = _mm_packs_epi16(lo128(x), hi128(x));
-#else
-        const auto bools =
-            detail::and_(one16(uchar()), _mm_packs_epi16(lo128(v.v()), hi128(v.v())));
-#endif
-        store16(bools, mem, f);
-    }
-    template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F f,
-                                            size_tag<32>) noexcept
-    {
-        const auto bools = detail::and_(one32(uchar()), v.v());
-        store32(bools, mem, f);
-    }
-
-    // negation {{{2
-    template <class T, class SizeTag>
-    static Vc_INTRINSIC mask_member_type<T> negate(const mask_member_type<T> &x,
-                                                   SizeTag) noexcept
-    {
-#if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
-        return !x.builtin();
-#else
-        return detail::not_(x.v());
-#endif
-    }
-
-    // logical and bitwise operators {{{2
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::and_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::or_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::and_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::or_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::xor_(x.d, y.d)};
-    }
-
-    // smart_reference access {{{2
-    template <class T> static bool get(const mask_member_type<T> k, int i) noexcept
-    {
-        return k.m(i);
-    }
-    template <class T> static void set(mask_member_type<T> &k, int i, bool x) noexcept
-    {
-        k.set(i, mask_bool<T>(x));
     }
     // }}}2
 };
@@ -1091,73 +1275,8 @@ struct split_to_tuple<std::tuple<simd<T, simd_abi::sse>, simd<T, simd_abi::sse>>
 };
 
 // }}}1
-constexpr struct {
-    template <class T> operator T() const { return detail::allone<T>(); }
-} allone_poly = {};
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
-
-// [simd_mask.reductions] {{{
-Vc_VERSIONED_NAMESPACE_BEGIN
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<T, simd_abi::avx> k)
-{
-    const auto d = detail::data(k);
-    return 0 != detail::testc(d, detail::allone_poly);
-}
-
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<T, simd_abi::avx> k)
-{
-    const auto d = detail::data(k);
-    return 0 == detail::testz(d, d);
-}
-
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<T, simd_abi::avx> k)
-{
-    const auto d = detail::data(k);
-    return 0 != detail::testz(d, d);
-}
-
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<T, simd_abi::avx> k)
-{
-    const auto d = detail::data(k);
-    return 0 != detail::testnzc(d, detail::allone_poly);
-}
-
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(simd_mask<T, simd_abi::avx> k)
-{
-    const auto d = detail::data(k);
-    switch (k.size()) {
-    case 4:
-        return detail::popcnt4(detail::mask_to_int<k.size()>(d));
-    case 8:
-        return detail::popcnt8(detail::mask_to_int<k.size()>(d));
-    case 16:
-        return detail::popcnt32(detail::mask_to_int<32>(d)) / 2;
-    case 32:
-        return detail::popcnt32(detail::mask_to_int<k.size()>(d));
-    default:
-        Vc_UNREACHABLE();
-        return 0;
-    }
-}
-
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_first_set(simd_mask<T, simd_abi::avx> k)
-{
-    const auto d = detail::data(k);
-    return detail::firstbit(detail::mask_to_int<k.size()>(d));
-}
-
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(simd_mask<T, simd_abi::avx> k)
-{
-    const auto d = detail::data(k);
-    if (k.size() == 16) {
-        return detail::lastbit(detail::mask_to_int<32>(d)) / 2;
-    }
-    return detail::lastbit(detail::mask_to_int<k.size()>(d));
-}
-
-Vc_VERSIONED_NAMESPACE_END
-// }}}
 
 #endif  // Vc_HAVE_AVX_ABI
 
