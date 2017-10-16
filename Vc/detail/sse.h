@@ -1460,7 +1460,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     static Vc_INTRINSIC mask_member_type<float> isinf(simd_member_type<float> x)
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-        return _mm_fpclass_ps_mask(x, 0x08) | _mm_fpclass_ps_mask(x, 0x10);
+        return __mmask8(_mm_fpclass_ps_mask(x, 0x08) | _mm_fpclass_ps_mask(x, 0x10));
 #else
         return intrin_cast<__m128>(
             _mm_cmpeq_epi32(_mm_castps_si128(abs(x)), broadcast16(0x7f800000u)));
@@ -1469,7 +1469,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     static Vc_INTRINSIC mask_member_type<double> isinf(simd_member_type<double> x)
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-        return _mm_fpclass_pd_mask(x, 0x08) | _mm_fpclass_pd_mask(x, 0x10);
+        return __mmask8(_mm_fpclass_pd_mask(x, 0x08) | _mm_fpclass_pd_mask(x, 0x10));
 #else
         return intrin_cast<__m128d>(
             equal_to(simd_member_type<llong>(abs(x)),
@@ -1512,7 +1512,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     static Vc_INTRINSIC mask_member_type<double> signbit(simd_member_type<double> x)
     {
         const auto signbit = broadcast16(0x8000000000000000ull);
-#ifdef Vc_HAVE_AVX2
+#ifdef Vc_HAVE_AVX512VL
         return _mm_srai_epi64(and_(intrin_cast<__m128i>(x), signbit), 63);
 #elif defined Vc_HAVE_SSSE3
         return _mm_cmpeq_epi64(and_(intrin_cast<__m128i>(x), signbit), signbit);

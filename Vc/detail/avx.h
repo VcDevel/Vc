@@ -1032,6 +1032,39 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
         return _mm256_round_pd(x, 0x2);
     }
 
+    // isfinite {{{3
+    static Vc_INTRINSIC mask_member_type<float> isfinite(simd_member_type<float> x)
+    {
+        return _mm256_cmp_ps(x, _mm256_mul_ps(_mm256_setzero_ps(), x), _CMP_ORD_Q);
+    }
+    static Vc_INTRINSIC mask_member_type<double> isfinite(simd_member_type<double> x)
+    {
+        return _mm256_cmp_pd(x, _mm256_mul_pd(_mm256_setzero_pd(), x), _CMP_ORD_Q);
+    }
+
+    // isinf {{{3
+    static Vc_INTRINSIC mask_member_type<float> isinf(simd_member_type<float> x)
+    {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+        return __mmask8(_mm256_fpclass_ps_mask(x, 0x08) |
+                        _mm256_fpclass_ps_mask(x, 0x10));
+#else
+        return intrin_cast<__m256>(
+            _mm256_cmpeq_epi32(_mm256_castps_si256(abs(x)), broadcast32(0x7f800000u)));
+#endif
+    }
+    static Vc_INTRINSIC mask_member_type<double> isinf(simd_member_type<double> x)
+    {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+        return __mmask8(_mm256_fpclass_pd_mask(x, 0x08) |
+                        _mm256_fpclass_pd_mask(x, 0x10));
+#else
+        return intrin_cast<__m256d>(
+            equal_to(simd_member_type<llong>(abs(x)),
+                     simd_member_type<llong>(broadcast32(0x7ff0000000000000ull))));
+#endif
+    }
+
     // isnan {{{3
     static Vc_INTRINSIC mask_member_type<float> isnan(simd_member_type<float> x)
     {
@@ -1040,6 +1073,60 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     static Vc_INTRINSIC mask_member_type<double> isnan(simd_member_type<double> x)
     {
         return _mm256_cmp_pd(x, x, _CMP_UNORD_Q);
+    }
+
+    // isnormal {{{3
+    static Vc_INTRINSIC mask_member_type<float> isnormal(simd_member_type<float> x)
+    {
+        // subnormals -> 0
+        // 0 -> 0
+        // inf -> inf
+        // -inf -> inf
+        // nan -> inf
+        // normal value -> positive value / not 0
+        const auto tmp =
+            and_(x, intrin_cast<__m256>(broadcast32(0x7f800000u)));
+        return _mm256_cmp_ps(
+            _mm256_mul_ps(broadcast32(std::numeric_limits<float>::infinity()),
+                          tmp),                                    // NaN if tmp == 0
+            _mm256_mul_ps(_mm256_setzero_ps(), tmp), _CMP_ORD_Q);  // NaN if tmp == inf
+    }
+    static Vc_INTRINSIC mask_member_type<double> isnormal(simd_member_type<double> x)
+    {
+        const auto tmp =
+            and_(x, intrin_cast<__m256d>(broadcast32(0x7ff0'0000'0000'0000ull)));
+        return _mm256_cmp_pd(
+            _mm256_mul_pd(broadcast32(std::numeric_limits<double>::infinity()),
+                          tmp),                                    // NaN if tmp == 0
+            _mm256_mul_pd(_mm256_setzero_pd(), tmp), _CMP_ORD_Q);  // NaN if tmp == inf
+    }
+
+    // signbit {{{3
+    static Vc_INTRINSIC mask_member_type<float> signbit(simd_member_type<float> x)
+    {
+        return _mm256_srai_epi32(and_(intrin_cast<__m256i>(x), broadcast32(0x80000000u)),
+                              31);
+    }
+    static Vc_INTRINSIC mask_member_type<double> signbit(simd_member_type<double> x)
+    {
+        const auto signbit = broadcast32(0x8000000000000000ull);
+#ifdef Vc_HAVE_AVX512VL
+        return _mm256_srai_epi64(and_(intrin_cast<__m256i>(x), signbit), 63);
+#else
+        return _mm256_cmpeq_epi64(and_(intrin_cast<__m256i>(x), signbit), signbit);
+#endif
+    }
+
+    // isunordered {{{3
+    static Vc_INTRINSIC mask_member_type<float> isunordered(simd_member_type<float> x,
+                                                            simd_member_type<float> y)
+    {
+        return _mm256_cmp_ps(x, y, _CMP_UNORD_Q);
+    }
+    static Vc_INTRINSIC mask_member_type<double> isunordered(simd_member_type<double> x,
+                                                             simd_member_type<double> y)
+    {
+        return _mm256_cmp_pd(x, y, _CMP_UNORD_Q);
     }
 
     // smart_reference access {{{2

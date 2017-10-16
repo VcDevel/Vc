@@ -750,22 +750,103 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
         return _mm512_roundscale_round_pd(x, 0x02, _MM_FROUND_CUR_DIRECTION);
     }
 
+    // isfinite {{{3
+    static Vc_INTRINSIC mask_member_type<float> isfinite(simd_member_type<float> x)
+    {
+        return _mm512_cmp_ps_mask(x, _mm512_mul_ps(_mm512_setzero_ps(), x), _CMP_ORD_Q);
+    }
+    static Vc_INTRINSIC mask_member_type<double> isfinite(simd_member_type<double> x)
+    {
+        return _mm512_cmp_pd_mask(x, _mm512_mul_pd(_mm512_setzero_pd(), x), _CMP_ORD_Q);
+    }
+
+    // isinf {{{3
+    static Vc_INTRINSIC mask_member_type<float> isinf(simd_member_type<float> x)
+    {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+        return _mm512_fpclass_ps_mask(x, 0x08) | _mm512_fpclass_ps_mask(x, 0x10);
+#else
+        return intrin_cast<__m512>(
+            _mm512_cmpeq_epi64(_mm512_castps_si512(abs(x)), broadcast64(0x7f800000u)));
+#endif
+    }
+    static Vc_INTRINSIC mask_member_type<double> isinf(simd_member_type<double> x)
+    {
+#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+        return _mm512_fpclass_pd_mask(x, 0x08) | _mm512_fpclass_pd_mask(x, 0x10);
+#else
+        return intrin_cast<__m512d>(
+            equal_to(simd_member_type<llong>(abs(x)),
+                     simd_member_type<llong>(broadcast64(0x7ff0000000000000ull))));
+#endif
+    }
+
     // isnan {{{3
     static Vc_INTRINSIC mask_member_type<float> isnan(simd_member_type<float> x)
     {
-#ifdef Vc_HAVE_AVX512DQ
-        return _mm512_fpclass_ps_mask(x, 0x01) | _mm512_fpclass_ps_mask(x, 0x80);
-#else   // Vc_HAVE_AVX512DQ
         return _mm512_cmpunord_ps_mask(x, x);
-#endif  // Vc_HAVE_AVX512DQ
     }
     static Vc_INTRINSIC mask_member_type<double> isnan(simd_member_type<double> x)
     {
-#ifdef Vc_HAVE_AVX512DQ
-        return _mm512_fpclass_pd_mask(x, 0x01) | _mm512_fpclass_pd_mask(x, 0x80);
-#else   // Vc_HAVE_AVX512DQ
         return _mm512_cmpunord_pd_mask(x, x);
-#endif  // Vc_HAVE_AVX512DQ
+    }
+
+    // isnormal {{{3
+    static Vc_INTRINSIC mask_member_type<float> isnormal(simd_member_type<float> x)
+    {
+        // subnormals -> 0
+        // 0 -> 0
+        // inf -> inf
+        // -inf -> inf
+        // nan -> inf
+        // normal value -> positive value / not 0
+        const auto tmp =
+            and_(x, intrin_cast<__m512>(broadcast64(0x7f800000u)));
+        return _mm512_cmp_ps_mask(
+            _mm512_mul_ps(broadcast64(std::numeric_limits<float>::infinity()),
+                          tmp),                                    // NaN if tmp == 0
+            _mm512_mul_ps(_mm512_setzero_ps(), tmp), _CMP_ORD_Q);  // NaN if tmp == inf
+    }
+    static Vc_INTRINSIC mask_member_type<double> isnormal(simd_member_type<double> x)
+    {
+        const auto tmp =
+            and_(x, intrin_cast<__m512d>(broadcast64(0x7ff0'0000'0000'0000ull)));
+        return _mm512_cmp_pd_mask(
+            _mm512_mul_pd(broadcast64(std::numeric_limits<double>::infinity()),
+                          tmp),                                    // NaN if tmp == 0
+            _mm512_mul_pd(_mm512_setzero_pd(), tmp), _CMP_ORD_Q);  // NaN if tmp == inf
+    }
+
+    // signbit {{{3
+    static Vc_INTRINSIC mask_member_type<float> signbit(simd_member_type<float> x)
+    {
+#ifdef Vc_HAVE_AVX512DQ
+        return _mm512_movepi32_mask(x);
+#else
+        const auto signbit = broadcast64(0x80000000u);
+        return _mm512_cmpeq_epi32_mask(and_(intrin_cast<__m512i>(x), signbit), signbit);
+#endif
+    }
+    static Vc_INTRINSIC mask_member_type<double> signbit(simd_member_type<double> x)
+    {
+#ifdef Vc_HAVE_AVX512DQ
+        return _mm512_movepi64_mask(x);
+#else
+        const auto signbit = broadcast64(0x8000000000000000ull);
+        return _mm512_cmpeq_epi64_mask(and_(intrin_cast<__m512i>(x), signbit), signbit);
+#endif
+    }
+
+    // isunordered {{{3
+    static Vc_INTRINSIC mask_member_type<float> isunordered(simd_member_type<float> x,
+                                                            simd_member_type<float> y)
+    {
+        return _mm512_cmp_ps_mask(x, y, _CMP_UNORD_Q);
+    }
+    static Vc_INTRINSIC mask_member_type<double> isunordered(simd_member_type<double> x,
+                                                             simd_member_type<double> y)
+    {
+        return _mm512_cmp_pd_mask(x, y, _CMP_UNORD_Q);
     }
 
     // smart_reference access {{{2
