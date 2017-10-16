@@ -572,6 +572,67 @@ Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, int b)
         [&](auto i) { return a[i] << b; });
 }
 
+#ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC x_u16 bit_shift_left(x_u16 a, int b)
+{
+#ifdef __GNUC__
+    if (__builtin_constant_p(b)) {
+        return _mm_slli_epi16(a, b);
+    }
+#endif  //__GNUC__
+    return _mm_sll_epi16(a, _mm_cvtsi32_si128(b));
+}
+
+Vc_INTRINSIC x_i16 bit_shift_left(x_i16 a, int b)
+{
+#ifdef __GNUC__
+    if (__builtin_constant_p(b)) {
+        return _mm_slli_epi16(a, b);
+    }
+#endif  //__GNUC__
+    return _mm_sll_epi16(a, _mm_cvtsi32_si128(b));
+}
+
+Vc_INTRINSIC x_u32 bit_shift_left(x_u32 a, int b)
+{
+#ifdef __GNUC__
+    if (__builtin_constant_p(b)) {
+        return _mm_slli_epi32(a, b);
+    }
+#endif  //__GNUC__
+    return _mm_sll_epi32(a, _mm_cvtsi32_si128(b));
+}
+
+Vc_INTRINSIC x_i32 bit_shift_left(x_i32 a, int b)
+{
+#ifdef __GNUC__
+    if (__builtin_constant_p(b)) {
+        return _mm_slli_epi32(a, b);
+    }
+#endif  //__GNUC__
+    return _mm_sll_epi32(a, _mm_cvtsi32_si128(b));
+}
+
+Vc_INTRINSIC x_u64 bit_shift_left(x_u64 a, int b)
+{
+#ifdef __GNUC__
+    if (__builtin_constant_p(b)) {
+        return _mm_slli_epi64(a, b);
+    }
+#endif  //__GNUC__
+    return _mm_sll_epi64(a, _mm_cvtsi32_si128(b));
+}
+Vc_INTRINSIC x_i64 bit_shift_left(x_i64 a, int b)
+{
+#ifdef __GNUC__
+    if (__builtin_constant_p(b)) {
+        return _mm_slli_epi64(a, b);
+    }
+#endif  //__GNUC__
+    return _mm_sll_epi64(a, _mm_cvtsi32_si128(b));
+}
+#endif  // Vc_HAVE_SSE2
+
 // improvements/specializations with newer instruction set extensions
 #ifdef Vc_HAVE_AVX2
 Vc_INTRINSIC x_i64 bit_shift_left(x_i64 a, x_i64 b) { return _mm_sllv_epi64(a, b); }
