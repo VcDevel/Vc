@@ -1115,9 +1115,11 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     {
         const auto signbit = broadcast32(0x8000000000000000ull);
 #ifdef Vc_HAVE_AVX512VL
-        return _mm256_srai_epi64(and_(intrin_cast<__m256i>(x), signbit), 63);
+        return _mm256_castsi256_pd(
+            _mm256_srai_epi64(and_(intrin_cast<__m256i>(x), signbit), 63));
 #elif defined Vc_HAVE_AVX2
-        return _mm256_cmpeq_epi64(and_(intrin_cast<__m256i>(x), signbit), signbit);
+        return _mm256_castsi256_pd(
+            _mm256_cmpeq_epi64(and_(intrin_cast<__m256i>(x), signbit), signbit));
 #else
         return not_equal_to(
             y_f64(or_(and_(x, _mm256_castsi256_pd(signbit)), broadcast32(1.))),
@@ -1142,7 +1144,7 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     static Vc_INTRINSIC simd_tuple<int, simd_abi::avx> fpclassify(
         simd_member_type<float> x)
     {
-        auto &&b = [](int x) { return intrin_cast<__m256>(broadcast32(x)); };
+        auto &&b = [](int y) { return intrin_cast<__m256>(broadcast32(y)); };
         return {_mm256_castps_si256(_mm256_blendv_ps(
             _mm256_blendv_ps(_mm256_blendv_ps(b(FP_NORMAL), b(FP_NAN), isnan(x)),
                              b(FP_INFINITE), isinf(x)),
@@ -1155,7 +1157,7 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     static Vc_INTRINSIC simd_tuple<int, simd_abi::sse, simd_abi::sse> fpclassify(
         simd_member_type<float> x)
     {
-        auto &&b = [](int x) { return intrin_cast<__m256>(broadcast32(x)); };
+        auto &&b = [](int y) { return intrin_cast<__m256>(broadcast32(y)); };
         const auto tmp = _mm256_castps_si256(_mm256_blendv_ps(
             _mm256_blendv_ps(_mm256_blendv_ps(b(FP_NORMAL), b(FP_NAN), isnan(x)),
                              b(FP_INFINITE), isinf(x)),
@@ -1170,7 +1172,7 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     static Vc_INTRINSIC simd_tuple<int, simd_abi::sse> fpclassify(
         simd_member_type<double> x)
     {
-        auto &&b = [](llong x) { return intrin_cast<__m256d>(broadcast32(x)); };
+        auto &&b = [](llong y) { return intrin_cast<__m256d>(broadcast32(y)); };
         const __m256i tmp = intrin_cast<__m256i>(_mm256_blendv_pd(
             _mm256_blendv_pd(_mm256_blendv_pd(b(FP_NORMAL), b(FP_NAN), isnan(x)),
                              b(FP_INFINITE), isinf(x)),

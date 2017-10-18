@@ -1520,9 +1520,8 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         return _mm_castsi128_pd(
             _mm_cmpeq_epi64(and_(intrin_cast<__m128i>(x), signbit), signbit));
 #else
-        const auto tmp = and_(intrin_cast<__m128i>(x), signbit);
-        return _mm_castsi128_pd(
-            or_(_mm_srai_epi32(tmp, 31), _mm_srai_epi32(_mm_srli_si128(tmp, 32), 31)));
+        return _mm_cmpneq_pd(or_(and_(intrin_cast<__m128d>(signbit), x), broadcast16(1.)),
+                             broadcast16(1.));
 #endif
     }
 

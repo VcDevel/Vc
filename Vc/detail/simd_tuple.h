@@ -362,11 +362,78 @@ Vc_INTRINSIC const simd_tuple<T, A> &optimize_tuple(const simd_tuple<T, A> &x)
     return x;
 }
 
-#ifdef __cpp_if_constexpr
+template <bool b> using bool_c = std::integral_constant<bool, b>;
+using std::true_type;
+using std::false_type;
+
+#ifndef __cpp_if_constexpr
+template <class T, class A0, class A1, class... Abis,
+          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, Abis...>::size_v>>
+Vc_INTRINSIC_L R optimize_tuple(const simd_tuple<T, A0, A1, Abis...> &) Vc_INTRINSIC_R;
+
+template <class T, class A0, class A1, class... Abis, class TupSize,
+          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, Abis...>::size_v>>
+Vc_INTRINSIC R optimize_tuple_impl(const simd_tuple<T, A0, A1, Abis...> &x, true_type,
+                                   false_type, TupSize)
+{
+    return tuple_concat(simd_tuple<T, typename R::first_abi>{x.first},
+                        optimize_tuple(x.second));
+}
+
+template <class T, class A0, class A1, class... Abis, class TupSize,
+          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, Abis...>::size_v>>
+Vc_INTRINSIC R optimize_tuple_impl(const simd_tuple<T, A0, A1, Abis...> &x, false_type,
+                                   true_type, TupSize)
+{
+    return tuple_concat(simd_tuple<T, typename R::first_abi>{detail::data(
+                            concat(get_simd<0>(x), get_simd<1>(x)))},
+                        optimize_tuple(x.second.second));
+}
+
+template <class T, class A0, class A1, class A2, class A3, class... Abis,
+          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, A2, A3, Abis...>::size_v>>
+Vc_INTRINSIC R optimize_tuple_impl2(const simd_tuple<T, A0, A1, A2, A3, Abis...> &x,
+                                   true_type)
+{
+    return tuple_concat(
+        simd_tuple<T, typename R::first_abi>{detail::data(
+            concat(get_simd<0>(x), get_simd<1>(x), get_simd<2>(x), get_simd<3>(x)))},
+        optimize_tuple(x.second.second.second.second));
+}
+
+template <class T, class A0, class A1, class A2, class A3, class... Abis,
+          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, A2, A3, Abis...>::size_v>>
+Vc_INTRINSIC R optimize_tuple_impl2(const simd_tuple<T, A0, A1, A2, A3, Abis...> &x,
+                                   false_type)
+{
+    return x;
+}
+
+template <class T, class A0, class A1, class A2, class A3, class... Abis,
+          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, A2, A3, Abis...>::size_v>>
+Vc_INTRINSIC R optimize_tuple_impl(const simd_tuple<T, A0, A1, A2, A3, Abis...> &x,
+                                   false_type, false_type, true_type)
+{
+    return optimize_tuple_impl2(
+        x, bool_c<(R::first_size_v ==
+                   simd_size_v<T, A0> + simd_size_v<T, A1> + simd_size_v<T, A2> +
+                       simd_size_v<T, A3>)>());
+}
+
+template <class T, class A0, class A1, class... Abis,
+          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, Abis...>::size_v>>
+Vc_INTRINSIC R optimize_tuple_impl(const simd_tuple<T, A0, A1, Abis...> &x, false_type,
+                                   false_type, false_type)
+{
+    return x;
+}
+#endif  // !__cpp_if_constexpr
+
 template <class T, class A0, class A1, class... Abis,
           class R = fixed_size_storage<T, simd_tuple<T, A0, A1, Abis...>::size_v>>
 Vc_INTRINSIC R optimize_tuple(const simd_tuple<T, A0, A1, Abis...> &x)
 {
+#ifdef __cpp_if_constexpr
     using Tup = simd_tuple<T, A0, A1, Abis...>;
     if constexpr (R::first_size_v == simd_size_v<T, A0>) {
         return tuple_concat(simd_tuple<T, typename R::first_abi>{x.first},
@@ -385,10 +452,15 @@ Vc_INTRINSIC R optimize_tuple(const simd_tuple<T, A0, A1, Abis...> &x)
                 optimize_tuple(x.second.second.second.second));
         }
     } else {
-        return {};
+        return x;
     }
-}
+#else   // __cpp_if_constexpr
+    return optimize_tuple_impl(
+        x, bool_c<(R::first_size_v == simd_size_v<T, A0>)>(),
+        bool_c<(R::first_size_v == simd_size_v<T, A0> + simd_size_v<T, A1>)>(),
+        bool_c<(sizeof...(Abis) >= 2)>());
 #endif  // __cpp_if_constexpr
+}
 
 // number_of_preceding_elements {{{1
 template <size_t I, class T> struct number_of_preceding_elements;

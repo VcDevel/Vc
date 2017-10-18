@@ -488,12 +488,12 @@ public:
     {                                                                                    \
         return apply([](auto impl, auto xx) { return impl.name_(xx); }, x);              \
     }
-    Vc_APPLY_ON_TUPLE_(sqrt);
-    Vc_APPLY_ON_TUPLE_(abs);
-    Vc_APPLY_ON_TUPLE_(logb);
-    Vc_APPLY_ON_TUPLE_(trunc);
-    Vc_APPLY_ON_TUPLE_(floor);
-    Vc_APPLY_ON_TUPLE_(ceil);
+    Vc_APPLY_ON_TUPLE_(sqrt)
+    Vc_APPLY_ON_TUPLE_(abs)
+    Vc_APPLY_ON_TUPLE_(logb)
+    Vc_APPLY_ON_TUPLE_(trunc)
+    Vc_APPLY_ON_TUPLE_(floor)
+    Vc_APPLY_ON_TUPLE_(ceil)
 #undef Vc_APPLY_ON_TUPLE_
 
     template <class T, class... As>
@@ -509,11 +509,11 @@ public:
     {                                                                                    \
         return test([](auto impl, auto xx) { return impl.name_(xx); }, x);               \
     }
-    Vc_TEST_ON_TUPLE_(isinf);
-    Vc_TEST_ON_TUPLE_(isfinite);
-    Vc_TEST_ON_TUPLE_(isnan);
-    Vc_TEST_ON_TUPLE_(isnormal);
-    Vc_TEST_ON_TUPLE_(signbit);
+    Vc_TEST_ON_TUPLE_(isinf)
+    Vc_TEST_ON_TUPLE_(isfinite)
+    Vc_TEST_ON_TUPLE_(isnan)
+    Vc_TEST_ON_TUPLE_(isnormal)
+    Vc_TEST_ON_TUPLE_(signbit)
 #undef Vc_TEST_ON_TUPLE_
 
     // increment & decrement{{{2

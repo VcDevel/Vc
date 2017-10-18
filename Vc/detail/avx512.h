@@ -783,11 +783,11 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     // isnan {{{3
     static Vc_INTRINSIC mask_member_type<float> isnan(simd_member_type<float> x)
     {
-        return _mm512_cmpunord_ps_mask(x, x);
+        return _mm512_cmp_ps_mask(x, x, _CMP_UNORD_Q);
     }
     static Vc_INTRINSIC mask_member_type<double> isnan(simd_member_type<double> x)
     {
-        return _mm512_cmpunord_pd_mask(x, x);
+        return _mm512_cmp_pd_mask(x, x, _CMP_UNORD_Q);
     }
 
     // isnormal {{{3
@@ -820,7 +820,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     static Vc_INTRINSIC mask_member_type<float> signbit(simd_member_type<float> x)
     {
 #ifdef Vc_HAVE_AVX512DQ
-        return _mm512_movepi32_mask(x);
+        return _mm512_movepi32_mask(_mm512_castps_si512(x));
 #else
         const auto signbit = broadcast64(0x80000000u);
         return _mm512_cmpeq_epi32_mask(and_(intrin_cast<__m512i>(x), signbit), signbit);
@@ -829,7 +829,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     static Vc_INTRINSIC mask_member_type<double> signbit(simd_member_type<double> x)
     {
 #ifdef Vc_HAVE_AVX512DQ
-        return _mm512_movepi64_mask(x);
+        return _mm512_movepi64_mask(_mm512_castpd_si512(x));
 #else
         const auto signbit = broadcast64(0x8000000000000000ull);
         return _mm512_cmpeq_epi64_mask(and_(intrin_cast<__m512i>(x), signbit), signbit);
@@ -852,7 +852,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     static Vc_INTRINSIC simd_tuple<int, simd_abi::avx512> fpclassify(
         simd_member_type<float> x)
     {
-        auto &&b = [](int x) { return broadcast64(x); };
+        auto &&b = [](int y) { return broadcast64(y); };
         return {_mm512_mask_mov_epi32(
             _mm512_mask_mov_epi32(
                 _mm512_mask_mov_epi32(b(FP_NORMAL), isnan(x), b(FP_NAN)), isinf(x),
@@ -867,7 +867,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
         simd_member_type<double> x)
     {
 #ifdef Vc_HAVE_AVX512VL
-        auto &&b = [](int x) { return broadcast32(x); };
+        auto &&b = [](int y) { return broadcast32(y); };
         return {_mm256_mask_mov_epi32(
             _mm256_mask_mov_epi32(
                 _mm256_mask_mov_epi32(b(FP_NORMAL), isnan(x), b(FP_NAN)), isinf(x),
@@ -878,7 +878,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
                                   _mm512_cmp_pd_mask(x, _mm512_setzero_pd(), _CMP_EQ_OQ),
                                   b(FP_ZERO)))};
 #else   // Vc_HAVE_AVX512VL
-        auto &&b = [](int x) { return broadcast64(x); };
+        auto &&b = [](int y) { return broadcast64(y); };
         return {lo256(_mm512_mask_mov_epi32(
             _mm512_mask_mov_epi32(
                 _mm512_mask_mov_epi32(b(FP_NORMAL), isnan(x), b(FP_NAN)), isinf(x),
