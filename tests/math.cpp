@@ -99,11 +99,11 @@ TEST_TYPES(V, fpclassify, real_test_types)  //{{{1
     using limits = std::numeric_limits<typename V::value_type>;
     test_values<V>(
         {0., -0., 1., -1., limits::infinity(), -limits::infinity(), limits::max(),
-         -limits::max(), limits::denorm_min(), -limits::denorm_min(), limits::quiet_NaN(),
-         limits::signaling_NaN()},
+         -limits::max(), limits::min(), limits::min() * 0.9, -limits::min(),
+         -limits::min() * 0.9, limits::denorm_min(), -limits::denorm_min(),
+         limits::quiet_NaN(), limits::signaling_NaN()},
         [](V input) {
             using intv = Vc::fixed_size_simd<int, V::size()>;
-            //COMPARE(fpclassify(input), intv([&](auto i) { return std::fpclassify(input[i]); })) << input;
             COMPARE(isfinite(input), !V([&](auto i) { return std::isfinite(input[i]) ? 0 : 1; })) << input;
             COMPARE(isinf(input), !V([&](auto i) { return std::isinf(input[i]) ? 0 : 1; })) << input;
             COMPARE(isnan(input), !V([&](auto i) { return std::isnan(input[i]) ? 0 : 1; })) << input;
@@ -111,6 +111,7 @@ TEST_TYPES(V, fpclassify, real_test_types)  //{{{1
             COMPARE(signbit(input), !V([&](auto i) { return std::signbit(input[i]) ? 0 : 1; })) << input;
             COMPARE((isunordered(input, V())), !V([&](auto i) { return std::isunordered(input[i], 0) ? 0 : 1; })) << input;
             COMPARE((isunordered(V(), input)), !V([&](auto i) { return std::isunordered(0, input[i]) ? 0 : 1; })) << input;
+            COMPARE(fpclassify(input), intv([&](auto i) { return std::fpclassify(input[i]); })) << input;
         });
 }
 
@@ -152,10 +153,12 @@ TEST_TYPES(V, trunc_ceil_floor, real_test_types)  //{{{1
                     limits::denorm_min(),
                     limits::max(),
                     limits::min(),
+                    limits::min() * 0.9,
                     limits::lowest(),
                     -limits::denorm_min(),
                     -limits::max(),
                     -limits::min(),
+                    -limits::min() * 0.9,
                     -limits::lowest()},
                    [](V input) {
                        const V expected([&](auto i) { return std::trunc(input[i]); });

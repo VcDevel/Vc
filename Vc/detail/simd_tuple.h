@@ -34,6 +34,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+template <class T, int N> struct fixed_size_storage_builder_wrapper;
+template <class T, int N>
+using fixed_size_storage = typename fixed_size_storage_builder_wrapper<T, N>::type;
+
 // subscript_read/_write {{{1
 template <class T> T subscript_read(arithmetic<T> x, size_t) noexcept { return x; }
 template <class T>
@@ -61,6 +65,35 @@ template <class T> void subscript_write(T &x, size_t i, typename T::value_type y
 // 4. enforces equal element type, only different Abi types are allowed
 
 template <class T, class... Abis> struct simd_tuple;
+
+// tuple_concat {{{1
+template <class T, class... A1s>
+Vc_INTRINSIC simd_tuple<T, A1s...> tuple_concat(const simd_tuple<T>,
+                                                const simd_tuple<T, A1s...> right)
+{
+    return right;
+}
+
+template <class T, class A00, class... A0s, class A10, class... A1s>
+Vc_INTRINSIC simd_tuple<T, A00, A0s..., A10, A1s...> tuple_concat(
+    const simd_tuple<T, A00, A0s...> left, const simd_tuple<T, A10, A1s...> right)
+{
+    return {left.first, tuple_concat(left.second, right)};
+}
+
+template <class T, class A00, class... A0s>
+Vc_INTRINSIC simd_tuple<T, A00, A0s...> tuple_concat(
+    const simd_tuple<T, A00, A0s...> left, const simd_tuple<T>)
+{
+    return left;
+}
+
+template <class T, class A10, class... A1s>
+Vc_INTRINSIC simd_tuple<T, simd_abi::scalar, A10, A1s...> tuple_concat(
+    const T left, const simd_tuple<T, A10, A1s...> right)
+{
+    return {left, right};
+}
 
 // tuple_element_meta {{{1
 template <class T, class Abi, size_t Offset>
@@ -110,6 +143,7 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
     static constexpr size_t tuple_size = 1;
     static constexpr size_t size() { return simd_size_v<T, Abi0>; }
     static constexpr size_t size_v = simd_size_v<T, Abi0>;
+    static constexpr size_t first_size_v = simd_size_v<T, Abi0>;
     first_type first;
     static constexpr second_type second = {};
 
@@ -132,6 +166,12 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
         return {fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...)};
     }
 
+    template <class R = T, class F, class... More>
+    Vc_INTRINSIC fixed_size_storage<R, size_v> apply(F &&fun, const More &... more) const
+    {
+        return {fun(tuple_element_meta<T, Abi0, 0>(), first, more.first...)};
+    }
+
     template <class F, class... More>
     friend Vc_INTRINSIC std::bitset<size_v> test(F &&fun, const simd_tuple &x,
                                                  const More &... more)
@@ -152,6 +192,7 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
     static constexpr size_t tuple_size = sizeof...(Abis) + 1;
     static constexpr size_t size() { return simd_size_v<T, Abi0> + second_type::size(); }
     static constexpr size_t size_v = simd_size_v<T, Abi0> + second_type::size();
+    static constexpr size_t first_size_v = simd_size_v<T, Abi0>;
     first_type first;
     second_type second;
 
@@ -177,7 +218,15 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
                                             const More &... more)
     {
         return {fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...),
-                apply(std::forward<F>(fun), x.second, more.second...)};
+                x.second.apply(std::forward<F>(fun), more.second...)};
+    }
+
+    template <class R = T, class F, class... More>
+    Vc_INTRINSIC auto apply(F &&fun, const More &... more) const
+    {
+        return detail::tuple_concat<R>(
+            fun(tuple_element_meta<T, Abi0, 0>(), first, more.first...),
+            second.template apply<R>(std::forward<F>(fun), more.second...));
     }
 
     template <class F, class... More>
@@ -260,28 +309,6 @@ Vc_INTRINSIC auto to_tuple(
     return to_tuple_impl<T, A0>(std::make_index_sequence<N>(), args);
 }
 
-// tuple_concat {{{1
-template <class T, class... A1s>
-Vc_INTRINSIC simd_tuple<T, A1s...> tuple_concat(const simd_tuple<T>,
-                                                const simd_tuple<T, A1s...> right)
-{
-    return right;
-}
-
-template <class T, class A00, class... A0s, class A10, class... A1s>
-Vc_INTRINSIC simd_tuple<T, A00, A0s..., A10, A1s...> tuple_concat(
-    const simd_tuple<T, A00, A0s...> left, const simd_tuple<T, A10, A1s...> right)
-{
-    return {left.first, tuple_concat(left.second, right)};
-}
-
-template <class T, class A00, class... A0s>
-Vc_INTRINSIC simd_tuple<T, A00, A0s...> tuple_concat(
-    const simd_tuple<T, A00, A0s...> left, const simd_tuple<T>)
-{
-    return left;
-}
-
 // get_simd<N> {{{1
 namespace simd_tuple_impl
 {
@@ -322,6 +349,46 @@ struct tuple_element<I, simd_tuple<T, A0, As...>> {
     using type = typename tuple_element<I - 1, simd_tuple<T, As...>>::type;
 };
 template <size_t I, class T> using tuple_element_t = typename tuple_element<I, T>::type;
+
+// optimize_tuple {{{1
+template <class T> Vc_INTRINSIC simd_tuple<T> optimize_tuple(const simd_tuple<T>)
+{
+    return {};
+}
+
+template <class T, class A>
+Vc_INTRINSIC const simd_tuple<T, A> &optimize_tuple(const simd_tuple<T, A> &x)
+{
+    return x;
+}
+
+#ifdef __cpp_if_constexpr
+template <class T, class A0, class A1, class... Abis,
+          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, Abis...>::size_v>>
+Vc_INTRINSIC R optimize_tuple(const simd_tuple<T, A0, A1, Abis...> &x)
+{
+    using Tup = simd_tuple<T, A0, A1, Abis...>;
+    if constexpr (R::first_size_v == simd_size_v<T, A0>) {
+        return tuple_concat(simd_tuple<T, typename R::first_abi>{x.first},
+                            optimize_tuple(x.second));
+    } else if constexpr (R::first_size_v == simd_size_v<T, A0> + simd_size_v<T, A1>) {
+        return tuple_concat(
+            simd_tuple<T, typename R::first_abi>{detail::data(concat(get_simd<0>(x), get_simd<1>(x)))},
+            optimize_tuple(x.second.second));
+    } else if constexpr (sizeof...(Abis) >= 2) {
+        if constexpr (R::first_size_v ==
+            tuple_element_t<0, Tup>::size() + tuple_element_t<1, Tup>::size() +
+                tuple_element_t<2, Tup>::size() + tuple_element_t<3, Tup>::size()) {
+            return tuple_concat(
+                simd_tuple<T, typename R::first_abi>{detail::data(concat(
+                    get_simd<0>(x), get_simd<1>(x), get_simd<2>(x), get_simd<3>(x)))},
+                optimize_tuple(x.second.second.second.second));
+        }
+    } else {
+        return {};
+    }
+}
+#endif  // __cpp_if_constexpr
 
 // number_of_preceding_elements {{{1
 template <size_t I, class T> struct number_of_preceding_elements;

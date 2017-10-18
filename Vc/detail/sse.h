@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "x86/arithmetics.h"
 #include "maskbool.h"
 #include "genericimpl.h"
+#include "simd_tuple.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -1506,19 +1507,22 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     // signbit {{{3
     static Vc_INTRINSIC mask_member_type<float> signbit(simd_member_type<float> x)
     {
-        return _mm_srai_epi32(and_(intrin_cast<__m128i>(x), broadcast16(0x80000000u)),
-                              31);
+        return _mm_castsi128_ps(
+            _mm_srai_epi32(and_(intrin_cast<__m128i>(x), broadcast16(0x80000000u)), 31));
     }
     static Vc_INTRINSIC mask_member_type<double> signbit(simd_member_type<double> x)
     {
         const auto signbit = broadcast16(0x8000000000000000ull);
 #ifdef Vc_HAVE_AVX512VL
-        return _mm_srai_epi64(and_(intrin_cast<__m128i>(x), signbit), 63);
+        return _mm_castsi128_pd(
+            _mm_srai_epi64(and_(intrin_cast<__m128i>(x), signbit), 63));
 #elif defined Vc_HAVE_SSSE3
-        return _mm_cmpeq_epi64(and_(intrin_cast<__m128i>(x), signbit), signbit);
+        return _mm_castsi128_pd(
+            _mm_cmpeq_epi64(and_(intrin_cast<__m128i>(x), signbit), signbit));
 #else
         const auto tmp = and_(intrin_cast<__m128i>(x), signbit);
-        return or_(_mm_srai_epi32(tmp, 31), _mm_srai_epi32(_mm_srli_si128(tmp, 32), 31));
+        return _mm_castsi128_pd(
+            or_(_mm_srai_epi32(tmp, 31), _mm_srai_epi32(_mm_srli_si128(tmp, 32), 31)));
 #endif
     }
 
@@ -1532,6 +1536,29 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
                                                              simd_member_type<double> y)
     {
         return _mm_cmpunord_pd(x, y);
+    }
+
+    // fpclassify {{{3
+    static Vc_INTRINSIC simd_tuple<int, simd_abi::sse> fpclassify(
+        simd_member_type<float> x)
+    {
+        auto &&b = [](int y) { return intrin_cast<__m128>(broadcast16(y)); };
+        return {_mm_castps_si128(blendv_ps(
+            blendv_ps(blendv_ps(b(FP_NORMAL), b(FP_NAN), isnan(x)), b(FP_INFINITE),
+                      isinf(x)),
+            blendv_ps(b(FP_SUBNORMAL), b(FP_ZERO), _mm_cmpeq_ps(x, _mm_setzero_ps())),
+            _mm_cmplt_ps(abs(x), broadcast16(std::numeric_limits<float>::min()))))};
+    }
+    static Vc_INTRINSIC simd_tuple<int, simd_abi::scalar, simd_abi::scalar> fpclassify(
+        simd_member_type<double> x)
+    {
+        auto &&b = [](llong y) { return intrin_cast<__m128d>(broadcast16(y)); };
+        const __m128i tmp = intrin_cast<__m128i>(blendv_pd(
+            blendv_pd(blendv_pd(b(FP_NORMAL), b(FP_NAN), isnan(x)), b(FP_INFINITE),
+                      isinf(x)),
+            blendv_pd(b(FP_SUBNORMAL), b(FP_ZERO), _mm_cmpeq_pd(x, _mm_setzero_pd())),
+            _mm_cmplt_pd(abs(x), broadcast16(std::numeric_limits<double>::min()))));
+        return {_mm_cvtsi128_si32(tmp), _mm_cvtsi128_si32(_mm_unpackhi_epi64(tmp, tmp))};
     }
 
     // smart_reference access {{{2

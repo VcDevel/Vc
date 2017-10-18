@@ -80,6 +80,11 @@ template <class T, int N, class Tuple, class Next = select_best_vector_type_t<T,
           int Remain = N - int(Next::size())>
 struct fixed_size_storage_builder;
 
+template <class T, int N>
+struct fixed_size_storage_builder_wrapper
+    : public fixed_size_storage_builder<T, N, simd_tuple<T>> {
+};
+
 template <class T, int N, class... As, class Next>
 struct fixed_size_storage_builder<T, N, simd_tuple<T, As...>, Next, 0> {
     using type = simd_tuple<T, As..., typename Next::abi_type>;
@@ -90,9 +95,6 @@ struct fixed_size_storage_builder<T, N, simd_tuple<T, As...>, Next, Remain> {
     using type = typename fixed_size_storage_builder<
         T, Remain, simd_tuple<T, As..., typename Next::abi_type>>::type;
 };
-
-template <class T, int N>
-using fixed_size_storage = typename fixed_size_storage_builder<T, N, simd_tuple<T>>::type;
 
 namespace tests {
 using simd_abi::scalar;
@@ -497,7 +499,8 @@ public:
     template <class T, class... As>
     static inline fixed_size_storage<int, N> fpclassify(simd_tuple<T, As...> x) noexcept
     {
-        return apply([](auto impl, auto xx) { return impl.fpclassify(xx); }, x);
+        return detail::optimize_tuple(x.template apply<int>(
+            [](auto impl, auto xx) { return impl.fpclassify(xx); }));
     }
 
 #define Vc_TEST_ON_TUPLE_(name_)                                                        \

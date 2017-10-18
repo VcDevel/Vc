@@ -763,21 +763,20 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     // isinf {{{3
     static Vc_INTRINSIC mask_member_type<float> isinf(simd_member_type<float> x)
     {
-#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+#if defined Vc_HAVE_AVX512DQ
         return _mm512_fpclass_ps_mask(x, 0x08) | _mm512_fpclass_ps_mask(x, 0x10);
 #else
-        return intrin_cast<__m512>(
-            _mm512_cmpeq_epi64(_mm512_castps_si512(abs(x)), broadcast64(0x7f800000u)));
+        return _mm512_cmp_epi32_mask(
+            _mm512_castps_si512(abs(x)), broadcast64(0x7f800000u), _CMP_EQ_OQ);
 #endif
     }
     static Vc_INTRINSIC mask_member_type<double> isinf(simd_member_type<double> x)
     {
-#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
+#if defined Vc_HAVE_AVX512DQ
         return _mm512_fpclass_pd_mask(x, 0x08) | _mm512_fpclass_pd_mask(x, 0x10);
 #else
-        return intrin_cast<__m512d>(
-            equal_to(simd_member_type<llong>(abs(x)),
-                     simd_member_type<llong>(broadcast64(0x7ff0000000000000ull))));
+        return _mm512_cmp_epi64_mask(_mm512_castpd_si512(abs(x)),
+                                     broadcast64(0x7ff0000000000000ull), _CMP_EQ_OQ);
 #endif
     }
 
@@ -847,6 +846,49 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
                                                              simd_member_type<double> y)
     {
         return _mm512_cmp_pd_mask(x, y, _CMP_UNORD_Q);
+    }
+
+    // fpclassify {{{3
+    static Vc_INTRINSIC simd_tuple<int, simd_abi::avx512> fpclassify(
+        simd_member_type<float> x)
+    {
+        auto &&b = [](int x) { return broadcast64(x); };
+        return {_mm512_mask_mov_epi32(
+            _mm512_mask_mov_epi32(
+                _mm512_mask_mov_epi32(b(FP_NORMAL), isnan(x), b(FP_NAN)), isinf(x),
+                b(FP_INFINITE)),
+            _mm512_cmp_ps_mask(abs(x), broadcast64(std::numeric_limits<float>::min()),
+                               _CMP_LT_OS),
+            _mm512_mask_mov_epi32(b(FP_SUBNORMAL),
+                                  _mm512_cmp_ps_mask(x, _mm512_setzero_ps(), _CMP_EQ_OQ),
+                                  b(FP_ZERO)))};
+    }
+    static Vc_INTRINSIC simd_tuple<int, simd_abi::avx> fpclassify(
+        simd_member_type<double> x)
+    {
+#ifdef Vc_HAVE_AVX512VL
+        auto &&b = [](int x) { return broadcast32(x); };
+        return {_mm256_mask_mov_epi32(
+            _mm256_mask_mov_epi32(
+                _mm256_mask_mov_epi32(b(FP_NORMAL), isnan(x), b(FP_NAN)), isinf(x),
+                b(FP_INFINITE)),
+            _mm512_cmp_pd_mask(abs(x), broadcast64(std::numeric_limits<double>::min()),
+                               _CMP_LT_OS),
+            _mm256_mask_mov_epi32(b(FP_SUBNORMAL),
+                                  _mm512_cmp_pd_mask(x, _mm512_setzero_pd(), _CMP_EQ_OQ),
+                                  b(FP_ZERO)))};
+#else   // Vc_HAVE_AVX512VL
+        auto &&b = [](int x) { return broadcast64(x); };
+        return {lo256(_mm512_mask_mov_epi32(
+            _mm512_mask_mov_epi32(
+                _mm512_mask_mov_epi32(b(FP_NORMAL), isnan(x), b(FP_NAN)), isinf(x),
+                b(FP_INFINITE)),
+            _mm512_cmp_pd_mask(abs(x), broadcast64(std::numeric_limits<double>::min()),
+                               _CMP_LT_OS),
+            _mm512_mask_mov_epi32(b(FP_SUBNORMAL),
+                                  _mm512_cmp_pd_mask(x, _mm512_setzero_pd(), _CMP_EQ_OQ),
+                                  b(FP_ZERO))))};
+#endif  // Vc_HAVE_AVX512VL
     }
 
     // smart_reference access {{{2
