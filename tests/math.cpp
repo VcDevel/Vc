@@ -47,15 +47,12 @@ V epilogue_load(const typename V::value_type *mem, const std::size_t size)
 template <class V, class... F>
 void test_values(const std::initializer_list<typename V::value_type> &inputs, F &&... fun_pack)
 {
-    auto &&do_test = [&](V in, auto &&fun) {
-        V expected([&](auto i) { return fun(in[i]); });
-        COMPARE(fun(in), expected) << "input: " << in;
-        return 0;
-    };
     for (auto it = inputs.begin(); it + V::size() <= inputs.end(); it += V::size()) {
         auto &&tmp = {(fun_pack(V(&it[0], Vc::flags::element_aligned)), 0)...};
+        Vc::detail::unused(tmp);
     }
     auto &&tmp = {(fun_pack(epilogue_load<V>(inputs.begin(), inputs.size())), 0)...};
+    Vc::detail::unused(tmp);
 }
 
 template <class V> void test_abs(std::false_type)
