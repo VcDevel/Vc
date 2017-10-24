@@ -82,7 +82,7 @@ template <class Tuple, class From> struct split_to_tuple {
 }  // namespace detail
 
 template <size_t... Sizes, class T, class A>
-Vc_NEVER_INLINE
+Vc_ALWAYS_INLINE
 //std::enable_if_t<((Sizes + ...) == simd<T, A>::size()),
                  std::tuple<simd<T, abi_for_size_t<T, Sizes>>...>//>
 split(const simd<T, A> &x)
