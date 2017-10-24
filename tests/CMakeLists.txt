@@ -43,6 +43,62 @@ if(ENABLE_UBSAN)
    AddCompilerFlag("-fsanitize=undefined")
 endif()
 
+function(vc_download_testdata)#{{{
+   find_program(OBJCOPY objcopy)
+   set(_deps)
+   foreach(fun sincos asin acos atan ln log2 log10)
+      foreach(type f d)
+         if("${type}" STREQUAL "f")
+            set(filename "reference-${fun}-sp.dat")
+         else()
+            set(filename "reference-${fun}-dp.dat")
+         endif()
+         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+            COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
+            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Downloading Test Data: ${filename}"
+            VERBATIM
+            )
+         if(OBJCOPY)
+            string(REGEX REPLACE "[.-]" "_" toreplace "_binary_${filename}_")
+            string(LENGTH "${fun}" fun_len)
+            set(replacement "_ZN14reference_dataIN8function${fun_len}${fun}E${type}E")
+            add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}.o"
+               COMMAND ${OBJCOPY} -I binary -O elf64-x86-64 -B i386
+               --redefine-sym ${toreplace}start=${replacement}6begin_E
+               --redefine-sym ${toreplace}end=${replacement}4end_E
+               --redefine-sym ${toreplace}size=${replacement}5size_E
+               ${filename} ${filename}.o
+               DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+               WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+               COMMENT "Converting Test Data: ${filename}.o"
+               VERBATIM
+               )
+            list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}.o")
+         endif()
+         list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
+      endforeach()
+   endforeach()
+   add_custom_target(download-testdata ALL
+      DEPENDS ${_deps}
+      )
+
+   add_dependencies(NoSIMD download-testdata)
+   if(Vc_X86)
+      add_dependencies(SSE2 download-testdata)
+      add_dependencies(SSE4_2 download-testdata)
+      add_dependencies(AVX download-testdata)
+      add_dependencies(AVX2 download-testdata)
+      add_dependencies(MIC download-testdata)
+      add_dependencies(KNL download-testdata)
+      add_dependencies(AVX512 download-testdata)
+   elseif(Vc_ARM)
+      add_dependencies(NEON download-testdata)
+   endif()
+endfunction()
+vc_download_testdata()#}}}
+
 if(Vc_COMPILER_IS_CLANG) # don't warn about sanity checks#{{{
    # GCC does not complain about the following flags until much later. Therefore
    # the AddCompilerFlag logic doesn't work as intended.
@@ -245,45 +301,34 @@ function(vc_add_test name) #{{{
             if(disabled)
                continue()
             endif()
-            if(impl STREQUAL "mic")
-               set(_objs)#{{{
-               if(_NO_TESTTYPES)
-                  unset(types_flag)
-               else()
-                  set(types_flag "-DTESTTYPES=${types}")
-               endif()
-               if("${_name}" STREQUAL "trigonometric")
+
+            if(OBJCOPY)
+               list(APPEND _DEFINITIONS "Vc_LINK_TESTDATA")
+               if("${name}" STREQUAL "math")
                   foreach(fun sincos asin acos atan)
                      foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-                        set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
+                        set(src ${src} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.o)
                      endforeach()
                   endforeach()
-               elseif("${_name}" STREQUAL "logarithm")
+               elseif("${name}" STREQUAL "logarithm")
                   foreach(fun ln log2 log10)
                      foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-                        set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
+                        set(src ${src} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.o)
                      endforeach()
                   endforeach()
                endif()
-               mic_add_executable(${target}
-                  LINK_LIBRARIES Vc_MIC
-                  COMPILE_FLAGS "-DNO_ISA_CHECK" "${types_flag}"
-                  SOURCES ${src}
-                  OBJECTS ${_objs}
-                  EXCLUDE_FROM_ALL
-                  )#}}}
-            else()
-               add_executable(${target} EXCLUDE_FROM_ALL ${src})
-               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${_DEFINITIONS}")
-               set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS "${flags}")
-               set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS "${link_flags}")
-               if(NOT impl STREQUAL "nosimd")
-                  set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
-               endif()
-               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "NO_ISA_CHECK")
-               if(NOT _NO_TESTTYPES)
-                  set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "TESTTYPES=${types}")
-               endif()
+            endif()
+
+            add_executable(${target} EXCLUDE_FROM_ALL ${src})
+            set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${_DEFINITIONS}")
+            set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS "${flags}")
+            set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS "${link_flags}")
+            if(NOT impl STREQUAL "nosimd")
+               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
+            endif()
+            set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "NO_ISA_CHECK")
+            if(NOT _NO_TESTTYPES)
+               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "TESTTYPES=${types}")
             endif()
             if(NOT _EXCLUDE_FROM_ALL)
                add_target_property(${target} LABELS "${label}")
@@ -331,49 +376,6 @@ vc_add_test(math)
 vc_add_test(where)
 vc_add_test(experimental)
 vc_add_test(bitset_conversions)
-
-function(vc_download_testdata)#{{{
-   set(_deps)
-   foreach(fun sincos asin acos atan ln log2 log10)
-      foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-            COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-            DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Downloading Test Data: ${filename}"
-            VERBATIM
-            )
-         if(MIC_OBJCOPY)
-            add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o"
-               COMMAND ${MIC_OBJCOPY} -I binary -O elf64-k1om -B k1om ${filename} ${filename}.k1om.o
-               DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-               WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-               COMMENT "Converting Test Data: ${filename}.k1om.o"
-               VERBATIM
-               )
-            list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o")
-         endif()
-         list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
-      endforeach()
-   endforeach()
-   add_custom_target(download-testdata ALL
-      DEPENDS ${_deps}
-      )
-
-   add_dependencies(NoSIMD download-testdata)
-   if(Vc_X86)
-      add_dependencies(SSE2 download-testdata)
-      add_dependencies(SSE4_2 download-testdata)
-      add_dependencies(AVX download-testdata)
-      add_dependencies(AVX2 download-testdata)
-      add_dependencies(MIC download-testdata)
-      add_dependencies(KNL download-testdata)
-      add_dependencies(AVX512 download-testdata)
-   elseif(Vc_ARM)
-      add_dependencies(NEON download-testdata)
-   endif()
-endfunction()
-#Not needed yet: vc_download_testdata()#}}}
 
 # ABI tests#{{{
 find_program(OBJDUMP objdump)

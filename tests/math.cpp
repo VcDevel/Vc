@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "metahelpers.h"
 #include <cmath>    // abs & sqrt
 #include <cstdlib>  // integer abs
+#include "mathreference.h"
 
 template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
@@ -189,7 +190,22 @@ TEST_TYPES(V, testSin, real_test_types)  //{{{1
 {
     using std::sin;
     using T = typename V::value_type;
-    const V input([](auto i) { return T(i * 0.01); });
-    const V expected([&input](auto i) { return std::sin(input[i]); });
-    COMPARE(sin(input), expected);
+
+    vir::test::setFuzzyness<float>(2);
+    vir::test::setFuzzyness<double>(1e7);
+
+    const auto &testdata = referenceData<function::sincos, T>();
+    V input, expected;
+    unsigned i = 0;
+    for (const auto &entry : testdata) {
+        input[i % V::size()] = entry.x;
+        expected[i % V::size()] = entry.s;
+        ++i;
+        if (i % V::size() == 0) {
+            COMPARE(sin(input), expected)
+                << " input = " << input << ", i = " << i;
+            COMPARE(sin(-input), -expected)
+                << " input = " << input << ", i = " << i;
+        }
+    }
 }
