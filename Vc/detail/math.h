@@ -626,18 +626,18 @@ template <class V> struct simd_div_t {
     V quot, rem;
 };
 template <class Abi>
-simd_div_t<detail::scharv<Abi>> simd_div(detail::scharv<Abi> numer,
+simd_div_t<detail::scharv<Abi>> div(detail::scharv<Abi> numer,
                                          detail::scharv<Abi> denom);
 template <class Abi>
-simd_div_t<detail::shortv<Abi>> simd_div(detail::shortv<Abi> numer,
+simd_div_t<detail::shortv<Abi>> div(detail::shortv<Abi> numer,
                                          detail::shortv<Abi> denom);
 template <class Abi>
-simd_div_t<detail::intv<Abi>> simd_div(detail::intv<Abi> numer, detail::intv<Abi> denom);
+simd_div_t<detail::intv<Abi>> div(detail::intv<Abi> numer, detail::intv<Abi> denom);
 template <class Abi>
-simd_div_t<detail::longv<Abi>> simd_div(detail::longv<Abi> numer,
+simd_div_t<detail::longv<Abi>> div(detail::longv<Abi> numer,
                                         detail::longv<Abi> denom);
 template <class Abi>
-simd_div_t<detail::llongv<Abi>> simd_div(detail::llongv<Abi> numer,
+simd_div_t<detail::llongv<Abi>> div(detail::llongv<Abi> numer,
                                          detail::llongv<Abi> denom);
 
 #undef Vc_MATH_CALL_
