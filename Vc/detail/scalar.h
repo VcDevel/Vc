@@ -79,10 +79,11 @@ template <> struct traits<  char, simd_abi::scalar> : public scalar_traits<  cha
 // simd impl {{{1
 struct scalar_simd_impl {
     // member types {{{2
+    using abi = Vc::simd_abi::scalar;
     using mask_member_type = bool;
     template <class T> using simd_member_type = T;
-    template <class T> using simd = Vc::simd<T, simd_abi::scalar>;
-    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::scalar>;
+    template <class T> using simd = Vc::simd<T, abi>;
+    template <class T> using simd_mask = Vc::simd_mask<T, abi>;
     using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
@@ -224,23 +225,32 @@ struct scalar_simd_impl {
     }
 
     // math {{{2
-    template <class T> static inline T abs(T x) { return T(std::abs(x)); }
-    template <class T> static inline T sqrt(T x) { return std::sqrt(x); }
-    template <class T> static inline T logb(T x) { return std::logb(x); }
-    template <class T> static inline T trunc(T x) { return std::trunc(x); }
-    template <class T> static inline T floor(T x) { return std::floor(x); }
-    template <class T> static inline T ceil(T x) { return std::ceil(x); }
+    template <class T> static Vc_INTRINSIC T abs(T x) { return T(std::abs(x)); }
+    template <class T> static Vc_INTRINSIC T sqrt(T x) { return std::sqrt(x); }
+    template <class T> static Vc_INTRINSIC T logb(T x) { return std::logb(x); }
+    template <class T> static Vc_INTRINSIC T trunc(T x) { return std::trunc(x); }
+    template <class T> static Vc_INTRINSIC T floor(T x) { return std::floor(x); }
+    template <class T> static Vc_INTRINSIC T ceil(T x) { return std::ceil(x); }
 
-    template <class T> static inline simd_tuple<int, simd_abi::scalar> fpclassify(T x)
+    template <class T> static Vc_INTRINSIC T frexp(T x, int &exp)
+    {
+        return std::frexp(x, &exp);
+    }
+    template <class T> static Vc_INTRINSIC T frexp(T x, simd_tuple<int, abi> &exp)
+    {
+        return frexp(x, exp.first);
+    }
+
+    template <class T> static Vc_INTRINSIC simd_tuple<int, abi> fpclassify(T x)
     {
         return {std::fpclassify(x)};
     }
-    template <class T> static inline bool isfinite(T x) { return std::isfinite(x); }
-    template <class T> static inline bool isinf(T x) { return std::isinf(x); }
-    template <class T> static inline bool isnan(T x) { return std::isnan(x); }
-    template <class T> static inline bool isnormal(T x) { return std::isnormal(x); }
-    template <class T> static inline bool signbit(T x) { return std::signbit(x); }
-    template <class T> static inline bool isunordered(T x, T y) { return std::isunordered(x, y); }
+    template <class T> static Vc_INTRINSIC bool isfinite(T x) { return std::isfinite(x); }
+    template <class T> static Vc_INTRINSIC bool isinf(T x) { return std::isinf(x); }
+    template <class T> static Vc_INTRINSIC bool isnan(T x) { return std::isnan(x); }
+    template <class T> static Vc_INTRINSIC bool isnormal(T x) { return std::isnormal(x); }
+    template <class T> static Vc_INTRINSIC bool signbit(T x) { return std::signbit(x); }
+    template <class T> static Vc_INTRINSIC bool isunordered(T x, T y) { return std::isunordered(x, y); }
 
     // increment & decrement{{{2
     template <class T> static inline void increment(T &x) { ++x; }

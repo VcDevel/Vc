@@ -750,6 +750,44 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
         return _mm512_roundscale_round_pd(x, 0x02, _MM_FROUND_CUR_DIRECTION);
     }
 
+    // frexp {{{3
+    /**
+     * splits \p v into exponent and mantissa, the sign is kept with the mantissa
+     *
+     * The return value will be in the range [0.5, 1.0[
+     * The \p e value will be an integer defining the power-of-two exponent
+     */
+    static Vc_ALWAYS_INLINE simd_member_type<double> frexp(simd_member_type<double> v,
+                                                           avx_simd_member_type<int> &exp)
+    {
+        const __mmask8 iszero = _mm512_cmp_pd_mask(v, _mm512_setzero_pd(), _CMP_NEQ_UQ);
+        exp = _mm256_add_epi32(
+            broadcast32(1),
+            _mm512_mask_cvttpd_epi32(broadcast32(-1), iszero, _mm512_getexp_pd(v)));
+        return _mm512_mask_getmant_pd(_mm512_setzero_pd(), iszero, v, _MM_MANT_NORM_p5_1,
+                                      _MM_MANT_SIGN_src);
+    }
+    static Vc_INTRINSIC simd_member_type<double> frexp(
+        simd_member_type<double> v, simd_tuple<int, simd_abi::avx> &exp)
+    {
+        return frexp(v, exp.first);
+    }
+
+    static Vc_ALWAYS_INLINE simd_member_type<float> frexp(simd_member_type<float> v,
+                                                          simd_member_type<int> &exp)
+    {
+        const __mmask16 iszero = _mm512_cmp_ps_mask(v, _mm512_setzero_ps(), _CMP_NEQ_UQ);
+        exp = _mm512_mask_add_epi32(_mm512_setzero_si512(), iszero, broadcast64(1),
+                                    _mm512_cvttps_epi32(_mm512_getexp_ps(v)));
+        return _mm512_mask_getmant_ps(_mm512_setzero_ps(), iszero, v, _MM_MANT_NORM_p5_1,
+                                      _MM_MANT_SIGN_src);
+    }
+    static Vc_INTRINSIC simd_member_type<float> frexp(
+        simd_member_type<float> v, simd_tuple<int, simd_abi::avx512> &exp)
+    {
+        return frexp(v, exp.first);
+    }
+
     // isfinite {{{3
     static Vc_INTRINSIC mask_member_type<float> isfinite(simd_member_type<float> x)
     {

@@ -1032,6 +1032,101 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
         return _mm256_round_pd(x, 0x2);
     }
 
+    // frexp {{{3
+    /**
+     * splits \p v into exponent and mantissa, the sign is kept with the mantissa
+     *
+     * The return value will be in the range [0.5, 1.0[
+     * The \p e value will be an integer defining the power-of-two exponent
+     */
+    static inline simd_member_type<double> frexp(simd_member_type<double> v,
+                                                 sse_simd_member_type<int> &exp)
+    {
+#ifdef Vc_HAVE_AVX512VL
+        const __mmask8 iszero = _mm256_cmp_pd_mask(v, _mm256_setzero_pd(), _CMP_NEQ_UQ);
+        exp = _mm_mask_add_epi32(_mm_setzero_si128(), iszero, broadcast16(1),
+                                 _mm256_cvttpd_epi32(_mm256_getexp_pd(v)));
+        return _mm256_mask_getmant_pd(_mm256_setzero_pd(), iszero, v, _MM_MANT_NORM_p5_1,
+                                      _MM_MANT_SIGN_src);
+#else   // Vc_HAVE_AVX512VL
+        const auto exponentBits =
+            intrin_cast<__m256d>(broadcast32(0x7ff0000000000000ull));
+        const __m256d exponentPart = and_(v, exponentBits);
+        const __m256d exponentMaximized = or_(v, _mm256_castsi256_pd(exponentBits));
+        __m256d ret = and_(
+            exponentMaximized,
+            broadcast32(reinterpret_cast<const double &>(constants<abi>::frexpMask)));
+        const __m256d zeroMask = _mm256_cmp_pd(v, _mm256_setzero_pd(), _CMP_EQ_OQ);
+        ret = _mm256_blendv_pd(ret, v, or_(or_(isnan(v), zeroMask), not_(isfinite(v))));
+        const __m128i exponent_bits = _mm_shuffle_ps(
+            _mm_castpd_ps(lo128(exponentPart)), _mm_castpd_ps(hi128(exponentPart)),
+            0xdd);  // select every even indexed 32-bit chunk from masked_exponent
+        exp = _mm_sub_epi32(_mm_srli_epi32(exponent_bits, 52 - 32),
+                            andnot_(_mm_packs_epi32(_mm_castpd_si128(lo128(zeroMask)),
+                                                    _mm_castpd_si128(hi128(zeroMask))),
+                                    broadcast16(0x3fe)));
+        return ret;
+#endif  // Vc_HAVE_AVX512VL
+    }
+    static Vc_INTRINSIC simd_member_type<double> frexp(
+        simd_member_type<double> v, simd_tuple<int, simd_abi::sse> &exp)
+    {
+        return frexp(v, exp.first);
+    }
+
+#ifdef Vc_HAVE_AVX2
+    static inline simd_member_type<float> frexp(simd_member_type<float> v,
+                                                avx_simd_member_type<int> &exp)
+    {
+#ifdef Vc_HAVE_AVX512VL
+        const __mmask8 iszero = _mm256_cmp_ps_mask(v, _mm256_setzero_ps(), _CMP_NEQ_UQ);
+        exp = _mm256_mask_add_epi32(_mm256_setzero_si256(), iszero, broadcast32(1),
+                                    _mm256_cvttps_epi32(_mm256_getexp_ps(v)));
+        return _mm256_mask_getmant_ps(_mm256_setzero_ps(), iszero, v, _MM_MANT_NORM_p5_1,
+                                      _MM_MANT_SIGN_src);
+#else   // Vc_HAVE_AVX512VL
+        const __m256i exponentBits = broadcast32(0x7f800000u);
+        const __m256i exponentPart = and_(_mm256_castps_si256(v), exponentBits);
+        const __m256 exponentMaximized = or_(v, _mm256_castsi256_ps(exponentBits));
+        __m256 ret = and_(exponentMaximized, _mm256_castsi256_ps(broadcast32(0xbf7fffffu)));
+        const auto mask = _mm256_cmp_ps(v, _mm256_setzero_ps(), _CMP_EQ_OQ);
+        ret = _mm256_blendv_ps(ret, v, or_(or_(isnan(v), mask), not_(isfinite(v))));
+        exp = _mm256_sub_epi32(_mm256_srli_epi32(exponentPart, 23),
+                               andnot_(_mm256_castps_si256(mask), broadcast32(0x7e)));
+        return ret;
+#endif  // Vc_HAVE_AVX512VL
+    }
+    static Vc_INTRINSIC simd_member_type<float> frexp(simd_member_type<float> v,
+                                                      simd_tuple<int, simd_abi::avx> &exp)
+    {
+        return frexp(v, exp.first);
+    }
+#else   // Vc_HAVE_AVX2
+    static inline simd_member_type<float> frexp(simd_member_type<float> v,
+                                                sse_simd_member_type<int> &e0,
+                                                sse_simd_member_type<int> &e1)
+    {
+        const __m256 exponentBits = intrin_cast<__m256>(broadcast32(0x7f800000u));
+        __m256 exponentPart = and_(v, exponentBits);
+        const __m256 exponentMaximized = or_(v, exponentBits);
+        __m256 ret =
+            and_(exponentMaximized, intrin_cast<__m256>(broadcast32(0xbf7fffffu)));
+        const auto mask = _mm256_cmp_ps(v, _mm256_setzero_ps(), _CMP_EQ_OQ);
+        ret = _mm256_blendv_ps(ret, v, or_(or_(isnan(v), mask), not_(isfinite(v))));
+        const __m256i k = intrin_cast<__m256i>(mask);
+        e0 = _mm_sub_epi32(_mm_srli_epi32(intrin_cast<__m128i>(lo128(exponentPart)), 23),
+                           andnot_(lo128(k), broadcast16(0x7e)));
+        e1 = _mm_sub_epi32(_mm_srli_epi32(intrin_cast<__m128i>(hi128(exponentPart)), 23),
+                           andnot_(hi128(k), broadcast16(0x7e)));
+        return ret;
+    }
+    static Vc_INTRINSIC simd_member_type<float> frexp(
+        simd_member_type<float> v, simd_tuple<int, simd_abi::sse, simd_abi::sse> &exp)
+    {
+        return frexp(v, exp.first, exp.second.first);
+    }
+#endif  // Vc_HAVE_AVX2
+
     // isfinite {{{3
     static Vc_INTRINSIC mask_member_type<float> isfinite(simd_member_type<float> x)
     {

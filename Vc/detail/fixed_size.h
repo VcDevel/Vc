@@ -129,17 +129,6 @@ static_assert(std::is_same<fixed_size_storage<float, 13>,
 #endif
 }  // namespace tests
 
-// tuple_pop_front {{{1
-template <class T> Vc_INTRINSIC auto tuple_pop_front(size_constant<0>, const T &x)
-{
-    return x;
-}
-template <size_t K, class T>
-Vc_INTRINSIC auto tuple_pop_front(size_constant<K>, const T &x)
-{
-    return tuple_pop_front(size_constant<K - 1>(), x.second);
-}
-
 // n_abis_in_tuple {{{1
 template <class T> struct seq_op;
 template <size_t I0, size_t... Is> struct seq_op<std::index_sequence<I0, Is...>> {
@@ -496,14 +485,28 @@ public:
     Vc_APPLY_ON_TUPLE_(ceil)
 #undef Vc_APPLY_ON_TUPLE_
 
+    struct frexp_fwd {
+        template <class Impl, class... Arguments>
+        Vc_INTRINSIC auto operator()(Impl impl, Arguments &&... args) noexcept
+        {
+            return impl.frexp(std::forward<Arguments>(args)...);
+        }
+    };
+    template <class T, class... As>
+    static inline simd_tuple<T, As...> frexp(const simd_tuple<T, As...> &x,
+                                             fixed_size_storage<int, N> &exp) noexcept
+    {
+        return apply(frexp_fwd(), x, exp);
+    }
+
     template <class T, class... As>
     static inline fixed_size_storage<int, N> fpclassify(simd_tuple<T, As...> x) noexcept
     {
-        return detail::optimize_tuple(x.template apply<int>(
+        return detail::optimize_tuple(x.template apply_r<int>(
             [](auto impl, auto xx) { return impl.fpclassify(xx); }));
     }
 
-#define Vc_TEST_ON_TUPLE_(name_)                                                        \
+#define Vc_TEST_ON_TUPLE_(name_)                                                         \
     template <class T, class... As>                                                      \
     static inline mask_member_type name_(simd_tuple<T, As...> x) noexcept                \
     {                                                                                    \

@@ -308,6 +308,8 @@ template <class T> using id = typename identity<T>::type;
 
 // bool_constant{{{1
 template <bool Value> using bool_constant = std::integral_constant<bool, Value>;
+using std::true_type;
+using std::false_type;
 
 // is_narrowing_conversion<From, To>{{{1
 template <class From, class To, bool = std::is_arithmetic<From>::value,

@@ -308,13 +308,25 @@ template <class Abi> detail::ldoublev<Abi> expm1(detail::ldoublev<Abi> x);
 
 template <class Abi>
 detail::floatv<Abi> frexp(detail::floatv<Abi> value,
-                          detail::samesize<int, detail::floatv<Abi>> * exp);
+                          detail::samesize<int, detail::floatv<Abi>> * exp)
+{
+    return {detail::private_init, detail::get_impl_t<decltype(value)>::frexp(
+                                      detail::data(value), detail::data(*exp))};
+}
 template <class Abi>
 detail::doublev<Abi> frexp(detail::doublev<Abi> value,
-                           detail::samesize<int, detail::doublev<Abi>> * exp);
+                           detail::samesize<int, detail::doublev<Abi>> * exp)
+{
+    return {detail::private_init, detail::get_impl_t<decltype(value)>::frexp(
+                                      detail::data(value), detail::data(*exp))};
+}
 template <class Abi>
 detail::ldoublev<Abi> frexp(detail::ldoublev<Abi> value,
-                            detail::samesize<int, detail::ldoublev<Abi>> * exp);
+                            detail::samesize<int, detail::ldoublev<Abi>> * exp)
+{
+    return {detail::private_init, detail::get_impl_t<decltype(value)>::frexp(
+                                      detail::data(value), detail::data(*exp))};
+}
 
 template <class Abi>
 detail::samesize<int, detail::floatv<Abi>> ilogb(detail::floatv<Abi> x);

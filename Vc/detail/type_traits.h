@@ -76,6 +76,13 @@ using std::is_signed;
 using std::is_unsigned;
 using std::enable_if_t;
 
+// is_equal
+template <class T, T a, T b> struct is_equal : public std::false_type {
+};
+template <class T, T a> struct is_equal<T, a, a> : public std::true_type {
+};
+template <class T, T a, T b> constexpr bool is_equal_v = is_equal<T, a, b>::value;
+
 // none
 template <class... Ts> struct none : public negation<any<Ts...>> {};
 

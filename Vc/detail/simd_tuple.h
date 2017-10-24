@@ -95,6 +95,112 @@ Vc_INTRINSIC simd_tuple<T, simd_abi::scalar, A10, A1s...> tuple_concat(
     return {left, right};
 }
 
+// tuple_pop_front {{{1
+template <class T> Vc_INTRINSIC T tuple_pop_front(size_constant<0>, T &&x)
+{
+    return std::forward<T>(x);
+}
+
+template <size_t K, class T>
+Vc_INTRINSIC const auto &tuple_pop_front(size_constant<K>, const T &x)
+{
+    return tuple_pop_front(size_constant<K - 1>(), x.second);
+}
+
+template <size_t K, class T> Vc_INTRINSIC auto &tuple_pop_front(size_constant<K>, T &x)
+{
+    return tuple_pop_front(size_constant<K - 1>(), x.second);
+}
+
+// get_simd<N> {{{1
+namespace simd_tuple_impl
+{
+namespace as_simd
+{
+struct yes {};
+struct no {};
+}
+template <class T, class A0, class... Abis>
+simd<T, A0> get_impl(as_simd::yes, const simd_tuple<T, A0, Abis...> &t, size_constant<0>)
+{
+    return simd<T, A0>(t.first);
+}
+template <class T, class A0, class... Abis>
+const auto &get_impl(as_simd::no, const simd_tuple<T, A0, Abis...> &t, size_constant<0>)
+{
+    return t.first;
+}
+template <class T, class A0, class... Abis>
+auto &get_impl(as_simd::no, simd_tuple<T, A0, Abis...> &t, size_constant<0>)
+{
+    return t.first;
+}
+
+template <class R, size_t N, class T, class... Abis>
+auto get_impl(R, const simd_tuple<T, Abis...> &t, size_constant<N>)
+{
+    return get_impl(R(), t.second, size_constant<N - 1>());
+}
+template <size_t N, class T, class... Abis>
+auto &get_impl(as_simd::no, simd_tuple<T, Abis...> &t, size_constant<N>)
+{
+    return get_impl(as_simd::no(), t.second, size_constant<N - 1>());
+}
+}  // namespace simd_tuple_impl
+
+template <size_t N, class T, class... Abis> auto get_simd(const simd_tuple<T, Abis...> &t)
+{
+    return simd_tuple_impl::get_impl(simd_tuple_impl::as_simd::yes(), t,
+                                     size_constant<N>());
+}
+
+template <size_t N, class T, class... Abis> auto get(const simd_tuple<T, Abis...> &t)
+{
+    return simd_tuple_impl::get_impl(simd_tuple_impl::as_simd::no(), t,
+                                     size_constant<N>());
+}
+
+template <size_t N, class T, class... Abis> auto &get(simd_tuple<T, Abis...> &t)
+{
+    return simd_tuple_impl::get_impl(simd_tuple_impl::as_simd::no(), t,
+                                     size_constant<N>());
+}
+
+// foo {{{1
+template <size_t LeftN, class RightT> struct foo;
+template <class RightT> struct foo<0, RightT> : public size_constant<0> {
+};
+template <size_t LeftN, class RightT>
+struct foo
+    : public size_constant<
+          1 + foo<LeftN - RightT::first_size_v, typename RightT::second_type>::value> {
+};
+
+template <size_t LeftN, class RightT, bool = (RightT::first_size_v < LeftN)>
+struct how_many_to_extract;
+
+template <size_t LeftN, class RightT> struct how_many_to_extract<LeftN, RightT, true> {
+    static constexpr std::make_index_sequence<
+        1 + foo<LeftN - RightT::first_size_v, typename RightT::second_type>::value>
+    tag()
+    {
+        return {};
+    }
+};
+
+template <class T, size_t Offset, size_t Length, bool Done, class IndexSeq>
+struct chunked {
+};
+template <size_t LeftN, class RightT> struct how_many_to_extract<LeftN, RightT, false> {
+    static_assert(LeftN != RightT::first_size_v, "");
+    static constexpr chunked<typename RightT::first_type, 0, LeftN, false,
+                             std::make_index_sequence<LeftN>>
+    tag()
+    {
+        return {};
+    }
+};
+
 // tuple_element_meta {{{1
 template <class T, class Abi, size_t Offset>
 struct tuple_element_meta : public detail::traits<T, Abi>::simd_impl_type {
@@ -160,14 +266,85 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
     }
 
     template <class F, class... More>
-    friend Vc_INTRINSIC simd_tuple apply(F &&fun, const simd_tuple &x,
-                                            const More &... more)
+    friend Vc_INTRINSIC simd_tuple apply(F &&fun, const simd_tuple &x, More &&... more)
+    {
+        return simd_tuple::apply_impl(
+            bool_constant<all<is_equal<size_t, first_size_v,
+                                       std::decay_t<More>::first_size_v>...>::value>(),
+            std::forward<F>(fun), x, std::forward<More>(more)...);
+    }
+
+private:
+    template <class F, class... More>
+    static Vc_INTRINSIC simd_tuple
+    apply_impl(true_type,  // first_size_v is equal for all arguments
+               F &&fun, const simd_tuple &x, More &&... more)
     {
         return {fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...)};
     }
 
+    template <class F, class More>
+    static Vc_INTRINSIC simd_tuple apply_impl(false_type,  // at least one argument in
+                                                           // More has different
+                                                           // first_size_v, x has only one
+                                                           // member, so More has 2 or
+                                                           // more
+                                              F &&fun, const simd_tuple &x, More &&y)
+    {
+        return apply_impl(std::make_index_sequence<std::decay_t<More>::tuple_size>(),
+                          std::forward<F>(fun), x, std::forward<More>(y));
+    }
+
+    template <class F, class More, size_t... Indexes>
+    static Vc_INTRINSIC simd_tuple apply_impl(std::index_sequence<Indexes...>, F &&fun,
+                                              const simd_tuple &x, More &&y)
+    {
+        return {
+            fun(tuple_element_meta<T, Abi0, 0>(), x.first, detail::get<Indexes>(y)...)};
+    }
+
+public:
+    // apply_impl2 can only be called from a 2-element simd_tuple
+    template <class Tuple, size_t Offset, class F2>
+    static Vc_INTRINSIC simd_tuple extract(
+        size_constant<Offset>, size_constant<std::decay_t<Tuple>::first_size_v - Offset>,
+        Tuple &&tup, F2 &&fun2)
+    {
+        static_assert(Offset > 0, "");
+        auto splitted =
+            split<Offset, std::decay_t<Tuple>::first_size_v - Offset>(get_simd<0>(tup));
+        simd_tuple r = fun2(detail::data(std::get<1>(splitted)));
+        // if tup is non-const lvalue ref, write get<0>(splitted) back
+        tup.first = detail::data(concat(std::get<0>(splitted), std::get<1>(splitted)));
+        return r;
+    }
+
+    template <class F, class More, class U, size_t Length, size_t... Indexes>
+    static Vc_INTRINSIC simd_tuple
+    apply_impl2(chunked<U, std::decay_t<More>::first_size_v, Length, true,
+                        std::index_sequence<Indexes...>>,
+                F &&fun, const simd_tuple &x, More &&y)
+    {
+        return apply(std::forward<F>(fun), x, y.second);
+    }
+
+    template <class F, class More, class U, size_t Offset, size_t Length,
+              size_t... Indexes>
+    static Vc_INTRINSIC simd_tuple
+    apply_impl2(chunked<U, Offset, Length, false, std::index_sequence<Indexes...>>,
+                F &&fun, const simd_tuple &x, More &&y)
+    {
+        static_assert(Offset < std::decay_t<More>::first_size_v, "");
+        static_assert(Offset > 0, "");
+        return extract(size_constant<Offset>(), size_constant<Length>(), y,
+                       [&](auto &&yy) -> simd_tuple {
+                           return {fun(tuple_element_meta<T, Abi0, 0>(), x.first, yy)};
+                       });
+    }
+
     template <class R = T, class F, class... More>
-    Vc_INTRINSIC fixed_size_storage<R, size_v> apply(F &&fun, const More &... more) const
+    Vc_INTRINSIC fixed_size_storage<R, size_v> apply_r(F &&fun,
+                                                       const More &... more) const
     {
         return {fun(tuple_element_meta<T, Abi0, 0>(), first, more.first...)};
     }
@@ -214,19 +391,120 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
     }
 
     template <class F, class... More>
-    friend Vc_INTRINSIC simd_tuple apply(F &&fun, const simd_tuple &x,
-                                            const More &... more)
+    friend Vc_INTRINSIC simd_tuple apply(F &&fun, const simd_tuple &x, More &&... more)
+    {
+        return simd_tuple::apply_impl(
+            bool_constant<all<is_equal<size_t, first_size_v,
+                                       std::decay_t<More>::first_size_v>...>::value>(),
+            std::forward<F>(fun), x, std::forward<More>(more)...);
+    }
+
+private:
+    template <class F, class... More>
+    static Vc_INTRINSIC simd_tuple
+    apply_impl(true_type,  // first_size_v is equal for all arguments
+               F &&fun, const simd_tuple &x, More &&... more)
     {
         return {fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...),
-                x.second.apply(std::forward<F>(fun), more.second...)};
+                apply(std::forward<F>(fun), x.second, more.second...)};
+    }
+
+    template <class F, class More>
+    static Vc_INTRINSIC simd_tuple
+    apply_impl(false_type,  // at least one argument in More has different first_size_v
+               F &&fun, const simd_tuple &x, More &&y)
+    {
+        return apply_impl2(how_many_to_extract<first_size_v, std::decay_t<More>>::tag(),
+                           std::forward<F>(fun), x, y);
+    }
+
+    template <class F, class More, size_t... Indexes>
+    static Vc_INTRINSIC simd_tuple apply_impl2(std::index_sequence<Indexes...>, F &&fun,
+                                               const simd_tuple &x, More &&y)
+    {
+        return {
+            fun(tuple_element_meta<T, Abi0, 0>(), x.first, detail::get<Indexes>(y)...),
+            apply(std::forward<F>(fun), x.second,
+                  tuple_pop_front(size_constant<sizeof...(Indexes)>(),
+                                  std::forward<More>(y)))};
+    }
+
+public:
+    template <class F, class More, class U, size_t Length, size_t... Indexes>
+    static Vc_INTRINSIC simd_tuple
+    apply_impl2(chunked<U, std::decay_t<More>::first_size_v, Length, true,
+                        std::index_sequence<Indexes...>>,
+                F &&fun, const simd_tuple &x, More &&y)
+    {
+        return apply(std::forward<F>(fun), x, y.second);
+    }
+
+    template <class Tuple, size_t Length, class F2>
+    static Vc_INTRINSIC auto extract(size_constant<0>, size_constant<Length>, Tuple &&tup,
+                                     F2 &&fun2)
+    {
+        auto splitted =
+            split<Length, std::decay_t<Tuple>::first_size_v - Length>(get_simd<0>(tup));
+        auto r = fun2(detail::data(std::get<0>(splitted)));
+        // if tup is non-const lvalue ref, write get<0>(splitted) back
+        tup.first = detail::data(concat(std::get<0>(splitted), std::get<1>(splitted)));
+        return r;
+    }
+
+    template <class Tuple, size_t Offset, class F2>
+    static Vc_INTRINSIC auto extract(
+        size_constant<Offset>, size_constant<std::decay_t<Tuple>::first_size_v - Offset>,
+        Tuple &&tup, F2 &&fun2)
+    {
+        auto splitted =
+            split<Offset, std::decay_t<Tuple>::first_size_v - Offset>(get_simd<0>(tup));
+        auto r = fun2(detail::data(std::get<1>(splitted)));
+        // if tup is non-const lvalue ref, write get<0>(splitted) back
+        tup.first = detail::data(concat(std::get<0>(splitted), std::get<1>(splitted)));
+        return r;
+    }
+
+    template <
+        class Tuple, size_t Offset, size_t Length, class F2,
+        class = std::enable_if_t<(Offset + Length < std::decay_t<Tuple>::first_size_v)>>
+    static Vc_INTRINSIC auto extract(size_constant<Offset>, size_constant<Length>,
+                                     Tuple &&tup, F2 &&fun2)
+    {
+        static_assert(Offset + Length < std::decay_t<Tuple>::first_size_v, "");
+        auto splitted =
+            split<Offset, Length, std::decay_t<Tuple>::first_size_v - Offset - Length>(
+                get_simd<0>(tup));
+        auto r = fun2(detail::data(std::get<1>(splitted)));
+        // if tup is non-const lvalue ref, write get<0>(splitted) back
+        tup.first = detail::data(
+            concat(std::get<0>(splitted), std::get<1>(splitted), std::get<2>(splitted)));
+        return r;
+    }
+
+    template <class F, class More, class U, size_t Offset, size_t Length,
+              size_t... Indexes>
+    static Vc_INTRINSIC simd_tuple
+    apply_impl2(chunked<U, Offset, Length, false, std::index_sequence<Indexes...>>,
+                F &&fun, const simd_tuple &x, More &&y)
+    {
+        static_assert(Offset < std::decay_t<More>::first_size_v, "");
+        return {extract(size_constant<Offset>(), size_constant<Length>(), y,
+                        [&](auto &&yy) {
+                            return fun(tuple_element_meta<T, Abi0, 0>(), x.first, yy);
+                        }),
+                second_type::apply_impl2(
+                    chunked<U, Offset + Length, Length,
+                            Offset + Length == std::decay_t<More>::first_size_v,
+                            std::index_sequence<Indexes...>>(),
+                    std::forward<F>(fun), x.second, y)};
     }
 
     template <class R = T, class F, class... More>
-    Vc_INTRINSIC auto apply(F &&fun, const More &... more) const
+    Vc_INTRINSIC auto apply_r(F &&fun, const More &... more) const
     {
         return detail::tuple_concat<R>(
             fun(tuple_element_meta<T, Abi0, 0>(), first, more.first...),
-            second.template apply<R>(std::forward<F>(fun), more.second...));
+            second.template apply_r<R>(std::forward<F>(fun), more.second...));
     }
 
     template <class F, class... More>
@@ -309,35 +587,6 @@ Vc_INTRINSIC auto to_tuple(
     return to_tuple_impl<T, A0>(std::make_index_sequence<N>(), args);
 }
 
-// get_simd<N> {{{1
-namespace simd_tuple_impl
-{
-struct as_simd;
-template <class R = void, class T, class A0, class... Abis>
-auto get_impl(const simd_tuple<T, A0, Abis...> &t, size_constant<0>)
-{
-    return std::conditional_t<is_same<R, as_simd>::value, simd<T, A0>,
-                              decltype(t.first)>(t.first);
-}
-template <class R = void, size_t N, class T, class... Abis>
-auto get_impl(const simd_tuple<T, Abis...> &t, size_constant<N>)
-{
-    return get_impl<R>(t.second, size_constant<N - 1>());
-}
-}  // namespace simd_tuple_impl
-
-template <size_t N, class T, class... Abis>
-auto get_simd(const simd_tuple<T, Abis...> &t)
-{
-    return simd_tuple_impl::get_impl<simd_tuple_impl::as_simd>(
-        t, size_constant<N>());
-}
-
-template <size_t N, class T, class... Abis> auto get(const simd_tuple<T, Abis...> &t)
-{
-    return simd_tuple_impl::get_impl(t, size_constant<N>());
-}
-
 // tuple_element {{{1
 template <size_t I, class T> struct tuple_element;
 template <class T, class A0, class... As>
@@ -361,10 +610,6 @@ Vc_INTRINSIC const simd_tuple<T, A> &optimize_tuple(const simd_tuple<T, A> &x)
 {
     return x;
 }
-
-template <bool b> using bool_c = std::integral_constant<bool, b>;
-using std::true_type;
-using std::false_type;
 
 #ifndef __cpp_if_constexpr
 template <class T, class A0, class A1, class... Abis,
@@ -415,9 +660,9 @@ Vc_INTRINSIC R optimize_tuple_impl(const simd_tuple<T, A0, A1, A2, A3, Abis...> 
                                    false_type, false_type, true_type)
 {
     return optimize_tuple_impl2(
-        x, bool_c<(R::first_size_v ==
-                   simd_size_v<T, A0> + simd_size_v<T, A1> + simd_size_v<T, A2> +
-                       simd_size_v<T, A3>)>());
+        x, bool_constant<(R::first_size_v ==
+                          simd_size_v<T, A0> + simd_size_v<T, A1> + simd_size_v<T, A2> +
+                              simd_size_v<T, A3>)>());
 }
 
 template <class T, class A0, class A1, class... Abis,
@@ -456,9 +701,9 @@ Vc_INTRINSIC R optimize_tuple(const simd_tuple<T, A0, A1, Abis...> &x)
     }
 #else   // __cpp_if_constexpr
     return optimize_tuple_impl(
-        x, bool_c<(R::first_size_v == simd_size_v<T, A0>)>(),
-        bool_c<(R::first_size_v == simd_size_v<T, A0> + simd_size_v<T, A1>)>(),
-        bool_c<(sizeof...(Abis) >= 2)>());
+        x, bool_constant<(R::first_size_v == simd_size_v<T, A0>)>(),
+        bool_constant<(R::first_size_v == simd_size_v<T, A0> + simd_size_v<T, A1>)>(),
+        bool_constant<(sizeof...(Abis) >= 2)>());
 #endif  // __cpp_if_constexpr
 }
 
