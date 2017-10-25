@@ -74,15 +74,6 @@ template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
-
-template<typename T> struct is_valid_vector_argument  : public std::false_type {};
-
-template <> struct is_valid_vector_argument<double> : public std::true_type {};
-template <> struct is_valid_vector_argument<float>  : public std::true_type {};
-template <> struct is_valid_vector_argument<int>    : public std::true_type {};
-template <> struct is_valid_vector_argument<uint>   : public std::true_type {};
-template <> struct is_valid_vector_argument<short>  : public std::true_type {};
-template <> struct is_valid_vector_argument<ushort> : public std::true_type {};
 }  // namespace AVX
 
 namespace AVX2
@@ -113,22 +104,13 @@ template <typename T> struct is_vector : public std::false_type {};
 template <typename T> struct is_vector<Vector<T>> : public std::true_type {};
 template <typename T> struct is_mask : public std::false_type {};
 template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
-
-template<typename T> struct is_valid_vector_argument  : public std::false_type {};
-
-template <> struct is_valid_vector_argument<double> : public std::true_type {};
-template <> struct is_valid_vector_argument<float>  : public std::true_type {};
-template <> struct is_valid_vector_argument<int>    : public std::true_type {};
-template <> struct is_valid_vector_argument<uint>   : public std::true_type {};
-template <> struct is_valid_vector_argument<short>  : public std::true_type {};
-template <> struct is_valid_vector_argument<ushort> : public std::true_type {};
 }  // namespace AVX2
 
 namespace Traits
 {
 template <class T> struct
 is_simd_vector_internal<Vector<T, VectorAbi::Avx>>
-  : public AVX::is_valid_vector_argument<T> {};
+  : public is_valid_vector_argument<T> {};
 
 template<typename T> struct is_simd_mask_internal<Mask<T, VectorAbi::Avx>>
   : public std::true_type {};

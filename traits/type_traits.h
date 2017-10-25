@@ -56,6 +56,16 @@ namespace Traits
 #include "has_addition_operator.h"
 #include "has_equality_operator.h"
 
+
+template<typename T> struct is_valid_vector_argument : public std::false_type {};
+
+template <> struct is_valid_vector_argument<double> : public std::true_type {};
+template <> struct is_valid_vector_argument<float>  : public std::true_type {};
+template <> struct is_valid_vector_argument<int>    : public std::true_type {};
+template <> struct is_valid_vector_argument<uint>   : public std::true_type {};
+template <> struct is_valid_vector_argument<short>  : public std::true_type {};
+template <> struct is_valid_vector_argument<ushort> : public std::true_type {};
+
 template<typename T> struct is_simd_mask_internal : public std::false_type {};
 template<typename T> struct is_simd_vector_internal : public std::false_type {};
 template<typename T> struct is_subscript_operation_internal : public std::false_type {};
