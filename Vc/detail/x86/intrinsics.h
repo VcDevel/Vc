@@ -1184,7 +1184,7 @@ template <> Vc_INTRINSIC Vc_CONST __m256d avx_2_pow_31<double>() { return broadc
 template <> Vc_INTRINSIC Vc_CONST __m256i avx_2_pow_31<  uint>() { return lowest32<int>(); }
 #endif  // Vc_HAVE_AVX
 
-static Vc_INTRINSIC __m128i shift_msb_to_lsb(__m128i v)
+Vc_INTRINSIC __m128i shift_msb_to_lsb(__m128i v)
 {
 #if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
     !defined Vc_HAVE_AVX512VL
@@ -1198,7 +1198,7 @@ static Vc_INTRINSIC __m128i shift_msb_to_lsb(__m128i v)
 }
 
 #ifdef Vc_HAVE_AVX2
-static Vc_INTRINSIC __m256i shift_msb_to_lsb(__m256i v)
+Vc_INTRINSIC __m256i shift_msb_to_lsb(__m256i v)
 {
 #if defined Vc_GCC && Vc_GCC < 0x60400 && defined Vc_HAVE_AVX512F &&                     \
     !defined Vc_HAVE_AVX512VL

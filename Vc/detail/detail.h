@@ -166,15 +166,15 @@ template <class T> using equal_int_type_t = typename equal_int_type<T>::type;
 // work around crazy semantics of unsigned integers of lower rank than int:
 // Before applying an operator the operands are promoted to int. In which case over- or
 // underflow is UB, even though the operand types were unsigned.
-template <class T> static Vc_INTRINSIC const T &promote_preserving_unsigned(const T &x)
+template <class T> Vc_INTRINSIC const T &promote_preserving_unsigned(const T &x)
 {
     return x;
 }
-static Vc_INTRINSIC unsigned int promote_preserving_unsigned(const unsigned char &x)
+Vc_INTRINSIC unsigned int promote_preserving_unsigned(const unsigned char &x)
 {
     return x;
 }
-static Vc_INTRINSIC unsigned int promote_preserving_unsigned(const unsigned short &x)
+Vc_INTRINSIC unsigned int promote_preserving_unsigned(const unsigned short &x)
 {
     return x;
 }
@@ -284,7 +284,7 @@ template <class T> using get_traits_t = typename get_traits<std::decay_t<T>>::ty
  * \internal
  * Returns the next power of 2 larger than or equal to \p x.
  */
-static constexpr std::size_t next_power_of_2(std::size_t x)
+constexpr std::size_t next_power_of_2(std::size_t x)
 {
     return (x & (x - 1)) == 0 ? x : next_power_of_2((x | (x >> 1)) + 1);
 }
@@ -294,11 +294,11 @@ static constexpr std::size_t next_power_of_2(std::size_t x)
  * \internal
  * Tag used for private init constructor of simd and simd_mask
  */
-static constexpr struct private_init_t {} private_init = {};
-static constexpr struct bitset_init_t {} bitset_init = {};
+inline constexpr struct private_init_t {} private_init = {};
+inline constexpr struct bitset_init_t {} bitset_init = {};
 
 // size_tag{{{1
-template <size_t N> static constexpr size_constant<N> size_tag = {};
+template <size_t N> inline constexpr size_constant<N> size_tag = {};
 
 // identity/id{{{1
 template <class T> struct identity {
@@ -362,7 +362,7 @@ struct is_aligned<flags::overaligned_tag<GivenAlignment>, Alignment>
     : public std::integral_constant<bool, (GivenAlignment >= Alignment)> {
 };
 template <class Flag, size_t Alignment>
-constexpr bool is_aligned_v = is_aligned<Flag, Alignment>::value;
+inline constexpr bool is_aligned_v = is_aligned<Flag, Alignment>::value;
 
 // when_(un)aligned{{{1
 /**
@@ -478,7 +478,7 @@ using intrinsic_type_t = typename intrinsic_type<T, Size * sizeof(T)>::type;
 
 // is_intrinsic{{{1
 template <class T> struct is_intrinsic : public std::false_type {};
-template <class T> constexpr bool is_intrinsic_v = is_intrinsic<T>::value;
+template <class T> inline constexpr bool is_intrinsic_v = is_intrinsic<T>::value;
 
 // builtin_type {{{1
 template <class T, size_t Bytes, class = detail::void_t<>> struct builtin_type {};
@@ -487,7 +487,7 @@ using builtin_type_t = typename builtin_type<T, Size * sizeof(T)>::type;
 
 // is_builtin_vector {{{1
 template <class T> struct is_builtin_vector : public std::false_type {};
-template <class T> constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
+template <class T> inline constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
 
 // fixed_size_storage fwd decl {{{1
 template <class T, int N> struct fixed_size_storage_builder_wrapper;
