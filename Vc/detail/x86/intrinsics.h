@@ -571,17 +571,17 @@ template <int offset> Vc_INTRINSIC __m256i extract256(__m512i a)
     return _mm512_extracti64x4_epi64(a, offset);
 }
 
-__m256 extract256_center(__m512 a)
+Vc_INTRINSIC __m256 extract256_center(__m512 a)
 {
     return intrin_cast<__m256>(
         _mm512_shuffle_f32x4(a, a, 1 + 2 * 0x4 + 2 * 0x10 + 3 * 0x40));
 }
-__m256d extract256_center(__m512d a)
+Vc_INTRINSIC __m256d extract256_center(__m512d a)
 {
     return intrin_cast<__m256d>(
         _mm512_shuffle_f64x2(a, a, 1 + 2 * 0x4 + 2 * 0x10 + 3 * 0x40));
 }
-__m256i extract256_center(__m512i a)
+Vc_INTRINSIC __m256i extract256_center(__m512i a)
 {
     return intrin_cast<__m256i>(
         _mm512_shuffle_i32x4(a, a, 1 + 2 * 0x4 + 2 * 0x10 + 3 * 0x40));
