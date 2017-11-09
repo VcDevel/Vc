@@ -53,8 +53,8 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
     using T = typename V::value_type;
     using M = typename V::mask_type;
     auto &&gen = make_vec<V>;
-    using Vc::flags::element_aligned;
-    using Vc::flags::vector_aligned;
+    using Vc::element_aligned;
+    using Vc::vector_aligned;
     constexpr size_t stride_alignment =
         V::size() & 1 ? 1 : V::size() & 2
                                 ? 2
@@ -75,14 +75,14 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
                                                                           : 512;
     using stride_aligned_t =
         std::conditional_t<V::size() == stride_alignment, decltype(vector_aligned),
-                           Vc::flags::overaligned_tag<stride_alignment * sizeof(U)>>;
+                           Vc::overaligned_tag<stride_alignment * sizeof(U)>>;
     constexpr stride_aligned_t stride_aligned = {};
     constexpr size_t alignment = 2 * Vc::memory_alignment_v<V, U>;
 #ifdef Vc_MSVC
-    using TT = Vc::flags::overaligned_tag<alignment>;
+    using TT = Vc::overaligned_tag<alignment>;
     constexpr TT overaligned = {};
 #else
-    constexpr auto overaligned = Vc::flags::overaligned<alignment>;
+    constexpr auto overaligned = Vc::overaligned<alignment>;
 #endif
     const V indexes_from_0 = gen({0, 1, 2, 3}, 4);
     for (std::size_t i = 0; i < V::size(); ++i) {

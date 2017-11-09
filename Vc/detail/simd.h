@@ -188,7 +188,7 @@ public:
                         detail::negation<detail::is_narrowing_conversion<U, value_type>>,
                         detail::converts_to_higher_integer_rank<U, value_type>>::value,
             void *> = nullptr)
-        : simd{static_cast<std::array<U, size()>>(x).data(), flags::vector_aligned}
+        : simd{static_cast<std::array<U, size()>>(x).data(), vector_aligned}
     {
     }
 
@@ -204,7 +204,7 @@ public:
                                     std::is_convertible<U, value_type>>,
                         detail::is_narrowing_conversion<U, value_type>>::value,
             void *> = nullptr)
-        : simd{static_cast<std::array<U, size()>>(x).data(), flags::vector_aligned}
+        : simd{static_cast<std::array<U, size()>>(x).data(), vector_aligned}
     {
     }
 
@@ -226,7 +226,7 @@ public:
         std::enable_if_t<detail::allow_conversion_ctor3<value_type, Abi, U, Abi2>::value,
                          void *> = nullptr)
     {
-        x.copy_to(d.data(), flags::overaligned<alignof(simd)>);
+        x.copy_to(d.data(), overaligned<alignof(simd)>);
     }
 #endif  // Vc_EXPERIMENTAL
 
@@ -248,7 +248,7 @@ public:
         constexpr auto N = size();
         alignas(memory_alignment<simd>::value) static constexpr value_type mem[N] = {
             value_type(Indexes)...};
-        return simd(mem, flags::vector_aligned);
+        return simd(mem, vector_aligned);
     }
     static Vc_ALWAYS_INLINE simd seq() {
 #ifdef Vc_ICC

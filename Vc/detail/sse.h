@@ -508,7 +508,8 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         when_aligned<alignof(uint16_t)>, type_tag<T>, tag<4> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
         return x86::convert<simd_member_type<U>, simd_member_type<T>>(
-            intrin_cast<detail::intrinsic_type_t<U, size<U>()>>(load2(mem, flags::vector_aligned)));
+            intrin_cast<detail::intrinsic_type_t<U, size<U>()>>(
+                load2(mem, vector_aligned)));
     }
 
     template <class T, class U>

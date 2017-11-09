@@ -1618,7 +1618,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i16 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
     return _mm_cvtepi16_epi8(v);
 #elif defined Vc_HAVE_SSSE3
-    auto shuf = load16(sse_const::cvti16_i08_shuffle, flags::vector_aligned);
+    auto shuf = load16(sse_const::cvti16_i08_shuffle, vector_aligned);
     return _mm_shuffle_epi8(v, shuf);
 #else
     auto a = _mm_unpacklo_epi8(v, v);  // 00.. 11.. 22.. 33..
@@ -1636,7 +1636,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i16 v0, x_i16 v1)
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
     return _mm256_cvtepi16_epi8(detail::concat(v0, v1));
 #elif defined Vc_HAVE_SSSE3
-    auto shuf = load16(sse_const::cvti16_i08_shuffle, flags::vector_aligned);
+    auto shuf = load16(sse_const::cvti16_i08_shuffle, vector_aligned);
     return _mm_unpacklo_epi64(_mm_shuffle_epi8(v0, shuf), _mm_shuffle_epi8(v1, shuf));
 #else
     auto a = _mm_unpacklo_epi8(v0, v1);  // 08.. 19.. 2A.. 3B..
@@ -1657,10 +1657,10 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(y_i16 v0)
 #elif defined Vc_HAVE_AVX2
     auto a = _mm256_shuffle_epi8(
         v0, _mm256_broadcastsi128_si256(
-                load16(sse_const::cvti16_i08_shuffle, flags::vector_aligned)));
+                load16(sse_const::cvti16_i08_shuffle, vector_aligned)));
     return _mm_unpacklo_epi64(lo128(a), hi128(a));
 #else
-    auto shuf = load16(sse_const::cvti16_i08_shuffle, flags::vector_aligned);
+    auto shuf = load16(sse_const::cvti16_i08_shuffle, vector_aligned);
     return _mm_unpacklo_epi64(_mm_shuffle_epi8(lo128(v0), shuf),
                               _mm_shuffle_epi8(hi128(v0), shuf));
 #endif

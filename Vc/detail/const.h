@@ -163,7 +163,7 @@ template <class Abi> struct trig<Abi, float> {
 
     static Vc_INTRINSIC Vc_CONST simd<float, Abi> load(const float *arr)
     {
-        return {arr, flags::vector_aligned};
+        return {arr, vector_aligned};
     }
     static Vc_INTRINSIC Vc_CONST simd<float, Abi> load(float arr)
     {
@@ -207,7 +207,7 @@ template <class Abi> struct trig<Abi, double> {
 
     static Vc_INTRINSIC Vc_CONST simd<double, Abi> load(const double *arr)
     {
-        return {arr, flags::vector_aligned};
+        return {arr, vector_aligned};
     }
     static Vc_INTRINSIC Vc_CONST simd<double, Abi> load(double arr)
     {

@@ -109,7 +109,7 @@ public:
          detail::negation<std::is_same<abi_type, Abi2>>,
              std::is_same<abi_type, simd_abi::fixed_size<size_v>>>::value> = nullarg)
     {
-        x.copy_to(&d[0], flags::vector_aligned);
+        x.copy_to(&d[0], vector_aligned);
     }
     */
 

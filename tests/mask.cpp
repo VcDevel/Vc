@@ -213,8 +213,8 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
         COMPARE(mem[i - 1], false);
         mem[i] = true;
     }
-    using Vc::flags::element_aligned;
-    using Vc::flags::vector_aligned;
+    using Vc::element_aligned;
+    using Vc::vector_aligned;
     constexpr size_t stride_alignment =
         M::size() & 1 ? 1 : M::size() & 2
                                 ? 2
@@ -235,13 +235,13 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
                                                                           : 512;
     using stride_aligned_t =
         std::conditional_t<M::size() == stride_alignment, decltype(vector_aligned),
-                           Vc::flags::overaligned_tag<stride_alignment * sizeof(bool)>>;
+                           Vc::overaligned_tag<stride_alignment * sizeof(bool)>>;
     constexpr stride_aligned_t stride_aligned = {};
 #ifdef Vc_MSVC
-    using TT = Vc::flags::overaligned_tag<alignment>;
+    using TT = Vc::overaligned_tag<alignment>;
     constexpr TT overaligned = {};
 #else
-    constexpr auto overaligned = Vc::flags::overaligned<alignment>;
+    constexpr auto overaligned = Vc::overaligned<alignment>;
 #endif
 
     const M alternating_mask = make_alternating_mask<M>();

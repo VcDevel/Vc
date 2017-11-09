@@ -33,15 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 using size_t = std::size_t;
 
-namespace flags
-{
 struct element_aligned_tag {};
 struct vector_aligned_tag {};
 template <size_t> struct overaligned_tag {};
 inline constexpr element_aligned_tag element_aligned = {};
 inline constexpr vector_aligned_tag vector_aligned = {};
 template <size_t N> inline constexpr overaligned_tag<N> overaligned = {};
-}  // namespace flags
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_SIMD_FLAGS_H_

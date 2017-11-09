@@ -140,7 +140,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
         for (size_t i = 0; i < size<T>(); ++i) {
             tmp[i] = static_cast<T>(mem[i]);
         }
-        return load(&tmp[0], flags::vector_aligned, type_tag<T>());
+        return load(&tmp[0], vector_aligned, type_tag<T>());
 #else
         return generate_from_n_evaluations<size<T>(), simd_member_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });

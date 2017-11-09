@@ -271,20 +271,20 @@ template <typename T, std::size_t N>
 enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const std::array<T, N> &indexVector)
 {
-    return {std::addressof(indexVector[0]), Vc::flags::element_aligned};
+    return {std::addressof(indexVector[0]), Vc::element_aligned};
 }
 template <typename T, std::size_t N>
 enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const Vc::array<T, N> &indexVector)
 {
-    return {std::addressof(indexVector[0]), Vc::flags::element_aligned};
+    return {std::addressof(indexVector[0]), Vc::element_aligned};
 }
 template <typename T, std::size_t N>
 enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const T(&indexVector)[N])
 {
     return fixed_size_simd<promoted_type<T>, N>{std::addressof(indexVector[0]),
-                                                   Vc::flags::element_aligned};
+                                                   Vc::element_aligned};
 }
 
 // a plain pointer won't work. Because we need some information on the number of values in

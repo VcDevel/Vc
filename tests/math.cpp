@@ -46,7 +46,7 @@ V epilogue_load(const typename V::value_type *mem, const std::size_t size)
 {
     const int rem = size % V::size();
     return where(V([](int i) { return i; }) < rem, V(0))
-        .copy_from(mem + size / V::size() * V::size(), Vc::flags::element_aligned);
+        .copy_from(mem + size / V::size() * V::size(), Vc::element_aligned);
 }
 
 template <class V, class... F>
@@ -54,7 +54,7 @@ void test_values(const std::initializer_list<typename V::value_type> &inputs,
                  F &&... fun_pack)
 {
     for (auto it = inputs.begin(); it + V::size() <= inputs.end(); it += V::size()) {
-        [](auto...) {}((fun_pack(V(&it[0], Vc::flags::element_aligned)), 0)...);
+        [](auto...) {}((fun_pack(V(&it[0], Vc::element_aligned)), 0)...);
     }
     [](auto...) {}((fun_pack(epilogue_load<V>(inputs.begin(), inputs.size())), 0)...);
 }

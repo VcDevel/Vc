@@ -352,13 +352,13 @@ struct converts_to_higher_integer_rank<From, To, false>
 // is_aligned(_v){{{1
 template <class Flag, size_t Alignment> struct is_aligned;
 template <size_t Alignment>
-struct is_aligned<flags::vector_aligned_tag, Alignment> : public std::true_type {
+struct is_aligned<vector_aligned_tag, Alignment> : public std::true_type {
 };
 template <size_t Alignment>
-struct is_aligned<flags::element_aligned_tag, Alignment> : public std::false_type {
+struct is_aligned<element_aligned_tag, Alignment> : public std::false_type {
 };
 template <size_t GivenAlignment, size_t Alignment>
-struct is_aligned<flags::overaligned_tag<GivenAlignment>, Alignment>
+struct is_aligned<overaligned_tag<GivenAlignment>, Alignment>
     : public std::integral_constant<bool, (GivenAlignment >= Alignment)> {
 };
 template <class Flag, size_t Alignment>
@@ -373,9 +373,9 @@ template <size_t Alignment>
 class when_aligned
 {
 public:
-    constexpr when_aligned(flags::vector_aligned_tag) {}
+    constexpr when_aligned(vector_aligned_tag) {}
     template <size_t Given, class = std::enable_if_t<(Given >= Alignment)>>
-    constexpr when_aligned(flags::overaligned_tag<Given>)
+    constexpr when_aligned(overaligned_tag<Given>)
     {
     }
 };
@@ -383,9 +383,9 @@ template <size_t Alignment>
 class when_unaligned
 {
 public:
-    constexpr when_unaligned(flags::element_aligned_tag) {}
+    constexpr when_unaligned(element_aligned_tag) {}
     template <size_t Given, class = std::enable_if_t<(Given < Alignment)>>
-    constexpr when_unaligned(flags::overaligned_tag<Given>)
+    constexpr when_unaligned(overaligned_tag<Given>)
     {
     }
 };
