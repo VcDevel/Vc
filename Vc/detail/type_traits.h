@@ -84,7 +84,7 @@ template <class T, T a, T b> struct is_equal : public std::false_type {
 };
 template <class T, T a> struct is_equal<T, a, a> : public std::true_type {
 };
-template <class T, T a, T b> constexpr bool is_equal_v = is_equal<T, a, b>::value;
+template <class T, T a, T b> inline constexpr bool is_equal_v = is_equal<T, a, b>::value;
 
 // none
 template <class... Ts> struct none : public negation<any<Ts...>> {};
@@ -110,12 +110,12 @@ struct has_expected_sizeof : public std::integral_constant<bool, sizeof(T) == Ex
 
 // value aliases
 template <class... Ts>
-constexpr bool conjunction_v = all<Ts...>::value;
-template <class... Ts> constexpr bool disjunction_v = any<Ts...>::value;
-template <class T> constexpr bool negation_v = negation<T>::value;
-template <class... Ts> constexpr bool none_v = none<Ts...>::value;
+inline constexpr bool conjunction_v = all<Ts...>::value;
+template <class... Ts> inline constexpr bool disjunction_v = any<Ts...>::value;
+template <class T> inline constexpr bool negation_v = negation<T>::value;
+template <class... Ts> inline constexpr bool none_v = none<Ts...>::value;
 template <class T, std::size_t Expected>
-constexpr bool has_expected_sizeof_v = has_expected_sizeof<T, Expected>::value;
+inline constexpr bool has_expected_sizeof_v = has_expected_sizeof<T, Expected>::value;
 
 // value_type_or_identity
 template <class T> typename T::value_type value_type_or_identity_impl(int);
@@ -126,7 +126,7 @@ using value_type_or_identity = decltype(value_type_or_identity_impl<T>(int()));
 // is_vectorizable {{{
 template <class T> struct is_vectorizable : public std::is_arithmetic<T> {};
 template <> struct is_vectorizable<bool> : public std::false_type {};
-template <class T> constexpr bool is_vectorizable_v = is_vectorizable<T>::value;
+template <class T> inline constexpr bool is_vectorizable_v = is_vectorizable<T>::value;
 // }}}
 // is_less_than {{{
 template <int A, int B> struct is_less_than : public std::integral_constant<bool, (A < B)> {

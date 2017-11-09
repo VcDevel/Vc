@@ -38,10 +38,9 @@ namespace flags
 struct element_aligned_tag {};
 struct vector_aligned_tag {};
 template <size_t> struct overaligned_tag {};
-constexpr element_aligned_tag element_aligned = {};
-constexpr vector_aligned_tag vector_aligned = {};
-template <size_t N> constexpr overaligned_tag<N> overaligned = {};
-}  // namespace flags
+inline constexpr element_aligned_tag element_aligned = {};
+inline constexpr vector_aligned_tag vector_aligned = {};
+template <size_t N> inline constexpr overaligned_tag<N> overaligned = {};
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_SIMD_FLAGS_H_

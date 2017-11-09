@@ -59,7 +59,7 @@ using fallback_abi_for_long_double_t =
 namespace simd_abi
 {
 // most of simd_abi is defined in fwddecl.h
-constexpr int max_fixed_size = 32;
+inline constexpr int max_fixed_size = 32;
 #if defined Vc_IS_AMD64
 #if !defined Vc_HAVE_SSE2
 #error "Use of SSE2 is required on AMD64"
@@ -119,14 +119,14 @@ template <class T>
 struct is_abi_tag<T, detail::void_t<typename T::is_valid_abi_tag>>
     : public T::is_valid_abi_tag {
 };
-template <class T> constexpr bool is_abi_tag_v = is_abi_tag<T>::value;
+template <class T> inline constexpr bool is_abi_tag_v = is_abi_tag<T>::value;
 
 // is_simd(_mask) {{{2
 template <class T> struct is_simd : public std::false_type {};
-template <class T> constexpr bool is_simd_v = is_simd<T>::value;
+template <class T> inline constexpr bool is_simd_v = is_simd<T>::value;
 
 template <class T> struct is_simd_mask : public std::false_type {};
-template <class T> constexpr bool is_simd_mask_v = is_simd_mask<T>::value;
+template <class T> inline constexpr bool is_simd_mask_v = is_simd_mask<T>::value;
 
 // simd_size {{{2
 namespace detail
@@ -144,7 +144,7 @@ template <class T, class Abi = simd_abi::detail::default_abi<T>>
 struct simd_size : detail::simd_size_impl<T, Abi> {
 };
 template <class T, class Abi = simd_abi::detail::default_abi<T>>
-constexpr size_t simd_size_v = simd_size<T, Abi>::value;
+inline constexpr size_t simd_size_v = simd_size<T, Abi>::value;
 
 // abi_for_size {{{2
 namespace detail
@@ -279,7 +279,7 @@ struct memory_alignment
     : public detail::size_constant<detail::next_power_of_2(sizeof(U) * T::size())> {
 };
 template <class T, class U = typename T::value_type>
-constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
+inline constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
 
 // class template simd [simd] {{{1
 template <class T, class Abi = simd_abi::detail::default_abi<T>> class simd;
