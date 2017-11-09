@@ -12,7 +12,6 @@
 #include "detail/simd_mask.h"
 #include "detail/simd.h"
 #include "detail/maskedsimd.h"
-#include "detail/ostream.h"
 #include "detail/scalar.h"
 #include "detail/sse.h"
 #include "detail/avx.h"

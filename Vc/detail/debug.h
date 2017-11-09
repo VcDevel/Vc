@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "global.h"
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 
 Vc_VERSIONED_NAMESPACE_BEGIN
