@@ -676,15 +676,6 @@ struct is_constructible_with_single_paren
           bool,
           1 == sizeof(is_constructible_with_single_paren_impl::test<Class, Args...>(1))> {
 };
-static_assert(
-    !is_constructible_with_single_paren<int, std::tuple<int, int, int>>::value,
-    "is_constructible_with_single_paren<int> does not work as expected");
-static_assert(
-    is_constructible_with_single_paren<std::tuple<int, int, int>, int, int, int>::value,
-    "is_constructible_with_single_paren<tuple> does not work as expected");
-static_assert(
-    !is_constructible_with_single_paren<std::array<int, 3>, int, int, int>::value,
-    "is_constructible_with_single_paren<array> does not work as expected");
 
 namespace is_constructible_with_single_brace_impl
 {
@@ -713,17 +704,6 @@ struct is_constructible_with_single_brace
           bool,
           1 == sizeof(is_constructible_with_single_brace_impl::test<Class, Args...>(1))> {
 };
-#ifndef Vc_ICC
-static_assert(
-    !is_constructible_with_single_brace<int, std::tuple<int, int, int>>::value,
-    "is_constructible_with_single_brace<int> does not work as expected");
-#endif
-static_assert(
-    is_constructible_with_single_brace<std::tuple<int, int, int>, int, int, int>::value,
-    "is_constructible_with_single_brace<tuple> does not work as expected");
-static_assert(
-    is_constructible_with_single_brace<std::array<int, 3>, int, int, int>::value,
-    "is_constructible_with_single_brace<array> does not work as expected");
 
 namespace is_constructible_with_double_brace_impl
 {
@@ -751,19 +731,6 @@ struct is_constructible_with_double_brace
           bool,
           1 == sizeof(is_constructible_with_double_brace_impl::test<Class, Args...>(1))> {
 };
-#if !(defined Vc_CLANG || defined Vc_APPLECLANG)
-// clang allows int{{1}} but warns that it's wrong. Thus the assertion fails. If I expect
-// the incorrect answer from clang, the assertion won't fail, but the compiler warns about
-// the trait invocation. Annoying feature...
-static_assert(
-    !is_constructible_with_double_brace<int, int>::value,
-    "is_constructible_with_double_brace<int> does not work as expected");
-#endif
-static_assert(
-    !is_constructible_with_double_brace<std::tuple<int, int, int>, int, int, int>::value,
-    "is_constructible_with_double_brace<tuple> does not work as expected");
-static_assert(is_constructible_with_double_brace<std::array<int, 3>, int, int, int>::value,
-              "is_constructible_with_double_brace<array> does not work as expected");
 
 template <size_t I, typename T,
           typename R = decltype(std::declval<T &>().template vc_get_<I>())>

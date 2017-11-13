@@ -36,6 +36,48 @@ using Vc::int_m;
 template <typename Scalar, typename Base, std::size_t N>
 using SimdizeAdapter = Vc::SimdizeDetail::Adapter<Scalar, Base, N>;
 
+TEST(sanity_checks)
+{
+    VERIFY((!Vc::SimdizeDetail::is_constructible_with_single_paren<
+            int, std::tuple<int, int, int>>::value))
+        << "is_constructible_with_single_paren<int> does not work as expected";
+    VERIFY(
+        (Vc::SimdizeDetail::is_constructible_with_single_paren<std::tuple<int, int, int>,
+                                                               int, int, int>::value))
+        << "is_constructible_with_single_paren<tuple> does not work as expected";
+    VERIFY((!Vc::SimdizeDetail::is_constructible_with_single_paren<std::array<int, 3>,
+                                                                   int, int, int>::value))
+        << "is_constructible_with_single_paren<array> does not work as expected";
+#ifndef Vc_ICC
+    VERIFY((!Vc::SimdizeDetail::is_constructible_with_single_brace<
+            int, std::tuple<int, int, int>>::value))
+        << "is_constructible_with_single_brace<int> does not work as expected";
+#endif
+    VERIFY(
+        (Vc::SimdizeDetail::is_constructible_with_single_brace<std::tuple<int, int, int>,
+                                                               int, int, int>::value))
+        << "is_constructible_with_single_brace<tuple> does not work as expected";
+    VERIFY((Vc::SimdizeDetail::is_constructible_with_single_brace<std::array<int, 3>, int,
+                                                                  int, int>::value))
+        << "is_constructible_with_single_brace<array> does not work as expected";
+#if !(defined Vc_CLANG || defined Vc_APPLECLANG)
+    // clang allows int{{1}} but warns that it's wrong. Thus the assertion fails. If I
+    // expect
+    // the incorrect answer from clang, the assertion won't fail, but the compiler warns
+    // about
+    // the trait invocation. Annoying feature...
+    VERIFY((!Vc::SimdizeDetail::is_constructible_with_double_brace<int, int>::value))
+        << "is_constructible_with_double_brace<int> does not work as expected";
+#endif
+    VERIFY(
+        (!Vc::SimdizeDetail::is_constructible_with_double_brace<std::tuple<int, int, int>,
+                                                                int, int, int>::value))
+        << "is_constructible_with_double_brace<tuple> does not work as expected";
+    VERIFY((Vc::SimdizeDetail::is_constructible_with_double_brace<std::array<int, 3>, int,
+                                                                  int, int>::value))
+        << "is_constructible_with_double_brace<array> does not work as expected";
+}
+
 TEST(test_simdize)
 {
     using namespace std;
