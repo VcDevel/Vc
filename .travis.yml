@@ -3,9 +3,10 @@ language: cpp
 cache: ccache
 
 env:
-    - CXX_VERSION=current
-    - CXX_VERSION=previous
-    - CXX_VERSION=default
+    - arch=x86_64  CXX_VERSION=current
+    - arch=x86_64  CXX_VERSION=previous
+    - arch=x86_64  CXX_VERSION=default
+    - arch=aarch64 CXX_VERSION=default
 
 os:
     - linux
@@ -17,58 +18,60 @@ compiler:
 
 matrix:
     exclude:
-        - env: CXX_VERSION=previous
+        - env: arch=x86_64  CXX_VERSION=previous
           os: osx
           compiler: clang
+        - env: arch=aarch64 CXX_VERSION=default
+          os: osx
 
 # The following gives us Ubuntu 14.04 LTS instead of 12.04 LTS
 sudo: required
 dist: trusty
 
 install:
-    - case "$TRAVIS_OS_NAME-$CXX-$CXX_VERSION" in
-        linux-g++-current)
+    - case "$TRAVIS_OS_NAME-$CXX-$CXX_VERSION-$arch" in
+        linux-g++-current-x86_64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
           sudo apt-get update -q &&
           sudo apt-get install g++-6 -y &&
           export CXX=g++-6 CC=gcc-6;;
-        linux-g++-previous)
+        linux-g++-previous-x86_64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
           sudo apt-get update -q &&
           sudo apt-get install g++-5 -y &&
           export CXX=g++-5 CC=gcc-5;;
-        linux-g++-default)
+        linux-g++-default-x86_64)
           ;;
-        linux-clang++-current)
+        linux-clang++-current-x86_64)
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
+          wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - &&
+          sudo tee /etc/apt/sources.list.d/llvm.list <<< "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" &&
+          sudo apt-get update -q &&
+          sudo apt-get install clang-5.0 -y &&
+          export CXX=clang++-5.0 CC=clang-5.0;;
+        linux-clang++-previous-x86_64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
           wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - &&
           sudo tee /etc/apt/sources.list.d/llvm.list <<< "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main" &&
           sudo apt-get update -q &&
           sudo apt-get install clang-4.0 -y &&
           export CXX=clang++-4.0 CC=clang-4.0;;
-        linux-clang++-previous)
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
-          wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - &&
-          sudo tee /etc/apt/sources.list.d/llvm.list <<< "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-3.9 main" &&
-          sudo apt-get update -q &&
-          sudo apt-get install clang-3.9 -y &&
-          export CXX=clang++-3.9 CC=clang-3.9;;
-        linux-clang++-default)
+        linux-clang++-default-x86_64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
           sudo apt-get update -q &&
           sudo apt-get install clang-3.8 libstdc++-6-dev libc++-dev libc++abi-dev -y &&
           export CXX=clang++-3.8 CC=clang-3.8;;
-        osx-g++-current)
+        osx-g++-current-x86_64)
           brew update &&
           brew install gcc6 &&
           export CXX=g++-6 CC=gcc-6;;
-        osx-g++-previous)
+        osx-g++-previous-x86_64)
           brew update &&
           brew install gcc5 &&
           export CXX=g++-5 CC=gcc-5;;
-        osx-g++-default)
+        osx-g++-default-x86_64)
           export CXX=g++-4.9 CC=gcc-4.9;;
-        osx-clang++-current)
+        osx-clang++-current-x86_64)
           wget http://releases.llvm.org/4.0.0/clang+llvm-4.0.0-x86_64-apple-darwin.tar.xz &&
           tar xf clang+llvm-4.0.0-x86_64-apple-darwin.tar.xz &&
           cd clang+llvm-4.0.0-x86_64-apple-darwin &&
@@ -76,10 +79,29 @@ install:
           export LDFLAGS="-L$PWD/lib -Wl,-rpath,$PWD/lib" &&
           export CPPFLAGS=-I$PWD/include &&
           cd ..;;
-        osx-clang++-previous)
+        osx-clang++-previous-x86_64)
           exit 1;;
-        osx-clang++-default)
+        osx-clang++-default-x86_64)
           ;;
+        linux-g++-default-aarch64)
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main' &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial-updates main' &&
+          sudo apt-get update -q &&
+          sudo apt-get install -y g++-5-aarch64-linux-gnu &&
+          export CXX=aarch64-linux-gnu-g++-5 CC=aarch64-linux-gnu-gcc-5 CMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-linux.cmake;;
+        linux-clang++-default-aarch64)
+          wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - &&
+          sudo tee /etc/apt/sources.list.d/llvm.list <<< "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" &&
+          sudo apt-get update -q &&
+          sudo apt-get install -y clang-5.0 &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main' &&
+          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial-updates main' &&
+          sudo apt-get update -q &&
+          sudo apt-get install -y libstdc++-5-dev-arm64-cross gcc-5-aarch64-linux-gnu &&
+          export CPATH=/usr/aarch64-linux-gnu/include &&
+          export CXX="clang++-5.0 -target aarch64-linux-gnu" CC="clang-5.0 -target aarch64-linux-gnu" &&
+          export CMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-linux.cmake;;
       esac
 
 before_script:
