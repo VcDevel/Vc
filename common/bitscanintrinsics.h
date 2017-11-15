@@ -44,7 +44,7 @@ static Vc_ALWAYS_INLINE Vc_CONST int _Vc_bit_scan_reverse_asm(unsigned int x) {
 #    define _bit_scan_reverse(x) _Vc_bit_scan_reverse_asm(x)
 #  endif
 #elif defined(_WIN32)
-#include "intrin.h"
+#include <intrin.h>
 static inline __forceinline unsigned long _bit_scan_forward(unsigned long x) {
 	unsigned long index;
 	_BitScanForward(&index, x);
