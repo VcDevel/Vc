@@ -202,6 +202,15 @@ macro(AutodetectHostArchitecture)
 endmacro()
 
 macro(OptimizeForArchitecture)
+   if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64)")
+      OptimizeForArchitectureX86()
+   else()
+      message(STATUS "No support for auto-detection of the target instruction set/extension")
+      set(TARGET_ARCHITECTURE "unused" CACHE STRING "CPU architecture to optimize for. (unused)")
+   endif()
+endmacro()
+
+macro(OptimizeForArchitectureX86)
    set(TARGET_ARCHITECTURE "auto" CACHE STRING "CPU architecture to optimize for. \
 Using an incorrect setting here can result in crashes of the resulting binary because of invalid instructions used. \
 Setting the value to \"auto\" will try to optimize for the architecture where cmake is called. \
@@ -566,4 +575,4 @@ Other supported values are: \"none\", \"generic\", \"core\", \"merom\" (65nm Cor
          endforeach(_flag)
       endif()
    endif()
-endmacro(OptimizeForArchitecture)
+endmacro()
