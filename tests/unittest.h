@@ -889,9 +889,12 @@ private:
 #ifdef Vc_GNU_ASM
 #ifdef __x86_64__
         asm volatile("lea 0(%%rip),%0" : "=r"(_ip));
-#else
-        // asm volatile("call 1f\n\t1: pop %0" : "=r"(_ip));
+#elif defined __i386__
         asm volatile("1: movl $1b,%0" : "=r"(_ip));
+#elif defined __arm__
+        asm volatile("mov %0,pc" : "=r"(_ip));
+#else
+        _ip = 0;
 #endif
 #else
         _ip = 0;
