@@ -376,6 +376,10 @@ list(APPEND configure_options "-DUSE_CCACHE=ON")
 if(DEFINED target_architecture)
    list(APPEND configure_options "-DTARGET_ARCHITECTURE=${target_architecture}")
 endif()
+if(NOT "$ENV{CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
+   set(skip_tests TRUE)  # cross-compiling, can't run the tests
+   list(APPEND configure_options "-DCMAKE_TOOLCHAIN_FILE=${CTEST_SOURCE_DIRECTORY}/$ENV{CMAKE_TOOLCHAIN_FILE}")
+endif()
 
 if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[01234567]\\."
       OR "${COMPILER_VERSION}" MATCHES "GCC 4.8.0"
