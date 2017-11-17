@@ -292,9 +292,12 @@ TEST(testMallocAlignment)
         VERIFY(&data[i * int_v::Size * sizeof(int_v::EntryType)] == reinterpret_cast<const char *>(&a[i]));
     }
 
+#if defined __x86_64__ || defined __amd64__ || defined __amd64 || defined __x86_64 ||    \
+    defined _M_AMD64 || defined __i386__
     a = Vc::malloc<int_v, Vc::AlignOnCacheline>(10);
     mask = CpuId::cacheLineSize() - 1;
     COMPARE((reinterpret_cast<std::uintptr_t>(&a[0]) & mask), 0ul);
+#endif
 
     // I don't know how to properly check page alignment. So we check for 4 KiB alignment as this is
     // the minimum page size on x86

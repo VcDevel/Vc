@@ -32,7 +32,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #error "Vc/global.h must be included first!"
 #endif
 
+#if defined __x86_64__ || defined __amd64__ || defined __amd64 || defined __x86_64 ||    \
+    defined _M_AMD64 || defined __i386__
 #include <Vc/cpuid.h>
+#endif
 
 #if defined(Vc_GCC) && Vc_GCC >= 0x40400 && defined __SSE__
 #define Vc_TARGET_NO_SIMD __attribute__((target("no-sse2,no-avx")))
