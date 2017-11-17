@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2009-2015 Matthias Kretz <kretz@kde.org>
+Copyright © 2009-2017 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -59,8 +59,10 @@ inline void TimeStampCounter::start()
 #elif defined _MSC_VER
 	unsigned int tmp;
     m_start.a = __rdtscp(&tmp);
-#else
+#elif defined __x86_64__ || defined __i386__
     asm volatile("rdtscp" : "=a"(m_start.b[0]), "=d"(m_start.b[1]) :: "ecx" );
+#else
+    m_start = {};
 #endif
 }
 
@@ -71,8 +73,10 @@ inline void TimeStampCounter::stop()
 #elif defined _MSC_VER
 	unsigned int tmp;
     m_end.a = __rdtscp(&tmp);
-#else
+#elif defined __x86_64__ || defined __i386__
     asm volatile("rdtscp" : "=a"(m_end.b[0]), "=d"(m_end.b[1]) :: "ecx" );
+#else
+    m_end = {};
 #endif
 }
 
