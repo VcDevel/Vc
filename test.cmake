@@ -441,11 +441,13 @@ macro(go)
                APPEND
                RETURN_VALUE res)
             ctest_submit(PARTS Build)
-            ctest_test(
-               BUILD "${CTEST_BINARY_DIRECTORY}"
-               APPEND
-               RETURN_VALUE test_results
-               PARALLEL_LEVEL ${number_of_processors})
+            if(NOT skip_tests)
+               ctest_test(
+                  BUILD "${CTEST_BINARY_DIRECTORY}"
+                  APPEND
+                  RETURN_VALUE test_results
+                  PARALLEL_LEVEL ${number_of_processors})
+            endif()
             ctest_submit(PARTS Test)
          else()
             if("${subset}" STREQUAL "sse")
