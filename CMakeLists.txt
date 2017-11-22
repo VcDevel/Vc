@@ -20,7 +20,16 @@ include (AddTargetProperty)
 include (OptimizeForArchitecture)
 
 vc_determine_compiler()
-find_package(MIC)
+
+if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64|amd64)")
+   set(Vc_X86 TRUE)
+   find_package(MIC)
+elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(arm|aarch32|aarch64)")
+   message(WARNING "No optimized implementation of the Vc types available for ${CMAKE_SYSTEM_PROCESSOR}")
+   set(Vc_ARM TRUE)
+else()
+   message(WARNING "No optimized implementation of the Vc types available for ${CMAKE_SYSTEM_PROCESSOR}")
+endif()
 
 option(USE_CCACHE "If enabled, ccache will be used (if it exists on the system) to speed up recompiles." OFF)
 if(USE_CCACHE)
@@ -91,15 +100,6 @@ if(MIC_NATIVE_FOUND)
          example_simdize_mic
          )
    endif()
-endif()
-
-if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64|amd64)")
-   set(Vc_X86 TRUE)
-elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(arm|aarch32|aarch64)")
-   message(WARNING "No optimized implementation of the Vc types available for ${CMAKE_SYSTEM_PROCESSOR}")
-   set(Vc_ARM TRUE)
-else()
-   message(WARNING "No optimized implementation of the Vc types available for ${CMAKE_SYSTEM_PROCESSOR}")
 endif()
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
