@@ -39,17 +39,9 @@ template<> struct MapImpl<Vc::SSE42Impl> { enum Dummy { Value = MapImpl<Vc::SSE4
 
 template<Vc::Implementation Impl> using TrigonometricImplementation =
     ImplementationT<MapImpl<Impl>::Value
-#if defined(Vc_IMPL_XOP)
+#if defined(Vc_IMPL_XOP) && defined(Vc_IMPL_FMA4)
     + Vc::XopInstructions
-#endif
-#if defined(Vc_IMPL_FMA4)
     + Vc::Fma4Instructions
-#endif
-#if defined(Vc_IMPL_FMA)
-    + Vc::FmaInstructions
-#endif
-#if defined(Vc_IMPL_BMI2)
-    + Vc::Bmi2Instructions
 #endif
     >;
 }  // namespace Detail
