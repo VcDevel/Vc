@@ -108,8 +108,12 @@ template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
 
 namespace Traits
 {
-template<typename T> struct is_simd_mask_internal<Mask<T, VectorAbi::Avx>> : public std::true_type {};
-template<typename T> struct is_simd_vector_internal<Vector<T, VectorAbi::Avx>> : public std::true_type {};
+template <class T> struct
+is_simd_vector_internal<Vector<T, VectorAbi::Avx>>
+  : public is_valid_vector_argument<T> {};
+
+template<typename T> struct is_simd_mask_internal<Mask<T, VectorAbi::Avx>>
+  : public std::true_type {};
 }  // namespace Traits
 }  // namespace Vc
 
