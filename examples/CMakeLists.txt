@@ -11,27 +11,15 @@ set(CMAKE_REQUIRED_LIBRARIES "${SAFE_CMAKE_REQUIRED_LIBRARIES}")
 
 add_custom_target(Examples COMMENT "build all examples" VERBATIM)
 
-AddCompilerFlag(-ftemplate-depth=1024 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
+AddCompilerFlag(-ftemplate-depth=1024 CXX_FLAGS CMAKE_CXX_FLAGS)
 
 macro(vc_add_run_target _target)
-   if("${_target}" MATCHES "_mic$")
-      if(MIC_NATIVELOAD)
-         get_target_property(_exe "${_target}" OUTPUT_NAME)
-         add_custom_target(run_${_target}
-            ${MIC_NATIVELOAD} "${_exe}"
-            DEPENDS ${_target}
-            COMMENT "Execute ${_target} example"
-            VERBATIM
-            )
-      endif()
-   else()
-      add_custom_target(run_${_target}
-         ${_target}
-         DEPENDS ${_target}
-         COMMENT "Execute ${_target} example"
-         VERBATIM
-         )
-   endif()
+   add_custom_target(run_${_target}
+      ${_target}
+      DEPENDS ${_target}
+      COMMENT "Execute ${_target} example"
+      VERBATIM
+      )
 endmacro()
 
 macro(_build_one_example_target _name _impl)
@@ -80,19 +68,6 @@ function(build_example name)
    _build_one_example_target("${name}" SSE ${_SRCS})
    _build_one_example_target("${name}" AVX ${_SRCS})
    _build_one_example_target("${name}" AVX2 ${_SRCS})
-
-   set(_target "example_${name}_mic")
-   list(FIND _disabled_impl "MIC" _index1)
-   list(FIND disabled_targets "${_target}" _index2)
-   if(MIC_NATIVE_FOUND AND "${_LIBS}" STREQUAL "" AND _index1 EQUAL -1 AND _index2 EQUAL -1)
-      mic_add_executable(${_target}
-         SOURCES ${_SRCS}
-         LINK_LIBRARIES Vc_MIC
-         )
-      add_target_property(${_target} LABELS "MIC")
-      add_dependencies(MIC ${_target})
-      vc_add_run_target(${_target})
-   endif()
 
    if(USE_AVX2)
       add_target_property("example_${name}_default" LABELS "AVX2")

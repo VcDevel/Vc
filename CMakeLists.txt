@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
+cmake_policy(SET CMP0054 NEW)
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
    message(FATAL_ERROR "You don't want to configure in the source directory!")
@@ -15,7 +16,6 @@ include (OptimizeForArchitecture)
 
 vc_determine_compiler()
 vc_determine_target_isa()
-find_package(MIC)
 
 # set up ccache#{{{
 ##################################################################
@@ -110,7 +110,7 @@ endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")#}}
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
 add_definitions(${Vc_DEFINITIONS})
 add_compile_options(${Vc_COMPILE_FLAGS})
-AddCompilerFlag(-ftemplate-depth=512 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
+AddCompilerFlag(-ftemplate-depth=512 CXX_FLAGS CMAKE_CXX_FLAGS)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})#}}}
 
@@ -215,7 +215,6 @@ if(Vc_X86)
    add_dependencies(SSE SSE1 SSE2 SSE4_2)
    add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
    add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
-   add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
    add_custom_target(KNL COMMENT "build KNL code" VERBATIM)
    add_custom_target(AVX512 COMMENT "build AVX512 code" VERBATIM)
 elseif(Vc_ARM)
@@ -227,7 +226,7 @@ if(FALSE) # disabled for now
 ##################################################################
 set(libvc_compile_flags "-DVc_COMPILE_LIB")
 set(libvc_mic_compile_flags "-DVc_COMPILE_LIB")
-AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags)
+AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
 set(libVc_srcs src/const.cpp)
 if(Vc_X86)
    list(APPEND libVc_srcs src/cpuid.cpp src/support_x86.cpp)
@@ -252,22 +251,10 @@ if(XCODE)
    set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 endif()#}}}
 
-# Build libVc_MIC#{{{
-##################################################################
-if(MIC_NATIVE_FOUND)
-   mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support_x86.cpp src/mic_sorthelper.cpp
-      COMPILE_FLAGS ${libvc_mic_compile_flags})
-   add_target_property(Vc_MIC LABELS "MIC")
-   add_dependencies(MIC Vc_MIC)
-endif()#}}}
-
-# Install libVc(_MIC)#{{{
+# Install libVc#{{{
 ##################################################################
 install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
-if(MIC_NATIVE_FOUND)
-   get_target_property(outputName Vc_MIC OUTPUT_NAME)
-   install(FILES ${outputName} DESTINATION lib${LIB_SUFFIX})
-endif()#}}}
+#}}}
 endif()
 
 # Install headers#{{{
@@ -295,9 +282,6 @@ install(FILES
    cmake/AddCompilerFlag.cmake
    cmake/CheckCCompilerFlag.cmake
    cmake/CheckCXXCompilerFlag.cmake
-   cmake/CheckMicCCompilerFlag.cmake
-   cmake/CheckMicCXXCompilerFlag.cmake
-   cmake/FindMIC.cmake
    cmake/OptimizeForArchitecture.cmake
    cmake/FindVc.cmake
    ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake
