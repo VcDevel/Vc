@@ -259,7 +259,11 @@ template <class T, class Abi> struct traits {
 
 // get_impl(_t){{{1
 template <class T> struct get_impl;
-template <class T> using get_impl_t = typename get_impl<T>::type;
+template <class T> using get_impl_t = typename get_impl<std::decay_t<T>>::type;
+
+// get_traits(_t){{{1
+template <class T> struct get_traits;
+template <class T> using get_traits_t = typename get_traits<std::decay_t<T>>::type;
 
 // next_power_of_2{{{1
 /**

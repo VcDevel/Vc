@@ -507,9 +507,21 @@ template <class T, size_t N> Vc_INTRINSIC Storage<T, N> modulus(Storage<T, N> a,
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // bit_and{{{1
-template <class T, size_t N> Vc_INTRINSIC Storage<T, N> bit_and(Storage<T, N> a, Storage<T, N> b)
+template <size_t N>
+Vc_INTRINSIC Storage<float, N> bit_and(Storage<float, N> a, Storage<float, N> b)
 {
-    static_assert(std::is_integral<T>::value, "bit_and is only supported for integral types");
+    return and_(a, b);
+}
+template <size_t N>
+Vc_INTRINSIC Storage<double, N> bit_and(Storage<double, N> a, Storage<double, N> b)
+{
+    return and_(a, b);
+}
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_and(Storage<T, N> a, Storage<T, N> b)
+{
+    static_assert(std::is_integral<T>::value,
+                  "bit_and is only supported for integral types");
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
     return a.builtin() & b.builtin();
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
@@ -518,9 +530,20 @@ template <class T, size_t N> Vc_INTRINSIC Storage<T, N> bit_and(Storage<T, N> a,
 }
 
 // bit_or{{{1
+template <size_t N>
+Vc_INTRINSIC Storage<float, N> bit_or(Storage<float, N> a, Storage<float, N> b)
+{
+    return or_(a, b);
+}
+template <size_t N>
+Vc_INTRINSIC Storage<double, N> bit_or(Storage<double, N> a, Storage<double, N> b)
+{
+    return or_(a, b);
+}
 template <class T, size_t N> Vc_INTRINSIC Storage<T, N> bit_or(Storage<T, N> a, Storage<T, N> b)
 {
-    static_assert(std::is_integral<T>::value, "bit_or is only supported for integral types");
+    static_assert(std::is_integral<T>::value,
+                  "bit_or is only supported for integral types");
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
     return a.builtin() | b.builtin();
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
@@ -529,9 +552,20 @@ template <class T, size_t N> Vc_INTRINSIC Storage<T, N> bit_or(Storage<T, N> a, 
 }
 
 // bit_xor{{{1
+template <size_t N>
+Vc_INTRINSIC Storage<float, N> bit_xor(Storage<float, N> a, Storage<float, N> b)
+{
+    return xor_(a, b);
+}
+template <size_t N>
+Vc_INTRINSIC Storage<double, N> bit_xor(Storage<double, N> a, Storage<double, N> b)
+{
+    return xor_(a, b);
+}
 template <class T, size_t N> Vc_INTRINSIC Storage<T, N> bit_xor(Storage<T, N> a, Storage<T, N> b)
 {
-    static_assert(std::is_integral<T>::value, "bit_xor is only supported for integral types");
+    static_assert(std::is_integral<T>::value,
+                  "bit_xor is only supported for integral types");
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
     return a.builtin() ^ b.builtin();
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES

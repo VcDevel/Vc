@@ -47,6 +47,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
+#define Vc_FIXED_SIZE_FWD_(name_)                                                        \
+    struct name_##_fwd {                                                                 \
+        template <class Impl, class Arg0, class... Args>                                 \
+        Vc_INTRINSIC_L auto operator()(Impl impl, Arg0 &&arg0,                           \
+                                       Args &&... args) noexcept Vc_INTRINSIC_R;         \
+    }
+Vc_FIXED_SIZE_FWD_(frexp);
+#undef Vc_FIXED_SIZE_FWD_
+
 // select_best_vector_type_t<T, N>{{{1
 /**
  * \internal
@@ -485,13 +494,6 @@ public:
     Vc_APPLY_ON_TUPLE_(ceil)
 #undef Vc_APPLY_ON_TUPLE_
 
-    struct frexp_fwd {
-        template <class Impl, class... Arguments>
-        Vc_INTRINSIC auto operator()(Impl impl, Arguments &&... args) noexcept
-        {
-            return impl.frexp(std::forward<Arguments>(args)...);
-        }
-    };
     template <class T, class... As>
     static inline simd_tuple<T, As...> frexp(const simd_tuple<T, As...> &x,
                                              fixed_size_storage<int, N> &exp) noexcept
@@ -1127,12 +1129,12 @@ private:
                                      std::index_sequence<Indexes0...>,
                                      std::index_sequence<Indexes1...>)
     {
-        std::size_t offset = 0;
-        return {V<A0>(reinterpret_cast<const detail::may_alias<T> *>(&x) +
-                          (offset += V<A0>::size()) - V<A0>::size(),
+        std::size_t offset = V<A0>::size();
+        std::size_t tmp;
+        return {V<A0>(reinterpret_cast<const detail::may_alias<T> *>(&x),
                       flags::vector_aligned),
                 V<As>(reinterpret_cast<const detail::may_alias<T> *>(&x) +
-                          (offset += V<As>::size()) - V<As>::size(),
+                          (tmp = offset, offset += V<As>::size(), tmp),
                       flags::element_aligned)...};
     }
 

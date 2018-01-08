@@ -757,32 +757,40 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
      * The return value will be in the range [0.5, 1.0[
      * The \p e value will be an integer defining the power-of-two exponent
      */
-    static Vc_ALWAYS_INLINE simd_member_type<double> frexp(simd_member_type<double> v,
-                                                           avx_simd_member_type<int> &exp)
+    static inline simd_member_type<double> frexp(simd_member_type<double> v,
+                                                 avx_simd_member_type<int> &exp)
     {
-        const __mmask8 iszero = _mm512_cmp_pd_mask(v, _mm512_setzero_pd(), _CMP_NEQ_UQ);
+        if (Vc_IS_LIKELY(detail::testallset(isnonzerovalue(v)))) {
+            exp = _mm256_add_epi32(broadcast32(1),
+                                   _mm512_cvttpd_epi32(_mm512_getexp_pd(v)));
+            return _mm512_getmant_pd(v, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
+        }
         exp = _mm256_add_epi32(
-            broadcast32(1),
-            _mm512_mask_cvttpd_epi32(broadcast32(-1), iszero, _mm512_getexp_pd(v)));
-        return _mm512_mask_getmant_pd(_mm512_setzero_pd(), iszero, v, _MM_MANT_NORM_p5_1,
+            broadcast32(1), _mm512_mask_cvttpd_epi32(broadcast32(-1), isnonzerovalue(v),
+                                                     _mm512_getexp_pd(v)));
+        return _mm512_mask_getmant_pd(v, isnonzerovalue(v), v, _MM_MANT_NORM_p5_1,
                                       _MM_MANT_SIGN_src);
     }
-    static Vc_INTRINSIC simd_member_type<double> frexp(
+    static Vc_ALWAYS_INLINE simd_member_type<double> frexp(
         simd_member_type<double> v, simd_tuple<int, simd_abi::avx> &exp)
     {
         return frexp(v, exp.first);
     }
 
-    static Vc_ALWAYS_INLINE simd_member_type<float> frexp(simd_member_type<float> v,
-                                                          simd_member_type<int> &exp)
+    static inline simd_member_type<float> frexp(simd_member_type<float> v,
+                                                simd_member_type<int> &exp)
     {
-        const __mmask16 iszero = _mm512_cmp_ps_mask(v, _mm512_setzero_ps(), _CMP_NEQ_UQ);
-        exp = _mm512_mask_add_epi32(_mm512_setzero_si512(), iszero, broadcast64(1),
+        if (Vc_IS_LIKELY(detail::testallset(isnonzerovalue(v)))) {
+            exp = _mm512_add_epi32(broadcast64(1),
+                                   _mm512_cvttps_epi32(_mm512_getexp_ps(v)));
+            return _mm512_getmant_ps(v, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
+        }
+        exp = _mm512_mask_add_epi32(_mm512_setzero_si512(), isnonzerovalue(v), broadcast64(1),
                                     _mm512_cvttps_epi32(_mm512_getexp_ps(v)));
-        return _mm512_mask_getmant_ps(_mm512_setzero_ps(), iszero, v, _MM_MANT_NORM_p5_1,
+        return _mm512_mask_getmant_ps(v, isnonzerovalue(v), v, _MM_MANT_NORM_p5_1,
                                       _MM_MANT_SIGN_src);
     }
-    static Vc_INTRINSIC simd_member_type<float> frexp(
+    static Vc_ALWAYS_INLINE simd_member_type<float> frexp(
         simd_member_type<float> v, simd_tuple<int, simd_abi::avx512> &exp)
     {
         return frexp(v, exp.first);
@@ -828,6 +836,23 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
         return _mm512_cmp_pd_mask(x, x, _CMP_UNORD_Q);
     }
 
+    // isnonzerovalue (isnormal | is subnormal == !isinf & !isnan & !is zero) {{{3
+    static Vc_INTRINSIC mask_member_type<float> isnonzerovalue(simd_member_type<float> x)
+    {
+        return _mm512_cmp_ps_mask(
+            _mm512_mul_ps(broadcast64(std::numeric_limits<float>::infinity()),
+                          x),                                    // NaN if x == 0 / NaN
+            _mm512_mul_ps(_mm512_setzero_ps(), x), _CMP_ORD_Q);  // NaN if x == inf / NaN
+    }
+    static Vc_INTRINSIC mask_member_type<double> isnonzerovalue(
+        simd_member_type<double> x)
+    {
+        return _mm512_cmp_pd_mask(
+            _mm512_mul_pd(broadcast64(std::numeric_limits<double>::infinity()),
+                          x),                                    // NaN if x == 0
+            _mm512_mul_pd(_mm512_setzero_pd(), x), _CMP_ORD_Q);  // NaN if x == inf
+    }
+
     // isnormal {{{3
     static Vc_INTRINSIC mask_member_type<float> isnormal(simd_member_type<float> x)
     {
@@ -837,21 +862,13 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
         // -inf -> inf
         // nan -> inf
         // normal value -> positive value / not 0
-        const auto tmp =
-            and_(x, intrin_cast<__m512>(broadcast64(0x7f800000u)));
-        return _mm512_cmp_ps_mask(
-            _mm512_mul_ps(broadcast64(std::numeric_limits<float>::infinity()),
-                          tmp),                                    // NaN if tmp == 0
-            _mm512_mul_ps(_mm512_setzero_ps(), tmp), _CMP_ORD_Q);  // NaN if tmp == inf
+        return isnonzerovalue(
+            z_f32(and_(x, intrin_cast<__m512>(broadcast64(0x7f800000u)))));
     }
     static Vc_INTRINSIC mask_member_type<double> isnormal(simd_member_type<double> x)
     {
-        const auto tmp =
-            and_(x, intrin_cast<__m512d>(broadcast64(0x7ff0'0000'0000'0000ull)));
-        return _mm512_cmp_pd_mask(
-            _mm512_mul_pd(broadcast64(std::numeric_limits<double>::infinity()),
-                          tmp),                                    // NaN if tmp == 0
-            _mm512_mul_pd(_mm512_setzero_pd(), tmp), _CMP_ORD_Q);  // NaN if tmp == inf
+        return isnonzerovalue(
+            z_f64(and_(x, intrin_cast<__m512d>(broadcast64(0x7ff0'0000'0000'0000ull)))));
     }
 
     // signbit {{{3
@@ -1852,8 +1869,8 @@ Vc_ALWAYS_INLINE int find_last_set(simd_mask<unsigned char, simd_abi::avx512> k)
 }
 #endif  // Vc_HAVE_FULL_AVX512_ABI
 
-Vc_VERSIONED_NAMESPACE_END
 // }}}
+Vc_VERSIONED_NAMESPACE_END
 
 #endif  // Vc_HAVE_AVX512_ABI
 #endif  // Vc_HAVE_SSE

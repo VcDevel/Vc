@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SIMD_SYNOPSIS_H_
 #define VC_SIMD_SYNOPSIS_H_
 
+#include <bitset>
 #include "global.h"
 #include "macros.h"
 #include "declval.h"
@@ -35,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "detail.h"
 #include "where.h"
 #include "concepts.h"
+#include "storage.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 // simd_abi {{{1
@@ -270,6 +272,13 @@ template <class T, class Abi> struct get_impl<Vc::simd_mask<T, Abi>> {
 template <class T, class Abi> struct get_impl<Vc::simd<T, Abi>> {
     using type = typename traits<T, Abi>::simd_impl_type;
 };
+
+template <class T, class Abi> struct get_traits<Vc::simd_mask<T, Abi>> {
+    using type = detail::traits<T, Abi>;
+};
+template <class T, class Abi> struct get_traits<Vc::simd<T, Abi>> {
+    using type = detail::traits<T, Abi>;
+};
 }  // namespace detail
 
 // casts [simd.casts] {{{1
@@ -311,6 +320,34 @@ template <class U, class A1, class T, class A0>
 struct static_simd_cast_return_type2<simd<U, A1>, simd<T, A0>>
     : public std::enable_if<(simd_size_v<U, A1> == simd_size_v<T, A0>), simd<T, A0>> {
 };
+
+template <class To, class, class, class Native, class From>
+Vc_INTRINSIC To mask_cast_impl(const Native *, const From &x)
+{
+    return {Vc::detail::private_init,
+            detail::convert_mask<typename detail::get_traits_t<To>::mask_member_type>(x)};
+}
+template <class To, class, class, class Native, size_t N>
+Vc_INTRINSIC To mask_cast_impl(const Native *, const std::bitset<N> &x)
+{
+    return {Vc::detail::bitset_init, x};
+}
+template <class To, class, class>
+Vc_INTRINSIC To mask_cast_impl(const std::bitset<1> *, bool x)
+{
+    return To(x);
+}
+template <class To, class T, class Abi, size_t N, class From>
+Vc_INTRINSIC To mask_cast_impl(const std::bitset<N> *, const From &x)
+{
+    using impl = typename detail::traits<T, Abi>::mask_impl_type;
+    return {Vc::detail::private_init, impl::to_bitset(x)};
+}
+template <class To, class, class, size_t N>
+Vc_INTRINSIC To mask_cast_impl(const std::bitset<N> *, const std::bitset<N> &x)
+{
+    return {Vc::detail::private_init, x};
+}
 }  // namespace detail
 
 template <class T, class U, class A,
@@ -337,12 +374,9 @@ Vc_INTRINSIC typename R::mask_type static_simd_cast(const simd_mask<U, A> &x)
         return x;
     }
 #endif  // __cpp_if_constexpr
-    if (sizeof(simd_mask<U, A>) == sizeof(RM) && simd_mask<U, A>::size() == RM::size()) {
-        return reinterpret_cast<const RM &>(x);
-    }
-    return RM::from_bitset(x.to_bitset());
-    //detail::simd_converter<U, A, typename R::value_type, typename R::abi_type> cvt;
-    //return R(detail::private_init, cvt(detail::data(x)));
+    using traits = detail::traits<typename R::value_type, typename R::abi_type>;
+    const typename traits::mask_member_type *tag = nullptr;
+    return detail::mask_cast_impl<RM, U, A>(tag, detail::data(x));
 }
 
 // simd_cast {{{2
@@ -420,6 +454,41 @@ Vc_INTRINSIC std::enable_if_t<(N == simd_mask<T>::size()), simd_mask<T>> to_comp
 {
     return simd_mask<T>([&](auto i) { return x[i]; });
 }
+
+// simd_reinterpret_cast {{{2
+namespace detail
+{
+template <class To, size_t N> Vc_INTRINSIC To simd_reinterpret_cast_impl(std::bitset<N> x)
+{
+    return {bitset_init, x};
+}
+
+template <class To, class T, size_t N>
+Vc_INTRINSIC To simd_reinterpret_cast_impl(Storage<T, N> x)
+{
+    return {private_init, x};
+}
+}  // namespace detail
+
+namespace experimental
+{
+template <class To, class T, class A,
+          class = std::enable_if_t<sizeof(To) == sizeof(simd<T, A>) &&
+                                   (is_simd_v<To> || is_simd_mask_v<To>)>>
+Vc_INTRINSIC To simd_reinterpret_cast(const simd<T, A> &x)
+{
+    //return {detail::private_init, detail::data(x)};
+    return reinterpret_cast<const To &>(x);
+}
+
+template <class To, class T, class A,
+          class = std::enable_if_t<(is_simd_v<To> || is_simd_mask_v<To>)>>
+Vc_INTRINSIC To simd_reinterpret_cast(const simd_mask<T, A> &x)
+{
+    return Vc::detail::simd_reinterpret_cast_impl<To>(detail::data(x));
+    //return reinterpret_cast<const To &>(x);
+}
+}  // namespace experimental
 
 // reductions [simd_mask.reductions] {{{1
 // implementation per ABI in fixed_size.h, sse.h, avx.h, etc.
@@ -836,6 +905,32 @@ Vc_INTRINSIC simd<T, A> clamp(const simd<T, A> &v, const simd<T, A> &lo,
         Impl::min(detail::data(hi), Impl::max(detail::data(lo), detail::data(v))));
 }
 
+// shuffle {{{1
+namespace experimental
+{
+template <int Stride, int Offset = 0> struct strided {
+    static constexpr int stride = Stride;
+    static constexpr int offset = Offset;
+    template <class T, class A>
+    using shuffle_return_type =
+        fixed_size_simd<T, (simd_size_v<T, A> - Offset + Stride - 1) / Stride>;
+    template <class T> static constexpr auto src_index(T dst_index)
+    {
+        return Offset + dst_index * Stride;
+    }
+};
+
+// SFINAE for the return type ensures P is a type that provides the alias template member
+// shuffle_return_type and the static member function src_index
+template <class P, class T, class A,
+          class R = typename P::template shuffle_return_type<T, A>,
+          class = decltype(P::src_index(Vc::detail::size_constant<0>()))>
+Vc_INTRINSIC R shuffle(const simd<T, A> &x)
+{
+    return R([&x](auto i) { return x[P::src_index(i)]; });
+}
+
+}  // namespace experimental
 // }}}1
 Vc_VERSIONED_NAMESPACE_END
 

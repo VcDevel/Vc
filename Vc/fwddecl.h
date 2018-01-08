@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_FWDDECL_H_
 #define VC_FWDDECL_H_
 
+#include <cstddef>
+
 namespace Vc
 {
 inline namespace v2
@@ -55,7 +57,7 @@ template <class T> struct is_simd_mask;
 template <class T, class Abi> class simd;
 template <class T, class Abi> class simd_mask;
 
-template <class T, size_t N> struct abi_for_size;
+template <class T, std::size_t N> struct abi_for_size;
 template <class T, class Abi> struct simd_size;
 
 Vc_VERSIONED_NAMESPACE_END

@@ -201,12 +201,41 @@ struct scalar_simd_impl {
         return static_cast<T>(detail::promote_preserving_unsigned(x) &
                               detail::promote_preserving_unsigned(y));
     }
+    static inline float bit_and(float x, float y)
+    {
+        static_assert(sizeof(float) == sizeof(uint), "");
+        const uint r = reinterpret_cast<const may_alias<uint> &>(x) &
+                       reinterpret_cast<const may_alias<uint> &>(y);
+        return reinterpret_cast<const may_alias<float> &>(r);
+    }
+    static inline double bit_and(double x, double y)
+    {
+        static_assert(sizeof(double) == sizeof(ullong), "");
+        const ullong r = reinterpret_cast<const may_alias<ullong> &>(x) &
+                         reinterpret_cast<const may_alias<ullong> &>(y);
+        return reinterpret_cast<const may_alias<double> &>(r);
+    }
 
     template <class T> static inline T bit_or(T x, T y)
     {
         return static_cast<T>(detail::promote_preserving_unsigned(x) |
                               detail::promote_preserving_unsigned(y));
     }
+    static inline float bit_or(float x, float y)
+    {
+        static_assert(sizeof(float) == sizeof(uint), "");
+        const uint r = reinterpret_cast<const may_alias<uint> &>(x) |
+                       reinterpret_cast<const may_alias<uint> &>(y);
+        return reinterpret_cast<const may_alias<float> &>(r);
+    }
+    static inline double bit_or(double x, double y)
+    {
+        static_assert(sizeof(double) == sizeof(ullong), "");
+        const ullong r = reinterpret_cast<const may_alias<ullong> &>(x) |
+                         reinterpret_cast<const may_alias<ullong> &>(y);
+        return reinterpret_cast<const may_alias<double> &>(r);
+    }
+
 
     template <class T> static inline T bit_xor(T x, T y)
     {

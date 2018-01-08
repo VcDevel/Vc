@@ -230,7 +230,6 @@ struct constants<simd_abi::avx, X> : public constants<simd_abi::scalar, X> {
     static constexpr  float _2_pow_31 = 1u << 31;
     static constexpr ullong highMaskDouble = 0xfffffffff8000000ull;
     static constexpr double oneDouble = 1.;
-    static constexpr ullong frexpMask = 0xbfefffffffffffffull;
 #ifdef Vc_WORK_AROUND_ICE
 #undef constexpr
 #undef Vc_WORK_AROUND_ICE
@@ -252,7 +251,6 @@ template <class X> alignas(float) constexpr  uchar constants<simd_abi::avx, X>::
 template <class X> constexpr  float constants<simd_abi::avx, X>::_2_pow_31;
 template <class X> constexpr ullong constants<simd_abi::avx, X>::highMaskDouble;
 template <class X> constexpr double constants<simd_abi::avx, X>::oneDouble;
-template <class X> constexpr ullong constants<simd_abi::avx, X>::frexpMask;
 namespace x86
 {
 using avx_const = constants<simd_abi::avx>;

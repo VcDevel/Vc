@@ -66,6 +66,18 @@ template <class T> void subscript_write(T &x, size_t i, typename T::value_type y
 
 template <class T, class... Abis> struct simd_tuple;
 
+// tuple_element {{{1
+template <size_t I, class T> struct tuple_element;
+template <class T, class A0, class... As>
+struct tuple_element<0, simd_tuple<T, A0, As...>> {
+    using type = Vc::simd<T, A0>;
+};
+template <size_t I, class T, class A0, class... As>
+struct tuple_element<I, simd_tuple<T, A0, As...>> {
+    using type = typename tuple_element<I - 1, simd_tuple<T, As...>>::type;
+};
+template <size_t I, class T> using tuple_element_t = typename tuple_element<I, T>::type;
+
 // tuple_concat {{{1
 template <class T, class... A1s>
 Vc_INTRINSIC simd_tuple<T, A1s...> tuple_concat(const simd_tuple<T>,
@@ -96,10 +108,12 @@ Vc_INTRINSIC simd_tuple<T, simd_abi::scalar, A10, A1s...> tuple_concat(
 }
 
 // tuple_pop_front {{{1
-template <class T> Vc_INTRINSIC T tuple_pop_front(size_constant<0>, T &&x)
+template <class T> Vc_INTRINSIC const T &tuple_pop_front(size_constant<0>, const T &x)
 {
-    return std::forward<T>(x);
+    return x;
 }
+
+template <class T> Vc_INTRINSIC T &tuple_pop_front(size_constant<0>, T &x) { return x; }
 
 template <size_t K, class T>
 Vc_INTRINSIC const auto &tuple_pop_front(size_constant<K>, const T &x)
@@ -204,6 +218,8 @@ template <size_t LeftN, class RightT> struct how_many_to_extract<LeftN, RightT, 
 // tuple_element_meta {{{1
 template <class T, class Abi, size_t Offset>
 struct tuple_element_meta : public detail::traits<T, Abi>::simd_impl_type {
+    using value_type = T;
+    using abi_type = Abi;
     using traits = detail::traits<T, Abi>;
     using maskimpl = typename traits::mask_impl_type;
     using member_type = typename traits::simd_member_type;
@@ -236,6 +252,7 @@ tuple_element_meta<T, Abi, Offset> make_meta(const simd_tuple<T, Abi, As...> &)
 // simd_tuple specializations {{{1
 // empty {{{2
 template <class T> struct simd_tuple<T> {
+    using value_type = T;
     static constexpr size_t tuple_size = 0;
     static constexpr size_t size() { return 0; }
     static constexpr size_t size_v = 0;
@@ -243,6 +260,7 @@ template <class T> struct simd_tuple<T> {
 
 // 1 member {{{2
 template <class T, class Abi0> struct simd_tuple<T, Abi0> {
+    using value_type = T;
     using first_type = typename detail::traits<T, Abi0>::simd_member_type;
     using second_type = simd_tuple<T>;
     using first_abi = Abi0;
@@ -299,8 +317,14 @@ private:
     static Vc_INTRINSIC simd_tuple apply_impl(std::index_sequence<Indexes...>, F &&fun,
                                               const simd_tuple &x, More &&y)
     {
-        return {
-            fun(tuple_element_meta<T, Abi0, 0>(), x.first, detail::get<Indexes>(y)...)};
+        auto tmp = Vc::concat(detail::get_simd<Indexes>(y)...);
+        const auto first = fun(tuple_element_meta<T, Abi0, 0>(), x.first, tmp);
+        // if y is non-const lvalue ref, write back
+        const auto tup =
+            Vc::split<tuple_element_t<Indexes, std::decay_t<More>>::size()...>(tmp);
+        auto &&ignore = {(get<Indexes>(y) = detail::data(std::get<Indexes>(tup)), 0)...};
+        detail::unused(ignore);
+        return {first};
     }
 
 public:
@@ -363,6 +387,7 @@ public:
 
 // 2 or more {{{2
 template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...> {
+    using value_type = T;
     using first_type = typename detail::traits<T, Abi0>::simd_member_type;
     using first_abi = Abi0;
     using second_type = simd_tuple<T, Abis...>;
@@ -422,11 +447,15 @@ private:
     static Vc_INTRINSIC simd_tuple apply_impl2(std::index_sequence<Indexes...>, F &&fun,
                                                const simd_tuple &x, More &&y)
     {
-        return {
-            fun(tuple_element_meta<T, Abi0, 0>(), x.first, detail::get<Indexes>(y)...),
-            apply(std::forward<F>(fun), x.second,
-                  tuple_pop_front(size_constant<sizeof...(Indexes)>(),
-                                  std::forward<More>(y)))};
+        auto tmp = Vc::concat(detail::get_simd<Indexes>(y)...);
+        const auto first = fun(tuple_element_meta<T, Abi0, 0>(), x.first, tmp);
+        // if y is non-const lvalue ref, write back
+        const auto tup =
+            Vc::split<tuple_element_t<Indexes, std::decay_t<More>>::size()...>(tmp);
+        auto &&ignore = {(get<Indexes>(y) = detail::data(std::get<Indexes>(tup)), 0)...};
+        detail::unused(ignore);
+        return {first, apply(std::forward<F>(fun), x.second,
+                             tuple_pop_front(size_constant<sizeof...(Indexes)>(), y))};
     }
 
 public:
@@ -586,18 +615,6 @@ Vc_INTRINSIC auto to_tuple(
 {
     return to_tuple_impl<T, A0>(std::make_index_sequence<N>(), args);
 }
-
-// tuple_element {{{1
-template <size_t I, class T> struct tuple_element;
-template <class T, class A0, class... As>
-struct tuple_element<0, simd_tuple<T, A0, As...>> {
-    using type = Vc::simd<T, A0>;
-};
-template <size_t I, class T, class A0, class... As>
-struct tuple_element<I, simd_tuple<T, A0, As...>> {
-    using type = typename tuple_element<I - 1, simd_tuple<T, As...>>::type;
-};
-template <size_t I, class T> using tuple_element_t = typename tuple_element<I, T>::type;
 
 // optimize_tuple {{{1
 template <class T> Vc_INTRINSIC simd_tuple<T> optimize_tuple(const simd_tuple<T>)

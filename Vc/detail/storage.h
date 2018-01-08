@@ -948,6 +948,12 @@ inline std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> & s,
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
+#ifdef Vc_HAVE_NEON
+#include "aarch/storage.h"
+#else
+#include "x86/storage.h"
+#endif
+
 #endif  // VC_SIMD_STORAGE_H_
 
 // vim: foldmethod=marker

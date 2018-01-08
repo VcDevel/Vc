@@ -173,6 +173,12 @@ public:
     {
     }
 
+    // "private" because of the first arguments's namespace
+    Vc_INTRINSIC simd_mask(detail::bitset_init_t, std::bitset<size_v> init)
+        : d(impl::from_bitset(init, type_tag))
+    {
+    }
+
 private:
 #ifdef Vc_MSVC
     // Work around "warning C4396: the inline specifier cannot be used when a friend
@@ -183,10 +189,6 @@ private:
     friend const auto &detail::data<T, abi_type>(const simd_mask &);
     friend auto &detail::data<T, abi_type>(simd_mask &);
 #endif
-    Vc_INTRINSIC simd_mask(detail::bitset_init_t, std::bitset<size_v> init)
-        : d(impl::from_bitset(init, type_tag))
-    {
-    }
 //#ifndef Vc_MSVC
     // MSVC refuses by value simd_mask arguments, even if vectorcall__ is used:
     // error C2719: 'k': formal parameter with requested alignment of 16 won't be aligned

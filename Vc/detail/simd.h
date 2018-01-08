@@ -355,6 +355,11 @@ public:
     // "private" because of the first arguments's namespace
     Vc_INTRINSIC simd(detail::private_init_t, const member_type &init) : d(init) {}
 
+    // "private" because of the first arguments's namespace
+    Vc_INTRINSIC simd(detail::bitset_init_t, std::bitset<size_v> init) : d() {
+        where(mask_type(detail::bitset_init, init), *this) = ~*this;
+    }
+
 private:
     static Vc_INTRINSIC mask_type make_mask(typename mask_type::member_type k)
     {
@@ -376,6 +381,7 @@ private:
 #pragma warning(pop)
 #endif
 
+// detail::data {{{
 namespace detail
 {
 template <class T, class A> Vc_INTRINSIC const auto &data(const simd<T, A> &x)
@@ -383,7 +389,28 @@ template <class T, class A> Vc_INTRINSIC const auto &data(const simd<T, A> &x)
     return x.d;
 }
 template <class T, class A> Vc_INTRINSIC auto &data(simd<T, A> &x) { return x.d; }
-}  // namespace detail
+}  // namespace detail }}}
+
+// float_bitwise_operators {{{
+namespace experimental
+{
+namespace float_bitwise_operators
+{
+template <class T, class A>
+Vc_INTRINSIC simd<T, A> operator|(const simd<T, A> &a, const simd<T, A> &b)
+{
+    return {Vc::detail::private_init, Vc::detail::get_impl_t<simd<T, A>>::bit_or(
+                                          Vc::detail::data(a), Vc::detail::data(b))};
+}
+
+template <class T, class A>
+Vc_INTRINSIC simd<T, A> operator&(const simd<T, A> &a, const simd<T, A> &b)
+{
+    return {Vc::detail::private_init, Vc::detail::get_impl_t<simd<T, A>>::bit_and(
+                                          Vc::detail::data(a), Vc::detail::data(b))};
+}
+}  // namespace float_bitwise_operators
+}  // namespace experimental }}}
 
 Vc_VERSIONED_NAMESPACE_END
 
