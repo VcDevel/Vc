@@ -55,6 +55,8 @@ namespace detail {
                                        Args &&... args) noexcept Vc_INTRINSIC_R;         \
     }
 Vc_FIXED_SIZE_FWD_(frexp);
+Vc_FIXED_SIZE_FWD_(sin);
+Vc_FIXED_SIZE_FWD_(cos);
 #undef Vc_FIXED_SIZE_FWD_
 
 // select_best_vector_type_t<T, N>{{{1

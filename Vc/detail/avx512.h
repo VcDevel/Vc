@@ -143,6 +143,7 @@ template <> struct traits< schar, simd_abi::avx512> : public avx512_traits< scha
 template <> struct traits<  char, simd_abi::avx512> : public avx512_traits<  char> {};
 #endif  // Vc_HAVE_FULL_AVX512_ABI
 #endif  // Vc_HAVE_AVX512_ABI
+//}}}1
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 

@@ -380,7 +380,7 @@ template <class Abi> detail::doublev<Abi> sin(detail::doublev<Abi> x)
     where(quadrant > 3, quadrant) -= 4;
 
     V y = sinSeries(z);
-    where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = cosSeries(x);
+    where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = cosSeries(z);
     where(sign, y) = -y;
     Vc_DEBUG(sine)
         (Vc_PRETTY_PRINT(x))
@@ -839,6 +839,8 @@ template <class T> struct autocvt_to_simd<T, true> {
         return ret;                                                                      \
     }
 Vc_FIXED_SIZE_FWD_(frexp)
+Vc_FIXED_SIZE_FWD_(sin)
+Vc_FIXED_SIZE_FWD_(cos)
 #undef Vc_FIXED_SIZE_FWD_
 }  // namespace detail
 
