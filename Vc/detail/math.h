@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "simd.h"
 #include "const.h"
+#include "debug.h"
 #include <utility>
 
 Vc_VERSIONED_NAMESPACE_BEGIN
@@ -274,6 +275,13 @@ template <class Abi> detail::floatv<Abi> sin(detail::floatv<Abi> x)
     V y = sinSeries(z);
     where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = cosSeries(z);
     where(sign, y) = -y;
+    Vc_DEBUG(sine)
+        (Vc_PRETTY_PRINT(x))
+        (Vc_PRETTY_PRINT(sign))
+        (Vc_PRETTY_PRINT(z))
+        (Vc_PRETTY_PRINT(folded.second))
+        (Vc_PRETTY_PRINT(quadrant))
+        (Vc_PRETTY_PRINT(y));
     return y;
 }
 
@@ -292,6 +300,13 @@ template <class Abi> detail::doublev<Abi> sin(detail::doublev<Abi> x)
     V y = sinSeries(z);
     where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = cosSeries(x);
     where(sign, y) = -y;
+    Vc_DEBUG(sine)
+        (Vc_PRETTY_PRINT(x))
+        (Vc_PRETTY_PRINT(sign))
+        (Vc_PRETTY_PRINT(z))
+        (Vc_PRETTY_PRINT(tmp.second))
+        (Vc_PRETTY_PRINT(quadrant))
+        (Vc_PRETTY_PRINT(y));
     return y;
 }
 
@@ -828,6 +843,7 @@ template <class T> struct autocvt_to_simd<T, true> {
     autocvt_to_simd(T dd) : d(dd), fd(d) {}
     ~autocvt_to_simd()
     {
+        //Vc_DEBUG("fd = ", detail::data(fd).first);
         d = detail::data(fd).first;
     }
 
@@ -850,6 +866,7 @@ template <class T> struct autocvt_to_simd<T, true> {
         auto ret = detail::data(Vc::name_<typename Impl::abi_type>(                      \
             typename Impl::simd_type{detail::private_init, std::forward<Arg0>(arg0)},    \
             autocvt_to_simd<Args>{std::forward<Args>(args)}...));                        \
+        /*Vc_DEBUG(args...);*/                                                           \
         return ret;                                                                      \
     }
 Vc_FIXED_SIZE_FWD_(frexp)

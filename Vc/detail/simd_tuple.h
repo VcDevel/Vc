@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "detail.h"
 #include "concepts.h"
+#include "debug.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -280,12 +281,14 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
     template <size_t Offset = 0, class F, class... More>
     Vc_INTRINSIC simd_tuple apply_wrapped(F &&fun, const More &... more) const
     {
+        Vc_DEBUG(simd_tuple);
         return {fun(make_meta<Offset>(*this), first, more.first...)};
     }
 
     template <class F, class... More>
     friend Vc_INTRINSIC simd_tuple apply(F &&fun, const simd_tuple &x, More &&... more)
     {
+        Vc_DEBUG(simd_tuple);
         return simd_tuple::apply_impl(
             bool_constant<all<is_equal<size_t, first_size_v,
                                        std::decay_t<More>::first_size_v>...>::value>(),
@@ -298,6 +301,8 @@ private:
     apply_impl(true_type,  // first_size_v is equal for all arguments
                F &&fun, const simd_tuple &x, More &&... more)
     {
+        Vc_DEBUG(simd_tuple);
+        //Vc_DEBUG_DEFERRED("more.first = ", more.first..., "more = ", more...);
         return {fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...)};
     }
 
@@ -309,6 +314,8 @@ private:
                                                            // more
                                               F &&fun, const simd_tuple &x, More &&y)
     {
+        Vc_DEBUG(simd_tuple);
+        //Vc_DEBUG_DEFERRED("y = ", y);
         return apply_impl(std::make_index_sequence<std::decay_t<More>::tuple_size>(),
                           std::forward<F>(fun), x, std::forward<More>(y));
     }
@@ -317,6 +324,8 @@ private:
     static Vc_INTRINSIC simd_tuple apply_impl(std::index_sequence<Indexes...>, F &&fun,
                                               const simd_tuple &x, More &&y)
     {
+        Vc_DEBUG(simd_tuple);
+        //Vc_DEBUG_DEFERRED("y = ", y);
         auto tmp = Vc::concat(detail::get_simd<Indexes>(y)...);
         const auto first = fun(tuple_element_meta<T, Abi0, 0>(), x.first, tmp);
         // if y is non-const lvalue ref, write back
@@ -349,6 +358,7 @@ public:
                         std::index_sequence<Indexes...>>,
                 F &&fun, const simd_tuple &x, More &&y)
     {
+        Vc_DEBUG(simd_tuple);
         return apply(std::forward<F>(fun), x, y.second);
     }
 
@@ -358,6 +368,7 @@ public:
     apply_impl2(chunked<U, Offset, Length, false, std::index_sequence<Indexes...>>,
                 F &&fun, const simd_tuple &x, More &&y)
     {
+        Vc_DEBUG(simd_tuple);
         static_assert(Offset < std::decay_t<More>::first_size_v, "");
         static_assert(Offset > 0, "");
         return extract(size_constant<Offset>(), size_constant<Length>(), y,
@@ -370,6 +381,7 @@ public:
     Vc_INTRINSIC fixed_size_storage<R, size_v> apply_r(F &&fun,
                                                        const More &... more) const
     {
+        Vc_DEBUG(simd_tuple);
         return {fun(tuple_element_meta<T, Abi0, 0>(), first, more.first...)};
     }
 
@@ -410,6 +422,7 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
     template <size_t Offset = 0, class F, class... More>
     Vc_INTRINSIC simd_tuple apply_wrapped(F &&fun, const More &... more) const
     {
+        Vc_DEBUG(simd_tuple);
         return {fun(make_meta<Offset>(*this), first, more.first...),
                 second.template apply_wrapped<Offset + simd_size_v<T, Abi0>>(
                     std::forward<F>(fun), more.second...)};
@@ -418,6 +431,8 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
     template <class F, class... More>
     friend Vc_INTRINSIC simd_tuple apply(F &&fun, const simd_tuple &x, More &&... more)
     {
+        Vc_DEBUG(simd_tuple);
+        //Vc_DEBUG_DEFERRED("more = ", more...);
         return simd_tuple::apply_impl(
             bool_constant<all<is_equal<size_t, first_size_v,
                                        std::decay_t<More>::first_size_v>...>::value>(),
@@ -430,6 +445,7 @@ private:
     apply_impl(true_type,  // first_size_v is equal for all arguments
                F &&fun, const simd_tuple &x, More &&... more)
     {
+        Vc_DEBUG(simd_tuple);
         return {fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...),
                 apply(std::forward<F>(fun), x.second, more.second...)};
     }
@@ -439,6 +455,8 @@ private:
     apply_impl(false_type,  // at least one argument in More has different first_size_v
                F &&fun, const simd_tuple &x, More &&y)
     {
+        Vc_DEBUG(simd_tuple);
+        //Vc_DEBUG_DEFERRED("y = ", y);
         return apply_impl2(how_many_to_extract<first_size_v, std::decay_t<More>>::tag(),
                            std::forward<F>(fun), x, y);
     }
@@ -447,6 +465,8 @@ private:
     static Vc_INTRINSIC simd_tuple apply_impl2(std::index_sequence<Indexes...>, F &&fun,
                                                const simd_tuple &x, More &&y)
     {
+        Vc_DEBUG(simd_tuple);
+        //Vc_DEBUG_DEFERRED("y = ", y);
         auto tmp = Vc::concat(detail::get_simd<Indexes>(y)...);
         const auto first = fun(tuple_element_meta<T, Abi0, 0>(), x.first, tmp);
         // if y is non-const lvalue ref, write back
@@ -465,6 +485,7 @@ public:
                         std::index_sequence<Indexes...>>,
                 F &&fun, const simd_tuple &x, More &&y)
     {
+        Vc_DEBUG(simd_tuple);
         return apply(std::forward<F>(fun), x, y.second);
     }
 
@@ -516,6 +537,7 @@ public:
     apply_impl2(chunked<U, Offset, Length, false, std::index_sequence<Indexes...>>,
                 F &&fun, const simd_tuple &x, More &&y)
     {
+        Vc_DEBUG(simd_tuple);
         static_assert(Offset < std::decay_t<More>::first_size_v, "");
         return {extract(size_constant<Offset>(), size_constant<Length>(), y,
                         [&](auto &&yy) {
@@ -531,6 +553,7 @@ public:
     template <class R = T, class F, class... More>
     Vc_INTRINSIC auto apply_r(F &&fun, const More &... more) const
     {
+        Vc_DEBUG(simd_tuple);
         return detail::tuple_concat<R>(
             fun(tuple_element_meta<T, Abi0, 0>(), first, more.first...),
             second.template apply_r<R>(std::forward<F>(fun), more.second...));

@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "simd.h"
 #include "detail.h"
 #include "simd_tuple.h"
+#include "debug.h"
 #include <array>
 
 /**
@@ -498,6 +499,7 @@ public:
     static inline simd_tuple<T, As...> frexp(const simd_tuple<T, As...> &x,
                                              fixed_size_storage<int, N> &exp) noexcept
     {
+        //Vc_DEBUG_DEFERRED("exp = ", exp);
         return apply(frexp_fwd(), x, exp);
     }
 
