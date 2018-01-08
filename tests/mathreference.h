@@ -74,7 +74,7 @@ template <class F, class T> struct reference_data {
     static const Ref begin_, end_;
     static const Ref *begin() { return &begin_; }
     static const Ref *end() { return &end_; }
-    static const std::size_t size() { return end() - begin(); }
+    static std::size_t size() { return end() - begin(); }
     const Ref &operator[](std::size_t i) const { return begin()[i]; }
 };
 
