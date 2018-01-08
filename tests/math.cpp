@@ -278,9 +278,9 @@ TEST_TYPES(V, testSin, real_test_types)  //{{{1
         expected[i % V::size()] = entry.s;
         ++i;
         if (i % V::size() == 0) {
-            COMPARE(sin(input), expected)
+            FUZZY_COMPARE(sin(input), expected)
                 << " input = " << input << ", i = " << i;
-            COMPARE(sin(-input), -expected)
+            FUZZY_COMPARE(sin(-input), -expected)
                 << " input = " << input << ", i = " << i;
         }
     }
