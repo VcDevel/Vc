@@ -328,11 +328,18 @@ private:
         //Vc_DEBUG_DEFERRED("y = ", y);
         auto tmp = Vc::concat(detail::get_simd<Indexes>(y)...);
         const auto first = fun(tuple_element_meta<T, Abi0, 0>(), x.first, tmp);
-        // if y is non-const lvalue ref, write back
-        const auto tup =
-            Vc::split<tuple_element_t<Indexes, std::decay_t<More>>::size()...>(tmp);
-        auto &&ignore = {(get<Indexes>(y) = detail::data(std::get<Indexes>(tup)), 0)...};
-        detail::unused(ignore);
+#ifdef __cpp_if_constexpr
+        if constexpr (std::is_lvalue_reference<More>::value && !std::is_const<More>::value) {
+#endif
+            // if y is non-const lvalue ref, assume write back is necessary
+            const auto tup =
+                Vc::split<tuple_element_t<Indexes, std::decay_t<More>>::size()...>(tmp);
+            auto &&ignore = {
+                (get<Indexes>(y) = detail::data(std::get<Indexes>(tup)), 0)...};
+            detail::unused(ignore);
+#ifdef __cpp_if_constexpr
+        }
+#endif
         return {first};
     }
 
@@ -469,11 +476,17 @@ private:
         //Vc_DEBUG_DEFERRED("y = ", y);
         auto tmp = Vc::concat(detail::get_simd<Indexes>(y)...);
         const auto first = fun(tuple_element_meta<T, Abi0, 0>(), x.first, tmp);
-        // if y is non-const lvalue ref, write back
-        const auto tup =
-            Vc::split<tuple_element_t<Indexes, std::decay_t<More>>::size()...>(tmp);
-        auto &&ignore = {(get<Indexes>(y) = detail::data(std::get<Indexes>(tup)), 0)...};
-        detail::unused(ignore);
+#ifdef __cpp_if_constexpr
+        if constexpr (std::is_lvalue_reference<More>::value && !std::is_const<More>::value) {
+#endif
+            // if y is non-const lvalue ref, assume write back is necessary
+            const auto tup =
+                Vc::split<tuple_element_t<Indexes, std::decay_t<More>>::size()...>(tmp);
+            [](std::initializer_list<int>) {
+            }({(get<Indexes>(y) = detail::data(std::get<Indexes>(tup)), 0)...});
+#ifdef __cpp_if_constexpr
+        }
+#endif
         return {first, apply(std::forward<F>(fun), x.second,
                              tuple_pop_front(size_constant<sizeof...(Indexes)>(), y))};
     }
