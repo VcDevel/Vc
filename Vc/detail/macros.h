@@ -48,6 +48,19 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #endif
 // }}}
 
+// not-yet-optimized warning hack {{{
+#ifndef Vc_NO_OPTIMIZATION_WARNINGS
+#if defined Vc_GCC || defined Vc_CLANG
+// hack GCC's formatting to overwrite "deprecated: " with our own message:
+#define Vc_NOT_OPTIMIZED [[deprecated("\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8not optimized yet, if you care about speed please help out! [-DVc_NO_OPTIMIZATION_WARNINGS]")]]
+#else
+#define Vc_NOT_OPTIMIZED [[deprecated("NOT DEPRECATED, just a note: this function is not optimized yet, if you care about speed please help out! [-DVc_NO_OPTIMIZATION_WARNINGS]")]]
+#endif
+#else
+#define Vc_NOT_OPTIMIZED
+#endif
+// }}}
+
 // Starting with compiler identification. This is a prerequisite for getting the following
 // macro definitions right.
 // {{{

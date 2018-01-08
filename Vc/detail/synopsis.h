@@ -925,7 +925,7 @@ template <int Stride, int Offset = 0> struct strided {
 template <class P, class T, class A,
           class R = typename P::template shuffle_return_type<T, A>,
           class = decltype(P::src_index(Vc::detail::size_constant<0>()))>
-Vc_INTRINSIC R shuffle(const simd<T, A> &x)
+Vc_NOT_OPTIMIZED Vc_INTRINSIC R shuffle(const simd<T, A> &x)
 {
     return R([&x](auto i) { return x[P::src_index(i)]; });
 }
