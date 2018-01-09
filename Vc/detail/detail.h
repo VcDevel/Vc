@@ -432,6 +432,38 @@ using rebind_simd = simd<T, typename abi_for_size<T, N>::type>;
 template <class T, class SimdType, size_t N = SimdType::size()>
 using rebind_mask = simd_mask<T, typename abi_for_size<T, N>::type>;
 
+// constexpr_if {{{1
+template <class IfFun, class ElseFun>
+Vc_INTRINSIC auto impl_or_fallback_dispatch(std::true_type, IfFun &&fun, ElseFun &&)
+{
+    return fun(0);
+}
+
+template <class IfFun, class ElseFun>
+Vc_INTRINSIC auto impl_or_fallback_dispatch(std::false_type, IfFun &&, ElseFun &&fun)
+{
+    return fun(0);
+}
+
+template <bool Condition, class IfFun, class ElseFun>
+Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, ElseFun &&else_fun)
+{
+    return impl_or_fallback_dispatch(Vc::detail::bool_constant<Condition>(),
+                                     std::forward<IfFun>(if_fun),
+                                     std::forward<ElseFun>(else_fun));
+}
+#ifdef __cpp_if_constexpr
+#define Vc_CONSTEXPR_IF_RETURNING(condition_) if constexpr (condition_) {
+#define Vc_CONSTEXPR_IF(condition_) if constexpr (condition_) {
+#define Vc_CONSTEXPR_ELSE } else {
+#define Vc_CONSTEXPR_ENDIF }
+#else
+#define Vc_CONSTEXPR_IF_RETURNING(condition_) return Vc::detail::constexpr_if<(condition_)>([&](auto) {
+#define Vc_CONSTEXPR_IF(condition_) Vc::detail::constexpr_if<(condition_)>([&](auto) {
+#define Vc_CONSTEXPR_ELSE }, [&](auto) {
+#define Vc_CONSTEXPR_ENDIF });
+#endif
+
 //}}}1
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

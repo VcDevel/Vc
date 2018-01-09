@@ -259,24 +259,30 @@ static Vc_ALWAYS_INLINE std::pair<doublev<Abi>, rebind_simd<int, doublev<Abi>>> 
 template <class Abi>
 samesize<int, doublev<Abi>> extract_exponent_bits(const doublev<Abi> &v)
 {
-    using namespace Vc::experimental;
-    using namespace Vc::experimental::float_bitwise_operators;
     const doublev<Abi> exponent_mask =
         std::numeric_limits<double>::infinity();  // 0x7ff0000000000000
     constexpr auto N = simd_size_v<double, Abi> * 2;
     constexpr auto Max = simd_abi::max_fixed_size;
-    if constexpr (N > Max) {
+    Vc_CONSTEXPR_IF_RETURNING (N > Max)
+    {
+        using namespace Vc::experimental;
+        using namespace Vc::experimental::float_bitwise_operators;
         const auto tup = split<Max / 2, (N - Max) / 2>(v & exponent_mask);
         return concat(
             shuffle<strided<2, 1>>(
                 simd_reinterpret_cast<fixed_size_simd<int, Max>>(std::get<0>(tup))),
             shuffle<strided<2, 1>>(
                 simd_reinterpret_cast<fixed_size_simd<int, N - Max>>(std::get<1>(tup))));
-    } else {
+    }
+    Vc_CONSTEXPR_ELSE
+    {
+        using namespace Vc::experimental;
+        using namespace Vc::experimental::float_bitwise_operators;
         return shuffle<strided<2, 1>>(
             simd_reinterpret_cast<fixed_size_simd<int, 2 * simd_size_v<double, Abi>>>(
                 v & exponent_mask));
     }
+    Vc_CONSTEXPR_ENDIF
 }
 
 // }}}
