@@ -81,11 +81,13 @@ template <class Tuple, class From> struct split_to_tuple {
 };
 }  // namespace detail
 
-template <size_t... Sizes, class T, class A>
-Vc_ALWAYS_INLINE
-//std::enable_if_t<((Sizes + ...) == simd<T, A>::size()),
-                 std::tuple<simd<T, abi_for_size_t<T, Sizes>>...>//>
-split(const simd<T, A> &x)
+template <size_t... Sizes, class T, class A
+#ifdef __cpp_fold_expressions
+          , class = std::enable_if_t<((Sizes + ...) == simd<T, A>::size())>
+#endif
+          >
+Vc_ALWAYS_INLINE std::tuple<simd<T, abi_for_size_t<T, Sizes>>...> split(
+    const simd<T, A> &x)
 {
     return detail::split_to_tuple<std::tuple<simd<T, abi_for_size_t<T, Sizes>>...>, A>()(
         x);
