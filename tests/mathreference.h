@@ -25,19 +25,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+#include <tuple>
 #include <utility>
 #include <cstdio>
 
-template<typename T> struct SincosReference //{{{1
+template <typename T> struct SincosReference //{{{1
 {
     T x, s, c;
-};
-template<typename T> struct Reference
-{
-    T x, ref;
+
+    std::tuple<const T &, const T &, const T &> as_tuple() const
+    {
+        return std::tie(x, s, c);
+    }
 };
 
-template<typename T> struct Array
+template <typename T> struct Reference {
+    T x, ref;
+
+    std::tuple<const T &, const T &> as_tuple() const { return std::tie(x, ref); }
+};
+
+template <typename T> struct Array
 {
     std::size_t size_;
     const T *data_;
@@ -69,6 +77,13 @@ using testdatatype_for_function_t =
     typename testdatatype_for_function<F>::template type<T>;
 
 #ifdef Vc_LINK_TESTDATA
+#ifdef Vc_CLANG
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wundefined-var-template"
+// the definition for begin_ and end_ is in the *.dat.o file that gets linked into the
+// final executable. The clang warning is misleading. If the definition is added here,
+// GCC (correctly) assumes UB and does crazy stuff.
+#endif
 template <class F, class T> struct reference_data {
     using Ref = testdatatype_for_function_t<F, T>;
     static const Ref begin_, end_;
@@ -77,11 +92,9 @@ template <class F, class T> struct reference_data {
     static std::size_t size() { return end() - begin(); }
     const Ref &operator[](std::size_t i) const { return begin()[i]; }
 };
-
-template <class F, class T>
-const testdatatype_for_function_t<F, T> reference_data<F, T>::begin_ = {};
-template <class F, class T>
-const testdatatype_for_function_t<F, T> reference_data<F, T>::end_ = {};
+#ifdef Vc_CLANG
+#pragma clang diagnostic pop
+#endif
 
 #else  // Vc_LINK_TESTDATA
 

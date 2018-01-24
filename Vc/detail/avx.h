@@ -938,69 +938,30 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     }
 
     // logb {{{3
-    static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb_positive(simd_member_type<float> v)
-    {
-#ifdef Vc_HAVE_AVX512VL
-        return _mm256_getexp_ps(v);
-#elif defined Vc_HAVE_AVX2
-        __m256i tmp = _mm256_srli_epi32(intrin_cast<__m256i>(v), 23);
-        tmp = _mm256_sub_epi32(tmp, x86::broadcast32(0x7f));
-        return _mm256_cvtepi32_ps(tmp);
-#else
-        __m128i tmp0 = _mm_srli_epi32(intrin_cast<__m128i>(v), 23);
-        __m128i tmp1 = _mm_srli_epi32(intrin_cast<__m128i>(hi128(v)), 23);
-        tmp0 = _mm_sub_epi32(tmp0, _mm_set1_epi32(0x7f));
-        tmp1 = _mm_sub_epi32(tmp1, _mm_set1_epi32(0x7f));
-        return _mm256_cvtepi32_ps(concat(tmp0, tmp1));
-#endif
-    }
-    static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb_positive(simd_member_type<double> v)
-    {
-#ifdef Vc_HAVE_AVX512VL
-        return _mm256_getexp_pd(v);
-#elif defined Vc_HAVE_AVX2
-        y_i64 tmp = _mm256_srli_epi64(intrin_cast<__m256i>(v), 52);
-        tmp = _mm256_sub_epi64(tmp, _mm256_set1_epi64x(0x3ff));
-        return convert_to<y_f64>(tmp);
-#else
-        x_i64 tmp0 = _mm_srli_epi64(intrin_cast<__m128i>(v), 52);
-        x_i64 tmp1 = _mm_srli_epi64(intrin_cast<__m128i>(hi128(v)), 52);
-        tmp0 = _mm_sub_epi64(tmp0, _mm_set1_epi64x(0x3ff));
-        tmp1 = _mm_sub_epi64(tmp1, _mm_set1_epi64x(0x3ff));
-        return convert_to<y_f64>(tmp0, tmp1);
-#endif
-    }
-
-#ifdef Vc_HAVE_AVX512VL
+#ifdef Vc_HAVE_AVX512F
     static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb(simd_member_type<float> v)
     {
-        return _mm256_fixupimm_ps(logb_positive(abs(v)), v, broadcast32(0x00550433),
+#ifdef Vc_HAVE_AVX512VL
+        return _mm256_fixupimm_ps(_mm256_getexp_ps(abs(v)), v, broadcast32(0x00550433),
                                   0x00);
+#else
+        const __m512 vv = intrin_cast<__m512>(v);
+        return lo256(_mm512_fixupimm_ps(_mm512_getexp_ps(_mm512_abs_ps(vv)), vv,
+                                        broadcast64(0x00550433), 0x00));
+#endif
     }
     static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb(simd_member_type<double> v)
     {
-        return _mm256_fixupimm_pd(logb_positive(abs(v)), v, broadcast32(0x00550433),
+#ifdef Vc_HAVE_AVX512VL
+        return _mm256_fixupimm_pd(_mm256_getexp_pd(abs(v)), v, broadcast32(0x00550433),
                                   0x00);
-    }
-#else   // Vc_HAVE_AVX512VL
-    template <class T>
-    static Vc_INTRINSIC Vc_CONST simd_member_type<T> logb(simd_member_type<T> v)
-    {
-        const auto is_zero = equal_to(v, simd_member_type<T>(broadcast32(T())));
-        const auto is_negative = less(v, simd_member_type<T>(broadcast32(T())));
-        simd_member_type<T> r = logb_positive(v);
-        // TODO: is_nan, is_infinity
-        if (Vc_IS_UNLIKELY(
-                any_of(simd_mask<T>(detail::private_init, or_(is_zero, is_negative))))) {
-            masked_assign(is_zero, r,
-                          broadcast32(std::is_same<T, float>::value ? T(-HUGE_VALF)
-                                                                    : T(-HUGE_VAL)));
-            masked_assign(is_negative, r,
-                          broadcast32(std::numeric_limits<T>::infinity()));
-        }
-        return r;
-    }
+#else
+        const auto vv = intrin_cast<__m512d>(v);
+        return lo256(_mm512_fixupimm_pd(_mm512_getexp_pd(_mm512_abs_pd(auto_cvt(v))), vv,
+                                        broadcast64(0x00550433), 0x00));
 #endif
+    }
+#endif  // Vc_HAVE_AVX512F
 
     // trunc {{{3
     static Vc_INTRINSIC simd_member_type<float> trunc(simd_member_type<float> x)

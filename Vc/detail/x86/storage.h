@@ -412,15 +412,17 @@ Vc_CONVERT_MASK_IMPL_END;
 #endif  // Vc_HAVE_AVX
 #endif  // Vc_HAVE_SSE2
 
+// }}}
+
+}  // namespace x86
+
 template <class To, class T, size_t Size> To convert_mask(Storage<T, Size> x)
 {
     return convert_mask_impl<sizeof(typename To::value_type), To::size(), sizeof(T), Size,
                              typename To::VectorType>()(x);
 }
 
-// }}}
-
-}}  // namespace detail::x86
+}  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_SIMD_X86_STORAGE_H_

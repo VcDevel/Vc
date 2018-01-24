@@ -44,6 +44,7 @@ namespace detail
 enum class area : unsigned {
     _disabled = 0,
     _enabled = 1,
+    _ = _enabled,
 
 #ifdef Vc_DEBUG
 #define Vc_ENABLE_DEBUG 1
@@ -51,13 +52,19 @@ enum class area : unsigned {
 #define sine       0x0000000000000001ull
 #define cosine     0x0000000000000002ull
 #define simd_tuple 0x0000000000000004ull
+#define simd_view  0x0000000000000008ull
+#define logarithm  0x0000000000000010ull
 
     _sine       = ((Vc_DEBUG) &       sine) ? _enabled : _disabled,
     _cosine     = ((Vc_DEBUG) &     cosine) ? _enabled : _disabled,
     _simd_tuple = ((Vc_DEBUG) & simd_tuple) ? _enabled : _disabled,
+    _simd_view  = ((Vc_DEBUG) & simd_view ) ? _enabled : _disabled,
+    _logarithm  = ((Vc_DEBUG) & logarithm ) ? _enabled : _disabled,
 #undef sine
 #undef cosine
 #undef simd_tuple
+#undef simd_view
+#undef logarithm
 
 #undef Vc_DEBUG
 
@@ -65,12 +72,14 @@ enum class area : unsigned {
     _sine = _disabled,
     _cosine = _disabled,
     _simd_tuple = _disabled,
+    _simd_view  = _disabled,
+    _logarithm  = _disabled,
 #endif // Vc_DEBUG
 };
 
 #define Vc_DEBUG(area_)                                                                  \
     Vc::detail::debug_stream<Vc::detail::area::_##area_>(Vc_PRETTY_FUNCTION, __FILE__,   \
-                                                         __LINE__)
+                                                         __LINE__, Vc::detail::debug_instr_ptr())
 
 #define Vc_PRETTY_PRINT(var_) std::setw(16), #var_ " = ", (var_)
 
@@ -82,19 +91,37 @@ enum class area : unsigned {
 #define Vc_DEBUG_DEFERRED(area_, ...)
 #endif  // Vc_ENABLE_DEBUG
 
+Vc_ALWAYS_INLINE void *debug_instr_ptr()
+{
+    void *ip;
+#ifdef __GNUC__
+#ifdef __x86_64__
+    asm volatile("lea 0(%%rip),%0" : "=r"(ip));
+#elif defined __i386__
+    asm volatile("1: movl $1b,%0" : "=r"(ip));
+#elif defined __arm__
+    asm volatile("mov %0,pc" : "=r"(ip));
+#else
+    ip = nullptr;
+#endif
+#else   //__GNUC__
+    ip = nullptr;
+#endif  //__GNUC__
+    return ip;
+}
+
 template <area> class debug_stream;
 
-#ifdef Vc_ENABLE_DEBUG
 template <> class debug_stream<area::_enabled>
 {
     std::stringstream buffer;
     int color = 31;
 
 public:
-    debug_stream(const char *func, const char *file, int line)
+    debug_stream(const char *func, const char *file, int line, void *instr_ptr)
     {
-        buffer << "\033[1;40;" << color << "mDEBUG: " << file << ':' << line
-               << "\n       " << func;
+        buffer << "\033[1;40;" << color << "mDEBUG: " << file << ':' << line << " @ "
+               << instr_ptr << "\n       " << func;
     }
 
     ~debug_stream()
@@ -138,12 +165,11 @@ private:
         }
     }
 };
-#endif  // Vc_ENABLE_DEBUG
 
 template <> class debug_stream<area::_disabled>
 {
 public:
-    debug_stream(const char *, const char *, int) {}
+    debug_stream(const char *, const char *, int, void *) {}
     template <class... Ts> const debug_stream &operator()(Ts &&...) const { return *this; }
 };
 

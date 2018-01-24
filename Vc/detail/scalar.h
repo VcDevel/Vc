@@ -465,6 +465,10 @@ struct simd_converter<From, simd_abi::scalar, To, simd_abi::scalar> {
     }
 };
 
+// convert_mask overload {{{1
+// declared in synopsis.h
+template <> Vc_ALWAYS_INLINE bool convert_mask<bool>(bool x) { return x; }
+
 // }}}1
 }  // namespace detail
 

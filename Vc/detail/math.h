@@ -210,20 +210,20 @@ static Vc_ALWAYS_INLINE doublev<Abi> sinSeries(const doublev<Abi> &x)
 }
 
 template <class Abi>
-Vc_ALWAYS_INLINE std::pair<floatv<Abi>, rebind_simd<int, floatv<Abi>>> foldInput(
+Vc_ALWAYS_INLINE std::pair<floatv<Abi>, rebind_simd_t<int, floatv<Abi>>> foldInput(
     floatv<Abi> x)
 {
     using V = floatv<Abi>;
     using C = detail::trig<Abi, float>;
-    using IV = rebind_simd<int, V>;
+    using IV = rebind_simd_t<int, V>;
 
     x = abs(x);
 #if defined(Vc_HAVE_FMA4) || defined(Vc_HAVE_FMA)
-    rebind_simd<int, V> quadrant =
+    rebind_simd_t<int, V> quadrant =
         static_simd_cast<IV>(x * C::_4_pi() + 1.f);  // prefer the fma here
     quadrant &= ~1;
 #else
-    rebind_simd<int, V> quadrant = static_simd_cast<IV>(x * C::_4_pi());
+    rebind_simd_t<int, V> quadrant = static_simd_cast<IV>(x * C::_4_pi());
     quadrant += quadrant & 1;
 #endif
     const V y = static_simd_cast<V>(quadrant);
@@ -233,12 +233,12 @@ Vc_ALWAYS_INLINE std::pair<floatv<Abi>, rebind_simd<int, floatv<Abi>>> foldInput
 }
 
 template <typename Abi>
-static Vc_ALWAYS_INLINE std::pair<doublev<Abi>, rebind_simd<int, doublev<Abi>>> foldInput(
-    doublev<Abi> x)
+static Vc_ALWAYS_INLINE std::pair<doublev<Abi>, rebind_simd_t<int, doublev<Abi>>>
+foldInput(doublev<Abi> x)
 {
     using V = doublev<Abi>;
     using C = detail::trig<Abi, double>;
-    using IV = rebind_simd<int, V>;
+    using IV = rebind_simd_t<int, V>;
 
     x = abs(x);
     V y = trunc(x / C::pi_4());  // * C::4_pi() would work, but is >twice as imprecise
@@ -330,28 +330,36 @@ Vc_MATH_CALL2_(atan2, Vc_ARG_AS_ARG1)
  * Calculate Taylor series with tuned coefficients.
  * Fix sign.
  */
-template <class Abi> detail::floatv<Abi> cos(detail::floatv<Abi> x)
+template <class T, class Abi, class = std::enable_if_t<std::is_floating_point<T>::value>>
+simd<T, Abi> cos(simd<T, Abi> x)
 {
-    using V = detail::floatv<Abi>;
+    using V = simd<T, Abi>;
     using M = typename V::mask_type;
-    using IV = detail::rebind_simd<int, V>;
 
-    IV quadrant;
-    const V z = detail::foldInput(x, quadrant);
-    const M sign = (x < V::Zero()) ^ simd_cast<M>(quadrant > 3);
-    quadrant(quadrant > 3) -= 4;
+    auto folded = foldInput(x);
+    const V &z = folded.first;
+    auto &quadrant = folded.second;
+    M sign = static_simd_cast<M>(quadrant > 3);
+    where(quadrant > 3, quadrant) -= 4;
+    sign ^= static_simd_cast<M>(quadrant > 1);
 
-    V y = sinSeries(z);
-    y(simd_cast<M>(quadrant == IV::One() || quadrant == 2)) = cosSeries(z);
-    y(sign) = -y;
+    V y = cosSeries(z);
+    where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = sinSeries(z);
+    where(sign, y) = -y;
+    Vc_DEBUG(cosine)
+        (Vc_PRETTY_PRINT(x))
+        (Vc_PRETTY_PRINT(sign))
+        (Vc_PRETTY_PRINT(z))
+        (Vc_PRETTY_PRINT(folded.second))
+        (Vc_PRETTY_PRINT(quadrant))
+        (Vc_PRETTY_PRINT(y));
     return y;
 }
-template <class Abi> detail::doublev<Abi> cos(detail::doublev<Abi> x);
-template <class Abi> detail::ldoublev<Abi> cos(detail::ldoublev<Abi> x);
 
-template <class Abi> detail::floatv<Abi> sin(detail::floatv<Abi> x)
+template <class T, class Abi, class = std::enable_if_t<std::is_floating_point<T>::value>>
+simd<T, Abi> sin(simd<T, Abi> x)
 {
-    using V = detail::floatv<Abi>;
+    using V = simd<T, Abi>;
     using M = typename V::mask_type;
 
     auto folded = foldInput(x);
@@ -373,44 +381,22 @@ template <class Abi> detail::floatv<Abi> sin(detail::floatv<Abi> x)
     return y;
 }
 
-template <class Abi> detail::doublev<Abi> sin(detail::doublev<Abi> x)
-{
-    using V = detail::doublev<Abi>;
-    using M = typename V::mask_type;
-
-    M sign = x < 0;
-    auto tmp = foldInput(x);
-    const V &z = tmp.first;
-    auto &quadrant = tmp.second;
-    sign ^= static_simd_cast<M>(quadrant > 3);
-    where(quadrant > 3, quadrant) -= 4;
-
-    V y = sinSeries(z);
-    where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = cosSeries(z);
-    where(sign, y) = -y;
-    Vc_DEBUG(sine)
-        (Vc_PRETTY_PRINT(x))
-        (Vc_PRETTY_PRINT(sign))
-        (Vc_PRETTY_PRINT(z))
-        (Vc_PRETTY_PRINT(tmp.second))
-        (Vc_PRETTY_PRINT(quadrant))
-        (Vc_PRETTY_PRINT(y));
-    return y;
-}
-
-template <class Abi> detail::ldoublev<Abi> sin(detail::ldoublev<Abi> x);
-
-template <> detail::floatv<simd_abi::scalar> sin(detail::floatv<simd_abi::scalar> x)
+template <>
+Vc_ALWAYS_INLINE detail::floatv<simd_abi::scalar> sin(detail::floatv<simd_abi::scalar> x)
 {
     return std::sin(detail::data(x));
 }
 
-template <> detail::doublev<simd_abi::scalar> sin(detail::doublev<simd_abi::scalar> x)
+template <>
+Vc_ALWAYS_INLINE detail::doublev<simd_abi::scalar> sin(
+    detail::doublev<simd_abi::scalar> x)
 {
     return std::sin(detail::data(x));
 }
 
-template <> detail::ldoublev<simd_abi::scalar> sin(detail::ldoublev<simd_abi::scalar> x)
+template <>
+Vc_ALWAYS_INLINE detail::ldoublev<simd_abi::scalar> sin(
+    detail::ldoublev<simd_abi::scalar> x)
 {
     return std::sin(detail::data(x));
 }
@@ -550,7 +536,68 @@ Vc_MATH_CALL_(log)
 Vc_MATH_CALL_(log10)
 Vc_MATH_CALL_(log1p)
 Vc_MATH_CALL_(log2)
-Vc_MATH_CALL_(logb)
+//Vc_MATH_CALL_(logb)
+static_assert(true, "");
+
+template <class T, class Abi, class = std::enable_if_t<std::is_floating_point<T>::value>>
+simd<T, Abi> logb(const simd<T, Abi> &x_)
+{
+    using V = simd<T, Abi>;
+    return Vc::detail::impl_or_fallback(
+        [](const auto &x) -> decltype(
+            V(Vc::detail::private_init,
+              Vc::detail::get_impl_t<decltype(x)>::logb(Vc::detail::data(x)))) {
+            return {Vc::detail::private_init,
+                    Vc::detail::get_impl_t<decltype(x)>::logb(Vc::detail::data(x))};
+        },
+        [](const V &x) -> V {
+            using namespace Vc::experimental;
+            using namespace Vc::detail;
+            auto is_normal = isnormal(x);
+
+            // work on abs(x) to reflect the return value on Linux for negative inputs
+            // (domain-error => implementation-defined value is returned)
+            const V abs_x = abs(x);
+
+            // exponent(x) returns the exponent value (bias removed) as simd<U> with
+            // integral U
+            auto &&exponent = [](const V &v) {
+                using namespace Vc::experimental;
+                using IV = rebind_simd_t<
+                    std::conditional_t<sizeof(T) == sizeof(llong), llong, int>, V>;
+                return (simd_reinterpret_cast<IV>(v) >>
+                        (std::numeric_limits<T>::digits - 1)) -
+                       (std::numeric_limits<T>::max_exponent - 1);
+            };
+            V r = static_simd_cast<V>(exponent(abs_x));
+            if (Vc_IS_LIKELY(all_of(is_normal))) {
+                // without corner cases (nan, inf, subnormal, zero) we have our answer:
+                return r;
+            }
+            const auto is_zero = x == 0;
+            const auto is_nan = isnan(x);
+            const auto is_inf = isinf(x);
+            where(is_zero, r) = -std::numeric_limits<T>::infinity();
+            where(is_nan, r) = x;
+            where(is_inf, r) = std::numeric_limits<T>::infinity();
+            is_normal |= is_zero || is_nan || is_inf;
+            if (all_of(is_normal)) {
+                // at this point everything but subnormals is handled
+                return r;
+            }
+            // subnormals repeat the exponent extraction after multiplication of the input
+            // with a floating point value that has 0x70 in its exponent (not too big for
+            // sp and large enough for dp)
+            const V scaled = abs_x * T(std::is_same<T, float>::value
+                                           ? detail::float_const<1, 0, 0x70>
+                                           : detail::double_const<1, 0, 0x70>);
+            V scaled_exp = static_simd_cast<V>(exponent(scaled) - 0x70);
+            Vc_DEBUG(logarithm)(x, scaled)(is_normal)(r, scaled_exp);
+            where(is_normal, scaled_exp) = r;
+            return scaled_exp;
+        },
+        x_);
+}
 
 template <class Abi>
 detail::floatv<Abi> modf(detail::floatv<Abi> value, detail::floatv<Abi> * iptr);
@@ -834,6 +881,11 @@ template <class T> struct autocvt_to_simd<T, true> {
     }
 };
 #define Vc_FIXED_SIZE_FWD_(name_)                                                        \
+    struct name_##_fwd {                                                                 \
+        template <class Impl, class Arg0, class... Args>                                 \
+        Vc_INTRINSIC_L auto operator()(Impl impl, Arg0 &&arg0,                           \
+                                       Args &&... args) noexcept Vc_INTRINSIC_R;         \
+    };                                                                                   \
     template <class Impl, class Arg0, class... Args>                                     \
     Vc_INTRINSIC auto name_##_fwd::operator()(Impl, Arg0 &&arg0,                         \
                                               Args &&... args) noexcept                  \

@@ -43,6 +43,19 @@ namespace detail
 // unused{{{1
 template <class T> static constexpr void unused(T && ) {}
 
+// custom diagnostics for UB {{{1
+#if defined Vc_GCC
+template <class T>
+[[gnu::weak, gnu::noinline,
+gnu::warning("Your code is invoking undefined behavior. Please fix your code.")]]
+const T &warn_ub(const T &x);
+template <class T>
+[[gnu::weak, gnu::noinline]]
+const T &warn_ub(const T &x) { return x; }
+#else
+template <class T> const T &warn_ub(const T &x) { return x; }
+#endif
+
 // dummy_assert {{{1
 #ifdef NDEBUG
 struct dummy_assert {
@@ -424,13 +437,6 @@ Vc_INTRINSIC const typename V::value_type &to_value_type_or_member_type(
 {
     return x;
 }
-
-// rebind_simd {{{1
-template <class T, class SimdType, size_t N = SimdType::size()>
-using rebind_simd = simd<T, typename abi_for_size<T, N>::type>;
-
-template <class T, class SimdType, size_t N = SimdType::size()>
-using rebind_mask = simd_mask<T, typename abi_for_size<T, N>::type>;
 
 // constexpr_if {{{1
 template <class IfFun, class ElseFun>

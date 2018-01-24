@@ -48,17 +48,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
-#define Vc_FIXED_SIZE_FWD_(name_)                                                        \
-    struct name_##_fwd {                                                                 \
-        template <class Impl, class Arg0, class... Args>                                 \
-        Vc_INTRINSIC_L auto operator()(Impl impl, Arg0 &&arg0,                           \
-                                       Args &&... args) noexcept Vc_INTRINSIC_R;         \
-    }
-Vc_FIXED_SIZE_FWD_(frexp);
-Vc_FIXED_SIZE_FWD_(sin);
-Vc_FIXED_SIZE_FWD_(cos);
-#undef Vc_FIXED_SIZE_FWD_
-
 // select_best_vector_type_t<T, N>{{{1
 /**
  * \internal
@@ -487,14 +476,21 @@ public:
     template <class T, class... As>                                                      \
     static inline simd_tuple<T, As...> name_(simd_tuple<T, As...> x) noexcept            \
     {                                                                                    \
-        return apply([](auto impl, auto xx) { return impl.name_(xx); }, x);              \
-    }
-    Vc_APPLY_ON_TUPLE_(sqrt)
-    Vc_APPLY_ON_TUPLE_(abs)
-    Vc_APPLY_ON_TUPLE_(logb)
-    Vc_APPLY_ON_TUPLE_(trunc)
-    Vc_APPLY_ON_TUPLE_(floor)
-    Vc_APPLY_ON_TUPLE_(ceil)
+        return apply(                                                                    \
+            [](auto impl, auto xx) {                                                     \
+                using Vc::name_;                                                         \
+                using V = typename decltype(impl)::simd_type;                            \
+                return detail::data(name_(V(detail::private_init, xx)));                 \
+            },                                                                           \
+            x);                                                                          \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+        Vc_APPLY_ON_TUPLE_(sqrt);
+        Vc_APPLY_ON_TUPLE_(abs);
+        Vc_APPLY_ON_TUPLE_(logb);
+        Vc_APPLY_ON_TUPLE_(trunc);
+        Vc_APPLY_ON_TUPLE_(floor);
+        Vc_APPLY_ON_TUPLE_(ceil);
 #undef Vc_APPLY_ON_TUPLE_
 
     template <class T, class... As>

@@ -17,6 +17,7 @@
 #include "detail/avx.h"
 #include "detail/avx512.h"
 #include "detail/neon.h"
+#include "detail/math.h"
 #include "detail/fixed_size.h"
 
 #if defined Vc_GCC && Vc_GCC >= 0x60000

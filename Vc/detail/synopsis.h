@@ -127,6 +127,7 @@ template <typename T> using default_abi = compatible<T>;
 }  // namespace simd_abi
 
 // traits {{{1
+// is_abi_tag {{{2
 template <class T> struct is_abi_tag : public std::false_type {};
 template <> struct is_abi_tag<simd_abi::scalar> : public std::true_type {};
 template <int N> struct is_abi_tag<simd_abi::fixed_size<N>> : public std::true_type {};
@@ -136,12 +137,14 @@ template <> struct is_abi_tag<simd_abi::avx512> : public std::true_type {};
 template <> struct is_abi_tag<simd_abi::neon> : public std::true_type {};
 template <class T> constexpr bool is_abi_tag_v = is_abi_tag<T>::value;
 
+// is_simd(_mask) {{{2
 template <class T> struct is_simd : public std::false_type {};
 template <class T> constexpr bool is_simd_v = is_simd<T>::value;
 
 template <class T> struct is_simd_mask : public std::false_type {};
 template <class T> constexpr bool is_simd_mask_v = is_simd_mask<T>::value;
 
+// simd_size {{{2
 template <class T, class Abi = simd_abi::detail::default_abi<T>> struct simd_size;
 template <class T> struct simd_size<T, simd_abi::scalar> : public detail::size_constant<1> {};
 template <class T> struct simd_size<T, simd_abi::sse   > : public detail::size_constant<16 / sizeof(T)> {};
@@ -152,6 +155,7 @@ template <class T, int N> struct simd_size<T, simd_abi::fixed_size<N>> : public 
 template <class T, class Abi = simd_abi::detail::default_abi<T>>
 constexpr size_t simd_size_v = simd_size<T, Abi>::value;
 
+// abi_for_size {{{2
 namespace detail
 {
 template <class T, size_t N, bool, bool> struct abi_for_size_impl;
@@ -234,17 +238,56 @@ template <> struct abi_for_size_impl< schar, 16, true, true> { using type = simd
 template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = simd_abi::neon; };
 #endif
 }  // namespace detail
-template <class T, size_t N>
+/**
+ * \tparam T    The requested `value_type` for the elements.
+ * \tparam N    The requested number of elements.
+ * \tparam Abis This parameter is ignored, since this implementation cannot make any use
+ *              of it. Either a good native ABI is matched and used as `type` alias, or
+ *              the `fixed_size<N>` ABI is used, which internally is built from the best
+ *              matching native ABIs.
+ */
+template <class T, size_t N, class... Abis>
 struct abi_for_size
     : public detail::abi_for_size_impl<T, N, (N <= simd_abi::max_fixed_size),
                                        std::is_arithmetic<T>::value> {
 };
-template <size_t N> struct abi_for_size<bool, N> {
+template <size_t N, class... Abis> struct abi_for_size<bool, N, Abis...> {
 };
-template <class T> struct abi_for_size<T, 0> {
+template <class T, class... Abis> struct abi_for_size<T, 0, Abis...> {
 };
-template <class T, size_t N> using abi_for_size_t = typename abi_for_size<T, N>::type;
+template <class T, size_t N, class... Abis>
+using abi_for_size_t = typename abi_for_size<T, N, Abis...>::type;
 
+namespace experimental
+{
+// rebind_simd {{{2
+template <class T, class V> struct rebind_simd;
+template <class T, class U, class Abi> struct rebind_simd<T, simd<U, Abi>> {
+    using type = simd<T, abi_for_size_t<T, simd_size_v<U, Abi>, Abi>>;
+};
+template <class T, class U, class Abi> struct rebind_simd<T, simd_mask<U, Abi>> {
+    using type = simd_mask<T, abi_for_size_t<T, simd_size_v<U, Abi>, Abi>>;
+};
+template <class T, class V> using rebind_simd_t = typename rebind_simd<T, V>::type;
+
+// resize_simd {{{2
+template <int N, class V> struct resize_simd;
+template <int N, class T, class Abi> struct resize_simd<N, simd<T, Abi>> {
+    using type = simd<T, abi_for_size_t<T, N, Abi>>;
+};
+template <int N, class T, class Abi> struct resize_simd<N, simd_mask<T, Abi>> {
+    using type = simd_mask<T, abi_for_size_t<T, N, Abi>>;
+};
+template <int N, class V> using resize_simd_t = typename resize_simd<N, V>::type;
+
+}  // namespace experimental
+namespace detail
+{
+using Vc::experimental::rebind_simd_t;
+using Vc::experimental::resize_simd_t;
+}  // namespace detail
+
+// memory_alignment {{{2
 template <class T, class U = typename T::value_type>
 struct memory_alignment
     : public detail::size_constant<detail::next_power_of_2(sizeof(U) * T::size())> {
@@ -320,6 +363,9 @@ template <class U, class A1, class T, class A0>
 struct static_simd_cast_return_type2<simd<U, A1>, simd<T, A0>>
     : public std::enable_if<(simd_size_v<U, A1> == simd_size_v<T, A0>), simd<T, A0>> {
 };
+
+// defined in scalar.h
+template <class T> T convert_mask(bool x);
 
 template <class To, class, class, class Native, class From>
 Vc_INTRINSIC To mask_cast_impl(const Native *, const From &x)
@@ -519,7 +565,7 @@ masked_simd_impl<T, A> masked_simd(const typename simd<T, A>::mask_type &k,
 #endif  // Vc_EXPERIMENTAL
 
 // where_expression {{{1
-template <typename M, typename T> class const_where_expression
+template <typename M, typename T> class const_where_expression  //{{{2
 {
     using V = std::remove_const_t<T>;
     struct Wrapper {
@@ -564,7 +610,7 @@ public:
     }
 };
 
-template <typename T> class const_where_expression<bool, T>
+template <typename T> class const_where_expression<bool, T>  //{{{2
 {
     using M = bool;
     using V = std::remove_const_t<T>;
@@ -606,6 +652,7 @@ public:
     }
 };
 
+// where_expression {{{2
 template <typename M, typename T>
 class where_expression : public const_where_expression<M, T>
 {
@@ -708,6 +755,7 @@ public:
 #endif  // Vc_EXPERIMENTAL
 };
 
+// where_expression<bool> {{{2
 template <typename T>
 class where_expression<bool, T> : public const_where_expression<bool, T>
 {
@@ -761,6 +809,7 @@ public:
     }
 };
 
+// where_expression<M, tuple<...>> {{{2
 #ifdef Vc_EXPERIMENTAL
 template <typename M, typename... Ts> class where_expression<M, std::tuple<Ts &...>>
 {
@@ -851,6 +900,95 @@ Vc_INTRINSIC const_where_expression<bool, const T> where(detail::exact_bool k, c
 }
 template <class T, class A> void where(bool k, simd<T, A> &d) = delete;
 template <class T, class A> void where(bool k, const simd<T, A> &d) = delete;
+
+// experimental mask iterations {{{1
+namespace experimental
+{
+template <size_t N> class where_range
+{
+    const std::bitset<N> bits;
+
+public:
+    where_range(std::bitset<N> b) : bits(b) {}
+
+    class iterator
+    {
+#ifdef Vc_MSVC
+        unsigned long mask;
+        unsigned long bit;
+#else
+        size_t mask;
+        size_t bit;
+#endif
+
+        void next_bit()
+        {
+#ifdef Vc_GNU_ASM
+            bit = __builtin_ctzl(mask);
+#elif defined(Vc_MSVC)
+            _BitScanForward(&bit, mask);
+#else
+#error "Not implemented yet."
+#endif
+        }
+        void reset_lsb()
+        {
+            // 01100100 - 1 = 01100011
+            mask &= (mask - 1);
+            /*
+#ifdef Vc_GNU_ASM
+            __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
+#elif defined(_WIN64)
+            _bittestandreset64(&mask, bit);
+#elif defined(_WIN32)
+            _bittestandreset(&mask, bit);
+#else
+#error "Not implemented yet. Please contact vc-devel@compeng.uni-frankfurt.de"
+#endif
+            */
+        }
+    public:
+        iterator(decltype(mask) m) : mask(m) { next_bit(); }
+        iterator(const iterator &) = default;
+        iterator(iterator &&) = default;
+
+        Vc_ALWAYS_INLINE size_t operator->() const { return bit; }
+        Vc_ALWAYS_INLINE size_t operator*() const { return bit; }
+
+        Vc_ALWAYS_INLINE iterator &operator++()
+        {
+            reset_lsb();
+            next_bit();
+            return *this;
+        }
+        Vc_ALWAYS_INLINE iterator operator++(int)
+        {
+            iterator tmp = *this;
+            reset_lsb();
+            next_bit();
+            return tmp;
+        }
+
+        Vc_ALWAYS_INLINE bool operator==(const iterator &rhs) const
+        {
+            return mask == rhs.mask;
+        }
+        Vc_ALWAYS_INLINE bool operator!=(const iterator &rhs) const
+        {
+            return mask != rhs.mask;
+        }
+    };
+
+    iterator begin() const { return bits.to_ullong(); }
+    iterator end() const { return 0; }
+};
+
+template <class T, class A> where_range<simd_size_v<T, A>> where(const simd_mask<T, A> &k)
+{
+    return k.to_bitset();
+}
+
+}  // namespace experimental
 
 // reductions [simd.reductions] {{{1
 template <class BinaryOperation = std::plus<>, class T, class Abi>

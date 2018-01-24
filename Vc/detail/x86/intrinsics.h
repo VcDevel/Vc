@@ -584,6 +584,13 @@ template<> Vc_INTRINSIC Vc_CONST __m512i zero<__m512i>() { return _mm512_setzero
 template<> Vc_INTRINSIC Vc_CONST __m512d zero<__m512d>() { return _mm512_setzero_pd(); }
 #endif
 
+// auto_cvt{{{1
+template <class T> struct auto_cvt_t {
+    const T x;
+    template <class U> Vc_INTRINSIC operator U() const { return intrin_cast<U>(x); }
+};
+template <class T> auto_cvt_t<T> auto_cvt(T x) { return {x}; }
+
 // one16/32{{{1
 Vc_INTRINSIC Vc_CONST __m128  one16( float) { return _mm_load_ps(sse_const::oneFloat); }
 
@@ -944,6 +951,39 @@ template <class T> Vc_INTRINSIC auto broadcast(T x, size_constant<64>)
     return broadcast64(x);
 }
 #endif  // Vc_HAVE_AVX512F
+
+// broadcast<T> {{{1
+template <class T> struct broadcast_t {
+    const T scalar;
+    operator __m128i() { return broadcast16(scalar); }
+#ifdef Vc_HAVE_AVX
+    operator __m256i() { return broadcast32(scalar); }
+#endif
+#ifdef Vc_HAVE_AVX512F
+    operator __m512i() { return broadcast64(scalar); }
+#endif
+};
+template <> struct broadcast_t<float> {
+    const float scalar;
+    operator __m128() { return broadcast16(scalar); }
+#ifdef Vc_HAVE_AVX
+    operator __m256() { return broadcast32(scalar); }
+#endif
+#ifdef Vc_HAVE_AVX512F
+    operator __m512() { return broadcast64(scalar); }
+#endif
+};
+template <> struct broadcast_t<double> {
+    const double scalar;
+    operator __m128d() { return broadcast16(scalar); }
+#ifdef Vc_HAVE_AVX
+    operator __m256d() { return broadcast32(scalar); }
+#endif
+#ifdef Vc_HAVE_AVX512F
+    operator __m512d() { return broadcast64(scalar); }
+#endif
+};
+template <class T> broadcast_t<T> broadcast(T scalar) { return {scalar}; }
 
 // lowest16/32/64{{{1
 template <class T>

@@ -1329,29 +1329,11 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
 #ifdef Vc_HAVE_AVX512VL
     static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb(simd_member_type<float> v)
     {
-        return _mm_fixupimm_ps(logb_positive(abs(v)), v, broadcast16(0x00550433), 0x00);
+        return _mm_fixupimm_ps(_mm_getexp_ps(abs(v)), v, broadcast16(0x00550433), 0x00);
     }
     static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb(simd_member_type<double> v)
     {
-        return _mm_fixupimm_pd(logb_positive(abs(v)), v, broadcast16(0x00550433), 0x00);
-    }
-#else   // Vc_HAVE_AVX512VL
-    template <class T>
-    static Vc_INTRINSIC Vc_CONST simd_member_type<T> logb(simd_member_type<T> v)
-    {
-        const auto is_zero = equal_to(v, simd_member_type<T>(broadcast16(T())));
-        const auto is_negative = less(v, simd_member_type<T>(broadcast16(T())));
-        simd_member_type<T> r = logb_positive(v);
-        // TODO: is_nan, is_infinity
-        if (Vc_IS_UNLIKELY(
-                any_of(simd_mask<T>(detail::private_init, or_(is_zero, is_negative))))) {
-            masked_assign(is_zero, r,
-                          broadcast16(std::is_same<T, float>::value ? T(-HUGE_VALF)
-                                                                    : T(-HUGE_VAL)));
-            masked_assign(is_negative, r,
-                          broadcast16(std::numeric_limits<T>::infinity()));
-        }
-        return r;
+        return _mm_fixupimm_pd(_mm_getexp_pd(abs(v)), v, broadcast16(0x00550433), 0x00);
     }
 #endif  // Vc_HAVE_AVX512VL
 
