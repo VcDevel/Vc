@@ -574,6 +574,26 @@ template <class T, size_t N> Vc_INTRINSIC Storage<T, N> bit_xor(Storage<T, N> a,
 }
 
 // bit_shift_left{{{1
+#ifdef __GNUC__
+#define Vc_SHIFT_LEFT_CONSTEXPR_8(v_, n_)                                                \
+    if (__builtin_constant_p(n_)) {                                                      \
+        if (n_ == 0) {                                                                   \
+            return v_;                                                                   \
+        } else if (n_ == 1) {                                                            \
+            return plus(v_, v_);                                                         \
+        } else if (n_ > 1 && n_ < 8) {                                                   \
+            const uchar mask = (0xff << n_) & 0xff;                                      \
+            return and_(bit_shift_left(Storage<ushort, v_.size() / 2>(v_.v()), n_),      \
+                        broadcast(mask));                                                \
+        } else {                                                                         \
+            return detail::warn_ub(v_);                                                  \
+        }                                                                                \
+    }                                                                                    \
+    Vc_NOTHING_EXPECTING_SEMICOLON
+#else
+#define Vc_SHIFT_LEFT_CONSTEXPR_8(v_, n_) Vc_NOTHING_EXPECTING_SEMICOLON
+#endif
+
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 template <class T, size_t N>
 Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, Storage<T, N> b)
@@ -588,6 +608,42 @@ Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, int b)
     static_assert(std::is_integral<T>::value, "bit_shift_left is only supported for integral types");
     return a.builtin() << detail::data(simd<T, abi_for_size_t<T, N>>(b)).builtin();
 }
+
+#ifdef Vc_GCC
+// GCC needs help to optimize better (cf.
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83894)
+Vc_INTRINSIC Storage<uchar, 16> bit_shift_left(Storage<uchar, 16> a, int b)
+{
+    Vc_SHIFT_LEFT_CONSTEXPR_8(a, b);
+    const auto mask = xor_(_mm_sll_epi16(_mm_set1_epi16(0xff), _mm_cvtsi32_si128(b)),
+                           _mm_set1_epi16(ushort(0xff00u)));
+    return and_(_mm_sll_epi16(a, _mm_cvtsi32_si128(b)), mask);
+}
+Vc_INTRINSIC Storage<schar, 16> bit_shift_left(Storage<schar, 16> a, int b)
+{
+    Vc_SHIFT_LEFT_CONSTEXPR_8(a, b);
+    const auto mask = xor_(_mm_sll_epi16(_mm_set1_epi16(0xff), _mm_cvtsi32_si128(b)),
+                           _mm_set1_epi16(ushort(0xff00u)));
+    return and_(_mm_sll_epi16(a, _mm_cvtsi32_si128(b)), mask);
+}
+
+#ifdef Vc_HAVE_AVX2
+Vc_INTRINSIC Storage<uchar, 32> bit_shift_left(Storage<uchar, 32> a, int b)
+{
+    Vc_SHIFT_LEFT_CONSTEXPR_8(a, b);
+    const auto mask = xor_(_mm256_sll_epi16(_mm256_set1_epi16(0xff), _mm_cvtsi32_si128(b)),
+                           _mm256_set1_epi16(ushort(0xff00u)));
+    return and_(_mm256_sll_epi16(a, _mm_cvtsi32_si128(b)), mask);
+}
+Vc_INTRINSIC Storage<schar, 32> bit_shift_left(Storage<schar, 32> a, int b)
+{
+    Vc_SHIFT_LEFT_CONSTEXPR_8(a, b);
+    const auto mask = xor_(_mm256_sll_epi16(_mm256_set1_epi16(0xff), _mm_cvtsi32_si128(b)),
+                           _mm256_set1_epi16(ushort(0xff00u)));
+    return and_(_mm256_sll_epi16(a, _mm_cvtsi32_si128(b)), mask);
+}
+#endif  // Vc_HAVE_AVX2
+#endif  // Vc_GCC
 #else   // Vc_USE_BUILTIN_VECTOR_TYPES
 
 // generic scalar fallback
@@ -607,6 +663,18 @@ Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, int b)
 }
 
 #ifdef Vc_HAVE_SSE2
+Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, int b)
+{
+    Vc_SHIFT_LEFT_CONSTEXPR_8(a, b);
+    const uchar mask = (0xff << b) & 0xff;
+    return and_(_mm_sll_epi16(a, _mm_cvtsi32_si128(b)), broadcast16(mask));
+}
+
+Vc_INTRINSIC x_i08 bit_shift_left(x_i08 a, int b)
+{
+    return x_i08(bit_shift_left(x_u08(a), b));
+}
+
 Vc_INTRINSIC x_u16 bit_shift_left(x_u16 a, int b)
 {
 #ifdef __GNUC__
@@ -713,14 +781,14 @@ Vc_INTRINSIC x_i16 bit_shift_left(x_i16 a, x_i16 b)
 {
     // left shift into or over the sign bit is UB => OR suffices
     return _mm_blend_epi16(
-        _mm_sllv_epi32(a, and_(b, broadcast16(0x0000ffffu))),
-        _mm_sllv_epi32(and_(a, broadcast16(0xffff0000u)), _mm_srli_epi32(b, 16)), 0xaa);
+        _mm_sllv_epi32(a, and_(b, broadcast(0x0000ffffu))),
+        _mm_sllv_epi32(and_(a, broadcast(0xffff0000u)), _mm_srli_epi32(b, 16)), 0xaa);
 }
 Vc_INTRINSIC x_u16 bit_shift_left(x_u16 a, x_u16 b)
 {
     return _mm_blend_epi16(
-        _mm_sllv_epi32(a, and_(b, broadcast16(0x0000ffffu))),
-        _mm_sllv_epi32(and_(a, broadcast16(0xffff0000u)), _mm_srli_epi32(b, 16)), 0xaa);
+        _mm_sllv_epi32(a, and_(b, broadcast(0x0000ffffu))),
+        _mm_sllv_epi32(and_(a, broadcast(0xffff0000u)), _mm_srli_epi32(b, 16)), 0xaa);
 }
 Vc_INTRINSIC x_i08 bit_shift_left(x_i08 a, x_i08 b)
 {
@@ -743,10 +811,10 @@ Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, x_u08 b)
     // => valid input range for each element of b is [0, 7]
     // => only the 3 low bits of b are relevant
     // do a =<< 4 where b[2] is set
-    a = _mm_blendv_epi8(a, and_(slli_epi16<4>(a), broadcast16(0xf0f0f0f0u)),
+    a = _mm_blendv_epi8(a, and_(slli_epi16<4>(a), broadcast(0xf0f0f0f0u)),
                         slli_epi16<5>(b));
     // do a =<< 2 where b[1] is set
-    a = _mm_blendv_epi8(a, and_(slli_epi16<2>(a), broadcast16(0xfcfcfcfcu)),
+    a = _mm_blendv_epi8(a, and_(slli_epi16<2>(a), broadcast(0xfcfcfcfcu)),
                         slli_epi16<6>(b));
     // do a =<< 1 where b[0] is set
     return _mm_blendv_epi8(a, _mm_add_epi8(a, a), slli_epi16<7>(b));
@@ -817,6 +885,8 @@ Vc_INTRINSIC z_u08 bit_shift_left(z_u08 a, z_u08 b) { return z_u08(bit_shift_lef
 #endif  // Vc_HAVE_AVX512BW
 #endif  // Vc_HAVE_AVX2
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
+
+#undef Vc_SHIFT_LEFT_CONSTEXPR_8
 
 // bit_shift_right{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
