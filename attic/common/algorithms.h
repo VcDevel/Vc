@@ -201,12 +201,25 @@ simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 }
 
 #ifdef Vc_CXX17
+#ifdef Vc_GCC
+// GCC specific workaround because stdlibc++ doesn't have
+// std::for_each_n implemented yet.
+template <typename InputIt, typename UnaryFunction>
+inline enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction>
+simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
+{
+    for (std::size_t i = 0; i < count; ++i, static_cast<void>(++first))
+        std::apply(f, *first);
+    return first;
+}
+#else
 template <typename InputIt, typename UnaryFunction>
 inline enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction>
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {
     return std::for_each_n(first, count, std::move(f));
 }
+#endif
 #endif
 
 Vc_VERSIONED_NAMESPACE_END
