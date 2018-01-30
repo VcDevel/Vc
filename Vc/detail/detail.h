@@ -458,14 +458,32 @@ Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, ElseFun &&else_fun)
                                      std::forward<IfFun>(if_fun),
                                      std::forward<ElseFun>(else_fun));
 }
+
+template <bool Condition, class IfFun> Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun)
+{
+    return impl_or_fallback_dispatch(Vc::detail::bool_constant<Condition>(),
+                                     std::forward<IfFun>(if_fun), [](int) {});
+}
+
+template <bool Condition, bool Condition2, class IfFun, class... Remainder>
+Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, Vc::detail::bool_constant<Condition2>,
+                               Remainder &&... rem)
+{
+    return impl_or_fallback_dispatch(
+        Vc::detail::bool_constant<Condition>(), std::forward<IfFun>(if_fun),
+        [&](auto) { return constexpr_if<Condition2>(std::forward<Remainder>(rem)...); });
+}
+
 #ifdef __cpp_if_constexpr
-#define Vc_CONSTEXPR_IF_RETURNING(condition_) if constexpr (condition_) {
-#define Vc_CONSTEXPR_IF(condition_) if constexpr (condition_) {
+#define Vc_CONSTEXPR_IF_RETURNING(...) if constexpr (__VA_ARGS__) {
+#define Vc_CONSTEXPR_IF(...) if constexpr (__VA_ARGS__) {
+#define Vc_CONSTEXPR_ELSE_IF(...) } else if constexpr (__VA_ARGS__) {
 #define Vc_CONSTEXPR_ELSE } else {
 #define Vc_CONSTEXPR_ENDIF }
 #else
-#define Vc_CONSTEXPR_IF_RETURNING(condition_) return Vc::detail::constexpr_if<(condition_)>([&](auto) {
-#define Vc_CONSTEXPR_IF(condition_) Vc::detail::constexpr_if<(condition_)>([&](auto) {
+#define Vc_CONSTEXPR_IF_RETURNING(...) return Vc::detail::constexpr_if<(__VA_ARGS__)>([&](auto) {
+#define Vc_CONSTEXPR_IF(...) Vc::detail::constexpr_if<(__VA_ARGS__)>([&](auto) {
+#define Vc_CONSTEXPR_ELSE_IF(...) }, Vc::detail::bool_constant<(__VA_ARGS__)>(), [&](auto) {
 #define Vc_CONSTEXPR_ELSE }, [&](auto) {
 #define Vc_CONSTEXPR_ENDIF });
 #endif
