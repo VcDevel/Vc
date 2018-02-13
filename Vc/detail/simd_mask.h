@@ -34,12 +34,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 
-#ifdef Vc_MSVC
-#pragma warning(push)
-#pragma warning(disable : 4624)  // "warning C4624: 'Vc::v2::simd_mask<T,A>': destructor
-                                 // was implicitly defined as deleted", yes, that's the
-                                 // intention. No need to warn me about it.
-#endif
+Vc_MSVC_WARNING_(push)
+Vc_MSVC_WARNING_(disable : 4624)  // "warning C4624: 'Vc::v2::simd_mask<T,A>': destructor
+                                  // was implicitly defined as deleted", yes, that's the
+                                  // intention. No need to warn me about it.
 
 template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::mask_base
 {
@@ -197,9 +195,7 @@ private:
         typename traits::mask_member_type d;
 };
 
-#ifdef Vc_MSVC
-#pragma warning(pop)
-#endif
+Vc_MSVC_WARNING_(pop)
 
 namespace detail
 {

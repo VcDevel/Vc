@@ -127,11 +127,12 @@ TEST_TYPES(V, generators, all_test_types)  //{{{1
             !(std::is_same<T, schar>::value));
     COMPARE(sfinae_is_callable<float (&)(int)>(call_generator<V>()),
             (std::is_floating_point<T>::value));
-#pragma warning(disable: 4018)
+
+    Vc_MSVC_WARNING_(disable: 4018)
     COMPARE(sfinae_is_callable<ullong (&)(int)>(call_generator<V>()),
             std::numeric_limits<T>::max() >= std::numeric_limits<ullong>::max() &&
                 std::numeric_limits<T>::digits >= std::numeric_limits<ullong>::digits);
-#pragma warning(default: 4018)
+    Vc_MSVC_WARNING_(default: 4018)
 }
 
 template <class A, class B, class Expected = A> void binary_op_return_type()  //{{{1

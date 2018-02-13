@@ -39,6 +39,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 // }}}
 
+// MSVC warning pragmas {{{
+#if defined(_MSC_VER)
+#define Vc_MSVC_WARNING_(...) __pragma(warning(__VA_ARGS__))
+#else
+#define Vc_MSVC_WARNING_(...)
+#endif
+// }}}
+
 // warning for Vc 1.x code {{{
 #if defined VC_IMPL || defined Vc_IMPL
 Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "

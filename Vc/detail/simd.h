@@ -33,12 +33,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 
-#ifdef Vc_MSVC
-#pragma warning(push)
-#pragma warning(disable : 4624)  // "warning C4624: 'Vc::v2::simd<T,A>': destructor
-                                 // was implicitly defined as deleted", yes, that's the
-                                 // intention. No need to warn me about it.
-#endif
+Vc_MSVC_WARNING_(push)
+Vc_MSVC_WARNING_(disable : 4624)  // "warning C4624: 'Vc::v2::simd<T,A>': destructor
+                                  // was implicitly defined as deleted", yes, that's the
+                                  // intention. No need to warn me about it.
 
 namespace detail
 {
@@ -377,9 +375,7 @@ private:
     alignas(traits::simd_member_alignment) member_type d;
 };
 
-#ifdef Vc_MSVC
-#pragma warning(pop)
-#endif
+Vc_MSVC_WARNING_(pop)
 
 // detail::data {{{
 namespace detail
