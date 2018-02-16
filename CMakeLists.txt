@@ -21,7 +21,7 @@ include (OptimizeForArchitecture)
 
 vc_determine_compiler()
 
-if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(x86|AMD64|amd64)")
+if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(i686|x86|AMD64|amd64)")
    set(Vc_X86 TRUE)
    find_package(MIC)
 elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "(arm|aarch32|aarch64)")
