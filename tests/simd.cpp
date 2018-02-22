@@ -1114,11 +1114,17 @@ TEST_TYPES(V, operator_conversions, current_native_test_types)  //{{{2
 TEST_TYPES(V, reductions, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
-    V x = 1;
-    COMPARE(reduce(x), T(V::size()));
-    COMPARE(Vc::reduce<std::multiplies<>>(x), T(1));
-    x = make_vec<V>({1, 2}, 2);
-    COMPARE(reduce(x), T((1 + V::size()) * V::size() / 2));
+    COMPARE(reduce(V(1)), T(V::size()));
+    COMPARE(Vc::reduce<std::multiplies<>>(V(1)), T(1));
+    COMPARE(reduce(V([](int i) { return i & 1; })), T(V::size() / 2));
+    COMPARE(reduce(V([](int i) { return i % 3; })),
+            T(3 * (V::size() / 3)    // 0+1+2 for every complete 3 elements in V
+              + (V::size() % 3) / 2  // 0->0, 1->0, 2->1 adjustment
+              ));
+    if ((1 + V::size()) * V::size() / 2 <= std::numeric_limits<T>::max()) {
+        COMPARE(reduce(V([](int i) { return i + 1; })),
+                T((1 + V::size()) * V::size() / 2));
+    }
 
     const V y = 2;
     COMPARE(reduce(y), T(2 * V::size()));
