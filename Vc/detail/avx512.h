@@ -82,7 +82,7 @@ template <> struct bool_storage_member_type<32> { using type = __mmask32; };
 template <> struct bool_storage_member_type<64> { using type = __mmask64; };
 #endif  // Vc_HAVE_AVX512F
 
-// traits<T, simd_abi::avx512>{{{1
+// traits<T, simd_abi::Avx512>{{{1
 template <class T> struct avx512_traits {
     static_assert(sizeof(T) <= 8,
                   "AVX can only implement operations on element types with sizeof <= 8");
@@ -98,7 +98,7 @@ template <class T> struct avx512_traits {
     struct simd_base {
         explicit operator simd_cast_type() const
         {
-            return data(*static_cast<const simd<T, simd_abi::avx512> *>(this));
+            return data(*static_cast<const simd<T, simd_abi::Avx512> *>(this));
         }
     };
 
@@ -120,27 +120,27 @@ template <class T> struct avx512_traits {
     struct mask_base {
         explicit operator typename mask_member_type::VectorType() const
         {
-            return data(*static_cast<const simd_mask<T, simd_abi::avx512> *>(this));
+            return data(*static_cast<const simd_mask<T, simd_abi::Avx512> *>(this));
         }
     };
 #endif  // Vc_HAVE_AVX512_ABI
 };
 
 #ifdef Vc_HAVE_AVX512_ABI
-template <> struct traits<double, simd_abi::avx512> : public avx512_traits<double> {};
-template <> struct traits< float, simd_abi::avx512> : public avx512_traits< float> {};
-template <> struct traits<ullong, simd_abi::avx512> : public avx512_traits<ullong> {};
-template <> struct traits< llong, simd_abi::avx512> : public avx512_traits< llong> {};
-template <> struct traits< ulong, simd_abi::avx512> : public avx512_traits< ulong> {};
-template <> struct traits<  long, simd_abi::avx512> : public avx512_traits<  long> {};
-template <> struct traits<  uint, simd_abi::avx512> : public avx512_traits<  uint> {};
-template <> struct traits<   int, simd_abi::avx512> : public avx512_traits<   int> {};
+template <> struct traits<double, simd_abi::Avx512> : public avx512_traits<double> {};
+template <> struct traits< float, simd_abi::Avx512> : public avx512_traits< float> {};
+template <> struct traits<ullong, simd_abi::Avx512> : public avx512_traits<ullong> {};
+template <> struct traits< llong, simd_abi::Avx512> : public avx512_traits< llong> {};
+template <> struct traits< ulong, simd_abi::Avx512> : public avx512_traits< ulong> {};
+template <> struct traits<  long, simd_abi::Avx512> : public avx512_traits<  long> {};
+template <> struct traits<  uint, simd_abi::Avx512> : public avx512_traits<  uint> {};
+template <> struct traits<   int, simd_abi::Avx512> : public avx512_traits<   int> {};
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-template <> struct traits<ushort, simd_abi::avx512> : public avx512_traits<ushort> {};
-template <> struct traits< short, simd_abi::avx512> : public avx512_traits< short> {};
-template <> struct traits< uchar, simd_abi::avx512> : public avx512_traits< uchar> {};
-template <> struct traits< schar, simd_abi::avx512> : public avx512_traits< schar> {};
-template <> struct traits<  char, simd_abi::avx512> : public avx512_traits<  char> {};
+template <> struct traits<ushort, simd_abi::Avx512> : public avx512_traits<ushort> {};
+template <> struct traits< short, simd_abi::Avx512> : public avx512_traits< short> {};
+template <> struct traits< uchar, simd_abi::Avx512> : public avx512_traits< uchar> {};
+template <> struct traits< schar, simd_abi::Avx512> : public avx512_traits< schar> {};
+template <> struct traits<  char, simd_abi::Avx512> : public avx512_traits<  char> {};
 #endif  // Vc_HAVE_FULL_AVX512_ABI
 #endif  // Vc_HAVE_AVX512_ABI
 //}}}1
@@ -154,7 +154,7 @@ namespace detail
 // simd impl {{{1
 struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     // member types {{{2
-    using abi = simd_abi::avx512;
+    using abi = simd_abi::Avx512;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <class T> using simd_member_type = avx512_simd_member_type<T>;
     template <class T> using intrinsic_type = typename simd_member_type<T>::VectorType;
@@ -540,7 +540,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     static Vc_INTRINSIC T Vc_VDECL reduce(size_tag<N>, simd<T> x,
                                           BinaryOperation &binary_op)
     {
-        using V = Vc::simd<T, simd_abi::avx>;
+        using V = Vc::simd<T, simd_abi::Avx>;
         return avx_simd_impl::reduce(size_tag<N / 2>(),
                                         binary_op(V(lo256(data(x))), V(hi256(data(x)))),
                                         binary_op);
@@ -773,7 +773,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
                                       _MM_MANT_SIGN_src);
     }
     static Vc_ALWAYS_INLINE simd_member_type<double> frexp(
-        simd_member_type<double> v, simd_tuple<int, simd_abi::avx> &exp)
+        simd_member_type<double> v, simd_tuple<int, simd_abi::Avx> &exp)
     {
         return frexp(v, exp.first);
     }
@@ -792,7 +792,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
                                       _MM_MANT_SIGN_src);
     }
     static Vc_ALWAYS_INLINE simd_member_type<float> frexp(
-        simd_member_type<float> v, simd_tuple<int, simd_abi::avx512> &exp)
+        simd_member_type<float> v, simd_tuple<int, simd_abi::Avx512> &exp)
     {
         return frexp(v, exp.first);
     }
@@ -905,7 +905,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     }
 
     // fpclassify {{{3
-    static Vc_INTRINSIC simd_tuple<int, simd_abi::avx512> fpclassify(
+    static Vc_INTRINSIC simd_tuple<int, simd_abi::Avx512> fpclassify(
         simd_member_type<float> x)
     {
         auto &&b = [](int y) { return broadcast64(y); };
@@ -919,7 +919,7 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
                                   _mm512_cmp_ps_mask(x, _mm512_setzero_ps(), _CMP_EQ_OQ),
                                   b(FP_ZERO)))};
     }
-    static Vc_INTRINSIC simd_tuple<int, simd_abi::avx> fpclassify(
+    static Vc_INTRINSIC simd_tuple<int, simd_abi::Avx> fpclassify(
         simd_member_type<double> x)
     {
 #ifdef Vc_HAVE_AVX512VL
@@ -962,9 +962,9 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
 
 // simd_mask impl {{{1
 struct avx512_mask_impl
-    : public generic_mask_impl<simd_abi::avx512, avx512_mask_member_type> {
+    : public generic_mask_impl<simd_abi::Avx512, avx512_mask_member_type> {
     // member types {{{2
-    using abi = simd_abi::avx512;
+    using abi = simd_abi::Avx512;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <size_t N> using mask_member_type = avx512_mask_member_type_n<N>;
     template <class T> using simd_mask = Vc::simd_mask<T, abi>;
@@ -1330,9 +1330,9 @@ struct avx512_mask_impl
     // }}}2
 };
 
-// simd_converter avx512 -> scalar {{{1
+// simd_converter Avx512 -> scalar {{{1
 template <class From, class To>
-struct simd_converter<From, simd_abi::avx512, To, simd_abi::scalar> {
+struct simd_converter<From, simd_abi::Avx512, To, simd_abi::scalar> {
     using Arg = avx512_simd_member_type<From>;
 
     Vc_INTRINSIC std::array<To, Arg::size()> operator()(Arg a)
@@ -1348,9 +1348,9 @@ struct simd_converter<From, simd_abi::avx512, To, simd_abi::scalar> {
 };
 
 // }}}1
-// simd_converter scalar -> avx512 {{{1
+// simd_converter scalar -> Avx512 {{{1
 template <class From, class To>
-struct simd_converter<From, simd_abi::scalar, To, simd_abi::avx512> {
+struct simd_converter<From, simd_abi::scalar, To, simd_abi::Avx512> {
     using R = avx512_simd_member_type<To>;
 
     Vc_INTRINSIC R operator()(From a)
@@ -1492,9 +1492,9 @@ struct simd_converter<From, simd_abi::scalar, To, simd_abi::avx512> {
 };
 
 // }}}1
-// simd_converter sse -> avx512 {{{1
+// simd_converter Sse -> Avx512 {{{1
 template <class From, class To>
-struct simd_converter<From, simd_abi::sse, To, simd_abi::avx512> {
+struct simd_converter<From, simd_abi::Sse, To, simd_abi::Avx512> {
     using Arg = sse_simd_member_type<From>;
 
     Vc_INTRINSIC auto operator()(Arg a)
@@ -1541,9 +1541,9 @@ struct simd_converter<From, simd_abi::sse, To, simd_abi::avx512> {
 };
 
 // }}}1
-// simd_converter avx512 -> sse {{{1
+// simd_converter Avx512 -> Sse {{{1
 template <class From, class To>
-struct simd_converter<From, simd_abi::avx512, To, simd_abi::sse> {
+struct simd_converter<From, simd_abi::Avx512, To, simd_abi::Sse> {
     using Arg = avx512_simd_member_type<From>;
 
     Vc_INTRINSIC auto operator()(Arg a)
@@ -1558,9 +1558,9 @@ struct simd_converter<From, simd_abi::avx512, To, simd_abi::sse> {
 };
 
 // }}}1
-// simd_converter avx -> avx512 {{{1
+// simd_converter Avx -> Avx512 {{{1
 template <class From, class To>
-struct simd_converter<From, simd_abi::avx, To, simd_abi::avx512> {
+struct simd_converter<From, simd_abi::Avx, To, simd_abi::Avx512> {
     using Arg = avx_simd_member_type<From>;
 
     Vc_INTRINSIC auto operator()(Arg a)
@@ -1596,9 +1596,9 @@ struct simd_converter<From, simd_abi::avx, To, simd_abi::avx512> {
 };
 
 // }}}1
-// simd_converter avx512 -> avx {{{1
+// simd_converter Avx512 -> Avx {{{1
 template <class From, class To>
-struct simd_converter<From, simd_abi::avx512, To, simd_abi::avx> {
+struct simd_converter<From, simd_abi::Avx512, To, simd_abi::Avx> {
     using Arg = avx512_simd_member_type<From>;
 
     Vc_INTRINSIC auto operator()(Arg a)
@@ -1618,14 +1618,14 @@ struct simd_converter<From, simd_abi::avx512, To, simd_abi::avx> {
 };
 
 // }}}1
-// simd_converter avx512 -> avx512 {{{1
-template <class T> struct simd_converter<T, simd_abi::avx512, T, simd_abi::avx512> {
+// simd_converter Avx512 -> Avx512 {{{1
+template <class T> struct simd_converter<T, simd_abi::Avx512, T, simd_abi::Avx512> {
     using Arg = avx512_simd_member_type<T>;
     Vc_INTRINSIC const Arg &operator()(const Arg &x) { return x; }
 };
 
 template <class From, class To>
-struct simd_converter<From, simd_abi::avx512, To, simd_abi::avx512> {
+struct simd_converter<From, simd_abi::Avx512, To, simd_abi::Avx512> {
     using Arg = avx512_simd_member_type<From>;
 
     Vc_INTRINSIC auto operator()(Arg a)
@@ -1651,18 +1651,18 @@ struct simd_converter<From, simd_abi::avx512, To, simd_abi::avx512> {
 };
 
 // split_to_array {{{1
-template <class T> struct split_to_array<simd<T, simd_abi::avx>, 2> {
-    using V = simd<T, simd_abi::avx>;
-    std::array<V, 2> operator()(simd<T, simd_abi::avx512> x, std::index_sequence<0, 1>)
+template <class T> struct split_to_array<simd<T, simd_abi::Avx>, 2> {
+    using V = simd<T, simd_abi::Avx>;
+    std::array<V, 2> operator()(simd<T, simd_abi::Avx512> x, std::index_sequence<0, 1>)
     {
         const auto xx = detail::data(x);
         return {V(detail::private_init, lo256(xx)), V(detail::private_init, hi256(xx))};
     }
 };
 
-template <class T> struct split_to_array<simd<T, simd_abi::sse>, 4> {
-    using V = simd<T, simd_abi::sse>;
-    std::array<V, 4> operator()(simd<T, simd_abi::avx512> x,
+template <class T> struct split_to_array<simd<T, simd_abi::Sse>, 4> {
+    using V = simd<T, simd_abi::Sse>;
+    std::array<V, 4> operator()(simd<T, simd_abi::Avx512> x,
                                 std::index_sequence<0, 1, 2, 3>)
     {
         const auto xx = detail::data(x);
@@ -1675,10 +1675,10 @@ template <class T> struct split_to_array<simd<T, simd_abi::sse>, 4> {
 
 // split_to_tuple {{{1
 template <class T>
-struct split_to_tuple<std::tuple<simd<T, simd_abi::avx>, simd<T, simd_abi::avx>>,
-                      simd_abi::avx512> {
-    using V = simd<T, simd_abi::avx>;
-    std::tuple<V, V> operator()(simd<T, simd_abi::avx512> x)
+struct split_to_tuple<std::tuple<simd<T, simd_abi::Avx>, simd<T, simd_abi::Avx>>,
+                      simd_abi::Avx512> {
+    using V = simd<T, simd_abi::Avx>;
+    std::tuple<V, V> operator()(simd<T, simd_abi::Avx512> x)
     {
         const auto xx = detail::data(x);
         return {V(detail::private_init, lo256(xx)), V(detail::private_init, hi256(xx))};
@@ -1686,11 +1686,11 @@ struct split_to_tuple<std::tuple<simd<T, simd_abi::avx>, simd<T, simd_abi::avx>>
 };
 
 template <class T>
-struct split_to_tuple<std::tuple<simd<T, simd_abi::sse>, simd<T, simd_abi::sse>,
-                                 simd<T, simd_abi::sse>, simd<T, simd_abi::sse>>,
-                      simd_abi::avx512> {
-    using V = simd<T, simd_abi::sse>;
-    std::tuple<V, V, V, V> operator()(simd<T, simd_abi::avx512> x)
+struct split_to_tuple<std::tuple<simd<T, simd_abi::Sse>, simd<T, simd_abi::Sse>,
+                                 simd<T, simd_abi::Sse>, simd<T, simd_abi::Sse>>,
+                      simd_abi::Avx512> {
+    using V = simd<T, simd_abi::Sse>;
+    std::tuple<V, V, V, V> operator()(simd<T, simd_abi::Avx512> x)
     {
         const auto xx = detail::data(x);
         return {V(detail::private_init, lo128(xx)),
@@ -1702,11 +1702,11 @@ struct split_to_tuple<std::tuple<simd<T, simd_abi::sse>, simd<T, simd_abi::sse>,
 
 template <class T>
 struct split_to_tuple<
-    std::tuple<simd<T, simd_abi::avx>, simd<T, simd_abi::sse>, simd<T, simd_abi::sse>>,
-    simd_abi::avx512> {
-    using V0 = simd<T, simd_abi::avx>;
-    using V1 = simd<T, simd_abi::sse>;
-    std::tuple<V0, V1, V1> operator()(simd<T, simd_abi::avx512> x)
+    std::tuple<simd<T, simd_abi::Avx>, simd<T, simd_abi::Sse>, simd<T, simd_abi::Sse>>,
+    simd_abi::Avx512> {
+    using V0 = simd<T, simd_abi::Avx>;
+    using V1 = simd<T, simd_abi::Sse>;
+    std::tuple<V0, V1, V1> operator()(simd<T, simd_abi::Avx512> x)
     {
         const auto xx = detail::data(x);
         return {V0(detail::private_init, lo256(xx)),
@@ -1717,11 +1717,11 @@ struct split_to_tuple<
 
 template <class T>
 struct split_to_tuple<
-    std::tuple<simd<T, simd_abi::sse>, simd<T, simd_abi::sse>, simd<T, simd_abi::avx>>,
-    simd_abi::avx512> {
-    using V0 = simd<T, simd_abi::sse>;
-    using V1 = simd<T, simd_abi::avx>;
-    std::tuple<V0, V0, V1> operator()(simd<T, simd_abi::avx512> x)
+    std::tuple<simd<T, simd_abi::Sse>, simd<T, simd_abi::Sse>, simd<T, simd_abi::Avx>>,
+    simd_abi::Avx512> {
+    using V0 = simd<T, simd_abi::Sse>;
+    using V1 = simd<T, simd_abi::Avx>;
+    std::tuple<V0, V0, V1> operator()(simd<T, simd_abi::Avx512> x)
     {
         const auto xx = detail::data(x);
         return {V0(detail::private_init, lo128(xx)),
@@ -1732,11 +1732,11 @@ struct split_to_tuple<
 
 template <class T>
 struct split_to_tuple<
-    std::tuple<simd<T, simd_abi::sse>, simd<T, simd_abi::avx>, simd<T, simd_abi::sse>>,
-    simd_abi::avx512> {
-    using V0 = simd<T, simd_abi::sse>;
-    using V1 = simd<T, simd_abi::avx>;
-    std::tuple<V0, V1, V0> operator()(simd<T, simd_abi::avx512> x)
+    std::tuple<simd<T, simd_abi::Sse>, simd<T, simd_abi::Avx>, simd<T, simd_abi::Sse>>,
+    simd_abi::Avx512> {
+    using V0 = simd<T, simd_abi::Sse>;
+    using V1 = simd<T, simd_abi::Avx>;
+    std::tuple<V0, V1, V0> operator()(simd<T, simd_abi::Avx512> x)
     {
         const auto xx = detail::data(x);
         return {V0(detail::private_init, lo128(xx)),
@@ -1796,31 +1796,31 @@ Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: uchar, epi8 , std::minus, sub);
 }  // namespace detail
 
 // [simd_mask.reductions] {{{
-template <class T> Vc_ALWAYS_INLINE bool all_of(simd_mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool all_of(simd_mask<T, simd_abi::Avx512> k)
 {
     const auto v = detail::data(k);
     return detail::x86::testallset(v);
 }
 
-template <class T> Vc_ALWAYS_INLINE bool any_of(simd_mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool any_of(simd_mask<T, simd_abi::Avx512> k)
 {
     const auto v = detail::data(k);
     return v != 0U;
 }
 
-template <class T> Vc_ALWAYS_INLINE bool none_of(simd_mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool none_of(simd_mask<T, simd_abi::Avx512> k)
 {
     const auto v = detail::data(k);
     return v == 0U;
 }
 
-template <class T> Vc_ALWAYS_INLINE bool some_of(simd_mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE bool some_of(simd_mask<T, simd_abi::Avx512> k)
 {
     const auto v = detail::data(k);
     return v != 0 && !all_of(k);
 }
 
-template <class T> Vc_ALWAYS_INLINE int popcount(simd_mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE int popcount(simd_mask<T, simd_abi::Avx512> k)
 {
     const auto v = detail::data(k);
     switch (k.size()) {
@@ -1832,38 +1832,38 @@ template <class T> Vc_ALWAYS_INLINE int popcount(simd_mask<T, simd_abi::avx512> 
     }
 }
 
-template <class T> Vc_ALWAYS_INLINE int find_first_set(simd_mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE int find_first_set(simd_mask<T, simd_abi::Avx512> k)
 {
     const auto v = detail::data(k);
     return _tzcnt_u32(v);
 }
 
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-Vc_ALWAYS_INLINE int find_first_set(simd_mask<signed char, simd_abi::avx512> k)
+Vc_ALWAYS_INLINE int find_first_set(simd_mask<signed char, simd_abi::Avx512> k)
 {
     const __mmask64 v = detail::data(k);
     return detail::firstbit(v);
 }
-Vc_ALWAYS_INLINE int find_first_set(simd_mask<unsigned char, simd_abi::avx512> k)
+Vc_ALWAYS_INLINE int find_first_set(simd_mask<unsigned char, simd_abi::Avx512> k)
 {
     const __mmask64 v = detail::data(k);
     return detail::firstbit(v);
 }
 #endif  // Vc_HAVE_FULL_AVX512_ABI
 
-template <class T> Vc_ALWAYS_INLINE int find_last_set(simd_mask<T, simd_abi::avx512> k)
+template <class T> Vc_ALWAYS_INLINE int find_last_set(simd_mask<T, simd_abi::Avx512> k)
 {
     return 31 - _lzcnt_u32(detail::data(k));
 }
 
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-Vc_ALWAYS_INLINE int find_last_set(simd_mask<signed char, simd_abi::avx512> k)
+Vc_ALWAYS_INLINE int find_last_set(simd_mask<signed char, simd_abi::Avx512> k)
 {
     const __mmask64 v = detail::data(k);
     return detail::lastbit(v);
 }
 
-Vc_ALWAYS_INLINE int find_last_set(simd_mask<unsigned char, simd_abi::avx512> k)
+Vc_ALWAYS_INLINE int find_last_set(simd_mask<unsigned char, simd_abi::Avx512> k)
 {
     const __mmask64 v = detail::data(k);
     return detail::lastbit(v);

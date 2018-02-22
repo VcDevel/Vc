@@ -45,7 +45,7 @@ namespace sse_const
 {
 #define constexpr const
 #else
-template <class X> struct constants<simd_abi::sse, X> {
+template <class X> struct constants<simd_abi::Sse, X> {
 #endif
     alignas(64) static constexpr int    absMaskFloat[4] = {0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
     alignas(16) static constexpr uint   signMaskFloat[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
@@ -175,116 +175,116 @@ template <class X> struct constants<simd_abi::sse, X> {
 }  // namespace x86
 #else   // Vc_WORK_AROUND_ICE
 };
-template <class X> alignas(64) constexpr int    constants<simd_abi::sse, X>::absMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::signMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::highMaskFloat[4];
-template <class X> alignas(16) constexpr float  constants<simd_abi::sse, X>::oneFloat[4];
-template <class X> alignas(16) constexpr short  constants<simd_abi::sse, X>::minShort[8];
-template <class X> alignas(16) constexpr uchar  constants<simd_abi::sse, X>::one8[16];
-template <class X> alignas(16) constexpr ushort constants<simd_abi::sse, X>::one16[8];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::one32[4];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::one64[2];
-template <class X> alignas(16) constexpr double constants<simd_abi::sse, X>::oneDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::highMaskDouble[2];
-template <class X> alignas(16) constexpr llong  constants<simd_abi::sse, X>::absMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::signMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::sse, X>::frexpMask[2];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::IndexesFromZero4[4];
-template <class X> alignas(16) constexpr ushort constants<simd_abi::sse, X>::IndexesFromZero8[8];
-template <class X> alignas(16) constexpr uchar  constants<simd_abi::sse, X>::IndexesFromZero16[16];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::sse, X>::AllBitsSet[4];
-template <class X> alignas(16) constexpr uchar  constants<simd_abi::sse, X>::cvti16_i08_shuffle[16];
+template <class X> alignas(64) constexpr int    constants<simd_abi::Sse, X>::absMaskFloat[4];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::Sse, X>::signMaskFloat[4];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::Sse, X>::highMaskFloat[4];
+template <class X> alignas(16) constexpr float  constants<simd_abi::Sse, X>::oneFloat[4];
+template <class X> alignas(16) constexpr short  constants<simd_abi::Sse, X>::minShort[8];
+template <class X> alignas(16) constexpr uchar  constants<simd_abi::Sse, X>::one8[16];
+template <class X> alignas(16) constexpr ushort constants<simd_abi::Sse, X>::one16[8];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::Sse, X>::one32[4];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::Sse, X>::one64[2];
+template <class X> alignas(16) constexpr double constants<simd_abi::Sse, X>::oneDouble[2];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::Sse, X>::highMaskDouble[2];
+template <class X> alignas(16) constexpr llong  constants<simd_abi::Sse, X>::absMaskDouble[2];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::Sse, X>::signMaskDouble[2];
+template <class X> alignas(16) constexpr ullong constants<simd_abi::Sse, X>::frexpMask[2];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::Sse, X>::IndexesFromZero4[4];
+template <class X> alignas(16) constexpr ushort constants<simd_abi::Sse, X>::IndexesFromZero8[8];
+template <class X> alignas(16) constexpr uchar  constants<simd_abi::Sse, X>::IndexesFromZero16[16];
+template <class X> alignas(16) constexpr uint   constants<simd_abi::Sse, X>::AllBitsSet[4];
+template <class X> alignas(16) constexpr uchar  constants<simd_abi::Sse, X>::cvti16_i08_shuffle[16];
 
-template <class X> alignas(64) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_pi_4;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_pi_4_hi;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_pi_4_rem1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_pi_4_rem2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_1_16;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_16;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_cos_c0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_cos_c1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_cos_c2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_sin_c0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_sin_c1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_sin_c2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_loss_threshold;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_4_pi;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_pi_2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_pi;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_atan_p0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_atan_p1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_atan_p2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_atan_p3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_atan_threshold_hi;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_atan_threshold_lo;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_pi_2_rem;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_small_asin_input;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_large_asin_input;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_asin_c0_0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_asin_c0_1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_asin_c0_2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_asin_c0_3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::float4  constants<simd_abi::sse, X>::f32_asin_c0_4;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_pi_4;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_pi_4_hi;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_pi_4_rem1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_pi_4_rem2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_1_16;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_16;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_cos_c0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_cos_c1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_cos_c2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_cos_c3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_cos_c4;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_cos_c5;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_sin_c0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_sin_c1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_sin_c2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_sin_c3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_sin_c4;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_sin_c5;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_4_pi;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_pi_2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_pi;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_p0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_p1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_p2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_p3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_p4;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_q0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_q1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_q2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_q3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_q4;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_threshold_hi;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_atan_threshold_lo;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_pi_2_rem;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_small_asin_input;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_large_asin_input;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c0_0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c0_1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c0_2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c0_3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c0_4;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c1_0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c1_1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c1_2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c1_3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c2_0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c2_1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c2_2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c2_3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c2_4;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c2_5;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c3_0;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c3_1;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c3_2;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c3_3;
-template <class X> alignas(16) constexpr typename constants<simd_abi::sse, X>::double2 constants<simd_abi::sse, X>::f64_asin_c3_4;
+template <class X> alignas(64) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_pi_4;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_pi_4_hi;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_pi_4_rem1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_pi_4_rem2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_1_16;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_16;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_cos_c0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_cos_c1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_cos_c2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_sin_c0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_sin_c1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_sin_c2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_loss_threshold;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_4_pi;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_pi_2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_pi;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_atan_p0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_atan_p1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_atan_p2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_atan_p3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_atan_threshold_hi;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_atan_threshold_lo;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_pi_2_rem;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_small_asin_input;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_large_asin_input;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_asin_c0_0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_asin_c0_1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_asin_c0_2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_asin_c0_3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::float4  constants<simd_abi::Sse, X>::f32_asin_c0_4;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_pi_4;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_pi_4_hi;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_pi_4_rem1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_pi_4_rem2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_1_16;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_16;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_cos_c0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_cos_c1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_cos_c2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_cos_c3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_cos_c4;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_cos_c5;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_sin_c0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_sin_c1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_sin_c2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_sin_c3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_sin_c4;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_sin_c5;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_4_pi;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_pi_2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_pi;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_p0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_p1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_p2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_p3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_p4;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_q0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_q1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_q2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_q3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_q4;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_threshold_hi;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_atan_threshold_lo;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_pi_2_rem;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_small_asin_input;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_large_asin_input;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c0_0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c0_1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c0_2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c0_3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c0_4;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c1_0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c1_1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c1_2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c1_3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c2_0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c2_1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c2_2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c2_3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c2_4;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c2_5;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c3_0;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c3_1;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c3_2;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c3_3;
+template <class X> alignas(16) constexpr typename constants<simd_abi::Sse, X>::double2 constants<simd_abi::Sse, X>::f64_asin_c3_4;
 
 namespace x86
 {
-using sse_const = constants<simd_abi::sse>;
+using sse_const = constants<simd_abi::Sse>;
 }  // namespace x86
 #endif  // Vc_WORK_AROUND_ICE
 #endif  // Vc_HAVE_SSE_ABI
@@ -298,7 +298,7 @@ namespace avx_const
 #define constexpr const
 #else   // Vc_WORK_AROUND_ICE
 template <class X>
-struct constants<simd_abi::avx, X> : public constants<simd_abi::scalar, X> {
+struct constants<simd_abi::Avx, X> : public constants<simd_abi::scalar, X> {
 #endif  // Vc_WORK_AROUND_ICE
     alignas(64) static constexpr ullong IndexesFromZero64[ 4] = { 0, 1, 2, 3 };
     alignas(32) static constexpr uint   IndexesFromZero32[ 8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -325,23 +325,23 @@ struct constants<simd_abi::avx, X> : public constants<simd_abi::scalar, X> {
 }  // namespace x86
 #else   // Vc_WORK_AROUND_ICE
 };
-template <class X> alignas(64) constexpr ullong constants<simd_abi::avx, X>::IndexesFromZero64[ 4];
-template <class X> alignas(32) constexpr uint   constants<simd_abi::avx, X>::IndexesFromZero32[ 8];
-template <class X> alignas(32) constexpr ushort constants<simd_abi::avx, X>::IndexesFromZero16[16];
-template <class X> alignas(32) constexpr uchar  constants<simd_abi::avx, X>::IndexesFromZero8 [32];
-template <class X> alignas(32) constexpr uint   constants<simd_abi::avx, X>::AllBitsSet[8];
-template <class X> constexpr   uint constants<simd_abi::avx, X>::absMaskFloat[2];
-template <class X> constexpr   uint constants<simd_abi::avx, X>::signMaskFloat[2];
-template <class X> constexpr   uint constants<simd_abi::avx, X>::highMaskFloat;
-template <class X> constexpr  float constants<simd_abi::avx, X>::oneFloat;
-template <class X> alignas(float) constexpr ushort constants<simd_abi::avx, X>::one16[2];
-template <class X> alignas(float) constexpr  uchar constants<simd_abi::avx, X>::one8[4];
-template <class X> constexpr  float constants<simd_abi::avx, X>::_2_pow_31;
-template <class X> constexpr ullong constants<simd_abi::avx, X>::highMaskDouble;
-template <class X> constexpr double constants<simd_abi::avx, X>::oneDouble;
+template <class X> alignas(64) constexpr ullong constants<simd_abi::Avx, X>::IndexesFromZero64[ 4];
+template <class X> alignas(32) constexpr uint   constants<simd_abi::Avx, X>::IndexesFromZero32[ 8];
+template <class X> alignas(32) constexpr ushort constants<simd_abi::Avx, X>::IndexesFromZero16[16];
+template <class X> alignas(32) constexpr uchar  constants<simd_abi::Avx, X>::IndexesFromZero8 [32];
+template <class X> alignas(32) constexpr uint   constants<simd_abi::Avx, X>::AllBitsSet[8];
+template <class X> constexpr   uint constants<simd_abi::Avx, X>::absMaskFloat[2];
+template <class X> constexpr   uint constants<simd_abi::Avx, X>::signMaskFloat[2];
+template <class X> constexpr   uint constants<simd_abi::Avx, X>::highMaskFloat;
+template <class X> constexpr  float constants<simd_abi::Avx, X>::oneFloat;
+template <class X> alignas(float) constexpr ushort constants<simd_abi::Avx, X>::one16[2];
+template <class X> alignas(float) constexpr  uchar constants<simd_abi::Avx, X>::one8[4];
+template <class X> constexpr  float constants<simd_abi::Avx, X>::_2_pow_31;
+template <class X> constexpr ullong constants<simd_abi::Avx, X>::highMaskDouble;
+template <class X> constexpr double constants<simd_abi::Avx, X>::oneDouble;
 namespace x86
 {
-using avx_const = constants<simd_abi::avx>;
+using avx_const = constants<simd_abi::Avx>;
 }  // namespace x86
 #endif  // Vc_WORK_AROUND_ICE
 #endif  // Vc_HAVE_AVX

@@ -1,5 +1,5 @@
 /*  This file is part of the Vc library. {{{
-Copyright © 2017 Matthias Kretz <kretz@kde.org>
+Copyright © 2017-2018 Matthias Kretz <kretz@kde.org>
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -41,16 +41,33 @@ inline namespace v2
 #define Vc_VERSIONED_NAMESPACE_END }}
 
 Vc_VERSIONED_NAMESPACE_BEGIN
+namespace detail
+{
+struct scalar_abi;
+template <int N> struct fixed_abi;
+template <int Bits> struct sse_abi;
+template <int Bits> struct avx_abi;
+template <int Bits> struct avx512_abi;
+template <int Bits> struct neon_abi;
+}  // namespace detail
+
 namespace simd_abi
 {
-template <int N> struct fixed_size;
-struct scalar;
-struct sse;
-struct avx;
-struct avx512;
-struct knc;
-struct neon;
-}  // namespace simd_abi
+template <int N> using fixed_size = Vc::detail::fixed_abi<N>;
+using scalar = Vc::detail::scalar_abi;
+
+using sse [[deprecated]] = Vc::detail::sse_abi<16>;
+using avx [[deprecated]] = Vc::detail::avx_abi<32>;
+using avx512 [[deprecated]] = Vc::detail::avx512_abi<64>;
+using neon [[deprecated]] = Vc::detail::neon_abi<16>;
+
+using Sse = Vc::detail::sse_abi<16>;
+using Avx = Vc::detail::avx_abi<32>;
+using Avx512 = Vc::detail::avx512_abi<64>;
+using Neon128 = Vc::detail::neon_abi<16>;
+using Neon64 = Vc::detail::neon_abi<8>;
+using Neon = Neon128;
+}
 
 template <class T> struct is_simd;
 template <class T> struct is_simd_mask;

@@ -45,8 +45,8 @@ using ullong = unsigned long long;
 using ldouble = long double;
 
 using all_native_abis =
-    vir::Typelist<Vc::simd_abi::scalar, Vc::simd_abi::sse, Vc::simd_abi::avx,
-                  Vc::simd_abi::avx512, Vc::simd_abi::neon>;
+    vir::Typelist<Vc::simd_abi::scalar, Vc::simd_abi::Sse, Vc::simd_abi::Avx,
+                  Vc::simd_abi::Avx512, Vc::simd_abi::Neon>;
 
 using testtypes = vir::Typelist<TESTTYPES>;
 using testtypes_wo_ldouble = typename vir::filter_list<long double, testtypes>::type;
@@ -108,24 +108,24 @@ using current_native_mask_test_types =
 // native_test_types {{{1
 typedef vir::concat<
 #if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::avx512>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Avx512>,
                     testtypes_64_32>,
 #endif
 #if defined Vc_HAVE_AVX_ABI && !defined Vc_HAVE_FULL_AVX_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::avx>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Avx>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_SSE_ABI && !defined Vc_HAVE_FULL_SSE_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::sse>, testtypes_float>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Sse>, testtypes_float>,
 #endif
     vir::expand_list<vir::concat<
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-                         vir::Template<base_template, Vc::simd_abi::avx512>,
+                         vir::Template<base_template, Vc::simd_abi::Avx512>,
 #endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
-                         vir::Template<base_template, Vc::simd_abi::avx>,
+                         vir::Template<base_template, Vc::simd_abi::Avx>,
 #endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
-                         vir::Template<base_template, Vc::simd_abi::sse>,
+                         vir::Template<base_template, Vc::simd_abi::Sse>,
 #endif
                          vir::Typelist<>>,
                      testtypes_wo_ldouble>> native_test_types;
@@ -133,16 +133,16 @@ typedef vir::concat<
 // native_real_test_types {{{1
 using native_real_test_types = vir::concat<
 #if defined Vc_HAVE_AVX512_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::avx512>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Avx512>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_AVX_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::avx>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Avx>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_SSE_ABI
 #if defined Vc_HAVE_FULL_SSE_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::sse>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Sse>, testtypes_fp>,
 #else
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::sse>, testtypes_float>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Sse>, testtypes_float>,
 #endif
 #endif
     vir::Typelist<>>;
@@ -153,7 +153,7 @@ using all_test_types = vir::concat<
     vir::expand_list<
         vir::Typelist<
 #ifndef Vc_HAVE_AVX512F
-            // reduce compile times when AVX512 is available (already builds avx and sse
+            // reduce compile times when AVX512 is available (already builds Avx and Sse
             // ABIs)
             vir::Template<base_template, Vc::simd_abi::scalar>,
 #endif  // Vc_HAVE_AVX512F
@@ -181,7 +181,7 @@ using real_test_types = vir::concat<
     vir::expand_list<
         vir::Typelist<
 #ifndef Vc_HAVE_AVX512F
-            // reduce compile times when AVX512 is available (already builds avx and sse
+            // reduce compile times when AVX512 is available (already builds Avx and Sse
             // ABIs)
             vir::Template<base_template, Vc::simd_abi::scalar>,
 #endif  // Vc_HAVE_AVX512F

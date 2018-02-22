@@ -272,14 +272,6 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #ifdef __AVX512BW__
 #define Vc_HAVE_AVX512BW 1
 #endif
-#ifdef __MIC__
-#define Vc_HAVE_KNC 1
-#endif
-
-#ifdef Vc_HAVE_KNC
-//#define Vc_HAVE_KNC_ABI 1
-//#define Vc_HAVE_FULL_KNC_ABI 1
-#endif
 
 #if defined Vc_HAVE_SSE
 #define Vc_HAVE_SSE_ABI 1

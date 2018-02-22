@@ -1,3 +1,4 @@
+#include "fwddecl.h"
 #include "detail/macros.h"
 
 #if defined Vc_GCC && Vc_GCC >= 0x60000
