@@ -120,7 +120,7 @@ if(UNIX AND Vc_COMPILER_IS_CLANG)
    # On UNIX (Linux) the standard library used by default typically is libstdc++ (GCC).
    # To get the full clang deal we rather want to build against libc++. This requires
    # additionally the libc++abi and libsupc++ libraries in all linker invokations.
-   option(USE_LIBC++ "Use libc++ instead of the system default C++ standard library." ON)
+   option(USE_LIBC++ "Use libc++ instead of the system default C++ standard library." OFF)
    if(USE_LIBC++)
       AddCompilerFlag(-stdlib=libc++ CXX_FLAGS CMAKE_CXX_FLAGS CXX_RESULT _use_libcxx)
       if(_use_libcxx)
