@@ -276,13 +276,13 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
                                                  std::integral_constant<int, 4>) noexcept
     {
-        return x86::movemask(Storage<float, N>(v.v()));
+        return x86::movemask(x86::intrin_cast<x86::intrinsic_type<float, N>>(v));
     }
     template <class T, size_t N>
     static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
                                                  std::integral_constant<int, 8>) noexcept
     {
-        return x86::movemask(Storage<double, N>(v.v()));
+        return x86::movemask(x86::intrin_cast<x86::intrinsic_type<double, N>>(v));
     }
     template <class T, size_t N>
     static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v) noexcept
