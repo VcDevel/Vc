@@ -92,7 +92,7 @@ void test_values(const std::initializer_list<typename V::value_type> &inputs,
 }
 
 #define MAKE_TESTER(name_)                                                               \
-    [](V input) {                                                                        \
+    [](const V input) {                                                                  \
         /*Vc_DEBUG()("testing " #name_ "(", input, ")");*/                               \
         const V expected([&](auto i) {                                                   \
             using std::name_;                                                            \
@@ -190,7 +190,7 @@ TEST_TYPES(V, fpclassify, real_test_types)  //{{{1
          -limits::max(), limits::min(), limits::min() * 0.9, -limits::min(),
          -limits::min() * 0.9, limits::denorm_min(), -limits::denorm_min(),
          limits::quiet_NaN(), limits::signaling_NaN()},
-        [](V input) {
+        [](const V input) {
             using intv = Vc::fixed_size_simd<int, V::size()>;
             COMPARE(isfinite(input), !V([&](auto i) { return std::isfinite(input[i]) ? 0 : 1; })) << input;
             COMPARE(isinf(input), !V([&](auto i) { return std::isinf(input[i]) ? 0 : 1; })) << input;
@@ -248,29 +248,29 @@ TEST_TYPES(V, trunc_ceil_floor, real_test_types)  //{{{1
                     -limits::min(),
                     -limits::min() * 0.9,
                     -limits::lowest()},
-                   [](V input) {
+                   [](const V input) {
                        const V expected([&](auto i) { return std::trunc(input[i]); });
                        COMPARE(trunc(input), expected) << input;
                    },
-                   [](V input) {
+                   [](const V input) {
                        const V expected([&](auto i) { return std::ceil(input[i]); });
                        COMPARE(ceil(input), expected) << input;
                    },
-                   [](V input) {
+                   [](const V input) {
                        const V expected([&](auto i) { return std::floor(input[i]); });
                        COMPARE(floor(input), expected) << input;
                    });
 
     test_values<V>({limits::quiet_NaN(), limits::signaling_NaN()},
-                   [](V input) {
+                   [](const V input) {
                        const V expected([&](auto i) { return std::trunc(input[i]); });
                        COMPARE(isnan(trunc(input)), isnan(expected)) << input;
                    },
-                   [](V input) {
+                   [](const V input) {
                        const V expected([&](auto i) { return std::ceil(input[i]); });
                        COMPARE(isnan(ceil(input)), isnan(expected)) << input;
                    },
-                   [](V input) {
+                   [](const V input) {
                        const V expected([&](auto i) { return std::floor(input[i]); });
                        COMPARE(isnan(floor(input)), isnan(expected)) << input;
                    });
@@ -290,7 +290,7 @@ TEST_TYPES(V, frexp, real_test_types)  //{{{1
          limits::max() * 0.123, -limits::max() * 0.123,
          limits::denorm_min(), -limits::denorm_min(),
          limits::min() / 2, -limits::min() / 2},
-        [](V input) {
+        [](const V input) {
             V expectedFraction;
             const int_v expectedExponent([&](auto i) {
                 int exp;
@@ -332,7 +332,7 @@ TEST_TYPES(V, frexp, real_test_types)  //{{{1
          -0.,
          1,
          -1},
-        [](V input) {
+        [](const V input) {
             const V expectedFraction([&](auto i) {
                 int exp;
                 return std::frexp(input[i], &exp);
@@ -409,7 +409,7 @@ TEST_TYPES(V, testAtan, real_test_types)  //{{{1
 
     using limits = std::numeric_limits<typename V::value_type>;
     test_values<V>({limits::quiet_NaN(), limits::infinity(), -limits::infinity()},
-                   [](V input) {
+                   [](const V input) {
                        const V expected([&](auto i) { return std::atan(input[i]); });
                        COMPARE(isnan(atan(input)), isnan(expected));
                        where(isnan(input), input) = 0;
