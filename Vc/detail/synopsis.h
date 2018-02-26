@@ -841,7 +841,7 @@ template <class T, class A, class... Vs>
 Vc_INTRINSIC where_expression<simd_mask<T, A>, std::tuple<simd<T, A> &, Vs &...>> where(
     const typename simd<T, A>::mask_type &k, simd<T, A> &v0, Vs &... vs)
 {
-    return {k, {v0, vs...}};
+    return {k, std::tie(v0, vs...)};
 }
 #endif  // Vc_EXPERIMENTAL
 
