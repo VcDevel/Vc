@@ -56,10 +56,18 @@ namespace simd_abi
 template <int N> using fixed_size = Vc::detail::fixed_abi<N>;
 using scalar = Vc::detail::scalar_abi;
 
-using sse [[deprecated]] = Vc::detail::sse_abi<16>;
-using avx [[deprecated]] = Vc::detail::avx_abi<32>;
-using avx512 [[deprecated]] = Vc::detail::avx512_abi<64>;
-using neon [[deprecated]] = Vc::detail::neon_abi<16>;
+#ifdef __INTEL_COMPILER
+#define Vc_DEPRECATED_
+#else
+#define Vc_DEPRECATED_ [[deprecated("Capitalize the first letter of non-std ABI tags")]]
+#endif
+
+using sse Vc_DEPRECATED_ = Vc::detail::sse_abi<16>;
+using avx Vc_DEPRECATED_ = Vc::detail::avx_abi<32>;
+using avx512 Vc_DEPRECATED_ = Vc::detail::avx512_abi<64>;
+using neon Vc_DEPRECATED_ = Vc::detail::neon_abi<16>;
+
+#undef Vc_DEPRECATED_
 
 using Sse = Vc::detail::sse_abi<16>;
 using Avx = Vc::detail::avx_abi<32>;
