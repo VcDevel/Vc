@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vir/test.h>
 #include <Vc/simd>
 #include <Vc/math>
+#include <Vc/experimental>
 #include "metahelpers.h"
 #include <cmath>    // abs & sqrt
 #include <cstdlib>  // integer abs
@@ -94,6 +95,7 @@ void test_values(const std::initializer_list<typename V::value_type> &inputs,
 #define MAKE_TESTER(name_)                                                               \
     [](const V input) {                                                                  \
         /*Vc_DEBUG()("testing " #name_ "(", input, ")");*/                               \
+        using Vc::experimental::iif;                                                     \
         const V expected([&](auto i) {                                                   \
             using std::name_;                                                            \
             return name_(input[i]);                                                      \
@@ -101,12 +103,12 @@ void test_values(const std::initializer_list<typename V::value_type> &inputs,
         const V totest = name_(input);                                                   \
         COMPARE(isnan(totest), isnan(expected))                                          \
             << #name_ "(" << input << ") = " << totest << " != " << expected;            \
-        where(isnan(expected), input) = 0;                                               \
-        FUZZY_COMPARE(name_(input), V([&](auto i) {                                      \
+        const V clean = iif(isnan(expected), 0, input);                                  \
+        FUZZY_COMPARE(name_(clean), V([&](auto i) {                                      \
                           using std::name_;                                              \
-                          return name_(input[i]);                                        \
+                          return name_(clean[i]);                                        \
                       }))                                                                \
-            << "\ninput = " << input;                                                    \
+            << "\nclean = " << clean;                                                    \
     }
 
 template <size_t Offset, class V, class Iterator> V test_tuples_gather(const Iterator &it)
@@ -410,11 +412,12 @@ TEST_TYPES(V, testAtan, real_test_types)  //{{{1
     using limits = std::numeric_limits<typename V::value_type>;
     test_values<V>({limits::quiet_NaN(), limits::infinity(), -limits::infinity()},
                    [](const V input) {
+                       using Vc::experimental::iif;
                        const V expected([&](auto i) { return std::atan(input[i]); });
                        COMPARE(isnan(atan(input)), isnan(expected));
-                       where(isnan(input), input) = 0;
-                       COMPARE(atan(input),
-                               V([&](auto i) { return std::atan(input[i]); }));
+                       const V clean = iif(isnan(input), 0, input);
+                       COMPARE(atan(clean),
+                               V([&](auto i) { return std::atan(clean[i]); }));
                    });
 
     const auto &testdata = referenceData<function::atan, T>();
