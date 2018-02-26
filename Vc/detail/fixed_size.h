@@ -303,7 +303,7 @@ template <int N> struct fixed_size_simd_impl {
     template <class T>
     static constexpr std::size_t tuple_size = simd_member_type<T>::tuple_size;
     template <class T>
-    static constexpr std::make_index_sequence<tuple_size<T>> index_seq = {};
+    static constexpr std::make_index_sequence<simd_member_type<T>::tuple_size> index_seq = {};
     template <class T> using simd = Vc::simd<T, simd_abi::fixed_size<N>>;
     template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::fixed_size<N>>;
     using size_tag = size_constant<N>;
