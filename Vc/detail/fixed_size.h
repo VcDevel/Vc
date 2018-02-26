@@ -313,14 +313,27 @@ template <int N> struct fixed_size_simd_impl {
     template <class T>
     static inline simd_member_type<T> broadcast(T x, size_tag) noexcept
     {
+#ifdef Vc_ICC
+        simd_member_type<T> r;
+        execute_n_times<N>([&](auto i_) { r.set(i_, x); });
+        return r;
+#else   // Vc_ICC
         return simd_member_type<T>::generate(
             [&](auto meta) { return meta.broadcast(x, size_constant<meta.size()>()); });
+#endif  // Vc_ICC
     }
 
     // generator {{{2
     template <class F, class T>
     static Vc_INTRINSIC simd_member_type<T> generator(F &&gen, type_tag<T>, size_tag)
     {
+#ifdef Vc_ICC
+        // FIXME: this works around "internal error: assertion failed at: "shared/cfe/edgcpfe/il.c", line 9283" (ICC 18.1)
+        // No guarantees about resulting optimizations, though.
+        simd_member_type<T> r;
+        execute_n_times<N>([&](auto i_) { r.set(i_, gen(i_)); });
+        return r;
+#else   // Vc_ICC
         return simd_member_type<T>::generate([&gen](auto meta) {
             return meta.generator(
                 [&](auto i_) {
@@ -328,6 +341,7 @@ template <int N> struct fixed_size_simd_impl {
                 },
                 type_tag<T>(), size_constant<meta.size()>());
         });
+#endif  // Vc_ICC
     }
 
     // load {{{2
@@ -616,11 +630,19 @@ public:
     // masked_unary {{{2
     template <template <typename> class Op, class T, class... As>
     static inline detail::simd_tuple<T, As...> masked_unary(
-        const mask_member_type bits, const detail::simd_tuple<T, As...> v)
+        const mask_member_type bits,
+        const detail::simd_tuple<T, As...> v)  // TODO: const-ref v?
     {
+#ifdef Vc_ICC
+        detail::simd_tuple<T, As...> r;
+        execute_n_times<N>(
+            [&](auto i_) { r.set(i_, bits[i_] ? Op<T>{}(v[i_]) : v[i_]); });
+        return r;
+#else   // Vc_ICC
         return v.apply_wrapped([&bits](auto meta, auto native) {
             return meta.template masked_unary<Op>(meta.make_mask(bits), native);
         });
+#endif  // Vc_ICC
     }
 
     // }}}2

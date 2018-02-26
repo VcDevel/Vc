@@ -251,7 +251,13 @@ public:
         return simd(mem, flags::vector_aligned);
     }
     static Vc_ALWAYS_INLINE simd seq() {
+#ifdef Vc_ICC
+        simd r;
+        detail::execute_n_times<size()>([&](auto i_) { r[i_] = i_; });
+        return r;
+#else   // Vc_ICC
         return seq(std::make_index_sequence<size()>());
+#endif  // Vc_ICC
     }
 #endif  // Vc_EXPERIMENTAL
 
