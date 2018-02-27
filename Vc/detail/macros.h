@@ -315,7 +315,7 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 // Vc_USE_BUILTIN_VECTOR_TYPES: defined for GCC and Clang
 // TODO: rename to Vc_HAVE_BUILTIN_VECTOR_TYPES
 // {{{
-#if defined(Vc_GCC) || defined(Vc_CLANG) || defined Vc_APPLECLANG
+#if defined(Vc_GCC) || defined(Vc_CLANG) || defined Vc_APPLECLANG || defined Vc_ICC
 #define Vc_USE_BUILTIN_VECTOR_TYPES 1
 #endif
 // }}}
