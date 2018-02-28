@@ -895,7 +895,7 @@ struct simd_converter<From, simd_abi::scalar, To, simd_abi::fixed_size<1>> {
 // simd_converter fixed_size<1> -> scalar {{{1
 template <class From, class To>
 struct simd_converter<From, simd_abi::fixed_size<1>, To, simd_abi::scalar> {
-    To operator()(simd_tuple<To, simd_abi::scalar> x)
+    Vc_INTRINSIC To operator()(simd_tuple<From, simd_abi::scalar> x)
     {
         return {static_cast<To>(x.first)};
     }
