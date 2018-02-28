@@ -319,6 +319,19 @@ private:
     Builtin data;
 };
 
+#if defined Vc_CLANG && !defined Vc_HAVE_SSE4_1
+#if Vc_CLANG < 0x60000
+template <> void Storage<double, 2, AliasStrategy::VectorBuiltin>::set(size_t i, double x)
+{
+    if (x == 0. && i == 1)
+        asm("" : "+g"(x));  // make clang forget that x is 0
+    data[i] = x;
+}
+#else
+#warning "clang 5 failed operators_sse2_vectorbuiltin_ldouble_float_double_schar_uchar in operator<simd<double, Sse>> and required a workaround. Is this still the case for newer clang versions?
+#endif
+#endif
+
 // Storage<UnionMembers>{{{1
 template <typename ValueType, size_t Size>
 class Storage<ValueType, Size, AliasStrategy::UnionMembers>
