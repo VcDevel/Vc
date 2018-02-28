@@ -66,10 +66,7 @@ using all_arithmetic_types =
                   unsigned short, signed char, unsigned long long, long, unsigned int,
                   short, unsigned char>;
 #ifdef ONE_RANDOM_ARITHMETIC_TYPE
-constexpr const char *const vc_compile_time = __TIME__;
-using arithmetic_types = vir::Typelist<
-    all_arithmetic_types::at<((vc_compile_time[6] - '0') * 10 + (vc_compile_time[7] - '0')) %
-                             all_arithmetic_types::size()>>;
+using arithmetic_types = VIR_CHOOSE_ONE_RANDOMLY(all_arithmetic_types);
 #else
 using arithmetic_types = all_arithmetic_types;
 #endif
@@ -148,50 +145,46 @@ using native_real_test_types = vir::concat<
     vir::Typelist<>>;
 
 // all_test_types {{{1
+using one_fixed_size_abi = VIR_CHOOSE_ONE_RANDOMLY(
+    vir::Typelist<vir::Template<base_template, Vc::simd_abi::fixed_size<1>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<2>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<3>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<4>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<5>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<6>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<7>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<8>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<9>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<10>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<11>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<12>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<13>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<14>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<15>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<16>>,
+                  vir::Template<base_template, Vc::simd_abi::fixed_size<
+                                                   Vc::simd_abi::max_fixed_size - 1>>,
+                  vir::Template<base_template,
+                                Vc::simd_abi::fixed_size<Vc::simd_abi::max_fixed_size>>>);
+
 using all_test_types = vir::concat<
     native_test_types,
-    vir::expand_list<
-        vir::Typelist<
-#ifndef Vc_HAVE_AVX512F
-            // reduce compile times when AVX512 is available (already builds Avx and Sse
-            // ABIs)
-            vir::Template<base_template, Vc::simd_abi::scalar>,
-#endif  // Vc_HAVE_AVX512F
-            // vir::Template<base_template, Vc::simd_abi::fixed_size<2>>,
-            vir::Template<base_template, Vc::simd_abi::fixed_size<3>>,
-            // vir::Template<base_template, Vc::simd_abi::fixed_size<4>>,
-            // vir::Template<base_template, Vc::simd_abi::fixed_size<8>>,
-            vir::Template<base_template, Vc::simd_abi::fixed_size<12>>,
-            // vir::Template<base_template, Vc::simd_abi::fixed_size<16>>,
-            vir::Template<base_template, Vc::simd_abi::fixed_size<
-                                             Vc::simd_abi::max_fixed_size - 1>>,
-            vir::Template<base_template,
-                          Vc::simd_abi::fixed_size<Vc::simd_abi::max_fixed_size>>>,
+    vir::expand_list<vir::concat<vir::Template<base_template, Vc::simd_abi::scalar>,
+                                 one_fixed_size_abi>,
 #ifdef Vc_MSVC
-        // work around ICE: MSVC crashes for simd<long double, fixed_size<N>>
-        typename vir::filter_list<long double, testtypes>::type
+                     // work around ICE: MSVC crashes for simd<long double, fixed_size<N>>
+                     typename vir::filter_list<long double, testtypes>::type
 #else
-        testtypes
+                     testtypes
 #endif
-        >>;
+                     >>;
 
 // real_test_types {{{1
 using real_test_types = vir::concat<
     native_real_test_types,
-    vir::expand_list<
-        vir::Typelist<
-#ifndef Vc_HAVE_AVX512F
-            // reduce compile times when AVX512 is available (already builds Avx and Sse
-            // ABIs)
-            vir::Template<base_template, Vc::simd_abi::scalar>,
-#endif  // Vc_HAVE_AVX512F
-            vir::Template<base_template, Vc::simd_abi::fixed_size<3>>,
-            vir::Template<base_template, Vc::simd_abi::fixed_size<12>>,
-            vir::Template<base_template, Vc::simd_abi::fixed_size<
-                                             Vc::simd_abi::max_fixed_size - 1>>,
-            vir::Template<base_template,
-                          Vc::simd_abi::fixed_size<Vc::simd_abi::max_fixed_size>>>,
-        testtypes_fp>>;
+    vir::expand_list<vir::concat<vir::Template<base_template, Vc::simd_abi::scalar>,
+                                 one_fixed_size_abi>,
+                     testtypes_fp>>;
 
 // many_fixed_size_types {{{1
 using many_fixed_size_types = vir::expand_list<
