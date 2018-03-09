@@ -28,9 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SIMD_AVX512_H_
 #define VC_SIMD_AVX512_H_
 
-#include "avx.h"
 #include "macros.h"
-#ifdef Vc_HAVE_SSE
+#ifdef Vc_HAVE_AVX512_ABI
+#include "avx.h"
 #include "storage.h"
 #include "simd_tuple.h"
 #include "x86/intrinsics.h"
@@ -66,88 +66,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _MM_CMPINT_GT 0x6
 #endif /*}}}*/
 
-Vc_VERSIONED_NAMESPACE_BEGIN
-namespace detail
-{
-struct avx512_mask_impl;
-struct avx512_simd_impl;
-
-// bool_storage_member_type{{{1
-#ifdef Vc_HAVE_AVX512F
-template <> struct bool_storage_member_type< 2> { using type = __mmask8 ; };
-template <> struct bool_storage_member_type< 4> { using type = __mmask8 ; };
-template <> struct bool_storage_member_type< 8> { using type = __mmask8 ; };
-template <> struct bool_storage_member_type<16> { using type = __mmask16; };
-template <> struct bool_storage_member_type<32> { using type = __mmask32; };
-template <> struct bool_storage_member_type<64> { using type = __mmask64; };
-#endif  // Vc_HAVE_AVX512F
-
-// traits<T, simd_abi::Avx512>{{{1
-template <class T> struct avx512_traits {
-    static_assert(sizeof(T) <= 8,
-                  "AVX can only implement operations on element types with sizeof <= 8");
-    static_assert(std::is_arithmetic<T>::value,
-                  "AVX512 can only vectorize arithmetic types");
-    static_assert(!std::is_same<T, bool>::value, "AVX512 cannot vectorize bool");
-
-#ifdef Vc_HAVE_AVX512_ABI
-    using simd_member_type = avx512_simd_member_type<T>;
-    using simd_impl_type = avx512_simd_impl;
-    static constexpr size_t simd_member_alignment = alignof(simd_member_type);
-    using simd_cast_type = typename simd_member_type::VectorType;
-    struct simd_base {
-        explicit operator simd_cast_type() const
-        {
-            return data(*static_cast<const simd<T, simd_abi::Avx512> *>(this));
-        }
-    };
-
-    using mask_member_type = avx512_mask_member_type<T>;
-    using mask_impl_type = avx512_mask_impl;
-    static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-    class mask_cast_type
-    {
-        using U = typename mask_member_type::VectorType;
-        U d;
-
-    public:
-        mask_cast_type(bool) = delete;  // better safe than sorry: bool is implicitly
-                                        // convertible to __mmask. This catches the
-                                        // conversion and turns it into a hard error.
-        mask_cast_type(U x) : d(x) {}
-        operator mask_member_type() const { return d; }
-    };
-    struct mask_base {
-        explicit operator typename mask_member_type::VectorType() const
-        {
-            return data(*static_cast<const simd_mask<T, simd_abi::Avx512> *>(this));
-        }
-    };
-#endif  // Vc_HAVE_AVX512_ABI
-};
-
-#ifdef Vc_HAVE_AVX512_ABI
-template <> struct traits<double, simd_abi::Avx512> : public avx512_traits<double> {};
-template <> struct traits< float, simd_abi::Avx512> : public avx512_traits< float> {};
-template <> struct traits<ullong, simd_abi::Avx512> : public avx512_traits<ullong> {};
-template <> struct traits< llong, simd_abi::Avx512> : public avx512_traits< llong> {};
-template <> struct traits< ulong, simd_abi::Avx512> : public avx512_traits< ulong> {};
-template <> struct traits<  long, simd_abi::Avx512> : public avx512_traits<  long> {};
-template <> struct traits<  uint, simd_abi::Avx512> : public avx512_traits<  uint> {};
-template <> struct traits<   int, simd_abi::Avx512> : public avx512_traits<   int> {};
-#ifdef Vc_HAVE_FULL_AVX512_ABI
-template <> struct traits<ushort, simd_abi::Avx512> : public avx512_traits<ushort> {};
-template <> struct traits< short, simd_abi::Avx512> : public avx512_traits< short> {};
-template <> struct traits< uchar, simd_abi::Avx512> : public avx512_traits< uchar> {};
-template <> struct traits< schar, simd_abi::Avx512> : public avx512_traits< schar> {};
-template <> struct traits<  char, simd_abi::Avx512> : public avx512_traits<  char> {};
-#endif  // Vc_HAVE_FULL_AVX512_ABI
-#endif  // Vc_HAVE_AVX512_ABI
-//}}}1
-}  // namespace detail
-Vc_VERSIONED_NAMESPACE_END
-
-#ifdef Vc_HAVE_AVX512_ABI
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
@@ -542,8 +460,9 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl> {
     {
         using V = Vc::simd<T, simd_abi::Avx>;
         return avx_simd_impl::reduce(size_tag<N / 2>(),
-                                        binary_op(V(lo256(data(x))), V(hi256(data(x)))),
-                                        binary_op);
+                                     binary_op(V(detail::private_init, lo256(data(x))),
+                                               V(detail::private_init, hi256(data(x)))),
+                                     binary_op);
     }
 
     // min, max {{{2
@@ -1874,7 +1793,6 @@ Vc_ALWAYS_INLINE int find_last_set(simd_mask<unsigned char, simd_abi::Avx512> k)
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // Vc_HAVE_AVX512_ABI
-#endif  // Vc_HAVE_SSE
 #endif  // VC_SIMD_AVX512_H_
 
 // vim: foldmethod=marker

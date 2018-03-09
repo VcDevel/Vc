@@ -37,85 +37,64 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-namespace aarch
-{
-using aarch_const = constants<simd_abi::neon>;
-
 // builtin_type{{{1
-template <typename ValueType, size_t Bytes> struct builtin_type_impl;
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-template <> struct builtin_type_impl<         double   , 16> { typedef          double    type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<         float    , 16> { typedef          float     type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<         long long, 16> { typedef          long long type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<unsigned long long, 16> { typedef unsigned long long type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<         long     , 16> { typedef          long      type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<unsigned long     , 16> { typedef unsigned long      type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<         int      , 16> { typedef          int       type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<unsigned int      , 16> { typedef unsigned int       type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<         short    , 16> { typedef          short     type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<unsigned short    , 16> { typedef unsigned short     type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<         char     , 16> { typedef          char      type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<unsigned char     , 16> { typedef unsigned char      type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<  signed char     , 16> { typedef   signed char      type [[gnu::vector_size(16)]]; };
-template <> struct builtin_type_impl<         bool     , 16> { typedef unsigned char      type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<         double   , 16> { typedef          double    type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<         float    , 16> { typedef          float     type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<         long long, 16> { typedef          long long type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<unsigned long long, 16> { typedef unsigned long long type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<         long     , 16> { typedef          long      type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<unsigned long     , 16> { typedef unsigned long      type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<         int      , 16> { typedef          int       type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<unsigned int      , 16> { typedef unsigned int       type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<         short    , 16> { typedef          short     type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<unsigned short    , 16> { typedef unsigned short     type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<         char     , 16> { typedef          char      type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<unsigned char     , 16> { typedef unsigned char      type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<  signed char     , 16> { typedef   signed char      type [[gnu::vector_size(16)]]; };
+template <> struct builtin_type<         bool     , 16> { typedef unsigned char      type [[gnu::vector_size(16)]]; };
 
-template <> struct builtin_type_impl<         double   , 32> { typedef          double    type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<         float    , 32> { typedef          float     type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<         long long, 32> { typedef          long long type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<unsigned long long, 32> { typedef unsigned long long type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<         long     , 32> { typedef          long      type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<unsigned long     , 32> { typedef unsigned long      type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<         int      , 32> { typedef          int       type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<unsigned int      , 32> { typedef unsigned int       type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<         short    , 32> { typedef          short     type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<unsigned short    , 32> { typedef unsigned short     type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<         char     , 32> { typedef          char      type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<unsigned char     , 32> { typedef unsigned char      type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<  signed char     , 32> { typedef   signed char      type [[gnu::vector_size(32)]]; };
-template <> struct builtin_type_impl<         bool     , 32> { typedef unsigned char      type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<         double   , 32> { typedef          double    type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<         float    , 32> { typedef          float     type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<         long long, 32> { typedef          long long type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<unsigned long long, 32> { typedef unsigned long long type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<         long     , 32> { typedef          long      type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<unsigned long     , 32> { typedef unsigned long      type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<         int      , 32> { typedef          int       type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<unsigned int      , 32> { typedef unsigned int       type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<         short    , 32> { typedef          short     type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<unsigned short    , 32> { typedef unsigned short     type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<         char     , 32> { typedef          char      type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<unsigned char     , 32> { typedef unsigned char      type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<  signed char     , 32> { typedef   signed char      type [[gnu::vector_size(32)]]; };
+template <> struct builtin_type<         bool     , 32> { typedef unsigned char      type [[gnu::vector_size(32)]]; };
 
-template <> struct builtin_type_impl<         double   , 64> { typedef          double    type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<         float    , 64> { typedef          float     type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<         long long, 64> { typedef          long long type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<unsigned long long, 64> { typedef unsigned long long type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<         long     , 64> { typedef          long      type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<unsigned long     , 64> { typedef unsigned long      type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<         int      , 64> { typedef          int       type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<unsigned int      , 64> { typedef unsigned int       type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<         short    , 64> { typedef          short     type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<unsigned short    , 64> { typedef unsigned short     type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<         char     , 64> { typedef          char      type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<unsigned char     , 64> { typedef unsigned char      type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<  signed char     , 64> { typedef   signed char      type [[gnu::vector_size(64)]]; };
-template <> struct builtin_type_impl<         bool     , 64> { typedef unsigned char      type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<         double   , 64> { typedef          double    type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<         float    , 64> { typedef          float     type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<         long long, 64> { typedef          long long type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<unsigned long long, 64> { typedef unsigned long long type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<         long     , 64> { typedef          long      type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<unsigned long     , 64> { typedef unsigned long      type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<         int      , 64> { typedef          int       type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<unsigned int      , 64> { typedef unsigned int       type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<         short    , 64> { typedef          short     type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<unsigned short    , 64> { typedef unsigned short     type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<         char     , 64> { typedef          char      type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<unsigned char     , 64> { typedef unsigned char      type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<  signed char     , 64> { typedef   signed char      type [[gnu::vector_size(64)]]; };
+template <> struct builtin_type<         bool     , 64> { typedef unsigned char      type [[gnu::vector_size(64)]]; };
 #endif
 
-template <typename T, size_t Size>
-using builtin_type = typename builtin_type_impl<T, Size * sizeof(T)>::type;
-
 // intrinsic_type{{{1
-template <typename T, size_t Bytes> struct intrinsic_type_impl {
-    static_assert(sizeof(T) == Bytes,
-                  "intrinsic_type without SIMD target support may only have Size = 1");
-    using type = T;
-};
-
-template <> struct intrinsic_type_impl<double, 16> { using type = float64x2_t; };
-template <typename T> struct intrinsic_type_impl<T, 16> { using type = int32x4_t; };
-
-template <typename T, size_t Size>
-using intrinsic_type = typename intrinsic_type_impl<T, Size * sizeof(T)>::type;
+template <> struct intrinsic_type<double, 16> { using type = float64x2_t; };
+template <> struct intrinsic_type<int, 16> { using type = int32x4_t; };
 
 // is_intrinsic{{{1
-template <class T> struct is_intrinsic : public std::false_type {};
-
 template <> struct is_intrinsic<float32x4_t> : public std::true_type {};
 template <> struct is_intrinsic<float64x2_t> : public std::true_type {};
 template <> struct is_intrinsic<int32x4_t> : public std::true_type {};
-template <class T> constexpr bool is_intrinsic_v = is_intrinsic<T>::value;
 
 // is_builtin_vector{{{1
-template <class T> struct is_builtin_vector : public std::false_type {};
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 template <> struct is_builtin_vector<builtin_type<float, 4>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type<double, 2>> : public std::true_type {};
@@ -130,7 +109,11 @@ template <> struct is_builtin_vector<builtin_type<ushort, 8>> : public std::true
 template <> struct is_builtin_vector<builtin_type< schar,16>> : public std::true_type {};
 template <> struct is_builtin_vector<builtin_type< uchar,16>> : public std::true_type {};
 #endif
-template <class T> constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
+//}}}1
+
+namespace aarch
+{
+using aarch_const = constants<simd_abi::neon>;
 
 // intrin_cast{{{1
 template<typename T> Vc_INTRINSIC_L T intrin_cast(float32x4_t  v) Vc_INTRINSIC_R;

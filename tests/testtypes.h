@@ -31,10 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vir/typelist.h>
 #include <Vc/simd>
 
-#ifndef TESTTYPES
-#error "Please define TESTTYPES to the list of fundamental types to be tested with simd/simd_mask."
-#endif
-
 using schar = signed char;
 using uchar = unsigned char;
 using ushort = unsigned short;
@@ -48,13 +44,20 @@ using all_native_abis =
     vir::Typelist<Vc::simd_abi::scalar, Vc::simd_abi::Sse, Vc::simd_abi::Avx,
                   Vc::simd_abi::Avx512, Vc::simd_abi::Neon>;
 
-using testtypes = vir::Typelist<TESTTYPES>;
+using testtypes = vir::Typelist<
+#ifdef TESTTYPES
+    TESTTYPES
+#else
+    ldouble, double, float, ullong, llong, ulong, long, uint, int, ushort, short, uchar,
+    schar//, char, wchar_t, char16_t, char32_t
+#endif
+    >;
 using testtypes_wo_ldouble = typename vir::filter_list<long double, testtypes>::type;
 using testtypes_64_32 =
-    typename vir::filter_list<vir::Typelist<ushort, short, uchar, schar, char>,
+    typename vir::filter_list<vir::Typelist<ushort, short, uchar, schar, char, wchar_t, char16_t>,
                               testtypes_wo_ldouble>::type;
 using testtypes_fp =
-    typename vir::filter_list<vir::Typelist<ullong, llong, ulong, long, uint, int>,
+    typename vir::filter_list<vir::Typelist<ullong, llong, ulong, long, uint, int, char32_t>,
                               testtypes_64_32>::type;
 using testtypes_float = typename vir::filter_list<double, testtypes_fp>::type;
 static_assert(vir::list_size<testtypes_fp>::value <= 2, "filtering the list failed");
@@ -64,7 +67,7 @@ static_assert(vir::list_size<testtypes_float>::value <= 1, "filtering the list f
 using all_arithmetic_types =
     vir::Typelist<long double, double, float, long long, unsigned long, int,
                   unsigned short, signed char, unsigned long long, long, unsigned int,
-                  short, unsigned char>;
+                  short, unsigned char /*, char32_t, char16_t, char, wchar_t*/>;
 #ifdef ONE_RANDOM_ARITHMETIC_TYPE
 using arithmetic_types = VIR_CHOOSE_ONE_RANDOMLY(all_arithmetic_types);
 #else
@@ -85,6 +88,11 @@ using vullong = Vc::native_simd<ullong>;
 using vfloat = Vc::native_simd<float>;
 using vdouble = Vc::native_simd<double>;
 using vldouble = Vc::native_simd<long double>;
+
+using vchar = Vc::native_simd<char>;
+using vwchar = Vc::native_simd<wchar_t>;
+using vchar16 = Vc::native_simd<char16_t>;
+using vchar32 = Vc::native_simd<char32_t>;
 
 // viN/vfN {{{1
 template <typename T> using vi8  = Vc::fixed_size_simd<T, vschar::size_v>;

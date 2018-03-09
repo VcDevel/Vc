@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "simd_tuple.h"
 #include "debug.h"
 #include <array>
+#include <climits>
 
 /**
  * The fixed_size ABI gives the following guarantees:
@@ -111,12 +112,14 @@ static_assert(std::is_same<fixed_size_storage<float, 2>,
 static_assert(std::is_same<fixed_size_storage<float, 3>,
                            simd_tuple<float, scalar, scalar, scalar>>::value,
               "fixed_size_storage failure");
+#ifdef Vc_HAVE_SSE_ABI
 static_assert(
     std::is_same<fixed_size_storage<float, 4>, simd_tuple<float, Sse>>::value,
     "fixed_size_storage failure");
 static_assert(
     std::is_same<fixed_size_storage<float, 5>, simd_tuple<float, Sse, scalar>>::value,
     "fixed_size_storage failure");
+#endif  // Vc_HAVE_SSE_ABI
 #ifdef Vc_HAVE_AVX_ABI
 static_assert(
     std::is_same<fixed_size_storage<float, 8>, simd_tuple<float, Avx>>::value,
@@ -549,8 +552,8 @@ public:
     // compares {{{2
 #define Vc_CMP_OPERATIONS(cmp_)                                                          \
     template <class T, class... As>                                                      \
-    static inline mask_member_type cmp_(simd_tuple<T, As...> x,                       \
-                                        simd_tuple<T, As...> y)                       \
+    static inline mask_member_type cmp_(const simd_tuple<T, As...> &x,                   \
+                                        const simd_tuple<T, As...> &y)                   \
     {                                                                                    \
         mask_member_type bits = 0;                                                       \
         detail::for_each(x, y, [&bits](auto meta, auto native_x, auto native_y) {        \
@@ -1174,84 +1177,6 @@ private:
 };
 
 // }}}1
-// traits {{{1
-template <class T, int N, bool = ((N <= 32 && N >= 0) || N == 64)>
-struct fixed_size_traits {
-    static constexpr size_t size() noexcept { return N; }
-
-    using simd_impl_type = fixed_size_simd_impl<N>;
-    using simd_member_type = fixed_size_storage<T, N>;
-    static constexpr size_t simd_member_alignment =
-#ifdef Vc_GCC
-        std::min(size_t(
-#ifdef __AVX__
-                     256
-#else
-                     128
-#endif
-                     ),
-#else
-        (
-#endif
-                 next_power_of_2(N * sizeof(T)));
-    struct simd_cast_type {
-        simd_cast_type(const std::array<T, N> &);
-        simd_cast_type(simd_member_type dd) : d(dd) {}
-        explicit operator simd_member_type() const { return d; }
-
-    private:
-        simd_member_type d;
-    };
-    struct simd_base {
-        simd_base() = default;
-        Vc_INTRINSIC simd_base(const simd_base &) {}
-
-        explicit operator const simd_member_type &() const
-        {
-            return data(*static_cast<const fixed_size_simd<T, N> *>(this));
-        }
-        explicit operator std::array<T, N>() const
-        {
-            std::array<T, N> r;
-            // simd_member_type can be larger because of higher alignment
-            static_assert(sizeof(r) <= sizeof(simd_member_type), "");
-            std::memcpy(r.data(), &static_cast<const simd_member_type &>(*this),
-                        sizeof(r));
-            return r;
-        }
-    };
-
-    using mask_impl_type = fixed_size_mask_impl<N>;
-    using mask_member_type = std::bitset<N>;
-    static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-    class mask_cast_type
-    {
-        mask_cast_type() = delete;
-    };
-    struct mask_base {
-        //explicit operator std::bitset<size()>() const { return impl::to_bitset(d); }
-        // empty. The std::bitset interface suffices
-    };
-
-};
-template <class T, int N>
-struct fixed_size_traits<T, N, false> : public traits<void, void> {
-};
-template <int N> struct traits<long double, simd_abi::fixed_size<N>> : public fixed_size_traits<long double, N> {};
-template <int N> struct traits<double, simd_abi::fixed_size<N>> : public fixed_size_traits<double, N> {};
-template <int N> struct traits< float, simd_abi::fixed_size<N>> : public fixed_size_traits< float, N> {};
-template <int N> struct traits<ullong, simd_abi::fixed_size<N>> : public fixed_size_traits<ullong, N> {};
-template <int N> struct traits< llong, simd_abi::fixed_size<N>> : public fixed_size_traits< llong, N> {};
-template <int N> struct traits< ulong, simd_abi::fixed_size<N>> : public fixed_size_traits< ulong, N> {};
-template <int N> struct traits<  long, simd_abi::fixed_size<N>> : public fixed_size_traits<  long, N> {};
-template <int N> struct traits<  uint, simd_abi::fixed_size<N>> : public fixed_size_traits<  uint, N> {};
-template <int N> struct traits<   int, simd_abi::fixed_size<N>> : public fixed_size_traits<   int, N> {};
-template <int N> struct traits<ushort, simd_abi::fixed_size<N>> : public fixed_size_traits<ushort, N> {};
-template <int N> struct traits< short, simd_abi::fixed_size<N>> : public fixed_size_traits< short, N> {};
-template <int N> struct traits< uchar, simd_abi::fixed_size<N>> : public fixed_size_traits< uchar, N> {};
-template <int N> struct traits< schar, simd_abi::fixed_size<N>> : public fixed_size_traits< schar, N> {};
-template <int N> struct traits<  char, simd_abi::fixed_size<N>> : public fixed_size_traits<  char, N> {};
-
 // }}}1
 }  // namespace detail
 

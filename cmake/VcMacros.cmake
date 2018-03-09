@@ -217,7 +217,7 @@ macro(vc_set_preferred_compiler_flags)
             AddCompilerFlag("${_f}" CXX_FLAGS CMAKE_CXX_FLAGS)
          endforeach()
       endif()
-      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-Wabi")
+      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-Wno-abi")
       vc_add_compiler_flag(Vc_COMPILE_FLAGS "-fabi-version=0") # ABI version 4 is required to make __m128 and __m256 appear as different types. 0 should give us the latest version.
       vc_add_compiler_flag(Vc_COMPILE_FLAGS "-fabi-compat-version=0") # GCC 5 introduced this switch
       # and defaults it to 2 if -fabi-version is 0. But in that case the bug -fabi-version=0 is

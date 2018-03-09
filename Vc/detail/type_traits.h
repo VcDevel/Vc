@@ -32,6 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
+// void_t{{{
+template <class... Ts> using void_t = void;
+//}}}
 
 #ifdef Vc_CXX17
 template <class... Ts> using all = std::conjunction<Ts...>;
@@ -119,6 +122,21 @@ template <class T> typename T::value_type value_type_or_identity_impl(int);
 template <class T> T value_type_or_identity_impl(float);
 template <class T>
 using value_type_or_identity = decltype(value_type_or_identity_impl<T>(int()));
+
+// is_vectorizable {{{
+template <class T> struct is_vectorizable : public std::is_arithmetic<T> {};
+template <> struct is_vectorizable<bool> : public std::false_type {};
+template <class T> constexpr bool is_vectorizable_v = is_vectorizable<T>::value;
+// }}}
+// is_less_than {{{
+template <int A, int B> struct is_less_than : public std::integral_constant<bool, (A < B)> {
+};
+// }}}
+// is_equal_to {{{
+template <int A, int B>
+struct is_equal_to : public std::integral_constant<bool, (A == B)> {
+};
+// }}}
 
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

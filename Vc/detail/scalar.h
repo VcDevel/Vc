@@ -39,43 +39,6 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
 template <class T> using scalar_mask = simd_mask<T, simd_abi::scalar>;
 template <class T> using scalar_simd = simd<T, simd_abi::scalar>;
-struct scalar_simd_impl;
-struct scalar_mask_impl;
-
-// traits {{{1
-template <class T> struct scalar_traits {
-    using simd_impl_type = scalar_simd_impl;
-    using simd_member_type = T;
-    static constexpr size_t simd_member_alignment = alignof(T);
-    using simd_cast_type = std::array<T, 1>;
-    struct simd_base {
-        explicit operator simd_cast_type() const
-        {
-            return {data(*static_cast<const simd<T, simd_abi::scalar> *>(this))};
-        }
-    };
-
-    using mask_impl_type = scalar_mask_impl;
-    using mask_member_type = bool;
-    static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-    using mask_cast_type = const std::bitset<1>;
-    struct mask_base {};
-};
-template <> struct traits<long double, simd_abi::scalar> : public scalar_traits<long double> {};
-template <> struct traits<double, simd_abi::scalar> : public scalar_traits<double> {};
-template <> struct traits< float, simd_abi::scalar> : public scalar_traits< float> {};
-template <> struct traits<ullong, simd_abi::scalar> : public scalar_traits<ullong> {};
-template <> struct traits< llong, simd_abi::scalar> : public scalar_traits< llong> {};
-template <> struct traits< ulong, simd_abi::scalar> : public scalar_traits< ulong> {};
-template <> struct traits<  long, simd_abi::scalar> : public scalar_traits<  long> {};
-template <> struct traits<  uint, simd_abi::scalar> : public scalar_traits<  uint> {};
-template <> struct traits<   int, simd_abi::scalar> : public scalar_traits<   int> {};
-template <> struct traits<ushort, simd_abi::scalar> : public scalar_traits<ushort> {};
-template <> struct traits< short, simd_abi::scalar> : public scalar_traits< short> {};
-template <> struct traits< uchar, simd_abi::scalar> : public scalar_traits< uchar> {};
-template <> struct traits< schar, simd_abi::scalar> : public scalar_traits< schar> {};
-template <> struct traits<  char, simd_abi::scalar> : public scalar_traits<  char> {};
-
 // simd impl {{{1
 struct scalar_simd_impl {
     // member types {{{2

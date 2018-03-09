@@ -325,7 +325,7 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_i32 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi32_epi64(v);
 #else
-    return concat(_mm_cvtepi32_epi64(v), _mm_cvtepi32_epi64(_mm_unpackhi_epi64(v, v)));
+    return x86::concat(_mm_cvtepi32_epi64(v), _mm_cvtepi32_epi64(_mm_unpackhi_epi64(v, v)));
 #endif
 }
 
@@ -334,7 +334,7 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_u32 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu32_epi64(v);
 #else
-    return concat(_mm_cvtepu32_epi64(v), _mm_cvtepu32_epi64(_mm_unpackhi_epi64(v, v)));
+    return x86::concat(_mm_cvtepu32_epi64(v), _mm_cvtepu32_epi64(_mm_unpackhi_epi64(v, v)));
 #endif
 }
 
@@ -343,7 +343,7 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_i16 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi16_epi64(v);
 #else
-    return concat(_mm_cvtepi16_epi64(v), _mm_cvtepi16_epi64(_mm_srli_si128(v, 4)));
+    return x86::concat(_mm_cvtepi16_epi64(v), _mm_cvtepi16_epi64(_mm_srli_si128(v, 4)));
 #endif
 }
 
@@ -352,7 +352,7 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_u16 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu16_epi64(v);
 #else
-    return concat(_mm_cvtepu16_epi64(v), _mm_cvtepu16_epi64(_mm_srli_si128(v, 4)));
+    return x86::concat(_mm_cvtepu16_epi64(v), _mm_cvtepu16_epi64(_mm_srli_si128(v, 4)));
 #endif
 }
 
@@ -361,7 +361,7 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_i08 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi8_epi64(v);
 #else
-    return concat(_mm_cvtepi8_epi64(v), _mm_cvtepi8_epi64(_mm_srli_si128(v, 2)));
+    return x86::concat(_mm_cvtepi8_epi64(v), _mm_cvtepi8_epi64(_mm_srli_si128(v, 2)));
 #endif
 }
 
@@ -370,7 +370,7 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_u08 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu8_epi64(v);
 #else
-    return concat(_mm_cvtepu8_epi64(v), _mm_cvtepu8_epi64(_mm_srli_si128(v, 2)));
+    return x86::concat(_mm_cvtepu8_epi64(v), _mm_cvtepu8_epi64(_mm_srli_si128(v, 2)));
 #endif
 }
 
@@ -401,7 +401,7 @@ template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_f32 v)
 
 template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_f32 v0, x_f32 v1)
 {
-    return convert_to<z_i64>(concat(v0, v1));
+    return convert_to<z_i64>(detail::concat(v0, v1));
 }
 
 // from double{{{2
@@ -580,9 +580,9 @@ template <> Vc_INTRINSIC x_i32 Vc_VDECL convert_to<x_i32>(x_i64 v) {
 template <> Vc_INTRINSIC x_i32 Vc_VDECL convert_to<x_i32>(x_i64 v0, x_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512VL
-    return _mm256_cvtepi64_epi32(concat(v0, v1));
+    return _mm256_cvtepi64_epi32(detail::concat(v0, v1));
 #elif defined Vc_HAVE_AVX512F
-    return lo128(_mm512_cvtepi64_epi32(intrin_cast<__m512i>(concat(v0, v1))));
+    return lo128(_mm512_cvtepi64_epi32(intrin_cast<__m512i>(detail::concat(v0, v1))));
 #else
     return _mm_unpacklo_epi64(_mm_shuffle_epi32(v0, 8), _mm_shuffle_epi32(v1, 8));
     //return {v0.m(0), v0.m(1), v1.m(0), v1.m(1)};
@@ -673,9 +673,9 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_f64 v)
 template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_f64 v0, y_f64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvttpd_epi32(concat(v0, v1));
+    return _mm512_cvttpd_epi32(detail::concat(v0, v1));
 #else
-    return concat(_mm256_cvttpd_epi32(v0), _mm256_cvttpd_epi32(v1));
+    return x86::concat(_mm256_cvttpd_epi32(v0), _mm256_cvttpd_epi32(v1));
 #endif
 }
 
@@ -711,7 +711,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_i64 v0)
 template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_i64 v0, y_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtepi64_epi32(concat(v0, v1));
+    return _mm512_cvtepi64_epi32(detail::concat(v0, v1));
 #elif defined Vc_HAVE_AVX2
     const auto v0_abxxcdxx = _mm256_shuffle_epi32(v0, 8);
     const auto v1_efxxghxx = _mm256_shuffle_epi32(v1, 8);
@@ -719,7 +719,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_i64 v0, y_i64 v1)
     return _mm256_permute4x64_epi64(v_abefcdgh, 0x01 * 0 + 0x04 * 2 + 0x10 * 1 + 0x40 * 3); // abcdefgh
 #else
     return intrin_cast<__m256i>(
-        concat(_mm_shuffle_ps(intrin_cast<__m128>(v0), hi128(intrin_cast<__m256>(v0)),
+        x86::concat(_mm_shuffle_ps(intrin_cast<__m128>(v0), hi128(intrin_cast<__m256>(v0)),
                               0x01 * 0 + 0x04 * 2 + 0x10 * 0 + 0x40 * 2),
                _mm_shuffle_ps(intrin_cast<__m128>(v1), hi128(intrin_cast<__m256>(v1)),
                               0x01 * 0 + 0x04 * 2 + 0x10 * 0 + 0x40 * 2)));
@@ -748,7 +748,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_i16 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi16_epi32(v);
 #else
-    return concat(_mm_cvtepi16_epi32(v), _mm_cvtepi16_epi32(shift_right<8>(v)));
+    return x86::concat(_mm_cvtepi16_epi32(v), _mm_cvtepi16_epi32(shift_right<8>(v)));
 #endif
 }
 
@@ -761,7 +761,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_u16 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu16_epi32(v);
 #else
-    return concat(_mm_cvtepu16_epi32(v), _mm_cvtepu16_epi32(shift_right<8>(v)));
+    return x86::concat(_mm_cvtepu16_epi32(v), _mm_cvtepu16_epi32(shift_right<8>(v)));
 #endif
 }
 
@@ -770,7 +770,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_i08 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi8_epi32(v);
 #else
-    return concat(_mm_cvtepi8_epi32(v), _mm_cvtepi8_epi32(shift_right<4>(v)));
+    return x86::concat(_mm_cvtepi8_epi32(v), _mm_cvtepi8_epi32(shift_right<4>(v)));
 #endif
 }
 
@@ -783,7 +783,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_u08 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu8_epi32(v);
 #else
-    return concat(_mm_cvtepu8_epi32(v), _mm_cvtepu8_epi32(shift_right<4>(v)));
+    return x86::concat(_mm_cvtepu8_epi32(v), _mm_cvtepu8_epi32(shift_right<4>(v)));
 #endif
 }
 
@@ -804,7 +804,7 @@ template <> Vc_INTRINSIC z_i32 Vc_VDECL convert_to<z_i32>(z_i64 v0)
 
 template <> Vc_INTRINSIC z_i32 Vc_VDECL convert_to<z_i32>(z_i64 v0, z_i64 v1)
 {
-    return concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1));
+    return x86::concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1));
 }
 
 //from int{{{2
@@ -837,7 +837,7 @@ template <> Vc_INTRINSIC z_i32 Vc_VDECL convert_to<z_i32>(x_u08 v0)
 //from double{{{2
 template <> Vc_INTRINSIC z_i32 Vc_VDECL convert_to<z_i32>(z_f64 v0, z_f64 v1)
 {
-    return concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1));
+    return x86::concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1));
 }
 
 //from float{{{2
@@ -893,7 +893,7 @@ template <> Vc_INTRINSIC x_u32 Vc_VDECL convert_to<x_u32>(y_f64 v)
 template <> Vc_INTRINSIC x_u32 Vc_VDECL convert_to<x_u32>(x_f64 v0, x_f64 v1)
 {
 #ifdef Vc_HAVE_AVX
-    return convert_to<x_u32>(y_f64(concat(v0, v1)));
+    return convert_to<x_u32>(y_f64(detail::concat(v0, v1)));
 #else
     return _mm_unpacklo_epi64(convert_to<x_u32>(v0), convert_to<x_u32>(v1));
 #endif
@@ -905,9 +905,9 @@ template <> Vc_INTRINSIC x_u32 Vc_VDECL convert_to<x_u32>(x_f64 v0, x_f64 v1)
 template <> Vc_INTRINSIC y_u32 Vc_VDECL convert_to<y_u32>(y_f64 v0, y_f64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvttpd_epu32(concat(v0, v1));
+    return _mm512_cvttpd_epu32(detail::concat(v0, v1));
 #else
-    return xor_(concat(_mm256_cvttpd_epi32(
+    return xor_(x86::concat(_mm256_cvttpd_epi32(
                            _mm256_sub_pd(_mm256_floor_pd(v0), avx_2_pow_31<double>())),
                        _mm256_cvttpd_epi32(
                            _mm256_sub_pd(_mm256_floor_pd(v1), avx_2_pow_31<double>()))),
@@ -951,7 +951,7 @@ template <> Vc_INTRINSIC y_u32 Vc_VDECL convert_to<y_u32>(y_f32 v0)
 //from double{{{2
 template <> Vc_INTRINSIC z_u32 Vc_VDECL convert_to<z_u32>(z_f64 v0, z_f64 v1)
 {
-    return concat(_mm512_cvttpd_epu32(v0), _mm512_cvttpd_epu32(v1));
+    return x86::concat(_mm512_cvttpd_epu32(v0), _mm512_cvttpd_epu32(v1));
 }
 
 //from float{{{2
@@ -982,9 +982,9 @@ template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(x_i64 v) {
 template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(x_i64 v0, x_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512VL
-    return _mm256_cvtepi64_epi16(concat(v0, v1));
+    return _mm256_cvtepi64_epi16(detail::concat(v0, v1));
 #elif defined Vc_HAVE_AVX512F
-    return _mm512_cvtepi64_epi16(concat(concat(v0, v1), zero<__m256i>()));
+    return _mm512_cvtepi64_epi16(x86::concat(x86::concat(v0, v1), zero<__m256i>()));
 #elif defined Vc_HAVE_SSE4_1
     return _mm_shuffle_epi8(_mm_blend_epi16(v0, _mm_slli_si128(v1, 4), 0x44),
                             _mm_setr_epi8(0, 1, 8, 9, 4, 5, 12, 13, -0x80, -0x80, -0x80,
@@ -998,7 +998,8 @@ template <>
 Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(x_i64 v0, x_i64 v1, x_i64 v2, x_i64 v3)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtepi64_epi16(concat(concat(v0, v1), concat(v2, v3)));
+    return _mm512_cvtepi64_epi16(
+        detail::concat(detail::concat(v0, v1), detail::concat(v2, v3)));
 #elif defined Vc_HAVE_SSE4_1
     return _mm_shuffle_epi8(
         _mm_blend_epi16(
@@ -1015,7 +1016,7 @@ Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(x_i64 v0, x_i64 v1, x_i64 v2, x_i6
 template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(y_i64 v0, y_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtepi64_epi16(concat(v0, v1));
+    return _mm512_cvtepi64_epi16(detail::concat(v0, v1));
 #elif defined Vc_HAVE_AVX2
     auto a = _mm256_unpacklo_epi16(v0, v1);         // 04.. .... 26.. ....
     auto b = _mm256_unpackhi_epi16(v0, v1);         // 15.. .... 37.. ....
@@ -1050,9 +1051,10 @@ template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(x_i32 v) {
 template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(x_i32 v0, x_i32 v1)
 {
 #ifdef Vc_HAVE_AVX512VL
-    return _mm256_cvtepi32_epi16(concat(v0, v1));
+    return _mm256_cvtepi32_epi16(detail::concat(v0, v1));
 #elif defined Vc_HAVE_AVX512F
-    return lo128(_mm512_cvtepi32_epi16(concat(concat(v0, v1), zero<__m256i>())));
+    return lo128(
+        _mm512_cvtepi32_epi16(x86::concat(detail::concat(v0, v1), zero<__m256i>())));
 #elif defined Vc_HAVE_SSE4_1
     return _mm_shuffle_epi8(
         _mm_blend_epi16(v0, _mm_slli_si128(v1, 2), 0xaa),
@@ -1072,7 +1074,7 @@ template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(y_i32 v0)
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cvtepi32_epi16(v0);
 #elif defined Vc_HAVE_AVX512F
-    return lo128(_mm512_cvtepi32_epi16(concat(v0, zero<__m256i>())));
+    return lo128(_mm512_cvtepi32_epi16(x86::concat(v0, zero<__m256i>())));
 #elif defined Vc_HAVE_AVX2
     auto a = _mm256_shuffle_epi8(
         v0, _mm256_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80, -0x80,
@@ -1134,7 +1136,7 @@ Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(x_f64 v0, x_f64 v1, x_f64 v2, x_f6
 template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(y_f64 v0, y_f64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return convert_to<x_i16>(y_i32(_mm512_cvttpd_epi32(concat(v0, v1))));
+    return convert_to<x_i16>(y_i32(_mm512_cvttpd_epi32(detail::concat(v0, v1))));
 #else
     return convert_to<x_i16>(x_i32(_mm256_cvttpd_epi32(v0)),
                              x_i32(_mm256_cvttpd_epi32(v1)));
@@ -1184,7 +1186,7 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(x_i64 v) {
 template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_i64 v0)
 {
 #ifdef Vc_HAVE_AVX512F
-    return zeroExtend(_mm512_cvtepi64_epi16(concat(v0, zero<__m256i>())));
+    return zeroExtend(_mm512_cvtepi64_epi16(x86::concat(v0, zero<__m256i>())));
 #else
     auto a = _mm256_unpacklo_epi16(v0, zero<__m256i>());        // 04.. .... 26.. ....
     auto b = _mm256_unpackhi_epi16(v0, zero<__m256i>());        // 15.. .... 37.. ....
@@ -1196,7 +1198,7 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_i64 v0)
 template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_i64 v0, y_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return zeroExtend(_mm512_cvtepi64_epi16(concat(v0, v1)));
+    return zeroExtend(_mm512_cvtepi64_epi16(detail::concat(v0, v1)));
 #else
     auto a = _mm256_unpacklo_epi16(v0, v1);                     // 04.. .... 26.. ....
     auto b = _mm256_unpackhi_epi16(v0, v1);                     // 15.. .... 37.. ....
@@ -1208,8 +1210,8 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_i64 v0, y_i64 v1)
 template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_i64 v0, y_i64 v1, y_i64 v2, y_i64 v3)
 {
 #ifdef Vc_HAVE_AVX512F
-    return concat(_mm512_cvtepi64_epi16(concat(v0, v1)),
-                  _mm512_cvtepi64_epi16(concat(v2, v3)));
+    return x86::concat(_mm512_cvtepi64_epi16(detail::concat(v0, v1)),
+                       _mm512_cvtepi64_epi16(detail::concat(v2, v3)));
 #else
     auto a = _mm256_unpacklo_epi16(v0, v1);                     // 04.. .... 26.. ....
     auto b = _mm256_unpackhi_epi16(v0, v1);                     // 15.. .... 37.. ....
@@ -1218,8 +1220,8 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_i64 v0, y_i64 v1, y_
     auto e = _mm256_unpacklo_epi16(a, b);                       // 0145 .... 2367 ....
     auto f = _mm256_unpacklo_epi16(c, d);                       // 89CD .... ABEF ....
     auto g = _mm256_unpacklo_epi64(e, f);                       // 0145 89CD 2367 ABEF
-    return concat(_mm_unpacklo_epi32(lo128(g), hi128(g)),
-                  _mm_unpackhi_epi32(lo128(g), hi128(g)));  // 0123 4567 89AB CDEF
+    return x86::concat(_mm_unpacklo_epi32(lo128(g), hi128(g)),
+                       _mm_unpackhi_epi32(lo128(g), hi128(g)));  // 0123 4567 89AB CDEF
 #endif
 }
 #endif  // Vc_HAVE_AVX2
@@ -1232,7 +1234,7 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(z_i64 v0)
 
 template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(z_i64 v0, z_i64 v1)
 {
-    return concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1));
+    return x86::concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1));
 }
 #endif  // Vc_HAVE_AVX512F
 
@@ -1249,9 +1251,9 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_i32 v0)
 template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(y_i32 v0, y_i32 v1)
 {
 #if defined Vc_HAVE_AVX512F
-    return _mm512_cvtepi32_epi16(concat(v0, v1));
+    return _mm512_cvtepi32_epi16(detail::concat(v0, v1));
 #else
-    return concat(convert_to<x_i16>(v0), convert_to<x_i16>(v1));
+    return detail::concat(convert_to<x_i16>(v0), convert_to<x_i16>(v1));
 #endif
 }
 
@@ -1274,7 +1276,7 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(x_i08 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi8_epi16(v);
 #else   // Vc_HAVE_AVX2
-    return concat(_mm_cvtepi8_epi16(v), _mm_cvtepi8_epi16(_mm_unpackhi_epi64(v, v)));
+    return x86::concat(_mm_cvtepi8_epi16(v), _mm_cvtepi8_epi16(_mm_unpackhi_epi64(v, v)));
 #endif  // Vc_HAVE_AVX2
 }
 
@@ -1287,7 +1289,7 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(x_u08 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu8_epi16(v);
 #else   // Vc_HAVE_AVX2
-    return concat(_mm_cvtepu8_epi16(v), _mm_cvtepu8_epi16(_mm_unpackhi_epi64(v, v)));
+    return x86::concat(_mm_cvtepu8_epi16(v), _mm_cvtepu8_epi16(_mm_unpackhi_epi64(v, v)));
 #endif  // Vc_HAVE_AVX2
 }
 
@@ -1324,7 +1326,8 @@ template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(z_f64 v0)
 
 template <> Vc_INTRINSIC y_i16 Vc_VDECL convert_to<y_i16>(z_f64 v0, z_f64 v1)
 {
-    return _mm512_cvtepi32_epi16(concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1)));
+    return _mm512_cvtepi32_epi16(
+        x86::concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1)));
 }
 #endif  // Vc_HAVE_AVX512F
 
@@ -1364,14 +1367,14 @@ template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i64 v0)
 
 template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i64 v0, z_i64 v1)
 {
-    return zeroExtend(concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1)));
+    return zeroExtend(x86::concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1)));
 }
 
 template <>
 Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i64 v0, z_i64 v1, z_i64 v2, z_i64 v3)
 {
-    return concat(concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1)),
-                  concat(_mm512_cvtepi64_epi16(v2), _mm512_cvtepi64_epi16(v3)));
+    return x86::concat(x86::concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1)),
+                       x86::concat(_mm512_cvtepi64_epi16(v2), _mm512_cvtepi64_epi16(v3)));
 }
 
 // from int{{{2
@@ -1382,7 +1385,7 @@ template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i32 v0)
 
 template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(z_i32 v0, z_i32 v1)
 {
-    return concat(_mm512_cvtepi32_epi16(v0), _mm512_cvtepi32_epi16(v1));
+    return x86::concat(_mm512_cvtepi32_epi16(v0), _mm512_cvtepi32_epi16(v1));
 }
 
 //from short{{{2
@@ -1394,7 +1397,7 @@ template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(y_i08 v0)
 #ifdef Vc_HAVE_AVX512BW
     return _mm512_cvtepi8_epi16(v0);
 #else
-    return concat(_mm256_cvtepi8_epi16(lo128(v0)), _mm256_cvtepi8_epi16(hi128(v0)));
+    return x86::concat(_mm256_cvtepi8_epi16(lo128(v0)), _mm256_cvtepi8_epi16(hi128(v0)));
 #endif
 }
 
@@ -1404,7 +1407,7 @@ template <> Vc_INTRINSIC z_i16 Vc_VDECL convert_to<z_i16>(y_u08 v0)
 #ifdef Vc_HAVE_AVX512BW
     return _mm512_cvtepu8_epi16(v0);
 #else
-    return concat(_mm256_cvtepu8_epi16(lo128(v0)), _mm256_cvtepu8_epi16(hi128(v0)));
+    return x86::concat(_mm256_cvtepu8_epi16(lo128(v0)), _mm256_cvtepu8_epi16(hi128(v0)));
 #endif
 }
 
@@ -1440,9 +1443,9 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i64 v) {
 template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i64 v0, x_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512VL
-    return _mm256_cvtepi64_epi8(concat(v0, v1));
+    return _mm256_cvtepi64_epi8(detail::concat(v0, v1));
 #elif defined Vc_HAVE_AVX512F
-    return _mm512_cvtepi64_epi8(concat(concat(v0, v1), zero<__m256i>()));
+    return _mm512_cvtepi64_epi8(x86::concat(detail::concat(v0, v1), zero<__m256i>()));
 #else
     return {v0.m(0), v0.m(1), v1.m(0), v1.m(1), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 #endif
@@ -1452,7 +1455,8 @@ template <>
 Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i64 v0, x_i64 v1, x_i64 v2, x_i64 v3)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtepi64_epi8(concat(concat(v0, v1), concat(v2, v3)));
+    return _mm512_cvtepi64_epi8(
+        detail::concat(detail::concat(v0, v1), detail::concat(v2, v3)));
 #else
     return {v0.m(0), v0.m(1), v1.m(0), v1.m(1), v2.m(0), v2.m(1), v3.m(0), v3.m(1),
             0,       0,       0,       0,       0,       0,       0,       0};
@@ -1464,9 +1468,10 @@ Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i64 v0, x_i64 v1, x_i64 v2, x_i6
                                          x_i64 v4, x_i64 v5, x_i64 v6, x_i64 v7)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm_unpacklo_epi64(
-        _mm512_cvtepi64_epi8(concat(concat(v0, v1), concat(v2, v3))),
-        _mm512_cvtepi64_epi8(concat(concat(v4, v5), concat(v6, v7))));
+    return _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(detail::concat(
+                                  detail::concat(v0, v1), detail::concat(v2, v3))),
+                              _mm512_cvtepi64_epi8(detail::concat(
+                                  detail::concat(v4, v5), detail::concat(v6, v7))));
 #else
     return _mm_unpacklo_epi8(
         _mm_unpacklo_epi32(
@@ -1483,8 +1488,8 @@ template <>
 Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(y_i64 v0, y_i64 v1, y_i64 v2, y_i64 v3)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(concat(v0, v1)),
-                              _mm512_cvtepi64_epi8(concat(v2, v3)));
+    return _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(detail::concat(v0, v1)),
+                              _mm512_cvtepi64_epi8(detail::concat(v2, v3)));
 #elif defined Vc_HAVE_AVX2
     auto a =
         or_(or_(_mm256_srli_epi32(_mm256_slli_epi32(v0, 24), 24),
@@ -1518,7 +1523,8 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i32 v) {
 #ifdef Vc_HAVE_AVX512VL
     return _mm_cvtepi32_epi8(v);
 #elif defined Vc_HAVE_AVX512F
-    return _mm512_cvtepi32_epi8(concat(concat(v, zero<__m128i>()), zero<__m256i>()));
+    return _mm512_cvtepi32_epi8(
+        x86::concat(x86::concat(v, zero<__m128i>()), zero<__m256i>()));
 #elif defined Vc_HAVE_SSSE3
     return _mm_shuffle_epi8(
         v, _mm_setr_epi8(0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
@@ -1536,9 +1542,9 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i32 v) {
 template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i32 v0, x_i32 v1)
 {
 #ifdef Vc_HAVE_AVX512VL
-    return _mm256_cvtepi32_epi8(concat(v0, v1));
+    return _mm256_cvtepi32_epi8(detail::concat(v0, v1));
 #elif defined Vc_HAVE_AVX512F
-    return _mm512_cvtepi32_epi8(concat(concat(v0, v1), zero<__m256i>()));
+    return _mm512_cvtepi32_epi8(x86::concat(detail::concat(v0, v1), zero<__m256i>()));
 #elif defined Vc_HAVE_SSSE3
     const auto shufmask = _mm_setr_epi8(0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, -0x80,
                                         -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80);
@@ -1574,7 +1580,7 @@ Vc_INTRINSIC x_i08 Vc_VDECL sse2_convert_to_i08(x_i32 v0, x_i32 v1, x_i32 v2, x_
 template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(y_i32 v0, y_i32 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtepi32_epi8(concat(v0, v1));
+    return _mm512_cvtepi32_epi8(detail::concat(v0, v1));
 #elif defined Vc_HAVE_AVX2
     auto a = _mm256_unpacklo_epi8(v0, v1);  // 08.. .... 19.. .... 4C.. .... 5D.. ....
     auto b = _mm256_unpackhi_epi8(v0, v1);  // 2A.. .... 3B.. .... 6E.. .... 7F.. ....
@@ -1592,9 +1598,11 @@ template <>
 Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i32 v0, x_i32 v1, x_i32 v2, x_i32 v3)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtepi32_epi8(concat(concat(v0, v1), concat(v2, v3)));
+    return _mm512_cvtepi32_epi8(
+        detail::concat(detail::concat(v0, v1), detail::concat(v2, v3)));
 #elif defined Vc_HAVE_AVX2
-    return convert_to<x_i08>(y_i32(concat(v0, v1)), y_i32(concat(v2, v3)));
+    return convert_to<x_i08>(y_i32(detail::concat(v0, v1)),
+                             y_i32(detail::concat(v2, v3)));
 #else
     return sse2_convert_to_i08(v0, v1, v2, v3);
 #endif
@@ -1628,7 +1636,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i16 v) {
 template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i16 v0, x_i16 v1)
 {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
-    return _mm256_cvtepi16_epi8(concat(v0, v1));
+    return _mm256_cvtepi16_epi8(detail::concat(v0, v1));
 #elif defined Vc_HAVE_SSSE3
     auto shuf = load16(sse_const::cvti16_i08_shuffle, flags::vector_aligned);
     return _mm_unpacklo_epi64(_mm_shuffle_epi8(v0, shuf), _mm_shuffle_epi8(v1, shuf));
@@ -1680,7 +1688,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_f32 v0, x_f32 v1)
 template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(y_f32 v0, y_f32 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtepi32_epi8(_mm512_cvttps_epi32(concat(v0, v1)));
+    return _mm512_cvtepi32_epi8(_mm512_cvttps_epi32(detail::concat(v0, v1)));
 #else
     return convert_to<x_i08>(convert_to<y_i32>(v0), convert_to<y_i32>(v1));
 #endif
@@ -1691,7 +1699,7 @@ template <>
 Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_f32 v0, x_f32 v1, x_f32 v2, x_f32 v3)
 {
 #ifdef Vc_HAVE_AVX
-    return convert_to<x_i08>(y_f32(concat(v0, v1)), y_f32(concat(v2, v3)));
+    return convert_to<x_i08>(y_f32(x86::concat(v0, v1)), y_f32(x86::concat(v2, v3)));
 #else
     return convert_to<x_i08>(convert_to<x_i32>(v0), convert_to<x_i32>(v1),
                              convert_to<x_i32>(v2), convert_to<x_i32>(v3));
@@ -1728,8 +1736,10 @@ Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_f64 v0, x_f64 v1, x_f64 v2, x_f6
 {
 #ifdef Vc_HAVE_AVX512F
     return _mm512_cvtepi32_epi8(
-        concat(_mm512_cvttpd_epi32(concat(concat(v0, v1), concat(v2, v3))),
-               _mm512_cvttpd_epi32(concat(concat(v4, v5), concat(v6, v7)))));
+        x86::concat(_mm512_cvttpd_epi32(
+                        detail::concat(detail::concat(v0, v1), detail::concat(v2, v3))),
+                    _mm512_cvttpd_epi32(
+                        detail::concat(detail::concat(v4, v5), detail::concat(v6, v7)))));
 #else
     return convert_to<x_i08>(convert_to<x_i32>(v0, v1), convert_to<x_i32>(v2, v3),
                              convert_to<x_i32>(v4, v5), convert_to<x_i32>(v6, v7));
@@ -1741,8 +1751,8 @@ template <>
 Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(y_f64 v0, y_f64 v1, y_f64 v2, y_f64 v3)
 {
 #ifdef Vc_HAVE_AVX512F
-    return _mm512_cvtepi32_epi8(
-        concat(_mm512_cvttpd_epi32(concat(v0, v1)), _mm512_cvttpd_epi32(concat(v2, v3))));
+    return _mm512_cvtepi32_epi8(x86::concat(_mm512_cvttpd_epi32(detail::concat(v0, v1)),
+                                            _mm512_cvttpd_epi32(detail::concat(v2, v3))));
 #else
     return convert_to<x_i08>(convert_to<y_i32>(v0, v1), convert_to<y_i32>(v2, v3));
 #endif
@@ -1762,7 +1772,8 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(z_f64 v0)
 template <>
 Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(z_f64 v0, z_f64 v1)
 {
-    return _mm512_cvtepi32_epi8(concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1)));
+    return _mm512_cvtepi32_epi8(
+        x86::concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1)));
 }
 #endif  // Vc_HAVE_AVX512F
 
@@ -1783,8 +1794,9 @@ template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_i64 v0, z_i64 v1)
 template <>
 Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_i64 v0, z_i64 v1, z_i64 v2, z_i64 v3)
 {
-    return concat(_mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)),
-                  _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v2), _mm512_cvtepi64_epi8(v3)));
+    return x86::concat(
+        _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)),
+        _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v2), _mm512_cvtepi64_epi8(v3)));
 }
 #endif
 
@@ -1799,8 +1811,8 @@ Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i64 v0, y_i64 v1, y_i64 v2, y_i6
                                               y_i64 v4, y_i64 v5, y_i64 v6, y_i64 v7)
 {
 #ifdef Vc_HAVE_AVX512F
-    return convert_to<y_i08>(concat(v0, v1), concat(v2, v3), concat(v4, v5),
-                             concat(v6, v7));
+    return convert_to<y_i08>(detail::concat(v0, v1), detail::concat(v2, v3),
+                             detail::concat(v4, v5), detail::concat(v6, v7));
 #elif defined Vc_HAVE_AVX2
     auto a = or_(
         or_(or_(_mm256_srli_epi64(_mm256_slli_epi64(v0, 56), 56),
@@ -1815,8 +1827,8 @@ Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i64 v0, y_i64 v1, y_i64 v2, y_i6
         );                                    // 048C GKOS 159D HLPT 26AE IMQU 37BF JNRV
     auto b = _mm256_unpackhi_epi64(a, a);     // 159D HLPT 159D HLPT 37BF JNRV 37BF JNRV
     auto c = _mm256_unpacklo_epi8(a, b);      // 0145 89CD GHKL OPST 2367 ABEF IJMN QRUV
-    return concat(_mm_unpacklo_epi16(lo128(c), hi128(c)),   // 0123 4567 89AB CDEF
-                  _mm_unpackhi_epi16(lo128(c), hi128(c)));  // GHIJ KLMN OPQR STUV
+    return x86::concat(_mm_unpacklo_epi16(lo128(c), hi128(c)),   // 0123 4567 89AB CDEF
+                       _mm_unpackhi_epi16(lo128(c), hi128(c)));  // GHIJ KLMN OPQR STUV
 #else
     // I don't care for non-AVX2 users that convert between non-float AVX vectors
     return generate_from_n_evaluations<32, y_i08>([&](auto i) {
@@ -1839,17 +1851,17 @@ Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i64 v0, y_i64 v1, y_i64 v2, y_i6
 template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i32 v0, y_i32 v1, y_i32 v2, y_i32 v3)
 {
 #ifdef Vc_HAVE_AVX512F
-    return concat(_mm512_cvtepi32_epi8(concat(v0, v1)),
-                  _mm512_cvtepi32_epi8(concat(v2, v3)));
+    return x86::concat(_mm512_cvtepi32_epi8(detail::concat(v0, v1)),
+                       _mm512_cvtepi32_epi8(detail::concat(v2, v3)));
 #else   // Vc_HAVE_AVX512F
-    return concat(convert_to<x_i08>(v0, v1), convert_to<x_i08>(v2, v3));
+    return detail::concat(convert_to<x_i08>(v0, v1), convert_to<x_i08>(v2, v3));
 #endif  // Vc_HAVE_AVX512F
 }
 
 #ifdef Vc_HAVE_AVX512F
 template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_i32 v0, z_i32 v1)
 {
-    return concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1));
+    return x86::concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1));
 }
 #endif  // Vc_HAVE_AVX512F
 
@@ -1884,9 +1896,9 @@ template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i16 v0)
 template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i16 v0, y_i16 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return convert_to<y_i08>(concat(v0, v1));
+    return convert_to<y_i08>(detail::concat(v0, v1));
 #else
-    return concat(convert_to<x_i08>(v0), convert_to<x_i08>(v1));
+    return detail::concat(convert_to<x_i08>(v0), convert_to<x_i08>(v1));
 #endif
 }
 
@@ -1905,9 +1917,9 @@ Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_f64 v0, y_f64 v1, y_f64 v2, y_f6
 #ifdef Vc_HAVE_AVX512F
 template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_f64 v0, z_f64 v1, z_f64 v2, z_f64 v3)
 {
-    return concat(
-        _mm512_cvtepi32_epi8(concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1))),
-        _mm512_cvtepi32_epi8(concat(_mm512_cvttpd_epi32(v2), _mm512_cvttpd_epi32(v3))));
+    return x86::concat(
+        _mm512_cvtepi32_epi8(x86::concat(_mm512_cvttpd_epi32(v0), _mm512_cvttpd_epi32(v1))),
+        _mm512_cvtepi32_epi8(x86::concat(_mm512_cvttpd_epi32(v2), _mm512_cvttpd_epi32(v3))));
 }
 #endif  // Vc_HAVE_AVX512F
 
@@ -1921,8 +1933,8 @@ template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_f32 v0, y_f32 v1, y_
 #ifdef Vc_HAVE_AVX512F
 template <> Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(z_f32 v0, z_f32 v1)
 {
-    return concat(_mm512_cvtepi32_epi8(_mm512_cvttps_epi32(v0)),
-                  _mm512_cvtepi32_epi8(_mm512_cvttps_epi32(v1)));
+    return x86::concat(_mm512_cvtepi32_epi8(_mm512_cvttps_epi32(v0)),
+                       _mm512_cvtepi32_epi8(_mm512_cvttps_epi32(v1)));
 }
 #endif  // Vc_HAVE_AVX512F
 
@@ -1935,19 +1947,21 @@ template <>
 Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i64 v0, z_i64 v1, z_i64 v2, z_i64 v3,
                                               z_i64 v4, z_i64 v5, z_i64 v6, z_i64 v7)
 {
-    return concat(
-        concat(_mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)),
-               _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v2), _mm512_cvtepi64_epi8(v3))),
-        concat(_mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v4), _mm512_cvtepi64_epi8(v5)),
-               _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v6), _mm512_cvtepi64_epi8(v7))));
+    return x86::concat(
+        x86::concat(
+            _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)),
+            _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v2), _mm512_cvtepi64_epi8(v3))),
+        x86::concat(
+            _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v4), _mm512_cvtepi64_epi8(v5)),
+            _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v6), _mm512_cvtepi64_epi8(v7))));
 }
 
 template <>
 Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i64 v0, z_i64 v1, z_i64 v2, z_i64 v3)
 {
-    return zeroExtend(
-        concat(_mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)),
-               _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v2), _mm512_cvtepi64_epi8(v3))));
+    return zeroExtend(x86::concat(
+        _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v0), _mm512_cvtepi64_epi8(v1)),
+        _mm_unpacklo_epi64(_mm512_cvtepi64_epi8(v2), _mm512_cvtepi64_epi8(v3))));
 }
 
 template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i64 v0, z_i64 v1)
@@ -1964,13 +1978,13 @@ template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i64 v0)
 // from int{{{2
 template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i32 v0, z_i32 v1, z_i32 v2, z_i32 v3)
 {
-    return concat(concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1)),
-                  concat(_mm512_cvtepi32_epi8(v2), _mm512_cvtepi32_epi8(v3)));
+    return x86::concat(x86::concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1)),
+                       x86::concat(_mm512_cvtepi32_epi8(v2), _mm512_cvtepi32_epi8(v3)));
 }
 
 template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i32 v0, z_i32 v1)
 {
-    return zeroExtend(concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1)));
+    return zeroExtend(x86::concat(_mm512_cvtepi32_epi8(v0), _mm512_cvtepi32_epi8(v1)));
 }
 
 template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i32 v0)
@@ -1981,7 +1995,7 @@ template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i32 v0)
 //from short{{{2
 template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i16 v0, z_i16 v1)
 {
-    return concat(_mm512_cvtepi16_epi8(v0), _mm512_cvtepi16_epi8(v1));
+    return x86::concat(_mm512_cvtepi16_epi8(v0), _mm512_cvtepi16_epi8(v1));
 }
 
 template <> Vc_INTRINSIC z_i08 Vc_VDECL convert_to<z_i08>(z_i16 v0)
@@ -2228,7 +2242,7 @@ template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_f64 v) { return _mm_
 template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_f64 v0, x_f64 v1)
 {
 #ifdef Vc_HAVE_AVX
-    return _mm256_cvtpd_ps(concat(v0, v1));
+    return _mm256_cvtpd_ps(detail::concat(v0, v1));
 #else
     return _mm_movelh_ps(_mm_cvtpd_ps(v0), _mm_cvtpd_ps(v1));
 #endif
@@ -2253,7 +2267,7 @@ template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_i64 v) {
 template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_i64 v0, x_i64 v1)
 {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-    return _mm256_cvtepi64_ps(concat(v0, v1));
+    return _mm256_cvtepi64_ps(detail::concat(v0, v1));
 #else
     return {v0.m(0), v0.m(1), v1.m(0), v1.m(1)};
 #endif
@@ -2282,7 +2296,7 @@ template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_u64 v) {
 template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_u64 v0, x_u64 v1)
 {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-    return _mm256_cvtepu64_ps(concat(v0, v1));
+    return _mm256_cvtepu64_ps(detail::concat(v0, v1));
 #else
     return {v0.m(0), v0.m(1), v1.m(0), v1.m(1)};
 #endif
@@ -2350,9 +2364,9 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_f64 v0)
 template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_f64 v0, y_f64 v1)
 {
 #if defined Vc_HAVE_AVX512F
-    return _mm512_cvtpd_ps(concat(v0, v1));
+    return _mm512_cvtpd_ps(detail::concat(v0, v1));
 #else
-    return concat(_mm256_cvtpd_ps(v0), _mm256_cvtpd_ps(v1));
+    return x86::concat(_mm256_cvtpd_ps(v0), _mm256_cvtpd_ps(v1));
 #endif
 }
 
@@ -2407,7 +2421,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(z_i64 v0)
 template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_i64 v0, y_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return convert_to<y_f32>(concat(v0, v1));
+    return convert_to<y_f32>(detail::concat(v0, v1));
 #elif defined Vc_HAVE_AVX2
     // v0 = aAbB cCdD
     // v1 = eEfF gGhH
@@ -2420,7 +2434,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_i64 v0, y_i64 v1)
     y_f32 hi32 = _mm256_cvtepi32_ps(_mm256_unpackhi_epi32(a, b));  // ABEF CDGH
     const y_f32 scale = _mm256_set1_ps(0x100000000LL);
     y_f32 result = _mm256_add_ps(_mm256_fmadd_ps(hi32, scale, hi16), lo16);  // abef cdgh
-    result = _mm256_castpd_ps(concat(
+    result = _mm256_castpd_ps(x86::concat(
         _mm_unpacklo_pd(_mm_castps_pd(lo128(result)), _mm_castps_pd(hi128(result))),
         _mm_unpackhi_pd(_mm_castps_pd(lo128(result)), _mm_castps_pd(hi128(result)))));
     return result;
@@ -2466,7 +2480,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(z_u64 v0)
 template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_u64 v0, y_u64 v1)
 {
 #ifdef Vc_HAVE_AVX512F
-    return convert_to<y_f32>(concat(v0, v1));
+    return convert_to<y_f32>(detail::concat(v0, v1));
 #else
     return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), v1.m(0), v1.m(1), v1.m(2), v1.m(3)};
 #endif
@@ -2547,7 +2561,8 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_u32 v)
 #ifdef Vc_HAVE_AVX2
             _mm256_cmpgt_epi32(y_i32(), v)
 #else   // Vc_HAVE_AVX2
-            concat(_mm_cmpgt_epi32(x_i32(), lo128(v)), _mm_cmpgt_epi32(x_i32(), hi128(v)))
+            x86::concat(_mm_cmpgt_epi32(x_i32(), lo128(v)),
+                        _mm_cmpgt_epi32(x_i32(), hi128(v)))
 #endif  // Vc_HAVE_AVX2
                 ));
 #endif
@@ -2602,7 +2617,10 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_u08 v)
 //convert_to<z_f32> (float, 16){{{1
 #ifdef Vc_HAVE_AVX512F
 // from float{{{2
-template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(y_f32 v0, y_f32 v1) { return concat(v0, v1); }
+template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(y_f32 v0, y_f32 v1)
+{
+    return detail::concat(v0, v1);
+}
 
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_f32 v) { return v; }
 
@@ -2614,12 +2632,13 @@ template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(y_f64 v)
 
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(y_f64 v0, y_f64 v1)
 {
-    return zeroExtend(_mm512_cvtpd_ps(concat(v0, v1)));
+    return zeroExtend(_mm512_cvtpd_ps(detail::concat(v0, v1)));
 }
 
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(y_f64 v0, y_f64 v1, y_f64 v2, y_f64 v3)
 {
-    return concat(_mm512_cvtpd_ps(concat(v0, v1)), _mm512_cvtpd_ps(concat(v2, v3)));
+    return x86::concat(_mm512_cvtpd_ps(detail::concat(v0, v1)),
+                       _mm512_cvtpd_ps(detail::concat(v2, v3)));
 }
 
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_f64 v0)
@@ -2629,7 +2648,7 @@ template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_f64 v0)
 
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_f64 v0, z_f64 v1)
 {
-    return concat(_mm512_cvtpd_ps(v0), _mm512_cvtpd_ps(v1));
+    return x86::concat(_mm512_cvtpd_ps(v0), _mm512_cvtpd_ps(v1));
 }
 
 // from llong{{{2
@@ -2641,12 +2660,12 @@ template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_i64 v0)
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_i64 v0, z_i64 v1)
 {
 #ifdef Vc_HAVE_AVX512DQ
-    return concat(_mm512_cvtepi64_ps(v0), _mm512_cvtepi64_ps(v1));
+    return x86::concat(_mm512_cvtepi64_ps(v0), _mm512_cvtepi64_ps(v1));
 #else
     z_f32 hi32 =
-        _mm512_cvtepi32_ps(concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32)),
-                                  _mm512_cvtepi64_epi32(_mm512_srai_epi64(v1, 32))));
-    const z_u32 lo32 = concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1));
+        _mm512_cvtepi32_ps(x86::concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32)),
+                                       _mm512_cvtepi64_epi32(_mm512_srai_epi64(v1, 32))));
+    const z_u32 lo32 = x86::concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1));
     // split low 32-bits, because if hi32 is a small negative number, the 24-bit mantissa may lose
     // important information if any of the high 8 bits of lo32 is set, leading to catastrophic
     // cancelation in the FMA
@@ -2667,13 +2686,14 @@ template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_u64 v0)
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_u64 v0, z_u64 v1)
 {
 #ifdef Vc_HAVE_AVX512DQ
-    return concat(_mm512_cvtepu64_ps(v0), _mm512_cvtepu64_ps(v1));
+    return x86::concat(_mm512_cvtepu64_ps(v0), _mm512_cvtepu64_ps(v1));
 #else
     return _mm512_fmadd_ps(
-        _mm512_cvtepu32_ps(concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32)),
-                                  _mm512_cvtepi64_epi32(_mm512_srai_epi64(v1, 32)))),
+        _mm512_cvtepu32_ps(x86::concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32)),
+                                       _mm512_cvtepi64_epi32(_mm512_srai_epi64(v1, 32)))),
         _mm512_set1_ps(0x100000000LL),
-        _mm512_cvtepu32_ps(concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1))));
+        _mm512_cvtepu32_ps(
+            x86::concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1))));
 #endif  // Vc_HAVE_AVX512DQ
 }
 
@@ -2859,19 +2879,21 @@ struct equivalent_conversion {
 
 // fallback: cast integral arguments to signed and call again {{{1
 template <typename To> struct equivalent_conversion<To, try_fallback_on_argument> {
+#ifdef Vc_HAVE_AVX
     template <typename From,
-              typename = decltype(concat(declval<From>(), declval<From>()))>
+              typename = decltype(detail::concat(declval<From>(), declval<From>()))>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(From v0, From v1)
     {
-        return convert_to<To>(concat(v0, v1));
+        return convert_to<To>(detail::concat(v0, v1));
     }
 
     template <typename From,
-              typename = decltype(concat(declval<From>(), declval<From>()))>
+              typename = decltype(detail::concat(declval<From>(), declval<From>()))>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(From v0, From v1, From v2, From v3)
     {
-        return convert_to<To>(concat(v0, v1), concat(v2, v3));
+        return convert_to<To>(detail::concat(v0, v1), detail::concat(v2, v3));
     }
+#endif  // Vc_HAVE_AVX
 
     template <typename From, typename... Fs>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(From v0, Fs... vs)

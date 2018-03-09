@@ -137,8 +137,7 @@ template <class T, class Abi>
 class simd
     : public detail::simd_int_operators<
           simd<T, Abi>,
-          detail::all<std::is_integral<T>,
-                      std::is_destructible<typename detail::traits<T, Abi>::simd_base>>::value>,
+          detail::all<std::is_integral<T>, typename detail::traits<T, Abi>::is_valid>::value>,
       public detail::traits<T, Abi>::simd_base
 {
     using traits = detail::traits<T, Abi>;
@@ -147,6 +146,7 @@ class simd
     using cast_type = typename traits::simd_cast_type;
     static constexpr detail::size_tag_type<T, Abi> size_tag = {};
     static constexpr T *type_tag = nullptr;
+    friend typename traits::simd_base;
     friend impl;
     friend detail::generic_simd_impl<impl>;
     friend detail::simd_int_operators<simd, true>;
@@ -304,7 +304,7 @@ public:
     }
 
     // access to internal representation (suggested extension)
-    explicit Vc_ALWAYS_INLINE simd(const cast_type &init) : d(init) {}
+    explicit Vc_ALWAYS_INLINE simd(cast_type init) : d(init) {}
 
     // compound assignment [simd.cassign]
     friend Vc_ALWAYS_INLINE simd &operator+=(simd &lhs, const simd &x) { return lhs = lhs + x; }

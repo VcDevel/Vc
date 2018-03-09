@@ -28,78 +28,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SIMD_AVX_H_
 #define VC_SIMD_AVX_H_
 
-#include "sse.h"
 #include "macros.h"
-#ifdef Vc_HAVE_SSE
+#ifdef Vc_HAVE_AVX_ABI
+#include "sse.h"
 #include "storage.h"
 #include "concepts.h"
 #include "x86/intrinsics.h"
 #include "x86/convert.h"
 #include "x86/compares.h"
 
-Vc_VERSIONED_NAMESPACE_BEGIN
-namespace detail
-{
-struct avx_mask_impl;
-struct avx_simd_impl;
-
-// avx_traits {{{1
-template <class T> struct avx_traits {
-    static_assert(sizeof(T) <= 8,
-                  "AVX can only implement operations on element types with sizeof <= 8");
-
-    using simd_member_type = avx_simd_member_type<T>;
-    using simd_impl_type = avx_simd_impl;
-    static constexpr size_t simd_member_alignment = alignof(simd_member_type);
-    using simd_cast_type = typename simd_member_type::VectorType;
-    struct simd_base {
-        explicit operator simd_cast_type() const
-        {
-            return data(*static_cast<const simd<T, simd_abi::Avx> *>(this));
-        }
-    };
-
-    using mask_member_type = avx_mask_member_type<T>;
-    using mask_impl_type = avx_mask_impl;
-    static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-    class mask_cast_type
-    {
-        using U = typename mask_member_type::VectorType;
-        U d;
-
-    public:
-        mask_cast_type(U x) : d(x) {}
-        operator mask_member_type() const { return d; }
-    };
-    struct mask_base {
-        explicit operator typename mask_member_type::VectorType() const
-        {
-            return data(*static_cast<const simd_mask<T, simd_abi::Avx> *>(this));
-        }
-    };
-};
-
-#ifdef Vc_HAVE_AVX_ABI
-template <> struct traits<double, simd_abi::Avx> : public avx_traits<double> {};
-template <> struct traits< float, simd_abi::Avx> : public avx_traits< float> {};
-#ifdef Vc_HAVE_FULL_AVX_ABI
-template <> struct traits<ullong, simd_abi::Avx> : public avx_traits<ullong> {};
-template <> struct traits< llong, simd_abi::Avx> : public avx_traits< llong> {};
-template <> struct traits< ulong, simd_abi::Avx> : public avx_traits< ulong> {};
-template <> struct traits<  long, simd_abi::Avx> : public avx_traits<  long> {};
-template <> struct traits<  uint, simd_abi::Avx> : public avx_traits<  uint> {};
-template <> struct traits<   int, simd_abi::Avx> : public avx_traits<   int> {};
-template <> struct traits<ushort, simd_abi::Avx> : public avx_traits<ushort> {};
-template <> struct traits< short, simd_abi::Avx> : public avx_traits< short> {};
-template <> struct traits< uchar, simd_abi::Avx> : public avx_traits< uchar> {};
-template <> struct traits< schar, simd_abi::Avx> : public avx_traits< schar> {};
-template <> struct traits<  char, simd_abi::Avx> : public avx_traits<  char> {};
-#endif  // Vc_HAVE_FULL_AVX_ABI
-#endif  // Vc_HAVE_AVX_ABI
-}  // namespace detail
-Vc_VERSIONED_NAMESPACE_END
-
-#ifdef Vc_HAVE_AVX_ABI
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
@@ -755,8 +692,9 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     {
         using V = Vc::simd<T, simd_abi::Sse>;
         return sse_simd_impl::reduce(size_tag<N / 2>(),
-                                        binary_op(V(lo128(data(x))), V(hi128(data(x)))),
-                                        binary_op);
+                                     binary_op(V(detail::private_init, lo128(data(x))),
+                                               V(detail::private_init, hi128(data(x)))),
+                                     binary_op);
     }
 
     // min, max {{{2
@@ -1441,8 +1379,6 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // Vc_HAVE_AVX_ABI
-
-#endif  // Vc_HAVE_SSE
 #endif  // VC_SIMD_AVX_H_
 
 // vim: foldmethod=marker

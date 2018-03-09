@@ -54,14 +54,6 @@ template <class A0, class A1> struct fallback_abi_for_long_double<long double, A
 template <class T, class A0, class A1>
 using fallback_abi_for_long_double_t =
     typename fallback_abi_for_long_double<T, A0, A1>::type;
-
-struct abi_base {};
-struct scalar_abi : public abi_base {};
-template <int N> struct fixed_abi : public abi_base {};
-template <int Bits> struct sse_abi : public abi_base {};
-template <int Bits> struct avx_abi : public abi_base {};
-template <int Bits> struct avx512_abi : public abi_base {};
-template <int Bits> struct neon_abi : public abi_base {};
 }  // namespace detail
 
 namespace simd_abi
@@ -121,7 +113,12 @@ template <typename T> using default_abi = compatible<T>;
 
 // traits {{{1
 // is_abi_tag {{{2
-template <class T> struct is_abi_tag : public std::is_base_of<Vc::detail::abi_base, T> {};
+template <class T, class = detail::void_t<>> struct is_abi_tag : std::false_type {
+};
+template <class T>
+struct is_abi_tag<T, detail::void_t<typename T::is_valid_abi_tag>>
+    : public T::is_valid_abi_tag {
+};
 template <class T> constexpr bool is_abi_tag_v = is_abi_tag<T>::value;
 
 // is_simd(_mask) {{{2
@@ -132,13 +129,20 @@ template <class T> struct is_simd_mask : public std::false_type {};
 template <class T> constexpr bool is_simd_mask_v = is_simd_mask<T>::value;
 
 // simd_size {{{2
-template <class T, class Abi = simd_abi::detail::default_abi<T>> struct simd_size;
-template <class T> struct simd_size<T, simd_abi::scalar> : public detail::size_constant<1> {};
-template <class T> struct simd_size<T, simd_abi::Sse   > : public detail::size_constant<16 / sizeof(T)> {};
-template <class T> struct simd_size<T, simd_abi::Avx   > : public detail::size_constant<32 / sizeof(T)> {};
-template <class T> struct simd_size<T, simd_abi::Avx512> : public detail::size_constant<64 / sizeof(T)> {};
-template <class T> struct simd_size<T, simd_abi::Neon  > : public detail::size_constant<16 / sizeof(T)> {};
-template <class T, int N> struct simd_size<T, simd_abi::fixed_size<N>> : public detail::size_constant<N> {};
+namespace detail
+{
+template <class T, class Abi, class = detail::void_t<>> struct simd_size_impl {
+};
+template <class T, class Abi>
+struct simd_size_impl<T, Abi, detail::void_t<std::enable_if_t<detail::conjunction_v<
+                                  detail::is_vectorizable<T>, Vc::is_abi_tag<Abi>>>>>
+    : Abi::template size_tag<T> {
+};
+}  // namespace detail
+
+template <class T, class Abi = simd_abi::detail::default_abi<T>>
+struct simd_size : detail::simd_size_impl<T, Abi> {
+};
 template <class T, class Abi = simd_abi::detail::default_abi<T>>
 constexpr size_t simd_size_v = simd_size<T, Abi>::value;
 
@@ -571,8 +575,9 @@ public:
 
     Vc_INTRINSIC V operator-() const &&
     {
-        return V(detail::get_impl_t<V>::template masked_unary<std::negate>(
-            detail::data(k), detail::data(d)));
+        return {detail::private_init,
+                detail::get_impl_t<V>::template masked_unary<std::negate>(
+                    detail::data(k), detail::data(d))};
     }
 
     template <class U, class Flags>
@@ -998,31 +1003,31 @@ Vc_INTRINSIC typename V::value_type reduce(
 template <class T, class A>
 Vc_INTRINSIC simd<T, A> min(const simd<T, A> &a, const simd<T, A> &b)
 {
-    return static_cast<simd<T, A>>(
-        detail::get_impl_t<simd<T, A>>::min(detail::data(a), detail::data(b)));
+    return {detail::private_init,
+            A::simd_impl_type::min(detail::data(a), detail::data(b))};
 }
 template <class T, class A>
 Vc_INTRINSIC simd<T, A> max(const simd<T, A> &a, const simd<T, A> &b)
 {
-    return static_cast<simd<T, A>>(
-        detail::get_impl_t<simd<T, A>>::max(detail::data(a), detail::data(b)));
+    return {detail::private_init,
+            A::simd_impl_type::max(detail::data(a), detail::data(b))};
 }
 template <class T, class A>
 Vc_INTRINSIC std::pair<simd<T, A>, simd<T, A>> minmax(const simd<T, A> &a,
                                                             const simd<T, A> &b)
 {
     const auto pair_of_members =
-        detail::get_impl_t<simd<T, A>>::minmax(detail::data(a), detail::data(b));
-    return {static_cast<simd<T, A>>(pair_of_members.first),
-            static_cast<simd<T, A>>(pair_of_members.second)};
+        A::simd_impl_type::minmax(detail::data(a), detail::data(b));
+    return {simd<T, A>(detail::private_init, pair_of_members.first),
+            simd<T, A>(detail::private_init, pair_of_members.second)};
 }
 template <class T, class A>
 Vc_INTRINSIC simd<T, A> clamp(const simd<T, A> &v, const simd<T, A> &lo,
                                  const simd<T, A> &hi)
 {
-    using Impl = detail::get_impl_t<simd<T, A>>;
-    return static_cast<simd<T, A>>(
-        Impl::min(detail::data(hi), Impl::max(detail::data(lo), detail::data(v))));
+    using Impl = typename A::simd_impl_type;
+    return {detail::private_init,
+            Impl::min(detail::data(hi), Impl::max(detail::data(lo), detail::data(v)))};
 }
 
 // shuffle {{{1

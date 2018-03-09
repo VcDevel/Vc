@@ -232,11 +232,19 @@ template <typename T> struct may_alias_impl {
  * attribute is already part of the type and applying it a second times leads to warnings/errors,
  * therefore MaskBool is simply forwarded as is.
  */
-#ifdef Vc_ICC
+#if 1
 template <typename T> using may_alias [[gnu::may_alias]] = T;
 #else
 template <typename T> using may_alias = typename may_alias_impl<T>::type;
 #endif
+
+// simd and simd_mask base for unsupported <T, Abi>{{{1
+struct unsupported_base {
+    unsupported_base() = delete;
+    unsupported_base(const unsupported_base &) = delete;
+    unsupported_base &operator=(const unsupported_base &) = delete;
+    ~unsupported_base() = delete;
+};
 
 // traits forward declaration{{{1
 /**
@@ -247,27 +255,20 @@ template <typename T> using may_alias = typename may_alias_impl<T>::type;
  * Static assertions in the type definition do not suffice. It is important that
  * SFINAE works.
  */
-template <class T, class Abi> struct traits {
+struct invalid_traits {
+    using is_valid = std::false_type;
     static constexpr size_t simd_member_alignment = 1;
     struct simd_impl_type;
     struct simd_member_type {};
     struct simd_cast_type;
-    struct simd_base {
-        simd_base() = delete;
-        simd_base(const simd_base &) = delete;
-        simd_base &operator=(const simd_base &) = delete;
-        ~simd_base() = delete;
-    };
+    using simd_base = unsupported_base;
     static constexpr size_t mask_member_alignment = 1;
     struct mask_impl_type;
     struct mask_member_type {};
     struct mask_cast_type;
-    struct mask_base {
-        mask_base() = delete;
-        mask_base(const mask_base &) = delete;
-        mask_base &operator=(const mask_base &) = delete;
-        ~mask_base() = delete;
-    };
+    using mask_base = unsupported_base;
+};
+template <class T, class Abi, class = void_t<>> struct traits : invalid_traits {
 };
 
 // get_impl(_t){{{1
@@ -450,15 +451,14 @@ Vc_INTRINSIC auto impl_or_fallback_dispatch(std::false_type, IfFun &&, ElseFun &
 template <bool Condition, class IfFun, class ElseFun>
 Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, ElseFun &&else_fun)
 {
-    return impl_or_fallback_dispatch(Vc::detail::bool_constant<Condition>(),
-                                     std::forward<IfFun>(if_fun),
-                                     std::forward<ElseFun>(else_fun));
+    return impl_or_fallback_dispatch(Vc::detail::bool_constant<Condition>(), if_fun,
+                                     else_fun);
 }
 
 template <bool Condition, class IfFun> Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun)
 {
-    return impl_or_fallback_dispatch(Vc::detail::bool_constant<Condition>(),
-                                     std::forward<IfFun>(if_fun), [](int) {});
+    return impl_or_fallback_dispatch(Vc::detail::bool_constant<Condition>(), if_fun,
+                                     [](int) {});
 }
 
 template <bool Condition, bool Condition2, class IfFun, class... Remainder>
@@ -466,8 +466,10 @@ Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, Vc::detail::bool_constant<Conditi
                                Remainder &&... rem)
 {
     return impl_or_fallback_dispatch(
-        Vc::detail::bool_constant<Condition>(), std::forward<IfFun>(if_fun),
-        [&](auto) { return constexpr_if<Condition2>(std::forward<Remainder>(rem)...); });
+        Vc::detail::bool_constant<Condition>(), if_fun, [&](auto tmp_) {
+            return constexpr_if<(std::is_same<decltype(tmp_), int>::value && Condition2)>(
+                rem...);
+        });
 }
 
 #ifdef __cpp_if_constexpr
@@ -483,6 +485,32 @@ Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, Vc::detail::bool_constant<Conditi
 #define Vc_CONSTEXPR_ELSE }, [&](auto) {
 #define Vc_CONSTEXPR_ENDIF });
 #endif
+
+// bool_storage_member_type{{{1
+template <size_t Size> struct bool_storage_member_type;
+
+// intrinsic_type {{{1
+template <class T, size_t Bytes, class = detail::void_t<>> struct intrinsic_type;
+template <class T, size_t Size>
+using intrinsic_type_t = typename intrinsic_type<T, Size * sizeof(T)>::type;
+
+// is_intrinsic{{{1
+template <class T> struct is_intrinsic : public std::false_type {};
+template <class T> constexpr bool is_intrinsic_v = is_intrinsic<T>::value;
+
+// builtin_type {{{1
+template <class T, size_t Bytes, class = detail::void_t<>> struct builtin_type {};
+template <class T, size_t Size>
+using builtin_type_t = typename builtin_type<T, Size * sizeof(T)>::type;
+
+// is_builtin_vector {{{1
+template <class T> struct is_builtin_vector : public std::false_type {};
+template <class T> constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
+
+// fixed_size_storage fwd decl {{{1
+template <class T, int N> struct fixed_size_storage_builder_wrapper;
+template <class T, int N>
+using fixed_size_storage = typename fixed_size_storage_builder_wrapper<T, N>::type;
 
 //}}}1
 }  // namespace detail

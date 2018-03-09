@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_SIMD_SSE_H_
 
 #include "macros.h"
-#ifdef Vc_HAVE_SSE
+#ifdef Vc_HAVE_SSE_ABI
 #include "storage.h"
 #include "x86/intrinsics.h"
 #include "x86/convert.h"
@@ -38,72 +38,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "genericimpl.h"
 #include "simd_tuple.h"
 
-Vc_VERSIONED_NAMESPACE_BEGIN
-namespace detail
-{
-struct sse_mask_impl;
-struct sse_simd_impl;
-
-// sse_traits {{{1
-template <class T> struct sse_traits {
-    static_assert(sizeof(T) <= 8,
-                  "SSE can only implement operations on element types with sizeof <= 8");
-    static_assert(std::is_arithmetic<T>::value,
-                  "SSE can only vectorize arithmetic types");
-    static_assert(!std::is_same<T, bool>::value, "SSE cannot vectorize bool");
-
-    using simd_member_type = sse_simd_member_type<T>;
-    using simd_impl_type = sse_simd_impl;
-    static constexpr size_t simd_member_alignment = alignof(simd_member_type);
-    using simd_cast_type = typename simd_member_type::VectorType;
-    struct simd_base {
-        explicit operator simd_cast_type() const
-        {
-            return data(*static_cast<const simd<T, simd_abi::Sse> *>(this));
-        }
-    };
-
-    using mask_member_type = sse_mask_member_type<T>;
-    using mask_impl_type = sse_mask_impl;
-    static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-    class mask_cast_type
-    {
-        using U = typename mask_member_type::VectorType;
-        U d;
-
-    public:
-        mask_cast_type(U x) : d(x) {}
-        operator mask_member_type() const { return d; }
-    };
-    struct mask_base {
-        explicit operator typename mask_member_type::VectorType() const
-        {
-            return data(*static_cast<const simd_mask<T, simd_abi::Sse> *>(this));
-        }
-    };
-};
-
-#ifdef Vc_HAVE_SSE_ABI
-template <> struct traits< float, simd_abi::Sse> : public sse_traits< float> {};
-#ifdef Vc_HAVE_FULL_SSE_ABI
-template <> struct traits<double, simd_abi::Sse> : public sse_traits<double> {};
-template <> struct traits<ullong, simd_abi::Sse> : public sse_traits<ullong> {};
-template <> struct traits< llong, simd_abi::Sse> : public sse_traits< llong> {};
-template <> struct traits< ulong, simd_abi::Sse> : public sse_traits< ulong> {};
-template <> struct traits<  long, simd_abi::Sse> : public sse_traits<  long> {};
-template <> struct traits<  uint, simd_abi::Sse> : public sse_traits<  uint> {};
-template <> struct traits<   int, simd_abi::Sse> : public sse_traits<   int> {};
-template <> struct traits<ushort, simd_abi::Sse> : public sse_traits<ushort> {};
-template <> struct traits< short, simd_abi::Sse> : public sse_traits< short> {};
-template <> struct traits< uchar, simd_abi::Sse> : public sse_traits< uchar> {};
-template <> struct traits< schar, simd_abi::Sse> : public sse_traits< schar> {};
-template <> struct traits<  char, simd_abi::Sse> : public sse_traits<  char> {};
-#endif  // Vc_HAVE_FULL_SSE_ABI
-#endif  // Vc_HAVE_SSE_ABI
-}  // namespace detail
-Vc_VERSIONED_NAMESPACE_END
-
-#ifdef Vc_HAVE_SSE_ABI
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
@@ -542,7 +476,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return x86::convert<simd_member_type<U>, simd_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>()>>(load8(mem, f)));
+            intrin_cast<detail::intrinsic_type_t<U, size<U>()>>(load8(mem, f)));
 #else
         return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
@@ -558,7 +492,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         return x86::convert<simd_member_type<U>, simd_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>()>>(load4(mem, f)));
+            intrin_cast<detail::intrinsic_type_t<U, size<U>()>>(load4(mem, f)));
 #else
         return generate_from_n_evaluations<size<T>(), intrinsic_type<T>>(
             [&](auto i) { return static_cast<T>(mem[i]); });
@@ -574,7 +508,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         when_aligned<alignof(uint16_t)>, type_tag<T>, tag<4> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
         return x86::convert<simd_member_type<U>, simd_member_type<T>>(
-            intrin_cast<detail::intrinsic_type<U, size<U>()>>(load2(mem, flags::vector_aligned)));
+            intrin_cast<detail::intrinsic_type_t<U, size<U>()>>(load2(mem, flags::vector_aligned)));
     }
 
     template <class T, class U>
@@ -949,7 +883,8 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     {
         using V = simd<double>;
         auto intrin_ = data(x);
-        intrin_ = data(binary_op(x, V(_mm_unpackhi_pd(intrin_, intrin_))));
+        intrin_ = data(
+            binary_op(x, V(detail::private_init, _mm_unpackhi_pd(intrin_, intrin_))));
         return _mm_cvtsd_f64(intrin_);
     }
 
@@ -960,8 +895,11 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         using V = simd<float>;
         auto intrin_ = data(x);
         intrin_ = data(
-            binary_op(x, V(_mm_shuffle_ps(intrin_, intrin_, _MM_SHUFFLE(0, 1, 2, 3)))));
-        intrin_ = data(binary_op(V(intrin_), V(_mm_unpackhi_ps(intrin_, intrin_))));
+            binary_op(x, V(detail::private_init,
+                           _mm_shuffle_ps(intrin_, intrin_, _MM_SHUFFLE(0, 1, 2, 3)))));
+        intrin_ =
+            data(binary_op(V(detail::private_init, intrin_),
+                           V(detail::private_init, _mm_unpackhi_ps(intrin_, intrin_))));
         return _mm_cvtss_f32(intrin_);
     }
 
@@ -979,8 +917,11 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
         using V = simd<T>;
         auto intrin_ = data(x);
         intrin_ =
-            data(binary_op(x, V(_mm_shuffle_epi32(intrin_, _MM_SHUFFLE(0, 1, 2, 3)))));
-        intrin_ = data(binary_op(V(intrin_), V(_mm_unpackhi_epi64(intrin_, intrin_))));
+            data(binary_op(x, V(detail::private_init,
+                                _mm_shuffle_epi32(intrin_, _MM_SHUFFLE(0, 1, 2, 3)))));
+        intrin_ = data(
+            binary_op(V(detail::private_init, intrin_),
+                      V(detail::private_init, _mm_unpackhi_epi64(intrin_, intrin_))));
         return _mm_cvtsi128_si32(intrin_);
     }
 
@@ -990,11 +931,15 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     {
         using V = simd<T>;
         auto intrin_ = data(x);
-        intrin_ = data(binary_op(V(_mm_unpacklo_epi16(intrin_, intrin_)),
-                                 V(_mm_unpackhi_epi16(intrin_, intrin_))));
-        intrin_ = data(binary_op(V(_mm_unpacklo_epi32(intrin_, intrin_)),
-                                 V(_mm_unpackhi_epi32(intrin_, intrin_))));
-        return binary_op(V(intrin_), V(_mm_unpackhi_epi64(intrin_, intrin_)))[0];
+        intrin_ = data(
+            binary_op(V(detail::private_init, _mm_unpacklo_epi16(intrin_, intrin_)),
+                      V(detail::private_init, _mm_unpackhi_epi16(intrin_, intrin_))));
+        intrin_ = data(
+            binary_op(V(detail::private_init, _mm_unpacklo_epi32(intrin_, intrin_)),
+                      V(detail::private_init, _mm_unpackhi_epi32(intrin_, intrin_))));
+        return binary_op(
+            V(detail::private_init, intrin_),
+            V(detail::private_init, _mm_unpackhi_epi64(intrin_, intrin_)))[0];
     }
 
     template <class T, class BinaryOperation>
@@ -1003,13 +948,18 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     {
         using V = simd<T>;
         auto intrin_ = data(x);
-        intrin_ = data(binary_op(V(_mm_unpacklo_epi8(intrin_, intrin_)),
-                                 V(_mm_unpackhi_epi8(intrin_, intrin_))));
-        intrin_ = data(binary_op(V(_mm_unpacklo_epi16(intrin_, intrin_)),
-                                 V(_mm_unpackhi_epi16(intrin_, intrin_))));
-        intrin_ = data(binary_op(V(_mm_unpacklo_epi32(intrin_, intrin_)),
-                                 V(_mm_unpackhi_epi32(intrin_, intrin_))));
-        return binary_op(V(intrin_), V(_mm_unpackhi_epi64(intrin_, intrin_)))[0];
+        intrin_ =
+            data(binary_op(V(detail::private_init, _mm_unpacklo_epi8(intrin_, intrin_)),
+                           V(detail::private_init, _mm_unpackhi_epi8(intrin_, intrin_))));
+        intrin_ = data(
+            binary_op(V(detail::private_init, _mm_unpacklo_epi16(intrin_, intrin_)),
+                      V(detail::private_init, _mm_unpackhi_epi16(intrin_, intrin_))));
+        intrin_ = data(
+            binary_op(V(detail::private_init, _mm_unpacklo_epi32(intrin_, intrin_)),
+                      V(detail::private_init, _mm_unpackhi_epi32(intrin_, intrin_))));
+        return binary_op(
+            V(detail::private_init, intrin_),
+            V(detail::private_init, _mm_unpackhi_epi64(intrin_, intrin_)))[0];
     }
 
     // min, max, clamp {{{2
@@ -1721,9 +1671,7 @@ struct simd_converter<From, simd_abi::Sse, To, simd_abi::Sse> {
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // Vc_HAVE_SSE_ABI
 #endif  // Vc_HAVE_SSE
-
 #endif  // VC_SIMD_SSE_H_
 
 // vim: foldmethod=marker

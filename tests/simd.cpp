@@ -988,6 +988,66 @@ void operator_conversions_impl(
 
 template <class V>
 void operator_conversions_impl(
+    Vc::enable_if<std::is_same<V, vchar>::value> = Vc::nullarg)  //{{{2
+{
+    binary_op_return_type<vchar, vchar, vchar>();
+    binary_op_return_type<vchar, char, vchar>();
+    binary_op_return_type<vschar, int, vschar>();
+    binary_op_return_type<vi8<schar>, schar, vi8<schar>>();
+    binary_op_return_type<vi8<schar>, int, vi8<schar>>();
+    binary_op_return_type<vi8<schar>, vi8<schar>, vi8<schar>>();
+
+    binary_op_return_type<vi8<short> , vi8<schar>>();
+    binary_op_return_type<vi8<int>   , vi8<schar>>();
+    binary_op_return_type<vi8<long>  , vi8<schar>>();
+    binary_op_return_type<vi8<llong> , vi8<schar>>();
+    binary_op_return_type<vi8<float> , vi8<schar>>();
+    binary_op_return_type<vi8<double>, vi8<schar>>();
+
+    VERIFY((is_substitution_failure<vi8<schar>, llong>));
+    VERIFY((is_substitution_failure<vi8<schar>, double>));
+    VERIFY((is_substitution_failure<vschar, vuchar>));
+    VERIFY((is_substitution_failure<vschar, uchar>));
+    VERIFY((is_substitution_failure<vschar, short>));
+    VERIFY((is_substitution_failure<vschar, ushort>));
+    VERIFY((is_substitution_failure<vschar, uint>));
+    VERIFY((is_substitution_failure<vschar, long>));
+    VERIFY((is_substitution_failure<vschar, ulong>));
+    VERIFY((is_substitution_failure<vschar, llong>));
+    VERIFY((is_substitution_failure<vschar, ullong>));
+    VERIFY((is_substitution_failure<vschar, float>));
+    VERIFY((is_substitution_failure<vschar, double>));
+    VERIFY((is_substitution_failure<vschar, vi8<schar>>));
+    VERIFY((is_substitution_failure<vschar, vi8<uchar>>));
+    VERIFY((is_substitution_failure<vschar, vi8<short>>));
+    VERIFY((is_substitution_failure<vschar, vi8<ushort>>));
+    VERIFY((is_substitution_failure<vschar, vi8<int>>));
+    VERIFY((is_substitution_failure<vschar, vi8<uint>>));
+    VERIFY((is_substitution_failure<vschar, vi8<long>>));
+    VERIFY((is_substitution_failure<vschar, vi8<ulong>>));
+    VERIFY((is_substitution_failure<vschar, vi8<llong>>));
+    VERIFY((is_substitution_failure<vschar, vi8<ullong>>));
+    VERIFY((is_substitution_failure<vschar, vi8<float>>));
+    VERIFY((is_substitution_failure<vschar, vi8<double>>));
+    VERIFY((is_substitution_failure<vi8<schar>, vschar>));
+    VERIFY((is_substitution_failure<vi8<schar>, vuchar>));
+    VERIFY((is_substitution_failure<vi8<schar>, uchar>));
+    VERIFY((is_substitution_failure<vi8<schar>, short>));
+    VERIFY((is_substitution_failure<vi8<schar>, ushort>));
+    VERIFY((is_substitution_failure<vi8<schar>, uint>));
+    VERIFY((is_substitution_failure<vi8<schar>, long>));
+    VERIFY((is_substitution_failure<vi8<schar>, ulong>));
+    VERIFY((is_substitution_failure<vi8<schar>, ullong>));
+    VERIFY((is_substitution_failure<vi8<schar>, float>));
+    VERIFY((is_substitution_failure<vi8<schar>, vi8<uchar>>));
+    VERIFY((is_substitution_failure<vi8<schar>, vi8<ushort>>));
+    VERIFY((is_substitution_failure<vi8<schar>, vi8<uint>>));
+    VERIFY((is_substitution_failure<vi8<schar>, vi8<ulong>>));
+    VERIFY((is_substitution_failure<vi8<schar>, vi8<ullong>>));
+}
+
+template <class V>
+void operator_conversions_impl(
     Vc::enable_if<std::is_same<V, vschar>::value> = Vc::nullarg)  //{{{2
 {
     binary_op_return_type<vschar, vschar, vschar>();

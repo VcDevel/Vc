@@ -45,10 +45,10 @@ namespace detail
 {
 struct scalar_abi;
 template <int N> struct fixed_abi;
-template <int Bits> struct sse_abi;
-template <int Bits> struct avx_abi;
-template <int Bits> struct avx512_abi;
-template <int Bits> struct neon_abi;
+template <int Bytes> struct sse_abi;
+template <int Bytes> struct avx_abi;
+template <int Bytes> struct avx512_abi;
+template <int Bytes> struct neon_abi;
 }  // namespace detail
 
 namespace simd_abi

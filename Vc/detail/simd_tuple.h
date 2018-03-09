@@ -29,16 +29,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_DETAIL_SIMD_TUPLE_H_
 
 #include "detail.h"
+#include "abis.h"
 #include "concepts.h"
 #include "debug.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-template <class T, int N> struct fixed_size_storage_builder_wrapper;
-template <class T, int N>
-using fixed_size_storage = typename fixed_size_storage_builder_wrapper<T, N>::type;
-
 // subscript_read/_write {{{1
 template <class T> T subscript_read(arithmetic<T> x, size_t) noexcept { return x; }
 template <class T>
@@ -138,7 +135,7 @@ struct no {};
 template <class T, class A0, class... Abis>
 simd<T, A0> get_impl(as_simd::yes, const simd_tuple<T, A0, Abis...> &t, size_constant<0>)
 {
-    return simd<T, A0>(t.first);
+    return {private_init, t.first};
 }
 template <class T, class A0, class... Abis>
 const auto &get_impl(as_simd::no, const simd_tuple<T, A0, Abis...> &t, size_constant<0>)
@@ -218,12 +215,13 @@ template <size_t LeftN, class RightT> struct how_many_to_extract<LeftN, RightT, 
 
 // tuple_element_meta {{{1
 template <class T, class Abi, size_t Offset>
-struct tuple_element_meta : public detail::traits<T, Abi>::simd_impl_type {
+struct tuple_element_meta : public Abi::simd_impl_type {
     using value_type = T;
     using abi_type = Abi;
     using traits = detail::traits<T, Abi>;
     using maskimpl = typename traits::mask_impl_type;
     using member_type = typename traits::simd_member_type;
+    using mask_member_type = typename traits::mask_member_type;
     using simd_type = Vc::simd<T, Abi>;
     static constexpr size_t offset = Offset;
     static constexpr size_t size() { return simd_size<T, Abi>::value; }
@@ -231,14 +229,14 @@ struct tuple_element_meta : public detail::traits<T, Abi>::simd_impl_type {
     static constexpr maskimpl simd_mask = {};
 
     template <size_t N>
-    static Vc_INTRINSIC typename traits::mask_member_type make_mask(std::bitset<N> bits)
+    static Vc_INTRINSIC mask_member_type make_mask(std::bitset<N> bits)
     {
         constexpr T *type_tag = nullptr;
         return maskimpl::from_bitset(std::bitset<size()>((bits >> Offset).to_ullong()),
                                      type_tag);
     }
 
-    static Vc_INTRINSIC ullong mask_to_shifted_ullong(typename traits::mask_member_type k)
+    static Vc_INTRINSIC ullong mask_to_shifted_ullong(mask_member_type k)
     {
         return maskimpl::to_bitset(k).to_ullong() << Offset;
     }
@@ -396,7 +394,7 @@ public:
     friend Vc_INTRINSIC std::bitset<size_v> test(F &&fun, const simd_tuple &x,
                                                  const More &... more)
     {
-        return detail::traits<T, Abi0>::mask_impl_type::to_bitset(
+        return Abi0::mask_impl_type::to_bitset(
             fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...));
     }
 
@@ -576,7 +574,7 @@ public:
     friend Vc_INTRINSIC std::bitset<size_v> test(F &&fun, const simd_tuple &x,
                                                  const More &... more)
     {
-        return detail::traits<T, Abi0>::mask_impl_type::to_bitset(
+        return Abi0::mask_impl_type::to_bitset(
                    fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...))
                    .to_ullong() |
                (test(fun, x.second, more.second...).to_ullong() << simd_size_v<T, Abi0>);
@@ -674,7 +672,7 @@ Vc_INTRINSIC R optimize_tuple(const simd_tuple<T, A0, A1, Abis...> &x)
                             optimize_tuple(x.second));
     } Vc_CONSTEXPR_ELSE_IF(R::first_size_v == simd_size_v<T, A0> + simd_size_v<T, A1>) {
         return tuple_concat(simd_tuple<T, typename R::first_abi>{detail::data(
-                                concat(get_simd<0>(x), get_simd<1>(x)))},
+                                Vc::concat(get_simd<0>(x), get_simd<1>(x)))},
                             optimize_tuple(x.second.second));
     } Vc_CONSTEXPR_ELSE_IF(sizeof...(Abis) >= 2) {
         Vc_CONSTEXPR_IF_RETURNING(

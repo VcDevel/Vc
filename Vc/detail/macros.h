@@ -293,6 +293,18 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #define Vc_HAVE_FULL_AVX512_ABI 1
 #endif
 #endif
+
+#if defined Vc_ICC
+// ICC crashes and crashes and crashes, I don't want to waste more time on this:
+#warning "ICC crashes in so many places of the code that it needs a half-time position just to keep workarounds working. Any native SIMD ABIs are therefore disabled until a maintainer steps up."
+#undef Vc_HAVE_SSE_ABI
+#undef Vc_HAVE_AVX_ABI
+#undef Vc_HAVE_AVX512_ABI
+#undef Vc_HAVE_FULL_SSE_ABI
+#undef Vc_HAVE_FULL_AVX_ABI
+#undef Vc_HAVE_FULL_AVX512_ABI
+#endif
+
 //}}}
 
 // Vc_TEMPLATES_DROP_ATTRIBUTES: GCC 6 drops all attributes on types passed as template

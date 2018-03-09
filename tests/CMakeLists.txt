@@ -2,6 +2,7 @@ include(CMakeParseArguments)
 include(AddFileDependencies)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/virtest)
 
+if(FALSE)
 execute_process(
    COMMAND ${CMAKE_CXX_COMPILER} -print-file-name=liblto_plugin.so
    OUTPUT_VARIABLE lto_plugin
@@ -20,6 +21,7 @@ if(${found_lto_plugin} EQUAL 0)
    endif()
    AddCompilerFlag(-flto=4) # Hopefully faster "code build test" cycles
 endif()
+endif(FALSE)
 
 if(NOT "$ENV{TRAVIS_OS_NAME}" STREQUAL "")
    set(CMAKE_CXX_FLAGS_RELEASE "-O0 -DNDEBUG") # try to not time out, -O0 is faster
@@ -196,7 +198,9 @@ endmacro()#}}}
 #alias_strategies{{{
 set(alias_strategies)
 if(Vc_COMPILER_IS_CLANG OR Vc_COMPILER_IS_GCC)
-   list(APPEND alias_strategies MayAlias VectorBuiltin)
+   list(APPEND alias_strategies
+      #MayAlias
+      VectorBuiltin)
 elseif(Vc_COMPILER_IS_INTEL)
    # ICC can parse (aka ignore) may_alias, the result is aliasing violations => UB => test failures. So skip it
    list(APPEND alias_strategies VectorBuiltin)
@@ -357,15 +361,15 @@ endfunction() #}}}
 vc_add_test(sfinae NO_TESTTYPES)
 vc_add_test(loadstore SINGLE_TESTTYPE DEFINITIONS ONE_RANDOM_ARITHMETIC_TYPE)
 vc_add_test(allcvt_loadstore SINGLE_TESTTYPE SOURCE loadstore.cpp SINGLE_TESTTYPE EXCLUDE_FROM_ALL)
-vc_add_test(mask)
-vc_add_test(simd)
+vc_add_test(mask NO_TESTTYPES)
+vc_add_test(simd NO_TESTTYPES)
 vc_add_test(operators)
 vc_add_test(casts DEFINITIONS ONE_RANDOM_ARITHMETIC_TYPE)
 vc_add_test(allcvt_casts SOURCE casts.cpp EXCLUDE_FROM_ALL)
-vc_add_test(math)
-vc_add_test(where)
-vc_add_test(experimental)
-vc_add_test(bitset_conversions)
+vc_add_test(math NO_TESTTYPES)
+vc_add_test(where NO_TESTTYPES)
+vc_add_test(experimental NO_TESTTYPES)
+vc_add_test(bitset_conversions NO_TESTTYPES)
 
 # ABI tests#{{{
 find_program(OBJDUMP objdump)
@@ -457,13 +461,15 @@ if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
       test_uninitialized(AVX ${Vc_avx_flags})
       test_uninitialized(KNL ${Vc_knl_flags})
 
-      test_abi(abi_SSE     SSE Sse ${Vc_sse2_flags})
-      test_abi(abi_SSE_AVX SSE Sse ${Vc_avx_flags})
-      if(NOT Vc_AVX_INTRINSICS_BROKEN)
-         test_abi(abi_AVX     AVX Avx ${Vc_avx_flags})
-         test_abi(abi_AVX2    AVX2 Avx ${Vc_avx2_flags})
-         test_abi(abi_AVX512  AVX512 Avx512 ${Vc_avx512_flags})
-         test_abi(abi_KNL     KNL Avx512 ${Vc_knl_flags})
+      if(NOT Vc_COMPILER_IS_INTEL)
+         test_abi(abi_SSE     SSE Sse ${Vc_sse2_flags})
+         test_abi(abi_SSE_AVX SSE Sse ${Vc_avx_flags})
+         if(NOT Vc_AVX_INTRINSICS_BROKEN)
+            test_abi(abi_AVX     AVX Avx ${Vc_avx_flags})
+            test_abi(abi_AVX2    AVX2 Avx ${Vc_avx2_flags})
+            test_abi(abi_AVX512  AVX512 Avx512 ${Vc_avx512_flags})
+            test_abi(abi_KNL     KNL Avx512 ${Vc_knl_flags})
+         endif()
       endif()
    endif()
 

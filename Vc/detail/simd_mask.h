@@ -46,10 +46,11 @@ template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::m
     using member_type = typename traits::mask_member_type;
     static constexpr detail::size_tag_type<T, Abi> size_tag = {};
     static constexpr T *type_tag = nullptr;
+    friend typename traits::mask_base;
     friend class simd<T, Abi>;  // to construct masks on return
     friend impl;
     friend typename traits::simd_impl_type;  // to construct masks on return and
-                                                // inspect data on masked operations
+                                             // inspect data on masked operations
 
 public:
     using value_type = bool;

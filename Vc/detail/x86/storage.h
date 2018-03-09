@@ -140,26 +140,6 @@ Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> Vc_VDECL hi256(Storage<T, N> x)
 //}}}
 #endif  // Vc_HAVE_AVX512F
 
-// concat {{{
-#ifdef Vc_HAVE_AVX
-template <class T>
-Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> Vc_VDECL
-    concat(Storage<T, 16 / sizeof(T)> a, Storage<T, 16 / sizeof(T)> b)
-{
-    return concat(a.v(), b.v());
-}
-#endif  // Vc_HAVE_AVX
-
-#ifdef Vc_HAVE_AVX512F
-template <class T>
-Vc_INTRINSIC Vc_CONST Storage<T, 64 / sizeof(T)> Vc_VDECL
-    concat(Storage<T, 32 / sizeof(T)> a, Storage<T, 32 / sizeof(T)> b)
-{
-    return concat(a.v(), b.v());
-}
-#endif  // Vc_HAVE_AVX512F
-
-//}}}
 // extract_part {{{1
 // identity {{{2
 template <class T>
@@ -416,6 +396,29 @@ Vc_CONVERT_MASK_IMPL_END;
 
 }  // namespace x86
 
+// concat {{{
+// These functions are part of the Storage interface => same namespace.
+// These functions are only available when AVX or higher is enabled. In the future there
+// may be more cases (e.g. half SSE -> full SSE or even MMX -> SSE).
+#ifdef Vc_HAVE_AVX
+template <class T>
+Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> Vc_VDECL
+    concat(Storage<T, 16 / sizeof(T)> a, Storage<T, 16 / sizeof(T)> b)
+{
+    return x86::concat(a.v(), b.v());
+}
+#endif  // Vc_HAVE_AVX
+
+#ifdef Vc_HAVE_AVX512F
+template <class T>
+Vc_INTRINSIC Vc_CONST Storage<T, 64 / sizeof(T)> Vc_VDECL
+    concat(Storage<T, 32 / sizeof(T)> a, Storage<T, 32 / sizeof(T)> b)
+{
+    return x86::concat(a.v(), b.v());
+}
+#endif  // Vc_HAVE_AVX512F
+
+//}}}
 template <class To, class T, size_t Size> To convert_mask(Storage<T, Size> x)
 {
     return convert_mask_impl<sizeof(typename To::value_type), To::size(), sizeof(T), Size,

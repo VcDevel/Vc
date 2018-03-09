@@ -32,7 +32,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define TESTTYPES                                                                        \
     long double, double, float, unsigned long long, long long, unsigned long, long,      \
-        unsigned int, int, unsigned short, short, unsigned char, signed char, char
+        unsigned int, int, unsigned short, short, unsigned char, signed char, char,      \
+        wchar_t, char16_t, char32_t
 template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
 
@@ -45,77 +46,86 @@ using vir::concat;
 using Vc::simd;
 using Vc::simd_mask;
 
+struct dummy {};
+template <class A> using dummy_simd = simd<dummy, A>;
+template <class A> using dummy_mask = simd_mask<dummy, A>;
+template <class A> using bool_simd = simd<bool, A>;
+template <class A> using bool_mask = simd_mask<bool, A>;
+
 // type lists {{{1
 using all_valid_scalars = expand_list<Typelist<Template<simd, Vc::simd_abi::scalar>,
                                                Template<simd_mask, Vc::simd_abi::scalar>>,
                                       testtypes>;
 
-using all_valid_fixed_size =
-    expand_list<Typelist<Template<simd, Vc::simd_abi::fixed_size<1>>,
-                         Template<simd, Vc::simd_abi::fixed_size<2>>,
-                         Template<simd, Vc::simd_abi::fixed_size<3>>,
-                         Template<simd, Vc::simd_abi::fixed_size<4>>,
-                         Template<simd, Vc::simd_abi::fixed_size<5>>,
-                         Template<simd, Vc::simd_abi::fixed_size<6>>,
-                         Template<simd, Vc::simd_abi::fixed_size<7>>,
-                         Template<simd, Vc::simd_abi::fixed_size<8>>,
-                         Template<simd, Vc::simd_abi::fixed_size<9>>,
-                         Template<simd, Vc::simd_abi::fixed_size<10>>,
-                         Template<simd, Vc::simd_abi::fixed_size<11>>,
-                         Template<simd, Vc::simd_abi::fixed_size<12>>,
-                         Template<simd, Vc::simd_abi::fixed_size<13>>,
-                         Template<simd, Vc::simd_abi::fixed_size<14>>,
-                         Template<simd, Vc::simd_abi::fixed_size<15>>,
-                         Template<simd, Vc::simd_abi::fixed_size<16>>,
-                         Template<simd, Vc::simd_abi::fixed_size<17>>,
-                         Template<simd, Vc::simd_abi::fixed_size<18>>,
-                         Template<simd, Vc::simd_abi::fixed_size<19>>,
-                         Template<simd, Vc::simd_abi::fixed_size<20>>,
-                         Template<simd, Vc::simd_abi::fixed_size<21>>,
-                         Template<simd, Vc::simd_abi::fixed_size<22>>,
-                         Template<simd, Vc::simd_abi::fixed_size<23>>,
-                         Template<simd, Vc::simd_abi::fixed_size<24>>,
-                         Template<simd, Vc::simd_abi::fixed_size<25>>,
-                         Template<simd, Vc::simd_abi::fixed_size<26>>,
-                         Template<simd, Vc::simd_abi::fixed_size<27>>,
-                         Template<simd, Vc::simd_abi::fixed_size<28>>,
-                         Template<simd, Vc::simd_abi::fixed_size<29>>,
-                         Template<simd, Vc::simd_abi::fixed_size<30>>,
-                         Template<simd, Vc::simd_abi::fixed_size<31>>,
-                         Template<simd, Vc::simd_abi::fixed_size<32>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<1>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<2>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<3>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<4>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<5>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<6>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<7>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<8>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<9>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<10>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<11>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<12>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<13>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<14>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<15>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<16>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<17>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<18>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<19>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<20>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<21>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<22>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<23>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<24>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<25>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<26>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<27>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<28>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<29>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<30>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<31>>,
-                         Template<simd_mask, Vc::simd_abi::fixed_size<32>>>,
-                testtypes>;
+using all_valid_fixed_size = expand_list<
+    concat<
+        VIR_CHOOSE_ONE_RANDOMLY(Typelist<Template<simd, Vc::simd_abi::fixed_size<1>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<2>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<3>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<4>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<5>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<6>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<7>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<8>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<9>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<10>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<11>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<12>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<13>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<14>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<15>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<16>>>),
+        VIR_CHOOSE_ONE_RANDOMLY(Typelist<Template<simd, Vc::simd_abi::fixed_size<17>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<18>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<19>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<20>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<21>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<22>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<23>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<24>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<25>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<26>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<27>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<28>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<29>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<30>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<31>>,
+                                         Template<simd, Vc::simd_abi::fixed_size<32>>>),
+        VIR_CHOOSE_ONE_RANDOMLY(
+            Typelist<Template<simd_mask, Vc::simd_abi::fixed_size<1>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<2>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<3>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<4>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<5>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<6>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<7>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<8>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<9>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<10>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<11>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<12>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<13>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<14>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<15>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<16>>>),
+        VIR_CHOOSE_ONE_RANDOMLY(
+            Typelist<Template<simd_mask, Vc::simd_abi::fixed_size<17>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<18>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<19>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<20>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<21>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<22>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<23>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<24>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<25>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<26>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<27>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<28>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<29>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<30>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<31>>,
+                     Template<simd_mask, Vc::simd_abi::fixed_size<32>>>)>,
+    testtypes>;
 
 using all_valid_simd = concat<
 #if defined Vc_HAVE_FULL_SSE_ABI
@@ -152,19 +162,49 @@ using all_valid_simd = concat<
 #endif
     Typelist<>>;
 
+using all_native_simd_types = expand_list<
+    Typelist<Template<simd, Vc::simd_abi::Sse>, Template<simd, Vc::simd_abi::Avx>,
+             Template<simd, Vc::simd_abi::Avx512>, Template<simd, Vc::simd_abi::Neon>>,
+    testtypes>;
+
+TEST_TYPES(V, has_size, all_native_simd_types)  //{{{1
+{
+    VERIFY((Vc::simd_size_v<typename V::value_type, typename V::abi_type>) > 0);
+}
+
+TEST_TYPES(Tup, has_no_size,  //{{{1
+    concat<outer_product<concat<testtypes, nullptr_t, dummy>, Typelist<int, dummy>>,
+           outer_product<Typelist<nullptr_t, dummy>,
+                         Typelist<Vc::simd_abi::scalar, Vc::simd_abi::fixed_size<4>,
+                                  Vc::simd_abi::Sse, Vc::simd_abi::Avx,
+                                  Vc::simd_abi::Avx512, Vc::simd_abi::Neon>>>)
+{
+    VERIFY(
+        !(sfinae_is_callable<typename Tup::template at<0>, typename Tup::template at<1>>(
+            [](auto a, auto b) -> decltype(
+                Vc::simd_size<decltype(a), decltype(b)>::type) { return {}; })));
+}
+
+template <class T> constexpr bool is_fixed_size_mask(T) { return false; }
+template <class T, int N> constexpr bool is_fixed_size_mask(Vc::fixed_size_mask<T, N>)
+{
+    return true;
+}
+
 TEST_TYPES(V, is_usable,  //{{{1
            concat<all_valid_scalars, all_valid_simd, all_valid_fixed_size>)
 {
+    if (!is_fixed_size_mask(V())) {
+        // fixed_size_mask uses std::bitset for storage, which is not trivially
+        // constructible
+        // Actually, is_trivially_constructible is not a hard requirement by the spec, but
+        // something we want to support AFAIP.
+        VERIFY(std::is_trivially_constructible<V>::value);
+    }
     VERIFY(std::is_destructible<V>::value);
     VERIFY(std::is_copy_constructible<V>::value);
     VERIFY(std::is_copy_assignable<V>::value);
 }
-
-struct dummy {};
-template <class A> using dummy_simd = simd<dummy, A>;
-template <class A> using dummy_mask = simd_mask<dummy, A>;
-template <class A> using bool_simd = simd<bool, A>;
-template <class A> using bool_mask = simd_mask<bool, A>;
 
 using unusable_abis = Typelist<
 #if !defined Vc_HAVE_SSE_ABI
@@ -210,7 +250,11 @@ using unusable_simd_types =
                                 Template<simd_mask, Vc::simd_abi::Avx512>>,
 #if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
                        typename filter_list<
-                           Typelist<float, double, ullong, llong, ulong, long, uint, int>,
+                           Typelist<float, double, ullong, llong, ulong, long, uint, int,
+#if WCHAR_MAX > 0xffff
+                                    wchar_t,
+#endif
+                                    char32_t>,
                            testtypes>::type
 #else
                        Typelist<long double>
@@ -224,6 +268,7 @@ TEST_TYPES(V, is_unusable,  //{{{1
                                        Template1<bool_simd>, Template1<bool_mask>>,
                               all_native_abis>>)
 {
+    VERIFY(!std::is_constructible<V>::value);
     VERIFY(!std::is_destructible<V>::value);
     VERIFY(!std::is_copy_constructible<V>::value);
     VERIFY(!std::is_copy_assignable<V>::value);

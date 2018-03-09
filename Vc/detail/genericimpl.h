@@ -251,45 +251,19 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
 
     // to_bitset {{{2
     template <class T, size_t N>
-    static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
-                                                 std::integral_constant<int, 1>) noexcept
-    {
-        return x86::movemask(v);
-    }
-    template <class T>
-    static Vc_INTRINSIC std::bitset<8> to_bitset(Storage<T, 8> v,
-                                                 std::integral_constant<int, 2>) noexcept
-    {
-        return x86::movemask_epi16(v);
-    }
-
-#ifdef Vc_HAVE_AVX2
-    template <class T>
-    static Vc_INTRINSIC std::bitset<16> to_bitset(Storage<T, 16> v,
-                                                 std::integral_constant<int, 2>) noexcept
-    {
-        return x86::movemask_epi16(v);
-    }
-#endif  // Vc_HAVE_AVX2
-
-    template <class T, size_t N>
-    static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
-                                                 std::integral_constant<int, 4>) noexcept
-    {
-        return x86::movemask(x86::intrin_cast<x86::intrinsic_type<float, N>>(v));
-    }
-    template <class T, size_t N>
-    static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v,
-                                                 std::integral_constant<int, 8>) noexcept
-    {
-        return x86::movemask(x86::intrin_cast<x86::intrinsic_type<double, N>>(v));
-    }
-    template <class T, size_t N>
     static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v) noexcept
     {
         static_assert(N <= sizeof(uint) * CHAR_BIT,
                       "Needs missing 64-bit implementation");
-        if (std::is_integral<T>::value && sizeof(T) > 1) {
+        if constexpr (std::is_integral_v<T> == (sizeof(T) == 1)) {
+            return x86::movemask(v);
+        } else if constexpr (sizeof(T) == 2) {
+            return x86::movemask_epi16(v);
+        } else {
+            static_assert(std::is_integral_v<T>);
+            using U = std::conditional_t<sizeof(T) == 4, float, double>;
+            return x86::movemask(x86::intrin_cast<detail::intrinsic_type_t<U, N>>(v));
+        }
 #if 0 //defined Vc_HAVE_BMI2
             switch (sizeof(T)) {
             case 2: return _pext_u32(x86::movemask(v), 0xaaaaaaaa);
@@ -297,12 +271,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
             case 8: return _pext_u32(x86::movemask(v), 0x80808080);
             default: Vc_UNREACHABLE();
             }
-#else
-            return to_bitset(v, std::integral_constant<int, sizeof(T)>());
 #endif
-        } else {
-            return x86::movemask(v);
-        }
     }
 
     // from_bitset{{{2
@@ -311,13 +280,13 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     {
 #ifdef Vc_HAVE_AVX512BW
         if (sizeof(T) <= 2u) {
-            return detail::intrin_cast<detail::intrinsic_type<T, N>>(
+            return detail::intrin_cast<detail::intrinsic_type_t<T, N>>(
                 x86::convert_mask<sizeof(T), sizeof(mask_member_type<T>)>(bits));
         }
 #endif  // Vc_HAVE_AVX512BW
 #ifdef Vc_HAVE_AVX512DQ
         if (sizeof(T) >= 4u) {
-            return detail::intrin_cast<detail::intrinsic_type<T, N>>(
+            return detail::intrin_cast<detail::intrinsic_type_t<T, N>>(
                 x86::convert_mask<sizeof(T), sizeof(mask_member_type<T>)>(bits));
         }
 #endif  // Vc_HAVE_AVX512DQ
@@ -330,7 +299,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
         if (bits_per_element >= N) {
             V tmp(static_cast<U>(bits.to_ullong()));                  // broadcast
             tmp &= V([](auto i) { return static_cast<U>(1ull << i); });  // mask bit index
-            return detail::intrin_cast<detail::intrinsic_type<T, N>>(
+            return detail::intrin_cast<detail::intrinsic_type_t<T, N>>(
                 detail::data(tmp != V()));
         } else {
             V tmp([&](auto i) {
@@ -343,7 +312,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
 #endif
                 return static_cast<U>(1ull << (i % bits_per_element));
             });  // mask bit index
-            return detail::intrin_cast<detail::intrinsic_type<T, N>>(
+            return detail::intrin_cast<detail::intrinsic_type_t<T, N>>(
                 detail::data(tmp != V()));
         }
     }

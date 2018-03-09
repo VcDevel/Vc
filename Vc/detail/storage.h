@@ -31,9 +31,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iosfwd>
 
 #include "macros.h"
-#ifdef Vc_HAVE_NEON
+#ifdef Vc_HAVE_NEON_ABI
 #include "aarch/intrinsics.h"
-#else 
+#elif defined Vc_HAVE_SSE_ABI
 #include "x86/intrinsics.h"
 #endif
 
@@ -72,13 +72,7 @@ using Default =
 #elif defined __GNUC__
     MayAlias;
 #else
-    VectorBuiltin;
-#endif
-
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-    static_assert(std::is_same<Default, VectorBuiltin>::value, "");
-#else
-    static_assert(!std::is_same<Default, VectorBuiltin>::value, "");
+    MayAlias;
 #endif
 }  // namespace AliasStrategy
 
@@ -87,9 +81,9 @@ template <typename ValueType, size_t Size, typename Strategy = AliasStrategy::De
 class Storage;
 //}}}1
 
-#if defined Vc_HAVE_SSE  // need at least one SIMD ISA to make sense
+// need at least one SIMD ISA to make sense:
+//#if defined Vc_HAVE_SSE_ABI || defined Vc_HAVE_NEON_ABI
 // Storage<bool>{{{1
-template <size_t Size> struct bool_storage_member_type;
 template <size_t Size> class Storage<bool, Size, AliasStrategy::Default>
 {
 public:
@@ -146,7 +140,7 @@ class Storage<ValueType, Size, AliasStrategy::MayAlias>
     };
 
 public:
-    using VectorType = intrinsic_type<ValueType, Size>;
+    using VectorType = intrinsic_type_t<ValueType, Size>;
     using value_type = ValueType;
     using EntryType = value_type;
 
@@ -161,6 +155,7 @@ public:
         assertCorrectAlignment(&data);
     }
 
+#ifdef Vc_HAVE_AVX512_ABI
 #ifdef Vc_HAVE_AVX512BW
     inline Storage(__mmask64 k)
         : data(intrin_cast<VectorType>(
@@ -185,6 +180,7 @@ public:
     {
     }
 #endif  // Vc_HAVE_AVX512BW
+#endif  // Vc_HAVE_AVX512_ABI
 
     Vc_INTRINSIC Storage(const VectorType &x) : data(x)
     {
@@ -236,13 +232,13 @@ class Storage<ValueType, Size, AliasStrategy::VectorBuiltin>
                   "Only works for fundamental arithmetic types.");
 
 public:
-    using Builtin = builtin_type<ValueType, Size>;
+    using Builtin = builtin_type_t<ValueType, Size>;
 
     using VectorType =
 #ifdef Vc_TEMPLATES_DROP_ATTRIBUTES
-        may_alias<intrinsic_type<ValueType, Size>>;
+        may_alias<intrinsic_type_t<ValueType, Size>>;
 #else
-        intrinsic_type<ValueType, Size>;
+        intrinsic_type_t<ValueType, Size>;
 #endif
     using value_type = ValueType;
     using EntryType = value_type;
@@ -257,6 +253,7 @@ public:
     {
     }
 
+#ifdef Vc_HAVE_AVX512_ABI
 #ifdef Vc_HAVE_AVX512BW
     inline Storage(__mmask64 k)
         : data(reinterpret_cast<Builtin>(
@@ -281,13 +278,14 @@ public:
     {
     }
 #endif  // Vc_HAVE_AVX512BW
+#endif  // Vc_HAVE_AVX512_ABI
 
     Vc_INTRINSIC Storage(Builtin x) : data(x) { assertCorrectAlignment(&data); }
 
     template <typename U>
-    Vc_INTRINSIC Storage(
-        const U &x,
-        enable_if<is_builtin_vector_v<U> && sizeof(U) == sizeof(VectorType)> = nullarg)
+    Vc_INTRINSIC Storage(const U &x,
+                         enable_if<(is_builtin_vector_v<U> || is_intrinsic_v<U>)&&sizeof(
+                                       U) == sizeof(VectorType)> = nullarg)
         : data(reinterpret_cast<Builtin>(x))
     {
         assertCorrectAlignment(&data);
@@ -320,7 +318,7 @@ private:
 };
 
 #if defined Vc_CLANG && !defined Vc_HAVE_SSE4_1
-#if Vc_CLANG < 0x60000
+#if Vc_CLANG <= 0x60000
 template <> void Storage<double, 2, AliasStrategy::VectorBuiltin>::set(size_t i, double x)
 {
     if (x == 0. && i == 1)
@@ -328,7 +326,7 @@ template <> void Storage<double, 2, AliasStrategy::VectorBuiltin>::set(size_t i,
     data[i] = x;
 }
 #else
-#warning "clang 5 failed operators_sse2_vectorbuiltin_ldouble_float_double_schar_uchar in operator<simd<double, Sse>> and required a workaround. Is this still the case for newer clang versions?
+#warning "clang 5 failed operators_sse2_vectorbuiltin_ldouble_float_double_schar_uchar in operator<simd<double, Sse>> and required a workaround. Is this still the case for newer clang versions?"
 #endif
 #endif
 
@@ -341,7 +339,7 @@ class Storage<ValueType, Size, AliasStrategy::UnionMembers>
                   "Only works for fundamental arithmetic types.");
 
 public:
-    using VectorType = intrinsic_type<ValueType, Size>;
+    using VectorType = intrinsic_type_t<ValueType, Size>;
     using value_type = ValueType;
     using EntryType = value_type;
 
@@ -356,6 +354,7 @@ public:
         assertCorrectAlignment(&data);
     }
 
+#ifdef Vc_HAVE_AVX512_ABI
 #ifdef Vc_HAVE_AVX512BW
     inline Storage(__mmask64 k)
         : data(intrin_cast<VectorType>(
@@ -384,6 +383,7 @@ public:
         assertCorrectAlignment(&data);
     }
 #endif  // Vc_HAVE_AVX512BW
+#endif  // Vc_HAVE_AVX512_ABI
 
     Vc_INTRINSIC Storage(const VectorType &x) : data(x)
     {
@@ -506,271 +506,13 @@ inline std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> & s,
 }
 
 //}}}1
-#elif defined Vc_HAVE_NEON
-// Storage<bool>{{{1
-template <size_t Size> struct bool_storage_member_type;
-template <size_t Size> class Storage<bool, Size, DefaultStrategy>
-{
-public:
-    using VectorType = typename bool_storage_member_type<Size>::type;
-    using value_type = bool;
-    using EntryType = value_type;
-
-    static constexpr size_t size() { return Size; }
-    Vc_INTRINSIC Storage() = default;
-    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&... init)
-        : data{static_cast<EntryType>(std::forward<Args>(init))...}
-    {
-    }
-
-    Vc_INTRINSIC Storage(const VectorType &x) : data(x) {}
-    Vc_INTRINSIC Storage(const Storage &) = default;
-    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
-
-    Vc_INTRINSIC Vc_PURE operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
-
-    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
-    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data & (VectorType(1) << i); }
-    Vc_INTRINSIC void set(size_t i, EntryType x)
-    {
-        if (x) {
-            data |= (VectorType(1) << i);
-        } else {
-            data &= ~(VectorType(1) << i);
-        }
-    }
-
-private:
-    VectorType data;
-};
-
-// Storage<MayAlias>{{{1
-template <typename ValueType, size_t Size>
-class Storage<ValueType, Size, AliasStrategy::MayAlias>
-{
-    static_assert(std::is_fundamental<ValueType>::value &&
-                      std::is_arithmetic<ValueType>::value,
-                  "Only works for fundamental arithmetic types.");
-
-    struct
-        aliased_construction
-    {
-        may_alias<ValueType> d[Size];
-    };
-
-public:
-    using VectorType = intrinsic_type<ValueType, Size>;
-    using value_type = ValueType;
-    using EntryType = value_type;
-
-    static constexpr size_t size() { return Size; }
-
-    Vc_INTRINSIC Storage() = default;
-
-    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&... init)
-        : data(aarch::set(static_cast<EntryType>(std::forward<Args>(init))...))
-    {
-        assertCorrectAlignment(&data);
-    }
-Vc_INTRINSIC Storage(const VectorType &x) : data(x)
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(const U &x,
-                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
-        : data(reinterpret_cast<const VectorType &>(x))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(Storage<U, Size, AliasStrategy::MayAlias> x)
-        : data(reinterpret_cast<VectorType>(x.v()))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    Vc_INTRINSIC Storage(const Storage &) = default;
-    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
-
-    Vc_INTRINSIC operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
-
-    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
-    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const
-    {
-        return reinterpret_cast<const may_alias<EntryType> *>(&data)[i];
-    }
-    Vc_INTRINSIC void set(size_t i, EntryType x)
-    {
-        reinterpret_cast<may_alias<EntryType> *>(&data)[i] = x;
-    }
-
-private:
-    VectorType data;
-};
- 
-// Storage<VectorBuiltin>{{{1
-template <typename ValueType, size_t Size>
-class Storage<ValueType, Size, AliasStrategy::VectorBuiltin>
-{
-    static_assert(std::is_fundamental<ValueType>::value &&
-                      std::is_arithmetic<ValueType>::value,
-                  "Only works for fundamental arithmetic types.");
-
-public:
-    using Builtin = builtin_type<ValueType, Size>;
-
-    using VectorType =
-#ifdef Vc_TEMPLATES_DROP_ATTRIBUTES
-        may_alias<intrinsic_type<ValueType, Size>>;
-#else
-        intrinsic_type<ValueType, Size>;
-#endif
-    using value_type = ValueType;
-    using EntryType = value_type;
-
-    static constexpr size_t size() { return Size; }
-
-    Vc_INTRINSIC Storage() = default;
-
-    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&... init)
-        : data{static_cast<EntryType>(std::forward<Args>(init))...}
-    {
-    }
-Vc_INTRINSIC Storage(Builtin x) : data(x) { assertCorrectAlignment(&data); }
-
-    template <typename U>
-    Vc_INTRINSIC Storage(
-        const U &x,
-        enable_if<is_builtin_vector_v<U> && sizeof(U) == sizeof(VectorType)> = nullarg)
-        : data(reinterpret_cast<Builtin>(x))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(Storage<U, Size, AliasStrategy::VectorBuiltin> x)
-        : data(reinterpret_cast<Builtin>(x.v()))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    Vc_INTRINSIC Storage(const Storage &) = default;
-    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
-
-    //Vc_INTRINSIC operator const Builtin &() const { return data; }
-    Vc_INTRINSIC operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data); }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data); }
-
-    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
-    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data[i]; }
-    Vc_INTRINSIC void set(size_t i, EntryType x) { data[i] = x; }
-
-    Vc_INTRINSIC Builtin &builtin() { return data; }
-    Vc_INTRINSIC const Builtin &builtin() const { return data; }
-
-private:
-    Builtin data;
-};
- 
-// Storage<UnionMembers>{{{1
-template <typename ValueType, size_t Size>
-class Storage<ValueType, Size, AliasStrategy::UnionMembers>
-{
-    static_assert(std::is_fundamental<ValueType>::value &&
-                      std::is_arithmetic<ValueType>::value,
-                  "Only works for fundamental arithmetic types.");
-
-public:
-    using VectorType = intrinsic_type<ValueType, Size>;
-    using value_type = ValueType;
-    using EntryType = value_type;
-
-    static constexpr size_t size() { return Size; }
-
-    Vc_INTRINSIC torage() = default;
-
-    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&... init)
-        : data(aarch::set(static_cast<EntryType>(std::forward<Args>(init))...))
-    {
-        assertCorrectAlignment(&data);
-    }
-    Vc_INTRINSIC Storage(const VectorType &x) : data(x)
-    {
-        assertCorrectAlignment(&data);
-    }
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(const U &x)
-        : data(reinterpret_cast<const VectorType &>(x))
-    {
-        static_assert(sizeof(U) == sizeof(VectorType),
-                      "invalid call to converting Storage constructor");
-        assertCorrectAlignment(&data);
-    }
-
-    static const VectorType &adjustVectorType(const VectorType &x) { return x; }
-    template <typename T> static VectorType adjustVectorType(const T &x)
-    {
-        return reinterpret_cast<VectorType>(x);
-    }
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(const Storage<U, Size, AliasStrategy::UnionMembers> &x)
-        : data(adjustVectorType(x.v()))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    Vc_INTRINSIC Storage(const Storage &) = default;
-    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
-
-    Vc_INTRINSIC operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
-
-    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
-    Vc_INTRINSIC_L Vc_PURE_L EntryType m(size_t i) const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC void set(size_t i, EntryType x) { ref(i) = x; }
-
-private:
-    Vc_INTRINSIC_L Vc_PURE_L typename std::conditional<
-        std::is_same<EntryType, signed char>::value, char,
-        typename std::conditional<
-            std::is_same<EntryType, long>::value, int,
-            typename std::conditional<std::is_same<EntryType, ulong>::value, uint,
-                                      EntryType>::type>::type>::type &
-    ref(size_t i) Vc_INTRINSIC_R Vc_PURE_R;
-    VectorType data;
-};
-template <class CharT, class T, size_t N>
-inline std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> & s,
-                                             const Storage<T, N> &v)
-{
-    s << '[' << v[0];
-    for (size_t i = 1; i < N; ++i) {
-        s << ((i % 4) ? " " : " | ") << v[i];
-    }
-    return s << ']';
-}
-
-//}}}1 
-#endif
+//#endif  // Vc_HAVE_{SSE,NEON}_ABI
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-#ifdef Vc_HAVE_NEON
+#ifdef Vc_HAVE_NEON_ABI
 #include "aarch/storage.h"
-#else
+#elif defined Vc_HAVE_SSE_ABI
 #include "x86/storage.h"
 #endif
 
