@@ -20,7 +20,6 @@ os:
 
 compiler:
     - gcc
-    - clang
 
 # The whitespace in "env:" lines must match the definition above!
 matrix:
@@ -51,27 +50,12 @@ install:
           sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main' &&
           sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial-updates main' &&
           sudo apt-get update -q &&
-          sudo apt-get install g++-6 binutils -y &&
-          export CXX=g++-6 CC=gcc-6;;
-        linux-clang++-x86_64)
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
-          wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - &&
-          sudo tee /etc/apt/sources.list.d/llvm.list <<< "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" &&
-          sudo apt-get update -q &&
-          sudo apt-get install clang-5.0 libstdc++-6-dev -y &&
-          export CXX=clang++-5.0 CC=clang-5.0;;
+          sudo apt-get install g++-7 binutils -y &&
+          export CXX=g++-7 CC=gcc-7;;
         osx-g++-x86_64)
           brew update &&
-          brew install gcc6 &&
-          export CXX=g++-6 CC=gcc-6;;
-        osx-clang++-x86_64)
-          wget http://releases.llvm.org/5.0.0/clang+llvm-5.0.0-x86_64-apple-darwin.tar.xz &&
-          tar xf clang+llvm-5.0.0-x86_64-apple-darwin.tar.xz &&
-          cd clang+llvm-5.0.0-x86_64-apple-darwin &&
-          export CXX=$PWD/bin/clang++ CC=$PWD/bin/clang &&
-          export LDFLAGS="-L$PWD/lib -Wl,-rpath,$PWD/lib" &&
-          export CPPFLAGS=-I$PWD/include &&
-          cd ..;;
+          brew install gcc7 &&
+          export CXX=g++-7 CC=gcc-7;;
         linux-g++-aarch64)
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y &&
           sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main' &&
@@ -79,18 +63,6 @@ install:
           sudo apt-get update -q &&
           sudo apt-get install -y g++-5-aarch64-linux-gnu &&
           export CXX=aarch64-linux-gnu-g++-5 CC=aarch64-linux-gnu-gcc-5 CMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-linux.cmake;;
-        linux-clang++-aarch64)
-          wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - &&
-          sudo tee /etc/apt/sources.list.d/llvm.list <<< "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main" &&
-          sudo apt-get update -q &&
-          sudo apt-get install -y clang-5.0 &&
-          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main' &&
-          sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial-updates main' &&
-          sudo apt-get update -q &&
-          sudo apt-get install -y libstdc++-5-dev-arm64-cross gcc-5-aarch64-linux-gnu &&
-          export CPATH=/usr/aarch64-linux-gnu/include &&
-          export CXX="clang++-5.0 -target aarch64-linux-gnu" CC="clang-5.0 -target aarch64-linux-gnu" &&
-          export CMAKE_TOOLCHAIN_FILE=cmake/toolchain-arm-linux.cmake;;
       esac
 
 before_script:
