@@ -2,6 +2,8 @@
 
 *NOTE*: This is the development version, implementing https://wg21.link/p0214.
 For production use consider the latest release or the 1.3 branch.
+This implementation requires GCC 7.1 or newer.
+Support for Clang, ICC, and MSVC is available with the 1.3 branch.
 
 ## Introduction
 
@@ -40,7 +42,7 @@ sets. Thus an application written with Vc can be compiled for:
 * SSE2 up to SSE4.2 or SSE4a
 * Scalar
 * MIC (only before Vc 2.0)
-* AVX-512
+* AVX-512 (since Vc 2.0)
 * NEON (in development)
 * NVIDIA GPUs / CUDA (research)
 
@@ -55,10 +57,10 @@ float scalar_product(Vec3D a, Vec3D b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 ```
-Using Vc, we can easily vectorize the code using the `float_v` type:
+Using Vc, we can easily vectorize the code using the `native_simd<float>` type:
 ```cpp
-using Vc::float_v
-using Vec3D = std::array<float_v, 3>;
+using Vc::native_simd;
+using Vec3D = std::array<native_simd<float>, 3>;
 float_v scalar_product(Vec3D a, Vec3D b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
@@ -81,12 +83,9 @@ The above will neither scale to AVX, MIC, etc. nor is it portable to other SIMD 
 
 cmake >= 3.0
 
-C++14 Compiler:
+C++17 Compiler:
 
-* GCC >= 5.1
-* clang >= 3.7
-* ICC >= 17
-* Visual Studio 2017 (64-bit target)
+* GCC >= 7.1
 
 
 ## Building and Installing Vc
@@ -98,26 +97,35 @@ $ mkdir build
 $ cd build
 ```
 
-* Call cmake with the relevant options:
+* Call `cmake`; the following options may be interesting:
+  - `-DCMAKE_INSTALL_PREFIX=<path>`:
+    Select a different install prefix. Note that installing is not required (use
+     `-I<path to Vc src>`) and currently not supported.
+  - `-DENABLE_UBSAN=ON`:
+    Build tests with the “undefined behavior sanitizer” enabled.
+  - `-DTARGET_ARCHITECTURE=<target>`:
+    Select a target architecture, different from the one you are building on.
+  - `-DUSE_CCACHE=ON`:
+    Use `ccache` (when found) to speed up recurring builds.
 
 ```sh
-$ cmake -DCMAKE_INSTALL_PREFIX=/opt/Vc -DBUILD_TESTING=OFF <srcdir>
+$ cmake <srcdir>
 ```
 
-* Build and install:
+* Build and run tests:
 
 ```sh
-$ make -j16
-$ make install
+$ make -j8
+$ ctest -j8
 ```
 
 ## Documentation
 
-The documentation is generated via [doxygen](http://doxygen.org). You can build
-the documentation by running `doxygen` in the `doc` subdirectory.
-Alternatively, you can find nightly builds of the documentation at:
+The documentation of the master branch is currently out of date. Please refer to
+https://wg21.link/p0214 for the specification.
 
-* [master branch](https://web-docs.gsi.de/~mkretz/Vc-master/)
+Documentation for older releases is available at:
+
 * [1.3.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.3.0/)
 * [1.2.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.2.0/)
 * [1.1.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.1.0/)
