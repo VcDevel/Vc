@@ -33,19 +33,10 @@ endif()#}}}
 if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++14 on/off
    AddCompilerFlag("-std=c++17" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
    if(NOT _ok)
-      AddCompilerFlag("-std=c++1z" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-      if(NOT _ok)
-         AddCompilerFlag("-std=c++14" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-         if(NOT _ok)
-            AddCompilerFlag("-std=c++1y" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
-            if(NOT _ok)
-               message(FATAL_ERROR "Vc 2.x requires C++14. It seems this is not available. If this was incorrectly determined please open an issue on https://github.com/VcDevel/Vc")
-            endif()
-         endif()
-      endif()
+      message(FATAL_ERROR "Vc 2.x requires C++17. It seems this is not available. If this was incorrectly determined please open an issue on https://github.com/VcDevel/Vc")
    endif()
-elseif(Vc_MSVC_VERSION LESS 180021114)
-   message(FATAL_ERROR "Vc 2.x requires C++14 support.")
+elseif(Vc_MSVC_VERSION)
+   message(FATAL_ERROR "Vc 2.x requires C++17 support and GNU-like vector builtins.")
 endif()#}}}
 
 # Compiler workarounds that are not necessary for users#{{{
@@ -54,38 +45,6 @@ if(Vc_COMPILER_IS_GCC)
    if(Vc_GCC_VERSION VERSION_GREATER "5.99")
       AddCompilerFlag(-Wno-ignored-attributes)
    endif()
-   # GCC compiles too long on loadstore.
-   # As a compromise drop 1/3 of the tests by skipping the Union AliasStrategy.
-   list(APPEND disabled_targets
-      loadstore_sse2_union
-      loadstore_sse4_2_union
-      loadstore_avx_union
-      loadstore_avx2_union
-      loadstore_avx512_union
-      loadstore_knl_union
-      )
-elseif(Vc_COMPILER_IS_CLANG)
-   if(Vc_CLANG_VERSION VERSION_LESS 4.0.50)
-      # Clang ICEs with AVX512 when using vector builtins
-      list(APPEND disabled_targets
-         allcvt_loadstore_avx512_vectorbuiltin_ushort
-         allcvt_loadstore_avx512_vectorbuiltin_short
-         allcvt_loadstore_avx512_vectorbuiltin_uchar
-         allcvt_loadstore_avx512_vectorbuiltin_schar
-         loadstore_avx512_vectorbuiltin_ushort
-         loadstore_avx512_vectorbuiltin_short
-         loadstore_avx512_vectorbuiltin_uchar
-         loadstore_avx512_vectorbuiltin_schar
-         operators_avx512_vectorbuiltin_int_short_uint_ushort
-         operators_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
-         simd_avx512_vectorbuiltin_int_short_uint_ushort
-         simd_avx512_vectorbuiltin_ldouble_float_double_schar_uchar
-         )
-   endif()
-elseif(Vc_COMPILER_IS_MSVC)
-   # Disable warning "C++ exception specification ignored except to indicate a function is not __declspec(nothrow)"
-   # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
-   AddCompilerFlag("/wd4290")
 elseif(Vc_COMPILER_IS_INTEL)
    # per default icc is not IEEE compliant, but we need that for verification
    AddCompilerFlag("-fp-model source")
