@@ -979,25 +979,58 @@ template <class T, class A> where_range<simd_size_v<T, A>> where(const simd_mask
 }  // namespace experimental
 
 // reductions [simd.reductions] {{{1
-template <class BinaryOperation = std::plus<>, class T, class Abi>
+template <class T, class Abi, class BinaryOperation = std::plus<>>
 Vc_INTRINSIC T reduce(const simd<T, Abi> &v,
                       BinaryOperation binary_op = BinaryOperation())
 {
     using V = simd<T, Abi>;
     return detail::get_impl_t<V>::reduce(detail::size_tag<V::size()>, v, binary_op);
 }
-template <class BinaryOperation = std::plus<>, class M, class V>
-Vc_INTRINSIC typename V::value_type reduce(
-    const const_where_expression<M, V> &x,
-    typename V::value_type neutral_element =
-        detail::default_neutral_element<typename V::value_type, BinaryOperation>::value,
-    BinaryOperation binary_op = BinaryOperation())
+
+template <class M, class V, class BinaryOperation = std::plus<>>
+Vc_INTRINSIC typename V::value_type reduce(const const_where_expression<M, V> &x,
+                                           typename V::value_type identity_element,
+                                           BinaryOperation binary_op)
 {
-    using VV = std::remove_cv_t<V>;
-    VV tmp = neutral_element;
-    detail::get_impl_t<VV>::masked_assign(detail::data(get_mask(x)), detail::data(tmp),
-                                          detail::data(get_lvalue(x)));
+    V tmp = identity_element;
+    detail::get_impl_t<V>::masked_assign(detail::data(get_mask(x)), detail::data(tmp),
+                                         detail::data(get_lvalue(x)));
     return reduce(tmp, binary_op);
+}
+
+template <class M, class V>
+Vc_INTRINSIC typename V::value_type reduce(const const_where_expression<M, V> &x,
+                                           std::plus<> binary_op = {})
+{
+    return reduce(x, 0, binary_op);
+}
+
+template <class M, class V>
+Vc_INTRINSIC typename V::value_type reduce(const const_where_expression<M, V> &x,
+                                           std::multiplies<> binary_op)
+{
+    return reduce(x, 1, binary_op);
+}
+
+template <class M, class V>
+Vc_INTRINSIC typename V::value_type reduce(const const_where_expression<M, V> &x,
+                                           std::bit_and<> binary_op)
+{
+    return reduce(x, ~typename V::value_type(), binary_op);
+}
+
+template <class M, class V>
+Vc_INTRINSIC typename V::value_type reduce(const const_where_expression<M, V> &x,
+                                           std::bit_or<> binary_op)
+{
+    return reduce(x, 0, binary_op);
+}
+
+template <class M, class V>
+Vc_INTRINSIC typename V::value_type reduce(const const_where_expression<M, V> &x,
+                                           std::bit_xor<> binary_op)
+{
+    return reduce(x, 0, binary_op);
 }
 
 // algorithms [simd.alg] {{{1

@@ -1175,7 +1175,7 @@ TEST_TYPES(V, reductions, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
     COMPARE(reduce(V(1)), T(V::size()));
-    COMPARE(Vc::reduce<std::multiplies<>>(V(1)), T(1));
+    COMPARE(Vc::reduce(V(1), std::multiplies<>()), T(1));
     COMPARE(reduce(V([](int i) { return i & 1; })), T(V::size() / 2));
     COMPARE(reduce(V([](int i) { return i % 3; })),
             T(3 * (V::size() / 3)    // 0+1+2 for every complete 3 elements in V

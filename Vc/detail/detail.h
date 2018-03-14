@@ -289,24 +289,6 @@ static constexpr std::size_t next_power_of_2(std::size_t x)
     return (x & (x - 1)) == 0 ? x : next_power_of_2((x | (x >> 1)) + 1);
 }
 
-// default_neutral_element{{{1
-template <class T, class BinaryOperation> struct default_neutral_element;
-template <class T, class X> struct default_neutral_element<T, std::plus<X>> {
-    static constexpr T value = 0;
-};
-template <class T, class X> struct default_neutral_element<T, std::multiplies<X>> {
-    static constexpr T value = 1;
-};
-template <class T, class X> struct default_neutral_element<T, std::bit_and<X>> {
-    static constexpr T value = ~T(0);
-};
-template <class T, class X> struct default_neutral_element<T, std::bit_or<X>> {
-    static constexpr T value = 0;
-};
-template <class T, class X> struct default_neutral_element<T, std::bit_xor<X>> {
-    static constexpr T value = 0;
-};
-
 // private_init, bitset_init{{{1
 /**
  * \internal
