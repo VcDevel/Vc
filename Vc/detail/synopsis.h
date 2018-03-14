@@ -553,7 +553,8 @@ masked_simd_impl<T, A> masked_simd(const typename simd<T, A>::mask_type &k,
 // where_expression {{{1
 template <typename M, typename T> class const_where_expression  //{{{2
 {
-    using V = std::remove_const_t<T>;
+    using V = T;
+    static_assert(std::is_same_v<V, std::decay_t<T>>);
     struct Wrapper {
         using value_type = V;
     };
@@ -562,7 +563,6 @@ protected:
     using value_type =
         typename std::conditional_t<std::is_arithmetic<V>::value, Wrapper, V>::value_type;
     friend Vc_INTRINSIC const M &get_mask(const const_where_expression &x) { return x.k; }
-    friend Vc_INTRINSIC T &get_lvalue(const_where_expression &x) { return x.d; }
     friend Vc_INTRINSIC const T &get_lvalue(const const_where_expression &x) { return x.d; }
     const M &k;
     T &d;
@@ -571,7 +571,7 @@ public:
     const_where_expression(const const_where_expression &) = delete;
     const_where_expression &operator=(const const_where_expression &) = delete;
 
-    Vc_INTRINSIC const_where_expression(const M &kk, T &dd) : k(kk), d(dd) {}
+    Vc_INTRINSIC const_where_expression(const M &kk, const T &dd) : k(kk), d(const_cast<T &>(dd)) {}
 
     Vc_INTRINSIC V operator-() const &&
     {
@@ -600,7 +600,8 @@ public:
 template <typename T> class const_where_expression<bool, T>  //{{{2
 {
     using M = bool;
-    using V = std::remove_const_t<T>;
+    using V = T;
+    static_assert(std::is_same_v<V, std::decay_t<T>>);
     struct Wrapper {
         using value_type = V;
     };
@@ -609,7 +610,6 @@ protected:
     using value_type =
         typename std::conditional_t<std::is_arithmetic<V>::value, Wrapper, V>::value_type;
     friend Vc_INTRINSIC const M &get_mask(const const_where_expression &x) { return x.k; }
-    friend Vc_INTRINSIC T &get_lvalue(const_where_expression &x) { return x.d; }
     friend Vc_INTRINSIC const T &get_lvalue(const const_where_expression &x) { return x.d; }
     const bool k;
     T &d;
@@ -618,7 +618,7 @@ public:
     const_where_expression(const const_where_expression &) = delete;
     const_where_expression &operator=(const const_where_expression &) = delete;
 
-    Vc_INTRINSIC const_where_expression(const bool kk, T &dd) : k(kk), d(dd) {}
+    Vc_INTRINSIC const_where_expression(const bool kk, const T &dd) : k(kk), d(const_cast<T &>(dd)) {}
 
     Vc_INTRINSIC V operator-() const && { return k ? -d : d; }
 
@@ -650,6 +650,7 @@ class where_expression : public const_where_expression<M, T>
     static_assert(std::is_same<typename M::abi_type, typename T::abi_type>::value, "");
     static_assert(M::size() == T::size(), "");
 
+    friend Vc_INTRINSIC T &get_lvalue(where_expression &x) { return x.d; }
 public:
     where_expression(const where_expression &) = delete;
     where_expression &operator=(const where_expression &) = delete;
@@ -858,7 +859,7 @@ Vc_INTRINSIC where_expression<simd_mask<T, A>, simd<T, A>> where(
     return {k, d};
 }
 template <class T, class A>
-Vc_INTRINSIC const_where_expression<simd_mask<T, A>, const simd<T, A>> where(
+Vc_INTRINSIC const_where_expression<simd_mask<T, A>, simd<T, A>> where(
     const typename simd<T, A>::mask_type &k, const simd<T, A> &d)
 {
     return {k, d};
@@ -870,7 +871,7 @@ Vc_INTRINSIC where_expression<simd_mask<T, A>, simd_mask<T, A>> where(
     return {k, d};
 }
 template <class T, class A>
-Vc_INTRINSIC const_where_expression<simd_mask<T, A>, const simd_mask<T, A>> where(
+Vc_INTRINSIC const_where_expression<simd_mask<T, A>, simd_mask<T, A>> where(
     const std::remove_const_t<simd_mask<T, A>> &k, const simd_mask<T, A> &d)
 {
     return {k, d};
@@ -881,7 +882,7 @@ Vc_INTRINSIC where_expression<bool, T> where(detail::exact_bool k, T &d)
     return {k, d};
 }
 template <class T>
-Vc_INTRINSIC const_where_expression<bool, const T> where(detail::exact_bool k, const T &d)
+Vc_INTRINSIC const_where_expression<bool, T> where(detail::exact_bool k, const T &d)
 {
     return {k, d};
 }
