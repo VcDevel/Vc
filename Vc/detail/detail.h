@@ -80,7 +80,7 @@ struct real_assert {
             finalize();
         }
     }
-    template <class T> Vc_INTRINSIC real_assert &operator<<(T &&x) const
+    template <class T> Vc_INTRINSIC real_assert &operator<<(T &&x)
     {
         if (Vc_IS_UNLIKELY(failed)) {
             print(std::forward<T>(x));

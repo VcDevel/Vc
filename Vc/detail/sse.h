@@ -1546,7 +1546,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
                       isinf(x)),
             blendv_pd(b(FP_SUBNORMAL), b(FP_ZERO), _mm_cmpeq_pd(x, _mm_setzero_pd())),
             _mm_cmplt_pd(abs(x), broadcast16(std::numeric_limits<double>::min()))));
-        return {_mm_cvtsi128_si32(tmp), _mm_cvtsi128_si32(_mm_unpackhi_epi64(tmp, tmp))};
+        return {_mm_cvtsi128_si32(tmp), {_mm_cvtsi128_si32(_mm_unpackhi_epi64(tmp, tmp))}};
     }
 
     // smart_reference access {{{2
