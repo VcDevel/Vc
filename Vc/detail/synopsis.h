@@ -660,7 +660,7 @@ public:
     {
     }
 
-    template <class U> Vc_INTRINSIC void operator=(U &&x)
+    template <class U> Vc_INTRINSIC void operator=(U &&x) &&
     {
         Vc::detail::get_impl_t<T>::masked_assign(
             detail::data(k), detail::data(d),
@@ -668,7 +668,7 @@ public:
     }
 
 #define Vc_OP_(op_, name_)                                                               \
-    template <class U> Vc_INTRINSIC void operator op_##=(U &&x)                          \
+    template <class U> Vc_INTRINSIC void operator op_##=(U &&x) &&                       \
     {                                                                                    \
         Vc::detail::get_impl_t<T>::template masked_cassign<name_>(                       \
             detail::data(k), detail::data(d),                                            \
@@ -687,22 +687,22 @@ public:
     Vc_OP_(>>, detail::shift_right);
 #undef Vc_OP_
 
-    Vc_INTRINSIC void operator++()
+    Vc_INTRINSIC void operator++() &&
     {
         detail::data(d) = detail::get_impl_t<T>::template masked_unary<detail::increment>(
             detail::data(k), detail::data(d));
     }
-    Vc_INTRINSIC void operator++(int)
+    Vc_INTRINSIC void operator++(int) &&
     {
         detail::data(d) = detail::get_impl_t<T>::template masked_unary<detail::increment>(
             detail::data(k), detail::data(d));
     }
-    Vc_INTRINSIC void operator--()
+    Vc_INTRINSIC void operator--() &&
     {
         detail::data(d) = detail::get_impl_t<T>::template masked_unary<detail::decrement>(
             detail::data(k), detail::data(d));
     }
-    Vc_INTRINSIC void operator--(int)
+    Vc_INTRINSIC void operator--(int) &&
     {
         detail::data(d) = detail::get_impl_t<T>::template masked_unary<detail::decrement>(
             detail::data(k), detail::data(d));
@@ -711,7 +711,7 @@ public:
     // intentionally hides const_where_expression::copy_from
     template <class U, class Flags>
     Vc_INTRINSIC void copy_from(const detail::loadstore_ptr_type<U, value_type> *mem,
-                                Flags f)
+                                Flags f) &&
     {
         detail::get_impl_t<T>::masked_load(detail::data(d), detail::data(k), mem, f);
     }
@@ -762,7 +762,7 @@ public:
     }
 
 #define Vc_OP_(op_)                                                                      \
-    template <class U> Vc_INTRINSIC void operator op_(U &&x)                             \
+    template <class U> Vc_INTRINSIC void operator op_(U &&x) &&                          \
     {                                                                                    \
         if (k) {                                                                         \
             d op_ std::forward<U>(x);                                                    \
@@ -781,15 +781,15 @@ public:
     Vc_OP_(<<=);
     Vc_OP_(>>=);
 #undef Vc_OP_
-    Vc_INTRINSIC void operator++()    { if (k) { ++d; } }
-    Vc_INTRINSIC void operator++(int) { if (k) { ++d; } }
-    Vc_INTRINSIC void operator--()    { if (k) { --d; } }
-    Vc_INTRINSIC void operator--(int) { if (k) { --d; } }
+    Vc_INTRINSIC void operator++()    && { if (k) { ++d; } }
+    Vc_INTRINSIC void operator++(int) && { if (k) { ++d; } }
+    Vc_INTRINSIC void operator--()    && { if (k) { --d; } }
+    Vc_INTRINSIC void operator--(int) && { if (k) { --d; } }
 
     // intentionally hides const_where_expression::copy_from
     template <class U, class Flags>
     Vc_INTRINSIC void copy_from(const detail::loadstore_ptr_type<U, value_type> *mem,
-                                Flags)
+                                Flags) &&
     {
         if (k) {
             d = mem[0];
