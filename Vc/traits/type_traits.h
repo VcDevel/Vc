@@ -33,11 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "has_no_allocated_data.h"
 #include "has_contiguous_storage.h"
 #include "is_initializer_list.h"
-#include "is_load_arguments.h"
 #include "is_functor_argument_immutable.h"
 #include "is_output_iterator.h"
-#include "is_index_sequence.h"
-#include "is_implicit_cast_allowed.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 // meta-programming helpers

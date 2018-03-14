@@ -355,7 +355,7 @@ public:
 
     template <std::size_t... Indexes>
     constexpr Vc_ALWAYS_INLINE SubscriptOperation(T *address, const IndexVector &indexes,
-                                                  index_sequence<Indexes...>)
+                                                  std::index_sequence<Indexes...>)
         : m_indexes{indexes[Indexes]...}, m_address(address)
     {}
 
@@ -368,7 +368,7 @@ public:
                    std::is_array<IndexVector>::value &&
                    std::extent<IndexVector>::value > 0)> = nullarg)
         : SubscriptOperation(address, indexes,
-                             make_index_sequence<std::extent<IndexVector>::value>())
+                             std::make_index_sequence<std::extent<IndexVector>::value>())
     {
     }
 
