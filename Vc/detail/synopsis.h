@@ -59,7 +59,7 @@ using fallback_abi_for_long_double_t =
 namespace simd_abi
 {
 // most of simd_abi is defined in fwddecl.h
-inline constexpr int max_fixed_size = 32;
+template <class T> inline constexpr int max_fixed_size = 32;
 #if defined Vc_IS_AMD64
 #if !defined Vc_HAVE_SSE2
 #error "Use of SSE2 is required on AMD64"
@@ -234,7 +234,7 @@ template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = simd
  */
 template <class T, size_t N, class... Abis>
 struct abi_for_size
-    : public detail::abi_for_size_impl<T, N, (N <= simd_abi::max_fixed_size),
+    : public detail::abi_for_size_impl<T, N, (N <= simd_abi::max_fixed_size<T>),
                                        std::is_arithmetic<T>::value> {
 };
 template <size_t N, class... Abis> struct abi_for_size<bool, N, Abis...> {

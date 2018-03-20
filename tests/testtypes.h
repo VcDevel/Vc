@@ -171,9 +171,9 @@ using one_fixed_size_abi = VIR_CHOOSE_ONE_RANDOMLY(
                   vir::Template<base_template, Vc::simd_abi::fixed_size<15>>,
                   vir::Template<base_template, Vc::simd_abi::fixed_size<16>>,
                   vir::Template<base_template, Vc::simd_abi::fixed_size<
-                                                   Vc::simd_abi::max_fixed_size - 1>>,
+                                                   Vc::simd_abi::max_fixed_size<double> - 1>>,
                   vir::Template<base_template,
-                                Vc::simd_abi::fixed_size<Vc::simd_abi::max_fixed_size>>>);
+                                Vc::simd_abi::fixed_size<Vc::simd_abi::max_fixed_size<double>>>>);
 
 using all_test_types = vir::concat<
     native_test_types,

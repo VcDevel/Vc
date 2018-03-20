@@ -262,7 +262,7 @@ samesize<int, doublev<Abi>> extract_exponent_bits(const doublev<Abi> &v)
     const doublev<Abi> exponent_mask =
         std::numeric_limits<double>::infinity();  // 0x7ff0000000000000
     constexpr auto N = simd_size_v<double, Abi> * 2;
-    constexpr auto Max = simd_abi::max_fixed_size;
+    constexpr auto Max = simd_abi::max_fixed_size<int>;
     Vc_CONSTEXPR_IF_RETURNING (N > Max)
     {
         using namespace Vc::experimental;

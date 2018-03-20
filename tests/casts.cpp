@@ -125,7 +125,7 @@ TEST_TYPES(V, split_concat, all_test_types)
 {
     /*
     concat_small<V>(
-        std::integral_constant<bool, V::size() * 3 <= Vc::simd_abi::max_fixed_size>());
+        std::integral_constant<bool, V::size() * 3 <= Vc::simd_abi::max_fixed_size<typename V::value_type>>());
     concat_ge4<V>(std::integral_constant<bool, (V::size() >= 4)>());
     concat_even<V>(std::integral_constant<bool, ((V::size() & 1) == 0)>());
     */
