@@ -246,6 +246,24 @@ TEST_TYPES(V, operators, all_test_types)  //{{{1
             COMPARE(x[i], T(i + 1));
             COMPARE(x[i + 1], T(i));
         }
+        x = 1;
+        V y = 0;
+        COMPARE(x[0], T(1));
+        x[0] = y[0];  // make sure non-const smart_reference assignment works
+        COMPARE(x[0], T(0));
+        x = 1;
+        x[0] = x[0];  // self-assignment on smart_reference
+        COMPARE(x[0], T(1));
+
+        Vc::simd<typename V::value_type, Vc::simd_abi::scalar> z = 2;
+        x[0] = z[0];
+        COMPARE(x[0], T(2));
+        x = 3;
+        z[0] = x[0];
+        COMPARE(z[0], T(3));
+
+        //TODO: check that only value-preserving conversions happen on subscript
+        //assignment
     }
     {  // not{{{2
         V x = 0;

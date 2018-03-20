@@ -54,7 +54,7 @@ template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::m
 
 public:
     using value_type = bool;
-    using reference = detail::smart_reference<member_type, impl, simd_mask, value_type>;
+    using reference = detail::smart_reference<member_type, impl, value_type>;
     using simd_type = simd<T, Abi>;
     using size_type = size_t;
     using abi_type = Abi;

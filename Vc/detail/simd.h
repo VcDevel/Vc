@@ -153,7 +153,7 @@ class simd
 
 public:
     using value_type = T;
-    using reference = detail::smart_reference<member_type, impl, simd, value_type>;
+    using reference = detail::smart_reference<member_type, impl, value_type>;
     using mask_type = simd_mask<T, Abi>;
     using size_type = size_t;
     using abi_type = Abi;
@@ -175,7 +175,7 @@ public:
     // implicit broadcast constructor
     template <class U, class = detail::value_preserving_or_int<U, value_type>>
     Vc_ALWAYS_INLINE simd(U &&x)
-        : d(impl::broadcast(static_cast<value_type>(x), size_tag))
+        : d(impl::broadcast(static_cast<value_type>(std::forward<U>(x)), size_tag))
     {
     }
 
