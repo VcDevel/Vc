@@ -394,6 +394,11 @@ template <int N> struct fixed_abi {
 
         // simd_base / base class for simd, providing extra conversions {{{2
         struct simd_base {
+            // The following ensures, function arguments are passed via the stack. This is
+            // important for ABI compatibility across TU boundaries
+            simd_base(const simd_base &) {}
+            simd_base() = default;
+
             explicit operator const simd_member_type &() const
             {
                 return static_cast<const simd<T, fixed_abi> *>(this)->d;
