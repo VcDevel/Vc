@@ -161,95 +161,77 @@ template <class Abi,class T> struct trig;
 template <class Abi> struct trig<Abi, float> {
     using C = constants<Abi>;
 
-    static Vc_INTRINSIC Vc_CONST simd<float, Abi> load(const float *arr)
-    {
-        return {arr, vector_aligned};
-    }
-    static Vc_INTRINSIC Vc_CONST simd<float, Abi> load(float arr)
-    {
-        return arr;
-    }
-
-    static Vc_INTRINSIC simd<float, Abi> pi_4() { return load(C::f32_pi_4); }
-    static Vc_INTRINSIC simd<float, Abi> pi_4_hi() { return load(C::f32_pi_4_hi); }
-    static Vc_INTRINSIC simd<float, Abi> pi_4_rem1() { return load(C::f32_pi_4_rem1); }
-    static Vc_INTRINSIC simd<float, Abi> pi_4_rem2() { return load(C::f32_pi_4_rem2); }
-    static Vc_INTRINSIC simd<float, Abi> _1_16() { return load(C::f32_1_16); }
-    static Vc_INTRINSIC simd<float, Abi> _16() { return load(C::f32_16); }
-    static Vc_INTRINSIC simd<float, Abi> cos_c0() { return load(C::f32_cos_c0); }
-    static Vc_INTRINSIC simd<float, Abi> cos_c1() { return load(C::f32_cos_c1); }
-    static Vc_INTRINSIC simd<float, Abi> cos_c2() { return load(C::f32_cos_c2); }
-    static Vc_INTRINSIC simd<float, Abi> sin_c0() { return load(C::f32_sin_c0); }
-    static Vc_INTRINSIC simd<float, Abi> sin_c1() { return load(C::f32_sin_c1); }
-    static Vc_INTRINSIC simd<float, Abi> sin_c2() { return load(C::f32_sin_c2); }
-    static Vc_INTRINSIC simd<float, Abi> loss_threshold() { return load(C::f32_loss_threshold); }
-    static Vc_INTRINSIC simd<float, Abi> _4_pi() { return load(C::f32_4_pi); }
-    static Vc_INTRINSIC simd<float, Abi> pi_2() { return load(C::f32_pi_2); }
-    static Vc_INTRINSIC simd<float, Abi> pi() { return load(C::f32_pi); }
-    static Vc_INTRINSIC simd<float, Abi> atan_p0() { return load(C::f32_atan_p0); }
-    static Vc_INTRINSIC simd<float, Abi> atan_p1() { return load(C::f32_atan_p1); }
-    static Vc_INTRINSIC simd<float, Abi> atan_p2() { return load(C::f32_atan_p2); }
-    static Vc_INTRINSIC simd<float, Abi> atan_p3() { return load(C::f32_atan_p3); }
-    static Vc_INTRINSIC simd<float, Abi> atan_threshold_hi() { return load(C::f32_atan_threshold_hi); }
-    static Vc_INTRINSIC simd<float, Abi> atan_threshold_lo() { return load(C::f32_atan_threshold_lo); }
-    static Vc_INTRINSIC simd<float, Abi> pi_2_rem() { return load(C::f32_pi_2_rem); }
-    static Vc_INTRINSIC simd<float, Abi> small_asin_input() { return load(C::f32_small_asin_input); }
-    static Vc_INTRINSIC simd<float, Abi> large_asin_input() { return load(C::f32_large_asin_input); }
-    static Vc_INTRINSIC simd<float, Abi> asin_c0_0() { return load(C::f32_asin_c0_0); }
-    static Vc_INTRINSIC simd<float, Abi> asin_c0_1() { return load(C::f32_asin_c0_1); }
-    static Vc_INTRINSIC simd<float, Abi> asin_c0_2() { return load(C::f32_asin_c0_2); }
-    static Vc_INTRINSIC simd<float, Abi> asin_c0_3() { return load(C::f32_asin_c0_3); }
-    static Vc_INTRINSIC simd<float, Abi> asin_c0_4() { return load(C::f32_asin_c0_4); }
+    static Vc_INTRINSIC simd<float, Abi> pi_4() { return C::f32_pi_4; }
+    static Vc_INTRINSIC simd<float, Abi> pi_4_hi() { return C::f32_pi_4_hi; }
+    static Vc_INTRINSIC simd<float, Abi> pi_4_rem1() { return C::f32_pi_4_rem1; }
+    static Vc_INTRINSIC simd<float, Abi> pi_4_rem2() { return C::f32_pi_4_rem2; }
+    static Vc_INTRINSIC simd<float, Abi> _1_16() { return C::f32_1_16; }
+    static Vc_INTRINSIC simd<float, Abi> _16() { return C::f32_16; }
+    static Vc_INTRINSIC simd<float, Abi> cos_c0() { return C::f32_cos_c0; }
+    static Vc_INTRINSIC simd<float, Abi> cos_c1() { return C::f32_cos_c1; }
+    static Vc_INTRINSIC simd<float, Abi> cos_c2() { return C::f32_cos_c2; }
+    static Vc_INTRINSIC simd<float, Abi> sin_c0() { return C::f32_sin_c0; }
+    static Vc_INTRINSIC simd<float, Abi> sin_c1() { return C::f32_sin_c1; }
+    static Vc_INTRINSIC simd<float, Abi> sin_c2() { return C::f32_sin_c2; }
+    static Vc_INTRINSIC simd<float, Abi> loss_threshold() { return C::f32_loss_threshold; }
+    static Vc_INTRINSIC simd<float, Abi> _4_pi() { return C::f32_4_pi; }
+    static Vc_INTRINSIC simd<float, Abi> pi_2() { return C::f32_pi_2; }
+    static Vc_INTRINSIC simd<float, Abi> pi() { return C::f32_pi; }
+    static Vc_INTRINSIC simd<float, Abi> atan_p0() { return C::f32_atan_p0; }
+    static Vc_INTRINSIC simd<float, Abi> atan_p1() { return C::f32_atan_p1; }
+    static Vc_INTRINSIC simd<float, Abi> atan_p2() { return C::f32_atan_p2; }
+    static Vc_INTRINSIC simd<float, Abi> atan_p3() { return C::f32_atan_p3; }
+    static Vc_INTRINSIC simd<float, Abi> atan_threshold_hi() { return C::f32_atan_threshold_hi; }
+    static Vc_INTRINSIC simd<float, Abi> atan_threshold_lo() { return C::f32_atan_threshold_lo; }
+    static Vc_INTRINSIC simd<float, Abi> pi_2_rem() { return C::f32_pi_2_rem; }
+    static Vc_INTRINSIC simd<float, Abi> small_asin_input() { return C::f32_small_asin_input; }
+    static Vc_INTRINSIC simd<float, Abi> large_asin_input() { return C::f32_large_asin_input; }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_0() { return C::f32_asin_c0_0; }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_1() { return C::f32_asin_c0_1; }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_2() { return C::f32_asin_c0_2; }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_3() { return C::f32_asin_c0_3; }
+    static Vc_INTRINSIC simd<float, Abi> asin_c0_4() { return C::f32_asin_c0_4; }
 };
 
 template <class Abi> struct trig<Abi, double> {
     using C = constants<Abi>;
 
-    static Vc_INTRINSIC Vc_CONST simd<double, Abi> load(const double *arr)
-    {
-        return {arr, vector_aligned};
-    }
-    static Vc_INTRINSIC Vc_CONST simd<double, Abi> load(double arr)
-    {
-        return arr;
-    }
-
-    static Vc_INTRINSIC simd<double, Abi> pi_4() { return load(C::f64_pi_4); }
-    static Vc_INTRINSIC simd<double, Abi> pi_4_hi() { return load(C::f64_pi_4_hi); }
-    static Vc_INTRINSIC simd<double, Abi> pi_4_rem1() { return load(C::f64_pi_4_rem1); }
-    static Vc_INTRINSIC simd<double, Abi> pi_4_rem2() { return load(C::f64_pi_4_rem2); }
-    static Vc_INTRINSIC simd<double, Abi> _1_16() { return load(C::f64_1_16); }
-    static Vc_INTRINSIC simd<double, Abi> _16() { return load(C::f64_16); }
-    static Vc_INTRINSIC simd<double, Abi> cos_c0() { return load(C::f64_cos_c0); }
-    static Vc_INTRINSIC simd<double, Abi> cos_c1() { return load(C::f64_cos_c1); }
-    static Vc_INTRINSIC simd<double, Abi> cos_c2() { return load(C::f64_cos_c2); }
-    static Vc_INTRINSIC simd<double, Abi> cos_c3() { return load(C::f64_cos_c3); }
-    static Vc_INTRINSIC simd<double, Abi> cos_c4() { return load(C::f64_cos_c4); }
-    static Vc_INTRINSIC simd<double, Abi> cos_c5() { return load(C::f64_cos_c5); }
-    static Vc_INTRINSIC simd<double, Abi> sin_c0() { return load(C::f64_sin_c0); }
-    static Vc_INTRINSIC simd<double, Abi> sin_c1() { return load(C::f64_sin_c1); }
-    static Vc_INTRINSIC simd<double, Abi> sin_c2() { return load(C::f64_sin_c2); }
-    static Vc_INTRINSIC simd<double, Abi> sin_c3() { return load(C::f64_sin_c3); }
-    static Vc_INTRINSIC simd<double, Abi> sin_c4() { return load(C::f64_sin_c4); }
-    static Vc_INTRINSIC simd<double, Abi> sin_c5() { return load(C::f64_sin_c5); }
-    static Vc_INTRINSIC simd<double, Abi> loss_threshold() { return load(C::f64_loss_threshold); }
-    static Vc_INTRINSIC simd<double, Abi> _4_pi() { return load(C::f64_4_pi); }
-    static Vc_INTRINSIC simd<double, Abi> pi_2() { return load(C::f64_pi_2); }
-    static Vc_INTRINSIC simd<double, Abi> pi() { return load(C::f64_pi); }
-    static Vc_INTRINSIC simd<double, Abi> atan_p0() { return load(C::f64_atan_p0); }
-    static Vc_INTRINSIC simd<double, Abi> atan_p1() { return load(C::f64_atan_p1); }
-    static Vc_INTRINSIC simd<double, Abi> atan_p2() { return load(C::f64_atan_p2); }
-    static Vc_INTRINSIC simd<double, Abi> atan_p3() { return load(C::f64_atan_p3); }
-    static Vc_INTRINSIC simd<double, Abi> atan_threshold_hi() { return load(C::f64_atan_threshold_hi); }
-    static Vc_INTRINSIC simd<double, Abi> atan_threshold_lo() { return load(C::f64_atan_threshold_lo); }
-    static Vc_INTRINSIC simd<double, Abi> pi_2_rem() { return load(C::f64_pi_2_rem); }
-    static Vc_INTRINSIC simd<double, Abi> small_asin_input() { return load(C::f64_small_asin_input); }
-    static Vc_INTRINSIC simd<double, Abi> large_asin_input() { return load(C::f64_large_asin_input); }
-    static Vc_INTRINSIC simd<double, Abi> asin_c0_0() { return load(C::f64_asin_c0_0); }
-    static Vc_INTRINSIC simd<double, Abi> asin_c0_1() { return load(C::f64_asin_c0_1); }
-    static Vc_INTRINSIC simd<double, Abi> asin_c0_2() { return load(C::f64_asin_c0_2); }
-    static Vc_INTRINSIC simd<double, Abi> asin_c0_3() { return load(C::f64_asin_c0_3); }
-    static Vc_INTRINSIC simd<double, Abi> asin_c0_4() { return load(C::f64_asin_c0_4); }
+    static Vc_INTRINSIC simd<double, Abi> pi_4() { return C::f64_pi_4; }
+    static Vc_INTRINSIC simd<double, Abi> pi_4_hi() { return C::f64_pi_4_hi; }
+    static Vc_INTRINSIC simd<double, Abi> pi_4_rem1() { return C::f64_pi_4_rem1; }
+    static Vc_INTRINSIC simd<double, Abi> pi_4_rem2() { return C::f64_pi_4_rem2; }
+    static Vc_INTRINSIC simd<double, Abi> _1_16() { return C::f64_1_16; }
+    static Vc_INTRINSIC simd<double, Abi> _16() { return C::f64_16; }
+    static Vc_INTRINSIC simd<double, Abi> cos_c0() { return C::f64_cos_c0; }
+    static Vc_INTRINSIC simd<double, Abi> cos_c1() { return C::f64_cos_c1; }
+    static Vc_INTRINSIC simd<double, Abi> cos_c2() { return C::f64_cos_c2; }
+    static Vc_INTRINSIC simd<double, Abi> cos_c3() { return C::f64_cos_c3; }
+    static Vc_INTRINSIC simd<double, Abi> cos_c4() { return C::f64_cos_c4; }
+    static Vc_INTRINSIC simd<double, Abi> cos_c5() { return C::f64_cos_c5; }
+    static Vc_INTRINSIC simd<double, Abi> sin_c0() { return C::f64_sin_c0; }
+    static Vc_INTRINSIC simd<double, Abi> sin_c1() { return C::f64_sin_c1; }
+    static Vc_INTRINSIC simd<double, Abi> sin_c2() { return C::f64_sin_c2; }
+    static Vc_INTRINSIC simd<double, Abi> sin_c3() { return C::f64_sin_c3; }
+    static Vc_INTRINSIC simd<double, Abi> sin_c4() { return C::f64_sin_c4; }
+    static Vc_INTRINSIC simd<double, Abi> sin_c5() { return C::f64_sin_c5; }
+    static Vc_INTRINSIC simd<double, Abi> loss_threshold() { return C::f64_loss_threshold; }
+    static Vc_INTRINSIC simd<double, Abi> _4_pi() { return C::f64_4_pi; }
+    static Vc_INTRINSIC simd<double, Abi> pi_2() { return C::f64_pi_2; }
+    static Vc_INTRINSIC simd<double, Abi> pi() { return C::f64_pi; }
+    static Vc_INTRINSIC simd<double, Abi> atan_p0() { return C::f64_atan_p0; }
+    static Vc_INTRINSIC simd<double, Abi> atan_p1() { return C::f64_atan_p1; }
+    static Vc_INTRINSIC simd<double, Abi> atan_p2() { return C::f64_atan_p2; }
+    static Vc_INTRINSIC simd<double, Abi> atan_p3() { return C::f64_atan_p3; }
+    static Vc_INTRINSIC simd<double, Abi> atan_threshold_hi() { return C::f64_atan_threshold_hi; }
+    static Vc_INTRINSIC simd<double, Abi> atan_threshold_lo() { return C::f64_atan_threshold_lo; }
+    static Vc_INTRINSIC simd<double, Abi> pi_2_rem() { return C::f64_pi_2_rem; }
+    static Vc_INTRINSIC simd<double, Abi> small_asin_input() { return C::f64_small_asin_input; }
+    static Vc_INTRINSIC simd<double, Abi> large_asin_input() { return C::f64_large_asin_input; }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_0() { return C::f64_asin_c0_0; }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_1() { return C::f64_asin_c0_1; }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_2() { return C::f64_asin_c0_2; }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_3() { return C::f64_asin_c0_3; }
+    static Vc_INTRINSIC simd<double, Abi> asin_c0_4() { return C::f64_asin_c0_4; }
 };
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

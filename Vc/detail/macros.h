@@ -30,20 +30,27 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../version.h"
 
+// workaround macros {{{
+// vector conversions not optimized:
+//#define Vc_WORKAROUND_PR85048 1
+
+// zero extension from xmm to zmm not optimized:
+//#define Vc_WORKAROUND_PR85480 1
+
+// incorrect use of k0 register for _kortestc_mask64_u8 and _kortestc_mask32_u8:
+#define Vc_WORKAROUND_PR85538 1
+
+// very bad codegen for extraction and concatenation of 128/256 "subregisters" with
+// sizeof(element type) < 8: https://godbolt.org/g/mqUsgM
+#define Vc_WORKAROUND_XXX_1 1
+// }}}
+
 // warning macro {{{
 #define Vc_PRAGMA_(x_) _Pragma(#x_)
 #ifdef __GNUC__
 #define Vc_CPP_WARNING(msg) Vc_PRAGMA_(GCC warning msg)
 #else
 #define Vc_CPP_WARNING(msg) Vc_PRAGMA_(message "warning: " msg)
-#endif
-// }}}
-
-// MSVC warning pragmas {{{
-#if defined(_MSC_VER)
-#define Vc_MSVC_WARNING_(...) __pragma(warning(__VA_ARGS__))
-#else
-#define Vc_MSVC_WARNING_(...)
 #endif
 // }}}
 
@@ -72,104 +79,12 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 // Starting with compiler identification. This is a prerequisite for getting the following
 // macro definitions right.
 // {{{
-
-#ifdef DOXYGEN
-/**
- * \name Compiler Identification Macros
- * \ingroup Utilities
- */
-//@{
-/**
- * \ingroup Utilities
- * This macro is defined to a number identifying the ICC version if the current
- * translation unit is compiled with the Intel compiler.
- *
- * For any other compiler this macro is not defined.
- */
-#define Vc_ICC __INTEL_COMPILER_BUILD_DATE
-#undef Vc_ICC
-/**
- * \ingroup Utilities
- * This macro is defined to a number identifying the Clang version if the current
- * translation unit is compiled with the Clang compiler.
- *
- * For any other compiler this macro is not defined.
- */
-#define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
-#undef Vc_CLANG
-/**
- * \ingroup Utilities
- * This macro is defined to a number identifying the Apple Clang version if the current
- * translation unit is compiled with the Apple Clang compiler.
- *
- * For any other compiler this macro is not defined.
- */
-#define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
-#undef Vc_APPLECLANG
-/**
- * \ingroup Utilities
- * This macro is defined to a number identifying the GCC version if the current
- * translation unit is compiled with the GCC compiler.
- *
- * For any other compiler this macro is not defined.
- */
-#define Vc_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
-/**
- * \ingroup Utilities
- * This macro is defined to a number identifying the Microsoft Visual C++ version if
- * the current translation unit is compiled with the Visual C++ (MSVC) compiler.
- *
- * For any other compiler this macro is not defined.
- */
-#define Vc_MSVC _MSC_FULL_VER
-#undef Vc_MSVC
-//@}
-#endif  // DOXYGEN
-
-#ifdef __INTEL_COMPILER
-#  define Vc_ICC __INTEL_COMPILER_BUILD_DATE
-#elif defined __clang__ && defined __apple_build_version__
-#  define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
-#elif defined(__clang__)
+#if defined(__clang__)
 #  define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
 #elif defined(__GNUC__)
 #  define Vc_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
-#elif defined(_MSC_VER)
-#  define Vc_MSVC _MSC_FULL_VER
-#else
-#  define Vc_UNSUPPORTED_COMPILER 1
 #endif
 //}}}
-
-// Ensure C++14 feature that are required. Define Vc_CXX17 if C++17 is available.{{{
-#if !(defined Vc_ICC || (defined Vc_MSVC && Vc_MSVC >= 191025017) || __cplusplus >= 201402L)
-#error "Vc requires support for C++14."
-#endif
-
-#define Vc_CXX14 1
-#if __cplusplus > 201700L
-#  define Vc_CXX17 1
-#endif
-#if !(defined __cpp_inline_variables && __cpp_inline_variables >= 201606)
-#  error "Need support for C++17 inline variables"
-#endif
-// }}}
-
-// C++ does not allow attaching overalignment to an existing type via an alias. In
-// general, that seems to be the right thing to do. However some workarounds require
-// special measures, so here's a macro for doing it with a compilier specific extension.
-// {{{
-#ifdef Vc_MSVC
-#define Vc_ALIGNED_TYPEDEF(n_, type_, new_type_)                                      \
-    typedef __declspec(align(n_)) type_ new_type_
-#elif __GNUC__
-#define Vc_ALIGNED_TYPEDEF(n_, type_, new_type_)                                      \
-    typedef type_ new_type_[[gnu::aligned(n_)]]
-#else  // the following is actually ill-formed according to C++1[14]
-#define Vc_ALIGNED_TYPEDEF(n_, type_, new_type_)                                      \
-    using new_type_ alignas(sizeof(n_)) = type_
-#endif
-// }}}
 
 // On Windows (WIN32) we might see macros called min and max. Just undefine them and hope
 // noone (re)defines them (defining NOMINMAX should help).
@@ -198,18 +113,13 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #endif  // Vc_HAVE_NEON
 //}}}
 // x86{{{
-#if defined __x86_64__ || defined __amd64__ || defined __amd64 || defined __x86_64 ||    \
-    defined _M_AMD64
-#define Vc_IS_AMD64 1
-#endif
-
 #ifdef __MMX__
 #define Vc_HAVE_MMX 1
 #endif
-#if defined __SSE__ || defined Vc_IS_AMD64 || (defined _M_IX86_FP && _M_IX86_FP >= 1)
+#if defined __SSE__ || defined __x86_64__
 #define Vc_HAVE_SSE 1
 #endif
-#if defined __SSE2__ || defined Vc_IS_AMD64 || (defined _M_IX86_FP && _M_IX86_FP >= 2)
+#if defined __SSE2__ || defined __x86_64__
 #define Vc_HAVE_SSE2 1
 #endif
 #ifdef __SSE3__
@@ -232,36 +142,30 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #endif
 #ifdef __AVX2__
 #define Vc_HAVE_AVX2 1
+#endif
+#ifdef __BMI__
 #define Vc_HAVE_BMI1 1
+#endif
+#ifdef __BMI2__
 #define Vc_HAVE_BMI2 1
+#endif
+#ifdef __LZCNT__
 #define Vc_HAVE_LZCNT 1
-#if !defined Vc_ICC && !defined Vc_MSVC
-#ifndef __BMI__
-#error "expected AVX2 to imply the availability of BMI1"
 #endif
-#ifndef __BMI2__
-#error "expected AVX2 to imply the availability of BMI2"
-#endif
-#ifndef __LZCNT__
-#error "expected AVX2 to imply the availability of LZCNT"
-#endif
-#endif // !ICC && !MSVC
-#endif // __AVX2__
 #ifdef __SSE4A__
-#  define Vc_HAVE_SSE4A 1
+#define Vc_HAVE_SSE4A 1
 #endif
 #ifdef __FMA__
-#  define Vc_HAVE_FMA 1
+#define Vc_HAVE_FMA 1
 #endif
 #ifdef __FMA4__
-#  define Vc_HAVE_FMA4 1
+#define Vc_HAVE_FMA4 1
 #endif
 #ifdef __F16C__
-#  define Vc_HAVE_F16C 1
+#define Vc_HAVE_F16C 1
 #endif
-#if defined __POPCNT__ ||                                                                \
-    (defined Vc_ICC && (defined Vc_HAVE_SSE4_2 || defined Vc_HAVE_SSE4A))
-#  define Vc_HAVE_POPCNT 1
+#ifdef __POPCNT__
+#define Vc_HAVE_POPCNT 1
 #endif
 #ifdef __AVX512F__
 #define Vc_HAVE_AVX512F 1
@@ -297,17 +201,6 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #endif
 #endif
 
-#if defined Vc_ICC
-// ICC crashes and crashes and crashes, I don't want to waste more time on this:
-#warning "ICC crashes in so many places of the code that it needs a half-time position just to keep workarounds working. Any native SIMD ABIs are therefore disabled until a maintainer steps up."
-#undef Vc_HAVE_SSE_ABI
-#undef Vc_HAVE_AVX_ABI
-#undef Vc_HAVE_AVX512_ABI
-#undef Vc_HAVE_FULL_SSE_ABI
-#undef Vc_HAVE_FULL_AVX_ABI
-#undef Vc_HAVE_FULL_AVX512_ABI
-#endif
-
 //}}}
 
 // Vc_TEMPLATES_DROP_ATTRIBUTES: GCC 6 drops all attributes on types passed as template
@@ -319,32 +212,17 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #endif
 // }}}
 
-// Vc_GNU_ASM: defined if GCC compatible inline asm is possible and Vc_NO_INLINE_ASM is
-// not defined
-// {{{
-#if defined(__GNUC__) && !defined(Vc_NO_INLINE_ASM)
-#define Vc_GNU_ASM 1
-#endif
-// }}}
-
-// Vc_USE_BUILTIN_VECTOR_TYPES: defined for GCC and Clang
+// Vc_USE_BUILTIN_VECTOR_TYPES
 // TODO: rename to Vc_HAVE_BUILTIN_VECTOR_TYPES
 // {{{
-#if defined(Vc_GCC) || defined(Vc_CLANG) || defined Vc_APPLECLANG || defined Vc_ICC
 #define Vc_USE_BUILTIN_VECTOR_TYPES 1
-#endif
 // }}}
 
 // __cdecl and __vectorcall Windows calling convention macros. Every function with a by
 // value simd/simd_mask object needs to be declared with Vc_VDECL.
 // {{{
-#ifdef Vc_MSVC
-#  define Vc_CDECL __cdecl
-#  define Vc_VDECL __vectorcall
-#else
-#  define Vc_CDECL
-#  define Vc_VDECL
-#endif
+#define Vc_CDECL
+#define Vc_VDECL
 // }}}
 
 // Vc_CONCAT{{{
@@ -352,7 +230,9 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #define Vc_CONCAT(a_, b_, c_) Vc_CONCAT_IMPL(a_, b_, c_)
 // }}}
 
-#if defined Vc_CLANG || defined Vc_APPLECLANG
+#define Vc_NORMAL_MATH [[gnu::optimize("finite-math-only,no-signed-zeros")]]
+
+#if defined Vc_CLANG
 #  define Vc_UNREACHABLE __builtin_unreachable
 #  define Vc_NEVER_INLINE [[gnu::noinline]]
 #  define Vc_INTRINSIC_L inline
@@ -388,16 +268,9 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #  define Vc_ALWAYS_INLINE_L inline
 #  define Vc_ALWAYS_INLINE_R __attribute__((__always_inline__))
 #  define Vc_ALWAYS_INLINE Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE_R
-#  ifdef Vc_ICC
-// ICC miscompiles if there are functions marked as pure or const
-#    define Vc_PURE
-#    define Vc_CONST
-#    define Vc_NEVER_INLINE
-#  else
-#    define Vc_NEVER_INLINE [[gnu::noinline]]
-#    define Vc_PURE __attribute__((__pure__))
-#    define Vc_CONST __attribute__((__const__))
-#  endif
+#  define Vc_NEVER_INLINE [[gnu::noinline]]
+#  define Vc_PURE __attribute__((__pure__))
+#  define Vc_CONST __attribute__((__const__))
 #  define Vc_CONST_L
 #  define Vc_CONST_R Vc_CONST
 #  define Vc_PURE_L
@@ -405,53 +278,8 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #  define Vc_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #  define Vc_IS_LIKELY(x) __builtin_expect(x, 1)
 #  define Vc_RESTRICT __restrict__
-#  ifdef Vc_ICC
-#    define Vc_DEPRECATED_ALIAS(msg)
-#  else
-#    define Vc_DEPRECATED_ALIAS(msg) __attribute__((__deprecated__(msg)))
-#  endif
+#  define Vc_DEPRECATED_ALIAS(msg) __attribute__((__deprecated__(msg)))
 #  define Vc_WARN_UNUSED_RESULT __attribute__((__warn_unused_result__))
-#else
-#  define Vc_NEVER_INLINE
-#  define Vc_FLATTEN
-#  ifdef Vc_PURE
-#    undef Vc_PURE
-#  endif
-#  define Vc_MAY_ALIAS
-#  ifdef Vc_MSVC
-#    define Vc_ALWAYS_INLINE inline __forceinline
-#    define Vc_ALWAYS_INLINE_L Vc_ALWAYS_INLINE
-#    define Vc_ALWAYS_INLINE_R
-#    define Vc_CONST __declspec(noalias)
-#    define Vc_CONST_L Vc_CONST
-#    define Vc_CONST_R
-#    define Vc_PURE /*Vc_CONST*/
-#    define Vc_PURE_L Vc_PURE
-#    define Vc_PURE_R
-#    define Vc_INTRINSIC inline __forceinline
-#    define Vc_INTRINSIC_L Vc_INTRINSIC
-#    define Vc_INTRINSIC_R
-#    define Vc_UNREACHABLE [] { __assume(0); }
-#  else
-#    define Vc_ALWAYS_INLINE
-#    define Vc_ALWAYS_INLINE_L
-#    define Vc_ALWAYS_INLINE_R
-#    define Vc_CONST
-#    define Vc_CONST_L
-#    define Vc_CONST_R
-#    define Vc_PURE
-#    define Vc_PURE_L
-#    define Vc_PURE_R
-#    define Vc_INTRINSIC
-#    define Vc_INTRINSIC_L
-#    define Vc_INTRINSIC_R
-#    define Vc_UNREACHABLE std::abort
-#  endif
-#  define Vc_IS_UNLIKELY(x) x
-#  define Vc_IS_LIKELY(x) x
-#  define Vc_RESTRICT __restrict
-#  define Vc_DEPRECATED_ALIAS(msg)
-#  define Vc_WARN_UNUSED_RESULT
 #endif
 
 #ifdef Vc_CXX17
@@ -463,42 +291,6 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #endif
 
 #define Vc_NOTHING_EXPECTING_SEMICOLON static_assert(true, "")
-
-#ifdef Vc_CXX17
-// C++17 has solved the issue: operator new will allocate with correct overalignment
-#define Vc_FREE_STORE_OPERATORS_ALIGNED(align_)
-#else  // Vc_CXX17
-#define Vc_FREE_STORE_OPERATORS_ALIGNED(align_)                                          \
-    /**\name new/delete overloads for correct alignment */                               \
-    /**@{*/                                                                              \
-    /*!\brief Allocates correctly aligned memory */                                      \
-    Vc_ALWAYS_INLINE void *operator new(size_t size)                                     \
-    {                                                                                    \
-        return Vc::Common::aligned_malloc<align_>(size);                                 \
-    }                                                                                    \
-    /*!\brief Returns \p p. */                                                           \
-    Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; }                   \
-    /*!\brief Allocates correctly aligned memory */                                      \
-    Vc_ALWAYS_INLINE void *operator new[](size_t size)                                   \
-    {                                                                                    \
-        return Vc::Common::aligned_malloc<align_>(size);                                 \
-    }                                                                                    \
-    /*!\brief Returns \p p. */                                                           \
-    Vc_ALWAYS_INLINE void *operator new[](size_t, void *p) { return p; }                 \
-    /*!\brief Frees aligned memory. */                                                   \
-    Vc_ALWAYS_INLINE void operator delete(void *ptr, size_t) { Vc::Common::free(ptr); }  \
-    /*!\brief Does nothing. */                                                           \
-    Vc_ALWAYS_INLINE void operator delete(void *, void *) {}                             \
-    /*!\brief Frees aligned memory. */                                                   \
-    Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t)                           \
-    {                                                                                    \
-        Vc::Common::free(ptr);                                                           \
-    }                                                                                    \
-    /*!\brief Does nothing. */                                                           \
-    Vc_ALWAYS_INLINE void operator delete[](void *, void *) {}                           \
-    /**@}*/                                                                              \
-    Vc_NOTHING_EXPECTING_SEMICOLON
-#endif  // Vc_CXX17
 
 #ifdef Vc_ASSERT
 #define Vc_EXTERNAL_ASSERT 1
@@ -514,12 +306,6 @@ Vc_CPP_WARNING("The Vc_IMPL macro was removed for Vc 2.0. "
 #define Vc_NOEXCEPT_OR_IN_TEST
 #else
 #define Vc_NOEXCEPT_OR_IN_TEST noexcept
-#endif
-
-#if defined Vc_CLANG || defined Vc_APPLECLANG
-#define Vc_HAS_BUILTIN(x) __has_builtin(x)
-#else
-#define Vc_HAS_BUILTIN(x) 0
 #endif
 
 #define Vc_APPLY_IMPL_1_(macro, a, b, c, d, e) macro(a)

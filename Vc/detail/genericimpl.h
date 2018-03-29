@@ -49,13 +49,13 @@ template <class Derived> struct generic_simd_impl {
     static Vc_INTRINSIC Storage<equal_int_type_t<long>, Size> Vc_VDECL
     adjust_for_long(Storage<long, Size> x)
     {
-        return {x.v()};
+        return {x.intrin()};
     }
     template <size_t Size>
     static Vc_INTRINSIC Storage<equal_int_type_t<ulong>, Size> Vc_VDECL
     adjust_for_long(Storage<ulong, Size> x)
     {
-        return {x.v()};
+        return {x.intrin()};
     }
     template <class T, size_t Size>
     static Vc_INTRINSIC const Storage<T, Size> &adjust_for_long(const Storage<T, Size> &x)
@@ -63,94 +63,100 @@ template <class Derived> struct generic_simd_impl {
         return x;
     }
 
+    // broadcast {{{2
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC Storage<T, N> broadcast(T x, size_tag<N>) noexcept
+    {
+        return Storage<T, N>::broadcast(x);
+    }
+
     // generator {{{2
     template <class F, class T, size_t N>
     static Vc_INTRINSIC Storage<T, N> generator(F &&gen, type_tag<T>, size_tag<N>)
     {
-        return detail::generate_from_n_evaluations<N, Storage<T, N>>(
-            [&gen](auto element_idx_) { return gen(element_idx_); });
+        return detail::generate_storage<T, N>(std::forward<F>(gen));
     }
 
     // complement {{{2
     template <class T, size_t N>
-    static Vc_INTRINSIC Storage<T, N> complement(Storage<T, N> x) noexcept
+    static constexpr Vc_INTRINSIC Storage<T, N> complement(Storage<T, N> x) noexcept
     {
-        return static_cast<typename Storage<T, N>::VectorType>(
-            detail::x86::complement(adjust_for_long(x)));
+        return detail::x86::complement(x);
     }
 
     // unary minus {{{2
     template <class T, size_t N>
-    static Vc_INTRINSIC Storage<T, N> unary_minus(Storage<T, N> x) noexcept
+    static constexpr Vc_INTRINSIC Storage<T, N> unary_minus(Storage<T, N> x) noexcept
     {
-        using detail::x86::unary_minus;
-        return static_cast<typename Storage<T, N>::VectorType>(
-            unary_minus(adjust_for_long(x)));
+        return detail::x86::unary_minus(x);
     }
 
     // arithmetic operators {{{2
 #define Vc_ARITHMETIC_OP_(name_)                                                         \
-    template <size_t N>                                                                  \
-    static Vc_INTRINSIC Storage<long, N> Vc_VDECL name_(Storage<long, N> x,              \
-                                                        Storage<long, N> y)              \
-    {                                                                                    \
-        using Adjusted = detail::Storage<equal_int_type_t<long>, N>;                     \
-        return static_cast<typename Adjusted::VectorType>(                               \
-            detail::name_(Adjusted(x.v()), Adjusted(y.v())));                            \
-    }                                                                                    \
-    template <size_t N>                                                                  \
-    static Vc_INTRINSIC Storage<unsigned long, N> Vc_VDECL name_(                        \
-        Storage<unsigned long, N> x, Storage<unsigned long, N> y)                        \
-    {                                                                                    \
-        using Adjusted = detail::Storage<equal_int_type_t<unsigned long>, N>;            \
-        return static_cast<typename Adjusted::VectorType>(                               \
-            detail::name_(Adjusted(x.v()), Adjusted(y.v())));                            \
-    }                                                                                    \
     template <class T, size_t N>                                                         \
-    static Vc_INTRINSIC Storage<T, N> Vc_VDECL name_(Storage<T, N> x, Storage<T, N> y)   \
+    static Vc_INTRINSIC Storage<T, N> name_(Storage<T, N> x, Storage<T, N> y)            \
     {                                                                                    \
-        return detail::name_(x, y);                                                      \
+        return detail::x86::name_(x, y);                                                 \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
-        Vc_ARITHMETIC_OP_(plus);
-        Vc_ARITHMETIC_OP_(minus);
-        Vc_ARITHMETIC_OP_(multiplies);
-        Vc_ARITHMETIC_OP_(divides);
-        Vc_ARITHMETIC_OP_(modulus);
-        Vc_ARITHMETIC_OP_(bit_and);
-        Vc_ARITHMETIC_OP_(bit_or);
-        Vc_ARITHMETIC_OP_(bit_xor);
-        Vc_ARITHMETIC_OP_(bit_shift_left);
-        Vc_ARITHMETIC_OP_(bit_shift_right);
+    Vc_ARITHMETIC_OP_(plus);
+    Vc_ARITHMETIC_OP_(minus);
+    Vc_ARITHMETIC_OP_(multiplies);
+    Vc_ARITHMETIC_OP_(divides);
+    Vc_ARITHMETIC_OP_(modulus);
+    Vc_ARITHMETIC_OP_(bit_and);
+    Vc_ARITHMETIC_OP_(bit_or);
+    Vc_ARITHMETIC_OP_(bit_xor);
+    Vc_ARITHMETIC_OP_(bit_shift_left);
+    Vc_ARITHMETIC_OP_(bit_shift_right);
 #undef Vc_ARITHMETIC_OP_
 
     template <class T, size_t N>
-    static Vc_INTRINSIC Storage<T, N> Vc_VDECL bit_shift_left(Storage<T, N> x, int y)
+    static constexpr Vc_INTRINSIC Storage<T, N> Vc_VDECL bit_shift_left(Storage<T, N> x,
+                                                                        int y)
     {
-        return static_cast<typename Storage<T, N>::VectorType>(
-            detail::bit_shift_left(adjust_for_long(x), y));
+        return detail::x86::bit_shift_left(x, y);
     }
     template <class T, size_t N>
-    static Vc_INTRINSIC Storage<T, N> Vc_VDECL bit_shift_right(Storage<T, N> x, int y)
+    static constexpr Vc_INTRINSIC Storage<T, N> Vc_VDECL bit_shift_right(Storage<T, N> x,
+                                                                         int y)
     {
-        return static_cast<typename Storage<T, N>::VectorType>(
-            detail::bit_shift_right(adjust_for_long(x), y));
+        return detail::x86::bit_shift_right(x, y);
+    }
+
+    // min, max, clamp {{{2
+    template <class T, size_t N>
+    Vc_NORMAL_MATH static constexpr Vc_INTRINSIC Storage<T, N> min(Storage<T, N> a,
+                                                                   Storage<T, N> b)
+    {
+        return a.d < b.d ? a.d : b.d;
+    }
+    template <class T, size_t N>
+    Vc_NORMAL_MATH static constexpr Vc_INTRINSIC Storage<T, N> max(Storage<T, N> a,
+                                                                   Storage<T, N> b)
+    {
+        return a.d > b.d ? a.d : b.d;
+    }
+
+    template <class T, size_t N>
+    Vc_NORMAL_MATH static constexpr Vc_INTRINSIC std::pair<Storage<T, N>, Storage<T, N>>
+    minmax(Storage<T, N> a, Storage<T, N> b)
+    {
+        return {a.d < b.d ? a.d : b.d, a.d < b.d ? b.d : a.d};
     }
 
     // sqrt {{{2
     template <class T, size_t N>
     static Vc_INTRINSIC Storage<T, N> sqrt(Storage<T, N> x) noexcept
     {
-        using detail::x86::sqrt;
-        return sqrt(adjust_for_long(x));
+        return detail::x86::sqrt(x);
     }
 
     // abs {{{2
     template <class T, size_t N>
     static Vc_INTRINSIC Storage<T, N> abs(Storage<T, N> x) noexcept
     {
-        using detail::x86::abs;
-        return abs(adjust_for_long(x));
+        return detail::x86::abs(adjust_for_long(x));
     }
 
     // increment & decrement{{{2
@@ -225,16 +231,60 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     template <class T> using type_tag = T *;
     template <class T> using simd_mask = Vc::simd_mask<T, abi>;
 
-    // masked load {{{2
+    // masked load (AVX512 has its own overloads) {{{2
     template <class T, size_t N, class F>
     static inline void Vc_VDECL masked_load(Storage<T, N> &merge, Storage<T, N> mask,
                                             const bool *mem, F) noexcept
     {
-        detail::execute_n_times<N>([&](auto i) {
-            if (mask[i]) {
-                merge.set(i, MaskBool<sizeof(T)>{mem[i]});
-            }
-        });
+        if constexpr (have_avx512bw_vl && N == 32 && sizeof(T) == 1) {
+            const auto k = convert_any_mask<Storage<bool, N>>(mask);
+            merge = to_storage(
+                _mm256_mask_sub_epi8(to_m256i(merge), k, __m256i(),
+                                     _mm256_mask_loadu_epi8(__m256i(), k, mem)));
+        } else if constexpr (have_avx512bw_vl && N == 16 && sizeof(T) == 1) {
+            const auto k = convert_any_mask<Storage<bool, N>>(mask);
+            merge = to_storage(_mm_mask_sub_epi8(to_m128i(merge), k, __m128i(),
+                                                 _mm_mask_loadu_epi8(__m128i(), k, mem)));
+        } else if constexpr (have_avx512bw_vl && N == 16 && sizeof(T) == 2) {
+            const auto k = convert_any_mask<Storage<bool, N>>(mask);
+            merge = to_storage(_mm256_mask_sub_epi16(
+                to_m256i(merge), k, __m256i(),
+                _mm256_cvtepi8_epi16(_mm_mask_loadu_epi8(__m128i(), k, mem))));
+        } else if constexpr (have_avx512bw_vl && N == 8 && sizeof(T) == 2) {
+            const auto k = convert_any_mask<Storage<bool, N>>(mask);
+            merge = to_storage(_mm_mask_sub_epi16(
+                to_m128i(merge), k, __m128i(),
+                _mm_cvtepi8_epi16(_mm_mask_loadu_epi8(__m128i(), k, mem))));
+        } else if constexpr (have_avx512bw_vl && N == 8 && sizeof(T) == 4) {
+            const auto k = convert_any_mask<Storage<bool, N>>(mask);
+            merge = to_storage(_mm256_mask_sub_epi32(
+                to_m256i(merge), k, __m256i(),
+                _mm256_cvtepi8_epi32(_mm_mask_loadu_epi8(__m128i(), k, mem))));
+        } else if constexpr (have_avx512bw_vl && N == 4 && sizeof(T) == 4) {
+            const auto k = convert_any_mask<Storage<bool, N>>(mask);
+            merge = to_storage(_mm_mask_sub_epi32(
+                to_m128i(merge), k, __m128i(),
+                _mm_cvtepi8_epi32(_mm_mask_loadu_epi8(__m128i(), k, mem))));
+        } else if constexpr (have_avx512bw_vl && N == 4 && sizeof(T) == 8) {
+            const auto k = convert_any_mask<Storage<bool, N>>(mask);
+            merge = to_storage(_mm256_mask_sub_epi64(
+                to_m256i(merge), k, __m256i(),
+                _mm256_cvtepi8_epi64(_mm_mask_loadu_epi8(__m128i(), k, mem))));
+        } else if constexpr (have_avx512bw_vl && N == 2 && sizeof(T) == 8) {
+            const auto k = convert_any_mask<Storage<bool, N>>(mask);
+            merge = to_storage(_mm_mask_sub_epi64(
+                to_m128i(merge), k, __m128i(),
+                _mm_cvtepi8_epi64(_mm_mask_loadu_epi8(__m128i(), k, mem))));
+        } else {
+            // AVX(2) has 32/64 bit maskload, but nothing at 8 bit granularity
+            auto tmp = storage_bitcast<detail::int_for_sizeof_t<T>>(merge);
+            detail::execute_n_times<N>([&](auto i) {
+                if (mask[i]) {
+                    tmp.set(i, -mem[i]);
+                }
+            });
+            merge = storage_bitcast<T>(tmp);
+        }
     }
 
     // masked store {{{2
@@ -262,7 +312,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
         } else {
             static_assert(std::is_integral_v<T>);
             using U = std::conditional_t<sizeof(T) == 4, float, double>;
-            return x86::movemask(x86::intrin_cast<detail::intrinsic_type_t<U, N>>(v));
+            return x86::movemask(storage_bitcast<U>(v));
         }
 #if 0 //defined Vc_HAVE_BMI2
             switch (sizeof(T)) {
@@ -278,43 +328,27 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     template <size_t N, class T>
     static Vc_INTRINSIC mask_member_type<T> from_bitset(std::bitset<N> bits, type_tag<T>)
     {
-#ifdef Vc_HAVE_AVX512BW
-        if (sizeof(T) <= 2u) {
-            return detail::intrin_cast<detail::intrinsic_type_t<T, N>>(
-                x86::convert_mask<sizeof(T), sizeof(mask_member_type<T>)>(bits));
-        }
-#endif  // Vc_HAVE_AVX512BW
-#ifdef Vc_HAVE_AVX512DQ
-        if (sizeof(T) >= 4u) {
-            return detail::intrin_cast<detail::intrinsic_type_t<T, N>>(
-                x86::convert_mask<sizeof(T), sizeof(mask_member_type<T>)>(bits));
-        }
-#endif  // Vc_HAVE_AVX512DQ
-        using U = std::conditional_t<sizeof(T) == 8, ullong,
-                  std::conditional_t<sizeof(T) == 4, uint,
-                  std::conditional_t<sizeof(T) == 2, ushort,
-                  std::conditional_t<sizeof(T) == 1, uchar, void>>>>;
+#ifdef Vc_HAVE_AVX512_ABI
+        return to_storage(bits);
+#else  // Vc_HAVE_AVX512_ABI
+        using U = std::make_unsigned_t<detail::int_for_sizeof_t<T>>;
         using V = simd<U, abi>;
         constexpr size_t bits_per_element = sizeof(U) * CHAR_BIT;
         if (bits_per_element >= N) {
             V tmp(static_cast<U>(bits.to_ullong()));                  // broadcast
             tmp &= V([](auto i) { return static_cast<U>(1ull << i); });  // mask bit index
-            return detail::intrin_cast<detail::intrinsic_type_t<T, N>>(
-                detail::data(tmp != V()));
+            return storage_bitcast<T>(detail::data(tmp != V()));
         } else {
             V tmp([&](auto i) {
                 return static_cast<U>(bits.to_ullong() >>
                                       (bits_per_element * (i / bits_per_element)));
             });
             tmp &= V([](auto i) {
-#ifdef Vc_MSVC
-                constexpr size_t bits_per_element = sizeof(U) * CHAR_BIT;
-#endif
                 return static_cast<U>(1ull << (i % bits_per_element));
             });  // mask bit index
-            return detail::intrin_cast<detail::intrinsic_type_t<T, N>>(
-                detail::data(tmp != V()));
+            return storage_bitcast<T>(detail::data(tmp != V()));
         }
+#endif  // Vc_HAVE_AVX512_ABI
     }
 
     // masked_assign{{{2

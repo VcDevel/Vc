@@ -33,11 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 
-Vc_MSVC_WARNING_(push)
-Vc_MSVC_WARNING_(disable : 4624)  // "warning C4624: 'Vc::v2::simd<T,A>': destructor
-                                  // was implicitly defined as deleted", yes, that's the
-                                  // intention. No need to warn me about it.
-
 namespace detail
 {
 template <class Derived> struct generic_simd_impl;
@@ -380,8 +375,6 @@ private:
 #endif
     alignas(traits::simd_member_alignment) member_type d;
 };
-
-Vc_MSVC_WARNING_(pop)
 
 // detail::data {{{
 namespace detail

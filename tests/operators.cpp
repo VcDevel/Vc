@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
 #include <Vc/simd>
+#include <Vc/ostream>
 #include "make_vec.h"
 #include "metahelpers.h"
 
@@ -118,10 +119,11 @@ integral_operators()
         // - unsigned LHS overflow is modulo arithmetic
         constexpr int nbits(sizeof(T) * CHAR_BIT);
         {
-            V seq = make_vec<V>({0, 1}, 2);
+            V seq = make_vec<V>({0, 1}, nbits - 2);
             seq %= nbits - 1;
             COMPARE(make_vec<V>({0, 1}, 0) << seq,
-                    V([&](auto i) { return T(T(i & 1) << seq[i]); }));
+                    V([&](auto i) { return T(T(i & 1) << seq[i]); }))
+                << "seq = " << seq;
             COMPARE(make_vec<V>({1, 0}, 0) << seq,
                     V([&](auto i) { return T(T(~i & 1) << seq[i]); }));
             COMPARE(V(1) << seq, V([&](auto i) { return T(T(1) << seq[i]); }));

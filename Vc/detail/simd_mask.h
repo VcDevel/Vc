@@ -34,11 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 
-Vc_MSVC_WARNING_(push)
-Vc_MSVC_WARNING_(disable : 4624)  // "warning C4624: 'Vc::v2::simd_mask<T,A>': destructor
-                                  // was implicitly defined as deleted", yes, that's the
-                                  // intention. No need to warn me about it.
-
 template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::mask_base
 {
     using traits = detail::traits<T, Abi>;
@@ -114,10 +109,28 @@ public:
     */
 
 
+    // load impl
+private:
+    static constexpr bool is_scalar() { return std::is_same_v<abi_type, simd_abi::scalar>; }
+    static constexpr bool is_sse() { return std::is_same_v<abi_type, simd_abi::Sse>; }
+    static constexpr bool is_avx() { return std::is_same_v<abi_type, simd_abi::Avx>; }
+    static constexpr bool is_avx512() { return std::is_same_v<abi_type, simd_abi::Avx512>; }
+    static constexpr bool is_fixed() { return detail::is_fixed_size_abi_v<abi_type>; }
+
+    template <class Flags>
+    Vc_INTRINSIC member_type load_wrapper(const value_type *mem, Flags f)
+    {
+        if constexpr (is_scalar() || is_fixed()) {
+            return impl::load(mem, f, size_tag);
+        } else {
+            return detail::to_storage(impl::load(mem, f, size_tag));
+        }
+    }
+
+public :
     // load constructor
     template <class Flags>
-    Vc_ALWAYS_INLINE simd_mask(const value_type *mem, Flags f)
-        : d(impl::load(mem, f, size_tag))
+    Vc_ALWAYS_INLINE simd_mask(const value_type *mem, Flags f) : d(load_wrapper(mem, f))
     {
     }
     template <class Flags> Vc_ALWAYS_INLINE simd_mask(const value_type *mem, simd_mask k, Flags f) : d{}
@@ -128,7 +141,7 @@ public:
     // loads [simd_mask.load]
     template <class Flags> Vc_ALWAYS_INLINE void copy_from(const value_type *mem, Flags f)
     {
-        d = static_cast<decltype(d)>(impl::load(mem, f, size_tag));
+        d = load_wrapper(mem, f);
     }
 
     // stores [simd_mask.store]
@@ -179,24 +192,10 @@ public:
     }
 
 private:
-#ifdef Vc_MSVC
-    // Work around "warning C4396: the inline specifier cannot be used when a friend
-    // declaration refers to a specialization of a function template"
-    template <class U, class A> friend const auto &detail::data(const simd_mask<U, A> &);
-    template <class U, class A> friend auto &detail::data(simd_mask<U, A> &);
-#else
     friend const auto &detail::data<T, abi_type>(const simd_mask &);
     friend auto &detail::data<T, abi_type>(simd_mask &);
-#endif
-//#ifndef Vc_MSVC
-    // MSVC refuses by value simd_mask arguments, even if vectorcall__ is used:
-    // error C2719: 'k': formal parameter with requested alignment of 16 won't be aligned
-    alignas(traits::mask_member_alignment)
-//#endif
-        typename traits::mask_member_type d;
+    alignas(traits::mask_member_alignment) member_type d;
 };
-
-Vc_MSVC_WARNING_(pop)
 
 namespace detail
 {

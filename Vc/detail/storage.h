@@ -34,464 +34,294 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef Vc_HAVE_NEON_ABI
 #include "aarch/intrinsics.h"
 #elif defined Vc_HAVE_SSE_ABI
-#include "x86/intrinsics.h"
+#include "x86/types.h"
 #endif
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-// AliasStrategy{{{1
-namespace AliasStrategy
-{
-struct MayAlias {};
-struct VectorBuiltin {};
-struct UnionMembers {};
-
-using Default =
-// manual selection:
-#if defined Vc_USE_ALIASSTRATEGY_VECTORBUILTIN
-#ifndef Vc_USE_BUILTIN_VECTOR_TYPES
-#define Vc_USE_BUILTIN_VECTOR_TYPES 1
-#endif
-    VectorBuiltin;
-#elif defined Vc_USE_ALIASSTRATEGY_UNIONMEMBERS
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-#undef Vc_USE_BUILTIN_VECTOR_TYPES
-#endif
-    UnionMembers;
-#elif defined Vc_USE_ALIASSTRATEGY_MAYALIAS
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-#undef Vc_USE_BUILTIN_VECTOR_TYPES
-#endif
-    MayAlias;
-// automatic selection:
-#elif defined Vc_USE_BUILTIN_VECTOR_TYPES
-    VectorBuiltin;
-#elif defined Vc_MSVC
-    UnionMembers;
-#elif defined __GNUC__
-    MayAlias;
-#else
-    MayAlias;
-#endif
-}  // namespace AliasStrategy
-
-// Storage decl{{{1
-template <typename ValueType, size_t Size, typename Strategy = AliasStrategy::Default>
-class Storage;
-//}}}1
-
-// need at least one SIMD ISA to make sense:
-//#if defined Vc_HAVE_SSE_ABI || defined Vc_HAVE_NEON_ABI
 // Storage<bool>{{{1
-template <size_t Size> class Storage<bool, Size, AliasStrategy::Default>
-{
-public:
-    using VectorType = typename bool_storage_member_type<Size>::type;
+template <size_t Width>
+struct Storage<bool, Width, std::void_t<typename bool_storage_member_type<Width>::type>> {
+    using register_type = typename bool_storage_member_type<Width>::type;
     using value_type = bool;
-    using EntryType = value_type;
+    static constexpr size_t width = Width;
+    [[deprecated]] static constexpr size_t size() { return Width; }
 
-    static constexpr size_t size() { return Size; }
-    Vc_INTRINSIC Storage() = default;
-    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&... init)
-        : data{static_cast<EntryType>(std::forward<Args>(init))...}
+    constexpr Vc_INTRINSIC Storage() = default;
+    constexpr Vc_INTRINSIC Storage(register_type k) : d(k){};
+
+    Vc_INTRINSIC Vc_PURE operator const register_type &() const { return d; }
+    Vc_INTRINSIC Vc_PURE operator register_type &() { return d; }
+
+    Vc_INTRINSIC register_type intrin() const { return d; }
+
+    Vc_INTRINSIC Vc_PURE value_type operator[](size_t i) const
     {
+        return d & (register_type(1) << i);
     }
-
-    Vc_INTRINSIC Storage(const VectorType &x) : data(x) {}
-    Vc_INTRINSIC Storage(const Storage &) = default;
-    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
-
-    Vc_INTRINSIC Vc_PURE operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
-
-    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
-    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data & (VectorType(1) << i); }
-    Vc_INTRINSIC void set(size_t i, EntryType x)
+    Vc_INTRINSIC void set(size_t i, value_type x)
     {
         if (x) {
-            data |= (VectorType(1) << i);
+            d |= (register_type(1) << i);
         } else {
-            data &= ~(VectorType(1) << i);
+            d &= ~(register_type(1) << i);
         }
     }
 
-private:
-    VectorType data;
+    register_type d;
 };
 
-// Storage<MayAlias>{{{1
-template <typename ValueType, size_t Size>
-class Storage<ValueType, Size, AliasStrategy::MayAlias>
-{
-    static_assert(std::is_fundamental<ValueType>::value &&
-                      std::is_arithmetic<ValueType>::value,
-                  "Only works for fundamental arithmetic types.");
+// StorageBase{{{1
+template <class T, size_t Width, class RegisterType = builtin_type_t<T, Width>,
+          bool = std::disjunction_v<
+              std::is_same<builtin_type_t<T, Width>, intrinsic_type_t<T, Width>>,
+              std::is_same<RegisterType, intrinsic_type_t<T, Width>>>>
+struct StorageBase;
 
-    struct
-#ifndef Vc_MSVC
-        [[gnu::may_alias]]
-#endif
-        aliased_construction
+template <class T, size_t Width, class RegisterType>
+struct StorageBase<T, Width, RegisterType, true> {
+    RegisterType d;
+    constexpr Vc_INTRINSIC StorageBase() = default;
+    constexpr Vc_INTRINSIC StorageBase(builtin_type_t<T, Width> x)
+        : d(reinterpret_cast<RegisterType>(x))
     {
-        may_alias<ValueType> d[Size];
-    };
+    }
+};
+
+template <class T, size_t Width, class RegisterType>
+struct StorageBase<T, Width, RegisterType, false> {
+    using intrin_type = intrinsic_type_t<T, Width>;
+    RegisterType d;
+
+    constexpr Vc_INTRINSIC StorageBase() = default;
+    constexpr Vc_INTRINSIC StorageBase(builtin_type_t<T, Width> x)
+        : d(reinterpret_cast<RegisterType>(x))
+    {
+    }
+    constexpr Vc_INTRINSIC StorageBase(intrin_type x)
+        : d(reinterpret_cast<RegisterType>(x))
+    {
+    }
+
+    constexpr Vc_INTRINSIC operator intrin_type() const
+    {
+        return reinterpret_cast<intrin_type>(d);
+    }
+};
+
+// StorageEquiv {{{1
+template <typename T, size_t Width, bool = detail::has_same_value_representation_v<T>>
+struct StorageEquiv : StorageBase<T, Width> {
+    using StorageBase<T, Width>::d;
+    using StorageBase<T, Width>::StorageBase;
+};
+
+// This base class allows conversion to & from
+// * builtin_type_t<equal_int_type_t<T>, Width>, and
+// * Storage<equal_int_type_t<T>, Width>
+// E.g. Storage<long, 4> is convertible to & from
+// * builtin_type_t<long long, 4>, and
+// * Storage<long long, 4>
+// on LP64
+// * builtin_type_t<int, 4>, and
+// * Storage<int, 4>
+// on ILP32, and LLP64
+template <class T, size_t Width>
+struct StorageEquiv<T, Width, true>
+    : StorageBase<equal_int_type_t<T>, Width, builtin_type_t<T, Width>> {
+    using Base = StorageBase<equal_int_type_t<T>, Width, builtin_type_t<T, Width>>;
+    using Base::d;
+    using Base::StorageBase;
+
+    constexpr Vc_INTRINSIC StorageEquiv() = default;
+
+    // convertible from intrin_type, builtin_type_t<equal_int_type_t<T>, Width> and
+    // builtin_type_t<T, Width>, and Storage<equal_int_type_t<T>, Width>
+    constexpr Vc_INTRINSIC StorageEquiv(builtin_type_t<T, Width> x)
+        : Base(reinterpret_cast<builtin_type_t<equal_int_type_t<T>, Width>>(x))
+    {
+    }
+    constexpr Vc_INTRINSIC StorageEquiv(Storage<equal_int_type_t<T>, Width> x)
+        : Base(x.d)
+    {
+    }
+
+    // convertible to intrin_type, builtin_type_t<equal_int_type_t<T>, Width> and
+    // builtin_type_t<T, Width> (in Storage), and Storage<equal_int_type_t<T>, Width>
+    //
+    // intrin_type<T> is handled by StorageBase
+    // builtin_type_t<T> is handled by Storage
+    // builtin_type_t<equal_int_type_t<T>> is handled in StorageEquiv, i.e. here:
+    constexpr Vc_INTRINSIC operator builtin_type_t<equal_int_type_t<T>, Width>() const
+    {
+        return reinterpret_cast<builtin_type_t<equal_int_type_t<T>, Width>>(d);
+    }
+    constexpr Vc_INTRINSIC operator Storage<equal_int_type_t<T>, Width>() const
+    {
+        return reinterpret_cast<builtin_type_t<equal_int_type_t<T>, Width>>(d);
+    }
+
+    constexpr Vc_INTRINSIC Storage<equal_int_type_t<T>, Width> equiv() const
+    {
+        return reinterpret_cast<builtin_type_t<equal_int_type_t<T>, Width>>(d);
+    }
+};
+
+// StorageBroadcast{{{1
+template <class T, size_t Width> struct StorageBroadcast;
+template <class T> struct StorageBroadcast<T, 2> {
+    static constexpr Vc_INTRINSIC Storage<T, 2> broadcast(T x)
+    {
+        return builtin_type_t<T, 2>{x, x};
+    }
+};
+template <class T> struct StorageBroadcast<T, 4> {
+    static constexpr Vc_INTRINSIC Storage<T, 4> broadcast(T x)
+    {
+        return builtin_type_t<T, 4>{x, x, x, x};
+    }
+};
+template <class T> struct StorageBroadcast<T, 8> {
+    static constexpr Vc_INTRINSIC Storage<T, 8> broadcast(T x)
+    {
+        return builtin_type_t<T, 8>{x, x, x, x, x, x, x, x};
+    }
+};
+template <class T> struct StorageBroadcast<T, 16> {
+    static constexpr Vc_INTRINSIC Storage<T, 16> broadcast(T x)
+    {
+        return builtin_type_t<T, 16>{x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x};
+    }
+};
+template <class T> struct StorageBroadcast<T, 32> {
+    static constexpr Vc_INTRINSIC Storage<T, 32> broadcast(T x)
+    {
+        return builtin_type_t<T, 32>{x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x,
+                                     x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x};
+    }
+};
+template <class T> struct StorageBroadcast<T, 64> {
+    static constexpr Vc_INTRINSIC Storage<T, 64> broadcast(T x)
+    {
+        return builtin_type_t<T, 64>{x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x,
+                                     x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x,
+                                     x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x,
+                                     x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x};
+    }
+};
+
+// Storage{{{1
+template <typename T, size_t Width>
+struct Storage<T, Width,
+               std::void_t<builtin_type_t<T, Width>, intrinsic_type_t<T, Width>>>
+    : StorageEquiv<T, Width>, StorageBroadcast<T, Width> {
+    static_assert(is_vectorizable_v<T>);
+    static_assert(Width >= 2);  // 1 doesn't make sense, use T directly then
+    using register_type = builtin_type_t<T, Width>;
+    using value_type = T;
+    static constexpr size_t width = Width;
+    [[deprecated("use width instead")]] static constexpr size_t size() { return Width; }
+
+    using StorageEquiv<T, Width>::StorageEquiv;
+    using StorageEquiv<T, Width>::d;
+
+    constexpr Vc_INTRINSIC operator const register_type &() const { return d; }
+    constexpr Vc_INTRINSIC operator register_type &() { return d; }
+
+    [[deprecated("use .d instead")]] constexpr Vc_INTRINSIC const register_type &builtin() const { return d; }
+    [[deprecated("use .d instead")]] constexpr Vc_INTRINSIC register_type &builtin() { return d; }
+
+    template <class U = intrinsic_type_t<T, Width>>
+    constexpr Vc_INTRINSIC U intrin() const
+    {
+        return reinterpret_cast<U>(d);
+    }
+    [[deprecated(
+        "use intrin() instead")]] constexpr Vc_INTRINSIC intrinsic_type_t<T, Width>
+    v() const
+    {
+        return intrin();
+    }
+
+    constexpr Vc_INTRINSIC T operator[](size_t i) const { return d[i]; }
+    [[deprecated("use operator[] instead")]] constexpr Vc_INTRINSIC T m(size_t i) const
+    {
+        return d[i];
+    }
+
+    Vc_INTRINSIC void set(size_t i, T x) { d[i] = x; }
+};
+
+// to_storage {{{1
+template <class T> class to_storage
+{
+    static_assert(is_builtin_vector_v<T>);
+    T d;
 
 public:
-    using VectorType = intrinsic_type_t<ValueType, Size>;
-    using value_type = ValueType;
-    using EntryType = value_type;
-
-    static constexpr size_t size() { return Size; }
-
-    Vc_INTRINSIC Storage() = default;
-
-    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&... init)
-        : data(x86::set(static_cast<EntryType>(std::forward<Args>(init))...))
+    constexpr to_storage(T x) : d(x) {}
+    template <class U, size_t N> constexpr operator Storage<U, N>() const
     {
-        assertCorrectAlignment(&data);
+        static_assert(sizeof(builtin_type_t<U, N>) == sizeof(T));
+        return {reinterpret_cast<builtin_type_t<U, N>>(d)};
     }
-
-#ifdef Vc_HAVE_AVX512_ABI
-#ifdef Vc_HAVE_AVX512BW
-    inline Storage(__mmask64 k)
-        : data(intrin_cast<VectorType>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-    }
-    inline Storage(__mmask32 k)
-        : data(intrin_cast<VectorType>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-    }
-#endif  // Vc_HAVE_AVX512BW
-#if defined Vc_HAVE_AVX512DQ || (defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL)
-    inline Storage(__mmask16 k)
-        : data(intrin_cast<VectorType>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-    }
-    inline Storage(__mmask8 k)
-        : data(intrin_cast<VectorType>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-    }
-#endif  // Vc_HAVE_AVX512BW
-#endif  // Vc_HAVE_AVX512_ABI
-
-    Vc_INTRINSIC Storage(const VectorType &x) : data(x)
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(const U &x,
-                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
-        : data(reinterpret_cast<const VectorType &>(x))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(Storage<U, Size, AliasStrategy::MayAlias> x)
-        : data(reinterpret_cast<VectorType>(x.v()))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    Vc_INTRINSIC Storage(const Storage &) = default;
-    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
-
-    Vc_INTRINSIC operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
-
-    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
-    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const
-    {
-        return reinterpret_cast<const may_alias<EntryType> *>(&data)[i];
-    }
-    Vc_INTRINSIC void set(size_t i, EntryType x)
-    {
-        reinterpret_cast<may_alias<EntryType> *>(&data)[i] = x;
-    }
-
-private:
-    VectorType data;
 };
 
-// Storage<VectorBuiltin>{{{1
-template <typename ValueType, size_t Size>
-class Storage<ValueType, Size, AliasStrategy::VectorBuiltin>
+// to_storage_unsafe {{{1
+template <class T> class to_storage_unsafe
 {
-    static_assert(std::is_fundamental<ValueType>::value &&
-                      std::is_arithmetic<ValueType>::value,
-                  "Only works for fundamental arithmetic types.");
-
+    T d;
 public:
-    using Builtin = builtin_type_t<ValueType, Size>;
-
-    using VectorType =
-#ifdef Vc_TEMPLATES_DROP_ATTRIBUTES
-        may_alias<intrinsic_type_t<ValueType, Size>>;
-#else
-        intrinsic_type_t<ValueType, Size>;
-#endif
-    using value_type = ValueType;
-    using EntryType = value_type;
-
-    static constexpr size_t size() { return Size; }
-
-    Vc_INTRINSIC Storage() = default;
-
-    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&... init)
-        : data{static_cast<EntryType>(std::forward<Args>(init))...}
+    constexpr to_storage_unsafe(T x) : d(x) {}
+    template <class U, size_t N> constexpr operator Storage<U, N>() const
     {
+        static_assert(sizeof(builtin_type_t<U, N>) <= sizeof(T));
+        return {reinterpret_cast<builtin_type_t<U, N>>(d)};
     }
-
-#ifdef Vc_HAVE_AVX512_ABI
-#ifdef Vc_HAVE_AVX512BW
-    inline Storage(__mmask64 k)
-        : data(reinterpret_cast<Builtin>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-    }
-    inline Storage(__mmask32 k)
-        : data(reinterpret_cast<Builtin>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-    }
-#endif  // Vc_HAVE_AVX512BW
-#if defined Vc_HAVE_AVX512DQ || (defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL)
-    inline Storage(__mmask16 k)
-        : data(reinterpret_cast<Builtin>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-    }
-    inline Storage(__mmask8 k)
-        : data(reinterpret_cast<Builtin>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-    }
-#endif  // Vc_HAVE_AVX512BW
-#endif  // Vc_HAVE_AVX512_ABI
-
-    Vc_INTRINSIC Storage(Builtin x) : data(x) { assertCorrectAlignment(&data); }
-
-    template <typename U>
-    Vc_INTRINSIC Storage(const U &x,
-                         enable_if<(is_builtin_vector_v<U> || is_intrinsic_v<U>)&&sizeof(
-                                       U) == sizeof(VectorType)> = nullarg)
-        : data(reinterpret_cast<Builtin>(x))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(Storage<U, Size, AliasStrategy::VectorBuiltin> x)
-        : data(reinterpret_cast<Builtin>(x.v()))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    Vc_INTRINSIC Storage(const Storage &) = default;
-    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
-
-    //Vc_INTRINSIC operator const Builtin &() const { return data; }
-    Vc_INTRINSIC operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data); }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return reinterpret_cast<const VectorType &>(data); }
-
-    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
-    Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const { return data[i]; }
-    Vc_INTRINSIC void set(size_t i, EntryType x) { data[i] = x; }
-
-    Vc_INTRINSIC Builtin &builtin() { return data; }
-    Vc_INTRINSIC const Builtin &builtin() const { return data; }
-
-private:
-    Builtin data;
 };
 
+// storage_bitcast{{{1
+template <class T, class U, size_t M, size_t N = sizeof(U) * M / sizeof(T)>
+constexpr Vc_INTRINSIC Storage<T, N> storage_bitcast(Storage<U, M> x)
+{
+    static_assert(sizeof(builtin_type_t<T, N>) == sizeof(builtin_type_t<U, M>));
+    return reinterpret_cast<builtin_type_t<T, N>>(x.d);
+}
+
+// make_storage{{{1
+template <class T, class... Args>
+constexpr Vc_INTRINSIC Storage<T, sizeof...(Args)> make_storage(Args &&... args)
+{
+    return {typename Storage<T, sizeof...(Args)>::register_type{static_cast<T>(args)...}};
+}
+
+// generate_storage{{{1
+template <class T, size_t N, class G, size_t... I>
+constexpr Vc_INTRINSIC Storage<T, N> generate_storage_impl(
+    G &&gen, std::index_sequence<I...>)
+{
+    return builtin_type_t<T, N>{static_cast<T>(gen(size_constant<I>()))...};
+}
+template <class T, size_t N, class G>
+constexpr Vc_INTRINSIC Storage<T, N> generate_storage(G &&gen)
+{
+    return generate_storage_impl<T, N>(std::forward<G>(gen), std::make_index_sequence<N>());
+}
+
+// work around clang miscompilation on set{{{1
 #if defined Vc_CLANG && !defined Vc_HAVE_SSE4_1
 #if Vc_CLANG <= 0x60000
 template <> void Storage<double, 2, AliasStrategy::VectorBuiltin>::set(size_t i, double x)
 {
     if (x == 0. && i == 1)
         asm("" : "+g"(x));  // make clang forget that x is 0
-    data[i] = x;
+    d[i] = x;
 }
 #else
 #warning "clang 5 failed operators_sse2_vectorbuiltin_ldouble_float_double_schar_uchar in operator<simd<double, Sse>> and required a workaround. Is this still the case for newer clang versions?"
 #endif
 #endif
-
-// Storage<UnionMembers>{{{1
-template <typename ValueType, size_t Size>
-class Storage<ValueType, Size, AliasStrategy::UnionMembers>
-{
-    static_assert(std::is_fundamental<ValueType>::value &&
-                      std::is_arithmetic<ValueType>::value,
-                  "Only works for fundamental arithmetic types.");
-
-public:
-    using VectorType = intrinsic_type_t<ValueType, Size>;
-    using value_type = ValueType;
-    using EntryType = value_type;
-
-    static constexpr size_t size() { return Size; }
-
-    Vc_INTRINSIC Storage() = default;
-
-    template <class... Args, class = enable_if_t<sizeof...(Args) == Size>>
-    Vc_INTRINSIC Storage(Args &&... init)
-        : data(x86::set(static_cast<EntryType>(std::forward<Args>(init))...))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-#ifdef Vc_HAVE_AVX512_ABI
-#ifdef Vc_HAVE_AVX512BW
-    inline Storage(__mmask64 k)
-        : data(intrin_cast<VectorType>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-        assertCorrectAlignment(&data);
-    }
-    inline Storage(__mmask32 k)
-        : data(intrin_cast<VectorType>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-        assertCorrectAlignment(&data);
-    }
-#endif  // Vc_HAVE_AVX512BW
-#if defined Vc_HAVE_AVX512DQ || (defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL)
-    inline Storage(__mmask16 k)
-        : data(intrin_cast<VectorType>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-        assertCorrectAlignment(&data);
-    }
-    inline Storage(__mmask8 k)
-        : data(intrin_cast<VectorType>(
-              convert_mask<sizeof(EntryType), sizeof(VectorType)>(k)))
-    {
-        assertCorrectAlignment(&data);
-    }
-#endif  // Vc_HAVE_AVX512BW
-#endif  // Vc_HAVE_AVX512_ABI
-
-    Vc_INTRINSIC Storage(const VectorType &x) : data(x)
-    {
-        assertCorrectAlignment(&data);
-    }
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(const U &x
-#ifndef Vc_MSVC
-                                  ,
-                                  enable_if<sizeof(U) == sizeof(VectorType)> = nullarg
-#endif  // Vc_MSVC
-                                  )
-        : data(reinterpret_cast<const VectorType &>(x))
-    {
-        static_assert(sizeof(U) == sizeof(VectorType),
-                      "invalid call to converting Storage constructor");
-        assertCorrectAlignment(&data);
-    }
-
-    static const VectorType &adjustVectorType(const VectorType &x) { return x; }
-    template <typename T> static VectorType adjustVectorType(const T &x)
-    {
-        return reinterpret_cast<VectorType>(x);
-    }
-    template <typename U>
-    Vc_INTRINSIC explicit Storage(const Storage<U, Size, AliasStrategy::UnionMembers> &x)
-        : data(adjustVectorType(x.v()))
-    {
-        assertCorrectAlignment(&data);
-    }
-
-    Vc_INTRINSIC Storage(const Storage &) = default;
-    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
-
-    Vc_INTRINSIC operator const VectorType &() const { return v(); }
-    Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
-    Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
-
-    Vc_INTRINSIC Vc_PURE EntryType operator[](size_t i) const { return m(i); }
-    Vc_INTRINSIC_L Vc_PURE_L EntryType m(size_t i) const Vc_INTRINSIC_R Vc_PURE_R;
-    Vc_INTRINSIC void set(size_t i, EntryType x) { ref(i) = x; }
-
-private:
-    Vc_INTRINSIC_L Vc_PURE_L typename std::conditional<
-        std::is_same<EntryType, signed char>::value, char,
-        typename std::conditional<
-            std::is_same<EntryType, long>::value, int,
-            typename std::conditional<std::is_same<EntryType, ulong>::value, uint,
-                                      EntryType>::type>::type>::type &
-    ref(size_t i) Vc_INTRINSIC_R Vc_PURE_R;
-    VectorType data;
-};
-
-#ifdef Vc_MSVC
-template <> Vc_INTRINSIC Vc_PURE double Storage<double, 2, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128d_f64[i]; }
-template <> Vc_INTRINSIC Vc_PURE  float Storage< float, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128_f32[i]; }
-template <> Vc_INTRINSIC Vc_PURE  llong Storage< llong, 2, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i64[i]; }
-template <> Vc_INTRINSIC Vc_PURE   long Storage<  long, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE    int Storage<   int, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE  short Storage< short, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE  schar Storage< schar,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_i8[i]; }
-template <> Vc_INTRINSIC Vc_PURE ullong Storage<ullong, 2, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u64[i]; }
-template <> Vc_INTRINSIC Vc_PURE  ulong Storage< ulong, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   uint Storage<  uint, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE ushort Storage<ushort, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u16[i]; }
-template <> Vc_INTRINSIC Vc_PURE  uchar Storage< uchar,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m128i_u8[i]; }
-
-template <> Vc_INTRINSIC Vc_PURE double &Storage<double, 2, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128d_f64[i]; }
-template <> Vc_INTRINSIC Vc_PURE  float &Storage< float, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128_f32[i]; }
-template <> Vc_INTRINSIC Vc_PURE  llong &Storage< llong, 2, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i64[i]; }
-template <> Vc_INTRINSIC Vc_PURE    int &Storage<  long, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE    int &Storage<   int, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE  short &Storage< short, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE   char &Storage< schar,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_i8[i]; }
-template <> Vc_INTRINSIC Vc_PURE ullong &Storage<ullong, 2, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u64[i]; }
-template <> Vc_INTRINSIC Vc_PURE   uint &Storage< ulong, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   uint &Storage<  uint, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE ushort &Storage<ushort, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u16[i]; }
-template <> Vc_INTRINSIC Vc_PURE  uchar &Storage< uchar,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m128i_u8[i]; }
-
-#ifdef Vc_HAVE_AVX
-template <> Vc_INTRINSIC Vc_PURE double Storage<double, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256d_f64[i]; }
-template <> Vc_INTRINSIC Vc_PURE  float Storage< float, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256_f32[i]; }
-template <> Vc_INTRINSIC Vc_PURE  llong Storage< llong, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i64[i]; }
-template <> Vc_INTRINSIC Vc_PURE   long Storage<  long, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE    int Storage<   int, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE  short Storage< short,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE  schar Storage< schar,32, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_i8[i]; }
-template <> Vc_INTRINSIC Vc_PURE ullong Storage<ullong, 4, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u64[i]; }
-template <> Vc_INTRINSIC Vc_PURE  ulong Storage< ulong, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   uint Storage<  uint, 8, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE ushort Storage<ushort,16, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u16[i]; }
-template <> Vc_INTRINSIC Vc_PURE  uchar Storage< uchar,32, AliasStrategy::UnionMembers>::m(size_t i) const { return data.m256i_u8[i]; }
-
-template <> Vc_INTRINSIC Vc_PURE double &Storage<double, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256d_f64[i]; }
-template <> Vc_INTRINSIC Vc_PURE  float &Storage< float, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256_f32[i]; }
-template <> Vc_INTRINSIC Vc_PURE  llong &Storage< llong, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i64[i]; }
-template <> Vc_INTRINSIC Vc_PURE    int &Storage<  long, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE    int &Storage<   int, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i32[i]; }
-template <> Vc_INTRINSIC Vc_PURE  short &Storage< short,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i16[i]; }
-template <> Vc_INTRINSIC Vc_PURE   char &Storage< schar,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_i8[i]; }
-template <> Vc_INTRINSIC Vc_PURE ullong &Storage<ullong, 4, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u64[i]; }
-template <> Vc_INTRINSIC Vc_PURE   uint &Storage< ulong, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE   uint &Storage<  uint, 8, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u32[i]; }
-template <> Vc_INTRINSIC Vc_PURE ushort &Storage<ushort,16, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u16[i]; }
-template <> Vc_INTRINSIC Vc_PURE  uchar &Storage< uchar,32, AliasStrategy::UnionMembers>::ref(size_t i) { return data.m256i_u8[i]; }
-#endif
-#endif  // Vc_MSVC
 
 // Storage ostream operators{{{1
 template <class CharT, class T, size_t N>
@@ -506,7 +336,6 @@ inline std::basic_ostream<CharT> &operator<<(std::basic_ostream<CharT> & s,
 }
 
 //}}}1
-//#endif  // Vc_HAVE_{SSE,NEON}_ABI
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 

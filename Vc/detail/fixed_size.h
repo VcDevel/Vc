@@ -683,7 +683,7 @@ template <int N> struct fixed_size_mask_impl {
     template <class T>
     static Vc_INTRINSIC mask_member_type broadcast(bool x, type_tag<T>) noexcept
     {
-        return ullong(x) * ((1llu << N) - 1llu);
+        return x ? ~mask_member_type() : mask_member_type();
     }
 
     // load {{{2
@@ -722,7 +722,7 @@ template <int N> struct fixed_size_mask_impl {
             and_(_mm512_movm_epi8(bs.to_ullong()), x86::one64(uchar()));
         detail::x86::store_n_bytes(size_constant<N>(), bool64, mem, f);
 #elif defined Vc_HAVE_BMI2
-#ifdef Vc_IS_AMD64
+#ifdef __x86_64__
         unused(f);
         execute_n_times<N / 8>([&](auto i) {
             constexpr size_t offset = i * 8;
@@ -736,7 +736,7 @@ template <int N> struct fixed_size_mask_impl {
                 _pdep_u64(bs.to_ullong() >> offset, 0x0101010101010101ULL);
             std::memcpy(&mem[offset], &bool8, N % 8);
         }
-#else   // Vc_IS_AMD64
+#else   // __x86_64__
         unused(f);
         execute_n_times<N / 4>([&](auto i) {
             constexpr size_t offset = i * 4;
@@ -750,7 +750,7 @@ template <int N> struct fixed_size_mask_impl {
                 _pdep_u32(bs.to_ullong() >> offset, 0x01010101U);
             std::memcpy(&mem[offset], &bool4, N % 4);
         }
-#endif  // Vc_IS_AMD64
+#endif  // __x86_64__
 #elif defined Vc_HAVE_SSE2   // !AVX512BW && !BMI2
         using V = simd<uchar, simd_abi::Sse>;
         ullong bits = bs.to_ullong();

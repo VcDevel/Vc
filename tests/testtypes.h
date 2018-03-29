@@ -67,7 +67,7 @@ static_assert(vir::list_size<testtypes_float>::value <= 1, "filtering the list f
 using all_arithmetic_types =
     vir::Typelist<long double, double, float, long long, unsigned long, int,
                   unsigned short, signed char, unsigned long long, long, unsigned int,
-                  short, unsigned char /*, char32_t, char16_t, char, wchar_t*/>;
+                  short, unsigned char, char32_t, char16_t, char, wchar_t>;
 #ifdef ONE_RANDOM_ARITHMETIC_TYPE
 using arithmetic_types = VIR_CHOOSE_ONE_RANDOMLY(all_arithmetic_types);
 #else

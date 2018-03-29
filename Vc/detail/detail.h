@@ -132,35 +132,11 @@ Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *)
 }
 #endif
 
-// size_constant {{{1
-template <size_t X> using size_constant = std::integral_constant<size_t, X>;
-
 // size_tag_type {{{1
 template <class T, class A>
 auto size_tag_type_f(int)->size_constant<simd_size<T, A>::value>;
 template <class T, class A> auto size_tag_type_f(float)->size_constant<0>;
 template <class T, class A> using size_tag_type = decltype(size_tag_type_f<T, A>(0));
-
-// integer type aliases{{{1
-using uchar = unsigned char;
-using schar = signed char;
-using ushort = unsigned short;
-using uint = unsigned int;
-using ulong = unsigned long;
-using llong = long long;
-using ullong = unsigned long long;
-
-// equal_int_type{{{1
-/**
- * \internal
- * Type trait to find the equivalent integer type given a(n) (un)signed long type.
- */
-template <class T, size_t = sizeof(T)> struct equal_int_type;
-template <> struct equal_int_type< long, 4> { using type =    int; };
-template <> struct equal_int_type< long, 8> { using type =  llong; };
-template <> struct equal_int_type<ulong, 4> { using type =   uint; };
-template <> struct equal_int_type<ulong, 8> { using type = ullong; };
-template <class T> using equal_int_type_t = typename equal_int_type<T>::type;
 
 // promote_preserving_unsigned{{{1
 // work around crazy semantics of unsigned integers of lower rank than int:
@@ -318,8 +294,6 @@ struct is_narrowing_conversion;
 
 // ignore "warning C4018: '<': signed/unsigned mismatch" in the following trait. The implicit
 // conversions will do the right thing here.
-Vc_MSVC_WARNING_(push)
-Vc_MSVC_WARNING_(disable : 4018)
 template <class From, class To>
 struct is_narrowing_conversion<From, To, true, true>
     : public bool_constant<(
@@ -328,7 +302,6 @@ struct is_narrowing_conversion<From, To, true, true>
           std::numeric_limits<From>::lowest() < std::numeric_limits<To>::lowest() ||
           (std::is_signed<From>::value && std::is_unsigned<To>::value))> {
 };
-Vc_MSVC_WARNING_(pop)
 
 template <class T> struct is_narrowing_conversion<bool, T, true, true> : public std::true_type {};
 template <> struct is_narrowing_conversion<bool, bool, true, true> : public std::false_type {};
@@ -485,14 +458,65 @@ template <class T, size_t Bytes, class = detail::void_t<>> struct builtin_type {
 template <class T, size_t Size>
 using builtin_type_t = typename builtin_type<T, Size * sizeof(T)>::type;
 
+template <class T> using builtin_type2_t  = typename builtin_type<T, 2>::type;
+template <class T> using builtin_type4_t  = typename builtin_type<T, 4>::type;
+template <class T> using builtin_type8_t  = typename builtin_type<T, 8>::type;
+template <class T> using builtin_type16_t = typename builtin_type<T, 16>::type;
+template <class T> using builtin_type32_t = typename builtin_type<T, 32>::type;
+template <class T> using builtin_type64_t = typename builtin_type<T, 64>::type;
+template <class T> using builtin_type128_t = typename builtin_type<T, 128>::type;
+
 // is_builtin_vector {{{1
-template <class T> struct is_builtin_vector : public std::false_type {};
+template <class T, class = void_t<>> struct is_builtin_vector : std::false_type {};
 template <class T> inline constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
 
 // fixed_size_storage fwd decl {{{1
 template <class T, int N> struct fixed_size_storage_builder_wrapper;
 template <class T, int N>
 using fixed_size_storage = typename fixed_size_storage_builder_wrapper<T, N>::type;
+
+// Storage fwd decl{{{1
+template <class ValueType, size_t Size, class = std::void_t<>> struct Storage;
+template <class T> using storage16_t = Storage<T, 16 / sizeof(T)>;
+template <class T> using storage32_t = Storage<T, 32 / sizeof(T)>;
+template <class T> using storage64_t = Storage<T, 64 / sizeof(T)>;
+
+// bit_iteration{{{1
+constexpr uint popcount(uint x) { return __builtin_popcount(x); }
+constexpr ulong popcount(ulong x) { return __builtin_popcountl(x); }
+constexpr ullong popcount(ullong x) { return __builtin_popcountll(x); }
+
+constexpr uint ctz(uint x) { return __builtin_ctz(x); }
+constexpr ulong ctz(ulong x) { return __builtin_ctzl(x); }
+constexpr ullong ctz(ullong x) { return __builtin_ctzll(x); }
+constexpr uint clz(uint x) { return __builtin_clz(x); }
+constexpr ulong clz(ulong x) { return __builtin_clzl(x); }
+constexpr ullong clz(ullong x) { return __builtin_clzll(x); }
+
+template <class T, class F> void bit_iteration(T k_, F &&f)
+{
+    std::conditional_t<sizeof(T) <=4, uint, ullong> k = k_;
+    switch (popcount(k)) {
+    default:
+        do {
+            f(ctz(k));
+            k &= (k - 1);
+        } while (k);
+        break;
+    /*case 3:
+        f(ctz(k));
+        k &= (k - 1);*/
+    case 2:
+        f(ctz(k));
+        // fallthrough
+    case 1:
+        // XXX: assumes CHAR_BIT == 8:
+        f(popcount(~decltype(k)()) - 1 - clz(k));
+        // fallthrough
+    case 0:
+        break;
+    }
+}
 
 //}}}1
 }  // namespace detail

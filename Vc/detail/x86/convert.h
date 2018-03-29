@@ -38,71 +38,83 @@ namespace x86
 // convert_builtin{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 template <typename To, typename From, size_t... I>
-Vc_INTRINSIC To convert_builtin(From v0, std::index_sequence<I...>)
+constexpr Vc_INTRINSIC To convert_builtin(From v0, std::index_sequence<I...>)
 {
-    using T = typename To::EntryType;
-    return typename To::Builtin{static_cast<T>(v0[I])...};
+    using T = typename To::value_type;
+    return detail::make_storage<T>(v0[I]...);
+}
+
+template <typename To, typename From, size_t... I, size_t... Z>
+constexpr Vc_INTRINSIC To convert_builtin_z(From v0, std::index_sequence<I...>,
+                                            std::index_sequence<Z...>)
+{
+    using T = typename To::value_type;
+    return detail::make_storage<T>(v0[I]..., ((void)Z, 0)...);
 }
 
 template <typename To, typename From, size_t... I>
-Vc_INTRINSIC To convert_builtin(From v0, From v1, std::index_sequence<I...>)
+constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, std::index_sequence<I...>)
 {
-    using T = typename To::EntryType;
-    return typename To::Builtin{static_cast<T>(v0[I])..., static_cast<T>(v1[I])...};
+    using T = typename To::value_type;
+    return detail::make_storage<T>(v0[I]..., v1[I]...);
 }
 
 template <typename To, typename From, size_t... I>
-Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3,
-                                std::index_sequence<I...>)
+constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3,
+                                          std::index_sequence<I...>)
 {
-    using T = typename To::EntryType;
-    return typename To::Builtin{static_cast<T>(v0[I])..., static_cast<T>(v1[I])...,
-                                static_cast<T>(v2[I])..., static_cast<T>(v3[I])...};
+    using T = typename To::value_type;
+    return detail::make_storage<T>(static_cast<T>(v0[I])..., static_cast<T>(v1[I])...,
+                                   static_cast<T>(v2[I])..., static_cast<T>(v3[I])...);
 }
 
 template <typename To, typename From, size_t... I>
-Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3, From v4, From v5,
-                                From v6, From v7, std::index_sequence<I...>)
+constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3, From v4,
+                                          From v5, From v6, From v7,
+                                          std::index_sequence<I...>)
 {
-    using T = typename To::EntryType;
-    return typename To::Builtin{static_cast<T>(v0[I])..., static_cast<T>(v1[I])...,
-                                static_cast<T>(v2[I])..., static_cast<T>(v3[I])...,
-                                static_cast<T>(v4[I])..., static_cast<T>(v5[I])...,
-                                static_cast<T>(v6[I])..., static_cast<T>(v7[I])...};
+    using T = typename To::value_type;
+    return detail::make_storage<T>(static_cast<T>(v0[I])..., static_cast<T>(v1[I])...,
+                                   static_cast<T>(v2[I])..., static_cast<T>(v3[I])...,
+                                   static_cast<T>(v4[I])..., static_cast<T>(v5[I])...,
+                                   static_cast<T>(v6[I])..., static_cast<T>(v7[I])...);
 }
 
 template <typename To, typename From, size_t... I0, size_t... I1>
-Vc_INTRINSIC To convert_builtin(From v0, From v1, std::index_sequence<I0...>,
-                                std::index_sequence<I1...>)
+constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, std::index_sequence<I0...>,
+                                          std::index_sequence<I1...>)
 {
-    using T = typename To::EntryType;
-    return typename To::Builtin{static_cast<T>(v0[I0])..., static_cast<T>(v1[I0])...,
-                                (I1, T{})...};
+    using T = typename To::value_type;
+    return detail::make_storage<T>(static_cast<T>(v0[I0])..., static_cast<T>(v1[I0])...,
+                                   (I1, T{})...);
 }
 
 template <typename To, typename From, size_t... I0, size_t... I1>
-Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3,
-                                std::index_sequence<I0...>, std::index_sequence<I1...>)
+constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3,
+                                          std::index_sequence<I0...>,
+                                          std::index_sequence<I1...>)
 {
-    using T = typename To::EntryType;
-    return typename To::Builtin{static_cast<T>(v0[I0])..., static_cast<T>(v1[I0])...,
-                                static_cast<T>(v2[I0])..., static_cast<T>(v3[I0])...,
-                                (I1, T{})...};
+    using T = typename To::value_type;
+    return detail::make_storage<T>(static_cast<T>(v0[I0])..., static_cast<T>(v1[I0])...,
+                                   static_cast<T>(v2[I0])..., static_cast<T>(v3[I0])...,
+                                   (I1, T{})...);
 }
 
 template <typename To, typename From, size_t... I0, size_t... I1>
-Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3, From v4, From v5,
-                                From v6, From v7, std::index_sequence<I0...>,
-                                std::index_sequence<I1...>)
+constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3, From v4,
+                                          From v5, From v6, From v7,
+                                          std::index_sequence<I0...>,
+                                          std::index_sequence<I1...>)
 {
-    using T = typename To::EntryType;
-    return typename To::Builtin{
+    using T = typename To::value_type;
+    return detail::make_storage<T>(
         static_cast<T>(v0[I0])..., static_cast<T>(v1[I0])..., static_cast<T>(v2[I0])...,
         static_cast<T>(v3[I0])..., static_cast<T>(v4[I0])..., static_cast<T>(v5[I0])...,
-        static_cast<T>(v6[I0])..., static_cast<T>(v7[I0])..., (I1, T{})...};
+        static_cast<T>(v6[I0])..., static_cast<T>(v7[I0])..., (I1, T{})...);
 }
 #endif  // Vc_USE_BUILTIN_VECTOR_TYPES
 
+#ifdef Vc_WORK_AROUND_MISSED_OPTIMIZATIONS
 // convert_to declarations{{{1
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0);
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(x_f32 v0, x_f32 v1);
@@ -205,7 +217,7 @@ template <> Vc_INTRINSIC x_i64 Vc_VDECL convert_to<x_i64>(x_f32 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm_cvttps_epi64(v);
 #else
-    return {v.m(0), v.m(1)};
+    return make_storage<llong>(v[0], v[1]);
 #endif
 }
 
@@ -214,7 +226,7 @@ template <> Vc_INTRINSIC x_i64 Vc_VDECL convert_to<x_i64>(x_f64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm_cvttpd_epi64(v);
 #else
-    return {v.m(0), v.m(1)};
+    return make_storage<llong>(v[0], v[1]);
 #endif
 }
 
@@ -235,7 +247,7 @@ template <> Vc_INTRINSIC x_i64 Vc_VDECL convert_to<x_i64>(x_u32 v) {
 #ifdef Vc_HAVE_SSE4_1
     return _mm_cvtepu32_epi64(v);
 #else
-    return _mm_unpacklo_epi32(v, zero<__m128i>());
+    return _mm_unpacklo_epi32(v, __m128i());
 #endif
 }
 
@@ -290,7 +302,7 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_f32 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvttps_epi64(v);
 #else
-    return {v.m(0), v.m(1), v.m(2), v.m(3)};
+    return make_storage<llong>(v[0], v[1], v[2], v[3]);
 #endif
 }
 
@@ -299,7 +311,7 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_f64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return zeroExtend(_mm_cvttpd_epi64(v));
 #else
-    return {v.m(0), v.m(1), 0.f, 0.f};
+    return make_storage<llong>(v[0], v[1], 0.f, 0.f);
 #endif
 }
 
@@ -307,15 +319,15 @@ template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(y_f64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvttpd_epi64(v);
 #else
-    return {v.m(0), v.m(1), v.m(2), v.m(3)};
+    return make_storage<llong>(v[0], v[1], v[2], v[3]);
 #endif
 }
 
 // from ullong{{{2
-template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_u64 v) { return zeroExtend(v.v()); }
+template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_u64 v) { return zeroExtend(v.intrin()); }
 
 // from llong{{{2
-template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_i64 v) { return zeroExtend(v.v()); }
+template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(x_i64 v) { return zeroExtend(v.intrin()); }
 template <> Vc_INTRINSIC y_i64 Vc_VDECL convert_to<y_i64>(y_i64 v) { return v; }
 
 // from int{{{2
@@ -384,7 +396,7 @@ template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_f32 v) {
 #elif defined Vc_HAVE_AVX512DQ
     return _mm512_cvttps_epi64(zeroExtend(v));
 #else
-    return {v.m(0), v.m(1), v.m(2), v.m(3), 0, 0, 0, 0};
+    return make_storage<llong>(v[0], v[1], v[2], v[3], 0, 0, 0, 0);
 #endif
 }
 
@@ -393,7 +405,7 @@ template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_f32 v)
 #ifdef Vc_HAVE_AVX512DQ
     return _mm512_cvttps_epi64(v);
 #else
-    return {v.m(0), v.m(1), v.m(2), v.m(3), v.m(4), v.m(5), v.m(6), v.m(7)};
+    return make_storage<llong>(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
 #endif
 }
 
@@ -407,7 +419,7 @@ template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(x_f64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return zeroExtend(zeroExtend(_mm_cvttpd_epi64(v)));
 #else
-    return {v.m(0), v.m(1), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+    return make_storage<llong>(v[0], v[1], 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
 #endif
 }
 
@@ -417,7 +429,7 @@ template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_f64 v) {
 #elif defined Vc_HAVE_AVX512DQ
     return _mm512_cvttpd_epi64(zeroExtend(v));
 #else
-    return {v.m(0), v.m(1), v.m(2), v.m(3), 0.f, 0.f, 0.f, 0.f};
+    return make_storage<llong>(v[0], v[1], v[2], v[3], 0.f, 0.f, 0.f, 0.f);
 #endif
 }
 
@@ -425,15 +437,15 @@ template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(z_f64 v) {
 #if defined Vc_HAVE_AVX512DQ
     return _mm512_cvttpd_epi64(v);
 #else
-    return {v.m(0), v.m(1), v.m(2), v.m(3), v.m(4), v.m(5), v.m(6), v.m(7)};
+    return make_storage<llong>(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
 #endif
 }
 
 // from ullong{{{2
-template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_u64 v) { return zeroExtend(v.v()); }
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_u64 v) { return zeroExtend(v.intrin()); }
 
 // from llong{{{2
-template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_i64 v) { return zeroExtend(v.v()); }
+template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(y_i64 v) { return zeroExtend(v.intrin()); }
 template <> Vc_INTRINSIC z_i64 Vc_VDECL convert_to<z_i64>(z_i64 v) { return v; }
 
 // from int{{{2
@@ -475,7 +487,7 @@ template <> Vc_INTRINSIC x_u64 Vc_VDECL convert_to<x_u64>(x_f32 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm_cvttps_epu64(v);
 #else
-    return {v.m(0), v.m(1)};
+    return make_storage<ullong>(v[0], v[1]);
 #endif
 }
 
@@ -484,7 +496,7 @@ template <> Vc_INTRINSIC x_u64 Vc_VDECL convert_to<x_u64>(x_f64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm_cvttpd_epu64(v);
 #else
-    return {v.m(0), v.m(1)};
+    return make_storage<ullong>(v[0], v[1]);
 #endif
 }
 
@@ -495,7 +507,7 @@ template <> Vc_INTRINSIC y_u64 Vc_VDECL convert_to<y_u64>(x_f32 v0) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvttps_epu64(v0);
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3)};
+    return make_storage<ullong>(v0[0], v0[1], v0[2], v0[3]);
 #endif
 }
 
@@ -504,7 +516,7 @@ template <> Vc_INTRINSIC y_u64 Vc_VDECL convert_to<y_u64>(x_f64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return zeroExtend(_mm_cvttpd_epu64(v));
 #else
-    return {v.m(0), v.m(1), 0.f, 0.f};
+    return make_storage<ullong>(v[0], v[1], 0.f, 0.f);
 #endif
 }
 
@@ -514,7 +526,7 @@ template <> Vc_INTRINSIC y_u64 Vc_VDECL convert_to<y_u64>(y_f64 v) {
 #elif defined Vc_HAVE_AVX512DQ
     return lo256(_mm512_cvttpd_epu64(intrin_cast<__m512d>(v)));
 #else
-    return {v.m(0), v.m(1), v.m(2), v.m(3)};
+    return make_storage<ullong>(v[0], v[1], v[2], v[3]);
 #endif
 }
 
@@ -528,7 +540,7 @@ template <> Vc_INTRINSIC z_u64 Vc_VDECL convert_to<z_u64>(y_f32 v0) {
 #if defined Vc_HAVE_AVX512DQ
     return _mm512_cvttps_epu64(v0);
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), v0.m(4), v0.m(5), v0.m(6), v0.m(7)};
+    return make_storage<ullong>(v0[0], v0[1], v0[2], v0[3], v0[4], v0[5], v0[6], v0[7]);
 #endif
 }
 
@@ -537,7 +549,7 @@ template <> Vc_INTRINSIC z_u64 Vc_VDECL convert_to<z_u64>(z_f64 v0) {
 #if defined Vc_HAVE_AVX512DQ
     return _mm512_cvttpd_epu64(v0);
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), v0.m(4), v0.m(5), v0.m(6), v0.m(7)};
+    return make_storage<ullong>(v0[0], v0[1], v0[2], v0[3], v0[4], v0[5], v0[6], v0[7]);
 #endif
 }
 
@@ -571,7 +583,7 @@ template <> Vc_INTRINSIC x_i32 Vc_VDECL convert_to<x_i32>(x_i64 v) {
     return _mm_cvtepi64_epi32(v);
 #else
     return _mm_unpacklo_epi64(_mm_shuffle_epi32(v, 8), _mm_setzero_si128());
-    //return {v.m(0), v.m(1), 0, 0};
+    //return make_storage<int>(v[0], v[1], 0, 0);
 #endif
 }
 
@@ -583,7 +595,7 @@ template <> Vc_INTRINSIC x_i32 Vc_VDECL convert_to<x_i32>(x_i64 v0, x_i64 v1)
     return lo128(_mm512_cvtepi64_epi32(intrin_cast<__m512i>(detail::concat(v0, v1))));
 #else
     return _mm_unpacklo_epi64(_mm_shuffle_epi32(v0, 8), _mm_shuffle_epi32(v1, 8));
-    //return {v0.m(0), v0.m(1), v1.m(0), v1.m(1)};
+    //return make_storage<int>(v0[0], v0[1], v1[0], v1[1]);
 #endif
 }
 
@@ -599,7 +611,7 @@ template <> Vc_INTRINSIC x_i32 Vc_VDECL convert_to<x_i32>(y_i64 v0)
 #else
     return _mm_unpacklo_epi64(_mm_shuffle_epi32(lo128(v0), 8),
                               _mm_shuffle_epi32(hi128(v0), 8));
-    //return {v0.m(0), v0.m(1), v0.m(2), v0.m(3)};
+    //return make_storage<int>(v0[0], v0[1], v0[2], v0[3]);
 #endif
 }
 #endif  // Vc_HAVE_AVX
@@ -654,7 +666,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_f32 v)
 
 template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_f32 v0)
 {
-    return _mm256_cvttps_epi32(v0);
+    return x86::cvt_i32(v0);
 }
 
 // from double{{{2
@@ -739,14 +751,14 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_i32 v) { return v; }
 
 // from uint{{{2
 template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_u32 v) { return zeroExtend(v); }
-template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_u32 v) { return v.v(); }
+template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(y_u32 v) { return v.intrin(); }
 
 // from short{{{2
 template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_i16 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi16_epi32(v);
 #else
-    return x86::concat(_mm_cvtepi16_epi32(v), _mm_cvtepi16_epi32(shift_right<8>(v)));
+    return x86::concat(_mm_cvtepi16_epi32(v), _mm_cvtepi16_epi32(x86::shift_right<8>(v)));
 #endif
 }
 
@@ -759,7 +771,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_u16 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu16_epi32(v);
 #else
-    return x86::concat(_mm_cvtepu16_epi32(v), _mm_cvtepu16_epi32(shift_right<8>(v)));
+    return x86::concat(_mm_cvtepu16_epi32(v), _mm_cvtepu16_epi32(x86::shift_right<8>(v)));
 #endif
 }
 
@@ -768,7 +780,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_i08 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepi8_epi32(v);
 #else
-    return x86::concat(_mm_cvtepi8_epi32(v), _mm_cvtepi8_epi32(shift_right<4>(v)));
+    return x86::concat(_mm_cvtepi8_epi32(v), _mm_cvtepi8_epi32(x86::shift_right<4>(v)));
 #endif
 }
 
@@ -781,7 +793,7 @@ template <> Vc_INTRINSIC y_i32 Vc_VDECL convert_to<y_i32>(x_u08 v) {
 #ifdef Vc_HAVE_AVX2
     return _mm256_cvtepu8_epi32(v);
 #else
-    return x86::concat(_mm_cvtepu8_epi32(v), _mm_cvtepu8_epi32(shift_right<4>(v)));
+    return x86::concat(_mm_cvtepu8_epi32(v), _mm_cvtepu8_epi32(x86::shift_right<4>(v)));
 #endif
 }
 
@@ -867,11 +879,10 @@ template <> Vc_INTRINSIC x_u32 Vc_VDECL convert_to<x_u32>(x_f64 v) {
 #ifdef Vc_HAVE_AVX512VL
     return _mm_cvttpd_epu32(v);
 #elif defined Vc_HAVE_SSE4_1
-    return _mm_xor_si128(
-        _mm_cvttpd_epi32(_mm_sub_pd(_mm_floor_pd(v), _mm_set1_pd(0x80000000u))),
-        _mm_loadl_epi64(reinterpret_cast<const __m128i*>(sse_const::signMaskFloat)));
+    return _mm_cvttpd_epi32(_mm_sub_pd(_mm_floor_pd(v), _mm_set1_pd(0x8000'0000u))) ^
+           x_u32::broadcast(0x8000'0000u).intrin();
 #else
-    return {v[0], v[1], 0, 0};
+    return make_storage<uint>(v[0], v[1], 0, 0);
 #endif
 }
 
@@ -881,9 +892,9 @@ template <> Vc_INTRINSIC x_u32 Vc_VDECL convert_to<x_u32>(y_f64 v)
 #ifdef Vc_HAVE_AVX512VL
     return _mm256_cvttpd_epu32(v);
 #else
-    return xor_(_mm256_cvttpd_epi32(
-                    _mm256_sub_pd(_mm256_floor_pd(v), _mm256_set1_pd(0x80000000u))),
-                intrin_cast<__m128i>(signmask16(float())));
+    return _mm256_cvttpd_epi32(
+               _mm256_sub_pd(_mm256_floor_pd(v), _mm256_set1_pd(0x8000'0000u))) ^
+           x_u32::broadcast(0x8000'0000u).intrin();
 #endif
 }
 #endif
@@ -891,7 +902,7 @@ template <> Vc_INTRINSIC x_u32 Vc_VDECL convert_to<x_u32>(y_f64 v)
 template <> Vc_INTRINSIC x_u32 Vc_VDECL convert_to<x_u32>(x_f64 v0, x_f64 v1)
 {
 #ifdef Vc_HAVE_AVX
-    return convert_to<x_u32>(y_f64(detail::concat(v0, v1)));
+    return convert_to<x_u32>(detail::concat(v0, v1));
 #else
     return _mm_unpacklo_epi64(convert_to<x_u32>(v0), convert_to<x_u32>(v1));
 #endif
@@ -973,7 +984,7 @@ template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(x_i64 v) {
         v, _mm_setr_epi8(0, 1, 8, 9, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                          -0x80, -0x80, -0x80, -0x80, -0x80));
 #else
-    return {v.m(0), v.m(1), 0, 0, 0, 0, 0, 0};
+    return make_storage<short>(v[0], v[1], 0, 0, 0, 0, 0, 0);
 #endif
 }
 
@@ -988,7 +999,7 @@ template <> Vc_INTRINSIC x_i16 Vc_VDECL convert_to<x_i16>(x_i64 v0, x_i64 v1)
                             _mm_setr_epi8(0, 1, 8, 9, 4, 5, 12, 13, -0x80, -0x80, -0x80,
                                           -0x80, -0x80, -0x80, -0x80, -0x80));
 #else
-    return {v0.m(0), v0.m(1), v1.m(0), v1.m(1), 0, 0, 0, 0};
+    return make_storage<short>(v0[0], v0[1], v1[0], v1[1], 0, 0, 0, 0);
 #endif
 }
 
@@ -1434,7 +1445,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i64 v) {
 #ifdef Vc_HAVE_AVX512VL
     return _mm_cvtepi64_epi8(v);
 #else
-    return {v.m(0), v.m(1), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    return make_storage<schar>(v[0], v[1], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 #endif
 }
 
@@ -1445,7 +1456,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i64 v0, x_i64 v1)
 #elif defined Vc_HAVE_AVX512F
     return _mm512_cvtepi64_epi8(x86::concat(detail::concat(v0, v1), zero<__m256i>()));
 #else
-    return {v0.m(0), v0.m(1), v1.m(0), v1.m(1), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    return make_storage<schar>(v0[0], v0[1], v1[0], v1[1], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 #endif
 }
 
@@ -1456,8 +1467,8 @@ Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i64 v0, x_i64 v1, x_i64 v2, x_i6
     return _mm512_cvtepi64_epi8(
         detail::concat(detail::concat(v0, v1), detail::concat(v2, v3)));
 #else
-    return {v0.m(0), v0.m(1), v1.m(0), v1.m(1), v2.m(0), v2.m(1), v3.m(0), v3.m(1),
-            0,       0,       0,       0,       0,       0,       0,       0};
+    return make_storage<schar>(v0[0], v0[1], v1[0], v1[1], v2[0], v2[1],
+                               v3[0], v3[1], 0, 0, 0, 0, 0, 0, 0, 0);
 #endif
 }
 
@@ -1554,8 +1565,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i32 v0, x_i32 v1)
     auto c = _mm_unpacklo_epi8(a, b);  // 0246 .... .... ....
     auto d = _mm_unpackhi_epi8(a, b);  // 1357 .... .... ....
     auto e = _mm_unpacklo_epi8(c, d);  // 0123 4567 .... ....
-    return detail::and_(
-        e, _mm_loadl_epi64(reinterpret_cast<const __m128i*>(sse_const::AllBitsSet)));
+    return e & reinterpret_cast<__m128i>(builtin_type_t<ullong, 2>{~0ull, 0ull});
 #endif
 }
 
@@ -1618,7 +1628,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i16 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
     return _mm_cvtepi16_epi8(v);
 #elif defined Vc_HAVE_SSSE3
-    auto shuf = load16(sse_const::cvti16_i08_shuffle, vector_aligned);
+    const auto shuf = reinterpret_cast<__m128i>(sse_const::cvti16_i08_shuffle);
     return _mm_shuffle_epi8(v, shuf);
 #else
     auto a = _mm_unpacklo_epi8(v, v);  // 00.. 11.. 22.. 33..
@@ -1636,7 +1646,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i16 v0, x_i16 v1)
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
     return _mm256_cvtepi16_epi8(detail::concat(v0, v1));
 #elif defined Vc_HAVE_SSSE3
-    auto shuf = load16(sse_const::cvti16_i08_shuffle, vector_aligned);
+    const auto shuf = reinterpret_cast<__m128i>(sse_const::cvti16_i08_shuffle);
     return _mm_unpacklo_epi64(_mm_shuffle_epi8(v0, shuf), _mm_shuffle_epi8(v1, shuf));
 #else
     auto a = _mm_unpacklo_epi8(v0, v1);  // 08.. 19.. 2A.. 3B..
@@ -1655,12 +1665,11 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(y_i16 v0)
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
     return _mm256_cvtepi16_epi8(v0);
 #elif defined Vc_HAVE_AVX2
-    auto a = _mm256_shuffle_epi8(
-        v0, _mm256_broadcastsi128_si256(
-                load16(sse_const::cvti16_i08_shuffle, vector_aligned)));
+    const auto shuf = reinterpret_cast<__m128i>(sse_const::cvti16_i08_shuffle);
+    auto a = _mm256_shuffle_epi8(v0, _mm256_broadcastsi128_si256(shuf));
     return _mm_unpacklo_epi64(lo128(a), hi128(a));
 #else
-    auto shuf = load16(sse_const::cvti16_i08_shuffle, vector_aligned);
+    const auto shuf = reinterpret_cast<__m128i>(sse_const::cvti16_i08_shuffle);
     return _mm_unpacklo_epi64(_mm_shuffle_epi8(lo128(v0), shuf),
                               _mm_shuffle_epi8(hi128(v0), shuf));
 #endif
@@ -1669,7 +1678,7 @@ template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(y_i16 v0)
 
 // from [su]char{{{2
 template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_i08 v) { return v; }
-template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_u08 v) { return v.v(); }
+template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_u08 v) { return v.intrin(); }
 
 // from float{{{2
 template <> Vc_INTRINSIC x_i08 Vc_VDECL convert_to<x_i08>(x_f32 v)
@@ -1829,7 +1838,7 @@ Vc_INTRINSIC y_i08 Vc_VDECL convert_to<y_i08>(y_i64 v0, y_i64 v1, y_i64 v2, y_i6
                        _mm_unpackhi_epi16(lo128(c), hi128(c)));  // GHIJ KLMN OPQR STUV
 #else
     // I don't care for non-AVX2 users that convert between non-float AVX vectors
-    return generate_from_n_evaluations<32, y_i08>([&](auto i) {
+    return generate_storage<schar, 32>([&](auto i) {
         using namespace Vc::detail;
         switch (i / 4) {
         case 0: return static_cast<schar>(v0[i % 4]); break;
@@ -2038,7 +2047,7 @@ template <> Vc_INTRINSIC x_f64 Vc_VDECL convert_to<x_f64>(x_i64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm_cvtepi64_pd(v);
 #else
-    return x_f64{v.m(0), v.m(1)};
+    return make_storage<double>(v[0], v[1]);
 #endif
 }
 
@@ -2047,7 +2056,7 @@ template <> Vc_INTRINSIC x_f64 Vc_VDECL convert_to<x_f64>(x_u64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm_cvtepu64_pd(v);
 #else
-    return x_f64{v.m(0), v.m(1)};
+    return make_storage<double>(v[0], v[1]);
 #endif
 }
 
@@ -2092,7 +2101,7 @@ template <> Vc_INTRINSIC y_f64 Vc_VDECL convert_to<y_f64>(y_i64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvtepi64_pd(v);
 #else
-    return y_f64{v.m(0), v.m(1), v.m(2), v.m(3)};
+    return make_storage<double>(v[0], v[1], v[2], v[3]);
 #endif
 }
 
@@ -2101,7 +2110,7 @@ template <> Vc_INTRINSIC y_f64 Vc_VDECL convert_to<y_f64>(y_u64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvtepu64_pd(v);
 #else
-    return y_f64{v.m(0), v.m(1), v.m(2), v.m(3)};
+    return make_storage<double>(v[0], v[1], v[2], v[3]);
 #endif
 }
 
@@ -2258,7 +2267,7 @@ template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_i64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm_cvtepi64_ps(v);
 #else
-    return {v.m(0), v.m(1), 0.f, 0.f};
+    return make_storage<float>(v[0], v[1], 0.f, 0.f);
 #endif
 }
 
@@ -2267,7 +2276,7 @@ template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_i64 v0, x_i64 v1)
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvtepi64_ps(detail::concat(v0, v1));
 #else
-    return {v0.m(0), v0.m(1), v1.m(0), v1.m(1)};
+    return make_storage<float>(v0[0], v0[1], v1[0], v1[1]);
 #endif
 }
 
@@ -2277,7 +2286,7 @@ template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(y_i64 v0)
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvtepi64_ps(v0);
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3)};
+    return make_storage<float>(v0[0], v0[1], v0[2], v0[3]);
 #endif
 }
 #endif  // Vc_HAVE_AVX
@@ -2287,7 +2296,7 @@ template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_u64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm_cvtepu64_ps(v);
 #else
-    return {v.m(0), v.m(1), 0.f, 0.f};
+    return make_storage<float>(v[0], v[1], 0.f, 0.f);
 #endif
 }
 
@@ -2296,7 +2305,7 @@ template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(x_u64 v0, x_u64 v1)
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvtepu64_ps(detail::concat(v0, v1));
 #else
-    return {v0.m(0), v0.m(1), v1.m(0), v1.m(1)};
+    return make_storage<float>(v0[0], v0[1], v1[0], v1[1]);
 #endif
 }
 
@@ -2306,7 +2315,7 @@ template <> Vc_INTRINSIC x_f32 Vc_VDECL convert_to<x_f32>(y_u64 v0)
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return _mm256_cvtepu64_ps(v0);
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3)};
+    return make_storage<float>(v0[0], v0[1], v0[2], v0[3]);
 #endif
 }
 #endif  // Vc_HAVE_AVX
@@ -2381,7 +2390,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(x_i64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return zeroExtend(_mm_cvtepi64_ps(v));
 #else
-    return {v.m(0), v.m(1), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+    return make_storage<float>(v[0], v[1], 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
 #endif
 }
 
@@ -2392,7 +2401,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_i64 v0)
 #elif defined Vc_HAVE_AVX512DQ
     return _mm512_cvtepi64_ps(zeroExtend(v0));
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), 0.f, 0.f, 0.f, 0.f};
+    return make_storage<float>(v0[0], v0[1], v0[2], v0[3], 0.f, 0.f, 0.f, 0.f);
 #endif
 }
 
@@ -2437,7 +2446,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_i64 v0, y_i64 v1)
         _mm_unpackhi_pd(_mm_castps_pd(lo128(result)), _mm_castps_pd(hi128(result)))));
     return result;
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), v1.m(0), v1.m(1), v1.m(2), v1.m(3)};
+    return make_storage<float>(v0[0], v0[1], v0[2], v0[3], v1[0], v1[1], v1[2], v1[3]);
 #endif
 }
 
@@ -2446,7 +2455,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(x_u64 v) {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
     return zeroExtend(_mm_cvtepu64_ps(v));
 #else
-    return {v.m(0), v.m(1), 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+    return make_storage<float>(v[0], v[1], 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
 #endif
 }
 
@@ -2457,7 +2466,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_u64 v0)
 #elif defined Vc_HAVE_AVX512DQ
     return _mm512_cvtepu64_ps(zeroExtend(v0));
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), 0.f, 0.f, 0.f, 0.f};
+    return make_storage<float>(v0[0], v0[1], v0[2], v0[3], 0.f, 0.f, 0.f, 0.f);
 #endif
 }
 
@@ -2480,7 +2489,7 @@ template <> Vc_INTRINSIC y_f32 Vc_VDECL convert_to<y_f32>(y_u64 v0, y_u64 v1)
 #ifdef Vc_HAVE_AVX512F
     return convert_to<y_f32>(detail::concat(v0, v1));
 #else
-    return {v0.m(0), v0.m(1), v0.m(2), v0.m(3), v1.m(0), v1.m(1), v1.m(2), v1.m(3)};
+    return make_storage<float>(v0[0], v0[1], v0[2], v0[3], v1[0], v1[1], v1[2], v1[3]);
 #endif
 }
 
@@ -2625,7 +2634,7 @@ template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(z_f32 v) { return v; }
 // from double{{{2
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(y_f64 v)
 {
-    return zeroExtend64(_mm256_cvtpd_ps(v));
+    return zeroExtend(_mm256_cvtpd_ps(v));
 }
 
 template <> Vc_INTRINSIC z_f32 Vc_VDECL convert_to<z_f32>(y_f64 v0, y_f64 v1)
@@ -2810,68 +2819,68 @@ template <> struct fallback_int_type< ulong> { using type = equal_int_type_t<ulo
 
 template <typename T>
 using equivalent_storage_t =
-    Storage<typename fallback_int_type<typename T::EntryType>::type, T::size()>;
+    Storage<typename fallback_int_type<typename T::value_type>::type, T::width>;
 
 template <typename To, typename From>
 Vc_INTRINSIC std::conditional_t<
-    (std::is_integral<typename To::EntryType>::value &&
-     sizeof(typename To::EntryType) <= sizeof(typename From::EntryType)),
-    Storage<std::make_signed_t<typename From::EntryType>, From::size()>, From>
+    (std::is_integral<typename To::value_type>::value &&
+     sizeof(typename To::value_type) <= sizeof(typename From::value_type)),
+    Storage<std::make_signed_t<typename From::value_type>, From::width>, From>
     Vc_VDECL maybe_make_signed(From v)
 {
     static_assert(
-        std::is_unsigned<typename From::EntryType>::value,
+        std::is_unsigned<typename From::value_type>::value,
         "maybe_make_signed must only be used with unsigned integral Storage types");
     return std::conditional_t<
-        (std::is_integral<typename To::EntryType>::value &&
-         sizeof(typename To::EntryType) <= sizeof(typename From::EntryType)),
-        Storage<std::make_signed_t<typename From::EntryType>, From::size()>, From>{v};
+        (std::is_integral<typename To::value_type>::value &&
+         sizeof(typename To::value_type) <= sizeof(typename From::value_type)),
+        Storage<std::make_signed_t<typename From::value_type>, From::width>, From>{v};
 }
 
 template <typename To,
-          typename Fallback = typename fallback_int_type<typename To::EntryType>::type>
+          typename Fallback = typename fallback_int_type<typename To::value_type>::type>
 struct equivalent_conversion {
     template <size_t N, typename... From>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<uchar, N> v0, From... vs)
     {
-        using S = Storage<Fallback, To::size()>;
-        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
+        using S = Storage<Fallback, To::width>;
+        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).intrin();
     }
 
     template <size_t N, typename... From>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<ushort, N> v0, From... vs)
     {
-        using S = Storage<Fallback, To::size()>;
-        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
+        using S = Storage<Fallback, To::width>;
+        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).intrin();
     }
 
     template <size_t N, typename... From>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<uint, N> v0, From... vs)
     {
-        using S = Storage<Fallback, To::size()>;
-        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
+        using S = Storage<Fallback, To::width>;
+        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).intrin();
     }
 
     template <size_t N, typename... From>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<ulong, N> v0, From... vs)
     {
-        using S = Storage<Fallback, To::size()>;
-        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
+        using S = Storage<Fallback, To::width>;
+        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).intrin();
     }
 
     template <size_t N, typename... From>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(Storage<ullong, N> v0, From... vs)
     {
-        using S = Storage<Fallback, To::size()>;
-        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).v();
+        using S = Storage<Fallback, To::width>;
+        return convert_to<S>(maybe_make_signed<To>(v0), maybe_make_signed<To>(vs)...).intrin();
     }
 
     template <typename F0, typename... From>
     static Vc_INTRINSIC Vc_CONST To Vc_VDECL convert(F0 v0, From... vs)
     {
-        static_assert(!std::is_unsigned<typename F0::EntryType>::value, "overload error");
-        using S = Storage<Fallback, To::size()>;
-        return convert_to<S>(v0, vs...).v();
+        static_assert(!std::is_unsigned<typename F0::value_type>::value, "overload error");
+        using S = Storage<Fallback, To::width>;
+        return convert_to<S>(v0, vs...).intrin();
     }
 };
 
@@ -2902,7 +2911,7 @@ template <typename To> struct equivalent_conversion<To, try_fallback_on_argument
                       "The From & To value types are not usable for a fallback "
                       "conversion. There's a missing implementation for "
                       "convert<To>(From, Fs...)");
-        using S = Storage<typename fallback_int_type<F>::type, From::size()>;
+        using S = Storage<typename fallback_int_type<F>::type, From::width>;
         return convert_to<To>(S(v0), S(vs)...);
     }
 };
@@ -2997,97 +3006,115 @@ template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_u64 v0, z_u64 v1) {
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_u64 v0, z_u64 v1, z_u64 v2, z_u64 v3) { return equivalent_conversion<To>::convert(v0, v1, v2, v3); }
 template <typename To> Vc_INTRINSIC To Vc_VDECL convert_to(z_u64 v0, z_u64 v1, z_u64 v2, z_u64 v3, z_u64 v4, z_u64 v5, z_u64 v6, z_u64 v7) { return equivalent_conversion<To>::convert(v0, v1, v2, v3, v4, v5, v6, v7); }
 #endif  // Vc_HAVE_AVX512F
+#endif  // Vc_WORK_AROUND_MISSED_OPTIMIZATIONS
 
 // convert from scalars{{{1
 template <typename To, typename... From>
+[[deprecated("use make_storage instead")]]
 Vc_INTRINSIC To Vc_VDECL convert_to(arithmetic<From>... scalars)
 {
     return x86::set(static_cast<typename To::value_type>(scalars)...);
 }
 
 // convert function{{{1
-template <typename From, typename To> Vc_INTRINSIC To Vc_VDECL convert(From v)
+template <class To, class From> Vc_INTRINSIC To Vc_VDECL convert(From v)
 {
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-    constexpr auto N = From::size() < To::size() ? From::size() : To::size();
-    return convert_builtin<To>(v.builtin(), std::make_index_sequence<N>());
-#else
+#ifdef Vc_WORKAROUND_PR85048
     return convert_to<To>(v);
-#endif
-}
-
-template <typename From, typename To> Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1)
-{
-    static_assert(To::size() >= 2 * From::size(),
-                  "convert(v0, v1) requires the input to fit into the output");
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-    return convert_builtin<To>(
-        v0.builtin(), v1.builtin(), std::make_index_sequence<From::size()>(),
-        std::make_index_sequence<To::size() - 2 * From::size()>());
 #else
-    return convert_to<To>(v0, v1);
+    if constexpr (From::width >= To::width) {
+        return convert_builtin<To>(v.d, std::make_index_sequence<To::width>());
+    } else {
+        return convert_builtin_z<To>(v.d, std::make_index_sequence<From::width>(),
+                                     std::make_index_sequence<To::width - From::width>());
+    }
 #endif
 }
 
-template <typename From, typename To>
+template <class To, class From> Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1)
+{
+    if constexpr (std::is_arithmetic_v<From>) {
+        using T = typename To::value_type;
+        return make_storage<T>(v0, v1);
+    } else {
+        static_assert(To::width >= 2 * From::width,
+                      "convert(v0, v1) requires the input to fit into the output");
+#ifdef Vc_WORKAROUND_PR85048
+        return convert_to<To>(v0, v1);
+#else
+        return convert_builtin<To>(
+            v0.d, v1.d, std::make_index_sequence<From::width>(),
+            std::make_index_sequence<To::width - 2 * From::width>());
+#endif
+    }
+}
+
+template <class To, class From>
 Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1, From v2, From v3)
 {
-    static_assert(To::size() >= 4 * From::size(),
-                  "convert(v0, v1, v2, v3) requires the input to fit into the output");
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-    return convert_builtin<To>(
-        v0.builtin(), v1.builtin(), v2.builtin(), v3.builtin(),
-        std::make_index_sequence<From::size()>(),
-        std::make_index_sequence<To::size() - 4 * From::size()>());
+    if constexpr (std::is_arithmetic_v<From>) {
+        using T = typename To::value_type;
+        return make_storage<T>(v0, v1, v2, v3);
+    } else {
+        static_assert(
+            To::width >= 4 * From::width,
+            "convert(v0, v1, v2, v3) requires the input to fit into the output");
+#ifdef Vc_WORKAROUND_PR85048
+        return convert_to<To>(v0, v1, v2, v3);
 #else
-    return convert_to<To>(v0, v1, v2, v3);
+        return convert_builtin<To>(
+            v0.d, v1.d, v2.d, v3.d, std::make_index_sequence<From::width>(),
+            std::make_index_sequence<To::width - 4 * From::width>());
 #endif
+    }
 }
 
-template <typename From, typename To>
+template <class To, class From>
 Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1, From v2, From v3, From v4, From v5, From v6,
                         From v7)
 {
-    static_assert(To::size() >= 8 * From::size(),
-                  "convert(v0, v1, v2, v3, v4, v5, v6, v7) "
-                  "requires the input to fit into the output");
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-    return convert_builtin<To>(
-        v0.builtin(), v1.builtin(), v2.builtin(), v3.builtin(), v4.builtin(),
-        v5.builtin(), v6.builtin(), v7.builtin(),
-        std::make_index_sequence<From::size()>(),
-        std::make_index_sequence<To::size() - 8 * From::size()>());
+    if constexpr (std::is_arithmetic_v<From>) {
+        using T = typename To::value_type;
+        return make_storage<T>(v0, v1, v2, v3, v4, v5, v6, v7);
+    } else {
+        static_assert(To::width >= 8 * From::width,
+                      "convert(v0, v1, v2, v3, v4, v5, v6, v7) "
+                      "requires the input to fit into the output");
+#ifdef Vc_WORKAROUND_PR85048
+        return convert_to<To>(v0, v1, v2, v3, v4, v5, v6, v7);
 #else
-    return convert_to<To>(v0, v1, v2, v3, v4, v5, v6, v7);
+        return convert_builtin<To>(
+            v0.d, v1.d, v2.d, v3.d, v4.d, v5.d, v6.d, v7.d,
+            std::make_index_sequence<From::width>(),
+            std::make_index_sequence<To::width - 8 * From::width>());
 #endif
+    }
 }
 
 // convert_all function{{{1
 template <typename To, typename From>
 Vc_INTRINSIC auto Vc_VDECL convert_all_impl(From v, std::true_type)
 {
-    constexpr size_t N = From::size() / To::size();
+    constexpr size_t N = From::width / To::width;
     return generate_from_n_evaluations<N, std::array<To, N>>([&](auto i) {
-        using namespace Vc::detail::x86;  // ICC needs this to find convert and
-                                          // shift_right below.
 #ifdef Vc_MSVC
-        constexpr size_t N = From::size() / To::size();
+        constexpr size_t N = From::width / To::width;
 #endif
         auto part = x86::extract_part<decltype(i)::value, N>(v);
-        return convert<decltype(part), To>(part);
+        return convert<To>(part);
     });
 }
 
 template <typename To, typename From>
 Vc_INTRINSIC To Vc_VDECL convert_all_impl(From v, std::false_type)
 {
-    return convert<From, To>(v);
+    return convert<To>(v);
 }
 
 template <typename To, typename From> Vc_INTRINSIC auto Vc_VDECL convert_all(From v)
 {
     return convert_all_impl<To, From>(
-        v, std::integral_constant<bool, (From::size() > To::size())>());
+        v, std::integral_constant<bool, (From::width > To::width)>());
 }
 
 // }}}1

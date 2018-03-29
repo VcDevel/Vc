@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
 #include <Vc/simd>
+#include <Vc/ostream>
 #include "metahelpers.h"
 
 template <class... Ts> using base_template = Vc::simd_mask<Ts...>;
@@ -495,5 +496,6 @@ TEST_TYPES(M, reductions, all_test_types)  //{{{1
     VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
     VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
 }
+
 
 // vim: foldmethod=marker

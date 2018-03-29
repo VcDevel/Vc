@@ -52,7 +52,7 @@ template <class T> struct traits<T, simd_abi::neon> {
     using simd_member_type = neon_simd_member_type<T>;
     using simd_impl_type = neon_simd_impl;
     static constexpr size_t simd_member_alignment = alignof(simd_member_type);
-    using simd_cast_type = typename simd_member_type::VectorType;
+    using simd_cast_type = typename simd_member_type::register_type;
     struct simd_base {
         explicit operator simd_cast_type() const
         {
@@ -63,9 +63,9 @@ template <class T> struct traits<T, simd_abi::neon> {
     using mask_member_type = neon_mask_member_type<T>;
     using mask_impl_type = neon_mask_impl;
     static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-    using mask_cast_type = typename mask_member_type::VectorType;
+    using mask_cast_type = typename mask_member_type::register_type;
     struct mask_base {
-        explicit operator typename mask_member_type::VectorType() const
+        explicit operator typename mask_member_type::register_type() const
         {
             return data(*static_cast<const simd_mask<T, simd_abi::neon> *>(this));
         }
@@ -233,7 +233,7 @@ struct neon_simd_impl : public generic_simd_impl<neon_simd_impl> {
     using abi = simd_abi::neon;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <class T> using simd_member_type = neon_simd_member_type<T>;
-    template <class T> using intrinsic_type = typename simd_member_type<T>::VectorType;
+    template <class T> using intrinsic_type = typename simd_member_type<T>::register_type;
     template <class T> using mask_member_type = neon_mask_member_type<T>;
     template <class T> using simd = Vc::simd<T, abi>;
     template <class T> using simd_mask = Vc::simd_mask<T, abi>;

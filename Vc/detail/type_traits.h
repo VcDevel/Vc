@@ -32,6 +32,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
+// integer type aliases{{{
+using uchar = unsigned char;
+using schar = signed char;
+using ushort = unsigned short;
+using uint = unsigned int;
+using ulong = unsigned long;
+using llong = long long;
+using ullong = unsigned long long;
+using wchar = wchar_t;
+using char16 = char16_t;
+using char32 = char32_t;
+
+//}}}
 // void_t{{{
 template <class... Ts> using void_t = void;
 //}}}
@@ -136,6 +149,177 @@ template <int A, int B> struct is_less_than : public std::integral_constant<bool
 template <int A, int B>
 struct is_equal_to : public std::integral_constant<bool, (A == B)> {
 };
+// }}}
+template <size_t X> using size_constant = std::integral_constant<size_t, X>;
+
+// int_for_sizeof{{{
+template <class T, size_t = sizeof(T)> struct int_for_sizeof;
+template <class T> struct int_for_sizeof<T, 1> { using type = signed char; };
+template <class T> struct int_for_sizeof<T, 2> { using type = signed short; };
+template <class T> struct int_for_sizeof<T, 4> { using type = signed int; };
+template <class T> struct int_for_sizeof<T, 8> { using type = signed long long; };
+template <class T> using int_for_sizeof_t = typename int_for_sizeof<T>::type;
+
+// }}}
+// equal_int_type{{{
+/**
+ * \internal
+ * TODO: rename to same_value_representation
+ * Type trait to find the equivalent integer type given a(n) (un)signed long type.
+ */
+template <class T, size_t = sizeof(T)> struct equal_int_type;
+template <> struct equal_int_type< long, sizeof(int)> { using type =    int; };
+template <> struct equal_int_type< long, sizeof(llong)> { using type =  llong; };
+template <> struct equal_int_type<ulong, sizeof(uint)> { using type =   uint; };
+template <> struct equal_int_type<ulong, sizeof(ullong)> { using type = ullong; };
+template <> struct equal_int_type< char, 1> { using type = std::conditional_t<std::is_signed_v<char>, schar, uchar>; };
+template <size_t N> struct equal_int_type<char16_t, N> { using type = std::uint_least16_t; };
+template <size_t N> struct equal_int_type<char32_t, N> { using type = std::uint_least32_t; };
+template <> struct equal_int_type<wchar_t, 1> { using type = std::conditional_t<std::is_signed_v<wchar_t>, schar, uchar>; };
+template <> struct equal_int_type<wchar_t, sizeof(short)> { using type = std::conditional_t<std::is_signed_v<wchar_t>, short, ushort>; };
+template <> struct equal_int_type<wchar_t, sizeof(int)> { using type = std::conditional_t<std::is_signed_v<wchar_t>, int, uint>; };
+
+template <class T> using equal_int_type_t = typename equal_int_type<T>::type;
+
+// }}}
+// has_same_value_representation{{{
+template <class T, class = void_t<>>
+struct has_same_value_representation : std::false_type {
+};
+
+template <class T>
+struct has_same_value_representation<T, void_t<typename equal_int_type<T>::type>>
+    : std::true_type {
+};
+
+template <class T>
+inline constexpr bool has_same_value_representation_v =
+    has_same_value_representation<T>::value;
+
+// }}}
+// is_fixed_size_abi{{{
+template <class T> struct is_fixed_size_abi : std::false_type {
+};
+
+template <int N> struct is_fixed_size_abi<simd_abi::fixed_size<N>> : std::true_type {
+};
+
+template <class T> inline constexpr bool is_fixed_size_abi_v = is_fixed_size_abi<T>::value;
+
+// }}}
+// constexpr feature detection{{{
+constexpr inline bool have_mmx = 0
+#ifdef Vc_HAVE_MMX
+                                 + 1
+#endif
+    ;
+constexpr inline bool have_sse = 0
+#ifdef Vc_HAVE_SSE
+                                 + 1
+#endif
+    ;
+constexpr inline bool have_sse2 = 0
+#ifdef Vc_HAVE_SSE2
+                                  + 1
+#endif
+    ;
+constexpr inline bool have_sse3 = 0
+#ifdef Vc_HAVE_SSE3
+                                  + 1
+#endif
+    ;
+constexpr inline bool have_ssse3 = 0
+#ifdef Vc_HAVE_SSSE3
+                                   + 1
+#endif
+    ;
+constexpr inline bool have_sse4_1 = 0
+#ifdef Vc_HAVE_SSE4_1
+                                    + 1
+#endif
+    ;
+constexpr inline bool have_sse4_2 = 0
+#ifdef Vc_HAVE_SSE4_2
+                                    + 1
+#endif
+    ;
+constexpr inline bool have_xop = 0
+#ifdef Vc_HAVE_XOP
+                                 + 1
+#endif
+    ;
+constexpr inline bool have_avx = 0
+#ifdef Vc_HAVE_AVX
+                                 + 1
+#endif
+    ;
+constexpr inline bool have_avx2 = 0
+#ifdef Vc_HAVE_AVX2
+                                  + 1
+#endif
+    ;
+constexpr inline bool have_bmi = 0
+#ifdef Vc_HAVE_BMI
+                                 + 1
+#endif
+    ;
+constexpr inline bool have_bmi2 = 0
+#ifdef Vc_HAVE_BMI2
+                                  + 1
+#endif
+    ;
+constexpr inline bool have_lzcnt = 0
+#ifdef Vc_HAVE_LZCNT
+                                   + 1
+#endif
+    ;
+constexpr inline bool have_sse4a = 0
+#ifdef Vc_HAVE_SSE4A
+                                   + 1
+#endif
+    ;
+constexpr inline bool have_fma = 0
+#ifdef Vc_HAVE_FMA
+                                 + 1
+#endif
+    ;
+constexpr inline bool have_fma4 = 0
+#ifdef Vc_HAVE_FMA4
+                                  + 1
+#endif
+    ;
+constexpr inline bool have_f16c = 0
+#ifdef Vc_HAVE_F16C
+                                  + 1
+#endif
+    ;
+constexpr inline bool have_popcnt = 0
+#ifdef Vc_HAVE_POPCNT
+                                    + 1
+#endif
+    ;
+constexpr inline bool have_avx512f = 0
+#ifdef Vc_HAVE_AVX512F
+                                     + 1
+#endif
+    ;
+constexpr inline bool have_avx512dq = 0
+#ifdef Vc_HAVE_AVX512DQ
+                                      + 1
+#endif
+    ;
+constexpr inline bool have_avx512vl = 0
+#ifdef Vc_HAVE_AVX512VL
+                                      + 1
+#endif
+    ;
+constexpr inline bool have_avx512bw = 0
+#ifdef Vc_HAVE_AVX512BW
+                                      + 1
+#endif
+    ;
+constexpr inline bool have_avx512dq_vl = have_avx512dq && have_avx512vl;
+constexpr inline bool have_avx512bw_vl = have_avx512bw && have_avx512vl;
 // }}}
 
 }  // namespace detail

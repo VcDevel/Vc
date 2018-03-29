@@ -392,14 +392,6 @@ Vc_INTRINSIC int32x4_t and_(int32x4_t a, int32x4_t b) { return vandq_s32(a, b); 
 Vc_INTRINSIC int64x2_t andnot_(int64x2_t a, int64x2_t b) { return vbicq_s64(a, b); }
 Vc_INTRINSIC int32x4_t andnot_(int32x4_t a, int32x4_t b) { return vbicq_s32(a, b); }
 
-// shift_left{{{1
-template <int n> Vc_INTRINSIC int64x2_t shift_left(int64x2_t v) { return vshlq_n_s64(v, n); }
-template <int n> Vc_INTRINSIC int32x4_t shift_left(int32x4_t v) { return vshlq_n_s32(v, n); }
-
-// shift_right{{{1
-template <int n> Vc_INTRINSIC int64x2_t shift_right(int64x2_t v) { return vshrq_n_s64(v, n); }
-template <int n> Vc_INTRINSIC int32x4_t shift_right(int32x4_t v) { return vshrq_n_s32(v, n); }
-
 // popcnt{{{1
 // Not available for arm NEON?
 Vc_INTRINSIC Vc_CONST unsigned int popcnt4(unsigned int n) {}

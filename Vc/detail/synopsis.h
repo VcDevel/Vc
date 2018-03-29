@@ -60,7 +60,7 @@ namespace simd_abi
 {
 // most of simd_abi is defined in fwddecl.h
 template <class T> inline constexpr int max_fixed_size = 32;
-#if defined Vc_IS_AMD64
+#if defined __x86_64__
 #if !defined Vc_HAVE_SSE2
 #error "Use of SSE2 is required on AMD64"
 #endif
@@ -350,19 +350,40 @@ struct static_simd_cast_return_type2<simd<U, A1>, simd<T, A0>>
     : public std::enable_if<(simd_size_v<U, A1> == simd_size_v<T, A0>), simd<T, A0>> {
 };
 
-// defined in scalar.h
-template <class T> T convert_mask(bool x);
+// specialized in scalar.h
+template <class T> T convert_any_mask(bool x)
+{
+    static_assert(
+        std::is_same_v<T, bool>,
+        "convert_any_mask(bool) is only meant for the no-op scalar->scalar case");
+}
 
 template <class To, class, class, class Native, class From>
 Vc_INTRINSIC To mask_cast_impl(const Native *, const From &x)
 {
-    return {Vc::detail::private_init,
-            detail::convert_mask<typename detail::get_traits_t<To>::mask_member_type>(x)};
+    static_assert(std::is_same_v<Native, typename detail::get_traits_t<To>::mask_member_type>);
+    if constexpr (std::is_same_v<Native, bool>) {
+        return {Vc::detail::private_init, x[0]};
+    } else if constexpr (std::is_same_v<From, bool>) {
+        To r{};
+        r[0] = x;
+        return r;
+    } else {
+        return {
+            Vc::detail::private_init,
+            detail::convert_any_mask<typename detail::get_traits_t<To>::mask_member_type>(
+                x)};
+    }
 }
 template <class To, class, class, class Native, size_t N>
 Vc_INTRINSIC To mask_cast_impl(const Native *, const std::bitset<N> &x)
 {
     return {Vc::detail::bitset_init, x};
+}
+template <class To, class, class>
+Vc_INTRINSIC To mask_cast_impl(const bool *, bool x)
+{
+    return To(x);
 }
 template <class To, class, class>
 Vc_INTRINSIC To mask_cast_impl(const std::bitset<1> *, bool x)
@@ -386,13 +407,12 @@ template <class T, class U, class A,
           class R = typename detail::static_simd_cast_return_type<simd<U, A>, T>::type>
 Vc_INTRINSIC R static_simd_cast(const simd<U, A> &x)
 {
-#ifdef __cpp_if_constexpr
     if constexpr(std::is_same<R, simd<U, A>>::value) {
         return x;
+    } else {
+        detail::simd_converter<U, A, typename R::value_type, typename R::abi_type> c;
+        return R(detail::private_init, c(detail::data(x)));
     }
-#endif  // __cpp_if_constexpr
-    detail::simd_converter<U, A, typename R::value_type, typename R::abi_type> c;
-    return R(detail::private_init, c(detail::data(x)));
 }
 
 template <class T, class U, class A,
@@ -401,14 +421,13 @@ template <class T, class U, class A,
 Vc_INTRINSIC typename R::mask_type static_simd_cast(const simd_mask<U, A> &x)
 {
     using RM = typename R::mask_type;
-#ifdef __cpp_if_constexpr
     if constexpr(std::is_same<RM, simd_mask<U, A>>::value) {
         return x;
+    } else {
+        using traits = detail::traits<typename R::value_type, typename R::abi_type>;
+        const typename traits::mask_member_type *tag = nullptr;
+        return detail::mask_cast_impl<RM, U, A>(tag, detail::data(x));
     }
-#endif  // __cpp_if_constexpr
-    using traits = detail::traits<typename R::value_type, typename R::abi_type>;
-    const typename traits::mask_member_type *tag = nullptr;
-    return detail::mask_cast_impl<RM, U, A>(tag, detail::data(x));
 }
 
 // simd_cast {{{2
@@ -425,6 +444,22 @@ Vc_INTRINSIC auto simd_cast(const simd_mask<detail::value_preserving<U, To>, A> 
 {
     return static_simd_cast<T>(x);
 }
+
+namespace experimental
+{
+template <class T, class U, class A>
+Vc_INTRINSIC T resizing_simd_cast(const simd_mask<U, A> &x)
+{
+    static_assert(is_simd_mask_v<T>);
+    if constexpr (std::is_same_v<T, simd_mask<U, A>>) {
+        return x;
+    } else {
+        using traits = detail::traits<typename T::simd_type::value_type, typename T::abi_type>;
+        const typename traits::mask_member_type *tag = nullptr;
+        return detail::mask_cast_impl<T, U, A>(tag, detail::data(x));
+    }
+}
+}  // namespace experimental
 
 // to_fixed_size {{{2
 template <class T, int N>
@@ -901,38 +936,19 @@ public:
 
     class iterator
     {
-#ifdef Vc_MSVC
-        unsigned long mask;
-        unsigned long bit;
-#else
         size_t mask;
         size_t bit;
-#endif
 
         void next_bit()
         {
-#ifdef Vc_GNU_ASM
             bit = __builtin_ctzl(mask);
-#elif defined(Vc_MSVC)
-            _BitScanForward(&bit, mask);
-#else
-#error "Not implemented yet."
-#endif
         }
         void reset_lsb()
         {
             // 01100100 - 1 = 01100011
             mask &= (mask - 1);
             /*
-#ifdef Vc_GNU_ASM
             __asm__("btr %1,%0" : "+r"(mask) : "r"(bit));
-#elif defined(_WIN64)
-            _bittestandreset64(&mask, bit);
-#elif defined(_WIN32)
-            _bittestandreset(&mask, bit);
-#else
-#error "Not implemented yet. Please contact vc-devel@compeng.uni-frankfurt.de"
-#endif
             */
         }
     public:

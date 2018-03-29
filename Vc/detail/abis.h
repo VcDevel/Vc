@@ -71,11 +71,11 @@ template <class T, class MT, class Abi, size_t N> struct gnu_traits {
     struct mask_base2 {
         explicit operator detail::intrinsic_type_t<T, N>() const
         {
-            return static_cast<const simd_mask<T, Abi> *>(this)->d.v();
+            return static_cast<const simd_mask<T, Abi> *>(this)->d.intrin();
         }
         explicit operator detail::builtin_type_t<T, N>() const
         {
-            return static_cast<const simd_mask<T, Abi> *>(this)->d.builtin();
+            return static_cast<const simd_mask<T, Abi> *>(this)->d.d;
         }
     };
     struct mask_base1 {
@@ -262,7 +262,7 @@ template <> struct avx512_is_vectorizable< schar> : std::false_type {};
 template <> struct avx512_is_vectorizable< short> : std::false_type {};
 template <> struct avx512_is_vectorizable<ushort> : std::false_type {};
 template <> struct avx512_is_vectorizable<char16_t> : std::false_type {};
-template <> struct avx512_is_vectorizable<wchar_t> : detail::bool_constant<sizeof(wchar_t) == 2> {};
+template <> struct avx512_is_vectorizable<wchar_t> : detail::bool_constant<sizeof(wchar_t) >= 4> {};
 #endif
 #else
 template <class T> struct avx512_is_vectorizable : std::false_type {};

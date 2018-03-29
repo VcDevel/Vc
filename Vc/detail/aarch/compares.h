@@ -28,24 +28,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SIMD_AARCH_COMPARES_H_
 #define VC_SIMD_AARCH_COMPARES_H_
 
-#include "storage.h"
-
-namespace Vc_VERSIONED_NAMESPACE::detail::aarch
-{
-Vc_INTRINSIC Vc_CONST y_u32 cmpgt(y_u32 x, y_u32 y)
-{
- return vceq_u32(x,y);
-}
-
-Vc_INTRINSIC Vc_CONST y_u16 cmptg(y_u16 x, y_u16 y)
-{ 
- return vceq_u16(x,y);
-}
-
-Vc_INTRINSIC Vc_CONST y_u08 cmptg(y_u08 x, y_u08)
-{
- return vceq_u08(x,y);
-}
-}  // namespace Vc_VERSIONED_NAMESPACE::detail::aarch
-
 #endif  // VC_SIMD_AARCH_COMPARES_H_

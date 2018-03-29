@@ -44,17 +44,9 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 Vc_TARGET_NO_SIMD
 static inline bool xgetbvCheck(unsigned int bits)
 {
-#if defined(Vc_MSVC) && Vc_MSVC >= 160040219 // MSVC 2010 SP1 introduced _xgetbv
-    unsigned long long xcrFeatureMask = _xgetbv(_XCR_XFEATURE_ENABLED_MASK);
-    return (xcrFeatureMask & bits) == bits;
-#elif defined(Vc_GNU_ASM) && !defined(Vc_NO_XGETBV)
     unsigned int eax;
     asm("xgetbv" : "=a"(eax) : "c"(0) : "edx");
     return (eax & bits) == bits;
-#else
-    // can't check, but if OSXSAVE is true let's assume it'll work
-    return bits > 0; // ignore 'warning: unused parameter'
-#endif
 }
 
 Vc_TARGET_NO_SIMD
