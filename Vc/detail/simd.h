@@ -120,8 +120,10 @@ public:
     friend V operator^ (const V &x, const V &y) { return simd_int_operators::make_derived(impl::bit_xor        (data(x), data(y))); }
     friend V operator<<(const V &x, const V &y) { return simd_int_operators::make_derived(impl::bit_shift_left (data(x), data(y))); }
     friend V operator>>(const V &x, const V &y) { return simd_int_operators::make_derived(impl::bit_shift_right(data(x), data(y))); }
-    friend V operator<<(const V &x, int y)      { return simd_int_operators::make_derived(impl::bit_shift_left (data(x), y)); }
-    friend V operator>>(const V &x, int y)      { return simd_int_operators::make_derived(impl::bit_shift_right(data(x), y)); }
+    template<class T>
+    friend V operator<<(const V &x, const T &y) { return simd_int_operators::make_derived(impl::bit_shift_left (data(x), y)); }
+    template<class T>
+    friend V operator>>(const V &x, const T &y) { return simd_int_operators::make_derived(impl::bit_shift_right(data(x), y)); }
 
     // unary operators (for integral T)
     V operator~() const
