@@ -109,7 +109,10 @@ public:
         typedef Mask Argument;
 #endif
 
-        Vc_INTRINSIC Mask() {}
+        Vc_INTRINSIC Mask() = default;
+        Vc_INTRINSIC Mask(const Mask &) = default;
+        Vc_INTRINSIC Mask &operator=(const Mask &) = default;
+
         Vc_INTRINSIC Mask(const __m128  &x) : d(sse_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(const __m128d &x) : d(sse_cast<VectorType>(x)) {}
         Vc_INTRINSIC Mask(const __m128i &x) : d(sse_cast<VectorType>(x)) {}
@@ -121,8 +124,8 @@ public:
 
         // implicit cast
         template <typename U>
-        Vc_INTRINSIC Mask(U &&rhs,
-                          Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
+        Vc_INTRINSIC Mask(
+            U &&rhs, Common::enable_if_mask_converts_implicitly<Mask, T, U> = nullarg)
             : d(sse_cast<VectorType>(
                   Detail::mask_cast<Traits::simd_vector_size<U>::value, Size, __m128>(
                       rhs.dataI())))

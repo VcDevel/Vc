@@ -261,6 +261,9 @@ public:
     using EntryType = ValueType;
 
     Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
+    Vc_INTRINSIC Storage(const Storage &) = default;
+    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
+
     Vc_INTRINSIC Storage(const VectorType &x)
         : data(reinterpret_cast<const MayAlias<Builtin> &>(x))
     {
@@ -278,9 +281,6 @@ public:
         data = reinterpret_cast<const MayAlias<Builtin> &>(x);
         return *this;
     }
-
-    Vc_INTRINSIC Storage(const Storage &) = default;
-    Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 
     Vc_INTRINSIC operator const VectorType &() const { return v(); }
     Vc_INTRINSIC Vc_PURE VectorType &v() { return reinterpret_cast<VectorType &>(data); }

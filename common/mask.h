@@ -162,7 +162,7 @@ public:
      */
     template <typename U>
     Vc_INTRINSIC Mask(U &&otherMask,
-                      Common::enable_if_mask_converts_implicitly<T, U> = nullarg);
+                      Common::enable_if_mask_converts_implicitly<Mask, T, U> = nullarg);
 
 #if Vc_IS_VERSION_1
     /**

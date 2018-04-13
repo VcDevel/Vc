@@ -276,9 +276,10 @@ Vc_ALWAYS_INLINE_L void free(void *p) Vc_ALWAYS_INLINE_R;
 /**\internal
  * Central definition of the type combinations that convert implicitly.
  */
-template <typename T, typename U>
+template <typename Mask, typename T, typename U>
 using enable_if_mask_converts_implicitly =
-    enable_if<(Traits::is_simd_mask<U>::value && !Traits::isSimdMaskArray<U>::value &&
+    enable_if<(!std::is_same<Mask, Traits::decay<U>>::value &&  // that'd be the copy ctor
+               Traits::is_simd_mask<U>::value && !Traits::isSimdMaskArray<U>::value &&
                Traits::is_implicit_cast_allowed_mask<
                    Traits::entry_type_of<typename Traits::decay<U>::Vector>, T>::value)>;
 /**\internal

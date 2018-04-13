@@ -131,8 +131,11 @@ public:
 
     // implicit cast
     template <typename U>
-    Vc_INTRINSIC Mask(U &&rhs, Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
-        : k(MaskHelper<Size>::cast(rhs.data())) {}
+    Vc_INTRINSIC Mask(U &&rhs,
+                      Common::enable_if_mask_converts_implicitly<Mask, T, U> = nullarg)
+        : k(MaskHelper<Size>::cast(rhs.data()))
+    {
+    }
 
 #if Vc_IS_VERSION_1
     // explicit cast, implemented via simd_cast (in mic/simd_cast_caller.h)

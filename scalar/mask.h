@@ -83,7 +83,7 @@ public:
 
     // implicit cast
     template <typename U>
-    Vc_INTRINSIC Mask(U &&rhs, Common::enable_if_mask_converts_implicitly<T, U> = nullarg)
+    Vc_INTRINSIC Mask(U &&rhs, Common::enable_if_mask_converts_implicitly<Mask, T, U> = nullarg)
         : m(rhs.m) {}
 
 #if Vc_IS_VERSION_1
