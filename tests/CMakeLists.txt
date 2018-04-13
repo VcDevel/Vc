@@ -311,42 +311,72 @@ if(BUILD_EXTRA_CAST_TESTS)
 endif()
 vc_add_test(simdarray)
 
-find_program(OBJDUMP objdump)
-mark_as_advanced(OBJDUMP)
+get_property(_incdirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+set(incdirs)
+foreach(_d ${_incdirs})
+   list(APPEND incdirs "-I${_d}")
+endforeach()
 
-if(OBJDUMP)
+separate_arguments(_flags UNIX_COMMAND "${CMAKE_CXX_FLAGS} ${Vc_DEFINITIONS}")
+list(APPEND _flags ${Vc_COMPILE_FLAGS})
+set(_tmp)
+foreach(_f ${_flags})
+   if(_f MATCHES "^-m" OR _f MATCHES "^/arch:" OR _f MATCHES "^-x")
+      # nothing
+   elseif(_f MATCHES "^/[A-Za-z]")
+      string(SUBSTRING "${_f}" 1 -1 _f)
+      list(APPEND _tmp "-${_f}")
+   else()
+      list(APPEND _tmp "${_f}")
+   endif()
+endforeach()
+set(_flags "${_tmp}")
+
+# Test ABI on 64-bit x86: Vector/Mask arguments and return values should pass via registers.
+# The 32 bit ABI only allows passing via the stack, so nothing useful to test there.
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "(x86_64|AMD64|amd64)")
    macro(test_abi _target _impl)
       set(_test test_${_target})
+      set(asmfile "${_target}.i")
       if("${_impl}" STREQUAL "MIC")
-         mic_add_executable(${_target} SOURCES abi.cpp LINK_LIBRARIES Vc_MIC COMPILE_FLAGS "-DVc_IMPL=${_impl};${ARGN};-O2")
+         add_custom_command(OUTPUT ${asmfile}
+            COMMAND ${MIC_CXX}
+            ${incdirs} ${_flags} -O0 -mmic -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
+            ${CMAKE_CURRENT_SOURCE_DIR}/abi.cpp
+            DEPENDS abi.cpp ${CMAKE_SOURCE_DIR}/*/*.h ${CMAKE_SOURCE_DIR}/*/*.tcc
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Build ABI test: ${asmfile}"
+            VERBATIM
+            )
       else()
-         add_executable(${_target} EXCLUDE_FROM_ALL abi.cpp)
-         target_link_libraries(${_target} Vc)
-         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS "Vc_IMPL=${_impl}")
-         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS "${ARGN};-O2")
+         add_custom_command(OUTPUT ${asmfile}
+            COMMAND ${CMAKE_CXX_COMPILER}
+            ${incdirs} ${_flags} -O0 -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
+            ${CMAKE_CURRENT_SOURCE_DIR}/abi.cpp
+            DEPENDS abi.cpp ${CMAKE_SOURCE_DIR}/*/*.h ${CMAKE_SOURCE_DIR}/*/*.tcc
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+            COMMENT "Build ABI test: ${asmfile}"
+            VERBATIM
+            )
       endif()
+      add_custom_target(${_target} DEPENDS ${asmfile})
       add_target_property(${_target} LABELS "${_impl}")
       add_dependencies(${_impl} ${_target})
       add_dependencies(build_tests ${_target})
 
-      get_target_property(_exe ${_target} OUTPUT_NAME)
-      if(NOT _exe)
-         set(_exe ${_target})
-      endif()
-
       add_test(NAME ${_test}
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-         COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+         COMMAND ${CMAKE_COMMAND} -DASM=${asmfile} -DIMPL=${_impl}
          -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
          -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
          )
       set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
       add_custom_target(run_${_target}
-         ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+         ${CMAKE_COMMAND} -DASM=${asmfile} -DIMPL=${_impl}
          -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
          -P ${CMAKE_CURRENT_SOURCE_DIR}/abi.cmake
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-         DEPENDS ${_target}
+         DEPENDS ${asmfile}
          COMMENT "Execute ${_target} test"
          VERBATIM
          )
@@ -414,27 +444,6 @@ if(_last_target_arch STREQUAL "auto" AND NOT Vc_AVX_INTRINSICS_BROKEN AND Vc_X86
 endif()
 vc_add_general_test(alignmentinheritance)
 vc_add_general_test(alignedbase)
-
-get_property(_incdirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-set(incdirs)
-foreach(_d ${_incdirs})
-   list(APPEND incdirs "-I${_d}")
-endforeach()
-
-separate_arguments(_flags UNIX_COMMAND "${CMAKE_CXX_FLAGS} ${Vc_DEFINITIONS}")
-list(APPEND _flags ${Vc_COMPILE_FLAGS})
-set(_tmp)
-foreach(_f ${_flags})
-   if(_f MATCHES "^-m" OR _f MATCHES "^/arch:" OR _f MATCHES "^-x")
-      # nothing
-   elseif(_f MATCHES "^/[A-Za-z]")
-      string(SUBSTRING "${_f}" 1 -1 _f)
-      list(APPEND _tmp "-${_f}")
-   else()
-      list(APPEND _tmp "${_f}")
-   endif()
-endforeach()
-set(_flags "${_tmp}")
 
 set(TEST_OPERATOR_FAILURES FALSE CACHE BOOL "Run implicit type conversion operator tests.")
 if(TEST_OPERATOR_FAILURES)

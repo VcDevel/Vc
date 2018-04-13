@@ -2,34 +2,24 @@
 # test Vector<T> ABI
 #######################################################################
 
-execute_process(
-   COMMAND ${OBJDUMP} --no-show-raw-insn -dC -j .text ${BINARY}
-   COMMAND grep -A3 " <test"
-   COMMAND sed 1d
-   COMMAND cut -d: -f2
-   COMMAND xargs echo
-   OUTPUT_VARIABLE asm)
-string(STRIP "${asm}" asm)
+macro(extract_asm marker)
+   execute_process(
+      COMMAND grep -A100 ${marker}_start ${ASM}
+      COMMAND grep -B100 ${marker}_end
+      COMMAND grep -v -e ${marker}_ -e "#"
+      OUTPUT_VARIABLE asm)
+   string(STRIP "${asm}" asm)
+   string(REPLACE "(%rip)" "" asm "${asm}")
+   string(REPLACE "\t" " " asm "${asm}")
+   string(REGEX REPLACE "  +" " " asm "${asm}")
+endmacro()
 
-if("${asm}" MATCHES "%esp")
-   set(x86_32 TRUE)
-else()
-   set(x86_32 FALSE)
-endif()
-set(expect_failure FALSE)
+extract_asm(vector_abi)
 
-# Note the regex parts looking for %esp can only match on ia32. (Not sure about x32, though)
-# 'retq' on the other hand, can only match on x64
 if("${IMPL}" STREQUAL SSE)
-   set(reference "(^addps %xmm(0,%xmm1 movaps %xmm1,%xmm0 retq|1,%xmm0 retq)|vaddps %xmm(0,%xmm1|1,%xmm0),%xmm0 retq|.*v?movaps 0x[12]4\\(%esp\\),%xmm[01]( | .+ )v?(add|mova)ps 0x[12]4\\(%esp\\),%xmm[01])")
-   if(x86_32 AND COMPILER_IS_CLANG AND "${SYSTEM_NAME}" STREQUAL "Linux")
-      set(expect_failure TRUE)
-   endif()
+   set(reference "v?movaps a_v, %xmm0.*call .* v?movaps %xmm0, b_v")
 elseif("${IMPL}" STREQUAL AVX OR "${IMPL}" STREQUAL AVX2)
-   set(reference "(^vaddps %ymm(0,%ymm1|1,%ymm0),%ymm0 retq|vmovaps 0x[24]4\\(%esp\\),%ymm[01]( | .+ )v(add|mova)ps 0x[24]4\\(%esp\\),%ymm[01],%ymm)")
-   if(x86_32 AND COMPILER_IS_CLANG AND "${SYSTEM_NAME}" STREQUAL "Linux")
-      set(expect_failure TRUE)
-   endif()
+   set(reference "vmovaps a_v, %ymm0.*call .* vmovaps %ymm0, b_v")
 elseif("${IMPL}" STREQUAL MIC)
    set(reference "^vaddps %zmm(0,%zmm1|1,%zmm0),%zmm0 retq")
 else()
@@ -37,13 +27,7 @@ else()
 endif()
 
 if("${asm}" MATCHES "${reference}")
-   if(expect_failure)
-      message(FATAL_ERROR "Warning: unexpected pass. The test was flagged as EXPECT_FAILURE but passed instead.")
-   else()
-      message("PASS: Vector<T> ABI")
-   endif()
-elseif(expect_failure)
-   message("Expected Failure.\n'${asm}'\n  does not match\n'${reference}'")
+   message("PASS: Vector<T> ABI")
 else()
    message(FATAL_ERROR "Failed.\n'${asm}'\n  does not match\n'${reference}'")
 endif()
@@ -55,23 +39,10 @@ if("${IMPL}" STREQUAL MIC)
    set(reference "%di,.*%si,") # needs to read from %di and %si
 endif()
 
-execute_process(
-   COMMAND ${OBJDUMP} --no-show-raw-insn -dC -j .text ${BINARY}
-   COMMAND grep -A3 " <mask_test"
-   COMMAND sed 1d
-   COMMAND cut -d: -f2
-   COMMAND xargs echo
-   OUTPUT_VARIABLE asm)
-string(STRIP "${asm}" asm)
-string(REPLACE "add" "and" reference "${reference}")
+extract_asm(mask_abi)
+string(REPLACE "_v" "_m" reference "${reference}")
 if("${asm}" MATCHES "${reference}")
-   if(expect_failure)
-      message(FATAL_ERROR "Warning: unexpected pass. The test was flagged as EXPECT_FAILURE but passed instead.")
-   else()
-      message("PASS: Mask<T> ABI")
-   endif()
-elseif(expect_failure)
-   message("Expected Failure.\n'${asm}'\n  does not match\n'${reference}'")
+   message("PASS: Mask<T> ABI")
 else()
    message(FATAL_ERROR "Failed.\n'${asm}'\n  does not match\n'${reference}'")
 endif()
