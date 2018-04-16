@@ -341,7 +341,7 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "(x86_64|AMD64|amd64)")
       if("${_impl}" STREQUAL "MIC")
          add_custom_command(OUTPUT ${asmfile}
             COMMAND ${MIC_CXX}
-            ${incdirs} ${_flags} -O0 -mmic -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
+            ${incdirs} ${_flags} -O1 -mmic -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
             ${CMAKE_CURRENT_SOURCE_DIR}/abi.cpp
             DEPENDS abi.cpp ${CMAKE_SOURCE_DIR}/*/*.h ${CMAKE_SOURCE_DIR}/*/*.tcc
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -351,7 +351,7 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "(x86_64|AMD64|amd64)")
       else()
          add_custom_command(OUTPUT ${asmfile}
             COMMAND ${CMAKE_CXX_COMPILER}
-            ${incdirs} ${_flags} -O0 -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
+            ${incdirs} ${_flags} -O1 -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
             ${CMAKE_CURRENT_SOURCE_DIR}/abi.cpp
             DEPENDS abi.cpp ${CMAKE_SOURCE_DIR}/*/*.h ${CMAKE_SOURCE_DIR}/*/*.tcc
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
