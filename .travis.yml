@@ -62,10 +62,12 @@ install:
           sudo apt-get install clang-3.8 libstdc++-6-dev libc++-dev libc++abi-dev -y &&
           export CXX=clang++-3.8 CC=clang-3.8;;
         osx-g++-current-x86_64)
+          brew cask uninstall oclint &&
           brew update &&
           brew install gcc6 &&
           export CXX=g++-6 CC=gcc-6;;
         osx-g++-previous-x86_64)
+          brew cask uninstall oclint &&
           brew update &&
           brew install gcc5 &&
           export CXX=g++-5 CC=gcc-5;;
