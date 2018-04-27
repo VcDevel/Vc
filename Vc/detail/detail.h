@@ -505,14 +505,14 @@ template <class T, class F> void bit_iteration(T k_, F &&f)
         break;
     /*case 3:
         f(ctz(k));
-        k &= (k - 1);*/
+        k &= (k - 1);
+        [[fallthrough]];*/
     case 2:
         f(ctz(k));
-        // fallthrough
+        [[fallthrough]];
     case 1:
-        // XXX: assumes CHAR_BIT == 8:
         f(popcount(~decltype(k)()) - 1 - clz(k));
-        // fallthrough
+        [[fallthrough]];
     case 0:
         break;
     }
