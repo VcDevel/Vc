@@ -24,7 +24,7 @@ endif()
 endif(FALSE)
 
 if(NOT "$ENV{TRAVIS_OS_NAME}" STREQUAL "")
-   set(CMAKE_CXX_FLAGS_RELEASE "-O0 -DNDEBUG") # try to not time out, -O0 is faster
+   set(CMAKE_CXX_FLAGS_RELEASE "-O1 -DNDEBUG") # try to not time out, -O0 is faster
 endif()
 
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS -DVc_NO_OPTIMIZATION_WARNINGS)
