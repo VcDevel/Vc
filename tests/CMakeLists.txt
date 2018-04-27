@@ -195,19 +195,6 @@ macro(vc_add_run_target _target emulator run_target_list)#{{{
    endif()
 endmacro()#}}}
 
-#alias_strategies{{{
-set(alias_strategies)
-if(Vc_COMPILER_IS_CLANG OR Vc_COMPILER_IS_GCC)
-   list(APPEND alias_strategies
-      #MayAlias
-      VectorBuiltin)
-elseif(Vc_COMPILER_IS_INTEL)
-   # ICC can parse (aka ignore) may_alias, the result is aliasing violations => UB => test failures. So skip it
-   list(APPEND alias_strategies VectorBuiltin)
-elseif(Vc_COMPILER_IS_MSVC)
-   list(APPEND alias_strategies UnionMembers)
-endif()#}}}
-
 function(vc_add_test name) #{{{
    if($ENV{VcSkipTests} MATCHES "${name}")
       return()
@@ -276,77 +263,70 @@ function(vc_add_test name) #{{{
          set(type_split "ldouble,float,double,schar,uchar" "llong,long,ullong,ulong" "int,short,uint,ushort")
       endif()
       foreach(types ${type_split})
-         foreach(alias ${alias_strategies})
-            if(impl STREQUAL "nosimd")#{{{
-               set(target ${_target})
-            else()
-               string(TOLOWER "${_target}_${alias}" target)
-               string(TOUPPER ${alias} alias_flag)
-               set(alias_flag "Vc_USE_ALIASSTRATEGY_${alias_flag}")
-            endif()#}}}
-            check_target_disabled(target)
-            if(disabled)
-               continue()
-            endif()
-            if(NOT _NO_TESTTYPES)
-               string(REPLACE "," "_" target "${target}_${types}")
-            endif()
-            check_target_disabled(target)
-            if(disabled)
-               continue()
-            endif()
+         if(impl STREQUAL "nosimd")#{{{
+            set(target ${_target})
+         else()
+            string(TOLOWER "${_target}" target)
+         endif()#}}}
+         check_target_disabled(target)
+         if(disabled)
+            continue()
+         endif()
+         if(NOT _NO_TESTTYPES)
+            string(REPLACE "," "_" target "${target}_${types}")
+         endif()
+         check_target_disabled(target)
+         if(disabled)
+            continue()
+         endif()
 
-            if(OBJCOPY)
-               list(APPEND _DEFINITIONS "Vc_LINK_TESTDATA")
-               if("${name}" STREQUAL "math")
-                  foreach(fun sincos asin acos atan)
-                     foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-                        set(src ${src} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.o)
-                     endforeach()
+         if(OBJCOPY)
+            list(APPEND _DEFINITIONS "Vc_LINK_TESTDATA")
+            if("${name}" STREQUAL "math")
+               foreach(fun sincos asin acos atan)
+                  foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+                     set(src ${src} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.o)
                   endforeach()
-               elseif("${name}" STREQUAL "logarithm")
-                  foreach(fun ln log2 log10)
-                     foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-                        set(src ${src} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.o)
-                     endforeach()
+               endforeach()
+            elseif("${name}" STREQUAL "logarithm")
+               foreach(fun ln log2 log10)
+                  foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+                     set(src ${src} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.o)
                   endforeach()
-               endif()
+               endforeach()
             endif()
+         endif()
 
-            add_executable(${target} EXCLUDE_FROM_ALL ${src})
-            set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${_DEFINITIONS}")
-            set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS "${flags}")
-            set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS "${link_flags}")
-            if(NOT impl STREQUAL "nosimd")
-               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
-            endif()
-            set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "NO_ISA_CHECK")
-            if(NOT _NO_TESTTYPES)
-               set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "TESTTYPES=${types}")
-            endif()
+         add_executable(${target} EXCLUDE_FROM_ALL ${src})
+         set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "${_DEFINITIONS}")
+         set_property(TARGET ${target} APPEND PROPERTY COMPILE_OPTIONS "${flags}")
+         set_property(TARGET ${target} APPEND PROPERTY LINK_FLAGS "${link_flags}")
+         set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "NO_ISA_CHECK")
+         if(NOT _NO_TESTTYPES)
+            set_property(TARGET ${target} APPEND PROPERTY COMPILE_DEFINITIONS "TESTTYPES=${types}")
+         endif()
+         if(NOT _EXCLUDE_FROM_ALL)
+            add_target_property(${target} LABELS "${label}")
+            add_dependencies(build_tests ${target})
+            add_dependencies(${label} ${target})
+         endif()
+         if(${use_var}) # add test and run target#{{{
             if(NOT _EXCLUDE_FROM_ALL)
-               add_target_property(${target} LABELS "${label}")
-               add_dependencies(build_tests ${target})
-               add_dependencies(${label} ${target})
-            endif()
-            if(${use_var}) # add test and run target#{{{
-               if(NOT _EXCLUDE_FROM_ALL)
-                  if(emulator)
-                     get_target_executable(_exe "${target}")
-                     add_test(NAME ${target}
-                        COMMAND ${emulator} "${_exe}"
-                        )
-                  else()
-                     add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
-                  endif()
-                  set_property(TEST ${target} PROPERTY LABELS "${label}")
+               if(emulator)
+                  get_target_executable(_exe "${target}")
+                  add_test(NAME ${target}
+                     COMMAND ${emulator} "${_exe}"
+                     )
+               else()
+                  add_test(${target} "${CMAKE_CURRENT_BINARY_DIR}/${target}")
                endif()
-               vc_add_run_target(${target} "${emulator}" run_targets)
-            endif()#}}}
-            if(impl STREQUAL "nosimd")
-               break()
+               set_property(TEST ${target} PROPERTY LABELS "${label}")
             endif()
-         endforeach()
+            vc_add_run_target(${target} "${emulator}" run_targets)
+         endif()#}}}
+         if(impl STREQUAL "nosimd")
+            break()
+         endif()
       endforeach()
    endforeach()
    if(run_targets)
@@ -386,36 +366,31 @@ if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
 
    set(run_targets)
    macro(test_uninitialized _impl)
-      foreach(alias ${alias_strategies})
-         set(_target "uninit_${_impl}_${alias}")
-         set(_test test_${_target})
-         string(TOUPPER ${alias} alias_flag)
-         set(alias_flag "Vc_USE_ALIASSTRATEGY_${alias_flag}")
-         add_executable(${_target} EXCLUDE_FROM_ALL uninit.cpp)
-         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS "${ARGN};-O2")
-         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS "${alias_flag}")
-         add_target_property(${_target} LABELS "${_impl}")
-         add_dependencies(${_impl} ${_target})
-         add_dependencies(build_tests ${_target})
-         get_target_executable(_exe "${_target}")
-         add_test(NAME ${_test}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
-            -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/uninit.cmake
-            )
-         set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
-         add_custom_target(run_${_target}
-            ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
-            -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/uninit.cmake
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            DEPENDS ${_target}
-            COMMENT "Execute ${_target} test"
-            VERBATIM
-            )
-         list(APPEND run_targets "run_${_target}")
-      endforeach()
+      set(_target "uninit_${_impl}")
+      set(_test test_${_target})
+      add_executable(${_target} EXCLUDE_FROM_ALL uninit.cpp)
+      set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS "${ARGN};-O2")
+      add_target_property(${_target} LABELS "${_impl}")
+      add_dependencies(${_impl} ${_target})
+      add_dependencies(build_tests ${_target})
+      get_target_executable(_exe "${_target}")
+      add_test(NAME ${_test}
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         COMMAND ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+         -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+         -P ${CMAKE_CURRENT_SOURCE_DIR}/uninit.cmake
+         )
+      set_property(TEST ${_test} PROPERTY LABELS "${_impl}")
+      add_custom_target(run_${_target}
+         ${CMAKE_COMMAND} -DOBJDUMP=${OBJDUMP} -DBINARY=${_exe} -DIMPL=${_impl}
+         -DCOMPILER_IS_CLANG=${Vc_COMPILER_IS_CLANG} -DSYSTEM_NAME=${CMAKE_SYSTEM_NAME}
+         -P ${CMAKE_CURRENT_SOURCE_DIR}/uninit.cmake
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         DEPENDS ${_target}
+         COMMENT "Execute ${_target} test"
+         VERBATIM
+         )
+      list(APPEND run_targets "run_${_target}")
    endmacro()
 
    macro(test_abi target _impl abi)
