@@ -319,7 +319,7 @@ template <> void Storage<double, 2, AliasStrategy::VectorBuiltin>::set(size_t i,
     d[i] = x;
 }
 #else
-#warning "clang 5 failed operators_sse2_vectorbuiltin_ldouble_float_double_schar_uchar in operator<simd<double, Sse>> and required a workaround. Is this still the case for newer clang versions?"
+#warning "clang 5 failed operators_sse2_vectorbuiltin_ldouble_float_double_schar_uchar in operator<simd<double, __sse>> and required a workaround. Is this still the case for newer clang versions?"
 #endif
 #endif
 

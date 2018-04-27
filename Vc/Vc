@@ -44,16 +44,16 @@ using short_v = native_simd<short>;
 namespace VectorAbi
 {
 using Scalar [[deprecated]] = Vc::simd_abi::scalar;
-using Sse [[deprecated]] = Vc::simd_abi::Sse;
-using Avx [[deprecated]] = Vc::simd_abi::Avx;
+using __sse [[deprecated]] = Vc::simd_abi::__sse;
+using __avx [[deprecated]] = Vc::simd_abi::__avx;
 }
 
 template <class T, class Abi> using Vector [[deprecated]] = simd<T, Abi>;
 template <class T, class Abi> using Mask [[deprecated]] = simd_mask<T, Abi>;
 namespace SSE
 {
-template <class T> using Vector = simd<T, simd_abi::Sse>;
-template <class T> using Mask = simd_mask<T, simd_abi::Sse>;
+template <class T> using Vector = simd<T, simd_abi::__sse>;
+template <class T> using Mask = simd_mask<T, simd_abi::__sse>;
 using double_v = Vector<double>;
 using float_v = Vector<float>;
 using uint_v = Vector<unsigned int>;
@@ -64,11 +64,11 @@ using short_v = Vector<short>;
 namespace AVX
 {
 template <class T>
-using Vector = simd<T, std::conditional_t<std::is_floating_point<T>::value, simd_abi::Avx,
-                                          simd_abi::Sse>>;
+using Vector = simd<T, std::conditional_t<std::is_floating_point<T>::value, simd_abi::__avx,
+                                          simd_abi::__sse>>;
 template <class T>
 using Mask = simd_mask<T, std::conditional_t<std::is_floating_point<T>::value,
-                                             simd_abi::Avx, simd_abi::Sse>>;
+                                             simd_abi::__avx, simd_abi::__sse>>;
 using double_v = Vector<double>;
 using float_v = Vector<float>;
 using uint_v = Vector<unsigned int>;
@@ -78,8 +78,8 @@ using short_v = Vector<short>;
 }  // namespace SSE
 namespace AVX2
 {
-template <class T> using Vector = simd<T, simd_abi::Avx>;
-template <class T> using Mask = simd_mask<T, simd_abi::Avx>;
+template <class T> using Vector = simd<T, simd_abi::__avx>;
+template <class T> using Mask = simd_mask<T, simd_abi::__avx>;
 using double_v = Vector<double>;
 using float_v = Vector<float>;
 using uint_v = Vector<unsigned int>;

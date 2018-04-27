@@ -41,8 +41,8 @@ using ullong = unsigned long long;
 using ldouble = long double;
 
 using all_native_abis =
-    vir::Typelist<Vc::simd_abi::scalar, Vc::simd_abi::Sse, Vc::simd_abi::Avx,
-                  Vc::simd_abi::Avx512, Vc::simd_abi::Neon>;
+    vir::Typelist<Vc::simd_abi::scalar, Vc::simd_abi::__sse, Vc::simd_abi::__avx,
+                  Vc::simd_abi::__avx512, Vc::simd_abi::__neon>;
 
 using testtypes = vir::Typelist<
 #ifdef TESTTYPES
@@ -113,24 +113,24 @@ using current_native_mask_test_types =
 // native_test_types {{{1
 typedef vir::concat<
 #if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Avx512>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__avx512>,
                     testtypes_64_32>,
 #endif
 #if defined Vc_HAVE_AVX_ABI && !defined Vc_HAVE_FULL_AVX_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Avx>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__avx>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_SSE_ABI && !defined Vc_HAVE_FULL_SSE_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Sse>, testtypes_float>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__sse>, testtypes_float>,
 #endif
     vir::expand_list<vir::concat<
 #ifdef Vc_HAVE_FULL_AVX512_ABI
-                         vir::Template<base_template, Vc::simd_abi::Avx512>,
+                         vir::Template<base_template, Vc::simd_abi::__avx512>,
 #endif
 #ifdef Vc_HAVE_FULL_AVX_ABI
-                         vir::Template<base_template, Vc::simd_abi::Avx>,
+                         vir::Template<base_template, Vc::simd_abi::__avx>,
 #endif
 #ifdef Vc_HAVE_FULL_SSE_ABI
-                         vir::Template<base_template, Vc::simd_abi::Sse>,
+                         vir::Template<base_template, Vc::simd_abi::__sse>,
 #endif
                          vir::Typelist<>>,
                      testtypes_wo_ldouble>> native_test_types;
@@ -138,16 +138,16 @@ typedef vir::concat<
 // native_real_test_types {{{1
 using native_real_test_types = vir::concat<
 #if defined Vc_HAVE_AVX512_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Avx512>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__avx512>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_AVX_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Avx>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__avx>, testtypes_fp>,
 #endif
 #if defined Vc_HAVE_SSE_ABI
 #if defined Vc_HAVE_FULL_SSE_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Sse>, testtypes_fp>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__sse>, testtypes_fp>,
 #else
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::Sse>, testtypes_float>,
+    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__sse>, testtypes_float>,
 #endif
 #endif
     vir::Typelist<>>;

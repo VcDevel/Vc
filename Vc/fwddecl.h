@@ -69,12 +69,12 @@ using neon Vc_DEPRECATED_ = Vc::detail::neon_abi<16>;
 
 #undef Vc_DEPRECATED_
 
-using Sse = Vc::detail::sse_abi<16>;
-using Avx = Vc::detail::avx_abi<32>;
-using Avx512 = Vc::detail::avx512_abi<64>;
-using Neon128 = Vc::detail::neon_abi<16>;
-using Neon64 = Vc::detail::neon_abi<8>;
-using Neon = Neon128;
+using __sse = Vc::detail::sse_abi<16>;
+using __avx = Vc::detail::avx_abi<32>;
+using __avx512 = Vc::detail::avx512_abi<64>;
+using __neon128 = Vc::detail::neon_abi<16>;
+using __neon64 = Vc::detail::neon_abi<8>;
+using __neon = __neon128;
 }
 
 template <class T> struct is_simd;

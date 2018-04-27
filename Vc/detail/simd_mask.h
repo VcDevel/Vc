@@ -112,9 +112,9 @@ public:
     // load impl
 private:
     static constexpr bool is_scalar() { return std::is_same_v<abi_type, simd_abi::scalar>; }
-    static constexpr bool is_sse() { return std::is_same_v<abi_type, simd_abi::Sse>; }
-    static constexpr bool is_avx() { return std::is_same_v<abi_type, simd_abi::Avx>; }
-    static constexpr bool is_avx512() { return std::is_same_v<abi_type, simd_abi::Avx512>; }
+    static constexpr bool is_sse() { return std::is_same_v<abi_type, simd_abi::__sse>; }
+    static constexpr bool is_avx() { return std::is_same_v<abi_type, simd_abi::__avx>; }
+    static constexpr bool is_avx512() { return std::is_same_v<abi_type, simd_abi::__avx512>; }
     static constexpr bool is_fixed() { return detail::is_fixed_size_abi_v<abi_type>; }
 
     template <class Flags>

@@ -42,14 +42,14 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
 // simd_mask impl {{{1
-struct sse_mask_impl : public generic_mask_impl<simd_abi::Sse, sse_mask_member_type> {
+struct sse_mask_impl : public generic_mask_impl<simd_abi::__sse, sse_mask_member_type> {
     // member types {{{2
-    using abi = simd_abi::Sse;
+    using abi = simd_abi::__sse;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <class T> using mask_member_type = sse_mask_member_type<T>;
     template <class T>
     using int_builtin_type = builtin_type16_t<detail::int_for_sizeof_t<T>>;
-    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::Sse>;
+    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::__sse>;
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
@@ -207,7 +207,7 @@ struct sse_mask_impl : public generic_mask_impl<simd_abi::Sse, sse_mask_member_t
 }  // namespace detail
 
 // [simd_mask.reductions] {{{
-Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<float, simd_abi::Sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<float, simd_abi::__sse> k)
 {
     const __m128 d(k);
 #if defined Vc_HAVE_AVX
@@ -220,7 +220,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<float, simd_abi::Sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<float, simd_abi::Sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<float, simd_abi::__sse> k)
 {
     const __m128 d(k);
 #if defined Vc_HAVE_AVX
@@ -233,7 +233,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<float, simd_abi::Sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<float, simd_abi::Sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<float, simd_abi::__sse> k)
 {
     const __m128 d(k);
 #if defined Vc_HAVE_AVX
@@ -246,7 +246,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<float, simd_abi::Sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<float, simd_abi::Sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<float, simd_abi::__sse> k)
 {
     const __m128 d(k);
 #if defined Vc_HAVE_AVX
@@ -261,7 +261,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<float, simd_abi::Sse> k)
 }
 
 #ifdef Vc_HAVE_SSE2
-Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<double, simd_abi::Sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<double, simd_abi::__sse> k)
 {
     __m128d d(k);
 #ifdef Vc_HAVE_SSE4_1
@@ -276,7 +276,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<double, simd_abi::Sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<double, simd_abi::Sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<double, simd_abi::__sse> k)
 {
     const __m128d d(k);
 #if defined Vc_HAVE_AVX
@@ -289,7 +289,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<double, simd_abi::Sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<double, simd_abi::Sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<double, simd_abi::__sse> k)
 {
     const __m128d d(k);
 #if defined Vc_HAVE_AVX
@@ -302,7 +302,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<double, simd_abi::Sse> k)
 #endif
 }
 
-Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<double, simd_abi::Sse> k)
+Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<double, simd_abi::__sse> k)
 {
     const __m128d d(k);
 #if defined Vc_HAVE_AVX
@@ -316,7 +316,7 @@ Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<double, simd_abi::Sse> k)
 #endif
 }
 
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<T, simd_abi::Sse> k)
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<T, simd_abi::__sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_HAVE_SSE4_1
@@ -328,7 +328,7 @@ template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<T, simd_abi::
 #endif
 }
 
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<T, simd_abi::Sse> k)
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<T, simd_abi::__sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_HAVE_SSE4_1
@@ -338,7 +338,7 @@ template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<T, simd_abi::
 #endif
 }
 
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<T, simd_abi::Sse> k)
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<T, simd_abi::__sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_HAVE_SSE4_1
@@ -348,7 +348,7 @@ template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<T, simd_abi:
 #endif
 }
 
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<T, simd_abi::Sse> k)
+template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<T, simd_abi::__sse> k)
 {
     const __m128i d(k);
 #ifdef Vc_HAVE_SSE4_1
@@ -360,19 +360,19 @@ template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<T, simd_abi:
 }
 #endif
 
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(simd_mask<T, simd_abi::Sse> k)
+template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(simd_mask<T, simd_abi::__sse> k)
 {
     const auto d = detail::data(k);
     return detail::mask_count<k.size()>(d);
 }
 
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_first_set(simd_mask<T, simd_abi::Sse> k)
+template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_first_set(simd_mask<T, simd_abi::__sse> k)
 {
     const auto d = detail::data(k);
     return detail::firstbit(detail::mask_to_int<k.size()>(d));
 }
 
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(simd_mask<T, simd_abi::Sse> k)
+template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(simd_mask<T, simd_abi::__sse> k)
 {
     const auto d = detail::data(k);
     return detail::lastbit(detail::mask_to_int<k.size()>(d));
@@ -385,7 +385,7 @@ namespace detail
 // simd impl {{{1
 struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     // member types {{{2
-    using abi = simd_abi::Sse;
+    using abi = simd_abi::__sse;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <class T> using simd_member_type = sse_simd_member_type<T>;
     template <class T> using intrinsic_type = typename simd_member_type<T>::register_type;
@@ -1185,7 +1185,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
                                    _MM_MANT_SIGN_src);
     }
     static Vc_INTRINSIC simd_member_type<float> frexp(simd_member_type<float> v,
-                                                simd_tuple<int, simd_abi::Sse> &exp)
+                                                simd_tuple<int, simd_abi::__sse> &exp)
     {
         return frexp(v, exp.first);
     }
@@ -1294,7 +1294,7 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     }
 
     // fpclassify {{{3
-    static Vc_INTRINSIC simd_tuple<int, simd_abi::Sse> fpclassify(
+    static Vc_INTRINSIC simd_tuple<int, simd_abi::__sse> fpclassify(
         simd_member_type<float> x)
     {
         auto &&b = [](int y) { return intrin_cast<__m128>(broadcast16(y)); };
@@ -1330,9 +1330,9 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl> {
     // }}}2
 };
 
-// simd_converter Sse -> scalar {{{1
+// simd_converter __sse -> scalar {{{1
 template <class From, class To>
-struct simd_converter<From, simd_abi::Sse, To, simd_abi::scalar> {
+struct simd_converter<From, simd_abi::__sse, To, simd_abi::scalar> {
     using Arg = sse_simd_member_type<From>;
 
     Vc_INTRINSIC std::array<To, Arg::width> operator()(Arg a)
@@ -1348,9 +1348,9 @@ struct simd_converter<From, simd_abi::Sse, To, simd_abi::scalar> {
 };
 
 // }}}1
-// simd_converter scalar -> Sse {{{1
+// simd_converter scalar -> __sse {{{1
 template <class From, class To>
-struct simd_converter<From, simd_abi::scalar, To, simd_abi::Sse> {
+struct simd_converter<From, simd_abi::scalar, To, simd_abi::__sse> {
     using R = sse_simd_member_type<To>;
 
     Vc_INTRINSIC R operator()(From a)
@@ -1403,14 +1403,14 @@ struct simd_converter<From, simd_abi::scalar, To, simd_abi::Sse> {
 };
 
 // }}}1
-// simd_converter Sse -> Sse {{{1
-template <class T> struct simd_converter<T, simd_abi::Sse, T, simd_abi::Sse> {
+// simd_converter __sse -> __sse {{{1
+template <class T> struct simd_converter<T, simd_abi::__sse, T, simd_abi::__sse> {
     using Arg = sse_simd_member_type<T>;
     Vc_INTRINSIC const Arg &operator()(const Arg &x) { return x; }
 };
 
 template <class From, class To>
-struct simd_converter<From, simd_abi::Sse, To, simd_abi::Sse> {
+struct simd_converter<From, simd_abi::__sse, To, simd_abi::__sse> {
     using Arg = sse_simd_member_type<From>;
 
     Vc_INTRINSIC auto operator()(Arg a)

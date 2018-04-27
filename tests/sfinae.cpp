@@ -129,42 +129,42 @@ using all_valid_fixed_size = expand_list<
 
 using all_valid_simd = concat<
 #if defined Vc_HAVE_FULL_SSE_ABI
-    expand_list<Typelist<Template<simd, Vc::simd_abi::Sse>,
-                         Template<simd_mask, Vc::simd_abi::Sse>>,
+    expand_list<Typelist<Template<simd, Vc::simd_abi::__sse>,
+                         Template<simd_mask, Vc::simd_abi::__sse>>,
                 testtypes_wo_ldouble>,
 #elif defined Vc_HAVE_SSE_ABI
-    expand_list<Typelist<Template<simd, Vc::simd_abi::Sse>,
-                         Template<simd_mask, Vc::simd_abi::Sse>>,
+    expand_list<Typelist<Template<simd, Vc::simd_abi::__sse>,
+                         Template<simd_mask, Vc::simd_abi::__sse>>,
                 testtypes_float>,
 #endif
 #if defined Vc_HAVE_FULL_AVX_ABI
-    expand_list<Typelist<Template<simd, Vc::simd_abi::Avx>,
-                         Template<simd_mask, Vc::simd_abi::Avx>>,
+    expand_list<Typelist<Template<simd, Vc::simd_abi::__avx>,
+                         Template<simd_mask, Vc::simd_abi::__avx>>,
                 testtypes_wo_ldouble>,
 #elif defined Vc_HAVE_AVX_ABI
-    expand_list<Typelist<Template<simd, Vc::simd_abi::Avx>,
-                         Template<simd_mask, Vc::simd_abi::Avx>>,
+    expand_list<Typelist<Template<simd, Vc::simd_abi::__avx>,
+                         Template<simd_mask, Vc::simd_abi::__avx>>,
                 testtypes_fp>,
 #endif
 #if defined Vc_HAVE_FULL_AVX512_ABI
-    expand_list<Typelist<Template<simd, Vc::simd_abi::Avx512>,
-                         Template<simd_mask, Vc::simd_abi::Avx512>>,
+    expand_list<Typelist<Template<simd, Vc::simd_abi::__avx512>,
+                         Template<simd_mask, Vc::simd_abi::__avx512>>,
                 testtypes_wo_ldouble>,
 #elif defined Vc_HAVE_AVX512_ABI
-    expand_list<Typelist<Template<simd, Vc::simd_abi::Avx512>,
-                         Template<simd_mask, Vc::simd_abi::Avx512>>,
+    expand_list<Typelist<Template<simd, Vc::simd_abi::__avx512>,
+                         Template<simd_mask, Vc::simd_abi::__avx512>>,
                 testtypes_64_32>,
 #endif
 #if defined Vc_HAVE_FULL_NEON_ABI
-    expand_list<Typelist<Template<simd, Vc::simd_abi::Neon>,
-                         Template<simd_mask, Vc::simd_abi::Neon>>,
+    expand_list<Typelist<Template<simd, Vc::simd_abi::__neon>,
+                         Template<simd_mask, Vc::simd_abi::__neon>>,
                 testtypes_wo_ldouble>,
 #endif
     Typelist<>>;
 
 using all_native_simd_types = expand_list<
-    Typelist<Template<simd, Vc::simd_abi::Sse>, Template<simd, Vc::simd_abi::Avx>,
-             Template<simd, Vc::simd_abi::Avx512>, Template<simd, Vc::simd_abi::Neon>>,
+    Typelist<Template<simd, Vc::simd_abi::__sse>, Template<simd, Vc::simd_abi::__avx>,
+             Template<simd, Vc::simd_abi::__avx512>, Template<simd, Vc::simd_abi::__neon>>,
     testtypes>;
 
 TEST_TYPES(V, has_size, all_native_simd_types)  //{{{1
@@ -176,8 +176,8 @@ TEST_TYPES(Tup, has_no_size,  //{{{1
     concat<outer_product<concat<testtypes, nullptr_t, dummy>, Typelist<int, dummy>>,
            outer_product<Typelist<nullptr_t, dummy>,
                          Typelist<Vc::simd_abi::scalar, Vc::simd_abi::fixed_size<4>,
-                                  Vc::simd_abi::Sse, Vc::simd_abi::Avx,
-                                  Vc::simd_abi::Avx512, Vc::simd_abi::Neon>>>)
+                                  Vc::simd_abi::__sse, Vc::simd_abi::__avx,
+                                  Vc::simd_abi::__avx512, Vc::simd_abi::__neon>>>)
 {
     VERIFY(
         !(sfinae_is_callable<typename Tup::template at<0>, typename Tup::template at<1>>(
@@ -208,16 +208,16 @@ TEST_TYPES(V, is_usable,  //{{{1
 
 using unusable_abis = Typelist<
 #if !defined Vc_HAVE_SSE_ABI
-    Template<simd, Vc::simd_abi::Sse>, Template<simd_mask, Vc::simd_abi::Sse>,
+    Template<simd, Vc::simd_abi::__sse>, Template<simd_mask, Vc::simd_abi::__sse>,
 #endif
 #if !defined Vc_HAVE_AVX_ABI
-    Template<simd, Vc::simd_abi::Avx>, Template<simd_mask, Vc::simd_abi::Avx>,
+    Template<simd, Vc::simd_abi::__avx>, Template<simd_mask, Vc::simd_abi::__avx>,
 #endif
 #if !defined Vc_HAVE_AVX512_ABI
-    Template<simd, Vc::simd_abi::Avx512>, Template<simd_mask, Vc::simd_abi::Avx512>,
+    Template<simd, Vc::simd_abi::__avx512>, Template<simd_mask, Vc::simd_abi::__avx512>,
 #endif
 #if !defined Vc_HAVE_NEON_ABI
-    Template<simd, Vc::simd_abi::Neon>, Template<simd_mask, Vc::simd_abi::Neon>,
+    Template<simd, Vc::simd_abi::__neon>, Template<simd_mask, Vc::simd_abi::__neon>,
 #endif
     Template<simd, int>, Template<simd_mask, int>>;
 
@@ -227,27 +227,27 @@ using unusable_fixed_size =
                 testtypes>;
 
 using unusable_simd_types =
-    concat<expand_list<Typelist<Template<simd, Vc::simd_abi::Sse>,
-                                Template<simd_mask, Vc::simd_abi::Sse>>,
+    concat<expand_list<Typelist<Template<simd, Vc::simd_abi::__sse>,
+                                Template<simd_mask, Vc::simd_abi::__sse>>,
 #if defined Vc_HAVE_SSE_ABI && !defined Vc_HAVE_FULL_SSE_ABI
                        typename filter_list<float, testtypes>::type
 #else
                        Typelist<long double>
 #endif
                        >,
-           expand_list<Typelist<Template<simd, Vc::simd_abi::Avx>,
-                                Template<simd_mask, Vc::simd_abi::Avx>>,
+           expand_list<Typelist<Template<simd, Vc::simd_abi::__avx>,
+                                Template<simd_mask, Vc::simd_abi::__avx>>,
 #if defined Vc_HAVE_AVX_ABI && !defined Vc_HAVE_FULL_AVX_ABI
                        typename filter_list<Typelist<float, double>, testtypes>::type
 #else
                        Typelist<long double>
 #endif
                        >,
-           expand_list<Typelist<Template<simd, Vc::simd_abi::Neon>,
-                                Template<simd_mask, Vc::simd_abi::Neon>>,
+           expand_list<Typelist<Template<simd, Vc::simd_abi::__neon>,
+                                Template<simd_mask, Vc::simd_abi::__neon>>,
                        Typelist<long double>>,
-           expand_list<Typelist<Template<simd, Vc::simd_abi::Avx512>,
-                                Template<simd_mask, Vc::simd_abi::Avx512>>,
+           expand_list<Typelist<Template<simd, Vc::simd_abi::__avx512>,
+                                Template<simd_mask, Vc::simd_abi::__avx512>>,
 #if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
                        typename filter_list<
                            Typelist<float, double, ullong, llong, ulong, long, uint, int,

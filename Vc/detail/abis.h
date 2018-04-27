@@ -346,14 +346,14 @@ template <int N> struct fixed_abi {
     template <class T>
     struct is_valid_size_for
         : detail::bool_constant<((N <= simd_abi::max_fixed_size<T>) ||
-                                 (simd_abi::Neon::is_valid_v<char> &&
-                                  N == simd_size_v<char, simd_abi::Neon>) ||
-                                 (simd_abi::Sse::is_valid_v<char> &&
-                                  N == simd_size_v<char, simd_abi::Sse>) ||
-                                 (simd_abi::Avx::is_valid_v<char> &&
-                                  N == simd_size_v<char, simd_abi::Avx>) ||
-                                 (simd_abi::Avx512::is_valid_v<char> &&
-                                  N == simd_size_v<char, simd_abi::Avx512>))> {
+                                 (simd_abi::__neon::is_valid_v<char> &&
+                                  N == simd_size_v<char, simd_abi::__neon>) ||
+                                 (simd_abi::__sse::is_valid_v<char> &&
+                                  N == simd_size_v<char, simd_abi::__sse>) ||
+                                 (simd_abi::__avx::is_valid_v<char> &&
+                                  N == simd_size_v<char, simd_abi::__avx>) ||
+                                 (simd_abi::__avx512::is_valid_v<char> &&
+                                  N == simd_size_v<char, simd_abi::__avx512>))> {
     };
     template <class T>
     struct is_valid

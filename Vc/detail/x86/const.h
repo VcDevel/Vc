@@ -35,7 +35,7 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
 #ifdef Vc_HAVE_SSE_ABI
-template <class X> struct constants<simd_abi::Sse, X> {
+template <class X> struct constants<simd_abi::__sse, X> {
     alignas(64) static inline constexpr builtin_type_t<  uint,  4>  absMaskFloat{0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
     alignas(16) static inline constexpr builtin_type_t< float,  4> signMaskFloat{-0.f, -0.f, -0.f, -0.f};
     alignas(16) static inline constexpr builtin_type_t<  uint,  4> highMaskFloat{0xfffff000u, 0xfffff000u, 0xfffff000u, 0xfffff000u};
@@ -157,13 +157,13 @@ template <class X> struct constants<simd_abi::Sse, X> {
 
 namespace x86
 {
-using sse_const = constants<simd_abi::Sse>;
+using sse_const = constants<simd_abi::__sse>;
 }  // namespace x86
 #endif  // Vc_HAVE_SSE_ABI
 
 #ifdef Vc_HAVE_AVX_ABI
 template <class X>
-struct constants<simd_abi::Avx, X> : public constants<simd_abi::scalar, X> {
+struct constants<simd_abi::__avx, X> : public constants<simd_abi::scalar, X> {
     alignas(64) static inline constexpr builtin_type_t<ullong,  4> IndexesFromZero64 = { 0, 1, 2, 3 };
     alignas(32) static inline constexpr builtin_type_t<  uint,  8> IndexesFromZero32 = { 0, 1, 2, 3, 4, 5, 6, 7 };
     alignas(32) static inline constexpr builtin_type_t<ushort, 16> IndexesFromZero16 = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
@@ -185,7 +185,7 @@ struct constants<simd_abi::Avx, X> : public constants<simd_abi::scalar, X> {
 
 namespace x86
 {
-using avx_const = constants<simd_abi::Avx>;
+using avx_const = constants<simd_abi::__avx>;
 }  // namespace x86
 #endif  // Vc_HAVE_AVX_ABI
 

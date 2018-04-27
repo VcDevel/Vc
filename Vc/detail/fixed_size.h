@@ -70,10 +70,10 @@ template <class T, int N, class A> struct select_best_vector_type<T, N, A> {
 };
 template <class T, int N>
 using select_best_vector_type_t = typename select_best_vector_type<T, N,
-      simd_abi::Avx512,
-      simd_abi::Avx,
-      simd_abi::Neon,
-      simd_abi::Sse,
+      simd_abi::__avx512,
+      simd_abi::__avx,
+      simd_abi::__neon,
+      simd_abi::__sse,
       simd_abi::scalar
       >::type;
 
@@ -100,9 +100,9 @@ struct fixed_size_storage_builder<T, N, simd_tuple<T, As...>, Next, Remain> {
 
 namespace tests {
 using simd_abi::scalar;
-using simd_abi::Sse;
-using simd_abi::Avx;
-using simd_abi::Avx512;
+using simd_abi::__sse;
+using simd_abi::__avx;
+using simd_abi::__avx512;
 static_assert(
     std::is_same<fixed_size_storage<float, 1>, simd_tuple<float, scalar>>::value,
     "fixed_size_storage failure");
@@ -114,21 +114,21 @@ static_assert(std::is_same<fixed_size_storage<float, 3>,
               "fixed_size_storage failure");
 #ifdef Vc_HAVE_SSE_ABI
 static_assert(
-    std::is_same<fixed_size_storage<float, 4>, simd_tuple<float, Sse>>::value,
+    std::is_same<fixed_size_storage<float, 4>, simd_tuple<float, __sse>>::value,
     "fixed_size_storage failure");
 static_assert(
-    std::is_same<fixed_size_storage<float, 5>, simd_tuple<float, Sse, scalar>>::value,
+    std::is_same<fixed_size_storage<float, 5>, simd_tuple<float, __sse, scalar>>::value,
     "fixed_size_storage failure");
 #endif  // Vc_HAVE_SSE_ABI
 #ifdef Vc_HAVE_AVX_ABI
 static_assert(
-    std::is_same<fixed_size_storage<float, 8>, simd_tuple<float, Avx>>::value,
+    std::is_same<fixed_size_storage<float, 8>, simd_tuple<float, __avx>>::value,
     "fixed_size_storage failure");
 static_assert(
-    std::is_same<fixed_size_storage<float, 12>, simd_tuple<float, Avx, Sse>>::value,
+    std::is_same<fixed_size_storage<float, 12>, simd_tuple<float, __avx, __sse>>::value,
     "fixed_size_storage failure");
 static_assert(std::is_same<fixed_size_storage<float, 13>,
-                           simd_tuple<float, Avx, Sse, scalar>>::value,
+                           simd_tuple<float, __avx, __sse, scalar>>::value,
               "fixed_size_storage failure");
 #endif
 }  // namespace tests
@@ -169,13 +169,13 @@ struct n_abis_in_tuple<simd_tuple<T, A0, A1, As...>> {
 namespace tests
 {
 static_assert(
-    std::is_same<n_abis_in_tuple<simd_tuple<int, simd_abi::Sse, simd_abi::Sse,
+    std::is_same<n_abis_in_tuple<simd_tuple<int, simd_abi::__sse, simd_abi::__sse,
                                                 simd_abi::scalar, simd_abi::scalar,
                                                 simd_abi::scalar>>::counts,
                  std::index_sequence<2, 3>>::value,
     "");
 static_assert(
-    std::is_same<n_abis_in_tuple<simd_tuple<int, simd_abi::Sse, simd_abi::Sse,
+    std::is_same<n_abis_in_tuple<simd_tuple<int, simd_abi::__sse, simd_abi::__sse,
                                                 simd_abi::scalar, simd_abi::scalar,
                                                 simd_abi::scalar>>::begins,
                  std::index_sequence<0, 2>>::value,
@@ -752,7 +752,7 @@ template <int N> struct fixed_size_mask_impl {
         }
 #endif  // __x86_64__
 #elif defined Vc_HAVE_SSE2   // !AVX512BW && !BMI2
-        using V = simd<uchar, simd_abi::Sse>;
+        using V = simd<uchar, simd_abi::__sse>;
         ullong bits = bs.to_ullong();
         execute_n_times<(N + 15) / 16>([&](auto i) {
             constexpr size_t offset = i * 16;
