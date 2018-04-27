@@ -77,7 +77,10 @@ void test_values(const std::initializer_list<typename V::value_type> &inputs,
     // [&](int) { return dist(g_mt_gen); }
     // but GCC miscompiles it
     class my_lambda_t {
-        std::uniform_real_distribution<typename V::value_type> dist;
+        std::conditional_t<std::is_floating_point_v<typename V::value_type>,
+                           std::uniform_real_distribution<typename V::value_type>,
+                           std::uniform_int_distribution<typename V::value_type>>
+            dist;
 
     public:
         typename V::value_type operator()(int) { return dist(g_mt_gen); }
@@ -148,22 +151,22 @@ void test_tuples(const std::initializer_list<std::array<typename V::value_type, 
                            std::forward<F>(fun_pack)...);
 }
 
-template <class V> void test_abs(std::false_type)
-{
-    //VERIFY(!(sfinae_is_callable<V &, const int *>(call_memload())));
-}
-template <class V> void test_abs(std::true_type)
-{
-    using std::abs;
-    using T = typename V::value_type;
-    V input([](int i) { return T(-i); });
-    V expected([](int i) { return T(std::abs(T(-i))); });
-    COMPARE(abs(input), expected);
-}
-
 TEST_TYPES(V, abs, all_test_types)  //{{{1
 {
-    test_abs<V>(std::is_signed<typename V::value_type>());
+    if constexpr (std::is_signed_v<typename V::value_type>) {
+        using std::abs;
+        using T = typename V::value_type;
+        using L = std::numeric_limits<T>;
+        test_values<V>(
+            {L::max(), L::lowest(), L::min(), -L::max() / 2, T(), -T(), T(-1), T(-2)},
+            {100, L::lowest(), L::max()},
+            [](V input) {
+                const V expected([&](auto i) { return T(std::abs(T(input[i]))); });
+                COMPARE(abs(input), expected);
+            });
+    } else {
+        // VERIFY(!(sfinae_is_callable<V &, const int *>(call_memload())));
+    }
 }
 
 TEST_TYPES(V, testSqrt, real_test_types)  //{{{1

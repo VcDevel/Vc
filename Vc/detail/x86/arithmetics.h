@@ -1069,48 +1069,30 @@ constexpr Vc_INTRINSIC Storage<T, N> unary_minus(Storage<T, N> v)
 template <class T, size_t N>
 Vc_NORMAL_MATH constexpr Vc_INTRINSIC Storage<T, N> abs(Storage<T, N> v)
 {
-    return v.d < 0 ? -v.d : v.d;
+    if constexpr (!have_avx512vl && std::is_integral_v<T> && sizeof(T) == 8) {
+        // positive value:
+        //   negative == 0
+        //   a unchanged after xor
+        //   a - 0 -> a
+        // negative value:
+        //   negative == ~0 == -1
+        //   a xor ~0    -> -a - 1
+        //   -a - 1 - -1 -> -a
+        if constexpr(have_sse4_2) {
+            const auto negative = reinterpret_cast<builtin_type_t<T, N>>(v.d < 0);
+            return (v.d ^ negative) - negative;
+        } else {
+            // >>63: negative ->  1, positive ->  0
+            //  - 1: negative ->  0, positive -> ~0
+            //  ~  : negative -> ~0, positive ->  0
+            const auto negative = reinterpret_cast<builtin_type_t<T, N>>(
+                ~((reinterpret_cast<builtin_type_t<ullong, 2>>(v.d) >> 63) - 1));
+            return (v.d ^ negative) - negative;
+        }
+    } else {
+        return v.d < 0 ? -v.d : v.d;
+    }
 }
-
-#if defined Vc_HAVE_SSE2 && !defined Vc_HAVE_AVX512VL
-Vc_INTRINSIC Vc_CONST x_i64 abs(x_i64 a)
-{
-    // positive value:
-    //   negative == 0
-    //   a unchanged after xor
-    //   a - 0 -> a
-    // negative value:
-    //   negative == ~0 == -1
-    //   a xor ~0    -> -a - 1
-    //   -a - 1 - -1 -> -a
-#if defined Vc_HAVE_SSE4_2
-    __m128i negative = a.d < 0;
-#else
-    // >>63: negative ->  1, positive ->  0
-    //  - 1: negative ->  0, positive -> ~0
-    //  ~  : negative -> ~0, positive ->  0
-    __m128i negative = ~(_mm_srli_epi64(a.d, 63) - 1);
-#endif
-    return (a.d ^ negative) - negative;
-}
-#endif  // Vc_HAVE_SSE2 && ! Vc_HAVE_AVX512VL
-
-#if defined Vc_HAVE_AVX2 && !defined Vc_HAVE_AVX512VL
-Vc_INTRINSIC Vc_CONST y_i64 abs(y_i64 a)
-{
-    y_i64::register_type negative = a.d < 0;
-    return (a.d ^ negative) - negative;
-}
-#endif  // Vc_HAVE_AVX2 && !Vc_HAVE_AVX512VL
-
-#ifdef Vc_HAVE_AVX512F
-#ifdef Vc_HAVE_AVX512BW
-Vc_INTRINSIC Vc_CONST z_i08 abs(z_i08 a) { return _mm512_abs_epi8(a); }
-Vc_INTRINSIC Vc_CONST z_i16 abs(z_i16 a) { return _mm512_abs_epi16(a); }
-#endif  // Vc_HAVE_AVX512BW
-Vc_INTRINSIC Vc_CONST z_i32 abs(z_i32 a) { return _mm512_abs_epi32(a); }
-Vc_INTRINSIC Vc_CONST z_i64 abs(z_i64 a) { return _mm512_abs_epi64(a); }
-#endif  // Vc_HAVE_AVX512F
 
 // sqrt{{{1
 Vc_INTRINSIC x_f32 Vc_VDECL sqrt(x_f32 v) { return _mm_sqrt_ps(v); }
