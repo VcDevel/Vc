@@ -1069,7 +1069,8 @@ constexpr Vc_INTRINSIC Storage<T, N> unary_minus(Storage<T, N> v)
 template <class T, size_t N>
 Vc_NORMAL_MATH constexpr Vc_INTRINSIC Storage<T, N> abs(Storage<T, N> v)
 {
-    if constexpr (!have_avx512vl && std::is_integral_v<T> && sizeof(T) == 8) {
+#ifdef Vc_WORKAROUND_PR85572
+    if constexpr (!have_avx512vl && std::is_integral_v<T> && sizeof(T) == 8 && N <= 4) {
         // positive value:
         //   negative == 0
         //   a unchanged after xor
@@ -1082,14 +1083,17 @@ Vc_NORMAL_MATH constexpr Vc_INTRINSIC Storage<T, N> abs(Storage<T, N> v)
             const auto negative = reinterpret_cast<builtin_type_t<T, N>>(v.d < 0);
             return (v.d ^ negative) - negative;
         } else {
+            // arithmetic right shift doesn't exist for 64-bit integers, use the following
+            // instead:
             // >>63: negative ->  1, positive ->  0
-            //  - 1: negative ->  0, positive -> ~0
-            //  ~  : negative -> ~0, positive ->  0
-            const auto negative = reinterpret_cast<builtin_type_t<T, N>>(
-                ~((reinterpret_cast<builtin_type_t<ullong, 2>>(v.d) >> 63) - 1));
+            //  -  : negative -> -1, positive ->  0
+            const auto negative = -reinterpret_cast<builtin_type_t<T, N>>(
+                reinterpret_cast<builtin_type_t<ullong, N>>(v.d) >> 63);
             return (v.d ^ negative) - negative;
         }
-    } else {
+    } else
+#endif
+    {
         return v.d < 0 ? -v.d : v.d;
     }
 }

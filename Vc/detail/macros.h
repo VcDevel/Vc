@@ -40,6 +40,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // incorrect use of k0 register for _kortestc_mask64_u8 and _kortestc_mask32_u8:
 #define Vc_WORKAROUND_PR85538 1
 
+// missed optimization for abs(builtin_type_t<llong, 2>):
+#define Vc_WORKAROUND_PR85572 1
+
 // very bad codegen for extraction and concatenation of 128/256 "subregisters" with
 // sizeof(element type) < 8: https://godbolt.org/g/mqUsgM
 #define Vc_WORKAROUND_XXX_1 1
