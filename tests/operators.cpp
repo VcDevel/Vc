@@ -206,7 +206,7 @@ TEST_TYPES(V, operators, all_test_types)  //{{{1
                     VERIFY(none_of(hi != hi)) << "hi: " << hi << ", lo: " << lo;
                     VERIFY(none_of(hi == lo)) << "hi: " << hi << ", lo: " << lo;
                     VERIFY(none_of(lo == hi)) << "hi: " << hi << ", lo: " << lo;
-                    VERIFY(all_of(lo < hi)) << "hi: " << hi << ", lo: " << lo;
+                    VERIFY(all_of(lo < hi)) << "hi: " << hi << ", lo: " << lo << ", lo < hi: " << (lo < hi);
                     VERIFY(none_of(hi < lo)) << "hi: " << hi << ", lo: " << lo;
                     VERIFY(none_of(hi <= lo)) << "hi: " << hi << ", lo: " << lo;
                     VERIFY(all_of(hi <= hi)) << "hi: " << hi << ", lo: " << lo;
