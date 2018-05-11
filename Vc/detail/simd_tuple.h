@@ -133,46 +133,55 @@ struct yes {};
 struct no {};
 }
 template <class T, class A0, class... Abis>
-simd<T, A0> get_impl(as_simd::yes, const simd_tuple<T, A0, Abis...> &t, size_constant<0>)
+constexpr Vc_INTRINSIC simd<T, A0> get_impl(as_simd::yes,
+                                            const simd_tuple<T, A0, Abis...> &t,
+                                            size_constant<0>)
 {
     return {private_init, t.first};
 }
 template <class T, class A0, class... Abis>
-const auto &get_impl(as_simd::no, const simd_tuple<T, A0, Abis...> &t, size_constant<0>)
+constexpr Vc_INTRINSIC const auto &get_impl(as_simd::no,
+                                            const simd_tuple<T, A0, Abis...> &t,
+                                            size_constant<0>)
 {
     return t.first;
 }
 template <class T, class A0, class... Abis>
-auto &get_impl(as_simd::no, simd_tuple<T, A0, Abis...> &t, size_constant<0>)
+constexpr Vc_INTRINSIC auto &get_impl(as_simd::no, simd_tuple<T, A0, Abis...> &t,
+                                      size_constant<0>)
 {
     return t.first;
 }
 
 template <class R, size_t N, class T, class... Abis>
-auto get_impl(R, const simd_tuple<T, Abis...> &t, size_constant<N>)
+constexpr Vc_INTRINSIC auto get_impl(R, const simd_tuple<T, Abis...> &t, size_constant<N>)
 {
     return get_impl(R(), t.second, size_constant<N - 1>());
 }
 template <size_t N, class T, class... Abis>
-auto &get_impl(as_simd::no, simd_tuple<T, Abis...> &t, size_constant<N>)
+constexpr Vc_INTRINSIC auto &get_impl(as_simd::no, simd_tuple<T, Abis...> &t,
+                                      size_constant<N>)
 {
     return get_impl(as_simd::no(), t.second, size_constant<N - 1>());
 }
 }  // namespace simd_tuple_impl
 
-template <size_t N, class T, class... Abis> auto get_simd(const simd_tuple<T, Abis...> &t)
+template <size_t N, class T, class... Abis>
+constexpr Vc_INTRINSIC auto get_simd(const simd_tuple<T, Abis...> &t)
 {
     return simd_tuple_impl::get_impl(simd_tuple_impl::as_simd::yes(), t,
                                      size_constant<N>());
 }
 
-template <size_t N, class T, class... Abis> auto get(const simd_tuple<T, Abis...> &t)
+template <size_t N, class T, class... Abis>
+constexpr Vc_INTRINSIC auto get(const simd_tuple<T, Abis...> &t)
 {
     return simd_tuple_impl::get_impl(simd_tuple_impl::as_simd::no(), t,
                                      size_constant<N>());
 }
 
-template <size_t N, class T, class... Abis> auto &get(simd_tuple<T, Abis...> &t)
+template <size_t N, class T, class... Abis>
+constexpr Vc_INTRINSIC auto &get(simd_tuple<T, Abis...> &t)
 {
     return simd_tuple_impl::get_impl(simd_tuple_impl::as_simd::no(), t,
                                      size_constant<N>());
