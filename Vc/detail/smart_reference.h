@@ -34,14 +34,23 @@ template <class U, class Accessor = U, class ValueType = typename U::value_type>
 class smart_reference
 {
     friend Accessor;
-    static constexpr bool get_noexcept = noexcept(Accessor::get(declval<U &>(), int()));
-    template <typename T = ValueType> static constexpr bool set_noexcept()
-    {
-        return noexcept(Accessor::set(declval<U &>(), int(), declval<T>()));
-    }
-
     int index;
     U &obj;
+
+    constexpr Vc_INTRINSIC ValueType read() const noexcept
+    {
+        if constexpr (std::is_arithmetic_v<U>) {
+            Vc_ASSERT(index == 0);
+            return obj;
+        } else {
+            return obj[index];
+        }
+    }
+
+    template <class T> constexpr Vc_INTRINSIC void write(T &&x) const
+    {
+        Accessor::set(obj, index, std::forward<T>(x));
+    }
 
 public:
     Vc_INTRINSIC smart_reference(U &o, int i) noexcept : index(i), obj(o) {}
@@ -50,16 +59,13 @@ public:
 
     Vc_INTRINSIC smart_reference(const smart_reference &) = delete;
 
-    Vc_INTRINSIC operator value_type() const noexcept(get_noexcept)
-    {
-        return Accessor::get(obj, index);
-    }
+    constexpr Vc_INTRINSIC operator value_type() const noexcept { return read(); }
 
     template <class T,
               class = detail::value_preserving_or_int<std::decay_t<T>, value_type>>
-        Vc_INTRINSIC smart_reference operator=(T &&x) && noexcept(set_noexcept())
+    constexpr Vc_INTRINSIC smart_reference operator=(T &&x) &&
     {
-        Accessor::set(obj, index, std::forward<T>(x));
+        write(std::forward<T>(x));
         return {obj, index};
     }
 
@@ -71,10 +77,9 @@ public:
               class = detail::value_preserving_or_int<std::decay_t<T>, TT>,              \
               class = detail::value_preserving_or_int<TT, value_type>>                   \
         Vc_INTRINSIC smart_reference operator op_##=(T &&x) &&                           \
-        noexcept(get_noexcept && set_noexcept())                                         \
     {                                                                                    \
-        const value_type &lhs = Accessor::get(obj, index);                               \
-        Accessor::set(obj, index, lhs op_ x);                                            \
+        const value_type &lhs = read();                                                  \
+        write(lhs op_ x);                                                                \
         return {obj, index};                                                             \
     }
     Vc_ALL_ARITHMETICS(Vc_OP_);
@@ -82,53 +87,49 @@ public:
     Vc_ALL_BINARY(Vc_OP_);
 #undef Vc_OP_
 
-    template <typename = void>
-        Vc_INTRINSIC smart_reference operator++() &&
-        noexcept(noexcept(declval<value_type &>() = Accessor::get(declval<U &>(),
-                                                                  int())) &&
-                 set_noexcept<decltype(++declval<value_type &>())>())
+    template <class T = void,
+              class = decltype(
+                  ++std::declval<std::conditional_t<true, value_type, T> &>())>
+    Vc_INTRINSIC smart_reference operator++() &&
     {
-        value_type x = Accessor::get(obj, index);
-        Accessor::set(obj, index, ++x);
+        value_type x = read();
+        write(++x);
         return {obj, index};
     }
 
-    template <typename = void>
-        Vc_INTRINSIC value_type operator++(int) &&
-        noexcept(noexcept(declval<value_type &>() = Accessor::get(declval<U &>(),
-                                                                  int())) &&
-                 set_noexcept<decltype(declval<value_type &>()++)>())
+    template <class T = void,
+              class = decltype(
+                  std::declval<std::conditional_t<true, value_type, T> &>()++)>
+    Vc_INTRINSIC value_type operator++(int) &&
     {
-        const value_type r = Accessor::get(obj, index);
+        const value_type r = read();
         value_type x = r;
-        Accessor::set(obj, index, ++x);
+        write(++x);
         return r;
     }
 
-    template <typename = void>
-        Vc_INTRINSIC smart_reference operator--() &&
-        noexcept(noexcept(declval<value_type &>() = Accessor::get(declval<U &>(),
-                                                                  int())) &&
-                 set_noexcept<decltype(--declval<value_type &>())>())
+    template <class T = void,
+              class = decltype(
+                  --std::declval<std::conditional_t<true, value_type, T> &>())>
+    Vc_INTRINSIC smart_reference operator--() &&
     {
-        value_type x = Accessor::get(obj, index);
-        Accessor::set(obj, index, --x);
+        value_type x = read();
+        write(--x);
         return {obj, index};
     }
 
-    template <typename = void>
-        Vc_INTRINSIC value_type operator--(int) &&
-        noexcept(noexcept(declval<value_type &>() = Accessor::get(declval<U &>(),
-                                                                  int())) &&
-                 set_noexcept<decltype(declval<value_type &>()--)>())
+    template <class T = void,
+              class = decltype(
+                  std::declval<std::conditional_t<true, value_type, T> &>()--)>
+    Vc_INTRINSIC value_type operator--(int) &&
     {
-        const value_type r = Accessor::get(obj, index);
+        const value_type r = read();
         value_type x = r;
-        Accessor::set(obj, index, --x);
+        write(--x);
         return r;
     }
 
-    friend inline void swap(smart_reference &&a, smart_reference &&b) noexcept(
+    friend Vc_INTRINSIC void swap(smart_reference &&a, smart_reference &&b) noexcept(
         all<std::is_nothrow_constructible<value_type, smart_reference &&>,
             std::is_nothrow_assignable<smart_reference &&, value_type &&>>::value)
     {
@@ -137,7 +138,7 @@ public:
         static_cast<smart_reference &&>(b) = std::move(tmp);
     }
 
-    friend inline void swap(value_type &a, smart_reference &&b) noexcept(
+    friend Vc_INTRINSIC void swap(value_type &a, smart_reference &&b) noexcept(
         all<std::is_nothrow_constructible<value_type, value_type &&>,
             std::is_nothrow_assignable<value_type &, value_type &&>,
             std::is_nothrow_assignable<smart_reference &&, value_type &&>>::value)
@@ -147,7 +148,7 @@ public:
         static_cast<smart_reference &&>(b) = std::move(tmp);
     }
 
-    friend inline void swap(smart_reference &&a, value_type &b) noexcept(
+    friend Vc_INTRINSIC void swap(smart_reference &&a, value_type &b) noexcept(
         all<std::is_nothrow_constructible<value_type, smart_reference &&>,
             std::is_nothrow_assignable<value_type &, value_type &&>,
             std::is_nothrow_assignable<smart_reference &&, value_type &&>>::value)

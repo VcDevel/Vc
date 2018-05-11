@@ -32,35 +32,47 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
+// ISA & type detection {{{1
+template <class T, size_t N> constexpr bool is_sse_ps()
+{
+    return have_sse && std::is_same_v<T, float> && N == 4;
+}
+template <class T, size_t N> constexpr bool is_sse_pd()
+{
+    return have_sse2 && std::is_same_v<T, double> && N == 2;
+}
+template <class T, size_t N> constexpr bool is_avx_ps()
+{
+    return have_avx && std::is_same_v<T, float> && N == 8;
+}
+template <class T, size_t N> constexpr bool is_avx_pd()
+{
+    return have_avx && std::is_same_v<T, double> && N == 4;
+}
+template <class T, size_t N> constexpr bool is_avx512_ps()
+{
+    return have_avx512f && std::is_same_v<T, float> && N == 16;
+}
+template <class T, size_t N> constexpr bool is_avx512_pd()
+{
+    return have_avx512f && std::is_same_v<T, double> && N == 8;
+}
+
 // simd impl {{{1
-template <class Derived> struct generic_simd_impl {
+template <class Derived, class Abi> struct generic_simd_impl {
     // member types {{{2
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
+    template <class T>
+    using simd_member_type = typename Abi::template traits<T>::simd_member_type;
+    template <class T>
+    using mask_member_type = typename Abi::template traits<T>::mask_member_type;
 
+    // simd(Storage) {{{2
     template <class T, size_t N>
-    static Vc_INTRINSIC auto Vc_VDECL simd(Storage<T, N> x)
+    static Vc_INTRINSIC auto simd(Storage<T, N> x)
     {
         return Derived::make_simd(x);
-    }
-
-    // adjust_for_long{{{2
-    template <size_t Size>
-    static Vc_INTRINSIC Storage<equal_int_type_t<long>, Size> Vc_VDECL
-    adjust_for_long(Storage<long, Size> x)
-    {
-        return {x.intrin()};
-    }
-    template <size_t Size>
-    static Vc_INTRINSIC Storage<equal_int_type_t<ulong>, Size> Vc_VDECL
-    adjust_for_long(Storage<ulong, Size> x)
-    {
-        return {x.intrin()};
-    }
-    template <class T, size_t Size>
-    static Vc_INTRINSIC const Storage<T, Size> &adjust_for_long(const Storage<T, Size> &x)
-    {
-        return x;
     }
 
     // broadcast {{{2
@@ -112,16 +124,126 @@ template <class Derived> struct generic_simd_impl {
 #undef Vc_ARITHMETIC_OP_
 
     template <class T, size_t N>
-    static constexpr Vc_INTRINSIC Storage<T, N> Vc_VDECL bit_shift_left(Storage<T, N> x,
+    static constexpr Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> x,
                                                                         int y)
     {
         return detail::x86::bit_shift_left(x, y);
     }
     template <class T, size_t N>
-    static constexpr Vc_INTRINSIC Storage<T, N> Vc_VDECL bit_shift_right(Storage<T, N> x,
+    static constexpr Vc_INTRINSIC Storage<T, N> bit_shift_right(Storage<T, N> x,
                                                                          int y)
     {
         return detail::x86::bit_shift_right(x, y);
+    }
+
+    // compares {{{2
+    // equal_to {{{3
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC mask_member_type<T> equal_to(Storage<T, N> x,
+                                                               Storage<T, N> y)
+    {
+        if constexpr (sizeof(x) == 64) {  // AVX512
+            if constexpr (std::is_floating_point_v<T>) {
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _MM_CMPINT_EQ);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _MM_CMPINT_EQ);
+                } else { assert_unreachable<T>(); }
+            } else {
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmpeq_epi64_mask(x, y);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmpeq_epi32_mask(x, y);
+                } else if constexpr (sizeof(T) == 2) { return _mm512_cmpeq_epi16_mask(x, y);
+                } else if constexpr (sizeof(T) == 1) { return _mm512_cmpeq_epi8_mask(x, y);
+                } else { assert_unreachable<T>(); }
+            }
+        } else {
+            return to_storage(x.d == y.d);
+        }
+    }
+
+    // not_equal_to {{{3
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC mask_member_type<T> not_equal_to(Storage<T, N> x,
+                                                                   Storage<T, N> y)
+    {
+        if constexpr (sizeof(x) == 64) {  // AVX512
+            if constexpr (std::is_floating_point_v<T>) {
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _MM_CMPINT_NE);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _MM_CMPINT_NE);
+                } else { assert_unreachable<T>(); }
+            } else {
+                       if constexpr (sizeof(T) == 8) { return ~_mm512_cmpeq_epi64_mask(x, y);
+                } else if constexpr (sizeof(T) == 4) { return ~_mm512_cmpeq_epi32_mask(x, y);
+                } else if constexpr (sizeof(T) == 2) { return ~_mm512_cmpeq_epi16_mask(x, y);
+                } else if constexpr (sizeof(T) == 1) { return ~_mm512_cmpeq_epi8_mask(x, y);
+                } else { assert_unreachable<T>(); }
+            }
+        } else {
+            return to_storage(x.d != y.d);
+        }
+    }
+
+    // less {{{3
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC mask_member_type<T> less(Storage<T, N> x,
+                                                           Storage<T, N> y)
+    {
+        if constexpr (sizeof(x) == 64) {  // AVX512
+            if constexpr (std::is_floating_point_v<T>) {
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _MM_CMPINT_LT);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _MM_CMPINT_LT);
+                } else { assert_unreachable<T>(); }
+            } else if constexpr (std::is_signed_v<T>) {
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmplt_epi64_mask(x, y);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmplt_epi32_mask(x, y);
+                } else if constexpr (sizeof(T) == 2) { return _mm512_cmplt_epi16_mask(x, y);
+                } else if constexpr (sizeof(T) == 1) { return _mm512_cmplt_epi8_mask(x, y);
+                } else { assert_unreachable<T>(); }
+            } else {
+                static_assert(std::is_unsigned_v<T>);
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmplt_epu64_mask(x, y);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmplt_epu32_mask(x, y);
+                } else if constexpr (sizeof(T) == 2) { return _mm512_cmplt_epu16_mask(x, y);
+                } else if constexpr (sizeof(T) == 1) { return _mm512_cmplt_epu8_mask(x, y);
+                } else { assert_unreachable<T>(); }
+            }
+        } else {
+            return to_storage(x.d < y.d);
+        }
+    }
+
+    // less_equal {{{3
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC mask_member_type<T> less_equal(Storage<T, N> x,
+                                                                 Storage<T, N> y)
+    {
+        if constexpr (sizeof(x) == 64) {  // AVX512
+            if constexpr (std::is_floating_point_v<T>) {
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _MM_CMPINT_LE);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _MM_CMPINT_LE);
+                } else { assert_unreachable<T>(); }
+            } else if constexpr (std::is_signed_v<T>) {
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmple_epi64_mask(x, y);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmple_epi32_mask(x, y);
+                } else if constexpr (sizeof(T) == 2) { return _mm512_cmple_epi16_mask(x, y);
+                } else if constexpr (sizeof(T) == 1) { return _mm512_cmple_epi8_mask(x, y);
+                } else { assert_unreachable<T>(); }
+            } else {
+                static_assert(std::is_unsigned_v<T>);
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmple_epu64_mask(x, y);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmple_epu32_mask(x, y);
+                } else if constexpr (sizeof(T) == 2) { return _mm512_cmple_epu16_mask(x, y);
+                } else if constexpr (sizeof(T) == 1) { return _mm512_cmple_epu8_mask(x, y);
+                } else { assert_unreachable<T>(); }
+            }
+        } else {
+            return to_storage(x.d <= y.d);
+        }
+    }
+
+    // negation {{{2
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC mask_member_type<T> negate(Storage<T, N> x) noexcept
+    {
+        return detail::to_storage(!x.d);
     }
 
     // min, max, clamp {{{2
@@ -145,18 +267,314 @@ template <class Derived> struct generic_simd_impl {
         return {a.d < b.d ? a.d : b.d, a.d < b.d ? b.d : a.d};
     }
 
-    // sqrt {{{2
-    template <class T, size_t N>
-    static Vc_INTRINSIC Storage<T, N> sqrt(Storage<T, N> x) noexcept
+    // math {{{2
+    // sqrt {{{3
+    template <class T, size_t N> static Vc_INTRINSIC Storage<T, N> sqrt(Storage<T, N> x)
     {
-        return detail::x86::sqrt(x);
+               if constexpr (is_sse_ps   <T, N>()) { return _mm_sqrt_ps(x);
+        } else if constexpr (is_sse_pd   <T, N>()) { return _mm_sqrt_pd(x);
+        } else if constexpr (is_avx_ps   <T, N>()) { return _mm256_sqrt_ps(x);
+        } else if constexpr (is_avx_pd   <T, N>()) { return _mm256_sqrt_pd(x);
+        } else if constexpr (is_avx512_ps<T, N>()) { return _mm512_sqrt_ps(x);
+        } else if constexpr (is_avx512_pd<T, N>()) { return _mm512_sqrt_pd(x);
+        } else { assert_unreachable<T>(); }
     }
 
-    // abs {{{2
+    // abs {{{3
     template <class T, size_t N>
     static Vc_INTRINSIC Storage<T, N> abs(Storage<T, N> x) noexcept
     {
-        return detail::x86::abs(adjust_for_long(x));
+        return detail::x86::abs(x);
+    }
+
+    // trunc {{{3
+    template <class T, size_t N> static Vc_INTRINSIC Storage<T, N> trunc(Storage<T, N> x)
+    {
+        if constexpr (is_avx512_ps<T, N>()) {
+            return _mm512_roundscale_round_ps(x, 0x03, _MM_FROUND_CUR_DIRECTION);
+        } else if constexpr (is_avx512_pd<T, N>()) {
+            return _mm512_roundscale_round_pd(x, 0x03, _MM_FROUND_CUR_DIRECTION);
+        } else if constexpr (is_avx_ps<T, N>()) {
+            return _mm256_round_ps(x, 0x3);
+        } else if constexpr (is_avx_pd<T, N>()) {
+            return _mm256_round_pd(x, 0x3);
+        } else if constexpr (have_sse4_1 && is_sse_ps<T, N>()) {
+            return _mm_round_ps(x, 0x3);
+        } else if constexpr (have_sse4_1 && is_sse_pd<T, N>()) {
+            return _mm_round_pd(x, 0x3);
+        } else if constexpr (is_sse_ps<T, N>()) {
+            auto truncated = _mm_cvtepi32_ps(_mm_cvttps_epi32(x));
+            const auto no_fractional_values = builtin_cast<float>(
+                builtin_cast<int>(builtin_cast<uint>(x.d) & 0x7f800000u) <
+                0x4b000000);  // the exponent is so large that no mantissa bits signify
+                              // fractional values (0x3f8 + 23*8 = 0x4b0)
+            return blendv_ps(x, truncated, no_fractional_values);
+        } else if constexpr (is_sse_pd<T, N>()) {
+            const auto abs_x = abs(x).d;
+            const auto min_no_fractional_bits = builtin_cast<double>(
+                builtin_broadcast<2>(0x4330'0000'0000'0000ull));  // 0x3ff + 52 = 0x433
+            builtin_type16_t<double> truncated =
+                (abs_x + min_no_fractional_bits) - min_no_fractional_bits;
+            // due to rounding, the result can be too large. In this case `truncated >
+            // abs(x)` holds, so subtract 1 to truncated if `abs(x) < truncated`
+            truncated -=
+                and_(builtin_cast<double>(abs_x < truncated), builtin_broadcast<2>(1.));
+            // finally, fix the sign bit:
+            return or_(
+                and_(builtin_cast<double>(builtin_broadcast<2>(0x8000'0000'0000'0000ull)),
+                     x),
+                truncated);
+        } else {
+            assert_unreachable<T>();
+        }
+    }
+
+    // floor {{{3
+    template <class T, size_t N> static Vc_INTRINSIC Storage<T, N> floor(Storage<T, N> x)
+    {
+        if constexpr (is_avx512_ps<T, N>()) {
+            return _mm512_roundscale_round_ps(x, 0x01, _MM_FROUND_CUR_DIRECTION);
+        } else if constexpr (is_avx512_pd<T, N>()) {
+            return _mm512_roundscale_round_pd(x, 0x01, _MM_FROUND_CUR_DIRECTION);
+        } else if constexpr (is_avx_ps<T, N>()) {
+            return _mm256_round_ps(x, 0x1);
+        } else if constexpr (is_avx_pd<T, N>()) {
+            return _mm256_round_pd(x, 0x1);
+        } else if constexpr (have_sse4_1 && is_sse_ps<T, N>()) {
+            return _mm_floor_ps(x);
+        } else if constexpr (have_sse4_1 && is_sse_pd<T, N>()) {
+            return _mm_floor_pd(x);
+        } else {
+            const auto y = trunc(x).d;
+            const auto negative_input = builtin_cast<T>(x.d < builtin_broadcast<N, T>(0));
+            const auto mask = andnot_(builtin_cast<T>(y == x.d), negative_input);
+            return or_(andnot_(mask, y), and_(mask, y - builtin_broadcast<N, T>(1)));
+        }
+    }
+
+    // ceil {{{3
+    template <class T, size_t N> static Vc_INTRINSIC Storage<T, N> ceil(Storage<T, N> x)
+    {
+        if constexpr (is_avx512_ps<T, N>()) {
+            return _mm512_roundscale_round_ps(x, 0x02, _MM_FROUND_CUR_DIRECTION);
+        } else if constexpr (is_avx512_pd<T, N>()) {
+            return _mm512_roundscale_round_pd(x, 0x02, _MM_FROUND_CUR_DIRECTION);
+        } else if constexpr (is_avx_ps<T, N>()) {
+            return _mm256_round_ps(x, 0x2);
+        } else if constexpr (is_avx_pd<T, N>()) {
+            return _mm256_round_pd(x, 0x2);
+        } else if constexpr (have_sse4_1 && is_sse_ps<T, N>()) {
+            return _mm_ceil_ps(x);
+        } else if constexpr (have_sse4_1 && is_sse_pd<T, N>()) {
+            return _mm_ceil_pd(x);
+        } else {
+            const auto y = trunc(x).d;
+            const auto negative_input = builtin_cast<T>(x.d < builtin_broadcast<N, T>(0));
+            const auto inv_mask = or_(builtin_cast<T>(y == x.d), negative_input);
+            return or_(and_(inv_mask, y),
+                       andnot_(inv_mask, y + builtin_broadcast<N, T>(1)));
+        }
+    }
+
+    // isnan {{{3
+    template <class T, size_t N>
+    static Vc_INTRINSIC mask_member_type<T> isnan(Storage<T, N> x)
+    {
+             if constexpr (is_sse_ps   <T, N>()) { return _mm_cmpunord_ps(x, x); }
+        else if constexpr (is_avx_ps   <T, N>()) { return _mm256_cmp_ps(x, x, _CMP_UNORD_Q); }
+        else if constexpr (is_avx512_ps<T, N>()) { return _mm512_cmp_ps_mask(x, x, _CMP_UNORD_Q); }
+        else if constexpr (is_sse_pd   <T, N>()) { return _mm_cmpunord_pd(x, x); }
+        else if constexpr (is_avx_pd   <T, N>()) { return _mm256_cmp_pd(x, x, _CMP_UNORD_Q); }
+        else if constexpr (is_avx512_pd<T, N>()) { return _mm512_cmp_pd_mask(x, x, _CMP_UNORD_Q); }
+        else { assert_unreachable<T>(); }
+    }
+
+    // isfinite {{{3
+    template <class T, size_t N>
+    static Vc_INTRINSIC mask_member_type<T> isfinite(Storage<T, N> x)
+    {
+        return x86::cmpord(x, x.d * T());
+    }
+
+    // isunordered {{{3
+    template <class T, size_t N>
+    static Vc_INTRINSIC mask_member_type<T> isunordered(Storage<T, N> x, Storage<T, N> y)
+    {
+        return x86::cmpunord(x, y);
+    }
+
+    // signbit {{{3
+    template <class T, size_t N>
+    static Vc_INTRINSIC mask_member_type<T> signbit(Storage<T, N> x)
+    {
+        using I = int_for_sizeof_t<T>;
+        if constexpr (have_avx512dq && is_avx512_ps<T, N>()) {
+            return _mm512_movepi32_mask(to_m512i(x));
+        } else if constexpr (have_avx512dq && is_avx512_pd<T, N>()) {
+            return _mm512_movepi64_mask(to_m512i(x));
+        } else if constexpr (sizeof(x) == 64) {
+            const auto signmask = builtin_broadcast<N>(std::numeric_limits<I>::min());
+            return equal_to(Storage<I, N>(builtin_cast<I>(x.d) & signmask),
+                            Storage<I, N>(signmask));
+        } else {
+            const auto xx = builtin_cast<I>(x.d);
+            constexpr I signmask = std::numeric_limits<I>::min();
+            if constexpr ((sizeof(T) == 4 && (have_avx2 || sizeof(x) == 16)) ||
+                          have_avx512vl) {
+                (void)signmask;
+                return builtin_cast<T>(xx >> std::numeric_limits<I>::digits);
+            } else if constexpr ((have_avx2 || (have_ssse3 && sizeof(x) == 16))) {
+                return builtin_cast<T>((xx & signmask) == signmask);
+            } else {  // SSE2/3 or AVX (w/o AVX2)
+                constexpr auto one = builtin_broadcast<N, T>(1);
+                return builtin_cast<T>(
+                    builtin_cast<T>((xx & signmask) | builtin_cast<I>(one))  // -1 or 1
+                    != one);
+            }
+        }
+    }
+
+    // isnonzerovalue (isnormal | is subnormal == !isinf & !isnan & !is zero) {{{3
+    template <class T> static Vc_INTRINSIC auto isnonzerovalue(T x)
+    {
+        using U = typename builtin_traits<T>::value_type;
+        return x86::cmpord(x * std::numeric_limits<U>::infinity(),  // NaN if x == 0
+                           x * U()                                  // NaN if x == inf
+        );
+    }
+
+    // isinf {{{3
+    template <class T, size_t N>
+    static Vc_INTRINSIC mask_member_type<T> isinf(Storage<T, N> x)
+    {
+        if constexpr (is_avx512_pd<T, N>()) {
+            if constexpr (have_avx512dq) {
+                return _mm512_fpclass_pd_mask(x, 0x08) | _mm512_fpclass_pd_mask(x, 0x10);
+            } else {
+                return _mm512_cmp_epi64_mask(to_m512i(x86::abs(x)),
+                                             builtin_broadcast<N>(0x7ff0000000000000ll),
+                                             _CMP_EQ_OQ);
+            }
+        } else if constexpr (is_avx512_ps<T, N>()) {
+            if constexpr (have_avx512dq) {
+                return _mm512_fpclass_ps_mask(x, 0x08) | _mm512_fpclass_ps_mask(x, 0x10);
+            } else {
+                return _mm512_cmp_epi32_mask(to_m512i(x86::abs(x)),
+                                             auto_cast(builtin_broadcast<N>(0x7f800000u)),
+                                             _CMP_EQ_OQ);
+            }
+        } else if constexpr (have_avx512dq_vl) {
+            if constexpr (is_sse_pd<T, N>()) {
+                return builtin_cast<double>(_mm_movm_epi64(_mm_fpclass_pd_mask(x, 0x08) |
+                                                           _mm_fpclass_pd_mask(x, 0x10)));
+            } else if constexpr (is_avx_pd<T, N>()) {
+                return builtin_cast<double>(_mm256_movm_epi64(
+                    _mm256_fpclass_pd_mask(x, 0x08) | _mm256_fpclass_pd_mask(x, 0x10)));
+            } else if constexpr (is_sse_ps<T, N>()) {
+                return builtin_cast<float>(_mm_movm_epi32(_mm_fpclass_ps_mask(x, 0x08) |
+                                                          _mm_fpclass_ps_mask(x, 0x10)));
+            } else if constexpr (is_avx_ps<T, N>()) {
+                return builtin_cast<float>(_mm256_movm_epi32(
+                    _mm256_fpclass_ps_mask(x, 0x08) | _mm256_fpclass_ps_mask(x, 0x10)));
+            } else {
+                assert_unreachable<T>();
+            }
+        } else {
+            // compares to inf using the corresponding integer type
+            return builtin_cast<T>(builtin_cast<int_for_sizeof_t<T>>(abs(x).d) ==
+                                   builtin_cast<int_for_sizeof_t<T>>(builtin_broadcast<N>(
+                                       std::numeric_limits<T>::infinity())));
+            // alternative:
+            //return builtin_cast<T>(abs(x).d > std::numeric_limits<T>::max());
+        }
+    }
+    // isnormal {{{3
+    template <class T, size_t N>
+    static Vc_INTRINSIC mask_member_type<T> isnormal(Storage<T, N> x)
+    {
+        // subnormals -> 0
+        // 0 -> 0
+        // inf -> inf
+        // -inf -> inf
+        // nan -> inf
+        // normal value -> positive value / not 0
+        return isnonzerovalue(
+            and_(x.d, builtin_broadcast<N>(std::numeric_limits<T>::infinity())));
+    }
+
+    // fpclassify {{{3
+    template <class T, size_t N>
+    static Vc_INTRINSIC fixed_size_storage<int, N> fpclassify(Storage<T, N> x)
+    {
+        if constexpr (is_avx512_pd<T, N>()) {
+            // AVX512 is special because we want to use an __mmask to blend int vectors
+            // (coming from double vectors). GCC doesn't allow this combination on the
+            // ternary operator. Thus, resort to intrinsics:
+            if constexpr (have_avx512vl) {
+                auto &&b = [](int y) { return to_intrin(builtin_broadcast<N>(y)); };
+                return {_mm256_mask_mov_epi32(
+                    _mm256_mask_mov_epi32(
+                        _mm256_mask_mov_epi32(b(FP_NORMAL), isnan(x), b(FP_NAN)),
+                        isinf(x), b(FP_INFINITE)),
+                    _mm512_cmp_pd_mask(
+                        abs(x), builtin_broadcast<N>(std::numeric_limits<double>::min()),
+                        _CMP_LT_OS),
+                    _mm256_mask_mov_epi32(
+                        b(FP_SUBNORMAL),
+                        _mm512_cmp_pd_mask(x, _mm512_setzero_pd(), _CMP_EQ_OQ),
+                        b(FP_ZERO)))};
+            } else {
+                auto &&b = [](int y) {
+                    return _mm512_castsi256_si512(to_intrin(builtin_broadcast<N>(y)));
+                };
+                return {lo256(_mm512_mask_mov_epi32(
+                    _mm512_mask_mov_epi32(
+                        _mm512_mask_mov_epi32(b(FP_NORMAL), isnan(x), b(FP_NAN)),
+                        isinf(x), b(FP_INFINITE)),
+                    _mm512_cmp_pd_mask(
+                        abs(x), builtin_broadcast<N>(std::numeric_limits<double>::min()),
+                        _CMP_LT_OS),
+                    _mm512_mask_mov_epi32(
+                        b(FP_SUBNORMAL),
+                        _mm512_cmp_pd_mask(x, _mm512_setzero_pd(), _CMP_EQ_OQ),
+                        b(FP_ZERO))))};
+            }
+        } else {
+            constexpr auto fp_normal =
+                builtin_cast<T>(builtin_broadcast<N, int_for_sizeof_t<T>>(FP_NORMAL));
+            constexpr auto fp_nan =
+                builtin_cast<T>(builtin_broadcast<N, int_for_sizeof_t<T>>(FP_NAN));
+            constexpr auto fp_infinite =
+                builtin_cast<T>(builtin_broadcast<N, int_for_sizeof_t<T>>(FP_INFINITE));
+            constexpr auto fp_subnormal =
+                builtin_cast<T>(builtin_broadcast<N, int_for_sizeof_t<T>>(FP_SUBNORMAL));
+            constexpr auto fp_zero =
+                builtin_cast<T>(builtin_broadcast<N, int_for_sizeof_t<T>>(FP_ZERO));
+
+            const auto tmp = builtin_cast<llong>(
+                abs(x).d < std::numeric_limits<T>::min()
+                    ? (x.d == 0 ? fp_zero : fp_subnormal)
+                    : x86::blend(isinf(x), x86::blend(isnan(x), fp_normal, fp_nan),
+                                 fp_infinite));
+            if constexpr (std::is_same_v<T, float>) {
+                if constexpr (fixed_size_storage<int, N>::tuple_size == 1) {
+                    return {tmp};
+                } else if constexpr (fixed_size_storage<int, N>::tuple_size == 2) {
+                    return {extract<0, 2>(tmp), extract<1, 2>(tmp)};
+                } else {
+                    assert_unreachable<T>();
+                }
+            } else if constexpr (is_sse_pd<T, N>()) {
+                static_assert(fixed_size_storage<int, N>::tuple_size == 2);
+                return {_mm_cvtsi128_si32(tmp),
+                        {_mm_cvtsi128_si32(_mm_unpackhi_epi64(tmp, tmp))}};
+            } else if constexpr (is_avx_pd<T, N>()) {
+                static_assert(fixed_size_storage<int, N>::tuple_size == 1);
+                return {_mm_packs_epi32(lo128(tmp), hi128(tmp))};
+            } else {
+                assert_unreachable<T>();
+            }
+        }
     }
 
     // increment & decrement{{{2
@@ -169,30 +587,42 @@ template <class Derived> struct generic_simd_impl {
         x = minus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
     }
 
+    // smart_reference access {{{2
+    template <class T, size_t N, class U>
+    static Vc_INTRINSIC void set(Storage<T, N> &v, int i, U &&x) noexcept
+    {
+        v.set(i, std::forward<U>(x));
+    }
+
     // masked_assign{{{2
     template <class T, class K, size_t N>
-    static Vc_INTRINSIC void Vc_VDECL masked_assign(Storage<K, N> k, Storage<T, N> &lhs,
+    static Vc_INTRINSIC void masked_assign(Storage<K, N> k, Storage<T, N> &lhs,
                                              detail::id<Storage<T, N>> rhs)
     {
         lhs = detail::x86::blend(k, lhs, rhs);
     }
     template <class T, class K, size_t N>
-    static Vc_INTRINSIC void Vc_VDECL masked_assign(Storage<K, N> k, Storage<T, N> &lhs,
+    static Vc_INTRINSIC void masked_assign(Storage<K, N> k, Storage<T, N> &lhs,
                                                     detail::id<T> rhs)
     {
-#ifdef __GNUC__
         if (__builtin_constant_p(rhs) && rhs == 0 && std::is_same<K, T>::value) {
-            lhs = x86::andnot_(k, lhs);
-            return;
+            if constexpr (sizeof(k) >= 16) {
+                // the andnot_ optimization only makes sense if k.d is a vector register
+                lhs.d = andnot_(k.d, lhs.d);
+                return;
+            } else {
+                // for AVX512/__mmask, a _mm512_maskz_mov is best
+                lhs = detail::x86::blend(k, lhs, intrinsic_type_t<T, N>());
+                return;
+            }
         }
-#endif  // __GNUC__
         lhs =
             detail::x86::blend(k, lhs, x86::broadcast(rhs, size_constant<sizeof(lhs)>()));
     }
 
     // masked_cassign {{{2
     template <template <typename> class Op, class T, class K, size_t N>
-    static Vc_INTRINSIC void Vc_VDECL masked_cassign(const Storage<K, N> k,
+    static Vc_INTRINSIC void masked_cassign(const Storage<K, N> k,
                                                      Storage<T, N> &lhs,
                                                      const detail::id<Storage<T, N>> rhs)
     {
@@ -201,7 +631,7 @@ template <class Derived> struct generic_simd_impl {
     }
 
     template <template <typename> class Op, class T, class K, size_t N>
-    static Vc_INTRINSIC void Vc_VDECL masked_cassign(const Storage<K, N> k,
+    static Vc_INTRINSIC void masked_cassign(const Storage<K, N> k,
                                                      Storage<T, N> &lhs,
                                                      const detail::id<T> rhs)
     {
@@ -213,7 +643,7 @@ template <class Derived> struct generic_simd_impl {
 
     // masked_unary {{{2
     template <template <typename> class Op, class T, class K, size_t N>
-    static Vc_INTRINSIC Storage<T, N> Vc_VDECL masked_unary(const Storage<K, N> k,
+    static Vc_INTRINSIC Storage<T, N> masked_unary(const Storage<K, N> k,
                                                             const Storage<T, N> v)
     {
         auto vv = simd(v);
@@ -233,7 +663,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
 
     // masked load (AVX512 has its own overloads) {{{2
     template <class T, size_t N, class F>
-    static inline void Vc_VDECL masked_load(Storage<T, N> &merge, Storage<T, N> mask,
+    static inline void masked_load(Storage<T, N> &merge, Storage<T, N> mask,
                                             const bool *mem, F) noexcept
     {
         if constexpr (have_avx512bw_vl && N == 32 && sizeof(T) == 1) {
@@ -289,7 +719,7 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
 
     // masked store {{{2
     template <class T, size_t N, class F>
-    static inline void Vc_VDECL masked_store(const Storage<T, N> v, bool *mem, F,
+    static inline void masked_store(const Storage<T, N> v, bool *mem, F,
                                              const Storage<T, N> k) noexcept
     {
         detail::execute_n_times<N>([&](auto i) {
@@ -351,27 +781,89 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
 #endif  // Vc_HAVE_AVX512_ABI
     }
 
+    // logical and bitwise operators {{{2
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC Storage<T, N> logical_and(const Storage<T, N> &x,
+                                                            const Storage<T, N> &y)
+    {
+        if constexpr (std::is_same_v<T, bool>) {
+            return x.d & y.d;
+        } else {
+            return detail::and_(x.d, y.d);
+        }
+    }
+
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC Storage<T, N> logical_or(const Storage<T, N> &x,
+                                                           const Storage<T, N> &y)
+    {
+        if constexpr (std::is_same_v<T, bool>) {
+            return x.d | y.d;
+        } else {
+            return detail::or_(x.d, y.d);
+        }
+    }
+
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC Storage<T, N> bit_and(const Storage<T, N> &x,
+                                                        const Storage<T, N> &y)
+    {
+        if constexpr (std::is_same_v<T, bool>) {
+            return x.d & y.d;
+        } else {
+            return detail::and_(x.d, y.d);
+        }
+    }
+
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC Storage<T, N> bit_or(const Storage<T, N> &x,
+                                                       const Storage<T, N> &y)
+    {
+        if constexpr (std::is_same_v<T, bool>) {
+            return x.d | y.d;
+        } else {
+            return detail::or_(x.d, y.d);
+        }
+    }
+
+    template <class T, size_t N>
+    static constexpr Vc_INTRINSIC Storage<T, N> bit_xor(const Storage<T, N> &x,
+                                                        const Storage<T, N> &y)
+    {
+        if constexpr (std::is_same_v<T, bool>) {
+            return x.d ^ y.d;
+        } else {
+            return detail::xor_(x.d, y.d);
+        }
+    }
+
+    // smart_reference access {{{2
+    template <class T> static void set(mask_member_type<T> &k, int i, bool x) noexcept
+    {
+        using int_t = builtin_type_t<int_for_sizeof_t<T>, mask_member_type<T>::width>;
+        auto tmp = reinterpret_cast<int_t>(k.d);
+        tmp[i] = -x;
+        k.d = auto_cast(tmp);
+    }
     // masked_assign{{{2
     template <class T, size_t N>
-    static Vc_INTRINSIC void Vc_VDECL masked_assign(Storage<T, N> k, Storage<T, N> &lhs,
+    static Vc_INTRINSIC void masked_assign(Storage<T, N> k, Storage<T, N> &lhs,
                                                     detail::id<Storage<T, N>> rhs)
     {
         lhs = detail::x86::blend(k, lhs, rhs);
     }
     template <class T, size_t N>
-    static Vc_INTRINSIC void Vc_VDECL masked_assign(Storage<T, N> k, Storage<T, N> &lhs,
+    static Vc_INTRINSIC void masked_assign(Storage<T, N> k, Storage<T, N> &lhs,
                                                     bool rhs)
     {
-#ifdef __GNUC__
         if (__builtin_constant_p(rhs)) {
             if (rhs == false) {
-                lhs = x86::andnot_(k, lhs);
+                lhs = andnot_(k.d, lhs.d);
             } else {
-                lhs = x86::or_(k, lhs);
+                lhs = or_(k.d, lhs.d);
             }
             return;
         }
-#endif  // __GNUC__
         lhs = detail::x86::blend(k, lhs, detail::data(simd_mask<T>(rhs)));
     }
 

@@ -43,6 +43,11 @@ namespace detail
 // unused{{{1
 template <class T> static constexpr void unused(T && ) {}
 
+// assert_unreachable{{{1
+template <class T> struct assert_unreachable {
+    static_assert(!std::is_same_v<T, T>, "this should be unreachable");
+};
+
 // custom diagnostics for UB {{{1
 #if defined Vc_GCC
 template <class T>
@@ -443,32 +448,6 @@ Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, Vc::detail::bool_constant<Conditi
 
 // bool_storage_member_type{{{1
 template <size_t Size> struct bool_storage_member_type;
-
-// intrinsic_type {{{1
-template <class T, size_t Bytes, class = detail::void_t<>> struct intrinsic_type;
-template <class T, size_t Size>
-using intrinsic_type_t = typename intrinsic_type<T, Size * sizeof(T)>::type;
-
-// is_intrinsic{{{1
-template <class T> struct is_intrinsic : public std::false_type {};
-template <class T> inline constexpr bool is_intrinsic_v = is_intrinsic<T>::value;
-
-// builtin_type {{{1
-template <class T, size_t Bytes, class = detail::void_t<>> struct builtin_type {};
-template <class T, size_t Size>
-using builtin_type_t = typename builtin_type<T, Size * sizeof(T)>::type;
-
-template <class T> using builtin_type2_t  = typename builtin_type<T, 2>::type;
-template <class T> using builtin_type4_t  = typename builtin_type<T, 4>::type;
-template <class T> using builtin_type8_t  = typename builtin_type<T, 8>::type;
-template <class T> using builtin_type16_t = typename builtin_type<T, 16>::type;
-template <class T> using builtin_type32_t = typename builtin_type<T, 32>::type;
-template <class T> using builtin_type64_t = typename builtin_type<T, 64>::type;
-template <class T> using builtin_type128_t = typename builtin_type<T, 128>::type;
-
-// is_builtin_vector {{{1
-template <class T, class = void_t<>> struct is_builtin_vector : std::false_type {};
-template <class T> inline constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
 
 // fixed_size_storage fwd decl {{{1
 template <class T, int N> struct fixed_size_storage_builder_wrapper;

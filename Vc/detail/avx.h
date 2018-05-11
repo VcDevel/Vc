@@ -35,7 +35,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "concepts.h"
 #include "x86/intrinsics.h"
 #include "x86/convert.h"
-#include "x86/compares.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -177,46 +176,6 @@ struct avx_mask_impl : public generic_mask_impl<simd_abi::__avx, avx_mask_member
         return to_storage(~storage_bitcast<uint>(x).d);
     }
 
-    // logical and bitwise operators {{{2
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::and_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::or_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::and_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::or_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::xor_(x.d, y.d)};
-    }
-
-    // smart_reference access {{{2
-    template <class T> static bool get(const mask_member_type<T> k, int i) noexcept
-    {
-        return k[i];
-    }
-    template <class T> static void set(mask_member_type<T> &k, int i, bool x) noexcept
-    {
-        k.set(i, mask_bool<T>(x));
-    }
     // }}}2
 };
 
@@ -289,7 +248,7 @@ template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(simd_mask<T, simd
 namespace detail
 {
 // simd impl {{{1
-struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
+struct avx_simd_impl : public generic_simd_impl<avx_simd_impl, simd_abi::__avx> {
     // member types {{{2
     using abi = simd_abi::__avx;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
@@ -417,107 +376,34 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
     }
 
     // masked load {{{2
-    // fallback {{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<T> &merge, mask_member_type<T> k,
-                                                  const U *mem, F) Vc_NOEXCEPT_OR_IN_TEST
+    static inline void masked_load(simd_member_type<T> &merge, mask_member_type<T> k,
+                                   const U *mem, F) Vc_NOEXCEPT_OR_IN_TEST
     {
-        execute_n_times<size<T>()>([&](auto i) {
-            if (k[i]) {
-                merge.set(i, static_cast<T>(mem[i]));
-            }
-        });
-    }
-
-    // 8-bit and 16-bit integers with AVX512VL/BW {{{3
-#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<schar> &merge,
-                                                  mask_member_type<schar> k, const schar *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = _mm256_mask_loadu_epi8(merge, _mm256_movemask_epi8(k), mem);
-    }
-
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<uchar> &merge,
-                                                  mask_member_type<uchar> k, const uchar *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = _mm256_mask_loadu_epi8(merge, _mm256_movemask_epi8(k), mem);
-    }
-
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<short> &merge,
-                                                  mask_member_type<short> k, const short *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = _mm256_mask_loadu_epi16(merge, x86::movemask_epi16(k), mem);
-    }
-
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<ushort> &merge,
-                                                  mask_member_type<ushort> k, const ushort *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = _mm256_mask_loadu_epi16(merge, x86::movemask_epi16(k), mem);
-    }
-
-#endif  // AVX512VL && AVX512BW
-
-    // 32-bit and 64-bit integers with AVX2 {{{3
-#ifdef Vc_HAVE_AVX2
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<int> &merge,
-                                                  mask_member_type<int> k, const int *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = or_(andnot_(k, merge), _mm256_maskload_epi32(mem, k));
-    }
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<uint> &merge,
-                                                  mask_member_type<uint> k, const uint *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = or_(andnot_(k, merge),
-                    _mm256_maskload_epi32(
-                        reinterpret_cast<const detail::may_alias<int> *>(mem), k));
-    }
-
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<llong> &merge,
-                                                  mask_member_type<llong> k, const llong *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = or_(andnot_(k, merge), _mm256_maskload_epi64(mem, k));
-    }
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<ullong> &merge,
-                                                  mask_member_type<ullong> k, const ullong *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = or_(andnot_(k, merge),
-                    _mm256_maskload_epi64(
-                        reinterpret_cast<const may_alias<long long> *>(mem), k));
-    }
-#endif  // Vc_HAVE_AVX2
-
-    // 32-bit and 64-bit floats {{{3
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<double> &merge,
-                                                  mask_member_type<double> k, const double *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = or_(andnot_(k, merge),
-                    _mm256_maskload_pd(mem, _mm256_castpd_si256(k)));
-    }
-    template <class F>
-    static Vc_INTRINSIC void Vc_VDECL masked_load(simd_member_type<float> &merge,
-                                                  mask_member_type<float> k, const float *mem,
-                                                  F) Vc_NOEXCEPT_OR_IN_TEST
-    {
-        merge = or_(andnot_(k, merge),
-                    _mm256_maskload_ps(mem, _mm256_castps_si256(k)));
+        if constexpr (have_avx512bw_vl && sizeof(T) == 1 && std::is_same_v<T, U>) {
+            merge = _mm256_mask_loadu_epi8(merge, _mm256_movemask_epi8(k), mem);
+        } else if constexpr (have_avx512bw_vl && sizeof(T) == 2 && std::is_same_v<T, U>) {
+            merge = _mm256_mask_loadu_epi16(merge, x86::movemask_epi16(k), mem);
+        } else if constexpr (have_avx2 && sizeof(T) == 4 && std::is_same_v<T, U> &&
+                             std::is_integral_v<U>) {
+            merge = (~k.d & merge.d) | builtin_cast<T>(_mm256_maskload_epi32(
+                                           reinterpret_cast<const int *>(mem), k));
+        } else if constexpr (have_avx && sizeof(T) == 4 && std::is_same_v<T, U>) {
+            merge = to_storage(
+                or_(andnot_(k.d, merge.d),
+                    _mm256_maskload_ps(reinterpret_cast<const float *>(mem), to_m256i(k))));
+        } else if constexpr (have_avx2 && sizeof(T) == 8 && std::is_same_v<T, U> &&
+                             std::is_integral_v<U>) {
+            merge = (~k.d & merge.d) | builtin_cast<T>(_mm256_maskload_epi64(
+                                           reinterpret_cast<const llong *>(mem), k));
+        } else if constexpr (have_avx && sizeof(T) == 8 && std::is_same_v<T, U>) {
+            merge = to_storage(
+                or_(andnot_(k.d, merge.d),
+                    _mm256_maskload_pd(reinterpret_cast<const double *>(mem), to_m256i(k))));
+        } else {
+            detail::bit_iteration(mask_to_int<size<T>()>(k),
+                                  [&](auto i) { merge.set(i, static_cast<T>(mem[i])); });
+        }
     }
 
     // store {{{2
@@ -633,14 +519,6 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
         });
     }
 
-    // negation {{{2
-    template <class T>
-    static Vc_INTRINSIC mask_member_type<T> Vc_VDECL
-    negate(simd_member_type<T> x) noexcept
-    {
-        return detail::to_storage(!x.d);
-    }
-
     // reductions {{{2
     template <class T, class BinaryOperation, size_t N>
     static Vc_INTRINSIC T Vc_VDECL reduce(size_tag<N>, simd<T> x,
@@ -653,96 +531,7 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
                                      binary_op);
     }
 
-    // compares {{{2
-#if defined Vc_USE_BUILTIN_VECTOR_TYPES
-    template <class T>
-    static Vc_INTRINSIC mask_member_type<T> equal_to(simd_member_type<T> x, simd_member_type<T> y)
-    {
-        return to_storage(x.d == y.d);
-    }
-    template <class T>
-    static Vc_INTRINSIC mask_member_type<T> not_equal_to(simd_member_type<T> x, simd_member_type<T> y)
-    {
-        return to_storage(x.d != y.d);
-    }
-    template <class T>
-    static Vc_INTRINSIC mask_member_type<T> less(simd_member_type<T> x, simd_member_type<T> y)
-    {
-        return to_storage(x.d < y.d);
-    }
-    template <class T>
-    static Vc_INTRINSIC mask_member_type<T> less_equal(simd_member_type<T> x, simd_member_type<T> y)
-    {
-        return to_storage(x.d <= y.d);
-    }
-#else
-    static Vc_INTRINSIC mask_member_type<double> Vc_VDECL equal_to    (simd_member_type<double> x, simd_member_type<double> y) { return _mm256_cmp_pd(x, y, _CMP_EQ_OQ); }
-    static Vc_INTRINSIC mask_member_type<double> Vc_VDECL not_equal_to(simd_member_type<double> x, simd_member_type<double> y) { return _mm256_cmp_pd(x, y, _CMP_NEQ_UQ); }
-    static Vc_INTRINSIC mask_member_type<double> Vc_VDECL less        (simd_member_type<double> x, simd_member_type<double> y) { return _mm256_cmp_pd(x, y, _CMP_LT_OS); }
-    static Vc_INTRINSIC mask_member_type<double> Vc_VDECL less_equal  (simd_member_type<double> x, simd_member_type<double> y) { return _mm256_cmp_pd(x, y, _CMP_LE_OS); }
-    static Vc_INTRINSIC mask_member_type< float> Vc_VDECL equal_to    (simd_member_type< float> x, simd_member_type< float> y) { return _mm256_cmp_ps(x, y, _CMP_EQ_OQ); }
-    static Vc_INTRINSIC mask_member_type< float> Vc_VDECL not_equal_to(simd_member_type< float> x, simd_member_type< float> y) { return _mm256_cmp_ps(x, y, _CMP_NEQ_UQ); }
-    static Vc_INTRINSIC mask_member_type< float> Vc_VDECL less        (simd_member_type< float> x, simd_member_type< float> y) { return _mm256_cmp_ps(x, y, _CMP_LT_OS); }
-    static Vc_INTRINSIC mask_member_type< float> Vc_VDECL less_equal  (simd_member_type< float> x, simd_member_type< float> y) { return _mm256_cmp_ps(x, y, _CMP_LE_OS); }
-
-#ifdef Vc_HAVE_FULL_AVX_ABI
-    static Vc_INTRINSIC mask_member_type< llong> Vc_VDECL equal_to(simd_member_type< llong> x, simd_member_type< llong> y) { return _mm256_cmpeq_epi64(x, y); }
-    static Vc_INTRINSIC mask_member_type<ullong> Vc_VDECL equal_to(simd_member_type<ullong> x, simd_member_type<ullong> y) { return _mm256_cmpeq_epi64(x, y); }
-    static Vc_INTRINSIC mask_member_type<  long> Vc_VDECL equal_to(simd_member_type<  long> x, simd_member_type<  long> y) { return sizeof(long) == 8 ? _mm256_cmpeq_epi64(x, y) : _mm256_cmpeq_epi32(x, y); }
-    static Vc_INTRINSIC mask_member_type< ulong> Vc_VDECL equal_to(simd_member_type< ulong> x, simd_member_type< ulong> y) { return sizeof(long) == 8 ? _mm256_cmpeq_epi64(x, y) : _mm256_cmpeq_epi32(x, y); }
-    static Vc_INTRINSIC mask_member_type<   int> Vc_VDECL equal_to(simd_member_type<   int> x, simd_member_type<   int> y) { return _mm256_cmpeq_epi32(x, y); }
-    static Vc_INTRINSIC mask_member_type<  uint> Vc_VDECL equal_to(simd_member_type<  uint> x, simd_member_type<  uint> y) { return _mm256_cmpeq_epi32(x, y); }
-    static Vc_INTRINSIC mask_member_type< short> Vc_VDECL equal_to(simd_member_type< short> x, simd_member_type< short> y) { return _mm256_cmpeq_epi16(x, y); }
-    static Vc_INTRINSIC mask_member_type<ushort> Vc_VDECL equal_to(simd_member_type<ushort> x, simd_member_type<ushort> y) { return _mm256_cmpeq_epi16(x, y); }
-    static Vc_INTRINSIC mask_member_type< schar> Vc_VDECL equal_to(simd_member_type< schar> x, simd_member_type< schar> y) { return _mm256_cmpeq_epi8(x, y); }
-    static Vc_INTRINSIC mask_member_type< uchar> Vc_VDECL equal_to(simd_member_type< uchar> x, simd_member_type< uchar> y) { return _mm256_cmpeq_epi8(x, y); }
-
-    static Vc_INTRINSIC mask_member_type< llong> Vc_VDECL not_equal_to(simd_member_type< llong> x, simd_member_type< llong> y) { return detail::not_(_mm256_cmpeq_epi64(x, y)); }
-    static Vc_INTRINSIC mask_member_type<ullong> Vc_VDECL not_equal_to(simd_member_type<ullong> x, simd_member_type<ullong> y) { return detail::not_(_mm256_cmpeq_epi64(x, y)); }
-    static Vc_INTRINSIC mask_member_type<  long> Vc_VDECL not_equal_to(simd_member_type<  long> x, simd_member_type<  long> y) { return detail::not_(sizeof(long) == 8 ? _mm256_cmpeq_epi64(x, y) : _mm256_cmpeq_epi32(x, y)); }
-    static Vc_INTRINSIC mask_member_type< ulong> Vc_VDECL not_equal_to(simd_member_type< ulong> x, simd_member_type< ulong> y) { return detail::not_(sizeof(long) == 8 ? _mm256_cmpeq_epi64(x, y) : _mm256_cmpeq_epi32(x, y)); }
-    static Vc_INTRINSIC mask_member_type<   int> Vc_VDECL not_equal_to(simd_member_type<   int> x, simd_member_type<   int> y) { return detail::not_(_mm256_cmpeq_epi32(x, y)); }
-    static Vc_INTRINSIC mask_member_type<  uint> Vc_VDECL not_equal_to(simd_member_type<  uint> x, simd_member_type<  uint> y) { return detail::not_(_mm256_cmpeq_epi32(x, y)); }
-    static Vc_INTRINSIC mask_member_type< short> Vc_VDECL not_equal_to(simd_member_type< short> x, simd_member_type< short> y) { return detail::not_(_mm256_cmpeq_epi16(x, y)); }
-    static Vc_INTRINSIC mask_member_type<ushort> Vc_VDECL not_equal_to(simd_member_type<ushort> x, simd_member_type<ushort> y) { return detail::not_(_mm256_cmpeq_epi16(x, y)); }
-    static Vc_INTRINSIC mask_member_type< schar> Vc_VDECL not_equal_to(simd_member_type< schar> x, simd_member_type< schar> y) { return detail::not_(_mm256_cmpeq_epi8(x, y)); }
-    static Vc_INTRINSIC mask_member_type< uchar> Vc_VDECL not_equal_to(simd_member_type< uchar> x, simd_member_type< uchar> y) { return detail::not_(_mm256_cmpeq_epi8(x, y)); }
-
-    static Vc_INTRINSIC mask_member_type< llong> Vc_VDECL less(simd_member_type< llong> x, simd_member_type< llong> y) { return _mm256_cmpgt_epi64(y, x); }
-    static Vc_INTRINSIC mask_member_type<ullong> Vc_VDECL less(simd_member_type<ullong> x, simd_member_type<ullong> y) { return cmpgt(y, x); }
-    static Vc_INTRINSIC mask_member_type<  long> Vc_VDECL less(simd_member_type<  long> x, simd_member_type<  long> y) { return sizeof(long) == 8 ? _mm256_cmpgt_epi64(y, x) : _mm256_cmpgt_epi32(y, x); }
-    static Vc_INTRINSIC mask_member_type< ulong> Vc_VDECL less(simd_member_type< ulong> x, simd_member_type< ulong> y) { return cmpgt(y, x); }
-    static Vc_INTRINSIC mask_member_type<   int> Vc_VDECL less(simd_member_type<   int> x, simd_member_type<   int> y) { return _mm256_cmpgt_epi32(y, x); }
-    static Vc_INTRINSIC mask_member_type<  uint> Vc_VDECL less(simd_member_type<  uint> x, simd_member_type<  uint> y) { return cmpgt(y, x); }
-    static Vc_INTRINSIC mask_member_type< short> Vc_VDECL less(simd_member_type< short> x, simd_member_type< short> y) { return _mm256_cmpgt_epi16(y, x); }
-    static Vc_INTRINSIC mask_member_type<ushort> Vc_VDECL less(simd_member_type<ushort> x, simd_member_type<ushort> y) { return cmpgt(y, x); }
-    static Vc_INTRINSIC mask_member_type< schar> Vc_VDECL less(simd_member_type< schar> x, simd_member_type< schar> y) { return _mm256_cmpgt_epi8 (y, x); }
-    static Vc_INTRINSIC mask_member_type< uchar> Vc_VDECL less(simd_member_type< uchar> x, simd_member_type< uchar> y) { return cmpgt(y, x); }
-
-    static Vc_INTRINSIC mask_member_type< llong> Vc_VDECL less_equal(simd_member_type< llong> x, simd_member_type< llong> y) { return detail::not_(_mm256_cmpgt_epi64(x, y)); }
-    static Vc_INTRINSIC mask_member_type<ullong> Vc_VDECL less_equal(simd_member_type<ullong> x, simd_member_type<ullong> y) { return detail::not_(cmpgt(x, y)); }
-    static Vc_INTRINSIC mask_member_type<  long> Vc_VDECL less_equal(simd_member_type<  long> x, simd_member_type<  long> y) { return detail::not_(sizeof(long) == 8 ? _mm256_cmpgt_epi64(x, y) : _mm256_cmpgt_epi32(x, y)); }
-    static Vc_INTRINSIC mask_member_type< ulong> Vc_VDECL less_equal(simd_member_type< ulong> x, simd_member_type< ulong> y) { return detail::not_(cmpgt(x, y)); }
-    static Vc_INTRINSIC mask_member_type<   int> Vc_VDECL less_equal(simd_member_type<   int> x, simd_member_type<   int> y) { return detail::not_(_mm256_cmpgt_epi32(x, y)); }
-    static Vc_INTRINSIC mask_member_type<  uint> Vc_VDECL less_equal(simd_member_type<  uint> x, simd_member_type<  uint> y) { return detail::not_(cmpgt(x, y)); }
-    static Vc_INTRINSIC mask_member_type< short> Vc_VDECL less_equal(simd_member_type< short> x, simd_member_type< short> y) { return detail::not_(_mm256_cmpgt_epi16(x, y)); }
-    static Vc_INTRINSIC mask_member_type<ushort> Vc_VDECL less_equal(simd_member_type<ushort> x, simd_member_type<ushort> y) { return detail::not_(cmpgt(x, y)); }
-    static Vc_INTRINSIC mask_member_type< schar> Vc_VDECL less_equal(simd_member_type< schar> x, simd_member_type< schar> y) { return detail::not_(_mm256_cmpgt_epi8 (x, y)); }
-    static Vc_INTRINSIC mask_member_type< uchar> Vc_VDECL less_equal(simd_member_type< uchar> x, simd_member_type< uchar> y) { return detail::not_(cmpgt (x, y)); }
-#endif
-#endif
-
     // math {{{2
-    // sqrt {{{3
-    static Vc_INTRINSIC simd_member_type<float> sqrt(simd_member_type<float> x)
-    {
-        return _mm256_sqrt_ps(x);
-    }
-    static Vc_INTRINSIC simd_member_type<double> sqrt(simd_member_type<double> x)
-    {
-        return _mm256_sqrt_pd(x);
-    }
-
     // logb {{{3
 #ifdef Vc_HAVE_AVX512F
     static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb(simd_member_type<float> v)
@@ -767,36 +556,6 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
 #endif
     }
 #endif  // Vc_HAVE_AVX512F
-
-    // trunc {{{3
-    static Vc_INTRINSIC simd_member_type<float> trunc(simd_member_type<float> x)
-    {
-        return _mm256_round_ps(x, 0x3);
-    }
-    static Vc_INTRINSIC simd_member_type<double> trunc(simd_member_type<double> x)
-    {
-        return _mm256_round_pd(x, 0x3);
-    }
-
-    // floor {{{3
-    static Vc_INTRINSIC simd_member_type<float> floor(simd_member_type<float> x)
-    {
-        return _mm256_round_ps(x, 0x1);
-    }
-    static Vc_INTRINSIC simd_member_type<double> floor(simd_member_type<double> x)
-    {
-        return _mm256_round_pd(x, 0x1);
-    }
-
-    // ceil {{{3
-    static Vc_INTRINSIC simd_member_type<float> ceil(simd_member_type<float> x)
-    {
-        return _mm256_round_ps(x, 0x2);
-    }
-    static Vc_INTRINSIC simd_member_type<double> ceil(simd_member_type<double> x)
-    {
-        return _mm256_round_pd(x, 0x2);
-    }
 
     // frexp {{{3
     /**
@@ -854,168 +613,6 @@ struct avx_simd_impl : public generic_simd_impl<avx_simd_impl> {
 #endif  // Vc_HAVE_AVX512VL
 
 
-    // isfinite {{{3
-    static Vc_INTRINSIC mask_member_type<float> isfinite(simd_member_type<float> x)
-    {
-        return _mm256_cmp_ps(x, _mm256_mul_ps(_mm256_setzero_ps(), x), _CMP_ORD_Q);
-    }
-    static Vc_INTRINSIC mask_member_type<double> isfinite(simd_member_type<double> x)
-    {
-        return _mm256_cmp_pd(x, _mm256_mul_pd(_mm256_setzero_pd(), x), _CMP_ORD_Q);
-    }
-
-    // isinf {{{3
-    static Vc_INTRINSIC mask_member_type<float> isinf(simd_member_type<float> x)
-    {
-#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-        return to_storage(
-            __mmask8(_mm256_fpclass_ps_mask(x, 0x08) | _mm256_fpclass_ps_mask(x, 0x10)));
-#else
-        return less(y_f32(broadcast32(std::numeric_limits<float>::max())), abs(x));
-#endif
-    }
-    static Vc_INTRINSIC mask_member_type<double> isinf(simd_member_type<double> x)
-    {
-#if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512DQ
-        return to_storage(
-            __mmask8(_mm256_fpclass_pd_mask(x, 0x08) | _mm256_fpclass_pd_mask(x, 0x10)));
-#else
-        return less(y_f64(broadcast32(std::numeric_limits<double>::max())), abs(x));
-#endif
-    }
-
-    // isnan {{{3
-    static Vc_INTRINSIC mask_member_type<float> isnan(simd_member_type<float> x)
-    {
-        return _mm256_cmp_ps(x, x, _CMP_UNORD_Q);
-    }
-    static Vc_INTRINSIC mask_member_type<double> isnan(simd_member_type<double> x)
-    {
-        return _mm256_cmp_pd(x, x, _CMP_UNORD_Q);
-    }
-
-    // isnormal {{{3
-    static Vc_INTRINSIC mask_member_type<float> isnormal(simd_member_type<float> x)
-    {
-        // subnormals -> 0
-        // 0 -> 0
-        // inf -> inf
-        // -inf -> inf
-        // nan -> inf
-        // normal value -> positive value / not 0
-        const auto tmp =
-            and_(x, intrin_cast<__m256>(broadcast32(0x7f800000u)));
-        return _mm256_cmp_ps(
-            _mm256_mul_ps(broadcast32(std::numeric_limits<float>::infinity()),
-                          tmp),                                    // NaN if tmp == 0
-            _mm256_mul_ps(_mm256_setzero_ps(), tmp), _CMP_ORD_Q);  // NaN if tmp == inf
-    }
-    static Vc_INTRINSIC mask_member_type<double> isnormal(simd_member_type<double> x)
-    {
-        const auto tmp =
-            and_(x, intrin_cast<__m256d>(broadcast32(0x7ff0'0000'0000'0000ull)));
-        return _mm256_cmp_pd(
-            _mm256_mul_pd(broadcast32(std::numeric_limits<double>::infinity()),
-                          tmp),                                    // NaN if tmp == 0
-            _mm256_mul_pd(_mm256_setzero_pd(), tmp), _CMP_ORD_Q);  // NaN if tmp == inf
-    }
-
-    // signbit {{{3
-    static Vc_INTRINSIC mask_member_type<float> signbit(simd_member_type<float> x)
-    {
-        const auto signbit = broadcast32(0x80000000u);
-#ifdef Vc_HAVE_AVX2
-        return _mm256_castsi256_ps(
-            _mm256_srai_epi32(and_(to_m256i(x), signbit), 31));
-#else   // Vc_HAVE_AVX2
-        return not_equal_to(
-            y_f32(or_(and_(x, _mm256_castsi256_ps(signbit)), broadcast32(1.f))),
-            y_f32(broadcast32(1.f)));
-#endif  // Vc_HAVE_AVX2
-    }
-    static Vc_INTRINSIC mask_member_type<double> signbit(simd_member_type<double> x)
-    {
-        const auto signbit = broadcast32(0x8000000000000000ull);
-#ifdef Vc_HAVE_AVX512VL
-        return _mm256_castsi256_pd(
-            _mm256_srai_epi64(and_(to_m256i(x), signbit), 63));
-#elif defined Vc_HAVE_AVX2
-        return _mm256_castsi256_pd(
-            _mm256_cmpeq_epi64(and_(to_m256i(x), signbit), signbit));
-#else
-        return not_equal_to(
-            y_f64(or_(and_(x, _mm256_castsi256_pd(signbit)), broadcast32(1.))),
-            y_f64(broadcast32(1.)));
-#endif
-    }
-
-    // isunordered {{{3
-    static Vc_INTRINSIC mask_member_type<float> isunordered(simd_member_type<float> x,
-                                                            simd_member_type<float> y)
-    {
-        return _mm256_cmp_ps(x, y, _CMP_UNORD_Q);
-    }
-    static Vc_INTRINSIC mask_member_type<double> isunordered(simd_member_type<double> x,
-                                                             simd_member_type<double> y)
-    {
-        return _mm256_cmp_pd(x, y, _CMP_UNORD_Q);
-    }
-
-    // fpclassify {{{3
-#ifdef Vc_HAVE_AVX2
-    static Vc_INTRINSIC simd_tuple<int, simd_abi::__avx> fpclassify(
-        simd_member_type<float> x)
-    {
-        auto &&b = [](int y) { return intrin_cast<__m256>(broadcast32(y)); };
-        return {_mm256_castps_si256(_mm256_blendv_ps(
-            _mm256_blendv_ps(_mm256_blendv_ps(b(FP_NORMAL), b(FP_NAN), isnan(x)),
-                             b(FP_INFINITE), isinf(x)),
-            _mm256_blendv_ps(b(FP_SUBNORMAL), b(FP_ZERO),
-                             _mm256_cmp_ps(x, _mm256_setzero_ps(), _CMP_EQ_OQ)),
-            _mm256_cmp_ps(abs(x), broadcast32(std::numeric_limits<float>::min()),
-                          _CMP_LT_OS)))};
-    }
-#else  // Vc_HAVE_AVX2
-    static Vc_INTRINSIC simd_tuple<int, simd_abi::__sse, simd_abi::__sse> fpclassify(
-        simd_member_type<float> x)
-    {
-        auto &&b = [](int y) { return intrin_cast<__m256>(broadcast32(y)); };
-        const auto tmp = _mm256_castps_si256(_mm256_blendv_ps(
-            _mm256_blendv_ps(_mm256_blendv_ps(b(FP_NORMAL), b(FP_NAN), isnan(x)),
-                             b(FP_INFINITE), isinf(x)),
-            _mm256_blendv_ps(b(FP_SUBNORMAL), b(FP_ZERO),
-                             _mm256_cmp_ps(x, _mm256_setzero_ps(), _CMP_EQ_OQ)),
-            _mm256_cmp_ps(abs(x), broadcast32(std::numeric_limits<float>::min()),
-                          _CMP_LT_OS)));
-        return {lo128(tmp), hi128(tmp)};
-    }
-#endif  // Vc_HAVE_AVX2
-
-    static Vc_INTRINSIC simd_tuple<int, simd_abi::__sse> fpclassify(
-        simd_member_type<double> x)
-    {
-        auto &&b = [](llong y) { return intrin_cast<__m256d>(broadcast32(y)); };
-        const __m256i tmp = auto_cast(_mm256_blendv_pd(
-            _mm256_blendv_pd(_mm256_blendv_pd(b(FP_NORMAL), b(FP_NAN), isnan(x)),
-                             b(FP_INFINITE), isinf(x)),
-            _mm256_blendv_pd(b(FP_SUBNORMAL), b(FP_ZERO),
-                             _mm256_cmp_pd(x, _mm256_setzero_pd(), _CMP_EQ_OQ)),
-            _mm256_cmp_pd(abs(x), broadcast32(std::numeric_limits<double>::min()),
-                          _CMP_LT_OS)));
-        return {_mm_packs_epi32(lo128(tmp), hi128(tmp))};
-    }
-
-    // smart_reference access {{{2
-    template <class T>
-    static Vc_INTRINSIC T Vc_VDECL get(simd_member_type<T> v, int i) noexcept
-    {
-        return v[i];
-    }
-    template <class T, class U>
-    static Vc_INTRINSIC void set(simd_member_type<T> &v, int i, U &&x) noexcept
-    {
-        v.set(i, std::forward<U>(x));
-    }
     // }}}2
     };
 

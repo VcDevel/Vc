@@ -152,7 +152,15 @@ public :
 
     // scalar access
     Vc_ALWAYS_INLINE reference operator[](size_type i) { return {d, int(i)}; }
-    Vc_ALWAYS_INLINE value_type operator[](size_type i) const { return impl::get(d, int(i)); }
+    Vc_ALWAYS_INLINE value_type operator[](size_type i) const {
+        if constexpr (is_scalar()) {
+            Vc_ASSERT(i == 0);
+            detail::unused(i);
+            return d;
+        } else {
+            return d[i];
+        }
+    }
 
     // negation
     Vc_ALWAYS_INLINE simd_mask operator!() const { return {detail::private_init, impl::negate(d, size_tag)}; }
@@ -160,24 +168,51 @@ public :
     // simd_mask binary operators [simd_mask.binary]
     friend Vc_ALWAYS_INLINE simd_mask operator&&(const simd_mask &x, const simd_mask &y)
     {
-        return impl::logical_and(x, y);
+        return {detail::private_init, impl::logical_and(x.d, y.d)};
     }
     friend Vc_ALWAYS_INLINE simd_mask operator||(const simd_mask &x, const simd_mask &y)
     {
-        return impl::logical_or(x, y);
+        return {detail::private_init, impl::logical_or(x.d, y.d)};
     }
 
-    friend Vc_ALWAYS_INLINE simd_mask operator&(const simd_mask &x, const simd_mask &y) { return impl::bit_and(x, y); }
-    friend Vc_ALWAYS_INLINE simd_mask operator|(const simd_mask &x, const simd_mask &y) { return impl::bit_or(x, y); }
-    friend Vc_ALWAYS_INLINE simd_mask operator^(const simd_mask &x, const simd_mask &y) { return impl::bit_xor(x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask operator&(const simd_mask &x, const simd_mask &y)
+    {
+        return {detail::private_init, impl::bit_and(x.d, y.d)};
+    }
+    friend Vc_ALWAYS_INLINE simd_mask operator|(const simd_mask &x, const simd_mask &y)
+    {
+        return {detail::private_init, impl::bit_or(x.d, y.d)};
+    }
+    friend Vc_ALWAYS_INLINE simd_mask operator^(const simd_mask &x, const simd_mask &y)
+    {
+        return {detail::private_init, impl::bit_xor(x.d, y.d)};
+    }
 
-    friend Vc_ALWAYS_INLINE simd_mask &operator&=(simd_mask &x, const simd_mask &y) { return x = impl::bit_and(x, y); }
-    friend Vc_ALWAYS_INLINE simd_mask &operator|=(simd_mask &x, const simd_mask &y) { return x = impl::bit_or (x, y); }
-    friend Vc_ALWAYS_INLINE simd_mask &operator^=(simd_mask &x, const simd_mask &y) { return x = impl::bit_xor(x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask &operator&=(simd_mask &x, const simd_mask &y)
+    {
+        x.d = impl::bit_and(x.d, y.d);
+        return x;
+    }
+    friend Vc_ALWAYS_INLINE simd_mask &operator|=(simd_mask &x, const simd_mask &y)
+    {
+        x.d = impl::bit_or(x.d, y.d);
+        return x;
+    }
+    friend Vc_ALWAYS_INLINE simd_mask &operator^=(simd_mask &x, const simd_mask &y)
+    {
+        x.d = impl::bit_xor(x.d, y.d);
+        return x;
+    }
 
     // simd_mask compares [simd_mask.comparison]
-    friend Vc_ALWAYS_INLINE simd_mask operator==(const simd_mask &x, const simd_mask &y) { return !operator!=(x, y); }
-    friend Vc_ALWAYS_INLINE simd_mask operator!=(const simd_mask &x, const simd_mask &y) { return impl::bit_xor(x, y); }
+    friend Vc_ALWAYS_INLINE simd_mask operator==(const simd_mask &x, const simd_mask &y)
+    {
+        return !operator!=(x, y);
+    }
+    friend Vc_ALWAYS_INLINE simd_mask operator!=(const simd_mask &x, const simd_mask &y)
+    {
+        return {detail::private_init, impl::bit_xor(x.d, y.d)};
+    }
 
     // "private" because of the first arguments's namespace
     Vc_INTRINSIC simd_mask(detail::private_init_t, typename traits::mask_member_type init)

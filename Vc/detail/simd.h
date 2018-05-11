@@ -35,7 +35,7 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 
 namespace detail
 {
-template <class Derived> struct generic_simd_impl;
+template <class Derived, class Abi> struct generic_simd_impl;
 // allow_conversion_ctor2{{{1
 template <class T0, class T1, class A, bool BothIntegral> struct allow_conversion_ctor2_1;
 
@@ -143,7 +143,7 @@ class simd
     static constexpr T *type_tag = nullptr;
     friend typename traits::simd_base;
     friend impl;
-    friend detail::generic_simd_impl<impl>;
+    friend detail::generic_simd_impl<impl, Abi>;
     friend detail::simd_int_operators<simd, true>;
 
 public:
@@ -279,7 +279,15 @@ public:
 
     // scalar access
     Vc_ALWAYS_INLINE reference operator[](size_type i) { return {d, int(i)}; }
-    Vc_ALWAYS_INLINE value_type operator[](size_type i) const { return impl::get(d, int(i)); }
+    Vc_ALWAYS_INLINE value_type operator[](size_type i) const {
+        if constexpr (is_scalar()) {
+            Vc_ASSERT(i == 0);
+            detail::unused(i);
+            return d;
+        } else {
+            return d[i];
+        }
+    }
 
     // increment and decrement:
     Vc_ALWAYS_INLINE simd &operator++() { impl::increment(d); return *this; }
@@ -360,6 +368,9 @@ public:
     }
 
 private:
+    static constexpr bool is_scalar() { return std::is_same_v<abi_type, simd_abi::scalar>; }
+    static constexpr bool is_fixed() { return detail::is_fixed_size_abi_v<abi_type>; }
+
     static Vc_INTRINSIC mask_type make_mask(typename mask_type::member_type k)
     {
         return {detail::private_init, k};

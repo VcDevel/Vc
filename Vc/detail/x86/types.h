@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_DETAIL_X86_TYPES_H_
 
 #include "../macros.h"
-#include "../detail.h"
+#include "../builtins.h"
 
 #include <x86intrin.h>
 #include <climits>
@@ -48,15 +48,6 @@ template <> struct bool_storage_member_type<16> { using type = __mmask16; };
 template <> struct bool_storage_member_type<32> { using type = __mmask32; };
 template <> struct bool_storage_member_type<64> { using type = __mmask64; };
 #endif  // Vc_HAVE_AVX512F
-
-// builtin_type{{{1
-template <class T, size_t Bytes>
-struct builtin_type<
-    T, Bytes,
-    detail::void_t<std::enable_if_t<detail::conjunction_v<
-        detail::is_equal_to<Bytes % sizeof(T), 0>, detail::is_vectorizable<T>>>>> {
-    using type[[gnu::vector_size(Bytes)]] = T;
-};
 
 // intrinsic_type{{{1
 // the following excludes bool via is_vectorizable
@@ -108,14 +99,6 @@ template <> struct is_intrinsic<__m512i> : public std::true_type {};
 #endif  // Vc_HAVE_AVX512F
 
 
-// is_builtin_vector{{{1
-template <class T>
-struct is_builtin_vector<
-    T, void_t<typename builtin_type<decltype(std::declval<T>()[0]), sizeof(T)>::type>>
-    : std::is_same<
-          T, typename builtin_type<decltype(std::declval<T>()[0]), sizeof(T)>::type> {
-};
-
 // (sse|avx|avx512)_(simd|mask)_member_type{{{1
 template <class T> using sse_simd_member_type = storage16_t<T>;
 template <class T> using sse_mask_member_type = storage16_t<T>;
@@ -128,25 +111,6 @@ template <class T> using avx512_mask_member_type = Storage<bool, 64 / sizeof(T)>
 template <size_t N> using avx512_mask_member_type_n = Storage<bool, N>;
 
 //}}}1
-// builtin_traits{{{
-template <class T, class = void_t<>> struct builtin_traits;
-template <class T>
-struct builtin_traits<T, void_t<std::enable_if_t<is_builtin_vector_v<T>>>> {
-    using value_type = decltype(std::declval<T>()[0]);
-    static constexpr int width = sizeof(T) / sizeof(value_type);
-
-    /*
-    using intrin_type = intrinsic_type_t<value_type, width>;
-    static constexpr bool is_epi = std::is_integral_v<value_type>;
-    static constexpr bool is_ps = std::is_same_v<value_type, float>;
-    static constexpr bool is_pd = std::is_same_v<value_type, double>;
-    */
-};
-static_assert(builtin_traits<builtin_type_t<float, 4>>::width == 4);
-static_assert(builtin_traits<builtin_type_t<double, 2>>::width == 2);
-static_assert(builtin_traits<__m128i>::width == 2);
-
-// }}}
 
 // x_ aliases {{{
 #ifdef Vc_HAVE_SSE

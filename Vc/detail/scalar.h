@@ -264,12 +264,6 @@ struct scalar_simd_impl {
 #undef Vc_CMP_OPERATIONS
 
     // smart_reference access {{{2
-    template <class T> static T get(const T v, int i) noexcept
-    {
-        Vc_ASSERT(i == 0);
-        unused(i);
-        return v;
-    }
     template <class T, class U> static void set(T &v, int i, U &&x) noexcept
     {
         Vc_ASSERT(i == 0);
@@ -364,40 +358,13 @@ struct scalar_mask_impl {
     static inline bool negate(bool x, size_tag) noexcept { return !x; }
 
     // logical and bitwise operators {{{2
-    template <class T>
-    static inline simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, x.d && y.d};
-    }
-
-    template <class T>
-    static inline simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, x.d || y.d};
-    }
-
-    template <class T> static inline simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, x.d && y.d};
-    }
-
-    template <class T> static inline simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, x.d || y.d};
-    }
-
-    template <class T> static inline simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, x.d != y.d};
-    }
+    static constexpr bool logical_and(bool x, bool y) { return x && y; }
+    static constexpr bool logical_or(bool x, bool y) { return x || y; }
+    static constexpr bool bit_and(bool x, bool y) { return x && y; }
+    static constexpr bool bit_or(bool x, bool y) { return x || y; }
+    static constexpr bool bit_xor(bool x, bool y) { return x != y; }
 
     // smart_reference access {{{2
-    static bool get(const bool k, int i) noexcept
-    {
-        Vc_ASSERT(i == 0);
-        detail::unused(i);
-        return k;
-    }
     static void set(bool &k, int i, bool x) noexcept
     {
         Vc_ASSERT(i == 0);

@@ -572,11 +572,6 @@ public:
 #undef Vc_CMP_OPERATIONS
 
     // smart_reference access {{{2
-    template <class T, class... As>
-    static Vc_INTRINSIC T get(const simd_tuple<T, As...> &v, int i) noexcept
-    {
-        return v[i];
-    }
     template <class T, class... As, class U>
     static Vc_INTRINSIC void set(simd_tuple<T, As...> &v, int i, U &&x) noexcept
     {
@@ -827,41 +822,37 @@ template <int N> struct fixed_size_mask_impl {
     }
 
     // logical and bitwise operators {{{2
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
+    static Vc_INTRINSIC mask_member_type logical_and(const mask_member_type &x,
+                                                     const mask_member_type &y) noexcept
     {
-        return {bitset_init, x.d & y.d};
+        return x & y;
     }
 
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
+    static Vc_INTRINSIC mask_member_type logical_or(const mask_member_type &x,
+                                                    const mask_member_type &y) noexcept
     {
-        return {bitset_init, x.d | y.d};
+        return x | y;
     }
 
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
+    static Vc_INTRINSIC mask_member_type bit_and(const mask_member_type &x,
+                                                 const mask_member_type &y) noexcept
     {
-        return {bitset_init, x.d & y.d};
+        return x & y;
     }
 
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
+    static Vc_INTRINSIC mask_member_type bit_or(const mask_member_type &x,
+                                                const mask_member_type &y) noexcept
     {
-        return {bitset_init, x.d | y.d};
+        return x | y;
     }
 
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y) noexcept
+    static Vc_INTRINSIC mask_member_type bit_xor(const mask_member_type &x,
+                                                 const mask_member_type &y) noexcept
     {
-        return {bitset_init, x.d ^ y.d};
+        return x ^ y;
     }
 
     // smart_reference access {{{2
-    static Vc_INTRINSIC bool get(const mask_member_type k, int i) noexcept
-    {
-        return k[i];
-    }
     static Vc_INTRINSIC void set(mask_member_type &k, int i, bool x) noexcept
     {
         k.set(i, x);

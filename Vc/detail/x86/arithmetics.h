@@ -337,12 +337,12 @@ constexpr Vc_INTRINSIC Storage<T, N> modulus(Storage<T, N> a, Storage<T, N> b)
 template <size_t N>
 Vc_INTRINSIC Storage<float, N> bit_and(Storage<float, N> a, Storage<float, N> b)
 {
-    return and_(a, b);
+    return and_(a.d, b.d);
 }
 template <size_t N>
 Vc_INTRINSIC Storage<double, N> bit_and(Storage<double, N> a, Storage<double, N> b)
 {
-    return and_(a, b);
+    return and_(a.d, b.d);
 }
 template <class T, size_t N>
 constexpr Vc_INTRINSIC Storage<T, N> bit_and(Storage<T, N> a, Storage<T, N> b)
@@ -356,12 +356,12 @@ constexpr Vc_INTRINSIC Storage<T, N> bit_and(Storage<T, N> a, Storage<T, N> b)
 template <size_t N>
 Vc_INTRINSIC Storage<float, N> bit_or(Storage<float, N> a, Storage<float, N> b)
 {
-    return or_(a, b);
+    return or_(a.d, b.d);
 }
 template <size_t N>
 Vc_INTRINSIC Storage<double, N> bit_or(Storage<double, N> a, Storage<double, N> b)
 {
-    return or_(a, b);
+    return or_(a.d, b.d);
 }
 template <class T, size_t N>
 constexpr Vc_INTRINSIC Storage<T, N> bit_or(Storage<T, N> a, Storage<T, N> b)
@@ -392,305 +392,172 @@ constexpr Vc_INTRINSIC Storage<T, N> bit_xor(Storage<T, N> a, Storage<T, N> b)
 
 // bit_shift_left{{{1
 template <class T, size_t N>
-Vc_INTRINSIC Storage<T, N> constexpr bit_shift_left(Storage<T, N> a, Storage<T, N> b)
-{
-    static_assert(std::is_integral<T>::value,
-                  "bit_shift_left is only supported for integral types");
-    return a.d << b.d;
-}
-template <class T, size_t N>
 Vc_INTRINSIC Storage<T, N> constexpr bit_shift_left(Storage<T, N> a, int b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_left is only supported for integral types");
-    return a.d << b;
+    if constexpr (sizeof(T) == 1) {
+        // (cf. https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83894)
+        if (__builtin_constant_p(b)) {
+            if (b == 0) {
+                return a;
+            } else if (b == 1) {
+                return a.d + a.d;
+            } else if (b > 1 && b < 8) {
+                const uchar mask = (0xff << b) & 0xff;
+                using V = decltype(a);
+                using In = typename V::intrin_type;
+                return reinterpret_cast<In>(storage_bitcast<ushort>(a).d << b) &
+                       V::broadcast(mask).intrin();
+            } else {
+                return detail::warn_ub(a);
+            }
+        }
+        if constexpr (N == 16 && have_sse2) {
+            if constexpr (have_avx512bw_vl) {
+                return _mm256_cvtepi16_epi8(reinterpret_cast<__m256i>(
+                    reinterpret_cast<builtin_type_t<ushort, 16>>(_mm256_cvtepi8_epi16(a))
+                    << b));
+            } else {
+                using vshort = builtin_type_t<ushort, 8>;
+                const auto mask = ((~vshort() >> 8) << b) ^ (~vshort() << 8);
+                return detail::to_storage((reinterpret_cast<vshort>(a.d) << b) & mask);
+            }
+        } else if constexpr (N == 32 && have_avx2) {
+            if constexpr(have_avx512bw) {
+                return _mm512_cvtepi16_epi8(reinterpret_cast<__m512i>(
+                    reinterpret_cast<builtin_type_t<ushort, 32>>(_mm512_cvtepi8_epi16(a))
+                    << b));
+            } else {
+                using vshort = builtin_type_t<ushort, 16>;
+                const auto mask = ((~vshort() >> 8) << b) ^ (~vshort() << 8);
+                return detail::to_storage((reinterpret_cast<vshort>(a.d) << b) & mask);
+            }
+        } else if constexpr (N == 64 && have_avx512bw) {
+            using vshort = builtin_type_t<ushort, 32>;
+            const auto mask = ((~vshort() >> 8) << b) ^ (~vshort() << 8);
+            return detail::to_storage((reinterpret_cast<vshort>(a.d) << b) & mask);
+        } else {
+            static_assert(!std::is_same_v<T, T>);
+        }
+    } else {
+        return a.d << b;
+    }
 }
 
-#ifdef Vc_GCC
-// GCC needs help to optimize better{{{2
-// (cf. https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83894)
-#define Vc_SHIFT_LEFT_CONSTEXPR_8(v_, n_)                                                \
-    if (__builtin_constant_p(n_)) {                                                      \
-        if (n_ == 0) {                                                                   \
-            return v_;                                                                   \
-        } else if (n_ == 1) {                                                            \
-            return v_.d + v_.d;                                                          \
-        } else if (n_ > 1 && n_ < 8) {                                                   \
-            const uchar mask = (0xff << n_) & 0xff;                                      \
-            using V = decltype(v_);                                                      \
-            using In = typename V::intrin_type; \
-            return reinterpret_cast<In>(storage_bitcast<ushort>(v_).d << n_) &                 \
-                   V::broadcast(mask).intrin();                                          \
-        } else {                                                                         \
-            return detail::warn_ub(v_);                                                  \
-        }                                                                                \
-    }                                                                                    \
-    Vc_NOTHING_EXPECTING_SEMICOLON
-
-// SSE 8-bit value_type << int {{{3
-Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, int b)
+template <class T, size_t N>
+Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, Storage<T, N> b)
 {
-    Vc_SHIFT_LEFT_CONSTEXPR_8(a, b);
-#if defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
-    return _mm256_cvtepi16_epi8(reinterpret_cast<__m256i>(
-        reinterpret_cast<builtin_type_t<ushort, 16>>(_mm256_cvtepi8_epi16(a)) << b));
-#else
-    using vshort = builtin_type_t<ushort, 8>;
-    const auto mask = ((~vshort() >> 8) << b) ^ (~vshort() << 8);
-    return detail::to_storage((reinterpret_cast<vshort>(a.d) << b) & mask);
-#endif
-}
-Vc_INTRINSIC x_i08 bit_shift_left(x_i08 a, int b)
-{
-    return storage_bitcast<schar>(bit_shift_left(storage_bitcast<uchar>(a), b));
-}
-Vc_INTRINSIC x_chr bit_shift_left(x_chr a, int b)
-{
-    return storage_bitcast<char>(bit_shift_left(storage_bitcast<uchar>(a), b));
-}
-
-// AVX 8-bit value_type << int {{{3
-#ifdef Vc_HAVE_AVX2
-Vc_INTRINSIC Storage<uchar, 32> bit_shift_left(Storage<uchar, 32> a, int b)
-{
-    Vc_SHIFT_LEFT_CONSTEXPR_8(a, b);
-#if defined Vc_HAVE_AVX512BW
-    return _mm512_cvtepi16_epi8(reinterpret_cast<__m512i>(
-        reinterpret_cast<builtin_type_t<ushort, 32>>(_mm512_cvtepi8_epi16(a)) << b));
-#else
-    using vshort = builtin_type_t<ushort, 16>;
-    const auto mask = ((~vshort() >> 8) << b) ^ (~vshort() << 8);
-    return detail::to_storage((reinterpret_cast<vshort>(a.d) << b) & mask);
-#endif
-}
-Vc_INTRINSIC Storage<schar, 32> bit_shift_left(Storage<schar, 32> a, int b)
-{
-    return storage_bitcast<schar>(bit_shift_left(storage_bitcast<uchar>(a), b));
-}
-Vc_INTRINSIC Storage< char, 32> bit_shift_left(Storage< char, 32> a, int b)
-{
-    return storage_bitcast<char>(bit_shift_left(storage_bitcast<uchar>(a), b));
-}
-#endif  // Vc_HAVE_AVX2
-
-// AVX512 8-bit value_type << int {{{3
-#ifdef Vc_HAVE_AVX512BW
-Vc_INTRINSIC z_u08 bit_shift_left(z_u08 a, int b)
-{
-    Vc_SHIFT_LEFT_CONSTEXPR_8(a, b);
-    using vshort = builtin_type_t<ushort, 32>;
-    const auto mask = ((~vshort() >> 8) << b) ^ (~vshort() << 8);
-    return detail::to_storage((reinterpret_cast<vshort>(a.d) << b) & mask);
-}
-Vc_INTRINSIC Storage<schar, 64> bit_shift_left(Storage<schar, 64> a, int b)
-{
-    return storage_bitcast<schar>(bit_shift_left(storage_bitcast<uchar>(a), b));
-}
-Vc_INTRINSIC Storage< char, 64> bit_shift_left(Storage< char, 64> a, int b)
-{
-    return storage_bitcast<char>(bit_shift_left(storage_bitcast<uchar>(a), b));
-}
-#endif  // Vc_HAVE_AVX512BW
-
-#undef Vc_SHIFT_LEFT_CONSTEXPR_8
-
-// simd << simd (improvements/specializations without AVX2) {{{3
-#ifndef Vc_HAVE_AVX2
-Vc_INTRINSIC x_i16 bit_shift_left(x_i16 a, x_i16 b)
-{
-    builtin_type_t<int, 4> shift = storage_bitcast<int>(b).d + (0x03f8'03f8 >> 3);
-    return multiplies(
-        a, x_i16(_mm_cvttps_epi32(reinterpret_cast<__m128>(shift << 23)) |
-                 (_mm_cvttps_epi32(reinterpret_cast<__m128>(shift >> 16 << 23)) << 16)));
-}
-Vc_INTRINSIC x_u16 bit_shift_left(x_u16 a, x_u16 b)
-{
-    return storage_bitcast<unsigned short>(
-        bit_shift_left(storage_bitcast<short>(a), storage_bitcast<short>(b)));
-}
-
-Vc_INTRINSIC x_i32 bit_shift_left(x_i32 a, x_i32 b)
-{
-    return multiplies(
-        a, x_i32(_mm_cvttps_epi32(reinterpret_cast<__m128>((b.d << 23) + 0x3f80'0000))));
-}
-Vc_INTRINSIC x_u32 bit_shift_left(x_u32 a, x_u32 b)
-{
-    return multiplies(
-        a, x_u32(_mm_cvttps_epi32(reinterpret_cast<__m128>((b.d << 23) + 0x3f80'0000))));
-}
-
-Vc_INTRINSIC x_i64 bit_shift_left(x_i64 a, x_i64 b)
-{
-    const auto lo = _mm_sll_epi64(a, b);
-    const auto hi = _mm_sll_epi64(a, _mm_unpackhi_epi64(b, b));
+    static_assert(std::is_integral<T>::value,
+                  "bit_shift_left is only supported for integral types");
+    if constexpr (sizeof(T) == 2 && sizeof(a) == 16 && !have_avx2) {
+        builtin_type_t<int, 4> shift = storage_bitcast<int>(b).d + (0x03f8'03f8 >> 3);
+        return multiplies(
+            a,
+            Storage<T, N>(
+                _mm_cvttps_epi32(reinterpret_cast<__m128>(shift << 23)) |
+                (_mm_cvttps_epi32(reinterpret_cast<__m128>(shift >> 16 << 23)) << 16)));
+    } else if constexpr (sizeof(T) == 4 && sizeof(a) == 16 && !have_avx2) {
+        return storage_bitcast<T>(
+            multiplies(a, Storage<T, N>(_mm_cvttps_epi32(
+                              reinterpret_cast<__m128>((b.d << 23) + 0x3f80'0000)))));
+    } else if constexpr (sizeof(T) == 8 && sizeof(a) == 16 && !have_avx2) {
+        const auto lo = _mm_sll_epi64(a, b);
+        const auto hi = _mm_sll_epi64(a, _mm_unpackhi_epi64(b, b));
 #ifdef Vc_HAVE_SSE4_1
-    return _mm_blend_epi16(lo, hi, 0xf0);
+        return _mm_blend_epi16(lo, hi, 0xf0);
 #else
-    //return make_storage<llong>(reinterpret_cast<builtin_type_t<llong, 2>>(lo)[0], reinterpret_cast<builtin_type_t<llong, 2>>(hi)[1]);
-    return to_storage(_mm_move_sd(intrin_cast<__m128d>(hi), intrin_cast<__m128d>(lo)));
+        // return make_storage<llong>(reinterpret_cast<builtin_type_t<llong, 2>>(lo)[0],
+        // reinterpret_cast<builtin_type_t<llong, 2>>(hi)[1]);
+        return to_storage(
+            _mm_move_sd(intrin_cast<__m128d>(hi), intrin_cast<__m128d>(lo)));
 #endif
+    } else if constexpr (have_avx512f && sizeof(T) == 8 && N == 8) {
+        return _mm512_sllv_epi64(a, b);
+    } else if constexpr (have_avx2 && sizeof(T) == 8 && N == 4) {
+        return _mm256_sllv_epi64(a, b);
+    } else if constexpr (have_avx2 && sizeof(T) == 8 && N == 2) {
+        return _mm_sllv_epi64(a, b);
+    } else if constexpr (have_avx512f && sizeof(T) == 4 && N == 16) {
+        return _mm512_sllv_epi32(a, b);
+    } else if constexpr (have_avx2 && sizeof(T) == 4 && N == 8) {
+        return _mm256_sllv_epi32(a, b);
+    } else if constexpr (have_avx2 && sizeof(T) == 4 && N == 4) {
+        return _mm_sllv_epi32(a, b);
+    } else if constexpr (sizeof(T) == 2) {
+        if constexpr (N == 32 && have_avx512bw) {
+            return _mm512_sllv_epi16(a, b);
+        } else if constexpr (N == 16 && have_avx512bw_vl) {
+            return _mm256_sllv_epi16(a, b);
+        } else if constexpr (N == 16 && have_avx512bw) {
+            return lo256(
+                _mm512_sllv_epi16(_mm512_castsi256_si512(a), _mm512_castsi256_si512(b)));
+        } else if constexpr (N == 16) {
+            const auto aa = builtin_cast<unsigned>(a.d);
+            const auto bb = builtin_cast<unsigned>(b.d);
+            return _mm256_blend_epi16(auto_cast(aa << (bb & 0x0000ffffu)),
+                                      auto_cast((aa & 0xffff0000u) << (bb >> 16)), 0xaa);
+        } else if constexpr (N == 8 && have_avx512bw_vl) {
+            return _mm_sllv_epi16(a, b);
+        } else if constexpr (N == 8 && have_avx512bw) {
+            return _mm512_sllv_epi16(_mm512_castsi128_si512(a),
+                                     _mm512_castsi128_si512(b));
+        } else if constexpr (N == 8) {
+            const auto aa = builtin_cast<unsigned>(a.d);
+            const auto bb = builtin_cast<unsigned>(b.d);
+            return _mm_blend_epi16(auto_cast(aa << (bb & 0x0000ffffu)),
+                                   auto_cast((aa & 0xffff0000u) << (bb >> 16)), 0xaa);
+        } else {
+            detail::assert_unreachable<T>();
+        }
+    } else if constexpr (sizeof(T) == 1) {
+        if constexpr (N == 64 && have_avx512bw) {
+            return concat(
+                _mm512_cvtepi16_epi8(_mm512_sllv_epi16(_mm512_cvtepu8_epi16(lo256(a)),
+                                                       _mm512_cvtepu8_epi16(lo256(b)))),
+                _mm512_cvtepi16_epi8(_mm512_sllv_epi16(_mm512_cvtepu8_epi16(hi256(a)),
+                                                       _mm512_cvtepu8_epi16(hi256(b)))));
+        } else if constexpr (N == 32 && have_avx512bw) {
+            return _mm512_cvtepi16_epi8(
+                _mm512_sllv_epi16(_mm512_cvtepu8_epi16(a), _mm512_cvtepu8_epi16(b)));
+        } else if constexpr (N == 16 && have_avx512bw_vl) {
+            return _mm256_cvtepi16_epi8(
+                _mm256_sllv_epi16(_mm256_cvtepu8_epi16(a), _mm256_cvtepu8_epi16(b)));
+        } else if constexpr (N == 16 && have_avx512bw) {
+            return lo128(_mm512_cvtepi16_epi8(
+                _mm512_sllv_epi16(_mm512_cvtepu8_epi16(_mm512_castsi256_si512(a)),
+                                  _mm512_cvtepu8_epi16(_mm512_castsi256_si512(b)))));
+        } else {
+            auto mask_from_bit = [](builtin_type_t<T, N> x, int bit) {
+                auto y = builtin_cast<short>(x) << bit;
+                if constexpr (have_sse4_1) {
+                    return to_intrin(y);
+                } else {
+                    return to_intrin(builtin_cast<schar>(y) < 0);
+                }
+            };
+            // exploit UB: The behavior is undefined if the right operand is [...] greater
+            // than or equal to the length in bits of the promoted left operand. left
+            // => valid input range for each element of b is [0, 7]
+            // => only the 3 low bits of b are relevant
+            // do a =<< 4 where b[2] is set
+            auto a4 = builtin_cast<uchar>(builtin_cast<short>(a.d) << 4);
+            if constexpr (std::is_unsigned_v<T>) {
+                // shift into or over the sign bit is UB => never spills into a neighbor
+                a4 &= 0xf0u;
+            }
+            a = x86::blend(mask_from_bit(b, 5), a, to_intrin(a4));
+            // do a =<< 2 where b[1] is set
+            // shift into or over the sign bit is UB => never spills into a neighbor
+            const auto a2 = std::is_signed_v<T> ? to_intrin(builtin_cast<short>(a.d) << 2)
+                                                : to_intrin(a.d << 2);
+            a = x86::blend(mask_from_bit(b, 6), a, a2);
+            // do a =<< 1 where b[0] is set
+            return x86::blend(mask_from_bit(b, 7), a, to_intrin(a.d + a.d));
+        }
+    } else {
+        return a.d << b.d;
+    }
 }
-Vc_INTRINSIC x_u64 bit_shift_left(x_u64 a, x_u64 b)
-{
-    return storage_bitcast<ullong>(bit_shift_left(storage_bitcast<llong>(a), storage_bitcast<llong>(b)));
-}
-
-#endif  // !Vc_HAVE_AVX2
-
-// simd << simd (improvements/specializations with AVX2 and up) {{{3
-#ifdef Vc_HAVE_AVX2
-Vc_INTRINSIC x_i64 bit_shift_left(x_i64 a, x_i64 b) { return _mm_sllv_epi64(a, b); }
-Vc_INTRINSIC x_u64 bit_shift_left(x_u64 a, x_u64 b) { return _mm_sllv_epi64(a, b); }
-Vc_INTRINSIC x_i32 bit_shift_left(x_i32 a, x_i32 b) { return _mm_sllv_epi32(a, b); }
-Vc_INTRINSIC x_u32 bit_shift_left(x_u32 a, x_u32 b) { return _mm_sllv_epi32(a, b); }
-
-Vc_INTRINSIC y_i64 bit_shift_left(y_i64 a, y_i64 b) { return _mm256_sllv_epi64(a, b); }
-Vc_INTRINSIC y_u64 bit_shift_left(y_u64 a, y_u64 b) { return _mm256_sllv_epi64(a, b); }
-Vc_INTRINSIC y_i32 bit_shift_left(y_i32 a, y_i32 b) { return _mm256_sllv_epi32(a, b); }
-Vc_INTRINSIC y_u32 bit_shift_left(y_u32 a, y_u32 b) { return _mm256_sllv_epi32(a, b); }
-
-#ifdef Vc_HAVE_AVX512F
-Vc_INTRINSIC z_i64 bit_shift_left(z_i64 a, z_i64 b) { return _mm512_sllv_epi64(a, b); }
-Vc_INTRINSIC z_u64 bit_shift_left(z_u64 a, z_u64 b) { return _mm512_sllv_epi64(a, b); }
-Vc_INTRINSIC z_i32 bit_shift_left(z_i32 a, z_i32 b) { return _mm512_sllv_epi32(a, b); }
-Vc_INTRINSIC z_u32 bit_shift_left(z_u32 a, z_u32 b) { return _mm512_sllv_epi32(a, b); }
-#endif  // Vc_HAVE_AVX512F
-
-#ifdef Vc_HAVE_AVX512BW
-Vc_INTRINSIC z_i16 bit_shift_left(z_i16 a, z_i16 b) { return _mm512_sllv_epi16(a, b); }
-Vc_INTRINSIC z_u16 bit_shift_left(z_u16 a, z_u16 b) { return _mm512_sllv_epi16(a, b); }
-Vc_INTRINSIC y_i08 bit_shift_left(y_i08 a, y_i08 b) { return _mm512_cvtepi16_epi8(_mm512_sllv_epi16(_mm512_cvtepi8_epi16(a), _mm512_cvtepi8_epi16(b))); }
-Vc_INTRINSIC y_u08 bit_shift_left(y_u08 a, y_u08 b) { return _mm512_cvtepi16_epi8(_mm512_sllv_epi16(_mm512_cvtepi8_epi16(a), _mm512_cvtepi8_epi16(b))); }
-Vc_INTRINSIC z_i08 bit_shift_left(z_i08 a, z_i08 b) { return concat(bit_shift_left(lo256(a), lo256(b)), bit_shift_left(hi256(a), hi256(b))); }
-Vc_INTRINSIC z_u08 bit_shift_left(z_u08 a, z_u08 b) { return concat(bit_shift_left(lo256(a), lo256(b)), bit_shift_left(hi256(a), hi256(b))); }
-#ifdef Vc_HAVE_AVX512VL
-Vc_INTRINSIC y_i16 bit_shift_left(y_i16 a, y_i16 b) { return _mm256_sllv_epi16(a, b); }
-Vc_INTRINSIC y_u16 bit_shift_left(y_u16 a, y_u16 b) { return _mm256_sllv_epi16(a, b); }
-Vc_INTRINSIC x_i16 bit_shift_left(x_i16 a, x_i16 b) { return _mm_sllv_epi16(a, b); }
-Vc_INTRINSIC x_u16 bit_shift_left(x_u16 a, x_u16 b) { return _mm_sllv_epi16(a, b); }
-Vc_INTRINSIC x_i08 bit_shift_left(x_i08 a, x_i08 b) { return _mm256_cvtepi16_epi8(_mm256_sllv_epi16(_mm256_cvtepi8_epi16(a), _mm256_cvtepi8_epi16(b))); }
-Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, x_u08 b) { return _mm256_cvtepi16_epi8(_mm256_sllv_epi16(_mm256_cvtepi8_epi16(a), _mm256_cvtepi8_epi16(b))); }
-#else   // Vc_HAVE_AVX512VL
-Vc_INTRINSIC y_i16 bit_shift_left(y_i16 a, y_i16 b) { return lo256(_mm512_sllv_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)); }
-Vc_INTRINSIC y_u16 bit_shift_left(y_u16 a, y_u16 b) { return lo256(_mm512_sllv_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)); }
-Vc_INTRINSIC x_i16 bit_shift_left(x_i16 a, x_i16 b) { return lo128(_mm512_sllv_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)); }
-Vc_INTRINSIC x_u16 bit_shift_left(x_u16 a, x_u16 b) { return lo128(_mm512_sllv_epi16(intrin_cast<__m512i>(a), intrin_cast<__m512i>(b)); }
-Vc_INTRINSIC x_i08 bit_shift_left(x_i08 a, x_i08 b) { return lo128(bit_shift_left(y_i08(intrin_cast<__m256i>(a)), y_i08(intrin_cast<__m256i>(b)))); }
-Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, x_u08 b) { return lo128(bit_shift_left(y_u08(intrin_cast<__m256i>(a)), y_u08(intrin_cast<__m256i>(b)))); }
-#endif  // Vc_HAVE_AVX512VL
-#else   // Vc_HAVE_AVX512BW
-Vc_INTRINSIC x_i16 bit_shift_left(x_i16 a, x_i16 b)
-{
-    // left shift into or over the sign bit is UB => OR suffices
-    return _mm_blend_epi16(
-        _mm_sllv_epi32(a, and_(b, broadcast(0x0000ffffu))),
-        _mm_sllv_epi32(and_(a, broadcast(0xffff0000u)), _mm_srli_epi32(b, 16)), 0xaa);
-}
-Vc_INTRINSIC x_u16 bit_shift_left(x_u16 a, x_u16 b)
-{
-    return _mm_blend_epi16(
-        _mm_sllv_epi32(a, and_(b, broadcast(0x0000ffffu))),
-        _mm_sllv_epi32(and_(a, broadcast(0xffff0000u)), _mm_srli_epi32(b, 16)), 0xaa);
-}
-Vc_INTRINSIC x_i08 bit_shift_left(x_i08 a, x_i08 b)
-{
-    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
-    // equal to the length in bits of the promoted left operand.
-    // left shift into or over the sign bit is UB => never spills into a neighbor
-    // => valid input range for each element of b is [0, 7]
-    // => only the 3 low bits of b are relevant
-    // do a =<< 4 where b[2] is set
-    a = _mm_blendv_epi8(a, slli_epi16<4>(a), slli_epi16<5>(b));
-    // do a =<< 2 where b[1] is set
-    a = _mm_blendv_epi8(a, slli_epi16<2>(a), slli_epi16<6>(b));
-    // do a =<< 1 where b[0] is set
-    return _mm_blendv_epi8(a, _mm_add_epi8(a, a), slli_epi16<7>(b));
-}
-Vc_INTRINSIC x_u08 bit_shift_left(x_u08 a, x_u08 b)
-{
-    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
-    // equal to the length in bits of the promoted left operand.
-    // => valid input range for each element of b is [0, 7]
-    // => only the 3 low bits of b are relevant
-    // do a =<< 4 where b[2] is set
-    a = _mm_blendv_epi8(a, and_(slli_epi16<4>(a), broadcast(0xf0f0f0f0u)),
-                        slli_epi16<5>(b));
-    // do a =<< 2 where b[1] is set
-    a = _mm_blendv_epi8(a, and_(slli_epi16<2>(a), broadcast(0xfcfcfcfcu)),
-                        slli_epi16<6>(b));
-    // do a =<< 1 where b[0] is set
-    return _mm_blendv_epi8(a, _mm_add_epi8(a, a), slli_epi16<7>(b));
-}
-
-Vc_INTRINSIC y_i16 bit_shift_left(y_i16 a, y_i16 b)
-{
-    // left shift into or over the sign bit is UB => OR suffices
-    return _mm256_blend_epi16(
-        _mm256_sllv_epi32(a, and_(b, broadcast32(0x0000ffffu))),
-        _mm256_sllv_epi32(and_(a, broadcast32(0xffff0000u)), _mm256_srli_epi32(b, 16)),
-        0xaa);
-}
-Vc_INTRINSIC y_u16 bit_shift_left(y_u16 a, y_u16 b)
-{
-    return _mm256_blend_epi16(
-        _mm256_sllv_epi32(a, and_(b, broadcast32(0x0000ffffu))),
-        _mm256_sllv_epi32(and_(a, broadcast32(0xffff0000u)), _mm256_srli_epi32(b, 16)),
-        0xaa);
-}
-Vc_INTRINSIC y_i08 bit_shift_left(y_i08 a, y_i08 b)
-{
-    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
-    // equal to the length in bits of the promoted left operand.
-    // left shift into or over the sign bit is UB => never spills into a neighbor
-    // => valid input range for each element of b is [0, 7]
-    // => only the 3 low bits of b are relevant
-    // do a =<< 4 where b[2] is set
-    a = _mm256_blendv_epi8(a, slli_epi16<4>(a), slli_epi16<5>(b));
-    // do a =<< 2 where b[1] is set
-    a = _mm256_blendv_epi8(a, slli_epi16<2>(a), slli_epi16<6>(b));
-    // do a =<< 1 where b[0] is set
-    return _mm256_blendv_epi8(a, _mm256_add_epi8(a, a), slli_epi16<7>(b));
-}
-Vc_INTRINSIC y_u08 bit_shift_left(y_u08 a, y_u08 b)
-{
-    // exploit UB: The behavior is undefined if the right operand is [...] greater than or
-    // equal to the length in bits of the promoted left operand.
-    // => valid input range for each element of b is [0, 7]
-    // => only the 3 low bits of b are relevant
-    // do a =<< 4 where b[2] is set
-    a = _mm256_blendv_epi8(a, and_(slli_epi16<4>(a), broadcast32(0xf0f0f0f0u)),
-                           slli_epi16<5>(b));
-    // do a =<< 2 where b[1] is set
-    a = _mm256_blendv_epi8(a, and_(slli_epi16<2>(a), broadcast32(0xfcfcfcfcu)),
-                           slli_epi16<6>(b));
-    // do a =<< 1 where b[0] is set
-    return _mm256_blendv_epi8(a, _mm256_add_epi8(a, a), slli_epi16<7>(b));
-}
-
-/* Not actually part of simd_abi::avx512:
-Vc_INTRINSIC z_i16 bit_shift_left(z_i16 a, z_i16 b) { return or_(_mm512_sllv_epi32(and_(a, broadcast64(0x0000ffffu)), and_(b, broadcast64(0x0000ffffu))), _mm512_sllv_epi32(and_(a, broadcast64(0xffff0000u)), _mm512_srli_epi32(b, 16))); }
-Vc_INTRINSIC z_u16 bit_shift_left(z_u16 a, z_u16 b) { return or_(_mm512_sllv_epi32(and_(a, broadcast64(0x0000ffffu)), and_(b, broadcast64(0x0000ffffu))), _mm512_sllv_epi32(and_(a, broadcast64(0xffff0000u)), _mm512_srli_epi32(b, 16))); }
-Vc_INTRINSIC z_i08 bit_shift_left(z_i08 a, z_i08 b)
-{
-    return or_(
-        or_(_mm512_sllv_epi32(and_(a, broadcast64(0x000000ffu)),
-                              and_(b, broadcast64(0x000000ffu))),
-            _mm512_sllv_epi32(and_(a, broadcast64(0x0000ff00u)),
-                              _mm512_srli_epi32(and_(b, broadcast64(0x0000ff00u)), 8))),
-        or_(_mm512_sllv_epi32(and_(a, broadcast64(0x00ff0000u)),
-                              _mm512_srli_epi32(and_(b, broadcast64(0x00ff0000u)), 16)),
-            _mm512_sllv_epi32(and_(a, broadcast64(0xff000000u)),
-                              _mm512_srli_epi32(b, 24))));
-}
-Vc_INTRINSIC z_u08 bit_shift_left(z_u08 a, z_u08 b) { return z_u08(bit_shift_left(z_i08(a), z_i08(b))); }
-*/
-#endif  // Vc_HAVE_AVX512BW
-#endif  // Vc_HAVE_AVX2
-//}}}
-
-Vc_BINARY_OVERLOAD_SAME_VALUE_REP_(bit_shift_left)
-
-#endif  // Vc_GCC
 
 // bit_shift_right{{{1
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
@@ -1093,26 +960,15 @@ Vc_NORMAL_MATH constexpr Vc_INTRINSIC Storage<T, N> abs(Storage<T, N> v)
         }
     } else
 #endif
-    {
+        if constexpr (std::is_floating_point_v<T>) {
+        // this workaround is only required because __builtin_abs is not a constant
+        // expression
+        using I = std::make_unsigned_t<int_for_sizeof_t<T>>;
+        return builtin_cast<T>(builtin_cast<I>(v.d) & builtin_broadcast<N, I>(~I() >> 1));
+    } else {
         return v.d < 0 ? -v.d : v.d;
     }
 }
-
-// sqrt{{{1
-Vc_INTRINSIC x_f32 Vc_VDECL sqrt(x_f32 v) { return _mm_sqrt_ps(v); }
-#ifdef Vc_HAVE_SSE2
-Vc_INTRINSIC x_f64 Vc_VDECL sqrt(x_f64 v) { return _mm_sqrt_pd(v); }
-#endif  // Vc_HAVE_SSE2
-
-#ifdef Vc_HAVE_AVX
-Vc_INTRINSIC y_f32 Vc_VDECL sqrt(y_f32 v) { return _mm256_sqrt_ps(v); }
-Vc_INTRINSIC y_f64 Vc_VDECL sqrt(y_f64 v) { return _mm256_sqrt_pd(v); }
-#endif  // Vc_HAVE_AVX
-
-#ifdef Vc_HAVE_AVX512F
-Vc_INTRINSIC z_f32 Vc_VDECL sqrt(z_f32 v) { return _mm512_sqrt_ps(v); }
-Vc_INTRINSIC z_f64 Vc_VDECL sqrt(z_f64 v) { return _mm512_sqrt_pd(v); }
-#endif  // Vc_HAVE_AVX512F
 
 //}}}1
 
