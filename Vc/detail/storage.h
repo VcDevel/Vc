@@ -114,7 +114,14 @@ struct StorageBase<T, Width, RegisterType, false> {
 template <typename T, size_t Width, bool = detail::has_same_value_representation_v<T>>
 struct StorageEquiv : StorageBase<T, Width> {
     using StorageBase<T, Width>::d;
-    using StorageBase<T, Width>::StorageBase;
+    constexpr Vc_INTRINSIC StorageEquiv() = default;
+    template <class U, class = decltype(StorageBase<T, Width>(std::declval<U>()))>
+    constexpr Vc_INTRINSIC StorageEquiv(U &&x) : StorageBase<T, Width>(std::forward<U>(x))
+    {
+    }
+    // I want to use ctor inheritance, but it breaks always_inline. Having a function that
+    // does a single movaps is stupid.
+    //using StorageBase<T, Width>::StorageBase;
 };
 
 // This base class allows conversion to & from
@@ -132,7 +139,17 @@ struct StorageEquiv<T, Width, true>
     : StorageBase<equal_int_type_t<T>, Width, builtin_type_t<T, Width>> {
     using Base = StorageBase<equal_int_type_t<T>, Width, builtin_type_t<T, Width>>;
     using Base::d;
-    using Base::StorageBase;
+    template <class U,
+              class = decltype(StorageBase<equal_int_type_t<T>, Width,
+                                           builtin_type_t<T, Width>>(std::declval<U>()))>
+    constexpr Vc_INTRINSIC StorageEquiv(U &&x)
+        : StorageBase<equal_int_type_t<T>, Width, builtin_type_t<T, Width>>(
+              std::forward<U>(x))
+    {
+    }
+    // I want to use ctor inheritance, but it breaks always_inline. Having a function that
+    // does a single movaps is stupid.
+    //using Base::StorageBase;
 
     constexpr Vc_INTRINSIC StorageEquiv() = default;
 
@@ -223,7 +240,14 @@ struct Storage<T, Width,
     static constexpr size_t width = Width;
     [[deprecated("use width instead")]] static constexpr size_t size() { return Width; }
 
-    using StorageEquiv<T, Width>::StorageEquiv;
+    constexpr Vc_INTRINSIC Storage() = default;
+    template <class U, class = decltype(StorageEquiv<T, Width>(std::declval<U>()))>
+    constexpr Vc_INTRINSIC Storage(U &&x) : StorageEquiv<T, Width>(std::forward<U>(x))
+    {
+    }
+    // I want to use ctor inheritance, but it breaks always_inline. Having a function that
+    // does a single movaps is stupid.
+    //using StorageEquiv<T, Width>::StorageEquiv;
     using StorageEquiv<T, Width>::d;
 
     constexpr Vc_INTRINSIC operator const register_type &() const { return d; }
