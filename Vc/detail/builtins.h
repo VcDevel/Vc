@@ -34,7 +34,7 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
 // intrinsic_type {{{
-template <class T, size_t Bytes, class = detail::void_t<>> struct intrinsic_type;
+template <class T, size_t Bytes, class = std::void_t<>> struct intrinsic_type;
 template <class T, size_t Size>
 using intrinsic_type_t = typename intrinsic_type<T, Size * sizeof(T)>::type;
 
@@ -45,11 +45,11 @@ template <class T> inline constexpr bool is_intrinsic_v = is_intrinsic<T>::value
 
 // }}}
 // builtin_type {{{1
-template <class T, size_t Bytes, class = detail::void_t<>> struct builtin_type {};
+template <class T, size_t Bytes, class = std::void_t<>> struct builtin_type {};
 template <class T, size_t Bytes>
 struct builtin_type<
     T, Bytes,
-    detail::void_t<std::enable_if_t<detail::conjunction_v<
+    std::void_t<std::enable_if_t<std::conjunction_v<
         detail::is_equal_to<Bytes % sizeof(T), 0>, detail::is_vectorizable<T>>>>> {
     using type [[gnu::vector_size(Bytes)]] = T;
 };
@@ -65,10 +65,11 @@ template <class T> using builtin_type64_t = typename builtin_type<T, 64>::type;
 template <class T> using builtin_type128_t = typename builtin_type<T, 128>::type;
 
 // is_builtin_vector {{{1
-template <class T, class = void_t<>> struct is_builtin_vector : std::false_type {};
+template <class T, class = std::void_t<>> struct is_builtin_vector : std::false_type {};
 template <class T>
 struct is_builtin_vector<
-    T, void_t<typename builtin_type<decltype(std::declval<T>()[0]), sizeof(T)>::type>>
+    T,
+    std::void_t<typename builtin_type<decltype(std::declval<T>()[0]), sizeof(T)>::type>>
     : std::is_same<
           T, typename builtin_type<decltype(std::declval<T>()[0]), sizeof(T)>::type> {
 };
@@ -76,19 +77,12 @@ struct is_builtin_vector<
 template <class T> inline constexpr bool is_builtin_vector_v = is_builtin_vector<T>::value;
 
 // builtin_traits{{{1
-template <class T, class = void_t<>> struct builtin_traits;
+template <class T, class = std::void_t<>> struct builtin_traits;
 template <class T>
-struct builtin_traits<T, void_t<std::enable_if_t<is_builtin_vector_v<T>>>> {
+struct builtin_traits<T, std::void_t<std::enable_if_t<is_builtin_vector_v<T>>>> {
     using type = T;
     using value_type = decltype(std::declval<T>()[0]);
     static constexpr int width = sizeof(T) / sizeof(value_type);
-
-    /*
-    using intrin_type = intrinsic_type_t<value_type, width>;
-    static constexpr bool is_epi = std::is_integral_v<value_type>;
-    static constexpr bool is_ps = std::is_same_v<value_type, float>;
-    static constexpr bool is_pd = std::is_same_v<value_type, double>;
-    */
 };
 
 // }}}
