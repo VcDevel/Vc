@@ -86,10 +86,10 @@ template <size_t... Sizes, class T, class A
           , class = std::enable_if_t<((Sizes + ...) == simd<T, A>::size())>
 #endif
           >
-Vc_ALWAYS_INLINE std::tuple<simd<T, abi_for_size_t<T, Sizes>>...> split(
+Vc_ALWAYS_INLINE std::tuple<simd<T, simd_abi::deduce_t<T, Sizes>>...> split(
     const simd<T, A> &x)
 {
-    return detail::split_to_tuple<std::tuple<simd<T, abi_for_size_t<T, Sizes>>...>, A>()(
+    return detail::split_to_tuple<std::tuple<simd<T, simd_abi::deduce_t<T, Sizes>>...>, A>()(
         x);
 }
 
@@ -123,10 +123,10 @@ struct subscript_in_pack<N, T, detail::typelist<A, As...>, false> {
 
 #if defined __cpp_fold_expressions
 template <class T, class... As>
-simd<T, abi_for_size_t<T, (simd_size_v<T, As> + ...)>> concat(
+simd<T, simd_abi::deduce_t<T, (simd_size_v<T, As> + ...)>> concat(
     const simd<T, As> &... xs)
 {
-    return simd<T, abi_for_size_t<T, (simd_size_v<T, As> + ...)>>([&](auto i) {
+    return simd<T, simd_abi::deduce_t<T, (simd_size_v<T, As> + ...)>>([&](auto i) {
         return detail::subscript_in_pack<i, T, detail::typelist<As...>>::get(xs...);
     });
 }

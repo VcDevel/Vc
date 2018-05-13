@@ -251,7 +251,7 @@ Vc_INTRINSIC simd<T, A1> vec_to_scalar_reduction_first_pair(
     size_constant<4>) noexcept
 {
     constexpr auto N0 = simd_size_v<T, A0> / 2;
-    const auto left2 = split<simd<T, abi_for_size_t<T, N0>>>(left);
+    const auto left2 = split<simd<T, simd_abi::deduce_t<T, N0>>>(left);
     const std::array<simd<T, A1>, 2> splitted =
         split<simd<T, A1>>(binary_op(left2[0], left2[1]));
     return binary_op(binary_op(splitted[0], right), splitted[1]);

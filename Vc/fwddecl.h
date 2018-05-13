@@ -53,6 +53,7 @@ template <int Bytes> struct neon_abi;
 
 namespace simd_abi
 {
+template <class T, std::size_t N, class... > struct deduce;
 template <int N> using fixed_size = Vc::detail::fixed_abi<N>;
 using scalar = Vc::detail::scalar_abi;
 
@@ -82,7 +83,6 @@ template <class T> struct is_simd_mask;
 template <class T, class Abi> class simd;
 template <class T, class Abi> class simd_mask;
 
-template <class T, std::size_t N, class... > struct abi_for_size;
 template <class T, class Abi> struct simd_size;
 
 Vc_VERSIONED_NAMESPACE_END

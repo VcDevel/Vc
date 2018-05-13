@@ -146,84 +146,13 @@ struct simd_size : detail::simd_size_impl<T, Abi> {
 template <class T, class Abi = simd_abi::detail::default_abi<T>>
 inline constexpr size_t simd_size_v = simd_size<T, Abi>::value;
 
-// abi_for_size {{{2
+// simd_abi::deduce {{{2
 namespace detail
 {
-template <class T, size_t N, bool, bool> struct abi_for_size_impl;
-template <class T, size_t N> struct abi_for_size_impl<T, N, true, true> {
-    using type = simd_abi::fixed_size<N>;
-};
-template <class T> struct abi_for_size_impl<T, 1, true, true> {
-    using type = simd_abi::scalar;
-};
-#ifdef Vc_HAVE_SSE_ABI
-template <> struct abi_for_size_impl<float, 4, true, true> { using type = simd_abi::__sse; };
-#endif
-#ifdef Vc_HAVE_FULL_SSE_ABI
-template <> struct abi_for_size_impl<double, 2, true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl< llong, 2, true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl<ullong, 2, true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl<  long, 16 / sizeof(long), true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl< ulong, 16 / sizeof(long), true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl<   int, 4, true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl<  uint, 4, true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl< short, 8, true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl<ushort, 8, true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl< schar, 16, true, true> { using type = simd_abi::__sse; };
-template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = simd_abi::__sse; };
-#endif
-#ifdef Vc_HAVE_AVX_ABI
-template <> struct abi_for_size_impl<double, 4, true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl<float, 8, true, true> { using type = simd_abi::__avx; };
-#endif
-#ifdef Vc_HAVE_FULL_AVX_ABI
-template <> struct abi_for_size_impl< llong,  4, true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl<ullong,  4, true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl<  long, 32 / sizeof(long), true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl< ulong, 32 / sizeof(long), true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl<   int,  8, true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl<  uint,  8, true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl< short, 16, true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl<ushort, 16, true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl< schar, 32, true, true> { using type = simd_abi::__avx; };
-template <> struct abi_for_size_impl< uchar, 32, true, true> { using type = simd_abi::__avx; };
-#endif
-#ifdef Vc_HAVE_AVX512_ABI
-template <> struct abi_for_size_impl<double, 8, true, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl<float, 16, true, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl< llong,  8, true, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl<ullong,  8, true, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl<  long, 64 / sizeof(long), true, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl< ulong, 64 / sizeof(long), true, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl<   int, 16, true, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl<  uint, 16, true, true> { using type = simd_abi::__avx512; };
-#endif
-#ifdef Vc_HAVE_FULL_AVX512_ABI
-template <> struct abi_for_size_impl< short, 32, true, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl<ushort, 32, true, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl< schar, 64, false, true> { using type = simd_abi::__avx512; };
-template <> struct abi_for_size_impl< uchar, 64, false, true> { using type = simd_abi::__avx512; };
-// fixed_size must support 64 entries because schar and uchar have 64 entries. Everything in
-// between max_fixed_size and 64 doesn't have to be supported.
-template <class T> struct abi_for_size_impl<T, 64, false, true> {
-    using type = simd_abi::fixed_size<64>;
-};
-#endif
-#ifdef Vc_HAVE_FULL_NEON_ABI
-template <> struct abi_for_size_impl<double,  2, true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl< float,  4, true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl< llong,  2, true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl<ullong,  2, true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl<  long, 16 / sizeof(long), true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl< ulong, 16 / sizeof(long), true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl<   int,  4, true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl<  uint,  4, true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl< short,  8, true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl<ushort,  8, true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl< schar, 16, true, true> { using type = simd_abi::__neon; };
-template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = simd_abi::__neon; };
-#endif
+template <class T, std::size_t Bytes, class = void> struct deduce_impl;
 }  // namespace detail
+namespace simd_abi
+{
 /**
  * \tparam T    The requested `value_type` for the elements.
  * \tparam N    The requested number of elements.
@@ -232,40 +161,39 @@ template <> struct abi_for_size_impl< uchar, 16, true, true> { using type = simd
  *              the `fixed_size<N>` ABI is used, which internally is built from the best
  *              matching native ABIs.
  */
-template <class T, size_t N, class... Abis>
-struct abi_for_size
-    : public detail::abi_for_size_impl<T, N, (N <= simd_abi::max_fixed_size<T>),
-                                       std::is_arithmetic<T>::value> {
-};
-template <size_t N, class... Abis> struct abi_for_size<bool, N, Abis...> {
-};
-template <class T, class... Abis> struct abi_for_size<T, 0, Abis...> {
+template <class T, std::size_t N, class...>
+struct deduce : Vc::detail::deduce_impl<T, sizeof(T) * N> {};
+template <class T, class... Abis> struct deduce<T, 1, Abis...> {
+    using type = scalar;
 };
 template <class T, size_t N, class... Abis>
-using abi_for_size_t = typename abi_for_size<T, N, Abis...>::type;
+using deduce_t = typename deduce<T, N, Abis...>::type;
+}  // namespace simd_abi
 
+// }}}2
 namespace experimental
 {
 // rebind_simd {{{2
 template <class T, class V> struct rebind_simd;
 template <class T, class U, class Abi> struct rebind_simd<T, simd<U, Abi>> {
-    using type = simd<T, abi_for_size_t<T, simd_size_v<U, Abi>, Abi>>;
+    using type = simd<T, simd_abi::deduce_t<T, simd_size_v<U, Abi>, Abi>>;
 };
 template <class T, class U, class Abi> struct rebind_simd<T, simd_mask<U, Abi>> {
-    using type = simd_mask<T, abi_for_size_t<T, simd_size_v<U, Abi>, Abi>>;
+    using type = simd_mask<T, simd_abi::deduce_t<T, simd_size_v<U, Abi>, Abi>>;
 };
 template <class T, class V> using rebind_simd_t = typename rebind_simd<T, V>::type;
 
 // resize_simd {{{2
 template <int N, class V> struct resize_simd;
 template <int N, class T, class Abi> struct resize_simd<N, simd<T, Abi>> {
-    using type = simd<T, abi_for_size_t<T, N, Abi>>;
+    using type = simd<T, simd_abi::deduce_t<T, N, Abi>>;
 };
 template <int N, class T, class Abi> struct resize_simd<N, simd_mask<T, Abi>> {
-    using type = simd_mask<T, abi_for_size_t<T, N, Abi>>;
+    using type = simd_mask<T, simd_abi::deduce_t<T, N, Abi>>;
 };
 template <int N, class V> using resize_simd_t = typename resize_simd<N, V>::type;
 
+// }}}2
 }  // namespace experimental
 namespace detail
 {

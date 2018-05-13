@@ -443,6 +443,34 @@ struct traits<T, Abi, void_t<typename Abi::template is_valid<T>>>
     : Abi::template traits<T> {
 };
 
+// deduce_impl specializations {{{1
+template <class T>
+struct deduce_impl<T, 64, std::enable_if_t<avx512_abi<64>::is_valid_v<T>>> {
+    using type = avx512_abi<64>;
+};
+template <class T>
+struct deduce_impl<T, 32, std::enable_if_t<avx_abi<32>::is_valid_v<T>>> {
+    using type = avx_abi<32>;
+};
+template <class T>
+struct deduce_impl<T, 16, std::enable_if_t<sse_abi<16>::is_valid_v<T>>> {
+    using type = sse_abi<16>;
+};
+template <class T>
+struct deduce_impl<T, 16, std::enable_if_t<neon_abi<16>::is_valid_v<T>>> {
+    using type = neon_abi<16>;
+};
+template <class T, std::size_t N, class = void> struct deduce_fixed_size_fallback {
+};
+template <class T, std::size_t N>
+struct deduce_fixed_size_fallback<
+    T, N, std::enable_if_t<simd_abi::fixed_size<N>::template is_valid_v<T>>> {
+    using type = simd_abi::fixed_size<N>;
+};
+template <class T, std::size_t Bytes, class>
+struct deduce_impl : public deduce_fixed_size_fallback<T, Bytes / sizeof(T)> {
+};
+
 //}}}1
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

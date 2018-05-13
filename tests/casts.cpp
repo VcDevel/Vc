@@ -62,8 +62,8 @@ template <class V> void concat_ge4(std::true_type)
     V a([](auto i) -> T { return i; });
     constexpr auto N0 = V::size() / 4u;
     constexpr auto N1 = V::size() - 2 * N0;
-    using V0 = Vc::simd<T, Vc::abi_for_size_t<T, N0>>;
-    using V1 = Vc::simd<T, Vc::abi_for_size_t<T, N1>>;
+    using V0 = Vc::simd<T, Vc::simd_abi::deduce_t<T, N0>>;
+    using V1 = Vc::simd<T, Vc::simd_abi::deduce_t<T, N1>>;
     {
         auto x = Vc::split<N0, N0, N1>(a);
         COMPARE(std::tuple_size<decltype(x)>::value, 3u);
@@ -104,8 +104,8 @@ template <class V> void concat_even(std::false_type) {}
 template <class V> void concat_even(std::true_type)
 {
     using T = typename V::value_type;
-    using V2 = Vc::simd<T, Vc::abi_for_size_t<T, 2>>;
-    using V3 = Vc::simd<T, Vc::abi_for_size_t<T, V::size() / 2>>;
+    using V2 = Vc::simd<T, Vc::simd_abi::deduce_t<T, 2>>;
+    using V3 = Vc::simd<T, Vc::simd_abi::deduce_t<T, V::size() / 2>>;
 
     V a([](auto i) -> T { return i; });
 

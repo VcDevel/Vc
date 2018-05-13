@@ -36,7 +36,7 @@ namespace experimental
 {
 template <class MT, class MA, class T0, class A0, class T1, class A1,
           class RT = std::common_type<T0, T1>,
-          class RA = Vc::abi_for_size_t<RT, Vc::simd_size_v<T0, A0>, A0, A1>>
+          class RA = Vc::simd_abi::deduce_t<RT, Vc::simd_size_v<T0, A0>, A0, A1>>
 std::enable_if_t<
     Vc::detail::all<std::is_convertible<Vc::simd_mask<MT, MA>, Vc::simd_mask<RT, RA>>,
                     std::is_convertible<Vc::simd<T0, A0>, Vc::simd<RT, RA>>,
@@ -78,7 +78,7 @@ iif(const Vc::simd_mask<MT, MA> &mask, const Vc::simd<T0, A0> &a, const T1 &b)
 
 template <class MT, class MA, class T0, class A0, class T1, class A1,
           class RT = std::common_type<T0, T1>,
-          class RA = Vc::abi_for_size_t<RT, Vc::simd_size_v<T0, A0>, A0, A1>>
+          class RA = Vc::simd_abi::deduce_t<RT, Vc::simd_size_v<T0, A0>, A0, A1>>
 std::enable_if_t<
     Vc::detail::all<
         std::is_convertible<Vc::simd_mask<MT, MA>, Vc::simd_mask<RT, RA>>,
