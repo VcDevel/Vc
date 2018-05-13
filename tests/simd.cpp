@@ -28,12 +28,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
 #include <Vc/simd>
-#include "make_vec.h"
 #include "metahelpers.h"
+#include <random>
 
 template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
 
+static std::mt19937 g_mt_gen{0};
 enum unscoped_enum { foo };  //{{{1
 enum class scoped_enum { bar };  //{{{1
 struct convertible { operator int(); operator float(); };  //{{{1
@@ -118,7 +119,7 @@ TEST_TYPES(V, generators, all_test_types)  //{{{1
     x = V([](int) { return 1; });  // unconditionally returns int from generator lambda
     COMPARE(x, V(1));
     x = V([](auto i) { return T(i); });
-    COMPARE(x, make_vec<V>({0, 1}, 2));
+    COMPARE(x, V([](T i) { return i; }));
 
     VERIFY((sfinae_is_callable<int (&)(int)>(call_generator<V>())));  // int always works
     COMPARE(sfinae_is_callable<schar (&)(int)>(call_generator<V>()),
@@ -1184,24 +1185,53 @@ TEST_TYPES(V, reductions, all_test_types)  //{{{1
                 T((1 + V::size()) * V::size() / 2));
     }
 
-    const V y = 2;
-    COMPARE(reduce(y), T(2 * V::size()));
-    COMPARE(reduce(where(y > 2, y)), T(0));
-    COMPARE(reduce(where(y == 2, y)), T(2 * V::size()));
+    {
+        const V y = 2;
+        COMPARE(reduce(y), T(2 * V::size()));
+        COMPARE(reduce(where(y > 2, y)), T(0));
+        COMPARE(reduce(where(y == 2, y)), T(2 * V::size()));
+    }
 
-    const V z = make_vec<V>({1, 2}, 2);
-    COMPARE(Vc::reduce(z, [](auto a, auto b) {
-                using std::min;
-                return min(a, b);
-            }), T(1)) << "z: " << z;
-    COMPARE(Vc::reduce(z, [](auto a, auto b) {
-                using std::max;
-                return max(a, b);
-            }), T(V::size())) << "z: " << z;
-    COMPARE(Vc::reduce(where(z > 1, z), 117, [](auto a, auto b) {
-                using std::min;
-                return min(a, b);
-            }), T(V::size() == 1 ? 117 : 2)) << "z: " << z;
+    {
+        const V z([](T i) { return i + 1; });
+        COMPARE(Vc::reduce(z,
+                           [](auto a, auto b) {
+                               using std::min;
+                               return min(a, b);
+                           }),
+                T(1))
+            << "z: " << z;
+        COMPARE(Vc::reduce(z,
+                           [](auto a, auto b) {
+                               using std::max;
+                               return max(a, b);
+                           }),
+                T(V::size()))
+            << "z: " << z;
+        COMPARE(Vc::reduce(where(z > 1, z), 117,
+                           [](auto a, auto b) {
+                               using std::min;
+                               return min(a, b);
+                           }),
+                T(V::size() == 1 ? 117 : 2))
+            << "z: " << z;
+    }
+
+    {
+        std::conditional_t<std::is_floating_point_v<T>, std::uniform_real_distribution<T>,
+                           std::uniform_int_distribution<T>>
+            dist(std::numeric_limits<T>::lowest(), std::numeric_limits<T>::max());
+        for (int repeat = 0; repeat < 100; ++repeat) {
+            const V x([&](int) { return dist(g_mt_gen); });
+            FUZZY_COMPARE(reduce(x), [x]() {
+                T acc = x[0];
+                for (size_t i = 1; i < V::size(); ++i) {
+                    acc += x[i];
+                }
+                return acc;
+            }());
+        }
+    }
 }
 
 TEST_TYPES(V, algorithms, all_test_types)  //{{{1

@@ -356,18 +356,6 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
         return equal_to(x, simd_member_type<T>());
     }
 
-    // reductions {{{2
-    template <class T, class BinaryOperation, size_t N>
-    static Vc_INTRINSIC T Vc_VDECL reduce(size_tag<N>, simd<T> x,
-                                          BinaryOperation &binary_op)
-    {
-        using V = Vc::simd<T, simd_abi::__avx>;
-        return avx_simd_impl::reduce(size_tag<N / 2>(),
-                                     binary_op(V(detail::private_init, lo256(data(x))),
-                                               V(detail::private_init, hi256(data(x)))),
-                                     binary_op);
-    }
-
     // math {{{2
     // logb {{{3
     static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb_positive(simd_member_type<float> v)

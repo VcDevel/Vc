@@ -68,9 +68,9 @@ template <class Derived, class Abi> struct generic_simd_impl {
     template <class T>
     using mask_member_type = typename Abi::template traits<T>::mask_member_type;
 
-    // simd(Storage) {{{2
+    // make_simd(Storage) {{{2
     template <class T, size_t N>
-    static Vc_INTRINSIC auto simd(Storage<T, N> x)
+    static Vc_INTRINSIC auto make_simd(Storage<T, N> x)
     {
         return Derived::make_simd(x);
     }
@@ -265,6 +265,40 @@ template <class Derived, class Abi> struct generic_simd_impl {
     minmax(Storage<T, N> a, Storage<T, N> b)
     {
         return {a.d < b.d ? a.d : b.d, a.d < b.d ? b.d : a.d};
+    }
+
+    // reductions {{{2
+    template <class T, class BinaryOperation, size_t N>
+    static Vc_INTRINSIC T reduce(size_tag<N>, simd<T, Abi> x, BinaryOperation &&binary_op)
+    {
+        if constexpr (sizeof(x) > 16) {
+            using A = simd_abi::deduce_t<T, N / 2>;
+            using V = Vc::simd<T, A>;
+            return traits<T, A>::simd_impl_type::reduce(
+                size_tag<N / 2>(),
+                binary_op(V(detail::private_init, extract<0, 2>(data(x).d)),
+                          V(detail::private_init, extract<1, 2>(data(x).d))),
+                std::forward<BinaryOperation>(binary_op));
+        } else {
+            const auto &xx = x.d;
+            if constexpr (N == 16) {
+                x = binary_op(make_simd<T, N>(_mm_unpacklo_epi8(xx, xx)),
+                              make_simd<T, N>(_mm_unpackhi_epi8(xx, xx)));
+            }
+            if constexpr (N >= 8) {
+                x = binary_op(make_simd<T, N>(_mm_unpacklo_epi16(xx, xx)),
+                              make_simd<T, N>(_mm_unpackhi_epi16(xx, xx)));
+            }
+            if constexpr (N >= 4) {
+                using U = std::conditional_t<std::is_floating_point_v<T>, float, int>;
+                const auto y = builtin_cast<U>(xx.d);
+                x = binary_op(x, make_simd<T, N>(to_storage(
+                                     builtin_type_t<U, 4>{y[3], y[2], y[1], y[0]})));
+            }
+            const auto y = builtin_cast<llong>(xx.d);
+            return binary_op(
+                x, make_simd<T, N>(to_storage(builtin_type_t<llong, 2>{y[1], y[1]})))[0];
+        }
     }
 
     // math {{{2
@@ -627,7 +661,7 @@ template <class Derived, class Abi> struct generic_simd_impl {
                                                      const detail::id<Storage<T, N>> rhs)
     {
         lhs = detail::x86::blend(k, lhs,
-                                 detail::data(Op<void>{}(simd(lhs), simd(rhs))));
+                                 detail::data(Op<void>{}(make_simd(lhs), make_simd(rhs))));
     }
 
     template <template <typename> class Op, class T, class K, size_t N>
@@ -638,7 +672,7 @@ template <class Derived, class Abi> struct generic_simd_impl {
         lhs = detail::x86::blend(
             k, lhs,
             detail::data(Op<void>{}(
-                simd(lhs), simd<T, N>(Derived::broadcast(rhs, size_tag<N>())))));
+                make_simd(lhs), make_simd<T, N>(Derived::broadcast(rhs, size_tag<N>())))));
     }
 
     // masked_unary {{{2
@@ -646,7 +680,7 @@ template <class Derived, class Abi> struct generic_simd_impl {
     static Vc_INTRINSIC Storage<T, N> masked_unary(const Storage<K, N> k,
                                                             const Storage<T, N> v)
     {
-        auto vv = simd(v);
+        auto vv = make_simd(v);
         Op<decltype(vv)> op;
         return detail::x86::blend(k, v, detail::data(op(vv)));
     }
