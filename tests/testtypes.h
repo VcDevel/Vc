@@ -39,6 +39,9 @@ using ulong = unsigned long;
 using llong = long long;
 using ullong = unsigned long long;
 using ldouble = long double;
+using wchar = wchar_t;
+using char16 = char16_t;
+using char32 = char32_t;
 
 using all_native_abis =
     vir::Typelist<Vc::simd_abi::scalar, Vc::simd_abi::__sse, Vc::simd_abi::__avx,
@@ -49,7 +52,7 @@ using testtypes = vir::Typelist<
     TESTTYPES
 #else
     ldouble, double, float, ullong, llong, ulong, long, uint, int, ushort, short, uchar,
-    schar//, char, wchar_t, char16_t, char32_t
+    schar, char, wchar_t, char16_t, char32_t
 #endif
     >;
 using testtypes_wo_ldouble = typename vir::filter_list<long double, testtypes>::type;
