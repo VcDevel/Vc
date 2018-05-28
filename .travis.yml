@@ -50,8 +50,8 @@ install:
           sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main' &&
           sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial-updates main' &&
           sudo apt-get update -q &&
-          sudo apt-get install g++-7 binutils -y &&
-          export CXX=g++-7 CC=gcc-7;;
+          sudo apt-get install g++-8 binutils -y &&
+          export CXX=g++-8 CC=gcc-8;;
         osx-g++-x86_64)
           brew update &&
           brew install gcc7 &&
