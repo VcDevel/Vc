@@ -149,7 +149,7 @@ inline constexpr size_t simd_size_v = simd_size<T, Abi>::value;
 // simd_abi::deduce {{{2
 namespace detail
 {
-template <class T, std::size_t Bytes, class = void> struct deduce_impl;
+template <class T, std::size_t N, class = void> struct deduce_impl;
 }  // namespace detail
 namespace simd_abi
 {
@@ -162,10 +162,8 @@ namespace simd_abi
  *              matching native ABIs.
  */
 template <class T, std::size_t N, class...>
-struct deduce : Vc::detail::deduce_impl<T, sizeof(T) * N> {};
-template <class T, class... Abis> struct deduce<T, 1, Abis...> {
-    using type = scalar;
-};
+struct deduce : Vc::detail::deduce_impl<T, N> {};
+
 template <class T, size_t N, class... Abis>
 using deduce_t = typename deduce<T, N, Abis...>::type;
 }  // namespace simd_abi
@@ -218,8 +216,8 @@ template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N
 // class template simd_mask [simd_mask] {{{1
 template <class T, class Abi = simd_abi::detail::default_abi<T>> class simd_mask;
 template <class T, class Abi> struct is_simd_mask<simd_mask<T, Abi>> : public std::true_type {};
-template <class T> using native_mask = simd_mask<T, simd_abi::native<T>>;
-template <class T, int N> using fixed_size_mask = simd_mask<T, simd_abi::fixed_size<N>>;
+template <class T> using native_simd_mask = simd_mask<T, simd_abi::native<T>>;
+template <class T, int N> using fixed_size_simd_mask = simd_mask<T, simd_abi::fixed_size<N>>;
 
 namespace detail
 {
@@ -242,40 +240,55 @@ template <class T, class Abi> struct get_traits<Vc::simd<T, Abi>> {
 // static_simd_cast {{{2
 namespace detail
 {
-// To is either simd<T, A0> or an arithmetic type
-// From is simd<U, A1>
-template <class From, class To> struct static_simd_cast_return_type2;
-template <class From, class To>
-struct static_simd_cast_return_type : public static_simd_cast_return_type2<From, To> {
+template <class T, class U, class A, bool = is_simd_v<T>, class = void>
+struct static_simd_cast_return_type;
+
+template <class T, class A0, class U, class A>
+struct static_simd_cast_return_type<simd_mask<T, A0>, U, A, false, void>
+    : static_simd_cast_return_type<simd<T, A0>, U, A> {
 };
-template <class From> struct static_simd_cast_return_type<From, From> {
-    // no type change requested => trivial
-    using type = From;
+
+template <class T, class U, class A>
+struct static_simd_cast_return_type<T, U, A, true,
+                                    std::enable_if_t<T::size() == simd_size_v<U, A>>> {
+    using type = T;
 };
-template <class U, class A1>
-struct static_simd_cast_return_type2<simd<U, A1>, U> {
-    // no type change requested => trivial
-    using type = simd<U, A1>;
+
+template <class T, class A>
+struct static_simd_cast_return_type<T, T, A, false,
+#ifdef Vc_FIX_P2TS_ISSUE66
+                                    std::enable_if_t<detail::is_vectorizable_v<T>>
+#else
+                                    void
+#endif
+                                    > {
+    using type = simd<T, A>;
 };
-template <class U, class A1, class T>
-struct static_simd_cast_return_type2<simd<U, A1>, T> {
-    static_assert(!is_simd_v<T>,
-                  "this specialization should never match for T = simd<...>");
-    template <class TT>
-    using make_unsigned_t =
-        typename std::conditional_t<std::is_integral<TT>::value, std::make_unsigned<TT>,
-                                    identity<TT>>::type;
-    // T is arithmetic and not U
+
+template <class T, class = void> struct safe_make_signed {
+    using type = T;
+};
+template <class T> struct safe_make_signed<T, std::enable_if_t<std::is_integral_v<T>>> {
+    // the extra make_unsigned_t is because of PR85951
+    using type = std::make_signed_t<std::make_unsigned_t<T>>;
+};
+template <class T> using safe_make_signed_t = typename safe_make_signed<T>::type;
+
+template <class T, class U, class A>
+struct static_simd_cast_return_type<T, U, A, false,
+#ifdef Vc_FIX_P2TS_ISSUE66
+                                    std::enable_if_t<detail::is_vectorizable_v<T>>
+#else
+                                    void
+#endif
+                                    > {
     using type =
-        simd<T,
-             std::conditional_t<detail::all<std::is_integral<T>, std::is_integral<U>,
-                                            std::is_same<make_unsigned_t<T>,
-                                                         make_unsigned_t<U>>>::value,
-                                A1, simd_abi::fixed_size<simd_size_v<U, A1>>>>;
-};
-template <class U, class A1, class T, class A0>
-struct static_simd_cast_return_type2<simd<U, A1>, simd<T, A0>>
-    : public std::enable_if<(simd_size_v<U, A1> == simd_size_v<T, A0>), simd<T, A0>> {
+        std::conditional_t<(std::is_integral_v<U> && std::is_integral_v<T> &&
+#ifndef Vc_FIX_P2TS_ISSUE65
+                            std::is_signed_v<U> != std::is_signed_v<T> &&
+#endif
+                            std::is_same_v<safe_make_signed_t<U>, safe_make_signed_t<T>>),
+                           simd<T, A>, fixed_size_simd<T, simd_size_v<U, A>>>;
 };
 
 // specialized in scalar.h
@@ -332,7 +345,7 @@ Vc_INTRINSIC To mask_cast_impl(const std::bitset<N> *, const std::bitset<N> &x)
 }  // namespace detail
 
 template <class T, class U, class A,
-          class R = typename detail::static_simd_cast_return_type<simd<U, A>, T>::type>
+          class R = typename detail::static_simd_cast_return_type<T, U, A>::type>
 Vc_INTRINSIC R static_simd_cast(const simd<U, A> &x)
 {
     if constexpr(std::is_same<R, simd<U, A>>::value) {
@@ -344,8 +357,7 @@ Vc_INTRINSIC R static_simd_cast(const simd<U, A> &x)
 }
 
 template <class T, class U, class A,
-          class R = typename detail::static_simd_cast_return_type<
-              simd<U, A>, typename T::simd_type>::type>
+          class R = typename detail::static_simd_cast_return_type<T, U, A>::type>
 Vc_INTRINSIC typename R::mask_type static_simd_cast(const simd_mask<U, A> &x)
 {
     using RM = typename R::mask_type;
@@ -397,7 +409,7 @@ Vc_INTRINSIC fixed_size_simd<T, N> to_fixed_size(const fixed_size_simd<T, N> &x)
 }
 
 template <class T, int N>
-Vc_INTRINSIC fixed_size_mask<T, N> to_fixed_size(const fixed_size_mask<T, N> &x)
+Vc_INTRINSIC fixed_size_simd_mask<T, N> to_fixed_size(const fixed_size_simd_mask<T, N> &x)
 {
     return x;
 }
@@ -411,7 +423,7 @@ template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const simd<T, A> &x)
 template <class T, class A> Vc_INTRINSIC auto to_fixed_size(const simd_mask<T, A> &x)
 {
     constexpr int N = simd_mask<T, A>::size();
-    fixed_size_mask<T, N> r;
+    fixed_size_simd_mask<T, N> r;
     detail::execute_n_times<N>([&](auto i) { r[i] = x[i]; });
     return r;
 }
@@ -427,10 +439,10 @@ to_native(const fixed_size_simd<T, N> &x)
 }
 
 template <class T, size_t N>
-Vc_INTRINSIC std::enable_if_t<(N == native_mask<T>::size()), native_mask<T>> to_native(
-    const fixed_size_mask<T, N> &x)
+Vc_INTRINSIC std::enable_if_t<(N == native_simd_mask<T>::size()), native_simd_mask<T>> to_native(
+    const fixed_size_simd_mask<T, N> &x)
 {
-    return native_mask<T>([&](auto i) { return x[i]; });
+    return native_simd_mask<T>([&](auto i) { return x[i]; });
 }
 
 // to_compatible {{{2
@@ -1015,8 +1027,10 @@ template <int Stride, int Offset = 0> struct strided {
     static constexpr int stride = Stride;
     static constexpr int offset = Offset;
     template <class T, class A>
-    using shuffle_return_type =
-        fixed_size_simd<T, (simd_size_v<T, A> - Offset + Stride - 1) / Stride>;
+    using shuffle_return_type = simd<
+        T, simd_abi::deduce_t<T, (simd_size_v<T, A> - Offset + Stride - 1) / Stride, A>>;
+    // alternative, always use fixed_size:
+    // fixed_size_simd<T, (simd_size_v<T, A> - Offset + Stride - 1) / Stride>;
     template <class T> static constexpr auto src_index(T dst_index)
     {
         return Offset + dst_index * Stride;

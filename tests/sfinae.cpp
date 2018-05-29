@@ -52,6 +52,39 @@ template <class A> using dummy_mask = simd_mask<dummy, A>;
 template <class A> using bool_simd = simd<bool, A>;
 template <class A> using bool_mask = simd_mask<bool, A>;
 
+namespace assertions
+{
+using Vc::simd_abi::scalar;
+using Vc::simd_abi::__sse;
+using Vc::simd_abi::__avx;
+using Vc::simd_abi::__avx512;
+using Vc::detail::fixed_size_storage;
+using Vc::detail::simd_tuple;
+
+static_assert(std::is_same_v<fixed_size_storage<float, 1>, simd_tuple<float, scalar>>);
+static_assert(std::is_same_v<fixed_size_storage<int, 1>, simd_tuple<int, scalar>>);
+static_assert(std::is_same_v<fixed_size_storage<char16_t, 1>, simd_tuple<char16_t, scalar>>);
+
+static_assert(std::is_same_v<fixed_size_storage<float, 2>, simd_tuple<float, scalar, scalar>>);
+static_assert(std::is_same_v<fixed_size_storage<float, 3>, simd_tuple<float, scalar, scalar, scalar>>);
+#ifdef Vc_HAVE_SSE_ABI
+static_assert(std::is_same_v<fixed_size_storage<float, 4>, simd_tuple<float, __sse>>);
+static_assert(std::is_same_v<fixed_size_storage<float, 5>, simd_tuple<float, __sse, scalar>>);
+#endif  // Vc_HAVE_SSE_ABI
+#ifdef Vc_HAVE_AVX_ABI
+static_assert(std::is_same_v<fixed_size_storage<float,  8>, simd_tuple<float, __avx>>);
+static_assert(std::is_same_v<fixed_size_storage<float, 12>, simd_tuple<float, __avx, __sse>>);
+static_assert(std::is_same_v<fixed_size_storage<float, 13>, simd_tuple<float, __avx, __sse, scalar>>);
+#endif
+#ifdef Vc_HAVE_AVX512_ABI
+static_assert(std::is_same_v<fixed_size_storage<float, 16>, simd_tuple<float, __avx512>>);
+static_assert(std::is_same_v<fixed_size_storage<float, 20>, simd_tuple<float, __avx512, __sse>>);
+static_assert(std::is_same_v<fixed_size_storage<float, 24>, simd_tuple<float, __avx512, __avx>>);
+static_assert(std::is_same_v<fixed_size_storage<float, 28>, simd_tuple<float, __avx512, __avx, __sse>>);
+static_assert(std::is_same_v<fixed_size_storage<float, 29>, simd_tuple<float, __avx512, __avx, __sse, scalar>>);
+#endif
+}  // namespace assertions
+
 // type lists {{{1
 using all_valid_scalars = expand_list<Typelist<Template<simd, Vc::simd_abi::scalar>,
                                                Template<simd_mask, Vc::simd_abi::scalar>>,
@@ -186,7 +219,7 @@ TEST_TYPES(Tup, has_no_size,  //{{{1
 }
 
 template <class T> constexpr bool is_fixed_size_mask(T) { return false; }
-template <class T, int N> constexpr bool is_fixed_size_mask(Vc::fixed_size_mask<T, N>)
+template <class T, int N> constexpr bool is_fixed_size_mask(Vc::fixed_size_simd_mask<T, N>)
 {
     return true;
 }
@@ -195,7 +228,7 @@ TEST_TYPES(V, is_usable,  //{{{1
            concat<all_valid_scalars, all_valid_simd, all_valid_fixed_size>)
 {
     if (!is_fixed_size_mask(V())) {
-        // fixed_size_mask uses std::bitset for storage, which is not trivially
+        // fixed_size_simd_mask uses std::bitset for storage, which is not trivially
         // constructible
         // Actually, is_trivially_constructible is not a hard requirement by the spec, but
         // something we want to support AFAIP.
@@ -357,6 +390,34 @@ TEST(masked_loadstore_builtin) {
     VERIFY( (sfinae_is_callable<bool, int &, const float *>(call_masked_memload())));
     VERIFY( (sfinae_is_callable<bool, bool &, const bool *>(call_masked_memload())));
     VERIFY(!(sfinae_is_callable<bool, bool &, const int *>(call_masked_memload())));
+}
+
+TEST(deduce_broken)
+{
+    VERIFY(!(sfinae_is_callable<bool>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 1> { return {}; })));
+    VERIFY(!(sfinae_is_callable<bool>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 2> { return {}; })));
+    VERIFY(!(sfinae_is_callable<bool>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 4> { return {}; })));
+    VERIFY(!(sfinae_is_callable<bool>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 8> { return {}; })));
+    enum Foo {};
+    VERIFY(!(sfinae_is_callable<Foo>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 1> { return {}; })));
+    VERIFY(!(sfinae_is_callable<Foo>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 8> { return {}; })));
+}
+
+TEST_TYPES(V, deduce_from_list, all_test_types)
+{
+    using T = typename V::value_type;
+    using A = typename V::abi_type;
+    VERIFY( (sfinae_is_callable<T>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 1> { return {}; })));
+    VERIFY( (sfinae_is_callable<T>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 2> { return {}; })));
+    VERIFY( (sfinae_is_callable<T>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 4> { return {}; })));
+    VERIFY( (sfinae_is_callable<T>([](auto a) -> Vc::simd_abi::deduce_t<decltype(a), 8> { return {}; })));
+    using W = Vc::simd_abi::deduce_t<T, V::size(), typename V::abi_type>;
+    VERIFY((sfinae_is_callable<W>([](auto a) -> Vc::simd<T, W> { return {}; })));
+    if constexpr (Vc::detail::is_fixed_size_abi_v<A>) {
+        VERIFY((V::size() == Vc::simd_size_v<T, W>)) << vir::typeToString<W>();
+    } else {
+        VERIFY((std::is_same_v<A, W>)) << vir::typeToString<W>();
+    }
 }
 
 // vim: foldmethod=marker

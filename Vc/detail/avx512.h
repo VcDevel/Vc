@@ -356,74 +356,6 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
         return equal_to(x, simd_member_type<T>());
     }
 
-    // math {{{2
-    // logb {{{3
-    static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb_positive(simd_member_type<float> v)
-    {
-        return _mm512_getexp_ps(v);
-    }
-    static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb_positive(simd_member_type<double> v)
-    {
-        return _mm512_getexp_pd(v);
-    }
-
-    static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb(simd_member_type<float> v)
-    {
-        return _mm512_fixupimm_ps(logb_positive(abs(v)), v, broadcast64(0x00550433),
-                                  0x00);
-    }
-    static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb(simd_member_type<double> v)
-    {
-        return _mm512_fixupimm_pd(logb_positive(abs(v)), v, broadcast64(0x00550433),
-                                  0x00);
-    }
-
-    // frexp {{{3
-    /**
-     * splits \p v into exponent and mantissa, the sign is kept with the mantissa
-     *
-     * The return value will be in the range [0.5, 1.0[
-     * The \p e value will be an integer defining the power-of-two exponent
-     */
-    static inline simd_member_type<double> frexp(simd_member_type<double> v,
-                                                 avx_simd_member_type<int> &exp)
-    {
-        if (Vc_IS_LIKELY(detail::testallset(isnonzerovalue(v.d)))) {
-            exp = _mm256_add_epi32(broadcast32(1),
-                                   _mm512_cvttpd_epi32(_mm512_getexp_pd(v)));
-            return _mm512_getmant_pd(v, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
-        }
-        exp = _mm256_add_epi32(
-            broadcast32(1), _mm512_mask_cvttpd_epi32(broadcast32(-1), isnonzerovalue(v.d),
-                                                     _mm512_getexp_pd(v)));
-        return _mm512_mask_getmant_pd(v, isnonzerovalue(v.d), v, _MM_MANT_NORM_p5_1,
-                                      _MM_MANT_SIGN_src);
-    }
-    static Vc_ALWAYS_INLINE simd_member_type<double> frexp(
-        simd_member_type<double> v, simd_tuple<int, simd_abi::__avx> &exp)
-    {
-        return frexp(v, exp.first);
-    }
-
-    static inline simd_member_type<float> frexp(simd_member_type<float> v,
-                                                simd_member_type<int> &exp)
-    {
-        if (Vc_IS_LIKELY(detail::testallset(isnonzerovalue(v.d)))) {
-            exp = _mm512_add_epi32(broadcast64(1),
-                                   _mm512_cvttps_epi32(_mm512_getexp_ps(v)));
-            return _mm512_getmant_ps(v, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
-        }
-        exp = _mm512_mask_add_epi32(_mm512_setzero_si512(), isnonzerovalue(v.d), broadcast64(1),
-                                    _mm512_cvttps_epi32(_mm512_getexp_ps(v)));
-        return _mm512_mask_getmant_ps(v, isnonzerovalue(v.d), v, _MM_MANT_NORM_p5_1,
-                                      _MM_MANT_SIGN_src);
-    }
-    static Vc_ALWAYS_INLINE simd_member_type<float> frexp(
-        simd_member_type<float> v, simd_tuple<int, simd_abi::__avx512> &exp)
-    {
-        return frexp(v, exp.first);
-    }
-
     // }}}2
 };
 
@@ -1006,101 +938,6 @@ struct simd_converter<From, simd_abi::__avx512, To, simd_abi::__avx512> {
     }
 };
 
-// split_to_array {{{1
-template <class T> struct split_to_array<simd<T, simd_abi::__avx>, 2> {
-    using V = simd<T, simd_abi::__avx>;
-    std::array<V, 2> operator()(simd<T, simd_abi::__avx512> x, std::index_sequence<0, 1>)
-    {
-        const auto xx = detail::data(x);
-        return {V(detail::private_init, lo256(xx)), V(detail::private_init, hi256(xx))};
-    }
-};
-
-template <class T> struct split_to_array<simd<T, simd_abi::__sse>, 4> {
-    using V = simd<T, simd_abi::__sse>;
-    std::array<V, 4> operator()(simd<T, simd_abi::__avx512> x,
-                                std::index_sequence<0, 1, 2, 3>)
-    {
-        const auto xx = detail::data(x);
-        return {V(detail::private_init, lo128(xx)),
-                V(detail::private_init, extract128<1>(xx)),
-                V(detail::private_init, extract128<2>(xx)),
-                V(detail::private_init, extract128<3>(xx))};
-    }
-};
-
-// split_to_tuple {{{1
-template <class T>
-struct split_to_tuple<std::tuple<simd<T, simd_abi::__avx>, simd<T, simd_abi::__avx>>,
-                      simd_abi::__avx512> {
-    using V = simd<T, simd_abi::__avx>;
-    std::tuple<V, V> operator()(simd<T, simd_abi::__avx512> x)
-    {
-        const auto xx = detail::data(x);
-        return {V(detail::private_init, lo256(xx)), V(detail::private_init, hi256(xx))};
-    }
-};
-
-template <class T>
-struct split_to_tuple<std::tuple<simd<T, simd_abi::__sse>, simd<T, simd_abi::__sse>,
-                                 simd<T, simd_abi::__sse>, simd<T, simd_abi::__sse>>,
-                      simd_abi::__avx512> {
-    using V = simd<T, simd_abi::__sse>;
-    std::tuple<V, V, V, V> operator()(simd<T, simd_abi::__avx512> x)
-    {
-        const auto xx = detail::data(x);
-        return {V(detail::private_init, lo128(xx)),
-                V(detail::private_init, extract128<1>(xx)),
-                V(detail::private_init, extract128<2>(xx)),
-                V(detail::private_init, extract128<3>(xx))};
-    }
-};
-
-template <class T>
-struct split_to_tuple<
-    std::tuple<simd<T, simd_abi::__avx>, simd<T, simd_abi::__sse>, simd<T, simd_abi::__sse>>,
-    simd_abi::__avx512> {
-    using V0 = simd<T, simd_abi::__avx>;
-    using V1 = simd<T, simd_abi::__sse>;
-    std::tuple<V0, V1, V1> operator()(simd<T, simd_abi::__avx512> x)
-    {
-        const auto xx = detail::data(x);
-        return {V0(detail::private_init, lo256(xx)),
-                V1(detail::private_init, extract128<2>(xx)),
-                V1(detail::private_init, extract128<3>(xx))};
-    }
-};
-
-template <class T>
-struct split_to_tuple<
-    std::tuple<simd<T, simd_abi::__sse>, simd<T, simd_abi::__sse>, simd<T, simd_abi::__avx>>,
-    simd_abi::__avx512> {
-    using V0 = simd<T, simd_abi::__sse>;
-    using V1 = simd<T, simd_abi::__avx>;
-    std::tuple<V0, V0, V1> operator()(simd<T, simd_abi::__avx512> x)
-    {
-        const auto xx = detail::data(x);
-        return {V0(detail::private_init, lo128(xx)),
-                V0(detail::private_init, extract128<1>(xx)),
-                V1(detail::private_init, hi256(xx))};
-    }
-};
-
-template <class T>
-struct split_to_tuple<
-    std::tuple<simd<T, simd_abi::__sse>, simd<T, simd_abi::__avx>, simd<T, simd_abi::__sse>>,
-    simd_abi::__avx512> {
-    using V0 = simd<T, simd_abi::__sse>;
-    using V1 = simd<T, simd_abi::__avx>;
-    std::tuple<V0, V1, V0> operator()(simd<T, simd_abi::__avx512> x)
-    {
-        const auto xx = detail::data(x);
-        return {V0(detail::private_init, lo128(xx)),
-                V1(detail::private_init, extract256_center(xx)),
-                V0(detail::private_init, extract128<3>(xx))};
-    }
-};
-
 // }}}1
 // generic_simd_impl::masked_cassign specializations {{{1
 #define Vc_MASKED_CASSIGN_SPECIALIZATION(TYPE_, TYPE_SUFFIX_, OP_, OP_NAME_)             \
@@ -1190,41 +1027,24 @@ template <class T> Vc_ALWAYS_INLINE int popcount(simd_mask<T, simd_abi::__avx512
 
 template <class T> Vc_ALWAYS_INLINE int find_first_set(simd_mask<T, simd_abi::__avx512> k)
 {
-    const auto v = detail::data(k);
-    return _tzcnt_u32(v);
+    if constexpr (k.size() <= 32) {
+        const auto v = detail::data(k);
+        return _tzcnt_u32(v);
+    } else {
+        const __mmask64 v = detail::data(k);
+        return detail::firstbit(v);
+    }
 }
-
-#ifdef Vc_HAVE_FULL_AVX512_ABI
-Vc_ALWAYS_INLINE int find_first_set(simd_mask<signed char, simd_abi::__avx512> k)
-{
-    const __mmask64 v = detail::data(k);
-    return detail::firstbit(v);
-}
-Vc_ALWAYS_INLINE int find_first_set(simd_mask<unsigned char, simd_abi::__avx512> k)
-{
-    const __mmask64 v = detail::data(k);
-    return detail::firstbit(v);
-}
-#endif  // Vc_HAVE_FULL_AVX512_ABI
 
 template <class T> Vc_ALWAYS_INLINE int find_last_set(simd_mask<T, simd_abi::__avx512> k)
 {
-    return 31 - _lzcnt_u32(detail::data(k));
+    if constexpr (k.size() <= 32) {
+        return 31 - _lzcnt_u32(detail::data(k));
+    } else {
+        const __mmask64 v = detail::data(k);
+        return detail::lastbit(v);
+    }
 }
-
-#ifdef Vc_HAVE_FULL_AVX512_ABI
-Vc_ALWAYS_INLINE int find_last_set(simd_mask<signed char, simd_abi::__avx512> k)
-{
-    const __mmask64 v = detail::data(k);
-    return detail::lastbit(v);
-}
-
-Vc_ALWAYS_INLINE int find_last_set(simd_mask<unsigned char, simd_abi::__avx512> k)
-{
-    const __mmask64 v = detail::data(k);
-    return detail::lastbit(v);
-}
-#endif  // Vc_HAVE_FULL_AVX512_ABI
 
 // }}}
 Vc_VERSIONED_NAMESPACE_END

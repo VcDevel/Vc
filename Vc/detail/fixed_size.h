@@ -49,36 +49,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
-// select_best_vector_type_t<T, N>{{{1
-/**
- * \internal
- * Selects the best SIMD type out of a typelist to store N scalar values.
- */
-struct dummy : public size_constant<~size_t()> {
-};
-
-template <class T, int N, class A, class... More>
-struct select_best_vector_type {
-    using V = std::conditional_t<std::is_destructible<simd<T, A>>::value,
-                                 simd_size<T, A>, dummy>;
-    using type =
-        std::conditional_t<(N >= V::value), simd<T, A>,
-                           typename select_best_vector_type<T, N, More...>::type>;
-};
-template <class T, int N, class A> struct select_best_vector_type<T, N, A> {
-    using type = simd<T, A>;
-};
-template <class T, int N>
-using select_best_vector_type_t = typename select_best_vector_type<T, N,
-      simd_abi::__avx512,
-      simd_abi::__avx,
-      simd_abi::__neon,
-      simd_abi::__sse,
-      simd_abi::scalar
-      >::type;
-
 // fixed_size_storage<T, N>{{{1
-template <class T, int N, class Tuple, class Next = select_best_vector_type_t<T, N>,
+template <class T, int N, class Tuple,
+          class Next = simd<T, all_native_abis::best_abi<T, N>>,
           int Remain = N - int(Next::size())>
 struct fixed_size_storage_builder;
 
@@ -97,41 +70,6 @@ struct fixed_size_storage_builder<T, N, simd_tuple<T, As...>, Next, Remain> {
     using type = typename fixed_size_storage_builder<
         T, Remain, simd_tuple<T, As..., typename Next::abi_type>>::type;
 };
-
-namespace tests {
-using simd_abi::scalar;
-using simd_abi::__sse;
-using simd_abi::__avx;
-using simd_abi::__avx512;
-static_assert(
-    std::is_same<fixed_size_storage<float, 1>, simd_tuple<float, scalar>>::value,
-    "fixed_size_storage failure");
-static_assert(std::is_same<fixed_size_storage<float, 2>,
-                           simd_tuple<float, scalar, scalar>>::value,
-              "fixed_size_storage failure");
-static_assert(std::is_same<fixed_size_storage<float, 3>,
-                           simd_tuple<float, scalar, scalar, scalar>>::value,
-              "fixed_size_storage failure");
-#ifdef Vc_HAVE_SSE_ABI
-static_assert(
-    std::is_same<fixed_size_storage<float, 4>, simd_tuple<float, __sse>>::value,
-    "fixed_size_storage failure");
-static_assert(
-    std::is_same<fixed_size_storage<float, 5>, simd_tuple<float, __sse, scalar>>::value,
-    "fixed_size_storage failure");
-#endif  // Vc_HAVE_SSE_ABI
-#ifdef Vc_HAVE_AVX_ABI
-static_assert(
-    std::is_same<fixed_size_storage<float, 8>, simd_tuple<float, __avx>>::value,
-    "fixed_size_storage failure");
-static_assert(
-    std::is_same<fixed_size_storage<float, 12>, simd_tuple<float, __avx, __sse>>::value,
-    "fixed_size_storage failure");
-static_assert(std::is_same<fixed_size_storage<float, 13>,
-                           simd_tuple<float, __avx, __sse, scalar>>::value,
-              "fixed_size_storage failure");
-#endif
-}  // namespace tests
 
 // n_abis_in_tuple {{{1
 template <class T> struct seq_op;
@@ -504,7 +442,6 @@ public:
     Vc_NOTHING_EXPECTING_SEMICOLON
         Vc_APPLY_ON_TUPLE_(sqrt);
         Vc_APPLY_ON_TUPLE_(abs);
-        Vc_APPLY_ON_TUPLE_(logb);
         Vc_APPLY_ON_TUPLE_(trunc);
         Vc_APPLY_ON_TUPLE_(floor);
         Vc_APPLY_ON_TUPLE_(ceil);
@@ -1082,11 +1019,6 @@ struct simd_converter<From, simd_abi::fixed_size<N>, To, A> {
     }
 
 private:
-    return_type impl(std::index_sequence<0>, arg x)
-    {
-        simd_converter<From, typename arg::first_abi, To, A> native_cvt;
-        return {native_cvt(x.first)};
-    }
     template <size_t... Indexes> return_type impl(std::index_sequence<Indexes...>, arg x)
     {
         simd_converter<From, typename arg::first_abi, To, A> native_cvt;
@@ -1094,99 +1026,26 @@ private:
     }
 };
 
-// split_to_tuple {{{1
-template <class T, class A0, class... As, int N>
-struct split_to_tuple<std::tuple<simd<T, A0>, simd<T, As>...>, simd_abi::fixed_size<N>> {
-    template <class A> using V = simd<T, A>;
-    std::tuple<V<A0>, V<As>...> operator()(const simd<T, simd_abi::fixed_size<N>> &x)
-    {
-        using STup = fixed_size_storage<T, N>;
-        return impl(A0(), detail::data(x), std::make_index_sequence<1 + sizeof...(As)>(),
-                    std::make_index_sequence<STup::tuple_size>());
-    }
-
-private:
-    template <int N0> using Stor = fixed_size_storage<T, N0>;
-    template <std::size_t I, int N0>
-    using tuple_abi = typename tuple_element<I, Stor<N0>>::abi_type;
-
-    template <int N0, class... Bs, size_t... Indexes>
-    std::tuple<V<A0>, V<As>...> impl2(
-        const detail::simd_tuple<T, tuple_abi<Indexes, N0>..., Bs...> &x,
-        std::index_sequence<Indexes...>)
-    {
-        return std::tuple_cat(
-            std::tuple<V<A0>>(
-                {private_init, detail::make_tuple(detail::get_simd<Indexes>(x)...)}),
-            split_to_tuple<std::tuple<V<As>...>, simd_abi::fixed_size<N - N0>>()(
-                {private_init, tuple_pop_front(size_constant<sizeof...(Indexes)>(), x)}));
-    }
-
-    template <int N0, size_t... Indexes0, size_t... Indexes1>
-    std::tuple<V<A0>, V<As>...> impl(simd_abi::fixed_size<N0>,
-                                     const detail::simd_tuple<T, A0, As...> &x,
-                                     std::index_sequence<Indexes0...>,
-                                     std::index_sequence<Indexes1...>)
-    {
-        return impl2<N0>(x, std::make_index_sequence<Stor<N0>::tuple_size>());
-    }
-
-    template <class NotFixedAbi, size_t... Indexes>
-    std::tuple<V<A0>, V<As>...> impl(NotFixedAbi,
-                                     const detail::simd_tuple<T, A0, As...> &x,
-                                     std::index_sequence<Indexes...>,
-                                     std::index_sequence<Indexes...>)
-    {
-        return {detail::get_simd<Indexes>(x)...};
-    }
-
-    template <class NotFixedAbi, class... Bs, size_t... Indexes0, size_t... Indexes1>
-    std::tuple<V<A0>, V<As>...> impl(NotFixedAbi, const detail::simd_tuple<T, Bs...> &x,
-                                     std::index_sequence<Indexes0...>,
-                                     std::index_sequence<Indexes1...>)
-    {
-        std::size_t offset = V<A0>::size();
-        std::size_t tmp;
-        return {V<A0>(reinterpret_cast<const detail::may_alias<T> *>(&x), vector_aligned),
-                V<As>(reinterpret_cast<const detail::may_alias<T> *>(&x) +
-                          (tmp = offset, offset += V<As>::size(), tmp),
-                      element_aligned)...};
-    }
-
-    template <class NotFixedAbi, class... Bs, size_t... Indexes0, size_t... Indexes1>
-    std::tuple<V<A0>, V<As>...> impl(NotFixedAbi,
-                                     const detail::simd_tuple<T, A0, Bs...> &x,
-                                     std::index_sequence<Indexes0...>,
-                                     std::index_sequence<Indexes1...>)
-    {
-        return std::tuple_cat(std::tuple<V<A0>>({private_init, x.first}),
-                              split_to_tuple<std::tuple<V<As>...>,
-                                             simd_abi::fixed_size<N - V<A0>::size()>>()(
-                                  {private_init, x.second}));
-    }
-};
-
-// }}}1
 // }}}1
 }  // namespace detail
 
 // [simd_mask.reductions] {{{1
-template <class T, int N> inline bool all_of(const fixed_size_mask<T, N> &k)
+template <class T, int N> inline bool all_of(const fixed_size_simd_mask<T, N> &k)
 {
     return data(k).all();
 }
 
-template <class T, int N> inline bool any_of(const fixed_size_mask<T, N> &k)
+template <class T, int N> inline bool any_of(const fixed_size_simd_mask<T, N> &k)
 {
     return data(k).any();
 }
 
-template <class T, int N> inline bool none_of(const fixed_size_mask<T, N> &k)
+template <class T, int N> inline bool none_of(const fixed_size_simd_mask<T, N> &k)
 {
     return data(k).none();
 }
 
-template <class T, int N> inline bool some_of(const fixed_size_mask<T, N> &k)
+template <class T, int N> inline bool some_of(const fixed_size_simd_mask<T, N> &k)
 {
     for (int i = 1; i < N; ++i) {
         if (k[i] != k[i - 1]) {
@@ -1196,12 +1055,12 @@ template <class T, int N> inline bool some_of(const fixed_size_mask<T, N> &k)
     return false;
 }
 
-template <class T, int N> inline int popcount(const fixed_size_mask<T, N> &k)
+template <class T, int N> inline int popcount(const fixed_size_simd_mask<T, N> &k)
 {
     return data(k).count();
 }
 
-template <class T, int N> inline int find_first_set(const fixed_size_mask<T, N> &k)
+template <class T, int N> inline int find_first_set(const fixed_size_simd_mask<T, N> &k)
 {
     for (int i = 0; i < N; ++i) {
         if (k[i]) {
@@ -1211,7 +1070,7 @@ template <class T, int N> inline int find_first_set(const fixed_size_mask<T, N> 
     return -1;
 }
 
-template <class T, int N> inline int find_last_set(const fixed_size_mask<T, N> &k)
+template <class T, int N> inline int find_last_set(const fixed_size_simd_mask<T, N> &k)
 {
     for (int i = N - 1; i >= 0; --i) {
         if (k[i]) {

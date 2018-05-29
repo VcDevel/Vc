@@ -114,9 +114,9 @@ struct sse_mask_impl : public generic_mask_impl<simd_abi::__sse, sse_mask_member
     static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
                                             size_tag<2>) noexcept
     {
-        const auto k = to_m128i(v);
-        mem[0] = -extract_epi32<1>(k);
-        mem[1] = -extract_epi32<3>(k);
+        const auto k = builtin_cast<int>(v.d);
+        mem[0] = -k[1];
+        mem[1] = -k[3];
     }
     template <class T, class F>
     static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
@@ -485,17 +485,17 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl, simd_abi::__sse> 
         const convertible_memory<U, sizeof(T) * 4, T> *mem, F f, type_tag<T>,
         tag<6> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
-#ifdef Vc_HAVE_AVX512F
-        return x86::convert<simd_member_type<T>, avx512_member_type<U>>(load64(mem, f));
-#elif defined Vc_HAVE_AVX
-        return x86::convert<simd_member_type<T>, avx_member_type<U>>(
-            detail::load32(mem, f), detail::load32(mem + 2 * size<U>(), f));
-#else
-        return x86::convert<simd_member_type<T>, simd_member_type<U>>(
-            load(mem, f, type_tag<U>()), load(mem + size<U>(), f, type_tag<U>()),
-            load(mem + 2 * size<U>(), f, type_tag<U>()),
-            load(mem + 3 * size<U>(), f, type_tag<U>()));
-#endif
+        if constexpr (have_avx512f && (sizeof(U) >= 4 || have_avx512bw)) {
+            return x86::convert<simd_member_type<T>, avx512_member_type<U>>(load64(mem, f));
+        } else if constexpr (have_avx) {
+            return x86::convert<simd_member_type<T>, avx_member_type<U>>(
+                detail::load32(mem, f), detail::load32(mem + 2 * size<U>(), f));
+        } else {
+            return x86::convert<simd_member_type<T>, simd_member_type<U>>(
+                load(mem, f, type_tag<U>()), load(mem + size<U>(), f, type_tag<U>()),
+                load(mem + 2 * size<U>(), f, type_tag<U>()),
+                load(mem + 3 * size<U>(), f, type_tag<U>()));
+        }
     }
 
     // convert from a 2-AVX512/4-AVX/8-SSE load{{{3
@@ -504,20 +504,20 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl, simd_abi::__sse> 
         const convertible_memory<U, sizeof(T) * 8, T> *mem, F f, type_tag<T>,
         tag<7> = {}) Vc_NOEXCEPT_OR_IN_TEST
     {
-#ifdef Vc_HAVE_AVX512F
-        return x86::convert<simd_member_type<T>, avx512_member_type<U>>(
-            load64(mem, f), load64(mem + 4 * size<U>(), f));
-#elif defined Vc_HAVE_AVX
-        return x86::convert<simd_member_type<T>, avx_member_type<U>>(
-            load32(mem, f), load32(mem + 2 * size<U>(), f),
-            load32(mem + 4 * size<U>(), f), load32(mem + 6 * size<U>(), f));
-#else
-        return x86::convert<simd_member_type<T>, simd_member_type<U>>(
-            load16(mem, f), load16(mem + size<U>(), f), load16(mem + 2 * size<U>(), f),
-            load16(mem + 3 * size<U>(), f), load16(mem + 4 * size<U>(), f),
-            load16(mem + 5 * size<U>(), f), load16(mem + 6 * size<U>(), f),
-            load16(mem + 7 * size<U>(), f));
-#endif
+        if constexpr (have_avx512f && (sizeof(U) >= 4 || have_avx512bw)) {
+            return x86::convert<simd_member_type<T>, avx512_member_type<U>>(
+                load64(mem, f), load64(mem + 4 * size<U>(), f));
+        } else if constexpr (have_avx) {
+            return x86::convert<simd_member_type<T>, avx_member_type<U>>(
+                load32(mem, f), load32(mem + 2 * size<U>(), f),
+                load32(mem + 4 * size<U>(), f), load32(mem + 6 * size<U>(), f));
+        } else {
+            return x86::convert<simd_member_type<T>, simd_member_type<U>>(
+                load16(mem, f), load16(mem + size<U>(), f),
+                load16(mem + 2 * size<U>(), f), load16(mem + 3 * size<U>(), f),
+                load16(mem + 4 * size<U>(), f), load16(mem + 5 * size<U>(), f),
+                load16(mem + 6 * size<U>(), f), load16(mem + 7 * size<U>(), f));
+        }
     }
 
     // masked load {{{2
@@ -774,97 +774,6 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl, simd_abi::__sse> 
             });
         }
     }
-
-    // math {{{2
-    // logb {{{3
-    static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb_positive(simd_member_type<float> v)
-    {
-#ifdef Vc_HAVE_AVX512VL
-        return _mm_getexp_ps(v);
-#else   // Vc_HAVE_AVX512VL
-        __m128i tmp = _mm_srli_epi32(_mm_castps_si128(v), 23);
-        tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x7f));
-        return _mm_cvtepi32_ps(tmp);
-#endif  // Vc_HAVE_AVX512VL
-    }
-
-    static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb_positive(simd_member_type<double> v)
-    {
-#ifdef Vc_HAVE_AVX512VL
-        return _mm_getexp_pd(v);
-#else   // Vc_HAVE_AVX512VL
-        __m128i tmp = _mm_srli_epi64(_mm_castpd_si128(v), 52);
-        tmp = _mm_sub_epi32(tmp, _mm_set1_epi32(0x3ff));
-        return _mm_cvtepi32_pd(_mm_shuffle_epi32(tmp, 0x08));
-#endif  // Vc_HAVE_AVX512VL
-    }
-
-#ifdef Vc_HAVE_AVX512VL
-    static Vc_INTRINSIC Vc_CONST simd_member_type<float> logb(simd_member_type<float> v)
-    {
-        return _mm_fixupimm_ps(_mm_getexp_ps(abs(v)), v, broadcast16(0x00550433), 0x00);
-    }
-    static Vc_INTRINSIC Vc_CONST simd_member_type<double> logb(simd_member_type<double> v)
-    {
-        return _mm_fixupimm_pd(_mm_getexp_pd(abs(v)), v, broadcast16(0x00550433), 0x00);
-    }
-#endif  // Vc_HAVE_AVX512VL
-
-    // frexp {{{3
-    /**
-     * splits \p v into exponent and mantissa, the sign is kept with the mantissa
-     *
-     * The return value will be in the range [0.5, 1.0[
-     * The \p e value will be an integer defining the power-of-two exponent
-     */
-#ifdef Vc_HAVE_AVX512VL
-    static inline simd_member_type<double> frexp(
-        simd_member_type<double> v,
-        simd_tuple<int, simd_abi::scalar, simd_abi::scalar> &exp)
-    {
-        const __mmask8 isnonzerovalue = _mm_cmp_pd_mask(
-            _mm_mul_pd(broadcast16(std::numeric_limits<double>::infinity()),
-                       v),                                 // NaN if v == 0
-            _mm_mul_pd(_mm_setzero_pd(), v), _CMP_ORD_Q);  // NaN if v == inf
-        if (Vc_IS_LIKELY(isnonzerovalue == 0x03)) {
-            const x_i32 e =
-                _mm_add_epi32(broadcast16(1), _mm_cvttpd_epi32(_mm_getexp_pd(v)));
-            exp.first = e[0];
-            exp.second.first = e[1];
-            return _mm_getmant_pd(v, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
-        }
-        const x_i32 e =
-            _mm_mask_add_epi32(_mm_setzero_si128(), isnonzerovalue, broadcast16(1),
-                               _mm_cvttpd_epi32(_mm_getexp_pd(v)));
-        exp.first = e[0];
-        exp.second.first = e[1];
-        return _mm_mask_getmant_pd(v, isnonzerovalue, v, _MM_MANT_NORM_p5_1,
-                                   _MM_MANT_SIGN_src);
-
-    }
-
-    static inline simd_member_type<float> frexp(simd_member_type<float> v,
-                                                simd_member_type<int> &exp)
-    {
-        const __mmask8 isnonzerovalue = _mm_cmp_ps_mask(
-            _mm_mul_ps(broadcast16(std::numeric_limits<float>::infinity()),
-                       v),                                 // NaN if v == 0 / NaN
-            _mm_mul_ps(_mm_setzero_ps(), v), _CMP_ORD_Q);  // NaN if v == inf / NaN
-        if (Vc_IS_LIKELY(isnonzerovalue == 0x0f)) {
-            exp = _mm_add_epi32(broadcast16(1), _mm_cvttps_epi32(_mm_getexp_ps(v)));
-            return _mm_getmant_ps(v, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
-        }
-        exp = _mm_mask_add_epi32(_mm_setzero_si128(), isnonzerovalue, broadcast16(1),
-                                 _mm_cvttps_epi32(_mm_getexp_ps(v)));
-        return _mm_mask_getmant_ps(v, isnonzerovalue, v, _MM_MANT_NORM_p5_1,
-                                   _MM_MANT_SIGN_src);
-    }
-    static Vc_INTRINSIC simd_member_type<float> frexp(simd_member_type<float> v,
-                                                simd_tuple<int, simd_abi::__sse> &exp)
-    {
-        return frexp(v, exp.first);
-    }
-#endif  // Vc_HAVE_AVX512VL
 
     // }}}2
 };

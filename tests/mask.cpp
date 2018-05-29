@@ -155,8 +155,8 @@ std::enable_if_t<assign_should_not_work<L, R>> implicit_conversions_test()
 TEST_TYPES(M, implicit_conversions, all_test_types)
 {
     using Vc::simd_mask;
-    using Vc::native_mask;
-    using Vc::fixed_size_mask;
+    using Vc::native_simd_mask;
+    using Vc::fixed_size_simd_mask;
 
     implicit_conversions_test<M, simd_mask<ldouble>>();
     implicit_conversions_test<M, simd_mask<double>>();
@@ -171,32 +171,32 @@ TEST_TYPES(M, implicit_conversions, all_test_types)
     implicit_conversions_test<M, simd_mask<short>>();
     implicit_conversions_test<M, simd_mask<uchar>>();
     implicit_conversions_test<M, simd_mask<schar>>();
-    implicit_conversions_test<M, native_mask<ldouble>>();
-    implicit_conversions_test<M, native_mask<double>>();
-    implicit_conversions_test<M, native_mask<float>>();
-    implicit_conversions_test<M, native_mask<ullong>>();
-    implicit_conversions_test<M, native_mask<llong>>();
-    implicit_conversions_test<M, native_mask<ulong>>();
-    implicit_conversions_test<M, native_mask<long>>();
-    implicit_conversions_test<M, native_mask<uint>>();
-    implicit_conversions_test<M, native_mask<int>>();
-    implicit_conversions_test<M, native_mask<ushort>>();
-    implicit_conversions_test<M, native_mask<short>>();
-    implicit_conversions_test<M, native_mask<uchar>>();
-    implicit_conversions_test<M, native_mask<schar>>();
-    implicit_conversions_test<M, fixed_size_mask<ldouble, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<double, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<float, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<ullong, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<llong, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<ulong, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<long, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<uint, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<int, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<ushort, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<short, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<uchar, M::size()>>();
-    implicit_conversions_test<M, fixed_size_mask<schar, M::size()>>();
+    implicit_conversions_test<M, native_simd_mask<ldouble>>();
+    implicit_conversions_test<M, native_simd_mask<double>>();
+    implicit_conversions_test<M, native_simd_mask<float>>();
+    implicit_conversions_test<M, native_simd_mask<ullong>>();
+    implicit_conversions_test<M, native_simd_mask<llong>>();
+    implicit_conversions_test<M, native_simd_mask<ulong>>();
+    implicit_conversions_test<M, native_simd_mask<long>>();
+    implicit_conversions_test<M, native_simd_mask<uint>>();
+    implicit_conversions_test<M, native_simd_mask<int>>();
+    implicit_conversions_test<M, native_simd_mask<ushort>>();
+    implicit_conversions_test<M, native_simd_mask<short>>();
+    implicit_conversions_test<M, native_simd_mask<uchar>>();
+    implicit_conversions_test<M, native_simd_mask<schar>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<ldouble, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<double, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<float, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<ullong, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<llong, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<ulong, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<long, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<uint, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<int, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<ushort, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<short, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<uchar, M::size()>>();
+    implicit_conversions_test<M, fixed_size_simd_mask<schar, M::size()>>();
 }
 
 TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
@@ -319,8 +319,8 @@ TEST_TYPES(M, operator_conversions, current_native_mask_test_types)  //{{{1
 
     // nothing else works: no implicit conv. or ambiguous
     using Vc::simd_mask;
-    using Vc::native_mask;
-    using Vc::fixed_size_mask;
+    using Vc::native_simd_mask;
+    using Vc::fixed_size_simd_mask;
     auto &&sfinae_test = [](auto x) {
         return is_substitution_failure<M, decltype(x), std::bit_and<>>;
     };
@@ -343,35 +343,35 @@ TEST_TYPES(M, operator_conversions, current_native_mask_test_types)  //{{{1
         COMPARE(!is(schar  ()), sfinae_test(simd_mask<schar  >()));
     }
 
-    VERIFY(sfinae_test(fixed_size_mask<ldouble, 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<double , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<float  , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<ullong , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<llong  , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<ulong  , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<long   , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<uint   , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<int    , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<ushort , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<short  , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<uchar  , 2>()));
-    VERIFY(sfinae_test(fixed_size_mask<schar  , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<ldouble, 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<double , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<float  , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<ullong , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<llong  , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<ulong  , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<long   , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<uint   , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<int    , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<ushort , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<short  , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<uchar  , 2>()));
+    VERIFY(sfinae_test(fixed_size_simd_mask<schar  , 2>()));
 
     {
-        auto &&is = [](auto x) { return std::is_same<M, native_mask<decltype(x)>>::value; };
-        if (!is(ldouble())) VERIFY(sfinae_test(native_mask<ldouble>()));
-        if (!is(double ())) VERIFY(sfinae_test(native_mask<double >()));
-        if (!is(float  ())) VERIFY(sfinae_test(native_mask<float  >()));
-        if (!is(ullong ())) VERIFY(sfinae_test(native_mask<ullong >()));
-        if (!is(llong  ())) VERIFY(sfinae_test(native_mask<llong  >()));
-        if (!is(ulong  ())) VERIFY(sfinae_test(native_mask<ulong  >()));
-        if (!is(long   ())) VERIFY(sfinae_test(native_mask<long   >()));
-        if (!is(uint   ())) VERIFY(sfinae_test(native_mask<uint   >()));
-        if (!is(int    ())) VERIFY(sfinae_test(native_mask<int    >()));
-        if (!is(ushort ())) VERIFY(sfinae_test(native_mask<ushort >()));
-        if (!is(short  ())) VERIFY(sfinae_test(native_mask<short  >()));
-        if (!is(uchar  ())) VERIFY(sfinae_test(native_mask<uchar  >()));
-        if (!is(schar  ())) VERIFY(sfinae_test(native_mask<schar  >()));
+        auto &&is = [](auto x) { return std::is_same<M, native_simd_mask<decltype(x)>>::value; };
+        if (!is(ldouble())) VERIFY(sfinae_test(native_simd_mask<ldouble>()));
+        if (!is(double ())) VERIFY(sfinae_test(native_simd_mask<double >()));
+        if (!is(float  ())) VERIFY(sfinae_test(native_simd_mask<float  >()));
+        if (!is(ullong ())) VERIFY(sfinae_test(native_simd_mask<ullong >()));
+        if (!is(llong  ())) VERIFY(sfinae_test(native_simd_mask<llong  >()));
+        if (!is(ulong  ())) VERIFY(sfinae_test(native_simd_mask<ulong  >()));
+        if (!is(long   ())) VERIFY(sfinae_test(native_simd_mask<long   >()));
+        if (!is(uint   ())) VERIFY(sfinae_test(native_simd_mask<uint   >()));
+        if (!is(int    ())) VERIFY(sfinae_test(native_simd_mask<int    >()));
+        if (!is(ushort ())) VERIFY(sfinae_test(native_simd_mask<ushort >()));
+        if (!is(short  ())) VERIFY(sfinae_test(native_simd_mask<short  >()));
+        if (!is(uchar  ())) VERIFY(sfinae_test(native_simd_mask<uchar  >()));
+        if (!is(schar  ())) VERIFY(sfinae_test(native_simd_mask<schar  >()));
     }
 }
 

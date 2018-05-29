@@ -219,19 +219,9 @@ struct scalar_simd_impl {
     // math {{{2
     template <class T> static Vc_INTRINSIC T abs(T x) { return T(std::abs(x)); }
     template <class T> static Vc_INTRINSIC T sqrt(T x) { return std::sqrt(x); }
-    template <class T> static Vc_INTRINSIC T logb(T x) { return std::logb(x); }
     template <class T> static Vc_INTRINSIC T trunc(T x) { return std::trunc(x); }
     template <class T> static Vc_INTRINSIC T floor(T x) { return std::floor(x); }
     template <class T> static Vc_INTRINSIC T ceil(T x) { return std::ceil(x); }
-
-    template <class T> static Vc_INTRINSIC T frexp(T x, int &exp)
-    {
-        return std::frexp(x, &exp);
-    }
-    template <class T> static Vc_INTRINSIC T frexp(T x, simd_tuple<int, abi> &exp)
-    {
-        return frexp(x, exp.first);
-    }
 
     template <class T> static Vc_INTRINSIC simd_tuple<int, abi> fpclassify(T x)
     {

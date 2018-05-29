@@ -125,7 +125,7 @@ Vc_INTRINSIC x_u32 Vc_VDECL divides(x_u32 a, x_u32 b) {
 }
 
 Vc_INTRINSIC x_i16 Vc_VDECL divides(x_i16 a, x_i16 b) {
-    const __m128i mask = broadcast16(0x0000ffffu);
+    const __m128i mask = auto_broadcast(0x0000ffffu);
     const auto ahi = andnot_(mask, a);
     const auto bhi = andnot_(mask, b);
     const auto alo = _mm_slli_epi32(a, 16);
@@ -151,8 +151,8 @@ Vc_INTRINSIC x_u16 Vc_VDECL divides(x_u16 a, x_u16 b) {
             _mm_cvttps_epi32(_mm_div_ps(_mm_cvtepi32_ps(_mm_srli_epi32(a, 16)),
                                         _mm_cvtepi32_ps(_mm_srli_epi32(b, 16)))),
             16),
-        _mm_cvttps_epi32(_mm_div_ps(_mm_cvtepi32_ps(and_(a, broadcast16(0xffff))),
-                                    _mm_cvtepi32_ps(and_(b, broadcast16(0xffff))))));
+        _mm_cvttps_epi32(_mm_div_ps(_mm_cvtepi32_ps(and_(a, auto_broadcast(0xffff))),
+                                    _mm_cvtepi32_ps(and_(b, auto_broadcast(0xffff))))));
 #endif
 }
 
@@ -160,7 +160,7 @@ inline x_i08 Vc_VDECL divides(x_i08 a, x_i08 b) {
 #ifdef Vc_HAVE_AVX512F
     return convert<x_i08>(_mm512_div_ps(convert<z_f32>(a), convert<z_f32>(b)));
 #else
-    const __m128i maskhi = broadcast16(0xff000000u);
+    const __m128i maskhi = auto_broadcast(0xff000000u);
     const __m128i masklo = _mm_srli_epi32(maskhi, 24);
     __m128i r[4] = {
         _mm_cvttps_epi32(_mm_div_ps(_mm_cvtepi32_ps(     _mm_slli_epi32(a, 24)         ),
@@ -184,7 +184,7 @@ inline x_u08 Vc_VDECL divides(x_u08 a, x_u08 b) {
 #ifdef Vc_HAVE_AVX512F
     return convert<x_u08>(_mm512_div_ps(convert<z_f32>(a), convert<z_f32>(b)));
 #else
-    const __m128i mask = broadcast16(0xff);
+    const __m128i mask = auto_broadcast(0xff);
     return or_(
         or_(_mm_cvttps_epi32(_mm_div_ps(_mm_cvtepi32_ps(and_(a, mask)),
                                         _mm_cvtepi32_ps(and_(b, mask)))),
@@ -801,19 +801,19 @@ Vc_INTRINSIC x_i16 bit_shift_right(x_i16 a, x_i16 b)
     // => valid input range for each element of b is [0, 15]
     // => only the 4 low bits of b are relevant
     // do a =>> 8 where b[3] is set
-    a = blendv_epi8(a, _mm_srai_epi16(a, 8), _mm_cmpgt_epi16(b, broadcast16(0x00070007)));
+    a = blendv_epi8(a, _mm_srai_epi16(a, 8), _mm_cmpgt_epi16(b, auto_broadcast(0x00070007)));
     // do a =>> 4 where b[2] is set
     a = blendv_epi8(
         a, _mm_srai_epi16(a, 4),
-        _mm_cmpgt_epi16(and_(b, broadcast16(0x00040004)), _mm_setzero_si128()));
+        _mm_cmpgt_epi16(and_(b, auto_broadcast(0x00040004)), _mm_setzero_si128()));
     // do a =>> 2 where b[1] is set
     a = blendv_epi8(
         a, _mm_srai_epi16(a, 2),
-        _mm_cmpgt_epi16(and_(b, broadcast16(0x00020002)), _mm_setzero_si128()));
+        _mm_cmpgt_epi16(and_(b, auto_broadcast(0x00020002)), _mm_setzero_si128()));
     // do a =>> 1 where b[0] is set
     return blendv_epi8(
         a, _mm_srai_epi16(a, 1),
-        _mm_cmpgt_epi16(and_(b, broadcast16(0x00010001)), _mm_setzero_si128()));
+        _mm_cmpgt_epi16(and_(b, auto_broadcast(0x00010001)), _mm_setzero_si128()));
 }
 Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b)
 {
@@ -822,19 +822,19 @@ Vc_INTRINSIC x_u16 bit_shift_right(x_u16 a, x_u16 b)
     // => valid input range for each element of b is [0, 15]
     // => only the 4 low bits of b are relevant
     // do a =>> 8 where b[3] is set
-    a = blendv_epi8(a, srli_epi16<8>(a), _mm_cmpgt_epi16(b, broadcast16(0x00070007)));
+    a = blendv_epi8(a, srli_epi16<8>(a), _mm_cmpgt_epi16(b, auto_broadcast(0x00070007)));
     // do a =>> 4 where b[2] is set
     a = blendv_epi8(
         a, srli_epi16<4>(a),
-        _mm_cmpgt_epi16(and_(b, broadcast16(0x00040004)), _mm_setzero_si128()));
+        _mm_cmpgt_epi16(and_(b, auto_broadcast(0x00040004)), _mm_setzero_si128()));
     // do a =>> 2 where b[1] is set
     a = blendv_epi8(
         a, srli_epi16<2>(a),
-        _mm_cmpgt_epi16(and_(b, broadcast16(0x00020002)), _mm_setzero_si128()));
+        _mm_cmpgt_epi16(and_(b, auto_broadcast(0x00020002)), _mm_setzero_si128()));
     // do a =>> 1 where b[0] is set
     return blendv_epi8(
         a, srli_epi16<1>(a),
-        _mm_cmpgt_epi16(and_(b, broadcast16(0x00010001)), _mm_setzero_si128()));
+        _mm_cmpgt_epi16(and_(b, auto_broadcast(0x00010001)), _mm_setzero_si128()));
 }
 
 #endif  // Vc_HAVE_AVX512BW

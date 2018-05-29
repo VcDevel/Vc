@@ -89,7 +89,7 @@ constexpr Vc_INTRINSIC Storage<T, N / Total> extract_part_impl(std::true_type,
                                                                size_constant<Total>,
                                                                Storage<T, N> x)
 {
-    return detail::x86::extract<Index, Total>(x.d);
+    return detail::extract<Index, Total>(x.d);
 }
 
 // partial SSE (shifts) {{{2
@@ -261,7 +261,7 @@ template <class T>
 Vc_INTRINSIC Vc_CONST Storage<T, 32 / sizeof(T)> Vc_VDECL
     concat(Storage<T, 16 / sizeof(T)> a, Storage<T, 16 / sizeof(T)> b)
 {
-    return x86::concat(a.intrin(), b.intrin());
+    return concat(a.d, b.d);
 }
 #endif  // Vc_HAVE_AVX
 
@@ -270,7 +270,7 @@ template <class T>
 Vc_INTRINSIC Vc_CONST Storage<T, 64 / sizeof(T)> Vc_VDECL
     concat(Storage<T, 32 / sizeof(T)> a, Storage<T, 32 / sizeof(T)> b)
 {
-    return x86::concat(a.intrin(), b.intrin());
+    return concat(a.d, b.d);
 }
 #endif  // Vc_HAVE_AVX512F
 

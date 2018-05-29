@@ -221,6 +221,15 @@ public :
     }
 
     // "private" because of the first arguments's namespace
+    template <class F, class = decltype(bool(std::declval<F>()(size_t())))>
+    Vc_INTRINSIC simd_mask(detail::private_init_t, F &&gen)
+    {
+        for (size_t i = 0; i < size(); ++i) {
+            impl::set(d, i, gen(i));
+        }
+    }
+
+    // "private" because of the first arguments's namespace
     Vc_INTRINSIC simd_mask(detail::bitset_init_t, std::bitset<size_v> init)
         : d(impl::from_bitset(init, type_tag))
     {
@@ -234,8 +243,15 @@ private:
 
 namespace detail
 {
-template <class T, class A> Vc_INTRINSIC const auto &data(const simd_mask<T, A> &x) { return x.d; }
-template <class T, class A> Vc_INTRINSIC auto &data(simd_mask<T, A> &x) { return x.d; }
+template <class T, class A>
+constexpr Vc_INTRINSIC const auto &data(const simd_mask<T, A> &x)
+{
+    return x.d;
+}
+template <class T, class A> constexpr Vc_INTRINSIC auto &data(simd_mask<T, A> &x)
+{
+    return x.d;
+}
 }  // namespace detail
 
 Vc_VERSIONED_NAMESPACE_END

@@ -55,17 +55,20 @@ enum class area : unsigned {
 #define simd_tuple 0x0000000000000004ull
 #define simd_view  0x0000000000000008ull
 #define logarithm  0x0000000000000010ull
+#define frexp      0x0000000000000020ull
 
     _sine       = ((Vc_DEBUG) &       sine) ? _enabled : _disabled,
     _cosine     = ((Vc_DEBUG) &     cosine) ? _enabled : _disabled,
     _simd_tuple = ((Vc_DEBUG) & simd_tuple) ? _enabled : _disabled,
     _simd_view  = ((Vc_DEBUG) & simd_view ) ? _enabled : _disabled,
     _logarithm  = ((Vc_DEBUG) & logarithm ) ? _enabled : _disabled,
+    _frexp      = ((Vc_DEBUG) &     frexp ) ? _enabled : _disabled,
 #undef sine
 #undef cosine
 #undef simd_tuple
 #undef simd_view
 #undef logarithm
+#undef frexp
 
 #undef Vc_DEBUG
 
@@ -75,6 +78,7 @@ enum class area : unsigned {
     _simd_tuple = _disabled,
     _simd_view  = _disabled,
     _logarithm  = _disabled,
+    _frexp = _disabled,
 #endif // Vc_DEBUG
 };
 

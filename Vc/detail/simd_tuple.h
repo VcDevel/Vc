@@ -36,10 +36,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+// simd_tuple forward decl in detail.h
 // subscript_read/_write {{{1
-template <class T> T subscript_read(arithmetic<T> x, size_t) noexcept { return x; }
+template <class T> T subscript_read(vectorizable<T> x, size_t) noexcept { return x; }
 template <class T>
-void subscript_write(arithmetic<T> &x, size_t, detail::id<T> y) noexcept
+void subscript_write(vectorizable<T> &x, size_t, detail::id<T> y) noexcept
 {
     x = y;
 }
@@ -52,17 +53,6 @@ template <class T> void subscript_write(T &x, size_t i, typename T::value_type y
 {
     return x.set(i, y);
 }
-
-// simd_tuple {{{1
-// why not std::tuple?
-// 1. std::tuple gives no guarantee about the storage order, but I require storage
-//    equivalent to std::array<T, N>
-// 2. much less code to instantiate: I require a very small subset of std::tuple
-//    functionality
-// 3. direct access to the element type (first template argument)
-// 4. enforces equal element type, only different Abi types are allowed
-
-template <class T, class... Abis> struct simd_tuple;
 
 // tuple_element {{{1
 template <size_t I, class T> struct tuple_element;
@@ -78,50 +68,68 @@ template <size_t I, class T> using tuple_element_t = typename tuple_element<I, T
 
 // tuple_concat {{{1
 template <class T, class... A1s>
-Vc_INTRINSIC simd_tuple<T, A1s...> tuple_concat(const simd_tuple<T>,
-                                                const simd_tuple<T, A1s...> right)
+constexpr Vc_INTRINSIC simd_tuple<T, A1s...> tuple_concat(
+    const simd_tuple<T>, const simd_tuple<T, A1s...> right)
 {
     return right;
 }
 
 template <class T, class A00, class... A0s, class A10, class... A1s>
-Vc_INTRINSIC simd_tuple<T, A00, A0s..., A10, A1s...> tuple_concat(
+constexpr Vc_INTRINSIC simd_tuple<T, A00, A0s..., A10, A1s...> tuple_concat(
     const simd_tuple<T, A00, A0s...> left, const simd_tuple<T, A10, A1s...> right)
 {
     return {left.first, tuple_concat(left.second, right)};
 }
 
 template <class T, class A00, class... A0s>
-Vc_INTRINSIC simd_tuple<T, A00, A0s...> tuple_concat(
+constexpr Vc_INTRINSIC simd_tuple<T, A00, A0s...> tuple_concat(
     const simd_tuple<T, A00, A0s...> left, const simd_tuple<T>)
 {
     return left;
 }
 
 template <class T, class A10, class... A1s>
-Vc_INTRINSIC simd_tuple<T, simd_abi::scalar, A10, A1s...> tuple_concat(
+constexpr Vc_INTRINSIC simd_tuple<T, simd_abi::scalar, A10, A1s...> tuple_concat(
     const T left, const simd_tuple<T, A10, A1s...> right)
 {
     return {left, right};
 }
 
 // tuple_pop_front {{{1
-template <class T> Vc_INTRINSIC const T &tuple_pop_front(size_constant<0>, const T &x)
+template <class T>
+constexpr Vc_INTRINSIC const T &tuple_pop_front(size_constant<0>, const T &x)
 {
     return x;
 }
 
-template <class T> Vc_INTRINSIC T &tuple_pop_front(size_constant<0>, T &x) { return x; }
+template <class T> constexpr Vc_INTRINSIC T &tuple_pop_front(size_constant<0>, T &x)
+{
+    return x;
+}
 
 template <size_t K, class T>
-Vc_INTRINSIC const auto &tuple_pop_front(size_constant<K>, const T &x)
+constexpr Vc_INTRINSIC const auto &tuple_pop_front(size_constant<K>, const T &x)
 {
     return tuple_pop_front(size_constant<K - 1>(), x.second);
 }
 
-template <size_t K, class T> Vc_INTRINSIC auto &tuple_pop_front(size_constant<K>, T &x)
+template <size_t K, class T>
+constexpr Vc_INTRINSIC auto &tuple_pop_front(size_constant<K>, T &x)
 {
     return tuple_pop_front(size_constant<K - 1>(), x.second);
+}
+
+// tuple_front {{{1
+template <size_t K, class T, class A0, class... As>
+constexpr Vc_INTRINSIC auto tuple_front(const simd_tuple<T, A0, As...> &x)
+{
+    if constexpr (K == 0) {
+        return simd_tuple<T>();
+    } else if constexpr (K == 1) {
+        return simd_tuple<T, A0>{x.first};
+    } else {
+        return tuple_concat(simd_tuple<T, A0>{x.first}, tuple_front<K - 1>(x.second));
+    }
 }
 
 // get_simd<N> {{{1
@@ -276,7 +284,7 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
     static constexpr size_t size() { return simd_size_v<T, Abi0>; }
     static constexpr size_t size_v = simd_size_v<T, Abi0>;
     static constexpr size_t first_size_v = simd_size_v<T, Abi0>;
-    first_type first;
+    alignas(sizeof(first_type)) first_type first;
     static constexpr second_type second = {};
 
     template <size_t Offset = 0, class F>
@@ -335,18 +343,15 @@ private:
         //Vc_DEBUG_DEFERRED("y = ", y);
         auto tmp = Vc::concat(detail::get_simd<Indexes>(y)...);
         const auto first = fun(tuple_element_meta<T, Abi0, 0>(), x.first, tmp);
-#ifdef __cpp_if_constexpr
-        if constexpr (std::is_lvalue_reference<More>::value && !std::is_const<More>::value) {
-#endif
+        if constexpr (std::is_lvalue_reference<More>::value &&
+                      !std::is_const<More>::value) {
             // if y is non-const lvalue ref, assume write back is necessary
             const auto tup =
                 Vc::split<tuple_element_t<Indexes, std::decay_t<More>>::size()...>(tmp);
             auto &&ignore = {
                 (get<Indexes>(y) = detail::data(std::get<Indexes>(tup)), 0)...};
             detail::unused(ignore);
-#ifdef __cpp_if_constexpr
         }
-#endif
         return {first};
     }
 
@@ -421,7 +426,9 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
     static constexpr size_t size() { return simd_size_v<T, Abi0> + second_type::size(); }
     static constexpr size_t size_v = simd_size_v<T, Abi0> + second_type::size();
     static constexpr size_t first_size_v = simd_size_v<T, Abi0>;
-    first_type first;
+    static constexpr size_t alignment =
+        std::clamp(next_power_of_2(sizeof(T) * size_v), size_t(16), size_t(256));
+    alignas(alignment) first_type first;
     second_type second;
 
     template <size_t Offset = 0, class F>
@@ -483,17 +490,14 @@ private:
         //Vc_DEBUG_DEFERRED("y = ", y);
         auto tmp = Vc::concat(detail::get_simd<Indexes>(y)...);
         const auto first = fun(tuple_element_meta<T, Abi0, 0>(), x.first, tmp);
-#ifdef __cpp_if_constexpr
-        if constexpr (std::is_lvalue_reference<More>::value && !std::is_const<More>::value) {
-#endif
+        if constexpr (std::is_lvalue_reference<More>::value &&
+                      !std::is_const<More>::value) {
             // if y is non-const lvalue ref, assume write back is necessary
             const auto tup =
                 Vc::split<tuple_element_t<Indexes, std::decay_t<More>>::size()...>(tmp);
             [](std::initializer_list<int>) {
             }({(get<Indexes>(y) = detail::data(std::get<Indexes>(tup)), 0)...});
-#ifdef __cpp_if_constexpr
         }
-#endif
         return {first, apply(std::forward<F>(fun), x.second,
                              tuple_pop_front(size_constant<sizeof...(Indexes)>(), y))};
     }
@@ -589,9 +593,19 @@ public:
                (test(fun, x.second, more.second...).to_ullong() << simd_size_v<T, Abi0>);
     }
 
+    template <class U, U I>
+    constexpr Vc_INTRINSIC T operator[](std::integral_constant<U, I>) const noexcept
+    {
+        if constexpr (I < simd_size_v<T, Abi0>) {
+            return subscript_read(first, I);
+        } else {
+            return second[std::integral_constant<U, I - simd_size_v<T, Abi0>>()];
+        }
+    }
+
     T operator[](size_t i) const noexcept
     {
-#ifdef __GNUC__
+#ifdef Vc_USE_ALIASING_LOADS
         return reinterpret_cast<const may_alias<T> *>(this)[i];
 #else
         return i < simd_size_v<T, Abi0> ? subscript_read(first, i)
@@ -600,7 +614,7 @@ public:
     }
     void set(size_t i, T val) noexcept
     {
-#ifdef __GNUC__
+#ifdef Vc_USE_ALIASING_LOADS
         reinterpret_cast<may_alias<T> *>(this)[i] = val;
 #else
         if (i < simd_size_v<T, Abi0>) {

@@ -2,7 +2,7 @@
 # test fixed_size_simd<T> ABI
 #######################################################################
 
-foreach(fun 1 2 4 8 Max)
+foreach(fun 1 2 4 8) # Skip 'Max' for now: GCC optimizes via memcpy or rep movXX
    execute_process(
       COMMAND ${OBJDUMP} --no-show-raw-insn -dC -j .text ${BINARY}
       COMMAND awk -v "RS=" "/ <test${fun}/"

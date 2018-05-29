@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // workaround macros {{{
 // vector conversions not optimized:
-//#define Vc_WORKAROUND_PR85048 1
+#define Vc_WORKAROUND_PR85048 1
 
 // zero extension from xmm to zmm not optimized:
 //#define Vc_WORKAROUND_PR85480 1
@@ -46,6 +46,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // very bad codegen for extraction and concatenation of 128/256 "subregisters" with
 // sizeof(element type) < 8: https://godbolt.org/g/mqUsgM
 #define Vc_WORKAROUND_XXX_1 1
+
+// https://github.com/cplusplus/parallelism-ts/issues/65 (incorrect return type of
+// static_simd_cast)
+#define Vc_FIX_P2TS_ISSUE65 1
+
+// https://github.com/cplusplus/parallelism-ts/issues/66 (incorrect SFINAE constraint on
+// (static)_simd_cast)
+#define Vc_FIX_P2TS_ISSUE66 1
 // }}}
 
 // warning macro {{{

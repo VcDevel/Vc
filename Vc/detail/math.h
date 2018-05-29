@@ -257,32 +257,39 @@ foldInput(doublev<Abi> x)
 
 // extract_exponent_bits {{{
 template <class Abi>
-samesize<int, doublev<Abi>> extract_exponent_bits(const doublev<Abi> &v)
+experimental::rebind_simd_t<int, floatv<Abi>> extract_exponent_bits(const floatv<Abi> &v)
 {
+    using namespace Vc::experimental;
+    using namespace Vc::experimental::float_bitwise_operators;
+    constexpr floatv<Abi> exponent_mask =
+        std::numeric_limits<float>::infinity();  // 0x7f800000
+    return simd_reinterpret_cast<rebind_simd_t<int, floatv<Abi>>>(v & exponent_mask);
+}
+
+template <class Abi>
+experimental::rebind_simd_t<int, doublev<Abi>> extract_exponent_bits(
+    const doublev<Abi> &v)
+{
+    using namespace Vc::experimental;
+    using namespace Vc::experimental::float_bitwise_operators;
     const doublev<Abi> exponent_mask =
         std::numeric_limits<double>::infinity();  // 0x7ff0000000000000
     constexpr auto N = simd_size_v<double, Abi> * 2;
     constexpr auto Max = simd_abi::max_fixed_size<int>;
-    Vc_CONSTEXPR_IF_RETURNING (N > Max)
-    {
-        using namespace Vc::experimental;
-        using namespace Vc::experimental::float_bitwise_operators;
+    if constexpr (N > Max) {
         const auto tup = split<Max / 2, (N - Max) / 2>(v & exponent_mask);
         return concat(
             shuffle<strided<2, 1>>(
-                simd_reinterpret_cast<fixed_size_simd<int, Max>>(std::get<0>(tup))),
+                simd_reinterpret_cast<simd<int, simd_abi::deduce_t<int, Max>>>(
+                    std::get<0>(tup))),
             shuffle<strided<2, 1>>(
-                simd_reinterpret_cast<fixed_size_simd<int, N - Max>>(std::get<1>(tup))));
-    }
-    Vc_CONSTEXPR_ELSE
-    {
-        using namespace Vc::experimental;
-        using namespace Vc::experimental::float_bitwise_operators;
+                simd_reinterpret_cast<simd<int, simd_abi::deduce_t<int, N - Max>>>(
+                    std::get<1>(tup))));
+    } else {
         return shuffle<strided<2, 1>>(
-            simd_reinterpret_cast<fixed_size_simd<int, 2 * simd_size_v<double, Abi>>>(
-                v & exponent_mask));
+            simd_reinterpret_cast<simd<int, simd_abi::deduce_t<int, N>>>(v &
+                                                                         exponent_mask));
     }
-    Vc_CONSTEXPR_ENDIF
 }
 
 // }}}
@@ -412,115 +419,153 @@ Vc_MATH_CALL_(exp)
 Vc_MATH_CALL_(exp2)
 Vc_MATH_CALL_(expm1)
 
-template <class Abi>
-detail::floatv<Abi> frexp(detail::floatv<Abi> value_,
-                          detail::samesize<int, detail::floatv<Abi>> * exp_)
+namespace detail
 {
-    return {detail::private_init,
-            detail::impl_or_fallback(
-                [](auto value, auto *exp) -> decltype(
-                    detail::get_impl_t<decltype(value)>::frexp(detail::data(value),
-                                                               detail::data(*exp))) {
-                    return detail::get_impl_t<decltype(value)>::frexp(detail::data(value),
-                                                                      detail::data(*exp));
-                },
-                [](auto value, auto *exp) {
-                    using FV = detail::floatv<Abi>;
-                    using IV = detail::samesize<int, FV>;
-                    using IM = typename IV::mask_type;
-                    using limits = std::numeric_limits<float>;
-                    using namespace Vc::experimental;
-                    using namespace Vc::experimental::float_bitwise_operators;
-
-                    const FV exponent_mask = limits::infinity();  // 0x7f800000
-                    const FV p5_1_exponent = detail::float_const<-1, 0x007fffffu, -1>;
-                    FV mant = p5_1_exponent & (exponent_mask | value);
-                    const IV exponent_bits =
-                        simd_reinterpret_cast<IV>(value & exponent_mask);
-                    if (Vc_IS_LIKELY(all_of(isnormal(value)))) {
-                        *exp = (exponent_bits >> 23) - 0x7e;
-                        return detail::data(mant);
-                    }
-                    const auto iszero_inf_nan =
-                        isunordered(value * limits::infinity(), value * FV());
-                    const FV scaled_subnormal = value * detail::float_const<1, 0, 0x70>;
-                    const FV mant_subnormal =
-                        p5_1_exponent & (exponent_mask | scaled_subnormal);
-                    where(!isnormal(value), mant) = mant_subnormal;
-                    where(iszero_inf_nan, mant) = value;
-                    IV e = simd_reinterpret_cast<IV>(scaled_subnormal & exponent_mask);
-                    const IM value_isnormal = static_simd_cast<IM>(isnormal(value));
-                    where(value_isnormal, e) = exponent_bits;
-                    const IV offset =
-                        (simd_reinterpret_cast<IV>(value_isnormal) & IV(0x7e)) |
-                        (simd_reinterpret_cast<IV>((exponent_bits == 0) &
-                                                   (static_simd_cast<IM>(value != 0))) &
-                         IV(0xee));
-                    *exp = (e >> 23) - offset;
-                    return detail::data(mant);
-                },
-                value_, exp_)};
+template <class T, size_t N> Storage<T, N> getexp(Storage<T, N> x)
+{
+    if constexpr (have_avx512vl && is_sse_ps<T, N>()) {
+        return _mm_getexp_ps(x);
+    } else if constexpr (have_avx512f && is_sse_ps<T, N>()) {
+        return lo128(_mm512_getexp_ps(auto_cast(x)));
+    } else if constexpr (have_avx512vl && is_sse_pd<T, N>()) {
+        return _mm_getexp_pd(x);
+    } else if constexpr (have_avx512f && is_sse_pd<T, N>()) {
+        return lo128(_mm512_getexp_pd(auto_cast(x)));
+    } else if constexpr (have_avx512vl && is_avx_ps<T, N>()) {
+        return _mm256_getexp_ps(x);
+    } else if constexpr (have_avx512f && is_avx_ps<T, N>()) {
+        return lo256(_mm512_getexp_ps(auto_cast(x)));
+    } else if constexpr (have_avx512vl && is_avx_pd<T, N>()) {
+        return _mm256_getexp_pd(x);
+    } else if constexpr (have_avx512f && is_avx_pd<T, N>()) {
+        return lo256(_mm512_getexp_pd(auto_cast(x)));
+    } else if constexpr (is_avx512_ps<T, N>()) {
+        return _mm512_getexp_ps(x);
+    } else if constexpr (is_avx512_pd<T, N>()) {
+        return _mm512_getexp_pd(x);
+    } else {
+        assert_unreachable<T>();
+    }
 }
-template <class Abi>
-detail::doublev<Abi> frexp(detail::doublev<Abi> value_,
-                           detail::samesize<int, detail::doublev<Abi>> * exp_)
-{
-    *exp_ = 0xdead;
-    return {detail::private_init,
-            detail::impl_or_fallback(
-                [](auto value, auto *exp) -> decltype(
-                    detail::get_impl_t<decltype(value)>::frexp(detail::data(value),
-                                                               detail::data(*exp))) {
-                    //Vc_DEBUG("native");
-                    //Vc_DEBUG_DEFERRED("*exp = ", *exp);
-                    return detail::get_impl_t<decltype(value)>::frexp(detail::data(value),
-                                                                      detail::data(*exp));
-                },
-                [](auto value, auto *exp) {
-                    //Vc_DEBUG("fallback");
-                    //Vc_DEBUG_DEFERRED("*exp = ", *exp);
-                    using DV = detail::doublev<Abi>;
-                    using IV = detail::samesize<int, DV>;
-                    using IM = typename IV::mask_type;
-                    using limits = std::numeric_limits<double>;
-                    using namespace Vc::experimental;
-                    using namespace Vc::experimental::float_bitwise_operators;
 
-                    const DV exponent_mask = limits::infinity();  // 0x7ff0000000000000
-                    const DV p5_1_exponent =
-                        detail::double_const<-1, 0x000fffffffffffffull, -1>;
-                    DV mant = p5_1_exponent & (exponent_mask | value);
-                    const IV exponent_bits = extract_exponent_bits(value);
-                    if (Vc_IS_LIKELY(all_of(isnormal(value)))) {
-                        *exp = (exponent_bits >> 20) - 0x3fe;
-                        return detail::data(mant);
-                    }
-                    const auto iszero_inf_nan =
-                        isunordered(value * limits::infinity(), value * DV());
-                    const DV scaled_subnormal = value * detail::double_const<1, 0, 0x200>;
-                    const DV mant_subnormal =
-                        p5_1_exponent & (exponent_mask | scaled_subnormal);
-                    where(!isnormal(value), mant) = mant_subnormal;
-                    where(iszero_inf_nan, mant) = value;
-                    IV e = extract_exponent_bits(scaled_subnormal);
-                    const IM value_isnormal = static_simd_cast<IM>(isnormal(value));
-                    where(value_isnormal, e) = exponent_bits;
-                    const IV offset =
-                        (simd_reinterpret_cast<IV>(value_isnormal) & IV(0x3fe)) |
-                        (simd_reinterpret_cast<IV>((exponent_bits == 0) &
-                                                   (static_simd_cast<IM>(value != 0))) &
-                         IV(0x5fe));
-                    *exp = (e >> 20) - offset;
-                    return detail::data(mant);
-                },
-                value_, exp_)};
-}
-template <class Abi>
-detail::ldoublev<Abi> frexp(detail::ldoublev<Abi> value,
-                            detail::samesize<int, detail::ldoublev<Abi>> * exp)
+template <class T, size_t N> Storage<T, N> getmant(Storage<T, N> x)
 {
-    return {detail::private_init, detail::get_impl_t<decltype(value)>::frexp(
-                                      detail::data(value), detail::data(*exp))};
+    if constexpr (have_avx512vl && is_sse_ps<T, N>()) {
+        return _mm_getmant_ps(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
+    } else if constexpr (have_avx512f && is_sse_ps<T, N>()) {
+        return lo128(
+            _mm512_getmant_ps(auto_cast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
+    } else if constexpr (have_avx512vl && is_sse_pd<T, N>()) {
+        return _mm_getmant_pd(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
+    } else if constexpr (have_avx512f && is_sse_pd<T, N>()) {
+        return lo128(
+            _mm512_getmant_pd(auto_cast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
+    } else if constexpr (have_avx512vl && is_avx_ps<T, N>()) {
+        return _mm256_getmant_ps(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
+    } else if constexpr (have_avx512f && is_avx_ps<T, N>()) {
+        return lo256(
+            _mm512_getmant_ps(auto_cast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
+    } else if constexpr (have_avx512vl && is_avx_pd<T, N>()) {
+        return _mm256_getmant_pd(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
+    } else if constexpr (have_avx512f && is_avx_pd<T, N>()) {
+        return lo256(
+            _mm512_getmant_pd(auto_cast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
+    } else if constexpr (is_avx512_ps<T, N>()) {
+        return _mm512_getmant_ps(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
+    } else if constexpr (is_avx512_pd<T, N>()) {
+        return _mm512_getmant_pd(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
+    } else {
+        assert_unreachable<T>();
+    }
+}
+}  // namespace detail
+
+/**
+ * splits \p v into exponent and mantissa, the sign is kept with the mantissa
+ *
+ * The return value will be in the range [0.5, 1.0[
+ * The \p e value will be an integer defining the power-of-two exponent
+ */
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> frexp(
+    const simd<T, Abi> &x, detail::samesize<int, simd<T, Abi>> *exp)
+{
+    using namespace Vc::detail;
+    if constexpr (simd_size_v<T, Abi> == 1) {
+        int tmp;
+        const auto r = std::frexp(x[0], &tmp);
+        (*exp)[0] = tmp;
+        return r;
+    } else if constexpr (is_fixed_size_abi_v<Abi>) {
+        return {private_init, get_impl_t<simd<T, Abi>>::frexp(data(x), data(*exp))};
+    } else if constexpr (have_avx512f) {
+        using IV = detail::samesize<int, simd<T, Abi>>;
+        constexpr size_t N = simd_size_v<T, Abi>;
+        constexpr size_t NI = N < 4 ? 4 : N;
+        const auto v = data(x);
+        const auto isnonzero = get_impl_t<simd<T, Abi>>::isnonzerovalue_mask(v.d);
+        const auto e =
+            to_intrin(detail::x86::blend(isnonzero, builtin_type_t<int, NI>(),
+                                         1 + convert<Storage<int, NI>>(getexp(v)).d));
+        Vc_DEBUG(frexp)(
+            std::hex, Vc_PRETTY_PRINT(int(isnonzero)), std::dec, Vc_PRETTY_PRINT(e),
+            Vc_PRETTY_PRINT(getexp(v)),
+            Vc_PRETTY_PRINT(to_intrin(1 + convert<Storage<int, NI>>(getexp(v)).d)));
+        if constexpr (N == 2) {
+            store8(e, reinterpret_cast<int *>(exp), overaligned<alignof(IV)>);
+        } else if constexpr (N == 4) {
+            store16(e, reinterpret_cast<int *>(exp), overaligned<alignof(IV)>);
+        } else if constexpr (N == 8) {
+            store32(e, reinterpret_cast<int *>(exp), overaligned<alignof(IV)>);
+        } else if constexpr (N == 16) {
+            store64(e, reinterpret_cast<int *>(exp), overaligned<alignof(IV)>);
+        } else {
+            assert_unreachable<Abi>();
+        }
+        return {private_init, detail::x86::blend(isnonzero, v, getmant(v))};
+    } else {
+        // fallback implementation
+        static_assert(sizeof(T) == 4 || sizeof(T) == 8);
+        using V = simd<T, Abi>;
+        using IV = experimental::rebind_simd_t<int, V>;
+        using IM = typename IV::mask_type;
+        using limits = std::numeric_limits<T>;
+        using namespace Vc::experimental;
+        using namespace Vc::experimental::float_bitwise_operators;
+
+        constexpr int exp_shift = sizeof(T) == 4 ? 23 : 20;
+        constexpr int exp_adjust = sizeof(T) == 4 ? 0x7e : 0x3fe;
+        constexpr int exp_offset = sizeof(T) == 4 ? 0x70 : 0x200;
+        constexpr T subnorm_scale =
+            detail::double_const<1, 0, exp_offset>;  // double->float converts as intended
+        constexpr V exponent_mask =
+            limits::infinity();  // 0x7f800000 or 0x7ff0000000000000
+        constexpr V p5_1_exponent =
+            T(sizeof(T) == 4 ? detail::float_const<-1, 0x007fffffu, -1>
+                             : detail::double_const<-1, 0x000fffffffffffffull, -1>);
+
+        V mant = p5_1_exponent & (exponent_mask | x);
+        const IV exponent_bits = extract_exponent_bits(x);
+        if (Vc_IS_LIKELY(all_of(isnormal(x)))) {
+            *exp = simd_cast<detail::samesize<int, V>>((exponent_bits >> exp_shift) -
+                                                       exp_adjust);
+            return mant;
+        }
+        const auto iszero_inf_nan = isunordered(x * limits::infinity(), x * V());
+        const V scaled_subnormal = x * subnorm_scale;
+        const V mant_subnormal = p5_1_exponent & (exponent_mask | scaled_subnormal);
+        where(!isnormal(x), mant) = mant_subnormal;
+        where(iszero_inf_nan, mant) = x;
+        IV e = extract_exponent_bits(scaled_subnormal);
+        const IM value_isnormal = static_simd_cast<IM>(isnormal(x));
+        where(value_isnormal, e) = exponent_bits;
+        const IV offset = (simd_reinterpret_cast<IV>(value_isnormal) & IV(exp_adjust)) |
+                          (simd_reinterpret_cast<IV>((exponent_bits == 0) &
+                                                     (static_simd_cast<IM>(x != 0))) &
+                           IV(exp_adjust + exp_offset));
+        *exp = simd_cast<detail::samesize<int, V>>((e >> exp_shift) - offset);
+        return mant;
+    }
 }
 
 template <class Abi>
@@ -536,32 +581,65 @@ Vc_MATH_CALL_(log)
 Vc_MATH_CALL_(log10)
 Vc_MATH_CALL_(log1p)
 Vc_MATH_CALL_(log2)
-//Vc_MATH_CALL_(logb)
-static_assert(true, "");
 
 template <class T, class Abi, class = std::enable_if_t<std::is_floating_point<T>::value>>
-simd<T, Abi> logb(const simd<T, Abi> &x_)
+simd<T, Abi> logb(const simd<T, Abi> &x)
 {
-    using V = simd<T, Abi>;
-    return Vc::detail::impl_or_fallback(
-        [](const auto &x) -> decltype(
-            V(Vc::detail::private_init,
-              Vc::detail::get_impl_t<decltype(x)>::logb(Vc::detail::data(x)))) {
-            return {Vc::detail::private_init,
-                    Vc::detail::get_impl_t<decltype(x)>::logb(Vc::detail::data(x))};
-        },
-        [](const V &x) -> V {
-            using namespace Vc::experimental;
-            using namespace Vc::detail;
-            auto is_normal = isnormal(x);
+    using namespace Vc::detail;
+    constexpr size_t N = simd_size_v<T, Abi>;
+    if constexpr (N == 1) {
+        return std::logb(x[0]);
+    } else if constexpr (is_fixed_size_abi_v<Abi>) {
+        return {private_init,
+                apply(
+                    [](auto impl, auto xx) {
+                        using V = typename decltype(impl)::simd_type;
+                        return detail::data(Vc::logb(V(detail::private_init, xx)));
+                    },
+                    data(x))};
+    } else if constexpr (detail::have_avx512vl && detail::is_sse_ps<T, N>()) {
+        return {private_init, _mm_fixupimm_ps(_mm_getexp_ps(detail::x86::abs(data(x))),
+                                              data(x), auto_broadcast(0x00550433), 0x00)};
+    } else if constexpr (detail::have_avx512vl && detail::is_sse_pd<T, N>()) {
+        return {private_init, _mm_fixupimm_pd(_mm_getexp_pd(detail::x86::abs(data(x))),
+                                              data(x), auto_broadcast(0x00550433), 0x00)};
+    } else if constexpr (detail::have_avx512vl && detail::is_avx_ps<T, N>()) {
+        return {private_init,
+                _mm256_fixupimm_ps(_mm256_getexp_ps(detail::x86::abs(data(x))), data(x),
+                                   auto_broadcast(0x00550433), 0x00)};
+    } else if constexpr (detail::have_avx512vl && detail::is_avx_pd<T, N>()) {
+        return {private_init,
+                _mm256_fixupimm_pd(_mm256_getexp_pd(detail::x86::abs(data(x))), data(x),
+                                   auto_broadcast(0x00550433), 0x00)};
+    } else if constexpr (detail::have_avx512f && detail::is_avx_ps<T, N>()) {
+        const __m512 v = auto_cast(data(x));
+        return {private_init,
+                lo256(_mm512_fixupimm_ps(_mm512_getexp_ps(_mm512_abs_ps(v)), v,
+                                         auto_broadcast(0x00550433), 0x00))};
+    } else if constexpr (detail::have_avx512f && detail::is_avx_pd<T, N>()) {
+        return {private_init, lo256(_mm512_fixupimm_pd(
+                                  _mm512_getexp_pd(_mm512_abs_pd(auto_cast(data(x)))),
+                                  auto_cast(data(x)), auto_broadcast(0x00550433), 0x00))};
+    } else if constexpr (detail::is_avx512_ps<T, N>()) {
+        return {private_init, _mm512_fixupimm_ps(_mm512_getexp_ps(abs(data(x))), data(x),
+                                                 auto_broadcast(0x00550433), 0x00)};
+    } else if constexpr (detail::is_avx512_pd<T, N>()) {
+        return {private_init, _mm512_fixupimm_pd(_mm512_getexp_pd(abs(data(x))), data(x),
+                                                 auto_broadcast(0x00550433), 0x00)};
+    } else {
+        using V = simd<T, Abi>;
+        using namespace Vc::experimental;
+        using namespace Vc::detail;
+        auto is_normal = isnormal(x);
 
-            // work on abs(x) to reflect the return value on Linux for negative inputs
-            // (domain-error => implementation-defined value is returned)
-            const V abs_x = abs(x);
+        // work on abs(x) to reflect the return value on Linux for negative inputs
+        // (domain-error => implementation-defined value is returned)
+        const V abs_x = abs(x);
 
-            // exponent(x) returns the exponent value (bias removed) as simd<U> with
-            // integral U
-            auto &&exponent = [](const V &v) {
+        // exponent(x) returns the exponent value (bias removed) as simd<U> with
+        // integral U
+        auto &&exponent =
+            [](const V &v) {
                 using namespace Vc::experimental;
                 using IV = rebind_simd_t<
                     std::conditional_t<sizeof(T) == sizeof(llong), llong, int>, V>;
@@ -569,34 +647,33 @@ simd<T, Abi> logb(const simd<T, Abi> &x_)
                         (std::numeric_limits<T>::digits - 1)) -
                        (std::numeric_limits<T>::max_exponent - 1);
             };
-            V r = static_simd_cast<V>(exponent(abs_x));
-            if (Vc_IS_LIKELY(all_of(is_normal))) {
-                // without corner cases (nan, inf, subnormal, zero) we have our answer:
-                return r;
-            }
-            const auto is_zero = x == 0;
-            const auto is_nan = isnan(x);
-            const auto is_inf = isinf(x);
-            where(is_zero, r) = -std::numeric_limits<T>::infinity();
-            where(is_nan, r) = x;
-            where(is_inf, r) = std::numeric_limits<T>::infinity();
-            is_normal |= is_zero || is_nan || is_inf;
-            if (all_of(is_normal)) {
-                // at this point everything but subnormals is handled
-                return r;
-            }
-            // subnormals repeat the exponent extraction after multiplication of the input
-            // with a floating point value that has 0x70 in its exponent (not too big for
-            // sp and large enough for dp)
-            const V scaled = abs_x * T(std::is_same<T, float>::value
-                                           ? detail::float_const<1, 0, 0x70>
-                                           : detail::double_const<1, 0, 0x70>);
-            V scaled_exp = static_simd_cast<V>(exponent(scaled) - 0x70);
-            Vc_DEBUG(logarithm)(x, scaled)(is_normal)(r, scaled_exp);
-            where(is_normal, scaled_exp) = r;
-            return scaled_exp;
-        },
-        x_);
+        V r = static_simd_cast<V>(exponent(abs_x));
+        if (Vc_IS_LIKELY(all_of(is_normal))) {
+            // without corner cases (nan, inf, subnormal, zero) we have our answer:
+            return r;
+        }
+        const auto is_zero = x == 0;
+        const auto is_nan = isnan(x);
+        const auto is_inf = isinf(x);
+        where(is_zero, r) = -std::numeric_limits<T>::infinity();
+        where(is_nan, r) = x;
+        where(is_inf, r) = std::numeric_limits<T>::infinity();
+        is_normal |= is_zero || is_nan || is_inf;
+        if (all_of(is_normal)) {
+            // at this point everything but subnormals is handled
+            return r;
+        }
+        // subnormals repeat the exponent extraction after multiplication of the input
+        // with a floating point value that has 0x70 in its exponent (not too big for
+        // sp and large enough for dp)
+        const V scaled =
+            abs_x * T(std::is_same<T, float>::value ? detail::float_const<1, 0, 0x70>
+                                                    : detail::double_const<1, 0, 0x70>);
+        V scaled_exp = static_simd_cast<V>(exponent(scaled) - 0x70);
+        Vc_DEBUG(logarithm)(x, scaled)(is_normal)(r, scaled_exp);
+        where(is_normal, scaled_exp) = r;
+        return scaled_exp;
+    }
 }
 
 template <class Abi>
@@ -606,42 +683,14 @@ detail::doublev<Abi> modf(detail::doublev<Abi> value, detail::doublev<Abi> * ipt
 template <class Abi>
 detail::ldoublev<Abi> modf(detail::ldoublev<Abi> value, detail::ldoublev<Abi> * iptr);
 
-Vc_MATH_CALL2_(scalbn, Vc_ARG_SAMESIZE_INT)
-Vc_MATH_CALL2_(scalbln, Vc_ARG_SAMESIZE_LONG)
+Vc_MATH_CALL2_(scalbn, Vc_ARG_SAMESIZE_INT) Vc_MATH_CALL2_(scalbln, Vc_ARG_SAMESIZE_LONG)
 
 Vc_MATH_CALL_(cbrt)
 
-template <class Abi> detail::scharv<Abi> abs(detail::scharv<Abi> j)
+template <class T, class Abi>
+std::enable_if_t<std::is_signed_v<T>, simd<T, Abi>> abs(const simd<T, Abi> &x)
 {
-    return {detail::private_init, detail::get_impl_t<decltype(j)>::abs(detail::data(j))};
-}
-template <class Abi> detail::shortv<Abi> abs(detail::shortv<Abi> j)
-{
-    return {detail::private_init, detail::get_impl_t<decltype(j)>::abs(detail::data(j))};
-}
-template <class Abi> detail::intv<Abi> abs(detail::intv<Abi> j)
-{
-    return {detail::private_init, detail::get_impl_t<decltype(j)>::abs(detail::data(j))};
-}
-template <class Abi> detail::longv<Abi> abs(detail::longv<Abi> j)
-{
-    return {detail::private_init, detail::get_impl_t<decltype(j)>::abs(detail::data(j))};
-}
-template <class Abi> detail::llongv<Abi> abs(detail::llongv<Abi> j)
-{
-    return {detail::private_init, detail::get_impl_t<decltype(j)>::abs(detail::data(j))};
-}
-template <class Abi> detail::floatv<Abi> abs(detail::floatv<Abi> j)
-{
-    return {detail::private_init, detail::get_impl_t<decltype(j)>::abs(detail::data(j))};
-}
-template <class Abi> detail::doublev<Abi> abs(detail::doublev<Abi> j)
-{
-    return {detail::private_init, detail::get_impl_t<decltype(j)>::abs(detail::data(j))};
-}
-template <class Abi> detail::ldoublev<Abi> abs(detail::ldoublev<Abi> j)
-{
-    return {detail::private_init, detail::get_impl_t<decltype(j)>::abs(detail::data(j))};
+    return {detail::private_init, Abi::simd_impl_type::abs(detail::data(x))};
 }
 
 Vc_MATH_CALL2_(hypot, Vc_ARG_AS_ARG1)
@@ -890,7 +939,7 @@ template <class T> struct autocvt_to_simd<T, true> {
     Vc_INTRINSIC auto name_##_fwd::operator()(Impl, Arg0 &&arg0,                         \
                                               Args &&... args) noexcept                  \
     {                                                                                    \
-        auto ret = detail::data(Vc::name_<typename Impl::abi_type>(                      \
+        auto ret = detail::data(Vc::name_(                                               \
             typename Impl::simd_type{detail::private_init, std::forward<Arg0>(arg0)},    \
             autocvt_to_simd<Args>{std::forward<Args>(args)}...));                        \
         /*Vc_DEBUG(args...);*/                                                           \

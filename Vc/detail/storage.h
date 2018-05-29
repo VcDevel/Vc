@@ -250,6 +250,16 @@ struct Storage<T, Width,
     //using StorageEquiv<T, Width>::StorageEquiv;
     using StorageEquiv<T, Width>::d;
 
+    template <class... As,
+              class = std::enable_if_t<((std::is_same_v<simd_abi::scalar, As> && ...) &&
+                                        sizeof...(As) <= Width)>>
+    constexpr Vc_INTRINSIC operator simd_tuple<T, As...>() const
+    {
+        const auto &dd = d;  // workaround for GCC7 ICE
+        return detail::generate_from_n_evaluations<sizeof...(As), simd_tuple<T, As...>>(
+            [&](auto i) { return dd[int(i)]; });
+    }
+
     constexpr Vc_INTRINSIC operator const register_type &() const { return d; }
     constexpr Vc_INTRINSIC operator register_type &() { return d; }
 
@@ -321,16 +331,10 @@ constexpr Vc_INTRINSIC Storage<T, sizeof...(Args)> make_storage(Args &&... args)
 }
 
 // generate_storage{{{1
-template <class T, size_t N, class G, size_t... I>
-constexpr Vc_INTRINSIC Storage<T, N> generate_storage_impl(
-    G &&gen, std::index_sequence<I...>)
-{
-    return builtin_type_t<T, N>{static_cast<T>(gen(size_constant<I>()))...};
-}
 template <class T, size_t N, class G>
 constexpr Vc_INTRINSIC Storage<T, N> generate_storage(G &&gen)
 {
-    return generate_storage_impl<T, N>(std::forward<G>(gen), std::make_index_sequence<N>());
+    return generate_builtin<T, N>(std::forward<G>(gen));
 }
 
 // work around clang miscompilation on set{{{1

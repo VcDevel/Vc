@@ -48,10 +48,10 @@ TEST_TYPES(FromTo, conversions,  //{{{1
            outer_product<all_arithmetic_types, all_arithmetic_types>)
 {
     using From = typename FromTo::template at<0>;
-    using FromM = Vc::native_mask<From>;
+    using FromM = Vc::native_simd_mask<From>;
     using To = typename FromTo::template at<1>;
     call_with_typelist<vir::make_unique_typelist<
-        Vc::experimental::rebind_simd_t<To, FromM>, Vc::native_mask<To>,
+        Vc::experimental::rebind_simd_t<To, FromM>, Vc::native_simd_mask<To>,
         Vc::simd_mask<To>, Vc::simd_mask<To, Vc::simd_abi::scalar>>>([](auto _b) {
         using ToM = decltype(_b);
         using ToV = typename ToM::simd_type;

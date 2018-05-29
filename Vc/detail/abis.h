@@ -152,13 +152,23 @@ template <int Bytes> struct neon_abi {
     struct is_valid_abi_tag : detail::bool_constant<(Bytes > 0 && Bytes <= 16)> {
     };
     template <class T>
-    struct is_valid_size_for : detail::bool_constant<(Bytes % sizeof(T) == 0)> {
+    struct is_valid_size_for
+        : detail::bool_constant<(Bytes / sizeof(T) > 1 && Bytes % sizeof(T) == 0)> {
     };
     template <class T>
     struct is_valid
         : detail::all<is_valid_abi_tag, neon_is_vectorizable<T>, is_valid_size_for<T>> {
     };
     template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
+
+    // implicit mask {{{2
+    template <class T>
+    using implicit_mask_type = builtin_type_t<int_for_sizeof_t<T>, size_tag<T>::value>;
+    template <class T>
+    static constexpr implicit_mask_type<T> implicit_mask =
+        generate_builtin<implicit_mask_type<T>>([](auto i) {
+            return i < Bytes / sizeof(T) ? -1 : 0;
+        });
 
     // simd/mask_impl_type {{{2
     using simd_impl_type = neon_simd_impl;
@@ -188,10 +198,11 @@ struct sse_simd_impl;
 template <int Bytes> struct sse_abi {
     template <class T> using size_tag = size_constant<Bytes / sizeof(T)>;
     // validity traits {{{2
-    struct is_valid_abi_tag : detail::bool_constant<(Bytes > 0 && Bytes <= 16)> {
-    };
+    struct is_valid_abi_tag : detail::bool_constant<Bytes == 16> {};  // TODO:
+    //struct is_valid_abi_tag : detail::bool_constant<(Bytes > 0 && Bytes <= 16)> {};
     template <class T>
-    struct is_valid_size_for : detail::bool_constant<(Bytes % sizeof(T) == 0)> {
+    struct is_valid_size_for
+        : detail::bool_constant<(Bytes / sizeof(T) > 1 && Bytes % sizeof(T) == 0)> {
     };
 
     template <class T>
@@ -199,6 +210,15 @@ template <int Bytes> struct sse_abi {
         : detail::all<is_valid_abi_tag, sse_is_vectorizable<T>, is_valid_size_for<T>> {
     };
     template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
+
+    // implicit mask {{{2
+    template <class T>
+    using implicit_mask_type = builtin_type_t<int_for_sizeof_t<T>, size_tag<T>::value>;
+    template <class T>
+    static constexpr implicit_mask_type<T> implicit_mask =
+        generate_builtin<implicit_mask_type<T>>([](auto i) {
+            return i < Bytes / sizeof(T) ? -1 : 0;
+        });
 
     // simd/mask_impl_type {{{2
     using simd_impl_type = sse_simd_impl;
@@ -228,8 +248,8 @@ struct avx_simd_impl;
 template <int Bytes> struct avx_abi {
     template <class T> using size_tag = size_constant<Bytes / sizeof(T)>;
     // validity traits {{{2
-    struct is_valid_abi_tag : detail::bool_constant<(Bytes > 0 && Bytes <= 32)> {
-    };
+    struct is_valid_abi_tag : detail::bool_constant<Bytes == 32> {};  // TODO:
+    //struct is_valid_abi_tag : detail::bool_constant<(Bytes > 16 && Bytes <= 32)> {};
     template <class T>
     struct is_valid_size_for : detail::bool_constant<(Bytes % sizeof(T) == 0)> {
     };
@@ -238,6 +258,15 @@ template <int Bytes> struct avx_abi {
         : detail::all<is_valid_abi_tag, avx_is_vectorizable<T>, is_valid_size_for<T>> {
     };
     template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
+
+    // implicit mask {{{2
+    template <class T>
+    using implicit_mask_type = builtin_type_t<int_for_sizeof_t<T>, size_tag<T>::value>;
+    template <class T>
+    static constexpr implicit_mask_type<T> implicit_mask =
+        generate_builtin<implicit_mask_type<T>>([](auto i) {
+            return i < Bytes / sizeof(T) ? -1 : 0;
+        });
 
     // simd/mask_impl_type {{{2
     using simd_impl_type = avx_simd_impl;
@@ -274,8 +303,8 @@ struct avx512_simd_impl;
 template <int Bytes> struct avx512_abi {
     template <class T> using size_tag = size_constant<Bytes / sizeof(T)>;
     // validity traits {{{2
-    struct is_valid_abi_tag : detail::bool_constant<(Bytes > 0 && Bytes <= 64)> {
-    };
+    struct is_valid_abi_tag : detail::bool_constant<Bytes == 64> {};  // TODO:
+    //struct is_valid_abi_tag : detail::bool_constant<(Bytes > 32 && Bytes <= 64)> {};
     template <class T>
     struct is_valid_size_for : detail::bool_constant<(Bytes % sizeof(T) == 0)> {
     };
@@ -284,6 +313,14 @@ template <int Bytes> struct avx512_abi {
         : detail::all<is_valid_abi_tag, avx512_is_vectorizable<T>, is_valid_size_for<T>> {
     };
     template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
+
+    // implicit mask {{{2
+    template <class T>
+    using implicit_mask_type = detail::bool_storage_member_type<64 / sizeof(T)>;
+    template <class T>
+    static constexpr implicit_mask_type<T> implicit_mask =
+        Bytes == 64 ? ~implicit_mask_type<T>()
+                    : (implicit_mask_type<T>(1) << (Bytes / sizeof(T))) - 1;
 
     // simd/mask_impl_type {{{2
     using simd_impl_type = avx512_simd_impl;
@@ -333,6 +370,63 @@ struct scalar_abi {
         struct mask_base {};
     };
 };
+template <int Bytes> struct scalar_abi_wrapper : scalar_abi {
+    template <class T>
+    static constexpr bool is_valid_v = scalar_abi::is_valid<T>::value &&
+                                       sizeof(T) == Bytes;
+};
+
+// decay_abi metafunction {{{1
+template <class T> struct decay_abi {
+    using type = T;
+};
+template <int Bytes> struct decay_abi<scalar_abi_wrapper<Bytes>> {
+    using type = simd_abi::scalar;
+};
+
+// full_abi metafunction {{{1
+template <template <int> class ATemp> struct full_abi;
+template <> struct full_abi<neon_abi> { using type = simd_abi::__neon128; };
+template <> struct full_abi<sse_abi> { using type = simd_abi::__sse; };
+template <> struct full_abi<avx_abi> { using type = simd_abi::__avx; };
+template <> struct full_abi<avx512_abi> { using type = simd_abi::__avx512; };
+template <> struct full_abi<scalar_abi_wrapper> {
+    using type = simd_abi::scalar;
+};
+
+// abi_list {{{1
+template <template <int> class...> struct abi_list {
+    template <class, int> static constexpr bool has_valid_abi = false;
+    template <class, int> using first_valid_abi = void;
+    template <class, int> using best_abi = void;
+};
+
+template <template <int> class A0, template <int> class... Rest>
+struct abi_list<A0, Rest...> {
+    template <class T, int N>
+    static constexpr bool has_valid_abi = A0<sizeof(T) * N>::template is_valid_v<T> ||
+                                          abi_list<Rest...>::template has_valid_abi<T, N>;
+    template <class T, int N>
+    using first_valid_abi =
+        std::conditional_t<A0<sizeof(T) * N>::template is_valid_v<T>,
+                           typename decay_abi<A0<sizeof(T) * N>>::type,
+                           typename abi_list<Rest...>::template first_valid_abi<T, N>>;
+    using B = typename full_abi<A0>::type;
+    template <class T, int N>
+    using best_abi = std::conditional_t<
+        A0<sizeof(T) * N>::template is_valid_v<T>,
+        typename decay_abi<A0<sizeof(T) * N>>::type,
+        std::conditional_t<(B::template is_valid_v<T> &&
+                            B::template size_tag<T>::value <= N),
+                           B, typename abi_list<Rest...>::template best_abi<T, N>>>;
+};
+
+// }}}1
+
+// the following lists all native ABIs, which makes them accessible to simd_abi::deduce
+// and select_best_vector_type_t (for fixed_size). Order matters: Whatever comes first has
+// higher priority.
+using all_native_abis = abi_list<avx512_abi, avx_abi, sse_abi, neon_abi, scalar_abi_wrapper>;
 
 // fixed_abi {{{1
 template <int N> struct fixed_size_simd_impl;
@@ -444,31 +538,22 @@ struct traits<T, Abi, void_t<typename Abi::template is_valid<T>>>
 };
 
 // deduce_impl specializations {{{1
-template <class T>
-struct deduce_impl<T, 64, std::enable_if_t<avx512_abi<64>::is_valid_v<T>>> {
-    using type = avx512_abi<64>;
+// try all native ABIs (including scalar) first
+template <class T, std::size_t N>
+struct deduce_impl<T, N,
+                   std::enable_if_t<all_native_abis::template has_valid_abi<T, N>>> {
+    using type = all_native_abis::first_valid_abi<T, N>;
 };
-template <class T>
-struct deduce_impl<T, 32, std::enable_if_t<avx_abi<32>::is_valid_v<T>>> {
-    using type = avx_abi<32>;
-};
-template <class T>
-struct deduce_impl<T, 16, std::enable_if_t<sse_abi<16>::is_valid_v<T>>> {
-    using type = sse_abi<16>;
-};
-template <class T>
-struct deduce_impl<T, 16, std::enable_if_t<neon_abi<16>::is_valid_v<T>>> {
-    using type = neon_abi<16>;
-};
-template <class T, std::size_t N, class = void> struct deduce_fixed_size_fallback {
-};
+
+// fall back to fixed_size only if scalar and native ABIs don't match
+template <class T, std::size_t N, class = void> struct deduce_fixed_size_fallback {};
 template <class T, std::size_t N>
 struct deduce_fixed_size_fallback<
     T, N, std::enable_if_t<simd_abi::fixed_size<N>::template is_valid_v<T>>> {
     using type = simd_abi::fixed_size<N>;
 };
-template <class T, std::size_t Bytes, class>
-struct deduce_impl : public deduce_fixed_size_fallback<T, Bytes / sizeof(T)> {
+template <class T, std::size_t N, class>
+struct deduce_impl : public deduce_fixed_size_fallback<T, N> {
 };
 
 //}}}1

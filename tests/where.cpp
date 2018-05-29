@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
 #include <Vc/simd>
+#include <Vc/ostream>
 #include "make_vec.h"
 
 template <class... Ts> using base_template = Vc::simd<Ts...>;
@@ -64,7 +65,7 @@ TEST_TYPES(V, where, all_test_types)
     COMPARE(alternating_mask, x == indexes);
 
     where(!alternating_mask, x) = T(2);
-    COMPARE(!alternating_mask, x == T(2));
+    COMPARE(!alternating_mask, x == T(2)) << x;
 
     where(!alternating_mask, x) = Convertible<V>();
     COMPARE(!alternating_mask, x == T(4));

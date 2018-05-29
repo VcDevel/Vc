@@ -69,8 +69,8 @@ template <int...> struct tag {
 /**\internal
  * Deduces to an arithmetic type, but not bool.
  */
-template <class T, class = enable_if_t<is_arithmetic_not_bool<T>::value>>
-using arithmetic = T;
+template <class T, class = enable_if_t<is_vectorizable_v<T>>>
+using vectorizable = T;
 
 /**\internal
  * Deduces to a type allowed for load/store with the given value type.

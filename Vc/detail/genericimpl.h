@@ -144,8 +144,8 @@ template <class Derived, class Abi> struct generic_simd_impl {
     {
         if constexpr (sizeof(x) == 64) {  // AVX512
             if constexpr (std::is_floating_point_v<T>) {
-                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _MM_CMPINT_EQ);
-                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _MM_CMPINT_EQ);
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _CMP_EQ_OQ);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _CMP_EQ_OQ);
                 } else { assert_unreachable<T>(); }
             } else {
                        if constexpr (sizeof(T) == 8) { return _mm512_cmpeq_epi64_mask(x, y);
@@ -166,8 +166,8 @@ template <class Derived, class Abi> struct generic_simd_impl {
     {
         if constexpr (sizeof(x) == 64) {  // AVX512
             if constexpr (std::is_floating_point_v<T>) {
-                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _MM_CMPINT_NE);
-                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _MM_CMPINT_NE);
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _CMP_NEQ_UQ);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _CMP_NEQ_UQ);
                 } else { assert_unreachable<T>(); }
             } else {
                        if constexpr (sizeof(T) == 8) { return ~_mm512_cmpeq_epi64_mask(x, y);
@@ -188,8 +188,8 @@ template <class Derived, class Abi> struct generic_simd_impl {
     {
         if constexpr (sizeof(x) == 64) {  // AVX512
             if constexpr (std::is_floating_point_v<T>) {
-                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _MM_CMPINT_LT);
-                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _MM_CMPINT_LT);
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _CMP_LT_OS);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _CMP_LT_OS);
                 } else { assert_unreachable<T>(); }
             } else if constexpr (std::is_signed_v<T>) {
                        if constexpr (sizeof(T) == 8) { return _mm512_cmplt_epi64_mask(x, y);
@@ -217,8 +217,8 @@ template <class Derived, class Abi> struct generic_simd_impl {
     {
         if constexpr (sizeof(x) == 64) {  // AVX512
             if constexpr (std::is_floating_point_v<T>) {
-                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _MM_CMPINT_LE);
-                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _MM_CMPINT_LE);
+                       if constexpr (sizeof(T) == 8) { return _mm512_cmp_pd_mask(x, y, _CMP_LE_OS);
+                } else if constexpr (sizeof(T) == 4) { return _mm512_cmp_ps_mask(x, y, _CMP_LE_OS);
                 } else { assert_unreachable<T>(); }
             } else if constexpr (std::is_signed_v<T>) {
                        if constexpr (sizeof(T) == 8) { return _mm512_cmple_epi64_mask(x, y);
@@ -342,7 +342,7 @@ template <class Derived, class Abi> struct generic_simd_impl {
                 builtin_cast<int>(builtin_cast<uint>(x.d) & 0x7f800000u) <
                 0x4b000000);  // the exponent is so large that no mantissa bits signify
                               // fractional values (0x3f8 + 23*8 = 0x4b0)
-            return blendv_ps(x, truncated, no_fractional_values);
+            return x86::blend(no_fractional_values, x, truncated);
         } else if constexpr (is_sse_pd<T, N>()) {
             const auto abs_x = abs(x).d;
             const auto min_no_fractional_bits = builtin_cast<double>(
@@ -477,6 +477,40 @@ template <class Derived, class Abi> struct generic_simd_impl {
         );
     }
 
+    template <class T> static Vc_INTRINSIC auto isnonzerovalue_mask(T x)
+    {
+        using U = typename builtin_traits<T>::value_type;
+        constexpr size_t N = builtin_traits<T>::width;
+        const auto a = x * std::numeric_limits<U>::infinity();  // NaN if x == 0
+        const auto b = x * U();                                 // NaN if x == inf
+        if constexpr (have_avx512vl && is_sse_ps<U, N>()) {
+            return _mm_cmp_ps_mask(a, b, _CMP_ORD_Q);
+        } else if constexpr (have_avx512f && is_sse_ps<U, N>()) {
+            return __mmask8(0xf &
+                            _mm512_cmp_ps_mask(auto_cast(a), auto_cast(b), _CMP_ORD_Q));
+        } else if constexpr (have_avx512vl && is_sse_pd<U, N>()) {
+            return _mm_cmp_pd_mask(a, b, _CMP_ORD_Q);
+        } else if constexpr (have_avx512f && is_sse_pd<U, N>()) {
+            return __mmask8(0x3 &
+                            _mm512_cmp_pd_mask(auto_cast(a), auto_cast(b), _CMP_ORD_Q));
+        } else if constexpr (have_avx512vl && is_avx_ps<U, N>()) {
+            return _mm256_cmp_ps_mask(a, b, _CMP_ORD_Q);
+        } else if constexpr (have_avx512f && is_avx_ps<U, N>()) {
+            return __mmask8(_mm512_cmp_ps_mask(auto_cast(a), auto_cast(b), _CMP_ORD_Q));
+        } else if constexpr (have_avx512vl && is_avx_pd<U, N>()) {
+            return _mm256_cmp_pd_mask(a, b, _CMP_ORD_Q);
+        } else if constexpr (have_avx512f && is_avx_pd<U, N>()) {
+            return __mmask8(0xf &
+                            _mm512_cmp_pd_mask(auto_cast(a), auto_cast(b), _CMP_ORD_Q));
+        } else if constexpr (is_avx512_ps<U, N>()) {
+            return _mm512_cmp_ps_mask(a, b, _CMP_ORD_Q);
+        } else if constexpr (is_avx512_pd<U, N>()) {
+            return _mm512_cmp_pd_mask(a, b, _CMP_ORD_Q);
+        } else {
+            assert_unreachable<T>();
+        }
+    }
+
     // isinf {{{3
     template <class T, size_t N>
     static Vc_INTRINSIC mask_member_type<T> isinf(Storage<T, N> x)
@@ -588,7 +622,7 @@ template <class Derived, class Abi> struct generic_simd_impl {
             const auto tmp = builtin_cast<llong>(
                 abs(x).d < std::numeric_limits<T>::min()
                     ? (x.d == 0 ? fp_zero : fp_subnormal)
-                    : x86::blend(isinf(x), x86::blend(isnan(x), fp_normal, fp_nan),
+                    : x86::blend(isinf(x).d, x86::blend(isnan(x).d, fp_normal, fp_nan),
                                  fp_infinite));
             if constexpr (std::is_same_v<T, float>) {
                 if constexpr (fixed_size_storage<int, N>::tuple_size == 1) {
@@ -631,13 +665,14 @@ template <class Derived, class Abi> struct generic_simd_impl {
     // masked_assign{{{2
     template <class T, class K, size_t N>
     static Vc_INTRINSIC void masked_assign(Storage<K, N> k, Storage<T, N> &lhs,
-                                             detail::id<Storage<T, N>> rhs)
+                                           detail::id<Storage<T, N>> rhs)
     {
-        lhs = detail::x86::blend(k, lhs, rhs);
+        lhs = detail::x86::blend(k.d, lhs.d, rhs.d);
     }
+
     template <class T, class K, size_t N>
     static Vc_INTRINSIC void masked_assign(Storage<K, N> k, Storage<T, N> &lhs,
-                                                    detail::id<T> rhs)
+                                           detail::id<T> rhs)
     {
         if (__builtin_constant_p(rhs) && rhs == 0 && std::is_same<K, T>::value) {
             if constexpr (sizeof(k) >= 16) {
@@ -650,29 +685,27 @@ template <class Derived, class Abi> struct generic_simd_impl {
                 return;
             }
         }
-        lhs =
-            detail::x86::blend(k, lhs, x86::broadcast(rhs, size_constant<sizeof(lhs)>()));
+        lhs = detail::x86::blend(k.d, lhs.d, builtin_broadcast<N>(rhs));
     }
 
     // masked_cassign {{{2
     template <template <typename> class Op, class T, class K, size_t N>
-    static Vc_INTRINSIC void masked_cassign(const Storage<K, N> k,
-                                                     Storage<T, N> &lhs,
-                                                     const detail::id<Storage<T, N>> rhs)
+    static Vc_INTRINSIC void masked_cassign(const Storage<K, N> k, Storage<T, N> &lhs,
+                                            const detail::id<Storage<T, N>> rhs)
     {
-        lhs = detail::x86::blend(k, lhs,
-                                 detail::data(Op<void>{}(make_simd(lhs), make_simd(rhs))));
+        lhs = detail::x86::blend(
+            k.d, lhs.d, detail::data(Op<void>{}(make_simd(lhs), make_simd(rhs))).d);
     }
 
     template <template <typename> class Op, class T, class K, size_t N>
-    static Vc_INTRINSIC void masked_cassign(const Storage<K, N> k,
-                                                     Storage<T, N> &lhs,
-                                                     const detail::id<T> rhs)
+    static Vc_INTRINSIC void masked_cassign(const Storage<K, N> k, Storage<T, N> &lhs,
+                                            const detail::id<T> rhs)
     {
         lhs = detail::x86::blend(
-            k, lhs,
-            detail::data(Op<void>{}(
-                make_simd(lhs), make_simd<T, N>(Derived::broadcast(rhs, size_tag<N>())))));
+            k.d, lhs.d,
+            detail::data(
+                Op<void>{}(make_simd(lhs), make_simd<T, N>(builtin_broadcast<N>(rhs))))
+                .d);
     }
 
     // masked_unary {{{2
@@ -882,13 +915,13 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     // masked_assign{{{2
     template <class T, size_t N>
     static Vc_INTRINSIC void masked_assign(Storage<T, N> k, Storage<T, N> &lhs,
-                                                    detail::id<Storage<T, N>> rhs)
+                                           detail::id<Storage<T, N>> rhs)
     {
-        lhs = detail::x86::blend(k, lhs, rhs);
+        lhs = detail::x86::blend(k.d, lhs.d, rhs.d);
     }
+
     template <class T, size_t N>
-    static Vc_INTRINSIC void masked_assign(Storage<T, N> k, Storage<T, N> &lhs,
-                                                    bool rhs)
+    static Vc_INTRINSIC void masked_assign(Storage<T, N> k, Storage<T, N> &lhs, bool rhs)
     {
         if (__builtin_constant_p(rhs)) {
             if (rhs == false) {

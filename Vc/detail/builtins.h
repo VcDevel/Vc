@@ -37,6 +37,13 @@ namespace detail
 template <class T, size_t Bytes, class = std::void_t<>> struct intrinsic_type;
 template <class T, size_t Size>
 using intrinsic_type_t = typename intrinsic_type<T, Size * sizeof(T)>::type;
+template <class T> using intrinsic_type2_t   = typename intrinsic_type<T, 2>::type;
+template <class T> using intrinsic_type4_t   = typename intrinsic_type<T, 4>::type;
+template <class T> using intrinsic_type8_t   = typename intrinsic_type<T, 8>::type;
+template <class T> using intrinsic_type16_t  = typename intrinsic_type<T, 16>::type;
+template <class T> using intrinsic_type32_t  = typename intrinsic_type<T, 32>::type;
+template <class T> using intrinsic_type64_t  = typename intrinsic_type<T, 64>::type;
+template <class T> using intrinsic_type128_t = typename intrinsic_type<T, 128>::type;
 
 // }}}
 // is_intrinsic{{{1
@@ -142,6 +149,41 @@ constexpr Vc_INTRINSIC builtin_type_t<T, N> builtin_broadcast(T x)
 }
 
 // }}}
+// auto_broadcast{{{
+template <class T> struct auto_broadcast {
+    const T x;
+    constexpr Vc_INTRINSIC auto_broadcast(T xx) : x(xx) {}
+    template <class V> constexpr Vc_INTRINSIC operator V() const
+    {
+        static_assert(is_builtin_vector_v<V>);
+        return reinterpret_cast<V>(builtin_broadcast<sizeof(V) / sizeof(T)>(x));
+    }
+};
+
+// }}}
+// generate_builtin{{{
+template <class T, size_t N, class G, size_t... I>
+constexpr Vc_INTRINSIC builtin_type_t<T, N> generate_builtin_impl(
+    G &&gen, std::index_sequence<I...>)
+{
+    return builtin_type_t<T, N>{static_cast<T>(gen(size_constant<I>()))...};
+}
+
+template <class V, class Traits = builtin_traits<V>, class G>
+constexpr Vc_INTRINSIC V generate_builtin(G &&gen)
+{
+    return generate_builtin_impl<typename Traits::value_type, Traits::width>(
+        std::forward<G>(gen), std::make_index_sequence<Traits::width>());
+}
+
+template <class T, size_t N, class G>
+constexpr Vc_INTRINSIC builtin_type_t<T, N> generate_builtin(G &&gen)
+{
+    return generate_builtin_impl<T, N>(std::forward<G>(gen),
+                                       std::make_index_sequence<N>());
+}
+
+// }}}
 // xor_{{{
 template <class T, class Traits = builtin_traits<T>>
 constexpr Vc_INTRINSIC T xor_(T a, typename Traits::type b) noexcept
@@ -179,6 +221,88 @@ template <class T, class Traits = builtin_traits<T>>
 constexpr Vc_INTRINSIC T not_(T a) noexcept
 {
     return reinterpret_cast<T>(~builtin_cast<unsigned>(a));
+}
+
+// }}}
+// concat{{{
+template <class T, class Trait = builtin_traits<T>,
+          class R = builtin_type_t<typename Trait::value_type, Trait::width * 2>>
+constexpr R concat(T a_, T b_) {
+#ifdef Vc_WORKAROUND_XXX_1
+    using W = std::conditional_t<std::is_floating_point_v<typename Trait::value_type>,
+                                 double, long long>;
+    constexpr int input_width = sizeof(T) / sizeof(W);
+    using TT = builtin_type_t<W, input_width>;
+    const TT a = reinterpret_cast<TT>(a_);
+    const TT b = reinterpret_cast<TT>(b_);
+    using U = builtin_type_t<W, sizeof(R) / sizeof(W)>;
+#else
+    constexpr int input_width = Trait::width;
+    const T &a = a_;
+    const T &b = b_;
+    using U = R;
+#endif
+    if constexpr(input_width == 2) {
+        return reinterpret_cast<R>(U{a[0], a[1], b[0], b[1]});
+    } else if constexpr (input_width == 4) {
+        return reinterpret_cast<R>(U{a[0], a[1], a[2], a[3], b[0], b[1], b[2], b[3]});
+    } else if constexpr (input_width == 8) {
+        return reinterpret_cast<R>(U{a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], b[0],
+                                     b[1], b[2], b[3], b[4], b[5], b[6], b[7]});
+    } else if constexpr (input_width == 16) {
+        return reinterpret_cast<R>(
+            U{a[0],  a[1],  a[2],  a[3],  a[4],  a[5],  a[6],  a[7],  a[8],  a[9], a[10],
+              a[11], a[12], a[13], a[14], a[15], b[0],  b[1],  b[2],  b[3],  b[4], b[5],
+              b[6],  b[7],  b[8],  b[9],  b[10], b[11], b[12], b[13], b[14], b[15]});
+    } else if constexpr (input_width == 32) {
+        return reinterpret_cast<R>(
+            U{a[0],  a[1],  a[2],  a[3],  a[4],  a[5],  a[6],  a[7],  a[8],  a[9],  a[10],
+              a[11], a[12], a[13], a[14], a[15], a[16], a[17], a[18], a[19], a[20], a[21],
+              a[22], a[23], a[24], a[25], a[26], a[27], a[28], a[29], a[30], a[31], b[0],
+              b[1],  b[2],  b[3],  b[4],  b[5],  b[6],  b[7],  b[8],  b[9],  b[10], b[11],
+              b[12], b[13], b[14], b[15], b[16], b[17], b[18], b[19], b[20], b[21], b[22],
+              b[23], b[24], b[25], b[26], b[27], b[28], b[29], b[30], b[31]});
+    }
+}
+
+// }}}
+// extract<N, By>{{{
+template <int Offset, int SplitBy, class T, class Trait = builtin_traits<T>,
+          class R = builtin_type_t<typename Trait::value_type, Trait::width / SplitBy>>
+constexpr Vc_INTRINSIC R extract(T x_)
+{
+#ifdef Vc_WORKAROUND_XXX_1
+    using W = std::conditional_t<std::is_floating_point_v<typename Trait::value_type>,
+                                 double, long long>;
+    constexpr int return_width = sizeof(R) / sizeof(W);
+    using U = builtin_type_t<W, return_width>;
+    const auto x = reinterpret_cast<builtin_type_t<W, sizeof(T) / sizeof(W)>>(x_);
+#else
+    constexpr int return_width = Trait::width / SplitBy;
+    using U = R;
+    const builtin_type_t<typename Traits::value_type, Trait::width> &x = x_;
+#endif
+    constexpr int O = Offset * return_width;
+    if constexpr (return_width == 2) {
+        return reinterpret_cast<R>(U{x[O + 0], x[O + 1]});
+    } else if constexpr (return_width == 4) {
+        return reinterpret_cast<R>(U{x[O + 0], x[O + 1], x[O + 2], x[O + 3]});
+    } else if constexpr (return_width == 8) {
+        return reinterpret_cast<R>(U{x[O + 0], x[O + 1], x[O + 2], x[O + 3], x[O + 4],
+                                     x[O + 5], x[O + 6], x[O + 7]});
+    } else if constexpr (return_width == 16) {
+        return reinterpret_cast<R>(U{x[O + 0], x[O + 1], x[O + 2], x[O + 3], x[O + 4],
+                                     x[O + 5], x[O + 6], x[O + 7], x[O + 8], x[O + 9],
+                                     x[O + 10], x[O + 11], x[O + 12], x[O + 13],
+                                     x[O + 14], x[O + 15]});
+    } else if constexpr (return_width == 32) {
+        return reinterpret_cast<R>(
+            U{x[O + 0],  x[O + 1],  x[O + 2],  x[O + 3],  x[O + 4],  x[O + 5],  x[O + 6],
+              x[O + 7],  x[O + 8],  x[O + 9],  x[O + 10], x[O + 11], x[O + 12], x[O + 13],
+              x[O + 14], x[O + 15], x[O + 16], x[O + 17], x[O + 18], x[O + 19], x[O + 20],
+              x[O + 21], x[O + 22], x[O + 23], x[O + 24], x[O + 25], x[O + 26], x[O + 27],
+              x[O + 28], x[O + 29], x[O + 30], x[O + 31]});
+    }
 }
 
 // }}}

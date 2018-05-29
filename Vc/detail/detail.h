@@ -369,11 +369,11 @@ public:
 };
 
 // data(simd/simd_mask) {{{1
-template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::simd<T, A> &x) Vc_INTRINSIC_R;
-template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::simd<T, A> & x) Vc_INTRINSIC_R;
+template <class T, class A> constexpr Vc_INTRINSIC_L const auto &data(const Vc::simd<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> constexpr Vc_INTRINSIC_L auto &data(Vc::simd<T, A> & x) Vc_INTRINSIC_R;
 
-template <class T, class A> Vc_INTRINSIC_L const auto &data(const Vc::simd_mask<T, A> &x) Vc_INTRINSIC_R;
-template <class T, class A> Vc_INTRINSIC_L auto &data(Vc::simd_mask<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> constexpr Vc_INTRINSIC_L const auto &data(const Vc::simd_mask<T, A> &x) Vc_INTRINSIC_R;
+template <class T, class A> constexpr Vc_INTRINSIC_L auto &data(Vc::simd_mask<T, A> &x) Vc_INTRINSIC_R;
 
 // simd_converter {{{1
 template <class FromT, class FromA, class ToT, class ToA> struct simd_converter;
@@ -383,13 +383,13 @@ template <class T, class A> struct simd_converter<T, A, T, A> {
 
 // to_value_type_or_member_type {{{1
 template <class V>
-Vc_INTRINSIC auto to_value_type_or_member_type(const V &x)->decltype(detail::data(x))
+constexpr Vc_INTRINSIC auto to_value_type_or_member_type(const V &x)->decltype(detail::data(x))
 {
     return detail::data(x);
 }
 
 template <class V>
-Vc_INTRINSIC const typename V::value_type &to_value_type_or_member_type(
+constexpr Vc_INTRINSIC const typename V::value_type &to_value_type_or_member_type(
     const typename V::value_type &x)
 {
     return x;
@@ -498,6 +498,44 @@ template <class T, class F> void bit_iteration(T k_, F &&f)
 }
 
 //}}}1
+// simd_tuple {{{
+// why not std::tuple?
+// 1. std::tuple gives no guarantee about the storage order, but I require storage
+//    equivalent to std::array<T, N>
+// 2. much less code to instantiate: I require a very small subset of std::tuple
+//    functionality
+// 3. direct access to the element type (first template argument)
+// 4. enforces equal element type, only different Abi types are allowed
+
+template <class T, class... Abis> struct simd_tuple;
+
+template <size_t N, class T, class... Abis>
+constexpr auto get_simd(const simd_tuple<T, Abis...> &);
+template <size_t K, class T>
+constexpr inline const auto &tuple_pop_front(size_constant<K>, const T &);
+template <size_t K, class T>
+constexpr inline auto &tuple_pop_front(size_constant<K>, T &);
+template <size_t K, class T, class A0, class... As>
+constexpr auto tuple_front(const simd_tuple<T, A0, As...> &);
+
+//}}}
+// is_homogeneous_tuple (all ABI tags are equal) {{{
+template <class T> struct is_homogeneous_tuple;
+template <class T>
+inline constexpr bool is_homogeneous_tuple_v = is_homogeneous_tuple<T>::value;
+
+// only 1 member => homogeneous
+template <class T, class Abi>
+struct is_homogeneous_tuple<detail::simd_tuple<T, Abi>> : std::true_type {
+};
+
+// more than 1 member
+template <class T, class A0, class... Abis>
+struct is_homogeneous_tuple<detail::simd_tuple<T, A0, Abis...>> {
+    static constexpr bool value = (std::is_same_v<A0, Abis> && ...);
+};
+// }}}
+
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 #endif  // VC_SIMD_DETAIL_H_

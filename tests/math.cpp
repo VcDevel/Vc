@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-//#define Vc_DEBUG logarithm
+//#define Vc_DEBUG frexp
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
 #include <Vc/simd>

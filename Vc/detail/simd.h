@@ -169,7 +169,7 @@ public:
 
     // implicit broadcast constructor
     template <class U, class = detail::value_preserving_or_int<U, value_type>>
-    Vc_ALWAYS_INLINE simd(U &&x)
+    constexpr Vc_ALWAYS_INLINE simd(U &&x)
         : d(impl::broadcast(static_cast<value_type>(std::forward<U>(x)), size_tag))
     {
     }
@@ -227,7 +227,7 @@ public:
 
     // generator constructor
     template <class F>
-    explicit Vc_ALWAYS_INLINE simd(
+    explicit constexpr Vc_ALWAYS_INLINE simd(
         F &&gen,
         detail::value_preserving_or_int<
             decltype(declval<F>()(declval<detail::size_constant<0> &>())), value_type> * =
@@ -246,13 +246,7 @@ public:
         return simd(mem, vector_aligned);
     }
     static Vc_ALWAYS_INLINE simd seq() {
-#ifdef Vc_ICC
-        simd r;
-        detail::execute_n_times<size()>([&](auto i_) { r[i_] = i_; });
-        return r;
-#else   // Vc_ICC
         return seq(std::make_index_sequence<size()>());
-#endif  // Vc_ICC
     }
 #endif  // Vc_EXPERIMENTAL
 
@@ -265,21 +259,22 @@ public:
 
     // loads [simd.load]
     template <class U, class Flags>
-    Vc_ALWAYS_INLINE void copy_from(const detail::arithmetic<U> *mem, Flags f)
+    Vc_ALWAYS_INLINE void copy_from(const detail::vectorizable<U> *mem, Flags f)
     {
         d = static_cast<decltype(d)>(impl::load(mem, f, type_tag));
     }
 
     // stores [simd.store]
     template <class U, class Flags>
-    Vc_ALWAYS_INLINE void copy_to(detail::arithmetic<U> *mem, Flags f) const
+    Vc_ALWAYS_INLINE void copy_to(detail::vectorizable<U> *mem, Flags f) const
     {
         impl::store(d, mem, f, type_tag);
     }
 
     // scalar access
-    Vc_ALWAYS_INLINE reference operator[](size_type i) { return {d, int(i)}; }
-    Vc_ALWAYS_INLINE value_type operator[](size_type i) const {
+    constexpr Vc_ALWAYS_INLINE reference operator[](size_type i) { return {d, int(i)}; }
+    constexpr Vc_ALWAYS_INLINE value_type operator[](size_type i) const
+    {
         if constexpr (is_scalar()) {
             Vc_ASSERT(i == 0);
             detail::unused(i);
@@ -375,26 +370,22 @@ private:
     {
         return {detail::private_init, k};
     }
-#ifdef Vc_MSVC
-    // Work around "warning C4396: the inline specifier cannot be used when a friend
-    // declaration refers to a specialization of a function template"
-    template <class U, class A> friend const auto &detail::data(const simd<U, A> &);
-    template <class U, class A> friend auto &detail::data(simd<U, A> &);
-#else
     friend const auto &detail::data<value_type, abi_type>(const simd &);
     friend auto &detail::data<value_type, abi_type>(simd &);
-#endif
     alignas(traits::simd_member_alignment) member_type d;
 };
 
 // detail::data {{{
 namespace detail
 {
-template <class T, class A> Vc_INTRINSIC const auto &data(const simd<T, A> &x)
+template <class T, class A> constexpr Vc_INTRINSIC const auto &data(const simd<T, A> &x)
 {
     return x.d;
 }
-template <class T, class A> Vc_INTRINSIC auto &data(simd<T, A> &x) { return x.d; }
+template <class T, class A> constexpr Vc_INTRINSIC auto &data(simd<T, A> &x)
+{
+    return x.d;
+}
 }  // namespace detail }}}
 
 // float_bitwise_operators {{{

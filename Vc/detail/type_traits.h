@@ -49,40 +49,9 @@ using char32 = char32_t;
 template <class... Ts> using void_t = void;
 //}}}
 
-#ifdef Vc_CXX17
 template <class... Ts> using all = std::conjunction<Ts...>;
 template <class... Ts> using any = std::disjunction<Ts...>;
 using std::negation;
-
-#else   // Vc_CXX17
-
-// all
-template <class... Ts>
-struct all : std::true_type {};
-
-template <class A> struct all<A> : public A {};
-
-template <class A, class... Ts>
-struct all<A, Ts...>
-    : public std::conditional<A::value, all<Ts...>, A>::type {
-};
-
-// any
-template <class... Ts>
-struct any : std::false_type {};
-
-template <class A> struct any<A> : public A {};
-
-template <class A, class... Ts>
-struct any<A, Ts...>
-    : public std::conditional<A::value, A, any<Ts...>>::type {
-};
-
-// negation
-template <class T> struct negation : public std::integral_constant<bool, !T::value> {
-};
-
-#endif  // Vc_CXX17
 
 // imports
 using std::is_arithmetic;
@@ -100,21 +69,7 @@ template <class T, T a> struct is_equal<T, a, a> : public std::true_type {
 template <class T, T a, T b> inline constexpr bool is_equal_v = is_equal<T, a, b>::value;
 
 // none
-template <class... Ts> struct none : public negation<any<Ts...>> {};
-
-// is_arithmetic_not_bool
-template <class T> struct is_arithmetic_not_bool : public std::is_arithmetic<T> {
-};
-template <> struct is_arithmetic_not_bool<bool> : public std::false_type {
-};
-
-// is_possible_loadstore_conversion
-template <class Ptr, class ValueType>
-struct is_possible_loadstore_conversion
-    : all<is_arithmetic_not_bool<Ptr>, is_arithmetic_not_bool<ValueType>> {
-};
-template <> struct is_possible_loadstore_conversion<bool, bool> : std::true_type {
-};
+template <class... Ts> struct none : public negation<std::disjunction<Ts...>> {};
 
 // sizeof
 template <class T, std::size_t Expected>
@@ -124,7 +79,7 @@ struct has_expected_sizeof : public std::integral_constant<bool, sizeof(T) == Ex
 // value aliases
 template <class... Ts>
 inline constexpr bool conjunction_v = all<Ts...>::value;
-template <class... Ts> inline constexpr bool disjunction_v = any<Ts...>::value;
+template <class... Ts> inline constexpr bool disjunction_v = std::disjunction<Ts...>::value;
 template <class T> inline constexpr bool negation_v = negation<T>::value;
 template <class... Ts> inline constexpr bool none_v = none<Ts...>::value;
 template <class T, std::size_t Expected>
@@ -140,6 +95,16 @@ using value_type_or_identity = decltype(value_type_or_identity_impl<T>(int()));
 template <class T> struct is_vectorizable : public std::is_arithmetic<T> {};
 template <> struct is_vectorizable<bool> : public std::false_type {};
 template <class T> inline constexpr bool is_vectorizable_v = is_vectorizable<T>::value;
+
+// }}}
+// is_possible_loadstore_conversion {{{
+template <class Ptr, class ValueType>
+struct is_possible_loadstore_conversion
+    : all<is_vectorizable<Ptr>, is_vectorizable<ValueType>> {
+};
+template <> struct is_possible_loadstore_conversion<bool, bool> : std::true_type {
+};
+
 // }}}
 // is_less_than {{{
 template <int A, int B> struct is_less_than : public std::integral_constant<bool, (A < B)> {
@@ -205,6 +170,44 @@ template <int N> struct is_fixed_size_abi<simd_abi::fixed_size<N>> : std::true_t
 };
 
 template <class T> inline constexpr bool is_fixed_size_abi_v = is_fixed_size_abi<T>::value;
+
+// }}}
+// is_callable{{{
+/*
+template <class F, class... Args>
+auto is_callable_dispatch(int, F &&fun, Args &&... args)
+    -> std::conditional_t<true, std::true_type,
+                          decltype(fun(std::forward<Args>(args)...))>;
+template <class F, class... Args>
+std::false_type is_callable_dispatch(float, F &&, Args &&...);
+
+template <class... Args, class F> constexpr bool is_callable(F &&)
+{
+    return decltype(is_callable_dispatch(int(), std::declval<F>(), std::declval<Args>()...))::value;
+}
+*/
+
+template <class F, class = std::void_t<>, class... Args>
+struct is_callable : std::false_type {
+};
+
+template <class F, class... Args>
+struct is_callable<F, std::void_t<decltype(std::declval<F>()(std::declval<Args>()...))>,
+                   Args...> : std::true_type {
+};
+
+template <class F, class... Args>
+inline constexpr bool is_callable_v = is_callable<F, void, Args...>::value;
+
+#define Vc_TEST_LAMBDA(...)                                                              \
+    decltype(                                                                            \
+        [](auto &&... arg_s_) -> decltype(fun_(std::declval<decltype(arg_s_)>()...)) * { \
+            return nullptr;                                                              \
+        })
+
+#define Vc_IS_CALLABLE(fun_, ...)                                                        \
+    decltype(Vc::detail::is_callable_dispatch(int(), Vc_TEST_LAMBDA(fun_),               \
+                                              __VA_ARGS__))::value
 
 // }}}
 // constexpr feature detection{{{

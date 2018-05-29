@@ -110,7 +110,7 @@ template <class U, class T, class UU> constexpr U avoid_ub2(UU x)
 
 // conversion test input data //{{{1
 template <class U, class T>
-static const std::array<U, 51> cvt_input_data = {{
+static const std::array<U, 53> cvt_input_data = {{
     avoid_ub<U, T>(0xc0000080U),
     avoid_ub<U, T>(0xc0000081U),
     avoid_ub<U, T>(0xc0000082U),
@@ -137,6 +137,8 @@ static const std::array<U, 51> cvt_input_data = {{
     avoid_ub<U, T>(-0x101111111LL),
     avoid_ub<U, T>(std::numeric_limits<U>::min()),
     avoid_ub<U, T>(std::numeric_limits<U>::min() + 1),
+    avoid_ub<U, T>(std::numeric_limits<U>::lowest()),
+    avoid_ub<U, T>(std::numeric_limits<U>::lowest() + 1),
     avoid_ub<U, T>(-1),
     avoid_ub<U, T>(-10),
     avoid_ub<U, T>(-100),
