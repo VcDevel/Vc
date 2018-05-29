@@ -29,9 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_SIMD_AARCH_H_
 
 #include <limits>
-#include "../macros.h"
-#include "../detail.h"
-#include "../const.h"
 #include <arm_neon.h>
 
 Vc_VERSIONED_NAMESPACE_BEGIN

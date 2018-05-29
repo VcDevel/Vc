@@ -28,9 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DETAIL_X86_TYPES_H_
 #define VC_DETAIL_X86_TYPES_H_
 
-#include "../macros.h"
-#include "../builtins.h"
-
 #include <x86intrin.h>
 #include <climits>
 
