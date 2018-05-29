@@ -10,6 +10,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 set(disabled_targets)
 
+set(CMAKE_REQUIRED_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}")
 include (VcMacros)
 include (AddTargetProperty)
 include (OptimizeForArchitecture)
