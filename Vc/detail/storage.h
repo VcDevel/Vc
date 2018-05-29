@@ -31,6 +31,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iosfwd>
 
 #include "macros.h"
+#include "builtins.h"
+#include "detail.h"
+#include "const.h"
 #ifdef Vc_HAVE_NEON_ABI
 #include "aarch/intrinsics.h"
 #elif defined Vc_HAVE_SSE_ABI
