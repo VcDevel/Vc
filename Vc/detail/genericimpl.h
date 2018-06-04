@@ -58,6 +58,15 @@ template <class T, size_t N> constexpr bool is_avx512_pd()
     return have_avx512f && std::is_same_v<T, double> && N == 8;
 }
 
+template <class T, size_t N> constexpr bool is_neon_ps()
+{
+    return have_neon && std::is_same_v<T, float> && N == 4;
+}
+template <class T, size_t N> constexpr bool is_neon_pd()
+{
+    return have_neon && std::is_same_v<T, double> && N == 2;
+}
+
 // simd impl {{{1
 template <class Derived, class Abi> struct generic_simd_impl {
     // member types {{{2
@@ -722,11 +731,84 @@ template <class Derived, class Abi> struct generic_simd_impl {
 };
 
 // simd_mask impl {{{1
-template <class abi, template <class> class mask_member_type> struct generic_mask_impl {
+template <class Abi> struct generic_mask_impl {
     // member types {{{2
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
-    template <class T> using simd_mask = Vc::simd_mask<T, abi>;
+    template <class T> using simd_mask = Vc::simd_mask<T, Abi>;
+    template <class T>
+    using simd_member_type = typename Abi::template traits<T>::simd_member_type;
+    template <class T>
+    using mask_member_type = typename Abi::template traits<T>::mask_member_type;
+    template <class T>
+    using int_builtin_type =
+        builtin_type_t<detail::int_for_sizeof_t<T>, simd_member_type<T>::width>;
+
+    // broadcast {{{2
+    template <class T>
+    static Vc_INTRINSIC mask_member_type<T> broadcast(bool x, type_tag<T>) noexcept
+    {
+        return to_storage(x ? ~int_builtin_type<T>() : int_builtin_type<T>());
+    }
+
+    // load {{{2
+    template <class F, size_t N>
+    static Vc_INTRINSIC auto load(const bool *mem, F f, size_tag<N>) noexcept
+    {
+        if constexpr (std::is_same_v<Abi, simd_abi::__sse>) {
+            if constexpr (N == 2 && have_sse2) {
+                return _mm_set_epi32(-int(mem[1]), -int(mem[1]), -int(mem[0]),
+                                     -int(mem[0]));
+            } else if constexpr (N == 4 && have_sse2) {
+                    __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem));
+                    k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
+                    return intrin_cast<__m128>(_mm_unpacklo_epi16(k, k));
+            } else if constexpr (N == 4 && have_mmx) {
+                __m128 k =
+                    _mm_cvtpi8_ps(_mm_cvtsi32_si64(*reinterpret_cast<const int *>(mem)));
+                _mm_empty();
+                return _mm_cmpgt_ps(k, __m128());
+            } else if constexpr (N == 8 && have_sse2) {
+                const auto k = make_builtin<long long>(
+                    *reinterpret_cast<const may_alias<long long> *>(mem), 0);
+                if constexpr (have_sse2) {
+                    return to_intrin(builtin_cast<short>(_mm_unpacklo_epi8(k, k)) != 0);
+                }
+            } else if constexpr (N == 16 && have_sse2) {
+                return _mm_cmpgt_epi8(x86::load16(mem, f), __m128i());
+            } else {
+                assert_unreachable<F>();
+            }
+        } else if constexpr (std::is_same_v<Abi, simd_abi::__avx>) {
+            if constexpr (N == 4 && have_avx) {
+                int bool4;
+                if constexpr (detail::is_aligned_v<F, 4>) {
+                    bool4=*reinterpret_cast<const may_alias<int> *>(mem);
+                } else {
+                    std::memcpy(&bool4, mem, 4);
+                }
+                const auto k =
+                    to_intrin((builtin_broadcast<4>(bool4) &
+                               make_builtin<int>(0x1, 0x100, 0x10000, 0x1000000)) != 0);
+                return concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k));
+            } else if constexpr (N == 8 && have_avx) {
+                auto k = x86::load8(mem, f);
+                k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), __m128i());
+                return concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k));
+            } else if constexpr (N == 16 && have_avx) {
+                const auto k = _mm_cmpgt_epi8(x86::load16(mem, f), __m128i());
+                return concat(_mm_unpacklo_epi8(k, k), _mm_unpackhi_epi8(k, k));
+            } else if constexpr (N == 32 && have_avx2) {
+                return _mm256_cmpgt_epi8(x86::load32(mem, f), __m256i());
+            } else {
+                assert_unreachable<F>();
+            }
+        } else if constexpr (std::is_same_v<Abi, simd_abi::__avx512>) {
+        } else {
+            assert_unreachable<F>();
+        }
+        detail::unused(f); // not true, see PR85827
+    }
 
     // masked load (AVX512 has its own overloads) {{{2
     template <class T, size_t N, class F>
@@ -784,16 +866,95 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
         }
     }
 
+    // store {{{2
+    template <class F> static Vc_INTRINSIC void store4(int x, bool *mem, F)
+    {
+        if constexpr (detail::is_aligned_v<F, 4>) {
+            *reinterpret_cast<may_alias<int> *>(mem) = x;
+        } else {
+            std::memcpy(mem, &x, 4);
+        }
+    }
+    template <class T, class F, size_t N>
+    static Vc_INTRINSIC void store(Storage<T, N> v, bool *mem, F f, size_tag<N>) noexcept
+    {
+        if constexpr (sizeof(v) == 16) {
+            if constexpr (N == 2 && have_sse2) {
+                const auto k = builtin_cast<int>(v.d);
+                mem[0] = -k[1];
+                mem[1] = -k[3];
+            } else if constexpr (N == 4 && have_sse2) {
+                const unsigned bool4 =
+                    builtin_cast<uint>(_mm_packs_epi16(
+                        _mm_packs_epi32(to_m128i(v), __m128i()), __m128i()))[0] &
+                    0x01010101u;
+                std::memcpy(mem, &bool4, 4);
+            } else if constexpr (std::is_same_v<T, float> && have_mmx) {
+                const __m128 k(v);
+                const __m64 kk = _mm_cvtps_pi8(and_(k, detail::one16(float())));
+                builtin_store<4>(kk, mem, f);
+                _mm_empty();
+            } else if constexpr (N == 8 && have_sse2) {
+                builtin_store<8>(
+                    _mm_packs_epi16(to_intrin(builtin_cast<ushort>(v.d) >> 15),
+                                    __m128i()),
+                    mem, f);
+            } else if constexpr (N == 16 && have_sse2) {
+                builtin_store(v.d & 1, mem, f);
+            } else {
+                assert_unreachable<T>();
+            }
+        } else if constexpr (sizeof(v) == 32) {
+            if constexpr (N == 4 && have_avx) {
+                auto k = to_m256i(v);
+                int bool4;
+                if constexpr (have_avx2) {
+                    bool4 = _mm256_movemask_epi8(k);
+                } else {
+                    bool4 = (_mm_movemask_epi8(lo128(k)) |
+                             (_mm_movemask_epi8(hi128(k)) << 16));
+                }
+                bool4 &= 0x01010101;
+                std::memcpy(mem, &bool4, 4);
+            } else if constexpr (N == 8 && have_avx) {
+                const auto k = to_m256i(v);
+                const auto k2 = _mm_srli_epi16(_mm_packs_epi16(lo128(k), hi128(k)), 15);
+                const auto k3 = _mm_packs_epi16(k2, __m128i());
+                builtin_store<8>(k3, mem, f);
+            } else if constexpr (N == 16 && have_avx2) {
+                const auto x = _mm256_srli_epi16(v, 15);
+                const auto bools = _mm_packs_epi16(lo128(x), hi128(x));
+                builtin_store<16>(bools, mem, f);
+            } else if constexpr (N == 16 && have_avx) {
+                const auto bools = 1 & builtin_cast<uchar>(_mm_packs_epi16(
+                                           lo128(v.intrin()), hi128(v.intrin())));
+                builtin_store<16>(bools, mem, f);
+            } else if constexpr (N == 32 && have_avx) {
+                builtin_store<32>(1 & v.d, mem, f);
+            } else {
+                assert_unreachable<T>();
+            }
+        //} else if constexpr (sizeof(v) == 64) {
+        } else {
+            assert_unreachable<T>();
+        }
+        detail::unused(f); // not true, see PR85827
+    }
+
     // masked store {{{2
     template <class T, size_t N, class F>
     static inline void masked_store(const Storage<T, N> v, bool *mem, F,
                                              const Storage<T, N> k) noexcept
     {
-        detail::execute_n_times<N>([&](auto i) {
-            if (k[i]) {
-                mem[i] = v[i];
-            }
-        });
+        detail::bit_iteration(mask_to_int<N>(k), [&](auto i) { mem[i] = v[i]; });
+    }
+
+    // negation {{{2
+    template <class T, size_t N, class SizeTag>
+    static Vc_INTRINSIC mask_member_type<T> negate(const Storage<T, N> &x,
+                                                   SizeTag) noexcept
+    {
+        return to_storage(~storage_bitcast<uint>(x).d);
     }
 
     // to_bitset {{{2
@@ -829,12 +990,61 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
         return to_storage(bits);
 #else  // Vc_HAVE_AVX512_ABI
         using U = std::make_unsigned_t<detail::int_for_sizeof_t<T>>;
-        using V = simd<U, abi>;
+        using V = simd<U, Abi>;
         constexpr size_t bits_per_element = sizeof(U) * CHAR_BIT;
-        if (bits_per_element >= N) {
-            V tmp(static_cast<U>(bits.to_ullong()));                  // broadcast
-            tmp &= V([](auto i) { return static_cast<U>(1ull << i); });  // mask bit index
-            return storage_bitcast<T>(detail::data(tmp != V()));
+        if constexpr (!have_avx2 && have_avx && sizeof(V) == 32) {
+            if constexpr (N == 8) {
+                return _mm256_cmp_ps(
+                    _mm256_and_ps(_mm256_castsi256_ps(_mm256_set1_epi32(bits.to_ulong())),
+                                  _mm256_castsi256_ps(_mm256_setr_epi32(
+                                      0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80))),
+                    _mm256_setzero_ps(), _CMP_NEQ_UQ);
+            } else if constexpr (N == 4) {
+                return _mm256_cmp_pd(
+                    _mm256_and_pd(
+                        _mm256_castsi256_pd(_mm256_set1_epi64x(bits.to_ulong())),
+                        _mm256_castsi256_pd(_mm256_setr_epi64x(0x01, 0x02, 0x04, 0x08))),
+                    _mm256_setzero_pd(), _CMP_NEQ_UQ);
+            } else {
+                assert_unreachable<T>();
+            }
+        } else if constexpr (bits_per_element >= N) {
+            constexpr auto bitmask = generate_builtin<builtin_type_t<U, N>>(
+                [](auto i) -> U { return 1ull << i; });
+            return builtin_cast<T>(
+                (builtin_broadcast<N, U>(bits.to_ullong()) & bitmask) != 0);
+        } else if constexpr (sizeof(V) == 16 && sizeof(T) == 1 && have_ssse3) {
+            const auto bitmask = to_intrin(make_builtin<uchar>(
+                1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128));
+            return to_storage(
+                builtin_cast<T>(
+                    _mm_shuffle_epi8(
+                        to_intrin(builtin_type_t<ullong, 2>{bits.to_ullong()}),
+                        _mm_setr_epi8(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1)) &
+                    bitmask) != 0);
+        } else if constexpr (sizeof(V) == 32 && sizeof(T) == 1 && have_avx2) {
+            const auto bitmask =
+                _mm256_broadcastsi128_si256(to_intrin(make_builtin<uchar>(
+                    1, 2, 4, 8, 16, 32, 64, 128, 1, 2, 4, 8, 16, 32, 64, 128)));
+            return to_storage(
+                builtin_cast<T>(
+                    _mm256_shuffle_epi8(_mm256_broadcastsi128_si256(to_intrin(
+                                            builtin_type_t<ullong, 2>{bits.to_ullong()})),
+                                        _mm256_setr_epi8(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
+                                                         1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
+                                                         2, 2, 3, 3, 3, 3, 3, 3, 3, 3)) &
+                    bitmask) != 0);
+            /* TODO:
+            } else if constexpr (sizeof(V) == 32 && sizeof(T) == 2 && have_avx2) {
+                constexpr auto bitmask = _mm256_broadcastsi128_si256(
+                    _mm_setr_epi8(0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x100,
+                                  0x200, 0x400, 0x800, 0x1000, 0x2000, 0x4000, 0x8000));
+                return builtin_cast<T>(
+                           _mm256_shuffle_epi8(
+                               _mm256_broadcastsi128_si256(__m128i{bits.to_ullong()}),
+                               _mm_setr_epi8(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+            1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3)) & bitmask) != 0;
+            */
         } else {
             V tmp([&](auto i) {
                 return static_cast<U>(bits.to_ullong() >>
@@ -905,9 +1115,9 @@ template <class abi, template <class> class mask_member_type> struct generic_mas
     }
 
     // smart_reference access {{{2
-    template <class T> static void set(mask_member_type<T> &k, int i, bool x) noexcept
+    template <class T, size_t N> static void set(Storage<T, N> &k, int i, bool x) noexcept
     {
-        using int_t = builtin_type_t<int_for_sizeof_t<T>, mask_member_type<T>::width>;
+        using int_t = builtin_type_t<int_for_sizeof_t<T>, N>;
         auto tmp = reinterpret_cast<int_t>(k.d);
         tmp[i] = -x;
         k.d = auto_cast(tmp);

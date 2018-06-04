@@ -323,6 +323,12 @@ constexpr inline bool have_avx512bw = 0
     ;
 constexpr inline bool have_avx512dq_vl = have_avx512dq && have_avx512vl;
 constexpr inline bool have_avx512bw_vl = have_avx512bw && have_avx512vl;
+
+constexpr inline bool have_neon = 0
+#ifdef Vc_HAVE_NEON
+                                  + 1
+#endif
+    ;
 // }}}
 
 }  // namespace detail

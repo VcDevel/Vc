@@ -1614,469 +1614,179 @@ Vc_INTRINSIC __mmask8 cmpunord(builtin_type64_t<double> x, builtin_type64_t<doub
 }
 #endif  // Vc_HAVE_AVX512F
 
-// loads{{{1
+// }}}
+// loads{{{
 /**
  * \internal
  * Abstraction for simplifying load operations in the SSE/AVX/AVX512 implementations
  *
  * \note The number in the suffix signifies the number of Bytes
  */
-#ifdef Vc_HAVE_SSE2
-template <class T> Vc_INTRINSIC __m128i load2(const T *mem, when_aligned<2>)
+template <class F> Vc_INTRINSIC auto load2(const float *mem, F f)
 {
-    assertCorrectAlignment<unsigned short>(mem);
-    static_assert(sizeof(T) == 1, "expected argument with sizeof == 1");
-    return _mm_cvtsi32_si128(*reinterpret_cast<const unsigned short *>(mem));
+    return detail::builtin_load<float, 4, 2>(mem, f);
 }
-template <class T> Vc_INTRINSIC __m128i load2(const T *mem, when_unaligned<2>)
+template <class F> Vc_INTRINSIC auto load2(const double *mem, F f)
 {
-    static_assert(sizeof(T) == 1, "expected argument with sizeof == 1");
-    short tmp;
-    std::memcpy(&tmp, mem, 2);
-    return _mm_cvtsi32_si128(tmp);
+    return detail::builtin_load<double, 2, 2>(mem, f);
 }
-#endif  // Vc_HAVE_SSE2
-
-template <class F> Vc_INTRINSIC __m128 load4(const float *mem, F)
+template <class F> Vc_INTRINSIC auto load2(const void *mem, F f)
 {
-    assertCorrectAlignment<float>(mem);
-    return _mm_load_ss(mem);
+    return detail::builtin_load<long long, 2, 2>(mem, f);
 }
 
-#ifdef Vc_HAVE_SSE2
-template <class F> Vc_INTRINSIC __m128i load4(const int *mem, F)
+template <class F> Vc_INTRINSIC auto load4(const float *mem, F f)
 {
-    assertCorrectAlignment<int>(mem);
-    return _mm_cvtsi32_si128(mem[0]);
+    return detail::builtin_load<float, 4, 4>(mem, f);
 }
-template <class F> Vc_INTRINSIC __m128i load4(const unsigned int *mem, F)
+template <class F> Vc_INTRINSIC auto load4(const double *mem, F f)
 {
-    assertCorrectAlignment<unsigned int>(mem);
-    return _mm_cvtsi32_si128(mem[0]);
+    return detail::builtin_load<double, 2, 4>(mem, f);
 }
-template <class T, class F> Vc_INTRINSIC __m128i load4(const T *mem, F)
+template <class F> Vc_INTRINSIC auto load4(const void *mem, F f)
 {
-    static_assert(sizeof(T) <= 2, "expected argument with sizeof <= 2");
-    int tmp;
-    std::memcpy(&tmp, mem, 4);
-    return _mm_cvtsi32_si128(tmp);
-}
-#endif  // Vc_HAVE_SSE2
-
-template <class F> Vc_INTRINSIC __m128 load8(const float *mem, F)
-{
-    assertCorrectAlignment<float>(mem);
-    if constexpr (have_sse2 && is_aligned_v<F, alignof(double)>) {
-        return _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const double *>(mem)));
-    } else {
-        return _mm_loadl_pi(_mm_undefined_ps(), reinterpret_cast<const __m64 *>(mem));
-    }
+    return detail::builtin_load<long long, 2, 4>(mem, f);
 }
 
-#ifdef Vc_HAVE_SSE2
-template <class F> Vc_INTRINSIC __m128d load8(const double *mem, F)
+template <class F> Vc_INTRINSIC auto load8(const float *mem, F f)
 {
-    assertCorrectAlignment<double>(mem);
-    return _mm_load_sd(mem);
+    return detail::builtin_load<float, 4, 8>(mem, f);
 }
-template <class T, class F> Vc_INTRINSIC __m128i load8(const T *mem, F)
+template <class F> Vc_INTRINSIC auto load8(const double *mem, F f)
 {
-    assertCorrectAlignment<T>(mem);
-    static_assert(std::is_integral<T>::value, "load8<T> is only intended for integral T");
-    return _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
+    return detail::builtin_load<double, 2, 8>(mem, f);
 }
-#endif  // Vc_HAVE_SSE2
-
-#ifdef Vc_HAVE_SSE
-Vc_INTRINSIC __m128 load16(const float *mem, when_aligned<16>)
+template <class F> Vc_INTRINSIC auto load8(const void *mem, F f)
 {
-    assertCorrectAlignment<__m128>(mem);
-    return _mm_load_ps(mem);
-}
-Vc_INTRINSIC __m128 load16(const float *mem, when_unaligned<16>)
-{
-    return _mm_loadu_ps(mem);
-}
-#endif  // Vc_HAVE_SSE
-
-#ifdef Vc_HAVE_SSE2
-Vc_INTRINSIC __m128d load16(const double *mem, when_aligned<16>)
-{
-    assertCorrectAlignment<__m128d>(mem);
-    return _mm_load_pd(mem);
-}
-Vc_INTRINSIC __m128d load16(const double *mem, when_unaligned<16>)
-{
-    return _mm_loadu_pd(mem);
-}
-template <class T> Vc_INTRINSIC __m128i load16(const T *mem, when_aligned<16>)
-{
-    assertCorrectAlignment<__m128i>(mem);
-    static_assert(std::is_integral<T>::value, "load16<T> is only intended for integral T");
-    return _mm_load_si128(reinterpret_cast<const __m128i *>(mem));
-}
-template <class T> Vc_INTRINSIC __m128i load16(const T *mem, when_unaligned<16>)
-{
-    static_assert(std::is_integral<T>::value, "load16<T> is only intended for integral T");
-    return _mm_loadu_si128(reinterpret_cast<const __m128i *>(mem));
-}
-#endif  // Vc_HAVE_SSE2
-
-Vc_INTRINSIC __m256 load32(const float *mem, when_aligned<32>)
-{
-    if constexpr (have_avx) {
-        assertCorrectAlignment<__m256>(mem);
-        return _mm256_load_ps(mem);
-    }
-}
-Vc_INTRINSIC __m256 load32(const float *mem, when_unaligned<32>)
-{
-    if constexpr (have_avx) {
-        return _mm256_loadu_ps(mem);
-    }
-}
-Vc_INTRINSIC __m256d load32(const double *mem, when_aligned<32>)
-{
-    if constexpr (have_avx) {
-        assertCorrectAlignment<__m256d>(mem);
-        return _mm256_load_pd(mem);
-    }
-}
-Vc_INTRINSIC __m256d load32(const double *mem, when_unaligned<32>)
-{
-    if constexpr (have_avx) {
-        return _mm256_loadu_pd(mem);
-    }
-}
-template <class T> Vc_INTRINSIC __m256i load32(const T *mem, when_aligned<32>)
-{
-    if constexpr (have_avx) {
-        assertCorrectAlignment<__m256i>(mem);
-        static_assert(std::is_integral<T>::value, "load32<T> is only intended for integral T");
-        return _mm256_load_si256(reinterpret_cast<const __m256i *>(mem));
-    }
-}
-template <class T> Vc_INTRINSIC __m256i load32(const T *mem, when_unaligned<32>)
-{
-    if constexpr (have_avx) {
-        static_assert(std::is_integral<T>::value,
-                      "load32<T> is only intended for integral T");
-        return _mm256_loadu_si256(reinterpret_cast<const __m256i *>(mem));
-    }
+    return detail::builtin_load<long long, 2, 8>(mem, f);
 }
 
-Vc_INTRINSIC __m512 load64(const float *mem, when_aligned<64>)
+template <class F> Vc_INTRINSIC auto load16(const float *mem, F f)
 {
-    if constexpr (have_avx512f) {
-        assertCorrectAlignment<__m512>(mem);
-        return _mm512_load_ps(mem);
-    }
+    return detail::builtin_load<float, 4, 16>(mem, f);
 }
-Vc_INTRINSIC __m512 load64(const float *mem, when_unaligned<64>)
+template <class F> Vc_INTRINSIC auto load16(const double *mem, F f)
 {
-    if constexpr (have_avx512f) {
-        return _mm512_loadu_ps(mem);
-    }
+    return detail::builtin_load<double, 2, 16>(mem, f);
 }
-Vc_INTRINSIC __m512d load64(const double *mem, when_aligned<64>)
+template <class F> Vc_INTRINSIC auto load16(const void *mem, F f)
 {
-    if constexpr (have_avx512f) {
-        assertCorrectAlignment<__m512d>(mem);
-        return _mm512_load_pd(mem);
-    }
-}
-Vc_INTRINSIC __m512d load64(const double *mem, when_unaligned<64>)
-{
-    if constexpr (have_avx512f) {
-        return _mm512_loadu_pd(mem);
-    }
-}
-template <class T>
-Vc_INTRINSIC __m512i load64(const T *mem, when_aligned<64>)
-{
-    if constexpr (have_avx512f) {
-        assertCorrectAlignment<__m512i>(mem);
-        static_assert(std::is_integral<T>::value,
-                      "load64<T> is only intended for integral T");
-        return _mm512_load_si512(mem);
-    }
-}
-template <class T>
-Vc_INTRINSIC __m512i load64(const T *mem, when_unaligned<64>)
-{
-    if constexpr (have_avx512f) {
-        static_assert(std::is_integral<T>::value,
-                      "load64<T> is only intended for integral T");
-        return _mm512_loadu_si512(mem);
-    }
+    return detail::builtin_load<long long, 2, 16>(mem, f);
 }
 
-// stores{{{1
-#ifdef Vc_HAVE_SSE
-Vc_INTRINSIC void store4(__m128 v, float *mem, when_aligned<alignof(float)>)
+template <class F> Vc_INTRINSIC auto load32(const float *mem, F f)
 {
-    assertCorrectAlignment<float>(mem);
-    *mem = _mm_cvtss_f32(v);
+    return detail::builtin_load<float, 8, 32>(mem, f);
+}
+template <class F> Vc_INTRINSIC auto load32(const double *mem, F f)
+{
+    return detail::builtin_load<double, 4, 32>(mem, f);
+}
+template <class F> Vc_INTRINSIC auto load32(const void *mem, F f)
+{
+    return detail::builtin_load<long long, 4, 32>(mem, f);
 }
 
-Vc_INTRINSIC void store4(__m128 v, float *mem, when_unaligned<alignof(float)>)
+template <class F> Vc_INTRINSIC auto load64(const float *mem, F f)
 {
-    *mem = _mm_cvtss_f32(v);
+    return detail::builtin_load<float, 16, 64>(mem, f);
+}
+template <class F> Vc_INTRINSIC auto load64(const double *mem, F f)
+{
+    return detail::builtin_load<double, 8, 64>(mem, f);
+}
+template <class F> Vc_INTRINSIC auto load64(const void *mem, F f)
+{
+    return detail::builtin_load<long long, 8, 64>(mem, f);
 }
 
-Vc_INTRINSIC void store8(__m128 v, float *mem, when_aligned<alignof(__m64)>)
+// }}}
+// stores{{{
+template <class F> Vc_INTRINSIC auto store2(builtin_type16_t<float> v, float *mem, F f)
 {
-    assertCorrectAlignment<__m64>(mem);
-    _mm_storel_pi(reinterpret_cast<__m64 *>(mem), v);
+    return detail::builtin_store<2>(v, mem, f);
 }
-
-Vc_INTRINSIC void store8(__m128 v, float *mem, when_unaligned<alignof(__m64)>)
+template <class F> Vc_INTRINSIC auto store2(builtin_type16_t<double> v, double *mem, F f)
 {
-    _mm_storel_pi(reinterpret_cast<__m64 *>(mem), v);
-}
-
-Vc_INTRINSIC void store16(__m128 v, float *mem, when_aligned<16>)
-{
-    assertCorrectAlignment<__m128>(mem);
-    _mm_store_ps(mem, v);
-}
-Vc_INTRINSIC void store16(__m128 v, float *mem, when_unaligned<16>)
-{
-    _mm_storeu_ps(mem, v);
-}
-#endif  // Vc_HAVE_SSE
-
-#ifdef Vc_HAVE_SSE2
-Vc_INTRINSIC void store8(__m128d v, double *mem, when_aligned<alignof(double)>)
-{
-    assertCorrectAlignment<double>(mem);
-    *mem = _mm_cvtsd_f64(v);
-}
-
-Vc_INTRINSIC void store8(__m128d v, double *mem, when_unaligned<alignof(double)>)
-{
-    *mem = _mm_cvtsd_f64(v);
-}
-
-Vc_INTRINSIC void store16(__m128d v, double *mem, when_aligned<16>)
-{
-    assertCorrectAlignment<__m128d>(mem);
-    _mm_store_pd(mem, v);
-}
-Vc_INTRINSIC void store16(__m128d v, double *mem, when_unaligned<16>)
-{
-    _mm_storeu_pd(mem, v);
-}
-
-template <class T> Vc_INTRINSIC void store2(__m128i v, T *mem, when_aligned<alignof(ushort)>)
-{
-    assertCorrectAlignment<ushort>(mem);
-    static_assert(std::is_integral<T>::value && sizeof(T) <= 2,
-                  "store4<T> is only intended for integral T with sizeof(T) <= 2");
-    *reinterpret_cast<may_alias<ushort> *>(mem) = uint(_mm_cvtsi128_si32(v));
-}
-
-template <class T> Vc_INTRINSIC void store2(__m128i v, T *mem, when_unaligned<alignof(ushort)>)
-{
-    static_assert(std::is_integral<T>::value && sizeof(T) <= 2,
-                  "store4<T> is only intended for integral T with sizeof(T) <= 2");
-    const uint tmp(_mm_cvtsi128_si32(v));
-    std::memcpy(mem, &tmp, 2);
-}
-
-template <class T> Vc_INTRINSIC void store4(__m128i v, T *mem, when_aligned<alignof(int)>)
-{
-    assertCorrectAlignment<int>(mem);
-    static_assert(std::is_integral<T>::value && sizeof(T) <= 4,
-                  "store4<T> is only intended for integral T with sizeof(T) <= 4");
-    *reinterpret_cast<may_alias<int> *>(mem) = _mm_cvtsi128_si32(v);
-}
-
-template <class T> Vc_INTRINSIC void store4(__m128i v, T *mem, when_unaligned<alignof(int)>)
-{
-    static_assert(std::is_integral<T>::value && sizeof(T) <= 4,
-                  "store4<T> is only intended for integral T with sizeof(T) <= 4");
-    const int tmp = _mm_cvtsi128_si32(v);
-    std::memcpy(mem, &tmp, 4);
-}
-
-template <class T> Vc_INTRINSIC void store8(__m128i v, T *mem, when_aligned<8>)
-{
-    assertCorrectAlignment<__m64>(mem);
-    static_assert(std::is_integral<T>::value, "store8<T> is only intended for integral T");
-    _mm_storel_epi64(reinterpret_cast<__m128i *>(mem), v);
-}
-
-template <class T> Vc_INTRINSIC void store8(__m128i v, T *mem, when_unaligned<8>)
-{
-    static_assert(std::is_integral<T>::value, "store8<T> is only intended for integral T");
-    _mm_storel_epi64(reinterpret_cast<__m128i *>(mem), v);
-}
-
-template <class T> Vc_INTRINSIC void store16(__m128i v, T *mem, when_aligned<16>)
-{
-    assertCorrectAlignment<__m128i>(mem);
-    static_assert(std::is_integral<T>::value, "store16<T> is only intended for integral T");
-    _mm_store_si128(reinterpret_cast<__m128i *>(mem), v);
-}
-template <class T> Vc_INTRINSIC void store16(__m128i v, T *mem, when_unaligned<16>)
-{
-    static_assert(std::is_integral<T>::value, "store16<T> is only intended for integral T");
-    _mm_storeu_si128(reinterpret_cast<__m128i *>(mem), v);
-}
-#endif  // Vc_HAVE_SSE2
-
-#ifdef Vc_HAVE_AVX
-Vc_INTRINSIC void store32(__m256 v, float *mem, when_aligned<32>)
-{
-    assertCorrectAlignment<__m256>(mem);
-    _mm256_store_ps(mem, v);
-}
-Vc_INTRINSIC void store32(__m256 v, float *mem, when_unaligned<32>)
-{
-    _mm256_storeu_ps(mem, v);
-}
-Vc_INTRINSIC void store32(__m256d v, double *mem, when_aligned<32>)
-{
-    assertCorrectAlignment<__m256d>(mem);
-    _mm256_store_pd(mem, v);
-}
-Vc_INTRINSIC void store32(__m256d v, double *mem, when_unaligned<32>)
-{
-    _mm256_storeu_pd(mem, v);
-}
-template <class T> Vc_INTRINSIC void store32(__m256i v, T *mem, when_aligned<32>)
-{
-    assertCorrectAlignment<__m256i>(mem);
-    static_assert(std::is_integral<T>::value, "store32<T> is only intended for integral T");
-    _mm256_store_si256(reinterpret_cast<__m256i *>(mem), v);
-}
-template <class T> Vc_INTRINSIC void store32(__m256i v, T *mem, when_unaligned<32>)
-{
-    static_assert(std::is_integral<T>::value, "store32<T> is only intended for integral T");
-    _mm256_storeu_si256(reinterpret_cast<__m256i *>(mem), v);
-}
-#endif  // Vc_HAVE_AVX
-
-#ifdef Vc_HAVE_AVX512F
-Vc_INTRINSIC void store64(__m512 v, float *mem, when_aligned<64>)
-{
-    assertCorrectAlignment<__m512>(mem);
-    _mm512_store_ps(mem, v);
-}
-Vc_INTRINSIC void store64(__m512 v, float *mem, when_unaligned<64>)
-{
-    _mm512_storeu_ps(mem, v);
-}
-Vc_INTRINSIC void store64(__m512d v, double *mem, when_aligned<64>)
-{
-    assertCorrectAlignment<__m512d>(mem);
-    _mm512_store_pd(mem, v);
-}
-Vc_INTRINSIC void store64(__m512d v, double *mem, when_unaligned<64>)
-{
-    _mm512_storeu_pd(mem, v);
-}
-template <class T>
-Vc_INTRINSIC void store64(__m512i v, T *mem, when_aligned<64>)
-{
-    assertCorrectAlignment<__m512i>(mem);
-    static_assert(std::is_integral<T>::value, "store64<T> is only intended for integral T");
-    _mm512_store_si512(mem, v);
-}
-template <class T>
-Vc_INTRINSIC void store64(__m512i v, T *mem, when_unaligned<64>)
-{
-    static_assert(std::is_integral<T>::value, "store64<T> is only intended for integral T");
-    _mm512_storeu_si512(mem, v);
-}
-#endif
-
-#ifdef Vc_HAVE_AVX512F
-template <class T, class F, size_t N>
-Vc_INTRINSIC void store_n_bytes(size_constant<N>, __m512i v, T *mem, F)
-{
-    std::memcpy(mem, &v, N);
+    return detail::builtin_store<2>(v, mem, f);
 }
 template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<4>, __m512i v, T *mem, F f)
+Vc_INTRINSIC auto store2(builtin_type16_t<T> v, void *mem, F f)
 {
-    store4(lo128(v), mem, f);
+    return detail::builtin_store<2>(v, mem, f);
 }
-template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<8>, __m512i v, T *mem, F f)
-{
-    store8(lo128(v), mem, f);
-}
-template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<16>, __m512i v, T *mem, F f)
-{
-    store16(lo128(v), mem, f);
-}
-template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<32>, __m512i v, T *mem, F f)
-{
-    store32(lo256(v), mem, f);
-}
-template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<64>, __m512i v, T *mem, F f)
-{
-    store64(v, mem, f);
-}
-#endif  // Vc_HAVE_AVX512F
 
-#ifdef Vc_HAVE_AVX
-template <class T, class F, size_t N>
-Vc_INTRINSIC void store_n_bytes(size_constant<N>, __m256i v, T *mem, F)
+template <class F> Vc_INTRINSIC auto store4(builtin_type16_t<float> v, float *mem, F f)
 {
-    std::memcpy(mem, &v, N);
+    return detail::builtin_store<4>(v, mem, f);
+}
+template <class F> Vc_INTRINSIC auto store4(builtin_type16_t<double> v, double *mem, F f)
+{
+    return detail::builtin_store<4>(v, mem, f);
 }
 template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<4>, __m256i v, T *mem, F f)
+Vc_INTRINSIC auto store4(builtin_type16_t<T> v, void *mem, F f)
 {
-    store4(lo128(v), mem, f);
+    return detail::builtin_store<4>(v, mem, f);
 }
-template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<8>, __m256i v, T *mem, F f)
-{
-    store8(lo128(v), mem, f);
-}
-template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<16>, __m256i v, T *mem, F f)
-{
-    store16(lo128(v), mem, f);
-}
-template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<32>, __m256i v, T *mem, F f)
-{
-    store32(v, mem, f);
-}
-#endif  // Vc_HAVE_AVX
 
-#ifdef Vc_HAVE_SSE2
-template <class T, class F, size_t N>
-Vc_INTRINSIC void store_n_bytes(size_constant<N>, __m128i v, T *mem, F)
+template <class F> Vc_INTRINSIC auto store8(builtin_type16_t<float> v, float *mem, F f)
 {
-    std::memcpy(mem, &v, N);
+    return detail::builtin_store<8>(v, mem, f);
+}
+template <class F> Vc_INTRINSIC auto store8(builtin_type16_t<double> v, double *mem, F f)
+{
+    return detail::builtin_store<8>(v, mem, f);
 }
 template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<4>, __m128i v, T *mem, F f)
+Vc_INTRINSIC auto store8(builtin_type16_t<T> v, void *mem, F f)
 {
-    store4(v, mem, f);
+    return detail::builtin_store<8>(v, mem, f);
 }
-template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<8>, __m128i v, T *mem, F f)
-{
-    store8(v, mem, f);
-}
-template <class T, class F>
-Vc_INTRINSIC void store_n_bytes(size_constant<16>, __m128i v, T *mem, F f)
-{
-    store16(v, mem, f);
-}
-#endif  // Vc_HAVE_SSE2
 
-// }}}1
+template <class F> Vc_INTRINSIC auto store16(builtin_type16_t<float> v, float *mem, F f)
+{
+    return detail::builtin_store<16>(v, mem, f);
+}
+template <class F> Vc_INTRINSIC auto store16(builtin_type16_t<double> v, double *mem, F f)
+{
+    return detail::builtin_store<16>(v, mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC auto store16(builtin_type16_t<T> v, void *mem, F f)
+{
+    return detail::builtin_store<16>(v, mem, f);
+}
+
+template <class F> Vc_INTRINSIC auto store32(builtin_type32_t<float> v, float *mem, F f)
+{
+    return detail::builtin_store<32>(v, mem, f);
+}
+template <class F> Vc_INTRINSIC auto store32(builtin_type32_t<double> v, double *mem, F f)
+{
+    return detail::builtin_store<32>(v, mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC auto store32(builtin_type32_t<T> v, void *mem, F f)
+{
+    return detail::builtin_store<32>(v, mem, f);
+}
+
+template <class F> Vc_INTRINSIC auto store64(builtin_type64_t<float> v, float *mem, F f)
+{
+    return detail::builtin_store<64>(v, mem, f);
+}
+template <class F> Vc_INTRINSIC auto store64(builtin_type64_t<double> v, double *mem, F f)
+{
+    return detail::builtin_store<64>(v, mem, f);
+}
+template <class T, class F>
+Vc_INTRINSIC auto store64(builtin_type64_t<T> v, void *mem, F f)
+{
+    return detail::builtin_store<64>(v, mem, f);
+}
+
+// }}}
 // integer sign-extension {{{
 constexpr Vc_INTRINSIC builtin_type_t<short,  8> sign_extend16(builtin_type_t<char, 16> x) { return __builtin_ia32_pmovsxbw128(x); }
 constexpr Vc_INTRINSIC builtin_type_t<  int,  4> sign_extend32(builtin_type_t<char, 16> x) { return __builtin_ia32_pmovsxbd128(x); }

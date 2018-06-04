@@ -125,6 +125,7 @@ To convert_to(Storage<T, N>, Storage<T, N>, Storage<T, N>, Storage<T, N>, Storag
               Storage<T, N>, Storage<T, N>, Storage<T, N>);
 
 //}}}1
+// work around PR85827
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wunused-variable"

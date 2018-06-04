@@ -511,17 +511,7 @@ std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> frexp(
             std::hex, Vc_PRETTY_PRINT(int(isnonzero)), std::dec, Vc_PRETTY_PRINT(e),
             Vc_PRETTY_PRINT(getexp(v)),
             Vc_PRETTY_PRINT(to_intrin(1 + convert<Storage<int, NI>>(getexp(v)).d)));
-        if constexpr (N == 2) {
-            store8(e, reinterpret_cast<int *>(exp), overaligned<alignof(IV)>);
-        } else if constexpr (N == 4) {
-            store16(e, reinterpret_cast<int *>(exp), overaligned<alignof(IV)>);
-        } else if constexpr (N == 8) {
-            store32(e, reinterpret_cast<int *>(exp), overaligned<alignof(IV)>);
-        } else if constexpr (N == 16) {
-            store64(e, reinterpret_cast<int *>(exp), overaligned<alignof(IV)>);
-        } else {
-            assert_unreachable<Abi>();
-        }
+        builtin_store<N * sizeof(int)>(e, exp, overaligned<alignof(IV)>);
         return {private_init, detail::x86::blend(isnonzero, v, getmant(v))};
     } else {
         // fallback implementation

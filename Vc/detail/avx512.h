@@ -233,37 +233,37 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
                                    type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
     {
         if constexpr (std::is_same_v<T, U>) {
-            store64(v, mem, F());
+            builtin_store(v, mem, F());
         } else if constexpr (sizeof(U) <= 8) {  // make sure to skip long double
             if constexpr (sizeof(T) == sizeof(U) * 8) {
-                store8(convert<sse_simd_member_type<U>>(v), mem, F());
+                builtin_store<8>(convert<sse_simd_member_type<U>>(v), mem, F());
             } else if constexpr (sizeof(T) == sizeof(U) * 4) {
-                store16(convert<sse_simd_member_type<U>>(v), mem, F());
+                builtin_store(convert<sse_simd_member_type<U>>(v), mem, F());
             } else if constexpr (sizeof(T) == sizeof(U) * 2) {
-                store32(convert<avx_simd_member_type<U>>(v), mem, F());
+                builtin_store(convert<avx_simd_member_type<U>>(v), mem, F());
             } else if constexpr (sizeof(T) == sizeof(U)) {
-                store64(convert<simd_member_type<U>>(v), mem, F());
+                builtin_store(convert<simd_member_type<U>>(v), mem, F());
             } else if constexpr (sizeof(T) * 2 == sizeof(U)) {
-                store64(convert<simd_member_type<U>>(lo256(v)), mem, F());
-                store64(convert<simd_member_type<U>>(hi256(v)), mem + size<U>(), F());
+                builtin_store(convert<simd_member_type<U>>(lo256(v)), mem, F());
+                builtin_store(convert<simd_member_type<U>>(hi256(v)), mem + size<U>(), F());
             } else if constexpr (sizeof(T) * 4 == sizeof(U)) {
-                store64(convert<simd_member_type<U>>(lo128(v)), mem, F());
-                store64(convert<simd_member_type<U>>(extract128<1>(v)), mem + size<U>(),
+                builtin_store(convert<simd_member_type<U>>(lo128(v)), mem, F());
+                builtin_store(convert<simd_member_type<U>>(extract128<1>(v)), mem + size<U>(),
                         F());
-                store64(convert<simd_member_type<U>>(extract128<2>(v)),
+                builtin_store(convert<simd_member_type<U>>(extract128<2>(v)),
                         mem + 2 * size<U>(), F());
-                store64(convert<simd_member_type<U>>(extract128<3>(v)),
+                builtin_store(convert<simd_member_type<U>>(extract128<3>(v)),
                         mem + 3 * size<U>(), F());
             } else if constexpr (sizeof(T) * 8 == sizeof(U)) {
                 const std::array<simd_member_type<U>, 8> converted = x86::convert_all<simd_member_type<U>>(v);
-                store64(converted[0], mem + 0 * size<U>(), F());
-                store64(converted[1], mem + 1 * size<U>(), F());
-                store64(converted[2], mem + 2 * size<U>(), F());
-                store64(converted[3], mem + 3 * size<U>(), F());
-                store64(converted[4], mem + 4 * size<U>(), F());
-                store64(converted[5], mem + 5 * size<U>(), F());
-                store64(converted[6], mem + 6 * size<U>(), F());
-                store64(converted[7], mem + 7 * size<U>(), F());
+                builtin_store(converted[0], mem + 0 * size<U>(), F());
+                builtin_store(converted[1], mem + 1 * size<U>(), F());
+                builtin_store(converted[2], mem + 2 * size<U>(), F());
+                builtin_store(converted[3], mem + 3 * size<U>(), F());
+                builtin_store(converted[4], mem + 4 * size<U>(), F());
+                builtin_store(converted[5], mem + 5 * size<U>(), F());
+                builtin_store(converted[6], mem + 6 * size<U>(), F());
+                builtin_store(converted[7], mem + 7 * size<U>(), F());
             } else {
                 detail::assert_unreachable<T>();
             }
@@ -360,14 +360,12 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
 };
 
 // simd_mask impl {{{1
-struct avx512_mask_impl
-    : public generic_mask_impl<simd_abi::__avx512, avx512_mask_member_type> {
+struct avx512_mask_impl : public generic_mask_impl<simd_abi::__avx512> {
     // member types {{{2
     using abi = simd_abi::__avx512;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <size_t N> using mask_member_type = avx512_mask_member_type_n<N>;
     template <class T> using simd_mask = Vc::simd_mask<T, abi>;
-    template <class T> using mask_bool = MaskBool<sizeof(T)>;
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
@@ -515,7 +513,7 @@ struct avx512_mask_impl
     static Vc_INTRINSIC void store(mask_member_type<8> v, bool *mem, F f,
                                    size_tag<8>) noexcept
     {
-        x86::store8(
+        builtin_store<8>(
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
             _mm_maskz_set1_epi8(v, 1),
 #elif defined __x86_64__
@@ -530,7 +528,7 @@ struct avx512_mask_impl
                                    size_tag<16>) noexcept
     {
 #if defined Vc_HAVE_AVX512VL && defined Vc_HAVE_AVX512BW
-        x86::store16(_mm_maskz_set1_epi8(v, 1), mem, f);
+        builtin_store(_mm_maskz_set1_epi8(v, 1), mem, f);
 #else
         _mm512_mask_cvtepi32_storeu_epi8(mem, ~__mmask16(),
                                          _mm512_maskz_set1_epi32(v, 1));
@@ -543,16 +541,16 @@ struct avx512_mask_impl
                                    size_tag<32>) noexcept
     {
 #if defined Vc_HAVE_AVX512VL
-        x86::store32(_mm256_maskz_set1_epi8(v, 1), mem, f);
+        builtin_store(_mm256_maskz_set1_epi8(v, 1), mem, f);
 #else
-        x86::store32(lo256(_mm512_maskz_set1_epi8(v, 1)), mem, f);
+        builtin_store(lo256(_mm512_maskz_set1_epi8(v, 1)), mem, f);
 #endif
     }
     template <class F>
     static Vc_INTRINSIC void store(mask_member_type<64> v, bool *mem, F f,
                                    size_tag<64>) noexcept
     {
-        x86::store64(_mm512_maskz_set1_epi8(v, 1), mem, f);
+        builtin_store(_mm512_maskz_set1_epi8(v, 1), mem, f);
     }
 #endif  // Vc_HAVE_AVX512BW
 

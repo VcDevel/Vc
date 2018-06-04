@@ -34,7 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "aarch/intrinsics.h"
 #include "aarch/convert.h"
 #include "aarch/arithmetics.h"
-#include "maskbool.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -470,21 +469,14 @@ struct neon_simd_impl : public generic_simd_impl<neon_simd_impl> {
 */
 };
 // simd_mask impl {{{1
-struct neon_mask_impl {
-     // memb er types {{{2
-    using abi = simd_abi::neon;
+struct neon_mask_impl : detail::generic_mask_impl<simd_abi::__neon128> {
+    // memb er types {{{2
+    using abi = simd_abi::__neon128;
     template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
     template <class T> using mask_member_type = neon_mask_member_type<T>;
     template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::neon>;
-    template <class T> using mask_bool = MaskBool<sizeof(T)>;
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
-    // broadcast {{{2
-    template <class T> static Vc_INTRINSIC auto broadcast(bool x, type_tag<T>) noexcept
-    {
-        return detail::aarch::broadcast16(T(mask_bool<T>{x}));
-    }
-
     // load {{{2
     template <class F>
     static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<4>) noexcept
@@ -504,18 +496,6 @@ struct neon_mask_impl {
     {
     }
 
-    // masked load {{{2
-    template <class T, class F, class SizeTag>
-    static Vc_INTRINSIC void masked_load(mask_member_type<T> &merge,
-                                         mask_member_type<T> mask, const bool *mem, F,
-                                         SizeTag s) noexcept
-    {
-        for (std::size_t i = 0; i < s; ++i) {
-            if (mask.m(i)) {
-                merge.set(i, mask_bool<T>{mem[i]});
-            }
-        }
-    }
     // store {{{2
     template <class T, class F>
     static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
@@ -536,69 +516,6 @@ struct neon_mask_impl {
     static Vc_INTRINSIC void store(mask_member_type<T> v, bool *mem, F,
                                    size_tag<16>) noexcept
     {
-    }
-    // masked store {{{2
-    template <class T, class F, class SizeTag>
-    static Vc_INTRINSIC void masked_store(mask_member_type<T> v, bool *mem, F,
-                                          mask_member_type<T> k, SizeTag) noexcept
-    {
-        for (std::size_t i = 0; i < size<T>(); ++i) {
-            if (k.m(i)) {
-                mem[i] = v.m(i);
-            }
-        }
-    }
-	/*
-    // negation {{{2
-    template <class T, class SizeTag>
-    static Vc_INTRINSIC mask_member_type<T> negate(const mask_member_type<T> &x,
-                                                   SizeTag) noexcept
-    {
-#if defined Vc_GCC && defined Vc_USE_BUILTIN_VECTOR_TYPES
-        return !x.builtin();
-#else
-        return detail::not_(x.v());
-#endif
-    }
- 	 */
-    // logical and bitwise operator s {{{2
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> logical_and(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> logical_or(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::or_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_and(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::and_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_or(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::or_(x.d, y.d)};
-    }
-
-    template <class T>
-    static Vc_INTRINSIC simd_mask<T> bit_xor(const simd_mask<T> &x, const simd_mask<T> &y)
-    {
-        return {private_init, detail::xor_(x.d, y.d)};
-    }
-
-    // smart_reference access {{{2
-    template <class T> static bool get(const simd_mask<T> &k, int i) noexcept
-    {
-        return k.d.m(i);
-    }
-    template <class T> static void set(simd_mask<T> &k, int i, bool x) noexcept
-    {
-        k.d.set(i, mask_bool<T>(x));
     }
     // }}}2
 };

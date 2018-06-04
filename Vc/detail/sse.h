@@ -34,134 +34,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "x86/intrinsics.h"
 #include "x86/convert.h"
 #include "x86/arithmetics.h"
-#include "maskbool.h"
 #include "genericimpl.h"
 #include "simd_tuple.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-// simd_mask impl {{{1
-struct sse_mask_impl : public generic_mask_impl<simd_abi::__sse, sse_mask_member_type> {
-    // member types {{{2
-    using abi = simd_abi::__sse;
-    template <class T> static constexpr size_t size() { return simd_size_v<T, abi>; }
-    template <class T> using mask_member_type = sse_mask_member_type<T>;
-    template <class T>
-    using int_builtin_type = builtin_type16_t<detail::int_for_sizeof_t<T>>;
-    template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::__sse>;
-    template <size_t N> using size_tag = size_constant<N>;
-    template <class T> using type_tag = T *;
-
-    // broadcast {{{2
-    template <class T>
-    static Vc_INTRINSIC mask_member_type<T> broadcast(bool x, type_tag<T>) noexcept
-    {
-        return to_storage(x ? ~int_builtin_type<T>() : int_builtin_type<T>());
-    }
-
-    // load {{{2
-    template <class F>
-    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<4>) noexcept
-    {
-#ifdef Vc_HAVE_SSE2
-        __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem));
-        k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
-        return intrin_cast<__m128>(_mm_unpacklo_epi16(k, k));
-#elif defined Vc_HAVE_MMX
-        __m128 k = _mm_cvtpi8_ps(_mm_cvtsi32_si64(*reinterpret_cast<const int *>(mem)));
-        _mm_empty();
-        return _mm_cmpgt_ps(k, detail::zero<__m128>());
-#endif  // Vc_HAVE_SSE2
-    }
-#ifdef Vc_HAVE_SSE2
-    template <class F>
-    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<2>) noexcept
-    {
-        return _mm_set_epi32(-int(mem[1]), -int(mem[1]), -int(mem[0]), -int(mem[0]));
-    }
-    template <class F>
-    static Vc_INTRINSIC auto load(const bool *mem, F, size_tag<8>) noexcept
-    {
-#ifdef __x86_64__
-        __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const int64_t *>(mem));
-#else
-        __m128i k = _mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem));
-#endif
-        return _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
-    }
-    template <class F>
-    static Vc_INTRINSIC auto load(const bool *mem, F f, size_tag<16>) noexcept
-    {
-        return _mm_cmpgt_epi8(load16(mem, f), _mm_setzero_si128());
-    }
-#endif  // Vc_HAVE_SSE2
-
-    // store {{{2
-#if !defined Vc_HAVE_SSE2 && defined Vc_HAVE_MMX
-    template <class F>
-    static Vc_INTRINSIC void store(mask_member_type<float> v, bool *mem, F,
-                                   size_tag<4>) noexcept
-    {
-        const __m128 k(v);
-        const __m64 kk = _mm_cvtps_pi8(and_(k, detail::one16(float())));
-        *reinterpret_cast<may_alias<int32_t> *>(mem) = _mm_cvtsi64_si32(kk);
-        _mm_empty();
-    }
-#endif  // Vc_HAVE_MMX
-#ifdef Vc_HAVE_SSE2
-    template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
-                                            size_tag<2>) noexcept
-    {
-        const auto k = builtin_cast<int>(v.d);
-        mem[0] = -k[1];
-        mem[1] = -k[3];
-    }
-    template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
-                                            size_tag<4>) noexcept
-    {
-        const auto k = to_m128i(v);
-        __m128i k2 = _mm_packs_epi32(k, _mm_setzero_si128());
-        *reinterpret_cast<may_alias<int32_t> *>(mem) = _mm_cvtsi128_si32(
-            _mm_packs_epi16(x86::srli_epi16<15>(k2), _mm_setzero_si128()));
-    }
-    template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F,
-                                            size_tag<8>) noexcept
-    {
-        auto k = to_m128i(v);
-        k = x86::srli_epi16<15>(k);
-        const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
-#ifdef __x86_64__
-        *reinterpret_cast<may_alias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);
-#else
-        _mm_store_sd(reinterpret_cast<may_alias<double> *>(mem), _mm_castsi128_pd(k2));
-#endif
-    }
-    template <class T, class F>
-    static Vc_INTRINSIC void Vc_VDECL store(mask_member_type<T> v, bool *mem, F f,
-                                            size_tag<16>) noexcept
-    {
-        auto k = to_m128i(v);
-        k = _mm_and_si128(k, _mm_set1_epi32(0x01010101));
-        x86::store16(k, mem, f);
-    }
-#endif  // Vc_HAVE_SSE2
-
-    // negation {{{2
-    template <class T, class SizeTag>
-    static Vc_INTRINSIC mask_member_type<T> negate(const mask_member_type<T> &x,
-                                                   SizeTag) noexcept
-    {
-        return to_storage(~storage_bitcast<uint>(x).d);
-    }
-
-    // }}}2
+struct sse_mask_impl : generic_mask_impl<simd_abi::__sse> {
 };
-
-// }}}1
 }  // namespace detail
 
 // [simd_mask.reductions] {{{

@@ -47,6 +47,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // sizeof(element type) < 8: https://godbolt.org/g/mqUsgM
 #define Vc_WORKAROUND_XXX_1 1
 
+// bad codegen for 8 Byte memcpy to builtin_type_t<char, 16>
+#define Vc_WORKAROUND_XXX_2 1
+
 // https://github.com/cplusplus/parallelism-ts/issues/65 (incorrect return type of
 // static_simd_cast)
 #define Vc_FIX_P2TS_ISSUE65 1

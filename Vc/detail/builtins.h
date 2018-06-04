@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DETAIL_BUILTINS_H_
 #define VC_DETAIL_BUILTINS_H_
 
+#include <cstring>
 #include "detail.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
@@ -91,6 +92,12 @@ struct builtin_traits<T, std::void_t<std::enable_if_t<is_builtin_vector_v<T>>>> 
     using value_type = decltype(std::declval<T>()[0]);
     static constexpr int width = sizeof(T) / sizeof(value_type);
 };
+template <class T, size_t N>
+struct builtin_traits<Storage<T, N>, std::void_t<builtin_type_t<T, N>>> {
+    using type = builtin_type_t<T, N>;
+    using value_type = T;
+    static constexpr int width = N;
+};
 
 // }}}
 // builtin_cast{{{1
@@ -98,6 +105,11 @@ template <class To, class From, class Traits = builtin_traits<From>>
 constexpr Vc_INTRINSIC typename builtin_type<To, sizeof(From)>::type builtin_cast(From x)
 {
     return reinterpret_cast<typename builtin_type<To, sizeof(From)>::type>(x);
+}
+template <class To, class T, size_t N>
+constexpr Vc_INTRINSIC builtin_type_t<To, N> builtin_cast(const Storage<T, N> &x)
+{
+    return reinterpret_cast<builtin_type_t<To, N>>(x.d);
 }
 
 // }}}
@@ -181,6 +193,63 @@ constexpr Vc_INTRINSIC builtin_type_t<T, N> generate_builtin(G &&gen)
 {
     return generate_builtin_impl<T, N>(std::forward<G>(gen),
                                        std::make_index_sequence<N>());
+}
+
+// }}}
+// builtin_load{{{
+template <class T, size_t N, size_t M = N * sizeof(T), class F>
+builtin_type_t<T, N> builtin_load(const void *p, F)
+{
+#ifdef Vc_WORKAROUND_XXX_2
+    using U = std::conditional_t<
+        (std::is_integral_v<T> || M < 4), long long,
+        std::conditional_t<(std::is_same_v<T, double> || M < 8), float, T>>;
+    using V = builtin_type_t<U, N * sizeof(T) / sizeof(U)>;
+#else   // Vc_WORKAROUND_XXX_2
+    using V = builtin_type_t<T, N>;
+#endif  // Vc_WORKAROUND_XXX_2
+    V r;
+    static_assert(M <= sizeof(V));
+    if constexpr(std::is_same_v<F, element_aligned_tag>) {
+    } else if constexpr(std::is_same_v<F, vector_aligned_tag>) {
+        p = __builtin_assume_aligned(p, alignof(builtin_type_t<T, N>));
+    } else {
+        p = __builtin_assume_aligned(p, F::alignment);
+    }
+    std::memcpy(&r, p, M);
+    return reinterpret_cast<builtin_type_t<T, N>>(r);
+}
+
+// }}}
+// builtin_store{{{
+template <size_t M = 0, class B, class Traits = builtin_traits<B>, class F>
+void builtin_store(const B v, void *p, F)
+{
+    using T = typename Traits::value_type;
+    constexpr size_t N = Traits::width;
+    constexpr size_t Bytes = M == 0 ? N * sizeof(T) : M;
+    static_assert(Bytes <= sizeof(v));
+#ifdef Vc_WORKAROUND_XXX_2
+    using U = std::conditional_t<
+        (std::is_integral_v<T> || Bytes < 4), long long,
+        std::conditional_t<(std::is_same_v<T, double> || Bytes < 8), float, T>>;
+    const auto vv = builtin_cast<U>(v);
+#else   // Vc_WORKAROUND_XXX_2
+    const builtin_type_t<T, N> vv = v;
+#endif  // Vc_WORKAROUND_XXX_2
+    if constexpr(std::is_same_v<F, vector_aligned_tag>) {
+        p = __builtin_assume_aligned(p, alignof(builtin_type_t<T, N>));
+    } else if constexpr(!std::is_same_v<F, element_aligned_tag>) {
+        p = __builtin_assume_aligned(p, F::alignment);
+    }
+    if constexpr ((Bytes & (Bytes - 1)) != 0) {
+        constexpr size_t MoreBytes = next_power_of_2(Bytes);
+        alignas(MoreBytes) char tmp[MoreBytes];
+        std::memcpy(tmp, &vv, MoreBytes);
+        std::memcpy(p, tmp, Bytes);
+    } else {
+        std::memcpy(p, &vv, Bytes);
+    }
 }
 
 // }}}

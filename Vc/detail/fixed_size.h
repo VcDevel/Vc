@@ -652,7 +652,7 @@ template <int N> struct fixed_size_mask_impl {
 #ifdef Vc_HAVE_AVX512BW
         const __m512i bool64 =
             and_(_mm512_movm_epi8(bs.to_ullong()), x86::one64(uchar()));
-        detail::x86::store_n_bytes(size_constant<N>(), bool64, mem, f);
+        builtin_store<N>(bool64, mem, f);
 #elif defined Vc_HAVE_BMI2
 #ifdef __x86_64__
         unused(f);
@@ -689,16 +689,16 @@ template <int N> struct fixed_size_mask_impl {
         execute_n_times<(N + 15) / 16>([&](auto i) {
             constexpr size_t offset = i * 16;
             constexpr size_t remaining = N - offset;
-            if (remaining == 1) {
+            if constexpr (remaining == 1) {
                 mem[offset] = static_cast<bool>(bits >> offset);
-            } else if (remaining <= 4) {
+            } else if constexpr (remaining <= 4) {
                 const uint bool4 = ((bits >> offset) * 0x00204081U) & 0x01010101U;
                 std::memcpy(&mem[offset], &bool4, remaining);
-            } else if (remaining <= 7) {
+            } else if constexpr (remaining <= 7) {
                 const ullong bool8 =
                     ((bits >> offset) * 0x40810204081ULL) & 0x0101010101010101ULL;
                 std::memcpy(&mem[offset], &bool8, remaining);
-            } else {
+            } else if constexpr (have_sse2) {
                 auto tmp = _mm_cvtsi32_si128(bits >> offset);
                 tmp = _mm_unpacklo_epi8(tmp, tmp);
                 tmp = _mm_unpacklo_epi16(tmp, tmp);
@@ -708,23 +708,25 @@ template <int N> struct fixed_size_mask_impl {
                     return static_cast<uchar>(1 << (j % CHAR_BIT));
                 });  // mask bit index
                 const __m128i bool16 =
-                    _mm_add_epi8(data(tmp2 == V()),
+                    _mm_add_epi8(detail::data(tmp2 == 0),
                                  x86::one16(uchar()));  // 0xff -> 0x00 | 0x00 -> 0x01
-                if (remaining >= 16) {
-                    x86::store16(bool16, &mem[offset], f);
-                } else if (remaining & 3) {
+                if constexpr (remaining >= 16) {
+                    builtin_store<16>(bool16, &mem[offset], f);
+                } else if constexpr (remaining & 3) {
                     constexpr int to_shift = 16 - int(remaining);
                     _mm_maskmoveu_si128(bool16,
                                         _mm_srli_si128(allone<__m128i>(), to_shift),
                                         reinterpret_cast<char *>(&mem[offset]));
                 } else  // at this point: 8 < remaining < 16
-                    if (remaining >= 8) {
-                    x86::store8(bool16, &mem[offset], f);
-                    if (remaining == 12) {
-                        x86::store4(_mm_unpackhi_epi64(bool16, bool16), &mem[offset + 8],
-                                    f);
+                    if constexpr (remaining >= 8) {
+                    builtin_store<8>(bool16, &mem[offset], f);
+                    if constexpr (remaining == 12) {
+                        builtin_store<4>(_mm_unpackhi_epi64(bool16, bool16),
+                                         &mem[offset + 8], f);
                     }
                 }
+            } else {
+                assert_unreachable<F>();
             }
         });
 #else

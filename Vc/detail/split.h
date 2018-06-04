@@ -72,6 +72,7 @@ Vc_INTRINSIC auto extract_part(const simd_tuple<T, A0, As...> &x)
             [&](auto i) { return element_ptr[i]; }));
 #else
         constexpr size_t offset = Index * values_per_part;
+        detail::unused(offset);  // not really
         return detail::data(simd<T, simd_abi::deduce_t<T, values_per_part>>([&](auto i) {
             constexpr detail::size_constant<i + offset> k;
             return x[k];
@@ -118,6 +119,7 @@ split(const simd<typename V::value_type, A> &x)
         return detail::generate_from_n_evaluations<Parts, std::array<V, Parts>>(
             [&](auto i) {
                 constexpr size_t offset = decltype(i)::value * V::size();
+                detail::unused(offset);  // not really
                 return V([&](auto j) {
                     constexpr detail::size_constant<j + offset> k;
                     return xx[k];

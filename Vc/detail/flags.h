@@ -35,7 +35,9 @@ using size_t = std::size_t;
 
 struct element_aligned_tag {};
 struct vector_aligned_tag {};
-template <size_t> struct overaligned_tag {};
+template <size_t N> struct overaligned_tag {
+    static constexpr size_t alignment = N;
+};
 inline constexpr element_aligned_tag element_aligned = {};
 inline constexpr vector_aligned_tag vector_aligned = {};
 template <size_t N> inline constexpr overaligned_tag<N> overaligned = {};
