@@ -43,11 +43,6 @@ using MemTypes =
 
 TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
 {
-#ifdef Vc_MSVC
-// disable "warning C4756: overflow in constant arithmetic" - I don't care.
-#pragma warning(disable : 4756)
-#endif
-
     // types, tags, and constants {{{2
     using V = typename VU::template at<0>;
     using U = typename VU::template at<1>;
@@ -78,12 +73,7 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
                            Vc::overaligned_tag<stride_alignment * sizeof(U)>>;
     constexpr stride_aligned_t stride_aligned = {};
     constexpr size_t alignment = 2 * Vc::memory_alignment_v<V, U>;
-#ifdef Vc_MSVC
-    using TT = Vc::overaligned_tag<alignment>;
-    constexpr TT overaligned = {};
-#else
     constexpr auto overaligned = Vc::overaligned<alignment>;
-#endif
     const V indexes_from_0 = gen({0, 1, 2, 3}, 4);
     for (std::size_t i = 0; i < V::size(); ++i) {
         COMPARE(indexes_from_0[i], T(i));

@@ -289,12 +289,8 @@ convertIndexVector(const T(&indexVector)[N])
 
 // a plain pointer won't work. Because we need some information on the number of values in
 // the index argument
-#ifndef Vc_MSVC
-// MSVC treats the function as usable in SFINAE context if it is deleted. If it's not declared we
-// seem to get what we wanted (except for bad diagnostics)
 template <typename T>
 enable_if<std::is_pointer<T>::value, void> convertIndexVector(T indexVector) = delete;
-#endif
 
 // an initializer_list works, but is runtime-sized (before C++14, at least) so we have to
 // fall back to std::vector

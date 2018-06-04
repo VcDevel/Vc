@@ -202,12 +202,7 @@ TEST_TYPES(M, implicit_conversions, all_test_types)
 TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
 {
     // loads {{{2
-    constexpr size_t alignment = 2 * Vc::memory_alignment_v<M
-#ifdef Vc_MSVC
-                                                            ,
-                                                            bool
-#endif
-                                                            >;
+    constexpr size_t alignment = 2 * Vc::memory_alignment_v<M>;
     alignas(alignment) bool mem[3 * M::size()];
     std::memset(mem, 0, sizeof(mem));
     for (std::size_t i = 1; i < sizeof(mem) / sizeof(*mem); i += 2) {
@@ -238,12 +233,7 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
         std::conditional_t<M::size() == stride_alignment, decltype(vector_aligned),
                            Vc::overaligned_tag<stride_alignment * sizeof(bool)>>;
     constexpr stride_aligned_t stride_aligned = {};
-#ifdef Vc_MSVC
-    using TT = Vc::overaligned_tag<alignment>;
-    constexpr TT overaligned = {};
-#else
     constexpr auto overaligned = Vc::overaligned<alignment>;
-#endif
 
     const M alternating_mask = make_alternating_mask<M>();
 

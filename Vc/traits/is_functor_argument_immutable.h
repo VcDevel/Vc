@@ -44,28 +44,9 @@ struct dummy {};
 
 // generate a true_type for template operator() members in F that are callable with a
 // 'const A &' argument even if the template parameter to operator() is fixed to 'A'.
-template <
-    typename F, typename A
-#ifdef Vc_ICC
-    // this ensures that F is a generic lambda. We can be pretty sure that noone wrote a
-    // lambda with Vc::Traits::is_functor_argument_immutable_impl::dummy parameter
-    // type. In theory, this is not needed because the return type fails with a
-    // substitution failure in that case. Only ICC generates and error instead of doing
-    // SFINAE.
-    ,
-    typename = decltype(std::declval<F &>()(std::declval<dummy &>()))
-#endif
-    ,
-#ifdef Vc_MSVC
-// MSVC fails if the template keyword is used to *correctly* tell the compiler that <A> is
-// an explicit template instantiation of operator()
-#define Vc_TEMPLATE_
-#else
-#define Vc_TEMPLATE_ template
-#endif
-    typename MemberPtr = decltype(&F::Vc_TEMPLATE_ operator()<A>)>
+template <typename F, typename A,
+          typename MemberPtr = decltype(&F::template operator()<A>)>
 decltype(is_functor_argument_immutable_impl::test(std::declval<MemberPtr>())) test2(int);
-#undef Vc_TEMPLATE_
 
 // generate a true_type for non-template operator() members in F that are callable with a
 // 'const A &' argument.

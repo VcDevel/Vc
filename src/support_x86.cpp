@@ -29,15 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/cpuid.h>
 #include <Vc/support.h>
 
-#ifdef Vc_MSVC
-#include <intrin.h>
-#endif
-
-#if defined(Vc_GCC) && Vc_GCC >= 0x40400
 #define Vc_TARGET_NO_SIMD __attribute__((target("no-sse2,no-avx")))
-#else
-#define Vc_TARGET_NO_SIMD
-#endif
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 

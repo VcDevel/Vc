@@ -36,11 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-#ifdef Vc_MSVC
-#define Vc_PRETTY_FUNCTION __FUNCSIG__
-#else
 #define Vc_PRETTY_FUNCTION __PRETTY_FUNCTION__
-#endif
 
 enum class area : unsigned {
     _disabled = 0,

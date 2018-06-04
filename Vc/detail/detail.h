@@ -204,20 +204,11 @@ Vc_INTRINSIC R generate_from_n_evaluations(F && f)
 }
 
 // may_alias{{{1
-template <typename T> struct may_alias_impl {
-    typedef T type Vc_MAY_ALIAS;
-};
 /**\internal
  * Helper may_alias<T> that turns T into the type to be used for an aliasing pointer. This
- * adds the may_alias attribute to T (with compilers that support it). But for MaskBool this
- * attribute is already part of the type and applying it a second times leads to warnings/errors,
- * therefore MaskBool is simply forwarded as is.
+ * adds the may_alias attribute to T (with compilers that support it).
  */
-#if 1
 template <typename T> using may_alias [[gnu::may_alias]] = T;
-#else
-template <typename T> using may_alias = typename may_alias_impl<T>::type;
-#endif
 
 // simd and simd_mask base for unsupported <T, Abi>{{{1
 struct unsupported_base {

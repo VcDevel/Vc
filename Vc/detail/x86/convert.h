@@ -1518,9 +1518,6 @@ Vc_INTRINSIC auto Vc_VDECL convert_all_impl(From v, std::true_type)
 {
     constexpr size_t N = From::width / To::width;
     return generate_from_n_evaluations<N, std::array<To, N>>([&](auto i) {
-#ifdef Vc_MSVC
-        constexpr size_t N = From::width / To::width;
-#endif
         auto part = x86::extract_part<decltype(i)::value, N>(v);
         return convert<To>(part);
     });
