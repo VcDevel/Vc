@@ -692,8 +692,8 @@ public:
 #ifdef Vc_EXPERIMENTAL
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        detail::all<std::is_same<decltype(declval<F>()(detail::masked_simd(
-                                     declval<const M &>(), declval<T &>()))),
+        detail::all<std::is_same<decltype(std::declval<F>()(detail::masked_simd(
+                                     std::declval<const M &>(), std::declval<T &>()))),
                                  void>>::value,
         where_expression &&>
     apply(F &&f) &&
@@ -704,8 +704,8 @@ public:
 
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        detail::all<std::is_same<decltype(declval<F>()(detail::masked_simd(
-                                     declval<const M &>(), declval<T &>()))),
+        detail::all<std::is_same<decltype(std::declval<F>()(detail::masked_simd(
+                                     std::declval<const M &>(), std::declval<T &>()))),
                                  void>>::value,
         where_expression &&>
     apply_inv(F &&f) &&
@@ -793,9 +793,10 @@ private:
 public:
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        detail::all<std::is_same<decltype(declval<F>()(detail::masked_simd(
-                                     declval<const M &>(), declval<Ts &>())...)),
-                                 void>>::value,
+        detail::all<
+            std::is_same<decltype(std::declval<F>()(detail::masked_simd(
+                             std::declval<const M &>(), std::declval<Ts &>())...)),
+                         void>>::value,
         where_expression &&>
     apply(F &&f) &&
     {
@@ -805,9 +806,10 @@ public:
 
     template <class F>
     Vc_INTRINSIC std::enable_if_t<
-        detail::all<std::is_same<decltype(declval<F>()(detail::masked_simd(
-                                     declval<const M &>(), declval<Ts &>())...)),
-                                 void>>::value,
+        detail::all<
+            std::is_same<decltype(std::declval<F>()(detail::masked_simd(
+                             std::declval<const M &>(), std::declval<Ts &>())...)),
+                         void>>::value,
         where_expression &&>
     apply_inv(F &&f) &&
     {

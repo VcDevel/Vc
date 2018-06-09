@@ -230,8 +230,8 @@ public:
     explicit constexpr Vc_ALWAYS_INLINE simd(
         F &&gen,
         detail::value_preserving_or_int<
-            decltype(declval<F>()(declval<detail::size_constant<0> &>())), value_type> * =
-            nullptr)
+            decltype(std::declval<F>()(std::declval<detail::size_constant<0> &>())),
+            value_type> * = nullptr)
         : d(impl::generator(std::forward<F>(gen), type_tag, size_tag))
     {
     }

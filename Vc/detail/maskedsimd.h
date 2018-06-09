@@ -81,11 +81,11 @@ masked_simd_impl<T, A> masked_simd(const typename simd<T, A>::mask_type &k,
 template <class T, class A, class OnTrue, class OnFalse, class... Vs>
 // TODO: require simd_mask<T, A> to be convertible to Vs::mask_type forall Vs
 std::enable_if_t<
-detail::all<std::is_same<decltype(declval<OnTrue>()(detail::masked_simd(
-                                 declval<simd_mask<T, A> &>(), declval<Vs>())...)),
+detail::all<std::is_same<decltype(std::declval<OnTrue>()(detail::masked_simd(
+std::declval<simd_mask<T, A> &>(), std::declval<Vs>())...)),
                              void>,
-                std::is_same<decltype(declval<OnFalse>()(detail::masked_simd(
-                                 declval<simd_mask<T, A> &>(), declval<Vs>())...)),
+                std::is_same<decltype(std::declval<OnFalse>()(detail::masked_simd(
+                std::declval<simd_mask<T, A> &>(), std::declval<Vs>())...)),
                              void>>::value,
     void>
 where(simd_mask<T, A> k, OnTrue &&on_true, OnFalse &&on_false, Vs &&... vs)
@@ -97,8 +97,8 @@ where(simd_mask<T, A> k, OnTrue &&on_true, OnFalse &&on_false, Vs &&... vs)
 template <class T, class A, class OnTrue, class... Vs>
 // TODO: require simd_mask<T, A> to be convertible to Vs::mask_type forall Vs
 std::enable_if_t<
-detail::all<std::is_same<decltype(declval<OnTrue>()(detail::masked_simd(
-                                 declval<simd_mask<T, A> &>(), declval<Vs>())...)),
+detail::all<std::is_same<decltype(std::declval<OnTrue>()(detail::masked_simd(
+std::declval<simd_mask<T, A> &>(), std::declval<Vs>())...)),
                              void>>::value,
     void>
 where(simd_mask<T, A> k, OnTrue &&on_true, Vs &&... vs)

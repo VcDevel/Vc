@@ -320,7 +320,7 @@ struct converts_to_higher_integer_rank : public std::true_type {
 };
 template <class From, class To>
 struct converts_to_higher_integer_rank<From, To, false>
-    : public std::is_same<decltype(declval<From>() + declval<To>()), To> {
+    : public std::is_same<decltype(std::declval<From>() + std::declval<To>()), To> {
 };
 
 // is_aligned(_v){{{1
