@@ -29,8 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_VC_
 #include "simd"
 #include "ostream"
-#include "array"
-#include "vector"
+//#include "array"
+//#include "vector"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 using double_v = native_simd<double>;

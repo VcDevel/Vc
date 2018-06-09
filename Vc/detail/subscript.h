@@ -89,7 +89,7 @@ public:
 
     /// \internal forward to non-member subscript_operator function
     template <typename I,
-              typename = enable_if<!std::is_arithmetic<
+              typename = std::enable_if_t<!std::is_arithmetic<
                   typename std::decay<I>::type>::value>  // arithmetic types
                                                          // should always use
                                                          // Base::operator[] and
@@ -102,7 +102,7 @@ public:
     }
 
     // const overload of the above
-    template <typename I, typename = enable_if<
+    template <typename I, typename = std::enable_if_t<
                               !std::is_arithmetic<typename std::decay<I>::type>::value>>
     Vc_ALWAYS_INLINE auto operator[](I &&arg_) const
         -> decltype(subscript_operator(*this, std::forward<I>(arg_)))
@@ -112,16 +112,17 @@ public:
 };
 // apply Scale (std::ratio) functions {{{1
 template <typename Scale, typename T>
-Vc_ALWAYS_INLINE enable_if<Scale::num == Scale::den, Traits::decay<T>> applyScale(T &&x)
+Vc_ALWAYS_INLINE std::enable_if_t<Scale::num == Scale::den, std::decay_t<T>> applyScale(
+    T &&x)
 {
     return std::forward<T>(x);
 }
 
 template <typename Scale, typename T>
-Vc_ALWAYS_INLINE enable_if<
+Vc_ALWAYS_INLINE std::enable_if_t<
     Scale::num != Scale::den && Traits::has_multiply_operator<T, std::intmax_t>::value,
-    Traits::decay<T>>
-    applyScale(T &&x)
+    std::decay_t<T>>
+applyScale(T &&x)
 {
     static_assert(Scale::num % Scale::den == 0,
                   "Non-integral index scaling requested. This typically happens only for "
@@ -134,10 +135,10 @@ Vc_ALWAYS_INLINE enable_if<
 }
 
 template <typename Scale, typename T>
-Vc_ALWAYS_INLINE enable_if<
+Vc_ALWAYS_INLINE std::enable_if_t<
     Scale::num != Scale::den && !Traits::has_multiply_operator<T, std::intmax_t>::value,
     T>
-    applyScale(T x)
+applyScale(T x)
 {
     static_assert(Scale::num % Scale::den == 0,
                   "Non-integral index scaling requested. This typically happens only for "
@@ -152,9 +153,10 @@ Vc_ALWAYS_INLINE enable_if<
     return x;
 }
 
-template <typename Scale, typename T, typename U,
-          typename = enable_if<Traits::has_multiply_operator<T, std::intmax_t>::value &&
-                               Traits::has_addition_operator<T, U>::value>>
+template <
+    typename Scale, typename T, typename U,
+    typename = std::enable_if_t<Traits::has_multiply_operator<T, std::intmax_t>::value &&
+                                Traits::has_addition_operator<T, U>::value>>
 Vc_ALWAYS_INLINE typename std::decay<T>::type applyScaleAndAdd(T &&x, U &&y)
 {
     constexpr auto value = Scale::num / Scale::den;
@@ -166,7 +168,7 @@ Vc_ALWAYS_INLINE typename std::decay<T>::type applyScaleAndAdd(T &&x, U &&y)
 
 template <
     typename Scale, typename T, typename U,
-    typename = enable_if<
+    typename = std::enable_if_t<
         !(Traits::has_multiply_operator<T &, std::intmax_t>::value &&
           Traits::has_addition_operator<T &, decltype(std::declval<U>()[0])>::value) &&
         Traits::has_subscript_operator<U>::value>>
@@ -184,10 +186,11 @@ Vc_ALWAYS_INLINE T applyScaleAndAdd(T x, U &&y)
 }
 
 template <typename Scale, typename T, typename U>
-Vc_ALWAYS_INLINE enable_if<!(Traits::has_multiply_operator<T &, std::intmax_t>::value &&
-                             Traits::has_addition_operator<T &, U>::value) &&
-                               !Traits::has_subscript_operator<U>::value,
-                           T>
+Vc_ALWAYS_INLINE
+    std::enable_if_t<!(Traits::has_multiply_operator<T &, std::intmax_t>::value &&
+                       Traits::has_addition_operator<T &, U>::value) &&
+                         !Traits::has_subscript_operator<U>::value,
+                     T>
     applyScaleAndAdd(T x, U &&y)
 {
     constexpr auto value = Scale::num / Scale::den;
@@ -243,10 +246,10 @@ struct IndexVectorSizeMatches<MinSize,
 // convertIndexVector {{{1
 // if the argument is a Vector<T> already we definitely want to keep it that way
 template <typename IV>
-enable_if<
-    (Traits::is_simd_vector<IV>::value && sizeof(typename IV::EntryType) >= sizeof(int)),
-    const IV &>
-    convertIndexVector(const IV &indexVector)
+std::enable_if_t<(Traits::is_simd_vector<IV>::value &&
+                  sizeof(typename IV::EntryType) >= sizeof(int)),
+                 const IV &>
+convertIndexVector(const IV &indexVector)
 {
     return indexVector;
 }
@@ -254,10 +257,10 @@ enable_if<
 // but if the scalar (integral) type is smaller than int we convert it up to int. Otherwise it's
 // very likely that the calculations we have to perform will overflow.
 template <typename IV>
-enable_if<
-    (Traits::is_simd_vector<IV>::value && sizeof(typename IV::EntryType) < sizeof(int)),
-    fixed_size_simd<int, IV::Size>>
-    convertIndexVector(const IV &indexVector)
+std::enable_if_t<(Traits::is_simd_vector<IV>::value &&
+                  sizeof(typename IV::EntryType) < sizeof(int)),
+                 fixed_size_simd<int, IV::Size>>
+convertIndexVector(const IV &indexVector)
 {
     return static_cast<fixed_size_simd<int, IV::Size>>(indexVector);
 }
@@ -268,20 +271,20 @@ template<typename T> using promoted_type = decltype(std::declval<T>() + 1);
 // std::array, Vc::array, and C-array are fixed size and can therefore be converted to a
 // fixed_size_simd of the same size
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
+std::enable_if_t<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const std::array<T, N> &indexVector)
 {
     return {std::addressof(indexVector[0]), Vc::element_aligned};
 }
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
+std::enable_if_t<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const Vc::array<T, N> &indexVector)
 {
     return {std::addressof(indexVector[0]), Vc::element_aligned};
 }
 template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
-convertIndexVector(const T(&indexVector)[N])
+std::enable_if_t<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
+convertIndexVector(const T (&indexVector)[N])
 {
     return fixed_size_simd<promoted_type<T>, N>{std::addressof(indexVector[0]),
                                                    Vc::element_aligned};
@@ -290,7 +293,8 @@ convertIndexVector(const T(&indexVector)[N])
 // a plain pointer won't work. Because we need some information on the number of values in
 // the index argument
 template <typename T>
-enable_if<std::is_pointer<T>::value, void> convertIndexVector(T indexVector) = delete;
+std::enable_if_t<std::is_pointer<T>::value, void> convertIndexVector(T indexVector) =
+    delete;
 
 // an initializer_list works, but is runtime-sized (before C++14, at least) so we have to
 // fall back to std::vector
@@ -303,15 +307,15 @@ std::vector<promoted_type<T>> convertIndexVector(
 
 // a std::vector cannot be converted to anything better
 template <typename T>
-enable_if<(std::is_integral<T>::value && sizeof(T) >= sizeof(int)), std::vector<T>>
-    convertIndexVector(const std::vector<T> &indexVector)
+std::enable_if_t<(std::is_integral<T>::value && sizeof(T) >= sizeof(int)), std::vector<T>>
+convertIndexVector(const std::vector<T> &indexVector)
 {
     return indexVector;
 }
 template <typename T>
-enable_if<(std::is_integral<T>::value && sizeof(T) < sizeof(int)),
-          std::vector<promoted_type<T>>>
-    convertIndexVector(const std::vector<T> &indexVector)
+std::enable_if_t<(std::is_integral<T>::value && sizeof(T) < sizeof(int)),
+                 std::vector<promoted_type<T>>>
+convertIndexVector(const std::vector<T> &indexVector)
 {
     return {std::begin(indexVector), std::end(indexVector)};
 }
@@ -340,10 +344,10 @@ class SubscriptOperation
     using IndexVectorScaled = Traits::decay<decltype(convertIndexVector(std::declval<const IndexVector &>()))>;
 
 public:
-    template <typename U,
-              typename = enable_if<((std::is_convertible<const U &, IndexVector>::value ||
-                                     std::is_same<U, IndexVector>::value) &&
-                                    std::is_copy_constructible<IndexVector>::value)>>
+    template <typename U, typename = std::enable_if_t<
+                              ((std::is_convertible<const U &, IndexVector>::value ||
+                                std::is_same<U, IndexVector>::value) &&
+                               std::is_copy_constructible<IndexVector>::value)>>
     constexpr Vc_ALWAYS_INLINE SubscriptOperation(T *address, const U &indexes)
         : m_indexes(indexes), m_address(address)
     {
@@ -358,11 +362,12 @@ public:
     template <typename U>
     constexpr Vc_ALWAYS_INLINE SubscriptOperation(
         T *address, const U &indexes,
-        enable_if<((std::is_convertible<const U &, IndexVector>::value ||
-                    std::is_same<U, IndexVector>::value) &&
-                   !std::is_copy_constructible<IndexVector>::value &&
-                   std::is_array<IndexVector>::value &&
-                   std::extent<IndexVector>::value > 0)> = nullarg)
+        std::enable_if_t<((std::is_convertible<const U &, IndexVector>::value ||
+                           std::is_same<U, IndexVector>::value) &&
+                              !std::is_copy_constructible<IndexVector>::value &&
+                              std::is_array<IndexVector>::value &&
+                              std::extent<IndexVector>::value,
+                          detail::nullarg_t > 0)> = detail::nullarg)
         : SubscriptOperation(address, indexes,
                              std::make_index_sequence<std::extent<IndexVector>::value>())
     {
@@ -382,9 +387,10 @@ public:
         return {applyScale<Scale>(convertIndexVector(m_indexes)), m_address};
     }
 
-    template <typename V,
-              typename = enable_if<(std::is_arithmetic<ScalarType>::value &&Traits::is_simd_vector<
-                  V>::value &&IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
+    template <typename V, typename = std::enable_if_t<
+                              (std::is_arithmetic<ScalarType>::value &&
+                               Traits::is_simd_vector<V>::value &&
+                               IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
     Vc_ALWAYS_INLINE operator V() const
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
@@ -393,9 +399,10 @@ public:
         return V(m_address, indexes);
     }
 
-    template <typename V,
-              typename = enable_if<(std::is_arithmetic<ScalarType>::value &&Traits::is_simd_vector<
-                  V>::value &&IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
+    template <typename V, typename = std::enable_if_t<
+                              (std::is_arithmetic<ScalarType>::value &&
+                               Traits::is_simd_vector<V>::value &&
+                               IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
     Vc_ALWAYS_INLINE SubscriptOperation &operator=(const V &rhs)
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
@@ -411,20 +418,20 @@ public:
         typename S,  // S must be equal to T. Still we require this template parameter -
         // otherwise instantiation of SubscriptOperation would only be valid for
         // structs/unions.
-        typename = enable_if<std::is_same<S, typename std::remove_cv<T>::type>::value &&(
-            std::is_class<T>::value || std::is_union<T>::value)>>
-    Vc_ALWAYS_INLINE auto operator[](U S::*member)
-        -> SubscriptOperation<
-              typename std::conditional<std::is_const<T>::value,
-                                        const typename std::remove_reference<U>::type,
-                                        typename std::remove_reference<U>::type>::type,
-              IndexVector,
-              // By passing the scale factor as a fraction of integers in the template
-              // arguments the value does not lose information if the division yields a
-              // non-integral value. This could happen e.g. for a struct of struct (S2 {
-              // S1, char }, with sizeof(S1) = 16, sizeof(S2) = 20. Then scale would be
-              // 20/16)
-              std::ratio_multiply<Scale, std::ratio<sizeof(S), sizeof(U)>>>
+        typename =
+            std::enable_if_t<std::is_same<S, typename std::remove_cv<T>::type>::value &&
+                             (std::is_class<T>::value || std::is_union<T>::value)>>
+    Vc_ALWAYS_INLINE auto operator[](U S::*member) -> SubscriptOperation<
+        typename std::conditional<std::is_const<T>::value,
+                                  const typename std::remove_reference<U>::type,
+                                  typename std::remove_reference<U>::type>::type,
+        IndexVector,
+        // By passing the scale factor as a fraction of integers in the template
+        // arguments the value does not lose information if the division yields a
+        // non-integral value. This could happen e.g. for a struct of struct (S2 {
+        // S1, char }, with sizeof(S1) = 16, sizeof(S2) = 20. Then scale would be
+        // 20/16)
+        std::ratio_multiply<Scale, std::ratio<sizeof(S), sizeof(U)>>>
     {
         static_assert(std::is_same<Traits::decay<decltype(m_address->*member)>,
                                    Traits::decay<U>>::value,
@@ -540,32 +547,36 @@ class SubscriptOperation<T, IndexVector, Scale, false>;
 
 // subscript_operator {{{1
 template <
-    typename Container,
-    typename IndexVector,
-    typename = enable_if<
-        Traits::has_subscript_operator<IndexVector>::value  // The index vector must provide [] for
-                                                            // the implementations of gather/scatter
-        &&Traits::has_contiguous_storage<Container>::value  // Container must use contiguous
-                                                            // storage, otherwise the index vector
+    typename Container, typename IndexVector,
+    typename = std::enable_if_t<
+        Traits::has_subscript_operator<IndexVector>::value  // The index vector must
+                                                            // provide [] for the
+                                                            // implementations of
+                                                            // gather/scatter
+        && Traits::has_contiguous_storage<Container>::value  // Container must use
+                                                             // contiguous storage,
+                                                             // otherwise the index vector
         // cannot be used as memory offsets, which is required for efficient
         // gather/scatter implementations
-        &&std::is_lvalue_reference<decltype(*begin(std::declval<
-            Container>()))>::value  // dereferencing the begin iterator must yield an lvalue
-                                    // reference (const or non-const). Otherwise it is not possible
-                                    // to determine a pointer to the data storage (see above).
+        && std::is_lvalue_reference<decltype(*begin(std::declval<Container>()))>::
+               value  // dereferencing the begin iterator must yield an lvalue
+                      // reference (const or non-const). Otherwise it is not possible
+                      // to determine a pointer to the data storage (see above).
         >>
-Vc_ALWAYS_INLINE SubscriptOperation<
-    typename std::remove_reference<decltype(*begin(std::declval<Container>()))>::
-        type,  // the type of the first value in the container is what the internal array pointer
-               // has to point to. But if the subscript operator of the container returns a
-               // reference we need to drop that part because it's useless information for us. But
-               // const and volatile, as well as array rank/extent are interesting and need not be
-               // dropped.
-    typename std::remove_const<typename std::remove_reference<
-        IndexVector>::type>::type  // keep volatile and possibly the array extent, but the const and
-                                   // & parts of the type need to be removed because
-                                   // SubscriptOperation explicitly adds them for its member type
-    > subscript_operator(Container &&c, IndexVector &&indexes)
+Vc_ALWAYS_INLINE
+    SubscriptOperation<
+        typename std::remove_reference<decltype(*begin(std::declval<Container>()))>::
+            type,  // the type of the first value in the container is what the internal
+                   // array pointer has to point to. But if the subscript operator of the
+                   // container returns a reference we need to drop that part because it's
+                   // useless information for us. But const and volatile, as well as array
+                   // rank/extent are interesting and need not be dropped.
+        typename std::remove_const<typename std::remove_reference<IndexVector>::type>::
+            type  // keep volatile and possibly the array extent, but the const and
+                  // & parts of the type need to be removed because
+                  // SubscriptOperation explicitly adds them for its member type
+        >
+    subscript_operator(Container &&c, IndexVector &&indexes)
 {
     Vc_ASSERT(std::addressof(*begin(c)) + 1 ==
               std::addressof(*(begin(c) + 1)));  // runtime assertion for contiguous storage, this
