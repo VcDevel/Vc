@@ -31,8 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <bitset>
 #include "global.h"
 #include "macros.h"
-#include "declval.h"
-#include "macros.h"
 #include "detail.h"
 #include "where.h"
 #include "concepts.h"
