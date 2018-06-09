@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_VC_
 #include "simd"
 #include "ostream"
-#include "Allocator"
 #include "array"
 #include "vector"
 
