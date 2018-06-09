@@ -109,7 +109,8 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
     template <class T, class U, class F>
     static Vc_INTRINSIC simd_member_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        std::enable_if_t<sizeof(T) == sizeof(U), detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<simd_member_type<T>, simd_member_type<U>>(load64(mem, f));
     }
@@ -118,7 +119,8 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
     template <class T, class U, class F>
     static Vc_INTRINSIC simd_member_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        std::enable_if_t<sizeof(T) == sizeof(U) * 2, detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<simd_member_type<T>, avx_simd_member_type<U>>(load32(mem, f));
     }
@@ -127,7 +129,8 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
     template <class T, class U, class F>
     static Vc_INTRINSIC simd_member_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        std::enable_if_t<sizeof(T) == sizeof(U) * 4, detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<simd_member_type<T>, sse_simd_member_type<U>>(load16(mem, f));
     }
@@ -136,7 +139,8 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
     template <class T, class U, class F>
     static Vc_INTRINSIC simd_member_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        std::enable_if_t<sizeof(T) == sizeof(U) * 8, detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<simd_member_type<T>, sse_simd_member_type<U>>(load8(mem, f));
     }
@@ -145,7 +149,8 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
     template <class T, class U, class F>
     static Vc_INTRINSIC simd_member_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        std::enable_if_t<sizeof(T) * 2 == sizeof(U), detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<simd_member_type<T>, simd_member_type<U>>(
             load64(mem, f), load64(mem + size<U>(), f));
@@ -155,7 +160,8 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
     template <class T, class U, class F>
     static Vc_INTRINSIC simd_member_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        std::enable_if_t<sizeof(T) * 4 == sizeof(U), detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<simd_member_type<T>, simd_member_type<U>>(
             load64(mem, f), load64(mem + size<U>(), f), load64(mem + 2 * size<U>(), f),
@@ -166,7 +172,8 @@ struct avx512_simd_impl : public generic_simd_impl<avx512_simd_impl, simd_abi::_
     template <class T, class U, class F>
     static Vc_INTRINSIC simd_member_type<T> load(
         const U *mem, F f, type_tag<T>,
-        enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+        std::enable_if_t<sizeof(T) * 8 == sizeof(U), detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
         return convert<simd_member_type<T>, simd_member_type<U>>(
             load64(mem, f), load64(mem + size<U>(), f), load64(mem + 2 * size<U>(), f),

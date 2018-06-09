@@ -40,6 +40,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+// nullarg{{{
+inline constexpr struct nullarg_t {
+} nullarg;
+
+// }}}
 // unused{{{1
 template <class T> static constexpr void unused(T && ) {}
 

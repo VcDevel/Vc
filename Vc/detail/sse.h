@@ -451,18 +451,20 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl, simd_abi::__sse> 
 
     // convert and 16-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL
-    store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
-          enable_if<sizeof(T) == sizeof(U) * 8> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void Vc_VDECL store(
+        simd_member_type<T> v, U *mem, F f, type_tag<T>,
+        std::enable_if_t<sizeof(T) == sizeof(U) * 8, detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
         store2(x86::convert<simd_member_type<U>>(v), mem, f);
     }
 
     // convert and 32-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL
-    store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
-          enable_if<sizeof(T) == sizeof(U) * 4> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void Vc_VDECL store(
+        simd_member_type<T> v, U *mem, F f, type_tag<T>,
+        std::enable_if_t<sizeof(T) == sizeof(U) * 4, detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         store4(x86::convert<simd_member_type<U>>(v), mem, f);
@@ -474,9 +476,10 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl, simd_abi::__sse> 
 
     // convert and 64-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL
-    store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
-          enable_if<sizeof(T) == sizeof(U) * 2> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void Vc_VDECL store(
+        simd_member_type<T> v, U *mem, F f, type_tag<T>,
+        std::enable_if_t<sizeof(T) == sizeof(U) * 2, detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         store8(x86::convert<simd_member_type<U>>(v), mem, f);
@@ -490,7 +493,8 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl, simd_abi::__sse> 
     template <class T, class U, class F>
     static Vc_INTRINSIC void Vc_VDECL
     store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
-          enable_if<sizeof(T) == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+          std::enable_if_t<sizeof(T) == sizeof(U), detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_FULL_SSE_ABI
         store16(x86::convert<simd_member_type<U>>(v), mem, f);
@@ -502,9 +506,10 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl, simd_abi::__sse> 
 
     // convert and 256-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL
-    store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
-          enable_if<sizeof(T) * 2 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void Vc_VDECL store(
+        simd_member_type<T> v, U *mem, F f, type_tag<T>,
+        std::enable_if_t<sizeof(T) * 2 == sizeof(U), detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX
         store32(x86::convert<avx_member_type<U>>(v), mem, f);
@@ -522,9 +527,10 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl, simd_abi::__sse> 
 
     // convert and 512-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL
-    store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
-          enable_if<sizeof(T) * 4 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void Vc_VDECL store(
+        simd_member_type<T> v, U *mem, F f, type_tag<T>,
+        std::enable_if_t<sizeof(T) * 4 == sizeof(U), detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         store64(convert_all<avx512_member_type<U>>(v), mem, f);
@@ -543,9 +549,10 @@ struct sse_simd_impl : public generic_simd_impl<sse_simd_impl, simd_abi::__sse> 
 
     // convert and 1024-bit store{{{3
     template <class T, class U, class F>
-    static Vc_INTRINSIC void Vc_VDECL
-    store(simd_member_type<T> v, U *mem, F f, type_tag<T>,
-          enable_if<sizeof(T) * 8 == sizeof(U)> = nullarg) Vc_NOEXCEPT_OR_IN_TEST
+    static Vc_INTRINSIC void Vc_VDECL store(
+        simd_member_type<T> v, U *mem, F f, type_tag<T>,
+        std::enable_if_t<sizeof(T) * 8 == sizeof(U), detail::nullarg_t> = detail::nullarg)
+        Vc_NOEXCEPT_OR_IN_TEST
     {
 #ifdef Vc_HAVE_AVX512F
         const auto tmp = convert_all<avx512_member_type<U>>(v);

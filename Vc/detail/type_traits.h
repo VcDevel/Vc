@@ -28,8 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SIMD_TYPE_TRAITS_H_
 #define VC_SIMD_TYPE_TRAITS_H_
 
-#include "../traits/type_traits.h"
-
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail {
 // integer type aliases{{{

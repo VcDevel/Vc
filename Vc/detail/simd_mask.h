@@ -81,9 +81,11 @@ public:
 
     // implicit type conversion constructor
     template <class U>
-    Vc_ALWAYS_INLINE simd_mask(const simd_mask<U, simd_abi::fixed_size<size_v>> &x,
-         enable_if<detail::all<std::is_same<abi_type, simd_abi::fixed_size<size_v>>,
-                               std::is_same<U, U>>::value> = nullarg)
+    Vc_ALWAYS_INLINE simd_mask(
+        const simd_mask<U, simd_abi::fixed_size<size_v>> &x,
+        std::enable_if_t<detail::all<std::is_same<abi_type, simd_abi::fixed_size<size_v>>,
+                                     std::is_same<U, U>>::value,
+                         detail::nullarg_t> = detail::nullarg)
         : simd_mask{detail::bitset_init, detail::data(x)}
     {
     }
