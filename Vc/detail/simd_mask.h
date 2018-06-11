@@ -51,12 +51,11 @@ public:
     using value_type = bool;
     using reference = detail::smart_reference<member_type, impl, value_type>;
     using simd_type = simd<T, Abi>;
-    using size_type = size_t;
     using abi_type = Abi;
 
-    static constexpr size_type size()
+    static constexpr size_t size()
     {
-        constexpr size_type N = size_tag;
+        constexpr size_t N = size_tag;
         return N;
     }
     simd_mask() = default;
@@ -65,16 +64,13 @@ public:
     simd_mask &operator=(const simd_mask &) = default;
     simd_mask &operator=(simd_mask &&) = default;
 
-    // non-std; required to work around ICC ICEs
-    static constexpr size_type size_v = size_tag;
-
     // access to internal representation (suggested extension)
     explicit Vc_ALWAYS_INLINE simd_mask(typename traits::mask_cast_type init) : d{init} {}
     // conversions to internal type is done in mask_base
 
     // bitset interface
-    static Vc_ALWAYS_INLINE simd_mask from_bitset(std::bitset<size_v> bs) { return {detail::bitset_init, bs}; }
-    std::bitset<size_v> Vc_ALWAYS_INLINE to_bitset() const { return impl::to_bitset(d); }
+    static Vc_ALWAYS_INLINE simd_mask from_bitset(std::bitset<size()> bs) { return {detail::bitset_init, bs}; }
+    std::bitset<size()> Vc_ALWAYS_INLINE to_bitset() const { return impl::to_bitset(d); }
 
     // explicit broadcast constructor
     explicit Vc_ALWAYS_INLINE simd_mask(value_type x) : d(impl::broadcast(x, type_tag)) {}
@@ -82,8 +78,8 @@ public:
     // implicit type conversion constructor
     template <class U>
     Vc_ALWAYS_INLINE simd_mask(
-        const simd_mask<U, simd_abi::fixed_size<size_v>> &x,
-        std::enable_if_t<detail::all<std::is_same<abi_type, simd_abi::fixed_size<size_v>>,
+        const simd_mask<U, simd_abi::fixed_size<size()>> &x,
+        std::enable_if_t<detail::all<std::is_same<abi_type, simd_abi::fixed_size<size()>>,
                                      std::is_same<U, U>>::value,
                          detail::nullarg_t> = detail::nullarg)
         : simd_mask{detail::bitset_init, detail::data(x)}
@@ -95,7 +91,7 @@ public:
          enable_if<
              (size() == simd_mask<U, Abi>::size()) &&
              detail::all<std::is_integral<T>, std::is_integral<U>,
-             detail::negation<std::is_same<Abi, simd_abi::fixed_size<size_v>>>,
+             detail::negation<std::is_same<Abi, simd_abi::fixed_size<size()>>>,
              detail::negation<std::is_same<T, U>>>::value> = nullarg)
         : d{x.d}
     {
@@ -104,7 +100,7 @@ public:
     simd_mask(const simd_mask<U, Abi2> &x,
          enable_if<detail::all<
          detail::negation<std::is_same<abi_type, Abi2>>,
-             std::is_same<abi_type, simd_abi::fixed_size<size_v>>>::value> = nullarg)
+             std::is_same<abi_type, simd_abi::fixed_size<size()>>>::value> = nullarg)
     {
         x.copy_to(&d[0], vector_aligned);
     }
@@ -153,8 +149,8 @@ public :
     }
 
     // scalar access
-    Vc_ALWAYS_INLINE reference operator[](size_type i) { return {d, int(i)}; }
-    Vc_ALWAYS_INLINE value_type operator[](size_type i) const {
+    Vc_ALWAYS_INLINE reference operator[](size_t i) { return {d, int(i)}; }
+    Vc_ALWAYS_INLINE value_type operator[](size_t i) const {
         if constexpr (is_scalar()) {
             Vc_ASSERT(i == 0);
             detail::unused(i);
@@ -232,7 +228,7 @@ public :
     }
 
     // "private" because of the first arguments's namespace
-    Vc_INTRINSIC simd_mask(detail::bitset_init_t, std::bitset<size_v> init)
+    Vc_INTRINSIC simd_mask(detail::bitset_init_t, std::bitset<size()> init)
         : d(impl::from_bitset(init, type_tag))
     {
     }

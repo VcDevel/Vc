@@ -242,7 +242,7 @@ template <size_t... Sizes, class T, class... As>
 auto split_wrapper(size_list<Sizes...>, const simd_tuple<T, As...> &x)
 {
     return Vc::split<Sizes...>(
-        fixed_size_simd<T, simd_tuple<T, As...>::size_v>(private_init, x));
+        fixed_size_simd<T, simd_tuple<T, As...>::size()>(private_init, x));
 }
 }  // namespace detail
 

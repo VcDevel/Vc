@@ -150,12 +150,11 @@ public:
     using value_type = T;
     using reference = detail::smart_reference<member_type, impl, value_type>;
     using mask_type = simd_mask<T, Abi>;
-    using size_type = size_t;
     using abi_type = Abi;
 
-    static constexpr size_type size()
+    static constexpr size_t size()
     {
-        constexpr size_type N = size_tag;
+        constexpr size_t N = size_tag;
         return N;
     }
     simd() = default;
@@ -163,9 +162,6 @@ public:
     simd(simd &&) = default;
     simd &operator=(const simd &) = default;
     simd &operator=(simd &&) = default;
-
-    // non-std; required to work around MSVC error C2975
-    static constexpr size_type size_v = size_tag;
 
     // implicit broadcast constructor
     template <class U, class = detail::value_preserving_or_int<U, value_type>>
@@ -177,9 +173,9 @@ public:
     // implicit type conversion constructor (convert from fixed_size to fixed_size)
     template <class U>
     Vc_ALWAYS_INLINE simd(
-        const simd<U, simd_abi::fixed_size<size_v>> &x,
+        const simd<U, simd_abi::fixed_size<size()>> &x,
         std::enable_if_t<
-            detail::all<std::is_same<simd_abi::fixed_size<size_v>, abi_type>,
+            detail::all<std::is_same<simd_abi::fixed_size<size()>, abi_type>,
                         detail::negation<detail::is_narrowing_conversion<U, value_type>>,
                         detail::converts_to_higher_integer_rank<U, value_type>>::value,
             void *> = nullptr)
@@ -192,10 +188,10 @@ public:
     // 1st conversion ctor: convert from fixed_size<size()>
     template <class U>
     explicit Vc_ALWAYS_INLINE simd(
-        const simd<U, simd_abi::fixed_size<size_v>> &x,
+        const simd<U, simd_abi::fixed_size<size()>> &x,
         std::enable_if_t<
             detail::any<detail::all<detail::negation<std::is_same<
-                                        simd_abi::fixed_size<size_v>, abi_type>>,
+                                        simd_abi::fixed_size<size()>, abi_type>>,
                                     std::is_convertible<U, value_type>>,
                         detail::is_narrowing_conversion<U, value_type>>::value,
             void *> = nullptr)
@@ -272,8 +268,8 @@ public:
     }
 
     // scalar access
-    constexpr Vc_ALWAYS_INLINE reference operator[](size_type i) { return {d, int(i)}; }
-    constexpr Vc_ALWAYS_INLINE value_type operator[](size_type i) const
+    constexpr Vc_ALWAYS_INLINE reference operator[](size_t i) { return {d, int(i)}; }
+    constexpr Vc_ALWAYS_INLINE value_type operator[](size_t i) const
     {
         if constexpr (is_scalar()) {
             Vc_ASSERT(i == 0);
@@ -358,7 +354,7 @@ public:
     Vc_INTRINSIC simd(detail::private_init_t, const member_type &init) : d(init) {}
 
     // "private" because of the first arguments's namespace
-    Vc_INTRINSIC simd(detail::bitset_init_t, std::bitset<size_v> init) : d() {
+    Vc_INTRINSIC simd(detail::bitset_init_t, std::bitset<size()> init) : d() {
         where(mask_type(detail::bitset_init, init), *this) = ~*this;
     }
 

@@ -271,7 +271,6 @@ template <class T> struct simd_tuple<T> {
     using value_type = T;
     static constexpr size_t tuple_size = 0;
     static constexpr size_t size() { return 0; }
-    static constexpr size_t size_v = 0;
 };
 
 // 1 member {{{2
@@ -282,7 +281,6 @@ template <class T, class Abi0> struct simd_tuple<T, Abi0> {
     using first_abi = Abi0;
     static constexpr size_t tuple_size = 1;
     static constexpr size_t size() { return simd_size_v<T, Abi0>; }
-    static constexpr size_t size_v = simd_size_v<T, Abi0>;
     static constexpr size_t first_size_v = simd_size_v<T, Abi0>;
     alignas(sizeof(first_type)) first_type first;
     static constexpr second_type second = {};
@@ -397,7 +395,7 @@ public:
     }
 
     template <class R = T, class F, class... More>
-    Vc_INTRINSIC fixed_size_storage<R, size_v> apply_r(F &&fun,
+    Vc_INTRINSIC fixed_size_storage<R, size()> apply_r(F &&fun,
                                                        const More &... more) const
     {
         Vc_DEBUG(simd_tuple);
@@ -405,7 +403,7 @@ public:
     }
 
     template <class F, class... More>
-    friend Vc_INTRINSIC std::bitset<size_v> test(F &&fun, const simd_tuple &x,
+    friend Vc_INTRINSIC std::bitset<size()> test(F &&fun, const simd_tuple &x,
                                                  const More &... more)
     {
         return Abi0::mask_impl_type::to_bitset(
@@ -424,10 +422,9 @@ template <class T, class Abi0, class... Abis> struct simd_tuple<T, Abi0, Abis...
     using second_type = simd_tuple<T, Abis...>;
     static constexpr size_t tuple_size = sizeof...(Abis) + 1;
     static constexpr size_t size() { return simd_size_v<T, Abi0> + second_type::size(); }
-    static constexpr size_t size_v = simd_size_v<T, Abi0> + second_type::size();
     static constexpr size_t first_size_v = simd_size_v<T, Abi0>;
     static constexpr size_t alignment =
-        std::clamp(next_power_of_2(sizeof(T) * size_v), size_t(16), size_t(256));
+        std::clamp(next_power_of_2(sizeof(T) * size()), size_t(16), size_t(256));
     alignas(alignment) first_type first;
     second_type second;
 
@@ -584,7 +581,7 @@ public:
     }
 
     template <class F, class... More>
-    friend Vc_INTRINSIC std::bitset<size_v> test(F &&fun, const simd_tuple &x,
+    friend Vc_INTRINSIC std::bitset<size()> test(F &&fun, const simd_tuple &x,
                                                  const More &... more)
     {
         return Abi0::mask_impl_type::to_bitset(
@@ -686,7 +683,7 @@ Vc_INTRINSIC const simd_tuple<T, A> &optimize_tuple(const simd_tuple<T, A> &x)
 }
 
 template <class T, class A0, class A1, class... Abis,
-          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, Abis...>::size_v>>
+          class R = fixed_size_storage<T, simd_tuple<T, A0, A1, Abis...>::size()>>
 Vc_INTRINSIC R optimize_tuple(const simd_tuple<T, A0, A1, Abis...> &x)
 {
     using Tup = simd_tuple<T, A0, A1, Abis...>;
