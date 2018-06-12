@@ -116,84 +116,47 @@ inline SSE::float_v floor(SSE::float_v::AsArg v) { return _mm_floor_ps(v.data())
 inline SSE::double_v ceil(SSE::double_v::AsArg v) { return _mm_ceil_pd(v.data()); }
 inline SSE::float_v ceil(SSE::float_v::AsArg v) { return _mm_ceil_ps(v.data()); }
 #else
-namespace Detail
+inline SSE::Vector<float> trunc(SSE::Vector<float> x)
 {
-static inline void floor_shift(SSE::float_v &v, SSE::float_v::AsArg e)
-{
-    SSE::int_v x = SSE::_mm_setallone_si128();
-    x <<= 23;
-    x >>= simd_cast<SSE::int_v>(e);
-    v = Detail::operator&(v, reinterpret_components_cast<SSE::float_v>(x));
+    const auto truncated = _mm_cvtepi32_ps(_mm_cvttps_epi32(x.data()));
+    const auto no_fractional_values = _mm_castsi128_ps(_mm_cmplt_epi32(
+        _mm_and_si128(_mm_castps_si128(x.data()), _mm_set1_epi32(0x7f800000u)),
+        _mm_set1_epi32(0x4b000000)));  // the exponent is so large that no mantissa bits
+                                       // signify fractional values (0x3f8 + 23*8 = 0x4b0)
+    return _mm_or_ps(_mm_andnot_ps(no_fractional_values, x.data()),
+                     _mm_and_ps(no_fractional_values, truncated));
 }
 
-static inline void floor_shift(SSE::double_v &v, SSE::double_v::AsArg e)
+inline SSE::Vector<double> trunc(SSE::Vector<double> x)
 {
-    const long long initialMask = 0xfff0000000000000ull;
-    const SSE::uint_v shifts = simd_cast<SSE::uint_v>(e);
-    union d_ll
-    {
-        long long ll;
-        double d;
-    };
-    d_ll mask0 = {initialMask >> shifts[0]};
-    d_ll mask1 = {initialMask >> shifts[1]};
-    v = Detail::operator&(v, SSE::double_v(_mm_setr_pd(mask0.d, mask1.d)));
+    const auto abs_x = Vc::abs(x).data();
+    const auto min_no_fractional_bits =
+        _mm_castsi128_pd(_mm_set1_epi64x(0x4330000000000000ull));  // 0x3ff + 52 = 0x433
+    __m128d truncated =
+        _mm_sub_pd(_mm_add_pd(abs_x, min_no_fractional_bits), min_no_fractional_bits);
+    // due to rounding, the result can be too large. In this case `truncated >
+    // abs(x)` holds, so subtract 1 to truncated if `abs(x) < truncated`
+    truncated = _mm_sub_pd(truncated,
+                           _mm_and_pd(_mm_cmplt_pd(abs_x, truncated), _mm_set1_pd(1.)));
+    // finally, fix the sign bit:
+    return _mm_or_pd(
+        _mm_and_pd(_mm_castsi128_pd(_mm_set1_epi64x(0x8000000000000000ull)), x.data()),
+        truncated);
 }
-}  // namespace Detail
 
-template <typename T> inline SSE::Vector<T> trunc(SSE::Vector<T> _v)
+template <typename T> inline SSE::Vector<T> floor(SSE::Vector<T> x)
 {
-        typedef SSE::Vector<T> V;
-        typedef typename V::Mask M;
+    auto y = trunc(x);
+    y(!(y == x) && x < 0) -= 1;
+    return y;
+}
 
-        V v = _v;
-        V e = exponent(abs(v));
-        const M negativeExponent = e < 0;
-        e.setZero(negativeExponent);
-        //const M negativeInput = v < V::Zero();
-
-        Detail::floor_shift(v, e);
-
-        v.setZero(negativeExponent);
-        //v(negativeInput && _v != v) -= V::One();
-        return v;
-    }
-
-template <typename T> inline SSE::Vector<T> floor(SSE::Vector<T> _v)
+template <typename T> inline SSE::Vector<T> ceil(SSE::Vector<T> x)
 {
-        typedef SSE::Vector<T> V;
-        typedef typename V::Mask M;
-
-        V v = _v;
-        V e = exponent(abs(v));
-        const M negativeExponent = e < 0;
-        e.setZero(negativeExponent);
-        const M negativeInput = v < V::Zero();
-
-        Detail::floor_shift(v, e);
-
-        v.setZero(negativeExponent);
-        v(negativeInput && _v != v) -= V::One();
-        return v;
-    }
-
-template <typename T> inline SSE::Vector<T> ceil(SSE::Vector<T> _v)
-{
-        typedef SSE::Vector<T> V;
-        typedef typename V::Mask M;
-
-        V v = _v;
-        V e = exponent(abs(v));
-        const M negativeExponent = e < 0;
-        e.setZero(negativeExponent);
-        const M positiveInput = v > V::Zero();
-
-        Detail::floor_shift(v, e);
-
-        v.setZero(negativeExponent);
-        v(positiveInput && _v != v) += V::One();
-        return v;
-    }
+    auto y = trunc(x);
+    y(!(y == x || x < 0)) += 1;
+    return y;
+}
 #endif
 // fma {{{1
 template <typename T>
