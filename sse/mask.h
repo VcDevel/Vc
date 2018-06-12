@@ -159,7 +159,14 @@ public:
             return Detail::is_not_equal<Size>(data(), rhs.data());
         }
 
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator!() const { return _mm_andnot_si128(dataI(), SSE::_mm_setallone_si128()); }
+        Vc_ALWAYS_INLINE Vc_PURE Mask operator!() const
+        {
+#ifdef Vc_GCC
+            return ~dataI();
+#else
+            return _mm_andnot_si128(dataI(), SSE::_mm_setallone_si128());
+#endif
+        }
 
         Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = SSE::sse_cast<VectorType>(_mm_and_ps(data(), rhs.data())); return *this; }
         Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = SSE::sse_cast<VectorType>(_mm_or_ps (data(), rhs.data())); return *this; }

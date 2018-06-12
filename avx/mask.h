@@ -149,7 +149,14 @@ public:
         Vc_INTRINSIC Vc_PURE bool operator!=(const Mask &rhs) const
         { return !operator==(rhs); }
 
-        Vc_INTRINSIC Mask operator!() const { return Detail::andnot_(data(), Detail::allone<VectorTypeF>()); }
+        Vc_INTRINSIC Mask operator!() const
+        {
+#ifdef Vc_GCC
+            return ~dataI();
+#else
+            return Detail::andnot_(data(), Detail::allone<VectorTypeF>());
+#endif
+        }
 
         Vc_INTRINSIC Mask &operator&=(const Mask &rhs) { d.v() = AVX::avx_cast<VectorType>(Detail::and_(data(), rhs.data())); return *this; }
         Vc_INTRINSIC Mask &operator|=(const Mask &rhs) { d.v() = AVX::avx_cast<VectorType>(Detail::or_ (data(), rhs.data())); return *this; }

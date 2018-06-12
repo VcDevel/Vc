@@ -378,13 +378,29 @@ namespace SseIntrinsics
 #endif
     }
     Vc_INTRINSIC Vc_CONST __m128d blendv_pd(__m128d a, __m128d b, __m128d c) {
+#ifdef Vc_GCC
+        return reinterpret_cast<__m128d>(
+            (~reinterpret_cast<__m128i>(c) & reinterpret_cast<__m128i>(a)) |
+            (reinterpret_cast<__m128i>(c) & reinterpret_cast<__m128i>(b)));
+#else
         return _mm_or_pd(_mm_andnot_pd(c, a), _mm_and_pd(c, b));
+#endif
     }
     Vc_INTRINSIC Vc_CONST __m128  blendv_ps(__m128  a, __m128  b, __m128  c) {
+#ifdef Vc_GCC
+        return reinterpret_cast<__m128>(
+            (~reinterpret_cast<__m128i>(c) & reinterpret_cast<__m128i>(a)) |
+            (reinterpret_cast<__m128i>(c) & reinterpret_cast<__m128i>(b)));
+#else
         return _mm_or_ps(_mm_andnot_ps(c, a), _mm_and_ps(c, b));
+#endif
     }
     Vc_INTRINSIC Vc_CONST __m128i blendv_epi8(__m128i a, __m128i b, __m128i c) {
+#ifdef Vc_GCC
+        return (~c & a) | (c & b);
+#else
         return _mm_or_si128(_mm_andnot_si128(c, a), _mm_and_si128(c, b));
+#endif
     }
 
     // only use the following blend functions with immediates as mask and, of course, compiling
