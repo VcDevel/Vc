@@ -38,39 +38,6 @@ namespace detail
 {
 namespace x86
 {
-// lo/hi/extract128 {{{
-template <typename T, size_t N>
-constexpr Vc_INTRINSIC storage16_t<T> lo128(Storage<T, N> x)
-{
-    return detail::x86::lo128(x.d);
-}
-template <typename T, size_t N>
-constexpr Vc_INTRINSIC storage16_t<T> hi128(Storage<T, N> x)
-{
-    return detail::x86::hi128(x.d);
-}
-
-template <int offset, typename T, size_t N>
-constexpr Vc_INTRINSIC storage16_t<T> extract128(Storage<T, N> x)
-{
-    return detail::x86::extract128<offset>(x.d);
-}
-
-//}}}
-
-// lo/hi256 {{{
-template <typename T, size_t N>
-constexpr Vc_INTRINSIC storage32_t<T> lo256(Storage<T, N> x)
-{
-    return detail::x86::lo256(x.d);
-}
-template <typename T, size_t N>
-constexpr Vc_INTRINSIC storage32_t<T> hi256(Storage<T, N> x)
-{
-    return detail::x86::hi256(x.d);
-}
-//}}}
-
 // extract_part {{{1
 // identity {{{2
 template <class T>
@@ -107,10 +74,8 @@ Vc_INTRINSIC Storage<T, 16 / sizeof(T)> extract_part_impl(std::false_type,
 }
 
 // public interface {{{2
-template <class T> constexpr T constexpr_max(T a, T b) { return a > b ? a : b; }
-
 template <size_t Index, size_t Total, class T, size_t N>
-Vc_INTRINSIC Vc_CONST Storage<T, constexpr_max(16 / sizeof(T), N / Total)> extract_part(
+Vc_INTRINSIC Vc_CONST Storage<T, std::max(16 / sizeof(T), N / Total)> extract_part(
     Storage<T, N> x)
 {
     constexpr size_t NewN = N / Total;
@@ -123,59 +88,17 @@ Vc_INTRINSIC Vc_CONST Storage<T, constexpr_max(16 / sizeof(T), N / Total)> extra
 }
 
 // }}}1
-
-}  // namespace x86
-
-// to_<intrin> {{{
-template <class T, size_t N> constexpr Vc_INTRINSIC __m128 to_m128(Storage<T, N> a)
+// extract_part(Storage<bool, N>) {{{
+template <size_t Offset, size_t SplitBy, size_t N>
+constexpr Vc_INTRINSIC Storage<bool, N / SplitBy> extract_part(Storage<bool, N> x)
 {
-    static_assert(N <= 16 / sizeof(T));
-    return a.template intrin<__m128>();
-}
-template <class T, size_t N> constexpr Vc_INTRINSIC __m128d to_m128d(Storage<T, N> a)
-{
-    static_assert(N <= 16 / sizeof(T));
-    return a.template intrin<__m128d>();
-}
-template <class T, size_t N> constexpr Vc_INTRINSIC __m128i to_m128i(Storage<T, N> a)
-{
-    static_assert(N <= 16 / sizeof(T));
-    return a.template intrin<__m128i>();
-}
-
-template <class T, size_t N> constexpr Vc_INTRINSIC __m256 to_m256(Storage<T, N> a)
-{
-    static_assert(N <= 32 / sizeof(T) && N > 16 / sizeof(T));
-    return a.template intrin<__m256>();
-}
-template <class T, size_t N> constexpr Vc_INTRINSIC __m256d to_m256d(Storage<T, N> a)
-{
-    static_assert(N <= 32 / sizeof(T) && N > 16 / sizeof(T));
-    return a.template intrin<__m256d>();
-}
-template <class T, size_t N> constexpr Vc_INTRINSIC __m256i to_m256i(Storage<T, N> a)
-{
-    static_assert(N <= 32 / sizeof(T) && N > 16 / sizeof(T));
-    return a.template intrin<__m256i>();
-}
-
-template <class T, size_t N> constexpr Vc_INTRINSIC __m512 to_m512(Storage<T, N> a)
-{
-    static_assert(N <= 64 / sizeof(T) && N > 32 / sizeof(T));
-    return a.template intrin<__m512>();
-}
-template <class T, size_t N> constexpr Vc_INTRINSIC __m512d to_m512d(Storage<T, N> a)
-{
-    static_assert(N <= 64 / sizeof(T) && N > 32 / sizeof(T));
-    return a.template intrin<__m512d>();
-}
-template <class T, size_t N> constexpr Vc_INTRINSIC __m512i to_m512i(Storage<T, N> a)
-{
-    static_assert(N <= 64 / sizeof(T) && N > 32 / sizeof(T));
-    return a.template intrin<__m512i>();
+    static_assert(SplitBy >= 2 && Offset < SplitBy && Offset >= 0);
+    return x.d >> (Offset * N / SplitBy);
 }
 
 // }}}
+}  // namespace x86
+
 // to_storage specializations for bitset and __mmask<N> {{{
 #ifdef Vc_HAVE_AVX512_ABI
 template <size_t N> class to_storage<std::bitset<N>>

@@ -50,6 +50,11 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
     auto &&gen = make_vec<V>;
     using Vc::element_aligned;
     using Vc::vector_aligned;
+
+    // stride_alignment: consider V::size() == 6. The only reliable alignment is
+    // 2 * sizeof(U). I.e. if the first address is aligned to 8 * sizeof(U), then the next
+    // address is 6 * sizeof(U) larger, thus only aligned to 2 * sizeof(U).
+    // => the LSB determines the stride alignment
     constexpr size_t stride_alignment =
         V::size() & 1 ? 1 : V::size() & 2
                                 ? 2
@@ -140,7 +145,6 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
     const M alternating_mask = make_mask<M>({0, 1});
     where(alternating_mask, x).copy_from(&mem[V::size()], stride_aligned);
 
-    /*
     const V indexes_from_size = gen({T(V::size())}, 1);
     COMPARE(x == indexes_from_size, alternating_mask)
         << "x: " << x << "\nindexes_from_size: " << indexes_from_size;
@@ -210,6 +214,5 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
     for (; i < 3 * V::size(); ++i) {
         COMPARE(mem[i], U(0));
     }
-    */
 }
 

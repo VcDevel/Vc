@@ -31,6 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include "detail.h"
 
+#if defined Vc_HAVE_SSE || defined Vc_HAVE_MMX
+#include <x86intrin.h>
+#endif  // Vc_HAVE_SSE
+
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
@@ -53,17 +57,28 @@ template <class T> inline constexpr bool is_intrinsic_v = is_intrinsic<T>::value
 
 // }}}
 // builtin_type {{{1
-template <class T, size_t Bytes, class = std::void_t<>> struct builtin_type {};
-template <class T, size_t Bytes>
-struct builtin_type<
-    T, Bytes,
-    std::void_t<std::enable_if_t<std::conjunction_v<
-        detail::is_equal_to<Bytes % sizeof(T), 0>, detail::is_vectorizable<T>>>>> {
+template <class T, size_t N, class = void> struct builtin_type_n {};
+
+// special case 1-element to be T itself
+template <class T>
+struct builtin_type_n<T, 1, std::enable_if_t<detail::is_vectorizable_v<T>>> {
+    using type = T;
+};
+
+// else, use GNU-style builtin vector types
+template <class T, size_t N>
+struct builtin_type_n<T, N, std::enable_if_t<detail::is_vectorizable_v<T>>> {
+    static constexpr size_t Bytes = N * sizeof(T);
     using type [[gnu::vector_size(Bytes)]] = T;
 };
 
+template <class T, size_t Bytes>
+struct builtin_type : builtin_type_n<T, Bytes / sizeof(T)> {
+    static_assert(Bytes % sizeof(T) == 0);
+};
+
 template <class T, size_t Size>
-using builtin_type_t = typename builtin_type<T, Size * sizeof(T)>::type;
+using builtin_type_t = typename builtin_type_n<T, Size>::type;
 template <class T> using builtin_type2_t  = typename builtin_type<T, 2>::type;
 template <class T> using builtin_type4_t  = typename builtin_type<T, 4>::type;
 template <class T> using builtin_type8_t  = typename builtin_type<T, 8>::type;
@@ -119,6 +134,11 @@ template <class T, class Traits = builtin_traits<T>,
 constexpr Vc_INTRINSIC R to_intrin(T x)
 {
     return reinterpret_cast<R>(x);
+}
+template <class T, size_t N, class R = intrinsic_type_t<T, N>>
+constexpr Vc_INTRINSIC R to_intrin(Storage<T, N> x)
+{
+    return reinterpret_cast<R>(x.d);
 }
 
 // }}}
@@ -218,6 +238,14 @@ builtin_type_t<T, N> builtin_load(const void *p, F)
     }
     std::memcpy(&r, p, M);
     return reinterpret_cast<builtin_type_t<T, N>>(r);
+}
+
+// }}}
+// builtin_load16 {{{
+template <class T, size_t M = 16, class F>
+builtin_type16_t<T> builtin_load16(const void *p, F f)
+{
+    return builtin_load<T, 16 / sizeof(T), M>(p, f);
 }
 
 // }}}
@@ -373,6 +401,125 @@ constexpr Vc_INTRINSIC R extract(T x_)
               x[O + 28], x[O + 29], x[O + 30], x[O + 31]});
     }
 }
+
+// }}}
+// intrin_cast{{{
+template <class To, class From> constexpr Vc_INTRINSIC To intrin_cast(From v)
+{
+    static_assert(is_builtin_vector_v<From> && is_builtin_vector_v<To>);
+    if constexpr (sizeof(To) == sizeof(From)) {
+        return reinterpret_cast<To>(v);
+    } else if constexpr (sizeof(From) > sizeof(To)) {
+        return reinterpret_cast<const To &>(v);
+    } else if constexpr (have_avx && sizeof(From) == 16 && sizeof(To) == 32) {
+        return reinterpret_cast<To>(_mm256_castps128_ps256(
+            reinterpret_cast<intrinsic_type_t<float, sizeof(From) / sizeof(float)>>(v)));
+    } else if constexpr (have_avx512f && sizeof(From) == 16 && sizeof(To) == 64) {
+        return reinterpret_cast<To>(_mm512_castps128_ps512(
+            reinterpret_cast<intrinsic_type_t<float, sizeof(From) / sizeof(float)>>(v)));
+    } else if constexpr (have_avx512f && sizeof(From) == 32 && sizeof(To) == 64) {
+        return reinterpret_cast<To>(_mm512_castps256_ps512(
+            reinterpret_cast<intrinsic_type_t<float, sizeof(From) / sizeof(float)>>(v)));
+    } else {
+        assert_unreachable<To>();
+    }
+}
+
+// }}}
+// auto_cast{{{
+template <class T> struct auto_cast_t {
+    static_assert(is_builtin_vector_v<T>);
+    const T x;
+    template <class U> constexpr Vc_INTRINSIC operator U() const
+    {
+        return intrin_cast<U>(x);
+    }
+};
+template <class T> constexpr Vc_INTRINSIC auto_cast_t<T> auto_cast(const T &x)
+{
+    return {x};
+}
+template <class T, size_t N>
+constexpr Vc_INTRINSIC auto_cast_t<typename Storage<T, N>::register_type> auto_cast(
+    const Storage<T, N> &x)
+{
+    return {x.d};
+}
+
+// }}}
+// to_bitset{{{
+constexpr Vc_INTRINSIC std::bitset<1> to_bitset(bool x) { return unsigned(x); }
+
+template <class T, class Trait = builtin_traits<T>>
+Vc_INTRINSIC std::bitset<Trait::width> to_bitset(T x)
+{
+    constexpr bool is_sse = have_sse && sizeof(T) == 16;
+    constexpr bool is_avx = have_avx && sizeof(T) == 32;
+    constexpr bool is_neon128 = have_neon && sizeof(T) == 16;
+    constexpr int w = sizeof(typename Trait::value_type);
+    const auto intrin = detail::to_intrin(x);
+    constexpr auto zero = decltype(intrin)();
+    detail::unused(zero);
+
+    if constexpr (is_neon128 && w == 1) {
+        x &= T{0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80,
+               0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80};
+        return builtin_cast<ushort>(
+            vpaddq_s8(vpaddq_s8(vpaddq_s8(x, zero), zero), zero))[0];
+    } else if constexpr (is_neon128 && w == 2) {
+        x &= T{0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80};
+        return vpaddq_s16(vpaddq_s16(vpaddq_s16(x, zero), zero), zero)[0];
+    } else if constexpr (is_neon128 && w == 4) {
+        x &= T{0x1, 0x2, 0x4, 0x8};
+        return vpaddq_s32(vpaddq_s32(x, zero), zero)[0];
+    } else if constexpr (is_neon128 && w == 8) {
+        x &= T{0x1, 0x2};
+        return x[0] | x[1];
+    } else if constexpr (is_sse && w == 1) {
+        return _mm_movemask_epi8(intrin);
+    } else if constexpr (is_sse && w == 2) {
+        if constexpr (detail::have_avx512bw_vl) {
+            return _mm_cmplt_epi16_mask(intrin, zero);
+        } else {
+            return _mm_movemask_epi8(_mm_packs_epi16(intrin, zero));
+        }
+    } else if constexpr (is_sse && w == 4) {
+        if constexpr (detail::have_avx512vl && std::is_integral_v<T>) {
+            return _mm_cmplt_epi32_mask(intrin, zero);
+        } else {
+            return _mm_movemask_ps(builtin_cast<float>(x));
+        }
+    } else if constexpr (is_sse && w == 8) {
+        if constexpr (detail::have_avx512vl && std::is_integral_v<T>) {
+            return _mm_cmplt_epi64_mask(intrin, zero);
+        } else {
+            return _mm_movemask_pd(builtin_cast<double>(x));
+        }
+    } else if constexpr (is_avx && w == 1) {
+        return _mm256_movemask_epi8(intrin);
+    } else if constexpr (is_avx && w == 2) {
+        if constexpr (detail::have_avx512bw_vl) {
+            return _mm256_cmplt_epi16_mask(intrin, zero);
+        } else {
+            return _mm_movemask_epi8(_mm_packs_epi16(detail::extract<0, 2>(intrin),
+                                                     detail::extract<1, 2>(intrin)));
+        }
+    } else if constexpr (is_avx && w == 4) {
+        if constexpr (detail::have_avx512vl && std::is_integral_v<T>) {
+            return _mm256_cmplt_epi32_mask(intrin, zero);
+        } else {
+            return _mm256_movemask_ps(builtin_cast<float>(x));
+        }
+    } else if constexpr (is_avx && w == 8) {
+        if constexpr (detail::have_avx512vl && std::is_integral_v<T>) {
+            return _mm256_cmplt_epi64_mask(intrin, zero);
+        } else {
+            return _mm256_movemask_pd(builtin_cast<double>(x));
+        }
+    } else {
+        assert_unreachable<T>();
+    }
+    }
 
 // }}}
 }  // namespace detail

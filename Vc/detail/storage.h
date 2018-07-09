@@ -293,15 +293,22 @@ struct Storage<T, Width,
 // to_storage {{{1
 template <class T> class to_storage
 {
-    static_assert(is_builtin_vector_v<T>);
     T d;
 
 public:
     constexpr to_storage(T x) : d(x) {}
+
+    template <size_t N> constexpr operator Storage<bool, N>() const
+    {
+        static_assert(std::is_integral_v<T>);
+        return static_cast<detail::bool_storage_member_type_t<N>>(d);
+    }
+
     template <class U, size_t N> constexpr operator Storage<U, N>() const
     {
-        static_assert(sizeof(builtin_type_t<U, N>) == sizeof(T));
-        return {reinterpret_cast<builtin_type_t<U, N>>(d)};
+        static_assert(detail::is_builtin_vector_v<T>);
+        static_assert(sizeof(detail::builtin_type_t<U, N>) == sizeof(T));
+        return {reinterpret_cast<detail::builtin_type_t<U, N>>(d)};
     }
 };
 

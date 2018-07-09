@@ -72,11 +72,12 @@ struct scalar_simd_impl {
 
     // masked load {{{2
     template <class T, class U, class F>
-    static inline void masked_load(T &merge, bool k, const U *mem, F) noexcept
+    static inline T masked_load(T merge, bool k, const U *mem, F) noexcept
     {
         if (k) {
             merge = static_cast<T>(mem[0]);
         }
+        return merge;
     }
 
     // store {{{2
@@ -295,9 +296,6 @@ struct scalar_mask_impl {
     using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
-    // to_bitset {{{2
-    static Vc_INTRINSIC std::bitset<1> to_bitset(bool x) noexcept { return unsigned(x); }
-
     // from_bitset {{{2
     template <class T>
     static Vc_INTRINSIC bool from_bitset(std::bitset<1> bs, type_tag<T>) noexcept
@@ -305,27 +303,15 @@ struct scalar_mask_impl {
         return bs[0];
     }
 
-    // broadcast {{{2
-    template <class T> static Vc_INTRINSIC bool broadcast(bool x, type_tag<T>) noexcept
-    {
-        return x;
-    }
-
-    // load {{{2
-    template <class F>
-    static Vc_INTRINSIC bool load(const bool *mem, F, size_tag) noexcept
-    {
-        return mem[0];
-    }
-
     // masked load {{{2
     template <class F>
-    static Vc_INTRINSIC void masked_load(bool &merge, bool mask, const bool *mem,
+    static Vc_INTRINSIC bool masked_load(bool merge, bool mask, const bool *mem,
                                          F) noexcept
     {
         if (mask) {
             merge = mem[0];
         }
+        return merge;
     }
 
     // store {{{2

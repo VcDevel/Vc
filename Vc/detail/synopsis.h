@@ -332,8 +332,7 @@ Vc_INTRINSIC To mask_cast_impl(const std::bitset<1> *, bool x)
 template <class To, class T, class Abi, size_t N, class From>
 Vc_INTRINSIC To mask_cast_impl(const std::bitset<N> *, const From &x)
 {
-    using impl = typename detail::traits<T, Abi>::mask_impl_type;
-    return {Vc::detail::private_init, impl::to_bitset(x)};
+    return {Vc::detail::private_init, detail::to_bitset(x)};
 }
 template <class To, class, class, size_t N>
 Vc_INTRINSIC To mask_cast_impl(const std::bitset<N> *, const std::bitset<N> &x)
@@ -557,9 +556,8 @@ public:
     Vc_NODISCARD Vc_INTRINSIC V
     copy_from(const detail::loadstore_ptr_type<U, value_type> *mem, Flags f) const &&
     {
-        V r = d;
-        detail::get_impl_t<V>::masked_load(detail::data(r), detail::data(k), mem, f);
-        return r;
+        return {detail::private_init, detail::get_impl_t<V>::masked_load(
+                                          detail::data(d), detail::data(k), mem, f)};
     }
 
     template <class U, class Flags>
@@ -686,7 +684,8 @@ public:
     Vc_INTRINSIC void copy_from(const detail::loadstore_ptr_type<U, value_type> *mem,
                                 Flags f) &&
     {
-        detail::get_impl_t<T>::masked_load(detail::data(d), detail::data(k), mem, f);
+        detail::data(d) =
+            detail::get_impl_t<T>::masked_load(detail::data(d), detail::data(k), mem, f);
     }
 
 #ifdef Vc_EXPERIMENTAL

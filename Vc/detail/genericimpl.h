@@ -68,7 +68,7 @@ template <class T, size_t N> constexpr bool is_neon_pd()
 }
 
 // simd impl {{{1
-template <class Derived, class Abi> struct generic_simd_impl {
+template <class Abi> struct generic_simd_impl {
     // member types {{{2
     template <size_t N> using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
@@ -79,9 +79,9 @@ template <class Derived, class Abi> struct generic_simd_impl {
 
     // make_simd(Storage) {{{2
     template <class T, size_t N>
-    static Vc_INTRINSIC auto make_simd(Storage<T, N> x)
+    static Vc_INTRINSIC simd<T, Abi> make_simd(Storage<T, N> x)
     {
-        return Derived::make_simd(x);
+        return {detail::private_init, x};
     }
 
     // broadcast {{{2
@@ -96,6 +96,338 @@ template <class Derived, class Abi> struct generic_simd_impl {
     static Vc_INTRINSIC Storage<T, N> generator(F &&gen, type_tag<T>, size_tag<N>)
     {
         return detail::generate_storage<T, N>(std::forward<F>(gen));
+    }
+
+    // load {{{2
+    template <class T, class U, class F>
+    static Vc_INTRINSIC simd_member_type<T> load(const U *mem, F,
+                                                 type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        constexpr size_t N = simd_member_type<T>::width;
+        constexpr size_t max_load_size =
+            (sizeof(U) >= 4 && have_avx512f) || have_avx512bw
+                ? 64
+                : (std::is_floating_point_v<U> && have_avx) || have_avx2 ? 32 : 16;
+        if constexpr (sizeof(U) > 8) {
+            return detail::generate_storage<T, N>(
+                [&](auto i) { return static_cast<T>(mem[i]); });
+        } else if constexpr (std::is_same_v<U, T>) {
+            return detail::builtin_load<U, N>(mem, F());
+        } else if constexpr (sizeof(U) * N < 16) {
+            return x86::convert<simd_member_type<T>>(
+                detail::builtin_load16<U, sizeof(U) * N>(mem, F()));
+        } else if constexpr (sizeof(U) * N <= max_load_size) {
+            return x86::convert<simd_member_type<T>>(detail::builtin_load<U, N>(mem, F()));
+        } else if constexpr (sizeof(U) * N == 2 * max_load_size) {
+            return x86::convert<simd_member_type<T>>(
+                detail::builtin_load<U, N / 2>(mem, F()),
+                detail::builtin_load<U, N / 2>(mem + N / 2, F()));
+        } else if constexpr (sizeof(U) * N == 4 * max_load_size) {
+            return x86::convert<simd_member_type<T>>(
+                detail::builtin_load<U, N / 4>(mem, F()),
+                detail::builtin_load<U, N / 4>(mem + 1 * N / 4, F()),
+                detail::builtin_load<U, N / 4>(mem + 2 * N / 4, F()),
+                detail::builtin_load<U, N / 4>(mem + 3 * N / 4, F()));
+        } else if constexpr (sizeof(U) * N == 8 * max_load_size) {
+            return x86::convert<simd_member_type<T>>(
+                detail::builtin_load<U, N / 8>(mem, F()),
+                detail::builtin_load<U, N / 8>(mem + 1 * N / 8, F()),
+                detail::builtin_load<U, N / 8>(mem + 2 * N / 8, F()),
+                detail::builtin_load<U, N / 8>(mem + 3 * N / 8, F()),
+                detail::builtin_load<U, N / 8>(mem + 4 * N / 8, F()),
+                detail::builtin_load<U, N / 8>(mem + 5 * N / 8, F()),
+                detail::builtin_load<U, N / 8>(mem + 6 * N / 8, F()),
+                detail::builtin_load<U, N / 8>(mem + 7 * N / 8, F()));
+        } else {
+            assert_unreachable<T>();
+        }
+    }
+
+    // masked load {{{2
+    template <class T, size_t N, class U, class F>
+    static inline detail::Storage<T, N> masked_load(detail::Storage<T, N> merge, mask_member_type<T> k,
+                                   const U *mem, F) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        if constexpr (std::is_same_v<T, U> ||  // no conversion
+                      (sizeof(T) == sizeof(U) &&
+                       std::is_integral_v<T> ==
+                           std::is_integral_v<U>)  // conversion via bit reinterpretation
+        ) {
+            constexpr bool have_avx512bw_vl_or_zmm =
+                have_avx512bw_vl || (have_avx512bw && sizeof(merge) == 64);
+            if constexpr (have_avx512bw_vl_or_zmm && sizeof(T) == 1) {
+                if constexpr (sizeof(merge) == 16) {
+                    merge = _mm_mask_loadu_epi8(merge, _mm_movemask_epi8(k), mem);
+                } else if constexpr (sizeof(merge) == 32) {
+                    merge = _mm256_mask_loadu_epi8(merge, _mm256_movemask_epi8(k), mem);
+                } else if constexpr (sizeof(merge) == 64) {
+                    merge = _mm512_mask_loadu_epi8(merge, k, mem);
+                } else {
+                    assert_unreachable<T>();
+                }
+            } else if constexpr (have_avx512bw_vl_or_zmm && sizeof(T) == 2) {
+                if constexpr (sizeof(merge) == 16) {
+                    merge = _mm_mask_loadu_epi16(merge, x86::movemask_epi16(k), mem);
+                } else if constexpr (sizeof(merge) == 32) {
+                    merge = _mm256_mask_loadu_epi16(merge, x86::movemask_epi16(k), mem);
+                } else if constexpr (sizeof(merge) == 64) {
+                    merge = _mm512_mask_loadu_epi16(merge, k, mem);
+                } else {
+                    assert_unreachable<T>();
+                }
+            } else if constexpr (have_avx2 && sizeof(T) == 4 && std::is_integral_v<U>) {
+                if constexpr (sizeof(merge) == 16) {
+                    merge =
+                        (~k.d & merge.d) | builtin_cast<T>(_mm_maskload_epi32(
+                                               reinterpret_cast<const int *>(mem), k));
+                } else if constexpr (sizeof(merge) == 32) {
+                    merge =
+                        (~k.d & merge.d) | builtin_cast<T>(_mm256_maskload_epi32(
+                                               reinterpret_cast<const int *>(mem), k));
+                } else if constexpr (have_avx512f && sizeof(merge) == 64) {
+                    merge = _mm512_mask_loadu_epi32(merge, k, mem);
+                } else {
+                    assert_unreachable<T>();
+                }
+            } else if constexpr (have_avx && sizeof(T) == 4) {
+                if constexpr (sizeof(merge) == 16) {
+                    merge = or_(andnot_(k.d, merge.d),
+                                builtin_cast<T>(_mm_maskload_ps(
+                                    reinterpret_cast<const float *>(mem), to_m128i(k))));
+                } else if constexpr (sizeof(merge) == 32) {
+                    merge = or_(andnot_(k.d, merge.d),
+                                _mm256_maskload_ps(reinterpret_cast<const float *>(mem),
+                                                   to_m256i(k)));
+                } else if constexpr (have_avx512f && sizeof(merge) == 64) {
+                    merge = _mm512_mask_loadu_ps(merge, k, mem);
+                } else {
+                    assert_unreachable<T>();
+                }
+            } else if constexpr (have_avx2 && sizeof(T) == 8 && std::is_integral_v<U>) {
+                if constexpr (sizeof(merge) == 16) {
+                    merge =
+                        (~k.d & merge.d) | builtin_cast<T>(_mm_maskload_epi64(
+                                               reinterpret_cast<const llong *>(mem), k));
+                } else if constexpr (sizeof(merge) == 32) {
+                    merge =
+                        (~k.d & merge.d) | builtin_cast<T>(_mm256_maskload_epi64(
+                                               reinterpret_cast<const llong *>(mem), k));
+                } else if constexpr (have_avx512f && sizeof(merge) == 64) {
+                    merge = _mm512_mask_loadu_epi64(merge, k, mem);
+                } else {
+                    assert_unreachable<T>();
+                }
+            } else if constexpr (have_avx && sizeof(T) == 8) {
+                if constexpr (sizeof(merge) == 16) {
+                    merge = or_(andnot_(k.d, merge.d),
+                                builtin_cast<T>(_mm_maskload_pd(
+                                    reinterpret_cast<const double *>(mem), to_m128i(k))));
+                } else if constexpr (sizeof(merge) == 32) {
+                    merge = or_(andnot_(k.d, merge.d),
+                                _mm256_maskload_pd(reinterpret_cast<const double *>(mem),
+                                                   to_m256i(k)));
+                } else if constexpr (have_avx512f && sizeof(merge) == 64) {
+                    merge = _mm512_mask_loadu_pd(merge, k, mem);
+                } else {
+                    assert_unreachable<T>();
+                }
+            } else {
+                detail::bit_iteration(mask_to_int<N>(k), [&](auto i) {
+                    merge.set(i, static_cast<T>(mem[i]));
+                });
+            }
+        } else if constexpr (sizeof(U) <= 8 &&  // no long double
+                             !detail::converts_via_decomposition_v<
+                                 U, T, sizeof(merge)>  // conversion via decomposition is
+                                                       // better handled via the
+                                                       // bit_iteration fallback below
+        ) {
+            // TODO: copy pattern from masked_store, which doesn't resort to fixed_size
+            using A = simd_abi::deduce_t<
+                U, std::max(N, 16 / sizeof(U))  // N or more, so that at least a 16 Byte
+                                                // vector is used instead of a fixed_size
+                                                // filled with scalars
+                >;
+            using ATraits = detail::traits<U, A>;
+            using AImpl = typename ATraits::simd_impl_type;
+            typename ATraits::simd_member_type uncvted{};
+            typename ATraits::mask_member_type kk;
+            if constexpr (detail::is_fixed_size_abi_v<A>) {
+                kk = detail::to_bitset(k.d);
+            } else {
+                kk = detail::convert_any_mask<typename ATraits::mask_member_type>(k);
+            }
+            uncvted = AImpl::masked_load(uncvted, kk, mem, F());
+            detail::simd_converter<U, A, T, Abi> converter;
+            masked_assign(k, merge, converter(uncvted));
+        } else {
+            detail::bit_iteration(mask_to_int<N>(k),
+                                  [&](auto i) { merge.set(i, static_cast<T>(mem[i])); });
+        }
+        return merge;
+    }
+
+    // store {{{2
+    template <class T, class U, class F>
+    static Vc_INTRINSIC void store(simd_member_type<T> v, U *mem, F,
+                                   type_tag<T>) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        // TODO: converting int -> "smaller int" can be optimized with AVX512
+        constexpr size_t N = simd_member_type<T>::width;
+        constexpr size_t max_store_size =
+            (sizeof(U) >= 4 && have_avx512f) || have_avx512bw
+                ? 64
+                : (std::is_floating_point_v<U> && have_avx) || have_avx2 ? 32 : 16;
+        if constexpr (sizeof(U) > 8) {
+            detail::execute_n_times<N>([&](auto i) { mem[i] = v[i]; });
+        } else if constexpr (std::is_same_v<U, T>) {
+            detail::builtin_store(v.d, mem, F());
+        } else if constexpr (sizeof(U) * N < 16) {
+            detail::builtin_store<sizeof(U) * N>(x86::convert<builtin_type16_t<U>>(v),
+                                                 mem, F());
+        } else if constexpr (sizeof(U) * N <= max_store_size) {
+            detail::builtin_store(x86::convert<builtin_type_t<U, N>>(v), mem, F());
+        } else {
+            constexpr size_t VSize = max_store_size / sizeof(U);
+            constexpr size_t stores = N / VSize;
+            using V = builtin_type_t<U, VSize>;
+            const std::array<V, stores> converted = x86::convert_all<V>(v);
+            detail::execute_n_times<stores>([&](auto i) {
+                detail::builtin_store(converted[i], mem + i * VSize, F());
+            });
+        }
+    }
+
+    // masked store {{{2
+    template <class T, size_t N, class U, class F>
+    static inline void masked_store(const Storage<T, N> v, U *mem, F,
+                                    const mask_member_type<T> k) Vc_NOEXCEPT_OR_IN_TEST
+    {
+        constexpr size_t max_store_size =
+            (sizeof(U) >= 4 && have_avx512f) || have_avx512bw
+                ? 64
+                : (std::is_floating_point_v<U> && have_avx) || have_avx2 ? 32 : 16;
+        if constexpr (std::is_same_v<T, U> ||
+                      (std::is_integral_v<T> && std::is_integral_v<U> &&
+                       sizeof(T) == sizeof(U))) {
+            // bitwise or no conversion, reinterpret:
+            const auto kk = [&]() {
+                if constexpr (detail::is_bitmask_v<decltype(k)>) {
+                    return mask_member_type<U>(k.d);
+                } else {
+                    return detail::storage_bitcast<U>(k);
+                }
+            }();
+            x86::maskstore(storage_bitcast<U>(v), mem, F(), kk);
+        } else if constexpr (std::is_integral_v<T> && std::is_integral_v<U> &&
+                             sizeof(T) > sizeof(U) && have_avx512f &&
+                             (sizeof(T) >= 4 || have_avx512bw) &&
+                             (sizeof(v) == 64 || have_avx512vl)) {  // truncating store
+            const auto kk = [&]() {
+                if constexpr (detail::is_bitmask_v<decltype(k)>) {
+                    return k;
+                } else {
+                    return detail::convert_any_mask<Storage<bool, N>>(k);
+                }
+            }();
+            if constexpr (sizeof(T) == 8 && sizeof(U) == 4) {
+                if constexpr (sizeof(v) == 64) {
+                    _mm512_mask_cvtepi64_storeu_epi32(mem, kk, v);
+                } else if constexpr (sizeof(v) == 32) {
+                    _mm256_mask_cvtepi64_storeu_epi32(mem, kk, v);
+                } else if constexpr (sizeof(v) == 16) {
+                    _mm_mask_cvtepi64_storeu_epi32(mem, kk, v);
+                }
+            } else if constexpr (sizeof(T) == 8 && sizeof(U) == 2) {
+                if constexpr (sizeof(v) == 64) {
+                    _mm512_mask_cvtepi64_storeu_epi16(mem, kk, v);
+                } else if constexpr (sizeof(v) == 32) {
+                    _mm256_mask_cvtepi64_storeu_epi16(mem, kk, v);
+                } else if constexpr (sizeof(v) == 16) {
+                    _mm_mask_cvtepi64_storeu_epi16(mem, kk, v);
+                }
+            } else if constexpr (sizeof(T) == 8 && sizeof(U) == 1) {
+                if constexpr (sizeof(v) == 64) {
+                    _mm512_mask_cvtepi64_storeu_epi8(mem, kk, v);
+                } else if constexpr (sizeof(v) == 32) {
+                    _mm256_mask_cvtepi64_storeu_epi8(mem, kk, v);
+                } else if constexpr (sizeof(v) == 16) {
+                    _mm_mask_cvtepi64_storeu_epi8(mem, kk, v);
+                }
+            } else if constexpr (sizeof(T) == 4 && sizeof(U) == 2) {
+                if constexpr (sizeof(v) == 64) {
+                    _mm512_mask_cvtepi32_storeu_epi16(mem, kk, v);
+                } else if constexpr (sizeof(v) == 32) {
+                    _mm256_mask_cvtepi32_storeu_epi16(mem, kk, v);
+                } else if constexpr (sizeof(v) == 16) {
+                    _mm_mask_cvtepi32_storeu_epi16(mem, kk, v);
+                }
+            } else if constexpr (sizeof(T) == 4 && sizeof(U) == 1) {
+                if constexpr (sizeof(v) == 64) {
+                    _mm512_mask_cvtepi32_storeu_epi8(mem, kk, v);
+                } else if constexpr (sizeof(v) == 32) {
+                    _mm256_mask_cvtepi32_storeu_epi8(mem, kk, v);
+                } else if constexpr (sizeof(v) == 16) {
+                    _mm_mask_cvtepi32_storeu_epi8(mem, kk, v);
+                }
+            } else if constexpr (sizeof(T) == 2 && sizeof(U) == 1) {
+                if constexpr (sizeof(v) == 64) {
+                    _mm512_mask_cvtepi16_storeu_epi8(mem, kk, v);
+                } else if constexpr (sizeof(v) == 32) {
+                    _mm256_mask_cvtepi16_storeu_epi8(mem, kk, v);
+                } else if constexpr (sizeof(v) == 16) {
+                    _mm_mask_cvtepi16_storeu_epi8(mem, kk, v);
+                }
+            } else {
+                assert_unreachable<T>();
+            }
+        } else if constexpr (sizeof(U) <= 8 &&  // no long double
+                             !detail::converts_via_decomposition_v<
+                                 T, U, max_store_size>  // conversion via decomposition is
+                                                        // better handled via the
+                                                        // bit_iteration fallback below
+        ) {
+            using VV = Storage<U, std::clamp(N, 16 / sizeof(U), max_store_size / sizeof(U))>;
+            using V = typename VV::register_type;
+            constexpr bool prefer_bitmask =
+                (have_avx512f && sizeof(U) >= 4) || have_avx512bw;
+            using M = Storage<std::conditional_t<prefer_bitmask, bool, U>, VV::width>;
+            constexpr size_t VN = builtin_traits<V>::width;
+
+            if constexpr (VN >= N) {
+                x86::maskstore(VV(convert<V>(v)), mem,
+                               // careful, if V has more elements than the input v (N),
+                               // vector_aligned is incorrect:
+                               std::conditional_t<(builtin_traits<V>::width > N),
+                                                  overaligned_tag<sizeof(U) * N>, F>(),
+                               detail::convert_any_mask<M>(k));
+            } else if constexpr (VN * 2 == N) {
+                const std::array<V, 2> converted = x86::convert_all<V>(v);
+                x86::maskstore(VV(converted[0]), mem, F(), detail::convert_any_mask<M>(detail::extract_part<0, 2>(k)));
+                x86::maskstore(VV(converted[1]), mem + VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<1, 2>(k)));
+            } else if constexpr (VN * 4 == N) {
+                const std::array<V, 4> converted = x86::convert_all<V>(v);
+                x86::maskstore(VV(converted[0]), mem, F(), detail::convert_any_mask<M>(detail::extract_part<0, 4>(k)));
+                x86::maskstore(VV(converted[1]), mem + 1 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<1, 4>(k)));
+                x86::maskstore(VV(converted[2]), mem + 2 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<2, 4>(k)));
+                x86::maskstore(VV(converted[3]), mem + 3 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<3, 4>(k)));
+            } else if constexpr (VN * 8 == N) {
+                const std::array<V, 8> converted = x86::convert_all<V>(v);
+                x86::maskstore(VV(converted[0]), mem, F(), detail::convert_any_mask<M>(detail::extract_part<0, 8>(k)));
+                x86::maskstore(VV(converted[1]), mem + 1 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<1, 8>(k)));
+                x86::maskstore(VV(converted[2]), mem + 2 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<2, 8>(k)));
+                x86::maskstore(VV(converted[3]), mem + 3 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<3, 8>(k)));
+                x86::maskstore(VV(converted[4]), mem + 4 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<4, 8>(k)));
+                x86::maskstore(VV(converted[5]), mem + 5 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<5, 8>(k)));
+                x86::maskstore(VV(converted[6]), mem + 6 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<6, 8>(k)));
+                x86::maskstore(VV(converted[7]), mem + 7 * VV::width, F(), detail::convert_any_mask<M>(detail::extract_part<7, 8>(k)));
+            } else {
+                assert_unreachable<T>();
+            }
+        } else {
+            detail::bit_iteration(mask_to_int<N>(k),
+                                  [&](auto i) { mem[i] = static_cast<U>(v[i]); });
+        }
     }
 
     // complement {{{2
@@ -657,11 +989,11 @@ template <class Derived, class Abi> struct generic_simd_impl {
     // increment & decrement{{{2
     template <class T, size_t N> static Vc_INTRINSIC void increment(Storage<T, N> &x)
     {
-        x = plus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
+        x = plus(x, Storage<T, N>::broadcast(T(1)));
     }
     template <class T, size_t N> static Vc_INTRINSIC void decrement(Storage<T, N> &x)
     {
-        x = minus(x, Storage<T, N>(Derived::broadcast(T(1), size_tag<N>())));
+        x = minus(x, Storage<T, N>::broadcast(T(1)));
     }
 
     // smart_reference access {{{2
@@ -684,7 +1016,7 @@ template <class Derived, class Abi> struct generic_simd_impl {
                                            detail::id<T> rhs)
     {
         if (__builtin_constant_p(rhs) && rhs == 0 && std::is_same<K, T>::value) {
-            if constexpr (sizeof(k) >= 16) {
+            if constexpr (!detail::is_bitmask(k)) {
                 // the andnot_ optimization only makes sense if k.d is a vector register
                 lhs.d = andnot_(k.d, lhs.d);
                 return;
@@ -740,79 +1072,10 @@ template <class Abi> struct generic_mask_impl {
     using simd_member_type = typename Abi::template traits<T>::simd_member_type;
     template <class T>
     using mask_member_type = typename Abi::template traits<T>::mask_member_type;
-    template <class T>
-    using int_builtin_type =
-        builtin_type_t<detail::int_for_sizeof_t<T>, simd_member_type<T>::width>;
-
-    // broadcast {{{2
-    template <class T>
-    static Vc_INTRINSIC mask_member_type<T> broadcast(bool x, type_tag<T>) noexcept
-    {
-        return to_storage(x ? ~int_builtin_type<T>() : int_builtin_type<T>());
-    }
-
-    // load {{{2
-    template <class F, size_t N>
-    static Vc_INTRINSIC auto load(const bool *mem, F f, size_tag<N>) noexcept
-    {
-        if constexpr (std::is_same_v<Abi, simd_abi::__sse>) {
-            if constexpr (N == 2 && have_sse2) {
-                return _mm_set_epi32(-int(mem[1]), -int(mem[1]), -int(mem[0]),
-                                     -int(mem[0]));
-            } else if constexpr (N == 4 && have_sse2) {
-                    __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const int *>(mem));
-                    k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
-                    return intrin_cast<__m128>(_mm_unpacklo_epi16(k, k));
-            } else if constexpr (N == 4 && have_mmx) {
-                __m128 k =
-                    _mm_cvtpi8_ps(_mm_cvtsi32_si64(*reinterpret_cast<const int *>(mem)));
-                _mm_empty();
-                return _mm_cmpgt_ps(k, __m128());
-            } else if constexpr (N == 8 && have_sse2) {
-                const auto k = make_builtin<long long>(
-                    *reinterpret_cast<const may_alias<long long> *>(mem), 0);
-                if constexpr (have_sse2) {
-                    return to_intrin(builtin_cast<short>(_mm_unpacklo_epi8(k, k)) != 0);
-                }
-            } else if constexpr (N == 16 && have_sse2) {
-                return _mm_cmpgt_epi8(x86::load16(mem, f), __m128i());
-            } else {
-                assert_unreachable<F>();
-            }
-        } else if constexpr (std::is_same_v<Abi, simd_abi::__avx>) {
-            if constexpr (N == 4 && have_avx) {
-                int bool4;
-                if constexpr (detail::is_aligned_v<F, 4>) {
-                    bool4=*reinterpret_cast<const may_alias<int> *>(mem);
-                } else {
-                    std::memcpy(&bool4, mem, 4);
-                }
-                const auto k =
-                    to_intrin((builtin_broadcast<4>(bool4) &
-                               make_builtin<int>(0x1, 0x100, 0x10000, 0x1000000)) != 0);
-                return concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k));
-            } else if constexpr (N == 8 && have_avx) {
-                auto k = x86::load8(mem, f);
-                k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), __m128i());
-                return concat(_mm_unpacklo_epi16(k, k), _mm_unpackhi_epi16(k, k));
-            } else if constexpr (N == 16 && have_avx) {
-                const auto k = _mm_cmpgt_epi8(x86::load16(mem, f), __m128i());
-                return concat(_mm_unpacklo_epi8(k, k), _mm_unpackhi_epi8(k, k));
-            } else if constexpr (N == 32 && have_avx2) {
-                return _mm256_cmpgt_epi8(x86::load32(mem, f), __m256i());
-            } else {
-                assert_unreachable<F>();
-            }
-        } else if constexpr (std::is_same_v<Abi, simd_abi::__avx512>) {
-        } else {
-            assert_unreachable<F>();
-        }
-        detail::unused(f); // not true, see PR85827
-    }
 
     // masked load (AVX512 has its own overloads) {{{2
     template <class T, size_t N, class F>
-    static inline void masked_load(Storage<T, N> &merge, Storage<T, N> mask,
+    static inline Storage<T, N> masked_load(Storage<T, N> merge, Storage<T, N> mask,
                                             const bool *mem, F) noexcept
     {
         if constexpr (have_avx512bw_vl && N == 32 && sizeof(T) == 1) {
@@ -857,13 +1120,11 @@ template <class Abi> struct generic_mask_impl {
         } else {
             // AVX(2) has 32/64 bit maskload, but nothing at 8 bit granularity
             auto tmp = storage_bitcast<detail::int_for_sizeof_t<T>>(merge);
-            detail::execute_n_times<N>([&](auto i) {
-                if (mask[i]) {
-                    tmp.set(i, -mem[i]);
-                }
-            });
+            detail::bit_iteration(mask_to_int<N>(mask),
+                                  [&](auto i) { tmp.set(i, -mem[i]); });
             merge = storage_bitcast<T>(tmp);
         }
+        return merge;
     }
 
     // store {{{2
@@ -947,39 +1208,6 @@ template <class Abi> struct generic_mask_impl {
                                              const Storage<T, N> k) noexcept
     {
         detail::bit_iteration(mask_to_int<N>(k), [&](auto i) { mem[i] = v[i]; });
-    }
-
-    // negation {{{2
-    template <class T, size_t N, class SizeTag>
-    static Vc_INTRINSIC mask_member_type<T> negate(const Storage<T, N> &x,
-                                                   SizeTag) noexcept
-    {
-        return to_storage(~storage_bitcast<uint>(x).d);
-    }
-
-    // to_bitset {{{2
-    template <class T, size_t N>
-    static Vc_INTRINSIC std::bitset<N> to_bitset(Storage<T, N> v) noexcept
-    {
-        static_assert(N <= sizeof(uint) * CHAR_BIT,
-                      "Needs missing 64-bit implementation");
-        if constexpr (std::is_integral_v<T> == (sizeof(T) == 1)) {
-            return x86::movemask(v);
-        } else if constexpr (sizeof(T) == 2) {
-            return x86::movemask_epi16(v);
-        } else {
-            static_assert(std::is_integral_v<T>);
-            using U = std::conditional_t<sizeof(T) == 4, float, double>;
-            return x86::movemask(storage_bitcast<U>(v));
-        }
-#if 0 //defined Vc_HAVE_BMI2
-            switch (sizeof(T)) {
-            case 2: return _pext_u32(x86::movemask(v), 0xaaaaaaaa);
-            case 4: return _pext_u32(x86::movemask(v), 0x88888888);
-            case 8: return _pext_u32(x86::movemask(v), 0x80808080);
-            default: Vc_UNREACHABLE();
-            }
-#endif
     }
 
     // from_bitset{{{2
@@ -1117,10 +1345,14 @@ template <class Abi> struct generic_mask_impl {
     // smart_reference access {{{2
     template <class T, size_t N> static void set(Storage<T, N> &k, int i, bool x) noexcept
     {
-        using int_t = builtin_type_t<int_for_sizeof_t<T>, N>;
-        auto tmp = reinterpret_cast<int_t>(k.d);
-        tmp[i] = -x;
-        k.d = auto_cast(tmp);
+        if constexpr (std::is_same_v<T, bool>) {
+            k.set(i, x);
+        } else {
+            using int_t = builtin_type_t<int_for_sizeof_t<T>, N>;
+            auto tmp = reinterpret_cast<int_t>(k.d);
+            tmp[i] = -x;
+            k.d = auto_cast(tmp);
+        }
     }
     // masked_assign{{{2
     template <class T, size_t N>

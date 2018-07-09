@@ -255,7 +255,7 @@ struct tuple_element_meta : public Abi::simd_impl_type {
 
     static Vc_INTRINSIC ullong mask_to_shifted_ullong(mask_member_type k)
     {
-        return maskimpl::to_bitset(k).to_ullong() << Offset;
+        return detail::to_bitset(k).to_ullong() << Offset;
     }
 };
 
@@ -406,7 +406,7 @@ public:
     friend Vc_INTRINSIC std::bitset<size()> test(F &&fun, const simd_tuple &x,
                                                  const More &... more)
     {
-        return Abi0::mask_impl_type::to_bitset(
+        return detail::to_bitset(
             fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...));
     }
 
@@ -584,7 +584,7 @@ public:
     friend Vc_INTRINSIC std::bitset<size()> test(F &&fun, const simd_tuple &x,
                                                  const More &... more)
     {
-        return Abi0::mask_impl_type::to_bitset(
+        return detail::to_bitset(
                    fun(tuple_element_meta<T, Abi0, 0>(), x.first, more.first...))
                    .to_ullong() |
                (test(fun, x.second, more.second...).to_ullong() << simd_size_v<T, Abi0>);
@@ -657,7 +657,7 @@ template <size_t, class T> using to_tuple_helper = T;
 template <class T, class A0, size_t... Indexes>
 Vc_INTRINSIC simd_tuple<T, to_tuple_helper<Indexes, A0>...> to_tuple_impl(
     std::index_sequence<Indexes...>,
-    const std::array<typename detail::traits<T, A0>::simd_member_type, sizeof...(Indexes)>
+    const std::array<detail::builtin_type_t<T, simd_size_v<T, A0>>, sizeof...(Indexes)>
         &args)
 {
     return make_tuple<T, to_tuple_helper<Indexes, A0>...>(args[Indexes]...);
@@ -665,7 +665,7 @@ Vc_INTRINSIC simd_tuple<T, to_tuple_helper<Indexes, A0>...> to_tuple_impl(
 
 template <class T, class A0, size_t N>
 Vc_INTRINSIC auto to_tuple(
-    const std::array<typename detail::traits<T, A0>::simd_member_type, N> &args)
+    const std::array<detail::builtin_type_t<T, simd_size_v<T, A0>>, N> &args)
 {
     return to_tuple_impl<T, A0>(std::make_index_sequence<N>(), args);
 }

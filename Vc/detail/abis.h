@@ -121,7 +121,7 @@ template <class T, class MT, class Abi, size_t N> struct gnu_traits {
 
     public:
         simd_cast_type2(A a) : d(a) {}
-        simd_cast_type2(B b) : d(x86::intrin_cast<A>(b)) {}
+        simd_cast_type2(B b) : d(detail::intrin_cast<A>(b)) {}
         //simd_cast_type2(simd_member_type x) : d(x) {}
         operator simd_member_type() const { return d; }
     };

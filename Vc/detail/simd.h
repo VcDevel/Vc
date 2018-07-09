@@ -35,7 +35,7 @@ Vc_VERSIONED_NAMESPACE_BEGIN
 
 namespace detail
 {
-template <class Derived, class Abi> struct generic_simd_impl;
+template <class Abi> struct generic_simd_impl;
 // allow_conversion_ctor2{{{1
 template <class T0, class T1, class A, bool BothIntegral> struct allow_conversion_ctor2_1;
 
@@ -143,7 +143,7 @@ class simd
     static constexpr T *type_tag = nullptr;
     friend typename traits::simd_base;
     friend impl;
-    friend detail::generic_simd_impl<impl, Abi>;
+    friend detail::generic_simd_impl<Abi>;
     friend detail::simd_int_operators<simd, true>;
 
 public:

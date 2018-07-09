@@ -444,6 +444,8 @@ Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, Vc::detail::bool_constant<Conditi
 
 // bool_storage_member_type{{{1
 template <size_t Size> struct bool_storage_member_type;
+template <size_t Size>
+using bool_storage_member_type_t = typename bool_storage_member_type<Size>::type;
 
 // fixed_size_storage fwd decl {{{1
 template <class T, int N> struct fixed_size_storage_builder_wrapper;
@@ -470,7 +472,13 @@ constexpr ullong clz(ullong x) { return __builtin_clzll(x); }
 
 template <class T, class F> void bit_iteration(T k_, F &&f)
 {
-    std::conditional_t<sizeof(T) <=4, uint, ullong> k = k_;
+    static_assert(sizeof(ullong) >= sizeof(T));
+    std::conditional_t<sizeof(T) <= sizeof(uint), uint, ullong> k;
+    if constexpr (std::is_convertible_v<T, decltype(k)>) {
+        k = k_;
+    } else {
+        k = k_.to_ullong();
+    }
     switch (popcount(k)) {
     default:
         do {

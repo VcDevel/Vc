@@ -71,19 +71,21 @@ template <class T> struct get_impl {
         "Vc chose the wrong implementation class. This should not be possible.");
 
     template <class U, class F>
-    Vc_INTRINSIC void masked_load(T &d, bool k, const U *mem, F)
+    Vc_INTRINSIC T masked_load(T d, bool k, const U *mem, F)
     {
         if (k) {
             d = static_cast<T>(mem[0]);
         }
+        return d;
     }
 };
 template <> struct get_impl<bool> {
-    template <class F> Vc_INTRINSIC void masked_load(bool &d, bool k, const bool *mem, F)
+    template <class F> Vc_INTRINSIC bool masked_load(bool d, bool k, const bool *mem, F)
     {
         if (k) {
             d = mem[0];
         }
+        return d;
     }
 };
 

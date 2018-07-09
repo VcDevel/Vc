@@ -296,13 +296,15 @@ template <int N> struct fixed_size_simd_impl {
 
     // masked load {{{2
     template <class T, class... As, class U, class F>
-    static inline void masked_load(simd_tuple<T, As...> &merge,
-                                   const mask_member_type bits, const U *mem,
-                                   F f) Vc_NOEXCEPT_OR_IN_TEST
+    static inline simd_tuple<T, As...> masked_load(simd_tuple<T, As...> merge,
+                                                   const mask_member_type bits,
+                                                   const U *mem,
+                                                   F f) Vc_NOEXCEPT_OR_IN_TEST
     {
         detail::for_each(merge, [&](auto meta, auto &native) {
-            meta.masked_load(native, meta.make_mask(bits), &mem[meta.offset], f);
+            native = meta.masked_load(native, meta.make_mask(bits), &mem[meta.offset], f);
         });
+        return merge;
     }
 
     // store {{{2
@@ -597,25 +599,12 @@ template <int N> struct fixed_size_mask_impl {
     using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
-    // to_bitset {{{2
-    static Vc_INTRINSIC mask_member_type to_bitset(const mask_member_type &bs) noexcept
-    {
-        return bs;
-    }
-
     // from_bitset {{{2
     template <class T>
     static Vc_INTRINSIC mask_member_type from_bitset(const mask_member_type &bs,
                                                      type_tag<T>) noexcept
     {
         return bs;
-    }
-
-    // broadcast {{{2
-    template <class T>
-    static Vc_INTRINSIC mask_member_type broadcast(bool x, type_tag<T>) noexcept
-    {
-        return x ? ~mask_member_type() : mask_member_type();
     }
 
     // load {{{2
@@ -635,14 +624,12 @@ template <int N> struct fixed_size_mask_impl {
 
     // masked load {{{2
     template <class F>
-    static inline void masked_load(mask_member_type &merge, mask_member_type mask,
-                                   const bool *mem, F) noexcept
+    static inline mask_member_type masked_load(mask_member_type merge,
+                                               mask_member_type mask, const bool *mem,
+                                               F) noexcept
     {
-        execute_n_times<N>([&](auto i) {
-            if (mask[i]) {
-                merge[i] = mem[i];
-            }
-        });
+        detail::bit_iteration(mask.to_ullong(), [&](auto i) { merge[i] = mem[i]; });
+        return merge;
     }
 
     // store {{{2
@@ -746,11 +733,7 @@ template <int N> struct fixed_size_mask_impl {
     static inline void masked_store(const mask_member_type v, bool *mem, F,
                                     const mask_member_type k) noexcept
     {
-        execute_n_times<N>([&](auto i) {
-            if (k[i]) {
-                mem[i] = v[i];
-            }
-        });
+        detail::bit_iteration(k, [&](auto i) { mem[i] = v[i]; });
     }
 
     // negation {{{2
@@ -880,7 +863,7 @@ protected:
     {
         using R = return_type<A0>;
         simd_converter<From, A0, To, typename R::first_abi> native_cvt;
-        auto &&multiple_return_chunks = native_cvt(x.first);
+        auto &&multiple_return_chunks = native_cvt.all(x.first);
         return detail::to_tuple<To, typename R::first_abi>(multiple_return_chunks);
     }
 
@@ -893,7 +876,7 @@ protected:
         constexpr size_t first_chunk = simd_size_v<From, typename arg::first_abi>;
         simd_converter<From, typename arg::first_abi, To, typename R::first_abi>
             native_cvt;
-        auto &&multiple_return_chunks = native_cvt(x.first);
+        auto &&multiple_return_chunks = native_cvt.all(x.first);
         constexpr size_t n_output_chunks =
             first_chunk / simd_size_v<To, typename R::first_abi>;
         return detail::tuple_concat(
@@ -1000,7 +983,7 @@ private:
     template <size_t... Indexes> return_type impl(std::index_sequence<Indexes...>, arg x)
     {
         simd_converter<From, A, To, typename return_type::first_abi> native_cvt;
-        const auto &tmp = native_cvt(x);
+        const auto &tmp = native_cvt.all(x);
         return {tmp[Indexes]...};
     }
 };

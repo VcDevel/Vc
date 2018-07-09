@@ -115,6 +115,27 @@ struct is_equal_to : public std::integral_constant<bool, (A == B)> {
 // }}}
 template <size_t X> using size_constant = std::integral_constant<size_t, X>;
 
+// is_bitmask{{{
+template <class T, class = std::void_t<>> struct is_bitmask : std::false_type {
+    constexpr is_bitmask(const T &) noexcept {}
+};
+template <class T> inline constexpr bool is_bitmask_v = is_bitmask<T>::value;
+
+/* the Storage<bool, N> case:
+template <class T>
+struct is_bitmask<T, std::enable_if_t<(sizeof(T) < T::width)>> : std::true_type {
+    constexpr is_bitmask(const T &) noexcept {}
+};*/
+
+// the __mmaskXX case:
+template <class T>
+struct is_bitmask<
+    T, std::void_t<decltype(std::declval<unsigned &>() = std::declval<T>() & 1u)>>
+    : std::true_type {
+    constexpr is_bitmask(const T &) noexcept {}
+};
+
+// }}}
 // int_for_sizeof{{{
 template <class T, size_t = sizeof(T)> struct int_for_sizeof;
 template <class T> struct int_for_sizeof<T, 1> { using type = signed char; };

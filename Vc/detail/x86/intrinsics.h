@@ -43,7 +43,7 @@ namespace detail
 {
 namespace x86
 {
-// missing intrinsics
+// missing intrinsics {{{
 #if defined Vc_GCC && Vc_GCC < 0x80000
 Vc_INTRINSIC void _mm_mask_cvtepi16_storeu_epi8(void *p, __mmask8 k, __m128i x)
 {
@@ -58,6 +58,67 @@ Vc_INTRINSIC void _mm512_mask_cvtepi16_storeu_epi8(void *p, __mmask32 k, __m512i
     asm("vpmovwb %0,(%2)%{%1%}" :: "x"(x), "k"(k), "g"(p) : "k0");
 }
 #endif
+
+// }}}
+// to_<intrin> {{{
+template <class T, size_t N>
+constexpr Vc_INTRINSIC __m128 to_m128(detail::Storage<T, N> a)
+{
+    static_assert(N <= 16 / sizeof(T));
+    return a.template intrin<__m128>();
+}
+template <class T, size_t N>
+constexpr Vc_INTRINSIC __m128d to_m128d(detail::Storage<T, N> a)
+{
+    static_assert(N <= 16 / sizeof(T));
+    return a.template intrin<__m128d>();
+}
+template <class T, size_t N>
+constexpr Vc_INTRINSIC __m128i to_m128i(detail::Storage<T, N> a)
+{
+    static_assert(N <= 16 / sizeof(T));
+    return a.template intrin<__m128i>();
+}
+
+template <class T, size_t N>
+constexpr Vc_INTRINSIC __m256 to_m256(detail::Storage<T, N> a)
+{
+    static_assert(N <= 32 / sizeof(T) && N > 16 / sizeof(T));
+    return a.template intrin<__m256>();
+}
+template <class T, size_t N>
+constexpr Vc_INTRINSIC __m256d to_m256d(detail::Storage<T, N> a)
+{
+    static_assert(N <= 32 / sizeof(T) && N > 16 / sizeof(T));
+    return a.template intrin<__m256d>();
+}
+template <class T, size_t N>
+constexpr Vc_INTRINSIC __m256i to_m256i(detail::Storage<T, N> a)
+{
+    static_assert(N <= 32 / sizeof(T) && N > 16 / sizeof(T));
+    return a.template intrin<__m256i>();
+}
+
+template <class T, size_t N>
+constexpr Vc_INTRINSIC __m512 to_m512(detail::Storage<T, N> a)
+{
+    static_assert(N <= 64 / sizeof(T) && N > 32 / sizeof(T));
+    return a.template intrin<__m512>();
+}
+template <class T, size_t N>
+constexpr Vc_INTRINSIC __m512d to_m512d(detail::Storage<T, N> a)
+{
+    static_assert(N <= 64 / sizeof(T) && N > 32 / sizeof(T));
+    return a.template intrin<__m512d>();
+}
+template <class T, size_t N>
+constexpr Vc_INTRINSIC __m512i to_m512i(detail::Storage<T, N> a)
+{
+    static_assert(N <= 64 / sizeof(T) && N > 32 / sizeof(T));
+    return a.template intrin<__m512i>();
+}
+
+// }}}
 // make_immediate{{{
 template <unsigned Stride> constexpr unsigned make_immediate(unsigned a, unsigned b)
 {
@@ -150,7 +211,12 @@ template <> struct zeroExtend<__m256> {
     constexpr Vc_INTRINSIC zeroExtend(__m256 x) : d(x) {}
     Vc_INTRINSIC operator __m512()
     {
-        return _mm512_insertf32x8(__m512(), d, 0);
+        if constexpr (have_avx512dq) {
+            return _mm512_insertf32x8(__m512(), d, 0);
+        } else {
+            return reinterpret_cast<__m512>(
+                _mm512_insertf64x4(__m512d(), reinterpret_cast<__m256d>(d), 0));
+        }
     }
 };
 template <> struct zeroExtend<__m256d> {
@@ -171,34 +237,18 @@ template <> struct zeroExtend<__m256i> {
 };
 #endif  // Vc_HAVE_AVX512F
 
-// intrin_cast{{{1
-template <class To, class From> constexpr Vc_INTRINSIC To intrin_cast(From v) {
-    static_assert(is_builtin_vector_v<From> && is_builtin_vector_v<To>);
-    if constexpr (sizeof(To) == sizeof(From)) {
-        return reinterpret_cast<To>(v);
-    } else if constexpr (sizeof(From) == 16 && sizeof(To) == 32) {
-        return reinterpret_cast<To>(_mm256_castps128_ps256(reinterpret_cast<__m128>(v)));
-    } else if constexpr (sizeof(From) == 16 && sizeof(To) == 64) {
-        return reinterpret_cast<To>(_mm512_castps128_ps512(reinterpret_cast<__m128>(v)));
-    } else if constexpr (sizeof(From) == 32 && sizeof(To) == 16) {
-        return reinterpret_cast<To>(_mm256_castps256_ps128(reinterpret_cast<__m256>(v)));
-    } else if constexpr (sizeof(From) == 32 && sizeof(To) == 64) {
-        return reinterpret_cast<To>(_mm512_castps256_ps512(reinterpret_cast<__m256>(v)));
-    } else if constexpr (sizeof(From) == 64 && sizeof(To) == 16) {
-        return reinterpret_cast<To>(_mm512_castps512_ps128(reinterpret_cast<__m512>(v)));
-    } else if constexpr (sizeof(From) == 64 && sizeof(To) == 32) {
-        return reinterpret_cast<To>(_mm512_castps512_ps256(reinterpret_cast<__m512>(v)));
-    } else {
-        static_assert(!std::is_same_v<To, To>, "should be unreachable");
-    }
-}
-
 // extract128{{{1
 template <int offset, class T>
 constexpr Vc_INTRINSIC auto extract128(T a)
     -> decltype(extract<offset, sizeof(T) / 16>(a))
 {
     return extract<offset, sizeof(T) / 16>(a);
+}
+
+template <int offset, typename T, size_t N>
+constexpr Vc_INTRINSIC storage16_t<T> extract128(Storage<T, N> x)
+{
+    return extract<offset, sizeof(x) / 16>(x.d);
 }
 
 // extract256{{{1
@@ -218,20 +268,45 @@ constexpr Vc_INTRINSIC auto lo128(T x) -> decltype(extract<0, sizeof(T) / 16>(x)
 }
 template <class T> constexpr Vc_INTRINSIC auto hi128(T x) -> decltype(extract<1, 2>(x))
 {
-    static_assert(sizeof(T) == 32);
+    static_assert(sizeof(x) == 32);
     return extract<1, 2>(x);
+}
+
+template <typename T, size_t N>
+constexpr Vc_INTRINSIC storage16_t<T> lo128(Storage<T, N> x)
+{
+    return extract<0, sizeof(x) / 16>(x.d);
+}
+template <typename T, size_t N>
+constexpr Vc_INTRINSIC storage16_t<T> hi128(Storage<T, N> x)
+{
+    static_assert(sizeof(x) == 32);
+    return extract<1, 2>(x.d);
 }
 
 // lo/hi256{{{1
 template <class T> constexpr Vc_INTRINSIC auto lo256(T x) -> decltype(extract<0, 2>(x))
 {
-    static_assert(sizeof(T) == 64);
+    static_assert(sizeof(x) == 64);
     return extract<0, 2>(x);
 }
 template <class T> constexpr Vc_INTRINSIC auto hi256(T x) -> decltype(extract<1, 2>(x))
 {
-    static_assert(sizeof(T) == 64);
+    static_assert(sizeof(x) == 64);
     return extract<1, 2>(x);
+}
+
+template <typename T, size_t N>
+constexpr Vc_INTRINSIC storage32_t<T> lo256(Storage<T, N> x)
+{
+    static_assert(sizeof(x) == 64);
+    return extract<0, 2>(x.d);
+}
+template <typename T, size_t N>
+constexpr Vc_INTRINSIC storage32_t<T> hi256(Storage<T, N> x)
+{
+    static_assert(sizeof(x) == 64);
+    return extract<1, 2>(x.d);
 }
 
 // allone{{{1
@@ -305,19 +380,6 @@ template<> Vc_INTRINSIC Vc_CONST __m512  zero<__m512 >() { return _mm512_setzero
 template<> Vc_INTRINSIC Vc_CONST __m512i zero<__m512i>() { return _mm512_setzero_si512(); }
 template<> Vc_INTRINSIC Vc_CONST __m512d zero<__m512d>() { return _mm512_setzero_pd(); }
 #endif
-
-// auto_cast{{{1
-template <class T> struct auto_cast_t {
-    static_assert(is_builtin_vector_v<T>);
-    const T x;
-    template <class U> Vc_INTRINSIC operator U() const { return intrin_cast<U>(x); }
-};
-template <class T> auto_cast_t<T> auto_cast(const T &x) { return {x}; }
-template <class T, size_t N>
-auto_cast_t<typename Storage<T, N>::register_type> auto_cast(const Storage<T, N> &x)
-{
-    return {x.d};
-}
 
 // one16/32{{{1
 Vc_INTRINSIC Vc_CONST __m128  one16( float) { return sse_const::oneFloat; }
@@ -1870,13 +1932,15 @@ Vc_INTRINSIC void maskstore(storage32_t<T> v, T *mem, F, storage32_t<T> k)
     } else if constexpr (sizeof(T) == 8) {
         _mm256_maskstore_pd(reinterpret_cast<double *>(mem), to_m256i(k), to_m256d(v));
     } else {
-        _mm_maskmoveu_si128(lo128(v), lo128(k), reinterpret_cast<char *>(mem));
-        _mm_maskmoveu_si128(hi128(v), hi128(k), reinterpret_cast<char *>(mem) + 16);
+        _mm_maskmoveu_si128(to_m128i(lo128(v)), to_m128i(lo128(k)),
+                            reinterpret_cast<char *>(mem));
+        _mm_maskmoveu_si128(to_m128i(hi128(v)), to_m128i(hi128(k)),
+                            reinterpret_cast<char *>(mem) + 16);
     }
 }
 
 template <class T, class F>
-Vc_INTRINSIC void maskstore(storage32_t<T> v, T *mem, F f,
+Vc_INTRINSIC void maskstore(storage32_t<T> v, T *mem, F,
                             Storage<bool, storage32_t<T>::width> k)
 {
     static_assert(sizeof(v) == 32 && have_avx512f);
@@ -1895,17 +1959,29 @@ Vc_INTRINSIC void maskstore(storage32_t<T> v, T *mem, F f,
             _mm256_mask_storeu_ps(mem, k, v);
         }
     } else if constexpr (have_avx512vl && sizeof(T) == 8) {
-        if constexpr (is_aligned_v<F, 16> && std::is_integral_v<T>) {
+        if constexpr (is_aligned_v<F, 32> && std::is_integral_v<T>) {
             _mm256_mask_store_epi64(mem, k, v);
-        } else if constexpr (is_aligned_v<F, 16> && std::is_floating_point_v<T>) {
+        } else if constexpr (is_aligned_v<F, 32> && std::is_floating_point_v<T>) {
             _mm256_mask_store_pd(mem, k, v);
         } else if constexpr (std::is_integral_v<T>) {
             _mm256_mask_storeu_epi64(mem, k, v);
         } else {
             _mm256_mask_storeu_pd(mem, k, v);
         }
+    } else if constexpr (have_avx512f && (sizeof(T) >= 4 || have_avx512bw)) {
+        // use a 512-bit maskstore, using zero-extension of the bitmask
+        maskstore(
+            detail::storage64_t<T>(
+                detail::intrin_cast<detail::intrinsic_type64_t<T>>(v.d)),
+            mem,
+            // careful, vector_aligned has a stricter meaning in the 512-bit maskstore:
+            std::conditional_t<std::is_same_v<F, vector_aligned_tag>, overaligned_tag<32>,
+                               F>(),
+            detail::Storage<bool, 64 / sizeof(T)>(k.d));
     } else {
-        maskstore(v, mem, f, convert_mask<sizeof(T), 32>(k));
+        maskstore(
+            v, mem, F(),
+            detail::storage32_t<T>(builtin_cast<T>(convert_mask<sizeof(T), 32>(k))));
     }
 }
 
@@ -1936,7 +2012,7 @@ Vc_INTRINSIC void maskstore(storage16_t<T> v, T *mem, F, storage16_t<T> k)
 }
 
 template <class T, class F>
-Vc_INTRINSIC void maskstore(storage16_t<T> v, T *mem, F f,
+Vc_INTRINSIC void maskstore(storage16_t<T> v, T *mem, F,
                             Storage<bool, storage16_t<T>::width> k)
 {
     static_assert(sizeof(v) == 16 && have_avx512f);
@@ -1964,14 +2040,38 @@ Vc_INTRINSIC void maskstore(storage16_t<T> v, T *mem, F f,
         } else {
             _mm_mask_storeu_pd(mem, k, v);
         }
+    } else if constexpr (have_avx512f && (sizeof(T) >= 4 || have_avx512bw)) {
+        // use a 512-bit maskstore, using zero-extension of the bitmask
+        maskstore(
+            detail::storage64_t<T>(
+                detail::intrin_cast<detail::intrinsic_type64_t<T>>(v.d)),
+            mem,
+            // careful, vector_aligned has a stricter meaning in the 512-bit maskstore:
+            std::conditional_t<std::is_same_v<F, vector_aligned_tag>, overaligned_tag<16>,
+                               F>(),
+            detail::Storage<bool, 64 / sizeof(T)>(k.d));
     } else {
-        maskstore(v, mem, f, convert_mask<sizeof(T), 16>(k));
+        maskstore(v, mem, F(),
+                  storage16_t<T>(builtin_cast<T>(convert_mask<sizeof(T), 16>(k))));
     }
 }
 
 // }}}
 }  // namespace x86
 using namespace x86;
+
+// to_bitset(__mmaskXX){{{
+template <class T, class = std::enable_if_t<detail::is_bitmask_v<T> && have_avx512f>>
+constexpr Vc_INTRINSIC std::bitset<8 * sizeof(T)> to_bitset(T x)
+{
+    if constexpr (std::is_integral_v<T>) {
+        return x;
+    } else {
+        return x.d;
+    }
+}
+
+// }}}
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 #endif  // Vc_HAVE_SSE
