@@ -35,85 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "metahelpers.h"
 #include <cmath>    // abs & sqrt
 #include <cstdlib>  // integer abs
-#include <random>
 #include "mathreference.h"
 #include "simd_view.h"
+#include "test_values.h"
 
 template <class... Ts> using base_template = Vc::simd<Ts...>;
 #include "testtypes.h"
-
-template <class V>
-V epilogue_load(const typename V::value_type *mem, const std::size_t size)
-{
-    const int rem = size % V::size();
-    return where(V([](int i) { return i; }) < rem, V(0))
-        .copy_from(mem + size / V::size() * V::size(), Vc::element_aligned);
-}
-
-template <class V, class... F>
-void test_values(const std::initializer_list<typename V::value_type> &inputs,
-                 F &&... fun_pack)
-{
-    for (auto it = inputs.begin(); it + V::size() <= inputs.end(); it += V::size()) {
-        [](auto...) {}((fun_pack(V(&it[0], Vc::element_aligned)), 0)...);
-    }
-    [](auto...) {}((fun_pack(epilogue_load<V>(inputs.begin(), inputs.size())), 0)...);
-}
-
-template <class V> struct RandomValues {
-    const std::size_t count;
-    const typename V::value_type min;
-    const typename V::value_type max;
-};
-
-static std::mt19937 g_mt_gen{0};
-
-template <class V, class... F>
-void test_values(const std::initializer_list<typename V::value_type> &inputs,
-                 const RandomValues<V> &random, F &&... fun_pack)
-{
-    test_values<V>(inputs, fun_pack...);
-
-    // the below noise could be written as a small lambda:
-    // [&](int) { return dist(g_mt_gen); }
-    // but GCC miscompiles it
-    class my_lambda_t {
-        std::conditional_t<std::is_floating_point_v<typename V::value_type>,
-                           std::uniform_real_distribution<typename V::value_type>,
-                           std::uniform_int_distribution<typename V::value_type>>
-            dist;
-
-    public:
-        typename V::value_type operator()(int) { return dist(g_mt_gen); }
-        my_lambda_t(typename V::value_type min, typename V::value_type max)
-            : dist(min, max)
-        {
-        }
-    } rnd_gen(random.min, random.max);
-
-    for (size_t i = 0; i < (random.count + V::size() - 1) / V::size(); ++i) {
-        [](auto...) {}((fun_pack(V(rnd_gen)), 0)...);
-    }
-}
-
-#define MAKE_TESTER(name_)                                                               \
-    [](const V input) {                                                                  \
-        /*Vc_DEBUG()("testing " #name_ "(", input, ")");*/                               \
-        using Vc::experimental::iif;                                                     \
-        const V expected([&](auto i) {                                                   \
-            using std::name_;                                                            \
-            return name_(input[i]);                                                      \
-        });                                                                              \
-        const V totest = name_(input);                                                   \
-        COMPARE(isnan(totest), isnan(expected))                                          \
-            << #name_ "(" << input << ") = " << totest << " != " << expected;            \
-        const V clean = iif(isnan(expected), 0, input);                                  \
-        FUZZY_COMPARE(name_(clean), V([&](auto i) {                                      \
-                          using std::name_;                                              \
-                          return name_(clean[i]);                                        \
-                      }))                                                                \
-            << "\nclean = " << clean;                                                    \
-    }
 
 template <size_t Offset, class V, class Iterator> V test_tuples_gather(const Iterator &it)
 {
@@ -168,24 +95,6 @@ TEST_TYPES(V, abs, all_test_types)  //{{{1
     } else {
         // VERIFY(!(sfinae_is_callable<V &, const int *>(call_memload())));
     }
-}
-
-TEST_TYPES(V, testSqrt, real_test_types)  //{{{1
-{
-    using std::sqrt;
-    using T = typename V::value_type;
-    V input([](auto i) { return T(i); });
-    V expected([](auto i) { return std::sqrt(T(i)); });
-    COMPARE(sqrt(input), expected);
-}
-
-TEST_TYPES(V, logb, real_test_types)  //{{{1
-{
-    using std::logb;
-    using T = typename V::value_type;
-    const V input([](auto i) { return T(i); });
-    const V expected([&input](auto i) { return std::logb(input[i]); });
-    COMPARE(logb(input), expected);
 }
 
 TEST_TYPES(V, fpclassify, real_test_types)  //{{{1
@@ -357,7 +266,7 @@ TEST_TYPES(V, frexp, real_test_types)  //{{{1
         });
 }
 
-TEST_TYPES(V, testSin, real_test_types)  //{{{1
+TEST_TYPES(V, sin, real_test_types)  //{{{1
 {
     using std::sin;
     using T = typename V::value_type;
@@ -373,7 +282,7 @@ TEST_TYPES(V, testSin, real_test_types)  //{{{1
         });
 }
 
-TEST_TYPES(V, testCos, real_test_types)  //{{{1
+TEST_TYPES(V, cos, real_test_types)  //{{{1
 {
     using std::cos;
     using T = typename V::value_type;
@@ -389,7 +298,7 @@ TEST_TYPES(V, testCos, real_test_types)  //{{{1
         });
 }
 
-TEST_TYPES(V, testAsin, real_test_types)  //{{{1
+TEST_TYPES(V, asin, real_test_types)  //{{{1
 {
     using std::asin;
     using T = typename V::value_type;
@@ -405,7 +314,7 @@ TEST_TYPES(V, testAsin, real_test_types)  //{{{1
         });
 }
 
-TEST_TYPES(V, testAtan, real_test_types)  //{{{1
+TEST_TYPES(V, atan, real_test_types)  //{{{1
 {
     using std::atan;
     using T = typename V::value_type;
@@ -432,7 +341,7 @@ TEST_TYPES(V, testAtan, real_test_types)  //{{{1
         });
 }
 
-TEST_TYPES(V, testAtan2, real_test_types)  //{{{1
+TEST_TYPES(V, atan2, real_test_types)  //{{{1
 {
     using std::atan2;
     using T = typename V::value_type;
@@ -518,7 +427,7 @@ TEST_TYPES(V, testAtan2, real_test_types)  //{{{1
     }
 }
 
-TEST_TYPES(V, testTrig, real_test_types)  //{{{1
+TEST_TYPES(V, trig, real_test_types)  //{{{1
 {
     vir::test::setFuzzyness<float>(1);
     vir::test::setFuzzyness<double>(1);
@@ -539,7 +448,7 @@ TEST_TYPES(V, testTrig, real_test_types)  //{{{1
         );
 }
 
-TEST_TYPES(V, testLog, real_test_types)  //{{{1
+TEST_TYPES(V, logarithms, real_test_types)  //{{{1
 {
     vir::test::setFuzzyness<float>(1);
     vir::test::setFuzzyness<double>(1);
@@ -560,7 +469,7 @@ TEST_TYPES(V, testLog, real_test_types)  //{{{1
         );
 }
 
-TEST_TYPES(V, testExp, real_test_types)  //{{{1
+TEST_TYPES(V, exponentials, real_test_types)  //{{{1
 {
     vir::test::setFuzzyness<float>(1);
     vir::test::setFuzzyness<double>(1);
@@ -576,3 +485,226 @@ TEST_TYPES(V, testExp, real_test_types)  //{{{1
         );
 }
 
+TEST_TYPES(V, test1Arg, real_test_types)  //{{{1
+{
+    vir::test::setFuzzyness<float>(0);
+    vir::test::setFuzzyness<double>(0);
+
+    using limits = std::numeric_limits<typename V::value_type>;
+    test_values<V>(
+        {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
+         limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
+        {10000, -limits::max()/2, limits::max()/2},
+        MAKE_TESTER(sqrt),
+        MAKE_TESTER(erf),
+        MAKE_TESTER(erfc),
+        MAKE_TESTER(tgamma),
+        MAKE_TESTER(lgamma),
+        MAKE_TESTER(ceil),
+        MAKE_TESTER(floor),
+        MAKE_TESTER(trunc),
+        MAKE_TESTER(round),
+        MAKE_TESTER(lround),
+        MAKE_TESTER(llround),
+        MAKE_TESTER(nearbyint),
+        MAKE_TESTER(rint),
+        MAKE_TESTER(lrint),
+        MAKE_TESTER(llrint),
+        MAKE_TESTER(ilogb)
+        );
+}
+
+TEST_TYPES(V, test2Arg, real_test_types)  //{{{1
+{
+    vir::test::setFuzzyness<float>(0);
+    vir::test::setFuzzyness<double>(0);
+
+    using limits = std::numeric_limits<typename V::value_type>;
+    test_values_2arg<V>(
+        {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
+         limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
+        {10000, -limits::max()/2, limits::max()/2},
+        MAKE_TESTER(hypot),
+        MAKE_TESTER(pow),
+        MAKE_TESTER(fmod),
+        MAKE_TESTER(remainder),
+        MAKE_TESTER(copysign),
+        MAKE_TESTER(nextafter),
+        //MAKE_TESTER(nexttoward),
+        MAKE_TESTER(fdim),
+        MAKE_TESTER(fmax),
+        MAKE_TESTER(fmin),
+        MAKE_TESTER(fdim),
+        MAKE_TESTER(isgreater),
+        MAKE_TESTER(isgreaterequal),
+        MAKE_TESTER(isless),
+        MAKE_TESTER(islessequal),
+        MAKE_TESTER(islessgreater),
+        MAKE_TESTER(isunordered)
+        );
+}
+
+TEST_TYPES(V, hypot3_fma, real_test_types)  //{{{1
+{
+    vir::test::setFuzzyness<float>(0);
+    vir::test::setFuzzyness<double>(0);
+
+    using limits = std::numeric_limits<typename V::value_type>;
+    test_values_3arg<V>(
+        {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
+         limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
+        {10000, -limits::max()/2, limits::max()/2},
+        MAKE_TESTER(hypot),
+        MAKE_TESTER(fma)
+        );
+}
+
+TEST_TYPES(V, ldexp_scalbn_scalbln_modf, real_test_types)  //{{{1
+{
+    vir::test::setFuzzyness<float>(0);
+    vir::test::setFuzzyness<double>(0);
+
+    using limits = std::numeric_limits<typename V::value_type>;
+    test_values<V>(
+        {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
+         limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
+        {10000, -limits::max() / 2, limits::max() / 2},
+        [](const V input) {
+            using Vc::experimental::iif;
+            for (int exp : {-10000, -100, -10, -1, 0, 1, 10, 100, 10000}) {
+                const auto totest = ldexp(input, exp);
+                using R = std::remove_const_t<decltype(totest)>;
+                auto &&expected = [&](const auto &v) -> const R {
+                    R tmp = {};
+                    using std::ldexp;
+                    for (std::size_t i = 0; i < R::size(); ++i) {
+                        tmp[i] = ldexp(v[i], exp);
+                    }
+                    return tmp;
+                };
+                const R expect1 = expected(input);
+                COMPARE(isnan(totest), isnan(expect1))
+                    << "ldexp(" << input << ", " << exp << ") = " << totest
+                    << " != " << expect1;
+                FUZZY_COMPARE(ldexp(iif(isnan(expect1), 0, input), exp),
+                              expected(iif(isnan(expect1), 0, input)))
+                    << "\nclean = " << iif(isnan(expect1), 0, input);
+            }
+        },
+        [](const V input) {
+            using Vc::experimental::iif;
+            for (int exp : {-10000, -100, -10, -1, 0, 1, 10, 100, 10000}) {
+                const auto totest = scalbn(input, exp);
+                using R = std::remove_const_t<decltype(totest)>;
+                auto &&expected = [&](const auto &v) -> const R {
+                    R tmp = {};
+                    using std::scalbn;
+                    for (std::size_t i = 0; i < R::size(); ++i) {
+                        tmp[i] = scalbn(v[i], exp);
+                    }
+                    return tmp;
+                };
+                const R expect1 = expected(input);
+                COMPARE(isnan(totest), isnan(expect1))
+                    << "scalbn(" << input << ", " << exp << ") = " << totest
+                    << " != " << expect1;
+                FUZZY_COMPARE(scalbn(iif(isnan(expect1), 0, input), exp),
+                              expected(iif(isnan(expect1), 0, input)))
+                    << "\nclean = " << iif(isnan(expect1), 0, input);
+            }
+        },
+        [](const V input) {
+            using Vc::experimental::iif;
+            for (long exp : {-10000, -100, -10, -1, 0, 1, 10, 100, 10000}) {
+                const auto totest = scalbln(input, exp);
+                using R = std::remove_const_t<decltype(totest)>;
+                auto &&expected = [&](const auto &v) -> const R {
+                    R tmp = {};
+                    using std::scalbln;
+                    for (std::size_t i = 0; i < R::size(); ++i) {
+                        tmp[i] = scalbln(v[i], exp);
+                    }
+                    return tmp;
+                };
+                const R expect1 = expected(input);
+                COMPARE(isnan(totest), isnan(expect1))
+                    << "scalbln(" << input << ", " << exp << ") = " << totest
+                    << " != " << expect1;
+                FUZZY_COMPARE(scalbln(iif(isnan(expect1), 0, input), exp),
+                              expected(iif(isnan(expect1), 0, input)))
+                    << "\nclean = " << iif(isnan(expect1), 0, input);
+            }
+        },
+        [](const V input) {
+            using Vc::experimental::iif;
+            V integral = {};
+            const V totest = modf(input, &integral);
+            auto &&expected = [&](const auto &v) -> std::pair<const V, const V> {
+                std::pair<V, V> tmp = {};
+                using std::modf;
+                for (std::size_t i = 0; i < V::size(); ++i) {
+                    typename V::value_type tmp2;
+                    tmp.first[i] = modf(v[i], &tmp2);
+                    tmp.second[i] = tmp2;
+                }
+                return tmp;
+            };
+            const auto expect1 = expected(input);
+            COMPARE(isnan(totest), isnan(expect1.first))
+                << "modf(" << input << ", iptr) = " << totest << " != " << expect1;
+            COMPARE(isnan(integral), isnan(expect1.second))
+                << "modf(" << input << ", iptr) = " << totest << " != " << expect1;
+            COMPARE(isnan(totest), isnan(integral))
+                << "modf(" << input << ", iptr) = " << totest << " != " << expect1;
+            const V clean = iif(isnan(totest), 0, input);
+            const auto expect2 = expected(clean);
+            COMPARE(modf(clean, &integral), expect2.first) << "\nclean = " << clean;
+            COMPARE(integral, expect2.second);
+        }
+    );
+}
+
+TEST_TYPES(V, remqo, real_test_types)  //{{{1
+{
+    vir::test::setFuzzyness<float>(0);
+    vir::test::setFuzzyness<double>(0);
+
+    using limits = std::numeric_limits<typename V::value_type>;
+    test_values_2arg<V>(
+        {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
+         limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
+        {10000, -limits::max()/2, limits::max()/2},
+        [](const V a, const V b) {
+            using Vc::experimental::iif;
+            using IV = Vc::fixed_size_simd<int, V::size()>;
+            IV quo = {}; // the type is wrong, this should fail
+            const V totest = remquo(a, b, &quo);
+            auto &&expected = [&](const auto &v, const auto &w) -> std::pair<const V, const IV> {
+                std::pair<V, IV> tmp = {};
+                using std::remquo;
+                for (std::size_t i = 0; i < V::size(); ++i) {
+                    int tmp2;
+                    tmp.first[i] = remquo(v[i], w[i], &tmp2);
+                    tmp.second[i] = tmp2;
+                }
+                return tmp;
+            };
+            const auto expect1 = expected(a, b);
+            COMPARE(isnan(totest), isnan(expect1.first))
+                << "remquo(" << a << ", " << b << ", quo) = " << totest << " != " << expect1.first;
+            const V clean_a = iif(isnan(totest), 0, a);
+            const V clean_b = iif(isnan(totest), 1, b);
+            const auto expect2 = expected(clean_a, clean_b);
+            COMPARE(remquo(clean_a, clean_b, &quo), expect2.first)
+                << "\nclean_a/b = " << clean_a << ", " << clean_b;
+            COMPARE(quo, expect2.second);
+        }
+    );
+}
+
+// TODO {{{1
+// special math:
+// assoc_laguerre, assoc_legendre, beta, comp_ellint_1, comp_ellint_2, comp_ellint_3,
+// cyl_bessel_i, cyl_bessel_j cyl_bessel_k, cyl_neumann, ellint_1, ellint_2, ellint_3,
+// expint, hermite, legendre, laguerre, riemann_zeta, sph_bessel, sph_legendre,
+// sph_neumann

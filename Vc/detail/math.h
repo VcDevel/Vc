@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <utility>
 
 Vc_VERSIONED_NAMESPACE_BEGIN
-namespace detail
+namespace detail // helpers {{{
 {
 template <class Abi> using scharv = simd<signed char, Abi>;    // exposition only
 template <class Abi> using shortv = simd<short, Abi>;          // exposition only
@@ -47,117 +47,161 @@ template <class Abi> using ldoublev = simd<long double, Abi>;  // exposition onl
 template <class T, class V>
 using samesize = fixed_size_simd<T, V::size()>;  // exposition only
 
+// math_return_type {{{
+template <class DoubleR, class T, class Abi> struct math_return_type;
+template <class DoubleR, class T, class Abi>
+using math_return_type_t = typename math_return_type<DoubleR, T, Abi>::type;
+
+template <class T, class Abi> struct math_return_type<double, T, Abi> {
+    using type = Vc::simd<T, Abi>;
+};
+template <class T, class Abi> struct math_return_type<bool, T, Abi> {
+    using type = Vc::simd_mask<T, Abi>;
+};
+template <class DoubleR, class T, class Abi> struct math_return_type {
+    using type = Vc::fixed_size_simd<DoubleR, simd_size_v<T, Abi>>;
+};
+//}}}
+
 #define Vc_MATH_CALL_(name_)                                                             \
-    template <class Abi> Vc::detail::floatv<Abi> name_(Vc::detail::floatv<Abi> x)        \
+    template <class T, class Abi, class...,                                              \
+              class R = Vc::detail::math_return_type_t<                                  \
+                  decltype(std::name_(std::declval<double>())), T, Abi>>                 \
+    std::enable_if_t<std::is_floating_point_v<T>, R> name_(Vc::simd<T, Abi> x)           \
     {                                                                                    \
+        using V = Vc::simd<T, Abi>;                                                      \
         return Vc::detail::impl_or_fallback(                                             \
-            [](const auto &xx) -> decltype(Vc::detail::floatv<Abi>(                      \
-                Vc::detail::private_init,                                                \
-                Vc::detail::get_impl_t<decltype(xx)>::name_(Vc::detail::data(xx)))) {    \
+            [](const auto &xx) -> decltype(                                              \
+                                   R(Vc::detail::private_init,                           \
+                                     Vc::detail::get_impl_t<decltype(xx)>::name_(        \
+                                         Vc::detail::data(xx)))) {                       \
                 return {                                                                 \
                     Vc::detail::private_init,                                            \
                     Vc::detail::get_impl_t<decltype(xx)>::name_(Vc::detail::data(xx))};  \
             },                                                                           \
-            [](const Vc::detail::floatv<Abi> &xx) {                                      \
-                return Vc::detail::floatv<Abi>(                                          \
-                    [&](auto i) { return std::name_(xx[i]); });                          \
-            },                                                                           \
-            x);                                                                          \
-    }                                                                                    \
-    template <class Abi> Vc::detail::doublev<Abi> name_(Vc::detail::doublev<Abi> x)      \
-    {                                                                                    \
-        return Vc::detail::impl_or_fallback(                                             \
-            [](const auto &xx) -> decltype(Vc::detail::doublev<Abi>(                     \
-                Vc::detail::private_init,                                                \
-                Vc::detail::get_impl_t<decltype(xx)>::name_(Vc::detail::data(xx)))) {    \
-                return {                                                                 \
-                    Vc::detail::private_init,                                            \
-                    Vc::detail::get_impl_t<decltype(xx)>::name_(Vc::detail::data(xx))};  \
-            },                                                                           \
-            [](const Vc::detail::doublev<Abi> &xx) {                                     \
-                return Vc::detail::doublev<Abi>(                                         \
-                    [&](auto i) { return std::name_(xx[i]); });                          \
-            },                                                                           \
-            x);                                                                          \
-    }                                                                                    \
-    template <class Abi> Vc::detail::ldoublev<Abi> name_(Vc::detail::ldoublev<Abi> x)    \
-    {                                                                                    \
-        return Vc::detail::impl_or_fallback(                                             \
-            [](const auto &xx) -> decltype(Vc::detail::ldoublev<Abi>(                    \
-                Vc::detail::private_init,                                                \
-                Vc::detail::get_impl_t<decltype(xx)>::name_(Vc::detail::data(xx)))) {    \
-                return {                                                                 \
-                    Vc::detail::private_init,                                            \
-                    Vc::detail::get_impl_t<decltype(xx)>::name_(Vc::detail::data(xx))};  \
-            },                                                                           \
-            [](const Vc::detail::ldoublev<Abi> &xx) {                                    \
-                return Vc::detail::ldoublev<Abi>(                                        \
-                    [&](auto i) { return std::name_(xx[i]); });                          \
+            [](const V &xx) {                                                            \
+                if constexpr (Vc::is_simd_mask_v<R>) {                                   \
+                    return R(Vc::detail::private_init,                                   \
+                             [&](auto i) { return std::name_(xx[i]); });                 \
+                } else {                                                                 \
+                    return R([&](auto i) { return std::name_(xx[i]); });                 \
+                }                                                                        \
             },                                                                           \
             x);                                                                          \
     }
 
-#define Vc_ARG_SAMESIZE_INT(arg1_) Vc::detail::samesize<int, arg1_>
-#define Vc_ARG_SAMESIZE_LONG(arg1_) Vc::detail::samesize<long, arg1_>
-#define Vc_ARG_AS_ARG1(arg1_) arg1_
+//extra_argument_type{{{
+template <class U, class T, class Abi> struct extra_argument_type;
+
+template <class T, class Abi> struct extra_argument_type<T *, T, Abi> {
+    using type = Vc::simd<T, Abi> *;
+    static constexpr double *declval();
+    static constexpr Vc_INTRINSIC auto data(type x) { return &Vc::detail::data(*x); }
+    static constexpr bool needs_temporary_scalar = true;
+};
+template <class U, class T, class Abi> struct extra_argument_type<U *, T, Abi> {
+    static_assert(std::is_integral_v<U>);
+    using type = Vc::fixed_size_simd<U, Vc::simd_size_v<T, Abi>> *;
+    static constexpr U *declval();
+    static constexpr Vc_INTRINSIC auto data(type x) { return &Vc::detail::data(*x); }
+    static constexpr bool needs_temporary_scalar = true;
+};
+template <class T, class Abi> struct extra_argument_type<T, T, Abi> {
+    using type = Vc::simd<T, Abi>;
+    static constexpr double declval();
+    static constexpr Vc_INTRINSIC decltype(auto) data(const type &x)
+    {
+        return Vc::detail::data(x);
+    }
+    static constexpr bool needs_temporary_scalar = false;
+};
+template <class U, class T, class Abi> struct extra_argument_type {
+    static_assert(std::is_integral_v<U>);
+    using type = Vc::fixed_size_simd<U, Vc::simd_size_v<T, Abi>>;
+    static constexpr U declval();
+    static constexpr Vc_INTRINSIC decltype(auto) data(const type &x)
+    {
+        return Vc::detail::data(x);
+    }
+    static constexpr bool needs_temporary_scalar = false;
+};
+//}}}
 
 #define Vc_MATH_CALL2_(name_, arg2_)                                                     \
-    template <class Abi>                                                                 \
-    detail::floatv<Abi> name_(Vc::detail::floatv<Abi> x_,                                \
-                              arg2_(Vc::detail::floatv<Abi>) y_)                         \
+    template <                                                                           \
+        class T, class Abi, class...,                                                    \
+        class Arg2 = Vc::detail::extra_argument_type<arg2_, T, Abi>,                     \
+        class R = Vc::detail::math_return_type_t<                                        \
+            decltype(std::name_(std::declval<double>(), Arg2::declval())), T, Abi>>      \
+    std::enable_if_t<std::is_floating_point_v<T>, R> name_(Vc::simd<T, Abi> x_,          \
+                                                           typename Arg2::type y_)       \
     {                                                                                    \
+        using V = Vc::simd<T, Abi>;                                                      \
         return Vc::detail::impl_or_fallback(                                             \
-            [](const auto &x, const auto &y) -> decltype(Vc::detail::floatv<Abi>(        \
-                Vc::detail::private_init,                                                \
-                Vc::detail::get_impl_t<decltype(x)>::name_(Vc::detail::data(x),          \
-                                                           Vc::detail::data(y)))) {      \
+            [](const auto &x,                                                            \
+               const auto &y) -> decltype(R(Vc::detail::private_init,                    \
+                                            Vc::detail::get_impl_t<decltype(x)>::name_(  \
+                                                Vc::detail::data(x), Arg2::data(y)))) {  \
                 return {Vc::detail::private_init,                                        \
-                        Vc::detail::get_impl_t<decltype(x)>::name_(                      \
-                            Vc::detail::data(x), Vc::detail::data(y))};                  \
+                        Vc::detail::get_impl_t<decltype(x)>::name_(Vc::detail::data(x),  \
+                                                                   Arg2::data(y))};      \
             },                                                                           \
-            [](const Vc::detail::floatv<Abi> &x, const auto &y) {                        \
-                return Vc::detail::floatv<Abi>(                                          \
-                    [&](auto i) { return std::name_(x[i], y[i]); });                     \
+            [](const V &x, const auto &y) {                                              \
+                auto &&gen = [&](auto i) {                                               \
+                    if constexpr (Arg2::needs_temporary_scalar) {                        \
+                        const auto &yy = *y;                                             \
+                        auto tmp = yy[i];                                                \
+                        auto ret = std::name_(x[i], &tmp);                               \
+                        (*y)[i] = tmp;                                                   \
+                        return ret;                                                      \
+                    } else {                                                             \
+                        return std::name_(x[i], y[i]);                                   \
+                    }                                                                    \
+                };                                                                       \
+                if constexpr (Vc::is_simd_mask_v<R>) {                                   \
+                    return R(Vc::detail::private_init, gen);                             \
+                } else {                                                                 \
+                    return R(gen);                                                       \
+                }                                                                        \
             },                                                                           \
             x_, y_);                                                                     \
-    }                                                                                    \
-    template <class Abi>                                                                 \
-    detail::doublev<Abi> name_(Vc::detail::doublev<Abi> x_,                              \
-                               arg2_(Vc::detail::doublev<Abi>) y_)                       \
+    }
+
+#define Vc_MATH_CALL3_(name_, arg2_, arg3_)                                              \
+    template <class T, class Abi, class...,                                              \
+              class Arg2 = Vc::detail::extra_argument_type<arg2_, T, Abi>,               \
+              class Arg3 = Vc::detail::extra_argument_type<arg3_, T, Abi>,               \
+              class R = Vc::detail::math_return_type_t<                                  \
+                  decltype(std::name_(std::declval<double>(), Arg2::declval(),           \
+                                      Arg3::declval())),                                 \
+                  T, Abi>>                                                               \
+    std::enable_if_t<std::is_floating_point_v<T>, R> name_(                              \
+        Vc::simd<T, Abi> x_, typename Arg2::type y_, typename Arg3::type z_)             \
     {                                                                                    \
+        using V = Vc::simd<T, Abi>;                                                      \
         return Vc::detail::impl_or_fallback(                                             \
-            [](const auto &x, const auto &y) -> decltype(Vc::detail::doublev<Abi>(       \
-                Vc::detail::private_init,                                                \
-                Vc::detail::get_impl_t<decltype(x)>::name_(Vc::detail::data(x),          \
-                                                           Vc::detail::data(y)))) {      \
+            [](const auto &x, const auto &y, const auto &z)                              \
+                -> decltype(R(Vc::detail::private_init,                                  \
+                              Vc::detail::get_impl_t<decltype(x)>::name_(                \
+                                  Vc::detail::data(x), Arg2::data(y), Arg3::data(z)))) { \
                 return {Vc::detail::private_init,                                        \
                         Vc::detail::get_impl_t<decltype(x)>::name_(                      \
-                            Vc::detail::data(x), Vc::detail::data(y))};                  \
+                            Vc::detail::data(x), Arg2::data(y), Arg3::data(z))};         \
             },                                                                           \
-            [](const Vc::detail::doublev<Abi> &x, const auto &y) {                       \
-                return Vc::detail::doublev<Abi>(                                         \
-                    [&](auto i) { return std::name_(x[i], y[i]); });                     \
+            [](const V &x, const auto &y, const auto &z) {                               \
+                return R([&](auto i) {                                                   \
+                    if constexpr (Arg3::needs_temporary_scalar) {                        \
+                        const auto &zz = *z;                                             \
+                        auto tmp = zz[i];                                                \
+                        auto ret = std::name_(x[i], y[i], &tmp);                         \
+                        (*z)[i] = tmp;                                                   \
+                        return ret;                                                      \
+                    } else {                                                             \
+                        return std::name_(x[i], y[i], z[i]);                             \
+                    }                                                                    \
+                });                                                                      \
             },                                                                           \
-            x_, y_);                                                                     \
-    }                                                                                    \
-    template <class Abi>                                                                 \
-    detail::ldoublev<Abi> name_(Vc::detail::ldoublev<Abi> x_,                            \
-                                arg2_(Vc::detail::ldoublev<Abi>) y_)                     \
-    {                                                                                    \
-        return Vc::detail::impl_or_fallback(                                             \
-            [](const auto &x, const auto &y) -> decltype(Vc::detail::ldoublev<Abi>(      \
-                Vc::detail::private_init,                                                \
-                Vc::detail::get_impl_t<decltype(x)>::name_(Vc::detail::data(x),          \
-                                                           Vc::detail::data(y)))) {      \
-                return {Vc::detail::private_init,                                        \
-                        Vc::detail::get_impl_t<decltype(x)>::name_(                      \
-                            Vc::detail::data(x), Vc::detail::data(y))};                  \
-            },                                                                           \
-            [](const Vc::detail::ldoublev<Abi> &x, const auto &y) {                      \
-                return Vc::detail::ldoublev<Abi>(                                        \
-                    [&](auto i) { return std::name_(x[i], y[i]); });                     \
-            },                                                                           \
-            x_, y_);                                                                     \
+            x_, y_, z_);                                                                 \
     }
 
 template < typename Abi>
@@ -314,12 +358,13 @@ template <class... Args> Vc_INTRINSIC auto impl_or_fallback(Args &&... args)
 {
     return impl_or_fallback_dispatch(int(), std::forward<Args>(args)...);
 }  //}}}
-}  // namespace detail
+}  // namespace detail }}}
 
+// trigonometric functions {{{
 Vc_MATH_CALL_(acos)
 Vc_MATH_CALL_(asin)
 Vc_MATH_CALL_(atan)
-Vc_MATH_CALL2_(atan2, Vc_ARG_AS_ARG1)
+Vc_MATH_CALL2_(atan2, T)
 
 /*
  * algorithm for sine and cosine:
@@ -337,8 +382,9 @@ Vc_MATH_CALL2_(atan2, Vc_ARG_AS_ARG1)
  * Calculate Taylor series with tuned coefficients.
  * Fix sign.
  */
-template <class T, class Abi, class = std::enable_if_t<std::is_floating_point<T>::value>>
-simd<T, Abi> cos(simd<T, Abi> x)
+//cos{{{
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> cos(simd<T, Abi> x)
 {
     using V = simd<T, Abi>;
     using M = typename V::mask_type;
@@ -363,8 +409,17 @@ simd<T, Abi> cos(simd<T, Abi> x)
     return y;
 }
 
-template <class T, class Abi, class = std::enable_if_t<std::is_floating_point<T>::value>>
-simd<T, Abi> sin(simd<T, Abi> x)
+template <class T>
+Vc_ALWAYS_INLINE
+    std::enable_if_t<std::is_floating_point<T>::value, simd<T, simd_abi::scalar>>
+    cos(simd<T, simd_abi::scalar> x)
+{
+    return std::cos(detail::data(x));
+}
+//}}}
+//sin{{{
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> sin(simd<T, Abi> x)
 {
     using V = simd<T, Abi>;
     using M = typename V::mask_type;
@@ -388,25 +443,14 @@ simd<T, Abi> sin(simd<T, Abi> x)
     return y;
 }
 
-template <>
-Vc_ALWAYS_INLINE detail::floatv<simd_abi::scalar> sin(detail::floatv<simd_abi::scalar> x)
+template <class T>
+Vc_ALWAYS_INLINE
+    std::enable_if_t<std::is_floating_point<T>::value, simd<T, simd_abi::scalar>>
+    sin(simd<T, simd_abi::scalar> x)
 {
     return std::sin(detail::data(x));
 }
-
-template <>
-Vc_ALWAYS_INLINE detail::doublev<simd_abi::scalar> sin(
-    detail::doublev<simd_abi::scalar> x)
-{
-    return std::sin(detail::data(x));
-}
-
-template <>
-Vc_ALWAYS_INLINE detail::ldoublev<simd_abi::scalar> sin(
-    detail::ldoublev<simd_abi::scalar> x)
-{
-    return std::sin(detail::data(x));
-}
+//}}}
 
 Vc_MATH_CALL_(tan)
 Vc_MATH_CALL_(acosh)
@@ -415,10 +459,13 @@ Vc_MATH_CALL_(atanh)
 Vc_MATH_CALL_(cosh)
 Vc_MATH_CALL_(sinh)
 Vc_MATH_CALL_(tanh)
+// }}}
+// exponential functions {{{
 Vc_MATH_CALL_(exp)
 Vc_MATH_CALL_(exp2)
 Vc_MATH_CALL_(expm1)
-
+// }}}
+// frexp {{{
 namespace detail
 {
 template <class T, size_t N> Storage<T, N> getexp(Storage<T, N> x)
@@ -557,23 +604,20 @@ std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> frexp(
         return mant;
     }
 }
+// }}}
+Vc_MATH_CALL2_(ldexp, int)
+Vc_MATH_CALL_(ilogb)
 
-template <class Abi>
-detail::samesize<int, detail::floatv<Abi>> ilogb(detail::floatv<Abi> x);
-template <class Abi>
-detail::samesize<int, detail::doublev<Abi>> ilogb(detail::doublev<Abi> x);
-template <class Abi>
-detail::samesize<int, detail::ldoublev<Abi>> ilogb(detail::ldoublev<Abi> x);
-
-Vc_MATH_CALL2_(ldexp, Vc_ARG_SAMESIZE_INT)
-
+// logarithms {{{
 Vc_MATH_CALL_(log)
 Vc_MATH_CALL_(log10)
 Vc_MATH_CALL_(log1p)
 Vc_MATH_CALL_(log2)
-
-template <class T, class Abi, class = std::enable_if_t<std::is_floating_point<T>::value>>
-simd<T, Abi> logb(const simd<T, Abi> &x)
+//}}}
+//logb{{{
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> logb(
+    const simd<T, Abi> &x)
 {
     using namespace Vc::detail;
     constexpr size_t N = simd_size_v<T, Abi>;
@@ -665,37 +709,48 @@ simd<T, Abi> logb(const simd<T, Abi> &x)
         return scaled_exp;
     }
 }
-
-template <class Abi>
-detail::floatv<Abi> modf(detail::floatv<Abi> value, detail::floatv<Abi> * iptr);
-template <class Abi>
-detail::doublev<Abi> modf(detail::doublev<Abi> value, detail::doublev<Abi> * iptr);
-template <class Abi>
-detail::ldoublev<Abi> modf(detail::ldoublev<Abi> value, detail::ldoublev<Abi> * iptr);
-
-Vc_MATH_CALL2_(scalbn, Vc_ARG_SAMESIZE_INT) Vc_MATH_CALL2_(scalbln, Vc_ARG_SAMESIZE_LONG)
+//}}}
+Vc_MATH_CALL2_(modf, T *)
+Vc_MATH_CALL2_(scalbn, int)
+Vc_MATH_CALL2_(scalbln, long)
 
 Vc_MATH_CALL_(cbrt)
 
+Vc_MATH_CALL_(abs)
+Vc_MATH_CALL_(fabs)
+
+// [parallel.simd.math] only asks for is_floating_point_v<T> and forgot to allow
+// signed integral T
 template <class T, class Abi>
-std::enable_if_t<std::is_signed_v<T>, simd<T, Abi>> abs(const simd<T, Abi> &x)
+std::enable_if_t<!std::is_floating_point_v<T> && std::is_signed_v<T>, simd<T, Abi>> abs(
+    const simd<T, Abi> &x)
+{
+    return {detail::private_init, Abi::simd_impl_type::abs(detail::data(x))};
+}
+template <class T, class Abi>
+std::enable_if_t<!std::is_floating_point_v<T> && std::is_signed_v<T>, simd<T, Abi>> fabs(
+    const simd<T, Abi> &x)
 {
     return {detail::private_init, Abi::simd_impl_type::abs(detail::data(x))};
 }
 
-Vc_MATH_CALL2_(hypot, Vc_ARG_AS_ARG1)
+// the following are overloads for functions in <cstdlib> and not covered by
+// [parallel.simd.math]. I don't see much value in making them work, though
+/*
+template <class Abi> simd<long, Abi> labs(const simd<long, Abi> &x)
+{
+    return {detail::private_init, Abi::simd_impl_type::abs(detail::data(x))};
+}
+template <class Abi> simd<long long, Abi> llabs(const simd<long long, Abi> &x)
+{
+    return {detail::private_init, Abi::simd_impl_type::abs(detail::data(x))};
+}
+*/
 
-template <class Abi>
-detail::floatv<Abi> hypot(detail::floatv<Abi> x, detail::floatv<Abi> y,
-                          detail::floatv<Abi> z);
-template <class Abi>
-detail::doublev<Abi> hypot(detail::doublev<Abi> x, detail::doublev<Abi> y,
-                           detail::doublev<Abi> z);
-template <class Abi>
-detail::ldoublev<Abi> hypot(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y,
-                            detail::ldoublev<Abi> z);
+Vc_MATH_CALL2_(hypot, T)
+Vc_MATH_CALL3_(hypot, T, T)
 
-Vc_MATH_CALL2_(pow, Vc_ARG_AS_ARG1)
+Vc_MATH_CALL2_(pow, T)
 
 Vc_MATH_CALL_(sqrt)
 Vc_MATH_CALL_(erf)
@@ -706,144 +761,46 @@ Vc_MATH_CALL_(ceil)
 Vc_MATH_CALL_(floor)
 Vc_MATH_CALL_(nearbyint)
 Vc_MATH_CALL_(rint)
-
-template <class Abi>
-detail::samesize<long int, detail::floatv<Abi>> lrint(detail::floatv<Abi> x);
-template <class Abi>
-detail::samesize<long int, detail::doublev<Abi>> lrint(detail::doublev<Abi> x);
-template <class Abi>
-detail::samesize<long int, detail::ldoublev<Abi>> lrint(detail::ldoublev<Abi> x);
-
-template <class Abi>
-detail::samesize<long long int, detail::floatv<Abi>> llrint(detail::floatv<Abi> x);
-template <class Abi>
-detail::samesize<long long int, detail::doublev<Abi>> llrint(detail::doublev<Abi> x);
-template <class Abi>
-detail::samesize<long long int, detail::ldoublev<Abi>> llrint(detail::ldoublev<Abi> x);
+Vc_MATH_CALL_(lrint)
+Vc_MATH_CALL_(llrint)
 
 Vc_MATH_CALL_(round)
-
-template <class Abi>
-detail::samesize<long int, detail::floatv<Abi>> lround(detail::floatv<Abi> x);
-template <class Abi>
-detail::samesize<long int, detail::doublev<Abi>> lround(detail::doublev<Abi> x);
-template <class Abi>
-detail::samesize<long int, detail::ldoublev<Abi>> lround(detail::ldoublev<Abi> x);
-
-template <class Abi>
-detail::samesize<long long int, detail::floatv<Abi>> llround(detail::floatv<Abi> x);
-template <class Abi>
-detail::samesize<long long int, detail::doublev<Abi>> llround(detail::doublev<Abi> x);
-template <class Abi>
-detail::samesize<long long int, detail::ldoublev<Abi>> llround(detail::ldoublev<Abi> x);
+Vc_MATH_CALL_(lround)
+Vc_MATH_CALL_(llround)
 
 Vc_MATH_CALL_(trunc)
 
-Vc_MATH_CALL2_(fmod, Vc_ARG_AS_ARG1)
-Vc_MATH_CALL2_(remainder, Vc_ARG_AS_ARG1)
+Vc_MATH_CALL2_(fmod, T)
+Vc_MATH_CALL2_(remainder, T)
+Vc_MATH_CALL3_(remquo, T, int *)
+Vc_MATH_CALL2_(copysign, T)
 
-template <class Abi>
-detail::floatv<Abi> remquo(detail::floatv<Abi> x, detail::floatv<Abi> y,
-                           detail::samesize<int, detail::floatv<Abi>> * quo);
-template <class Abi>
-detail::doublev<Abi> remquo(detail::doublev<Abi> x, detail::doublev<Abi> y,
-                            detail::samesize<int, detail::doublev<Abi>> * quo);
-template <class Abi>
-detail::ldoublev<Abi> remquo(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y,
-                             detail::samesize<int, detail::ldoublev<Abi>> * quo);
+Vc_MATH_CALL2_(nextafter, T)
+// not covered in [parallel.simd.math]:
+// Vc_MATH_CALL2_(nexttoward, long double)
+Vc_MATH_CALL2_(fdim, T)
+Vc_MATH_CALL2_(fmax, T)
+Vc_MATH_CALL2_(fmin, T)
 
-Vc_MATH_CALL2_(copysign, Vc_ARG_AS_ARG1)
+Vc_MATH_CALL3_(fma, T, T)
+Vc_MATH_CALL_(fpclassify)
+Vc_MATH_CALL_(isfinite)
+Vc_MATH_CALL_(isinf)
+Vc_MATH_CALL_(isnan)
+Vc_MATH_CALL_(isnormal)
+Vc_MATH_CALL_(signbit)
 
+Vc_MATH_CALL2_(isgreater, T)
+Vc_MATH_CALL2_(isgreaterequal, T)
+Vc_MATH_CALL2_(isless, T)
+Vc_MATH_CALL2_(islessequal, T)
+Vc_MATH_CALL2_(islessgreater, T)
+Vc_MATH_CALL2_(isunordered, T)
+
+/* not covered in [parallel.simd.math]
 template <class Abi> detail::doublev<Abi> nan(const char* tagp);
 template <class Abi> detail::floatv<Abi> nanf(const char* tagp);
 template <class Abi> detail::ldoublev<Abi> nanl(const char* tagp);
-
-Vc_MATH_CALL2_(nextafter, Vc_ARG_AS_ARG1)
-Vc_MATH_CALL2_(nexttoward, Vc_ARG_AS_ARG1)
-Vc_MATH_CALL2_(fdim, Vc_ARG_AS_ARG1)
-Vc_MATH_CALL2_(fmax, Vc_ARG_AS_ARG1)
-Vc_MATH_CALL2_(fmin, Vc_ARG_AS_ARG1)
-
-template <class Abi>
-detail::floatv<Abi> fma(detail::floatv<Abi> x, detail::floatv<Abi> y,
-                        detail::floatv<Abi> z);
-template <class Abi>
-detail::doublev<Abi> fma(detail::doublev<Abi> x, detail::doublev<Abi> y,
-                         detail::doublev<Abi> z);
-template <class Abi>
-detail::ldoublev<Abi> fma(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y,
-                          detail::ldoublev<Abi> z);
-
-template <class Abi>
-detail::samesize<int, detail::floatv<Abi>> fpclassify(detail::floatv<Abi> x)
-{
-    return {detail::private_init,
-            detail::get_impl_t<decltype(x)>::fpclassify(detail::data(x))};
-}
-template <class Abi>
-detail::samesize<int, detail::doublev<Abi>> fpclassify(detail::doublev<Abi> x)
-{
-    return {detail::private_init,
-            detail::get_impl_t<decltype(x)>::fpclassify(detail::data(x))};
-}
-template <class Abi>
-detail::samesize<int, detail::ldoublev<Abi>> fpclassify(detail::ldoublev<Abi> x)
-{
-    return {detail::private_init,
-            detail::get_impl_t<decltype(x)>::fpclassify(detail::data(x))};
-}
-
-#define Vc_MATH_CLASS_(name_)                                                            \
-    template <class Abi> simd_mask<float, Abi> name_(detail::floatv<Abi> x)              \
-    {                                                                                    \
-        return {detail::private_init,                                                    \
-                detail::get_impl_t<decltype(x)>::name_(detail::data(x))};                \
-    }                                                                                    \
-    template <class Abi> simd_mask<double, Abi> name_(detail::doublev<Abi> x)            \
-    {                                                                                    \
-        return {detail::private_init,                                                    \
-                detail::get_impl_t<decltype(x)>::name_(detail::data(x))};                \
-    }                                                                                    \
-    template <class Abi> simd_mask<long double, Abi> name_(detail::ldoublev<Abi> x)      \
-    {                                                                                    \
-        return {detail::private_init,                                                    \
-                detail::get_impl_t<decltype(x)>::name_(detail::data(x))};                \
-    }
-
-Vc_MATH_CLASS_(isfinite)
-Vc_MATH_CLASS_(isinf)
-Vc_MATH_CLASS_(isnan)
-Vc_MATH_CLASS_(isnormal)
-Vc_MATH_CLASS_(signbit)
-#undef Vc_MATH_CLASS_
-
-#define Vc_MATH_CMP_(name_)                                                              \
-    template <class Abi>                                                                 \
-    simd_mask<float, Abi> name_(detail::floatv<Abi> x, detail::floatv<Abi> y)            \
-    {                                                                                    \
-        return {detail::private_init, detail::get_impl_t<decltype(x)>::name_(            \
-                                          detail::data(x), detail::data(y))};            \
-    }                                                                                    \
-    template <class Abi>                                                                 \
-    simd_mask<double, Abi> name_(detail::doublev<Abi> x, detail::doublev<Abi> y)         \
-    {                                                                                    \
-        return {detail::private_init, detail::get_impl_t<decltype(x)>::name_(            \
-                                          detail::data(x), detail::data(y))};            \
-    }                                                                                    \
-    template <class Abi>                                                                 \
-    simd_mask<long double, Abi> name_(detail::ldoublev<Abi> x, detail::ldoublev<Abi> y)  \
-    {                                                                                    \
-        return {detail::private_init, detail::get_impl_t<decltype(x)>::name_(            \
-                                          detail::data(x), detail::data(y))};            \
-    }
-
-Vc_MATH_CMP_(isgreater)
-Vc_MATH_CMP_(isgreaterequal)
-Vc_MATH_CMP_(isless)
-Vc_MATH_CMP_(islessequal)
-Vc_MATH_CMP_(islessgreater)
-Vc_MATH_CMP_(isunordered)
-#undef Vc_MATH_CMP_
 
 template <class V> struct simd_div_t {
     V quot, rem;
@@ -862,8 +819,11 @@ simd_div_t<detail::longv<Abi>> div(detail::longv<Abi> numer,
 template <class Abi>
 simd_div_t<detail::llongv<Abi>> div(detail::llongv<Abi> numer,
                                          detail::llongv<Abi> denom);
+*/
 
 #undef Vc_MATH_CALL_
+#undef Vc_MATH_CALL2_
+#undef Vc_MATH_CALL3_
 
 namespace detail
 {
