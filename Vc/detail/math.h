@@ -133,8 +133,8 @@ template <class U, class T, class Abi> struct extra_argument_type {
         class Arg2 = Vc::detail::extra_argument_type<arg2_, T, Abi>,                     \
         class R = Vc::detail::math_return_type_t<                                        \
             decltype(std::name_(std::declval<double>(), Arg2::declval())), T, Abi>>      \
-    std::enable_if_t<std::is_floating_point_v<T>, R> name_(Vc::simd<T, Abi> x_,          \
-                                                           typename Arg2::type y_)       \
+    std::enable_if_t<std::is_floating_point_v<T>, R> name_(                              \
+        const Vc::simd<T, Abi> &x_, const typename Arg2::type &y_)                       \
     {                                                                                    \
         using V = Vc::simd<T, Abi>;                                                      \
         return Vc::detail::impl_or_fallback(                                             \
@@ -165,6 +165,22 @@ template <class U, class T, class Abi> struct extra_argument_type {
                 }                                                                        \
             },                                                                           \
             x_, y_);                                                                     \
+    }                                                                                    \
+    template <class U, class T, class Abi>                                               \
+    Vc_INTRINSIC Vc::detail::math_return_type_t<                                         \
+        decltype(std::name_(                                                             \
+            std::declval<double>(),                                                      \
+            std::declval<std::enable_if_t<                                               \
+                std::conjunction_v<                                                      \
+                    std::is_same<arg2_, T>,                                              \
+                    std::negation<std::is_same<std::decay_t<U>, Vc::simd<T, Abi>>>,      \
+                    std::is_convertible<U, Vc::simd<T, Abi>>,                            \
+                    std::is_floating_point<T>>,                                          \
+                double>>())),                                                            \
+        T, Abi>                                                                          \
+    name_(U &&x_, const Vc::simd<T, Abi> &y_)                                            \
+    {                                                                                    \
+        return Vc::name_(Vc::simd<T, Abi>(std::forward<U>(x_)), y_);                     \
     }
 
 #define Vc_MATH_CALL3_(name_, arg2_, arg3_)                                              \
@@ -202,6 +218,16 @@ template <class U, class T, class Abi> struct extra_argument_type {
                 });                                                                      \
             },                                                                           \
             x_, y_, z_);                                                                 \
+    }                                                                                    \
+    template <class T, class U, class V, class..., class TT = std::decay_t<T>,           \
+              class UU = std::decay_t<U>, class VV = std::decay_t<V>,                    \
+              class Simd = std::conditional_t<Vc::is_simd_v<UU>, UU, VV>>                \
+    Vc_INTRINSIC decltype(Vc::name_(Simd(std::declval<T>()), Simd(std::declval<U>()),    \
+                                    Simd(std::declval<V>())))                            \
+    name_(T &&x_, U &&y_, V &&z_)                                                        \
+    {                                                                                    \
+        return Vc::name_(Simd(std::forward<T>(x_)), Simd(std::forward<U>(y_)),           \
+                         Simd(std::forward<V>(z_)));                                     \
     }
 
 template < typename Abi>
@@ -820,6 +846,90 @@ template <class Abi>
 simd_div_t<detail::llongv<Abi>> div(detail::llongv<Abi> numer,
                                          detail::llongv<Abi> denom);
 */
+
+// special math {{{
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> assoc_laguerre(
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &m,
+    const Vc::simd<T, Abi> &x)
+{
+    return Vc::simd<T, Abi>([&](auto i) { return std::assoc_laguerre(n[i], m[i], x[i]); });
+}
+
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> assoc_legendre(
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &m,
+    const Vc::simd<T, Abi> &x)
+{
+    return Vc::simd<T, Abi>([&](auto i) { return std::assoc_legendre(n[i], m[i], x[i]); });
+}
+
+Vc_MATH_CALL2_(beta, T)
+Vc_MATH_CALL_(comp_ellint_1)
+Vc_MATH_CALL_(comp_ellint_2)
+Vc_MATH_CALL2_(comp_ellint_3, T)
+Vc_MATH_CALL2_(cyl_bessel_i, T)
+Vc_MATH_CALL2_(cyl_bessel_j, T)
+Vc_MATH_CALL2_(cyl_bessel_k, T)
+Vc_MATH_CALL2_(cyl_neumann, T)
+Vc_MATH_CALL2_(ellint_1, T)
+Vc_MATH_CALL2_(ellint_2, T)
+Vc_MATH_CALL3_(ellint_3, T, T)
+Vc_MATH_CALL_(expint)
+
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> hermite(
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
+    const Vc::simd<T, Abi> &x)
+{
+    return Vc::simd<T, Abi>([&](auto i) { return std::hermite(n[i], x[i]); });
+}
+
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> laguerre(
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
+    const Vc::simd<T, Abi> &x)
+{
+    return Vc::simd<T, Abi>([&](auto i) { return std::laguerre(n[i], x[i]); });
+}
+
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> legendre(
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
+    const Vc::simd<T, Abi> &x)
+{
+    return Vc::simd<T, Abi>([&](auto i) { return std::legendre(n[i], x[i]); });
+}
+
+Vc_MATH_CALL_(riemann_zeta)
+
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> sph_bessel(
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
+    const Vc::simd<T, Abi> &x)
+{
+    return Vc::simd<T, Abi>([&](auto i) { return std::sph_bessel(n[i], x[i]); });
+}
+
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> sph_legendre(
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &l,
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &m,
+    const Vc::simd<T, Abi> &theta)
+{
+    return Vc::simd<T, Abi>([&](auto i) { return std::assoc_legendre(l[i], m[i], theta[i]); });
+}
+
+template <class T, class Abi>
+std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> sph_neumann(
+    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
+    const Vc::simd<T, Abi> &x)
+{
+    return Vc::simd<T, Abi>([&](auto i) { return std::sph_neumann(n[i], x[i]); });
+}
+// }}}
 
 #undef Vc_MATH_CALL_
 #undef Vc_MATH_CALL2_

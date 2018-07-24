@@ -542,6 +542,12 @@ TEST_TYPES(V, test2Arg, real_test_types)  //{{{1
         MAKE_TESTER(islessgreater),
         MAKE_TESTER(isunordered)
         );
+    VERIFY((sfinae_is_callable<V, V>(
+        [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
+    VERIFY((sfinae_is_callable<typename V::value_type, V>(
+        [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
+    VERIFY((sfinae_is_callable<V, typename V::value_type>(
+        [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
 }
 
 TEST_TYPES(V, hypot3_fma, real_test_types)  //{{{1
@@ -557,6 +563,16 @@ TEST_TYPES(V, hypot3_fma, real_test_types)  //{{{1
         MAKE_TESTER(hypot),
         MAKE_TESTER(fma)
         );
+    VERIFY((sfinae_is_callable<V, V, V>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
+    VERIFY((sfinae_is_callable<typename V::value_type, V, V>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
+    VERIFY((sfinae_is_callable<int, int, V>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
+    VERIFY((sfinae_is_callable<int, V, int>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
+    VERIFY((sfinae_is_callable<V, int, int>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
 }
 
 TEST_TYPES(V, ldexp_scalbn_scalbln_modf, real_test_types)  //{{{1
