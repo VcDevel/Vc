@@ -952,8 +952,9 @@ Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1)
             } // z_to_y uses concat fallback
         } else if constexpr (i16_to_i8) {  //{{{2
             if constexpr (x_to_x && have_ssse3) {
-                const auto shuf =
-                    reinterpret_cast<__m128i>(sse_const::cvti16_i08_shuffle);
+                const auto shuf = reinterpret_cast<__m128i>(
+                    builtin_type_t<uchar, 16>{0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80,
+                                              0x80, 0x80, 0x80, 0x80, 0x80});
                 return _mm_unpacklo_epi64(_mm_shuffle_epi8(v0, shuf),
                                           _mm_shuffle_epi8(v1, shuf));
             } else if constexpr (x_to_x) {

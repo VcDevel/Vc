@@ -637,8 +637,7 @@ template <int N> struct fixed_size_mask_impl {
     static inline void store(mask_member_type bs, bool *mem, F f, size_tag) noexcept
     {
 #ifdef Vc_HAVE_AVX512BW
-        const __m512i bool64 =
-            and_(_mm512_movm_epi8(bs.to_ullong()), x86::one64(uchar()));
+        const __m512i bool64 = _mm512_movm_epi8(bs.to_ullong()) & 0x0101010101010101ULL;
         builtin_store<N>(bool64, mem, f);
 #elif defined Vc_HAVE_BMI2
 #ifdef __x86_64__
@@ -696,7 +695,7 @@ template <int N> struct fixed_size_mask_impl {
                 });  // mask bit index
                 const __m128i bool16 =
                     _mm_add_epi8(detail::data(tmp2 == 0),
-                                 x86::one16(uchar()));  // 0xff -> 0x00 | 0x00 -> 0x01
+                                 _mm_set1_epi8(1));  // 0xff -> 0x00 | 0x00 -> 0x01
                 if constexpr (remaining >= 16) {
                     builtin_store<16>(bool16, &mem[offset], f);
                 } else if constexpr (remaining & 3) {
@@ -1017,17 +1016,17 @@ private:
 // [simd_mask.reductions] {{{1
 template <class T, int N> inline bool all_of(const fixed_size_simd_mask<T, N> &k)
 {
-    return data(k).all();
+    return detail::data(k).all();
 }
 
 template <class T, int N> inline bool any_of(const fixed_size_simd_mask<T, N> &k)
 {
-    return data(k).any();
+    return detail::data(k).any();
 }
 
 template <class T, int N> inline bool none_of(const fixed_size_simd_mask<T, N> &k)
 {
-    return data(k).none();
+    return detail::data(k).none();
 }
 
 template <class T, int N> inline bool some_of(const fixed_size_simd_mask<T, N> &k)
@@ -1042,7 +1041,7 @@ template <class T, int N> inline bool some_of(const fixed_size_simd_mask<T, N> &
 
 template <class T, int N> inline int popcount(const fixed_size_simd_mask<T, N> &k)
 {
-    return data(k).count();
+    return detail::data(k).count();
 }
 
 template <class T, int N> inline int find_first_set(const fixed_size_simd_mask<T, N> &k)

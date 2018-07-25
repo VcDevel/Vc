@@ -99,14 +99,11 @@ using native = detail::fallback_abi_for_long_double_t<T, __neon, scalar>;
 template <typename> using native = scalar;
 #endif
 
-namespace detail
-{
 #if defined Vc_DEFAULT_ABI
-template <typename T> using default_abi = Vc_DEFAULT_ABI<T>;
+template <typename T> using __default_abi = Vc_DEFAULT_ABI<T>;
 #else
-template <typename T> using default_abi = compatible<T>;
+template <typename T> using __default_abi = compatible<T>;
 #endif
-}  // namespace detail
 }  // namespace simd_abi
 
 // traits {{{1
@@ -138,10 +135,10 @@ struct simd_size_impl<T, Abi, detail::void_t<std::enable_if_t<detail::conjunctio
 };
 }  // namespace detail
 
-template <class T, class Abi = simd_abi::detail::default_abi<T>>
+template <class T, class Abi = simd_abi::__default_abi<T>>
 struct simd_size : detail::simd_size_impl<T, Abi> {
 };
-template <class T, class Abi = simd_abi::detail::default_abi<T>>
+template <class T, class Abi = simd_abi::__default_abi<T>>
 inline constexpr size_t simd_size_v = simd_size<T, Abi>::value;
 
 // simd_abi::deduce {{{2
@@ -206,13 +203,13 @@ template <class T, class U = typename T::value_type>
 inline constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
 
 // class template simd [simd] {{{1
-template <class T, class Abi = simd_abi::detail::default_abi<T>> class simd;
+template <class T, class Abi = simd_abi::__default_abi<T>> class simd;
 template <class T, class Abi> struct is_simd<simd<T, Abi>> : public std::true_type {};
 template <class T> using native_simd = simd<T, simd_abi::native<T>>;
 template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
 
 // class template simd_mask [simd_mask] {{{1
-template <class T, class Abi = simd_abi::detail::default_abi<T>> class simd_mask;
+template <class T, class Abi = simd_abi::__default_abi<T>> class simd_mask;
 template <class T, class Abi> struct is_simd_mask<simd_mask<T, Abi>> : public std::true_type {};
 template <class T> using native_simd_mask = simd_mask<T, simd_abi::native<T>>;
 template <class T, int N> using fixed_size_simd_mask = simd_mask<T, simd_abi::fixed_size<N>>;

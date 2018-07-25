@@ -233,49 +233,49 @@ template <class U, class T, class Abi> struct extra_argument_type {
 template < typename Abi>
 static Vc_ALWAYS_INLINE floatv<Abi> cosSeries(const floatv<Abi> &x)
 {
-    using C = detail::trig<Abi, float>;
+    using C = detail::trig<float>;
     const floatv<Abi> x2 = x * x;
-    return ((C::cos_c2()  * x2 +
-             C::cos_c1()) * x2 +
-             C::cos_c0()) * (x2 * x2)
+    return ((C::cos_c2  * x2 +
+             C::cos_c1) * x2 +
+             C::cos_c0) * (x2 * x2)
         - .5f * x2 + 1.f;
 }
 template <typename Abi>
 static Vc_ALWAYS_INLINE doublev<Abi> cosSeries(const doublev<Abi> &x)
 {
-    using C = detail::trig<Abi, double>;
+    using C = detail::trig<double>;
     const doublev<Abi> x2 = x * x;
-    return (((((C::cos_c5()  * x2 +
-                C::cos_c4()) * x2 +
-                C::cos_c3()) * x2 +
-                C::cos_c2()) * x2 +
-                C::cos_c1()) * x2 +
-                C::cos_c0()) * (x2 * x2)
+    return (((((C::cos_c5  * x2 +
+                C::cos_c4) * x2 +
+                C::cos_c3) * x2 +
+                C::cos_c2) * x2 +
+                C::cos_c1) * x2 +
+                C::cos_c0) * (x2 * x2)
         - .5 * x2 + 1.;
 }
 
 template <typename Abi>
 static Vc_ALWAYS_INLINE floatv<Abi> sinSeries(const floatv<Abi>& x)
 {
-    using C = detail::trig<Abi, float>;
+    using C = detail::trig<float>;
     const floatv<Abi> x2 = x * x;
-    return ((C::sin_c2()  * x2 +
-             C::sin_c1()) * x2 +
-             C::sin_c0()) * (x2 * x)
+    return ((C::sin_c2  * x2 +
+             C::sin_c1) * x2 +
+             C::sin_c0) * (x2 * x)
         + x;
 }
 
 template <typename Abi>
 static Vc_ALWAYS_INLINE doublev<Abi> sinSeries(const doublev<Abi> &x)
 {
-    using C = detail::trig<Abi, double>;
+    using C = detail::trig<double>;
     const doublev<Abi> x2 = x * x;
-    return (((((C::sin_c5()  * x2 +
-                C::sin_c4()) * x2 +
-                C::sin_c3()) * x2 +
-                C::sin_c2()) * x2 +
-                C::sin_c1()) * x2 +
-                C::sin_c0()) * (x2 * x)
+    return (((((C::sin_c5  * x2 +
+                C::sin_c4) * x2 +
+                C::sin_c3) * x2 +
+                C::sin_c2) * x2 +
+                C::sin_c1) * x2 +
+                C::sin_c0) * (x2 * x)
         + x;
 }
 
@@ -284,22 +284,22 @@ Vc_ALWAYS_INLINE std::pair<floatv<Abi>, rebind_simd_t<int, floatv<Abi>>> foldInp
     floatv<Abi> x)
 {
     using V = floatv<Abi>;
-    using C = detail::trig<Abi, float>;
+    using C = detail::trig<float>;
     using IV = rebind_simd_t<int, V>;
 
     x = abs(x);
 #if defined(Vc_HAVE_FMA4) || defined(Vc_HAVE_FMA)
     rebind_simd_t<int, V> quadrant =
-        static_simd_cast<IV>(x * C::_4_pi() + 1.f);  // prefer the fma here
+        static_simd_cast<IV>(x * C::_4_pi + 1.f);  // prefer the fma here
     quadrant &= ~1;
 #else
-    rebind_simd_t<int, V> quadrant = static_simd_cast<IV>(x * C::_4_pi());
+    rebind_simd_t<int, V> quadrant = static_simd_cast<IV>(x * C::_4_pi);
     quadrant += quadrant & 1;
 #endif
     const V y = static_simd_cast<V>(quadrant);
     quadrant &= 7;
 
-    return {((x - y * C::pi_4_hi()) - y * C::pi_4_rem1()) - y * C::pi_4_rem2(), quadrant};
+    return {((x - y * C::pi_4_hi) - y * C::pi_4_rem1) - y * C::pi_4_rem2, quadrant};
 }
 
 template <typename Abi>
@@ -307,12 +307,12 @@ static Vc_ALWAYS_INLINE std::pair<doublev<Abi>, rebind_simd_t<int, doublev<Abi>>
 foldInput(doublev<Abi> x)
 {
     using V = doublev<Abi>;
-    using C = detail::trig<Abi, double>;
+    using C = detail::trig<double>;
     using IV = rebind_simd_t<int, V>;
 
     x = abs(x);
-    V y = trunc(x / C::pi_4());  // * C::4_pi() would work, but is >twice as imprecise
-    V z = y - trunc(y * C::_1_16()) * C::_16();  // y modulo 16
+    V y = trunc(x / C::pi_4);  // * C::4_pi would work, but is >twice as imprecise
+    V z = y - trunc(y * C::_1_16) * C::_16;  // y modulo 16
     IV quadrant = static_simd_cast<IV>(z);
     const auto mask = (quadrant & 1) != 0;
     ++where(mask, quadrant);
@@ -322,7 +322,7 @@ foldInput(doublev<Abi> x)
     // since y is an integer we don't need to split y into low and high parts until the
     // integer
     // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
-    return {((x - y * C::pi_4_hi()) - y * C::pi_4_rem1()) - y * C::pi_4_rem2(), quadrant};
+    return {((x - y * C::pi_4_hi) - y * C::pi_4_rem1) - y * C::pi_4_rem2, quadrant};
 }
 
 // extract_exponent_bits {{{

@@ -41,41 +41,40 @@ inline namespace v2
 #define Vc_VERSIONED_NAMESPACE_END }}
 
 Vc_VERSIONED_NAMESPACE_BEGIN
-namespace detail
-{
-struct scalar_abi;
-template <int N> struct fixed_abi;
-template <int Bytes> struct sse_abi;
-template <int Bytes> struct avx_abi;
-template <int Bytes> struct avx512_abi;
-template <int Bytes> struct neon_abi;
-}  // namespace detail
-
 namespace simd_abi
 {
+// implementation details:
+struct __scalar_abi;
+template <int N> struct __fixed_abi;
+
+template <int Bytes> struct __sse_abi;
+template <int Bytes> struct __avx_abi;
+template <int Bytes> struct __avx512_abi;
+template <int Bytes> struct __neon_abi;
+
+// implementation-defined:
+template <int NRegisters> using __sse_x = __sse_abi<16 * NRegisters>;
+template <int NRegisters> using __avx_x = __avx_abi<32 * NRegisters>;
+template <int NRegisters> using __avx512_x = __avx512_abi<64 * NRegisters>;
+template <int NRegisters> using __neon_x = __neon_abi<16 * NRegisters>;
+
+template <class T, int N> using __sse_n = __sse_abi<sizeof(T) * N>;
+template <class T, int N> using __avx_n = __avx_abi<sizeof(T) * N>;
+template <class T, int N> using __avx512_n = __avx512_abi<sizeof(T) * N>;
+template <class T, int N> using __neon_n = __neon_abi<sizeof(T) * N>;
+
+using __sse = __sse_x<1>;
+using __avx = __avx_x<1>;
+using __avx512 = __avx512_x<1>;
+using __neon = __neon_x<1>;
+
+using __neon128 = __neon_abi<16>;
+using __neon64 = __neon_abi<8>;
+
+// standard:
 template <class T, std::size_t N, class... > struct deduce;
-template <int N> using fixed_size = Vc::detail::fixed_abi<N>;
-using scalar = Vc::detail::scalar_abi;
-
-#ifdef __INTEL_COMPILER
-#define Vc_DEPRECATED_
-#else
-#define Vc_DEPRECATED_ [[deprecated("Capitalize the first letter of non-std ABI tags")]]
-#endif
-
-using sse Vc_DEPRECATED_ = Vc::detail::sse_abi<16>;
-using avx Vc_DEPRECATED_ = Vc::detail::avx_abi<32>;
-using avx512 Vc_DEPRECATED_ = Vc::detail::avx512_abi<64>;
-using neon Vc_DEPRECATED_ = Vc::detail::neon_abi<16>;
-
-#undef Vc_DEPRECATED_
-
-using __sse = Vc::detail::sse_abi<16>;
-using __avx = Vc::detail::avx_abi<32>;
-using __avx512 = Vc::detail::avx512_abi<64>;
-using __neon128 = Vc::detail::neon_abi<16>;
-using __neon64 = Vc::detail::neon_abi<8>;
-using __neon = __neon128;
+template <int N> using fixed_size = __fixed_abi<N>;
+using scalar = __scalar_abi;
 }
 
 template <class T> struct is_simd;

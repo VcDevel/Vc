@@ -43,9 +43,7 @@ namespace neon_const
 #else
 template <class X> struct constants<simd_abi::neon, X> {
 #endif
-    alignas(64) static constexpr int    absMaskFloat[4] = {0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff};
     alignas(16) static constexpr uint   signMaskFloat[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
-    alignas(16) static constexpr uint   highMaskFloat[4] = {0xfffff000u, 0xfffff000u, 0xfffff000u, 0xfffff000u};
     alignas(16) static constexpr float  oneFloat[4] = {1.f, 1.f, 1.f, 1.f};
 
     alignas(16) static constexpr short  minShort[8] = {-0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000, -0x8000};
@@ -55,14 +53,7 @@ template <class X> struct constants<simd_abi::neon, X> {
     alignas(16) static constexpr ullong one64[2] = {1, 1};
 
     alignas(16) static constexpr double oneDouble[2] = {1., 1.};
-    alignas(16) static constexpr ullong highMaskDouble[2] = {0xfffffffff8000000ull, 0xfffffffff8000000ull};
-    alignas(16) static constexpr llong  absMaskDouble[2] = {0x7fffffffffffffffll, 0x7fffffffffffffffll};
     alignas(16) static constexpr ullong signMaskDouble[2] = {0x8000000000000000ull, 0x8000000000000000ull};
-    alignas(16) static constexpr ullong frexpMask[2] = {0xbfefffffffffffffull, 0xbfefffffffffffffull};
-
-    alignas(16) static constexpr uint   IndexesFromZero4[4] = { 0, 1, 2, 3 };
-    alignas(16) static constexpr ushort IndexesFromZero8[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    alignas(16) static constexpr uchar  IndexesFromZero16[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
     alignas(16) static constexpr uint   AllBitsSet[4] = { 0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU };
 #ifdef Vc_WORK_AROUND_ICE
@@ -71,9 +62,7 @@ template <class X> struct constants<simd_abi::neon, X> {
 }  // namespace aarch
 #else   // Vc_WORK_AROUND_ICE
 };
-template <class X> alignas(64) constexpr int    constants<simd_abi::neon, X>::absMaskFloat[4];
 template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::signMaskFloat[4];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::highMaskFloat[4];
 template <class X> alignas(16) constexpr float  constants<simd_abi::neon, X>::oneFloat[4];
 template <class X> alignas(16) constexpr short  constants<simd_abi::neon, X>::minShort[8];
 template <class X> alignas(16) constexpr uchar  constants<simd_abi::neon, X>::one8[16];
@@ -81,13 +70,7 @@ template <class X> alignas(16) constexpr ushort constants<simd_abi::neon, X>::on
 template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::one32[4];
 template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::one64[2];
 template <class X> alignas(16) constexpr double constants<simd_abi::neon, X>::oneDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::highMaskDouble[2];
-template <class X> alignas(16) constexpr llong  constants<simd_abi::neon, X>::absMaskDouble[2];
 template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::signMaskDouble[2];
-template <class X> alignas(16) constexpr ullong constants<simd_abi::neon, X>::frexpMask[2];
-template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::IndexesFromZero4[4];
-template <class X> alignas(16) constexpr ushort constants<simd_abi::neon, X>::IndexesFromZero8[8];
-template <class X> alignas(16) constexpr uchar  constants<simd_abi::neon, X>::IndexesFromZero16[16];
 template <class X> alignas(16) constexpr uint   constants<simd_abi::neon, X>::AllBitsSet[4];
 namespace aarch
 {

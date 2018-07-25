@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "detail.h"
 #include "const.h"
 #ifdef Vc_HAVE_NEON_ABI
-#include "aarch/intrinsics.h"
+#include "aarch/types.h"
 #elif defined Vc_HAVE_SSE_ABI
 #include "x86/types.h"
 #endif

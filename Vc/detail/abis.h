@@ -34,6 +34,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
+struct neon_simd_impl;
+struct neon_mask_impl;
+struct sse_mask_impl;
+struct sse_simd_impl;
+struct avx_mask_impl;
+struct avx_simd_impl;
+struct avx512_mask_impl;
+struct avx512_simd_impl;
+struct scalar_simd_impl;
+struct scalar_mask_impl;
+template <int N> struct fixed_size_simd_impl;
+template <int N> struct fixed_size_mask_impl;
+
 // gnu_traits {{{1
 template <class T, class MT, class Abi, size_t N> struct gnu_traits {
     using is_valid = std::true_type;
@@ -143,45 +156,6 @@ template <> struct neon_is_vectorizable<double> : std::false_type {};
 template <class T> struct neon_is_vectorizable : std::false_type {};
 #endif
 
-// neon_abi {{{1
-struct neon_simd_impl;
-struct neon_mask_impl;
-template <int Bytes> struct neon_abi {
-    template <class T> using size_tag = size_constant<Bytes / sizeof(T)>;
-    // validity traits {{{2
-    struct is_valid_abi_tag : detail::bool_constant<(Bytes > 0 && Bytes <= 16)> {
-    };
-    template <class T>
-    struct is_valid_size_for
-        : detail::bool_constant<(Bytes / sizeof(T) > 1 && Bytes % sizeof(T) == 0)> {
-    };
-    template <class T>
-    struct is_valid
-        : detail::all<is_valid_abi_tag, neon_is_vectorizable<T>, is_valid_size_for<T>> {
-    };
-    template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
-
-    // implicit mask {{{2
-    template <class T>
-    using implicit_mask_type = builtin_type_t<int_for_sizeof_t<T>, size_tag<T>::value>;
-    template <class T>
-    static constexpr implicit_mask_type<T> implicit_mask =
-        generate_builtin<implicit_mask_type<T>>([](auto i) {
-            return i < Bytes / sizeof(T) ? -1 : 0;
-        });
-
-    // simd/mask_impl_type {{{2
-    using simd_impl_type = neon_simd_impl;
-    using mask_impl_type = neon_mask_impl;
-
-    // traits {{{2
-    template <class T>
-    using traits =
-        std::conditional_t<is_valid_v<T>, gnu_traits<T, T, neon_abi, size_tag<T>::value>,
-                           detail::invalid_traits>;
-    //}}}2
-};
-
 // sse_is_vectorizable {{{1
 #ifdef Vc_HAVE_FULL_SSE_ABI
 template <class T> struct sse_is_vectorizable : detail::is_vectorizable<T> {};
@@ -192,46 +166,6 @@ template <class T> struct sse_is_vectorizable : detail::is_same<T, float> {};
 template <class T> struct sse_is_vectorizable : std::false_type {};
 #endif
 
-// sse_abi {{{1
-struct sse_mask_impl;
-struct sse_simd_impl;
-template <int Bytes> struct sse_abi {
-    template <class T> using size_tag = size_constant<Bytes / sizeof(T)>;
-    // validity traits {{{2
-    struct is_valid_abi_tag : detail::bool_constant<Bytes == 16> {};  // TODO:
-    //struct is_valid_abi_tag : detail::bool_constant<(Bytes > 0 && Bytes <= 16)> {};
-    template <class T>
-    struct is_valid_size_for
-        : detail::bool_constant<(Bytes / sizeof(T) > 1 && Bytes % sizeof(T) == 0)> {
-    };
-
-    template <class T>
-    struct is_valid
-        : detail::all<is_valid_abi_tag, sse_is_vectorizable<T>, is_valid_size_for<T>> {
-    };
-    template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
-
-    // implicit mask {{{2
-    template <class T>
-    using implicit_mask_type = builtin_type_t<int_for_sizeof_t<T>, size_tag<T>::value>;
-    template <class T>
-    static constexpr implicit_mask_type<T> implicit_mask =
-        generate_builtin<implicit_mask_type<T>>([](auto i) {
-            return i < Bytes / sizeof(T) ? -1 : 0;
-        });
-
-    // simd/mask_impl_type {{{2
-    using simd_impl_type = sse_simd_impl;
-    using mask_impl_type = sse_mask_impl;
-
-    // traits {{{2
-    template <class T>
-    using traits = std::conditional_t<is_valid_v<T>,
-                                      gnu_traits<T, T, sse_abi, Bytes / sizeof(T)>,
-                                      detail::invalid_traits>;
-    //}}}2
-};
-
 // avx_is_vectorizable {{{1
 #ifdef Vc_HAVE_FULL_AVX_ABI
 template <class T> struct avx_is_vectorizable : detail::is_vectorizable<T> {};
@@ -241,44 +175,6 @@ template <class T> struct avx_is_vectorizable : std::is_floating_point<T> {};
 template <class T> struct avx_is_vectorizable : std::false_type {};
 #endif
 template <> struct avx_is_vectorizable<long double> : std::false_type {};
-
-// avx_abi {{{1
-struct avx_mask_impl;
-struct avx_simd_impl;
-template <int Bytes> struct avx_abi {
-    template <class T> using size_tag = size_constant<Bytes / sizeof(T)>;
-    // validity traits {{{2
-    struct is_valid_abi_tag : detail::bool_constant<Bytes == 32> {};  // TODO:
-    //struct is_valid_abi_tag : detail::bool_constant<(Bytes > 16 && Bytes <= 32)> {};
-    template <class T>
-    struct is_valid_size_for : detail::bool_constant<(Bytes % sizeof(T) == 0)> {
-    };
-    template <class T>
-    struct is_valid
-        : detail::all<is_valid_abi_tag, avx_is_vectorizable<T>, is_valid_size_for<T>> {
-    };
-    template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
-
-    // implicit mask {{{2
-    template <class T>
-    using implicit_mask_type = builtin_type_t<int_for_sizeof_t<T>, size_tag<T>::value>;
-    template <class T>
-    static constexpr implicit_mask_type<T> implicit_mask =
-        generate_builtin<implicit_mask_type<T>>([](auto i) {
-            return i < Bytes / sizeof(T) ? -1 : 0;
-        });
-
-    // simd/mask_impl_type {{{2
-    using simd_impl_type = avx_simd_impl;
-    using mask_impl_type = avx_mask_impl;
-
-    // traits {{{2
-    template <class T>
-    using traits = std::conditional_t<is_valid_v<T>,
-                                      gnu_traits<T, T, avx_abi, Bytes / sizeof(T)>,
-                                      detail::invalid_traits>;
-    //}}}2
-};
 
 // avx512_is_vectorizable {{{1
 #ifdef Vc_HAVE_AVX512_ABI
@@ -297,20 +193,162 @@ template <> struct avx512_is_vectorizable<wchar_t> : detail::bool_constant<sizeo
 template <class T> struct avx512_is_vectorizable : std::false_type {};
 #endif
 
-// avx512_abi {{{1
-struct avx512_mask_impl;
-struct avx512_simd_impl;
-template <int Bytes> struct avx512_abi {
-    template <class T> using size_tag = size_constant<Bytes / sizeof(T)>;
+// }}}
+}  // namespace detail
+namespace simd_abi
+{
+// __neon_abi {{{1
+template <int Bytes> struct __neon_abi {
+    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
     // validity traits {{{2
-    struct is_valid_abi_tag : detail::bool_constant<Bytes == 64> {};  // TODO:
-    //struct is_valid_abi_tag : detail::bool_constant<(Bytes > 32 && Bytes <= 64)> {};
+    // allow 2x, 3x, and 4x "unroll"
+    struct is_valid_abi_tag
+        : detail::bool_constant<((Bytes > 0 && Bytes <= 16) || Bytes == 32 ||
+                                 Bytes == 48 || Bytes == 64)> {
+    };
+    template <class T>
+    struct is_valid_size_for
+        : detail::bool_constant<(Bytes / sizeof(T) > 1 && Bytes % sizeof(T) == 0)> {
+    };
+    template <class T>
+    struct is_valid : detail::all<is_valid_abi_tag, detail::neon_is_vectorizable<T>,
+                                  is_valid_size_for<T>> {
+    };
+    template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
+
+    // implicit mask {{{2
+    template <class T>
+    using implicit_mask_type =
+        detail::builtin_type_t<detail::int_for_sizeof_t<T>, size_tag<T>::value>;
+    template <class T>
+    static constexpr implicit_mask_type<T> implicit_mask =
+        detail::generate_builtin<implicit_mask_type<T>>([](auto i) {
+            return i < Bytes / sizeof(T) ? -1 : 0;
+        });
+
+    // simd/mask_impl_type {{{2
+    using simd_impl_type = detail::neon_simd_impl;
+    using mask_impl_type = detail::neon_mask_impl;
+
+    // traits {{{2
+    template <class T>
+    using traits =
+        std::conditional_t<is_valid_v<T>,
+                           detail::gnu_traits<T, T, __neon_abi, size_tag<T>::value>,
+                           detail::invalid_traits>;
+    //}}}2
+};
+
+// __sse_abi {{{1
+template <int Bytes> struct __sse_abi {
+    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    // validity traits {{{2
+    // allow 2x, 3x, and 4x "unroll"
+    struct is_valid_abi_tag : detail::bool_constant<Bytes == 16> {};
+    /* TODO:
+    struct is_valid_abi_tag
+        : detail::bool_constant<((Bytes > 0 && Bytes <= 16) || Bytes == 32 ||
+                                 Bytes == 48 || Bytes == 64)> {
+    };
+    */
+    template <class T>
+    struct is_valid_size_for
+        : detail::bool_constant<(Bytes / sizeof(T) > 1 && Bytes % sizeof(T) == 0)> {
+    };
+
+    template <class T>
+    struct is_valid
+        : detail::all<is_valid_abi_tag, detail::sse_is_vectorizable<T>, is_valid_size_for<T>> {
+    };
+    template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
+
+    // implicit mask {{{2
+    template <class T>
+    using implicit_mask_type =
+        detail::builtin_type_t<detail::int_for_sizeof_t<T>, size_tag<T>::value>;
+    template <class T>
+    static constexpr implicit_mask_type<T> implicit_mask =
+        detail::generate_builtin<implicit_mask_type<T>>([](auto i) {
+            return i < Bytes / sizeof(T) ? -1 : 0;
+        });
+
+    // simd/mask_impl_type {{{2
+    using simd_impl_type = detail::sse_simd_impl;
+    using mask_impl_type = detail::sse_mask_impl;
+
+    // traits {{{2
+    template <class T>
+    using traits =
+        std::conditional_t<is_valid_v<T>,
+                           detail::gnu_traits<T, T, __sse_abi, Bytes / sizeof(T)>,
+                           detail::invalid_traits>;
+    //}}}2
+};
+
+// __avx_abi {{{1
+template <int Bytes> struct __avx_abi {
+    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    // validity traits {{{2
+    // - allow 2x, 3x, and 4x "unroll"
+    // - disallow <= 16 Bytes as that's covered by __sse_abi
+    struct is_valid_abi_tag : detail::bool_constant<Bytes == 32> {};
+    /* TODO:
+    struct is_valid_abi_tag
+        : detail::bool_constant<((Bytes > 16 && Bytes <= 32) || Bytes == 64 ||
+                                 Bytes == 96 || Bytes == 128)> {
+    };
+    */
     template <class T>
     struct is_valid_size_for : detail::bool_constant<(Bytes % sizeof(T) == 0)> {
     };
     template <class T>
     struct is_valid
-        : detail::all<is_valid_abi_tag, avx512_is_vectorizable<T>, is_valid_size_for<T>> {
+        : detail::all<is_valid_abi_tag, detail::avx_is_vectorizable<T>, is_valid_size_for<T>> {
+    };
+    template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
+
+    // implicit mask {{{2
+    template <class T>
+    using implicit_mask_type =
+        detail::builtin_type_t<detail::int_for_sizeof_t<T>, size_tag<T>::value>;
+    template <class T>
+    static constexpr implicit_mask_type<T> implicit_mask =
+        detail::generate_builtin<implicit_mask_type<T>>([](auto i) {
+            return i < Bytes / sizeof(T) ? -1 : 0;
+        });
+
+    // simd/mask_impl_type {{{2
+    using simd_impl_type = detail::avx_simd_impl;
+    using mask_impl_type = detail::avx_mask_impl;
+
+    // traits {{{2
+    template <class T>
+    using traits =
+        std::conditional_t<is_valid_v<T>,
+                           detail::gnu_traits<T, T, __avx_abi, Bytes / sizeof(T)>,
+                           detail::invalid_traits>;
+    //}}}2
+};
+
+// __avx512_abi {{{1
+template <int Bytes> struct __avx512_abi {
+    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    // validity traits {{{2
+    // - allow 2x, 3x, and 4x "unroll"
+    // - disallow <= 32 Bytes as that's covered by __sse_abi and __avx_abi
+    struct is_valid_abi_tag : detail::bool_constant<Bytes == 64> {};
+    /* TODO:
+    struct is_valid_abi_tag
+        : detail::bool_constant<((Bytes > 32 && Bytes <= 64) || Bytes == 128 ||
+                                 Bytes == 192 || Bytes == 256)> {
+    };
+    */
+    template <class T>
+    struct is_valid_size_for : detail::bool_constant<(Bytes % sizeof(T) == 0)> {
+    };
+    template <class T>
+    struct is_valid
+        : detail::all<is_valid_abi_tag, detail::avx512_is_vectorizable<T>, is_valid_size_for<T>> {
     };
     template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
 
@@ -323,37 +361,36 @@ template <int Bytes> struct avx512_abi {
                     : (implicit_mask_type<T>(1) << (Bytes / sizeof(T))) - 1;
 
     // simd/mask_impl_type {{{2
-    using simd_impl_type = avx512_simd_impl;
-    using mask_impl_type = avx512_mask_impl;
+    using simd_impl_type = detail::avx512_simd_impl;
+    using mask_impl_type = detail::avx512_mask_impl;
 
     // traits {{{2
     template <class T>
-    using traits = std::conditional_t<is_valid_v<T>,
-                                      gnu_traits<T, bool, avx512_abi, Bytes / sizeof(T)>,
-                                      detail::invalid_traits>;
+    using traits =
+        std::conditional_t<is_valid_v<T>,
+                           detail::gnu_traits<T, bool, __avx512_abi, Bytes / sizeof(T)>,
+                           detail::invalid_traits>;
     //}}}2
 };
 
-// scalar_abi {{{1
-struct scalar_simd_impl;
-struct scalar_mask_impl;
-struct scalar_abi {
-    template <class T> using size_tag = size_constant<1>;
+// __scalar_abi {{{1
+struct __scalar_abi {
+    template <class T> using size_tag = detail::size_constant<1>;
     struct is_valid_abi_tag : std::true_type {};
     template <class T> struct is_valid_size_for : std::true_type {};
-    template <class T> struct is_valid : is_vectorizable<T> {};
+    template <class T> struct is_valid : detail::is_vectorizable<T> {};
     template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
 
-    using simd_impl_type = scalar_simd_impl;
-    using mask_impl_type = scalar_mask_impl;
+    using simd_impl_type = detail::scalar_simd_impl;
+    using mask_impl_type = detail::scalar_mask_impl;
 
     template <class T, bool = is_valid_v<T>> struct traits : detail::invalid_traits {
     };
 
     template <class T> struct traits<T, true> {
         using is_valid = std::true_type;
-        using simd_impl_type = scalar_simd_impl;
-        using mask_impl_type = scalar_mask_impl;
+        using simd_impl_type = detail::scalar_simd_impl;
+        using mask_impl_type = detail::scalar_mask_impl;
         using simd_member_type = T;
         using mask_member_type = bool;
         static constexpr size_t simd_member_alignment = alignof(simd_member_type);
@@ -370,9 +407,116 @@ struct scalar_abi {
         struct mask_base {};
     };
 };
-template <int Bytes> struct scalar_abi_wrapper : scalar_abi {
+
+// __fixed_abi {{{1
+template <int N> struct __fixed_abi {
+    template <class T> using size_tag = detail::size_constant<N>;
+    // validity traits {{{2
+    struct is_valid_abi_tag
+        : public detail::bool_constant<(N > 0)> {
+    };
     template <class T>
-    static constexpr bool is_valid_v = scalar_abi::is_valid<T>::value &&
+    struct is_valid_size_for
+        : detail::bool_constant<((N <= simd_abi::max_fixed_size<T>) ||
+                                 (simd_abi::__neon::is_valid_v<char> &&
+                                  N == simd_size_v<char, simd_abi::__neon>) ||
+                                 (simd_abi::__sse::is_valid_v<char> &&
+                                  N == simd_size_v<char, simd_abi::__sse>) ||
+                                 (simd_abi::__avx::is_valid_v<char> &&
+                                  N == simd_size_v<char, simd_abi::__avx>) ||
+                                 (simd_abi::__avx512::is_valid_v<char> &&
+                                  N == simd_size_v<char, simd_abi::__avx512>))> {
+    };
+    template <class T>
+    struct is_valid
+        : detail::all<is_valid_abi_tag, detail::is_vectorizable<T>, is_valid_size_for<T>> {
+    };
+    template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
+
+    // simd/mask_impl_type {{{2
+    using simd_impl_type = detail::fixed_size_simd_impl<N>;
+    using mask_impl_type = detail::fixed_size_mask_impl<N>;
+
+    // traits {{{2
+    template <class T, bool = is_valid_v<T>> struct traits : detail::invalid_traits {
+    };
+
+    template <class T> struct traits<T, true> {
+        using is_valid = std::true_type;
+        using simd_impl_type = detail::fixed_size_simd_impl<N>;
+        using mask_impl_type = detail::fixed_size_mask_impl<N>;
+
+        // simd and simd_mask member types {{{2
+        using simd_member_type = detail::fixed_size_storage<T, N>;
+        using mask_member_type = std::bitset<N>;
+        static constexpr size_t simd_member_alignment =
+#ifdef Vc_GCC
+            std::min(size_t(
+#ifdef __AVX__
+                         256
+#else
+                         128
+#endif
+                         ),
+#else
+            (
+#endif
+                     detail::next_power_of_2(N * sizeof(T)));
+        static constexpr size_t mask_member_alignment = alignof(mask_member_type);
+
+        // simd_base / base class for simd, providing extra conversions {{{2
+        struct simd_base {
+            // The following ensures, function arguments are passed via the stack. This is
+            // important for ABI compatibility across TU boundaries
+            simd_base(const simd_base &) {}
+            simd_base() = default;
+
+            explicit operator const simd_member_type &() const
+            {
+                return static_cast<const simd<T, __fixed_abi> *>(this)->d;
+            }
+            explicit operator std::array<T, N>() const
+            {
+                std::array<T, N> r;
+                // simd_member_type can be larger because of higher alignment
+                static_assert(sizeof(r) <= sizeof(simd_member_type), "");
+                std::memcpy(r.data(), &static_cast<const simd_member_type &>(*this),
+                            sizeof(r));
+                return r;
+            }
+        };
+
+        // mask_base {{{2
+        // empty. The std::bitset interface suffices
+        struct mask_base {};
+
+        // simd_cast_type {{{2
+        struct simd_cast_type {
+            simd_cast_type(const std::array<T, N> &);
+            simd_cast_type(const simd_member_type &dd) : d(dd) {}
+            explicit operator const simd_member_type &() const { return d; }
+
+        private:
+            const simd_member_type &d;
+        };
+
+        // mask_cast_type {{{2
+        class mask_cast_type
+        {
+            mask_cast_type() = delete;
+        };
+        //}}}2
+    };
+};
+
+//}}}
+}  // namespace simd_abi
+namespace detail
+{
+// scalar_abi_wrapper {{{1
+template <int Bytes> struct scalar_abi_wrapper : simd_abi::__scalar_abi {
+    template <class T>
+    static constexpr bool is_valid_v = simd_abi::__scalar_abi::is_valid<T>::value &&
                                        sizeof(T) == Bytes;
 };
 
@@ -386,10 +530,10 @@ template <int Bytes> struct decay_abi<scalar_abi_wrapper<Bytes>> {
 
 // full_abi metafunction {{{1
 template <template <int> class ATemp> struct full_abi;
-template <> struct full_abi<neon_abi> { using type = simd_abi::__neon128; };
-template <> struct full_abi<sse_abi> { using type = simd_abi::__sse; };
-template <> struct full_abi<avx_abi> { using type = simd_abi::__avx; };
-template <> struct full_abi<avx512_abi> { using type = simd_abi::__avx512; };
+template <> struct full_abi<simd_abi::__neon_abi> { using type = simd_abi::__neon128; };
+template <> struct full_abi<simd_abi::__sse_abi> { using type = simd_abi::__sse; };
+template <> struct full_abi<simd_abi::__avx_abi> { using type = simd_abi::__avx; };
+template <> struct full_abi<simd_abi::__avx512_abi> { using type = simd_abi::__avx512; };
 template <> struct full_abi<scalar_abi_wrapper> {
     using type = simd_abi::scalar;
 };
@@ -426,110 +570,9 @@ struct abi_list<A0, Rest...> {
 // the following lists all native ABIs, which makes them accessible to simd_abi::deduce
 // and select_best_vector_type_t (for fixed_size). Order matters: Whatever comes first has
 // higher priority.
-using all_native_abis = abi_list<avx512_abi, avx_abi, sse_abi, neon_abi, scalar_abi_wrapper>;
-
-// fixed_abi {{{1
-template <int N> struct fixed_size_simd_impl;
-template <int N> struct fixed_size_mask_impl;
-template <int N> struct fixed_abi {
-    template <class T> using size_tag = size_constant<N>;
-    // validity traits {{{2
-    struct is_valid_abi_tag
-        : public detail::bool_constant<(N > 0)> {
-    };
-    template <class T>
-    struct is_valid_size_for
-        : detail::bool_constant<((N <= simd_abi::max_fixed_size<T>) ||
-                                 (simd_abi::__neon::is_valid_v<char> &&
-                                  N == simd_size_v<char, simd_abi::__neon>) ||
-                                 (simd_abi::__sse::is_valid_v<char> &&
-                                  N == simd_size_v<char, simd_abi::__sse>) ||
-                                 (simd_abi::__avx::is_valid_v<char> &&
-                                  N == simd_size_v<char, simd_abi::__avx>) ||
-                                 (simd_abi::__avx512::is_valid_v<char> &&
-                                  N == simd_size_v<char, simd_abi::__avx512>))> {
-    };
-    template <class T>
-    struct is_valid
-        : detail::all<is_valid_abi_tag, is_vectorizable<T>, is_valid_size_for<T>> {
-    };
-    template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
-
-    // simd/mask_impl_type {{{2
-    using simd_impl_type = fixed_size_simd_impl<N>;
-    using mask_impl_type = fixed_size_mask_impl<N>;
-
-    // traits {{{2
-    template <class T, bool = is_valid_v<T>> struct traits : detail::invalid_traits {
-    };
-
-    template <class T> struct traits<T, true> {
-        using is_valid = std::true_type;
-        using simd_impl_type = fixed_size_simd_impl<N>;
-        using mask_impl_type = fixed_size_mask_impl<N>;
-
-        // simd and simd_mask member types {{{2
-        using simd_member_type = fixed_size_storage<T, N>;
-        using mask_member_type = std::bitset<N>;
-        static constexpr size_t simd_member_alignment =
-#ifdef Vc_GCC
-            std::min(size_t(
-#ifdef __AVX__
-                         256
-#else
-                         128
-#endif
-                         ),
-#else
-            (
-#endif
-                     next_power_of_2(N * sizeof(T)));
-        static constexpr size_t mask_member_alignment = alignof(mask_member_type);
-
-        // simd_base / base class for simd, providing extra conversions {{{2
-        struct simd_base {
-            // The following ensures, function arguments are passed via the stack. This is
-            // important for ABI compatibility across TU boundaries
-            simd_base(const simd_base &) {}
-            simd_base() = default;
-
-            explicit operator const simd_member_type &() const
-            {
-                return static_cast<const simd<T, fixed_abi> *>(this)->d;
-            }
-            explicit operator std::array<T, N>() const
-            {
-                std::array<T, N> r;
-                // simd_member_type can be larger because of higher alignment
-                static_assert(sizeof(r) <= sizeof(simd_member_type), "");
-                std::memcpy(r.data(), &static_cast<const simd_member_type &>(*this),
-                            sizeof(r));
-                return r;
-            }
-        };
-
-        // mask_base {{{2
-        // empty. The std::bitset interface suffices
-        struct mask_base {};
-
-        // simd_cast_type {{{2
-        struct simd_cast_type {
-            simd_cast_type(const std::array<T, N> &);
-            simd_cast_type(const simd_member_type &dd) : d(dd) {}
-            explicit operator const simd_member_type &() const { return d; }
-
-        private:
-            const simd_member_type &d;
-        };
-
-        // mask_cast_type {{{2
-        class mask_cast_type
-        {
-            mask_cast_type() = delete;
-        };
-        //}}}2
-    };
-};
+using all_native_abis =
+    abi_list<simd_abi::__avx512_abi, simd_abi::__avx_abi, simd_abi::__sse_abi,
+             simd_abi::__neon_abi, scalar_abi_wrapper>;
 
 // valid traits specialization {{{1
 template <class T, class Abi>

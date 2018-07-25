@@ -258,13 +258,6 @@ template <> Vc_INTRINSIC Vc_CONST uint16x8_t lowest16<ushort>() { return vdupq_n
 template <> Vc_INTRINSIC Vc_CONST uint32x4_t lowest16<  uint>() { return vdupq_n_u32(0); }
 template <> Vc_INTRINSIC Vc_CONST uint64x2_t lowest16< ulong>() { return vdupq_n_u64(0); }
 
-// _2_pow_31{{{1
-template <class T> inline typename intrinsic_type_impl<T, 16>::type neon_2_pow_31();
-template <> Vc_INTRINSIC Vc_CONST float32x4_t  neon_2_pow_31< float>() { return broadcast16( float(1u << 31)); }
-template <> Vc_INTRINSIC Vc_CONST float64x2_t neon_2_pow_31<double>() { return broadcast16(double(1u << 31)); }
-template <> Vc_INTRINSIC Vc_CONST int32x4_t neon_2_pow_31<  uint>() { return lowest16<int>(); }
-*/
-
 // blend{{{1
 Vc_INTRINSIC Vc_CONST float32x4_t blend(float32x4_t mask, float32x4_t at0, float32x4_t at1){}
 Vc_INTRINSIC Vc_CONST float64x2_t blend(float64x2_t mask, float64x4_t at0, float64x2_t at1){}

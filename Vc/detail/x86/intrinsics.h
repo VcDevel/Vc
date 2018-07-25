@@ -381,53 +381,6 @@ template<> Vc_INTRINSIC Vc_CONST __m512i zero<__m512i>() { return _mm512_setzero
 template<> Vc_INTRINSIC Vc_CONST __m512d zero<__m512d>() { return _mm512_setzero_pd(); }
 #endif
 
-// one16/32{{{1
-Vc_INTRINSIC Vc_CONST __m128  one16( float) { return sse_const::oneFloat; }
-
-#ifdef Vc_HAVE_SSE2
-Vc_INTRINSIC Vc_CONST __m128d one16(double) { return sse_const::oneDouble; }
-Vc_INTRINSIC Vc_CONST __m128i one16( uchar) { return reinterpret_cast<__m128i>(sse_const::one8); }
-Vc_INTRINSIC Vc_CONST __m128i one16( schar) { return one16(uchar()); }
-Vc_INTRINSIC Vc_CONST __m128i one16(ushort) { return reinterpret_cast<__m128i>(sse_const::one16); }
-Vc_INTRINSIC Vc_CONST __m128i one16( short) { return one16(ushort()); }
-Vc_INTRINSIC Vc_CONST __m128i one16(  uint) { return reinterpret_cast<__m128i>(sse_const::one32); }
-Vc_INTRINSIC Vc_CONST __m128i one16(   int) { return one16(uint()); }
-Vc_INTRINSIC Vc_CONST __m128i one16(ullong) { return reinterpret_cast<__m128i>(sse_const::one64); }
-Vc_INTRINSIC Vc_CONST __m128i one16( llong) { return one16(ullong()); }
-Vc_INTRINSIC Vc_CONST __m128i one16(  long) { return one16(equal_int_type_t<long>()); }
-Vc_INTRINSIC Vc_CONST __m128i one16( ulong) { return one16(equal_int_type_t<ulong>()); }
-#endif
-
-#ifdef Vc_HAVE_AVX
-Vc_INTRINSIC Vc_CONST __m256  one32( float) { return _mm256_broadcast_ss(&avx_const::oneFloat); }
-Vc_INTRINSIC Vc_CONST __m256d one32(double) { return _mm256_broadcast_sd(&avx_const::oneDouble); }
-Vc_INTRINSIC Vc_CONST __m256i one32( llong) { return _mm256_castpd_si256(_mm256_broadcast_sd(reinterpret_cast<const double *>(&avx_const::IndexesFromZero64[1]))); }
-Vc_INTRINSIC Vc_CONST __m256i one32(ullong) { return one32(llong()); }
-Vc_INTRINSIC Vc_CONST __m256i one32(   int) { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&avx_const::IndexesFromZero32[1]))); }
-Vc_INTRINSIC Vc_CONST __m256i one32(  uint) { return one32(int()); }
-Vc_INTRINSIC Vc_CONST __m256i one32( short) { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(avx_const::one16))); }
-Vc_INTRINSIC Vc_CONST __m256i one32(ushort) { return one32(short()); }
-Vc_INTRINSIC Vc_CONST __m256i one32( schar) { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(avx_const::one8))); }
-Vc_INTRINSIC Vc_CONST __m256i one32( uchar) { return one32(schar()); }
-Vc_INTRINSIC Vc_CONST __m256i one32(  long) { return one32(equal_int_type_t<long>()); }
-Vc_INTRINSIC Vc_CONST __m256i one32( ulong) { return one32(equal_int_type_t<ulong>()); }
-#endif
-
-#ifdef Vc_HAVE_AVX512F
-Vc_INTRINSIC Vc_CONST __m512  one64( float) { return _mm512_broadcastss_ps(_mm_load_ss(&avx_const::oneFloat)); }
-Vc_INTRINSIC Vc_CONST __m512d one64(double) { return _mm512_broadcastsd_pd(_mm_load_sd(&avx_const::oneDouble)); }
-Vc_INTRINSIC Vc_CONST __m512i one64( llong) { return _mm512_set1_epi64(1ll); }
-Vc_INTRINSIC Vc_CONST __m512i one64(ullong) { return _mm512_set1_epi64(1ll); }
-Vc_INTRINSIC Vc_CONST __m512i one64(   int) { return _mm512_set1_epi32(1); }
-Vc_INTRINSIC Vc_CONST __m512i one64(  uint) { return _mm512_set1_epi32(1); }
-Vc_INTRINSIC Vc_CONST __m512i one64( short) { return _mm512_set1_epi16(1); }
-Vc_INTRINSIC Vc_CONST __m512i one64(ushort) { return _mm512_set1_epi16(1); }
-Vc_INTRINSIC Vc_CONST __m512i one64( schar) { return _mm512_broadcast_i32x4(one16(schar())); }
-Vc_INTRINSIC Vc_CONST __m512i one64( uchar) { return one64(schar()); }
-Vc_INTRINSIC Vc_CONST __m512i one64(  long) { return one64(equal_int_type_t<long>()); }
-Vc_INTRINSIC Vc_CONST __m512i one64( ulong) { return one64(equal_int_type_t<ulong>()); }
-#endif  // Vc_HAVE_AVX512F
-
 // signmask{{{1
 #ifdef Vc_HAVE_SSE2
 constexpr Vc_INTRINSIC x_f64 signmask16(double) { return x_f64::broadcast(-0.); }
@@ -743,14 +696,6 @@ template <> constexpr Vc_INTRINSIC storage64_t<  uint> lowest64<  uint>() { retu
 template <> constexpr Vc_INTRINSIC storage64_t< ulong> lowest64< ulong>() { return {}; }
 template <> constexpr Vc_INTRINSIC storage64_t<ullong> lowest64<ullong>() { return {}; }
 #endif  // Vc_HAVE_AVX512F
-
-// _2_pow_31{{{1
-#ifdef Vc_HAVE_AVX
-template <class T> inline typename intrinsic_type<T, 32>::type avx_2_pow_31();
-template <> Vc_INTRINSIC Vc_CONST __m256  avx_2_pow_31< float>() { return _mm256_broadcast_ss(&avx_const::_2_pow_31); }
-template <> Vc_INTRINSIC Vc_CONST __m256d avx_2_pow_31<double>() { return builtin_broadcast<4>(double(1u << 31)); }
-template <> Vc_INTRINSIC Vc_CONST __m256i avx_2_pow_31<  uint>() { return lowest32<int>(); }
-#endif  // Vc_HAVE_AVX
 
 // slli_epi16{{{1
 template <int n> Vc_INTRINSIC __m128i slli_epi16(__m128i v)

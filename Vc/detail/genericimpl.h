@@ -1152,7 +1152,7 @@ template <class Abi> struct generic_mask_impl {
                 std::memcpy(mem, &bool4, 4);
             } else if constexpr (std::is_same_v<T, float> && have_mmx) {
                 const __m128 k(v);
-                const __m64 kk = _mm_cvtps_pi8(and_(k, detail::one16(float())));
+                const __m64 kk = _mm_cvtps_pi8(and_(k, _mm_set1_ps(1.f)));
                 builtin_store<4>(kk, mem, f);
                 _mm_empty();
             } else if constexpr (N == 8 && have_sse2) {
