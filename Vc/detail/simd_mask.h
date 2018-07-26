@@ -31,11 +31,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "synopsis.h"
 #include "smart_reference.h"
 #include <bitset>
+#include "abis.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 
 template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::mask_base
 {
+    // types, tags, and friends {{{
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::mask_impl_type;
     using member_type = typename traits::mask_member_type;
@@ -46,29 +48,59 @@ template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::m
     friend impl;
     friend typename traits::simd_impl_type;  // to construct masks on return and
                                              // inspect data on masked operations
+    // }}}
+    // is_<abi> {{{
+    static constexpr bool is_scalar()
+    {
+        return detail::is_abi<Abi, simd_abi::scalar>();
+    }
+    static constexpr bool is_sse()
+    {
+        return detail::is_abi<Abi, simd_abi::__sse_abi>();
+    }
+    static constexpr bool is_avx()
+    {
+        return detail::is_abi<Abi, simd_abi::__avx_abi>();
+    }
+    static constexpr bool is_avx512()
+    {
+        return detail::is_abi<Abi, simd_abi::__avx512_abi>();
+    }
+    static constexpr bool is_neon()
+    {
+        return detail::is_abi<Abi, simd_abi::__neon_abi>();
+    }
+    static constexpr bool is_fixed() { return detail::is_fixed_size_abi_v<Abi>; }
+
+    // }}}
 
 public:
+    // member types {{{
     using value_type = bool;
     using reference = detail::smart_reference<member_type, impl, value_type>;
     using simd_type = simd<T, Abi>;
     using abi_type = Abi;
 
-    static constexpr size_t size()
+    // }}}
+    static constexpr size_t size() // {{{
     {
         constexpr size_t N = size_tag;
         return N;
-    }
+    } // }}}
+    // constructors & assignment {{{
     simd_mask() = default;
     simd_mask(const simd_mask &) = default;
     simd_mask(simd_mask &&) = default;
     simd_mask &operator=(const simd_mask &) = default;
     simd_mask &operator=(simd_mask &&) = default;
 
+    // }}}
+
     // access to internal representation (suggested extension)
     explicit Vc_ALWAYS_INLINE simd_mask(typename traits::mask_cast_type init) : d{init} {}
     // conversions to internal type is done in mask_base
 
-    // bitset interface
+    // bitset interface (extension) {{{
     static Vc_ALWAYS_INLINE simd_mask from_bitset(std::bitset<size()> bs)
     {
         return {detail::bitset_init, bs};
@@ -83,10 +115,12 @@ public:
         }
     }
 
-    // explicit broadcast constructor
+    // }}}
+    // explicit broadcast constructor {{{
     explicit constexpr Vc_ALWAYS_INLINE simd_mask(value_type x) : d(broadcast(x)) {}
 
-    // implicit type conversion constructor
+    // }}}
+    // implicit type conversion constructor {{{
     template <class U>
     Vc_ALWAYS_INLINE simd_mask(
         const simd_mask<U, simd_abi::fixed_size<size()>> &x,
@@ -96,7 +130,8 @@ public:
         : simd_mask{detail::bitset_init, detail::data(x)}
     {
     }
-    /* reference implementation for explicit simd_mask casts
+    // }}}
+    /* reference implementation for explicit simd_mask casts {{{
     template <class U>
     simd_mask(const simd_mask<U, Abi> &x,
          enable_if<
@@ -115,17 +150,10 @@ public:
     {
         x.copy_to(&d[0], vector_aligned);
     }
-    */
+    }}} */
 
-
-    // load impl
+    // load impl {{{
 private:
-    static constexpr bool is_scalar() { return std::is_same_v<abi_type, simd_abi::scalar>; }
-    static constexpr bool is_sse() { return std::is_same_v<abi_type, simd_abi::__sse>; }
-    static constexpr bool is_avx() { return std::is_same_v<abi_type, simd_abi::__avx>; }
-    static constexpr bool is_avx512() { return std::is_same_v<abi_type, simd_abi::__avx512>; }
-    static constexpr bool is_fixed() { return detail::is_fixed_size_abi_v<abi_type>; }
-
     template <class F>
     static Vc_INTRINSIC member_type load_wrapper(const value_type *mem, F f)
     {
@@ -246,7 +274,8 @@ private:
     }
 
 public :
-    // load constructor
+    // }}}
+    // load constructor {{{
     template <class Flags>
     Vc_ALWAYS_INLINE simd_mask(const value_type *mem, Flags f) : d(load_wrapper(mem, f))
     {
@@ -257,19 +286,22 @@ public :
         d = impl::masked_load(d, k.d, mem, f, size_tag);
     }
 
-    // loads [simd_mask.load]
+    // }}}
+    // loads [simd_mask.load] {{{
     template <class Flags> Vc_ALWAYS_INLINE void copy_from(const value_type *mem, Flags f)
     {
         d = load_wrapper(mem, f);
     }
 
-    // stores [simd_mask.store]
+    // }}}
+    // stores [simd_mask.store] {{{
     template <class Flags> Vc_ALWAYS_INLINE void copy_to(value_type *mem, Flags f) const
     {
         impl::store(d, mem, f, size_tag);
     }
 
-    // scalar access
+    // }}}
+    // scalar access {{{
     Vc_ALWAYS_INLINE reference operator[](size_t i) { return {d, int(i)}; }
     Vc_ALWAYS_INLINE value_type operator[](size_t i) const {
         if constexpr (is_scalar()) {
@@ -281,7 +313,8 @@ public :
         }
     }
 
-    // negation
+    // }}}
+    // negation {{{
     Vc_ALWAYS_INLINE simd_mask operator!() const
     {
         if constexpr (is_scalar()) {
@@ -294,7 +327,8 @@ public :
         }
     }
 
-    // simd_mask binary operators [simd_mask.binary]
+    // }}}
+    // simd_mask binary operators [simd_mask.binary] {{{
     friend Vc_ALWAYS_INLINE simd_mask operator&&(const simd_mask &x, const simd_mask &y)
     {
         return {detail::private_init, impl::logical_and(x.d, y.d)};
@@ -333,7 +367,8 @@ public :
         return x;
     }
 
-    // simd_mask compares [simd_mask.comparison]
+    // }}}
+    // simd_mask compares [simd_mask.comparison] {{{
     friend Vc_ALWAYS_INLINE simd_mask operator==(const simd_mask &x, const simd_mask &y)
     {
         return !operator!=(x, y);
@@ -343,6 +378,7 @@ public :
         return {detail::private_init, impl::bit_xor(x.d, y.d)};
     }
 
+    // }}}
     // "private" because of the first arguments's namespace
     Vc_INTRINSIC simd_mask(detail::private_init_t, typename traits::mask_member_type init)
         : d(init)
@@ -410,6 +446,7 @@ private:
 
 namespace detail
 {
+// data(simd_mask) {{{
 template <class T, class A>
 constexpr Vc_INTRINSIC const auto &data(const simd_mask<T, A> &x)
 {
@@ -419,7 +456,340 @@ template <class T, class A> constexpr Vc_INTRINSIC auto &data(simd_mask<T, A> &x
 {
     return x.d;
 }
+// }}}
 }  // namespace detail
+
+// reductions [simd_mask.reductions] {{{
+namespace detail
+{
+// all_of {{{
+template <class T, class Abi, class Data> Vc_INTRINSIC bool all_of(const Data &k)
+{
+    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+        return k;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+        return k.all();
+    } else if constexpr (detail::is_combined_abi<Abi>()) {
+        for (int i = 0; i < Abi::factor; ++i) {
+            if (!all_of<T, typename Abi::member_abi>(k[i])) {
+                return false;
+            }
+        }
+        return true;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
+                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+        constexpr size_t N = simd_size_v<T, Abi>;
+        if constexpr (detail::have_sse4_1) {
+            using Intrin = detail::intrinsic_type_t<T, N>;
+            return 0 != detail::testc(
+                            k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
+        } else if constexpr (std::is_same_v<T, float>) {
+            return (_mm_movemask_ps(k) & ((1 << N) - 1)) == (1 << N) - 1;
+        } else if constexpr (std::is_same_v<T, double>) {
+            return (_mm_movemask_pd(k) & ((1 << N) - 1)) == (1 << N) - 1;
+        } else {
+            return (_mm_movemask_epi8(k) & ((1 << (N * sizeof(T))) - 1)) ==
+                   (1 << (N * sizeof(T))) - 1;
+        }
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+        return detail::testallset<Abi::template implicit_mask<T>>(k);
+    } else {
+        assert_unreachable<T>();
+    }
+}
+
+// }}}
+// any_of {{{
+template <class T, class Abi, class Data> Vc_INTRINSIC bool any_of(const Data &k)
+{
+    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+        return k;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+        return k.any();
+    } else if constexpr (detail::is_combined_abi<Abi>()) {
+        for (int i = 0; i < Abi::factor; ++i) {
+            if (any_of<T, typename Abi::member_abi>(k[i])) {
+                return true;
+            }
+        }
+        return false;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
+                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+        constexpr size_t N = simd_size_v<T, Abi>;
+        if constexpr (detail::have_sse4_1) {
+            using Intrin = detail::intrinsic_type_t<T, N>;
+            return 0 == detail::testz(
+                            k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
+        } else if constexpr (std::is_same_v<T, float>) {
+            return (_mm_movemask_ps(k) & ((1 << N) - 1)) != 0;
+        } else if constexpr (std::is_same_v<T, double>) {
+            return (_mm_movemask_pd(k) & ((1 << N) - 1)) != 0;
+        } else {
+            return (_mm_movemask_epi8(k) & ((1 << (N * sizeof(T))) - 1)) != 0;
+        }
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+        return (k & Abi::template implicit_mask<T>) != 0;
+    } else {
+        assert_unreachable<T>();
+    }
+}
+
+// }}}
+// none_of {{{
+template <class T, class Abi, class Data> Vc_INTRINSIC bool none_of(const Data &k)
+{
+    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+        return !k;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+        return k.none();
+    } else if constexpr (detail::is_combined_abi<Abi>()) {
+        for (int i = 0; i < Abi::factor; ++i) {
+            if (any_of<T, typename Abi::member_abi>(k[i])) {
+                return false;
+            }
+        }
+        return true;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
+                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+        constexpr size_t N = simd_size_v<T, Abi>;
+        if constexpr (detail::have_sse4_1) {
+            using Intrin = detail::intrinsic_type_t<T, N>;
+            return 0 != detail::testz(
+                            k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
+        } else if constexpr (std::is_same_v<T, float>) {
+            return (_mm_movemask_ps(k) & ((1 << N) - 1)) == 0;
+        } else if constexpr (std::is_same_v<T, double>) {
+            return (_mm_movemask_pd(k) & ((1 << N) - 1)) == 0;
+        } else {
+            return (_mm_movemask_epi8(k) & ((1 << (N * sizeof(T))) - 1)) == 0;
+        }
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+        return (k & Abi::template implicit_mask<T>) == 0;
+    } else {
+        assert_unreachable<T>();
+    }
+}
+
+// }}}
+// some_of {{{
+template <class T, class Abi, class Data> Vc_INTRINSIC bool some_of(const Data &k)
+{
+    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+        return false;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+        return k.any() && !k.all();
+    } else if constexpr (detail::is_combined_abi<Abi>()) {
+        return any_of<T, Abi>(k) && !all_of<T, Abi>(k);
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
+                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+        constexpr size_t N = simd_size_v<T, Abi>;
+        if constexpr (detail::have_sse4_1) {
+            using Intrin = detail::intrinsic_type_t<T, N>;
+            return 0 != detail::testnzc(
+                            k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
+        } else if constexpr (std::is_same_v<T, float>) {
+            constexpr int allbits = (1 << N) - 1;
+            const auto tmp = _mm_movemask_ps(k) & allbits;
+            return tmp > 0 && tmp < allbits;
+        } else if constexpr (std::is_same_v<T, double>) {
+            constexpr int allbits = (1 << N) - 1;
+            const auto tmp = _mm_movemask_pd(k) & allbits;
+            return tmp > 0 && tmp < allbits;
+        } else {
+            constexpr int allbits = (1 << (N * sizeof(T))) - 1;
+            const auto tmp = _mm_movemask_epi8(k) & allbits;
+            return tmp > 0 && tmp < allbits;
+        }
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+        return any_of<T, Abi>(k) && !all_of<T, Abi>(k);
+    } else {
+        assert_unreachable<T>();
+    }
+}
+
+// }}}
+// popcount {{{
+template <class T, class Abi, class Data> Vc_INTRINSIC int popcount(const Data &k)
+{
+    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+        return k;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+        return k.count();
+    } else if constexpr (detail::is_combined_abi<Abi>()) {
+        int count = popcount<T, typename Abi::member_abi>(k[0]);
+        for (int i = 1; i < Abi::factor; ++i) {
+            count += popcount<T, typename Abi::member_abi>(k[i]);
+        }
+        return count;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
+                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+        constexpr size_t N = simd_size_v<T, Abi>;
+        const auto kk = Abi::masked(k);
+        if constexpr (detail::have_popcnt) {
+            int bits = detail::movemask(to_intrin(builtin_cast<T>(kk)));
+            const int count = _mm_popcnt_u32(bits);
+            return std::is_integral_v<T> ? count / sizeof(T) : count;
+        } else if constexpr (N == 2) {
+            const int mask = _mm_movemask_pd(auto_cast(kk));
+            return mask - (mask >> 1);
+        } else if constexpr (N == 4 && sizeof(kk) == 16 && detail::have_sse2) {
+            auto x = to_intrin(kk);
+            x = _mm_add_epi32(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
+            x = _mm_add_epi32(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
+            return -_mm_cvtsi128_si32(x);
+        } else if constexpr (N == 4 && sizeof(kk) == 16) {
+            return popcnt4(_mm_movemask_ps(auto_cast(kk)));
+        } else if constexpr (N == 8 && sizeof(kk) == 16) {
+            auto x = to_intrin(kk);
+            x = _mm_add_epi16(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
+            x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)));
+            x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)));
+            return -short(_mm_extract_epi16(x, 0));
+        } else if constexpr (N == 16 && sizeof(kk) == 16) {
+            auto x = to_intrin(kk);
+            x = _mm_add_epi8(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
+            x = _mm_add_epi8(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)));
+            x = _mm_add_epi8(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)));
+            auto y = -builtin_cast<uchar>(x);
+            if constexpr (detail::have_sse4_1) {
+                return y[0] + y[1];
+            } else {
+                unsigned z = _mm_extract_epi16(to_intrin(y), 0);
+                return (z & 0xff) + (z >> 8);
+            }
+        } else if constexpr (N == 4 && sizeof(kk) == 32) {
+            auto x = -(lo128(kk) + hi128(kk));
+            return x[0] + x[1];
+        } else if constexpr (sizeof(kk) == 32) {
+            return popcount<T, simd_abi::__sse>(-(lo128(kk) + hi128(kk)));
+        } else {
+            assert_unreachable<T>();
+        }
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+        constexpr size_t N = Abi::template size_tag<T>::value;
+        const auto kk = Abi::masked(k);
+        if constexpr (N <= 4) {
+            return detail::popcnt4(kk);
+        } else if constexpr (N <= 8) {
+            return detail::popcnt8(kk);
+        } else if constexpr (N <= 16) {
+            return detail::popcnt16(kk);
+        } else if constexpr (N <= 32) {
+            return detail::popcnt32(kk);
+        } else if constexpr (N <= 64) {
+            return detail::popcnt64(kk);
+        } else {
+            assert_unreachable<T>();
+        }
+    } else {
+        assert_unreachable<T>();
+    }
+}
+
+// }}}
+// find_first_set {{{
+template <class T, class Abi, class Data> Vc_INTRINSIC int find_first_set(const Data &k)
+{
+    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+        return 0;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+        return detail::firstbit(k.to_ullong());
+    } else if constexpr (detail::is_combined_abi<Abi>()) {
+        using A2 = typename Abi::member_abi;
+        for (int i = 0; i < Abi::factor - 1; ++i) {
+            if (any_of<T, A2>(k[i])) {
+                return i * simd_size_v<T, A2> + find_first_set(k[i]);
+            }
+        }
+        return (Abi::factor - 1) * simd_size_v<T, A2> +
+               find_first_set(k[Abi::factor - 1]);
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
+                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+        return detail::firstbit(detail::mask_to_int<Abi::template size_tag<T>::value>(k));
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+        if constexpr (Abi::template size_tag<T>::value <= 32) {
+            return _tzcnt_u32(k.d);
+        } else {
+            return detail::firstbit(k.d);
+        }
+    } else {
+        assert_unreachable<T>();
+    }
+}
+
+// }}}
+// find_last_set {{{
+template <class T, class Abi, class Data> Vc_INTRINSIC int find_last_set(const Data &k)
+{
+    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+        return 0;
+    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+        return detail::lastbit(k.to_ullong());
+    } else if constexpr (detail::is_combined_abi<Abi>()) {
+        using A2 = typename Abi::member_abi;
+        for (int i = 0; i < Abi::factor - 1; ++i) {
+            if (any_of<T, A2>(k[i])) {
+                return i * simd_size_v<T, A2> + find_last_set(k[i]);
+            }
+        }
+        return (Abi::factor - 1) * simd_size_v<T, A2> +
+               find_last_set(k[Abi::factor - 1]);
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
+                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+        return detail::lastbit(detail::mask_to_int<Abi::template size_tag<T>::value>(k));
+    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+        if constexpr (Abi::template size_tag<T>::value <= 32) {
+            return 31 - _lzcnt_u32(k.d);
+        } else {
+            return detail::lastbit(k.d);
+        }
+    } else {
+        assert_unreachable<T>();
+    }
+}
+
+// }}}
+}  // namespace detail
+template <class T, class Abi> Vc_ALWAYS_INLINE bool all_of(const simd_mask<T, Abi> &k)
+{
+    return detail::all_of<T, Abi>(detail::data(k));
+}
+template <class T, class Abi> Vc_ALWAYS_INLINE bool any_of(const simd_mask<T, Abi> &k)
+{
+    return detail::any_of<T, Abi>(detail::data(k));
+}
+template <class T, class Abi> Vc_ALWAYS_INLINE bool none_of(const simd_mask<T, Abi> &k)
+{
+    return detail::none_of<T, Abi>(detail::data(k));
+}
+template <class T, class Abi> Vc_ALWAYS_INLINE bool some_of(const simd_mask<T, Abi> &k)
+{
+    return detail::some_of<T, Abi>(detail::data(k));
+}
+template <class T, class Abi> Vc_ALWAYS_INLINE int popcount(const simd_mask<T, Abi> &k)
+{
+    return detail::popcount<T, Abi>(detail::data(k));
+}
+template <class T, class Abi>
+Vc_ALWAYS_INLINE int find_first_set(const simd_mask<T, Abi> &k)
+{
+    return detail::find_first_set<T, Abi>(detail::data(k));
+}
+template <class T, class Abi>
+Vc_ALWAYS_INLINE int find_last_set(const simd_mask<T, Abi> &k)
+{
+    return detail::find_last_set<T, Abi>(detail::data(k));
+}
+
+constexpr bool all_of(detail::exact_bool x) { return x; }
+constexpr bool any_of(detail::exact_bool x) { return x; }
+constexpr bool none_of(detail::exact_bool x) { return !x; }
+constexpr bool some_of(detail::exact_bool) { return false; }
+constexpr int popcount(detail::exact_bool x) { return x; }
+constexpr int find_first_set(detail::exact_bool) { return 0; }
+constexpr int find_last_set(detail::exact_bool) { return 0; }
+
+// }}}
 
 Vc_VERSIONED_NAMESPACE_END
 #endif  // VC_SIMD_MASK_H_

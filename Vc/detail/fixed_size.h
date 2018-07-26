@@ -1012,59 +1012,6 @@ private:
 
 // }}}1
 }  // namespace detail
-
-// [simd_mask.reductions] {{{1
-template <class T, int N> inline bool all_of(const fixed_size_simd_mask<T, N> &k)
-{
-    return detail::data(k).all();
-}
-
-template <class T, int N> inline bool any_of(const fixed_size_simd_mask<T, N> &k)
-{
-    return detail::data(k).any();
-}
-
-template <class T, int N> inline bool none_of(const fixed_size_simd_mask<T, N> &k)
-{
-    return detail::data(k).none();
-}
-
-template <class T, int N> inline bool some_of(const fixed_size_simd_mask<T, N> &k)
-{
-    for (int i = 1; i < N; ++i) {
-        if (k[i] != k[i - 1]) {
-            return true;
-        }
-    }
-    return false;
-}
-
-template <class T, int N> inline int popcount(const fixed_size_simd_mask<T, N> &k)
-{
-    return detail::data(k).count();
-}
-
-template <class T, int N> inline int find_first_set(const fixed_size_simd_mask<T, N> &k)
-{
-    for (int i = 0; i < N; ++i) {
-        if (k[i]) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-template <class T, int N> inline int find_last_set(const fixed_size_simd_mask<T, N> &k)
-{
-    for (int i = N - 1; i >= 0; --i) {
-        if (k[i]) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-// }}}1
 Vc_VERSIONED_NAMESPACE_END
 
 namespace std

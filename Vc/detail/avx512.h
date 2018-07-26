@@ -617,66 +617,6 @@ Vc_MASKED_CASSIGN_SPECIALIZATION(detail:: uchar, epi8 , std::minus, sub);
 
 // }}}1
 }  // namespace detail
-
-// [simd_mask.reductions] {{{
-template <class T> Vc_ALWAYS_INLINE bool all_of(simd_mask<T, simd_abi::__avx512> k)
-{
-    const auto v = detail::data(k);
-    return detail::x86::testallset(v);
-}
-
-template <class T> Vc_ALWAYS_INLINE bool any_of(simd_mask<T, simd_abi::__avx512> k)
-{
-    const auto v = detail::data(k);
-    return v != 0U;
-}
-
-template <class T> Vc_ALWAYS_INLINE bool none_of(simd_mask<T, simd_abi::__avx512> k)
-{
-    const auto v = detail::data(k);
-    return v == 0U;
-}
-
-template <class T> Vc_ALWAYS_INLINE bool some_of(simd_mask<T, simd_abi::__avx512> k)
-{
-    const auto v = detail::data(k);
-    return v != 0 && !all_of(k);
-}
-
-template <class T> Vc_ALWAYS_INLINE int popcount(simd_mask<T, simd_abi::__avx512> k)
-{
-    const auto v = detail::data(k);
-    switch (k.size()) {
-    case  8: return detail::popcnt8(v);
-    case 16: return detail::popcnt16(v);
-    case 32: return detail::popcnt32(v);
-    case 64: return detail::popcnt64(v);
-    default: Vc_UNREACHABLE();
-    }
-}
-
-template <class T> Vc_ALWAYS_INLINE int find_first_set(simd_mask<T, simd_abi::__avx512> k)
-{
-    if constexpr (k.size() <= 32) {
-        const auto v = detail::data(k);
-        return _tzcnt_u32(v);
-    } else {
-        const __mmask64 v = detail::data(k);
-        return detail::firstbit(v);
-    }
-}
-
-template <class T> Vc_ALWAYS_INLINE int find_last_set(simd_mask<T, simd_abi::__avx512> k)
-{
-    if constexpr (k.size() <= 32) {
-        return 31 - _lzcnt_u32(detail::data(k));
-    } else {
-        const __mmask64 v = detail::data(k);
-        return detail::lastbit(v);
-    }
-}
-
-// }}}
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // Vc_HAVE_AVX512_ABI

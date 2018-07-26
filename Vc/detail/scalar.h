@@ -377,16 +377,6 @@ template <> Vc_ALWAYS_INLINE bool convert_any_mask<bool>(bool x) { return x; }
 
 // }}}1
 }  // namespace detail
-
-// [simd_mask.reductions] {{{1
-template <class T> inline bool all_of(const detail::scalar_mask<T> &k) { return k[0]; }
-template <class T> inline bool any_of(const detail::scalar_mask<T> &k) { return k[0]; }
-template <class T> inline bool none_of(const detail::scalar_mask<T> &k) { return !k[0]; }
-template <class T> inline bool some_of(const detail::scalar_mask<T> &) { return false; }
-template <class T> inline int popcount(const detail::scalar_mask<T> &k) { return k[0]; }
-template <class T> inline int find_first_set(const detail::scalar_mask<T> &) { return 0; }
-template <class T> inline int find_last_set(const detail::scalar_mask<T> &) { return 0; }
-// }}}1
 Vc_VERSIONED_NAMESPACE_END
 
 namespace std

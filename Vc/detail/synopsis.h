@@ -491,24 +491,6 @@ Vc_INTRINSIC To simd_reinterpret_cast(const simd_mask<T, A> &x)
 }
 }  // namespace experimental
 
-// reductions [simd_mask.reductions] {{{1
-// implementation per ABI in fixed_size.h, sse.h, avx.h, etc.
-template <class T, class Abi> inline bool all_of(const simd_mask<T, Abi> &k);
-template <class T, class Abi> inline bool any_of(const simd_mask<T, Abi> &k);
-template <class T, class Abi> inline bool none_of(const simd_mask<T, Abi> &k);
-template <class T, class Abi> inline bool some_of(const simd_mask<T, Abi> &k);
-template <class T, class Abi> inline int popcount(const simd_mask<T, Abi> &k);
-template <class T, class Abi> inline int find_first_set(const simd_mask<T, Abi> &k);
-template <class T, class Abi> inline int find_last_set(const simd_mask<T, Abi> &k);
-
-constexpr bool all_of(detail::exact_bool x) { return x; }
-constexpr bool any_of(detail::exact_bool x) { return x; }
-constexpr bool none_of(detail::exact_bool x) { return !x; }
-constexpr bool some_of(detail::exact_bool) { return false; }
-constexpr int popcount(detail::exact_bool x) { return x; }
-constexpr int find_first_set(detail::exact_bool) { return 0; }
-constexpr int find_last_set(detail::exact_bool) { return 0; }
-
 // masked assignment [simd_mask.where] {{{1
 #ifdef Vc_EXPERIMENTAL
 namespace detail {

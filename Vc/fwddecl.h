@@ -47,26 +47,28 @@ namespace simd_abi
 struct __scalar_abi;
 template <int N> struct __fixed_abi;
 
-template <int Bytes> struct __sse_abi;
-template <int Bytes> struct __avx_abi;
-template <int Bytes> struct __avx512_abi;
-template <int Bytes> struct __neon_abi;
+template <int Bytes = 16> struct __sse_abi;
+template <int Bytes = 32> struct __avx_abi;
+template <int Bytes = 64> struct __avx512_abi;
+template <int Bytes = 16> struct __neon_abi;
+
+template <int N, class Abi> struct __combine;
 
 // implementation-defined:
-template <int NRegisters> using __sse_x = __sse_abi<16 * NRegisters>;
-template <int NRegisters> using __avx_x = __avx_abi<32 * NRegisters>;
-template <int NRegisters> using __avx512_x = __avx512_abi<64 * NRegisters>;
-template <int NRegisters> using __neon_x = __neon_abi<16 * NRegisters>;
+template <int NRegisters> using __sse_x = __combine<NRegisters, __sse_abi<>>;
+template <int NRegisters> using __avx_x = __combine<NRegisters, __avx_abi<>>;
+template <int NRegisters> using __avx512_x = __combine<NRegisters, __avx512_abi<>>;
+template <int NRegisters> using __neon_x = __combine<NRegisters, __neon_abi<>>;
 
 template <class T, int N> using __sse_n = __sse_abi<sizeof(T) * N>;
 template <class T, int N> using __avx_n = __avx_abi<sizeof(T) * N>;
 template <class T, int N> using __avx512_n = __avx512_abi<sizeof(T) * N>;
 template <class T, int N> using __neon_n = __neon_abi<sizeof(T) * N>;
 
-using __sse = __sse_x<1>;
-using __avx = __avx_x<1>;
-using __avx512 = __avx512_x<1>;
-using __neon = __neon_x<1>;
+using __sse = __sse_abi<>;
+using __avx = __avx_abi<>;
+using __avx512 = __avx512_abi<>;
+using __neon = __neon_abi<>;
 
 using __neon128 = __neon_abi<16>;
 using __neon64 = __neon_abi<8>;

@@ -687,26 +687,26 @@ template <class T, class A0, class A1, class... Abis,
 Vc_INTRINSIC R optimize_tuple(const simd_tuple<T, A0, A1, Abis...> &x)
 {
     using Tup = simd_tuple<T, A0, A1, Abis...>;
-    Vc_CONSTEXPR_IF_RETURNING(R::first_size_v == simd_size_v<T, A0>) {
+    if constexpr (R::first_size_v == simd_size_v<T, A0>) {
         return tuple_concat(simd_tuple<T, typename R::first_abi>{x.first},
                             optimize_tuple(x.second));
-    } Vc_CONSTEXPR_ELSE_IF(R::first_size_v == simd_size_v<T, A0> + simd_size_v<T, A1>) {
+    } else if constexpr (R::first_size_v == simd_size_v<T, A0> + simd_size_v<T, A1>) {
         return tuple_concat(simd_tuple<T, typename R::first_abi>{detail::data(
                                 Vc::concat(get_simd<0>(x), get_simd<1>(x)))},
                             optimize_tuple(x.second.second));
-    } Vc_CONSTEXPR_ELSE_IF(sizeof...(Abis) >= 2) {
-        Vc_CONSTEXPR_IF_RETURNING(
-            R::first_size_v ==
-            tuple_element_t<0, Tup>::size() + tuple_element_t<1, Tup>::size() +
-                tuple_element_t<2, Tup>::size() + tuple_element_t<3, Tup>::size()) {
+    } else if constexpr (sizeof...(Abis) >= 2) {
+        if constexpr (R::first_size_v == tuple_element_t<0, Tup>::size() +
+                                             tuple_element_t<1, Tup>::size() +
+                                             tuple_element_t<2, Tup>::size() +
+                                             tuple_element_t<3, Tup>::size()) {
             return tuple_concat(
                 simd_tuple<T, typename R::first_abi>{detail::data(concat(
                     get_simd<0>(x), get_simd<1>(x), get_simd<2>(x), get_simd<3>(x)))},
                 optimize_tuple(x.second.second.second.second));
-        } Vc_CONSTEXPR_ENDIF
-    } Vc_CONSTEXPR_ELSE {
+        }
+    } else {
         return x;
-    } Vc_CONSTEXPR_ENDIF
+    }
 }
 
 // number_of_preceding_elements {{{1

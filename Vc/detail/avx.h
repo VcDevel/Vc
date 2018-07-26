@@ -39,75 +39,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
 {
-struct avx_mask_impl : generic_mask_impl<simd_abi::__avx> {
-};
+struct avx_mask_impl : generic_mask_impl<simd_abi::__avx> {};
 
-constexpr struct {
-    template <class T> operator T() const { return detail::allone<T>(); }
-} allone_poly = {};
-}  // namespace detail
-
-// [simd_mask.reductions] {{{
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL all_of(simd_mask<T, simd_abi::__avx> k)
-{
-    const auto d = detail::data(k);
-    return 0 != detail::testc(d, detail::allone_poly);
-}
-
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL any_of(simd_mask<T, simd_abi::__avx> k)
-{
-    const auto d = detail::data(k);
-    return 0 == detail::testz(d, d);
-}
-
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL none_of(simd_mask<T, simd_abi::__avx> k)
-{
-    const auto d = detail::data(k);
-    return 0 != detail::testz(d, d);
-}
-
-template <class T> Vc_ALWAYS_INLINE bool Vc_VDECL some_of(simd_mask<T, simd_abi::__avx> k)
-{
-    const auto d = detail::data(k);
-    return 0 != detail::testnzc(d, detail::allone_poly);
-}
-
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL popcount(simd_mask<T, simd_abi::__avx> k)
-{
-    const auto d = detail::data(k);
-    switch (k.size()) {
-    case 4:
-        return detail::popcnt4(detail::mask_to_int<k.size()>(d));
-    case 8:
-        return detail::popcnt8(detail::mask_to_int<k.size()>(d));
-    case 16:
-        return detail::popcnt32(detail::mask_to_int<32>(d)) / 2;
-    case 32:
-        return detail::popcnt32(detail::mask_to_int<k.size()>(d));
-    default:
-        Vc_UNREACHABLE();
-        return 0;
-    }
-}
-
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_first_set(simd_mask<T, simd_abi::__avx> k)
-{
-    const auto d = detail::data(k);
-    return detail::firstbit(detail::mask_to_int<k.size()>(d));
-}
-
-template <class T> Vc_ALWAYS_INLINE int Vc_VDECL find_last_set(simd_mask<T, simd_abi::__avx> k)
-{
-    const auto d = detail::data(k);
-    if (k.size() == 16) {
-        return detail::lastbit(detail::mask_to_int<32>(d)) / 2;
-    }
-    return detail::lastbit(detail::mask_to_int<k.size()>(d));
-}
-// }}}
-
-namespace detail
-{
 // simd impl {{{1
 struct avx_simd_impl : public generic_simd_impl<simd_abi::__avx> {
 };

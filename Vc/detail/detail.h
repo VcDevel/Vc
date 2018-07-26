@@ -391,57 +391,6 @@ constexpr Vc_INTRINSIC const typename V::value_type &to_value_type_or_member_typ
     return x;
 }
 
-// constexpr_if {{{1
-template <class IfFun, class ElseFun>
-Vc_INTRINSIC auto impl_or_fallback_dispatch(std::true_type, IfFun &&fun, ElseFun &&)
-{
-    return fun(0);
-}
-
-template <class IfFun, class ElseFun>
-Vc_INTRINSIC auto impl_or_fallback_dispatch(std::false_type, IfFun &&, ElseFun &&fun)
-{
-    return fun(0);
-}
-
-template <bool Condition, class IfFun, class ElseFun>
-Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, ElseFun &&else_fun)
-{
-    return impl_or_fallback_dispatch(Vc::detail::bool_constant<Condition>(), if_fun,
-                                     else_fun);
-}
-
-template <bool Condition, class IfFun> Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun)
-{
-    return impl_or_fallback_dispatch(Vc::detail::bool_constant<Condition>(), if_fun,
-                                     [](int) {});
-}
-
-template <bool Condition, bool Condition2, class IfFun, class... Remainder>
-Vc_INTRINSIC auto constexpr_if(IfFun &&if_fun, Vc::detail::bool_constant<Condition2>,
-                               Remainder &&... rem)
-{
-    return impl_or_fallback_dispatch(
-        Vc::detail::bool_constant<Condition>(), if_fun, [&](auto tmp_) {
-            return constexpr_if<(std::is_same<decltype(tmp_), int>::value && Condition2)>(
-                rem...);
-        });
-}
-
-#ifdef __cpp_if_constexpr
-#define Vc_CONSTEXPR_IF_RETURNING(...) if constexpr (__VA_ARGS__) {
-#define Vc_CONSTEXPR_IF(...) if constexpr (__VA_ARGS__) {
-#define Vc_CONSTEXPR_ELSE_IF(...) } else if constexpr (__VA_ARGS__) {
-#define Vc_CONSTEXPR_ELSE } else {
-#define Vc_CONSTEXPR_ENDIF }
-#else
-#define Vc_CONSTEXPR_IF_RETURNING(...) return Vc::detail::constexpr_if<(__VA_ARGS__)>([&](auto) {
-#define Vc_CONSTEXPR_IF(...) Vc::detail::constexpr_if<(__VA_ARGS__)>([&](auto) {
-#define Vc_CONSTEXPR_ELSE_IF(...) }, Vc::detail::bool_constant<(__VA_ARGS__)>(), [&](auto) {
-#define Vc_CONSTEXPR_ELSE }, [&](auto) {
-#define Vc_CONSTEXPR_ENDIF });
-#endif
-
 // bool_storage_member_type{{{1
 template <size_t Size> struct bool_storage_member_type;
 template <size_t Size>

@@ -46,6 +46,8 @@ struct scalar_simd_impl;
 struct scalar_mask_impl;
 template <int N> struct fixed_size_simd_impl;
 template <int N> struct fixed_size_mask_impl;
+template <int N, class Abi> struct combine_simd_impl;
+template <int N, class Abi> struct combine_mask_impl;
 
 // gnu_traits {{{1
 template <class T, class MT, class Abi, size_t N> struct gnu_traits {
@@ -194,17 +196,120 @@ template <class T> struct avx512_is_vectorizable : std::false_type {};
 #endif
 
 // }}}
+// implicit_mask_abi_base {{{
+template <int Bytes, class Abi> struct implicit_mask_abi_base {
+    template <class T>
+    using implicit_mask_type =
+        detail::builtin_type_t<detail::int_for_sizeof_t<T>, simd_size_v<T, Abi>>;
+
+    template <class T>
+    static constexpr implicit_mask_type<T> implicit_mask =
+        Abi::is_partial ? detail::generate_builtin<implicit_mask_type<T>>([](auto i) {
+            return i < Bytes / sizeof(T) ? -1 : 0;
+        })
+                        : ~implicit_mask_type<T>();
+
+    template <class T, class Trait = detail::builtin_traits<T>>
+    static constexpr auto masked(T x)
+    {
+        using U = typename Trait::value_type;
+        return builtin_cast<detail::int_for_sizeof_t<U>>(x) & implicit_mask<U>;
+    }
+};
+
+// }}}
 }  // namespace detail
 namespace simd_abi
 {
-// __neon_abi {{{1
-template <int Bytes> struct __neon_abi {
-    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+// __combine {{{1
+template <int N, class Abi> struct __combine {
+    template <class T>
+    using size_tag = detail::size_constant<N * Abi::template size_tag<T>::value>;
+
+    static constexpr int factor = N;
+    using member_abi = Abi;
+
     // validity traits {{{2
     // allow 2x, 3x, and 4x "unroll"
     struct is_valid_abi_tag
-        : detail::bool_constant<((Bytes > 0 && Bytes <= 16) || Bytes == 32 ||
-                                 Bytes == 48 || Bytes == 64)> {
+        : detail::bool_constant<(N > 1 && N <= 4) && Abi::is_valid_abi_tag> {
+    };
+    template <class T> struct is_valid_size_for : Abi::template is_valid_size_for<T> {
+    };
+    template <class T>
+    struct is_valid : detail::all<is_valid_abi_tag, typename Abi::template is_valid<T>> {
+    };
+    template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
+
+    // simd/mask_impl_type {{{2
+    using simd_impl_type = detail::combine_simd_impl<N, Abi>;
+    using mask_impl_type = detail::combine_mask_impl<N, Abi>;
+
+    // traits {{{2
+    template <class T, bool = is_valid_v<T>> struct traits : detail::invalid_traits {
+    };
+
+    template <class T> struct traits<T, true> {
+        using is_valid = std::true_type;
+        using simd_impl_type = detail::combine_simd_impl<N, Abi>;
+        using mask_impl_type = detail::combine_mask_impl<N, Abi>;
+
+        // simd and simd_mask member types {{{2
+        using simd_member_type =
+            std::array<typename Abi::template traits<T>::simd_member_type, N>;
+        using mask_member_type =
+            std::array<typename Abi::template traits<T>::mask_member_type, N>;
+        static constexpr size_t simd_member_alignment =
+            Abi::template traits<T>::simd_member_alignment;
+        static constexpr size_t mask_member_alignment =
+            Abi::template traits<T>::mask_member_alignment;
+
+        // simd_base / base class for simd, providing extra conversions {{{2
+        struct simd_base {
+            explicit operator const simd_member_type &() const
+            {
+                return static_cast<const simd<T, __combine> *>(this)->d;
+            }
+        };
+
+        // mask_base {{{2
+        // empty. The std::bitset interface suffices
+        struct mask_base {
+            explicit operator const mask_member_type &() const
+            {
+                return static_cast<const simd_mask<T, __combine> *>(this)->d;
+            }
+        };
+
+        // simd_cast_type {{{2
+        struct simd_cast_type {
+            simd_cast_type(const simd_member_type &dd) : d(dd) {}
+            explicit operator const simd_member_type &() const { return d; }
+
+        private:
+            const simd_member_type &d;
+        };
+
+        // mask_cast_type {{{2
+        struct mask_cast_type {
+            mask_cast_type(const mask_member_type &dd) : d(dd) {}
+            explicit operator const mask_member_type &() const { return d; }
+
+        private:
+            const mask_member_type &d;
+        };
+        //}}}2
+    };
+    //}}}2
+};
+// __neon_abi {{{1
+template <int Bytes>
+struct __neon_abi : detail::implicit_mask_abi_base<Bytes, __neon_abi<Bytes>> {
+    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    static constexpr bool is_partial = Bytes < 16;
+
+    // validity traits {{{2
+    struct is_valid_abi_tag : detail::bool_constant<(Bytes > 0 && Bytes <= 16)> {
     };
     template <class T>
     struct is_valid_size_for
@@ -215,16 +320,6 @@ template <int Bytes> struct __neon_abi {
                                   is_valid_size_for<T>> {
     };
     template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
-
-    // implicit mask {{{2
-    template <class T>
-    using implicit_mask_type =
-        detail::builtin_type_t<detail::int_for_sizeof_t<T>, size_tag<T>::value>;
-    template <class T>
-    static constexpr implicit_mask_type<T> implicit_mask =
-        detail::generate_builtin<implicit_mask_type<T>>([](auto i) {
-            return i < Bytes / sizeof(T) ? -1 : 0;
-        });
 
     // simd/mask_impl_type {{{2
     using simd_impl_type = detail::neon_simd_impl;
@@ -240,8 +335,11 @@ template <int Bytes> struct __neon_abi {
 };
 
 // __sse_abi {{{1
-template <int Bytes> struct __sse_abi {
+template <int Bytes>
+struct __sse_abi : detail::implicit_mask_abi_base<Bytes, __sse_abi<Bytes>> {
     template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    static constexpr bool is_partial = Bytes < 16;
+
     // validity traits {{{2
     // allow 2x, 3x, and 4x "unroll"
     struct is_valid_abi_tag : detail::bool_constant<Bytes == 16> {};
@@ -262,16 +360,6 @@ template <int Bytes> struct __sse_abi {
     };
     template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
 
-    // implicit mask {{{2
-    template <class T>
-    using implicit_mask_type =
-        detail::builtin_type_t<detail::int_for_sizeof_t<T>, size_tag<T>::value>;
-    template <class T>
-    static constexpr implicit_mask_type<T> implicit_mask =
-        detail::generate_builtin<implicit_mask_type<T>>([](auto i) {
-            return i < Bytes / sizeof(T) ? -1 : 0;
-        });
-
     // simd/mask_impl_type {{{2
     using simd_impl_type = detail::sse_simd_impl;
     using mask_impl_type = detail::sse_mask_impl;
@@ -286,8 +374,11 @@ template <int Bytes> struct __sse_abi {
 };
 
 // __avx_abi {{{1
-template <int Bytes> struct __avx_abi {
+template <int Bytes>
+struct __avx_abi : detail::implicit_mask_abi_base<Bytes, __avx_abi<Bytes>> {
     template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    static constexpr bool is_partial = Bytes < 32;
+
     // validity traits {{{2
     // - allow 2x, 3x, and 4x "unroll"
     // - disallow <= 16 Bytes as that's covered by __sse_abi
@@ -307,16 +398,6 @@ template <int Bytes> struct __avx_abi {
     };
     template <class T> static constexpr bool is_valid_v = is_valid<T>::value;
 
-    // implicit mask {{{2
-    template <class T>
-    using implicit_mask_type =
-        detail::builtin_type_t<detail::int_for_sizeof_t<T>, size_tag<T>::value>;
-    template <class T>
-    static constexpr implicit_mask_type<T> implicit_mask =
-        detail::generate_builtin<implicit_mask_type<T>>([](auto i) {
-            return i < Bytes / sizeof(T) ? -1 : 0;
-        });
-
     // simd/mask_impl_type {{{2
     using simd_impl_type = detail::avx_simd_impl;
     using mask_impl_type = detail::avx_mask_impl;
@@ -333,14 +414,15 @@ template <int Bytes> struct __avx_abi {
 // __avx512_abi {{{1
 template <int Bytes> struct __avx512_abi {
     template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    static constexpr bool is_partial = Bytes < 64;
+
     // validity traits {{{2
-    // - allow 2x, 3x, and 4x "unroll"
     // - disallow <= 32 Bytes as that's covered by __sse_abi and __avx_abi
+    // TODO: consider AVX512VL
     struct is_valid_abi_tag : detail::bool_constant<Bytes == 64> {};
     /* TODO:
     struct is_valid_abi_tag
-        : detail::bool_constant<((Bytes > 32 && Bytes <= 64) || Bytes == 128 ||
-                                 Bytes == 192 || Bytes == 256)> {
+        : detail::bool_constant<(Bytes > 32 && Bytes <= 64)> {
     };
     */
     template <class T>
@@ -354,11 +436,24 @@ template <int Bytes> struct __avx512_abi {
 
     // implicit mask {{{2
     template <class T>
-    using implicit_mask_type = detail::bool_storage_member_type<64 / sizeof(T)>;
+    using implicit_mask_type = detail::bool_storage_member_type_t<64 / sizeof(T)>;
+
     template <class T>
     static constexpr implicit_mask_type<T> implicit_mask =
         Bytes == 64 ? ~implicit_mask_type<T>()
                     : (implicit_mask_type<T>(1) << (Bytes / sizeof(T))) - 1;
+
+    template <class T, class = std::enable_if_t<detail::is_bitmask_v<T>>>
+    static constexpr T masked(T x)
+    {
+        if constexpr (is_partial) {
+            constexpr size_t N = sizeof(T) * 8;
+            return x &
+                   ((detail::bool_storage_member_type_t<N>(1) << (Bytes * N / 64)) - 1);
+        } else {
+            return x;
+        }
+    }
 
     // simd/mask_impl_type {{{2
     using simd_impl_type = detail::avx512_simd_impl;
@@ -600,6 +695,50 @@ struct deduce_impl : public deduce_fixed_size_fallback<T, N> {
 };
 
 //}}}1
+// is_<abi> {{{
+template <template <int> class Abi, int Bytes> constexpr int abi_bytes_impl(Abi<Bytes> *)
+{
+    return Bytes;
+}
+template <class T> constexpr int abi_bytes_impl(T *) { return -1; }
+template <class Abi>
+inline constexpr int abi_bytes = abi_bytes_impl(static_cast<Abi *>(nullptr));
+
+template <class Abi0, class Abi1> constexpr bool is_abi()
+{
+    return std::is_same_v<Abi0, Abi1>;
+}
+template <template <int> class Abi0, class Abi1> constexpr bool is_abi()
+{
+    return std::is_same_v<Abi0<abi_bytes<Abi1>>, Abi1>;
+}
+template <class Abi0, template <int> class Abi1> constexpr bool is_abi()
+{
+    return std::is_same_v<Abi1<abi_bytes<Abi0>>, Abi0>;
+}
+template <template <int> class Abi0, template <int> class Abi1> constexpr bool is_abi()
+{
+    return std::is_same_v<Abi0<0>, Abi1<0>>;
+}
+
+// }}}
+// is_combined_abi{{{
+template <template <int, class> class Combine, int N, class Abi>
+constexpr bool is_combined_abi(Combine<N, Abi> *)
+{
+    return std::is_same_v<Combine<N, Abi>, simd_abi::__combine<N, Abi>>;
+}
+template <class Abi> constexpr bool is_combined_abi(Abi *)
+{
+    return false;
+}
+
+template <class Abi> constexpr bool is_combined_abi()
+{
+    return is_combined_abi(static_cast<Abi *>(nullptr));
+}
+
+// }}}
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
