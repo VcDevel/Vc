@@ -30802,8 +30802,8 @@ private:
     using LScalar = Traits::entry_type_of<L>;
     using RScalar = Traits::entry_type_of<R>;
 
-    template <bool B, typename True, typename False>
-    using conditional = typename std::conditional<B, True, False>::type;
+    template <bool B, typename T, typename F>
+    using conditional = typename std::conditional<B, T, F>::type;
 
 public:
     // In principle we want the exact same rules for SimdArray<T> ⨉ SimdArray<U> as the standard
