@@ -7,6 +7,7 @@ cache:
 
 env:
     - arch=x86_64  subset=sse2
+    - arch=x86_64  subset=ssse3
     - arch=x86_64  subset=sse4
     - arch=x86_64  subset=avx
     - arch=x86_64  subset=avx2
@@ -43,7 +44,8 @@ sudo: required
 dist: trusty
 
 install:
-    - [[ "$TRAVIS_OS_NAME" == "linux" ]] &&
+    - test "$TRAVIS_OS_NAME" = "linux" &&
+      sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BA9EF27F &&
       sudo add-apt-repository -y 'deb http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu/ xenial main' &&
       sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial main restricted' &&
       sudo add-apt-repository -y 'deb http://de.archive.ubuntu.com/ubuntu/ xenial-updates main restricted' &&
