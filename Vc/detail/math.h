@@ -33,6 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "debug.h"
 #include <utility>
 
+static_assert(std::is_same_v<bool, decltype(std::isnan(double()))>);
+static_assert(std::is_same_v<bool, decltype(std::isinf(double()))>);
+
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail // helpers {{{
 {
