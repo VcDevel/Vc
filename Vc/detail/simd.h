@@ -139,7 +139,6 @@ class simd
     using impl = typename traits::simd_impl_type;
     using member_type = typename traits::simd_member_type;
     using cast_type = typename traits::simd_cast_type;
-    static constexpr detail::size_tag_type<T, Abi> size_tag = {};
     static constexpr T *type_tag = nullptr;
     friend typename traits::simd_base;
     friend impl;
@@ -152,11 +151,7 @@ public:
     using mask_type = simd_mask<T, Abi>;
     using abi_type = Abi;
 
-    static constexpr size_t size()
-    {
-        constexpr size_t N = size_tag;
-        return N;
-    }
+    static constexpr size_t size() { return detail::size_or_zero<T, Abi>; }
     simd() = default;
     simd(const simd &) = default;
     simd(simd &&) = default;
@@ -166,7 +161,7 @@ public:
     // implicit broadcast constructor
     template <class U, class = detail::value_preserving_or_int<U, value_type>>
     constexpr Vc_ALWAYS_INLINE simd(U &&x)
-        : d(impl::broadcast(static_cast<value_type>(std::forward<U>(x)), size_tag))
+        : d(impl::broadcast(static_cast<value_type>(std::forward<U>(x))))
     {
     }
 
@@ -228,7 +223,7 @@ public:
         detail::value_preserving_or_int<
             decltype(std::declval<F>()(std::declval<detail::size_constant<0> &>())),
             value_type> * = nullptr)
-        : d(impl::generator(std::forward<F>(gen), type_tag, size_tag))
+        : d(impl::generator(std::forward<F>(gen), type_tag))
     {
     }
 

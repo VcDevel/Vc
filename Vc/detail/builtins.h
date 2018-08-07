@@ -122,9 +122,10 @@ constexpr Vc_INTRINSIC typename builtin_type<To, sizeof(From)>::type builtin_cas
     return reinterpret_cast<typename builtin_type<To, sizeof(From)>::type>(x);
 }
 template <class To, class T, size_t N>
-constexpr Vc_INTRINSIC builtin_type_t<To, N> builtin_cast(const Storage<T, N> &x)
+constexpr Vc_INTRINSIC typename builtin_type<To, sizeof(Storage<T, N>)>::type
+builtin_cast(const Storage<T, N> &x)
 {
-    return reinterpret_cast<builtin_type_t<To, N>>(x.d);
+    return reinterpret_cast<typename builtin_type<To, sizeof(Storage<T, N>)>::type>(x.d);
 }
 
 // }}}
@@ -521,7 +522,7 @@ Vc_INTRINSIC std::bitset<Trait::width> to_bitset(T x)
     }
     }
 
-// }}}
+    // }}}
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 

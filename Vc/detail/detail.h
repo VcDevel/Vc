@@ -142,11 +142,17 @@ Vc_ALWAYS_INLINE void assertCorrectAlignment(const T *)
 }
 #endif
 
-// size_tag_type {{{1
+// size_or_zero {{{1
+template <class T, class A, size_t N = simd_size<T, A>::value>
+constexpr size_t size_or_zero_dispatch(int)
+{
+    return N;
+}
+template <class T, class A> constexpr size_t size_or_zero_dispatch(float) {
+  return 0;
+}
 template <class T, class A>
-auto size_tag_type_f(int)->size_constant<simd_size<T, A>::value>;
-template <class T, class A> auto size_tag_type_f(float)->size_constant<0>;
-template <class T, class A> using size_tag_type = decltype(size_tag_type_f<T, A>(0));
+inline constexpr size_t size_or_zero = size_or_zero_dispatch<T, A>(0);
 
 // promote_preserving_unsigned{{{1
 // work around crazy semantics of unsigned integers of lower rank than int:
@@ -273,9 +279,6 @@ constexpr std::size_t next_power_of_2(std::size_t x)
  */
 inline constexpr struct private_init_t {} private_init = {};
 inline constexpr struct bitset_init_t {} bitset_init = {};
-
-// size_tag{{{1
-template <size_t N> inline constexpr size_constant<N> size_tag = {};
 
 // identity/id{{{1
 template <class T> struct identity {
@@ -488,6 +491,7 @@ struct is_homogeneous_tuple<detail::simd_tuple<T, A0, Abis...>> {
     static constexpr bool value = (std::is_same_v<A0, Abis> && ...);
 };
 // }}}
+template <class To, class From> inline To convert_mask(From k);
 
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

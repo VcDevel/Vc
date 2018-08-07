@@ -106,11 +106,14 @@ template <size_t N> class to_storage<std::bitset<N>>
     std::bitset<N> d;
 
 public:
+    [[deprecated("use convert_mask<To>(bitset)")]]
     constexpr to_storage(std::bitset<N> x) : d(x) {}
-    template <class U> constexpr operator Storage<U, N>() const
+
+    // can convert to larger storage for Abi::is_partial == true
+    template <class U, size_t M> constexpr operator Storage<U, M>() const
     {
-        return reinterpret_cast<builtin_type_t<U, N>>(
-            detail::x86::convert_mask<sizeof(U), sizeof(builtin_type_t<U, N>)>(d));
+        static_assert(M >= N);
+        return convert_mask<Storage<U, M>>(d);
     }
 };
 
@@ -120,12 +123,16 @@ public:
         type_ d;                                                                         \
                                                                                          \
     public:                                                                              \
-        constexpr to_storage(type_ x) : d(x) {}                                          \
+        [[deprecated("use convert_mask<To>(bitset)")]] constexpr to_storage(type_ x)     \
+            : d(x)                                                                       \
+        {                                                                                \
+        }                                                                                \
                                                                                          \
         template <class U, size_t N> constexpr operator Storage<U, N>() const            \
         {                                                                                \
+            static_assert(N >= sizeof(type_) * CHAR_BIT);                                \
             return reinterpret_cast<builtin_type_t<U, N>>(                               \
-                detail::x86::convert_mask<sizeof(U), sizeof(builtin_type_t<U, N>)>(d));  \
+                convert_mask<Storage<U, N>>(d));                                         \
         }                                                                                \
                                                                                          \
         template <size_t N> constexpr operator Storage<bool, N>() const                  \
@@ -214,296 +221,6 @@ Vc_INTRINSIC Vc_CONST Storage<T, 8 * N> Vc_VDECL concat(Storage<T, N> a, Storage
 }
 
 //}}}
-// convert_any_mask{{{
-template <class To,  // required to be a detail::Storage specialization
-          class T, size_t FromN>
-To convert_any_mask(Storage<T, FromN> x)
-{
-    if constexpr (sizeof(T) == sizeof(typename To::value_type) &&
-                  sizeof(To) == sizeof(x)) {
-        // no change
-        return to_storage(x.d);
-    }
-    if constexpr (sizeof(To) < 16) { // convert to __mmaskXX {{{
-        if constexpr (sizeof(x) < 16) {
-            // convert from __mmaskYY
-            return x.d;
-        } else {
-            constexpr size_t cvt_id = FromN * 10 + sizeof(T);
-
-            if constexpr (have_avx512bw_vl) {
-                if constexpr (cvt_id == 16'1) { return    _mm_movepi8_mask(x); }
-                if constexpr (cvt_id == 32'1) { return _mm256_movepi8_mask(x); }
-                if constexpr (cvt_id ==  8'2) { return    _mm_movepi16_mask(x); }
-                if constexpr (cvt_id == 16'2) { return _mm256_movepi16_mask(x); }
-            }
-            if constexpr (have_avx512dq_vl) {
-                if constexpr (cvt_id ==  4'4) { return    _mm_movepi32_mask(to_m128i(x)); }
-                if constexpr (cvt_id ==  8'4) { return _mm256_movepi32_mask(to_m256i(x)); }
-                if constexpr (cvt_id ==  2'8) { return    _mm_movepi64_mask(to_m128i(x)); }
-                if constexpr (cvt_id ==  4'8) { return _mm256_movepi64_mask(to_m256i(x)); }
-            }
-            if constexpr(have_avx512bw) {
-                if constexpr (cvt_id == 16'1) { return _mm512_movepi8_mask(zeroExtend(x.intrin())); }
-                if constexpr (cvt_id == 32'1) { return _mm512_movepi8_mask(zeroExtend(x.intrin())); }
-                if constexpr (cvt_id == 64'1) { return _mm512_movepi8_mask(x); }
-                if constexpr (cvt_id ==  8'2) { return _mm512_movepi16_mask(zeroExtend(x.intrin())); }
-                if constexpr (cvt_id == 16'2) { return _mm512_movepi16_mask(zeroExtend(x.intrin())); }
-                if constexpr (cvt_id == 32'2) { return _mm512_movepi16_mask(x); }
-            }
-            if constexpr (have_avx512dq) {
-                if constexpr (cvt_id ==  4'4) { return _mm512_movepi32_mask(zeroExtend(to_m128i(x))); }
-                if constexpr (cvt_id ==  8'4) { return _mm512_movepi32_mask(zeroExtend(to_m256i(x))); }
-                if constexpr (cvt_id == 16'4) { return _mm512_movepi32_mask(to_m512i(x)); }
-                if constexpr (cvt_id ==  2'8) { return _mm512_movepi64_mask(zeroExtend(to_m128i(x))); }
-                if constexpr (cvt_id ==  4'8) { return _mm512_movepi64_mask(zeroExtend(to_m256i(x))); }
-                if constexpr (cvt_id ==  8'8) { return _mm512_movepi64_mask(to_m512i(x)); }
-            }
-            if constexpr (have_avx512vl) {
-                if constexpr (cvt_id ==  4'4) { return    _mm_cmp_epi32_mask(to_m128i(x), __m128i(), _MM_CMPINT_LT); }
-                if constexpr (cvt_id ==  8'4) { return _mm256_cmp_epi32_mask(to_m256i(x), __m256i(), _MM_CMPINT_LT); }
-                if constexpr (cvt_id ==  2'8) { return    _mm_cmp_epi64_mask(to_m128i(x), __m128i(), _MM_CMPINT_LT); }
-                if constexpr (cvt_id ==  4'8) { return _mm256_cmp_epi64_mask(to_m256i(x), __m256i(), _MM_CMPINT_LT); }
-            }
-            if constexpr (cvt_id == 16'4) { return _mm512_cmp_epi32_mask(to_m512i(x), __m512i(), _MM_CMPINT_LT); }
-            if constexpr (cvt_id ==  8'8) { return _mm512_cmp_epi64_mask(to_m512i(x), __m512i(), _MM_CMPINT_LT); }
-            if constexpr (std::is_integral_v<T>) {
-                if constexpr (cvt_id == 4'4) { return _mm512_cmp_epi32_mask(zeroExtend(x.intrin()), __m512i(), _MM_CMPINT_LT); }
-                if constexpr (cvt_id == 8'4) { return _mm512_cmp_epi32_mask(zeroExtend(x.intrin()), __m512i(), _MM_CMPINT_LT); }
-                if constexpr (cvt_id == 2'8) { return _mm512_cmp_epi64_mask(zeroExtend(x.intrin()), __m512i(), _MM_CMPINT_LT); }
-                if constexpr (cvt_id == 4'8) { return _mm512_cmp_epi64_mask(zeroExtend(x.intrin()), __m512i(), _MM_CMPINT_LT); }
-            } else {
-                if constexpr (cvt_id == 4'4) { return    _mm_movemask_ps(x); }
-                if constexpr (cvt_id == 8'4) { return _mm256_movemask_ps(x); }
-                if constexpr (cvt_id == 2'8) { return    _mm_movemask_pd(x); }
-                if constexpr (cvt_id == 4'8) { return _mm256_movemask_pd(x); }
-            }
-
-            if constexpr (cvt_id == 16'1) { return    _mm_movemask_epi8(x); }
-            if constexpr (cvt_id == 32'1) { return _mm256_movemask_epi8(x); }
-            if constexpr (cvt_id ==  8'2) { return x86::movemask_epi16(x); }
-            if constexpr (cvt_id == 16'2) { return x86::movemask_epi16(x); }
-        }
-        // }}}
-    } else if constexpr (sizeof(x) < 16) { // convert from __mmaskXX {{{
-        // convert to __mm(128|256|512)
-#ifdef Vc_HAVE_AVX512F
-        return to_storage(
-            detail::x86::convert_mask<sizeof(typename To::value_type), sizeof(To)>(
-                static_cast<std::conditional_t<
-                    (To::width <= 16),
-                    std::conditional_t<To::width == 16, __mmask16, __mmask8>,
-                    std::conditional_t<To::width == 32, __mmask32, __mmask64>>>(x)));
-#endif
-        // }}}
-    } else { // convert __mmXXX to __mmXXX {{{
-        using ToT = typename To::value_type;
-        constexpr int FromBytes = sizeof(T);
-        constexpr int ToBytes = sizeof(ToT);
-        if constexpr (FromN == To::width && sizeof(To) == sizeof(x)) {
-            // reinterpret the bits
-            return storage_bitcast<ToT>(x);
-        } else if constexpr (sizeof(To) == 16 && sizeof(x) == 16) {
-            // SSE -> SSE {{{
-            if constexpr (FromBytes == 4 && ToBytes == 8) {
-                if constexpr(std::is_integral_v<T>) {
-                    return to_storage(_mm_unpacklo_epi32(x, x));
-                } else {
-                    return to_storage(_mm_unpacklo_ps(x, x));
-                }
-            } else if constexpr (FromBytes == 2 && ToBytes == 8) {
-                const auto y = _mm_unpacklo_epi16(x, x);
-                return to_storage(_mm_unpacklo_epi32(y, y));
-            } else if constexpr (FromBytes == 1 && ToBytes == 8) {
-                auto y = _mm_unpacklo_epi8(x, x);
-                y = _mm_unpacklo_epi16(y, y);
-                return to_storage(_mm_unpacklo_epi32(y, y));
-            } else if constexpr (FromBytes == 8 && ToBytes == 4) {
-                if constexpr (std::is_floating_point_v<T>) {
-                    return to_storage(_mm_shuffle_ps(to_m128(x), __m128(),
-                                                     make_immediate<4>(1, 3, 1, 3)));
-                } else {
-                    auto y = to_m128i(x);
-                    return to_storage(_mm_packs_epi32(y, __m128i()));
-                }
-            } else if constexpr (FromBytes == 2 && ToBytes == 4) {
-                return to_storage(_mm_unpacklo_epi16(x, x));
-            } else if constexpr (FromBytes == 1 && ToBytes == 4) {
-                const auto y = _mm_unpacklo_epi8(x, x);
-                return to_storage(_mm_unpacklo_epi16(y, y));
-            } else if constexpr (FromBytes == 8 && ToBytes == 2) {
-                if constexpr(have_ssse3) {
-                    return _mm_shuffle_epi8(
-                        to_m128i(x), _mm_setr_epi8(6, 7, 14, 15, -1, -1, -1, -1, -1, -1,
-                                                   -1, -1, -1, -1, -1, -1));
-                } else {
-                    const auto y = _mm_packs_epi32(to_m128i(x), __m128i());
-                    return _mm_packs_epi32(y, __m128i());
-                }
-            } else if constexpr (FromBytes == 4 && ToBytes == 2) {
-                return _mm_packs_epi32(to_m128i(x), __m128i());
-            } else if constexpr (FromBytes == 1 && ToBytes == 2) {
-                return _mm_unpacklo_epi8(x, x);
-            } else if constexpr (FromBytes == 8 && ToBytes == 1) {
-                if constexpr(have_ssse3) {
-                    return _mm_shuffle_epi8(
-                        to_m128i(x), _mm_setr_epi8(7, 15, -1, -1, -1, -1, -1, -1, -1, -1,
-                                                   -1, -1, -1, -1, -1, -1));
-                } else {
-                    auto y = _mm_packs_epi32(to_m128i(x), __m128i());
-                    y = _mm_packs_epi32(y, __m128i());
-                    return _mm_packs_epi16(y, __m128i());
-                }
-            } else if constexpr (FromBytes == 4 && ToBytes == 1) {
-                if constexpr(have_ssse3) {
-                    return _mm_shuffle_epi8(
-                        to_m128i(x), _mm_setr_epi8(3, 7, 11, 15, -1, -1, -1, -1, -1, -1,
-                                                   -1, -1, -1, -1, -1, -1));
-                } else {
-                    const auto y = _mm_packs_epi32(to_m128i(x), __m128i());
-                    return _mm_packs_epi16(y, __m128i());
-                }
-            } else if constexpr (FromBytes == 2 && ToBytes == 1) {
-                return _mm_packs_epi16(x, __m128i());
-            } else {
-                static_assert(!std::is_same_v<T, T>, "should be unreachable");
-            }
-            // }}}
-        } else if constexpr (sizeof(To) == 32 && sizeof(x) == 32) {
-            // AVX -> AVX {{{
-            if constexpr (FromBytes == ToBytes) {  // keep low 1/2
-                static_assert(!std::is_same_v<T, T>, "should be unreachable");
-            } else if constexpr (FromBytes == ToBytes * 2) {
-                const auto y = to_m256i(x);
-                return to_storage(
-                    _mm256_castsi128_si256(_mm_packs_epi16(lo128(y), hi128(y))));
-            } else if constexpr (FromBytes == ToBytes * 4) {
-                const auto y = to_m256i(x);
-                return _mm256_castsi128_si256(
-                    _mm_packs_epi16(_mm_packs_epi16(lo128(y), hi128(y)), __m128i()));
-            } else if constexpr (FromBytes == ToBytes * 8) {
-                const auto y = to_m256i(x);
-                return _mm256_castsi128_si256(
-                    _mm_shuffle_epi8(_mm_packs_epi16(lo128(y), hi128(y)),
-                                     _mm_setr_epi8(3, 7, 11, 15, -1, -1, -1, -1, -1, -1,
-                                                   -1, -1, -1, -1, -1, -1)));
-            } else if constexpr (FromBytes * 2 == ToBytes) {
-                auto y = fixup_avx_xzyw(x.intrin());
-                if constexpr(std::is_floating_point_v<T>) {
-                    return to_storage(_mm256_unpacklo_ps(y, y));
-                } else {
-                    return to_storage(_mm256_unpacklo_epi8(y, y));
-                }
-            } else if constexpr (FromBytes * 4 == ToBytes) {
-                auto y = _mm_unpacklo_epi8(lo128(to_m256i(x)),
-                                           lo128(to_m256i(x)));  // drops 3/4 of input
-                return to_storage(
-                    concat(_mm_unpacklo_epi16(y, y), _mm_unpackhi_epi16(y, y)));
-            } else if constexpr (FromBytes == 1 && ToBytes == 8) {
-                auto y = _mm_unpacklo_epi8(lo128(to_m256i(x)),
-                                           lo128(to_m256i(x)));  // drops 3/4 of input
-                y = _mm_unpacklo_epi16(y, y);  // drops another 1/2 => 7/8 total
-                return to_storage(
-                    concat(_mm_unpacklo_epi32(y, y), _mm_unpackhi_epi32(y, y)));
-            } else {
-                static_assert(!std::is_same_v<T, T>, "should be unreachable");
-            }
-            // }}}
-        } else if constexpr (sizeof(To) == 32 && sizeof(x) == 16) {
-            // SSE -> AVX {{{
-            if constexpr (FromBytes == ToBytes) {
-                return to_storage(
-                    intrinsic_type_t<T, 32 / sizeof(T)>(zeroExtend(x.intrin())));
-            } else if constexpr (FromBytes * 2 == ToBytes) {  // keep all
-                return to_storage(concat(_mm_unpacklo_epi8(to_m128i(x), to_m128i(x)),
-                                         _mm_unpackhi_epi8(to_m128i(x), to_m128i(x))));
-            } else if constexpr (FromBytes * 4 == ToBytes) {
-                if constexpr (have_avx2) {
-                    return to_storage(_mm256_shuffle_epi8(
-                        concat(to_m128i(x), to_m128i(x)),
-                        _mm256_setr_epi8(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3,
-                                         4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7,
-                                         7)));
-                } else {
-                    return to_storage(
-                        concat(_mm_shuffle_epi8(to_m128i(x),
-                                                _mm_setr_epi8(0, 0, 0, 0, 1, 1, 1, 1, 2,
-                                                              2, 2, 2, 3, 3, 3, 3)),
-                               _mm_shuffle_epi8(to_m128i(x),
-                                                _mm_setr_epi8(4, 4, 4, 4, 5, 5, 5, 5, 6,
-                                                              6, 6, 6, 7, 7, 7, 7))));
-                }
-            } else if constexpr (FromBytes * 8 == ToBytes) {
-                if constexpr (have_avx2) {
-                    return to_storage(_mm256_shuffle_epi8(
-                        concat(to_m128i(x), to_m128i(x)),
-                        _mm256_setr_epi8(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-                                         2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
-                                         3)));
-                } else {
-                    return to_storage(
-                        concat(_mm_shuffle_epi8(to_m128i(x),
-                                                _mm_setr_epi8(0, 0, 0, 0, 0, 0, 0, 0, 1,
-                                                              1, 1, 1, 1, 1, 1, 1)),
-                               _mm_shuffle_epi8(to_m128i(x),
-                                                _mm_setr_epi8(2, 2, 2, 2, 2, 2, 2, 2, 3,
-                                                              3, 3, 3, 3, 3, 3, 3))));
-                }
-            } else if constexpr (FromBytes == ToBytes * 2) {
-                return to_storage(
-                    __m256i(zeroExtend(_mm_packs_epi16(auto_cast(x), __m128i()))));
-            } else if constexpr (FromBytes == 8 && ToBytes == 2) {
-                return __m256i(zeroExtend(_mm_shuffle_epi8(
-                    to_m128i(x), _mm_setr_epi8(6, 7, 14, 15, -1, -1, -1, -1, -1, -1, -1,
-                                               -1, -1, -1, -1, -1))));
-            } else if constexpr (FromBytes == 4 && ToBytes == 1) {
-                return __m256i(zeroExtend(_mm_shuffle_epi8(
-                    to_m128i(x), _mm_setr_epi8(3, 7, 11, 15, -1, -1, -1, -1, -1, -1, -1,
-                                               -1, -1, -1, -1, -1))));
-            } else if constexpr (FromBytes == 8 && ToBytes == 1) {
-                return __m256i(zeroExtend(_mm_shuffle_epi8(
-                    to_m128i(x), _mm_setr_epi8(7, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-                                               -1, -1, -1, -1, -1))));
-            } else {
-                static_assert(!std::is_same_v<T, T>, "should be unreachable");
-            }
-            // }}}
-        } else if constexpr (sizeof(To) == 16 && sizeof(x) == 32) {
-            // AVX -> SSE {{{
-            if constexpr (FromBytes == ToBytes) {  // keep low 1/2
-                return to_storage(lo128(x.d));
-            } else if constexpr (FromBytes == ToBytes * 2) {  // keep all
-                auto y = to_m256i(x);
-                return to_storage(_mm_packs_epi16(lo128(y), hi128(y)));
-            } else if constexpr (FromBytes == ToBytes * 4) {  // add 1/2 undef
-                auto y = to_m256i(x);
-                return to_storage(
-                    _mm_packs_epi16(_mm_packs_epi16(lo128(y), hi128(y)), __m128i()));
-            } else if constexpr (FromBytes == 8 && ToBytes == 1) {  // add 3/4 undef
-                auto y = to_m256i(x);
-                return _mm_shuffle_epi8(_mm_packs_epi16(lo128(y), hi128(y)),
-                                        _mm_setr_epi8(3, 7, 11, 15, -1, -1, -1, -1, -1,
-                                                      -1, -1, -1, -1, -1, -1, -1));
-            } else if constexpr (FromBytes * 2 == ToBytes) {  // keep low 1/4
-                auto y = lo128(to_m256i(x));
-                return to_storage(_mm_unpacklo_epi8(y, y));
-            } else if constexpr (FromBytes * 4 == ToBytes) {  // keep low 1/8
-                auto y = lo128(to_m256i(x));
-                y = _mm_unpacklo_epi8(y, y);
-                return to_storage(_mm_unpacklo_epi8(y, y));
-            } else if constexpr (FromBytes * 8 == ToBytes) {  // keep low 1/16
-                auto y = lo128(to_m256i(x));
-                y = _mm_unpacklo_epi8(y, y);
-                y = _mm_unpacklo_epi8(y, y);
-                return to_storage(_mm_unpacklo_epi8(y, y));
-            } else {
-                static_assert(!std::is_same_v<T, T>, "should be unreachable");
-            }
-            // }}}
-        }
-        // }}}
-    }
-} //}}}
 
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END

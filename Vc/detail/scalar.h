@@ -47,18 +47,17 @@ struct scalar_simd_impl {
     template <class T> using simd_member_type = T;
     template <class T> using simd = Vc::simd<T, abi>;
     template <class T> using simd_mask = Vc::simd_mask<T, abi>;
-    using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
     // broadcast {{{2
-    template <class T> static Vc_INTRINSIC T broadcast(T x, size_tag) noexcept
+    template <class T> static constexpr Vc_INTRINSIC T broadcast(T x) noexcept
     {
         return x;
     }
 
     // generator {{{2
     template <class F, class T>
-    static Vc_INTRINSIC T generator(F &&gen, type_tag<T>, size_tag)
+    static Vc_INTRINSIC T generator(F &&gen, type_tag<T>)
     {
         return gen(size_constant<0>());
     }
@@ -101,7 +100,7 @@ struct scalar_simd_impl {
 
     // reductions {{{2
     template <class T, class BinaryOperation>
-    static inline T reduce(size_tag, const simd<T> &x, BinaryOperation &)
+    static inline T reduce(const simd<T> &x, BinaryOperation &)
     {
         return x.d;
     }
@@ -293,7 +292,6 @@ struct scalar_simd_impl {
 struct scalar_mask_impl {
     // member types {{{2
     template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::scalar>;
-    using size_tag = size_constant<1>;
     template <class T> using type_tag = T *;
 
     // from_bitset {{{2
@@ -315,7 +313,7 @@ struct scalar_mask_impl {
     }
 
     // store {{{2
-    template <class F> static inline void store(bool v, bool *mem, F, size_tag) noexcept
+    template <class F> static Vc_INTRINSIC void store(bool v, bool *mem, F) noexcept
     {
         mem[0] = v;
     }
@@ -329,9 +327,6 @@ struct scalar_mask_impl {
             mem[0] = v;
         }
     }
-
-    // negation {{{2
-    static inline bool negate(bool x, size_tag) noexcept { return !x; }
 
     // logical and bitwise operators {{{2
     static constexpr bool logical_and(bool x, bool y) { return x && y; }
@@ -370,10 +365,6 @@ struct simd_converter<From, simd_abi::scalar, To, simd_abi::scalar> {
         return static_cast<To>(a);
     }
 };
-
-// convert_any_mask overload {{{1
-// declared in synopsis.h
-template <> Vc_ALWAYS_INLINE bool convert_any_mask<bool>(bool x) { return x; }
 
 // }}}1
 }  // namespace detail

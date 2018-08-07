@@ -213,7 +213,12 @@ template <int Bytes, class Abi> struct implicit_mask_abi_base {
     static constexpr auto masked(T x)
     {
         using U = typename Trait::value_type;
-        return builtin_cast<detail::int_for_sizeof_t<U>>(x) & implicit_mask<U>;
+        const auto xx = builtin_cast<detail::int_for_sizeof_t<U>>(x);
+        if constexpr (Abi::is_partial) {
+            return xx & implicit_mask<U>;
+        } else {
+            return xx;
+        }
     }
 };
 
@@ -223,8 +228,8 @@ namespace simd_abi
 {
 // __combine {{{1
 template <int N, class Abi> struct __combine {
-    template <class T>
-    using size_tag = detail::size_constant<N * Abi::template size_tag<T>::value>;
+    template <class T> static constexpr size_t size = N *Abi::template size<T>;
+    template <class T> static constexpr size_t full_size = size<T>;
 
     static constexpr int factor = N;
     using member_abi = Abi;
@@ -305,7 +310,8 @@ template <int N, class Abi> struct __combine {
 // __neon_abi {{{1
 template <int Bytes>
 struct __neon_abi : detail::implicit_mask_abi_base<Bytes, __neon_abi<Bytes>> {
-    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    template <class T> static constexpr size_t size = Bytes / sizeof(T);
+    template <class T> static constexpr size_t full_size = 16 / sizeof(T);
     static constexpr bool is_partial = Bytes < 16;
 
     // validity traits {{{2
@@ -327,28 +333,23 @@ struct __neon_abi : detail::implicit_mask_abi_base<Bytes, __neon_abi<Bytes>> {
 
     // traits {{{2
     template <class T>
-    using traits =
-        std::conditional_t<is_valid_v<T>,
-                           detail::gnu_traits<T, T, __neon_abi, size_tag<T>::value>,
-                           detail::invalid_traits>;
+    using traits = std::conditional_t<is_valid_v<T>,
+                                      detail::gnu_traits<T, T, __neon_abi, full_size<T>>,
+                                      detail::invalid_traits>;
     //}}}2
 };
 
 // __sse_abi {{{1
 template <int Bytes>
 struct __sse_abi : detail::implicit_mask_abi_base<Bytes, __sse_abi<Bytes>> {
-    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    template <class T> static constexpr size_t size = Bytes / sizeof(T);
+    template <class T> static constexpr size_t full_size = 16 / sizeof(T);
     static constexpr bool is_partial = Bytes < 16;
 
     // validity traits {{{2
     // allow 2x, 3x, and 4x "unroll"
     struct is_valid_abi_tag : detail::bool_constant<Bytes == 16> {};
-    /* TODO:
-    struct is_valid_abi_tag
-        : detail::bool_constant<((Bytes > 0 && Bytes <= 16) || Bytes == 32 ||
-                                 Bytes == 48 || Bytes == 64)> {
-    };
-    */
+    //struct is_valid_abi_tag : detail::bool_constant<(Bytes > 0 && Bytes <= 16)> {};
     template <class T>
     struct is_valid_size_for
         : detail::bool_constant<(Bytes / sizeof(T) > 1 && Bytes % sizeof(T) == 0)> {
@@ -366,17 +367,17 @@ struct __sse_abi : detail::implicit_mask_abi_base<Bytes, __sse_abi<Bytes>> {
 
     // traits {{{2
     template <class T>
-    using traits =
-        std::conditional_t<is_valid_v<T>,
-                           detail::gnu_traits<T, T, __sse_abi, Bytes / sizeof(T)>,
-                           detail::invalid_traits>;
+    using traits = std::conditional_t<is_valid_v<T>,
+                                      detail::gnu_traits<T, T, __sse_abi, full_size<T>>,
+                                      detail::invalid_traits>;
     //}}}2
 };
 
 // __avx_abi {{{1
 template <int Bytes>
 struct __avx_abi : detail::implicit_mask_abi_base<Bytes, __avx_abi<Bytes>> {
-    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    template <class T> static constexpr size_t size = Bytes / sizeof(T);
+    template <class T> static constexpr size_t full_size = 32 / sizeof(T);
     static constexpr bool is_partial = Bytes < 32;
 
     // validity traits {{{2
@@ -404,16 +405,16 @@ struct __avx_abi : detail::implicit_mask_abi_base<Bytes, __avx_abi<Bytes>> {
 
     // traits {{{2
     template <class T>
-    using traits =
-        std::conditional_t<is_valid_v<T>,
-                           detail::gnu_traits<T, T, __avx_abi, Bytes / sizeof(T)>,
-                           detail::invalid_traits>;
+    using traits = std::conditional_t<is_valid_v<T>,
+                                      detail::gnu_traits<T, T, __avx_abi, full_size<T>>,
+                                      detail::invalid_traits>;
     //}}}2
 };
 
 // __avx512_abi {{{1
 template <int Bytes> struct __avx512_abi {
-    template <class T> using size_tag = detail::size_constant<Bytes / sizeof(T)>;
+    template <class T> static constexpr size_t size = Bytes / sizeof(T);
+    template <class T> static constexpr size_t full_size = 64 / sizeof(T);
     static constexpr bool is_partial = Bytes < 64;
 
     // validity traits {{{2
@@ -463,14 +464,15 @@ template <int Bytes> struct __avx512_abi {
     template <class T>
     using traits =
         std::conditional_t<is_valid_v<T>,
-                           detail::gnu_traits<T, bool, __avx512_abi, Bytes / sizeof(T)>,
+                           detail::gnu_traits<T, bool, __avx512_abi, full_size<T>>,
                            detail::invalid_traits>;
     //}}}2
 };
 
 // __scalar_abi {{{1
 struct __scalar_abi {
-    template <class T> using size_tag = detail::size_constant<1>;
+    template <class T> static constexpr size_t size = 1;
+    template <class T> static constexpr size_t full_size = 1;
     struct is_valid_abi_tag : std::true_type {};
     template <class T> struct is_valid_size_for : std::true_type {};
     template <class T> struct is_valid : detail::is_vectorizable<T> {};
@@ -505,7 +507,8 @@ struct __scalar_abi {
 
 // __fixed_abi {{{1
 template <int N> struct __fixed_abi {
-    template <class T> using size_tag = detail::size_constant<N>;
+    template <class T> static constexpr size_t size = N;
+    template <class T> static constexpr size_t full_size = N;
     // validity traits {{{2
     struct is_valid_abi_tag
         : public detail::bool_constant<(N > 0)> {
@@ -655,9 +658,8 @@ struct abi_list<A0, Rest...> {
     using best_abi = std::conditional_t<
         A0<sizeof(T) * N>::template is_valid_v<T>,
         typename decay_abi<A0<sizeof(T) * N>>::type,
-        std::conditional_t<(B::template is_valid_v<T> &&
-                            B::template size_tag<T>::value <= N),
-                           B, typename abi_list<Rest...>::template best_abi<T, N>>>;
+        std::conditional_t<(B::template is_valid_v<T> && B::template size<T> <= N), B,
+                           typename abi_list<Rest...>::template best_abi<T, N>>>;
 };
 
 // }}}1
@@ -695,7 +697,7 @@ struct deduce_impl : public deduce_fixed_size_fallback<T, N> {
 };
 
 //}}}1
-// is_<abi> {{{
+// is_abi {{{
 template <template <int> class Abi, int Bytes> constexpr int abi_bytes_impl(Abi<Bytes> *)
 {
     return Bytes;

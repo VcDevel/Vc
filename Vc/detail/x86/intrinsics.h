@@ -1016,225 +1016,6 @@ template <class T, class Traits = builtin_traits<T>> Vc_INTRINSIC T fixup_avx_xz
     return reinterpret_cast<T>(V{x[0], x[2], x[1], x[3]});
 }
 
-// AVX512: convert_mask{{{1
-template <size_t EntrySize, size_t VectorSize> struct convert_mask_return_type;
-
-template <size_t VectorSize> struct convert_mask_return_type<1, VectorSize> {
-    using type = builtin_type_t<schar, VectorSize>;
-};
-template <size_t VectorSize> struct convert_mask_return_type<2, VectorSize> {
-    using type = builtin_type_t<short, VectorSize / 2>;
-};
-template <size_t VectorSize> struct convert_mask_return_type<4, VectorSize> {
-    using type = builtin_type_t<int, VectorSize / 4>;
-};
-template <size_t VectorSize> struct convert_mask_return_type<8, VectorSize> {
-    using type = builtin_type_t<llong, VectorSize / 8>;
-};
-template <size_t EntrySize, size_t VectorSize>
-using convert_mask_return_type_t =
-    typename convert_mask_return_type<EntrySize, VectorSize>::type;
-
-template <size_t EntrySize, size_t VectorSize>
-inline convert_mask_return_type_t<EntrySize, VectorSize> convert_mask(__mmask8);
-template <size_t EntrySize, size_t VectorSize>
-inline convert_mask_return_type_t<EntrySize, VectorSize> convert_mask(__mmask16);
-template <size_t EntrySize, size_t VectorSize>
-inline convert_mask_return_type_t<EntrySize, VectorSize> convert_mask(__mmask32);
-template <size_t EntrySize, size_t VectorSize>
-inline convert_mask_return_type_t<EntrySize, VectorSize> convert_mask(__mmask64);
-
-template <size_t EntrySize, size_t VectorSize, size_t N>
-Vc_INTRINSIC auto convert_mask(std::bitset<N> bs)
-{
-    static_assert(VectorSize == N * EntrySize, "");
-    return convert_mask<EntrySize, VectorSize>(__mmask8(bs.to_ulong()));
-}
-
-template <size_t EntrySize, size_t VectorSize>
-Vc_INTRINSIC auto convert_mask(std::bitset<16> bs)
-{
-    static_assert(VectorSize / EntrySize == 16, "");
-    return convert_mask<EntrySize, VectorSize>(__mmask16(bs.to_ulong()));
-}
-
-template <size_t EntrySize, size_t VectorSize>
-Vc_INTRINSIC auto convert_mask(std::bitset<32> bs)
-{
-    static_assert(VectorSize / EntrySize == 32, "");
-    return convert_mask<EntrySize, VectorSize>(__mmask32(bs.to_ulong()));
-}
-
-template <size_t EntrySize, size_t VectorSize>
-Vc_INTRINSIC auto convert_mask(std::bitset<64> bs)
-{
-    static_assert(VectorSize / EntrySize == 64, "");
-    return convert_mask<EntrySize, VectorSize>(__mmask64(bs.to_ullong()));
-}
-
-#ifdef Vc_HAVE_AVX512F
-#ifdef Vc_HAVE_AVX512BW
-template <> Vc_INTRINSIC builtin_type_t<schar, 64> convert_mask<1, 64>(__mmask64 k)
-{
-    return reinterpret_cast<builtin_type_t<schar, 64>>(_mm512_movm_epi8(k));
-}
-template <> Vc_INTRINSIC builtin_type_t<short, 32> convert_mask<2, 64>(__mmask32 k)
-{
-    return reinterpret_cast<builtin_type_t<short, 32>>(_mm512_movm_epi16(k));
-}
-#endif  // Vc_HAVE_AVX512BW
-
-template <> Vc_INTRINSIC builtin_type_t<schar, 16> convert_mask<1, 16>(__mmask16 k)
-{
-    if constexpr (have_avx512bw_vl) {
-        return reinterpret_cast<builtin_type_t<schar, 16>>(_mm_movm_epi8(k));
-    } else if constexpr (have_avx512bw) {
-        return reinterpret_cast<builtin_type_t<schar, 16>>(lo128(_mm512_movm_epi8(k)));
-    } else {
-        auto as32bits = _mm512_maskz_mov_epi32(k, ~__m512i());
-        auto as16bits =
-            fixup_avx_xzyw(_mm256_packs_epi32(lo256(as32bits), hi256(as32bits)));
-        return reinterpret_cast<builtin_type_t<schar, 16>>(
-            _mm_packs_epi16(lo128(as16bits), hi128(as16bits)));
-    }
-}
-
-template <> Vc_INTRINSIC builtin_type_t<short, 8> convert_mask<2, 16>(__mmask8 k)
-{
-#if defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
-    return reinterpret_cast<builtin_type_t<short, 8>>(_mm_movm_epi16(k));
-#elif defined Vc_HAVE_AVX512BW
-    return reinterpret_cast<builtin_type_t<short, 8>>(lo128(_mm512_movm_epi16(k)));
-#else
-    auto as32bits =
-#ifdef Vc_HAVE_AVX512VL
-        _mm256_maskz_mov_epi32(k, ~__m256i());
-#else
-        lo256(_mm512_maskz_mov_epi32(k, ~__m512i()));
-#endif
-    return reinterpret_cast<builtin_type_t<short, 8>>(
-        _mm_packs_epi32(lo128(as32bits), hi128(as32bits)));
-#endif
-}
-
-template <> Vc_INTRINSIC builtin_type_t<schar, 32> convert_mask<1, 32>(__mmask32 k)
-{
-#if defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
-    return reinterpret_cast<builtin_type_t<schar, 32>>(_mm256_movm_epi8(k));
-#elif defined Vc_HAVE_AVX512BW
-    return reinterpret_cast<builtin_type_t<schar, 32>>(lo256(_mm512_movm_epi8(k)));
-#else
-    auto as16bits =  // 0 16 1 17 ... 15 31
-        _mm512_srli_epi32(_mm512_maskz_mov_epi32(k, ~__m512i()), 16) |
-        _mm512_slli_epi32(_mm512_maskz_mov_epi32(k >> 16, ~__m512i()), 16);
-    auto _0_16_1_17 = fixup_avx_xzyw(_mm256_packs_epi16(
-        lo256(as16bits), hi256(as16bits))  // 0 16 1 17 2 18 3 19 8 24 9 25 ...
-    );
-    // deinterleave:
-    return reinterpret_cast<builtin_type_t<schar, 32>>(fixup_avx_xzyw(_mm256_shuffle_epi8(
-        _0_16_1_17,  // 0 16 1 17 2 ...
-        _mm256_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15, 0, 2, 4, 6,
-                         8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13,
-                         15))));  // 0-7 16-23 8-15 24-31 -> xzyw
-    // 0-3  8-11 16-19 24-27
-    // 4-7 12-15 20-23 28-31
-#endif
-}
-
-template <> Vc_INTRINSIC builtin_type_t<short, 16> convert_mask<2, 32>(__mmask16 k)
-{
-#if defined Vc_HAVE_AVX512BW && defined Vc_HAVE_AVX512VL
-    return reinterpret_cast<builtin_type_t<short, 16>>(_mm256_movm_epi16(k));
-#elif defined Vc_HAVE_AVX512BW
-    return reinterpret_cast<builtin_type_t<short, 16>>(lo256(_mm512_movm_epi16(k)));
-#else
-    auto as32bits = _mm512_maskz_mov_epi32(k, ~__m512i());
-    return reinterpret_cast<builtin_type_t<short, 16>>(
-        fixup_avx_xzyw(_mm256_packs_epi32(lo256(as32bits), hi256(as32bits))));
-#endif
-}
-
-template <> Vc_INTRINSIC builtin_type_t<int, 16> convert_mask<4, 64>(__mmask16 k)
-{
-    return reinterpret_cast<builtin_type_t<int, 16>>(
-#ifdef Vc_HAVE_AVX512DQ
-        _mm512_movm_epi32(k)
-#else
-        _mm512_maskz_mov_epi32(k, ~__m512i())
-#endif
-    );
-}
-
-template <> Vc_INTRINSIC builtin_type_t<llong, 8> convert_mask<8, 64>(__mmask8 k)
-{
-    return reinterpret_cast<builtin_type_t<llong, 8>>(
-#ifdef Vc_HAVE_AVX512DQ
-        _mm512_movm_epi64(k)
-#else
-        _mm512_maskz_mov_epi64(k, ~__m512i())
-#endif
-    );
-}
-
-template <> Vc_INTRINSIC builtin_type_t<int, 4> convert_mask<4, 16>(__mmask8 k)
-{
-    return reinterpret_cast<builtin_type_t<int, 4>>(
-#if defined Vc_HAVE_AVX512VL && Vc_HAVE_AVX512DQ
-        _mm_movm_epi32(k)
-#elif defined Vc_HAVE_AVX512DQ
-        lo128(_mm512_movm_epi32(k))
-#elif defined Vc_HAVE_AVX512VL
-        _mm_maskz_mov_epi32(k, ~__m128i())
-#else
-        lo128(_mm512_maskz_mov_epi32(k, ~__m512i()))
-#endif
-    );
-}
-template <> Vc_INTRINSIC builtin_type_t<llong, 2> convert_mask<8, 16>(__mmask8 k)
-{
-    return reinterpret_cast<builtin_type_t<llong, 2>>(
-#if defined Vc_HAVE_AVX512VL && Vc_HAVE_AVX512DQ
-        _mm_movm_epi64(k)
-#elif defined Vc_HAVE_AVX512DQ
-        lo128(_mm512_movm_epi64(k))
-#elif defined Vc_HAVE_AVX512VL
-        _mm_maskz_mov_epi64(k, ~__m128i())
-#else
-        lo128(_mm512_maskz_mov_epi64(k, ~__m512i()))
-#endif
-    );
-}
-template <> Vc_INTRINSIC builtin_type_t<int, 8> convert_mask<4, 32>(__mmask8 k)
-{
-    return reinterpret_cast<builtin_type_t<int, 8>>(
-#if defined Vc_HAVE_AVX512VL && Vc_HAVE_AVX512DQ
-        _mm256_movm_epi32(k)
-#elif defined Vc_HAVE_AVX512DQ
-        lo256(_mm512_movm_epi32(k))
-#elif defined Vc_HAVE_AVX512VL
-        _mm256_maskz_mov_epi32(k, ~__m256i())
-#else
-        lo256(_mm512_maskz_mov_epi32(k, ~__m512i()))
-#endif
-    );
-}
-template <> Vc_INTRINSIC builtin_type_t<llong, 4> convert_mask<8, 32>(__mmask8 k)
-{
-    return reinterpret_cast<builtin_type_t<llong, 4>>(
-#if defined Vc_HAVE_AVX512VL && Vc_HAVE_AVX512DQ
-        _mm256_movm_epi64(k)
-#elif defined Vc_HAVE_AVX512DQ
-        lo256(_mm512_movm_epi64(k))
-#elif defined Vc_HAVE_AVX512VL
-        _mm256_maskz_mov_epi64(k, ~__m256i())
-#else
-        lo256(_mm512_maskz_mov_epi64(k, ~__m512i()))
-#endif
-    );
-}
-
-#endif  // Vc_HAVE_AVX512F
-
 // shift_right{{{1
 template <int n> Vc_INTRINSIC __m128  shift_right(__m128  v);
 template <> Vc_INTRINSIC __m128  shift_right< 0>(__m128  v) { return v; }
@@ -1809,19 +1590,19 @@ Vc_INTRINSIC void maskstore(storage64_t<T> v, T *mem, F,
             _mm512_mask_storeu_pd(mem, k, v);
         }
     } else {
-        using M = std::conditional_t<sizeof(T) == 1, __mmask16, __mmask8>;
         constexpr int N = 16 / sizeof(T);
+        using M = builtin_type_t<T, N>;
         _mm_maskmoveu_si128(auto_cast(extract<0, 4>(v.d)),
-                            auto_cast(convert_mask<sizeof(T), 16>(M(k))),
+                            auto_cast(convert_mask<M>(k.d)),
                             reinterpret_cast<char *>(mem));
         _mm_maskmoveu_si128(auto_cast(extract<1, 4>(v.d)),
-                            auto_cast(convert_mask<sizeof(T), 16>(M(k >> 1 * N))),
+                            auto_cast(convert_mask<M>(k.d >> 1 * N)),
                             reinterpret_cast<char *>(mem) + 1 * 16);
         _mm_maskmoveu_si128(auto_cast(extract<2, 4>(v.d)),
-                            auto_cast(convert_mask<sizeof(T), 16>(M(k >> 2 * N))),
+                            auto_cast(convert_mask<M>(k.d >> 2 * N)),
                             reinterpret_cast<char *>(mem) + 2 * 16);
         _mm_maskmoveu_si128(auto_cast(extract<3, 4>(v.d)),
-                            auto_cast(convert_mask<sizeof(T), 16>(M(k >> 3 * N))),
+                            auto_cast(convert_mask<M>(k.d >> 3 * N)),
                             reinterpret_cast<char *>(mem) + 3 * 16);
     }
 }
@@ -1892,7 +1673,7 @@ Vc_INTRINSIC void maskstore(storage32_t<T> v, T *mem, F,
     } else {
         maskstore(
             v, mem, F(),
-            detail::storage32_t<T>(builtin_cast<T>(convert_mask<sizeof(T), 32>(k))));
+            detail::storage32_t<T>(convert_mask<builtin_type_t<T, 32 / sizeof(T)>>(k)));
     }
 }
 
@@ -1962,8 +1743,9 @@ Vc_INTRINSIC void maskstore(storage16_t<T> v, T *mem, F,
                                F>(),
             detail::Storage<bool, 64 / sizeof(T)>(k.d));
     } else {
-        maskstore(v, mem, F(),
-                  storage16_t<T>(builtin_cast<T>(convert_mask<sizeof(T), 16>(k))));
+        maskstore(
+            v, mem, F(),
+            detail::storage16_t<T>(convert_mask<builtin_type_t<T, 16 / sizeof(T)>>(k)));
     }
 }
 

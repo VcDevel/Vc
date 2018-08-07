@@ -126,12 +126,13 @@ template <class T> inline constexpr bool is_simd_mask_v = is_simd_mask<T>::value
 // simd_size {{{2
 namespace detail
 {
-template <class T, class Abi, class = detail::void_t<>> struct simd_size_impl {
+template <class T, class Abi, class = void> struct simd_size_impl {
 };
 template <class T, class Abi>
-struct simd_size_impl<T, Abi, detail::void_t<std::enable_if_t<detail::conjunction_v<
-                                  detail::is_vectorizable<T>, Vc::is_abi_tag<Abi>>>>>
-    : Abi::template size_tag<T> {
+struct simd_size_impl<T, Abi,
+                      std::enable_if_t<detail::conjunction_v<detail::is_vectorizable<T>,
+                                                             Vc::is_abi_tag<Abi>>>>
+    : detail::size_constant<Abi::template size<T>> {
 };
 }  // namespace detail
 
@@ -287,13 +288,6 @@ struct static_simd_cast_return_type<T, U, A, false,
 };
 
 // specialized in scalar.h
-template <class T> T convert_any_mask(bool x)
-{
-    static_assert(
-        std::is_same_v<T, bool>,
-        "convert_any_mask(bool) is only meant for the no-op scalar->scalar case");
-}
-
 template <class To, class, class, class Native, class From>
 Vc_INTRINSIC To mask_cast_impl(const Native *, const From &x)
 {
@@ -305,10 +299,8 @@ Vc_INTRINSIC To mask_cast_impl(const Native *, const From &x)
         r[0] = x;
         return r;
     } else {
-        return {
-            Vc::detail::private_init,
-            detail::convert_any_mask<typename detail::get_traits_t<To>::mask_member_type>(
-                x)};
+        return {private_init,
+                convert_mask<typename detail::get_traits_t<To>::mask_member_type>(x)};
     }
 }
 template <class To, class, class, class Native, size_t N>
@@ -918,7 +910,7 @@ Vc_INTRINSIC T reduce(const simd<T, Abi> &v,
                       BinaryOperation binary_op = BinaryOperation())
 {
     using V = simd<T, Abi>;
-    return detail::get_impl_t<V>::reduce(detail::size_tag<V::size()>, v, binary_op);
+    return detail::get_impl_t<V>::reduce(v, binary_op);
 }
 
 template <class M, class V, class BinaryOperation = std::plus<>>

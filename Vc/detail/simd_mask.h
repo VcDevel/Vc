@@ -41,7 +41,6 @@ template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::m
     using traits = detail::traits<T, Abi>;
     using impl = typename traits::mask_impl_type;
     using member_type = typename traits::mask_member_type;
-    static constexpr detail::size_tag_type<T, Abi> size_tag = {};
     static constexpr T *type_tag = nullptr;
     friend typename traits::mask_base;
     friend class simd<T, Abi>;  // to construct masks on return
@@ -50,18 +49,9 @@ template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::m
                                              // inspect data on masked operations
     // }}}
     // is_<abi> {{{
-    static constexpr bool is_scalar()
-    {
-        return detail::is_abi<Abi, simd_abi::scalar>();
-    }
-    static constexpr bool is_sse()
-    {
-        return detail::is_abi<Abi, simd_abi::__sse_abi>();
-    }
-    static constexpr bool is_avx()
-    {
-        return detail::is_abi<Abi, simd_abi::__avx_abi>();
-    }
+    static constexpr bool is_scalar() { return detail::is_abi<Abi, simd_abi::scalar>(); }
+    static constexpr bool is_sse() { return detail::is_abi<Abi, simd_abi::__sse_abi>(); }
+    static constexpr bool is_avx() { return detail::is_abi<Abi, simd_abi::__avx_abi>(); }
     static constexpr bool is_avx512()
     {
         return detail::is_abi<Abi, simd_abi::__avx512_abi>();
@@ -71,6 +61,7 @@ template <class T, class Abi> class simd_mask : public detail::traits<T, Abi>::m
         return detail::is_abi<Abi, simd_abi::__neon_abi>();
     }
     static constexpr bool is_fixed() { return detail::is_fixed_size_abi_v<Abi>; }
+    static constexpr bool is_combined() { return detail::is_combined_abi<Abi>(); }
 
     // }}}
 
@@ -82,11 +73,7 @@ public:
     using abi_type = Abi;
 
     // }}}
-    static constexpr size_t size() // {{{
-    {
-        constexpr size_t N = size_tag;
-        return N;
-    } // }}}
+    static constexpr size_t size() { return detail::size_or_zero<T, Abi>; }
     // constructors & assignment {{{
     simd_mask() = default;
     simd_mask(const simd_mask &) = default;
@@ -283,7 +270,7 @@ public :
     template <class Flags>
     Vc_ALWAYS_INLINE simd_mask(const value_type *mem, simd_mask k, Flags f) : d{}
     {
-        d = impl::masked_load(d, k.d, mem, f, size_tag);
+        d = impl::masked_load(d, k.d, mem, f);
     }
 
     // }}}
@@ -297,7 +284,7 @@ public :
     // stores [simd_mask.store] {{{
     template <class Flags> Vc_ALWAYS_INLINE void copy_to(value_type *mem, Flags f) const
     {
-        impl::store(d, mem, f, size_tag);
+        impl::store(d, mem, f);
     }
 
     // }}}
@@ -409,10 +396,10 @@ private:
             return x ? ~member_type() : member_type();
         } else if constexpr (is_avx512()) {
             using mmask_type = typename detail::bool_storage_member_type<size()>::type;
-            return x ? static_cast<mmask_type>(~mmask_type()) : mmask_type();
+            return x ? Abi::masked(static_cast<mmask_type>(~mmask_type())) : mmask_type();
         } else {
             using U = detail::builtin_type_t<detail::int_for_sizeof_t<T>, size()>;
-            return detail::to_storage(x ? ~U() : U());
+            return detail::to_storage(x ? Abi::masked(~U()) : U());
         }
     }
 
@@ -465,24 +452,24 @@ namespace detail
 // all_of {{{
 template <class T, class Abi, class Data> Vc_INTRINSIC bool all_of(const Data &k)
 {
-    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+    if constexpr (is_abi<Abi, simd_abi::scalar>()) {
         return k;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::fixed_size>()) {
         return k.all();
-    } else if constexpr (detail::is_combined_abi<Abi>()) {
+    } else if constexpr (is_combined_abi<Abi>()) {
         for (int i = 0; i < Abi::factor; ++i) {
             if (!all_of<T, typename Abi::member_abi>(k[i])) {
                 return false;
             }
         }
         return true;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
-                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::__sse_abi>() ||
+                         is_abi<Abi, simd_abi::__avx_abi>()) {
         constexpr size_t N = simd_size_v<T, Abi>;
-        if constexpr (detail::have_sse4_1) {
-            using Intrin = detail::intrinsic_type_t<T, N>;
-            return 0 != detail::testc(
-                            k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
+        if constexpr (have_sse4_1) {
+            using Intrin = intrinsic_type_t<T, N>;
+            return 0 !=
+                   testc(k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
         } else if constexpr (std::is_same_v<T, float>) {
             return (_mm_movemask_ps(k) & ((1 << N) - 1)) == (1 << N) - 1;
         } else if constexpr (std::is_same_v<T, double>) {
@@ -491,8 +478,8 @@ template <class T, class Abi, class Data> Vc_INTRINSIC bool all_of(const Data &k
             return (_mm_movemask_epi8(k) & ((1 << (N * sizeof(T))) - 1)) ==
                    (1 << (N * sizeof(T))) - 1;
         }
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
-        return detail::testallset<Abi::template implicit_mask<T>>(k);
+    } else if constexpr (is_abi<Abi, simd_abi::__avx512_abi>()) {
+        return testallset<Abi::template implicit_mask<T>>(k);
     } else {
         assert_unreachable<T>();
     }
@@ -502,24 +489,24 @@ template <class T, class Abi, class Data> Vc_INTRINSIC bool all_of(const Data &k
 // any_of {{{
 template <class T, class Abi, class Data> Vc_INTRINSIC bool any_of(const Data &k)
 {
-    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+    if constexpr (is_abi<Abi, simd_abi::scalar>()) {
         return k;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::fixed_size>()) {
         return k.any();
-    } else if constexpr (detail::is_combined_abi<Abi>()) {
+    } else if constexpr (is_combined_abi<Abi>()) {
         for (int i = 0; i < Abi::factor; ++i) {
             if (any_of<T, typename Abi::member_abi>(k[i])) {
                 return true;
             }
         }
         return false;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
-                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::__sse_abi>() ||
+                         is_abi<Abi, simd_abi::__avx_abi>()) {
         constexpr size_t N = simd_size_v<T, Abi>;
-        if constexpr (detail::have_sse4_1) {
-            using Intrin = detail::intrinsic_type_t<T, N>;
-            return 0 == detail::testz(
-                            k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
+        if constexpr (have_sse4_1) {
+            using Intrin = intrinsic_type_t<T, N>;
+            return 0 ==
+                   testz(k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
         } else if constexpr (std::is_same_v<T, float>) {
             return (_mm_movemask_ps(k) & ((1 << N) - 1)) != 0;
         } else if constexpr (std::is_same_v<T, double>) {
@@ -527,7 +514,7 @@ template <class T, class Abi, class Data> Vc_INTRINSIC bool any_of(const Data &k
         } else {
             return (_mm_movemask_epi8(k) & ((1 << (N * sizeof(T))) - 1)) != 0;
         }
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::__avx512_abi>()) {
         return (k & Abi::template implicit_mask<T>) != 0;
     } else {
         assert_unreachable<T>();
@@ -538,24 +525,24 @@ template <class T, class Abi, class Data> Vc_INTRINSIC bool any_of(const Data &k
 // none_of {{{
 template <class T, class Abi, class Data> Vc_INTRINSIC bool none_of(const Data &k)
 {
-    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+    if constexpr (is_abi<Abi, simd_abi::scalar>()) {
         return !k;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::fixed_size>()) {
         return k.none();
-    } else if constexpr (detail::is_combined_abi<Abi>()) {
+    } else if constexpr (is_combined_abi<Abi>()) {
         for (int i = 0; i < Abi::factor; ++i) {
             if (any_of<T, typename Abi::member_abi>(k[i])) {
                 return false;
             }
         }
         return true;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
-                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::__sse_abi>() ||
+                         is_abi<Abi, simd_abi::__avx_abi>()) {
         constexpr size_t N = simd_size_v<T, Abi>;
-        if constexpr (detail::have_sse4_1) {
-            using Intrin = detail::intrinsic_type_t<T, N>;
-            return 0 != detail::testz(
-                            k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
+        if constexpr (have_sse4_1) {
+            using Intrin = intrinsic_type_t<T, N>;
+            return 0 !=
+                   testz(k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
         } else if constexpr (std::is_same_v<T, float>) {
             return (_mm_movemask_ps(k) & ((1 << N) - 1)) == 0;
         } else if constexpr (std::is_same_v<T, double>) {
@@ -563,7 +550,7 @@ template <class T, class Abi, class Data> Vc_INTRINSIC bool none_of(const Data &
         } else {
             return (_mm_movemask_epi8(k) & ((1 << (N * sizeof(T))) - 1)) == 0;
         }
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::__avx512_abi>()) {
         return (k & Abi::template implicit_mask<T>) == 0;
     } else {
         assert_unreachable<T>();
@@ -574,19 +561,19 @@ template <class T, class Abi, class Data> Vc_INTRINSIC bool none_of(const Data &
 // some_of {{{
 template <class T, class Abi, class Data> Vc_INTRINSIC bool some_of(const Data &k)
 {
-    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+    if constexpr (is_abi<Abi, simd_abi::scalar>()) {
         return false;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::fixed_size>()) {
         return k.any() && !k.all();
-    } else if constexpr (detail::is_combined_abi<Abi>()) {
+    } else if constexpr (is_combined_abi<Abi>()) {
         return any_of<T, Abi>(k) && !all_of<T, Abi>(k);
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
-                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::__sse_abi>() ||
+                         is_abi<Abi, simd_abi::__avx_abi>()) {
         constexpr size_t N = simd_size_v<T, Abi>;
-        if constexpr (detail::have_sse4_1) {
-            using Intrin = detail::intrinsic_type_t<T, N>;
-            return 0 != detail::testnzc(
-                            k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
+        if constexpr (have_sse4_1) {
+            using Intrin = intrinsic_type_t<T, N>;
+            return 0 !=
+                   testnzc(k, reinterpret_cast<Intrin>(Abi::template implicit_mask<T>));
         } else if constexpr (std::is_same_v<T, float>) {
             constexpr int allbits = (1 << N) - 1;
             const auto tmp = _mm_movemask_ps(k) & allbits;
@@ -600,7 +587,7 @@ template <class T, class Abi, class Data> Vc_INTRINSIC bool some_of(const Data &
             const auto tmp = _mm_movemask_epi8(k) & allbits;
             return tmp > 0 && tmp < allbits;
         }
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::__avx512_abi>()) {
         return any_of<T, Abi>(k) && !all_of<T, Abi>(k);
     } else {
         assert_unreachable<T>();
@@ -611,50 +598,50 @@ template <class T, class Abi, class Data> Vc_INTRINSIC bool some_of(const Data &
 // popcount {{{
 template <class T, class Abi, class Data> Vc_INTRINSIC int popcount(const Data &k)
 {
-    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+    if constexpr (is_abi<Abi, simd_abi::scalar>()) {
         return k;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::fixed_size>()) {
         return k.count();
-    } else if constexpr (detail::is_combined_abi<Abi>()) {
+    } else if constexpr (is_combined_abi<Abi>()) {
         int count = popcount<T, typename Abi::member_abi>(k[0]);
         for (int i = 1; i < Abi::factor; ++i) {
             count += popcount<T, typename Abi::member_abi>(k[i]);
         }
         return count;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
-                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::__sse_abi>() ||
+                         is_abi<Abi, simd_abi::__avx_abi>()) {
         constexpr size_t N = simd_size_v<T, Abi>;
-        const auto kk = Abi::masked(k);
-        if constexpr (detail::have_popcnt) {
-            int bits = detail::movemask(to_intrin(builtin_cast<T>(kk)));
+        const auto kk = Abi::masked(k.d);
+        if constexpr (have_popcnt) {
+            int bits = movemask(to_intrin(builtin_cast<T>(kk)));
             const int count = _mm_popcnt_u32(bits);
             return std::is_integral_v<T> ? count / sizeof(T) : count;
         } else if constexpr (N == 2) {
             const int mask = _mm_movemask_pd(auto_cast(kk));
             return mask - (mask >> 1);
-        } else if constexpr (N == 4 && sizeof(kk) == 16 && detail::have_sse2) {
-            auto x = to_intrin(kk);
+        } else if constexpr (N == 4 && sizeof(kk) == 16 && have_sse2) {
+            auto x = builtin_cast<llong>(kk);
             x = _mm_add_epi32(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
             x = _mm_add_epi32(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(1, 0, 3, 2)));
             return -_mm_cvtsi128_si32(x);
         } else if constexpr (N == 4 && sizeof(kk) == 16) {
             return popcnt4(_mm_movemask_ps(auto_cast(kk)));
         } else if constexpr (N == 8 && sizeof(kk) == 16) {
-            auto x = to_intrin(kk);
+            auto x = builtin_cast<llong>(kk);
             x = _mm_add_epi16(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
             x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)));
             x = _mm_add_epi16(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)));
             return -short(_mm_extract_epi16(x, 0));
         } else if constexpr (N == 16 && sizeof(kk) == 16) {
-            auto x = to_intrin(kk);
+            auto x = builtin_cast<llong>(kk);
             x = _mm_add_epi8(x, _mm_shuffle_epi32(x, _MM_SHUFFLE(0, 1, 2, 3)));
             x = _mm_add_epi8(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(0, 1, 2, 3)));
             x = _mm_add_epi8(x, _mm_shufflelo_epi16(x, _MM_SHUFFLE(2, 3, 0, 1)));
             auto y = -builtin_cast<uchar>(x);
-            if constexpr (detail::have_sse4_1) {
+            if constexpr (have_sse4_1) {
                 return y[0] + y[1];
             } else {
-                unsigned z = _mm_extract_epi16(to_intrin(y), 0);
+                unsigned z = _mm_extract_epi16(builtin_cast<llong>(y), 0);
                 return (z & 0xff) + (z >> 8);
             }
         } else if constexpr (N == 4 && sizeof(kk) == 32) {
@@ -665,19 +652,19 @@ template <class T, class Abi, class Data> Vc_INTRINSIC int popcount(const Data &
         } else {
             assert_unreachable<T>();
         }
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
-        constexpr size_t N = Abi::template size_tag<T>::value;
-        const auto kk = Abi::masked(k);
+    } else if constexpr (is_abi<Abi, simd_abi::__avx512_abi>()) {
+        constexpr size_t N = simd_size_v<T, Abi>;
+        const auto kk = Abi::masked(k.d);
         if constexpr (N <= 4) {
-            return detail::popcnt4(kk);
+            return popcnt4(kk);
         } else if constexpr (N <= 8) {
-            return detail::popcnt8(kk);
+            return popcnt8(kk);
         } else if constexpr (N <= 16) {
-            return detail::popcnt16(kk);
+            return popcnt16(kk);
         } else if constexpr (N <= 32) {
-            return detail::popcnt32(kk);
+            return popcnt32(kk);
         } else if constexpr (N <= 64) {
-            return detail::popcnt64(kk);
+            return popcnt64(kk);
         } else {
             assert_unreachable<T>();
         }
@@ -690,11 +677,11 @@ template <class T, class Abi, class Data> Vc_INTRINSIC int popcount(const Data &
 // find_first_set {{{
 template <class T, class Abi, class Data> Vc_INTRINSIC int find_first_set(const Data &k)
 {
-    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+    if constexpr (is_abi<Abi, simd_abi::scalar>()) {
         return 0;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
-        return detail::firstbit(k.to_ullong());
-    } else if constexpr (detail::is_combined_abi<Abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::fixed_size>()) {
+        return firstbit(k.to_ullong());
+    } else if constexpr (is_combined_abi<Abi>()) {
         using A2 = typename Abi::member_abi;
         for (int i = 0; i < Abi::factor - 1; ++i) {
             if (any_of<T, A2>(k[i])) {
@@ -703,14 +690,14 @@ template <class T, class Abi, class Data> Vc_INTRINSIC int find_first_set(const 
         }
         return (Abi::factor - 1) * simd_size_v<T, A2> +
                find_first_set(k[Abi::factor - 1]);
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
-                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
-        return detail::firstbit(detail::mask_to_int<Abi::template size_tag<T>::value>(k));
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
-        if constexpr (Abi::template size_tag<T>::value <= 32) {
+    } else if constexpr (is_abi<Abi, simd_abi::__sse_abi>() ||
+                         is_abi<Abi, simd_abi::__avx_abi>()) {
+        return firstbit(mask_to_int<simd_size_v<T, Abi>>(k));
+    } else if constexpr (is_abi<Abi, simd_abi::__avx512_abi>()) {
+        if constexpr (simd_size_v<T, Abi> <= 32) {
             return _tzcnt_u32(k.d);
         } else {
-            return detail::firstbit(k.d);
+            return firstbit(k.d);
         }
     } else {
         assert_unreachable<T>();
@@ -721,27 +708,26 @@ template <class T, class Abi, class Data> Vc_INTRINSIC int find_first_set(const 
 // find_last_set {{{
 template <class T, class Abi, class Data> Vc_INTRINSIC int find_last_set(const Data &k)
 {
-    if constexpr (detail::is_abi<Abi, simd_abi::scalar>()) {
+    if constexpr (is_abi<Abi, simd_abi::scalar>()) {
         return 0;
-    } else if constexpr (detail::is_abi<Abi, simd_abi::fixed_size>()) {
-        return detail::lastbit(k.to_ullong());
-    } else if constexpr (detail::is_combined_abi<Abi>()) {
+    } else if constexpr (is_abi<Abi, simd_abi::fixed_size>()) {
+        return lastbit(k.to_ullong());
+    } else if constexpr (is_combined_abi<Abi>()) {
         using A2 = typename Abi::member_abi;
         for (int i = 0; i < Abi::factor - 1; ++i) {
             if (any_of<T, A2>(k[i])) {
                 return i * simd_size_v<T, A2> + find_last_set(k[i]);
             }
         }
-        return (Abi::factor - 1) * simd_size_v<T, A2> +
-               find_last_set(k[Abi::factor - 1]);
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__sse_abi>() ||
-                         detail::is_abi<Abi, simd_abi::__avx_abi>()) {
-        return detail::lastbit(detail::mask_to_int<Abi::template size_tag<T>::value>(k));
-    } else if constexpr (detail::is_abi<Abi, simd_abi::__avx512_abi>()) {
-        if constexpr (Abi::template size_tag<T>::value <= 32) {
+        return (Abi::factor - 1) * simd_size_v<T, A2> + find_last_set(k[Abi::factor - 1]);
+    } else if constexpr (is_abi<Abi, simd_abi::__sse_abi>() ||
+                         is_abi<Abi, simd_abi::__avx_abi>()) {
+        return lastbit(mask_to_int<simd_size_v<T, Abi>>(k));
+    } else if constexpr (is_abi<Abi, simd_abi::__avx512_abi>()) {
+        if constexpr (simd_size_v<T, Abi> <= 32) {
             return 31 - _lzcnt_u32(k.d);
         } else {
-            return detail::lastbit(k.d);
+            return lastbit(k.d);
         }
     } else {
         assert_unreachable<T>();

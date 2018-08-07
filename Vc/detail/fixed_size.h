@@ -247,42 +247,26 @@ template <int N> struct fixed_size_simd_impl {
     static constexpr std::make_index_sequence<simd_member_type<T>::tuple_size> index_seq = {};
     template <class T> using simd = Vc::simd<T, simd_abi::fixed_size<N>>;
     template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::fixed_size<N>>;
-    using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // broadcast {{{2
-    template <class T>
-    static inline simd_member_type<T> broadcast(T x, size_tag) noexcept
+    template <class T> static constexpr inline simd_member_type<T> broadcast(T x) noexcept
     {
-#ifdef Vc_ICC
-        simd_member_type<T> r;
-        execute_n_times<N>([&](auto i_) { r.set(i_, x); });
-        return r;
-#else   // Vc_ICC
         return simd_member_type<T>::generate(
-            [&](auto meta) { return meta.broadcast(x, size_constant<meta.size()>()); });
-#endif  // Vc_ICC
+            [&](auto meta) { return meta.broadcast(x); });
     }
 
     // generator {{{2
     template <class F, class T>
-    static Vc_INTRINSIC simd_member_type<T> generator(F &&gen, type_tag<T>, size_tag)
+    static Vc_INTRINSIC simd_member_type<T> generator(F &&gen, type_tag<T>)
     {
-#ifdef Vc_ICC
-        // FIXME: this works around "internal error: assertion failed at: "shared/cfe/edgcpfe/il.c", line 9283" (ICC 18.1)
-        // No guarantees about resulting optimizations, though.
-        simd_member_type<T> r;
-        execute_n_times<N>([&](auto i_) { r.set(i_, gen(i_)); });
-        return r;
-#else   // Vc_ICC
         return simd_member_type<T>::generate([&gen](auto meta) {
             return meta.generator(
                 [&](auto i_) {
                     return gen(size_constant<meta.offset + decltype(i_)::value>());
                 },
-                type_tag<T>(), size_constant<meta.size()>());
+                type_tag<T>());
         });
-#endif  // Vc_ICC
     }
 
     // load {{{2
@@ -355,7 +339,7 @@ private:
 
 public:
     template <class T, class BinaryOperation>
-    static inline T reduce(size_tag, const simd<T> &x, const BinaryOperation &binary_op)
+    static inline T reduce(const simd<T> &x, const BinaryOperation &binary_op)
     {
         using ranges = n_abis_in_tuple<simd_member_type<T>>;
         return fixed_size_simd_impl::reduce(x.d, binary_op, typename ranges::counts(),
@@ -570,16 +554,9 @@ public:
         const mask_member_type bits,
         const detail::simd_tuple<T, As...> v)  // TODO: const-ref v?
     {
-#ifdef Vc_ICC
-        detail::simd_tuple<T, As...> r;
-        execute_n_times<N>(
-            [&](auto i_) { r.set(i_, bits[i_] ? Op<T>{}(v[i_]) : v[i_]); });
-        return r;
-#else   // Vc_ICC
         return v.apply_wrapped([&bits](auto meta, auto native) {
             return meta.template masked_unary<Op>(meta.make_mask(bits), native);
         });
-#endif  // Vc_ICC
     }
 
     // }}}2
@@ -596,7 +573,6 @@ template <int N> struct fixed_size_mask_impl {
     static constexpr std::make_index_sequence<N> index_seq = {};
     using mask_member_type = std::bitset<N>;
     template <class T> using simd_mask = Vc::simd_mask<T, simd_abi::fixed_size<N>>;
-    using size_tag = size_constant<N>;
     template <class T> using type_tag = T *;
 
     // from_bitset {{{2
@@ -608,8 +584,7 @@ template <int N> struct fixed_size_mask_impl {
     }
 
     // load {{{2
-    template <class F>
-    static inline mask_member_type load(const bool *mem, F f, size_tag) noexcept
+    template <class F> static inline mask_member_type load(const bool *mem, F f) noexcept
     {
         // TODO: uchar is not necessarily the best type to use here. For smaller N ushort,
         // uint, ullong, float, and double can be more efficient.
@@ -634,7 +609,7 @@ template <int N> struct fixed_size_mask_impl {
 
     // store {{{2
     template <class F>
-    static inline void store(mask_member_type bs, bool *mem, F f, size_tag) noexcept
+    static inline void store(mask_member_type bs, bool *mem, F f) noexcept
     {
 #ifdef Vc_HAVE_AVX512BW
         const __m512i bool64 = _mm512_movm_epi8(bs.to_ullong()) & 0x0101010101010101ULL;
@@ -720,7 +695,7 @@ template <int N> struct fixed_size_mask_impl {
         // uint, ullong, float, and double can be more efficient.
         using Vs = fixed_size_storage<uchar, N>;
         detail::for_each(Vs{}, [&](auto meta, auto) {
-            meta.store(meta.make_mask(bs), &mem[meta.offset], f, meta.size_tag);
+            meta.store(meta.make_mask(bs), &mem[meta.offset], f);
         });
 //#else
         //execute_n_times<N>([&](auto i) { mem[i] = bs[i]; });
@@ -733,13 +708,6 @@ template <int N> struct fixed_size_mask_impl {
                                     const mask_member_type k) noexcept
     {
         detail::bit_iteration(k, [&](auto i) { mem[i] = v[i]; });
-    }
-
-    // negation {{{2
-    static Vc_INTRINSIC mask_member_type negate(const mask_member_type &x,
-                                                size_tag) noexcept
-    {
-        return ~x;
     }
 
     // logical and bitwise operators {{{2
