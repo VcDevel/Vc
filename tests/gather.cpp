@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unittest.h"
 #include <iostream>
 #include <Vc/array>
+#include <Vc/span>
 
 #define ALL_TYPES (ALL_VECTORS, SimdArray<int, 7>)
 
@@ -153,6 +154,7 @@ TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
     typedef Struct<T, alignof(T)> S;
     constexpr int count = 3999;
     Vc::array<S, count> array;
+    Vc::span<S, count> s(array);
     for (int i = 0; i < count; ++i) {
         array[i].a = i;
         array[i].b = i + 1;
@@ -170,14 +172,26 @@ TEST_TYPES(Vec, gatherStruct, ALL_TYPES)
         if (castedMask.isFull()) {
             Vec a = array[i][&S::a];
             COMPARE(a, i0) << "\ni: " << i;
+            a = s[i][&S::a];
+            COMPARE(a, i0) << "\ni: " << i;
             a = array[i][&S::b];
             COMPARE(a, i1);
+            a = s[i][&S::b];
+            COMPARE(a, i1);
             a = array[i][&S::c];
+            COMPARE(a, i2);
+            a = s[i][&S::c];
             COMPARE(a, i2);
         }
 
         Vec b(Zero);
         where(castedMask) | b = array[i][&S::a];
+        COMPARE(castedMask, (b == i0));
+        if (!castedMask.isFull()) {
+            COMPARE(!castedMask, b == Vec(Zero));
+        }
+        b = Vec(Zero);
+        where(castedMask) | b = s[i][&S::a];
         COMPARE(castedMask, (b == i0));
         if (!castedMask.isFull()) {
             COMPARE(!castedMask, b == Vec(Zero));

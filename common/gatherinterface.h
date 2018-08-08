@@ -158,6 +158,17 @@ public:
      * float_v gathered = data[indexes];  // gathered == [0, 1, 2, ...]
      * \endcode
      *
+     * This also works for gathers into arrays of structures:
+     * \code
+     * struct Point { float x, y, z; };
+     * Vc::array<Point, 100> points;
+     * // fill points ...
+     * auto indexes = float_v::IndexType::IndexesFromZero();
+     * float_v xs = data[indexes][&Point::x];  // [points[0].x, points[1].x, points[2].x, ...]
+     * float_v ys = data[indexes][&Point::y];  // [points[0].y, points[1].y, points[2].y, ...]
+     * float_v zs = data[indexes][&Point::z];  // [points[0].z, points[1].z, points[2].z, ...]
+     * \endcode
+     *
      * Alternatively, you can use Vc::Common::AdaptSubscriptOperator to extend a given
      * container class with the necessary subscript operator. Example:
      * \code
