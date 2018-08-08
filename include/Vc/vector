@@ -30,9 +30,13 @@
 namespace Vc_VERSIONED_NAMESPACE
 {
 /**
- * \ingroup Utilities
+ * \ingroup Containers
+ * \headerfile vector <Vc/vector>
+ *
  * An adapted `std::vector` container with an additional subscript operator which
  * implements gather and scatter operations.
+ *
+ * The [std::vector](https://en.cppreference.com/w/cpp/container/vector) documentation applies.
  *
  * Example:
  * \code

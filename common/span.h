@@ -609,6 +609,28 @@ span(const Container&)->span<const typename Container::value_type>;
 
 }  // namespace Common
 
+/**
+ * \ingroup Containers
+ * \headerfile span.h <Vc/span>
+ *
+ * An adapted `std::span` with additional subscript operators supporting gather and scatter operations.
+ *
+ * The [std::span](https://en.cppreference.com/w/cpp/container/span) documentation applies.
+ *
+ * Example:
+ * \code
+ * struct Point {
+ *   float x, y;
+ * };
+ * Point data[100];
+ * // initialize values in data
+ *
+ * Vc::span<Point, 100> view(data);
+ * float_v::IndexType indexes = ...;  // values between 0-99
+ * float_v x = view[indexes][&Point::x];
+ * float_v y = view[indexes][&Point::y];
+ * \endcode
+ */
 template <typename T, ptrdiff_t Extent>
 using span = Common::AdaptSubscriptOperator<Common::span<T, Extent>>;
 

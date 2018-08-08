@@ -46,6 +46,43 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+/**
+ * \ingroup Containers
+ * This is `std::array` with additional subscript operators supporting gather and scatter operations.
+ *
+ * The [std::array](https://en.cppreference.com/w/cpp/container/array) documentation applies.
+ *
+ * Gathers from structured data (AoS: arrays of struct) are possible via a special
+ * subscript operator.
+ * Example:
+ * \code
+ * Vc::array<float, 100> data;
+ * std::iota(data.begin(), data.end(), 0.f);  // fill with values 0, 1, 2, ...
+ * auto indexes = float_v::IndexType::IndexesFromZero();
+ * float_v gathered = data[indexes];  // gathered == [0, 1, 2, ...]
+ * \endcode
+ *
+ * This also works for gathers into arrays of structures:
+ * \code
+ * struct Point { float x, y, z; };
+ * Vc::array<Point, 100> points;
+ * // fill points ...
+ * auto indexes = float_v::IndexType::IndexesFromZero();
+ * float_v xs = data[indexes][&Point::x];  // [points[0].x, points[1].x, points[2].x, ...]
+ * float_v ys = data[indexes][&Point::y];  // [points[0].y, points[1].y, points[2].y, ...]
+ * float_v zs = data[indexes][&Point::z];  // [points[0].z, points[1].z, points[2].z, ...]
+ * \endcode
+ *
+ * Arrays may also be nested:
+ * \code:
+ * Vc::array<Vc::array<float, 3>, 100> points;
+ * // fill points ...
+ * auto indexes = float_v::IndexType::IndexesFromZero();
+ * float_v xs = data[indexes][0];  // [points[0][0], points[1][0], points[2][0], ...]
+ * float_v ys = data[indexes][1];  // [points[0][1], points[1][1], points[2][1], ...]
+ * float_v zs = data[indexes][2];  // [points[0][2], points[1][2], points[2][2], ...]
+ * \endcode
+ */
 template <class T, size_t Size> struct array {
     // types:
     typedef array self_;

@@ -118,7 +118,7 @@ template<typename V, size_t Size> struct _MemorySizeCalculation
 };
 
 /**
- * \ingroup Utilities
+ * \ingroup Containers
  * \headerfile memory.h <Vc/Memory>
  *
  * A helper class for fixed-size two-dimensional arrays.
@@ -282,7 +282,7 @@ private:
      *
      * \see Memory<V, 0u>
      *
-     * \ingroup Utilities
+     * \ingroup Containers
      * \headerfile memory.h <Vc/Memory>
      */
 template <typename V, size_t Size, bool InitPadding>
@@ -451,7 +451,7 @@ class Memory<V, Size, 0u, InitPadding> :
      *
      * \see Memory<V, Size>
      *
-     * \ingroup Utilities
+     * \ingroup Containers
      * \headerfile memory.h <Vc/Memory>
      */
     template<typename V> class Memory<V, 0u, 0u, true> : public MemoryBase<V, Memory<V, 0u, 0u, true>, 1, void>

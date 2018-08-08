@@ -55,6 +55,7 @@ This documentation is structured in three main areas:
    \li \ref Simdize
    \li \ref Math
    \li \ref Utilities
+   \li \ref Containers
 
 3. The *Indexes* section contains automatically generated indexes to the same API
    documentation.
@@ -444,7 +445,7 @@ If your project does not use CMake all you need to do is the following:
 \defgroup Simdize simdize<T>
 \defgroup Math Math
 \defgroup Utilities Utilities
-
+\defgroup Containers Containers
 
 \addtogroup Vectors
 
@@ -510,6 +511,27 @@ on a different architecture they might be bit-fields.
 
 Additional classes, macros, and functions that help to work more easily with the main vector
 types.
+
+
+\addtogroup Containers
+
+For some problems, standard (or third-party) containers can be used.
+Simply use a `value_type` of `Vc::Vector<T>`.
+However, this requires:
+\li You actually have control over the data structures and can design/modify them for easy
+    vectorization usage.
+\li The access patterns are non-random. Because random access to individual `value_type`
+    \em elements is going to be a pain (two subscripts, first into the container, then
+    into the `Vc::Vector`)
+
+Therefore, for some problems you need to work with containers over elements of
+non-`Vector` type (e.g. of type `double` or a `struct`).
+Vc provides some help:
+\li Vc::vector
+\li Vc::array
+\li Vc::span
+\li Vc::Common::Memory (discouraged)
+\li Vc::Common::InterleavedMemoryWrapper
 
 
 \addtogroup Math

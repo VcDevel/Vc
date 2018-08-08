@@ -171,7 +171,7 @@ struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, 
  * members inside the struct.
  *
  * \see operator[]
- * \ingroup Utilities
+ * \ingroup Containers
  * \headerfile interleavedmemory.h <Vc/Memory>
  */
 template<typename S, typename V> class InterleavedMemoryWrapper

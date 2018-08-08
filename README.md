@@ -112,7 +112,7 @@ The documentation is generated via [doxygen](http://doxygen.org). You can build
 the documentation by running `doxygen` in the `doc` subdirectory.
 Alternatively, you can find nightly builds of the documentation at:
 
-* [master branch](https://web-docs.gsi.de/~mkretz/Vc-master/)
+* [1.3 branch](https://web-docs.gsi.de/~mkretz/Vc-1.3/)
 * [1.3.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.3.0/)
 * [1.2.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.2.0/)
 * [1.1.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.1.0/)
