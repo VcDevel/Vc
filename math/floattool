@@ -1,0 +1,139 @@
+#!/bin/zsh
+
+function usage() {
+  cat <<EOF
+Usage: $0 [options] <input number>
+
+This tool splits an arbitrary number into IEEE 768 floats.
+Options:
+  --help|-h        this message
+  -m <bits>        mantissa bits, 23 for sp and 52 for dp (default 23)
+  -n <count>       number of constants to split the input into (default 2)
+  -z <bits>        number of trailing zero bits in the first count-1 constants (default 12)
+  -p               only output positive numbers (or rather numbers with the same sign as the input number)
+  -o <offset>      add this offset to the mantissa of the first value
+  -f <function>    use the argument as output function name for easier cut and paste (default depends on -m)
+
+Available functions:
+  fak(x) : factorial of x
+  floor(x)
+  round(x)
+  log2(x)
+  abs(x)
+  sign(x)
+  exponent(x)
+  l(x)
+  s(x)
+  c(x)
+
+EOF
+}
+
+bits=23
+count=2
+zerobits=12
+mantissaReduction=round
+offset=0
+const_fun=
+
+while (( $# > 0 )); do
+  case "$1" in
+    --help|-h) usage; exit ;;
+    -m)  bits=$2; shift ;;
+    -m*) bits=${1#-m} ;;
+    -n)  count=$2; shift ;;
+    -n*) count=${1#-n} ;;
+    -z)  zerobits=$2; shift ;;
+    -z*) zerobits=${1#-z} ;;
+    -o)  offset=$2; shift ;;
+    -o*) offset=${1#-o} ;;
+    -f)  const_fun=$2; shift ;;
+    -f*) const_fun=${1#-o} ;;
+    -p)  mantissaReduction=floor ;;
+    *)   input="$input $1" ;;
+  esac
+  shift
+done
+
+if (($bits == 23)) && [[ -z "$const_fun" ]]; then
+  const_fun="const auto c## = Vc::Detail::floatConstant"
+elif [[ -z "$const_fun" ]]; then
+  const_fun="const auto c## = Vc::Detail::doubleConstant"
+fi
+
+BC_LINE_LENGTH=0 bc -l <<EOF
+scale=400
+pi=3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679821480865132823066470938446095505822317253594081284811174502841027019385211055596446229489549303819644288109756659334461284756482337867831652712019091456485669234603486104543266482133936073
+oneoverlog2=1/l(2)
+scale=100
+define fak(x) { r=x; while(x>1) { r *= --x; }; return r; }
+define floor(x) { tmp=scale; scale=0; n = x/1; scale=tmp; return n; }
+define round(x) { return floor(x + 0.5); }
+define log2(x)  { return l(x)*oneoverlog2; }
+define abs(x)   { if(x < 0) return -x; return x; }
+define sign(x)  { tmp=scale; scale=0; n = x/abs(x); scale=tmp; return n; }
+define exponent(x) { x = abs(x); e = floor(log2(x)); while(x*2^-e < 1) e -= 1; while(x*2^-e >= 2) e += 1; return e; }
+define setprecision(x, p) { return round(x * 2^(p-exponent(x))) * 2^(exponent(x)-p); }
+define float(x) { return setprecision(x,${bits}); }
+define void printfloat(s,m,e) {
+  print "${const_fun}<", s, ", 0x"
+  obase=16
+  print m
+  obase=10
+  print ", ", e, ">(); // ", s*(m*2^(e-${bits})+2^e), "\n"
+}
+
+/* unused, but can be used to print full binary representation of floats */
+define void printfloat_int(x) {
+  h=0
+  if (x < 0) {
+    h = 2^31
+    x = -x;
+  }
+  e=exponent(x)
+  h+=${mantissaReduction}(x*2^(${bits}-e)-2^${bits})
+  h+=(e+127)*2^23
+  obase=16
+  print "0x", h
+  obase=10
+}
+
+in=${input}
+print "// ", in, "\n"
+x=in
+shift1=${bits}-${zerobits}
+shift2=${bits}-shift1
+for(i = 1; i < ${count}; ++i) {
+  s=sign(x)
+  x=abs(x)
+  e=exponent(x)
+  m=(${mantissaReduction}(x*2^(shift1-e)-2^shift1) + ${offset})*(2^shift2)
+  printfloat(s,m,e)
+  x=s*(x-(m*(2^-${bits})+1)*(2^e))
+  if(x == 0) {
+    break
+  }
+}
+if(x == 0) {
+  print "no remainder.\n"
+} else {
+  s=sign(x)
+  x=abs(x)
+  e=exponent(x)
+  m=${mantissaReduction}(x*2^(${bits}-e)-2^${bits})
+  printfloat(s,m,e)
+  x=s*(x-(m*(2^-${bits})+1)*(2^e))
+  if(x == 0) {
+    print "no remainder.\n"
+  } else {
+    err=abs(x/in)
+    e=floor(l(err)/l(10))-1
+    ulp=x * 2^(23 - exponent(in))
+    scale=1
+    print "relative error: ", (err*10^-e)/1, "e", e, "\n"
+    print (ulp*1000+0.5)/1*0.001, " ulp\n"
+  }
+}
+EOF
+
+# vim: sw=2 et
