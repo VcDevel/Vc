@@ -49,23 +49,21 @@ namespace SSE
         static Vc_ALWAYS_INLINE Vc_CONST V _1_16()        { return load(&c_trig<T>::data[4 * Stride]); }
         static Vc_ALWAYS_INLINE Vc_CONST V _16()          { return load(&c_trig<T>::data[5 * Stride]); }
 
-        static Vc_ALWAYS_INLINE Vc_CONST V cosCoeff(int i) { return load(&c_trig<T>::data[( 8 + i) * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V sinCoeff(int i) { return load(&c_trig<T>::data[(14 + i) * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V atanP(int i)    { return load(&c_trig<T>::data[(24 + i) * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V atanQ(int i)    { return load(&c_trig<T>::data[(29 + i) * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V atanThrsHi()    { return load(&c_trig<T>::data[34 * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V atanThrsLo()    { return load(&c_trig<T>::data[35 * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V _pi_2_rem()     { return load(&c_trig<T>::data[36 * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V lossThreshold() { return load(&c_trig<T>::data[20 * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V _4_pi()         { return load(&c_trig<T>::data[21 * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V _pi_2()         { return load(&c_trig<T>::data[22 * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V _pi()           { return load(&c_trig<T>::data[23 * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff0(int i) { return load(&c_trig<T>::data[(40 + i) * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff1(int i) { return load(&c_trig<T>::data[(45 + i) * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff2(int i) { return load(&c_trig<T>::data[(49 + i) * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff3(int i) { return load(&c_trig<T>::data[(55 + i) * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V smallAsinInput()  { return load(&c_trig<T>::data[37 * Stride]); }
-        static Vc_ALWAYS_INLINE Vc_CONST V largeAsinInput()  { return load(&c_trig<T>::data[38 * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V atanP(int i)    { return load(&c_trig<T>::data[(12 + i) * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V atanQ(int i)    { return load(&c_trig<T>::data[(17 + i) * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V atanThrsHi()    { return load(&c_trig<T>::data[22 * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V atanThrsLo()    { return load(&c_trig<T>::data[23 * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi_2_rem()     { return load(&c_trig<T>::data[24 * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V lossThreshold() { return load(&c_trig<T>::data[8 * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _4_pi()         { return load(&c_trig<T>::data[9 * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi_2()         { return load(&c_trig<T>::data[10 * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V _pi()           { return load(&c_trig<T>::data[11 * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff0(int i) { return load(&c_trig<T>::data[(28 + i) * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff1(int i) { return load(&c_trig<T>::data[(33 + i) * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff2(int i) { return load(&c_trig<T>::data[(37 + i) * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V asinCoeff3(int i) { return load(&c_trig<T>::data[(43 + i) * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V smallAsinInput()  { return load(&c_trig<T>::data[25 * Stride]); }
+        static Vc_ALWAYS_INLINE Vc_CONST V largeAsinInput()  { return load(&c_trig<T>::data[26 * Stride]); }
 
         static Vc_ALWAYS_INLINE Vc_CONST M exponentMask() { return M(load(c_log<T>::d(1)).data()); }
         static Vc_ALWAYS_INLINE Vc_CONST V _1_2()         { return load(c_log<T>::d(18)); }
@@ -86,10 +84,23 @@ namespace SSE
     };
     template<typename T> Vc_ALWAYS_INLINE Vc_CONST Vector<T> Const<T>::load(const T *mem) { return V(mem); }
 
-    template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask() { return Vector<float>(reinterpret_cast<const float *>(&c_general::highMaskFloat)); }
-    template<> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask() { return Vector<double>(reinterpret_cast<const double *>(&c_general::highMaskDouble)); }
-    template<> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask(int bits) { return _mm_castsi128_ps(_mm_slli_epi32(_mm_setallone_si128(), bits)); }
-    template<> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask(int bits) { return _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), bits)); }
+    template <> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask()
+    {
+        return Vector<float>(reinterpret_cast<const float *>(&c_general::highMaskFloat));
+    }
+    template <> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask()
+    {
+        return Vector<double>(
+            reinterpret_cast<const double *>(&c_general::highMaskDouble));
+    }
+    template <> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask(int bits)
+    {
+        return _mm_castsi128_ps(_mm_slli_epi32(_mm_setallone_si128(), bits));
+    }
+    template <> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask(int bits)
+    {
+        return _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), bits));
+    }
 }  // namespace SSE
 }  // namespace Vc
 

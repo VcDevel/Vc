@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+//#define UNITTEST_ONLY_XTEST 1
 #include "unittest.h"
 #include "mathreference.h"
 
@@ -34,7 +35,7 @@ TEST_TYPES(V, testSincos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(1e7);
+    UnitTest::setFuzzyness<double>(2);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref, cref;
@@ -57,7 +58,7 @@ TEST_TYPES(V, testSin, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(1e7);
+    UnitTest::setFuzzyness<double>(3);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref;
@@ -65,7 +66,17 @@ TEST_TYPES(V, testSin, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
             x[j] = reference.data[i + j].x;
             sref[j] = reference.data[i + j].s;
         }
-        FUZZY_COMPARE(Vc::sin(x), sref) << " x = " << x << ", i = " << i;
+        //std::cout << std::setprecision(30);
+        //std::cout << std::defaultfloat << "testing sin(" << x << ") = " << sref << "\n";
+        FUZZY_COMPARE(Vc::sin(x), sref) << " x = " << x << ", i = " << i
+#if defined Vc_GCC && Vc_GCC >= 0x50100
+            << std::hexfloat
+            << "\n input:" << x
+            << "\n    Vc:" << Vc::sin(x)
+            << "\n   ref:" << sref
+            << std::defaultfloat
+#endif
+            ;
         FUZZY_COMPARE(Vc::sin(-x), -sref) << " x = " << x << ", i = " << i;
     }
 }
@@ -74,7 +85,7 @@ TEST_TYPES(V, testCos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 {
     typedef typename V::EntryType T;
     UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(1e7);
+    UnitTest::setFuzzyness<double>(3);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, cref;

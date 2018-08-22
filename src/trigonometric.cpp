@@ -31,6 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/vector.h>
 #if defined(Vc_IMPL_SSE) || defined(Vc_IMPL_AVX)
 #include <common/macros.h>
+//#include <Vc/IO>
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -40,8 +41,6 @@ namespace Common
 namespace
 {
 using Vc::Vector;
-template <typename Abi> using float_v_for = Vc::Vector<float, Abi>;
-template <typename Abi> using double_v_for = Vc::Vector<double, Abi>;
 template <typename T, typename Abi>
 using Const = typename std::conditional<std::is_same<Abi, VectorAbi::Avx>::value,
                                         AVX::Const<T>, SSE::Const<T>>::type;
@@ -51,96 +50,214 @@ using best_int_v_for =
     typename std::conditional<(V::size() <= Vector<int, VectorAbi::Best<int>>::size()),
                               Vector<int, VectorAbi::Best<int>>,
                               SimdArray<int, V::size()>>::type;
-template <typename Abi> using float_int_v = best_int_v_for<float_v_for<Abi>>;
-template <typename Abi> using double_int_v = best_int_v_for<double_v_for<Abi>>;
+template <typename Abi> using float_int_v = best_int_v_for<Vector<float, Abi>>;
+template <typename Abi> using double_int_v = best_int_v_for<Vector<double, Abi>>;
 
-template <typename T, typename Abi>
-static Vc_ALWAYS_INLINE Vector<T, Abi> cosSeries(const Vector<T, Abi> &x)
-{
-    typedef Const<T, Abi> C;
-    const Vector<T, Abi> x2 = x * x;
-    return ((C::cosCoeff(2)  * x2 +
-             C::cosCoeff(1)) * x2 +
-             C::cosCoeff(0)) * (x2 * x2)
-        - C::_1_2() * x2 + Vector<T, Abi>::One();
-}
 template <typename Abi>
-static Vc_ALWAYS_INLINE double_v_for<Abi> cosSeries(const double_v_for<Abi> &x)
+static Vc_ALWAYS_INLINE Vector<float, Abi> cosSeries(const Vector<float, Abi> &x)
 {
-    typedef Const<double, Abi> C;
-    const double_v_for<Abi> x2 = x * x;
-    return (((((C::cosCoeff(5)  * x2 +
-                C::cosCoeff(4)) * x2 +
-                C::cosCoeff(3)) * x2 +
-                C::cosCoeff(2)) * x2 +
-                C::cosCoeff(1)) * x2 +
-                C::cosCoeff(0)) * (x2 * x2)
-        - C::_1_2() * x2 + double_v_for<Abi>::One();
-}
-template <typename T, typename Abi>
-static Vc_ALWAYS_INLINE Vector<T, Abi> sinSeries(const Vector<T, Abi> &x)
-{
-    typedef Const<T, Abi> C;
-    const Vector<T, Abi> x2 = x * x;
-    return ((C::sinCoeff(2)  * x2 +
-             C::sinCoeff(1)) * x2 +
-             C::sinCoeff(0)) * (x2 * x)
-        + x;
-}
-template <typename Abi>
-static Vc_ALWAYS_INLINE double_v_for<Abi> sinSeries(const double_v_for<Abi> &x)
-{
-    typedef Const<double, Abi> C;
-    const double_v_for<Abi> x2 = x * x;
-    return (((((C::sinCoeff(5)  * x2 +
-                C::sinCoeff(4)) * x2 +
-                C::sinCoeff(3)) * x2 +
-                C::sinCoeff(2)) * x2 +
-                C::sinCoeff(1)) * x2 +
-                C::sinCoeff(0)) * (x2 * x)
-        + x;
+    const Vector<float, Abi> x2 = x * x;
+    Vector<float, Abi> y;
+    y =          Vc::Detail::floatConstant< 1, 0x500000, -16>();  //  1/8!
+    y = y * x2 + Vc::Detail::floatConstant<-1, 0x360800, -10>();  // -1/6!
+    y = y * x2 + Vc::Detail::floatConstant< 1, 0x2AAAAB,  -5>();  //  1/4!
+    return y * (x2 * x2) - .5f * x2 + 1.f;
+    // alternative (appears neither faster nor more precise):
+    // return (y * x2 - .5f) * x2 + 1.f;
 }
 
 template <typename Abi>
-static Vc_ALWAYS_INLINE float_v_for<Abi> foldInput(float_v_for<Abi> x, float_int_v<Abi> &quadrant)
+static Vc_ALWAYS_INLINE Vector<double, Abi> cosSeries(const Vector<double, Abi> &x)
 {
-    typedef float_v_for<Abi> V;
-    typedef Const<float, Abi> C;
-    typedef float_int_v<Abi> IV;
+    const Vector<double, Abi> x2 = x * x;
+    Vector<double, Abi> y;
+    y =          Vc::Detail::doubleConstant< 1, 0xAC00000000000, -45>();  //  1/16!
+    y = y * x2 + Vc::Detail::doubleConstant<-1, 0x9394000000000, -37>();  // -1/14!
+    y = y * x2 + Vc::Detail::doubleConstant< 1, 0x1EED8C0000000, -29>();  //  1/12!
+    y = y * x2 + Vc::Detail::doubleConstant<-1, 0x27E4FB7400000, -22>();  // -1/10!
+    y = y * x2 + Vc::Detail::doubleConstant< 1, 0xA01A01A018000, -16>();  //  1/8!
+    y = y * x2 + Vc::Detail::doubleConstant<-1, 0x6C16C16C16C00, -10>();  // -1/6!
+    y = y * x2 + Vc::Detail::doubleConstant< 1, 0x5555555555554,  -5>();  //  1/4!
+    return (y * x2 - .5f) * x2 + 1.f;
+}
 
-    x = abs(x);
-#if defined(Vc_IMPL_FMA4) || defined(Vc_IMPL_FMA)
-        quadrant = simd_cast<IV>(x * C::_4_pi() + V::One()); // prefer the fma here
-        quadrant &= ~IV::One();
-#else
-        quadrant = simd_cast<IV>(x * C::_4_pi());
-        quadrant += quadrant & IV::One();
-#endif
-        const V y = simd_cast<V>(quadrant);
-        quadrant &= 7;
+template <typename Abi>
+static Vc_ALWAYS_INLINE Vector<float, Abi> sinSeries(const Vector<float, Abi> &x)
+{
+    const Vector<float, Abi> x2 = x * x;
+    Vector<float, Abi> y;
+    y =          Vc::Detail::floatConstant<-1, 0x4E6000, -13>();  // -1/7!
+    y = y * x2 + Vc::Detail::floatConstant< 1, 0x088880,  -7>();  //  1/5!
+    y = y * x2 + Vc::Detail::floatConstant<-1, 0x2AAAAB,  -3>();  // -1/3!
+    return y * (x2 * x) + x;
+}
 
-        return ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
+template <typename Abi>
+static Vc_ALWAYS_INLINE Vector<double, Abi> sinSeries(const Vector<double, Abi> &x)
+{
+    // x  = [0, 0.7854 = pi/4]
+    // x² = [0, 0.6169 = pi²/8]
+    const Vector<double, Abi> x2 = x * x;
+    Vector<double, Abi> y;
+    y =          Vc::Detail::doubleConstant<-1, 0xACF0000000000, -41>();  // -1/15!
+    y = y * x2 + Vc::Detail::doubleConstant< 1, 0x6124400000000, -33>();  //  1/13!
+    y = y * x2 + Vc::Detail::doubleConstant<-1, 0xAE64567000000, -26>();  // -1/11!
+    y = y * x2 + Vc::Detail::doubleConstant< 1, 0x71DE3A5540000, -19>();  //  1/9!
+    y = y * x2 + Vc::Detail::doubleConstant<-1, 0xA01A01A01A000, -13>();  // -1/7!
+    y = y * x2 + Vc::Detail::doubleConstant< 1, 0x1111111111110,  -7>();  //  1/5!
+    y = y * x2 + Vc::Detail::doubleConstant<-1, 0x5555555555555,  -3>();  // -1/3!
+    return y * (x2 * x) + x;
+}
+
+/**\internal
+ * Fold \p x into [-¼π, ¼π] and remember the quadrant it came from:
+ * quadrant 0: [-¼π,  ¼π]
+ * quadrant 1: [ ¼π,  ¾π]
+ * quadrant 2: [ ¾π, 1¼π]
+ * quadrant 3: [1¼π, 1¾π]
+ *
+ * The algorithm determines `y` as the multiple `x - y * ¼π = [-¼π, ¼π]`. Using a bitmask,
+ * `y` is reduced to `quadrant`. `y` can be calculated as
+ * ```
+ * y = trunc(x / ¼π);
+ * y += fmod(y, 2);
+ * ```
+ * This can be simplified by moving the (implicit) division by 2 into the truncation
+ * expression. The `+= fmod` effect can the be achieved by using rounding instead of
+ * truncation:
+ * `y = round(x / ½π) * 2`.
+ * If precision allows, `2/π * x` is better (faster).
+ */
+template <class T, class Abi> struct folded {
+    Vector<T, Abi> x, quadrant;
+};
+
+template <typename Abi>
+static Vc_ALWAYS_INLINE folded<float, Abi> foldInput(const Vector<float, Abi> &x)
+{
+    using V = Vector<float, Abi>;
+    using IV = best_int_v_for<V>;
+    using C = Const<float, Abi>;
+
+    folded<float, Abi> r;
+    r.x = abs(x);
+    if (Vc_IS_UNLIKELY(all_of(r.x < C::_pi_4()))) {
+        r.quadrant = 0;
+    } else if (Vc_IS_LIKELY(all_of(r.x < 33 * C::_pi_4()))) {
+        const float _2_over_pi = Vc::Detail::floatConstant<1, 0x22F983, -1>();  // ½π
+        V y = round(r.x * _2_over_pi);
+        r.quadrant = simd_cast<V>(simd_cast<IV>(y) & 3);            // y mod 4
+        r.x -= y * Vc::Detail::floatConstant<1, 0x490fe0, 0>();     // pi/2
+        r.x -= y * Vc::Detail::floatConstant<-1, 0x2bbbd3, -21>();  // pi/2 remainder
+    } else {
+        typedef SimdArray<double, V::size()> VD;
+        VD xd = simd_cast<VD>(abs(r.x));
+        constexpr double _2_over_pi =
+            Vc::Detail::doubleConstant<1, 0x45F306DC9C883, -1>();
+        VD y = round(xd * _2_over_pi);
+        r.quadrant = simd_cast<V>(simd_cast<IV>(y) & 3);  // = y mod 4
+        constexpr double pi_over_2 = Vc::Detail::doubleConstant<1, 0x921FB54442D18, 0>();
+        r.x = simd_cast<V>(xd - y * pi_over_2);
     }
-template <typename Abi>
-static Vc_ALWAYS_INLINE double_v_for<Abi> foldInput(double_v_for<Abi> x,
-                                                double_int_v<Abi> &quadrant)
-{
-    typedef double_v_for<Abi> V;
-    typedef Const<double, Abi> C;
+    //std::cout << std::hexfloat << r.x << ' ' << r.quadrant << std::defaultfloat << '\n';
+    return r;
 
-    x = abs(x);
-        V y = trunc(x / C::_pi_4()); // * C::_4_pi() would work, but is >twice as imprecise
-        V z = y - trunc(y * C::_1_16()) * C::_16(); // y modulo 16
-        quadrant = simd_cast<double_int_v<Abi>>(z);
-        int_m mask = (quadrant & double_int_v<Abi>::One()) != double_int_v<Abi>::Zero();
-        ++quadrant(mask);
-        y(simd_cast<double_m>(mask)) += V::One();
-        quadrant &= 7;
+    /*
+    More alternatives to avoid double precision calculation follow. Their main problem
+    is unfortunate rounding on intermediate values of x (after subtraction):
 
-        // since y is an integer we don't need to split y into low and high parts until the integer
-        // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
-        return ((x - y * C::_pi_4_hi()) - y * C::_pi_4_rem1()) - y * C::_pi_4_rem2();
+    if (all_of(y <= 0x1000)) {
+        // 0 <= x <= 0x1.921fb6p12
+        // π/4 - 12 bits precision (12 zero bits):
+        //const auto _pi_4_1 = Vc::Detail::floatConstant< 1, 0x491000,  -1>();
+        //const auto _pi_4_2 = Vc::Detail::floatConstant<-1, 0x157000, -19>();
+        //const auto _pi_4_3 = Vc::Detail::floatConstant<-1, 0x6F4B9F, -32>();
+        x -= y * C::_pi_4_hi();
+        x -= y * C::_pi_4_rem1();
+        x -= y * C::_pi_4_rem2();
+    } else { //if (all_of(y <= 0x10000)) {
+        // consider y = 0x1.fffep+16 / x = 0x1.921e24p+16
+        // critical input: 0x1.921fb6p+12 <= x <= 0x1.921fb6p+16
+        // π/4 - 8 bits precision (16 zero bits):
+        const auto _pi_4_1 = Vc::Detail::floatConstant<+1, 0x490000,  -1>();
+        const auto _pi_4_2 = Vc::Detail::floatConstant<+1, 0x7E0000, -13>();
+        const auto _pi_4_3 = Vc::Detail::floatConstant<-1, 0x2C0000, -22>();
+        const auto _pi_4_4 = Vc::Detail::floatConstant<+1, 0x085A31, -31>();
+        x -= y * _pi_4_1; // (x -= 0x1.91fe6ep+16) ->  0x1.fb6000p+4
+        x -= y * _pi_4_2; // (x -= 0x1.fbfe04p+4)  -> -0x1.3c0800p-6
+        x -= y * _pi_4_3; // (x -= 0x1.57fea8p-5)  ->  0x1.bf5a80p-9
+        x -= y * _pi_4_4; // (x -= 0x1.10b352p-14) ->  0x1.b6e4e6p-9
+        x.setQnan(y > 0x10000);
     }
+    */
+}
+
+template <typename Abi>
+static Vc_ALWAYS_INLINE folded<double, Abi> foldInput(const Vector<double, Abi> &x)
+{
+    using V = Vector<double, Abi>;
+    using IV = best_int_v_for<V>;
+    using C = Const<double, Abi> ;
+
+    folded<double, Abi> r;
+    r.x = abs(x);
+    constexpr double pi_over_4 = Vc::Detail::doubleConstant<1, 0x921FB54442D18, -1>();
+    if (Vc_IS_UNLIKELY(all_of(r.x < pi_over_4))) {
+        r.quadrant = 0;
+        return r;
+    }
+    const V y = round(r.x / (2 * pi_over_4));
+    r.quadrant = simd_cast<V>(simd_cast<IV>(y) & 3);
+
+    if (Vc_IS_LIKELY(all_of(r.x < 1025 * pi_over_4))) {
+        // x - y * pi/2, y uses no more than 11 mantissa bits
+        r.x -= y * Vc::Detail::doubleConstant< 1, 0x921FB54443000,   0>();
+        r.x -= y * Vc::Detail::doubleConstant<-1, 0x73DCB3B39A000, -43>();
+        r.x -= y * Vc::Detail::doubleConstant< 1, 0x45C06E0E68948, -86>();
+    } else if (Vc_IS_LIKELY(all_of(y <= Vc::Detail::doubleConstant<1, 0, 30>()))) {
+        // x - y * pi/2, y uses no more than 29 mantissa bits
+        r.x -= y * Vc::Detail::doubleConstant<1, 0x921FB40000000,   0>();
+        r.x -= y * Vc::Detail::doubleConstant<1, 0x4442D00000000, -24>();
+        r.x -= y * Vc::Detail::doubleConstant<1, 0x8469898CC5170, -48>();
+    } else {
+        // x - y * pi/2, y may require all mantissa bits
+        const V y_hi = y & C::highMask(26);
+        const V y_lo = y - y_hi;
+        const auto _pi_2_1 = Vc::Detail::doubleConstant<1, 0x921FB50000000,   0>();
+        const auto _pi_2_2 = Vc::Detail::doubleConstant<1, 0x110B460000000, -26>();
+        const auto _pi_2_3 = Vc::Detail::doubleConstant<1, 0x1A62630000000, -54>();
+        const auto _pi_2_4 = Vc::Detail::doubleConstant<1, 0x8A2E03707344A, -81>();
+        /*
+        std::cout << std::hexfloat;
+        std::cout
+            << y_hi << '\n'
+            << y_lo << '\n'
+            << _pi_2_1 << '\n'
+            << _pi_2_2 << '\n'
+            << _pi_2_3 << '\n'
+            << y_hi * _pi_2_1 << '\n'
+            << y_hi * _pi_2_2 << '\n'
+            << y_hi * _pi_2_3 << '\n'
+            << y * _pi_2_4 << '\n'
+            << y_lo * _pi_2_1 << '\n'
+            << y_lo * _pi_2_2 << '\n'
+            << y_lo * _pi_2_3 << '\n';
+        std::cout << std::defaultfloat;
+        */
+        r.x = r.x
+            - y_hi * _pi_2_1
+            - max(y_hi * _pi_2_2, y_lo * _pi_2_1)
+            - min(y_hi * _pi_2_2, y_lo * _pi_2_1)
+            - max(y_hi * _pi_2_3, y_lo * _pi_2_2)
+            - min(y_hi * _pi_2_3, y_lo * _pi_2_2)
+            - max(y    * _pi_2_4, y_lo * _pi_2_3)
+            - min(y    * _pi_2_4, y_lo * _pi_2_3);
+    }
+    return r;
+}
+
+constexpr double signmask = -0.;
+constexpr float signmaskf = -0.f;
 } // anonymous namespace
 
 /*
@@ -161,127 +278,124 @@ static Vc_ALWAYS_INLINE double_v_for<Abi> foldInput(double_v_for<Abi> x,
  */
 template <>
 template <>
-Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
-    Vc::CurrentImplementation::current()>>::sin(const Vc::float_v &_x)
+Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::sin(const Vc::double_v &x)
 {
-    typedef Vc::float_v V;
-    typedef V::Mask M;
-    using IV = best_int_v_for<V>;
+    using V = Vc::double_v;
+    const auto f = foldInput(x);
+    // quadrant | effect
+    //        0 | sinSeries
+    //        1 | cosSeries
+    //        2 | sinSeries, sign flip
+    //        3 | cosSeries, sign flip
+    const V sin_sign = (x ^ (1 - f.quadrant)) & signmask;
 
-    IV quadrant;
-    const V z = foldInput(_x, quadrant);
-    const M sign = (_x < V::Zero()) ^ simd_cast<M>(quadrant > 3);
-    quadrant(quadrant > 3) -= 4;
+    const V sin_s = sinSeries(f.x);
+    const V cos_s = cosSeries(f.x);
+    return sin_sign ^ iif(f.quadrant == 0 || f.quadrant == 2, sin_s, cos_s);
+}
 
-    V y = sinSeries(z);
-    y(simd_cast<M>(quadrant == IV::One() || quadrant == 2)) = cosSeries(z);
-    y(sign) = -y;
-    return y;
+template <>
+template <>
+Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::sin(const Vc::float_v &x)
+{
+    using V = Vc::float_v;
+    if (Vc_IS_UNLIKELY(any_of(abs(x) >= 527449))) {
+        return simd_cast<V>(sin(simd_cast<Vc::double_v, 0>(x)),
+                            sin(simd_cast<Vc::double_v, 1>(x)));
+    }
+
+    const auto f = foldInput(x);
+    const V sin_sign = (x ^ (1 - f.quadrant)) & signmaskf;
+
+    const V sin_s = sinSeries(f.x);
+    const V cos_s = cosSeries(f.x);
+    return sin_sign ^ iif(f.quadrant == 0 || f.quadrant == 2, sin_s, cos_s);
 }
 
 template <>
 template <>
 Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplementation<
-    Vc::CurrentImplementation::current()>>::sin(const Vc::double_v &_x)
+    Vc::CurrentImplementation::current()>>::cos(const Vc::double_v &x)
 {
-    typedef Vc::double_v V;
-    typedef V::Mask M;
+    using V = Vc::double_v;
+    const auto f = foldInput(x);
+    // quadrant | effect
+    //        0 | cosSeries, +
+    //        1 | sinSeries, -
+    //        2 | cosSeries, -
+    //        3 | sinSeries, +
+    const V cos_sign = ((0.5 - f.quadrant) & (f.quadrant - 2.5)) & signmask;
 
-    double_int_v<V::abi> quadrant;
-    M sign = _x < V::Zero();
-    const V x = foldInput(_x, quadrant);
-    sign ^= simd_cast<M>(quadrant > 3);
-    quadrant(quadrant > 3) -= 4;
-
-    V y = sinSeries(x);
-    y(simd_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = cosSeries(x);
-    y(sign) = -y;
-    return y;
+    const V sin_s = sinSeries(f.x);
+    const V cos_s = cosSeries(f.x);
+    return cos_sign ^ iif(f.quadrant == 0 || f.quadrant == 2, cos_s, sin_s);
 }
+
 template <>
 template <>
 Vc::float_v Trigonometric<Vc::Detail::TrigonometricImplementation<
-    Vc::CurrentImplementation::current()>>::cos(const Vc::float_v &_x)
+    Vc::CurrentImplementation::current()>>::cos(const Vc::float_v &x)
 {
-    typedef Vc::float_v V;
-    typedef V::Mask M;
-    using IV = best_int_v_for<V>;
+    using V = Vc::float_v;
+    if (Vc_IS_UNLIKELY(any_of(abs(x) >= 393382))) {
+        return simd_cast<V>(cos(simd_cast<Vc::double_v, 0>(x)),
+                            cos(simd_cast<Vc::double_v, 1>(x)));
+    }
+    const auto f = foldInput(x);
+    const V cos_sign = ((0.5f - f.quadrant) & (f.quadrant - 2.5f)) & signmaskf;
 
-    IV quadrant;
-    const V x = foldInput(_x, quadrant);
-    M sign = simd_cast<M>(quadrant > 3);
-    quadrant(quadrant > 3) -= 4;
-    sign ^= simd_cast<M>(quadrant > IV::One());
-
-    V y = cosSeries(x);
-    y(simd_cast<M>(quadrant == IV::One() || quadrant == 2)) = sinSeries(x);
-    y(sign) = -y;
-    return y;
+    const V sin_s = sinSeries(f.x);
+    const V cos_s = cosSeries(f.x);
+    return cos_sign ^ iif(f.quadrant == 0 || f.quadrant == 2, cos_s, sin_s);
 }
-template<> template<> Vc::double_v Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::cos(const Vc::double_v &_x)
-{
-    typedef Vc::double_v V;
-    typedef V::Mask M;
 
-    double_int_v<V::abi> quadrant;
-    const V x = foldInput(_x, quadrant);
-    M sign = simd_cast<M>(quadrant > 3);
-    quadrant(quadrant > 3) -= 4;
-    sign ^= simd_cast<M>(quadrant > double_int_v<V::abi>::One());
-
-    V y = cosSeries(x);
-    y(simd_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = sinSeries(x);
-    y(sign) = -y;
-    return y;
-}
 template <>
 template <>
 void Trigonometric<Vc::Detail::TrigonometricImplementation<
-    Vc::CurrentImplementation::current()>>::sincos(const Vc::float_v &_x, Vc::float_v *_sin, Vc::float_v *_cos)
+    Vc::CurrentImplementation::current()>>::sincos(const Vc::double_v &x, Vc::double_v *s,
+                                                   Vc::double_v *c)
 {
-    typedef Vc::float_v V;
-    typedef V::Mask M;
-    using IV = best_int_v_for<V>;
+    using V = Vc::double_v;
+    const auto f = foldInput(x);
+    // quadrant | cosine       | sine
+    //        0 | cosSeries, + | sinSeries
+    //        1 | sinSeries, - | cosSeries
+    //        2 | cosSeries, - | sinSeries, sign flip
+    //        3 | sinSeries, + | cosSeries, sign flip
+    const V sin_sign = (x ^ (1 - f.quadrant)) & signmask;
+    const V cos_sign = ((0.5 - f.quadrant) & (f.quadrant - 2.5)) & signmask;
 
-    IV quadrant;
-    const V x = foldInput(_x, quadrant);
-    M sign = simd_cast<M>(quadrant > 3);
-    quadrant(quadrant > 3) -= 4;
-
-    const V cos_s = cosSeries(x);
-    const V sin_s = sinSeries(x);
-
-    V c = cos_s;
-    c(simd_cast<M>(quadrant == IV::One() || quadrant == 2)) = sin_s;
-    c(sign ^ simd_cast<M>(quadrant > IV::One())) = -c;
-    *_cos = c;
-
-    V s = sin_s;
-    s(simd_cast<M>(quadrant == IV::One() || quadrant == 2)) = cos_s;
-    s(sign ^ simd_cast<M>(_x < V::Zero())) = -s;
-    *_sin = s;
+    const V sin_s = sinSeries(f.x);
+    const V cos_s = cosSeries(f.x);
+    *s = sin_sign ^ iif(f.quadrant == 0 || f.quadrant == 2, sin_s, cos_s);
+    *c = cos_sign ^ iif(f.quadrant == 0 || f.quadrant == 2, cos_s, sin_s);
 }
-template<> template<> void Trigonometric<Vc::Detail::TrigonometricImplementation<Vc::CurrentImplementation::current()>>::sincos(const Vc::double_v &_x, Vc::double_v *_sin, Vc::double_v *_cos) {
-    typedef Vc::double_v V;
-    typedef V::Mask M;
 
-    double_int_v<V::abi> quadrant;
-    const V x = foldInput(_x, quadrant);
-    M sign = simd_cast<M>(quadrant > 3);
-    quadrant(quadrant > 3) -= 4;
+template <>
+template <>
+void Trigonometric<Vc::Detail::TrigonometricImplementation<
+    Vc::CurrentImplementation::current()>>::sincos(const Vc::float_v &x, Vc::float_v *s,
+                                                   Vc::float_v *c)
+{
+    using V = Vc::float_v;
+    if (Vc_IS_UNLIKELY(any_of(abs(x) >= 393382))) {
+        Vc::double_v s0, s1, c0, c1;
+        sincos(simd_cast<Vc::double_v, 0>(x), &s0, &c0);
+        sincos(simd_cast<Vc::double_v, 1>(x), &s1, &c1);
+        *s = simd_cast<V>(s0, s1);
+        *c = simd_cast<V>(c0, c1);
+        return;
+    }
+    const auto f = foldInput(x);
+    const V sin_sign = (x ^ (1 - f.quadrant)) & signmaskf;
+    const V cos_sign = ((0.5f - f.quadrant) & (f.quadrant - 2.5f)) & signmaskf;
 
-    const V cos_s = cosSeries(x);
-    const V sin_s = sinSeries(x);
-
-    V c = cos_s;
-    c(simd_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = sin_s;
-    c(sign ^ simd_cast<M>(quadrant > double_int_v<V::abi>::One())) = -c;
-    *_cos = c;
-
-    V s = sin_s;
-    s(simd_cast<M>(quadrant == double_int_v<V::abi>::One() || quadrant == 2)) = cos_s;
-    s(sign ^ simd_cast<M>(_x < V::Zero())) = -s;
-    *_sin = s;
+    const V sin_s = sinSeries(f.x);
+    const V cos_s = cosSeries(f.x);
+    *s = sin_sign ^ iif(f.quadrant == 0 || f.quadrant == 2, sin_s, cos_s);
+    *c = cos_sign ^ iif(f.quadrant == 0 || f.quadrant == 2, cos_s, sin_s);
 }
 
 template <>
