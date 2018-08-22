@@ -131,6 +131,9 @@ set(libvc_compile_flags "-DVc_COMPILE_LIB")
 set(libvc_mic_compile_flags "-DVc_COMPILE_LIB")
 AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags)
 
+# -fstack-protector is the default of GCC, but at least Ubuntu changes the default to -fstack-protector-strong, which is crazy
+AddCompilerFlag("-fstack-protector" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags)
+
 if(MIC_FOUND)
    mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support_x86.cpp src/mic_sorthelper.cpp
       COMPILE_FLAGS ${libvc_mic_compile_flags})
