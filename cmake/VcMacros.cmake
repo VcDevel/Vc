@@ -172,6 +172,42 @@ endmacro()
 macro(vc_set_preferred_compiler_flags)
    vc_determine_compiler()
 
+   # Look for libmvec, which provides vectorized implementations of libm
+   find_library(Vc_LIB_MVEC mvec)
+   set(CMAKE_REQUIRED_LIBRARIES ${Vc_LIB_MVEC})
+   CHECK_CXX_SOURCE_COMPILES("
+#include <x86intrin.h>
+extern \"C\" {
+__m128 _ZGVbN4v_sinf(__m128);
+__m128d _ZGVbN2v_sin(__m128d);
+__m128 _ZGVbN4v_cosf(__m128);
+__m128d _ZGVbN2v_cos(__m128d);
+}
+
+__m128  f0(__m128  x) { return _ZGVbN4v_cosf(_ZGVbN4v_sinf(x)); }
+__m128d f1(__m128d x) { return _ZGVbN2v_cos(_ZGVbN2v_sin(x)); }
+int main() { return 0; }
+" Vc_HAVE_SSE_SINCOS)
+   CHECK_CXX_SOURCE_COMPILES("
+#include <x86intrin.h>
+extern \"C\" {
+__m256 _ZGVdN8v_sinf(__m256);
+__m256d _ZGVdN4v_sin(__m256d);
+__m256 _ZGVdN8v_cosf(__m256);
+__m256d _ZGVdN4v_cos(__m256d);
+}
+
+__m256  f0(__m256  x) { return _ZGVdN8v_cosf(_ZGVdN8v_sinf(x)); }
+__m256d f1(__m256d x) { return _ZGVdN4v_cos(_ZGVdN4v_sin(x)); }
+int main() { return 0; }
+" Vc_HAVE_AVX_SINCOS)
+   if(Vc_LIB_MVEC AND Vc_HAVE_SSE_SINCOS AND Vc_HAVE_AVX_SINCOS)
+      option(USE_LIBMVEC "Use GNU's libmvec for vectorized sine and cosine" OFF)
+      if(USE_LIBMVEC)
+         set(Vc_DEFINITIONS "${Vc_DEFINITIONS} -DVc_HAVE_LIBMVEC=1")
+      endif()
+   endif()
+
    set(_add_warning_flags false)
    set(_add_buildtype_flags false)
    foreach(_arg ${ARGN})
