@@ -1,6 +1,6 @@
 include(AddFileDependencies)
 
-add_definitions(-DCOMPILE_FOR_UNIT_TESTS) # -DVC_CHECK_ALIGNMENT)
+add_definitions(-DCOMPILE_FOR_UNIT_TESTS "-DTESTDATA_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/testdata/\"") # -DVC_CHECK_ALIGNMENT)
 if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
    AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
@@ -187,13 +187,13 @@ macro(vc_add_test _name)
       if("${_name}" STREQUAL "trigonometric")
          foreach(fun sincos asin acos atan)
             foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-               set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
+               set(_objs ${_objs} ${CMAKE_CURRENT_SOURCE_DIR}/testdata/${filename}.k1om.o)
             endforeach()
          endforeach()
       elseif("${_name}" STREQUAL "logarithm")
          foreach(fun ln log2 log10)
             foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-               set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
+               set(_objs ${_objs} ${CMAKE_CURRENT_SOURCE_DIR}/testdata/${filename}.k1om.o)
             endforeach()
          endforeach()
       endif()
@@ -228,38 +228,6 @@ macro(vc_add_test _name)
    endif()
 
 endmacro(vc_add_test)
-
-set(_deps)
-foreach(fun sincos asin acos atan ln log2 log10)
-   foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-      add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-         COMMAND ${CMAKE_COMMAND} -Dfilename=${filename} -P ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-         DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/download.cmake
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-         COMMENT "Downloading Test Data: ${filename}"
-         VERBATIM
-         )
-      if(MIC_OBJCOPY)
-         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o"
-            COMMAND ${MIC_OBJCOPY} -I binary -O elf64-k1om -B k1om ${filename} ${filename}.k1om.o
-            DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Converting Test Data: ${filename}.k1om.o"
-            VERBATIM
-            )
-         list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o")
-      endif()
-      list(APPEND _deps "${CMAKE_CURRENT_BINARY_DIR}/${filename}")
-   endforeach()
-endforeach()
-add_custom_target(download-testdata ALL
-   DEPENDS ${_deps}
-   )
-add_dependencies(Scalar download-testdata)
-add_dependencies(SSE download-testdata)
-add_dependencies(AVX download-testdata)
-add_dependencies(AVX2 download-testdata)
-add_dependencies(MIC download-testdata)
 
 vc_add_test(types)
 vc_add_test(subscript)
@@ -542,7 +510,3 @@ set_property(TARGET linkTestLibStatic APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCH
 set_property(TARGET linkTest APPEND PROPERTY COMPILE_OPTIONS "${Vc_ARCHITECTURE_FLAGS}")
 target_link_libraries(linkTestLibStatic Vc)
 target_link_libraries(linkTest Vc linkTestLibDynamic1 linkTestLibDynamic2 linkTestLibStatic)
-
-# Use the following program to generate the sincos-reference-*.dat files
-#add_executable(convert-sincos-reference EXCLUDE_FROM_ALL convert-sincos-reference.cpp)
-
