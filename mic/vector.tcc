@@ -727,6 +727,7 @@ template<> struct VectorShift<64, 8>/*{{{*/
         case-13: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  6);
         case-14: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  4);
         case-15: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  2);
+        default: Vc_UNREACHABLE();
         }
         return z;
     }
@@ -801,6 +802,7 @@ template<> struct VectorShift<64, 16>/*{{{*/
         case-29: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  3);
         case-30: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  2);
         case-31: return _mm512_alignr_epi32(z, _mm512_setzero_epi32(),  1);
+        default: Vc_UNREACHABLE();
         }
         return z;
     }
@@ -835,6 +837,7 @@ template<> struct VectorRotate<64, 8>/*{{{*/
         case  5: return _mm512_alignr_epi32(v, v, 10);
         case  6: return _mm512_alignr_epi32(v, v, 12);
         case  7: return _mm512_alignr_epi32(v, v, 14);
+        default: Vc_UNREACHABLE();
         }
         return _mm512_setzero_epi32();
     }
@@ -861,6 +864,7 @@ template<> struct VectorRotate<64, 16>/*{{{*/
         case  2: return _mm512_alignr_epi32(v, v,  2);
         case  1: return _mm512_alignr_epi32(v, v,  1);
         case  0: return v;
+        default: Vc_UNREACHABLE();
         }
         return _mm512_setzero_epi32();
     }
