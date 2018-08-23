@@ -55,6 +55,7 @@ enum Function {
     Sincos, Atan, Asin, Acos, Log, Log2, Log10
 };
 template<typename T, Function F> static inline const char *filename();
+#ifndef Vc_IMPL_MIC
 template<> inline const char *filename<float , Sincos>() { return TESTDATA_DIR "reference-sincos-sp.dat"; }
 template<> inline const char *filename<double, Sincos>() { return TESTDATA_DIR "reference-sincos-dp.dat"; }
 template<> inline const char *filename<float , Atan  >() { return TESTDATA_DIR "reference-atan-sp.dat"; }
@@ -70,7 +71,7 @@ template<> inline const char *filename<double, Log2  >() { return TESTDATA_DIR "
 template<> inline const char *filename<float , Log10 >() { return TESTDATA_DIR "reference-log10-sp.dat"; }
 template<> inline const char *filename<double, Log10 >() { return TESTDATA_DIR "reference-log10-dp.dat"; }
 
-#ifdef Vc_IMPL_MIC
+#else  // Vc_IMPL_MIC
 extern "C" {
 extern const Reference<double> _binary_reference_acos_dp_dat_start;
 extern const Reference<double> _binary_reference_acos_dp_dat_end;

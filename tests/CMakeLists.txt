@@ -187,13 +187,13 @@ macro(vc_add_test _name)
       if("${_name}" STREQUAL "trigonometric")
          foreach(fun sincos asin acos atan)
             foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-               set(_objs ${_objs} ${CMAKE_CURRENT_SOURCE_DIR}/testdata/${filename}.k1om.o)
+               set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
             endforeach()
          endforeach()
       elseif("${_name}" STREQUAL "logarithm")
          foreach(fun ln log2 log10)
             foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-               set(_objs ${_objs} ${CMAKE_CURRENT_SOURCE_DIR}/testdata/${filename}.k1om.o)
+               set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
             endforeach()
          endforeach()
       endif()
@@ -228,6 +228,20 @@ macro(vc_add_test _name)
    endif()
 
 endmacro(vc_add_test)
+
+if(MIC_OBJCOPY)
+   foreach(fun sincos asin acos atan ln log2 log10)
+      foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
+         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o"
+            COMMAND ${MIC_OBJCOPY} -I binary -O elf64-k1om -B k1om ${filename} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o
+            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/testdata/${filename}"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testdata/
+            COMMENT "Converting Test Data: ${filename}.k1om.o"
+            VERBATIM
+            )
+      endforeach()
+   endforeach()
+endif()
 
 vc_add_test(types)
 vc_add_test(subscript)
