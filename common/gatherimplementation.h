@@ -61,19 +61,29 @@ Vc_ALWAYS_INLINE void executeGather(SetIndexZeroT,
 }
 
 template <typename V, typename MT, typename IT>
-Vc_ALWAYS_INLINE void executeGather(SimpleLoopT,
-                                    V &v,
-                                    const MT *mem,
-                                    const IT &indexes,
-                                    typename V::MaskArgument mask)
+Vc_ALWAYS_INLINE void executeGather(SimpleLoopT, V &v, const MT *mem, const IT &indexes,
+                                    const typename V::MaskArgument mask)
 {
     if (Vc_IS_UNLIKELY(mask.isEmpty())) {
         return;
     }
+#if defined Vc_GCC && Vc_GCC >= 0x40900
+    // GCC 4.8 doesn't support dependent type and constexpr vector_size argument
+    constexpr std::size_t Sizeof = sizeof(V);
+    using Builtin [[gnu::vector_size(Sizeof)]] = typename V::value_type;
+    Builtin tmp = reinterpret_cast<Builtin>(v.data());
+    Common::unrolled_loop<std::size_t, 0, V::Size>([&](std::size_t i) {
+        if (mask[i]) {
+            tmp[i] = mem[indexes[i]];
+        }
+    });
+    v.data() = reinterpret_cast<typename V::VectorType>(tmp);
+#else
     Common::unrolled_loop<std::size_t, 0, V::Size>([&](std::size_t i) {
         if (mask[i])
             v[i] = mem[indexes[i]];
     });
+#endif
 }
 
 template <typename V, typename MT, typename IT>
