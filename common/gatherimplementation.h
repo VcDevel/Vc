@@ -124,60 +124,75 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
         low = _bit_scan_forward(bits);
         bits ^= 1 << low;
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 14:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
         high = (1 << high);
+        // fallthrough
     case 13:
         low = _bit_scan_forward(bits);
         bits ^= high | (1 << low);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 12:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
         high = (1 << high);
+        // fallthrough
     case 11:
         low = _bit_scan_forward(bits);
         bits ^= high | (1 << low);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 10:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
         high = (1 << high);
+        // fallthrough
     case 9:
         low = _bit_scan_forward(bits);
         bits ^= high | (1 << low);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 8:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
         high = (1 << high);
+        // fallthrough
     case 7:
         low = _bit_scan_forward(bits);
         bits ^= high | (1 << low);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 6:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
         high = (1 << high);
+        // fallthrough
     case 5:
         low = _bit_scan_forward(bits);
         bits ^= high | (1 << low);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 4:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
         high = (1 << high);
+        // fallthrough
     case 3:
         low = _bit_scan_forward(bits);
         bits ^= high | (1 << low);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 2:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
+        // fallthrough
     case 1:
         low = _bit_scan_forward(bits);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 0:
         break;
     }
@@ -200,28 +215,35 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
         low = _bit_scan_forward(bits);
         bits ^= 1 << low;
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 6:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
         high = (1 << high);
+        // fallthrough
     case 5:
         low = _bit_scan_forward(bits);
         bits ^= high | (1 << low);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 4:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
         high = (1 << high);
+        // fallthrough
     case 3:
         low = _bit_scan_forward(bits);
         bits ^= high | (1 << low);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 2:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
+        // fallthrough
     case 1:
         low = _bit_scan_forward(bits);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 0:
         break;
     }
@@ -244,12 +266,15 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
         low = _bit_scan_forward(bits);
         bits ^= 1 << low;
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 2:
         high = _bit_scan_reverse(bits);
         v[high] = mem[indexes[high]];
+        // fallthrough
     case 1:
         low = _bit_scan_forward(bits);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 0:
         break;
     }
@@ -271,6 +296,7 @@ Vc_ALWAYS_INLINE void executeGather(PopcntSwitchT,
     case 1:
         low = _bit_scan_forward(bits);
         v[low] = mem[indexes[low]];
+        // fallthrough
     case 0:
         break;
     }
