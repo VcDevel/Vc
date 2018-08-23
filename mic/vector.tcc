@@ -562,6 +562,23 @@ Vc_ALWAYS_INLINE __m512i ensureVector(const SimdArray<int, 8> &indexes)
     return _mm512_mask_loadunpacklo_epi32(_mm512_setzero_epi32(), 0x00ff, &indexes);
 }
 
+template <class IT>
+Vc_ALWAYS_INLINE __m512i
+ensureVector(const Vc::Common::Segment<MIC::Vector<IT>, 2, 0> &indexes)
+{
+    static_assert(sizeof(IT) == 4 && std::is_integral<IT>::value, "");
+    return _mm512_mask_mov_epi32(_mm512_setzero_epi32(), 0x00ff, indexes.data.data());
+}
+
+template <class IT>
+Vc_ALWAYS_INLINE __m512i
+ensureVector(const Vc::Common::Segment<MIC::Vector<IT>, 2, 1> &indexes)
+{
+    static_assert(sizeof(IT) == 4 && std::is_integral<IT>::value, "");
+    return _mm512_mask_permute4f128_epi32(_mm512_setzero_epi32(), 0x00ff,
+                                          indexes.data.data(), _MM_PERM_BADC);
+}
+
 template <typename IT>
 Vc_ALWAYS_INLINE
     enable_if<(!MIC::is_vector<IT>::value && !Traits::isAtomicSimdArray<IT>::value &&
@@ -576,8 +593,7 @@ template <typename MT, typename IT>
 Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::Mic>::gatherImplementation(
     const MT *mem, const IT &indexes)
 {
-    d.v() = MicIntrinsics::gather(ensureVector(std::forward<IT>(indexes)), mem,
-                                  UpDownC<MT>());
+    d.v() = MicIntrinsics::gather(ensureVector(indexes), mem, UpDownC<MT>());
 }
 
 template <typename T>
@@ -585,8 +601,8 @@ template <typename MT, typename IT>
 Vc_INTRINSIC Vc_PURE void Vector<T, VectorAbi::Mic>::gatherImplementation(
     const MT *mem, const IT &indexes, MaskArgument mask)
 {
-    d.v() = MicIntrinsics::gather(
-        d.v(), mask.data(), ensureVector(std::forward<IT>(indexes)), mem, UpDownC<MT>());
+    d.v() = MicIntrinsics::gather(d.v(), mask.data(), ensureVector(indexes), mem,
+                                  UpDownC<MT>());
 }
 
 // scatters {{{1

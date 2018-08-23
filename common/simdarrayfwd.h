@@ -40,6 +40,9 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
+// defined in common/simdarrayhelper.h
+template <typename T, std::size_t Pieces, std::size_t Index> struct Segment;
+
 /// \addtogroup SimdArray
 /// @{
 /*select_best_vector_type{{{*/
