@@ -446,9 +446,9 @@ public:
     }
 
     Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC SimdArray
-        copySign(const SimdArray &reference) const
+        copySign(const SimdArray &x) const
     {
-        return {Vc::copysign(data, reference.data)};
+        return {Vc::copysign(data, x.data)};
     }
 
     friend VectorType &internal_data<>(SimdArray &x);
@@ -1373,10 +1373,10 @@ public:
 
     ///\copydoc Vector::copySign
     Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC SimdArray
-        copySign(const SimdArray &reference) const
+        copySign(const SimdArray &x) const
     {
-        return {Vc::copysign(data0, reference.data0),
-                Vc::copysign(data1, reference.data1)};
+        return {Vc::copysign(data0, x.data0),
+                Vc::copysign(data1, x.data1)};
     }
     ///@}
 

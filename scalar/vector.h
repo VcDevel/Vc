@@ -284,9 +284,9 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
         }
 
         Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC Vector Vc_VDECL
-            copySign(Vector reference) const
+            copySign(Vector x) const
         {
-            return Vc::copysign(*this, reference);
+            return Vc::copysign(*this, x);
         }
 
         Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC Vector exponent() const
