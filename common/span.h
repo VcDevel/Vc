@@ -116,7 +116,7 @@ struct _is_span_compatible_container<
             std::nullptr_t>::type>> : public std::true_type {
 };
 
-#if defined Vc_MSVC || (defined Vc_GCC && Vc_GCC < 0x50100)
+#if defined Vc_MSVC || (defined Vc_GCC && Vc_GCC < 0x50100) || defined Vc_ICC
 #define Vc_CONSTEXPR
 #else
 #define Vc_CONSTEXPR constexpr
