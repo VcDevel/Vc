@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 
 using namespace Vc;
 
@@ -129,7 +129,7 @@ struct TestImplicitCast {
 enum SomeEnum { EnumValue = 0 };
 SomeEnum Enum() { return EnumValue; }
 
-void testImplicitTypeConversions()
+TEST(testImplicitTypeConversions)
 {
     VERIFY( TestImplicitCast<     int>::test(double()));
     VERIFY( TestImplicitCast<     int>::test( float()));
@@ -269,11 +269,6 @@ void testImplicitTypeConversions()
     TYPE_TEST(     uint,      uint_v,   uint_v);
     TYPE_TEST(     Enum,      uint_v,   uint_v);
     TYPE_TEST(     bool,      uint_v,   uint_v);
-}
-
-void testmain()
-{
-    runTest(testImplicitTypeConversions);
 }
 
 // vim: foldmethod=marker

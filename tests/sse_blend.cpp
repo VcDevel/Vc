@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 #include <sse/intrinsics.h>
 
 namespace std
@@ -53,7 +53,7 @@ template<> inline bool unittest_compareHelper<__m128i, __m128i>(const __m128i &a
 }
 }  // namespace UnitTest
 
-void blendpd()
+TEST(blendpd)
 {
     using Vc::SSE::blend_pd;
     __m128d a = _mm_set_pd(11, 10);
@@ -64,7 +64,8 @@ void blendpd()
     COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend_pd<0x2>(a, b), _mm_set_pd(21, 10))), 0x3);
     COMPARE(_mm_movemask_pd(_mm_cmpeq_pd(blend_pd<0x3>(a, b), b)), 0x3);
 }
-void blendps()
+
+TEST(blendps)
 {
     using Vc::SSE::blend_ps;
     __m128 a = _mm_set_ps(13, 12, 11, 10);
@@ -87,7 +88,8 @@ void blendps()
     COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0xe>(a, b), _mm_set_ps(23, 22, 21, 10))), 0xf);
     COMPARE(_mm_movemask_ps(_mm_cmpeq_ps(blend_ps<0xf>(a, b), b)), 0xf);
 }
-void blendepi16()
+
+TEST(blendepi16)
 {
     using Vc::SSE::blend_epi16;
     __m128i a = _mm_set_epi16(17, 16, 15, 14, 13, 12, 11, 10);
@@ -111,11 +113,4 @@ void blendepi16()
         __m128i reference = _mm_set_epi16(r[7], r[6], r[5], r[4], r[3], r[2], r[1], r[0]);
         COMPARE_NOEQ(blend_epi16<i>(a, b), reference);
     )
-}
-
-void testmain()
-{
-    runTest(blendpd);
-    runTest(blendps);
-    runTest(blendepi16);
 }

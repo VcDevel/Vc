@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 
 #if defined(Vc_ICC) || (defined(Vc_GCC) && Vc_GCC < 0x40800)
 class A {} __attribute__((aligned(64)));
@@ -34,12 +34,4 @@ class alignas(64) A {};
 #endif
 class B : public A {};
 
-void alignmentOfSubclass()
-{
-    COMPARE(alignof(B), alignof(A));
-}
-
-void testmain()
-{
-    runTest(alignmentOfSubclass);
-}
+TEST(alignmentOfSubclass) { COMPARE(alignof(B), alignof(A)); }

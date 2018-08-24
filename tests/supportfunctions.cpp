@@ -25,14 +25,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 
-void testCompiledImplementation()
-{
-    VERIFY(Vc::currentImplementationSupported());
-}
+TEST(testCompiledImplementation) { VERIFY(Vc::currentImplementationSupported()); }
 
-void testIsSupported()
+TEST(testIsSupported)
 {
     using Vc::CpuId;
     VERIFY(Vc::isImplementationSupported(Vc::ScalarImpl));
@@ -45,7 +42,7 @@ void testIsSupported()
     COMPARE(Vc::isImplementationSupported(Vc::AVX2Impl ), CpuId::hasOsxsave() && CpuId::hasAvx2());
 }
 
-void testBestImplementation()
+TEST(testBestImplementation)
 {
     // when building with a recent and fully featured compiler the following should pass
     // but - old GCC versions have to fall back to Scalar, even though SSE is supported by the CPU
@@ -53,7 +50,7 @@ void testBestImplementation()
     COMPARE(Vc::bestImplementationSupported(), Vc::CurrentImplementation::current());
 }
 
-void testExtraInstructions()
+TEST(testExtraInstructions)
 {
     using Vc::CpuId;
     unsigned int extra = Vc::extraInstructionsSupported();
@@ -64,14 +61,6 @@ void testExtraInstructions()
     COMPARE(!(extra & Vc::Sse4aInstructions), !CpuId::hasSse4a());
     COMPARE(!(extra & Vc::FmaInstructions), !CpuId::hasFma());
     COMPARE(!(extra & Vc::Bmi2Instructions), !CpuId::hasBmi2());
-}
-
-void testmain()
-{
-    runTest(testCompiledImplementation);
-    runTest(testIsSupported);
-    runTest(testBestImplementation);
-    runTest(testExtraInstructions);
 }
 
 // vim: foldmethod=marker

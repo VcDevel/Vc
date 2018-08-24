@@ -25,13 +25,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include "unittest-old.h"
+#include "unittest.h"
 #include <iostream>
 #include <cstring>
 
 using namespace Vc;
 
-template<typename Vec> void alignedStore()
+#define ALL_TYPES (ALL_VECTORS)
+
+TEST_TYPES(Vec, alignedStore, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -71,7 +73,7 @@ template<typename Vec> void alignedStore()
     }
 }
 
-template<typename Vec> void unalignedStore()
+TEST_TYPES(Vec, unalignedStore, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -93,7 +95,7 @@ template<typename Vec> void unalignedStore()
     }
 }
 
-template<typename Vec> void streamingAndAlignedStore()
+TEST_TYPES(Vec, streamingAndAlignedStore, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -115,7 +117,7 @@ template<typename Vec> void streamingAndAlignedStore()
     }
 }
 
-template<typename Vec> void streamingAndUnalignedStore()
+TEST_TYPES(Vec, streamingAndUnalignedStore, ALL_TYPES)
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -137,8 +139,14 @@ template<typename Vec> void streamingAndUnalignedStore()
     }
 }
 
-template<typename Vec> void maskedStore()
+TEST_TYPES(Vec, maskedStore, ALL_TYPES)
 {
+    if ((Vec::size() & 1) == 1) {
+        // only works with an even number of vector entries
+        // a) masked store with 01010101 will use only 0 for size 1
+        // b) the random masks will not be random, because mean == value
+        return;
+    }
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask M;
     M mask;
@@ -187,20 +195,5 @@ template<typename Vec> void maskedStore()
                 << ", offset: " << offset << ", offset2: " << offset2 << ", mem: " << mem
                 << ", loAddress: " << loAddress;
         }
-    }
-}
-
-void testmain()
-{
-    testAllTypes(alignedStore);
-    testAllTypes(unalignedStore);
-    testAllTypes(streamingAndAlignedStore);
-    testAllTypes(streamingAndUnalignedStore);
-
-    if (float_v::Size > 1) {
-        // only works with an even number of vector entries
-        // a) masked store with 01010101 will use only 0 for size 1
-        // b) the random masks will not be random, because mean == value
-        testAllTypes(maskedStore);
     }
 }

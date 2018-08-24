@@ -1,3 +1,6 @@
 [submodule "tests/testdata"]
 	path = tests/testdata
 	url = https://github.com/VcDevel/vc-testdata
+[submodule "tests/virtest"]
+	path = tests/virtest
+	url = https://github.com/mattkretz/virtest
