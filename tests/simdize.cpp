@@ -479,7 +479,6 @@ TEST(vector_iterator_vectorization)
         COMPARE(next, b);
         COMPARE(*next, *b);
 
-
         float_v reference = list.size() - float_v::IndexesFromZero();
         for (; b != e; ++b, reference -= float_v::size()) {
             float_v x = *b;
@@ -493,6 +492,31 @@ TEST(vector_iterator_vectorization)
             float_v x = *b;
             COMPARE(x, reference);
             COMPARE(*b, reference);
+        }
+
+        // also test const_iterator
+        reference = list.size() - float_v::IndexesFromZero() + 1;
+        using LCIV = simdize<L::const_iterator>;
+        LCIV it = list.cbegin();
+        const LCIV ce = list.cend();
+        for (; it != ce; ++it, reference -= float_v::size()) {
+            float_v x = *it;
+            COMPARE(x, reference);
+            COMPARE(*it, reference);
+        }
+    }
+    {
+        using L = std::vector<std::tuple<short, float>>;
+        using LIV = simdize<L::iterator>;
+        L list;
+        for (auto i = 1024; i; --i) {
+            list.emplace_back(i, i);
+        }
+        const LIV end_it = list.end();
+        for (LIV it = list.begin(); it != end_it; ++it) {
+            simdize<std::tuple<short, float>> x = *it;
+            COMPARE(std::get<0>(x), std::get<0>(*it));
+            COMPARE(std::get<1>(x), std::get<1>(*it));
         }
     }
 }

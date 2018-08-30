@@ -106,8 +106,8 @@ namespace Vc_VERSIONED_NAMESPACE
     } // anonymous namespace
 
     /**
-     * \ingroup Utilities
-     * \headerfile Utils
+     * \ingroup Containers
+     * \headerfile makeContainer.h <Vc/Utils>
      *
      * Construct a container of Vc vectors from a std::initializer_list of scalar entries.
      *

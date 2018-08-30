@@ -76,17 +76,47 @@ template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix()
 constexpr bool some_of(bool) { return false; }
 //@}
 
-template <typename InputIt, typename UnaryFunction>
+#ifdef DOXYGEN
+/**
+ * \ingroup Utilities
+ * \headerfile algorithms.h <Vc/Vc>
+ *
+ * Vc variant of the `std::for_each` algorithm.
+ *
+ * This algorithm calls \p f with one argument of type
+ * `Vc::Vector<` *iterator value type* `, ` *unspecified* `>` as often as is needed to
+ * iterate over the complete range from \p first to \p last.
+ * It will try to use the best vector size (VectorAbi) to work on the largest chunks
+ * possible.
+ * To support aligned loads (and stores) and to support arbitrary range distances, the
+ * algorithm may require the use of `Vc::VectorAbi` types that work on fewer elements in
+ * parallel.
+ *
+ * The following example requires C++14 for generic lambdas. If you don't have generic
+ * lambdas available you can use a "classic" functor type with a templated call operator
+ * instead.
+ *
+ * \code
+ * void scale(std::vector<double> &data, double factor) {
+ *   Vc::simd_for_each(data.begin(), data.end(), [&](auto v) {
+ *      v *= factor;
+ *   });
+ * }
+ * \endcode
+ */
+template <class InputIt, class UnaryFunction>
+UnaryFunction simd_for_each(InputIt first, InputIt last, UnaryFunction f);
+#else
+template <class InputIt, class UnaryFunction,
+          class ValueType = typename std::iterator_traits<InputIt>::value_type>
 inline enable_if<
-    std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
-        Traits::is_functor_argument_immutable<
-            UnaryFunction,
-            Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
+    std::is_arithmetic<ValueType>::value &&
+        Traits::is_functor_argument_immutable<UnaryFunction, Vector<ValueType>>::value,
     UnaryFunction>
 simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 {
-    typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
-    typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
+    typedef Vector<ValueType> V;
+    typedef Scalar::Vector<ValueType> V1;
     for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
                    (V::MemoryAlignment - 1) &&
                first != last;
@@ -135,6 +165,7 @@ simd_for_each(InputIt first, InputIt last, UnaryFunction f)
     }
     return std::move(f);
 }
+#endif
 
 template <typename InputIt, typename UnaryFunction>
 inline enable_if<
