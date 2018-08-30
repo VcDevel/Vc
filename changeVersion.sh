@@ -3,7 +3,7 @@
 cd "`dirname "$0"`"
 
 # Read version number
-eval `awk '/VC_VERSION_NUMBER 0x[0-9]+/ { h=$3 }
+eval `awk '/Vc_VERSION_NUMBER 0x[0-9]+/ { h=$3 }
 END {
 major=strtonum(substr(h, 1, 4))
 minor=strtonum("0x" substr(h, 5, 2))
@@ -21,6 +21,6 @@ versionNumber=`echo $versionNumber | awk '{ printf "0x%06x", (strtonum($0) + 1) 
 
 sed -i "s/^PROJECT_NUMBER         = .*\$/PROJECT_NUMBER         = $versionString/" doc/Doxyfile
 sed -i \
-	-e "s/VC_VERSION_STRING \".*\"\$/VC_VERSION_STRING \"$versionString\"/" \
-	-e "s/VC_VERSION_NUMBER 0x.*\$/VC_VERSION_NUMBER $versionNumber/" \
+	-e "s/Vc_VERSION_STRING \".*\"\$/Vc_VERSION_STRING \"$versionString\"/" \
+	-e "s/Vc_VERSION_NUMBER 0x.*\$/Vc_VERSION_NUMBER $versionNumber/" \
 	include/Vc/version.h
