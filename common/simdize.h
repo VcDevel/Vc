@@ -38,8 +38,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Automatic type vectorization.
 
-The simdize<T> expression transforms the type \c T to a vectorized variant. This requires the type
-\c T to be a class template instance.
+Struct Vectorization
+======================
+
+The `Vc::simdize<T>` expression transforms the type \c T to a vectorized type. This requires the type
+\c T to be a class template instance or an arithmetic type.
 
 Example:
 First, we declare a class template for a three-dimensional point. The template parameter \c T
@@ -56,7 +59,10 @@ template <typename T> struct PointTemplate
   PointTemplate(T xx, T yy, T zz) : x{xx}, y{yy}, z{zz} {};
 
   // The following function will automatically be vectorized in the PointV type.
-  T distance_to_origin() const { return std::sqrt(x * x + y * y + z * z); }
+  T distance_to_origin() const {
+    using std::sqrt;
+    return sqrt(x * x + y * y + z * z);
+  }
 };
 \endcode
 
@@ -85,6 +91,32 @@ const Point most_distant = extract(pv, (l.max() == l).firstOne());
 std::cout << '(' << most_distant.x << ", " << most_distant.y << ", " << most_distant.z << ")\n";
 // prints (7, 8, 9) with float_v::size() == 8
 \endcode
+
+Iterator Vectorization
+======================
+
+`Vc::simdize<Iterator>` can also be used to turn an iterator type into a new iterator type with `Vc::simdize<Iterator::value_type>` as its `value_type`.
+Note that `Vc::simdize<double>` turns into `Vc::Vector<double>`, which makes it easy to iterate over a given container of builtin arithmetics using `Vc::Vector`.
+\code
+void classic(const std::vector<Point> &data) {
+  using It = std::vector<Point>::const_iterator;
+  const It end = data.end();
+  for (It it = data.begin(); it != end; ++it) {
+    Point x = *it;
+    do_something(x);
+  }
+}
+
+void vectorized(const std::vector<float> &data) {
+  using It = Vc::simdize<std::vector<Point>::const_iterator>;
+  const It end = data.end();
+  for (It it = data.begin(); it != end; ++it) {
+    Vc::simdize<Point> x = *it;  // i.e. PointV
+    do_something(x);
+  }
+}
+\endcode
+
  */
 namespace Vc_VERSIONED_NAMESPACE
 {
