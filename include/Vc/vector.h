@@ -37,10 +37,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # include "sse/vector.h"
 #endif
 
-#if defined(Vc_IMPL_MIC)
-# include "mic/vector.h"
-#endif
-
 namespace Vc_VERSIONED_NAMESPACE
 {
 /**
@@ -232,11 +228,6 @@ constexpr std::size_t MemoryAlignment = alignof(MemoryAlignedBase);
 # include "avx/helperimpl.h"
 # include "avx/math.h"
 # include "avx/simd_cast_caller.tcc"
-#endif
-#if defined(Vc_IMPL_MIC)
-# include "mic/helperimpl.h"
-# include "mic/math.h"
-# include "mic/simd_cast_caller.tcc"
 #endif
 
 #include "common/math.h"

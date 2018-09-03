@@ -102,11 +102,7 @@ TEST_TYPES(V, testCos, RealTypes) //{{{1
 TEST_TYPES(V, testAsin, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
-#ifdef Vc_IMPL_MIC
-    setFuzzyness<float>(3);
-#else
     setFuzzyness<float>(2);
-#endif
     setFuzzyness<double>(36);
     Array<Reference<T> > reference = referenceData<T, Asin>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {

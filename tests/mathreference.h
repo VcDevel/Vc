@@ -55,7 +55,6 @@ enum Function {
     Sincos, Atan, Asin, Acos, Log, Log2, Log10
 };
 template<typename T, Function F> static inline const char *filename();
-#ifndef Vc_IMPL_MIC
 template<> inline const char *filename<float , Sincos>() { return TESTDATA_DIR "reference-sincos-sp.dat"; }
 template<> inline const char *filename<double, Sincos>() { return TESTDATA_DIR "reference-sincos-dp.dat"; }
 template<> inline const char *filename<float , Atan  >() { return TESTDATA_DIR "reference-atan-sp.dat"; }
@@ -71,148 +70,9 @@ template<> inline const char *filename<double, Log2  >() { return TESTDATA_DIR "
 template<> inline const char *filename<float , Log10 >() { return TESTDATA_DIR "reference-log10-sp.dat"; }
 template<> inline const char *filename<double, Log10 >() { return TESTDATA_DIR "reference-log10-dp.dat"; }
 
-#else  // Vc_IMPL_MIC
-extern "C" {
-extern const Reference<double> _binary_reference_acos_dp_dat_start;
-extern const Reference<double> _binary_reference_acos_dp_dat_end;
-extern const Reference<float > _binary_reference_acos_sp_dat_start;
-extern const Reference<float > _binary_reference_acos_sp_dat_end;
-extern const Reference<double> _binary_reference_asin_dp_dat_start;
-extern const Reference<double> _binary_reference_asin_dp_dat_end;
-extern const Reference<float > _binary_reference_asin_sp_dat_start;
-extern const Reference<float > _binary_reference_asin_sp_dat_end;
-extern const Reference<double> _binary_reference_atan_dp_dat_start;
-extern const Reference<double> _binary_reference_atan_dp_dat_end;
-extern const Reference<float > _binary_reference_atan_sp_dat_start;
-extern const Reference<float > _binary_reference_atan_sp_dat_end;
-extern const Reference<double> _binary_reference_ln_dp_dat_start;
-extern const Reference<double> _binary_reference_ln_dp_dat_end;
-extern const Reference<float > _binary_reference_ln_sp_dat_start;
-extern const Reference<float > _binary_reference_ln_sp_dat_end;
-extern const Reference<double> _binary_reference_log10_dp_dat_start;
-extern const Reference<double> _binary_reference_log10_dp_dat_end;
-extern const Reference<float > _binary_reference_log10_sp_dat_start;
-extern const Reference<float > _binary_reference_log10_sp_dat_end;
-extern const Reference<double> _binary_reference_log2_dp_dat_start;
-extern const Reference<double> _binary_reference_log2_dp_dat_end;
-extern const Reference<float > _binary_reference_log2_sp_dat_start;
-extern const Reference<float > _binary_reference_log2_sp_dat_end;
-extern const SincosReference<double> _binary_reference_sincos_dp_dat_start;
-extern const SincosReference<double> _binary_reference_sincos_dp_dat_end;
-extern const SincosReference<float > _binary_reference_sincos_sp_dat_start;
-extern const SincosReference<float > _binary_reference_sincos_sp_dat_end;
-}
-
-template <typename T, Function F>
-inline std::pair<const T *, const T *> binary();
-template <>
-inline std::pair<const SincosReference<float> *, const SincosReference<float> *>
-binary<SincosReference<float>, Sincos>()
-{
-    return std::make_pair(&_binary_reference_sincos_sp_dat_start,
-                          &_binary_reference_sincos_sp_dat_end);
-}
-template <>
-inline std::pair<const SincosReference<double> *,
-                 const SincosReference<double> *>
-binary<SincosReference<double>, Sincos>()
-{
-    return std::make_pair(&_binary_reference_sincos_dp_dat_start,
-                          &_binary_reference_sincos_dp_dat_end);
-}
-template <>
-inline std::pair<const Reference<float> *, const Reference<float> *>
-binary<Reference<float>, Atan>()
-{
-    return std::make_pair(&_binary_reference_atan_sp_dat_start,
-                          &_binary_reference_atan_sp_dat_end);
-}
-template <>
-inline std::pair<const Reference<double> *, const Reference<double> *>
-binary<Reference<double>, Atan>()
-{
-    return std::make_pair(&_binary_reference_atan_dp_dat_start,
-                          &_binary_reference_atan_dp_dat_end);
-}
-template <>
-inline std::pair<const Reference<float> *, const Reference<float> *>
-binary<Reference<float>, Asin>()
-{
-    return std::make_pair(&_binary_reference_asin_sp_dat_start,
-                          &_binary_reference_asin_sp_dat_end);
-}
-template <>
-inline std::pair<const Reference<double> *, const Reference<double> *>
-binary<Reference<double>, Asin>()
-{
-    return std::make_pair(&_binary_reference_asin_dp_dat_start,
-                          &_binary_reference_asin_dp_dat_end);
-}
-template <>
-inline std::pair<const Reference<float> *, const Reference<float> *>
-binary<Reference<float>, Acos>()
-{
-    return std::make_pair(&_binary_reference_acos_sp_dat_start,
-                          &_binary_reference_acos_sp_dat_end);
-}
-template <>
-inline std::pair<const Reference<double> *, const Reference<double> *>
-binary<Reference<double>, Acos>()
-{
-    return std::make_pair(&_binary_reference_acos_dp_dat_start,
-                          &_binary_reference_acos_dp_dat_end);
-}
-template <>
-inline std::pair<const Reference<float> *, const Reference<float> *>
-binary<Reference<float>, Log>()
-{
-    return std::make_pair(&_binary_reference_ln_sp_dat_start,
-                          &_binary_reference_ln_sp_dat_end);
-}
-template <>
-inline std::pair<const Reference<double> *, const Reference<double> *>
-binary<Reference<double>, Log>()
-{
-    return std::make_pair(&_binary_reference_ln_dp_dat_start,
-                          &_binary_reference_ln_dp_dat_end);
-}
-template <>
-inline std::pair<const Reference<float> *, const Reference<float> *>
-binary<Reference<float>, Log2>()
-{
-    return std::make_pair(&_binary_reference_log2_sp_dat_start,
-                          &_binary_reference_log2_sp_dat_end);
-}
-template <>
-inline std::pair<const Reference<double> *, const Reference<double> *>
-binary<Reference<double>, Log2>()
-{
-    return std::make_pair(&_binary_reference_log2_dp_dat_start,
-                          &_binary_reference_log2_dp_dat_end);
-}
-template <>
-inline std::pair<const Reference<float> *, const Reference<float> *>
-binary<Reference<float>, Log10>()
-{
-    return std::make_pair(&_binary_reference_log10_sp_dat_start,
-                          &_binary_reference_log10_sp_dat_end);
-}
-template <>
-inline std::pair<const Reference<double> *, const Reference<double> *>
-binary<Reference<double>, Log10>()
-{
-    return std::make_pair(&_binary_reference_log10_dp_dat_start,
-                          &_binary_reference_log10_dp_dat_end);
-}
-#endif
-
 template<typename T>
 static Array<SincosReference<T> > sincosReference()
 {
-#ifdef Vc_IMPL_MIC
-    const auto range = binary<SincosReference<T>, Sincos>();
-    return {range.second - range.first, range.first};
-#else
     static Array<SincosReference<T> > data;
     if (data.data == 0) {
         FILE *file = std::fopen(filename<T, Sincos>(), "rb");
@@ -230,16 +90,11 @@ static Array<SincosReference<T> > sincosReference()
         }
     }
     return data;
-#endif
 }
 
 template<typename T, Function Fun>
 static Array<Reference<T> > referenceData()
 {
-#ifdef Vc_IMPL_MIC
-    const auto range = binary<Reference<T>, Fun>();
-    return {range.second - range.first, range.first};
-#else
     static Array<Reference<T> > data;
     if (data.data == 0) {
         FILE *file = std::fopen(filename<T, Fun>(), "rb");
@@ -257,7 +112,6 @@ static Array<Reference<T> > referenceData()
         }
     }
     return data;
-#endif
 }
 
 //}}}1

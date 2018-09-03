@@ -71,7 +71,7 @@ __m128 scalar_product(Vec3D a, Vec3D b) {
                     _mm_mul_ps(a[2], b[2]));
 }
 ```
-The above will neither scale to AVX, MIC, etc. nor is it portable to other SIMD ISAs.
+The above will neither scale to AVX, AVX-512, etc. nor is it portable to other SIMD ISAs.
 
 ## Build Requirements
 

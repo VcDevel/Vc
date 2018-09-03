@@ -2,9 +2,9 @@ include(AddFileDependencies)
 
 # ICC warns about code that produces reference values. Not useful.
 # warning #264: floating-point value does not fit in required floating-point type
-AddCompilerFlag("-diag-disable 264" CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
+AddCompilerFlag("-diag-disable 264" CXX_FLAGS CMAKE_CXX_FLAGS)
 # warning #61: integer operation result is out of range
-AddCompilerFlag("-diag-disable 61" CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
+AddCompilerFlag("-diag-disable 61" CXX_FLAGS CMAKE_CXX_FLAGS)
 
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS "-DTESTDATA_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/testdata/\"") # -DVC_CHECK_ALIGNMENT)
 if(Vc_COMPILER_IS_MSVC)
@@ -20,7 +20,6 @@ set(Vc_SCALAR_FLAGS "${Vc_ARCHITECTURE_FLAGS};-DVc_IMPL=Scalar")
 set(Vc_SSE_FLAGS    "${Vc_ARCHITECTURE_FLAGS};-DVc_IMPL=SSE")
 set(Vc_AVX_FLAGS    "${Vc_ARCHITECTURE_FLAGS};-DVc_IMPL=AVX")
 set(Vc_AVX2_FLAGS   "${Vc_ARCHITECTURE_FLAGS};-DVc_IMPL=AVX2")
-set(Vc_MIC_FLAGS    "-DVc_IMPL=MIC")
 
 if(USE_XOP)
    set(Vc_SSE_FLAGS  "${Vc_SSE_FLAGS}+XOP")
@@ -76,17 +75,6 @@ vc_set_first_flag_of(_avx2_flag "-xCORE-AVX2" "-mavx2" "/arch:AVX2")
 macro(vc_add_run_target _target)
    if("${CMAKE_GENERATOR}" MATCHES "Visual Studio")
       # do nothing. This just clutters the solution explorer
-   elseif("${_target}" MATCHES "_mic$")
-      if(MIC_NATIVELOAD)
-         get_target_property(_exe "${_target}" OUTPUT_NAME)
-         add_custom_target(run_${_target}
-            ${MIC_NATIVELOAD} "${_exe}" -a "-v"
-            DEPENDS ${_target}
-            COMMENT "Execute ${_target} test"
-            VERBATIM
-            )
-         list(APPEND _run_targets "run_${_target}")
-      endif()
    else()
       add_custom_target(run_${_target}
          ${_target} -v
@@ -117,7 +105,7 @@ macro(vc_add_test _name)
    set(name ${_name})
    set(_state 0)
    if(Vc_X86)
-      set(_targets "Scalar;SSE;AVX1;AVX2;MIC")
+      set(_targets "Scalar;SSE;AVX1;AVX2")
    else()
       set(_targets "Scalar")
    endif()
@@ -184,47 +172,6 @@ macro(vc_add_test _name)
       endif()
    endif()
 
-   if(MIC_NATIVE_FOUND AND "${_targets}" MATCHES "MIC")
-      set(_target "${name}_mic")
-      list(FIND disabled_targets ${_target} _disabled)
-      file(GLOB _extra_deps "${CMAKE_SOURCE_DIR}/mic/*.tcc" "${CMAKE_SOURCE_DIR}/mic/*.h" "${CMAKE_SOURCE_DIR}/common/*.h")
-      add_file_dependencies(${_name}.cpp "${_extra_deps}")
-      set(_objs)
-      if("${_name}" STREQUAL "trigonometric")
-         foreach(fun sincos asin acos atan)
-            foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-               set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
-            endforeach()
-         endforeach()
-      elseif("${_name}" STREQUAL "logarithm")
-         foreach(fun ln log2 log10)
-            foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-               set(_objs ${_objs} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o)
-            endforeach()
-         endforeach()
-      endif()
-      mic_add_executable(${_target}
-         LINK_LIBRARIES Vc_MIC
-         COMPILE_FLAGS "${Vc_MIC_FLAGS} ${_extra_flags}"
-         SOURCES ${_name}.cpp
-         OBJECTS ${_objs}
-         EXCLUDE_FROM_ALL
-         )
-      add_target_property(${_target} LABELS "MIC")
-      if(_disabled EQUAL -1)
-         add_dependencies(build_tests ${_target})
-         add_dependencies(MIC ${_target})
-         if(MIC_NATIVELOAD)
-            get_target_property(_exe "${_target}" OUTPUT_NAME)
-            add_test(NAME ${Vc_TEST_TARGET_PREFIX}${_target}
-               COMMAND "${MIC_NATIVELOAD}" "${_exe}"
-               )
-            set_property(TEST ${Vc_TEST_TARGET_PREFIX}${_target} PROPERTY LABELS "MIC")
-            vc_add_run_target(${_target})
-         endif()
-      endif()
-   endif()
-
    if(_run_targets)
       add_custom_target(run_${name}_all
          COMMENT "Execute all ${name} tests"
@@ -234,20 +181,6 @@ macro(vc_add_test _name)
    endif()
 
 endmacro(vc_add_test)
-
-if(MIC_OBJCOPY)
-   foreach(fun sincos asin acos atan ln log2 log10)
-      foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
-         add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o"
-            COMMAND ${MIC_OBJCOPY} -I binary -O elf64-k1om -B k1om ${filename} ${CMAKE_CURRENT_BINARY_DIR}/${filename}.k1om.o
-            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/testdata/${filename}"
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/testdata/
-            COMMENT "Converting Test Data: ${filename}.k1om.o"
-            VERBATIM
-            )
-      endforeach()
-   endforeach()
-endif()
 
 vc_add_test(types)
 vc_add_test(subscript)
@@ -327,27 +260,15 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "(x86_64|AMD64|amd64)")
    macro(test_abi _target _impl)
       set(_test test_${_target})
       set(asmfile "${_target}.i")
-      if("${_impl}" STREQUAL "MIC")
-         add_custom_command(OUTPUT ${asmfile}
-            COMMAND ${MIC_CXX}
-            ${incdirs} ${_flags} -O1 -mmic -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
-            ${CMAKE_CURRENT_SOURCE_DIR}/abi.cpp
-            DEPENDS abi.cpp ${CMAKE_SOURCE_DIR}/*/*.h ${CMAKE_SOURCE_DIR}/*/*.tcc
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Build ABI test: ${asmfile}"
-            VERBATIM
-            )
-      else()
-         add_custom_command(OUTPUT ${asmfile}
-            COMMAND ${CMAKE_CXX_COMPILER}
-            ${incdirs} ${_flags} -O1 -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
-            ${CMAKE_CURRENT_SOURCE_DIR}/abi.cpp
-            DEPENDS abi.cpp ${CMAKE_SOURCE_DIR}/*/*.h ${CMAKE_SOURCE_DIR}/*/*.tcc
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            COMMENT "Build ABI test: ${asmfile}"
-            VERBATIM
-            )
-      endif()
+      add_custom_command(OUTPUT ${asmfile}
+         COMMAND ${CMAKE_CXX_COMPILER}
+         ${incdirs} ${_flags} -O1 -DVc_IMPL=${_impl} ${ARGN} -S -o ${asmfile}
+         ${CMAKE_CURRENT_SOURCE_DIR}/abi.cpp
+         DEPENDS abi.cpp ${CMAKE_SOURCE_DIR}/*/*.h ${CMAKE_SOURCE_DIR}/*/*.tcc
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+         COMMENT "Build ABI test: ${asmfile}"
+         VERBATIM
+         )
       add_custom_target(${_target} DEPENDS ${asmfile})
       add_target_property(${_target} LABELS "${_impl}")
       add_dependencies(${_impl} ${_target})
@@ -377,14 +298,6 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "(x86_64|AMD64|amd64)")
       if(NOT Vc_AVX_INTRINSICS_BROKEN)
          test_abi(abi_AVX     AVX  ${_avx_flag})
          test_abi(abi_AVX2    AVX2 ${_avx2_flag})
-      endif()
-   endif()
-   if(MIC_NATIVE_FOUND)
-      find_program(MIC_OBJDUMP x86_64-k1om-linux-objdump PATHS ENV PATH "${MIC_TARGET_TOOLS_DIR}/bin")
-      mark_as_advanced(MIC_OBJDUMP)
-      if(MIC_OBJDUMP)
-         set(OBJDUMP "${MIC_OBJDUMP}")
-         test_abi(abi_MIC MIC)
       endif()
    endif()
 endif()

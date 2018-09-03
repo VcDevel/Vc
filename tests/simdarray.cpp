@@ -148,20 +148,6 @@ TEST_TYPES(V, indexesFromZero, SimdArrayList)
 {
     typedef typename V::EntryType T;
     V a(Vc::IndexesFromZero);
-#if defined Vc_IMPL_MIC && Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1, 99, 0)
-// see https://github.com/VcDevel/Vc/issues/47:
-// The subscript access to a[i] with i >= V::N0 might access Scalar::Vector<(u)short>
-// storing 2-Byte data, whereas the MIC::Vector<(u)short> stores 4-Byte data.
-// The plan is to have it fixed in Vc 2.0.
-    if (sizeof(T) < 4) {
-        alignas(V::MemoryAlignment) T mem[V::size()];
-        a.store(mem, Vc::Aligned);
-        for (std::size_t i = 0; i < a.size(); ++i) {
-            COMPARE(mem[i], T(i));
-        }
-        return;
-    }
-#endif
     for (std::size_t i = 0; i < a.size(); ++i) {
         COMPARE(a[i], T(i));
     }

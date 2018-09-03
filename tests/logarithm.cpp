@@ -68,11 +68,7 @@ template <typename V, typename F> void testAllDenormals(F &&fun)  //{{{1
 
 TEST_TYPES(V, testLog, RealTypes) //{{{1
 {
-#ifdef Vc_IMPL_MIC
-    setFuzzyness<float>(2);
-#else
     setFuzzyness<float>(1);
-#endif
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {

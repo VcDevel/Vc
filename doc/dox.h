@@ -298,7 +298,6 @@ One or more of the following macros will be defined:
 \li \ref Vc_IMPL_SSE4_2
 \li \ref Vc_IMPL_AVX
 \li \ref Vc_IMPL_AVX2
-\li \ref Vc_IMPL_MIC
 
 You can use these macros to enable target-specific implementations.
 In general, it is better to rely on function overloading or template mechanisms, though.
@@ -663,11 +662,6 @@ namespace Vc
  * This macro is defined if the current translation unit is compiled with AVX2 instruction support.
  */
 #define Vc_IMPL_AVX2
-/**
- * This macro is defined if the current translation unit is compiled for the Knights
- * Corner Xeon Phi instruction set.
- */
-#define Vc_IMPL_MIC
 //@}
 //@}
 

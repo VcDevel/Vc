@@ -31,7 +31,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../scalar/types.h"
 #include "../sse/types.h"
 #include "../avx/types.h"
-#include "../mic/types.h"
 
 #include "utility.h"
 #include "macros.h"
@@ -77,9 +76,6 @@ using select_best_vector_type =
                                           Vc::Scalar::Vector<T>
 #elif defined(Vc_IMPL_SSE)
                                           Vc::SSE::Vector<T>,
-                                          Vc::Scalar::Vector<T>
-#elif defined(Vc_IMPL_MIC)
-                                          Vc::MIC::Vector<T>,
                                           Vc::Scalar::Vector<T>
 #endif
                                           >::type;

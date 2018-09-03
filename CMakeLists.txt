@@ -42,19 +42,7 @@ endif()
 # TODO: check that 'decltype' compiles
 # TODO: check that 'constexpr' compiles
 if(NOT Vc_COMPILER_IS_MSVC) # MSVC doesn't provide a switch to turn C++11 on/off AFAIK
-   AddCompilerFlag("-std=c++14" CXX_RESULT _ok MIC_CXX_RESULT _mic_ok CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
-   if(MIC_NATIVE_FOUND AND NOT _mic_ok)
-      AddCompilerFlag("-std=c++1y" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
-      if(NOT _mic_ok)
-         AddCompilerFlag("-std=c++11" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
-         if(NOT _mic_ok)
-            AddCompilerFlag("-std=c++0x" MIC_CXX_RESULT _mic_ok MIC_CXX_FLAGS Vc_MIC_CXX_FLAGS)
-            if(NOT _mic_ok)
-               message(FATAL_ERROR "Vc 1.x requires C++11, better even C++14. The MIC native compiler does not support any of the C++11 language flags.")
-            endif()
-         endif()
-      endif()
-   endif()
+   AddCompilerFlag("-std=c++14" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
    if(NOT _ok)
       AddCompilerFlag("-std=c++1y" CXX_RESULT _ok CXX_FLAGS CMAKE_CXX_FLAGS)
       if(NOT _ok)
@@ -91,15 +79,6 @@ elseif(Vc_COMPILER_IS_MSVC)
    # MSVC emits the warning for the _UnitTest_Compare desctructor which needs the throw declaration so that it doesn't std::terminate
    AddCompilerFlag("/wd4290")
 endif()
-if(MIC_NATIVE_FOUND)
-   if("${Vc_MIC_ICC_VERSION}" VERSION_LESS "16.1.0")
-      UserWarning("ICC for MIC uses an incompatible STL. Disabling simdize_mic.")
-      list(APPEND disabled_targets
-         simdize_mic
-         example_simdize_mic
-         )
-   endif()
-endif()
 
 vc_set_preferred_compiler_flags(WARNING_FLAGS BUILDTYPE_FLAGS)
 
@@ -122,25 +101,15 @@ add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
 add_custom_target(SSE COMMENT "build SSE code" VERBATIM)
 add_custom_target(AVX COMMENT "build AVX code" VERBATIM)
 add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
-add_custom_target(MIC COMMENT "build MIC code" VERBATIM)
 
-AddCompilerFlag(-ftemplate-depth=128 CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
+AddCompilerFlag(-ftemplate-depth=128 CXX_FLAGS CMAKE_CXX_FLAGS)
 
 set(libvc_compile_flags "-DVc_COMPILE_LIB")
 set(libvc_mic_compile_flags "-DVc_COMPILE_LIB")
-AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags)
+AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
 
 # -fstack-protector is the default of GCC, but at least Ubuntu changes the default to -fstack-protector-strong, which is crazy
-AddCompilerFlag("-fstack-protector" CXX_FLAGS libvc_compile_flags MIC_CXX_FLAGS libvc_mic_compile_flags)
-
-if(MIC_FOUND)
-   mic_add_library(Vc_MIC STATIC src/mic_const.cpp src/cpuid.cpp src/support_x86.cpp src/mic_sorthelper.cpp
-      COMPILE_FLAGS ${libvc_mic_compile_flags})
-   add_target_property(Vc_MIC LABELS "MIC")
-   add_dependencies(MIC Vc_MIC)
-   get_target_property(outputName Vc_MIC OUTPUT_NAME)
-   install(FILES ${outputName} DESTINATION lib${LIB_SUFFIX})
-endif()
+AddCompilerFlag("-fstack-protector" CXX_FLAGS libvc_compile_flags)
 
 set(_srcs src/const.cpp)
 if(Vc_X86)
@@ -221,7 +190,6 @@ install(FILES
    cmake/CheckCXXCompilerFlag.cmake
    cmake/CheckMicCCompilerFlag.cmake
    cmake/CheckMicCXXCompilerFlag.cmake
-   cmake/FindMIC.cmake
    cmake/OptimizeForArchitecture.cmake
    cmake/FindVc.cmake
    ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake

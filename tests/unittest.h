@@ -45,11 +45,7 @@ using IntSimdArrays =
                   Vc::fixed_size_simd<unsigned int, N>, Vc::fixed_size_simd<short, N>>;
 template <int N>
 using OddIntSimdArrays =
-#if defined Vc_IMPL_MIC
-    vir::Typelist<Vc::fixed_size_simd<int, N>, Vc::fixed_size_simd<unsigned int, N>>;
-#else
     IntSimdArrays<N>;
-#endif
 template <int N> using SimdArrays = vir::concat<RealSimdArrays<N>, IntSimdArrays<N>>;
 template <int N>
 using OddSimdArrays = vir::concat<RealSimdArrays<N>, OddIntSimdArrays<N>>;
@@ -80,18 +76,7 @@ using RealTypes = vir::concat<RealVectors, RealSimdArrayList>;
 using AllTypes = vir::concat<AllVectors, SimdArrayList>;
 // }}}
 // allMasks {{{
-template <typename Vec>
-static Vc::enable_if<Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMasks(
-    size_t i)
-{
-    using M = typename Vec::Mask;
-    decltype(std::declval<const M &>().data()) tmp = ((1 << Vec::Size) - 1) - i;
-    return M(tmp);
-}
-
-template <typename Vec>
-static Vc::enable_if<!Vc::MIC::is_vector<Vec>::value, typename Vec::Mask> allMasks(
-    size_t i)
+template <typename Vec> static typename Vec::Mask allMasks(size_t i)
 {
     static_assert(Vec::size() <= 8 * sizeof(i),
                   "allMasks cannot create all possible masks for the given type Vec.");

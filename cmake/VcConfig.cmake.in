@@ -12,7 +12,6 @@ find_path(Vc_CMAKE_MODULES_DIR AddCompilerFlag.cmake HINTS "${Vc_LIB_DIR}/cmake/
 list(APPEND CMAKE_MODULE_PATH "${Vc_CMAKE_MODULES_DIR}")
 
 find_library(Vc_LIBRARIES Vc PATHS "${Vc_LIB_DIR}" NO_DEFAULT_PATH)
-find_library(Vc_MIC_LIBRARIES Vc_MIC PATHS "${Vc_LIB_DIR}" NO_DEFAULT_PATH)
 
 include("${Vc_CMAKE_MODULES_DIR}/VcMacros.cmake")
 

@@ -36,11 +36,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Common
 {
 
-#if defined(Vc_IMPL_MIC)
-static constexpr int exclusive_hint = 0x4;
-#else
 static constexpr int exclusive_hint = 0;
-#endif
 
 // TODO: support AMD's prefetchw with correct flags and checks via cpuid
 

@@ -69,9 +69,6 @@ static_assert(std::is_same<Best<int>, Sse>::value, "");
 static_assert(CurrentImplementation::is_between(SSE2Impl, SSE42Impl), "");
 static_assert(std::is_same<Best<float>, Sse>::value, "");
 static_assert(std::is_same<Best<int>, Sse>::value, "");
-#elif defined Vc_IMPL_MIC
-static_assert(std::is_same<Best<float>, Mic>::value, "");
-static_assert(std::is_same<Best<int>, Mic>::value, "");
 #elif defined Vc_IMPL_Scalar
 static_assert(std::is_same<Best<float>, Scalar>::value, "");
 static_assert(std::is_same<Best<int>, Scalar>::value, "");

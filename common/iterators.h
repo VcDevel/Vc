@@ -148,33 +148,6 @@ private:
 
 template <typename V> using ConstIterator = Iterator<const V>;
 
-#ifdef Vc_IMPL_MIC
-    class BitmaskIterator/*{{{*/
-    {
-        const int mask;
-        int bit;
-    public:
-        Vc_ALWAYS_INLINE BitmaskIterator(int m) : mask(m), bit(_mm_tzcnt_32(mask)) {}
-        Vc_ALWAYS_INLINE BitmaskIterator(const BitmaskIterator &) = default;
-        Vc_ALWAYS_INLINE BitmaskIterator(BitmaskIterator &&) = default;
-
-        Vc_ALWAYS_INLINE size_t operator->() const { return bit; }
-        Vc_ALWAYS_INLINE size_t operator*() const { return bit; }
-
-        Vc_ALWAYS_INLINE BitmaskIterator &operator++()    {
-            bit = _mm_tzcnti_32(bit, mask);
-            return *this;
-        }
-        Vc_ALWAYS_INLINE BitmaskIterator  operator++(int) {
-            BitmaskIterator tmp = *this;
-            bit = _mm_tzcnti_32(bit, mask);
-            return tmp;
-        }
-
-        Vc_ALWAYS_INLINE bool operator==(const BitmaskIterator &rhs) const { return bit == rhs.bit; }
-        Vc_ALWAYS_INLINE bool operator!=(const BitmaskIterator &rhs) const { return bit != rhs.bit; }
-    };/*}}}*/
-#else
     class BitmaskIterator/*{{{*/
     {
 #ifdef Vc_MSVC
@@ -225,7 +198,6 @@ template <typename V> using ConstIterator = Iterator<const V>;
         Vc_ALWAYS_INLINE bool operator==(const BitmaskIterator &rhs) const { return mask == rhs.mask; }
         Vc_ALWAYS_INLINE bool operator!=(const BitmaskIterator &rhs) const { return mask != rhs.mask; }
     };/*}}}*/
-#endif
 
 template <typename T>
 Vc_ALWAYS_INLINE

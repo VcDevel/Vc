@@ -21,8 +21,6 @@ if("${IMPL}" STREQUAL SSE)
    set(reference "v?movaps .*a_v, %xmm0.*call.* v?movaps %xmm0, .*b_v")
 elseif("${IMPL}" STREQUAL AVX OR "${IMPL}" STREQUAL AVX2)
    set(reference "vmovaps .*a_v, %ymm0.*call.* vmovaps %ymm0, .*b_v")
-elseif("${IMPL}" STREQUAL MIC)
-   set(reference "vmovaps .*a_v, %zmm0.*call.* vmovaps %zmm0, .*b_v")
 else()
    message(FATAL_ERROR "Unknown IMPL '${IMPL}'")
 endif()
@@ -36,11 +34,7 @@ endif()
 #######################################################################
 # test Mask<T> ABI
 #######################################################################
-if("${IMPL}" STREQUAL MIC)
-   set(reference "movzwl a_m, %edi.*call.*movw %ax, b_m")
-else()
-   string(REPLACE "_v" "_m" reference "${reference}")
-endif()
+string(REPLACE "_v" "_m" reference "${reference}")
 
 extract_asm(mask_abi)
 if("${asm}" MATCHES "${reference}")

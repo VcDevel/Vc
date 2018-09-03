@@ -58,8 +58,6 @@ public:
 # include "avx/limits.h"
 #elif defined(Vc_IMPL_SSE)
 # include "sse/limits.h"
-#elif defined(Vc_IMPL_MIC)
-# include "mic/limits.h"
 #endif
 
 #endif // VC_LIMITS_

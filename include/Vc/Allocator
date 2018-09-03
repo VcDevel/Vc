@@ -137,9 +137,7 @@ namespace Vc_VERSIONED_NAMESPACE
             NaturalAlignment = sizeof(void *) > alignof(long double) ? sizeof(void *) :
                 (alignof(long double) > alignof(long long) ? alignof(long double) : alignof(long long)),
 #endif
-#ifdef Vc_IMPL_MIC
-            SimdAlignment = 64,
-#elif defined Vc_IMPL_AVX
+#if defined Vc_IMPL_AVX
             SimdAlignment = 32,
 #elif defined Vc_IMPL_SSE
             SimdAlignment = 16,
