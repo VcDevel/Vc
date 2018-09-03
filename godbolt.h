@@ -14,13 +14,484 @@
 #include <cstdlib>
 #include <cstdio>
 #endif
-#include <Vc/global.h>
+#ifndef VC_GLOBAL_H_
+#define VC_GLOBAL_H_ 
+#include <cstdint>
+#ifndef VC_FWDDECL_H_
+#define VC_FWDDECL_H_ 
+#define Vc_VERSIONED_NAMESPACE Vc_1
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace VectorAbi
+{
+struct Scalar {};
+struct Sse {};
+struct Avx {};
+struct Mic {};
+template <class T> struct DeduceCompatible;
+template <class T> struct DeduceBest;
+}
+template <class T, class Abi> class Mask;
+template <class T, class Abi> class Vector;
+namespace simd_abi
+{
+using scalar = VectorAbi::Scalar;
+template <int N> struct fixed_size;
+template <class T> using compatible = typename VectorAbi::DeduceCompatible<T>::type;
+template <class T> using native = typename VectorAbi::DeduceBest<T>::type;
+using __sse = VectorAbi::Sse;
+using __avx = VectorAbi::Avx;
+struct __avx512;
+struct __neon;
+}
+namespace detail
+{
+template <class T, class Abi> struct translate_to_simd;
+}
+template <class T, class Abi = simd_abi::compatible<T>> using simd = Vector<T, Abi>;
+template <class T, class Abi = simd_abi::compatible<T>> using simd_mask = Mask<T, Abi>;
+template <class T> using native_simd = simd<T, simd_abi::native<T>>;
+template <class T> using native_simd_mask = simd_mask<T, simd_abi::native<T>>;
+template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
+template <class T, int N>
+using fixed_size_simd_mask = simd_mask<T, simd_abi::fixed_size<N>>;
+}
+namespace Vc = Vc_VERSIONED_NAMESPACE;
+#endif
+#ifdef DOXYGEN
+#define Vc_ICC __INTEL_COMPILER_BUILD_DATE
+#undef Vc_ICC
+#define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#undef Vc_CLANG
+#define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#undef Vc_APPLECLANG
+#define Vc_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
+#define Vc_MSVC _MSC_FULL_VER
+#undef Vc_MSVC
+#else
+#ifdef __INTEL_COMPILER
+#define Vc_ICC __INTEL_COMPILER_BUILD_DATE
+#elif defined(__clang__) && defined(__APPLE__) && __clang_major__ >= 6
+#define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#elif defined(__clang__)
+#define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
+#elif defined(__GNUC__)
+#define Vc_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
+#elif defined(_MSC_VER)
+#define Vc_MSVC _MSC_FULL_VER
+#else
+#define Vc_UNSUPPORTED_COMPILER 1
+#endif
+#if defined Vc_GCC && Vc_GCC >= 0x60000
+#define Vc_RESET_DIAGNOSTICS _Pragma("GCC diagnostic pop")
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+#else
+#define Vc_RESET_DIAGNOSTICS 
+#endif
+#if defined Vc_ICC
+#pragma warning disable 2922
+#endif
+#if __cplusplus < 201103 && (!defined Vc_MSVC || _MSC_VER < 1900)
+# error "Vc requires support for C++11."
+#elif __cplusplus >= 201402L
+#define Vc_CXX14 1
+# if __cplusplus > 201700L
+#define Vc_CXX17 1
+# endif
+#endif
+#if defined(__GNUC__) && !defined(Vc_NO_INLINE_ASM)
+#define Vc_GNU_ASM 1
+#endif
+#ifdef Vc_GCC
+#define Vc_HAVE_MAX_ALIGN_T 1
+#elif !defined(Vc_CLANG) && !defined(Vc_ICC)
+#define Vc_HAVE_STD_MAX_ALIGN_T 1
+#endif
+#if defined(Vc_GCC) || defined(Vc_CLANG) || defined Vc_APPLECLANG
+#define Vc_USE_BUILTIN_VECTOR_TYPES 1
+#endif
+#ifdef Vc_MSVC
+#define Vc_CDECL __cdecl
+#define Vc_VDECL __vectorcall
+#else
+#define Vc_CDECL 
+#define Vc_VDECL 
+#endif
+#define Scalar 0x00100000
+#define SSE 0x00200000
+#define SSE2 0x00300000
+#define SSE3 0x00400000
+#define SSSE3 0x00500000
+#define SSE4_1 0x00600000
+#define SSE4_2 0x00700000
+#define AVX 0x00800000
+#define AVX2 0x00900000
+#define XOP 0x00000001
+#define FMA4 0x00000002
+#define F16C 0x00000004
+#define POPCNT 0x00000008
+#define SSE4a 0x00000010
+#define FMA 0x00000020
+#define BMI2 0x00000040
+#define IMPL_MASK 0xFFF00000
+#define EXT_MASK 0x000FFFFF
+#ifdef Vc_MSVC
+# ifdef _M_IX86_FP
+# if _M_IX86_FP >= 1
+# ifndef __SSE__
+#define __SSE__ 1
+# endif
+# endif
+# if _M_IX86_FP >= 2
+# ifndef __SSE2__
+#define __SSE2__ 1
+# endif
+# endif
+# elif defined(_M_AMD64)
+# ifndef __SSE__
+#define __SSE__ 1
+# endif
+# ifndef __SSE2__
+#define __SSE2__ 1
+# endif
+# endif
+#endif
+#if defined Vc_ICC && !defined __POPCNT__
+# if defined __SSE4_2__ || defined __SSE4A__
+#define __POPCNT__ 1
+# endif
+#endif
+#ifdef VC_IMPL
+#error "You are using the old VC_IMPL macro. Since Vc 1.0 all Vc macros start with Vc_, i.e. a lower-case 'c'"
+#endif
+#ifndef Vc_IMPL
+# if defined(__AVX2__)
+#define Vc_IMPL_AVX2 1
+#define Vc_IMPL_AVX 1
+# elif defined(__AVX__)
+#define Vc_IMPL_AVX 1
+# else
+# if defined(__SSE4_2__)
+#define Vc_IMPL_SSE 1
+#define Vc_IMPL_SSE4_2 1
+# endif
+# if defined(__SSE4_1__)
+#define Vc_IMPL_SSE 1
+#define Vc_IMPL_SSE4_1 1
+# endif
+# if defined(__SSE3__)
+#define Vc_IMPL_SSE 1
+#define Vc_IMPL_SSE3 1
+# endif
+# if defined(__SSSE3__)
+#define Vc_IMPL_SSE 1
+#define Vc_IMPL_SSSE3 1
+# endif
+# if defined(__SSE2__)
+#define Vc_IMPL_SSE 1
+#define Vc_IMPL_SSE2 1
+# endif
+# if defined(Vc_IMPL_SSE)
+# else
+#define Vc_IMPL_Scalar 1
+# endif
+# endif
+# if !defined(Vc_IMPL_Scalar)
+# ifdef __FMA4__
+#define Vc_IMPL_FMA4 1
+# endif
+# ifdef __XOP__
+#define Vc_IMPL_XOP 1
+# endif
+# ifdef __F16C__
+#define Vc_IMPL_F16C 1
+# endif
+# ifdef __POPCNT__
+#define Vc_IMPL_POPCNT 1
+# endif
+# ifdef __SSE4A__
+#define Vc_IMPL_SSE4a 1
+# endif
+# ifdef __FMA__
+#define Vc_IMPL_FMA 1
+# endif
+# ifdef __BMI2__
+#define Vc_IMPL_BMI2 1
+# endif
+# endif
+#else
+# if (Vc_IMPL & IMPL_MASK) == AVX2
+#define Vc_IMPL_AVX2 1
+#define Vc_IMPL_AVX 1
+# elif (Vc_IMPL & IMPL_MASK) == AVX
+#define Vc_IMPL_AVX 1
+# elif (Vc_IMPL & IMPL_MASK) == Scalar
+#define Vc_IMPL_Scalar 1
+# elif (Vc_IMPL & IMPL_MASK) == SSE4_2
+#define Vc_IMPL_SSE4_2 1
+#define Vc_IMPL_SSE4_1 1
+#define Vc_IMPL_SSSE3 1
+#define Vc_IMPL_SSE3 1
+#define Vc_IMPL_SSE2 1
+#define Vc_IMPL_SSE 1
+# elif (Vc_IMPL & IMPL_MASK) == SSE4_1
+#define Vc_IMPL_SSE4_1 1
+#define Vc_IMPL_SSSE3 1
+#define Vc_IMPL_SSE3 1
+#define Vc_IMPL_SSE2 1
+#define Vc_IMPL_SSE 1
+# elif (Vc_IMPL & IMPL_MASK) == SSSE3
+#define Vc_IMPL_SSSE3 1
+#define Vc_IMPL_SSE3 1
+#define Vc_IMPL_SSE2 1
+#define Vc_IMPL_SSE 1
+# elif (Vc_IMPL & IMPL_MASK) == SSE3
+#define Vc_IMPL_SSE3 1
+#define Vc_IMPL_SSE2 1
+#define Vc_IMPL_SSE 1
+# elif (Vc_IMPL & IMPL_MASK) == SSE2
+#define Vc_IMPL_SSE2 1
+#define Vc_IMPL_SSE 1
+# elif (Vc_IMPL & IMPL_MASK) == SSE
+#define Vc_IMPL_SSE 1
+# if defined(__SSE4_2__)
+#define Vc_IMPL_SSE4_2 1
+# endif
+# if defined(__SSE4_1__)
+#define Vc_IMPL_SSE4_1 1
+# endif
+# if defined(__SSE3__)
+#define Vc_IMPL_SSE3 1
+# endif
+# if defined(__SSSE3__)
+#define Vc_IMPL_SSSE3 1
+# endif
+# if defined(__SSE2__)
+#define Vc_IMPL_SSE2 1
+# endif
+# elif (Vc_IMPL & IMPL_MASK) == 0 && (Vc_IMPL & SSE4a)
+#define Vc_IMPL_SSE3 1
+#define Vc_IMPL_SSE2 1
+#define Vc_IMPL_SSE 1
+# endif
+# if (Vc_IMPL & XOP)
+#define Vc_IMPL_XOP 1
+# endif
+# if (Vc_IMPL & FMA4)
+#define Vc_IMPL_FMA4 1
+# endif
+# if (Vc_IMPL & F16C)
+#define Vc_IMPL_F16C 1
+# endif
+# if (!defined(Vc_IMPL_Scalar) && defined(__POPCNT__)) || (Vc_IMPL & POPCNT)
+#define Vc_IMPL_POPCNT 1
+# endif
+# if (Vc_IMPL & SSE4a)
+#define Vc_IMPL_SSE4a 1
+# endif
+# if (Vc_IMPL & FMA)
+#define Vc_IMPL_FMA 1
+# endif
+# if (Vc_IMPL & BMI2)
+#define Vc_IMPL_BMI2 1
+# endif
+#undef Vc_IMPL
+#endif
+#ifdef __AVX__
+#define Vc_USE_VEX_CODING 1
+#endif
+#ifdef Vc_IMPL_AVX
+#define Vc_IMPL_SSE4_2 1
+#define Vc_IMPL_SSE4_1 1
+#define Vc_IMPL_SSSE3 1
+#define Vc_IMPL_SSE3 1
+#define Vc_IMPL_SSE2 1
+#define Vc_IMPL_SSE 1
+#endif
+#if defined(Vc_CLANG) && Vc_CLANG >= 0x30600 && Vc_CLANG < 0x30700
+# if defined(Vc_IMPL_AVX)
+# warning "clang 3.6.x miscompiles AVX code, frequently losing 50% of the data. Vc will fall back to SSE4 instead."
+#undef Vc_IMPL_AVX
+# if defined(Vc_IMPL_AVX2)
+#undef Vc_IMPL_AVX2
+# endif
+# endif
+#endif
+# if !defined(Vc_IMPL_Scalar) && !defined(Vc_IMPL_SSE) && !defined(Vc_IMPL_AVX)
+# error "No suitable Vc implementation was selected! Probably Vc_IMPL was set to an invalid value."
+# elif defined(Vc_IMPL_SSE) && !defined(Vc_IMPL_SSE2)
+# error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
+# endif
+#undef Scalar
+#undef SSE
+#undef SSE2
+#undef SSE3
+#undef SSSE3
+#undef SSE4_1
+#undef SSE4_2
+#undef AVX
+#undef AVX2
+#undef XOP
+#undef FMA4
+#undef F16C
+#undef POPCNT
+#undef SSE4a
+#undef FMA
+#undef BMI2
+#undef IMPL_MASK
+#undef EXT_MASK
+#if defined Vc_IMPL_AVX2
+#define Vc_DEFAULT_IMPL_AVX2 
+#elif defined Vc_IMPL_AVX
+#define Vc_DEFAULT_IMPL_AVX 
+#elif defined Vc_IMPL_SSE
+#define Vc_DEFAULT_IMPL_SSE 
+#elif defined Vc_IMPL_Scalar
+#define Vc_DEFAULT_IMPL_Scalar 
+#else
+#error "Preprocessor logic broken. Please report a bug."
+#endif
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef signed short int16_t;
+typedef unsigned short uint16_t;
+typedef signed int int32_t;
+typedef unsigned int uint32_t;
+typedef signed long long int64_t;
+typedef unsigned long long uint64_t;
+enum MallocAlignment {
+AlignOnVector,
+AlignOnCacheline,
+AlignOnPage
+};
+enum Implementation : std::uint_least32_t {
+ScalarImpl,
+SSE2Impl,
+SSE3Impl,
+SSSE3Impl,
+SSE41Impl,
+SSE42Impl,
+AVXImpl,
+AVX2Impl,
+MICImpl,
+ImplementationMask = 0xfff
+};
+enum ExtraInstructions : std::uint_least32_t {
+Float16cInstructions = 0x01000,
+Fma4Instructions = 0x02000,
+XopInstructions = 0x04000,
+PopcntInstructions = 0x08000,
+Sse4aInstructions = 0x10000,
+FmaInstructions = 0x20000,
+VexInstructions = 0x40000,
+Bmi2Instructions = 0x80000,
+ExtraInstructionsMask = 0xfffff000u
+};
+template <unsigned int Features> struct ImplementationT {
+static constexpr Implementation current()
+{
+return static_cast<Implementation>(Features & ImplementationMask);
+}
+static constexpr bool is(Implementation impl)
+{
+return static_cast<unsigned int>(impl) == current();
+}
+static constexpr bool is_between(Implementation low, Implementation high)
+{
+return static_cast<unsigned int>(low) <= current() &&
+static_cast<unsigned int>(high) >= current();
+}
+static constexpr bool runs_on(unsigned int extraInstructions)
+{
+return (extraInstructions & Features & ExtraInstructionsMask) ==
+(Features & ExtraInstructionsMask);
+}
+};
+using CurrentImplementation = ImplementationT<
+#ifdef Vc_IMPL_Scalar
+ScalarImpl
+#elif defined(Vc_IMPL_AVX2)
+AVX2Impl
+#elif defined(Vc_IMPL_AVX)
+AVXImpl
+#elif defined(Vc_IMPL_SSE4_2)
+SSE42Impl
+#elif defined(Vc_IMPL_SSE4_1)
+SSE41Impl
+#elif defined(Vc_IMPL_SSSE3)
+SSSE3Impl
+#elif defined(Vc_IMPL_SSE3)
+SSE3Impl
+#elif defined(Vc_IMPL_SSE2)
+SSE2Impl
+#endif
+#ifdef Vc_IMPL_SSE4a
++ Vc::Sse4aInstructions
+#ifdef Vc_IMPL_XOP
++ Vc::XopInstructions
+#ifdef Vc_IMPL_FMA4
++ Vc::Fma4Instructions
+#endif
+#endif
+#endif
+#ifdef Vc_IMPL_POPCNT
++ Vc::PopcntInstructions
+#endif
+#ifdef Vc_IMPL_FMA
++ Vc::FmaInstructions
+#endif
+#ifdef Vc_IMPL_BMI2
++ Vc::Bmi2Instructions
+#endif
+#ifdef Vc_USE_VEX_CODING
++ Vc::VexInstructions
+#endif
+>;
+}
+#ifndef VC_VERSION_H_
+#define VC_VERSION_H_ 
+#define Vc_VERSION_STRING "1.3.80-dev"
+#define Vc_VERSION_NUMBER 0x0103a1
+#define Vc_VERSION_CHECK(major,minor,patch) ((major << 16) | (minor << 8) | (patch << 1))
+#define Vc_LIBRARY_ABI_VERSION 5
+#define Vc_IS_VERSION_2 (Vc_VERSION_NUMBER >= Vc_VERSION_CHECK(1, 70, 0))
+#define Vc_IS_VERSION_1 (Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1, 70, 0))
+namespace Vc_VERSIONED_NAMESPACE
+{
+inline const char *versionString() { return Vc_VERSION_STRING; }
+constexpr unsigned int versionNumber() { return Vc_VERSION_NUMBER; }
+}
+#if !defined(Vc_NO_VERSION_CHECK) && !defined(Vc_COMPILE_LIB)
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+void Vc_CDECL checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber,
+const char *versionString);
+namespace
+{
+static struct runLibraryAbiCheck {
+runLibraryAbiCheck()
+{
+checkLibraryAbi(Vc_LIBRARY_ABI_VERSION, Vc_VERSION_NUMBER, Vc_VERSION_STRING);
+}
+} _runLibraryAbiCheck;
+}
+}
+}
+#endif
+#endif
+#endif
 #ifndef VC_TRAITS_TYPE_TRAITS_H_
 #define VC_TRAITS_TYPE_TRAITS_H_ 
 #include <type_traits>
 #ifndef VC_TRAITS_DECAY_H_
 #define VC_TRAITS_DECAY_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
@@ -31,7 +502,7 @@ template <typename T> using decay = typename std::decay<T>::type;
 #ifndef VC_TRAITS_HAS_NO_ALLOCATED_DATA_H_
 #define VC_TRAITS_HAS_NO_ALLOCATED_DATA_H_ 
 #include <array>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
@@ -45,6 +516,24 @@ typename std::remove_cv<typename std::remove_reference<T>::type>::type>
 template<typename T, std::size_t N> struct has_no_allocated_data_impl<std::array<T, N>> : public std::true_type {};
 template<typename T, std::size_t N> struct has_no_allocated_data_impl<T[N]> : public std::true_type {};
 template<typename T> struct has_no_allocated_data_impl<T[]> : public std::true_type {};
+static_assert(has_no_allocated_data<int[256]>::value, "");
+static_assert(has_no_allocated_data<const int[256]>::value, "");
+static_assert(has_no_allocated_data<volatile int[256]>::value, "");
+static_assert(has_no_allocated_data<const volatile int[256]>::value, "");
+static_assert(has_no_allocated_data<int[]>::value, "");
+static_assert(has_no_allocated_data<int[2][2]>::value, "");
+static_assert(has_no_allocated_data<const volatile std::array<int, 256> &>::value, "");
+static_assert(has_no_allocated_data<const volatile std::array<int, 256>>::value, "");
+static_assert(has_no_allocated_data<volatile std::array<int, 256> &>::value, "");
+static_assert(has_no_allocated_data<volatile std::array<int, 256>>::value, "");
+static_assert(has_no_allocated_data<const std::array<int, 256> &>::value, "");
+static_assert(has_no_allocated_data<const std::array<int, 256>>::value, "");
+static_assert(has_no_allocated_data<std::array<int, 256>>::value, "");
+static_assert(has_no_allocated_data<std::array<int, 256> &&>::value, "");
+static_assert(!has_no_allocated_data<int*>::value, "");
+static_assert(!has_no_allocated_data<const int*>::value, "");
+static_assert(!has_no_allocated_data<const int *const>::value, "");
+static_assert(!has_no_allocated_data<int *const>::value, "");
 }
 }
 #endif
@@ -69,7 +558,7 @@ _LIBCPP_END_NAMESPACE_STD
 #else
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
@@ -108,7 +597,7 @@ template <typename T, typename A> struct has_contiguous_storage_impl<std::vector
 #ifndef VC_TRAITS_IS_INITIALIZER_LIST_H_
 #define VC_TRAITS_IS_INITIALIZER_LIST_H_ 
 #include <initializer_list>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
@@ -127,7 +616,7 @@ struct is_initializer_list
 #endif
 #ifndef VC_TRAITS_IS_LOAD_ARGUMENTS_H_
 #define VC_TRAITS_IS_LOAD_ARGUMENTS_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
@@ -145,7 +634,7 @@ std::is_pointer<U>::value&& is_load_store_flag<F>::value>
 #endif
 #ifndef VC_TRAITS_IS_FUNCTOR_ARGUMENT_IMMUTABLE_H_
 #define VC_TRAITS_IS_FUNCTOR_ARGUMENT_IMMUTABLE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
@@ -198,7 +687,7 @@ struct is_functor_argument_immutable<F, A, true>
 #ifndef VC_TRAITS_IS_OUTPUT_ITERATOR_H_
 #define VC_TRAITS_IS_OUTPUT_ITERATOR_H_ 
 #include <iterator>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
@@ -218,6 +707,9 @@ std::is_void<typename std::iterator_traits<T>::value_type>::value,
 std::true_type, decltype(is_output_iterator_impl::test<T>(int()))>::type
 {
 };
+static_assert(!std::is_void<std::iterator_traits<int *>::value_type>::value, "");
+static_assert(is_output_iterator<int *>::value, "");
+static_assert(!is_output_iterator<const int *>::value, "");
 }
 }
 #endif
@@ -225,8 +717,7 @@ std::true_type, decltype(is_output_iterator_impl::test<T>(int()))>::type
 #define VC_IS_INDEX_SEQUENCE_H_ 
 #ifndef VC_COMMON_INDEXSEQUENCE_H_
 #define VC_COMMON_INDEXSEQUENCE_H_ 
-#include <Vc/global.h>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <std::size_t... I> struct index_sequence
 {
@@ -256,19 +747,21 @@ template <std::size_t N>
 using make_index_sequence = typename make_index_sequence_impl<N>::type;
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
 template <typename T> struct is_index_sequence : public std::false_type {};
 template <std::size_t... I>
 struct is_index_sequence<Vc::index_sequence<I...>> : public std::true_type {};
+static_assert(!is_index_sequence<int>::value, "");
+static_assert(is_index_sequence<make_index_sequence<2>>::value, "");
 }
 }
 #endif
 #ifndef VC_TRAITS_IS_IMPLICIT_CAST_ALLOWED_H_
 #define VC_TRAITS_IS_IMPLICIT_CAST_ALLOWED_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
@@ -286,10 +779,20 @@ struct is_implicit_cast_allowed<From, To, false> : public std::is_same<From, To>
 template <typename From, typename To>
 struct is_implicit_cast_allowed_mask : public is_implicit_cast_allowed<From, To> {
 };
+static_assert(is_implicit_cast_allowed<float, float>::value, "");
+static_assert(!is_implicit_cast_allowed<float, double>::value, "");
+static_assert(is_implicit_cast_allowed< int64_t, uint64_t>::value, "");
+static_assert(is_implicit_cast_allowed<uint64_t, int64_t>::value, "");
+static_assert(is_implicit_cast_allowed< int32_t, uint32_t>::value, "");
+static_assert(is_implicit_cast_allowed<uint32_t, int32_t>::value, "");
+static_assert(is_implicit_cast_allowed< int16_t, uint16_t>::value, "");
+static_assert(is_implicit_cast_allowed<uint16_t, int16_t>::value, "");
+static_assert(is_implicit_cast_allowed< int8_t, uint8_t>::value, "");
+static_assert(is_implicit_cast_allowed< uint8_t, int8_t>::value, "");
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 struct enable_if_default_type
 {
@@ -310,6 +813,9 @@ template <typename T, typename I = std::size_t>
 struct has_subscript_operator : public decltype(has_subscript_operator_impl::test<T, I>(1))
 {
 };
+static_assert(has_subscript_operator<int[]>::value, "");
+static_assert(has_subscript_operator<int[], int>::value, "");
+static_assert(!has_subscript_operator<int[], void *>::value, "");
 #endif
 #ifndef VC_TRAITS_HAS_MULTIPLY_OPERATOR_H_
 #define VC_TRAITS_HAS_MULTIPLY_OPERATOR_H_ 
@@ -348,6 +854,12 @@ template <typename T, typename U = T>
 struct has_equality_operator : public decltype(has_equality_operator_impl::test<T, U>(1))
 {
 };
+static_assert(has_equality_operator<int>::value, "has_equality_operator fails");
+namespace
+{
+class Foobar {};
+static_assert(!has_equality_operator<Foobar>::value, "has_equality_operator fails");
+}
 #endif
 template<typename T> struct is_valid_vector_argument : public std::false_type {};
 template <> struct is_valid_vector_argument<double> : public std::true_type {};
@@ -453,7 +965,7 @@ template <typename T> using scalar_type = typename scalar_type_internal<decay<T>
 }
 #ifndef VC_TRAITS_ENTRY_TYPE_OF_H_
 #define VC_TRAITS_ENTRY_TYPE_OF_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Traits
 {
@@ -478,7 +990,6 @@ template <typename T> using entry_type_of = typename entry_type_of_internal::ent
 #define VC_COMMON_PERMUTATION_H_ 
 #ifndef VC_COMMON_MACROS_H_
 #define VC_COMMON_MACROS_H_ 
-#include <Vc/global.h>
 #ifdef Vc_MSVC
 #define Vc_ALIGNED_TYPEDEF(n_,type_,new_type_) \
 typedef __declspec(align(n_)) type_ new_type_
@@ -585,7 +1096,7 @@ using new_type_ alignas(sizeof(n_)) = type_
 #define Vc_INTRINSIC inline __forceinline
 #define Vc_INTRINSIC_L Vc_INTRINSIC
 #define Vc_INTRINSIC_R 
-namespace Vc_1 {
+namespace Vc_VERSIONED_NAMESPACE {
 namespace detail
 {
 static Vc_INTRINSIC void unreachable() { __assume(0); }
@@ -620,14 +1131,34 @@ static Vc_INTRINSIC void unreachable() { __assume(0); }
 #endif
 #define Vc_NOTHING_EXPECTING_SEMICOLON static_assert(true, "")
 #define Vc_FREE_STORE_OPERATORS_ALIGNED(align_) \
-Vc_ALWAYS_INLINE void *operator new(size_t size) { return Vc::Common::aligned_malloc<align_>(size); } \
+\
+\
+\
+Vc_ALWAYS_INLINE void *operator new(size_t size) \
+{ \
+return Vc::Common::aligned_malloc<align_>(size); \
+} \
+\
 Vc_ALWAYS_INLINE void *operator new(size_t, void *p) { return p; } \
-Vc_ALWAYS_INLINE void *operator new[](size_t size) { return Vc::Common::aligned_malloc<align_>(size); } \
+\
+Vc_ALWAYS_INLINE void *operator new[](size_t size) \
+{ \
+return Vc::Common::aligned_malloc<align_>(size); \
+} \
+\
 Vc_ALWAYS_INLINE void *operator new[](size_t, void *p) { return p; } \
+\
 Vc_ALWAYS_INLINE void operator delete(void *ptr, size_t) { Vc::Common::free(ptr); } \
+\
 Vc_ALWAYS_INLINE void operator delete(void *, void *) {} \
-Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t) { Vc::Common::free(ptr); } \
+\
+Vc_ALWAYS_INLINE void operator delete[](void *ptr, size_t) \
+{ \
+Vc::Common::free(ptr); \
+} \
+\
 Vc_ALWAYS_INLINE void operator delete[](void *, void *) {} \
+\
 Vc_NOTHING_EXPECTING_SEMICOLON
 #ifdef Vc_ASSERT
 #define Vc_EXTERNAL_ASSERT 1
@@ -727,7 +1258,7 @@ typename std::enable_if<std::is_same<_test, _reference>::value, _type>::type
 #define Vc_INTRINSIC_R 
 #endif
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Permutation
 {
@@ -736,7 +1267,7 @@ constexpr ReversedTag Reversed{};
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 using std::size_t;
 using llong = long long;
@@ -920,7 +1451,7 @@ using type = T;
 #include <ratio>
 #ifndef VC_COMMON_ELEMENTREFERENCE_H_
 #define VC_COMMON_ELEMENTREFERENCE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -1031,7 +1562,7 @@ U &obj;
 #endif
 #ifndef VC_COMMON_VECTORABI_H_
 #define VC_COMMON_VECTORABI_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace VectorAbi
 {
@@ -1059,6 +1590,20 @@ typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
 void>::type>::type>::type>::type>::type;
 };
 template <typename T> using Best = typename DeduceBest<T>::type;
+#ifdef Vc_IMPL_AVX2
+static_assert(std::is_same<Best<float>, Avx>::value, "");
+static_assert(std::is_same<Best<int>, Avx>::value, "");
+#elif defined Vc_IMPL_AVX
+static_assert(std::is_same<Best<float>, Avx>::value, "");
+static_assert(std::is_same<Best<int>, Sse>::value, "");
+#elif defined Vc_IMPL_SSE
+static_assert(CurrentImplementation::is_between(SSE2Impl, SSE42Impl), "");
+static_assert(std::is_same<Best<float>, Sse>::value, "");
+static_assert(std::is_same<Best<int>, Sse>::value, "");
+#elif defined Vc_IMPL_Scalar
+static_assert(std::is_same<Best<float>, Scalar>::value, "");
+static_assert(std::is_same<Best<int>, Scalar>::value, "");
+#endif
 }
 }
 #ifndef VC_COMMON_SIMDARRAYFWD_H_
@@ -1073,7 +1618,7 @@ template <typename T> using Best = typename DeduceBest<T>::type;
 #define Vc_SHORT_V_SIZE 8
 #define Vc_USHORT_V_SIZE 8
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
@@ -1127,7 +1672,7 @@ template<typename T> struct is_simd_mask_internal<Mask<T, VectorAbi::Sse>>
 #define Vc_SHORT_V_SIZE 8
 #define Vc_USHORT_V_SIZE 8
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
@@ -1190,7 +1735,7 @@ template<typename T> struct is_simd_mask_internal<Mask<T, VectorAbi::Avx>>
 #endif
 #ifndef VC_COMMON_UTILITY_H_
 #define VC_COMMON_UTILITY_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -1231,7 +1776,7 @@ return N - left_size<N>();
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -1362,7 +1907,7 @@ struct has_no_allocated_data_impl<Vc::SimdArray<T, N>> : public std::true_type {
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace detail
 {
@@ -1410,14 +1955,14 @@ using not_fixed_size_abi = typename std::enable_if<!is_fixed_size_abi<T>::value,
 #endif
 #ifndef VC_COMMON_VECTORTRAITS_H_
 #define VC_COMMON_VECTORTRAITS_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T, typename Abi> struct VectorTraits;
 }
 #endif
 #ifndef VC_COMMON_LOADSTOREFLAGS_H_
 #define VC_COMMON_LOADSTOREFLAGS_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 struct Exclusive {};
 struct Shared {};
@@ -1522,7 +2067,7 @@ struct is_loadstoreflag_internal<Prefetch<L1, L2, ExclusiveOrShared>> : public s
 #ifndef VC_COMMON_WRITEMASKEDVECTOR_H_
 #define VC_COMMON_WRITEMASKEDVECTOR_H_ 
 #include <utility>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -1607,7 +2152,7 @@ V &vec;
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T, typename Abi,
 typename = enable_if<std::is_floating_point<T>::value &&
@@ -2153,7 +2698,7 @@ const Vector<T, Abi> &x);
 #endif
 #ifndef VC_COMMON_MASK_H_
 #define VC_COMMON_MASK_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T, typename Abi = VectorAbi::Best<T>> class Mask
 {
@@ -2225,7 +2770,7 @@ VectorType d;
 #endif
 #ifndef VC_COMMON_MEMORYFWD_H_
 #define VC_COMMON_MEMORYFWD_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -2249,7 +2794,7 @@ using Common::Memory;
 #define Vc_SHORT_V_SIZE 1
 #define Vc_USHORT_V_SIZE 1
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Scalar
 {
@@ -2287,7 +2832,7 @@ is_simd_vector_internal<Vector<T, VectorAbi::Scalar>>
 #ifndef VC_SCALAR_MACROS_H_
 #define VC_SCALAR_MACROS_H_ 
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -2416,7 +2961,7 @@ deinterleave(data + 4, i, v4, v5, v6, v7);
 #endif
 #ifndef VC_SCALAR_MASK_H_
 #define VC_SCALAR_MASK_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T> class Mask<T, VectorAbi::Scalar>
 {
@@ -2521,7 +3066,7 @@ template <typename T> constexpr size_t Mask<T, VectorAbi::Scalar>::Size;
 template <typename T> constexpr size_t Mask<T, VectorAbi::Scalar>::MemoryAlignment;
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 #define Vc_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector<T, VectorAbi::Scalar>
@@ -2793,7 +3338,7 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs);
 #include <cmath>
 #ifndef VC_COMMON_CONST_DATA_H_
 #define VC_COMMON_CONST_DATA_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -2804,7 +3349,7 @@ alignas(32) extern const unsigned int AllBitsSet[8];
 #endif
 #ifndef VC_COMMON_WHERE_H_
 #define VC_COMMON_WHERE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace WhereImpl
 {
@@ -2889,10 +3434,10 @@ return {mask, std::move(lhs)};
 template<typename T> constexpr Vc_WARN_UNUSED_RESULT MaskedLValue<Mask, T> operator|(T &&lhs) const
 {
 static_assert(std::is_lvalue_reference<T>::value, "Syntax error: Incorrect use of Vc::where. Maybe operator precedence got you by surprise. Examples of correct usage:\n"
-" Vc::where(x < 2) | x += 1;\n"
-" (Vc::where(x < 2) | x)++;\n"
-" Vc::where(x < 2)(x) += 1;\n"
-" Vc::where(x < 2)(x)++;\n"
+"  Vc::where(x < 2) | x += 1;\n"
+"  (Vc::where(x < 2) | x)++;\n"
+"  Vc::where(x < 2)(x) += 1;\n"
+"  Vc::where(x < 2)(x)++;\n"
 );
 return { mask, lhs };
 }
@@ -2923,7 +3468,7 @@ return { m };
 #ifndef VC_COMMON_TRANSPOSE_H_
 #define VC_COMMON_TRANSPOSE_H_ 
 #include <tuple>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -2943,7 +3488,7 @@ return {vs...};
 #endif
 #ifndef VC_SCALAR_OPERATORS_H_
 #define VC_SCALAR_OPERATORS_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -3004,7 +3549,7 @@ return a.data() % b.data();
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T>
 Vc_INTRINSIC Vector<T, VectorAbi::Scalar>::Vector(VectorSpecialInitializerZero)
@@ -3185,7 +3730,7 @@ const TransposeProxy<Scalar::float_v> &proxy)
 #define VC_COMMON_SIMD_CAST_H_ 
 #include <type_traits>
 template <class> void simd_cast();
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
@@ -3198,7 +3743,7 @@ template <typename To> Vc_INTRINSIC Vc_CONST To simd_cast() { return To(); }
 #endif
 #ifndef VC_SCALAR_TYPE_TRAITS_H_
 #define VC_SCALAR_TYPE_TRAITS_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Scalar
 {
@@ -3212,7 +3757,7 @@ template <typename T> struct is_mask<Mask<T>> : public std::true_type {};
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename To, typename From>
 Vc_INTRINSIC Vc_CONST To
@@ -3268,7 +3813,6 @@ return r;
 #define VC_AVX_VECTOR_H_ 
 #ifndef VC_AVX_INTRINSICS_H_
 #define VC_AVX_INTRINSICS_H_ 
-#include <Vc/global.h>
 extern "C" {
 #include <immintrin.h>
 #if (defined(Vc_IMPL_XOP) || defined(Vc_IMPL_FMA4)) && !defined(Vc_MSVC)
@@ -3277,7 +3821,6 @@ extern "C" {
 }
 #ifndef VC_COMMON_FIX_CLANG_EMMINTRIN_H_
 #define VC_COMMON_FIX_CLANG_EMMINTRIN_H_ 
-#include <Vc/global.h>
 #if (defined Vc_CLANG && Vc_CLANG < 0x30700) || (defined Vc_APPLECLANG && Vc_APPLECLANG < 0x70000)
 #ifdef _mm_slli_si128
 #undef _mm_slli_si128
@@ -3323,7 +3866,7 @@ __builtin_shufflevector((__m128d)(a), (__m128d)(b), (i) & 1, (((i) & 2) >> 1) + 
 #endif
 #ifndef VC_AVX_CONST_DATA_H_
 #define VC_AVX_CONST_DATA_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
@@ -3369,7 +3912,7 @@ alignas(64) static const unsigned long long data[21];
 };
 }
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX2
 {
@@ -3402,7 +3945,7 @@ using AVX::c_log;
 (__m256i)__builtin_ia32_permti256((__m256i)(V1), (__m256i)(V2), (char)(M)); })
 #endif
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AvxIntrinsics
 {
@@ -3927,7 +4470,7 @@ return _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(&x)));
 #endif
 }
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
@@ -3992,7 +4535,7 @@ template<typename T> struct VectorHelperSize;
 #define VC_COMMON_STORAGE_H_ 
 #ifndef VC_COMMON_ALIASINGENTRYHELPER_H_
 #define VC_COMMON_ALIASINGENTRYHELPER_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -4072,7 +4615,7 @@ Vc_ALWAYS_INLINE Vc_PURE T operator%(T x) const { return static_cast<T>(m_data) 
 #endif
 #ifndef VC_COMMON_MASKENTRY_H_
 #define VC_COMMON_MASKENTRY_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -4127,12 +4670,14 @@ constexpr bool operator!=(A &&a, B &&b)
 {
 return static_cast<bool>(a) != static_cast<bool>(b);
 }
+static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
+static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
 }
 }
 #endif
 #ifdef Vc_IMPL_AVX
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -4449,7 +4994,7 @@ using VectorMemoryUnion = Storage<EntryType, sizeof(VectorType) / sizeof(EntryTy
 #define Vc_USE_PTEST 
 #endif
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
@@ -4504,7 +5049,7 @@ alignas(64) static const unsigned long long data[21 * Size];
 #include <iostream>
 #include <iomanip>
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
@@ -4570,7 +5115,7 @@ std::cerr << "\033[0m" << std::endl;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SseIntrinsics
 {
@@ -4676,7 +5221,7 @@ _mm_xor_si128(b, setmin_epi64()));
 }
 }
 #ifdef Vc_IMPL_SSSE3
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SseIntrinsics
 {
@@ -4690,7 +5235,7 @@ return _mm_alignr_epi8(a, b, s & 0x1fu);
 }
 }
 #else
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SseIntrinsics
 {
@@ -4748,7 +5293,7 @@ return _mm_setzero_si128();
 }
 #endif
 #ifdef Vc_IMPL_SSE4_1
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SseIntrinsics
 {
@@ -4847,7 +5392,7 @@ return _mm_stream_load_si128(mem);
 }
 }
 #else
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SseIntrinsics
 {
@@ -5073,7 +5618,7 @@ return _mm_load_si128(mem);
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SseIntrinsics
 {
@@ -5169,7 +5714,7 @@ return _mm_castpd_si128(_mm_load_sd(reinterpret_cast<const double *>(&x)));
 #endif
 }
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
@@ -5217,7 +5762,7 @@ template <typename T> struct VectorHelperSize;
 #endif
 #ifndef VC_SSE_SHUFFLE_H_
 #define VC_SSE_SHUFFLE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 enum VecPos {
 X0, X1, X2, X3, X4, X5, X6, X7,
@@ -5227,9 +5772,13 @@ Const0
 namespace Mem
 {
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128 Vc_CONST shuffle(__m128 x, __m128 y) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
 return _mm_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
 }
 template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE __m128d Vc_CONST shuffle(__m128d x, __m128d y) {
+static_assert(Dst0 >= X0 && Dst1 >= Y0, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= Y1, "Incorrect_Range");
 return _mm_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2);
 }
 template <VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3>
@@ -5239,36 +5788,64 @@ return _mm_castps_si128(shuffle<Dst0, Dst1, Dst2, Dst3>(_mm_castsi128_ps(x),
 _mm_castsi128_ps(y)));
 }
 template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE __m128d Vc_CONST blend(__m128d x, __m128d y) {
+static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
+static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
 return Vc::SseIntrinsics::blend_pd<(Dst0 / Y0) + (Dst1 / Y0) * 2>(x, y);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128 Vc_CONST blend(__m128 x, __m128 y) {
+static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
+static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
+static_assert(Dst2 == X2 || Dst2 == Y2, "Incorrect_Range");
+static_assert(Dst3 == X3 || Dst3 == Y3, "Incorrect_Range");
 return Vc::SseIntrinsics::blend_ps<(Dst0 / Y0) * 1 + (Dst1 / Y1) * 2 +
 (Dst2 / Y2) * 4 + (Dst3 / Y3) * 8>(x, y);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
 static Vc_ALWAYS_INLINE __m128i Vc_CONST blend(__m128i x, __m128i y) {
+static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
+static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
+static_assert(Dst2 == X2 || Dst2 == Y2, "Incorrect_Range");
+static_assert(Dst3 == X3 || Dst3 == Y3, "Incorrect_Range");
+static_assert(Dst4 == X4 || Dst4 == Y4, "Incorrect_Range");
+static_assert(Dst5 == X5 || Dst5 == Y5, "Incorrect_Range");
+static_assert(Dst6 == X6 || Dst6 == Y6, "Incorrect_Range");
+static_assert(Dst7 == X7 || Dst7 == Y7, "Incorrect_Range");
 return Vc::SseIntrinsics::blend_epi16<
 (Dst0 / Y0) * 1 + (Dst1 / Y1) * 2 + (Dst2 / Y2) * 4 + (Dst3 / Y3) * 8 +
 (Dst4 / Y4) * 16 + (Dst5 / Y5) * 32 + (Dst6 / Y6) * 64 +
 (Dst7 / Y7) * 128>(x, y);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128 Vc_CONST permute(__m128 x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm_shuffle_ps(x, x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
 template<VecPos Dst0, VecPos Dst1> static Vc_ALWAYS_INLINE Vc_CONST __m128d permute(__m128d x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= X1, "Incorrect_Range");
 return _mm_shuffle_pd(x, x, Dst0 + Dst1 * 4);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128i Vc_CONST permute(__m128i x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm_shuffle_epi32(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128i Vc_CONST permuteLo(__m128i x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm_shufflelo_epi16(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m128i Vc_CONST permuteHi(__m128i x) {
+static_assert(Dst0 >= X4 && Dst1 >= X4 && Dst2 >= X4 && Dst3 >= X4, "Incorrect_Range");
+static_assert(Dst0 <= X7 && Dst1 <= X7 && Dst2 <= X7 && Dst3 <= X7, "Incorrect_Range");
 return _mm_shufflehi_epi16(x, (Dst0 - X4) + (Dst1 - X4) * 4 + (Dst2 - X4) * 16 + (Dst3 - X4) * 64);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
 static Vc_ALWAYS_INLINE __m128i Vc_CONST permute(__m128i x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+static_assert(Dst4 >= X4 && Dst5 >= X4 && Dst6 >= X4 && Dst7 >= X4, "Incorrect_Range");
+static_assert(Dst4 <= X7 && Dst5 <= X7 && Dst6 <= X7 && Dst7 <= X7, "Incorrect_Range");
 if (Dst0 != X0 || Dst1 != X1 || Dst2 != X2 || Dst3 != X3) {
 x = _mm_shufflelo_epi16(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
@@ -5287,9 +5864,13 @@ template<VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128d Vc_CONST shuf
 return Mem::shuffle<Dst0, Dst1>(x, y);
 }
 template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128i Vc_CONST permute(__m128i x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm_shuffle_epi32(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
 template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128i Vc_CONST shuffle(__m128i x, __m128i y) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
 return _mm_castps_si128(_mm_shuffle_ps(_mm_castsi128_ps(x), _mm_castsi128_ps(y), Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64));
 }
 template<VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128d Vc_CONST blend(__m128d x, __m128d y) {
@@ -5302,7 +5883,7 @@ return Mem::blend<Dst0, Dst1, Dst2, Dst3>(x, y);
 }
 #endif
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
@@ -5406,7 +5987,7 @@ Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, ushort>) { return con
 #endif
 #ifndef VC_AVX_SHUFFLE_H_
 #define VC_AVX_SHUFFLE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -5421,6 +6002,15 @@ Vc_INTRINSIC Vc_CONST __m256i
 blend(__m256i a, __m256i b, Mask<Sel0, Sel1, Sel2, Sel3, Sel4, Sel5, Sel6, Sel7, Sel8,
 Sel9, Sel10, Sel11, Sel12, Sel13, Sel14, Sel15>)
 {
+static_assert((Sel0 == 0 || Sel0 == 1) && (Sel1 == 0 || Sel1 == 1) &&
+(Sel2 == 0 || Sel2 == 1) && (Sel3 == 0 || Sel3 == 1) &&
+(Sel4 == 0 || Sel4 == 1) && (Sel5 == 0 || Sel5 == 1) &&
+(Sel6 == 0 || Sel6 == 1) && (Sel7 == 0 || Sel7 == 1) &&
+(Sel8 == 0 || Sel8 == 1) && (Sel9 == 0 || Sel9 == 1) &&
+(Sel10 == 0 || Sel10 == 1) && (Sel11 == 0 || Sel11 == 1) &&
+(Sel12 == 0 || Sel12 == 1) && (Sel13 == 0 || Sel13 == 1) &&
+(Sel14 == 0 || Sel14 == 1) && (Sel15 == 0 || Sel15 == 1),
+"Selectors must be 0 or 1 to select the value from a or b");
 constexpr uint8_t mask = static_cast<uint8_t>(
 (Sel0 << 0 ) | (Sel1 << 1 ) | (Sel2 << 2 ) | (Sel3 << 3 ) |
 (Sel4 << 4 ) | (Sel5 << 5 ) | (Sel6 << 6 ) | (Sel7 << 7 ) |
@@ -5434,21 +6024,31 @@ namespace Mem
 {
 #ifdef Vc_IMPL_AVX2
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteLo(__m256i x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm256_shufflelo_epi16(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteHi(__m256i x) {
+static_assert(Dst0 >= X4 && Dst1 >= X4 && Dst2 >= X4 && Dst3 >= X4, "Incorrect_Range");
+static_assert(Dst0 <= X7 && Dst1 <= X7 && Dst2 <= X7 && Dst3 <= X7, "Incorrect_Range");
 return _mm256_shufflehi_epi16(x, (Dst0 - X4) + (Dst1 - X4) * 4 + (Dst2 - X4) * 16 + (Dst3 - X4) * 64);
 }
 #endif
 template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x) {
+static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
+static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
 return _mm256_permute2f128_ps(
 x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
 }
 template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute128(__m256d x) {
+static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
+static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
 return _mm256_permute2f128_pd(
 x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
 }
 template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x) {
+static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
+static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
 #ifdef Vc_IMPL_AVX2
 return _mm256_permute2x128_si256(
 x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
@@ -5458,9 +6058,13 @@ x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
 #endif
 }
 template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle128(__m256 x, __m256 y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
 return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
 }
 template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST shuffle128(__m256i x, __m256i y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
 #ifdef Vc_IMPL_AVX2
 return _mm256_permute2x128_si256(
 x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
@@ -5470,12 +6074,18 @@ x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
 #endif
 }
 template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle128(__m256d x, __m256d y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
 return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute(__m256d x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute(__m256i x) {
@@ -5483,17 +6093,31 @@ return _mm256_castps_si256(permute<Dst0, Dst1, Dst2, Dst3>(_mm256_castsi256_ps(x
 }
 #ifdef Vc_IMPL_AVX2
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute4x64(__m256i x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm256_permute4x64_epi64(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
 #endif
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
+static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, "Incorrect_Range");
 return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle(__m256 x, __m256 y) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
 return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
 }
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
 static Vc_ALWAYS_INLINE __m256 Vc_CONST blend(__m256 x, __m256 y) {
+static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
+static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
+static_assert(Dst2 == X2 || Dst2 == Y2, "Incorrect_Range");
+static_assert(Dst3 == X3 || Dst3 == Y3, "Incorrect_Range");
+static_assert(Dst4 == X4 || Dst4 == Y4, "Incorrect_Range");
+static_assert(Dst5 == X5 || Dst5 == Y5, "Incorrect_Range");
+static_assert(Dst6 == X6 || Dst6 == Y6, "Incorrect_Range");
+static_assert(Dst7 == X7 || Dst7 == Y7, "Incorrect_Range");
 return _mm256_blend_ps(x, y,
 (Dst0 / Y0) * 1 + (Dst1 / Y1) * 2 +
 (Dst2 / Y2) * 4 + (Dst3 / Y3) * 8 +
@@ -5508,6 +6132,14 @@ return _mm256_castps_si256(blend<Dst0, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6, Dst7>
 template<VecPos Dst> struct ScaleForBlend { enum { Value = Dst >= X4 ? Dst - X4 + Y0 : Dst }; };
 template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
 static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
+static_assert(Dst0 >= X0 && Dst0 <= X7, "Incorrect_Range");
+static_assert(Dst1 >= X0 && Dst1 <= X7, "Incorrect_Range");
+static_assert(Dst2 >= X0 && Dst2 <= X7, "Incorrect_Range");
+static_assert(Dst3 >= X0 && Dst3 <= X7, "Incorrect_Range");
+static_assert(Dst4 >= X0 && Dst4 <= X7, "Incorrect_Range");
+static_assert(Dst5 >= X0 && Dst5 <= X7, "Incorrect_Range");
+static_assert(Dst6 >= X0 && Dst6 <= X7, "Incorrect_Range");
+static_assert(Dst7 >= X0 && Dst7 <= X7, "Incorrect_Range");
 if (Dst0 + X4 == Dst4 && Dst1 + X4 == Dst5 && Dst2 + X4 == Dst6 && Dst3 + X4 == Dst7) {
 return permute<Dst0, Dst1, Dst2, Dst3>(x);
 }
@@ -5558,14 +6190,18 @@ return _mm256_insertf128_ps(_mm256_castps128_ps256(lo), hi, 1);
 }
 }
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Reg
 {
 template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x, __m256 y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
 return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
 }
 template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x, __m256i y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
 #ifdef Vc_IMPL_AVX2
 return _mm256_permute2x128_si256(
 x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
@@ -5575,30 +6211,44 @@ x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
 #endif
 }
 template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute128(__m256d x, __m256d y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
 return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
 }
 template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute(__m256d x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
 }
 template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
 template<VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128d Vc_CONST permute(__m128d x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= X1, "Incorrect_Range");
 return _mm_permute_pd(x, Dst0 + Dst1 * 2);
 }
 template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128 Vc_CONST permute(__m128 x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
 return _mm_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
 }
 template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
+static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, "Incorrect_Range");
 return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
 }
 template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle(__m256 x, __m256 y) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
 return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
 }
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
@@ -5809,7 +6459,7 @@ return convert(lo128(v), ConvertTag<From, To>());
 #ifndef VC_SSE_VECTORHELPER_H_
 #define VC_SSE_VECTORHELPER_H_ 
 #include <limits>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
@@ -6287,7 +6937,7 @@ static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
 #define VC_SSE_DETAIL_H_ 
 #ifdef Vc_IMPL_AVX
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -7602,7 +8252,7 @@ deinterleave(data + 6, i, v6, v7);
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -7772,7 +8422,7 @@ Storage d;
 template <typename T> constexpr size_t Mask<T, VectorAbi::Sse>::Size;
 template <typename T> constexpr size_t Mask<T, VectorAbi::Sse>::MemoryAlignment;
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -8030,7 +8680,7 @@ return Zero();
 #ifdef isnan
 #undef isnan
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 #define Vc_CURRENT_CLASS_NAME Vector
 template <typename T> class Vector<T, VectorAbi::Sse>
@@ -8315,7 +8965,7 @@ Vc_CONDITIONAL_ASSIGN( PreDecrement, --lhs(mask));
 #ifndef VC_COMMON_X86_PREFETCHES_H_
 #define VC_COMMON_X86_PREFETCHES_H_ 
 #include <xmmintrin.h>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -8485,7 +9135,7 @@ return index;
 #endif
 #ifndef VC_COMMON_SET_H_
 #define VC_COMMON_SET_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace
 {
@@ -8546,7 +9196,7 @@ static_cast<unsigned short>(x6), static_cast<unsigned short>(x7));
 #endif
 #ifndef VC_COMMON_GATHERIMPLEMENTATION_H_
 #define VC_COMMON_GATHERIMPLEMENTATION_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -8798,7 +9448,7 @@ break;
 #endif
 #ifndef VC_COMMON_SCATTERIMPLEMENTATION_H_
 #define VC_COMMON_SCATTERIMPLEMENTATION_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -9019,7 +9669,7 @@ break;
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -9705,7 +10355,7 @@ const auto tmp3 = _mm_unpackhi_ps(in1, in3);
 #ifndef VC_SSE_VECTOR_H_
 #error "Vc/sse/vector.h needs to be included before Vc/sse/simd_cast.h"
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
@@ -10460,7 +11110,7 @@ _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift & 0xff))});
 #ifndef VC_AVX_VECTORHELPER_H_
 #define VC_AVX_VECTORHELPER_H_ 
 #include <limits>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
@@ -10658,7 +11308,7 @@ return _mm256_round_ps(a, _MM_FROUND_NINT);
 #include <array>
 #ifndef VC_AVX_DETAIL_H_
 #define VC_AVX_DETAIL_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -12546,7 +13196,7 @@ deinterleave(data + 6, i, v6, v7);
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T> class Mask<T, VectorAbi::Avx>
 {
@@ -12676,7 +13326,7 @@ Storage d;
 template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::Size;
 template <typename T> constexpr size_t Mask<T, VectorAbi::Avx>::MemoryAlignment;
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T>
 template <typename Flags>
@@ -12861,7 +13511,7 @@ return Zero();
 #ifdef isnan
 #undef isnan
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -13173,6 +13823,23 @@ Vc_INTRINSIC_L Vector interleaveHigh(Vector x) const Vc_INTRINSIC_R;
 #undef Vc_CURRENT_CLASS_NAME
 template <typename T> constexpr size_t Vector<T, VectorAbi::Avx>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Avx>::MemoryAlignment;
+static_assert(Traits::is_simd_vector<AVX2::double_v>::value, "is_simd_vector<double_v>::value");
+static_assert(Traits::is_simd_vector<AVX2:: float_v>::value, "is_simd_vector< float_v>::value");
+static_assert(Traits::is_simd_vector<AVX2:: int_v>::value, "is_simd_vector<   int_v>::value");
+static_assert(Traits::is_simd_vector<AVX2:: uint_v>::value, "is_simd_vector<  uint_v>::value");
+static_assert(Traits::is_simd_vector<AVX2:: short_v>::value, "is_simd_vector< short_v>::value");
+static_assert(Traits::is_simd_vector<AVX2::ushort_v>::value, "is_simd_vector<ushort_v>::value");
+static_assert(Traits::is_simd_mask <AVX2::double_m>::value, "is_simd_mask  <double_m>::value");
+static_assert(Traits::is_simd_mask <AVX2:: float_m>::value, "is_simd_mask  < float_m>::value");
+static_assert(Traits::is_simd_mask <AVX2:: int_m>::value, "is_simd_mask  <   int_m>::value");
+static_assert(Traits::is_simd_mask <AVX2:: uint_m>::value, "is_simd_mask  <  uint_m>::value");
+static_assert(Traits::is_simd_mask <AVX2:: short_m>::value, "is_simd_mask  < short_m>::value");
+static_assert(Traits::is_simd_mask <AVX2::ushort_m>::value, "is_simd_mask  <ushort_m>::value");
+#ifdef Vc_IMPL_AVX2
+static_assert(!std::is_convertible<float *, AVX2::short_v>::value, "A float* should never implicitly convert to short_v. Something is broken.");
+static_assert(!std::is_convertible<int * , AVX2::short_v>::value, "An int* should never implicitly convert to short_v. Something is broken.");
+static_assert(!std::is_convertible<short *, AVX2::short_v>::value, "A short* should never implicitly convert to short_v. Something is broken.");
+#endif
 #define Vc_CONDITIONAL_ASSIGN(name_,op_) \
 template <Operator O, typename T, typename M, typename U> \
 Vc_INTRINSIC enable_if<O == Operator::name_, void> conditional_assign( \
@@ -13262,7 +13929,7 @@ Vc_NUM_LIM( int, _mm256_srli_epi32(Vc::Detail::allone<__m256i>(), 1), Vc::AVX::s
 #ifndef VC_AVX_CONST_H_
 #define VC_AVX_CONST_H_ 
 #include <cstddef>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX
 {
@@ -13376,7 +14043,7 @@ using AVX::Const;
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -14194,7 +14861,7 @@ return Mem::permute<Inner, Inner>(Mem::permute128<Outer, Outer>(d.v()));
 #ifndef VC_AVX_VECTOR_H_
 #error "Vc/avx/vector.h needs to be included before Vc/avx/simd_cast.h"
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 #define Vc_SIMD_CAST_AVX_1(from_,to_) \
 template <typename To> \
@@ -16494,7 +17161,7 @@ return simd_cast<Return, offset>(simd_cast<SSE::Mask<T>>(x));
 #endif
 #elif defined(Vc_IMPL_SSE)
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 using double_v = Vector<double>;
 using float_v = Vector<float>;
@@ -16576,10 +17243,18 @@ typedef Vector<std::uint8_t> uint8_v;
 typedef Mask<std:: int8_t> int8_m;
 typedef Mask<std::uint8_t> uint8_m;
 #endif
+namespace {
+static_assert(double_v::Size == Vc_DOUBLE_V_SIZE, "Vc_DOUBLE_V_SIZE macro defined to an incorrect value");
+static_assert(float_v::Size == Vc_FLOAT_V_SIZE , "Vc_FLOAT_V_SIZE macro defined to an incorrect value ");
+static_assert(int_v::Size == Vc_INT_V_SIZE , "Vc_INT_V_SIZE macro defined to an incorrect value   ");
+static_assert(uint_v::Size == Vc_UINT_V_SIZE , "Vc_UINT_V_SIZE macro defined to an incorrect value  ");
+static_assert(short_v::Size == Vc_SHORT_V_SIZE , "Vc_SHORT_V_SIZE macro defined to an incorrect value ");
+static_assert(ushort_v::Size == Vc_USHORT_V_SIZE, "Vc_USHORT_V_SIZE macro defined to an incorrect value");
+}
 }
 #ifndef COMMON_OPERATORS_H_
 #define COMMON_OPERATORS_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -16631,6 +17306,7 @@ using type =
 c<(sizeof(T) > sizeof(U)), T,
 c<(sizeof(T) < sizeof(U)), U, typename higher_conversion_rank<T, U>::type>>;
 };
+static_assert(std::is_same<long, typename FundamentalReturnType<int, long>::type>::value, "");
 template <typename V, typename T, bool, typename, bool> struct ReturnTypeImpl {
 };
 template <typename T, typename U, typename Abi, typename Deduced>
@@ -16783,12 +17459,160 @@ Vc_ALL_COMPARES (Vc_COMPARE_OPERATOR);
 #ifndef VC_COMMON_SIMDARRAY_H_
 #define VC_COMMON_SIMDARRAY_H_ 
 #if defined Vc_DEBUG_SIMD_CAST || defined Vc_DEBUG_SORTED
-#include <Vc/IO>
+#ifndef VC_IO_
+#define VC_IO_ 
+#include <iostream>
+#if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
+#define Vc_HACK_OSTREAM_FOR_TTY 1
+#endif
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
+#include <unistd.h>
+#include <ext/stdio_sync_filebuf.h>
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace
+{
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
+class hacked_ostream : public std::ostream
+{
+public:
+using std::ostream::_M_streambuf;
+};
+bool mayUseColor(const std::ostream &os) __attribute__((__const__));
+bool mayUseColor(const std::ostream &os)
+{
+std::basic_streambuf<char> *hack1 =
+const_cast<std::basic_streambuf<char> *>(os.*(&hacked_ostream::_M_streambuf));
+__gnu_cxx::stdio_sync_filebuf<char> *hack =
+dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char> *>(hack1);
+if (!hack) {
+return false;
+}
+FILE *file = hack->file();
+return 1 == isatty(fileno(file));
+}
+#else
+bool mayUseColor(const std::ostream &) { return false; }
+#endif
+}
+namespace AnsiColor
+{
+struct Type
+{
+const char *data;
+};
+static const Type green = {"\033[1;40;32m"};
+static const Type yellow = {"\033[1;40;33m"};
+static const Type blue = {"\033[1;40;34m"};
+static const Type normal = {"\033[0m"};
+inline std::ostream &operator<<(std::ostream &out, const Type &c)
+{
+if (mayUseColor(out)) {
+out << c.data;
+}
+return out;
+}
+}
+template <typename T, typename Abi>
+inline std::ostream &operator<<(std::ostream &out, const Vc::Vector<T, Abi> &v)
+{
+using TT = typename std::conditional<std::is_same<T, char>::value ||
+std::is_same<T, unsigned char>::value ||
+std::is_same<T, signed char>::value,
+int,
+T>::type;
+out << AnsiColor::green << '[';
+out << TT(v[0]);
+for (size_t i = 1; i < v.Size; ++i) {
+out << ", " << TT(v[i]);
+}
+out << ']' << AnsiColor::normal;
+return out;
+}
+template <typename T, typename Abi>
+inline std::ostream &operator<<(std::ostream &out, const Vc::Mask<T, Abi> &m)
+{
+out << AnsiColor::blue << "m[";
+for (unsigned int i = 0; i < m.Size; ++i) {
+if (i > 0 && (i % 4) == 0) {
+out << ' ';
+}
+if (m[i]) {
+out << AnsiColor::yellow << '1';
+} else {
+out << AnsiColor::blue << '0';
+}
+}
+out << AnsiColor::blue << ']' << AnsiColor::normal;
+return out;
+}
+namespace Common
+{
+#ifdef DOXYGEN
+template<typename V, typename Parent, typename Dimension, typename RM>
+inline std::ostream &operator<<(std::ostream &s, const Vc::MemoryBase<V, Parent, Dimension, RM> &m);
+#endif
+template<typename V, typename Parent, typename RM>
+inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 1, RM> &m )
+{
+out << AnsiColor::blue << '{' << AnsiColor::normal;
+for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
+out << V(m.vector(i));
+}
+out << AnsiColor::blue << '}' << AnsiColor::normal;
+return out;
+}
+template<typename V, typename Parent, typename RM>
+inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 2, RM> &m )
+{
+out << AnsiColor::blue << '{' << AnsiColor::normal;
+for (size_t i = 0; i < m.rowsCount(); ++i) {
+if (i > 0) {
+out << "\n ";
+}
+const size_t vcount = m[i].vectorsCount();
+for (size_t j = 0; j < vcount; ++j) {
+out << V(m[i].vector(j));
+}
+}
+out << AnsiColor::blue << '}' << AnsiColor::normal;
+return out;
+}
+}
+template<typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const SimdArray<T, N> &v)
+{
+out << AnsiColor::green << '<' << v[0];
+for (size_t i = 1; i < N; ++i) {
+if (i % 4 == 0) out << " |";
+out << ' ' << v[i];
+}
+return out << '>' << AnsiColor::normal;
+}
+template<typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const SimdMaskArray<T, N> &m)
+{
+out << AnsiColor::blue << "«";
+for (size_t i = 0; i < N; ++i) {
+if (i > 0 && (i % 4) == 0) {
+out << ' ';
+}
+if ( m[i] ) {
+out << AnsiColor::yellow << '1';
+} else {
+out << AnsiColor::blue << '0';
+}
+}
+return out << AnsiColor::blue << "»" << AnsiColor::normal;
+}
+}
+#endif
 #endif
 #include <array>
 #ifndef VC_COMMON_SIMDARRAYHELPER_H_
 #define VC_COMMON_SIMDARRAYHELPER_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace
 {
@@ -17206,7 +18030,7 @@ std::forward<Args>(args)...);
 #define VC_COMMON_SIMDMASKARRAY_H_ 
 #include <type_traits>
 #include <array>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename T, std::size_t N, typename VectorType_>
 class SimdMaskArray<T, N, VectorType_, N>
@@ -17609,7 +18433,7 @@ constexpr std::size_t SimdMaskArray<T, N, V, M>::MemoryAlignment;
 }
 #ifndef VC_COMMON_SIMD_CAST_CALLER_TCC_
 #define VC_COMMON_SIMD_CAST_CALLER_TCC_ 
-namespace Vc_1 {
+namespace Vc_VERSIONED_NAMESPACE {
 template <typename T, std::size_t N, typename VectorType>
 template <typename U, typename V>
 Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
@@ -17659,7 +18483,7 @@ Traits::simd_vector_size<M>::value == Size)>)
 #endif
 #ifndef VC_COMMON_INTERLEAVE_H_
 #define VC_COMMON_INTERLEAVE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
 std::pair<V, V> interleave(const V &a, const V &b)
@@ -17668,7 +18492,7 @@ return {a.interleaveLow(b), a.interleaveHigh(b)};
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace internal
 {
@@ -19620,6 +20444,14 @@ internal_data1(std::get<2>(proxy.in)),
 internal_data1(std::get<3>(proxy.in))});
 }
 }
+static_assert(Traits::has_no_allocated_data<const volatile Vc::SimdArray<int, 4> &>::value, "");
+static_assert(Traits::has_no_allocated_data<const volatile Vc::SimdArray<int, 4>>::value, "");
+static_assert(Traits::has_no_allocated_data<volatile Vc::SimdArray<int, 4> &>::value, "");
+static_assert(Traits::has_no_allocated_data<volatile Vc::SimdArray<int, 4>>::value, "");
+static_assert(Traits::has_no_allocated_data<const Vc::SimdArray<int, 4> &>::value, "");
+static_assert(Traits::has_no_allocated_data<const Vc::SimdArray<int, 4>>::value, "");
+static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4>>::value, "");
+static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4> &&>::value, "");
 }
 namespace std
 {
@@ -19663,7 +20495,7 @@ return numeric_limits<T>::denorm_min();
 #endif
 #ifndef VC_COMMON_ALIGNEDBASE_H_
 #define VC_COMMON_ALIGNEDBASE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -19698,14 +20530,14 @@ Vector<uchar>::MemoryAlignment, Vector<schar>::MemoryAlignment)>;
 template <typename V> using MemoryAlignedBaseT = AlignedBase<V::MemoryAlignment>;
 }
 #endif
-namespace Vc_1 {
+namespace Vc_VERSIONED_NAMESPACE {
 constexpr std::size_t VectorAlignment = alignof(VectorAlignedBase);
 constexpr std::size_t MemoryAlignment = alignof(MemoryAlignedBase);
 }
 #define Vc_VECTOR_DECLARED_ 1
 #ifndef VC_SCALAR_DEINTERLEAVE_H_
 #define VC_SCALAR_DEINTERLEAVE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -19727,7 +20559,7 @@ Vc_ALWAYS_INLINE void prefetchFar(const void *, VectorAbi::Scalar) {}
 #ifndef VC_SCALAR_MATH_H_
 #define VC_SCALAR_MATH_H_ 
 #include <cstdlib>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 Vc_INTRINSIC Scalar::float_v copysign(Scalar::float_v mag, Scalar::float_v sign)
 {
@@ -19935,7 +20767,7 @@ return std::fma(a.data(), b.data(), c.data());
 #endif
 #ifndef Vc_SCALAR_SIMD_CAST_CALLER_TCC_
 #define Vc_SCALAR_SIMD_CAST_CALLER_TCC_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 #if Vc_IS_VERSION_1
 template <typename T>
@@ -19951,7 +20783,7 @@ U &&rhs, Common::enable_if_mask_converts_explicitly<T, U>)
 #if defined(Vc_IMPL_SSE)
 #ifndef VC_SSE_DEINTERLEAVE_H_
 #define VC_SSE_DEINTERLEAVE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -19982,7 +20814,7 @@ Vc_ALWAYS_INLINE_L void prefetchMid(const void *addr, VectorAbi::Sse) Vc_ALWAYS_
 Vc_ALWAYS_INLINE_L void prefetchFar(const void *addr, VectorAbi::Sse) Vc_ALWAYS_INLINE_R;
 }
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
@@ -20053,7 +20885,7 @@ b.data() = _mm_srli_epi32(tmp.data(), 16);
 }
 }
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -20127,7 +20959,7 @@ Vc::SSE::deinterleave(a, b);
 }
 #ifndef VC_SSE_PREFETCHES_TCC_
 #define VC_SSE_PREFETCHES_TCC_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -20163,7 +20995,7 @@ _mm_prefetch(static_cast<char *>(const_cast<void *>(addr)), _MM_HINT_T0);
 #define VC_SSE_MATH_H_ 
 #ifndef VC_SSE_CONST_H_
 #define VC_SSE_CONST_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SSE
 {
@@ -20230,7 +21062,7 @@ return _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), bits));
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 Vc_INTRINSIC Vc_CONST SSE::float_v copysign(SSE::float_v mag, SSE::float_v sign)
 {
@@ -20344,7 +21176,7 @@ return a;
 #endif
 #ifndef Vc_SSE_SIMD_CAST_CALLER_TCC_
 #define Vc_SSE_SIMD_CAST_CALLER_TCC_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 #if Vc_IS_VERSION_1
 template <typename T>
@@ -20360,7 +21192,7 @@ Vc_INTRINSIC Mask<T, VectorAbi::Sse>::Mask(U &&rhs, Common::enable_if_mask_conve
 #if defined(Vc_IMPL_AVX)
 #ifndef VC_AVX_HELPERIMPL_H_
 #define VC_AVX_HELPERIMPL_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -20440,7 +21272,7 @@ prefetchFar(addr, VectorAbi::Sse());
 }
 }
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace AVX2
 {
@@ -20646,7 +21478,7 @@ Vc::AVX2::deinterleave(a, b, c);
 #endif
 #ifndef VC_AVX_MATH_H_
 #define VC_AVX_MATH_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 #ifdef Vc_IMPL_AVX2
 Vc_ALWAYS_INLINE AVX2::int_v min(const AVX2::int_v &x, const AVX2::int_v &y) { return _mm256_min_epi32(x.data(), y.data()); }
@@ -20878,7 +21710,7 @@ return Detail::fma(a.data(), b.data(), c.data(), T());
 #endif
 #ifndef Vc_AVX_SIMD_CAST_CALLER_TCC_
 #define Vc_AVX_SIMD_CAST_CALLER_TCC_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 #if Vc_IS_VERSION_1
 template <typename T>
@@ -20915,7 +21747,7 @@ __m256 _ZGVdN8v_cosf(__m256);
 __m256d _ZGVdN4v_cos(__m256d);
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -21012,8 +21844,7 @@ Detail::Trig<T, Abi>::sincos(x, sin, cos);
 #ifndef VC_COMMON_CONST_H_
 #define VC_COMMON_CONST_H_ 
 #include <type_traits>
-#include <Vc/global.h>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
@@ -21069,7 +21900,7 @@ sign;
 }
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <class T, class Abi>
 SimdArray<int, Vector<T, Abi>::size()> fpclassify(const Vector<T, Abi> &x)
@@ -21347,7 +22178,7 @@ return x;
 #endif
 #ifndef VC_COMMON_VECTORTUPLE_H_
 #define VC_COMMON_VECTORTUPLE_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
@@ -21437,7 +22268,7 @@ return {std::forward<V>(a), std::forward<Vs>(b)...};
 #endif
 #ifndef VC_COMMON_ALGORITHMS_H_
 #define VC_COMMON_ALGORITHMS_H_ 
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 template<typename Mask> constexpr bool all_of(const Mask &m) { return m.isFull(); }
 constexpr bool all_of(bool b) { return b; }
@@ -21447,6 +22278,10 @@ template<typename Mask> constexpr bool none_of(const Mask &m) { return m.isEmpty
 constexpr bool none_of(bool b) { return !b; }
 template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix(); }
 constexpr bool some_of(bool) { return false; }
+#ifdef DOXYGEN
+template <class InputIt, class UnaryFunction>
+UnaryFunction simd_for_each(InputIt first, InputIt last, UnaryFunction f);
+#else
 template <class InputIt, class UnaryFunction,
 class ValueType = typename std::iterator_traits<InputIt>::value_type>
 inline enable_if<
@@ -21504,6 +22339,7 @@ tmp.store(std::addressof(*first), Vc::Aligned);
 }
 return std::move(f);
 }
+#endif
 template <typename InputIt, typename UnaryFunction>
 inline enable_if<
 !std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value,
@@ -21595,8 +22431,25 @@ return std::for_each_n(first, count, std::move(f));
 #endif
 #ifndef VC_COMMON_IIF_H_
 #define VC_COMMON_IIF_H_ 
-#include <Vc/type_traits>
-namespace Vc_1
+#ifndef VC_TYPE_TRAITS_
+#define VC_TYPE_TRAITS_ 
+#include <type_traits>
+namespace Vc_VERSIONED_NAMESPACE
+{
+using Traits::is_simd_mask;
+using Traits::is_simd_vector;
+using Traits::is_integral;
+using Traits::is_floating_point;
+using Traits::is_arithmetic;
+using Traits::is_signed;
+using Traits::is_unsigned;
+template<typename T>
+struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {};
+template<> struct memory_alignment<short_v> : public std::integral_constant<size_t, short_v::MemoryAlignment> {};
+template<> struct memory_alignment<ushort_v> : public std::integral_constant<size_t, ushort_v::MemoryAlignment> {};
+}
+#endif
+namespace Vc_VERSIONED_NAMESPACE
 {
 template <typename Mask, typename T>
 Vc_ALWAYS_INLINE enable_if<is_simd_mask<Mask>::value && is_simd_vector<T>::value, T> iif(
@@ -21650,443 +22503,6 @@ Vc_RESET_DIAGNOSTICS
 #include <cstddef>
 #include <cstdlib>
 #include <utility>
-#ifndef VC_GLOBAL_H_
-#define VC_GLOBAL_H_ 
-#include <cstdint>
-#ifndef VC_FWDDECL_H_
-#define VC_FWDDECL_H_ 
-namespace Vc_1
-{
-namespace VectorAbi
-{
-struct Scalar {};
-struct Sse {};
-struct Avx {};
-struct Mic {};
-template <class T> struct DeduceCompatible;
-template <class T> struct DeduceBest;
-}
-template <class T, class Abi> class Mask;
-template <class T, class Abi> class Vector;
-namespace simd_abi
-{
-using scalar = VectorAbi::Scalar;
-template <int N> struct fixed_size;
-template <class T> using compatible = typename VectorAbi::DeduceCompatible<T>::type;
-template <class T> using native = typename VectorAbi::DeduceBest<T>::type;
-using __sse = VectorAbi::Sse;
-using __avx = VectorAbi::Avx;
-struct __avx512;
-struct __neon;
-}
-namespace detail
-{
-template <class T, class Abi> struct translate_to_simd;
-}
-template <class T, class Abi = simd_abi::compatible<T>> using simd = Vector<T, Abi>;
-template <class T, class Abi = simd_abi::compatible<T>> using simd_mask = Mask<T, Abi>;
-template <class T> using native_simd = simd<T, simd_abi::native<T>>;
-template <class T> using native_simd_mask = simd_mask<T, simd_abi::native<T>>;
-template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
-template <class T, int N>
-using fixed_size_simd_mask = simd_mask<T, simd_abi::fixed_size<N>>;
-}
-namespace Vc = Vc_1;
-#endif
-#ifdef __INTEL_COMPILER
-#define Vc_ICC __INTEL_COMPILER_BUILD_DATE
-#elif defined(__clang__) && defined(__APPLE__) && __clang_major__ >= 6
-#define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
-#elif defined(__clang__)
-#define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
-#elif defined(__GNUC__)
-#define Vc_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
-#elif defined(_MSC_VER)
-#define Vc_MSVC _MSC_FULL_VER
-#else
-#define Vc_UNSUPPORTED_COMPILER 1
-#endif
-#if defined Vc_GCC && Vc_GCC >= 0x60000
-#define Vc_RESET_DIAGNOSTICS _Pragma("GCC diagnostic pop")
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wignored-attributes"
-#else
-#define Vc_RESET_DIAGNOSTICS 
-#endif
-#if defined Vc_ICC
-#pragma warning disable 2922
-#endif
-#if __cplusplus < 201103 && (!defined Vc_MSVC || _MSC_VER < 1900)
-# error "Vc requires support for C++11."
-#elif __cplusplus >= 201402L
-#define Vc_CXX14 1
-# if __cplusplus > 201700L
-#define Vc_CXX17 1
-# endif
-#endif
-#if defined(__GNUC__) && !defined(Vc_NO_INLINE_ASM)
-#define Vc_GNU_ASM 1
-#endif
-#ifdef Vc_GCC
-#define Vc_HAVE_MAX_ALIGN_T 1
-#elif !defined(Vc_CLANG) && !defined(Vc_ICC)
-#define Vc_HAVE_STD_MAX_ALIGN_T 1
-#endif
-#if defined(Vc_GCC) || defined(Vc_CLANG) || defined Vc_APPLECLANG
-#define Vc_USE_BUILTIN_VECTOR_TYPES 1
-#endif
-#ifdef Vc_MSVC
-#define Vc_CDECL __cdecl
-#define Vc_VDECL __vectorcall
-#else
-#define Vc_CDECL 
-#define Vc_VDECL 
-#endif
-#define Scalar 0x00100000
-#define SSE 0x00200000
-#define SSE2 0x00300000
-#define SSE3 0x00400000
-#define SSSE3 0x00500000
-#define SSE4_1 0x00600000
-#define SSE4_2 0x00700000
-#define AVX 0x00800000
-#define AVX2 0x00900000
-#define XOP 0x00000001
-#define FMA4 0x00000002
-#define F16C 0x00000004
-#define POPCNT 0x00000008
-#define SSE4a 0x00000010
-#define FMA 0x00000020
-#define BMI2 0x00000040
-#define IMPL_MASK 0xFFF00000
-#define EXT_MASK 0x000FFFFF
-#ifdef Vc_MSVC
-# ifdef _M_IX86_FP
-# if _M_IX86_FP >= 1
-# ifndef __SSE__
-#define __SSE__ 1
-# endif
-# endif
-# if _M_IX86_FP >= 2
-# ifndef __SSE2__
-#define __SSE2__ 1
-# endif
-# endif
-# elif defined(_M_AMD64)
-# ifndef __SSE__
-#define __SSE__ 1
-# endif
-# ifndef __SSE2__
-#define __SSE2__ 1
-# endif
-# endif
-#endif
-#if defined Vc_ICC && !defined __POPCNT__
-# if defined __SSE4_2__ || defined __SSE4A__
-#define __POPCNT__ 1
-# endif
-#endif
-#ifdef VC_IMPL
-#error "You are using the old VC_IMPL macro. Since Vc 1.0 all Vc macros start with Vc_, i.e. a lower-case 'c'"
-#endif
-#ifndef Vc_IMPL
-# if defined(__AVX2__)
-#define Vc_IMPL_AVX2 1
-#define Vc_IMPL_AVX 1
-# elif defined(__AVX__)
-#define Vc_IMPL_AVX 1
-# else
-# if defined(__SSE4_2__)
-#define Vc_IMPL_SSE 1
-#define Vc_IMPL_SSE4_2 1
-# endif
-# if defined(__SSE4_1__)
-#define Vc_IMPL_SSE 1
-#define Vc_IMPL_SSE4_1 1
-# endif
-# if defined(__SSE3__)
-#define Vc_IMPL_SSE 1
-#define Vc_IMPL_SSE3 1
-# endif
-# if defined(__SSSE3__)
-#define Vc_IMPL_SSE 1
-#define Vc_IMPL_SSSE3 1
-# endif
-# if defined(__SSE2__)
-#define Vc_IMPL_SSE 1
-#define Vc_IMPL_SSE2 1
-# endif
-# if defined(Vc_IMPL_SSE)
-# else
-#define Vc_IMPL_Scalar 1
-# endif
-# endif
-# if !defined(Vc_IMPL_Scalar)
-# ifdef __FMA4__
-#define Vc_IMPL_FMA4 1
-# endif
-# ifdef __XOP__
-#define Vc_IMPL_XOP 1
-# endif
-# ifdef __F16C__
-#define Vc_IMPL_F16C 1
-# endif
-# ifdef __POPCNT__
-#define Vc_IMPL_POPCNT 1
-# endif
-# ifdef __SSE4A__
-#define Vc_IMPL_SSE4a 1
-# endif
-# ifdef __FMA__
-#define Vc_IMPL_FMA 1
-# endif
-# ifdef __BMI2__
-#define Vc_IMPL_BMI2 1
-# endif
-# endif
-#else
-# if (Vc_IMPL & IMPL_MASK) == AVX2
-#define Vc_IMPL_AVX2 1
-#define Vc_IMPL_AVX 1
-# elif (Vc_IMPL & IMPL_MASK) == AVX
-#define Vc_IMPL_AVX 1
-# elif (Vc_IMPL & IMPL_MASK) == Scalar
-#define Vc_IMPL_Scalar 1
-# elif (Vc_IMPL & IMPL_MASK) == SSE4_2
-#define Vc_IMPL_SSE4_2 1
-#define Vc_IMPL_SSE4_1 1
-#define Vc_IMPL_SSSE3 1
-#define Vc_IMPL_SSE3 1
-#define Vc_IMPL_SSE2 1
-#define Vc_IMPL_SSE 1
-# elif (Vc_IMPL & IMPL_MASK) == SSE4_1
-#define Vc_IMPL_SSE4_1 1
-#define Vc_IMPL_SSSE3 1
-#define Vc_IMPL_SSE3 1
-#define Vc_IMPL_SSE2 1
-#define Vc_IMPL_SSE 1
-# elif (Vc_IMPL & IMPL_MASK) == SSSE3
-#define Vc_IMPL_SSSE3 1
-#define Vc_IMPL_SSE3 1
-#define Vc_IMPL_SSE2 1
-#define Vc_IMPL_SSE 1
-# elif (Vc_IMPL & IMPL_MASK) == SSE3
-#define Vc_IMPL_SSE3 1
-#define Vc_IMPL_SSE2 1
-#define Vc_IMPL_SSE 1
-# elif (Vc_IMPL & IMPL_MASK) == SSE2
-#define Vc_IMPL_SSE2 1
-#define Vc_IMPL_SSE 1
-# elif (Vc_IMPL & IMPL_MASK) == SSE
-#define Vc_IMPL_SSE 1
-# if defined(__SSE4_2__)
-#define Vc_IMPL_SSE4_2 1
-# endif
-# if defined(__SSE4_1__)
-#define Vc_IMPL_SSE4_1 1
-# endif
-# if defined(__SSE3__)
-#define Vc_IMPL_SSE3 1
-# endif
-# if defined(__SSSE3__)
-#define Vc_IMPL_SSSE3 1
-# endif
-# if defined(__SSE2__)
-#define Vc_IMPL_SSE2 1
-# endif
-# elif (Vc_IMPL & IMPL_MASK) == 0 && (Vc_IMPL & SSE4a)
-#define Vc_IMPL_SSE3 1
-#define Vc_IMPL_SSE2 1
-#define Vc_IMPL_SSE 1
-# endif
-# if (Vc_IMPL & XOP)
-#define Vc_IMPL_XOP 1
-# endif
-# if (Vc_IMPL & FMA4)
-#define Vc_IMPL_FMA4 1
-# endif
-# if (Vc_IMPL & F16C)
-#define Vc_IMPL_F16C 1
-# endif
-# if (!defined(Vc_IMPL_Scalar) && defined(__POPCNT__)) || (Vc_IMPL & POPCNT)
-#define Vc_IMPL_POPCNT 1
-# endif
-# if (Vc_IMPL & SSE4a)
-#define Vc_IMPL_SSE4a 1
-# endif
-# if (Vc_IMPL & FMA)
-#define Vc_IMPL_FMA 1
-# endif
-# if (Vc_IMPL & BMI2)
-#define Vc_IMPL_BMI2 1
-# endif
-#undef Vc_IMPL
-#endif
-#ifdef __AVX__
-#define Vc_USE_VEX_CODING 1
-#endif
-#ifdef Vc_IMPL_AVX
-#define Vc_IMPL_SSE4_2 1
-#define Vc_IMPL_SSE4_1 1
-#define Vc_IMPL_SSSE3 1
-#define Vc_IMPL_SSE3 1
-#define Vc_IMPL_SSE2 1
-#define Vc_IMPL_SSE 1
-#endif
-#if defined(Vc_CLANG) && Vc_CLANG >= 0x30600 && Vc_CLANG < 0x30700
-# if defined(Vc_IMPL_AVX)
-# warning "clang 3.6.x miscompiles AVX code, frequently losing 50% of the data. Vc will fall back to SSE4 instead."
-#undef Vc_IMPL_AVX
-# if defined(Vc_IMPL_AVX2)
-#undef Vc_IMPL_AVX2
-# endif
-# endif
-#endif
-# if !defined(Vc_IMPL_Scalar) && !defined(Vc_IMPL_SSE) && !defined(Vc_IMPL_AVX)
-# error "No suitable Vc implementation was selected! Probably Vc_IMPL was set to an invalid value."
-# elif defined(Vc_IMPL_SSE) && !defined(Vc_IMPL_SSE2)
-# error "SSE requested but no SSE2 support. Vc needs at least SSE2!"
-# endif
-#undef Scalar
-#undef SSE
-#undef SSE2
-#undef SSE3
-#undef SSSE3
-#undef SSE4_1
-#undef SSE4_2
-#undef AVX
-#undef AVX2
-#undef XOP
-#undef FMA4
-#undef F16C
-#undef POPCNT
-#undef SSE4a
-#undef FMA
-#undef BMI2
-#undef IMPL_MASK
-#undef EXT_MASK
-#if defined Vc_IMPL_AVX2
-#define Vc_DEFAULT_IMPL_AVX2 
-#elif defined Vc_IMPL_AVX
-#define Vc_DEFAULT_IMPL_AVX 
-#elif defined Vc_IMPL_SSE
-#define Vc_DEFAULT_IMPL_SSE 
-#elif defined Vc_IMPL_Scalar
-#define Vc_DEFAULT_IMPL_Scalar 
-#else
-#error "Preprocessor logic broken. Please report a bug."
-#endif
-namespace Vc_1
-{
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
-typedef signed int int32_t;
-typedef unsigned int uint32_t;
-typedef signed long long int64_t;
-typedef unsigned long long uint64_t;
-enum MallocAlignment {
-AlignOnVector,
-AlignOnCacheline,
-AlignOnPage
-};
-enum Implementation : std::uint_least32_t {
-ScalarImpl,
-SSE2Impl,
-SSE3Impl,
-SSSE3Impl,
-SSE41Impl,
-SSE42Impl,
-AVXImpl,
-AVX2Impl,
-MICImpl,
-ImplementationMask = 0xfff
-};
-enum ExtraInstructions : std::uint_least32_t {
-Float16cInstructions = 0x01000,
-Fma4Instructions = 0x02000,
-XopInstructions = 0x04000,
-PopcntInstructions = 0x08000,
-Sse4aInstructions = 0x10000,
-FmaInstructions = 0x20000,
-VexInstructions = 0x40000,
-Bmi2Instructions = 0x80000,
-ExtraInstructionsMask = 0xfffff000u
-};
-template <unsigned int Features> struct ImplementationT {
-static constexpr Implementation current()
-{
-return static_cast<Implementation>(Features & ImplementationMask);
-}
-static constexpr bool is(Implementation impl)
-{
-return static_cast<unsigned int>(impl) == current();
-}
-static constexpr bool is_between(Implementation low, Implementation high)
-{
-return static_cast<unsigned int>(low) <= current() &&
-static_cast<unsigned int>(high) >= current();
-}
-static constexpr bool runs_on(unsigned int extraInstructions)
-{
-return (extraInstructions & Features & ExtraInstructionsMask) ==
-(Features & ExtraInstructionsMask);
-}
-};
-using CurrentImplementation = ImplementationT<
-#ifdef Vc_IMPL_Scalar
-ScalarImpl
-#elif defined(Vc_IMPL_AVX2)
-AVX2Impl
-#elif defined(Vc_IMPL_AVX)
-AVXImpl
-#elif defined(Vc_IMPL_SSE4_2)
-SSE42Impl
-#elif defined(Vc_IMPL_SSE4_1)
-SSE41Impl
-#elif defined(Vc_IMPL_SSSE3)
-SSSE3Impl
-#elif defined(Vc_IMPL_SSE3)
-SSE3Impl
-#elif defined(Vc_IMPL_SSE2)
-SSE2Impl
-#endif
-#ifdef Vc_IMPL_SSE4a
-+ Vc::Sse4aInstructions
-#ifdef Vc_IMPL_XOP
-+ Vc::XopInstructions
-#ifdef Vc_IMPL_FMA4
-+ Vc::Fma4Instructions
-#endif
-#endif
-#endif
-#ifdef Vc_IMPL_POPCNT
-+ Vc::PopcntInstructions
-#endif
-#ifdef Vc_IMPL_FMA
-+ Vc::FmaInstructions
-#endif
-#ifdef Vc_IMPL_BMI2
-+ Vc::Bmi2Instructions
-#endif
-#ifdef Vc_USE_VEX_CODING
-+ Vc::VexInstructions
-#endif
->;
-}
-#define Vc_VERSION_STRING "1.3.80-dev"
-#define Vc_VERSION_NUMBER 0x0103a1
-#define Vc_VERSION_CHECK(major,minor,patch) ((major << 16) | (minor << 8) | (patch << 1))
-#define Vc_LIBRARY_ABI_VERSION 5
-#define Vc_IS_VERSION_2 (Vc_VERSION_NUMBER >= Vc_VERSION_CHECK(1, 70, 0))
-#define Vc_IS_VERSION_1 (Vc_VERSION_NUMBER < Vc_VERSION_CHECK(1, 70, 0))
-namespace Vc_1
-{
-inline const char *versionString() { return Vc_VERSION_STRING; }
-constexpr unsigned int versionNumber() { return Vc_VERSION_NUMBER; }
-}
-#endif
 #ifdef Vc_MSVC
 #define Vc_DECLARE_ALLOCATOR(Type) \
 namespace std \
@@ -22114,7 +22530,7 @@ typedef ::std::allocator<U> other; \
 }; \
 }
 #endif
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 using std::size_t;
 using std::ptrdiff_t;
@@ -22237,7 +22653,7 @@ const allocator &select_on_container_copy_construction() const { return *this; }
 #define VC_COMMON_SIMDIZE_H_ 
 #include <tuple>
 #include <array>
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SimdizeDetail
 {
@@ -22786,7 +23202,7 @@ typedef std::allocator<U> other;
 };
 };
 }
-namespace Vc_1
+namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SimdizeDetail
 {
