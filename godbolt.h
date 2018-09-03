@@ -31,8 +31,20 @@ struct Mic {};
 template <class T> struct DeduceCompatible;
 template <class T> struct DeduceBest;
 }
+namespace Common
+{
+template <class T, std::size_t N> struct select_best_vector_type;
+}
 template <class T, class Abi> class Mask;
 template <class T, class Abi> class Vector;
+template <class T, std::size_t N,
+class V = typename Common::select_best_vector_type<T, N>::type,
+std::size_t Wt = V::Size>
+class SimdArray;
+template <class T, std::size_t N,
+class V = typename Common::select_best_vector_type<T, N>::type,
+std::size_t Wt = V::Size>
+class SimdMaskArray;
 namespace simd_abi
 {
 using scalar = VectorAbi::Scalar;
@@ -44,10 +56,6 @@ using __avx = VectorAbi::Avx;
 struct __avx512;
 struct __neon;
 }
-namespace detail
-{
-template <class T, class Abi> struct translate_to_simd;
-}
 template <class T, class Abi = simd_abi::compatible<T>> using simd = Vector<T, Abi>;
 template <class T, class Abi = simd_abi::compatible<T>> using simd_mask = Mask<T, Abi>;
 template <class T> using native_simd = simd<T, simd_abi::native<T>>;
@@ -56,7 +64,9 @@ template <class T, int N> using fixed_size_simd = simd<T, simd_abi::fixed_size<N
 template <class T, int N>
 using fixed_size_simd_mask = simd_mask<T, simd_abi::fixed_size<N>>;
 }
+#ifndef DOXYGEN
 namespace Vc = Vc_VERSIONED_NAMESPACE;
+#endif
 #endif
 #ifdef DOXYGEN
 #define Vc_ICC __INTEL_COMPILER_BUILD_DATE
@@ -465,25 +475,6 @@ namespace Vc_VERSIONED_NAMESPACE
 inline const char *versionString() { return Vc_VERSION_STRING; }
 constexpr unsigned int versionNumber() { return Vc_VERSION_NUMBER; }
 }
-#if !defined(Vc_NO_VERSION_CHECK) && !defined(Vc_COMPILE_LIB)
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace Common
-{
-void Vc_CDECL checkLibraryAbi(unsigned int compileTimeAbi, unsigned int versionNumber,
-const char *versionString);
-namespace
-{
-static struct runLibraryAbiCheck {
-runLibraryAbiCheck()
-{
-checkLibraryAbi(Vc_LIBRARY_ABI_VERSION, Vc_VERSION_NUMBER, Vc_VERSION_STRING);
-}
-} _runLibraryAbiCheck;
-}
-}
-}
-#endif
 #endif
 #endif
 #ifndef VC_TRAITS_TYPE_TRAITS_H_
@@ -1356,6 +1347,7 @@ abort();
 #endif
 namespace Common
 {
+template <typename T, std::size_t Pieces, std::size_t Index> struct Segment;
 template<size_t StructSize> class SuccessiveEntries
 {
 #ifdef Vc_MSVC
@@ -1778,47 +1770,6 @@ return N - left_size<N>();
 #endif
 namespace Vc_VERSIONED_NAMESPACE
 {
-namespace Common
-{
-template <typename T, std::size_t Pieces, std::size_t Index> struct Segment;
-template<std::size_t N, typename... Typelist> struct select_best_vector_type_impl;
-template<std::size_t N, typename T> struct select_best_vector_type_impl<N, T>
-{
-using type = T;
-};
-template<std::size_t N, typename T, typename... Typelist> struct select_best_vector_type_impl<N, T, Typelist...>
-{
-using type = typename std::conditional<
-(N < T::Size), typename select_best_vector_type_impl<N, Typelist...>::type,
-T>::type;
-};
-template <typename T, std::size_t N>
-using select_best_vector_type =
-typename select_best_vector_type_impl<N,
-#ifdef Vc_IMPL_AVX2
-Vc::AVX2::Vector<T>,
-Vc::SSE::Vector<T>,
-Vc::Scalar::Vector<T>
-#elif defined(Vc_IMPL_AVX)
-Vc::AVX::Vector<T>,
-Vc::SSE::Vector<T>,
-Vc::Scalar::Vector<T>
-#elif defined(Vc_IMPL_Scalar)
-Vc::Scalar::Vector<T>
-#elif defined(Vc_IMPL_SSE)
-Vc::SSE::Vector<T>,
-Vc::Scalar::Vector<T>
-#endif
->::type;
-}
-template <typename T, size_t N, typename V = Common::select_best_vector_type<T, N>,
-size_t Wt = V::Size
->
-class SimdArray;
-template <typename T, size_t N, typename V = Common::select_best_vector_type<T, N>,
-size_t Wt = V::Size
->
-class SimdMaskArray;
 template <class T, int N>
 class Vector<T, simd_abi::fixed_size<N>> : public SimdArray<T, N>
 {
@@ -1911,39 +1862,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace detail
 {
-template <class T> struct translate_to_simd<T, simd_abi::scalar> {
-using simd = Vector<T, VectorAbi::Scalar>;
-using mask = Mask<T, VectorAbi::Scalar>;
-};
-template <class T, int N> struct translate_to_simd<T, simd_abi::fixed_size<N>> {
-using simd = SimdArray<T, N>;
-using mask = SimdMaskArray<T, N>;
-};
-template <class T> struct translate_to_simd<T, simd_abi::compatible<T>> {
-#ifdef Vc_IMPL_SSE2
-using simd = Vector<T, VectorAbi::Sse>;
-using mask = Mask<T, VectorAbi::Sse>;
-#else
-using simd = Vector<T, VectorAbi::Scalar>;
-using mask = Mask<T, VectorAbi::Scalar>;
-#endif
-};
-template <class T> struct translate_to_simd<T, simd_abi::native<T>> {
-using simd = Vector<T, VectorAbi::Best<T>>;
-using mask = Mask<T, VectorAbi::Best<T>>;
-};
-template <class T> struct translate_to_simd<T, simd_abi::__sse> {
-using simd = Vector<T, VectorAbi::Sse>;
-using mask = Mask<T, VectorAbi::Sse>;
-};
-template <class T> struct translate_to_simd<T, simd_abi::__avx> {
-using simd = Vector<T, VectorAbi::Avx>;
-using mask = Mask<T, VectorAbi::Avx>;
-};
-template <class T> struct translate_to_simd<T, simd_abi::__avx512> {
-};
-template <class T> struct translate_to_simd<T, simd_abi::__neon> {
-};
 template <class T> struct is_fixed_size_abi : std::false_type {
 };
 template <int N> struct is_fixed_size_abi<simd_abi::fixed_size<N>> : std::true_type {
@@ -2363,137 +2281,6 @@ Vc_INTRINSIC void gather(const MT *mem, const IT &indexes, MaskArgument mask)
 Vc_ASSERT_GATHER_PARAMETER_TYPES_;
 gatherImplementation(mem, adjustIndexParameter(indexes), mask);
 }
-template <typename S1, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
-const EntryType S1::*member1,
-IT indexes)
-{
-gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1]
-.gatherArguments());
-}
-template <typename S1, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
-const EntryType S1::*member1,
-IT indexes, MaskArgument mask)
-{
-gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1]
-.gatherArguments(),
-mask);
-}
-template <typename S1, typename S2, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
-const S2 S1::*member1,
-const EntryType S2::*member2,
-IT indexes)
-{
-gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1][member2]
-.gatherArguments());
-}
-template <typename S1, typename S2, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
-const S2 S1::*member1,
-const EntryType S2::*member2,
-IT indexes, MaskArgument mask)
-{
-gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1][member2]
-.gatherArguments(),
-mask);
-}
-template <typename S1, typename IT1, typename IT2>
-Vc_DEPRECATED(
-"use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
-const EntryType *const S1::*ptrMember1,
-IT1 outerIndexes, IT2 innerIndexes)
-{
-gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
-array, outerIndexes)[ptrMember1][innerIndexes]
-.gatherArguments());
-}
-template <typename S1, typename IT1, typename IT2>
-Vc_DEPRECATED(
-"use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline Vc_CURRENT_CLASS_NAME(const S1 *array,
-const EntryType *const S1::*ptrMember1,
-IT1 outerIndexes, IT2 innerIndexes,
-MaskArgument mask)
-{
-gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
-array, outerIndexes)[ptrMember1][innerIndexes]
-.gatherArguments(),
-mask);
-}
-template <typename S1, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void gather(const S1 *array,
-const EntryType S1::*member1, IT indexes)
-{
-gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1]
-.gatherArguments());
-}
-template <typename S1, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void gather(const S1 *array,
-const EntryType S1::*member1,
-IT indexes,
-MaskArgument mask)
-{
-gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1]
-.gatherArguments(),
-mask);
-}
-template <typename S1, typename S2, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void gather(const S1 *array, const S2 S1::*member1,
-const EntryType S2::*member2, IT indexes)
-{
-gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1][member2]
-.gatherArguments());
-}
-template <typename S1, typename S2, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void gather(const S1 *array, const S2 S1::*member1,
-const EntryType S2::*member2, IT indexes,
-MaskArgument mask)
-{
-gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1][member2]
-.gatherArguments(),
-mask);
-}
-template <typename S1, typename IT1, typename IT2>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void gather(const S1 *array,
-const EntryType *const S1::*ptrMember1,
-IT1 outerIndexes, IT2 innerIndexes)
-{
-gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
-array, outerIndexes)[ptrMember1][innerIndexes]
-.gatherArguments());
-}
-template <typename S1, typename IT1, typename IT2>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void gather(const S1 *array,
-const EntryType *const S1::*ptrMember1,
-IT1 outerIndexes, IT2 innerIndexes,
-MaskArgument mask)
-{
-gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
-array, outerIndexes)[ptrMember1][innerIndexes]
-.gatherArguments(),
-mask);
-}
 template <typename MT, typename IT>
 Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args)
 {
@@ -2545,67 +2332,6 @@ Vc_INTRINSIC void scatter(MT *mem, IT &&indexes, MaskArgument mask) const
 {
 Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
 scatterImplementation(mem, std::forward<IT>(indexes), mask);
-}
-template <typename S1, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void scatter(S1 *array, EntryType S1::*member1,
-IT indexes) const
-{
-scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1]
-.scatterArguments());
-}
-template <typename S1, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void scatter(S1 *array, EntryType S1::*member1,
-IT indexes, MaskArgument mask) const
-{
-scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1]
-.scatterArguments(),
-mask);
-}
-template <typename S1, typename S2, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void scatter(S1 *array, S2 S1::*member1,
-EntryType S2::*member2,
-IT indexes) const
-{
-scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1][member2]
-.scatterArguments());
-}
-template <typename S1, typename S2, typename IT>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void scatter(S1 *array, S2 S1::*member1,
-EntryType S2::*member2, IT indexes,
-MaskArgument mask) const
-{
-scatter(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
-array, indexes)[member1][member2]
-.scatterArguments(),
-mask);
-}
-template <typename S1, typename IT1, typename IT2>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void scatter(S1 *array, EntryType *S1::*ptrMember1,
-IT1 outerIndexes,
-IT2 innerIndexes) const
-{
-scatter(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
-array, outerIndexes)[ptrMember1][innerIndexes]
-.scatterArguments());
-}
-template <typename S1, typename IT1, typename IT2>
-Vc_DEPRECATED("use the subscript operator to Vc::array or Vc::vector "
-"instead.") inline void scatter(S1 *array, EntryType *S1::*ptrMember1,
-IT1 outerIndexes, IT2 innerIndexes,
-MaskArgument mask) const
-{
-scatter(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
-array, outerIndexes)[ptrMember1][innerIndexes]
-.scatterArguments(),
-mask);
 }
 template <typename MT, typename IT>
 Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args) const
@@ -3142,11 +2868,222 @@ void *>::type = nullptr)
 : Vector(static_cast<EntryType>(a))
 {
 }
+explicit Vc_INTRINSIC Vector(const EntryType *mem)
+{
+load(mem);
+}
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+explicit Vc_INTRINSIC Vector(const EntryType *mem, Flags flags)
+{
+load(mem, flags);
+}
+template <typename U, typename Flags = DefaultLoadTag,
+typename = enable_if<
+(!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
+sizeof(EntryType) >= sizeof(U)) &&
+std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
+explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
+{
+load<U, Flags>(x, flags);
+}
+Vc_INTRINSIC void load(const EntryType *mem)
+{
+load(mem, DefaultLoadTag());
+}
+template <typename Flags>
+Vc_INTRINSIC enable_if<Traits::is_load_store_flag<Flags>::value, void>
+load(const EntryType *mem, Flags flags)
+{
+load<EntryType, Flags>(mem, flags);
+}
+private:
+template <typename U, typename Flags>
+struct load_concept : public std::enable_if<
+(!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
+sizeof(EntryType) >= sizeof(U)) &&
+std::is_arithmetic<U>::value && Traits::is_load_store_flag<Flags>::value, void>
+{};
+public:
+template <typename U, typename Flags = DefaultLoadTag>
+Vc_INTRINSIC_L typename load_concept<U, Flags>::type load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
+template <
+typename U,
+typename Flags = DefaultStoreTag,
+typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC_L void store(U *mem, Flags flags = Flags()) const Vc_INTRINSIC_R;
+template <
+typename U,
+typename Flags = DefaultStoreTag,
+typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC_L void Vc_VDECL store(U *mem, MaskType mask, Flags flags = Flags()) const Vc_INTRINSIC_R;
+Vc_INTRINSIC void store(EntryType *mem) const
+{
+store<EntryType, DefaultStoreTag>(mem, DefaultStoreTag());
+}
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
+{
+store<EntryType, Flags>(mem, flags);
+}
+Vc_INTRINSIC void Vc_VDECL store(EntryType *mem, MaskType mask) const
+{
+store<EntryType, DefaultStoreTag>(mem, mask, DefaultStoreTag());
+}
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC void Vc_VDECL store(EntryType *mem, MaskType mask, Flags flags) const
+{
+store<EntryType, Flags>(mem, mask, flags);
+}
 Vc_ALWAYS_INLINE void setZero() { m_data = 0; }
 Vc_ALWAYS_INLINE void setZero(Mask k) { if (k.data()) m_data = 0; }
 Vc_ALWAYS_INLINE void setZeroInverted(Mask k) { if (!k.data()) m_data = 0; }
 Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
 Vc_INTRINSIC_L void setQnan(Mask m) Vc_INTRINSIC_R;
+#ifndef Vc_CURRENT_CLASS_NAME
+#error "incorrect use of common/gatherinterface.h: Vc_CURRENT_CLASS_NAME must be defined to the current class name for declaring constructors."
+#endif
+private:
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes);
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes, MaskArgument mask);
+template <typename IT, typename = enable_if<std::is_pointer<IT>::value ||
+Traits::is_simd_vector<IT>::value>>
+static Vc_INTRINSIC const IT &adjustIndexParameter(const IT &indexes)
+{
+return indexes;
+}
+template <
+typename IT,
+typename = enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value>>
+static Vc_INTRINSIC decltype(std::addressof(std::declval<const IT &>()[0]))
+adjustIndexParameter(const IT &i)
+{
+return std::addressof(i[0]);
+}
+template <typename IT>
+static Vc_INTRINSIC enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+!std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value,
+IT>
+adjustIndexParameter(const IT &i)
+{
+return i;
+}
+public:
+#define Vc_ASSERT_GATHER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<MT, EntryType>::value, \
+"The memory pointer needs to point to a type that can be converted to the " \
+"EntryType of this SIMD vector type."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT, typename IT,
+typename = enable_if<Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes,
+MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes, MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args)
+{
+gather(args.address, adjustIndexParameter(args.indexes));
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args, MaskArgument mask)
+{
+gather(args.address, adjustIndexParameter(args.indexes), mask);
+}
+#undef Vc_ASSERT_GATHER_PARAMETER_TYPES_
+private:
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes) const;
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const;
+public:
+#define Vc_ASSERT_SCATTER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<EntryType, MT>::value, \
+"The memory pointer needs to point to a type that the EntryType of this " \
+"SIMD vector type can be converted to."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes));
+}
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes, MaskArgument mask) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args) const
+{
+scatter(args.address, args.indexes);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args, MaskArgument mask) const
+{
+scatter(args.address, args.indexes, mask);
+}
+#undef Vc_ASSERT_SCATTER_PARAMETER_TYPES_
 Vc_ALWAYS_INLINE Vector &operator++() { ++m_data; return *this; }
 Vc_ALWAYS_INLINE Vector &operator--() { --m_data; return *this; }
 Vc_ALWAYS_INLINE Vector operator++(int) { return m_data++; }
@@ -3808,9 +3745,161 @@ return r;
 }
 #endif
 #endif
+#if defined(Vc_IMPL_SSE)
+#ifndef VC_SSE_VECTOR_H_
+#define VC_SSE_VECTOR_H_ 
+#ifndef VC_SSE_INTRINSICS_H_
+#define VC_SSE_INTRINSICS_H_ 
+#ifdef Vc_MSVC
+#include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
+#ifndef VC_COMMON_STORAGE_H_
+#define VC_COMMON_STORAGE_H_ 
+#ifndef VC_COMMON_ALIASINGENTRYHELPER_H_
+#define VC_COMMON_ALIASINGENTRYHELPER_H_ 
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+template<class StorageType> class AliasingEntryHelper
+{
+private:
+typedef typename StorageType::EntryType T;
+#ifdef Vc_ICC
+StorageType *const m_storage;
+const int m_index;
+public:
+Vc_ALWAYS_INLINE AliasingEntryHelper(StorageType *d, int index) : m_storage(d), m_index(index) {}
+Vc_ALWAYS_INLINE AliasingEntryHelper(const AliasingEntryHelper &) = default;
+Vc_ALWAYS_INLINE AliasingEntryHelper(AliasingEntryHelper &&) = default;
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
+m_storage->assign(m_index, rhs);
+return *this;
+}
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator =(T x) { m_storage->assign(m_index, x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator +=(T x) { m_storage->assign(m_index, m_storage->m(m_index) + x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator -=(T x) { m_storage->assign(m_index, m_storage->m(m_index) - x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator /=(T x) { m_storage->assign(m_index, m_storage->m(m_index) / x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator *=(T x) { m_storage->assign(m_index, m_storage->m(m_index) * x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator |=(T x) { m_storage->assign(m_index, m_storage->m(m_index) | x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator &=(T x) { m_storage->assign(m_index, m_storage->m(m_index) & x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator ^=(T x) { m_storage->assign(m_index, m_storage->m(m_index) ^ x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator %=(T x) { m_storage->assign(m_index, m_storage->m(m_index) % x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator<<=(T x) { m_storage->assign(m_index, m_storage->m(m_index)<< x); return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator>>=(T x) { m_storage->assign(m_index, m_storage->m(m_index)>> x); return *this; }
+#define m_data m_storage->read(m_index)
+#else
+typedef T A Vc_MAY_ALIAS;
+A &m_data;
+public:
+template<typename T2>
+Vc_ALWAYS_INLINE AliasingEntryHelper(T2 &d) : m_data(reinterpret_cast<A &>(d)) {}
+Vc_ALWAYS_INLINE AliasingEntryHelper(A &d) : m_data(d) {}
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
+m_data = rhs.m_data;
+return *this;
+}
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator =(T x) { m_data = x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator+=(T x) { m_data += x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator-=(T x) { m_data -= x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator/=(T x) { m_data /= x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator*=(T x) { m_data *= x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator|=(T x) { m_data |= x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator&=(T x) { m_data &= x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator^=(T x) { m_data ^= x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator%=(T x) { m_data %= x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator<<=(T x) { m_data <<= x; return *this; }
+Vc_ALWAYS_INLINE AliasingEntryHelper &operator>>=(T x) { m_data >>= x; return *this; }
+#endif
+Vc_ALWAYS_INLINE Vc_PURE operator const T() const { return m_data; }
+Vc_ALWAYS_INLINE Vc_PURE bool operator==(T x) const { return static_cast<T>(m_data) == x; }
+Vc_ALWAYS_INLINE Vc_PURE bool operator!=(T x) const { return static_cast<T>(m_data) != x; }
+Vc_ALWAYS_INLINE Vc_PURE bool operator<=(T x) const { return static_cast<T>(m_data) <= x; }
+Vc_ALWAYS_INLINE Vc_PURE bool operator>=(T x) const { return static_cast<T>(m_data) >= x; }
+Vc_ALWAYS_INLINE Vc_PURE bool operator< (T x) const { return static_cast<T>(m_data) < x; }
+Vc_ALWAYS_INLINE Vc_PURE bool operator> (T x) const { return static_cast<T>(m_data) > x; }
+Vc_ALWAYS_INLINE Vc_PURE T operator-() const { return -static_cast<T>(m_data); }
+Vc_ALWAYS_INLINE Vc_PURE T operator~() const { return ~static_cast<T>(m_data); }
+Vc_ALWAYS_INLINE Vc_PURE T operator+(T x) const { return static_cast<T>(m_data) + x; }
+Vc_ALWAYS_INLINE Vc_PURE T operator-(T x) const { return static_cast<T>(m_data) - x; }
+Vc_ALWAYS_INLINE Vc_PURE T operator/(T x) const { return static_cast<T>(m_data) / x; }
+Vc_ALWAYS_INLINE Vc_PURE T operator*(T x) const { return static_cast<T>(m_data) * x; }
+Vc_ALWAYS_INLINE Vc_PURE T operator|(T x) const { return static_cast<T>(m_data) | x; }
+Vc_ALWAYS_INLINE Vc_PURE T operator&(T x) const { return static_cast<T>(m_data) & x; }
+Vc_ALWAYS_INLINE Vc_PURE T operator^(T x) const { return static_cast<T>(m_data) ^ x; }
+Vc_ALWAYS_INLINE Vc_PURE T operator%(T x) const { return static_cast<T>(m_data) % x; }
+#ifdef m_data
+#undef m_data
+#endif
+};
+}
+}
+#endif
+#ifndef VC_COMMON_MASKENTRY_H_
+#define VC_COMMON_MASKENTRY_H_ 
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+namespace
+{
+template<size_t Bytes> struct MaskBoolStorage;
+template<> struct MaskBoolStorage<1> { typedef std::int8_t type; };
+template<> struct MaskBoolStorage<2> { typedef std::int16_t type; };
+template<> struct MaskBoolStorage<4> { typedef std::int32_t type; };
+template<> struct MaskBoolStorage<8> { typedef std::int64_t type; };
+}
+template<size_t Bytes> class MaskBool
+{
+typedef typename MaskBoolStorage<Bytes>::type storage_type Vc_MAY_ALIAS;
+storage_type data;
+public:
+constexpr MaskBool(bool x) noexcept : data(x ? -1 : 0) {}
+Vc_ALWAYS_INLINE MaskBool &operator=(bool x) noexcept { data = x ? -1 : 0; return *this; }
+template <typename T, typename = enable_if<(!std::is_same<T, bool>::value &&
+std::is_fundamental<T>::value)>>
+Vc_ALWAYS_INLINE MaskBool &operator=(T x) noexcept
+{
+data = reinterpret_cast<const storage_type &>(x);
+return *this;
+}
+Vc_ALWAYS_INLINE MaskBool(const MaskBool &) noexcept = default;
+Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) noexcept = default;
+template <typename T, typename = enable_if<(std::is_same<T, bool>::value ||
+(std::is_fundamental<T>::value &&
+sizeof(storage_type) == sizeof(T)))>>
+constexpr operator T() const noexcept
+{
+return std::is_same<T, bool>::value ? T((data & 1) != 0)
+: reinterpret_cast<const MayAlias<T> &>(data);
+}
+} Vc_MAY_ALIAS;
+template <typename A,
+typename B,
+typename std::enable_if<
+std::is_convertible<A, bool>::value &&std::is_convertible<B, bool>::value,
+int>::type = 0>
+constexpr bool operator==(A &&a, B &&b)
+{
+return static_cast<bool>(a) == static_cast<bool>(b);
+}
+template <typename A,
+typename B,
+typename std::enable_if<
+std::is_convertible<A, bool>::value &&std::is_convertible<B, bool>::value,
+int>::type = 0>
+constexpr bool operator!=(A &&a, B &&b)
+{
+return static_cast<bool>(a) != static_cast<bool>(b);
+}
+static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
+static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
+}
+}
+#endif
 #ifdef Vc_IMPL_AVX
-#ifndef VC_AVX_VECTOR_H_
-#define VC_AVX_VECTOR_H_ 
 #ifndef VC_AVX_INTRINSICS_H_
 #define VC_AVX_INTRINSICS_H_ 
 extern "C" {
@@ -4520,162 +4609,6 @@ template<typename T> struct VectorHelperSize;
 }
 }
 #endif
-#ifndef VC_AVX_CASTS_H_
-#define VC_AVX_CASTS_H_ 
-#ifndef VC_SSE_CASTS_H_
-#define VC_SSE_CASTS_H_ 
-#ifndef VC_SSE_INTRINSICS_H_
-#define VC_SSE_INTRINSICS_H_ 
-#ifdef Vc_MSVC
-#include <intrin.h>
-#else
-#include <x86intrin.h>
-#endif
-#ifndef VC_COMMON_STORAGE_H_
-#define VC_COMMON_STORAGE_H_ 
-#ifndef VC_COMMON_ALIASINGENTRYHELPER_H_
-#define VC_COMMON_ALIASINGENTRYHELPER_H_ 
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace Common
-{
-template<class StorageType> class AliasingEntryHelper
-{
-private:
-typedef typename StorageType::EntryType T;
-#ifdef Vc_ICC
-StorageType *const m_storage;
-const int m_index;
-public:
-Vc_ALWAYS_INLINE AliasingEntryHelper(StorageType *d, int index) : m_storage(d), m_index(index) {}
-Vc_ALWAYS_INLINE AliasingEntryHelper(const AliasingEntryHelper &) = default;
-Vc_ALWAYS_INLINE AliasingEntryHelper(AliasingEntryHelper &&) = default;
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
-m_storage->assign(m_index, rhs);
-return *this;
-}
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator =(T x) { m_storage->assign(m_index, x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator +=(T x) { m_storage->assign(m_index, m_storage->m(m_index) + x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator -=(T x) { m_storage->assign(m_index, m_storage->m(m_index) - x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator /=(T x) { m_storage->assign(m_index, m_storage->m(m_index) / x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator *=(T x) { m_storage->assign(m_index, m_storage->m(m_index) * x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator |=(T x) { m_storage->assign(m_index, m_storage->m(m_index) | x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator &=(T x) { m_storage->assign(m_index, m_storage->m(m_index) & x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator ^=(T x) { m_storage->assign(m_index, m_storage->m(m_index) ^ x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator %=(T x) { m_storage->assign(m_index, m_storage->m(m_index) % x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator<<=(T x) { m_storage->assign(m_index, m_storage->m(m_index)<< x); return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator>>=(T x) { m_storage->assign(m_index, m_storage->m(m_index)>> x); return *this; }
-#define m_data m_storage->read(m_index)
-#else
-typedef T A Vc_MAY_ALIAS;
-A &m_data;
-public:
-template<typename T2>
-Vc_ALWAYS_INLINE AliasingEntryHelper(T2 &d) : m_data(reinterpret_cast<A &>(d)) {}
-Vc_ALWAYS_INLINE AliasingEntryHelper(A &d) : m_data(d) {}
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator=(const AliasingEntryHelper &rhs) {
-m_data = rhs.m_data;
-return *this;
-}
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator =(T x) { m_data = x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator+=(T x) { m_data += x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator-=(T x) { m_data -= x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator/=(T x) { m_data /= x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator*=(T x) { m_data *= x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator|=(T x) { m_data |= x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator&=(T x) { m_data &= x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator^=(T x) { m_data ^= x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator%=(T x) { m_data %= x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator<<=(T x) { m_data <<= x; return *this; }
-Vc_ALWAYS_INLINE AliasingEntryHelper &operator>>=(T x) { m_data >>= x; return *this; }
-#endif
-Vc_ALWAYS_INLINE Vc_PURE operator const T() const { return m_data; }
-Vc_ALWAYS_INLINE Vc_PURE bool operator==(T x) const { return static_cast<T>(m_data) == x; }
-Vc_ALWAYS_INLINE Vc_PURE bool operator!=(T x) const { return static_cast<T>(m_data) != x; }
-Vc_ALWAYS_INLINE Vc_PURE bool operator<=(T x) const { return static_cast<T>(m_data) <= x; }
-Vc_ALWAYS_INLINE Vc_PURE bool operator>=(T x) const { return static_cast<T>(m_data) >= x; }
-Vc_ALWAYS_INLINE Vc_PURE bool operator< (T x) const { return static_cast<T>(m_data) < x; }
-Vc_ALWAYS_INLINE Vc_PURE bool operator> (T x) const { return static_cast<T>(m_data) > x; }
-Vc_ALWAYS_INLINE Vc_PURE T operator-() const { return -static_cast<T>(m_data); }
-Vc_ALWAYS_INLINE Vc_PURE T operator~() const { return ~static_cast<T>(m_data); }
-Vc_ALWAYS_INLINE Vc_PURE T operator+(T x) const { return static_cast<T>(m_data) + x; }
-Vc_ALWAYS_INLINE Vc_PURE T operator-(T x) const { return static_cast<T>(m_data) - x; }
-Vc_ALWAYS_INLINE Vc_PURE T operator/(T x) const { return static_cast<T>(m_data) / x; }
-Vc_ALWAYS_INLINE Vc_PURE T operator*(T x) const { return static_cast<T>(m_data) * x; }
-Vc_ALWAYS_INLINE Vc_PURE T operator|(T x) const { return static_cast<T>(m_data) | x; }
-Vc_ALWAYS_INLINE Vc_PURE T operator&(T x) const { return static_cast<T>(m_data) & x; }
-Vc_ALWAYS_INLINE Vc_PURE T operator^(T x) const { return static_cast<T>(m_data) ^ x; }
-Vc_ALWAYS_INLINE Vc_PURE T operator%(T x) const { return static_cast<T>(m_data) % x; }
-#ifdef m_data
-#undef m_data
-#endif
-};
-}
-}
-#endif
-#ifndef VC_COMMON_MASKENTRY_H_
-#define VC_COMMON_MASKENTRY_H_ 
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace Common
-{
-namespace
-{
-template<size_t Bytes> struct MaskBoolStorage;
-template<> struct MaskBoolStorage<1> { typedef std::int8_t type; };
-template<> struct MaskBoolStorage<2> { typedef std::int16_t type; };
-template<> struct MaskBoolStorage<4> { typedef std::int32_t type; };
-template<> struct MaskBoolStorage<8> { typedef std::int64_t type; };
-}
-template<size_t Bytes> class MaskBool
-{
-typedef typename MaskBoolStorage<Bytes>::type storage_type Vc_MAY_ALIAS;
-storage_type data;
-public:
-constexpr MaskBool(bool x) noexcept : data(x ? -1 : 0) {}
-Vc_ALWAYS_INLINE MaskBool &operator=(bool x) noexcept { data = x ? -1 : 0; return *this; }
-template <typename T, typename = enable_if<(!std::is_same<T, bool>::value &&
-std::is_fundamental<T>::value)>>
-Vc_ALWAYS_INLINE MaskBool &operator=(T x) noexcept
-{
-data = reinterpret_cast<const storage_type &>(x);
-return *this;
-}
-Vc_ALWAYS_INLINE MaskBool(const MaskBool &) noexcept = default;
-Vc_ALWAYS_INLINE MaskBool &operator=(const MaskBool &) noexcept = default;
-template <typename T, typename = enable_if<(std::is_same<T, bool>::value ||
-(std::is_fundamental<T>::value &&
-sizeof(storage_type) == sizeof(T)))>>
-constexpr operator T() const noexcept
-{
-return std::is_same<T, bool>::value ? T((data & 1) != 0)
-: reinterpret_cast<const MayAlias<T> &>(data);
-}
-} Vc_MAY_ALIAS;
-template <typename A,
-typename B,
-typename std::enable_if<
-std::is_convertible<A, bool>::value &&std::is_convertible<B, bool>::value,
-int>::type = 0>
-constexpr bool operator==(A &&a, B &&b)
-{
-return static_cast<bool>(a) == static_cast<bool>(b);
-}
-template <typename A,
-typename B,
-typename std::enable_if<
-std::is_convertible<A, bool>::value &&std::is_convertible<B, bool>::value,
-int>::type = 0>
-constexpr bool operator!=(A &&a, B &&b)
-{
-return static_cast<bool>(a) != static_cast<bool>(b);
-}
-static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
-static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
-}
-}
-#endif
-#ifdef Vc_IMPL_AVX
 #endif
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -5043,74 +4976,6 @@ alignas(64) static const unsigned long long data[21 * Size];
 }
 #endif
 #include <cstdlib>
-#ifndef VC_SSE_DEBUG_H_
-#define VC_SSE_DEBUG_H_ 
-#ifndef NDEBUG
-#include <iostream>
-#include <iomanip>
-#endif
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace SSE
-{
-#ifdef NDEBUG
-class DebugStream
-{
-public:
-DebugStream(const char *, const char *, int) {}
-template<typename T> inline DebugStream &operator<<(const T &) { return *this; }
-};
-#else
-class DebugStream
-{
-private:
-static char hexChar(char x) { return x + (x > 9 ? 87 : 48); }
-template<typename T, typename V> static void printVector(V _x)
-{
-std::cerr << "0x";
-const auto bytes = reinterpret_cast<const std::uint8_t *>(&_x);
-for (std::size_t i = 0; i < sizeof(V); ++i) {
-std::cerr << hexChar(bytes[i] >> 4) << hexChar(bytes[i] & 0xf);
-if (i % 4 == 3) {
-std::cerr << '\'';
-}
-}
-enum { Size = sizeof(V) / sizeof(T) };
-union { V v; T m[Size]; } x = { _x };
-std::cerr << " = [" << std::setprecision(24) << x.m[0];
-for (int i = 1; i < Size; ++i) {
-std::cerr << ", " << std::setprecision(24) << x.m[i];
-}
-std::cerr << ']';
-}
-public:
-DebugStream(const char *func, const char *file, int line)
-{
-std::cerr << "\033[1;40;33mDEBUG: " << file << ':' << line << ' ' << func << ' ';
-}
-template<typename T> DebugStream &operator<<(const T &x) { std::cerr << x; return *this; }
-DebugStream &operator<<(__m128 x) {
-printVector<float, __m128>(x);
-return *this;
-}
-DebugStream &operator<<(__m128d x) {
-printVector<double, __m128d>(x);
-return *this;
-}
-DebugStream &operator<<(__m128i x) {
-printVector<int, __m128i>(x);
-return *this;
-}
-~DebugStream()
-{
-std::cerr << "\033[0m" << std::endl;
-}
-};
-#endif
-#define Vc_DEBUG Vc::SSE::DebugStream(__PRETTY_FUNCTION__, __FILE__, __LINE__)
-}
-}
-#endif
 #if defined(Vc_GCC) && !defined(__OPTIMIZE__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
@@ -5883,579 +5748,6 @@ return Mem::blend<Dst0, Dst1, Dst2, Dst3>(x, y);
 }
 #endif
 #endif
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace SSE
-{
-using uint = unsigned int;
-using ushort = unsigned short;
-using uchar = unsigned char;
-using schar = signed char;
-template <typename To, typename From> Vc_ALWAYS_INLINE Vc_CONST To sse_cast(From v)
-{
-return v;
-}
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i sse_cast<__m128i, __m128 >(__m128 v) { return _mm_castps_si128(v); }
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128i sse_cast<__m128i, __m128d>(__m128d v) { return _mm_castpd_si128(v); }
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128 sse_cast<__m128 , __m128d>(__m128d v) { return _mm_castpd_ps(v); }
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128 sse_cast<__m128 , __m128i>(__m128i v) { return _mm_castsi128_ps(v); }
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128d sse_cast<__m128d, __m128i>(__m128i v) { return _mm_castsi128_pd(v); }
-template<> Vc_ALWAYS_INLINE Vc_CONST __m128d sse_cast<__m128d, __m128 >(__m128 v) { return _mm_castps_pd(v); }
-template <typename From, typename To> struct ConvertTag
-{
-};
-template <typename From, typename To>
-Vc_INTRINSIC typename VectorTraits<To>::VectorType convert(
-typename VectorTraits<From>::VectorType v)
-{
-return convert(v, ConvertTag<From, To>());
-}
-Vc_INTRINSIC __m128i convert(__m128 v, ConvertTag<float , int >) { return _mm_cvttps_epi32(v); }
-Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, int >) { return _mm_cvttpd_epi32(v); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int , int >) { return v; }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint , int >) { return v; }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , int >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, int >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
-Vc_INTRINSIC __m128i convert(__m128 v, ConvertTag<float , uint >) {
-return _mm_castps_si128(
-blendv_ps(_mm_castsi128_ps(_mm_cvttps_epi32(v)),
-_mm_castsi128_ps(_mm_xor_si128(
-_mm_cvttps_epi32(_mm_sub_ps(v, _mm_set1_ps(1u << 31))),
-_mm_set1_epi32(1 << 31))),
-_mm_cmpge_ps(v, _mm_set1_ps(1u << 31))));
-}
-Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, uint >) {
-#ifdef Vc_IMPL_SSE4_1
-return _mm_xor_si128(_mm_cvttpd_epi32(_mm_sub_pd(_mm_floor_pd(v), _mm_set1_pd(0x80000000u))),
-_mm_cvtsi64_si128(0x8000000080000000ull));
-#else
-return blendv_epi8(_mm_cvttpd_epi32(v),
-_mm_xor_si128(_mm_cvttpd_epi32(_mm_sub_pd(v, _mm_set1_pd(0x80000000u))),
-_mm_cvtsi64_si128(0x8000000080000000ull)),
-_mm_castpd_si128(_mm_cmpge_pd(v, _mm_set1_pd(0x80000000u))));
-#endif
-}
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int , uint >) { return v; }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint , uint >) { return v; }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , uint >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, uint >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
-Vc_INTRINSIC __m128 convert(__m128 v, ConvertTag<float , float >) { return v; }
-Vc_INTRINSIC __m128 convert(__m128d v, ConvertTag<double, float >) { return _mm_cvtpd_ps(v); }
-Vc_INTRINSIC __m128 convert(__m128i v, ConvertTag<int , float >) { return _mm_cvtepi32_ps(v); }
-Vc_INTRINSIC __m128 convert(__m128i v, ConvertTag<uint , float >) {
-using namespace SSE;
-return blendv_ps(_mm_cvtepi32_ps(v),
-_mm_add_ps(_mm_cvtepi32_ps(_mm_and_si128(v, _mm_set1_epi32(0x7ffffe00))),
-_mm_add_ps(_mm_set1_ps(1u << 31), _mm_cvtepi32_ps(_mm_and_si128(
-v, _mm_set1_epi32(0x000001ff))))),
-_mm_castsi128_ps(_mm_cmplt_epi32(v, _mm_setzero_si128())));
-}
-Vc_INTRINSIC __m128 convert(__m128i v, ConvertTag<short , float >) { return convert(convert(v, ConvertTag<short, int>()), ConvertTag<int, float>()); }
-Vc_INTRINSIC __m128 convert(__m128i v, ConvertTag<ushort, float >) { return convert(convert(v, ConvertTag<ushort, int>()), ConvertTag<int, float>()); }
-Vc_INTRINSIC __m128d convert(__m128 v, ConvertTag<float , double>) { return _mm_cvtps_pd(v); }
-Vc_INTRINSIC __m128d convert(__m128d v, ConvertTag<double, double>) { return v; }
-Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<int , double>) { return _mm_cvtepi32_pd(v); }
-Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<uint , double>) { return _mm_add_pd(_mm_cvtepi32_pd(_mm_xor_si128(v, setmin_epi32())), _mm_set1_pd(1u << 31)); }
-Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<short , double>) { return convert(convert(v, ConvertTag<short, int>()), ConvertTag<int, double>()); }
-Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<ushort, double>) { return convert(convert(v, ConvertTag<ushort, int>()), ConvertTag<int, double>()); }
-Vc_INTRINSIC __m128i convert(__m128 v, ConvertTag<float , short >) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int , short >) { return _mm_packs_epi32(v, _mm_setzero_si128()); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint , short >) { return _mm_packs_epi32(v, _mm_setzero_si128()); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , short >) { return v; }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, short >) { return v; }
-Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, short >) { return convert(convert(v, ConvertTag<double, int>()), ConvertTag<int, short>()); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int , ushort>) {
-auto tmp0 = _mm_unpacklo_epi16(v, _mm_setzero_si128());
-auto tmp1 = _mm_unpackhi_epi16(v, _mm_setzero_si128());
-auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
-auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
-return _mm_unpacklo_epi16(tmp2, tmp3);
-}
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint , ushort>) {
-auto tmp0 = _mm_unpacklo_epi16(v, _mm_setzero_si128());
-auto tmp1 = _mm_unpackhi_epi16(v, _mm_setzero_si128());
-auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
-auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
-return _mm_unpacklo_epi16(tmp2, tmp3);
-}
-Vc_INTRINSIC __m128i convert(__m128 v, ConvertTag<float , ushort>) { return convert(_mm_cvttps_epi32(v), ConvertTag<int, ushort>()); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , ushort>) { return v; }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, ushort>) { return v; }
-Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, ushort>) { return convert(convert(v, ConvertTag<double, int>()), ConvertTag<int, ushort>()); }
-}
-}
-#endif
-#ifndef VC_AVX_SHUFFLE_H_
-#define VC_AVX_SHUFFLE_H_ 
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace Detail
-{
-template <int... Dst> struct Permutation {};
-template <uint8_t... Sel> struct Mask {};
-#ifdef Vc_IMPL_AVX2
-template <uint8_t Sel0, uint8_t Sel1, uint8_t Sel2, uint8_t Sel3, uint8_t Sel4,
-uint8_t Sel5, uint8_t Sel6, uint8_t Sel7, uint8_t Sel8, uint8_t Sel9,
-uint8_t Sel10, uint8_t Sel11, uint8_t Sel12, uint8_t Sel13, uint8_t Sel14,
-uint8_t Sel15>
-Vc_INTRINSIC Vc_CONST __m256i
-blend(__m256i a, __m256i b, Mask<Sel0, Sel1, Sel2, Sel3, Sel4, Sel5, Sel6, Sel7, Sel8,
-Sel9, Sel10, Sel11, Sel12, Sel13, Sel14, Sel15>)
-{
-static_assert((Sel0 == 0 || Sel0 == 1) && (Sel1 == 0 || Sel1 == 1) &&
-(Sel2 == 0 || Sel2 == 1) && (Sel3 == 0 || Sel3 == 1) &&
-(Sel4 == 0 || Sel4 == 1) && (Sel5 == 0 || Sel5 == 1) &&
-(Sel6 == 0 || Sel6 == 1) && (Sel7 == 0 || Sel7 == 1) &&
-(Sel8 == 0 || Sel8 == 1) && (Sel9 == 0 || Sel9 == 1) &&
-(Sel10 == 0 || Sel10 == 1) && (Sel11 == 0 || Sel11 == 1) &&
-(Sel12 == 0 || Sel12 == 1) && (Sel13 == 0 || Sel13 == 1) &&
-(Sel14 == 0 || Sel14 == 1) && (Sel15 == 0 || Sel15 == 1),
-"Selectors must be 0 or 1 to select the value from a or b");
-constexpr uint8_t mask = static_cast<uint8_t>(
-(Sel0 << 0 ) | (Sel1 << 1 ) | (Sel2 << 2 ) | (Sel3 << 3 ) |
-(Sel4 << 4 ) | (Sel5 << 5 ) | (Sel6 << 6 ) | (Sel7 << 7 ) |
-(Sel8 << 8 ) | (Sel9 << 9 ) | (Sel10 << 10) | (Sel11 << 11) |
-(Sel12 << 12) | (Sel13 << 13) | (Sel14 << 14) | (Sel15 << 15));
-return _mm256_blend_epi16(a, b, mask);
-}
-#endif
-}
-namespace Mem
-{
-#ifdef Vc_IMPL_AVX2
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteLo(__m256i x) {
-static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
-static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
-return _mm256_shufflelo_epi16(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
-}
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteHi(__m256i x) {
-static_assert(Dst0 >= X4 && Dst1 >= X4 && Dst2 >= X4 && Dst3 >= X4, "Incorrect_Range");
-static_assert(Dst0 <= X7 && Dst1 <= X7 && Dst2 <= X7 && Dst3 <= X7, "Incorrect_Range");
-return _mm256_shufflehi_epi16(x, (Dst0 - X4) + (Dst1 - X4) * 4 + (Dst2 - X4) * 16 + (Dst3 - X4) * 64);
-}
-#endif
-template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x) {
-static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
-static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
-return _mm256_permute2f128_ps(
-x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
-}
-template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute128(__m256d x) {
-static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
-static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
-return _mm256_permute2f128_pd(
-x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
-}
-template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x) {
-static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
-static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
-#ifdef Vc_IMPL_AVX2
-return _mm256_permute2x128_si256(
-x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
-#else
-return _mm256_permute2f128_si256(
-x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
-#endif
-}
-template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle128(__m256 x, __m256 y) {
-static_assert(L >= X0 && H >= X0, "Incorrect_Range");
-static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
-return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
-}
-template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST shuffle128(__m256i x, __m256i y) {
-static_assert(L >= X0 && H >= X0, "Incorrect_Range");
-static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
-#ifdef Vc_IMPL_AVX2
-return _mm256_permute2x128_si256(
-x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
-#else
-return _mm256_permute2f128_si256(
-x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
-#endif
-}
-template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle128(__m256d x, __m256d y) {
-static_assert(L >= X0 && H >= X0, "Incorrect_Range");
-static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
-return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
-}
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute(__m256d x) {
-static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, "Incorrect_Range");
-static_assert(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
-return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
-}
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
-static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
-static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
-return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
-}
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute(__m256i x) {
-return _mm256_castps_si256(permute<Dst0, Dst1, Dst2, Dst3>(_mm256_castsi256_ps(x)));
-}
-#ifdef Vc_IMPL_AVX2
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute4x64(__m256i x) {
-static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
-static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
-return _mm256_permute4x64_epi64(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
-}
-#endif
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
-static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");
-static_assert(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, "Incorrect_Range");
-return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
-}
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle(__m256 x, __m256 y) {
-static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
-static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
-return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
-}
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
-static Vc_ALWAYS_INLINE __m256 Vc_CONST blend(__m256 x, __m256 y) {
-static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
-static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
-static_assert(Dst2 == X2 || Dst2 == Y2, "Incorrect_Range");
-static_assert(Dst3 == X3 || Dst3 == Y3, "Incorrect_Range");
-static_assert(Dst4 == X4 || Dst4 == Y4, "Incorrect_Range");
-static_assert(Dst5 == X5 || Dst5 == Y5, "Incorrect_Range");
-static_assert(Dst6 == X6 || Dst6 == Y6, "Incorrect_Range");
-static_assert(Dst7 == X7 || Dst7 == Y7, "Incorrect_Range");
-return _mm256_blend_ps(x, y,
-(Dst0 / Y0) * 1 + (Dst1 / Y1) * 2 +
-(Dst2 / Y2) * 4 + (Dst3 / Y3) * 8 +
-(Dst4 / Y4) * 16 + (Dst5 / Y5) * 32 +
-(Dst6 / Y6) * 64 + (Dst7 / Y7) *128
-);
-}
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
-static Vc_ALWAYS_INLINE __m256i Vc_CONST blend(__m256i x, __m256i y) {
-return _mm256_castps_si256(blend<Dst0, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6, Dst7>(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
-}
-template<VecPos Dst> struct ScaleForBlend { enum { Value = Dst >= X4 ? Dst - X4 + Y0 : Dst }; };
-template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
-static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
-static_assert(Dst0 >= X0 && Dst0 <= X7, "Incorrect_Range");
-static_assert(Dst1 >= X0 && Dst1 <= X7, "Incorrect_Range");
-static_assert(Dst2 >= X0 && Dst2 <= X7, "Incorrect_Range");
-static_assert(Dst3 >= X0 && Dst3 <= X7, "Incorrect_Range");
-static_assert(Dst4 >= X0 && Dst4 <= X7, "Incorrect_Range");
-static_assert(Dst5 >= X0 && Dst5 <= X7, "Incorrect_Range");
-static_assert(Dst6 >= X0 && Dst6 <= X7, "Incorrect_Range");
-static_assert(Dst7 >= X0 && Dst7 <= X7, "Incorrect_Range");
-if (Dst0 + X4 == Dst4 && Dst1 + X4 == Dst5 && Dst2 + X4 == Dst6 && Dst3 + X4 == Dst7) {
-return permute<Dst0, Dst1, Dst2, Dst3>(x);
-}
-const __m128 loIn = _mm256_castps256_ps128(x);
-const __m128 hiIn = _mm256_extractf128_ps(x, 1);
-__m128 lo, hi;
-if (Dst0 < X4 && Dst1 < X4 && Dst2 < X4 && Dst3 < X4) {
-lo = _mm_permute_ps(loIn, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
-} else if (Dst0 >= X4 && Dst1 >= X4 && Dst2 >= X4 && Dst3 >= X4) {
-lo = _mm_permute_ps(hiIn, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
-} else if (Dst0 < X4 && Dst1 < X4 && Dst2 >= X4 && Dst3 >= X4) {
-lo = shuffle<Dst0, Dst1, Dst2 - X4 + Y0, Dst3 - X4 + Y0>(loIn, hiIn);
-} else if (Dst0 >= X4 && Dst1 >= X4 && Dst2 < X4 && Dst3 < X4) {
-lo = shuffle<Dst0 - X4, Dst1 - X4, Dst2 + Y0, Dst3 + Y0>(hiIn, loIn);
-} else if (Dst0 == X0 && Dst1 == X4 && Dst2 == X1 && Dst3 == X5) {
-lo = _mm_unpacklo_ps(loIn, hiIn);
-} else if (Dst0 == X4 && Dst1 == X0 && Dst2 == X5 && Dst3 == X1) {
-lo = _mm_unpacklo_ps(hiIn, loIn);
-} else if (Dst0 == X2 && Dst1 == X6 && Dst2 == X3 && Dst3 == X7) {
-lo = _mm_unpackhi_ps(loIn, hiIn);
-} else if (Dst0 == X6 && Dst1 == X2 && Dst2 == X7 && Dst3 == X3) {
-lo = _mm_unpackhi_ps(hiIn, loIn);
-} else if (Dst0 % X4 == 0 && Dst1 % X4 == 1 && Dst2 % X4 == 2 && Dst3 % X4 == 3) {
-lo = blend<ScaleForBlend<Dst0>::Value, ScaleForBlend<Dst1>::Value,
-ScaleForBlend<Dst2>::Value, ScaleForBlend<Dst3>::Value>(loIn, hiIn);
-}
-if (Dst4 >= X4 && Dst5 >= X4 && Dst6 >= X4 && Dst7 >= X4) {
-hi = _mm_permute_ps(hiIn, (Dst4 - X4) + (Dst5 - X4) * 4 + (Dst6 - X4) * 16 + (Dst7 - X4) * 64);
-} else if (Dst4 < X4 && Dst5 < X4 && Dst6 < X4 && Dst7 < X4) {
-hi = _mm_permute_ps(loIn, (Dst4 - X4) + (Dst5 - X4) * 4 + (Dst6 - X4) * 16 + (Dst7 - X4) * 64);
-} else if (Dst4 < X4 && Dst5 < X4 && Dst6 >= X4 && Dst7 >= X4) {
-hi = shuffle<Dst4, Dst5, Dst6 - X4 + Y0, Dst7 - X4 + Y0>(loIn, hiIn);
-} else if (Dst4 >= X4 && Dst5 >= X4 && Dst6 < X4 && Dst7 < X4) {
-hi = shuffle<Dst4 - X4, Dst5 - X4, Dst6 + Y0, Dst7 + Y0>(hiIn, loIn);
-} else if (Dst4 == X0 && Dst5 == X4 && Dst6 == X1 && Dst7 == X5) {
-hi = _mm_unpacklo_ps(loIn, hiIn);
-} else if (Dst4 == X4 && Dst5 == X0 && Dst6 == X5 && Dst7 == X1) {
-hi = _mm_unpacklo_ps(hiIn, loIn);
-} else if (Dst4 == X2 && Dst5 == X6 && Dst6 == X3 && Dst7 == X7) {
-hi = _mm_unpackhi_ps(loIn, hiIn);
-} else if (Dst4 == X6 && Dst5 == X2 && Dst6 == X7 && Dst7 == X3) {
-hi = _mm_unpackhi_ps(hiIn, loIn);
-} else if (Dst4 % X4 == 0 && Dst5 % X4 == 1 && Dst6 % X4 == 2 && Dst7 % X4 == 3) {
-hi = blend<ScaleForBlend<Dst4>::Value, ScaleForBlend<Dst5>::Value,
-ScaleForBlend<Dst6>::Value, ScaleForBlend<Dst7>::Value>(loIn, hiIn);
-}
-return _mm256_insertf128_ps(_mm256_castps128_ps256(lo), hi, 1);
-}
-}
-}
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace Reg
-{
-template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x, __m256 y) {
-static_assert(L >= X0 && H >= X0, "Incorrect_Range");
-static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
-return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
-}
-template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x, __m256i y) {
-static_assert(L >= X0 && H >= X0, "Incorrect_Range");
-static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
-#ifdef Vc_IMPL_AVX2
-return _mm256_permute2x128_si256(
-x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
-#else
-return _mm256_permute2f128_si256(
-x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
-#endif
-}
-template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute128(__m256d x, __m256d y) {
-static_assert(L >= X0 && H >= X0, "Incorrect_Range");
-static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
-return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
-}
-template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute(__m256d x) {
-static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, "Incorrect_Range");
-static_assert(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
-return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
-}
-template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
-static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
-static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
-return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
-}
-template<VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128d Vc_CONST permute(__m128d x) {
-static_assert(Dst0 >= X0 && Dst1 >= X0, "Incorrect_Range");
-static_assert(Dst0 <= X1 && Dst1 <= X1, "Incorrect_Range");
-return _mm_permute_pd(x, Dst0 + Dst1 * 2);
-}
-template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128 Vc_CONST permute(__m128 x) {
-static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
-static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
-return _mm_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
-}
-template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
-static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");
-static_assert(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, "Incorrect_Range");
-return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
-}
-template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle(__m256 x, __m256 y) {
-static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
-static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
-return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
-}
-}
-}
-#endif
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace AVX
-{
-namespace Casts
-{
-template<typename T> Vc_INTRINSIC_L T avx_cast(__m128 v) Vc_INTRINSIC_R;
-template<typename T> Vc_INTRINSIC_L T avx_cast(__m128i v) Vc_INTRINSIC_R;
-template<typename T> Vc_INTRINSIC_L T avx_cast(__m128d v) Vc_INTRINSIC_R;
-template<typename T> Vc_INTRINSIC_L T avx_cast(__m256 v) Vc_INTRINSIC_R;
-template<typename T> Vc_INTRINSIC_L T avx_cast(__m256i v) Vc_INTRINSIC_R;
-template<typename T> Vc_INTRINSIC_L T avx_cast(__m256d v) Vc_INTRINSIC_R;
-template<> Vc_INTRINSIC __m128 avx_cast(__m128 v) { return v; }
-template<> Vc_INTRINSIC __m128 avx_cast(__m128i v) { return _mm_castsi128_ps(v); }
-template<> Vc_INTRINSIC __m128 avx_cast(__m128d v) { return _mm_castpd_ps(v); }
-template<> Vc_INTRINSIC __m128i avx_cast(__m128 v) { return _mm_castps_si128(v); }
-template<> Vc_INTRINSIC __m128i avx_cast(__m128i v) { return v; }
-template<> Vc_INTRINSIC __m128i avx_cast(__m128d v) { return _mm_castpd_si128(v); }
-template<> Vc_INTRINSIC __m128d avx_cast(__m128 v) { return _mm_castps_pd(v); }
-template<> Vc_INTRINSIC __m128d avx_cast(__m128i v) { return _mm_castsi128_pd(v); }
-template<> Vc_INTRINSIC __m128d avx_cast(__m128d v) { return v; }
-template<> Vc_INTRINSIC __m256 avx_cast(__m128 v) { return _mm256_castps128_ps256(v); }
-template<> Vc_INTRINSIC __m256 avx_cast(__m128i v) { return _mm256_castps128_ps256(_mm_castsi128_ps(v)); }
-template<> Vc_INTRINSIC __m256 avx_cast(__m128d v) { return _mm256_castps128_ps256(_mm_castpd_ps(v)); }
-template<> Vc_INTRINSIC __m256i avx_cast(__m128 v) { return _mm256_castsi128_si256(_mm_castps_si128(v)); }
-template<> Vc_INTRINSIC __m256i avx_cast(__m128i v) { return _mm256_castsi128_si256(v); }
-template<> Vc_INTRINSIC __m256i avx_cast(__m128d v) { return _mm256_castsi128_si256(_mm_castpd_si128(v)); }
-template<> Vc_INTRINSIC __m256d avx_cast(__m128 v) { return _mm256_castpd128_pd256(_mm_castps_pd(v)); }
-template<> Vc_INTRINSIC __m256d avx_cast(__m128i v) { return _mm256_castpd128_pd256(_mm_castsi128_pd(v)); }
-template<> Vc_INTRINSIC __m256d avx_cast(__m128d v) { return _mm256_castpd128_pd256(v); }
-#if defined Vc_MSVC || defined Vc_CLANG || defined Vc_APPLECLANG
-static Vc_INTRINSIC Vc_CONST __m256 zeroExtend(__m128 v) { return _mm256_permute2f128_ps (_mm256_castps128_ps256(v), _mm256_castps128_ps256(v), 0x80); }
-static Vc_INTRINSIC Vc_CONST __m256i zeroExtend(__m128i v) { return _mm256_permute2f128_si256(_mm256_castsi128_si256(v), _mm256_castsi128_si256(v), 0x80); }
-static Vc_INTRINSIC Vc_CONST __m256d zeroExtend(__m128d v) { return _mm256_permute2f128_pd (_mm256_castpd128_pd256(v), _mm256_castpd128_pd256(v), 0x80); }
-#else
-static Vc_INTRINSIC Vc_CONST __m256 zeroExtend(__m128 v) { return _mm256_castps128_ps256(v); }
-static Vc_INTRINSIC Vc_CONST __m256i zeroExtend(__m128i v) { return _mm256_castsi128_si256(v); }
-static Vc_INTRINSIC Vc_CONST __m256d zeroExtend(__m128d v) { return _mm256_castpd128_pd256(v); }
-#endif
-template<> Vc_INTRINSIC __m128 avx_cast(__m256 v) { return _mm256_castps256_ps128(v); }
-template<> Vc_INTRINSIC __m128 avx_cast(__m256i v) { return _mm256_castps256_ps128(_mm256_castsi256_ps(v)); }
-template<> Vc_INTRINSIC __m128 avx_cast(__m256d v) { return _mm256_castps256_ps128(_mm256_castpd_ps(v)); }
-template<> Vc_INTRINSIC __m128i avx_cast(__m256 v) { return _mm256_castsi256_si128(_mm256_castps_si256(v)); }
-template<> Vc_INTRINSIC __m128i avx_cast(__m256i v) { return _mm256_castsi256_si128(v); }
-template<> Vc_INTRINSIC __m128i avx_cast(__m256d v) { return _mm256_castsi256_si128(_mm256_castpd_si256(v)); }
-template<> Vc_INTRINSIC __m128d avx_cast(__m256 v) { return _mm256_castpd256_pd128(_mm256_castps_pd(v)); }
-template<> Vc_INTRINSIC __m128d avx_cast(__m256i v) { return _mm256_castpd256_pd128(_mm256_castsi256_pd(v)); }
-template<> Vc_INTRINSIC __m128d avx_cast(__m256d v) { return _mm256_castpd256_pd128(v); }
-template<> Vc_INTRINSIC __m256 avx_cast(__m256 v) { return v; }
-template<> Vc_INTRINSIC __m256 avx_cast(__m256i v) { return _mm256_castsi256_ps(v); }
-template<> Vc_INTRINSIC __m256 avx_cast(__m256d v) { return _mm256_castpd_ps(v); }
-template<> Vc_INTRINSIC __m256i avx_cast(__m256 v) { return _mm256_castps_si256(v); }
-template<> Vc_INTRINSIC __m256i avx_cast(__m256i v) { return v; }
-template<> Vc_INTRINSIC __m256i avx_cast(__m256d v) { return _mm256_castpd_si256(v); }
-template<> Vc_INTRINSIC __m256d avx_cast(__m256 v) { return _mm256_castps_pd(v); }
-template<> Vc_INTRINSIC __m256d avx_cast(__m256i v) { return _mm256_castsi256_pd(v); }
-template<> Vc_INTRINSIC __m256d avx_cast(__m256d v) { return v; }
-Vc_INTRINSIC Vc_CONST __m128 lo128(__m256 v) { return avx_cast<__m128>(v); }
-Vc_INTRINSIC Vc_CONST __m128d lo128(__m256d v) { return avx_cast<__m128d>(v); }
-Vc_INTRINSIC Vc_CONST __m128i lo128(__m256i v) { return avx_cast<__m128i>(v); }
-Vc_INTRINSIC Vc_CONST __m128 hi128(__m256 v) { return extract128<1>(v); }
-Vc_INTRINSIC Vc_CONST __m128d hi128(__m256d v) { return extract128<1>(v); }
-Vc_INTRINSIC Vc_CONST __m128i hi128(__m256i v) { return extract128<1>(v); }
-Vc_INTRINSIC Vc_CONST __m256 concat(__m128 a, __m128 b) { return insert128<1>(avx_cast<__m256 >(a), b); }
-Vc_INTRINSIC Vc_CONST __m256d concat(__m128d a, __m128d b) { return insert128<1>(avx_cast<__m256d>(a), b); }
-Vc_INTRINSIC Vc_CONST __m256i concat(__m128i a, __m128i b) { return insert128<1>(avx_cast<__m256i>(a), b); }
-}
-using namespace Casts;
-}
-namespace AVX2
-{
-using namespace AVX::Casts;
-}
-namespace AVX
-{
-template <typename From, typename To> struct ConvertTag {};
-Vc_INTRINSIC __m256i convert(__m256 v, ConvertTag<float , int>) { return _mm256_cvttps_epi32(v); }
-Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, int>) { return _mm256_cvttpd_epi32(v); }
-Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<int , int>) { return v; }
-Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<uint , int>) { return v; }
-Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<short , int>) {
-#ifdef Vc_IMPL_AVX2
-return _mm256_cvtepi16_epi32(v);
-#else
-return AVX::srai_epi32<16>(
-concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
-#endif
-}
-Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<ushort, int>) {
-#ifdef Vc_IMPL_AVX2
-return _mm256_cvtepu16_epi32(v);
-#else
-return AVX::srli_epi32<16>(
-concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
-#endif
-}
-Vc_INTRINSIC __m256i convert(__m256 v, ConvertTag<float , uint>) {
-using namespace AVX;
-return _mm256_castps_si256(_mm256_blendv_ps(
-_mm256_castsi256_ps(_mm256_cvttps_epi32(v)),
-_mm256_castsi256_ps(add_epi32(_mm256_cvttps_epi32(_mm256_sub_ps(v, set2power31_ps())),
-set2power31_epu32())),
-cmpge_ps(v, set2power31_ps())));
-}
-Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, uint>) {
-using namespace AVX;
-return _mm_xor_si128(
-_mm256_cvttpd_epi32(_mm256_sub_pd(_mm256_floor_pd(v), set1_pd(0x80000000u))),
-_mm_set2power31_epu32());
-}
-Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<int , uint>) { return v; }
-Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<uint , uint>) { return v; }
-Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<short , uint>) {
-#ifdef Vc_IMPL_AVX2
-return _mm256_cvtepi16_epi32(v);
-#else
-return AVX::srai_epi32<16>(
-concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
-#endif
-}
-Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<ushort, uint>) {
-#ifdef Vc_IMPL_AVX2
-return _mm256_cvtepu16_epi32(v);
-#else
-return AVX::srli_epi32<16>(
-concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
-#endif
-}
-Vc_INTRINSIC __m256 convert(__m256 v, ConvertTag<float , float>) { return v; }
-Vc_INTRINSIC __m128 convert(__m256d v, ConvertTag<double, float>) { return _mm256_cvtpd_ps(v); }
-Vc_INTRINSIC __m256 convert(__m256i v, ConvertTag<int , float>) { return _mm256_cvtepi32_ps(v); }
-Vc_INTRINSIC __m256 convert(__m256i v, ConvertTag<uint , float>) {
-using namespace AVX;
-return _mm256_blendv_ps(
-_mm256_cvtepi32_ps(v),
-_mm256_add_ps(_mm256_cvtepi32_ps(and_si256(v, set1_epi32(0x7ffffe00))),
-_mm256_add_ps(set2power31_ps(), _mm256_cvtepi32_ps(and_si256(
-v, set1_epi32(0x000001ff))))),
-_mm256_castsi256_ps(cmplt_epi32(v, _mm256_setzero_si256())));
-}
-Vc_INTRINSIC __m256 convert(__m128i v, ConvertTag<short , float>) { return _mm256_cvtepi32_ps(convert(v, ConvertTag< short, int>())); }
-Vc_INTRINSIC __m256 convert(__m128i v, ConvertTag<ushort, float>) { return _mm256_cvtepi32_ps(convert(v, ConvertTag<ushort, int>())); }
-Vc_INTRINSIC __m256d convert(__m128 v, ConvertTag<float , double>) { return _mm256_cvtps_pd(v); }
-Vc_INTRINSIC __m256d convert(__m256d v, ConvertTag<double, double>) { return v; }
-Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<int , double>) { return _mm256_cvtepi32_pd(v); }
-Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<uint , double>) {
-using namespace AVX;
-return _mm256_add_pd(
-_mm256_cvtepi32_pd(_mm_xor_si128(v, _mm_setmin_epi32())),
-set1_pd(1u << 31)); }
-Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<short , double>) { return convert(convert(v, SSE::ConvertTag< short, int>()), ConvertTag<int, double>()); }
-Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<ushort, double>) { return convert(convert(v, SSE::ConvertTag<ushort, int>()), ConvertTag<int, double>()); }
-Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<int , short>) {
-const auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));
-const auto tmp1 = _mm_unpackhi_epi16(lo128(v), hi128(v));
-const auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
-const auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
-return _mm_unpacklo_epi16(tmp2, tmp3);
-}
-Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<uint , short>) {
-const auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));
-const auto tmp1 = _mm_unpackhi_epi16(lo128(v), hi128(v));
-const auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
-const auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
-return _mm_unpacklo_epi16(tmp2, tmp3);
-}
-Vc_INTRINSIC __m128i convert(__m256 v, ConvertTag<float , short>) { return convert(convert(v, ConvertTag<float, int>()), ConvertTag<int, short>()); }
-Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, short>) { return convert(convert(v, ConvertTag<double, int>()), SSE::ConvertTag<int, short>()); }
-Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<short , short>) { return v; }
-Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<ushort, short>) { return v; }
-Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<int , ushort>) {
-auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));
-auto tmp1 = _mm_unpackhi_epi16(lo128(v), hi128(v));
-auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
-auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
-return _mm_unpacklo_epi16(tmp2, tmp3);
-}
-Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<uint , ushort>) {
-auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));
-auto tmp1 = _mm_unpackhi_epi16(lo128(v), hi128(v));
-auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
-auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
-return _mm_unpacklo_epi16(tmp2, tmp3);
-}
-Vc_INTRINSIC __m128i convert(__m256 v, ConvertTag<float , ushort>) { return convert(convert(v, ConvertTag<float, uint>()), ConvertTag<uint, ushort>()); }
-Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, ushort>) { return convert(convert(v, ConvertTag<double, uint>()), SSE::ConvertTag<uint, ushort>()); }
-Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<short , ushort>) { return v; }
-Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<ushort, ushort>) { return v; }
-template <typename From, typename To>
-Vc_INTRINSIC auto convert(
-typename std::conditional<(sizeof(From) < sizeof(To)),
-typename SSE::VectorTraits<From>::VectorType,
-typename AVX::VectorTypeHelper<From>::Type>::type v)
--> decltype(convert(v, ConvertTag<From, To>()))
-{
-return convert(v, ConvertTag<From, To>());
-}
-template <typename From, typename To, typename = enable_if<(sizeof(From) < sizeof(To))>>
-Vc_INTRINSIC auto convert(typename AVX::VectorTypeHelper<From>::Type v)
--> decltype(convert(lo128(v), ConvertTag<From, To>()))
-{
-return convert(lo128(v), ConvertTag<From, To>());
-}
-}
-}
-#endif
-#ifndef VC_SSE_VECTOR_H_
-#define VC_SSE_VECTOR_H_ 
 #ifndef VC_SSE_VECTORHELPER_H_
 #define VC_SSE_VECTORHELPER_H_ 
 #include <limits>
@@ -6935,6 +6227,110 @@ static Vc_ALWAYS_INLINE Vc_CONST VectorType round(VectorType a) { return a; }
 #define VC_SSE_MASK_H_ 
 #ifndef VC_SSE_DETAIL_H_
 #define VC_SSE_DETAIL_H_ 
+#ifndef VC_SSE_CASTS_H_
+#define VC_SSE_CASTS_H_ 
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace SSE
+{
+using uint = unsigned int;
+using ushort = unsigned short;
+using uchar = unsigned char;
+using schar = signed char;
+template <typename To, typename From> Vc_ALWAYS_INLINE Vc_CONST To sse_cast(From v)
+{
+return v;
+}
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128i sse_cast<__m128i, __m128 >(__m128 v) { return _mm_castps_si128(v); }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128i sse_cast<__m128i, __m128d>(__m128d v) { return _mm_castpd_si128(v); }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128 sse_cast<__m128 , __m128d>(__m128d v) { return _mm_castpd_ps(v); }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128 sse_cast<__m128 , __m128i>(__m128i v) { return _mm_castsi128_ps(v); }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128d sse_cast<__m128d, __m128i>(__m128i v) { return _mm_castsi128_pd(v); }
+template<> Vc_ALWAYS_INLINE Vc_CONST __m128d sse_cast<__m128d, __m128 >(__m128 v) { return _mm_castps_pd(v); }
+template <typename From, typename To> struct ConvertTag
+{
+};
+template <typename From, typename To>
+Vc_INTRINSIC typename VectorTraits<To>::VectorType convert(
+typename VectorTraits<From>::VectorType v)
+{
+return convert(v, ConvertTag<From, To>());
+}
+Vc_INTRINSIC __m128i convert(__m128 v, ConvertTag<float , int >) { return _mm_cvttps_epi32(v); }
+Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, int >) { return _mm_cvttpd_epi32(v); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int , int >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint , int >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , int >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, int >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128 v, ConvertTag<float , uint >) {
+return _mm_castps_si128(
+blendv_ps(_mm_castsi128_ps(_mm_cvttps_epi32(v)),
+_mm_castsi128_ps(_mm_xor_si128(
+_mm_cvttps_epi32(_mm_sub_ps(v, _mm_set1_ps(1u << 31))),
+_mm_set1_epi32(1 << 31))),
+_mm_cmpge_ps(v, _mm_set1_ps(1u << 31))));
+}
+Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, uint >) {
+#ifdef Vc_IMPL_SSE4_1
+return _mm_xor_si128(_mm_cvttpd_epi32(_mm_sub_pd(_mm_floor_pd(v), _mm_set1_pd(0x80000000u))),
+_mm_cvtsi64_si128(0x8000000080000000ull));
+#else
+return blendv_epi8(_mm_cvttpd_epi32(v),
+_mm_xor_si128(_mm_cvttpd_epi32(_mm_sub_pd(v, _mm_set1_pd(0x80000000u))),
+_mm_cvtsi64_si128(0x8000000080000000ull)),
+_mm_castpd_si128(_mm_cmpge_pd(v, _mm_set1_pd(0x80000000u))));
+#endif
+}
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int , uint >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint , uint >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , uint >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, uint >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128 convert(__m128 v, ConvertTag<float , float >) { return v; }
+Vc_INTRINSIC __m128 convert(__m128d v, ConvertTag<double, float >) { return _mm_cvtpd_ps(v); }
+Vc_INTRINSIC __m128 convert(__m128i v, ConvertTag<int , float >) { return _mm_cvtepi32_ps(v); }
+Vc_INTRINSIC __m128 convert(__m128i v, ConvertTag<uint , float >) {
+using namespace SSE;
+return blendv_ps(_mm_cvtepi32_ps(v),
+_mm_add_ps(_mm_cvtepi32_ps(_mm_and_si128(v, _mm_set1_epi32(0x7ffffe00))),
+_mm_add_ps(_mm_set1_ps(1u << 31), _mm_cvtepi32_ps(_mm_and_si128(
+v, _mm_set1_epi32(0x000001ff))))),
+_mm_castsi128_ps(_mm_cmplt_epi32(v, _mm_setzero_si128())));
+}
+Vc_INTRINSIC __m128 convert(__m128i v, ConvertTag<short , float >) { return convert(convert(v, ConvertTag<short, int>()), ConvertTag<int, float>()); }
+Vc_INTRINSIC __m128 convert(__m128i v, ConvertTag<ushort, float >) { return convert(convert(v, ConvertTag<ushort, int>()), ConvertTag<int, float>()); }
+Vc_INTRINSIC __m128d convert(__m128 v, ConvertTag<float , double>) { return _mm_cvtps_pd(v); }
+Vc_INTRINSIC __m128d convert(__m128d v, ConvertTag<double, double>) { return v; }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<int , double>) { return _mm_cvtepi32_pd(v); }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<uint , double>) { return _mm_add_pd(_mm_cvtepi32_pd(_mm_xor_si128(v, setmin_epi32())), _mm_set1_pd(1u << 31)); }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<short , double>) { return convert(convert(v, ConvertTag<short, int>()), ConvertTag<int, double>()); }
+Vc_INTRINSIC __m128d convert(__m128i v, ConvertTag<ushort, double>) { return convert(convert(v, ConvertTag<ushort, int>()), ConvertTag<int, double>()); }
+Vc_INTRINSIC __m128i convert(__m128 v, ConvertTag<float , short >) { return _mm_packs_epi32(_mm_cvttps_epi32(v), _mm_setzero_si128()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int , short >) { return _mm_packs_epi32(v, _mm_setzero_si128()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint , short >) { return _mm_packs_epi32(v, _mm_setzero_si128()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , short >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, short >) { return v; }
+Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, short >) { return convert(convert(v, ConvertTag<double, int>()), ConvertTag<int, short>()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int , ushort>) {
+auto tmp0 = _mm_unpacklo_epi16(v, _mm_setzero_si128());
+auto tmp1 = _mm_unpackhi_epi16(v, _mm_setzero_si128());
+auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
+auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
+return _mm_unpacklo_epi16(tmp2, tmp3);
+}
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint , ushort>) {
+auto tmp0 = _mm_unpacklo_epi16(v, _mm_setzero_si128());
+auto tmp1 = _mm_unpackhi_epi16(v, _mm_setzero_si128());
+auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
+auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
+return _mm_unpacklo_epi16(tmp2, tmp3);
+}
+Vc_INTRINSIC __m128i convert(__m128 v, ConvertTag<float , ushort>) { return convert(_mm_cvttps_epi32(v), ConvertTag<int, ushort>()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , ushort>) { return v; }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, ushort>) { return v; }
+Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, ushort>) { return convert(convert(v, ConvertTag<double, int>()), ConvertTag<int, ushort>()); }
+}
+}
+#endif
 #ifdef Vc_IMPL_AVX
 #endif
 namespace Vc_VERSIONED_NAMESPACE
@@ -8718,6 +8114,24 @@ using abi = VectorAbi::Sse;
 using WriteMaskedVector = Common::WriteMaskedVector<Vector, Mask>;
 template <typename U> using V = Vector<U, abi>;
 using reference = Detail::ElementReference<Vector>;
+public:
+Vc_INTRINSIC Vector() = default;
+static constexpr std::size_t size() { return Size; }
+explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerZero) Vc_INTRINSIC_R;
+explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerOne) Vc_INTRINSIC_R;
+explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero) Vc_INTRINSIC_R;
+static Vc_INTRINSIC Vc_CONST Vector Zero() { return Vector(Vc::Zero); }
+static Vc_INTRINSIC Vc_CONST Vector One() { return Vector(Vc::One); }
+static Vc_INTRINSIC Vc_CONST Vector IndexesFromZero()
+{
+return Vector(Vc::IndexesFromZero);
+}
+template <class G, class...,
+class = typename std::enable_if<std::is_convertible<
+decltype(std::declval<G>()(size_t())), value_type>::value>::type>
+explicit Vector(G &&g) : Vector(generate(std::forward<G>(g)))
+{
+}
 static Vc_INTRINSIC_L Vector Random() Vc_INTRINSIC_R;
 Vc_ALWAYS_INLINE Vector(VectorType x) : d(x) {}
 template <typename U>
@@ -8748,11 +8162,222 @@ void *>::type = nullptr)
 : Vector(static_cast<EntryType>(a))
 {
 }
+explicit Vc_INTRINSIC Vector(const EntryType *mem)
+{
+load(mem);
+}
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+explicit Vc_INTRINSIC Vector(const EntryType *mem, Flags flags)
+{
+load(mem, flags);
+}
+template <typename U, typename Flags = DefaultLoadTag,
+typename = enable_if<
+(!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
+sizeof(EntryType) >= sizeof(U)) &&
+std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
+explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
+{
+load<U, Flags>(x, flags);
+}
+Vc_INTRINSIC void load(const EntryType *mem)
+{
+load(mem, DefaultLoadTag());
+}
+template <typename Flags>
+Vc_INTRINSIC enable_if<Traits::is_load_store_flag<Flags>::value, void>
+load(const EntryType *mem, Flags flags)
+{
+load<EntryType, Flags>(mem, flags);
+}
+private:
+template <typename U, typename Flags>
+struct load_concept : public std::enable_if<
+(!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
+sizeof(EntryType) >= sizeof(U)) &&
+std::is_arithmetic<U>::value && Traits::is_load_store_flag<Flags>::value, void>
+{};
+public:
+template <typename U, typename Flags = DefaultLoadTag>
+Vc_INTRINSIC_L typename load_concept<U, Flags>::type load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
+template <
+typename U,
+typename Flags = DefaultStoreTag,
+typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC_L void store(U *mem, Flags flags = Flags()) const Vc_INTRINSIC_R;
+template <
+typename U,
+typename Flags = DefaultStoreTag,
+typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC_L void Vc_VDECL store(U *mem, MaskType mask, Flags flags = Flags()) const Vc_INTRINSIC_R;
+Vc_INTRINSIC void store(EntryType *mem) const
+{
+store<EntryType, DefaultStoreTag>(mem, DefaultStoreTag());
+}
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
+{
+store<EntryType, Flags>(mem, flags);
+}
+Vc_INTRINSIC void Vc_VDECL store(EntryType *mem, MaskType mask) const
+{
+store<EntryType, DefaultStoreTag>(mem, mask, DefaultStoreTag());
+}
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC void Vc_VDECL store(EntryType *mem, MaskType mask, Flags flags) const
+{
+store<EntryType, Flags>(mem, mask, flags);
+}
 Vc_INTRINSIC_L void setZero() Vc_INTRINSIC_R;
 Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;
 Vc_INTRINSIC_L void setZeroInverted(const Mask &k) Vc_INTRINSIC_R;
 Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
 Vc_INTRINSIC_L void setQnan(const Mask &k) Vc_INTRINSIC_R;
+#ifndef Vc_CURRENT_CLASS_NAME
+#error "incorrect use of common/gatherinterface.h: Vc_CURRENT_CLASS_NAME must be defined to the current class name for declaring constructors."
+#endif
+private:
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes);
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes, MaskArgument mask);
+template <typename IT, typename = enable_if<std::is_pointer<IT>::value ||
+Traits::is_simd_vector<IT>::value>>
+static Vc_INTRINSIC const IT &adjustIndexParameter(const IT &indexes)
+{
+return indexes;
+}
+template <
+typename IT,
+typename = enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value>>
+static Vc_INTRINSIC decltype(std::addressof(std::declval<const IT &>()[0]))
+adjustIndexParameter(const IT &i)
+{
+return std::addressof(i[0]);
+}
+template <typename IT>
+static Vc_INTRINSIC enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+!std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value,
+IT>
+adjustIndexParameter(const IT &i)
+{
+return i;
+}
+public:
+#define Vc_ASSERT_GATHER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<MT, EntryType>::value, \
+"The memory pointer needs to point to a type that can be converted to the " \
+"EntryType of this SIMD vector type."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT, typename IT,
+typename = enable_if<Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes,
+MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes, MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args)
+{
+gather(args.address, adjustIndexParameter(args.indexes));
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args, MaskArgument mask)
+{
+gather(args.address, adjustIndexParameter(args.indexes), mask);
+}
+#undef Vc_ASSERT_GATHER_PARAMETER_TYPES_
+private:
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes) const;
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const;
+public:
+#define Vc_ASSERT_SCATTER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<EntryType, MT>::value, \
+"The memory pointer needs to point to a type that the EntryType of this " \
+"SIMD vector type can be converted to."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes));
+}
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes, MaskArgument mask) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args) const
+{
+scatter(args.address, args.indexes);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args, MaskArgument mask) const
+{
+scatter(args.address, args.indexes, mask);
+}
+#undef Vc_ASSERT_SCATTER_PARAMETER_TYPES_
 Vc_INTRINSIC Vector &operator++() { data() = HT::add(data(), HT::one()); return *this; }
 Vc_INTRINSIC Vector &operator--() { data() = HT::sub(data(), HT::one()); return *this; }
 Vc_INTRINSIC Vector operator++(int) { const Vector r = *this; data() = HT::add(data(), HT::one()); return r; }
@@ -10351,6 +9976,477 @@ const auto tmp3 = _mm_unpackhi_ps(in1, in3);
 #ifndef VC_SSE_SIMD_CAST_H_
 #define VC_SSE_SIMD_CAST_H_ 
 #ifdef Vc_IMPL_AVX
+#ifndef VC_AVX_CASTS_H_
+#define VC_AVX_CASTS_H_ 
+#ifndef VC_AVX_SHUFFLE_H_
+#define VC_AVX_SHUFFLE_H_ 
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Detail
+{
+template <int... Dst> struct Permutation {};
+template <uint8_t... Sel> struct Mask {};
+#ifdef Vc_IMPL_AVX2
+template <uint8_t Sel0, uint8_t Sel1, uint8_t Sel2, uint8_t Sel3, uint8_t Sel4,
+uint8_t Sel5, uint8_t Sel6, uint8_t Sel7, uint8_t Sel8, uint8_t Sel9,
+uint8_t Sel10, uint8_t Sel11, uint8_t Sel12, uint8_t Sel13, uint8_t Sel14,
+uint8_t Sel15>
+Vc_INTRINSIC Vc_CONST __m256i
+blend(__m256i a, __m256i b, Mask<Sel0, Sel1, Sel2, Sel3, Sel4, Sel5, Sel6, Sel7, Sel8,
+Sel9, Sel10, Sel11, Sel12, Sel13, Sel14, Sel15>)
+{
+static_assert((Sel0 == 0 || Sel0 == 1) && (Sel1 == 0 || Sel1 == 1) &&
+(Sel2 == 0 || Sel2 == 1) && (Sel3 == 0 || Sel3 == 1) &&
+(Sel4 == 0 || Sel4 == 1) && (Sel5 == 0 || Sel5 == 1) &&
+(Sel6 == 0 || Sel6 == 1) && (Sel7 == 0 || Sel7 == 1) &&
+(Sel8 == 0 || Sel8 == 1) && (Sel9 == 0 || Sel9 == 1) &&
+(Sel10 == 0 || Sel10 == 1) && (Sel11 == 0 || Sel11 == 1) &&
+(Sel12 == 0 || Sel12 == 1) && (Sel13 == 0 || Sel13 == 1) &&
+(Sel14 == 0 || Sel14 == 1) && (Sel15 == 0 || Sel15 == 1),
+"Selectors must be 0 or 1 to select the value from a or b");
+constexpr uint8_t mask = static_cast<uint8_t>(
+(Sel0 << 0 ) | (Sel1 << 1 ) | (Sel2 << 2 ) | (Sel3 << 3 ) |
+(Sel4 << 4 ) | (Sel5 << 5 ) | (Sel6 << 6 ) | (Sel7 << 7 ) |
+(Sel8 << 8 ) | (Sel9 << 9 ) | (Sel10 << 10) | (Sel11 << 11) |
+(Sel12 << 12) | (Sel13 << 13) | (Sel14 << 14) | (Sel15 << 15));
+return _mm256_blend_epi16(a, b, mask);
+}
+#endif
+}
+namespace Mem
+{
+#ifdef Vc_IMPL_AVX2
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteLo(__m256i x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+return _mm256_shufflelo_epi16(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+}
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permuteHi(__m256i x) {
+static_assert(Dst0 >= X4 && Dst1 >= X4 && Dst2 >= X4 && Dst3 >= X4, "Incorrect_Range");
+static_assert(Dst0 <= X7 && Dst1 <= X7 && Dst2 <= X7 && Dst3 <= X7, "Incorrect_Range");
+return _mm256_shufflehi_epi16(x, (Dst0 - X4) + (Dst1 - X4) * 4 + (Dst2 - X4) * 16 + (Dst3 - X4) * 64);
+}
+#endif
+template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x) {
+static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
+static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
+return _mm256_permute2f128_ps(
+x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
+}
+template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute128(__m256d x) {
+static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
+static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
+return _mm256_permute2f128_pd(
+x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
+}
+template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x) {
+static_assert((L >= X0 && L <= X1) || L == Const0, "Incorrect_Range");
+static_assert((H >= X0 && H <= X1) || H == Const0, "Incorrect_Range");
+#ifdef Vc_IMPL_AVX2
+return _mm256_permute2x128_si256(
+x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
+#else
+return _mm256_permute2f128_si256(
+x, x, (L == Const0 ? 0x8 : L) + (H == Const0 ? 0x80 : H * (1 << 4)));
+#endif
+}
+template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle128(__m256 x, __m256 y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
+return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+}
+template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256i Vc_CONST shuffle128(__m256i x, __m256i y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
+#ifdef Vc_IMPL_AVX2
+return _mm256_permute2x128_si256(
+x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+#else
+return _mm256_permute2f128_si256(
+x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+#endif
+}
+template<VecPos L, VecPos H> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle128(__m256d x, __m256d y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
+return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+}
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute(__m256d x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
+}
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+}
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute(__m256i x) {
+return _mm256_castps_si256(permute<Dst0, Dst1, Dst2, Dst3>(_mm256_castsi256_ps(x)));
+}
+#ifdef Vc_IMPL_AVX2
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute4x64(__m256i x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+return _mm256_permute4x64_epi64(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+}
+#endif
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
+static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, "Incorrect_Range");
+return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
+}
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle(__m256 x, __m256 y) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
+return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
+}
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
+static Vc_ALWAYS_INLINE __m256 Vc_CONST blend(__m256 x, __m256 y) {
+static_assert(Dst0 == X0 || Dst0 == Y0, "Incorrect_Range");
+static_assert(Dst1 == X1 || Dst1 == Y1, "Incorrect_Range");
+static_assert(Dst2 == X2 || Dst2 == Y2, "Incorrect_Range");
+static_assert(Dst3 == X3 || Dst3 == Y3, "Incorrect_Range");
+static_assert(Dst4 == X4 || Dst4 == Y4, "Incorrect_Range");
+static_assert(Dst5 == X5 || Dst5 == Y5, "Incorrect_Range");
+static_assert(Dst6 == X6 || Dst6 == Y6, "Incorrect_Range");
+static_assert(Dst7 == X7 || Dst7 == Y7, "Incorrect_Range");
+return _mm256_blend_ps(x, y,
+(Dst0 / Y0) * 1 + (Dst1 / Y1) * 2 +
+(Dst2 / Y2) * 4 + (Dst3 / Y3) * 8 +
+(Dst4 / Y4) * 16 + (Dst5 / Y5) * 32 +
+(Dst6 / Y6) * 64 + (Dst7 / Y7) *128
+);
+}
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
+static Vc_ALWAYS_INLINE __m256i Vc_CONST blend(__m256i x, __m256i y) {
+return _mm256_castps_si256(blend<Dst0, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6, Dst7>(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
+}
+template<VecPos Dst> struct ScaleForBlend { enum { Value = Dst >= X4 ? Dst - X4 + Y0 : Dst }; };
+template<VecPos Dst0, VecPos Dst1, VecPos Dst2, VecPos Dst3, VecPos Dst4, VecPos Dst5, VecPos Dst6, VecPos Dst7>
+static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
+static_assert(Dst0 >= X0 && Dst0 <= X7, "Incorrect_Range");
+static_assert(Dst1 >= X0 && Dst1 <= X7, "Incorrect_Range");
+static_assert(Dst2 >= X0 && Dst2 <= X7, "Incorrect_Range");
+static_assert(Dst3 >= X0 && Dst3 <= X7, "Incorrect_Range");
+static_assert(Dst4 >= X0 && Dst4 <= X7, "Incorrect_Range");
+static_assert(Dst5 >= X0 && Dst5 <= X7, "Incorrect_Range");
+static_assert(Dst6 >= X0 && Dst6 <= X7, "Incorrect_Range");
+static_assert(Dst7 >= X0 && Dst7 <= X7, "Incorrect_Range");
+if (Dst0 + X4 == Dst4 && Dst1 + X4 == Dst5 && Dst2 + X4 == Dst6 && Dst3 + X4 == Dst7) {
+return permute<Dst0, Dst1, Dst2, Dst3>(x);
+}
+const __m128 loIn = _mm256_castps256_ps128(x);
+const __m128 hiIn = _mm256_extractf128_ps(x, 1);
+__m128 lo, hi;
+if (Dst0 < X4 && Dst1 < X4 && Dst2 < X4 && Dst3 < X4) {
+lo = _mm_permute_ps(loIn, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+} else if (Dst0 >= X4 && Dst1 >= X4 && Dst2 >= X4 && Dst3 >= X4) {
+lo = _mm_permute_ps(hiIn, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+} else if (Dst0 < X4 && Dst1 < X4 && Dst2 >= X4 && Dst3 >= X4) {
+lo = shuffle<Dst0, Dst1, Dst2 - X4 + Y0, Dst3 - X4 + Y0>(loIn, hiIn);
+} else if (Dst0 >= X4 && Dst1 >= X4 && Dst2 < X4 && Dst3 < X4) {
+lo = shuffle<Dst0 - X4, Dst1 - X4, Dst2 + Y0, Dst3 + Y0>(hiIn, loIn);
+} else if (Dst0 == X0 && Dst1 == X4 && Dst2 == X1 && Dst3 == X5) {
+lo = _mm_unpacklo_ps(loIn, hiIn);
+} else if (Dst0 == X4 && Dst1 == X0 && Dst2 == X5 && Dst3 == X1) {
+lo = _mm_unpacklo_ps(hiIn, loIn);
+} else if (Dst0 == X2 && Dst1 == X6 && Dst2 == X3 && Dst3 == X7) {
+lo = _mm_unpackhi_ps(loIn, hiIn);
+} else if (Dst0 == X6 && Dst1 == X2 && Dst2 == X7 && Dst3 == X3) {
+lo = _mm_unpackhi_ps(hiIn, loIn);
+} else if (Dst0 % X4 == 0 && Dst1 % X4 == 1 && Dst2 % X4 == 2 && Dst3 % X4 == 3) {
+lo = blend<ScaleForBlend<Dst0>::Value, ScaleForBlend<Dst1>::Value,
+ScaleForBlend<Dst2>::Value, ScaleForBlend<Dst3>::Value>(loIn, hiIn);
+}
+if (Dst4 >= X4 && Dst5 >= X4 && Dst6 >= X4 && Dst7 >= X4) {
+hi = _mm_permute_ps(hiIn, (Dst4 - X4) + (Dst5 - X4) * 4 + (Dst6 - X4) * 16 + (Dst7 - X4) * 64);
+} else if (Dst4 < X4 && Dst5 < X4 && Dst6 < X4 && Dst7 < X4) {
+hi = _mm_permute_ps(loIn, (Dst4 - X4) + (Dst5 - X4) * 4 + (Dst6 - X4) * 16 + (Dst7 - X4) * 64);
+} else if (Dst4 < X4 && Dst5 < X4 && Dst6 >= X4 && Dst7 >= X4) {
+hi = shuffle<Dst4, Dst5, Dst6 - X4 + Y0, Dst7 - X4 + Y0>(loIn, hiIn);
+} else if (Dst4 >= X4 && Dst5 >= X4 && Dst6 < X4 && Dst7 < X4) {
+hi = shuffle<Dst4 - X4, Dst5 - X4, Dst6 + Y0, Dst7 + Y0>(hiIn, loIn);
+} else if (Dst4 == X0 && Dst5 == X4 && Dst6 == X1 && Dst7 == X5) {
+hi = _mm_unpacklo_ps(loIn, hiIn);
+} else if (Dst4 == X4 && Dst5 == X0 && Dst6 == X5 && Dst7 == X1) {
+hi = _mm_unpacklo_ps(hiIn, loIn);
+} else if (Dst4 == X2 && Dst5 == X6 && Dst6 == X3 && Dst7 == X7) {
+hi = _mm_unpackhi_ps(loIn, hiIn);
+} else if (Dst4 == X6 && Dst5 == X2 && Dst6 == X7 && Dst7 == X3) {
+hi = _mm_unpackhi_ps(hiIn, loIn);
+} else if (Dst4 % X4 == 0 && Dst5 % X4 == 1 && Dst6 % X4 == 2 && Dst7 % X4 == 3) {
+hi = blend<ScaleForBlend<Dst4>::Value, ScaleForBlend<Dst5>::Value,
+ScaleForBlend<Dst6>::Value, ScaleForBlend<Dst7>::Value>(loIn, hiIn);
+}
+return _mm256_insertf128_ps(_mm256_castps128_ps256(lo), hi, 1);
+}
+}
+}
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Reg
+{
+template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute128(__m256 x, __m256 y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
+return _mm256_permute2f128_ps(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+}
+template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256i Vc_CONST permute128(__m256i x, __m256i y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
+#ifdef Vc_IMPL_AVX2
+return _mm256_permute2x128_si256(
+x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+#else
+return _mm256_permute2f128_si256(
+x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+#endif
+}
+template<VecPos H, VecPos L> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute128(__m256d x, __m256d y) {
+static_assert(L >= X0 && H >= X0, "Incorrect_Range");
+static_assert(L <= Y1 && H <= Y1, "Incorrect_Range");
+return _mm256_permute2f128_pd(x, y, (L < Y0 ? L : L - Y0 + 2) + (H < Y0 ? H : H - Y0 + 2) * (1 << 4));
+}
+template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256d Vc_CONST permute(__m256d x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X2 && Dst3 >= X2, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= X1 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+return _mm256_permute_pd(x, Dst0 + Dst1 * 2 + (Dst2 - X2) * 4 + (Dst3 - X2) * 8);
+}
+template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256 Vc_CONST permute(__m256 x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+return _mm256_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+}
+template<VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128d Vc_CONST permute(__m128d x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= X1, "Incorrect_Range");
+return _mm_permute_pd(x, Dst0 + Dst1 * 2);
+}
+template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m128 Vc_CONST permute(__m128 x) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= X0 && Dst3 >= X0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= X3 && Dst3 <= X3, "Incorrect_Range");
+return _mm_permute_ps(x, Dst0 + Dst1 * 4 + Dst2 * 16 + Dst3 * 64);
+}
+template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256d Vc_CONST shuffle(__m256d x, __m256d y) {
+static_assert(Dst0 >= X0 && Dst1 >= Y0 && Dst2 >= X2 && Dst3 >= Y2, "Incorrect_Range");
+static_assert(Dst0 <= X1 && Dst1 <= Y1 && Dst2 <= X3 && Dst3 <= Y3, "Incorrect_Range");
+return _mm256_shuffle_pd(x, y, Dst0 + (Dst1 - Y0) * 2 + (Dst2 - X2) * 4 + (Dst3 - Y2) * 8);
+}
+template<VecPos Dst3, VecPos Dst2, VecPos Dst1, VecPos Dst0> static Vc_ALWAYS_INLINE __m256 Vc_CONST shuffle(__m256 x, __m256 y) {
+static_assert(Dst0 >= X0 && Dst1 >= X0 && Dst2 >= Y0 && Dst3 >= Y0, "Incorrect_Range");
+static_assert(Dst0 <= X3 && Dst1 <= X3 && Dst2 <= Y3 && Dst3 <= Y3, "Incorrect_Range");
+return _mm256_shuffle_ps(x, y, Dst0 + Dst1 * 4 + (Dst2 - Y0) * 16 + (Dst3 - Y0) * 64);
+}
+}
+}
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace AVX
+{
+namespace Casts
+{
+template<typename T> Vc_INTRINSIC_L T avx_cast(__m128 v) Vc_INTRINSIC_R;
+template<typename T> Vc_INTRINSIC_L T avx_cast(__m128i v) Vc_INTRINSIC_R;
+template<typename T> Vc_INTRINSIC_L T avx_cast(__m128d v) Vc_INTRINSIC_R;
+template<typename T> Vc_INTRINSIC_L T avx_cast(__m256 v) Vc_INTRINSIC_R;
+template<typename T> Vc_INTRINSIC_L T avx_cast(__m256i v) Vc_INTRINSIC_R;
+template<typename T> Vc_INTRINSIC_L T avx_cast(__m256d v) Vc_INTRINSIC_R;
+template<> Vc_INTRINSIC __m128 avx_cast(__m128 v) { return v; }
+template<> Vc_INTRINSIC __m128 avx_cast(__m128i v) { return _mm_castsi128_ps(v); }
+template<> Vc_INTRINSIC __m128 avx_cast(__m128d v) { return _mm_castpd_ps(v); }
+template<> Vc_INTRINSIC __m128i avx_cast(__m128 v) { return _mm_castps_si128(v); }
+template<> Vc_INTRINSIC __m128i avx_cast(__m128i v) { return v; }
+template<> Vc_INTRINSIC __m128i avx_cast(__m128d v) { return _mm_castpd_si128(v); }
+template<> Vc_INTRINSIC __m128d avx_cast(__m128 v) { return _mm_castps_pd(v); }
+template<> Vc_INTRINSIC __m128d avx_cast(__m128i v) { return _mm_castsi128_pd(v); }
+template<> Vc_INTRINSIC __m128d avx_cast(__m128d v) { return v; }
+template<> Vc_INTRINSIC __m256 avx_cast(__m128 v) { return _mm256_castps128_ps256(v); }
+template<> Vc_INTRINSIC __m256 avx_cast(__m128i v) { return _mm256_castps128_ps256(_mm_castsi128_ps(v)); }
+template<> Vc_INTRINSIC __m256 avx_cast(__m128d v) { return _mm256_castps128_ps256(_mm_castpd_ps(v)); }
+template<> Vc_INTRINSIC __m256i avx_cast(__m128 v) { return _mm256_castsi128_si256(_mm_castps_si128(v)); }
+template<> Vc_INTRINSIC __m256i avx_cast(__m128i v) { return _mm256_castsi128_si256(v); }
+template<> Vc_INTRINSIC __m256i avx_cast(__m128d v) { return _mm256_castsi128_si256(_mm_castpd_si128(v)); }
+template<> Vc_INTRINSIC __m256d avx_cast(__m128 v) { return _mm256_castpd128_pd256(_mm_castps_pd(v)); }
+template<> Vc_INTRINSIC __m256d avx_cast(__m128i v) { return _mm256_castpd128_pd256(_mm_castsi128_pd(v)); }
+template<> Vc_INTRINSIC __m256d avx_cast(__m128d v) { return _mm256_castpd128_pd256(v); }
+#if defined Vc_MSVC || defined Vc_CLANG || defined Vc_APPLECLANG
+static Vc_INTRINSIC Vc_CONST __m256 zeroExtend(__m128 v) { return _mm256_permute2f128_ps (_mm256_castps128_ps256(v), _mm256_castps128_ps256(v), 0x80); }
+static Vc_INTRINSIC Vc_CONST __m256i zeroExtend(__m128i v) { return _mm256_permute2f128_si256(_mm256_castsi128_si256(v), _mm256_castsi128_si256(v), 0x80); }
+static Vc_INTRINSIC Vc_CONST __m256d zeroExtend(__m128d v) { return _mm256_permute2f128_pd (_mm256_castpd128_pd256(v), _mm256_castpd128_pd256(v), 0x80); }
+#else
+static Vc_INTRINSIC Vc_CONST __m256 zeroExtend(__m128 v) { return _mm256_castps128_ps256(v); }
+static Vc_INTRINSIC Vc_CONST __m256i zeroExtend(__m128i v) { return _mm256_castsi128_si256(v); }
+static Vc_INTRINSIC Vc_CONST __m256d zeroExtend(__m128d v) { return _mm256_castpd128_pd256(v); }
+#endif
+template<> Vc_INTRINSIC __m128 avx_cast(__m256 v) { return _mm256_castps256_ps128(v); }
+template<> Vc_INTRINSIC __m128 avx_cast(__m256i v) { return _mm256_castps256_ps128(_mm256_castsi256_ps(v)); }
+template<> Vc_INTRINSIC __m128 avx_cast(__m256d v) { return _mm256_castps256_ps128(_mm256_castpd_ps(v)); }
+template<> Vc_INTRINSIC __m128i avx_cast(__m256 v) { return _mm256_castsi256_si128(_mm256_castps_si256(v)); }
+template<> Vc_INTRINSIC __m128i avx_cast(__m256i v) { return _mm256_castsi256_si128(v); }
+template<> Vc_INTRINSIC __m128i avx_cast(__m256d v) { return _mm256_castsi256_si128(_mm256_castpd_si256(v)); }
+template<> Vc_INTRINSIC __m128d avx_cast(__m256 v) { return _mm256_castpd256_pd128(_mm256_castps_pd(v)); }
+template<> Vc_INTRINSIC __m128d avx_cast(__m256i v) { return _mm256_castpd256_pd128(_mm256_castsi256_pd(v)); }
+template<> Vc_INTRINSIC __m128d avx_cast(__m256d v) { return _mm256_castpd256_pd128(v); }
+template<> Vc_INTRINSIC __m256 avx_cast(__m256 v) { return v; }
+template<> Vc_INTRINSIC __m256 avx_cast(__m256i v) { return _mm256_castsi256_ps(v); }
+template<> Vc_INTRINSIC __m256 avx_cast(__m256d v) { return _mm256_castpd_ps(v); }
+template<> Vc_INTRINSIC __m256i avx_cast(__m256 v) { return _mm256_castps_si256(v); }
+template<> Vc_INTRINSIC __m256i avx_cast(__m256i v) { return v; }
+template<> Vc_INTRINSIC __m256i avx_cast(__m256d v) { return _mm256_castpd_si256(v); }
+template<> Vc_INTRINSIC __m256d avx_cast(__m256 v) { return _mm256_castps_pd(v); }
+template<> Vc_INTRINSIC __m256d avx_cast(__m256i v) { return _mm256_castsi256_pd(v); }
+template<> Vc_INTRINSIC __m256d avx_cast(__m256d v) { return v; }
+Vc_INTRINSIC Vc_CONST __m128 lo128(__m256 v) { return avx_cast<__m128>(v); }
+Vc_INTRINSIC Vc_CONST __m128d lo128(__m256d v) { return avx_cast<__m128d>(v); }
+Vc_INTRINSIC Vc_CONST __m128i lo128(__m256i v) { return avx_cast<__m128i>(v); }
+Vc_INTRINSIC Vc_CONST __m128 hi128(__m256 v) { return extract128<1>(v); }
+Vc_INTRINSIC Vc_CONST __m128d hi128(__m256d v) { return extract128<1>(v); }
+Vc_INTRINSIC Vc_CONST __m128i hi128(__m256i v) { return extract128<1>(v); }
+Vc_INTRINSIC Vc_CONST __m256 concat(__m128 a, __m128 b) { return insert128<1>(avx_cast<__m256 >(a), b); }
+Vc_INTRINSIC Vc_CONST __m256d concat(__m128d a, __m128d b) { return insert128<1>(avx_cast<__m256d>(a), b); }
+Vc_INTRINSIC Vc_CONST __m256i concat(__m128i a, __m128i b) { return insert128<1>(avx_cast<__m256i>(a), b); }
+}
+using namespace Casts;
+}
+namespace AVX2
+{
+using namespace AVX::Casts;
+}
+namespace AVX
+{
+template <typename From, typename To> struct ConvertTag {};
+Vc_INTRINSIC __m256i convert(__m256 v, ConvertTag<float , int>) { return _mm256_cvttps_epi32(v); }
+Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, int>) { return _mm256_cvttpd_epi32(v); }
+Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<int , int>) { return v; }
+Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<uint , int>) { return v; }
+Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<short , int>) {
+#ifdef Vc_IMPL_AVX2
+return _mm256_cvtepi16_epi32(v);
+#else
+return AVX::srai_epi32<16>(
+concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
+#endif
+}
+Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<ushort, int>) {
+#ifdef Vc_IMPL_AVX2
+return _mm256_cvtepu16_epi32(v);
+#else
+return AVX::srli_epi32<16>(
+concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
+#endif
+}
+Vc_INTRINSIC __m256i convert(__m256 v, ConvertTag<float , uint>) {
+using namespace AVX;
+return _mm256_castps_si256(_mm256_blendv_ps(
+_mm256_castsi256_ps(_mm256_cvttps_epi32(v)),
+_mm256_castsi256_ps(add_epi32(_mm256_cvttps_epi32(_mm256_sub_ps(v, set2power31_ps())),
+set2power31_epu32())),
+cmpge_ps(v, set2power31_ps())));
+}
+Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, uint>) {
+using namespace AVX;
+return _mm_xor_si128(
+_mm256_cvttpd_epi32(_mm256_sub_pd(_mm256_floor_pd(v), set1_pd(0x80000000u))),
+_mm_set2power31_epu32());
+}
+Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<int , uint>) { return v; }
+Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<uint , uint>) { return v; }
+Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<short , uint>) {
+#ifdef Vc_IMPL_AVX2
+return _mm256_cvtepi16_epi32(v);
+#else
+return AVX::srai_epi32<16>(
+concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
+#endif
+}
+Vc_INTRINSIC __m256i convert(__m128i v, ConvertTag<ushort, uint>) {
+#ifdef Vc_IMPL_AVX2
+return _mm256_cvtepu16_epi32(v);
+#else
+return AVX::srli_epi32<16>(
+concat(_mm_unpacklo_epi16(v, v), _mm_unpackhi_epi16(v, v)));
+#endif
+}
+Vc_INTRINSIC __m256 convert(__m256 v, ConvertTag<float , float>) { return v; }
+Vc_INTRINSIC __m128 convert(__m256d v, ConvertTag<double, float>) { return _mm256_cvtpd_ps(v); }
+Vc_INTRINSIC __m256 convert(__m256i v, ConvertTag<int , float>) { return _mm256_cvtepi32_ps(v); }
+Vc_INTRINSIC __m256 convert(__m256i v, ConvertTag<uint , float>) {
+using namespace AVX;
+return _mm256_blendv_ps(
+_mm256_cvtepi32_ps(v),
+_mm256_add_ps(_mm256_cvtepi32_ps(and_si256(v, set1_epi32(0x7ffffe00))),
+_mm256_add_ps(set2power31_ps(), _mm256_cvtepi32_ps(and_si256(
+v, set1_epi32(0x000001ff))))),
+_mm256_castsi256_ps(cmplt_epi32(v, _mm256_setzero_si256())));
+}
+Vc_INTRINSIC __m256 convert(__m128i v, ConvertTag<short , float>) { return _mm256_cvtepi32_ps(convert(v, ConvertTag< short, int>())); }
+Vc_INTRINSIC __m256 convert(__m128i v, ConvertTag<ushort, float>) { return _mm256_cvtepi32_ps(convert(v, ConvertTag<ushort, int>())); }
+Vc_INTRINSIC __m256d convert(__m128 v, ConvertTag<float , double>) { return _mm256_cvtps_pd(v); }
+Vc_INTRINSIC __m256d convert(__m256d v, ConvertTag<double, double>) { return v; }
+Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<int , double>) { return _mm256_cvtepi32_pd(v); }
+Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<uint , double>) {
+using namespace AVX;
+return _mm256_add_pd(
+_mm256_cvtepi32_pd(_mm_xor_si128(v, _mm_setmin_epi32())),
+set1_pd(1u << 31)); }
+Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<short , double>) { return convert(convert(v, SSE::ConvertTag< short, int>()), ConvertTag<int, double>()); }
+Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<ushort, double>) { return convert(convert(v, SSE::ConvertTag<ushort, int>()), ConvertTag<int, double>()); }
+Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<int , short>) {
+const auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));
+const auto tmp1 = _mm_unpackhi_epi16(lo128(v), hi128(v));
+const auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
+const auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
+return _mm_unpacklo_epi16(tmp2, tmp3);
+}
+Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<uint , short>) {
+const auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));
+const auto tmp1 = _mm_unpackhi_epi16(lo128(v), hi128(v));
+const auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
+const auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
+return _mm_unpacklo_epi16(tmp2, tmp3);
+}
+Vc_INTRINSIC __m128i convert(__m256 v, ConvertTag<float , short>) { return convert(convert(v, ConvertTag<float, int>()), ConvertTag<int, short>()); }
+Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, short>) { return convert(convert(v, ConvertTag<double, int>()), SSE::ConvertTag<int, short>()); }
+Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<short , short>) { return v; }
+Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<ushort, short>) { return v; }
+Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<int , ushort>) {
+auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));
+auto tmp1 = _mm_unpackhi_epi16(lo128(v), hi128(v));
+auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
+auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
+return _mm_unpacklo_epi16(tmp2, tmp3);
+}
+Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<uint , ushort>) {
+auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));
+auto tmp1 = _mm_unpackhi_epi16(lo128(v), hi128(v));
+auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
+auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
+return _mm_unpacklo_epi16(tmp2, tmp3);
+}
+Vc_INTRINSIC __m128i convert(__m256 v, ConvertTag<float , ushort>) { return convert(convert(v, ConvertTag<float, uint>()), ConvertTag<uint, ushort>()); }
+Vc_INTRINSIC __m128i convert(__m256d v, ConvertTag<double, ushort>) { return convert(convert(v, ConvertTag<double, uint>()), SSE::ConvertTag<uint, ushort>()); }
+Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<short , ushort>) { return v; }
+Vc_INTRINSIC __m256i convert(__m256i v, ConvertTag<ushort, ushort>) { return v; }
+template <typename From, typename To>
+Vc_INTRINSIC auto convert(
+typename std::conditional<(sizeof(From) < sizeof(To)),
+typename SSE::VectorTraits<From>::VectorType,
+typename AVX::VectorTypeHelper<From>::Type>::type v)
+-> decltype(convert(v, ConvertTag<From, To>()))
+{
+return convert(v, ConvertTag<From, To>());
+}
+template <typename From, typename To, typename = enable_if<(sizeof(From) < sizeof(To))>>
+Vc_INTRINSIC auto convert(typename AVX::VectorTypeHelper<From>::Type v)
+-> decltype(convert(lo128(v), ConvertTag<From, To>()))
+{
+return convert(lo128(v), ConvertTag<From, To>());
+}
+}
+}
+#endif
 #endif
 #ifndef VC_SSE_VECTOR_H_
 #error "Vc/sse/vector.h needs to be included before Vc/sse/simd_cast.h"
@@ -11107,6 +11203,10 @@ _mm_srli_si128(SSE::sse_cast<__m128i>(x.data()), shift & 0xff))});
 }
 #endif
 #endif
+#endif
+#ifdef Vc_IMPL_AVX
+#ifndef VC_AVX_VECTOR_H_
+#define VC_AVX_VECTOR_H_ 
 #ifndef VC_AVX_VECTORHELPER_H_
 #define VC_AVX_VECTORHELPER_H_ 
 #include <limits>
@@ -13577,6 +13677,24 @@ typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;
 StorageType d;
 using WidthT = Common::WidthT<VectorType>;
 public:
+public:
+Vc_INTRINSIC Vector() = default;
+static constexpr std::size_t size() { return Size; }
+explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerZero) Vc_INTRINSIC_R;
+explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerOne) Vc_INTRINSIC_R;
+explicit Vc_INTRINSIC_L Vector(VectorSpecialInitializerIndexesFromZero) Vc_INTRINSIC_R;
+static Vc_INTRINSIC Vc_CONST Vector Zero() { return Vector(Vc::Zero); }
+static Vc_INTRINSIC Vc_CONST Vector One() { return Vector(Vc::One); }
+static Vc_INTRINSIC Vc_CONST Vector IndexesFromZero()
+{
+return Vector(Vc::IndexesFromZero);
+}
+template <class G, class...,
+class = typename std::enable_if<std::is_convertible<
+decltype(std::declval<G>()(size_t())), value_type>::value>::type>
+explicit Vector(G &&g) : Vector(generate(std::forward<G>(g)))
+{
+}
 static Vc_ALWAYS_INLINE_L Vector Random() Vc_ALWAYS_INLINE_R;
 Vc_ALWAYS_INLINE Vector(VectorTypeArg x) : d(x) {}
 template <typename U>
@@ -13618,11 +13736,222 @@ static_assert(std::is_same<EntryType, void>::value,
 "A SIMD vector object cannot be initialized from an initializer list "
 "because the number of entries in the vector is target-dependent.");
 }
+explicit Vc_INTRINSIC Vector(const EntryType *mem)
+{
+load(mem);
+}
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+explicit Vc_INTRINSIC Vector(const EntryType *mem, Flags flags)
+{
+load(mem, flags);
+}
+template <typename U, typename Flags = DefaultLoadTag,
+typename = enable_if<
+(!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
+sizeof(EntryType) >= sizeof(U)) &&
+std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
+explicit Vc_INTRINSIC Vector(const U *x, Flags flags = Flags())
+{
+load<U, Flags>(x, flags);
+}
+Vc_INTRINSIC void load(const EntryType *mem)
+{
+load(mem, DefaultLoadTag());
+}
+template <typename Flags>
+Vc_INTRINSIC enable_if<Traits::is_load_store_flag<Flags>::value, void>
+load(const EntryType *mem, Flags flags)
+{
+load<EntryType, Flags>(mem, flags);
+}
+private:
+template <typename U, typename Flags>
+struct load_concept : public std::enable_if<
+(!std::is_integral<U>::value || !std::is_integral<EntryType>::value ||
+sizeof(EntryType) >= sizeof(U)) &&
+std::is_arithmetic<U>::value && Traits::is_load_store_flag<Flags>::value, void>
+{};
+public:
+template <typename U, typename Flags = DefaultLoadTag>
+Vc_INTRINSIC_L typename load_concept<U, Flags>::type load(const U *mem, Flags = Flags()) Vc_INTRINSIC_R;
+template <
+typename U,
+typename Flags = DefaultStoreTag,
+typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC_L void store(U *mem, Flags flags = Flags()) const Vc_INTRINSIC_R;
+template <
+typename U,
+typename Flags = DefaultStoreTag,
+typename = enable_if<std::is_arithmetic<U>::value &&Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC_L void Vc_VDECL store(U *mem, MaskType mask, Flags flags = Flags()) const Vc_INTRINSIC_R;
+Vc_INTRINSIC void store(EntryType *mem) const
+{
+store<EntryType, DefaultStoreTag>(mem, DefaultStoreTag());
+}
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC void store(EntryType *mem, Flags flags) const
+{
+store<EntryType, Flags>(mem, flags);
+}
+Vc_INTRINSIC void Vc_VDECL store(EntryType *mem, MaskType mask) const
+{
+store<EntryType, DefaultStoreTag>(mem, mask, DefaultStoreTag());
+}
+template <typename Flags, typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+Vc_INTRINSIC void Vc_VDECL store(EntryType *mem, MaskType mask, Flags flags) const
+{
+store<EntryType, Flags>(mem, mask, flags);
+}
 Vc_INTRINSIC_L void setZero() Vc_INTRINSIC_R;
 Vc_INTRINSIC_L void setZero(const Mask &k) Vc_INTRINSIC_R;
 Vc_INTRINSIC_L void setZeroInverted(const Mask &k) Vc_INTRINSIC_R;
 Vc_INTRINSIC_L void setQnan() Vc_INTRINSIC_R;
 Vc_INTRINSIC_L void setQnan(MaskArgument k) Vc_INTRINSIC_R;
+#ifndef Vc_CURRENT_CLASS_NAME
+#error "incorrect use of common/gatherinterface.h: Vc_CURRENT_CLASS_NAME must be defined to the current class name for declaring constructors."
+#endif
+private:
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes);
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes, MaskArgument mask);
+template <typename IT, typename = enable_if<std::is_pointer<IT>::value ||
+Traits::is_simd_vector<IT>::value>>
+static Vc_INTRINSIC const IT &adjustIndexParameter(const IT &indexes)
+{
+return indexes;
+}
+template <
+typename IT,
+typename = enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value>>
+static Vc_INTRINSIC decltype(std::addressof(std::declval<const IT &>()[0]))
+adjustIndexParameter(const IT &i)
+{
+return std::addressof(i[0]);
+}
+template <typename IT>
+static Vc_INTRINSIC enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+!std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value,
+IT>
+adjustIndexParameter(const IT &i)
+{
+return i;
+}
+public:
+#define Vc_ASSERT_GATHER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<MT, EntryType>::value, \
+"The memory pointer needs to point to a type that can be converted to the " \
+"EntryType of this SIMD vector type."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT, typename IT,
+typename = enable_if<Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes,
+MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes, MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args)
+{
+gather(args.address, adjustIndexParameter(args.indexes));
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args, MaskArgument mask)
+{
+gather(args.address, adjustIndexParameter(args.indexes), mask);
+}
+#undef Vc_ASSERT_GATHER_PARAMETER_TYPES_
+private:
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes) const;
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const;
+public:
+#define Vc_ASSERT_SCATTER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<EntryType, MT>::value, \
+"The memory pointer needs to point to a type that the EntryType of this " \
+"SIMD vector type can be converted to."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes));
+}
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes, MaskArgument mask) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args) const
+{
+scatter(args.address, args.indexes);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args, MaskArgument mask) const
+{
+scatter(args.address, args.indexes, mask);
+}
+#undef Vc_ASSERT_SCATTER_PARAMETER_TYPES_
 #if defined Vc_IMPL_AVX2 && !defined Vc_MSVC
 Vc_INTRINSIC_L void gatherImplementation(
 const EntryType *mem,
@@ -17159,7 +17488,6 @@ return simd_cast<Return, offset>(simd_cast<SSE::Mask<T>>(x));
 }
 #endif
 #endif
-#elif defined(Vc_IMPL_SSE)
 #endif
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -17458,157 +17786,6 @@ Vc_ALL_COMPARES (Vc_COMPARE_OPERATOR);
 #endif
 #ifndef VC_COMMON_SIMDARRAY_H_
 #define VC_COMMON_SIMDARRAY_H_ 
-#if defined Vc_DEBUG_SIMD_CAST || defined Vc_DEBUG_SORTED
-#ifndef VC_IO_
-#define VC_IO_ 
-#include <iostream>
-#if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
-#define Vc_HACK_OSTREAM_FOR_TTY 1
-#endif
-#ifdef Vc_HACK_OSTREAM_FOR_TTY
-#include <unistd.h>
-#include <ext/stdio_sync_filebuf.h>
-#endif
-namespace Vc_VERSIONED_NAMESPACE
-{
-namespace
-{
-#ifdef Vc_HACK_OSTREAM_FOR_TTY
-class hacked_ostream : public std::ostream
-{
-public:
-using std::ostream::_M_streambuf;
-};
-bool mayUseColor(const std::ostream &os) __attribute__((__const__));
-bool mayUseColor(const std::ostream &os)
-{
-std::basic_streambuf<char> *hack1 =
-const_cast<std::basic_streambuf<char> *>(os.*(&hacked_ostream::_M_streambuf));
-__gnu_cxx::stdio_sync_filebuf<char> *hack =
-dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char> *>(hack1);
-if (!hack) {
-return false;
-}
-FILE *file = hack->file();
-return 1 == isatty(fileno(file));
-}
-#else
-bool mayUseColor(const std::ostream &) { return false; }
-#endif
-}
-namespace AnsiColor
-{
-struct Type
-{
-const char *data;
-};
-static const Type green = {"\033[1;40;32m"};
-static const Type yellow = {"\033[1;40;33m"};
-static const Type blue = {"\033[1;40;34m"};
-static const Type normal = {"\033[0m"};
-inline std::ostream &operator<<(std::ostream &out, const Type &c)
-{
-if (mayUseColor(out)) {
-out << c.data;
-}
-return out;
-}
-}
-template <typename T, typename Abi>
-inline std::ostream &operator<<(std::ostream &out, const Vc::Vector<T, Abi> &v)
-{
-using TT = typename std::conditional<std::is_same<T, char>::value ||
-std::is_same<T, unsigned char>::value ||
-std::is_same<T, signed char>::value,
-int,
-T>::type;
-out << AnsiColor::green << '[';
-out << TT(v[0]);
-for (size_t i = 1; i < v.Size; ++i) {
-out << ", " << TT(v[i]);
-}
-out << ']' << AnsiColor::normal;
-return out;
-}
-template <typename T, typename Abi>
-inline std::ostream &operator<<(std::ostream &out, const Vc::Mask<T, Abi> &m)
-{
-out << AnsiColor::blue << "m[";
-for (unsigned int i = 0; i < m.Size; ++i) {
-if (i > 0 && (i % 4) == 0) {
-out << ' ';
-}
-if (m[i]) {
-out << AnsiColor::yellow << '1';
-} else {
-out << AnsiColor::blue << '0';
-}
-}
-out << AnsiColor::blue << ']' << AnsiColor::normal;
-return out;
-}
-namespace Common
-{
-#ifdef DOXYGEN
-template<typename V, typename Parent, typename Dimension, typename RM>
-inline std::ostream &operator<<(std::ostream &s, const Vc::MemoryBase<V, Parent, Dimension, RM> &m);
-#endif
-template<typename V, typename Parent, typename RM>
-inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 1, RM> &m )
-{
-out << AnsiColor::blue << '{' << AnsiColor::normal;
-for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
-out << V(m.vector(i));
-}
-out << AnsiColor::blue << '}' << AnsiColor::normal;
-return out;
-}
-template<typename V, typename Parent, typename RM>
-inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 2, RM> &m )
-{
-out << AnsiColor::blue << '{' << AnsiColor::normal;
-for (size_t i = 0; i < m.rowsCount(); ++i) {
-if (i > 0) {
-out << "\n ";
-}
-const size_t vcount = m[i].vectorsCount();
-for (size_t j = 0; j < vcount; ++j) {
-out << V(m[i].vector(j));
-}
-}
-out << AnsiColor::blue << '}' << AnsiColor::normal;
-return out;
-}
-}
-template<typename T, std::size_t N>
-inline std::ostream &operator<<(std::ostream &out, const SimdArray<T, N> &v)
-{
-out << AnsiColor::green << '<' << v[0];
-for (size_t i = 1; i < N; ++i) {
-if (i % 4 == 0) out << " |";
-out << ' ' << v[i];
-}
-return out << '>' << AnsiColor::normal;
-}
-template<typename T, std::size_t N>
-inline std::ostream &operator<<(std::ostream &out, const SimdMaskArray<T, N> &m)
-{
-out << AnsiColor::blue << "«";
-for (size_t i = 0; i < N; ++i) {
-if (i > 0 && (i % 4) == 0) {
-out << ' ';
-}
-if ( m[i] ) {
-out << AnsiColor::yellow << '1';
-} else {
-out << AnsiColor::blue << '0';
-}
-}
-return out << AnsiColor::blue << "»" << AnsiColor::normal;
-}
-}
-#endif
-#endif
 #include <array>
 #ifndef VC_COMMON_SIMDARRAYHELPER_H_
 #define VC_COMMON_SIMDARRAYHELPER_H_ 
@@ -18494,6 +18671,31 @@ return {a.interleaveLow(b), a.interleaveHigh(b)};
 #endif
 namespace Vc_VERSIONED_NAMESPACE
 {
+namespace Common
+{
+template <std::size_t N, class... Candidates> struct select_best_vector_type_impl;
+template <std::size_t N, class T> struct select_best_vector_type_impl<N, T> {
+using type = T;
+};
+template <std::size_t N, class T, class... Candidates>
+struct select_best_vector_type_impl<N, T, Candidates...> {
+using type = typename std::conditional<
+(N < T::Size), typename select_best_vector_type_impl<N, Candidates...>::type,
+T>::type;
+};
+template <class T, std::size_t N>
+struct select_best_vector_type : select_best_vector_type_impl<N,
+#ifdef Vc_IMPL_AVX2
+Vc::AVX2::Vector<T>,
+#elif defined Vc_IMPL_AVX
+Vc::AVX::Vector<T>,
+#endif
+#ifdef Vc_IMPL_SSE
+Vc::SSE::Vector<T>,
+#endif
+Vc::Scalar::Vector<T>> {
+};
+}
 namespace internal
 {
 template <typename T> T Vc_INTRINSIC Vc_PURE product_helper_(const T &l, const T &r) { return l * r; }
@@ -18607,6 +18809,151 @@ operator fixed_size_simd<T, N>() const
 {
 return static_cast<fixed_size_simd<T, N>>(data);
 }
+#ifndef Vc_CURRENT_CLASS_NAME
+#error "incorrect use of common/gatherinterface.h: Vc_CURRENT_CLASS_NAME must be defined to the current class name for declaring constructors."
+#endif
+private:
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes);
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes, MaskArgument mask);
+template <typename IT, typename = enable_if<std::is_pointer<IT>::value ||
+Traits::is_simd_vector<IT>::value>>
+static Vc_INTRINSIC const IT &adjustIndexParameter(const IT &indexes)
+{
+return indexes;
+}
+template <
+typename IT,
+typename = enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value>>
+static Vc_INTRINSIC decltype(std::addressof(std::declval<const IT &>()[0]))
+adjustIndexParameter(const IT &i)
+{
+return std::addressof(i[0]);
+}
+template <typename IT>
+static Vc_INTRINSIC enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+!std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value,
+IT>
+adjustIndexParameter(const IT &i)
+{
+return i;
+}
+public:
+#define Vc_ASSERT_GATHER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<MT, EntryType>::value, \
+"The memory pointer needs to point to a type that can be converted to the " \
+"EntryType of this SIMD vector type."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT, typename IT,
+typename = enable_if<Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes,
+MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes, MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args)
+{
+gather(args.address, adjustIndexParameter(args.indexes));
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args, MaskArgument mask)
+{
+gather(args.address, adjustIndexParameter(args.indexes), mask);
+}
+#undef Vc_ASSERT_GATHER_PARAMETER_TYPES_
+private:
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes) const;
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const;
+public:
+#define Vc_ASSERT_SCATTER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<EntryType, MT>::value, \
+"The memory pointer needs to point to a type that the EntryType of this " \
+"SIMD vector type can be converted to."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes));
+}
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes, MaskArgument mask) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args) const
+{
+scatter(args.address, args.indexes);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args, MaskArgument mask) const
+{
+scatter(args.address, args.indexes, mask);
+}
+#undef Vc_ASSERT_SCATTER_PARAMETER_TYPES_
 template <typename... Args,
 typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
 !Traits::is_gather_signature<Args...>::value &&
@@ -19001,6 +19348,151 @@ static_assert(init.size() == size(), "The initializer_list argument to "
 Vc_ASSERT(init.size() == size());
 #endif
 }
+#ifndef Vc_CURRENT_CLASS_NAME
+#error "incorrect use of common/gatherinterface.h: Vc_CURRENT_CLASS_NAME must be defined to the current class name for declaring constructors."
+#endif
+private:
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes);
+template <typename MT, typename IT>
+inline void gatherImplementation(const MT *mem, const IT &indexes, MaskArgument mask);
+template <typename IT, typename = enable_if<std::is_pointer<IT>::value ||
+Traits::is_simd_vector<IT>::value>>
+static Vc_INTRINSIC const IT &adjustIndexParameter(const IT &indexes)
+{
+return indexes;
+}
+template <
+typename IT,
+typename = enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value>>
+static Vc_INTRINSIC decltype(std::addressof(std::declval<const IT &>()[0]))
+adjustIndexParameter(const IT &i)
+{
+return std::addressof(i[0]);
+}
+template <typename IT>
+static Vc_INTRINSIC enable_if<
+!std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
+!std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value,
+IT>
+adjustIndexParameter(const IT &i)
+{
+return i;
+}
+public:
+#define Vc_ASSERT_GATHER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<MT, EntryType>::value, \
+"The memory pointer needs to point to a type that can be converted to the " \
+"EntryType of this SIMD vector type."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT, typename IT,
+typename = enable_if<Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes,
+MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes));
+}
+template <typename MT, typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void gather(const MT *mem, const IT &indexes, MaskArgument mask)
+{
+Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args)
+{
+gather(args.address, adjustIndexParameter(args.indexes));
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args, MaskArgument mask)
+{
+gather(args.address, adjustIndexParameter(args.indexes), mask);
+}
+#undef Vc_ASSERT_GATHER_PARAMETER_TYPES_
+private:
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes) const;
+template <typename MT, typename IT>
+inline void scatterImplementation(MT *mem, IT &&indexes, MaskArgument mask) const;
+public:
+#define Vc_ASSERT_SCATTER_PARAMETER_TYPES_ \
+static_assert( \
+std::is_convertible<EntryType, MT>::value, \
+"The memory pointer needs to point to a type that the EntryType of this " \
+"SIMD vector type can be converted to."); \
+static_assert( \
+Vc::Traits::has_subscript_operator<IT>::value, \
+"The indexes argument must be a type that implements the subscript operator."); \
+static_assert( \
+!Traits::is_simd_vector<IT>::value || \
+Traits::simd_vector_size<IT>::value >= Size, \
+"If you use a SIMD vector for the indexes parameter, the index vector must " \
+"have at least as many entries as this SIMD vector."); \
+static_assert( \
+!std::is_array<T>::value || \
+(std::rank<T>::value == 1 && \
+(std::extent<T>::value == 0 || std::extent<T>::value >= Size)), \
+"If you use a simple array for the indexes parameter, the array must have " \
+"at least as many entries as this SIMD vector.")
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes));
+}
+template <typename MT,
+typename IT,
+typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
+Vc_INTRINSIC void scatter(MT *mem, IT &&indexes, MaskArgument mask) const
+{
+Vc_ASSERT_SCATTER_PARAMETER_TYPES_;
+scatterImplementation(mem, std::forward<IT>(indexes), mask);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args) const
+{
+scatter(args.address, args.indexes);
+}
+template <typename MT, typename IT>
+Vc_INTRINSIC void scatter(const Common::ScatterArguments<MT, IT> &args, MaskArgument mask) const
+{
+scatter(args.address, args.indexes, mask);
+}
+#undef Vc_ASSERT_SCATTER_PARAMETER_TYPES_
 template <typename... Args,
 typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
 !Traits::is_initializer_list<Args...>::value &&
@@ -21773,7 +22265,7 @@ template<typename T> static T atan (const T &_x);
 template<typename T> static T atan2(const T &y, const T &x);
 };
 }
-#ifdef Vc_IMPL_SSE
+#if defined Vc_IMPL_SSE || defined DOXYGEN
 namespace Detail
 {
 template <typename T, typename Abi>

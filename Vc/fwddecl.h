@@ -42,8 +42,46 @@ template <class T> struct DeduceCompatible;
 template <class T> struct DeduceBest;
 }  // namespace VectorAbi
 
+namespace Common
+{
+template <class T, std::size_t N> struct select_best_vector_type;
+}  // namespace Common
+
 template <class T, class Abi> class Mask;
 template <class T, class Abi> class Vector;
+
+// === having SimdArray<T, N> in the Vc namespace leads to a ABI bug ===
+//
+// SimdArray<double, 4> can be { double[4] }, { __m128d[2] }, or { __m256d } even though the type
+// is the same.
+// The question is, what should SimdArray focus on?
+// a) A type that makes interfacing between different implementations possible?
+// b) Or a type that makes fixed size SIMD easier and efficient?
+//
+// a) can be achieved by using a union with T[N] as one member. But this may have more serious
+// performance implications than only less efficient parameter passing (because compilers have a
+// much harder time wrt. aliasing issues). Also alignment would need to be set to the sizeof in
+// order to be compatible with targets with larger alignment requirements.
+// But, the in-memory representation of masks is not portable. Thus, at the latest with AVX-512,
+// there would be a problem with requiring SimdMaskArray<T, N> to be an ABI compatible type.
+// AVX-512 uses one bit per boolean, whereas SSE/AVX use sizeof(T) Bytes per boolean. Conversion
+// between the two representations is not a trivial operation. Therefore choosing one or the other
+// representation will have a considerable impact for the targets that do not use this
+// representation. Since the future probably belongs to one bit per boolean representation, I would
+// go with that choice.
+//
+// b) requires that SimdArray<T, N> != SimdArray<T, N> if
+// SimdArray<T, N>::vector_type != SimdArray<T, N>::vector_type
+//
+// Therefore use SimdArray<T, N, V>, where V follows from the above.
+template <class T, std::size_t N,
+          class V = typename Common::select_best_vector_type<T, N>::type,
+          std::size_t Wt = V::Size>
+class SimdArray;
+template <class T, std::size_t N,
+          class V = typename Common::select_best_vector_type<T, N>::type,
+          std::size_t Wt = V::Size>
+class SimdMaskArray;
 
 namespace simd_abi
 {
@@ -56,12 +94,6 @@ using __avx = VectorAbi::Avx;
 struct __avx512;
 struct __neon;
 }  // namespace simd_abi
-
-namespace detail
-{
-template <class T, class Abi> struct translate_to_simd;
-// specializations of translate_to_simd in common/vectorabi.h
-}  // namespace detail
 
 template <class T, class Abi = simd_abi::compatible<T>> using simd = Vector<T, Abi>;
 template <class T, class Abi = simd_abi::compatible<T>> using simd_mask = Mask<T, Abi>;

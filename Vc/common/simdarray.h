@@ -30,9 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define Vc_DEBUG_SIMD_CAST 1
 //#define Vc_DEBUG_SORTED 1
-#if defined Vc_DEBUG_SIMD_CAST || defined Vc_DEBUG_SORTED
-#include "../IO"
-#endif
+//#include "../IO"
 
 #include <array>
 
@@ -47,6 +45,42 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+// select_best_vector_type {{{
+namespace Common
+{
+/// \addtogroup SimdArray
+/// @{
+/**
+ * \internal
+ * Selects the best SIMD type out of a typelist to store N scalar values.
+ */
+template <std::size_t N, class... Candidates> struct select_best_vector_type_impl;
+// last candidate; this one must work; assume it does:
+template <std::size_t N, class T> struct select_best_vector_type_impl<N, T> {
+    using type = T;
+};
+// check the next candidate; use it if N >= T::size(); recurse otherwise:
+template <std::size_t N, class T, class... Candidates>
+struct select_best_vector_type_impl<N, T, Candidates...> {
+    using type = typename std::conditional<
+        (N < T::Size), typename select_best_vector_type_impl<N, Candidates...>::type,
+        T>::type;
+};
+template <class T, std::size_t N>
+struct select_best_vector_type : select_best_vector_type_impl<N,
+#ifdef Vc_IMPL_AVX2
+                                                              Vc::AVX2::Vector<T>,
+#elif defined Vc_IMPL_AVX
+                                                              Vc::AVX::Vector<T>,
+#endif
+#ifdef Vc_IMPL_SSE
+                                                              Vc::SSE::Vector<T>,
+#endif
+                                                              Vc::Scalar::Vector<T>> {
+};
+/// @}
+}  // namespace Common
+// }}}
 // internal namespace (product & sum helper) {{{1
 namespace internal
 {

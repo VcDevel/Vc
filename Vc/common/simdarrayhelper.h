@@ -124,6 +124,8 @@ template<typename T> using is_operation = std::is_base_of<tag, T>;
  * \internal
  * Helper type to statically communicate segmentation of one vector register into 2^n parts
  * (Pieces).
+ *
+ * Forward declaration in common/types.h.
  */
 template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*{{{*/
 {

@@ -13,13 +13,23 @@ seen=()
 parse_file() {
   dir=${1%/*}
   file=${1##*/}
+  [[ "$file" =~ "deprecated" ]] && return
   [[ "$1" =~ "/" ]] && pushd "$dir"
   #echo "${seen[@]}"
   if [[ "$PWD/$file" = ${(~j.|.)seen} ]]; then
     [[ "$1" =~ "/" ]] && popd || true
     return
   fi
-  seen=(${seen[@]} "$PWD/$file")
+  case "$file" in
+     *generalinterface.h);;
+     *loadinterface.h);;
+     *storeinterface.h);;
+     *gatherinterface.h);;
+     *scatterinterface.h);;
+     *)
+        seen=(${seen[@]} "$PWD/$file")
+        ;;
+  esac
   while read -r line; do
     #match='*include*'
     case "$line" in

@@ -28,9 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_MAKECONTAINER_H_
 #define VC_COMMON_MAKECONTAINER_H_
 
-#include <Vc/vector.h>
+#include "../vector.h"
 #include <initializer_list>
-#include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {

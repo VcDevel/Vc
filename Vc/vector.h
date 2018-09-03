@@ -31,10 +31,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 1. define all of Vc::Scalar - this one is always present, so it makes sense to put it first
 #include "scalar/vector.h"
 
+#if defined(Vc_IMPL_SSE)
+# include "sse/vector.h"
+#endif
 #ifdef Vc_IMPL_AVX
 # include "avx/vector.h"
-#elif defined(Vc_IMPL_SSE)
-# include "sse/vector.h"
 #endif
 
 namespace Vc_VERSIONED_NAMESPACE

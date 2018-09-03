@@ -82,42 +82,6 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace detail
 {
-template <class T> struct translate_to_simd<T, simd_abi::scalar> {
-    using simd = Vector<T, VectorAbi::Scalar>;
-    using mask = Mask<T, VectorAbi::Scalar>;
-};
-template <class T, int N> struct translate_to_simd<T, simd_abi::fixed_size<N>> {
-    using simd = SimdArray<T, N>;
-    using mask = SimdMaskArray<T, N>;
-};
-template <class T> struct translate_to_simd<T, simd_abi::compatible<T>> {
-#ifdef Vc_IMPL_SSE2
-    using simd = Vector<T, VectorAbi::Sse>;
-    using mask = Mask<T, VectorAbi::Sse>;
-#else
-    using simd = Vector<T, VectorAbi::Scalar>;
-    using mask = Mask<T, VectorAbi::Scalar>;
-#endif
-};
-template <class T> struct translate_to_simd<T, simd_abi::native<T>> {
-    using simd = Vector<T, VectorAbi::Best<T>>;
-    using mask = Mask<T, VectorAbi::Best<T>>;
-};
-template <class T> struct translate_to_simd<T, simd_abi::__sse> {
-    using simd = Vector<T, VectorAbi::Sse>;
-    using mask = Mask<T, VectorAbi::Sse>;
-};
-template <class T> struct translate_to_simd<T, simd_abi::__avx> {
-    using simd = Vector<T, VectorAbi::Avx>;
-    using mask = Mask<T, VectorAbi::Avx>;
-};
-template <class T> struct translate_to_simd<T, simd_abi::__avx512> {
-    // not implemented
-};
-template <class T> struct translate_to_simd<T, simd_abi::__neon> {
-    // not implemented
-};
-
 // is_fixed_size_abi {{{
 template <class T> struct is_fixed_size_abi : std::false_type {
 };

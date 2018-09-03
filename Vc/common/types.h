@@ -216,6 +216,9 @@ template<typename _T> static Vc_ALWAYS_INLINE void assertCorrectAlignment(const 
 
 namespace Common
 {
+// defined in common/simdarrayhelper.h
+template <typename T, std::size_t Pieces, std::size_t Index> struct Segment;
+
 /**
  * \internal
  *
