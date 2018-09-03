@@ -37,6 +37,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+// TODO, not vectorized:
+template <class T, class Abi>
+SimdArray<int, Vector<T, Abi>::size()> fpclassify(const Vector<T, Abi> &x)
+{
+    return SimdArray<int, Vector<T, Abi>::size()>(
+        [&](std::size_t i) { return std::fpclassify(x[i]); });
+}
+template <class T, size_t N> SimdArray<int, N> fpclassify(const SimdArray<T, N> &x)
+{
+    return SimdArray<int, N>([&](std::size_t i) { return std::fpclassify(x[i]); });
+}
+
 #ifdef Vc_IMPL_SSE
 // for SSE, AVX, and AVX2
 #include "logarithm.h"
