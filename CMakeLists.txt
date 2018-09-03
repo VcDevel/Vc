@@ -164,10 +164,22 @@ endif()
 add_dependencies(other Vc)
 
 install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
-install(DIRECTORY Vc/ DESTINATION include/Vc)
-
-# Install all implementation headers
-install(DIRECTORY Vc/scalar Vc/sse Vc/avx Vc/common Vc/traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY Vc/ DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(FILES
+   Vc/Allocator
+   Vc/IO
+   Vc/Memory
+   Vc/SimdArray
+   Vc/Utils
+   Vc/Vc
+   Vc/array
+   Vc/iterators
+   Vc/limits
+   Vc/simdize
+   Vc/span
+   Vc/type_traits
+   Vc/vector
+   DESTINATION include/Vc)
 
 # read version parts from version.h to be put into VcConfig.cmake
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/Vc/version.h _version_lines REGEX "^#define Vc_VERSION_STRING ")
