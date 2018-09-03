@@ -43,7 +43,7 @@ constexpr float MAXNUMF = 3.4028234663852885981170418348451692544e38f;
 
 template <typename Abi, typename = enable_if<std::is_same<Abi, VectorAbi::Sse>::value ||
                                              std::is_same<Abi, VectorAbi::Avx>::value>>
-inline Vector<float, Abi> exp(Vector<float, Abi> x)
+inline Vector<float, detail::not_fixed_size_abi<Abi>> exp(Vector<float, Abi> x)
 {
     using V = Vector<float, Abi>;
     typedef typename V::Mask M;

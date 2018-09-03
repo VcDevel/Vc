@@ -111,14 +111,13 @@ void testInterleavingScatterCompare(Wrapper &data, const IndexType &i,
 }
 
 TEST_TYPES(Param, testInterleavingScatter,
-           (outer_product<Typelist<ALL_VECTORS>,
-                          Typelist<std::integral_constant<std::size_t, 2>,
-                                   std::integral_constant<std::size_t, 3>,
-                                   std::integral_constant<std::size_t, 4>,
-                                   std::integral_constant<std::size_t, 5>,
-                                   std::integral_constant<std::size_t, 6>,
-                                   std::integral_constant<std::size_t, 7>,
-                                   std::integral_constant<std::size_t, 8>>>))
+           outer_product<AllVectors, Typelist<std::integral_constant<std::size_t, 2>,
+                                              std::integral_constant<std::size_t, 3>,
+                                              std::integral_constant<std::size_t, 4>,
+                                              std::integral_constant<std::size_t, 5>,
+                                              std::integral_constant<std::size_t, 6>,
+                                              std::integral_constant<std::size_t, 7>,
+                                              std::integral_constant<std::size_t, 8>>>)
 {
     typedef typename Param::template at<0> V;
     constexpr auto StructSize = Param::template at<1>::value;
@@ -136,7 +135,8 @@ TEST_TYPES(Param, testInterleavingScatter,
 
     try {
         testInterleavingScatterCompare<V>(
-            data_v, static_cast<typename I::EntryType>(N - 1) - I::IndexesFromZero(),
+            data_v,
+            static_cast<typename I::EntryType>(N - 1) - I([](int n) { return n; }),
             Vc::make_index_sequence<StructSize>());
         for (int retest = 0; retest < TotalRetests; ++retest) {
             I indexes = (I::Random() >> 10) & I(NMask);

@@ -42,7 +42,7 @@ std::uintptr_t addressOf(void *ptr)
 
 void *blackhole = nullptr;
 
-TEST_TYPES(A, alignedbase, (Int<4>, Int<8>, Int<16>, Int<32>, Int<64>, Int<128>))
+TEST_TYPES(A, alignedbase, Int<4>, Int<8>, Int<16>, Int<32>, Int<64>, Int<128>)
 {
     using T = Foo<A::value>;
     COMPARE(alignof(T), A::value);
@@ -63,7 +63,7 @@ template <typename T> struct VectorAligned : public Vc::VectorAlignedBaseT<T>
 };
 
 TEST_TYPES(N, vectoralignedbase,
-           (Int<4>, Int<8>, Int<16>, Int<32>, Int<64>, Int<128>, Int<256>))
+           Int<4>, Int<8>, Int<16>, Int<32>, Int<64>, Int<128>, Int<256>)
 {
     using V = Vc::SimdMaskArray<int, N::value>;
     using T = VectorAligned<V>;
@@ -86,7 +86,7 @@ template <typename T> struct MemoryAligned : public Vc::MemoryAlignedBaseT<T>
 };
 
 TEST_TYPES(N, memoryalignedbase,
-           (Int<4>, Int<8>, Int<16>, Int<32>, Int<64>, Int<128>, Int<256>))
+           Int<4>, Int<8>, Int<16>, Int<32>, Int<64>, Int<128>, Int<256>)
 {
     using V = Vc::SimdMaskArray<int, N::value>;
     using T = MemoryAligned<V>;
@@ -104,8 +104,8 @@ TEST_TYPES(N, memoryalignedbase,
 }
 
 TEST_TYPES(T, alignedbasealiases,
-           (float, double, unsigned long long, long long, unsigned long, long,
-            unsigned int, int, unsigned short, short, unsigned char, signed char))
+           float, double, unsigned long long, long long, unsigned long, long,
+           unsigned int, int, unsigned short, short, unsigned char, signed char)
 {
     using V = Vc::Vector<T>;
     VERIFY(alignof(Vc::VectorAlignedBase) >= alignof(V));

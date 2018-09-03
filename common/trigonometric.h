@@ -82,6 +82,7 @@ using Trig = Common::Trigonometric<Detail::TrigonometricImplementation<
          ? SSE42Impl
          : std::is_same<Abi, VectorAbi::Avx>::value ? AVXImpl : ScalarImpl)>>;
 }  // namespace Detail
+
 #ifdef Vc_HAVE_LIBMVEC
 Vc_INTRINSIC __m128  sin_dispatch(__m128  x) { return ::_ZGVbN4v_sinf(x); }
 Vc_INTRINSIC __m128d sin_dispatch(__m128d x) { return ::_ZGVbN2v_sin (x); }
@@ -95,24 +96,52 @@ Vc_INTRINSIC __m256d cos_dispatch(__m256d x) { return ::_ZGVdN4v_cos (x); }
 #endif
 
 template <typename T, typename Abi>
-Vc_INTRINSIC Vector<T, Abi> sin(const Vector<T, Abi> &x)
+Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> sin(const Vector<T, Abi> &x)
 {
     return sin_dispatch(x.data());
 }
 template <typename T, typename Abi>
-Vc_INTRINSIC Vector<T, Abi> cos(const Vector<T, Abi> &x)
+Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> cos(const Vector<T, Abi> &x)
 {
     return cos_dispatch(x.data());
 }
 #else
-template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> sin(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::sin(x); }
-template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> cos(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::cos(x); }
+template <typename T, typename Abi>
+Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> sin(const Vector<T, Abi> &x)
+{
+    return Detail::Trig<T, Abi>::sin(x);
+}
+template <typename T, typename Abi>
+Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> cos(const Vector<T, Abi> &x)
+{
+    return Detail::Trig<T, Abi>::cos(x);
+}
 #endif
-template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> asin(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::asin(x); }
-template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> atan(const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::atan(x); }
-template <typename T, typename Abi> Vc_INTRINSIC Vector<T, Abi> atan2(const Vector<T, Abi> &y, const Vector<T, Abi> &x) { return Detail::Trig<T, Abi>::atan2(y, x); }
-template <typename T, typename Abi> Vc_INTRINSIC void sincos(const Vector<T, Abi> &x, Vector<T, Abi> *sin, Vector<T, Abi> *cos) { Detail::Trig<T, Abi>::sincos(x, sin, cos); }
-#endif
-}  // namespace Vc
 
-#endif // VC_COMMON_TRIGONOMETRIC_H_
+template <typename T, typename Abi>
+Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> asin(const Vector<T, Abi> &x)
+{
+    return Detail::Trig<T, Abi>::asin(x);
+}
+template <typename T, typename Abi>
+Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> atan(const Vector<T, Abi> &x)
+{
+    return Detail::Trig<T, Abi>::atan(x);
+}
+template <typename T, typename Abi>
+Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> atan2(const Vector<T, Abi> &y,
+                                                              const Vector<T, Abi> &x)
+{
+    return Detail::Trig<T, Abi>::atan2(y, x);
+}
+template <typename T, typename Abi>
+Vc_INTRINSIC void sincos(const Vector<T, Abi> &x,
+                         Vector<T, detail::not_fixed_size_abi<Abi>> *sin,
+                         Vector<T, Abi> *cos)
+{
+    Detail::Trig<T, Abi>::sincos(x, sin, cos);
+}
+#endif
+}  // namespace Vc_VERSIONED_NAMESPACE
+
+#endif  // VC_COMMON_TRIGONOMETRIC_H_

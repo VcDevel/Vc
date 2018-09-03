@@ -46,32 +46,26 @@ using Vc::ushort_v;
  *  short_v |       |        |        |   X   |      |
  * ushort_v |       |        |    X   |       |      |
  */
-typedef Typelist<float_v, float> float_float;
-typedef Typelist<float_v, unsigned short> float_ushort;
-typedef Typelist<float_v, short> float_short;
-
-typedef Typelist<double_v, double> double_double;
-typedef Typelist<short_v, short> short_short;
-typedef Typelist<ushort_v, unsigned short> ushort_ushort;
-
-typedef Typelist<int_v, int> int_int;
-typedef Typelist<int_v, short> int_short;
-
-typedef Typelist<uint_v, unsigned int> uint_uint;
-typedef Typelist<uint_v, unsigned short> uint_ushort;
 
 TEST_TYPES(Pair, testDeinterleave,
-           (float_float, float_ushort, float_short, double_double, int_int, int_short,
-            uint_uint, uint_ushort, short_short, ushort_ushort))
+           vir::Typelist<float_v, float>,
+           vir::Typelist<float_v, unsigned short>,
+           vir::Typelist<float_v, short>,
+           vir::Typelist<double_v, double>,
+           vir::Typelist<int_v, int>,
+           vir::Typelist<int_v, short>,
+           vir::Typelist<uint_v, unsigned int>,
+           vir::Typelist<uint_v, unsigned short>,
+           vir::Typelist<short_v, short>,
+           vir::Typelist<ushort_v, unsigned short>)
 {
     typedef typename Pair::template at<0> V;
     typedef typename Pair::template at<1> M;
-    typedef typename V::IndexType I;
 
     const bool isSigned = std::numeric_limits<M>::is_signed;
 
     const typename V::EntryType offset = isSigned ? -512 : 0;
-    const V _0246 = Vc::simd_cast<V>(I::IndexesFromZero()) * 2 + offset;
+    const V _0246 = V([](int n) { return n * 2; }) + offset;
 
     M memory[1024];
     for (int i = 0; i < 1024; ++i) {

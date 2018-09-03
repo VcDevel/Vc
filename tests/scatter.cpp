@@ -32,9 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Vc;
 
-#define ALL_TYPES SIMD_ARRAY_LIST, ALL_VECTORS
-
-TEST_TYPES(Vec, scatterArray, (ALL_TYPES)) //{{{1
+TEST_TYPES(Vec, scatterArray, AllTypes) //{{{1
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::IndexType It;
@@ -83,17 +81,17 @@ TEST_TYPES(Vec, scatterArray, (ALL_TYPES)) //{{{1
     COMPARE(0, std::memcmp(&array[0], &out[0], count * sizeof(typename Vec::EntryType)));
 }
 
-TEST_TYPES(Vec, maskedScatterArray, (ALL_TYPES)) //{{{1
+TEST_TYPES(Vec, maskedScatterArray, AllTypes) //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef typename Vec::EntryType T;
 
     Vc::array<T, Vec::Size> mem;
-    const Vec v = Vec::IndexesFromZero() + 1;
+    const Vec v = Vec([](T n) { return n + 1; });
 
-    UnitTest::withRandomMask<Vec>([&](typename Vec::mask_type m) {
-        Vec::Zero().store(&mem[0], Vc::Unaligned);
-        where(m) | mem[It::IndexesFromZero()] = v;
+    withRandomMask<Vec>([&](typename Vec::mask_type m) {
+        Vec(0).store(&mem[0], Vc::Unaligned);
+        where(m) | mem[It([](int n) { return n; })] = v;
 
         Vec reference = v;
         reference.setZeroInverted(m);
@@ -112,7 +110,7 @@ template<typename T, std::size_t Align> struct Struct //{{{1
     char z;
 };
 
-TEST_TYPES(Vec, scatterStruct, (ALL_TYPES)) //{{{1
+TEST_TYPES(Vec, scatterStruct, AllTypes) //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct<typename Vec::EntryType, alignof(typename Vec::EntryType)> S;
@@ -177,7 +175,7 @@ template<typename V> V makeReference(V v, typename V::Mask m)
     v.setZero(!m);
     return v;
 }
-TEST_TYPES(Vec, scatterStruct2, (ALL_TYPES)) //{{{1
+TEST_TYPES(Vec, scatterStruct2, AllTypes) //{{{1
 {
     typedef typename Vec::IndexType It;
     typedef Struct2<typename Vec::EntryType, alignof(typename Vec::EntryType)> S1;

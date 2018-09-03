@@ -27,7 +27,7 @@
 #pragma GCC diagnostic ignored "-Wignored-attributes"
 #endif
 
-#define ALL_TYPES (ALL_VECTORS, SIMD_ARRAYS(32))
+#define ALL_TYPES concat<AllVectors, SimdArrays<32>>
 
 TEST_TYPES(V, check_EntryType, ALL_TYPES)
 {
@@ -37,7 +37,7 @@ TEST_TYPES(V, check_EntryType, ALL_TYPES)
     static_assert(std::is_same<typename V::value_type, decltype(scalar)>::value, "");
 }
 
-TEST_TYPES(V, check_VectorType, (ALL_VECTORS))
+TEST_TYPES(V, check_VectorType, AllVectors)
 {
     V v = V();
     auto internalData = v.data();
@@ -64,8 +64,10 @@ TEST_TYPES(V, check_IndexType, ALL_TYPES)
                   "IndexType does not have the expected value_type");
 }
 
-TEST_TYPES(V, checkIntegerType, (Vc::int64_v, Vc::uint64_v, Vc::int32_v, Vc::uint32_v,
-                                 Vc::int16_v, Vc::uint16_v, Vc::int8_v, Vc::uint8_v))
+static_assert(!Vc::is_simd_vector<Vc::int64_v>::value, "");
+
+TEST_TYPES(V, checkIntegerType, Vc::int64_v, Vc::uint64_v, Vc::int32_v, Vc::uint32_v,
+           Vc::int16_v, Vc::uint16_v, Vc::int8_v, Vc::uint8_v)
 {
     V v;
     MEMCOMPARE(v, v);

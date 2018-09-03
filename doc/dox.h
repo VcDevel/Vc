@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 The %Vc library implements portable, zero-overhead C++ types for explicitly data-parallel
 programming.
 
-The 1.0 release ships implementations for x86 SIMD instruction sets: SSE, AVX, AVX2, and
+The 1.x releases ship implementations for x86 SIMD instruction sets: SSE, AVX, AVX2, and
 the Xeon Phi (MIC). A scalar implementation ensures full portability to any C++11 capable
 compiler and target system.
 

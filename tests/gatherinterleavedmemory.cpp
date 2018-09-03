@@ -161,14 +161,13 @@ static constexpr int TotalRetests = 1000;
 #endif
 
 TEST_TYPES(Param, testDeinterleaveGather,
-           (outer_product<Typelist<ALL_VECTORS>,
-                          Typelist<std::integral_constant<std::size_t, 2>,
-                                   std::integral_constant<std::size_t, 3>,
-                                   std::integral_constant<std::size_t, 4>,
-                                   std::integral_constant<std::size_t, 5>,
-                                   std::integral_constant<std::size_t, 6>,
-                                   std::integral_constant<std::size_t, 7>,
-                                   std::integral_constant<std::size_t, 8>>>))
+           outer_product<AllVectors, Typelist<std::integral_constant<std::size_t, 2>,
+                                              std::integral_constant<std::size_t, 3>,
+                                              std::integral_constant<std::size_t, 4>,
+                                              std::integral_constant<std::size_t, 5>,
+                                              std::integral_constant<std::size_t, 6>,
+                                              std::integral_constant<std::size_t, 7>,
+                                              std::integral_constant<std::size_t, 8>>>)
 {
     typedef typename Param::template at<0> V;
     constexpr auto StructSize = Param::template at<1>::value;
@@ -204,7 +203,7 @@ TEST_TYPES(Param, testDeinterleaveGather,
     }
 
     for (int i = 0; i < int(N - V::Size); ++i) {
-        const V reference = Vc::simd_cast<V>(i + I::IndexesFromZero()) * T(StructSize);
+        const V reference([&](int n) { return (n + i) * StructSize; });
         TestDeinterleaveGatherCompare<V, StructSize, false>::test(data_v, i, reference);
     }
 }

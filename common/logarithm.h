@@ -255,17 +255,20 @@ static inline Vector<T, Abi> calc(V _x)
 }  // namespace Detail
 
 template <typename T, typename Abi>
-Vc_INTRINSIC Vc_CONST Vector<T, Abi> log(const Vector<T, Abi> &x)
+Vc_INTRINSIC Vc_CONST Vector<T, detail::not_fixed_size_abi<Abi>> log(
+    const Vector<T, Abi> &x)
 {
     return Detail::LogImpl<BaseE>::calc<T, Abi>(x);
 }
 template <typename T, typename Abi>
-Vc_INTRINSIC Vc_CONST Vector<T, Abi> log10(const Vector<T, Abi> &x)
+Vc_INTRINSIC Vc_CONST Vector<T, detail::not_fixed_size_abi<Abi>> log10(
+    const Vector<T, Abi> &x)
 {
     return Detail::LogImpl<Base10>::calc<T, Abi>(x);
 }
 template <typename T, typename Abi>
-Vc_INTRINSIC Vc_CONST Vector<T, Abi> log2(const Vector<T, Abi> &x)
+Vc_INTRINSIC Vc_CONST Vector<T, detail::not_fixed_size_abi<Abi>> log2(
+    const Vector<T, Abi> &x)
 {
     return Detail::LogImpl<Base2>::calc<T, Abi>(x);
 }

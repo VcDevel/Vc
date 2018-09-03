@@ -32,24 +32,33 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace VectorAbi
 {
-struct Scalar {};
-struct Sse {};
-struct Avx {};
-struct Mic {};
 template <typename T>
 using Avx1Abi = typename std::conditional<std::is_integral<T>::value, VectorAbi::Sse,
                                           VectorAbi::Avx>::type;
+
+template <typename T> struct DeduceCompatible {
+#ifdef __x86_64__
+    using type = Sse;
+#else
+    using type = Scalar;
+#endif
+};
+
 template <typename T>
-using Best = typename std::conditional<
-    CurrentImplementation::is(ScalarImpl), Scalar,
-    typename std::conditional<
-        CurrentImplementation::is_between(SSE2Impl, SSE42Impl), Sse,
+struct DeduceBest {
+    using type = typename std::conditional<
+        CurrentImplementation::is(ScalarImpl), Scalar,
         typename std::conditional<
-            CurrentImplementation::is(AVXImpl), Avx1Abi<T>,
+            CurrentImplementation::is_between(SSE2Impl, SSE42Impl), Sse,
             typename std::conditional<
-                CurrentImplementation::is(AVX2Impl), Avx,
-                typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
-                                          void>::type>::type>::type>::type>::type;
+                CurrentImplementation::is(AVXImpl), Avx1Abi<T>,
+                typename std::conditional<
+                    CurrentImplementation::is(AVX2Impl), Avx,
+                    typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
+                                              void>::type>::type>::type>::type>::type;
+};
+template <typename T> using Best = typename DeduceBest<T>::type;
+
 #ifdef Vc_IMPL_AVX2
 static_assert(std::is_same<Best<float>, Avx>::value, "");
 static_assert(std::is_same<Best<int>, Avx>::value, "");
@@ -68,6 +77,61 @@ static_assert(std::is_same<Best<float>, Scalar>::value, "");
 static_assert(std::is_same<Best<int>, Scalar>::value, "");
 #endif
 }  // namespace VectorAbi
+}  // namespace Vc_VERSIONED_NAMESPACE
+
+#include "simdarrayfwd.h"
+
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace detail
+{
+template <class T> struct translate_to_simd<T, simd_abi::scalar> {
+    using simd = Vector<T, VectorAbi::Scalar>;
+    using mask = Mask<T, VectorAbi::Scalar>;
+};
+template <class T, int N> struct translate_to_simd<T, simd_abi::fixed_size<N>> {
+    using simd = SimdArray<T, N>;
+    using mask = SimdMaskArray<T, N>;
+};
+template <class T> struct translate_to_simd<T, simd_abi::compatible<T>> {
+#ifdef Vc_IMPL_SSE2
+    using simd = Vector<T, VectorAbi::Sse>;
+    using mask = Mask<T, VectorAbi::Sse>;
+#else
+    using simd = Vector<T, VectorAbi::Scalar>;
+    using mask = Mask<T, VectorAbi::Scalar>;
+#endif
+};
+template <class T> struct translate_to_simd<T, simd_abi::native<T>> {
+    using simd = Vector<T, VectorAbi::Best<T>>;
+    using mask = Mask<T, VectorAbi::Best<T>>;
+};
+template <class T> struct translate_to_simd<T, simd_abi::__sse> {
+    using simd = Vector<T, VectorAbi::Sse>;
+    using mask = Mask<T, VectorAbi::Sse>;
+};
+template <class T> struct translate_to_simd<T, simd_abi::__avx> {
+    using simd = Vector<T, VectorAbi::Avx>;
+    using mask = Mask<T, VectorAbi::Avx>;
+};
+template <class T> struct translate_to_simd<T, simd_abi::__avx512> {
+    // not implemented
+};
+template <class T> struct translate_to_simd<T, simd_abi::__neon> {
+    // not implemented
+};
+
+// is_fixed_size_abi {{{
+template <class T> struct is_fixed_size_abi : std::false_type {
+};
+template <int N> struct is_fixed_size_abi<simd_abi::fixed_size<N>> : std::true_type {
+};
+//}}}
+
+template <class T>
+using not_fixed_size_abi = typename std::enable_if<!is_fixed_size_abi<T>::value, T>::type;
+
+}  // namespace detail
 }  // namespace Vc
 
 #endif  // VC_COMMON_VECTORABI_H_

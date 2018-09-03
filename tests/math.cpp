@@ -34,9 +34,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /*}}}*/
 using namespace Vc;
 
-using RealTypes = concat<RealVectors, RealSimdArrays>;
-using AllTypes = concat<AllVectors, AllSimdArrays>;
-
 // fix isfinite and isnan {{{1
 #ifdef isfinite
 #undef isfinite
@@ -46,12 +43,13 @@ using AllTypes = concat<AllVectors, AllSimdArrays>;
 #endif
 
 // abs {{{1
-TEST_TYPES(V, testAbs, (concat<RealTypes, int_v, short_v, SimdArray<int, 8>,
-                               SimdArray<int, 2>, SimdArray<int, 7>>))
+TEST_TYPES(V, testAbs,
+           concat<RealTypes, int_v, short_v, SimdArray<int, 8>, SimdArray<int, 2>,
+                  SimdArray<int, 7>>)
 {
     for (int i = 0; i < 0x7fff - int(V::size()); ++i) {
-        V a = V::IndexesFromZero() + i;
-        V b = -a;
+        const V a([&](int n) { return n + i; });
+        const V b = -a;
         COMPARE(a, Vc::abs(a));
         COMPARE(a, Vc::abs(b));
     }
@@ -62,7 +60,7 @@ TEST_TYPES(V, testAbs, (concat<RealTypes, int_v, short_v, SimdArray<int, 8>,
     }
 }
 
-TEST_TYPES(V, testTrunc, (RealTypes)) //{{{1
+TEST_TYPES(V, testTrunc, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -70,12 +68,12 @@ TEST_TYPES(V, testTrunc, (RealTypes)) //{{{1
         V reference = x.apply([](T _x) { return std::trunc(_x); });
         COMPARE(Vc::trunc(x), reference) << ", x = " << x << ", i = " << i;
     }
-    V x = V::IndexesFromZero();
+    V x([](T n) { return n; });
     V reference = x.apply([](T _x) { return std::trunc(_x); });
     COMPARE(Vc::trunc(x), reference) << ", x = " << x;
 }
 
-TEST_TYPES(V, testFloor, (RealTypes)) //{{{1
+TEST_TYPES(V, testFloor, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -83,12 +81,12 @@ TEST_TYPES(V, testFloor, (RealTypes)) //{{{1
         V reference = x.apply([](T _x) { return std::floor(_x); });
         COMPARE(Vc::floor(x), reference) << ", x = " << x << ", i = " << i;
     }
-    V x = V::IndexesFromZero();
+    V x([](T n) { return n; });
     V reference = x.apply([](T _x) { return std::floor(_x); });
     COMPARE(Vc::floor(x), reference) << ", x = " << x;
 }
 
-TEST_TYPES(V, testCeil, (RealTypes)) //{{{1
+TEST_TYPES(V, testCeil, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
@@ -96,25 +94,25 @@ TEST_TYPES(V, testCeil, (RealTypes)) //{{{1
         V reference = x.apply([](T _x) { return std::ceil(_x); });
         COMPARE(Vc::ceil(x), reference) << ", x = " << x << ", i = " << i;
     }
-    V x = V::IndexesFromZero();
+    V x([](T n) { return n; });
     V reference = x.apply([](T _x) { return std::ceil(_x); });
     COMPARE(Vc::ceil(x), reference) << ", x = " << x;
 }
 
-TEST_TYPES(V, testExp, (RealTypes)) //{{{1
+TEST_TYPES(V, testExp, RealTypes) //{{{1
 {
-    UnitTest::setFuzzyness<float>(1);
-    UnitTest::setFuzzyness<double>(2);
+    setFuzzyness<float>(1);
+    setFuzzyness<double>(2);
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 100000 / V::Size; ++i) {
         V x = (V::Random() - T(0.5)) * T(20);
         V reference = x.apply([](T _x) { return std::exp(_x); });
         FUZZY_COMPARE(Vc::exp(x), reference) << ", x = " << x << ", i = " << i;
     }
-    COMPARE(Vc::exp(V::Zero()), V::One());
+    COMPARE(Vc::exp(V(0)), V(1));
 }
 
-TEST_TYPES(V, testMax, (AllTypes)) //{{{1
+TEST_TYPES(V, testMax, AllTypes) //{{{1
 {
     typedef typename V::EntryType T;
     VectorMemoryHelper<V> mem(3);
@@ -131,29 +129,29 @@ TEST_TYPES(V, testMax, (AllTypes)) //{{{1
     COMPARE(Vc::max(a, b), c);
 }
 
-TEST_TYPES(V, testSqrt, (RealTypes)) //{{{1
+TEST_TYPES(V, testSqrt, RealTypes) //{{{1
 {
-    V data = V::IndexesFromZero();
+    V data([](int n) { return n; });
     V reference = V::generate([&](int i) { return std::sqrt(data[i]); });
 
     FUZZY_COMPARE(Vc::sqrt(data), reference);
 }
 
-TEST_TYPES(V, testRSqrt, (RealTypes)) //{{{1
+TEST_TYPES(V, testRSqrt, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     for (size_t i = 0; i < 1024 / V::Size; ++i) {
         const V x = V::Random() * T(1000);
         // RSQRTPS is documented as having a relative error <= 1.5 * 2^-12
-        VERIFY(all_of(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V::One()) < static_cast<T>(std::ldexp(1.5, -12))));
+        VERIFY(all_of(Vc::abs(Vc::rsqrt(x) * Vc::sqrt(x) - V(1)) < static_cast<T>(std::ldexp(1.5, -12))));
     }
 }
 
-TEST_TYPES(V, testReciprocal, (RealTypes)) //{{{1
+TEST_TYPES(V, testReciprocal, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(1.258295e+07);
-    UnitTest::setFuzzyness<double>(0);
+    setFuzzyness<float>(1.258295e+07);
+    setFuzzyness<double>(0);
     const T one = 1;
     for (int offset = -1000; offset < 1000; offset += 10) {
         const T scale = T(0.1);
@@ -170,16 +168,16 @@ TEST_TYPES(V, testReciprocal, (RealTypes)) //{{{1
     }
 }
 
-TEST_TYPES(V, isNegative, (RealTypes)) //{{{1
+TEST_TYPES(V, isNegative, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
-    VERIFY(isnegative(V::One()).isEmpty());
-    VERIFY(isnegative(V::Zero()).isEmpty());
-    VERIFY(isnegative((-V::One())).isFull());
+    VERIFY(isnegative(V(1)).isEmpty());
+    VERIFY(isnegative(V(0)).isEmpty());
+    VERIFY(isnegative((-V(1))).isFull());
     VERIFY(isnegative(V(T(-0.))).isFull());
 }
 
-TEST_TYPES(V, testInf, (RealTypes)) //{{{1
+TEST_TYPES(V, testInf, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     const T one = 1;
@@ -199,7 +197,7 @@ TEST_TYPES(V, testInf, (RealTypes)) //{{{1
     VERIFY(none_of(Vc::isinf(nan)));
 }
 
-TEST_TYPES(V, testNaN, (RealTypes)) //{{{1
+TEST_TYPES(V, testNaN, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
@@ -210,15 +208,15 @@ TEST_TYPES(V, testNaN, (RealTypes)) //{{{1
     VERIFY(none_of(Vc::isnan(V(one))));
     const V inf = one / zero;
     VERIFY(all_of(Vc::isnan(V(inf * zero))));
-    V nan = V::Zero();
-    const M mask = simd_cast<M>(I::IndexesFromZero() == I::Zero());
+    V nan = V(0);
+    const M mask = simd_cast<M>(I([](int n) { return n; }) == I(0));
     nan.setQnan(mask);
     COMPARE(Vc::isnan(nan), mask);
     nan.setQnan();
     VERIFY(all_of(Vc::isnan(nan)));
 }
 
-TEST_TYPES(V, testRound, (RealTypes)) //{{{1
+TEST_TYPES(V, testRound, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     enum {
@@ -245,7 +243,7 @@ TEST_TYPES(V, testRound, (RealTypes)) //{{{1
     }
 }
 
-TEST_TYPES(V, testExponent, (RealTypes)) //{{{1
+TEST_TYPES(V, testExponent, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     Vc::array<T, 32> input;
@@ -289,7 +287,7 @@ TEST_TYPES(V, testExponent, (RealTypes)) //{{{1
 
 template<typename T> struct _ExponentVector { typedef int_v Type; };
 
-TEST_TYPES(V, testFrexp, (RealTypes)) //{{{1
+TEST_TYPES(V, testFrexp, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     using ExpV = typename V::IndexType;
@@ -340,7 +338,7 @@ TEST_TYPES(V, testFrexp, (RealTypes)) //{{{1
     }
 }
 
-TEST_TYPES(V, testLdexp, (RealTypes)) //{{{1
+TEST_TYPES(V, testLdexp, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     using ExpV = typename V::IndexType;
@@ -354,7 +352,7 @@ TEST_TYPES(V, testLdexp, (RealTypes)) //{{{1
 
 #include "ulp.h"
 // copysign {{{1
-TEST_TYPES(V, testCopysign, (RealTypes))
+TEST_TYPES(V, testCopysign, RealTypes)
 {
     const V x = V::Random();
     const V y = -x;

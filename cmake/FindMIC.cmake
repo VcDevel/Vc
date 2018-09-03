@@ -168,11 +168,6 @@ endif(ENABLE_MIC)
 
 if(MIC_NATIVE_FOUND OR MIC_OFFLOAD_FOUND)
    set(MIC_FOUND true)
-   list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 2338") # this switch statement does not have a default clause
-   list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 193") # zero used for undefined preprocessing identifier "Vc_GCC"
-   list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 61") # warning #61: integer operation result is out of range
-   list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 173") # warning #173: floating-point value does not fit in required integral type
-   list(APPEND CMAKE_MIC_CXX_FLAGS "-diag-disable 264") # warning #264: floating-point value does not fit in required floating-point type
 
    list(APPEND CMAKE_MIC_CXX_FLAGS "-fp-model source") # fix IEEE FP comliance
 

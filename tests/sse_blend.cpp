@@ -28,31 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unittest.h"
 #include <sse/intrinsics.h>
 
-namespace std
-{
-ostream &operator<<(ostream &out, const __m128i &v)
-{
-    union {
-        __m128i v;
-        short m[8];
-    } x = { v };
-
-    out << "[" << x.m[0];
-    for (int i = 1; i < 8; ++i) {
-        out << ", " << x.m[i];
-    }
-    return out << "]";
-}
-} // namespace std
-
-namespace UnitTest
-{
-template<> inline bool unittest_compareHelper<__m128i, __m128i>(const __m128i &a, const __m128i &b)
-{
-    return _mm_movemask_epi8(_mm_cmpeq_epi16(a, b)) == 0xffff;
-}
-}  // namespace UnitTest
-
 TEST(blendpd)
 {
     using Vc::SSE::blend_pd;
@@ -111,6 +86,6 @@ TEST(blendepi16)
             r[j] = j + ((((i >> j) & 1) == 0) ? 10 : 20);
         }
         __m128i reference = _mm_set_epi16(r[7], r[6], r[5], r[4], r[3], r[2], r[1], r[0]);
-        COMPARE_NOEQ(blend_epi16<i>(a, b), reference);
+        COMPARE(_mm_movemask_epi8(_mm_cmpeq_epi16(blend_epi16<i>(a, b), reference)), 0xffff);
     )
 }

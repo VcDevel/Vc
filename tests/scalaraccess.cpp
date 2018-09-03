@@ -30,17 +30,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Vc;
 
-TEST_TYPES(V, reads, (ALL_VECTORS, SIMD_ARRAY_LIST))
+TEST_TYPES(V, reads, concat<AllVectors, SimdArrayList>)
 {
     typedef typename V::EntryType T;
 
-    V a = V::Zero();
+    V a = V(0);
     const T zero = 0;
     for (size_t i = 0; i < V::Size; ++i) {
         const T x = a[i];
         COMPARE(x, zero);
     }
-    a = V::IndexesFromZero();
+    a = V([](T n) { return n; });
     for (size_t i = 0; i < V::Size; ++i) {
         const T x = a[i];
         const T y = i;
@@ -84,7 +84,7 @@ template <typename V, size_t Index> inline void readsConstantIndexTest(V a, V b)
 template<typename V, size_t Index>
 struct ReadsConstantIndex
 {
-    ReadsConstantIndex(V a, V b)
+    ReadsConstantIndex(const V &a, const V &b)
     {
         readsConstantIndexTest<V, Index>(a, b);
         ReadsConstantIndex<V, Index - 1>(a, b);
@@ -95,17 +95,17 @@ struct ReadsConstantIndex
 template<typename V>
 struct ReadsConstantIndex<V, 0>
 {
-    ReadsConstantIndex(V a, V b) { readsConstantIndexTest<V, 0>(a, b); }
+    ReadsConstantIndex(const V &a, const V &b) { readsConstantIndexTest<V, 0>(a, b); }
 };
 
-TEST_TYPES(V, readsConstantIndex, (ALL_VECTORS, SIMD_ARRAY_LIST))
+TEST_TYPES(V, readsConstantIndex, concat<AllVectors, SimdArrayList>)
 {
-    V a = V::Zero();
-    V b = V::IndexesFromZero();
+    V a = V(0);
+    V b = V([](int n) { return n; });
     ReadsConstantIndex<V, V::Size - 1>(a, b);
 }
 
-TEST_TYPES(V, writes, (ALL_VECTORS, SIMD_ARRAY_LIST))
+TEST_TYPES(V, writes, concat<AllVectors, SimdArrayList>)
 {
     typedef typename V::EntryType T;
 
@@ -209,7 +209,7 @@ bool test_post_decrement(V &&a, int x)
     return true;
 }
 
-TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
+TEST_TYPES(V, operators, concat<AllVectors, SimdArrayList>)
 {
     using T = EntryType<V>;
     V a = 10;
@@ -283,7 +283,7 @@ TEST_TYPES(V, operators, (ALL_VECTORS, SIMD_ARRAY_LIST))
     VERIFY(test_unary_not(k0, 1));
 }
 
-TEST_TYPES(V, ensure_noexcept, (ALL_VECTORS, SIMD_ARRAY_LIST))
+TEST_TYPES(V, ensure_noexcept, concat<AllVectors, SimdArrayList>)
 {
     V a{};
     {

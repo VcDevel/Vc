@@ -25,9 +25,12 @@
 #include <Vc/array>
 #include <Vc/vector>
 
-#define ALL_TYPES (ALL_VECTORS)
+template <class T> T inline seq()
+{
+    return T([](int n) -> typename T::value_type { return n; });
+}
 
-TEST_TYPES(V, init, ALL_TYPES)
+TEST_TYPES(V, init, AllVectors)
 {
     typedef typename V::EntryType T;
     Vc::array<T, 256> data;
@@ -82,7 +85,7 @@ template <typename V, int Modulo> static V randomIndexes()
     return indexes;
 }
 
-TEST_TYPES(V, gathers, ALL_TYPES)
+TEST_TYPES(V, gathers, AllVectors)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -94,10 +97,11 @@ TEST_TYPES(V, gathers, ALL_TYPES)
     }
 
     static_assert(Vc::Common::is_valid_indexvector_<const IT &>::value, "");
-    V test = data[IT::IndexesFromZero()];
-    COMPARE(test, V::IndexesFromZero());
-    test = data2[IT::IndexesFromZero()];
-    COMPARE(test, V::IndexesFromZero());
+
+    V test = data[seq<IT>()];
+    COMPARE(test, seq<V>());
+    test = data2[seq<IT>()];
+    COMPARE(test, seq<V>());
 
     for (std::size_t repetition = 0; repetition < 1024 / V::Size; ++repetition) {
         const IT indexes = randomIndexes<IT, 256>();
@@ -123,7 +127,7 @@ std::ostream &operator<<(std::ostream &s, const Vc::array<T, N> &data)
     return s;
 }
 
-TEST_TYPES(V, scatters, ALL_TYPES)
+TEST_TYPES(V, scatters, AllVectors)
 {
     static_assert(std::is_same<decltype(V() + 1), V>::value, "");
     typedef typename V::EntryType T;
@@ -133,8 +137,8 @@ TEST_TYPES(V, scatters, ALL_TYPES)
     std::fill_n(&data1[0], 256, 0);
     std::fill_n(&data2[0], 256, 0);
 
-    data1[IT::IndexesFromZero()] = V::IndexesFromZero();
-    data2[IT::IndexesFromZero()] = V::IndexesFromZero();
+    data1[seq<IT>()] = seq<V>();
+    data2[seq<IT>()] = seq<V>();
 
     for (size_t i = 0; i < V::Size; ++i) {
         COMPARE(data1[i], T(i));
@@ -146,8 +150,8 @@ TEST_TYPES(V, scatters, ALL_TYPES)
         std::fill_n(&data2[0], 256, 0);
 
         const IT indexes = randomIndexes<IT, 256>();
-        data1[indexes] = V::IndexesFromZero() + 1;
-        data2[indexes] = V::IndexesFromZero() + 1;
+        data1[indexes] = seq<V>() + 1;
+        data2[indexes] = seq<V>() + 1;
 
         //std::cerr << data1 << '\n';
 
@@ -176,7 +180,7 @@ template <typename T, std::size_t Align = alignof(T)> struct S {
     char x3;
 };
 
-TEST_TYPES(V, structGathers, ALL_TYPES)
+TEST_TYPES(V, structGathers, AllVectors)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -193,41 +197,41 @@ TEST_TYPES(V, structGathers, ALL_TYPES)
 
     V test;
 
-    test = data1[IT::IndexesFromZero()][&S<T>::a];
-    COMPARE(test, V::IndexesFromZero());
-    test = data1[IT::IndexesFromZero()][&S<T>::b];
-    COMPARE(test, V::IndexesFromZero() + 1);
-    test = data1[IT::IndexesFromZero()][&S<T>::c];
-    COMPARE(test, V::IndexesFromZero() + 2);
+    test = data1[seq<IT>()][&S<T>::a];
+    COMPARE(test, seq<V>());
+    test = data1[seq<IT>()][&S<T>::b];
+    COMPARE(test, seq<V>() + 1);
+    test = data1[seq<IT>()][&S<T>::c];
+    COMPARE(test, seq<V>() + 2);
 
-    test = -V(data1[IT::IndexesFromZero()][&S<T>::a]);
-    COMPARE(test, -V::IndexesFromZero());
-    test = data1[IT::IndexesFromZero()][&S<T>::a] + V::One();
-    COMPARE(test, V::IndexesFromZero() + 1);
+    test = -V(data1[seq<IT>()][&S<T>::a]);
+    COMPARE(test, -seq<V>());
+    test = data1[seq<IT>()][&S<T>::a] + V(1);
+    COMPARE(test, seq<V>() + 1);
     // TODO: should this work? if yes, how? a gather needs to know the type it gets converted to,
     // applying a unary operator before conversion implies that all operations must be delayed until
     // conversion. => expression templates?
-    //test = -data1[IT::IndexesFromZero()][&S<T>::a];
-    //COMPARE(test, -V::IndexesFromZero());
+    //test = -data1[seq<IT>()][&S<T>::a];
+    //COMPARE(test, -seq<V>());
 
-    test = data2[IT::IndexesFromZero()][&S<S<T>>::a][&S<T>::a];
-    COMPARE(test, V::IndexesFromZero());
-    test = data2[IT::IndexesFromZero()][&S<S<T>>::b][&S<T>::c];
-    COMPARE(test, V::IndexesFromZero() + 3);
+    test = data2[seq<IT>()][&S<S<T>>::a][&S<T>::a];
+    COMPARE(test, seq<V>());
+    test = data2[seq<IT>()][&S<S<T>>::b][&S<T>::c];
+    COMPARE(test, seq<V>() + 3);
 
-    test = data3[IT::IndexesFromZero()][&S<S<S<T>>>::a][&S<S<T>>::a][&S<T>::a];
-    COMPARE(test, V::IndexesFromZero());
-    test = data3[IT::IndexesFromZero()][&S<S<S<T>>>::b][&S<S<T>>::c][&S<T>::b];
-    COMPARE(test, V::IndexesFromZero() + 4);
+    test = data3[seq<IT>()][&S<S<S<T>>>::a][&S<S<T>>::a][&S<T>::a];
+    COMPARE(test, seq<V>());
+    test = data3[seq<IT>()][&S<S<S<T>>>::b][&S<S<T>>::c][&S<T>::b];
+    COMPARE(test, seq<V>() + 4);
 
-    test = data4[IT::IndexesFromZero()][&S<S<S<S<T>>>>::a][&S<S<S<T>>>::a][&S<S<T>>::a][&S<T>::a];
-    COMPARE(test, V::IndexesFromZero());
-    test = data4[IT::IndexesFromZero()][&S<S<S<S<T>>>>::a][&S<S<S<T>>>::a][&S<S<T>>::a][&S<T>::b];
-    COMPARE(test, V::IndexesFromZero() + 1);
-    test = data4[IT::IndexesFromZero()][&S<S<S<S<T>>>>::a][&S<S<S<T>>>::a][&S<S<T>>::b][&S<T>::a];
-    COMPARE(test, V::IndexesFromZero() + 1);
-    test = data4[IT::IndexesFromZero()][&S<S<S<S<T>>>>::c][&S<S<S<T>>>::b][&S<S<T>>::b][&S<T>::c];
-    COMPARE(test, V::IndexesFromZero() + 6);
+    test = data4[seq<IT>()][&S<S<S<S<T>>>>::a][&S<S<S<T>>>::a][&S<S<T>>::a][&S<T>::a];
+    COMPARE(test, seq<V>());
+    test = data4[seq<IT>()][&S<S<S<S<T>>>>::a][&S<S<S<T>>>::a][&S<S<T>>::a][&S<T>::b];
+    COMPARE(test, seq<V>() + 1);
+    test = data4[seq<IT>()][&S<S<S<S<T>>>>::a][&S<S<S<T>>>::a][&S<S<T>>::b][&S<T>::a];
+    COMPARE(test, seq<V>() + 1);
+    test = data4[seq<IT>()][&S<S<S<S<T>>>>::c][&S<S<S<T>>>::b][&S<S<T>>::b][&S<T>::c];
+    COMPARE(test, seq<V>() + 6);
 
     for (std::size_t repetition = 0; repetition < 1024 / V::Size; ++repetition) {
         const IT indexes = randomIndexes<IT, 256>();
@@ -245,7 +249,7 @@ TEST_TYPES(V, structGathers, ALL_TYPES)
     }
 }
 
-TEST_TYPES(V, subarrayGathers, ALL_TYPES)
+TEST_TYPES(V, subarrayGathers, AllVectors)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType IT;
@@ -258,15 +262,15 @@ TEST_TYPES(V, subarrayGathers, ALL_TYPES)
 
     V test;
 
-    test = data1[IT::IndexesFromZero()][0];
-    COMPARE(test, V::IndexesFromZero());
-    test = data1[IT::IndexesFromZero()][255];
-    COMPARE(test, V::IndexesFromZero() + 255);
-    test = data1[254][IT::IndexesFromZero()];
-    COMPARE(test, V::IndexesFromZero() + 254);
+    test = data1[seq<IT>()][0];
+    COMPARE(test, seq<V>());
+    test = data1[seq<IT>()][255];
+    COMPARE(test, seq<V>() + 255);
+    test = data1[254][seq<IT>()];
+    COMPARE(test, seq<V>() + 254);
 
-    test = data1[IT::IndexesFromZero()][IT::IndexesFromZero()];
-    COMPARE(test, V::IndexesFromZero() * 2);
+    test = data1[seq<IT>()][seq<IT>()];
+    COMPARE(test, seq<V>() * 2);
 
     for (std::size_t repetition = 0; repetition < 1024 / V::Size; ++repetition) {
         const IT indexes1 = randomIndexes<IT, 256>();
@@ -283,11 +287,11 @@ TEST_TYPES(V, subarrayGathers, ALL_TYPES)
         }
     }
 
-    test = data2[IT::IndexesFromZero()][0];
-    COMPARE(test, V::IndexesFromZero());
+    test = data2[seq<IT>()][0];
+    COMPARE(test, seq<V>());
 }
 
-TEST_TYPES(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
+TEST_TYPES(V, fixedWidthGatherScatter4, SimdArrays<4>)
 {
     typedef typename V::EntryType T;
     Vc::array<T, 256> data;
@@ -326,7 +330,7 @@ TEST_TYPES(V, fixedWidthGatherScatter4, (SIMD_ARRAYS(4)))
     */
 }
 
-TEST_TYPES(V, fixedWidthGatherScatter32, (SIMD_ARRAYS(32)))
+TEST_TYPES(V, fixedWidthGatherScatter32, SimdArrays<32>)
 {
     typedef typename V::EntryType T;
     Vc::array<T, 256> data;
@@ -356,7 +360,7 @@ TEST(promotionOfIndexVectorType)
         ptr[i] = i;
     }
 
-    const Vc::short_v indexes = 1023 - Vc::short_v::IndexesFromZero();
+    const Vc::short_v indexes = 1023 - seq<Vc::short_v>();
     Vc::int_v reference = Vc::simd_cast<Vc::int_v>(indexes) * 1024;
     Vc::int_v test = data[indexes][0];
     COMPARE(test, reference);

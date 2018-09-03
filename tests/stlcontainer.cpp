@@ -43,7 +43,7 @@ template<typename Vec> size_t alignmentMask()
 
 template<typename T> struct SomeStruct { char a; T x; };
 
-TEST_TYPES(V, stdVectorAlignment, (ALL_VECTORS))
+TEST_TYPES(V, stdVectorAlignment, AllVectors)
 {
     const size_t mask = alignmentMask<V>();
     const char *const null = 0;
@@ -75,15 +75,15 @@ void listInitializationImpl(Vc::index_sequence<Indexes...>)
 {
     typedef typename V::EntryType T;
     const auto data = Vc::makeContainer<Container>({T(Indexes + 1)...});
-    V reference = V::IndexesFromZero() + 1;
+    V reference = V([](int n) { return n + 1; });
     for (const auto &v : data) {
         reference.setZero(reference > int(sizeof...(Indexes)));
-        COMPARE(v, reference) << UnitTest::typeToString<Container>() << " -> "
-                              << UnitTest::typeToString<decltype(data)>();
+        COMPARE(v, reference) << vir::typeToString<Container>() << " -> "
+                              << vir::typeToString<decltype(data)>();
         reference += int(V::size());
     }
 }
-TEST_TYPES(V, listInitialization, (ALL_VECTORS))
+TEST_TYPES(V, listInitialization, AllVectors)
 {
     listInitializationImpl<V, std::vector<V>>(Vc::make_index_sequence<9>());
     listInitializationImpl<V, std::vector<V>>(Vc::make_index_sequence<3>());
@@ -100,7 +100,7 @@ TEST_TYPES(V, listInitialization, (ALL_VECTORS))
 }
 
 #ifdef Vc_CXX14
-TEST_TYPES(V, simdForEach, (ALL_VECTORS))
+TEST_TYPES(V, simdForEach, AllVectors)
 {
     typedef typename V::EntryType T;
     std::vector<T> data;

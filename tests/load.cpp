@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Vc;
 
-#define ALL_TYPES (ALL_VECTORS)
+#define ALL_TYPES AllVectors
 
 template<typename T> static constexpr T min(T a, T b) { return a < b ? a : b; }
 
@@ -77,7 +77,8 @@ enum Enum {
     loadArrayShortCount = 32 * 1024,
     streamingLoadCount = 1024
 };
-TEST_TYPES(Vec, loadArrayShort, (short_v, ushort_v, SimdArray<short, 32>, SimdArray<unsigned short, 32>))
+TEST_TYPES(Vec, loadArrayShort, short_v, ushort_v, SimdArray<short, 32>,
+           SimdArray<unsigned short, 32>)
 {
     typedef typename Vec::EntryType T;
 
@@ -95,7 +96,7 @@ TEST_TYPES(Vec, loadArrayShort, (short_v, ushort_v, SimdArray<short, 32>, SimdAr
         Vec a(addr, Vc::Aligned);
         COMPARE(a, ii);
 
-        Vec b = Vec::Zero();
+        Vec b = Vec(0);
         b.load(addr, Vc::Aligned);
         COMPARE(b, ii);
     }
@@ -123,7 +124,7 @@ TEST_TYPES(Vec, loadArray, ALL_TYPES)
         Vec a(addr, Vc::Aligned);
         COMPARE(a, ii);
 
-        Vec b = Vec::Zero();
+        Vec b = Vec(0);
         b.load(addr, Vc::Aligned);
         COMPARE(b, ii);
     }
@@ -161,15 +162,14 @@ TEST_TYPES(Vec, streamingLoad, ALL_TYPES)
 
 TEST_TYPES(
     Pair, loadCvt,
-    (concat<
-        outer_product<Typelist<float>,
-                      Typelist<double, int, unsigned int, short, unsigned short,
-                               signed char, unsigned char>>,
-        outer_product<Typelist<int>, Typelist<unsigned int, short, unsigned short,
-                                              signed char, unsigned char>>,
-        outer_product<Typelist<unsigned int>, Typelist<unsigned short, unsigned char>>,
-        outer_product<Typelist<short>, Typelist<unsigned char, unsigned char>>,
-        outer_product<Typelist<unsigned short>, Typelist<unsigned char>>>))
+    concat<outer_product<Typelist<float>,
+                         Typelist<double, int, unsigned int, short, unsigned short,
+                                  signed char, unsigned char>>,
+           outer_product<Typelist<int>, Typelist<unsigned int, short, unsigned short,
+                                                 signed char, unsigned char>>,
+           outer_product<Typelist<unsigned int>, Typelist<unsigned short, unsigned char>>,
+           outer_product<Typelist<short>, Typelist<unsigned char, unsigned char>>,
+           outer_product<Typelist<unsigned short>, Typelist<unsigned char>>>)
 {
     using Vec = Vector<typename Pair::template at<0>>;
     using MemT = typename Pair::template at<1>;

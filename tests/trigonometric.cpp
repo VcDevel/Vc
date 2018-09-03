@@ -30,12 +30,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "mathreference.h"
 
 using Vc::Detail::doubleConstant;
+using vir::test::setFuzzyness;
 
-TEST_TYPES(V, testSincos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testSincos, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(2);
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(2);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref, cref;
@@ -54,11 +55,11 @@ TEST_TYPES(V, testSincos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
 }
 
-TEST_TYPES(V, testSin, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testSin, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(3);
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(3);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref;
@@ -81,11 +82,11 @@ TEST_TYPES(V, testSin, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
 }
 
-TEST_TYPES(V, testCos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testCos, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(3);
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(3);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, cref;
@@ -98,15 +99,15 @@ TEST_TYPES(V, testCos, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
 }
 
-TEST_TYPES(V, testAsin, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testAsin, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
 #ifdef Vc_IMPL_MIC
-    UnitTest::setFuzzyness<float>(3);
+    setFuzzyness<float>(3);
 #else
-    UnitTest::setFuzzyness<float>(2);
+    setFuzzyness<float>(2);
 #endif
-    UnitTest::setFuzzyness<double>(36);
+    setFuzzyness<double>(36);
     Array<Reference<T> > reference = referenceData<T, Asin>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, ref;
@@ -135,11 +136,11 @@ const union {
 #define ATAN_COMPARE COMPARE
 #endif
 
-TEST_TYPES(V, testAtan, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testAtan, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(3);
-    UnitTest::setFuzzyness<double>(2);
+    setFuzzyness<float>(3);
+    setFuzzyness<double>(2);
 
     {
         const V Pi_2 = T(doubleConstant<1, 0x921fb54442d18ull,  0>());
@@ -166,11 +167,11 @@ TEST_TYPES(V, testAtan, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
     }
 }
 
-TEST_TYPES(V, testAtan2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testAtan2, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
-    UnitTest::setFuzzyness<float>(3);
-    UnitTest::setFuzzyness<double>(2);
+    setFuzzyness<float>(3);
+    setFuzzyness<double>(2);
 
     {
         const V Pi   = T(doubleConstant<1, 0x921fb54442d18ull,  1>());
@@ -230,13 +231,11 @@ TEST_TYPES(V, testAtan2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
 
     for (int xoffset = -100; xoffset < 54613; xoffset += 47 * V::Size) {
         for (int yoffset = -100; yoffset < 54613; yoffset += 47 * V::Size) {
-            const V data = V::IndexesFromZero();
-            const V reference = V::generate([&](size_t i) {
-                return std::atan2((data[i] + xoffset) * T(0.15), (data[i] + yoffset) * T(0.15));
-            });
-
+            const V data([](T n) { return n; });
             const V x = (data + xoffset) * T(0.15);
             const V y = (data + yoffset) * T(0.15);
+            const V reference =
+                V::generate([&](size_t i) { return std::atan2(x[i], y[i]); });
             FUZZY_COMPARE(Vc::atan2(x, y), reference) << ", x = " << x << ", y = " << y;
         }
     }

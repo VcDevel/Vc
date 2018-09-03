@@ -32,6 +32,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Vc_VERSIONED_NAMESPACE
 {
+// private_init {{{
+namespace
+{
+static constexpr struct private_init_t {} private_init = {};
+}  // unnamed namespace
+// }}}
+
 namespace Common
 {
 
@@ -205,6 +212,23 @@ template <typename T, std::size_t Offset> struct AddOffset
  */
 template <std::size_t secondOffset> class Split
 {
+    // split (only for high part) generator functions
+    template <class G>
+    struct GeneratorOffset {
+        G gen;
+        Vc_INTRINSIC decltype(gen(std::size_t())) operator()(std::size_t i)
+        {
+            return gen(i + secondOffset);
+        }
+    };
+    template <class G, class = decltype(std::declval<G>()(std::size_t())),
+              class = typename std::enable_if<!Traits::is_simd_vector<G>::value>::type>
+    static Vc_INTRINSIC GeneratorOffset<G> hiImpl(G &&gen)
+    {
+        return {std::forward<G>(gen)};
+    }
+
+    // split (only for high part) IndexesFromZero
     static Vc_INTRINSIC AddOffset<VectorSpecialInitializerIndexesFromZero, secondOffset>
         hiImpl(VectorSpecialInitializerIndexesFromZero)
     {

@@ -66,12 +66,12 @@ template <typename V, typename F> void testAllDenormals(F &&fun)  //{{{1
     }
 }
 
-TEST_TYPES(V, testLog, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testLog, RealTypes) //{{{1
 {
 #ifdef Vc_IMPL_MIC
-    UnitTest::setFuzzyness<float>(2);
+    setFuzzyness<float>(2);
 #else
-    UnitTest::setFuzzyness<float>(1);
+    setFuzzyness<float>(1);
 #endif
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log>();
@@ -84,24 +84,24 @@ TEST_TYPES(V, testLog, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
         FUZZY_COMPARE(Vc::log(x), ref) << " x = " << x << ", i = " << i;
     }
 
-    COMPARE(Vc::log(V::Zero()), V(std::log(T(0))));
-    testAllDenormals<V>([](const V x) {
+    COMPARE(Vc::log(V(0)), V(std::log(T(0))));
+    testAllDenormals<V>([](const V &x) {
         V ref = x.apply([](T _x) { return std::log(_x); });
         FUZZY_COMPARE(Vc::log(x), ref) << ", x = " << x;
     });
 }
 
-TEST_TYPES(V, testLog2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testLog2, RealTypes) //{{{1
 {
 #if defined(Vc_LOG_ILP) || defined(Vc_LOG_ILP2)
-    UnitTest::setFuzzyness<float>(3);
+    setFuzzyness<float>(3);
 #else
-    UnitTest::setFuzzyness<float>(1);
+    setFuzzyness<float>(1);
 #endif
-    UnitTest::setFuzzyness<double>(1);
+    setFuzzyness<double>(1);
 #if defined(Vc_MSVC) || defined(__APPLE__)
     if (Vc::Scalar::is_vector<V>::value || !Vc::Traits::isAtomicSimdArray<V>::value) {
-        UnitTest::setFuzzyness<double>(2);
+        setFuzzyness<double>(2);
     }
 #endif
     typedef typename V::EntryType T;
@@ -115,17 +115,17 @@ TEST_TYPES(V, testLog2, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
         FUZZY_COMPARE(Vc::log2(x), ref) << " x = " << x << ", i = " << i;
     }
 
-    COMPARE(Vc::log2(V::Zero()), V(std::log2(T(0))));
+    COMPARE(Vc::log2(V(0)), V(std::log2(T(0))));
     testAllDenormals<V>([](const V x) {
         V ref = x.apply([](T _x) { return std::log2(_x); });
         FUZZY_COMPARE(Vc::log2(x), ref) << ", x = " << x;
     });
 }
 
-TEST_TYPES(V, testLog10, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testLog10, RealTypes) //{{{1
 {
-    UnitTest::setFuzzyness<float>(2);
-    UnitTest::setFuzzyness<double>(2);
+    setFuzzyness<float>(2);
+    setFuzzyness<double>(2);
     typedef typename V::EntryType T;
     Array<Reference<T> > reference = referenceData<T, Log10>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
@@ -137,7 +137,7 @@ TEST_TYPES(V, testLog10, (REAL_VECTORS, SIMD_REAL_ARRAY_LIST)) //{{{1
         FUZZY_COMPARE(Vc::log10(x), ref) << " x = " << x << ", i = " << i;
     }
 
-    COMPARE(Vc::log10(V::Zero()), V(std::log10(T(0))));
+    COMPARE(Vc::log10(V(0)), V(std::log10(T(0))));
     testAllDenormals<V>([](const V x) {
         V ref = x.apply([](T _x) { return std::log10(_x); });
         FUZZY_COMPARE(Vc::log10(x), ref) << ", x = " << x;

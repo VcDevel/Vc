@@ -40,10 +40,7 @@ using Vc::ushort_m;
 template<typename T> T two() { return T(2); }
 template<typename T> T three() { return T(3); }
 
-#define ALL_TYPES (ALL_VECTORS)
-//, SIMD_ARRAYS(33), SIMD_ARRAYS(32), SIMD_ARRAYS(31), SIMD_ARRAYS(16), SIMD_ARRAYS(8), SIMD_ARRAYS(7), SIMD_ARRAYS(4), SIMD_ARRAYS(3), SIMD_ARRAYS(2), SIMD_ARRAYS(1))
-
-TEST_TYPES(Vec, testInc, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testInc, AllVectors) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -82,7 +79,7 @@ TEST_TYPES(Vec, testInc, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
-TEST_TYPES(Vec, testDec, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testDec, AllVectors) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -114,7 +111,7 @@ TEST_TYPES(Vec, testDec, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
-TEST_TYPES(Vec, testPlusEq, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testPlusEq, AllVectors) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -137,7 +134,7 @@ TEST_TYPES(Vec, testPlusEq, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
-TEST_TYPES(Vec, testMinusEq, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testMinusEq, AllVectors) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -162,7 +159,7 @@ TEST_TYPES(Vec, testMinusEq, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
-TEST_TYPES(Vec, testTimesEq, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testTimesEq, AllVectors) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -187,7 +184,7 @@ TEST_TYPES(Vec, testTimesEq, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
-TEST_TYPES(Vec, testDivEq, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testDivEq, AllVectors) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -212,7 +209,7 @@ TEST_TYPES(Vec, testDivEq, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
-TEST_TYPES(Vec, testAssign, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testAssign, AllVectors) /*{{{*/
 {
     VectorMemoryHelper<Vec> mem(2);
     typedef typename Vec::EntryType T;
@@ -237,14 +234,14 @@ TEST_TYPES(Vec, testAssign, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
-TEST_TYPES(Vec, testZero, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testZero, AllVectors) /*{{{*/
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
     typedef typename Vec::IndexType I;
 
     for (size_t cut = 0; cut < Vec::Size; ++cut) {
-        const Mask mask = Vc::simd_cast<Mask>(I::IndexesFromZero() < cut);
+        const Mask mask = Vc::simd_cast<Mask>(I([](int n) { return n; }) < cut);
         //std::cout << mask << std::endl;
 
         const T aa = 4;
@@ -258,9 +255,9 @@ TEST_TYPES(Vec, testZero, ALL_TYPES) /*{{{*/
     }
 }
 /*}}}*/
-TEST_TYPES(V, testIntegerConversion, ALL_TYPES) /*{{{*/
+TEST_TYPES(V, testIntegerConversion, AllVectors) /*{{{*/
 {
-    UnitTest::withRandomMask<V>([](typename V::Mask m) {
+    withRandomMask<V>([](typename V::Mask m) {
         auto bit = m.toInt();
         for (size_t i = 0; i < m.Size; ++i) {
             COMPARE(!!((bit >> i) & 1), m[i]) << std::hex << bit;
@@ -268,11 +265,11 @@ TEST_TYPES(V, testIntegerConversion, ALL_TYPES) /*{{{*/
     });
 }
 /*}}}*/
-TEST_TYPES(Vec, testCount, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testCount, AllVectors) /*{{{*/
 {
     typedef typename Vec::Mask M;
 
-    UnitTest::withRandomMask<Vec>([](M m) {
+    withRandomMask<Vec>([](M m) {
         int count = 0;
         for (size_t i = 0; i < Vec::Size; ++i) {
             if (m[i]) {
@@ -283,21 +280,22 @@ TEST_TYPES(Vec, testCount, ALL_TYPES) /*{{{*/
     });
 }
 /*}}}*/
-TEST_TYPES(Vec, testFirstOne, ALL_TYPES) /*{{{*/
+TEST_TYPES(Vec, testFirstOne, AllVectors) /*{{{*/
 {
     typedef typename Vec::IndexType I;
     typedef typename Vec::Mask M;
 
     for (unsigned int i = 0; i < Vec::Size; ++i) {
         const M mask = Vc::simd_cast<M>(I(Vc::IndexesFromZero) == i);
-        COMPARE(mask.firstOne(), int(i)) << mask << ' ' << I::IndexesFromZero() << ' ' << (I::IndexesFromZero() == i);
+        COMPARE(mask.firstOne(), int(i)) << mask << ' ' << I([](int n) { return n; })
+                                         << ' ' << (I([](int n) { return n; }) == i);
     }
 }
 /*}}}*/
-TEST_TYPES(V, shifted, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ODD_ARRAYS(31)))/*{{{*/
+TEST_TYPES(V, shifted, concat<AllVectors, SimdArrays<16>, OddSimdArrays<31>>) /*{{{*/
 {
     using M = typename V::Mask;
-    UnitTest::withRandomMask<V>([](const M &reference) {
+    withRandomMask<V>([](const M &reference) {
         constexpr int Size = V::Size;
         for (int shift = -2 * Size; shift <= 2 * Size; ++shift) {
             const M test = reference.shifted(shift);
@@ -357,9 +355,9 @@ TEST(testBinaryOperators) /*{{{*/
 }
 /*}}}*/
 
-TEST_TYPES(V, maskReductions, ALL_TYPES) /*{{{*/
+TEST_TYPES(V, maskReductions, AllVectors) /*{{{*/
 {
-    UnitTest::withRandomMask<V>([](typename V::Mask mask) {
+    withRandomMask<V>([](typename V::Mask mask) {
         constexpr decltype(mask.count()) size = V::Size;
         COMPARE(all_of(mask), mask.count() == size);
         if (mask.count() > 0) {
@@ -373,17 +371,17 @@ TEST_TYPES(V, maskReductions, ALL_TYPES) /*{{{*/
         }
     });
 }/*}}}*/
-TEST_TYPES(V, maskInit, ALL_TYPES) /*{{{*/
+TEST_TYPES(V, maskInit, AllVectors) /*{{{*/
 {
     typedef typename V::Mask M;
     COMPARE(M(Vc::One), M(true));
     COMPARE(M(Vc::Zero), M(false));
 }
 /*}}}*/
-TEST_TYPES(V, maskScalarAccess, ALL_TYPES) /*{{{*/
+TEST_TYPES(V, maskScalarAccess, AllVectors) /*{{{*/
 {
     typedef typename V::Mask M;
-    UnitTest::withRandomMask<V>([](M mask) {
+    withRandomMask<V>([](M mask) {
         const auto &mask2 = mask;
         for (size_t i = 0; i < V::Size; ++i) {
             COMPARE(bool(mask[i]), mask2[i]);
@@ -406,18 +404,18 @@ template<typename MTo, typename MFrom> void testMaskConversion(const MFrom &m)/*
     MTo test = Vc::simd_cast<MTo>(m);
     size_t i = 0;
     for (; i < std::min(m.Size, test.Size); ++i) {
-        COMPARE(test[i], m[i]) << i << " conversion from " << UnitTest::typeToString<MFrom>()
-                               << " to " << UnitTest::typeToString<MTo>();
+        COMPARE(test[i], m[i]) << i << " conversion from " << vir::typeToString<MFrom>()
+                               << " to " << vir::typeToString<MTo>();
     }
     for (; i < test.Size; ++i) {
-        COMPARE(test[i], false) << i << " conversion from " << UnitTest::typeToString<MFrom>()
-                                << " to " << UnitTest::typeToString<MTo>();
+        COMPARE(test[i], false) << i << " conversion from " << vir::typeToString<MFrom>()
+                                << " to " << vir::typeToString<MTo>();
     }
 }/*}}}*/
-TEST_TYPES(V, maskConversions, ALL_TYPES) /*{{{*/
+TEST_TYPES(V, maskConversions, AllVectors) /*{{{*/
 {
     typedef typename V::Mask M;
-    UnitTest::withRandomMask<V>([](M m) {
+    withRandomMask<V>([](M m) {
         testMaskConversion< float_m>(m);
         testMaskConversion<double_m>(m);
         testMaskConversion<   int_m>(m);
@@ -427,10 +425,10 @@ TEST_TYPES(V, maskConversions, ALL_TYPES) /*{{{*/
     });
 }
 /*}}}*/
-TEST_TYPES(V, boolConversion, ALL_TYPES) /*{{{*/
+TEST_TYPES(V, boolConversion, AllVectors) /*{{{*/
 {
     alignas(16) bool mem[V::Size + 64];
-    UnitTest::withRandomMask<V>([&](typename V::Mask m) {
+    withRandomMask<V>([&](typename V::Mask m) {
         bool *ptr = mem;
         m.store(ptr);
         for (size_t i = 0; i < V::Size; ++i) {
@@ -451,7 +449,7 @@ TEST_TYPES(V, boolConversion, ALL_TYPES) /*{{{*/
     });
 }
 /*}}}*/
-TEST_TYPES(V, testCompareOperators, ALL_TYPES) /*{{{*/
+TEST_TYPES(V, testCompareOperators, AllVectors) /*{{{*/
 {
     typedef typename V::Mask M;
     const M a(true);

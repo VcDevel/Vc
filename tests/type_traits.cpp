@@ -39,47 +39,47 @@ using Vc::uint_v;
 using Vc::short_v;
 using Vc::ushort_v;
 
-TEST_TYPES(V, isIntegral, (ALL_VECTORS))
+TEST_TYPES(V, isIntegral, AllVectors)
 {
     using T = typename V::EntryType;
     COMPARE(Vc::is_integral<V>::value, std::is_integral<T>::value);
 }
 
-TEST_TYPES(V, isFloatingPoint, (ALL_VECTORS))
+TEST_TYPES(V, isFloatingPoint, AllVectors)
 {
     using T = typename V::EntryType;
     COMPARE(Vc::is_floating_point<V>::value, std::is_floating_point<T>::value);
 }
 
-TEST_TYPES(V, isSigned, (ALL_VECTORS))
+TEST_TYPES(V, isSigned, AllVectors)
 {
     using T = typename V::EntryType;
     COMPARE(Vc::is_signed<V>::value, std::is_signed<T>::value);
     COMPARE(Vc::is_unsigned<V>::value, std::is_unsigned<T>::value);
 }
 
-TEST_TYPES(V, hasSubscript, (ALL_VECTORS))
+TEST_TYPES(V, hasSubscript, AllVectors)
 {
     VERIFY(Vc::Traits::has_subscript_operator<V>::value);
 }
 
-TEST_TYPES(V, hasMultiply, (ALL_VECTORS))
+TEST_TYPES(V, hasMultiply, AllVectors)
 {
     VERIFY(Vc::Traits::has_multiply_operator<V>::value);
 }
 
-TEST_TYPES(V, hasEquality, (ALL_VECTORS))
+TEST_TYPES(V, hasEquality, AllVectors)
 {
     VERIFY(Vc::Traits::has_equality_operator<V>::value);
 }
 
-TEST_TYPES(V, isSimdMask, (ALL_VECTORS))
+TEST_TYPES(V, isSimdMask, AllVectors)
 {
     VERIFY(!Vc::is_simd_mask<V>::value);
     VERIFY( Vc::is_simd_mask<typename V::Mask>::value);
 }
 
-TEST_TYPES(V, isSimdVector, (ALL_VECTORS))
+TEST_TYPES(V, isSimdVector, AllVectors)
 {
     VERIFY( Vc::is_simd_vector<V>::value);
     VERIFY(!Vc::is_simd_vector<typename V::Mask>::value);

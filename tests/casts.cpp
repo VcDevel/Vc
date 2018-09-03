@@ -31,45 +31,39 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Vc;
 
-// EXTRA_IMPL_VECTORS {{{1
+// ExtraImplVectors {{{1
+using ExtraImplVectors = vir::Typelist<
 #ifdef Vc_IMPL_Scalar
-#define EXTRA_IMPL_VECTORS
 #elif defined Vc_IMPL_AVX2
-#define EXTRA_IMPL_VECTORS                                                               \
-    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
-        Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
-        Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v,          \
-        Vc::AVX::int_v, Vc::AVX::ushort_v, Vc::AVX::double_v, Vc::AVX::uint_v,           \
-        Vc::AVX::short_v, Vc::AVX::float_v
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,
+    Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,
+    Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v,
+    Vc::AVX::int_v, Vc::AVX::ushort_v, Vc::AVX::double_v, Vc::AVX::uint_v,
+    Vc::AVX::short_v, Vc::AVX::float_v
 #elif defined Vc_IMPL_AVX
-#define EXTRA_IMPL_VECTORS                                                               \
-    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
-        Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,     \
-        Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,
+    Vc::Scalar::short_v, Vc::Scalar::float_v, Vc::SSE::int_v, Vc::SSE::ushort_v,
+    Vc::SSE::double_v, Vc::SSE::uint_v, Vc::SSE::short_v, Vc::SSE::float_v
 #else
-#define EXTRA_IMPL_VECTORS                                                               \
-    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,   \
-        Vc::Scalar::short_v, Vc::Scalar::float_v
+    Vc::Scalar::int_v, Vc::Scalar::ushort_v, Vc::Scalar::double_v, Vc::Scalar::uint_v,
+    Vc::Scalar::short_v, Vc::Scalar::float_v
 #endif
+    >;
 
 // AllTestTypes {{{1
 #ifdef Vc_DEFAULT_TYPES
-using AllTestTypes = outer_product<Typelist<ALL_VECTORS>, Typelist<ALL_VECTORS>>;
+using AllTestTypes = vir::outer_product<AllVectors, AllVectors>;
 #elif defined Vc_EXTRA_TYPES
-using AllTestTypes =
-    concat<outer_product<Typelist<ALL_VECTORS>, Typelist<EXTRA_IMPL_VECTORS>>,
-           outer_product<Typelist<EXTRA_IMPL_VECTORS>, Typelist<ALL_VECTORS>>>;
+using AllTestTypes = vir::concat<vir::outer_product<AllVectors, ExtraImplVectors>,
+                                 vir::outer_product<ExtraImplVectors, AllVectors>>;
 #elif defined Vc_FROM_N
 #ifdef Vc_TO_N
-using AllTestTypes =
-    outer_product<Typelist<SIMD_ARRAYS(Vc_FROM_N)>, Typelist<SIMD_ARRAYS(Vc_TO_N)>>;
+using AllTestTypes = vir::outer_product<SimdArrays<Vc_FROM_N>, SimdArrays<Vc_TO_N>>;
 #else
-using AllTestTypes =
-    outer_product<Typelist<SIMD_ARRAYS(Vc_FROM_N)>, Typelist<ALL_VECTORS>>;
+using AllTestTypes = vir::outer_product<SimdArrays<Vc_FROM_N>, AllVectors>;
 #endif
 #elif defined Vc_TO_N
-using AllTestTypes =
-    outer_product<Typelist<ALL_VECTORS>, Typelist<SIMD_ARRAYS(Vc_TO_N)>>;
+using AllTestTypes = vir::outer_product<AllVectors, SimdArrays<Vc_TO_N>>;
 #endif
 
 // is_conversion_undefined {{{1
@@ -139,7 +133,7 @@ template <typename To, typename V0, typename... Vs>
 std::string extraInformation(const V0 &arg0, const Vs &... args)
 {
     std::stringstream s;
-    s << "\nsimd_cast<" << UnitTest::typeToString<To>() << ">(" << std::setprecision(20) << arg0;
+    s << "\nsimd_cast<" << vir::typeToString<To>() << ">(" << std::setprecision(20) << arg0;
     doNothing({&(s << ", " << args)...});
     s << ')';
     return s.str();
@@ -223,12 +217,12 @@ Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
         return is_conversion_undefined<T>(input) ? result[i] : static_cast<T>(input);
     });
 
-    COMPARE(result, reference) << "simd_cast<" << UnitTest::typeToString<To>() << ", "
+    COMPARE(result, reference) << "simd_cast<" << vir::typeToString<To>() << ", "
                                << Index << ">(" << x << ')';
 
     cast_vector_split<To, From, Index + 1>(x);
 }
-TEST_TYPES(TList, cast_vector, (AllTestTypes))  // {{{1
+TEST_TYPES(TList, cast_vector, AllTestTypes)  // {{{1
 {
     using From = typename TList::template at<0>;
     using To = typename TList::template at<1>;
@@ -272,11 +266,11 @@ template <typename To, typename From> void mask_cast_1(const From &mask)
     std::size_t i = 0;
     for (; i < std::min(To::Size, From::Size); ++i) {
         COMPARE(casted[i], mask[i]) << "i: " << i << ", " << mask << " got converted to "
-                                    << UnitTest::typeToString<To>() << ": " << casted;
+                                    << vir::typeToString<To>() << ": " << casted;
     }
     for (; i < To::Size; ++i) {
         COMPARE(casted[i], false) << "i: " << i << ", " << mask << " got converted to "
-                                  << UnitTest::typeToString<To>() << ": " << casted;
+                                  << vir::typeToString<To>() << ": " << casted;
     }
 }
 // mask_cast_2 {{{1
@@ -289,16 +283,16 @@ void mask_cast_2(const From &mask0, const From &mask1,
     for (; i < From::Size; ++i) {
         COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1
                                      << " were converted to "
-                                     << UnitTest::typeToString<To>() << ": " << casted;
+                                     << vir::typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 2 * From::Size); ++i) {
         COMPARE(casted[i], mask1[i - From::Size])
             << "i: " << i << mask0 << mask1 << " were converted to "
-            << UnitTest::typeToString<To>() << ": " << casted;
+            << vir::typeToString<To>() << ": " << casted;
     }
     for (; i < To::Size; ++i) {
         COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << " were converted to "
-                                  << UnitTest::typeToString<To>() << ": " << casted;
+                                  << vir::typeToString<To>() << ": " << casted;
     }
 }
 template <typename To, typename From>
@@ -317,26 +311,26 @@ void mask_cast_4(const From &mask0, const From &mask1, const From &mask2,
     for (; i < From::Size; ++i) {
         COMPARE(casted[i], mask0[i]) << "i: " << i << mask0 << mask1 << mask2 << mask3
                                      << " were converted to "
-                                     << UnitTest::typeToString<To>() << ": " << casted;
+                                     << vir::typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 2 * From::Size); ++i) {
         COMPARE(casted[i], mask1[i - From::Size])
             << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
-            << UnitTest::typeToString<To>() << ": " << casted;
+            << vir::typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 3 * From::Size); ++i) {
         COMPARE(casted[i], mask2[i - 2 * From::Size])
             << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
-            << UnitTest::typeToString<To>() << ": " << casted;
+            << vir::typeToString<To>() << ": " << casted;
     }
     for (; i < std::min(To::Size, 4 * From::Size); ++i) {
         COMPARE(casted[i], mask3[i - 3 * From::Size])
             << "i: " << i << mask0 << mask1 << mask2 << mask3 << " were converted to "
-            << UnitTest::typeToString<To>() << ": " << casted;
+            << vir::typeToString<To>() << ": " << casted;
     }
     for (; i < To::Size; ++i) {
         COMPARE(casted[i], false) << "i: " << i << mask0 << mask1 << mask2 << mask3
-                                  << " were converted to " << UnitTest::typeToString<To>()
+                                  << " were converted to " << vir::typeToString<To>()
                                   << ": " << casted;
     }
 }
@@ -360,12 +354,12 @@ Vc::enable_if<(Index * To::Size < From::Size && To::Size < From::Size), void>
         return i + Index * To::Size >= From::Size ? false : x[i + Index * To::Size];
     });
 
-    COMPARE(result, reference) << "simd_cast<" << UnitTest::typeToString<To>() << ", "
+    COMPARE(result, reference) << "simd_cast<" << vir::typeToString<To>() << ", "
                                << Index << ">(" << x << ')';
 
     cast_mask_split<To, From, Index + 1>(x);
 }
-TEST_TYPES(TList, cast_mask, (AllTestTypes)) // {{{1
+TEST_TYPES(TList, cast_mask, AllTestTypes)  // {{{1
 {
     using FromV = typename TList::template at<0>;
     using ToV = typename TList::template at<1>;
@@ -373,7 +367,7 @@ TEST_TYPES(TList, cast_mask, (AllTestTypes)) // {{{1
     using To = typename ToV::Mask;
     std::vector<From> randomMasks(4, From{false});
 
-    UnitTest::withRandomMask<FromV>([&](const From &mask) {
+    withRandomMask<FromV>([&](const From &mask) {
         std::rotate(randomMasks.begin(), randomMasks.begin() + 1, randomMasks.end());
         randomMasks[0] = mask;
         mask_cast_1<To>(randomMasks[0]);

@@ -105,7 +105,7 @@ template<typename V, unsigned int Size> struct TestEntries2D { static void test(
 
 template<typename V, unsigned int Size> struct TestVectors { static void test()
 {
-    const V startX = V::IndexesFromZero() + Size;
+    const V startX = V([](int n) { return n + Size; });
     Memory<V, Size> m;
     const Memory<V, Size> &m2 = m;
     Memory<V> m3(Size);
@@ -133,7 +133,7 @@ template<typename V, unsigned int Size> struct TestVectors { static void test()
 
 template<typename V, unsigned int Size> struct TestVectors2D { static void test()
 {
-    const V startX = V::IndexesFromZero() + Size;
+    const V startX = V([](int n) { return n + Size; });
     Memory<V, Size, Size> m;
     const Memory<V, Size, Size> &m2 = m;
     V x = startX;
@@ -210,20 +210,20 @@ template<typename V, unsigned int Size> struct TestVectorReorganization { static
     }
 }};
 
-TEST_TYPES(V, testEntries, (ALL_VECTORS)) { TestWrapper<V, 128, TestEntries>::run(); }
+TEST_TYPES(V, testEntries, AllVectors) { TestWrapper<V, 128, TestEntries>::run(); }
 
-TEST_TYPES(V, testEntries2D, (ALL_VECTORS)) { TestWrapper<V, 32, TestEntries2D>::run(); }
+TEST_TYPES(V, testEntries2D, AllVectors) { TestWrapper<V, 32, TestEntries2D>::run(); }
 
-TEST_TYPES(V, testVectors, (ALL_VECTORS)) { TestWrapper<V, 128, TestVectors>::run(); }
+TEST_TYPES(V, testVectors, AllVectors) { TestWrapper<V, 128, TestVectors>::run(); }
 
-TEST_TYPES(V, testVectors2D, (ALL_VECTORS)) { TestWrapper<V, 32, TestVectors2D>::run(); }
+TEST_TYPES(V, testVectors2D, AllVectors) { TestWrapper<V, 32, TestVectors2D>::run(); }
 
-TEST_TYPES(V, testVectorReorganization, (ALL_VECTORS))
+TEST_TYPES(V, testVectorReorganization, AllVectors)
 {
     TestWrapper<V, 128, TestVectorReorganization>::run();
 }
 
-TEST_TYPES(V, memoryOperators, (ALL_VECTORS))
+TEST_TYPES(V, memoryOperators, AllVectors)
 {
     Memory<V, 129> m1, m2;
     m1.setZero();
@@ -262,7 +262,7 @@ TEST_TYPES(V, memoryOperators, (ALL_VECTORS))
     VERIFY(m1 == m2);
 }
 
-TEST_TYPES(V, testCCtor, (ALL_VECTORS))
+TEST_TYPES(V, testCCtor, AllVectors)
 {
     Memory<V> m1(5);
     for (size_t i = 0; i < m1.entriesCount(); ++i) {
@@ -279,7 +279,7 @@ TEST_TYPES(V, testCCtor, (ALL_VECTORS))
 
 void *hackToStoreToStack = 0;
 
-TEST_TYPES(V, paddingMustBeZero, (ALL_VECTORS))
+TEST_TYPES(V, paddingMustBeZero, AllVectors)
 {
     typedef typename V::EntryType T;
     { // poison the stack
@@ -289,11 +289,11 @@ TEST_TYPES(V, paddingMustBeZero, (ALL_VECTORS))
     Memory<V, 1> m;
     m[0] = T(0);
     V x = m.vector(0);
-    COMPARE(x, V::Zero());
+    COMPARE(x, V(0));
 }
 
 #ifndef Vc_ICC
-TEST_TYPES(V, initializerList, (ALL_VECTORS))
+TEST_TYPES(V, initializerList, AllVectors)
 {
     typedef typename V::EntryType T;
     Memory<V, 3> m = { T(1), T(2), T(3) };
@@ -303,7 +303,7 @@ TEST_TYPES(V, initializerList, (ALL_VECTORS))
 }
 #endif
 
-TEST_TYPES(V, testCopyAssignment, (ALL_VECTORS))
+TEST_TYPES(V, testCopyAssignment, AllVectors)
 {
     using T = typename V::EntryType;
     Memory<V, 99> m1;

@@ -131,20 +131,21 @@ public:
     }
 
     // implicit casts
-    template <typename U, typename V>
-    Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x, enable_if<N == V::Size> = nullarg)
+    template <class U, class V, class..., class = enable_if<N == V::Size>>
+    Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x)
         : data(simd_cast<vector_type>(internal_data(x)))
     {
     }
-    template <typename U, typename V>
-    Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x,
-                            enable_if<(N > V::Size && N <= 2 * V::Size)> = nullarg)
-        : data(simd_cast<vector_type>(internal_data(internal_data0(x)), internal_data(internal_data1(x))))
+    template <class U, class V, class..., class...,
+              class = enable_if<(N > V::Size && N <= 2 * V::Size)>>
+    Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x)
+        : data(simd_cast<vector_type>(internal_data(internal_data0(x)),
+                                      internal_data(internal_data1(x))))
     {
     }
-    template <typename U, typename V>
-    Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x,
-                            enable_if<(N > 2 * V::Size && N <= 4 * V::Size)> = nullarg)
+    template <class U, class V, class..., class..., class...,
+              class = enable_if<(N > 2 * V::Size && N <= 4 * V::Size)>>
+    Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x)
         : data(simd_cast<vector_type>(internal_data(internal_data0(internal_data0(x))),
                                       internal_data(internal_data1(internal_data0(x))),
                                       internal_data(internal_data0(internal_data1(x))),
@@ -174,19 +175,24 @@ public:
     template <
         typename V,
         typename = enable_if<Traits::is_simd_vector<V>::value && !Traits::isSimdArray<V>::value>>
-    explicit Vc_INTRINSIC SimdArray(const V &x)
+    Vc_INTRINSIC SimdArray(const V &x)
         : data(simd_cast<vector_type>(x))
     {
     }
 
     // implicit conversion to Vector<U, AnyAbi> for if Vector<U, AnyAbi>::size() == N and
     // T implicitly convertible to U
-    template <
-        typename U, typename A,
-        typename = enable_if<std::is_convertible<T, U>::value && Vector<U, A>::Size == N>>
+    template <typename U, typename A,
+              typename =
+                  enable_if<std::is_convertible<T, U>::value && Vector<U, A>::Size == N &&
+                            !std::is_same<A, simd_abi::fixed_size<N>>::value>>
     Vc_INTRINSIC operator Vector<U, A>() const
     {
         return simd_cast<Vector<U, A>>(data);
+    }
+    operator fixed_size_simd<T, N>() const
+    {
+        return static_cast<fixed_size_simd<T, N>>(data);
     }
 
 #include "gatherinterface.h"
@@ -262,12 +268,12 @@ public:
 
     Vc_INTRINSIC mask_type operator!() const
     {
-        return {!data};
+        return {private_init, !data};
     }
 
     Vc_INTRINSIC SimdArray operator-() const
     {
-        return {-data};
+        return {private_init, -data};
     }
 
     /// Returns a copy of itself
@@ -275,14 +281,14 @@ public:
 
     Vc_INTRINSIC SimdArray operator~() const
     {
-        return {~data};
+        return {private_init, ~data};
     }
 
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
     Vc_INTRINSIC Vc_CONST SimdArray operator<<(U x) const
     {
-        return {data << x};
+        return {private_init, data << x};
     }
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
@@ -295,7 +301,7 @@ public:
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
     Vc_INTRINSIC Vc_CONST SimdArray operator>>(U x) const
     {
-        return {data >> x};
+        return {private_init, data >> x};
     }
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
@@ -308,7 +314,7 @@ public:
 #define Vc_BINARY_OPERATOR_(op)                                                          \
     Vc_INTRINSIC Vc_CONST SimdArray operator op(const SimdArray &rhs) const              \
     {                                                                                    \
-        return {data op rhs.data};                                                       \
+        return {private_init, data op rhs.data};                                         \
     }                                                                                    \
     Vc_INTRINSIC SimdArray &operator op##=(const SimdArray &rhs)                         \
     {                                                                                    \
@@ -323,7 +329,7 @@ public:
 #define Vc_COMPARES(op)                                                                  \
     Vc_INTRINSIC mask_type operator op(const SimdArray &rhs) const                       \
     {                                                                                    \
-        return {data op rhs.data};                                                       \
+        return {private_init, data op rhs.data};                                         \
     }
     Vc_ALL_COMPARES(Vc_COMPARES);
 #undef Vc_COMPARES
@@ -331,7 +337,7 @@ public:
     /// \copydoc Vector::isNegative
     Vc_DEPRECATED("use isnegative(x) instead") Vc_INTRINSIC MaskType isNegative() const
     {
-        return {isnegative(data)};
+        return {private_init, isnegative(data)};
     }
 
 private:
@@ -387,75 +393,78 @@ public:
     Vc_REDUCTION_FUNCTION_(product);
     Vc_REDUCTION_FUNCTION_(sum);
 #undef Vc_REDUCTION_FUNCTION_
-    Vc_INTRINSIC Vc_PURE SimdArray partialSum() const { return data.partialSum(); }
+    Vc_INTRINSIC Vc_PURE SimdArray partialSum() const
+    {
+        return {private_init, data.partialSum()};
+    }
 
     template <typename F> Vc_INTRINSIC SimdArray apply(F &&f) const
     {
-        return {data.apply(std::forward<F>(f))};
+        return {private_init, data.apply(std::forward<F>(f))};
     }
     template <typename F> Vc_INTRINSIC SimdArray apply(F &&f, const mask_type &k) const
     {
-        return {data.apply(std::forward<F>(f), k)};
+        return {private_init, data.apply(std::forward<F>(f), k)};
     }
 
     Vc_INTRINSIC SimdArray shifted(int amount) const
     {
-        return {data.shifted(amount)};
+        return {private_init, data.shifted(amount)};
     }
 
     template <std::size_t NN>
     Vc_INTRINSIC SimdArray shifted(int amount, const SimdArray<value_type, NN> &shiftIn)
         const
     {
-        return {data.shifted(amount, simd_cast<VectorType>(shiftIn))};
+        return {private_init, data.shifted(amount, simd_cast<VectorType>(shiftIn))};
     }
 
     Vc_INTRINSIC SimdArray rotated(int amount) const
     {
-        return {data.rotated(amount)};
+        return {private_init, data.rotated(amount)};
     }
 
     /// \copydoc Vector::exponent
     Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC SimdArray exponent() const
     {
-        return {exponent(data)};
+        return {private_init, exponent(data)};
     }
 
     Vc_INTRINSIC SimdArray interleaveLow(SimdArray x) const
     {
-        return {data.interleaveLow(x.data)};
+        return {private_init, data.interleaveLow(x.data)};
     }
     Vc_INTRINSIC SimdArray interleaveHigh(SimdArray x) const
     {
-        return {data.interleaveHigh(x.data)};
+        return {private_init, data.interleaveHigh(x.data)};
     }
 
     Vc_INTRINSIC SimdArray reversed() const
     {
-        return {data.reversed()};
+        return {private_init, data.reversed()};
     }
 
     Vc_INTRINSIC SimdArray sorted() const
     {
-        return {data.sorted()};
+        return {private_init, data.sorted()};
     }
 
     template <typename G> static Vc_INTRINSIC SimdArray generate(const G &gen)
     {
-        return {VectorType::generate(gen)};
+        return {private_init, VectorType::generate(gen)};
     }
 
     Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC SimdArray
         copySign(const SimdArray &x) const
     {
-        return {Vc::copysign(data, x.data)};
+        return {private_init, Vc::copysign(data, x.data)};
     }
 
     friend VectorType &internal_data<>(SimdArray &x);
     friend const VectorType &internal_data<>(const SimdArray &x);
 
     /// \internal
-    Vc_INTRINSIC SimdArray(VectorType &&x) : data(std::move(x)) {}
+    Vc_INTRINSIC SimdArray(private_init_t, VectorType &&x) : data(std::move(x)) {}
 
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(storage_type));
 
@@ -706,9 +715,9 @@ public:
     SimdArray &operator=(const SimdArray &) = default;
 
     // load ctor
-    template <typename U,
-              typename Flags = DefaultLoadTag,
-              typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+    template <typename U, typename Flags = DefaultLoadTag,
+              typename = enable_if<std::is_arithmetic<U>::value &&
+                                   Traits::is_load_store_flag<Flags>::value>>
     explicit Vc_INTRINSIC SimdArray(const U *mem, Flags f = Flags())
         : data0(mem, f), data1(mem + storage_type0::size(), f)
     {
@@ -723,7 +732,8 @@ public:
      * from C-arrays.
      */
     template <typename U, std::size_t Extent, typename Flags = DefaultLoadTag,
-              typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+              typename = enable_if<std::is_arithmetic<U>::value &&
+                                   Traits::is_load_store_flag<Flags>::value>>
     explicit Vc_INTRINSIC SimdArray(CArray<U, Extent> &mem, Flags f = Flags())
         : data0(&mem[0], f), data1(&mem[storage_type0::size()], f)
     {
@@ -732,7 +742,8 @@ public:
      * Const overload of the above.
      */
     template <typename U, std::size_t Extent, typename Flags = DefaultLoadTag,
-              typename = enable_if<Traits::is_load_store_flag<Flags>::value>>
+              typename = enable_if<std::is_arithmetic<U>::value &&
+                                   Traits::is_load_store_flag<Flags>::value>>
     explicit Vc_INTRINSIC SimdArray(const CArray<U, Extent> &mem, Flags f = Flags())
         : data0(&mem[0], f), data1(&mem[storage_type0::size()], f)
     {
@@ -770,34 +781,40 @@ public:
     }
 
     // explicit casts
-    template <typename W>
-    Vc_INTRINSIC explicit SimdArray(
-        W &&x,
-        enable_if<(Traits::is_simd_vector<W>::value && Traits::simd_vector_size<W>::value == N &&
-                   !(std::is_convertible<Traits::entry_type_of<W>, T>::value &&
-                     Traits::isSimdArray<W>::value))> = nullarg)
-        : data0(Split::lo(x)), data1(Split::hi(x))
+    template <
+        class W, class...,
+        class = enable_if<(Traits::is_simd_vector<W>::value &&
+                           Traits::simd_vector_size<W>::value == N &&
+                           !(std::is_convertible<Traits::entry_type_of<W>, T>::value &&
+                             Traits::isSimdArray<W>::value))>>
+    Vc_INTRINSIC explicit SimdArray(W &&x) : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
 
     // implicit casts
-    template <typename W>
-    Vc_INTRINSIC SimdArray(
-        W &&x,
-        enable_if<(Traits::isSimdArray<W>::value && Traits::simd_vector_size<W>::value == N &&
-                   std::is_convertible<Traits::entry_type_of<W>, T>::value)> = nullarg)
-        : data0(Split::lo(x)), data1(Split::hi(x))
+    template <
+        class W, class..., class...,
+        class = enable_if<(Traits::isSimdArray<W>::value &&
+                           Traits::simd_vector_size<W>::value == N &&
+                           std::is_convertible<Traits::entry_type_of<W>, T>::value)>>
+    Vc_INTRINSIC SimdArray(W &&x) : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
 
     // implicit conversion to Vector<U, AnyAbi> for if Vector<U, AnyAbi>::size() == N and
     // T implicitly convertible to U
-    template <
-        typename U, typename A,
-        typename = enable_if<std::is_convertible<T, U>::value && Vector<U, A>::Size == N>>
+    template <typename U, typename A,
+              typename =
+                  enable_if<std::is_convertible<T, U>::value && Vector<U, A>::Size == N &&
+                            !std::is_same<A, simd_abi::fixed_size<N>>::value>>
     operator Vector<U, A>() const
     {
-        return simd_cast<Vector<U, A>>(data0, data1);
+        auto r = simd_cast<Vector<U, A>>(data0, data1);
+        return r;
+    }
+    Vc_INTRINSIC operator const fixed_size_simd<T, N> &() const
+    {
+        return static_cast<const fixed_size_simd<T, N> &>(*this);
     }
 
     //////////////////// other functions ///////////////
@@ -1557,7 +1574,7 @@ public:
     // types smaller than int are more or less useless - and you could use SimdArray<int> from the
     // start. Therefore we special-case those operations where the scalar type of both operands is
     // integral and smaller than int.
-    // In addition to that there is no generic support for 64-bit int SIMD types. Therefore
+    // In addition, there is no generic support for 64-bit int SIMD types. Therefore
     // promotion to a 64-bit integral type (including `long` because it can potentially have 64
     // bits) also is not done. But if one of the operands is a scalar type that is larger than int
     // then the operator is disabled altogether. We do not want an implicit demotion.
@@ -1588,7 +1605,7 @@ static_assert(
     Vc_INTRINSIC result_vector_type<L, R> operator op_(L &&lhs, R &&rhs)                 \
     {                                                                                    \
         using Return = result_vector_type<L, R>;                                         \
-        return Return(std::forward<L>(lhs)) op_ Return(std::forward<R>(rhs));            \
+        return Return(std::forward<L>(lhs)).operator op_(std::forward<R>(rhs));          \
     }
 /**
  * \name Arithmetic and Bitwise Operators
@@ -1967,18 +1984,20 @@ struct is_power_of_2 : public std::integral_constant<bool, ((N - 1) & N) == 0> {
     Vc_INTRINSIC Vc_CONST enable_if<                                                     \
         (Traits::isAtomic##SimdArrayType_<Return>::value &&                              \
          is_less<NativeType_<T, A>::Size * sizeof...(Froms), Return::Size>::value &&     \
-         are_all_types_equal<NativeType_<T, A>, Froms...>::value),                       \
+         are_all_types_equal<NativeType_<T, A>, Froms...>::value &&                      \
+         !detail::is_fixed_size_abi<A>::value),                                          \
         Return>                                                                          \
     simd_cast(NativeType_<T, A> x, Froms... xs)                                          \
     {                                                                                    \
         vc_debug_("simd_cast{1}(", ")\n", x, xs...);                                     \
-        return {simd_cast<typename Return::storage_type>(x, xs...)};                     \
+        return {private_init, simd_cast<typename Return::storage_type>(x, xs...)};       \
     }                                                                                    \
     template <typename Return, typename T, typename A, typename... Froms>                \
     Vc_INTRINSIC Vc_CONST enable_if<                                                     \
         (Traits::isAtomic##SimdArrayType_<Return>::value &&                              \
          !is_less<NativeType_<T, A>::Size * sizeof...(Froms), Return::Size>::value &&    \
-         are_all_types_equal<NativeType_<T, A>, Froms...>::value),                       \
+         are_all_types_equal<NativeType_<T, A>, Froms...>::value &&                      \
+         !detail::is_fixed_size_abi<A>::value),                                          \
         Return>                                                                          \
     simd_cast(NativeType_<T, A> x, Froms... xs)                                          \
     {                                                                                    \
@@ -1991,7 +2010,8 @@ struct is_power_of_2 : public std::integral_constant<bool, ((N - 1) & N) == 0> {
                    !Traits::isAtomic##SimdArrayType_<Return>::value &&                   \
                    is_less<Common::left_size<Return::Size>(),                            \
                            NativeType_<T, A>::Size *(1 + sizeof...(Froms))>::value &&    \
-                   are_all_types_equal<NativeType_<T, A>, Froms...>::value),             \
+                   are_all_types_equal<NativeType_<T, A>, Froms...>::value &&            \
+                   !detail::is_fixed_size_abi<A>::value),                                \
                   Return>                                                                \
         simd_cast(NativeType_<T, A> x, Froms... xs)                                      \
     {                                                                                    \
@@ -2007,7 +2027,8 @@ struct is_power_of_2 : public std::integral_constant<bool, ((N - 1) & N) == 0> {
                    !Traits::isAtomic##SimdArrayType_<Return>::value &&                   \
                    !is_less<Common::left_size<Return::Size>(),                           \
                             NativeType_<T, A>::Size *(1 + sizeof...(Froms))>::value &&   \
-                   are_all_types_equal<NativeType_<T, A>, Froms...>::value),             \
+                   are_all_types_equal<NativeType_<T, A>, Froms...>::value &&            \
+                   !detail::is_fixed_size_abi<A>::value),                                \
                   Return>                                                                \
         simd_cast(NativeType_<T, A> x, Froms... xs)                                      \
     {                                                                                    \
@@ -2031,7 +2052,7 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray, Vc::Mask);
         simd_cast(NativeType_<T, A> x Vc_DUMMY_ARG0)                                     \
     {                                                                                    \
         vc_debug_("simd_cast{offset, atomic}(", ")\n", offset, x);                       \
-        return {simd_cast<typename Return::storage_type, offset>(x)};                    \
+        return {private_init, simd_cast<typename Return::storage_type, offset>(x)};      \
     }                                                                                    \
     /* both halves of Return array are extracted from argument */                        \
     template <typename Return, int offset, typename T, typename A>                       \

@@ -1,5 +1,11 @@
 include(AddFileDependencies)
 
+# ICC warns about code that produces reference values. Not useful.
+# warning #264: floating-point value does not fit in required floating-point type
+AddCompilerFlag("-diag-disable 264" CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
+# warning #61: integer operation result is out of range
+AddCompilerFlag("-diag-disable 61" CXX_FLAGS CMAKE_CXX_FLAGS MIC_CXX_FLAGS CMAKE_MIC_CXX_FLAGS)
+
 add_definitions(-DCOMPILE_FOR_UNIT_TESTS "-DTESTDATA_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/testdata/\"") # -DVC_CHECK_ALIGNMENT)
 if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"

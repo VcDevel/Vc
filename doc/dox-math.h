@@ -105,62 +105,6 @@ VECTOR_TYPE exp(const VECTOR_TYPE &v);
 /**
  * \ingroup Math
  *
- * \param v The values to apply the sine function on.
- * \returns the sine of \p v.
- *
- * \note The single-precision implementation has an error of max. 2 ulp (mean 0.17 ulp) in the range [-8192, 8192].
- * \note The double-precision implementation has an error of max. 8e6 ulp (mean 1040 ulp) in the range [-8192, 8192].
- * \note Vc versions before 0.7 had much larger errors.
- */
-VECTOR_TYPE sin(const VECTOR_TYPE &v);
-
-/**
- * \ingroup Math
- *
- * \param v The values to apply the cosine function on.
- * \returns the cosine of \p v.
- *
- * \note The single-precision implementation has an error of max. 2 ulp (mean 0.18 ulp) in the range [-8192, 8192].
- * \note The double-precision implementation has an error of max. 8e6 ulp (mean 1160 ulp) in the range [-8192, 8192].
- * \note Vc versions before 0.7 had much larger errors.
- */
-VECTOR_TYPE cos(const VECTOR_TYPE &v);
-
-/**
- * \ingroup Math
- *
- * \param v The values to apply the arcsine function on.
- * \returns the arcsine of \p v.
- *
- * \note The single-precision implementation has an error of max. 2 ulp (mean 0.3 ulp).
- * \note The double-precision implementation has an error of max. 36 ulp (mean 0.4 ulp).
- */
-VECTOR_TYPE asin(const VECTOR_TYPE &v);
-
-/**
- * \ingroup Math
- *
- * \param v The values to apply the arctangent function on.
- * \returns the arctangent of \p v.
- * \note The single-precision implementation has an error of max. 3 ulp (mean 0.4 ulp) in the range [-8192, 8192].
- * \note The double-precision implementation has an error of max. 2 ulp (mean 0.1 ulp) in the range [-8192, 8192].
- */
-VECTOR_TYPE atan(const VECTOR_TYPE &v);
-
-/**
- * \ingroup Math
- *
- * Calculates the angle given the lengths of the opposite and adjacent legs in a right
- * triangle.
- * \param y The opposite leg.
- * \param x The adjacent leg.
- * \returns the arctangent of \p y / \p x.
- */
-VECTOR_TYPE atan2(const VECTOR_TYPE &y, const VECTOR_TYPE &x);
-
-/**
- * \ingroup Math
- *
  * \param x \VSize{T} values to compare component-wise against \p y.
  * \param y \VSize{T} values to compare component-wise against \p x.
  * \returns the minimum of \p x and \p y.

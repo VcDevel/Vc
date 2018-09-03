@@ -36,7 +36,6 @@ namespace Detail
 {
 template <typename U, typename Accessor = U> class ElementReference
 {
-    using value_type = typename U::value_type;
     friend U;
     friend Accessor;
     Vc_INTRINSIC ElementReference(U &o, int i) noexcept : index(i), obj(o) {}
@@ -49,6 +48,7 @@ template <typename U, typename Accessor = U> class ElementReference
     }
 
 public:
+    using value_type = typename U::value_type;
     Vc_INTRINSIC ElementReference(const ElementReference &) = delete;
 
     /**

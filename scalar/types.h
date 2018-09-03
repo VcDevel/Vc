@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "../common/types.h"
+#include "../common/vectorabi.h"
 
 #ifndef VC_SCALAR_TYPES_H_
 #define VC_SCALAR_TYPES_H_

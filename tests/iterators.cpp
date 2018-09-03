@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "unittest.h"
 
-TEST_TYPES(V, check_return_types, (ALL_VECTORS, SIMD_ARRAY_LIST, ALL_MASKS))
+TEST_TYPES(V, check_return_types, concat<AllVectors, SimdArrayList, AllMasks>)
 {
     V a{};
     auto &&it = begin(a);
@@ -70,12 +70,15 @@ TEST_TYPES(V, check_return_types, (ALL_VECTORS, SIMD_ARRAY_LIST, ALL_MASKS))
     COMPARE(typeid(it <= it), typeid(bool));
 }
 
-TEST_TYPES(V, input_iterator, (ALL_VECTORS, SIMD_ARRAY_LIST))
+TEST_TYPES(V, input_iterator, concat<AllVectors, SimdArrayList>)
 {
     using T = typename V::EntryType;
-    V a = V::IndexesFromZero();
+    V a = V([](int n) { return n; });
+#if defined Vc_GCC && Vc_GCC < 0x40900
+    // work around miscompilation
+    asm("" : "+m"(a));
+#endif
     auto k = a == 0;
-
     {
         auto &&it = cbegin(a);
         VERIFY(it != cend(a));
@@ -83,7 +86,7 @@ TEST_TYPES(V, input_iterator, (ALL_VECTORS, SIMD_ARRAY_LIST))
         COMPARE(*it, T(0));
         int n = 0;
         while (++it != cend(a)) {
-            COMPARE(*it, T(++n));
+            COMPARE(*it, T(++n)) << a;
         }
     }
     {
@@ -117,10 +120,14 @@ TEST_TYPES(V, input_iterator, (ALL_VECTORS, SIMD_ARRAY_LIST))
     }
 }
 
-TEST_TYPES(V, output_iterator, (ALL_VECTORS, SIMD_ARRAY_LIST))
+TEST_TYPES(V, output_iterator, concat<AllVectors, SimdArrayList>)
 {
     using T = typename V::EntryType;
-    V a = V::IndexesFromZero();
+    V a = V([](int n) { return n; });
+#if defined Vc_GCC && Vc_GCC < 0x40900
+    // work around miscompilation
+    asm("" : "+m"(a));
+#endif
     auto k = a == 0;
     {
         auto it = begin(a);
@@ -147,10 +154,10 @@ TEST_TYPES(V, output_iterator, (ALL_VECTORS, SIMD_ARRAY_LIST))
     }
 }
 
-TEST_TYPES(V, forward_iterator, (ALL_VECTORS, SIMD_ARRAY_LIST))
+TEST_TYPES(V, forward_iterator, concat<AllVectors, SimdArrayList>)
 {
     using T = typename V::EntryType;
-    V a = V::IndexesFromZero();
+    V a = V([](int n) { return n; });
     auto &&it = begin(a);
     using It = typename std::decay<decltype(it)>::type;
     T value = *it;
@@ -158,24 +165,24 @@ TEST_TYPES(V, forward_iterator, (ALL_VECTORS, SIMD_ARRAY_LIST))
     COMPARE(*it, value);
 }
 
-TEST_TYPES(V, range_for, (ALL_VECTORS))
+TEST_TYPES(V, range_for, AllVectors)
 {
     typedef typename V::EntryType T;
     typedef typename V::Mask M;
 
     {
-        V x = V::Zero();
+        V x = V(0);
         for (auto &&i : x) {
             COMPARE(i, T(0));
             VERIFY(!(std::is_assignable<decltype((i)), T>::value));
         }
-        x = V::IndexesFromZero();
+        x = V([](int i) { return i; });
         int n = 0;
         for (T i : x) {
             COMPARE(i, T(n++));
             i = 0;
         }
-        COMPARE(x, V::IndexesFromZero());
+        COMPARE(x, V([](int i) { return i; }));
     }
 
     {
@@ -196,13 +203,13 @@ TEST_TYPES(V, range_for, (ALL_VECTORS))
 
     for_all_masks(V, mask) {
         int count = 0;
-        V test = V::Zero();
+        V test = V(0);
         for (size_t i : where(mask)) {
             VERIFY(i < V::Size);
             test[i] = T(1);
             ++count;
         }
-        COMPARE(test == V::One(), mask);
+        COMPARE(test == V(1), mask);
         COMPARE(count, mask.count());
     }
 }

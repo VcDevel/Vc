@@ -51,7 +51,8 @@ namespace Vc_VERSIONED_NAMESPACE
  * `sign(copysign(v, r)) == sign(r)`.
  */
 template <typename T, typename Abi,
-          typename = enable_if<std::is_floating_point<T>::value>>
+          typename = enable_if<std::is_floating_point<T>::value &&
+                               !detail::is_fixed_size_abi<Abi>::value>>
 inline Vector<T, Abi> copysign(Vector<T, Abi> magnitude, Vector<T, Abi> sign);
 
 /**
@@ -88,7 +89,8 @@ inline Vector<T, Abi> copysign(Vector<T, Abi> magnitude, Vector<T, Abi> sign);
  * \endcode
  */
 template <typename T, typename Abi,
-          typename = enable_if<std::is_floating_point<T>::value>>
+          typename = enable_if<std::is_floating_point<T>::value &&
+                               !detail::is_fixed_size_abi<Abi>::value>>
 inline Vector<T, Abi> exponent(Vector<T, Abi> x);
 
 /**
@@ -99,7 +101,8 @@ inline Vector<T, Abi> exponent(Vector<T, Abi> x);
  * \returns a mask which is \c true only in those components that are negative in \p x.
  */
 template <typename T, typename Abi>
-Vc_INTRINSIC Vc_CONST typename Vector<T, Abi>::MaskType isnegative(Vector<T, Abi> x)
+Vc_INTRINSIC Vc_CONST typename Vector<T, detail::not_fixed_size_abi<Abi>>::MaskType
+isnegative(Vector<T, Abi> x)
 {
     return x < Vector<T, Abi>::Zero();
 }

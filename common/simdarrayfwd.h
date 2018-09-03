@@ -123,6 +123,29 @@ template <typename T, size_t N, typename V = Common::select_best_vector_type<T, 
           >
 class SimdMaskArray;
 
+// specialization of Vector for fixed_size<N> {{{
+template <class T, int N>
+class Vector<T, simd_abi::fixed_size<N>> : public SimdArray<T, N>
+{
+    using SimdArray<T, N>::SimdArray;
+
+public:
+    Vc_DEPRECATED("use Vector([](int n) { return n; }) instead of "
+                  "Vector::IndexesFromZero()") static Vector IndexesFromZero()
+    {
+        return Vector([](size_t i) -> T { return i; });
+    }
+    Vc_DEPRECATED("use 0 instead of Vector::Zero()") static Vector Zero() { return 0; }
+    Vc_DEPRECATED("use 1 instead of Vector::One()") static Vector One() { return 1; }
+};
+
+template <class T, int N>
+class Mask<T, simd_abi::fixed_size<N>> : public SimdMaskArray<T, N>
+{
+    using SimdMaskArray<T, N>::SimdMaskArray;
+};
+// }}}
+
 /** \internal
  * Simple traits for SimdArray to easily access internal types of non-atomic SimdArray
  * types.
@@ -155,17 +178,68 @@ Vc_INTRINSIC_L const V &internal_data(const SimdArray<T, N, V, N> &x) Vc_INTRINS
 
 namespace Traits
 {
-template <typename T, std::size_t N, typename V> struct is_atomic_simdarray_internal<SimdArray<T, N, V, N>> : public std::true_type {};
-template <typename T, std::size_t N, typename V> struct is_atomic_simd_mask_array_internal<SimdMaskArray<T, N, V, N>> : public std::true_type {};
+// is_atomic_simdarray_internal {{{1
+template <typename T, std::size_t N, typename V>
+struct is_atomic_simdarray_internal<SimdArray<T, N, V, N>> : std::true_type {
+};
+template <typename T, int N>
+struct is_atomic_simdarray_internal<fixed_size_simd<T, N>>
+    : is_atomic_simdarray_internal<SimdArray<T, N>> {
+};
 
-template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simdarray_internal<SimdArray<T, N, VectorType, M>> : public std::true_type {};
-template <typename T, std::size_t N, typename VectorType, std::size_t M> struct is_simd_mask_array_internal<SimdMaskArray<T, N, VectorType, M>> : public std::true_type {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_integral_internal      <SimdArray<T, N, V, M>, false> : public std::is_integral<T> {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_floating_point_internal<SimdArray<T, N, V, M>, false> : public std::is_floating_point<T> {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_signed_internal        <SimdArray<T, N, V, M>, false> : public std::is_signed<T> {};
-template <typename T, std::size_t N, typename V, std::size_t M> struct is_unsigned_internal      <SimdArray<T, N, V, M>, false> : public std::is_unsigned<T> {};
+// is_atomic_simd_mask_array_internal {{{1
+template <typename T, std::size_t N, typename V>
+struct is_atomic_simd_mask_array_internal<SimdMaskArray<T, N, V, N>> : std::true_type {
+};
+template <typename T, int N>
+struct is_atomic_simd_mask_array_internal<fixed_size_simd_mask<T, N>>
+    : is_atomic_simd_mask_array_internal<SimdMaskArray<T, N>> {
+};
 
-template<typename T, std::size_t N> struct has_no_allocated_data_impl<Vc::SimdArray<T, N>> : public std::true_type {};
+// is_simdarray_internal {{{1
+template <typename T, std::size_t N, typename VectorType, std::size_t M>
+struct is_simdarray_internal<SimdArray<T, N, VectorType, M>> : public std::true_type {
+};
+template <typename T, int N>
+struct is_simdarray_internal<fixed_size_simd<T, N>> : std::true_type {
+};
+
+// is_simd_mask_array_internal {{{1
+template <typename T, std::size_t N, typename VectorType, std::size_t M>
+struct is_simd_mask_array_internal<SimdMaskArray<T, N, VectorType, M>>
+    : public std::true_type {
+};
+template <typename T, int N>
+struct is_simd_mask_array_internal<fixed_size_simd_mask<T, N>> : std::true_type {
+};
+
+// is_integral_internal {{{1
+template <typename T, std::size_t N, typename V, std::size_t M>
+struct is_integral_internal<SimdArray<T, N, V, M>, false> : public std::is_integral<T> {
+};
+
+// is_floating_point_internal {{{1
+template <typename T, std::size_t N, typename V, std::size_t M>
+struct is_floating_point_internal<SimdArray<T, N, V, M>, false>
+    : public std::is_floating_point<T> {
+};
+
+// is_signed_internal {{{1
+template <typename T, std::size_t N, typename V, std::size_t M>
+struct is_signed_internal<SimdArray<T, N, V, M>, false> : public std::is_signed<T> {
+};
+
+// is_unsigned_internal {{{1
+template <typename T, std::size_t N, typename V, std::size_t M>
+struct is_unsigned_internal<SimdArray<T, N, V, M>, false> : public std::is_unsigned<T> {
+};
+
+// has_no_allocated_data_impl {{{1
+template <typename T, std::size_t N>
+struct has_no_allocated_data_impl<Vc::SimdArray<T, N>> : public std::true_type {
+};
+
+// }}}1
 }  // namespace Traits
 
 }  // namespace Vc

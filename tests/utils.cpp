@@ -30,9 +30,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace Vc;
 
 // reversed{{{1
-TEST_TYPES(V, reversed, (ALL_VECTORS, SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(15)))
+TEST_TYPES(V, reversed, concat<AllVectors, SimdArrays<2>, SimdArrays<3>, SimdArrays<15>>)
 {
-    const V x = V::IndexesFromZero() + 1;
+    const V x = V([](int n) { return n + 1; });
     const V reference = V::generate([](int i) { return V::Size - i; });
     COMPARE(x.reversed(), reference);
 }
@@ -47,14 +47,14 @@ template<typename T, typename Mem> struct Foo
     int i;
 };
 
-TEST_TYPES(V, testCall, (ALL_VECTORS))
+TEST_TYPES(V, testCall, AllVectors)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
     typedef typename V::Mask M;
-    const I _indexes(Vc::IndexesFromZero);
+    const I _indexes([](int n) { return n; });
     const M odd = Vc::simd_cast<M>((_indexes & I(One)) > 0);
-    V a(Vc::IndexesFromZero);
+    V a([](int n) { return n; });
     Foo<T, Vc::Memory<V, V::Size>> f;
     a.callWithValuesSorted(f);
     V b(f.d);
@@ -75,17 +75,17 @@ TEST_TYPES(V, testCall, (ALL_VECTORS))
 }
 
 // testForeachBit{{{1
-TEST_TYPES(V, testForeachBit, (ALL_VECTORS))
+TEST_TYPES(V, testForeachBit, AllVectors)
 {
     typedef typename V::EntryType T;
     typedef typename V::IndexType I;
-    const I indexes(IndexesFromZero);
+    const I indexes([](int n) { return n; });
     for_all_masks(V, mask) {
-        V tmp = V::Zero();
+        V tmp = V(0);
         for (int j : where(mask)) {
             tmp[j] = T(1);
         }
-        COMPARE(tmp == V::One(), mask);
+        COMPARE(tmp == V(1), mask);
 
         int count = 0;
         for (int j : where(mask)) {
@@ -131,10 +131,10 @@ class CallTester
         unsigned int i;
 };
 
-TEST_TYPES(V, applyAndCall, (ALL_VECTORS))
+TEST_TYPES(V, applyAndCall, AllVectors)
 {
 #if defined Vc_CLANG && Vc_CLANG >= 0x30500 && Vc_CLANG < 0x30700 && defined __i386__
-    UnitTest::Skip() << "clang 3.5 and 3.6 crash when compiling this test";
+    vir::test::Skip() << "clang 3.5 and 3.6 crash when compiling this test";
 #endif
     typedef typename V::EntryType T;
 
@@ -176,7 +176,7 @@ template<typename T, int value> T returnConstant() { return T(value); }
 template<typename T, int value> T returnConstantOffset(int i) { return T(value) + T(i); }
 template<typename T, int value> T returnConstantOffset2(unsigned short i) { return T(value) + T(i); }
 
-TEST_TYPES(V, fill, (ALL_VECTORS))
+TEST_TYPES(V, fill, AllVectors)
 {
     typedef typename V::EntryType T;
     V test = V::Random();
@@ -185,15 +185,15 @@ TEST_TYPES(V, fill, (ALL_VECTORS))
 
     test = V::Random();
     test.fill(returnConstantOffset<T, 0>);
-    COMPARE(test, static_cast<V>(V::IndexesFromZero()));
+    COMPARE(test, V([](int n) { return n; }));
 
     test = V::Random();
     test.fill(returnConstantOffset2<T, 0>);
-    COMPARE(test, static_cast<V>(V::IndexesFromZero()));
+    COMPARE(test, V([](int n) { return n; }));
 }
 
 // shifted{{{1
-TEST_TYPES(V, shifted, (ALL_VECTORS))
+TEST_TYPES(V, shifted, AllVectors)
 {
     typedef typename V::EntryType T;
     constexpr int Size = V::Size;
@@ -211,8 +211,9 @@ TEST_TYPES(V, shifted, (ALL_VECTORS))
 }
 
 // rotated{{{1
-TEST_TYPES(V, rotated, (ALL_VECTORS, SIMD_ARRAYS(16), SIMD_ARRAYS(15), SIMD_ARRAYS(11),
-                        SIMD_ARRAYS(9), SIMD_ARRAYS(8), SIMD_ARRAYS(7), SIMD_ARRAYS(3)))
+TEST_TYPES(V, rotated,
+           concat<AllVectors, SimdArrays<16>, SimdArrays<15>, SimdArrays<11>,
+                  SimdArrays<9>, SimdArrays<8>, SimdArrays<7>, SimdArrays<3>>)
 {
     constexpr int Size = V::Size;
     for (int shift = 2 * Size; shift >= -2 * Size; --shift) {
@@ -253,7 +254,7 @@ void shiftedInConstant(const V &, std::integral_constant<int, 2 * V::Size>)
 template <typename V, typename Shift> void shiftedInConstant(const V &data, Shift)
 {
     const V reference = shiftReference(data, Shift::value);
-    const V test = data.shifted(Shift::value, data + V::One());
+    const V test = data.shifted(Shift::value, data + V(1));
     COMPARE(test, reference) << "shift = " << Shift::value;
     if ((Shift::value + 1) % V::Size != 0) {
         shiftedInConstant(
@@ -263,13 +264,13 @@ template <typename V, typename Shift> void shiftedInConstant(const V &data, Shif
     }
 }
 
-TEST_TYPES(V, shiftedIn, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(16), SIMD_ODD_ARRAYS(17)))
+TEST_TYPES(V, shiftedIn, concat<AllVectors, SimdArrays<1>, SimdArrays<16>, OddSimdArrays<17>>)
 {
     constexpr int Size = V::Size;
     const V data = V::Random();
     for (int shift = -2 * Size + 1; shift <= 2 * Size -1; ++shift) {
         const V reference = shiftReference(data, shift);
-        const V test = data.shifted(shift, data + V::One());
+        const V test = data.shifted(shift, data + V(1));
         COMPARE(test, reference) << "\nshift = " << shift << "\ndata = " << data;
     }
     shiftedInConstant(V::Random(), std::integral_constant<int, -2 * Size + 1>());
@@ -312,8 +313,8 @@ template <typename A, typename B, typename C,
                                       std::declval<C>()))>
 inline void sfinaeIifIsNotCallable(A &&, B &&, C &&, int)
 {
-    FAIL() << "iif(" << UnitTest::typeToString<A>() << UnitTest::typeToString<B>()
-           << UnitTest::typeToString<C>() << ") appears to be callable.";
+    FAIL() << "iif(" << vir::typeToString<A>() << vir::typeToString<B>()
+           << vir::typeToString<C>() << ") appears to be callable.";
 }
 
 template <typename A, typename B, typename C>
@@ -323,7 +324,8 @@ inline void sfinaeIifIsNotCallable(A &&, B &&, C &&, ...)
 }
 
 TEST_TYPES(V, testIif,
-           (ALL_VECTORS, SIMD_ODD_ARRAYS(31), Vc::SimdArray<float, 8, Vc::Scalar::float_v>))
+           concat<AllVectors, OddSimdArrays<31>,
+                  Typelist<Vc::SimdArray<float, 8, Vc::Scalar::float_v>>>)
 {
     typedef typename V::EntryType T;
     const T one = T(1);
@@ -360,11 +362,14 @@ TEST(testIifBuiltin)
 }
 
 // testNonMemberInterleave{{{1
-TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS(2), SIMD_ARRAYS(3), SIMD_ARRAYS(9), SIMD_ARRAYS(8)))
+TEST_TYPES(V, testNonMemberInterleave,
+           concat<AllVectors, SimdArrays<1>, SimdArrays<2>, SimdArrays<3>, SimdArrays<9>,
+                  SimdArrays<8>>)
 {
     using T = typename V::EntryType;
     for (int repeat = 0; repeat < 10; ++repeat) {
-        std::array<V, 2> testValues = {V::IndexesFromZero(), V::IndexesFromZero() + int(V::Size)};
+        std::array<V, 2> testValues = {V([](int n) { return n; }),
+                                       V([](int n) { return n; }) + int(V::Size)};
         std::array<V, 2> references;
         for (size_t i = 0; i < V::Size; ++i) {
             size_t ii = 2 * i;
@@ -379,13 +384,13 @@ TEST_TYPES(V, testNonMemberInterleave, (ALL_VECTORS, SIMD_ARRAYS(1), SIMD_ARRAYS
 }
 
 // reinterpret_components_cast {{{1
-using CastTypes = Typelist<
+using CastTypes = vir::Typelist<
 #if Vc_FLOAT_V_SIZE == Vc_INT_V_SIZE
-    Typelist<float_v, int_v>,
-    Typelist<float_v, uint_v>
+    vir::Typelist<float_v, int_v>,
+    vir::Typelist<float_v, uint_v>
 #endif
     >;
-TEST_TYPES(P, reinterpret_components_cast, (CastTypes))
+TEST_TYPES(P, reinterpret_components_cast, CastTypes)
 {
     using From = typename P::template at<0>;
     using To = typename P::template at<1>;
@@ -403,11 +408,11 @@ TEST_TYPES(P, reinterpret_components_cast, (CastTypes))
     }
 }
 
-TEST_TYPES(V, swap, (ALL_VECTORS, SIMD_ARRAY_LIST))
+TEST_TYPES(V, swap, concat<AllVectors, SimdArrayList>)
 {
     using T = typename V::EntryType;
-    V x = V::IndexesFromZero();
-    V y = V::IndexesFromZero();
+    V x = V([](int n) { return n; });
+    V y = V([](int n) { return n; });
     using std::swap;
     swap(x[0], y[V::size() - 1]);
     COMPARE(x[0], T(V::size() - 1));

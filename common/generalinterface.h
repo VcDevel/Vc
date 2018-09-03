@@ -49,4 +49,14 @@ public:
         return Vector(Vc::IndexesFromZero);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // generator ctor
+    template <class G, class...,
+              class = typename std::enable_if<std::is_convertible<
+                  decltype(std::declval<G>()(size_t())), value_type>::value>::type>
+    explicit Vector(G &&g) : Vector(generate(std::forward<G>(g)))
+    {
+    }
+
+
 // vim: foldmethod=marker

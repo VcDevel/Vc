@@ -45,17 +45,16 @@ Vc_INTRINSIC Vc_CONST MIC::double_v copysign(MIC::double_v mag, MIC::double_v si
 }
 
 // trunc {{{1
-template <typename V> Vc_ALWAYS_INLINE V trunc(V v) { return _mm512_trunc_ps(v.data()); }
+Vc_ALWAYS_INLINE MIC::float_v trunc(MIC::float_v v) { return _mm512_trunc_ps(v.data()); }
 Vc_ALWAYS_INLINE MIC::double_v trunc(MIC::double_v v)
 {
     return _mm512_trunc_pd(v.data());
 }
+
 // isfinite {{{1
-template <typename T>
-static Vc_ALWAYS_INLINE Mask<T> isfinite(Vector<T, VectorAbi::Mic> x)
+static Vc_ALWAYS_INLINE MIC::float_m isfinite(MIC::float_v x)
 {
-    return _mm512_cmpord_ps_mask(x.data(),
-                                 (x * Vector<T, VectorAbi::Mic>::Zero()).data());
+    return _mm512_cmpord_ps_mask(x.data(), (x * MIC::float_v::Zero()).data());
 }
 static Vc_ALWAYS_INLINE MIC::double_m isfinite(MIC::double_v x)
 {
@@ -63,11 +62,9 @@ static Vc_ALWAYS_INLINE MIC::double_m isfinite(MIC::double_v x)
 }
 // isnotfinite {{{1
 // i.e. !isfinite(x), this is not equivalent to isinfinite because NaN also is not finite
-template <typename T>
-static Vc_ALWAYS_INLINE Mask<T> isnotfinite(Vector<T, VectorAbi::Mic> x)
+static Vc_ALWAYS_INLINE MIC::float_m isnotfinite(MIC::float_v x)
 {
-    return _mm512_cmpunord_ps_mask(x.data(),
-                                   (x * Vector<T, VectorAbi::Mic>::Zero()).data());
+    return _mm512_cmpunord_ps_mask(x.data(), (x * MIC::float_v::Zero()).data());
 }
 static Vc_ALWAYS_INLINE MIC::double_m isnotfinite(MIC::double_v x)
 {
@@ -90,7 +87,7 @@ Vc_ALWAYS_INLINE MIC::double_m isinf(MIC::double_v x)
             ((mask >> 7) & 0xc0));
 }
 // isnan {{{1
-template <typename T> static Vc_ALWAYS_INLINE Mask<T> isnan(Vector<T, VectorAbi::Mic> x)
+static Vc_ALWAYS_INLINE MIC::float_m isnan(MIC::float_v x)
 {
     return _mm512_cmpunord_ps_mask(x.data(), x.data());
 }

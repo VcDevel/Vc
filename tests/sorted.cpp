@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "unittest.h"
 
-TEST_TYPES(Vec, testSort, (ALL_VECTORS, SIMD_ARRAYS(15), SIMD_ARRAYS(8), SIMD_ARRAYS(3), SIMD_ARRAYS(1)))
+TEST_TYPES(Vec, testSort, concat<AllVectors, SimdArrays<15>, SimdArrays<8>, SimdArrays<3>, SimdArrays<1>>)
 {
 // On GCC/clang (i.e. __GNUC__ compatible) __OPTIMIZE__ is not defined on -O0.
 // We use this information to make the test complete in a sane timeframe on debug

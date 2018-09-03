@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/array>
 #include <Vc/span>
 
-#define ALL_TYPES (ALL_VECTORS, SimdArray<int, 7>)
+#define ALL_TYPES concat<AllVectors, Typelist<Vc::fixed_size_simd<int, 7>>>
 
 using namespace Vc;
 
@@ -44,7 +44,7 @@ TEST_TYPES(Vec, maskedGatherArray, ALL_TYPES)
         mem[i] = i + 1;
     }
 
-    It indexes = It::IndexesFromZero();
+    It indexes = It([](int n) { return n; });
     alignas(static_cast<std::size_t>(It::MemoryAlignment))
         std::array<typename It::EntryType, It::size()> indexArray;
     indexes.store(&indexArray[0], Vc::Aligned);
@@ -95,7 +95,7 @@ Vec incrementIndex(const typename Vec::IndexType &i,
     // undefined behavior for signed integers
     const auto overflowing =
         Vc::simd_cast<typename Vec::Mask>(i >= IT(std::numeric_limits<T>::max()));
-    Vec r = Vc::simd_cast<Vec>(i + IT::One());
+    Vec r = Vc::simd_cast<Vec>(i + IT(1));
     where(overflowing) | r = Vc::simd_cast<Vec>(i - std::numeric_limits<T>::max() + std::numeric_limits<T>::min());
     return r;
 }

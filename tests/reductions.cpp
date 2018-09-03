@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unittest.h"
 #include "vectormemoryhelper.h"
 
-TEST_TYPES(Vec, testReduceMin, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
+TEST_TYPES(Vec, testReduceMin, concat<AllVectors, SimdArrayList>) //{{{1
 {
     typedef typename Vec::EntryType T;
     const T one = 1;
@@ -44,7 +44,7 @@ TEST_TYPES(Vec, testReduceMin, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testReduceMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
+TEST_TYPES(Vec, testReduceMax, concat<AllVectors, SimdArrayList>) //{{{1
 {
     typedef typename Vec::EntryType T;
     const T max = Vec::Size + 1;
@@ -60,7 +60,7 @@ TEST_TYPES(Vec, testReduceMax, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
     }
 }
 
-TEST_TYPES(V, testReduceProduct, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
+TEST_TYPES(V, testReduceProduct, concat<AllVectors, SimdArrayList>) //{{{1
 {
     using T = typename V::EntryType;
     V test = 0;
@@ -84,7 +84,7 @@ TEST_TYPES(V, testReduceProduct, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
     }
 }
 
-TEST_TYPES(Vec, testReduceSum, (ALL_VECTORS, SIMD_ARRAY_LIST)) //{{{1
+TEST_TYPES(Vec, testReduceSum, concat<AllVectors, SimdArrayList>) //{{{1
 {
     typedef typename Vec::EntryType T;
     int _sum = 1;

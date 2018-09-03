@@ -6,4 +6,4 @@ vc-benchmarks
 *~
 .makeApidox.stamp
 .makeApidox.stamp.new
-build
+build-*

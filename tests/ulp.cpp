@@ -27,13 +27,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "unittest.h"
 
-TEST_TYPES(V, testUlpDiff, (concat<RealVectors, RealSimdArrays>))  //{{{1
+TEST_TYPES(V, testUlpDiff, concat<RealVectors, RealSimdArrayList>)  //{{{1
 {
     typedef typename V::EntryType T;
 
-    COMPARE(ulpDiffToReference(V::Zero(), V::Zero()), V::Zero());
-    COMPARE(ulpDiffToReference(std::numeric_limits<V>::min(), V::Zero()), V::One());
-    COMPARE(ulpDiffToReference(V::Zero(), std::numeric_limits<V>::min()), V::One());
+    using vir::detail::ulpDiffToReference;
+    COMPARE(ulpDiffToReference(V(0), V(0)), V(0));
+    COMPARE(ulpDiffToReference(V(std::numeric_limits<T>::min()), V(0)), V(1));
+    COMPARE(ulpDiffToReference(V(0), V(std::numeric_limits<T>::min())), V(1));
     for (size_t count = 0; count < 1024 / V::Size; ++count) {
         const V base = (V::Random() - T(0.5)) * T(1000);
         typename V::IndexType exp;

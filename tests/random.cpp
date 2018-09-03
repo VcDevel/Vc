@@ -37,7 +37,7 @@ using Vc::float_v;
 using Vc::double_v;
 using Vc::SimdArray;
 
-TEST_TYPES(V, Random, (ALL_VECTORS))
+TEST_TYPES(V, Random, AllVectors)
 {
     typedef typename V::EntryType T;
     enum {

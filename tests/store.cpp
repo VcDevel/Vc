@@ -31,9 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace Vc;
 
-#define ALL_TYPES (ALL_VECTORS)
-
-TEST_TYPES(Vec, alignedStore, ALL_TYPES)
+TEST_TYPES(Vec, alignedStore, AllVectors)
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -59,13 +57,13 @@ TEST_TYPES(Vec, alignedStore, ALL_TYPES)
 
     if (std::is_integral<T>::value && std::is_unsigned<T>::value) {
         // ensure that over-/underflowed values are stored correctly.
-        Vec v = Vec::Zero() - Vec::One(); // underflow
+        Vec v = Vec(0) - Vec(1); // underflow
         v.store(array, Vc::Aligned);
         for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(array[i], v[i]);
         }
 
-        v = std::numeric_limits<T>::max() + Vec::One(); // overflow
+        v = std::numeric_limits<T>::max() + Vec(1); // overflow
         v.store(array, Vc::Aligned);
         for (size_t i = 0; i < Vec::Size; ++i) {
             COMPARE(array[i], v[i]);
@@ -73,7 +71,7 @@ TEST_TYPES(Vec, alignedStore, ALL_TYPES)
     }
 }
 
-TEST_TYPES(Vec, unalignedStore, ALL_TYPES)
+TEST_TYPES(Vec, unalignedStore, AllVectors)
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -95,7 +93,7 @@ TEST_TYPES(Vec, unalignedStore, ALL_TYPES)
     }
 }
 
-TEST_TYPES(Vec, streamingAndAlignedStore, ALL_TYPES)
+TEST_TYPES(Vec, streamingAndAlignedStore, AllVectors)
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -117,7 +115,7 @@ TEST_TYPES(Vec, streamingAndAlignedStore, ALL_TYPES)
     }
 }
 
-TEST_TYPES(Vec, streamingAndUnalignedStore, ALL_TYPES)
+TEST_TYPES(Vec, streamingAndUnalignedStore, AllVectors)
 {
     typedef typename Vec::EntryType T;
     enum {
@@ -139,7 +137,7 @@ TEST_TYPES(Vec, streamingAndUnalignedStore, ALL_TYPES)
     }
 }
 
-TEST_TYPES(Vec, maskedStore, ALL_TYPES)
+TEST_TYPES(Vec, maskedStore, AllVectors)
 {
     if ((Vec::size() & 1) == 1) {
         // only works with an even number of vector entries
@@ -176,7 +174,7 @@ TEST_TYPES(Vec, maskedStore, ALL_TYPES)
 
     for (int offset = 0; offset < count - int(Vec::Size); ++offset) {
         auto mem = &array[offset];
-        Vec::Zero().store(mem, Vc::Unaligned);
+        Vec(0).store(mem, Vc::Unaligned);
 
         constexpr std::ptrdiff_t alignment = sizeof(T) * Vec::Size;
         constexpr std::ptrdiff_t alignmentMask = ~(alignment - 1);

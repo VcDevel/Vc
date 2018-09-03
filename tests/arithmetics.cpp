@@ -31,26 +31,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Vc/limits>
 #include <common/const.h>
 #include <common/macros.h>
+#include <random>
 
 using namespace Vc;
-
-#define ALL_TYPES (ALL_VECTORS)
-#if 0
-#define ALL_TYPES                                                                                  \
-    (SIMD_ARRAYS(32),                                                                              \
-     SIMD_ARRAYS(31),                                                                              \
-     SIMD_ARRAYS(16),                                                                              \
-     SIMD_ARRAYS(8),                                                                               \
-     SIMD_ARRAYS(4),                                                                               \
-     SIMD_ARRAYS(2),                                                                               \
-     SIMD_ARRAYS(1),                                                                               \
-     ALL_VECTORS)
-#endif
 
 std::default_random_engine randomEngine;
 
 // testZero{{{1
-TEST_TYPES(Vec, testZero, ALL_TYPES)
+TEST_TYPES(Vec, testZero, AllVectors)
 {
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
@@ -69,7 +57,7 @@ TEST_TYPES(Vec, testZero, ALL_TYPES)
 }
 
 // testCmp{{{1
-TEST_TYPES(Vec, testCmp, ALL_TYPES)
+TEST_TYPES(Vec, testCmp, AllVectors)
 {
     typedef typename Vec::EntryType T;
     Vec a(Zero), b(Zero);
@@ -104,7 +92,7 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
             VERIFY(all_of(Vec(Zero) < Vec(j))) << (Vec(Zero) < Vec(j)) << ", j = " << j << ", step = " << step;
             VERIFY(all_of(Vec(j) > Vec(Zero)));
             VERIFY(none_of(Vec(Zero) >= Vec(j)));
-            VERIFY(none_of(Vec(j) <= Vec(Zero))) << (Vec(j) <= Vec::Zero()) << ", j = " << j << ", Vec(j) = " << Vec(j);
+            VERIFY(none_of(Vec(j) <= Vec(Zero))) << (Vec(j) <= Vec(0)) << ", j = " << j << ", Vec(j) = " << Vec(j);
         }
     }
     if (std::numeric_limits<T>::min() <= 0) {
@@ -124,9 +112,9 @@ TEST_TYPES(Vec, testCmp, ALL_TYPES)
 }
 
 // testIsMix{{{1
-TEST_TYPES(Vec, testIsMix, ALL_TYPES)
+TEST_TYPES(Vec, testIsMix, AllVectors)
 {
-    Vec a = Vec::IndexesFromZero();
+    Vec a = Vec([](int n) { return n; });
     Vec b(Zero);
     Vec c(One);
     if (Vec::Size > 1) {
@@ -147,7 +135,7 @@ TEST_TYPES(Vec, testIsMix, ALL_TYPES)
 }
 
 // testAdd{{{1
-TEST_TYPES(Vec, testAdd, ALL_TYPES)
+TEST_TYPES(Vec, testAdd, AllVectors)
 {
     Vec a(Zero), b(Zero);
     COMPARE(a, b);
@@ -171,7 +159,7 @@ TEST_TYPES(Vec, testAdd, ALL_TYPES)
 }
 
 // testSub{{{1
-TEST_TYPES(Vec, testSub, ALL_TYPES)
+TEST_TYPES(Vec, testSub, AllVectors)
 {
     Vec a(2), b(2);
     COMPARE(a, b);
@@ -195,7 +183,7 @@ TEST_TYPES(Vec, testSub, ALL_TYPES)
 }
 
 // testMul{{{1
-TEST_TYPES(V, testMul, ALL_TYPES)
+TEST_TYPES(V, testMul, AllVectors)
 {
     for (int i = 0; i < 10000; ++i) {
         V a = V::Random();
@@ -212,7 +200,7 @@ TEST_TYPES(V, testMul, ALL_TYPES)
 }
 
 // testMulAdd{{{1
-TEST_TYPES(Vec, testMulAdd, ALL_TYPES)
+TEST_TYPES(Vec, testMulAdd, AllVectors)
 {
     typedef typename Vec::EntryType T;
     static_assert(std::is_arithmetic<T>::value, "The EntryType is not a builtin arithmetic type");
@@ -231,7 +219,7 @@ TEST_TYPES(Vec, testMulAdd, ALL_TYPES)
 }
 
 // testMulSub{{{1
-TEST_TYPES(Vec, testMulSub, ALL_TYPES)
+TEST_TYPES(Vec, testMulSub, AllVectors)
 {
     typedef typename Vec::EntryType T;
     const unsigned int minI = sizeof(T) < 4 ? -0xb4 : 0;
@@ -245,12 +233,12 @@ TEST_TYPES(Vec, testMulSub, ALL_TYPES)
 }
 
 // testDiv{{{1
-TEST_TYPES(Vec, testDiv, ALL_TYPES)
+TEST_TYPES(Vec, testDiv, AllVectors)
 {
     for (int repetition = 0; repetition < 10000; ++repetition) {
         const Vec a = Vec::Random();
         const Vec b = Vec::Random();
-        if (none_of(b == Vec::Zero())) {
+        if (none_of(b == Vec(0))) {
             Vec reference;
             for (size_t i = 0; i < Vec::Size; ++i) {
                 reference[i] = a[i] / b[i];
@@ -281,7 +269,7 @@ TEST_TYPES(Vec, testDiv, ALL_TYPES)
 }
 
 // testModulo{{{1
-TEST_TYPES(V, testModulo, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), INT_VECTORS))
+TEST_TYPES(V, testModulo, concat<IntSimdArrays<32>, OddIntSimdArrays<31>, IntVectors>)
 {
     using T = typename V::EntryType;
     alignas(static_cast<size_t>(V::MemoryAlignment)) T x_mem[V::size()];
@@ -297,8 +285,8 @@ TEST_TYPES(V, testModulo, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), INT_VEC
             const V reference =
                 V::generate([&](size_t i) { return x_mem[i] % y_mem[i]; });
             COMPARE(z, reference) << ", x: " << x << ", y: " << y;
-            COMPARE(V::Zero() % y, V::Zero());
-            COMPARE(y % y, V::Zero());
+            COMPARE(V(0) % y, V(0));
+            COMPARE(y % y, V(0));
         }
         {
             const V z = x % 256;
@@ -309,7 +297,7 @@ TEST_TYPES(V, testModulo, (SIMD_INT_ARRAYS(32), SIMD_INT_ODD_ARRAYS(31), INT_VEC
 }
 
 // testAnd{{{1
-TEST_TYPES(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
+TEST_TYPES(Vec, testAnd, int_v, ushort_v, uint_v, short_v)
 {
     Vec a(0x7fff);
     Vec b(0xf);
@@ -321,14 +309,14 @@ TEST_TYPES(Vec, testAnd, (int_v, ushort_v, uint_v, short_v))
 }
 
 // testShift{{{1
-TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
+TEST_TYPES(Vec, testShift, int_v, ushort_v, uint_v, short_v)
 {
     typedef typename Vec::EntryType T;
     const T step = std::max<T>(1, std::numeric_limits<T>::max() / 1000);
     enum {
         NShifts = sizeof(T) * 8
     };
-    for (Vec x = std::numeric_limits<Vec>::min() + Vec::IndexesFromZero();
+    for (Vec x = std::numeric_limits<Vec>::min() + Vec([](int n) { return n; });
          all_of(x < std::numeric_limits<Vec>::max() - step);
          x += step) {
         for (size_t shift = 0; shift < NShifts; ++shift) {
@@ -375,7 +363,7 @@ TEST_TYPES(Vec, testShift, (int_v, ushort_v, uint_v, short_v))
 }
 
 // testOnesComplement{{{1
-TEST_TYPES(Vec, testOnesComplement, (INT_VECTORS, SIMD_INT_ODD_ARRAYS(17)))
+TEST_TYPES(Vec, testOnesComplement, concat<IntVectors, OddIntSimdArrays<17>>)
 {
     Vec a(One);
     Vec b = ~a;
@@ -385,11 +373,11 @@ TEST_TYPES(Vec, testOnesComplement, (INT_VECTORS, SIMD_INT_ODD_ARRAYS(17)))
 }
 
 // logicalNegation{{{1
-TEST_TYPES(V, logicalNegation, ALL_TYPES)
+TEST_TYPES(V, logicalNegation, AllVectors)
 {
     V a = V::Random();
     COMPARE(!a, a == 0) << "a = " << a;
-    COMPARE(!V::Zero(), V() == V()) << "a = " << a;
+    COMPARE(!V(0), V() == V()) << "a = " << a;
 }
 
 // testNegate{{{1
@@ -417,7 +405,7 @@ template<> const int NegateRangeHelper<short>::End = 0x7fff - 0xee;
 template<> const int NegateRangeHelper<unsigned short>::Start = 0;
 template<> const int NegateRangeHelper<unsigned short>::End = 0xffff - 0xee;
 
-TEST_TYPES(Vec, testNegate, ALL_TYPES)
+TEST_TYPES(Vec, testNegate, AllVectors)
 {
     typedef typename Vec::EntryType T;
 
@@ -440,12 +428,12 @@ TEST_TYPES(Vec, testNegate, ALL_TYPES)
 }
 
 // testMin{{{1
-TEST_TYPES(Vec, testMin, ALL_TYPES)
+TEST_TYPES(Vec, testMin, AllVectors)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
 
-    Vec v = Vec::IndexesFromZero();
+    Vec v = Vec([](int n) { return n; });
 
     COMPARE(v.min(), static_cast<T>(0));
     COMPARE((T(Vec::Size) - v).min(), static_cast<T>(1));
@@ -454,7 +442,7 @@ TEST_TYPES(Vec, testMin, ALL_TYPES)
     std::uniform_int_distribution<size_t> dist(0, max);
     for (int rep = 0; rep < 100000; ++rep) {
         const size_t j = dist(randomEngine);
-        Mask m = UnitTest::allMasks<Vec>(j);
+        Mask m = allMasks<Vec>(j);
         if (any_of(m)) {
             COMPARE(v.min(m), static_cast<T>(m.firstOne())) << m << v;
         }
@@ -462,12 +450,12 @@ TEST_TYPES(Vec, testMin, ALL_TYPES)
 }
 
 // testMax{{{1
-TEST_TYPES(Vec, testMax, ALL_TYPES)
+TEST_TYPES(Vec, testMax, AllVectors)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
 
-    Vec v = Vec::IndexesFromZero();
+    Vec v = Vec([](int n) { return n; });
 
     COMPARE(v.max(), static_cast<T>(Vec::Size - 1));
     v = T(Vec::Size) - v;
@@ -477,7 +465,7 @@ TEST_TYPES(Vec, testMax, ALL_TYPES)
     std::uniform_int_distribution<size_t> dist(0, max);
     for (int rep = 0; rep < 100000; ++rep) {
         const size_t j = dist(randomEngine);
-        Mask m = UnitTest::allMasks<Vec>(j);
+        Mask m = allMasks<Vec>(j);
         if (any_of(m)) {
             COMPARE(v.max(m), static_cast<T>(Vec::Size - m.firstOne())) << m << v;
         }
@@ -485,7 +473,7 @@ TEST_TYPES(Vec, testMax, ALL_TYPES)
 }
 
 // testProduct{{{1
-TEST_TYPES(Vec, testProduct, ALL_TYPES)
+TEST_TYPES(Vec, testProduct, AllVectors)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -508,7 +496,7 @@ TEST_TYPES(Vec, testProduct, ALL_TYPES)
         std::uniform_int_distribution<size_t> dist(0, max);
         for (int rep = 0; rep < 10000; ++rep) {
             const size_t j = dist(randomEngine);
-            Mask m = UnitTest::allMasks<Vec>(j);
+            Mask m = allMasks<Vec>(j);
             if (any_of(m)) {
                 if (std::numeric_limits<T>::is_exact) {
                     x2 = x;
@@ -528,7 +516,7 @@ TEST_TYPES(Vec, testProduct, ALL_TYPES)
 }
 
 // testSum{{{1
-TEST_TYPES(Vec, testSum, ALL_TYPES)
+TEST_TYPES(Vec, testSum, AllVectors)
 {
     typedef typename Vec::EntryType T;
     typedef typename Vec::Mask Mask;
@@ -542,7 +530,7 @@ TEST_TYPES(Vec, testSum, ALL_TYPES)
         std::uniform_int_distribution<size_t> dist(0, max);
         for (int rep = 0; rep < 10000; ++rep) {
             const size_t j = dist(randomEngine);
-            Mask m = UnitTest::allMasks<Vec>(j);
+            Mask m = allMasks<Vec>(j);
             if (any_of(m)) {
                 COMPARE(v.sum(m), static_cast<T>(x * m.count())) << m << v;
             } else {
@@ -553,14 +541,14 @@ TEST_TYPES(Vec, testSum, ALL_TYPES)
 }
 
 // testPartialSum{{{1
-TEST_TYPES(V, testPartialSum, ALL_TYPES)
+TEST_TYPES(V, testPartialSum, AllVectors)
 {
-    V reference = V::IndexesFromZero() + 1;
+    V reference = V([](int n) { return n + 1; });
     COMPARE(V(1).partialSum(), reference);
     /* disabled until correct masking is implemented
 
     typedef typename V::IndexType I;
-    reference = simd_cast<V>(I(2) << I::IndexesFromZero());
+    reference = simd_cast<V>(I(2) << I([](int n) { return n; }));
     COMPARE(V(2).partialSum([](const V &a, const V &b) { return a * b; }), reference);
     */
 }
@@ -616,7 +604,7 @@ template <typename V> void testFmaDispatch(double)
             V(doubleConstant<1, 0x0000000000001, -50>()));
 }
 
-TEST_TYPES(V, testFma, ALL_TYPES)
+TEST_TYPES(V, testFma, AllVectors)
 {
     using T = typename V::EntryType;
 // https://github.com/VcDevel/Vc/issues/61
@@ -627,18 +615,18 @@ TEST_TYPES(V, testFma, ALL_TYPES)
     defined __GLIBC__ && __GLIBC__ == 2 && __GLIBC_MINOR__ <= 12
     if (std::is_same<typename V::abi, VectorAbi::Scalar>::value) {
         if (std::is_same<T, double>::value) {
-            UnitTest::EXPECT_FAILURE();
+            vir::test::EXPECT_FAILURE();
         }
 #if defined Vc_GCC || (defined Vc_CLANG && Vc_CLANG >= 0x30500)
         if (std::is_same<T, float>::value && sizeof(void*) == 8) {
-            UnitTest::EXPECT_FAILURE();
+            vir::test::EXPECT_FAILURE();
         }
 #endif
     }
 #elif defined Vc_MSVC
     if (std::is_same<typename V::abi, VectorAbi::Scalar>::value) {
         if (std::is_floating_point<T>::value) {
-            UnitTest::EXPECT_FAILURE();
+            vir::test::EXPECT_FAILURE();
         }
     }
 #endif

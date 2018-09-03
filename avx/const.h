@@ -118,7 +118,13 @@ namespace AVX
     template <> Vc_ALWAYS_INLINE Vc_CONST Vector<float> Const<float>::highMask(int bits)
     {
 #ifdef Vc_IMPL_AVX2
-        return _mm256_castsi256_ps(_mm256_slli_epi32(~__m256i(), bits));
+#if defined Vc_ICC || defined Vc_MSVC
+        __m256i allone;
+        allone = _mm256_cmpeq_epi8(allone, allone);
+#else
+        auto allone = ~__m256i();
+#endif
+        return _mm256_castsi256_ps(_mm256_slli_epi32(allone, bits));
 #else
         __m128 tmp = _mm_castsi128_ps(_mm_slli_epi32(_mm_setallone_si128(), bits));
         return concat(tmp, tmp);
@@ -127,7 +133,13 @@ namespace AVX
     template <> Vc_ALWAYS_INLINE Vc_CONST Vector<double> Const<double>::highMask(int bits)
     {
 #ifdef Vc_IMPL_AVX2
-        return _mm256_castsi256_pd(_mm256_slli_epi64(~__m256i(), bits));
+#if defined Vc_ICC || defined Vc_MSVC
+        __m256i allone;
+        allone = _mm256_cmpeq_epi8(allone, allone);
+#else
+        auto allone = ~__m256i();
+#endif
+        return _mm256_castsi256_pd(_mm256_slli_epi64(allone, bits));
 #else
         __m128d tmp = _mm_castsi128_pd(_mm_slli_epi64(_mm_setallone_si128(), bits));
         return concat(tmp, tmp);

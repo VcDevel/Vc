@@ -683,87 +683,32 @@ Vc_DEFINE_NONTYPE_REPLACETYPES_(  signed long long);
 Vc_DEFINE_NONTYPE_REPLACETYPES_(unsigned long long);
 #undef Vc_DEFINE_NONTYPE_REPLACETYPES_
 
-namespace is_constructible_with_single_paren_impl
+// preferred_construction {{{
+namespace preferred_construction_impl
 {
 template <typename T> T create();
-#if defined Vc_CLANG || defined Vc_APPLECLANG
-template <typename Class, typename... Args, typename = decltype(Class(create<Args>()...))>
-char test(int);
-#else
-template <typename Class, typename... Args>
-typename std::conditional<
-#ifndef Vc_ICC
-    0 !=
-#endif
-        sizeof(Class(create<Args>()...)),
-    char, char>::type
-test(int);
-#endif
-template <typename Class, typename... Args> double test(...);
-}  // namespace is_constructible_with_single_paren_impl
+// 0: paren init
+template <class Type, class... Init, class = decltype(Type(create<Init>()...))>
+constexpr std::integral_constant<int, 0> test(int);
+// 1: 1-brace init
+template <class Type, class... Init, class = decltype(Type{create<Init>()...})>
+constexpr std::integral_constant<int, 1> test(float);
+// 2: 2-brace init
+template <class Type, class... Init, class T, class = decltype(Type{{create<Init>()...}})>
+constexpr std::integral_constant<int, 2> test(T);
+// 3: no init at all
+template <class Type, class... Init> constexpr std::integral_constant<int, 3> test(...);
+}  // namespace preferred_construction_impl
 
-template <typename Class, typename... Args>
-struct is_constructible_with_single_paren
-    : public std::integral_constant<
-          bool,
-          1 == sizeof(is_constructible_with_single_paren_impl::test<Class, Args...>(1))> {
-};
-
-namespace is_constructible_with_single_brace_impl
+template <class Type, class... Init>
+constexpr inline decltype(preferred_construction_impl::test<Type, Init...>(0))
+preferred_construction()
 {
-template <typename T> T create();
-#ifdef Vc_ICC
-template <typename Class, typename... Args> char test(int);
-#elif defined Vc_CLANG || defined Vc_APPLECLANG
-template <typename Class, typename... Args, typename = decltype(Class{create<Args>()...})>
-char test(int);
-#else
-template <typename Class, typename... Args>
-typename std::conditional<
-#ifndef Vc_ICC
-    0 !=
-#endif
-        sizeof(Class{create<Args>()...}),
-    char, char>::type
-test(int);
-#endif
-template <typename Class, typename... Args> double test(...);
-}  // namespace is_constructible_with_single_brace_impl
+    return {};
+}
 
-template <typename Class, typename... Args>
-struct is_constructible_with_single_brace
-    : public std::integral_constant<
-          bool,
-          1 == sizeof(is_constructible_with_single_brace_impl::test<Class, Args...>(1))> {
-};
-
-namespace is_constructible_with_double_brace_impl
-{
-template <typename T> T create();
-#if defined Vc_CLANG || defined Vc_APPLECLANG
-template <typename Class, typename... Args,
-          typename = decltype(Class{{create<Args>()...}})>
-char test(int);
-#else
-template <typename Class, typename... Args>
-typename std::conditional<
-#ifndef Vc_ICC
-    0 !=
-#endif
-        sizeof(Class{{create<Args>()...}}),
-    char, char>::type
-test(int);
-#endif
-template <typename Class, typename... Args> double test(...);
-}  // namespace is_constructible_with_double_brace_impl
-
-template <typename Class, typename... Args>
-struct is_constructible_with_double_brace
-    : public std::integral_constant<
-          bool,
-          1 == sizeof(is_constructible_with_double_brace_impl::test<Class, Args...>(1))> {
-};
-
+// }}}
+// get_dispatcher {{{
 template <size_t I, typename T,
           typename R = decltype(std::declval<T &>().template vc_get_<I>())>
 R get_dispatcher(T &x, void * = nullptr)
@@ -788,30 +733,41 @@ R get_dispatcher(const T &x, int = 0)
     return std::get<I>(x);
 }
 
-
-// see above
+// }}}
+// class Adapter {{{
 template <typename Scalar, typename Base, size_t N> class Adapter : public Base
 {
 private:
+    /// helper for the broadcast ctor below, error case
+    template <std::size_t... Indexes, int X>
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar,
+            std::integral_constant<int, X>)
+    {
+        static_assert(
+            X < 3, "Failed to construct an object of type Base. Neither via "
+                   "parenthesis-init, brace-init, nor double-brace init appear to work.");
+    }
+
     /// helper for the broadcast ctor below using double braces for Base initialization
-    template <std::size_t... Indexes, typename T>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, T, std::true_type)
+    template <std::size_t... Indexes>
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_,
+            std::integral_constant<int, 2>)
         : Base{{get_dispatcher<Indexes>(x_)...}}
     {
     }
 
     /// helper for the broadcast ctor below using single braces for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, std::false_type,
-            std::false_type)
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_,
+            std::integral_constant<int, 1>)
         : Base{get_dispatcher<Indexes>(x_)...}
     {
     }
 
     /// helper for the broadcast ctor below using parenthesis for Base initialization
     template <std::size_t... Indexes>
-    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_, std::true_type,
-            std::false_type)
+    Adapter(Vc::index_sequence<Indexes...>, const Scalar &x_,
+            std::integral_constant<int, 0>)
         : Base(get_dispatcher<Indexes>(x_)...)
     {
     }
@@ -819,14 +775,8 @@ private:
     template <std::size_t... Indexes>
     Adapter(Vc::index_sequence<Indexes...> seq_, const Scalar &x_)
         : Adapter(seq_, x_,
-                  std::integral_constant<
-                      bool, is_constructible_with_single_paren<
-                                Base, decltype(get_dispatcher<Indexes>(
-                                          std::declval<const Scalar &>()))...>::value>(),
-                  std::integral_constant<
-                      bool, is_constructible_with_double_brace<
-                                Base, decltype(get_dispatcher<Indexes>(
-                                          std::declval<const Scalar &>()))...>::value>())
+                  preferred_construction<Base, decltype(get_dispatcher<Indexes>(
+                                                   std::declval<const Scalar &>()))...>())
     {
     }
 
@@ -901,8 +851,8 @@ public:
     void operator delete(void *, void *) {}
     void operator delete[](void *ptr_, size_t) { Vc::Common::free(ptr_); }
     void operator delete[](void *, void *) {}
-};
-
+};  // }}}
+// delete compare operators for Adapter {{{
 /**\internal
  * Delete compare operators for simdize<tuple<...>> types because the tuple compares
  * require the compares to be bool based.
@@ -931,7 +881,7 @@ template <class... TTypes, class... TTypesV, class... UTypes, class... UTypesV, 
 inline void operator>(
     const Adapter<std::tuple<TTypes...>, std::tuple<TTypesV...>, N> &t,
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
-
+// }}}
 /** @}*/
 }  // namespace SimdizeDetail
 }  // namespace Vc

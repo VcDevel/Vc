@@ -36,48 +36,6 @@ using Vc::int_m;
 template <typename Scalar, typename Base, std::size_t N>
 using SimdizeAdapter = Vc::SimdizeDetail::Adapter<Scalar, Base, N>;
 
-TEST(sanity_checks)
-{
-    VERIFY((!Vc::SimdizeDetail::is_constructible_with_single_paren<
-            int, std::tuple<int, int, int>>::value))
-        << "is_constructible_with_single_paren<int> does not work as expected";
-    VERIFY(
-        (Vc::SimdizeDetail::is_constructible_with_single_paren<std::tuple<int, int, int>,
-                                                               int, int, int>::value))
-        << "is_constructible_with_single_paren<tuple> does not work as expected";
-    VERIFY((!Vc::SimdizeDetail::is_constructible_with_single_paren<std::array<int, 3>,
-                                                                   int, int, int>::value))
-        << "is_constructible_with_single_paren<array> does not work as expected";
-#ifndef Vc_ICC
-    VERIFY((!Vc::SimdizeDetail::is_constructible_with_single_brace<
-            int, std::tuple<int, int, int>>::value))
-        << "is_constructible_with_single_brace<int> does not work as expected";
-#endif
-    VERIFY(
-        (Vc::SimdizeDetail::is_constructible_with_single_brace<std::tuple<int, int, int>,
-                                                               int, int, int>::value))
-        << "is_constructible_with_single_brace<tuple> does not work as expected";
-    VERIFY((Vc::SimdizeDetail::is_constructible_with_single_brace<std::array<int, 3>, int,
-                                                                  int, int>::value))
-        << "is_constructible_with_single_brace<array> does not work as expected";
-#if !(defined Vc_CLANG || defined Vc_APPLECLANG)
-    // clang allows int{{1}} but warns that it's wrong. Thus the assertion fails. If I
-    // expect
-    // the incorrect answer from clang, the assertion won't fail, but the compiler warns
-    // about
-    // the trait invocation. Annoying feature...
-    VERIFY((!Vc::SimdizeDetail::is_constructible_with_double_brace<int, int>::value))
-        << "is_constructible_with_double_brace<int> does not work as expected";
-#endif
-    VERIFY(
-        (!Vc::SimdizeDetail::is_constructible_with_double_brace<std::tuple<int, int, int>,
-                                                                int, int, int>::value))
-        << "is_constructible_with_double_brace<tuple> does not work as expected";
-    VERIFY((Vc::SimdizeDetail::is_constructible_with_double_brace<std::array<int, 3>, int,
-                                                                  int, int>::value))
-        << "is_constructible_with_double_brace<array> does not work as expected";
-}
-
 TEST(test_simdize)
 {
     using namespace std;
@@ -231,10 +189,10 @@ TEST(tuple_interface)
     V0 v;
     COMPARE(typeid(decltype(std::get<0>(v))), typeid(int_v));
     COMPARE(typeid(decltype(std::get<1>(v))), typeid(int_m));
-    std::get<0>(v) = int_v::IndexesFromZero();
-    COMPARE(std::get<0>(v), int_v::IndexesFromZero());
+    std::get<0>(v) = int_v([](int n) { return n; });
+    COMPARE(std::get<0>(v), int_v([](int n) { return n; }));
     std::get<0>(v) += 1;
-    COMPARE(std::get<0>(v), int_v::IndexesFromZero() + 1);
+    COMPARE(std::get<0>(v), int_v([](int n) { return n + 1; }));
 }
 
 TEST(assign)
@@ -355,7 +313,7 @@ TEST(list_iterator_vectorization)
         }
         LIV b = list.begin();
         LIV e = list.end();
-        float_v reference = list.size() - float_v::IndexesFromZero();
+        float_v reference = list.size() - float_v([](int n) { return n; });
         for (; b != e; ++b, reference -= float_v::size()) {
             float_v x = *b;
             COMPARE(x, reference);
@@ -370,7 +328,7 @@ TEST(list_iterator_vectorization)
             COMPARE(*b, reference + 1);
             COMPARE(ref, reference + 1);
         }
-        reference = list.size() - float_v::IndexesFromZero() + 1;
+        reference = list.size() - float_v([](int n) { return n; }) + 1;
         for (b = list.begin(); b != e; ++b, reference -= float_v::size()) {
             float_v x = *b;
             COMPARE(x, reference);
@@ -388,9 +346,9 @@ TEST(list_iterator_vectorization)
         }
         LIV b = list.begin();
         LIV e = list.end();
-        auto reference1 = list.size() - float_v::IndexesFromZero();
+        auto reference1 = list.size() - float_v([](int n) { return n; });
         auto reference2 =
-            unsigned(list.size()) - simdize<unsigned, V::size()>::IndexesFromZero();
+            unsigned(list.size()) - simdize<unsigned, V::size()>([](int n) { return n; });
         for (; b != e; ++b, reference1 -= int(V::size()), reference2 -= int(V::size())) {
             V x = *b;
             COMPARE(x, V(reference1, reference2 * 2, reference1 * 3));
@@ -399,8 +357,8 @@ TEST(list_iterator_vectorization)
     }
 }
 
-TEST_TYPES(L, cast_simdized_iterator_to_scalar,
-           (std::vector<float>, std::list<float>, std::vector<std::tuple<float, int>>))
+TEST_TYPES(L, cast_simdized_iterator_to_scalar, std::vector<float>, std::list<float>,
+           std::vector<std::tuple<float, int>>)
 {
     using T = typename L::value_type;
     using LI = typename L::iterator;
@@ -428,15 +386,15 @@ TEST(vector_iterator_vectorization)
         LIV e = list.end();
         const auto &bconst = b;
 
-        COMPARE(b->sum(), (1024 - float_v::IndexesFromZero()).sum());
-        COMPARE(bconst->sum(), (1024 - float_v::IndexesFromZero()).sum());
-        COMPARE((*b).sum(), (1024 - float_v::IndexesFromZero()).sum());
-        COMPARE((*bconst).sum(), (1024 - float_v::IndexesFromZero()).sum());
-        COMPARE((e - 1)->sum(), (1 + float_v::IndexesFromZero()).sum());
-        COMPARE((e + -1)->sum(), (1 + float_v::IndexesFromZero()).sum());
-        COMPARE((-1 + e)->sum(), (1 + float_v::IndexesFromZero()).sum());
-        COMPARE((b + 1)->sum(), (1024 - b.size() - float_v::IndexesFromZero()).sum());
-        COMPARE((1 + b)->sum(), (1024 - b.size() - float_v::IndexesFromZero()).sum());
+        COMPARE(b->sum(), (1024 - float_v([](int n) { return n; })).sum());
+        COMPARE(bconst->sum(), (1024 - float_v([](int n) { return n; })).sum());
+        COMPARE((*b).sum(), (1024 - float_v([](int n) { return n; })).sum());
+        COMPARE((*bconst).sum(), (1024 - float_v([](int n) { return n; })).sum());
+        COMPARE((e - 1)->sum(), (1 + float_v([](int n) { return n; })).sum());
+        COMPARE((e + -1)->sum(), (1 + float_v([](int n) { return n; })).sum());
+        COMPARE((-1 + e)->sum(), (1 + float_v([](int n) { return n; })).sum());
+        COMPARE((b + 1)->sum(), (1024 - b.size() - float_v([](int n) { return n; })).sum());
+        COMPARE((1 + b)->sum(), (1024 - b.size() - float_v([](int n) { return n; })).sum());
         COMPARE(e - b, static_cast<LIV::difference_type>(1024 / b.size()));
         COMPARE(b - e, -static_cast<LIV::difference_type>(1024 / b.size()));
 
@@ -479,7 +437,7 @@ TEST(vector_iterator_vectorization)
         COMPARE(next, b);
         COMPARE(*next, *b);
 
-        float_v reference = list.size() - float_v::IndexesFromZero();
+        float_v reference = list.size() - float_v([](int n) { return n; });
         for (; b != e; ++b, reference -= float_v::size()) {
             float_v x = *b;
             COMPARE(x, reference);
@@ -487,7 +445,7 @@ TEST(vector_iterator_vectorization)
             *b = x + 1;
             COMPARE(*b, reference + 1);
         }
-        reference = list.size() - float_v::IndexesFromZero() + 1;
+        reference = list.size() - float_v([](int n) { return n; }) + 1;
         for (b = list.begin(); b != e; ++b, reference -= float_v::size()) {
             float_v x = *b;
             COMPARE(x, reference);
@@ -530,13 +488,13 @@ TEST(shifted)
     using V1 = simdize<int, V::size()>;
 
     V v;
-    std::get<0>(v) = V0::IndexesFromZero() + 1;
-    std::get<1>(v) = V1::IndexesFromZero() + 1;
+    std::get<0>(v) = V0([](int n) { return n; }) + 1;
+    std::get<1>(v) = V1([](int n) { return n; }) + 1;
 
     for (int shift = -int(V::size()); shift <= int(V::size()); ++shift) {
         V test = shifted(v, shift);
-        COMPARE(std::get<0>(test), (V0::IndexesFromZero() + 1).shifted(shift));
-        COMPARE(std::get<1>(test), (V1::IndexesFromZero() + 1).shifted(shift));
+        COMPARE(std::get<0>(test), (V0([](int n) { return n; }) + 1).shifted(shift));
+        COMPARE(std::get<1>(test), (V1([](int n) { return n; }) + 1).shifted(shift));
         V test2 = decorate(v).shifted(shift);
         COMPARE(test2, test);
     }
@@ -567,8 +525,8 @@ TEST(swap)
     using V1 = simdize<int, V::size()>;
 
     V v;
-    std::get<0>(v) = V0::IndexesFromZero() + 1;
-    std::get<1>(v) = V1::IndexesFromZero() + 1;
+    std::get<0>(v) = V0([](int n) { return n; }) + 1;
+    std::get<1>(v) = V1([](int n) { return n; }) + 1;
     for (std::size_t i = 0; i < V::size(); ++i) {
         const T atI(1 + i, 1 + i);
 
@@ -623,16 +581,16 @@ TEST(conditional_assignment)
     using M2 = typename V2::mask_type;
 
     V v;
-    UnitTest::withRandomMask<V0, 1000>([&](M0 m) {
+    withRandomMask<V0, 1000>([&](M0 m) {
         using Vc::simd_cast;
-        std::get<0>(v) = V0::IndexesFromZero() + 1;
-        std::get<1>(v) = V1::IndexesFromZero() + 1;
-        std::get<2>(v) = V2::IndexesFromZero() + 1;
+        std::get<0>(v) = V0([](int n) { return n; }) + 1;
+        std::get<1>(v) = V1([](int n) { return n; }) + 1;
+        std::get<2>(v) = V2([](int n) { return n; }) + 1;
 
         where(m) | v = V{};
-        COMPARE(std::get<0>(v) == V0::Zero(), m) << std::get<0>(v);
-        COMPARE(std::get<1>(v) == V1::Zero(), simd_cast<M1>(m)) << std::get<1>(v);
-        COMPARE(std::get<2>(v) == V2::Zero(), simd_cast<M2>(m)) << std::get<2>(v);
+        COMPARE(std::get<0>(v) == V0(0), m) << std::get<0>(v);
+        COMPARE(std::get<1>(v) == V1(0), simd_cast<M1>(m)) << std::get<1>(v);
+        COMPARE(std::get<2>(v) == V2(0), simd_cast<M2>(m)) << std::get<2>(v);
 
         where(m) | v += V{T{V::size() + 2, V::size() + 2, V::size() + 2}};
         COMPARE(std::get<0>(v) == V0(V::size() + 2), m) << std::get<0>(v);
@@ -664,8 +622,8 @@ TEST(copy_simdized_objects)
     v = v2;
     v2 = std::move(v);
     V v3 = std::move(v2);
-    COMPARE(std::get<0>(v3), V0::Zero());
-    COMPARE(std::get<1>(v3), V1::Zero());
+    COMPARE(std::get<0>(v3), V0(0));
+    COMPARE(std::get<1>(v3), V1(0));
 }
 
 // vim: foldmethod=marker

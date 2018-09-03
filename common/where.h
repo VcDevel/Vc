@@ -180,7 +180,9 @@ namespace WhereImpl
             return { mask, lhs };
         }
 
-        template<typename T> constexpr Vc_WARN_UNUSED_RESULT MaskedLValue<Mask, T> operator()(T &&lhs) const
+        template <class T,
+                  class = decltype(std::declval<T>() = std::declval<const T &>())>
+        constexpr Vc_WARN_UNUSED_RESULT MaskedLValue<Mask, T> operator()(T &&lhs) const
         {
             return operator|(std::forward<T>(lhs));
         }
@@ -229,6 +231,13 @@ namespace WhereImpl
 template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereImpl::WhereMask<M> where(const M &mask)
 {
     return { mask };
+}
+
+template <class M, class V>
+constexpr Vc_WARN_UNUSED_RESULT WhereImpl::MaskedLValue<M, V> where(const M &mask,
+                                                                    V &value)
+{
+    return {mask, value};
 }
 
 template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereImpl::WhereMask<M> _if(const M &m)

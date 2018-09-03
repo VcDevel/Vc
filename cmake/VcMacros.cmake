@@ -53,8 +53,8 @@ macro(vc_determine_compiler)
          message(STATUS "Detected Compiler: Intel ${Vc_ICC_VERSION}")
 
          # break build with too old clang as early as possible.
-         if(Vc_ICC_VERSION VERSION_LESS 15.0.3)
-            message(FATAL_ERROR "Vc 1.x requires C++11 support. This requires at least ICC 15.0.3")
+         if(Vc_ICC_VERSION VERSION_LESS 18.0.0)
+            message(FATAL_ERROR "Vc 1.4 requires least ICC 18")
          endif()
       elseif(CMAKE_CXX_COMPILER MATCHES "(opencc|openCC)$")
          set(Vc_COMPILER_IS_OPEN64 true)
@@ -300,12 +300,6 @@ int main() { return 0; }
          set(CMAKE_C_FLAGS_RELEASE          "${CMAKE_C_FLAGS_RELEASE} -O3")
          set(CMAKE_C_FLAGS_RELWITHDEBINFO   "${CMAKE_C_FLAGS_RELWITHDEBINFO} -DNDEBUG -O3")
       endif()
-      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 913")
-      # Disable warning #13211 "Immediate parameter to intrinsic call too large". (sse/vector.tcc rotated(int))
-      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 13211")
-      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 61") # warning #61: integer operation result is out of range
-      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 173") # warning #173: floating-point value does not fit in required integral type
-      vc_add_compiler_flag(Vc_COMPILE_FLAGS "-diag-disable 264") # warning #264: floating-point value does not fit in required floating-point type
       if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
          set(ENABLE_STRICT_ALIASING true CACHE BOOL "Enables strict aliasing rules for more aggressive optimizations")
          if(ENABLE_STRICT_ALIASING)

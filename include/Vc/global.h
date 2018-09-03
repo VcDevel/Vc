@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_GLOBAL_H_
 
 #include <cstdint>
+#include "fwddecl.h"
 
 #ifdef DOXYGEN
 
@@ -109,6 +110,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma GCC diagnostic ignored "-Wignored-attributes"
 #else
 #define Vc_RESET_DIAGNOSTICS
+#endif
+
+#if defined Vc_ICC
+// 'warning #2922: template parameter "<unnamed>" cannot be used because it follows a
+// parameter pack and cannot be deduced from the parameters of function template'
+// This warning is stupid. The parameter is unnamed because I don't want to use it. I see
+// no other workaround than to disable the warning. Sadly, it doesn't suffice to disable
+// it for the Vc headers. It must also be disabled at the places Vc types are used.
+#pragma warning disable 2922
 #endif
 
 #if __cplusplus < 201103 && (!defined Vc_MSVC || _MSC_VER < 1900)
@@ -417,11 +427,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #else
 #error "Preprocessor logic broken. Please report a bug."
 #endif
-
-#define Vc_VERSIONED_NAMESPACE Vc_1
-
-namespace Vc_VERSIONED_NAMESPACE {}
-namespace Vc = Vc_VERSIONED_NAMESPACE;
 
 #endif // DOXYGEN
 

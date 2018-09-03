@@ -85,8 +85,8 @@ public:
     Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne one) : data(one) {}
     Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero zero) : data(zero) {}
     Vc_INTRINSIC explicit SimdMaskArray(bool b) : data(b) {}
-    Vc_INTRINSIC static SimdMaskArray Zero() { return {storage_type::Zero()}; }
-    Vc_INTRINSIC static SimdMaskArray One() { return {storage_type::One()}; }
+    Vc_INTRINSIC static SimdMaskArray Zero() { return {private_init, storage_type::Zero()}; }
+    Vc_INTRINSIC static SimdMaskArray One() { return {private_init, storage_type::One()}; }
 
     // conversion (casts)
     template <typename U, typename V>
@@ -153,7 +153,7 @@ public:
     // inversion
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator!() const
     {
-        return {!data};
+        return {private_init, !data};
     }
 
     // binary operators
@@ -175,24 +175,24 @@ public:
 
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator&(const SimdMaskArray &rhs) const
     {
-        return {data & rhs.data};
+        return {private_init, data & rhs.data};
     }
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator|(const SimdMaskArray &rhs) const
     {
-        return {data | rhs.data};
+        return {private_init, data | rhs.data};
     }
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator^(const SimdMaskArray &rhs) const
     {
-        return {data ^ rhs.data};
+        return {private_init, data ^ rhs.data};
     }
 
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator&&(const SimdMaskArray &rhs) const
     {
-        return {data && rhs.data};
+        return {private_init, data && rhs.data};
     }
     Vc_INTRINSIC Vc_PURE SimdMaskArray operator||(const SimdMaskArray &rhs) const
     {
-        return {data || rhs.data};
+        return {private_init, data || rhs.data};
     }
 
     Vc_INTRINSIC Vc_PURE bool isFull() const { return data.isFull(); }
@@ -244,12 +244,12 @@ public:
 
     template <typename G> static Vc_INTRINSIC SimdMaskArray generate(const G &gen)
     {
-        return {mask_type::generate(gen)};
+        return {private_init, mask_type::generate(gen)};
     }
 
     Vc_INTRINSIC Vc_PURE SimdMaskArray shifted(int amount) const
     {
-        return {data.shifted(amount)};
+        return {private_init, data.shifted(amount)};
     }
 
     /// \internal execute specified Operation
@@ -262,7 +262,7 @@ public:
     }
 
     /// \internal
-    Vc_INTRINSIC SimdMaskArray(mask_type &&x) : data(std::move(x)) {}
+    Vc_INTRINSIC SimdMaskArray(private_init_t, mask_type &&x) : data(std::move(x)) {}
 
 private:
     // The alignas attribute attached to the class declaration above is ignored by ICC
