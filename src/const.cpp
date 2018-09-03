@@ -25,16 +25,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include "avx/const_data.h"
-#include "sse/const_data.h"
+#include <Vc/avx/const_data.h>
+#include <Vc/sse/const_data.h>
 #include <Vc/version.h>
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
-#include "common/const.h"
-#include "common/macros.h"
+#include <Vc/common/const.h>
+#include <Vc/common/macros.h>
 
 namespace Vc_VERSIONED_NAMESPACE
 {

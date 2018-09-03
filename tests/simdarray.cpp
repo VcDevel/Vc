@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "unittest.h"
-#include "../common/simdarray.h"
+#include <Vc/common/simdarray.h>
 
 using namespace Vc;
 

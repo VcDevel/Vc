@@ -25,8 +25,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include <sse/vector.h>
-#include <sse/macros.h>
+#include <Vc/sse/vector.h>
+#include <Vc/sse/macros.h>
 
 namespace Vc_VERSIONED_NAMESPACE
 {

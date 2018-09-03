@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vectormemoryhelper.h"
 #include <cmath>
 #include <algorithm>
-#include <common/const.h>
+#include <Vc/common/const.h>
 /*}}}*/
 using namespace Vc;
 

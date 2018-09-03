@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_CONST_H_
 
 #include <type_traits>
-#include <Vc/global.h>
+#include "../global.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {

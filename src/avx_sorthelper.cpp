@@ -25,9 +25,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include <avx/vector.h>
-#include <avx/debug.h>
-#include <avx/macros.h>
+#include <Vc/avx/vector.h>
+#include <Vc/avx/debug.h>
+#include <Vc/avx/macros.h>
 
 namespace Vc_VERSIONED_NAMESPACE
 {

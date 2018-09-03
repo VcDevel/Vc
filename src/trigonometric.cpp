@@ -30,7 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <Vc/vector.h>
 #if defined(Vc_IMPL_SSE) || defined(Vc_IMPL_AVX)
-#include <common/macros.h>
+#include <Vc/common/macros.h>
 //#include <Vc/IO>
 
 namespace Vc_VERSIONED_NAMESPACE

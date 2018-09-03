@@ -29,7 +29,7 @@
 #include <list>
 #include <deque>
 
-#include "common/macros.h"
+#include "../Vc/common/macros.h"
 
 template<typename Vec> size_t alignmentMask()
 {

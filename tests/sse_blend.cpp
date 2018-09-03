@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "unittest.h"
-#include <sse/intrinsics.h>
+#include <Vc/sse/intrinsics.h>
 
 TEST(blendpd)
 {

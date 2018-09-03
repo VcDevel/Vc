@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define Vc_DEBUG_SIMD_CAST 1
 //#define Vc_DEBUG_SORTED 1
 #if defined Vc_DEBUG_SIMD_CAST || defined Vc_DEBUG_SORTED
-#include <Vc/IO>
+#include "../IO"
 #endif
 
 #include <array>

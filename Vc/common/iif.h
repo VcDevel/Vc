@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_IIF_H_
 #define VC_COMMON_IIF_H_
 
-#include <Vc/type_traits>
+#include "../type_traits"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE

@@ -94,7 +94,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
    message(STATUS "WARNING! It seems you are compiling without optimization. Please set CMAKE_BUILD_TYPE.")
 endif(CMAKE_BUILD_TYPE STREQUAL "" AND NOT CMAKE_CXX_FLAGS MATCHES "-O[123]")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}) # ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_custom_target(other VERBATIM)
 add_custom_target(Scalar COMMENT "build Scalar code" VERBATIM)
@@ -105,7 +105,6 @@ add_custom_target(AVX2 COMMENT "build AVX2 code" VERBATIM)
 AddCompilerFlag(-ftemplate-depth=128 CXX_FLAGS CMAKE_CXX_FLAGS)
 
 set(libvc_compile_flags "-DVc_COMPILE_LIB")
-set(libvc_mic_compile_flags "-DVc_COMPILE_LIB")
 AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
 
 # -fstack-protector is the default of GCC, but at least Ubuntu changes the default to -fstack-protector-strong, which is crazy
@@ -165,13 +164,13 @@ endif()
 add_dependencies(other Vc)
 
 install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
-install(DIRECTORY include/Vc/ DESTINATION include/Vc)
+install(DIRECTORY Vc/ DESTINATION include/Vc)
 
 # Install all implementation headers
-install(DIRECTORY scalar sse avx mic common traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
+install(DIRECTORY Vc/scalar Vc/sse Vc/avx Vc/common Vc/traits DESTINATION include/Vc FILES_MATCHING REGEX "/*.(h|tcc|def)$")
 
 # read version parts from version.h to be put into VcConfig.cmake
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/include/Vc/version.h _version_lines REGEX "^#define Vc_VERSION_STRING ")
+file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/Vc/version.h _version_lines REGEX "^#define Vc_VERSION_STRING ")
 string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _version_matches "${_version_lines}")
 set(Vc_VERSION_MAJOR ${CMAKE_MATCH_1})
 set(Vc_VERSION_MINOR ${CMAKE_MATCH_2})
@@ -188,8 +187,6 @@ install(FILES
    cmake/AddCompilerFlag.cmake
    cmake/CheckCCompilerFlag.cmake
    cmake/CheckCXXCompilerFlag.cmake
-   cmake/CheckMicCCompilerFlag.cmake
-   cmake/CheckMicCXXCompilerFlag.cmake
    cmake/OptimizeForArchitecture.cmake
    cmake/FindVc.cmake
    ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake

@@ -24,7 +24,7 @@
 #ifndef VC_COMMON_FIX_CLANG_EMMINTRIN_H_
 #define VC_COMMON_FIX_CLANG_EMMINTRIN_H_
 
-#include <Vc/global.h>
+#include "../global.h"
 
 #if (defined Vc_CLANG && Vc_CLANG < 0x30700) || (defined Vc_APPLECLANG && Vc_APPLECLANG < 0x70000)
 

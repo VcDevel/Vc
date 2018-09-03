@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdio>
 #endif
 
-#include <Vc/global.h>
+#include "../global.h"
 #include "../traits/type_traits.h"
 #include "permutation.h"
 

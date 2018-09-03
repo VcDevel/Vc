@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_AVX_INTRINSICS_H_
 #define VC_AVX_INTRINSICS_H_
 
-#include <Vc/global.h>
+#include "../global.h"
 #include "../traits/type_traits.h"
 
 // see comment in sse/intrinsics.h
