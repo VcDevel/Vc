@@ -72,7 +72,7 @@ template<typename Impl> struct Trigonometric
 };
 }  // namespace Common
 
-#ifdef Vc_IMPL_SSE
+#if defined Vc_IMPL_SSE || defined DOXYGEN
 // this is either SSE, AVX, or AVX2
 namespace Detail
 {
@@ -106,11 +106,47 @@ Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> cos(const Vector<T, Abi>
     return cos_dispatch(x.data());
 }
 #else
+/**
+ * \ingroup Math
+ * Returns the sine of all input values in \p x.
+ *
+ * \param x The values to apply the sine function on.
+ *
+ * \returns the sine of \p x.
+ *
+ * \note The single-precision implementation has a precision of max. 2 ulp (mean 0.17 ulp)
+ * in the range [-8192, 8192].
+ * (testSin< float_v> with a maximal distance of 2 to the reference (mean: 0.310741))
+ *
+ * \note The double-precision implementation has a precision of max. 3 ulp (mean 1040 ulp)
+ * in the range [-8192, 8192].
+ * (testSin<double_v> with a maximal distance of 1 to the reference (mean: 0.170621))
+ *
+ * \note The precision and execution latency depends on:
+ *       - `Abi` (e.g. Scalar uses the `<cmath>` implementation
+ *       - whether `Vc_HAVE_LIBMVEC` is defined
+ *       - for the `<cmath>` fallback, the implementations differ (e.g. MacOS vs. Linux
+ * vs. Windows; fpmath=sse vs. fpmath=387)
+ *
+ * \note Vc versions before 1.4 had different precision.
+ */
 template <typename T, typename Abi>
 Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> sin(const Vector<T, Abi> &x)
 {
     return Detail::Trig<T, Abi>::sin(x);
 }
+
+/**
+ * \ingroup Math
+ * Returns the cosine of all input values in \p x.
+ *
+ * \param x The values to apply the cosine function on.
+ * \returns the cosine of \p x.
+ *
+ * \note The single-precision implementation has a precision of max. 2 ulp (mean 0.18 ulp) in the range [-8192, 8192].
+ * \note The double-precision implementation has a precision of max. 3 ulp (mean 1160 ulp) in the range [-8192, 8192].
+ * \note Vc versions before 1.4 had different precision.
+ */
 template <typename T, typename Abi>
 Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> cos(const Vector<T, Abi> &x)
 {
@@ -118,22 +154,65 @@ Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> cos(const Vector<T, Abi>
 }
 #endif
 
+/**
+ * \ingroup Math
+ * Returns the arcsine of all input values in \p x.
+ *
+ * \param x The values to apply the arcsine function on.
+ * \returns the arcsine of \p x.
+ *
+ * \note The single-precision implementation has an error of max. 2 ulp (mean 0.3 ulp).
+ * \note The double-precision implementation has an error of max. 36 ulp (mean 0.4 ulp).
+ */
 template <typename T, typename Abi>
 Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> asin(const Vector<T, Abi> &x)
 {
     return Detail::Trig<T, Abi>::asin(x);
 }
+
+/**
+ * \ingroup Math
+ * Returns the arctangent of all input values in \p x.
+ *
+ * \param x The values to apply the arctangent function on.
+ * \returns the arctangent of \p x.
+ * \note The single-precision implementation has an error of max. 3 ulp (mean 0.4 ulp) in the range [-8192, 8192].
+ * \note The double-precision implementation has an error of max. 2 ulp (mean 0.1 ulp) in the range [-8192, 8192].
+ */
 template <typename T, typename Abi>
 Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> atan(const Vector<T, Abi> &x)
 {
     return Detail::Trig<T, Abi>::atan(x);
 }
+
+/**
+ * \ingroup Math
+ * Returns the arctangent of all input values in \p x and \p y.
+ *
+ * Calculates the angle given the lengths of the opposite and adjacent legs in a right
+ * triangle.
+ * \param y The opposite leg.
+ * \param x The adjacent leg.
+ * \returns the arctangent of \p y / \p x.
+ */
 template <typename T, typename Abi>
 Vc_INTRINSIC Vector<T, detail::not_fixed_size_abi<Abi>> atan2(const Vector<T, Abi> &y,
                                                               const Vector<T, Abi> &x)
 {
     return Detail::Trig<T, Abi>::atan2(y, x);
 }
+
+/**
+ * \ingroup Math
+ *
+ * \param x Input value to both sine and cosine.
+ * \param sin A non-null pointer to a potentially uninitialized object of type Vector.
+ *            When \c sincos returns, `*sin` contains the result of `sin(x)`.
+ * \param cos A non-null pointer to a potentially uninitialized object of type Vector.
+ *            When \c sincos returns, `*cos` contains the result of `cos(x)`.
+ *
+ * \see sin, cos
+ */
 template <typename T, typename Abi>
 Vc_INTRINSIC void sincos(const Vector<T, Abi> &x,
                          Vector<T, detail::not_fixed_size_abi<Abi>> *sin,

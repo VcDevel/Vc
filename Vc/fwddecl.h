@@ -104,7 +104,11 @@ template <class T, int N>
 using fixed_size_simd_mask = simd_mask<T, simd_abi::fixed_size<N>>;
 
 }  // namespace Vc_VERSIONED_NAMESPACE
+
+#ifndef DOXYGEN
+// doxygen has Vc_VERSIONED_NAMESPACE predefined to Vc
 namespace Vc = Vc_VERSIONED_NAMESPACE;
+#endif  // DOXYGEN
 
 #endif  // VC_FWDDECL_H_
 
