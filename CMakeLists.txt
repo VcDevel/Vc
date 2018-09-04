@@ -205,7 +205,7 @@ install(EXPORT ${PROJECT_NAME}Targets
    )
 write_basic_package_version_file(
    ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake
-   VERSION ${DDS_VERSION}
+   VERSION ${PROJECT_VERSION}
    COMPATIBILITY AnyNewerVersion
    )
 configure_package_config_file(
