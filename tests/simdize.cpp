@@ -154,7 +154,10 @@ TEST(nontype_template_parameters)
     using std::array;
 
     using float_intsize = typename std::conditional<
-        int_v::size() == float_v::size(), float_v, SimdArray<float, int_v::size()>>::type;
+        int_v::size() == float_v::size(), float_v,
+        typename std::conditional<std::is_same<float_v::abi, VectorAbi::Avx>::value,
+                                  Vector<float, VectorAbi::Sse>,
+                                  SimdArray<float, int_v::size()>>::type>::type;
 
     static_assert(SimdizeDetail::is_class_template<array<float, 3>>::value, "");
     static_assert(SimdizeDetail::is_class_template<Foo1<float, 3, 5, 6>>::value, "");

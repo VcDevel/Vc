@@ -126,7 +126,7 @@ namespace Vc_VERSIONED_NAMESPACE
  * code should be directly accessed by users, though the unit test for simdize<T>
  * certainly may look into some of the details if necessary.
  */
-namespace SimdizeDetail
+namespace SimdizeDetail  // {{{
 {
 /**
  * \addtogroup Simdize
@@ -292,14 +292,19 @@ template <typename T, size_t N, typename MT> struct ReplaceTypes<T, N, MT, Categ
 template <typename T, size_t N = 0, typename MT = void>
 using simdize = typename SimdizeDetail::ReplaceTypes<T, N, MT>::type;
 
+// Alias for Vector<T, Abi> with size() == N, or SimdArray<T, N> otherwise.
+template <class T, size_t N,
+          class Best = typename Common::select_best_vector_type<T, N>::type>
+using deduce_vector_t =
+    typename std::conditional<Best::size() == N, Best, SimdArray<T, N>>::type;
+
 /**\internal
  * ReplaceTypes specialization for simdizable arithmetic types. This results in either
  * Vector<T> or SimdArray<T, N>.
  */
 template <typename T, size_t N, typename MT>
 struct ReplaceTypes<T, N, MT, Category::ArithmeticVectorizable>
-    : public conditional<(N == 0 || Vector<T>::Size == N), Vector<T>, SimdArray<T, N>>
-{
+    : public conditional<N == 0, Vector<T>, deduce_vector_t<T, N>> {
 };
 
 /**\internal
@@ -308,9 +313,7 @@ struct ReplaceTypes<T, N, MT, Category::ArithmeticVectorizable>
  */
 template <size_t N, typename MT>
 struct ReplaceTypes<bool, N, MT, Category::ArithmeticVectorizable>
-    : public conditional<(N == 0 || Mask<MT>::Size == N), Mask<MT>,
-                         SimdMaskArray<MT, N>>
-{
+    : public std::enable_if<true, typename ReplaceTypes<MT, N, MT>::type::mask_type> {
 };
 /**\internal
  * ReplaceTypes specialization for bool and MT = void. In that case MT is set to float.
@@ -883,10 +886,10 @@ inline void operator>(
     const Adapter<std::tuple<UTypes...>, std::tuple<UTypesV...>, N> &u) = delete;
 // }}}
 /** @}*/
-}  // namespace SimdizeDetail
+}  // namespace SimdizeDetail }}}
 }  // namespace Vc
 
-namespace std
+namespace std  // {{{
 {
 /**\internal
  * A std::tuple_size specialization for the SimdizeDetail::Adapter class.
@@ -920,7 +923,7 @@ public:
         typedef std::allocator<U> other;
     };
 };
-}  // namespace std
+}  // namespace std }}}
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -936,6 +939,7 @@ namespace SimdizeDetail
  */
 template <typename T> static inline T decay_workaround(const T &x) { return x; }
 
+// assign_impl {{{
 /**\internal
  * Generic implementation of assign using the std::tuple get interface.
  */
@@ -947,26 +951,25 @@ inline void assign_impl(Adapter<S, T, N> &a, size_t i, const S &x,
         decay_workaround(get_dispatcher<Indexes>(x))...);
     auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused) {}
-}
-
-/**
- * Assigns one scalar object \p x to a SIMD slot at offset \p i in the simdized object \p
- * a.
- */
-template <typename S, typename T, size_t N>
-inline void assign(Adapter<S, T, N> &a, size_t i, const S &x)
+}  // }}}
+// construct (parens, braces, double-braces) {{{
+template <class S, class... Args>
+S construct(std::integral_constant<int, 0>, Args &&... args)
 {
-    assign_impl(a, i, x, Vc::make_index_sequence<determine_tuple_size<T>()>());
+    return S(std::forward<Args>(args)...);
 }
-/**\internal
- * Overload for standard Vector/SimdArray types.
- */
-template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
-Vc_INTRINSIC void assign(V &v, size_t i, typename V::EntryType x)
+template <class S, class... Args>
+S construct(std::integral_constant<int, 1>, Args &&... args)
 {
-    v[i] = x;
+    return S{std::forward<Args>(args)...};
 }
-
+template <class S, class... Args>
+S construct(std::integral_constant<int, 2>, Args &&... args)
+{
+    return S{{std::forward<Args>(args)...}};
+}
+// }}}
+// extract_impl {{{
 /**\internal
  * index_sequence based implementation for extract below.
  */
@@ -975,27 +978,14 @@ inline S extract_impl(const Adapter<S, T, N> &a, size_t i, Vc::index_sequence<In
 {
     const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[i]))...> tmp(
         decay_workaround(get_dispatcher<Indexes>(a)[i])...);
-    return S(get_dispatcher<Indexes>(tmp)...);
+    return construct<S>(
+        preferred_construction<S, decltype(decay_workaround(
+                                      get_dispatcher<Indexes>(a)[i]))...>(),
+        decay_workaround(get_dispatcher<Indexes>(a)[i])...);
+    //return S(get_dispatcher<Indexes>(tmp)...);
 }
-
-/**
- * Extracts and returns one scalar object from a SIMD slot at offset \p i in the simdized
- * object \p a.
- */
-template <typename S, typename T, size_t N>
-inline S extract(const Adapter<S, T, N> &a, size_t i)
-{
-    return extract_impl(a, i, Vc::make_index_sequence<determine_tuple_size<S>()>());
-}
-/**\internal
- * Overload for standard Vector/SimdArray types.
- */
-template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
-Vc_INTRINSIC typename V::EntryType extract(const V &v, size_t i)
-{
-    return v[i];
-}
-
+// }}}
+// shifted_impl {{{
 template <typename S, typename T, std::size_t N, std::size_t... Indexes>
 inline Adapter<S, T, N> shifted_impl(const Adapter<S, T, N> &a, int shift,
                                      Vc::index_sequence<Indexes...>)
@@ -1005,7 +995,8 @@ inline Adapter<S, T, N> shifted_impl(const Adapter<S, T, N> &a, int shift,
     if (&unused == &unused) {}
     return r;
 }
-
+// }}}
+// shifted(Adapter) {{{
 /**
  * Returns a new vectorized object where each entry is shifted by \p shift. This basically
  * calls Vector<T>::shifted on every entry.
@@ -1019,7 +1010,8 @@ inline Adapter<S, T, N> shifted(const Adapter<S, T, N> &a, int shift)
 {
     return shifted_impl(a, shift, Vc::make_index_sequence<determine_tuple_size<T>()>());
 }
-
+// }}}
+// swap_impl {{{
 /** \internal
  * Generic implementation of simdize_swap using the std::tuple get interface.
  */
@@ -1046,7 +1038,8 @@ inline void swap_impl(Adapter<S, T, N> &a, std::size_t i, Adapter<S, T, N> &b,
     auto &&unused2 = {(get_dispatcher<Indexes>(b)[j] = get_dispatcher<Indexes>(tmp), 0)...};
     if (&unused == &unused2) {}
 }
-
+// }}}
+// swap(Adapter) {{{
 /**
  * Swaps one scalar object \p x with a SIMD slot at offset \p i in the simdized object \p
  * a.
@@ -1061,8 +1054,8 @@ inline void swap(Adapter<S, T, N> &a, std::size_t i, Adapter<S, T, N> &b, std::s
 {
     swap_impl(a, i, b, j, Vc::make_index_sequence<determine_tuple_size<T>()>());
 }
-
-template <typename A> class Scalar
+// }}}
+template <typename A> class Scalar  // {{{
 {
     using reference = typename std::add_lvalue_reference<A>::type;
     using S = typename A::scalar_type;
@@ -1089,8 +1082,8 @@ public:
 private:
     reference a;
     size_t i;
-};
-
+};  // }}}
+// swap(Scalar) {{{
 /// std::swap interface to swapping one scalar object with a (virtual) reference to
 /// another object inside a vectorized object
 template <typename A> inline void swap(Scalar<A> &&a, typename A::scalar_type &b)
@@ -1108,8 +1101,51 @@ template <typename A> inline void swap(Scalar<A> &&a, Scalar<A> &&b)
 {
     swap_impl(a.a, a.i, b.a, b.i, typename Scalar<A>::IndexSeq());
 }
-
-template <typename A> class Interface
+// }}}
+}  // namespace SimdizeDetail
+// assign {{{
+/**
+ * Assigns one scalar object \p x to a SIMD slot at offset \p i in the simdized object \p
+ * a.
+ */
+template <typename S, typename T, size_t N>
+inline void assign(SimdizeDetail::Adapter<S, T, N> &a, size_t i, const S &x)
+{
+    SimdizeDetail::assign_impl(
+        a, i, x, Vc::make_index_sequence<SimdizeDetail::determine_tuple_size<T>()>());
+}
+/**\internal
+ * Overload for standard Vector/SimdArray types.
+ */
+template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
+Vc_INTRINSIC void assign(V &v, size_t i, typename V::EntryType x)
+{
+    v[i] = x;
+}
+// }}}
+// extract {{{
+/**
+ * Extracts and returns one scalar object from a SIMD slot at offset \p i in the simdized
+ * object \p a.
+ */
+template <typename S, typename T, size_t N>
+inline S extract(const SimdizeDetail::Adapter<S, T, N> &a, size_t i)
+{
+    return SimdizeDetail::extract_impl(
+        a, i, Vc::make_index_sequence<SimdizeDetail::determine_tuple_size<S>()>());
+}
+/**\internal
+ * Overload for standard Vector/SimdArray types.
+ */
+template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
+Vc_INTRINSIC typename V::EntryType extract(const V &v, size_t i)
+{
+    return v[i];
+}
+// }}}
+namespace SimdizeDetail
+{
+template <typename A> class Interface  // {{{
 {
     using reference = typename std::add_lvalue_reference<A>::type;
     using IndexSeq =
@@ -1134,8 +1170,8 @@ public:
 
 private:
     reference a;
-};
-
+};  // }}}
+// decorate(Adapter) {{{
 template <typename S, typename T, size_t N>
 Interface<Adapter<S, T, N>> decorate(Adapter<S, T, N> &a)
 {
@@ -1146,8 +1182,8 @@ const Interface<const Adapter<S, T, N>> decorate(const Adapter<S, T, N> &a)
 {
     return {a};
 }
-
-namespace IteratorDetails
+// }}}
+namespace IteratorDetails  // {{{
 {
 enum class Mutable { Yes, No };
 
@@ -1626,7 +1662,7 @@ Iterator<T, N, M, V, Size, std::random_access_iterator_tag> operator+(
     return i + n;
 }
 
-}  // namespace IteratorDetails
+}  // namespace IteratorDetails }}}
 
 /**\internal
  *
@@ -1691,6 +1727,7 @@ Vc_INTRINSIC Vc::enable_if<(Offset < determine_tuple_size_<S>::value && M::Size 
 /** @}*/
 }  // namespace SimdizeDetail
 
+// user API {{{
 /*!\ingroup Simdize
  * Vectorize/Simdize the given type T.
  *
@@ -1745,13 +1782,13 @@ using simdize = SimdizeDetail::simdize<T, N, MT>;
     enum : std::size_t {                                                                 \
         tuple_size = std::tuple_size<decltype(std::make_tuple MEMBERS_)>::value          \
     }
-
+// }}}
 }  // namespace Vc
 
-namespace std
+namespace std  // {{{
 {
 using Vc::SimdizeDetail::swap;
-}  // namespace std
+}  // namespace std }}}
 
 #endif  // VC_COMMON_SIMDIZE_H_
 
