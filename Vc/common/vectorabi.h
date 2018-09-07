@@ -52,10 +52,8 @@ struct DeduceBest {
             CurrentImplementation::is_between(SSE2Impl, SSE42Impl), Sse,
             typename std::conditional<
                 CurrentImplementation::is(AVXImpl), Avx1Abi<T>,
-                typename std::conditional<
-                    CurrentImplementation::is(AVX2Impl), Avx,
-                    typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
-                                              void>::type>::type>::type>::type>::type;
+                typename std::conditional<CurrentImplementation::is(AVX2Impl), Avx,
+                                          void>::type>::type>::type>::type;
 };
 template <typename T> using Best = typename DeduceBest<T>::type;
 
