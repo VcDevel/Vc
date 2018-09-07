@@ -29,8 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <limits>
 #include <Vc/limits>
-#include <../Vc/common/const.h>
-#include <../Vc/common/macros.h>
+#include "../Vc/common/const.h"
+#include "../Vc/common/macros.h"
 #include <random>
 
 using namespace Vc;
