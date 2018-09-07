@@ -257,9 +257,11 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
      * \c NDEBUG is not defined the implementation will assert that the \p indexes entries are unique.
      */
     template <typename IT>
-    Vc_ALWAYS_INLINE enable_if<
-        std::is_convertible<IT, IndexType>::value && !std::is_const<S>::value, Access>
-        operator[](IT indexes)
+    Vc_ALWAYS_INLINE enable_if<!std::is_convertible<IT, size_t>::value &&
+                                   std::is_convertible<IT, IndexType>::value &&
+                                   !std::is_const<S>::value,
+                               Access>
+    operator[](IT indexes)
     {
         return Access(m_data, indexes);
     }

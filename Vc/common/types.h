@@ -116,6 +116,24 @@ template <typename T> using MayAlias [[gnu::may_alias]] = T;
 template <typename T> using MayAlias = typename Detail::MayAliasImpl<T>::type;
 #endif
 
+template <class To, class From> MayAlias<To> &aliasing_cast(From &x)
+{
+    return *reinterpret_cast<MayAlias<To> *>(&x);
+}
+template <class To, class From> const MayAlias<To> &aliasing_cast(const From &x)
+{
+    return *reinterpret_cast<const MayAlias<To> *>(&x);
+}
+
+template <class To, class From> MayAlias<To> *aliasing_cast(From *x)
+{
+    return reinterpret_cast<MayAlias<To> *>(x);
+}
+template <class To, class From> const MayAlias<To> *aliasing_cast(const From *x)
+{
+    return reinterpret_cast<const MayAlias<To> *>(x);
+}
+
 /**\internal
  * This enumeration lists all possible operators in C++.
  *

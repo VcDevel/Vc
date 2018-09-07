@@ -1736,6 +1736,7 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
     }/*}}}*/
 };
 template<typename V> struct InterleaveImpl<V, 8, 32> {
+    static_assert(sizeof(typename V::value_type) == 4, "");
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1)
     {
@@ -1766,8 +1767,11 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[4]]), hi128(tmp0));
         _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[6]]), hi128(tmp1));
     }/*}}}*/
-    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
-            const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
+    // interleave scatter 3 {{{
+    template <typename I>
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2)
     {
         using namespace AVX;
 #ifdef Vc_USE_MASKMOV_SCATTER
@@ -1796,29 +1800,99 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         interleave(data, i, v0, v1);
         v2.scatter(data + 2, i);
 #endif
-    }/*}}}*/
-    template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
-            const typename V::AsArg v0, const typename V::AsArg v1,
-            const typename V::AsArg v2, const typename V::AsArg v3)
+    }  // }}}
+    // interleave successive 3 {{{
+    static inline void interleave(typename V::EntryType *const data,
+                                  const Common::SuccessiveEntries<3> &i,
+                                  const typename V::AsArg v0_,
+                                  const typename V::AsArg v1_,
+                                  const typename V::AsArg v2_)
+    {
+        __m256 v0 = AVX::avx_cast<__m256>(v0_.data());  // a0 a1 a2 a3|a4 a5 a6 a7
+        __m256 v1 = AVX::avx_cast<__m256>(v1_.data());  // b0 b1 b2 b3|b4 b5 b6 b7
+        __m256 v2 = AVX::avx_cast<__m256>(v2_.data());  // c0 c1 c2 c3|c4 c5 c6 c7
+
+        v0 = _mm256_shuffle_ps(v0, v0, 0x6c);  // a0 a3 a2 a1|a4 a7 a6 a5
+        v1 = _mm256_shuffle_ps(v1, v1, 0xb1);  // b1 b0 b3 b2|b5 b4 b7 b6
+        v2 = _mm256_shuffle_ps(v2, v2, 0xc6);  // c2 c1 c0 c3|c6 c5 c4 c7
+
+        // a0 b0 c0 a1|c6 a7 b7 c7:
+        __m256 w0 = Mem::blend<X0, X1, Y2, X3, Y4, X5, X6, Y7>(
+                    Mem::blend<X0, Y1, X2, X3, X4, X5, Y6, X7>(v0, v1), v2);
+        // b1 c1 a2 b2|b5 c5 a6 b6:
+        __m256 w1 = Mem::blend<X0, Y1, X2, X3, X4, Y5, X6, X7>(
+                    Mem::blend<Y0, X1, X2, Y3, Y4, X5, X6, Y7>(v0, v1), v2);
+        // c2 a3 b3 c3|a4 b4 c4 a5:
+        __m256 w2 = Mem::blend<Y0, X1, X2, Y3, X4, X5, Y6, X7>(
+                    Mem::blend<X0, X1, Y2, X3, X4, Y5, X6, X7>(v0, v1), v2);
+
+        // a0 b0 c0 a1|b1 c1 a2 b2:
+        _mm256_storeu_ps(aliasing_cast<float>(&data[i[0]]),
+                         _mm256_permute2f128_ps(w0, w1, 0x20));
+        // c2 a3 b3 c3|a4 b4 c4 a5: w2
+        _mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 8), w2);
+        // b5 c5 a6 b6|c6 a7 b7 c7:
+        _mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 16),
+                         _mm256_permute2f128_ps(w1, w0, 0x31));
+
+    }  //}}}
+    // interleave scatter 4 {{{
+    template <typename I>
+    static inline void interleave(typename V::EntryType *const data, const I &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3)
     {
         using namespace AVX;
-        const m256 tmp0 = _mm256_unpacklo_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
-        const m256 tmp1 = _mm256_unpackhi_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
-        const m256 tmp2 = _mm256_unpacklo_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
-        const m256 tmp3 = _mm256_unpackhi_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
-        const m256 tmp4 = _mm256_unpacklo_ps(tmp0, tmp2);
-        const m256 tmp5 = _mm256_unpackhi_ps(tmp0, tmp2);
-        const m256 tmp6 = _mm256_unpacklo_ps(tmp1, tmp3);
-        const m256 tmp7 = _mm256_unpackhi_ps(tmp1, tmp3);
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), lo128(tmp4));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[1]]), lo128(tmp5));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), lo128(tmp6));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[3]]), lo128(tmp7));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[4]]), hi128(tmp4));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[5]]), hi128(tmp5));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[6]]), hi128(tmp6));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[7]]), hi128(tmp7));
-    }/*}}}*/
+        const __m256 tmp0 =
+            _mm256_unpacklo_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
+        const __m256 tmp1 =
+            _mm256_unpackhi_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
+        const __m256 tmp2 =
+            _mm256_unpacklo_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
+        const __m256 tmp3 =
+            _mm256_unpackhi_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
+        const __m256 _04 = _mm256_unpacklo_ps(tmp0, tmp2);
+        const __m256 _15 = _mm256_unpackhi_ps(tmp0, tmp2);
+        const __m256 _26 = _mm256_unpacklo_ps(tmp1, tmp3);
+        const __m256 _37 = _mm256_unpackhi_ps(tmp1, tmp3);
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[0]]), lo128(_04));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[1]]), lo128(_15));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[2]]), lo128(_26));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[3]]), lo128(_37));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[4]]), hi128(_04));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[5]]), hi128(_15));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[6]]), hi128(_26));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[7]]), hi128(_37));
+    }  // }}}
+    // interleave successive 4 {{{
+    // same as above except fot the stores, that can be combined to 256-bit stores
+    static inline void interleave(typename V::EntryType *const data,
+                                  const Common::SuccessiveEntries<4> &i,
+                                  const typename V::AsArg v0, const typename V::AsArg v1,
+                                  const typename V::AsArg v2, const typename V::AsArg v3)
+    {
+        using namespace AVX;
+        const __m256 tmp0 =
+            _mm256_unpacklo_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
+        const __m256 tmp1 =
+            _mm256_unpackhi_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
+        const __m256 tmp2 =
+            _mm256_unpacklo_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
+        const __m256 tmp3 =
+            _mm256_unpackhi_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
+        const __m256 _04 = _mm256_unpacklo_ps(tmp0, tmp2);
+        const __m256 _15 = _mm256_unpackhi_ps(tmp0, tmp2);
+        const __m256 _26 = _mm256_unpacklo_ps(tmp1, tmp3);
+        const __m256 _37 = _mm256_unpackhi_ps(tmp1, tmp3);
+        _mm256_storeu_ps(aliasing_cast<float>(&data[i[0]]),
+                         _mm256_permute2f128_ps(_04, _15, 0x20));
+        _mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 8),
+                         _mm256_permute2f128_ps(_26, _37, 0x20));
+        _mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 16),
+                         _mm256_permute2f128_ps(_04, _15, 0x31));
+        _mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 24),
+                         _mm256_permute2f128_ps(_26, _37, 0x31));
+    }                      // }}}
     template <typename I>  // interleave 5 args {{{2
     static inline void interleave(typename V::EntryType *const data, const I &i,
                                   const typename V::AsArg v0, const typename V::AsArg v1,
@@ -1858,8 +1932,10 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         interleave(data + 4, i, v4, v5, v6, v7);
     }
     //}}}2
-    template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
-            const I &i, V &v0, V &v1)
+    // deinterleave scatter 2 {{{
+    template <typename I>
+    static inline void deinterleave(typename V::EntryType const *const data, const I &i,
+                                    V &v0, V &v1)
     {
         using namespace AVX;
         const m128  il0 = _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<__m64 const *>(&data[i[0]])); // a0 b0
@@ -1879,9 +1955,10 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
 
         v0.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(tmp0, tmp1));
         v1.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(tmp0, tmp1));
-    }/*}}}*/
-    static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
-            const Common::SuccessiveEntries<2> &i, V &v0, V &v1)
+    }  // }}}
+    // deinterleave successive 2 {{{
+    static inline void deinterleave(typename V::EntryType const *const data,
+                                    const Common::SuccessiveEntries<2> &i, V &v0, V &v1)
     {
         using namespace AVX;
         const m256 il0123 = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]])); // a0 b0 a1 b1 a2 b2 a3 b3
@@ -1895,9 +1972,11 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
 
         v0.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(tmp0, tmp1));
         v1.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(tmp0, tmp1));
-    }/*}}}*/
-    template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
-            const I &i, V &v0, V &v1, V &v2)
+    }  // }}}
+    // deinterleave scatter 3 {{{
+    template <typename I>
+    static inline void deinterleave(typename V::EntryType const *const data, const I &i,
+                                    V &v0, V &v1, V &v2)
     {
         using namespace AVX;
         const m128  il0 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]])); // a0 b0 c0 d0
@@ -1920,9 +1999,50 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         v0.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(ab0246, ab1357));
         v1.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(ab0246, ab1357));
         v2.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(cd0246, cd1357));
-    }/*}}}*/
-    template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
-            const I &i, V &v0, V &v1, V &v2, V &v3)
+    }  // }}}
+    // deinterleave successive 3 {{{
+    static inline void deinterleave(typename V::EntryType const *const data,
+                                    const Common::SuccessiveEntries<3> &i, V &v0, V &v1,
+                                    V &v2)
+    {
+        // 0a 1a 2a 0b 1b 2b 0c 1c
+        __m256 in0 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]] + 0));
+        // 2c 0d 1d 2d 0e 1e 2e 0f
+        __m256 in1 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]] + 8));
+        // 1f 2f 0g 1g 2g 0h 1h 2h
+        __m256 in2 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]] + 16));
+
+        // swap(v0.hi, v2.lo):
+        //      [0a 1a 2a 0b 1f 2f 0g 1g]
+        //      [2c 0d 1d 2d 0e 1e 2e 0f]
+        //      [1b 2b 0c 1c 2g 0h 1h 2h]
+        const __m256 aaabffgg = _mm256_permute2f128_ps(in0, in2, 0x20);
+        const __m256 cdddeeef = in1;
+        const __m256 bbccghhh = _mm256_permute2f128_ps(in0, in2, 0x31);
+        // blend:
+        // 0: [a d c b e h g f]
+        // 1: [b a d c f e h g]
+        // 2: [c b a d g f e h]
+        const __m256 x0 = _mm256_blend_ps(
+            _mm256_blend_ps(aaabffgg, cdddeeef, 0 + 2 + 0 + 0 + 0x10 + 0 + 0 + 0x80),
+            bbccghhh, 0 + 0 + 4 + 0 + 0 + 0x20 + 0 + 0);
+        const __m256 x1 = _mm256_blend_ps(
+            _mm256_blend_ps(aaabffgg, cdddeeef, 0 + 0 + 4 + 0 + 0 + 0x20 + 0 + 0),
+            bbccghhh, 1 + 0 + 0 + 8 + 0 + 0 + 0x40 + 0);
+        const __m256 x2 = _mm256_blend_ps(
+            _mm256_blend_ps(aaabffgg, cdddeeef, 1 + 0 + 0 + 8 + 0 + 0 + 0x40 + 0),
+            bbccghhh, 0 + 2 + 0 + 0 + 0x10 + 0 + 0 + 0x80);
+        // 0: [a d c b e h g f] >-perm(0, 3, 2, 1)-> [a b c d e f g h]
+        // 1: [b a d c f e h g] >-perm(1, 0, 3, 2)-> [a b c d e f g h]
+        // 2: [c b a d g f e h] >-perm(2, 1, 0, 3)-> [a b c d e f g h]
+        v0 = AVX::avx_cast<typename V::VectorType>(_mm256_shuffle_ps(x0, x0, 0x6c));
+        v1 = AVX::avx_cast<typename V::VectorType>(_mm256_shuffle_ps(x1, x1, 0xb1));
+        v2 = AVX::avx_cast<typename V::VectorType>(_mm256_shuffle_ps(x2, x2, 0xc6));
+    }  // }}}
+    // deinterleave scatter 4 {{{
+    template <typename I>
+    static inline void deinterleave(typename V::EntryType const *const data, const I &i,
+                                    V &v0, V &v1, V &v2, V &v3)
     {
         using namespace AVX;
         const m128  il0 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]])); // a0 b0 c0 d0
@@ -1946,7 +2066,35 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         v1.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(ab0246, ab1357));
         v2.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(cd0246, cd1357));
         v3.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(cd0246, cd1357));
-    }/*}}}*/
+    }  // }}}
+    // deinterleave successive 4 {{{
+    static inline void deinterleave(typename V::EntryType const *const data,
+                                    const Common::SuccessiveEntries<4> &i, V &v0, V &v1,
+                                    V &v2, V &v3)
+    {
+        using namespace AVX;
+        const __m256 il01 = _mm256_loadu_ps(
+            aliasing_cast<float>(&data[i[0]]));  // a0 b0 c0 d0 | a1 b1 c1 d1
+        const __m256 il23 = _mm256_loadu_ps(
+            aliasing_cast<float>(&data[i[2]]));  // a2 b2 c2 d2 | a3 b3 c3 d3
+        const __m256 il45 = _mm256_loadu_ps(
+            aliasing_cast<float>(&data[i[4]]));  // a4 b4 c4 d4 | a5 b5 c5 d5
+        const __m256 il67 = _mm256_loadu_ps(
+            aliasing_cast<float>(&data[i[6]]));  // a6 b6 c6 d6 | a7 b7 c7 d7
+
+        const __m256 il04 = _mm256_permute2f128_ps(il01, il45, 0x20);
+        const __m256 il15 = _mm256_permute2f128_ps(il01, il45, 0x31);
+        const __m256 il26 = _mm256_permute2f128_ps(il23, il67, 0x20);
+        const __m256 il37 = _mm256_permute2f128_ps(il23, il67, 0x31);
+        const __m256 ab0246 = _mm256_unpacklo_ps(il04, il26);
+        const __m256 ab1357 = _mm256_unpacklo_ps(il15, il37);
+        const __m256 cd0246 = _mm256_unpackhi_ps(il04, il26);
+        const __m256 cd1357 = _mm256_unpackhi_ps(il15, il37);
+        v0.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(ab0246, ab1357));
+        v1.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(ab0246, ab1357));
+        v2.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(cd0246, cd1357));
+        v3.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(cd0246, cd1357));
+    }  // }}}
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3, V &v4)
     {

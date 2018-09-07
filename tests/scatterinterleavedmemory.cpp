@@ -92,6 +92,7 @@ void testInterleavingScatterCompare(Wrapper &data, const IndexType &i,
 {
     const std::array<V, sizeof...(Indexes)> reference = {
         {((void)Indexes, V::Random())...}};
+        //{V([](size_t i) { return i + Indexes * V::size(); })...}};
 
     data[i] = tie(reference[Indexes]...);
     std::array<V, sizeof...(Indexes)> t = data[i];
@@ -154,11 +155,19 @@ TEST_TYPES(Param, testInterleavingScatter,
         }
 
         for (size_t i = 0; i < N - V::Size; ++i) {
+            //std::memset(data, 0, sizeof(S) * N); // useful when debugging
             testInterleavingScatterCompare<V>(data_v, i,
                                               Vc::make_index_sequence<StructSize>());
         }
     } catch (...) {
         std::cout << "data was:";
+        std::cout << '\n';
+        for (size_t i = 0; i < 16; ++i) {
+            for (size_t n = 0; n < StructSize; ++n) {
+                std::cout << data[i].d[n] << ' ';
+            }
+        }
+        std::cout << '\n';
         for (size_t n = 0; n < StructSize; ++n) {
             std::cout << '\n' << n << ": ";
             for (size_t i = 0; i < N; ++i) {
