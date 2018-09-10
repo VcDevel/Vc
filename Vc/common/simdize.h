@@ -31,7 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <tuple>
 #include <array>
 
-#include "macros.h"
+#include "../Allocator"
+#include "interleavedmemory.h"
 
 /*!
 \addtogroup Simdize
@@ -712,6 +713,10 @@ preferred_construction()
 
 // }}}
 // get_dispatcher {{{
+/**\internal
+ * Uses either the `vc_get_<I>` member function of \p x or `std::get<I>(x)` to retrieve
+ * the `I`-th member of \p x.
+ */
 template <size_t I, typename T,
           typename R = decltype(std::declval<T &>().template vc_get_<I>())>
 R get_dispatcher(T &x, void * = nullptr)
@@ -736,6 +741,44 @@ R get_dispatcher(const T &x, int = 0)
     return std::get<I>(x);
 }
 
+// }}}
+// homogeneous_sizeof {{{
+/**\internal
+ * This trait determines the `sizeof` of all fundamental types (i.e. recursively, when
+ * needed) in the template parameter pack \p Ts. If all fundamental types have equal
+ * `sizeof`, the value is "returned" in the `value` member. Otherwise `value` is 0.
+ */
+template <class... Ts> struct homogeneous_sizeof;
+template <class T, class = void> struct homogeneous_sizeof_one;
+
+template <class T, size_t... Is>
+std::integral_constant<size_t,
+                       homogeneous_sizeof<typename std::remove_reference<decltype(
+                           get_dispatcher<Is>(std::declval<T>()))>::type...>::value>
+homogeneous_sizeof_helper(index_sequence<Is...>);
+
+template <class T>
+struct homogeneous_sizeof_one<T,
+                              typename std::enable_if<std::is_arithmetic<T>::value>::type>
+    : std::integral_constant<size_t, sizeof(T)> {
+};
+
+template <class T>
+struct homogeneous_sizeof_one<T, typename std::enable_if<std::is_class<T>::value>::type>
+    : decltype(homogeneous_sizeof_helper<T>(
+          make_index_sequence<determine_tuple_size_<T>::value>())) {
+};
+
+template <class T0> struct homogeneous_sizeof<T0> : homogeneous_sizeof_one<T0> {
+};
+
+template <class T0, class... Ts>
+struct homogeneous_sizeof<T0, Ts...>
+    : std::integral_constant<size_t, homogeneous_sizeof<T0>::value ==
+                                             homogeneous_sizeof<Ts...>::value
+                                         ? homogeneous_sizeof<T0>::value
+                                         : 0> {
+};
 // }}}
 // class Adapter {{{
 template <typename Scalar, typename Base, size_t N> class Adapter : public Base
@@ -1102,6 +1145,26 @@ template <typename A> inline void swap(Scalar<A> &&a, Scalar<A> &&b)
     swap_impl(a.a, a.i, b.a, b.i, typename Scalar<A>::IndexSeq());
 }
 // }}}
+// load_interleaved_impl {{{
+template <class S, class T, size_t N, size_t... I>
+inline void load_interleaved_impl(Vc::index_sequence<I...>, Adapter<S, T, N> &a,
+                                  const S *mem)
+{
+    const InterleavedMemoryWrapper<S, decltype(decay_workaround(get_dispatcher<0>(a)))>
+    wrapper(const_cast<S *>(mem));
+    Vc::tie(get_dispatcher<I>(a)...) = wrapper[0];
+}
+// }}}
+// store_interleaved_impl {{{
+template <class S, class T, size_t N, size_t... I>
+inline void store_interleaved_impl(Vc::index_sequence<I...>, const Adapter<S, T, N> &a,
+                                   S *mem)
+{
+    InterleavedMemoryWrapper<S, decltype(decay_workaround(get_dispatcher<0>(a)))> wrapper(
+        mem);
+    wrapper[0] = Vc::tie(get_dispatcher<I>(a)...);
+}
+// }}}
 }  // namespace SimdizeDetail
 // assign {{{
 /**
@@ -1141,6 +1204,48 @@ template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
 Vc_INTRINSIC typename V::EntryType extract(const V &v, size_t i)
 {
     return v[i];
+}
+// }}}
+// load_interleaved {{{
+template <class S, class T, size_t N>
+inline void load_interleaved(SimdizeDetail::Adapter<S, T, N> &a, const S *mem)
+{
+    if (SimdizeDetail::homogeneous_sizeof<S>::value == 0) {
+        Common::unrolled_loop<std::size_t, 0, N>(
+            [&](std::size_t i) { assign(a, i, mem[i]); });
+    } else {
+        constexpr size_t TupleSize = SimdizeDetail::determine_tuple_size_<S>::value;
+        SimdizeDetail::load_interleaved_impl(Vc::make_index_sequence<TupleSize>(), a,
+                                             mem);
+    }
+}
+template <
+    class V, class T,
+    class = enable_if<Traits::is_simd_vector<V>::value && std::is_arithmetic<T>::value>>
+Vc_INTRINSIC void load_interleaved(V &a, const T *mem)
+{
+    a.load(mem, Vc::Unaligned);
+}
+// }}}
+// store_interleaved {{{
+template <class S, class T, size_t N>
+inline void store_interleaved(const SimdizeDetail::Adapter<S, T, N> &a, S *mem)
+{
+    if (SimdizeDetail::homogeneous_sizeof<S>::value == 0) {
+        Common::unrolled_loop<std::size_t, 0, N>(
+            [&](std::size_t i) { mem[i] = extract(a, i); });
+    } else {
+        constexpr size_t TupleSize = SimdizeDetail::determine_tuple_size_<S>::value;
+        SimdizeDetail::store_interleaved_impl(Vc::make_index_sequence<TupleSize>(), a,
+                                              mem);
+    }
+}
+template <
+    class V, class T,
+    class = enable_if<Traits::is_simd_vector<V>::value && std::is_arithmetic<T>::value>>
+Vc_INTRINSIC void store_interleaved(const V &a, T *mem)
+{
+    a.store(mem, Vc::Unaligned);
 }
 // }}}
 namespace SimdizeDetail

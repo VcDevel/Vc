@@ -820,7 +820,7 @@ static Vc_INTRINSIC Vc_CONST enable_if<(sizeof(V) == 16), V> rotated(V v, int am
 }
 
 //InterleaveImpl{{{1
-template<typename V, int Size, size_t VSize> struct InterleaveImpl;
+template<typename V, size_t Size, size_t VSize> struct InterleaveImpl;
 template<typename V> struct InterleaveImpl<V, 8, 16> {
     template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1)

@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_COMMON_ALGORITHMS_H_
 #define VC_COMMON_ALGORITHMS_H_
 
-#include "macros.h"
+#include "simdize.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -110,96 +110,72 @@ UnaryFunction simd_for_each(InputIt first, InputIt last, UnaryFunction f);
 template <class InputIt, class UnaryFunction,
           class ValueType = typename std::iterator_traits<InputIt>::value_type>
 inline enable_if<
-    std::is_arithmetic<ValueType>::value &&
-        Traits::is_functor_argument_immutable<UnaryFunction, Vector<ValueType>>::value,
+    Traits::is_functor_argument_immutable<UnaryFunction, simdize<ValueType>>::value,
     UnaryFunction>
 simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 {
-    typedef Vector<ValueType> V;
-    typedef Scalar::Vector<ValueType> V1;
-    for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-                   (V::MemoryAlignment - 1) &&
-               first != last;
-         ++first) {
-        f(V1(std::addressof(*first), Vc::Aligned));
-    }
+    typedef simdize<ValueType> V;
+    typedef simdize<ValueType, 1> V1;
     const auto lastV = last - V::Size + 1;
     for (; first < lastV; first += V::Size) {
-        f(V(std::addressof(*first), Vc::Aligned));
+        V tmp;
+        load_interleaved(tmp, std::addressof(*first));
+        f(tmp);
     }
     for (; first != last; ++first) {
-        f(V1(std::addressof(*first), Vc::Aligned));
+        V1 tmp;
+        load_interleaved(tmp, std::addressof(*first));
+        f(tmp);
     }
     return std::move(f);
 }
 
-template <typename InputIt, typename UnaryFunction>
+template <typename InputIt, typename UnaryFunction,
+          class ValueType = typename std::iterator_traits<InputIt>::value_type>
 inline enable_if<
-    std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
-        !Traits::is_functor_argument_immutable<
-            UnaryFunction,
-            Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
+        !Traits::is_functor_argument_immutable<UnaryFunction, simdize<ValueType>>::value,
     UnaryFunction>
 simd_for_each(InputIt first, InputIt last, UnaryFunction f)
 {
-    typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
-    typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
-    for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-                   (V::MemoryAlignment - 1) &&
-               first != last;
-         ++first) {
-        V1 tmp(std::addressof(*first), Vc::Aligned);
+    typedef simdize<ValueType> V;
+    typedef simdize<ValueType, 1> V1;
+    const auto lastV = last - V::size() + 1;
+    for (; first < lastV; first += V::size()) {
+        V tmp;
+        load_interleaved(tmp, std::addressof(*first));
         f(tmp);
-        tmp.store(std::addressof(*first), Vc::Aligned);
-    }
-    const auto lastV = last - V::Size + 1;
-    for (; first < lastV; first += V::Size) {
-        V tmp(std::addressof(*first), Vc::Aligned);
-        f(tmp);
-        tmp.store(std::addressof(*first), Vc::Aligned);
+        store_interleaved(tmp, std::addressof(*first));
     }
     for (; first != last; ++first) {
-        V1 tmp(std::addressof(*first), Vc::Aligned);
+        V1 tmp;
+        load_interleaved(tmp, std::addressof(*first));
         f(tmp);
-        tmp.store(std::addressof(*first), Vc::Aligned);
+        store_interleaved(tmp, std::addressof(*first));
     }
     return std::move(f);
 }
 #endif
-
-template <typename InputIt, typename UnaryFunction>
-inline enable_if<
-    !std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value,
-    UnaryFunction>
-simd_for_each(InputIt first, InputIt last, UnaryFunction f)
-{
-    return std::for_each(first, last, std::move(f));
-}
 
 ///////////////////////////////////////////////////////////////////////////////
-template <typename InputIt, typename UnaryFunction>
+template <typename InputIt, typename UnaryFunction,
+          class ValueType = typename std::iterator_traits<InputIt>::value_type>
 inline enable_if<
-    std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
-        Traits::is_functor_argument_immutable<
-            UnaryFunction,
-            Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
+    Traits::is_functor_argument_immutable<UnaryFunction, simdize<ValueType>>::value,
     UnaryFunction>
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {
     typename std::make_signed<size_t>::type len = count;
-    typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
-    typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
-    for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-               (V::MemoryAlignment - 1) &&
-           len != 0;
-         --len, ++first) {
-        f(V1(std::addressof(*first), Vc::Aligned));
-    }
-    for (; len >= int(V::Size); len -= V::Size, first += V::Size) {
-        f(V(std::addressof(*first), Vc::Aligned));
+    typedef simdize<ValueType> V;
+    typedef simdize<ValueType, 1> V1;
+    for (; len >= int(V::size()); len -= V::Size, first += V::Size) {
+        V tmp;
+        load_interleaved(tmp, std::addressof(*first));
+        f(tmp);
     }
     for (; len != 0; --len, ++first) {
-        f(V1(std::addressof(*first), Vc::Aligned));
+        V1 tmp;
+        load_interleaved(tmp, std::addressof(*first));
+        f(tmp);
     }
     return std::move(f);
 }
@@ -214,52 +190,22 @@ inline enable_if<
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {
     typename std::make_signed<size_t>::type len = count;
-    typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
-    typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
-    for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-               (V::MemoryAlignment - 1) &&
-           len != 0;
-         --len, ++first) {
-        V1 tmp(std::addressof(*first), Vc::Aligned);
+    typedef simdize<ValueType> V;
+    typedef simdize<ValueType, 1> V1;
+    for (; len >= int(V::size()); len -= V::Size, first += V::Size) {
+        V tmp;
+        load_interleaved(tmp, std::addressof(*first));
         f(tmp);
-        tmp.store(std::addressof(*first), Vc::Aligned);
-    }
-    for (; len >= int(V::Size); len -= V::Size, first += V::Size) {
-        V tmp(std::addressof(*first), Vc::Aligned);
-        f(tmp);
-        tmp.store(std::addressof(*first), Vc::Aligned);
+        store_interleaved(tmp, std::addressof(*first));
     }
     for (; len != 0; --len, ++first) {
-        V1 tmp(std::addressof(*first), Vc::Aligned);
+        V1 tmp;
+        load_interleaved(tmp, std::addressof(*first));
         f(tmp);
-        tmp.store(std::addressof(*first), Vc::Aligned);
+        store_interleaved(tmp, std::addressof(*first));
     }
     return std::move(f);
 }
-
-#ifdef Vc_CXX17
-#ifdef Vc_GCC
-// GCC specific workaround because stdlibc++ doesn't have
-// std::for_each_n implemented yet.
-template <typename InputIt, typename UnaryFunction>
-inline enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction>
-simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
-{
-    for (std::size_t i = 0; i < count; ++i, static_cast<void>(++first))
-        std::apply(f, *first);
-    return first;
-}
-#else
-template <typename InputIt, typename UnaryFunction>
-inline enable_if<
-    !std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value,
-    UnaryFunction>
-simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
-{
-    return std::for_each_n(first, count, std::move(f));
-}
-#endif
-#endif
 
 }  // namespace Vc
 

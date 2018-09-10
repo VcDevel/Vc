@@ -124,6 +124,9 @@ TEST_TYPES(V, simdForEach, AllVectors)
             if (std::is_same<decltype(x), V &>::value) {
                 ++called_with_V;
             }
+            static_assert(std::is_same<decltype(x), Vc::Scalar::Vector<T> &>::value ||
+                              std::is_same<decltype(x), V &>::value,
+                          "wut?");
             for (std::size_t i = 0; i < x.Size; ++i) {
                 data[position++] += T(2);  // modify the container directly - if it is not
                                            // undone by simd_for_each we have a bug

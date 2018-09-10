@@ -35,7 +35,7 @@ namespace Vc_VERSIONED_NAMESPACE
 namespace Detail
 {
 //InterleaveImpl{{{1
-template<typename V, int Size, size_t VSize> struct InterleaveImpl;
+template<typename V, size_t Size, size_t VSize> struct InterleaveImpl;
 template<typename V, size_t VSize> struct InterleaveImpl<V, 1, VSize> {
     template <typename I>  // interleave 2 args {{{2
     static inline void interleave(typename V::EntryType *const data, const I &i,

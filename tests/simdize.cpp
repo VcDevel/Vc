@@ -36,6 +36,17 @@ using Vc::int_m;
 template <typename Scalar, typename Base, std::size_t N>
 using SimdizeAdapter = Vc::SimdizeDetail::Adapter<Scalar, Base, N>;
 
+TEST(homogeneous_sizeof)
+{
+    using Vc::SimdizeDetail::homogeneous_sizeof;
+    VERIFY((homogeneous_sizeof<int, float, unsigned>::value == 4));
+    VERIFY((homogeneous_sizeof<std::tuple<int, float, unsigned>, float>::value == 4));
+    VERIFY((homogeneous_sizeof<unsigned short, std::array<short, 4>>::value == 2));
+    VERIFY((homogeneous_sizeof<int, short>::value == 0));
+    VERIFY((homogeneous_sizeof<std::tuple<int, short>>::value == 0));
+    VERIFY((homogeneous_sizeof<std::array<int, 3>, double>::value == 0));
+}
+
 TEST(test_simdize)
 {
     using namespace std;

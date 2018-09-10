@@ -2619,6 +2619,52 @@ static_assert(Traits::has_no_allocated_data<const Vc::SimdArray<int, 4>>::value,
 static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4>>::value, "");
 static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4> &&>::value, "");
 // }}}1
+// InterleaveImpl for SimdArrays {{{
+namespace Detail
+{
+// atomic {{{1
+template <class T, size_t N,  class V, size_t VSizeof>
+struct InterleaveImpl<SimdArray<T, N, V, N>, N, VSizeof> {
+    template <class I, class... VV>
+    static Vc_INTRINSIC void interleave(T *const data, const I &i, const VV &... vv)
+    {
+        InterleaveImpl<V, N, VSizeof>::interleave(data, i, internal_data(vv)...);
+    }
+    template <class I, class... VV>
+    static Vc_INTRINSIC void deinterleave(T const *const data, const I &i, VV &... vv)
+    {
+        InterleaveImpl<V, N, VSizeof>::deinterleave(data, i, internal_data(vv)...);
+    }
+};
+
+// generic (TODO) {{{1
+/*
+template <class T, size_t N, class V, size_t Wt, size_t VSizeof>
+struct InterleaveImpl<SimdArray<T, N, V, Wt>, N, VSizeof> {
+    using SA = SimdArray<T, N, V, Wt>;
+    using SA0 = typename SA::storage_type0;
+    using SA1 = typename SA::storage_type1;
+
+    template <class I, class... VV>
+    static Vc_INTRINSIC void interleave(T *const data, const I &i, const VV &... vv)
+    {
+        InterleaveImpl<SA0, SA0::size(), sizeof(SA0)>::interleave(
+            data, i,  // i needs to be split
+            internal_data0(vv)...);
+        InterleaveImpl<SA1, SA1::size(), sizeof(SA1)>::interleave(
+            data,  // how far to advance data?
+            i,     // i needs to be split
+            internal_data1(vv)...);
+    }
+    template <class I, class... VV>
+    static Vc_INTRINSIC void deinterleave(T const *const data, const I &i, VV &... vv)
+    {
+        InterleaveImpl<V, N, VSizeof>::deinterleave(data, i, internal_data(vv)...);
+    }
+};
+*/
+}  // namespace Detail
+// }}}
 /// @}
 
 } // namespace Vc_VERSIONED_NAMESPACE
