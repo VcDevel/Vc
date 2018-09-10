@@ -23693,6 +23693,15 @@ Adapter(U &&x_)
 : Adapter(Seq(), static_cast<const Scalar &>(x_))
 {
 }
+template <class F,
+class = decltype(static_cast<Scalar>(std::declval<F>()(
+size_t())))>
+Adapter(F &&fun)
+{
+for (size_t i = 0; i < N; ++i) {
+assign(*this, i, fun(i));
+}
+}
 template <typename A0, typename... Args,
 typename = typename std::enable_if<
 !Traits::is_index_sequence<A0>::value &&
@@ -23906,6 +23915,30 @@ InterleavedMemoryWrapper<S, decltype(decay_workaround(get_dispatcher<0>(a)))> wr
 mem);
 wrapper[0] = Vc::tie(get_dispatcher<I>(a)...);
 }
+template <typename A> class Interface
+{
+using reference = typename std::add_lvalue_reference<A>::type;
+using IndexSeq =
+Vc::make_index_sequence<determine_tuple_size<typename A::scalar_type>()>;
+public:
+Interface(reference aa) : a(aa) {}
+Scalar<A> operator[](size_t i)
+{
+return {a, i};
+}
+typename A::scalar_type operator[](size_t i) const
+{
+return extract_impl(a, i, IndexSeq());
+}
+A shifted(int amount) const
+{
+return shifted_impl(a, amount, IndexSeq());
+}
+void load(const typename A::scalar_type *mem) { load_interleaved(*this, mem); }
+void store(typename A::scalar_type *mem) { store_interleaved(*this, mem); }
+private:
+reference a;
+};
 }
 template <typename S, typename T, size_t N>
 inline void assign(SimdizeDetail::Adapter<S, T, N> &a, size_t i, const S &x)
@@ -23967,40 +24000,26 @@ Vc_INTRINSIC void store_interleaved(const V &a, T *mem)
 {
 a.store(mem, Vc::Unaligned);
 }
+template <typename S, typename T, size_t N>
+SimdizeDetail::Interface<SimdizeDetail::Adapter<S, T, N>> decorate(
+SimdizeDetail::Adapter<S, T, N> &a)
+{
+return {a};
+}
+template <typename S, typename T, size_t N>
+const SimdizeDetail::Interface<const SimdizeDetail::Adapter<S, T, N>> decorate(
+const SimdizeDetail::Adapter<S, T, N> &a)
+{
+return {a};
+}
+template <class V, class = typename std::enable_if<
+Traits::is_simd_vector<typename std::decay<V>::type>::value>>
+V &&decorate(V &&v)
+{
+return std::forward<V>(v);
+}
 namespace SimdizeDetail
 {
-template <typename A> class Interface
-{
-using reference = typename std::add_lvalue_reference<A>::type;
-using IndexSeq =
-Vc::make_index_sequence<determine_tuple_size<typename A::scalar_type>()>;
-public:
-Interface(reference aa) : a(aa) {}
-Scalar<A> operator[](size_t i)
-{
-return {a, i};
-}
-typename A::scalar_type operator[](size_t i) const
-{
-return extract_impl(a, i, IndexSeq());
-}
-A shifted(int amount) const
-{
-return shifted_impl(a, amount, IndexSeq());
-}
-private:
-reference a;
-};
-template <typename S, typename T, size_t N>
-Interface<Adapter<S, T, N>> decorate(Adapter<S, T, N> &a)
-{
-return {a};
-}
-template <typename S, typename T, size_t N>
-const Interface<const Adapter<S, T, N>> decorate(const Adapter<S, T, N> &a)
-{
-return {a};
-}
 namespace IteratorDetails
 {
 enum class Mutable { Yes, No };

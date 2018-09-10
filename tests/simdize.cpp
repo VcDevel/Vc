@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+//#define UNITTEST_ONLY_XTEST 1
 #include "unittest.h"
 #include <list>
 
@@ -638,6 +639,37 @@ TEST(copy_simdized_objects)
     V v3 = std::move(v2);
     COMPARE(std::get<0>(v3), V0(0));
     COMPARE(std::get<1>(v3), V1(0));
+}
+
+template <class T> T create(int x) { return x; }
+template <> std::array<float, 3> create<std::array<float, 3>>(int _x)
+{
+    float x = _x;
+    return {x, x + 1, x + 2};
+}
+template <> std::tuple<double, int> create<std::tuple<double, int>>(int x)
+{
+    return {x, x + 1};
+}
+
+TEST_TYPES(T, generator, float, short, std::array<float, 3>, std::tuple<double, int>)
+{
+    using V = simdize<T>;
+
+    {
+        const V test([](int) { return T(); });
+        const auto &testv = Vc::decorate(test);
+        for (std::size_t i = 0; i < V::size(); ++i) {
+            COMPARE(testv[i], T());
+        }
+    }
+    {
+        const V test([](int n) { return create<T>(n); });
+        const auto &testv = Vc::decorate(test);
+        for (std::size_t i = 0; i < V::size(); ++i) {
+            COMPARE(testv[i], create<T>(i));
+        }
+    }
 }
 
 // vim: foldmethod=marker
