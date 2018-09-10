@@ -372,7 +372,7 @@ namespace SseIntrinsics
     {
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
         typedef int int32v4 __attribute__((__vector_size__(16)));
-        return reinterpret_cast<const MayAlias<int32v4> &>(v)[index];
+        return aliasing_cast<int32v4>(v)[index];
 #else
         return _mm_cvtsi128_si32(_mm_srli_si128(v, index * 4));
 #endif

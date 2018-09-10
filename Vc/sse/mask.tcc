@@ -97,14 +97,14 @@ template <> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
     k = _mm_srli_epi16(k, 15);
     const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
 #ifdef __x86_64__
-    *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);
+    *aliasing_cast<int64_t>(mem) = _mm_cvtsi128_si64(k2);
 #else
-    _mm_store_sd(reinterpret_cast<MayAlias<double> *>(mem), _mm_castsi128_pd(k2));
+    _mm_store_sd(aliasing_cast<double>(mem), _mm_castsi128_pd(k2));
 #endif
 }
 template <> Vc_ALWAYS_INLINE void mask_store<4>(__m128i k, bool *mem)
 {
-    *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(
+    *aliasing_cast<int32_t>(mem) = _mm_cvtsi128_si32(
         _mm_packs_epi16(_mm_srli_epi16(_mm_packs_epi32(k, _mm_setzero_si128()), 15),
                         _mm_setzero_si128()));
 }
@@ -188,9 +188,7 @@ template <> Vc_INTRINSIC Vc_CONST bool is_not_equal<16>(__m128 k1, __m128 k2)
 
 template<> Vc_ALWAYS_INLINE void SSE::double_m::store(bool *mem) const
 {
-    typedef uint16_t boolAlias Vc_MAY_ALIAS;
-    boolAlias *ptr = reinterpret_cast<boolAlias *>(mem);
-    *ptr = _mm_movemask_epi8(dataI()) & 0x0101;
+    *aliasing_cast<uint16_t>(mem) = _mm_movemask_epi8(dataI()) & 0x0101;
 }
 template<typename T> Vc_ALWAYS_INLINE void Mask<T, VectorAbi::Sse>::store(bool *mem) const
 {

@@ -237,12 +237,12 @@ Vc_INTRINSIC __m128i load(const short *mem, Flags, LoadTag<__m128i, int>)
 template <typename Flags>
 Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, int>)
 {
-    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128i load(const schar *mem, Flags, LoadTag<__m128i, int>)
 {
-    return SSE::cvtepi8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+    return SSE::cvtepi8_epi32(_mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 
 // uint {{{2
@@ -254,7 +254,7 @@ Vc_INTRINSIC __m128i load(const ushort *mem, Flags, LoadTag<__m128i, uint>)
 template <typename Flags>
 Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, uint>)
 {
-    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+    return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 
 // double {{{2
@@ -280,25 +280,25 @@ template <typename Flags>
 Vc_INTRINSIC __m128d load(const ushort *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<ushort, double>(
-        _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+        _mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const short *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<short, double>(
-        _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+        _mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const uchar *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<uchar, double>(
-        _mm_set1_epi16(*reinterpret_cast<const MayAlias<short> *>(mem)));
+        _mm_set1_epi16(*aliasing_cast<short>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const schar *mem, Flags, LoadTag<__m128d, double>)
 {
     return SSE::convert<char, double>(
-        _mm_set1_epi16(*reinterpret_cast<const MayAlias<short> *>(mem)));
+        _mm_set1_epi16(*aliasing_cast<short>(mem)));
 }
 
 // float {{{2
@@ -563,8 +563,7 @@ Vc_INTRINSIC __m128i mul(__m128i a, __m128i b, ushort) { return _mm_mullo_epi16(
 Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  schar) {
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
     using B = Common::BuiltinType<schar, 16>;
-    const auto x = reinterpret_cast<const MayAlias<B> &>(a) *
-                   reinterpret_cast<const MayAlias<B> &>(b);
+    const auto x = aliasing_cast<B>(a) * aliasing_cast<B>(b);
     return reinterpret_cast<const __m128i &>(x);
 #else
     return or_(
@@ -575,8 +574,7 @@ Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  schar) {
 Vc_INTRINSIC __m128i mul(__m128i a, __m128i b,  uchar) {
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
     using B = Common::BuiltinType<uchar, 16>;
-    const auto x = reinterpret_cast<const MayAlias<B> &>(a) *
-                   reinterpret_cast<const MayAlias<B> &>(b);
+    const auto x = aliasing_cast<B>(a) * aliasing_cast<B>(b);
     return reinterpret_cast<const __m128i &>(x);
 #else
     return or_(
@@ -832,33 +830,33 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
         const long long tmp01 = _mm_cvtsi128_si64(_mm_unpackhi_epi64(tmp0, tmp0));
         const long long tmp10 = _mm_cvtsi128_si64(tmp1);
         const long long tmp11 = _mm_cvtsi128_si64(_mm_unpackhi_epi64(tmp1, tmp1));
-        *reinterpret_cast<MayAlias<int> *>(&data[i[0]]) = tmp00;
-        *reinterpret_cast<MayAlias<int> *>(&data[i[1]]) = tmp00 >> 32;
-        *reinterpret_cast<MayAlias<int> *>(&data[i[2]]) = tmp01;
-        *reinterpret_cast<MayAlias<int> *>(&data[i[3]]) = tmp01 >> 32;
-        *reinterpret_cast<MayAlias<int> *>(&data[i[4]]) = tmp10;
-        *reinterpret_cast<MayAlias<int> *>(&data[i[5]]) = tmp10 >> 32;
-        *reinterpret_cast<MayAlias<int> *>(&data[i[6]]) = tmp11;
-        *reinterpret_cast<MayAlias<int> *>(&data[i[7]]) = tmp11 >> 32;
+        aliasing_cast<int>(data[i[0]]) = tmp00;
+        aliasing_cast<int>(data[i[1]]) = tmp00 >> 32;
+        aliasing_cast<int>(data[i[2]]) = tmp01;
+        aliasing_cast<int>(data[i[3]]) = tmp01 >> 32;
+        aliasing_cast<int>(data[i[4]]) = tmp10;
+        aliasing_cast<int>(data[i[5]]) = tmp10 >> 32;
+        aliasing_cast<int>(data[i[6]]) = tmp11;
+        aliasing_cast<int>(data[i[7]]) = tmp11 >> 32;
 #elif defined(Vc_IMPL_SSE4_1)
         using namespace SseIntrinsics;
-        *reinterpret_cast<MayAlias<int> *>(&data[i[0]]) = _mm_cvtsi128_si32(tmp0);
-        *reinterpret_cast<MayAlias<int> *>(&data[i[1]]) = extract_epi32<1>(tmp0);
-        *reinterpret_cast<MayAlias<int> *>(&data[i[2]]) = extract_epi32<2>(tmp0);
-        *reinterpret_cast<MayAlias<int> *>(&data[i[3]]) = extract_epi32<3>(tmp0);
-        *reinterpret_cast<MayAlias<int> *>(&data[i[4]]) = _mm_cvtsi128_si32(tmp1);
-        *reinterpret_cast<MayAlias<int> *>(&data[i[5]]) = extract_epi32<1>(tmp1);
-        *reinterpret_cast<MayAlias<int> *>(&data[i[6]]) = extract_epi32<2>(tmp1);
-        *reinterpret_cast<MayAlias<int> *>(&data[i[7]]) = extract_epi32<3>(tmp1);
+        aliasing_cast<int>(data[i[0]]) = _mm_cvtsi128_si32(tmp0);
+        aliasing_cast<int>(data[i[1]]) = extract_epi32<1>(tmp0);
+        aliasing_cast<int>(data[i[2]]) = extract_epi32<2>(tmp0);
+        aliasing_cast<int>(data[i[3]]) = extract_epi32<3>(tmp0);
+        aliasing_cast<int>(data[i[4]]) = _mm_cvtsi128_si32(tmp1);
+        aliasing_cast<int>(data[i[5]]) = extract_epi32<1>(tmp1);
+        aliasing_cast<int>(data[i[6]]) = extract_epi32<2>(tmp1);
+        aliasing_cast<int>(data[i[7]]) = extract_epi32<3>(tmp1);
 #else
-        *reinterpret_cast<MayAlias<int> *>(&data[i[0]]) = _mm_cvtsi128_si32(tmp0);
-        *reinterpret_cast<MayAlias<int> *>(&data[i[1]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 4));
-        *reinterpret_cast<MayAlias<int> *>(&data[i[2]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 8));
-        *reinterpret_cast<MayAlias<int> *>(&data[i[3]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 12));
-        *reinterpret_cast<MayAlias<int> *>(&data[i[4]]) = _mm_cvtsi128_si32(tmp1);
-        *reinterpret_cast<MayAlias<int> *>(&data[i[5]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 4));
-        *reinterpret_cast<MayAlias<int> *>(&data[i[6]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 8));
-        *reinterpret_cast<MayAlias<int> *>(&data[i[7]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 12));
+        aliasing_cast<int>(data[i[0]]) = _mm_cvtsi128_si32(tmp0);
+        aliasing_cast<int>(data[i[1]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 4));
+        aliasing_cast<int>(data[i[2]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 8));
+        aliasing_cast<int>(data[i[3]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 12));
+        aliasing_cast<int>(data[i[4]]) = _mm_cvtsi128_si32(tmp1);
+        aliasing_cast<int>(data[i[5]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 4));
+        aliasing_cast<int>(data[i[6]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 8));
+        aliasing_cast<int>(data[i[7]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 12));
 #endif
     }/*}}}*/
     static inline void interleave(typename V::EntryType *const data, const Common::SuccessiveEntries<2> &i,/*{{{*/
@@ -983,14 +981,14 @@ template<typename V> struct InterleaveImpl<V, 8, 16> {
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data, /*{{{*/
             const I &i, V &v0, V &v1)
     {
-        const __m128i a = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[0]]));
-        const __m128i b = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[1]]));
-        const __m128i c = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[2]]));
-        const __m128i d = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[3]]));
-        const __m128i e = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[4]]));
-        const __m128i f = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[5]]));
-        const __m128i g = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[6]]));
-        const __m128i h = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[7]]));
+        const __m128i a = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[0]]));
+        const __m128i b = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[1]]));
+        const __m128i c = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[2]]));
+        const __m128i d = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[3]]));
+        const __m128i e = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[4]]));
+        const __m128i f = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[5]]));
+        const __m128i g = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[6]]));
+        const __m128i h = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[7]]));
 
         const __m128i tmp2  = _mm_unpacklo_epi16(a, e); // a0 a4 b0 b4 c0 c4 d0 d4
         const __m128i tmp3  = _mm_unpacklo_epi16(c, g); // a2 a6 b2 b6 c2 c6 d2 d6
@@ -1209,8 +1207,8 @@ template<typename V> struct InterleaveImpl<V, 4, 16> {
     {
         const __m128 tmp0 = _mm_unpacklo_ps(SSE::sse_cast<__m128>(v0.data()),SSE::sse_cast<__m128>(v1.data()));
         const __m128 tmp1 = _mm_unpackhi_ps(SSE::sse_cast<__m128>(v0.data()),SSE::sse_cast<__m128>(v1.data()));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), tmp0);
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), tmp1);
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[0]]), tmp0);
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[2]]), tmp1);
     }/*}}}*/
     template <typename I>  // interleave 2 args {{{2
     static inline void interleave(typename V::EntryType *const data, const I &i,
@@ -1257,10 +1255,10 @@ template<typename V> struct InterleaveImpl<V, 4, 16> {
         const __m128 tmp1 = _mm_unpackhi_ps(SSE::sse_cast<__m128>(v0.data()),SSE::sse_cast<__m128>(v1.data()));
         const __m128 tmp2 = _mm_unpacklo_ps(SSE::sse_cast<__m128>(v2.data()),SSE::sse_cast<__m128>(v3.data()));
         const __m128 tmp3 = _mm_unpackhi_ps(SSE::sse_cast<__m128>(v2.data()),SSE::sse_cast<__m128>(v3.data()));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), _mm_movelh_ps(tmp0, tmp2));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[1]]), _mm_movehl_ps(tmp2, tmp0));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), _mm_movelh_ps(tmp1, tmp3));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[3]]), _mm_movehl_ps(tmp3, tmp1));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[0]]), _mm_movelh_ps(tmp0, tmp2));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[1]]), _mm_movehl_ps(tmp2, tmp0));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[2]]), _mm_movelh_ps(tmp1, tmp3));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[3]]), _mm_movehl_ps(tmp3, tmp1));
     }
     template <typename I>  // interleave 5 args {{{2
     static inline void interleave(typename V::EntryType *const data, const I &i,
@@ -1304,10 +1302,10 @@ template<typename V> struct InterleaveImpl<V, 4, 16> {
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1)
     {
-        const __m128 a = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(&data[i[0]])));
-        const __m128 b = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(&data[i[1]])));
-        const __m128 c = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(&data[i[2]])));
-        const __m128 d = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(&data[i[3]])));
+        const __m128 a = _mm_castpd_ps(_mm_load_sd(aliasing_cast<double>(&data[i[0]])));
+        const __m128 b = _mm_castpd_ps(_mm_load_sd(aliasing_cast<double>(&data[i[1]])));
+        const __m128 c = _mm_castpd_ps(_mm_load_sd(aliasing_cast<double>(&data[i[2]])));
+        const __m128 d = _mm_castpd_ps(_mm_load_sd(aliasing_cast<double>(&data[i[3]])));
 
         const __m128 tmp0 = _mm_unpacklo_ps(a, b); // [a0 a1 b0 b1]
         const __m128 tmp1 = _mm_unpacklo_ps(c, d); // [a2 a3 b2 b3]
@@ -1318,10 +1316,10 @@ template<typename V> struct InterleaveImpl<V, 4, 16> {
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2)
     {
-        const __m128 a = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]]));
-        const __m128 b = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[1]]));
-        const __m128 c = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[2]]));
-        const __m128 d = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[3]]));
+        const __m128 a = _mm_loadu_ps(aliasing_cast<float>(&data[i[0]]));
+        const __m128 b = _mm_loadu_ps(aliasing_cast<float>(&data[i[1]]));
+        const __m128 c = _mm_loadu_ps(aliasing_cast<float>(&data[i[2]]));
+        const __m128 d = _mm_loadu_ps(aliasing_cast<float>(&data[i[3]]));
 
         const __m128 tmp0 = _mm_unpacklo_ps(a, b); // [a0 a1 b0 b1]
         const __m128 tmp1 = _mm_unpacklo_ps(c, d); // [a2 a3 b2 b3]
@@ -1335,10 +1333,10 @@ template<typename V> struct InterleaveImpl<V, 4, 16> {
     template<typename I> static inline void deinterleave(typename V::EntryType const *const data,/*{{{*/
             const I &i, V &v0, V &v1, V &v2, V &v3)
     {
-        const __m128 a = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]]));
-        const __m128 b = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[1]]));
-        const __m128 c = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[2]]));
-        const __m128 d = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[3]]));
+        const __m128 a = _mm_loadu_ps(aliasing_cast<float>(&data[i[0]]));
+        const __m128 b = _mm_loadu_ps(aliasing_cast<float>(&data[i[1]]));
+        const __m128 c = _mm_loadu_ps(aliasing_cast<float>(&data[i[2]]));
+        const __m128 d = _mm_loadu_ps(aliasing_cast<float>(&data[i[3]]));
 
         const __m128 tmp0 = _mm_unpacklo_ps(a, b); // [a0 a1 b0 b1]
         const __m128 tmp1 = _mm_unpacklo_ps(c, d); // [a2 a3 b2 b3]

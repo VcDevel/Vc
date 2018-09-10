@@ -437,8 +437,8 @@ template <>
 Vc_INTRINSIC void AVX2::uint_v::gatherImplementation(const uint *mem,
                                                      AVX2::int_v indexes)
 {
-    d.v() = _mm256_i32gather_epi32(reinterpret_cast<const MayAlias<int> *>(mem), indexes.data(),
-                                   sizeof(unsigned));
+    d.v() =
+        _mm256_i32gather_epi32(aliasing_cast<int>(mem), indexes.data(), sizeof(unsigned));
 }
 #endif  // !Vc_MSVC
 
@@ -763,8 +763,8 @@ template<> Vc_ALWAYS_INLINE AVX2::double_v AVX2::double_v::Random()
                                        Detail::LoadTag<__m256i, int>());
     for (size_t k = 0; k < 8; k += 2) {
         typedef unsigned long long uint64 Vc_MAY_ALIAS;
-        const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
-        *reinterpret_cast<uint64 *>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
+        const uint64 stateX = *aliasing_cast<uint64>(&Common::RandomState[k]);
+        *aliasing_cast<uint64>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
     }
     return HT::sub(Detail::or_(_cast(AVX::srli_epi64<12>(state)), HT::one()), HT::one());
 }

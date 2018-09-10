@@ -69,8 +69,7 @@ public:
                                                  sizeof(storage_type) == sizeof(T)))>>
     constexpr operator T() const noexcept
     {
-        return std::is_same<T, bool>::value ? T((data & 1) != 0)
-                                            : reinterpret_cast<const MayAlias<T> &>(data);
+        return std::is_same<T, bool>::value ? T((data & 1) != 0) : aliasing_cast<T>(data);
     }
 } Vc_MAY_ALIAS;
 

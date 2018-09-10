@@ -89,6 +89,7 @@ inline const char *versionString() { return Vc_VERSION_STRING; }
 constexpr unsigned int versionNumber() { return Vc_VERSION_NUMBER; }
 }
 
+// @BEGIN SKIP GODBOLT@
 #if !defined(Vc_NO_VERSION_CHECK) && !defined(Vc_COMPILE_LIB)
 namespace Vc_VERSIONED_NAMESPACE
 {
@@ -119,5 +120,6 @@ static struct runLibraryAbiCheck {
 }  // namespace Common
 }  // namespace Vc
 #endif
+// @END SKIP GODBOLT@
 
 #endif // VC_VERSION_H_

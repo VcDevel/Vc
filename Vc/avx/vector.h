@@ -231,11 +231,10 @@ public:
         {
             const auto lo = simd_cast<AVX2::int_v, 0>(indexes);
             const auto hi = simd_cast<AVX2::int_v, 1>(indexes);
-            *this = simd_cast<Vector>(
-                AVX2::int_v(_mm256_i32gather_epi32(
-                    reinterpret_cast<const MayAlias<int> *>(mem), lo.data(), 2)),
-                AVX2::int_v(_mm256_i32gather_epi32(
-                    reinterpret_cast<const MayAlias<int> *>(mem), hi.data(), 2)));
+            *this = simd_cast<Vector>(AVX2::int_v(_mm256_i32gather_epi32(
+                                          aliasing_cast<int>(mem), lo.data(), 2)),
+                                      AVX2::int_v(_mm256_i32gather_epi32(
+                                          aliasing_cast<int>(mem), hi.data(), 2)));
         }
 
         template <class U, class V, std::size_t Wt>

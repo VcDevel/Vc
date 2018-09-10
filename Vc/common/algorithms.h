@@ -180,12 +180,10 @@ simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
     return std::move(f);
 }
 
-template <typename InputIt, typename UnaryFunction>
+template <typename InputIt, typename UnaryFunction,
+          class ValueType = typename std::iterator_traits<InputIt>::value_type>
 inline enable_if<
-    std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
-        !Traits::is_functor_argument_immutable<
-            UnaryFunction,
-            Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
+    !Traits::is_functor_argument_immutable<UnaryFunction, simdize<ValueType>>::value,
     UnaryFunction>
 simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
 {

@@ -224,11 +224,11 @@ public:
 
     Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const
     {
-        return reinterpret_cast<const MayAlias<EntryType> *>(&data)[i];
+        return aliasing_cast<EntryType>(&data)[i];
     }
     Vc_INTRINSIC void set(size_t i, EntryType x)
     {
-        reinterpret_cast<MayAlias<EntryType> *>(&data)[i] = x;
+        aliasing_cast<EntryType>(&data)[i] = x;
     }
 
 private:
@@ -258,20 +258,20 @@ public:
     Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 
     Vc_INTRINSIC Storage(const VectorType &x)
-        : data(reinterpret_cast<const MayAlias<Builtin> &>(x))
+        : data(aliasing_cast<Builtin>(x))
     {
         assertCorrectAlignment(&data);
     }
     template <typename U>
     Vc_INTRINSIC explicit Storage(const U &x,
                                   enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
-        : data(reinterpret_cast<const MayAlias<Builtin> &>(x))
+        : data(aliasing_cast<Builtin>(x))
     {
         assertCorrectAlignment(&data);
     }
     Vc_INTRINSIC Storage &operator=(const VectorType &x)
     {
-        data = reinterpret_cast<const MayAlias<Builtin> &>(x);
+        data = aliasing_cast<Builtin>(x);
         return *this;
     }
 

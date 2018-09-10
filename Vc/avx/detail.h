@@ -1206,19 +1206,18 @@ Vc_INTRINSIC void mask_store(__m256i k, bool *mem, Flags)
         "mask_store(__m256i, bool *) is only implemented for 4, 8, and 16 entries");
     switch (N) {
     case 4:
-        *reinterpret_cast<MayAlias<int32_t> *>(mem) =
-            (_mm_movemask_epi8(AVX::lo128(k)) |
-             (_mm_movemask_epi8(AVX::hi128(k)) << 16)) &
-            0x01010101;
+        *aliasing_cast<int32_t>(mem) = (_mm_movemask_epi8(AVX::lo128(k)) |
+                                        (_mm_movemask_epi8(AVX::hi128(k)) << 16)) &
+                                       0x01010101;
         break;
     case 8: {
         const auto k2 = _mm_srli_epi16(_mm_packs_epi16(AVX::lo128(k), AVX::hi128(k)), 15);
         const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
 #ifdef __x86_64__
-        *reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
+        *aliasing_cast<int64_t>(mem) = _mm_cvtsi128_si64(k3);
 #else
-        *reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k3);
-        *reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
+        *aliasing_cast<int32_t>(mem) = _mm_cvtsi128_si32(k3);
+        *aliasing_cast<int32_t>(mem + 4) = _mm_extract_epi32(k3, 1);
 #endif
     } break;
     case 16: {
@@ -1244,7 +1243,7 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
                   "mask_load<__m128>(const bool *) is only implemented for 4, 8 entries");
     switch (N) {
     case 4: {
-        __m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int32_t> *>(mem));
+        __m128i k = _mm_cvtsi32_si128(*aliasing_cast<int32_t>(mem));
         k = _mm_unpacklo_epi8(k, k);
         k = _mm_unpacklo_epi16(k, k);
         k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
@@ -1252,10 +1251,9 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
     }
     case 8: {
 #ifdef __x86_64__
-        __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const MayAlias<int64_t> *>(mem));
+        __m128i k = _mm_cvtsi64_si128(*aliasing_cast<int64_t>(mem));
 #else
-        __m128i k = _mm_castpd_si128(
-            _mm_load_sd(reinterpret_cast<const MayAlias<double> *>(mem)));
+        __m128i k = _mm_castpd_si128(_mm_load_sd(aliasing_cast<double>(mem)));
 #endif
         return AVX::avx_cast<__m128>(
             _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
@@ -1275,7 +1273,7 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
     switch (N) {
     case 4: {
         __m128i k = AVX::avx_cast<__m128i>(_mm_and_ps(
-            _mm_set1_ps(*reinterpret_cast<const MayAlias<float> *>(mem)),
+            _mm_set1_ps(*aliasing_cast<float>(mem)),
             AVX::avx_cast<__m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))));
         k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
         return AVX::avx_cast<__m256>(
@@ -1283,10 +1281,9 @@ Vc_INTRINSIC R mask_load(const bool *mem, Flags,
     }
     case 8: {
 #ifdef __x86_64__
-        __m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const MayAlias<int64_t> *>(mem));
+        __m128i k = _mm_cvtsi64_si128(*aliasing_cast<int64_t>(mem));
 #else
-        __m128i k = _mm_castpd_si128(
-            _mm_load_sd(reinterpret_cast<const MayAlias<double> *>(mem)));
+        __m128i k = _mm_castpd_si128(_mm_load_sd(aliasing_cast<double>(mem)));
 #endif
         k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
         return AVX::avx_cast<__m256>(
@@ -1337,22 +1334,22 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
         const __m256i tmp0 = AVX::unpacklo_epi16(v0.data(), v1.data()); // a0 b0 a1 b1 a2 b2 a3 b3 | a8 b8 a9 ...
         const __m256i tmp1 = AVX::unpackhi_epi16(v0.data(), v1.data()); // a4 b4 a5 ...
         using namespace AVX;
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 0]]) = _mm_cvtsi128_si32(lo128(tmp0));
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 1]]) = _mm_extract_epi32(lo128(tmp0), 1);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 2]]) = _mm_extract_epi32(lo128(tmp0), 2);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 3]]) = _mm_extract_epi32(lo128(tmp0), 3);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 4]]) = _mm_cvtsi128_si32(lo128(tmp1));
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 5]]) = _mm_extract_epi32(lo128(tmp1), 1);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 6]]) = _mm_extract_epi32(lo128(tmp1), 2);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 7]]) = _mm_extract_epi32(lo128(tmp1), 3);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 8]]) = _mm_cvtsi128_si32(hi128(tmp0));
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 9]]) = _mm_extract_epi32(hi128(tmp0), 1);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[10]]) = _mm_extract_epi32(hi128(tmp0), 2);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[11]]) = _mm_extract_epi32(hi128(tmp0), 3);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[12]]) = _mm_cvtsi128_si32(hi128(tmp1));
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[13]]) = _mm_extract_epi32(hi128(tmp1), 1);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[14]]) = _mm_extract_epi32(hi128(tmp1), 2);
-        *reinterpret_cast<MayAlias<uint32_t> *>(&data[i[15]]) = _mm_extract_epi32(hi128(tmp1), 3);
+        *aliasing_cast<uint32_t>(&data[i[ 0]]) = _mm_cvtsi128_si32(lo128(tmp0));
+        *aliasing_cast<uint32_t>(&data[i[ 1]]) = _mm_extract_epi32(lo128(tmp0), 1);
+        *aliasing_cast<uint32_t>(&data[i[ 2]]) = _mm_extract_epi32(lo128(tmp0), 2);
+        *aliasing_cast<uint32_t>(&data[i[ 3]]) = _mm_extract_epi32(lo128(tmp0), 3);
+        *aliasing_cast<uint32_t>(&data[i[ 4]]) = _mm_cvtsi128_si32(lo128(tmp1));
+        *aliasing_cast<uint32_t>(&data[i[ 5]]) = _mm_extract_epi32(lo128(tmp1), 1);
+        *aliasing_cast<uint32_t>(&data[i[ 6]]) = _mm_extract_epi32(lo128(tmp1), 2);
+        *aliasing_cast<uint32_t>(&data[i[ 7]]) = _mm_extract_epi32(lo128(tmp1), 3);
+        *aliasing_cast<uint32_t>(&data[i[ 8]]) = _mm_cvtsi128_si32(hi128(tmp0));
+        *aliasing_cast<uint32_t>(&data[i[ 9]]) = _mm_extract_epi32(hi128(tmp0), 1);
+        *aliasing_cast<uint32_t>(&data[i[10]]) = _mm_extract_epi32(hi128(tmp0), 2);
+        *aliasing_cast<uint32_t>(&data[i[11]]) = _mm_extract_epi32(hi128(tmp0), 3);
+        *aliasing_cast<uint32_t>(&data[i[12]]) = _mm_cvtsi128_si32(hi128(tmp1));
+        *aliasing_cast<uint32_t>(&data[i[13]]) = _mm_extract_epi32(hi128(tmp1), 1);
+        *aliasing_cast<uint32_t>(&data[i[14]]) = _mm_extract_epi32(hi128(tmp1), 2);
+        *aliasing_cast<uint32_t>(&data[i[15]]) = _mm_extract_epi32(hi128(tmp1), 3);
     }/*}}}*/
     static inline void interleave(typename V::EntryType *const data, const Common::SuccessiveEntries<2> &i,/*{{{*/
             const typename V::AsArg v0, const typename V::AsArg v1)
@@ -1456,23 +1453,17 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
             const I &i, V &v0, V &v1)
     {
         const __m256i tmp4 =  // a0 b0 a1 b1 a2 b2 a3 b3 | a8 b8 a9 b9 a10 b10 a11 b11
-            _mm256_setr_epi32(*reinterpret_cast<const MayAlias<int> *>(&data[i[0]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[1]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[2]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[3]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[8]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[9]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[10]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[11]]));
-        const __m256i tmp5 = // a4 b4 a5 b5 a6 b6 a7 b7 | a12 b12 a13 b13 a14 b14 a15 b15
-            _mm256_setr_epi32(*reinterpret_cast<const MayAlias<int> *>(&data[i[4]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[5]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[6]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[7]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[12]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[13]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[14]]),
-                              *reinterpret_cast<const MayAlias<int> *>(&data[i[15]]));
+            _mm256_setr_epi32(
+                *aliasing_cast<int>(&data[i[0]]), *aliasing_cast<int>(&data[i[1]]),
+                *aliasing_cast<int>(&data[i[2]]), *aliasing_cast<int>(&data[i[3]]),
+                *aliasing_cast<int>(&data[i[8]]), *aliasing_cast<int>(&data[i[9]]),
+                *aliasing_cast<int>(&data[i[10]]), *aliasing_cast<int>(&data[i[11]]));
+        const __m256i tmp5 =  // a4 b4 a5 b5 a6 b6 a7 b7 | a12 b12 a13 b13 a14 b14 a15 b15
+            _mm256_setr_epi32(
+                *aliasing_cast<int>(&data[i[4]]), *aliasing_cast<int>(&data[i[5]]),
+                *aliasing_cast<int>(&data[i[6]]), *aliasing_cast<int>(&data[i[7]]),
+                *aliasing_cast<int>(&data[i[12]]), *aliasing_cast<int>(&data[i[13]]),
+                *aliasing_cast<int>(&data[i[14]]), *aliasing_cast<int>(&data[i[15]]));
 
         const __m256i tmp2 = AVX::unpacklo_epi16(tmp4, tmp5);  // a0 a4 b0 b4 a1 a5 b1 b5 | a8 a12 b8 b12 a9 a13 b9 b13
         const __m256i tmp3 = AVX::unpackhi_epi16(tmp4, tmp5);  // a2 a6 b2 b6 a3 a7 b3 b7 | a10 a14 b10 b14 a11 a15 b11 b15
@@ -1487,22 +1478,18 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
             const I &i, V &v0, V &v1, V &v2)
     {
         using namespace AVX;
-        const __m256i tmp0 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[0]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[1]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[8]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[9]])));
-        const __m256i tmp1 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[2]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[3]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[10]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[11]])));
-        const __m256i tmp2 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[4]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[5]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[12]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[13]])));
-        const __m256i tmp3 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[6]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[7]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[14]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[15]])));
+        const __m256i tmp0 = avx_cast<__m256i>(_mm256_setr_pd(
+            *aliasing_cast<double>(&data[i[0]]), *aliasing_cast<double>(&data[i[1]]),
+            *aliasing_cast<double>(&data[i[8]]), *aliasing_cast<double>(&data[i[9]])));
+        const __m256i tmp1 = avx_cast<__m256i>(_mm256_setr_pd(
+            *aliasing_cast<double>(&data[i[2]]), *aliasing_cast<double>(&data[i[3]]),
+            *aliasing_cast<double>(&data[i[10]]), *aliasing_cast<double>(&data[i[11]])));
+        const __m256i tmp2 = avx_cast<__m256i>(_mm256_setr_pd(
+            *aliasing_cast<double>(&data[i[4]]), *aliasing_cast<double>(&data[i[5]]),
+            *aliasing_cast<double>(&data[i[12]]), *aliasing_cast<double>(&data[i[13]])));
+        const __m256i tmp3 = avx_cast<__m256i>(_mm256_setr_pd(
+            *aliasing_cast<double>(&data[i[6]]), *aliasing_cast<double>(&data[i[7]]),
+            *aliasing_cast<double>(&data[i[14]]), *aliasing_cast<double>(&data[i[15]])));
         const __m256i tmp4 = AVX::unpacklo_epi16(tmp0, tmp2); // a0 a4 b0 b4 c0 c4 XX XX | a8 a12 b8 ...
         const __m256i tmp5 = AVX::unpackhi_epi16(tmp0, tmp2); // a1 a5 ...
         const __m256i tmp6 = AVX::unpacklo_epi16(tmp1, tmp3); // a2 a6 ...
@@ -1521,22 +1508,18 @@ template<typename V> struct InterleaveImpl<V, 16, 32> {
             const I &i, V &v0, V &v1, V &v2, V &v3)
     {
         using namespace AVX;
-        const __m256i tmp0 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[0]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[1]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[8]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[9]])));
-        const __m256i tmp1 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[2]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[3]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[10]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[11]])));
-        const __m256i tmp2 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[4]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[5]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[12]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[13]])));
-        const __m256i tmp3 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[6]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[7]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[14]]),
-                                                              *reinterpret_cast<const MayAlias<double> *>(&data[i[15]])));
+        const __m256i tmp0 = avx_cast<__m256i>(_mm256_setr_pd(
+            *aliasing_cast<double>(&data[i[0]]), *aliasing_cast<double>(&data[i[1]]),
+            *aliasing_cast<double>(&data[i[8]]), *aliasing_cast<double>(&data[i[9]])));
+        const __m256i tmp1 = avx_cast<__m256i>(_mm256_setr_pd(
+            *aliasing_cast<double>(&data[i[2]]), *aliasing_cast<double>(&data[i[3]]),
+            *aliasing_cast<double>(&data[i[10]]), *aliasing_cast<double>(&data[i[11]])));
+        const __m256i tmp2 = avx_cast<__m256i>(_mm256_setr_pd(
+            *aliasing_cast<double>(&data[i[4]]), *aliasing_cast<double>(&data[i[5]]),
+            *aliasing_cast<double>(&data[i[12]]), *aliasing_cast<double>(&data[i[13]])));
+        const __m256i tmp3 = avx_cast<__m256i>(_mm256_setr_pd(
+            *aliasing_cast<double>(&data[i[6]]), *aliasing_cast<double>(&data[i[7]]),
+            *aliasing_cast<double>(&data[i[14]]), *aliasing_cast<double>(&data[i[15]])));
         const __m256i tmp4 = AVX::unpacklo_epi16(tmp0, tmp2); // a0 a4 b0 b4 c0 c4 d0 d4 | a8 a12 b8 ...
         const __m256i tmp5 = AVX::unpackhi_epi16(tmp0, tmp2); // a1 a5 ...
         const __m256i tmp6 = AVX::unpacklo_epi16(tmp1, tmp3); // a2 a6 ...
@@ -1762,10 +1745,10 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         const m256 tmp0 = _mm256_unpacklo_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v1.data()));
         // [0c 1c 0d 1d 0g 1g 0h 1h]:
         const m256 tmp1 = _mm256_unpackhi_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v1.data()));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), lo128(tmp0));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), lo128(tmp1));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[4]]), hi128(tmp0));
-        _mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[6]]), hi128(tmp1));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[0]]), lo128(tmp0));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[2]]), lo128(tmp1));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[4]]), hi128(tmp0));
+        _mm_storeu_ps(aliasing_cast<float>(&data[i[6]]), hi128(tmp1));
     }/*}}}*/
     // interleave scatter 3 {{{
     template <typename I>
@@ -1788,14 +1771,14 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
         const m256 tmp6 = _mm256_unpacklo_ps(tmp1, tmp3);
         const m256 tmp7 = _mm256_unpackhi_ps(tmp1, tmp3);
         const m128i mask = _mm_set_epi32(0, -1, -1, -1);
-        _mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), mask, lo128(tmp4));
-        _mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[1]]), mask, lo128(tmp5));
-        _mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), mask, lo128(tmp6));
-        _mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[3]]), mask, lo128(tmp7));
-        _mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[4]]), mask, hi128(tmp4));
-        _mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[5]]), mask, hi128(tmp5));
-        _mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[6]]), mask, hi128(tmp6));
-        _mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[7]]), mask, hi128(tmp7));
+        _mm_maskstore_ps(aliasing_cast<float>(&data[i[0]]), mask, lo128(tmp4));
+        _mm_maskstore_ps(aliasing_cast<float>(&data[i[1]]), mask, lo128(tmp5));
+        _mm_maskstore_ps(aliasing_cast<float>(&data[i[2]]), mask, lo128(tmp6));
+        _mm_maskstore_ps(aliasing_cast<float>(&data[i[3]]), mask, lo128(tmp7));
+        _mm_maskstore_ps(aliasing_cast<float>(&data[i[4]]), mask, hi128(tmp4));
+        _mm_maskstore_ps(aliasing_cast<float>(&data[i[5]]), mask, hi128(tmp5));
+        _mm_maskstore_ps(aliasing_cast<float>(&data[i[6]]), mask, hi128(tmp6));
+        _mm_maskstore_ps(aliasing_cast<float>(&data[i[7]]), mask, hi128(tmp7));
 #else
         interleave(data, i, v0, v1);
         v2.scatter(data + 2, i);
@@ -1961,8 +1944,8 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
                                     const Common::SuccessiveEntries<2> &i, V &v0, V &v1)
     {
         using namespace AVX;
-        const m256 il0123 = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]])); // a0 b0 a1 b1 a2 b2 a3 b3
-        const m256 il4567 = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[4]])); // a4 b4 a5 b5 a6 b6 a7 b7
+        const m256 il0123 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]])); // a0 b0 a1 b1 a2 b2 a3 b3
+        const m256 il4567 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[4]])); // a4 b4 a5 b5 a6 b6 a7 b7
 
         const m256 tmp2 = Mem::shuffle128<X0, Y0>(il0123, il4567);
         const m256 tmp3 = Mem::shuffle128<X1, Y1>(il0123, il4567);
@@ -1979,14 +1962,14 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
                                     V &v0, V &v1, V &v2)
     {
         using namespace AVX;
-        const m128  il0 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]])); // a0 b0 c0 d0
-        const m128  il1 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[1]])); // a1 b1 c1 d1
-        const m128  il2 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[2]])); // a2 b2 c2 d2
-        const m128  il3 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[3]])); // a3 b3 c3 d3
-        const m128  il4 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[4]])); // a4 b4 c4 d4
-        const m128  il5 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[5]])); // a5 b5 c5 d5
-        const m128  il6 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[6]])); // a6 b6 c6 d6
-        const m128  il7 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[7]])); // a7 b7 c7 d7
+        const m128  il0 = _mm_loadu_ps(aliasing_cast<float>(&data[i[0]])); // a0 b0 c0 d0
+        const m128  il1 = _mm_loadu_ps(aliasing_cast<float>(&data[i[1]])); // a1 b1 c1 d1
+        const m128  il2 = _mm_loadu_ps(aliasing_cast<float>(&data[i[2]])); // a2 b2 c2 d2
+        const m128  il3 = _mm_loadu_ps(aliasing_cast<float>(&data[i[3]])); // a3 b3 c3 d3
+        const m128  il4 = _mm_loadu_ps(aliasing_cast<float>(&data[i[4]])); // a4 b4 c4 d4
+        const m128  il5 = _mm_loadu_ps(aliasing_cast<float>(&data[i[5]])); // a5 b5 c5 d5
+        const m128  il6 = _mm_loadu_ps(aliasing_cast<float>(&data[i[6]])); // a6 b6 c6 d6
+        const m128  il7 = _mm_loadu_ps(aliasing_cast<float>(&data[i[7]])); // a7 b7 c7 d7
 
         const m256 il04 = concat(il0, il4);
         const m256 il15 = concat(il1, il5);
@@ -2045,14 +2028,14 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
                                     V &v0, V &v1, V &v2, V &v3)
     {
         using namespace AVX;
-        const m128  il0 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]])); // a0 b0 c0 d0
-        const m128  il1 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[1]])); // a1 b1 c1 d1
-        const m128  il2 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[2]])); // a2 b2 c2 d2
-        const m128  il3 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[3]])); // a3 b3 c3 d3
-        const m128  il4 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[4]])); // a4 b4 c4 d4
-        const m128  il5 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[5]])); // a5 b5 c5 d5
-        const m128  il6 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[6]])); // a6 b6 c6 d6
-        const m128  il7 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[7]])); // a7 b7 c7 d7
+        const m128  il0 = _mm_loadu_ps(aliasing_cast<float>(&data[i[0]])); // a0 b0 c0 d0
+        const m128  il1 = _mm_loadu_ps(aliasing_cast<float>(&data[i[1]])); // a1 b1 c1 d1
+        const m128  il2 = _mm_loadu_ps(aliasing_cast<float>(&data[i[2]])); // a2 b2 c2 d2
+        const m128  il3 = _mm_loadu_ps(aliasing_cast<float>(&data[i[3]])); // a3 b3 c3 d3
+        const m128  il4 = _mm_loadu_ps(aliasing_cast<float>(&data[i[4]])); // a4 b4 c4 d4
+        const m128  il5 = _mm_loadu_ps(aliasing_cast<float>(&data[i[5]])); // a5 b5 c5 d5
+        const m128  il6 = _mm_loadu_ps(aliasing_cast<float>(&data[i[6]])); // a6 b6 c6 d6
+        const m128  il7 = _mm_loadu_ps(aliasing_cast<float>(&data[i[7]])); // a7 b7 c7 d7
 
         const m256 il04 = concat(il0, il4);
         const m256 il15 = concat(il1, il5);
@@ -2111,12 +2094,12 @@ template<typename V> struct InterleaveImpl<V, 8, 32> {
             const Common::SuccessiveEntries<6> &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5)
     {
         using namespace AVX;
-        const m256 a = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]]));
-        const m256 b = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 1 * V::Size]));
-        const m256 c = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 2 * V::Size]));
-        const m256 d = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 3 * V::Size]));
-        const m256 e = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 4 * V::Size]));
-        const m256 f = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 5 * V::Size]));
+        const m256 a = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]]));
+        const m256 b = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 1 * V::Size]));
+        const m256 c = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 2 * V::Size]));
+        const m256 d = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 3 * V::Size]));
+        const m256 e = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 4 * V::Size]));
+        const m256 f = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 5 * V::Size]));
         const __m256 tmp2 = Mem::shuffle128<X0, Y0>(a, d);
         const __m256 tmp3 = Mem::shuffle128<X1, Y1>(b, e);
         const __m256 tmp4 = Mem::shuffle128<X1, Y1>(a, d);
