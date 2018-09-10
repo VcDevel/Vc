@@ -42,6 +42,10 @@ After Intel dropped MIC support with ICC 18, Vc 1.4 also removes support for it.
 
 ## Examples
 
+### Usage on Compiler Explorer
+
+[Simdize Example](https://godbolt.org/z/wd6uT2)
+
 ### Scalar Product
 
 Let's start from the code for calculating a 3D scalar product using builtin floats:
