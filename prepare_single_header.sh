@@ -13,7 +13,10 @@ seen=()
 parse_file() {
   dir=${1%/*}
   file=${1##*/}
-  [[ "$file" =~ "deprecated" ]] && return
+  case "$file" in
+    *deprecated*) return;;
+    *debug.h) return;;
+  esac
   [[ "$1" =~ "/" ]] && pushd "$dir"
   #echo "${seen[@]}"
   if [[ "$PWD/$file" = ${(~j.|.)seen} ]]; then
@@ -30,6 +33,7 @@ parse_file() {
         seen=(${seen[@]} "$PWD/$file")
         ;;
   esac
+  do_skip=false
   while read -r line; do
     #match='*include*'
     case "$line" in
@@ -37,8 +41,10 @@ parse_file() {
         echo $line|cut -d\" -f2|read include
         parse_file "$include"
         ;;
+      *"@BEGIN SKIP GODBOLT@"*) do_skip=true ;;
+      *"@END SKIP GODBOLT@"*) do_skip=false ;;
       *)
-        printf "%s\n" "$line"
+        $do_skip || printf "%s\n" "$line"
         ;;
     esac
   done < "$file"

@@ -1292,6 +1292,22 @@ template <typename T> using MayAlias [[gnu::may_alias]] = T;
 #else
 template <typename T> using MayAlias = typename Detail::MayAliasImpl<T>::type;
 #endif
+template <class To, class From> MayAlias<To> &aliasing_cast(From &x)
+{
+return *reinterpret_cast<MayAlias<To> *>(&x);
+}
+template <class To, class From> const MayAlias<To> &aliasing_cast(const From &x)
+{
+return *reinterpret_cast<const MayAlias<To> *>(&x);
+}
+template <class To, class From> MayAlias<To> *aliasing_cast(From *x)
+{
+return reinterpret_cast<MayAlias<To> *>(x);
+}
+template <class To, class From> const MayAlias<To> *aliasing_cast(const From *x)
+{
+return reinterpret_cast<const MayAlias<To> *>(x);
+}
 enum class Operator : char {
 Assign,
 Multiply,
@@ -1576,10 +1592,8 @@ typename std::conditional<
 CurrentImplementation::is_between(SSE2Impl, SSE42Impl), Sse,
 typename std::conditional<
 CurrentImplementation::is(AVXImpl), Avx1Abi<T>,
-typename std::conditional<
-CurrentImplementation::is(AVX2Impl), Avx,
-typename std::conditional<CurrentImplementation::is(MICImpl), Mic,
-void>::type>::type>::type>::type>::type;
+typename std::conditional<CurrentImplementation::is(AVX2Impl), Avx,
+void>::type>::type>::type>::type;
 };
 template <typename T> using Best = typename DeduceBest<T>::type;
 #ifdef Vc_IMPL_AVX2
@@ -2562,7 +2576,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Detail
 {
-template<typename V, int Size, size_t VSize> struct InterleaveImpl;
+template<typename V, size_t Size, size_t VSize> struct InterleaveImpl;
 template<typename V, size_t VSize> struct InterleaveImpl<V, 1, VSize> {
 template <typename I>
 static inline void interleave(typename V::EntryType *const data, const I &i,
@@ -3872,8 +3886,7 @@ template <typename T, typename = enable_if<(std::is_same<T, bool>::value ||
 sizeof(storage_type) == sizeof(T)))>>
 constexpr operator T() const noexcept
 {
-return std::is_same<T, bool>::value ? T((data & 1) != 0)
-: reinterpret_cast<const MayAlias<T> &>(data);
+return std::is_same<T, bool>::value ? T((data & 1) != 0) : aliasing_cast<T>(data);
 }
 } Vc_MAY_ALIAS;
 template <typename A,
@@ -4779,11 +4792,11 @@ Vc_INTRINSIC Vc_PURE VectorType &v() { return data; }
 Vc_INTRINSIC Vc_PURE const VectorType &v() const { return data; }
 Vc_INTRINSIC Vc_PURE EntryType m(size_t i) const
 {
-return reinterpret_cast<const MayAlias<EntryType> *>(&data)[i];
+return aliasing_cast<EntryType>(&data)[i];
 }
 Vc_INTRINSIC void set(size_t i, EntryType x)
 {
-reinterpret_cast<MayAlias<EntryType> *>(&data)[i] = x;
+aliasing_cast<EntryType>(&data)[i] = x;
 }
 private:
 VectorType data;
@@ -4807,20 +4820,20 @@ Vc_INTRINSIC Storage() : data() { assertCorrectAlignment(&data); }
 Vc_INTRINSIC Storage(const Storage &) = default;
 Vc_INTRINSIC Storage &operator=(const Storage &) = default;
 Vc_INTRINSIC Storage(const VectorType &x)
-: data(reinterpret_cast<const MayAlias<Builtin> &>(x))
+: data(aliasing_cast<Builtin>(x))
 {
 assertCorrectAlignment(&data);
 }
 template <typename U>
 Vc_INTRINSIC explicit Storage(const U &x,
 enable_if<sizeof(U) == sizeof(VectorType)> = nullarg)
-: data(reinterpret_cast<const MayAlias<Builtin> &>(x))
+: data(aliasing_cast<Builtin>(x))
 {
 assertCorrectAlignment(&data);
 }
 Vc_INTRINSIC Storage &operator=(const VectorType &x)
 {
-data = reinterpret_cast<const MayAlias<Builtin> &>(x);
+data = aliasing_cast<Builtin>(x);
 return *this;
 }
 Vc_INTRINSIC operator const VectorType &() const { return v(); }
@@ -5269,7 +5282,7 @@ template <int index> Vc_INTRINSIC Vc_CONST int extract_epi32(__m128i v)
 {
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 typedef int int32v4 __attribute__((__vector_size__(16)));
-return reinterpret_cast<const MayAlias<int32v4> &>(v)[index];
+return aliasing_cast<int32v4>(v)[index];
 #else
 return _mm_cvtsi128_si32(_mm_srli_si128(v, index * 4));
 #endif
@@ -6501,12 +6514,12 @@ return SSE::cvtepi16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem
 template <typename Flags>
 Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, int>)
 {
-return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128i load(const schar *mem, Flags, LoadTag<__m128i, int>)
 {
-return SSE::cvtepi8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+return SSE::cvtepi8_epi32(_mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128i load(const ushort *mem, Flags, LoadTag<__m128i, uint>)
@@ -6516,7 +6529,7 @@ return SSE::cvtepu16_epi32(_mm_loadl_epi64(reinterpret_cast<const __m128i *>(mem
 template <typename Flags>
 Vc_INTRINSIC __m128i load(const uchar *mem, Flags, LoadTag<__m128i, uint>)
 {
-return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+return SSE::cvtepu8_epi32(_mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const float *mem, Flags, LoadTag<__m128d, double>)
@@ -6540,25 +6553,25 @@ template <typename Flags>
 Vc_INTRINSIC __m128d load(const ushort *mem, Flags, LoadTag<__m128d, double>)
 {
 return SSE::convert<ushort, double>(
-_mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+_mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const short *mem, Flags, LoadTag<__m128d, double>)
 {
 return SSE::convert<short, double>(
-_mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(mem)));
+_mm_cvtsi32_si128(*aliasing_cast<int>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const uchar *mem, Flags, LoadTag<__m128d, double>)
 {
 return SSE::convert<uchar, double>(
-_mm_set1_epi16(*reinterpret_cast<const MayAlias<short> *>(mem)));
+_mm_set1_epi16(*aliasing_cast<short>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128d load(const schar *mem, Flags, LoadTag<__m128d, double>)
 {
 return SSE::convert<char, double>(
-_mm_set1_epi16(*reinterpret_cast<const MayAlias<short> *>(mem)));
+_mm_set1_epi16(*aliasing_cast<short>(mem)));
 }
 template <typename Flags>
 Vc_INTRINSIC __m128 load(const double *mem, Flags, LoadTag<__m128, float>)
@@ -6787,8 +6800,7 @@ Vc_INTRINSIC __m128i mul(__m128i a, __m128i b, ushort) { return _mm_mullo_epi16(
 Vc_INTRINSIC __m128i mul(__m128i a, __m128i b, schar) {
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 using B = Common::BuiltinType<schar, 16>;
-const auto x = reinterpret_cast<const MayAlias<B> &>(a) *
-reinterpret_cast<const MayAlias<B> &>(b);
+const auto x = aliasing_cast<B>(a) * aliasing_cast<B>(b);
 return reinterpret_cast<const __m128i &>(x);
 #else
 return or_(
@@ -6799,8 +6811,7 @@ _mm_slli_epi16(_mm_mullo_epi16(_mm_srli_si128(a, 1), _mm_srli_si128(b, 1)), 8));
 Vc_INTRINSIC __m128i mul(__m128i a, __m128i b, uchar) {
 #ifdef Vc_USE_BUILTIN_VECTOR_TYPES
 using B = Common::BuiltinType<uchar, 16>;
-const auto x = reinterpret_cast<const MayAlias<B> &>(a) *
-reinterpret_cast<const MayAlias<B> &>(b);
+const auto x = aliasing_cast<B>(a) * aliasing_cast<B>(b);
 return reinterpret_cast<const __m128i &>(x);
 #else
 return or_(
@@ -7011,7 +7022,7 @@ return sse_cast<V>(_mm_alignr_epi8(v, v, sanitize<V>(7 * sizeof(T))));
 }
 return sse_cast<V>(_mm_setzero_si128());
 }
-template<typename V, int Size, size_t VSize> struct InterleaveImpl;
+template<typename V, size_t Size, size_t VSize> struct InterleaveImpl;
 template<typename V> struct InterleaveImpl<V, 8, 16> {
 template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,
 const typename V::AsArg v0, const typename V::AsArg v1)
@@ -7023,33 +7034,33 @@ const long long tmp00 = _mm_cvtsi128_si64(tmp0);
 const long long tmp01 = _mm_cvtsi128_si64(_mm_unpackhi_epi64(tmp0, tmp0));
 const long long tmp10 = _mm_cvtsi128_si64(tmp1);
 const long long tmp11 = _mm_cvtsi128_si64(_mm_unpackhi_epi64(tmp1, tmp1));
-*reinterpret_cast<MayAlias<int> *>(&data[i[0]]) = tmp00;
-*reinterpret_cast<MayAlias<int> *>(&data[i[1]]) = tmp00 >> 32;
-*reinterpret_cast<MayAlias<int> *>(&data[i[2]]) = tmp01;
-*reinterpret_cast<MayAlias<int> *>(&data[i[3]]) = tmp01 >> 32;
-*reinterpret_cast<MayAlias<int> *>(&data[i[4]]) = tmp10;
-*reinterpret_cast<MayAlias<int> *>(&data[i[5]]) = tmp10 >> 32;
-*reinterpret_cast<MayAlias<int> *>(&data[i[6]]) = tmp11;
-*reinterpret_cast<MayAlias<int> *>(&data[i[7]]) = tmp11 >> 32;
+aliasing_cast<int>(data[i[0]]) = tmp00;
+aliasing_cast<int>(data[i[1]]) = tmp00 >> 32;
+aliasing_cast<int>(data[i[2]]) = tmp01;
+aliasing_cast<int>(data[i[3]]) = tmp01 >> 32;
+aliasing_cast<int>(data[i[4]]) = tmp10;
+aliasing_cast<int>(data[i[5]]) = tmp10 >> 32;
+aliasing_cast<int>(data[i[6]]) = tmp11;
+aliasing_cast<int>(data[i[7]]) = tmp11 >> 32;
 #elif defined(Vc_IMPL_SSE4_1)
 using namespace SseIntrinsics;
-*reinterpret_cast<MayAlias<int> *>(&data[i[0]]) = _mm_cvtsi128_si32(tmp0);
-*reinterpret_cast<MayAlias<int> *>(&data[i[1]]) = extract_epi32<1>(tmp0);
-*reinterpret_cast<MayAlias<int> *>(&data[i[2]]) = extract_epi32<2>(tmp0);
-*reinterpret_cast<MayAlias<int> *>(&data[i[3]]) = extract_epi32<3>(tmp0);
-*reinterpret_cast<MayAlias<int> *>(&data[i[4]]) = _mm_cvtsi128_si32(tmp1);
-*reinterpret_cast<MayAlias<int> *>(&data[i[5]]) = extract_epi32<1>(tmp1);
-*reinterpret_cast<MayAlias<int> *>(&data[i[6]]) = extract_epi32<2>(tmp1);
-*reinterpret_cast<MayAlias<int> *>(&data[i[7]]) = extract_epi32<3>(tmp1);
+aliasing_cast<int>(data[i[0]]) = _mm_cvtsi128_si32(tmp0);
+aliasing_cast<int>(data[i[1]]) = extract_epi32<1>(tmp0);
+aliasing_cast<int>(data[i[2]]) = extract_epi32<2>(tmp0);
+aliasing_cast<int>(data[i[3]]) = extract_epi32<3>(tmp0);
+aliasing_cast<int>(data[i[4]]) = _mm_cvtsi128_si32(tmp1);
+aliasing_cast<int>(data[i[5]]) = extract_epi32<1>(tmp1);
+aliasing_cast<int>(data[i[6]]) = extract_epi32<2>(tmp1);
+aliasing_cast<int>(data[i[7]]) = extract_epi32<3>(tmp1);
 #else
-*reinterpret_cast<MayAlias<int> *>(&data[i[0]]) = _mm_cvtsi128_si32(tmp0);
-*reinterpret_cast<MayAlias<int> *>(&data[i[1]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 4));
-*reinterpret_cast<MayAlias<int> *>(&data[i[2]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 8));
-*reinterpret_cast<MayAlias<int> *>(&data[i[3]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 12));
-*reinterpret_cast<MayAlias<int> *>(&data[i[4]]) = _mm_cvtsi128_si32(tmp1);
-*reinterpret_cast<MayAlias<int> *>(&data[i[5]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 4));
-*reinterpret_cast<MayAlias<int> *>(&data[i[6]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 8));
-*reinterpret_cast<MayAlias<int> *>(&data[i[7]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 12));
+aliasing_cast<int>(data[i[0]]) = _mm_cvtsi128_si32(tmp0);
+aliasing_cast<int>(data[i[1]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 4));
+aliasing_cast<int>(data[i[2]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 8));
+aliasing_cast<int>(data[i[3]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp0, 12));
+aliasing_cast<int>(data[i[4]]) = _mm_cvtsi128_si32(tmp1);
+aliasing_cast<int>(data[i[5]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 4));
+aliasing_cast<int>(data[i[6]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 8));
+aliasing_cast<int>(data[i[7]]) = _mm_cvtsi128_si32(_mm_srli_si128(tmp1, 12));
 #endif
 }
 static inline void interleave(typename V::EntryType *const data, const Common::SuccessiveEntries<2> &i,
@@ -7166,14 +7177,14 @@ interleave(data + 4, i, v4, v5, v6, v7);
 template<typename I> static inline void deinterleave(typename V::EntryType const *const data,
 const I &i, V &v0, V &v1)
 {
-const __m128i a = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[0]]));
-const __m128i b = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[1]]));
-const __m128i c = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[2]]));
-const __m128i d = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[3]]));
-const __m128i e = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[4]]));
-const __m128i f = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[5]]));
-const __m128i g = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[6]]));
-const __m128i h = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int> *>(&data[i[7]]));
+const __m128i a = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[0]]));
+const __m128i b = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[1]]));
+const __m128i c = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[2]]));
+const __m128i d = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[3]]));
+const __m128i e = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[4]]));
+const __m128i f = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[5]]));
+const __m128i g = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[6]]));
+const __m128i h = _mm_cvtsi32_si128(*aliasing_cast<int>(&data[i[7]]));
 const __m128i tmp2 = _mm_unpacklo_epi16(a, e);
 const __m128i tmp3 = _mm_unpacklo_epi16(c, g);
 const __m128i tmp4 = _mm_unpacklo_epi16(b, f);
@@ -7371,8 +7382,8 @@ const typename V::AsArg v0, const typename V::AsArg v1)
 {
 const __m128 tmp0 = _mm_unpacklo_ps(SSE::sse_cast<__m128>(v0.data()),SSE::sse_cast<__m128>(v1.data()));
 const __m128 tmp1 = _mm_unpackhi_ps(SSE::sse_cast<__m128>(v0.data()),SSE::sse_cast<__m128>(v1.data()));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), tmp0);
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), tmp1);
+_mm_storeu_ps(aliasing_cast<float>(&data[i[0]]), tmp0);
+_mm_storeu_ps(aliasing_cast<float>(&data[i[2]]), tmp1);
 }
 template <typename I>
 static inline void interleave(typename V::EntryType *const data, const I &i,
@@ -7419,10 +7430,10 @@ const __m128 tmp0 = _mm_unpacklo_ps(SSE::sse_cast<__m128>(v0.data()),SSE::sse_ca
 const __m128 tmp1 = _mm_unpackhi_ps(SSE::sse_cast<__m128>(v0.data()),SSE::sse_cast<__m128>(v1.data()));
 const __m128 tmp2 = _mm_unpacklo_ps(SSE::sse_cast<__m128>(v2.data()),SSE::sse_cast<__m128>(v3.data()));
 const __m128 tmp3 = _mm_unpackhi_ps(SSE::sse_cast<__m128>(v2.data()),SSE::sse_cast<__m128>(v3.data()));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), _mm_movelh_ps(tmp0, tmp2));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[1]]), _mm_movehl_ps(tmp2, tmp0));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), _mm_movelh_ps(tmp1, tmp3));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[3]]), _mm_movehl_ps(tmp3, tmp1));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[0]]), _mm_movelh_ps(tmp0, tmp2));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[1]]), _mm_movehl_ps(tmp2, tmp0));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[2]]), _mm_movelh_ps(tmp1, tmp3));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[3]]), _mm_movehl_ps(tmp3, tmp1));
 }
 template <typename I>
 static inline void interleave(typename V::EntryType *const data, const I &i,
@@ -7465,10 +7476,10 @@ interleave(data + 4, i, v4, v5, v6, v7);
 template<typename I> static inline void deinterleave(typename V::EntryType const *const data,
 const I &i, V &v0, V &v1)
 {
-const __m128 a = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(&data[i[0]])));
-const __m128 b = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(&data[i[1]])));
-const __m128 c = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(&data[i[2]])));
-const __m128 d = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(&data[i[3]])));
+const __m128 a = _mm_castpd_ps(_mm_load_sd(aliasing_cast<double>(&data[i[0]])));
+const __m128 b = _mm_castpd_ps(_mm_load_sd(aliasing_cast<double>(&data[i[1]])));
+const __m128 c = _mm_castpd_ps(_mm_load_sd(aliasing_cast<double>(&data[i[2]])));
+const __m128 d = _mm_castpd_ps(_mm_load_sd(aliasing_cast<double>(&data[i[3]])));
 const __m128 tmp0 = _mm_unpacklo_ps(a, b);
 const __m128 tmp1 = _mm_unpacklo_ps(c, d);
 v0.data() = SSE::sse_cast<typename V::VectorType>(_mm_movelh_ps(tmp0, tmp1));
@@ -7477,10 +7488,10 @@ v1.data() = SSE::sse_cast<typename V::VectorType>(_mm_movehl_ps(tmp1, tmp0));
 template<typename I> static inline void deinterleave(typename V::EntryType const *const data,
 const I &i, V &v0, V &v1, V &v2)
 {
-const __m128 a = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]]));
-const __m128 b = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[1]]));
-const __m128 c = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[2]]));
-const __m128 d = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[3]]));
+const __m128 a = _mm_loadu_ps(aliasing_cast<float>(&data[i[0]]));
+const __m128 b = _mm_loadu_ps(aliasing_cast<float>(&data[i[1]]));
+const __m128 c = _mm_loadu_ps(aliasing_cast<float>(&data[i[2]]));
+const __m128 d = _mm_loadu_ps(aliasing_cast<float>(&data[i[3]]));
 const __m128 tmp0 = _mm_unpacklo_ps(a, b);
 const __m128 tmp1 = _mm_unpacklo_ps(c, d);
 const __m128 tmp2 = _mm_unpackhi_ps(a, b);
@@ -7492,10 +7503,10 @@ v2.data() = SSE::sse_cast<typename V::VectorType>(_mm_movelh_ps(tmp2, tmp3));
 template<typename I> static inline void deinterleave(typename V::EntryType const *const data,
 const I &i, V &v0, V &v1, V &v2, V &v3)
 {
-const __m128 a = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]]));
-const __m128 b = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[1]]));
-const __m128 c = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[2]]));
-const __m128 d = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[3]]));
+const __m128 a = _mm_loadu_ps(aliasing_cast<float>(&data[i[0]]));
+const __m128 b = _mm_loadu_ps(aliasing_cast<float>(&data[i[1]]));
+const __m128 c = _mm_loadu_ps(aliasing_cast<float>(&data[i[2]]));
+const __m128 d = _mm_loadu_ps(aliasing_cast<float>(&data[i[3]]));
 const __m128 tmp0 = _mm_unpacklo_ps(a, b);
 const __m128 tmp1 = _mm_unpacklo_ps(c, d);
 const __m128 tmp2 = _mm_unpackhi_ps(a, b);
@@ -7880,14 +7891,14 @@ template <> Vc_ALWAYS_INLINE void mask_store<8>(__m128i k, bool *mem)
 k = _mm_srli_epi16(k, 15);
 const auto k2 = _mm_packs_epi16(k, _mm_setzero_si128());
 #ifdef __x86_64__
-*reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k2);
+*aliasing_cast<int64_t>(mem) = _mm_cvtsi128_si64(k2);
 #else
-_mm_store_sd(reinterpret_cast<MayAlias<double> *>(mem), _mm_castsi128_pd(k2));
+_mm_store_sd(aliasing_cast<double>(mem), _mm_castsi128_pd(k2));
 #endif
 }
 template <> Vc_ALWAYS_INLINE void mask_store<4>(__m128i k, bool *mem)
 {
-*reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(
+*aliasing_cast<int32_t>(mem) = _mm_cvtsi128_si32(
 _mm_packs_epi16(_mm_srli_epi16(_mm_packs_epi32(k, _mm_setzero_si128()), 15),
 _mm_setzero_si128()));
 }
@@ -7961,9 +7972,7 @@ _mm_movemask_epi8(_mm_castps_si128(k2));
 }
 template<> Vc_ALWAYS_INLINE void SSE::double_m::store(bool *mem) const
 {
-typedef uint16_t boolAlias Vc_MAY_ALIAS;
-boolAlias *ptr = reinterpret_cast<boolAlias *>(mem);
-*ptr = _mm_movemask_epi8(dataI()) & 0x0101;
+*aliasing_cast<uint16_t>(mem) = _mm_movemask_epi8(dataI()) & 0x0101;
 }
 template<typename T> Vc_ALWAYS_INLINE void Mask<T, VectorAbi::Sse>::store(bool *mem) const
 {
@@ -12399,8 +12408,7 @@ N == 4 || N == 8 || N == 16,
 "mask_store(__m256i, bool *) is only implemented for 4, 8, and 16 entries");
 switch (N) {
 case 4:
-*reinterpret_cast<MayAlias<int32_t> *>(mem) =
-(_mm_movemask_epi8(AVX::lo128(k)) |
+*aliasing_cast<int32_t>(mem) = (_mm_movemask_epi8(AVX::lo128(k)) |
 (_mm_movemask_epi8(AVX::hi128(k)) << 16)) &
 0x01010101;
 break;
@@ -12408,10 +12416,10 @@ case 8: {
 const auto k2 = _mm_srli_epi16(_mm_packs_epi16(AVX::lo128(k), AVX::hi128(k)), 15);
 const auto k3 = _mm_packs_epi16(k2, _mm_setzero_si128());
 #ifdef __x86_64__
-*reinterpret_cast<MayAlias<int64_t> *>(mem) = _mm_cvtsi128_si64(k3);
+*aliasing_cast<int64_t>(mem) = _mm_cvtsi128_si64(k3);
 #else
-*reinterpret_cast<MayAlias<int32_t> *>(mem) = _mm_cvtsi128_si32(k3);
-*reinterpret_cast<MayAlias<int32_t> *>(mem + 4) = _mm_extract_epi32(k3, 1);
+*aliasing_cast<int32_t>(mem) = _mm_cvtsi128_si32(k3);
+*aliasing_cast<int32_t>(mem + 4) = _mm_extract_epi32(k3, 1);
 #endif
 } break;
 case 16: {
@@ -12435,7 +12443,7 @@ static_assert(N == 4 || N == 8,
 "mask_load<__m128>(const bool *) is only implemented for 4, 8 entries");
 switch (N) {
 case 4: {
-__m128i k = _mm_cvtsi32_si128(*reinterpret_cast<const MayAlias<int32_t> *>(mem));
+__m128i k = _mm_cvtsi32_si128(*aliasing_cast<int32_t>(mem));
 k = _mm_unpacklo_epi8(k, k);
 k = _mm_unpacklo_epi16(k, k);
 k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
@@ -12443,10 +12451,9 @@ return AVX::avx_cast<__m128>(k);
 }
 case 8: {
 #ifdef __x86_64__
-__m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const MayAlias<int64_t> *>(mem));
+__m128i k = _mm_cvtsi64_si128(*aliasing_cast<int64_t>(mem));
 #else
-__m128i k = _mm_castpd_si128(
-_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(mem)));
+__m128i k = _mm_castpd_si128(_mm_load_sd(aliasing_cast<double>(mem)));
 #endif
 return AVX::avx_cast<__m128>(
 _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128()));
@@ -12465,7 +12472,7 @@ N == 4 || N == 8 || N == 16,
 switch (N) {
 case 4: {
 __m128i k = AVX::avx_cast<__m128i>(_mm_and_ps(
-_mm_set1_ps(*reinterpret_cast<const MayAlias<float> *>(mem)),
+_mm_set1_ps(*aliasing_cast<float>(mem)),
 AVX::avx_cast<__m128>(_mm_setr_epi32(0x1, 0x100, 0x10000, 0x1000000))));
 k = _mm_cmpgt_epi32(k, _mm_setzero_si128());
 return AVX::avx_cast<__m256>(
@@ -12473,10 +12480,9 @@ AVX::concat(_mm_unpacklo_epi32(k, k), _mm_unpackhi_epi32(k, k)));
 }
 case 8: {
 #ifdef __x86_64__
-__m128i k = _mm_cvtsi64_si128(*reinterpret_cast<const MayAlias<int64_t> *>(mem));
+__m128i k = _mm_cvtsi64_si128(*aliasing_cast<int64_t>(mem));
 #else
-__m128i k = _mm_castpd_si128(
-_mm_load_sd(reinterpret_cast<const MayAlias<double> *>(mem)));
+__m128i k = _mm_castpd_si128(_mm_load_sd(aliasing_cast<double>(mem)));
 #endif
 k = _mm_cmpgt_epi16(_mm_unpacklo_epi8(k, k), _mm_setzero_si128());
 return AVX::avx_cast<__m256>(
@@ -12523,22 +12529,22 @@ const typename V::AsArg v1)
 const __m256i tmp0 = AVX::unpacklo_epi16(v0.data(), v1.data());
 const __m256i tmp1 = AVX::unpackhi_epi16(v0.data(), v1.data());
 using namespace AVX;
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 0]]) = _mm_cvtsi128_si32(lo128(tmp0));
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 1]]) = _mm_extract_epi32(lo128(tmp0), 1);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 2]]) = _mm_extract_epi32(lo128(tmp0), 2);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 3]]) = _mm_extract_epi32(lo128(tmp0), 3);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 4]]) = _mm_cvtsi128_si32(lo128(tmp1));
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 5]]) = _mm_extract_epi32(lo128(tmp1), 1);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 6]]) = _mm_extract_epi32(lo128(tmp1), 2);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 7]]) = _mm_extract_epi32(lo128(tmp1), 3);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 8]]) = _mm_cvtsi128_si32(hi128(tmp0));
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[ 9]]) = _mm_extract_epi32(hi128(tmp0), 1);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[10]]) = _mm_extract_epi32(hi128(tmp0), 2);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[11]]) = _mm_extract_epi32(hi128(tmp0), 3);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[12]]) = _mm_cvtsi128_si32(hi128(tmp1));
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[13]]) = _mm_extract_epi32(hi128(tmp1), 1);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[14]]) = _mm_extract_epi32(hi128(tmp1), 2);
-*reinterpret_cast<MayAlias<uint32_t> *>(&data[i[15]]) = _mm_extract_epi32(hi128(tmp1), 3);
+*aliasing_cast<uint32_t>(&data[i[ 0]]) = _mm_cvtsi128_si32(lo128(tmp0));
+*aliasing_cast<uint32_t>(&data[i[ 1]]) = _mm_extract_epi32(lo128(tmp0), 1);
+*aliasing_cast<uint32_t>(&data[i[ 2]]) = _mm_extract_epi32(lo128(tmp0), 2);
+*aliasing_cast<uint32_t>(&data[i[ 3]]) = _mm_extract_epi32(lo128(tmp0), 3);
+*aliasing_cast<uint32_t>(&data[i[ 4]]) = _mm_cvtsi128_si32(lo128(tmp1));
+*aliasing_cast<uint32_t>(&data[i[ 5]]) = _mm_extract_epi32(lo128(tmp1), 1);
+*aliasing_cast<uint32_t>(&data[i[ 6]]) = _mm_extract_epi32(lo128(tmp1), 2);
+*aliasing_cast<uint32_t>(&data[i[ 7]]) = _mm_extract_epi32(lo128(tmp1), 3);
+*aliasing_cast<uint32_t>(&data[i[ 8]]) = _mm_cvtsi128_si32(hi128(tmp0));
+*aliasing_cast<uint32_t>(&data[i[ 9]]) = _mm_extract_epi32(hi128(tmp0), 1);
+*aliasing_cast<uint32_t>(&data[i[10]]) = _mm_extract_epi32(hi128(tmp0), 2);
+*aliasing_cast<uint32_t>(&data[i[11]]) = _mm_extract_epi32(hi128(tmp0), 3);
+*aliasing_cast<uint32_t>(&data[i[12]]) = _mm_cvtsi128_si32(hi128(tmp1));
+*aliasing_cast<uint32_t>(&data[i[13]]) = _mm_extract_epi32(hi128(tmp1), 1);
+*aliasing_cast<uint32_t>(&data[i[14]]) = _mm_extract_epi32(hi128(tmp1), 2);
+*aliasing_cast<uint32_t>(&data[i[15]]) = _mm_extract_epi32(hi128(tmp1), 3);
 }
 static inline void interleave(typename V::EntryType *const data, const Common::SuccessiveEntries<2> &i,
 const typename V::AsArg v0, const typename V::AsArg v1)
@@ -12637,23 +12643,17 @@ template<typename I> static inline void deinterleave(typename V::EntryType const
 const I &i, V &v0, V &v1)
 {
 const __m256i tmp4 =
-_mm256_setr_epi32(*reinterpret_cast<const MayAlias<int> *>(&data[i[0]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[1]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[2]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[3]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[8]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[9]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[10]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[11]]));
+_mm256_setr_epi32(
+*aliasing_cast<int>(&data[i[0]]), *aliasing_cast<int>(&data[i[1]]),
+*aliasing_cast<int>(&data[i[2]]), *aliasing_cast<int>(&data[i[3]]),
+*aliasing_cast<int>(&data[i[8]]), *aliasing_cast<int>(&data[i[9]]),
+*aliasing_cast<int>(&data[i[10]]), *aliasing_cast<int>(&data[i[11]]));
 const __m256i tmp5 =
-_mm256_setr_epi32(*reinterpret_cast<const MayAlias<int> *>(&data[i[4]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[5]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[6]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[7]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[12]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[13]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[14]]),
-*reinterpret_cast<const MayAlias<int> *>(&data[i[15]]));
+_mm256_setr_epi32(
+*aliasing_cast<int>(&data[i[4]]), *aliasing_cast<int>(&data[i[5]]),
+*aliasing_cast<int>(&data[i[6]]), *aliasing_cast<int>(&data[i[7]]),
+*aliasing_cast<int>(&data[i[12]]), *aliasing_cast<int>(&data[i[13]]),
+*aliasing_cast<int>(&data[i[14]]), *aliasing_cast<int>(&data[i[15]]));
 const __m256i tmp2 = AVX::unpacklo_epi16(tmp4, tmp5);
 const __m256i tmp3 = AVX::unpackhi_epi16(tmp4, tmp5);
 const __m256i tmp0 = AVX::unpacklo_epi16(tmp2, tmp3);
@@ -12665,22 +12665,18 @@ template<typename I> static inline void deinterleave(typename V::EntryType const
 const I &i, V &v0, V &v1, V &v2)
 {
 using namespace AVX;
-const __m256i tmp0 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[0]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[1]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[8]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[9]])));
-const __m256i tmp1 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[2]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[3]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[10]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[11]])));
-const __m256i tmp2 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[4]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[5]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[12]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[13]])));
-const __m256i tmp3 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[6]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[7]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[14]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[15]])));
+const __m256i tmp0 = avx_cast<__m256i>(_mm256_setr_pd(
+*aliasing_cast<double>(&data[i[0]]), *aliasing_cast<double>(&data[i[1]]),
+*aliasing_cast<double>(&data[i[8]]), *aliasing_cast<double>(&data[i[9]])));
+const __m256i tmp1 = avx_cast<__m256i>(_mm256_setr_pd(
+*aliasing_cast<double>(&data[i[2]]), *aliasing_cast<double>(&data[i[3]]),
+*aliasing_cast<double>(&data[i[10]]), *aliasing_cast<double>(&data[i[11]])));
+const __m256i tmp2 = avx_cast<__m256i>(_mm256_setr_pd(
+*aliasing_cast<double>(&data[i[4]]), *aliasing_cast<double>(&data[i[5]]),
+*aliasing_cast<double>(&data[i[12]]), *aliasing_cast<double>(&data[i[13]])));
+const __m256i tmp3 = avx_cast<__m256i>(_mm256_setr_pd(
+*aliasing_cast<double>(&data[i[6]]), *aliasing_cast<double>(&data[i[7]]),
+*aliasing_cast<double>(&data[i[14]]), *aliasing_cast<double>(&data[i[15]])));
 const __m256i tmp4 = AVX::unpacklo_epi16(tmp0, tmp2);
 const __m256i tmp5 = AVX::unpackhi_epi16(tmp0, tmp2);
 const __m256i tmp6 = AVX::unpacklo_epi16(tmp1, tmp3);
@@ -12697,22 +12693,18 @@ template<typename I> static inline void deinterleave(typename V::EntryType const
 const I &i, V &v0, V &v1, V &v2, V &v3)
 {
 using namespace AVX;
-const __m256i tmp0 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[0]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[1]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[8]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[9]])));
-const __m256i tmp1 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[2]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[3]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[10]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[11]])));
-const __m256i tmp2 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[4]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[5]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[12]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[13]])));
-const __m256i tmp3 = avx_cast<__m256i>(_mm256_setr_pd(*reinterpret_cast<const MayAlias<double> *>(&data[i[6]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[7]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[14]]),
-*reinterpret_cast<const MayAlias<double> *>(&data[i[15]])));
+const __m256i tmp0 = avx_cast<__m256i>(_mm256_setr_pd(
+*aliasing_cast<double>(&data[i[0]]), *aliasing_cast<double>(&data[i[1]]),
+*aliasing_cast<double>(&data[i[8]]), *aliasing_cast<double>(&data[i[9]])));
+const __m256i tmp1 = avx_cast<__m256i>(_mm256_setr_pd(
+*aliasing_cast<double>(&data[i[2]]), *aliasing_cast<double>(&data[i[3]]),
+*aliasing_cast<double>(&data[i[10]]), *aliasing_cast<double>(&data[i[11]])));
+const __m256i tmp2 = avx_cast<__m256i>(_mm256_setr_pd(
+*aliasing_cast<double>(&data[i[4]]), *aliasing_cast<double>(&data[i[5]]),
+*aliasing_cast<double>(&data[i[12]]), *aliasing_cast<double>(&data[i[13]])));
+const __m256i tmp3 = avx_cast<__m256i>(_mm256_setr_pd(
+*aliasing_cast<double>(&data[i[6]]), *aliasing_cast<double>(&data[i[7]]),
+*aliasing_cast<double>(&data[i[14]]), *aliasing_cast<double>(&data[i[15]])));
 const __m256i tmp4 = AVX::unpacklo_epi16(tmp0, tmp2);
 const __m256i tmp5 = AVX::unpackhi_epi16(tmp0, tmp2);
 const __m256i tmp6 = AVX::unpacklo_epi16(tmp1, tmp3);
@@ -12898,6 +12890,7 @@ v7.data() = AVX::unpackhi_epi16(tmp14, tmp15);
 }
 };
 template<typename V> struct InterleaveImpl<V, 8, 32> {
+static_assert(sizeof(typename V::value_type) == 4, "");
 template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,
 const typename V::AsArg v0, const typename V::AsArg v1)
 {
@@ -12919,13 +12912,15 @@ const typename V::AsArg v0, const typename V::AsArg v1)
 using namespace AVX;
 const m256 tmp0 = _mm256_unpacklo_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v1.data()));
 const m256 tmp1 = _mm256_unpackhi_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v1.data()));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), lo128(tmp0));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), lo128(tmp1));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[4]]), hi128(tmp0));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[6]]), hi128(tmp1));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[0]]), lo128(tmp0));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[2]]), lo128(tmp1));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[4]]), hi128(tmp0));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[6]]), hi128(tmp1));
 }
-template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,
-const typename V::AsArg v0, const typename V::AsArg v1, const typename V::AsArg v2)
+template <typename I>
+static inline void interleave(typename V::EntryType *const data, const I &i,
+const typename V::AsArg v0, const typename V::AsArg v1,
+const typename V::AsArg v2)
 {
 using namespace AVX;
 #ifdef Vc_USE_MASKMOV_SCATTER
@@ -12938,40 +12933,96 @@ const m256 tmp5 = _mm256_unpackhi_ps(tmp0, tmp2);
 const m256 tmp6 = _mm256_unpacklo_ps(tmp1, tmp3);
 const m256 tmp7 = _mm256_unpackhi_ps(tmp1, tmp3);
 const m128i mask = _mm_set_epi32(0, -1, -1, -1);
-_mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), mask, lo128(tmp4));
-_mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[1]]), mask, lo128(tmp5));
-_mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), mask, lo128(tmp6));
-_mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[3]]), mask, lo128(tmp7));
-_mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[4]]), mask, hi128(tmp4));
-_mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[5]]), mask, hi128(tmp5));
-_mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[6]]), mask, hi128(tmp6));
-_mm_maskstore_ps(reinterpret_cast<MayAlias<float> *>(&data[i[7]]), mask, hi128(tmp7));
+_mm_maskstore_ps(aliasing_cast<float>(&data[i[0]]), mask, lo128(tmp4));
+_mm_maskstore_ps(aliasing_cast<float>(&data[i[1]]), mask, lo128(tmp5));
+_mm_maskstore_ps(aliasing_cast<float>(&data[i[2]]), mask, lo128(tmp6));
+_mm_maskstore_ps(aliasing_cast<float>(&data[i[3]]), mask, lo128(tmp7));
+_mm_maskstore_ps(aliasing_cast<float>(&data[i[4]]), mask, hi128(tmp4));
+_mm_maskstore_ps(aliasing_cast<float>(&data[i[5]]), mask, hi128(tmp5));
+_mm_maskstore_ps(aliasing_cast<float>(&data[i[6]]), mask, hi128(tmp6));
+_mm_maskstore_ps(aliasing_cast<float>(&data[i[7]]), mask, hi128(tmp7));
 #else
 interleave(data, i, v0, v1);
 v2.scatter(data + 2, i);
 #endif
 }
-template<typename I> static inline void interleave(typename V::EntryType *const data, const I &i,
+static inline void interleave(typename V::EntryType *const data,
+const Common::SuccessiveEntries<3> &i,
+const typename V::AsArg v0_,
+const typename V::AsArg v1_,
+const typename V::AsArg v2_)
+{
+__m256 v0 = AVX::avx_cast<__m256>(v0_.data());
+__m256 v1 = AVX::avx_cast<__m256>(v1_.data());
+__m256 v2 = AVX::avx_cast<__m256>(v2_.data());
+v0 = _mm256_shuffle_ps(v0, v0, 0x6c);
+v1 = _mm256_shuffle_ps(v1, v1, 0xb1);
+v2 = _mm256_shuffle_ps(v2, v2, 0xc6);
+__m256 w0 = Mem::blend<X0, X1, Y2, X3, Y4, X5, X6, Y7>(
+Mem::blend<X0, Y1, X2, X3, X4, X5, Y6, X7>(v0, v1), v2);
+__m256 w1 = Mem::blend<X0, Y1, X2, X3, X4, Y5, X6, X7>(
+Mem::blend<Y0, X1, X2, Y3, Y4, X5, X6, Y7>(v0, v1), v2);
+__m256 w2 = Mem::blend<Y0, X1, X2, Y3, X4, X5, Y6, X7>(
+Mem::blend<X0, X1, Y2, X3, X4, Y5, X6, X7>(v0, v1), v2);
+_mm256_storeu_ps(aliasing_cast<float>(&data[i[0]]),
+_mm256_permute2f128_ps(w0, w1, 0x20));
+_mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 8), w2);
+_mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 16),
+_mm256_permute2f128_ps(w1, w0, 0x31));
+}
+template <typename I>
+static inline void interleave(typename V::EntryType *const data, const I &i,
 const typename V::AsArg v0, const typename V::AsArg v1,
 const typename V::AsArg v2, const typename V::AsArg v3)
 {
 using namespace AVX;
-const m256 tmp0 = _mm256_unpacklo_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
-const m256 tmp1 = _mm256_unpackhi_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
-const m256 tmp2 = _mm256_unpacklo_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
-const m256 tmp3 = _mm256_unpackhi_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
-const m256 tmp4 = _mm256_unpacklo_ps(tmp0, tmp2);
-const m256 tmp5 = _mm256_unpackhi_ps(tmp0, tmp2);
-const m256 tmp6 = _mm256_unpacklo_ps(tmp1, tmp3);
-const m256 tmp7 = _mm256_unpackhi_ps(tmp1, tmp3);
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[0]]), lo128(tmp4));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[1]]), lo128(tmp5));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[2]]), lo128(tmp6));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[3]]), lo128(tmp7));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[4]]), hi128(tmp4));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[5]]), hi128(tmp5));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[6]]), hi128(tmp6));
-_mm_storeu_ps(reinterpret_cast<MayAlias<float> *>(&data[i[7]]), hi128(tmp7));
+const __m256 tmp0 =
+_mm256_unpacklo_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
+const __m256 tmp1 =
+_mm256_unpackhi_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
+const __m256 tmp2 =
+_mm256_unpacklo_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
+const __m256 tmp3 =
+_mm256_unpackhi_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
+const __m256 _04 = _mm256_unpacklo_ps(tmp0, tmp2);
+const __m256 _15 = _mm256_unpackhi_ps(tmp0, tmp2);
+const __m256 _26 = _mm256_unpacklo_ps(tmp1, tmp3);
+const __m256 _37 = _mm256_unpackhi_ps(tmp1, tmp3);
+_mm_storeu_ps(aliasing_cast<float>(&data[i[0]]), lo128(_04));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[1]]), lo128(_15));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[2]]), lo128(_26));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[3]]), lo128(_37));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[4]]), hi128(_04));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[5]]), hi128(_15));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[6]]), hi128(_26));
+_mm_storeu_ps(aliasing_cast<float>(&data[i[7]]), hi128(_37));
+}
+static inline void interleave(typename V::EntryType *const data,
+const Common::SuccessiveEntries<4> &i,
+const typename V::AsArg v0, const typename V::AsArg v1,
+const typename V::AsArg v2, const typename V::AsArg v3)
+{
+using namespace AVX;
+const __m256 tmp0 =
+_mm256_unpacklo_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
+const __m256 tmp1 =
+_mm256_unpackhi_ps(avx_cast<m256>(v0.data()), avx_cast<m256>(v2.data()));
+const __m256 tmp2 =
+_mm256_unpacklo_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
+const __m256 tmp3 =
+_mm256_unpackhi_ps(avx_cast<m256>(v1.data()), avx_cast<m256>(v3.data()));
+const __m256 _04 = _mm256_unpacklo_ps(tmp0, tmp2);
+const __m256 _15 = _mm256_unpackhi_ps(tmp0, tmp2);
+const __m256 _26 = _mm256_unpacklo_ps(tmp1, tmp3);
+const __m256 _37 = _mm256_unpackhi_ps(tmp1, tmp3);
+_mm256_storeu_ps(aliasing_cast<float>(&data[i[0]]),
+_mm256_permute2f128_ps(_04, _15, 0x20));
+_mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 8),
+_mm256_permute2f128_ps(_26, _37, 0x20));
+_mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 16),
+_mm256_permute2f128_ps(_04, _15, 0x31));
+_mm256_storeu_ps(aliasing_cast<float>(&data[i[0]] + 24),
+_mm256_permute2f128_ps(_26, _37, 0x31));
 }
 template <typename I>
 static inline void interleave(typename V::EntryType *const data, const I &i,
@@ -13011,8 +13062,9 @@ const typename V::AsArg v6, const typename V::AsArg v7)
 interleave(data, i, v0, v1, v2, v3);
 interleave(data + 4, i, v4, v5, v6, v7);
 }
-template<typename I> static inline void deinterleave(typename V::EntryType const *const data,
-const I &i, V &v0, V &v1)
+template <typename I>
+static inline void deinterleave(typename V::EntryType const *const data, const I &i,
+V &v0, V &v1)
 {
 using namespace AVX;
 const m128 il0 = _mm_loadl_pi(_mm_setzero_ps(), reinterpret_cast<__m64 const *>(&data[i[0]]));
@@ -13034,8 +13086,8 @@ static inline void deinterleave(typename V::EntryType const *const data,
 const Common::SuccessiveEntries<2> &i, V &v0, V &v1)
 {
 using namespace AVX;
-const m256 il0123 = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]]));
-const m256 il4567 = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[4]]));
+const m256 il0123 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]]));
+const m256 il4567 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[4]]));
 const m256 tmp2 = Mem::shuffle128<X0, Y0>(il0123, il4567);
 const m256 tmp3 = Mem::shuffle128<X1, Y1>(il0123, il4567);
 const m256 tmp0 = _mm256_unpacklo_ps(tmp2, tmp3);
@@ -13043,18 +13095,19 @@ const m256 tmp1 = _mm256_unpackhi_ps(tmp2, tmp3);
 v0.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(tmp0, tmp1));
 v1.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(tmp0, tmp1));
 }
-template<typename I> static inline void deinterleave(typename V::EntryType const *const data,
-const I &i, V &v0, V &v1, V &v2)
+template <typename I>
+static inline void deinterleave(typename V::EntryType const *const data, const I &i,
+V &v0, V &v1, V &v2)
 {
 using namespace AVX;
-const m128 il0 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]]));
-const m128 il1 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[1]]));
-const m128 il2 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[2]]));
-const m128 il3 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[3]]));
-const m128 il4 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[4]]));
-const m128 il5 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[5]]));
-const m128 il6 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[6]]));
-const m128 il7 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[7]]));
+const m128 il0 = _mm_loadu_ps(aliasing_cast<float>(&data[i[0]]));
+const m128 il1 = _mm_loadu_ps(aliasing_cast<float>(&data[i[1]]));
+const m128 il2 = _mm_loadu_ps(aliasing_cast<float>(&data[i[2]]));
+const m128 il3 = _mm_loadu_ps(aliasing_cast<float>(&data[i[3]]));
+const m128 il4 = _mm_loadu_ps(aliasing_cast<float>(&data[i[4]]));
+const m128 il5 = _mm_loadu_ps(aliasing_cast<float>(&data[i[5]]));
+const m128 il6 = _mm_loadu_ps(aliasing_cast<float>(&data[i[6]]));
+const m128 il7 = _mm_loadu_ps(aliasing_cast<float>(&data[i[7]]));
 const m256 il04 = concat(il0, il4);
 const m256 il15 = concat(il1, il5);
 const m256 il26 = concat(il2, il6);
@@ -13067,18 +13120,42 @@ v0.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(ab0246, ab1357))
 v1.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(ab0246, ab1357));
 v2.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(cd0246, cd1357));
 }
-template<typename I> static inline void deinterleave(typename V::EntryType const *const data,
-const I &i, V &v0, V &v1, V &v2, V &v3)
+static inline void deinterleave(typename V::EntryType const *const data,
+const Common::SuccessiveEntries<3> &i, V &v0, V &v1,
+V &v2)
+{
+__m256 in0 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]] + 0));
+__m256 in1 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]] + 8));
+__m256 in2 = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]] + 16));
+const __m256 aaabffgg = _mm256_permute2f128_ps(in0, in2, 0x20);
+const __m256 cdddeeef = in1;
+const __m256 bbccghhh = _mm256_permute2f128_ps(in0, in2, 0x31);
+const __m256 x0 = _mm256_blend_ps(
+_mm256_blend_ps(aaabffgg, cdddeeef, 0 + 2 + 0 + 0 + 0x10 + 0 + 0 + 0x80),
+bbccghhh, 0 + 0 + 4 + 0 + 0 + 0x20 + 0 + 0);
+const __m256 x1 = _mm256_blend_ps(
+_mm256_blend_ps(aaabffgg, cdddeeef, 0 + 0 + 4 + 0 + 0 + 0x20 + 0 + 0),
+bbccghhh, 1 + 0 + 0 + 8 + 0 + 0 + 0x40 + 0);
+const __m256 x2 = _mm256_blend_ps(
+_mm256_blend_ps(aaabffgg, cdddeeef, 1 + 0 + 0 + 8 + 0 + 0 + 0x40 + 0),
+bbccghhh, 0 + 2 + 0 + 0 + 0x10 + 0 + 0 + 0x80);
+v0 = AVX::avx_cast<typename V::VectorType>(_mm256_shuffle_ps(x0, x0, 0x6c));
+v1 = AVX::avx_cast<typename V::VectorType>(_mm256_shuffle_ps(x1, x1, 0xb1));
+v2 = AVX::avx_cast<typename V::VectorType>(_mm256_shuffle_ps(x2, x2, 0xc6));
+}
+template <typename I>
+static inline void deinterleave(typename V::EntryType const *const data, const I &i,
+V &v0, V &v1, V &v2, V &v3)
 {
 using namespace AVX;
-const m128 il0 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]]));
-const m128 il1 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[1]]));
-const m128 il2 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[2]]));
-const m128 il3 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[3]]));
-const m128 il4 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[4]]));
-const m128 il5 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[5]]));
-const m128 il6 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[6]]));
-const m128 il7 = _mm_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[7]]));
+const m128 il0 = _mm_loadu_ps(aliasing_cast<float>(&data[i[0]]));
+const m128 il1 = _mm_loadu_ps(aliasing_cast<float>(&data[i[1]]));
+const m128 il2 = _mm_loadu_ps(aliasing_cast<float>(&data[i[2]]));
+const m128 il3 = _mm_loadu_ps(aliasing_cast<float>(&data[i[3]]));
+const m128 il4 = _mm_loadu_ps(aliasing_cast<float>(&data[i[4]]));
+const m128 il5 = _mm_loadu_ps(aliasing_cast<float>(&data[i[5]]));
+const m128 il6 = _mm_loadu_ps(aliasing_cast<float>(&data[i[6]]));
+const m128 il7 = _mm_loadu_ps(aliasing_cast<float>(&data[i[7]]));
 const m256 il04 = concat(il0, il4);
 const m256 il15 = concat(il1, il5);
 const m256 il26 = concat(il2, il6);
@@ -13087,6 +13164,32 @@ const m256 ab0246 = _mm256_unpacklo_ps(il04, il26);
 const m256 ab1357 = _mm256_unpacklo_ps(il15, il37);
 const m256 cd0246 = _mm256_unpackhi_ps(il04, il26);
 const m256 cd1357 = _mm256_unpackhi_ps(il15, il37);
+v0.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(ab0246, ab1357));
+v1.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(ab0246, ab1357));
+v2.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(cd0246, cd1357));
+v3.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(cd0246, cd1357));
+}
+static inline void deinterleave(typename V::EntryType const *const data,
+const Common::SuccessiveEntries<4> &i, V &v0, V &v1,
+V &v2, V &v3)
+{
+using namespace AVX;
+const __m256 il01 = _mm256_loadu_ps(
+aliasing_cast<float>(&data[i[0]]));
+const __m256 il23 = _mm256_loadu_ps(
+aliasing_cast<float>(&data[i[2]]));
+const __m256 il45 = _mm256_loadu_ps(
+aliasing_cast<float>(&data[i[4]]));
+const __m256 il67 = _mm256_loadu_ps(
+aliasing_cast<float>(&data[i[6]]));
+const __m256 il04 = _mm256_permute2f128_ps(il01, il45, 0x20);
+const __m256 il15 = _mm256_permute2f128_ps(il01, il45, 0x31);
+const __m256 il26 = _mm256_permute2f128_ps(il23, il67, 0x20);
+const __m256 il37 = _mm256_permute2f128_ps(il23, il67, 0x31);
+const __m256 ab0246 = _mm256_unpacklo_ps(il04, il26);
+const __m256 ab1357 = _mm256_unpacklo_ps(il15, il37);
+const __m256 cd0246 = _mm256_unpackhi_ps(il04, il26);
+const __m256 cd1357 = _mm256_unpackhi_ps(il15, il37);
 v0.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(ab0246, ab1357));
 v1.data() = avx_cast<typename V::VectorType>(_mm256_unpackhi_ps(ab0246, ab1357));
 v2.data() = avx_cast<typename V::VectorType>(_mm256_unpacklo_ps(cd0246, cd1357));
@@ -13108,12 +13211,12 @@ static inline void deinterleave(typename V::EntryType const *const data,
 const Common::SuccessiveEntries<6> &i, V &v0, V &v1, V &v2, V &v3, V &v4, V &v5)
 {
 using namespace AVX;
-const m256 a = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0]]));
-const m256 b = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 1 * V::Size]));
-const m256 c = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 2 * V::Size]));
-const m256 d = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 3 * V::Size]));
-const m256 e = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 4 * V::Size]));
-const m256 f = _mm256_loadu_ps(reinterpret_cast<const MayAlias<float> *>(&data[i[0] + 5 * V::Size]));
+const m256 a = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0]]));
+const m256 b = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 1 * V::Size]));
+const m256 c = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 2 * V::Size]));
+const m256 d = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 3 * V::Size]));
+const m256 e = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 4 * V::Size]));
+const m256 f = _mm256_loadu_ps(aliasing_cast<float>(&data[i[0] + 5 * V::Size]));
 const __m256 tmp2 = Mem::shuffle128<X0, Y0>(a, d);
 const __m256 tmp3 = Mem::shuffle128<X1, Y1>(b, e);
 const __m256 tmp4 = Mem::shuffle128<X1, Y1>(a, d);
@@ -13974,11 +14077,10 @@ gatherImplementation(const EntryType *mem, const SimdArray<U, 16> &indexes)
 {
 const auto lo = simd_cast<AVX2::int_v, 0>(indexes);
 const auto hi = simd_cast<AVX2::int_v, 1>(indexes);
-*this = simd_cast<Vector>(
+*this = simd_cast<Vector>(AVX2::int_v(_mm256_i32gather_epi32(
+aliasing_cast<int>(mem), lo.data(), 2)),
 AVX2::int_v(_mm256_i32gather_epi32(
-reinterpret_cast<const MayAlias<int> *>(mem), lo.data(), 2)),
-AVX2::int_v(_mm256_i32gather_epi32(
-reinterpret_cast<const MayAlias<int> *>(mem), hi.data(), 2)));
+aliasing_cast<int>(mem), hi.data(), 2)));
 }
 template <class U, class V, std::size_t Wt>
 Vc_INTRINSIC enable_if<std::is_integral<U>::value && Size == 8, void>
@@ -14733,8 +14835,8 @@ template <>
 Vc_INTRINSIC void AVX2::uint_v::gatherImplementation(const uint *mem,
 AVX2::int_v indexes)
 {
-d.v() = _mm256_i32gather_epi32(reinterpret_cast<const MayAlias<int> *>(mem), indexes.data(),
-sizeof(unsigned));
+d.v() =
+_mm256_i32gather_epi32(aliasing_cast<int>(mem), indexes.data(), sizeof(unsigned));
 }
 #endif
 template <>
@@ -14984,8 +15086,8 @@ const __m256i state = Detail::load(&Common::RandomState[0], Vc::Aligned,
 Detail::LoadTag<__m256i, int>());
 for (size_t k = 0; k < 8; k += 2) {
 typedef unsigned long long uint64 Vc_MAY_ALIAS;
-const uint64 stateX = *reinterpret_cast<const uint64 *>(&Common::RandomState[k]);
-*reinterpret_cast<uint64 *>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
+const uint64 stateX = *aliasing_cast<uint64>(&Common::RandomState[k]);
+*aliasing_cast<uint64>(&Common::RandomState[k]) = (stateX * 0x5deece66dull + 11);
 }
 return HT::sub(Detail::or_(_cast(AVX::srli_epi64<12>(state)), HT::one()), HT::one());
 }
@@ -20944,6 +21046,22 @@ static_assert(Traits::has_no_allocated_data<const Vc::SimdArray<int, 4> &>::valu
 static_assert(Traits::has_no_allocated_data<const Vc::SimdArray<int, 4>>::value, "");
 static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4>>::value, "");
 static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4> &&>::value, "");
+namespace Detail
+{
+template <class T, size_t N, class V, size_t VSizeof>
+struct InterleaveImpl<SimdArray<T, N, V, N>, N, VSizeof> {
+template <class I, class... VV>
+static Vc_INTRINSIC void interleave(T *const data, const I &i, const VV &... vv)
+{
+InterleaveImpl<V, N, VSizeof>::interleave(data, i, internal_data(vv)...);
+}
+template <class I, class... VV>
+static Vc_INTRINSIC void deinterleave(T const *const data, const I &i, VV &... vv)
+{
+InterleaveImpl<V, N, VSizeof>::deinterleave(data, i, internal_data(vv)...);
+}
+};
+}
 }
 namespace std
 {
@@ -22760,235 +22878,10 @@ return {std::forward<V>(a), std::forward<Vs>(b)...};
 #endif
 #ifndef VC_COMMON_ALGORITHMS_H_
 #define VC_COMMON_ALGORITHMS_H_ 
-namespace Vc_VERSIONED_NAMESPACE
-{
-template<typename Mask> constexpr bool all_of(const Mask &m) { return m.isFull(); }
-constexpr bool all_of(bool b) { return b; }
-template<typename Mask> constexpr bool any_of(const Mask &m) { return m.isNotEmpty(); }
-constexpr bool any_of(bool b) { return b; }
-template<typename Mask> constexpr bool none_of(const Mask &m) { return m.isEmpty(); }
-constexpr bool none_of(bool b) { return !b; }
-template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix(); }
-constexpr bool some_of(bool) { return false; }
-#ifdef DOXYGEN
-template <class InputIt, class UnaryFunction>
-UnaryFunction simd_for_each(InputIt first, InputIt last, UnaryFunction f);
-#else
-template <class InputIt, class UnaryFunction,
-class ValueType = typename std::iterator_traits<InputIt>::value_type>
-inline enable_if<
-std::is_arithmetic<ValueType>::value &&
-Traits::is_functor_argument_immutable<UnaryFunction, Vector<ValueType>>::value,
-UnaryFunction>
-simd_for_each(InputIt first, InputIt last, UnaryFunction f)
-{
-typedef Vector<ValueType> V;
-typedef Scalar::Vector<ValueType> V1;
-for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-(V::MemoryAlignment - 1) &&
-first != last;
-++first) {
-f(V1(std::addressof(*first), Vc::Aligned));
-}
-const auto lastV = last - V::Size + 1;
-for (; first < lastV; first += V::Size) {
-f(V(std::addressof(*first), Vc::Aligned));
-}
-for (; first != last; ++first) {
-f(V1(std::addressof(*first), Vc::Aligned));
-}
-return std::move(f);
-}
-template <typename InputIt, typename UnaryFunction>
-inline enable_if<
-std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
-!Traits::is_functor_argument_immutable<
-UnaryFunction,
-Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
-UnaryFunction>
-simd_for_each(InputIt first, InputIt last, UnaryFunction f)
-{
-typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
-typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
-for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-(V::MemoryAlignment - 1) &&
-first != last;
-++first) {
-V1 tmp(std::addressof(*first), Vc::Aligned);
-f(tmp);
-tmp.store(std::addressof(*first), Vc::Aligned);
-}
-const auto lastV = last - V::Size + 1;
-for (; first < lastV; first += V::Size) {
-V tmp(std::addressof(*first), Vc::Aligned);
-f(tmp);
-tmp.store(std::addressof(*first), Vc::Aligned);
-}
-for (; first != last; ++first) {
-V1 tmp(std::addressof(*first), Vc::Aligned);
-f(tmp);
-tmp.store(std::addressof(*first), Vc::Aligned);
-}
-return std::move(f);
-}
-#endif
-template <typename InputIt, typename UnaryFunction>
-inline enable_if<
-!std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value,
-UnaryFunction>
-simd_for_each(InputIt first, InputIt last, UnaryFunction f)
-{
-return std::for_each(first, last, std::move(f));
-}
-template <typename InputIt, typename UnaryFunction>
-inline enable_if<
-std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
-Traits::is_functor_argument_immutable<
-UnaryFunction,
-Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
-UnaryFunction>
-simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
-{
-typename std::make_signed<size_t>::type len = count;
-typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
-typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
-for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-(V::MemoryAlignment - 1) &&
-len != 0;
---len, ++first) {
-f(V1(std::addressof(*first), Vc::Aligned));
-}
-for (; len >= int(V::Size); len -= V::Size, first += V::Size) {
-f(V(std::addressof(*first), Vc::Aligned));
-}
-for (; len != 0; --len, ++first) {
-f(V1(std::addressof(*first), Vc::Aligned));
-}
-return std::move(f);
-}
-template <typename InputIt, typename UnaryFunction>
-inline enable_if<
-std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value &&
-!Traits::is_functor_argument_immutable<
-UnaryFunction,
-Vector<typename std::iterator_traits<InputIt>::value_type>>::value,
-UnaryFunction>
-simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
-{
-typename std::make_signed<size_t>::type len = count;
-typedef Vector<typename std::iterator_traits<InputIt>::value_type> V;
-typedef Scalar::Vector<typename std::iterator_traits<InputIt>::value_type> V1;
-for (; reinterpret_cast<std::uintptr_t>(std::addressof(*first)) &
-(V::MemoryAlignment - 1) &&
-len != 0;
---len, ++first) {
-V1 tmp(std::addressof(*first), Vc::Aligned);
-f(tmp);
-tmp.store(std::addressof(*first), Vc::Aligned);
-}
-for (; len >= int(V::Size); len -= V::Size, first += V::Size) {
-V tmp(std::addressof(*first), Vc::Aligned);
-f(tmp);
-tmp.store(std::addressof(*first), Vc::Aligned);
-}
-for (; len != 0; --len, ++first) {
-V1 tmp(std::addressof(*first), Vc::Aligned);
-f(tmp);
-tmp.store(std::addressof(*first), Vc::Aligned);
-}
-return std::move(f);
-}
-#ifdef Vc_CXX17
-#ifdef Vc_GCC
-template <typename InputIt, typename UnaryFunction>
-inline enable_if<!std::is_arithmetic<typename InputIt::value_type>::value, UnaryFunction>
-simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
-{
-for (std::size_t i = 0; i < count; ++i, static_cast<void>(++first))
-std::apply(f, *first);
-return first;
-}
-#else
-template <typename InputIt, typename UnaryFunction>
-inline enable_if<
-!std::is_arithmetic<typename std::iterator_traits<InputIt>::value_type>::value,
-UnaryFunction>
-simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
-{
-return std::for_each_n(first, count, std::move(f));
-}
-#endif
-#endif
-}
-#endif
-#ifndef VC_COMMON_IIF_H_
-#define VC_COMMON_IIF_H_ 
-#ifndef VC_TYPE_TRAITS_
-#define VC_TYPE_TRAITS_ 
-#include <type_traits>
-namespace Vc_VERSIONED_NAMESPACE
-{
-using Traits::is_simd_mask;
-using Traits::is_simd_vector;
-using Traits::is_integral;
-using Traits::is_floating_point;
-using Traits::is_arithmetic;
-using Traits::is_signed;
-using Traits::is_unsigned;
-template<typename T>
-struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {};
-template<> struct memory_alignment<short_v> : public std::integral_constant<size_t, short_v::MemoryAlignment> {};
-template<> struct memory_alignment<ushort_v> : public std::integral_constant<size_t, ushort_v::MemoryAlignment> {};
-}
-#endif
-namespace Vc_VERSIONED_NAMESPACE
-{
-template <typename Mask, typename T>
-Vc_ALWAYS_INLINE enable_if<is_simd_mask<Mask>::value && is_simd_vector<T>::value, T> iif(
-const Mask &condition, const T &trueValue, const T &falseValue)
-{
-T result(falseValue);
-Vc::where(condition) | result = trueValue;
-return result;
-}
-template <typename Mask, typename T>
-enable_if<is_simd_mask<Mask>::value && !is_simd_vector<T>::value, T> iif(
-const Mask &, const T &, const T &) = delete;
-template<typename T> constexpr T iif (bool condition, const T &trueValue, const T &falseValue)
-{
-return condition ? trueValue : falseValue;
-}
-}
-#endif
-#ifndef Vc_NO_STD_FUNCTIONS
-namespace std
-{
-using Vc::min;
-using Vc::max;
-using Vc::abs;
-using Vc::asin;
-using Vc::atan;
-using Vc::atan2;
-using Vc::ceil;
-using Vc::cos;
-using Vc::exp;
-using Vc::fma;
-using Vc::trunc;
-using Vc::floor;
-using Vc::frexp;
-using Vc::ldexp;
-using Vc::log;
-using Vc::log10;
-using Vc::log2;
-using Vc::round;
-using Vc::sin;
-using Vc::sqrt;
-using Vc::isfinite;
-using Vc::isnan;
-}
-#endif
-Vc_RESET_DIAGNOSTICS
-#endif
+#ifndef VC_COMMON_SIMDIZE_H_
+#define VC_COMMON_SIMDIZE_H_ 
+#include <tuple>
+#include <array>
 #ifndef VC_ALLOCATOR_H_
 #define VC_ALLOCATOR_H_ 
 #include <new>
@@ -23141,10 +23034,166 @@ const allocator &select_on_container_copy_construction() const { return *this; }
 };
 }
 #endif
-#ifndef VC_COMMON_SIMDIZE_H_
-#define VC_COMMON_SIMDIZE_H_ 
-#include <tuple>
-#include <array>
+#ifndef VC_COMMON_INTERLEAVEDMEMORY_H_
+#define VC_COMMON_INTERLEAVEDMEMORY_H_ 
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+template<typename V, typename I, bool Readonly> struct InterleavedMemoryAccessBase
+{
+typedef typename std::conditional<
+Readonly, typename std::add_const<typename V::EntryType>::type,
+typename V::EntryType>::type T;
+typedef typename V::AsArg VArg;
+typedef T Ta Vc_MAY_ALIAS;
+const I m_indexes;
+Ta *const m_data;
+Vc_ALWAYS_INLINE InterleavedMemoryAccessBase(typename I::AsArg indexes, Ta *data)
+: m_indexes(indexes), m_data(data)
+{
+}
+template <typename... Vs> Vc_INTRINSIC void deinterleave(Vs &&... vs) const
+{
+Impl::deinterleave(m_data, m_indexes, std::forward<Vs>(vs)...);
+}
+protected:
+using Impl = Vc::Detail::InterleaveImpl<V, V::Size, sizeof(V)>;
+template <typename T, std::size_t... Indexes>
+Vc_INTRINSIC void callInterleave(T &&a, index_sequence<Indexes...>)
+{
+Impl::interleave(m_data, m_indexes, a[Indexes]...);
+}
+};
+template <size_t StructSize, typename V, typename I = typename V::IndexType,
+bool Readonly>
+struct InterleavedMemoryReadAccess : public InterleavedMemoryAccessBase<V, I, Readonly>
+{
+typedef InterleavedMemoryAccessBase<V, I, Readonly> Base;
+typedef typename Base::Ta Ta;
+Vc_ALWAYS_INLINE InterleavedMemoryReadAccess(Ta *data, typename I::AsArg indexes)
+: Base(StructSize == 1u
+? indexes
+: StructSize == 2u
+? indexes << 1
+: StructSize == 4u
+? indexes << 2
+: StructSize == 8u
+? indexes << 3
+: StructSize == 16u ? indexes << 4
+: indexes * I(int(StructSize)),
+data)
+{
+}
+template <typename T, std::size_t... Indexes>
+Vc_ALWAYS_INLINE T deinterleave_unpack(index_sequence<Indexes...>) const
+{
+T r;
+Base::Impl::deinterleave(this->m_data, this->m_indexes, std::get<Indexes>(r)...);
+return r;
+}
+template <typename T,
+typename = enable_if<(std::is_default_constructible<T>::value &&
+std::is_same<V, Traits::decay<decltype(std::get<0>(
+std::declval<T &>()))>>::value)>>
+Vc_ALWAYS_INLINE operator T() const
+{
+return deinterleave_unpack<T>(make_index_sequence<std::tuple_size<T>::value>());
+}
+};
+template<typename I> struct CheckIndexesUnique
+{
+#ifdef NDEBUG
+static Vc_INTRINSIC void test(const I &) {}
+#else
+static void test(const I &indexes)
+{
+const I test = indexes.sorted();
+Vc_ASSERT(I::Size == 1 || (test == test.rotated(1)).isEmpty())
+}
+#endif
+};
+template<size_t S> struct CheckIndexesUnique<SuccessiveEntries<S> >
+{
+static Vc_INTRINSIC void test(const SuccessiveEntries<S> &) {}
+};
+template <size_t StructSize, typename V, typename I = typename V::IndexType>
+struct InterleavedMemoryAccess : public InterleavedMemoryReadAccess<StructSize, V, I, false>
+{
+typedef InterleavedMemoryAccessBase<V, I, false> Base;
+typedef typename Base::Ta Ta;
+Vc_ALWAYS_INLINE InterleavedMemoryAccess(Ta *data, typename I::AsArg indexes)
+: InterleavedMemoryReadAccess<StructSize, V, I, false>(data, indexes)
+{
+CheckIndexesUnique<I>::test(indexes);
+}
+template <int N> Vc_ALWAYS_INLINE void operator=(VectorReferenceArray<N, V> &&rhs)
+{
+static_assert(N <= StructSize,
+"You_are_trying_to_scatter_more_data_into_the_struct_than_it_has");
+this->callInterleave(std::move(rhs), make_index_sequence<N>());
+}
+template <int N> Vc_ALWAYS_INLINE void operator=(VectorReferenceArray<N, const V> &&rhs)
+{
+static_assert(N <= StructSize,
+"You_are_trying_to_scatter_more_data_into_the_struct_than_it_has");
+this->callInterleave(std::move(rhs), make_index_sequence<N>());
+}
+};
+template<typename S, typename V> class InterleavedMemoryWrapper
+{
+typedef typename std::conditional<std::is_const<S>::value,
+const typename V::EntryType,
+typename V::EntryType>::type T;
+typedef typename V::IndexType I;
+typedef typename V::AsArg VArg;
+typedef const I &IndexType;
+static constexpr std::size_t StructSize = sizeof(S) / sizeof(T);
+typedef InterleavedMemoryAccess<StructSize, V> Access;
+typedef InterleavedMemoryReadAccess<StructSize, V> ReadAccess;
+typedef InterleavedMemoryAccess<StructSize, V, SuccessiveEntries<StructSize> > AccessSuccessiveEntries;
+typedef InterleavedMemoryReadAccess<StructSize, V, SuccessiveEntries<StructSize> > ReadSuccessiveEntries;
+typedef T Ta Vc_MAY_ALIAS;
+Ta *const m_data;
+static_assert(StructSize * sizeof(T) == sizeof(S),
+"InterleavedMemoryAccess_does_not_support_packed_structs");
+public:
+Vc_ALWAYS_INLINE InterleavedMemoryWrapper(S *s)
+: m_data(reinterpret_cast<Ta *>(s))
+{
+}
+template <typename IT>
+Vc_ALWAYS_INLINE enable_if<!std::is_convertible<IT, size_t>::value &&
+std::is_convertible<IT, IndexType>::value &&
+!std::is_const<S>::value,
+Access>
+operator[](IT indexes)
+{
+return Access(m_data, indexes);
+}
+Vc_ALWAYS_INLINE ReadAccess operator[](IndexType indexes) const
+{
+return ReadAccess(m_data, indexes);
+}
+Vc_ALWAYS_INLINE ReadAccess gather(IndexType indexes) const { return operator[](indexes); }
+Vc_ALWAYS_INLINE ReadSuccessiveEntries operator[](size_t first) const
+{
+return ReadSuccessiveEntries(m_data, first);
+}
+Vc_ALWAYS_INLINE AccessSuccessiveEntries operator[](size_t first)
+{
+return AccessSuccessiveEntries(m_data, first);
+}
+};
+}
+using Common::InterleavedMemoryWrapper;
+template <typename V, typename S>
+inline Common::InterleavedMemoryWrapper<S, V> make_interleave_wrapper(S *s)
+{
+return Common::InterleavedMemoryWrapper<S, V>(s);
+}
+}
+#endif
 namespace Vc_VERSIONED_NAMESPACE
 {
 namespace SimdizeDetail
@@ -23239,16 +23288,17 @@ typedef T type;
 };
 template <typename T, size_t N = 0, typename MT = void>
 using simdize = typename SimdizeDetail::ReplaceTypes<T, N, MT>::type;
+template <class T, size_t N,
+class Best = typename Common::select_best_vector_type<T, N>::type>
+using deduce_vector_t =
+typename std::conditional<Best::size() == N, Best, SimdArray<T, N>>::type;
 template <typename T, size_t N, typename MT>
 struct ReplaceTypes<T, N, MT, Category::ArithmeticVectorizable>
-: public conditional<(N == 0 || Vector<T>::Size == N), Vector<T>, SimdArray<T, N>>
-{
+: public conditional<N == 0, Vector<T>, deduce_vector_t<T, N>> {
 };
 template <size_t N, typename MT>
 struct ReplaceTypes<bool, N, MT, Category::ArithmeticVectorizable>
-: public conditional<(N == 0 || Mask<MT>::Size == N), Mask<MT>,
-SimdMaskArray<MT, N>>
-{
+: public std::enable_if<true, typename ReplaceTypes<MT, N, MT>::type::mask_type> {
 };
 template <size_t N>
 struct ReplaceTypes<bool, N, void, Category::ArithmeticVectorizable>
@@ -23560,6 +23610,32 @@ R get_dispatcher(const T &x, int = 0)
 {
 return std::get<I>(x);
 }
+template <class... Ts> struct homogeneous_sizeof;
+template <class T, class = void> struct homogeneous_sizeof_one;
+template <class T, size_t... Is>
+std::integral_constant<size_t,
+homogeneous_sizeof<typename std::remove_reference<decltype(
+get_dispatcher<Is>(std::declval<T>()))>::type...>::value>
+homogeneous_sizeof_helper(index_sequence<Is...>);
+template <class T>
+struct homogeneous_sizeof_one<T,
+typename std::enable_if<std::is_arithmetic<T>::value>::type>
+: std::integral_constant<size_t, sizeof(T)> {
+};
+template <class T>
+struct homogeneous_sizeof_one<T, typename std::enable_if<std::is_class<T>::value>::type>
+: decltype(homogeneous_sizeof_helper<T>(
+make_index_sequence<determine_tuple_size_<T>::value>())) {
+};
+template <class T0> struct homogeneous_sizeof<T0> : homogeneous_sizeof_one<T0> {
+};
+template <class T0, class... Ts>
+struct homogeneous_sizeof<T0, Ts...>
+: std::integral_constant<size_t, homogeneous_sizeof<T0>::value ==
+homogeneous_sizeof<Ts...>::value
+? homogeneous_sizeof<T0>::value
+: 0> {
+};
 template <typename Scalar, typename Base, size_t N> class Adapter : public Base
 {
 private:
@@ -23708,32 +23784,30 @@ decay_workaround(get_dispatcher<Indexes>(x))...);
 auto &&unused = {(get_dispatcher<Indexes>(a)[i] = get_dispatcher<Indexes>(tmp), 0)...};
 if (&unused == &unused) {}
 }
-template <typename S, typename T, size_t N>
-inline void assign(Adapter<S, T, N> &a, size_t i, const S &x)
+template <class S, class... Args>
+S construct(std::integral_constant<int, 0>, Args &&... args)
 {
-assign_impl(a, i, x, Vc::make_index_sequence<determine_tuple_size<T>()>());
+return S(std::forward<Args>(args)...);
 }
-template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
-Vc_INTRINSIC void assign(V &v, size_t i, typename V::EntryType x)
+template <class S, class... Args>
+S construct(std::integral_constant<int, 1>, Args &&... args)
 {
-v[i] = x;
+return S{std::forward<Args>(args)...};
+}
+template <class S, class... Args>
+S construct(std::integral_constant<int, 2>, Args &&... args)
+{
+return S{{std::forward<Args>(args)...}};
 }
 template <typename S, typename T, size_t N, size_t... Indexes>
 inline S extract_impl(const Adapter<S, T, N> &a, size_t i, Vc::index_sequence<Indexes...>)
 {
 const std::tuple<decltype(decay_workaround(get_dispatcher<Indexes>(a)[i]))...> tmp(
 decay_workaround(get_dispatcher<Indexes>(a)[i])...);
-return S(get_dispatcher<Indexes>(tmp)...);
-}
-template <typename S, typename T, size_t N>
-inline S extract(const Adapter<S, T, N> &a, size_t i)
-{
-return extract_impl(a, i, Vc::make_index_sequence<determine_tuple_size<S>()>());
-}
-template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
-Vc_INTRINSIC typename V::EntryType extract(const V &v, size_t i)
-{
-return v[i];
+return construct<S>(
+preferred_construction<S, decltype(decay_workaround(
+get_dispatcher<Indexes>(a)[i]))...>(),
+decay_workaround(get_dispatcher<Indexes>(a)[i])...);
 }
 template <typename S, typename T, std::size_t N, std::size_t... Indexes>
 inline Adapter<S, T, N> shifted_impl(const Adapter<S, T, N> &a, int shift,
@@ -23816,6 +23890,85 @@ template <typename A> inline void swap(Scalar<A> &&a, Scalar<A> &&b)
 {
 swap_impl(a.a, a.i, b.a, b.i, typename Scalar<A>::IndexSeq());
 }
+template <class S, class T, size_t N, size_t... I>
+inline void load_interleaved_impl(Vc::index_sequence<I...>, Adapter<S, T, N> &a,
+const S *mem)
+{
+const InterleavedMemoryWrapper<S, decltype(decay_workaround(get_dispatcher<0>(a)))>
+wrapper(const_cast<S *>(mem));
+Vc::tie(get_dispatcher<I>(a)...) = wrapper[0];
+}
+template <class S, class T, size_t N, size_t... I>
+inline void store_interleaved_impl(Vc::index_sequence<I...>, const Adapter<S, T, N> &a,
+S *mem)
+{
+InterleavedMemoryWrapper<S, decltype(decay_workaround(get_dispatcher<0>(a)))> wrapper(
+mem);
+wrapper[0] = Vc::tie(get_dispatcher<I>(a)...);
+}
+}
+template <typename S, typename T, size_t N>
+inline void assign(SimdizeDetail::Adapter<S, T, N> &a, size_t i, const S &x)
+{
+SimdizeDetail::assign_impl(
+a, i, x, Vc::make_index_sequence<SimdizeDetail::determine_tuple_size<T>()>());
+}
+template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
+Vc_INTRINSIC void assign(V &v, size_t i, typename V::EntryType x)
+{
+v[i] = x;
+}
+template <typename S, typename T, size_t N>
+inline S extract(const SimdizeDetail::Adapter<S, T, N> &a, size_t i)
+{
+return SimdizeDetail::extract_impl(
+a, i, Vc::make_index_sequence<SimdizeDetail::determine_tuple_size<S>()>());
+}
+template <typename V, typename = enable_if<Traits::is_simd_vector<V>::value>>
+Vc_INTRINSIC typename V::EntryType extract(const V &v, size_t i)
+{
+return v[i];
+}
+template <class S, class T, size_t N>
+inline void load_interleaved(SimdizeDetail::Adapter<S, T, N> &a, const S *mem)
+{
+if (SimdizeDetail::homogeneous_sizeof<S>::value == 0) {
+Common::unrolled_loop<std::size_t, 0, N>(
+[&](std::size_t i) { assign(a, i, mem[i]); });
+} else {
+constexpr size_t TupleSize = SimdizeDetail::determine_tuple_size_<S>::value;
+SimdizeDetail::load_interleaved_impl(Vc::make_index_sequence<TupleSize>(), a,
+mem);
+}
+}
+template <
+class V, class T,
+class = enable_if<Traits::is_simd_vector<V>::value && std::is_arithmetic<T>::value>>
+Vc_INTRINSIC void load_interleaved(V &a, const T *mem)
+{
+a.load(mem, Vc::Unaligned);
+}
+template <class S, class T, size_t N>
+inline void store_interleaved(const SimdizeDetail::Adapter<S, T, N> &a, S *mem)
+{
+if (SimdizeDetail::homogeneous_sizeof<S>::value == 0) {
+Common::unrolled_loop<std::size_t, 0, N>(
+[&](std::size_t i) { mem[i] = extract(a, i); });
+} else {
+constexpr size_t TupleSize = SimdizeDetail::determine_tuple_size_<S>::value;
+SimdizeDetail::store_interleaved_impl(Vc::make_index_sequence<TupleSize>(), a,
+mem);
+}
+}
+template <
+class V, class T,
+class = enable_if<Traits::is_simd_vector<V>::value && std::is_arithmetic<T>::value>>
+Vc_INTRINSIC void store_interleaved(const V &a, T *mem)
+{
+a.store(mem, Vc::Unaligned);
+}
+namespace SimdizeDetail
+{
 template <typename A> class Interface
 {
 using reference = typename std::add_lvalue_reference<A>::type;
@@ -24203,4 +24356,181 @@ namespace std
 {
 using Vc::SimdizeDetail::swap;
 }
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+template<typename Mask> constexpr bool all_of(const Mask &m) { return m.isFull(); }
+constexpr bool all_of(bool b) { return b; }
+template<typename Mask> constexpr bool any_of(const Mask &m) { return m.isNotEmpty(); }
+constexpr bool any_of(bool b) { return b; }
+template<typename Mask> constexpr bool none_of(const Mask &m) { return m.isEmpty(); }
+constexpr bool none_of(bool b) { return !b; }
+template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix(); }
+constexpr bool some_of(bool) { return false; }
+#ifdef DOXYGEN
+template <class InputIt, class UnaryFunction>
+UnaryFunction simd_for_each(InputIt first, InputIt last, UnaryFunction f);
+#else
+template <class InputIt, class UnaryFunction,
+class ValueType = typename std::iterator_traits<InputIt>::value_type>
+inline enable_if<
+Traits::is_functor_argument_immutable<UnaryFunction, simdize<ValueType>>::value,
+UnaryFunction>
+simd_for_each(InputIt first, InputIt last, UnaryFunction f)
+{
+typedef simdize<ValueType> V;
+typedef simdize<ValueType, 1> V1;
+const auto lastV = last - V::Size + 1;
+for (; first < lastV; first += V::Size) {
+V tmp;
+load_interleaved(tmp, std::addressof(*first));
+f(tmp);
+}
+for (; first != last; ++first) {
+V1 tmp;
+load_interleaved(tmp, std::addressof(*first));
+f(tmp);
+}
+return std::move(f);
+}
+template <typename InputIt, typename UnaryFunction,
+class ValueType = typename std::iterator_traits<InputIt>::value_type>
+inline enable_if<
+!Traits::is_functor_argument_immutable<UnaryFunction, simdize<ValueType>>::value,
+UnaryFunction>
+simd_for_each(InputIt first, InputIt last, UnaryFunction f)
+{
+typedef simdize<ValueType> V;
+typedef simdize<ValueType, 1> V1;
+const auto lastV = last - V::size() + 1;
+for (; first < lastV; first += V::size()) {
+V tmp;
+load_interleaved(tmp, std::addressof(*first));
+f(tmp);
+store_interleaved(tmp, std::addressof(*first));
+}
+for (; first != last; ++first) {
+V1 tmp;
+load_interleaved(tmp, std::addressof(*first));
+f(tmp);
+store_interleaved(tmp, std::addressof(*first));
+}
+return std::move(f);
+}
+#endif
+template <typename InputIt, typename UnaryFunction,
+class ValueType = typename std::iterator_traits<InputIt>::value_type>
+inline enable_if<
+Traits::is_functor_argument_immutable<UnaryFunction, simdize<ValueType>>::value,
+UnaryFunction>
+simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
+{
+typename std::make_signed<size_t>::type len = count;
+typedef simdize<ValueType> V;
+typedef simdize<ValueType, 1> V1;
+for (; len >= int(V::size()); len -= V::Size, first += V::Size) {
+V tmp;
+load_interleaved(tmp, std::addressof(*first));
+f(tmp);
+}
+for (; len != 0; --len, ++first) {
+V1 tmp;
+load_interleaved(tmp, std::addressof(*first));
+f(tmp);
+}
+return std::move(f);
+}
+template <typename InputIt, typename UnaryFunction,
+class ValueType = typename std::iterator_traits<InputIt>::value_type>
+inline enable_if<
+!Traits::is_functor_argument_immutable<UnaryFunction, simdize<ValueType>>::value,
+UnaryFunction>
+simd_for_each_n(InputIt first, std::size_t count, UnaryFunction f)
+{
+typename std::make_signed<size_t>::type len = count;
+typedef simdize<ValueType> V;
+typedef simdize<ValueType, 1> V1;
+for (; len >= int(V::size()); len -= V::Size, first += V::Size) {
+V tmp;
+load_interleaved(tmp, std::addressof(*first));
+f(tmp);
+store_interleaved(tmp, std::addressof(*first));
+}
+for (; len != 0; --len, ++first) {
+V1 tmp;
+load_interleaved(tmp, std::addressof(*first));
+f(tmp);
+store_interleaved(tmp, std::addressof(*first));
+}
+return std::move(f);
+}
+}
+#endif
+#ifndef VC_COMMON_IIF_H_
+#define VC_COMMON_IIF_H_ 
+#ifndef VC_TYPE_TRAITS_
+#define VC_TYPE_TRAITS_ 
+#include <type_traits>
+namespace Vc_VERSIONED_NAMESPACE
+{
+using Traits::is_simd_mask;
+using Traits::is_simd_vector;
+using Traits::is_integral;
+using Traits::is_floating_point;
+using Traits::is_arithmetic;
+using Traits::is_signed;
+using Traits::is_unsigned;
+template<typename T>
+struct memory_alignment : public std::integral_constant<size_t, alignof(T)> {};
+template<> struct memory_alignment<short_v> : public std::integral_constant<size_t, short_v::MemoryAlignment> {};
+template<> struct memory_alignment<ushort_v> : public std::integral_constant<size_t, ushort_v::MemoryAlignment> {};
+}
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+template <typename Mask, typename T>
+Vc_ALWAYS_INLINE enable_if<is_simd_mask<Mask>::value && is_simd_vector<T>::value, T> iif(
+const Mask &condition, const T &trueValue, const T &falseValue)
+{
+T result(falseValue);
+Vc::where(condition) | result = trueValue;
+return result;
+}
+template <typename Mask, typename T>
+enable_if<is_simd_mask<Mask>::value && !is_simd_vector<T>::value, T> iif(
+const Mask &, const T &, const T &) = delete;
+template<typename T> constexpr T iif (bool condition, const T &trueValue, const T &falseValue)
+{
+return condition ? trueValue : falseValue;
+}
+}
+#endif
+#ifndef Vc_NO_STD_FUNCTIONS
+namespace std
+{
+using Vc::min;
+using Vc::max;
+using Vc::abs;
+using Vc::asin;
+using Vc::atan;
+using Vc::atan2;
+using Vc::ceil;
+using Vc::cos;
+using Vc::exp;
+using Vc::fma;
+using Vc::trunc;
+using Vc::floor;
+using Vc::frexp;
+using Vc::ldexp;
+using Vc::log;
+using Vc::log10;
+using Vc::log2;
+using Vc::round;
+using Vc::sin;
+using Vc::sqrt;
+using Vc::isfinite;
+using Vc::isnan;
+}
+#endif
+Vc_RESET_DIAGNOSTICS
 #endif
