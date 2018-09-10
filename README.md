@@ -45,6 +45,7 @@ After Intel dropped MIC support with ICC 18, Vc 1.4 also removes support for it.
 ### Usage on Compiler Explorer
 
 [Simdize Example](https://godbolt.org/z/wd6uT2)
+[Total momentum and time stepping of `std::vector<Particle>`](https://godbolt.org/z/OkejKr)
 
 ### Scalar Product
 
