@@ -36,7 +36,6 @@
 #include <iomanip>
 #include <cmath>
 #include "../tsc.h"
-#include <common/macros.h>
 
 using Vc::float_v;
 //! [includes]

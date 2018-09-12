@@ -27,7 +27,6 @@
 #include <iomanip>
 #include <valarray>
 #include "../tsc.h"
-#include "common/macros.h"
 
 static constexpr int UnrollOuterloop = 4;
 

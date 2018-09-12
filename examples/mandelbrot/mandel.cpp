@@ -27,7 +27,6 @@
 #include "../tsc.h"
 
 #include <Vc/vector.h>
-#include <common/macros.h>
 
 using Vc::float_v;
 using Vc::float_m;

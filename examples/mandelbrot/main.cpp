@@ -22,7 +22,7 @@
 */
 
 #include "main.h"
-#include <common/macros.h>
+#include <Vc/common/macros.h>
 
 #include <QApplication>
 #include <QPainter>
