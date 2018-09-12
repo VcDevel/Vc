@@ -42,7 +42,7 @@ namespace Common
         template<typename T> \
         Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator op##=(const T &x) { \
             const V v = value() op x; \
-            v.store(ptr, Flags()); \
+            v.store(&m_data[0], Flags()); \
             return *this; \
         }
 /*dox{{{*/
@@ -66,24 +66,22 @@ template<typename _V, typename Flags> class MemoryVector/*{{{*/
                                   typename V::EntryType>::type;
     typedef typename V::Mask Mask;
 
-    EntryType *ptr;
+    EntryType m_data[V::Size];
+
 public:
         // It is important that neither initialization nor cleanup is done as MemoryVector aliases
         // other memory
         Vc_INTRINSIC MemoryVector() = default;
 
-        // "private"
-        Vc_INTRINSIC MemoryVector(EntryType *p) : ptr(p) {}
-
         // disable copies because this type is supposed to alias the data in a Memory object,
         // nothing else
         MemoryVector(const MemoryVector &) = delete;
-        MemoryVector(MemoryVector &&) = default;
+        MemoryVector(MemoryVector &&) = delete;
         // Do not disable MemoryVector &operator=(const MemoryVector &) = delete; because it is
         // covered nicely by the operator= below.
 
         //! \internal
-        Vc_ALWAYS_INLINE Vc_PURE V value() const { return V(ptr, Flags()); }
+        Vc_ALWAYS_INLINE Vc_PURE V value() const { return V(&m_data[0], Flags()); }
 
         /**
          * Cast to \p V operator.
@@ -96,12 +94,15 @@ public:
         Vc_ALWAYS_INLINE enable_if_mutable<T, MemoryVector &> operator=(const T &x) {
             V v;
             v = x;
-            v.store(ptr, Flags());
+            v.store(&m_data[0], Flags());
             return *this;
         }
 
         Vc_ALL_BINARY(Vc_MEM_OPERATOR_EQ);
         Vc_ALL_ARITHMETICS(Vc_MEM_OPERATOR_EQ);
+
+    Vc_ALWAYS_INLINE EntryType &operator[](size_t i) { return m_data[i]; }
+    Vc_ALWAYS_INLINE const EntryType &operator[](size_t i) const { return m_data[i]; }
 };
 
 template<typename _V, typename Flags> class MemoryVectorIterator
@@ -372,6 +373,12 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
     private:
         Parent *p() { return static_cast<Parent *>(this); }
         const Parent *p() const { return static_cast<const Parent *>(this); }
+
+        template <class Flags>
+        using vector_reference = MayAlias<MemoryVector<V, Flags>> &;
+        template <class Flags>
+        using const_vector_reference = const MayAlias<MemoryVector<const V, Flags>> &;
+
     public:
         /**
          * The type of the scalar entries in the array.
@@ -433,10 +440,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         template <typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE
             typename std::enable_if<!std::is_convertible<Flags, int>::value,
-                                    MemoryVector<V, Flags>>::type
+                                    vector_reference<Flags>>::type
             vector(size_t i, Flags = Flags())
         {
-            return &entries()[i * V::Size];
+            return *aliasing_cast<MemoryVector<V, Flags>>(&entries()[i * V::Size]);
         }
         /** \brief Const overload of the above function
          *
@@ -447,10 +454,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         template <typename Flags = AlignedTag>
         Vc_ALWAYS_INLINE Vc_PURE
             typename std::enable_if<!std::is_convertible<Flags, int>::value,
-                                    MemoryVector<const V, Flags>>::type
+                                    const_vector_reference<Flags>>::type
             vector(size_t i, Flags = Flags()) const
         {
-            return &entries()[i * V::Size];
+            return *aliasing_cast<MemoryVector<const V, Flags>>(&entries()[i * V::Size]);
         }
 
         /**
@@ -473,10 +480,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * you may want to pass Vc::Aligned here.
          */
         template <typename Flags = UnalignedTag>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> vectorAt(size_t i,
-                                                                 Flags flags = Flags())
+        Vc_ALWAYS_INLINE Vc_PURE vector_reference<Flags> vectorAt(size_t i,
+                                                                  Flags flags = Flags())
         {
-            return &entries()[i];
+            return *aliasing_cast<MemoryVector<V, Flags>>(&entries()[i]);
         }
         /** \brief Const overload of the above function
          *
@@ -490,10 +497,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * you may want to pass Vc::Aligned here.
          */
         template <typename Flags = UnalignedTag>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> vectorAt(
+        Vc_ALWAYS_INLINE Vc_PURE const_vector_reference<Flags> vectorAt(
             size_t i, Flags flags = Flags()) const
         {
-            return &entries()[i];
+            return *aliasing_cast<MemoryVector<const V, Flags>>(&entries()[i]);
         }
 
         /**
@@ -526,19 +533,23 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
         template <typename ShiftT, typename Flags = decltype(Unaligned)>
         Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<
             std::is_convertible<ShiftT, int>::value,
-            MemoryVector<V, decltype(std::declval<Flags>() | Unaligned)>>::type
+            vector_reference<decltype(std::declval<Flags>() | Unaligned)>>::type
         vector(size_t i, ShiftT shift, Flags = Flags())
         {
-            return &entries()[i * V::Size + shift];
+            return *aliasing_cast<
+                MemoryVector<V, decltype(std::declval<Flags>() | Unaligned)>>(
+                &entries()[i * V::Size + shift]);
         }
         /// Const overload of the above function.
         template <typename ShiftT, typename Flags = decltype(Unaligned)>
         Vc_ALWAYS_INLINE Vc_PURE typename std::enable_if<
             std::is_convertible<ShiftT, int>::value,
-            MemoryVector<const V, decltype(std::declval<Flags>() | Unaligned)>>::type
+            const_vector_reference<decltype(std::declval<Flags>() | Unaligned)>>::type
         vector(size_t i, ShiftT shift, Flags = Flags()) const
         {
-            return &entries()[i * V::Size + shift];
+            return *aliasing_cast<
+                MemoryVector<const V, decltype(std::declval<Flags>() | Unaligned)>>(
+                &entries()[i * V::Size + shift]);
         }
 
         /**
@@ -547,16 +558,16 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * This function is simply a shorthand for vector(0).
          */
         template <typename Flags = AlignedTag>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> firstVector(Flags = Flags())
+        Vc_ALWAYS_INLINE Vc_PURE vector_reference<Flags> firstVector(Flags f = Flags())
         {
-            return entries();
+            return vector(0, f);
         }
         /// Const overload of the above function.
         template <typename Flags = AlignedTag>
-        Vc_ALWAYS_INLINE Vc_PURE
-            MemoryVector<const V, Flags> firstVector(Flags = Flags()) const
+        Vc_ALWAYS_INLINE Vc_PURE const_vector_reference<Flags> firstVector(
+            Flags f = Flags()) const
         {
-            return entries();
+            return vector(0, f);
         }
 
         /**
@@ -565,14 +576,16 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
          * This function is simply a shorthand for vector(vectorsCount() - 1).
          */
         template <typename Flags = AlignedTag>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<V, Flags> lastVector(Flags = Flags())
+        Vc_ALWAYS_INLINE Vc_PURE vector_reference<Flags> lastVector(Flags f = Flags())
         {
-            return &entries()[vectorsCount() * V::Size - V::Size];
+            return vector(vectorsCount() - 1, f);
         }
         /// Const overload of the above function.
-        template<typename Flags = AlignedTag>
-        Vc_ALWAYS_INLINE Vc_PURE MemoryVector<const V, Flags> lastVector(Flags = Flags()) const {
-            return &entries()[vectorsCount() * V::Size - V::Size];
+        template <typename Flags = AlignedTag>
+        Vc_ALWAYS_INLINE Vc_PURE const_vector_reference<Flags> lastVector(
+            Flags f = Flags()) const
+        {
+            return vector(vectorsCount() - 1, f);
         }
 
         Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned char  *indexes) const { return V(entries(), indexes); }
