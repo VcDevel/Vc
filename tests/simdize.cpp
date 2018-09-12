@@ -645,11 +645,11 @@ template <class T> T create(int x) { return x; }
 template <> std::array<float, 3> create<std::array<float, 3>>(int _x)
 {
     float x = _x;
-    return {x, x + 1, x + 2};
+    return {{x, x + 1, x + 2}};
 }
 template <> std::tuple<double, int> create<std::tuple<double, int>>(int x)
 {
-    return {x, x + 1};
+    return std::tuple<double, int>(x, x + 1);
 }
 
 TEST_TYPES(T, generator, float, short, std::array<float, 3>, std::tuple<double, int>)
