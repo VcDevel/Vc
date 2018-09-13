@@ -384,6 +384,7 @@ endif()
 
 if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[01234567]\\."
       OR "${COMPILER_VERSION}" MATCHES "GCC 4.8.0"
+      OR "${COMPILER_VERSION}" MATCHES "ICC 1[01234567]"
       OR "${COMPILER_VERSION}" MATCHES "clang 3\\.[0123](\\.[0-9])?$")
    message(FATAL_ERROR "Compiler too old for C++11 (${COMPILER_VERSION})")
 endif()
