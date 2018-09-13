@@ -26,6 +26,9 @@ matrix:
         - env: arch=x86_64  CXX_VERSION=default
           os: osx
           compiler: gcc
+    allow_failures:
+        - os: osx
+          compiler: gcc
 
 # The following gives us Ubuntu 14.04 LTS instead of 12.04 LTS
 sudo: required
@@ -67,15 +70,13 @@ install:
         osx-g++-current-x86_64)
           brew cask uninstall oclint &&
           brew update &&
-          brew install gcc6 &&
-          export CXX=g++-6 CC=gcc-6;;
+          brew install gcc@8 &&
+          export CXX=g++-8 CC=gcc-8;;
         osx-g++-previous-x86_64)
           brew cask uninstall oclint &&
           brew update &&
-          brew install gcc5 &&
-          export CXX=g++-5 CC=gcc-5;;
-        osx-g++-default-x86_64)
-          export CXX=g++-4.9 CC=gcc-4.9;;
+          brew install gcc@7 &&
+          export CXX=g++-7 CC=gcc-7;;
         osx-clang++-current-x86_64)
           wget http://releases.llvm.org/4.0.0/clang+llvm-4.0.0-x86_64-apple-darwin.tar.xz &&
           tar xf clang+llvm-4.0.0-x86_64-apple-darwin.tar.xz &&
