@@ -374,6 +374,7 @@ if(NOT travis_os) # Make it a bit faster on Travis CI
    list(APPEND configure_options "-DTEST_OPERATOR_FAILURES=TRUE")
 endif()
 list(APPEND configure_options "-DUSE_CCACHE=ON")
+list(APPEND configure_options "-DCMAKE_INSTALL_PREFIX=${CTEST_BINARY_DIRECTORY}/installed")
 if(DEFINED target_architecture)
    list(APPEND configure_options "-DTARGET_ARCHITECTURE=${target_architecture}")
 endif()
@@ -489,6 +490,15 @@ macro(go)
                         set(test_results ${res})
                      endif()
                   endif()
+               endif()
+               if(label STREQUAL "other")
+                  set(CTEST_BUILD_TARGET "install/fast")
+                  set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${MAKE_ARGS} ${CTEST_BUILD_TARGET}")
+                  ctest_build(
+                     BUILD "${CTEST_BINARY_DIRECTORY}"
+                     APPEND
+                     RETURN_VALUE res)
+                  ctest_submit(PARTS Build)
                endif()
             endforeach()
          endif()
