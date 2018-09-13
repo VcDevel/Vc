@@ -28,6 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_FWDDECL_H_
 #define VC_FWDDECL_H_
 
+#include <cstddef>  // for std::size_t
+
 #define Vc_VERSIONED_NAMESPACE Vc_1
 
 namespace Vc_VERSIONED_NAMESPACE
