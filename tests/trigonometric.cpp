@@ -36,7 +36,7 @@ TEST_TYPES(V, testSincos, RealTypes) //{{{1
 {
     typedef typename V::EntryType T;
     setFuzzyness<float>(2);
-    setFuzzyness<double>(2);
+    setFuzzyness<double>(3);
     Array<SincosReference<T> > reference = sincosReference<T>();
     for (size_t i = 0; i + V::Size - 1 < reference.size; i += V::Size) {
         V x, sref, cref;
