@@ -165,20 +165,20 @@ public:
     }
 
     // implicit casts
-    template <class U, class V, class..., class = enable_if<N == V::Size>>
+    template <class U, class V, class = enable_if<N == V::Size>>
     Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x)
         : data(simd_cast<vector_type>(internal_data(x)))
     {
     }
-    template <class U, class V, class..., class...,
-              class = enable_if<(N > V::Size && N <= 2 * V::Size)>>
+    template <class U, class V, class = enable_if<(N > V::Size && N <= 2 * V::Size)>,
+              class = U>
     Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x)
         : data(simd_cast<vector_type>(internal_data(internal_data0(x)),
                                       internal_data(internal_data1(x))))
     {
     }
-    template <class U, class V, class..., class..., class...,
-              class = enable_if<(N > 2 * V::Size && N <= 4 * V::Size)>>
+    template <class U, class V, class = enable_if<(N > 2 * V::Size && N <= 4 * V::Size)>,
+              class = U, class = U>
     Vc_INTRINSIC SimdArray(const SimdArray<U, N, V> &x)
         : data(simd_cast<vector_type>(internal_data(internal_data0(internal_data0(x))),
                                       internal_data(internal_data1(internal_data0(x))),
@@ -815,22 +815,21 @@ public:
     }
 
     // explicit casts
-    template <
-        class W, class...,
-        class = enable_if<(Traits::is_simd_vector<W>::value &&
-                           Traits::simd_vector_size<W>::value == N &&
-                           !(std::is_convertible<Traits::entry_type_of<W>, T>::value &&
-                             Traits::isSimdArray<W>::value))>>
+    template <class W, class = enable_if<
+                           (Traits::is_simd_vector<W>::value &&
+                            Traits::simd_vector_size<W>::value == N &&
+                            !(std::is_convertible<Traits::entry_type_of<W>, T>::value &&
+                              Traits::isSimdArray<W>::value))>>
     Vc_INTRINSIC explicit SimdArray(W &&x) : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
 
     // implicit casts
-    template <
-        class W, class..., class...,
-        class = enable_if<(Traits::isSimdArray<W>::value &&
-                           Traits::simd_vector_size<W>::value == N &&
-                           std::is_convertible<Traits::entry_type_of<W>, T>::value)>>
+    template <class W, class = enable_if<
+                           (Traits::isSimdArray<W>::value &&
+                            Traits::simd_vector_size<W>::value == N &&
+                            std::is_convertible<Traits::entry_type_of<W>, T>::value)>,
+              class = W>
     Vc_INTRINSIC SimdArray(W &&x) : data0(Split::lo(x)), data1(Split::hi(x))
     {
     }
