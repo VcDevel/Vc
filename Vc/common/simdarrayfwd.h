@@ -44,6 +44,9 @@ class Vector<T, simd_abi::fixed_size<N>> : public SimdArray<T, N>
     using SimdArray<T, N>::SimdArray;
 
 public:
+    using abi_type = simd_abi::fixed_size<N>;
+    using abi = abi_type;
+
     Vc_DEPRECATED("use Vector([](int n) { return n; }) instead of "
                   "Vector::IndexesFromZero()") static Vector IndexesFromZero()
     {
@@ -57,6 +60,10 @@ template <class T, int N>
 class Mask<T, simd_abi::fixed_size<N>> : public SimdMaskArray<T, N>
 {
     using SimdMaskArray<T, N>::SimdMaskArray;
+
+public:
+    using abi_type = simd_abi::fixed_size<N>;
+    using abi = abi_type;
 };
 // }}}
 

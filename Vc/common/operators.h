@@ -117,7 +117,8 @@ template <typename T, typename U, typename Abi, typename V, bool Integral>
 struct ReturnTypeImpl<Vector<T, Abi>, U, false, V, Integral> {
     using type = Vc::Vector<typename FundamentalReturnType<T, V>::type, Abi>;
 };
-template <typename V, typename T>
+template <class V, class T,
+          class = typename std::enable_if<!Traits::isSimdArray<V>::value>::type>
 using ReturnType = ReturnTypeImpl<
     V, T, std::is_arithmetic<T>::value || std::is_convertible<T, int>::value,
     decltype(is_convertible_to_any_vector<typename V::value_type, typename V::abi>(
