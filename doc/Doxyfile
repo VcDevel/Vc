@@ -1536,7 +1536,7 @@ SEARCHENGINE           = YES
 # The default value is: NO.
 # This tag requires that the tag SEARCHENGINE is set to YES.
 
-SERVER_BASED_SEARCH    = YES
+SERVER_BASED_SEARCH    = NO
 
 # When EXTERNAL_SEARCH tag is enabled doxygen will no longer generate the PHP
 # script for searching. Instead the search results are written to an XML file
@@ -1976,6 +1976,7 @@ PREDEFINED             = DOXYGEN \
                          Vc_CONST \
                          Vc_CONST_L \
                          Vc_CONST_R \
+                         Vc_VDECL \
                          Vc_VERSIONED_NAMESPACE=Vc \
                          Vc_DEPRECATED(x)=
 
