@@ -143,9 +143,7 @@ public:
     static constexpr std::size_t MemoryAlignment = storage_type::MemoryAlignment;
 
     // zero init
-#ifndef Vc_MSVC  // bogus error C2580
     Vc_INTRINSIC SimdArray() = default;
-#endif
 
     // default copy ctor/operator
     Vc_INTRINSIC SimdArray(const SimdArray &) = default;
@@ -724,9 +722,7 @@ public:
     ///@{
 
     ///\copydoc Vector::Vector()
-#ifndef Vc_MSVC  // bogus error C2580
     SimdArray() = default;
-#endif
     ///@}
 
     /// \name Conversion/Broadcast Constructors
