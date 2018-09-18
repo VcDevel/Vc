@@ -742,6 +742,20 @@ R get_dispatcher(const T &x, int = 0)
 }
 
 // }}}
+// my_tuple_element {{{
+template <size_t I, class T, class = void>
+struct my_tuple_element : std::tuple_element<I, T> {
+};
+
+template <size_t I, class T>
+struct my_tuple_element<
+    I, T, typename std::conditional<
+              true, void, decltype(std::declval<T>().template vc_get_<I>())>::type> {
+    using type =
+        typename std::decay<decltype(std::declval<T>().template vc_get_<I>())>::type;
+};
+
+// }}}
 // homogeneous_sizeof {{{
 /**\internal
  * This trait determines the `sizeof` of all fundamental types (i.e. recursively, when
@@ -750,25 +764,11 @@ R get_dispatcher(const T &x, int = 0)
  */
 template <class... Ts> struct homogeneous_sizeof;
 template <class T, class = void> struct homogeneous_sizeof_one;
-
-template <class T, size_t... Is>
-std::integral_constant<size_t,
-                       homogeneous_sizeof<typename std::remove_reference<decltype(
-                           get_dispatcher<Is>(std::declval<T>()))>::type...>::value>
-homogeneous_sizeof_helper(index_sequence<Is...>);
-
 template <class T>
 struct homogeneous_sizeof_one<T,
                               typename std::enable_if<std::is_arithmetic<T>::value>::type>
     : std::integral_constant<size_t, sizeof(T)> {
 };
-
-template <class T>
-struct homogeneous_sizeof_one<T, typename std::enable_if<std::is_class<T>::value>::type>
-    : decltype(homogeneous_sizeof_helper<T>(
-          make_index_sequence<determine_tuple_size_<T>::value>())) {
-};
-
 template <class T0> struct homogeneous_sizeof<T0> : homogeneous_sizeof_one<T0> {
 };
 
@@ -779,6 +779,18 @@ struct homogeneous_sizeof<T0, Ts...>
                                          ? homogeneous_sizeof<T0>::value
                                          : 0> {
 };
+
+template <class T, size_t... Is>
+std::integral_constant<
+    size_t, homogeneous_sizeof<typename my_tuple_element<Is, T>::type...>::value>
+    homogeneous_sizeof_helper(index_sequence<Is...>);
+
+template <class T>
+struct homogeneous_sizeof_one<T, typename std::enable_if<std::is_class<T>::value>::type>
+    : decltype(homogeneous_sizeof_helper<T>(
+          make_index_sequence<determine_tuple_size_<T>::value>())) {
+};
+
 // }}}
 // class Adapter {{{
 template <typename Scalar, typename Base, size_t N> class Adapter : public Base
@@ -867,12 +879,7 @@ public:
     template <class F,
               class = decltype(static_cast<Scalar>(std::declval<F>()(
                   size_t())))>  // F returns objects that are convertible to S
-    Adapter(F &&fun)
-    {
-        for (size_t i = 0; i < N; ++i) {
-            assign(*this, i, fun(i));
-        }
-    }
+    Adapter(F &&fun);           // implementation below
 
     // }}}
     /// perfect forward all Base constructors
@@ -1311,6 +1318,16 @@ V &&decorate(V &&v)
 // }}}
 namespace SimdizeDetail
 {
+// Adapter::Adapter(F) Generator {{{
+template <typename Scalar, typename Base, size_t N>
+template <class F, class>
+Adapter<Scalar, Base, N>::Adapter(F &&fun)
+{
+    for (size_t i = 0; i < N; ++i) {
+        Vc::assign(*this, i, fun(i));
+    }
+}
+// }}}
 namespace IteratorDetails  // {{{
 {
 enum class Mutable { Yes, No };
