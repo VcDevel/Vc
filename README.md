@@ -44,8 +44,8 @@ After Intel dropped MIC support with ICC 18, Vc 1.4 also removes support for it.
 
 ### Usage on Compiler Explorer
 
-[Simdize Example](https://godbolt.org/z/wd6uT2)
-[Total momentum and time stepping of `std::vector<Particle>`](https://godbolt.org/z/OkejKr)
+* [Simdize Example](https://godbolt.org/z/wd6uT2)
+* [Total momentum and time stepping of `std::vector<Particle>`](https://godbolt.org/z/OkejKr)
 
 ### Scalar Product
 
@@ -92,6 +92,12 @@ C++11 Compiler:
 
 ## Building and Installing Vc
 
+* After cloning, you need to initialize Vc's git submodules:
+
+```sh
+git submodule update --init
+```
+
 * Create a build directory:
 
 ```sh
@@ -118,6 +124,7 @@ The documentation is generated via [doxygen](http://doxygen.org). You can build
 the documentation by running `doxygen` in the `doc` subdirectory.
 Alternatively, you can find nightly builds of the documentation at:
 
+* [1.4 branch](https://web-docs.gsi.de/~mkretz/Vc-1.4/)
 * [1.3 branch](https://web-docs.gsi.de/~mkretz/Vc-1.3/)
 * [1.3.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.3.0/)
 * [1.2.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.2.0/)
