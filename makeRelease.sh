@@ -29,6 +29,15 @@ sed -i \
 	include/Vc/version.h
 cat include/Vc/version.h
 
+# Modify README.md to link to release docs
+ed README.md <<EOF
+P
+/web-docs/a
+* [$versionString release](https://web-docs.gsi.de/~mkretz/Vc-$versionString/)
+.
+w
+EOF
+
 # Don't build tests with make all
 sed -i -e 's/#Release# //' CMakeLists.txt
 git commit CMakeLists.txt doc/Doxyfile include/Vc/version.h -s -F- <<EOF
@@ -37,6 +46,7 @@ release: version $versionString
 * change version strings/numbers to $versionString
 * disable HTML_TIMESTAMP for doxygen
 * don't build tests with make all
+* Add documentation link to Vc-$versionString
 EOF
 
 git tag -m "Vc $versionString release" -s "$versionString" || exit
@@ -46,6 +56,11 @@ git archive --format=tar --prefix="Vc-$versionString/" "$versionString" | gzip >
 
 # Create API docs tarball
 ./makeApidox.sh
+
+# Copy API docs to web-docs
+rsync -a --del doc/html/ lxpool.gsi.de:web-docs/Vc-$versionString/
+
+# Create API docs tarball
 mv doc/html/*.qch "../Vc-${versionString}.qch"
 mv doc/html "Vc-docs-$versionString" && tar -czf "../Vc-docs-$versionString".tar.gz "Vc-docs-$versionString"
 rm -rf "Vc-docs-$versionString"
