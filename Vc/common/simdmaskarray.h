@@ -120,6 +120,10 @@ public:
     {
         return simd_cast<Vc::Mask<U, A>>(data);
     }
+    operator fixed_size_simd_mask<T, N>() const
+    {
+        return static_cast<fixed_size_simd_mask<T, N>>(data);
+    }
 
     // load/store (from/to bool arrays)
     template <typename Flags = DefaultLoadTag>
@@ -393,6 +397,10 @@ public:
     operator Vc::Mask<U, A>() const
     {
         return simd_cast<Vc::Mask<U, A>>(data0, data1);
+    }
+    Vc_INTRINSIC operator const fixed_size_simd_mask<T, N> &() const
+    {
+        return static_cast<const fixed_size_simd_mask<T, N> &>(*this);
     }
 
     ///\copybrief Mask::Mask(VectorSpecialInitializerOne)
