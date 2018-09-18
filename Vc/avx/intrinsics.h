@@ -187,27 +187,45 @@ namespace AvxIntrinsics
     }
 
     /////////////////////// COMPARE OPS ///////////////////////
-    static Vc_INTRINSIC m256d Vc_CONST cmpeq_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_EQ_OQ); }
-    static Vc_INTRINSIC m256d Vc_CONST cmpneq_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NEQ_UQ); }
-    static Vc_INTRINSIC m256d Vc_CONST cmplt_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_LT_OS); }
-    static Vc_INTRINSIC m256d Vc_CONST cmpnlt_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLT_US); }
-    static Vc_INTRINSIC m256d Vc_CONST cmpge_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLT_US); }
-    static Vc_INTRINSIC m256d Vc_CONST cmple_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_LE_OS); }
-    static Vc_INTRINSIC m256d Vc_CONST cmpnle_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLE_US); }
-    static Vc_INTRINSIC m256d Vc_CONST cmpgt_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLE_US); }
-    static Vc_INTRINSIC m256d Vc_CONST cmpord_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_ORD_Q); }
-    static Vc_INTRINSIC m256d Vc_CONST cmpunord_pd(__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_UNORD_Q); }
+#ifdef Vc_GCC
+    // GCC needs builtin compare operators to enable constant folding
+    Vc_INTRINSIC __m256d cmpeq_pd   (__m256d a, __m256d b) { return reinterpret_cast<__m256d>(a == b); }
+    Vc_INTRINSIC __m256d cmpneq_pd  (__m256d a, __m256d b) { return reinterpret_cast<__m256d>(a != b); }
+    Vc_INTRINSIC __m256d cmplt_pd   (__m256d a, __m256d b) { return reinterpret_cast<__m256d>(a < b); }
+    Vc_INTRINSIC __m256d cmpge_pd   (__m256d a, __m256d b) { return reinterpret_cast<__m256d>(a >= b); }
+    Vc_INTRINSIC __m256d cmple_pd   (__m256d a, __m256d b) { return reinterpret_cast<__m256d>(a <= b); }
+    Vc_INTRINSIC __m256d cmpgt_pd   (__m256d a, __m256d b) { return reinterpret_cast<__m256d>(a > b); }
 
-    static Vc_INTRINSIC m256  Vc_CONST cmpeq_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_EQ_OQ); }
-    static Vc_INTRINSIC m256  Vc_CONST cmpneq_ps  (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_NEQ_UQ); }
-    static Vc_INTRINSIC m256  Vc_CONST cmplt_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_LT_OS); }
-    static Vc_INTRINSIC m256  Vc_CONST cmpnlt_ps  (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_NLT_US); }
-    static Vc_INTRINSIC m256  Vc_CONST cmpge_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_NLT_US); }
-    static Vc_INTRINSIC m256  Vc_CONST cmple_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_LE_OS); }
-    static Vc_INTRINSIC m256  Vc_CONST cmpnle_ps  (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_NLE_US); }
-    static Vc_INTRINSIC m256  Vc_CONST cmpgt_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_NLE_US); }
-    static Vc_INTRINSIC m256  Vc_CONST cmpord_ps  (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_ORD_Q); }
-    static Vc_INTRINSIC m256  Vc_CONST cmpunord_ps(__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
+    Vc_INTRINSIC __m256  cmpeq_ps   (__m256  a, __m256  b) { return reinterpret_cast<__m256 >(a == b); }
+    Vc_INTRINSIC __m256  cmpneq_ps  (__m256  a, __m256  b) { return reinterpret_cast<__m256 >(a != b); }
+    Vc_INTRINSIC __m256  cmplt_ps   (__m256  a, __m256  b) { return reinterpret_cast<__m256 >(a < b); }
+    Vc_INTRINSIC __m256  cmpge_ps   (__m256  a, __m256  b) { return reinterpret_cast<__m256 >(a >= b); }
+    Vc_INTRINSIC __m256  cmple_ps   (__m256  a, __m256  b) { return reinterpret_cast<__m256 >(a <= b); }
+    Vc_INTRINSIC __m256  cmpgt_ps   (__m256  a, __m256  b) { return reinterpret_cast<__m256 >(a > b); }
+#else
+    Vc_INTRINSIC __m256d cmpeq_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_EQ_OQ); }
+    Vc_INTRINSIC __m256d cmpneq_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NEQ_UQ); }
+    Vc_INTRINSIC __m256d cmplt_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_LT_OS); }
+    Vc_INTRINSIC __m256d cmpge_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLT_US); }
+    Vc_INTRINSIC __m256d cmple_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_LE_OS); }
+    Vc_INTRINSIC __m256d cmpgt_pd   (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_NLE_US); }
+
+    Vc_INTRINSIC __m256  cmpeq_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_EQ_OQ); }
+    Vc_INTRINSIC __m256  cmpneq_ps  (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_NEQ_UQ); }
+    Vc_INTRINSIC __m256  cmplt_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_LT_OS); }
+    Vc_INTRINSIC __m256  cmpge_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_NLT_US); }
+    Vc_INTRINSIC __m256  cmple_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_LE_OS); }
+    Vc_INTRINSIC __m256  cmpgt_ps   (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_NLE_US); }
+#endif
+    Vc_INTRINSIC __m256d cmpnlt_pd  (__m256d a, __m256d b) { return cmpge_pd(a, b); }
+    Vc_INTRINSIC __m256d cmpnle_pd  (__m256d a, __m256d b) { return cmpgt_pd(a, b); }
+    Vc_INTRINSIC __m256  cmpnlt_ps  (__m256  a, __m256  b) { return cmpge_ps(a, b); }
+    Vc_INTRINSIC __m256  cmpnle_ps  (__m256  a, __m256  b) { return cmpgt_ps(a, b); }
+
+    Vc_INTRINSIC __m256d cmpord_pd  (__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_ORD_Q); }
+    Vc_INTRINSIC __m256d cmpunord_pd(__m256d a, __m256d b) { return _mm256_cmp_pd(a, b, _CMP_UNORD_Q); }
+    Vc_INTRINSIC __m256  cmpord_ps  (__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_ORD_Q); }
+    Vc_INTRINSIC __m256  cmpunord_ps(__m256  a, __m256  b) { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
 
 #if defined(Vc_IMPL_XOP)
     static Vc_INTRINSIC m128i cmplt_epu16(__m128i a, __m128i b) {
