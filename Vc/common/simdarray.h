@@ -1530,10 +1530,10 @@ const typename SimdArrayTraits<T, N>::storage_type1 &internal_data1(
 // MSVC workaround for SimdArray(storage_type0, storage_type1) ctor{{{1
 // MSVC sometimes stores x to data1. By first broadcasting 0 and then assigning y
 // in the body the bug is supressed.
-#if defined Vc_MSVC && defined Vc_IMPL_SSE
+#if defined Vc_MSVC && defined Vc_IMPL_SSE && !defined Vc_IMPL_AVX
 template <>
-Vc_INTRINSIC SimdArray<double, 8, SSE::Vector<double>, 2>::SimdArray(
-    SimdArray<double, 4> &&x, SimdArray<double, 4> &&y)
+Vc_INTRINSIC SimdArray<double, 8>::SimdArray(fixed_size_simd<double, 4> &&x,
+                                             fixed_size_simd<double, 4> &&y)
     : data0(x), data1(0)
 {
     data1 = y;
@@ -2254,13 +2254,15 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray, Vc::Mask);
 Vc_SIMDARRAY_CASTS(SimdArray);
 Vc_SIMDARRAY_CASTS(SimdMaskArray);
 #undef Vc_SIMDARRAY_CASTS
-template <class Return, class T, int N, class... Ts>
+template <class Return, class T, int N, class... Ts,
+          class = enable_if<!std::is_same<Return, fixed_size_simd<T, N>>::value>>
 Vc_INTRINSIC Return simd_cast(const fixed_size_simd<T, N> &x, const Ts &... xs)
 {
     return simd_cast<Return>(static_cast<const SimdArray<T, N> &>(x),
                              static_cast<const SimdArray<T, N> &>(xs)...);
 }
-template <class Return, class T, int N, class... Ts>
+template <class Return, class T, int N, class... Ts,
+          class = enable_if<!std::is_same<Return, fixed_size_simd_mask<T, N>>::value>>
 Vc_INTRINSIC Return simd_cast(const fixed_size_simd_mask<T, N> &x, const Ts &... xs)
 {
     return simd_cast<Return>(static_cast<const SimdMaskArray<T, N> &>(x),
