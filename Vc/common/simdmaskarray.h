@@ -397,12 +397,10 @@ public:
     }
 
     // conversion from Mask<T>
-    template <typename M>
-    Vc_INTRINSIC SimdMaskArray(
-        M k,
-        enable_if<(Traits::is_simd_mask<M>::value && !Traits::isSimdMaskArray<M>::value &&
-                   Traits::simd_vector_size<M>::value == Size)> = nullarg)
-        : data0(Split::lo(k)), data1(Split::hi(k))
+    template <class M, class = enable_if<(Traits::is_simd_mask<M>::value &&
+                                          !Traits::isSimdMaskArray<M>::value &&
+                                          Traits::simd_vector_size<M>::value == Size)>>
+    Vc_INTRINSIC SimdMaskArray(M k) : data0(Split::lo(k)), data1(Split::hi(k))
     {
     }
 
