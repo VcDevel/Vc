@@ -30,28 +30,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "macros.h"
 namespace Vc_VERSIONED_NAMESPACE {
-
-template <typename T, std::size_t N, typename VectorType>
-template <typename U, typename V>
+template <class T, std::size_t N, class VectorType>
+template <class U, class V, class>
 Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
-    const SimdMaskArray<U, N, V> &x,
-    enable_if<N == V::Size>)
+    const SimdMaskArray<U, N, V> &x)
     : data(simd_cast<mask_type>(internal_data(x)))
 {
 }
-template <typename T, std::size_t N, typename VectorType>
-template <typename U, typename V>
+template <class T, std::size_t N, class VectorType>
+template <class U, class V, class, class>
 Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
-    const SimdMaskArray<U, N, V> &x,
-    enable_if<(N > V::Size && N <= 2 * V::Size)>)
-    : data(simd_cast<mask_type>(internal_data(internal_data0(x)), internal_data(internal_data1(x))))
+    const SimdMaskArray<U, N, V> &x)
+    : data(simd_cast<mask_type>(internal_data(internal_data0(x)),
+                                internal_data(internal_data1(x))))
 {
 }
-template <typename T, std::size_t N, typename VectorType>
-template <typename U, typename V>
+template <class T, std::size_t N, class VectorType>
+template <class U, class V, class, class, class>
 Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
-    const SimdMaskArray<U, N, V> &x,
-    enable_if<(N > 2 * V::Size && N <= 4 * V::Size)>)
+    const SimdMaskArray<U, N, V> &x)
     : data(simd_cast<mask_type>(internal_data(internal_data0(internal_data0(x))),
                                 internal_data(internal_data1(internal_data0(x))),
                                 internal_data(internal_data0(internal_data1(x))),
@@ -59,8 +56,8 @@ Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
 {
 }
 // conversion from any Segment object (could be SimdMaskArray or Mask<T>)
-template <typename T, std::size_t N, typename VectorType>
-template <typename M, std::size_t Pieces, std::size_t Index>
+template <class T, std::size_t N, class VectorType>
+template <class M, std::size_t Pieces, std::size_t Index>
 Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
     Common::Segment<M, Pieces, Index> &&x,
     enable_if<Traits::simd_vector_size<M>::value == Size * Pieces>)
@@ -68,17 +65,14 @@ Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
 {
 }
 // conversion from Mask<T>
-template <typename T, std::size_t N, typename VectorType>
-template <typename M>
-Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(
-    M k,
-    enable_if<(Traits::is_simd_mask<M>::value && !Traits::isSimdMaskArray<M>::value &&
-               Traits::simd_vector_size<M>::value == Size)>)
+template <class T, std::size_t N, class VectorType>
+template <class M, class>
+Vc_INTRINSIC SimdMaskArray<T, N, VectorType, N>::SimdMaskArray(M k)
     : data(simd_cast<mask_type>(k))
 {
 }
 
-}
+}  // namespace Vc_VERSIONED_NAMESPACE
 
 #endif  // VC_COMMON_SIMD_CAST_CALLER_TCC_
 

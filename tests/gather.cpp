@@ -81,7 +81,7 @@ Vec incrementIndex(
     typename std::enable_if<!(Vc::is_integral<Vec>::value &&Vc::is_signed<Vec>::value),
                             void *>::type = nullptr)
 {
-    return Vc::simd_cast<Vec>(i + i.One());
+    return Vc::simd_cast<Vec>(i + 1);
 }
 
 template <typename Vec>

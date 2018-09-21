@@ -240,7 +240,7 @@ TEST_TYPES(Vec, testZero, AllVectors) /*{{{*/
     typedef typename Vec::Mask Mask;
     typedef typename Vec::IndexType I;
 
-    for (size_t cut = 0; cut < Vec::Size; ++cut) {
+    for (int cut = 0; cut < int(Vec::Size); ++cut) {
         const Mask mask = Vc::simd_cast<Mask>(I([](int n) { return n; }) < cut);
         //std::cout << mask << std::endl;
 

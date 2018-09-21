@@ -126,8 +126,10 @@ TEST_TYPES(Param, testInterleavingScatter,
     typedef typename V::IndexType I;
     typedef SomeStruct<T, StructSize> S;
     typedef Vc::InterleavedMemoryWrapper<S, V> Wrapper;
-    const size_t N = std::min<size_t>(std::numeric_limits<typename I::EntryType>::max(),
-                                      1024 * 1024 / sizeof(S));
+    const size_t N =
+        std::min(static_cast<size_t>(std::numeric_limits<typename I::EntryType>::max()),
+                 1024 * 1024 / sizeof(S));
+    const typename I::value_type NN = N;
     const size_t NMask = createNMask(N);
 
     S *data = Vc::malloc<S, Vc::AlignOnVector>(N);
@@ -135,10 +137,8 @@ TEST_TYPES(Param, testInterleavingScatter,
     Wrapper data_v(data);
 
     try {
-        testInterleavingScatterCompare<V>(
-            data_v,
-            static_cast<typename I::EntryType>(N - 1) - I([](int n) { return n; }),
-            Vc::make_index_sequence<StructSize>());
+        testInterleavingScatterCompare<V>(data_v, (NN - 1) - I([](int n) { return n; }),
+                                          Vc::make_index_sequence<StructSize>());
         for (int retest = 0; retest < TotalRetests; ++retest) {
             I indexes = (I::Random() >> 10) & I(NMask);
             if (I::Size != 1) {
@@ -148,7 +148,7 @@ TEST_TYPES(Param, testInterleavingScatter,
                 }
             }
             VERIFY(all_of(indexes >= 0));
-            VERIFY(all_of(indexes < N));
+            VERIFY(all_of(indexes < NN));
 
             testInterleavingScatterCompare<V>(data_v, indexes,
                                               Vc::make_index_sequence<StructSize>());

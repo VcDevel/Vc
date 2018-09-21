@@ -90,10 +90,10 @@ template <typename T> T Vc_INTRINSIC Vc_PURE sum_helper_(const T &l, const T &r)
 
 // min & max declarations {{{1
 template <typename T, std::size_t N, typename V, std::size_t M>
-inline SimdArray<T, N, V, M> min(const SimdArray<T, N, V, M> &x,
+inline fixed_size_simd<T, N> min(const SimdArray<T, N, V, M> &x,
                                  const SimdArray<T, N, V, M> &y);
 template <typename T, std::size_t N, typename V, std::size_t M>
-inline SimdArray<T, N, V, M> max(const SimdArray<T, N, V, M> &x,
+inline fixed_size_simd<T, N> max(const SimdArray<T, N, V, M> &x,
                                  const SimdArray<T, N, V, M> &y);
 
 // SimdArray class {{{1
@@ -129,13 +129,14 @@ class SimdArray<T, N, VectorType_, N>
         "are implementation details.");
 
 public:
+    static constexpr bool is_atomic = true;
     using VectorType = VectorType_;
     using vector_type = VectorType;
     using storage_type = vector_type;
     using vectorentry_type = typename vector_type::VectorEntryType;
     using value_type = T;
-    using mask_type = SimdMaskArray<T, N, vector_type>;
-    using index_type = SimdArray<int, N>;
+    using mask_type = fixed_size_simd_mask<T, N>;
+    using index_type = fixed_size_simd<int, N>;
     static constexpr std::size_t size() { return N; }
     using Mask = mask_type;
     using MaskType = Mask;
@@ -228,9 +229,13 @@ public:
     {
         return simd_cast<Vector<U, A>>(data);
     }
-    operator fixed_size_simd<T, N>() const
+    operator fixed_size_simd<T, N> &()
     {
-        return static_cast<fixed_size_simd<T, N>>(data);
+        return static_cast<fixed_size_simd<T, N> &>(*this);
+    }
+    operator const fixed_size_simd<T, N> &() const
+    {
+        return static_cast<const fixed_size_simd<T, N> &>(*this);
     }
 
 #include "gatherinterface.h"
@@ -264,9 +269,9 @@ public:
 
     // internal: execute specified Operation
     template <typename Op, typename... Args>
-    static Vc_INTRINSIC SimdArray fromOperation(Op op, Args &&... args)
+    static Vc_INTRINSIC fixed_size_simd<T, N> fromOperation(Op op, Args &&... args)
     {
-        SimdArray r;
+        fixed_size_simd<T, N> r;
         Common::unpackArgumentsAuto(op, r.data, std::forward<Args>(args)...);
         return r;
     }
@@ -277,19 +282,19 @@ public:
         Common::unpackArgumentsAuto(op, nullptr, std::forward<Args>(args)...);
     }
 
-    static Vc_INTRINSIC SimdArray Zero()
+    static Vc_INTRINSIC fixed_size_simd<T, N> Zero()
     {
         return SimdArray(Vc::Zero);
     }
-    static Vc_INTRINSIC SimdArray One()
+    static Vc_INTRINSIC fixed_size_simd<T, N> One()
     {
         return SimdArray(Vc::One);
     }
-    static Vc_INTRINSIC SimdArray IndexesFromZero()
+    static Vc_INTRINSIC fixed_size_simd<T, N> IndexesFromZero()
     {
         return SimdArray(Vc::IndexesFromZero);
     }
-    static Vc_INTRINSIC SimdArray Random()
+    static Vc_INTRINSIC fixed_size_simd<T, N> Random()
     {
         return fromOperation(Common::Operations::random());
     }
@@ -309,52 +314,48 @@ public:
         return {private_init, !data};
     }
 
-    Vc_INTRINSIC SimdArray operator-() const
+    Vc_INTRINSIC fixed_size_simd<T, N> operator-() const
     {
         return {private_init, -data};
     }
 
     /// Returns a copy of itself
-    Vc_INTRINSIC SimdArray operator+() const { return *this; }
+    Vc_INTRINSIC fixed_size_simd<T, N> operator+() const { return *this; }
 
-    Vc_INTRINSIC SimdArray operator~() const
+    Vc_INTRINSIC fixed_size_simd<T, N> operator~() const
     {
         return {private_init, ~data};
     }
 
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
-    Vc_INTRINSIC Vc_CONST SimdArray operator<<(U x) const
+    Vc_INTRINSIC Vc_CONST fixed_size_simd<T, N> operator<<(U x) const
     {
         return {private_init, data << x};
     }
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
-    Vc_INTRINSIC SimdArray &operator<<=(U x)
+    Vc_INTRINSIC fixed_size_simd<T, N> &operator<<=(U x)
     {
         data <<= x;
         return *this;
     }
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
-    Vc_INTRINSIC Vc_CONST SimdArray operator>>(U x) const
+    Vc_INTRINSIC Vc_CONST fixed_size_simd<T, N> operator>>(U x) const
     {
         return {private_init, data >> x};
     }
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
-    Vc_INTRINSIC SimdArray &operator>>=(U x)
+    Vc_INTRINSIC fixed_size_simd<T, N> &operator>>=(U x)
     {
         data >>= x;
         return *this;
     }
 
 #define Vc_BINARY_OPERATOR_(op)                                                          \
-    Vc_INTRINSIC Vc_CONST SimdArray operator op(const SimdArray &rhs) const              \
-    {                                                                                    \
-        return {private_init, data op rhs.data};                                         \
-    }                                                                                    \
-    Vc_INTRINSIC SimdArray &operator op##=(const SimdArray &rhs)                         \
+    Vc_INTRINSIC fixed_size_simd<T, N> &operator op##=(const SimdArray &rhs)             \
     {                                                                                    \
         data op## = rhs.data;                                                            \
         return *this;                                                                    \
@@ -363,14 +364,6 @@ public:
     Vc_ALL_BINARY(Vc_BINARY_OPERATOR_);
     Vc_ALL_SHIFTS(Vc_BINARY_OPERATOR_);
 #undef Vc_BINARY_OPERATOR_
-
-#define Vc_COMPARES(op)                                                                  \
-    Vc_INTRINSIC mask_type operator op(const SimdArray &rhs) const                       \
-    {                                                                                    \
-        return {private_init, data op rhs.data};                                         \
-    }
-    Vc_ALL_COMPARES(Vc_COMPARES);
-#undef Vc_COMPARES
 
     /// \copydoc Vector::isNegative
     Vc_DEPRECATED("use isnegative(x) instead") Vc_INTRINSIC MaskType isNegative() const
@@ -431,69 +424,69 @@ public:
     Vc_REDUCTION_FUNCTION_(product);
     Vc_REDUCTION_FUNCTION_(sum);
 #undef Vc_REDUCTION_FUNCTION_
-    Vc_INTRINSIC Vc_PURE SimdArray partialSum() const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd<T, N> partialSum() const
     {
         return {private_init, data.partialSum()};
     }
 
-    template <typename F> Vc_INTRINSIC SimdArray apply(F &&f) const
+    template <typename F> Vc_INTRINSIC fixed_size_simd<T, N> apply(F &&f) const
     {
         return {private_init, data.apply(std::forward<F>(f))};
     }
-    template <typename F> Vc_INTRINSIC SimdArray apply(F &&f, const mask_type &k) const
+    template <typename F> Vc_INTRINSIC fixed_size_simd<T, N> apply(F &&f, const mask_type &k) const
     {
         return {private_init, data.apply(std::forward<F>(f), k)};
     }
 
-    Vc_INTRINSIC SimdArray shifted(int amount) const
+    Vc_INTRINSIC fixed_size_simd<T, N> shifted(int amount) const
     {
         return {private_init, data.shifted(amount)};
     }
 
     template <std::size_t NN>
-    Vc_INTRINSIC SimdArray shifted(int amount, const SimdArray<value_type, NN> &shiftIn)
+    Vc_INTRINSIC fixed_size_simd<T, N> shifted(int amount, const SimdArray<value_type, NN> &shiftIn)
         const
     {
         return {private_init, data.shifted(amount, simd_cast<VectorType>(shiftIn))};
     }
 
-    Vc_INTRINSIC SimdArray rotated(int amount) const
+    Vc_INTRINSIC fixed_size_simd<T, N> rotated(int amount) const
     {
         return {private_init, data.rotated(amount)};
     }
 
     /// \copydoc Vector::exponent
-    Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC SimdArray exponent() const
+    Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC fixed_size_simd<T, N> exponent() const
     {
         return {private_init, exponent(data)};
     }
 
-    Vc_INTRINSIC SimdArray interleaveLow(SimdArray x) const
+    Vc_INTRINSIC fixed_size_simd<T, N> interleaveLow(SimdArray x) const
     {
         return {private_init, data.interleaveLow(x.data)};
     }
-    Vc_INTRINSIC SimdArray interleaveHigh(SimdArray x) const
+    Vc_INTRINSIC fixed_size_simd<T, N> interleaveHigh(SimdArray x) const
     {
         return {private_init, data.interleaveHigh(x.data)};
     }
 
-    Vc_INTRINSIC SimdArray reversed() const
+    Vc_INTRINSIC fixed_size_simd<T, N> reversed() const
     {
         return {private_init, data.reversed()};
     }
 
-    Vc_INTRINSIC SimdArray sorted() const
+    Vc_INTRINSIC fixed_size_simd<T, N> sorted() const
     {
         return {private_init, data.sorted()};
     }
 
-    template <typename G> static Vc_INTRINSIC SimdArray generate(const G &gen)
+    template <typename G> static Vc_INTRINSIC fixed_size_simd<T, N> generate(const G &gen)
     {
         return {private_init, VectorType::generate(gen)};
     }
 
-    Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC SimdArray
-        copySign(const SimdArray &x) const
+    Vc_DEPRECATED("use copysign(x, y) instead")
+        Vc_INTRINSIC fixed_size_simd<T, N> copySign(const SimdArray &x) const
     {
         return {private_init, Vc::copysign(data, x.data)};
     }
@@ -637,6 +630,7 @@ template <typename T, size_t N, typename V, size_t Wt> class SimdArray
     template <typename U, std::size_t K> using CArray = U[K];
 
 public:
+    static constexpr bool is_atomic = false;
     using storage_type0 = typename my_traits::storage_type0;
     using storage_type1 = typename my_traits::storage_type1;
     static_assert(storage_type0::size() == N0, "");
@@ -652,10 +646,10 @@ public:
     using value_type = T;
 
     /// The type of the mask used for masked operations and returned from comparisons.
-    using mask_type = SimdMaskArray<T, N, vector_type>;
+    using mask_type = fixed_size_simd_mask<T, N>;
 
     /// The type of the vector used for indexes in gather and scatter operations.
-    using index_type = SimdArray<int, N>;
+    using index_type = fixed_size_simd<int, N>;
 
     /**
      * Returns \p N, the number of scalar components in an object of this type.
@@ -693,31 +687,31 @@ public:
     ///@{
 
     ///\copybrief Vector::Zero
-    static Vc_INTRINSIC SimdArray Zero()
+    static Vc_INTRINSIC fixed_size_simd<T, N> Zero()
     {
         return SimdArray(Vc::Zero);
     }
 
     ///\copybrief Vector::One
-    static Vc_INTRINSIC SimdArray One()
+    static Vc_INTRINSIC fixed_size_simd<T, N> One()
     {
         return SimdArray(Vc::One);
     }
 
     ///\copybrief Vector::IndexesFromZero
-    static Vc_INTRINSIC SimdArray IndexesFromZero()
+    static Vc_INTRINSIC fixed_size_simd<T, N> IndexesFromZero()
     {
         return SimdArray(Vc::IndexesFromZero);
     }
 
     ///\copydoc Vector::Random
-    static Vc_INTRINSIC SimdArray Random()
+    static Vc_INTRINSIC fixed_size_simd<T, N> Random()
     {
         return fromOperation(Common::Operations::random());
     }
 
     ///\copybrief Vector::generate
-    template <typename G> static Vc_INTRINSIC SimdArray generate(const G &gen) // {{{2
+    template <typename G> static Vc_INTRINSIC fixed_size_simd<T, N> generate(const G &gen) // {{{2
     {
         auto tmp = storage_type0::generate(gen);  // GCC bug: the order of evaluation in
                                                   // an initializer list is well-defined
@@ -852,6 +846,10 @@ public:
         auto r = simd_cast<Vector<U, A>>(data0, data1);
         return r;
     }
+    Vc_INTRINSIC operator fixed_size_simd<T, N> &()
+    {
+        return static_cast<fixed_size_simd<T, N> &>(*this);
+    }
     Vc_INTRINSIC operator const fixed_size_simd<T, N> &() const
     {
         return static_cast<const fixed_size_simd<T, N> &>(*this);
@@ -892,9 +890,9 @@ public:
 
     ///\internal execute specified Operation
     template <typename Op, typename... Args>
-    static Vc_INTRINSIC SimdArray fromOperation(Op op, Args &&... args)
+    static Vc_INTRINSIC fixed_size_simd<T, N> fromOperation(Op op, Args &&... args)
     {
-        SimdArray r = {
+        fixed_size_simd<T, N> r = {
             storage_type0::fromOperation(op, Split::lo(args)...),  // no forward here - it
                                                                    // could move and thus
                                                                    // break the next line
@@ -930,15 +928,15 @@ public:
         return {!data0, !data1};
     }
 
-    Vc_INTRINSIC SimdArray operator-() const
+    Vc_INTRINSIC fixed_size_simd<T, N> operator-() const
     {
         return {-data0, -data1};
     }
 
     /// Returns a copy of itself
-    Vc_INTRINSIC SimdArray operator+() const { return *this; }
+    Vc_INTRINSIC fixed_size_simd<T, N> operator+() const { return *this; }
 
-    Vc_INTRINSIC SimdArray operator~() const
+    Vc_INTRINSIC fixed_size_simd<T, N> operator~() const
     {
         return {~data0, ~data1};
     }
@@ -946,13 +944,13 @@ public:
     // left/right shift operators {{{2
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
-    Vc_INTRINSIC Vc_CONST SimdArray operator<<(U x) const
+    Vc_INTRINSIC Vc_CONST fixed_size_simd<T, N> operator<<(U x) const
     {
         return {data0 << x, data1 << x};
     }
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
-    Vc_INTRINSIC SimdArray &operator<<=(U x)
+    Vc_INTRINSIC fixed_size_simd<T, N> &operator<<=(U x)
     {
         data0 <<= x;
         data1 <<= x;
@@ -960,13 +958,13 @@ public:
     }
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
-    Vc_INTRINSIC Vc_CONST SimdArray operator>>(U x) const
+    Vc_INTRINSIC Vc_CONST fixed_size_simd<T, N> operator>>(U x) const
     {
         return {data0 >> x, data1 >> x};
     }
     template <typename U,
               typename = enable_if<std::is_integral<T>::value && std::is_integral<U>::value>>
-    Vc_INTRINSIC SimdArray &operator>>=(U x)
+    Vc_INTRINSIC fixed_size_simd<T, N> &operator>>=(U x)
     {
         data0 >>= x;
         data1 >>= x;
@@ -975,11 +973,7 @@ public:
 
     // binary operators {{{2
 #define Vc_BINARY_OPERATOR_(op)                                                          \
-    Vc_INTRINSIC Vc_CONST SimdArray operator op(const SimdArray &rhs) const              \
-    {                                                                                    \
-        return {data0 op rhs.data0, data1 op rhs.data1};                                 \
-    }                                                                                    \
-    Vc_INTRINSIC SimdArray &operator op##=(const SimdArray &rhs)                         \
+    Vc_INTRINSIC fixed_size_simd<T, N> &operator op##=(const SimdArray &rhs)             \
     {                                                                                    \
         data0 op## = rhs.data0;                                                          \
         data1 op## = rhs.data1;                                                          \
@@ -989,14 +983,6 @@ public:
     Vc_ALL_BINARY(Vc_BINARY_OPERATOR_);
     Vc_ALL_SHIFTS(Vc_BINARY_OPERATOR_);
 #undef Vc_BINARY_OPERATOR_
-
-#define Vc_COMPARES(op)                                                                  \
-    Vc_INTRINSIC mask_type operator op(const SimdArray &rhs) const                       \
-    {                                                                                    \
-        return {data0 op rhs.data0, data1 op rhs.data1};                                 \
-    }
-    Vc_ALL_COMPARES(Vc_COMPARES);
-#undef Vc_COMPARES
 
     // operator[] {{{2
     /// \name Scalar Subscript Operators
@@ -1092,7 +1078,7 @@ public:                                                                         
     Vc_REDUCTION_FUNCTION_(sum, internal::sum_helper_, internal::sum_helper_);
 #undef Vc_REDUCTION_FUNCTION_
     ///\copybrief Vector::partialSum
-    Vc_INTRINSIC Vc_PURE SimdArray partialSum() const //{{{2
+    Vc_INTRINSIC Vc_PURE fixed_size_simd<T, N> partialSum() const //{{{2
     {
         auto ps0 = data0.partialSum();
         auto tmp = data1;
@@ -1102,19 +1088,20 @@ public:                                                                         
 
     // apply {{{2
     ///\copybrief Vector::apply(F &&) const
-    template <typename F> inline SimdArray apply(F &&f) const
+    template <typename F> inline fixed_size_simd<T, N> apply(F &&f) const
     {
         return {data0.apply(f), data1.apply(f)};
     }
     ///\copybrief Vector::apply(F &&, MaskType) const
-    template <typename F> inline SimdArray apply(F &&f, const mask_type &k) const
+    template <typename F>
+    inline fixed_size_simd<T, N> apply(F &&f, const mask_type &k) const
     {
         return {data0.apply(f, Split::lo(k)), data1.apply(f, Split::hi(k))};
     }
 
     // shifted {{{2
     ///\copybrief Vector::shifted(int) const
-    inline SimdArray shifted(int amount) const
+    inline fixed_size_simd<T, N> shifted(int amount) const
     {
         constexpr int SSize = Size;
         constexpr int SSize0 = storage_type0::Size;
@@ -1127,10 +1114,10 @@ public:                                                                         
                 return {data0.shifted(amount), data1.shifted(amount, data0)};
             }
             if (amount == -SSize0) {
-                return {storage_type0::Zero(), simd_cast<storage_type1>(data0)};
+                return {storage_type0(0), simd_cast<storage_type1>(data0)};
             }
             if (amount < -SSize0) {
-                return {storage_type0::Zero(), simd_cast<storage_type1>(data0.shifted(
+                return {storage_type0(0), simd_cast<storage_type1>(data0.shifted(
                                                    amount + SSize0))};
             }
             return Zero();
@@ -1140,9 +1127,9 @@ public:                                                                         
             } else if (amount >= SSize0) {
                 return {
                     simd_cast<storage_type0>(data1).shifted(amount - SSize0),
-                    storage_type1::Zero()};
+                    storage_type1(0)};
             } else if (amount >= SSize1) {
-                return {data0.shifted(amount, data1), storage_type1::Zero()};
+                return {data0.shifted(amount, data1), storage_type1(0)};
             } else {
                 return {data0.shifted(amount, data1), data1.shifted(amount)};
             }
@@ -1153,12 +1140,12 @@ public:                                                                         
     inline enable_if<
         !(std::is_same<storage_type0, storage_type1>::value &&  // not bisectable
           N == NN),
-        SimdArray>
+        fixed_size_simd<T, N>>
         shifted(int amount, const SimdArray<value_type, NN> &shiftIn) const
     {
         constexpr int SSize = Size;
         if (amount < 0) {
-            return SimdArray::generate([&](int i) -> value_type {
+            return fixed_size_simd<T, N>([&](int i) -> value_type {
                 i += amount;
                 if (i >= 0) {
                     return operator[](i);
@@ -1168,7 +1155,7 @@ public:                                                                         
                 return 0;
             });
         }
-        return SimdArray::generate([&](int i) -> value_type {
+        return fixed_size_simd<T, N>([&](int i) -> value_type {
             i += amount;
             if (i < SSize) {
                 return operator[](i);
@@ -1191,8 +1178,9 @@ private:
 
 public:
     template <std::size_t NN>
-    inline SimdArray shifted(enable_if<bisectable_shift<NN>::value, int> amount,
-            const SimdArray<value_type, NN> &shiftIn) const
+    inline fixed_size_simd<T, N> shifted(
+        enable_if<bisectable_shift<NN>::value, int> amount,
+        const SimdArray<value_type, NN> &shiftIn) const
     {
         constexpr int SSize = Size;
         if (amount < 0) {
@@ -1242,7 +1230,7 @@ public:
 
     // rotated {{{2
     ///\copybrief Vector::rotated
-    Vc_INTRINSIC SimdArray rotated(int amount) const
+    Vc_INTRINSIC fixed_size_simd<T, N> rotated(int amount) const
     {
         amount %= int(size());
         if (amount == 0) {
@@ -1259,7 +1247,7 @@ public:
         data0.store(&tmp[0], Vc::Aligned);
         data1.store(&tmp[data0.size()], Vc::Aligned);
         data0.store(&tmp[N], Vc::Unaligned);
-        SimdArray r;
+        fixed_size_simd<T, N> r;
         r.data0.load(&tmp[amount], Vc::Unaligned);
         r.data1.load(&tmp[(amount + data0.size()) % size()], Vc::Unaligned);
         return r;
@@ -1294,14 +1282,14 @@ public:
 
     // interleaveLow/-High {{{2
     ///\internal \copydoc Vector::interleaveLow
-    Vc_INTRINSIC SimdArray interleaveLow(const SimdArray &x) const
+    Vc_INTRINSIC fixed_size_simd<T, N> interleaveLow(const SimdArray &x) const
     {
         // return data0[0], x.data0[0], data0[1], x.data0[1], ...
         return {data0.interleaveLow(x.data0),
                 simd_cast<storage_type1>(data0.interleaveHigh(x.data0))};
     }
     ///\internal \copydoc Vector::interleaveHigh
-    Vc_INTRINSIC SimdArray interleaveHigh(const SimdArray &x) const
+    Vc_INTRINSIC fixed_size_simd<T, N> interleaveHigh(const SimdArray &x) const
     {
         return interleaveHighImpl(
             x,
@@ -1310,12 +1298,12 @@ public:
 
 private:
     ///\internal
-    Vc_INTRINSIC SimdArray interleaveHighImpl(const SimdArray &x, std::true_type) const
+    Vc_INTRINSIC fixed_size_simd<T, N> interleaveHighImpl(const SimdArray &x, std::true_type) const
     {
         return {data1.interleaveLow(x.data1), data1.interleaveHigh(x.data1)};
     }
     ///\internal
-    inline SimdArray interleaveHighImpl(const SimdArray &x, std::false_type) const
+    inline fixed_size_simd<T, N> interleaveHighImpl(const SimdArray &x, std::false_type) const
     {
         return {data0.interleaveHigh(x.data0)
                     .shifted(storage_type1::Size,
@@ -1325,7 +1313,7 @@ private:
 
 public:
     ///\copybrief Vector::reversed
-    inline SimdArray reversed() const //{{{2
+    inline fixed_size_simd<T, N> reversed() const //{{{2
     {
         if (std::is_same<storage_type0, storage_type1>::value) {
             return {simd_cast<storage_type0>(data1).reversed(),
@@ -1338,7 +1326,7 @@ public:
             alignas(MemoryAlignment) T tmp[N];
             data1.reversed().store(&tmp[0], Vc::Aligned);
             data0.reversed().store(&tmp[data1.size()], Vc::Unaligned);
-            return SimdArray{&tmp[0], Vc::Aligned};
+            return fixed_size_simd<T, N>{&tmp[0], Vc::Aligned};
 #else
             return {data0.shifted(storage_type1::Size, data1).reversed(),
                     simd_cast<storage_type1>(data0.reversed().shifted(
@@ -1347,14 +1335,14 @@ public:
         }
     }
     ///\copydoc Vector::sorted
-    inline SimdArray sorted() const  //{{{2
+    inline fixed_size_simd<T, N> sorted() const  //{{{2
     {
         return sortedImpl(
             std::integral_constant<bool, storage_type0::Size == storage_type1::Size>());
     }
 
     ///\internal
-    Vc_INTRINSIC SimdArray sortedImpl(std::true_type) const
+    Vc_INTRINSIC fixed_size_simd<T, N> sortedImpl(std::true_type) const
     {
 #ifdef Vc_DEBUG_SORTED
         std::cerr << "-- " << data0 << data1 << '\n';
@@ -1367,10 +1355,10 @@ public:
     }
 
     ///\internal
-    Vc_INTRINSIC SimdArray sortedImpl(std::false_type) const
+    Vc_INTRINSIC fixed_size_simd<T, N> sortedImpl(std::false_type) const
     {
         using SortableArray =
-            SimdArray<value_type, Common::NextPowerOfTwo<size()>::value>;
+            fixed_size_simd<value_type, Common::NextPowerOfTwo<size()>::value>;
         auto sortable = simd_cast<SortableArray>(*this);
         for (std::size_t i = Size; i < SortableArray::Size; ++i) {
             using limits = std::numeric_limits<value_type>;
@@ -1380,7 +1368,7 @@ public:
                 sortable[i] = std::numeric_limits<value_type>::max();
             }
         }
-        return simd_cast<SimdArray>(sortable.sorted());
+        return simd_cast<fixed_size_simd<T, N>>(sortable.sorted());
 
         /* The following implementation appears to be less efficient. But this may need further
          * work.
@@ -1417,7 +1405,8 @@ public:
     static constexpr std::size_t Size = size();
 
     /// \copydoc Vector::exponent
-    Vc_DEPRECATED("use exponent(x) instead") Vc_INTRINSIC SimdArray exponent() const
+    Vc_DEPRECATED("use exponent(x) instead")
+        Vc_INTRINSIC fixed_size_simd<T, N> exponent() const
     {
         return {exponent(data0), exponent(data1)};
     }
@@ -1429,8 +1418,8 @@ public:
     }
 
     ///\copydoc Vector::copySign
-    Vc_DEPRECATED("use copysign(x, y) instead") Vc_INTRINSIC SimdArray
-        copySign(const SimdArray &x) const
+    Vc_DEPRECATED("use copysign(x, y) instead")
+        Vc_INTRINSIC fixed_size_simd<T, N> copySign(const SimdArray &x) const
     {
         return {Vc::copysign(data0, x.data0),
                 Vc::copysign(data1, x.data1)};
@@ -1563,11 +1552,57 @@ Vc_INTRINSIC SimdArray<double, 8, SSE::Vector<double>, 2>::SimdArray(
 }
 #endif
 
+// binary operators {{{
+namespace Detail
+{
+#define Vc_FIXED_OP(op)                                                                  \
+    template <class T, int N,                                                            \
+              class = typename std::enable_if<fixed_size_simd<T, N>::is_atomic>::type>   \
+    fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a,                    \
+                                      const fixed_size_simd<T, N> &b)                    \
+    {                                                                                    \
+        return {private_init, internal_data(a) op internal_data(b)};                     \
+    }                                                                                    \
+    template <class T, int N,                                                            \
+              class = typename std::enable_if<!fixed_size_simd<T, N>::is_atomic>::type,  \
+              class = T>                                                                 \
+    fixed_size_simd<T, N> operator op(const fixed_size_simd<T, N> &a,                    \
+                                      const fixed_size_simd<T, N> &b)                    \
+    {                                                                                    \
+        return {internal_data0(a) op internal_data0(b),                                  \
+                internal_data1(a) op internal_data1(b)};                                 \
+    }
+Vc_ALL_ARITHMETICS(Vc_FIXED_OP);
+Vc_ALL_BINARY(Vc_FIXED_OP);
+Vc_ALL_SHIFTS(Vc_FIXED_OP);
+#undef Vc_FIXED_OP
+#define Vc_FIXED_OP(op)                                                                  \
+    template <class T, int N,                                                            \
+              class = typename std::enable_if<fixed_size_simd<T, N>::is_atomic>::type>   \
+    fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a,               \
+                                           const fixed_size_simd<T, N> &b)               \
+    {                                                                                    \
+        return {private_init, internal_data(a) op internal_data(b)};                     \
+    }                                                                                    \
+    template <class T, int N,                                                            \
+              class = typename std::enable_if<!fixed_size_simd<T, N>::is_atomic>::type,  \
+              class = T>                                                                 \
+    fixed_size_simd_mask<T, N> operator op(const fixed_size_simd<T, N> &a,               \
+                                           const fixed_size_simd<T, N> &b)               \
+    {                                                                                    \
+        return {internal_data0(a) op internal_data0(b),                                  \
+                internal_data1(a) op internal_data1(b)};                                 \
+    }
+Vc_ALL_COMPARES(Vc_FIXED_OP);
+#undef Vc_FIXED_OP
+}  // namespace Detail
+
+// }}}
 // binary operators {{{1
 namespace result_vector_type_internal
 {
 template <typename T>
-using type = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+using remove_cvref = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
 
 template <typename T>
 using is_integer_larger_than_int = std::integral_constant<
@@ -1579,23 +1614,17 @@ template <
     typename L, typename R,
     std::size_t N = Traits::isSimdArray<L>::value ? Traits::simd_vector_size<L>::value
                                                   : Traits::simd_vector_size<R>::value,
-    bool =
-        (Traits::isSimdArray<L>::value ||
-         Traits::isSimdArray<R>::value)  // one of the operands must be a SimdArray
-        && !std::is_same<type<L>, type<R>>::value  // if the operands are of the same type
-                                                   // use the member function
-        &&
-        ((std::is_arithmetic<type<L>>::value &&
-          !is_integer_larger_than_int<type<L>>::value) ||
-         (std::is_arithmetic<type<R>>::value &&
-          !is_integer_larger_than_int<type<R>>::value)  // one of the operands is a scalar
-                                                        // type
-         ||
-         (  // or one of the operands is Vector<T> with Vector<T>::size() ==
+    bool = (Traits::isSimdArray<L>::value ||
+            Traits::isSimdArray<R>::value) &&  // one of the operands must be a SimdArray
+           !(Traits::is_fixed_size_simd<L>::value &&        // if both are fixed_size, use
+             Traits::is_fixed_size_simd<R>::value) &&       // common/operators.h
+           ((std::is_arithmetic<remove_cvref<L>>::value &&  // one of the operands is a
+             !is_integer_larger_than_int<remove_cvref<L>>::value) ||  // scalar type
+            (std::is_arithmetic<remove_cvref<R>>::value &&
+             !is_integer_larger_than_int<remove_cvref<R>>::value) ||
+            // or one of the operands is Vector<T> with Vector<T>::size() ==
             // SimdArray::size()
-             Traits::simd_vector_size<L>::value == Traits::simd_vector_size<R>::value &&
-             ((Traits::is_simd_vector<L>::value && !Traits::isSimdArray<L>::value) ||
-              (Traits::is_simd_vector<R>::value && !Traits::isSimdArray<R>::value))))>
+            Traits::simd_vector_size<L>::value == Traits::simd_vector_size<R>::value)>
 struct evaluate;
 
 template <typename L, typename R, std::size_t N> struct evaluate<L, R, N, true>
@@ -1618,7 +1647,7 @@ public:
     // promotion to a 64-bit integral type (including `long` because it can potentially have 64
     // bits) also is not done. But if one of the operands is a scalar type that is larger than int
     // then the operator is disabled altogether. We do not want an implicit demotion.
-    using type = SimdArray<
+    using type = fixed_size_simd<
         conditional<(std::is_integral<LScalar>::value &&std::is_integral<RScalar>::value &&
                      sizeof(LScalar) < sizeof(int) &&
                      sizeof(RScalar) < sizeof(int)),
@@ -1635,9 +1664,15 @@ template <typename L, typename R>
 using result_vector_type = typename result_vector_type_internal::evaluate<L, R>::type;
 
 static_assert(
-    std::is_same<result_vector_type<short int, Vc::SimdArray<short unsigned int, 32ul>>,
-                 Vc::SimdArray<short unsigned int, 32ul>>::value,
+    std::is_same<
+        result_vector_type<short int, Vc::fixed_size_simd<short unsigned int, 32ul>>,
+        Vc::fixed_size_simd<short unsigned int, 32ul>>::value,
     "result_vector_type does not work");
+
+static_assert(
+    std::is_same<result_vector_type<SimdArray<double, 4> &, fixed_size_simd<double, 4> &>,
+                 fixed_size_simd<double, 4>>::value,
+    "");
 
 #define Vc_BINARY_OPERATORS_(op_)                                                        \
     /*!\brief Applies op_ component-wise and concurrently.  */                           \
@@ -1645,7 +1680,9 @@ static_assert(
     Vc_INTRINSIC result_vector_type<L, R> operator op_(L &&lhs, R &&rhs)                 \
     {                                                                                    \
         using Return = result_vector_type<L, R>;                                         \
-        return Return(std::forward<L>(lhs)).operator op_(std::forward<R>(rhs));          \
+        return Vc::Detail::operator op_(                                                 \
+            static_cast<const Return &>(std::forward<L>(lhs)),                           \
+            static_cast<const Return &>(std::forward<R>(rhs)));                          \
     }
 /**
  * \name Arithmetic and Bitwise Operators
@@ -1704,9 +1741,9 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
 #define Vc_FORWARD_UNARY_OPERATOR(name_)                                                 \
     /*!\brief Applies the std::name_ function component-wise and concurrently. */        \
     template <typename T, std::size_t N, typename V, std::size_t M>                      \
-    inline SimdArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x)                   \
+    inline fixed_size_simd<T, N> name_(const SimdArray<T, N, V, M> &x)                   \
     {                                                                                    \
-        return SimdArray<T, N, V, M>::fromOperation(                                     \
+        return fixed_size_simd<T, N>::fromOperation(                                     \
             Common::Operations::Forward_##name_(), x);                                   \
     }                                                                                    \
     template <class T, int N>                                                            \
@@ -1720,9 +1757,9 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
 #define Vc_FORWARD_UNARY_BOOL_OPERATOR(name_)                                            \
     /*!\brief Applies the std::name_ function component-wise and concurrently. */        \
     template <typename T, std::size_t N, typename V, std::size_t M>                      \
-    inline SimdMaskArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x)               \
+    inline fixed_size_simd_mask<T, N> name_(const SimdArray<T, N, V, M> &x)              \
     {                                                                                    \
-        return SimdMaskArray<T, N, V, M>::fromOperation(                                 \
+        return fixed_size_simd_mask<T, N>::fromOperation(                                \
             Common::Operations::Forward_##name_(), x);                                   \
     }                                                                                    \
     template <class T, int N>                                                            \
@@ -1736,15 +1773,8 @@ Vc_ALL_COMPARES(Vc_BINARY_OPERATORS_);
 #define Vc_FORWARD_BINARY_OPERATOR(name_)                                                \
     /*!\brief Applies the std::name_ function component-wise and concurrently. */        \
     template <typename T, std::size_t N, typename V, std::size_t M>                      \
-    inline SimdArray<T, N, V, M> name_(const SimdArray<T, N, V, M> &x,                   \
+    inline fixed_size_simd<T, N> name_(const SimdArray<T, N, V, M> &x,                   \
                                        const SimdArray<T, N, V, M> &y)                   \
-    {                                                                                    \
-        return SimdArray<T, N, V, M>::fromOperation(                                     \
-            Common::Operations::Forward_##name_(), x, y);                                \
-    }                                                                                    \
-    template <typename T, int N>                                                         \
-    inline fixed_size_simd<T, N> name_(const fixed_size_simd<T, N> &x,                   \
-                                       const fixed_size_simd<T, N> &y)                   \
     {                                                                                    \
         return fixed_size_simd<T, N>::fromOperation(                                     \
             Common::Operations::Forward_##name_(), x, y);                                \
@@ -1958,7 +1988,7 @@ template <typename Return, std::size_t offset, typename From>
 Vc_INTRINSIC Vc_CONST enable_if<(From::Size <= offset), Return> simd_cast_with_offset(
     const From &)
 {
-    return Return::Zero();
+    return Return(0);
 }
 
 // first_type_of {{{2
@@ -2078,7 +2108,7 @@ struct is_power_of_2 : public std::integral_constant<bool, ((N - 1) & N) == 0> {
         vc_debug_("simd_cast{4}(", ")\n", x, xs...);                                     \
         using R0 = typename Return::storage_type0;                                       \
         using R1 = typename Return::storage_type1;                                       \
-        return {simd_cast<R0>(x, xs...), R1::Zero()};                                    \
+        return {simd_cast<R0>(x, xs...), R1(0)};                                         \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
 
@@ -2131,7 +2161,7 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray, Vc::Mask);
         using R0 = typename Return::storage_type0;                                       \
         using R1 = typename Return::storage_type1;                                       \
         constexpr int entries_offset = offset * Return::Size;                            \
-        return {simd_cast_with_offset<R0, entries_offset>(x), R1::Zero()};               \
+        return {simd_cast_with_offset<R0, entries_offset>(x), R1(0)};                    \
     }                                                                                    \
     Vc_NOTHING_EXPECTING_SEMICOLON
 
@@ -2247,6 +2277,18 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray, Vc::Mask);
 Vc_SIMDARRAY_CASTS(SimdArray);
 Vc_SIMDARRAY_CASTS(SimdMaskArray);
 #undef Vc_SIMDARRAY_CASTS
+template <class Return, class T, int N, class... Ts>
+Vc_INTRINSIC Return simd_cast(const fixed_size_simd<T, N> &x, const Ts &... xs)
+{
+    return simd_cast<Return>(static_cast<const SimdArray<T, N> &>(x),
+                             static_cast<const SimdArray<T, N> &>(xs)...);
+}
+template <class Return, class T, int N, class... Ts>
+Vc_INTRINSIC Return simd_cast(const fixed_size_simd_mask<T, N> &x, const Ts &... xs)
+{
+    return simd_cast<Return>(static_cast<const SimdMaskArray<T, N> &>(x),
+                             static_cast<const SimdMaskArray<T, N> &>(xs)...);
+}
 
 // simd_cast<T, offset>(SimdArray/-mask) {{{2
 #define Vc_SIMDARRAY_CASTS(SimdArrayType_)                                               \
@@ -2318,7 +2360,7 @@ Vc_SIMDARRAY_CASTS(SimdMaskArray);
     {                                                                                    \
         vc_debug_("simd_cast{offset, copy scalars}(", ")\n", offset, x);                 \
         using R = typename Return::EntryType;                                            \
-        Return r = Return::Zero();                                                       \
+        Return r = Return(0);                                                            \
         for (std::size_t i = offset * Return::Size;                                      \
              i < std::min(N, (offset + 1) * Return::Size); ++i) {                        \
             r[i - offset * Return::Size] = static_cast<R>(x[i]);                         \
@@ -2628,9 +2670,9 @@ static_assert(Traits::has_no_allocated_data<const Vc::SimdArray<int, 4>>::value,
 static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4>>::value, "");
 static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4> &&>::value, "");
 // }}}1
-// InterleaveImpl for SimdArrays {{{
 namespace Detail
 {
+// InterleaveImpl for SimdArrays {{{
 // atomic {{{1
 template <class T, size_t N,  class V, size_t VSizeof>
 struct InterleaveImpl<SimdArray<T, N, V, N>, N, VSizeof> {

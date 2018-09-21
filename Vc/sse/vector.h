@@ -78,9 +78,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
         typedef typename SSE::VectorTraits<T>::EntryType EntryType;
         using value_type = EntryType;
         using VectorEntryType = EntryType;
-        typedef typename std::conditional<(Size >= 4),
-                                          SimdArray<int, Size, SSE::int_v, 4>,
-                                          SimdArray<int, Size, Scalar::int_v, 1>>::type IndexType;
+        using IndexType = fixed_size_simd<int, Size>;
         typedef typename SSE::VectorTraits<T>::MaskType Mask;
         using MaskType = Mask;
         using mask_type = Mask;

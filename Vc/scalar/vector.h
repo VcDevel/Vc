@@ -75,7 +75,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 
         static constexpr size_t Size = 1;
         static constexpr size_t MemoryAlignment = alignof(VectorType);
-        typedef SimdArray<int, Size, Scalar::int_v, 1> IndexType;
+        using IndexType = fixed_size_simd<int, 1>;
 
 #include "../common/generalinterface.h"
 

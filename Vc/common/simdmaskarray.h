@@ -81,6 +81,12 @@ public:
     // zero init
     SimdMaskArray() = default;
 
+    // default copy ctor/operator
+    SimdMaskArray(const SimdMaskArray &) = default;
+    SimdMaskArray(SimdMaskArray &&) = default;
+    SimdMaskArray &operator=(const SimdMaskArray &) = default;
+    SimdMaskArray &operator=(SimdMaskArray &&) = default;
+
     // broadcasts
     Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerOne one) : data(one) {}
     Vc_INTRINSIC explicit SimdMaskArray(VectorSpecialInitializerZero zero) : data(zero) {}
@@ -88,18 +94,15 @@ public:
     Vc_INTRINSIC static SimdMaskArray Zero() { return {private_init, storage_type::Zero()}; }
     Vc_INTRINSIC static SimdMaskArray One() { return {private_init, storage_type::One()}; }
 
-    // conversion (casts)
-    template <typename U, typename V>
-    Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
-                                   enable_if<N == V::Size> = nullarg) Vc_INTRINSIC_R;
-    template <typename U, typename V>
-    Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
-                                   enable_if<(N > V::Size && N <= 2 * V::Size)> = nullarg)
-        Vc_INTRINSIC_R;
-    template <typename U, typename V>
-    Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x,
-                                   enable_if<(N > 2 * V::Size && N <= 4 * V::Size)> = nullarg)
-        Vc_INTRINSIC_R;
+    // conversion (casts); implemented in simd_cast_caller.tcc
+    template <class U, class V, class = enable_if<N == V::Size>>
+    Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x) Vc_INTRINSIC_R;
+    template <class U, class V, class = enable_if<(N > V::Size && N <= 2 * V::Size)>,
+              class = U>
+    Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x) Vc_INTRINSIC_R;
+    template <class U, class V, class = enable_if<(N > 2 * V::Size && N <= 4 * V::Size)>,
+              class = U, class = U>
+    Vc_INTRINSIC_L SimdMaskArray(const SimdMaskArray<U, N, V> &x) Vc_INTRINSIC_R;
 
     // conversion from any Segment object (could be SimdMaskArray or Mask<T>)
     template <typename M, std::size_t Pieces, std::size_t Index>
@@ -108,21 +111,26 @@ public:
         enable_if<Traits::simd_vector_size<M>::value == Size * Pieces> = nullarg) Vc_INTRINSIC_R;
 
     // conversion from Mask<T>
-    template <typename M>
-    Vc_INTRINSIC_L SimdMaskArray(
-        M k,
-        enable_if<(Traits::is_simd_mask<M>::value && !Traits::isSimdMaskArray<M>::value &&
-                   Traits::simd_vector_size<M>::value == Size)> = nullarg) Vc_INTRINSIC_R;
+    template <class M, class = enable_if<(Traits::is_simd_mask<M>::value &&
+                                          !Traits::isSimdMaskArray<M>::value &&
+                                          Traits::simd_vector_size<M>::value == Size)>>
+    Vc_INTRINSIC_L SimdMaskArray(M k) Vc_INTRINSIC_R;
 
     // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
-    template <typename U, typename A, typename = enable_if<Vc::Mask<U, A>::Size == N>>
+    template <class U, class A,
+              class = enable_if<Vc::Mask<U, A>::Size == N &&
+                                !detail::is_fixed_size_abi<A>::value>>
     operator Vc::Mask<U, A>() const
     {
         return simd_cast<Vc::Mask<U, A>>(data);
     }
-    operator fixed_size_simd_mask<T, N>() const
+    operator fixed_size_simd_mask<T, N> &()
     {
-        return static_cast<fixed_size_simd_mask<T, N>>(data);
+        return static_cast<fixed_size_simd_mask<T, N> &>(*this);
+    }
+    operator const fixed_size_simd_mask<T, N> &() const
+    {
+        return static_cast<const fixed_size_simd_mask<T, N> &>(*this);
     }
 
     // load/store (from/to bool arrays)
@@ -155,7 +163,7 @@ public:
     }
 
     // inversion
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator!() const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator!() const
     {
         return {private_init, !data};
     }
@@ -177,24 +185,29 @@ public:
         return *this;
     }
 
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator&(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator&(
+        const SimdMaskArray &rhs) const
     {
         return {private_init, data & rhs.data};
     }
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator|(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator|(
+        const SimdMaskArray &rhs) const
     {
         return {private_init, data | rhs.data};
     }
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator^(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator^(
+        const SimdMaskArray &rhs) const
     {
         return {private_init, data ^ rhs.data};
     }
 
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator&&(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator&&(
+        const SimdMaskArray &rhs) const
     {
         return {private_init, data && rhs.data};
     }
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator||(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator||(
+        const SimdMaskArray &rhs) const
     {
         return {private_init, data || rhs.data};
     }
@@ -246,21 +259,22 @@ public:
      */
     Vc_INTRINSIC Vc_PURE int firstOne() const { return data.firstOne(); }
 
-    template <typename G> static Vc_INTRINSIC SimdMaskArray generate(const G &gen)
+    template <typename G>
+    static Vc_INTRINSIC fixed_size_simd_mask<T, N> generate(const G &gen)
     {
         return {private_init, mask_type::generate(gen)};
     }
 
-    Vc_INTRINSIC Vc_PURE SimdMaskArray shifted(int amount) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> shifted(int amount) const
     {
         return {private_init, data.shifted(amount)};
     }
 
     /// \internal execute specified Operation
     template <typename Op, typename... Args>
-    static Vc_INTRINSIC SimdMaskArray fromOperation(Op op, Args &&... args)
+    static Vc_INTRINSIC fixed_size_simd_mask<T, N> fromOperation(Op op, Args &&... args)
     {
-        SimdMaskArray r;
+        fixed_size_simd_mask<T, N> r;
         Common::unpackArgumentsAuto(op, r.data, std::forward<Args>(args)...);
         return r;
     }
@@ -281,7 +295,7 @@ template <typename T, std::size_t N, typename VectorType> constexpr std::size_t 
 template <typename T, std::size_t N, typename VectorType>
 constexpr std::size_t SimdMaskArray<T, N, VectorType, N>::MemoryAlignment;
 
-// generic SimdArray {{{1
+// generic SimdMaskArray {{{1
 /**
  * Data-parallel mask type with user-defined number of boolean elements.
  *
@@ -313,11 +327,11 @@ class SimdMaskArray
     using Split = Common::Split<N0>;
 
 public:
-    using storage_type0 = SimdMaskArray<T, N0>;
-    using storage_type1 = SimdMaskArray<T, N - N0>;
+    using storage_type0 = fixed_size_simd_mask<T, N0>;
+    using storage_type1 = fixed_size_simd_mask<T, N - N0>;
     static_assert(storage_type0::size() == N0, "");
 
-    using vector_type = SimdArray<T, N>;
+    using vector_type = fixed_size_simd<T, N>;
 
     friend storage_type0 &internal_data0(SimdMaskArray &m) { return m.data0; }
     friend storage_type1 &internal_data1(SimdMaskArray &m) { return m.data1; }
@@ -352,7 +366,7 @@ public:
     using EntryReference = Vc::Detail::ElementReference<SimdMaskArray>;
     using reference = EntryReference;
     /// An alias for the corresponding SimdArray type.
-    using Vector = SimdArray<T, N, V, V::Size>;
+    using Vector = fixed_size_simd<T, N>;
 
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type));
 
@@ -393,10 +407,16 @@ public:
     }
 
     // implicit conversion to Mask<U, AnyAbi> for if Mask<U, AnyAbi>::size() == N
-    template <typename U, typename A, typename = enable_if<Vc::Mask<U, A>::Size == N>>
+    template <class U, class A,
+              class = enable_if<Vc::Mask<U, A>::Size == N &&
+                                !detail::is_fixed_size_abi<A>::value>>
     operator Vc::Mask<U, A>() const
     {
         return simd_cast<Vc::Mask<U, A>>(data0, data1);
+    }
+    Vc_INTRINSIC operator fixed_size_simd_mask<T, N> &()
+    {
+        return static_cast<fixed_size_simd_mask<T, N> &>(*this);
     }
     Vc_INTRINSIC operator const fixed_size_simd_mask<T, N> &() const
     {
@@ -417,9 +437,15 @@ public:
     Vc_INTRINSIC explicit SimdMaskArray(bool b) : data0(b), data1(b) {}
 
     ///\copydoc Mask::Zero()
-    Vc_INTRINSIC static SimdMaskArray Zero() { return {storage_type0::Zero(), storage_type1::Zero()}; }
+    Vc_INTRINSIC static fixed_size_simd_mask<T, N> Zero()
+    {
+        return {storage_type0::Zero(), storage_type1::Zero()};
+    }
     ///\copydoc Mask::One()
-    Vc_INTRINSIC static SimdMaskArray One() { return {storage_type0::One(), storage_type1::One()}; }
+    Vc_INTRINSIC static fixed_size_simd_mask<T, N> One()
+    {
+        return {storage_type0::One(), storage_type1::One()};
+    }
 
     ///\name Loads & Stores
     ///@{
@@ -495,7 +521,7 @@ public:
     }
 
     ///\copybrief Mask::operator!
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator!() const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator!() const
     {
         return {!data0, !data1};
     }
@@ -523,28 +549,33 @@ public:
     }
 
     ///\copybrief Mask::operator&
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator&(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator&(
+        const SimdMaskArray &rhs) const
     {
         return {data0 & rhs.data0, data1 & rhs.data1};
     }
     ///\copybrief Mask::operator|
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator|(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator|(
+        const SimdMaskArray &rhs) const
     {
         return {data0 | rhs.data0, data1 | rhs.data1};
     }
     ///\copybrief Mask::operator^
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator^(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator^(
+        const SimdMaskArray &rhs) const
     {
         return {data0 ^ rhs.data0, data1 ^ rhs.data1};
     }
 
     ///\copybrief Mask::operator&&
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator&&(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator&&(
+        const SimdMaskArray &rhs) const
     {
         return {data0 && rhs.data0, data1 && rhs.data1};
     }
     ///\copybrief Mask::operator||
-    Vc_INTRINSIC Vc_PURE SimdMaskArray operator||(const SimdMaskArray &rhs) const
+    Vc_INTRINSIC Vc_PURE fixed_size_simd_mask<T, N> operator||(
+        const SimdMaskArray &rhs) const
     {
         return {data0 || rhs.data0, data1 || rhs.data1};
     }
@@ -624,14 +655,15 @@ public:
     }
 
     ///\copybrief Mask::generate
-    template <typename G> static Vc_INTRINSIC SimdMaskArray generate(const G &gen)
+    template <typename G>
+    static Vc_INTRINSIC fixed_size_simd_mask<T, N> generate(const G &gen)
     {
         return {storage_type0::generate(gen),
                 storage_type1::generate([&](std::size_t i) { return gen(i + N0); })};
     }
 
     ///\copybrief Mask::shifted
-    inline Vc_PURE SimdMaskArray shifted(int amount) const
+    inline Vc_PURE fixed_size_simd_mask<T, N> shifted(int amount) const
     {
         if (Vc_IS_UNLIKELY(amount == 0)) {
             return *this;
@@ -645,9 +677,9 @@ public:
 
     /// \internal execute specified Operation
     template <typename Op, typename... Args>
-    static Vc_INTRINSIC SimdMaskArray fromOperation(Op op, Args &&... args)
+    static Vc_INTRINSIC fixed_size_simd_mask<T, N> fromOperation(Op op, Args &&... args)
     {
-        SimdMaskArray r = {
+        fixed_size_simd_mask<T, N> r = {
             storage_type0::fromOperation(op, Split::lo(args)...),  // no forward here - it
                                                                    // could move and thus
                                                                    // break the next line

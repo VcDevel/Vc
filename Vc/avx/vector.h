@@ -96,17 +96,7 @@ public:
         enum Constants {
             HasVectorDivision = AVX::HasVectorDivisionHelper<T>::Value
         };
-#ifdef Vc_IMPL_AVX2
-        typedef typename std::conditional<
-            (Size >= 8), SimdArray<int, Size, AVX2::int_v, 8>,
-            typename std::conditional<(Size >= 4), SimdArray<int, Size, SSE::int_v, 4>,
-                                      SimdArray<int, Size, Scalar::int_v, 1>>::type>::type
-            IndexType;
-#else
-        typedef typename std::conditional<(Size >= 4),
-                                          SimdArray<int, Size, SSE::int_v, 4>,
-                                          SimdArray<int, Size, Scalar::int_v, 1>>::type IndexType;
-#endif
+    using IndexType = fixed_size_simd<int, Size>;
         typedef Vector<T, abi> AsArg;
         typedef VectorType VectorTypeArg;
 

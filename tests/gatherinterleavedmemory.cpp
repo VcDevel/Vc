@@ -196,7 +196,7 @@ TEST_TYPES(Param, testDeinterleaveGather,
     for (int retest = 0; retest < TotalRetests; ++retest) {
         I indexes = (I::Random() >> 10) & I(NMask);
         VERIFY(all_of(indexes >= 0));
-        VERIFY(all_of(indexes < N));
+        VERIFY(all_of(indexes < int(N)));
         const V reference = Vc::simd_cast<V>(indexes) * V(StructSize);
 
         TestDeinterleaveGatherCompare<V, StructSize, true>::test(data_v, indexes, reference);

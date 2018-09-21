@@ -173,7 +173,7 @@ public:
     using VectorArgument = Vector;
 
     /// The type of the vector used for indexes in gather and scatter operations.
-    using IndexType = Vc::SimdArray<int, VectorTraits<T, Abi>::size()>;
+    using IndexType = Vc::fixed_size_simd<int, VectorTraits<T, Abi>::size()>;
     /// \copydoc IndexType
     using index_type = IndexType;
 
