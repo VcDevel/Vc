@@ -107,19 +107,12 @@ struct is_arithmetic_internal
 {
 };
 
-template <typename T,
-          bool = (is_simd_vector_internal<T>::value || is_simd_mask_internal<T>::value ||
-                  is_simdarray_internal<T>::value ||
-                  is_simd_mask_array_internal<T>::value)>
-struct vector_size_internal;
-
-template <typename T>
-struct vector_size_internal<T, true> : public std::integral_constant<std::size_t, T::Size>
-{
+template <class T, class = void>
+struct vector_size_internal : std::integral_constant<std::size_t, 0> {
 };
-template <typename T>
-struct vector_size_internal<T, false> : public std::integral_constant<std::size_t, 0>
-{
+template <class T>
+struct vector_size_internal<T, decltype((void)(T::size() > 0))>
+    : std::integral_constant<std::size_t, T::size()> {
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
