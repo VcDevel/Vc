@@ -48,18 +48,6 @@ struct is_implicit_cast_allowed<From, To, false> : public std::is_same<From, To>
 template <typename From, typename To>
 struct is_implicit_cast_allowed_mask : public is_implicit_cast_allowed<From, To> {
 };
-
-static_assert(is_implicit_cast_allowed<float, float>::value, "");
-static_assert(!is_implicit_cast_allowed<float, double>::value, "");
-static_assert(is_implicit_cast_allowed< int64_t, uint64_t>::value, "");
-static_assert(is_implicit_cast_allowed<uint64_t,  int64_t>::value, "");
-static_assert(is_implicit_cast_allowed< int32_t, uint32_t>::value, "");
-static_assert(is_implicit_cast_allowed<uint32_t,  int32_t>::value, "");
-static_assert(is_implicit_cast_allowed< int16_t, uint16_t>::value, "");
-static_assert(is_implicit_cast_allowed<uint16_t,  int16_t>::value, "");
-static_assert(is_implicit_cast_allowed<  int8_t,  uint8_t>::value, "");
-static_assert(is_implicit_cast_allowed< uint8_t,   int8_t>::value, "");
-
 }  // namespace Traits
 }  // namespace Vc
 

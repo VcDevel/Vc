@@ -201,13 +201,7 @@ public:
     Vc_INTRINSIC SimdArray(const std::initializer_list<value_type> &init)
         : data(init.begin(), Vc::Unaligned)
     {
-#if defined Vc_CXX14 && 0  // doesn't compile yet
-        static_assert(init.size() == size(), "The initializer_list argument to "
-                                             "SimdArray<T, N> must contain exactly N "
-                                             "values.");
-#else
         Vc_ASSERT(init.size() == size());
-#endif
     }
 
     // implicit conversion from underlying vector_type
@@ -790,13 +784,7 @@ public:
         : data0(init.begin(), Vc::Unaligned)
         , data1(init.begin() + storage_type0::size(), Vc::Unaligned)
     {
-#if defined Vc_CXX14 && 0  // doesn't compile yet
-        static_assert(init.size() == size(), "The initializer_list argument to "
-                                             "SimdArray<T, N> must contain exactly N "
-                                             "values.");
-#else
         Vc_ASSERT(init.size() == size());
-#endif
     }
 
 #include "gatherinterface.h"
@@ -1662,17 +1650,6 @@ public:
 
 template <typename L, typename R>
 using result_vector_type = typename result_vector_type_internal::evaluate<L, R>::type;
-
-static_assert(
-    std::is_same<
-        result_vector_type<short int, Vc::fixed_size_simd<short unsigned int, 32ul>>,
-        Vc::fixed_size_simd<short unsigned int, 32ul>>::value,
-    "result_vector_type does not work");
-
-static_assert(
-    std::is_same<result_vector_type<SimdArray<double, 4> &, fixed_size_simd<double, 4> &>,
-                 fixed_size_simd<double, 4>>::value,
-    "");
 
 #define Vc_BINARY_OPERATORS_(op_)                                                        \
     /*!\brief Applies op_ component-wise and concurrently.  */                           \
@@ -2660,15 +2637,6 @@ inline enable_if<(N > VSize), void> transpose_impl(
 */
 }  // namespace Common
 
-// Traits static assertions {{{1
-static_assert(Traits::has_no_allocated_data<const volatile Vc::SimdArray<int, 4> &>::value, "");
-static_assert(Traits::has_no_allocated_data<const volatile Vc::SimdArray<int, 4>>::value, "");
-static_assert(Traits::has_no_allocated_data<volatile Vc::SimdArray<int, 4> &>::value, "");
-static_assert(Traits::has_no_allocated_data<volatile Vc::SimdArray<int, 4>>::value, "");
-static_assert(Traits::has_no_allocated_data<const Vc::SimdArray<int, 4> &>::value, "");
-static_assert(Traits::has_no_allocated_data<const Vc::SimdArray<int, 4>>::value, "");
-static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4>>::value, "");
-static_assert(Traits::has_no_allocated_data<Vc::SimdArray<int, 4> &&>::value, "");
 // }}}1
 namespace Detail
 {

@@ -552,13 +552,6 @@ Vc_ALWAYS_INLINE SubscriptOperation<
     return {std::addressof(*begin(c)), std::forward<IndexVector>(indexes)};
 }
 
-static_assert(!Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int>::value, "has_subscript_operator fails");
-static_assert(!Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int *>, int[4]>::value, "has_subscript_operator fails");
-static_assert(!Traits::has_subscript_operator<SubscriptOperation<std::vector<int>, const int *>, int[4]>::value, "has_subscript_operator fails");
-static_assert( Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int[4]>, int>::value, "has_subscript_operator fails");
-static_assert( Traits::has_subscript_operator<SubscriptOperation<int[100][100], const int[4]>, int[4]>::value, "has_subscript_operator fails");
-static_assert(!Traits::has_subscript_operator<SubscriptOperation<std::vector<int>, const int[4]>, int[4]>::value, "has_subscript_operator fails");
-
 /**
  * \internal
  * Implement subscripts of std::initializer_list. This function must be in the global scope

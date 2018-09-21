@@ -41,8 +41,4 @@ struct has_subscript_operator : public decltype(has_subscript_operator_impl::tes
 {
 };
 
-static_assert(has_subscript_operator<int[]>::value, "");
-static_assert(has_subscript_operator<int[], int>::value, "");
-static_assert(!has_subscript_operator<int[], void *>::value, "");
-
 #endif // VC_TRAITS_HAS_SUBSCRIPT_OPERATOR_H_

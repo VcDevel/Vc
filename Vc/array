@@ -254,17 +254,6 @@ template <typename T, std::size_t N>
 struct has_contiguous_storage_impl<Vc::array<T, N>> : public std::true_type
 {
 };
-
-static_assert(has_no_allocated_data<const volatile Vc::array<int, 256> &>::value, "");
-static_assert(has_no_allocated_data<const volatile Vc::array<int, 256>>::value, "");
-static_assert(has_no_allocated_data<volatile Vc::array<int, 256> &>::value, "");
-static_assert(has_no_allocated_data<volatile Vc::array<int, 256>>::value, "");
-static_assert(has_no_allocated_data<const Vc::array<int, 256> &>::value, "");
-static_assert(has_no_allocated_data<const Vc::array<int, 256>>::value, "");
-static_assert(has_no_allocated_data<Vc::array<int, 256>>::value, "");
-static_assert(has_no_allocated_data<Vc::array<int, 256> &>::value, "");
-static_assert(has_no_allocated_data<Vc::array<int, 256> &&>::value, "");
-
 }  // namespace Traits
 }  // namespace Vc
 

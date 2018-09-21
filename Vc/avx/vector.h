@@ -438,25 +438,6 @@ public:
 template <typename T> constexpr size_t Vector<T, VectorAbi::Avx>::Size;
 template <typename T> constexpr size_t Vector<T, VectorAbi::Avx>::MemoryAlignment;
 
-static_assert(Traits::is_simd_vector<AVX2::double_v>::value, "is_simd_vector<double_v>::value");
-static_assert(Traits::is_simd_vector<AVX2:: float_v>::value, "is_simd_vector< float_v>::value");
-static_assert(Traits::is_simd_vector<AVX2::   int_v>::value, "is_simd_vector<   int_v>::value");
-static_assert(Traits::is_simd_vector<AVX2::  uint_v>::value, "is_simd_vector<  uint_v>::value");
-static_assert(Traits::is_simd_vector<AVX2:: short_v>::value, "is_simd_vector< short_v>::value");
-static_assert(Traits::is_simd_vector<AVX2::ushort_v>::value, "is_simd_vector<ushort_v>::value");
-static_assert(Traits::is_simd_mask  <AVX2::double_m>::value, "is_simd_mask  <double_m>::value");
-static_assert(Traits::is_simd_mask  <AVX2:: float_m>::value, "is_simd_mask  < float_m>::value");
-static_assert(Traits::is_simd_mask  <AVX2::   int_m>::value, "is_simd_mask  <   int_m>::value");
-static_assert(Traits::is_simd_mask  <AVX2::  uint_m>::value, "is_simd_mask  <  uint_m>::value");
-static_assert(Traits::is_simd_mask  <AVX2:: short_m>::value, "is_simd_mask  < short_m>::value");
-static_assert(Traits::is_simd_mask  <AVX2::ushort_m>::value, "is_simd_mask  <ushort_m>::value");
-
-#ifdef Vc_IMPL_AVX2
-static_assert(!std::is_convertible<float *, AVX2::short_v>::value, "A float* should never implicitly convert to short_v. Something is broken.");
-static_assert(!std::is_convertible<int *  , AVX2::short_v>::value, "An int* should never implicitly convert to short_v. Something is broken.");
-static_assert(!std::is_convertible<short *, AVX2::short_v>::value, "A short* should never implicitly convert to short_v. Something is broken.");
-#endif
-
 #define Vc_CONDITIONAL_ASSIGN(name_, op_)                                                \
     template <Operator O, typename T, typename M, typename U>                            \
     Vc_INTRINSIC enable_if<O == Operator::name_, void> conditional_assign(               \

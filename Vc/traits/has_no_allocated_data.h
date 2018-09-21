@@ -77,29 +77,6 @@ struct has_no_allocated_data
 template<typename T, std::size_t N> struct has_no_allocated_data_impl<std::array<T, N>> : public std::true_type {};
 template<typename T, std::size_t N> struct has_no_allocated_data_impl<T[N]> : public std::true_type {};
 template<typename T> struct has_no_allocated_data_impl<T[]> : public std::true_type {};
-
-// tests:
-static_assert(has_no_allocated_data<int[256]>::value, "");
-static_assert(has_no_allocated_data<const int[256]>::value, "");
-static_assert(has_no_allocated_data<volatile int[256]>::value, "");
-static_assert(has_no_allocated_data<const volatile int[256]>::value, "");
-
-static_assert(has_no_allocated_data<int[]>::value, "");
-static_assert(has_no_allocated_data<int[2][2]>::value, "");
-
-static_assert(has_no_allocated_data<const volatile std::array<int, 256> &>::value, "");
-static_assert(has_no_allocated_data<const volatile std::array<int, 256>>::value, "");
-static_assert(has_no_allocated_data<volatile std::array<int, 256> &>::value, "");
-static_assert(has_no_allocated_data<volatile std::array<int, 256>>::value, "");
-static_assert(has_no_allocated_data<const std::array<int, 256> &>::value, "");
-static_assert(has_no_allocated_data<const std::array<int, 256>>::value, "");
-static_assert(has_no_allocated_data<std::array<int, 256>>::value, "");
-static_assert(has_no_allocated_data<std::array<int, 256> &&>::value, "");
-static_assert(!has_no_allocated_data<int*>::value, "");
-static_assert(!has_no_allocated_data<const int*>::value, "");
-static_assert(!has_no_allocated_data<const int *const>::value, "");
-static_assert(!has_no_allocated_data<int *const>::value, "");
-
 }  // namespace Traits
 }  // namespace Vc
 

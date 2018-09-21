@@ -43,11 +43,4 @@ struct has_equality_operator : public decltype(has_equality_operator_impl::test<
 {
 };
 
-static_assert(has_equality_operator<int>::value, "has_equality_operator fails");
-namespace
-{
-class Foobar {};
-static_assert(!has_equality_operator<Foobar>::value, "has_equality_operator fails");
-} // unnamed namespace
-
 #endif  // VC_TRAITS_HAS_EQUALITY_OPERATOR_H_

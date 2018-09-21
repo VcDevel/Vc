@@ -92,9 +92,6 @@ constexpr bool operator!=(A &&a, B &&b)
     return static_cast<bool>(a) != static_cast<bool>(b);
 }
 
-static_assert(true == MaskBool<4>(true), "true == MaskBool<4>(true)");
-static_assert(true != MaskBool<4>(false), "true != MaskBool<4>(false)");
-
 }  // namespace Common
 }  // namespace Vc
 
