@@ -121,6 +121,12 @@ class SimdArray<T, N, VectorType_, N>
                       std::is_same<T, uint16_t>::value,
                   "SimdArray<T, N> may only be used with T = { double, float, int32_t, uint32_t, "
                   "int16_t, uint16_t }");
+    static_assert(
+        std::is_same<VectorType_,
+                     typename Common::select_best_vector_type<T, N>::type>::value &&
+            VectorType_::size() == N,
+        "ERROR: leave the third and fourth template parameters with their defaults. They "
+        "are implementation details.");
 
 public:
     using VectorType = VectorType_;
@@ -611,6 +617,11 @@ template <typename T, size_t N, typename V, size_t Wt> class SimdArray
                   std::is_same<T, uint32_t>::value ||
                   std::is_same<T,  int16_t>::value ||
                   std::is_same<T, uint16_t>::value, "SimdArray<T, N> may only be used with T = { double, float, int32_t, uint32_t, int16_t, uint16_t }");
+    static_assert(
+        std::is_same<V, typename Common::select_best_vector_type<T, N>::type>::value &&
+            V::size() == Wt,
+        "ERROR: leave the third and fourth template parameters with their defaults. They "
+        "are implementation details.");
     static_assert(
         // either the EntryType and VectorEntryType of the main V are equal
         std::is_same<typename V::EntryType, typename V::VectorEntryType>::value ||

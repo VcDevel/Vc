@@ -325,7 +325,7 @@ inline void sfinaeIifIsNotCallable(A &&, B &&, C &&, ...)
 
 TEST_TYPES(V, testIif,
            concat<AllVectors, OddSimdArrays<31>,
-                  Typelist<Vc::SimdArray<float, 8, Vc::Scalar::float_v>>>)
+                  Typelist<Vc::SimdArray<float, 8>>>)
 {
     typedef typename V::EntryType T;
     const T one = T(1);

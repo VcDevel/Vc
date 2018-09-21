@@ -74,7 +74,7 @@ public:
     using EntryType = value_type;
     using EntryReference = Vc::Detail::ElementReference<storage_type, SimdMaskArray>;
     using reference = EntryReference;
-    using Vector = SimdArray<T, N, VectorType, N>;
+    using Vector = fixed_size_simd<T, N>;
 
     Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(mask_type));
 
