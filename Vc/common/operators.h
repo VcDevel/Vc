@@ -37,11 +37,13 @@ namespace Detail
 template <typename T, typename Abi, typename U>
 enable_if<!std::is_same<T, U>::value, U> is_convertible_to_any_vector(Vector<U, Abi>);
 template <typename T, typename Abi> T is_convertible_to_any_vector(Vector<T, Abi>);
-template <typename T, typename Abi> void is_convertible_to_any_vector(...);
 
 template <typename T, typename U, bool = std::is_integral<T>::value,
           bool = std::is_integral<U>::value>
 struct FundamentalReturnType;
+template <class T, class U>
+using fundamental_return_t = typename FundamentalReturnType<T, U>::type;
+
 template <typename T, typename U> struct FundamentalReturnType<T, U, false, false> {
     using type = typename std::conditional<
         std::is_arithmetic<U>::value,
@@ -90,40 +92,54 @@ template <typename T, typename U> struct FundamentalReturnType<T, U, true, true>
           c<(sizeof(T) < sizeof(U)), U, typename higher_conversion_rank<T, U>::type>>;
 };
 
-template <class V, class T, bool, class, bool> struct ReturnTypeImpl {
+template <class V, class T, class = void> struct ReturnTypeImpl {
     // no type => SFINAE
 };
-template <class T, class U, class Abi, class Deduced>
-struct ReturnTypeImpl<Vector<T, Abi>, Vector<U, Abi>, false, Deduced, false> {
-    using type = Vc::Vector<typename FundamentalReturnType<T, U>::type, Abi>;
+// 1. Vector × Vector
+template <class T, class U, class Abi>
+struct ReturnTypeImpl<Vector<T, Abi>, Vector<U, Abi>, void> {
+    using type = Vc::Vector<fundamental_return_t<T, U>, Abi>;
 };
-template <class T, class Abi> struct ReturnTypeImpl<Vector<T, Abi>, int, true, T, true> {
+// 2. Vector × int
+template <class T, class Abi> struct ReturnTypeImpl<Vector<T, Abi>, int, void> {
+    // conversion from int is always allowed (because its the default when you hardcode a
+    // number)
     using type = Vc::Vector<T, Abi>;
 };
-template <class T, class Abi>
-struct ReturnTypeImpl<Vector<T, Abi>, unsigned int, true, T, true> {
-    using type = Vc::Vector<typename std::make_unsigned<T>::type, Abi>;
+// 3. Vector × unsigned
+template <class T, class Abi> struct ReturnTypeImpl<Vector<T, Abi>, uint, void> {
+    // conversion from unsigned int is allowed for all integral Vector<T>, but ensures
+    // unsigned result
+    using type = Vc::Vector<
+        typename std::conditional<std::is_integral<T>::value, std::make_unsigned<T>,
+                                  std::enable_if<true, T>>::type::type,
+        Abi>;
 };
-template <class T, class U, class Abi, bool Integral>
-struct ReturnTypeImpl<Vector<T, Abi>, U, true, T, Integral> {
-    using type = Vc::Vector<typename FundamentalReturnType<T, U>::type, Abi>;
+// 4. Vector × {enum, arithmetic}
+template <class T, class U, class Abi>
+struct ReturnTypeImpl<
+    Vector<T, Abi>, U,
+    enable_if<!std::is_class<U>::value && !std::is_same<U, int>::value &&
+                  !std::is_same<U, uint>::value &&
+                  Traits::is_valid_vector_argument<fundamental_return_t<T, U>>::value,
+              void>> {
+    using type = Vc::Vector<fundamental_return_t<T, U>, Abi>;
 };
-template <class T, class U, class Abi, bool Integral>
-struct ReturnTypeImpl<Vector<T, Abi>, U, false, void, Integral> {
-    // no type => SFINAE
+// 5. Vector × UDT
+template <class T, class U, class Abi>
+struct ReturnTypeImpl<
+    Vector<T, Abi>, U,
+    enable_if<
+        std::is_class<U>::value && !Traits::is_simd_vector<U>::value &&
+            Traits::is_valid_vector_argument<decltype(
+                is_convertible_to_any_vector<T, Abi>(std::declval<const U &>()))>::value,
+        void>> {
+    using type =
+        Vc::Vector<fundamental_return_t<T, decltype(is_convertible_to_any_vector<T, Abi>(
+                                               std::declval<const U &>()))>,
+                   Abi>;
 };
-template <class T, class U, class Abi, class V, bool Integral>
-struct ReturnTypeImpl<Vector<T, Abi>, U, false, V, Integral> {
-    using type = Vc::Vector<typename FundamentalReturnType<T, V>::type, Abi>;
-};
-template <class V, class T>
-using ReturnType = typename ReturnTypeImpl<
-    V, T,
-    Traits::is_valid_vector_argument<T>::value ||
-        (!std::is_arithmetic<T>::value && std::is_convertible<T, int>::value),
-    decltype(is_convertible_to_any_vector<typename V::value_type, typename V::abi>(
-        std::declval<const T &>())),
-    std::is_integral<typename V::value_type>::value>::type;
+template <class V, class T> using ReturnType = typename ReturnTypeImpl<V, T>::type;
 
 template <class T> struct is_a_type : public std::true_type {
 };
