@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 #include "unittest.h"
+#include "virtest/vir/metahelpers.h"
 
 using namespace Vc;
 
@@ -269,6 +270,51 @@ TEST(testImplicitTypeConversions)
     TYPE_TEST(     uint,      uint_v,   uint_v);
     TYPE_TEST(     Enum,      uint_v,   uint_v);
     TYPE_TEST(     bool,      uint_v,   uint_v);
+}
+
+struct Plus {
+    template <class L, class R>
+    decltype(std::declval<L>() + std::declval<R>()) operator()(L &&, R &&);
+};
+struct Xor {
+    template <class L, class R>
+    decltype(std::declval<L>() ^ std::declval<R>()) operator()(L &&, R &&);
+};
+struct Equal {
+    template <class L, class R>
+    decltype(std::declval<L>() == std::declval<R>()) operator()(L &&, R &&);
+};
+TEST_TYPES(Pair, failures, Typelist<
+           Typelist<double_v, float_v>,
+           Typelist<double_v, short_v>,
+           Typelist<double_v, ushort_v>,
+           Typelist<double_v, int_v>,
+           Typelist<double_v, uint_v>,
+           Typelist<float_v, double>,
+           Typelist<float_v, short_v>,
+           Typelist<float_v, ushort_v>,
+           Typelist<int_v, float_v>,
+           Typelist<int_v, float>,
+           Typelist<int_v, double>,
+           Typelist<int_v, long>,
+           Typelist<int_v, llong>,
+           Typelist<short_v, int_v>,
+           Typelist<short_v, uint_v>,
+           Typelist<short_v, float>,
+           Typelist<ushort_v, int_v>,
+           Typelist<ushort_v, uint_v>,
+           Typelist<ushort_v, float>,
+           Typelist<fixed_size_simd<int, 3>, int_v>
+           >)
+{
+    using A = typename Pair::template at<0>;
+    using B = typename Pair::template at<1>;
+    VERIFY(!(vir::test::sfinae_is_callable<A, B>(Plus())));
+    VERIFY(!(vir::test::sfinae_is_callable<B, A>(Plus())));
+    VERIFY(!(vir::test::sfinae_is_callable<A, B>(Xor())));
+    VERIFY(!(vir::test::sfinae_is_callable<B, A>(Xor())));
+    VERIFY(!(vir::test::sfinae_is_callable<A, B>(Equal())));
+    VERIFY(!(vir::test::sfinae_is_callable<B, A>(Equal())));
 }
 
 // vim: foldmethod=marker
