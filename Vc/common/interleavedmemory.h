@@ -329,6 +329,18 @@ Result in (x, y, z): ({x5 x0 x1 x7}, {y5 y0 y1 y7}, {z5 z0 z1 z7})
 
 using Common::InterleavedMemoryWrapper;
 
+/**
+ * Creates an adapter around a given array of structure (AoS) that enables optimized loads
+ * + deinterleaving operations / interleaving operations + stores for vector access (using
+ * \p V).
+ *
+ * \tparam V The `Vc::Vector<T>` type to use per element of the structure.
+ * \param s A pointer to an array of structures containing data members of type `T`.
+ *
+ * \see Vc::Common::InterleavedMemoryWrapper
+ *
+ * \todo Support destructuring via structured bindings.
+ */
 template <typename V, typename S>
 inline Common::InterleavedMemoryWrapper<S, V> make_interleave_wrapper(S *s)
 {
