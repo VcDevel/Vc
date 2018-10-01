@@ -125,6 +125,7 @@ the documentation by running `doxygen` in the `doc` subdirectory.
 Alternatively, you can find nightly builds of the documentation at:
 
 * [1.4 branch](https://web-docs.gsi.de/~mkretz/Vc-1.4/)
+* [1.4.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.4.0/)
 * [1.3 branch](https://web-docs.gsi.de/~mkretz/Vc-1.3/)
 * [1.3.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.3.0/)
 * [1.2.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.2.0/)

@@ -227,7 +227,7 @@ install(FILES
    DESTINATION ${PACKAGE_INSTALL_DESTINATION}
    )
 
-#Release# option(BUILD_TESTING "Build the testing tree." OFF)
+option(BUILD_TESTING "Build the testing tree." OFF)
 include (CTest)
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_BINARY_DIR}/CTestCustom.cmake COPYONLY)
 if(BUILD_TESTING)
