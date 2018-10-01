@@ -183,10 +183,15 @@ template<typename S, typename V> class InterleavedMemoryWrapper
     typedef typename V::AsArg VArg;
     typedef const I &IndexType;
     static constexpr std::size_t StructSize = sizeof(S) / sizeof(T);
-    typedef InterleavedMemoryAccess<StructSize, V> Access;
-    typedef InterleavedMemoryReadAccess<StructSize, V> ReadAccess;
-    typedef InterleavedMemoryAccess<StructSize, V, SuccessiveEntries<StructSize> > AccessSuccessiveEntries;
-    typedef InterleavedMemoryReadAccess<StructSize, V, SuccessiveEntries<StructSize> > ReadSuccessiveEntries;
+    using ReadAccess = InterleavedMemoryReadAccess<StructSize, V>;
+    using Access =
+        typename std::conditional<std::is_const<T>::value, ReadAccess,
+                                  InterleavedMemoryAccess<StructSize, V>>::type;
+    using ReadSuccessiveEntries =
+        InterleavedMemoryReadAccess<StructSize, V, SuccessiveEntries<StructSize>>;
+    using AccessSuccessiveEntries = typename std::conditional<
+        std::is_const<T>::value, ReadSuccessiveEntries,
+        InterleavedMemoryAccess<StructSize, V, SuccessiveEntries<StructSize>>>::type;
     typedef T Ta Vc_MAY_ALIAS;
     Ta *const m_data;
 
