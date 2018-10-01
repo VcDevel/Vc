@@ -488,7 +488,7 @@ macro(go)
                      endif()
                   endif()
                endif()
-               if(label STREQUAL "other")
+               if(label STREQUAL "other" AND CTEST_CMAKE_GENERATOR MATCHES "Make")
                   set(CTEST_BUILD_TARGET "install/fast")
                   set(CTEST_BUILD_COMMAND "${CMAKE_MAKE_PROGRAM} ${MAKE_ARGS} ${CTEST_BUILD_TARGET}")
                   ctest_build(
