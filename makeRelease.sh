@@ -10,7 +10,7 @@ minor=strtonum("0x" substr(h, 5, 2))
 patch=strtonum("0x" substr(h, 7, 2)) / 2
 printf "oldVersion=\"%d.%d.%d\"\n", major, minor, patch
 printf "newVersion=\"%d.%d.%d\"\n", major, minor, patch + 1
-}' include/Vc/version.h`
+}' Vc/version.h`
 echo    "current version: $oldVersion"
 echo -n "    new release: "
 read -e -i "$newVersion" newVersion
@@ -26,8 +26,8 @@ sed -i \
 sed -i \
 	-e "s/Vc_VERSION_STRING \".*\"\$/Vc_VERSION_STRING \"$versionString\"/" \
 	-e "s/Vc_VERSION_NUMBER 0x.*\$/Vc_VERSION_NUMBER $versionNumber/" \
-	include/Vc/version.h
-cat include/Vc/version.h
+	Vc/version.h
+cat Vc/version.h
 
 # Modify README.md to link to release docs
 ed README.md <<EOF
@@ -40,7 +40,7 @@ EOF
 
 # Don't build tests with make all
 sed -i -e 's/#Release# //' CMakeLists.txt
-git commit CMakeLists.txt doc/Doxyfile include/Vc/version.h -s -F- <<EOF
+git commit README.md CMakeLists.txt doc/Doxyfile Vc/version.h -s -F- <<EOF
 release: version $versionString
 
 * change version strings/numbers to $versionString
@@ -67,6 +67,7 @@ rm -rf "Vc-docs-$versionString"
 
 # Get back to the state before the tag and fix up the version numbers afterwards
 git revert -n HEAD
+git reset HEAD README.md && git checkout README.md
 
 # Update the version number of the after-release code
 versionString="$versionString-dev"
@@ -79,8 +80,8 @@ sed -i \
 sed -i \
 	-e "s/Vc_VERSION_STRING \".*\"\$/Vc_VERSION_STRING \"$versionString\"/" \
 	-e "s/Vc_VERSION_NUMBER 0x.*\$/Vc_VERSION_NUMBER $versionNumber/" \
-	include/Vc/version.h
-git commit CMakeLists.txt doc/Doxyfile include/Vc/version.h -s -F- <<EOF
+	Vc/version.h
+git commit CMakeLists.txt doc/Doxyfile Vc/version.h -s -F- <<EOF
 after release: version $versionString
 
 * change version strings/numbers to $versionString
