@@ -370,18 +370,5 @@ struct simd_converter<From, simd_abi::scalar, To, simd_abi::scalar> {
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-namespace std
-{
-// simd_mask operators {{{1
-template <class T> struct equal_to<Vc::simd_mask<T, Vc::simd_abi::scalar>> {
-private:
-    using M = Vc::simd_mask<T, Vc::simd_abi::scalar>;
-
-public:
-    bool operator()(const M &x, const M &y) const { return x[0] == y[0]; }
-};
-// }}}1
-}  // namespace std
-
 #endif  // VC_DETAIL_SCALAR_H_
 // vim: foldmethod=marker

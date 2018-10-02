@@ -982,27 +982,6 @@ private:
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-namespace std
-{
-// simd_mask operators {{{1
-template <class T, int N>
-struct equal_to<Vc::simd_mask<T, Vc::simd_abi::fixed_size<N>>> {
-private:
-    using M = Vc::simd_mask<T, Vc::simd_abi::fixed_size<N>>;
-
-public:
-    bool operator()(const M &x, const M &y) const
-    {
-        bool r = x[0] == y[0];
-        for (int i = 1; i < N; ++i) {
-            r = r && x[i] == y[i];
-        }
-        return r;
-    }
-};
-// }}}1
-}  // namespace std
-
 #endif  // VC_SIMD_FIXED_SIZE_H_
 
 // vim: foldmethod=marker
