@@ -483,15 +483,14 @@ public:
             bits |= meta.mask_to_shifted_ullong(meta.cmp_(native_x, native_y));          \
         });                                                                              \
         return bits;                                                                     \
-    }                                                                                    \
-    Vc_NOTHING_EXPECTING_SEMICOLON
-        Vc_CMP_OPERATIONS(equal_to);
-        Vc_CMP_OPERATIONS(not_equal_to);
-        Vc_CMP_OPERATIONS(less);
-        Vc_CMP_OPERATIONS(greater);
-        Vc_CMP_OPERATIONS(less_equal);
-        Vc_CMP_OPERATIONS(greater_equal);
-        Vc_CMP_OPERATIONS(isunordered);
+    }
+    Vc_CMP_OPERATIONS(equal_to)
+    Vc_CMP_OPERATIONS(not_equal_to)
+    Vc_CMP_OPERATIONS(less)
+    Vc_CMP_OPERATIONS(greater)
+    Vc_CMP_OPERATIONS(less_equal)
+    Vc_CMP_OPERATIONS(greater_equal)
+    Vc_CMP_OPERATIONS(isunordered)
 #undef Vc_CMP_OPERATIONS
 
     // smart_reference access {{{2

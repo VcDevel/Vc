@@ -239,19 +239,12 @@ struct scalar_simd_impl {
     template <class T> static inline void decrement(T &x) { --x; }
 
     // compares {{{2
-#define Vc_CMP_OPERATIONS(cmp_)                                                          \
-    template <class T> static inline bool cmp_(T x, T y)                                 \
-    {                                                                                    \
-        return std::cmp_<T>()(x, y);                                                     \
-    }                                                                                    \
-    Vc_NOTHING_EXPECTING_SEMICOLON
-    Vc_CMP_OPERATIONS(equal_to);
-    Vc_CMP_OPERATIONS(not_equal_to);
-    Vc_CMP_OPERATIONS(less);
-    Vc_CMP_OPERATIONS(greater);
-    Vc_CMP_OPERATIONS(less_equal);
-    Vc_CMP_OPERATIONS(greater_equal);
-#undef Vc_CMP_OPERATIONS
+    template <class T> static bool equal_to(T x, T y) { return x == y; }
+    template <class T> static bool not_equal_to(T x, T y) { return x != y; }
+    template <class T> static bool less(T x, T y) { return x < y; }
+    template <class T> static bool greater(T x, T y) { return x > y; }
+    template <class T> static bool less_equal(T x, T y) { return x <= y; }
+    template <class T> static bool greater_equal(T x, T y) { return x >= y; }
 
     // smart_reference access {{{2
     template <class T, class U> static void set(T &v, int i, U &&x) noexcept
