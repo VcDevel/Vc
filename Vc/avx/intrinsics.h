@@ -48,7 +48,7 @@ extern "C" {
 #include "macros.h"
 #include <cstdlib>
 
-#if (defined Vc_CLANG && Vc_CLANG >= 0x30900)
+#if (defined Vc_CLANG && Vc_CLANG >= 0x30900 && Vc_CLANG < 0x70000)
 #ifdef _mm256_permute2f128_si256
 #undef _mm256_permute2f128_si256
 #define _mm256_permute2f128_si256(V1, V2, M) __extension__ ({ \
