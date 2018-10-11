@@ -155,12 +155,12 @@ public:
     Vc_CONSTEXPR span(pointer _ptr, index_type _count) : data_{_ptr}
     {
         (void)_count;
-        Vc_ASSERT(("size mismatch in span's constructor (ptr, len)", Extent == _count));
+        Vc_ASSERT(((void)"size mismatch in span's constructor (ptr, len)", Extent == _count));
     }
     Vc_CONSTEXPR span(pointer _f, pointer _l) : data_{_f}
     {
         (void)_l;
-        Vc_ASSERT(("size mismatch in span's constructor (ptr, ptr)",
+        Vc_ASSERT(((void)"size mismatch in span's constructor (ptr, ptr)",
                    Extent == distance(_f, _l)));
     }
 
