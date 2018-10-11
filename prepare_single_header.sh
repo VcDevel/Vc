@@ -14,6 +14,8 @@ parse_file() {
   dir=${1%/*}
   file=${1##*/}
   case "$file" in
+    memory.h) return;;
+    memorybase.h) return;;
     *deprecated*) return;;
     *debug.h) return;;
   esac
