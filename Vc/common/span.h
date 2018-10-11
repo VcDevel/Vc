@@ -631,7 +631,7 @@ span(const Container&)->span<const typename Container::value_type>;
  * float_v y = view[indexes][&Point::y];
  * \endcode
  */
-template <typename T, ptrdiff_t Extent>
+template <typename T, ptrdiff_t Extent = dynamic_extent>
 using span = Common::AdaptSubscriptOperator<Common::span<T, Extent>>;
 
 namespace Traits
