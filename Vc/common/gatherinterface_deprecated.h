@@ -19,7 +19,7 @@
                                                            const EntryType S1::*member1,
                                                            IT indexes)
     {
-        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1]
                    .gatherArguments());
     }
@@ -43,7 +43,7 @@
                                                            const EntryType S1::*member1,
                                                            IT indexes, MaskArgument mask)
     {
-        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1]
                    .gatherArguments(),
                mask);
@@ -70,7 +70,7 @@
                                                            const EntryType S2::*member2,
                                                            IT indexes)
     {
-        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1][member2]
                    .gatherArguments());
     }
@@ -97,7 +97,7 @@
                                                            const EntryType S2::*member2,
                                                            IT indexes, MaskArgument mask)
     {
-        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1][member2]
                    .gatherArguments(),
                mask);
@@ -121,7 +121,7 @@
                                                  const EntryType *const S1::*ptrMember1,
                                                  IT1 outerIndexes, IT2 innerIndexes)
     {
-        gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT1, std::ratio<1, 1>, true>(
                    array, outerIndexes)[ptrMember1][innerIndexes]
                    .gatherArguments());
     }
@@ -146,7 +146,7 @@
                                                  IT1 outerIndexes, IT2 innerIndexes,
                                                  MaskArgument mask)
     {
-        gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT1, std::ratio<1, 1>, true>(
                    array, outerIndexes)[ptrMember1][innerIndexes]
                    .gatherArguments(),
                mask);
@@ -169,7 +169,7 @@
                   "instead.") inline void gather(const S1 *array,
                                                  const EntryType S1::*member1, IT indexes)
     {
-        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1]
                    .gatherArguments());
     }
@@ -194,7 +194,7 @@
                                                  IT indexes,
                                                  MaskArgument mask)
     {
-        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1]
                    .gatherArguments(),
                mask);
@@ -219,7 +219,7 @@
                   "instead.") inline void gather(const S1 *array, const S2 S1::*member1,
                                                  const EntryType S2::*member2, IT indexes)
     {
-        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1][member2]
                    .gatherArguments());
     }
@@ -245,7 +245,7 @@
                                                  const EntryType S2::*member2, IT indexes,
                                                  MaskArgument mask)
     {
-        gather(Common::SubscriptOperation<S1, IT, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT, std::ratio<1, 1>, true>(
                    array, indexes)[member1][member2]
                    .gatherArguments(),
                mask);
@@ -268,7 +268,7 @@
                                                  const EntryType *const S1::*ptrMember1,
                                                  IT1 outerIndexes, IT2 innerIndexes)
     {
-        gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT1, std::ratio<1, 1>, true>(
                    array, outerIndexes)[ptrMember1][innerIndexes]
                    .gatherArguments());
     }
@@ -292,7 +292,7 @@
                                                  IT1 outerIndexes, IT2 innerIndexes,
                                                  MaskArgument mask)
     {
-        gather(Common::SubscriptOperation<S1, IT1, std::ratio<1, 1>, true>(
+        gather(Common::SubscriptOperation<const S1, IT1, std::ratio<1, 1>, true>(
                    array, outerIndexes)[ptrMember1][innerIndexes]
                    .gatherArguments(),
                mask);
