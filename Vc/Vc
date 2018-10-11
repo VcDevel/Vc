@@ -33,7 +33,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Utils"
 #include "Allocator"
 #include "iterators"
-#include "SimdArray"
 #include "simdize"
 #include "array"
 #include "span"
