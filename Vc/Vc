@@ -35,6 +35,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "iterators"
 #include "SimdArray"
 #include "simdize"
+#include "array"
+#include "span"
+#include "vector"
 #endif // VC_VC_
 
 // vim: ft=cpp foldmethod=marker
