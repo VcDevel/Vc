@@ -1221,7 +1221,7 @@ Vc_INTRINSIC void mask_store(__m256i k, bool *mem, Flags)
 #endif
     } break;
     case 16: {
-        const auto bools = Detail::and_(AVX::_mm_setone_epu8(),
+        const auto bools = Detail::and_(_mm_set1_epi8(1),
                                         _mm_packs_epi16(AVX::lo128(k), AVX::hi128(k)));
         if (Flags::IsAligned) {
             _mm_store_si128(reinterpret_cast<__m128i *>(mem), bools);

@@ -78,8 +78,6 @@ namespace SseIntrinsics
     static Vc_INTRINSIC Vc_CONST __m128d _mm_setallone_pd() { return _mm_load_pd(reinterpret_cast<const double *>(Common::AllBitsSet)); }
     static Vc_INTRINSIC Vc_CONST __m128  _mm_setallone_ps() { return _mm_load_ps(reinterpret_cast<const float *>(Common::AllBitsSet)); }
 
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
-    static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epi16()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one16)); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
     static Vc_INTRINSIC __m128i Vc_CONST _mm_setone_epi32()  { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::one32)); }
@@ -96,23 +94,15 @@ namespace SseIntrinsics
     static Vc_INTRINSIC __m128i Vc_CONST setmin_epi8 () { return _mm_set1_epi8(-0x80); }
     static Vc_INTRINSIC __m128i Vc_CONST setmin_epi16() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::minShort)); }
     static Vc_INTRINSIC __m128i Vc_CONST setmin_epi32() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::signMaskFloat)); }
-    static Vc_INTRINSIC __m128i Vc_CONST setmin_epi64() { return _mm_load_si128(reinterpret_cast<const __m128i *>(c_general::signMaskDouble)); }
 
 #if defined(Vc_IMPL_XOP)
-    static Vc_INTRINSIC __m128i Vc_CONST cmplt_epu8(__m128i a, __m128i b) { return _mm_comlt_epu8(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu8(__m128i a, __m128i b) { return _mm_comgt_epu8(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST cmplt_epu16(__m128i a, __m128i b) { return _mm_comlt_epu16(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu16(__m128i a, __m128i b) { return _mm_comgt_epu16(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST cmplt_epu32(__m128i a, __m128i b) { return _mm_comlt_epu32(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu32(__m128i a, __m128i b) { return _mm_comgt_epu32(a, b); }
     static Vc_INTRINSIC __m128i Vc_CONST cmplt_epu64(__m128i a, __m128i b) { return _mm_comlt_epu64(a, b); }
-    static Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu64(__m128i a, __m128i b) { return _mm_comgt_epu64(a, b); }
 #else
-    static Vc_INTRINSIC __m128i Vc_CONST cmplt_epu8(__m128i a, __m128i b)
-    {
-        return _mm_cmplt_epi8(_mm_xor_si128(a, setmin_epi8()),
-                              _mm_xor_si128(b, setmin_epi8()));
-    }
     static Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu8(__m128i a, __m128i b)
     {
         return _mm_cmpgt_epi8(_mm_xor_si128(a, setmin_epi8()),
@@ -162,11 +152,6 @@ namespace SseIntrinsics
         return _mm_or_si128(gt2, lo);
 #endif
     }
-    static Vc_INTRINSIC __m128i Vc_CONST cmpgt_epu64(__m128i a, __m128i b)
-    {
-        return cmpgt_epi64(_mm_xor_si128(a, setmin_epi64()),
-                           _mm_xor_si128(b, setmin_epi64()));
-    }
 #endif
 }  // namespace SseIntrinsics
 }  // namespace Vc
@@ -196,7 +181,7 @@ namespace SseIntrinsics
 {
     Vc_INTRINSIC Vc_CONST __m128i abs_epi8 (__m128i a) {
         __m128i negative = _mm_cmplt_epi8 (a, _mm_setzero_si128());
-        return _mm_add_epi8 (_mm_xor_si128(a, negative), _mm_and_si128(negative,  _mm_setone_epi8()));
+        return _mm_add_epi8 (_mm_xor_si128(a, negative), _mm_and_si128(negative,  _mm_set1_epi8(1)));
     }
     // positive value:
     //   negative == 0
@@ -351,10 +336,6 @@ Vc_INTRINSIC Vc_CONST __m128i cvtepu8_epi32(__m128i epu8)
 Vc_INTRINSIC Vc_CONST __m128i cvtepi8_epi32(__m128i epi8)
 {
     return _mm_cvtepi8_epi32(epi8);
-}
-Vc_INTRINSIC Vc_PURE __m128i stream_load_si128(__m128i *mem)
-{
-    return _mm_stream_load_si128(mem);
 }
 }  // namespace SseIntrinsics
 }  // namespace Vc
@@ -546,18 +527,12 @@ namespace SseIntrinsics
     Vc_INTRINSIC Vc_CONST __m128i max_epi32(__m128i a, __m128i b) {
         return blendv_epi8(b, a, _mm_cmpgt_epi32(a, b));
     }
-//X         Vc_INTRINSIC Vc_CONST __m128i max_epu8 (__m128i a, __m128i b) {
-//X             return _mm_blendv_epi8(b, a, cmpgt_epu8 (a, b));
-//X         }
     Vc_INTRINSIC Vc_CONST __m128i max_epu16(__m128i a, __m128i b) {
         return blendv_epi8(b, a, cmpgt_epu16(a, b));
     }
     Vc_INTRINSIC Vc_CONST __m128i max_epu32(__m128i a, __m128i b) {
         return blendv_epi8(b, a, cmpgt_epu32(a, b));
     }
-//X         Vc_INTRINSIC Vc_CONST __m128i _mm_min_epu8 (__m128i a, __m128i b) {
-//X             return _mm_blendv_epi8(a, b, cmpgt_epu8 (a, b));
-//X         }
     Vc_INTRINSIC Vc_CONST __m128i min_epu16(__m128i a, __m128i b) {
         return blendv_epi8(a, b, cmpgt_epu16(a, b));
     }
@@ -589,9 +564,6 @@ namespace SseIntrinsics
         const __m128i neg = _mm_cmplt_epi8(epi8, _mm_setzero_si128());
         const __m128i epi16 = _mm_unpacklo_epi8(epi8, neg);
         return _mm_unpacklo_epi16(epi16, _mm_unpacklo_epi8(neg, neg));
-    }
-    Vc_INTRINSIC Vc_PURE __m128i stream_load_si128(__m128i *mem) {
-        return _mm_load_si128(mem);
     }
 }  // namespace SseIntrinsics
 }  // namespace Vc
@@ -688,7 +660,6 @@ template <typename T> struct VectorTraits
     typedef typename VectorTypeHelper<T>::Type VectorType;
     using EntryType = typename Common::ensure_alignment_equals_sizeof<T>::type;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
-    enum Constants { HasVectorDivision = !std::is_integral<T>::value };
     typedef Mask<T> MaskType;
     typedef typename DetermineGatherMask<MaskType>::Type GatherMaskType;
     typedef Common::VectorMemoryUnion<VectorType, EntryType> StorageType;

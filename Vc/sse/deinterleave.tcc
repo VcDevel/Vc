@@ -32,8 +32,8 @@ namespace SSE
 
 inline void deinterleave(Vector<float> &a, Vector<float> &b)
 {
-    const _M128 tmp0 = _mm_unpacklo_ps(a.data(), b.data());
-    const _M128 tmp1 = _mm_unpackhi_ps(a.data(), b.data());
+    const __m128 tmp0 = _mm_unpacklo_ps(a.data(), b.data());
+    const __m128 tmp1 = _mm_unpackhi_ps(a.data(), b.data());
     a.data() = _mm_unpacklo_ps(tmp0, tmp1);
     b.data() = _mm_unpackhi_ps(tmp0, tmp1);
 }
@@ -52,43 +52,43 @@ inline void deinterleave(Vector<float> &a, Vector<float> &b, Vector<unsigned sho
 
 inline void deinterleave(Vector<double> &a, Vector<double> &b)
 {
-    _M128D tmp = _mm_unpacklo_pd(a.data(), b.data());
+    __m128d tmp = _mm_unpacklo_pd(a.data(), b.data());
     b.data() = _mm_unpackhi_pd(a.data(), b.data());
     a.data() = tmp;
 }
 
 inline void deinterleave(Vector<int> &a, Vector<int> &b)
 {
-    const _M128I tmp0 = _mm_unpacklo_epi32(a.data(), b.data());
-    const _M128I tmp1 = _mm_unpackhi_epi32(a.data(), b.data());
+    const __m128i tmp0 = _mm_unpacklo_epi32(a.data(), b.data());
+    const __m128i tmp1 = _mm_unpackhi_epi32(a.data(), b.data());
     a.data() = _mm_unpacklo_epi32(tmp0, tmp1);
     b.data() = _mm_unpackhi_epi32(tmp0, tmp1);
 }
 
 inline void deinterleave(Vector<unsigned int> &a, Vector<unsigned int> &b)
 {
-    const _M128I tmp0 = _mm_unpacklo_epi32(a.data(), b.data());
-    const _M128I tmp1 = _mm_unpackhi_epi32(a.data(), b.data());
+    const __m128i tmp0 = _mm_unpacklo_epi32(a.data(), b.data());
+    const __m128i tmp1 = _mm_unpackhi_epi32(a.data(), b.data());
     a.data() = _mm_unpacklo_epi32(tmp0, tmp1);
     b.data() = _mm_unpackhi_epi32(tmp0, tmp1);
 }
 
 inline void deinterleave(Vector<short> &a, Vector<short> &b)
 {
-    _M128I tmp0 = _mm_unpacklo_epi16(a.data(), b.data()); // a0 a4 b0 b4 a1 a5 b1 b5
-    _M128I tmp1 = _mm_unpackhi_epi16(a.data(), b.data()); // a2 a6 b2 b6 a3 a7 b3 b7
-    _M128I tmp2 = _mm_unpacklo_epi16(tmp0, tmp1); // a0 a2 a4 a6 b0 b2 b4 b6
-    _M128I tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // a1 a3 a5 a7 b1 b3 b5 b7
+    __m128i tmp0 = _mm_unpacklo_epi16(a.data(), b.data()); // a0 a4 b0 b4 a1 a5 b1 b5
+    __m128i tmp1 = _mm_unpackhi_epi16(a.data(), b.data()); // a2 a6 b2 b6 a3 a7 b3 b7
+    __m128i tmp2 = _mm_unpacklo_epi16(tmp0, tmp1); // a0 a2 a4 a6 b0 b2 b4 b6
+    __m128i tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // a1 a3 a5 a7 b1 b3 b5 b7
     a.data() = _mm_unpacklo_epi16(tmp2, tmp3);
     b.data() = _mm_unpackhi_epi16(tmp2, tmp3);
 }
 
 inline void deinterleave(Vector<unsigned short> &a, Vector<unsigned short> &b)
 {
-    _M128I tmp0 = _mm_unpacklo_epi16(a.data(), b.data()); // a0 a4 b0 b4 a1 a5 b1 b5
-    _M128I tmp1 = _mm_unpackhi_epi16(a.data(), b.data()); // a2 a6 b2 b6 a3 a7 b3 b7
-    _M128I tmp2 = _mm_unpacklo_epi16(tmp0, tmp1); // a0 a2 a4 a6 b0 b2 b4 b6
-    _M128I tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // a1 a3 a5 a7 b1 b3 b5 b7
+    __m128i tmp0 = _mm_unpacklo_epi16(a.data(), b.data()); // a0 a4 b0 b4 a1 a5 b1 b5
+    __m128i tmp1 = _mm_unpackhi_epi16(a.data(), b.data()); // a2 a6 b2 b6 a3 a7 b3 b7
+    __m128i tmp2 = _mm_unpacklo_epi16(tmp0, tmp1); // a0 a2 a4 a6 b0 b2 b4 b6
+    __m128i tmp3 = _mm_unpackhi_epi16(tmp0, tmp1); // a1 a3 a5 a7 b1 b3 b5 b7
     a.data() = _mm_unpacklo_epi16(tmp2, tmp3);
     b.data() = _mm_unpackhi_epi16(tmp2, tmp3);
 }

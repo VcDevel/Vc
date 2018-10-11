@@ -86,13 +86,6 @@ namespace AvxIntrinsics
     typedef __m256d m256d;
     typedef __m256i m256i;
 
-    typedef const m128  param128 ;
-    typedef const m128d param128d;
-    typedef const m128i param128i;
-    typedef const m256  param256 ;
-    typedef const m256d param256d;
-    typedef const m256i param256i;
-
 #ifdef Vc_GCC
     // Redefine the mul/add/sub intrinsics to use GCC-specific operators instead of builtin
     // functions. This way the fp-contraction optimization step kicks in and creates FMAs! :)
@@ -104,10 +97,8 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC Vc_CONST m256 _mm256_sub_ps(m256 a, m256 b) { return static_cast<m256>(static_cast<__v8sf>(a) - static_cast<__v8sf>(b)); }
 #endif
 
-    static Vc_INTRINSIC m256  Vc_CONST set1_ps   (float  a) { return _mm256_set1_ps   (a); }
     static Vc_INTRINSIC m256d Vc_CONST set1_pd   (double a) { return _mm256_set1_pd   (a); }
     static Vc_INTRINSIC m256i Vc_CONST set1_epi32(int    a) { return _mm256_set1_epi32(a); }
-    //static Vc_INTRINSIC m256i Vc_CONST _mm256_set1_epu32(unsigned int a) { return ::_mm256_set1_epu32(a); }
 
     static Vc_INTRINSIC Vc_CONST m128i _mm_setallone_si128() { return _mm_load_si128(reinterpret_cast<const __m128i *>(Common::AllBitsSet)); }
     static Vc_INTRINSIC Vc_CONST m128  _mm_setallone_ps() { return _mm_load_ps(reinterpret_cast<const float *>(Common::AllBitsSet)); }
@@ -116,13 +107,6 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC Vc_CONST m256i setallone_si256() { return _mm256_castps_si256(_mm256_load_ps(reinterpret_cast<const float *>(Common::AllBitsSet))); }
     static Vc_INTRINSIC Vc_CONST m256d setallone_pd() { return _mm256_load_pd(reinterpret_cast<const double *>(Common::AllBitsSet)); }
     static Vc_INTRINSIC Vc_CONST m256  setallone_ps() { return _mm256_load_ps(reinterpret_cast<const float *>(Common::AllBitsSet)); }
-
-    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epi8 ()  { return _mm_set1_epi8(1); }
-    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epu8 ()  { return _mm_setone_epi8(); }
-    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epi16()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(c_general::one16))); }
-    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epu16()  { return _mm_setone_epi16(); }
-    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epi32()  { return _mm_castps_si128(_mm_broadcast_ss(reinterpret_cast<const float *>(&_IndexesFromZero32[1]))); }
-    static Vc_INTRINSIC m128i Vc_CONST _mm_setone_epu32()  { return _mm_setone_epi32(); }
 
     static Vc_INTRINSIC m256i Vc_CONST setone_epi8 ()  { return _mm256_set1_epi8(1); }
     static Vc_INTRINSIC m256i Vc_CONST setone_epu8 ()  { return setone_epi8(); }
@@ -150,16 +134,6 @@ namespace AvxIntrinsics
     static Vc_INTRINSIC m256i Vc_CONST setmin_epi16() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(c_general::minShort))); }
     static Vc_INTRINSIC m256i Vc_CONST setmin_epi32() { return _mm256_castps_si256(_mm256_broadcast_ss(reinterpret_cast<const float *>(&c_general::signMaskFloat[1]))); }
 
-    template <int i>
-    static Vc_INTRINSIC Vc_CONST unsigned char extract_epu8(__m128i x)
-    {
-        return _mm_extract_epi8(x, i);
-    }
-    template <int i>
-    static Vc_INTRINSIC Vc_CONST unsigned short extract_epu16(__m128i x)
-    {
-        return _mm_extract_epi16(x, i);
-    }
     template <int i>
     static Vc_INTRINSIC Vc_CONST unsigned int extract_epu32(__m128i x)
     {
@@ -362,64 +336,14 @@ namespace AvxIntrinsics
     Vc_AVX_TO_SSE_2_NEW(cmpgt_epi16)
     Vc_AVX_TO_SSE_2_NEW(cmpgt_epi32)
     Vc_AVX_TO_SSE_2_NEW(cmpgt_epi64)
-    Vc_AVX_TO_SSE_2_NEW(packs_epi16)
-    Vc_AVX_TO_SSE_2_NEW(packs_epi32)
-    Vc_AVX_TO_SSE_2_NEW(packus_epi16)
-    Vc_AVX_TO_SSE_2_NEW(unpackhi_epi8)
     Vc_AVX_TO_SSE_2_NEW(unpackhi_epi16)
-    Vc_AVX_TO_SSE_2_NEW(unpackhi_epi32)
-    Vc_AVX_TO_SSE_2_NEW(unpackhi_epi64)
-    Vc_AVX_TO_SSE_2_NEW(unpacklo_epi8)
     Vc_AVX_TO_SSE_2_NEW(unpacklo_epi16)
-    Vc_AVX_TO_SSE_2_NEW(unpacklo_epi32)
-    Vc_AVX_TO_SSE_2_NEW(unpacklo_epi64)
-    Vc_AVX_TO_SSE_2_NEW(add_epi8)
     Vc_AVX_TO_SSE_2_NEW(add_epi16)
     Vc_AVX_TO_SSE_2_NEW(add_epi32)
     Vc_AVX_TO_SSE_2_NEW(add_epi64)
-    Vc_AVX_TO_SSE_2_NEW(adds_epi8)
-    Vc_AVX_TO_SSE_2_NEW(adds_epi16)
-    Vc_AVX_TO_SSE_2_NEW(adds_epu8)
-    Vc_AVX_TO_SSE_2_NEW(adds_epu16)
-    Vc_AVX_TO_SSE_2_NEW(sub_epi8)
     Vc_AVX_TO_SSE_2_NEW(sub_epi16)
     Vc_AVX_TO_SSE_2_NEW(sub_epi32)
-    Vc_AVX_TO_SSE_2_NEW(sub_epi64)
-    Vc_AVX_TO_SSE_2_NEW(subs_epi8)
-    Vc_AVX_TO_SSE_2_NEW(subs_epi16)
-    Vc_AVX_TO_SSE_2_NEW(subs_epu8)
-    Vc_AVX_TO_SSE_2_NEW(subs_epu16)
-    Vc_AVX_TO_SSE_2_NEW(madd_epi16)
-    Vc_AVX_TO_SSE_2_NEW(mulhi_epi16)
     Vc_AVX_TO_SSE_2_NEW(mullo_epi16)
-    Vc_AVX_TO_SSE_2_NEW(mul_epu32)
-    Vc_AVX_TO_SSE_2_NEW(max_epi16)
-    Vc_AVX_TO_SSE_2_NEW(max_epu8)
-    Vc_AVX_TO_SSE_2_NEW(min_epi16)
-    Vc_AVX_TO_SSE_2_NEW(min_epu8)
-    Vc_AVX_TO_SSE_2_NEW(mulhi_epu16)
-    // shufflehi_epi16
-    // shufflelo_epi16 (__m128i __A, const int __mask)
-    // shuffle_epi32 (__m128i __A, const int __mask)
-    // maskmoveu_si128 (__m128i __A, __m128i __B, char *__C)
-    Vc_AVX_TO_SSE_2_NEW(avg_epu8)
-    Vc_AVX_TO_SSE_2_NEW(avg_epu16)
-    Vc_AVX_TO_SSE_2_NEW(sad_epu8)
-    // stream_si32 (int *__A, int __B)
-    // stream_si128 (__m128i *__A, __m128i __B)
-    // cvtsi32_si128 (int __A)
-    // cvtsi64_si128 (long long __A)
-    // cvtsi64x_si128 (long long __A)
-    Vc_AVX_TO_SSE_2_NEW(hadd_epi16)
-    Vc_AVX_TO_SSE_2_NEW(hadd_epi32)
-    Vc_AVX_TO_SSE_2_NEW(hadds_epi16)
-    Vc_AVX_TO_SSE_2_NEW(hsub_epi16)
-    Vc_AVX_TO_SSE_2_NEW(hsub_epi32)
-    Vc_AVX_TO_SSE_2_NEW(hsubs_epi16)
-    Vc_AVX_TO_SSE_2_NEW(maddubs_epi16)
-    Vc_AVX_TO_SSE_2_NEW(mulhrs_epi16)
-    Vc_AVX_TO_SSE_2_NEW(shuffle_epi8)
-    Vc_AVX_TO_SSE_2_NEW(sign_epi8)
     Vc_AVX_TO_SSE_2_NEW(sign_epi16)
     Vc_AVX_TO_SSE_2_NEW(sign_epi32)
     Vc_AVX_TO_SSE_2_NEW(min_epi8)
@@ -431,7 +355,6 @@ namespace AvxIntrinsics
     Vc_AVX_TO_SSE_2_NEW(min_epu32)
     Vc_AVX_TO_SSE_2_NEW(max_epu32)
     Vc_AVX_TO_SSE_2_NEW(mullo_epi32)
-    Vc_AVX_TO_SSE_2_NEW(mul_epi32)
 
     Vc_AVX_TO_SSE_1(abs_epi8)
     Vc_AVX_TO_SSE_1(abs_epi16)
@@ -448,25 +371,11 @@ namespace AvxIntrinsics
     Vc_AVX_TO_SSE_1_128(cvtepu16_epi32, 8)
     Vc_AVX_TO_SSE_1_128(cvtepu16_epi64, 4)
     Vc_AVX_TO_SSE_1_128(cvtepu32_epi64, 8)
-
-    Vc_AVX_TO_SSE_2_NEW(packus_epi32)
-
 #ifndef Vc_IMPL_AVX2
 
 /////////////////////////////////////////////////////////////////////////
 // implementation of the intrinsics missing in AVX
 /////////////////////////////////////////////////////////////////////////
-
-    template <int i> Vc_INTRINSIC Vc_CONST __m256i srli_si256(__m256i a0) {
-        const __m128i vLo = _mm256_castsi256_si128(a0);
-        const __m128i vHi = extract128<1>(a0);
-        return insert128<1>(_mm256_castsi128_si256(_mm_srli_si128(vLo,  i)), _mm_srli_si128(vHi, i));
-    }
-    template <int i> Vc_INTRINSIC Vc_CONST __m256i slli_si256(__m256i a0) {
-        const __m128i vLo = _mm256_castsi256_si128(a0);
-        const __m128i vHi = extract128<1>(a0);
-        return insert128<1>(_mm256_castsi128_si256(_mm_slli_si128(vLo,  i)), _mm_slli_si128(vHi, i));
-    }
 
     static Vc_INTRINSIC m256i Vc_CONST and_si256(__m256i x, __m256i y) {
         return _mm256_castps_si256(_mm256_and_ps(_mm256_castsi256_ps(x), _mm256_castsi256_ps(y)));
@@ -486,7 +395,7 @@ namespace AvxIntrinsics
         m128i a1 = extract128<1>(a0);
         return (_mm_movemask_epi8(a1) << 16) | _mm_movemask_epi8(_mm256_castsi256_si128(a0));
     }
-    template <int m> Vc_INTRINSIC Vc_CONST m256i blend_epi16(param256i a0, param256i b0)
+    template <int m> Vc_INTRINSIC Vc_CONST m256i blend_epi16(__m256i a0, __m256i b0)
     {
         m128i a1 = extract128<1>(a0);
         m128i b1 = extract128<1>(b0);
@@ -494,7 +403,7 @@ namespace AvxIntrinsics
         m128i r1 = _mm_blend_epi16(a1, b1, m >> 8);
         return insert128<1>(_mm256_castsi128_si256(r0), r1);
     }
-    Vc_INTRINSIC Vc_CONST m256i blendv_epi8(param256i a0, param256i b0, param256i m0) {
+    Vc_INTRINSIC Vc_CONST m256i blendv_epi8(__m256i a0, __m256i b0, __m256i m0) {
         m128i a1 = extract128<1>(a0);
         m128i b1 = extract128<1>(b0);
         m128i m1 = extract128<1>(m0);
@@ -503,7 +412,6 @@ namespace AvxIntrinsics
         return insert128<1>(_mm256_castsi128_si256(r0), r1);
     }
     // mpsadbw_epu8 (__m128i __X, __m128i __Y, const int __M)
-    // stream_load_si128 (__m128i *__X)
 
 #else // Vc_IMPL_AVX2
 
@@ -511,15 +419,6 @@ static Vc_INTRINSIC Vc_CONST m256i xor_si256(__m256i x, __m256i y) { return _mm2
 static Vc_INTRINSIC Vc_CONST m256i or_si256(__m256i x, __m256i y) { return _mm256_or_si256(x, y); }
 static Vc_INTRINSIC Vc_CONST m256i and_si256(__m256i x, __m256i y) { return _mm256_and_si256(x, y); }
 static Vc_INTRINSIC Vc_CONST m256i andnot_si256(__m256i x, __m256i y) { return _mm256_andnot_si256(x, y); }
-
-template <int i> Vc_INTRINSIC Vc_CONST __m256i srli_si256(__m256i a0)
-{
-    return _mm256_srli_si256(a0, i);
-}
-template <int i> Vc_INTRINSIC Vc_CONST __m256i slli_si256(__m256i a0)
-{
-    return _mm256_slli_si256(a0, i);
-}
 
 /////////////////////////////////////////////////////////////////////////
 // implementation of the intrinsics missing in AVX2
@@ -552,9 +451,6 @@ static Vc_INTRINSIC m256i cmplt_epi8(__m256i a, __m256i b) {
     return cmpgt_epi8(b, a);
 }
 
-static Vc_INTRINSIC m256i cmplt_epu8(__m256i a, __m256i b) {
-    return cmplt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
-}
 static Vc_INTRINSIC m256i cmpgt_epu8(__m256i a, __m256i b) {
     return cmpgt_epi8(xor_si256(a, setmin_epi8()), xor_si256(b, setmin_epi8()));
 }
@@ -718,14 +614,6 @@ namespace AVX
     template<> struct VectorTypeHelper<         float> { typedef __m256  Type; };
     template<> struct VectorTypeHelper<        double> { typedef __m256d Type; };
 
-    template<typename T> struct SseVectorType;
-    template<> struct SseVectorType<__m256 > { typedef __m128  Type; };
-    template<> struct SseVectorType<__m256i> { typedef __m128i Type; };
-    template<> struct SseVectorType<__m256d> { typedef __m128d Type; };
-    template<> struct SseVectorType<__m128 > { typedef __m128  Type; };
-    template<> struct SseVectorType<__m128i> { typedef __m128i Type; };
-    template<> struct SseVectorType<__m128d> { typedef __m128d Type; };
-
     template <typename T>
     using IntegerVectorType =
         typename std::conditional<sizeof(T) == 16, __m128i, __m256i>::type;
@@ -737,10 +625,6 @@ namespace AVX
         typename std::conditional<sizeof(T) == 16, __m128, __m256>::type;
 
     template<typename T> struct VectorHelper {};
-    template<typename T> struct GatherHelper;
-    template<typename T> struct ScatterHelper;
-
-    template<typename T> struct HasVectorDivisionHelper { enum { Value = 1 }; };
     template<typename T> struct VectorHelperSize;
 }  // namespace AVX
 }  // namespace Vc

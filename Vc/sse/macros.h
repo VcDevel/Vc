@@ -30,18 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SSE_MACROS_H_
 #define VC_SSE_MACROS_H_
 
-#ifndef _M128
-# define _M128 __m128
-#endif
-
-#ifndef _M128I
-# define _M128I __m128i
-#endif
-
-#ifndef _M128D
-# define _M128D __m128d
-#endif
-
 #if defined(Vc_IMPL_SSE4_1) && !defined(Vc_DISABLE_PTEST)
 #define Vc_USE_PTEST
 #endif

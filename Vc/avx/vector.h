@@ -93,9 +93,6 @@ public:
         typedef EntryType VectorEntryType;
         static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
         static constexpr size_t MemoryAlignment = alignof(VectorType);
-        enum Constants {
-            HasVectorDivision = AVX::HasVectorDivisionHelper<T>::Value
-        };
     using IndexType = fixed_size_simd<int, Size>;
         typedef Vector<T, abi> AsArg;
         typedef VectorType VectorTypeArg;
