@@ -99,8 +99,71 @@ Vc_ALWAYS_INLINE void free(void *p)
     std::free(p);
 #endif
 }
-
 }  // namespace Common
+
+/**
+ * Allocates memory on the Heap with alignment and padding suitable for vectorized access.
+ *
+ * Memory that was allocated with this function must be released with Vc::free! Other methods might
+ * work but are not portable.
+ *
+ * \param n Specifies the number of objects the allocated memory must be able to store.
+ * \tparam T The type of the allocated memory. Note, that the constructor is not called.
+ * \tparam A Determines the alignment of the memory. See \ref Vc::MallocAlignment.
+ *
+ * \return Pointer to memory of the requested type, or 0 on error. The allocated memory is padded at
+ * the end to be a multiple of the requested alignment \p A. Thus if you request memory for 21
+ * int objects, aligned via Vc::AlignOnCacheline, you can safely read a full cacheline until the
+ * end of the array, without generating an out-of-bounds access. For a cacheline size of 64 Bytes
+ * and an int size of 4 Bytes you would thus get an array of 128 Bytes to work with.
+ *
+ * \warning
+ * \li The standard malloc function specifies the number of Bytes to allocate whereas this
+ *     function specifies the number of values, thus differing in a factor of sizeof(T).
+ * \li This function is mainly meant for use with builtin types. If you use a custom
+ *     type with a sizeof that is not a multiple of 2 the results might not be what you expect.
+ * \li The constructor of T is not called. You can make up for this:
+ * \code
+ * SomeType *array = new(Vc::malloc<SomeType, Vc::AlignOnCacheline>(N)) SomeType[N];
+ * \endcode
+ *
+ * \see Vc::free
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ */
+template<typename T, Vc::MallocAlignment A>
+Vc_ALWAYS_INLINE T *malloc(size_t n)
+{
+    return static_cast<T *>(Common::malloc<A>(n * sizeof(T)));
+}
+
+/**
+ * Frees memory that was allocated with Vc::malloc.
+ *
+ * \param p The pointer to the memory to be freed.
+ *
+ * \tparam T The type of the allocated memory.
+ *
+ * \warning The destructor of T is not called. If needed, you can call the destructor before calling
+ * free:
+ * \code
+ * for (int i = 0; i < N; ++i) {
+ *   p[i].~T();
+ * }
+ * Vc::free(p);
+ * \endcode
+ *
+ * \ingroup Utilities
+ * \headerfile memory.h <Vc/Memory>
+ *
+ * \see Vc::malloc
+ */
+template<typename T>
+Vc_ALWAYS_INLINE void free(T *p)
+{
+    Common::free(p);
+}
 }  // namespace Vc
 
 #endif // VC_COMMON_MALLOC_H_
