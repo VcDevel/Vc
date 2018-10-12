@@ -29,8 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_MAKE_UNIQUE_H_
 
 #include <memory>
-
-#include "macros.h"
+#include "malloc.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {
