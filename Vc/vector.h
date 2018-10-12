@@ -241,7 +241,6 @@ constexpr std::size_t MemoryAlignment = alignof(MemoryAlignedBase);
 #endif
 
 #include "common/vectortuple.h"
-#include "common/algorithms.h"
 #include "common/where.h"
 #include "common/iif.h"
 

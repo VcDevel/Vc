@@ -385,6 +385,49 @@ private:
     VectorType d;
 };
 
+/**
+ * \ingroup Utilities
+ *
+ * \name Boolean Reductions
+ */
+//@{
+/** \ingroup Utilities
+ *  Returns whether all entries in the mask \p m are \c true.
+ */
+template<typename Mask> constexpr bool all_of(const Mask &m) { return m.isFull(); }
+/** \ingroup Utilities
+ *  Returns \p b
+ */
+constexpr bool all_of(bool b) { return b; }
+
+/** \ingroup Utilities
+ *  Returns whether at least one entry in the mask \p m is \c true.
+ */
+template<typename Mask> constexpr bool any_of(const Mask &m) { return m.isNotEmpty(); }
+/** \ingroup Utilities
+ *  Returns \p b
+ */
+constexpr bool any_of(bool b) { return b; }
+
+/** \ingroup Utilities
+ *  Returns whether all entries in the mask \p m are \c false.
+ */
+template<typename Mask> constexpr bool none_of(const Mask &m) { return m.isEmpty(); }
+/** \ingroup Utilities
+ *  Returns \p !b
+ */
+constexpr bool none_of(bool b) { return !b; }
+
+/** \ingroup Utilities
+ *  Returns whether at least one entry in \p m is \c true and at least one entry in \p m is \c
+ *  false.
+ */
+template<typename Mask> constexpr bool some_of(const Mask &m) { return m.isMix(); }
+/** \ingroup Utilities
+ *  Returns \c false
+ */
+constexpr bool some_of(bool) { return false; }
+//@}
 }  // namespace Vc
 
 #endif  // VC_COMMON_MASK_H_

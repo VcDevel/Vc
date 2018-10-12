@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Memory"
 #include "Utils"
 #include "Allocator"
+#include "algorithm"
 #include "iterators"
 #include "simdize"
 #include "array"
