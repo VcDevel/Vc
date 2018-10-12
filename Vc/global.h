@@ -89,8 +89,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Compiler defines
 #ifdef __INTEL_COMPILER
 #define Vc_ICC __INTEL_COMPILER_BUILD_DATE
-#elif defined(__clang__) && defined(__APPLE__) && __clang_major__ >= 6
-// this is going to break :-(
+#elif defined(__clang__) && defined(__apple_build_version__)
 #define Vc_APPLECLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
 #elif defined(__clang__)
 #define Vc_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
