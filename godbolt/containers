@@ -1,0 +1,1646 @@
+#ifndef VC_VC_
+#define VC_VC_ 
+#ifndef VC_IO_
+#define VC_IO_ 
+#include <iostream>
+#if defined(__GNUC__) && !defined(_WIN32) && defined(_GLIBCXX_OSTREAM)
+#define Vc_HACK_OSTREAM_FOR_TTY 1
+#endif
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
+#include <unistd.h>
+#include <ext/stdio_sync_filebuf.h>
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace
+{
+#ifdef Vc_HACK_OSTREAM_FOR_TTY
+class hacked_ostream : public std::ostream
+{
+public:
+using std::ostream::_M_streambuf;
+};
+bool mayUseColor(const std::ostream &os) __attribute__((__const__));
+bool mayUseColor(const std::ostream &os)
+{
+std::basic_streambuf<char> *hack1 =
+const_cast<std::basic_streambuf<char> *>(os.*(&hacked_ostream::_M_streambuf));
+__gnu_cxx::stdio_sync_filebuf<char> *hack =
+dynamic_cast<__gnu_cxx::stdio_sync_filebuf<char> *>(hack1);
+if (!hack) {
+return false;
+}
+FILE *file = hack->file();
+return 1 == isatty(fileno(file));
+}
+#else
+bool mayUseColor(const std::ostream &) { return false; }
+#endif
+}
+namespace AnsiColor
+{
+struct Type
+{
+const char *data;
+};
+static const Type green = {"\033[1;40;32m"};
+static const Type yellow = {"\033[1;40;33m"};
+static const Type blue = {"\033[1;40;34m"};
+static const Type normal = {"\033[0m"};
+inline std::ostream &operator<<(std::ostream &out, const Type &c)
+{
+if (mayUseColor(out)) {
+out << c.data;
+}
+return out;
+}
+}
+template <typename T, typename Abi>
+inline std::ostream &operator<<(std::ostream &out, const Vc::Vector<T, Abi> &v)
+{
+using TT = typename std::conditional<std::is_same<T, char>::value ||
+std::is_same<T, unsigned char>::value ||
+std::is_same<T, signed char>::value,
+int,
+T>::type;
+out << AnsiColor::green << '[';
+out << TT(v[0]);
+for (size_t i = 1; i < v.Size; ++i) {
+out << ", " << TT(v[i]);
+}
+out << ']' << AnsiColor::normal;
+return out;
+}
+template <typename T, typename Abi>
+inline std::ostream &operator<<(std::ostream &out, const Vc::Mask<T, Abi> &m)
+{
+out << AnsiColor::blue << "m[";
+for (unsigned int i = 0; i < m.Size; ++i) {
+if (i > 0 && (i % 4) == 0) {
+out << ' ';
+}
+if (m[i]) {
+out << AnsiColor::yellow << '1';
+} else {
+out << AnsiColor::blue << '0';
+}
+}
+out << AnsiColor::blue << ']' << AnsiColor::normal;
+return out;
+}
+namespace Common
+{
+#ifdef DOXYGEN
+template<typename V, typename Parent, typename Dimension, typename RM>
+inline std::ostream &operator<<(std::ostream &s, const Vc::MemoryBase<V, Parent, Dimension, RM> &m);
+#endif
+template<typename V, typename Parent, typename RM>
+inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 1, RM> &m )
+{
+out << AnsiColor::blue << '{' << AnsiColor::normal;
+for (unsigned int i = 0; i < m.vectorsCount(); ++i) {
+out << V(m.vector(i));
+}
+out << AnsiColor::blue << '}' << AnsiColor::normal;
+return out;
+}
+template<typename V, typename Parent, typename RM>
+inline std::ostream &operator<<(std::ostream &out, const MemoryBase<V, Parent, 2, RM> &m )
+{
+out << AnsiColor::blue << '{' << AnsiColor::normal;
+for (size_t i = 0; i < m.rowsCount(); ++i) {
+if (i > 0) {
+out << "\n ";
+}
+const size_t vcount = m[i].vectorsCount();
+for (size_t j = 0; j < vcount; ++j) {
+out << V(m[i].vector(j));
+}
+}
+out << AnsiColor::blue << '}' << AnsiColor::normal;
+return out;
+}
+}
+template<typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const SimdArray<T, N> &v)
+{
+out << AnsiColor::green << '<' << v[0];
+for (size_t i = 1; i < N; ++i) {
+if (i % 4 == 0) out << " |";
+out << ' ' << v[i];
+}
+return out << '>' << AnsiColor::normal;
+}
+template<typename T, std::size_t N>
+inline std::ostream &operator<<(std::ostream &out, const SimdMaskArray<T, N> &m)
+{
+out << AnsiColor::blue << "«";
+for (size_t i = 0; i < N; ++i) {
+if (i > 0 && (i % 4) == 0) {
+out << ' ';
+}
+if ( m[i] ) {
+out << AnsiColor::yellow << '1';
+} else {
+out << AnsiColor::blue << '0';
+}
+}
+return out << AnsiColor::blue << "»" << AnsiColor::normal;
+}
+}
+#endif
+#ifndef VC_MEMORY_
+#define VC_MEMORY_ 
+#ifndef VC_COMMON_MAKE_UNIQUE_H_
+#define VC_COMMON_MAKE_UNIQUE_H_ 
+#include <memory>
+#ifndef VC_COMMON_MALLOC_H_
+#define VC_COMMON_MALLOC_H_ 
+#ifndef Vc_VECTOR_DECLARED_
+#error "Incorrect inclusion order. This header must be included from Vc/vector.h only."
+#endif
+#if defined _WIN32 || defined _WIN64
+#include <malloc.h>
+#else
+#include <cstdlib>
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+template <size_t X> static constexpr size_t nextMultipleOf(size_t value)
+{
+return (value % X) > 0 ? value + X - (value % X) : value;
+}
+template <std::size_t alignment> Vc_INTRINSIC void *aligned_malloc(std::size_t n)
+{
+#ifdef __MIC__
+return _mm_malloc(nextMultipleOf<alignment>(n), alignment);
+#elif defined(_WIN32)
+# ifdef __GNUC__
+return __mingw_aligned_malloc(nextMultipleOf<alignment>(n), alignment);
+# else
+return _aligned_malloc(nextMultipleOf<alignment>(n), alignment);
+# endif
+#else
+void *ptr = nullptr;
+if (0 == posix_memalign(&ptr, alignment < sizeof(void *) ? sizeof(void *) : alignment,
+nextMultipleOf<alignment>(n))) {
+return ptr;
+}
+return ptr;
+#endif
+}
+template <Vc::MallocAlignment A> Vc_ALWAYS_INLINE void *malloc(size_t n)
+{
+switch (A) {
+case Vc::AlignOnVector:
+return aligned_malloc<Vc::VectorAlignment>(n);
+case Vc::AlignOnCacheline:
+return aligned_malloc<64>(n);
+case Vc::AlignOnPage:
+return aligned_malloc<4096>(n);
+}
+return nullptr;
+}
+Vc_ALWAYS_INLINE void free(void *p)
+{
+#ifdef __MIC__
+_mm_free(p);
+#elif defined(_WIN32)
+# ifdef __GNUC__
+return __mingw_aligned_free(p);
+# else
+return _aligned_free(p);
+# endif
+#else
+std::free(p);
+#endif
+}
+}
+template<typename T, Vc::MallocAlignment A>
+Vc_ALWAYS_INLINE T *malloc(size_t n)
+{
+return static_cast<T *>(Common::malloc<A>(n * sizeof(T)));
+}
+template<typename T>
+Vc_ALWAYS_INLINE void free(T *p)
+{
+Common::free(p);
+}
+}
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+template<typename T> struct Deleter
+{
+Vc_ALWAYS_INLINE void operator()(T *ptr) {
+ptr->~T();
+Vc::free(ptr);
+}
+};
+template<class T, MallocAlignment A = Vc::AlignOnVector, class... Args>
+inline std::unique_ptr<T, Deleter<T>> make_unique(Args&&... args)
+{
+return std::unique_ptr<T, Deleter<T>>(new(Vc::malloc<T, A>(1)) T(std::forward<Args>(args)...));
+}
+}
+}
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+using Common::make_unique;
+}
+#endif
+#ifndef VC_UTILS_
+#define VC_UTILS_ 
+#ifdef Vc_IMPL_Scalar
+#define VECTOR_NAMESPACE Scalar
+#else
+#define VECTOR_NAMESPACE SSE
+#endif
+#ifndef VC_COMMON_DEINTERLEAVE_H_
+#define VC_COMMON_DEINTERLEAVE_H_ 
+namespace Vc_VERSIONED_NAMESPACE
+{
+template<typename V, typename M, typename A> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
+const M *memory, A align)
+{
+Detail::deinterleave(*a, *b, memory, align);
+}
+template<typename V, typename M> Vc_ALWAYS_INLINE void deinterleave(V *a, V *b,
+const M *memory)
+{
+Detail::deinterleave(*a, *b, memory, Aligned);
+}
+}
+#endif
+#ifndef VC_COMMON_MAKECONTAINER_H_
+#define VC_COMMON_MAKECONTAINER_H_ 
+#include <initializer_list>
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace
+{
+template<typename Container, typename T> struct make_container_helper
+{
+static constexpr Container help(std::initializer_list<T> list) { return { list }; }
+};
+template <typename T_, typename Abi, typename Alloc,
+template <class, class> class Container>
+struct make_container_helper<Container<Vector<T_, Abi>, Alloc>,
+typename Vector<T_, Abi>::EntryType> {
+typedef Vector<T_, Abi> V;
+typedef typename V::EntryType T;
+typedef Container<V, Alloc> C;
+static inline C help(std::initializer_list<T> list) {
+const std::size_t size = (list.size() + (V::Size - 1)) / V::Size;
+C v(size);
+auto containerIt = v.begin();
+auto init = std::begin(list);
+const auto initEnd = std::end(list);
+for (std::size_t i = 0; i < size - 1; ++i) {
+*containerIt++ = V(init, Vc::Unaligned);
+init += V::Size;
+}
+Vc_ASSERT(all_of(*containerIt == V::Zero()));
+int j = 0;
+while (init != initEnd) {
+(*containerIt)[j++] = *init++;
+}
+return v;
+}
+};
+template <typename T_, typename Abi, std::size_t N,
+template <class, std::size_t> class Container>
+struct make_container_helper<Container<Vector<T_, Abi>, N>,
+typename Vector<T_, Abi>::EntryType> {
+typedef Vector<T_, Abi> V;
+typedef typename V::EntryType T;
+static constexpr std::size_t size = (N + (V::Size - 1)) / V::Size;
+typedef Container<
+V,
+#if defined Vc_CLANG && Vc_CLANG < 0x30700
+(size == 1 && std::is_same<Abi, VectorAbi::Avx>::value) ? 2 :
+#endif
+size> C;
+static inline C help(std::initializer_list<T> list) {
+Vc_ASSERT(N == list.size())
+Vc_ASSERT(size == (list.size() + (V::Size - 1)) / V::Size)
+C v;
+auto containerIt = v.begin();
+auto init = std::begin(list);
+const auto initEnd = std::end(list);
+for (std::size_t i = 0; i < size - 1; ++i) {
+*containerIt++ = V(init, Vc::Unaligned);
+init += V::Size;
+}
+Vc_ASSERT(all_of(*containerIt == V::Zero()));
+int j = 0;
+while (init != initEnd) {
+(*containerIt)[j++] = *init++;
+}
+return v;
+}
+};
+}
+template<typename Container, typename T>
+constexpr auto makeContainer(std::initializer_list<T> list) -> decltype(make_container_helper<Container, T>::help(list))
+{
+return make_container_helper<Container, T>::help(list);
+}
+template<typename Container, typename T>
+constexpr auto make_container(std::initializer_list<T> list) -> decltype(makeContainer<Container, T>(list))
+{
+return makeContainer<Container, T>(list);
+}
+}
+#endif
+#endif
+#ifndef VC_INCLUDE_VC_ITERATORS_H_
+#define VC_INCLUDE_VC_ITERATORS_H_ 
+#ifndef VC_COMMON_ITERATORS_H_
+#define VC_COMMON_ITERATORS_H_ 
+#include <array>
+#include <iterator>
+#ifdef Vc_MSVC
+#include <intrin.h>
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+template<typename _V, typename Flags> class MemoryVector;
+template<typename _V, typename Flags> class MemoryVectorIterator;
+template <typename V> class Iterator;
+template <typename V, bool> class IteratorBase;
+template <typename V> class IteratorBase<V, true>
+{
+public:
+using iterator_category = std::input_iterator_tag;
+using value_type = typename V::value_type;
+using difference_type = int;
+using reference = value_type;
+Vc_ALWAYS_INLINE reference operator*() const { return v()[i()]; }
+Vc_ALWAYS_INLINE reference operator[](difference_type i2) const { return v()[i2]; }
+private:
+Vc_INTRINSIC V &v() const { return *static_cast<const Iterator<V> *>(this)->v; }
+Vc_INTRINSIC difference_type i() const
+{
+return static_cast<const Iterator<V> *>(this)->i;
+}
+};
+template <typename V> class IteratorBase<V, false>
+{
+public:
+using iterator_category = std::input_iterator_tag;
+using value_type = typename V::value_type;
+using difference_type = int;
+using reference = Vc::Detail::ElementReference<V, IteratorBase>;
+Vc_ALWAYS_INLINE reference operator*() const { return {*v(), i()}; }
+Vc_ALWAYS_INLINE reference operator[](difference_type i2) const { return {*v(), i2}; }
+private:
+Vc_INTRINSIC V *v() const { return static_cast<const Iterator<V> *>(this)->v; }
+Vc_INTRINSIC difference_type i() const
+{
+return static_cast<const Iterator<V> *>(this)->i;
+}
+friend reference;
+static Vc_INTRINSIC value_type get(const V &o, int i)
+{
+return o[i];
+}
+template <typename T> static Vc_INTRINSIC void set(V &o, int i, T &&v)
+{
+o[i] = std::forward<T>(v);
+}
+};
+template <typename V> class Iterator : public IteratorBase<V, std::is_const<V>::value>
+{
+using Base = IteratorBase<V, std::is_const<V>::value>;
+friend Base;
+public:
+using typename Base::iterator_category;
+using typename Base::value_type;
+using typename Base::difference_type;
+using pointer = const Iterator *;
+using typename Base::reference;
+constexpr Iterator() = default;
+constexpr Iterator(V &_v, difference_type _i) : v(&_v), i(_i) {}
+Vc_ALWAYS_INLINE pointer operator->() const { return this; }
+using Base::operator*;
+Vc_ALWAYS_INLINE Iterator &operator++() { ++i; return *this; }
+Vc_ALWAYS_INLINE Iterator operator++(int) { Iterator tmp = *this; ++i; return tmp; }
+Vc_ALWAYS_INLINE Iterator &operator--() { --i; return *this; }
+Vc_ALWAYS_INLINE Iterator operator--(int) { Iterator tmp = *this; --i; return tmp; }
+using Base::operator[];
+Vc_ALWAYS_INLINE Iterator &operator+=(difference_type d) { i += d; return *this; }
+Vc_ALWAYS_INLINE Iterator &operator-=(difference_type d) { i -= d; return *this; }
+Vc_ALWAYS_INLINE Iterator operator+(difference_type d) const { return {*v, i + d}; }
+Vc_ALWAYS_INLINE Iterator operator-(difference_type d) const { return {*v, i - d}; }
+Vc_ALWAYS_INLINE difference_type operator-(const Iterator &rhs) const { return i - rhs.i; }
+friend Vc_ALWAYS_INLINE Iterator operator+(difference_type d, const Iterator &rhs)
+{
+return {*rhs.v, rhs.i + d};
+}
+Vc_ALWAYS_INLINE bool operator==(const Iterator<V> &rhs) const { return v == rhs.v && i == rhs.i; }
+Vc_ALWAYS_INLINE bool operator!=(const Iterator<V> &rhs) const { return v == rhs.v && i != rhs.i; }
+Vc_ALWAYS_INLINE bool operator< (const Iterator<V> &rhs) const { return v == rhs.v && i < rhs.i; }
+Vc_ALWAYS_INLINE bool operator<=(const Iterator<V> &rhs) const { return v == rhs.v && i <= rhs.i; }
+Vc_ALWAYS_INLINE bool operator> (const Iterator<V> &rhs) const { return v == rhs.v && i > rhs.i; }
+Vc_ALWAYS_INLINE bool operator>=(const Iterator<V> &rhs) const { return v == rhs.v && i >= rhs.i; }
+private:
+V *v = nullptr;
+difference_type i = 0;
+};
+template <typename V> using ConstIterator = Iterator<const V>;
+class BitmaskIterator
+{
+#ifdef Vc_MSVC
+unsigned long mask;
+unsigned long bit;
+#else
+size_t mask;
+size_t bit;
+#endif
+void nextBit()
+{
+#ifdef Vc_GNU_ASM
+bit = __builtin_ctzl(mask);
+#elif defined(Vc_MSVC)
+_BitScanForward(&bit, mask);
+#else
+#error "Not implemented yet. Please contact vc-devel@compeng.uni-frankfurt.de"
+#endif
+}
+void resetLsb()
+{
+mask &= (mask - 1);
+}
+public:
+BitmaskIterator(decltype(mask) m) : mask(m) { nextBit(); }
+BitmaskIterator(const BitmaskIterator &) = default;
+BitmaskIterator(BitmaskIterator &&) = default;
+Vc_ALWAYS_INLINE size_t operator->() const { return bit; }
+Vc_ALWAYS_INLINE size_t operator*() const { return bit; }
+Vc_ALWAYS_INLINE BitmaskIterator &operator++() { resetLsb(); nextBit(); return *this; }
+Vc_ALWAYS_INLINE BitmaskIterator operator++(int) { BitmaskIterator tmp = *this; resetLsb(); nextBit(); return tmp; }
+Vc_ALWAYS_INLINE bool operator==(const BitmaskIterator &rhs) const { return mask == rhs.mask; }
+Vc_ALWAYS_INLINE bool operator!=(const BitmaskIterator &rhs) const { return mask != rhs.mask; }
+};
+template <typename T>
+Vc_ALWAYS_INLINE
+enable_if<Traits::is_simd_vector<T>::value || Traits::is_simd_mask<T>::value,
+Iterator<typename std::remove_reference<T>::type>>
+begin(T &&x)
+{
+return {std::forward<T>(x), 0};
+}
+template <typename T>
+Vc_ALWAYS_INLINE
+enable_if<Traits::is_simd_vector<T>::value || Traits::is_simd_mask<T>::value,
+Iterator<typename std::remove_reference<T>::type>>
+end(T &&x)
+{
+using TT = typename std::decay<T>::type;
+return {std::forward<T>(x), int(TT::size())};
+}
+template <typename T>
+Vc_ALWAYS_INLINE enable_if<
+Traits::is_simd_mask<T>::value || Traits::is_simd_vector<T>::value, ConstIterator<T>>
+cbegin(const T &v)
+{
+return {v, 0};
+}
+template <typename T>
+Vc_ALWAYS_INLINE enable_if<
+Traits::is_simd_mask<T>::value || Traits::is_simd_vector<T>::value, ConstIterator<T>>
+cend(const T &v)
+{
+return {v, int(T::size())};
+}
+template<typename M> Vc_ALWAYS_INLINE BitmaskIterator begin(const WhereImpl::WhereMask<M> &w)
+{
+return w.mask.toInt();
+}
+template<typename M> Vc_ALWAYS_INLINE BitmaskIterator end(const WhereImpl::WhereMask<M> &)
+{
+return 0;
+}
+template<typename V, typename Flags, typename T> Vc_ALWAYS_INLINE MemoryVectorIterator<V, Flags>
+makeIterator(T *mem, Flags)
+{
+return new(mem) MemoryVector<V, Flags>;
+}
+template<typename V, typename Flags, typename T> Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags>
+makeIterator(const T *mem, Flags)
+{
+return new(const_cast<T *>(mem)) MemoryVector<const V, Flags>;
+}
+template<typename V, typename Flags, typename FlagsX> Vc_ALWAYS_INLINE MemoryVectorIterator<V, Flags>
+makeIterator(MemoryVector<V, FlagsX> &mv, Flags)
+{
+return new(&mv) MemoryVector<V, Flags>;
+}
+template<typename V, typename Flags, typename FlagsX> Vc_ALWAYS_INLINE MemoryVectorIterator<const V, Flags>
+makeIterator(MemoryVector<const V, FlagsX> &mv, Flags)
+{
+return new(&mv) MemoryVector<const V, Flags>;
+}
+}
+using Common::begin;
+using Common::end;
+using Common::cbegin;
+using Common::cend;
+using Common::makeIterator;
+}
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+using ::Vc::Common::begin;
+using ::Vc::Common::end;
+using ::Vc::Common::makeIterator;
+}
+#endif
+#ifndef VC_INCLUDE_VC_ARRAY_
+#define VC_INCLUDE_VC_ARRAY_ 
+#include <type_traits>
+#include <utility>
+#include <iterator>
+#include <algorithm>
+#include <stdexcept>
+#ifndef VC_COMMON_SUBSCRIPT_H_
+#define VC_COMMON_SUBSCRIPT_H_ 
+#include <initializer_list>
+#include <type_traits>
+#include <vector>
+#include <assert.h>
+namespace Vc_VERSIONED_NAMESPACE
+{
+namespace Common
+{
+template <typename Base> class AdaptSubscriptOperator : public Base
+{
+public:
+template <typename... Args>
+Vc_ALWAYS_INLINE AdaptSubscriptOperator(Args &&... arguments)
+: Base(std::forward<Args>(arguments)...)
+{
+}
+template <typename T>
+Vc_ALWAYS_INLINE AdaptSubscriptOperator(std::initializer_list<T> l)
+: Base(l)
+{
+}
+using Base::operator[];
+template <typename I,
+typename = enable_if<!std::is_arithmetic<
+typename std::decay<I>::type>::value>
+>
+Vc_ALWAYS_INLINE auto operator[](I &&arg_)
+-> decltype(subscript_operator(*this, std::forward<I>(arg_)))
+{
+return subscript_operator(*this, std::forward<I>(arg_));
+}
+template <typename I, typename = enable_if<
+!std::is_arithmetic<typename std::decay<I>::type>::value>>
+Vc_ALWAYS_INLINE auto operator[](I &&arg_) const
+-> decltype(subscript_operator(*this, std::forward<I>(arg_)))
+{
+return subscript_operator(*this, std::forward<I>(arg_));
+}
+};
+template <class T, class = decltype(convertIndexVector(std::declval<T>()))>
+std::true_type is_valid_indexvector(T &&);
+std::false_type is_valid_indexvector(...);
+template <class IndexVector, class Test = decltype(is_valid_indexvector(
+std::declval<const IndexVector &>()))>
+struct is_valid_indexvector_ : public std::integral_constant<bool, Test::value> {
+};
+static_assert(!is_valid_indexvector_<const int *>::value,
+"Pointer is incorrectly classified as valid index vector type");
+static_assert(is_valid_indexvector_<const int[4]>::value,
+"C-Array is incorrectly classified as invalid index vector type");
+template <typename Scale, typename T>
+Vc_ALWAYS_INLINE enable_if<Scale::num == Scale::den, Traits::decay<T>> applyScale(T &&x)
+{
+return std::forward<T>(x);
+}
+template <typename Scale, typename T>
+Vc_ALWAYS_INLINE enable_if<
+Scale::num != Scale::den && Traits::has_multiply_operator<T, int>::value,
+Traits::decay<T>>
+applyScale(T &&x)
+{
+static_assert(Scale::num % Scale::den == 0,
+"Non-integral index scaling requested. This typically happens only for "
+"Vc::Scalar on 32-bit for gathers on double. You can work around the "
+"issue by ensuring that all doubles in the structure are aligned on 8 "
+"Bytes.");
+constexpr int value = Scale::num / Scale::den;
+Vc_ASSERT(Vc::all_of((x * value) / value == x));
+return std::forward<T>(x) * value;
+}
+template <typename Scale, typename T>
+Vc_ALWAYS_INLINE enable_if<
+Scale::num != Scale::den && !Traits::has_multiply_operator<T, int>::value,
+T>
+applyScale(T x)
+{
+static_assert(Scale::num % Scale::den == 0,
+"Non-integral index scaling requested. This typically happens only for "
+"Vc::Scalar on 32-bit for gathers on double. You can work around the "
+"issue by ensuring that all doubles in the structure are aligned on 8 "
+"Bytes.");
+constexpr int value = Scale::num / Scale::den;
+for (size_t i = 0; i < x.size(); ++i) {
+Vc_ASSERT((x[i] * value) / value == x[i]);
+x[i] *= value;
+}
+return x;
+}
+template <typename Scale, typename T, typename U,
+typename = enable_if<Traits::has_multiply_operator<T, int>::value &&
+Traits::has_addition_operator<T, U>::value>>
+Vc_ALWAYS_INLINE typename std::decay<T>::type applyScaleAndAdd(T &&x, U &&y)
+{
+constexpr int value = Scale::num / Scale::den;
+if (value == 1) {
+return std::forward<T>(x) + std::forward<U>(y);
+}
+return std::forward<T>(x) * value + std::forward<U>(y);
+}
+template <
+typename Scale, typename T, typename U,
+typename = enable_if<
+!(Traits::has_multiply_operator<T &, int>::value &&
+Traits::has_addition_operator<T &, decltype(std::declval<U>()[0])>::value) &&
+Traits::has_subscript_operator<U>::value>>
+Vc_ALWAYS_INLINE T applyScaleAndAdd(T x, U &&y)
+{
+constexpr int value = Scale::num / Scale::den;
+for (size_t i = 0; i < x.size(); ++i) {
+if (value == 1) {
+x[i] = x[i] + y[i];
+} else {
+x[i] = x[i] * value + y[i];
+}
+}
+return x;
+}
+template <typename Scale, typename T, typename U>
+Vc_ALWAYS_INLINE enable_if<!(Traits::has_multiply_operator<T &, int>::value &&
+Traits::has_addition_operator<T &, U>::value) &&
+!Traits::has_subscript_operator<U>::value,
+T>
+applyScaleAndAdd(T x, U &&y)
+{
+constexpr int value = Scale::num / Scale::den;
+for (size_t i = 0; i < x.size(); ++i) {
+if (value == 1) {
+x[i] = x[i] + y;
+} else {
+x[i] = x[i] * value + y;
+}
+}
+return x;
+}
+template <std::size_t MinSize,
+typename IndexT,
+bool = Traits::is_simd_vector<IndexT>::value>
+struct IndexVectorSizeMatches
+: public std::true_type
+{
+};
+template <std::size_t MinSize, typename V>
+struct IndexVectorSizeMatches<MinSize,
+V,
+true> : public std::integral_constant<bool, (MinSize <= V::Size)>
+{
+};
+template <std::size_t MinSize, typename T, std::size_t ArraySize>
+struct IndexVectorSizeMatches<MinSize,
+T[ArraySize],
+false> : public std::integral_constant<bool, (MinSize <= ArraySize)>
+{
+};
+template <std::size_t MinSize, typename T, std::size_t ArraySize>
+struct IndexVectorSizeMatches<MinSize,
+std::array<T, ArraySize>,
+false> : public std::integral_constant<bool, (MinSize <= ArraySize)>
+{
+};
+template <std::size_t MinSize, typename T, std::size_t ArraySize>
+struct IndexVectorSizeMatches<MinSize,
+Vc::array<T, ArraySize>,
+false> : public std::integral_constant<bool, (MinSize <= ArraySize)>
+{
+};
+template <std::size_t MinSize, typename T, std::ptrdiff_t N>
+struct IndexVectorSizeMatches<MinSize, Vc::Common::span<T, N>, false>
+: public std::integral_constant<bool, (N == -1 || MinSize <= N)> {
+};
+template <
+typename T, typename IndexVector, typename Scale = std::ratio<1, 1>,
+bool = is_valid_indexvector_<IndexVector>::value>
+class SubscriptOperation
+{
+const IndexVector m_indexes;
+T *const m_address;
+using ScalarType = typename std::decay<T>::type;
+using IndexVectorScaled = Traits::decay<decltype(convertIndexVector(std::declval<const IndexVector &>()))>;
+public:
+SubscriptOperation &operator=(const SubscriptOperation &) = delete;
+SubscriptOperation(const SubscriptOperation &) = delete;
+#ifndef __cpp_guaranteed_copy_elision
+constexpr SubscriptOperation(SubscriptOperation &&) = default;
+#endif
+template <typename U,
+typename = enable_if<((std::is_convertible<const U &, IndexVector>::value ||
+std::is_same<U, IndexVector>::value) &&
+std::is_copy_constructible<IndexVector>::value)>>
+constexpr Vc_ALWAYS_INLINE SubscriptOperation(T *address, const U &indexes)
+: m_indexes(indexes), m_address(address)
+{
+}
+template <std::size_t... Indexes>
+constexpr Vc_ALWAYS_INLINE SubscriptOperation(T *address, const IndexVector &indexes,
+index_sequence<Indexes...>)
+: m_indexes{indexes[Indexes]...}, m_address(address)
+{}
+template <typename U>
+constexpr Vc_ALWAYS_INLINE SubscriptOperation(
+T *address, const U &indexes,
+enable_if<((std::is_convertible<const U &, IndexVector>::value ||
+std::is_same<U, IndexVector>::value) &&
+!std::is_copy_constructible<IndexVector>::value &&
+std::is_array<IndexVector>::value &&
+std::extent<IndexVector>::value > 0)> = nullarg)
+: SubscriptOperation(address, indexes,
+make_index_sequence<std::extent<IndexVector>::value>())
+{
+}
+static constexpr bool need_explicit_scaling =
+Scale::num % Scale::den != 0 || Scale::num / Scale::den * sizeof(T) > 8;
+Vc_ALWAYS_INLINE GatherArguments<
+T, IndexVectorScaled, (need_explicit_scaling ? 1 : Scale::num / Scale::den)>
+gatherArguments() &&
+{
+static_assert(std::is_arithmetic<ScalarType>::value,
+"Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
+return {applyScale<typename std::conditional<need_explicit_scaling, Scale,
+std::ratio<1, 1>>::type>(
+convertIndexVector(m_indexes)),
+m_address};
+}
+Vc_ALWAYS_INLINE ScatterArguments<T, IndexVectorScaled> scatterArguments() &&
+{
+static_assert(std::is_arithmetic<ScalarType>::value,
+"Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
+return {applyScale<Scale>(convertIndexVector(m_indexes)), m_address};
+}
+template <typename V,
+typename = enable_if<(std::is_arithmetic<ScalarType>::value &&Traits::is_simd_vector<
+V>::value &&IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
+Vc_INTRINSIC operator V() &&
+{
+return V(static_cast<SubscriptOperation &&>(*this).gatherArguments());
+}
+template <typename V,
+typename = enable_if<(std::is_arithmetic<ScalarType>::value &&Traits::is_simd_vector<
+V>::value &&IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
+Vc_ALWAYS_INLINE SubscriptOperation &operator=(const V &rhs) &&
+{
+static_assert(std::is_arithmetic<ScalarType>::value,
+"Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
+const auto indexes = applyScale<Scale>(convertIndexVector(m_indexes));
+rhs.scatter(m_address, indexes);
+return *this;
+}
+template <
+typename U,
+typename S,
+typename = enable_if<std::is_same<S, typename std::remove_cv<T>::type>::value &&(
+std::is_class<T>::value || std::is_union<T>::value)>>
+Vc_ALWAYS_INLINE auto operator[](U S::*member) &&
+-> SubscriptOperation<
+typename std::conditional<std::is_const<T>::value,
+const typename std::remove_reference<U>::type,
+typename std::remove_reference<U>::type>::type,
+IndexVector,
+std::ratio_multiply<Scale, std::ratio<sizeof(S), sizeof(U)>>>
+{
+static_assert(std::is_same<Traits::decay<decltype(m_address->*member)>,
+Traits::decay<U>>::value,
+"Type mismatch that should be impossible.");
+return {&(m_address->*member), m_indexes};
+}
+private:
+template <intmax_t N, intmax_t D> struct make_ratio {
+using type = std::ratio<N, D == 0 ? 1 : D>;
+};
+public:
+template <typename U>
+Vc_ALWAYS_INLINE auto operator[](U index) && -> typename std::enable_if<
+#ifndef Vc_IMPROVE_ERROR_MESSAGES
+Traits::has_no_allocated_data<T>::value &&
+#endif
+std::is_convertible<U, size_t>::value,
+SubscriptOperation<
+typename std::remove_reference<decltype(m_address[0][index])>::type,
+IndexVector,
+std::ratio_multiply<
+Scale,
+typename make_ratio<sizeof(T), sizeof(m_address[0][index])>::type>>>::type
+{
+static_assert(Traits::has_subscript_operator<T>::value,
+"The subscript operator was called on a type that does not implement it.\n");
+static_assert(Traits::has_no_allocated_data<T>::value,
+"Invalid container type in gather/scatter operation.\nYou may only use "
+"nested containers that store the data inside the object (such as builtin "
+"arrays or std::array) but not containers that store data in allocated "
+"memory (such as std::vector).\nSince this feature cannot be queried "
+"generically at compile time you need to spezialize the "
+"Vc::Traits::has_no_allocated_data_impl<T> type-trait for custom types that "
+"meet the requirements.\n");
+static_assert(std::is_lvalue_reference<decltype(m_address[0][index])>::value,
+"The container does not return an lvalue reference to the data at "
+"the requested offset. This makes it impossible to execute a "
+"gather operation.\n");
+return {&(m_address[0][index]), m_indexes};
+}
+template <typename IT>
+Vc_ALWAYS_INLINE typename std::enable_if<
+#ifndef Vc_IMPROVE_ERROR_MESSAGES
+Traits::has_no_allocated_data<T>::value &&
+Traits::has_subscript_operator<T>::value &&
+#endif
+Traits::has_subscript_operator<IT>::value,
+SubscriptOperation<typename std::remove_reference<decltype(
+m_address[0][std::declval<
+const IT &>()[0]]
+)>::type,
+IndexVectorScaled,
+std::ratio<1, 1>
+>>::type
+operator[](const IT &index) &&
+{
+static_assert(Traits::has_subscript_operator<T>::value,
+"The subscript operator was called on a type that does not implement it.\n");
+static_assert(Traits::has_no_allocated_data<T>::value,
+"Invalid container type in gather/scatter operation.\nYou may only use "
+"nested containers that store the data inside the object (such as builtin "
+"arrays or std::array) but not containers that store data in allocated "
+"memory (such as std::vector).\nSince this feature cannot be queried "
+"generically at compile time you need to spezialize the "
+"Vc::Traits::has_no_allocated_data_impl<T> type-trait for custom types that "
+"meet the requirements.\n");
+return {&(m_address[0][0]),
+applyScaleAndAdd<std::ratio_multiply<
+Scale, std::ratio<sizeof(T), sizeof(m_address[0][0])>>>(
+convertIndexVector(m_indexes), index)};
+}
+};
+template <typename T, typename IndexVector, typename Scale>
+class SubscriptOperation<T, IndexVector, Scale, false>;
+template <
+typename Container,
+typename IndexVector,
+typename = enable_if<
+Traits::has_subscript_operator<IndexVector>::value
+&&Traits::has_contiguous_storage<Container>::value
+&&std::is_lvalue_reference<decltype(*begin(std::declval<
+Container>()))>::value
+>>
+Vc_ALWAYS_INLINE SubscriptOperation<
+typename std::remove_reference<decltype(*begin(std::declval<Container>()))>::
+type,
+typename std::remove_const<typename std::remove_reference<
+IndexVector>::type>::type
+> subscript_operator(Container &&c, IndexVector &&indexes)
+{
+Vc_ASSERT(std::addressof(*begin(c)) + 1 ==
+std::addressof(*(begin(c) + 1)));
+return {std::addressof(*begin(c)), std::forward<IndexVector>(indexes)};
+}
+template <typename Container, typename I>
+Vc_ALWAYS_INLINE Vc::Common::SubscriptOperation<
+typename std::remove_reference<decltype(std::declval<Container>()[0])>::type,
+const std::initializer_list<I> &> subscript_operator(Container &&vec,
+const std::initializer_list<I> &indexes)
+{
+return {&vec[0], indexes};
+}
+}
+using Common::subscript_operator;
+}
+#endif
+namespace Vc_VERSIONED_NAMESPACE
+{
+template <class T, size_t Size> struct array {
+typedef array self_;
+typedef T value_type;
+typedef value_type& reference;
+typedef const value_type& const_reference;
+typedef value_type* iterator;
+typedef const value_type* const_iterator;
+typedef value_type* pointer;
+typedef const value_type* const_pointer;
+typedef size_t size_type;
+typedef ptrdiff_t difference_type;
+typedef std::reverse_iterator<iterator> reverse_iterator;
+typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+value_type elems_[Size > 0 ? Size : 1];
+void fill(const value_type& u_) { std::fill_n(elems_, Size, u_); }
+void swap(array& a_) noexcept(std::swap(std::declval<T &>(), std::declval<T &>()))
+{
+std::swap_ranges(elems_, elems_ + Size, a_.elems_);
+}
+iterator begin() noexcept { return iterator(elems_); }
+const_iterator begin() const noexcept { return const_iterator(elems_); }
+iterator end() noexcept { return iterator(elems_ + Size); }
+const_iterator end() const noexcept { return const_iterator(elems_ + Size); }
+reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+const_reverse_iterator rbegin() const noexcept
+{
+return const_reverse_iterator(end());
+}
+reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+const_reverse_iterator rend() const noexcept
+{
+return const_reverse_iterator(begin());
+}
+const_iterator cbegin() const noexcept { return begin(); }
+const_iterator cend() const noexcept { return end(); }
+const_reverse_iterator crbegin() const noexcept { return rbegin(); }
+const_reverse_iterator crend() const noexcept { return rend(); }
+constexpr size_type size() const noexcept { return Size; }
+constexpr size_type max_size() const noexcept { return Size; }
+constexpr bool empty() const noexcept { return Size == 0; }
+reference operator[](size_type n_) { return elems_[n_]; }
+constexpr const_reference operator[](size_type n_) const { return elems_[n_]; }
+template <typename I>
+Vc_ALWAYS_INLINE auto operator[](I&& arg_)
+-> decltype(subscript_operator(*this, std::forward<I>(arg_)))
+{
+return subscript_operator(*this, std::forward<I>(arg_));
+}
+template <typename I>
+Vc_ALWAYS_INLINE auto operator[](I&& arg_) const
+-> decltype(subscript_operator(*this, std::forward<I>(arg_)))
+{
+return subscript_operator(*this, std::forward<I>(arg_));
+}
+reference at(size_type n_);
+constexpr const_reference at(size_type n_) const;
+reference front() { return elems_[0]; }
+constexpr const_reference front() const { return elems_[0]; }
+reference back() { return elems_[Size > 0 ? Size - 1 : 0]; }
+constexpr const_reference back() const { return elems_[Size > 0 ? Size - 1 : 0]; }
+value_type* data() noexcept { return elems_; }
+const value_type* data() const noexcept { return elems_; }
+};
+template <class T, size_t Size>
+typename array<T, Size>::reference array<T, Size>::at(size_type n_)
+{
+if (n_ >= Size) {
+throw std::out_of_range("array::at");
+}
+return elems_[n_];
+}
+template <class T, size_t Size>
+constexpr typename array<T, Size>::const_reference array<T, Size>::at(size_type n_) const
+{
+return n_ >= Size ? (throw std::out_of_range("array::at"), elems_[0]) : elems_[n_];
+}
+template <class T, size_t Size>
+inline bool operator==(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+return std::equal(x_.elems_, x_.elems_ + Size, y_.elems_);
+}
+template <class T, size_t Size>
+inline bool operator!=(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+return !(x_ == y_);
+}
+template <class T, size_t Size>
+inline bool operator<(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+return std::lexicographical_compare(x_.elems_, x_.elems_ + Size, y_.elems_,
+y_.elems_ + Size);
+}
+template <class T, size_t Size>
+inline bool operator>(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+return y_ < x_;
+}
+template <class T, size_t Size>
+inline bool operator<=(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+return !(y_ < x_);
+}
+template <class T, size_t Size>
+inline bool operator>=(const array<T, Size>& x_, const array<T, Size>& y_)
+{
+return !(x_ < y_);
+}
+template <typename T, std::size_t N>
+inline auto begin(array<T, N>& arr) -> decltype(arr.begin())
+{
+return arr.begin();
+}
+template <typename T, std::size_t N>
+inline auto begin(const array<T, N>& arr) -> decltype(arr.begin())
+{
+return arr.begin();
+}
+template <typename T, std::size_t N>
+inline auto end(array<T, N>& arr) -> decltype(arr.end())
+{
+return arr.end();
+}
+template <typename T, std::size_t N>
+inline auto end(const array<T, N>& arr) -> decltype(arr.end())
+{
+return arr.end();
+}
+namespace Traits
+{
+template <typename T, std::size_t N>
+struct has_no_allocated_data_impl<Vc::array<T, N>> : public std::true_type
+{
+};
+template <typename T, std::size_t N>
+struct has_contiguous_storage_impl<Vc::array<T, N>> : public std::true_type
+{
+};
+}
+}
+namespace std
+{
+template <class T, size_t Size>
+inline
+#ifdef Vc_MSVC
+void
+#else
+typename enable_if<is_same<void, decltype(swap(declval<T&>(), declval<T&>()))>::value,
+void>::type
+#endif
+swap(const Vc::array<T, Size>& x_,
+const Vc::array<T, Size>& y_) noexcept(swap(declval<T&>(), declval<T&>()))
+{
+x_.swap(y_);
+}
+template <class T, size_t Size>
+class tuple_size<Vc::array<T, Size>> : public integral_constant<size_t, Size>
+{
+};
+template <size_t I, class T, size_t Size> class tuple_element<I, Vc::array<T, Size>>
+{
+public:
+typedef T type;
+};
+template <size_t I, class T, size_t Size>
+inline constexpr typename std::enable_if<(I < Size), T&>::type get(
+Vc::array<T, Size>& a_) noexcept
+{
+return a_.elems_[I];
+}
+template <size_t I, class T, size_t Size>
+inline constexpr typename std::enable_if<(I < Size), const T&>::type get(
+const Vc::array<T, Size>& a_) noexcept
+{
+return a_.elems_[I];
+}
+template <size_t I, class T, size_t Size>
+inline constexpr typename std::enable_if<(I < Size), T&&>::type get(
+Vc::array<T, Size>&& a_) noexcept
+{
+return std::move(a_.elems_[I]);
+}
+}
+#endif
+#ifndef VC_COMMON_SPAN_H_
+#define VC_COMMON_SPAN_H_ 
+#include <array>
+#include <cstddef>
+#include <cstddef>
+#include <iterator>
+#include <type_traits>
+namespace Vc_VERSIONED_NAMESPACE
+{
+#ifdef __cpp_inline_variables
+inline
+#endif
+constexpr ptrdiff_t dynamic_extent = -1;
+namespace Common
+{
+template <typename T, ptrdiff_t Extent = dynamic_extent> class span;
+template <typename T, ptrdiff_t Extent>
+constexpr auto begin(const span<T, Extent>& s) noexcept -> decltype(s.begin())
+{
+return s.begin();
+}
+template <typename T, ptrdiff_t Extent>
+constexpr auto end(const span<T, Extent>& s) noexcept -> decltype(s.end())
+{
+return s.end();
+}
+template <class T> struct _is_span_impl : public std::false_type {
+};
+template <class T, ptrdiff_t Extent>
+struct _is_span_impl<span<T, Extent>> : public std::true_type {
+};
+template <class T>
+struct _is_span : public _is_span_impl<typename std::remove_cv<T>::type> {
+};
+template <class T> struct _is_std_array_impl : public std::false_type {
+};
+template <class T, size_t Sz>
+struct _is_std_array_impl<array<T, Sz>> : public std::true_type {
+};
+template <class T>
+struct _is_std_array : public _is_std_array_impl<typename std::remove_cv<T>::type> {
+};
+template <class T, class ElementType, class = void>
+struct _is_span_compatible_container : public std::false_type {
+};
+template <class... Ts> using _void_t = void;
+template <class C> constexpr auto _std_data(C& c) -> decltype(c.data())
+{
+return c.data();
+}
+template <class C> constexpr auto _std_data(const C& c) -> decltype(c.data())
+{
+return c.data();
+}
+template <class T, std::size_t N> constexpr T* _std_data(T (&array)[N]) noexcept
+{
+return array;
+}
+template <class E> constexpr const E* _std_data(std::initializer_list<E> il) noexcept
+{
+return il.begin();
+}
+template <class C> constexpr auto _std_size(const C& c) -> decltype(c.size())
+{
+return c.size();
+}
+template <class T, std::size_t N>
+constexpr std::size_t _std_size(const T (&array)[N]) noexcept
+{
+return N;
+}
+template <class T, class ElementType>
+struct _is_span_compatible_container<
+T, ElementType,
+_void_t<
+typename std::enable_if<!_is_span<T>::value, std::nullptr_t>::type,
+typename std::enable_if<!_is_std_array<T>::value, std::nullptr_t>::type,
+typename std::enable_if<!std::is_array<T>::value, std::nullptr_t>::type,
+decltype(data(std::declval<T>())), decltype(size(std::declval<T>())),
+typename std::enable_if<
+std::is_convertible<typename std::remove_pointer<decltype(
+data(std::declval<T&>()))>::type (*)[],
+ElementType (*)[]>::value,
+std::nullptr_t>::type>> : public std::true_type {
+};
+#if defined Vc_MSVC || (defined Vc_GCC && Vc_GCC < 0x50100) || defined Vc_ICC || !defined __cpp_constexpr || __cpp_constexpr < 201304
+#define Vc_CONSTEXPR 
+#else
+#define Vc_CONSTEXPR constexpr
+#endif
+template <typename T, ptrdiff_t Extent> class span
+{
+public:
+using element_type = T;
+using value_type = typename std::remove_cv<T>::type;
+using index_type = ptrdiff_t;
+using difference_type = ptrdiff_t;
+using pointer = T*;
+using const_pointer = const T*;
+using reference = T&;
+using const_reference = const T&;
+using iterator = pointer;
+using const_iterator = const_pointer;
+using reverse_iterator = std::reverse_iterator<iterator>;
+using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+static constexpr index_type extent = Extent;
+static_assert(Extent >= 0, "Can't have a span with an extent < 0");
+Vc_CONSTEXPR span() noexcept : data_{nullptr}
+{
+static_assert(Extent == 0,
+"Can't default construct a statically sized span with size > 0");
+}
+Vc_CONSTEXPR span(const span&) noexcept = default;
+Vc_CONSTEXPR span& operator=(const span&) noexcept = default;
+Vc_CONSTEXPR span(pointer _ptr, index_type _count) : data_{_ptr}
+{
+(void)_count;
+Vc_ASSERT(((void)"size mismatch in span's constructor (ptr, len)", Extent == _count));
+}
+Vc_CONSTEXPR span(pointer _f, pointer _l) : data_{_f}
+{
+(void)_l;
+Vc_ASSERT(((void)"size mismatch in span's constructor (ptr, ptr)",
+Extent == distance(_f, _l)));
+}
+Vc_CONSTEXPR span(element_type (&_arr)[Extent]) noexcept : data_{_arr} {}
+Vc_CONSTEXPR span(array<value_type, Extent>& _arr) noexcept : data_{_arr.data()} {}
+Vc_CONSTEXPR span(const array<value_type, Extent>& _arr) noexcept : data_{_arr.data()} {}
+template <class Container>
+inline Vc_CONSTEXPR span(
+Container& _c,
+typename std::enable_if<_is_span_compatible_container<Container, T>::value,
+std::nullptr_t>::type = nullptr)
+: data_{_std_data(_c)}
+{
+Vc_ASSERT(("size mismatch in span's constructor (container))",
+Extent == _std_size(_c)));
+}
+template <class Container>
+inline Vc_CONSTEXPR span(
+const Container& _c,
+typename std::enable_if<_is_span_compatible_container<const Container, T>::value,
+std::nullptr_t>::type = nullptr)
+: data_{_std_data(_c)}
+{
+Vc_ASSERT(("size mismatch in span's constructor (const container)",
+Extent == _std_size(_c)));
+}
+template <class OtherElementType>
+inline Vc_CONSTEXPR span(
+const span<OtherElementType, Extent>& _other,
+typename std::enable_if<
+std::is_convertible<OtherElementType (*)[], element_type (*)[]>::value,
+std::nullptr_t>::type = nullptr)
+: data_{_other.data()}
+{
+}
+template <class OtherElementType>
+inline Vc_CONSTEXPR span(
+const span<OtherElementType, dynamic_extent>& _other,
+typename std::enable_if<
+std::is_convertible<OtherElementType (*)[], element_type (*)[]>::value,
+std::nullptr_t>::type = nullptr) noexcept
+: data_{_other.data()}
+{
+Vc_ASSERT(("size mismatch in span's constructor (other span)",
+Extent == _other.size()));
+}
+template <ptrdiff_t Count>
+inline Vc_CONSTEXPR span<element_type, Count> first() const noexcept
+{
+static_assert(Count >= 0, "Count must be >= 0 in span::first()");
+static_assert(Count <= Extent, "Count out of range in span::first()");
+return {data(), Count};
+}
+template <ptrdiff_t Count>
+inline Vc_CONSTEXPR span<element_type, Count> last() const noexcept
+{
+static_assert(Count >= 0, "Count must be >= 0 in span::last()");
+static_assert(Count <= Extent, "Count out of range in span::last()");
+return {data() + size() - Count, Count};
+}
+Vc_CONSTEXPR span<element_type, dynamic_extent> first(index_type _count) const noexcept
+{
+Vc_ASSERT(("Count out of range in span::first(count)",
+_count >= 0 && _count <= size()));
+return {data(), _count};
+}
+Vc_CONSTEXPR span<element_type, dynamic_extent> last(index_type _count) const noexcept
+{
+Vc_ASSERT(
+("Count out of range in span::last(count)", _count >= 0 && _count <= size()));
+return {data() + size() - _count, _count};
+}
+#ifndef Vc_MSVC
+template <ptrdiff_t Offset, ptrdiff_t Count = dynamic_extent>
+inline Vc_CONSTEXPR auto subspan() const noexcept
+-> span<element_type, Count != dynamic_extent ? Count : Extent - Offset>
+{
+Vc_ASSERT(
+("Offset out of range in span::subspan()", Offset >= 0 && Offset <= size()));
+return {data() + Offset, Count == dynamic_extent ? size() - Offset : Count};
+}
+inline Vc_CONSTEXPR span<element_type, dynamic_extent> subspan(
+index_type offset, index_type count = dynamic_extent) const noexcept
+{
+Vc_ASSERT(("Offset out of range in span::subspan(offset, count)",
+offset >= 0 && offset <= size()));
+Vc_ASSERT(("Count out of range in span::subspan(offset, count)",
+(count >= 0 && count <= size()) || count == dynamic_extent));
+if (count == dynamic_extent) {
+return {data() + offset, size() - offset};
+}
+Vc_ASSERT(("count + offset out of range in span::subspan(offset, count)",
+offset + count <= size()));
+return {data() + offset, count};
+}
+#endif
+Vc_CONSTEXPR index_type size() const noexcept { return Extent; }
+Vc_CONSTEXPR index_type size_bytes() const noexcept
+{
+return Extent * sizeof(element_type);
+}
+Vc_CONSTEXPR bool empty() const noexcept { return Extent == 0; }
+Vc_CONSTEXPR reference operator[](index_type _idx) const noexcept
+{
+Vc_ASSERT(("span<T,N>[] index out of bounds", _idx >= 0 && _idx < size()));
+return data_[_idx];
+}
+Vc_CONSTEXPR reference operator()(index_type _idx) const noexcept
+{
+Vc_ASSERT(("span<T,N>() index out of bounds", _idx >= 0 && _idx < size()));
+return data_[_idx];
+}
+Vc_CONSTEXPR pointer data() const noexcept { return data_; }
+Vc_CONSTEXPR iterator begin() const noexcept { return iterator(data()); }
+Vc_CONSTEXPR iterator end() const noexcept { return iterator(data() + size()); }
+Vc_CONSTEXPR const_iterator cbegin() const noexcept { return const_iterator(data()); }
+Vc_CONSTEXPR const_iterator cend() const noexcept
+{
+return const_iterator(data() + size());
+}
+Vc_CONSTEXPR reverse_iterator rbegin() const noexcept { return reverse_iterator(end()); }
+Vc_CONSTEXPR reverse_iterator rend() const noexcept { return reverse_iterator(begin()); }
+Vc_CONSTEXPR const_reverse_iterator crbegin() const noexcept
+{
+return const_reverse_iterator(cend());
+}
+Vc_CONSTEXPR const_reverse_iterator crend() const noexcept
+{
+return const_reverse_iterator(cbegin());
+}
+Vc_CONSTEXPR void swap(span& _other) noexcept
+{
+pointer _p = data_;
+data_ = _other.data_;
+_other.data_ = _p;
+}
+#ifdef __cpp_lib_byte
+span<const std::byte, Extent * sizeof(element_type)> _as_bytes() const noexcept
+{
+return {reinterpret_cast<const std::byte*>(data()), size_bytes()};
+}
+span<std::byte, Extent * sizeof(element_type)> _as_writeable_bytes() const noexcept
+{
+return {reinterpret_cast<std::byte*>(data()), size_bytes()};
+}
+#endif
+private:
+pointer data_;
+};
+template <typename T> class span<T, dynamic_extent>
+{
+private:
+public:
+using element_type = T;
+using value_type = typename std::remove_cv<T>::type;
+using index_type = ptrdiff_t;
+using difference_type = ptrdiff_t;
+using pointer = T*;
+using const_pointer = const T*;
+using reference = T&;
+using const_reference = const T&;
+using iterator = pointer;
+using const_iterator = const_pointer;
+using reverse_iterator = std::reverse_iterator<iterator>;
+using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+static constexpr index_type extent = dynamic_extent;
+Vc_CONSTEXPR span() noexcept : data_{nullptr}, size_{0} {}
+Vc_CONSTEXPR span(const span&) noexcept = default;
+Vc_CONSTEXPR span& operator=(const span&) noexcept = default;
+Vc_CONSTEXPR span(pointer _ptr, index_type _count) : data_{_ptr}, size_{_count} {}
+Vc_CONSTEXPR span(pointer _f, pointer _l) : data_{_f}, size_{distance(_f, _l)} {}
+template <size_t Sz>
+inline Vc_CONSTEXPR span(element_type (&_arr)[Sz]) noexcept : data_{_arr}, size_{Sz}
+{
+}
+template <size_t Sz>
+inline Vc_CONSTEXPR span(array<value_type, Sz>& _arr) noexcept
+: data_{_arr.data()}, size_{Sz}
+{
+}
+template <size_t Sz>
+inline Vc_CONSTEXPR span(const array<value_type, Sz>& _arr) noexcept
+: data_{_arr.data()}, size_{Sz}
+{
+}
+template <class Container>
+inline Vc_CONSTEXPR span(
+Container& _c,
+typename std::enable_if<_is_span_compatible_container<Container, T>::value,
+std::nullptr_t>::type = nullptr)
+: data_{_std_data(_c)}, size_{index_type(_std_size(_c))}
+{
+}
+template <class Container>
+inline Vc_CONSTEXPR span(
+const Container& _c,
+typename std::enable_if<_is_span_compatible_container<const Container, T>::value,
+std::nullptr_t>::type = nullptr)
+: data_{_std_data(_c)}, size_{index_type(_std_size(_c))}
+{
+}
+template <class OtherElementType, ptrdiff_t OtherExtent>
+inline Vc_CONSTEXPR span(
+const span<OtherElementType, OtherExtent>& _other,
+typename std::enable_if<
+std::is_convertible<OtherElementType (*)[], element_type (*)[]>::value,
+std::nullptr_t>::type = nullptr) noexcept
+: data_{_other.data()}, size_{_other.size()}
+{
+}
+template <ptrdiff_t Count>
+inline Vc_CONSTEXPR span<element_type, Count> first() const noexcept
+{
+static_assert(Count >= 0, "");
+Vc_ASSERT(("Count out of range in span::first()", Count <= size()));
+return {data(), Count};
+}
+template <ptrdiff_t Count>
+inline Vc_CONSTEXPR span<element_type, Count> last() const noexcept
+{
+static_assert(Count >= 0, "");
+Vc_ASSERT(("Count out of range in span::last()", Count <= size()));
+return {data() + size() - Count, Count};
+}
+Vc_CONSTEXPR span<element_type, dynamic_extent> first(index_type _count) const noexcept
+{
+Vc_ASSERT(("Count out of range in span::first(count)",
+_count >= 0 && _count <= size()));
+return {data(), _count};
+}
+Vc_CONSTEXPR span<element_type, dynamic_extent> last(index_type _count) const noexcept
+{
+Vc_ASSERT(
+("Count out of range in span::last(count)", _count >= 0 && _count <= size()));
+return {data() + size() - _count, _count};
+}
+template <ptrdiff_t Offset, ptrdiff_t Count = dynamic_extent>
+inline Vc_CONSTEXPR span<T, dynamic_extent> subspan() const noexcept
+{
+Vc_ASSERT(
+("Offset out of range in span::subspan()", Offset >= 0 && Offset <= size()));
+Vc_ASSERT(("Count out of range in span::subspan()",
+Count == dynamic_extent || Offset + Count <= size()));
+return {data() + Offset, Count == dynamic_extent ? size() - Offset : Count};
+}
+Vc_CONSTEXPR span<element_type, dynamic_extent> inline subspan(
+index_type _offset, index_type _count = dynamic_extent) const noexcept
+{
+Vc_ASSERT(("Offset out of range in span::subspan(offset, count)",
+_offset >= 0 && _offset <= size()));
+Vc_ASSERT(("count out of range in span::subspan(offset, count)",
+(_count >= 0 && _count <= size()) || _count == dynamic_extent));
+if (_count == dynamic_extent)
+return {data() + _offset, size() - _offset};
+Vc_ASSERT(("Offset + count out of range in span::subspan(offset, count)",
+_offset + _count <= size()));
+return {data() + _offset, _count};
+}
+Vc_CONSTEXPR index_type size() const noexcept { return size_; }
+Vc_CONSTEXPR index_type size_bytes() const noexcept
+{
+return size_ * sizeof(element_type);
+}
+Vc_CONSTEXPR bool empty() const noexcept { return size_ == 0; }
+Vc_CONSTEXPR reference operator[](index_type _idx) const noexcept
+{
+Vc_ASSERT(("span<T>[] index out of bounds", _idx >= 0 && _idx < size()));
+return data_[_idx];
+}
+Vc_CONSTEXPR reference operator()(index_type _idx) const noexcept
+{
+Vc_ASSERT(("span<T>() index out of bounds", _idx >= 0 && _idx < size()));
+return data_[_idx];
+}
+Vc_CONSTEXPR pointer data() const noexcept { return data_; }
+Vc_CONSTEXPR iterator begin() const noexcept { return iterator(data()); }
+Vc_CONSTEXPR iterator end() const noexcept { return iterator(data() + size()); }
+Vc_CONSTEXPR const_iterator cbegin() const noexcept { return const_iterator(data()); }
+Vc_CONSTEXPR const_iterator cend() const noexcept
+{
+return const_iterator(data() + size());
+}
+Vc_CONSTEXPR reverse_iterator rbegin() const noexcept { return reverse_iterator(end()); }
+Vc_CONSTEXPR reverse_iterator rend() const noexcept { return reverse_iterator(begin()); }
+Vc_CONSTEXPR const_reverse_iterator crbegin() const noexcept
+{
+return const_reverse_iterator(cend());
+}
+Vc_CONSTEXPR const_reverse_iterator crend() const noexcept
+{
+return const_reverse_iterator(cbegin());
+}
+Vc_CONSTEXPR void swap(span& _other) noexcept
+{
+pointer _p = data_;
+data_ = _other.data_;
+_other.data_ = _p;
+index_type _sz = size_;
+size_ = _other.size_;
+_other.size_ = _sz;
+}
+#ifdef __cpp_lib_byte
+span<const std::byte, dynamic_extent> _as_bytes() const noexcept
+{
+return {reinterpret_cast<const std::byte*>(data()), size_bytes()};
+}
+span<std::byte, dynamic_extent> _as_writeable_bytes() const noexcept
+{
+return {reinterpret_cast<std::byte*>(data()), size_bytes()};
+}
+#endif
+private:
+pointer data_;
+index_type size_;
+};
+template <class T1, ptrdiff_t Extent1, class T2, ptrdiff_t Extent2>
+Vc_CONSTEXPR bool operator==(const span<T1, Extent1>& lhs, const span<T2, Extent2>& rhs)
+{
+return equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+template <class T1, ptrdiff_t Extent1, class T2, ptrdiff_t Extent2>
+Vc_CONSTEXPR bool operator!=(const span<T1, Extent1>& lhs, const span<T2, Extent2>& rhs)
+{
+return !(rhs == lhs);
+}
+template <class T1, ptrdiff_t Extent1, class T2, ptrdiff_t Extent2>
+Vc_CONSTEXPR bool operator<(const span<T1, Extent1>& lhs, const span<T2, Extent2>& rhs)
+{
+return lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+template <class T1, ptrdiff_t Extent1, class T2, ptrdiff_t Extent2>
+Vc_CONSTEXPR bool operator<=(const span<T1, Extent1>& lhs, const span<T2, Extent2>& rhs)
+{
+return !(rhs < lhs);
+}
+template <class T1, ptrdiff_t Extent1, class T2, ptrdiff_t Extent2>
+Vc_CONSTEXPR bool operator>(const span<T1, Extent1>& lhs, const span<T2, Extent2>& rhs)
+{
+return rhs < lhs;
+}
+template <class T1, ptrdiff_t Extent1, class T2, ptrdiff_t Extent2>
+Vc_CONSTEXPR bool operator>=(const span<T1, Extent1>& lhs, const span<T2, Extent2>& rhs)
+{
+return !(lhs < rhs);
+}
+template <class T, ptrdiff_t Extent>
+auto as_bytes(span<T, Extent> _s) noexcept -> decltype(_s._as_bytes())
+{
+return _s._as_bytes();
+}
+template <class T, ptrdiff_t Extent>
+auto as_writeable_bytes(span<T, Extent> _s) noexcept ->
+typename std::enable_if<!std::is_const<T>::value,
+decltype(_s._as_writeable_bytes())>::type
+{
+return _s._as_writeable_bytes();
+}
+template <class T, ptrdiff_t Extent>
+Vc_CONSTEXPR void swap(span<T, Extent>& lhs, span<T, Extent>& rhs) noexcept
+{
+lhs.swap(rhs);
+}
+#undef Vc_CONSTEXPR
+#ifdef __cpp_deduction_guides
+template <class T, size_t Sz> span(T (&)[Sz])->span<T, Sz>;
+template <class T, size_t Sz> span(array<T, Sz>&)->span<T, Sz>;
+template <class T, size_t Sz> span(const array<T, Sz>&)->span<const T, Sz>;
+template <class Container> span(Container&)->span<typename Container::value_type>;
+template <class Container>
+span(const Container&)->span<const typename Container::value_type>;
+#endif
+}
+template <typename T, ptrdiff_t Extent = dynamic_extent>
+using span = Common::AdaptSubscriptOperator<Common::span<T, Extent>>;
+namespace Traits
+{
+template <typename T, ptrdiff_t Extent>
+struct has_contiguous_storage_impl<Vc::span<T, Extent>> : public std::true_type {
+};
+template <typename T, ptrdiff_t Extent>
+struct has_contiguous_storage_impl<Vc::Common::span<T, Extent>> : public std::true_type {
+};
+}
+}
+#endif
+#ifndef VC_VECTOR_
+#define VC_VECTOR_ 
+#include <vector>
+namespace Vc_VERSIONED_NAMESPACE
+{
+template <typename T, typename Allocator = std::allocator<T>>
+using vector = Common::AdaptSubscriptOperator<std::vector<T, Allocator>>;
+namespace Traits
+{
+template <typename T, typename A>
+struct has_contiguous_storage_impl<Vc::vector<T, A>> : public std::true_type {};
+}
+}
+#endif
+#endif

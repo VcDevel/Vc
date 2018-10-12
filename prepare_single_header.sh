@@ -1,11 +1,5 @@
 #!/bin/zsh -e
 
-start=$1
-if [[ ! -f "$start" ]]; then
-  echo "Usage: $0 <header-file>"
-  exit 1
-fi
-
 setopt extendedglob
 IFS="\n\0"
 seen=()
@@ -53,4 +47,8 @@ parse_file() {
   [[ "$1" =~ "/" ]] && popd || true
 }
 
-parse_file "$start" | cpp -dD -E -fpreprocessed -w -P | sed 's/^ *//'
+cd `dirname $0`
+
+parse_file "Vc/vector.h" > >(cpp -dD -E -fpreprocessed -w -P | sed 's/^ *//' > godbolt/Vc)
+parse_file "Vc/algorithm" > >(cpp -dD -E -fpreprocessed -w -P | sed 's/^ *//' > godbolt/algorithm)
+parse_file "Vc/Vc" > >(cpp -dD -E -fpreprocessed -w -P | sed 's/^ *//' > godbolt/containers)
