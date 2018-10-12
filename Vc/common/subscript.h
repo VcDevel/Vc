@@ -93,7 +93,7 @@ Vc_ALWAYS_INLINE enable_if<Scale::num == Scale::den, Traits::decay<T>> applyScal
 
 template <typename Scale, typename T>
 Vc_ALWAYS_INLINE enable_if<
-    Scale::num != Scale::den && Traits::has_multiply_operator<T, std::intmax_t>::value,
+    Scale::num != Scale::den && Traits::has_multiply_operator<T, int>::value,
     Traits::decay<T>>
     applyScale(T &&x)
 {
@@ -102,14 +102,14 @@ Vc_ALWAYS_INLINE enable_if<
                   "Vc::Scalar on 32-bit for gathers on double. You can work around the "
                   "issue by ensuring that all doubles in the structure are aligned on 8 "
                   "Bytes.");
-    constexpr auto value = Scale::num / Scale::den;
+    constexpr int value = Scale::num / Scale::den;
     Vc_ASSERT(Vc::all_of((x * value) / value == x));
     return std::forward<T>(x) * value;
 }
 
 template <typename Scale, typename T>
 Vc_ALWAYS_INLINE enable_if<
-    Scale::num != Scale::den && !Traits::has_multiply_operator<T, std::intmax_t>::value,
+    Scale::num != Scale::den && !Traits::has_multiply_operator<T, int>::value,
     T>
     applyScale(T x)
 {
@@ -118,7 +118,7 @@ Vc_ALWAYS_INLINE enable_if<
                   "Vc::Scalar on 32-bit for gathers on double. You can work around the "
                   "issue by ensuring that all doubles in the structure are aligned on 8 "
                   "Bytes.");
-    constexpr auto value = Scale::num / Scale::den;
+    constexpr int value = Scale::num / Scale::den;
     for (size_t i = 0; i < x.size(); ++i) {
         Vc_ASSERT((x[i] * value) / value == x[i]);
         x[i] *= value;
@@ -127,11 +127,11 @@ Vc_ALWAYS_INLINE enable_if<
 }
 
 template <typename Scale, typename T, typename U,
-          typename = enable_if<Traits::has_multiply_operator<T, std::intmax_t>::value &&
+          typename = enable_if<Traits::has_multiply_operator<T, int>::value &&
                                Traits::has_addition_operator<T, U>::value>>
 Vc_ALWAYS_INLINE typename std::decay<T>::type applyScaleAndAdd(T &&x, U &&y)
 {
-    constexpr auto value = Scale::num / Scale::den;
+    constexpr int value = Scale::num / Scale::den;
     if (value == 1) {  // static evaluation
         return std::forward<T>(x) + std::forward<U>(y);
     }
@@ -141,12 +141,12 @@ Vc_ALWAYS_INLINE typename std::decay<T>::type applyScaleAndAdd(T &&x, U &&y)
 template <
     typename Scale, typename T, typename U,
     typename = enable_if<
-        !(Traits::has_multiply_operator<T &, std::intmax_t>::value &&
+        !(Traits::has_multiply_operator<T &, int>::value &&
           Traits::has_addition_operator<T &, decltype(std::declval<U>()[0])>::value) &&
         Traits::has_subscript_operator<U>::value>>
 Vc_ALWAYS_INLINE T applyScaleAndAdd(T x, U &&y)
 {
-    constexpr auto value = Scale::num / Scale::den;
+    constexpr int value = Scale::num / Scale::den;
     for (size_t i = 0; i < x.size(); ++i) {
         if (value == 1) {  // static evaluation
             x[i] = x[i] + y[i];
@@ -158,13 +158,13 @@ Vc_ALWAYS_INLINE T applyScaleAndAdd(T x, U &&y)
 }
 
 template <typename Scale, typename T, typename U>
-Vc_ALWAYS_INLINE enable_if<!(Traits::has_multiply_operator<T &, std::intmax_t>::value &&
+Vc_ALWAYS_INLINE enable_if<!(Traits::has_multiply_operator<T &, int>::value &&
                              Traits::has_addition_operator<T &, U>::value) &&
                                !Traits::has_subscript_operator<U>::value,
                            T>
     applyScaleAndAdd(T x, U &&y)
 {
-    constexpr auto value = Scale::num / Scale::den;
+    constexpr int value = Scale::num / Scale::den;
     for (size_t i = 0; i < x.size(); ++i) {
         if (value == 1) {  // static evaluation
             x[i] = x[i] + y;
