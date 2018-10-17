@@ -46,6 +46,10 @@ After Intel dropped MIC support with ICC 18, Vc 1.4 also removes support for it.
 
 * [Simdize Example](https://godbolt.org/z/wd6uT2)
 * [Total momentum and time stepping of `std::vector<Particle>`](https://godbolt.org/z/OkejKr)
+* [Matrix Example](https://godbolt.org/z/FSWNgr): This uses vertical
+  vectorization which does not scale to different vector sizes. However, the
+  example is instructive to compare it with similar solutions of other languages
+  or libraries.
 
 ### Scalar Product
 
