@@ -244,11 +244,11 @@ Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<short , double>) { return con
 Vc_INTRINSIC __m256d convert(__m128i v, ConvertTag<ushort, double>) { return convert(convert(v, SSE::ConvertTag<ushort, int>()), ConvertTag<int, double>()); }
 
 Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<int   , short>) {
-    const auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));
-    const auto tmp1 = _mm_unpackhi_epi16(lo128(v), hi128(v));
-    const auto tmp2 = _mm_unpacklo_epi16(tmp0, tmp1);
-    const auto tmp3 = _mm_unpackhi_epi16(tmp0, tmp1);
-    return _mm_unpacklo_epi16(tmp2, tmp3);
+    auto a = _mm256_shuffle_epi8(
+        v, _mm256_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80, -0x80,
+                            -0x80, -0x80, -0x80, 0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80,
+                            -0x80, -0x80, -0x80, -0x80, -0x80, -0x80));
+    return lo128(_mm256_permute4x64_epi64(a, 0xf8));  // a[0] a[2] | a[3] a[3]
 }
 Vc_INTRINSIC __m128i convert(__m256i v, ConvertTag<uint  , short>) {
     const auto tmp0 = _mm_unpacklo_epi16(lo128(v), hi128(v));

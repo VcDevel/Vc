@@ -42,8 +42,6 @@ namespace Vc_VERSIONED_NAMESPACE
         AVX2::from_ x, enable_if<std::is_same<To, AVX2::to_>::value> = nullarg)
 
 #define Vc_SIMD_CAST_AVX_2(from_, to_)                                                   \
-    static_assert(AVX2::from_::size() * 2 <= AVX2::to_::size(),                          \
-                  "this type combination is wrong");                                     \
     template <typename To>                                                               \
     Vc_INTRINSIC Vc_CONST To simd_cast(                                                  \
         AVX2::from_ x0, AVX2::from_ x1,                                                  \
@@ -1315,18 +1313,20 @@ Vc_SIMD_CAST_AVX_2( float_v,  short_v) {
     return simd_cast<short_v>(simd_cast<int_v>(x0), simd_cast<int_v>(x1));
 }
 Vc_SIMD_CAST_AVX_2(   int_v,  short_v) {
-    auto tmp0 = _mm256_unpacklo_epi16(x0.data(), x1.data());
-    auto tmp1 = _mm256_unpackhi_epi16(x0.data(), x1.data());
-    auto tmp2 = _mm256_unpacklo_epi16(tmp0, tmp1);
-    auto tmp3 = _mm256_unpackhi_epi16(tmp0, tmp1);
-    return Mem::permute4x64<X0, X2, X1, X3>(_mm256_unpacklo_epi16(tmp2, tmp3));
+    const auto shuf = _mm256_setr_epi8(
+        0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
+        0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80);
+    auto a = _mm256_shuffle_epi8(x0.data(), shuf);
+    auto b = _mm256_shuffle_epi8(x1.data(), shuf);
+    return Mem::permute4x64<X0, X2, X1, X3>(_mm256_unpacklo_epi64(a, b));
 }
 Vc_SIMD_CAST_AVX_2(  uint_v,  short_v) {
-    auto tmp0 = _mm256_unpacklo_epi16(x0.data(), x1.data());
-    auto tmp1 = _mm256_unpackhi_epi16(x0.data(), x1.data());
-    auto tmp2 = _mm256_unpacklo_epi16(tmp0, tmp1);
-    auto tmp3 = _mm256_unpackhi_epi16(tmp0, tmp1);
-    return Mem::permute4x64<X0, X2, X1, X3>(_mm256_unpacklo_epi16(tmp2, tmp3));
+    const auto shuf = _mm256_setr_epi8(
+        0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
+        0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80);
+    auto a = _mm256_shuffle_epi8(x0.data(), shuf);
+    auto b = _mm256_shuffle_epi8(x1.data(), shuf);
+    return Mem::permute4x64<X0, X2, X1, X3>(_mm256_unpacklo_epi64(a, b));
 }
 #endif
 
