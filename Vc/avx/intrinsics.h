@@ -584,6 +584,25 @@ Vc_INTRINSIC Vc_PURE __m128i _mm_cvtsi64_si128(int64_t x) {
 }
 #endif
 
+#ifdef Vc_IMPL_AVX2
+template <int Scale> __m256 gather(const float *addr, __m256i idx)
+{
+    return _mm256_i32gather_ps(addr, idx, Scale);
+}
+template <int Scale> __m256d gather(const double *addr, __m128i idx)
+{
+    return _mm256_i32gather_pd(addr, idx, Scale);
+}
+template <int Scale> __m256i gather(const int *addr, __m256i idx)
+{
+    return _mm256_i32gather_epi32(addr, idx, Scale);
+}
+template <int Scale> __m256i gather(const unsigned *addr, __m256i idx)
+{
+    return _mm256_i32gather_epi32(aliasing_cast<int>(addr), idx, Scale);
+}
+#endif
+
 }  // namespace AvxIntrinsics
 }  // namespace Vc
 

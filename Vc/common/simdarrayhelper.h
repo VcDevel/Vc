@@ -214,36 +214,6 @@ template <typename T, std::size_t Offset> struct AddOffset
  */
 template <std::size_t secondOffset> class Split
 {
-    // split (only for high part) generator functions
-    template <class G>
-    struct GeneratorOffset {
-        G gen;
-        Vc_INTRINSIC decltype(gen(std::size_t())) operator()(std::size_t i)
-        {
-            return gen(i + secondOffset);
-        }
-    };
-    template <class G, class = decltype(std::declval<G>()(std::size_t())),
-              class = typename std::enable_if<!Traits::is_simd_vector<G>::value>::type>
-    static Vc_INTRINSIC GeneratorOffset<G> hiImpl(G &&gen)
-    {
-        return {std::forward<G>(gen)};
-    }
-
-    // split (only for high part) IndexesFromZero
-    static Vc_INTRINSIC AddOffset<VectorSpecialInitializerIndexesFromZero, secondOffset>
-        hiImpl(VectorSpecialInitializerIndexesFromZero)
-    {
-        return {};
-    }
-    template <std::size_t Offset>
-    static Vc_INTRINSIC
-        AddOffset<VectorSpecialInitializerIndexesFromZero, Offset + secondOffset>
-            hiImpl(AddOffset<VectorSpecialInitializerIndexesFromZero, Offset>)
-    {
-        return {};
-    }
-
     // split composite SimdArray
     template <typename U, std::size_t N, typename V, std::size_t M,
               typename = enable_if<N != M>>
@@ -336,6 +306,18 @@ template <std::size_t secondOffset> class Split
     static Vc_INTRINSIC Segment<V, 2, 1> hiImpl(V &&x, enable_if<is_vector_or_mask<V>()> = nullarg)
     {
         return {std::forward<V>(x)};
+    }
+
+    // split std::vector<T>
+    template <class T, class A>
+    static Vc_INTRINSIC const T *loImpl(const std::vector<T, A> &x)
+    {
+        return x.data();
+    }
+    template <class T, class A>
+    static Vc_INTRINSIC const T *hiImpl(const std::vector<T, A> &x)
+    {
+        return x.data() + secondOffset;
     }
 
     // generically split Segments

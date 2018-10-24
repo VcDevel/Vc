@@ -52,68 +52,16 @@ private:
      */
     // enable_if<std::can_convert<MT, EntryType>::value &&
     // has_subscript_operator<IT>::value>
-    template <typename MT, typename IT>
-    inline void gatherImplementation(const MT *mem, const IT &indexes);
+    template <class MT, class IT, int Scale = 1>
+    inline void gatherImplementation(const Common::GatherArguments<MT, IT, Scale> &);
 
     /**\internal
      * This overload of the above function adds a \p mask argument to disable memory
      * accesses at the \p indexes offsets where \p mask is \c false.
      */
-    template <typename MT, typename IT>
-    inline void gatherImplementation(const MT *mem, const IT &indexes, MaskArgument mask);
-
-    /**\internal
-     * Overload for the case of C-arrays or %Vc vector objects.
-     *
-     * In this case the \p indexes parameter is usable without adjustment.
-     *
-     * \param indexes An object to be used for gather or scatter.
-     * \returns Forwards the \p indexes parameter.
-     */
-    template <typename IT, typename = enable_if<std::is_pointer<IT>::value ||
-                                                Traits::is_simd_vector<IT>::value>>
-    static Vc_INTRINSIC const IT &adjustIndexParameter(const IT &indexes)
-    {
-        return indexes;
-    }
-
-    /**\internal
-     * Overload for the case of a container that returns an lvalue reference from its
-     * subscript operator.
-     *
-     * In this case the container is assumed to use contiguous storage and therefore the
-     * \p indexes object is converted to a C-array interface.
-     *
-     * \param indexes An object to be used for gather or scatter.
-     * \returns A pointer to the first object in the \p indexes container.
-     */
-    template <
-        typename IT,
-        typename = enable_if<
-            !std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
-            std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value>>
-    static Vc_INTRINSIC decltype(std::addressof(std::declval<const IT &>()[0]))
-    adjustIndexParameter(const IT &i)
-    {
-        return std::addressof(i[0]);
-    }
-
-    /**\internal
-     * Overload for the case of a container that returns an rvalue from its
-     * subscript operator.
-     *
-     * \param indexes An object to be used for gather or scatter.
-     * \returns Forwards the \p indexes parameter.
-     */
-    template <typename IT>
-    static Vc_INTRINSIC enable_if<
-        !std::is_pointer<IT>::value && !Traits::is_simd_vector<IT>::value &&
-            !std::is_lvalue_reference<decltype(std::declval<const IT &>()[0])>::value,
-        IT>
-    adjustIndexParameter(const IT &i)
-    {
-        return i;
-    }
+    template <class MT, class IT, int Scale = 1>
+    inline void gatherImplementation(const Common::GatherArguments<MT, IT, Scale> &,
+                                     MaskArgument mask);
 
 public:
 #define Vc_ASSERT_GATHER_PARAMETER_TYPES_                                                \
@@ -194,8 +142,17 @@ public:
     Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const MT *mem, const IT &indexes)
     {
         Vc_ASSERT_GATHER_PARAMETER_TYPES_;
-        gatherImplementation(mem, adjustIndexParameter(indexes));
+        gatherImplementation(
+            Common::make_gather<1>(mem, Common::convertIndexVector(indexes)));
     }
+
+    template <class MT, class IT, int Scale>
+    Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const Common::GatherArguments<MT, IT, Scale> &args)
+    {
+        Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+        gatherImplementation(args);
+    }
+
 
     /// Masked gather constructor
     template <typename MT, typename IT,
@@ -204,7 +161,8 @@ public:
                                        MaskArgument mask)
     {
         Vc_ASSERT_GATHER_PARAMETER_TYPES_;
-        gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+        gatherImplementation(
+            Common::make_gather<1>(mem, Common::convertIndexVector(indexes)), mask);
     }
 
     /// Gather function
@@ -213,7 +171,8 @@ public:
     Vc_INTRINSIC void gather(const MT *mem, const IT &indexes)
     {
         Vc_ASSERT_GATHER_PARAMETER_TYPES_;
-        gatherImplementation(mem, adjustIndexParameter(indexes));
+        gatherImplementation(
+            Common::make_gather<1>(mem, Common::convertIndexVector(indexes)));
     }
 
     /// Masked gather function
@@ -222,7 +181,8 @@ public:
     Vc_INTRINSIC void gather(const MT *mem, const IT &indexes, MaskArgument mask)
     {
         Vc_ASSERT_GATHER_PARAMETER_TYPES_;
-        gatherImplementation(mem, adjustIndexParameter(indexes), mask);
+        gatherImplementation(
+            Common::make_gather<1>(mem, Common::convertIndexVector(indexes)), mask);
     }
     ///@}
 
@@ -235,16 +195,19 @@ public:
      * \param mask
      */
     ///@{
-    template <typename MT, typename IT>
-    Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args)
+    template <class MT, class IT, int Scale>
+    Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT, Scale> &args)
     {
-        gather(args.address, adjustIndexParameter(args.indexes));
+        Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+        gatherImplementation(args);
     }
 
-    template <typename MT, typename IT>
-    Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT> &args, MaskArgument mask)
+    template <class MT, class IT, int Scale>
+    Vc_INTRINSIC void gather(const Common::GatherArguments<MT, IT, Scale> &args,
+                             MaskArgument mask)
     {
-        gather(args.address, adjustIndexParameter(args.indexes), mask);
+        Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+        gatherImplementation(args, mask);
     }
     ///@}
 

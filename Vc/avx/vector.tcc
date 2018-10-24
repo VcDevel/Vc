@@ -386,107 +386,57 @@ Vc_INTRINSIC Vc_CONST AVX2::double_m isnegative(AVX2::double_v x)
         AVX::avx_cast<__m256i>(_mm256_and_pd(AVX::setsignmask_pd(), x.data())))));
 }
 // gathers {{{1
-template <>
-template <typename MT, typename IT>
-inline void AVX2::double_v::gatherImplementation(const MT *mem, const IT &indexes)
-{
-    d.v() = _mm256_setr_pd(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
-}
+#define Vc_GATHER_IMPL(V_)                                                               \
+    template <>                                                                          \
+    template <class MT, class IT, int Scale>                                             \
+    inline void AVX2::V_::gatherImplementation(                                          \
+        const Common::GatherArguments<MT, IT, Scale> &args)
+#define Vc_M(i_) static_cast<value_type>(args.address[Scale * args.indexes[i_]])
+Vc_GATHER_IMPL(double_v) { d.v() = _mm256_setr_pd(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3)); }
 
-template <>
-template <typename MT, typename IT>
-inline void AVX2::float_v::gatherImplementation(const MT *mem, const IT &indexes)
+Vc_GATHER_IMPL(float_v)
 {
-    d.v() = _mm256_setr_ps(mem[indexes[0]],
-                           mem[indexes[1]],
-                           mem[indexes[2]],
-                           mem[indexes[3]],
-                           mem[indexes[4]],
-                           mem[indexes[5]],
-                           mem[indexes[6]],
-                           mem[indexes[7]]);
+    d.v() = _mm256_setr_ps(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3), Vc_M(4), Vc_M(5), Vc_M(6),
+                           Vc_M(7));
 }
 
 #ifdef Vc_IMPL_AVX2
-#ifndef Vc_MSVC
-// skip this code for MSVC because it fails to do overload resolution correctly
-template <>
-Vc_INTRINSIC void AVX2::double_v::gatherImplementation(const double *mem,
-                                                       SSE::int_v indexes)
+Vc_GATHER_IMPL(int_v)
 {
-    d.v() = _mm256_i32gather_pd(mem, indexes.data(), sizeof(double));
+    d.v() = _mm256_setr_epi32(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3), Vc_M(4), Vc_M(5),
+                              Vc_M(6), Vc_M(7));
 }
 
-template <>
-Vc_INTRINSIC void AVX2::float_v::gatherImplementation(const float *mem,
-                                                      AVX2::int_v indexes)
+Vc_GATHER_IMPL(uint_v)
 {
-    d.v() = _mm256_i32gather_ps(mem, indexes.data(), sizeof(float));
+    d.v() = _mm256_setr_epi32(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3), Vc_M(4), Vc_M(5),
+                              Vc_M(6), Vc_M(7));
 }
 
-template <>
-Vc_INTRINSIC void AVX2::int_v::gatherImplementation(const int *mem,
-                                                    AVX2::int_v indexes)
+Vc_GATHER_IMPL(short_v)
 {
-    d.v() = _mm256_i32gather_epi32(mem, indexes.data(), sizeof(int));
+    d.v() = _mm256_setr_epi16(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3), Vc_M(4), Vc_M(5),
+                              Vc_M(6), Vc_M(7), Vc_M(8), Vc_M(9), Vc_M(10), Vc_M(11),
+                              Vc_M(12), Vc_M(13), Vc_M(14), Vc_M(15));
 }
 
-template <>
-Vc_INTRINSIC void AVX2::uint_v::gatherImplementation(const uint *mem,
-                                                     AVX2::int_v indexes)
+Vc_GATHER_IMPL(ushort_v)
 {
-    d.v() =
-        _mm256_i32gather_epi32(aliasing_cast<int>(mem), indexes.data(), sizeof(unsigned));
-}
-#endif  // !Vc_MSVC
-
-template <>
-template <typename MT, typename IT>
-inline void AVX2::int_v::gatherImplementation(const MT *mem, const IT &indexes)
-{
-    d.v() = _mm256_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]],
-                              mem[indexes[3]], mem[indexes[4]], mem[indexes[5]],
-                              mem[indexes[6]], mem[indexes[7]]);
-}
-
-template <>
-template <typename MT, typename IT>
-inline void AVX2::uint_v::gatherImplementation(const MT *mem, const IT &indexes)
-{
-    d.v() = _mm256_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]],
-                              mem[indexes[3]], mem[indexes[4]], mem[indexes[5]],
-                              mem[indexes[6]], mem[indexes[7]]);
-}
-
-template <>
-template <typename MT, typename IT>
-inline void AVX2::short_v::gatherImplementation(const MT *mem, const IT &indexes)
-{
-    d.v() = _mm256_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]],
-                              mem[indexes[3]], mem[indexes[4]], mem[indexes[5]],
-                              mem[indexes[6]], mem[indexes[7]], mem[indexes[8]],
-                              mem[indexes[9]], mem[indexes[10]], mem[indexes[11]],
-                              mem[indexes[12]], mem[indexes[13]], mem[indexes[14]],
-                              mem[indexes[15]]);
-}
-
-template <>
-template <typename MT, typename IT>
-inline void AVX2::ushort_v::gatherImplementation(const MT *mem, const IT &indexes)
-{
-    d.v() = _mm256_setr_epi16(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]],
-                              mem[indexes[3]], mem[indexes[4]], mem[indexes[5]],
-                              mem[indexes[6]], mem[indexes[7]], mem[indexes[8]],
-                              mem[indexes[9]], mem[indexes[10]], mem[indexes[11]],
-                              mem[indexes[12]], mem[indexes[13]], mem[indexes[14]],
-                              mem[indexes[15]]);
+    d.v() = _mm256_setr_epi16(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3), Vc_M(4), Vc_M(5),
+                              Vc_M(6), Vc_M(7), Vc_M(8), Vc_M(9), Vc_M(10), Vc_M(11),
+                              Vc_M(12), Vc_M(13), Vc_M(14), Vc_M(15));
 }
 #endif
+#undef Vc_M
+#undef Vc_GATHER_IMPL
 
-template <typename T>
-template <typename MT, typename IT>
-inline void Vector<T, VectorAbi::Avx>::gatherImplementation(const MT *mem, const IT &indexes, MaskArgument mask)
+template <class T>
+template <class MT, class IT, int Scale>
+inline void Vector<T, VectorAbi::Avx>::gatherImplementation(
+    const Common::GatherArguments<MT, IT, Scale> &args, MaskArgument mask)
 {
+    const auto *mem = args.address;
+    const auto indexes = Scale * args.indexes;
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
 #ifdef Vc_USE_SET_GATHERS
           Traits::is_simd_vector<IT>::value ? Common::GatherScatterImplementation::SetIndexZero :

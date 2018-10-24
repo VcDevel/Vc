@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdio>
 #endif
 
+#include <ratio>
 #include "../global.h"
 #include "../traits/type_traits.h"
 #include "permutation.h"
@@ -183,6 +184,10 @@ enum class Operator : char {
 
 // forward declaration for Vc::array in <Vc/array>
 template <typename T, std::size_t N> struct array;
+// forward declaration for Vc::span in <Vc/span>
+namespace Common {
+template <typename T, std::ptrdiff_t N> class span;
+}
 
 /* TODO: add type for half-float, something along these lines:
 class half_float
@@ -328,11 +333,16 @@ class SubscriptOperation;
  * \tparam IndexVector  Normally an integer SIMD vector, but an array or std::vector also
  *                      works (though often not as efficient).
  */
-template <typename T, typename IndexVector> struct GatherArguments
-{
+template <class T, class IndexVector, int Scale = 1>
+struct GatherArguments {
     const IndexVector indexes;
     const T *const address;
 };
+template <int Scale, class T, class I>
+GatherArguments<T, I, Scale> make_gather(const T *m, const I &i)
+{
+    return {i, m};
+}
 
 /**
  * \internal

@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "simdarrayfwd.h"
 #include "loadstoreflags.h"
 #include "writemaskedvector.h"
+#include "detail.h"
 
 namespace Vc_VERSIONED_NAMESPACE
 {

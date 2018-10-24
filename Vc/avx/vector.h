@@ -195,47 +195,84 @@ public:
 #include "../common/scatterinterface.h"
 #if defined Vc_IMPL_AVX2 && !defined Vc_MSVC
         // skip this code for MSVC because it fails to do overload resolution correctly
-        Vc_INTRINSIC_L void gatherImplementation(
-            const EntryType *mem,
-            typename std::conditional<
-                Size == 8, AVX2::int_v,
-                typename std::conditional<Size == 4, SSE::int_v, void *>::type>::type
-                indexes) Vc_INTRINSIC_R;
+        template <int Scale>
+        Vc_INTRINSIC void gatherImplementation(
+            const Common::GatherArguments<
+                T, typename std::conditional<(Size <= 4), SSE::int_v, AVX2::int_v>::type,
+                Scale> &args)
+        {
+            d.v() = AVX::gather<sizeof(T) * Scale>(args.address, args.indexes.data());
+        }
 
-        template <class MT, class U>
+        template <class MT, class U, int Scale>
+        Vc_INTRINSIC enable_if<Traits::is_valid_vector_argument<MT>::value &&
+                                   std::is_integral<U>::value,
+                               void>
+        gatherImplementation(
+            const Common::GatherArguments<MT, SimdArray<U, Size>, Scale> &args)
+        {
+            *this = simd_cast<Vector>(SimdArray<MT, Size>(args));
+        }
+
+        template <class U, int Scale>
+        Vc_INTRINSIC enable_if<std::is_integral<U>::value, void> gatherImplementation(
+            const Common::GatherArguments<T, fixed_size_simd<U, 8>, Scale> &args)
+        {
+            gatherImplementation(Common::make_gather<Scale>(
+                args.address, simd_cast<AVX2::int_v>(args.indexes)));
+        }
+
+        template <class U, int Scale>
+        Vc_INTRINSIC enable_if<std::is_integral<U>::value, void> gatherImplementation(
+            const Common::GatherArguments<T, fixed_size_simd<U, 4>, Scale> &args)
+        {
+            gatherImplementation(Common::make_gather<Scale>(
+                args.address, simd_cast<SSE::int_v>(args.indexes)));
+        }
+
+        template <class MT, class U, int Scale>
         Vc_INTRINSIC
-            enable_if<std::is_arithmetic<MT>::value && std::is_integral<U>::value &&
-                          (sizeof(MT) >= sizeof(short)),
+            enable_if<Traits::is_valid_vector_argument<MT>::value &&
+                          !std::is_same<T, MT>::value && std::is_integral<U>::value,
                       void>
-            gatherImplementation(const MT *mem, const SimdArray<U, Size> &indexes)
+            gatherImplementation(
+                const Common::GatherArguments<MT, fixed_size_simd<U, Size>, Scale> &args)
         {
-            *this = simd_cast<Vector>(SimdArray<MT, Size>(mem, indexes));
+            *this = simd_cast<Vector>(fixed_size_simd<MT, Size>(args));
         }
 
-        template <class U>
-        Vc_INTRINSIC enable_if<std::is_integral<U>::value && sizeof(EntryType) == 2, void>
-        gatherImplementation(const EntryType *mem, const SimdArray<U, 16> &indexes)
+        template <
+            class MT, class U, class A2, int Scale,
+            class = enable_if<sizeof(T) == 2 && std::is_integral<MT>::value &&
+                              (sizeof(MT) <= 2) && Vector<U, A2>::size() == size() &&
+                              std::is_integral<U>::value>>
+        Vc_INTRINSIC void gatherImplementation(
+            const Common::GatherArguments<MT, Vector<U, A2>, Scale> &args)
         {
-            const auto lo = simd_cast<AVX2::int_v, 0>(indexes);
-            const auto hi = simd_cast<AVX2::int_v, 1>(indexes);
-            *this = simd_cast<Vector>(AVX2::int_v(_mm256_i32gather_epi32(
-                                          aliasing_cast<int>(mem), lo.data(), 2)),
-                                      AVX2::int_v(_mm256_i32gather_epi32(
-                                          aliasing_cast<int>(mem), hi.data(), 2)));
+            using AVX2::int_v;
+            const auto idx0 = simd_cast<int_v, 0>(args.indexes).data();
+            const auto idx1 = simd_cast<int_v, 1>(args.indexes).data();
+            *this = simd_cast<Vector>(int_v(AVX::gather<sizeof(MT) * Scale>(
+                                          aliasing_cast<int>(args.address), idx0)),
+                                      int_v(AVX::gather<sizeof(MT) * Scale>(
+                                          aliasing_cast<int>(args.address), idx1)));
+            if (sizeof(MT) == 1) {
+                *this &= 0xff;
+                if (std::is_signed<MT>::value) {
+                    using Signed = AVX2::Vector<typename std::make_signed<T>::type>;
+                    *this = (simd_cast<Signed>(*this) << 8) >> 8;  // sign extend
+                }
+            }
         }
 
-        template <class U, class V, std::size_t Wt>
-        Vc_INTRINSIC enable_if<std::is_integral<U>::value && Size == 8, void>
-        gatherImplementation(const EntryType *mem, const SimdArray<U, 8, V, Wt> &indexes)
+        template <class U, int Scale>
+        Vc_INTRINSIC enable_if<std::is_integral<U>::value, void> gatherImplementation(
+            const Common::GatherArguments<EntryType, SimdArray<U, Size>, Scale> &args)
         {
-            gatherImplementation(mem, simd_cast<AVX2::int_v>(indexes));
-        }
-
-        template <class U, class V, std::size_t Wt>
-        Vc_INTRINSIC enable_if<std::is_integral<U>::value && Size == 4, void>
-        gatherImplementation(const EntryType *mem, const SimdArray<U, 4, V, Wt> &indexes)
-        {
-            gatherImplementation(mem, simd_cast<SSE::int_v>(indexes));
+            gatherImplementation(Common::make_gather<Scale>(
+                args.address,
+                simd_cast<typename std::conditional<(Size == 4), SSE::int_v,
+                                                    AVX2::int_v>::type>(args.indexes)));
         }
 #endif  // Vc_IMPL_AVX2 && !MSVC
 

@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VC_COMMON_SUBSCRIPT_H_
 
 #include <initializer_list>
-#include <ratio>
 #include <type_traits>
 #include <vector>
 #include "types.h"
@@ -40,7 +39,7 @@ namespace Vc_VERSIONED_NAMESPACE
 {
 namespace Common
 {
-// AdaptSubscriptOperator {{{1
+// AdaptSubscriptOperator {{{
 template <typename Base> class AdaptSubscriptOperator : public Base
 {
 public:
@@ -84,6 +83,23 @@ public:
         return subscript_operator(*this, std::forward<I>(arg_));
     }
 };
+
+// }}}
+// is_valid_indexvector {{{
+template <class T, class = decltype(convertIndexVector(std::declval<T>()))>
+std::true_type is_valid_indexvector(T &&);
+std::false_type is_valid_indexvector(...);
+
+template <class IndexVector, class Test = decltype(is_valid_indexvector(
+                                 std::declval<const IndexVector &>()))>
+struct is_valid_indexvector_ : public std::integral_constant<bool, Test::value> {
+};
+static_assert(!is_valid_indexvector_<const int *>::value,
+              "Pointer is incorrectly classified as valid index vector type");
+static_assert(is_valid_indexvector_<const int[4]>::value,
+              "C-Array is incorrectly classified as invalid index vector type");
+
+// }}}
 // apply Scale (std::ratio) functions {{{1
 template <typename Scale, typename T>
 Vc_ALWAYS_INLINE enable_if<Scale::num == Scale::den, Traits::decay<T>> applyScale(T &&x)
@@ -214,96 +230,11 @@ struct IndexVectorSizeMatches<MinSize,
                               false> : public std::integral_constant<bool, (MinSize <= ArraySize)>
 {
 };
-// convertIndexVector {{{1
-// if the argument is a Vector<T> already we definitely want to keep it that way
-template <typename IV>
-enable_if<
-    (Traits::is_simd_vector<IV>::value && sizeof(typename IV::EntryType) >= sizeof(int)),
-    const IV &>
-    convertIndexVector(const IV &indexVector)
-{
-    return indexVector;
-}
 
-// but if the scalar (integral) type is smaller than int we convert it up to int. Otherwise it's
-// very likely that the calculations we have to perform will overflow.
-template <typename IV>
-enable_if<
-    (Traits::is_simd_vector<IV>::value && sizeof(typename IV::EntryType) < sizeof(int)),
-    SimdArray<int, IV::Size>>
-    convertIndexVector(const IV &indexVector)
-{
-    return static_cast<SimdArray<int, IV::Size>>(indexVector);
-}
-
-// helper for promoting int types to int or higher
-template<typename T> using promoted_type = decltype(std::declval<T>() + 1);
-
-// std::array, Vc::array, and C-array are fixed size and can therefore be converted to a
-// SimdArray of the same size
-template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertIndexVector(
-    const std::array<T, N> &indexVector)
-{
-    return {std::addressof(indexVector[0]), Vc::Unaligned};
-}
-template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertIndexVector(
-    const Vc::array<T, N> &indexVector)
-{
-    return {std::addressof(indexVector[0]), Vc::Unaligned};
-}
-template <typename T, std::size_t N>
-enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>> convertIndexVector(
-    const T (&indexVector)[N])
-{
-    return SimdArray<promoted_type<T>, N>{std::addressof(indexVector[0]), Vc::Unaligned};
-}
-
-// a plain pointer won't work. Because we need some information on the number of values in
-// the index argument
-#ifndef Vc_MSVC
-// MSVC treats the function as usable in SFINAE context if it is deleted. If it's not declared we
-// seem to get what we wanted (except for bad diagnostics)
-template <typename T>
-enable_if<std::is_pointer<T>::value, void> convertIndexVector(T indexVector) = delete;
-#endif
-
-// an initializer_list works, but is runtime-sized (before C++14, at least) so we have to
-// fall back to std::vector
-template <typename T>
-std::vector<promoted_type<T>> convertIndexVector(
-    const std::initializer_list<T> &indexVector)
-{
-    return {begin(indexVector), end(indexVector)};
-}
-
-// a std::vector cannot be converted to anything better
-template <typename T>
-enable_if<(std::is_integral<T>::value && sizeof(T) >= sizeof(int)), std::vector<T>>
-    convertIndexVector(const std::vector<T> &indexVector)
-{
-    return indexVector;
-}
-template <typename T>
-enable_if<(std::is_integral<T>::value && sizeof(T) < sizeof(int)),
-          std::vector<promoted_type<T>>>
-    convertIndexVector(const std::vector<T> &indexVector)
-{
-    return {std::begin(indexVector), std::end(indexVector)};
-}
-
-template <typename T>
-std::true_type is_valid_indexvector(
-    T &&, Traits::decay<decltype(convertIndexVector(std::declval<T>()))> * = nullptr);
-std::false_type is_valid_indexvector(...);
-
-template <typename IndexVector, typename Test = decltype(is_valid_indexvector(std::declval<const IndexVector &>()))>
-struct is_valid_indexvector_ : public std::integral_constant<bool, Test::value>
-{};
-static_assert(!is_valid_indexvector_<const int *>::value, "Pointer is incorrectly classified as valid index vector type");
-static_assert( is_valid_indexvector_<const int[4]>::value, "C-Array is incorrectly classified as invalid index vector type");
-
+template <std::size_t MinSize, typename T, std::ptrdiff_t N>
+struct IndexVectorSizeMatches<MinSize, Vc::Common::span<T, N>, false>
+    : public std::integral_constant<bool, (N == -1 || MinSize <= N)> {
+};
 // SubscriptOperation {{{1
 template <
     typename T, typename IndexVector, typename Scale = std::ratio<1, 1>,
@@ -345,11 +276,19 @@ public:
     {
     }
 
-    Vc_ALWAYS_INLINE GatherArguments<T, IndexVectorScaled> gatherArguments() const
+    static constexpr bool need_explicit_scaling =
+        Scale::num % Scale::den != 0 || Scale::num / Scale::den * sizeof(T) > 8;
+
+    Vc_ALWAYS_INLINE GatherArguments<
+        T, IndexVectorScaled, (need_explicit_scaling ? 1 : Scale::num / Scale::den)>
+    gatherArguments() const
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
-        return {applyScale<Scale>(convertIndexVector(m_indexes)), m_address};
+        return {applyScale<typename std::conditional<need_explicit_scaling, Scale,
+                                                     std::ratio<1, 1>>::type>(
+                    convertIndexVector(m_indexes)),
+                m_address};
     }
 
     Vc_ALWAYS_INLINE ScatterArguments<T, IndexVectorScaled> scatterArguments() const
@@ -362,12 +301,9 @@ public:
     template <typename V,
               typename = enable_if<(std::is_arithmetic<ScalarType>::value &&Traits::is_simd_vector<
                   V>::value &&IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
-    Vc_ALWAYS_INLINE operator V() const
+    Vc_INTRINSIC operator V() const
     {
-        static_assert(std::is_arithmetic<ScalarType>::value,
-                      "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
-        const auto indexes = applyScale<Scale>(convertIndexVector(m_indexes));
-        return V(m_address, indexes);
+        return V(gatherArguments());
     }
 
     template <typename V,

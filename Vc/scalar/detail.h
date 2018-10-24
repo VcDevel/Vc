@@ -28,6 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_SCALAR_DETAIL_H_
 #define VC_SCALAR_DETAIL_H_
 
+#include "../common/detail.h"
 #include "macros.h"
 
 namespace Vc_VERSIONED_NAMESPACE

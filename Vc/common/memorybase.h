@@ -588,10 +588,10 @@ template<typename V, typename Parent, int Dimension, typename RowMemory> class M
             return vector(vectorsCount() - 1, f);
         }
 
-        Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned char  *indexes) const { return V(entries(), indexes); }
-        Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned short *indexes) const { return V(entries(), indexes); }
-        Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned int   *indexes) const { return V(entries(), indexes); }
-        Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned long  *indexes) const { return V(entries(), indexes); }
+        Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned char  *indexes) const { return V(entries(), typename V::IndexType(indexes, Vc::Unaligned)); }
+        Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned short *indexes) const { return V(entries(), typename V::IndexType(indexes, Vc::Unaligned)); }
+        Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned int   *indexes) const { return V(entries(), typename V::IndexType(indexes, Vc::Unaligned)); }
+        Vc_ALWAYS_INLINE Vc_PURE V gather(const unsigned long  *indexes) const { return V(entries(), typename V::IndexType(indexes, Vc::Unaligned)); }
 
         /**
          * Zero the whole memory area.

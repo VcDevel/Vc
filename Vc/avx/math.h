@@ -200,8 +200,10 @@ inline SimdArray<double, 8> frexp(const SimdArray<double, 8> &v, SimdArray<int, 
     const auto frexpMask =
         _mm256_broadcast_sd(reinterpret_cast<const double *>(&AVX::c_general::frexpMask));
     fixed_size_simd<double, 8> ret = {
-        fixed_size_simd<double, 4>(_mm256_and_pd(exponentMaximized[0], frexpMask)),
-        fixed_size_simd<double, 4>(_mm256_and_pd(exponentMaximized[1], frexpMask))};
+        fixed_size_simd<double, 4>(
+            AVX::double_v(_mm256_and_pd(exponentMaximized[0], frexpMask))),
+        fixed_size_simd<double, 4>(
+            AVX::double_v(_mm256_and_pd(exponentMaximized[1], frexpMask)))};
     const auto zeroMask = v == v.Zero();
     ret(isnan(v) || !isfinite(v) || zeroMask) = v;
     internal_data(*e) =

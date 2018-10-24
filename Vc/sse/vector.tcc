@@ -324,56 +324,36 @@ Vc_INTRINSIC Vc_CONST SSE::double_m isnegative(SSE::double_v x)
 }
 
 // gathers {{{1
-template <>
-template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void SSE::double_v::gatherImplementation(const MT *mem, const IT &indexes)
+#define Vc_GATHER_IMPL(V_)                                                               \
+    template <>                                                                          \
+    template <class MT, class IT, int Scale>                                             \
+    Vc_ALWAYS_INLINE void SSE::V_::gatherImplementation(                                 \
+        const Common::GatherArguments<MT, IT, Scale> &args)
+#define Vc_M(i_) static_cast<value_type>(args.address[Scale * args.indexes[i_]])
+Vc_GATHER_IMPL(double_v) { d.v() = _mm_setr_pd(Vc_M(0), Vc_M(1)); }
+Vc_GATHER_IMPL(float_v)  { d.v() = _mm_setr_ps(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3)); }
+Vc_GATHER_IMPL(int_v)    { d.v() = _mm_setr_epi32(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3)); }
+Vc_GATHER_IMPL(uint_v)   { d.v() = _mm_setr_epi32(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3)); }
+Vc_GATHER_IMPL(short_v)
 {
-    d.v() = _mm_setr_pd(mem[indexes[0]], mem[indexes[1]]);
+    d.v() =
+        Vc::set(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3), Vc_M(4), Vc_M(5), Vc_M(6), Vc_M(7));
 }
-
-template <>
-template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void SSE::float_v::gatherImplementation(const MT *mem, const IT &indexes)
+Vc_GATHER_IMPL(ushort_v)
 {
-    d.v() = _mm_setr_ps(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
+    d.v() =
+        Vc::set(Vc_M(0), Vc_M(1), Vc_M(2), Vc_M(3), Vc_M(4), Vc_M(5), Vc_M(6), Vc_M(7));
 }
-
-template <>
-template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void SSE::int_v::gatherImplementation(const MT *mem, const IT &indexes)
-{
-    d.v() = _mm_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
-}
-
-template <>
-template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void SSE::uint_v::gatherImplementation(const MT *mem, const IT &indexes)
-{
-    d.v() = _mm_setr_epi32(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]]);
-}
-
-template <>
-template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void SSE::short_v::gatherImplementation(const MT *mem, const IT &indexes)
-{
-    d.v() = Vc::set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                    mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
-}
-
-template <>
-template <typename MT, typename IT>
-Vc_ALWAYS_INLINE void SSE::ushort_v::gatherImplementation(const MT *mem, const IT &indexes)
-{
-    d.v() = Vc::set(mem[indexes[0]], mem[indexes[1]], mem[indexes[2]], mem[indexes[3]],
-                    mem[indexes[4]], mem[indexes[5]], mem[indexes[6]], mem[indexes[7]]);
-}
+#undef Vc_M
+#undef Vc_GATHER_IMPL
 
 template <typename T>
-template <typename MT, typename IT>
-inline void Vector<T, VectorAbi::Sse>::gatherImplementation(const MT *mem,
-                                                            const IT &indexes,
-                                                            MaskArgument mask)
+template <class MT, class IT, int Scale>
+inline void Vector<T, VectorAbi::Sse>::gatherImplementation(
+    const Common::GatherArguments<MT, IT, Scale> &args, MaskArgument mask)
 {
+    const auto *mem = args.address;
+    const auto indexes = Scale * args.indexes;
     using Selector = std::integral_constant < Common::GatherScatterImplementation,
 #ifdef Vc_USE_SET_GATHERS
           Traits::is_simd_vector<IT>::value ? Common::GatherScatterImplementation::SetIndexZero :

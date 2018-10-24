@@ -235,16 +235,11 @@ public:
 #include "gatherinterface.h"
 #include "scatterinterface.h"
 
-    // forward all remaining ctors
-    template <typename... Args,
-              typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
-                                   !Traits::is_gather_signature<Args...>::value &&
-                                   !Traits::is_initializer_list<Args...>::value>>
-    explicit Vc_INTRINSIC SimdArray(Args &&... args)
-        : data(std::forward<Args>(args)...)
+    explicit Vc_INTRINSIC SimdArray(VectorSpecialInitializerZero) : data() {}
+    explicit Vc_INTRINSIC SimdArray(VectorSpecialInitializerOne o) : data(o) {}
+    explicit Vc_INTRINSIC SimdArray(VectorSpecialInitializerIndexesFromZero i) : data(i)
     {
     }
-
     template <std::size_t Offset>
     explicit Vc_INTRINSIC SimdArray(
         Common::AddOffset<VectorSpecialInitializerIndexesFromZero, Offset>)
@@ -291,6 +286,14 @@ public:
     static Vc_INTRINSIC fixed_size_simd<T, N> Random()
     {
         return fromOperation(Common::Operations::random());
+    }
+
+    // load ctor
+    template <class U, class Flags = DefaultLoadTag,
+              class = enable_if<std::is_arithmetic<U>::value &&
+                                Traits::is_load_store_flag<Flags>::value>>
+    explicit Vc_INTRINSIC SimdArray(const U *mem, Flags f = Flags()) : data(mem, f)
+    {
     }
 
     template <typename... Args> Vc_INTRINSIC void load(Args &&... args)
@@ -474,6 +477,11 @@ public:
         return {private_init, data.sorted()};
     }
 
+    template <class G, class = decltype(std::declval<G>()(std::size_t())),
+              class = enable_if<!Traits::is_simd_vector<G>::value>>
+    Vc_INTRINSIC SimdArray(const G &gen) : data(gen)
+    {
+    }
     template <typename G> static Vc_INTRINSIC fixed_size_simd<T, N> generate(const G &gen)
     {
         return {private_init, VectorType::generate(gen)};
@@ -521,29 +529,37 @@ const VectorType &internal_data(const SimdArray<T, N, VectorType, N> &x)
     return x.data;
 }
 
-// unpackIfSegment {{{2
-template <typename T> T unpackIfSegment(T &&x) { return std::forward<T>(x); }
-template <typename T, size_t Pieces, size_t Index>
-auto unpackIfSegment(Common::Segment<T, Pieces, Index> &&x) -> decltype(x.asSimdArray())
+// unwrap {{{2
+template <class T> Vc_INTRINSIC T unwrap(const T &x) { return x; }
+
+template <class T, size_t N, class V>
+Vc_INTRINSIC V unwrap(const SimdArray<T, N, V, N> &x)
 {
-    return x.asSimdArray();
+    return internal_data(x);
+}
+
+template <class T, size_t Pieces, size_t Index>
+Vc_INTRINSIC auto unwrap(const Common::Segment<T, Pieces, Index> &x)
+    -> decltype(x.asSimdArray())
+{
+    return unwrap(x.asSimdArray());
 }
 
 // gatherImplementation {{{2
 template <typename T, std::size_t N, typename VectorType>
-template <typename MT, typename IT>
-inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
-                                                                 const IT &indexes)
+template <class MT, class IT, int Scale>
+Vc_INTRINSIC void SimdArray<T, N, VectorType, N>::gatherImplementation(
+    const Common::GatherArguments<MT, IT, Scale> &args)
 {
-    data.gather(mem, unpackIfSegment(indexes));
+    data.gather(Common::make_gather<Scale>(args.address, unwrap(args.indexes)));
 }
 template <typename T, std::size_t N, typename VectorType>
-template <typename MT, typename IT>
-inline void SimdArray<T, N, VectorType, N>::gatherImplementation(const MT *mem,
-                                                                 const IT &indexes,
-                                                                 MaskArgument mask)
+template <class MT, class IT, int Scale>
+Vc_INTRINSIC void SimdArray<T, N, VectorType, N>::gatherImplementation(
+    const Common::GatherArguments<MT, IT, Scale> &args, MaskArgument mask)
 {
-    data.gather(mem, unpackIfSegment(indexes), mask);
+    data.gather(Common::make_gather<Scale>(args.address, unwrap(args.indexes)),
+                mask);
 }
 
 // scatterImplementation {{{2
@@ -552,7 +568,7 @@ template <typename MT, typename IT>
 inline void SimdArray<T, N, VectorType, N>::scatterImplementation(MT *mem,
                                                                  IT &&indexes) const
 {
-    data.scatter(mem, unpackIfSegment(std::forward<IT>(indexes)));
+    data.scatter(mem, unwrap(std::forward<IT>(indexes)));
 }
 template <typename T, std::size_t N, typename VectorType>
 template <typename MT, typename IT>
@@ -560,7 +576,7 @@ inline void SimdArray<T, N, VectorType, N>::scatterImplementation(MT *mem,
                                                                  IT &&indexes,
                                                                  MaskArgument mask) const
 {
-    data.scatter(mem, unpackIfSegment(std::forward<IT>(indexes)), mask);
+    data.scatter(mem, unwrap(std::forward<IT>(indexes)), mask);
 }
 
 // generic SimdArray {{{1
@@ -704,6 +720,13 @@ public:
         return fromOperation(Common::Operations::random());
     }
 
+    template <class G, class = decltype(std::declval<G>()(std::size_t())),
+              class = enable_if<!Traits::is_simd_vector<G>::value>>
+    Vc_INTRINSIC SimdArray(const G &gen)
+        : data0(gen), data1([&](std::size_t i) { return gen(i + storage_type0::size()); })
+    {
+    }
+
     ///\copybrief Vector::generate
     template <typename G> static Vc_INTRINSIC fixed_size_simd<T, N> generate(const G &gen) // {{{2
     {
@@ -790,16 +813,20 @@ public:
 #include "gatherinterface.h"
 #include "scatterinterface.h"
 
-    // forward all remaining ctors
-    template <typename... Args,
-              typename = enable_if<!Traits::is_cast_arguments<Args...>::value &&
-                                   !Traits::is_initializer_list<Args...>::value &&
-                                   !Traits::is_gather_signature<Args...>::value &&
-                                   !Traits::is_load_arguments<Args...>::value>>
-    explicit Vc_INTRINSIC SimdArray(Args &&... args)
-        : data0(Split::lo(args)...)  // no forward here - it could move and thus
-                                     // break the next line
-        , data1(Split::hi(std::forward<Args>(args))...)
+    explicit Vc_INTRINSIC SimdArray(VectorSpecialInitializerZero) : data0(), data1() {}
+    explicit Vc_INTRINSIC SimdArray(VectorSpecialInitializerOne o) : data0(o), data1(o) {}
+    explicit Vc_INTRINSIC SimdArray(VectorSpecialInitializerIndexesFromZero i)
+        : data0(i)
+        , data1(Common::AddOffset<VectorSpecialInitializerIndexesFromZero,
+                                  storage_type0::size()>())
+    {
+    }
+    template <size_t Offset>
+    explicit Vc_INTRINSIC SimdArray(
+        Common::AddOffset<VectorSpecialInitializerIndexesFromZero, Offset> i)
+        : data0(i)
+        , data1(Common::AddOffset<VectorSpecialInitializerIndexesFromZero,
+                                  storage_type0::size() + Offset>())
     {
     }
 
@@ -820,6 +847,13 @@ public:
                             std::is_convertible<Traits::entry_type_of<W>, T>::value)>,
               class = W>
     Vc_INTRINSIC SimdArray(W &&x) : data0(Split::lo(x)), data1(Split::hi(x))
+    {
+    }
+
+    template <class W, std::size_t Pieces, std::size_t Index>
+    Vc_INTRINSIC SimdArray(Common::Segment<W, Pieces, Index> &&x)
+        : data0(Common::Segment<W, 2 * Pieces, 2 * Index>{x.data})
+        , data1(Common::Segment<W, 2 * Pieces, 2 * Index + 1>{x.data})
     {
     }
 
@@ -1445,21 +1479,26 @@ constexpr std::size_t SimdArray<T, N, V, M>::MemoryAlignment;
 
 // gatherImplementation {{{2
 template <typename T, std::size_t N, typename VectorType, std::size_t M>
-template <typename MT, typename IT>
-inline void SimdArray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
-                                                                 const IT &indexes)
+template <class MT, class IT, int Scale>
+inline void SimdArray<T, N, VectorType, M>::gatherImplementation(
+    const Common::GatherArguments<MT, IT, Scale> &args)
 {
-    data0.gather(mem, Split::lo(Common::Operations::gather(), indexes));
-    data1.gather(mem, Split::hi(Common::Operations::gather(), indexes));
+    data0.gather(Common::make_gather<Scale>(
+        args.address, Split::lo(Common::Operations::gather(), args.indexes)));
+    data1.gather(Common::make_gather<Scale>(
+        args.address, Split::hi(Common::Operations::gather(), args.indexes)));
 }
 template <typename T, std::size_t N, typename VectorType, std::size_t M>
-template <typename MT, typename IT>
-inline void SimdArray<T, N, VectorType, M>::gatherImplementation(const MT *mem,
-                                                                 const IT &indexes,
-                                                                 MaskArgument mask)
+template <class MT, class IT, int Scale>
+inline void SimdArray<T, N, VectorType, M>::gatherImplementation(
+    const Common::GatherArguments<MT, IT, Scale> &args, MaskArgument mask)
 {
-    data0.gather(mem, Split::lo(Common::Operations::gather(), indexes), Split::lo(mask));
-    data1.gather(mem, Split::hi(Common::Operations::gather(), indexes), Split::hi(mask));
+    data0.gather(Common::make_gather<Scale>(
+                     args.address, Split::lo(Common::Operations::gather(), args.indexes)),
+                 Split::lo(mask));
+    data1.gather(Common::make_gather<Scale>(
+                     args.address, Split::hi(Common::Operations::gather(), args.indexes)),
+                 Split::hi(mask));
 }
 
 // scatterImplementation {{{2
