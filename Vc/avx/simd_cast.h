@@ -1355,11 +1355,11 @@ Vc_SIMD_CAST_AVX_4(double_v,  short_v) {
 #ifdef Vc_IMPL_AVX2
 Vc_SIMD_CAST_AVX_1(double_v, ushort_v) {
     const auto tmp = _mm256_cvttpd_epi32(x.data());
-    return AVX::zeroExtend(_mm_packs_epi32(tmp, _mm_setzero_si128()));
+    return AVX::zeroExtend(_mm_packus_epi32(tmp, _mm_setzero_si128()));
 }
 Vc_SIMD_CAST_AVX_1( float_v, ushort_v) {
     const auto tmp = _mm256_cvttps_epi32(x.data());
-    return AVX::zeroExtend(_mm_packs_epi32(AVX::lo128(tmp), AVX::hi128(tmp)));
+    return AVX::zeroExtend(_mm_packus_epi32(AVX::lo128(tmp), AVX::hi128(tmp)));
 }
 Vc_SIMD_CAST_AVX_1(   int_v, ushort_v) { return AVX::zeroExtend(AVX::convert< int, ushort>(x.data())); }
 Vc_SIMD_CAST_AVX_1(  uint_v, ushort_v) { return AVX::zeroExtend(AVX::convert<uint, ushort>(x.data())); }
@@ -1371,7 +1371,7 @@ Vc_SIMD_CAST_AVX_1( short_v, ushort_v) { return x.data(); }
 Vc_SIMD_CAST_AVX_2(double_v, ushort_v) {
     const auto tmp0 = _mm256_cvttpd_epi32(x0.data());
     const auto tmp1 = _mm256_cvttpd_epi32(x1.data());
-    return AVX::zeroExtend(_mm_packs_epi32(tmp0, tmp1));
+    return AVX::zeroExtend(_mm_packus_epi32(tmp0, tmp1));
 }
 Vc_SIMD_CAST_AVX_2( float_v, ushort_v) {
     using AVX2::ushort_v;
@@ -1400,7 +1400,8 @@ Vc_SIMD_CAST_AVX_3(double_v, ushort_v) {
     const auto tmp0 = _mm256_cvttpd_epi32(x0.data());
     const auto tmp1 = _mm256_cvttpd_epi32(x1.data());
     const auto tmp2 = _mm256_cvttpd_epi32(x2.data());
-    return AVX::concat(_mm_packs_epi32(tmp0, tmp1), _mm_packs_epi32(tmp2, _mm_setzero_si128()));
+    return AVX::concat(_mm_packus_epi32(tmp0, tmp1),
+                       _mm_packus_epi32(tmp2, _mm_setzero_si128()));
 }
 #endif
 
@@ -1411,7 +1412,7 @@ Vc_SIMD_CAST_AVX_4(double_v, ushort_v) {
     const auto tmp1 = _mm256_cvttpd_epi32(x1.data());
     const auto tmp2 = _mm256_cvttpd_epi32(x2.data());
     const auto tmp3 = _mm256_cvttpd_epi32(x3.data());
-    return AVX::concat(_mm_packs_epi32(tmp0, tmp1), _mm_packs_epi32(tmp2, tmp3));
+    return AVX::concat(_mm_packus_epi32(tmp0, tmp1), _mm_packus_epi32(tmp2, tmp3));
 }
 #endif
 
@@ -1616,7 +1617,7 @@ Vc_SIMD_CAST_2(AVX2::double_v, SSE:: short_v) {
 Vc_SIMD_CAST_2(AVX2::double_v, SSE::ushort_v) {
     const auto tmp0 = _mm256_cvttpd_epi32(x0.data());
     const auto tmp1 = _mm256_cvttpd_epi32(x1.data());
-    return _mm_packs_epi32(tmp0, tmp1);
+    return _mm_packus_epi32(tmp0, tmp1);
 }
 
 // 1 Scalar::Vector to 1 AVX2::Vector {{{2
