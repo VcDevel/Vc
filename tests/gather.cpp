@@ -25,12 +25,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
+//#define UNITTEST_ONLY_XTEST 1
 #include "unittest.h"
 #include <iostream>
 #include <Vc/array>
 #include <Vc/span>
 
-#define ALL_TYPES concat<AllVectors, Typelist<Vc::fixed_size_simd<int, 7>>>
+#define ALL_TYPES                                                                        \
+    concat<AllVectors,                                                                   \
+           Typelist<Vc::fixed_size_simd<int, 7>, Vc::fixed_size_simd<int, 9>,            \
+                    Vc::fixed_size_simd<uint, 7>, Vc::fixed_size_simd<uint, 9>,          \
+                    Vc::fixed_size_simd<short, 9>, Vc::fixed_size_simd<ushort, 9>>>
 
 using namespace Vc;
 
@@ -100,41 +105,65 @@ Vec incrementIndex(const typename Vec::IndexType &i,
     return r;
 }
 
-TEST_TYPES(Vec, gatherArray, ALL_TYPES)
+template <class V, class T> void gatherArrayImpl()
 {
-    typedef typename Vec::IndexType It;
-    typedef typename Vec::EntryType T;
-    typedef typename It::Mask M;
+    using It = typename V::IndexType;
+    using M = typename It::Mask;
 
     const int count = 39999;
     T array[count];
     for (int i = 0; i < count; ++i) {
-        array[i] = i + 1;
+        using value_type = typename V::value_type;
+        using limits = typename std::conditional<
+            (std::is_floating_point<T>::value && std::is_integral<value_type>::value),
+            std::numeric_limits<value_type>, std::numeric_limits<T>>::type;
+        T tmp = i + 1;
+        while (tmp > limits::max()) {
+            tmp -= limits::max();
+        }
+        array[i] = tmp;
     }
     M mask;
-    for (It i = It(IndexesFromZero); !(mask = (i < count)).isEmpty(); i += Vec::Size) {
-        const Vec ii = incrementIndex<Vec>(i);
-        const typename Vec::Mask castedMask = simd_cast<typename Vec::Mask>(mask);
+    for (It i([](int n) { return n ^ 1; }); !(mask = (i < count)).isEmpty();
+         i += V::Size) {
+        const V ii([&](int n) { return i[n] < count ? array[i[n]] : i[n]; });
+        const typename V::Mask castedMask = simd_cast<typename V::Mask>(mask);
         if (all_of(castedMask)) {
-            Vec a(array, i);
+            V a(array, i);
             COMPARE(a, ii) << "\n       i: " << i;
-            Vec b(Zero);
+            V b(Zero);
             b.gather(array, i);
             COMPARE(b, ii);
             COMPARE(a, b);
         }
-        Vec b(Zero);
+        V b(Zero);
         b.gather(array, i, castedMask);
-        COMPARE(castedMask, (b == ii)) << ", b = " << b << ", ii = " << ii << ", i = " << i;
+        COMPARE(castedMask, (b == ii))
+            << ", b = " << b << ", ii = " << ii << ", i = " << i;
         if (!all_of(castedMask)) {
-            COMPARE(!castedMask, b == Vec(Zero)) << "\nb: " << b << "\ncastedMask: " << castedMask << !castedMask;
+            COMPARE(!castedMask, b == V(Zero))
+                << "\nb: " << b << "\ncastedMask: " << castedMask << !castedMask;
         }
     }
 
-    const typename Vec::Mask k(Zero);
-    Vec a(One);
+    const typename V::Mask k(false);
+    V a(1);
     a.gather(array, It(IndexesFromZero), k);
-    COMPARE(a, Vec(One));
+    COMPARE(a, V(1));
+    vir::test::ADD_PASS() << "gatherArray<" << vir::typeToString<V>() << "> from "
+                          << vir::typeToString<T>();
+}
+TEST_TYPES(Vec, gatherArray, ALL_TYPES)
+{
+    gatherArrayImpl<Vec, uchar>();
+    gatherArrayImpl<Vec, schar>();
+    gatherArrayImpl<Vec, char>();
+    gatherArrayImpl<Vec, short>();
+    gatherArrayImpl<Vec, ushort>();
+    gatherArrayImpl<Vec, int>();
+    gatherArrayImpl<Vec, uint>();
+    gatherArrayImpl<Vec, float>();
+    gatherArrayImpl<Vec, double>();
 }
 
 template<typename T, std::size_t Align> struct Struct
