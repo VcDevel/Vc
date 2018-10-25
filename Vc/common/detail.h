@@ -52,34 +52,37 @@ convertIndexVector(const IV &indexVector)
 template <typename IV>
 Vc_INTRINSIC enable_if<(Traits::is_simd_vector<IV>::value &&
                         sizeof(typename IV::EntryType) < sizeof(int)),
-                       SimdArray<int, IV::Size>>
+                       fixed_size_simd<int, IV::Size>>
 convertIndexVector(const IV &indexVector)
 {
-    return static_cast<SimdArray<int, IV::Size>>(indexVector);
+    return static_cast<fixed_size_simd<int, IV::Size>>(indexVector);
 }
 
 // helper for promoting int types to int or higher
 template <class T> using promoted_type = decltype(std::declval<T>() + 1);
 
 // std::array, Vc::array, and C-array are fixed size and can therefore be converted to a
-// SimdArray of the same size
+// fixed_size_simd of the same size
 template <typename T, std::size_t N>
-Vc_INTRINSIC enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>>
+Vc_INTRINSIC enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const std::array<T, N> &indexVector)
 {
-    return SimdArray<promoted_type<T>, N>{std::addressof(indexVector[0]), Vc::Unaligned};
+    return fixed_size_simd<promoted_type<T>, N>{std::addressof(indexVector[0]),
+                                                Vc::Unaligned};
 }
 template <typename T, std::size_t N>
-Vc_INTRINSIC enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>>
+Vc_INTRINSIC enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const Vc::array<T, N> &indexVector)
 {
-    return SimdArray<promoted_type<T>, N>{std::addressof(indexVector[0]), Vc::Unaligned};
+    return fixed_size_simd<promoted_type<T>, N>{std::addressof(indexVector[0]),
+                                                Vc::Unaligned};
 }
 template <typename T, std::size_t N>
-Vc_INTRINSIC enable_if<std::is_integral<T>::value, SimdArray<promoted_type<T>, N>>
+Vc_INTRINSIC enable_if<std::is_integral<T>::value, fixed_size_simd<promoted_type<T>, N>>
 convertIndexVector(const T (&indexVector)[N])
 {
-    return SimdArray<promoted_type<T>, N>{std::addressof(indexVector[0]), Vc::Unaligned};
+    return fixed_size_simd<promoted_type<T>, N>{std::addressof(indexVector[0]),
+                                                Vc::Unaligned};
 }
 
 // a plain pointer won't work. Because we need some information on the number of values in
@@ -87,7 +90,7 @@ convertIndexVector(const T (&indexVector)[N])
 #ifndef Vc_MSVC
 // MSVC treats the function as usable in SFINAE context if it is deleted. If it's not declared we
 // seem to get what we wanted (except for bad diagnostics)
-template <typename T>
+template <class T>
 enable_if<std::is_pointer<T>::value, void> convertIndexVector(T indexVector) = delete;
 #endif
 
