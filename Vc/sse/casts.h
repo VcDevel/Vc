@@ -68,8 +68,20 @@ Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , int   >) { return _mm
 Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, int   >) { return _mm_cvttpd_epi32(v); }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int   , int   >) { return v; }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint  , int   >) { return v; }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , int   >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, int   >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , int   >) {
+#ifdef Vc_IMPL_SSE4_1
+    return _mm_cvtepi16_epi32(v);
+#else
+    return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16);
+#endif
+}
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, int   >) {
+#ifdef Vc_IMPL_SSE4_1
+    return _mm_cvtepu16_epi32(v);
+#else
+    return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16);
+#endif
+}
 Vc_INTRINSIC __m128i convert(__m128  v, ConvertTag<float , uint  >) {
     return _mm_castps_si128(
         blendv_ps(_mm_castsi128_ps(_mm_cvttps_epi32(v)),
@@ -91,8 +103,8 @@ Vc_INTRINSIC __m128i convert(__m128d v, ConvertTag<double, uint  >) {
 }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<int   , uint  >) { return v; }
 Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<uint  , uint  >) { return v; }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , uint  >) { return _mm_srai_epi32(_mm_unpacklo_epi16(v, v), 16); }
-Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, uint  >) { return _mm_srli_epi32(_mm_unpacklo_epi16(v, v), 16); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<short , uint  >) { return convert(v, ConvertTag<short, int>()); }
+Vc_INTRINSIC __m128i convert(__m128i v, ConvertTag<ushort, uint  >) { return convert(v, ConvertTag<ushort, int>()); }
 Vc_INTRINSIC __m128  convert(__m128  v, ConvertTag<float , float >) { return v; }
 Vc_INTRINSIC __m128  convert(__m128d v, ConvertTag<double, float >) { return _mm_cvtpd_ps(v); }
 Vc_INTRINSIC __m128  convert(__m128i v, ConvertTag<int   , float >) { return _mm_cvtepi32_ps(v); }

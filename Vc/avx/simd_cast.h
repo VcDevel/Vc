@@ -1246,14 +1246,8 @@ Vc_SIMD_CAST_AVX_2(double_v,  float_v) { return AVX::concat(_mm256_cvtpd_ps(x0.d
 Vc_SIMD_CAST_AVX_1(double_v,    int_v) { return AVX::zeroExtend(_mm256_cvttpd_epi32(x.data())); }
 Vc_SIMD_CAST_AVX_1( float_v,    int_v) { return _mm256_cvttps_epi32(x.data()); }
 Vc_SIMD_CAST_AVX_1(  uint_v,    int_v) { return x.data(); }
-Vc_SIMD_CAST_AVX_1( short_v,    int_v) {
-    const auto tmp = Mem::permute4x64<X0, X2, X1, X3>(x.data());
-    return _mm256_srai_epi32(_mm256_unpacklo_epi16(tmp, tmp), 16);
-}
-Vc_SIMD_CAST_AVX_1(ushort_v,    int_v) {
-    const auto tmp = Mem::permute4x64<X0, X2, X1, X3>(x.data());
-    return _mm256_srli_epi32(_mm256_unpacklo_epi16(tmp, tmp), 16);
-}
+Vc_SIMD_CAST_AVX_1( short_v,    int_v) { return _mm256_cvtepi16_epi32(AVX::lo128(x.data())); }
+Vc_SIMD_CAST_AVX_1(ushort_v,    int_v) { return _mm256_cvtepu16_epi32(AVX::lo128(x.data())); }
 #endif
 
 // 2: to int_v {{{3
@@ -1273,14 +1267,8 @@ Vc_SIMD_CAST_AVX_1( float_v,   uint_v) {
         _mm256_castps_si256(AVX::cmpge_ps(x.data(), AVX::set2power31_ps())));
 }
 Vc_SIMD_CAST_AVX_1(   int_v,   uint_v) { return x.data(); }
-Vc_SIMD_CAST_AVX_1( short_v,   uint_v) {
-    const auto tmp = Mem::permute4x64<X0, X2, X1, X3>(x.data());
-    return _mm256_srai_epi32(_mm256_unpacklo_epi16(tmp, tmp), 16);
-}
-Vc_SIMD_CAST_AVX_1(ushort_v,   uint_v) {
-    const auto tmp = Mem::permute4x64<X0, X2, X1, X3>(x.data());
-    return _mm256_srli_epi32(_mm256_unpacklo_epi16(tmp, tmp), 16);
-}
+Vc_SIMD_CAST_AVX_1( short_v,   uint_v) { return _mm256_cvtepi16_epi32(AVX::lo128(x.data())); }
+Vc_SIMD_CAST_AVX_1(ushort_v,   uint_v) { return _mm256_cvtepu16_epi32(AVX::lo128(x.data())); }
 #endif
 
 // 2: to uint_v {{{3
