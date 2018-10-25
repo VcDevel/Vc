@@ -289,8 +289,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 
         Vc_ALWAYS_INLINE void assign(const Vector &v, const Mask &mask)
         {
-            const VectorType k = SSE::sse_cast<VectorType>(mask.data());
-            data() = HV::blend(data(), v.data(), k);
+            data() = HV::blend(data(), v.data(), mask.data());
         }
 
         template <typename V2>

@@ -228,12 +228,12 @@ template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Sse>::setZero()
 
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Sse>::setZero(const Mask &k)
 {
-    data() = Detail::andnot_(SSE::sse_cast<VectorType>(k.data()), data());
+    data() = Detail::andnot_(k.data(), data());
 }
 
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Sse>::setZeroInverted(const Mask &k)
 {
-    data() = Detail::and_(SSE::sse_cast<VectorType>(k.data()), data());
+    data() = Detail::and_(k.data(), data());
 }
 
 template<> Vc_INTRINSIC void SSE::double_v::setQnan()
@@ -250,7 +250,7 @@ template<> Vc_INTRINSIC void SSE::float_v::setQnan()
 }
 template<> Vc_INTRINSIC void Vector<float, VectorAbi::Sse>::setQnan(const Mask &k)
 {
-    data() = _mm_or_ps(data(), k.data());
+    data() = _mm_or_ps(data(), k.dataF());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -268,7 +268,7 @@ template <typename U, typename Flags, typename>
 Vc_INTRINSIC void Vector<T, VectorAbi::Sse>::store(U *mem, Mask mask, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
-    HV::template store<Flags>(mem, data(), sse_cast<VectorType>(mask.data()));
+    HV::template store<Flags>(mem, data(), mask.data());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

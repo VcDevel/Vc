@@ -286,11 +286,11 @@ template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZero()
 }
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZero(const Mask &k)
 {
-    data() = Detail::andnot_(AVX::avx_cast<VectorType>(k.data()), data());
+    data() = Detail::andnot_(k.data(), data());
 }
 template<typename T> Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::setZeroInverted(const Mask &k)
 {
-    data() = Detail::and_(AVX::avx_cast<VectorType>(k.data()), data());
+    data() = Detail::and_(k.data(), data());
 }
 
 template<> Vc_INTRINSIC void Vector<double, VectorAbi::Avx>::setQnan()
@@ -307,7 +307,7 @@ template<> Vc_INTRINSIC void Vector<float, VectorAbi::Avx>::setQnan()
 }
 template<> Vc_INTRINSIC void Vector<float, VectorAbi::Avx>::setQnan(MaskArgument k)
 {
-    data() = _mm256_or_ps(data(), k.data());
+    data() = _mm256_or_ps(data(), k.dataF());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -329,7 +329,7 @@ template <typename U,
 Vc_INTRINSIC void Vector<T, VectorAbi::Avx>::store(U *mem, Mask mask, Flags flags) const
 {
     Common::handleStorePrefetches(mem, flags);
-    HV::template store<Flags>(mem, data(), AVX::avx_cast<VectorType>(mask.data()));
+    HV::template store<Flags>(mem, data(), mask.data());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

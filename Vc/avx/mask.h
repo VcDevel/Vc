@@ -154,7 +154,7 @@ public:
 #ifdef Vc_GCC
             return ~dataI();
 #else
-            return Detail::andnot_(data(), Detail::allone<VectorTypeF>());
+            return Detail::andnot_(dataF(), Detail::allone<VectorTypeF>());
 #endif
         }
 
@@ -179,7 +179,8 @@ public:
         Vc_INTRINSIC Vc_PURE int shiftMask() const { return Detail::movemask(dataI()); }
         Vc_INTRINSIC Vc_PURE int toInt() const { return Detail::mask_to_int<Size>(dataI()); }
 
-        Vc_INTRINSIC VectorTypeF data () const { return AVX::avx_cast<VectorTypeF>(d.v()); }
+        Vc_INTRINSIC VectorType  data () const { return d.v(); }
+        Vc_INTRINSIC VectorTypeF dataF() const { return AVX::avx_cast<VectorTypeF>(d.v()); }
         Vc_INTRINSIC VectorTypeI dataI() const { return AVX::avx_cast<VectorTypeI>(d.v()); }
         Vc_INTRINSIC VectorTypeD dataD() const { return AVX::avx_cast<VectorTypeD>(d.v()); }
 

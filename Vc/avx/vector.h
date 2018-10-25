@@ -357,8 +357,7 @@ public:
         }
 
         Vc_ALWAYS_INLINE void assign( const Vector &v, const Mask &mask ) {
-            const VectorType k = _cast(mask.data());
-            data() = Detail::blend(data(), v.data(), k);
+            data() = Detail::blend(data(), v.data(), mask.data());
         }
 
         template <typename V2>

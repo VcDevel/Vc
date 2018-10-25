@@ -73,7 +73,7 @@ template <typename T> Vc_INTRINSIC bool Mask<T, VectorAbi::Avx>::isFull() const 
     if (sizeof(T) == 8) {
         return 0 != Detail::testc(dataD(), Detail::allone<VectorTypeD>());
     } else if (sizeof(T) == 4) {
-        return 0 != Detail::testc(data (), Detail::allone<VectorTypeF>());
+        return 0 != Detail::testc(dataF(), Detail::allone<VectorTypeF>());
     } else {
         return 0 != Detail::testc(dataI(), Detail::allone<VectorTypeI>());
     }
@@ -83,7 +83,7 @@ template <typename T> Vc_INTRINSIC bool Mask<T, VectorAbi::Avx>::isNotEmpty() co
     if (sizeof(T) == 8) {
         return 0 == Detail::testz(dataD(), dataD());
     } else if (sizeof(T) == 4) {
-        return 0 == Detail::testz(data (), data ());
+        return 0 == Detail::testz(dataF(), dataF());
     } else {
         return 0 == Detail::testz(dataI(), dataI());
     }
@@ -93,7 +93,7 @@ template <typename T> Vc_INTRINSIC bool Mask<T, VectorAbi::Avx>::isEmpty() const
     if (sizeof(T) == 8) {
         return 0 != Detail::testz(dataD(), dataD());
     } else if (sizeof(T) == 4) {
-        return 0 != Detail::testz(data (), data ());
+        return 0 != Detail::testz(dataF(), dataF());
     } else {
         return 0 != Detail::testz(dataI(), dataI());
     }
@@ -103,7 +103,7 @@ template <typename T> Vc_INTRINSIC bool Mask<T, VectorAbi::Avx>::isMix() const {
     if (sizeof(T) == 8) {
         return 0 != Detail::testnzc(dataD(), Detail::allone<VectorTypeD>());
     } else if (sizeof(T) == 4) {
-        return 0 != Detail::testnzc(data (), Detail::allone<VectorTypeF>());
+        return 0 != Detail::testnzc(dataF(), Detail::allone<VectorTypeF>());
     } else {
         return 0 != Detail::testnzc(dataI(), Detail::allone<VectorTypeI>());
     }

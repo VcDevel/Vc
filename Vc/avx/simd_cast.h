@@ -2296,15 +2296,15 @@ Vc_SIMD_CAST_1(SSE::double_m, AVX2:: short_m) { return AVX::zeroExtend(simd_cast
 Vc_SIMD_CAST_1(SSE::double_m, AVX2::ushort_m) { return AVX::zeroExtend(simd_cast<SSE::ushort_m>(x).data()); }
 #endif
 
-Vc_SIMD_CAST_1(SSE:: float_m, AVX2::double_m) { return AVX::concat(_mm_unpacklo_ps(x.data(), x.data()), _mm_unpackhi_ps(x.data(), x.data())); }
-Vc_SIMD_CAST_1(SSE::   int_m, AVX2::double_m) { return AVX::concat(_mm_unpacklo_ps(x.data(), x.data()), _mm_unpackhi_ps(x.data(), x.data())); }
-Vc_SIMD_CAST_1(SSE::  uint_m, AVX2::double_m) { return AVX::concat(_mm_unpacklo_ps(x.data(), x.data()), _mm_unpackhi_ps(x.data(), x.data())); }
+Vc_SIMD_CAST_1(SSE:: float_m, AVX2::double_m) { return AVX::concat(_mm_unpacklo_ps(x.dataF(), x.dataF()), _mm_unpackhi_ps(x.dataF(), x.dataF())); }
+Vc_SIMD_CAST_1(SSE::   int_m, AVX2::double_m) { return AVX::concat(_mm_unpacklo_ps(x.dataF(), x.dataF()), _mm_unpackhi_ps(x.dataF(), x.dataF())); }
+Vc_SIMD_CAST_1(SSE::  uint_m, AVX2::double_m) { return AVX::concat(_mm_unpacklo_ps(x.dataF(), x.dataF()), _mm_unpackhi_ps(x.dataF(), x.dataF())); }
 Vc_SIMD_CAST_1(SSE:: short_m, AVX2::double_m) { auto tmp = _mm_unpacklo_epi16(x.dataI(), x.dataI()); return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp)); }
 Vc_SIMD_CAST_1(SSE::ushort_m, AVX2::double_m) { auto tmp = _mm_unpacklo_epi16(x.dataI(), x.dataI()); return AVX::concat(_mm_unpacklo_epi32(tmp, tmp), _mm_unpackhi_epi32(tmp, tmp)); }
 
-Vc_SIMD_CAST_1(SSE:: float_m, AVX2:: float_m) { return AVX::zeroExtend(x.data()); }
-Vc_SIMD_CAST_1(SSE::   int_m, AVX2:: float_m) { return AVX::zeroExtend(x.data()); }
-Vc_SIMD_CAST_1(SSE::  uint_m, AVX2:: float_m) { return AVX::zeroExtend(x.data()); }
+Vc_SIMD_CAST_1(SSE:: float_m, AVX2:: float_m) { return AVX::zeroExtend(x.dataF()); }
+Vc_SIMD_CAST_1(SSE::   int_m, AVX2:: float_m) { return AVX::zeroExtend(x.dataF()); }
+Vc_SIMD_CAST_1(SSE::  uint_m, AVX2:: float_m) { return AVX::zeroExtend(x.dataF()); }
 Vc_SIMD_CAST_1(SSE:: short_m, AVX2:: float_m) { return AVX::concat(_mm_unpacklo_epi16(x.dataI(), x.dataI()), _mm_unpackhi_epi16(x.dataI(), x.dataI())); }
 Vc_SIMD_CAST_1(SSE::ushort_m, AVX2:: float_m) { return AVX::concat(_mm_unpacklo_epi16(x.dataI(), x.dataI()), _mm_unpackhi_epi16(x.dataI(), x.dataI())); }
 

@@ -152,11 +152,11 @@ public:
 
         Vc_ALWAYS_INLINE Vc_PURE bool operator==(const Mask &rhs) const
         {
-            return Detail::is_equal<Size>(data(), rhs.data());
+            return Detail::is_equal<Size>(dataF(), rhs.dataF());
         }
         Vc_ALWAYS_INLINE Vc_PURE bool operator!=(const Mask &rhs) const
         {
-            return Detail::is_not_equal<Size>(data(), rhs.data());
+            return Detail::is_not_equal<Size>(dataF(), rhs.dataF());
         }
 
         Vc_ALWAYS_INLINE Vc_PURE Mask operator!() const
@@ -168,16 +168,16 @@ public:
 #endif
         }
 
-        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = SSE::sse_cast<VectorType>(_mm_and_ps(data(), rhs.data())); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = SSE::sse_cast<VectorType>(_mm_or_ps (data(), rhs.data())); return *this; }
-        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { d.v() = SSE::sse_cast<VectorType>(_mm_xor_ps(data(), rhs.data())); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator&=(const Mask &rhs) { d.v() = SSE::sse_cast<VectorType>(_mm_and_ps(dataF(), rhs.dataF())); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator|=(const Mask &rhs) { d.v() = SSE::sse_cast<VectorType>(_mm_or_ps (dataF(), rhs.dataF())); return *this; }
+        Vc_ALWAYS_INLINE Mask &operator^=(const Mask &rhs) { d.v() = SSE::sse_cast<VectorType>(_mm_xor_ps(dataF(), rhs.dataF())); return *this; }
 
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator&(const Mask &rhs) const { return _mm_and_ps(data(), rhs.data()); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator|(const Mask &rhs) const { return _mm_or_ps (data(), rhs.data()); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator^(const Mask &rhs) const { return _mm_xor_ps(data(), rhs.data()); }
+        Vc_ALWAYS_INLINE Vc_PURE Mask operator&(const Mask &rhs) const { return _mm_and_ps(dataF(), rhs.dataF()); }
+        Vc_ALWAYS_INLINE Vc_PURE Mask operator|(const Mask &rhs) const { return _mm_or_ps (dataF(), rhs.dataF()); }
+        Vc_ALWAYS_INLINE Vc_PURE Mask operator^(const Mask &rhs) const { return _mm_xor_ps(dataF(), rhs.dataF()); }
 
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator&&(const Mask &rhs) const { return _mm_and_ps(data(), rhs.data()); }
-        Vc_ALWAYS_INLINE Vc_PURE Mask operator||(const Mask &rhs) const { return _mm_or_ps (data(), rhs.data()); }
+        Vc_ALWAYS_INLINE Vc_PURE Mask operator&&(const Mask &rhs) const { return _mm_and_ps(dataF(), rhs.dataF()); }
+        Vc_ALWAYS_INLINE Vc_PURE Mask operator||(const Mask &rhs) const { return _mm_or_ps (dataF(), rhs.dataF()); }
 
         Vc_ALWAYS_INLINE Vc_PURE bool isFull () const { return
 #ifdef Vc_USE_PTEST
@@ -213,7 +213,8 @@ public:
 
         Vc_ALWAYS_INLINE Vc_PURE int toInt() const { return Detail::mask_to_int<Size>(dataI()); }
 
-        Vc_ALWAYS_INLINE Vc_PURE __m128  data () const { return SSE::sse_cast<__m128 >(d.v()); }
+        Vc_ALWAYS_INLINE Vc_PURE VectorType  data() const { return d.v(); }
+        Vc_ALWAYS_INLINE Vc_PURE __m128  dataF() const { return SSE::sse_cast<__m128 >(d.v()); }
         Vc_ALWAYS_INLINE Vc_PURE __m128i dataI() const { return SSE::sse_cast<__m128i>(d.v()); }
         Vc_ALWAYS_INLINE Vc_PURE __m128d dataD() const { return SSE::sse_cast<__m128d>(d.v()); }
 
