@@ -195,7 +195,7 @@ public:
 #include "../common/scatterinterface.h"
 #if defined Vc_IMPL_AVX2 && !defined Vc_MSVC
         // skip this code for MSVC because it fails to do overload resolution correctly
-        template <int Scale>
+        template <int Scale, class = enable_if<(Scale && sizeof(T) >= 4)>>
         Vc_INTRINSIC void gatherImplementation(
             const Common::GatherArguments<
                 T, typename std::conditional<(Size <= 4), SSE::int_v, AVX2::int_v>::type,
@@ -204,12 +204,13 @@ public:
             d.v() = AVX::gather<sizeof(T) * Scale>(args.address, args.indexes.data());
         }
 
-        template <class MT, class U, int Scale>
-        Vc_INTRINSIC enable_if<Traits::is_valid_vector_argument<MT>::value &&
-                                   std::is_integral<U>::value,
+        template <class MT, class U, class A, int Scale>
+        Vc_INTRINSIC enable_if<(sizeof(T) != 2 || sizeof(MT) > 2) &&
+                                   Traits::is_valid_vector_argument<MT>::value &&
+                                   std::is_integral<U>::value &&
+                                   size() == Vector<U, A>::size(),
                                void>
-        gatherImplementation(
-            const Common::GatherArguments<MT, SimdArray<U, Size>, Scale> &args)
+        gatherImplementation(const Common::GatherArguments<MT, Vector<U, A>, Scale> &args)
         {
             *this = simd_cast<Vector>(SimdArray<MT, Size>(args));
         }
