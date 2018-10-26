@@ -50,6 +50,10 @@ template <bool Test, typename T = enable_if_default_type> using enable_if = type
 template <bool B, class T, class F>
 using conditional_t = typename std::conditional<B, T, F>::type;
 
+template <class T>
+using remove_cvref_t =
+    typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+
 namespace Traits
 {
 #include "has_subscript_operator.h"

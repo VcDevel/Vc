@@ -52,7 +52,9 @@ namespace WhereImpl
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         constexpr MaskedLValue(const Mask &m, LValue &l) : mask(m), lhs(l) {}
         MaskedLValue(const MaskedLValue &) = delete;
+#ifndef __cpp_guaranteed_copy_elision
         constexpr MaskedLValue(MaskedLValue &&) = default;
+#endif
 
         /* It is intentional that the assignment operators return void: When a bool is used for the
          * mask the code might get skipped completely, thus nothing can be returned. This would be
@@ -78,7 +80,7 @@ namespace WhereImpl
         template <class T, class IV, class S>
         Vc_INTRINSIC void operator=(Common::SubscriptOperation<T, IV, S, true> &&rhs)
         {
-            lhs.gather(rhs.gatherArguments(), mask);
+            lhs.gather(std::move(rhs).gatherArguments(), mask);
         }
         template <class T, class IV, class S>
         void operator+=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
@@ -109,20 +111,25 @@ namespace WhereImpl
         typedef Common::SubscriptOperation<T_, I_, S_, true> SO;
 
         const Mask &mask;
-        const SO lhs;
+        SO &lhs;
 
         template <typename T> using Decay = typename std::decay<T>::type;
 
         // the ctors must be present, otherwise GCC fails to warn for Vc_WARN_UNUSED_RESULT
         constexpr MaskedLValue(const Mask &m, SO &&l) : mask(m), lhs(l) {}
         MaskedLValue(const MaskedLValue &) = delete;
+#ifndef __cpp_guaranteed_copy_elision
         constexpr MaskedLValue(MaskedLValue &&) = default;
+#endif
 
         /* It is intentional that the assignment operators return void: When a bool is used for the
          * mask the code might get skipped completely, thus nothing can be returned. This would be
          * like requiring an if statement to return a value.
          */
-        template<typename T> Vc_ALWAYS_INLINE void operator  =(T &&rhs) { std::forward<T>(rhs).scatter(lhs.scatterArguments(), mask); }
+        template <class T> Vc_ALWAYS_INLINE void operator=(T &&rhs) &&
+        {
+            std::forward<T>(rhs).scatter(std::move(lhs).scatterArguments(), mask);
+        }
         /*
          * The following operators maybe make some sense. But only if implemented directly on the
          * scalar objects in memory. Thus, the user is probably better of with a manual loop.

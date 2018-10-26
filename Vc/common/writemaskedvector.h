@@ -99,7 +99,7 @@ public:
     template <typename T, typename I, typename S>
     Vc_ALWAYS_INLINE void operator=(SubscriptOperation<T, I, S, true> &&x)
     {
-        vec.gather(x.gatherArguments(), mask);
+        vec.gather(std::move(x).gatherArguments(), mask);
     }
 
     template <typename F> Vc_INTRINSIC void call(const F &f) const

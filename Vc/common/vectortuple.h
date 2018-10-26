@@ -68,21 +68,23 @@ public:
 
     template <typename VV, typename = enable_if<!std::is_const<V>::value &&
                                                 std::is_same<VV, V>::value>>
-    Vc_DEPRECATED("build the tuple with Vc::tie instead")
-    constexpr VectorReferenceArray<Length + 1, V> operator, (VV & a) const
+    Vc_DEPRECATED("build the tuple with Vc::tie instead") constexpr VectorReferenceArray<
+        Length + 1, V>
+    operator,(VV &a) const &&
     {
         return appendOneReference(a, IndexSequence());
     }
 
-    Vc_DEPRECATED("build the tuple with Vc::tie instead")
-    constexpr VectorReferenceArray<Length + 1, const V> operator, (const V &a) const
+    Vc_DEPRECATED("build the tuple with Vc::tie instead") constexpr VectorReferenceArray<
+        Length + 1, const V>
+    operator,(const V &a) const &&
     {
         return appendOneReference(a, IndexSequence());
     }
 
     template <size_t StructSize, typename I, bool RO>
     Vc_ALWAYS_INLINE enable_if<(Length <= StructSize), void> operator=(
-        const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access)
+        const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access) &&
     {
         callDeinterleave(access, IndexSequence());
     }
@@ -92,15 +94,15 @@ public:
         const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access) =
         delete;  //("You are trying to extract more data from the struct than it has");
 
-    template <typename... Inputs> void operator=(TransposeProxy<Inputs...> &&proxy)
+    template <typename... Inputs> void operator=(TransposeProxy<Inputs...> &&proxy) &&
     {
         transpose_impl(TransposeTag<Length, sizeof...(Inputs)>(), &r[0], proxy);
     }
 
     template <typename T, typename IndexVector, typename Scale, bool Flag>
-    void operator=(const SubscriptOperation<T, IndexVector, Scale, Flag> &sub)
+    void operator=(SubscriptOperation<T, IndexVector, Scale, Flag> &&sub) &&
     {
-        const auto &args = sub.gatherArguments();
+        const auto &args = std::move(sub).gatherArguments();
         //const IndexVector args.indexes;
         //const T *const args.address;
         Common::InterleavedMemoryReadAccess<1, V, Traits::decay<decltype(args.indexes)>>

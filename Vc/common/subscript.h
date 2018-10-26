@@ -248,6 +248,13 @@ class SubscriptOperation
     using IndexVectorScaled = Traits::decay<decltype(convertIndexVector(std::declval<const IndexVector &>()))>;
 
 public:
+    // try to stop the user from forming lvalues of this type
+    SubscriptOperation &operator=(const SubscriptOperation &) = delete;
+    SubscriptOperation(const SubscriptOperation &) = delete;
+#ifndef __cpp_guaranteed_copy_elision
+    constexpr SubscriptOperation(SubscriptOperation &&) = default;
+#endif
+
     template <typename U,
               typename = enable_if<((std::is_convertible<const U &, IndexVector>::value ||
                                      std::is_same<U, IndexVector>::value) &&
@@ -281,7 +288,7 @@ public:
 
     Vc_ALWAYS_INLINE GatherArguments<
         T, IndexVectorScaled, (need_explicit_scaling ? 1 : Scale::num / Scale::den)>
-    gatherArguments() const
+    gatherArguments() &&
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");
@@ -291,7 +298,7 @@ public:
                 m_address};
     }
 
-    Vc_ALWAYS_INLINE ScatterArguments<T, IndexVectorScaled> scatterArguments() const
+    Vc_ALWAYS_INLINE ScatterArguments<T, IndexVectorScaled> scatterArguments() &&
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
@@ -301,15 +308,15 @@ public:
     template <typename V,
               typename = enable_if<(std::is_arithmetic<ScalarType>::value &&Traits::is_simd_vector<
                   V>::value &&IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
-    Vc_INTRINSIC operator V() const
+    Vc_INTRINSIC operator V() &&
     {
-        return V(gatherArguments());
+        return V(static_cast<SubscriptOperation &&>(*this).gatherArguments());
     }
 
     template <typename V,
               typename = enable_if<(std::is_arithmetic<ScalarType>::value &&Traits::is_simd_vector<
                   V>::value &&IndexVectorSizeMatches<V::Size, IndexVector>::value)>>
-    Vc_ALWAYS_INLINE SubscriptOperation &operator=(const V &rhs)
+    Vc_ALWAYS_INLINE SubscriptOperation &operator=(const V &rhs) &&
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector scatter. Must be an arithmetic type.");
@@ -326,7 +333,7 @@ public:
         // structs/unions.
         typename = enable_if<std::is_same<S, typename std::remove_cv<T>::type>::value &&(
             std::is_class<T>::value || std::is_union<T>::value)>>
-    Vc_ALWAYS_INLINE auto operator[](U S::*member)
+    Vc_ALWAYS_INLINE auto operator[](U S::*member) &&
         -> SubscriptOperation<
               typename std::conditional<std::is_const<T>::value,
                                         const typename std::remove_reference<U>::type,
@@ -378,7 +385,7 @@ public:
     // U is only required to delay name lookup to the 2nd phase (on use).
     // This is necessary because m_address[0][index] is only a correct
     // expression if has_subscript_operator<T>::value is true.
-    Vc_ALWAYS_INLINE auto operator[](U index) -> typename std::enable_if<
+    Vc_ALWAYS_INLINE auto operator[](U index) && -> typename std::enable_if<
 #ifndef Vc_IMPROVE_ERROR_MESSAGES
         Traits::has_no_allocated_data<T>::value &&
 #endif
@@ -428,7 +435,7 @@ public:
                            IndexVectorScaled,
                            std::ratio<1, 1>  // reset Scale to 1 since it is applied below
                            >>::type
-    operator[](const IT &index)
+    operator[](const IT &index) &&
     {
         static_assert(Traits::has_subscript_operator<T>::value,
                       "The subscript operator was called on a type that does not implement it.\n");

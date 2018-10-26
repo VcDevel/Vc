@@ -92,22 +92,24 @@ template <typename T, typename U> struct FundamentalReturnType<T, U, true, true>
           c<(sizeof(T) < sizeof(U)), U, typename higher_conversion_rank<T, U>::type>>;
 };
 
-template <class V, class T, class = void> struct ReturnTypeImpl {
+template <class V, class T, class Tq, class = void> struct ReturnTypeImpl {
     // no type => SFINAE
 };
 // 1. Vector × Vector
-template <class T, class U, class Abi>
-struct ReturnTypeImpl<Vector<T, Abi>, Vector<U, Abi>, void> {
+template <class T, class U, class Abi, class Uq>
+struct ReturnTypeImpl<Vector<T, Abi>, Vector<U, Abi>, Uq, void> {
     using type = Vc::Vector<fundamental_return_t<T, U>, Abi>;
 };
 // 2. Vector × int
-template <class T, class Abi> struct ReturnTypeImpl<Vector<T, Abi>, int, void> {
+template <class T, class Abi, class Uq>
+struct ReturnTypeImpl<Vector<T, Abi>, int, Uq, void> {
     // conversion from int is always allowed (because its the default when you hardcode a
     // number)
     using type = Vc::Vector<T, Abi>;
 };
 // 3. Vector × unsigned
-template <class T, class Abi> struct ReturnTypeImpl<Vector<T, Abi>, uint, void> {
+template <class T, class Abi, class Uq>
+struct ReturnTypeImpl<Vector<T, Abi>, uint, Uq, void> {
     // conversion from unsigned int is allowed for all integral Vector<T>, but ensures
     // unsigned result
     using type = Vc::Vector<
@@ -116,9 +118,9 @@ template <class T, class Abi> struct ReturnTypeImpl<Vector<T, Abi>, uint, void> 
         Abi>;
 };
 // 4. Vector × {enum, arithmetic}
-template <class T, class U, class Abi>
+template <class T, class U, class Abi, class Uq>
 struct ReturnTypeImpl<
-    Vector<T, Abi>, U,
+    Vector<T, Abi>, U, Uq,
     enable_if<!std::is_class<U>::value && !std::is_same<U, int>::value &&
                   !std::is_same<U, uint>::value &&
                   Traits::is_valid_vector_argument<fundamental_return_t<T, U>>::value,
@@ -126,20 +128,20 @@ struct ReturnTypeImpl<
     using type = Vc::Vector<fundamental_return_t<T, U>, Abi>;
 };
 // 5. Vector × UDT
-template <class T, class U, class Abi>
+template <class T, class U, class Abi, class Uq>
 struct ReturnTypeImpl<
-    Vector<T, Abi>, U,
-    enable_if<
-        std::is_class<U>::value && !Traits::is_simd_vector<U>::value &&
-            Traits::is_valid_vector_argument<decltype(
-                is_convertible_to_any_vector<T, Abi>(std::declval<const U &>()))>::value,
-        void>> {
+    Vector<T, Abi>, U, Uq,
+    enable_if<std::is_class<U>::value && !Traits::is_simd_vector<U>::value &&
+                  Traits::is_valid_vector_argument<decltype(
+                      is_convertible_to_any_vector<T, Abi>(std::declval<Uq>()))>::value,
+              void>> {
     using type =
         Vc::Vector<fundamental_return_t<T, decltype(is_convertible_to_any_vector<T, Abi>(
-                                               std::declval<const U &>()))>,
+                                               std::declval<Uq>()))>,
                    Abi>;
 };
-template <class V, class T> using ReturnType = typename ReturnTypeImpl<V, T>::type;
+template <class V, class Tq, class T = remove_cvref_t<Tq>>
+using ReturnType = typename ReturnTypeImpl<V, T, Tq>::type;
 
 template <class T> struct is_a_type : public std::true_type {
 };
@@ -160,9 +162,9 @@ template <class T> struct is_a_type : public std::true_type {
                                    std::is_convertible<Vector<T, Abi>, R>::value &&      \
                                    std::is_convertible<U, R>::value,                     \
                                R>                                                        \
-    operator op_(Vector<T, Abi> x, const U &y)                                           \
+    operator op_(Vector<T, Abi> x, U &&y)                                                \
     {                                                                                    \
-        return Detail::operator op_(R(x), R(y));                                         \
+        return Detail::operator op_(R(x), R(std::forward<U>(y)));                        \
     }                                                                                    \
     template <class T, class Abi, class U,                                               \
               class R = Detail::ReturnType<Vector<T, Abi>, U>>                           \
@@ -171,9 +173,9 @@ template <class T> struct is_a_type : public std::true_type {
                                    std::is_convertible<Vector<T, Abi>, R>::value &&      \
                                    std::is_convertible<U, R>::value,                     \
                                R>                                                        \
-    operator op_(const U &x, Vector<T, Abi> y)                                           \
+    operator op_(U &&x, Vector<T, Abi> y)                                                \
     {                                                                                    \
-        return Detail::operator op_(R(x), R(y));                                         \
+        return Detail::operator op_(R(std::forward<U>(x)), R(y));                        \
     }                                                                                    \
     template <class T, class Abi, class U,                                               \
               class R = Detail::ReturnType<Vector<T, Abi>, U>>                           \
@@ -181,9 +183,9 @@ template <class T> struct is_a_type : public std::true_type {
                                    std::is_convertible<Vector<T, Abi>, R>::value &&      \
                                    std::is_convertible<U, R>::value,                     \
                                Vector<T, Abi> &>                                         \
-    operator op_##=(Vector<T, Abi> &x, const U &y)                                       \
+    operator op_##=(Vector<T, Abi> &x, U &&y)                                            \
     {                                                                                    \
-        x = Detail::operator op_(R(x), R(y));                                            \
+        x = Detail::operator op_(R(x), R(std::forward<U>(y)));                           \
         return x;                                                                        \
     }
 
@@ -204,22 +206,20 @@ template <class T> struct is_a_type : public std::true_type {
         return !!x op_ !!y;                                                              \
     }                                                                                    \
     template <class T, class Abi, class U>                                               \
-    Vc_ALWAYS_INLINE                                                                     \
-        enable_if<std::is_same<bool, decltype(!std::declval<const U &>())>::value,       \
-                  typename Vector<T, Abi>::Mask>                                         \
-        operator op_(Vector<T, Abi> x, const U &y)                                       \
+    Vc_ALWAYS_INLINE enable_if<std::is_same<bool, decltype(!std::declval<U>())>::value,  \
+                               typename Vector<T, Abi>::Mask>                            \
+    operator op_(Vector<T, Abi> x, U &&y)                                                \
     {                                                                                    \
         using M = typename Vector<T, Abi>::Mask;                                         \
-        return !!x op_ M(!!y);                                                           \
+        return !!x op_ M(!!std::forward<U>(y));                                          \
     }                                                                                    \
     template <class T, class Abi, class U>                                               \
-    Vc_ALWAYS_INLINE                                                                     \
-        enable_if<std::is_same<bool, decltype(!std::declval<const U &>())>::value,       \
-                  typename Vector<T, Abi>::Mask>                                         \
-        operator op_(const U &x, Vector<T, Abi> y)                                       \
+    Vc_ALWAYS_INLINE enable_if<std::is_same<bool, decltype(!std::declval<U>())>::value,  \
+                               typename Vector<T, Abi>::Mask>                            \
+    operator op_(U &&x, Vector<T, Abi> y)                                                \
     {                                                                                    \
         using M = typename Vector<T, Abi>::Mask;                                         \
-        return M(!!x) op_ !!y;                                                           \
+        return M(!!std::forward<U>(x)) op_ !!y;                                          \
     }
 
 #define Vc_COMPARE_OPERATOR(op_)                                                         \
@@ -228,19 +228,20 @@ template <class T> struct is_a_type : public std::true_type {
     Vc_ALWAYS_INLINE enable_if<std::is_convertible<Vector<T, Abi>, R>::value &&          \
                                    std::is_convertible<U, R>::value,                     \
                                typename R::Mask>                                         \
-    operator op_(Vector<T, Abi> x, const U &y)                                           \
+    operator op_(Vector<T, Abi> x, U &&y)                                                \
     {                                                                                    \
-        return Detail::operator op_(R(x), R(y));                                         \
+        return Detail::operator op_(R(x), R(std::forward<U>(y)));                        \
     }                                                                                    \
     template <class T, class Abi, class U,                                               \
               class R = Detail::ReturnType<Vector<T, Abi>, U>>                           \
-    Vc_ALWAYS_INLINE enable_if<!Traits::is_simd_vector_internal<U>::value &&             \
-                                   std::is_convertible<Vector<T, Abi>, R>::value &&      \
-                                   std::is_convertible<U, R>::value,                     \
-                               typename R::Mask>                                         \
-    operator op_(const U &x, Vector<T, Abi> y)                                           \
+    Vc_ALWAYS_INLINE                                                                     \
+        enable_if<!Traits::is_simd_vector_internal<remove_cvref_t<U>>::value &&          \
+                      std::is_convertible<Vector<T, Abi>, R>::value &&                   \
+                      std::is_convertible<U, R>::value,                                  \
+                  typename R::Mask>                                                      \
+        operator op_(U &&x, Vector<T, Abi> y)                                            \
     {                                                                                    \
-        return Detail::operator op_(R(x), R(y));                                         \
+        return Detail::operator op_(R(std::forward<U>(x)), R(y));                        \
     }
 
 Vc_ALL_LOGICAL    (Vc_LOGICAL_OPERATOR);
