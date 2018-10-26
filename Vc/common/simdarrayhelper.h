@@ -292,6 +292,28 @@ template <std::size_t secondOffset> class Split
     }
 
     // split Vector<T> and Mask<T>
+#ifdef Vc_IMPL_AVX
+    template <class T>
+    static Vc_INTRINSIC SSE::Vector<T> loImpl(Vector<T, VectorAbi::Avx> &&x)
+    {
+        return simd_cast<SSE::Vector<T>, 0>(x);
+    }
+    template <class T>
+    static Vc_INTRINSIC SSE::Vector<T> hiImpl(Vector<T, VectorAbi::Avx> &&x)
+    {
+        return simd_cast<SSE::Vector<T>, 1>(x);
+    }
+    template <class T>
+    static Vc_INTRINSIC SSE::Mask<T> loImpl(Mask<T, VectorAbi::Avx> &&x)
+    {
+        return simd_cast<SSE::Mask<T>, 0>(x);
+    }
+    template <class T>
+    static Vc_INTRINSIC SSE::Mask<T> hiImpl(Mask<T, VectorAbi::Avx> &&x)
+    {
+        return simd_cast<SSE::Mask<T>, 1>(x);
+    }
+#endif  // Vc_IMPL_AVX
     template <typename T>
     static constexpr bool is_vector_or_mask(){
         return (Traits::is_simd_vector<T>::value && !Traits::isSimdArray<T>::value) ||
