@@ -135,10 +135,10 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
     using type_decayed = typename std::decay<type>::type;
     static constexpr std::size_t Pieces = Pieces_;
     static constexpr std::size_t Index = Index_;
-    using simd_array_type = SimdArray<
-        typename std::conditional<Traits::is_simd_vector<type_decayed>::value,
-                                  typename type_decayed::EntryType, float>::type,
-        type_decayed::Size / Pieces>;
+    using fixed_size_type =
+        fixed_size_simd<conditional_t<Traits::is_simd_vector<type_decayed>::value,
+                                      typename type_decayed::EntryType, float>,
+                        type_decayed::Size / Pieces>;
 
     type data;
 
@@ -147,9 +147,9 @@ template <typename T_, std::size_t Pieces_, std::size_t Index_> struct Segment/*
     // no non-const operator[] needed
     decltype(std::declval<const type &>()[0]) operator[](size_t i) const { return data[i + EntryOffset]; }
 
-    simd_array_type asSimdArray() const
+    fixed_size_type to_fixed_size() const
     {
-        return simd_cast<simd_array_type, Index>(data);
+        return simd_cast<fixed_size_type, Index>(data);
     }
 };/*}}}*/
 
@@ -162,7 +162,7 @@ struct Segment<T_ *, Pieces_, Index_> {
     using type_decayed = typename std::decay<T_>::type;
     static constexpr size_t Pieces = Pieces_;
     static constexpr size_t Index = Index_;
-    using simd_array_type = SimdArray<
+    using fixed_size_type = fixed_size_simd<
         typename std::conditional<Traits::is_simd_vector<type_decayed>::value,
                                   typename type_decayed::VectorEntryType, float>::type,
         type_decayed::Size / Pieces> *;
@@ -171,15 +171,15 @@ struct Segment<T_ *, Pieces_, Index_> {
 
     static constexpr std::size_t EntryOffset = Index * type_decayed::size() / Pieces;
 
-    simd_array_type asSimdArray() const
+    fixed_size_type to_fixed_size() const
     {
         return reinterpret_cast<
 #ifdef Vc_GCC
                    // GCC might ICE if this type is declared with may_alias. If it doesn't
                    // ICE it warns about ignoring the attribute.
-                   typename std::remove_pointer<simd_array_type>::type
+                   typename std::remove_pointer<fixed_size_type>::type
 #else
-                   MayAlias<typename std::remove_pointer<simd_array_type>::type>
+                   MayAlias<typename std::remove_pointer<fixed_size_type>::type>
 #endif
                        *>(data) +
                Index;
@@ -444,10 +444,10 @@ static Vc_INTRINSIC V *actual_value(Op, SimdArray<U, M, V, M> *x)
   return &internal_data(*x);
 }
 template <typename Op, typename T, size_t Pieces, size_t Index>
-static Vc_INTRINSIC typename Segment<T, Pieces, Index>::simd_array_type actual_value(
+static Vc_INTRINSIC typename Segment<T, Pieces, Index>::fixed_size_type actual_value(
     Op, Segment<T, Pieces, Index> &&seg)
 {
-    return seg.asSimdArray();
+    return seg.to_fixed_size();
 }
 
 template <typename Op, typename U, std::size_t M, typename V>

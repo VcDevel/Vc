@@ -540,9 +540,9 @@ Vc_INTRINSIC V unwrap(const SimdArray<T, N, V, N> &x)
 
 template <class T, size_t Pieces, size_t Index>
 Vc_INTRINSIC auto unwrap(const Common::Segment<T, Pieces, Index> &x)
-    -> decltype(x.asSimdArray())
+    -> decltype(x.to_fixed_size())
 {
-    return unwrap(x.asSimdArray());
+    return unwrap(x.to_fixed_size());
 }
 
 // gatherImplementation {{{2
