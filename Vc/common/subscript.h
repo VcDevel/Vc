@@ -511,16 +511,6 @@ Vc_ALWAYS_INLINE Vc::Common::SubscriptOperation<
 
 using Common::subscript_operator;
 
-namespace Traits
-{
-template <typename T, typename IndexVector, typename Scale>
-struct is_subscript_operation_internal<Common::SubscriptOperation<T, IndexVector, Scale>> : public std::true_type
-{
-};
-}  // namespace Traits
-
-using Common::subscript_operator;
-
 }  // namespace Vc
 
 #endif // VC_COMMON_SUBSCRIPT_H_

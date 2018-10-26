@@ -32,8 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "decay.h"
 #include "has_no_allocated_data.h"
 #include "has_contiguous_storage.h"
-#include "is_initializer_list.h"
-#include "is_load_arguments.h"
 #include "is_functor_argument_immutable.h"
 #include "is_output_iterator.h"
 #include "is_index_sequence.h"
@@ -70,21 +68,9 @@ template <> struct is_valid_vector_argument<unsigned short> : public std::true_t
 
 template<typename T> struct is_simd_mask_internal : public std::false_type {};
 template<typename T> struct is_simd_vector_internal : public std::false_type {};
-template<typename T> struct is_subscript_operation_internal : public std::false_type {};
 template<typename T> struct is_simdarray_internal : public std::false_type {};
 template<typename T> struct is_simd_mask_array_internal : public std::false_type {};
 template<typename T> struct is_loadstoreflag_internal : public std::false_type {};
-
-#include "is_gather_signature.h"
-
-template <std::size_t, typename... Args> struct is_cast_arguments_internal : public std::false_type {};
-template <typename Arg>
-struct is_cast_arguments_internal<1, Arg> : public std::integral_constant<
-                                                bool,
-                                                is_simdarray_internal<Arg>::value ||
-                                                    is_simd_vector_internal<Arg>::value>
-{
-};
 
 template <typename T, bool = is_simd_vector_internal<T>::value> struct is_integral_internal;
 template <typename T, bool = is_simd_vector_internal<T>::value> struct is_floating_point_internal;
@@ -154,12 +140,8 @@ struct isSimdMaskArray : public is_simd_mask_array_internal<decay<T>>
 {
 };
 
-/// \internal Identifies SubscriptOperation types
-template <typename T> struct is_subscript_operation : public is_subscript_operation_internal<decay<T>> {};
 /// \internal Identifies LoadStoreFlag types
 template <typename T> struct is_load_store_flag : public is_loadstoreflag_internal<decay<T>> {};
-/// \internal Identifies the function signature of a cast
-template <typename... Args> struct is_cast_arguments : public is_cast_arguments_internal<sizeof...(Args), decay<Args>...> {};
 
 /// \internal Identifies a SimdArray type with a single Vector member
 template <typename T> struct is_atomic_simdarray_internal : public std::false_type {};
