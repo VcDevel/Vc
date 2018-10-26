@@ -189,8 +189,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
                 AVX::gather<sizeof(MT) * Scale>(aliasing_cast<int>(args.address), idx)));
             if (sizeof(MT) == 1) {
                 if (std::is_signed<MT>::value) {
-                    using Signed = SSE::Vector<typename std::make_signed<T>::type>;
-                    *this = (simd_cast<Signed>(*this) << 8) >> 8;  // sign extend
+                    d.v() = _mm_srai_epi16(_mm_slli_epi16(d.v(), 8), 8);
                 } else {
                     *this &= 0xff;
                 }
@@ -212,8 +211,7 @@ template <typename T> class Vector<T, VectorAbi::Sse>
                 simd_cast<int_v>(args.indexes).data())));
             if (sizeof(MT) == 1) {
                 if (std::is_signed<MT>::value) {
-                    using Signed = SSE::Vector<typename std::make_signed<T>::type>;
-                    v = (simd_cast<Signed>(*this) << 8) >> 8;  // sign extend
+                    v.data() = _mm_srai_epi16(_mm_slli_epi16(v.data(), 8), 8);
                 } else {
                     v &= 0xff;
                 }
