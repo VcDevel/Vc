@@ -601,6 +601,25 @@ template <int Scale> __m256i gather(const unsigned *addr, __m256i idx)
 {
     return _mm256_i32gather_epi32(aliasing_cast<int>(addr), idx, Scale);
 }
+
+template <int Scale> __m256 gather(__m256 src, __m256 k, const float *addr, __m256i idx)
+{
+    return _mm256_mask_i32gather_ps(src, addr, idx, k, Scale);
+}
+template <int Scale>
+__m256d gather(__m256d src, __m256d k, const double *addr, __m128i idx)
+{
+    return _mm256_mask_i32gather_pd(src, addr, idx, k, Scale);
+}
+template <int Scale> __m256i gather(__m256i src, __m256i k, const int *addr, __m256i idx)
+{
+    return _mm256_mask_i32gather_epi32(src, addr, idx, k, Scale);
+}
+template <int Scale>
+__m256i gather(__m256i src, __m256i k, const unsigned *addr, __m256i idx)
+{
+    return _mm256_mask_i32gather_epi32(src, aliasing_cast<int>(addr), idx, k, Scale);
+}
 #endif
 
 }  // namespace AvxIntrinsics

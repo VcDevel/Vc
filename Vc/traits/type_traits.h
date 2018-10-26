@@ -49,13 +49,15 @@ struct enable_if_default_type
 static constexpr enable_if_default_type nullarg;
 template <bool Test, typename T = enable_if_default_type> using enable_if = typename std::enable_if<Test, T>::type;
 
+template <bool B, class T, class F>
+using conditional_t = typename std::conditional<B, T, F>::type;
+
 namespace Traits
 {
 #include "has_subscript_operator.h"
 #include "has_multiply_operator.h"
 #include "has_addition_operator.h"
 #include "has_equality_operator.h"
-
 
 template<typename T> struct is_valid_vector_argument : public std::false_type {};
 

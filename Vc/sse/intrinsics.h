@@ -634,6 +634,25 @@ template <int Scale> __m128i gather(const unsigned *addr, __m128i idx)
 {
     return _mm_i32gather_epi32(aliasing_cast<int>(addr), idx, Scale);
 }
+
+template <int Scale> __m128 gather(__m128 src, __m128 k, const float *addr, __m128i idx)
+{
+    return _mm_mask_i32gather_ps(src, addr, idx, k, Scale);
+}
+template <int Scale>
+__m128d gather(__m128d src, __m128d k, const double *addr, __m128i idx)
+{
+    return _mm_mask_i32gather_pd(src, addr, idx, k, Scale);
+}
+template <int Scale> __m128i gather(__m128i src, __m128i k, const int *addr, __m128i idx)
+{
+    return _mm_mask_i32gather_epi32(src, addr, idx, k, Scale);
+}
+template <int Scale>
+__m128i gather(__m128i src, __m128i k, const unsigned *addr, __m128i idx)
+{
+    return _mm_mask_i32gather_epi32(src, aliasing_cast<int>(addr), idx, k, Scale);
+}
 #endif
 
 }  // namespace SseIntrinsics

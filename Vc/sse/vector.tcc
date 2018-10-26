@@ -327,7 +327,7 @@ Vc_INTRINSIC Vc_CONST SSE::double_m isnegative(SSE::double_v x)
 #define Vc_GATHER_IMPL(V_)                                                               \
     template <>                                                                          \
     template <class MT, class IT, int Scale>                                             \
-    Vc_ALWAYS_INLINE void SSE::V_::gatherImplementation(                                 \
+    inline void SSE::V_::gatherImplementation(                                           \
         const Common::GatherArguments<MT, IT, Scale> &args)
 #define Vc_M(i_) static_cast<value_type>(args.address[Scale * args.indexes[i_]])
 Vc_GATHER_IMPL(double_v) { d.v() = _mm_setr_pd(Vc_M(0), Vc_M(1)); }

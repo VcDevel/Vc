@@ -150,70 +150,99 @@ template <typename T> class Vector<T, VectorAbi::Sse>
 #include "../common/scatterinterface.h"
 #if defined Vc_IMPL_AVX2 && !defined Vc_MSVC
         // skip this code for MSVC because it fails to do overload resolution correctly
-        template <int Scale>
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // non-converting pd, ps, and epi32 gathers
+        template <class U, class A, int Scale, int N = Vector<U, A>::size(),
+                  class = enable_if<(Vector<U, A>::size() >= size() && sizeof(T) >= 4)>>
         Vc_INTRINSIC void gatherImplementation(
-            const Common::GatherArguments<EntryType, SSE::int_v, Scale> &args)
+            const Common::GatherArguments<T, Vector<U, A>, Scale> &args)
         {
-            d.v() =
-                SSE::gather<sizeof(EntryType) * Scale>(args.address, args.indexes.data());
+            d.v() = SSE::gather<sizeof(T) * Scale>(
+                args.address, simd_cast<SSE::int_v>(args.indexes).data());
         }
 
-        template <class U, int Scale>
-        Vc_INTRINSIC enable_if<std::is_integral<U>::value, void> gatherImplementation(
-            const Common::GatherArguments<T, fixed_size_simd<U, 2>, Scale> &args)
+        // masked overload
+        template <class U, class A, int Scale, int N = Vector<U, A>::size(),
+                  class = enable_if<(Vector<U, A>::size() >= size() && sizeof(T) >= 4)>>
+        Vc_INTRINSIC void gatherImplementation(
+            const Common::GatherArguments<T, Vector<U, A>, Scale> &args, MaskArgument k)
         {
-            gatherImplementation(Common::make_gather<Scale>(
-                args.address, simd_cast<SSE::int_v>(args.indexes)));
+            d.v() = SSE::gather<sizeof(T) * Scale>(
+                d.v(), k.data(), args.address,
+                simd_cast<SSE::int_v>(args.indexes).data());
         }
 
-        template <class U, int Scale>
-        Vc_INTRINSIC enable_if<std::is_integral<U>::value, void> gatherImplementation(
-            const Common::GatherArguments<T, fixed_size_simd<U, 4>, Scale> &args)
-        {
-            gatherImplementation(Common::make_gather<Scale>(
-                args.address, simd_cast<SSE::int_v>(args.indexes)));
-        }
-
-        template <class MT, class U, int Scale>
-        Vc_INTRINSIC
-            enable_if<Traits::is_valid_vector_argument<MT>::value &&
-                          !std::is_same<T, MT>::value && std::is_integral<U>::value,
-                      void>
-            gatherImplementation(
-                const Common::GatherArguments<MT, fixed_size_simd<U, Size>, Scale> &args)
-        {
-            *this = simd_cast<Vector>(fixed_size_simd<MT, Size>(args));
-        }
-
+        ////////////////////////////////////////////////////////////////////////////////
+        // converting (from 8-bit and 16-bit integers only) epi16 gather emulation via
+        // epi32 gathers
         template <
-            class MT, class U, class A2, int Scale,
-            class = enable_if<sizeof(T) == 2 && std::is_integral<MT>::value &&
-                              (sizeof(MT) <= 2) && Vector<U, A2>::size() == size() &&
-                              std::is_integral<U>::value>>
+            class MT, class U, class A, int Scale,
+            class = enable_if<(sizeof(T) == 2 && std::is_integral<MT>::value &&
+                               (sizeof(MT) <= 2) && Vector<U, A>::size() >= size())>>
         Vc_INTRINSIC void gatherImplementation(
-            const Common::GatherArguments<MT, Vector<U, A2>, Scale> &args)
+            const Common::GatherArguments<MT, Vector<U, A>, Scale> &args)
         {
             using AVX2::int_v;
             const auto idx = simd_cast<int_v>(args.indexes).data();
             *this = simd_cast<Vector>(int_v(
                 AVX::gather<sizeof(MT) * Scale>(aliasing_cast<int>(args.address), idx)));
-            if (sizeof(MT) < sizeof(T)) {
+            if (sizeof(MT) == 1) {
+                *this &= 0xff;
                 if (std::is_signed<MT>::value) {
-                    const auto sv =
-                        simd_cast<SSE::Vector<typename std::make_signed<T>::type>>(*this);
-                    *this = ((sv & 0xff) << 8) >> 8;
-                } else {
-                    *this &= 0xff;
+                    using Signed = SSE::Vector<typename std::make_signed<T>::type>;
+                    *this = (simd_cast<Signed>(*this) << 8) >> 8;  // sign extend
                 }
             }
         }
 
-        template <class U, int Scale, class = enable_if<std::is_integral<U>::value>>
+        // masked overload
+        template <
+            class MT, class U, class A, int Scale,
+            class = enable_if<(sizeof(T) == 2 && std::is_integral<MT>::value &&
+                               (sizeof(MT) <= 2) && Vector<U, A>::size() >= size())>>
         Vc_INTRINSIC void gatherImplementation(
-            const Common::GatherArguments<EntryType, SimdArray<U, Size>, Scale> &args)
+            const Common::GatherArguments<MT, Vector<U, A>, Scale> &args, MaskArgument k)
         {
-            gatherImplementation(Common::make_gather<Scale>(
-                args.address, simd_cast<SSE::int_v>(args.indexes)));
+            using AVX2::int_v;
+            auto v = simd_cast<Vector>(int_v(AVX::gather<sizeof(MT) * Scale>(
+                _mm256_setzero_si256(), simd_cast<AVX2::int_m>(k).data(),
+                aliasing_cast<int>(args.address),
+                simd_cast<int_v>(args.indexes).data())));
+            if (sizeof(MT) == 1) {
+                v &= 0xff;
+                if (std::is_signed<MT>::value) {
+                    using Signed = SSE::Vector<typename std::make_signed<T>::type>;
+                    v = (simd_cast<Signed>(*this) << 8) >> 8;  // sign extend
+                }
+            }
+            assign(v, k);
+        }
+
+        ////////////////////////////////////////////////////////////////////////////////
+        // all remaining converting gathers
+        template <class MT, class U, class A, int Scale>
+        Vc_INTRINSIC enable_if<((sizeof(T) != 2 || sizeof(MT) > 2) &&
+                                Traits::is_valid_vector_argument<MT>::value &&
+                                !std::is_same<MT, T>::value &&
+                                Vector<U, A>::size() >= size()),
+                               void>
+        gatherImplementation(const Common::GatherArguments<MT, Vector<U, A>, Scale> &args)
+        {
+            *this = simd_cast<Vector>(fixed_size_simd<MT, Size>(args));
+        }
+
+        // masked overload
+        template <class MT, class U, class A, int Scale>
+        Vc_INTRINSIC enable_if<((sizeof(T) != 2 || sizeof(MT) > 2) &&
+                                Traits::is_valid_vector_argument<MT>::value &&
+                                !std::is_same<MT, T>::value &&
+                                Vector<U, A>::size() >= size()),
+                               void>
+        gatherImplementation(const Common::GatherArguments<MT, Vector<U, A>, Scale> &args,
+                             MaskArgument k)
+        {
+            assign(simd_cast<Vector>(fixed_size_simd<MT, Size>(args, k)), k);
         }
 #endif  // Vc_IMPL_AVX2 && !MSVC
 

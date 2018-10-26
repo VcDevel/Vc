@@ -140,8 +140,6 @@ using std::true_type;
 using std::iterator_traits;
 using std::conditional;
 using std::size_t;
-template <bool B, typename T, typename F>
-using conditional_t = typename conditional<B, T, F>::type;
 
 /**\internal
  * Typelist is a simple helper class for supporting multiple parameter packs in one class

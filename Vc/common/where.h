@@ -73,6 +73,33 @@ namespace WhereImpl
         Vc_ALWAYS_INLINE void operator++(int) { conditional_assign<Operator::PostIncrement>(lhs, mask); }
         Vc_ALWAYS_INLINE void operator--()    { conditional_assign<Operator:: PreDecrement>(lhs, mask); }
         Vc_ALWAYS_INLINE void operator--(int) { conditional_assign<Operator::PostDecrement>(lhs, mask); }
+
+        // masked gathers
+        template <class T, class IV, class S>
+        Vc_INTRINSIC void operator=(Common::SubscriptOperation<T, IV, S, true> &&rhs)
+        {
+            lhs.gather(rhs.gatherArguments(), mask);
+        }
+        template <class T, class IV, class S>
+        void operator+=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
+        template <class T, class IV, class S>
+        void operator-=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
+        template <class T, class IV, class S>
+        void operator*=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
+        template <class T, class IV, class S>
+        void operator/=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
+        template <class T, class IV, class S>
+        void operator%=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
+        template <class T, class IV, class S>
+        void operator^=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
+        template <class T, class IV, class S>
+        void operator&=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
+        template <class T, class IV, class S>
+        void operator|=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
+        template <class T, class IV, class S>
+        void operator<<=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
+        template <class T, class IV, class S>
+        void operator>>=(Common::SubscriptOperation<T, IV, S, true> &&rhs) = delete;
     };
 
     template <typename _Mask, typename T_, typename I_, typename S_>

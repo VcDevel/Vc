@@ -153,7 +153,6 @@ public:
         gatherImplementation(args);
     }
 
-
     /// Masked gather constructor
     template <typename MT, typename IT,
               typename = enable_if<Vc::Traits::has_subscript_operator<IT>::value>>
@@ -163,6 +162,14 @@ public:
         Vc_ASSERT_GATHER_PARAMETER_TYPES_;
         gatherImplementation(
             Common::make_gather<1>(mem, Common::convertIndexVector(indexes)), mask);
+    }
+
+    template <class MT, class IT, int Scale>
+    Vc_INTRINSIC Vc_CURRENT_CLASS_NAME(const Common::GatherArguments<MT, IT, Scale> &args,
+                                       MaskArgument mask)
+    {
+        Vc_ASSERT_GATHER_PARAMETER_TYPES_;
+        gatherImplementation(args, mask);
     }
 
     /// Gather function
