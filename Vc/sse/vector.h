@@ -188,10 +188,11 @@ template <typename T> class Vector<T, VectorAbi::Sse>
             *this = simd_cast<Vector>(int_v(
                 AVX::gather<sizeof(MT) * Scale>(aliasing_cast<int>(args.address), idx)));
             if (sizeof(MT) == 1) {
-                *this &= 0xff;
                 if (std::is_signed<MT>::value) {
                     using Signed = SSE::Vector<typename std::make_signed<T>::type>;
                     *this = (simd_cast<Signed>(*this) << 8) >> 8;  // sign extend
+                } else {
+                    *this &= 0xff;
                 }
             }
         }
@@ -210,10 +211,11 @@ template <typename T> class Vector<T, VectorAbi::Sse>
                 aliasing_cast<int>(args.address),
                 simd_cast<int_v>(args.indexes).data())));
             if (sizeof(MT) == 1) {
-                v &= 0xff;
                 if (std::is_signed<MT>::value) {
                     using Signed = SSE::Vector<typename std::make_signed<T>::type>;
                     v = (simd_cast<Signed>(*this) << 8) >> 8;  // sign extend
+                } else {
+                    v &= 0xff;
                 }
             }
             assign(v, k);

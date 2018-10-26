@@ -239,10 +239,11 @@ public:
                                       int_v(AVX::gather<sizeof(MT) * Scale>(
                                           aliasing_cast<int>(args.address), idx1)));
             if (sizeof(MT) == 1) {
-                *this &= 0xff;
                 if (std::is_signed<MT>::value) {
                     using Signed = AVX2::Vector<typename std::make_signed<T>::type>;
                     *this = (simd_cast<Signed>(*this) << 8) >> 8;  // sign extend
+                } else {
+                    *this &= 0xff;
                 }
             }
         }
@@ -266,10 +267,11 @@ public:
                 int_v(AVX::gather<sizeof(MT) * Scale>(
                     _mm256_setzero_si256(), k1, aliasing_cast<int>(args.address), idx1)));
             if (sizeof(MT) == 1) {
-                v &= 0xff;
                 if (std::is_signed<MT>::value) {
                     using Signed = AVX2::Vector<typename std::make_signed<T>::type>;
                     v = (simd_cast<Signed>(v) << 8) >> 8;  // sign extend
+                } else {
+                    v &= 0xff;
                 }
             }
             assign(v, k);
