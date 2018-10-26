@@ -91,7 +91,7 @@ public:
 
     template <size_t StructSize, typename I, bool RO>
     enable_if<(Length > StructSize), void> operator=(
-        const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access) =
+        const InterleavedMemoryReadAccess<StructSize, V, I, RO> &access) && =
         delete;  //("You are trying to extract more data from the struct than it has");
 
     template <typename... Inputs> void operator=(TransposeProxy<Inputs...> &&proxy) &&
