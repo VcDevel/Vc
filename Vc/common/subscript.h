@@ -286,9 +286,10 @@ public:
     static constexpr bool need_explicit_scaling =
         Scale::num % Scale::den != 0 || Scale::num / Scale::den * sizeof(T) > 8;
 
-    Vc_ALWAYS_INLINE GatherArguments<
-        T, IndexVectorScaled, (need_explicit_scaling ? 1 : Scale::num / Scale::den)>
-    gatherArguments() &&
+    Vc_ALWAYS_INLINE
+        GatherArguments<typename std::remove_cv<T>::type, IndexVectorScaled,
+                        (need_explicit_scaling ? 1 : Scale::num / Scale::den)>
+        gatherArguments() &&
     {
         static_assert(std::is_arithmetic<ScalarType>::value,
                       "Incorrect type for a SIMD vector gather. Must be an arithmetic type.");

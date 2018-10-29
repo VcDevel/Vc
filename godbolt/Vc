@@ -1330,6 +1330,8 @@ template <typename T, typename IndexVector, typename Scale, bool>
 class SubscriptOperation;
 template <class T, class IndexVector, int Scale = 1>
 struct GatherArguments {
+static_assert(std::is_same<T, remove_cvref_t<T>>::value && !std::is_pointer<T>::value,
+"GatherArguments expects an cv unqualified non-ref/ptr type");
 const IndexVector indexes;
 const T *const address;
 };
