@@ -274,6 +274,16 @@ constexpr Vc_WARN_UNUSED_RESULT WhereImpl::MaskedLValue<M, V> where(const M &mas
     return {mask, value};
 }
 
+// `where` overload for masked scatters. It's necessary because SubscriptOperation doesn't
+// want to become an lvalue.
+template <class M, class T, class IT, class Scale>
+constexpr Vc_WARN_UNUSED_RESULT
+    WhereImpl::MaskedLValue<M, Common::SubscriptOperation<T, IT, Scale, true>>
+    where(const M &mask, Common::SubscriptOperation<T, IT, Scale, true> &&value)
+{
+    return {mask, std::move(value)};
+}
+
 template<typename M> constexpr Vc_WARN_UNUSED_RESULT WhereImpl::WhereMask<M> _if(const M &m)
 {
     return { m };
