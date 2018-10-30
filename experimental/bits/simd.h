@@ -1589,20 +1589,38 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto __blend(K mask, V0 at0, V1 at1)
 
 // }}}
 // -----------------------------------------------
+// __is_zero{{{
+template <class _T, class _Traits = __vector_traits<_T>>
+_GLIBCXX_SIMD_INTRINSIC constexpr bool __is_zero(_T __a)
+{
+    const auto __b = __vector_cast<__llong>(__a);
+    if constexpr (sizeof(__b) / sizeof(__llong) == 2) {
+        return __b[0] == 0 && __b[1] == 0;
+    } else if constexpr (sizeof(__b) / sizeof(__llong) == 4) {
+        return __b[0] == 0 && __b[1] == 0 && __b[2] == 0 && __b[3] == 0;
+    } else if constexpr (sizeof(__b) / sizeof(__llong) == 8) {
+        return __b[0] == 0 && __b[1] == 0 && __b[2] == 0 && __b[3] == 0 && __b[4] == 0 &&
+               __b[5] == 0 && __b[6] == 0 && __b[7] == 0;
+    } else {
+        __assert_unreachable<_T>();
+    }
+}
+// }}}
 // __testz{{{
-template <class _T, class Traits = __vector_traits<_T>>
+template <class _T, class _Traits = __vector_traits<_T>>
 _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST int __testz(_T a, _T b)
 {
     if constexpr (__have_avx) {
-        if constexpr (sizeof(_T) == 32 && Traits::template is<float>) {
+        if constexpr (sizeof(_T) == 32 && _Traits::template is<float>) {
             return _mm256_testz_ps(a, b);
-        } else if constexpr (sizeof(_T) == 32 && Traits::template is<double>) {
+        } else if constexpr (sizeof(_T) == 32 && _Traits::template is<double>) {
             return _mm256_testz_pd(a, b);
         } else if constexpr (sizeof(_T) == 32) {
-            return _mm256_testz_si256(__vector_cast<__llong>(a), __vector_cast<__llong>(b));
-        } else if constexpr(Traits::template is<float, 4>) {
+            return _mm256_testz_si256(__vector_cast<__llong>(a),
+                                      __vector_cast<__llong>(b));
+        } else if constexpr(_Traits::template is<float, 4>) {
             return _mm_testz_ps(a, b);
-        } else if constexpr(Traits::template is<double, 2>) {
+        } else if constexpr(_Traits::template is<double, 2>) {
             return _mm_testz_pd(a, b);
         } else {
             static_assert(sizeof(_T) == 16);
@@ -1610,32 +1628,32 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST int __testz(_T a, _T b)
         }
     } else if constexpr (__have_sse4_1) {
         return _mm_testz_si128(__vector_cast<__llong>(a), __vector_cast<__llong>(b));
-    } else if constexpr (__have_sse && Traits::template is<float, 4>) {
+    } else if constexpr (__have_sse && _Traits::template is<float, 4>) {
         return _mm_movemask_ps(__and(a, b)) == 0;
-    } else if constexpr (__have_sse2 && Traits::template is<double, 2>) {
+    } else if constexpr (__have_sse2 && _Traits::template is<double, 2>) {
         return _mm_movemask_pd(__and(a, b)) == 0;
     } else if constexpr (__have_sse2) {
         return _mm_movemask_epi8(a & b) == 0;
     } else {
-        __assert_unreachable<_T>();
+        return __is_zero(__and(a, b));
     }
 }
 
 // }}}
 // __testnzc{{{
-template <class _T, class Traits = __vector_traits<_T>>
+template <class _T, class _Traits = __vector_traits<_T>>
 _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST int __testnzc(_T a, _T b)
 {
     if constexpr (__have_avx) {
-        if constexpr (sizeof(_T) == 32 && Traits::template is<float>) {
+        if constexpr (sizeof(_T) == 32 && _Traits::template is<float>) {
             return _mm256_testnzc_ps(a, b);
-        } else if constexpr (sizeof(_T) == 32 && Traits::template is<double>) {
+        } else if constexpr (sizeof(_T) == 32 && _Traits::template is<double>) {
             return _mm256_testnzc_pd(a, b);
         } else if constexpr (sizeof(_T) == 32) {
             return _mm256_testnzc_si256(__vector_cast<__llong>(a), __vector_cast<__llong>(b));
-        } else if constexpr(Traits::template is<float, 4>) {
+        } else if constexpr(_Traits::template is<float, 4>) {
             return _mm_testnzc_ps(a, b);
-        } else if constexpr(Traits::template is<double, 2>) {
+        } else if constexpr(_Traits::template is<double, 2>) {
             return _mm_testnzc_pd(a, b);
         } else {
             static_assert(sizeof(_T) == 16);
@@ -1643,15 +1661,16 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST int __testnzc(_T a, _T b)
         }
     } else if constexpr (__have_sse4_1) {
         return _mm_testnzc_si128(__vector_cast<__llong>(a), __vector_cast<__llong>(b));
-    } else if constexpr (__have_sse && Traits::template is<float, 4>) {
+    } else if constexpr (__have_sse && _Traits::template is<float, 4>) {
         return _mm_movemask_ps(__and(a, b)) == 0 && _mm_movemask_ps(__andnot(a, b)) == 0;
-    } else if constexpr (__have_sse2 && Traits::template is<double, 2>) {
+    } else if constexpr (__have_sse2 && _Traits::template is<double, 2>) {
         return _mm_movemask_pd(__and(a, b)) == 0 && _mm_movemask_pd(__andnot(a, b)) == 0;
     } else if constexpr (__have_sse2) {
         return _mm_movemask_epi8(__and(a, b)) == 0 &&
                _mm_movemask_epi8(__andnot(a, b)) == 0;
     } else {
-        __assert_unreachable<_T>();
+        return !(__is_zero(__vector_cast<__llong>(__and(a, b))) ||
+                 __is_zero(__vector_cast<__llong>(__andnot(a, b))));
     }
 }
 
