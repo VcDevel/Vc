@@ -242,7 +242,7 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
 
     M x(&mem[M::size()], stride_aligned);
     COMPARE(x, M::size() % 2 == 1 ? !alternating_mask : alternating_mask)
-        << x.to_bitset() << ", alternating_mask: " << alternating_mask.to_bitset();
+        << x.__to_bitset() << ", alternating_mask: " << alternating_mask.__to_bitset();
     x = {&mem[1], element_aligned};
     COMPARE(x, !alternating_mask);
     x = M{mem, overaligned};

@@ -346,7 +346,7 @@ TEST_TYPES(V, atan2, real_test_types)  //{{{1
     vir::test::setFuzzyness<double>(2);
 
     using limits = std::numeric_limits<typename V::value_type>;
-    const T Pi   = std::experimental::detail::double_const<1, 0x921fb54442d18ull,  1>;
+    const T Pi   = std::experimental::__double_const<1, 0x921fb54442d18ull,  1>;
     const T inf  = limits::infinity();
     test_tuples<V, 3>(
         {

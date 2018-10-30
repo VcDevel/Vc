@@ -72,9 +72,9 @@ TEST_TYPES(FromTo, conversions,  //{{{1
         const ullong all_bits = ~ullong() >> (64 - FromM::size());
         for (ullong bit_pos = 1; bit_pos /*until overflow*/; bit_pos *= 2) {
             for (ullong bits : {bit_pos & all_bits, ~bit_pos & all_bits}) {
-                const auto from = FromM::from_bitset(bits);
+                const auto from = FromM::__from_bitset(bits);
                 const auto to = resizing_simd_cast<ToM>(from);
-                COMPARE(to, ToM::from_bitset(bits))
+                COMPARE(to, ToM::__from_bitset(bits))
                     << "\nfrom: " << from << "\nbits: " << std::hex << bits << std::dec
                     << '\n'
                     << vir::typeToString<FromM>() << " -> " << vir::typeToString<ToM>();

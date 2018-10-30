@@ -18,14 +18,14 @@
 // incorrect use of k0 register for _kortestc_mask64_u8 and _kortestc_mask32_u8:
 #define _GLIBCXX_SIMD_WORKAROUND_PR85538 1
 
-// missed optimization for abs(builtin_type_t<llong, 2>):
+// missed optimization for abs(__vector_type_t<__llong, 2>):
 #define _GLIBCXX_SIMD_WORKAROUND_PR85572 1
 
 // very bad codegen for extraction and concatenation of 128/256 "subregisters" with
 // sizeof(element type) < 8: https://godbolt.org/g/mqUsgM
 #define _GLIBCXX_SIMD_WORKAROUND_XXX_1 1
 
-// bad codegen for 8 Byte memcpy to builtin_type_t<char, 16>
+// bad codegen for 8 Byte memcpy to __vector_type_t<char, 16>
 #define _GLIBCXX_SIMD_WORKAROUND_XXX_2 1
 
 // bad codegen for zero-extend using simple concat(x, 0)
@@ -285,9 +285,9 @@ _GLIBCXX_SIMD_END_NAMESPACE
 #define _GLIBCXX_SIMD_EXTERNAL_ASSERT 1
 #else
 #ifdef NDEBUG
-#define _GLIBCXX_SIMD_ASSERT(x) std::experimental::detail::dummy_assert{} << ' '
+#define _GLIBCXX_SIMD_ASSERT(x) std::experimental::__dummy_assert{} << ' '
 #else
-#define _GLIBCXX_SIMD_ASSERT(x) std::experimental::detail::real_assert(x, #x, __FILE__, __LINE__)
+#define _GLIBCXX_SIMD_ASSERT(x) std::experimental::__real_assert(x, #x, __FILE__, __LINE__)
 #endif
 #endif
 

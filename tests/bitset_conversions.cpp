@@ -41,12 +41,12 @@ TEST_TYPES(V, conversions, all_test_types)
     using B = std::bitset<N>;
     M k(true);
     B allone(0xffffffffffffffffLLU);
-    COMPARE(k.to_bitset(), allone);
+    COMPARE(k.__to_bitset(), allone);
 
     k = make_mask<M>({true, false, false});
-    COMPARE(k.to_bitset(), B(0x9249249249249249LLU)) << k;
+    COMPARE(k.__to_bitset(), B(0x9249249249249249LLU)) << k;
     k = make_mask<M>({false, true, false});
-    COMPARE(k.to_bitset(), B(0x2492492492492492LLU)) << k;
+    COMPARE(k.__to_bitset(), B(0x2492492492492492LLU)) << k;
     k = make_mask<M>({false, false, true});
-    COMPARE(k.to_bitset(), B(0x4924924924924924LLU)) << k;
+    COMPARE(k.__to_bitset(), B(0x4924924924924924LLU)) << k;
 }

@@ -58,30 +58,30 @@ using std::experimental::simd_abi::scalar;
 using std::experimental::simd_abi::__sse;
 using std::experimental::simd_abi::__avx;
 using std::experimental::simd_abi::__avx512;
-using std::experimental::detail::fixed_size_storage;
-using std::experimental::detail::simd_tuple;
+using std::experimental::__fixed_size_storage;
+using std::experimental::__simd_tuple;
 
-static_assert(std::is_same_v<fixed_size_storage<float, 1>, simd_tuple<float, scalar>>);
-static_assert(std::is_same_v<fixed_size_storage<int, 1>, simd_tuple<int, scalar>>);
-static_assert(std::is_same_v<fixed_size_storage<char16_t, 1>, simd_tuple<char16_t, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 1>, __simd_tuple<float, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage<int, 1>, __simd_tuple<int, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage<char16_t, 1>, __simd_tuple<char16_t, scalar>>);
 
-static_assert(std::is_same_v<fixed_size_storage<float, 2>, simd_tuple<float, scalar, scalar>>);
-static_assert(std::is_same_v<fixed_size_storage<float, 3>, simd_tuple<float, scalar, scalar, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 2>, __simd_tuple<float, scalar, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 3>, __simd_tuple<float, scalar, scalar, scalar>>);
 #ifdef _GLIBCXX_SIMD_HAVE_SSE_ABI
-static_assert(std::is_same_v<fixed_size_storage<float, 4>, simd_tuple<float, __sse>>);
-static_assert(std::is_same_v<fixed_size_storage<float, 5>, simd_tuple<float, __sse, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 4>, __simd_tuple<float, __sse>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 5>, __simd_tuple<float, __sse, scalar>>);
 #endif  // _GLIBCXX_SIMD_HAVE_SSE_ABI
 #ifdef _GLIBCXX_SIMD_HAVE_AVX_ABI
-static_assert(std::is_same_v<fixed_size_storage<float,  8>, simd_tuple<float, __avx>>);
-static_assert(std::is_same_v<fixed_size_storage<float, 12>, simd_tuple<float, __avx, __sse>>);
-static_assert(std::is_same_v<fixed_size_storage<float, 13>, simd_tuple<float, __avx, __sse, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage<float,  8>, __simd_tuple<float, __avx>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 12>, __simd_tuple<float, __avx, __sse>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 13>, __simd_tuple<float, __avx, __sse, scalar>>);
 #endif
 #ifdef _GLIBCXX_SIMD_HAVE_AVX512_ABI
-static_assert(std::is_same_v<fixed_size_storage<float, 16>, simd_tuple<float, __avx512>>);
-static_assert(std::is_same_v<fixed_size_storage<float, 20>, simd_tuple<float, __avx512, __sse>>);
-static_assert(std::is_same_v<fixed_size_storage<float, 24>, simd_tuple<float, __avx512, __avx>>);
-static_assert(std::is_same_v<fixed_size_storage<float, 28>, simd_tuple<float, __avx512, __avx, __sse>>);
-static_assert(std::is_same_v<fixed_size_storage<float, 29>, simd_tuple<float, __avx512, __avx, __sse, scalar>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 16>, __simd_tuple<float, __avx512>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 20>, __simd_tuple<float, __avx512, __sse>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 24>, __simd_tuple<float, __avx512, __avx>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 28>, __simd_tuple<float, __avx512, __avx, __sse>>);
+static_assert(std::is_same_v<__fixed_size_storage<float, 29>, __simd_tuple<float, __avx512, __avx, __sse, scalar>>);
 #endif
 }  // namespace assertions
 
@@ -413,7 +413,7 @@ TEST_TYPES(V, deduce_from_list, all_test_types)
     VERIFY( (sfinae_is_callable<T>([](auto a) -> std::experimental::simd_abi::deduce_t<decltype(a), 8> { return {}; })));
     using W = std::experimental::simd_abi::deduce_t<T, V::size(), typename V::abi_type>;
     VERIFY((sfinae_is_callable<W>([](auto a) -> std::experimental::simd<T, W> { return {}; })));
-    if constexpr (std::experimental::detail::is_fixed_size_abi_v<A>) {
+    if constexpr (std::experimental::__is_fixed_size_abi_v<A>) {
         VERIFY((V::size() == std::experimental::simd_size_v<T, W>)) << vir::typeToString<W>();
     } else {
         VERIFY((std::is_same_v<A, W>)) << vir::typeToString<W>();
