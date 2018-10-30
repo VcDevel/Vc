@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vir/testassert.h>
 #include <vir/test.h>
 #include <Vc/simd>
-#include <Vc/ostream>
 #include "make_vec.h"
 
 template <class... Ts> using base_template = Vc::simd<Ts...>;

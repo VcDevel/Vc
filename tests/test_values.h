@@ -29,6 +29,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <initializer_list>
 #include <random>
 
+template <class T, class A>
+Vc::simd<T, A> iif(Vc::simd_mask<T, A> k,
+                   const typename Vc::simd_mask<T, A>::simd_type &t,
+                   const Vc::simd<T, A> &f)
+{
+    auto r = f;
+    where(k, r) = t;
+    return r;
+}
+
 template <class V>
 V epilogue_load(const typename V::value_type *mem, const std::size_t size)
 {
@@ -161,7 +171,6 @@ void test_values_3arg(const std::initializer_list<typename V::value_type> &input
 #define MAKE_TESTER(name_)                                                               \
     [](const auto... inputs) {                                                           \
         /*Vc_DEBUG()("testing " #name_ "(", input, ")");*/                               \
-        using Vc::__proposed::iif;                                                       \
         const auto totest = name_(inputs...);                                            \
         using R = std::remove_const_t<decltype(totest)>;                                 \
         auto &&expected = [&](const auto &... vs) -> const R {                           \

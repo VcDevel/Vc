@@ -1,11 +1,8 @@
-#include <Vc/Vc>
-#include <iostream>
+#include <Vc/simd>
 
 using namespace Vc;
-float_v foo0(const float_v &a)
+native_simd<float> foo0(const native_simd<float> &a)
 {
-    const float_v b = max(a, float_v(1));
-    const Vc::simd<float> c = 1;
-    std::cerr << b << c;
+    const native_simd<float> b = max(a, native_simd<float>(1));
     return b;
 }

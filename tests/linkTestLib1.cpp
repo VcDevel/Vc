@@ -1,13 +1,11 @@
-#include <Vc/Vc>
-#include <iostream>
+#include <Vc/simd>
 
 #define CAT(a, b) a##b
 #define name(a, b) CAT(a, b)
 
 using namespace Vc;
-float_v name(fooLib1, POSTFIX)(const float_v &a)
+native_simd<float> name(fooLib1, POSTFIX)(const native_simd<float> &a)
 {
-    const float_v b = min(a, float_v(1));
-    std::cerr << b;
+    const native_simd<float> b = min(a, native_simd<float>(1));
     return b;
 }

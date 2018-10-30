@@ -1,13 +1,11 @@
-#include <Vc/Vc>
-#include <iostream>
+#include <Vc/simd>
 
 #define CAT(a, b) a##b
 #define name(a, b) CAT(a, b)
 
 using namespace Vc;
-float_v name(fooLib0, POSTFIX)(const float_v &a)
+native_simd<float> name(fooLib0, POSTFIX)(const native_simd<float> &a)
 {
-    const float_v b = max(a, float_v(1));
-    std::cerr << b;
+    const native_simd<float> b = max(a, native_simd<float>(1));
     return b;
 }

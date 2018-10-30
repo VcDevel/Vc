@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #define Vc_EXPERIMENTAL 1
 #include <vir/test.h>
-#include <Vc/Vc>
+#include <Vc/simd>
 #include "make_vec.h"
 
 template <class... Ts> using base_template = Vc::simd<Ts...>;

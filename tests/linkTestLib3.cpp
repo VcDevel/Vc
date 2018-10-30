@@ -1,10 +1,8 @@
-#include <Vc/Vc>
-#include <iostream>
+#include <Vc/simd>
 
 using namespace Vc;
-float_v fooLib3(const float_v &a)
+native_simd<float> fooLib3(const native_simd<float> &a)
 {
-    const float_v b = min(a, float_v(1));
-    std::cerr << b;
+    const native_simd<float> b = min(a, native_simd<float>(1));
     return b;
 }
