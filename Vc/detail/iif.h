@@ -28,11 +28,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_DETAIL_IIF_H_
 #define VC_DETAIL_IIF_H_
 
-#include "simd.h"
-#include "simd_mask.h"
-
 Vc_VERSIONED_NAMESPACE_BEGIN
-namespace experimental
+namespace __proposed
 {
 template <class MT, class MA, class T0, class A0, class T1, class A1,
           class RT = std::common_type<T0, T1>,
@@ -52,7 +49,7 @@ iif(const Vc::simd_mask<MT, MA> &mask, const Vc::simd<T0, A0> &a,
 
 template <class MT, class MA, class T0, class T1, class A1>
 std::enable_if_t<
-    Vc::detail::all<Vc::detail::negation<Vc::is_simd<T0>>,
+    Vc::detail::all<std::negation<Vc::is_simd<T0>>,
                     std::is_convertible<Vc::simd_mask<MT, MA>, Vc::simd_mask<T1, A1>>,
                     std::is_convertible<T0, Vc::simd<T1, A1>>>::value,
     Vc::simd<T1, A1>>
@@ -65,7 +62,7 @@ iif(const Vc::simd_mask<MT, MA> &mask, const T0 &a, const Vc::simd<T1, A1> &b)
 
 template <class MT, class MA, class T0, class A0, class T1>
 std::enable_if_t<
-    Vc::detail::all<Vc::detail::negation<Vc::is_simd<T1>>,
+    Vc::detail::all<std::negation<Vc::is_simd<T1>>,
                     std::is_convertible<Vc::simd_mask<MT, MA>, Vc::simd_mask<T0, A0>>,
                     std::is_convertible<T1, Vc::simd<T0, A0>>>::value,
     Vc::simd<T0, A0>>
@@ -95,7 +92,7 @@ iif(const Vc::simd_mask<MT, MA> &mask, const Vc::simd_mask<T0, A0> &a,
 
 template <class MT, class MA, class T0, class T1, class A1>
 std::enable_if_t<
-    Vc::detail::all<Vc::detail::negation<Vc::is_simd_mask<T0>>,
+    Vc::detail::all<std::negation<Vc::is_simd_mask<T0>>,
                     std::is_convertible<Vc::simd_mask<MT, MA>, Vc::simd_mask<T1, A1>>,
                     std::is_convertible<T0, Vc::simd_mask<T1, A1>>>::value,
     Vc::simd_mask<T1, A1>>
@@ -108,7 +105,7 @@ iif(const Vc::simd_mask<MT, MA> &mask, const T0 &a, const Vc::simd_mask<T1, A1> 
 
 template <class MT, class MA, class T0, class A0, class T1>
 std::enable_if_t<
-    Vc::detail::all<Vc::detail::negation<Vc::is_simd_mask<T1>>,
+    Vc::detail::all<std::negation<Vc::is_simd_mask<T1>>,
                     std::is_convertible<Vc::simd_mask<MT, MA>, Vc::simd_mask<T0, A0>>,
                     std::is_convertible<T1, Vc::simd_mask<T0, A0>>>::value,
     Vc::simd_mask<T0, A0>>
@@ -119,7 +116,7 @@ iif(const Vc::simd_mask<MT, MA> &mask, const Vc::simd_mask<T0, A0> &a, const T1 
     return r;
 }
 
-}  // namespace experimental
+}  // namespace __proposed
 Vc_VERSIONED_NAMESPACE_END
 
 #endif  // VC_DETAIL_IIF_H_

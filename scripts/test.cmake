@@ -197,6 +197,7 @@ macro(extract_msvc_compiler_info CL)
    endif()
 endmacro()
 macro(extract_gnuc_compiler_info CXX)
+   string(REPLACE " " ";" CXX_AS_LIST "${CXX}")
    execute_process(COMMAND "${CXX}" --version OUTPUT_VARIABLE COMPILER_VERSION_COMPLETE ERROR_VARIABLE COMPILER_VERSION_COMPLETE OUTPUT_STRIP_TRAILING_WHITESPACE)
    string(REPLACE "\n" ";" COMPILER_VERSION "${COMPILER_VERSION_COMPLETE}")
    list(GET COMPILER_VERSION 0 COMPILER_VERSION)
@@ -393,9 +394,9 @@ endif()
 
 if("${COMPILER_VERSION}" MATCHES "(GCC|Open64).*4\\.[0123456789]\\."
       OR "${COMPILER_VERSION}" MATCHES "GCC.*5\\.[01]\\."
-      OR "${COMPILER_VERSION}" MATCHES "ICC 1[0123456]"
+      OR "${COMPILER_VERSION}" MATCHES "ICC 1[01234567]"
       OR "${COMPILER_VERSION}" MATCHES "clang 3\\.[0123456]")
-   message(FATAL_ERROR "Compiler too old for C++14 (${COMPILER_VERSION})")
+   message(FATAL_ERROR "Compiler too old for C++17 (${COMPILER_VERSION})")
 endif()
 
 if(chip STREQUAL "x86")

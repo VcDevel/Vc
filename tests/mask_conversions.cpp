@@ -51,14 +51,14 @@ TEST_TYPES(FromTo, conversions,  //{{{1
     using FromM = Vc::native_simd_mask<From>;
     using To = typename FromTo::template at<1>;
     call_with_typelist<vir::make_unique_typelist<
-        Vc::experimental::rebind_simd_t<To, FromM>, Vc::native_simd_mask<To>,
+        Vc::rebind_simd_t<To, FromM>, Vc::native_simd_mask<To>,
         Vc::simd_mask<To>, Vc::simd_mask<To, Vc::simd_abi::scalar>>>([](auto _b) {
         using ToM = decltype(_b);
         using ToV = typename ToM::simd_type;
 
         using Vc::static_simd_cast;
         using Vc::simd_cast;
-        using Vc::experimental::resizing_simd_cast;
+        using Vc::__proposed::resizing_simd_cast;
 
         auto x = resizing_simd_cast<ToM>(FromM());
         COMPARE(typeid(x), typeid(ToM));

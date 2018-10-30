@@ -189,7 +189,7 @@ XTEST_TYPES(From, specific_conversions, all_test_types)
     using To = float;
     using W = Vc::native_simd<To>;
 
-    using V = Vc::experimental::rebind_simd_t<From, W>;
+    using V = Vc::rebind_simd_t<From, W>;
 
     for (gen_seq_t<V, To> gen_seq; gen_seq; ++gen_seq) {
         const V seq(gen_seq);

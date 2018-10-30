@@ -29,7 +29,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
 #include <Vc/simd>
-#include <Vc/math>
 #include <Vc/experimental>
 #include <Vc/ostream>
 #include "metahelpers.h"
@@ -325,7 +324,7 @@ TEST_TYPES(V, atan, real_test_types)  //{{{1
     using limits = std::numeric_limits<typename V::value_type>;
     test_values<V>({limits::quiet_NaN(), limits::infinity(), -limits::infinity()},
                    [](const V input) {
-                       using Vc::experimental::iif;
+                       using Vc::__proposed::iif;
                        const V expected([&](auto i) { return std::atan(input[i]); });
                        COMPARE(isnan(atan(input)), isnan(expected));
                        const V clean = iif(isnan(input), 0, input);
@@ -586,7 +585,7 @@ TEST_TYPES(V, ldexp_scalbn_scalbln_modf, real_test_types)  //{{{1
          limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
         {10000, -limits::max() / 2, limits::max() / 2},
         [](const V input) {
-            using Vc::experimental::iif;
+            using Vc::__proposed::iif;
             for (int exp : {-10000, -100, -10, -1, 0, 1, 10, 100, 10000}) {
                 const auto totest = ldexp(input, exp);
                 using R = std::remove_const_t<decltype(totest)>;
@@ -608,7 +607,7 @@ TEST_TYPES(V, ldexp_scalbn_scalbln_modf, real_test_types)  //{{{1
             }
         },
         [](const V input) {
-            using Vc::experimental::iif;
+            using Vc::__proposed::iif;
             for (int exp : {-10000, -100, -10, -1, 0, 1, 10, 100, 10000}) {
                 const auto totest = scalbn(input, exp);
                 using R = std::remove_const_t<decltype(totest)>;
@@ -630,7 +629,7 @@ TEST_TYPES(V, ldexp_scalbn_scalbln_modf, real_test_types)  //{{{1
             }
         },
         [](const V input) {
-            using Vc::experimental::iif;
+            using Vc::__proposed::iif;
             for (long exp : {-10000, -100, -10, -1, 0, 1, 10, 100, 10000}) {
                 const auto totest = scalbln(input, exp);
                 using R = std::remove_const_t<decltype(totest)>;
@@ -652,7 +651,7 @@ TEST_TYPES(V, ldexp_scalbn_scalbln_modf, real_test_types)  //{{{1
             }
         },
         [](const V input) {
-            using Vc::experimental::iif;
+            using Vc::__proposed::iif;
             V integral = {};
             const V totest = modf(input, &integral);
             auto &&expected = [&](const auto &v) -> std::pair<const V, const V> {
@@ -691,7 +690,7 @@ TEST_TYPES(V, remqo, real_test_types)  //{{{1
          limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
         {10000, -limits::max()/2, limits::max()/2},
         [](const V a, const V b) {
-            using Vc::experimental::iif;
+            using Vc::__proposed::iif;
             using IV = Vc::fixed_size_simd<int, V::size()>;
             IV quo = {}; // the type is wrong, this should fail
             const V totest = remquo(a, b, &quo);

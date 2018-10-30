@@ -1,158 +1,9 @@
-/*  This file is part of the Vc library. {{{
-Copyright © 2016-2017 Matthias Kretz <kretz@kde.org>
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the names of contributing organizations nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-}}}*/
-
-#ifndef VC_SIMD_X86_CONVERT_H_
-#define VC_SIMD_X86_CONVERT_H_
-
-#include "storage.h"
-
-Vc_VERSIONED_NAMESPACE_BEGIN
-namespace detail
-{
-namespace x86
-{
-// converts_via_decomposition{{{
-template <class From, class To, size_t ToSize> struct converts_via_decomposition {
-private:
-    static constexpr bool i_to_i = std::is_integral_v<From> && std::is_integral_v<To>;
-    static constexpr bool f_to_i =
-        std::is_floating_point_v<From> && std::is_integral_v<To>;
-    static constexpr bool f_to_f =
-        std::is_floating_point_v<From> && std::is_floating_point_v<To>;
-    static constexpr bool i_to_f =
-        std::is_integral_v<From> && std::is_floating_point_v<To>;
-
-    template <size_t A, size_t B>
-    static constexpr bool sizes = sizeof(From) == A && sizeof(To) == B;
-
-public:
-    static constexpr bool value =
-        (i_to_i && sizes<8, 2> && !have_ssse3 && ToSize == 16) ||
-        (i_to_i && sizes<8, 1> && !have_avx512f && ToSize == 16) ||
-        (f_to_i && sizes<4, 8> && !have_avx512dq) ||
-        (f_to_i && sizes<8, 8> && !have_avx512dq) ||
-        (f_to_i && sizes<8, 4> && !have_sse4_1 && ToSize == 16) ||
-        (i_to_f && sizes<8, 4> && !have_avx512dq && ToSize == 16) ||
-        (i_to_f && sizes<8, 8> && !have_avx512dq && ToSize < 64);
-};
-
-template <class From, class To, size_t ToSize>
-inline constexpr bool converts_via_decomposition_v =
-    converts_via_decomposition<From, To, ToSize>::value;
-
-// }}}
-// convert_builtin{{{1
-#ifdef Vc_USE_BUILTIN_VECTOR_TYPES
-template <typename To, typename From, size_t... I>
-constexpr Vc_INTRINSIC To convert_builtin(From v0, std::index_sequence<I...>)
-{
-    using T = typename To::value_type;
-    return detail::make_storage<T>(v0[I]...);
-}
-
-template <typename To, typename From, size_t... I, size_t... Z>
-constexpr Vc_INTRINSIC To convert_builtin_z(From v0, std::index_sequence<I...>,
-                                            std::index_sequence<Z...>)
-{
-    using T = typename To::value_type;
-    return detail::make_storage<T>(v0[I]..., ((void)Z, 0)...);
-}
-
-template <typename To, typename From, size_t... I>
-constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, std::index_sequence<I...>)
-{
-    using T = typename To::value_type;
-    return detail::make_storage<T>(v0[I]..., v1[I]...);
-}
-
-template <typename To, typename From, size_t... I>
-constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3,
-                                          std::index_sequence<I...>)
-{
-    using T = typename To::value_type;
-    return detail::make_storage<T>(static_cast<T>(v0[I])..., static_cast<T>(v1[I])...,
-                                   static_cast<T>(v2[I])..., static_cast<T>(v3[I])...);
-}
-
-template <typename To, typename From, size_t... I>
-constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3, From v4,
-                                          From v5, From v6, From v7,
-                                          std::index_sequence<I...>)
-{
-    using T = typename To::value_type;
-    return detail::make_storage<T>(static_cast<T>(v0[I])..., static_cast<T>(v1[I])...,
-                                   static_cast<T>(v2[I])..., static_cast<T>(v3[I])...,
-                                   static_cast<T>(v4[I])..., static_cast<T>(v5[I])...,
-                                   static_cast<T>(v6[I])..., static_cast<T>(v7[I])...);
-}
-
-template <typename To, typename From, size_t... I0, size_t... I1>
-constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, std::index_sequence<I0...>,
-                                          std::index_sequence<I1...>)
-{
-    using T = typename To::value_type;
-    return detail::make_storage<T>(static_cast<T>(v0[I0])..., static_cast<T>(v1[I0])...,
-                                   (I1, T{})...);
-}
-
-template <typename To, typename From, size_t... I0, size_t... I1>
-constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3,
-                                          std::index_sequence<I0...>,
-                                          std::index_sequence<I1...>)
-{
-    using T = typename To::value_type;
-    return detail::make_storage<T>(static_cast<T>(v0[I0])..., static_cast<T>(v1[I0])...,
-                                   static_cast<T>(v2[I0])..., static_cast<T>(v3[I0])...,
-                                   (I1, T{})...);
-}
-
-template <typename To, typename From, size_t... I0, size_t... I1>
-constexpr Vc_INTRINSIC To convert_builtin(From v0, From v1, From v2, From v3, From v4,
-                                          From v5, From v6, From v7,
-                                          std::index_sequence<I0...>,
-                                          std::index_sequence<I1...>)
-{
-    using T = typename To::value_type;
-    return detail::make_storage<T>(
-        static_cast<T>(v0[I0])..., static_cast<T>(v1[I0])..., static_cast<T>(v2[I0])...,
-        static_cast<T>(v3[I0])..., static_cast<T>(v4[I0])..., static_cast<T>(v5[I0])...,
-        static_cast<T>(v6[I0])..., static_cast<T>(v7[I0])..., (I1, T{})...);
-}
-#endif  // Vc_USE_BUILTIN_VECTOR_TYPES
-
-#ifdef Vc_WORKAROUND_PR85048
 // convert_to declarations {{{1
-template <class To, class T, size_t N> To convert_to(Storage<T, N>);
-template <class To, class T, size_t N> To convert_to(Storage<T, N>, Storage<T, N>);
-template <class To, class T, size_t N>
-To convert_to(Storage<T, N>, Storage<T, N>, Storage<T, N>, Storage<T, N>);
-template <class To, class T, size_t N>
-To convert_to(Storage<T, N>, Storage<T, N>, Storage<T, N>, Storage<T, N>, Storage<T, N>,
-              Storage<T, N>, Storage<T, N>, Storage<T, N>);
+template <class To, class T, class Traits = builtin_traits<T>> To convert_to(T);
+template <class To, class T, class Traits = builtin_traits<T>> To convert_to(T, T);
+template <class To, class T, class Traits = builtin_traits<T>> To convert_to(T, T, T, T);
+template <class To, class T, class Traits = builtin_traits<T>>
+To convert_to(T, T, T, T, T, T, T, T);
 
 //}}}1
 // work around PR85827
@@ -160,8 +11,11 @@ To convert_to(Storage<T, N>, Storage<T, N>, Storage<T, N>, Storage<T, N>, Storag
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wunused-variable"
 // 1-arg convert_to {{{1
-template <class To, class T, size_t N> Vc_INTRINSIC To convert_to(Storage<T, N> v)
+template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv)
 {
+    using T = typename Traits::value_type;
+    constexpr size_t N = Traits::width;
+    Storage<T, N> v(vv);
     using U = typename To::value_type;
     constexpr size_t M = To::width;
 
@@ -230,7 +84,7 @@ template <class To, class T, size_t N> Vc_INTRINSIC To convert_to(Storage<T, N> 
     } else if constexpr (i_to_i && x_to_y && !have_avx2) {  //{{{2
         return detail::concat(detail::convert_to<detail::Storage<U, M / 2>>(v),
                               detail::convert_to<detail::Storage<U, M / 2>>(
-                                  x86::extract_part<1, N / M * 2>(v)));
+                                  extract_part<1, N / M * 2>(v)));
     } else if constexpr (i_to_i) {  //{{{2
         static_assert(x_to_x || have_avx2,
                       "integral conversions with ymm registers require AVX2");
@@ -249,10 +103,10 @@ template <class To, class T, size_t N> Vc_INTRINSIC To convert_to(Storage<T, N> 
         } else if constexpr (N > M) {
             return to_storage(v.d);
         } else {
-            return x86::zeroExtend(v.intrin());
+            return zero_extend(v.intrin());
         }
     } else if constexpr (N < M && sizeof(To) > 16) {  // zero extend (eg. xmm -> ymm){{{2
-        return x86::zeroExtend(
+        return zero_extend(
             convert_to<Storage<U, (16 / sizeof(U) > N) ? 16 / sizeof(U) : N>>(v)
                 .intrin());
     } else if constexpr (N > M && sizeof(v) > 16) {  // partial input (eg. ymm -> xmm){{{2
@@ -300,11 +154,11 @@ template <class To, class T, size_t N> Vc_INTRINSIC To convert_to(Storage<T, N> 
         if constexpr (x_to_x && have_avx512vl) {
             return _mm_cvtepi64_epi8(v);
         } else if constexpr (x_to_x && have_avx512f) {
-            return lo128(_mm512_cvtepi64_epi8(zeroExtend(v.intrin())));
+            return lo128(_mm512_cvtepi64_epi8(zero_extend(v.intrin())));
         } else if constexpr (y_to_x && have_avx512vl) {
             return _mm256_cvtepi64_epi8(v);
         } else if constexpr (y_to_x && have_avx512f) {
-            return _mm512_cvtepi64_epi8(zeroExtend(v.intrin()));
+            return _mm512_cvtepi64_epi8(zero_extend(v.intrin()));
         } else if constexpr (z_to_x) {
             return _mm512_cvtepi64_epi8(v);
         }
@@ -352,7 +206,7 @@ template <class To, class T, size_t N> Vc_INTRINSIC To convert_to(Storage<T, N> 
         if constexpr (x_to_x && have_avx512vl) {
             return _mm_cvtepi32_epi8(v);
         } else if constexpr (x_to_x && have_avx512f) {
-            return lo128(_mm512_cvtepi32_epi8(zeroExtend(v.intrin())));
+            return lo128(_mm512_cvtepi32_epi8(zero_extend(v.intrin())));
         } else if constexpr (x_to_x && have_ssse3) {
             return _mm_shuffle_epi8(
                 v, _mm_setr_epi8(0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
@@ -367,7 +221,7 @@ template <class To, class T, size_t N> Vc_INTRINSIC To convert_to(Storage<T, N> 
         } else if constexpr (y_to_x && have_avx512vl) {
             return _mm256_cvtepi32_epi8(v);
         } else if constexpr (y_to_x && have_avx512f) {
-            return _mm512_cvtepi32_epi8(zeroExtend(v.intrin()));
+            return _mm512_cvtepi32_epi8(zero_extend(v.intrin()));
         } else if constexpr (z_to_x) {
             return _mm512_cvtepi32_epi8(v);
         }
@@ -402,7 +256,7 @@ template <class To, class T, size_t N> Vc_INTRINSIC To convert_to(Storage<T, N> 
         if constexpr (x_to_x && have_avx512bw_vl) {
             return _mm_cvtepi16_epi8(v);
         } else if constexpr (x_to_x && have_avx512bw) {
-            return lo128(_mm512_cvtepi16_epi8(zeroExtend(v.intrin())));
+            return lo128(_mm512_cvtepi16_epi8(zero_extend(v.intrin())));
         } else if constexpr (x_to_x && have_ssse3) {
             return _mm_shuffle_epi8(
                 v, _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, -0x80, -0x80, -0x80, -0x80,
@@ -418,7 +272,7 @@ template <class To, class T, size_t N> Vc_INTRINSIC To convert_to(Storage<T, N> 
         } else if constexpr (y_to_x && have_avx512bw_vl) {
             return _mm256_cvtepi16_epi8(v);
         } else if constexpr (y_to_x && have_avx512bw) {
-            return lo256(_mm512_cvtepi16_epi8(zeroExtend(v.intrin())));
+            return lo256(_mm512_cvtepi16_epi8(zero_extend(v.intrin())));
         } else if constexpr (y_to_x) {
             auto a = _mm256_shuffle_epi8(
                 v,
@@ -731,9 +585,12 @@ template <class To, class T, size_t N> Vc_INTRINSIC To convert_to(Storage<T, N> 
     //}}}
 } // }}}
 // 2-arg convert_to {{{1
-template <class To, class T, size_t N>
-Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1)
+template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv0, V vv1)
 {
+    using T = typename Traits::value_type;
+    constexpr size_t N = Traits::width;
+    Storage<T, N> v0(vv0);
+    Storage<T, N> v1(vv1);
     using U = typename To::value_type;
     constexpr size_t M = To::width;
 
@@ -828,7 +685,7 @@ Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1)
                         sizeof(T) == sizeof(U)));
         if constexpr (2 * N < M && sizeof(To) > 16) {  // handle all zero extension{{{2
             constexpr size_t Min = 16 / sizeof(U);
-            return x86::zeroExtend(
+            return zero_extend(
                 convert_to<Storage<U, (Min > 2 * N) ? Min : 2 * N>>(v0, v1).intrin());
         } else if constexpr (i64_to_i32) {  //{{{2
             if constexpr (x_to_x) {
@@ -1075,10 +932,14 @@ Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1)
     }
 }//}}}1
 // 4-arg convert_to {{{1
-template <class To, class T, size_t N>
-Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1, Storage<T, N> v2,
-                           Storage<T, N> v3)
+template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv0, V vv1,V vv2,V vv3)
 {
+    using T = typename Traits::value_type;
+    constexpr size_t N = Traits::width;
+    Storage<T, N> v0(vv0);
+    Storage<T, N> v1(vv1);
+    Storage<T, N> v2(vv2);
+    Storage<T, N> v3(vv3);
     using U = typename To::value_type;
     constexpr size_t M = To::width;
 
@@ -1174,7 +1035,7 @@ Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1, Storage<T, N> v2,
                         sizeof(T) == sizeof(U)));
         if constexpr (4 * N < M && sizeof(To) > 16) {  // handle all zero extension{{{2
             constexpr size_t Min = 16 / sizeof(U);
-            return x86::zeroExtend(
+            return zero_extend(
                 convert_to<Storage<U, (Min > 4 * N) ? Min : 4 * N>>(v0, v1, v2, v3)
                     .intrin());
         } else if constexpr (i64_to_i16) {  //{{{2
@@ -1188,13 +1049,15 @@ Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1, Storage<T, N> v2,
             } else if constexpr (y_to_y) {
                 return _mm256_shuffle_epi8(
                     fixup_avx_xzyw(_mm256_blend_epi16(
-                        auto_cast(_mm256_shuffle_ps(to_m256(v0), to_m256(v2),
+                        auto_cast(_mm256_shuffle_ps(builtin_cast<float>(v0),
+                                                    builtin_cast<float>(v2),
                                                     0x88)),  // 0.1. 8.9. 2.3. A.B.
-                        to_intrin(builtin_cast<int>(
-                                      _mm256_shuffle_ps(to_m256(v1), to_m256(v3), 0x88))
-                                  << 16),  // .4.5 .C.D .6.7 .E.F
-                        0xaa)              // 0415 8C9D 2637 AEBF
-                                   ),      // 0415 2637 8C9D AEBF
+                        to_intrin(
+                            builtin_cast<int>(_mm256_shuffle_ps(
+                                builtin_cast<float>(v1), builtin_cast<float>(v3), 0x88))
+                            << 16),    // .4.5 .C.D .6.7 .E.F
+                        0xaa)          // 0415 8C9D 2637 AEBF
+                                   ),  // 0415 2637 8C9D AEBF
                     _mm256_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14, 15,
                                      0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6, 7, 10, 11, 14,
                                      15));
@@ -1326,11 +1189,18 @@ Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1, Storage<T, N> v2,
     }
 }//}}}
 // 8-arg convert_to {{{1
-template <class To, class T, size_t N>
-Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1, Storage<T, N> v2,
-                           Storage<T, N> v3, Storage<T, N> v4, Storage<T, N> v5,
-                           Storage<T, N> v6, Storage<T, N> v7)
+template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv0, V vv1,V vv2,V vv3,V vv4,V vv5, V vv6, V vv7)
 {
+    using T = typename Traits::value_type;
+    constexpr size_t N = Traits::width;
+    Storage<T, N> v0(vv0);
+    Storage<T, N> v1(vv1);
+    Storage<T, N> v2(vv2);
+    Storage<T, N> v3(vv3);
+    Storage<T, N> v4(vv4);
+    Storage<T, N> v5(vv5);
+    Storage<T, N> v6(vv6);
+    Storage<T, N> v7(vv7);
     using U = typename To::value_type;
     constexpr size_t M = To::width;
 
@@ -1461,135 +1331,5 @@ Vc_INTRINSIC To convert_to(Storage<T, N> v0, Storage<T, N> v1, Storage<T, N> v2,
     }
 }//}}}
 #pragma GCC diagnostic pop
-#endif  // Vc_WORKAROUND_PR85048
-
-// convert from scalars{{{1
-template <typename To, typename... From>
-[[deprecated("use make_storage instead")]]
-Vc_INTRINSIC To Vc_VDECL convert_to(vectorizable<From>... scalars)
-{
-    return x86::set(static_cast<typename To::value_type>(scalars)...);
-}
-
-// convert function{{{1
-template <class To, class From> Vc_INTRINSIC To Vc_VDECL convert(From v)
-{
-    if constexpr (detail::is_builtin_vector_v<From>) {
-        using Trait = detail::builtin_traits<From>;
-        return convert<To>(Storage<typename Trait::value_type, Trait::width>(v));
-    } else if constexpr (detail::is_builtin_vector_v<To>) {
-        using Trait = detail::builtin_traits<To>;
-        return convert<Storage<typename Trait::value_type, Trait::width>>(v).d;
-    } else {
-#ifdef Vc_WORKAROUND_PR85048
-        return convert_to<To>(v);
-#else
-        if constexpr (From::width >= To::width) {
-            return convert_builtin<To>(v.d, std::make_index_sequence<To::width>());
-        } else {
-            return convert_builtin_z<To>(
-                v.d, std::make_index_sequence<From::width>(),
-                std::make_index_sequence<To::width - From::width>());
-        }
-#endif
-    }
-}
-
-template <class To, class From> Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1)
-{
-    if constexpr (detail::is_builtin_vector_v<From>) {
-        using Trait = detail::builtin_traits<From>;
-        using S = Storage<typename Trait::value_type, Trait::width>;
-        return convert<To>(S(v0), S(v1));
-    } else if constexpr (std::is_arithmetic_v<From>) {
-        using T = typename To::value_type;
-        return make_storage<T>(v0, v1);
-    } else {
-        static_assert(To::width >= 2 * From::width,
-                      "convert(v0, v1) requires the input to fit into the output");
-#ifdef Vc_WORKAROUND_PR85048
-        return convert_to<To>(v0, v1);
-#else
-        return convert_builtin<To>(
-            v0.d, v1.d, std::make_index_sequence<From::width>(),
-            std::make_index_sequence<To::width - 2 * From::width>());
-#endif
-    }
-}
-
-template <class To, class From>
-Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1, From v2, From v3)
-{
-    if constexpr (detail::is_builtin_vector_v<From>) {
-        using Trait = detail::builtin_traits<From>;
-        using S = Storage<typename Trait::value_type, Trait::width>;
-        return convert<To>(S(v0), S(v1), S(v2), S(v3));
-    } else if constexpr (std::is_arithmetic_v<From>) {
-        using T = typename To::value_type;
-        return make_storage<T>(v0, v1, v2, v3);
-    } else {
-        static_assert(
-            To::width >= 4 * From::width,
-            "convert(v0, v1, v2, v3) requires the input to fit into the output");
-#ifdef Vc_WORKAROUND_PR85048
-        return convert_to<To>(v0, v1, v2, v3);
-#else
-        return convert_builtin<To>(
-            v0.d, v1.d, v2.d, v3.d, std::make_index_sequence<From::width>(),
-            std::make_index_sequence<To::width - 4 * From::width>());
-#endif
-    }
-}
-
-template <class To, class From>
-Vc_INTRINSIC To Vc_VDECL convert(From v0, From v1, From v2, From v3, From v4, From v5, From v6,
-                        From v7)
-{
-    if constexpr (detail::is_builtin_vector_v<From>) {
-        using Trait = detail::builtin_traits<From>;
-        using S = Storage<typename Trait::value_type, Trait::width>;
-        return convert<To>(S(v0), S(v1), S(v2), S(v3), S(v4), S(v5), S(v6), S(v7));
-    } else if constexpr (std::is_arithmetic_v<From>) {
-        using T = typename To::value_type;
-        return make_storage<T>(v0, v1, v2, v3, v4, v5, v6, v7);
-    } else {
-        static_assert(To::width >= 8 * From::width,
-                      "convert(v0, v1, v2, v3, v4, v5, v6, v7) "
-                      "requires the input to fit into the output");
-#ifdef Vc_WORKAROUND_PR85048
-        return convert_to<To>(v0, v1, v2, v3, v4, v5, v6, v7);
-#else
-        return convert_builtin<To>(
-            v0.d, v1.d, v2.d, v3.d, v4.d, v5.d, v6.d, v7.d,
-            std::make_index_sequence<From::width>(),
-            std::make_index_sequence<To::width - 8 * From::width>());
-#endif
-    }
-}
-
-// convert_all function{{{1
-template <typename To, typename From> Vc_INTRINSIC auto convert_all(From v)
-{
-    static_assert(detail::is_builtin_vector_v<To>);
-    if constexpr (detail::is_builtin_vector_v<From>) {
-        using Trait = detail::builtin_traits<From>;
-        using S = Storage<typename Trait::value_type, Trait::width>;
-        return convert_all<To>(S(v));
-    } else if constexpr (From::width > builtin_traits<To>::width) {
-        constexpr size_t N = From::width / builtin_traits<To>::width;
-        return generate_from_n_evaluations<N, std::array<To, N>>([&](auto i) {
-            auto part = x86::extract_part<decltype(i)::value, N>(v);
-            return convert<To>(part);
-        });
-    } else {
-        return convert<To>(v);
-    }
-}
-
-// }}}1
-}}  // namespace detail::x86
-Vc_VERSIONED_NAMESPACE_END
-
-#endif  // VC_SIMD_X86_CONVERT_H_
 
 // vim: foldmethod=marker

@@ -161,7 +161,7 @@ void test_values_3arg(const std::initializer_list<typename V::value_type> &input
 #define MAKE_TESTER(name_)                                                               \
     [](const auto... inputs) {                                                           \
         /*Vc_DEBUG()("testing " #name_ "(", input, ")");*/                               \
-        using Vc::experimental::iif;                                                     \
+        using Vc::__proposed::iif;                                                       \
         const auto totest = name_(inputs...);                                            \
         using R = std::remove_const_t<decltype(totest)>;                                 \
         auto &&expected = [&](const auto &... vs) -> const R {                           \

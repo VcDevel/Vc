@@ -32,7 +32,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ratio>
 #include <type_traits>
 #include <vector>
-#include "macros.h"
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 

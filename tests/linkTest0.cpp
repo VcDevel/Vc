@@ -1,4 +1,5 @@
 #include <Vc/Vc>
+#include <iostream>
 
 using namespace Vc;
 float_v foo0(const float_v &a)

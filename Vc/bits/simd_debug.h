@@ -1,37 +1,15 @@
-/*{{{
-Copyright © 2017 Matthias Kretz <kretz@kde.org>
+#ifndef BITS_SIMD_DEBUG_H_
+#define BITS_SIMD_DEBUG_H_
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the names of contributing organizations nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
+#if defined Vc_DEBUG && !defined Vc_ENABLE_DEBUG
+#define Vc_ENABLE_DEBUG 1
+#endif
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-}}}*/
-
-#ifndef VC_DETAIL_DEBUG_H_
-#define VC_DETAIL_DEBUG_H_
-
-#include "global.h"
+#ifdef Vc_ENABLE_DEBUG
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#endif  // Vc_ENABLE_DEBUG
 
 Vc_VERSIONED_NAMESPACE_BEGIN
 namespace detail
@@ -44,7 +22,6 @@ enum class area : unsigned {
     _ = _enabled,
 
 #ifdef Vc_DEBUG
-#define Vc_ENABLE_DEBUG 1
 
 #define sine       0x0000000000000001ull
 #define cosine     0x0000000000000002ull
@@ -82,37 +59,36 @@ enum class area : unsigned {
     Vc::detail::debug_stream<Vc::detail::area::_##area_>(Vc_PRETTY_FUNCTION, __FILE__,   \
                                                          __LINE__, Vc::detail::debug_instr_ptr())
 
+#ifdef Vc_ENABLE_DEBUG
 #define Vc_PRETTY_PRINT(var_) std::setw(16), #var_ " = ", (var_)
 
-#ifdef Vc_ENABLE_DEBUG
 #define Vc_DEBUG_DEFERRED(area_, ...)                                                    \
     const auto &Vc_CONCAT(Vc_deferred_, __LINE__, _) =                                   \
         detail::defer([&]() { Vc_DEBUG(area_)(__VA_ARGS__); });
 #else   // Vc_ENABLE_DEBUG
+#define Vc_PRETTY_PRINT(var_) (var_)
+
 #define Vc_DEBUG_DEFERRED(area_, ...)
 #endif  // Vc_ENABLE_DEBUG
 
 Vc_ALWAYS_INLINE void *debug_instr_ptr()
 {
-    void *ip;
-#ifdef __GNUC__
+    void *ip = nullptr;
+#if defined Vc_ENABLE_DEBUG
 #ifdef __x86_64__
     asm volatile("lea 0(%%rip),%0" : "=r"(ip));
 #elif defined __i386__
     asm volatile("1: movl $1b,%0" : "=r"(ip));
 #elif defined __arm__
     asm volatile("mov %0,pc" : "=r"(ip));
-#else
-    ip = nullptr;
 #endif
-#else   //__GNUC__
-    ip = nullptr;
 #endif  //__GNUC__
     return ip;
 }
 
 template <area> class debug_stream;
 
+#ifdef Vc_ENABLE_DEBUG
 template <> class debug_stream<area::_enabled>
 {
     std::stringstream buffer;
@@ -166,6 +142,7 @@ private:
         }
     }
 };
+#endif  // Vc_ENABLE_DEBUGGING
 
 template <> class debug_stream<area::_disabled>
 {
@@ -192,4 +169,4 @@ template <typename F> detail::defer_raii<F> defer(F && f) { return {std::forward
 }  // namespace detail
 Vc_VERSIONED_NAMESPACE_END
 
-#endif  // VC_DETAIL_DEBUG_H_
+#endif  // BITS_SIMD_DEBUG_H_

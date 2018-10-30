@@ -1,4 +1,5 @@
 #include <Vc/Vc>
+#include <iostream>
 
 using namespace Vc;
 
@@ -17,7 +18,7 @@ float_v foo1(const float_v &a)
     return b;
 }
 
-int Vc_CDECL main()
+int main()
 {
     float_v x{[](unsigned i) -> float { return (i + 0x7fffffffu) * 298592097u; }};
     x = fooLib0A(fooLib0B(fooLib1A(fooLib1B(fooLib2(fooLib3(foo0(foo1(x))))))));

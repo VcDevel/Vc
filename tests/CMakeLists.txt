@@ -351,7 +351,7 @@ vc_add_test(allcvt_casts SOURCE casts.cpp EXCLUDE_FROM_ALL)
 vc_add_test(math NO_TESTTYPES)
 vc_add_test(specialmath NO_TESTTYPES)
 vc_add_test(where NO_TESTTYPES)
-vc_add_test(experimental NO_TESTTYPES)
+#vc_add_test(experimental NO_TESTTYPES)
 vc_add_test(bitset_conversions NO_TESTTYPES)
 
 # ABI tests#{{{
