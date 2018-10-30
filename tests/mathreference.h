@@ -76,8 +76,8 @@ template <class F, class T>
 using testdatatype_for_function_t =
     typename testdatatype_for_function<F>::template type<T>;
 
-#ifdef Vc_LINK_TESTDATA
-#ifdef Vc_CLANG
+#ifdef _GLIBCXX_SIMD_LINK_TESTDATA
+#ifdef _GLIBCXX_SIMD_CLANG
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wundefined-var-template"
 // the definition for begin_ and end_ is in the *.dat.o file that gets linked into the
@@ -92,11 +92,11 @@ template <class F, class T> struct reference_data {
     static std::size_t size() { return end() - begin(); }
     const Ref &operator[](std::size_t i) const { return begin()[i]; }
 };
-#ifdef Vc_CLANG
+#ifdef _GLIBCXX_SIMD_CLANG
 #pragma clang diagnostic pop
 #endif
 
-#else  // Vc_LINK_TESTDATA
+#else  // _GLIBCXX_SIMD_LINK_TESTDATA
 
 template<typename T> struct StaticDeleter
 {
@@ -112,14 +112,14 @@ template <class F, class T> inline std::string filename()
                               (std::is_same<T, float>::value ? "-sp" : "-dp") + ".dat";
     return cache;
 }
-#endif  // Vc_LINK_TESTDATA
+#endif  // _GLIBCXX_SIMD_LINK_TESTDATA
 
 template <class Fun, class T, class Ref = testdatatype_for_function_t<Fun, T>>
 Array<Ref> referenceData()
 {
-#ifdef Vc_LINK_TESTDATA
+#ifdef _GLIBCXX_SIMD_LINK_TESTDATA
     return {reference_data<Fun, T>::size(), reference_data<Fun,T>::begin()};
-#else   // Vc_LINK_TESTDATA
+#else   // _GLIBCXX_SIMD_LINK_TESTDATA
     static Array<Ref> data;
     if (data.data_ == nullptr) {
         FILE *file = std::fopen(filename<Fun, T>().c_str(), "rb");
@@ -138,7 +138,7 @@ Array<Ref> referenceData()
         }
     }
     return data;
-#endif  // Vc_LINK_TESTDATA
+#endif  // _GLIBCXX_SIMD_LINK_TESTDATA
 }
 
 //}}}1

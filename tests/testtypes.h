@@ -29,7 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define TESTS_TESTTYPES_H_
 
 #include <vir/typelist.h>
-#include <Vc/simd>
+#include <experimental/simd>
 
 using schar = signed char;
 using uchar = unsigned char;
@@ -44,8 +44,8 @@ using char16 = char16_t;
 using char32 = char32_t;
 
 using all_native_abis =
-    vir::Typelist<Vc::simd_abi::scalar, Vc::simd_abi::__sse, Vc::simd_abi::__avx,
-                  Vc::simd_abi::__avx512, Vc::simd_abi::__neon>;
+    vir::Typelist<std::experimental::simd_abi::scalar, std::experimental::simd_abi::__sse, std::experimental::simd_abi::__avx,
+                  std::experimental::simd_abi::__avx512, std::experimental::simd_abi::__neon>;
 
 using testtypes = vir::Typelist<
 #ifdef TESTTYPES
@@ -78,79 +78,79 @@ using arithmetic_types = all_arithmetic_types;
 #endif
 
 // vT {{{1
-using vschar = Vc::native_simd<schar>;
-using vuchar = Vc::native_simd<uchar>;
-using vshort = Vc::native_simd<short>;
-using vushort = Vc::native_simd<ushort>;
-using vint = Vc::native_simd<int>;
-using vuint = Vc::native_simd<uint>;
-using vlong = Vc::native_simd<long>;
-using vulong = Vc::native_simd<ulong>;
-using vllong = Vc::native_simd<llong>;
-using vullong = Vc::native_simd<ullong>;
-using vfloat = Vc::native_simd<float>;
-using vdouble = Vc::native_simd<double>;
-using vldouble = Vc::native_simd<long double>;
+using vschar = std::experimental::native_simd<schar>;
+using vuchar = std::experimental::native_simd<uchar>;
+using vshort = std::experimental::native_simd<short>;
+using vushort = std::experimental::native_simd<ushort>;
+using vint = std::experimental::native_simd<int>;
+using vuint = std::experimental::native_simd<uint>;
+using vlong = std::experimental::native_simd<long>;
+using vulong = std::experimental::native_simd<ulong>;
+using vllong = std::experimental::native_simd<llong>;
+using vullong = std::experimental::native_simd<ullong>;
+using vfloat = std::experimental::native_simd<float>;
+using vdouble = std::experimental::native_simd<double>;
+using vldouble = std::experimental::native_simd<long double>;
 
-using vchar = Vc::native_simd<char>;
-using vwchar = Vc::native_simd<wchar_t>;
-using vchar16 = Vc::native_simd<char16_t>;
-using vchar32 = Vc::native_simd<char32_t>;
+using vchar = std::experimental::native_simd<char>;
+using vwchar = std::experimental::native_simd<wchar_t>;
+using vchar16 = std::experimental::native_simd<char16_t>;
+using vchar32 = std::experimental::native_simd<char32_t>;
 
 // viN/vfN {{{1
-template <typename T> using vi8  = Vc::fixed_size_simd<T, vschar::size()>;
-template <typename T> using vi16 = Vc::fixed_size_simd<T, vshort::size()>;
-template <typename T> using vf32 = Vc::fixed_size_simd<T, vfloat::size()>;
-template <typename T> using vi32 = Vc::fixed_size_simd<T, vint::size()>;
-template <typename T> using vf64 = Vc::fixed_size_simd<T, vdouble::size()>;
-template <typename T> using vi64 = Vc::fixed_size_simd<T, vllong::size()>;
+template <typename T> using vi8  = std::experimental::fixed_size_simd<T, vschar::size()>;
+template <typename T> using vi16 = std::experimental::fixed_size_simd<T, vshort::size()>;
+template <typename T> using vf32 = std::experimental::fixed_size_simd<T, vfloat::size()>;
+template <typename T> using vi32 = std::experimental::fixed_size_simd<T, vint::size()>;
+template <typename T> using vf64 = std::experimental::fixed_size_simd<T, vdouble::size()>;
+template <typename T> using vi64 = std::experimental::fixed_size_simd<T, vllong::size()>;
 template <typename T>
 using vl = typename std::conditional<sizeof(long) == sizeof(llong), vi64<T>, vi32<T>>::type;
 
 // current_native_test_types {{{1
 using current_native_test_types =
-    vir::expand_one<vir::Template1<Vc::native_simd>, testtypes>;
+    vir::expand_one<vir::Template1<std::experimental::native_simd>, testtypes>;
 using current_native_mask_test_types =
-    vir::expand_one<vir::Template1<Vc::native_simd_mask>, testtypes>;
+    vir::expand_one<vir::Template1<std::experimental::native_simd_mask>, testtypes>;
 
 // native_test_types {{{1
 typedef vir::concat<
-#if defined Vc_HAVE_AVX512_ABI && !defined Vc_HAVE_FULL_AVX512_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__avx512>,
+#if defined _GLIBCXX_SIMD_HAVE_AVX512_ABI && !defined _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+    vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__avx512>,
                     testtypes_64_32>,
 #endif
-#if defined Vc_HAVE_AVX_ABI && !defined Vc_HAVE_FULL_AVX_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__avx>, testtypes_fp>,
+#if defined _GLIBCXX_SIMD_HAVE_AVX_ABI && !defined _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
+    vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__avx>, testtypes_fp>,
 #endif
-#if defined Vc_HAVE_SSE_ABI && !defined Vc_HAVE_FULL_SSE_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__sse>, testtypes_float>,
+#if defined _GLIBCXX_SIMD_HAVE_SSE_ABI && !defined _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+    vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__sse>, testtypes_float>,
 #endif
     vir::expand_list<vir::concat<
-#ifdef Vc_HAVE_FULL_AVX512_ABI
-                         vir::Template<base_template, Vc::simd_abi::__avx512>,
+#ifdef _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+                         vir::Template<base_template, std::experimental::simd_abi::__avx512>,
 #endif
-#ifdef Vc_HAVE_FULL_AVX_ABI
-                         vir::Template<base_template, Vc::simd_abi::__avx>,
+#ifdef _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
+                         vir::Template<base_template, std::experimental::simd_abi::__avx>,
 #endif
-#ifdef Vc_HAVE_FULL_SSE_ABI
-                         vir::Template<base_template, Vc::simd_abi::__sse>,
+#ifdef _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+                         vir::Template<base_template, std::experimental::simd_abi::__sse>,
 #endif
                          vir::Typelist<>>,
                      testtypes_wo_ldouble>> native_test_types;
 
 // native_real_test_types {{{1
 using native_real_test_types = vir::concat<
-#if defined Vc_HAVE_AVX512_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__avx512>, testtypes_fp>,
+#if defined _GLIBCXX_SIMD_HAVE_AVX512_ABI
+    vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__avx512>, testtypes_fp>,
 #endif
-#if defined Vc_HAVE_AVX_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__avx>, testtypes_fp>,
+#if defined _GLIBCXX_SIMD_HAVE_AVX_ABI
+    vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__avx>, testtypes_fp>,
 #endif
-#if defined Vc_HAVE_SSE_ABI
-#if defined Vc_HAVE_FULL_SSE_ABI
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__sse>, testtypes_fp>,
+#if defined _GLIBCXX_SIMD_HAVE_SSE_ABI
+#if defined _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+    vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__sse>, testtypes_fp>,
 #else
-    vir::expand_one<vir::Template<base_template, Vc::simd_abi::__sse>, testtypes_float>,
+    vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__sse>, testtypes_float>,
 #endif
 #endif
     vir::Typelist<>>;
@@ -158,94 +158,94 @@ using native_real_test_types = vir::concat<
 // two_fixed_size_abi {{{1
 using two_fixed_size_abi = vir::concat<
     VIR_CHOOSE_ONE_RANDOMLY(
-        vir::Typelist<vir::Template<base_template, Vc::simd_abi::fixed_size<1>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<2>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<3>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<4>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<5>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<6>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<7>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<8>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<9>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<10>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<11>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<12>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<13>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<14>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<15>>>),
+        vir::Typelist<vir::Template<base_template, std::experimental::simd_abi::fixed_size<1>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<2>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<3>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<4>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<5>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<6>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<7>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<8>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<9>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<10>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<11>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<12>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<13>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<14>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<15>>>),
     VIR_CHOOSE_ONE_RANDOMLY(
         vir::Typelist<
-            vir::Template<base_template, Vc::simd_abi::fixed_size<16>>,
-            vir::Template<base_template, Vc::simd_abi::fixed_size<
-                                             Vc::simd_abi::max_fixed_size<double> - 1>>,
-            vir::Template<base_template, Vc::simd_abi::fixed_size<
-                                             Vc::simd_abi::max_fixed_size<double>>>>)>;
+            vir::Template<base_template, std::experimental::simd_abi::fixed_size<16>>,
+            vir::Template<base_template, std::experimental::simd_abi::fixed_size<
+                                             std::experimental::simd_abi::max_fixed_size<double> - 1>>,
+            vir::Template<base_template, std::experimental::simd_abi::fixed_size<
+                                             std::experimental::simd_abi::max_fixed_size<double>>>>)>;
 
 // three_fixed_size_abi {{{1
 using three_fixed_size_abi = vir::concat<
     VIR_CHOOSE_ONE_RANDOMLY(
-        vir::Typelist<vir::Template<base_template, Vc::simd_abi::fixed_size<3>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<6>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<8>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<12>>>),
+        vir::Typelist<vir::Template<base_template, std::experimental::simd_abi::fixed_size<3>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<6>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<8>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<12>>>),
     VIR_CHOOSE_ONE_RANDOMLY(
-        vir::Typelist<vir::Template<base_template, Vc::simd_abi::fixed_size<1>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<2>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<4>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<5>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<7>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<9>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<10>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<11>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<13>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<14>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<15>>>),
+        vir::Typelist<vir::Template<base_template, std::experimental::simd_abi::fixed_size<1>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<2>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<4>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<5>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<7>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<9>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<10>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<11>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<13>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<14>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<15>>>),
     VIR_CHOOSE_ONE_RANDOMLY(
-        vir::Typelist<vir::Template<base_template, Vc::simd_abi::fixed_size<16>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<31>>,
-                      vir::Template<base_template, Vc::simd_abi::fixed_size<32>>>)>;
+        vir::Typelist<vir::Template<base_template, std::experimental::simd_abi::fixed_size<16>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<31>>,
+                      vir::Template<base_template, std::experimental::simd_abi::fixed_size<32>>>)>;
 
 // all_test_types {{{1
 using all_test_types = vir::concat<
     native_test_types,
-    vir::expand_list<vir::concat<vir::Template<base_template, Vc::simd_abi::scalar>,
+    vir::expand_list<vir::concat<vir::Template<base_template, std::experimental::simd_abi::scalar>,
                                  three_fixed_size_abi>,
                      testtypes>>;
 
 // real_test_types {{{1
 using real_test_types = vir::concat<
     native_real_test_types,
-    vir::expand_list<vir::concat<vir::Template<base_template, Vc::simd_abi::scalar>,
+    vir::expand_list<vir::concat<vir::Template<base_template, std::experimental::simd_abi::scalar>,
                                  three_fixed_size_abi>,
                      testtypes_fp>>;
 
 // many_fixed_size_types {{{1
 using many_fixed_size_types = vir::expand_list<
-    vir::Typelist<vir::Template<base_template, Vc::simd_abi::fixed_size<3>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<4>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<5>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<6>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<7>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<8>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<9>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<10>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<11>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<12>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<13>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<14>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<15>>,
-                  vir::Template<base_template, Vc::simd_abi::fixed_size<17>>>,
+    vir::Typelist<vir::Template<base_template, std::experimental::simd_abi::fixed_size<3>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<4>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<5>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<6>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<7>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<8>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<9>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<10>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<11>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<12>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<13>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<14>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<15>>,
+                  vir::Template<base_template, std::experimental::simd_abi::fixed_size<17>>>,
     testtypes_float>;
 // reduced_test_types {{{1
-#ifdef Vc_HAVE_AVX512F
+#ifdef _GLIBCXX_SIMD_HAVE_AVX512F
 // reduce compile times when AVX512 is available
 using reduced_test_types = native_test_types;
-#else   // Vc_HAVE_AVX512F
+#else   // _GLIBCXX_SIMD_HAVE_AVX512F
 typedef vir::concat<
     native_test_types,
-    vir::expand_list<vir::Typelist<vir::Template<base_template, Vc::simd_abi::scalar>>,
+    vir::expand_list<vir::Typelist<vir::Template<base_template, std::experimental::simd_abi::scalar>>,
                      testtypes>> reduced_test_types;
-#endif  // Vc_HAVE_AVX512F
+#endif  // _GLIBCXX_SIMD_HAVE_AVX512F
 
 //}}}1
 #endif  // TESTS_TESTTYPES_H_

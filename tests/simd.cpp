@@ -27,11 +27,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/simd>
+#include <experimental/simd>
 #include "metahelpers.h"
 #include <random>
 
-template <class... Ts> using base_template = Vc::simd<Ts...>;
+template <class... Ts> using base_template = std::experimental::simd<Ts...>;
 #include "testtypes.h"
 
 static std::mt19937 g_mt_gen{0};
@@ -41,8 +41,8 @@ struct convertible { operator int(); operator float(); };  //{{{1
 TEST_TYPES(V, broadcast, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
-    VERIFY(Vc::is_simd_v<V>);
-    VERIFY(Vc::is_abi_tag_v<typename V::abi_type>);
+    VERIFY(std::experimental::is_simd_v<V>);
+    VERIFY(std::experimental::is_abi_tag_v<typename V::abi_type>);
 
     {
         V x;      // not initialized
@@ -306,8 +306,8 @@ TEST_TYPES(V, operator_conversions, current_native_test_types)  //{{{1
         binary_op_return_type<vf64<long double>, double>();
         binary_op_return_type<vf64<long double>, vf64<long double>>();
 
-        using Vc::simd;
-        using A = Vc::simd_abi::fixed_size<vldouble::size()>;
+        using std::experimental::simd;
+        using A = std::experimental::simd_abi::fixed_size<vldouble::size()>;
         binary_op_return_type<simd<long double, A>, schar>();
         binary_op_return_type<simd<long double, A>, uchar>();
         binary_op_return_type<simd<long double, A>, short>();
@@ -1068,7 +1068,7 @@ TEST_TYPES(V, reductions, all_test_types)  //{{{1
 {
     using T = typename V::value_type;
     COMPARE(reduce(V(1)), T(V::size()));
-    COMPARE(Vc::reduce(V(1), std::multiplies<>()), T(1));
+    COMPARE(std::experimental::reduce(V(1), std::multiplies<>()), T(1));
     COMPARE(reduce(V([](int i) { return i & 1; })), T(V::size() / 2));
     COMPARE(reduce(V([](int i) { return i % 3; })),
             T(3 * (V::size() / 3)    // 0+1+2 for every complete 3 elements in V
@@ -1088,21 +1088,21 @@ TEST_TYPES(V, reductions, all_test_types)  //{{{1
 
     {
         const V z([](T i) { return i + 1; });
-        COMPARE(Vc::reduce(z,
+        COMPARE(std::experimental::reduce(z,
                            [](auto a, auto b) {
                                using std::min;
                                return min(a, b);
                            }),
                 T(1))
             << "z: " << z;
-        COMPARE(Vc::reduce(z,
+        COMPARE(std::experimental::reduce(z,
                            [](auto a, auto b) {
                                using std::max;
                                return max(a, b);
                            }),
                 T(V::size()))
             << "z: " << z;
-        COMPARE(Vc::reduce(where(z > 1, z), 117,
+        COMPARE(std::experimental::reduce(where(z > 1, z), 117,
                            [](auto a, auto b) {
                                using std::min;
                                return min(a, b);

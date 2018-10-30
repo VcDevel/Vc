@@ -27,10 +27,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/simd>
+#include <experimental/simd>
 #include "metahelpers.h"
 
-template <class... Ts> using base_template = Vc::simd_mask<Ts...>;
+template <class... Ts> using base_template = std::experimental::simd_mask<Ts...>;
 #include "testtypes.h"
 
 // simd_mask generator functions {{{1
@@ -65,7 +65,7 @@ TEST_TYPES(M, broadcast, all_test_types)  //{{{1
                           return {};
                       }),
                   "A smart_reference<simd_mask> must be comparable against bool.");
-    VERIFY(Vc::is_simd_mask_v<M>);
+    VERIFY(std::experimental::is_simd_mask_v<M>);
 
     {
         M x;      // uninitialized
@@ -129,7 +129,7 @@ TEST_TYPES(M, operators, all_test_types)  //{{{1
 template <class M, class M2>
 constexpr bool assign_should_work =
     std::is_same<M, M2>::value ||
-    (std::is_same<typename M::abi_type, Vc::simd_abi::fixed_size<M::size()>>::value &&
+    (std::is_same<typename M::abi_type, std::experimental::simd_abi::fixed_size<M::size()>>::value &&
      std::is_same<typename M::abi_type, typename M2::abi_type>::value);
 template <class M, class M2>
 constexpr bool assign_should_not_work = !assign_should_work<M, M2>;
@@ -157,9 +157,9 @@ std::enable_if_t<assign_should_not_work<L, R>> implicit_conversions_test()
 
 TEST_TYPES(M, implicit_conversions, all_test_types)
 {
-    using Vc::simd_mask;
-    using Vc::native_simd_mask;
-    using Vc::fixed_size_simd_mask;
+    using std::experimental::simd_mask;
+    using std::experimental::native_simd_mask;
+    using std::experimental::fixed_size_simd_mask;
 
     implicit_conversions_test<M, simd_mask<ldouble>>();
     implicit_conversions_test<M, simd_mask<double>>();
@@ -205,15 +205,15 @@ TEST_TYPES(M, implicit_conversions, all_test_types)
 TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
 {
     // loads {{{2
-    constexpr size_t alignment = 2 * Vc::memory_alignment_v<M>;
+    constexpr size_t alignment = 2 * std::experimental::memory_alignment_v<M>;
     alignas(alignment) bool mem[3 * M::size()];
     std::memset(mem, 0, sizeof(mem));
     for (std::size_t i = 1; i < sizeof(mem) / sizeof(*mem); i += 2) {
         COMPARE(mem[i - 1], false);
         mem[i] = true;
     }
-    using Vc::element_aligned;
-    using Vc::vector_aligned;
+    using std::experimental::element_aligned;
+    using std::experimental::vector_aligned;
     constexpr size_t stride_alignment =
         M::size() & 1 ? 1 : M::size() & 2
                                 ? 2
@@ -234,9 +234,9 @@ TEST_TYPES(M, load_store, concat<all_test_types, many_fixed_size_types>)  //{{{1
                                                                           : 512;
     using stride_aligned_t =
         std::conditional_t<M::size() == stride_alignment, decltype(vector_aligned),
-                           Vc::overaligned_tag<stride_alignment * sizeof(bool)>>;
+                           std::experimental::overaligned_tag<stride_alignment * sizeof(bool)>>;
     constexpr stride_aligned_t stride_aligned = {};
-    constexpr auto overaligned = Vc::overaligned<alignment>;
+    constexpr auto overaligned = std::experimental::overaligned<alignment>;
 
     const M alternating_mask = make_alternating_mask<M>();
 
@@ -311,9 +311,9 @@ TEST_TYPES(M, operator_conversions, current_native_mask_test_types)  //{{{1
     COMPARE(typeid(M() & M()), typeid(M));
 
     // nothing else works: no implicit conv. or ambiguous
-    using Vc::simd_mask;
-    using Vc::native_simd_mask;
-    using Vc::fixed_size_simd_mask;
+    using std::experimental::simd_mask;
+    using std::experimental::native_simd_mask;
+    using std::experimental::fixed_size_simd_mask;
     auto &&sfinae_test = [](auto x) {
         return is_substitution_failure<M, decltype(x), std::bit_and<>>;
     };
@@ -378,37 +378,37 @@ TEST_TYPES(M, reductions, all_test_types)  //{{{1
     VERIFY( all_of(M{true}));
     VERIFY(!all_of(alternating_mask));
     VERIFY(!all_of(M{false}));
-    using Vc::all_of;
+    using std::experimental::all_of;
     VERIFY( all_of(true));
     VERIFY(!all_of(false));
-    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::all_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::all_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::all_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::all_of(x)) { return {}; }));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(std::experimental::all_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(std::experimental::all_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(std::experimental::all_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(std::experimental::all_of(x)) { return {}; }));
 
     // any_of
     VERIFY( any_of(M{true}));
     COMPARE(any_of(alternating_mask), M::size() > 1);
     VERIFY(!any_of(M{false}));
-    using Vc::any_of;
+    using std::experimental::any_of;
     VERIFY( any_of(true));
     VERIFY(!any_of(false));
-    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::any_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::any_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::any_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::any_of(x)) { return {}; }));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(std::experimental::any_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(std::experimental::any_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(std::experimental::any_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(std::experimental::any_of(x)) { return {}; }));
 
     // none_of
     VERIFY(!none_of(M{true}));
     COMPARE(none_of(alternating_mask), M::size() == 1);
     VERIFY( none_of(M{false}));
-    using Vc::none_of;
+    using std::experimental::none_of;
     VERIFY(!none_of(true));
     VERIFY( none_of(false));
-    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::none_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::none_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::none_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::none_of(x)) { return {}; }));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(std::experimental::none_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(std::experimental::none_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(std::experimental::none_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(std::experimental::none_of(x)) { return {}; }));
 
     // some_of
     VERIFY(!some_of(M{true}));
@@ -420,13 +420,13 @@ TEST_TYPES(M, reductions, all_test_types)  //{{{1
             VERIFY(some_of(gen({0, 0, 0, 1})));
         }
     }
-    using Vc::some_of;
+    using std::experimental::some_of;
     VERIFY(!some_of(true));
     VERIFY(!some_of(false));
-    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::some_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::some_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::some_of(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::some_of(x)) { return {}; }));
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(std::experimental::some_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(std::experimental::some_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(std::experimental::some_of(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(std::experimental::some_of(x)) { return {}; }));
 
     // popcount
     COMPARE(popcount(M{true}), int(M::size()));
@@ -435,12 +435,12 @@ TEST_TYPES(M, reductions, all_test_types)  //{{{1
     COMPARE(popcount(gen({0, 0, 1})), int(M::size()) / 3);
     COMPARE(popcount(gen({0, 0, 0, 1})), int(M::size()) / 4);
     COMPARE(popcount(gen({0, 0, 0, 0, 1})), int(M::size()) / 5);
-    COMPARE(Vc::popcount(true), 1);
-    COMPARE(Vc::popcount(false), 0);
-    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::popcount(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::popcount(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::popcount(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::popcount(x)) { return {}; }));
+    COMPARE(std::experimental::popcount(true), 1);
+    COMPARE(std::experimental::popcount(false), 0);
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(std::experimental::popcount(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(std::experimental::popcount(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(std::experimental::popcount(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(std::experimental::popcount(x)) { return {}; }));
 
     // find_first_set
     {
@@ -462,11 +462,11 @@ TEST_TYPES(M, reductions, all_test_types)  //{{{1
     if (M::size() > 2) {
         COMPARE(find_first_set(gen({0, 0, 1})), 2);
     }
-    COMPARE(Vc::find_first_set(true), 0);
-    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::find_first_set(x)) { return {}; }));
+    COMPARE(std::experimental::find_first_set(true), 0);
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(std::experimental::find_first_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(std::experimental::find_first_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(std::experimental::find_first_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(std::experimental::find_first_set(x)) { return {}; }));
 
     // find_last_set
     {
@@ -483,11 +483,11 @@ TEST_TYPES(M, reductions, all_test_types)  //{{{1
     if (M::size() > 3 && (M::size() & 3) == 0) {
         COMPARE(find_last_set(gen({1, 0, 0, 0})), int(M::size()) - 4 - int(M::size() & 3));
     }
-    COMPARE(Vc::find_last_set(true), 0);
-    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
-    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(Vc::find_last_set(x)) { return {}; }));
+    COMPARE(std::experimental::find_last_set(true), 0);
+    VERIFY( sfinae_is_callable< bool>([](auto x) -> decltype(std::experimental::find_last_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<  int>([](auto x) -> decltype(std::experimental::find_last_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable<float>([](auto x) -> decltype(std::experimental::find_last_set(x)) { return {}; }));
+    VERIFY(!sfinae_is_callable< char>([](auto x) -> decltype(std::experimental::find_last_set(x)) { return {}; }));
 }
 
 

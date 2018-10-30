@@ -1,6 +1,6 @@
-#include <Vc/simd>
+#include <experimental/simd>
 
-using float_v = Vc::simd<float, Vc::simd_abi::Vc_ABI>;
+using float_v = std::experimental::simd<float, std::experimental::simd_abi::_GLIBCXX_SIMD_ABI>;
 using float_m = typename float_v::mask_type;
 
 float_v test(float_v a, float_v b)

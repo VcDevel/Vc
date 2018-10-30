@@ -28,10 +28,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/testassert.h>
 #include <vir/test.h>
-#include <Vc/simd>
+#include <experimental/simd>
 #include "make_vec.h"
 
-template <class... Ts> using base_template = Vc::simd<Ts...>;
+template <class... Ts> using base_template = std::experimental::simd<Ts...>;
 #include "testtypes.h"
 #include "conversions.h"
 
@@ -47,8 +47,8 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
     using U = typename VU::template at<1>;
     using T = typename V::value_type;
     auto &&gen = make_vec<V>;
-    using Vc::element_aligned;
-    using Vc::vector_aligned;
+    using std::experimental::element_aligned;
+    using std::experimental::vector_aligned;
 
     // stride_alignment: consider V::size() == 6. The only reliable alignment is
     // 2 * sizeof(U). I.e. if the first address is aligned to 8 * sizeof(U), then the next
@@ -74,10 +74,10 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
                                                                           : 512;
     using stride_aligned_t =
         std::conditional_t<V::size() == stride_alignment, decltype(vector_aligned),
-                           Vc::overaligned_tag<stride_alignment * sizeof(U)>>;
+                           std::experimental::overaligned_tag<stride_alignment * sizeof(U)>>;
     constexpr stride_aligned_t stride_aligned = {};
-    constexpr size_t alignment = 2 * Vc::memory_alignment_v<V, U>;
-    constexpr auto overaligned = Vc::overaligned<alignment>;
+    constexpr size_t alignment = 2 * std::experimental::memory_alignment_v<V, U>;
+    constexpr auto overaligned = std::experimental::overaligned<alignment>;
     const V indexes_from_0 = gen({0, 1, 2, 3}, 4);
     for (std::size_t i = 0; i < V::size(); ++i) {
         COMPARE(indexes_from_0[i], T(i));
@@ -88,8 +88,8 @@ TEST_TYPES(VU, load_store, outer_product<all_test_types, MemTypes>)
 
     constexpr auto mem_size =
         test_values.size() > 3 * V::size() ? test_values.size() : 3 * V::size();
-    alignas(Vc::memory_alignment_v<V, U> * 2) U mem[mem_size] = {};
-    alignas(Vc::memory_alignment_v<V, T> * 2) T reference[mem_size] = {};
+    alignas(std::experimental::memory_alignment_v<V, U> * 2) U mem[mem_size] = {};
+    alignas(std::experimental::memory_alignment_v<V, T> * 2) T reference[mem_size] = {};
     for (std::size_t i = 0; i < test_values.size(); ++i) {
         const U value = test_values[i];
         mem[i] = value;

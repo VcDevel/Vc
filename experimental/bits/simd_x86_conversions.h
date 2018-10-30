@@ -1,3 +1,10 @@
+#ifndef _GLIBCXX_EXPERIMENTAL_SIMD_X86_CONVERSIONS_H
+#define _GLIBCXX_EXPERIMENTAL_SIMD_X86_CONVERSIONS_H
+
+#pragma GCC system_header
+
+#if __cplusplus >= 201703L
+
 // convert_to declarations {{{1
 template <class To, class T, class Traits = builtin_traits<T>> To convert_to(T);
 template <class To, class T, class Traits = builtin_traits<T>> To convert_to(T, T);
@@ -11,7 +18,7 @@ To convert_to(T, T, T, T, T, T, T, T);
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
 #pragma GCC diagnostic ignored "-Wunused-variable"
 // 1-arg convert_to {{{1
-template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv)
+template <class To, class V, class Traits> _GLIBCXX_SIMD_INTRINSIC To convert_to(V vv)
 {
     using T = typename Traits::value_type;
     constexpr size_t N = Traits::width;
@@ -585,7 +592,7 @@ template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv)
     //}}}
 } // }}}
 // 2-arg convert_to {{{1
-template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv0, V vv1)
+template <class To, class V, class Traits> _GLIBCXX_SIMD_INTRINSIC To convert_to(V vv0, V vv1)
 {
     using T = typename Traits::value_type;
     constexpr size_t N = Traits::width;
@@ -932,7 +939,7 @@ template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv0, V v
     }
 }//}}}1
 // 4-arg convert_to {{{1
-template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv0, V vv1,V vv2,V vv3)
+template <class To, class V, class Traits> _GLIBCXX_SIMD_INTRINSIC To convert_to(V vv0, V vv1,V vv2,V vv3)
 {
     using T = typename Traits::value_type;
     constexpr size_t N = Traits::width;
@@ -1189,7 +1196,7 @@ template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv0, V v
     }
 }//}}}
 // 8-arg convert_to {{{1
-template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv0, V vv1,V vv2,V vv3,V vv4,V vv5, V vv6, V vv7)
+template <class To, class V, class Traits> _GLIBCXX_SIMD_INTRINSIC To convert_to(V vv0, V vv1,V vv2,V vv3,V vv4,V vv5, V vv6, V vv7)
 {
     using T = typename Traits::value_type;
     constexpr size_t N = Traits::width;
@@ -1332,4 +1339,6 @@ template <class To, class V, class Traits> Vc_INTRINSIC To convert_to(V vv0, V v
 }//}}}
 #pragma GCC diagnostic pop
 
+#endif  // __cplusplus >= 201703L
+#endif  // _GLIBCXX_EXPERIMENTAL_SIMD_X86_CONVERSIONS_H
 // vim: foldmethod=marker

@@ -25,10 +25,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-//#define Vc_DEBUG frexp
+//#define _GLIBCXX_SIMD_DEBUG frexp
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/simd>
+#include <experimental/simd>
 #include "metahelpers.h"
 #include <cmath>    // abs & sqrt
 #include <cstdlib>  // integer abs
@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "simd_view.h"
 #include "test_values.h"
 
-template <class... Ts> using base_template = Vc::simd<Ts...>;
+template <class... Ts> using base_template = std::experimental::simd<Ts...>;
 #include "testtypes.h"
 
 template <size_t Offset, class V, class Iterator> V test_tuples_gather(const Iterator &it)
@@ -103,7 +103,7 @@ TEST_TYPES(V, fpclassify, real_test_types)  //{{{1
          -limits::min() * 0.9, limits::denorm_min(), -limits::denorm_min(),
          limits::quiet_NaN(), limits::signaling_NaN()},
         [](const V input) {
-            using intv = Vc::fixed_size_simd<int, V::size()>;
+            using intv = std::experimental::fixed_size_simd<int, V::size()>;
             COMPARE(isfinite(input), !V([&](auto i) { return std::isfinite(input[i]) ? 0 : 1; })) << input;
             COMPARE(isinf(input), !V([&](auto i) { return std::isinf(input[i]) ? 0 : 1; })) << input;
             COMPARE(isnan(input), !V([&](auto i) { return std::isnan(input[i]) ? 0 : 1; })) << input;
@@ -190,7 +190,7 @@ TEST_TYPES(V, trunc_ceil_floor, real_test_types)  //{{{1
 
 TEST_TYPES(V, frexp, real_test_types)  //{{{1
 {
-    using int_v = Vc::fixed_size_simd<int, V::size()>;
+    using int_v = std::experimental::fixed_size_simd<int, V::size()>;
     using limits = std::numeric_limits<typename V::value_type>;
     test_values<V>(
         {0,   0.25, 0.5, 1,   3,   4,   6,   7,     8,    9,   10,  11,  12,
@@ -272,7 +272,7 @@ TEST_TYPES(V, sin, real_test_types)  //{{{1
     vir::test::setFuzzyness<double>(1e7);
 
     const auto &testdata = referenceData<function::sincos, T>();
-    Vc::experimental::simd_view<V>(testdata).for_each(
+    std::experimental::experimental::simd_view<V>(testdata).for_each(
         [&](const V input, const V expected, const V) {
             FUZZY_COMPARE(sin(input), expected) << " input = " << input;
             FUZZY_COMPARE(sin(-input), -expected) << " input = " << input;
@@ -288,7 +288,7 @@ TEST_TYPES(V, cos, real_test_types)  //{{{1
     vir::test::setFuzzyness<double>(1e7);
 
     const auto &testdata = referenceData<function::sincos, T>();
-    Vc::experimental::simd_view<V>(testdata).for_each(
+    std::experimental::experimental::simd_view<V>(testdata).for_each(
         [&](const V input, const V, const V expected) {
             FUZZY_COMPARE(cos(input), expected) << " input = " << input;
             FUZZY_COMPARE(cos(-input), expected) << " input = " << input;
@@ -304,7 +304,7 @@ TEST_TYPES(V, asin, real_test_types)  //{{{1
     vir::test::setFuzzyness<double>(36);
 
     const auto &testdata = referenceData<function::asin, T>();
-    Vc::experimental::simd_view<V>(testdata).for_each(
+    std::experimental::experimental::simd_view<V>(testdata).for_each(
         [&](const V input, const V expected) {
             FUZZY_COMPARE(asin(input), expected) << " input = " << input;
             FUZZY_COMPARE(asin(-input), -expected) << " input = " << input;
@@ -330,7 +330,7 @@ TEST_TYPES(V, atan, real_test_types)  //{{{1
                    });
 
     const auto &testdata = referenceData<function::atan, T>();
-    Vc::experimental::simd_view<V>(testdata).for_each(
+    std::experimental::experimental::simd_view<V>(testdata).for_each(
         [&](const V input, const V expected) {
             FUZZY_COMPARE(atan(input), expected) << " input = " << input;
             FUZZY_COMPARE(atan(-input), -expected) << " input = " << input;
@@ -346,7 +346,7 @@ TEST_TYPES(V, atan2, real_test_types)  //{{{1
     vir::test::setFuzzyness<double>(2);
 
     using limits = std::numeric_limits<typename V::value_type>;
-    const T Pi   = Vc::detail::double_const<1, 0x921fb54442d18ull,  1>;
+    const T Pi   = std::experimental::detail::double_const<1, 0x921fb54442d18ull,  1>;
     const T inf  = limits::infinity();
     test_tuples<V, 3>(
         {
@@ -683,7 +683,7 @@ TEST_TYPES(V, remqo, real_test_types)  //{{{1
          limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
         {10000, -limits::max()/2, limits::max()/2},
         [](const V a, const V b) {
-            using IV = Vc::fixed_size_simd<int, V::size()>;
+            using IV = std::experimental::fixed_size_simd<int, V::size()>;
             IV quo = {}; // the type is wrong, this should fail
             const V totest = remquo(a, b, &quo);
             auto &&expected = [&](const auto &v, const auto &w) -> std::pair<const V, const IV> {

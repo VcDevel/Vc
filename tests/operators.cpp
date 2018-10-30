@@ -27,11 +27,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/simd>
+#include <experimental/simd>
 #include "make_vec.h"
 #include "metahelpers.h"
 
-template <class... Ts> using base_template = Vc::simd<Ts...>;
+template <class... Ts> using base_template = std::experimental::simd<Ts...>;
 #include "testtypes.h"
 
 //operators helpers  //{{{1
@@ -256,7 +256,7 @@ TEST_TYPES(V, operators, all_test_types)  //{{{1
         x[0] = x[0];  // self-assignment on smart_reference
         COMPARE(x[0], T(1));
 
-        Vc::simd<typename V::value_type, Vc::simd_abi::scalar> z = 2;
+        std::experimental::simd<typename V::value_type, std::experimental::simd_abi::scalar> z = 2;
         x[0] = z[0];
         COMPARE(x[0], T(2));
         x = 3;

@@ -1,27 +1,29 @@
-#ifndef BITS_SIMD_DEBUG_H_
-#define BITS_SIMD_DEBUG_H_
+#ifndef _GLIBCXX_EXPERIMENTAL_SIMD_DEBUG_H_
+#define _GLIBCXX_EXPERIMENTAL_SIMD_DEBUG_H_
 
-#if defined Vc_DEBUG && !defined Vc_ENABLE_DEBUG
-#define Vc_ENABLE_DEBUG 1
+#pragma GCC system_header
+
+#if defined _GLIBCXX_SIMD_DEBUG && !defined _GLIBCXX_SIMD_ENABLE_DEBUG
+#define _GLIBCXX_SIMD_ENABLE_DEBUG 1
 #endif
 
-#ifdef Vc_ENABLE_DEBUG
+#ifdef _GLIBCXX_SIMD_ENABLE_DEBUG
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#endif  // Vc_ENABLE_DEBUG
+#endif  // _GLIBCXX_SIMD_ENABLE_DEBUG
 
-Vc_VERSIONED_NAMESPACE_BEGIN
+_GLIBCXX_SIMD_BEGIN_NAMESPACE
 namespace detail
 {
-#define Vc_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#define _GLIBCXX_SIMD_PRETTY_FUNCTION __PRETTY_FUNCTION__
 
 enum class area : unsigned {
     _disabled = 0,
     _enabled = 1,
     _ = _enabled,
 
-#ifdef Vc_DEBUG
+#ifdef _GLIBCXX_SIMD_DEBUG
 
 #define sine       0x0000000000000001ull
 #define cosine     0x0000000000000002ull
@@ -30,12 +32,12 @@ enum class area : unsigned {
 #define logarithm  0x0000000000000010ull
 #define frexp      0x0000000000000020ull
 
-    _sine       = ((Vc_DEBUG) &       sine) ? _enabled : _disabled,
-    _cosine     = ((Vc_DEBUG) &     cosine) ? _enabled : _disabled,
-    _simd_tuple = ((Vc_DEBUG) & simd_tuple) ? _enabled : _disabled,
-    _simd_view  = ((Vc_DEBUG) & simd_view ) ? _enabled : _disabled,
-    _logarithm  = ((Vc_DEBUG) & logarithm ) ? _enabled : _disabled,
-    _frexp      = ((Vc_DEBUG) &     frexp ) ? _enabled : _disabled,
+    _sine       = ((_GLIBCXX_SIMD_DEBUG) &       sine) ? _enabled : _disabled,
+    _cosine     = ((_GLIBCXX_SIMD_DEBUG) &     cosine) ? _enabled : _disabled,
+    _simd_tuple = ((_GLIBCXX_SIMD_DEBUG) & simd_tuple) ? _enabled : _disabled,
+    _simd_view  = ((_GLIBCXX_SIMD_DEBUG) & simd_view ) ? _enabled : _disabled,
+    _logarithm  = ((_GLIBCXX_SIMD_DEBUG) & logarithm ) ? _enabled : _disabled,
+    _frexp      = ((_GLIBCXX_SIMD_DEBUG) &     frexp ) ? _enabled : _disabled,
 #undef sine
 #undef cosine
 #undef simd_tuple
@@ -43,38 +45,38 @@ enum class area : unsigned {
 #undef logarithm
 #undef frexp
 
-#undef Vc_DEBUG
+#undef _GLIBCXX_SIMD_DEBUG
 
-#else // Vc_DEBUG
+#else // _GLIBCXX_SIMD_DEBUG
     _sine = _disabled,
     _cosine = _disabled,
     _simd_tuple = _disabled,
     _simd_view  = _disabled,
     _logarithm  = _disabled,
     _frexp = _disabled,
-#endif // Vc_DEBUG
+#endif // _GLIBCXX_SIMD_DEBUG
 };
 
-#define Vc_DEBUG(area_)                                                                  \
-    Vc::detail::debug_stream<Vc::detail::area::_##area_>(Vc_PRETTY_FUNCTION, __FILE__,   \
-                                                         __LINE__, Vc::detail::debug_instr_ptr())
+#define _GLIBCXX_SIMD_DEBUG(area_)                                                                  \
+    std::experimental::detail::debug_stream<std::experimental::detail::area::_##area_>(_GLIBCXX_SIMD_PRETTY_FUNCTION, __FILE__,   \
+                                                         __LINE__, std::experimental::detail::debug_instr_ptr())
 
-#ifdef Vc_ENABLE_DEBUG
-#define Vc_PRETTY_PRINT(var_) std::setw(16), #var_ " = ", (var_)
+#ifdef _GLIBCXX_SIMD_ENABLE_DEBUG
+#define _GLIBCXX_SIMD_PRETTY_PRINT(var_) std::setw(16), #var_ " = ", (var_)
 
-#define Vc_DEBUG_DEFERRED(area_, ...)                                                    \
-    const auto &Vc_CONCAT(Vc_deferred_, __LINE__, _) =                                   \
-        detail::defer([&]() { Vc_DEBUG(area_)(__VA_ARGS__); });
-#else   // Vc_ENABLE_DEBUG
-#define Vc_PRETTY_PRINT(var_) (var_)
+#define _GLIBCXX_SIMD_DEBUG_DEFERRED(area_, ...)                                                    \
+    const auto &_GLIBCXX_SIMD_CONCAT(_GLIBCXX_SIMD_deferred_, __LINE__, _) =                                   \
+        detail::defer([&]() { _GLIBCXX_SIMD_DEBUG(area_)(__VA_ARGS__); });
+#else   // _GLIBCXX_SIMD_ENABLE_DEBUG
+#define _GLIBCXX_SIMD_PRETTY_PRINT(var_) (var_)
 
-#define Vc_DEBUG_DEFERRED(area_, ...)
-#endif  // Vc_ENABLE_DEBUG
+#define _GLIBCXX_SIMD_DEBUG_DEFERRED(area_, ...)
+#endif  // _GLIBCXX_SIMD_ENABLE_DEBUG
 
-Vc_ALWAYS_INLINE void *debug_instr_ptr()
+_GLIBCXX_SIMD_ALWAYS_INLINE void *debug_instr_ptr()
 {
     void *ip = nullptr;
-#if defined Vc_ENABLE_DEBUG
+#if defined _GLIBCXX_SIMD_ENABLE_DEBUG
 #ifdef __x86_64__
     asm volatile("lea 0(%%rip),%0" : "=r"(ip));
 #elif defined __i386__
@@ -88,7 +90,7 @@ Vc_ALWAYS_INLINE void *debug_instr_ptr()
 
 template <area> class debug_stream;
 
-#ifdef Vc_ENABLE_DEBUG
+#ifdef _GLIBCXX_SIMD_ENABLE_DEBUG
 template <> class debug_stream<area::_enabled>
 {
     std::stringstream buffer;
@@ -142,7 +144,7 @@ private:
         }
     }
 };
-#endif  // Vc_ENABLE_DEBUGGING
+#endif  // _GLIBCXX_SIMD_ENABLE_DEBUGGING
 
 template <> class debug_stream<area::_disabled>
 {
@@ -167,6 +169,6 @@ private:
 template <typename F> detail::defer_raii<F> defer(F && f) { return {std::forward<F>(f)}; }
 
 }  // namespace detail
-Vc_VERSIONED_NAMESPACE_END
+_GLIBCXX_SIMD_END_NAMESPACE
 
-#endif  // BITS_SIMD_DEBUG_H_
+#endif  // _GLIBCXX_EXPERIMENTAL_SIMD_DEBUG_H_

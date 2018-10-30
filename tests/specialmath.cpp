@@ -25,15 +25,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-//#define Vc_DEBUG frexp
+//#define _GLIBCXX_SIMD_DEBUG frexp
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/simd>
+#include <experimental/simd>
 #include "metahelpers.h"
 #include <cmath>    // abs & sqrt
 #include "test_values.h"
 
-template <class... Ts> using base_template = Vc::simd<Ts...>;
+template <class... Ts> using base_template = std::experimental::simd<Ts...>;
 #include "testtypes.h"
 
 template <class T> void nan_cleanup(T &totest, T &expect)

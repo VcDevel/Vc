@@ -25,7 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include <Vc/simd>
+#include <experimental/simd>
 
 template <class M> inline M make_mask(const std::initializer_list<bool> &init)
 {

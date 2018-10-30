@@ -28,9 +28,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef VC_TESTS_SIMD_VIEW_H_
 #define VC_TESTS_SIMD_VIEW_H_
 
-#include <Vc/simd>
+#include <experimental/simd>
 
-Vc_VERSIONED_NAMESPACE_BEGIN
+_GLIBCXX_SIMD_BEGIN_NAMESPACE
 namespace experimental
 {
 namespace imported_begin_end
@@ -107,6 +107,6 @@ simd_view(const Cont &data)
     return {begin(data), end(data)};
 }
 }  // namespace experimental
-Vc_VERSIONED_NAMESPACE_END
+_GLIBCXX_SIMD_END_NAMESPACE
 
 #endif  // VC_TESTS_SIMD_VIEW_H_

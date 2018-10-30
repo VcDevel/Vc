@@ -1,9 +1,16 @@
-Vc_VERSIONED_NAMESPACE_BEGIN
+#ifndef _GLIBCXX_EXPERIMENTAL_SIMD_MATH_H
+#define _GLIBCXX_EXPERIMENTAL_SIMD_MATH_H
+
+#pragma GCC system_header
+
+#if __cplusplus >= 201703L
+
+_GLIBCXX_SIMD_BEGIN_NAMESPACE
 namespace detail
 {
 // divides {{{1
 template <class T, class = builtin_traits<T>>
-Vc_INTRINSIC T divides(T a, T b)
+_GLIBCXX_SIMD_INTRINSIC T divides(T a, T b)
 {
     using U = typename Traits::value_type;
     constexpr bool is_byte = sizeof(U) == 1;
@@ -42,7 +49,7 @@ Vc_INTRINSIC T divides(T a, T b)
 }
 // bit_shift_left{{{1
 template <class T, size_t N>
-Vc_INTRINSIC Storage<T, N> constexpr bit_shift_left(Storage<T, N> a, int b)
+_GLIBCXX_SIMD_INTRINSIC Storage<T, N> constexpr bit_shift_left(Storage<T, N> a, int b)
 {
     static_assert(std::is_integral<T>::value, "bit_shift_left is only supported for integral types");
     if constexpr (sizeof(T) == 1) {
@@ -95,7 +102,7 @@ Vc_INTRINSIC Storage<T, N> constexpr bit_shift_left(Storage<T, N> a, int b)
 }
 
 template <class T, size_t N>
-Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, Storage<T, N> b)
+_GLIBCXX_SIMD_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, Storage<T, N> b)
 {
     static_assert(std::is_integral<T>::value,
                   "bit_shift_left is only supported for integral types");
@@ -113,7 +120,7 @@ Vc_INTRINSIC Storage<T, N> bit_shift_left(Storage<T, N> a, Storage<T, N> b)
     } else if constexpr (sizeof(T) == 8 && sizeof(a) == 16 && !have_avx2) {
         const auto lo = _mm_sll_epi64(a, b);
         const auto hi = _mm_sll_epi64(a, _mm_unpackhi_epi64(b, b));
-#ifdef Vc_HAVE_SSE4_1
+#ifdef _GLIBCXX_SIMD_HAVE_SSE4_1
         return _mm_blend_epi16(lo, hi, 0xf0);
 #else
         // return make_storage<llong>(reinterpret_cast<builtin_type_t<llong, 2>>(lo)[0],
@@ -454,6 +461,8 @@ template <class T, class Traits = builtin_traits<T>> T bit_shift_right(T a, T b)
 }
 // }}}1
 }  // namespace detail
-Vc_VERSIONED_NAMESPACE_END
+_GLIBCXX_SIMD_END_NAMESPACE
 
+#endif  // __cplusplus >= 201703L
+#endif  // _GLIBCXX_EXPERIMENTAL_SIMD_MATH_H
 // vim: foldmethod=marker

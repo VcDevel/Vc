@@ -27,7 +27,7 @@ if(NOT "$ENV{TRAVIS_OS_NAME}" STREQUAL "")
    set(CMAKE_CXX_FLAGS_RELEASE "-O1 -DNDEBUG") # try to not time out, -O0 is faster
 endif()
 
-add_definitions(-DCOMPILE_FOR_UNIT_TESTS -DVc_NO_OPTIMIZATION_WARNINGS)
+add_definitions(-DCOMPILE_FOR_UNIT_TESTS -D_GLIBCXX_SIMD_NO_OPTIMIZATION_WARNINGS)
 if(Vc_COMPILER_IS_MSVC)
    AddCompilerFlag("/wd4267") # Disable warning "conversion from 'size_t' to 'int', possible loss of data"
    AddCompilerFlag("/wd4723") # Disable warning "potential divide by 0" (suppress doesn't work)
@@ -282,7 +282,7 @@ function(vc_add_test name) #{{{
          endif()
 
          if(OBJCOPY)
-            list(APPEND _DEFINITIONS "Vc_LINK_TESTDATA")
+            list(APPEND _DEFINITIONS "_GLIBCXX_SIMD_LINK_TESTDATA")
             if("${name}" STREQUAL "math")
                foreach(fun sincos asin acos atan)
                   foreach(filename reference-${fun}-sp.dat reference-${fun}-dp.dat)
@@ -406,7 +406,7 @@ if(OBJDUMP AND NOT ENABLE_UBSAN) # ubsan changes codegen too much, just skip it
          set(_target "${target}${suffix}")
          set(_test test_${_target})
          add_executable(${_target} EXCLUDE_FROM_ALL abi${suffix}.cpp)
-         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS "Vc_ABI=${abi}")
+         set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS "_GLIBCXX_SIMD_ABI=${abi}")
          set_property(TARGET ${_target} APPEND PROPERTY COMPILE_OPTIONS "${ARGN};-O2")
          add_target_property(${_target} LABELS "${_impl}")
          add_dependencies(${_impl} ${_target})

@@ -25,14 +25,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 }}}*/
 
-#include <Vc/simd>
+#include <experimental/simd>
 #include <initializer_list>
 #include <random>
 
 template <class T, class A>
-Vc::simd<T, A> iif(Vc::simd_mask<T, A> k,
-                   const typename Vc::simd_mask<T, A>::simd_type &t,
-                   const Vc::simd<T, A> &f)
+std::experimental::simd<T, A> iif(std::experimental::simd_mask<T, A> k,
+                   const typename std::experimental::simd_mask<T, A>::simd_type &t,
+                   const std::experimental::simd<T, A> &f)
 {
     auto r = f;
     where(k, r) = t;
@@ -44,7 +44,7 @@ V epilogue_load(const typename V::value_type *mem, const std::size_t size)
 {
     const int rem = size % V::size();
     return where(V([](int i) { return i; }) < rem, V(0))
-        .copy_from(mem + size / V::size() * V::size(), Vc::element_aligned);
+        .copy_from(mem + size / V::size() * V::size(), std::experimental::element_aligned);
 }
 
 template <class V, class... F>
@@ -52,7 +52,7 @@ void test_values(const std::initializer_list<typename V::value_type> &inputs,
                  F &&... fun_pack)
 {
     for (auto it = inputs.begin(); it + V::size() <= inputs.end(); it += V::size()) {
-        [](auto...) {}((fun_pack(V(&it[0], Vc::element_aligned)), 0)...);
+        [](auto...) {}((fun_pack(V(&it[0], std::experimental::element_aligned)), 0)...);
     }
     [](auto...) {}((fun_pack(epilogue_load<V>(inputs.begin(), inputs.size())), 0)...);
 }
@@ -95,7 +95,7 @@ void test_values_2arg(const std::initializer_list<typename V::value_type> &input
     for (auto scalar_it = inputs.begin(); scalar_it != inputs.end(); ++scalar_it) {
         for (auto it = inputs.begin(); it + V::size() <= inputs.end(); it += V::size()) {
             [](auto...) {
-            }((fun_pack(V(&it[0], Vc::element_aligned), V(*scalar_it)), 0)...);
+            }((fun_pack(V(&it[0], std::experimental::element_aligned), V(*scalar_it)), 0)...);
         }
         [](auto...) {
         }((fun_pack(epilogue_load<V>(inputs.begin(), inputs.size()), V(*scalar_it)),
@@ -134,7 +134,7 @@ void test_values_3arg(const std::initializer_list<typename V::value_type> &input
         for (auto scalar_it2 = inputs.begin(); scalar_it2 != inputs.end(); ++scalar_it2) {
             for (auto it = inputs.begin(); it + V::size() <= inputs.end();
                  it += V::size()) {
-                [](auto...) {}((fun_pack(V(&it[0], Vc::element_aligned), V(*scalar_it1),
+                [](auto...) {}((fun_pack(V(&it[0], std::experimental::element_aligned), V(*scalar_it1),
                                          V(*scalar_it2)),
                                 0)...);
             }
@@ -170,7 +170,7 @@ void test_values_3arg(const std::initializer_list<typename V::value_type> &input
 
 #define MAKE_TESTER(name_)                                                               \
     [](const auto... inputs) {                                                           \
-        /*Vc_DEBUG()("testing " #name_ "(", input, ")");*/                               \
+        /*_GLIBCXX_SIMD_DEBUG()("testing " #name_ "(", input, ")");*/                               \
         const auto totest = name_(inputs...);                                            \
         using R = std::remove_const_t<decltype(totest)>;                                 \
         auto &&expected = [&](const auto &... vs) -> const R {                           \

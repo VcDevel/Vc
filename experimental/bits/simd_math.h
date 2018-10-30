@@ -1,5 +1,9 @@
-#ifndef BITS_SIMD_MATH_H_
-#define BITS_SIMD_MATH_H_
+#ifndef _GLIBCXX_EXPERIMENTAL_SIMD_MATH_H_
+#define _GLIBCXX_EXPERIMENTAL_SIMD_MATH_H_
+
+#pragma GCC system_header
+
+#if __cplusplus >= 201703L
 
 #include "simd_abis.h"
 #include <utility>
@@ -8,7 +12,7 @@
 static_assert(std::is_same_v<bool, decltype(std::isnan(double()))>);
 static_assert(std::is_same_v<bool, decltype(std::isinf(double()))>);
 
-Vc_VERSIONED_NAMESPACE_BEGIN
+_GLIBCXX_SIMD_BEGIN_NAMESPACE
 namespace detail
 {
 // *v and samesize types {{{
@@ -30,35 +34,35 @@ template <class DoubleR, class T, class Abi>
 using math_return_type_t = typename math_return_type<DoubleR, T, Abi>::type;
 
 template <class T, class Abi> struct math_return_type<double, T, Abi> {
-    using type = Vc::simd<T, Abi>;
+    using type = std::experimental::simd<T, Abi>;
 };
 template <class T, class Abi> struct math_return_type<bool, T, Abi> {
-    using type = Vc::simd_mask<T, Abi>;
+    using type = std::experimental::simd_mask<T, Abi>;
 };
 template <class DoubleR, class T, class Abi> struct math_return_type {
-    using type = Vc::fixed_size_simd<DoubleR, simd_size_v<T, Abi>>;
+    using type = std::experimental::fixed_size_simd<DoubleR, simd_size_v<T, Abi>>;
 };
 //}}}
-// Vc_MATH_CALL_ {{{
-#define Vc_MATH_CALL_(name_)                                                             \
+// _GLIBCXX_SIMD_MATH_CALL_ {{{
+#define _GLIBCXX_SIMD_MATH_CALL_(name_)                                                             \
     template <class T, class Abi, class...,                                              \
-              class R = Vc::detail::math_return_type_t<                                  \
+              class R = std::experimental::detail::math_return_type_t<                                  \
                   decltype(std::name_(std::declval<double>())), T, Abi>>                 \
-    std::enable_if_t<std::is_floating_point_v<T>, R> name_(Vc::simd<T, Abi> x)           \
+    std::enable_if_t<std::is_floating_point_v<T>, R> name_(std::experimental::simd<T, Abi> x)           \
     {                                                                                    \
-        using V = Vc::simd<T, Abi>;                                                      \
-        return Vc::detail::impl_or_fallback(                                             \
+        using V = std::experimental::simd<T, Abi>;                                                      \
+        return std::experimental::detail::impl_or_fallback(                                             \
             [](const auto &xx) -> decltype(                                              \
-                                   R(Vc::detail::private_init,                           \
-                                     Vc::detail::get_impl_t<decltype(xx)>::__##name_(    \
-                                         Vc::detail::data(xx)))) {                       \
-                return {Vc::detail::private_init,                                        \
-                        Vc::detail::get_impl_t<decltype(xx)>::__##name_(                 \
-                            Vc::detail::data(xx))};                                      \
+                                   R(std::experimental::detail::private_init,                           \
+                                     std::experimental::detail::get_impl_t<decltype(xx)>::__##name_(    \
+                                         std::experimental::detail::data(xx)))) {                       \
+                return {std::experimental::detail::private_init,                                        \
+                        std::experimental::detail::get_impl_t<decltype(xx)>::__##name_(                 \
+                            std::experimental::detail::data(xx))};                                      \
             },                                                                           \
             [](const V &xx) {                                                            \
-                if constexpr (Vc::is_simd_mask_v<R>) {                                   \
-                    return R(Vc::detail::private_init,                                   \
+                if constexpr (std::experimental::is_simd_mask_v<R>) {                                   \
+                    return R(std::experimental::detail::private_init,                                   \
                              [&](auto i) { return std::name_(xx[i]); });                 \
                 } else {                                                                 \
                     return R([&](auto i) { return std::name_(xx[i]); });                 \
@@ -72,57 +76,57 @@ template <class DoubleR, class T, class Abi> struct math_return_type {
 template <class U, class T, class Abi> struct extra_argument_type;
 
 template <class T, class Abi> struct extra_argument_type<T *, T, Abi> {
-    using type = Vc::simd<T, Abi> *;
+    using type = std::experimental::simd<T, Abi> *;
     static constexpr double *declval();
-    Vc_INTRINSIC static constexpr auto data(type x) { return &Vc::detail::data(*x); }
+    _GLIBCXX_SIMD_INTRINSIC static constexpr auto data(type x) { return &std::experimental::detail::data(*x); }
     static constexpr bool needs_temporary_scalar = true;
 };
 template <class U, class T, class Abi> struct extra_argument_type<U *, T, Abi> {
     static_assert(std::is_integral_v<U>);
-    using type = Vc::fixed_size_simd<U, Vc::simd_size_v<T, Abi>> *;
+    using type = std::experimental::fixed_size_simd<U, std::experimental::simd_size_v<T, Abi>> *;
     static constexpr U *declval();
-    Vc_INTRINSIC static constexpr auto data(type x) { return &Vc::detail::data(*x); }
+    _GLIBCXX_SIMD_INTRINSIC static constexpr auto data(type x) { return &std::experimental::detail::data(*x); }
     static constexpr bool needs_temporary_scalar = true;
 };
 template <class T, class Abi> struct extra_argument_type<T, T, Abi> {
-    using type = Vc::simd<T, Abi>;
+    using type = std::experimental::simd<T, Abi>;
     static constexpr double declval();
-    Vc_INTRINSIC static constexpr decltype(auto) data(const type &x)
+    _GLIBCXX_SIMD_INTRINSIC static constexpr decltype(auto) data(const type &x)
     {
-        return Vc::detail::data(x);
+        return std::experimental::detail::data(x);
     }
     static constexpr bool needs_temporary_scalar = false;
 };
 template <class U, class T, class Abi> struct extra_argument_type {
     static_assert(std::is_integral_v<U>);
-    using type = Vc::fixed_size_simd<U, Vc::simd_size_v<T, Abi>>;
+    using type = std::experimental::fixed_size_simd<U, std::experimental::simd_size_v<T, Abi>>;
     static constexpr U declval();
-    Vc_INTRINSIC static constexpr decltype(auto) data(const type &x)
+    _GLIBCXX_SIMD_INTRINSIC static constexpr decltype(auto) data(const type &x)
     {
-        return Vc::detail::data(x);
+        return std::experimental::detail::data(x);
     }
     static constexpr bool needs_temporary_scalar = false;
 };
 //}}}
-// Vc_MATH_CALL2_ {{{
-#define Vc_MATH_CALL2_(name_, arg2_)                                                     \
+// _GLIBCXX_SIMD_MATH_CALL2_ {{{
+#define _GLIBCXX_SIMD_MATH_CALL2_(name_, arg2_)                                                     \
     template <                                                                           \
         class T, class Abi, class...,                                                    \
-        class Arg2 = Vc::detail::extra_argument_type<arg2_, T, Abi>,                     \
-        class R = Vc::detail::math_return_type_t<                                        \
+        class Arg2 = std::experimental::detail::extra_argument_type<arg2_, T, Abi>,                     \
+        class R = std::experimental::detail::math_return_type_t<                                        \
             decltype(std::name_(std::declval<double>(), Arg2::declval())), T, Abi>>      \
     std::enable_if_t<std::is_floating_point_v<T>, R> name_(                              \
-        const Vc::simd<T, Abi> &x_, const typename Arg2::type &y_)                       \
+        const std::experimental::simd<T, Abi> &x_, const typename Arg2::type &y_)                       \
     {                                                                                    \
-        using V = Vc::simd<T, Abi>;                                                      \
-        return Vc::detail::impl_or_fallback(                                             \
+        using V = std::experimental::simd<T, Abi>;                                                      \
+        return std::experimental::detail::impl_or_fallback(                                             \
             [](const auto &x, const auto &y)                                             \
-                -> decltype(R(Vc::detail::private_init,                                  \
-                              Vc::detail::get_impl_t<decltype(x)>::__##name_(            \
-                                  Vc::detail::data(x), Arg2::data(y)))) {                \
-                return {Vc::detail::private_init,                                        \
-                        Vc::detail::get_impl_t<decltype(x)>::__##name_(                  \
-                            Vc::detail::data(x), Arg2::data(y))};                        \
+                -> decltype(R(std::experimental::detail::private_init,                                  \
+                              std::experimental::detail::get_impl_t<decltype(x)>::__##name_(            \
+                                  std::experimental::detail::data(x), Arg2::data(y)))) {                \
+                return {std::experimental::detail::private_init,                                        \
+                        std::experimental::detail::get_impl_t<decltype(x)>::__##name_(                  \
+                            std::experimental::detail::data(x), Arg2::data(y))};                        \
             },                                                                           \
             [](const V &x, const auto &y) {                                              \
                 auto &&gen = [&](auto i) {                                               \
@@ -136,8 +140,8 @@ template <class U, class T, class Abi> struct extra_argument_type {
                         return std::name_(x[i], y[i]);                                   \
                     }                                                                    \
                 };                                                                       \
-                if constexpr (Vc::is_simd_mask_v<R>) {                                   \
-                    return R(Vc::detail::private_init, gen);                             \
+                if constexpr (std::experimental::is_simd_mask_v<R>) {                                   \
+                    return R(std::experimental::detail::private_init, gen);                             \
                 } else {                                                                 \
                     return R(gen);                                                       \
                 }                                                                        \
@@ -145,44 +149,44 @@ template <class U, class T, class Abi> struct extra_argument_type {
             x_, y_);                                                                     \
     }                                                                                    \
     template <class U, class T, class Abi>                                               \
-    Vc_INTRINSIC Vc::detail::math_return_type_t<                                         \
+    _GLIBCXX_SIMD_INTRINSIC std::experimental::detail::math_return_type_t<                                         \
         decltype(std::name_(                                                             \
             std::declval<double>(),                                                      \
             std::declval<std::enable_if_t<                                               \
                 std::conjunction_v<                                                      \
                     std::is_same<arg2_, T>,                                              \
-                    std::negation<std::is_same<std::decay_t<U>, Vc::simd<T, Abi>>>,      \
-                    std::is_convertible<U, Vc::simd<T, Abi>>,                            \
+                    std::negation<std::is_same<std::decay_t<U>, std::experimental::simd<T, Abi>>>,      \
+                    std::is_convertible<U, std::experimental::simd<T, Abi>>,                            \
                     std::is_floating_point<T>>,                                          \
                 double>>())),                                                            \
         T, Abi>                                                                          \
-    name_(U &&x_, const Vc::simd<T, Abi> &y_)                                            \
+    name_(U &&x_, const std::experimental::simd<T, Abi> &y_)                                            \
     {                                                                                    \
-        return Vc::name_(Vc::simd<T, Abi>(std::forward<U>(x_)), y_);                     \
+        return std::experimental::name_(std::experimental::simd<T, Abi>(std::forward<U>(x_)), y_);                     \
     }
 
 // }}}
-// Vc_MATH_CALL3_ {{{
-#define Vc_MATH_CALL3_(name_, arg2_, arg3_)                                              \
+// _GLIBCXX_SIMD_MATH_CALL3_ {{{
+#define _GLIBCXX_SIMD_MATH_CALL3_(name_, arg2_, arg3_)                                              \
     template <class T, class Abi, class...,                                              \
-              class Arg2 = Vc::detail::extra_argument_type<arg2_, T, Abi>,               \
-              class Arg3 = Vc::detail::extra_argument_type<arg3_, T, Abi>,               \
-              class R = Vc::detail::math_return_type_t<                                  \
+              class Arg2 = std::experimental::detail::extra_argument_type<arg2_, T, Abi>,               \
+              class Arg3 = std::experimental::detail::extra_argument_type<arg3_, T, Abi>,               \
+              class R = std::experimental::detail::math_return_type_t<                                  \
                   decltype(std::name_(std::declval<double>(), Arg2::declval(),           \
                                       Arg3::declval())),                                 \
                   T, Abi>>                                                               \
     std::enable_if_t<std::is_floating_point_v<T>, R> name_(                              \
-        Vc::simd<T, Abi> x_, typename Arg2::type y_, typename Arg3::type z_)             \
+        std::experimental::simd<T, Abi> x_, typename Arg2::type y_, typename Arg3::type z_)             \
     {                                                                                    \
-        using V = Vc::simd<T, Abi>;                                                      \
-        return Vc::detail::impl_or_fallback(                                             \
+        using V = std::experimental::simd<T, Abi>;                                                      \
+        return std::experimental::detail::impl_or_fallback(                                             \
             [](const auto &x, const auto &y, const auto &z)                              \
-                -> decltype(R(Vc::detail::private_init,                                  \
-                              Vc::detail::get_impl_t<decltype(x)>::__##name_(            \
-                                  Vc::detail::data(x), Arg2::data(y), Arg3::data(z)))) { \
-                return {Vc::detail::private_init,                                        \
-                        Vc::detail::get_impl_t<decltype(x)>::__##name_(                  \
-                            Vc::detail::data(x), Arg2::data(y), Arg3::data(z))};         \
+                -> decltype(R(std::experimental::detail::private_init,                                  \
+                              std::experimental::detail::get_impl_t<decltype(x)>::__##name_(            \
+                                  std::experimental::detail::data(x), Arg2::data(y), Arg3::data(z)))) { \
+                return {std::experimental::detail::private_init,                                        \
+                        std::experimental::detail::get_impl_t<decltype(x)>::__##name_(                  \
+                            std::experimental::detail::data(x), Arg2::data(y), Arg3::data(z))};         \
             },                                                                           \
             [](const V &x, const auto &y, const auto &z) {                               \
                 return R([&](auto i) {                                                   \
@@ -201,19 +205,19 @@ template <class U, class T, class Abi> struct extra_argument_type {
     }                                                                                    \
     template <class T, class U, class V, class..., class TT = std::decay_t<T>,           \
               class UU = std::decay_t<U>, class VV = std::decay_t<V>,                    \
-              class Simd = std::conditional_t<Vc::is_simd_v<UU>, UU, VV>>                \
-    Vc_INTRINSIC decltype(Vc::name_(Simd(std::declval<T>()), Simd(std::declval<U>()),    \
+              class Simd = std::conditional_t<std::experimental::is_simd_v<UU>, UU, VV>>                \
+    _GLIBCXX_SIMD_INTRINSIC decltype(std::experimental::name_(Simd(std::declval<T>()), Simd(std::declval<U>()),    \
                                     Simd(std::declval<V>())))                            \
     name_(T &&x_, U &&y_, V &&z_)                                                        \
     {                                                                                    \
-        return Vc::name_(Simd(std::forward<T>(x_)), Simd(std::forward<U>(y_)),           \
+        return std::experimental::name_(Simd(std::forward<T>(x_)), Simd(std::forward<U>(y_)),           \
                          Simd(std::forward<V>(z_)));                                     \
     }
 
 // }}}
 // cosSeries {{{
 template < typename Abi>
-Vc_ALWAYS_INLINE static floatv<Abi> cosSeries(const floatv<Abi> &x)
+_GLIBCXX_SIMD_ALWAYS_INLINE static floatv<Abi> cosSeries(const floatv<Abi> &x)
 {
     using C = detail::trig<float>;
     const floatv<Abi> x2 = x * x;
@@ -223,7 +227,7 @@ Vc_ALWAYS_INLINE static floatv<Abi> cosSeries(const floatv<Abi> &x)
         - .5f * x2 + 1.f;
 }
 template <typename Abi>
-Vc_ALWAYS_INLINE static doublev<Abi> cosSeries(const doublev<Abi> &x)
+_GLIBCXX_SIMD_ALWAYS_INLINE static doublev<Abi> cosSeries(const doublev<Abi> &x)
 {
     using C = detail::trig<double>;
     const doublev<Abi> x2 = x * x;
@@ -239,7 +243,7 @@ Vc_ALWAYS_INLINE static doublev<Abi> cosSeries(const doublev<Abi> &x)
 // }}}
 // sinSeries {{{
 template <typename Abi>
-Vc_ALWAYS_INLINE static floatv<Abi> sinSeries(const floatv<Abi>& x)
+_GLIBCXX_SIMD_ALWAYS_INLINE static floatv<Abi> sinSeries(const floatv<Abi>& x)
 {
     using C = detail::trig<float>;
     const floatv<Abi> x2 = x * x;
@@ -250,7 +254,7 @@ Vc_ALWAYS_INLINE static floatv<Abi> sinSeries(const floatv<Abi>& x)
 }
 
 template <typename Abi>
-Vc_ALWAYS_INLINE static doublev<Abi> sinSeries(const doublev<Abi> &x)
+_GLIBCXX_SIMD_ALWAYS_INLINE static doublev<Abi> sinSeries(const doublev<Abi> &x)
 {
     using C = detail::trig<double>;
     const doublev<Abi> x2 = x * x;
@@ -266,7 +270,7 @@ Vc_ALWAYS_INLINE static doublev<Abi> sinSeries(const doublev<Abi> &x)
 // }}}
 // foldInput {{{
 template <class Abi>
-Vc_ALWAYS_INLINE std::pair<floatv<Abi>, rebind_simd_t<int, floatv<Abi>>> foldInput(
+_GLIBCXX_SIMD_ALWAYS_INLINE std::pair<floatv<Abi>, rebind_simd_t<int, floatv<Abi>>> foldInput(
     floatv<Abi> x)
 {
     using V = floatv<Abi>;
@@ -274,7 +278,7 @@ Vc_ALWAYS_INLINE std::pair<floatv<Abi>, rebind_simd_t<int, floatv<Abi>>> foldInp
     using IV = rebind_simd_t<int, V>;
 
     x = abs(x);
-#if defined(Vc_HAVE_FMA4) || defined(Vc_HAVE_FMA)
+#if defined(_GLIBCXX_SIMD_HAVE_FMA4) || defined(_GLIBCXX_SIMD_HAVE_FMA)
     rebind_simd_t<int, V> quadrant =
         static_simd_cast<IV>(x * C::_4_pi + 1.f);  // prefer the fma here
     quadrant &= ~1;
@@ -289,7 +293,7 @@ Vc_ALWAYS_INLINE std::pair<floatv<Abi>, rebind_simd_t<int, floatv<Abi>>> foldInp
 }
 
 template <typename Abi>
-Vc_ALWAYS_INLINE static std::pair<doublev<Abi>, rebind_simd_t<int, doublev<Abi>>>
+_GLIBCXX_SIMD_ALWAYS_INLINE static std::pair<doublev<Abi>, rebind_simd_t<int, doublev<Abi>>>
 foldInput(doublev<Abi> x)
 {
     using V = doublev<Abi>;
@@ -316,8 +320,8 @@ foldInput(doublev<Abi> x)
 template <class Abi>
 rebind_simd_t<int, floatv<Abi>> extract_exponent_bits(const floatv<Abi> &v)
 {
-    using namespace Vc::__proposed;
-    using namespace Vc::__proposed::float_bitwise_operators;
+    using namespace std::experimental::__proposed;
+    using namespace std::experimental::__proposed::float_bitwise_operators;
     constexpr floatv<Abi> exponent_mask =
         std::numeric_limits<float>::infinity();  // 0x7f800000
     return simd_reinterpret_cast<rebind_simd_t<int, floatv<Abi>>>(v & exponent_mask);
@@ -326,8 +330,8 @@ rebind_simd_t<int, floatv<Abi>> extract_exponent_bits(const floatv<Abi> &v)
 template <class Abi>
 rebind_simd_t<int, doublev<Abi>> extract_exponent_bits(const doublev<Abi> &v)
 {
-    using namespace Vc::__proposed;
-    using namespace Vc::__proposed::float_bitwise_operators;
+    using namespace std::experimental::__proposed;
+    using namespace std::experimental::__proposed::float_bitwise_operators;
     const doublev<Abi> exponent_mask =
         std::numeric_limits<double>::infinity();  // 0x7ff0000000000000
     constexpr auto N = simd_size_v<double, Abi> * 2;
@@ -351,7 +355,7 @@ rebind_simd_t<int, doublev<Abi>> extract_exponent_bits(const doublev<Abi> &v)
 // }}}
 // impl_or_fallback {{{
 template <class ImplFun, class FallbackFun, class... Args>
-Vc_INTRINSIC auto impl_or_fallback_dispatch(int, ImplFun &&impl_fun, FallbackFun &&,
+_GLIBCXX_SIMD_INTRINSIC auto impl_or_fallback_dispatch(int, ImplFun &&impl_fun, FallbackFun &&,
                                             Args &&... args)
     -> decltype(impl_fun(std::forward<Args>(args)...))
 {
@@ -366,17 +370,17 @@ inline auto impl_or_fallback_dispatch(float, ImplFun &&, FallbackFun &&fallback_
     return fallback_fun(std::forward<Args>(args)...);
 }
 
-template <class... Args> Vc_INTRINSIC auto impl_or_fallback(Args &&... args)
+template <class... Args> _GLIBCXX_SIMD_INTRINSIC auto impl_or_fallback(Args &&... args)
 {
     return impl_or_fallback_dispatch(int(), std::forward<Args>(args)...);
 }  //}}}
 }  // namespace detail
 
 // trigonometric functions {{{
-Vc_MATH_CALL_(acos)
-Vc_MATH_CALL_(asin)
-Vc_MATH_CALL_(atan)
-Vc_MATH_CALL2_(atan2, T)
+_GLIBCXX_SIMD_MATH_CALL_(acos)
+_GLIBCXX_SIMD_MATH_CALL_(asin)
+_GLIBCXX_SIMD_MATH_CALL_(atan)
+_GLIBCXX_SIMD_MATH_CALL2_(atan2, T)
 
 /*
  * algorithm for sine and cosine:
@@ -411,18 +415,18 @@ std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> cos(simd<T, Abi
     V y = cosSeries(z);
     where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = sinSeries(z);
     where(sign, y) = -y;
-    Vc_DEBUG(cosine)
-        (Vc_PRETTY_PRINT(x))
-        (Vc_PRETTY_PRINT(sign))
-        (Vc_PRETTY_PRINT(z))
-        (Vc_PRETTY_PRINT(folded.second))
-        (Vc_PRETTY_PRINT(quadrant))
-        (Vc_PRETTY_PRINT(y));
+    _GLIBCXX_SIMD_DEBUG(cosine)
+        (_GLIBCXX_SIMD_PRETTY_PRINT(x))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(sign))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(z))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(folded.second))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(quadrant))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(y));
     return y;
 }
 
 template <class T>
-Vc_ALWAYS_INLINE
+_GLIBCXX_SIMD_ALWAYS_INLINE
     std::enable_if_t<std::is_floating_point<T>::value, simd<T, simd_abi::scalar>>
     cos(simd<T, simd_abi::scalar> x)
 {
@@ -445,18 +449,18 @@ std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> sin(simd<T, Abi
     V y = sinSeries(z);
     where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = cosSeries(z);
     where(sign, y) = -y;
-    Vc_DEBUG(sine)
-        (Vc_PRETTY_PRINT(x))
-        (Vc_PRETTY_PRINT(sign))
-        (Vc_PRETTY_PRINT(z))
-        (Vc_PRETTY_PRINT(folded.second))
-        (Vc_PRETTY_PRINT(quadrant))
-        (Vc_PRETTY_PRINT(y));
+    _GLIBCXX_SIMD_DEBUG(sine)
+        (_GLIBCXX_SIMD_PRETTY_PRINT(x))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(sign))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(z))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(folded.second))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(quadrant))
+        (_GLIBCXX_SIMD_PRETTY_PRINT(y));
     return y;
 }
 
 template <class T>
-Vc_ALWAYS_INLINE
+_GLIBCXX_SIMD_ALWAYS_INLINE
     std::enable_if_t<std::is_floating_point<T>::value, simd<T, simd_abi::scalar>>
     sin(simd<T, simd_abi::scalar> x)
 {
@@ -464,18 +468,18 @@ Vc_ALWAYS_INLINE
 }
 //}}}
 
-Vc_MATH_CALL_(tan)
-Vc_MATH_CALL_(acosh)
-Vc_MATH_CALL_(asinh)
-Vc_MATH_CALL_(atanh)
-Vc_MATH_CALL_(cosh)
-Vc_MATH_CALL_(sinh)
-Vc_MATH_CALL_(tanh)
+_GLIBCXX_SIMD_MATH_CALL_(tan)
+_GLIBCXX_SIMD_MATH_CALL_(acosh)
+_GLIBCXX_SIMD_MATH_CALL_(asinh)
+_GLIBCXX_SIMD_MATH_CALL_(atanh)
+_GLIBCXX_SIMD_MATH_CALL_(cosh)
+_GLIBCXX_SIMD_MATH_CALL_(sinh)
+_GLIBCXX_SIMD_MATH_CALL_(tanh)
 // }}}
 // exponential functions {{{
-Vc_MATH_CALL_(exp)
-Vc_MATH_CALL_(exp2)
-Vc_MATH_CALL_(expm1)
+_GLIBCXX_SIMD_MATH_CALL_(exp)
+_GLIBCXX_SIMD_MATH_CALL_(exp2)
+_GLIBCXX_SIMD_MATH_CALL_(expm1)
 // }}}
 // frexp {{{
 namespace detail
@@ -549,7 +553,7 @@ template <class T, class Abi>
 std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> frexp(
     const simd<T, Abi> &x, detail::samesize<int, simd<T, Abi>> *exp)
 {
-    using namespace Vc::detail;
+    using namespace std::experimental::detail;
     if constexpr (simd_size_v<T, Abi> == 1) {
         int tmp;
         const auto r = std::frexp(x[0], &tmp);
@@ -566,10 +570,10 @@ std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> frexp(
         const auto e =
             to_intrin(detail::x86::blend(isnonzero, builtin_type_t<int, NI>(),
                                          1 + convert<Storage<int, NI>>(getexp(v)).d));
-        Vc_DEBUG(frexp)(
-            std::hex, Vc_PRETTY_PRINT(int(isnonzero)), std::dec, Vc_PRETTY_PRINT(e),
-            Vc_PRETTY_PRINT(getexp(v)),
-            Vc_PRETTY_PRINT(to_intrin(1 + convert<Storage<int, NI>>(getexp(v)).d)));
+        _GLIBCXX_SIMD_DEBUG(frexp)(
+            std::hex, _GLIBCXX_SIMD_PRETTY_PRINT(int(isnonzero)), std::dec, _GLIBCXX_SIMD_PRETTY_PRINT(e),
+            _GLIBCXX_SIMD_PRETTY_PRINT(getexp(v)),
+            _GLIBCXX_SIMD_PRETTY_PRINT(to_intrin(1 + convert<Storage<int, NI>>(getexp(v)).d)));
         builtin_store<N * sizeof(int)>(e, exp, overaligned<alignof(IV)>);
         return {private_init, detail::x86::blend(isnonzero, v, getmant(v))};
     } else {
@@ -579,8 +583,8 @@ std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> frexp(
         using IV = rebind_simd_t<int, V>;
         using IM = typename IV::mask_type;
         using limits = std::numeric_limits<T>;
-        using namespace Vc::__proposed;
-        using namespace Vc::__proposed::float_bitwise_operators;
+        using namespace std::experimental::__proposed;
+        using namespace std::experimental::__proposed::float_bitwise_operators;
 
         constexpr int exp_shift = sizeof(T) == 4 ? 23 : 20;
         constexpr int exp_adjust = sizeof(T) == 4 ? 0x7e : 0x3fe;
@@ -595,7 +599,7 @@ std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> frexp(
 
         V mant = p5_1_exponent & (exponent_mask | x);
         const IV exponent_bits = extract_exponent_bits(x);
-        if (Vc_IS_LIKELY(all_of(isnormal(x)))) {
+        if (_GLIBCXX_SIMD_IS_LIKELY(all_of(isnormal(x)))) {
             *exp = simd_cast<detail::samesize<int, V>>((exponent_bits >> exp_shift) -
                                                        exp_adjust);
             return mant;
@@ -617,21 +621,21 @@ std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> frexp(
     }
 }
 // }}}
-Vc_MATH_CALL2_(ldexp, int)
-Vc_MATH_CALL_(ilogb)
+_GLIBCXX_SIMD_MATH_CALL2_(ldexp, int)
+_GLIBCXX_SIMD_MATH_CALL_(ilogb)
 
 // logarithms {{{
-Vc_MATH_CALL_(log)
-Vc_MATH_CALL_(log10)
-Vc_MATH_CALL_(log1p)
-Vc_MATH_CALL_(log2)
+_GLIBCXX_SIMD_MATH_CALL_(log)
+_GLIBCXX_SIMD_MATH_CALL_(log10)
+_GLIBCXX_SIMD_MATH_CALL_(log1p)
+_GLIBCXX_SIMD_MATH_CALL_(log2)
 //}}}
 //logb{{{
 template <class T, class Abi>
 std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> logb(
     const simd<T, Abi> &x)
 {
-    using namespace Vc::detail;
+    using namespace std::experimental::detail;
     constexpr size_t N = simd_size_v<T, Abi>;
     if constexpr (N == 1) {
         return std::logb(x[0]);
@@ -640,7 +644,7 @@ std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> logb(
                 simd_tuple_apply(
                     [](auto impl, auto xx) {
                         using V = typename decltype(impl)::simd_type;
-                        return detail::data(Vc::logb(V(detail::private_init, xx)));
+                        return detail::data(std::experimental::logb(V(detail::private_init, xx)));
                     },
                     data(x))};
     } else if constexpr (detail::have_avx512vl && detail::is_sse_ps<T, N>()) {
@@ -674,8 +678,8 @@ std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> logb(
                                                  auto_broadcast(0x00550433), 0x00)};
     } else {
         using V = simd<T, Abi>;
-        using namespace Vc::__proposed;
-        using namespace Vc::detail;
+        using namespace std::experimental::__proposed;
+        using namespace std::experimental::detail;
         auto is_normal = isnormal(x);
 
         // work on abs(x) to reflect the return value on Linux for negative inputs
@@ -686,7 +690,7 @@ std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> logb(
         // integral U
         auto &&exponent =
             [](const V &v) {
-                using namespace Vc::__proposed;
+                using namespace std::experimental::__proposed;
                 using IV = rebind_simd_t<
                     std::conditional_t<sizeof(T) == sizeof(llong), llong, int>, V>;
                 return (simd_reinterpret_cast<IV>(v) >>
@@ -694,7 +698,7 @@ std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> logb(
                        (std::numeric_limits<T>::max_exponent - 1);
             };
         V r = static_simd_cast<V>(exponent(abs_x));
-        if (Vc_IS_LIKELY(all_of(is_normal))) {
+        if (_GLIBCXX_SIMD_IS_LIKELY(all_of(is_normal))) {
             // without corner cases (nan, inf, subnormal, zero) we have our answer:
             return r;
         }
@@ -716,20 +720,20 @@ std::enable_if_t<std::is_floating_point<T>::value, simd<T, Abi>> logb(
             abs_x * T(std::is_same<T, float>::value ? detail::float_const<1, 0, 0x70>
                                                     : detail::double_const<1, 0, 0x70>);
         V scaled_exp = static_simd_cast<V>(exponent(scaled) - 0x70);
-        Vc_DEBUG(logarithm)(x, scaled)(is_normal)(r, scaled_exp);
+        _GLIBCXX_SIMD_DEBUG(logarithm)(x, scaled)(is_normal)(r, scaled_exp);
         where(is_normal, scaled_exp) = r;
         return scaled_exp;
     }
 }
 //}}}
-Vc_MATH_CALL2_(modf, T *)
-Vc_MATH_CALL2_(scalbn, int)
-Vc_MATH_CALL2_(scalbln, long)
+_GLIBCXX_SIMD_MATH_CALL2_(modf, T *)
+_GLIBCXX_SIMD_MATH_CALL2_(scalbn, int)
+_GLIBCXX_SIMD_MATH_CALL2_(scalbln, long)
 
-Vc_MATH_CALL_(cbrt)
+_GLIBCXX_SIMD_MATH_CALL_(cbrt)
 
-Vc_MATH_CALL_(abs)
-Vc_MATH_CALL_(fabs)
+_GLIBCXX_SIMD_MATH_CALL_(abs)
+_GLIBCXX_SIMD_MATH_CALL_(fabs)
 
 // [parallel.simd.math] only asks for is_floating_point_v<T> and forgot to allow
 // signed integral T
@@ -797,52 +801,52 @@ simd<T, Abi> hypot(simd<T, Abi> x, simd<T, Abi> y, simd<T, Abi> z)
     return r;
 }
 
-Vc_MATH_CALL2_(pow, T)
+_GLIBCXX_SIMD_MATH_CALL2_(pow, T)
 
-Vc_MATH_CALL_(sqrt)
-Vc_MATH_CALL_(erf)
-Vc_MATH_CALL_(erfc)
-Vc_MATH_CALL_(lgamma)
-Vc_MATH_CALL_(tgamma)
-Vc_MATH_CALL_(ceil)
-Vc_MATH_CALL_(floor)
-Vc_MATH_CALL_(nearbyint)
-Vc_MATH_CALL_(rint)
-Vc_MATH_CALL_(lrint)
-Vc_MATH_CALL_(llrint)
+_GLIBCXX_SIMD_MATH_CALL_(sqrt)
+_GLIBCXX_SIMD_MATH_CALL_(erf)
+_GLIBCXX_SIMD_MATH_CALL_(erfc)
+_GLIBCXX_SIMD_MATH_CALL_(lgamma)
+_GLIBCXX_SIMD_MATH_CALL_(tgamma)
+_GLIBCXX_SIMD_MATH_CALL_(ceil)
+_GLIBCXX_SIMD_MATH_CALL_(floor)
+_GLIBCXX_SIMD_MATH_CALL_(nearbyint)
+_GLIBCXX_SIMD_MATH_CALL_(rint)
+_GLIBCXX_SIMD_MATH_CALL_(lrint)
+_GLIBCXX_SIMD_MATH_CALL_(llrint)
 
-Vc_MATH_CALL_(round)
-Vc_MATH_CALL_(lround)
-Vc_MATH_CALL_(llround)
+_GLIBCXX_SIMD_MATH_CALL_(round)
+_GLIBCXX_SIMD_MATH_CALL_(lround)
+_GLIBCXX_SIMD_MATH_CALL_(llround)
 
-Vc_MATH_CALL_(trunc)
+_GLIBCXX_SIMD_MATH_CALL_(trunc)
 
-Vc_MATH_CALL2_(fmod, T)
-Vc_MATH_CALL2_(remainder, T)
-Vc_MATH_CALL3_(remquo, T, int *)
-Vc_MATH_CALL2_(copysign, T)
+_GLIBCXX_SIMD_MATH_CALL2_(fmod, T)
+_GLIBCXX_SIMD_MATH_CALL2_(remainder, T)
+_GLIBCXX_SIMD_MATH_CALL3_(remquo, T, int *)
+_GLIBCXX_SIMD_MATH_CALL2_(copysign, T)
 
-Vc_MATH_CALL2_(nextafter, T)
+_GLIBCXX_SIMD_MATH_CALL2_(nextafter, T)
 // not covered in [parallel.simd.math]:
-// Vc_MATH_CALL2_(nexttoward, long double)
-Vc_MATH_CALL2_(fdim, T)
-Vc_MATH_CALL2_(fmax, T)
-Vc_MATH_CALL2_(fmin, T)
+// _GLIBCXX_SIMD_MATH_CALL2_(nexttoward, long double)
+_GLIBCXX_SIMD_MATH_CALL2_(fdim, T)
+_GLIBCXX_SIMD_MATH_CALL2_(fmax, T)
+_GLIBCXX_SIMD_MATH_CALL2_(fmin, T)
 
-Vc_MATH_CALL3_(fma, T, T)
-Vc_MATH_CALL_(fpclassify)
-Vc_MATH_CALL_(isfinite)
-Vc_MATH_CALL_(isinf)
-Vc_MATH_CALL_(isnan)
-Vc_MATH_CALL_(isnormal)
-Vc_MATH_CALL_(signbit)
+_GLIBCXX_SIMD_MATH_CALL3_(fma, T, T)
+_GLIBCXX_SIMD_MATH_CALL_(fpclassify)
+_GLIBCXX_SIMD_MATH_CALL_(isfinite)
+_GLIBCXX_SIMD_MATH_CALL_(isinf)
+_GLIBCXX_SIMD_MATH_CALL_(isnan)
+_GLIBCXX_SIMD_MATH_CALL_(isnormal)
+_GLIBCXX_SIMD_MATH_CALL_(signbit)
 
-Vc_MATH_CALL2_(isgreater, T)
-Vc_MATH_CALL2_(isgreaterequal, T)
-Vc_MATH_CALL2_(isless, T)
-Vc_MATH_CALL2_(islessequal, T)
-Vc_MATH_CALL2_(islessgreater, T)
-Vc_MATH_CALL2_(isunordered, T)
+_GLIBCXX_SIMD_MATH_CALL2_(isgreater, T)
+_GLIBCXX_SIMD_MATH_CALL2_(isgreaterequal, T)
+_GLIBCXX_SIMD_MATH_CALL2_(isless, T)
+_GLIBCXX_SIMD_MATH_CALL2_(islessequal, T)
+_GLIBCXX_SIMD_MATH_CALL2_(islessgreater, T)
+_GLIBCXX_SIMD_MATH_CALL2_(isunordered, T)
 
 /* not covered in [parallel.simd.math]
 template <class Abi> detail::doublev<Abi> nan(const char* tagp);
@@ -871,91 +875,92 @@ simd_div_t<detail::llongv<Abi>> div(detail::llongv<Abi> numer,
 // special math {{{
 template <class T, class Abi>
 std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> assoc_laguerre(
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &m,
-    const Vc::simd<T, Abi> &x)
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &n,
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &m,
+    const std::experimental::simd<T, Abi> &x)
 {
-    return Vc::simd<T, Abi>([&](auto i) { return std::assoc_laguerre(n[i], m[i], x[i]); });
+    return std::experimental::simd<T, Abi>([&](auto i) { return std::assoc_laguerre(n[i], m[i], x[i]); });
 }
 
 template <class T, class Abi>
 std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> assoc_legendre(
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &m,
-    const Vc::simd<T, Abi> &x)
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &n,
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &m,
+    const std::experimental::simd<T, Abi> &x)
 {
-    return Vc::simd<T, Abi>([&](auto i) { return std::assoc_legendre(n[i], m[i], x[i]); });
+    return std::experimental::simd<T, Abi>([&](auto i) { return std::assoc_legendre(n[i], m[i], x[i]); });
 }
 
-Vc_MATH_CALL2_(beta, T)
-Vc_MATH_CALL_(comp_ellint_1)
-Vc_MATH_CALL_(comp_ellint_2)
-Vc_MATH_CALL2_(comp_ellint_3, T)
-Vc_MATH_CALL2_(cyl_bessel_i, T)
-Vc_MATH_CALL2_(cyl_bessel_j, T)
-Vc_MATH_CALL2_(cyl_bessel_k, T)
-Vc_MATH_CALL2_(cyl_neumann, T)
-Vc_MATH_CALL2_(ellint_1, T)
-Vc_MATH_CALL2_(ellint_2, T)
-Vc_MATH_CALL3_(ellint_3, T, T)
-Vc_MATH_CALL_(expint)
+_GLIBCXX_SIMD_MATH_CALL2_(beta, T)
+_GLIBCXX_SIMD_MATH_CALL_(comp_ellint_1)
+_GLIBCXX_SIMD_MATH_CALL_(comp_ellint_2)
+_GLIBCXX_SIMD_MATH_CALL2_(comp_ellint_3, T)
+_GLIBCXX_SIMD_MATH_CALL2_(cyl_bessel_i, T)
+_GLIBCXX_SIMD_MATH_CALL2_(cyl_bessel_j, T)
+_GLIBCXX_SIMD_MATH_CALL2_(cyl_bessel_k, T)
+_GLIBCXX_SIMD_MATH_CALL2_(cyl_neumann, T)
+_GLIBCXX_SIMD_MATH_CALL2_(ellint_1, T)
+_GLIBCXX_SIMD_MATH_CALL2_(ellint_2, T)
+_GLIBCXX_SIMD_MATH_CALL3_(ellint_3, T, T)
+_GLIBCXX_SIMD_MATH_CALL_(expint)
 
 template <class T, class Abi>
 std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> hermite(
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
-    const Vc::simd<T, Abi> &x)
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &n,
+    const std::experimental::simd<T, Abi> &x)
 {
-    return Vc::simd<T, Abi>([&](auto i) { return std::hermite(n[i], x[i]); });
+    return std::experimental::simd<T, Abi>([&](auto i) { return std::hermite(n[i], x[i]); });
 }
 
 template <class T, class Abi>
 std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> laguerre(
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
-    const Vc::simd<T, Abi> &x)
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &n,
+    const std::experimental::simd<T, Abi> &x)
 {
-    return Vc::simd<T, Abi>([&](auto i) { return std::laguerre(n[i], x[i]); });
+    return std::experimental::simd<T, Abi>([&](auto i) { return std::laguerre(n[i], x[i]); });
 }
 
 template <class T, class Abi>
 std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> legendre(
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
-    const Vc::simd<T, Abi> &x)
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &n,
+    const std::experimental::simd<T, Abi> &x)
 {
-    return Vc::simd<T, Abi>([&](auto i) { return std::legendre(n[i], x[i]); });
+    return std::experimental::simd<T, Abi>([&](auto i) { return std::legendre(n[i], x[i]); });
 }
 
-Vc_MATH_CALL_(riemann_zeta)
+_GLIBCXX_SIMD_MATH_CALL_(riemann_zeta)
 
 template <class T, class Abi>
 std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> sph_bessel(
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
-    const Vc::simd<T, Abi> &x)
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &n,
+    const std::experimental::simd<T, Abi> &x)
 {
-    return Vc::simd<T, Abi>([&](auto i) { return std::sph_bessel(n[i], x[i]); });
+    return std::experimental::simd<T, Abi>([&](auto i) { return std::sph_bessel(n[i], x[i]); });
 }
 
 template <class T, class Abi>
 std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> sph_legendre(
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &l,
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &m,
-    const Vc::simd<T, Abi> &theta)
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &l,
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &m,
+    const std::experimental::simd<T, Abi> &theta)
 {
-    return Vc::simd<T, Abi>([&](auto i) { return std::assoc_legendre(l[i], m[i], theta[i]); });
+    return std::experimental::simd<T, Abi>([&](auto i) { return std::assoc_legendre(l[i], m[i], theta[i]); });
 }
 
 template <class T, class Abi>
 std::enable_if_t<std::is_floating_point_v<T>, simd<T, Abi>> sph_neumann(
-    const Vc::fixed_size_simd<unsigned, Vc::simd_size_v<T, Abi>> &n,
-    const Vc::simd<T, Abi> &x)
+    const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<T, Abi>> &n,
+    const std::experimental::simd<T, Abi> &x)
 {
-    return Vc::simd<T, Abi>([&](auto i) { return std::sph_neumann(n[i], x[i]); });
+    return std::experimental::simd<T, Abi>([&](auto i) { return std::sph_neumann(n[i], x[i]); });
 }
 // }}}
 
-#undef Vc_MATH_CALL_
-#undef Vc_MATH_CALL2_
-#undef Vc_MATH_CALL3_
+#undef _GLIBCXX_SIMD_MATH_CALL_
+#undef _GLIBCXX_SIMD_MATH_CALL2_
+#undef _GLIBCXX_SIMD_MATH_CALL3_
 
-Vc_VERSIONED_NAMESPACE_END
+_GLIBCXX_SIMD_END_NAMESPACE
 
-#endif  // BITS_SIMD_MATH_H_
+#endif  // __cplusplus >= 201703L
+#endif  // _GLIBCXX_EXPERIMENTAL_SIMD_MATH_H_

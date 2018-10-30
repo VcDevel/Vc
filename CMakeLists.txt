@@ -182,74 +182,6 @@ elseif(Vc_ARM)
    add_custom_target(NEON COMMENT "build NEON code" VERBATIM)
 endif()#}}}
 
-if(FALSE) # disabled for now
-# Build libVc#{{{
-##################################################################
-set(libvc_compile_flags "-DVc_COMPILE_LIB")
-set(libvc_mic_compile_flags "-DVc_COMPILE_LIB")
-AddCompilerFlag("-fPIC" CXX_FLAGS libvc_compile_flags)
-set(libVc_srcs src/const.cpp)
-if(Vc_X86)
-   list(APPEND libVc_srcs src/cpuid.cpp src/support_x86.cpp)
-   vc_compile_for_all_isa(libVc_srcs src/trigonometric.cpp ONLY SSE2 SSE3 SSSE3 SSE4_1 AVX SSE+XOP+FMA4 AVX+XOP+FMA4 AVX+XOP+FMA AVX+FMA AVX2)
-   vc_compile_for_all_isa(libVc_srcs src/sse_sorthelper.cpp ONLY SSE2 SSE4_1 AVX AVX2)
-   vc_compile_for_all_isa(libVc_srcs src/avx_sorthelper.cpp ONLY AVX AVX2)
-elseif(Vc_ARM)
-   list(APPEND libVc_srcs src/support_arm.cpp)
-   vc_compile_for_all_isa(libVc_srcs src/trigonometric.cpp ONLY NEON)
-else()
-   message(FATAL_ERROR "Unsupported target architecture '${CMAKE_SYSTEM_PROCESSOR}'. No support_???.cpp file exists for this architecture.")
-endif()
-add_library(Vc STATIC ${libVc_srcs})
-set_property(TARGET Vc APPEND PROPERTY COMPILE_OPTIONS ${libvc_compile_flags})
-add_target_property(Vc LABELS "other")
-add_dependencies(other Vc)
-if(XCODE)
-   # TODO: document what this does and why it has no counterpart in the non-XCODE logic
-   set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN "NO")
-   set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN "YES")
-   set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++14")
-   set_target_properties(Vc PROPERTIES XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-endif()#}}}
-
-# Install libVc#{{{
-##################################################################
-install(TARGETS Vc DESTINATION lib${LIB_SUFFIX})
-#}}}
-endif()
-
-# Install headers#{{{
-##################################################################
-install(DIRECTORY Vc/ DESTINATION include/Vc PATTERN "*.orig" EXCLUDE)
-# }}}
-
-# Generate & install cmake config#{{{
-##################################################################
-# read version parts from version.h to be put into VcConfig.cmake
-file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/Vc/version.h _version_lines REGEX "^#define Vc_VERSION_STRING ")
-string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _version_matches "${_version_lines}")
-set(Vc_VERSION_MAJOR ${CMAKE_MATCH_1})
-set(Vc_VERSION_MINOR ${CMAKE_MATCH_2})
-set(Vc_VERSION_PATCH ${CMAKE_MATCH_3})
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfig.cmake.in
-   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake @ONLY)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/VcConfigVersion.cmake.in
-   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake @ONLY)
-
-install(FILES
-   cmake/UserWarning.cmake
-   cmake/VcMacros.cmake
-   cmake/AddCompilerFlag.cmake
-   cmake/CheckCCompilerFlag.cmake
-   cmake/CheckCXXCompilerFlag.cmake
-   cmake/OptimizeForArchitecture.cmake
-   cmake/FindVc.cmake
-   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfig.cmake
-   ${CMAKE_CURRENT_BINARY_DIR}/cmake/VcConfigVersion.cmake
-   DESTINATION lib${LIB_SUFFIX}/cmake/Vc
-   )#}}}
-
 # Unit tests#{{{
 ##################################################################
 #Release# option(BUILD_TESTING "Build the testing tree." OFF)
@@ -271,14 +203,6 @@ if(BUILD_TESTING)
       message(FATAL_ERROR "Unit tests enabled but virtest is missing. Call 'git submodule update' to clone the required unit test framework.")
    endif()
 endif(BUILD_TESTING)#}}}
-
-# Examples#{{{
-##################################################################
-set(BUILD_EXAMPLES FALSE CACHE BOOL "Build examples.")
-if(BUILD_EXAMPLES)
-   message(STATUS "Examples not ported to Vc 2. Disabled.")
-   #add_subdirectory(examples)
-endif(BUILD_EXAMPLES)#}}}
 
 # Hack for caching `make help`#{{{
 ##################################################################

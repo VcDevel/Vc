@@ -1,6 +1,6 @@
-#include <Vc/simd>
+#include <experimental/simd>
 
-using namespace Vc;
+using namespace std::experimental::parallelism_v2;
 
 native_simd<float> fooLib0A(const native_simd<float> &a);
 native_simd<float> fooLib1A(const native_simd<float> &a);

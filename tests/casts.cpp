@@ -27,21 +27,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/simd>
+#include <experimental/simd>
 #include "make_vec.h"
 #include <vir/metahelpers.h>
 
-template <class... Ts> using base_template = Vc::simd<Ts...>;
+template <class... Ts> using base_template = std::experimental::simd<Ts...>;
 #include "testtypes.h"
 #include "conversions.h"
 
-using Vc::simd_cast;
-using Vc::static_simd_cast;
+using std::experimental::simd_cast;
+using std::experimental::static_simd_cast;
 
 TEST_TYPES(V, split_concat, all_test_types)
 {
     using T = typename V::value_type;
-    if constexpr (V::size() * 3 <= Vc::simd_abi::max_fixed_size<T>) {
+    if constexpr (V::size() * 3 <= std::experimental::simd_abi::max_fixed_size<T>) {
         V a(0), b(1), c(2);
         auto x = concat(a, b, c);
         COMPARE(x.size(), a.size() * 3);
@@ -61,10 +61,10 @@ TEST_TYPES(V, split_concat, all_test_types)
         const V a([](auto i) -> T { return i; });
         constexpr auto N0 = V::size() / 4u;
         constexpr auto N1 = V::size() - 2 * N0;
-        using V0 = Vc::simd<T, Vc::simd_abi::deduce_t<T, N0>>;
-        using V1 = Vc::simd<T, Vc::simd_abi::deduce_t<T, N1>>;
+        using V0 = std::experimental::simd<T, std::experimental::simd_abi::deduce_t<T, N0>>;
+        using V1 = std::experimental::simd<T, std::experimental::simd_abi::deduce_t<T, N1>>;
         {
-            auto x = Vc::split<N0, N0, N1>(a);
+            auto x = std::experimental::split<N0, N0, N1>(a);
             COMPARE(std::tuple_size<decltype(x)>::value, 3u);
             COMPARE(std::get<0>(x), V0([](auto i) -> T { return i; }));
             COMPARE(std::get<1>(x), V0([](auto i) -> T { return i + N0; }));
@@ -76,7 +76,7 @@ TEST_TYPES(V, split_concat, all_test_types)
             COMPARE(b, decltype(b)([](auto i) -> T { return (N0 + i) % V::size(); }));
         }
         {
-            auto x = Vc::split<N0, N1, N0>(a);
+            auto x = std::experimental::split<N0, N1, N0>(a);
             COMPARE(std::tuple_size<decltype(x)>::value, 3u);
             COMPARE(std::get<0>(x), V0([](auto i) -> T { return i; }));
             COMPARE(std::get<1>(x), V1([](auto i) -> T { return i + N0; }));
@@ -88,7 +88,7 @@ TEST_TYPES(V, split_concat, all_test_types)
             COMPARE(b, decltype(b)([](auto i) -> T { return (N0 + i) % V::size(); }));
         }
         {
-            auto x = Vc::split<N1, N0, N0>(a);
+            auto x = std::experimental::split<N1, N0, N0>(a);
             COMPARE(std::tuple_size<decltype(x)>::value, 3u);
             COMPARE(std::get<0>(x), V1([](auto i) -> T { return i; }));
             COMPARE(std::get<1>(x), V0([](auto i) -> T { return i + N1; }));
@@ -104,10 +104,10 @@ TEST_TYPES(V, split_concat, all_test_types)
     if constexpr (V::size() % 3 == 0) {
         const V a([](auto i) -> T { return i; });
         constexpr auto N0 = V::size() / 3;
-        using V0 = Vc::simd<T, Vc::simd_abi::deduce_t<T, N0>>;
-        using V1 = Vc::simd<T, Vc::simd_abi::deduce_t<T, 2 * N0>>;
+        using V0 = std::experimental::simd<T, std::experimental::simd_abi::deduce_t<T, N0>>;
+        using V1 = std::experimental::simd<T, std::experimental::simd_abi::deduce_t<T, 2 * N0>>;
         {
-            auto [x, y, z] = Vc::split<N0, N0, N0>(a);
+            auto [x, y, z] = std::experimental::split<N0, N0, N0>(a);
             COMPARE(x, V0([](auto i) -> T { return i; }));
             COMPARE(y, V0([](auto i) -> T { return i + N0; }));
             COMPARE(z, V0([](auto i) -> T { return i + N0 * 2; }));
@@ -117,7 +117,7 @@ TEST_TYPES(V, split_concat, all_test_types)
             COMPARE(simd_cast<V>(b), a);
         }
         {
-            auto [x, y] = Vc::split<N0, 2 * N0>(a);
+            auto [x, y] = std::experimental::split<N0, 2 * N0>(a);
             COMPARE(x, V0([](auto i) -> T { return i; }));
             COMPARE(y, V1([](auto i) -> T { return i + N0; }));
             auto b = concat(x, y);
@@ -126,7 +126,7 @@ TEST_TYPES(V, split_concat, all_test_types)
             COMPARE(simd_cast<V>(b), a);
         }
         {
-            auto [x, y] = Vc::split<2 * N0, N0>(a);
+            auto [x, y] = std::experimental::split<2 * N0, N0>(a);
             COMPARE(x, V1([](auto i) -> T { return i; }));
             COMPARE(y, V0([](auto i) -> T { return i + 2 * N0; }));
             auto b = concat(x, y);
@@ -137,19 +137,19 @@ TEST_TYPES(V, split_concat, all_test_types)
     }
 
     if constexpr ((V::size() & 1) == 0) {
-        using V2 = Vc::simd<T, Vc::simd_abi::deduce_t<T, 2>>;
-        using V3 = Vc::simd<T, Vc::simd_abi::deduce_t<T, V::size() / 2>>;
+        using V2 = std::experimental::simd<T, std::experimental::simd_abi::deduce_t<T, 2>>;
+        using V3 = std::experimental::simd<T, std::experimental::simd_abi::deduce_t<T, V::size() / 2>>;
 
         V a([](auto i) -> T { return i; });
 
-        std::array<V2, V::size() / 2> v2s = Vc::split<V2>(a);
+        std::array<V2, V::size() / 2> v2s = std::experimental::split<V2>(a);
         int offset = 0;
         for (V2 test : v2s) {
             COMPARE(test, V2([&](auto i) -> T { return i + offset; }));
             offset += 2;
         }
 
-        std::array<V3, 2> v3s = Vc::split<V3>(a);
+        std::array<V3, 2> v3s = std::experimental::split<V3>(a);
         COMPARE(v3s[0], V3([](auto i) -> T { return i; }));
         COMPARE(v3s[1], V3([](auto i) -> T { return i + V3::size(); }));
     }
@@ -186,9 +186,9 @@ template <class To> struct foo {
 XTEST_TYPES(From, specific_conversions, all_test_types)
 {
     using To = float;
-    using W = Vc::native_simd<To>;
+    using W = std::experimental::native_simd<To>;
 
-    using V = Vc::rebind_simd_t<From, W>;
+    using V = std::experimental::rebind_simd_t<From, W>;
 
     for (gen_seq_t<V, To> gen_seq; gen_seq; ++gen_seq) {
         const V seq(gen_seq);
@@ -203,14 +203,14 @@ TEST_TYPES(V_To, casts, outer_product<all_test_types, arithmetic_types>)
     using To = typename V_To::template at<1>;
     using From = typename V::value_type;
     constexpr auto N = V::size();
-    using W = Vc::fixed_size_simd<To, N>;
+    using W = std::experimental::fixed_size_simd<To, N>;
 
     if constexpr (std::is_integral_v<From>) {
         using A = typename V::abi_type;
         using TU = std::make_unsigned_t<From>;
         using TS = std::make_signed_t<From>;
-        COMPARE(typeid(static_simd_cast<TU>(V())), typeid(Vc::simd<TU, A>));
-        COMPARE(typeid(static_simd_cast<TS>(V())), typeid(Vc::simd<TS, A>));
+        COMPARE(typeid(static_simd_cast<TU>(V())), typeid(std::experimental::simd<TU, A>));
+        COMPARE(typeid(static_simd_cast<TS>(V())), typeid(std::experimental::simd<TS, A>));
     }
 
     using is_simd_cast_allowed =
@@ -256,7 +256,7 @@ TEST_TYPES(V_To, casts, outer_product<all_test_types, arithmetic_types>)
 
 TEST(splits)
 {
-    using namespace Vc;
+    using namespace std::experimental::parallelism_v2;
     native_simd_mask<float> k(true);
     VERIFY(all_of(k)) << k;
     const auto parts = split<simd_mask<float>>(k);

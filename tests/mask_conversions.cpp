@@ -27,9 +27,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/simd>
+#include <experimental/simd>
 
-template <class... Ts> using base_template = Vc::simd_mask<Ts...>;
+template <class... Ts> using base_template = std::experimental::simd_mask<Ts...>;
 #include "testtypes.h"
 
 // type iteration in a function {{{1
@@ -47,17 +47,17 @@ TEST_TYPES(FromTo, conversions,  //{{{1
            outer_product<all_arithmetic_types, all_arithmetic_types>)
 {
     using From = typename FromTo::template at<0>;
-    using FromM = Vc::native_simd_mask<From>;
+    using FromM = std::experimental::native_simd_mask<From>;
     using To = typename FromTo::template at<1>;
     call_with_typelist<vir::make_unique_typelist<
-        Vc::rebind_simd_t<To, FromM>, Vc::native_simd_mask<To>,
-        Vc::simd_mask<To>, Vc::simd_mask<To, Vc::simd_abi::scalar>>>([](auto _b) {
+        std::experimental::rebind_simd_t<To, FromM>, std::experimental::native_simd_mask<To>,
+        std::experimental::simd_mask<To>, std::experimental::simd_mask<To, std::experimental::simd_abi::scalar>>>([](auto _b) {
         using ToM = decltype(_b);
         using ToV = typename ToM::simd_type;
 
-        using Vc::static_simd_cast;
-        using Vc::simd_cast;
-        using Vc::__proposed::resizing_simd_cast;
+        using std::experimental::static_simd_cast;
+        using std::experimental::simd_cast;
+        using std::experimental::__proposed::resizing_simd_cast;
 
         auto x = resizing_simd_cast<ToM>(FromM());
         COMPARE(typeid(x), typeid(ToM));

@@ -27,10 +27,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //#define UNITTEST_ONLY_XTEST 1
 #include <vir/test.h>
-#include <Vc/simd>
+#include <experimental/simd>
 #include "make_vec.h"
 
-template <class... Ts> using base_template = Vc::simd<Ts...>;
+template <class... Ts> using base_template = std::experimental::simd<Ts...>;
 #include "testtypes.h"
 
 template <class V> struct Convertible {
@@ -43,7 +43,7 @@ template <class M, class T> constexpr bool where_is_ill_formed_impl(M, const T &
 }
 template <class M, class T>
 constexpr auto where_is_ill_formed_impl(M m, const T &v, int)
-    -> std::conditional_t<true, bool, decltype(Vc::where(m, v))>
+    -> std::conditional_t<true, bool, decltype(std::experimental::where(m, v))>
 {
     return false;
 }
@@ -113,7 +113,7 @@ TEST_TYPES(V, where, all_test_types)
 
 TEST_TYPES(T, where_fundamental, int, float, double, short)
 {
-    using Vc::where;
+    using std::experimental::where;
     T x = T();
     where(true, x) = x + 1;
     COMPARE(x, T(1));
