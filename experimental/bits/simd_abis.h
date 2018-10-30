@@ -495,7 +495,7 @@ public:
 
     template <
         class Tuple, size_t _Offset, size_t Length, class F2,
-        class = std::enable_if_t<(_Offset + Length < std::decay_t<Tuple>::__first_size_v)>>
+        class = enable_if_t<(_Offset + Length < std::decay_t<Tuple>::__first_size_v)>>
     _GLIBCXX_SIMD_INTRINSIC static auto __extract(__size_constant<_Offset>, __size_constant<Length>,
                                      Tuple &&tup, F2 &&fun2)
     {
@@ -731,7 +731,7 @@ _GLIBCXX_SIMD_INTRINSIC void __for_each(const __simd_tuple<_T, _A0, _A1, As...> 
 #if defined _GLIBCXX_SIMD_HAVE_SSE || defined _GLIBCXX_SIMD_HAVE_MMX
 namespace __x86
 {
-// missing intrinsics {{{
+// missing _mmXXX_mask_cvtepi16_storeu_epi8 intrinsics {{{
 #if defined _GLIBCXX_SIMD_GCC && _GLIBCXX_SIMD_GCC < 0x80000
 _GLIBCXX_SIMD_INTRINSIC void _mm_mask_cvtepi16_storeu_epi8(void *p, __mmask8 k, __m128i x)
 {
@@ -748,17 +748,17 @@ _GLIBCXX_SIMD_INTRINSIC void _mm512_mask_cvtepi16_storeu_epi8(void *p, __mmask32
 #endif
 
 // }}}
-// blend{{{
+// __blend{{{
 template <class K, class V0, class V1>
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto blend(K mask, V0 at0, V1 at1)
+_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto __blend(K mask, V0 at0, V1 at1)
 {
     using _V = V0;
     if constexpr (!std::is_same_v<V0, V1>) {
         static_assert(sizeof(V0) == sizeof(V1));
         if constexpr (__is_vector_type_v<V0> && !__is_vector_type_v<V1>) {
-            return blend(mask, at0, reinterpret_cast<V0>(at1.d));
+            return __blend(mask, at0, reinterpret_cast<V0>(at1.d));
         } else if constexpr (!__is_vector_type_v<V0> && __is_vector_type_v<V1>) {
-            return blend(mask, reinterpret_cast<V1>(at0.d), at1);
+            return __blend(mask, reinterpret_cast<V1>(at0.d), at1);
         } else {
             __assert_unreachable<K>();
         }
@@ -766,7 +766,7 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto blend(K mask, V0 at0, V1 at1)
         static_assert(sizeof(K) == sizeof(V0) && sizeof(V0) == sizeof(V1));
         return (mask & at1) | (~mask & at0);
     } else if constexpr (!__is_vector_type_v<_V>) {
-        return blend(mask, at0.d, at1.d);
+        return __blend(mask, at0.d, at1.d);
     } else if constexpr (sizeof(K) < 16) {
         using _T = typename __vector_traits<_V>::value_type;
         if constexpr (sizeof(_V) == 16 && __have_avx512bw_vl && sizeof(_T) <= 2) {
@@ -1978,14 +1978,14 @@ _GLIBCXX_SIMD_INTRINSIC constexpr interleaved_pair<_T> interleave128(_A a, B b)
 }
 // }}}
 // __is_bitset {{{
-template <class _T> struct __is_bitset : std::false_type {};
-template <size_t _N> struct __is_bitset<std::bitset<_N>> : std::true_type {};
+template <class _T> struct __is_bitset : false_type {};
+template <size_t _N> struct __is_bitset<std::bitset<_N>> : true_type {};
 template <class _T> inline constexpr bool __is_bitset_v = __is_bitset<_T>::value;
 
 // }}}
 // __is_storage {{{
-template <class _T> struct __is_storage : std::false_type {};
-template <class _T, size_t _N> struct __is_storage<__storage<_T, _N>> : std::true_type {};
+template <class _T> struct __is_storage : false_type {};
+template <class _T, size_t _N> struct __is_storage<__storage<_T, _N>> : true_type {};
 template <class _T> inline constexpr bool __is_storage_v = __is_storage<_T>::value;
 
 // }}}
@@ -3861,7 +3861,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                 __vector_cast<int>(__vector_cast<uint>(x.d) & 0x7f800000u) <
                 0x4b000000);  // the exponent is so large that no mantissa bits signify
                               // fractional values (0x3f8 + 23*8 = 0x4b0)
-            return __x86::blend(no_fractional_values, x, truncated);
+            return __blend(no_fractional_values, x, truncated);
         } else if constexpr (__is_sse_pd<_T, _N>()) {
             const auto abs_x = __abs(x).d;
             const auto min_no_fractional_bits = __vector_cast<double>(
@@ -4145,7 +4145,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
             const auto tmp = __vector_cast<__llong>(
                 __abs(x).d < std::numeric_limits<_T>::min()
                     ? (x.d == 0 ? fp_zero : fp_subnormal)
-                    : __x86::blend(__isinf(x).d, __x86::blend(__isnan(x).d, fp_normal, fp_nan),
+                    : __blend(__isinf(x).d, __blend(__isnan(x).d, fp_normal, fp_nan),
                                  fp_infinite));
             if constexpr (std::is_same_v<_T, float>) {
                 if constexpr (__fixed_size_storage<int, _N>::tuple_size == 1) {
@@ -4190,7 +4190,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     _GLIBCXX_SIMD_INTRINSIC static void masked_assign(__storage<K, _N> k, __storage<_T, _N> &lhs,
                                            __id<__storage<_T, _N>> rhs)
     {
-        lhs = __x86::blend(k.d, lhs.d, rhs.d);
+        lhs = __blend(k.d, lhs.d, rhs.d);
     }
 
     template <class _T, class K, size_t _N>
@@ -4204,11 +4204,11 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                 return;
             } else {
                 // for AVX512/__mmask, a _mm512_maskz_mov is best
-                lhs = __x86::blend(k, lhs, __intrinsic_type_t<_T, _N>());
+                lhs = __blend(k, lhs, __intrinsic_type_t<_T, _N>());
                 return;
             }
         }
-        lhs = __x86::blend(k.d, lhs.d, __vector_broadcast<_N>(rhs));
+        lhs = __blend(k.d, lhs.d, __vector_broadcast<_N>(rhs));
     }
 
     // __masked_cassign {{{2
@@ -4216,7 +4216,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     _GLIBCXX_SIMD_INTRINSIC static void __masked_cassign(const __storage<K, _N> k, __storage<_T, _N> &lhs,
                                             const __id<__storage<_T, _N>> rhs)
     {
-        lhs = __x86::blend(
+        lhs = __blend(
             k.d, lhs.d, __data(Op<void>{}(make_simd(lhs), make_simd(rhs))).d);
     }
 
@@ -4224,7 +4224,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     _GLIBCXX_SIMD_INTRINSIC static void __masked_cassign(const __storage<K, _N> k, __storage<_T, _N> &lhs,
                                             const __id<_T> rhs)
     {
-        lhs = __x86::blend(
+        lhs = __blend(
             k.d, lhs.d,
             __data(
                 Op<void>{}(make_simd(lhs), make_simd<_T, _N>(__vector_broadcast<_N>(rhs))))
@@ -4238,7 +4238,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     {
         auto vv = make_simd(v);
         Op<decltype(vv)> op;
-        return __x86::blend(k, v, __data(op(vv)));
+        return __blend(k, v, __data(op(vv)));
     }
 
     //}}}2
@@ -4531,7 +4531,7 @@ template <class _Abi> struct __generic_mask_impl {
     _GLIBCXX_SIMD_INTRINSIC static void masked_assign(__storage<_T, _N> k, __storage<_T, _N> &lhs,
                                            __id<__storage<_T, _N>> rhs)
     {
-        lhs = __x86::blend(k.d, lhs.d, rhs.d);
+        lhs = __blend(k.d, lhs.d, rhs.d);
     }
 
     template <class _T, size_t _N>
@@ -4545,7 +4545,7 @@ template <class _Abi> struct __generic_mask_impl {
             }
             return;
         }
-        lhs = __x86::blend(k, lhs, __data(simd_mask<_T>(rhs)));
+        lhs = __blend(k, lhs, __data(simd_mask<_T>(rhs)));
     }
 
     //}}}2
@@ -6013,7 +6013,7 @@ protected:
     }
 
     template <size_t... _Indexes, class _A0, class... _Abis>
-    _GLIBCXX_SIMD_INTRINSIC __return_type<_A0, _Abis...> impl_mto(std::true_type,
+    _GLIBCXX_SIMD_INTRINSIC __return_type<_A0, _Abis...> impl_mto(true_type,
                                                    std::index_sequence<_Indexes...>,
                                                    const __simd_tuple<From, _A0, _Abis...> &x)
     {
@@ -6023,7 +6023,7 @@ protected:
     }
 
     template <size_t... _Indexes, class _A0, class... _Abis>
-    _GLIBCXX_SIMD_INTRINSIC __return_type<_A0, _Abis...> impl_mto(std::false_type,
+    _GLIBCXX_SIMD_INTRINSIC __return_type<_A0, _Abis...> impl_mto(false_type,
                                                    std::index_sequence<_Indexes...>,
                                                    const __simd_tuple<From, _A0, _Abis...> &x)
     {

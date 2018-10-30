@@ -49,9 +49,9 @@ using __char32 = char32_t;
 //}}}
 
 // __is_equal {{{
-template <class _T, _T a, _T b> struct __is_equal : public std::false_type {
+template <class _T, _T a, _T b> struct __is_equal : public false_type {
 };
-template <class _T, _T a> struct __is_equal<_T, a, a> : public std::true_type {
+template <class _T, _T a> struct __is_equal<_T, a, a> : public true_type {
 };
 
 // }}}
@@ -64,7 +64,7 @@ using __value_type_or_identity = decltype(__value_type_or_identity_impl<_T>(int(
 // }}}
 // __is_vectorizable {{{
 template <class _T> struct __is_vectorizable : public std::is_arithmetic<_T> {};
-template <> struct __is_vectorizable<bool> : public std::false_type {};
+template <> struct __is_vectorizable<bool> : public false_type {};
 template <class _T> inline constexpr bool __is_vectorizable_v = __is_vectorizable<_T>::value;
 // Deduces to a vectorizable type
 template <class _T, class = enable_if_t<__is_vectorizable_v<_T>>> using _Vectorizable = _T;
@@ -75,7 +75,7 @@ template <class _Ptr, class _ValueType>
 struct __is_possible_loadstore_conversion
     : conjunction<__is_vectorizable<_Ptr>, __is_vectorizable<_ValueType>> {
 };
-template <> struct __is_possible_loadstore_conversion<bool, bool> : std::true_type {
+template <> struct __is_possible_loadstore_conversion<bool, bool> : true_type {
 };
 // Deduces to a type allowed for load/store with the given value type.
 template <class _Ptr, class _ValueType,
@@ -94,14 +94,14 @@ struct is_equal_to : public std::integral_constant<bool, (_A == B)> {
 // }}}
 template <size_t X> using __size_constant = std::integral_constant<size_t, X>;
 // __is_bitmask{{{
-template <class _T, class = std::void_t<>> struct __is_bitmask : std::false_type {
+template <class _T, class = std::void_t<>> struct __is_bitmask : false_type {
     constexpr __is_bitmask(const _T &) noexcept {}
 };
 template <class _T> inline constexpr bool __is_bitmask_v = __is_bitmask<_T>::value;
 
 /* the __storage<bool, _N> case:
 template <class _T>
-struct __is_bitmask<_T, std::enable_if_t<(sizeof(_T) < _T::width)>> : std::true_type {
+struct __is_bitmask<_T, enable_if_t<(sizeof(_T) < _T::width)>> : true_type {
     constexpr __is_bitmask(const _T &) noexcept {}
 };*/
 
@@ -109,7 +109,7 @@ struct __is_bitmask<_T, std::enable_if_t<(sizeof(_T) < _T::width)>> : std::true_
 template <class _T>
 struct __is_bitmask<
     _T, std::void_t<decltype(std::declval<unsigned &>() = std::declval<_T>() & 1u)>>
-    : std::true_type {
+    : true_type {
     constexpr __is_bitmask(const _T &) noexcept {}
 };
 
@@ -146,12 +146,12 @@ template <class _T> using __equal_int_type_t = typename __equal_int_type<_T>::ty
 // }}}
 // __has_same_value_representation{{{
 template <class _T, class = std::void_t<>>
-struct __has_same_value_representation : std::false_type {
+struct __has_same_value_representation : false_type {
 };
 
 template <class _T>
 struct __has_same_value_representation<_T, std::void_t<typename __equal_int_type<_T>::type>>
-    : std::true_type {
+    : true_type {
 };
 
 template <class _T>
@@ -160,10 +160,10 @@ inline constexpr bool __has_same_value_representation_v =
 
 // }}}
 // __is_fixed_size_abi{{{
-template <class _T> struct __is_fixed_size_abi : std::false_type {
+template <class _T> struct __is_fixed_size_abi : false_type {
 };
 
-template <int _N> struct __is_fixed_size_abi<simd_abi::fixed_size<_N>> : std::true_type {
+template <int _N> struct __is_fixed_size_abi<simd_abi::fixed_size<_N>> : true_type {
 };
 
 template <class _T>
@@ -174,10 +174,10 @@ inline constexpr bool __is_fixed_size_abi_v = __is_fixed_size_abi<_T>::value;
 /*
 template <class F, class... Args>
 auto is_callable_dispatch(int, F &&fun, Args &&... args)
-    -> std::conditional_t<true, std::true_type,
+    -> std::conditional_t<true, true_type,
                           decltype(fun(std::forward<Args>(args)...))>;
 template <class F, class... Args>
-std::false_type is_callable_dispatch(float, F &&, Args &&...);
+false_type is_callable_dispatch(float, F &&, Args &&...);
 
 template <class... Args, class F> constexpr bool __is_callable(F &&)
 {
@@ -186,12 +186,12 @@ template <class... Args, class F> constexpr bool __is_callable(F &&)
 */
 
 template <class F, class = std::void_t<>, class... Args>
-struct __is_callable : std::false_type {
+struct __is_callable : false_type {
 };
 
 template <class F, class... Args>
 struct __is_callable<F, std::void_t<decltype(std::declval<F>()(std::declval<Args>()...))>,
-                   Args...> : std::true_type {
+                   Args...> : true_type {
 };
 
 template <class F, class... Args>
@@ -334,15 +334,17 @@ inline constexpr struct __nullarg_t {
 } __nullarg;
 
 // }}}
-// __unused{{{1
+// __unused{{{
 template <class _T> static constexpr void __unused(_T && ) {}
 
-// __assert_unreachable{{{1
+// }}}
+// __assert_unreachable{{{
 template <class _T> struct __assert_unreachable {
     static_assert(!std::is_same_v<_T, _T>, "this should be unreachable");
 };
 
-// custom diagnostics for UB {{{1
+// }}}
+// custom diagnostics for UB {{{
 #if defined _GLIBCXX_SIMD_GCC
 template <class _T>
 [[gnu::__weak__, gnu::__noinline__,
@@ -355,16 +357,18 @@ const _T &__warn_ub(const _T &x) { return x; }
 template <class _T> const _T &__warn_ub(const _T &x) { return x; }
 #endif
 
-// __dummy_assert {{{1
+// }}}
 #ifdef NDEBUG
+// __dummy_assert {{{
 struct __dummy_assert {
     template <class _T> _GLIBCXX_SIMD_INTRINSIC __dummy_assert &operator<<(_T &&) noexcept
     {
         return *this;
     }
 };
+// }}}
 #else   // NDEBUG
-// __real_assert {{{1
+// __real_assert {{{
 struct __real_assert {
     _GLIBCXX_SIMD_INTRINSIC __real_assert(bool ok, const char *code, const char *file, int line)
         : failed(!ok)
@@ -400,38 +404,9 @@ private:
     }
     bool failed;
 };
+// }}}
 #endif  // NDEBUG
-
-// __assertCorrectAlignment {{{1
-#if defined _GLIBCXX_SIMD_CHECK_ALIGNMENT || defined COMPILE_FOR_UNIT_TESTS
-template <class _V = void, class _T>
-_GLIBCXX_SIMD_ALWAYS_INLINE void __assertCorrectAlignment(const _T *ptr)
-{
-    auto &&__is_aligned = [](const _T *p) -> bool {
-        constexpr size_t s =
-            alignof(std::conditional_t<std::is_same<void, _V>::value, _T, _V>);
-        return (reinterpret_cast<size_t>(p) & (s - 1)) == 0;
-    };
-#ifdef COMPILE_FOR_UNIT_TESTS
-    _GLIBCXX_SIMD_ASSERT(__is_aligned(ptr))
-        << " ptr = " << ptr << ", expected alignment = "
-        << alignof(std::conditional_t<std::is_same<void, _V>::value, _T, _V>);
-    __unused(__is_aligned);
-#else
-    if (_GLIBCXX_SIMD_IS_UNLIKELY(!__is_aligned(ptr))) {
-        std::fprintf(stderr, "_A load with incorrect alignment has just been called. Look at the stacktrace to find the guilty load.\n");
-        std::abort();
-    }
-#endif
-}
-#else
-template <class _V = void, class _T>
-_GLIBCXX_SIMD_ALWAYS_INLINE void __assertCorrectAlignment(const _T *)
-{
-}
-#endif
-
-// __size_or_zero {{{1
+// __size_or_zero {{{
 template <class _T, class _A, size_t _N = simd_size<_T, _A>::value>
 constexpr size_t __size_or_zero_dispatch(int)
 {
@@ -443,7 +418,8 @@ template <class _T, class _A> constexpr size_t __size_or_zero_dispatch(float) {
 template <class _T, class _A>
 inline constexpr size_t __size_or_zero = __size_or_zero_dispatch<_T, _A>(0);
 
-// __promote_preserving_unsigned{{{1
+// }}}
+// __promote_preserving_unsigned{{{
 // work around crazy semantics of unsigned integers of lower rank than int:
 // Before applying an operator the operands are promoted to int. In which case over- or
 // underflow is UB, even though the operand types were unsigned.
@@ -460,6 +436,7 @@ _GLIBCXX_SIMD_INTRINSIC unsigned int __promote_preserving_unsigned(const unsigne
     return x;
 }
 
+// }}}
 // __exact_bool{{{1
 class __exact_bool {
     const bool d;
@@ -470,32 +447,33 @@ public:
     constexpr operator bool() const { return d; }
 };
 
-// __execute_on_index_sequence{{{1
-template <typename F, size_t... I>
+// __execute_on_index_sequence{{{
+template <class F, size_t... I>
 _GLIBCXX_SIMD_INTRINSIC void __execute_on_index_sequence(F && f, std::index_sequence<I...>)
 {
     auto &&x = {(f(__size_constant<I>()), 0)...};
     __unused(x);
 }
 
-template <typename F>
+template <class F>
 _GLIBCXX_SIMD_INTRINSIC void __execute_on_index_sequence(F &&, std::index_sequence<>)
 {
 }
 
-template <typename R, typename F, size_t... I>
+template <class R, class F, size_t... I>
 _GLIBCXX_SIMD_INTRINSIC R __execute_on_index_sequence_with_return(F && f, std::index_sequence<I...>)
 {
     return R{f(__size_constant<I>())...};
 }
 
+// }}}
 // __execute_n_times{{{1
 template <size_t _N, typename F> _GLIBCXX_SIMD_INTRINSIC void __execute_n_times(F && f)
 {
     __execute_on_index_sequence(std::forward<F>(f), std::make_index_sequence<_N>{});
 }
 
-// __generate_from_n_evaluations{{{1
+// __generate_from_n_evaluations{{{
 template <size_t _N, typename R, typename F>
 _GLIBCXX_SIMD_INTRINSIC R __generate_from_n_evaluations(F && f)
 {
@@ -503,14 +481,17 @@ _GLIBCXX_SIMD_INTRINSIC R __generate_from_n_evaluations(F && f)
                                                     std::make_index_sequence<_N>{});
 }
 
-// __may_alias{{{1
+// }}}
+// __may_alias{{{
 /**\internal
  * Helper __may_alias<_T> that turns _T into the type to be used for an aliasing pointer. This
  * adds the __may_alias attribute to _T (with compilers that support it).
  */
-template <typename _T> using __may_alias [[gnu::__may_alias__]] = _T;
+template <class _T> using __may_alias [[gnu::__may_alias__]] = _T;
 
-// simd and simd_mask base for unsupported <_T, _Abi>{{{1
+// }}}
+// __unsupported_base {{{
+// simd and simd_mask base for unsupported <_T, _Abi>
 struct __unsupported_base {
     __unsupported_base() = delete;
     __unsupported_base(const __unsupported_base &) = delete;
@@ -518,6 +499,7 @@ struct __unsupported_base {
     ~__unsupported_base() = delete;
 };
 
+// }}}
 // traits forward declaration{{{1
 /**
  * \internal
@@ -528,7 +510,7 @@ struct __unsupported_base {
  * SFINAE works.
  */
 struct __invalid_traits {
-    using is_valid = std::false_type;
+    using is_valid = false_type;
     static constexpr size_t simd_member_alignment = 1;
     struct simd_impl_type;
     struct simd_member_type {};
@@ -609,9 +591,9 @@ struct __is_narrowing_conversion<_From, To, true, true>
           (std::is_signed<_From>::value && std::is_unsigned<To>::value))> {
 };
 
-template <class _T> struct __is_narrowing_conversion<bool, _T, true, true> : public std::true_type {};
-template <> struct __is_narrowing_conversion<bool, bool, true, true> : public std::false_type {};
-template <class _T> struct __is_narrowing_conversion<_T, _T, true, true> : public std::false_type {
+template <class _T> struct __is_narrowing_conversion<bool, _T, true, true> : public true_type {};
+template <> struct __is_narrowing_conversion<bool, bool, true, true> : public false_type {};
+template <class _T> struct __is_narrowing_conversion<_T, _T, true, true> : public false_type {
 };
 
 template <class _From, class To>
@@ -621,7 +603,7 @@ struct __is_narrowing_conversion<_From, To, false, true>
 
 // __converts_to_higher_integer_rank{{{1
 template <class _From, class To, bool = (sizeof(_From) < sizeof(To))>
-struct __converts_to_higher_integer_rank : public std::true_type {
+struct __converts_to_higher_integer_rank : public true_type {
 };
 template <class From, class To>
 struct __converts_to_higher_integer_rank<From, To, false>
@@ -631,10 +613,10 @@ struct __converts_to_higher_integer_rank<From, To, false>
 // __is_aligned(_v){{{1
 template <class Flag, size_t Alignment> struct __is_aligned;
 template <size_t Alignment>
-struct __is_aligned<vector_aligned_tag, Alignment> : public std::true_type {
+struct __is_aligned<vector_aligned_tag, Alignment> : public true_type {
 };
 template <size_t Alignment>
-struct __is_aligned<element_aligned_tag, Alignment> : public std::false_type {
+struct __is_aligned<element_aligned_tag, Alignment> : public false_type {
 };
 template <size_t GivenAlignment, size_t Alignment>
 struct __is_aligned<overaligned_tag<GivenAlignment>, Alignment>
@@ -654,7 +636,7 @@ class __when_aligned
 {
 public:
     constexpr __when_aligned(vector_aligned_tag) {}
-    template <size_t _Given, class = std::enable_if_t<(_Given >= Alignment)>>
+    template <size_t _Given, class = enable_if_t<(_Given >= Alignment)>>
     constexpr __when_aligned(overaligned_tag<_Given>)
     {
     }
@@ -664,7 +646,7 @@ class __when_unaligned
 {
 public:
     constexpr __when_unaligned(element_aligned_tag) {}
-    template <size_t _Given, class = std::enable_if_t<(_Given < Alignment)>>
+    template <size_t _Given, class = enable_if_t<(_Given < Alignment)>>
     constexpr __when_unaligned(overaligned_tag<_Given>)
     {
     }
@@ -813,7 +795,7 @@ template <class _T = void> struct __shift_left {
     constexpr _T operator()(const _T &a, const _T &b) const { return a << b; }
 };
 template <> struct __shift_left<void> {
-    template <typename L, typename R> constexpr auto operator()(L &&a, R &&b) const
+    template <class L, class R> constexpr auto operator()(L &&a, R &&b) const
     {
         return std::forward<L>(a) << std::forward<R>(b);
     }
@@ -822,7 +804,7 @@ template <class _T = void> struct __shift_right {
     constexpr _T operator()(const _T &a, const _T &b) const { return a >> b; }
 };
 template <> struct __shift_right<void> {
-    template <typename L, typename R> constexpr auto operator()(L &&a, R &&b) const
+    template <class L, class R> constexpr auto operator()(L &&a, R &&b) const
     {
         return std::forward<L>(a) >> std::forward<R>(b);
     }
@@ -831,13 +813,13 @@ template <class _T = void> struct __increment {
     constexpr _T operator()(_T a) const { return ++a; }
 };
 template <> struct __increment<void> {
-    template <typename _T> constexpr _T operator()(_T a) const { return ++a; }
+    template <class _T> constexpr _T operator()(_T a) const { return ++a; }
 };
 template <class _T = void> struct __decrement {
     constexpr _T operator()(_T a) const { return --a; }
 };
 template <> struct __decrement<void> {
-    template <typename _T> constexpr _T operator()(_T a) const { return --a; }
+    template <class _T> constexpr _T operator()(_T a) const { return --a; }
 };
 
 // }}}
@@ -881,6 +863,7 @@ template <class From, class To, class DecayedFrom = std::decay_t<From>,
 using __value_preserving_or_int = From;
 
 // }}}
+// intrinsic and vector builtin types and operations
 // __intrinsic_type {{{
 template <class _T, size_t _Bytes, class = std::void_t<>> struct __intrinsic_type;
 template <class _T, size_t _Size>
@@ -895,7 +878,7 @@ template <class _T> using __intrinsic_type128_t = typename __intrinsic_type<_T, 
 
 // }}}
 // __is_intrinsic{{{1
-template <class _T> struct __is_intrinsic : public std::false_type {};
+template <class _T> struct __is_intrinsic : public false_type {};
 template <class _T> inline constexpr bool is_intrinsic_v = __is_intrinsic<_T>::value;
 
 // }}}
@@ -904,13 +887,13 @@ template <class _T, size_t _N, class = void> struct __vector_type_n {};
 
 // special case 1-element to be _T itself
 template <class _T>
-struct __vector_type_n<_T, 1, std::enable_if_t<__is_vectorizable_v<_T>>> {
+struct __vector_type_n<_T, 1, enable_if_t<__is_vectorizable_v<_T>>> {
     using type = _T;
 };
 
 // else, use GNU-style builtin vector types
 template <class _T, size_t _N>
-struct __vector_type_n<_T, _N, std::enable_if_t<__is_vectorizable_v<_T>>> {
+struct __vector_type_n<_T, _N, enable_if_t<__is_vectorizable_v<_T>>> {
     static constexpr size_t _Bytes = _N * sizeof(_T);
     using type [[gnu::__vector_size__(_Bytes)]] = _T;
 };
@@ -931,7 +914,7 @@ template <class _T> using __vector_type64_t = typename __vector_type<_T, 64>::ty
 template <class _T> using __vector_type128_t = typename __vector_type<_T, 128>::type;
 
 // __is_vector_type {{{1
-template <class _T, class = std::void_t<>> struct __is_vector_type : std::false_type {};
+template <class _T, class = std::void_t<>> struct __is_vector_type : false_type {};
 template <class _T>
 struct __is_vector_type<
     _T,
@@ -946,7 +929,7 @@ inline constexpr bool __is_vector_type_v = __is_vector_type<_T>::value;
 // __vector_traits{{{1
 template <class _T, class = std::void_t<>> struct __vector_traits;
 template <class _T>
-struct __vector_traits<_T, std::void_t<std::enable_if_t<__is_vector_type_v<_T>>>> {
+struct __vector_traits<_T, std::void_t<enable_if_t<__is_vector_type_v<_T>>>> {
     using type = _T;
     using value_type = decltype(std::declval<_T>()[0]);
     static constexpr int width = sizeof(_T) / sizeof(value_type);
@@ -1131,7 +1114,7 @@ void __vector_store(const B v, void *p, F)
 
 // }}}
 // __allbits{{{
-template <typename _V>
+template <class _V>
 inline constexpr _V __allbits =
     reinterpret_cast<_V>(~__intrinsic_type_t<__llong, sizeof(_V) / sizeof(__llong)>());
 
@@ -1405,7 +1388,7 @@ _GLIBCXX_SIMD_INTRINSIC constexpr auto_cast_t<typename __storage<_T, _N>::regist
 // __vector_to_bitset{{{
 _GLIBCXX_SIMD_INTRINSIC constexpr std::bitset<1> __vector_to_bitset(bool x) { return unsigned(x); }
 
-template <class _T, class = std::enable_if_t<__is_bitmask_v<_T> && __have_avx512f>>
+template <class _T, class = enable_if_t<__is_bitmask_v<_T> && __have_avx512f>>
 _GLIBCXX_SIMD_INTRINSIC constexpr std::bitset<8 * sizeof(_T)> __vector_to_bitset(_T x)
 {
     if constexpr (std::is_integral_v<_T>) {
@@ -1487,6 +1470,7 @@ _GLIBCXX_SIMD_INTRINSIC std::bitset<Trait::width> __vector_to_bitset(_T x)
 }
 
 // }}}
+// -----------------------------------------------
 // __testz{{{
 template <class _T, class Traits = __vector_traits<_T>>
 _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST int __testz(_T a, _T b)
@@ -1725,18 +1709,18 @@ template <> struct __bool_storage_member_type<64> { using type = __mmask64; };
 // __intrinsic_type{{{
 // the following excludes bool via __is_vectorizable
 template <class _T>
-using void_if_integral_t = std::void_t<std::enable_if_t<
+using void_if_integral_t = std::void_t<enable_if_t<
     conjunction<std::is_integral<_T>, __is_vectorizable<_T>>::value>>;
 #if defined _GLIBCXX_SIMD_HAVE_AVX512F
 template <> struct __intrinsic_type<double, 64, void> { using type = __m512d; };
 template <> struct __intrinsic_type< float, 64, void> { using type = __m512; };
-template <typename _T> struct __intrinsic_type<_T, 64, void_if_integral_t<_T>> { using type = __m512i; };
+template <class _T> struct __intrinsic_type<_T, 64, void_if_integral_t<_T>> { using type = __m512i; };
 #endif  // _GLIBCXX_SIMD_HAVE_AVX512F
 
 #if defined _GLIBCXX_SIMD_HAVE_AVX
 template <> struct __intrinsic_type<double, 32, void> { using type = __m256d; };
 template <> struct __intrinsic_type< float, 32, void> { using type = __m256; };
-template <typename _T> struct __intrinsic_type<_T, 32, void_if_integral_t<_T>> { using type = __m256i; };
+template <class _T> struct __intrinsic_type<_T, 32, void_if_integral_t<_T>> { using type = __m256i; };
 #endif  // _GLIBCXX_SIMD_HAVE_AVX
 
 #if defined _GLIBCXX_SIMD_HAVE_SSE
@@ -1747,29 +1731,29 @@ template <> struct __intrinsic_type< float,  4, void> { using type = __m128; };
 #if defined _GLIBCXX_SIMD_HAVE_SSE2
 template <> struct __intrinsic_type<double, 16, void> { using type = __m128d; };
 template <> struct __intrinsic_type<double,  8, void> { using type = __m128d; };
-template <typename _T> struct __intrinsic_type<_T, 16, void_if_integral_t<_T>> { using type = __m128i; };
-template <typename _T> struct __intrinsic_type<_T,  8, void_if_integral_t<_T>> { using type = __m128i; };
-template <typename _T> struct __intrinsic_type<_T,  4, void_if_integral_t<_T>> { using type = __m128i; };
-template <typename _T> struct __intrinsic_type<_T,  2, void_if_integral_t<_T>> { using type = __m128i; };
-template <typename _T> struct __intrinsic_type<_T,  1, void_if_integral_t<_T>> { using type = __m128i; };
+template <class _T> struct __intrinsic_type<_T, 16, void_if_integral_t<_T>> { using type = __m128i; };
+template <class _T> struct __intrinsic_type<_T,  8, void_if_integral_t<_T>> { using type = __m128i; };
+template <class _T> struct __intrinsic_type<_T,  4, void_if_integral_t<_T>> { using type = __m128i; };
+template <class _T> struct __intrinsic_type<_T,  2, void_if_integral_t<_T>> { using type = __m128i; };
+template <class _T> struct __intrinsic_type<_T,  1, void_if_integral_t<_T>> { using type = __m128i; };
 #endif  // _GLIBCXX_SIMD_HAVE_SSE2
 
 // }}}
 // __is_intrinsic{{{
-template <> struct __is_intrinsic<__m128> : public std::true_type {};
+template <> struct __is_intrinsic<__m128> : public true_type {};
 #ifdef _GLIBCXX_SIMD_HAVE_SSE2
-template <> struct __is_intrinsic<__m128d> : public std::true_type {};
-template <> struct __is_intrinsic<__m128i> : public std::true_type {};
+template <> struct __is_intrinsic<__m128d> : public true_type {};
+template <> struct __is_intrinsic<__m128i> : public true_type {};
 #endif  // _GLIBCXX_SIMD_HAVE_SSE2
 #ifdef _GLIBCXX_SIMD_HAVE_AVX
-template <> struct __is_intrinsic<__m256 > : public std::true_type {};
-template <> struct __is_intrinsic<__m256d> : public std::true_type {};
-template <> struct __is_intrinsic<__m256i> : public std::true_type {};
+template <> struct __is_intrinsic<__m256 > : public true_type {};
+template <> struct __is_intrinsic<__m256d> : public true_type {};
+template <> struct __is_intrinsic<__m256i> : public true_type {};
 #endif  // _GLIBCXX_SIMD_HAVE_AVX
 #ifdef _GLIBCXX_SIMD_HAVE_AVX512F
-template <> struct __is_intrinsic<__m512 > : public std::true_type {};
-template <> struct __is_intrinsic<__m512d> : public std::true_type {};
-template <> struct __is_intrinsic<__m512i> : public std::true_type {};
+template <> struct __is_intrinsic<__m512 > : public true_type {};
+template <> struct __is_intrinsic<__m512d> : public true_type {};
+template <> struct __is_intrinsic<__m512i> : public true_type {};
 #endif  // _GLIBCXX_SIMD_HAVE_AVX512F
 
 // }}}
@@ -1923,7 +1907,7 @@ struct __storage_base<_T, Width, RegisterType, false> {
 };
 
 // __storage_equiv {{{1
-template <typename _T, size_t _Width, bool = __has_same_value_representation_v<_T>>
+template <class _T, size_t _Width, bool = __has_same_value_representation_v<_T>>
 struct __storage_equiv : __storage_base<_T, _Width> {
     using __storage_base<_T, _Width>::d;
     _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv() = default;
@@ -1998,7 +1982,7 @@ struct __storage_equiv<_T, Width, true>
 };
 
 // __storage{{{1
-template <typename _T, size_t Width>
+template <class _T, size_t Width>
 struct __storage<_T, Width,
                std::void_t<__vector_type_t<_T, Width>, __intrinsic_type_t<_T, Width>>>
     : __storage_equiv<_T, Width> {
@@ -2019,7 +2003,7 @@ struct __storage<_T, Width,
     using __storage_equiv<_T, Width>::d;
 
     template <class... As,
-              class = std::enable_if_t<((std::is_same_v<simd_abi::scalar, As> && ...) &&
+              class = enable_if_t<((std::is_same_v<simd_abi::scalar, As> && ...) &&
                                         sizeof...(As) <= Width)>>
     _GLIBCXX_SIMD_INTRINSIC constexpr operator __simd_tuple<_T, As...>() const
     {
@@ -2142,39 +2126,36 @@ template <class> using compatible = scalar;
 // }}}
 // native {{{
 #if defined _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
-template <typename _T>
-using native = __fallback_abi_for_long_double_t<_T, __avx512, scalar>;
+template <class _T> using native = __fallback_abi_for_long_double_t<_T, __avx512, scalar>;
 #elif defined _GLIBCXX_SIMD_HAVE_AVX512_ABI
-template <typename _T>
+template <class _T>
 using native =
     std::conditional_t<(sizeof(_T) >= 4),
                        __fallback_abi_for_long_double_t<_T, __avx512, scalar>, __avx>;
 #elif defined _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
-template <typename _T> using native = __fallback_abi_for_long_double_t<_T, __avx, scalar>;
+template <class _T> using native = __fallback_abi_for_long_double_t<_T, __avx, scalar>;
 #elif defined _GLIBCXX_SIMD_HAVE_AVX_ABI
-template <typename _T>
+template <class _T>
 using native =
     std::conditional_t<std::is_floating_point<_T>::value,
                        __fallback_abi_for_long_double_t<_T, __avx, scalar>, __sse>;
 #elif defined _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
-template <typename _T>
-using native = __fallback_abi_for_long_double_t<_T, __sse, scalar>;
+template <class _T> using native = __fallback_abi_for_long_double_t<_T, __sse, scalar>;
 #elif defined _GLIBCXX_SIMD_HAVE_SSE_ABI
-template <typename _T>
+template <class _T>
 using native = std::conditional_t<std::is_same<float, _T>::value, __sse, scalar>;
 #elif defined _GLIBCXX_SIMD_HAVE_FULL_NEON_ABI
-template <typename _T>
-using native = __fallback_abi_for_long_double_t<_T, __neon, scalar>;
+template <class _T> using native = __fallback_abi_for_long_double_t<_T, __neon, scalar>;
 #else
-template <typename> using native = scalar;
+template <class> using native = scalar;
 #endif
 
 // }}}
 // __default_abi {{{
 #if defined _GLIBCXX_SIMD_DEFAULT_ABI
-template <typename _T> using __default_abi = _GLIBCXX_SIMD_DEFAULT_ABI<_T>;
+template <class _T> using __default_abi = _GLIBCXX_SIMD_DEFAULT_ABI<_T>;
 #else
-template <typename _T> using __default_abi = compatible<_T>;
+template <class _T> using __default_abi = compatible<_T>;
 #endif
 
 // }}}
@@ -2182,7 +2163,7 @@ template <typename _T> using __default_abi = compatible<_T>;
 
 // traits {{{1
 // is_abi_tag {{{2
-template <class _T, class = std::void_t<>> struct is_abi_tag : std::false_type {
+template <class _T, class = std::void_t<>> struct is_abi_tag : false_type {
 };
 template <class _T>
 struct is_abi_tag<_T, std::void_t<typename _T::is_valid_abi_tag>>
@@ -2191,10 +2172,10 @@ struct is_abi_tag<_T, std::void_t<typename _T::is_valid_abi_tag>>
 template <class _T> inline constexpr bool is_abi_tag_v = is_abi_tag<_T>::value;
 
 // is_simd(_mask) {{{2
-template <class _T> struct is_simd : public std::false_type {};
+template <class _T> struct is_simd : public false_type {};
 template <class _T> inline constexpr bool is_simd_v = is_simd<_T>::value;
 
-template <class _T> struct is_simd_mask : public std::false_type {};
+template <class _T> struct is_simd_mask : public false_type {};
 template <class _T> inline constexpr bool is_simd_mask_v = is_simd_mask<_T>::value;
 
 // simd_size {{{2
@@ -2202,7 +2183,7 @@ template <class _T, class _Abi, class = void> struct __simd_size_impl {
 };
 template <class _T, class _Abi>
 struct __simd_size_impl<_T, _Abi,
-                        std::enable_if_t<std::conjunction_v<
+                        enable_if_t<std::conjunction_v<
                             __is_vectorizable<_T>, std::experimental::is_abi_tag<_Abi>>>>
     : __size_constant<_Abi::template size<_T>> {
 };
@@ -2264,14 +2245,14 @@ inline constexpr size_t memory_alignment_v = memory_alignment<_T, _U>::value;
 
 // class template simd [simd] {{{1
 template <class _T, class _Abi = simd_abi::__default_abi<_T>> class simd;
-template <class _T, class _Abi> struct is_simd<simd<_T, _Abi>> : public std::true_type {};
+template <class _T, class _Abi> struct is_simd<simd<_T, _Abi>> : public true_type {};
 template <class _T> using native_simd = simd<_T, simd_abi::native<_T>>;
 template <class _T, int _N> using fixed_size_simd = simd<_T, simd_abi::fixed_size<_N>>;
 template <class _T, size_t _N> using __deduced_simd = simd<_T, simd_abi::deduce_t<_T, _N>>;
 
 // class template simd_mask [simd_mask] {{{1
 template <class _T, class _Abi = simd_abi::__default_abi<_T>> class simd_mask;
-template <class _T, class _Abi> struct is_simd_mask<simd_mask<_T, _Abi>> : public std::true_type {};
+template <class _T, class _Abi> struct is_simd_mask<simd_mask<_T, _Abi>> : public true_type {};
 template <class _T> using native_simd_mask = simd_mask<_T, simd_abi::native<_T>>;
 template <class _T, int _N> using fixed_size_simd_mask = simd_mask<_T, simd_abi::fixed_size<_N>>;
 template <class _T, size_t _N>
@@ -2303,14 +2284,14 @@ struct __static_simd_cast_return_type<simd_mask<_T, _A0>, _U, _A, false, void>
 
 template <class _T, class _U, class _A>
 struct __static_simd_cast_return_type<_T, _U, _A, true,
-                                    std::enable_if_t<_T::size() == simd_size_v<_U, _A>>> {
+                                    enable_if_t<_T::size() == simd_size_v<_U, _A>>> {
     using type = _T;
 };
 
 template <class _T, class _A>
 struct __static_simd_cast_return_type<_T, _T, _A, false,
 #ifdef _GLIBCXX_SIMD_FIX_P2TS_ISSUE66
-                                    std::enable_if_t<__is_vectorizable_v<_T>>
+                                    enable_if_t<__is_vectorizable_v<_T>>
 #else
                                     void
 #endif
@@ -2321,7 +2302,7 @@ struct __static_simd_cast_return_type<_T, _T, _A, false,
 template <class _T, class = void> struct __safe_make_signed {
     using type = _T;
 };
-template <class _T> struct __safe_make_signed<_T, std::enable_if_t<std::is_integral_v<_T>>> {
+template <class _T> struct __safe_make_signed<_T, enable_if_t<std::is_integral_v<_T>>> {
     // the extra make_unsigned_t is because of PR85951
     using type = std::make_signed_t<std::make_unsigned_t<_T>>;
 };
@@ -2330,7 +2311,7 @@ template <class _T> using safe_make_signed_t = typename __safe_make_signed<_T>::
 template <class _T, class _U, class _A>
 struct __static_simd_cast_return_type<_T, _U, _A, false,
 #ifdef _GLIBCXX_SIMD_FIX_P2TS_ISSUE66
-                                    std::enable_if_t<__is_vectorizable_v<_T>>
+                                    enable_if_t<__is_vectorizable_v<_T>>
 #else
                                     void
 #endif
@@ -2472,7 +2453,7 @@ template <class _T, class _A> _GLIBCXX_SIMD_INTRINSIC auto to_fixed_size(const s
 
 // to_native {{{2
 template <class _T, int _N>
-_GLIBCXX_SIMD_INTRINSIC std::enable_if_t<(_N == native_simd<_T>::size()), native_simd<_T>>
+_GLIBCXX_SIMD_INTRINSIC enable_if_t<(_N == native_simd<_T>::size()), native_simd<_T>>
 to_native(const fixed_size_simd<_T, _N> &x)
 {
     alignas(memory_alignment_v<native_simd<_T>>) _T mem[_N];
@@ -2481,7 +2462,7 @@ to_native(const fixed_size_simd<_T, _N> &x)
 }
 
 template <class _T, size_t _N>
-_GLIBCXX_SIMD_INTRINSIC std::enable_if_t<(_N == native_simd_mask<_T>::size()), native_simd_mask<_T>> to_native(
+_GLIBCXX_SIMD_INTRINSIC enable_if_t<(_N == native_simd_mask<_T>::size()), native_simd_mask<_T>> to_native(
     const fixed_size_simd_mask<_T, _N> &x)
 {
     return native_simd_mask<_T>([&](auto i) { return x[i]; });
@@ -2489,7 +2470,7 @@ _GLIBCXX_SIMD_INTRINSIC std::enable_if_t<(_N == native_simd_mask<_T>::size()), n
 
 // to_compatible {{{2
 template <class _T, size_t _N>
-_GLIBCXX_SIMD_INTRINSIC std::enable_if_t<(_N == simd<_T>::size()), simd<_T>> to_compatible(
+_GLIBCXX_SIMD_INTRINSIC enable_if_t<(_N == simd<_T>::size()), simd<_T>> to_compatible(
     const simd<_T, simd_abi::fixed_size<_N>> &x)
 {
     alignas(memory_alignment_v<simd<_T>>) _T mem[_N];
@@ -2498,7 +2479,7 @@ _GLIBCXX_SIMD_INTRINSIC std::enable_if_t<(_N == simd<_T>::size()), simd<_T>> to_
 }
 
 template <class _T, size_t _N>
-_GLIBCXX_SIMD_INTRINSIC std::enable_if_t<(_N == simd_mask<_T>::size()), simd_mask<_T>> to_compatible(
+_GLIBCXX_SIMD_INTRINSIC enable_if_t<(_N == simd_mask<_T>::size()), simd_mask<_T>> to_compatible(
     const simd_mask<_T, simd_abi::fixed_size<_N>> &x)
 {
     return simd_mask<_T>([&](auto i) { return x[i]; });
@@ -2519,7 +2500,7 @@ _GLIBCXX_SIMD_INTRINSIC To __simd_reinterpret_cast_impl(__storage<_T, _N> x)
 namespace __proposed
 {
 template <class To, class _T, class _A,
-          class = std::enable_if_t<sizeof(To) == sizeof(simd<_T, _A>) &&
+          class = enable_if_t<sizeof(To) == sizeof(simd<_T, _A>) &&
                                    (is_simd_v<To> || is_simd_mask_v<To>)>>
 _GLIBCXX_SIMD_INTRINSIC To simd_reinterpret_cast(const simd<_T, _A> &x)
 {
@@ -2528,7 +2509,7 @@ _GLIBCXX_SIMD_INTRINSIC To simd_reinterpret_cast(const simd<_T, _A> &x)
 }
 
 template <class To, class _T, class _A,
-          class = std::enable_if_t<(is_simd_v<To> || is_simd_mask_v<To>)>>
+          class = enable_if_t<(is_simd_v<To> || is_simd_mask_v<To>)>>
 _GLIBCXX_SIMD_INTRINSIC To simd_reinterpret_cast(const simd_mask<_T, _A> &x)
 {
     return std::experimental::__simd_reinterpret_cast_impl<To>(__data(x));
@@ -2545,7 +2526,7 @@ __masked_simd_impl<_T, _A> __masked_simd(const typename simd<_T, _A>::mask_type 
 #endif  // _GLIBCXX_SIMD_EXPERIMENTAL
 
 // where_expression {{{1
-template <typename _M, typename _T> class const_where_expression  //{{{2
+template <class _M, class _T> class const_where_expression  //{{{2
 {
     using _V = _T;
     static_assert(std::is_same_v<_V, std::decay_t<_T>>);
@@ -2590,7 +2571,7 @@ public:
     }
 };
 
-template <typename _T> class const_where_expression<bool, _T>  //{{{2
+template <class _T> class const_where_expression<bool, _T>  //{{{2
 {
     using _M = bool;
     using _V = _T;
@@ -2633,7 +2614,7 @@ public:
 };
 
 // where_expression {{{2
-template <typename _M, typename _T>
+template <class _M, class _T>
 class where_expression : public const_where_expression<_M, _T>
 {
     static_assert(!std::is_const<_T>::value, "where_expression may only be instantiated with a non-const _T parameter");
@@ -2712,7 +2693,7 @@ public:
 
 #ifdef _GLIBCXX_SIMD_EXPERIMENTAL
     template <class F>
-    _GLIBCXX_SIMD_INTRINSIC std::enable_if_t<
+    _GLIBCXX_SIMD_INTRINSIC enable_if_t<
         conjunction<std::is_same<decltype(std::declval<F>()(__masked_simd(
                                      std::declval<const _M &>(), std::declval<_T &>()))),
                                  void>>::value,
@@ -2724,7 +2705,7 @@ public:
     }
 
     template <class F>
-    _GLIBCXX_SIMD_INTRINSIC std::enable_if_t<
+    _GLIBCXX_SIMD_INTRINSIC enable_if_t<
         conjunction<std::is_same<decltype(std::declval<F>()(__masked_simd(
                                      std::declval<const _M &>(), std::declval<_T &>()))),
                                  void>>::value,
@@ -2738,7 +2719,7 @@ public:
 };
 
 // where_expression<bool> {{{2
-template <typename _T>
+template <class _T>
 class where_expression<bool, _T> : public const_where_expression<bool, _T>
 {
     using _M = bool;
@@ -2793,7 +2774,7 @@ public:
 
 // where_expression<_M, tuple<...>> {{{2
 #ifdef _GLIBCXX_SIMD_EXPERIMENTAL
-template <typename _M, typename... _Ts> class where_expression<_M, std::tuple<_Ts &...>>
+template <class _M, class... _Ts> class where_expression<_M, std::tuple<_Ts &...>>
 {
     const _M &k;
     std::tuple<_Ts &...> d;
@@ -2813,7 +2794,7 @@ private:
 
 public:
     template <class F>
-    _GLIBCXX_SIMD_INTRINSIC std::enable_if_t<
+    _GLIBCXX_SIMD_INTRINSIC enable_if_t<
         conjunction<
             std::is_same<decltype(std::declval<F>()(__masked_simd(
                              std::declval<const _M &>(), std::declval<_Ts &>())...)),
@@ -2826,7 +2807,7 @@ public:
     }
 
     template <class F>
-    _GLIBCXX_SIMD_INTRINSIC std::enable_if_t<
+    _GLIBCXX_SIMD_INTRINSIC enable_if_t<
         conjunction<
             std::is_same<decltype(std::declval<F>()(__masked_simd(
                              std::declval<const _M &>(), std::declval<_Ts &>())...)),
@@ -3076,7 +3057,7 @@ _GLIBCXX_SIMD_NOT_OPTIMIZED _GLIBCXX_SIMD_INTRINSIC R shuffle(const simd<_T, _A>
 }  // namespace __proposed
 
 template <size_t... _Sizes, class _T, class _A,
-          class = std::enable_if_t<((_Sizes + ...) == simd<_T, _A>::size())>>
+          class = enable_if_t<((_Sizes + ...) == simd<_T, _A>::size())>>
 inline std::tuple<simd<_T, simd_abi::deduce_t<_T, _Sizes>>...> split(const simd<_T, _A> &);
 
 // __extract_part {{{
@@ -3165,7 +3146,7 @@ auto __split_wrapper(__size_list<_Sizes...>, const __simd_tuple<_T, As...> &x)
 // split<simd>(simd) {{{
 template <class _V, class _A,
           size_t Parts = simd_size_v<typename _V::value_type, _A> / _V::size()>
-inline std::enable_if_t<(is_simd<_V>::value &&
+inline enable_if_t<(is_simd<_V>::value &&
                          simd_size_v<typename _V::value_type, _A> == Parts * _V::size()),
                         std::array<_V, Parts>>
 split(const simd<typename _V::value_type, _A> &x)
@@ -3213,7 +3194,7 @@ split(const simd<typename _V::value_type, _A> &x)
 // split<simd_mask>(simd_mask) {{{
 template <class _V, class _A,
           size_t Parts = simd_size_v<typename _V::simd_type::value_type, _A> / _V::size()>
-std::enable_if_t<(is_simd_mask_v<_V> &&
+enable_if_t<(is_simd_mask_v<_V> &&
                   simd_size_v<typename _V::simd_type::value_type, _A> == Parts * _V::size()),
                  std::array<_V, Parts>>
 split(const simd_mask<typename _V::simd_type::value_type, _A> &x)
@@ -3242,7 +3223,7 @@ split(const simd_mask<typename _V::simd_type::value_type, _A> &x)
 // }}}
 // split<_Sizes...>(simd) {{{
 template <size_t... _Sizes, class _T, class _A,
-          class = std::enable_if_t<((_Sizes + ...) == simd<_T, _A>::size())>>
+          class = enable_if_t<((_Sizes + ...) == simd<_T, _A>::size())>>
 _GLIBCXX_SIMD_ALWAYS_INLINE std::tuple<simd<_T, simd_abi::deduce_t<_T, _Sizes>>...> split(
     const simd<_T, _A> &x)
 {
@@ -3518,7 +3499,7 @@ template <int _N, class _Abi> struct __combine_mask_impl;
 // }}}
 // __gnu_traits {{{1
 template <class _T, class MT, class _Abi, size_t _N> struct __gnu_traits {
-    using is_valid = std::true_type;
+    using is_valid = true_type;
     using simd_impl_type = typename _Abi::simd_impl_type;
     using mask_impl_type = typename _Abi::mask_impl_type;
 
@@ -3617,22 +3598,22 @@ template <class _T, class MT, class _Abi, size_t _N> struct __gnu_traits {
 // __neon_is_vectorizable {{{1
 #ifdef _GLIBCXX_SIMD_HAVE_NEON_ABI
 template <class _T> struct __neon_is_vectorizable : __is_vectorizable<_T> {};
-template <> struct __neon_is_vectorizable<long double> : std::false_type {};
+template <> struct __neon_is_vectorizable<long double> : false_type {};
 #ifndef _GLIBCXX_SIMD_HAVE_FULL_NEON_ABI
-template <> struct __neon_is_vectorizable<double> : std::false_type {};
+template <> struct __neon_is_vectorizable<double> : false_type {};
 #endif
 #else
-template <class _T> struct __neon_is_vectorizable : std::false_type {};
+template <class _T> struct __neon_is_vectorizable : false_type {};
 #endif
 
 // __sse_is_vectorizable {{{1
 #ifdef _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
 template <class _T> struct __sse_is_vectorizable : __is_vectorizable<_T> {};
-template <> struct __sse_is_vectorizable<long double> : std::false_type {};
+template <> struct __sse_is_vectorizable<long double> : false_type {};
 #elif defined _GLIBCXX_SIMD_HAVE_SSE_ABI
 template <class _T> struct __sse_is_vectorizable : __is_same<_T, float> {};
 #else
-template <class _T> struct __sse_is_vectorizable : std::false_type {};
+template <class _T> struct __sse_is_vectorizable : false_type {};
 #endif
 
 // __avx_is_vectorizable {{{1
@@ -3641,25 +3622,25 @@ template <class _T> struct __avx_is_vectorizable : __is_vectorizable<_T> {};
 #elif defined _GLIBCXX_SIMD_HAVE_AVX_ABI
 template <class _T> struct __avx_is_vectorizable : std::is_floating_point<_T> {};
 #else
-template <class _T> struct __avx_is_vectorizable : std::false_type {};
+template <class _T> struct __avx_is_vectorizable : false_type {};
 #endif
-template <> struct __avx_is_vectorizable<long double> : std::false_type {};
+template <> struct __avx_is_vectorizable<long double> : false_type {};
 
 // __avx512_is_vectorizable {{{1
 #ifdef _GLIBCXX_SIMD_HAVE_AVX512_ABI
 template <class _T> struct __avx512_is_vectorizable : __is_vectorizable<_T> {};
-template <> struct __avx512_is_vectorizable<long double> : std::false_type {};
+template <> struct __avx512_is_vectorizable<long double> : false_type {};
 #ifndef _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
-template <> struct __avx512_is_vectorizable<  char> : std::false_type {};
-template <> struct __avx512_is_vectorizable< __uchar> : std::false_type {};
-template <> struct __avx512_is_vectorizable< __schar> : std::false_type {};
-template <> struct __avx512_is_vectorizable< short> : std::false_type {};
-template <> struct __avx512_is_vectorizable<ushort> : std::false_type {};
-template <> struct __avx512_is_vectorizable<char16_t> : std::false_type {};
+template <> struct __avx512_is_vectorizable<  char> : false_type {};
+template <> struct __avx512_is_vectorizable< __uchar> : false_type {};
+template <> struct __avx512_is_vectorizable< __schar> : false_type {};
+template <> struct __avx512_is_vectorizable< short> : false_type {};
+template <> struct __avx512_is_vectorizable<ushort> : false_type {};
+template <> struct __avx512_is_vectorizable<char16_t> : false_type {};
 template <> struct __avx512_is_vectorizable<wchar_t> : __bool_constant<sizeof(wchar_t) >= 4> {};
 #endif
 #else
-template <class _T> struct __avx512_is_vectorizable : std::false_type {};
+template <class _T> struct __avx512_is_vectorizable : false_type {};
 #endif
 
 // }}}
@@ -3722,7 +3703,7 @@ template <int _N, class _Abi> struct __combine {
     };
 
     template <class _T> struct __traits<_T, true> {
-        using is_valid = std::true_type;
+        using is_valid = true_type;
         using simd_impl_type = __combine_simd_impl<_N, _Abi>;
         using mask_impl_type = __combine_mask_impl<_N, _Abi>;
 
@@ -3911,7 +3892,7 @@ template <int _Bytes> struct __avx512_abi {
         _Bytes == 64 ? ~implicit_mask_type<_T>()
                     : (implicit_mask_type<_T>(1) << (_Bytes / sizeof(_T))) - 1;
 
-    template <class _T, class = std::enable_if_t<__is_bitmask_v<_T>>>
+    template <class _T, class = enable_if_t<__is_bitmask_v<_T>>>
     static constexpr _T masked(_T x)
     {
         if constexpr (is_partial) {
@@ -3940,8 +3921,8 @@ template <int _Bytes> struct __avx512_abi {
 struct __scalar_abi {
     template <class _T> static constexpr size_t size = 1;
     template <class _T> static constexpr size_t full_size = 1;
-    struct is_valid_abi_tag : std::true_type {};
-    template <class _T> struct is_valid_size_for : std::true_type {};
+    struct is_valid_abi_tag : true_type {};
+    template <class _T> struct is_valid_size_for : true_type {};
     template <class _T> struct is_valid : __is_vectorizable<_T> {};
     template <class _T> static constexpr bool is_valid_v = is_valid<_T>::value;
 
@@ -3952,7 +3933,7 @@ struct __scalar_abi {
     };
 
     template <class _T> struct __traits<_T, true> {
-        using is_valid = std::true_type;
+        using is_valid = true_type;
         using simd_impl_type = __scalar_simd_impl;
         using mask_impl_type = __scalar_mask_impl;
         using simd_member_type = _T;
@@ -4007,7 +3988,7 @@ template <int _N> struct __fixed_abi {
     };
 
     template <class _T> struct __traits<_T, true> {
-        using is_valid = std::true_type;
+        using is_valid = true_type;
         using simd_impl_type = __fixed_size_simd_impl<_N>;
         using mask_impl_type = __fixed_size_mask_impl<_N>;
 
@@ -4147,7 +4128,7 @@ struct __simd_traits<_T, _Abi, std::void_t<typename _Abi::template is_valid<_T>>
 // try all native ABIs (including scalar) first
 template <class _T, std::size_t _N>
 struct __deduce_impl<_T, _N,
-                   std::enable_if_t<__all_native_abis::template has_valid_abi<_T, _N>>> {
+                   enable_if_t<__all_native_abis::template has_valid_abi<_T, _N>>> {
     using type = __all_native_abis::first_valid_abi<_T, _N>;
 };
 
@@ -4155,7 +4136,7 @@ struct __deduce_impl<_T, _N,
 template <class _T, std::size_t _N, class = void> struct __deduce_fixed_size_fallback {};
 template <class _T, std::size_t _N>
 struct __deduce_fixed_size_fallback<
-    _T, _N, std::enable_if_t<simd_abi::fixed_size<_N>::template is_valid_v<_T>>> {
+    _T, _N, enable_if_t<simd_abi::fixed_size<_N>::template is_valid_v<_T>>> {
     using type = simd_abi::fixed_size<_N>;
 };
 template <class _T, std::size_t _N, class>
@@ -4285,7 +4266,7 @@ public:
     template <class _U>
     _GLIBCXX_SIMD_ALWAYS_INLINE simd_mask(
         const simd_mask<_U, simd_abi::fixed_size<size()>> &x,
-        std::enable_if_t<conjunction<std::is_same<abi_type, simd_abi::fixed_size<size()>>,
+        enable_if_t<conjunction<std::is_same<abi_type, simd_abi::fixed_size<size()>>,
                                      std::is_same<_U, _U>>::value,
                          __nullarg_t> = __nullarg)
         : simd_mask{__bitset_init, __data(x)}
@@ -4997,15 +4978,15 @@ struct __allow_conversion_ctor2
 };
 
 // disallow 2nd conversion ctor (equal _Abi), if the value_types are equal (copy ctor)
-template <class _T, class _A> struct __allow_conversion_ctor2<_T, _T, _A> : public std::false_type {};
+template <class _T, class _A> struct __allow_conversion_ctor2<_T, _T, _A> : public false_type {};
 
 // disallow 2nd conversion ctor (equal _Abi), if the _Abi is a fixed_size instance
 template <class _T0, class _T1, int _N>
-struct __allow_conversion_ctor2<_T0, _T1, simd_abi::fixed_size<_N>> : public std::false_type {};
+struct __allow_conversion_ctor2<_T0, _T1, simd_abi::fixed_size<_N>> : public false_type {};
 
 // disallow 2nd conversion ctor (equal _Abi), if both of the above are true
 template <class _T, int _N>
-struct __allow_conversion_ctor2<_T, _T, simd_abi::fixed_size<_N>> : public std::false_type {};
+struct __allow_conversion_ctor2<_T, _T, simd_abi::fixed_size<_N>> : public false_type {};
 
 // disallow 2nd conversion ctor (equal _Abi), the integers only differ in sign
 template <class _T0, class _T1, class _A>
@@ -5015,12 +4996,12 @@ struct __allow_conversion_ctor2_1<_T0, _T1, _A, true>
 
 // disallow 2nd conversion ctor (equal _Abi), any value_type is not integral
 template <class _T0, class _T1, class _A>
-struct __allow_conversion_ctor2_1<_T0, _T1, _A, false> : public std::false_type {
+struct __allow_conversion_ctor2_1<_T0, _T1, _A, false> : public false_type {
 };
 
 // __allow_conversion_ctor3{{{1
 template <class _T0, class _A0, class _T1, class _A1, bool = std::is_same<_A0, _A1>::value>
-struct __allow_conversion_ctor3 : public std::false_type {
+struct __allow_conversion_ctor3 : public false_type {
     // disallow 3rd conversion ctor if _A0 is not fixed_size<simd_size_v<_T1, _A1>>
 };
 
@@ -5115,7 +5096,7 @@ public:
     template <class _U>
     _GLIBCXX_SIMD_ALWAYS_INLINE simd(
         const simd<_U, simd_abi::fixed_size<size()>> &x,
-        std::enable_if_t<
+        enable_if_t<
             conjunction<std::is_same<simd_abi::fixed_size<size()>, abi_type>,
                         std::negation<__is_narrowing_conversion<_U, value_type>>,
                         __converts_to_higher_integer_rank<_U, value_type>>::value,
@@ -5130,7 +5111,7 @@ public:
     template <class _U>
     _GLIBCXX_SIMD_ALWAYS_INLINE explicit simd(
         const simd<_U, simd_abi::fixed_size<size()>> &x,
-        std::enable_if_t<
+        enable_if_t<
             disjunction<conjunction<std::negation<std::is_same<
                                         simd_abi::fixed_size<size()>, abi_type>>,
                                     std::is_convertible<_U, value_type>>,
@@ -5144,7 +5125,7 @@ public:
     template <class _U>
     _GLIBCXX_SIMD_ALWAYS_INLINE explicit simd(
         const simd<_U, _Abi> &x,
-        std::enable_if_t<__allow_conversion_ctor2<value_type, _U, _Abi>::value,
+        enable_if_t<__allow_conversion_ctor2<value_type, _U, _Abi>::value,
                          void *> = nullptr)
         : d{static_cast<cast_type>(x)}
     {
@@ -5155,7 +5136,7 @@ public:
     template <class _U, class _Abi2>
     _GLIBCXX_SIMD_ALWAYS_INLINE explicit simd(
         const simd<_U, _Abi2> &x,
-        std::enable_if_t<__allow_conversion_ctor3<value_type, _Abi, _U, _Abi2>::value,
+        enable_if_t<__allow_conversion_ctor3<value_type, _Abi, _U, _Abi2>::value,
                          void *> = nullptr)
     {
         x.copy_to(d.data(), overaligned<alignof(simd)>);

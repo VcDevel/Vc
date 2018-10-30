@@ -201,14 +201,14 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
                 // shift into or over the sign bit is UB => never spills into a neighbor
                 a4 &= 0xf0u;
             }
-            a = x86::blend(mask_from_bit(b, 5), a, __to_intrin(a4));
+            a = __blend(mask_from_bit(b, 5), a, __to_intrin(a4));
             // do a =<< 2 where b[1] is set
             // shift into or over the sign bit is UB => never spills into a neighbor
             const auto a2 = std::is_signed_v<_T> ? __to_intrin(__vector_cast<short>(a.d) << 2)
                                                 : __to_intrin(a.d << 2);
-            a = x86::blend(mask_from_bit(b, 6), a, a2);
+            a = __blend(mask_from_bit(b, 6), a, a2);
             // do a =<< 1 where b[0] is set
-            return x86::blend(mask_from_bit(b, 7), a, __to_intrin(a.d + a.d));
+            return __blend(mask_from_bit(b, 7), a, __to_intrin(a.d + a.d));
         }
     } else {
         return a.d << b.d;
