@@ -1859,7 +1859,6 @@ struct __storage<bool, Width, std::void_t<typename __bool_storage_member_type<Wi
     using register_type = typename __bool_storage_member_type<Width>::type;
     using value_type = bool;
     static constexpr size_t width = Width;
-    [[deprecated]] static constexpr size_t size() { return Width; }
 
     _GLIBCXX_SIMD_INTRINSIC constexpr __storage() = default;
     _GLIBCXX_SIMD_INTRINSIC constexpr __storage(register_type k) : d(k){};
@@ -2051,7 +2050,6 @@ struct __storage<_T, Width,
     using register_type = __vector_type_t<_T, Width>;
     using value_type = _T;
     static constexpr size_t width = Width;
-    [[deprecated("use width instead")]] static constexpr size_t size() { return Width; }
 
     _GLIBCXX_SIMD_INTRINSIC constexpr __storage() = default;
     template <class _U, class = decltype(StorageEquiv<_T, Width>(std::declval<_U>()))>
@@ -2076,26 +2074,13 @@ struct __storage<_T, Width,
     _GLIBCXX_SIMD_INTRINSIC constexpr operator const register_type &() const { return d; }
     _GLIBCXX_SIMD_INTRINSIC constexpr operator register_type &() { return d; }
 
-    [[deprecated("use .d instead")]] _GLIBCXX_SIMD_INTRINSIC constexpr const register_type &builtin() const { return d; }
-    [[deprecated("use .d instead")]] _GLIBCXX_SIMD_INTRINSIC constexpr register_type &builtin() { return d; }
-
     template <class _U = __intrinsic_type_t<_T, Width>>
     _GLIBCXX_SIMD_INTRINSIC constexpr _U intrin() const
     {
         return reinterpret_cast<_U>(d);
     }
-    [[deprecated(
-        "use intrin() instead")]] _GLIBCXX_SIMD_INTRINSIC constexpr __intrinsic_type_t<_T, Width>
-    v() const
-    {
-        return intrin();
-    }
 
     _GLIBCXX_SIMD_INTRINSIC constexpr _T operator[](size_t i) const { return d[i]; }
-    [[deprecated("use operator[] instead")]] _GLIBCXX_SIMD_INTRINSIC constexpr _T m(size_t i) const
-    {
-        return d[i];
-    }
 
     _GLIBCXX_SIMD_INTRINSIC void set(size_t i, _T x) { d[i] = x; }
 };

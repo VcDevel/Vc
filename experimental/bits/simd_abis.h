@@ -748,247 +748,6 @@ _GLIBCXX_SIMD_INTRINSIC void _mm512_mask_cvtepi16_storeu_epi8(void *p, __mmask32
 #endif
 
 // }}}
-// set16/32/64{{{
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128 set(float x0, float x1, float x2, float x3)
-{
-    return _mm_set_ps(x3, x2, x1, x0);
-}
-#ifdef _GLIBCXX_SIMD_HAVE_SSE2
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128d set(double x0, double x1) { return _mm_set_pd(x1, x0); }
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128i set(__llong x0, __llong x1) { return _mm_set_epi64x(x1, x0); }
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128i set(__ullong x0, __ullong x1) { return _mm_set_epi64x(x1, x0); }
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128i set(int x0, int x1, int x2, int x3)
-{
-    return _mm_set_epi32(x3, x2, x1, x0);
-}
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128i set(uint x0, uint x1, uint x2, uint x3)
-{
-    return _mm_set_epi32(x3, x2, x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128i set(short x0, short x1, short x2, short x3, short x4,
-                                  short x5, short x6, short x7)
-{
-    return _mm_set_epi16(x7, x6, x5, x4, x3, x2, x1, x0);
-}
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128i set(ushort x0, ushort x1, ushort x2, ushort x3, ushort x4,
-                                  ushort x5, ushort x6, ushort x7)
-{
-    return _mm_set_epi16(x7, x6, x5, x4, x3, x2, x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128i set(__schar x0, __schar x1, __schar x2, __schar x3, __schar x4,
-                                  __schar x5, __schar x6, __schar x7, __schar x8, __schar x9,
-                                  __schar x10, __schar x11, __schar x12, __schar x13, __schar x14,
-                                  __schar x15)
-{
-    return _mm_set_epi8(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1,
-                         x0);
-}
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m128i set(__uchar x0, __uchar x1, __uchar x2, __uchar x3, __uchar x4,
-                                  __uchar x5, __uchar x6, __uchar x7, __uchar x8, __uchar x9,
-                                  __uchar x10, __uchar x11, __uchar x12, __uchar x13, __uchar x14,
-                                  __uchar x15)
-{
-    return _mm_set_epi8(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1,
-                         x0);
-}
-#endif  // _GLIBCXX_SIMD_HAVE_SSE2
-
-#ifdef _GLIBCXX_SIMD_HAVE_AVX
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256 set(float x0, float x1, float x2, float x3, float x4,
-                                 float x5, float x6, float x7)
-{
-    return _mm256_set_ps(x7, x6, x5, x4, x3, x2, x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256d set(double x0, double x1, double x2, double x3)
-{
-    return _mm256_set_pd(x3, x2, x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256i set(__llong x0, __llong x1, __llong x2, __llong x3)
-{
-    return _mm256_set_epi64x(x3, x2, x1, x0);
-}
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256i set(__ullong x0, __ullong x1, __ullong x2, __ullong x3)
-{
-    return _mm256_set_epi64x(x3, x2, x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256i set(int x0, int x1, int x2, int x3, int x4, int x5, int x6,
-                                  int x7)
-{
-    return _mm256_set_epi32(x7, x6, x5, x4, x3, x2, x1, x0);
-}
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256i set(uint x0, uint x1, uint x2, uint x3, uint x4, uint x5,
-                                  uint x6, uint x7)
-{
-    return _mm256_set_epi32(x7, x6, x5, x4, x3, x2, x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256i set(short x0, short x1, short x2, short x3, short x4,
-                                  short x5, short x6, short x7, short x8, short x9,
-                                  short x10, short x11, short x12, short x13, short x14,
-                                  short x15)
-{
-    return _mm256_set_epi16(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2,
-                            x1, x0);
-}
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256i set(ushort x0, ushort x1, ushort x2, ushort x3, ushort x4,
-                                  ushort x5, ushort x6, ushort x7, ushort x8, ushort x9,
-                                  ushort x10, ushort x11, ushort x12, ushort x13,
-                                  ushort x14, ushort x15)
-{
-    return _mm256_set_epi16(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2,
-                            x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256i set(__schar x0, __schar x1, __schar x2, __schar x3, __schar x4,
-                                  __schar x5, __schar x6, __schar x7, __schar x8, __schar x9,
-                                  __schar x10, __schar x11, __schar x12, __schar x13, __schar x14,
-                                  __schar x15, __schar x16, __schar x17, __schar x18, __schar x19,
-                                  __schar x20, __schar x21, __schar x22, __schar x23, __schar x24,
-                                  __schar x25, __schar x26, __schar x27, __schar x28, __schar x29,
-                                  __schar x30, __schar x31)
-{
-    return _mm256_set_epi8(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20,
-                           x19, x18, x17, x16, x15, x14, x13, x12, x11, x10, x9, x8, x7,
-                           x6, x5, x4, x3, x2, x1, x0);
-}
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m256i set(__uchar x0, __uchar x1, __uchar x2, __uchar x3, __uchar x4,
-                                  __uchar x5, __uchar x6, __uchar x7, __uchar x8, __uchar x9,
-                                  __uchar x10, __uchar x11, __uchar x12, __uchar x13, __uchar x14,
-                                  __uchar x15, __uchar x16, __uchar x17, __uchar x18, __uchar x19,
-                                  __uchar x20, __uchar x21, __uchar x22, __uchar x23, __uchar x24,
-                                  __uchar x25, __uchar x26, __uchar x27, __uchar x28, __uchar x29,
-                                  __uchar x30, __uchar x31)
-{
-    return _mm256_set_epi8(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21, x20,
-                           x19, x18, x17, x16, x15, x14, x13, x12, x11, x10, x9, x8, x7,
-                           x6, x5, x4, x3, x2, x1, x0);
-}
-#endif  // _GLIBCXX_SIMD_HAVE_AVX
-
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512F
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512d set(double x0, double x1, double x2, double x3, double x4,
-                                  double x5, double x6, double x7)
-{
-    return _mm512_set_pd(x7, x6, x5, x4, x3, x2, x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512 set(float x0, float x1, float x2, float x3, float x4,
-                                 float x5, float x6, float x7, float x8, float x9,
-                                 float x10, float x11, float x12, float x13, float x14,
-                                 float x15)
-{
-    return _mm512_set_ps(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2, x1,
-                         x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512i set(__llong x0, __llong x1, __llong x2, __llong x3, __llong x4,
-                                  __llong x5, __llong x6, __llong x7)
-{
-    return _mm512_set_epi64(x7, x6, x5, x4, x3, x2, x1, x0);
-}
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512i set(__ullong x0, __ullong x1, __ullong x2, __ullong x3, __ullong x4,
-                                  __ullong x5, __ullong x6, __ullong x7)
-{
-    return _mm512_set_epi64(x7, x6, x5, x4, x3, x2, x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512i set(int x0, int x1, int x2, int x3, int x4, int x5, int x6,
-                                  int x7, int x8, int x9, int x10, int x11, int x12,
-                                  int x13, int x14, int x15)
-{
-    return _mm512_set_epi32(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2,
-                            x1, x0);
-}
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512i set(uint x0, uint x1, uint x2, uint x3, uint x4, uint x5,
-                                  uint x6, uint x7, uint x8, uint x9, uint x10, uint x11,
-                                  uint x12, uint x13, uint x14, uint x15)
-{
-    return _mm512_set_epi32(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4, x3, x2,
-                            x1, x0);
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512i set(short x0, short x1, short x2, short x3, short x4,
-                                  short x5, short x6, short x7, short x8, short x9,
-                                  short x10, short x11, short x12, short x13, short x14,
-                                  short x15, short x16, short x17, short x18, short x19,
-                                  short x20, short x21, short x22, short x23, short x24,
-                                  short x25, short x26, short x27, short x28, short x29,
-                                  short x30, short x31)
-{
-    return __concat(_mm256_set_epi16(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4,
-                                   x3, x2, x1, x0),
-                  _mm256_set_epi16(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21,
-                                   x20, x19, x18, x17, x16));
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512i set(ushort x0, ushort x1, ushort x2, ushort x3, ushort x4,
-                                  ushort x5, ushort x6, ushort x7, ushort x8, ushort x9,
-                                  ushort x10, ushort x11, ushort x12, ushort x13, ushort x14,
-                                  ushort x15, ushort x16, ushort x17, ushort x18, ushort x19,
-                                  ushort x20, ushort x21, ushort x22, ushort x23, ushort x24,
-                                  ushort x25, ushort x26, ushort x27, ushort x28, ushort x29,
-                                  ushort x30, ushort x31)
-{
-    return __concat(_mm256_set_epi16(x15, x14, x13, x12, x11, x10, x9, x8, x7, x6, x5, x4,
-                                   x3, x2, x1, x0),
-                  _mm256_set_epi16(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21,
-                                   x20, x19, x18, x17, x16));
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512i
-set(__schar x0, __schar x1, __schar x2, __schar x3, __schar x4, __schar x5, __schar x6, __schar x7,
-    __schar x8, __schar x9, __schar x10, __schar x11, __schar x12, __schar x13, __schar x14, __schar x15,
-    __schar x16, __schar x17, __schar x18, __schar x19, __schar x20, __schar x21, __schar x22,
-    __schar x23, __schar x24, __schar x25, __schar x26, __schar x27, __schar x28, __schar x29,
-    __schar x30, __schar x31, __schar x32, __schar x33, __schar x34, __schar x35, __schar x36,
-    __schar x37, __schar x38, __schar x39, __schar x40, __schar x41, __schar x42, __schar x43,
-    __schar x44, __schar x45, __schar x46, __schar x47, __schar x48, __schar x49, __schar x50,
-    __schar x51, __schar x52, __schar x53, __schar x54, __schar x55, __schar x56, __schar x57,
-    __schar x58, __schar x59, __schar x60, __schar x61, __schar x62, __schar x63)
-{
-    return __concat(_mm256_set_epi8(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21,
-                                  x20, x19, x18, x17, x16, x15, x14, x13, x12, x11, x10,
-                                  x9, x8, x7, x6, x5, x4, x3, x2, x1, x0),
-                  _mm256_set_epi8(x63, x62, x61, x60, x59, x58, x57, x56, x55, x54, x53,
-                                  x52, x51, x50, x49, x48, x47, x46, x45, x44, x43, x42,
-                                  x41, x40, x39, x38, x37, x36, x35, x34, x33, x32));
-}
-
-_GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST __m512i
-set(__uchar x0, __uchar x1, __uchar x2, __uchar x3, __uchar x4, __uchar x5, __uchar x6, __uchar x7,
-    __uchar x8, __uchar x9, __uchar x10, __uchar x11, __uchar x12, __uchar x13, __uchar x14, __uchar x15,
-    __uchar x16, __uchar x17, __uchar x18, __uchar x19, __uchar x20, __uchar x21, __uchar x22,
-    __uchar x23, __uchar x24, __uchar x25, __uchar x26, __uchar x27, __uchar x28, __uchar x29,
-    __uchar x30, __uchar x31, __uchar x32, __uchar x33, __uchar x34, __uchar x35, __uchar x36,
-    __uchar x37, __uchar x38, __uchar x39, __uchar x40, __uchar x41, __uchar x42, __uchar x43,
-    __uchar x44, __uchar x45, __uchar x46, __uchar x47, __uchar x48, __uchar x49, __uchar x50,
-    __uchar x51, __uchar x52, __uchar x53, __uchar x54, __uchar x55, __uchar x56, __uchar x57,
-    __uchar x58, __uchar x59, __uchar x60, __uchar x61, __uchar x62, __uchar x63)
-{
-    return __concat(_mm256_set_epi8(x31, x30, x29, x28, x27, x26, x25, x24, x23, x22, x21,
-                                  x20, x19, x18, x17, x16, x15, x14, x13, x12, x11, x10,
-                                  x9, x8, x7, x6, x5, x4, x3, x2, x1, x0),
-                  _mm256_set_epi8(x63, x62, x61, x60, x59, x58, x57, x56, x55, x54, x53,
-                                  x52, x51, x50, x49, x48, x47, x46, x45, x44, x43, x42,
-                                  x41, x40, x39, x38, x37, x36, x35, x34, x33, x32));
-}
-
-#endif  // _GLIBCXX_SIMD_HAVE_AVX512F
-
-// generic forward for (u)long to (u)int or (u)__llong
-template <typename... _Ts> _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto set(_Ts... args)
-{
-    return set(static_cast<__equal_int_type_t<_Ts>>(args)...);
-}
-
-// }}}
 // blend{{{
 template <class K, class V0, class V1>
 _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto blend(K mask, V0 at0, V1 at1)
@@ -1528,9 +1287,6 @@ template <size_t _N> class __to_storage<std::bitset<_N>>
     std::bitset<_N> d;
 
 public:
-    [[deprecated("use __convert_mask<To>(bitset)")]]
-    constexpr __to_storage(std::bitset<_N> x) : d(x) {}
-
     // can convert to larger storage for _Abi::is_partial == true
     template <class _U, size_t M> constexpr operator __storage<_U, M>() const
     {
@@ -1545,15 +1301,10 @@ public:
         _Type d;                                                                         \
                                                                                          \
     public:                                                                              \
-        [[deprecated("use __convert_mask<To>(bitset)")]] constexpr __to_storage(_Type x) \
-            : d(x)                                                                       \
-        {                                                                                \
-        }                                                                                \
-                                                                                         \
         template <class _U, size_t _N> constexpr operator __storage<_U, _N>() const      \
         {                                                                                \
             static_assert(_N >= sizeof(_Type) * CHAR_BIT);                               \
-            return reinterpret_cast<__vector_type_t<_U, _N>>(                           \
+            return reinterpret_cast<__vector_type_t<_U, _N>>(                            \
                 __convert_mask<__storage<_U, _N>>(d));                                   \
         }                                                                                \
                                                                                          \
@@ -1689,14 +1440,6 @@ _GLIBCXX_SIMD_INTRINSIC constexpr To __convert_builtin(From v0, From v1, From v2
 #include "simd_x86_conversions.h"
 #endif  // _GLIBCXX_SIMD_WORKAROUND_PR85048
 
-// convert from scalars{{{
-template <typename To, typename... From>
-[[deprecated("use __make_storage instead")]]
-_GLIBCXX_SIMD_INTRINSIC To __convert_to(_Vectorizable<From>... scalars)
-{
-    return __x86::set(static_cast<typename To::value_type>(scalars)...);
-}
-// }}}
 // convert function{{{
 template <class To, class From> _GLIBCXX_SIMD_INTRINSIC auto convert(From v)
 {
