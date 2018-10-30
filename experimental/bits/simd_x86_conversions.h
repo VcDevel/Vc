@@ -1145,15 +1145,15 @@ template <class To, class V, class Traits> _GLIBCXX_SIMD_INTRINSIC To __convert_
                 const auto d = _mm_unpackhi_epi32(v2, v3);   // fhFH
                 const auto lo32a = _mm_unpacklo_epi32(a, b);  // abcd
                 const auto lo32b = _mm_unpacklo_epi32(c, d);  // efgh
-                const std::conditional_t<is_signed_v<T>, y_i32, y_u32> hi32 = concat(
+                const std::conditional_t<is_signed_v<T>, y_i32, y_u32> hi32 = __concat(
                     _mm_unpackhi_epi32(a, b), _mm_unpackhi_epi32(c, d));  // ABCD EFGH
                 const auto hi = 0x100000000LL * __convert_to<y_f32>(hi32).d;
                 const auto mid =
-                    0x10000 * _mm256_cvtepi32_ps(concat(_mm_srli_epi32(lo32a, 16),
-                                                        _mm_srli_epi32(lo32b, 16)));
+                    0x10000 * _mm256_cvtepi32_ps(__concat(_mm_srli_epi32(lo32a, 16),
+                                                          _mm_srli_epi32(lo32b, 16)));
                 const auto lo =
-                    _mm256_cvtepi32_ps(concat(_mm_set1_epi32(0x0000ffffu) & lo32a,
-                                              _mm_set1_epi32(0x0000ffffu) & lo32b));
+                    _mm256_cvtepi32_ps(__concat(_mm_set1_epi32(0x0000ffffu) & lo32a,
+                                                _mm_set1_epi32(0x0000ffffu) & lo32b));
                 return (hi + mid) + lo;
             }
         } else if constexpr (f64_to_ibw) {  //{{{2

@@ -2754,7 +2754,7 @@ struct __scalar_simd_impl : __simd_math_fallback<simd_abi::scalar> {
     template <class _T> using type_tag = _T *;
 
     // broadcast {{{2
-    template <class _T> _GLIBCXX_SIMD_INTRINSIC static constexpr _T broadcast(_T x) noexcept
+    template <class _T> _GLIBCXX_SIMD_INTRINSIC static constexpr _T __broadcast(_T x) noexcept
     {
         return x;
     }
@@ -3108,7 +3108,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 
     // broadcast {{{2
     template <class _T>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr simd_member_type<_T> broadcast(_T x) noexcept
+    _GLIBCXX_SIMD_INTRINSIC static constexpr simd_member_type<_T> __broadcast(_T x) noexcept
     {
         return __vector_broadcast<full_size<_T>>(x);
     }
@@ -4712,10 +4712,10 @@ template <int _N> struct __fixed_size_simd_impl {
     template <class _T> using type_tag = _T *;
 
     // broadcast {{{2
-    template <class _T> static constexpr inline simd_member_type<_T> broadcast(_T x) noexcept
+    template <class _T> static constexpr inline simd_member_type<_T> __broadcast(_T x) noexcept
     {
         return simd_member_type<_T>::generate(
-            [&](auto meta) { return meta.broadcast(x); });
+            [&](auto meta) { return meta.__broadcast(x); });
     }
 
     // generator {{{2

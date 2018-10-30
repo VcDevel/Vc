@@ -64,7 +64,7 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> constexpr __bit_shift_left(__storage<_
                 return reinterpret_cast<In>(__storage_bitcast<ushort>(a).d << b) &
                        _V::broadcast(mask).intrin();
             } else {
-                return __warn_ub(a);
+                __builtin_unreachable();
             }
         }
         if constexpr (_N == 16 && __have_sse2) {
