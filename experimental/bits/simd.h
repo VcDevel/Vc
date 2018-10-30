@@ -1884,34 +1884,34 @@ struct __storage<bool, Width, std::void_t<typename __bool_storage_member_type<Wi
     register_type d;
 };
 
-// StorageBase{{{1
+// __storage_base{{{1
 template <class _T, size_t Width, class RegisterType = __vector_type_t<_T, Width>,
           bool = std::disjunction_v<
               std::is_same<__vector_type_t<_T, Width>, __intrinsic_type_t<_T, Width>>,
               std::is_same<RegisterType, __intrinsic_type_t<_T, Width>>>>
-struct StorageBase;
+struct __storage_base;
 
 template <class _T, size_t Width, class RegisterType>
-struct StorageBase<_T, Width, RegisterType, true> {
+struct __storage_base<_T, Width, RegisterType, true> {
     RegisterType d;
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageBase() = default;
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageBase(__vector_type_t<_T, Width> x)
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_base() = default;
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_base(__vector_type_t<_T, Width> x)
         : d(reinterpret_cast<RegisterType>(x))
     {
     }
 };
 
 template <class _T, size_t Width, class RegisterType>
-struct StorageBase<_T, Width, RegisterType, false> {
+struct __storage_base<_T, Width, RegisterType, false> {
     using intrin_type = __intrinsic_type_t<_T, Width>;
     RegisterType d;
 
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageBase() = default;
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageBase(__vector_type_t<_T, Width> x)
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_base() = default;
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_base(__vector_type_t<_T, Width> x)
         : d(reinterpret_cast<RegisterType>(x))
     {
     }
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageBase(intrin_type x)
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_base(intrin_type x)
         : d(reinterpret_cast<RegisterType>(x))
     {
     }
@@ -1922,18 +1922,18 @@ struct StorageBase<_T, Width, RegisterType, false> {
     }
 };
 
-// StorageEquiv {{{1
-template <typename _T, size_t Width, bool = __has_same_value_representation_v<_T>>
-struct StorageEquiv : StorageBase<_T, Width> {
-    using StorageBase<_T, Width>::d;
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageEquiv() = default;
-    template <class _U, class = decltype(StorageBase<_T, Width>(std::declval<_U>()))>
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageEquiv(_U &&x) : StorageBase<_T, Width>(std::forward<_U>(x))
+// __storage_equiv {{{1
+template <typename _T, size_t _Width, bool = __has_same_value_representation_v<_T>>
+struct __storage_equiv : __storage_base<_T, _Width> {
+    using __storage_base<_T, _Width>::d;
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv() = default;
+    template <class _U, class = decltype(__storage_base<_T, _Width>(std::declval<_U>()))>
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv(_U &&x) : __storage_base<_T, _Width>(std::forward<_U>(x))
     {
     }
     // I want to use ctor inheritance, but it breaks always_inline. Having a function that
     // does a single movaps is stupid.
-    //using StorageBase<_T, Width>::StorageBase;
+    //using __storage_base<_T, _Width>::__storage_base;
 };
 
 // This base class allows conversion to & from
@@ -1947,31 +1947,31 @@ struct StorageEquiv : StorageBase<_T, Width> {
 // * __storage<int, 4>
 // on ILP32, and LLP64
 template <class _T, size_t Width>
-struct StorageEquiv<_T, Width, true>
-    : StorageBase<__equal_int_type_t<_T>, Width, __vector_type_t<_T, Width>> {
-    using Base = StorageBase<__equal_int_type_t<_T>, Width, __vector_type_t<_T, Width>>;
+struct __storage_equiv<_T, Width, true>
+    : __storage_base<__equal_int_type_t<_T>, Width, __vector_type_t<_T, Width>> {
+    using Base = __storage_base<__equal_int_type_t<_T>, Width, __vector_type_t<_T, Width>>;
     using Base::d;
     template <class _U,
-              class = decltype(StorageBase<__equal_int_type_t<_T>, Width,
+              class = decltype(__storage_base<__equal_int_type_t<_T>, Width,
                                            __vector_type_t<_T, Width>>(std::declval<_U>()))>
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageEquiv(_U &&x)
-        : StorageBase<__equal_int_type_t<_T>, Width, __vector_type_t<_T, Width>>(
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv(_U &&x)
+        : __storage_base<__equal_int_type_t<_T>, Width, __vector_type_t<_T, Width>>(
               std::forward<_U>(x))
     {
     }
     // I want to use ctor inheritance, but it breaks always_inline. Having a function that
     // does a single movaps is stupid.
-    //using Base::StorageBase;
+    //using Base::__storage_base;
 
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageEquiv() = default;
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv() = default;
 
     // convertible from intrin_type, __vector_type_t<__equal_int_type_t<_T>, Width> and
     // __vector_type_t<_T, Width>, and __storage<__equal_int_type_t<_T>, Width>
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageEquiv(__vector_type_t<_T, Width> x)
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv(__vector_type_t<_T, Width> x)
         : Base(reinterpret_cast<__vector_type_t<__equal_int_type_t<_T>, Width>>(x))
     {
     }
-    _GLIBCXX_SIMD_INTRINSIC constexpr StorageEquiv(__storage<__equal_int_type_t<_T>, Width> x)
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv(__storage<__equal_int_type_t<_T>, Width> x)
         : Base(x.d)
     {
     }
@@ -1979,9 +1979,9 @@ struct StorageEquiv<_T, Width, true>
     // convertible to intrin_type, __vector_type_t<__equal_int_type_t<_T>, Width> and
     // __vector_type_t<_T, Width> (in __storage), and __storage<__equal_int_type_t<_T>, Width>
     //
-    // intrin_type<_T> is handled by StorageBase
+    // intrin_type<_T> is handled by __storage_base
     // __vector_type_t<_T> is handled by __storage
-    // __vector_type_t<__equal_int_type_t<_T>> is handled in StorageEquiv, i.e. here:
+    // __vector_type_t<__equal_int_type_t<_T>> is handled in __storage_equiv, i.e. here:
     _GLIBCXX_SIMD_INTRINSIC constexpr operator __vector_type_t<__equal_int_type_t<_T>, Width>() const
     {
         return reinterpret_cast<__vector_type_t<__equal_int_type_t<_T>, Width>>(d);
@@ -1997,54 +1997,11 @@ struct StorageEquiv<_T, Width, true>
     }
 };
 
-// StorageBroadcast{{{1
-template <class _T, size_t Width> struct StorageBroadcast;
-template <class _T> struct StorageBroadcast<_T, 2> {
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, 2> broadcast(_T x)
-    {
-        return __vector_type_t<_T, 2>{x, x};
-    }
-};
-template <class _T> struct StorageBroadcast<_T, 4> {
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, 4> broadcast(_T x)
-    {
-        return __vector_type_t<_T, 4>{x, x, x, x};
-    }
-};
-template <class _T> struct StorageBroadcast<_T, 8> {
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, 8> broadcast(_T x)
-    {
-        return __vector_type_t<_T, 8>{x, x, x, x, x, x, x, x};
-    }
-};
-template <class _T> struct StorageBroadcast<_T, 16> {
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, 16> broadcast(_T x)
-    {
-        return __vector_type_t<_T, 16>{x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x};
-    }
-};
-template <class _T> struct StorageBroadcast<_T, 32> {
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, 32> broadcast(_T x)
-    {
-        return __vector_type_t<_T, 32>{x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x,
-                                     x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x};
-    }
-};
-template <class _T> struct StorageBroadcast<_T, 64> {
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, 64> broadcast(_T x)
-    {
-        return __vector_type_t<_T, 64>{x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x,
-                                     x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x,
-                                     x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x,
-                                     x, x, x, x, x, x, x, x, x, x, x, x, x, x, x, x};
-    }
-};
-
 // __storage{{{1
 template <typename _T, size_t Width>
 struct __storage<_T, Width,
                std::void_t<__vector_type_t<_T, Width>, __intrinsic_type_t<_T, Width>>>
-    : StorageEquiv<_T, Width>, StorageBroadcast<_T, Width> {
+    : __storage_equiv<_T, Width> {
     static_assert(__is_vectorizable_v<_T>);
     static_assert(Width >= 2);  // 1 doesn't make sense, use _T directly then
     using register_type = __vector_type_t<_T, Width>;
@@ -2052,14 +2009,14 @@ struct __storage<_T, Width,
     static constexpr size_t width = Width;
 
     _GLIBCXX_SIMD_INTRINSIC constexpr __storage() = default;
-    template <class _U, class = decltype(StorageEquiv<_T, Width>(std::declval<_U>()))>
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage(_U &&x) : StorageEquiv<_T, Width>(std::forward<_U>(x))
+    template <class _U, class = decltype(__storage_equiv<_T, Width>(std::declval<_U>()))>
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage(_U &&x) : __storage_equiv<_T, Width>(std::forward<_U>(x))
     {
     }
     // I want to use ctor inheritance, but it breaks always_inline. Having a function that
     // does a single movaps is stupid.
-    //using StorageEquiv<_T, Width>::StorageEquiv;
-    using StorageEquiv<_T, Width>::d;
+    //using __storage_equiv<_T, Width>::__storage_equiv;
+    using __storage_equiv<_T, Width>::d;
 
     template <class... As,
               class = std::enable_if_t<((std::is_same_v<simd_abi::scalar, As> && ...) &&

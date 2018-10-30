@@ -3228,7 +3228,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     template <class _T>
     _GLIBCXX_SIMD_INTRINSIC static constexpr simd_member_type<_T> broadcast(_T x) noexcept
     {
-        return simd_member_type<_T>::broadcast(x);
+        return __vector_broadcast<full_size<_T>>(x);
     }
 
     // generator {{{2
@@ -4171,11 +4171,11 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     // __increment & __decrement{{{2
     template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static void __increment(__storage<_T, _N> &x)
     {
-        x = plus(x, __storage<_T, _N>::broadcast(_T(1)));
+        x = plus<_T, _N>(x, __vector_broadcast<_N, _T>(1));
     }
     template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static void __decrement(__storage<_T, _N> &x)
     {
-        x = minus(x, __storage<_T, _N>::broadcast(_T(1)));
+        x = minus<_T, _N>(x, __vector_broadcast<_N, _T>(1));
     }
 
     // smart_reference access {{{2
