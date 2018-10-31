@@ -728,7 +728,7 @@ _GLIBCXX_SIMD_INTRINSIC void __for_each(const __simd_tuple<_T, _A0, _A1, As...> 
 }
 
 // }}}1
-#if defined _GLIBCXX_SIMD_HAVE_SSE || _GLIBCXX_SIMD_HAVE_MMX
+#if _GLIBCXX_SIMD_HAVE_SSE || _GLIBCXX_SIMD_HAVE_MMX
 namespace __x86
 {
 // missing _mmXXX_mask_cvtepi16_storeu_epi8 intrinsics {{{
@@ -764,7 +764,7 @@ template <int n> _GLIBCXX_SIMD_INTRINSIC __m128  __shift_right(__m128  v);
 template <> _GLIBCXX_SIMD_INTRINSIC __m128  __shift_right< 0>(__m128  v) { return v; }
 template <> _GLIBCXX_SIMD_INTRINSIC __m128  __shift_right<16>(__m128   ) { return _mm_setzero_ps(); }
 
-#ifdef _GLIBCXX_SIMD_HAVE_SSE2
+#if _GLIBCXX_SIMD_HAVE_SSE2
 template <int n> _GLIBCXX_SIMD_INTRINSIC __m128  __shift_right(__m128  v) { return _mm_castsi128_ps(_mm_srli_si128(_mm_castps_si128(v), n)); }
 template <int n> _GLIBCXX_SIMD_INTRINSIC __m128d __shift_right(__m128d v) { return _mm_castsi128_pd(_mm_srli_si128(_mm_castpd_si128(v), n)); }
 template <int n> _GLIBCXX_SIMD_INTRINSIC __m128i __shift_right(__m128i v) { return _mm_srli_si128(v, n); }
@@ -777,7 +777,7 @@ template <> _GLIBCXX_SIMD_INTRINSIC __m128i __shift_right< 0>(__m128i v) { retur
 template <> _GLIBCXX_SIMD_INTRINSIC __m128i __shift_right<16>(__m128i  ) { return _mm_setzero_si128(); }
 #endif  // _GLIBCXX_SIMD_HAVE_SSE2
 
-#ifdef _GLIBCXX_SIMD_HAVE_AVX2
+#if _GLIBCXX_SIMD_HAVE_AVX2
 template <int n> _GLIBCXX_SIMD_INTRINSIC __m256 __shift_right(__m256 v)
 {
     __m256i vi = _mm256_castps_si256(v);
@@ -818,7 +818,7 @@ _GLIBCXX_SIMD_INTRINSIC __vector_type16_t<double> __cmpord(__vector_type16_t<dou
     return _mm_cmpord_pd(x, y);
 }
 
-#ifdef _GLIBCXX_SIMD_HAVE_AVX
+#if _GLIBCXX_SIMD_HAVE_AVX
 _GLIBCXX_SIMD_INTRINSIC __vector_type32_t<float> __cmpord(__vector_type32_t<float> x,
                                             __vector_type32_t<float> y)
 {
@@ -831,7 +831,7 @@ _GLIBCXX_SIMD_INTRINSIC __vector_type32_t<double> __cmpord(__vector_type32_t<dou
 }
 #endif  // _GLIBCXX_SIMD_HAVE_AVX
 
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512F
+#if _GLIBCXX_SIMD_HAVE_AVX512F
 _GLIBCXX_SIMD_INTRINSIC __mmask16 __cmpord(__vector_type64_t<float> x, __vector_type64_t<float> y)
 {
     return _mm512_cmp_ps_mask(x, y, _CMP_ORD_Q);
@@ -855,7 +855,7 @@ _GLIBCXX_SIMD_INTRINSIC __vector_type16_t<double> __cmpunord(__vector_type16_t<d
     return _mm_cmpunord_pd(x, y);
 }
 
-#ifdef _GLIBCXX_SIMD_HAVE_AVX
+#if _GLIBCXX_SIMD_HAVE_AVX
 _GLIBCXX_SIMD_INTRINSIC __vector_type32_t<float> __cmpunord(__vector_type32_t<float> x,
                                               __vector_type32_t<float> y)
 {
@@ -868,7 +868,7 @@ _GLIBCXX_SIMD_INTRINSIC __vector_type32_t<double> __cmpunord(__vector_type32_t<d
 }
 #endif  // _GLIBCXX_SIMD_HAVE_AVX
 
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512F
+#if _GLIBCXX_SIMD_HAVE_AVX512F
 _GLIBCXX_SIMD_INTRINSIC __mmask16 __cmpunord(__vector_type64_t<float> x, __vector_type64_t<float> y)
 {
     return _mm512_cmp_ps_mask(x, y, _CMP_UNORD_Q);
@@ -1163,7 +1163,7 @@ _GLIBCXX_SIMD_INTRINSIC auto __extract_part(const __simd_tuple<_T, _A0, As...> &
 }
 // }}}
 // __to_storage specializations for bitset and __mmask<_N> {{{
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX512_ABI
 template <size_t _N> class __to_storage<std::bitset<_N>>
 {
     std::bitset<_N> d;
@@ -1205,7 +1205,7 @@ _GLIBCXX_SIMD_TO_STORAGE(__mmask64);
 #endif  // _GLIBCXX_SIMD_HAVE_AVX512_ABI
 
 // }}}
-#ifdef _GLIBCXX_SIMD_HAVE_SSE
+#if _GLIBCXX_SIMD_HAVE_SSE
 
 #ifdef _GLIBCXX_SIMD_WORKAROUND_PR85048
 #include "simd_x86_conversions.h"
@@ -4121,7 +4121,7 @@ template <class _Abi> struct __generic_mask_impl {
         } else if constexpr (__is_abi<_Abi, simd_abi::__avx512_abi>()) {
             if constexpr (_N == 8) {
                 __vector_store<8>(
-#if defined _GLIBCXX_SIMD_HAVE_AVX512VL && defined _GLIBCXX_SIMD_HAVE_AVX512BW
+#if _GLIBCXX_SIMD_HAVE_AVX512VL && _GLIBCXX_SIMD_HAVE_AVX512BW
                     _mm_maskz_set1_epi8(v, 1),
 #elif defined __x86_64__
                     __make_storage<__ullong>(_pdep_u64(v, 0x0101010101010101ULL), 0ull),
@@ -4932,10 +4932,10 @@ template <int _N> struct __fixed_size_mask_impl {
     template <class F>
     static inline void store(__mask_member_type bs, bool *mem, F f) noexcept
     {
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512BW
+#if _GLIBCXX_SIMD_HAVE_AVX512BW
         const __m512i bool64 = _mm512_movm_epi8(bs.to_ullong()) & 0x0101010101010101ULL;
         __vector_store<_N>(bool64, mem, f);
-#elif defined _GLIBCXX_SIMD_HAVE_BMI2
+#elif _GLIBCXX_SIMD_HAVE_BMI2
 #ifdef __x86_64__
         __unused(f);
         __execute_n_times<_N / 8>([&](auto i) {
@@ -4965,7 +4965,7 @@ template <int _N> struct __fixed_size_mask_impl {
             std::memcpy(&mem[offset], &bool4, _N % 4);
         }
 #endif  // __x86_64__
-#elif defined _GLIBCXX_SIMD_HAVE_SSE2   // !AVX512BW && !BMI2
+#elif  _GLIBCXX_SIMD_HAVE_SSE2   // !AVX512BW && !BMI2
         using _V = simd<__uchar, simd_abi::__sse>;
         __ullong bits = bs.to_ullong();
         __execute_n_times<(_N + 15) / 16>([&](auto i) {
@@ -5859,7 +5859,7 @@ private:
 
 // }}}1
 // __generic_simd_impl::__masked_cassign specializations {{{1
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX512_ABI
 #define _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(_TYPE, _TYPE_SUFFIX, _OP, _OP_NAME)  \
     template <>                                                                          \
     template <>                                                                          \
@@ -5882,7 +5882,7 @@ _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(long, epi64, std::plus, add);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__ulong, epi64, std::plus, add);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(int, epi32, std::plus, add);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__uint, epi32, std::plus, add);
-#ifdef _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(   short, epi16, std::plus, add);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__ushort, epi16, std::plus, add);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION( __schar, epi8 , std::plus, add);
@@ -5897,7 +5897,7 @@ _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(    long, epi64, std::minus, sub);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION( __ulong, epi64, std::minus, sub);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(     int, epi32, std::minus, sub);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(  __uint, epi32, std::minus, sub);
-#ifdef _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(   short, epi16, std::minus, sub);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__ushort, epi16, std::minus, sub);
 _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION( __schar, epi8 , std::minus, sub);

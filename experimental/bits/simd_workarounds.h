@@ -118,14 +118,14 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
     } else if constexpr (sizeof(_T) == 8 && sizeof(a) == 16 && !__have_avx2) {
         const auto lo = _mm_sll_epi64(a, b);
         const auto hi = _mm_sll_epi64(a, _mm_unpackhi_epi64(b, b));
-#ifdef _GLIBCXX_SIMD_HAVE_SSE4_1
-        return _mm_blend_epi16(lo, hi, 0xf0);
-#else
-        // return __make_storage<__llong>(reinterpret_cast<__vector_type_t<__llong, 2>>(lo)[0],
-        // reinterpret_cast<__vector_type_t<__llong, 2>>(hi)[1]);
-        return __to_storage(
-            _mm_move_sd(__intrin_cast<__m128d>(hi), __intrin_cast<__m128d>(lo)));
-#endif
+        if constexpr (__have_sse4_1) {
+            return _mm_blend_epi16(lo, hi, 0xf0);
+        } else {
+            // return __make_storage<__llong>(reinterpret_cast<__vector_type_t<__llong,
+            // 2>>(lo)[0], reinterpret_cast<__vector_type_t<__llong, 2>>(hi)[1]);
+            return __to_storage(
+                _mm_move_sd(__intrin_cast<__m128d>(hi), __intrin_cast<__m128d>(lo)));
+        }
     } else if constexpr (__have_avx512f && sizeof(_T) == 8 && _N == 8) {
         return _mm512_sllv_epi64(a, b);
     } else if constexpr (__have_avx2 && sizeof(_T) == 8 && _N == 4) {

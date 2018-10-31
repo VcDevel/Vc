@@ -101,7 +101,6 @@ template <class T, class Abi> class simd;
 template <class T, class Abi> class simd_mask;
 template <class T, class Abi> struct simd_size;
 // }}}
-_GLIBCXX_SIMD_END_NAMESPACE
 
 // not-yet-optimized warning hack {{{
 #ifndef _GLIBCXX_SIMD_NO_OPTIMIZATION_WARNINGS
@@ -160,90 +159,144 @@ _GLIBCXX_SIMD_END_NAMESPACE
 #endif
 #if defined __SSE__ || defined __x86_64__
 #define _GLIBCXX_SIMD_HAVE_SSE 1
+#else
+#define _GLIBCXX_SIMD_HAVE_SSE 0
 #endif
 #if defined __SSE2__ || defined __x86_64__
 #define _GLIBCXX_SIMD_HAVE_SSE2 1
+#else
+#define _GLIBCXX_SIMD_HAVE_SSE2 0
 #endif
 #ifdef __SSE3__
 #define _GLIBCXX_SIMD_HAVE_SSE3 1
+#else
+#define _GLIBCXX_SIMD_HAVE_SSE3 0
 #endif
 #ifdef __SSSE3__
 #define _GLIBCXX_SIMD_HAVE_SSSE3 1
+#else
+#define _GLIBCXX_SIMD_HAVE_SSSE3 0
 #endif
 #ifdef __SSE4_1__
 #define _GLIBCXX_SIMD_HAVE_SSE4_1 1
+#else
+#define _GLIBCXX_SIMD_HAVE_SSE4_1 0
 #endif
 #ifdef __SSE4_2__
 #define _GLIBCXX_SIMD_HAVE_SSE4_2 1
+#else
+#define _GLIBCXX_SIMD_HAVE_SSE4_2 0
 #endif
 #ifdef __XOP__
 #define _GLIBCXX_SIMD_HAVE_XOP 1
+#else
+#define _GLIBCXX_SIMD_HAVE_XOP 0
 #endif
 #ifdef __AVX__
 #define _GLIBCXX_SIMD_HAVE_AVX 1
+#else
+#define _GLIBCXX_SIMD_HAVE_AVX 0
 #endif
 #ifdef __AVX2__
 #define _GLIBCXX_SIMD_HAVE_AVX2 1
+#else
+#define _GLIBCXX_SIMD_HAVE_AVX2 0
 #endif
 #ifdef __BMI__
 #define _GLIBCXX_SIMD_HAVE_BMI1 1
+#else
+#define _GLIBCXX_SIMD_HAVE_BMI1 0
 #endif
 #ifdef __BMI2__
 #define _GLIBCXX_SIMD_HAVE_BMI2 1
+#else
+#define _GLIBCXX_SIMD_HAVE_BMI2 0
 #endif
 #ifdef __LZCNT__
 #define _GLIBCXX_SIMD_HAVE_LZCNT 1
+#else
+#define _GLIBCXX_SIMD_HAVE_LZCNT 0
 #endif
 #ifdef __SSE4A__
 #define _GLIBCXX_SIMD_HAVE_SSE4A 1
+#else
+#define _GLIBCXX_SIMD_HAVE_SSE4A 0
 #endif
 #ifdef __FMA__
 #define _GLIBCXX_SIMD_HAVE_FMA 1
+#else
+#define _GLIBCXX_SIMD_HAVE_FMA 0
 #endif
 #ifdef __FMA4__
 #define _GLIBCXX_SIMD_HAVE_FMA4 1
+#else
+#define _GLIBCXX_SIMD_HAVE_FMA4 0
 #endif
 #ifdef __F16C__
 #define _GLIBCXX_SIMD_HAVE_F16C 1
+#else
+#define _GLIBCXX_SIMD_HAVE_F16C 0
 #endif
 #ifdef __POPCNT__
 #define _GLIBCXX_SIMD_HAVE_POPCNT 1
+#else
+#define _GLIBCXX_SIMD_HAVE_POPCNT 0
 #endif
 #ifdef __AVX512F__
 #define _GLIBCXX_SIMD_HAVE_AVX512F 1
+#else
+#define _GLIBCXX_SIMD_HAVE_AVX512F 0
 #endif
 #ifdef __AVX512DQ__
 #define _GLIBCXX_SIMD_HAVE_AVX512DQ 1
+#else
+#define _GLIBCXX_SIMD_HAVE_AVX512DQ 0
 #endif
 #ifdef __AVX512VL__
 #define _GLIBCXX_SIMD_HAVE_AVX512VL 1
+#else
+#define _GLIBCXX_SIMD_HAVE_AVX512VL 0
 #endif
 #ifdef __AVX512BW__
 #define _GLIBCXX_SIMD_HAVE_AVX512BW 1
+#else
+#define _GLIBCXX_SIMD_HAVE_AVX512BW 0
 #endif
 
-#if defined _GLIBCXX_SIMD_HAVE_SSE
+#if _GLIBCXX_SIMD_HAVE_SSE
 #define _GLIBCXX_SIMD_HAVE_SSE_ABI 1
-#ifdef _GLIBCXX_SIMD_HAVE_SSE2
+#else
+#define _GLIBCXX_SIMD_HAVE_SSE_ABI 0
+#endif
+#if _GLIBCXX_SIMD_HAVE_SSE2
 #define _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI 1
-#endif
+#else
+#define _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI 0
 #endif
 
-#if defined _GLIBCXX_SIMD_HAVE_AVX
+#if _GLIBCXX_SIMD_HAVE_AVX
 #define _GLIBCXX_SIMD_HAVE_AVX_ABI 1
-#if defined _GLIBCXX_SIMD_HAVE_AVX2
+#else
+#define _GLIBCXX_SIMD_HAVE_AVX_ABI 0
+#endif
+#if _GLIBCXX_SIMD_HAVE_AVX2
 #define _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI 1
-#endif
+#else
+#define _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI 0
 #endif
 
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512F
+#if _GLIBCXX_SIMD_HAVE_AVX512F
 #define _GLIBCXX_SIMD_HAVE_AVX512_ABI 1
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512BW
-#define _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI 1
+#else
+#define _GLIBCXX_SIMD_HAVE_AVX512_ABI 0
 #endif
+#if _GLIBCXX_SIMD_HAVE_AVX512BW
+#define _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI 1
+#else
+#define _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI 0
 #endif
 
-#if defined __x86_64__ && !defined _GLIBCXX_SIMD_HAVE_SSE2
+#if defined __x86_64__ && !_GLIBCXX_SIMD_HAVE_SSE2
 #error "Use of SSE2 is required on AMD64"
 #endif
 //}}}
@@ -313,6 +366,7 @@ _GLIBCXX_SIMD_END_NAMESPACE
 #undef _GLIBCXX_SIMD_INTRINSIC
 #define _GLIBCXX_SIMD_INTRINSIC inline
 #endif
+_GLIBCXX_SIMD_END_NAMESPACE
 
 #endif  // __cplusplus >= 201703L
 #endif  // _GLIBCXX_EXPERIMENTAL_SIMD_DETAIL_H_

@@ -272,7 +272,7 @@ _GLIBCXX_SIMD_ALWAYS_INLINE std::pair<simd<float, _Abi>, rebind_simd_t<int, simd
     using IV = rebind_simd_t<int, _V>;
 
     x = abs(x);
-#if defined(_GLIBCXX_SIMD_HAVE_FMA4) || defined(_GLIBCXX_SIMD_HAVE_FMA)
+#if _GLIBCXX_SIMD_HAVE_FMA4 || _GLIBCXX_SIMD_HAVE_FMA
     rebind_simd_t<int, _V> quadrant =
         static_simd_cast<IV>(x * C::_4_pi + 1.f);  // prefer the fma here
     quadrant &= ~1;

@@ -16,7 +16,7 @@
 #ifndef NDEBUG
 #include <iostream>
 #endif  // NDEBUG
-#if defined _GLIBCXX_SIMD_HAVE_SSE || _GLIBCXX_SIMD_HAVE_MMX
+#if _GLIBCXX_SIMD_HAVE_SSE || _GLIBCXX_SIMD_HAVE_MMX
 #include <x86intrin.h>
 #endif  // _GLIBCXX_SIMD_HAVE_SSE
 
@@ -217,111 +217,27 @@ inline constexpr bool __is_callable_v = __is_callable<F, void, Args...>::value;
 // }}}
 // constexpr feature detection{{{
 constexpr inline bool __have_mmx = _GLIBCXX_SIMD_HAVE_MMX;
-constexpr inline bool __have_sse = 0
-#ifdef _GLIBCXX_SIMD_HAVE_SSE
-                                 + 1
-#endif
-    ;
-constexpr inline bool __have_sse2 = 0
-#ifdef _GLIBCXX_SIMD_HAVE_SSE2
-                                  + 1
-#endif
-    ;
-constexpr inline bool __have_sse3 = 0
-#ifdef _GLIBCXX_SIMD_HAVE_SSE3
-                                  + 1
-#endif
-    ;
-constexpr inline bool __have_ssse3 = 0
-#ifdef _GLIBCXX_SIMD_HAVE_SSSE3
-                                   + 1
-#endif
-    ;
-constexpr inline bool __have_sse4_1 = 0
-#ifdef _GLIBCXX_SIMD_HAVE_SSE4_1
-                                    + 1
-#endif
-    ;
-constexpr inline bool __have_sse4_2 = 0
-#ifdef _GLIBCXX_SIMD_HAVE_SSE4_2
-                                    + 1
-#endif
-    ;
-constexpr inline bool __have_xop = 0
-#ifdef _GLIBCXX_SIMD_HAVE_XOP
-                                 + 1
-#endif
-    ;
-constexpr inline bool __have_avx = 0
-#ifdef _GLIBCXX_SIMD_HAVE_AVX
-                                 + 1
-#endif
-    ;
-constexpr inline bool __have_avx2 = 0
-#ifdef _GLIBCXX_SIMD_HAVE_AVX2
-                                  + 1
-#endif
-    ;
-constexpr inline bool __have_bmi = 0
-#ifdef _GLIBCXX_SIMD_HAVE_BMI
-                                 + 1
-#endif
-    ;
-constexpr inline bool __have_bmi2 = 0
-#ifdef _GLIBCXX_SIMD_HAVE_BMI2
-                                  + 1
-#endif
-    ;
-constexpr inline bool __have_lzcnt = 0
-#ifdef _GLIBCXX_SIMD_HAVE_LZCNT
-                                   + 1
-#endif
-    ;
-constexpr inline bool __have_sse4a = 0
-#ifdef _GLIBCXX_SIMD_HAVE_SSE4A
-                                   + 1
-#endif
-    ;
-constexpr inline bool __have_fma = 0
-#ifdef _GLIBCXX_SIMD_HAVE_FMA
-                                 + 1
-#endif
-    ;
-constexpr inline bool __have_fma4 = 0
-#ifdef _GLIBCXX_SIMD_HAVE_FMA4
-                                  + 1
-#endif
-    ;
-constexpr inline bool __have_f16c = 0
-#ifdef _GLIBCXX_SIMD_HAVE_F16C
-                                  + 1
-#endif
-    ;
-constexpr inline bool __have_popcnt = 0
-#ifdef _GLIBCXX_SIMD_HAVE_POPCNT
-                                    + 1
-#endif
-    ;
-constexpr inline bool __have_avx512f = 0
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512F
-                                     + 1
-#endif
-    ;
-constexpr inline bool __have_avx512dq = 0
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512DQ
-                                      + 1
-#endif
-    ;
-constexpr inline bool __have_avx512vl = 0
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512VL
-                                      + 1
-#endif
-    ;
-constexpr inline bool __have_avx512bw = 0
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512BW
-                                      + 1
-#endif
-    ;
+constexpr inline bool __have_sse = _GLIBCXX_SIMD_HAVE_SSE;
+constexpr inline bool __have_sse2 = _GLIBCXX_SIMD_HAVE_SSE2;
+constexpr inline bool __have_sse3 = _GLIBCXX_SIMD_HAVE_SSE3;
+constexpr inline bool __have_ssse3 = _GLIBCXX_SIMD_HAVE_SSSE3;
+constexpr inline bool __have_sse4_1 = _GLIBCXX_SIMD_HAVE_SSE4_1;
+constexpr inline bool __have_sse4_2 = _GLIBCXX_SIMD_HAVE_SSE4_2;
+constexpr inline bool __have_xop = _GLIBCXX_SIMD_HAVE_XOP;
+constexpr inline bool __have_avx = _GLIBCXX_SIMD_HAVE_AVX;
+constexpr inline bool __have_avx2 = _GLIBCXX_SIMD_HAVE_AVX2;
+constexpr inline bool __have_bmi = _GLIBCXX_SIMD_HAVE_BMI1;
+constexpr inline bool __have_bmi2 = _GLIBCXX_SIMD_HAVE_BMI2;
+constexpr inline bool __have_lzcnt = _GLIBCXX_SIMD_HAVE_LZCNT;
+constexpr inline bool __have_sse4a = _GLIBCXX_SIMD_HAVE_SSE4A;
+constexpr inline bool __have_fma = _GLIBCXX_SIMD_HAVE_FMA;
+constexpr inline bool __have_fma4 = _GLIBCXX_SIMD_HAVE_FMA4;
+constexpr inline bool __have_f16c = _GLIBCXX_SIMD_HAVE_F16C;
+constexpr inline bool __have_popcnt = _GLIBCXX_SIMD_HAVE_POPCNT;
+constexpr inline bool __have_avx512f = _GLIBCXX_SIMD_HAVE_AVX512F;
+constexpr inline bool __have_avx512dq = _GLIBCXX_SIMD_HAVE_AVX512DQ;
+constexpr inline bool __have_avx512vl = _GLIBCXX_SIMD_HAVE_AVX512VL;
+constexpr inline bool __have_avx512bw = _GLIBCXX_SIMD_HAVE_AVX512BW;
 constexpr inline bool __have_avx512dq_vl = __have_avx512dq && __have_avx512vl;
 constexpr inline bool __have_avx512bw_vl = __have_avx512bw && __have_avx512vl;
 
@@ -1904,9 +1820,9 @@ template <> struct __trig<double> {
 };
 
 // }}}
-#if defined _GLIBCXX_SIMD_HAVE_SSE_ABI
+#if _GLIBCXX_SIMD_HAVE_SSE_ABI
 // __bool_storage_member_type{{{
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512F
+#if _GLIBCXX_SIMD_HAVE_AVX512F
 template <> struct __bool_storage_member_type< 2> { using type = __mmask8 ; };
 template <> struct __bool_storage_member_type< 4> { using type = __mmask8 ; };
 template <> struct __bool_storage_member_type< 8> { using type = __mmask8 ; };
@@ -1921,24 +1837,24 @@ template <> struct __bool_storage_member_type<64> { using type = __mmask64; };
 template <class _T>
 using void_if_integral_t = std::void_t<enable_if_t<
     conjunction<std::is_integral<_T>, __is_vectorizable<_T>>::value>>;
-#if defined _GLIBCXX_SIMD_HAVE_AVX512F
+#if _GLIBCXX_SIMD_HAVE_AVX512F
 template <> struct __intrinsic_type<double, 64, void> { using type = __m512d; };
 template <> struct __intrinsic_type< float, 64, void> { using type = __m512; };
 template <class _T> struct __intrinsic_type<_T, 64, void_if_integral_t<_T>> { using type = __m512i; };
 #endif  // _GLIBCXX_SIMD_HAVE_AVX512F
 
-#if defined _GLIBCXX_SIMD_HAVE_AVX
+#if _GLIBCXX_SIMD_HAVE_AVX
 template <> struct __intrinsic_type<double, 32, void> { using type = __m256d; };
 template <> struct __intrinsic_type< float, 32, void> { using type = __m256; };
 template <class _T> struct __intrinsic_type<_T, 32, void_if_integral_t<_T>> { using type = __m256i; };
 #endif  // _GLIBCXX_SIMD_HAVE_AVX
 
-#if defined _GLIBCXX_SIMD_HAVE_SSE
+#if _GLIBCXX_SIMD_HAVE_SSE
 template <> struct __intrinsic_type< float, 16, void> { using type = __m128; };
 template <> struct __intrinsic_type< float,  8, void> { using type = __m128; };
 template <> struct __intrinsic_type< float,  4, void> { using type = __m128; };
 #endif  // _GLIBCXX_SIMD_HAVE_SSE
-#if defined _GLIBCXX_SIMD_HAVE_SSE2
+#if _GLIBCXX_SIMD_HAVE_SSE2
 template <> struct __intrinsic_type<double, 16, void> { using type = __m128d; };
 template <> struct __intrinsic_type<double,  8, void> { using type = __m128d; };
 template <class _T> struct __intrinsic_type<_T, 16, void_if_integral_t<_T>> { using type = __m128i; };
@@ -1951,16 +1867,16 @@ template <class _T> struct __intrinsic_type<_T,  1, void_if_integral_t<_T>> { us
 // }}}
 // __is_intrinsic{{{
 template <> struct __is_intrinsic<__m128> : public true_type {};
-#ifdef _GLIBCXX_SIMD_HAVE_SSE2
+#if _GLIBCXX_SIMD_HAVE_SSE2
 template <> struct __is_intrinsic<__m128d> : public true_type {};
 template <> struct __is_intrinsic<__m128i> : public true_type {};
 #endif  // _GLIBCXX_SIMD_HAVE_SSE2
-#ifdef _GLIBCXX_SIMD_HAVE_AVX
+#if _GLIBCXX_SIMD_HAVE_AVX
 template <> struct __is_intrinsic<__m256 > : public true_type {};
 template <> struct __is_intrinsic<__m256d> : public true_type {};
 template <> struct __is_intrinsic<__m256i> : public true_type {};
 #endif  // _GLIBCXX_SIMD_HAVE_AVX
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512F
+#if _GLIBCXX_SIMD_HAVE_AVX512F
 template <> struct __is_intrinsic<__m512 > : public true_type {};
 template <> struct __is_intrinsic<__m512d> : public true_type {};
 template <> struct __is_intrinsic<__m512i> : public true_type {};
@@ -2268,23 +2184,23 @@ template <class> using compatible = scalar;
 
 // }}}
 // native {{{
-#if defined _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
 template <class _T> using native = __fallback_abi_for_long_double_t<_T, __avx512, scalar>;
-#elif defined _GLIBCXX_SIMD_HAVE_AVX512_ABI
+#elif _GLIBCXX_SIMD_HAVE_AVX512_ABI
 template <class _T>
 using native =
     std::conditional_t<(sizeof(_T) >= 4),
                        __fallback_abi_for_long_double_t<_T, __avx512, scalar>, __avx>;
-#elif defined _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
+#elif _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
 template <class _T> using native = __fallback_abi_for_long_double_t<_T, __avx, scalar>;
-#elif defined _GLIBCXX_SIMD_HAVE_AVX_ABI
+#elif _GLIBCXX_SIMD_HAVE_AVX_ABI
 template <class _T>
 using native =
     std::conditional_t<std::is_floating_point<_T>::value,
                        __fallback_abi_for_long_double_t<_T, __avx, scalar>, __sse>;
-#elif defined _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+#elif _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
 template <class _T> using native = __fallback_abi_for_long_double_t<_T, __sse, scalar>;
-#elif defined _GLIBCXX_SIMD_HAVE_SSE_ABI
+#elif _GLIBCXX_SIMD_HAVE_SSE_ABI
 template <class _T>
 using native = std::conditional_t<std::is_same<float, _T>::value, __sse, scalar>;
 #elif defined _GLIBCXX_SIMD_HAVE_FULL_NEON_ABI
@@ -3750,19 +3666,19 @@ template <class _T> struct __neon_is_vectorizable : false_type {};
 #endif
 
 // __sse_is_vectorizable {{{1
-#ifdef _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
 template <class _T> struct __sse_is_vectorizable : __is_vectorizable<_T> {};
 template <> struct __sse_is_vectorizable<long double> : false_type {};
-#elif defined _GLIBCXX_SIMD_HAVE_SSE_ABI
+#elif _GLIBCXX_SIMD_HAVE_SSE_ABI
 template <class _T> struct __sse_is_vectorizable : __is_same<_T, float> {};
 #else
 template <class _T> struct __sse_is_vectorizable : false_type {};
 #endif
 
 // __avx_is_vectorizable {{{1
-#ifdef _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
 template <class _T> struct __avx_is_vectorizable : __is_vectorizable<_T> {};
-#elif defined _GLIBCXX_SIMD_HAVE_AVX_ABI
+#elif _GLIBCXX_SIMD_HAVE_AVX_ABI
 template <class _T> struct __avx_is_vectorizable : std::is_floating_point<_T> {};
 #else
 template <class _T> struct __avx_is_vectorizable : false_type {};
@@ -3770,10 +3686,10 @@ template <class _T> struct __avx_is_vectorizable : false_type {};
 template <> struct __avx_is_vectorizable<long double> : false_type {};
 
 // __avx512_is_vectorizable {{{1
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX512_ABI
 template <class _T> struct __avx512_is_vectorizable : __is_vectorizable<_T> {};
 template <> struct __avx512_is_vectorizable<long double> : false_type {};
-#ifndef _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+#if !_GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
 template <> struct __avx512_is_vectorizable<  char> : false_type {};
 template <> struct __avx512_is_vectorizable< __uchar> : false_type {};
 template <> struct __avx512_is_vectorizable< __schar> : false_type {};
