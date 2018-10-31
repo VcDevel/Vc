@@ -292,17 +292,17 @@ template <class _T, class Traits = __vector_traits<_T>> _T __bit_shift_right(_T 
             // => valid input range for each element of b is [0, 7]
             // => only the 3 low bits of b are relevant
             // do a =<< 4 where b[2] is set
-            return convert<y_i08>(
-                _mm256_srav_epi32(_mm256_cvtepi8_epi32(__lo128(a)),
-                                  _mm256_cvtepi8_epi32(__lo128(b))),
-                _mm256_srav_epi32(
-                    _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__lo128(a), __lo128(a))),
-                    _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__lo128(b), __lo128(b)))),
-                _mm256_srav_epi32(_mm256_cvtepi8_epi32(__hi128(a)),
-                                  _mm256_cvtepi8_epi32(__hi128(b))),
-                _mm256_srav_epi32(
-                    _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__hi128(a), __hi128(a))),
-                    _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__hi128(b), __hi128(b)))));
+            return __vector_convert<_T>(
+                __vector_cast<int>(_mm256_srav_epi32(_mm256_cvtepi8_epi32(__lo128(ai)),
+                                                     _mm256_cvtepi8_epi32(__lo128(bi)))),
+                __vector_cast<int>(_mm256_srav_epi32(
+                    _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__lo128(ai), __lo128(ai))),
+                    _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__lo128(bi), __lo128(bi))))),
+                __vector_cast<int>(_mm256_srav_epi32(_mm256_cvtepi8_epi32(__hi128(ai)),
+                                                     _mm256_cvtepi8_epi32(__hi128(bi)))),
+                __vector_cast<int>(_mm256_srav_epi32(
+                    _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__hi128(ai), __hi128(ai))),
+                    _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__hi128(bi), __hi128(bi))))));
         } else {
             const auto aa = __vector_cast<ushort>(a);
             const auto bb = __vector_cast<ushort>(b);
@@ -329,10 +329,10 @@ template <class _T, class Traits = __vector_traits<_T>> _T __bit_shift_right(_T 
     } else if constexpr (is_word && is_xmm && __have_avx512bw_vl) {  //{{{2
         return is_signed ? _mm_srav_epi16(ai, bi) : _mm_srlv_epi16(ai, bi);
     } else if constexpr (is_word && is_xmm && __have_avx2) {  //{{{2
-        return is_signed ? x86::__convert_to<x_i16>(y_i32(_mm256_srav_epi32(
-                               __convert_to<y_i32>(a), __convert_to<y_i32>(b))))
-                         : x86::__convert_to<x_u16>(y_u32(_mm256_srlv_epi32(
-                               __convert_to<y_u32>(a), __convert_to<y_u32>(b))));
+        return is_signed ? __vector_convert<short>(__vector_convert<int>(a) >>
+                                                   __vector_convert<int>(b))
+                         : __vector_convert<__ushort>(__vector_convert<__uint>(a) >>
+                                                      __vector_convert<__uint>(b));
     } else if constexpr (is_word && is_xmm && __have_sse4_1) {  //{{{2
         if constexpr (is_signed) {
             // exploit UB: The behavior is undefined if the right operand is [...] greater

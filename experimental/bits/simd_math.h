@@ -34,7 +34,7 @@ template <class DoubleR, class _T, class _Abi> struct __math_return_type {
     template <class _T, class _Abi, class...,                                            \
               class _R = std::experimental::__math_return_type_t<                        \
                   decltype(std::__name(std::declval<double>())), _T, _Abi>>              \
-    enable_if_t<std::is_floating_point_v<_T>, _R> __name(                           \
+    enable_if_t<std::is_floating_point_v<_T>, _R> __name(                                \
         std::experimental::simd<_T, _Abi> x)                                             \
     {                                                                                    \
         using _V = std::experimental::simd<_T, _Abi>;                                    \
@@ -42,10 +42,10 @@ template <class DoubleR, class _T, class _Abi> struct __math_return_type {
             [](const auto &__xx)                                                         \
                 -> decltype(                                                             \
                     _R(std::experimental::__private_init,                                \
-                       std::experimental::__get_impl_t<decltype(__xx)>::__convert_to##__name(      \
+                       std::experimental::__get_impl_t<decltype(__xx)>::__##__name(      \
                            std::experimental::__data(__xx)))) {                          \
                 return {std::experimental::__private_init,                               \
-                        std::experimental::__get_impl_t<decltype(__xx)>::__convert_to##__name(     \
+                        std::experimental::__get_impl_t<decltype(__xx)>::__##__name(     \
                             std::experimental::__data(__xx))};                           \
             },                                                                           \
             [](const _V &__xx) {                                                         \
@@ -103,18 +103,18 @@ template <class _U, class _T, class _Abi> struct __extra_argument_type {
         class _Arg2 = std::experimental::__extra_argument_type<arg2_, _T, _Abi>,         \
         class _R = std::experimental::__math_return_type_t<                              \
             decltype(std::__name(std::declval<double>(), _Arg2::declval())), _T, _Abi>>  \
-    enable_if_t<std::is_floating_point_v<_T>, _R> __name(                           \
+    enable_if_t<std::is_floating_point_v<_T>, _R> __name(                                \
         const std::experimental::simd<_T, _Abi> &x_, const typename _Arg2::type &y_)     \
     {                                                                                    \
         using _V = std::experimental::simd<_T, _Abi>;                                    \
         return std::experimental::__impl_or_fallback(                                    \
             [](const auto &x, const auto &y)                                             \
                 -> decltype(_R(std::experimental::__private_init,                        \
-                               std::experimental::__get_impl_t<decltype(x)>::__convert_to##__name( \
-                                   std::experimental::__data(x), _Arg2::__data(y)))) {     \
+                               std::experimental::__get_impl_t<decltype(x)>::__##__name( \
+                                   std::experimental::__data(x), _Arg2::__data(y)))) {   \
                 return {std::experimental::__private_init,                               \
-                        std::experimental::__get_impl_t<decltype(x)>::__convert_to##__name(        \
-                            std::experimental::__data(x), _Arg2::__data(y))};              \
+                        std::experimental::__get_impl_t<decltype(x)>::__##__name(        \
+                            std::experimental::__data(x), _Arg2::__data(y))};            \
             },                                                                           \
             [](const _V &x, const auto &y) {                                             \
                 auto &&gen = [&](auto i) {                                               \
@@ -140,7 +140,7 @@ template <class _U, class _T, class _Abi> struct __extra_argument_type {
     _GLIBCXX_SIMD_INTRINSIC std::experimental::__math_return_type_t<                     \
         decltype(std::__name(                                                            \
             std::declval<double>(),                                                      \
-            std::declval<enable_if_t<                                               \
+            std::declval<enable_if_t<                                                    \
                 std::conjunction_v<                                                      \
                     std::is_same<arg2_, _T>,                                             \
                     std::negation<std::is_same<std::decay_t<_U>,                         \
@@ -165,7 +165,7 @@ template <class _U, class _T, class _Abi> struct __extra_argument_type {
                   decltype(std::__name(std::declval<double>(), _Arg2::declval(),         \
                                        _Arg3::declval())),                               \
                   _T, _Abi>>                                                             \
-    enable_if_t<std::is_floating_point_v<_T>, _R> __name(                           \
+    enable_if_t<std::is_floating_point_v<_T>, _R> __name(                                \
         std::experimental::simd<_T, _Abi> x_, typename _Arg2::type y_,                   \
         typename _Arg3::type z_)                                                         \
     {                                                                                    \
@@ -173,13 +173,13 @@ template <class _U, class _T, class _Abi> struct __extra_argument_type {
         return std::experimental::__impl_or_fallback(                                    \
             [](const auto &x, const auto &y, const auto &z)                              \
                 -> decltype(_R(std::experimental::__private_init,                        \
-                               std::experimental::__get_impl_t<decltype(x)>::__convert_to##__name( \
-                                   std::experimental::__data(x), _Arg2::__data(y),         \
-                                   _Arg3::__data(z)))) {                                   \
-                return {                                                                 \
-                    std::experimental::__private_init,                                   \
-                    std::experimental::__get_impl_t<decltype(x)>::__convert_to##__name(            \
-                        std::experimental::__data(x), _Arg2::__data(y), _Arg3::__data(z))};  \
+                               std::experimental::__get_impl_t<decltype(x)>::__##__name( \
+                                   std::experimental::__data(x), _Arg2::__data(y),       \
+                                   _Arg3::__data(z)))) {                                 \
+                return {std::experimental::__private_init,                               \
+                        std::experimental::__get_impl_t<decltype(x)>::__##__name(        \
+                            std::experimental::__data(x), _Arg2::__data(y),              \
+                            _Arg3::__data(z))};                                          \
             },                                                                           \
             [](const _V &x, const auto &y, const auto &z) {                              \
                 return _R([&](auto i) {                                                  \
@@ -728,13 +728,13 @@ template <class _T, class _Abi>
 enable_if_t<!std::is_floating_point_v<_T> && std::is_signed_v<_T>, simd<_T, _Abi>> abs(
     const simd<_T, _Abi> &x)
 {
-    return {__private_init, _Abi::simd_impl_type::__abs(__data(x))};
+    return {__private_init, _Abi::__simd_impl_type::__abs(__data(x))};
 }
 template <class _T, class _Abi>
 enable_if_t<!std::is_floating_point_v<_T> && std::is_signed_v<_T>, simd<_T, _Abi>> fabs(
     const simd<_T, _Abi> &x)
 {
-    return {__private_init, _Abi::simd_impl_type::__abs(__data(x))};
+    return {__private_init, _Abi::__simd_impl_type::__abs(__data(x))};
 }
 
 // the following are overloads for functions in <cstdlib> and not covered by
@@ -742,11 +742,11 @@ enable_if_t<!std::is_floating_point_v<_T> && std::is_signed_v<_T>, simd<_T, _Abi
 /*
 template <class _Abi> simd<long, _Abi> labs(const simd<long, _Abi> &x)
 {
-    return {__private_init, _Abi::simd_impl_type::abs(__data(x))};
+    return {__private_init, _Abi::__simd_impl_type::abs(__data(x))};
 }
 template <class _Abi> simd<long long, _Abi> llabs(const simd<long long, _Abi> &x)
 {
-    return {__private_init, _Abi::simd_impl_type::abs(__data(x))};
+    return {__private_init, _Abi::__simd_impl_type::abs(__data(x))};
 }
 */
 

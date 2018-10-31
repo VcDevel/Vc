@@ -155,6 +155,8 @@ _GLIBCXX_SIMD_END_NAMESPACE
 // x86{{{
 #ifdef __MMX__
 #define _GLIBCXX_SIMD_HAVE_MMX 1
+#else
+#define _GLIBCXX_SIMD_HAVE_MMX 0
 #endif
 #if defined __SSE__ || defined __x86_64__
 #define _GLIBCXX_SIMD_HAVE_SSE 1

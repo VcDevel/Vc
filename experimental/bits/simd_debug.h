@@ -17,7 +17,7 @@ _GLIBCXX_SIMD_BEGIN_NAMESPACE
 enum class __area : unsigned {
     __disabled = 0,
     __enabled = 1,
-    __convert_to = __enabled,
+    __ = __enabled,
 
 #ifdef _GLIBCXX_SIMD_DEBUG
 
