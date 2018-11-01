@@ -115,24 +115,24 @@ using current_native_mask_test_types =
 
 // native_test_types {{{1
 typedef vir::concat<
-#if defined _GLIBCXX_SIMD_HAVE_AVX512_ABI && !defined _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX512_ABI && !_GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
     vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__avx512>,
                     testtypes_64_32>,
 #endif
-#if defined _GLIBCXX_SIMD_HAVE_AVX_ABI && !defined _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX_ABI && !_GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
     vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__avx>, testtypes_fp>,
 #endif
-#if defined _GLIBCXX_SIMD_HAVE_SSE_ABI && !defined _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+#if _GLIBCXX_SIMD_HAVE_SSE_ABI && !_GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
     vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__sse>, testtypes_float>,
 #endif
     vir::expand_list<vir::concat<
-#ifdef _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
                          vir::Template<base_template, std::experimental::simd_abi::__avx512>,
 #endif
-#ifdef _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
                          vir::Template<base_template, std::experimental::simd_abi::__avx>,
 #endif
-#ifdef _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
                          vir::Template<base_template, std::experimental::simd_abi::__sse>,
 #endif
                          vir::Typelist<>>,
@@ -140,14 +140,14 @@ typedef vir::concat<
 
 // native_real_test_types {{{1
 using native_real_test_types = vir::concat<
-#if defined _GLIBCXX_SIMD_HAVE_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX512_ABI
     vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__avx512>, testtypes_fp>,
 #endif
-#if defined _GLIBCXX_SIMD_HAVE_AVX_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX_ABI
     vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__avx>, testtypes_fp>,
 #endif
-#if defined _GLIBCXX_SIMD_HAVE_SSE_ABI
-#if defined _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+#if _GLIBCXX_SIMD_HAVE_SSE_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
     vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__sse>, testtypes_fp>,
 #else
     vir::expand_one<vir::Template<base_template, std::experimental::simd_abi::__sse>, testtypes_float>,
@@ -237,7 +237,7 @@ using many_fixed_size_types = vir::expand_list<
                   vir::Template<base_template, std::experimental::simd_abi::fixed_size<17>>>,
     testtypes_float>;
 // reduced_test_types {{{1
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512F
+#if _GLIBCXX_SIMD_HAVE_AVX512F
 // reduce compile times when AVX512 is available
 using reduced_test_types = native_test_types;
 #else   // _GLIBCXX_SIMD_HAVE_AVX512F

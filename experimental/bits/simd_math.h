@@ -480,19 +480,19 @@ template <class _T, size_t _N> __storage<_T, _N> __getexp(__storage<_T, _N> x)
     if constexpr (__have_avx512vl && __is_sse_ps<_T, _N>()) {
         return _mm_getexp_ps(x);
     } else if constexpr (__have_avx512f && __is_sse_ps<_T, _N>()) {
-        return __lo128(_mm512_getexp_ps(__auto_cast(x)));
+        return __lo128(_mm512_getexp_ps(__auto_bitcast(x)));
     } else if constexpr (__have_avx512vl && __is_sse_pd<_T, _N>()) {
         return _mm_getexp_pd(x);
     } else if constexpr (__have_avx512f && __is_sse_pd<_T, _N>()) {
-        return __lo128(_mm512_getexp_pd(__auto_cast(x)));
+        return __lo128(_mm512_getexp_pd(__auto_bitcast(x)));
     } else if constexpr (__have_avx512vl && __is_avx_ps<_T, _N>()) {
         return _mm256_getexp_ps(x);
     } else if constexpr (__have_avx512f && __is_avx_ps<_T, _N>()) {
-        return __lo256(_mm512_getexp_ps(__auto_cast(x)));
+        return __lo256(_mm512_getexp_ps(__auto_bitcast(x)));
     } else if constexpr (__have_avx512vl && __is_avx_pd<_T, _N>()) {
         return _mm256_getexp_pd(x);
     } else if constexpr (__have_avx512f && __is_avx_pd<_T, _N>()) {
-        return __lo256(_mm512_getexp_pd(__auto_cast(x)));
+        return __lo256(_mm512_getexp_pd(__auto_bitcast(x)));
     } else if constexpr (__is_avx512_ps<_T, _N>()) {
         return _mm512_getexp_ps(x);
     } else if constexpr (__is_avx512_pd<_T, _N>()) {
@@ -508,22 +508,22 @@ template <class _T, size_t _N> __storage<_T, _N> __getmant(__storage<_T, _N> x)
         return _mm_getmant_ps(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
     } else if constexpr (__have_avx512f && __is_sse_ps<_T, _N>()) {
         return __lo128(
-            _mm512_getmant_ps(__auto_cast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
+            _mm512_getmant_ps(__auto_bitcast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
     } else if constexpr (__have_avx512vl && __is_sse_pd<_T, _N>()) {
         return _mm_getmant_pd(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
     } else if constexpr (__have_avx512f && __is_sse_pd<_T, _N>()) {
         return __lo128(
-            _mm512_getmant_pd(__auto_cast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
+            _mm512_getmant_pd(__auto_bitcast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
     } else if constexpr (__have_avx512vl && __is_avx_ps<_T, _N>()) {
         return _mm256_getmant_ps(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
     } else if constexpr (__have_avx512f && __is_avx_ps<_T, _N>()) {
         return __lo256(
-            _mm512_getmant_ps(__auto_cast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
+            _mm512_getmant_ps(__auto_bitcast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
     } else if constexpr (__have_avx512vl && __is_avx_pd<_T, _N>()) {
         return _mm256_getmant_pd(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
     } else if constexpr (__have_avx512f && __is_avx_pd<_T, _N>()) {
         return __lo256(
-            _mm512_getmant_pd(__auto_cast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
+            _mm512_getmant_pd(__auto_bitcast(x), _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src));
     } else if constexpr (__is_avx512_ps<_T, _N>()) {
         return _mm512_getmant_ps(x, _MM_MANT_NORM_p5_1, _MM_MANT_SIGN_src);
     } else if constexpr (__is_avx512_pd<_T, _N>()) {
@@ -558,11 +558,12 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> frexp(
         const auto isnonzero = __get_impl_t<simd<_T, _Abi>>::isnonzerovalue_mask(v.d);
         const auto e =
             __to_intrin(__blend(isnonzero, __vector_type_t<int, NI>(),
-                                         1 + convert<__storage<int, NI>>(__getexp(v)).d));
-        _GLIBCXX_SIMD_DEBUG(_Frexp)(
-            std::hex, _GLIBCXX_SIMD_PRETTY_PRINT(int(isnonzero)), std::dec, _GLIBCXX_SIMD_PRETTY_PRINT(e),
-            _GLIBCXX_SIMD_PRETTY_PRINT(__getexp(v)),
-            _GLIBCXX_SIMD_PRETTY_PRINT(__to_intrin(1 + convert<__storage<int, NI>>(__getexp(v)).d)));
+                                1 + __convert<__storage<int, NI>>(__getexp(v)).d));
+        _GLIBCXX_SIMD_DEBUG(_Frexp)
+        (std::hex, _GLIBCXX_SIMD_PRETTY_PRINT(int(isnonzero)), std::dec,
+         _GLIBCXX_SIMD_PRETTY_PRINT(e), _GLIBCXX_SIMD_PRETTY_PRINT(__getexp(v)),
+         _GLIBCXX_SIMD_PRETTY_PRINT(
+             __to_intrin(1 + __convert<__storage<int, NI>>(__getexp(v)).d)));
         __vector_store<_N * sizeof(int)>(e, exp, overaligned<alignof(IV)>);
         return {__private_init, __blend(isnonzero, v, __getmant(v))};
     } else {
@@ -636,40 +637,40 @@ enable_if_t<std::is_floating_point<_T>::value, simd<_T, _Abi>> logb(
                     },
                     __data(x))};
     } else if constexpr (__have_avx512vl && __is_sse_ps<_T, _N>()) {
-        return {__private_init, _mm_fixupimm_ps(_mm_getexp_ps(__x86::abs(__data(x))),
+        return {__private_init, _mm_fixupimm_ps(_mm_getexp_ps(__abs(__data(x))),
                                               __data(x), __auto_broadcast(0x00550433), 0x00)};
     } else if constexpr (__have_avx512vl && __is_sse_pd<_T, _N>()) {
-        return {__private_init, _mm_fixupimm_pd(_mm_getexp_pd(__x86::abs(__data(x))),
+        return {__private_init, _mm_fixupimm_pd(_mm_getexp_pd(__abs(__data(x))),
                                               __data(x), __auto_broadcast(0x00550433), 0x00)};
     } else if constexpr (__have_avx512vl && __is_avx_ps<_T, _N>()) {
         return {__private_init,
-                _mm256_fixupimm_ps(_mm256_getexp_ps(__x86::abs(__data(x))), __data(x),
+                _mm256_fixupimm_ps(_mm256_getexp_ps(__abs(__data(x))), __data(x),
                                    __auto_broadcast(0x00550433), 0x00)};
     } else if constexpr (__have_avx512vl && __is_avx_pd<_T, _N>()) {
         return {__private_init,
-                _mm256_fixupimm_pd(_mm256_getexp_pd(__x86::abs(__data(x))), __data(x),
+                _mm256_fixupimm_pd(_mm256_getexp_pd(__abs(__data(x))), __data(x),
                                    __auto_broadcast(0x00550433), 0x00)};
     } else if constexpr (__have_avx512f && __is_avx_ps<_T, _N>()) {
-        const __m512 v = __auto_cast(__data(x));
+        const __m512 v = __auto_bitcast(__data(x));
         return {__private_init,
                 __lo256(_mm512_fixupimm_ps(_mm512_getexp_ps(_mm512_abs_ps(v)), v,
                                          __auto_broadcast(0x00550433), 0x00))};
     } else if constexpr (__have_avx512f && __is_avx_pd<_T, _N>()) {
         return {__private_init, __lo256(_mm512_fixupimm_pd(
-                                  _mm512_getexp_pd(_mm512_abs_pd(__auto_cast(__data(x)))),
-                                  __auto_cast(__data(x)), __auto_broadcast(0x00550433), 0x00))};
+                                  _mm512_getexp_pd(_mm512_abs_pd(__auto_bitcast(__data(x)))),
+                                  __auto_bitcast(__data(x)), __auto_broadcast(0x00550433), 0x00))};
     } else if constexpr (__is_avx512_ps<_T, _N>()) {
-        return {__private_init, _mm512_fixupimm_ps(_mm512_getexp_ps(abs(__data(x))), __data(x),
+        return {__private_init, _mm512_fixupimm_ps(_mm512_getexp_ps(__abs(__data(x))), __data(x),
                                                  __auto_broadcast(0x00550433), 0x00)};
     } else if constexpr (__is_avx512_pd<_T, _N>()) {
-        return {__private_init, _mm512_fixupimm_pd(_mm512_getexp_pd(abs(__data(x))), __data(x),
+        return {__private_init, _mm512_fixupimm_pd(_mm512_getexp_pd(__abs(__data(x))), __data(x),
                                                  __auto_broadcast(0x00550433), 0x00)};
     } else {
         using _V = simd<_T, _Abi>;
         using namespace std::experimental::__proposed;
         auto is_normal = isnormal(x);
 
-        // work on abs(x) to reflect the return value on Linux for negative inputs
+        // work on __abs(x) to reflect the return value on Linux for negative inputs
         // (domain-error => implementation-defined value is returned)
         const _V abs_x = abs(x);
 

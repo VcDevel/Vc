@@ -20,26 +20,26 @@ _GLIBCXX_SIMD_INTRINSIC _T __divides(_T a, _T b)
     if constexpr (is_dword && ((is_xmm && __have_avx) || (is_ymm && __have_avx512f))) {
         return convert<_U>(convert<double>(a) / convert<double>(b));
     } else if constexpr (is_dword) {  // really better with is_xmm?
-        auto x = convert_all<__vector_type_t<double, Traits::width / 2>>(a);
-        auto y = convert_all<__vector_type_t<double, Traits::width / 2>>(b);
+        auto x = __convert_all<__vector_type_t<double, Traits::width / 2>>(a);
+        auto y = __convert_all<__vector_type_t<double, Traits::width / 2>>(b);
         return convert<_T>(x[0] / y[0], x[1] / y[1]);
     } else if constexpr (is_word) {
         if constexpr ((is_xmm && __have_avx) || (is_ymm && __have_avx512f)) {
             return convert<_T>(convert<float>(a) / convert<float>(b));
         } else {
-            auto x = convert_all<__vector_type_t<float, Traits::width / 2>>(a);
-            auto y = convert_all<__vector_type_t<float, Traits::width / 2>>(b);
+            auto x = __convert_all<__vector_type_t<float, Traits::width / 2>>(a);
+            auto y = __convert_all<__vector_type_t<float, Traits::width / 2>>(b);
             return convert<_T>(x[0] / y[0], x[1] / y[1]);
         }
     } else if constexpr (is_byte && is_xmm && __have_avx512f) {
         return convert<_T>(convert<float>(a) / convert<float>(b));
     } else if constexpr (is_byte && ((is_xmm && __have_avx) || is_ymm && __have_avx512f)) {
-        auto x = convert_all<__vector_type_t<float, Traits::width / 2>>(a);
-        auto y = convert_all<__vector_type_t<float, Traits::width / 2>>(b);
+        auto x = __convert_all<__vector_type_t<float, Traits::width / 2>>(a);
+        auto y = __convert_all<__vector_type_t<float, Traits::width / 2>>(b);
         return convert<_T>(x[0] / y[0], x[1] / y[1]);
     } else if constexpr (is_byte) {
-        auto x = convert_all<__vector_type_t<float, Traits::width / 4>>(a);
-        auto y = convert_all<__vector_type_t<float, Traits::width / 4>>(b);
+        auto x = __convert_all<__vector_type_t<float, Traits::width / 4>>(a);
+        auto y = __convert_all<__vector_type_t<float, Traits::width / 4>>(b);
         return convert<_T>(x[0] / y[0], x[1] / y[1], x[2] / y[2], x[3] / y[3]);
     } else {
         return a / b;
@@ -124,7 +124,7 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
             // return __make_storage<__llong>(reinterpret_cast<__vector_type_t<__llong,
             // 2>>(lo)[0], reinterpret_cast<__vector_type_t<__llong, 2>>(hi)[1]);
             return __to_storage(
-                _mm_move_sd(__intrin_cast<__m128d>(hi), __intrin_cast<__m128d>(lo)));
+                _mm_move_sd(__intrin_bitcast<__m128d>(hi), __intrin_bitcast<__m128d>(lo)));
         }
     } else if constexpr (__have_avx512f && sizeof(_T) == 8 && _N == 8) {
         return _mm512_sllv_epi64(a, b);
@@ -147,31 +147,31 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
             return __lo256(
                 _mm512_sllv_epi16(_mm512_castsi256_si512(a), _mm512_castsi256_si512(b)));
         } else if constexpr (_N == 16) {
-            const auto aa = __vector_cast<unsigned>(a.d);
-            const auto bb = __vector_cast<unsigned>(b.d);
-            return _mm256_blend_epi16(__auto_cast(aa << (bb & 0x0000ffffu)),
-                                      __auto_cast((aa & 0xffff0000u) << (bb >> 16)), 0xaa);
+            const auto aa = __vector_bitcast<unsigned>(a.d);
+            const auto bb = __vector_bitcast<unsigned>(b.d);
+            return _mm256_blend_epi16(__auto_bitcast(aa << (bb & 0x0000ffffu)),
+                                      __auto_bitcast((aa & 0xffff0000u) << (bb >> 16)), 0xaa);
         } else if constexpr (_N == 8 && __have_avx512bw_vl) {
             return _mm_sllv_epi16(a, b);
         } else if constexpr (_N == 8 && __have_avx512bw) {
             return _mm512_sllv_epi16(_mm512_castsi128_si512(a),
                                      _mm512_castsi128_si512(b));
         } else if constexpr (_N == 8) {
-            const auto aa = __vector_cast<unsigned>(a.d);
-            const auto bb = __vector_cast<unsigned>(b.d);
-            return _mm_blend_epi16(__auto_cast(aa << (bb & 0x0000ffffu)),
-                                   __auto_cast((aa & 0xffff0000u) << (bb >> 16)), 0xaa);
+            const auto aa = __vector_bitcast<unsigned>(a.d);
+            const auto bb = __vector_bitcast<unsigned>(b.d);
+            return _mm_blend_epi16(__auto_bitcast(aa << (bb & 0x0000ffffu)),
+                                   __auto_bitcast((aa & 0xffff0000u) << (bb >> 16)), 0xaa);
         } else {
             __assert_unreachable<_T>();
         }
     } else if constexpr (sizeof(_T) == 1) {
         if constexpr (_N == 64 && __have_avx512bw) {
             return concat(_mm512_cvtepi16_epi8(_mm512_sllv_epi16(
-                              _mm512_cvtepu8_epi16(__lo256(__vector_cast<__llong>(a))),
-                              _mm512_cvtepu8_epi16(__lo256(__vector_cast<__llong>(b))))),
+                              _mm512_cvtepu8_epi16(__lo256(__vector_bitcast<__llong>(a))),
+                              _mm512_cvtepu8_epi16(__lo256(__vector_bitcast<__llong>(b))))),
                           _mm512_cvtepi16_epi8(_mm512_sllv_epi16(
-                              _mm512_cvtepu8_epi16(__hi256(__vector_cast<__llong>(a))),
-                              _mm512_cvtepu8_epi16(__hi256(__vector_cast<__llong>(b))))));
+                              _mm512_cvtepu8_epi16(__hi256(__vector_bitcast<__llong>(a))),
+                              _mm512_cvtepu8_epi16(__hi256(__vector_bitcast<__llong>(b))))));
         } else if constexpr (_N == 32 && __have_avx512bw) {
             return _mm512_cvtepi16_epi8(
                 _mm512_sllv_epi16(_mm512_cvtepu8_epi16(a), _mm512_cvtepu8_epi16(b)));
@@ -184,11 +184,11 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
                                   _mm512_cvtepu8_epi16(_mm512_castsi256_si512(b)))));
         } else {
             auto mask_from_bit = [](__vector_type_t<_T, _N> x, int bit) {
-                auto y = __vector_cast<short>(x) << bit;
+                auto y = __vector_bitcast<short>(x) << bit;
                 if constexpr (__have_sse4_1) {
                     return __to_intrin(y);
                 } else {
-                    return __to_intrin(__vector_cast<__schar>(y) < 0);
+                    return __to_intrin(__vector_bitcast<__schar>(y) < 0);
                 }
             };
             // exploit UB: The behavior is undefined if the right operand is [...] greater
@@ -196,7 +196,7 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
             // => valid input range for each element of b is [0, 7]
             // => only the 3 low bits of b are relevant
             // do a =<< 4 where b[2] is set
-            auto a4 = __vector_cast<__uchar>(__vector_cast<short>(a.d) << 4);
+            auto a4 = __vector_bitcast<__uchar>(__vector_bitcast<short>(a.d) << 4);
             if constexpr (std::is_unsigned_v<_T>) {
                 // shift into or over the sign bit is UB => never spills into a neighbor
                 a4 &= 0xf0u;
@@ -204,7 +204,7 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
             a = __blend(mask_from_bit(b, 5), a, __to_intrin(a4));
             // do a =<< 2 where b[1] is set
             // shift into or over the sign bit is UB => never spills into a neighbor
-            const auto a2 = std::is_signed_v<_T> ? __to_intrin(__vector_cast<short>(a.d) << 2)
+            const auto a2 = std::is_signed_v<_T> ? __to_intrin(__vector_bitcast<short>(a.d) << 2)
                                                 : __to_intrin(a.d << 2);
             a = __blend(mask_from_bit(b, 6), a, a2);
             // do a =<< 1 where b[0] is set
@@ -238,8 +238,8 @@ template <class _T, class Traits = __vector_traits<_T>> _T __bit_shift_right(_T 
                                _mm256_cvtepu8_epi16(a), _mm256_cvtepu8_epi16(b)));
     } else if constexpr (is_byte && is_xmm && __have_sse4_1) {  //{{{2
         if constexpr (is_signed) {
-            const auto aa = __vector_cast<short>(a);
-            const auto bb = __vector_cast<short>(b);
+            const auto aa = __vector_bitcast<short>(a);
+            const auto bb = __vector_bitcast<short>(b);
             // exploit UB: The behavior is undefined if the right operand is [...] greater
             // than or equal to the length in bits of the promoted left operand.
             // => valid input range for each element of b is [0, 7]
@@ -247,38 +247,38 @@ template <class _T, class Traits = __vector_traits<_T>> _T __bit_shift_right(_T 
             // do a =>> 4 where b[2] is set
             auto signbit = aa & 0x8080u;
             a = reinterpret_cast<_T>(_mm_blendv_epi8(
-                __vector_cast<__llong>(a),
-                __vector_cast<__llong>((((signbit << 5) - signbit) | (aa & 0xf8f8u)) >> 4),
-                __vector_cast<__llong>(bb << 5)));
+                __vector_bitcast<__llong>(a),
+                __vector_bitcast<__llong>((((signbit << 5) - signbit) | (aa & 0xf8f8u)) >> 4),
+                __vector_bitcast<__llong>(bb << 5)));
             // do a =>> 2 where b[1] is set
             a = reinterpret_cast<_T>(_mm_blendv_epi8(
-                __vector_cast<__llong>(a),
-                __vector_cast<__llong>((((signbit << 3) - signbit) | (aa & 0xfcfcu)) >> 2),
-                __vector_cast<__llong>(bb << 6)));
+                __vector_bitcast<__llong>(a),
+                __vector_bitcast<__llong>((((signbit << 3) - signbit) | (aa & 0xfcfcu)) >> 2),
+                __vector_bitcast<__llong>(bb << 6)));
             // do a =>> 1 where b[0] is set
             return reinterpret_cast<_T>(
-                _mm_blendv_epi8(__vector_cast<__llong>(a),
-                                __vector_cast<__llong>(signbit | ((aa & 0xfefeu) >> 1)),
-                                __vector_cast<__llong>(bb << 7)));
+                _mm_blendv_epi8(__vector_bitcast<__llong>(a),
+                                __vector_bitcast<__llong>(signbit | ((aa & 0xfefeu) >> 1)),
+                                __vector_bitcast<__llong>(bb << 7)));
         } else {
-            const auto aa = __vector_cast<ushort>(a);
-            const auto bb = __vector_cast<ushort>(b);
+            const auto aa = __vector_bitcast<ushort>(a);
+            const auto bb = __vector_bitcast<ushort>(b);
             // exploit UB: The behavior is undefined if the right operand is [...] greater
             // than or equal to the length in bits of the promoted left operand.
             // => valid input range for each element of b is [0, 7]
             // => only the 3 low bits of b are relevant
             // do a =>> 4 where b[2] is set
             a = reinterpret_cast<_T>(_mm_blendv_epi8(
-                __vector_cast<__llong>(a), __vector_cast<__llong>((aa >> 4) & 0x0f0fu),
-                __vector_cast<__llong>(bb << 5)));
+                __vector_bitcast<__llong>(a), __vector_bitcast<__llong>((aa >> 4) & 0x0f0fu),
+                __vector_bitcast<__llong>(bb << 5)));
             // do a =>> 2 where b[1] is set
             a = reinterpret_cast<_T>(_mm_blendv_epi8(
-                __vector_cast<__llong>(a), __vector_cast<__llong>((aa >> 2) & 0x3f3fu),
-                __vector_cast<__llong>(bb << 6)));
+                __vector_bitcast<__llong>(a), __vector_bitcast<__llong>((aa >> 2) & 0x3f3fu),
+                __vector_bitcast<__llong>(bb << 6)));
             // do a =>> 1 where b[0] is set
             return reinterpret_cast<_T>(_mm_blendv_epi8(
-                __vector_cast<__llong>(a), __vector_cast<__llong>((aa >> 1) & 0x7f7fu),
-                __vector_cast<__llong>(bb << 7)));
+                __vector_bitcast<__llong>(a), __vector_bitcast<__llong>((aa >> 1) & 0x7f7fu),
+                __vector_bitcast<__llong>(bb << 7)));
         }
     } else if constexpr (is_byte && is_ymm && __have_avx512bw) {  //{{{2
         return _mm512_cvtepi16_epi8(
@@ -293,35 +293,35 @@ template <class _T, class Traits = __vector_traits<_T>> _T __bit_shift_right(_T 
             // => only the 3 low bits of b are relevant
             // do a =<< 4 where b[2] is set
             return __vector_convert<_T>(
-                __vector_cast<int>(_mm256_srav_epi32(_mm256_cvtepi8_epi32(__lo128(ai)),
+                __vector_bitcast<int>(_mm256_srav_epi32(_mm256_cvtepi8_epi32(__lo128(ai)),
                                                      _mm256_cvtepi8_epi32(__lo128(bi)))),
-                __vector_cast<int>(_mm256_srav_epi32(
+                __vector_bitcast<int>(_mm256_srav_epi32(
                     _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__lo128(ai), __lo128(ai))),
                     _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__lo128(bi), __lo128(bi))))),
-                __vector_cast<int>(_mm256_srav_epi32(_mm256_cvtepi8_epi32(__hi128(ai)),
+                __vector_bitcast<int>(_mm256_srav_epi32(_mm256_cvtepi8_epi32(__hi128(ai)),
                                                      _mm256_cvtepi8_epi32(__hi128(bi)))),
-                __vector_cast<int>(_mm256_srav_epi32(
+                __vector_bitcast<int>(_mm256_srav_epi32(
                     _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__hi128(ai), __hi128(ai))),
                     _mm256_cvtepi8_epi32(_mm_unpackhi_epi64(__hi128(bi), __hi128(bi))))));
         } else {
-            const auto aa = __vector_cast<ushort>(a);
-            const auto bb = __vector_cast<ushort>(b);
+            const auto aa = __vector_bitcast<ushort>(a);
+            const auto bb = __vector_bitcast<ushort>(b);
             // exploit UB: The behavior is undefined if the right operand is [...] greater
             // than or equal to the length in bits of the promoted left operand.
             // => valid input range for each element of b is [0, 7]
             // => only the 3 low bits of b are relevant
             // do a =>> 4 where b[2] is set
             a = reinterpret_cast<_T>(_mm256_blendv_epi8(
-                __vector_cast<__llong>(a), __vector_cast<__llong>((aa >> 4) & 0x0f0fu),
-                __vector_cast<__llong>(bb << 5)));
+                __vector_bitcast<__llong>(a), __vector_bitcast<__llong>((aa >> 4) & 0x0f0fu),
+                __vector_bitcast<__llong>(bb << 5)));
             // do a =>> 2 where b[1] is set
             a = reinterpret_cast<_T>(_mm256_blendv_epi8(
-                __vector_cast<__llong>(a), __vector_cast<__llong>((aa >> 2) & 0x3f3fu),
-                __vector_cast<__llong>(bb << 6)));
+                __vector_bitcast<__llong>(a), __vector_bitcast<__llong>((aa >> 2) & 0x3f3fu),
+                __vector_bitcast<__llong>(bb << 6)));
             // do a =>> 1 where b[0] is set
             return reinterpret_cast<_T>(_mm256_blendv_epi8(
-                __vector_cast<__llong>(a), __vector_cast<__llong>((aa >> 1) & 0x7f7fu),
-                __vector_cast<__llong>(bb << 7)));
+                __vector_bitcast<__llong>(a), __vector_bitcast<__llong>((aa >> 1) & 0x7f7fu),
+                __vector_bitcast<__llong>(bb << 7)));
         }
     } else if constexpr (is_byte && is_zmm && __have_avx512bw) {  //{{{2
         return concat(__bit_shift_right(__lo256(a), __lo256(b)),
@@ -357,13 +357,13 @@ template <class _T, class Traits = __vector_traits<_T>> _T __bit_shift_right(_T 
             // shift by 4 and duplicate to high byte
             b = (b << 4) | (b << 12);
             // do a =>> 8 where b[3] is set
-            a = _mm_blendv_epi8(a, __vector_cast<__llong>(a >> 8), b);
+            a = _mm_blendv_epi8(a, __vector_bitcast<__llong>(a >> 8), b);
             // do a =>> 4 where b[2] is set
-            a = _mm_blendv_epi8(a, __vector_cast<__llong>(a >> 4), b = _mm_add_epi16(b, b));
+            a = _mm_blendv_epi8(a, __vector_bitcast<__llong>(a >> 4), b = _mm_add_epi16(b, b));
             // do a =>> 2 where b[1] is set
-            a = _mm_blendv_epi8(a, __vector_cast<__llong>(a >> 2), b = _mm_add_epi16(b, b));
+            a = _mm_blendv_epi8(a, __vector_bitcast<__llong>(a >> 2), b = _mm_add_epi16(b, b));
             // do a =>> 1 where b[0] is set
-            return _mm_blendv_epi8(a, __vector_cast<__llong>(a >> 1), _mm_add_epi16(b, b));
+            return _mm_blendv_epi8(a, __vector_bitcast<__llong>(a >> 1), _mm_add_epi16(b, b));
         }
     } else if constexpr (is_word && is_xmm && __have_sse2) {  //{{{2
         auto &&blend = [](_T a, _T b, _T c) { return (~c & a) | (c & b); };
@@ -393,18 +393,18 @@ template <class _T, class Traits = __vector_traits<_T>> _T __bit_shift_right(_T 
             // => valid input range for each element of b is [0, 15]
             // => only the 4 low bits of b are relevant
             // do a =>> 8 where b[3] is set
-            a = blend(a, __vector_cast<__llong>(a >> 8),
+            a = blend(a, __vector_bitcast<__llong>(a >> 8),
                             _mm_cmpgt_epi16(b, __auto_broadcast(0x00070007)));
             // do a =>> 4 where b[2] is set
-            a = blend(a, __vector_cast<__llong>(a >> 4),
+            a = blend(a, __vector_bitcast<__llong>(a >> 4),
                             _mm_cmpgt_epi16(__and(b, __auto_broadcast(0x00040004)),
                                             _mm_setzero_si128()));
             // do a =>> 2 where b[1] is set
-            a = blend(a, __vector_cast<__llong>(a >> 2),
+            a = blend(a, __vector_bitcast<__llong>(a >> 2),
                             _mm_cmpgt_epi16(__and(b, __auto_broadcast(0x00020002)),
                                             _mm_setzero_si128()));
             // do a =>> 1 where b[0] is set
-            return blend(a, __vector_cast<__llong>(a >> 1),
+            return blend(a, __vector_bitcast<__llong>(a >> 1),
                                _mm_cmpgt_epi16(__and(b, __auto_broadcast(0x00010001)),
                                                _mm_setzero_si128()));
         }
@@ -423,8 +423,8 @@ template <class _T, class Traits = __vector_traits<_T>> _T __bit_shift_right(_T 
             return _mm256_packs_epi32(lo32, hi32);
         } else {
             return _mm256_blend_epi16(
-                (__vector_cast<uint>(a) & 0xffffu) >> (__vector_cast<uint>(b) & 0xffffu),
-                __vector_cast<uint>(a) >> (__vector_cast<uint>(b) >> 16), 0xaa);
+                (__vector_bitcast<uint>(a) & 0xffffu) >> (__vector_bitcast<uint>(b) & 0xffffu),
+                __vector_bitcast<uint>(a) >> (__vector_bitcast<uint>(b) >> 16), 0xaa);
         }
     } else if constexpr (is_word && is_zmm && __have_avx512bw) {  //{{{2
         return is_signed ? _mm512_srav_epi16(ai, bi) : _mm512_srlv_epi16(ai, bi);

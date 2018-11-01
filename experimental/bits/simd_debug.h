@@ -60,6 +60,9 @@ enum class __area : unsigned {
 #ifdef _GLIBCXX_SIMD_ENABLE_DEBUG
 #define _GLIBCXX_SIMD_PRETTY_PRINT(var_) std::setw(16), #var_ " = ", (var_)
 
+#define _GLIBCXX_SIMD_CONCAT_IMPL(a_, b_, c_) a_##b_##c_
+#define _GLIBCXX_SIMD_CONCAT(a_, b_, c_) _GLIBCXX_SIMD_CONCAT_IMPL(a_, b_, c_)
+
 #define _GLIBCXX_SIMD_DEBUG_DEFERRED(_Area, ...)                                         \
     const auto &_GLIBCXX_SIMD_CONCAT(_GLIBCXX_SIMD_deferred_, __LINE__, _) =             \
         __defer([&]() { _GLIBCXX_SIMD_DEBUG(_Area)                                       \

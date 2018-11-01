@@ -18,7 +18,7 @@
 // incorrect use of k0 register for _kortestc_mask64_u8 and _kortestc_mask32_u8:
 #define _GLIBCXX_SIMD_WORKAROUND_PR85538 1
 
-// missed optimization for abs(__vector_type_t<__llong, 2>):
+// missed optimization for __abs(__vector_type_t<__llong, 2>):
 #define _GLIBCXX_SIMD_WORKAROUND_PR85572 1
 
 // very bad codegen for extraction and concatenation of 128/256 "subregisters" with
@@ -102,29 +102,6 @@ template <class T, class Abi> class simd_mask;
 template <class T, class Abi> struct simd_size;
 // }}}
 
-// not-yet-optimized warning hack {{{
-#ifndef _GLIBCXX_SIMD_NO_OPTIMIZATION_WARNINGS
-#if defined _GLIBCXX_SIMD_GCC || defined _GLIBCXX_SIMD_CLANG
-// hack GCC's formatting to overwrite "deprecated: " with our own message:
-#define _GLIBCXX_SIMD_NOT_OPTIMIZED [[deprecated("\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8\x8not optimized yet, if you care about speed please help out! [-D_GLIBCXX_SIMD_NO_OPTIMIZATION_WARNINGS]")]]
-#else
-#define _GLIBCXX_SIMD_NOT_OPTIMIZED [[deprecated("NOT DEPRECATED, just a note: this function is not optimized yet, if you care about speed please help out! [-D_GLIBCXX_SIMD_NO_OPTIMIZATION_WARNINGS]")]]
-#endif
-#else
-#define _GLIBCXX_SIMD_NOT_OPTIMIZED
-#endif
-// }}}
-
-// Starting with compiler identification. This is a prerequisite for getting the following
-// macro definitions right.
-// {{{
-#if defined(__clang__)
-#  define _GLIBCXX_SIMD_CLANG (__clang_major__ * 0x10000 + __clang_minor__ * 0x100 + __clang_patchlevel__)
-#elif defined(__GNUC__)
-#  define _GLIBCXX_SIMD_GCC (__GNUC__ * 0x10000 + __GNUC_MINOR__ * 0x100 + __GNUC_PATCHLEVEL__)
-#endif
-//}}}
-
 // On Windows (WIN32) we might see macros called min and max. Just undefine them and hope
 // noone (re)defines them (defining NOMINMAX should help).
 // {{{
@@ -146,9 +123,13 @@ template <class T, class Abi> struct simd_size;
 #endif  // __aarch64__
 
 #ifdef __ARM_NEON
-#define _GLIBCXX_SIMD_HAVE_NEON
+#define _GLIBCXX_SIMD_HAVE_NEON 1
 #define _GLIBCXX_SIMD_HAVE_NEON_ABI 1
 #define _GLIBCXX_SIMD_HAVE_FULL_NEON_ABI 1
+#else
+#define _GLIBCXX_SIMD_HAVE_NEON 0
+#define _GLIBCXX_SIMD_HAVE_NEON_ABI 0
+#define _GLIBCXX_SIMD_HAVE_FULL_NEON_ABI 0
 #endif  // _GLIBCXX_SIMD_HAVE_NEON
 //}}}
 // x86{{{
@@ -301,38 +282,14 @@ template <class T, class Abi> struct simd_size;
 #endif
 //}}}
 
-// _GLIBCXX_SIMD_USE_BUILTIN_VECTOR_TYPES
-// TODO: rename to _GLIBCXX_SIMD_HAVE_BUILTIN_VECTOR_TYPES
-// {{{
-#define _GLIBCXX_SIMD_USE_BUILTIN_VECTOR_TYPES 1
-// }}}
-
-// _GLIBCXX_SIMD_CONCAT{{{
-#define _GLIBCXX_SIMD_CONCAT_IMPL(a_, b_, c_) a_##b_##c_
-#define _GLIBCXX_SIMD_CONCAT(a_, b_, c_) _GLIBCXX_SIMD_CONCAT_IMPL(a_, b_, c_)
-// }}}
-
 #define _GLIBCXX_SIMD_NORMAL_MATH [[gnu::__optimize__("finite-math-only,no-signed-zeros")]]
-#define _GLIBCXX_SIMD_UNREACHABLE __builtin_unreachable
 #define _GLIBCXX_SIMD_NEVER_INLINE [[gnu::__noinline__]]
-#if defined _GLIBCXX_SIMD_CLANG
-#  define _GLIBCXX_SIMD_INTRINSIC [[gnu::__always_inline__]] inline
-#else
-#  define _GLIBCXX_SIMD_INTRINSIC [[gnu::__always_inline__, gnu::__artificial__]] inline
-#endif
+#define _GLIBCXX_SIMD_INTRINSIC [[gnu::__always_inline__, gnu::__artificial__]] inline
 #define _GLIBCXX_SIMD_CONST __attribute__((__const__))
 #define _GLIBCXX_SIMD_PURE __attribute__((__pure__))
 #define _GLIBCXX_SIMD_ALWAYS_INLINE [[gnu::__always_inline__]] inline
 #define _GLIBCXX_SIMD_IS_UNLIKELY(x) __builtin_expect(x, 0)
 #define _GLIBCXX_SIMD_IS_LIKELY(x) __builtin_expect(x, 1)
-
-#ifdef _GLIBCXX_SIMD_CXX17
-#  define _GLIBCXX_SIMD_NODISCARD [[nodiscard]]
-#elif defined __GNUC__
-#  define _GLIBCXX_SIMD_NODISCARD [[gnu::__warn_unused_result__]]
-#else
-#  define _GLIBCXX_SIMD_NODISCARD
-#endif
 
 #define _GLIBCXX_SIMD_NOTHING_EXPECTING_SEMICOLON static_assert(true, "")
 

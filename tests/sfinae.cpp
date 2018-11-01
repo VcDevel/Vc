@@ -67,16 +67,16 @@ static_assert(std::is_same_v<__fixed_size_storage<char16_t, 1>, __simd_tuple<cha
 
 static_assert(std::is_same_v<__fixed_size_storage<float, 2>, __simd_tuple<float, scalar, scalar>>);
 static_assert(std::is_same_v<__fixed_size_storage<float, 3>, __simd_tuple<float, scalar, scalar, scalar>>);
-#ifdef _GLIBCXX_SIMD_HAVE_SSE_ABI
+#if _GLIBCXX_SIMD_HAVE_SSE_ABI
 static_assert(std::is_same_v<__fixed_size_storage<float, 4>, __simd_tuple<float, __sse>>);
 static_assert(std::is_same_v<__fixed_size_storage<float, 5>, __simd_tuple<float, __sse, scalar>>);
 #endif  // _GLIBCXX_SIMD_HAVE_SSE_ABI
-#ifdef _GLIBCXX_SIMD_HAVE_AVX_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX_ABI
 static_assert(std::is_same_v<__fixed_size_storage<float,  8>, __simd_tuple<float, __avx>>);
 static_assert(std::is_same_v<__fixed_size_storage<float, 12>, __simd_tuple<float, __avx, __sse>>);
 static_assert(std::is_same_v<__fixed_size_storage<float, 13>, __simd_tuple<float, __avx, __sse, scalar>>);
 #endif
-#ifdef _GLIBCXX_SIMD_HAVE_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX512_ABI
 static_assert(std::is_same_v<__fixed_size_storage<float, 16>, __simd_tuple<float, __avx512>>);
 static_assert(std::is_same_v<__fixed_size_storage<float, 20>, __simd_tuple<float, __avx512, __sse>>);
 static_assert(std::is_same_v<__fixed_size_storage<float, 24>, __simd_tuple<float, __avx512, __avx>>);
@@ -161,34 +161,34 @@ using all_valid_fixed_size = expand_list<
     testtypes>;
 
 using all_valid_simd = concat<
-#if defined _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
     expand_list<Typelist<Template<simd, std::experimental::simd_abi::__sse>,
                          Template<simd_mask, std::experimental::simd_abi::__sse>>,
                 testtypes_wo_ldouble>,
-#elif defined _GLIBCXX_SIMD_HAVE_SSE_ABI
+#elif _GLIBCXX_SIMD_HAVE_SSE_ABI
     expand_list<Typelist<Template<simd, std::experimental::simd_abi::__sse>,
                          Template<simd_mask, std::experimental::simd_abi::__sse>>,
                 testtypes_float>,
 #endif
-#if defined _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
     expand_list<Typelist<Template<simd, std::experimental::simd_abi::__avx>,
                          Template<simd_mask, std::experimental::simd_abi::__avx>>,
                 testtypes_wo_ldouble>,
-#elif defined _GLIBCXX_SIMD_HAVE_AVX_ABI
+#elif _GLIBCXX_SIMD_HAVE_AVX_ABI
     expand_list<Typelist<Template<simd, std::experimental::simd_abi::__avx>,
                          Template<simd_mask, std::experimental::simd_abi::__avx>>,
                 testtypes_fp>,
 #endif
-#if defined _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
     expand_list<Typelist<Template<simd, std::experimental::simd_abi::__avx512>,
                          Template<simd_mask, std::experimental::simd_abi::__avx512>>,
                 testtypes_wo_ldouble>,
-#elif defined _GLIBCXX_SIMD_HAVE_AVX512_ABI
+#elif _GLIBCXX_SIMD_HAVE_AVX512_ABI
     expand_list<Typelist<Template<simd, std::experimental::simd_abi::__avx512>,
                          Template<simd_mask, std::experimental::simd_abi::__avx512>>,
                 testtypes_64_32>,
 #endif
-#if defined _GLIBCXX_SIMD_HAVE_FULL_NEON_ABI
+#if _GLIBCXX_SIMD_HAVE_FULL_NEON_ABI
     expand_list<Typelist<Template<simd, std::experimental::simd_abi::__neon>,
                          Template<simd_mask, std::experimental::simd_abi::__neon>>,
                 testtypes_wo_ldouble>,
@@ -240,16 +240,16 @@ TEST_TYPES(V, is_usable,  //{{{1
 }
 
 using unusable_abis = Typelist<
-#if !defined _GLIBCXX_SIMD_HAVE_SSE_ABI
+#if !_GLIBCXX_SIMD_HAVE_SSE_ABI
     Template<simd, std::experimental::simd_abi::__sse>, Template<simd_mask, std::experimental::simd_abi::__sse>,
 #endif
-#if !defined _GLIBCXX_SIMD_HAVE_AVX_ABI
+#if !_GLIBCXX_SIMD_HAVE_AVX_ABI
     Template<simd, std::experimental::simd_abi::__avx>, Template<simd_mask, std::experimental::simd_abi::__avx>,
 #endif
-#if !defined _GLIBCXX_SIMD_HAVE_AVX512_ABI
+#if !_GLIBCXX_SIMD_HAVE_AVX512_ABI
     Template<simd, std::experimental::simd_abi::__avx512>, Template<simd_mask, std::experimental::simd_abi::__avx512>,
 #endif
-#if !defined _GLIBCXX_SIMD_HAVE_NEON_ABI
+#if !_GLIBCXX_SIMD_HAVE_NEON_ABI
     Template<simd, std::experimental::simd_abi::__neon>, Template<simd_mask, std::experimental::simd_abi::__neon>,
 #endif
     Template<simd, int>, Template<simd_mask, int>>;
@@ -262,7 +262,7 @@ using unusable_fixed_size =
 using unusable_simd_types =
     concat<expand_list<Typelist<Template<simd, std::experimental::simd_abi::__sse>,
                                 Template<simd_mask, std::experimental::simd_abi::__sse>>,
-#if defined _GLIBCXX_SIMD_HAVE_SSE_ABI && !defined _GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
+#if _GLIBCXX_SIMD_HAVE_SSE_ABI && !_GLIBCXX_SIMD_HAVE_FULL_SSE_ABI
                        typename filter_list<float, testtypes>::type
 #else
                        Typelist<long double>
@@ -270,7 +270,7 @@ using unusable_simd_types =
                        >,
            expand_list<Typelist<Template<simd, std::experimental::simd_abi::__avx>,
                                 Template<simd_mask, std::experimental::simd_abi::__avx>>,
-#if defined _GLIBCXX_SIMD_HAVE_AVX_ABI && !defined _GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX_ABI && !_GLIBCXX_SIMD_HAVE_FULL_AVX_ABI
                        typename filter_list<Typelist<float, double>, testtypes>::type
 #else
                        Typelist<long double>
@@ -281,7 +281,7 @@ using unusable_simd_types =
                        Typelist<long double>>,
            expand_list<Typelist<Template<simd, std::experimental::simd_abi::__avx512>,
                                 Template<simd_mask, std::experimental::simd_abi::__avx512>>,
-#if defined _GLIBCXX_SIMD_HAVE_AVX512_ABI && !defined _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
+#if _GLIBCXX_SIMD_HAVE_AVX512_ABI && !_GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
                        typename filter_list<
                            Typelist<float, double, ullong, llong, ulong, long, uint, int,
 #if WCHAR_MAX > 0xffff

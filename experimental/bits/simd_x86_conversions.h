@@ -91,9 +91,9 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                   sizeof(_T) == sizeof(_U)) {
         // conversion uses simple bit reinterpretation (or no conversion at all)
         if constexpr (_N >= _M) {
-            return __intrin_cast<_To>(__vv);
+            return __intrin_bitcast<_To>(__vv);
         } else {
-            return __zero_extend(__vector_cast<_U>(__v));
+            return __zero_extend(__vector_bitcast<_U>(__v));
         }
     } else if constexpr (_N < _M && sizeof(_To) > 16) {  // zero extend (eg. xmm -> ymm){{{2
         return __zero_extend(
@@ -103,73 +103,73 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         return __convert_x86<_To>(__extract_part<0, _N / _M>(__v));
     } else if constexpr (i64_to_i32) {  //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm_cvtepi64_epi32(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_epi32(__v));
         } else if constexpr (__x_to_x) {
-            return __auto_cast(_mm_shuffle_ps(__auto_cast(__v), __m128(), 8));
-            // return __intrin_cast<_To>(_mm_unpacklo_epi64(_mm_shuffle_epi32(__v, 8), __m128i()));
+            return __auto_bitcast(_mm_shuffle_ps(__auto_bitcast(__v), __m128(), 8));
+            // return __intrin_bitcast<_To>(_mm_unpacklo_epi64(_mm_shuffle_epi32(__v, 8), __m128i()));
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm256_cvtepi64_epi32(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_epi32(__v));
         } else if constexpr (__y_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepi64_epi32(__auto_cast(__v.d))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi32(__auto_bitcast(__v.d))));
         } else if constexpr (__y_to_x) {
-            return __intrin_cast<_To>(__lo128(_mm256_permute4x64_epi64(_mm256_shuffle_epi32(__v, 8), 0 + 4 * 2)));
+            return __intrin_bitcast<_To>(__lo128(_mm256_permute4x64_epi64(_mm256_shuffle_epi32(__v, 8), 0 + 4 * 2)));
         } else if constexpr (__z_to_y) {
-            return __intrin_cast<_To>(_mm512_cvtepi64_epi32(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi32(__v));
         }
     } else if constexpr (i64_to_i16) {  //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm_cvtepi64_epi16(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_epi16(__v));
         } else if constexpr (__x_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepi64_epi16(__auto_cast(__v))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi16(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x && __have_ssse3) {
-            return __intrin_cast<_To>(_mm_shuffle_epi8(
+            return __intrin_bitcast<_To>(_mm_shuffle_epi8(
                 __v, _mm_setr_epi8(0, 1, 8, 9, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                    -0x80, -0x80, -0x80, -0x80, -0x80, -0x80)));
             // fallback without SSSE3
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm256_cvtepi64_epi16(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_epi16(__v));
         } else if constexpr (__y_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepi64_epi16(__auto_cast(__v))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi16(__auto_bitcast(__v))));
         } else if constexpr (__y_to_x) {
             const auto a = _mm256_shuffle_epi8(
                 __v, _mm256_setr_epi8(0, 1, 8, 9, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                     -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                     -0x80, -0x80, -0x80, 0, 1, 8, 9, -0x80, -0x80, -0x80,
                                     -0x80, -0x80, -0x80, -0x80, -0x80));
-            return __intrin_cast<_To>(__lo128(a) | __hi128(a));
+            return __intrin_bitcast<_To>(__lo128(a) | __hi128(a));
         } else if constexpr (__z_to_x) {
-            return __intrin_cast<_To>(_mm512_cvtepi64_epi16(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi16(__v));
         }
     } else if constexpr (i64_to_i8) {   //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm_cvtepi64_epi8(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_epi8(__v));
         } else if constexpr (__x_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepi64_epi8(__zero_extend(__v.intrin()))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi8(__zero_extend(__v.intrin()))));
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm256_cvtepi64_epi8(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_epi8(__v));
         } else if constexpr (__y_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(_mm512_cvtepi64_epi8(__zero_extend(__v.intrin())));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi8(__zero_extend(__v.intrin())));
         } else if constexpr (__z_to_x) {
-            return __intrin_cast<_To>(_mm512_cvtepi64_epi8(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi8(__v));
         }
     } else if constexpr (i32_to_i64) {    //{{{2
         if constexpr (__have_sse4_1 && __x_to_x) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm_cvtepi32_epi64(__v) : _mm_cvtepu32_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi32_epi64(__v) : _mm_cvtepu32_epi64(__v));
         } else if constexpr (__x_to_x) {
-            return __intrin_cast<_To>(_mm_unpacklo_epi32(
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi32(
                 __v, is_signed_v<_T> ? _mm_srai_epi32(__v, 31) : __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm256_cvtepi32_epi64(__v) : _mm256_cvtepu32_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi32_epi64(__v) : _mm256_cvtepu32_epi64(__v));
         } else if constexpr (__y_to_z) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm512_cvtepi32_epi64(__v) : _mm512_cvtepu32_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi32_epi64(__v) : _mm512_cvtepu32_epi64(__v));
         }
     } else if constexpr (i32_to_i16) {  //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm_cvtepi32_epi16(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi32_epi16(__v));
         } else if constexpr (__x_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepi32_epi16(__auto_cast(__v))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi32_epi16(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x && __have_ssse3) {
-            return __intrin_cast<_To>(_mm_shuffle_epi8(
+            return __intrin_bitcast<_To>(_mm_shuffle_epi8(
                 __v, _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80,
                                    -0x80, -0x80, -0x80, -0x80)));
         } else if constexpr (__x_to_x) {
@@ -177,29 +177,29 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             auto b = _mm_unpackhi_epi16(__v, __m128i());          // 2o.o 3o.o
             auto c = _mm_unpacklo_epi16(a, b);                    // 02oo ..oo
             auto d = _mm_unpackhi_epi16(a, b);                    // 13oo ..oo
-            return __intrin_cast<_To>(_mm_unpacklo_epi16(c, d));  // 0123 oooo
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi16(c, d));  // 0123 oooo
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm256_cvtepi32_epi16(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi32_epi16(__v));
         } else if constexpr (__y_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepi32_epi16(__auto_cast(__v))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi32_epi16(__auto_bitcast(__v))));
         } else if constexpr (__y_to_x) {
             auto a = _mm256_shuffle_epi8(
                 __v,
                 _mm256_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80,
                                  -0x80, -0x80, -0x80, -0x80, 0, 1, 4, 5, 8, 9, 12, 13,
                                  -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80));
-            return __intrin_cast<_To>(
+            return __intrin_bitcast<_To>(
                 __lo128(_mm256_permute4x64_epi64(a, 0xf8)));  // a[0] a[2] | a[3] a[3]
         } else if constexpr (__z_to_y) {
-            return __intrin_cast<_To>(_mm512_cvtepi32_epi16(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi32_epi16(__v));
         }
     } else if constexpr (i32_to_i8) {   //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm_cvtepi32_epi8(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi32_epi8(__v));
         } else if constexpr (__x_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepi32_epi8(__zero_extend(__v.intrin()))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi32_epi8(__zero_extend(__v.intrin()))));
         } else if constexpr (__x_to_x && __have_ssse3) {
-            return __intrin_cast<_To>(_mm_shuffle_epi8(
+            return __intrin_bitcast<_To>(_mm_shuffle_epi8(
                 __v, _mm_setr_epi8(0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                    -0x80, -0x80, -0x80, -0x80, -0x80, -0x80)));
         } else if constexpr (__x_to_x) {
@@ -208,48 +208,48 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             const auto c = _mm_unpacklo_epi8(a, b);  // 02.. .... .... ....
             const auto d = _mm_unpackhi_epi8(a, b);  // 13.. .... .... ....
             const auto e = _mm_unpacklo_epi8(c, d);  // 0123 .... .... ....
-            return __intrin_cast<_To>(e & _mm_cvtsi32_si128(-1));
+            return __intrin_bitcast<_To>(e & _mm_cvtsi32_si128(-1));
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm256_cvtepi32_epi8(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi32_epi8(__v));
         } else if constexpr (__y_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(_mm512_cvtepi32_epi8(__zero_extend(__v.intrin())));
+            return __intrin_bitcast<_To>(_mm512_cvtepi32_epi8(__zero_extend(__v.intrin())));
         } else if constexpr (__z_to_x) {
-            return __intrin_cast<_To>(_mm512_cvtepi32_epi8(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi32_epi8(__v));
         }
     } else if constexpr (i16_to_i64) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi64(__v) : _mm_cvtepu16_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi64(__v) : _mm_cvtepu16_epi64(__v));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
             auto x = _mm_srai_epi16(__v, 15);
             auto y = _mm_unpacklo_epi16(__v, x);
             x = _mm_unpacklo_epi16(x, x);
-            return __intrin_cast<_To>(_mm_unpacklo_epi32(y, x));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi32(y, x));
         } else if constexpr (__x_to_x) {
-            return __intrin_cast<_To>(_mm_unpacklo_epi32(_mm_unpacklo_epi16(__v, __m128i()), __m128i()));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi32(_mm_unpacklo_epi16(__v, __m128i()), __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi64(__v) : _mm256_cvtepu16_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi64(__v) : _mm256_cvtepu16_epi64(__v));
         } else if constexpr (__x_to_z) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi64(__v) : _mm512_cvtepu16_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi64(__v) : _mm512_cvtepu16_epi64(__v));
         }
     } else if constexpr (i16_to_i32) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi32(__v) : _mm_cvtepu16_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi32(__v) : _mm_cvtepu16_epi32(__v));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
-            return __intrin_cast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(__v, __v), 16));
+            return __intrin_bitcast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(__v, __v), 16));
         } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
-            return __intrin_cast<_To>(_mm_unpacklo_epi16(__v, __m128i()));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi16(__v, __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi32(__v) : _mm256_cvtepu16_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi32(__v) : _mm256_cvtepu16_epi32(__v));
         } else if constexpr (__y_to_z) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi32(__v) : _mm512_cvtepu16_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi32(__v) : _mm512_cvtepu16_epi32(__v));
         }
     } else if constexpr (i16_to_i8) {   //{{{2
         if constexpr (__x_to_x && __have_avx512bw_vl) {
-            return __intrin_cast<_To>(_mm_cvtepi16_epi8(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi16_epi8(__v));
         } else if constexpr (__x_to_x && __have_avx512bw) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepi16_epi8(__zero_extend(__v.intrin()))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi16_epi8(__zero_extend(__v.intrin()))));
         } else if constexpr (__x_to_x && __have_ssse3) {
-            return __intrin_cast<_To>(_mm_shuffle_epi8(
+            return __intrin_bitcast<_To>(_mm_shuffle_epi8(
                 __v, _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, -0x80, -0x80, -0x80, -0x80,
                                    -0x80, -0x80, -0x80, -0x80)));
         } else if constexpr (__x_to_x) {
@@ -259,26 +259,26 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             auto d = _mm_unpackhi_epi8(a, b);  // 2626 .... 3737 ....
             auto e = _mm_unpacklo_epi8(c, d);  // 0246 0246 .... ....
             auto f = _mm_unpackhi_epi8(c, d);  // 1357 1357 .... ....
-            return __intrin_cast<_To>(_mm_unpacklo_epi8(e, f));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi8(e, f));
         } else if constexpr (__y_to_x && __have_avx512bw_vl) {
-            return __intrin_cast<_To>(_mm256_cvtepi16_epi8(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi16_epi8(__v));
         } else if constexpr (__y_to_x && __have_avx512bw) {
-            return __intrin_cast<_To>(__lo256(_mm512_cvtepi16_epi8(__zero_extend(__v.intrin()))));
+            return __intrin_bitcast<_To>(__lo256(_mm512_cvtepi16_epi8(__zero_extend(__v.intrin()))));
         } else if constexpr (__y_to_x) {
             auto a = _mm256_shuffle_epi8(
                 __v,
                 _mm256_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, -0x80, -0x80, -0x80, -0x80,
                                  -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                  -0x80, -0x80, -0x80, -0x80, 0, 2, 4, 6, 8, 10, 12, 14));
-            return __intrin_cast<_To>(__lo128(a) | __hi128(a));
+            return __intrin_bitcast<_To>(__lo128(a) | __hi128(a));
         } else if constexpr (__z_to_y && __have_avx512bw) {
-            return __intrin_cast<_To>(_mm512_cvtepi16_epi8(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi16_epi8(__v));
         } else if constexpr (__z_to_y)  {
             __assert_unreachable<_T>();
         }
     } else if constexpr (i8_to_i64) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi64(__v) : _mm_cvtepu8_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi64(__v) : _mm_cvtepu8_epi64(__v));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
             if constexpr (__have_ssse3) {
                 auto dup = _mm_unpacklo_epi8(__v, __v);
@@ -288,60 +288,60 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             } else {
                 auto x = _mm_unpacklo_epi8(__v, __v);
                 x = _mm_unpacklo_epi16(x, x);
-                return __intrin_cast<_To>(
+                return __intrin_bitcast<_To>(
                     _mm_unpacklo_epi32(_mm_srai_epi32(x, 24), _mm_srai_epi32(x, 31)));
             }
         } else if constexpr (__x_to_x) {
-            return __intrin_cast<_To>(_mm_unpacklo_epi32(
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi32(
                 _mm_unpacklo_epi16(_mm_unpacklo_epi8(__v, __m128i()), __m128i()),
                 __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi64(__v) : _mm256_cvtepu8_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi64(__v) : _mm256_cvtepu8_epi64(__v));
         } else if constexpr (__x_to_z) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi64(__v) : _mm512_cvtepu8_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi64(__v) : _mm512_cvtepu8_epi64(__v));
         }
     } else if constexpr (i8_to_i32) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi32(__v) : _mm_cvtepu8_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi32(__v) : _mm_cvtepu8_epi32(__v));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
             const auto x = _mm_unpacklo_epi8(__v, __v);
-            return __intrin_cast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(x, x), 24));
+            return __intrin_bitcast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(x, x), 24));
         } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
-            return __intrin_cast<_To>(_mm_unpacklo_epi16(_mm_unpacklo_epi8(__v, __m128i()), __m128i()));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi16(_mm_unpacklo_epi8(__v, __m128i()), __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi32(__v) : _mm256_cvtepu8_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi32(__v) : _mm256_cvtepu8_epi32(__v));
         } else if constexpr (__x_to_z) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi32(__v) : _mm512_cvtepu8_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi32(__v) : _mm512_cvtepu8_epi32(__v));
         }
     } else if constexpr (i8_to_i16) {   //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi16(__v) : _mm_cvtepu8_epi16(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi16(__v) : _mm_cvtepu8_epi16(__v));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
-            return __intrin_cast<_To>(_mm_srai_epi16(_mm_unpacklo_epi8(__v, __v), 8));
+            return __intrin_bitcast<_To>(_mm_srai_epi16(_mm_unpacklo_epi8(__v, __v), 8));
         } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
-            return __intrin_cast<_To>(_mm_unpacklo_epi8(__v, __m128i()));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi8(__v, __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi16(__v) : _mm256_cvtepu8_epi16(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi16(__v) : _mm256_cvtepu8_epi16(__v));
         } else if constexpr (__y_to_z && __have_avx512bw) {
-            return __intrin_cast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi16(__v) : _mm512_cvtepu8_epi16(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi16(__v) : _mm512_cvtepu8_epi16(__v));
         } else if constexpr (__y_to_z) {
             __assert_unreachable<_T>();
         }
     } else if constexpr (f32_to_s64) {  //{{{2
         if constexpr (__have_avx512dq_vl && __x_to_x) {
-            return __intrin_cast<_To>(_mm_cvttps_epi64(__v));
+            return __intrin_bitcast<_To>(_mm_cvttps_epi64(__v));
         } else if constexpr (__have_avx512dq_vl && __x_to_y) {
-            return __intrin_cast<_To>(_mm256_cvttps_epi64(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttps_epi64(__v));
         } else if constexpr (__have_avx512dq && __y_to_z) {
-            return __intrin_cast<_To>(_mm512_cvttps_epi64(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttps_epi64(__v));
         } // else use scalar fallback
     } else if constexpr (f32_to_u64) {  //{{{2
         if constexpr (__have_avx512dq_vl && __x_to_x) {
-            return __intrin_cast<_To>(_mm_cvttps_epu64(__v));
+            return __intrin_bitcast<_To>(_mm_cvttps_epu64(__v));
         } else if constexpr (__have_avx512dq_vl && __x_to_y) {
-            return __intrin_cast<_To>(_mm256_cvttps_epu64(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttps_epu64(__v));
         } else if constexpr (__have_avx512dq && __y_to_z) {
-            return __intrin_cast<_To>(_mm512_cvttps_epu64(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttps_epu64(__v));
         } // else use scalar fallback
     } else if constexpr (f32_to_s32) {  //{{{2
         if constexpr (__x_to_x || __y_to_y || __z_to_z) {
@@ -353,24 +353,24 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         // the __builtin_constant_p hack enables constant propagation
         if constexpr (__have_avx512vl && __x_to_x) {
             const __vector_type_t<float, 4> x = __v.d;
-            return __builtin_constant_p(x) ? __make_builtin<uint>(x[0], x[1], x[2], x[3])
-                                           : __vector_cast<uint>(_mm_cvttps_epu32(__v));
+            return __builtin_constant_p(x) ? __make_builtin<_U>(x[0], x[1], x[2], x[3])
+                                           : __vector_bitcast<_U>(_mm_cvttps_epu32(__v));
         } else if constexpr (__have_avx512f && __x_to_x) {
             const __vector_type_t<float, 4> x = __v.d;
             return __builtin_constant_p(x)
-                       ? __make_builtin<uint>(x[0], x[1], x[2], x[3])
-                       : __vector_cast<uint>(__lo128(_mm512_cvttps_epu32(__auto_cast(__v))));
+                       ? __make_builtin<_U>(x[0], x[1], x[2], x[3])
+                       : __vector_bitcast<_U>(__lo128(_mm512_cvttps_epu32(__auto_bitcast(__v))));
         } else if constexpr (__have_avx512vl && __y_to_y) {
             const __vector_type_t<float, 8> x = __v.d;
-            return __builtin_constant_p(x) ? __make_builtin<uint>(x[0], x[1], x[2], x[3],
+            return __builtin_constant_p(x) ? __make_builtin<_U>(x[0], x[1], x[2], x[3],
                                                                 x[4], x[5], x[6], x[7])
-                                           : __vector_cast<uint>(_mm256_cvttps_epu32(__v));
+                                           : __vector_bitcast<_U>(_mm256_cvttps_epu32(__v));
         } else if constexpr (__have_avx512f && __y_to_y) {
             const __vector_type_t<float, 8> x = __v.d;
             return __builtin_constant_p(x)
-                       ? __make_builtin<uint>(x[0], x[1], x[2], x[3], x[4], x[5], x[6],
+                       ? __make_builtin<_U>(x[0], x[1], x[2], x[3], x[4], x[5], x[6],
                                             x[7])
-                       : __vector_cast<uint>(__lo256(_mm512_cvttps_epu32(__auto_cast(__v))));
+                       : __vector_bitcast<_U>(__lo256(_mm512_cvttps_epu32(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x || __y_to_y || __z_to_z) {
             // go to fallback, it does the right thing. We can't use the _mm_floor_ps -
             // 0x8000'0000 trick for f32->u32 because it would discard small input values
@@ -382,71 +382,71 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         return __convert_x86<_To>(__convert_x86<__vector_type_t<int, _N>>(__v));
     } else if constexpr (f64_to_s64) {  //{{{2
         if constexpr (__have_avx512dq_vl && __x_to_x) {
-            return __intrin_cast<_To>(_mm_cvttpd_epi64(__v));
+            return __intrin_bitcast<_To>(_mm_cvttpd_epi64(__v));
         } else if constexpr (__have_avx512dq_vl && __y_to_y) {
-            return __intrin_cast<_To>(_mm256_cvttpd_epi64(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttpd_epi64(__v));
         } else if constexpr (__have_avx512dq && __z_to_z) {
-            return __intrin_cast<_To>(_mm512_cvttpd_epi64(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttpd_epi64(__v));
         } // else use scalar fallback
     } else if constexpr (f64_to_u64) {  //{{{2
         if constexpr (__have_avx512dq_vl && __x_to_x) {
-            return __intrin_cast<_To>(_mm_cvttpd_epu64(__v));
+            return __intrin_bitcast<_To>(_mm_cvttpd_epu64(__v));
         } else if constexpr (__have_avx512dq_vl && __y_to_y) {
-            return __intrin_cast<_To>(_mm256_cvttpd_epu64(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttpd_epu64(__v));
         } else if constexpr (__have_avx512dq && __z_to_z) {
-            return __intrin_cast<_To>(_mm512_cvttpd_epu64(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttpd_epu64(__v));
         } // else use scalar fallback
     } else if constexpr (f64_to_s32) {  //{{{2
         if constexpr (__x_to_x) {
-            return __intrin_cast<_To>(_mm_cvttpd_epi32(__v));
+            return __intrin_bitcast<_To>(_mm_cvttpd_epi32(__v));
         } else if constexpr (__y_to_x) {
-            return __intrin_cast<_To>(_mm256_cvttpd_epi32(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttpd_epi32(__v));
         } else if constexpr (__z_to_y) {
-            return __intrin_cast<_To>(_mm512_cvttpd_epi32(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttpd_epi32(__v));
         }
     } else if constexpr (f64_to_u32) {  //{{{2
         if constexpr (__have_avx512vl && __x_to_x) {
-            return __intrin_cast<_To>(_mm_cvttpd_epu32(__v));
+            return __intrin_bitcast<_To>(_mm_cvttpd_epu32(__v));
         } else if constexpr (__have_sse4_1 && __x_to_x) {
-            return __vector_cast<uint>(_mm_cvttpd_epi32(_mm_floor_pd(__v) - 0x8000'0000u)) ^
+            return __vector_bitcast<_U>(_mm_cvttpd_epi32(_mm_floor_pd(__v) - 0x8000'0000u)) ^
                    0x8000'0000u;
         } else if constexpr (__x_to_x) {
             // use scalar fallback: it's only 2 values to convert, can't get much better
             // than scalar decomposition
         } else if constexpr (__have_avx512vl && __y_to_x) {
-            return __intrin_cast<_To>(_mm256_cvttpd_epu32(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttpd_epu32(__v));
         } else if constexpr (__y_to_x) {
-            return __intrin_cast<_To>(__vector_cast<uint>(_mm256_cvttpd_epi32(
+            return __intrin_bitcast<_To>(__vector_bitcast<_U>(_mm256_cvttpd_epi32(
                                           _mm256_floor_pd(__v) - 0x8000'0000u)) ^
                                       0x8000'0000u);
         } else if constexpr (__z_to_y) {
-            return __intrin_cast<_To>(_mm512_cvttpd_epu32(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttpd_epu32(__v));
         }
     } else if constexpr (f64_to_ibw) {  //{{{2
         return __convert_x86<_To>(__convert_x86<__vector_type_t<int, (_N < 4 ? 4 : _N)>>(__v));
     } else if constexpr (s64_to_f32) {  //{{{2
         if constexpr (__x_to_x && __have_avx512dq_vl) {
-            return __intrin_cast<_To>(_mm_cvtepi64_ps(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_ps(__v));
         } else if constexpr (__y_to_x && __have_avx512dq_vl) {
-            return __intrin_cast<_To>(_mm256_cvtepi64_ps(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_ps(__v));
         } else if constexpr (__z_to_y && __have_avx512dq) {
-            return __intrin_cast<_To>(_mm512_cvtepi64_ps(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_ps(__v));
         } else if constexpr (__z_to_y) {
-            return __intrin_cast<_To>(_mm512_cvtpd_ps(__convert_x86<__vector_type_t<double, 8>>(__v)));
+            return __intrin_bitcast<_To>(_mm512_cvtpd_ps(__convert_x86<__vector_type_t<double, 8>>(__v)));
         }
     } else if constexpr (u64_to_f32) {  //{{{2
         if constexpr (__x_to_x && __have_avx512dq_vl) {
-            return __intrin_cast<_To>(_mm_cvtepu64_ps(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepu64_ps(__v));
         } else if constexpr (__y_to_x && __have_avx512dq_vl) {
-            return __intrin_cast<_To>(_mm256_cvtepu64_ps(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepu64_ps(__v));
         } else if constexpr (__z_to_y && __have_avx512dq) {
-            return __intrin_cast<_To>(_mm512_cvtepu64_ps(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepu64_ps(__v));
         } else if constexpr (__z_to_y) {
-            return __intrin_cast<_To>(
+            return __intrin_bitcast<_To>(
                 __lo256(_mm512_cvtepu32_ps(
-                    __auto_cast(_mm512_cvtepi64_epi32(_mm512_srai_epi64(__v, 32))))) *
+                    __auto_bitcast(_mm512_cvtepi64_epi32(_mm512_srai_epi64(__v, 32))))) *
                     0x100000000LL +
-                __lo256(_mm512_cvtepu32_ps(__auto_cast(_mm512_cvtepi64_epi32(__v)))));
+                __lo256(_mm512_cvtepu32_ps(__auto_bitcast(_mm512_cvtepi64_epi32(__v)))));
         }
     } else if constexpr (s32_to_f32) {  //{{{2
         // use fallback (builtin conversion)
@@ -454,7 +454,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         if constexpr(__x_to_x && __have_avx512vl) {
             // use fallback
         } else if constexpr(__x_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepu32_ps(__auto_cast(__v))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepu32_ps(__auto_bitcast(__v))));
         } else if constexpr(__x_to_x && (__have_fma || __have_fma4)) {
             // work around PR85819
             return 0x10000 * _mm_cvtepi32_ps(__to_intrin(__vv >> 16)) +
@@ -462,7 +462,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr(__y_to_y && __have_avx512vl) {
             // use fallback
         } else if constexpr(__y_to_y && __have_avx512f) {
-            return __intrin_cast<_To>(__lo256(_mm512_cvtepu32_ps(__auto_cast(__v))));
+            return __intrin_bitcast<_To>(__lo256(_mm512_cvtepu32_ps(__auto_bitcast(__v))));
         } else if constexpr(__y_to_y) {
             // work around PR85819
             return 0x10000 * _mm256_cvtepi32_ps(__to_intrin(__vv >> 16)) +
@@ -496,75 +496,75 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 b = is_signed_v<_T> ? _mm_srai_epi32(_mm_unpackhi_epi16(tmp, tmp), 16)
                                    : _mm_unpackhi_epi16(tmp, __m128i());
             }
-            return __convert_x86<_To>(__vector_cast<int>(a), __vector_cast<int>(b));
+            return __convert_x86<_To>(__vector_bitcast<int>(a), __vector_bitcast<int>(b));
         }
     } else if constexpr (s64_to_f64) {  //{{{2
         if constexpr (__x_to_x && __have_avx512dq_vl) {
-            return __intrin_cast<_To>(_mm_cvtepi64_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_pd(__v));
         } else if constexpr (__y_to_y && __have_avx512dq_vl) {
-            return __intrin_cast<_To>(_mm256_cvtepi64_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_pd(__v));
         } else if constexpr (__z_to_z && __have_avx512dq) {
-            return __intrin_cast<_To>(_mm512_cvtepi64_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_pd(__v));
         } else if constexpr (__z_to_z) {
-            return __intrin_cast<_To>(
+            return __intrin_bitcast<_To>(
                 _mm512_cvtepi32_pd(_mm512_cvtepi64_epi32(__to_intrin(__vv >> 32))) *
                     0x100000000LL +
                 _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__v)));
         }
     } else if constexpr (u64_to_f64) {  //{{{2
         if constexpr (__x_to_x && __have_avx512dq_vl) {
-            return __intrin_cast<_To>(_mm_cvtepu64_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepu64_pd(__v));
         } else if constexpr (__y_to_y && __have_avx512dq_vl) {
-            return __intrin_cast<_To>(_mm256_cvtepu64_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepu64_pd(__v));
         } else if constexpr (__z_to_z && __have_avx512dq) {
-            return __intrin_cast<_To>(_mm512_cvtepu64_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepu64_pd(__v));
         } else if constexpr (__z_to_z) {
-            return __intrin_cast<_To>(
+            return __intrin_bitcast<_To>(
                 _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__to_intrin(__vv >> 32))) *
                     0x100000000LL +
                 _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__v)));
         }
     } else if constexpr (s32_to_f64) {  //{{{2
         if constexpr (__x_to_x) {
-            return __intrin_cast<_To>(_mm_cvtepi32_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi32_pd(__v));
         } else if constexpr (__x_to_y) {
-            return __intrin_cast<_To>(_mm256_cvtepi32_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi32_pd(__v));
         } else if constexpr (__y_to_z) {
-            return __intrin_cast<_To>(_mm512_cvtepi32_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi32_pd(__v));
         }
     } else if constexpr (u32_to_f64) {  //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm_cvtepu32_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepu32_pd(__v));
         } else if constexpr (__x_to_x && __have_avx512f) {
-            return __intrin_cast<_To>(__lo128(_mm512_cvtepu32_pd(__auto_cast(__v))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepu32_pd(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x) {
-            return __intrin_cast<_To>(_mm_cvtepi32_pd(__to_intrin(__vv ^ 0x8000'0000u)) + 0x8000'0000u);
+            return __intrin_bitcast<_To>(_mm_cvtepi32_pd(__to_intrin(__vv ^ 0x8000'0000u)) + 0x8000'0000u);
         } else if constexpr (__x_to_y && __have_avx512vl) {
-            return __intrin_cast<_To>(_mm256_cvtepu32_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepu32_pd(__v));
         } else if constexpr (__x_to_y && __have_avx512f) {
-            return __intrin_cast<_To>(__lo256(_mm512_cvtepu32_pd(__auto_cast(__v))));
+            return __intrin_bitcast<_To>(__lo256(_mm512_cvtepu32_pd(__auto_bitcast(__v))));
         } else if constexpr (__x_to_y) {
-            return __intrin_cast<_To>(_mm256_cvtepi32_pd(__to_intrin(__vv ^ 0x8000'0000u)) + 0x8000'0000u);
+            return __intrin_bitcast<_To>(_mm256_cvtepi32_pd(__to_intrin(__vv ^ 0x8000'0000u)) + 0x8000'0000u);
         } else if constexpr (__y_to_z) {
-            return __intrin_cast<_To>(_mm512_cvtepu32_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepu32_pd(__v));
         }
     } else if constexpr (ibw_to_f64) {  //{{{2
         return __convert_x86<_To>(__convert_x86<__vector_type_t<int, std::max(size_t(4), _M)>>(__v));
     } else if constexpr (f32_to_f64) {  //{{{2
         if constexpr (__x_to_x) {
-            return __intrin_cast<_To>(_mm_cvtps_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtps_pd(__v));
         } else if constexpr (__x_to_y) {
-            return __intrin_cast<_To>(_mm256_cvtps_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtps_pd(__v));
         } else if constexpr (__y_to_z) {
-            return __intrin_cast<_To>(_mm512_cvtps_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtps_pd(__v));
         }
     } else if constexpr (f64_to_f32) {  //{{{2
         if constexpr (__x_to_x) {
-            return __intrin_cast<_To>(_mm_cvtpd_ps(__v));
+            return __intrin_bitcast<_To>(_mm_cvtpd_ps(__v));
         } else if constexpr (__y_to_x) {
-            return __intrin_cast<_To>(_mm256_cvtpd_ps(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtpd_ps(__v));
         } else if constexpr (__z_to_y) {
-            return __intrin_cast<_To>(_mm512_cvtpd_ps(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtpd_ps(__v));
         }
     } else {  //{{{2
         __assert_unreachable<_T>();
@@ -674,11 +674,11 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 __convert_x86<__vector_type_t<_U, (Min > 2 * _N) ? Min : 2 * _N>>(v0, v1));
         } else if constexpr (i64_to_i32) {  //{{{2
             if constexpr (__x_to_x) {
-                return __auto_cast(_mm_shuffle_ps(__auto_cast(v0), __auto_cast(v1), 0x88));
+                return __auto_bitcast(_mm_shuffle_ps(__auto_bitcast(v0), __auto_bitcast(v1), 0x88));
             } else if constexpr (__y_to_y) {
                 // AVX512F is not available (would concat otherwise)
-                return __auto_cast(__fixup_avx_xzyw(
-                    _mm256_shuffle_ps(__auto_cast(v0), __auto_cast(v1), 0x88)));
+                return __auto_bitcast(__xzyw(
+                    _mm256_shuffle_ps(__auto_bitcast(v0), __auto_bitcast(v1), 0x88)));
                 // alternative:
                 // const auto v0_abxxcdxx = _mm256_shuffle_epi32(v0, 8);
                 // const auto v1_efxxghxx = _mm256_shuffle_epi32(v1, 8);
@@ -686,14 +686,14 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 // v1_efxxghxx); return _mm256_permute4x64_epi64(v_abefcdgh,
                 // 0x01 * 0 + 0x04 * 2 + 0x10 * 1 + 0x40 * 3);  // abcdefgh
             } else if constexpr (__z_to_z) {
-                return __intrin_cast<_To>(
+                return __intrin_bitcast<_To>(
                     __concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1)));
             }
         } else if constexpr (i64_to_i16) {  //{{{2
             if constexpr (__x_to_x) {
                 // AVX2 is not available (would concat otherwise)
                 if constexpr (__have_sse4_1) {
-                    return __intrin_cast<_To>(_mm_shuffle_epi8(
+                    return __intrin_bitcast<_To>(_mm_shuffle_epi8(
                         _mm_blend_epi16(v0, _mm_slli_si128(v1, 4), 0x44),
                         _mm_setr_epi8(0, 1, 8, 9, 4, 5, 12, 13, -0x80, -0x80, -0x80,
                                       -0x80, -0x80, -0x80, -0x80, -0x80)));
@@ -704,20 +704,20 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 auto a = _mm256_unpacklo_epi16(v0, v1);  // 04.. .... 26.. ....
                 auto b = _mm256_unpackhi_epi16(v0, v1);  // 15.. .... 37.. ....
                 auto c = _mm256_unpacklo_epi16(a, b);    // 0145 .... 2367 ....
-                return __intrin_cast<_To>(
+                return __intrin_bitcast<_To>(
                     _mm_unpacklo_epi32(__lo128(c), __hi128(c)));  // 0123 4567
             } else if constexpr (__z_to_y) {
-                return __intrin_cast<_To>(
+                return __intrin_bitcast<_To>(
                     __concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1)));
             }
         } else if constexpr (i64_to_i8) {  //{{{2
             if constexpr (__x_to_x && __have_sse4_1) {
-                return __intrin_cast<_To>(_mm_shuffle_epi8(
+                return __intrin_bitcast<_To>(_mm_shuffle_epi8(
                     _mm_blend_epi16(v0, _mm_slli_si128(v1, 4), 0x44),
                     _mm_setr_epi8(0, 8, 4, 12, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                   -0x80, -0x80, -0x80, -0x80, -0x80, -0x80)));
             } else if constexpr (__x_to_x && __have_ssse3) {
-                return __intrin_cast<_To>(_mm_unpacklo_epi16(
+                return __intrin_bitcast<_To>(_mm_unpacklo_epi16(
                     _mm_shuffle_epi8(
                         v0, _mm_setr_epi8(0, 8, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                           -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
@@ -735,18 +735,18 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                                      -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                      -0x80, -0x80, 0, 8, -0x80, -0x80, 4, 12, -0x80,
                                      -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80));
-                return __intrin_cast<_To>(__lo128(a) | __hi128(a));
+                return __intrin_bitcast<_To>(__lo128(a) | __hi128(a));
             } // __z_to_x uses concat fallback
         } else if constexpr (i32_to_i16) {  //{{{2
             if constexpr (__x_to_x) {
                 // AVX2 is not available (would concat otherwise)
                 if constexpr (__have_sse4_1) {
-                    return __intrin_cast<_To>(
+                    return __intrin_bitcast<_To>(
                         _mm_shuffle_epi8(_mm_blend_epi16(v0, _mm_slli_si128(v1, 2), 0xaa),
                                          _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6,
                                                        7, 10, 11, 14, 15)));
                 } else if constexpr (__have_ssse3) {
-                    return __intrin_cast<_To>(
+                    return __intrin_bitcast<_To>(
                         _mm_hadd_epi16(__to_intrin(vv0 << 16), __to_intrin(vv1 << 16)));
                     /*
                     return _mm_unpacklo_epi64(
@@ -760,7 +760,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     auto b = _mm_unpackhi_epi16(v0, v1);                  // 26.. 37..
                     auto c = _mm_unpacklo_epi16(a, b);                    // 0246 ....
                     auto d = _mm_unpackhi_epi16(a, b);                    // 1357 ....
-                    return __intrin_cast<_To>(_mm_unpacklo_epi16(c, d));  // 0123 4567
+                    return __intrin_bitcast<_To>(_mm_unpacklo_epi16(c, d));  // 0123 4567
                 }
             } else if constexpr (__y_to_y) {
                 const auto shuf = _mm256_setr_epi8(
@@ -769,14 +769,14 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     -0x80, -0x80, -0x80, -0x80);
                 auto a = _mm256_shuffle_epi8(v0, shuf);
                 auto b = _mm256_shuffle_epi8(v1, shuf);
-                return __intrin_cast<_To>(__fixup_avx_xzyw(_mm256_unpacklo_epi64(a, b)));
+                return __intrin_bitcast<_To>(__xzyw(_mm256_unpacklo_epi64(a, b)));
             } // __z_to_z uses concat fallback
         } else if constexpr (i32_to_i8) {  //{{{2
             if constexpr (__x_to_x && __have_ssse3) {
                 const auto shufmask =
                     _mm_setr_epi8(0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                   -0x80, -0x80, -0x80, -0x80, -0x80, -0x80);
-                return __intrin_cast<_To>(_mm_unpacklo_epi32(
+                return __intrin_bitcast<_To>(_mm_unpacklo_epi32(
                     _mm_shuffle_epi8(v0, shufmask), _mm_shuffle_epi8(v1, shufmask)));
             } else if constexpr (__x_to_x) {
                 auto a = _mm_unpacklo_epi8(v0, v1);  // 04.. .... 15.. ....
@@ -784,7 +784,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 auto c = _mm_unpacklo_epi8(a, b);    // 0246 .... .... ....
                 auto d = _mm_unpackhi_epi8(a, b);    // 1357 .... .... ....
                 auto e = _mm_unpacklo_epi8(c, d);    // 0123 4567 .... ....
-                return __intrin_cast<_To>(e & __m128i{-1, 0});
+                return __intrin_bitcast<_To>(e & __m128i{-1, 0});
             } else if constexpr (__y_to_x) {
                 const auto a = _mm256_shuffle_epi8(
                     _mm256_blend_epi16(v0, _mm256_slli_epi32(v1, 16), 0xAA),
@@ -792,14 +792,14 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                                      14, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                      -0x80, 0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, 2, 6,
                                      10, 14));
-                return __intrin_cast<_To>(__lo128(a) | __hi128(a));
+                return __intrin_bitcast<_To>(__lo128(a) | __hi128(a));
             } // __z_to_y uses concat fallback
         } else if constexpr (i16_to_i8) {  //{{{2
             if constexpr (__x_to_x && __have_ssse3) {
                 const auto shuf = reinterpret_cast<__m128i>(
                     __vector_type_t<__uchar, 16>{0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80,
                                               0x80, 0x80, 0x80, 0x80, 0x80});
-                return __intrin_cast<_To>(_mm_unpacklo_epi64(_mm_shuffle_epi8(v0, shuf),
+                return __intrin_bitcast<_To>(_mm_unpacklo_epi64(_mm_shuffle_epi8(v0, shuf),
                                                              _mm_shuffle_epi8(v1, shuf)));
             } else if constexpr (__x_to_x) {
                 auto a = _mm_unpacklo_epi8(v0, v1);  // 08.. 19.. 2A.. 3B..
@@ -808,9 +808,9 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 auto d = _mm_unpackhi_epi8(a, b);    // 26AE .... 37BF ....
                 auto e = _mm_unpacklo_epi8(c, d);    // 0246 8ACE .... ....
                 auto f = _mm_unpackhi_epi8(c, d);    // 1357 9BDF .... ....
-                return __intrin_cast<_To>(_mm_unpacklo_epi8(e, f));
+                return __intrin_bitcast<_To>(_mm_unpacklo_epi8(e, f));
             } else if constexpr (__y_to_y) {
-                return __intrin_cast<_To>(__fixup_avx_xzyw(_mm256_shuffle_epi8(
+                return __intrin_bitcast<_To>(__xzyw(_mm256_shuffle_epi8(
                     (v0.intrin() & _mm256_set1_epi32(0x00ff00ff)) |
                         _mm256_slli_epi16(v1, 8),
                     _mm256_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15,
@@ -826,13 +826,13 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto b = _mm256_unpackhi_epi32(v0, v1);   // bfBF dhDH
                 const auto lo32 = _mm256_unpacklo_epi32(a, b);  // abef cdgh
                 const auto hi32 =
-                    __vector_cast<conditional_t<is_signed_v<_T>, int, __uint>>(
+                    __vector_bitcast<conditional_t<is_signed_v<_T>, int, __uint>>(
                         _mm256_unpackhi_epi32(a, b));  // ABEF CDGH
-                const auto hi = 0x100000000LL * __convert_x86<__vector_type_t<float, 8>>(hi32).d;
+                const auto hi = 0x100000000LL * __convert_x86<__vector_type_t<float, 8>>(hi32);
                 const auto mid =
                     0x10000 * _mm256_cvtepi32_ps(_mm256_srli_epi32(lo32, 16));
                 const auto lo = _mm256_cvtepi32_ps(_mm256_set1_epi32(0x0000ffffu) & lo32);
-                return __fixup_avx_xzyw((hi + mid) + lo);
+                return __xzyw((hi + mid) + lo);
             } else if constexpr (__z_to_z && __have_avx512dq) {
                 return std::is_signed_v<_T> ? __concat(_mm512_cvtepi64_ps(v0),
                                                             _mm512_cvtepi64_ps(v1))
@@ -853,7 +853,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     _mm512_cvtepi32_ps(_mm512_set1_epi32(0x0000ffffu) & lo32);
                 return (hi32 * 0x100000000LL + hi16) + lo16;
             } else if constexpr (__z_to_z && std::is_unsigned_v<_T>) {
-                return __intrin_cast<_To>(
+                return __intrin_bitcast<_To>(
                     _mm512_cvtepu32_ps(
                         __concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32)),
                                  _mm512_cvtepi64_epi32(_mm512_srai_epi64(v1, 32)))) *
@@ -865,13 +865,13 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             // use concat fallback
         } else if constexpr (f64_to_u32) {  //{{{2
             if constexpr (__x_to_x && __have_sse4_1) {
-                return __vector_cast<uint>(_mm_unpacklo_epi64(
+                return __vector_bitcast<_U>(_mm_unpacklo_epi64(
                            _mm_cvttpd_epi32(_mm_floor_pd(v0) - 0x8000'0000u),
                            _mm_cvttpd_epi32(_mm_floor_pd(v1) - 0x8000'0000u))) ^
                        0x8000'0000u;
                 // without SSE4.1 just use the scalar fallback, it's only four values
             } else if constexpr (__y_to_y) {
-                return __vector_cast<uint>(__concat(
+                return __vector_bitcast<_U>(__concat(
                            _mm256_cvttpd_epi32(_mm256_floor_pd(v0) - 0x8000'0000u),
                            _mm256_cvttpd_epi32(_mm256_floor_pd(v1) - 0x8000'0000u))) ^
                        0x8000'0000u;
@@ -899,18 +899,20 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             const auto hi = __to_intrin(__convert_x86<_To>(v1));
             if constexpr (sizeof(_U) * _N == 8) {
                 if constexpr (is_floating_point_v<_U>) {
-                    return __auto_cast(_mm_unpacklo_pd(lo, hi));
+                    return __auto_bitcast(_mm_unpacklo_pd(__vector_bitcast<double>(lo),
+                                                          __vector_bitcast<double>(hi)));
                 } else {
-                    return __intrin_cast<_To>(_mm_unpacklo_epi64(lo, hi));
+                    return __intrin_bitcast<_To>(_mm_unpacklo_epi64(lo, hi));
                 }
             } else if constexpr (sizeof(_U) * _N == 4) {
                 if constexpr (is_floating_point_v<_U>) {
-                    return __auto_cast(_mm_unpacklo_ps(lo, hi));
+                    return __auto_bitcast(_mm_unpacklo_ps(__vector_bitcast<float>(lo),
+                                                          __vector_bitcast<float>(hi)));
                 } else {
-                    return __intrin_cast<_To>(_mm_unpacklo_epi32(lo, hi));
+                    return __intrin_bitcast<_To>(_mm_unpacklo_epi32(lo, hi));
                 }
             } else if constexpr (sizeof(_U) * _N == 2) {
-                return __intrin_cast<_To>(_mm_unpacklo_epi16(lo, hi));
+                return __intrin_bitcast<_To>(_mm_unpacklo_epi16(lo, hi));
             } else {
                 __assert_unreachable<_T>();
             }
@@ -1023,21 +1025,21 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                                                                                  v2, v3));
         } else if constexpr (i64_to_i16) {  //{{{2
             if constexpr (__x_to_x && __have_sse4_1) {
-                return __intrin_cast<_To>(_mm_shuffle_epi8(
+                return __intrin_bitcast<_To>(_mm_shuffle_epi8(
                     _mm_blend_epi16(_mm_blend_epi16(v0, _mm_slli_si128(v1, 2), 0x22),
                                     _mm_blend_epi16(_mm_slli_si128(v2, 4),
                                                     _mm_slli_si128(v3, 6), 0x88),
                                     0xcc),
                     _mm_setr_epi8(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15)));
             } else if constexpr (__y_to_y) {
-                return __intrin_cast<_To>(_mm256_shuffle_epi8(
-                    __fixup_avx_xzyw(_mm256_blend_epi16(
-                        __auto_cast(_mm256_shuffle_ps(__vector_cast<float>(v0),
-                                                      __vector_cast<float>(v2),
+                return __intrin_bitcast<_To>(_mm256_shuffle_epi8(
+                    __xzyw(_mm256_blend_epi16(
+                        __auto_bitcast(_mm256_shuffle_ps(__vector_bitcast<float>(v0),
+                                                      __vector_bitcast<float>(v2),
                                                       0x88)),  // 0.1. 8.9. 2.3. A.B.
                         __to_intrin(
-                            __vector_cast<int>(_mm256_shuffle_ps(
-                                __vector_cast<float>(v1), __vector_cast<float>(v3), 0x88))
+                            __vector_bitcast<int>(_mm256_shuffle_ps(
+                                __vector_bitcast<float>(v1), __vector_bitcast<float>(v3), 0x88))
                             << 16),      // .4.5 .C.D .6.7 .E.F
                         0xaa)            // 0415 8C9D 2637 AEBF
                                      ),  // 0415 2637 8C9D AEBF
@@ -1071,16 +1073,16 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     _mm_setr_epi8(4, 12, 0, 8, 5, 13, 1, 9, 6, 14, 2, 10, 7, 15, 3, 11));*/
                 auto b = _mm256_unpackhi_epi64(a, a);  // 159D .... 159D .... 37BF .... 37BF ....
                 auto c = _mm256_unpacklo_epi8(a, b);  // 0145 89CD .... .... 2367 ABEF .... ....
-                return __intrin_cast<_To>(_mm_unpacklo_epi16(__lo128(c), __hi128(c)));  // 0123 4567 89AB CDEF
+                return __intrin_bitcast<_To>(_mm_unpacklo_epi16(__lo128(c), __hi128(c)));  // 0123 4567 89AB CDEF
             }
         } else if constexpr (i32_to_i8) {  //{{{2
             if constexpr (__x_to_x) {
                 if constexpr (__have_ssse3) {
-                    const auto x0 =  __vector_cast<uint>(v0.d) & 0xff;
-                    const auto x1 = (__vector_cast<uint>(v1.d) & 0xff) << 8;
-                    const auto x2 = (__vector_cast<uint>(v2.d) & 0xff) << 16;
-                    const auto x3 =  __vector_cast<uint>(v3.d)         << 24;
-                    return __intrin_cast<_To>(
+                    const auto x0 =  __vector_bitcast<uint>(v0.d) & 0xff;
+                    const auto x1 = (__vector_bitcast<uint>(v1.d) & 0xff) << 8;
+                    const auto x2 = (__vector_bitcast<uint>(v2.d) & 0xff) << 16;
+                    const auto x3 =  __vector_bitcast<uint>(v3.d)         << 24;
+                    return __intrin_bitcast<_To>(
                         _mm_shuffle_epi8(__to_intrin(x0 | x1 | x2 | x3),
                                          _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10,
                                                        14, 3, 7, 11, 15)));
@@ -1093,22 +1095,22 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     auto f = _mm_unpackhi_epi8(a, c);    // 159D .... .... ....
                     auto g = _mm_unpacklo_epi8(b, d);    // 26AE .... .... ....
                     auto h = _mm_unpackhi_epi8(b, d);    // 37BF .... .... ....
-                    return __intrin_cast<_To>(_mm_unpacklo_epi8(
+                    return __intrin_bitcast<_To>(_mm_unpacklo_epi8(
                         _mm_unpacklo_epi8(e, g),  // 0246 8ACE .... ....
                         _mm_unpacklo_epi8(f, h)   // 1357 9BDF .... ....
                         ));                       // 0123 4567 89AB CDEF
                 }
             } else if constexpr (__y_to_y) {
                 const auto a = _mm256_shuffle_epi8(
-                    __to_intrin((__vector_cast<ushort>(_mm256_blend_epi16(
+                    __to_intrin((__vector_bitcast<ushort>(_mm256_blend_epi16(
                                    v0, _mm256_slli_epi32(v1, 16), 0xAA)) &
                                0xff) |
-                              (__vector_cast<ushort>(_mm256_blend_epi16(
+                              (__vector_bitcast<ushort>(_mm256_blend_epi16(
                                    v2, _mm256_slli_epi32(v3, 16), 0xAA))
                                << 8)),
                     _mm256_setr_epi8(0, 4, 8, 12, 2, 6, 10, 14, 1, 5, 9, 13, 3, 7, 11, 15,
                                      0, 4, 8, 12, 2, 6, 10, 14, 1, 5, 9, 13, 3, 7, 11, 15));
-                return __intrin_cast<_To>(_mm256_permutevar8x32_epi32(
+                return __intrin_bitcast<_To>(_mm256_permutevar8x32_epi32(
                     a, _mm256_setr_epi32(0, 4, 1, 5, 2, 6, 3, 7)));
             }
         } else if constexpr (i64_to_f32) {  //{{{2
@@ -1123,7 +1125,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto lo32a = _mm_unpacklo_epi32(a, b);  // abcd
                 const auto lo32b = _mm_unpacklo_epi32(c, d);  // efgh
                 const auto hi32 =
-                    __vector_cast<conditional_t<is_signed_v<_T>, int, __uint>>(
+                    __vector_bitcast<conditional_t<is_signed_v<_T>, int, __uint>>(
                         __concat(_mm_unpackhi_epi32(a, b),
                                  _mm_unpackhi_epi32(c, d)));  // ABCD EFGH
                 const auto hi =
@@ -1156,15 +1158,15 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             const auto hi = __to_intrin(__convert_x86<_To>(v2, v3));
             if constexpr (sizeof(_U) * _N * 2 == 8) {
                 if constexpr (is_floating_point_v<_U>) {
-                    return __auto_cast(_mm_unpacklo_pd(lo, hi));
+                    return __auto_bitcast(_mm_unpacklo_pd(lo, hi));
                 } else {
-                    return __intrin_cast<_To>(_mm_unpacklo_epi64(lo, hi));
+                    return __intrin_bitcast<_To>(_mm_unpacklo_epi64(lo, hi));
                 }
             } else if constexpr (sizeof(_U) * _N * 2 == 4) {
                 if constexpr (is_floating_point_v<_U>) {
-                    return __auto_cast(_mm_unpacklo_ps(lo, hi));
+                    return __auto_bitcast(_mm_unpacklo_ps(lo, hi));
                 } else {
-                    return __intrin_cast<_To>(_mm_unpacklo_epi32(lo, hi));
+                    return __intrin_bitcast<_To>(_mm_unpacklo_epi32(lo, hi));
                 }
             } else {
                 __assert_unreachable<_T>();
@@ -1237,7 +1239,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         if constexpr (i64_to_i8) {  //{{{2
             if constexpr (__x_to_x && __have_ssse3) {
                 // unsure whether this is better than the variant below
-                return __intrin_cast<_To>(_mm_shuffle_epi8(
+                return __intrin_bitcast<_To>(_mm_shuffle_epi8(
                     __to_intrin(
                         (((v0.intrin() & 0xff) | ((v1.intrin() & 0xff) << 8)) |
                          (((v2.intrin() & 0xff) << 16) | ((v3.intrin() & 0xff) << 24))) |
@@ -1253,7 +1255,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto f = _mm_unpackhi_epi8(v4, v5); // jl
                 const auto g = _mm_unpacklo_epi8(v6, v7); // mo
                 const auto h = _mm_unpackhi_epi8(v6, v7); // np
-                return __intrin_cast<_To>(_mm_unpacklo_epi64(
+                return __intrin_bitcast<_To>(_mm_unpacklo_epi64(
                     _mm_unpacklo_epi32(_mm_unpacklo_epi8(a, b),   // abcd
                                        _mm_unpacklo_epi8(c, d)),  // efgh
                     _mm_unpacklo_epi32(_mm_unpacklo_epi8(e, f),   // ijkl
@@ -1268,7 +1270,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 /*
                 auto b = _mm256_unpackhi_epi64(a, a);  // 159D HLPT 159D HLPT 37BF JNRV 37BF JNRV
                 auto c = _mm256_unpacklo_epi8(a, b);  // 0145 89CD GHKL OPST 2367 ABEF IJMN QRUV
-                auto d = __fixup_avx_xzyw(c); // 0145 89CD 2367 ABEF GHKL OPST IJMN QRUV
+                auto d = __xzyw(c); // 0145 89CD 2367 ABEF GHKL OPST IJMN QRUV
                 return _mm256_shuffle_epi8(
                     d, _mm256_setr_epi8(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14,
                                         15, 0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7,
@@ -1277,8 +1279,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 auto b = _mm256_shuffle_epi8( // 0145 89CD GHKL OPST 2367 ABEF IJMN QRUV
                     a, _mm256_setr_epi8(0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15,
                                         0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15));
-                auto c = __fixup_avx_xzyw(b); // 0145 89CD 2367 ABEF GHKL OPST IJMN QRUV
-                return __intrin_cast<_To>(_mm256_shuffle_epi8(
+                auto c = __xzyw(b); // 0145 89CD 2367 ABEF GHKL OPST IJMN QRUV
+                return __intrin_bitcast<_To>(_mm256_shuffle_epi8(
                     c, _mm256_setr_epi8(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14,
                                         15, 0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7,
                                         14, 15)));
@@ -1305,7 +1307,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             const auto lo = __to_intrin(__convert_x86<_To>(v0, v1, v2, v3));
             const auto hi = __to_intrin(__convert_x86<_To>(v4, v5, v6, v7));
             static_assert(sizeof(_U) == 1 && _N == 2);
-            return __intrin_cast<_To>(_mm_unpacklo_epi64(lo, hi));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi64(lo, hi));
         } else {
             __assert_unreachable<_T>();
             //return __vector_convert<_To>(v0.d, v1.d, v2.d, v3.d, v4.d, v5.d, v6.d, v7.d,
