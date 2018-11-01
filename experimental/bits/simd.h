@@ -1954,86 +1954,11 @@ struct __storage_base<_T, _Width, _RegisterType, false> {
     }
 };
 
-// __storage_equiv {{{1
-template <class _T, size_t _Width, bool = __has_same_value_representation_v<_T>>
-struct __storage_equiv : __storage_base<_T, _Width> {
-    using __storage_base<_T, _Width>::d;
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv() = default;
-    template <class _U, class = decltype(__storage_base<_T, _Width>(std::declval<_U>()))>
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv(_U &&x) : __storage_base<_T, _Width>(std::forward<_U>(x))
-    {
-    }
-    // I want to use ctor inheritance, but it breaks always_inline. Having a function that
-    // does a single movaps is stupid.
-    //using __storage_base<_T, _Width>::__storage_base;
-};
-
-// This base class allows conversion to & from
-// * __vector_type_t<__equal_int_type_t<_T>, _Width>, and
-// * __storage<__equal_int_type_t<_T>, _Width>
-// E.g. __storage<long, 4> is convertible to & from
-// * __vector_type_t<long long, 4>, and
-// * __storage<long long, 4>
-// on LP64
-// * __vector_type_t<int, 4>, and
-// * __storage<int, 4>
-// on ILP32, and LLP64
-template <class _T, size_t _Width>
-struct __storage_equiv<_T, _Width, true>
-    : __storage_base<__equal_int_type_t<_T>, _Width, __vector_type_t<_T, _Width>> {
-    using Base = __storage_base<__equal_int_type_t<_T>, _Width, __vector_type_t<_T, _Width>>;
-    using Base::d;
-    template <class _U,
-              class = decltype(__storage_base<__equal_int_type_t<_T>, _Width,
-                                           __vector_type_t<_T, _Width>>(std::declval<_U>()))>
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv(_U &&x)
-        : __storage_base<__equal_int_type_t<_T>, _Width, __vector_type_t<_T, _Width>>(
-              std::forward<_U>(x))
-    {
-    }
-    // I want to use ctor inheritance, but it breaks always_inline. Having a function that
-    // does a single movaps is stupid.
-    //using Base::__storage_base;
-
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv() = default;
-
-    // convertible from intrin_type, __vector_type_t<__equal_int_type_t<_T>, _Width> and
-    // __vector_type_t<_T, _Width>, and __storage<__equal_int_type_t<_T>, _Width>
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv(__vector_type_t<_T, _Width> x)
-        : Base(reinterpret_cast<__vector_type_t<__equal_int_type_t<_T>, _Width>>(x))
-    {
-    }
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_equiv(__storage<__equal_int_type_t<_T>, _Width> x)
-        : Base(x.d)
-    {
-    }
-
-    // convertible to intrin_type, __vector_type_t<__equal_int_type_t<_T>, _Width> and
-    // __vector_type_t<_T, _Width> (in __storage), and __storage<__equal_int_type_t<_T>, _Width>
-    //
-    // intrin_type<_T> is handled by __storage_base
-    // __vector_type_t<_T> is handled by __storage
-    // __vector_type_t<__equal_int_type_t<_T>> is handled in __storage_equiv, i.e. here:
-    _GLIBCXX_SIMD_INTRINSIC constexpr operator __vector_type_t<__equal_int_type_t<_T>, _Width>() const
-    {
-        return reinterpret_cast<__vector_type_t<__equal_int_type_t<_T>, _Width>>(d);
-    }
-    _GLIBCXX_SIMD_INTRINSIC constexpr operator __storage<__equal_int_type_t<_T>, _Width>() const
-    {
-        return reinterpret_cast<__vector_type_t<__equal_int_type_t<_T>, _Width>>(d);
-    }
-
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage<__equal_int_type_t<_T>, _Width> equiv() const
-    {
-        return reinterpret_cast<__vector_type_t<__equal_int_type_t<_T>, _Width>>(d);
-    }
-};
-
 // __storage{{{1
 template <class _T, size_t _Width>
 struct __storage<_T, _Width,
                std::void_t<__vector_type_t<_T, _Width>, __intrinsic_type_t<_T, _Width>>>
-    : __storage_equiv<_T, _Width> {
+    : __storage_base<_T, _Width> {
     static_assert(__is_vectorizable_v<_T>);
     static_assert(_Width >= 2);  // 1 doesn't make sense, use _T directly then
     using register_type = __vector_type_t<_T, _Width>;
@@ -2041,14 +1966,14 @@ struct __storage<_T, _Width,
     static constexpr size_t width = _Width;
 
     _GLIBCXX_SIMD_INTRINSIC constexpr __storage() = default;
-    template <class _U, class = decltype(__storage_equiv<_T, _Width>(std::declval<_U>()))>
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage(_U &&x) : __storage_equiv<_T, _Width>(std::forward<_U>(x))
+    template <class _U, class = decltype(__storage_base<_T, _Width>(std::declval<_U>()))>
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage(_U &&x) : __storage_base<_T, _Width>(std::forward<_U>(x))
     {
     }
     // I want to use ctor inheritance, but it breaks always_inline. Having a function that
     // does a single movaps is stupid.
-    //using __storage_equiv<_T, _Width>::__storage_equiv;
-    using __storage_equiv<_T, _Width>::d;
+    //using __storage_base<_T, _Width>::__storage_base;
+    using __storage_base<_T, _Width>::d;
 
     template <class... As,
               class = enable_if_t<((std::is_same_v<simd_abi::scalar, As> && ...) &&
