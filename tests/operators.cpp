@@ -26,8 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 }}}*/
 
 //#define UNITTEST_ONLY_XTEST 1
-#include <vir/test.h>
-#include <experimental/simd>
+#include "unittest.h"
 #include "make_vec.h"
 #include "metahelpers.h"
 
