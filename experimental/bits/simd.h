@@ -2524,7 +2524,7 @@ protected:
     using value_type =
         typename std::conditional_t<std::is_arithmetic<_V>::value, Wrapper, _V>::value_type;
     _GLIBCXX_SIMD_INTRINSIC friend const _M &__get_mask(const const_where_expression &__x) { return __x.__k; }
-    _GLIBCXX_SIMD_INTRINSIC friend const _T &__get_lvalue(const const_where_expression &__x) { return __x._M_data; }
+    _GLIBCXX_SIMD_INTRINSIC friend const _T &__get_lvalue(const const_where_expression &__x) { return __x._M_value; }
     const _M &__k;
     _T &_M_value;
 
@@ -2570,7 +2570,7 @@ protected:
     using value_type =
         typename std::conditional_t<std::is_arithmetic<_V>::value, Wrapper, _V>::value_type;
     _GLIBCXX_SIMD_INTRINSIC friend const _M &__get_mask(const const_where_expression &__x) { return __x.__k; }
-    _GLIBCXX_SIMD_INTRINSIC friend const _T &__get_lvalue(const const_where_expression &__x) { return __x._M_data; }
+    _GLIBCXX_SIMD_INTRINSIC friend const _T &__get_lvalue(const const_where_expression &__x) { return __x._M_value; }
     const bool __k;
     _T &_M_value;
 
@@ -2610,7 +2610,7 @@ class where_expression : public const_where_expression<_M, _T>
     static_assert(std::is_same<typename _M::abi_type, typename _T::abi_type>::value, "");
     static_assert(_M::size() == _T::size(), "");
 
-    _GLIBCXX_SIMD_INTRINSIC friend _T &__get_lvalue(where_expression &__x) { return __x._M_data; }
+    _GLIBCXX_SIMD_INTRINSIC friend _T &__get_lvalue(where_expression &__x) { return __x._M_value; }
 public:
     where_expression(const where_expression &) = delete;
     where_expression &operator=(const where_expression &) = delete;
