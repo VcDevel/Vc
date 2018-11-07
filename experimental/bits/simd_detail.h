@@ -1,7 +1,7 @@
 #ifndef _GLIBCXX_EXPERIMENTAL_SIMD_DETAIL_H_
 #define _GLIBCXX_EXPERIMENTAL_SIMD_DETAIL_H_
 
-#pragma GCC system_header
+//#pragma GCC system_header
 
 #if __cplusplus >= 201703L
 

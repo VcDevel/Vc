@@ -1,7 +1,7 @@
 #ifndef _GLIBCXX_EXPERIMENTAL_SIMD_ABIS_H_
 #define _GLIBCXX_EXPERIMENTAL_SIMD_ABIS_H_
 
-#pragma GCC system_header
+//#pragma GCC system_header
 
 #if __cplusplus >= 201703L
 
@@ -866,197 +866,198 @@ _GLIBCXX_SIMD_INTRINSIC auto __cmpunord(_T __x, _T __y)
 
 // }}}
 // __maskstore (non-converting; with optimizations for SSE2-AVX512BWVL) {{{
-template <class _T, class F>
-_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage64_t<_T> v, _T *mem, F,
-                                         __storage<bool, __storage64_t<_T>::width> k)
+template <class _T, class _F>
+_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage64_t<_T> __v, _T* __mem, _F,
+                                         __storage<bool, __storage64_t<_T>::width> __k)
 {
-    static_assert(sizeof(v) == 64 && __have_avx512f);
+    [[maybe_unused]] const auto __vi = __to_intrin(__v);
+    static_assert(sizeof(__v) == 64 && __have_avx512f);
     if constexpr (__have_avx512bw && sizeof(_T) == 1) {
-        _mm512_mask_storeu_epi8(mem, k, v);
+        _mm512_mask_storeu_epi8(__mem, __k, __vi);
     } else if constexpr (__have_avx512bw && sizeof(_T) == 2) {
-        _mm512_mask_storeu_epi16(mem, k, v);
+        _mm512_mask_storeu_epi16(__mem, __k, __vi);
     } else if constexpr (__have_avx512f && sizeof(_T) == 4) {
-        if constexpr (__is_aligned_v<F, 64> && std::is_integral_v<_T>) {
-            _mm512_mask_store_epi32(mem, k, v);
-        } else if constexpr (__is_aligned_v<F, 64> && std::is_floating_point_v<_T>) {
-            _mm512_mask_store_ps(mem, k, v);
+        if constexpr (__is_aligned_v<_F, 64> && std::is_integral_v<_T>) {
+            _mm512_mask_store_epi32(__mem, __k, __vi);
+        } else if constexpr (__is_aligned_v<_F, 64> && std::is_floating_point_v<_T>) {
+            _mm512_mask_store_ps(__mem, __k, __vi);
         } else if constexpr (std::is_integral_v<_T>) {
-            _mm512_mask_storeu_epi32(mem, k, v);
+            _mm512_mask_storeu_epi32(__mem, __k, __vi);
         } else {
-            _mm512_mask_storeu_ps(mem, k, v);
+            _mm512_mask_storeu_ps(__mem, __k, __vi);
         }
     } else if constexpr (__have_avx512f && sizeof(_T) == 8) {
-        if constexpr (__is_aligned_v<F, 64> && std::is_integral_v<_T>) {
-            _mm512_mask_store_epi64(mem, k, v);
-        } else if constexpr (__is_aligned_v<F, 64> && std::is_floating_point_v<_T>) {
-            _mm512_mask_store_pd(mem, k, v);
+        if constexpr (__is_aligned_v<_F, 64> && std::is_integral_v<_T>) {
+            _mm512_mask_store_epi64(__mem, __k, __vi);
+        } else if constexpr (__is_aligned_v<_F, 64> && std::is_floating_point_v<_T>) {
+            _mm512_mask_store_pd(__mem, __k, __vi);
         } else if constexpr (std::is_integral_v<_T>) {
-            _mm512_mask_storeu_epi64(mem, k, v);
+            _mm512_mask_storeu_epi64(__mem, __k, __vi);
         } else {
-            _mm512_mask_storeu_pd(mem, k, v);
+            _mm512_mask_storeu_pd(__mem, __k, __vi);
         }
     } else if constexpr (__have_sse2) {
         constexpr int _N = 16 / sizeof(_T);
-        using M = __vector_type_t<_T, _N>;
-        _mm_maskmoveu_si128(__auto_bitcast(__extract<0, 4>(v.d)),
-                            __auto_bitcast(__convert_mask<M>(k.d)),
-                            reinterpret_cast<char *>(mem));
-        _mm_maskmoveu_si128(__auto_bitcast(__extract<1, 4>(v.d)),
-                            __auto_bitcast(__convert_mask<M>(k.d >> 1 * _N)),
-                            reinterpret_cast<char *>(mem) + 1 * 16);
-        _mm_maskmoveu_si128(__auto_bitcast(__extract<2, 4>(v.d)),
-                            __auto_bitcast(__convert_mask<M>(k.d >> 2 * _N)),
-                            reinterpret_cast<char *>(mem) + 2 * 16);
-        _mm_maskmoveu_si128(__auto_bitcast(__extract<3, 4>(v.d)),
-                            __auto_bitcast(__convert_mask<M>(k.d >> 3 * _N)),
-                            reinterpret_cast<char *>(mem) + 3 * 16);
+        using M          = __vector_type_t<_T, _N>;
+        _mm_maskmoveu_si128(__auto_bitcast(__extract<0, 4>(__v.d)),
+                            __auto_bitcast(__convert_mask<M>(__k.d)),
+                            reinterpret_cast<char*>(__mem));
+        _mm_maskmoveu_si128(__auto_bitcast(__extract<1, 4>(__v.d)),
+                            __auto_bitcast(__convert_mask<M>(__k.d >> 1 * _N)),
+                            reinterpret_cast<char*>(__mem) + 1 * 16);
+        _mm_maskmoveu_si128(__auto_bitcast(__extract<2, 4>(__v.d)),
+                            __auto_bitcast(__convert_mask<M>(__k.d >> 2 * _N)),
+                            reinterpret_cast<char*>(__mem) + 2 * 16);
+        _mm_maskmoveu_si128(__auto_bitcast(__extract<3, 4>(__v.d)),
+                            __auto_bitcast(__convert_mask<M>(__k.d >> 3 * _N)),
+                            reinterpret_cast<char*>(__mem) + 3 * 16);
     } else {
         __assert_unreachable<_T>();
     }
 }
 
-template <class _T, class F>
-_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage32_t<_T> v, _T *mem, F,
-                                         __storage32_t<_T> k)
+template <class _T, class _F>
+_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage32_t<_T> __v, _T* __mem, _F,
+                                         __storage32_t<_T> __k)
 {
+    [[maybe_unused]] const auto __vi = __vector_bitcast<__llong>(__v);
+    [[maybe_unused]] const auto __ki = __vector_bitcast<__llong>(__k);
     if constexpr (__have_avx512bw_vl && sizeof(_T) == 1) {
-        _mm256_mask_storeu_epi8(mem, _mm256_movepi8_mask(k), v);
+        _mm256_mask_storeu_epi8(__mem, _mm256_movepi8_mask(__ki), __vi);
     } else if constexpr (__have_avx512bw_vl && sizeof(_T) == 2) {
-        _mm256_mask_storeu_epi16(mem, _mm256_movepi16_mask(k), v);
+        _mm256_mask_storeu_epi16(__mem, _mm256_movepi16_mask(__ki), __vi);
     } else if constexpr (__have_avx2 && sizeof(_T) == 4 && std::is_integral_v<_T>) {
-        _mm256_maskstore_epi32(reinterpret_cast<int *>(mem), k, v);
+        _mm256_maskstore_epi32(reinterpret_cast<int*>(__mem), __ki, __vi);
     } else if constexpr (sizeof(_T) == 4) {
-        _mm256_maskstore_ps(reinterpret_cast<float *>(mem), __vector_bitcast<__llong>(k),
-                            __vector_bitcast<float>(v));
+        _mm256_maskstore_ps(reinterpret_cast<float*>(__mem), __ki,
+                            __vector_bitcast<float>(__v));
     } else if constexpr (__have_avx2 && sizeof(_T) == 8 && std::is_integral_v<_T>) {
-        _mm256_maskstore_epi64(reinterpret_cast<__llong *>(mem), k, v);
+        _mm256_maskstore_epi64(reinterpret_cast<__llong*>(__mem), __ki, __vi);
     } else if constexpr (__have_avx && sizeof(_T) == 8) {
-        _mm256_maskstore_pd(reinterpret_cast<double *>(mem), __vector_bitcast<__llong>(k),
-                            __vector_bitcast<double>(v));
+        _mm256_maskstore_pd(reinterpret_cast<double*>(__mem), __ki,
+                            __vector_bitcast<double>(__v));
     } else if constexpr (__have_sse2) {
-        _mm_maskmoveu_si128(__vector_bitcast<__llong>(__lo128(v)), __vector_bitcast<__llong>(__lo128(k)),
-                            reinterpret_cast<char *>(mem));
-        _mm_maskmoveu_si128(__vector_bitcast<__llong>(__hi128(v)), __vector_bitcast<__llong>(__hi128(k)),
-                            reinterpret_cast<char *>(mem) + 16);
+        _mm_maskmoveu_si128(__lo128(__vi), __lo128(__ki), reinterpret_cast<char*>(__mem));
+        _mm_maskmoveu_si128(__hi128(__vi), __hi128(__ki),
+                            reinterpret_cast<char*>(__mem) + 16);
     } else {
         __assert_unreachable<_T>();
     }
 }
 
-template <class _T, class F>
-_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage32_t<_T> v, _T *mem, F,
-                                         __storage<bool, __storage32_t<_T>::width> k)
+template <class _T, class _F>
+_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage32_t<_T> __v, _T* __mem, _F,
+                                         __storage<bool, __storage32_t<_T>::width> __k)
 {
+    [[maybe_unused]] const auto __vi = __to_intrin(__v);
     if constexpr (__have_avx512bw_vl && sizeof(_T) == 1) {
-        _mm256_mask_storeu_epi8(mem, k, v);
+        _mm256_mask_storeu_epi8(__mem, __k, __vi);
     } else if constexpr (__have_avx512bw_vl && sizeof(_T) == 2) {
-        _mm256_mask_storeu_epi16(mem, k, v);
+        _mm256_mask_storeu_epi16(__mem, __k, __vi);
     } else if constexpr (__have_avx512vl && sizeof(_T) == 4) {
-        if constexpr (__is_aligned_v<F, 32> && std::is_integral_v<_T>) {
-            _mm256_mask_store_epi32(mem, k, v);
-        } else if constexpr (__is_aligned_v<F, 32> && std::is_floating_point_v<_T>) {
-            _mm256_mask_store_ps(mem, k, v);
+        if constexpr (__is_aligned_v<_F, 32> && std::is_integral_v<_T>) {
+            _mm256_mask_store_epi32(__mem, __k, __vi);
+        } else if constexpr (__is_aligned_v<_F, 32> && std::is_floating_point_v<_T>) {
+            _mm256_mask_store_ps(__mem, __k, __vi);
         } else if constexpr (std::is_integral_v<_T>) {
-            _mm256_mask_storeu_epi32(mem, k, v);
+            _mm256_mask_storeu_epi32(__mem, __k, __vi);
         } else {
-            _mm256_mask_storeu_ps(mem, k, v);
+            _mm256_mask_storeu_ps(__mem, __k, __vi);
         }
     } else if constexpr (__have_avx512vl && sizeof(_T) == 8) {
-        if constexpr (__is_aligned_v<F, 32> && std::is_integral_v<_T>) {
-            _mm256_mask_store_epi64(mem, k, v);
-        } else if constexpr (__is_aligned_v<F, 32> && std::is_floating_point_v<_T>) {
-            _mm256_mask_store_pd(mem, k, v);
+        if constexpr (__is_aligned_v<_F, 32> && std::is_integral_v<_T>) {
+            _mm256_mask_store_epi64(__mem, __k, __vi);
+        } else if constexpr (__is_aligned_v<_F, 32> && std::is_floating_point_v<_T>) {
+            _mm256_mask_store_pd(__mem, __k, __vi);
         } else if constexpr (std::is_integral_v<_T>) {
-            _mm256_mask_storeu_epi64(mem, k, v);
+            _mm256_mask_storeu_epi64(__mem, __k, __vi);
         } else {
-            _mm256_mask_storeu_pd(mem, k, v);
+            _mm256_mask_storeu_pd(__mem, __k, __vi);
         }
     } else if constexpr (__have_avx512f && (sizeof(_T) >= 4 || __have_avx512bw)) {
         // use a 512-bit maskstore, using zero-extension of the bitmask
         __maskstore(
-            __storage64_t<_T>(
-                __intrin_bitcast<__intrinsic_type64_t<_T>>(v.d)),
-            mem,
+            __storage64_t<_T>(__vector_bitcast<_T>(__v)), __mem,
             // careful, vector_aligned has a stricter meaning in the 512-bit maskstore:
-            std::conditional_t<std::is_same_v<F, vector_aligned_tag>, overaligned_tag<32>,
-                               F>(),
-            __storage<bool, 64 / sizeof(_T)>(k.d));
+            std::conditional_t<std::is_same_v<_F, vector_aligned_tag>,
+                               overaligned_tag<32>, _F>(),
+            __storage<bool, 64 / sizeof(_T)>(__k.d));
     } else {
         __maskstore(
-            v, mem, F(),
-            __storage32_t<_T>(__convert_mask<__vector_type_t<_T, 32 / sizeof(_T)>>(k)));
+            __v, __mem, _F(),
+            __storage32_t<_T>(__convert_mask<__vector_type_t<_T, 32 / sizeof(_T)>>(__k)));
     }
 }
 
-template <class _T, class F>
-_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage16_t<_T> v, _T *mem, F,
-                                         __storage16_t<_T> k)
+template <class _T, class _F>
+_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage16_t<_T> __v, _T* __mem, _F,
+                                         __storage16_t<_T> __k)
 {
+    [[maybe_unused]] const auto __vi = __vector_bitcast<__llong>(__v);
+    [[maybe_unused]] const auto __ki = __vector_bitcast<__llong>(__k);
     if constexpr (__have_avx512bw_vl && sizeof(_T) == 1) {
-        _mm_mask_storeu_epi8(mem, _mm_movepi8_mask(k), v);
+        _mm_mask_storeu_epi8(__mem, _mm_movepi8_mask(__ki), __vi);
     } else if constexpr (__have_avx512bw_vl && sizeof(_T) == 2) {
-        _mm_mask_storeu_epi16(mem, _mm_movepi16_mask(k), v);
+        _mm_mask_storeu_epi16(__mem, _mm_movepi16_mask(__ki), __vi);
     } else if constexpr (__have_avx2 && sizeof(_T) == 4 && std::is_integral_v<_T>) {
-        _mm_maskstore_epi32(reinterpret_cast<int *>(mem), k, v);
+        _mm_maskstore_epi32(reinterpret_cast<int*>(__mem), __ki, __vi);
     } else if constexpr (__have_avx && sizeof(_T) == 4) {
-        _mm_maskstore_ps(reinterpret_cast<float *>(mem), __vector_bitcast<__llong>(k),
-                         __vector_bitcast<float>(v));
+        _mm_maskstore_ps(reinterpret_cast<float*>(__mem), __ki,
+                         __vector_bitcast<float>(__v));
     } else if constexpr (__have_avx2 && sizeof(_T) == 8 && std::is_integral_v<_T>) {
-        _mm_maskstore_epi64(reinterpret_cast<__llong *>(mem), k, v);
+        _mm_maskstore_epi64(reinterpret_cast<__llong*>(__mem), __ki, __vi);
     } else if constexpr (__have_avx && sizeof(_T) == 8) {
-        _mm_maskstore_pd(reinterpret_cast<double *>(mem), __vector_bitcast<__llong>(k),
-                         __vector_bitcast<double>(v));
+        _mm_maskstore_pd(reinterpret_cast<double*>(__mem), __ki,
+                         __vector_bitcast<double>(__v));
     } else if constexpr (__have_sse2) {
-        _mm_maskmoveu_si128(__vector_bitcast<__llong>(v), __vector_bitcast<__llong>(k),
-                            reinterpret_cast<char *>(mem));
+        _mm_maskmoveu_si128(__vi, __ki, reinterpret_cast<char*>(__mem));
     } else {
-        __bit_iteration(__vector_to_bitset(k.d).to_ullong(),
-                        [&](auto i) { mem[i] = v[i]; });
+        __bit_iteration(__vector_to_bitset(__k.d).to_ullong(),
+                        [&](auto i) { __mem[i] = __v[i]; });
     }
 }
 
-template <class _T, class F>
-_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage16_t<_T> v, _T *mem, F,
-                            __storage<bool, __storage16_t<_T>::width> k)
+template <class _T, class _F>
+_GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage16_t<_T> __v, _T* __mem, _F,
+                                         __storage<bool, __storage16_t<_T>::width> __k)
 {
+    [[maybe_unused]] const auto __vi = __to_intrin(__v);
     if constexpr (__have_avx512bw_vl && sizeof(_T) == 1) {
-        _mm_mask_storeu_epi8(mem, k, v);
+        _mm_mask_storeu_epi8(__mem, __k, __vi);
     } else if constexpr (__have_avx512bw_vl && sizeof(_T) == 2) {
-        _mm_mask_storeu_epi16(mem, k, v);
+        _mm_mask_storeu_epi16(__mem, __k, __vi);
     } else if constexpr (__have_avx512vl && sizeof(_T) == 4) {
-        if constexpr (__is_aligned_v<F, 16> && std::is_integral_v<_T>) {
-            _mm_mask_store_epi32(mem, k, v);
-        } else if constexpr (__is_aligned_v<F, 16> && std::is_floating_point_v<_T>) {
-            _mm_mask_store_ps(mem, k, v);
+        if constexpr (__is_aligned_v<_F, 16> && std::is_integral_v<_T>) {
+            _mm_mask_store_epi32(__mem, __k, __vi);
+        } else if constexpr (__is_aligned_v<_F, 16> && std::is_floating_point_v<_T>) {
+            _mm_mask_store_ps(__mem, __k, __vi);
         } else if constexpr (std::is_integral_v<_T>) {
-            _mm_mask_storeu_epi32(mem, k, v);
+            _mm_mask_storeu_epi32(__mem, __k, __vi);
         } else {
-            _mm_mask_storeu_ps(mem, k, v);
+            _mm_mask_storeu_ps(__mem, __k, __vi);
         }
     } else if constexpr (__have_avx512vl && sizeof(_T) == 8) {
-        if constexpr (__is_aligned_v<F, 16> && std::is_integral_v<_T>) {
-            _mm_mask_store_epi64(mem, k, v);
-        } else if constexpr (__is_aligned_v<F, 16> && std::is_floating_point_v<_T>) {
-            _mm_mask_store_pd(mem, k, v);
+        if constexpr (__is_aligned_v<_F, 16> && std::is_integral_v<_T>) {
+            _mm_mask_store_epi64(__mem, __k, __vi);
+        } else if constexpr (__is_aligned_v<_F, 16> && std::is_floating_point_v<_T>) {
+            _mm_mask_store_pd(__mem, __k, __vi);
         } else if constexpr (std::is_integral_v<_T>) {
-            _mm_mask_storeu_epi64(mem, k, v);
+            _mm_mask_storeu_epi64(__mem, __k, __vi);
         } else {
-            _mm_mask_storeu_pd(mem, k, v);
+            _mm_mask_storeu_pd(__mem, __k, __vi);
         }
     } else if constexpr (__have_avx512f && (sizeof(_T) >= 4 || __have_avx512bw)) {
         // use a 512-bit maskstore, using zero-extension of the bitmask
         __maskstore(
-            __storage64_t<_T>(
-                __intrin_bitcast<__intrinsic_type64_t<_T>>(v.d)),
-            mem,
+            __storage64_t<_T>(__intrin_bitcast<__intrinsic_type64_t<_T>>(__v.d)), __mem,
             // careful, vector_aligned has a stricter meaning in the 512-bit maskstore:
-            std::conditional_t<std::is_same_v<F, vector_aligned_tag>, overaligned_tag<16>,
-                               F>(),
-            __storage<bool, 64 / sizeof(_T)>(k.d));
+            std::conditional_t<std::is_same_v<_F, vector_aligned_tag>,
+                               overaligned_tag<16>, _F>(),
+            __storage<bool, 64 / sizeof(_T)>(__k.d));
     } else {
         __maskstore(
-            v, mem, F(),
-            __storage16_t<_T>(__convert_mask<__vector_type_t<_T, 16 / sizeof(_T)>>(k)));
+            __v, __mem, _F(),
+            __storage16_t<_T>(__convert_mask<__vector_type_t<_T, 16 / sizeof(_T)>>(__k)));
     }
 }
 
@@ -1233,7 +1234,6 @@ _GLIBCXX_SIMD_INTRINSIC auto __convert(From v0, _More... vs)
     static_assert((true && ... && is_same_v<From, _More>));
     if constexpr (__is_vectorizable_v<From>) {
         if constexpr (__is_vector_type_v<To>) {
-            using _T = typename __vector_traits<To>::value_type;
             return __make_builtin(v0, vs...);
         } else {
             using _T = typename To::value_type;
@@ -2949,11 +2949,16 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     using __mask_member_type = typename _Abi::template __traits<_T>::__mask_member_type;
     template <class _T> static constexpr size_t full_size = __simd_member_type<_T>::width;
 
-    // make_simd(__storage) {{{2
+    // make_simd(__storage/__intrinsic_type_t) {{{2
     template <class _T, size_t _N>
     _GLIBCXX_SIMD_INTRINSIC static simd<_T, _Abi> make_simd(__storage<_T, _N> x)
     {
         return {__private_init, x};
+    }
+    template <class _T, size_t _N>
+    _GLIBCXX_SIMD_INTRINSIC static simd<_T, _Abi> make_simd(__intrinsic_type_t<_T, _N> x)
+    {
+        return {__private_init, __vector_bitcast<_T>(x)};
     }
 
     // broadcast {{{2
@@ -3016,128 +3021,146 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     }
 
     // masked load {{{2
-    template <class _T, size_t _N, class _U, class F>
-    static inline __storage<_T, _N> masked_load(__storage<_T, _N> merge, __mask_member_type<_T> k,
-                                   const _U *mem, F) _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
+    template <class _T, size_t _N, class _U, class _F>
+    static inline __storage<_T, _N> masked_load(__storage<_T, _N> __merge,
+                                                __mask_member_type<_T> __k,
+                                                const _U *__mem,
+                                                _F) _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
     {
         if constexpr (std::is_same_v<_T, _U> ||  // no conversion
                       (sizeof(_T) == sizeof(_U) &&
                        std::is_integral_v<_T> ==
                            std::is_integral_v<_U>)  // conversion via bit reinterpretation
         ) {
+            [[maybe_unused]] const auto __intrin = __to_intrin(__merge);
             constexpr bool __have_avx512bw_vl_or_zmm =
-                __have_avx512bw_vl || (__have_avx512bw && sizeof(merge) == 64);
+                __have_avx512bw_vl || (__have_avx512bw && sizeof(__merge) == 64);
             if constexpr (__have_avx512bw_vl_or_zmm && sizeof(_T) == 1) {
-                if constexpr (sizeof(merge) == 16) {
-                    merge = _mm_mask_loadu_epi8(merge, _mm_movemask_epi8(k), mem);
-                } else if constexpr (sizeof(merge) == 32) {
-                    merge = _mm256_mask_loadu_epi8(merge, _mm256_movemask_epi8(k), mem);
-                } else if constexpr (sizeof(merge) == 64) {
-                    merge = _mm512_mask_loadu_epi8(merge, k, mem);
+                if constexpr (sizeof(__merge) == 16) {
+                    __merge = __vector_bitcast<_T>(
+                        _mm_mask_loadu_epi8(__intrin, _mm_movemask_epi8(__to_intrin(__k)), __mem));
+                } else if constexpr (sizeof(__merge) == 32) {
+                    __merge = __vector_bitcast<_T>(_mm256_mask_loadu_epi8(
+                        __intrin, _mm256_movemask_epi8(__to_intrin(__k)), __mem));
+                } else if constexpr (sizeof(__merge) == 64) {
+                    __merge = __vector_bitcast<_T>(
+                        _mm512_mask_loadu_epi8(__intrin, __k, __mem));
                 } else {
                     __assert_unreachable<_T>();
                 }
             } else if constexpr (__have_avx512bw_vl_or_zmm && sizeof(_T) == 2) {
-                if constexpr (sizeof(merge) == 16) {
-                    merge = _mm_mask_loadu_epi16(merge, movemask_epi16(k), mem);
-                } else if constexpr (sizeof(merge) == 32) {
-                    merge = _mm256_mask_loadu_epi16(merge, movemask_epi16(k), mem);
-                } else if constexpr (sizeof(merge) == 64) {
-                    merge = _mm512_mask_loadu_epi16(merge, k, mem);
+                if constexpr (sizeof(__merge) == 16) {
+                    __merge = __vector_bitcast<_T>(
+                        _mm_mask_loadu_epi16(__intrin, movemask_epi16(__to_intrin(__k)), __mem));
+                } else if constexpr (sizeof(__merge) == 32) {
+                    __merge = __vector_bitcast<_T>(
+                        _mm256_mask_loadu_epi16(__intrin, movemask_epi16(__to_intrin(__k)), __mem));
+                } else if constexpr (sizeof(__merge) == 64) {
+                    __merge = __vector_bitcast<_T>(
+                        _mm512_mask_loadu_epi16(__intrin, __k, __mem));
                 } else {
                     __assert_unreachable<_T>();
                 }
-            } else if constexpr (__have_avx2 && sizeof(_T) == 4 && std::is_integral_v<_U>) {
-                if constexpr (sizeof(merge) == 16) {
-                    merge =
-                        (~k.d & merge.d) | __vector_bitcast<_T>(_mm_maskload_epi32(
-                                               reinterpret_cast<const int *>(mem), k));
-                } else if constexpr (sizeof(merge) == 32) {
-                    merge =
-                        (~k.d & merge.d) | __vector_bitcast<_T>(_mm256_maskload_epi32(
-                                               reinterpret_cast<const int *>(mem), k));
-                } else if constexpr (__have_avx512f && sizeof(merge) == 64) {
-                    merge = _mm512_mask_loadu_epi32(merge, k, mem);
+            } else if constexpr (__have_avx2 && sizeof(_T) == 4 &&
+                                 std::is_integral_v<_U>) {
+                if constexpr (sizeof(__merge) == 16) {
+                    __merge = (~__k.d & __merge.d) |
+                              __vector_bitcast<_T>(_mm_maskload_epi32(
+                                  reinterpret_cast<const int *>(__mem), __to_intrin(__k)));
+                } else if constexpr (sizeof(__merge) == 32) {
+                    __merge = (~__k.d & __merge.d) |
+                              __vector_bitcast<_T>(_mm256_maskload_epi32(
+                                  reinterpret_cast<const int *>(__mem), __to_intrin(__k)));
+                } else if constexpr (__have_avx512f && sizeof(__merge) == 64) {
+                    __merge = __vector_bitcast<_T>(
+                        _mm512_mask_loadu_epi32(__intrin, __k, __mem));
                 } else {
                     __assert_unreachable<_T>();
                 }
             } else if constexpr (__have_avx && sizeof(_T) == 4) {
-                if constexpr (sizeof(merge) == 16) {
-                    merge = __or(__andnot(k.d, merge.d),
-                                __vector_bitcast<_T>(
-                                    _mm_maskload_ps(reinterpret_cast<const float *>(mem),
-                                                    __vector_bitcast<__llong>(k))));
-                } else if constexpr (sizeof(merge) == 32) {
-                    merge = __or(__andnot(k.d, merge.d),
-                                _mm256_maskload_ps(reinterpret_cast<const float *>(mem),
-                                                   __vector_bitcast<__llong>(k)));
-                } else if constexpr (__have_avx512f && sizeof(merge) == 64) {
-                    merge = _mm512_mask_loadu_ps(merge, k, mem);
+                if constexpr (sizeof(__merge) == 16) {
+                    __merge = __or(__andnot(__k.d, __merge.d),
+                                   __vector_bitcast<_T>(_mm_maskload_ps(
+                                       reinterpret_cast<const float *>(__mem),
+                                       __vector_bitcast<__llong>(__k))));
+                } else if constexpr (sizeof(__merge) == 32) {
+                    __merge =
+                        __or(__andnot(__k.d, __merge.d),
+                             _mm256_maskload_ps(reinterpret_cast<const float *>(__mem),
+                                                __vector_bitcast<__llong>(__k)));
+                } else if constexpr (__have_avx512f && sizeof(__merge) == 64) {
+                    __merge =
+                        __vector_bitcast<_T>(_mm512_mask_loadu_ps(__intrin, __k, __mem));
                 } else {
                     __assert_unreachable<_T>();
                 }
-            } else if constexpr (__have_avx2 && sizeof(_T) == 8 && std::is_integral_v<_U>) {
-                if constexpr (sizeof(merge) == 16) {
-                    merge =
-                        (~k.d & merge.d) | __vector_bitcast<_T>(_mm_maskload_epi64(
-                                               reinterpret_cast<const __llong *>(mem), k));
-                } else if constexpr (sizeof(merge) == 32) {
-                    merge =
-                        (~k.d & merge.d) | __vector_bitcast<_T>(_mm256_maskload_epi64(
-                                               reinterpret_cast<const __llong *>(mem), k));
-                } else if constexpr (__have_avx512f && sizeof(merge) == 64) {
-                    merge = _mm512_mask_loadu_epi64(merge, k, mem);
+            } else if constexpr (__have_avx2 && sizeof(_T) == 8 &&
+                                 std::is_integral_v<_U>) {
+                if constexpr (sizeof(__merge) == 16) {
+                    __merge = (~__k.d & __merge.d) |
+                              __vector_bitcast<_T>(_mm_maskload_epi64(
+                                  reinterpret_cast<const __llong *>(__mem), __to_intrin(__k)));
+                } else if constexpr (sizeof(__merge) == 32) {
+                    __merge = (~__k.d & __merge.d) |
+                              __vector_bitcast<_T>(_mm256_maskload_epi64(
+                                  reinterpret_cast<const __llong *>(__mem), __to_intrin(__k)));
+                } else if constexpr (__have_avx512f && sizeof(__merge) == 64) {
+                    __merge = __vector_bitcast<_T>(
+                        _mm512_mask_loadu_epi64(__intrin, __k, __mem));
                 } else {
                     __assert_unreachable<_T>();
                 }
             } else if constexpr (__have_avx && sizeof(_T) == 8) {
-                if constexpr (sizeof(merge) == 16) {
-                    merge = __or(__andnot(k.d, merge.d),
-                                __vector_bitcast<_T>(_mm_maskload_pd(
-                                    reinterpret_cast<const double *>(mem), __vector_bitcast<__llong>(k))));
-                } else if constexpr (sizeof(merge) == 32) {
-                    merge = __or(__andnot(k.d, merge.d),
-                                _mm256_maskload_pd(reinterpret_cast<const double *>(mem),
-                                                   __vector_bitcast<__llong>(k)));
-                } else if constexpr (__have_avx512f && sizeof(merge) == 64) {
-                    merge = _mm512_mask_loadu_pd(merge, k, mem);
+                if constexpr (sizeof(__merge) == 16) {
+                    __merge = __or(__andnot(__k.d, __merge.d),
+                                   __vector_bitcast<_T>(_mm_maskload_pd(
+                                       reinterpret_cast<const double *>(__mem),
+                                       __vector_bitcast<__llong>(__k))));
+                } else if constexpr (sizeof(__merge) == 32) {
+                    __merge =
+                        __or(__andnot(__k.d, __merge.d),
+                             _mm256_maskload_pd(reinterpret_cast<const double *>(__mem),
+                                                __vector_bitcast<__llong>(__k)));
+                } else if constexpr (__have_avx512f && sizeof(__merge) == 64) {
+                    __merge =
+                        __vector_bitcast<_T>(_mm512_mask_loadu_pd(__intrin, __k, __mem));
                 } else {
                     __assert_unreachable<_T>();
                 }
             } else {
-                __bit_iteration(__vector_to_bitset(k.d).to_ullong(), [&](auto i) {
-                    merge.set(i, static_cast<_T>(mem[i]));
+                __bit_iteration(__vector_to_bitset(__k.d).to_ullong(), [&](auto i) {
+                    __merge.set(i, static_cast<_T>(__mem[i]));
                 });
             }
         } else if constexpr (sizeof(_U) <= 8 &&  // no long double
                              !__converts_via_decomposition_v<
-                                 _U, _T, sizeof(merge)>  // conversion via decomposition
-                                                         // is better handled via the
-                                                         // bit_iteration fallback below
+                                 _U, _T, sizeof(__merge)>  // conversion via decomposition
+                                                           // is better handled via the
+                                                           // bit_iteration fallback below
         ) {
             // TODO: copy pattern from masked_store, which doesn't resort to fixed_size
             using _A = simd_abi::deduce_t<
-                _U, std::max(_N, 16 / sizeof(_U))  // _N or more, so that at least a 16 Byte
-                                                // vector is used instead of a fixed_size
-                                                // filled with scalars
+                _U, std::max(_N, 16 / sizeof(_U))  // _N or more, so that at least a 16
+                                                   // Byte vector is used instead of a
+                                                   // fixed_size filled with scalars
                 >;
             using ATraits = __simd_traits<_U, _A>;
             using AImpl = typename ATraits::__simd_impl_type;
             typename ATraits::__simd_member_type uncvted{};
             typename ATraits::__mask_member_type kk;
             if constexpr (__is_fixed_size_abi_v<_A>) {
-                kk = __vector_to_bitset(k.d);
+                kk = __vector_to_bitset(__k.d);
             } else {
-                kk = __convert_mask<typename ATraits::__mask_member_type>(k);
+                kk = __convert_mask<typename ATraits::__mask_member_type>(__k);
             }
-            uncvted = AImpl::masked_load(uncvted, kk, mem, F());
+            uncvted = AImpl::masked_load(uncvted, kk, __mem, _F());
             __simd_converter<_U, _A, _T, _Abi> converter;
-            masked_assign(k, merge, converter(uncvted));
+            masked_assign(__k, __merge, converter(uncvted));
         } else {
-            __bit_iteration(__vector_to_bitset(k.d).to_ullong(),
-                                  [&](auto i) { merge.set(i, static_cast<_T>(mem[i])); });
+            __bit_iteration(__vector_to_bitset(__k.d).to_ullong(),
+                            [&](auto i) { __merge.set(i, static_cast<_T>(__mem[i])); });
         }
-        return merge;
+        return __merge;
     }
 
     // store {{{2
@@ -3173,9 +3196,10 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 
     // masked store {{{2
     template <class _T, size_t _N, class _U, class F>
-    static inline void masked_store(const __storage<_T, _N> v, _U *mem, F,
-                                    const __mask_member_type<_T> k) _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
+    static inline void masked_store(const __storage<_T, _N> __v, _U *__mem, F,
+                                    const __mask_member_type<_T> __k) _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
     {
+        [[maybe_unused]] const auto __vi = __to_intrin(__v);
         constexpr size_t max_store_size =
             (sizeof(_U) >= 4 && __have_avx512f) || __have_avx512bw
                 ? 64
@@ -3185,71 +3209,71 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                        sizeof(_T) == sizeof(_U))) {
             // bitwise or no conversion, reinterpret:
             const auto kk = [&]() {
-                if constexpr (__is_bitmask_v<decltype(k)>) {
-                    return __mask_member_type<_U>(k.d);
+                if constexpr (__is_bitmask_v<decltype(__k)>) {
+                    return __mask_member_type<_U>(__k.d);
                 } else {
-                    return __storage_bitcast<_U>(k);
+                    return __storage_bitcast<_U>(__k);
                 }
             }();
-            __maskstore(__storage_bitcast<_U>(v), mem, F(), kk);
+            __maskstore(__storage_bitcast<_U>(__v), __mem, F(), kk);
         } else if constexpr (std::is_integral_v<_T> && std::is_integral_v<_U> &&
                              sizeof(_T) > sizeof(_U) && __have_avx512f &&
                              (sizeof(_T) >= 4 || __have_avx512bw) &&
-                             (sizeof(v) == 64 || __have_avx512vl)) {  // truncating store
+                             (sizeof(__v) == 64 || __have_avx512vl)) {  // truncating store
             const auto kk = [&]() {
-                if constexpr (__is_bitmask_v<decltype(k)>) {
-                    return k;
+                if constexpr (__is_bitmask_v<decltype(__k)>) {
+                    return __k;
                 } else {
-                    return __convert_mask<__storage<bool, _N>>(k);
+                    return __convert_mask<__storage<bool, _N>>(__k);
                 }
             }();
             if constexpr (sizeof(_T) == 8 && sizeof(_U) == 4) {
-                if constexpr (sizeof(v) == 64) {
-                    _mm512_mask_cvtepi64_storeu_epi32(mem, kk, v);
-                } else if constexpr (sizeof(v) == 32) {
-                    _mm256_mask_cvtepi64_storeu_epi32(mem, kk, v);
-                } else if constexpr (sizeof(v) == 16) {
-                    _mm_mask_cvtepi64_storeu_epi32(mem, kk, v);
+                if constexpr (sizeof(__vi) == 64) {
+                    _mm512_mask_cvtepi64_storeu_epi32(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 32) {
+                    _mm256_mask_cvtepi64_storeu_epi32(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 16) {
+                    _mm_mask_cvtepi64_storeu_epi32(__mem, kk, __vi);
                 }
             } else if constexpr (sizeof(_T) == 8 && sizeof(_U) == 2) {
-                if constexpr (sizeof(v) == 64) {
-                    _mm512_mask_cvtepi64_storeu_epi16(mem, kk, v);
-                } else if constexpr (sizeof(v) == 32) {
-                    _mm256_mask_cvtepi64_storeu_epi16(mem, kk, v);
-                } else if constexpr (sizeof(v) == 16) {
-                    _mm_mask_cvtepi64_storeu_epi16(mem, kk, v);
+                if constexpr (sizeof(__vi) == 64) {
+                    _mm512_mask_cvtepi64_storeu_epi16(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 32) {
+                    _mm256_mask_cvtepi64_storeu_epi16(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 16) {
+                    _mm_mask_cvtepi64_storeu_epi16(__mem, kk, __vi);
                 }
             } else if constexpr (sizeof(_T) == 8 && sizeof(_U) == 1) {
-                if constexpr (sizeof(v) == 64) {
-                    _mm512_mask_cvtepi64_storeu_epi8(mem, kk, v);
-                } else if constexpr (sizeof(v) == 32) {
-                    _mm256_mask_cvtepi64_storeu_epi8(mem, kk, v);
-                } else if constexpr (sizeof(v) == 16) {
-                    _mm_mask_cvtepi64_storeu_epi8(mem, kk, v);
+                if constexpr (sizeof(__vi) == 64) {
+                    _mm512_mask_cvtepi64_storeu_epi8(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 32) {
+                    _mm256_mask_cvtepi64_storeu_epi8(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 16) {
+                    _mm_mask_cvtepi64_storeu_epi8(__mem, kk, __vi);
                 }
             } else if constexpr (sizeof(_T) == 4 && sizeof(_U) == 2) {
-                if constexpr (sizeof(v) == 64) {
-                    _mm512_mask_cvtepi32_storeu_epi16(mem, kk, v);
-                } else if constexpr (sizeof(v) == 32) {
-                    _mm256_mask_cvtepi32_storeu_epi16(mem, kk, v);
-                } else if constexpr (sizeof(v) == 16) {
-                    _mm_mask_cvtepi32_storeu_epi16(mem, kk, v);
+                if constexpr (sizeof(__vi) == 64) {
+                    _mm512_mask_cvtepi32_storeu_epi16(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 32) {
+                    _mm256_mask_cvtepi32_storeu_epi16(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 16) {
+                    _mm_mask_cvtepi32_storeu_epi16(__mem, kk, __vi);
                 }
             } else if constexpr (sizeof(_T) == 4 && sizeof(_U) == 1) {
-                if constexpr (sizeof(v) == 64) {
-                    _mm512_mask_cvtepi32_storeu_epi8(mem, kk, v);
-                } else if constexpr (sizeof(v) == 32) {
-                    _mm256_mask_cvtepi32_storeu_epi8(mem, kk, v);
-                } else if constexpr (sizeof(v) == 16) {
-                    _mm_mask_cvtepi32_storeu_epi8(mem, kk, v);
+                if constexpr (sizeof(__vi) == 64) {
+                    _mm512_mask_cvtepi32_storeu_epi8(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 32) {
+                    _mm256_mask_cvtepi32_storeu_epi8(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 16) {
+                    _mm_mask_cvtepi32_storeu_epi8(__mem, kk, __vi);
                 }
             } else if constexpr (sizeof(_T) == 2 && sizeof(_U) == 1) {
-                if constexpr (sizeof(v) == 64) {
-                    _mm512_mask_cvtepi16_storeu_epi8(mem, kk, v);
-                } else if constexpr (sizeof(v) == 32) {
-                    _mm256_mask_cvtepi16_storeu_epi8(mem, kk, v);
-                } else if constexpr (sizeof(v) == 16) {
-                    _mm_mask_cvtepi16_storeu_epi8(mem, kk, v);
+                if constexpr (sizeof(__vi) == 64) {
+                    _mm512_mask_cvtepi16_storeu_epi8(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 32) {
+                    _mm256_mask_cvtepi16_storeu_epi8(__mem, kk, __vi);
+                } else if constexpr (sizeof(__vi) == 16) {
+                    _mm_mask_cvtepi16_storeu_epi8(__mem, kk, __vi);
                 }
             } else {
                 __assert_unreachable<_T>();
@@ -3268,38 +3292,38 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
             constexpr size_t VN = __vector_traits<_V>::width;
 
             if constexpr (VN >= _N) {
-                __maskstore(VV(__convert<_V>(v)), mem,
-                               // careful, if _V has more elements than the input v (_N),
+                __maskstore(VV(__convert<_V>(__v)), __mem,
+                               // careful, if _V has more elements than the input __v (_N),
                                // vector_aligned is incorrect:
                                std::conditional_t<(__vector_traits<_V>::width > _N),
                                                   overaligned_tag<sizeof(_U) * _N>, F>(),
-                               __convert_mask<M>(k));
+                               __convert_mask<M>(__k));
             } else if constexpr (VN * 2 == _N) {
-                const std::array<_V, 2> converted = __convert_all<_V>(v);
-                __maskstore(VV(converted[0]), mem, F(), __convert_mask<M>(__extract_part<0, 2>(k)));
-                __maskstore(VV(converted[1]), mem + VV::width, F(), __convert_mask<M>(__extract_part<1, 2>(k)));
+                const std::array<_V, 2> converted = __convert_all<_V>(__v);
+                __maskstore(VV(converted[0]), __mem, F(), __convert_mask<M>(__extract_part<0, 2>(__k)));
+                __maskstore(VV(converted[1]), __mem + VV::width, F(), __convert_mask<M>(__extract_part<1, 2>(__k)));
             } else if constexpr (VN * 4 == _N) {
-                const std::array<_V, 4> converted = __convert_all<_V>(v);
-                __maskstore(VV(converted[0]), mem, F(), __convert_mask<M>(__extract_part<0, 4>(k)));
-                __maskstore(VV(converted[1]), mem + 1 * VV::width, F(), __convert_mask<M>(__extract_part<1, 4>(k)));
-                __maskstore(VV(converted[2]), mem + 2 * VV::width, F(), __convert_mask<M>(__extract_part<2, 4>(k)));
-                __maskstore(VV(converted[3]), mem + 3 * VV::width, F(), __convert_mask<M>(__extract_part<3, 4>(k)));
+                const std::array<_V, 4> converted = __convert_all<_V>(__v);
+                __maskstore(VV(converted[0]), __mem, F(), __convert_mask<M>(__extract_part<0, 4>(__k)));
+                __maskstore(VV(converted[1]), __mem + 1 * VV::width, F(), __convert_mask<M>(__extract_part<1, 4>(__k)));
+                __maskstore(VV(converted[2]), __mem + 2 * VV::width, F(), __convert_mask<M>(__extract_part<2, 4>(__k)));
+                __maskstore(VV(converted[3]), __mem + 3 * VV::width, F(), __convert_mask<M>(__extract_part<3, 4>(__k)));
             } else if constexpr (VN * 8 == _N) {
-                const std::array<_V, 8> converted = __convert_all<_V>(v);
-                __maskstore(VV(converted[0]), mem, F(), __convert_mask<M>(__extract_part<0, 8>(k)));
-                __maskstore(VV(converted[1]), mem + 1 * VV::width, F(), __convert_mask<M>(__extract_part<1, 8>(k)));
-                __maskstore(VV(converted[2]), mem + 2 * VV::width, F(), __convert_mask<M>(__extract_part<2, 8>(k)));
-                __maskstore(VV(converted[3]), mem + 3 * VV::width, F(), __convert_mask<M>(__extract_part<3, 8>(k)));
-                __maskstore(VV(converted[4]), mem + 4 * VV::width, F(), __convert_mask<M>(__extract_part<4, 8>(k)));
-                __maskstore(VV(converted[5]), mem + 5 * VV::width, F(), __convert_mask<M>(__extract_part<5, 8>(k)));
-                __maskstore(VV(converted[6]), mem + 6 * VV::width, F(), __convert_mask<M>(__extract_part<6, 8>(k)));
-                __maskstore(VV(converted[7]), mem + 7 * VV::width, F(), __convert_mask<M>(__extract_part<7, 8>(k)));
+                const std::array<_V, 8> converted = __convert_all<_V>(__v);
+                __maskstore(VV(converted[0]), __mem, F(), __convert_mask<M>(__extract_part<0, 8>(__k)));
+                __maskstore(VV(converted[1]), __mem + 1 * VV::width, F(), __convert_mask<M>(__extract_part<1, 8>(__k)));
+                __maskstore(VV(converted[2]), __mem + 2 * VV::width, F(), __convert_mask<M>(__extract_part<2, 8>(__k)));
+                __maskstore(VV(converted[3]), __mem + 3 * VV::width, F(), __convert_mask<M>(__extract_part<3, 8>(__k)));
+                __maskstore(VV(converted[4]), __mem + 4 * VV::width, F(), __convert_mask<M>(__extract_part<4, 8>(__k)));
+                __maskstore(VV(converted[5]), __mem + 5 * VV::width, F(), __convert_mask<M>(__extract_part<5, 8>(__k)));
+                __maskstore(VV(converted[6]), __mem + 6 * VV::width, F(), __convert_mask<M>(__extract_part<6, 8>(__k)));
+                __maskstore(VV(converted[7]), __mem + 7 * VV::width, F(), __convert_mask<M>(__extract_part<7, 8>(__k)));
             } else {
                 __assert_unreachable<_T>();
             }
         } else {
-            __bit_iteration(__vector_to_bitset(k.d).to_ullong(),
-                            [&](auto i) { mem[i] = static_cast<_U>(v[i]); });
+            __bit_iteration(__vector_to_bitset(__k.d).to_ullong(),
+                            [&](auto i) { __mem[i] = static_cast<_U>(__v[i]); });
         }
     }
 
@@ -3395,229 +3419,237 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     // compares {{{2
     // equal_to {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> equal_to(__storage<_T, _N> x,
-                                                               __storage<_T, _N> y)
+    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> equal_to(
+        __storage<_T, _N> __x, __storage<_T, _N> __y)
     {
-        if constexpr (sizeof(x) == 64) {  // AVX512
+        [[maybe_unused]] const auto __xi = __to_intrin(__x);
+        [[maybe_unused]] const auto __yi = __to_intrin(__y);
+        if constexpr (sizeof(__x) == 64) {  // AVX512
             if constexpr (std::is_floating_point_v<_T>) {
-                       if constexpr (sizeof(_T) == 8) { return _mm512_cmp_pd_mask(x, y, _CMP_EQ_OQ);
-                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmp_ps_mask(x, y, _CMP_EQ_OQ);
+                       if constexpr (sizeof(_T) == 8) { return _mm512_cmp_pd_mask(__xi, __yi, _CMP_EQ_OQ);
+                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmp_ps_mask(__xi, __yi, _CMP_EQ_OQ);
                 } else { __assert_unreachable<_T>(); }
             } else {
-                       if constexpr (sizeof(_T) == 8) { return _mm512_cmpeq_epi64_mask(x, y);
-                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmpeq_epi32_mask(x, y);
-                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmpeq_epi16_mask(x, y);
-                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmpeq_epi8_mask(x, y);
+                       if constexpr (sizeof(_T) == 8) { return _mm512_cmpeq_epi64_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmpeq_epi32_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmpeq_epi16_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmpeq_epi8_mask(__xi, __yi);
                 } else { __assert_unreachable<_T>(); }
             }
         } else {
-            return __to_storage(x.d == y.d);
+            return __to_storage(__x.d == __y.d);
         }
     }
 
     // not_equal_to {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> not_equal_to(__storage<_T, _N> x,
-                                                                   __storage<_T, _N> y)
+    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> not_equal_to(
+        __storage<_T, _N> __x, __storage<_T, _N> __y)
     {
-        if constexpr (sizeof(x) == 64) {  // AVX512
+        [[maybe_unused]] const auto __xi = __to_intrin(__x);
+        [[maybe_unused]] const auto __yi = __to_intrin(__y);
+        if constexpr (sizeof(__x) == 64) {  // AVX512
             if constexpr (std::is_floating_point_v<_T>) {
-                       if constexpr (sizeof(_T) == 8) { return _mm512_cmp_pd_mask(x, y, _CMP_NEQ_UQ);
-                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmp_ps_mask(x, y, _CMP_NEQ_UQ);
+                       if constexpr (sizeof(_T) == 8) { return _mm512_cmp_pd_mask(__xi, __yi, _CMP_NEQ_UQ);
+                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmp_ps_mask(__xi, __yi, _CMP_NEQ_UQ);
                 } else { __assert_unreachable<_T>(); }
             } else {
-                       if constexpr (sizeof(_T) == 8) { return ~_mm512_cmpeq_epi64_mask(x, y);
-                } else if constexpr (sizeof(_T) == 4) { return ~_mm512_cmpeq_epi32_mask(x, y);
-                } else if constexpr (sizeof(_T) == 2) { return ~_mm512_cmpeq_epi16_mask(x, y);
-                } else if constexpr (sizeof(_T) == 1) { return ~_mm512_cmpeq_epi8_mask(x, y);
+                       if constexpr (sizeof(_T) == 8) { return ~_mm512_cmpeq_epi64_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 4) { return ~_mm512_cmpeq_epi32_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 2) { return ~_mm512_cmpeq_epi16_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 1) { return ~_mm512_cmpeq_epi8_mask(__xi, __yi);
                 } else { __assert_unreachable<_T>(); }
             }
         } else {
-            return __to_storage(x.d != y.d);
+            return __to_storage(__x.d != __y.d);
         }
     }
 
     // less {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> less(__storage<_T, _N> x,
-                                                           __storage<_T, _N> y)
+    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> less(__storage<_T, _N> __x,
+                                                           __storage<_T, _N> __y)
     {
-        if constexpr (sizeof(x) == 64) {  // AVX512
+        [[maybe_unused]] const auto __xi = __to_intrin(__x);
+        [[maybe_unused]] const auto __yi = __to_intrin(__y);
+        if constexpr (sizeof(__x) == 64) {  // AVX512
             if constexpr (std::is_floating_point_v<_T>) {
-                       if constexpr (sizeof(_T) == 8) { return _mm512_cmp_pd_mask(x, y, _CMP_LT_OS);
-                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmp_ps_mask(x, y, _CMP_LT_OS);
+                       if constexpr (sizeof(_T) == 8) { return _mm512_cmp_pd_mask(__xi, __yi, _CMP_LT_OS);
+                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmp_ps_mask(__xi, __yi, _CMP_LT_OS);
                 } else { __assert_unreachable<_T>(); }
             } else if constexpr (std::is_signed_v<_T>) {
-                       if constexpr (sizeof(_T) == 8) { return _mm512_cmplt_epi64_mask(x, y);
-                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmplt_epi32_mask(x, y);
-                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmplt_epi16_mask(x, y);
-                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmplt_epi8_mask(x, y);
+                       if constexpr (sizeof(_T) == 8) { return _mm512_cmplt_epi64_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmplt_epi32_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmplt_epi16_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmplt_epi8_mask(__xi, __yi);
                 } else { __assert_unreachable<_T>(); }
             } else {
                 static_assert(std::is_unsigned_v<_T>);
-                       if constexpr (sizeof(_T) == 8) { return _mm512_cmplt_epu64_mask(x, y);
-                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmplt_epu32_mask(x, y);
-                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmplt_epu16_mask(x, y);
-                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmplt_epu8_mask(x, y);
+                       if constexpr (sizeof(_T) == 8) { return _mm512_cmplt_epu64_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmplt_epu32_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmplt_epu16_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmplt_epu8_mask(__xi, __yi);
                 } else { __assert_unreachable<_T>(); }
             }
         } else {
-            return __to_storage(x.d < y.d);
+            return __to_storage(__x.d < __y.d);
         }
     }
 
     // less_equal {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> less_equal(__storage<_T, _N> x,
-                                                                 __storage<_T, _N> y)
+    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> less_equal(__storage<_T, _N> __x,
+                                                                 __storage<_T, _N> __y)
     {
-        if constexpr (sizeof(x) == 64) {  // AVX512
+        [[maybe_unused]] const auto __xi = __to_intrin(__x);
+        [[maybe_unused]] const auto __yi = __to_intrin(__y);
+        if constexpr (sizeof(__x) == 64) {  // AVX512
             if constexpr (std::is_floating_point_v<_T>) {
-                       if constexpr (sizeof(_T) == 8) { return _mm512_cmp_pd_mask(x, y, _CMP_LE_OS);
-                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmp_ps_mask(x, y, _CMP_LE_OS);
+                       if constexpr (sizeof(_T) == 8) { return _mm512_cmp_pd_mask(__xi, __yi, _CMP_LE_OS);
+                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmp_ps_mask(__xi, __yi, _CMP_LE_OS);
                 } else { __assert_unreachable<_T>(); }
             } else if constexpr (std::is_signed_v<_T>) {
-                       if constexpr (sizeof(_T) == 8) { return _mm512_cmple_epi64_mask(x, y);
-                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmple_epi32_mask(x, y);
-                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmple_epi16_mask(x, y);
-                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmple_epi8_mask(x, y);
+                       if constexpr (sizeof(_T) == 8) { return _mm512_cmple_epi64_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmple_epi32_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmple_epi16_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmple_epi8_mask(__xi, __yi);
                 } else { __assert_unreachable<_T>(); }
             } else {
                 static_assert(std::is_unsigned_v<_T>);
-                       if constexpr (sizeof(_T) == 8) { return _mm512_cmple_epu64_mask(x, y);
-                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmple_epu32_mask(x, y);
-                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmple_epu16_mask(x, y);
-                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmple_epu8_mask(x, y);
+                       if constexpr (sizeof(_T) == 8) { return _mm512_cmple_epu64_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 4) { return _mm512_cmple_epu32_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 2) { return _mm512_cmple_epu16_mask(__xi, __yi);
+                } else if constexpr (sizeof(_T) == 1) { return _mm512_cmple_epu8_mask(__xi, __yi);
                 } else { __assert_unreachable<_T>(); }
             }
         } else {
-            return __to_storage(x.d <= y.d);
+            return __to_storage(__x.d <= __y.d);
         }
     }
 
     // negation {{{2
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> negate(__storage<_T, _N> x) noexcept
+    _GLIBCXX_SIMD_INTRINSIC static constexpr __mask_member_type<_T> negate(__storage<_T, _N> __x) noexcept
     {
         if constexpr (__is_abi<_Abi, simd_abi::__avx512_abi>()) {
-            return equal_to(x, __simd_member_type<_T>());
+            return equal_to(__x, __simd_member_type<_T>());
         } else {
-            return __to_storage(!x.d);
+            return __to_storage(!__x.d);
         }
     }
 
     // min, max, clamp {{{2
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_NORMAL_MATH _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, _N> min(__storage<_T, _N> a,
-                                                                   __storage<_T, _N> b)
+    _GLIBCXX_SIMD_NORMAL_MATH _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, _N> min(__storage<_T, _N> __a,
+                                                                   __storage<_T, _N> __b)
     {
-        return a.d < b.d ? a.d : b.d;
+        return __a.d < __b.d ? __a.d : __b.d;
     }
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_NORMAL_MATH _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, _N> max(__storage<_T, _N> a,
-                                                                   __storage<_T, _N> b)
+    _GLIBCXX_SIMD_NORMAL_MATH _GLIBCXX_SIMD_INTRINSIC static constexpr __storage<_T, _N> max(__storage<_T, _N> __a,
+                                                                   __storage<_T, _N> __b)
     {
-        return a.d > b.d ? a.d : b.d;
+        return __a.d > __b.d ? __a.d : __b.d;
     }
 
     template <class _T, size_t _N>
     _GLIBCXX_SIMD_NORMAL_MATH _GLIBCXX_SIMD_INTRINSIC static constexpr std::pair<__storage<_T, _N>, __storage<_T, _N>>
-    minmax(__storage<_T, _N> a, __storage<_T, _N> b)
+    minmax(__storage<_T, _N> __a, __storage<_T, _N> __b)
     {
-        return {a.d < b.d ? a.d : b.d, a.d < b.d ? b.d : a.d};
+        return {__a.d < __b.d ? __a.d : __b.d, __a.d < __b.d ? __b.d : __a.d};
     }
 
     // reductions {{{2
     template <class _T, class _BinaryOperation>
-    _GLIBCXX_SIMD_INTRINSIC static _T reduce(simd<_T, _Abi> x, _BinaryOperation &&__binary_op)
+    _GLIBCXX_SIMD_INTRINSIC static _T reduce(simd<_T, _Abi> __x, _BinaryOperation &&__binary_op)
     {
         constexpr size_t _N = simd_size_v<_T, _Abi>;
-        if constexpr (sizeof(x) > 16) {
+        if constexpr (sizeof(__x) > 16) {
             using _A = simd_abi::deduce_t<_T, _N / 2>;
             using _V = std::experimental::simd<_T, _A>;
             return __simd_traits<_T, _A>::__simd_impl_type::reduce(
-                __binary_op(_V(__private_init, __extract<0, 2>(__data(x).d)),
-                          _V(__private_init, __extract<1, 2>(__data(x).d))),
+                __binary_op(_V(__private_init, __extract<0, 2>(__data(__x).d)),
+                          _V(__private_init, __extract<1, 2>(__data(__x).d))),
                 std::forward<_BinaryOperation>(__binary_op));
         } else {
-            const auto &xx = x.d;
+            const auto __intrin = __to_intrin(__x.d);
             if constexpr (_N == 16) {
-                x = __binary_op(make_simd<_T, _N>(_mm_unpacklo_epi8(xx, xx)),
-                              make_simd<_T, _N>(_mm_unpackhi_epi8(xx, xx)));
+                __x = __binary_op(make_simd<_T, _N>(_mm_unpacklo_epi8(__intrin, __intrin)),
+                              make_simd<_T, _N>(_mm_unpackhi_epi8(__intrin, __intrin)));
             }
             if constexpr (_N >= 8) {
-                x = __binary_op(make_simd<_T, _N>(_mm_unpacklo_epi16(xx, xx)),
-                              make_simd<_T, _N>(_mm_unpackhi_epi16(xx, xx)));
+                __x = __binary_op(make_simd<_T, _N>(_mm_unpacklo_epi16(__intrin, __intrin)),
+                              make_simd<_T, _N>(_mm_unpackhi_epi16(__intrin, __intrin)));
             }
             if constexpr (_N >= 4) {
                 using _U = std::conditional_t<std::is_floating_point_v<_T>, float, int>;
-                const auto y = __vector_bitcast<_U>(xx.d);
-                x = __binary_op(x, make_simd<_T, _N>(__to_storage(
+                const auto y = __vector_bitcast<_U>(__intrin);
+                __x = __binary_op(__x, make_simd<_T, _N>(__to_storage(
                                      __vector_type_t<_U, 4>{y[3], y[2], y[1], y[0]})));
             }
-            const auto y = __vector_bitcast<__llong>(xx.d);
+            const auto __y = __vector_bitcast<__llong>(__intrin);
             return __binary_op(
-                x, make_simd<_T, _N>(__to_storage(__vector_type_t<__llong, 2>{y[1], y[1]})))[0];
+                __x, make_simd<_T, _N>(__to_storage(__vector_type_t<__llong, 2>{__y[1], __y[1]})))[0];
         }
     }
 
     // math {{{2
     // sqrt {{{3
-    template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __sqrt(__storage<_T, _N> x)
+    template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __sqrt(__storage<_T, _N> __x)
     {
-               if constexpr (__is_sse_ps   <_T, _N>()) { return _mm_sqrt_ps(x);
-        } else if constexpr (__is_sse_pd   <_T, _N>()) { return _mm_sqrt_pd(x);
-        } else if constexpr (__is_avx_ps   <_T, _N>()) { return _mm256_sqrt_ps(x);
-        } else if constexpr (__is_avx_pd   <_T, _N>()) { return _mm256_sqrt_pd(x);
-        } else if constexpr (__is_avx512_ps<_T, _N>()) { return _mm512_sqrt_ps(x);
-        } else if constexpr (__is_avx512_pd<_T, _N>()) { return _mm512_sqrt_pd(x);
+               if constexpr (__is_sse_ps   <_T, _N>()) { return _mm_sqrt_ps(__x);
+        } else if constexpr (__is_sse_pd   <_T, _N>()) { return _mm_sqrt_pd(__x);
+        } else if constexpr (__is_avx_ps   <_T, _N>()) { return _mm256_sqrt_ps(__x);
+        } else if constexpr (__is_avx_pd   <_T, _N>()) { return _mm256_sqrt_pd(__x);
+        } else if constexpr (__is_avx512_ps<_T, _N>()) { return _mm512_sqrt_ps(__x);
+        } else if constexpr (__is_avx512_pd<_T, _N>()) { return _mm512_sqrt_pd(__x);
         } else { __assert_unreachable<_T>(); }
     }
 
     // abs {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __abs(__storage<_T, _N> x) noexcept
+    _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __abs(__storage<_T, _N> __x) noexcept
     {
-        return std::experimental::parallelism_v2::__abs(x);
+        return std::experimental::parallelism_v2::__abs(__x);
     }
 
     // trunc {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __trunc(__storage<_T, _N> x)
+    _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __trunc(__storage<_T, _N> __x)
     {
         if constexpr (__is_avx512_ps<_T, _N>()) {
-            return _mm512_roundscale_round_ps(x, 0x03, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_round_ps(__x, 0x03, _MM_FROUND_CUR_DIRECTION);
         } else if constexpr (__is_avx512_pd<_T, _N>()) {
-            return _mm512_roundscale_round_pd(x, 0x03, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_round_pd(__x, 0x03, _MM_FROUND_CUR_DIRECTION);
         } else if constexpr (__is_avx_ps<_T, _N>()) {
-            return _mm256_round_ps(x, 0x3);
+            return _mm256_round_ps(__x, 0x3);
         } else if constexpr (__is_avx_pd<_T, _N>()) {
-            return _mm256_round_pd(x, 0x3);
+            return _mm256_round_pd(__x, 0x3);
         } else if constexpr (__have_sse4_1 && __is_sse_ps<_T, _N>()) {
-            return _mm_round_ps(x, 0x3);
+            return _mm_round_ps(__x, 0x3);
         } else if constexpr (__have_sse4_1 && __is_sse_pd<_T, _N>()) {
-            return _mm_round_pd(x, 0x3);
+            return _mm_round_pd(__x, 0x3);
         } else if constexpr (__is_sse_ps<_T, _N>()) {
-            auto truncated = _mm_cvtepi32_ps(_mm_cvttps_epi32(x));
+            auto truncated = _mm_cvtepi32_ps(_mm_cvttps_epi32(__x));
             const auto no_fractional_values = __vector_bitcast<float>(
-                __vector_bitcast<int>(__vector_bitcast<uint>(x.d) & 0x7f800000u) <
+                __vector_bitcast<int>(__vector_bitcast<uint>(__x.d) & 0x7f800000u) <
                 0x4b000000);  // the exponent is so large that no mantissa bits signify
                               // fractional values (0x3f8 + 23*8 = 0x4b0)
-            return __blend(no_fractional_values, x, truncated);
+            return __blend(no_fractional_values, __x, truncated);
         } else if constexpr (__is_sse_pd<_T, _N>()) {
-            const auto abs_x = __abs(x).d;
+            const auto abs_x = __abs(__x).d;
             const auto min_no_fractional_bits = __vector_bitcast<double>(
                 __vector_broadcast<2>(0x4330'0000'0000'0000ull));  // 0x3ff + 52 = 0x433
             __vector_type16_t<double> truncated =
                 (abs_x + min_no_fractional_bits) - min_no_fractional_bits;
             // due to rounding, the result can be too large. In this case `truncated >
-            // abs(x)` holds, so subtract 1 to truncated if `abs(x) < truncated`
+            // abs(__x)` holds, so subtract 1 to truncated if `abs(__x) < truncated`
             truncated -=
                 __and(__vector_bitcast<double>(abs_x < truncated), __vector_broadcast<2>(1.));
             // finally, fix the sign bit:
             return __or(
                 __and(__vector_bitcast<double>(__vector_broadcast<2>(0x8000'0000'0000'0000ull)),
-                     x),
+                     __x),
                 truncated);
         } else {
             __assert_unreachable<_T>();
@@ -3626,47 +3658,47 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 
     // floor {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __floor(__storage<_T, _N> x)
+    _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __floor(__storage<_T, _N> __x)
     {
         if constexpr (__is_avx512_ps<_T, _N>()) {
-            return _mm512_roundscale_round_ps(x, 0x01, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_round_ps(__x, 0x01, _MM_FROUND_CUR_DIRECTION);
         } else if constexpr (__is_avx512_pd<_T, _N>()) {
-            return _mm512_roundscale_round_pd(x, 0x01, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_round_pd(__x, 0x01, _MM_FROUND_CUR_DIRECTION);
         } else if constexpr (__is_avx_ps<_T, _N>()) {
-            return _mm256_round_ps(x, 0x1);
+            return _mm256_round_ps(__x, 0x1);
         } else if constexpr (__is_avx_pd<_T, _N>()) {
-            return _mm256_round_pd(x, 0x1);
+            return _mm256_round_pd(__x, 0x1);
         } else if constexpr (__have_sse4_1 && __is_sse_ps<_T, _N>()) {
-            return _mm_floor_ps(x);
+            return _mm_floor_ps(__x);
         } else if constexpr (__have_sse4_1 && __is_sse_pd<_T, _N>()) {
-            return _mm_floor_pd(x);
+            return _mm_floor_pd(__x);
         } else {
-            const auto y = __trunc(x).d;
-            const auto negative_input = __vector_bitcast<_T>(x.d < __vector_broadcast<_N, _T>(0));
-            const auto mask = __andnot(__vector_bitcast<_T>(y == x.d), negative_input);
+            const auto y = __trunc(__x).d;
+            const auto negative_input = __vector_bitcast<_T>(__x.d < __vector_broadcast<_N, _T>(0));
+            const auto mask = __andnot(__vector_bitcast<_T>(y == __x.d), negative_input);
             return __or(__andnot(mask, y), __and(mask, y - __vector_broadcast<_N, _T>(1)));
         }
     }
 
     // ceil {{{3
-    template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __ceil(__storage<_T, _N> x)
+    template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> __ceil(__storage<_T, _N> __x)
     {
         if constexpr (__is_avx512_ps<_T, _N>()) {
-            return _mm512_roundscale_round_ps(x, 0x02, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_round_ps(__x, 0x02, _MM_FROUND_CUR_DIRECTION);
         } else if constexpr (__is_avx512_pd<_T, _N>()) {
-            return _mm512_roundscale_round_pd(x, 0x02, _MM_FROUND_CUR_DIRECTION);
+            return _mm512_roundscale_round_pd(__x, 0x02, _MM_FROUND_CUR_DIRECTION);
         } else if constexpr (__is_avx_ps<_T, _N>()) {
-            return _mm256_round_ps(x, 0x2);
+            return _mm256_round_ps(__x, 0x2);
         } else if constexpr (__is_avx_pd<_T, _N>()) {
-            return _mm256_round_pd(x, 0x2);
+            return _mm256_round_pd(__x, 0x2);
         } else if constexpr (__have_sse4_1 && __is_sse_ps<_T, _N>()) {
-            return _mm_ceil_ps(x);
+            return _mm_ceil_ps(__x);
         } else if constexpr (__have_sse4_1 && __is_sse_pd<_T, _N>()) {
-            return _mm_ceil_pd(x);
+            return _mm_ceil_pd(__x);
         } else {
-            const auto y = __trunc(x).d;
-            const auto negative_input = __vector_bitcast<_T>(x.d < __vector_broadcast<_N, _T>(0));
-            const auto inv_mask = __or(__vector_bitcast<_T>(y == x.d), negative_input);
+            const auto y = __trunc(__x).d;
+            const auto negative_input = __vector_bitcast<_T>(__x.d < __vector_broadcast<_N, _T>(0));
+            const auto inv_mask = __or(__vector_bitcast<_T>(y == __x.d), negative_input);
             return __or(__and(inv_mask, y),
                        __andnot(inv_mask, y + __vector_broadcast<_N, _T>(1)));
         }
@@ -3674,53 +3706,53 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 
     // isnan {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isnan(__storage<_T, _N> x)
+    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isnan(__storage<_T, _N> __x)
     {
-             if constexpr (__is_sse_ps   <_T, _N>()) { return _mm_cmpunord_ps(x, x); }
-        else if constexpr (__is_avx_ps   <_T, _N>()) { return _mm256_cmp_ps(x, x, _CMP_UNORD_Q); }
-        else if constexpr (__is_avx512_ps<_T, _N>()) { return _mm512_cmp_ps_mask(x, x, _CMP_UNORD_Q); }
-        else if constexpr (__is_sse_pd   <_T, _N>()) { return _mm_cmpunord_pd(x, x); }
-        else if constexpr (__is_avx_pd   <_T, _N>()) { return _mm256_cmp_pd(x, x, _CMP_UNORD_Q); }
-        else if constexpr (__is_avx512_pd<_T, _N>()) { return _mm512_cmp_pd_mask(x, x, _CMP_UNORD_Q); }
+             if constexpr (__is_sse_ps   <_T, _N>()) { return _mm_cmpunord_ps(__x, __x); }
+        else if constexpr (__is_avx_ps   <_T, _N>()) { return _mm256_cmp_ps(__x, __x, _CMP_UNORD_Q); }
+        else if constexpr (__is_avx512_ps<_T, _N>()) { return _mm512_cmp_ps_mask(__x, __x, _CMP_UNORD_Q); }
+        else if constexpr (__is_sse_pd   <_T, _N>()) { return _mm_cmpunord_pd(__x, __x); }
+        else if constexpr (__is_avx_pd   <_T, _N>()) { return _mm256_cmp_pd(__x, __x, _CMP_UNORD_Q); }
+        else if constexpr (__is_avx512_pd<_T, _N>()) { return _mm512_cmp_pd_mask(__x, __x, _CMP_UNORD_Q); }
         else { __assert_unreachable<_T>(); }
     }
 
     // isfinite {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isfinite(__storage<_T, _N> x)
+    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isfinite(__storage<_T, _N> __x)
     {
-        return __cmpord(x.d, x.d * _T());
+        return __cmpord(__x.d, __x.d * _T());
     }
 
     // isunordered {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isunordered(__storage<_T, _N> x,
+    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isunordered(__storage<_T, _N> __x,
                                                           __storage<_T, _N> y)
     {
-        return __cmpunord(x.d, y.d);
+        return __cmpunord(__x.d, y.d);
     }
 
     // signbit {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __signbit(__storage<_T, _N> x)
+    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __signbit(__storage<_T, _N> __x)
     {
         using I = __int_for_sizeof_t<_T>;
         if constexpr (__have_avx512dq && __is_avx512_ps<_T, _N>()) {
-            return _mm512_movepi32_mask(__vector_bitcast<__llong>(x));
+            return _mm512_movepi32_mask(__vector_bitcast<__llong>(__x));
         } else if constexpr (__have_avx512dq && __is_avx512_pd<_T, _N>()) {
-            return _mm512_movepi64_mask(__vector_bitcast<__llong>(x));
-        } else if constexpr (sizeof(x) == 64) {
+            return _mm512_movepi64_mask(__vector_bitcast<__llong>(__x));
+        } else if constexpr (sizeof(__x) == 64) {
             const auto signmask = __vector_broadcast<_N>(std::numeric_limits<I>::min());
-            return equal_to(__storage<I, _N>(__vector_bitcast<I>(x.d) & signmask),
+            return equal_to(__storage<I, _N>(__vector_bitcast<I>(__x.d) & signmask),
                             __storage<I, _N>(signmask));
         } else {
-            const auto xx = __vector_bitcast<I>(x.d);
+            const auto xx = __vector_bitcast<I>(__x.d);
             constexpr I signmask = std::numeric_limits<I>::min();
-            if constexpr ((sizeof(_T) == 4 && (__have_avx2 || sizeof(x) == 16)) ||
+            if constexpr ((sizeof(_T) == 4 && (__have_avx2 || sizeof(__x) == 16)) ||
                           __have_avx512vl) {
                 (void)signmask;
                 return __vector_bitcast<_T>(xx >> std::numeric_limits<I>::digits);
-            } else if constexpr ((__have_avx2 || (__have_ssse3 && sizeof(x) == 16))) {
+            } else if constexpr ((__have_avx2 || (__have_ssse3 && sizeof(__x) == 16))) {
                 return __vector_bitcast<_T>((xx & signmask) == signmask);
             } else {  // SSE2/3 or AVX (w/o AVX2)
                 constexpr auto one = __vector_broadcast<_N, _T>(1);
@@ -3732,20 +3764,20 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     }
 
     // isnonzerovalue (isnormal | is subnormal == !isinf & !isnan & !is zero) {{{3
-    template <class _T> _GLIBCXX_SIMD_INTRINSIC static auto isnonzerovalue(_T x)
+    template <class _T> _GLIBCXX_SIMD_INTRINSIC static auto isnonzerovalue(_T __x)
     {
         using _U = typename __vector_traits<_T>::value_type;
-        return __cmpord(x * std::numeric_limits<_U>::infinity(),  // NaN if x == 0
-                           x * _U()                                  // NaN if x == inf
+        return __cmpord(__x * std::numeric_limits<_U>::infinity(),  // NaN if __x == 0
+                           __x * _U()                                  // NaN if __x == inf
         );
     }
 
-    template <class _T> _GLIBCXX_SIMD_INTRINSIC static auto isnonzerovalue_mask(_T x)
+    template <class _T> _GLIBCXX_SIMD_INTRINSIC static auto isnonzerovalue_mask(_T __x)
     {
         using _U = typename __vector_traits<_T>::value_type;
         constexpr size_t _N = __vector_traits<_T>::width;
-        const auto a = x * std::numeric_limits<_U>::infinity();  // NaN if x == 0
-        const auto b = x * _U();                                 // NaN if x == inf
+        const auto a = __x * std::numeric_limits<_U>::infinity();  // NaN if __x == 0
+        const auto b = __x * _U();                                 // NaN if __x == inf
         if constexpr (__have_avx512vl && __is_sse_ps<_U, _N>()) {
             return _mm_cmp_ps_mask(a, b, _CMP_ORD_Q);
         } else if constexpr (__have_avx512f && __is_sse_ps<_U, _N>()) {
@@ -3776,52 +3808,52 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 
     // isinf {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isinf(__storage<_T, _N> x)
+    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isinf(__storage<_T, _N> __x)
     {
         if constexpr (__is_avx512_pd<_T, _N>()) {
             if constexpr (__have_avx512dq) {
-                return _mm512_fpclass_pd_mask(x, 0x08) | _mm512_fpclass_pd_mask(x, 0x10);
+                return _mm512_fpclass_pd_mask(__x, 0x08) | _mm512_fpclass_pd_mask(__x, 0x10);
             } else {
-                return _mm512_cmp_epi64_mask(__vector_bitcast<__llong>(__abs(x)),
+                return _mm512_cmp_epi64_mask(__vector_bitcast<__llong>(__abs(__x)),
                                              __vector_broadcast<_N>(0x7ff0000000000000ll),
                                              _CMP_EQ_OQ);
             }
         } else if constexpr (__is_avx512_ps<_T, _N>()) {
             if constexpr (__have_avx512dq) {
-                return _mm512_fpclass_ps_mask(x, 0x08) | _mm512_fpclass_ps_mask(x, 0x10);
+                return _mm512_fpclass_ps_mask(__x, 0x08) | _mm512_fpclass_ps_mask(__x, 0x10);
             } else {
-                return _mm512_cmp_epi32_mask(__vector_bitcast<__llong>(__abs(x)),
+                return _mm512_cmp_epi32_mask(__vector_bitcast<__llong>(__abs(__x)),
                                              __auto_bitcast(__vector_broadcast<_N>(0x7f800000u)),
                                              _CMP_EQ_OQ);
             }
         } else if constexpr (__have_avx512dq_vl) {
             if constexpr (__is_sse_pd<_T, _N>()) {
-                return __vector_bitcast<double>(_mm_movm_epi64(_mm_fpclass_pd_mask(x, 0x08) |
-                                                           _mm_fpclass_pd_mask(x, 0x10)));
+                return __vector_bitcast<double>(_mm_movm_epi64(_mm_fpclass_pd_mask(__x, 0x08) |
+                                                           _mm_fpclass_pd_mask(__x, 0x10)));
             } else if constexpr (__is_avx_pd<_T, _N>()) {
                 return __vector_bitcast<double>(_mm256_movm_epi64(
-                    _mm256_fpclass_pd_mask(x, 0x08) | _mm256_fpclass_pd_mask(x, 0x10)));
+                    _mm256_fpclass_pd_mask(__x, 0x08) | _mm256_fpclass_pd_mask(__x, 0x10)));
             } else if constexpr (__is_sse_ps<_T, _N>()) {
-                return __vector_bitcast<float>(_mm_movm_epi32(_mm_fpclass_ps_mask(x, 0x08) |
-                                                          _mm_fpclass_ps_mask(x, 0x10)));
+                return __vector_bitcast<float>(_mm_movm_epi32(_mm_fpclass_ps_mask(__x, 0x08) |
+                                                          _mm_fpclass_ps_mask(__x, 0x10)));
             } else if constexpr (__is_avx_ps<_T, _N>()) {
                 return __vector_bitcast<float>(_mm256_movm_epi32(
-                    _mm256_fpclass_ps_mask(x, 0x08) | _mm256_fpclass_ps_mask(x, 0x10)));
+                    _mm256_fpclass_ps_mask(__x, 0x08) | _mm256_fpclass_ps_mask(__x, 0x10)));
             } else {
                 __assert_unreachable<_T>();
             }
         } else {
             // compares to inf using the corresponding integer type
-            return __vector_bitcast<_T>(__vector_bitcast<__int_for_sizeof_t<_T>>(__abs(x).d) ==
+            return __vector_bitcast<_T>(__vector_bitcast<__int_for_sizeof_t<_T>>(__abs(__x).d) ==
                                    __vector_bitcast<__int_for_sizeof_t<_T>>(__vector_broadcast<_N>(
                                        std::numeric_limits<_T>::infinity())));
             // alternative:
-            //return __vector_bitcast<_T>(__abs(x).d > std::numeric_limits<_T>::max());
+            //return __vector_bitcast<_T>(__abs(__x).d > std::numeric_limits<_T>::max());
         }
     }
     // isnormal {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isnormal(__storage<_T, _N> x)
+    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __isnormal(__storage<_T, _N> __x)
     {
         // subnormals -> 0
         // 0 -> 0
@@ -3830,12 +3862,12 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
         // nan -> inf
         // normal value -> positive value / not 0
         return isnonzerovalue(
-            __and(x.d, __vector_broadcast<_N>(std::numeric_limits<_T>::infinity())));
+            __and(__x.d, __vector_broadcast<_N>(std::numeric_limits<_T>::infinity())));
     }
 
     // fpclassify {{{3
     template <class _T, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __fixed_size_storage<int, _N> __fpclassify(__storage<_T, _N> x)
+    _GLIBCXX_SIMD_INTRINSIC static __fixed_size_storage<int, _N> __fpclassify(__storage<_T, _N> __x)
     {
         if constexpr (__is_avx512_pd<_T, _N>()) {
             // AVX512 is special because we want to use an __mmask to blend int vectors
@@ -3845,15 +3877,15 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                 auto &&b = [](int y) { return __to_intrin(__vector_broadcast<_N>(y)); };
                 return {_mm256_mask_mov_epi32(
                     _mm256_mask_mov_epi32(
-                        _mm256_mask_mov_epi32(b(FP_NORMAL), __isnan(x), b(FP_NAN)),
-                        __isinf(x), b(FP_INFINITE)),
+                        _mm256_mask_mov_epi32(b(FP_NORMAL), __isnan(__x), b(FP_NAN)),
+                        __isinf(__x), b(FP_INFINITE)),
                     _mm512_cmp_pd_mask(
-                        __abs(x),
+                        __abs(__x),
                         __vector_broadcast<_N>(std::numeric_limits<double>::min()),
                         _CMP_LT_OS),
                     _mm256_mask_mov_epi32(
                         b(FP_SUBNORMAL),
-                        _mm512_cmp_pd_mask(x, _mm512_setzero_pd(), _CMP_EQ_OQ),
+                        _mm512_cmp_pd_mask(__x, _mm512_setzero_pd(), _CMP_EQ_OQ),
                         b(FP_ZERO)))};
             } else {
                 auto &&b = [](int y) {
@@ -3861,15 +3893,15 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                 };
                 return {__lo256(_mm512_mask_mov_epi32(
                     _mm512_mask_mov_epi32(
-                        _mm512_mask_mov_epi32(b(FP_NORMAL), __isnan(x), b(FP_NAN)),
-                        __isinf(x), b(FP_INFINITE)),
+                        _mm512_mask_mov_epi32(b(FP_NORMAL), __isnan(__x), b(FP_NAN)),
+                        __isinf(__x), b(FP_INFINITE)),
                     _mm512_cmp_pd_mask(
-                        __abs(x),
+                        __abs(__x),
                         __vector_broadcast<_N>(std::numeric_limits<double>::min()),
                         _CMP_LT_OS),
                     _mm512_mask_mov_epi32(
                         b(FP_SUBNORMAL),
-                        _mm512_cmp_pd_mask(x, _mm512_setzero_pd(), _CMP_EQ_OQ),
+                        _mm512_cmp_pd_mask(__x, _mm512_setzero_pd(), _CMP_EQ_OQ),
                         b(FP_ZERO))))};
             }
         } else {
@@ -3885,15 +3917,16 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                 __vector_bitcast<_T>(__vector_broadcast<_N, __int_for_sizeof_t<_T>>(FP_ZERO));
 
             const auto tmp = __vector_bitcast<__llong>(
-                __abs(x).d < std::numeric_limits<_T>::min()
-                    ? (x.d == 0 ? fp_zero : fp_subnormal)
-                    : __blend(__isinf(x).d, __blend(__isnan(x).d, fp_normal, fp_nan),
+                __abs(__x).d < std::numeric_limits<_T>::min()
+                    ? (__x.d == 0 ? fp_zero : fp_subnormal)
+                    : __blend(__isinf(__x).d, __blend(__isnan(__x).d, fp_normal, fp_nan),
                                  fp_infinite));
             if constexpr (std::is_same_v<_T, float>) {
                 if constexpr (__fixed_size_storage<int, _N>::tuple_size == 1) {
-                    return {tmp};
+                    return {__vector_bitcast<int>(tmp)};
                 } else if constexpr (__fixed_size_storage<int, _N>::tuple_size == 2) {
-                    return {__extract<0, 2>(tmp), __extract<1, 2>(tmp)};
+                    return {__extract<0, 2>(__vector_bitcast<int>(tmp)),
+                            __extract<1, 2>(__vector_bitcast<int>(tmp))};
                 } else {
                     __assert_unreachable<_T>();
                 }
@@ -3911,26 +3944,27 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     }
 
     // __increment & __decrement{{{2
-    template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static void __increment(__storage<_T, _N> &x)
+    template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static void __increment(__storage<_T, _N> &__x)
     {
-        x = plus<_T, _N>(x, __vector_broadcast<_N, _T>(1));
+        __x = plus<_T, _N>(__x, __vector_broadcast<_N, _T>(1));
     }
-    template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static void __decrement(__storage<_T, _N> &x)
+    template <class _T, size_t _N> _GLIBCXX_SIMD_INTRINSIC static void __decrement(__storage<_T, _N> &__x)
     {
-        x = minus<_T, _N>(x, __vector_broadcast<_N, _T>(1));
+        __x = minus<_T, _N>(__x, __vector_broadcast<_N, _T>(1));
     }
 
     // smart_reference access {{{2
     template <class _T, size_t _N, class _U>
-    _GLIBCXX_SIMD_INTRINSIC static void set(__storage<_T, _N> &v, int i, _U &&x) noexcept
+    _GLIBCXX_SIMD_INTRINSIC static void set(__storage<_T, _N> &v, int i, _U &&__x) noexcept
     {
-        v.set(i, std::forward<_U>(x));
+        v.set(i, std::forward<_U>(__x));
     }
 
     // masked_assign{{{2
     template <class _T, class K, size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static void masked_assign(__storage<K, _N> k, __storage<_T, _N> &lhs,
-                                           __id<__storage<_T, _N>> rhs)
+    _GLIBCXX_SIMD_INTRINSIC static void masked_assign(__storage<K, _N> k,
+                                                      __storage<_T, _N> &lhs,
+                                                      __id<__storage<_T, _N>> rhs)
     {
         lhs = __blend(k.d, lhs.d, rhs.d);
     }
@@ -3946,11 +3980,11 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                 return;
             } else {
                 // for AVX512/__mmask, a _mm512_maskz_mov is best
-                lhs = __blend(k, lhs, __intrinsic_type_t<_T, _N>());
+                lhs.d = __auto_bitcast(__blend(k, lhs, __intrinsic_type_t<_T, _N>()));
                 return;
             }
         }
-        lhs = __blend(k.d, lhs.d, __vector_broadcast<_N>(rhs));
+        lhs.d = __blend(k.d, lhs.d, __vector_broadcast<_N>(rhs));
     }
 
     // __masked_cassign {{{2
@@ -3958,19 +3992,14 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     _GLIBCXX_SIMD_INTRINSIC static void __masked_cassign(const __storage<K, _N> k, __storage<_T, _N> &lhs,
                                             const __id<__storage<_T, _N>> rhs)
     {
-        lhs = __blend(
-            k.d, lhs.d, __data(Op<void>{}(make_simd(lhs), make_simd(rhs))).d);
+        lhs.d = __blend(k.d, lhs.d, Op<void>{}(lhs.d, rhs.d));
     }
 
     template <template <typename> class Op, class _T, class K, size_t _N>
     _GLIBCXX_SIMD_INTRINSIC static void __masked_cassign(const __storage<K, _N> k, __storage<_T, _N> &lhs,
                                             const __id<_T> rhs)
     {
-        lhs = __blend(
-            k.d, lhs.d,
-            __data(
-                Op<void>{}(make_simd(lhs), make_simd<_T, _N>(__vector_broadcast<_N>(rhs))))
-                .d);
+        lhs.d = __blend(k.d, lhs.d, Op<void>{}(lhs.d, __vector_broadcast<_N>(rhs)));
     }
 
     // masked_unary {{{2
@@ -4072,62 +4101,62 @@ template <class _Abi> struct __generic_mask_impl {
     }
 
     // store {{{2
-    template <class _T, size_t _N, class F>
-    _GLIBCXX_SIMD_INTRINSIC static void store(__storage<_T, _N> v, bool *mem, F) noexcept
+    template <class _T, size_t _N, class _F>
+    _GLIBCXX_SIMD_INTRINSIC static void store(__storage<_T, _N> __v, bool *__mem, _F) noexcept
     {
         if constexpr (__is_abi<_Abi, simd_abi::__sse_abi>()) {
             if constexpr (_N == 2 && __have_sse2) {
-                const auto k = __vector_bitcast<int>(v.d);
-                mem[0] = -k[1];
-                mem[1] = -k[3];
+                const auto __k = __vector_bitcast<int>(__v);
+                __mem[0] = -__k[1];
+                __mem[1] = -__k[3];
             } else if constexpr (_N == 4 && __have_sse2) {
                 const unsigned bool4 =
                     __vector_bitcast<uint>(_mm_packs_epi16(
-                        _mm_packs_epi32(__vector_bitcast<__llong>(v), __m128i()), __m128i()))[0] &
+                        _mm_packs_epi32(__vector_bitcast<__llong>(__v), __m128i()), __m128i()))[0] &
                     0x01010101u;
-                std::memcpy(mem, &bool4, 4);
+                std::memcpy(__mem, &bool4, 4);
             } else if constexpr (std::is_same_v<_T, float> && __have_mmx) {
-                const __m128 k(v);
-                const __m64 kk = _mm_cvtps_pi8(__and(k, _mm_set1_ps(1.f)));
-                __vector_store<4>(kk, mem, F());
+                const __m128 __k = __to_intrin(__v);
+                const __m64 kk = _mm_cvtps_pi8(__and(__k, _mm_set1_ps(1.f)));
+                __vector_store<4>(kk, __mem, _F());
                 _mm_empty();
             } else if constexpr (_N == 8 && __have_sse2) {
                 __vector_store<8>(
-                    _mm_packs_epi16(__to_intrin(__vector_bitcast<ushort>(v.d) >> 15),
+                    _mm_packs_epi16(__to_intrin(__vector_bitcast<ushort>(__v) >> 15),
                                     __m128i()),
-                    mem, F());
+                    __mem, _F());
             } else if constexpr (_N == 16 && __have_sse2) {
-                __vector_store(v.d & 1, mem, F());
+                __vector_store(__v.d & 1, __mem, _F());
             } else {
                 __assert_unreachable<_T>();
             }
         } else if constexpr (__is_abi<_Abi, simd_abi::__avx_abi>()) {
             if constexpr (_N == 4 && __have_avx) {
-                auto k = __vector_bitcast<__llong>(v);
+                auto __k = __vector_bitcast<__llong>(__v);
                 int bool4;
                 if constexpr (__have_avx2) {
-                    bool4 = _mm256_movemask_epi8(k);
+                    bool4 = _mm256_movemask_epi8(__k);
                 } else {
-                    bool4 = (_mm_movemask_epi8(__lo128(k)) |
-                             (_mm_movemask_epi8(__hi128(k)) << 16));
+                    bool4 = (_mm_movemask_epi8(__lo128(__k)) |
+                             (_mm_movemask_epi8(__hi128(__k)) << 16));
                 }
                 bool4 &= 0x01010101;
-                std::memcpy(mem, &bool4, 4);
+                std::memcpy(__mem, &bool4, 4);
             } else if constexpr (_N == 8 && __have_avx) {
-                const auto k = __vector_bitcast<__llong>(v);
-                const auto k2 = _mm_srli_epi16(_mm_packs_epi16(__lo128(k), __hi128(k)), 15);
+                const auto __k = __vector_bitcast<__llong>(__v);
+                const auto k2 = _mm_srli_epi16(_mm_packs_epi16(__lo128(__k), __hi128(__k)), 15);
                 const auto k3 = _mm_packs_epi16(k2, __m128i());
-                __vector_store<8>(k3, mem, F());
+                __vector_store<8>(k3, __mem, _F());
             } else if constexpr (_N == 16 && __have_avx2) {
-                const auto x = _mm256_srli_epi16(v, 15);
+                const auto x = _mm256_srli_epi16(__to_intrin(__v), 15);
                 const auto bools = _mm_packs_epi16(__lo128(x), __hi128(x));
-                __vector_store<16>(bools, mem, F());
+                __vector_store<16>(bools, __mem, _F());
             } else if constexpr (_N == 16 && __have_avx) {
                 const auto bools = 1 & __vector_bitcast<__uchar>(_mm_packs_epi16(
-                                           __lo128(v.intrin()), __hi128(v.intrin())));
-                __vector_store<16>(bools, mem, F());
+                                           __lo128(__to_intrin(__v)), __hi128(__to_intrin(__v))));
+                __vector_store<16>(bools, __mem, _F());
             } else if constexpr (_N == 32 && __have_avx) {
-                __vector_store<32>(1 & v.d, mem, F());
+                __vector_store<32>(1 & __v.d, __mem, _F());
             } else {
                 __assert_unreachable<_T>();
             }
@@ -4135,25 +4164,25 @@ template <class _Abi> struct __generic_mask_impl {
             if constexpr (_N == 8) {
                 __vector_store<8>(
 #if _GLIBCXX_SIMD_HAVE_AVX512VL && _GLIBCXX_SIMD_HAVE_AVX512BW
-                    _mm_maskz_set1_epi8(v, 1),
+                    _mm_maskz_set1_epi8(__v.d, 1),
 #elif defined __x86_64__
-                    __make_storage<__ullong>(_pdep_u64(v, 0x0101010101010101ULL), 0ull),
+                    __make_storage<__ullong>(_pdep_u64(__v.d, 0x0101010101010101ULL), 0ull),
 #else
-                    __make_storage<uint>(_pdep_u32(v, 0x01010101U),
-                                       _pdep_u32(v >> 4, 0x01010101U)),
+                    __make_storage<uint>(_pdep_u32(__v.d, 0x01010101U),
+                                       _pdep_u32(__v.d >> 4, 0x01010101U)),
 #endif
-                    mem, F());
+                    __mem, _F());
             } else if constexpr (_N == 16 && __have_avx512bw_vl) {
-                __vector_store(_mm_maskz_set1_epi8(v, 1), mem, F());
+                __vector_store(_mm_maskz_set1_epi8(__v.d, 1), __mem, _F());
             } else if constexpr (_N == 16 && __have_avx512f) {
-                _mm512_mask_cvtepi32_storeu_epi8(mem, ~__mmask16(),
-                                                 _mm512_maskz_set1_epi32(v, 1));
+                _mm512_mask_cvtepi32_storeu_epi8(__mem, ~__mmask16(),
+                                                 _mm512_maskz_set1_epi32(__v.d, 1));
             } else if constexpr (_N == 32 && __have_avx512bw_vl) {
-                __vector_store(_mm256_maskz_set1_epi8(v, 1), mem, F());
+                __vector_store(_mm256_maskz_set1_epi8(__v.d, 1), __mem, _F());
             } else if constexpr (_N == 32 && __have_avx512bw) {
-                __vector_store(__lo256(_mm512_maskz_set1_epi8(v, 1)), mem, F());
+                __vector_store(__lo256(_mm512_maskz_set1_epi8(__v.d, 1)), __mem, _F());
             } else if constexpr (_N == 64 && __have_avx512bw) {
-                __vector_store(_mm512_maskz_set1_epi8(v, 1), mem, F());
+                __vector_store(_mm512_maskz_set1_epi8(__v.d, 1), __mem, _F());
             } else {
                 __assert_unreachable<_T>();
             }
@@ -4163,33 +4192,33 @@ template <class _Abi> struct __generic_mask_impl {
     }
 
     // masked store {{{2
-    template <class _T, size_t _N, class F>
-    static inline void masked_store(const __storage<_T, _N> v, bool *mem, F,
-                                    const __storage<_T, _N> k) noexcept
+    template <class _T, size_t _N, class _F>
+    static inline void masked_store(const __storage<_T, _N> __v, bool *__mem, _F,
+                                    const __storage<_T, _N> __k) noexcept
     {
         if constexpr (__is_abi<_Abi, simd_abi::__avx512_abi>()) {
             if constexpr (_N == 8 && __have_avx512bw_vl) {
-                _mm_mask_cvtepi16_storeu_epi8(mem, k, _mm_maskz_set1_epi16(v, 1));
+                _mm_mask_cvtepi16_storeu_epi8(__mem, __k, _mm_maskz_set1_epi16(__v, 1));
             } else if constexpr (_N == 8 && __have_avx512vl) {
-                _mm256_mask_cvtepi32_storeu_epi8(mem, k, _mm256_maskz_set1_epi32(v, 1));
+                _mm256_mask_cvtepi32_storeu_epi8(__mem, __k, _mm256_maskz_set1_epi32(__v, 1));
             } else if constexpr (_N == 8) {
-                // we rely on k < 0x100:
-                _mm512_mask_cvtepi32_storeu_epi8(mem, k, _mm512_maskz_set1_epi32(v, 1));
+                // we rely on __k < 0x100:
+                _mm512_mask_cvtepi32_storeu_epi8(__mem, __k, _mm512_maskz_set1_epi32(__v, 1));
             } else if constexpr (_N == 16 && __have_avx512bw_vl) {
-                _mm_mask_storeu_epi8(mem, k, _mm_maskz_set1_epi8(v, 1));
+                _mm_mask_storeu_epi8(__mem, __k, _mm_maskz_set1_epi8(__v, 1));
             } else if constexpr (_N == 16) {
-                _mm512_mask_cvtepi32_storeu_epi8(mem, k, _mm512_maskz_set1_epi32(v, 1));
+                _mm512_mask_cvtepi32_storeu_epi8(__mem, __k, _mm512_maskz_set1_epi32(__v, 1));
             } else if constexpr (_N == 32 && __have_avx512bw_vl) {
-                _mm256_mask_storeu_epi8(mem, k, _mm256_maskz_set1_epi8(v, 1));
+                _mm256_mask_storeu_epi8(__mem, __k, _mm256_maskz_set1_epi8(__v, 1));
             } else if constexpr (_N == 32 && __have_avx512bw) {
-                _mm256_mask_storeu_epi8(mem, k, __lo256(_mm512_maskz_set1_epi8(v, 1)));
+                _mm256_mask_storeu_epi8(__mem, __k, __lo256(_mm512_maskz_set1_epi8(__v, 1)));
             } else if constexpr (_N == 64 && __have_avx512bw) {
-                _mm512_mask_storeu_epi8(mem, k, _mm512_maskz_set1_epi8(v, 1));
+                _mm512_mask_storeu_epi8(__mem, __k, _mm512_maskz_set1_epi8(__v, 1));
             } else {
                 __assert_unreachable<_T>();
             }
         } else {
-            __bit_iteration(__vector_to_bitset(k.d).to_ullong(), [&](auto i) { mem[i] = v[i]; });
+            __bit_iteration(__vector_to_bitset(__k.d).to_ullong(), [&](auto i) { __mem[i] = __v[i]; });
         }
     }
 
@@ -5002,9 +5031,9 @@ template <int _N> struct __fixed_size_mask_impl {
                 tmp2 &= _V([](auto j) {
                     return static_cast<__uchar>(1 << (j % CHAR_BIT));
                 });  // mask bit index
-                const __m128i bool16 =
-                    _mm_add_epi8(__data(tmp2 == 0),
-                                 _mm_set1_epi8(1));  // 0xff -> 0x00 | 0x00 -> 0x01
+                const __m128i bool16 = __intrin_bitcast<__m128i>(
+                    __vector_bitcast<__uchar>(__data(tmp2 == 0)) +
+                    1);  // 0xff -> 0x00 | 0x00 -> 0x01
                 if constexpr (remaining >= 16) {
                     __vector_store<16>(bool16, &mem[offset], f);
                 } else if constexpr (remaining & 3) {
@@ -5869,55 +5898,6 @@ private:
         return native_cvt(__get_tuple_at<_Indexes>(x)...);
     }
 };
-
-// }}}1
-// __generic_simd_impl::__masked_cassign specializations {{{1
-#if _GLIBCXX_SIMD_HAVE_AVX512_ABI
-#define _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(_TYPE, _TYPE_SUFFIX, _OP, _OP_NAME)  \
-    template <>                                                                          \
-    template <>                                                                          \
-    _GLIBCXX_SIMD_INTRINSIC void                                                         \
-    __generic_simd_impl<simd_abi::__avx512>::__masked_cassign<_OP, _TYPE, bool,          \
-                                                              64 / sizeof(_TYPE)>(       \
-        const __storage<bool, 64 / sizeof(_TYPE)> k,                                     \
-        __storage<_TYPE, 64 / sizeof(_TYPE)> &lhs,                                       \
-        const __id<__storage<_TYPE, 64 / sizeof(_TYPE)>> rhs)                            \
-    {                                                                                    \
-        lhs = _mm512_mask_##_OP_NAME##_##_TYPE_SUFFIX(lhs, k, lhs, rhs);                 \
-    }                                                                                    \
-    _GLIBCXX_SIMD_NOTHING_EXPECTING_SEMICOLON
-
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(double, pd, std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(float, ps, std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__llong, epi64, std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__ullong, epi64, std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(long, epi64, std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__ulong, epi64, std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(int, epi32, std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__uint, epi32, std::plus, add);
-#if _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(   short, epi16, std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__ushort, epi16, std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION( __schar, epi8 , std::plus, add);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION( __uchar, epi8 , std::plus, add);
-#endif  // _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
-
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(  double,  pd  , std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(   float,  ps  , std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION( __llong, epi64, std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__ullong, epi64, std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(    long, epi64, std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION( __ulong, epi64, std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(     int, epi32, std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(  __uint, epi32, std::minus, sub);
-#if _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(   short, epi16, std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION(__ushort, epi16, std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION( __schar, epi8 , std::minus, sub);
-_GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION( __uchar, epi8 , std::minus, sub);
-#endif  // _GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
-#undef _GLIBCXX_SIMD_MASKED_CASSIGN_SPECIALIZATION
-#endif  // _GLIBCXX_SIMD_HAVE_AVX512_ABI
 
 // }}}1
 _GLIBCXX_SIMD_END_NAMESPACE

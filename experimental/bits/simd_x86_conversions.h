@@ -1,7 +1,7 @@
 #ifndef _GLIBCXX_EXPERIMENTAL_SIMD_X86_CONVERSIONS_H
 #define _GLIBCXX_EXPERIMENTAL_SIMD_X86_CONVERSIONS_H
 
-#pragma GCC system_header
+//#pragma GCC system_header
 
 #if __cplusplus >= 201703L
 
@@ -11,65 +11,65 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
 {
     using _T = typename _Traits::value_type;
     constexpr size_t _N = _Traits::width;
-    const auto __intrin = __to_intrin(__vv);
+    [[maybe_unused]] const auto __intrin = __to_intrin(__vv);
     __storage<_T, _N> __v(__vv);
     using _U = typename __vector_traits<_To>::value_type;
     constexpr size_t _M = __vector_traits<_To>::width;
 
     // [xyz]_to_[xyz] {{{2
-    constexpr bool __x_to_x = sizeof(__v) == 16 && sizeof(_To) == 16;
-    constexpr bool __x_to_y = sizeof(__v) == 16 && sizeof(_To) == 32;
-    constexpr bool __x_to_z = sizeof(__v) == 16 && sizeof(_To) == 64;
-    constexpr bool __y_to_x = sizeof(__v) == 32 && sizeof(_To) == 16;
-    constexpr bool __y_to_y = sizeof(__v) == 32 && sizeof(_To) == 32;
-    constexpr bool __y_to_z = sizeof(__v) == 32 && sizeof(_To) == 64;
-    constexpr bool __z_to_x = sizeof(__v) == 64 && sizeof(_To) == 16;
-    constexpr bool __z_to_y = sizeof(__v) == 64 && sizeof(_To) == 32;
-    constexpr bool __z_to_z = sizeof(__v) == 64 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __x_to_x = sizeof(__v) == 16 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __x_to_y = sizeof(__v) == 16 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __x_to_z = sizeof(__v) == 16 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __y_to_x = sizeof(__v) == 32 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __y_to_y = sizeof(__v) == 32 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __y_to_z = sizeof(__v) == 32 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __z_to_x = sizeof(__v) == 64 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __z_to_y = sizeof(__v) == 64 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __z_to_z = sizeof(__v) == 64 && sizeof(_To) == 64;
 
     // iX_to_iX {{{2
-    constexpr bool __i_to_i = is_integral_v<_U> && is_integral_v<_T>;
-    constexpr bool i8_to_i16  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 2;
-    constexpr bool i8_to_i32  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 4;
-    constexpr bool i8_to_i64  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 8;
-    constexpr bool i16_to_i8  = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 1;
-    constexpr bool i16_to_i32 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 4;
-    constexpr bool i16_to_i64 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 8;
-    constexpr bool i32_to_i8  = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 1;
-    constexpr bool i32_to_i16 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 2;
-    constexpr bool i32_to_i64 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 8;
-    constexpr bool i64_to_i8  = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
-    constexpr bool i64_to_i16 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 2;
-    constexpr bool i64_to_i32 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i_to_i = is_integral_v<_U> && is_integral_v<_T>;
+    [[maybe_unused]] constexpr bool i8_to_i16  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool i8_to_i32  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool i8_to_i64  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool i16_to_i8  = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool i16_to_i32 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool i16_to_i64 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool i32_to_i8  = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool i32_to_i16 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool i32_to_i64 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool i64_to_i8  = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool i64_to_i16 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool i64_to_i32 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 4;
 
     // [fsu]X_to_[fsu]X {{{2
     // ibw = integral && byte or word, i.e. char and short with any signedness
-    constexpr bool s64_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool s32_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool s16_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool  s8_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool u64_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool u32_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool u16_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool  u8_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool s64_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool s32_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool u64_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool u32_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool ibw_to_f32 = is_integral_v<_T> && sizeof(_T) <= 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool ibw_to_f64 = is_integral_v<_T> && sizeof(_T) <= 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f32_to_f64 = is_floating_point_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool f64_to_f32 = is_floating_point_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s64_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s32_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s16_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  s8_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool u64_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool u32_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool u16_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  u8_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s64_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool s32_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool u64_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool u32_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool ibw_to_f32 = is_integral_v<_T> && sizeof(_T) <= 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool ibw_to_f64 = is_integral_v<_T> && sizeof(_T) <= 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f32_to_f64 = is_floating_point_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool f64_to_f32 = is_floating_point_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
 
     if constexpr (__i_to_i && __y_to_x && !__have_avx2) {  //{{{2
         return __convert_x86<_To>(__lo128(__v), __hi128(__v));
@@ -103,245 +103,244 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         return __convert_x86<_To>(__extract_part<0, _N / _M>(__v));
     } else if constexpr (i64_to_i32) {  //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepi64_epi32(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_epi32(__intrin));
         } else if constexpr (__x_to_x) {
-            return __auto_bitcast(_mm_shuffle_ps(__auto_bitcast(__v), __m128(), 8));
-            // return __intrin_bitcast<_To>(_mm_unpacklo_epi64(_mm_shuffle_epi32(__v, 8), __m128i()));
+            return __auto_bitcast(_mm_shuffle_ps(__vector_bitcast<float>(__vv), __m128(), 8));
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi64_epi32(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_epi32(__intrin));
         } else if constexpr (__y_to_x && __have_avx512f) {
-            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi32(__auto_bitcast(__v.d))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi32(__auto_bitcast(__vv))));
         } else if constexpr (__y_to_x) {
-            return __intrin_bitcast<_To>(__lo128(_mm256_permute4x64_epi64(_mm256_shuffle_epi32(__v, 8), 0 + 4 * 2)));
+            return __intrin_bitcast<_To>(__lo128(_mm256_permute4x64_epi64(_mm256_shuffle_epi32(__intrin, 8), 0 + 4 * 2)));
         } else if constexpr (__z_to_y) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi32(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi32(__intrin));
         }
     } else if constexpr (i64_to_i16) {  //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepi64_epi16(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_epi16(__intrin));
         } else if constexpr (__x_to_x && __have_avx512f) {
             return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi16(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x && __have_ssse3) {
             return __intrin_bitcast<_To>(_mm_shuffle_epi8(
-                __v, _mm_setr_epi8(0, 1, 8, 9, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
+                __intrin, _mm_setr_epi8(0, 1, 8, 9, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                    -0x80, -0x80, -0x80, -0x80, -0x80, -0x80)));
             // fallback without SSSE3
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi64_epi16(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_epi16(__intrin));
         } else if constexpr (__y_to_x && __have_avx512f) {
             return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi16(__auto_bitcast(__v))));
         } else if constexpr (__y_to_x) {
             const auto a = _mm256_shuffle_epi8(
-                __v, _mm256_setr_epi8(0, 1, 8, 9, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
+                __intrin, _mm256_setr_epi8(0, 1, 8, 9, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                     -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                     -0x80, -0x80, -0x80, 0, 1, 8, 9, -0x80, -0x80, -0x80,
                                     -0x80, -0x80, -0x80, -0x80, -0x80));
             return __intrin_bitcast<_To>(__lo128(a) | __hi128(a));
         } else if constexpr (__z_to_x) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi16(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi16(__intrin));
         }
     } else if constexpr (i64_to_i8) {   //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepi64_epi8(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_epi8(__intrin));
         } else if constexpr (__x_to_x && __have_avx512f) {
-            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi8(__zero_extend(__v.intrin()))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi64_epi8(__zero_extend(__intrin))));
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi64_epi8(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_epi8(__intrin));
         } else if constexpr (__y_to_x && __have_avx512f) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi8(__zero_extend(__v.intrin())));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi8(__zero_extend(__intrin)));
         } else if constexpr (__z_to_x) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi8(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_epi8(__intrin));
         }
     } else if constexpr (i32_to_i64) {    //{{{2
         if constexpr (__have_sse4_1 && __x_to_x) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi32_epi64(__v) : _mm_cvtepu32_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi32_epi64(__intrin) : _mm_cvtepu32_epi64(__intrin));
         } else if constexpr (__x_to_x) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi32(
-                __v, is_signed_v<_T> ? _mm_srai_epi32(__v, 31) : __m128i()));
+                __intrin, is_signed_v<_T> ? _mm_srai_epi32(__intrin, 31) : __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi32_epi64(__v) : _mm256_cvtepu32_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi32_epi64(__intrin) : _mm256_cvtepu32_epi64(__intrin));
         } else if constexpr (__y_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi32_epi64(__v) : _mm512_cvtepu32_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi32_epi64(__intrin) : _mm512_cvtepu32_epi64(__intrin));
         }
     } else if constexpr (i32_to_i16) {  //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepi32_epi16(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi32_epi16(__intrin));
         } else if constexpr (__x_to_x && __have_avx512f) {
             return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi32_epi16(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x && __have_ssse3) {
             return __intrin_bitcast<_To>(_mm_shuffle_epi8(
-                __v, _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80,
+                __intrin, _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80,
                                    -0x80, -0x80, -0x80, -0x80)));
         } else if constexpr (__x_to_x) {
-            auto a = _mm_unpacklo_epi16(__v, __m128i());          // 0o.o 1o.o
-            auto b = _mm_unpackhi_epi16(__v, __m128i());          // 2o.o 3o.o
+            auto a = _mm_unpacklo_epi16(__intrin, __m128i());          // 0o.o 1o.o
+            auto b = _mm_unpackhi_epi16(__intrin, __m128i());          // 2o.o 3o.o
             auto c = _mm_unpacklo_epi16(a, b);                    // 02oo ..oo
             auto d = _mm_unpackhi_epi16(a, b);                    // 13oo ..oo
             return __intrin_bitcast<_To>(_mm_unpacklo_epi16(c, d));  // 0123 oooo
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi32_epi16(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi32_epi16(__intrin));
         } else if constexpr (__y_to_x && __have_avx512f) {
             return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi32_epi16(__auto_bitcast(__v))));
         } else if constexpr (__y_to_x) {
             auto a = _mm256_shuffle_epi8(
-                __v,
+                __intrin,
                 _mm256_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80,
                                  -0x80, -0x80, -0x80, -0x80, 0, 1, 4, 5, 8, 9, 12, 13,
                                  -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80));
             return __intrin_bitcast<_To>(
                 __lo128(_mm256_permute4x64_epi64(a, 0xf8)));  // a[0] a[2] | a[3] a[3]
         } else if constexpr (__z_to_y) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi32_epi16(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi32_epi16(__intrin));
         }
     } else if constexpr (i32_to_i8) {   //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepi32_epi8(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi32_epi8(__intrin));
         } else if constexpr (__x_to_x && __have_avx512f) {
-            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi32_epi8(__zero_extend(__v.intrin()))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi32_epi8(__zero_extend(__intrin))));
         } else if constexpr (__x_to_x && __have_ssse3) {
             return __intrin_bitcast<_To>(_mm_shuffle_epi8(
-                __v, _mm_setr_epi8(0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
+                __intrin, _mm_setr_epi8(0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                    -0x80, -0x80, -0x80, -0x80, -0x80, -0x80)));
         } else if constexpr (__x_to_x) {
-            const auto a = _mm_unpacklo_epi8(__v, __v);  // 0... .... 1... ....
-            const auto b = _mm_unpackhi_epi8(__v, __v);  // 2... .... 3... ....
+            const auto a = _mm_unpacklo_epi8(__intrin, __intrin);  // 0... .... 1... ....
+            const auto b = _mm_unpackhi_epi8(__intrin, __intrin);  // 2... .... 3... ....
             const auto c = _mm_unpacklo_epi8(a, b);  // 02.. .... .... ....
             const auto d = _mm_unpackhi_epi8(a, b);  // 13.. .... .... ....
             const auto e = _mm_unpacklo_epi8(c, d);  // 0123 .... .... ....
             return __intrin_bitcast<_To>(e & _mm_cvtsi32_si128(-1));
         } else if constexpr (__y_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi32_epi8(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi32_epi8(__intrin));
         } else if constexpr (__y_to_x && __have_avx512f) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi32_epi8(__zero_extend(__v.intrin())));
+            return __intrin_bitcast<_To>(_mm512_cvtepi32_epi8(__zero_extend(__intrin)));
         } else if constexpr (__z_to_x) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi32_epi8(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi32_epi8(__intrin));
         }
     } else if constexpr (i16_to_i64) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi64(__v) : _mm_cvtepu16_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi64(__intrin) : _mm_cvtepu16_epi64(__intrin));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
-            auto x = _mm_srai_epi16(__v, 15);
-            auto y = _mm_unpacklo_epi16(__v, x);
+            auto x = _mm_srai_epi16(__intrin, 15);
+            auto y = _mm_unpacklo_epi16(__intrin, x);
             x = _mm_unpacklo_epi16(x, x);
             return __intrin_bitcast<_To>(_mm_unpacklo_epi32(y, x));
         } else if constexpr (__x_to_x) {
-            return __intrin_bitcast<_To>(_mm_unpacklo_epi32(_mm_unpacklo_epi16(__v, __m128i()), __m128i()));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi32(_mm_unpacklo_epi16(__intrin, __m128i()), __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi64(__v) : _mm256_cvtepu16_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi64(__intrin) : _mm256_cvtepu16_epi64(__intrin));
         } else if constexpr (__x_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi64(__v) : _mm512_cvtepu16_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi64(__intrin) : _mm512_cvtepu16_epi64(__intrin));
         }
     } else if constexpr (i16_to_i32) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi32(__v) : _mm_cvtepu16_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi32(__intrin) : _mm_cvtepu16_epi32(__intrin));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
-            return __intrin_bitcast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(__v, __v), 16));
+            return __intrin_bitcast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(__intrin, __intrin), 16));
         } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
-            return __intrin_bitcast<_To>(_mm_unpacklo_epi16(__v, __m128i()));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi16(__intrin, __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi32(__v) : _mm256_cvtepu16_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi16_epi32(__intrin) : _mm256_cvtepu16_epi32(__intrin));
         } else if constexpr (__y_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi32(__v) : _mm512_cvtepu16_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi16_epi32(__intrin) : _mm512_cvtepu16_epi32(__intrin));
         }
     } else if constexpr (i16_to_i8) {   //{{{2
         if constexpr (__x_to_x && __have_avx512bw_vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepi16_epi8(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi16_epi8(__intrin));
         } else if constexpr (__x_to_x && __have_avx512bw) {
-            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi16_epi8(__zero_extend(__v.intrin()))));
+            return __intrin_bitcast<_To>(__lo128(_mm512_cvtepi16_epi8(__zero_extend(__intrin))));
         } else if constexpr (__x_to_x && __have_ssse3) {
             return __intrin_bitcast<_To>(_mm_shuffle_epi8(
-                __v, _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, -0x80, -0x80, -0x80, -0x80,
+                __intrin, _mm_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, -0x80, -0x80, -0x80, -0x80,
                                    -0x80, -0x80, -0x80, -0x80)));
         } else if constexpr (__x_to_x) {
-            auto a = _mm_unpacklo_epi8(__v, __v);  // 00.. 11.. 22.. 33..
-            auto b = _mm_unpackhi_epi8(__v, __v);  // 44.. 55.. 66.. 77..
+            auto a = _mm_unpacklo_epi8(__intrin, __intrin);  // 00.. 11.. 22.. 33..
+            auto b = _mm_unpackhi_epi8(__intrin, __intrin);  // 44.. 55.. 66.. 77..
             auto c = _mm_unpacklo_epi8(a, b);  // 0404 .... 1515 ....
             auto d = _mm_unpackhi_epi8(a, b);  // 2626 .... 3737 ....
             auto e = _mm_unpacklo_epi8(c, d);  // 0246 0246 .... ....
             auto f = _mm_unpackhi_epi8(c, d);  // 1357 1357 .... ....
             return __intrin_bitcast<_To>(_mm_unpacklo_epi8(e, f));
         } else if constexpr (__y_to_x && __have_avx512bw_vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi16_epi8(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi16_epi8(__intrin));
         } else if constexpr (__y_to_x && __have_avx512bw) {
-            return __intrin_bitcast<_To>(__lo256(_mm512_cvtepi16_epi8(__zero_extend(__v.intrin()))));
+            return __intrin_bitcast<_To>(__lo256(_mm512_cvtepi16_epi8(__zero_extend(__intrin))));
         } else if constexpr (__y_to_x) {
             auto a = _mm256_shuffle_epi8(
-                __v,
+                __intrin,
                 _mm256_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, -0x80, -0x80, -0x80, -0x80,
                                  -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                  -0x80, -0x80, -0x80, -0x80, 0, 2, 4, 6, 8, 10, 12, 14));
             return __intrin_bitcast<_To>(__lo128(a) | __hi128(a));
         } else if constexpr (__z_to_y && __have_avx512bw) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi16_epi8(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi16_epi8(__intrin));
         } else if constexpr (__z_to_y)  {
             __assert_unreachable<_T>();
         }
     } else if constexpr (i8_to_i64) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi64(__v) : _mm_cvtepu8_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi64(__intrin) : _mm_cvtepu8_epi64(__intrin));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
             if constexpr (__have_ssse3) {
-                auto dup = _mm_unpacklo_epi8(__v, __v);
+                auto dup = _mm_unpacklo_epi8(__intrin, __intrin);
                 auto epi16 = _mm_srai_epi16(dup, 8);
                 _mm_shuffle_epi8(
                     epi16, _mm_setr_epi8(0, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3));
             } else {
-                auto x = _mm_unpacklo_epi8(__v, __v);
+                auto x = _mm_unpacklo_epi8(__intrin, __intrin);
                 x = _mm_unpacklo_epi16(x, x);
                 return __intrin_bitcast<_To>(
                     _mm_unpacklo_epi32(_mm_srai_epi32(x, 24), _mm_srai_epi32(x, 31)));
             }
         } else if constexpr (__x_to_x) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi32(
-                _mm_unpacklo_epi16(_mm_unpacklo_epi8(__v, __m128i()), __m128i()),
+                _mm_unpacklo_epi16(_mm_unpacklo_epi8(__intrin, __m128i()), __m128i()),
                 __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi64(__v) : _mm256_cvtepu8_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi64(__intrin) : _mm256_cvtepu8_epi64(__intrin));
         } else if constexpr (__x_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi64(__v) : _mm512_cvtepu8_epi64(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi64(__intrin) : _mm512_cvtepu8_epi64(__intrin));
         }
     } else if constexpr (i8_to_i32) {  //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi32(__v) : _mm_cvtepu8_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi32(__intrin) : _mm_cvtepu8_epi32(__intrin));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
-            const auto x = _mm_unpacklo_epi8(__v, __v);
+            const auto x = _mm_unpacklo_epi8(__intrin, __intrin);
             return __intrin_bitcast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(x, x), 24));
         } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
-            return __intrin_bitcast<_To>(_mm_unpacklo_epi16(_mm_unpacklo_epi8(__v, __m128i()), __m128i()));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi16(_mm_unpacklo_epi8(__intrin, __m128i()), __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi32(__v) : _mm256_cvtepu8_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi32(__intrin) : _mm256_cvtepu8_epi32(__intrin));
         } else if constexpr (__x_to_z) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi32(__v) : _mm512_cvtepu8_epi32(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi32(__intrin) : _mm512_cvtepu8_epi32(__intrin));
         }
     } else if constexpr (i8_to_i16) {   //{{{2
         if constexpr (__x_to_x && __have_sse4_1) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi16(__v) : _mm_cvtepu8_epi16(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi16(__intrin) : _mm_cvtepu8_epi16(__intrin));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
-            return __intrin_bitcast<_To>(_mm_srai_epi16(_mm_unpacklo_epi8(__v, __v), 8));
+            return __intrin_bitcast<_To>(_mm_srai_epi16(_mm_unpacklo_epi8(__intrin, __intrin), 8));
         } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
-            return __intrin_bitcast<_To>(_mm_unpacklo_epi8(__v, __m128i()));
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi8(__intrin, __m128i()));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi16(__v) : _mm256_cvtepu8_epi16(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm256_cvtepi8_epi16(__intrin) : _mm256_cvtepu8_epi16(__intrin));
         } else if constexpr (__y_to_z && __have_avx512bw) {
-            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi16(__v) : _mm512_cvtepu8_epi16(__v));
+            return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm512_cvtepi8_epi16(__intrin) : _mm512_cvtepu8_epi16(__intrin));
         } else if constexpr (__y_to_z) {
             __assert_unreachable<_T>();
         }
     } else if constexpr (f32_to_s64) {  //{{{2
         if constexpr (__have_avx512dq_vl && __x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvttps_epi64(__v));
+            return __intrin_bitcast<_To>(_mm_cvttps_epi64(__intrin));
         } else if constexpr (__have_avx512dq_vl && __x_to_y) {
-            return __intrin_bitcast<_To>(_mm256_cvttps_epi64(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttps_epi64(__intrin));
         } else if constexpr (__have_avx512dq && __y_to_z) {
-            return __intrin_bitcast<_To>(_mm512_cvttps_epi64(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttps_epi64(__intrin));
         } // else use scalar fallback
     } else if constexpr (f32_to_u64) {  //{{{2
         if constexpr (__have_avx512dq_vl && __x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvttps_epu64(__v));
+            return __intrin_bitcast<_To>(_mm_cvttps_epu64(__intrin));
         } else if constexpr (__have_avx512dq_vl && __x_to_y) {
-            return __intrin_bitcast<_To>(_mm256_cvttps_epu64(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttps_epu64(__intrin));
         } else if constexpr (__have_avx512dq && __y_to_z) {
-            return __intrin_bitcast<_To>(_mm512_cvttps_epu64(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttps_epu64(__intrin));
         } // else use scalar fallback
     } else if constexpr (f32_to_s32) {  //{{{2
         if constexpr (__x_to_x || __y_to_y || __z_to_z) {
@@ -354,7 +353,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         if constexpr (__have_avx512vl && __x_to_x) {
             const __vector_type_t<float, 4> x = __v.d;
             return __builtin_constant_p(x) ? __make_builtin<_U>(x[0], x[1], x[2], x[3])
-                                           : __vector_bitcast<_U>(_mm_cvttps_epu32(__v));
+                                           : __vector_bitcast<_U>(_mm_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __x_to_x) {
             const __vector_type_t<float, 4> x = __v.d;
             return __builtin_constant_p(x)
@@ -364,7 +363,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             const __vector_type_t<float, 8> x = __v.d;
             return __builtin_constant_p(x) ? __make_builtin<_U>(x[0], x[1], x[2], x[3],
                                                                 x[4], x[5], x[6], x[7])
-                                           : __vector_bitcast<_U>(_mm256_cvttps_epu32(__v));
+                                           : __vector_bitcast<_U>(_mm256_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __y_to_y) {
             const __vector_type_t<float, 8> x = __v.d;
             return __builtin_constant_p(x)
@@ -382,71 +381,71 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         return __convert_x86<_To>(__convert_x86<__vector_type_t<int, _N>>(__v));
     } else if constexpr (f64_to_s64) {  //{{{2
         if constexpr (__have_avx512dq_vl && __x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvttpd_epi64(__v));
+            return __intrin_bitcast<_To>(_mm_cvttpd_epi64(__intrin));
         } else if constexpr (__have_avx512dq_vl && __y_to_y) {
-            return __intrin_bitcast<_To>(_mm256_cvttpd_epi64(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttpd_epi64(__intrin));
         } else if constexpr (__have_avx512dq && __z_to_z) {
-            return __intrin_bitcast<_To>(_mm512_cvttpd_epi64(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttpd_epi64(__intrin));
         } // else use scalar fallback
     } else if constexpr (f64_to_u64) {  //{{{2
         if constexpr (__have_avx512dq_vl && __x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvttpd_epu64(__v));
+            return __intrin_bitcast<_To>(_mm_cvttpd_epu64(__intrin));
         } else if constexpr (__have_avx512dq_vl && __y_to_y) {
-            return __intrin_bitcast<_To>(_mm256_cvttpd_epu64(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttpd_epu64(__intrin));
         } else if constexpr (__have_avx512dq && __z_to_z) {
-            return __intrin_bitcast<_To>(_mm512_cvttpd_epu64(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttpd_epu64(__intrin));
         } // else use scalar fallback
     } else if constexpr (f64_to_s32) {  //{{{2
         if constexpr (__x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvttpd_epi32(__v));
+            return __intrin_bitcast<_To>(_mm_cvttpd_epi32(__intrin));
         } else if constexpr (__y_to_x) {
-            return __intrin_bitcast<_To>(_mm256_cvttpd_epi32(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttpd_epi32(__intrin));
         } else if constexpr (__z_to_y) {
-            return __intrin_bitcast<_To>(_mm512_cvttpd_epi32(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttpd_epi32(__intrin));
         }
     } else if constexpr (f64_to_u32) {  //{{{2
         if constexpr (__have_avx512vl && __x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvttpd_epu32(__v));
+            return __intrin_bitcast<_To>(_mm_cvttpd_epu32(__intrin));
         } else if constexpr (__have_sse4_1 && __x_to_x) {
-            return __vector_bitcast<_U>(_mm_cvttpd_epi32(_mm_floor_pd(__v) - 0x8000'0000u)) ^
+            return __vector_bitcast<_U>(_mm_cvttpd_epi32(_mm_floor_pd(__intrin) - 0x8000'0000u)) ^
                    0x8000'0000u;
         } else if constexpr (__x_to_x) {
             // use scalar fallback: it's only 2 values to convert, can't get much better
             // than scalar decomposition
         } else if constexpr (__have_avx512vl && __y_to_x) {
-            return __intrin_bitcast<_To>(_mm256_cvttpd_epu32(__v));
+            return __intrin_bitcast<_To>(_mm256_cvttpd_epu32(__intrin));
         } else if constexpr (__y_to_x) {
             return __intrin_bitcast<_To>(__vector_bitcast<_U>(_mm256_cvttpd_epi32(
-                                          _mm256_floor_pd(__v) - 0x8000'0000u)) ^
+                                          _mm256_floor_pd(__intrin) - 0x8000'0000u)) ^
                                       0x8000'0000u);
         } else if constexpr (__z_to_y) {
-            return __intrin_bitcast<_To>(_mm512_cvttpd_epu32(__v));
+            return __intrin_bitcast<_To>(_mm512_cvttpd_epu32(__intrin));
         }
     } else if constexpr (f64_to_ibw) {  //{{{2
         return __convert_x86<_To>(__convert_x86<__vector_type_t<int, (_N < 4 ? 4 : _N)>>(__v));
     } else if constexpr (s64_to_f32) {  //{{{2
         if constexpr (__x_to_x && __have_avx512dq_vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepi64_ps(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_ps(__intrin));
         } else if constexpr (__y_to_x && __have_avx512dq_vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi64_ps(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_ps(__intrin));
         } else if constexpr (__z_to_y && __have_avx512dq) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi64_ps(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_ps(__intrin));
         } else if constexpr (__z_to_y) {
             return __intrin_bitcast<_To>(_mm512_cvtpd_ps(__convert_x86<__vector_type_t<double, 8>>(__v)));
         }
     } else if constexpr (u64_to_f32) {  //{{{2
         if constexpr (__x_to_x && __have_avx512dq_vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepu64_ps(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepu64_ps(__intrin));
         } else if constexpr (__y_to_x && __have_avx512dq_vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepu64_ps(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepu64_ps(__intrin));
         } else if constexpr (__z_to_y && __have_avx512dq) {
-            return __intrin_bitcast<_To>(_mm512_cvtepu64_ps(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepu64_ps(__intrin));
         } else if constexpr (__z_to_y) {
             return __intrin_bitcast<_To>(
                 __lo256(_mm512_cvtepu32_ps(
-                    __auto_bitcast(_mm512_cvtepi64_epi32(_mm512_srai_epi64(__v, 32))))) *
+                    __auto_bitcast(_mm512_cvtepi64_epi32(_mm512_srai_epi64(__intrin, 32))))) *
                     0x100000000LL +
-                __lo256(_mm512_cvtepu32_ps(__auto_bitcast(_mm512_cvtepi64_epi32(__v)))));
+                __lo256(_mm512_cvtepu32_ps(__auto_bitcast(_mm512_cvtepi64_epi32(__intrin)))));
         }
     } else if constexpr (s32_to_f32) {  //{{{2
         // use fallback (builtin conversion)
@@ -476,20 +475,20 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             __m128i a, b;
             if constexpr (__have_sse4_1) {
                 a = sizeof(_T) == 2
-                        ? (is_signed_v<_T> ? _mm_cvtepi16_epi32(__v) : _mm_cvtepu16_epi32(__v))
-                        : (is_signed_v<_T> ? _mm_cvtepi8_epi32(__v) : _mm_cvtepu8_epi32(__v));
-                const auto w = _mm_shuffle_epi32(__v, sizeof(_T) == 2 ? 0xee : 0xe9);
+                        ? (is_signed_v<_T> ? _mm_cvtepi16_epi32(__intrin) : _mm_cvtepu16_epi32(__intrin))
+                        : (is_signed_v<_T> ? _mm_cvtepi8_epi32(__intrin) : _mm_cvtepu8_epi32(__intrin));
+                const auto w = _mm_shuffle_epi32(__intrin, sizeof(_T) == 2 ? 0xee : 0xe9);
                 b = sizeof(_T) == 2
                         ? (is_signed_v<_T> ? _mm_cvtepi16_epi32(w) : _mm_cvtepu16_epi32(w))
                         : (is_signed_v<_T> ? _mm_cvtepi8_epi32(w) : _mm_cvtepu8_epi32(w));
             } else {
                 __m128i tmp;
                 if constexpr (sizeof(_T) == 1) {
-                    tmp = is_signed_v<_T> ? _mm_srai_epi16(_mm_unpacklo_epi8(__v, __v), 8):
-                        _mm_unpacklo_epi8(__v, __m128i());
+                    tmp = is_signed_v<_T> ? _mm_srai_epi16(_mm_unpacklo_epi8(__intrin, __intrin), 8):
+                        _mm_unpacklo_epi8(__intrin, __m128i());
                 } else {
                     static_assert(sizeof(_T) == 2);
-                    tmp = __v;
+                    tmp = __intrin;
                 }
                 a = is_signed_v<_T> ? _mm_srai_epi32(_mm_unpacklo_epi16(tmp, tmp), 16)
                                    : _mm_unpacklo_epi16(tmp, __m128i());
@@ -500,71 +499,71 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         }
     } else if constexpr (s64_to_f64) {  //{{{2
         if constexpr (__x_to_x && __have_avx512dq_vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepi64_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi64_pd(__intrin));
         } else if constexpr (__y_to_y && __have_avx512dq_vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi64_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi64_pd(__intrin));
         } else if constexpr (__z_to_z && __have_avx512dq) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi64_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi64_pd(__intrin));
         } else if constexpr (__z_to_z) {
             return __intrin_bitcast<_To>(
                 _mm512_cvtepi32_pd(_mm512_cvtepi64_epi32(__to_intrin(__vv >> 32))) *
                     0x100000000LL +
-                _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__v)));
+                _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__intrin)));
         }
     } else if constexpr (u64_to_f64) {  //{{{2
         if constexpr (__x_to_x && __have_avx512dq_vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepu64_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepu64_pd(__intrin));
         } else if constexpr (__y_to_y && __have_avx512dq_vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepu64_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepu64_pd(__intrin));
         } else if constexpr (__z_to_z && __have_avx512dq) {
-            return __intrin_bitcast<_To>(_mm512_cvtepu64_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepu64_pd(__intrin));
         } else if constexpr (__z_to_z) {
             return __intrin_bitcast<_To>(
                 _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__to_intrin(__vv >> 32))) *
                     0x100000000LL +
-                _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__v)));
+                _mm512_cvtepu32_pd(_mm512_cvtepi64_epi32(__intrin)));
         }
     } else if constexpr (s32_to_f64) {  //{{{2
         if constexpr (__x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvtepi32_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepi32_pd(__intrin));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(_mm256_cvtepi32_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepi32_pd(__intrin));
         } else if constexpr (__y_to_z) {
-            return __intrin_bitcast<_To>(_mm512_cvtepi32_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepi32_pd(__intrin));
         }
     } else if constexpr (u32_to_f64) {  //{{{2
         if constexpr (__x_to_x && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm_cvtepu32_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtepu32_pd(__intrin));
         } else if constexpr (__x_to_x && __have_avx512f) {
             return __intrin_bitcast<_To>(__lo128(_mm512_cvtepu32_pd(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x) {
             return __intrin_bitcast<_To>(_mm_cvtepi32_pd(__to_intrin(__vv ^ 0x8000'0000u)) + 0x8000'0000u);
         } else if constexpr (__x_to_y && __have_avx512vl) {
-            return __intrin_bitcast<_To>(_mm256_cvtepu32_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtepu32_pd(__intrin));
         } else if constexpr (__x_to_y && __have_avx512f) {
             return __intrin_bitcast<_To>(__lo256(_mm512_cvtepu32_pd(__auto_bitcast(__v))));
         } else if constexpr (__x_to_y) {
             return __intrin_bitcast<_To>(_mm256_cvtepi32_pd(__to_intrin(__vv ^ 0x8000'0000u)) + 0x8000'0000u);
         } else if constexpr (__y_to_z) {
-            return __intrin_bitcast<_To>(_mm512_cvtepu32_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtepu32_pd(__intrin));
         }
     } else if constexpr (ibw_to_f64) {  //{{{2
         return __convert_x86<_To>(__convert_x86<__vector_type_t<int, std::max(size_t(4), _M)>>(__v));
     } else if constexpr (f32_to_f64) {  //{{{2
         if constexpr (__x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvtps_pd(__v));
+            return __intrin_bitcast<_To>(_mm_cvtps_pd(__intrin));
         } else if constexpr (__x_to_y) {
-            return __intrin_bitcast<_To>(_mm256_cvtps_pd(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtps_pd(__intrin));
         } else if constexpr (__y_to_z) {
-            return __intrin_bitcast<_To>(_mm512_cvtps_pd(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtps_pd(__intrin));
         }
     } else if constexpr (f64_to_f32) {  //{{{2
         if constexpr (__x_to_x) {
-            return __intrin_bitcast<_To>(_mm_cvtpd_ps(__v));
+            return __intrin_bitcast<_To>(_mm_cvtpd_ps(__intrin));
         } else if constexpr (__y_to_x) {
-            return __intrin_bitcast<_To>(_mm256_cvtpd_ps(__v));
+            return __intrin_bitcast<_To>(_mm256_cvtpd_ps(__intrin));
         } else if constexpr (__z_to_y) {
-            return __intrin_bitcast<_To>(_mm512_cvtpd_ps(__v));
+            return __intrin_bitcast<_To>(_mm512_cvtpd_ps(__intrin));
         }
     } else {  //{{{2
         __assert_unreachable<_T>();
@@ -581,6 +580,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     constexpr size_t _N = _Traits::width;
     __storage<_T, _N> v0(vv0);
     __storage<_T, _N> v1(vv1);
+    [[maybe_unused]] const auto __i0 = __to_intrin(vv0);
+    [[maybe_unused]] const auto __i1 = __to_intrin(vv1);
     using _U = typename __vector_traits<_To>::value_type;
     constexpr size_t _M = __vector_traits<_To>::width;
 
@@ -589,60 +590,60 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         "v1 would be discarded; use the one-argument __convert_x86 overload instead");
 
     // [xyz]_to_[xyz] {{{2
-    constexpr bool __x_to_x = sizeof(v0) == 16 && sizeof(_To) == 16;
-    constexpr bool __x_to_y = sizeof(v0) == 16 && sizeof(_To) == 32;
-    constexpr bool __x_to_z = sizeof(v0) == 16 && sizeof(_To) == 64;
-    constexpr bool __y_to_x = sizeof(v0) == 32 && sizeof(_To) == 16;
-    constexpr bool __y_to_y = sizeof(v0) == 32 && sizeof(_To) == 32;
-    constexpr bool __y_to_z = sizeof(v0) == 32 && sizeof(_To) == 64;
-    constexpr bool __z_to_x = sizeof(v0) == 64 && sizeof(_To) == 16;
-    constexpr bool __z_to_y = sizeof(v0) == 64 && sizeof(_To) == 32;
-    constexpr bool __z_to_z = sizeof(v0) == 64 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __x_to_x = sizeof(v0) == 16 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __x_to_y = sizeof(v0) == 16 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __x_to_z = sizeof(v0) == 16 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __y_to_x = sizeof(v0) == 32 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __y_to_y = sizeof(v0) == 32 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __y_to_z = sizeof(v0) == 32 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __z_to_x = sizeof(v0) == 64 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __z_to_y = sizeof(v0) == 64 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __z_to_z = sizeof(v0) == 64 && sizeof(_To) == 64;
 
     // iX_to_iX {{{2
-    constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_T>;
-    constexpr bool i8_to_i16  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 2;
-    constexpr bool i8_to_i32  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 4;
-    constexpr bool i8_to_i64  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 8;
-    constexpr bool i16_to_i8  = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 1;
-    constexpr bool i16_to_i32 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 4;
-    constexpr bool i16_to_i64 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 8;
-    constexpr bool i32_to_i8  = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 1;
-    constexpr bool i32_to_i16 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 2;
-    constexpr bool i32_to_i64 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 8;
-    constexpr bool i64_to_i8  = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
-    constexpr bool i64_to_i16 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 2;
-    constexpr bool i64_to_i32 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_T>;
+    [[maybe_unused]] constexpr bool i8_to_i16  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool i8_to_i32  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool i8_to_i64  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool i16_to_i8  = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool i16_to_i32 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool i16_to_i64 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool i32_to_i8  = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool i32_to_i16 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool i32_to_i64 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool i64_to_i8  = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool i64_to_i16 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool i64_to_i32 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 4;
 
     // [fsu]X_to_[fsu]X {{{2
     // ibw = integral && byte or word, i.e. char and short with any signedness
-    constexpr bool i64_to_f32 = is_integral_v<_T> &&                     sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool s32_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool s16_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool  s8_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool u32_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool u16_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool  u8_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool s64_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool s32_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool s16_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool  s8_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool u64_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool u32_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool u16_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool  u8_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f32_to_f64 = is_floating_point_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool f64_to_f32 = is_floating_point_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool i64_to_f32 = is_integral_v<_T> &&                     sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s32_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s16_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  s8_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool u32_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool u16_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  u8_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s64_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool s32_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool s16_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool  s8_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool u64_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool u32_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool u16_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool  u8_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f32_to_f64 = is_floating_point_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool f64_to_f32 = is_floating_point_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
 
     if constexpr (__i_to_i && __y_to_x && !__have_avx2) {  //{{{2
         // <double, 4>, <double, 4> => <short, 8>
@@ -687,50 +688,50 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 // 0x01 * 0 + 0x04 * 2 + 0x10 * 1 + 0x40 * 3);  // abcdefgh
             } else if constexpr (__z_to_z) {
                 return __intrin_bitcast<_To>(
-                    __concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1)));
+                    __concat(_mm512_cvtepi64_epi32(__i0), _mm512_cvtepi64_epi32(__i1)));
             }
         } else if constexpr (i64_to_i16) {  //{{{2
             if constexpr (__x_to_x) {
                 // AVX2 is not available (would concat otherwise)
                 if constexpr (__have_sse4_1) {
                     return __intrin_bitcast<_To>(_mm_shuffle_epi8(
-                        _mm_blend_epi16(v0, _mm_slli_si128(v1, 4), 0x44),
+                        _mm_blend_epi16(__i0, _mm_slli_si128(__i1, 4), 0x44),
                         _mm_setr_epi8(0, 1, 8, 9, 4, 5, 12, 13, -0x80, -0x80, -0x80,
                                       -0x80, -0x80, -0x80, -0x80, -0x80)));
                 } else {
                     return __vector_type_t<_U, _M>{_U(v0[0]), _U(v0[1]), _U(v1[0]), _U(v1[1])};
                 }
             } else if constexpr (__y_to_x) {
-                auto a = _mm256_unpacklo_epi16(v0, v1);  // 04.. .... 26.. ....
-                auto b = _mm256_unpackhi_epi16(v0, v1);  // 15.. .... 37.. ....
+                auto a = _mm256_unpacklo_epi16(__i0, __i1);  // 04.. .... 26.. ....
+                auto b = _mm256_unpackhi_epi16(__i0, __i1);  // 15.. .... 37.. ....
                 auto c = _mm256_unpacklo_epi16(a, b);    // 0145 .... 2367 ....
                 return __intrin_bitcast<_To>(
                     _mm_unpacklo_epi32(__lo128(c), __hi128(c)));  // 0123 4567
             } else if constexpr (__z_to_y) {
                 return __intrin_bitcast<_To>(
-                    __concat(_mm512_cvtepi64_epi16(v0), _mm512_cvtepi64_epi16(v1)));
+                    __concat(_mm512_cvtepi64_epi16(__i0), _mm512_cvtepi64_epi16(__i1)));
             }
         } else if constexpr (i64_to_i8) {  //{{{2
             if constexpr (__x_to_x && __have_sse4_1) {
                 return __intrin_bitcast<_To>(_mm_shuffle_epi8(
-                    _mm_blend_epi16(v0, _mm_slli_si128(v1, 4), 0x44),
+                    _mm_blend_epi16(__i0, _mm_slli_si128(__i1, 4), 0x44),
                     _mm_setr_epi8(0, 8, 4, 12, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                   -0x80, -0x80, -0x80, -0x80, -0x80, -0x80)));
             } else if constexpr (__x_to_x && __have_ssse3) {
                 return __intrin_bitcast<_To>(_mm_unpacklo_epi16(
                     _mm_shuffle_epi8(
-                        v0, _mm_setr_epi8(0, 8, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
+                        __i0, _mm_setr_epi8(0, 8, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                           -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                           -0x80)),
                     _mm_shuffle_epi8(
-                        v1, _mm_setr_epi8(0, 8, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
+                        __i1, _mm_setr_epi8(0, 8, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                           -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                           -0x80))));
             } else if constexpr (__x_to_x) {
                 return __vector_type_t<_U, _M>{_U(v0[0]), _U(v0[1]), _U(v1[0]), _U(v1[1])};
             } else if constexpr (__y_to_x) {
                 const auto a = _mm256_shuffle_epi8(
-                    _mm256_blend_epi32(v0, _mm256_slli_epi64(v1, 32), 0xAA),
+                    _mm256_blend_epi32(__i0, _mm256_slli_epi64(__i1, 32), 0xAA),
                     _mm256_setr_epi8(0, 8, -0x80, -0x80, 4, 12, -0x80, -0x80, -0x80,
                                      -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                      -0x80, -0x80, 0, 8, -0x80, -0x80, 4, 12, -0x80,
@@ -742,7 +743,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 // AVX2 is not available (would concat otherwise)
                 if constexpr (__have_sse4_1) {
                     return __intrin_bitcast<_To>(
-                        _mm_shuffle_epi8(_mm_blend_epi16(v0, _mm_slli_si128(v1, 2), 0xaa),
+                        _mm_shuffle_epi8(_mm_blend_epi16(__i0, _mm_slli_si128(__i1, 2), 0xaa),
                                          _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, 2, 3, 6,
                                                        7, 10, 11, 14, 15)));
                 } else if constexpr (__have_ssse3) {
@@ -750,14 +751,14 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                         _mm_hadd_epi16(__to_intrin(vv0 << 16), __to_intrin(vv1 << 16)));
                     /*
                     return _mm_unpacklo_epi64(
-                        _mm_shuffle_epi8(v0, _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, 8, 9,
+                        _mm_shuffle_epi8(__i0, _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, 8, 9,
                                                            12, 13, 12, 13, 14, 15)),
-                        _mm_shuffle_epi8(v1, _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, 8, 9,
+                        _mm_shuffle_epi8(__i1, _mm_setr_epi8(0, 1, 4, 5, 8, 9, 12, 13, 8, 9,
                                                            12, 13, 12, 13, 14, 15)));
                                                            */
                 } else {
-                    auto a = _mm_unpacklo_epi16(v0, v1);                  // 04.. 15..
-                    auto b = _mm_unpackhi_epi16(v0, v1);                  // 26.. 37..
+                    auto a = _mm_unpacklo_epi16(__i0, __i1);                  // 04.. 15..
+                    auto b = _mm_unpackhi_epi16(__i0, __i1);                  // 26.. 37..
                     auto c = _mm_unpacklo_epi16(a, b);                    // 0246 ....
                     auto d = _mm_unpackhi_epi16(a, b);                    // 1357 ....
                     return __intrin_bitcast<_To>(_mm_unpacklo_epi16(c, d));  // 0123 4567
@@ -767,8 +768,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                     -0x80, -0x80, 0, 1, 4, 5, 8, 9, 12, 13, -0x80, -0x80, -0x80, -0x80,
                     -0x80, -0x80, -0x80, -0x80);
-                auto a = _mm256_shuffle_epi8(v0, shuf);
-                auto b = _mm256_shuffle_epi8(v1, shuf);
+                auto a = _mm256_shuffle_epi8(__i0, shuf);
+                auto b = _mm256_shuffle_epi8(__i1, shuf);
                 return __intrin_bitcast<_To>(__xzyw(_mm256_unpacklo_epi64(a, b)));
             } // __z_to_z uses concat fallback
         } else if constexpr (i32_to_i8) {  //{{{2
@@ -777,17 +778,17 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     _mm_setr_epi8(0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                   -0x80, -0x80, -0x80, -0x80, -0x80, -0x80);
                 return __intrin_bitcast<_To>(_mm_unpacklo_epi32(
-                    _mm_shuffle_epi8(v0, shufmask), _mm_shuffle_epi8(v1, shufmask)));
+                    _mm_shuffle_epi8(__i0, shufmask), _mm_shuffle_epi8(__i1, shufmask)));
             } else if constexpr (__x_to_x) {
-                auto a = _mm_unpacklo_epi8(v0, v1);  // 04.. .... 15.. ....
-                auto b = _mm_unpackhi_epi8(v0, v1);  // 26.. .... 37.. ....
+                auto a = _mm_unpacklo_epi8(__i0, __i1);  // 04.. .... 15.. ....
+                auto b = _mm_unpackhi_epi8(__i0, __i1);  // 26.. .... 37.. ....
                 auto c = _mm_unpacklo_epi8(a, b);    // 0246 .... .... ....
                 auto d = _mm_unpackhi_epi8(a, b);    // 1357 .... .... ....
                 auto e = _mm_unpacklo_epi8(c, d);    // 0123 4567 .... ....
                 return __intrin_bitcast<_To>(e & __m128i{-1, 0});
             } else if constexpr (__y_to_x) {
                 const auto a = _mm256_shuffle_epi8(
-                    _mm256_blend_epi16(v0, _mm256_slli_epi32(v1, 16), 0xAA),
+                    _mm256_blend_epi16(__i0, _mm256_slli_epi32(__i1, 16), 0xAA),
                     _mm256_setr_epi8(0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, 2, 6, 10,
                                      14, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80, -0x80,
                                      -0x80, 0, 4, 8, 12, -0x80, -0x80, -0x80, -0x80, 2, 6,
@@ -799,11 +800,11 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto shuf = reinterpret_cast<__m128i>(
                     __vector_type_t<__uchar, 16>{0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80,
                                               0x80, 0x80, 0x80, 0x80, 0x80});
-                return __intrin_bitcast<_To>(_mm_unpacklo_epi64(_mm_shuffle_epi8(v0, shuf),
-                                                             _mm_shuffle_epi8(v1, shuf)));
+                return __intrin_bitcast<_To>(_mm_unpacklo_epi64(_mm_shuffle_epi8(__i0, shuf),
+                                                             _mm_shuffle_epi8(__i1, shuf)));
             } else if constexpr (__x_to_x) {
-                auto a = _mm_unpacklo_epi8(v0, v1);  // 08.. 19.. 2A.. 3B..
-                auto b = _mm_unpackhi_epi8(v0, v1);  // 4C.. 5D.. 6E.. 7F..
+                auto a = _mm_unpacklo_epi8(__i0, __i1);  // 08.. 19.. 2A.. 3B..
+                auto b = _mm_unpackhi_epi8(__i0, __i1);  // 4C.. 5D.. 6E.. 7F..
                 auto c = _mm_unpacklo_epi8(a, b);    // 048C .... 159D ....
                 auto d = _mm_unpackhi_epi8(a, b);    // 26AE .... 37BF ....
                 auto e = _mm_unpacklo_epi8(c, d);    // 0246 8ACE .... ....
@@ -811,8 +812,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 return __intrin_bitcast<_To>(_mm_unpacklo_epi8(e, f));
             } else if constexpr (__y_to_y) {
                 return __intrin_bitcast<_To>(__xzyw(_mm256_shuffle_epi8(
-                    (v0.intrin() & _mm256_set1_epi32(0x00ff00ff)) |
-                        _mm256_slli_epi16(v1, 8),
+                    (__to_intrin(v0) & _mm256_set1_epi32(0x00ff00ff)) |
+                        _mm256_slli_epi16(__i1, 8),
                     _mm256_setr_epi8(0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15,
                                      0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13,
                                      15))));
@@ -822,8 +823,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 return __make_storage<float>(v0[0], v0[1], v1[0], v1[1]);
             } else if constexpr (__y_to_y) {
                 static_assert(__y_to_y && __have_avx2);
-                const auto a = _mm256_unpacklo_epi32(v0, v1);   // aeAE cgCG
-                const auto b = _mm256_unpackhi_epi32(v0, v1);   // bfBF dhDH
+                const auto a = _mm256_unpacklo_epi32(__i0, __i1);   // aeAE cgCG
+                const auto b = _mm256_unpackhi_epi32(__i0, __i1);   // bfBF dhDH
                 const auto lo32 = _mm256_unpacklo_epi32(a, b);  // abef cdgh
                 const auto hi32 =
                     __vector_bitcast<conditional_t<is_signed_v<_T>, int, __uint>>(
@@ -834,16 +835,16 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto lo = _mm256_cvtepi32_ps(_mm256_set1_epi32(0x0000ffffu) & lo32);
                 return __xzyw((hi + mid) + lo);
             } else if constexpr (__z_to_z && __have_avx512dq) {
-                return std::is_signed_v<_T> ? __concat(_mm512_cvtepi64_ps(v0),
-                                                            _mm512_cvtepi64_ps(v1))
-                                           : __concat(_mm512_cvtepu64_ps(v0),
-                                                            _mm512_cvtepu64_ps(v1));
+                return std::is_signed_v<_T> ? __concat(_mm512_cvtepi64_ps(__i0),
+                                                            _mm512_cvtepi64_ps(__i1))
+                                           : __concat(_mm512_cvtepu64_ps(__i0),
+                                                            _mm512_cvtepu64_ps(__i1));
             } else if constexpr (__z_to_z && std::is_signed_v<_T>) {
                 const __m512 hi32 = _mm512_cvtepi32_ps(
                     __concat(_mm512_cvtepi64_epi32(__to_intrin(vv0 >> 32)),
                                    _mm512_cvtepi64_epi32(__to_intrin(vv1 >> 32))));
                 const __m512i lo32 =
-                    __concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1));
+                    __concat(_mm512_cvtepi64_epi32(__i0), _mm512_cvtepi64_epi32(__i1));
                 // split low 32-bits, because if hi32 is a small negative number, the
                 // 24-bit mantissa may lose important information if any of the high 8
                 // bits of lo32 is set, leading to catastrophic cancelation in the FMA
@@ -855,25 +856,25 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             } else if constexpr (__z_to_z && std::is_unsigned_v<_T>) {
                 return __intrin_bitcast<_To>(
                     _mm512_cvtepu32_ps(
-                        __concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(v0, 32)),
-                                 _mm512_cvtepi64_epi32(_mm512_srai_epi64(v1, 32)))) *
+                        __concat(_mm512_cvtepi64_epi32(_mm512_srai_epi64(__i0, 32)),
+                                 _mm512_cvtepi64_epi32(_mm512_srai_epi64(__i1, 32)))) *
                         0x100000000LL +
                     _mm512_cvtepu32_ps(
-                        __concat(_mm512_cvtepi64_epi32(v0), _mm512_cvtepi64_epi32(v1))));
+                        __concat(_mm512_cvtepi64_epi32(__i0), _mm512_cvtepi64_epi32(__i1))));
             }
         } else if constexpr (f64_to_s32) {  //{{{2
             // use concat fallback
         } else if constexpr (f64_to_u32) {  //{{{2
             if constexpr (__x_to_x && __have_sse4_1) {
                 return __vector_bitcast<_U>(_mm_unpacklo_epi64(
-                           _mm_cvttpd_epi32(_mm_floor_pd(v0) - 0x8000'0000u),
-                           _mm_cvttpd_epi32(_mm_floor_pd(v1) - 0x8000'0000u))) ^
+                           _mm_cvttpd_epi32(_mm_floor_pd(__i0) - 0x8000'0000u),
+                           _mm_cvttpd_epi32(_mm_floor_pd(__i1) - 0x8000'0000u))) ^
                        0x8000'0000u;
                 // without SSE4.1 just use the scalar fallback, it's only four values
             } else if constexpr (__y_to_y) {
                 return __vector_bitcast<_U>(__concat(
-                           _mm256_cvttpd_epi32(_mm256_floor_pd(v0) - 0x8000'0000u),
-                           _mm256_cvttpd_epi32(_mm256_floor_pd(v1) - 0x8000'0000u))) ^
+                           _mm256_cvttpd_epi32(_mm256_floor_pd(__i0) - 0x8000'0000u),
+                           _mm256_cvttpd_epi32(_mm256_floor_pd(__i1) - 0x8000'0000u))) ^
                        0x8000'0000u;
             } // __z_to_z uses fallback
         } else if constexpr (f64_to_ibw) {  //{{{2
@@ -930,6 +931,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     __storage<_T, _N> v1(vv1);
     __storage<_T, _N> v2(vv2);
     __storage<_T, _N> v3(vv3);
+    [[maybe_unused]] const auto __i0 = __to_intrin(vv0);
+    [[maybe_unused]] const auto __i1 = __to_intrin(vv1);
+    [[maybe_unused]] const auto __i2 = __to_intrin(vv2);
+    [[maybe_unused]] const auto __i3 = __to_intrin(vv3);
     using _U = typename __vector_traits<_To>::value_type;
     constexpr size_t _M = __vector_traits<_To>::width;
 
@@ -938,60 +943,60 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         "v2/v3 would be discarded; use the two/one-argument __convert_x86 overload instead");
 
     // [xyz]_to_[xyz] {{{2
-    constexpr bool __x_to_x = sizeof(v0) == 16 && sizeof(_To) == 16;
-    constexpr bool __x_to_y = sizeof(v0) == 16 && sizeof(_To) == 32;
-    constexpr bool __x_to_z = sizeof(v0) == 16 && sizeof(_To) == 64;
-    constexpr bool __y_to_x = sizeof(v0) == 32 && sizeof(_To) == 16;
-    constexpr bool __y_to_y = sizeof(v0) == 32 && sizeof(_To) == 32;
-    constexpr bool __y_to_z = sizeof(v0) == 32 && sizeof(_To) == 64;
-    constexpr bool __z_to_x = sizeof(v0) == 64 && sizeof(_To) == 16;
-    constexpr bool __z_to_y = sizeof(v0) == 64 && sizeof(_To) == 32;
-    constexpr bool __z_to_z = sizeof(v0) == 64 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __x_to_x = sizeof(v0) == 16 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __x_to_y = sizeof(v0) == 16 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __x_to_z = sizeof(v0) == 16 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __y_to_x = sizeof(v0) == 32 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __y_to_y = sizeof(v0) == 32 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __y_to_z = sizeof(v0) == 32 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __z_to_x = sizeof(v0) == 64 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __z_to_y = sizeof(v0) == 64 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __z_to_z = sizeof(v0) == 64 && sizeof(_To) == 64;
 
     // iX_to_iX {{{2
-    constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_T>;
-    constexpr bool i8_to_i16  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 2;
-    constexpr bool i8_to_i32  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 4;
-    constexpr bool i8_to_i64  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 8;
-    constexpr bool i16_to_i8  = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 1;
-    constexpr bool i16_to_i32 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 4;
-    constexpr bool i16_to_i64 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 8;
-    constexpr bool i32_to_i8  = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 1;
-    constexpr bool i32_to_i16 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 2;
-    constexpr bool i32_to_i64 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 8;
-    constexpr bool i64_to_i8  = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
-    constexpr bool i64_to_i16 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 2;
-    constexpr bool i64_to_i32 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_T>;
+    [[maybe_unused]] constexpr bool i8_to_i16  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool i8_to_i32  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool i8_to_i64  = __i_to_i && sizeof(_T) == 1 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool i16_to_i8  = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool i16_to_i32 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool i16_to_i64 = __i_to_i && sizeof(_T) == 2 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool i32_to_i8  = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool i32_to_i16 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool i32_to_i64 = __i_to_i && sizeof(_T) == 4 && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool i64_to_i8  = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool i64_to_i16 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 2;
+    [[maybe_unused]] constexpr bool i64_to_i32 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 4;
 
     // [fsu]X_to_[fsu]X {{{2
     // ibw = integral && byte or word, i.e. char and short with any signedness
-    constexpr bool i64_to_f32 = is_integral_v<_T> &&                     sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool s32_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool s16_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool  s8_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool u32_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool u16_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool  u8_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
-    constexpr bool s64_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool s32_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool s16_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool  s8_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool u64_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool u32_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool u16_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool  u8_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 4;
-    constexpr bool f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 8;
-    constexpr bool f32_to_f64 = is_floating_point_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
-    constexpr bool f64_to_f32 = is_floating_point_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool i64_to_f32 = is_integral_v<_T> &&                     sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s32_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s16_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  s8_to_f32 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool u32_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool u16_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool  u8_to_f32 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 4;
+    [[maybe_unused]] constexpr bool s64_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool s32_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool s16_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool  s8_to_f64 = is_integral_v<_T> &&   is_signed_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool u64_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool u32_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool u16_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 2 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool  u8_to_f64 = is_integral_v<_T> && is_unsigned_v<_T> && sizeof(_T) == 1 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool f32_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f32_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f32_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f32_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f64_to_s64 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f64_to_s32 = is_integral_v<_U> &&   is_signed_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f64_to_u64 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 8 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f64_to_u32 = is_integral_v<_U> && is_unsigned_v<_U> && sizeof(_U) == 4 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f32_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 4;
+    [[maybe_unused]] constexpr bool f64_to_ibw = is_integral_v<_U> && sizeof(_U) <= 2 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool f32_to_f64 = is_floating_point_v<_T> && sizeof(_T) == 4 && is_floating_point_v<_U> && sizeof(_U) == 8;
+    [[maybe_unused]] constexpr bool f64_to_f32 = is_floating_point_v<_T> && sizeof(_T) == 8 && is_floating_point_v<_U> && sizeof(_U) == 4;
 
     if constexpr (__i_to_i && __y_to_x && !__have_avx2) {  //{{{2
         // <double, 4>, <double, 4>, <double, 4>, <double, 4> => <char, 16>
@@ -1026,9 +1031,9 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr (i64_to_i16) {  //{{{2
             if constexpr (__x_to_x && __have_sse4_1) {
                 return __intrin_bitcast<_To>(_mm_shuffle_epi8(
-                    _mm_blend_epi16(_mm_blend_epi16(v0, _mm_slli_si128(v1, 2), 0x22),
-                                    _mm_blend_epi16(_mm_slli_si128(v2, 4),
-                                                    _mm_slli_si128(v3, 6), 0x88),
+                    _mm_blend_epi16(_mm_blend_epi16(__i0, _mm_slli_si128(__i1, 2), 0x22),
+                                    _mm_blend_epi16(_mm_slli_si128(__i2, 4),
+                                                    _mm_slli_si128(__i3, 6), 0x88),
                                     0xcc),
                     _mm_setr_epi8(0, 1, 8, 9, 2, 3, 10, 11, 4, 5, 12, 13, 6, 7, 14, 15)));
             } else if constexpr (__y_to_y) {
@@ -1064,10 +1069,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 // TODO: use fallback for now
             } else if constexpr (__y_to_x) {
                 auto a =
-                    _mm256_srli_epi32(_mm256_slli_epi32(v0, 24), 24) |
-                    _mm256_srli_epi32(_mm256_slli_epi32(v1, 24), 16) |
-                    _mm256_srli_epi32(_mm256_slli_epi32(v2, 24), 8) |
-                    _mm256_slli_epi32(v3, 24);  // 048C .... 159D .... 26AE .... 37BF ....
+                    _mm256_srli_epi32(_mm256_slli_epi32(__i0, 24), 24) |
+                    _mm256_srli_epi32(_mm256_slli_epi32(__i1, 24), 16) |
+                    _mm256_srli_epi32(_mm256_slli_epi32(__i2, 24), 8) |
+                    _mm256_slli_epi32(__i3, 24);  // 048C .... 159D .... 26AE .... 37BF ....
                 /*return _mm_shuffle_epi8(
                     _mm_blend_epi32(__lo128(a) << 32, __hi128(a), 0x5),
                     _mm_setr_epi8(4, 12, 0, 8, 5, 13, 1, 9, 6, 14, 2, 10, 7, 15, 3, 11));*/
@@ -1087,10 +1092,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                                          _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10,
                                                        14, 3, 7, 11, 15)));
                 } else {
-                    auto a = _mm_unpacklo_epi8(v0, v2);  // 08.. .... 19.. ....
-                    auto b = _mm_unpackhi_epi8(v0, v2);  // 2A.. .... 3B.. ....
-                    auto c = _mm_unpacklo_epi8(v1, v3);  // 4C.. .... 5D.. ....
-                    auto d = _mm_unpackhi_epi8(v1, v3);  // 6E.. .... 7F.. ....
+                    auto a = _mm_unpacklo_epi8(__i0, __i2);  // 08.. .... 19.. ....
+                    auto b = _mm_unpackhi_epi8(__i0, __i2);  // 2A.. .... 3B.. ....
+                    auto c = _mm_unpacklo_epi8(__i1, __i3);  // 4C.. .... 5D.. ....
+                    auto d = _mm_unpackhi_epi8(__i1, __i3);  // 6E.. .... 7F.. ....
                     auto e = _mm_unpacklo_epi8(a, c);    // 048C .... .... ....
                     auto f = _mm_unpackhi_epi8(a, c);    // 159D .... .... ....
                     auto g = _mm_unpacklo_epi8(b, d);    // 26AE .... .... ....
@@ -1103,10 +1108,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             } else if constexpr (__y_to_y) {
                 const auto a = _mm256_shuffle_epi8(
                     __to_intrin((__vector_bitcast<ushort>(_mm256_blend_epi16(
-                                   v0, _mm256_slli_epi32(v1, 16), 0xAA)) &
+                                   __i0, _mm256_slli_epi32(__i1, 16), 0xAA)) &
                                0xff) |
                               (__vector_bitcast<ushort>(_mm256_blend_epi16(
-                                   v2, _mm256_slli_epi32(v3, 16), 0xAA))
+                                   __i2, _mm256_slli_epi32(__i3, 16), 0xAA))
                                << 8)),
                     _mm256_setr_epi8(0, 4, 8, 12, 2, 6, 10, 14, 1, 5, 9, 13, 3, 7, 11, 15,
                                      0, 4, 8, 12, 2, 6, 10, 14, 1, 5, 9, 13, 3, 7, 11, 15));
@@ -1118,10 +1123,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             if constexpr (__x_to_y) {
                 return __make_storage<float>(v0[0], v0[1], v1[0], v1[1], v2[0], v2[1], v3[0], v3[1]);
 
-                const auto a = _mm_unpacklo_epi32(v0, v1);   // acAC
-                const auto b = _mm_unpackhi_epi32(v0, v1);   // bdBD
-                const auto c = _mm_unpacklo_epi32(v2, v3);   // egEG
-                const auto d = _mm_unpackhi_epi32(v2, v3);   // fhFH
+                const auto a = _mm_unpacklo_epi32(__i0, __i1);   // acAC
+                const auto b = _mm_unpackhi_epi32(__i0, __i1);   // bdBD
+                const auto c = _mm_unpacklo_epi32(__i2, __i3);   // egEG
+                const auto d = _mm_unpackhi_epi32(__i2, __i3);   // fhFH
                 const auto lo32a = _mm_unpacklo_epi32(a, b);  // abcd
                 const auto lo32b = _mm_unpacklo_epi32(c, d);  // efgh
                 const auto hi32 =
@@ -1197,20 +1202,20 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                               "__convert_x86 overload instead");
 
     // [xyz]_to_[xyz] {{{2
-    constexpr bool __x_to_x = sizeof(v0) == 16 && sizeof(_To) == 16;
-    constexpr bool __x_to_y = sizeof(v0) == 16 && sizeof(_To) == 32;
-    constexpr bool __x_to_z = sizeof(v0) == 16 && sizeof(_To) == 64;
-    constexpr bool __y_to_x = sizeof(v0) == 32 && sizeof(_To) == 16;
-    constexpr bool __y_to_y = sizeof(v0) == 32 && sizeof(_To) == 32;
-    constexpr bool __y_to_z = sizeof(v0) == 32 && sizeof(_To) == 64;
-    constexpr bool __z_to_x = sizeof(v0) == 64 && sizeof(_To) == 16;
-    constexpr bool __z_to_y = sizeof(v0) == 64 && sizeof(_To) == 32;
-    constexpr bool __z_to_z = sizeof(v0) == 64 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __x_to_x = sizeof(v0) == 16 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __x_to_y = sizeof(v0) == 16 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __x_to_z = sizeof(v0) == 16 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __y_to_x = sizeof(v0) == 32 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __y_to_y = sizeof(v0) == 32 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __y_to_z = sizeof(v0) == 32 && sizeof(_To) == 64;
+    [[maybe_unused]] constexpr bool __z_to_x = sizeof(v0) == 64 && sizeof(_To) == 16;
+    [[maybe_unused]] constexpr bool __z_to_y = sizeof(v0) == 64 && sizeof(_To) == 32;
+    [[maybe_unused]] constexpr bool __z_to_z = sizeof(v0) == 64 && sizeof(_To) == 64;
 
     // [if]X_to_i8 {{{2
-    constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_T>;
-    constexpr bool i64_to_i8 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
-    constexpr bool f64_to_i8 = is_integral_v<_U> && sizeof(_U) == 1 && is_floating_point_v<_T> && sizeof(_T) == 8;
+    [[maybe_unused]] constexpr bool __i_to_i = std::is_integral_v<_U> && std::is_integral_v<_T>;
+    [[maybe_unused]] constexpr bool i64_to_i8 = __i_to_i && sizeof(_T) == 8 && sizeof(_U) == 1;
+    [[maybe_unused]] constexpr bool f64_to_i8 = is_integral_v<_U> && sizeof(_U) == 1 && is_floating_point_v<_T> && sizeof(_T) == 8;
 
     if constexpr (__i_to_i) {  // assert ISA {{{2
         static_assert(__x_to_x || __have_avx2,
@@ -1241,10 +1246,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 // unsure whether this is better than the variant below
                 return __intrin_bitcast<_To>(_mm_shuffle_epi8(
                     __to_intrin(
-                        (((v0.intrin() & 0xff) | ((v1.intrin() & 0xff) << 8)) |
-                         (((v2.intrin() & 0xff) << 16) | ((v3.intrin() & 0xff) << 24))) |
-                        ((((v4.intrin() & 0xff) << 32) | ((v5.intrin() & 0xff) << 40)) |
-                         (((v6.intrin() & 0xff) << 48) | (v7.intrin() << 56)))),
+                        (((__to_intrin(v0) & 0xff) | ((__to_intrin(v1) & 0xff) << 8)) |
+                         (((__to_intrin(v2) & 0xff) << 16) | ((__to_intrin(v3) & 0xff) << 24))) |
+                        ((((__to_intrin(v4) & 0xff) << 32) | ((__to_intrin(v5) & 0xff) << 40)) |
+                         (((__to_intrin(v6) & 0xff) << 48) | (__to_intrin(v7) << 56)))),
                     _mm_setr_epi8(0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15)));
             } else if constexpr (__x_to_x) {
                 const auto a = _mm_unpacklo_epi8(v0, v1); // ac
@@ -1263,10 +1268,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     ));
             } else if constexpr (__y_to_y) {
                 auto a =  // 048C GKOS 159D HLPT 26AE IMQU 37BF JNRV
-                    __to_intrin(((( v0.intrin() & 0xff       ) | ((v1.intrin() & 0xff) <<  8)) |
-                               (((v2.intrin() & 0xff) << 16) | ((v3.intrin() & 0xff) << 24))) |
-                              ((((v4.intrin() & 0xff) << 32) | ((v5.intrin() & 0xff) << 40)) |
-                               (((v6.intrin() & 0xff) << 48) | ((v7.intrin() << 56)))));
+                    __to_intrin(((( __to_intrin(v0) & 0xff       ) | ((__to_intrin(v1) & 0xff) <<  8)) |
+                               (((__to_intrin(v2) & 0xff) << 16) | ((__to_intrin(v3) & 0xff) << 24))) |
+                              ((((__to_intrin(v4) & 0xff) << 32) | ((__to_intrin(v5) & 0xff) << 40)) |
+                               (((__to_intrin(v6) & 0xff) << 48) | ((__to_intrin(v7) << 56)))));
                 /*
                 auto b = _mm256_unpackhi_epi64(a, a);  // 159D HLPT 159D HLPT 37BF JNRV 37BF JNRV
                 auto c = _mm256_unpacklo_epi8(a, b);  // 0145 89CD GHKL OPST 2367 ABEF IJMN QRUV
