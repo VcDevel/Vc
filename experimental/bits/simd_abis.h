@@ -106,54 +106,54 @@ struct __as_simd {};
 struct __as_simd_tuple {};
 template <class _T, class _A0, class... _Abis>
 _GLIBCXX_SIMD_INTRINSIC constexpr simd<_T, _A0> __simd_tuple_get_impl(
-    __as_simd, const __simd_tuple<_T, _A0, _Abis...> &t, __size_constant<0>)
+    __as_simd, const __simd_tuple<_T, _A0, _Abis...> &__t, __size_constant<0>)
 {
-    return {__private_init, t.first};
+    return {__private_init, __t.first};
 }
 template <class _T, class _A0, class... _Abis>
 _GLIBCXX_SIMD_INTRINSIC constexpr const auto &__simd_tuple_get_impl(
-    __as_simd_tuple, const __simd_tuple<_T, _A0, _Abis...> &t, __size_constant<0>)
+    __as_simd_tuple, const __simd_tuple<_T, _A0, _Abis...> &__t, __size_constant<0>)
 {
-    return t.first;
+    return __t.first;
 }
 template <class _T, class _A0, class... _Abis>
 _GLIBCXX_SIMD_INTRINSIC constexpr auto &__simd_tuple_get_impl(
-    __as_simd_tuple, __simd_tuple<_T, _A0, _Abis...> &t, __size_constant<0>)
+    __as_simd_tuple, __simd_tuple<_T, _A0, _Abis...> &__t, __size_constant<0>)
 {
-    return t.first;
+    return __t.first;
 }
 
 template <class R, size_t _N, class _T, class... _Abis>
 _GLIBCXX_SIMD_INTRINSIC constexpr auto __simd_tuple_get_impl(
-    R, const __simd_tuple<_T, _Abis...> &t, __size_constant<_N>)
+    R, const __simd_tuple<_T, _Abis...> &__t, __size_constant<_N>)
 {
-    return __simd_tuple_get_impl(R(), t.second, __size_constant<_N - 1>());
+    return __simd_tuple_get_impl(R(), __t.second, __size_constant<_N - 1>());
 }
 template <size_t _N, class _T, class... _Abis>
 _GLIBCXX_SIMD_INTRINSIC constexpr auto &__simd_tuple_get_impl(
-    __as_simd_tuple, __simd_tuple<_T, _Abis...> &t, __size_constant<_N>)
+    __as_simd_tuple, __simd_tuple<_T, _Abis...> &__t, __size_constant<_N>)
 {
-    return __simd_tuple_get_impl(__as_simd_tuple(), t.second, __size_constant<_N - 1>());
+    return __simd_tuple_get_impl(__as_simd_tuple(), __t.second, __size_constant<_N - 1>());
 }
 
 template <size_t _N, class _T, class... _Abis>
-_GLIBCXX_SIMD_INTRINSIC constexpr auto __get_simd_at(const __simd_tuple<_T, _Abis...> &t)
+_GLIBCXX_SIMD_INTRINSIC constexpr auto __get_simd_at(const __simd_tuple<_T, _Abis...> &__t)
 {
-    return __simd_tuple_get_impl(__as_simd(), t, __size_constant<_N>());
+    return __simd_tuple_get_impl(__as_simd(), __t, __size_constant<_N>());
 }
 
 // }}}
 // __get_tuple_at<_N> {{{
 template <size_t _N, class _T, class... _Abis>
-_GLIBCXX_SIMD_INTRINSIC constexpr auto __get_tuple_at(const __simd_tuple<_T, _Abis...> &t)
+_GLIBCXX_SIMD_INTRINSIC constexpr auto __get_tuple_at(const __simd_tuple<_T, _Abis...> &__t)
 {
-    return __simd_tuple_get_impl(__as_simd_tuple(), t, __size_constant<_N>());
+    return __simd_tuple_get_impl(__as_simd_tuple(), __t, __size_constant<_N>());
 }
 
 template <size_t _N, class _T, class... _Abis>
-_GLIBCXX_SIMD_INTRINSIC constexpr auto &__get_tuple_at(__simd_tuple<_T, _Abis...> &t)
+_GLIBCXX_SIMD_INTRINSIC constexpr auto &__get_tuple_at(__simd_tuple<_T, _Abis...> &__t)
 {
-    return __simd_tuple_get_impl(__as_simd_tuple(), t, __size_constant<_N>());
+    return __simd_tuple_get_impl(__as_simd_tuple(), __t, __size_constant<_N>());
 }
 
 // __how_many_to_extract {{{1
