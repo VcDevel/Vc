@@ -197,8 +197,8 @@ template <class _U, class _T, class _Abi> struct __extra_argument_type {
             x_, y_, z_);                                                                 \
     }                                                                                    \
     template <class _T, class _U, class _V, class..., class TT = std::decay_t<_T>,       \
-              class UU = std::decay_t<_U>, class VV = std::decay_t<_V>,                  \
-              class Simd = std::conditional_t<std::experimental::is_simd_v<UU>, UU, VV>> \
+              class UU = std::decay_t<_U>, class _VV = std::decay_t<_V>,                  \
+              class Simd = std::conditional_t<std::experimental::is_simd_v<UU>, UU, _VV>> \
     _GLIBCXX_SIMD_INTRINSIC decltype(std::experimental::__name(                          \
         Simd(std::declval<_T>()), Simd(std::declval<_U>()), Simd(std::declval<_V>())))   \
     __name(_T &&x_, _U &&y_, _V &&z_)                                                    \
@@ -213,24 +213,24 @@ template <class _U, class _T, class _Abi> struct __extra_argument_type {
 template < typename _Abi>
 _GLIBCXX_SIMD_ALWAYS_INLINE static simd<float, _Abi> __cosSeries(const simd<float, _Abi> &x)
 {
-    using C = __trig<float>;
+    using _C = __trig<float>;
     const simd<float, _Abi> x2 = x * x;
-    return ((C::cos_c2  * x2 +
-             C::cos_c1) * x2 +
-             C::cos_c0) * (x2 * x2)
+    return ((_C::cos_c2  * x2 +
+             _C::cos_c1) * x2 +
+             _C::cos_c0) * (x2 * x2)
         - .5f * x2 + 1.f;
 }
 template <typename _Abi>
 _GLIBCXX_SIMD_ALWAYS_INLINE static simd<double, _Abi> __cosSeries(const simd<double, _Abi> &x)
 {
-    using C = __trig<double>;
+    using _C = __trig<double>;
     const simd<double, _Abi> x2 = x * x;
-    return (((((C::cos_c5  * x2 +
-                C::cos_c4) * x2 +
-                C::cos_c3) * x2 +
-                C::cos_c2) * x2 +
-                C::cos_c1) * x2 +
-                C::cos_c0) * (x2 * x2)
+    return (((((_C::cos_c5  * x2 +
+                _C::cos_c4) * x2 +
+                _C::cos_c3) * x2 +
+                _C::cos_c2) * x2 +
+                _C::cos_c1) * x2 +
+                _C::cos_c0) * (x2 * x2)
         - .5 * x2 + 1.;
 }
 
@@ -239,25 +239,25 @@ _GLIBCXX_SIMD_ALWAYS_INLINE static simd<double, _Abi> __cosSeries(const simd<dou
 template <typename _Abi>
 _GLIBCXX_SIMD_ALWAYS_INLINE static simd<float, _Abi> __sinSeries(const simd<float, _Abi>& x)
 {
-    using C = __trig<float>;
+    using _C = __trig<float>;
     const simd<float, _Abi> x2 = x * x;
-    return ((C::sin_c2  * x2 +
-             C::sin_c1) * x2 +
-             C::sin_c0) * (x2 * x)
+    return ((_C::sin_c2  * x2 +
+             _C::sin_c1) * x2 +
+             _C::sin_c0) * (x2 * x)
         + x;
 }
 
 template <typename _Abi>
 _GLIBCXX_SIMD_ALWAYS_INLINE static simd<double, _Abi> __sinSeries(const simd<double, _Abi> &x)
 {
-    using C = __trig<double>;
+    using _C = __trig<double>;
     const simd<double, _Abi> x2 = x * x;
-    return (((((C::sin_c5  * x2 +
-                C::sin_c4) * x2 +
-                C::sin_c3) * x2 +
-                C::sin_c2) * x2 +
-                C::sin_c1) * x2 +
-                C::sin_c0) * (x2 * x)
+    return (((((_C::sin_c5  * x2 +
+                _C::sin_c4) * x2 +
+                _C::sin_c3) * x2 +
+                _C::sin_c2) * x2 +
+                _C::sin_c1) * x2 +
+                _C::sin_c0) * (x2 * x)
         + x;
 }
 
@@ -268,22 +268,22 @@ _GLIBCXX_SIMD_ALWAYS_INLINE std::pair<simd<float, _Abi>, rebind_simd_t<int, simd
     simd<float, _Abi> x)
 {
     using _V = simd<float, _Abi>;
-    using C = __trig<float>;
+    using _C = __trig<float>;
     using IV = rebind_simd_t<int, _V>;
 
     x = abs(x);
 #if _GLIBCXX_SIMD_HAVE_FMA4 || _GLIBCXX_SIMD_HAVE_FMA
     rebind_simd_t<int, _V> quadrant =
-        static_simd_cast<IV>(x * C::_4_pi + 1.f);  // prefer the fma here
+        static_simd_cast<IV>(x * _C::_4_pi + 1.f);  // prefer the fma here
     quadrant &= ~1;
 #else
-    rebind_simd_t<int, _V> quadrant = static_simd_cast<IV>(x * C::_4_pi);
+    rebind_simd_t<int, _V> quadrant = static_simd_cast<IV>(x * _C::_4_pi);
     quadrant += quadrant & 1;
 #endif
     const _V y = static_simd_cast<_V>(quadrant);
     quadrant &= 7;
 
-    return {((x - y * C::pi_4_hi) - y * C::pi_4_rem1) - y * C::pi_4_rem2, quadrant};
+    return {((x - y * _C::pi_4_hi) - y * _C::pi_4_rem1) - y * _C::pi_4_rem2, quadrant};
 }
 
 template <typename _Abi>
@@ -291,12 +291,12 @@ _GLIBCXX_SIMD_ALWAYS_INLINE static std::pair<simd<double, _Abi>, rebind_simd_t<i
 __foldInput(simd<double, _Abi> x)
 {
     using _V = simd<double, _Abi>;
-    using C = __trig<double>;
+    using _C = __trig<double>;
     using IV = rebind_simd_t<int, _V>;
 
     x = abs(x);
-    _V y = trunc(x / C::pi_4);  // * C::4_pi would work, but is >twice as imprecise
-    _V z = y - trunc(y * C::_1_16) * C::_16;  // y modulo 16
+    _V y = trunc(x / _C::pi_4);  // * _C::4_pi would work, but is >twice as imprecise
+    _V z = y - trunc(y * _C::_1_16) * _C::_16;  // y modulo 16
     IV quadrant = static_simd_cast<IV>(z);
     const auto mask = (quadrant & 1) != 0;
     ++where(mask, quadrant);
@@ -306,7 +306,7 @@ __foldInput(simd<double, _Abi> x)
     // since y is an integer we don't need to split y into low and high parts until the
     // integer
     // requires more bits than there are zero bits at the end of _pi_4_hi (30 bits -> 1e9)
-    return {((x - y * C::pi_4_hi) - y * C::pi_4_rem1) - y * C::pi_4_rem2, quadrant};
+    return {((x - y * _C::pi_4_hi) - y * _C::pi_4_rem1) - y * _C::pi_4_rem2, quadrant};
 }
 
 // }}}
@@ -396,17 +396,17 @@ template <class _T, class _Abi>
 enable_if_t<std::is_floating_point<_T>::value, simd<_T, _Abi>> cos(simd<_T, _Abi> x)
 {
     using _V = simd<_T, _Abi>;
-    using M = typename _V::mask_type;
+    using _M = typename _V::mask_type;
 
     auto folded = __foldInput(x);
     const _V &z = folded.first;
     auto &quadrant = folded.second;
-    M sign = static_simd_cast<M>(quadrant > 3);
+    _M sign = static_simd_cast<_M>(quadrant > 3);
     where(quadrant > 3, quadrant) -= 4;
-    sign ^= static_simd_cast<M>(quadrant > 1);
+    sign ^= static_simd_cast<_M>(quadrant > 1);
 
     _V y = __cosSeries(z);
-    where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = __sinSeries(z);
+    where(static_simd_cast<_M>(quadrant == 1 || quadrant == 2), y) = __sinSeries(z);
     where(sign, y) = -y;
     _GLIBCXX_SIMD_DEBUG(_Cosine)
         (_GLIBCXX_SIMD_PRETTY_PRINT(x))
@@ -431,16 +431,16 @@ template <class _T, class _Abi>
 enable_if_t<std::is_floating_point<_T>::value, simd<_T, _Abi>> sin(simd<_T, _Abi> x)
 {
     using _V = simd<_T, _Abi>;
-    using M = typename _V::mask_type;
+    using _M = typename _V::mask_type;
 
     auto folded = __foldInput(x);
     const _V &z = folded.first;
     auto &quadrant = folded.second;
-    const M sign = (x < 0) ^ static_simd_cast<M>(quadrant > 3);
+    const _M sign = (x < 0) ^ static_simd_cast<_M>(quadrant > 3);
     where(quadrant > 3, quadrant) -= 4;
 
     _V y = __sinSeries(z);
-    where(static_simd_cast<M>(quadrant == 1 || quadrant == 2), y) = __cosSeries(z);
+    where(static_simd_cast<_M>(quadrant == 1 || quadrant == 2), y) = __cosSeries(z);
     where(sign, y) = -y;
     _GLIBCXX_SIMD_DEBUG(_Sine)
         (_GLIBCXX_SIMD_PRETTY_PRINT(x))

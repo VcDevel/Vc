@@ -123,16 +123,16 @@ public:
     }
 
 private:
-    template <class T, class = decltype(__buffer << std::declval<const T &>())>
-    void __print(const T &x, int)
+    template <class _T, class = decltype(__buffer << std::declval<const _T &>())>
+    void __print(const _T &x, int)
     {
         __buffer << x;
     }
 
     static char hexChar(char x) { return x + (x > 9 ? 87 : 48); }
-    template <class T> void __print(const T &x, float)
+    template <class _T> void __print(const _T &x, float)
     {
-        using Bytes = char[sizeof(T)];
+        using Bytes = char[sizeof(_T)];
         auto &&bytes = reinterpret_cast<const Bytes &>(x);
         int __i = -1;
         for (const unsigned char b : bytes) {
