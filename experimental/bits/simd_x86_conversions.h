@@ -219,10 +219,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         if constexpr (__x_to_x && __have_sse4_1) {
             return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi16_epi64(__intrin) : _mm_cvtepu16_epi64(__intrin));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
-            auto x = _mm_srai_epi16(__intrin, 15);
-            auto y = _mm_unpacklo_epi16(__intrin, x);
-            x = _mm_unpacklo_epi16(x, x);
-            return __intrin_bitcast<_To>(_mm_unpacklo_epi32(y, x));
+            auto __x = _mm_srai_epi16(__intrin, 15);
+            auto __y = _mm_unpacklo_epi16(__intrin, __x);
+            __x = _mm_unpacklo_epi16(__x, __x);
+            return __intrin_bitcast<_To>(_mm_unpacklo_epi32(__y, __x));
         } else if constexpr (__x_to_x) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi32(_mm_unpacklo_epi16(__intrin, __m128i()), __m128i()));
         } else if constexpr (__x_to_y) {
@@ -285,10 +285,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 _mm_shuffle_epi8(
                     epi16, _mm_setr_epi8(0, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3));
             } else {
-                auto x = _mm_unpacklo_epi8(__intrin, __intrin);
-                x = _mm_unpacklo_epi16(x, x);
+                auto __x = _mm_unpacklo_epi8(__intrin, __intrin);
+                __x = _mm_unpacklo_epi16(__x, __x);
                 return __intrin_bitcast<_To>(
-                    _mm_unpacklo_epi32(_mm_srai_epi32(x, 24), _mm_srai_epi32(x, 31)));
+                    _mm_unpacklo_epi32(_mm_srai_epi32(__x, 24), _mm_srai_epi32(__x, 31)));
             }
         } else if constexpr (__x_to_x) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi32(
@@ -303,8 +303,8 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         if constexpr (__x_to_x && __have_sse4_1) {
             return __intrin_bitcast<_To>(is_signed_v<_T> ? _mm_cvtepi8_epi32(__intrin) : _mm_cvtepu8_epi32(__intrin));
         } else if constexpr (__x_to_x && is_signed_v<_T>) {
-            const auto x = _mm_unpacklo_epi8(__intrin, __intrin);
-            return __intrin_bitcast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(x, x), 24));
+            const auto __x = _mm_unpacklo_epi8(__intrin, __intrin);
+            return __intrin_bitcast<_To>(_mm_srai_epi32(_mm_unpacklo_epi16(__x, __x), 24));
         } else if constexpr (__x_to_x && is_unsigned_v<_T>) {
             return __intrin_bitcast<_To>(_mm_unpacklo_epi16(_mm_unpacklo_epi8(__intrin, __m128i()), __m128i()));
         } else if constexpr (__x_to_y) {
@@ -351,24 +351,24 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     } else if constexpr (f32_to_u32) {  //{{{2
         // the __builtin_constant_p hack enables constant propagation
         if constexpr (__have_avx512vl && __x_to_x) {
-            const __vector_type_t<float, 4> x = __v._M_data;
-            return __builtin_constant_p(x) ? __make_builtin<_U>(x[0], x[1], x[2], x[3])
+            const __vector_type_t<float, 4> __x = __v._M_data;
+            return __builtin_constant_p(__x) ? __make_builtin<_U>(__x[0], __x[1], __x[2], __x[3])
                                            : __vector_bitcast<_U>(_mm_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __x_to_x) {
-            const __vector_type_t<float, 4> x = __v._M_data;
-            return __builtin_constant_p(x)
-                       ? __make_builtin<_U>(x[0], x[1], x[2], x[3])
+            const __vector_type_t<float, 4> __x = __v._M_data;
+            return __builtin_constant_p(__x)
+                       ? __make_builtin<_U>(__x[0], __x[1], __x[2], __x[3])
                        : __vector_bitcast<_U>(__lo128(_mm512_cvttps_epu32(__auto_bitcast(__v))));
         } else if constexpr (__have_avx512vl && __y_to_y) {
-            const __vector_type_t<float, 8> x = __v._M_data;
-            return __builtin_constant_p(x) ? __make_builtin<_U>(x[0], x[1], x[2], x[3],
-                                                                x[4], x[5], x[6], x[7])
+            const __vector_type_t<float, 8> __x = __v._M_data;
+            return __builtin_constant_p(__x) ? __make_builtin<_U>(__x[0], __x[1], __x[2], __x[3],
+                                                                __x[4], __x[5], __x[6], __x[7])
                                            : __vector_bitcast<_U>(_mm256_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __y_to_y) {
-            const __vector_type_t<float, 8> x = __v._M_data;
-            return __builtin_constant_p(x)
-                       ? __make_builtin<_U>(x[0], x[1], x[2], x[3], x[4], x[5], x[6],
-                                            x[7])
+            const __vector_type_t<float, 8> __x = __v._M_data;
+            return __builtin_constant_p(__x)
+                       ? __make_builtin<_U>(__x[0], __x[1], __x[2], __x[3], __x[4], __x[5], __x[6],
+                                            __x[7])
                        : __vector_bitcast<_U>(__lo256(_mm512_cvttps_epu32(__auto_bitcast(__v))));
         } else if constexpr (__x_to_x || __y_to_y || __z_to_z) {
             // go to fallback, it does the right thing. We can't use the _mm_floor_ps -

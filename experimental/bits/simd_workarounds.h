@@ -20,27 +20,27 @@ _GLIBCXX_SIMD_INTRINSIC _T __divides(_T a, _T b)
     if constexpr (is_dword && ((is_xmm && __have_avx) || (is_ymm && __have_avx512f))) {
         return convert<_U>(convert<double>(a) / convert<double>(b));
     } else if constexpr (is_dword) {  // really better with is_xmm?
-        auto x = __convert_all<__vector_type_t<double, Traits::width / 2>>(a);
-        auto y = __convert_all<__vector_type_t<double, Traits::width / 2>>(b);
-        return convert<_T>(x[0] / y[0], x[1] / y[1]);
+        auto __x = __convert_all<__vector_type_t<double, Traits::width / 2>>(a);
+        auto __y = __convert_all<__vector_type_t<double, Traits::width / 2>>(b);
+        return convert<_T>(__x[0] / __y[0], __x[1] / __y[1]);
     } else if constexpr (is_word) {
         if constexpr ((is_xmm && __have_avx) || (is_ymm && __have_avx512f)) {
             return convert<_T>(convert<float>(a) / convert<float>(b));
         } else {
-            auto x = __convert_all<__vector_type_t<float, Traits::width / 2>>(a);
-            auto y = __convert_all<__vector_type_t<float, Traits::width / 2>>(b);
-            return convert<_T>(x[0] / y[0], x[1] / y[1]);
+            auto __x = __convert_all<__vector_type_t<float, Traits::width / 2>>(a);
+            auto __y = __convert_all<__vector_type_t<float, Traits::width / 2>>(b);
+            return convert<_T>(__x[0] / __y[0], __x[1] / __y[1]);
         }
     } else if constexpr (is_byte && is_xmm && __have_avx512f) {
         return convert<_T>(convert<float>(a) / convert<float>(b));
     } else if constexpr (is_byte && ((is_xmm && __have_avx) || is_ymm && __have_avx512f)) {
-        auto x = __convert_all<__vector_type_t<float, Traits::width / 2>>(a);
-        auto y = __convert_all<__vector_type_t<float, Traits::width / 2>>(b);
-        return convert<_T>(x[0] / y[0], x[1] / y[1]);
+        auto __x = __convert_all<__vector_type_t<float, Traits::width / 2>>(a);
+        auto __y = __convert_all<__vector_type_t<float, Traits::width / 2>>(b);
+        return convert<_T>(__x[0] / __y[0], __x[1] / __y[1]);
     } else if constexpr (is_byte) {
-        auto x = __convert_all<__vector_type_t<float, Traits::width / 4>>(a);
-        auto y = __convert_all<__vector_type_t<float, Traits::width / 4>>(b);
-        return convert<_T>(x[0] / y[0], x[1] / y[1], x[2] / y[2], x[3] / y[3]);
+        auto __x = __convert_all<__vector_type_t<float, Traits::width / 4>>(a);
+        auto __y = __convert_all<__vector_type_t<float, Traits::width / 4>>(b);
+        return convert<_T>(__x[0] / __y[0], __x[1] / __y[1], __x[2] / __y[2], __x[3] / __y[3]);
     } else {
         return a / b;
     }
@@ -183,12 +183,12 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
                 _mm512_sllv_epi16(_mm512_cvtepu8_epi16(_mm512_castsi256_si512(a)),
                                   _mm512_cvtepu8_epi16(_mm512_castsi256_si512(b)))));
         } else {
-            auto mask_from_bit = [](__vector_type_t<_T, _N> x, int bit) {
-                auto y = __vector_bitcast<short>(x) << bit;
+            auto mask_from_bit = [](__vector_type_t<_T, _N> __x, int bit) {
+                auto __y = __vector_bitcast<short>(__x) << bit;
                 if constexpr (__have_sse4_1) {
-                    return __to_intrin(y);
+                    return __to_intrin(__y);
                 } else {
-                    return __to_intrin(__vector_bitcast<__schar>(y) < 0);
+                    return __to_intrin(__vector_bitcast<__schar>(__y) < 0);
                 }
             };
             // exploit UB: The behavior is undefined if the right operand is [...] greater
