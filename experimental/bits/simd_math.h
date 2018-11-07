@@ -555,15 +555,15 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> frexp(
         constexpr size_t _N = simd_size_v<_T, _Abi>;
         constexpr size_t NI = _N < 4 ? 4 : _N;
         const auto v = __data(x);
-        const auto isnonzero = __get_impl_t<simd<_T, _Abi>>::isnonzerovalue_mask(v.d);
+        const auto isnonzero = __get_impl_t<simd<_T, _Abi>>::isnonzerovalue_mask(v._M_data);
         const auto e =
             __to_intrin(__blend(isnonzero, __vector_type_t<int, NI>(),
-                                1 + __convert<__storage<int, NI>>(__getexp(v)).d));
+                                1 + __convert<__storage<int, NI>>(__getexp(v))._M_data));
         _GLIBCXX_SIMD_DEBUG(_Frexp)
         (std::hex, _GLIBCXX_SIMD_PRETTY_PRINT(int(isnonzero)), std::dec,
          _GLIBCXX_SIMD_PRETTY_PRINT(e), _GLIBCXX_SIMD_PRETTY_PRINT(__getexp(v)),
          _GLIBCXX_SIMD_PRETTY_PRINT(
-             __to_intrin(1 + __convert<__storage<int, NI>>(__getexp(v)).d)));
+             __to_intrin(1 + __convert<__storage<int, NI>>(__getexp(v))._M_data)));
         __vector_store<_N * sizeof(int)>(e, exp, overaligned<alignof(IV)>);
         return {__private_init, __blend(isnonzero, v, __getmant(v))};
     } else {

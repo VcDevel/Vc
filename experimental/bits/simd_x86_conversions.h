@@ -351,21 +351,21 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     } else if constexpr (f32_to_u32) {  //{{{2
         // the __builtin_constant_p hack enables constant propagation
         if constexpr (__have_avx512vl && __x_to_x) {
-            const __vector_type_t<float, 4> x = __v.d;
+            const __vector_type_t<float, 4> x = __v._M_data;
             return __builtin_constant_p(x) ? __make_builtin<_U>(x[0], x[1], x[2], x[3])
                                            : __vector_bitcast<_U>(_mm_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __x_to_x) {
-            const __vector_type_t<float, 4> x = __v.d;
+            const __vector_type_t<float, 4> x = __v._M_data;
             return __builtin_constant_p(x)
                        ? __make_builtin<_U>(x[0], x[1], x[2], x[3])
                        : __vector_bitcast<_U>(__lo128(_mm512_cvttps_epu32(__auto_bitcast(__v))));
         } else if constexpr (__have_avx512vl && __y_to_y) {
-            const __vector_type_t<float, 8> x = __v.d;
+            const __vector_type_t<float, 8> x = __v._M_data;
             return __builtin_constant_p(x) ? __make_builtin<_U>(x[0], x[1], x[2], x[3],
                                                                 x[4], x[5], x[6], x[7])
                                            : __vector_bitcast<_U>(_mm256_cvttps_epu32(__intrin));
         } else if constexpr (__have_avx512f && __y_to_y) {
-            const __vector_type_t<float, 8> x = __v.d;
+            const __vector_type_t<float, 8> x = __v._M_data;
             return __builtin_constant_p(x)
                        ? __make_builtin<_U>(x[0], x[1], x[2], x[3], x[4], x[5], x[6],
                                             x[7])
@@ -1083,10 +1083,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr (i32_to_i8) {  //{{{2
             if constexpr (__x_to_x) {
                 if constexpr (__have_ssse3) {
-                    const auto x0 =  __vector_bitcast<uint>(v0.d) & 0xff;
-                    const auto x1 = (__vector_bitcast<uint>(v1.d) & 0xff) << 8;
-                    const auto x2 = (__vector_bitcast<uint>(v2.d) & 0xff) << 16;
-                    const auto x3 =  __vector_bitcast<uint>(v3.d)         << 24;
+                    const auto x0 =  __vector_bitcast<uint>(v0._M_data) & 0xff;
+                    const auto x1 = (__vector_bitcast<uint>(v1._M_data) & 0xff) << 8;
+                    const auto x2 = (__vector_bitcast<uint>(v2._M_data) & 0xff) << 16;
+                    const auto x3 =  __vector_bitcast<uint>(v3._M_data)         << 24;
                     return __intrin_bitcast<_To>(
                         _mm_shuffle_epi8(__to_intrin(x0 | x1 | x2 | x3),
                                          _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10,
@@ -1177,7 +1177,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 __assert_unreachable<_T>();
             }
         } else {
-            return __vector_convert<_To>(v0.d, v1.d, v2.d, v3.d,
+            return __vector_convert<_To>(v0._M_data, v1._M_data, v2._M_data, v3._M_data,
                                          make_index_sequence<_N>());
         }  //}}}2
     }
@@ -1315,7 +1315,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             return __intrin_bitcast<_To>(_mm_unpacklo_epi64(lo, hi));
         } else {
             __assert_unreachable<_T>();
-            //return __vector_convert<_To>(v0.d, v1.d, v2.d, v3.d, v4.d, v5.d, v6.d, v7.d,
+            //return __vector_convert<_To>(v0._M_data, v1._M_data, v2._M_data, v3._M_data, v4._M_data, v5._M_data, v6._M_data, v7._M_data,
             //                             make_index_sequence<_N>());
         }  //}}}2
     }

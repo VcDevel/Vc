@@ -56,12 +56,12 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> constexpr __bit_shift_left(__storage<_
             if (b == 0) {
                 return a;
             } else if (b == 1) {
-                return a.d + a.d;
+                return a._M_data + a._M_data;
             } else if (b > 1 && b < 8) {
                 const __uchar mask = (0xff << b) & 0xff;
                 using _V = decltype(a);
                 using In = typename _V::intrin_type;
-                return reinterpret_cast<In>(__storage_bitcast<ushort>(a).d << b) &
+                return reinterpret_cast<In>(__storage_bitcast<ushort>(a)._M_data << b) &
                        _V::broadcast(mask).intrin();
             } else {
                 __builtin_unreachable();
@@ -75,7 +75,7 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> constexpr __bit_shift_left(__storage<_
             } else {
                 using vshort = __vector_type_t<ushort, 8>;
                 const auto mask = ((~vshort() >> 8) << b) ^ (~vshort() << 8);
-                return __to_storage((reinterpret_cast<vshort>(a.d) << b) & mask);
+                return __to_storage((reinterpret_cast<vshort>(a._M_data) << b) & mask);
             }
         } else if constexpr (_N == 32 && __have_avx2) {
             if constexpr(__have_avx512bw) {
@@ -85,17 +85,17 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> constexpr __bit_shift_left(__storage<_
             } else {
                 using vshort = __vector_type_t<ushort, 16>;
                 const auto mask = ((~vshort() >> 8) << b) ^ (~vshort() << 8);
-                return __to_storage((reinterpret_cast<vshort>(a.d) << b) & mask);
+                return __to_storage((reinterpret_cast<vshort>(a._M_data) << b) & mask);
             }
         } else if constexpr (_N == 64 && __have_avx512bw) {
             using vshort = __vector_type_t<ushort, 32>;
             const auto mask = ((~vshort() >> 8) << b) ^ (~vshort() << 8);
-            return __to_storage((reinterpret_cast<vshort>(a.d) << b) & mask);
+            return __to_storage((reinterpret_cast<vshort>(a._M_data) << b) & mask);
         } else {
             static_assert(!std::is_same_v<_T, _T>);
         }
     } else {
-        return a.d << b;
+        return a._M_data << b;
     }
 }
 
@@ -105,7 +105,7 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
     static_assert(std::is_integral<_T>::value,
                   "__bit_shift_left is only supported for integral types");
     if constexpr (sizeof(_T) == 2 && sizeof(a) == 16 && !__have_avx2) {
-        __vector_type_t<int, 4> shift = __storage_bitcast<int>(b).d + (0x03f8'03f8 >> 3);
+        __vector_type_t<int, 4> shift = __storage_bitcast<int>(b)._M_data + (0x03f8'03f8 >> 3);
         return multiplies(
             a,
             __storage<_T, _N>(
@@ -114,7 +114,7 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
     } else if constexpr (sizeof(_T) == 4 && sizeof(a) == 16 && !__have_avx2) {
         return __storage_bitcast<_T>(
             multiplies(a, __storage<_T, _N>(_mm_cvttps_epi32(
-                              reinterpret_cast<__m128>((b.d << 23) + 0x3f80'0000)))));
+                              reinterpret_cast<__m128>((b._M_data << 23) + 0x3f80'0000)))));
     } else if constexpr (sizeof(_T) == 8 && sizeof(a) == 16 && !__have_avx2) {
         const auto lo = _mm_sll_epi64(a, b);
         const auto hi = _mm_sll_epi64(a, _mm_unpackhi_epi64(b, b));
@@ -147,8 +147,8 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
             return __lo256(
                 _mm512_sllv_epi16(_mm512_castsi256_si512(a), _mm512_castsi256_si512(b)));
         } else if constexpr (_N == 16) {
-            const auto aa = __vector_bitcast<unsigned>(a.d);
-            const auto bb = __vector_bitcast<unsigned>(b.d);
+            const auto aa = __vector_bitcast<unsigned>(a._M_data);
+            const auto bb = __vector_bitcast<unsigned>(b._M_data);
             return _mm256_blend_epi16(__auto_bitcast(aa << (bb & 0x0000ffffu)),
                                       __auto_bitcast((aa & 0xffff0000u) << (bb >> 16)), 0xaa);
         } else if constexpr (_N == 8 && __have_avx512bw_vl) {
@@ -157,8 +157,8 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
             return _mm512_sllv_epi16(_mm512_castsi128_si512(a),
                                      _mm512_castsi128_si512(b));
         } else if constexpr (_N == 8) {
-            const auto aa = __vector_bitcast<unsigned>(a.d);
-            const auto bb = __vector_bitcast<unsigned>(b.d);
+            const auto aa = __vector_bitcast<unsigned>(a._M_data);
+            const auto bb = __vector_bitcast<unsigned>(b._M_data);
             return _mm_blend_epi16(__auto_bitcast(aa << (bb & 0x0000ffffu)),
                                    __auto_bitcast((aa & 0xffff0000u) << (bb >> 16)), 0xaa);
         } else {
@@ -196,7 +196,7 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
             // => valid input range for each element of b is [0, 7]
             // => only the 3 low bits of b are relevant
             // do a =<< 4 where b[2] is set
-            auto a4 = __vector_bitcast<__uchar>(__vector_bitcast<short>(a.d) << 4);
+            auto a4 = __vector_bitcast<__uchar>(__vector_bitcast<short>(a._M_data) << 4);
             if constexpr (std::is_unsigned_v<_T>) {
                 // shift into or over the sign bit is UB => never spills into a neighbor
                 a4 &= 0xf0u;
@@ -204,14 +204,14 @@ _GLIBCXX_SIMD_INTRINSIC __storage<_T, _N> __bit_shift_left(__storage<_T, _N> a, 
             a = __blend(mask_from_bit(b, 5), a, __to_intrin(a4));
             // do a =<< 2 where b[1] is set
             // shift into or over the sign bit is UB => never spills into a neighbor
-            const auto a2 = std::is_signed_v<_T> ? __to_intrin(__vector_bitcast<short>(a.d) << 2)
-                                                : __to_intrin(a.d << 2);
+            const auto a2 = std::is_signed_v<_T> ? __to_intrin(__vector_bitcast<short>(a._M_data) << 2)
+                                                : __to_intrin(a._M_data << 2);
             a = __blend(mask_from_bit(b, 6), a, a2);
             // do a =<< 1 where b[0] is set
-            return __blend(mask_from_bit(b, 7), a, __to_intrin(a.d + a.d));
+            return __blend(mask_from_bit(b, 7), a, __to_intrin(a._M_data + a._M_data));
         }
     } else {
-        return a.d << b.d;
+        return a._M_data << b._M_data;
     }
 }
 
