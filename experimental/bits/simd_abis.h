@@ -24,14 +24,14 @@ void __subscript_write(_Vectorizable<_T> &__x, size_t, __id<_T> __y) noexcept
 }
 
 template <class _T>
-typename _T::value_type __subscript_read(const _T &__x, size_t i) noexcept
+typename _T::value_type __subscript_read(const _T &__x, size_t __i) noexcept
 {
-    return __x[i];
+    return __x[__i];
 }
 template <class _T>
-void __subscript_write(_T &__x, size_t i, typename _T::value_type __y) noexcept
+void __subscript_write(_T &__x, size_t __i, typename _T::value_type __y) noexcept
 {
-    return __x.set(i, __y);
+    return __x.set(__i, __y);
 }
 
 // __simd_tuple_element {{{1
@@ -366,8 +366,8 @@ public:
             fun(__tuple_element_meta<_T, Abi0, 0>(), x.first, more.first...));
     }
 
-    _T operator[](size_t i) const noexcept { return __subscript_read(first, i); }
-    void set(size_t i, _T val) noexcept { __subscript_write(first, i, val); }
+    _T operator[](size_t __i) const noexcept { return __subscript_read(first, __i); }
+    void set(size_t __i, _T val) noexcept { __subscript_write(first, __i, val); }
 };
 
 // 2 or more {{{2
@@ -558,24 +558,24 @@ public:
         }
     }
 
-    _T operator[](size_t i) const noexcept
+    _T operator[](size_t __i) const noexcept
     {
 #ifdef _GLIBCXX_SIMD_USE_ALIASING_LOADS
-        return reinterpret_cast<const __may_alias<_T> *>(this)[i];
+        return reinterpret_cast<const __may_alias<_T> *>(this)[__i];
 #else
-        return i < simd_size_v<_T, Abi0> ? __subscript_read(first, i)
-                                        : second[i - simd_size_v<_T, Abi0>];
+        return __i < simd_size_v<_T, Abi0> ? __subscript_read(first, __i)
+                                        : second[__i - simd_size_v<_T, Abi0>];
 #endif
     }
-    void set(size_t i, _T val) noexcept
+    void set(size_t __i, _T val) noexcept
     {
 #ifdef _GLIBCXX_SIMD_USE_ALIASING_LOADS
-        reinterpret_cast<__may_alias<_T> *>(this)[i] = val;
+        reinterpret_cast<__may_alias<_T> *>(this)[__i] = val;
 #else
-        if (i < simd_size_v<_T, Abi0>) {
-            __subscript_write(first, i, val);
+        if (__i < simd_size_v<_T, Abi0>) {
+            __subscript_write(first, __i, val);
         } else {
-            second.set(i - simd_size_v<_T, Abi0>, val);
+            second.set(__i - simd_size_v<_T, Abi0>, val);
         }
 #endif
     }
@@ -1013,7 +1013,7 @@ _GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage16_t<_T> __v, _T* __mem, _F,
         _mm_maskmoveu_si128(__vi, __ki, reinterpret_cast<char*>(__mem));
     } else {
         __bit_iteration(__vector_to_bitset(__k._M_data).to_ullong(),
-                        [&](auto i) { __mem[i] = __v[i]; });
+                        [&](auto __i) { __mem[__i] = __v[__i]; });
     }
 }
 
@@ -1154,13 +1154,13 @@ __extract_part(const __simd_tuple<_T, _A0, As...> &x)
         const __may_alias<_T> *const element_ptr =
             reinterpret_cast<const __may_alias<_T> *>(&x) + _Index * values_per_part;
         return __data(simd<_T, simd_abi::deduce_t<_T, values_per_part>>(
-                          [&](auto i) { return element_ptr[i]; }))
+                          [&](auto __i) { return element_ptr[__i]; }))
             ._M_data;
 #else
         constexpr size_t offset = _Index * values_per_part;
         __unused(offset);  // not really
-        return __data(simd<_T, simd_abi::deduce_t<_T, values_per_part>>([&](auto i) {
-                   constexpr __size_constant<i + offset> k;
+        return __data(simd<_T, simd_abi::deduce_t<_T, values_per_part>>([&](auto __i) {
+                   constexpr __size_constant<__i + offset> k;
                    return x[k];
                }))
             ._M_data;
@@ -1267,8 +1267,8 @@ template <typename To, typename From> _GLIBCXX_SIMD_INTRINSIC auto __convert_all
         return __convert_all<To>(S(v));
     } else if constexpr (From::width > __vector_traits<To>::width) {
         constexpr size_t _N = From::width / __vector_traits<To>::width;
-        return __generate_from_n_evaluations<_N, std::array<To, _N>>([&](auto i) {
-            auto part = __extract_part<decltype(i)::value, _N>(v);
+        return __generate_from_n_evaluations<_N, std::array<To, _N>>([&](auto __i) {
+            auto part = __extract_part<decltype(__i)::value, _N>(v);
             return __convert<To>(part);
         });
     } else {
@@ -1279,7 +1279,7 @@ template <typename To, typename From> _GLIBCXX_SIMD_INTRINSIC auto __convert_all
 // }}}
 // __converts_via_decomposition{{{
 // This lists all cases where a __vector_convert needs to fall back to conversion of
-// individual scalars (i.e. decompose the input vector into scalars, convert, compose
+// individual scalars (__i.e. decompose the input vector into scalars, convert, compose
 // output vector). In those cases, masked_load & masked_store prefer to use the
 // __bit_iteration implementation.
 template <class _From, class _To, size_t _ToSize> struct __converts_via_decomposition {
@@ -1895,7 +1895,7 @@ template <class To, class From> inline To __convert_mask(From k) {
                 }
             } else if constexpr (bits_per_element >= _N) {
                 constexpr auto bitmask = __generate_builtin<__vector_type_t<_U, _N>>(
-                    [](auto i) -> _U { return 1ull << i; });
+                    [](auto __i) -> _U { return 1ull << __i; });
                 return __vector_bitcast<ToT>(
                     (__vector_broadcast<_N, _U>(k) & bitmask) != 0);
             } else if constexpr (sizeof(_V) == 16 && sizeof(ToT) == 1 && __have_ssse3) {
@@ -1931,12 +1931,12 @@ template <class To, class From> inline To __convert_mask(From k) {
                 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3)) & bitmask) != 0;
                 */
             } else {
-                const _V tmp = __generate_builtin<_V>([&](auto i) {
+                const _V tmp = __generate_builtin<_V>([&](auto __i) {
                                   return static_cast<_U>(
-                                      k >> (bits_per_element * (i / bits_per_element)));
+                                      k >> (bits_per_element * (__i / bits_per_element)));
                               }) &
-                              __generate_builtin<_V>([](auto i) {
-                                  return static_cast<_U>(1ull << (i % bits_per_element));
+                              __generate_builtin<_V>([](auto __i) {
+                                  return static_cast<_U>(1ull << (__i % bits_per_element));
                               });  // mask bit index
                 return __vector_bitcast<ToT>(tmp != _V());
             }
@@ -2224,92 +2224,92 @@ template <class To, class From> inline To __convert_mask(From k) {
 template <class _Abi> struct __simd_math_fallback {  //{{{
     template <class _T> simd<_T, _Abi> __acos(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::acos(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::acos(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __asin(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::asin(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::asin(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __atan(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::atan(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::atan(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __atan2(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::atan2(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::atan2(x[__i], y[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __cos(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::cos(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::cos(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __sin(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::sin(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::sin(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __tan(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::tan(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::tan(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __acosh(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::acosh(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::acosh(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __asinh(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::asinh(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::asinh(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __atanh(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::atanh(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::atanh(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __cosh(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::cosh(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::cosh(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __sinh(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::sinh(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::sinh(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __tanh(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::tanh(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::tanh(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __exp(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::exp(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::exp(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __exp2(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::exp2(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::exp2(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __expm1(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::expm1(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::expm1(x[__i]); });
     }
 
     template <class _T>
     simd<_T, _Abi> __frexp(const simd<_T, _Abi> &x,
                          fixed_size_simd<int, simd_size_v<_T, _Abi>> &exp)
     {
-        return simd<_T, _Abi>([&](auto i) {
+        return simd<_T, _Abi>([&](auto __i) {
             int tmp;
-            _T r = std::frexp(x[i], &tmp);
-            exp[i] = tmp;
+            _T r = std::frexp(x[__i], &tmp);
+            exp[__i] = tmp;
             return r;
         });
     }
@@ -2318,46 +2318,46 @@ template <class _Abi> struct __simd_math_fallback {  //{{{
     simd<_T, _Abi> __ldexp(const simd<_T, _Abi> &x,
                          const fixed_size_simd<int, simd_size_v<_T, _Abi>> &exp)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::ldexp(x[i], exp[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::ldexp(x[__i], exp[__i]); });
     }
 
     template <class _T>
     fixed_size_simd<int, simd_size_v<_T, _Abi>> __ilogb(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::ilogb(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::ilogb(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __log(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::log(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::log(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __log10(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::log10(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::log10(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __log1p(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::log1p(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::log1p(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __log2(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::log2(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::log2(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __logb(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::logb(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::logb(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __modf(const simd<_T, _Abi> &x, simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) {
+        return simd<_T, _Abi>([&](auto __i) {
             _T tmp;
-            _T r = std::modf(x[i], &tmp);
-            y[i] = tmp;
+            _T r = std::modf(x[__i], &tmp);
+            y[__i] = tmp;
             return r;
         });
     }
@@ -2366,134 +2366,134 @@ template <class _Abi> struct __simd_math_fallback {  //{{{
     simd<_T, _Abi> __scalbn(const simd<_T, _Abi> &x,
                           const fixed_size_simd<int, simd_size_v<_T, _Abi>> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::scalbn(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::scalbn(x[__i], y[__i]); });
     }
 
     template <class _T>
     simd<_T, _Abi> __scalbln(const simd<_T, _Abi> &x,
                            const fixed_size_simd<long, simd_size_v<_T, _Abi>> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::scalbln(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::scalbln(x[__i], y[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __cbrt(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::cbrt(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::cbrt(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __abs(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::abs(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::abs(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __fabs(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::fabs(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::fabs(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __pow(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::pow(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::pow(x[__i], y[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __sqrt(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::sqrt(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::sqrt(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __erf(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::erf(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::erf(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __erfc(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::erfc(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::erfc(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __lgamma(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::lgamma(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::lgamma(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __tgamma(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::tgamma(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::tgamma(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __ceil(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::ceil(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::ceil(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __floor(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::floor(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::floor(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __nearbyint(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::nearbyint(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::nearbyint(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __rint(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::rint(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::rint(x[__i]); });
     }
 
     template <class _T>
     fixed_size_simd<long, simd_size_v<_T, _Abi>> __lrint(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::lrint(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::lrint(x[__i]); });
     }
 
     template <class _T>
     fixed_size_simd<long long, simd_size_v<_T, _Abi>> __llrint(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::llrint(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::llrint(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __round(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::round(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::round(x[__i]); });
     }
 
     template <class _T>
     fixed_size_simd<long, simd_size_v<_T, _Abi>> __lround(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::lround(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::lround(x[__i]); });
     }
 
     template <class _T>
     fixed_size_simd<long long, simd_size_v<_T, _Abi>> __llround(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::llround(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::llround(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __trunc(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::trunc(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::trunc(x[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __fmod(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::fmod(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::fmod(x[__i], y[__i]); });
     }
 
     template <class _T>
     simd<_T, _Abi> __remainder(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::remainder(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::remainder(x[__i], y[__i]); });
     }
 
     template <class _T>
     simd<_T, _Abi> __remquo(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y,
                           fixed_size_simd<int, simd_size_v<_T, _Abi>> &z)
     {
-        return simd<_T, _Abi>([&](auto i) {
+        return simd<_T, _Abi>([&](auto __i) {
             int tmp;
-            _T r = std::remquo(x[i], y[i], &tmp);
-            z[i] = tmp;
+            _T r = std::remquo(x[__i], y[__i], &tmp);
+            z[__i] = tmp;
             return r;
         });
     }
@@ -2501,96 +2501,96 @@ template <class _Abi> struct __simd_math_fallback {  //{{{
     template <class _T>
     simd<_T, _Abi> __copysign(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::copysign(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::copysign(x[__i], y[__i]); });
     }
 
     template <class _T>
     simd<_T, _Abi> __nextafter(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::nextafter(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::nextafter(x[__i], y[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __fdim(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::fdim(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::fdim(x[__i], y[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __fmax(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::fmax(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::fmax(x[__i], y[__i]); });
     }
 
     template <class _T> simd<_T, _Abi> __fmin(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::fmin(x[i], y[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::fmin(x[__i], y[__i]); });
     }
 
     template <class _T>
     simd<_T, _Abi> __fma(const simd<_T, _Abi> &x, const simd<_T, _Abi> &y,
                        const simd<_T, _Abi> &z)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::fma(x[i], y[i], z[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::fma(x[__i], y[__i], z[__i]); });
     }
 
     template <class _T>
     fixed_size_simd<int, simd_size_v<_T, _Abi>> __fpclassify(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::fpclassify(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::fpclassify(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __isfinite(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::isfinite(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::isfinite(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __isinf(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::isinf(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::isinf(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __isnan(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::isnan(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::isnan(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __isnormal(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::isnormal(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::isnormal(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __signbit(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::signbit(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::signbit(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __isgreater(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::isgreater(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::isgreater(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __isgreaterequal(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::isgreaterequal(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::isgreaterequal(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __isless(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::isless(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::isless(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __islessequal(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::islessequal(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::islessequal(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __islessgreater(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::islessgreater(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::islessgreater(x[__i]); });
     }
 
     template <class _T> simd_mask<_T, _Abi> __isunordered(const simd<_T, _Abi> &x)
     {
-        return simd<_T, _Abi>([&](auto i) { return std::isunordered(x[i]); });
+        return simd<_T, _Abi>([&](auto __i) { return std::isunordered(x[__i]); });
     }
 };  // }}}
 // __scalar_simd_impl {{{
@@ -2801,10 +2801,10 @@ struct __scalar_simd_impl : __simd_math_fallback<simd_abi::scalar> {
     template <class _T> static bool greater_equal(_T x, _T y) { return x >= y; }
 
     // smart_reference access {{{2
-    template <class _T, class _U> static void set(_T &v, int i, _U &&x) noexcept
+    template <class _T, class _U> static void set(_T &v, int __i, _U &&x) noexcept
     {
-        _GLIBCXX_SIMD_ASSERT(i == 0);
-        __unused(i);
+        _GLIBCXX_SIMD_ASSERT(__i == 0);
+        __unused(__i);
         v = std::forward<_U>(x);
     }
 
@@ -2884,10 +2884,10 @@ struct __scalar_mask_impl {
     static constexpr bool bit_xor(bool x, bool y) { return x != y; }
 
     // smart_reference access {{{2
-    static void set(bool &k, int i, bool x) noexcept
+    static void set(bool &k, int __i, bool x) noexcept
     {
-        _GLIBCXX_SIMD_ASSERT(i == 0);
-        __unused(i);
+        _GLIBCXX_SIMD_ASSERT(__i == 0);
+        __unused(__i);
         k = x;
     }
 
@@ -2987,7 +2987,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                 : (std::is_floating_point_v<_U> && __have_avx) || __have_avx2 ? 32 : 16;
         if constexpr (sizeof(_U) > 8) {
             return __generate_storage<_T, _N>(
-                [&](auto i) { return static_cast<_T>(mem[i]); });
+                [&](auto __i) { return static_cast<_T>(mem[__i]); });
         } else if constexpr (std::is_same_v<_U, _T>) {
             return __vector_load<_U, _N>(mem, F());
         } else if constexpr (sizeof(_U) * _N < 16) {
@@ -3128,8 +3128,8 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                     __assert_unreachable<_T>();
                 }
             } else {
-                __bit_iteration(__vector_to_bitset(__k._M_data).to_ullong(), [&](auto i) {
-                    __merge.set(i, static_cast<_T>(__mem[i]));
+                __bit_iteration(__vector_to_bitset(__k._M_data).to_ullong(), [&](auto __i) {
+                    __merge.set(__i, static_cast<_T>(__mem[__i]));
                 });
             }
         } else if constexpr (sizeof(_U) <= 8 &&  // no long double
@@ -3158,7 +3158,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
             masked_assign(__k, __merge, converter(uncvted));
         } else {
             __bit_iteration(__vector_to_bitset(__k._M_data).to_ullong(),
-                            [&](auto i) { __merge.set(i, static_cast<_T>(__mem[i])); });
+                            [&](auto __i) { __merge.set(__i, static_cast<_T>(__mem[__i])); });
         }
         return __merge;
     }
@@ -3175,7 +3175,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                 ? 64
                 : (std::is_floating_point_v<_U> && __have_avx) || __have_avx2 ? 32 : 16;
         if constexpr (sizeof(_U) > 8) {
-            __execute_n_times<_N>([&](auto i) { mem[i] = v[i]; });
+            __execute_n_times<_N>([&](auto __i) { mem[__i] = v[__i]; });
         } else if constexpr (std::is_same_v<_U, _T>) {
             __vector_store(v._M_data, mem, F());
         } else if constexpr (sizeof(_U) * _N < 16) {
@@ -3188,8 +3188,8 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
             constexpr size_t stores = _N / VSize;
             using _V = __vector_type_t<_U, VSize>;
             const std::array<_V, stores> converted = __convert_all<_V>(v);
-            __execute_n_times<stores>([&](auto i) {
-                __vector_store(converted[i], mem + i * VSize, F());
+            __execute_n_times<stores>([&](auto __i) {
+                __vector_store(converted[__i], mem + __i * VSize, F());
             });
         }
     }
@@ -3323,7 +3323,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
             }
         } else {
             __bit_iteration(__vector_to_bitset(__k._M_data).to_ullong(),
-                            [&](auto i) { __mem[i] = static_cast<_U>(__v[i]); });
+                            [&](auto __i) { __mem[__i] = static_cast<_U>(__v[__i]); });
         }
     }
 
@@ -3955,9 +3955,9 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 
     // smart_reference access {{{2
     template <class _T, size_t _N, class _U>
-    _GLIBCXX_SIMD_INTRINSIC static void set(__storage<_T, _N> &v, int i, _U &&__x) noexcept
+    _GLIBCXX_SIMD_INTRINSIC static void set(__storage<_T, _N> &v, int __i, _U &&__x) noexcept
     {
-        v.set(i, std::forward<_U>(__x));
+        v.set(__i, std::forward<_U>(__x));
     }
 
     // masked_assign{{{2
@@ -4048,7 +4048,7 @@ template <class _Abi> struct __generic_mask_impl {
                     __assert_unreachable<_T>();
                 }
             } else {
-                __bit_iteration(mask, [&](auto i) { merge.set(i, mem[i]); });
+                __bit_iteration(mask, [&](auto __i) { merge.set(__i, mem[__i]); });
                 return merge;
             }
         } else if constexpr (__have_avx512bw_vl && _N == 32 && sizeof(_T) == 1) {
@@ -4094,7 +4094,7 @@ template <class _Abi> struct __generic_mask_impl {
             // AVX(2) has 32/64 bit maskload, but nothing at 8 bit granularity
             auto tmp = __storage_bitcast<__int_for_sizeof_t<_T>>(merge);
             __bit_iteration(__vector_to_bitset(mask._M_data).to_ullong(),
-                                  [&](auto i) { tmp.set(i, -mem[i]); });
+                                  [&](auto __i) { tmp.set(__i, -mem[__i]); });
             merge = __storage_bitcast<_T>(tmp);
         }
         return merge;
@@ -4218,7 +4218,7 @@ template <class _Abi> struct __generic_mask_impl {
                 __assert_unreachable<_T>();
             }
         } else {
-            __bit_iteration(__vector_to_bitset(__k._M_data).to_ullong(), [&](auto i) { __mem[i] = __v[i]; });
+            __bit_iteration(__vector_to_bitset(__k._M_data).to_ullong(), [&](auto __i) { __mem[__i] = __v[__i]; });
         }
     }
 
@@ -4286,14 +4286,14 @@ template <class _Abi> struct __generic_mask_impl {
     }
 
     // smart_reference access {{{2
-    template <class _T, size_t _N> static void set(__storage<_T, _N> &k, int i, bool x) noexcept
+    template <class _T, size_t _N> static void set(__storage<_T, _N> &k, int __i, bool x) noexcept
     {
         if constexpr (std::is_same_v<_T, bool>) {
-            k.set(i, x);
+            k.set(__i, x);
         } else {
             using int_t = __vector_type_t<__int_for_sizeof_t<_T>, _N>;
             auto tmp = reinterpret_cast<int_t>(k._M_data);
-            tmp[i] = -x;
+            tmp[__i] = -x;
             k._M_data = __auto_bitcast(tmp);
         }
     }
@@ -4859,9 +4859,9 @@ public:
 
     // smart_reference access {{{2
     template <class _T, class... As, class _U>
-    _GLIBCXX_SIMD_INTRINSIC static void set(__simd_tuple<_T, As...> &v, int i, _U &&x) noexcept
+    _GLIBCXX_SIMD_INTRINSIC static void set(__simd_tuple<_T, As...> &v, int __i, _U &&x) noexcept
     {
-        v.set(i, std::forward<_U>(x));
+        v.set(__i, std::forward<_U>(x));
     }
 
     // masked_assign {{{2
@@ -4966,7 +4966,7 @@ template <int _N> struct __fixed_size_mask_impl {
                                                __mask_member_type mask, const bool *mem,
                                                F) noexcept
     {
-        __bit_iteration(mask.to_ullong(), [&](auto i) { merge[i] = mem[i]; });
+        __bit_iteration(mask.to_ullong(), [&](auto __i) { merge[__i] = mem[__i]; });
         return merge;
     }
 
@@ -4980,8 +4980,8 @@ template <int _N> struct __fixed_size_mask_impl {
 #elif _GLIBCXX_SIMD_HAVE_BMI2
 #ifdef __x86_64__
         __unused(f);
-        __execute_n_times<_N / 8>([&](auto i) {
-            constexpr size_t offset = i * 8;
+        __execute_n_times<_N / 8>([&](auto __i) {
+            constexpr size_t offset = __i * 8;
             const __ullong bool8 =
                 _pdep_u64(bs.to_ullong() >> offset, 0x0101010101010101ULL);
             std::memcpy(&mem[offset], &bool8, 8);
@@ -4994,8 +4994,8 @@ template <int _N> struct __fixed_size_mask_impl {
         }
 #else   // __x86_64__
         __unused(f);
-        __execute_n_times<_N / 4>([&](auto i) {
-            constexpr size_t offset = i * 4;
+        __execute_n_times<_N / 4>([&](auto __i) {
+            constexpr size_t offset = __i * 4;
             const __ullong bool4 =
                 _pdep_u32(bs.to_ullong() >> offset, 0x01010101U);
             std::memcpy(&mem[offset], &bool4, 4);
@@ -5010,8 +5010,8 @@ template <int _N> struct __fixed_size_mask_impl {
 #elif  _GLIBCXX_SIMD_HAVE_SSE2   // !AVX512BW && !BMI2
         using _V = simd<__uchar, simd_abi::__sse>;
         __ullong bits = bs.to_ullong();
-        __execute_n_times<(_N + 15) / 16>([&](auto i) {
-            constexpr size_t offset = i * 16;
+        __execute_n_times<(_N + 15) / 16>([&](auto __i) {
+            constexpr size_t offset = __i * 16;
             constexpr size_t remaining = _N - offset;
             if constexpr (remaining == 1) {
                 mem[offset] = static_cast<bool>(bits >> offset);
@@ -5061,7 +5061,7 @@ template <int _N> struct __fixed_size_mask_impl {
             meta.store(meta.make_mask(bs), &mem[meta.offset], f);
         });
 //#else
-        //__execute_n_times<_N>([&](auto i) { mem[i] = bs[i]; });
+        //__execute_n_times<_N>([&](auto __i) { mem[__i] = bs[__i]; });
 #endif  // _GLIBCXX_SIMD_HAVE_BMI2
     }
 
@@ -5070,7 +5070,7 @@ template <int _N> struct __fixed_size_mask_impl {
     static inline void masked_store(const __mask_member_type v, bool *mem, F,
                                     const __mask_member_type k) noexcept
     {
-        __bit_iteration(k, [&](auto i) { mem[i] = v[i]; });
+        __bit_iteration(k, [&](auto __i) { mem[__i] = v[__i]; });
     }
 
     // logical and bitwise operators {{{2
@@ -5105,9 +5105,9 @@ template <int _N> struct __fixed_size_mask_impl {
     }
 
     // smart_reference access {{{2
-    _GLIBCXX_SIMD_INTRINSIC static void set(__mask_member_type &k, int i, bool x) noexcept
+    _GLIBCXX_SIMD_INTRINSIC static void set(__mask_member_type &k, int __i, bool x) noexcept
     {
-        k.set(i, x);
+        k.set(__i, x);
     }
 
     // masked_assign {{{2
@@ -5848,7 +5848,7 @@ struct __simd_converter<From, simd_abi::fixed_size<_N>, To, simd_abi::fixed_size
 };
 
 // __simd_converter "native" -> fixed_size<_N> {{{1
-// i.e. 1 register to ? registers
+// __i.e. 1 register to ? registers
 template <class From, class _A, class To, int _N>
 struct __simd_converter<From, _A, To, simd_abi::fixed_size<_N>> {
     using __traits = __simd_traits<From, _A>;
@@ -5877,7 +5877,7 @@ private:
 };
 
 // __simd_converter fixed_size<_N> -> "native" {{{1
-// i.e. ? register to 1 registers
+// __i.e. ? register to 1 registers
 template <class From, int _N, class To, class _A>
 struct __simd_converter<From, simd_abi::fixed_size<_N>, To, _A> {
     using __traits = __simd_traits<To, _A>;

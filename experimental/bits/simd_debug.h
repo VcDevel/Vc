@@ -134,9 +134,9 @@ private:
     {
         using Bytes = char[sizeof(T)];
         auto &&bytes = reinterpret_cast<const Bytes &>(x);
-        int i = -1;
+        int __i = -1;
         for (const unsigned char b : bytes) {
-            if (++i && (i & 0x3) == 0) {
+            if (++__i && (__i & 0x3) == 0) {
                 __buffer.put('\'');
             }
             __buffer.put(hexChar(b >> 4));

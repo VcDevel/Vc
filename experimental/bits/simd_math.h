@@ -51,9 +51,9 @@ template <class DoubleR, class _T, class _Abi> struct __math_return_type {
             [](const _V &__xx) {                                                         \
                 if constexpr (std::experimental::is_simd_mask_v<_R>) {                   \
                     return _R(std::experimental::__private_init,                         \
-                              [&](auto i) { return std::__name(__xx[i]); });             \
+                              [&](auto __i) { return std::__name(__xx[__i]); });             \
                 } else {                                                                 \
-                    return _R([&](auto i) { return std::__name(__xx[i]); });             \
+                    return _R([&](auto __i) { return std::__name(__xx[__i]); });             \
                 }                                                                        \
             },                                                                           \
             x);                                                                          \
@@ -117,15 +117,15 @@ template <class _U, class _T, class _Abi> struct __extra_argument_type {
                             std::experimental::__data(x), _Arg2::__data(y))};            \
             },                                                                           \
             [](const _V &x, const auto &y) {                                             \
-                auto &&gen = [&](auto i) {                                               \
+                auto &&gen = [&](auto __i) {                                               \
                     if constexpr (_Arg2::__needs_temporary_scalar) {                     \
                         const auto &yy = *y;                                             \
-                        auto tmp = yy[i];                                                \
-                        auto ret = std::__name(x[i], &tmp);                              \
-                        (*y)[i] = tmp;                                                   \
+                        auto tmp = yy[__i];                                                \
+                        auto ret = std::__name(x[__i], &tmp);                              \
+                        (*y)[__i] = tmp;                                                   \
                         return ret;                                                      \
                     } else {                                                             \
-                        return std::__name(x[i], y[i]);                                  \
+                        return std::__name(x[__i], y[__i]);                                  \
                     }                                                                    \
                 };                                                                       \
                 if constexpr (std::experimental::is_simd_mask_v<_R>) {                   \
@@ -182,15 +182,15 @@ template <class _U, class _T, class _Abi> struct __extra_argument_type {
                             _Arg3::__data(z))};                                          \
             },                                                                           \
             [](const _V &x, const auto &y, const auto &z) {                              \
-                return _R([&](auto i) {                                                  \
+                return _R([&](auto __i) {                                                  \
                     if constexpr (_Arg3::__needs_temporary_scalar) {                     \
                         const auto &zz = *z;                                             \
-                        auto tmp = zz[i];                                                \
-                        auto ret = std::__name(x[i], y[i], &tmp);                        \
-                        (*z)[i] = tmp;                                                   \
+                        auto tmp = zz[__i];                                                \
+                        auto ret = std::__name(x[__i], y[__i], &tmp);                        \
+                        (*z)[__i] = tmp;                                                   \
                         return ret;                                                      \
                     } else {                                                             \
-                        return std::__name(x[i], y[i], z[i]);                            \
+                        return std::__name(x[__i], y[__i], z[__i]);                            \
                     }                                                                    \
                 });                                                                      \
             },                                                                           \
@@ -867,7 +867,7 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> assoc_laguerre(
     const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<_T, _Abi>> &m,
     const std::experimental::simd<_T, _Abi> &x)
 {
-    return std::experimental::simd<_T, _Abi>([&](auto i) { return std::assoc_laguerre(n[i], m[i], x[i]); });
+    return std::experimental::simd<_T, _Abi>([&](auto __i) { return std::assoc_laguerre(n[__i], m[__i], x[__i]); });
 }
 
 template <class _T, class _Abi>
@@ -876,7 +876,7 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> assoc_legendre(
     const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<_T, _Abi>> &m,
     const std::experimental::simd<_T, _Abi> &x)
 {
-    return std::experimental::simd<_T, _Abi>([&](auto i) { return std::assoc_legendre(n[i], m[i], x[i]); });
+    return std::experimental::simd<_T, _Abi>([&](auto __i) { return std::assoc_legendre(n[__i], m[__i], x[__i]); });
 }
 
 _GLIBCXX_SIMD_MATH_CALL2_(beta, _T)
@@ -897,7 +897,7 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> hermite(
     const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<_T, _Abi>> &n,
     const std::experimental::simd<_T, _Abi> &x)
 {
-    return std::experimental::simd<_T, _Abi>([&](auto i) { return std::hermite(n[i], x[i]); });
+    return std::experimental::simd<_T, _Abi>([&](auto __i) { return std::hermite(n[__i], x[__i]); });
 }
 
 template <class _T, class _Abi>
@@ -905,7 +905,7 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> laguerre(
     const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<_T, _Abi>> &n,
     const std::experimental::simd<_T, _Abi> &x)
 {
-    return std::experimental::simd<_T, _Abi>([&](auto i) { return std::laguerre(n[i], x[i]); });
+    return std::experimental::simd<_T, _Abi>([&](auto __i) { return std::laguerre(n[__i], x[__i]); });
 }
 
 template <class _T, class _Abi>
@@ -913,7 +913,7 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> legendre(
     const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<_T, _Abi>> &n,
     const std::experimental::simd<_T, _Abi> &x)
 {
-    return std::experimental::simd<_T, _Abi>([&](auto i) { return std::legendre(n[i], x[i]); });
+    return std::experimental::simd<_T, _Abi>([&](auto __i) { return std::legendre(n[__i], x[__i]); });
 }
 
 _GLIBCXX_SIMD_MATH_CALL_(riemann_zeta)
@@ -923,7 +923,7 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> sph_bessel(
     const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<_T, _Abi>> &n,
     const std::experimental::simd<_T, _Abi> &x)
 {
-    return std::experimental::simd<_T, _Abi>([&](auto i) { return std::sph_bessel(n[i], x[i]); });
+    return std::experimental::simd<_T, _Abi>([&](auto __i) { return std::sph_bessel(n[__i], x[__i]); });
 }
 
 template <class _T, class _Abi>
@@ -932,7 +932,7 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> sph_legendre(
     const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<_T, _Abi>> &m,
     const std::experimental::simd<_T, _Abi> &theta)
 {
-    return std::experimental::simd<_T, _Abi>([&](auto i) { return std::assoc_legendre(l[i], m[i], theta[i]); });
+    return std::experimental::simd<_T, _Abi>([&](auto __i) { return std::assoc_legendre(l[__i], m[__i], theta[__i]); });
 }
 
 template <class _T, class _Abi>
@@ -940,7 +940,7 @@ enable_if_t<std::is_floating_point_v<_T>, simd<_T, _Abi>> sph_neumann(
     const std::experimental::fixed_size_simd<unsigned, std::experimental::simd_size_v<_T, _Abi>> &n,
     const std::experimental::simd<_T, _Abi> &x)
 {
-    return std::experimental::simd<_T, _Abi>([&](auto i) { return std::sph_neumann(n[i], x[i]); });
+    return std::experimental::simd<_T, _Abi>([&](auto __i) { return std::sph_neumann(n[__i], x[__i]); });
 }
 // }}}
 
