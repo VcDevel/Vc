@@ -1195,6 +1195,14 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
     __storage<_T, _N> v5(vv5);
     __storage<_T, _N> v6(vv6);
     __storage<_T, _N> v7(vv7);
+    [[maybe_unused]] const auto __i0 = __to_intrin(vv0);
+    [[maybe_unused]] const auto __i1 = __to_intrin(vv1);
+    [[maybe_unused]] const auto __i2 = __to_intrin(vv2);
+    [[maybe_unused]] const auto __i3 = __to_intrin(vv3);
+    [[maybe_unused]] const auto __i4 = __to_intrin(vv4);
+    [[maybe_unused]] const auto __i5 = __to_intrin(vv5);
+    [[maybe_unused]] const auto __i6 = __to_intrin(vv6);
+    [[maybe_unused]] const auto __i7 = __to_intrin(vv7);
     using _U = typename __vector_traits<_To>::value_type;
     constexpr size_t _M = __vector_traits<_To>::width;
 
@@ -1245,21 +1253,20 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
             if constexpr (__x_to_x && __have_ssse3) {
                 // unsure whether this is better than the variant below
                 return __intrin_bitcast<_To>(_mm_shuffle_epi8(
-                    __to_intrin(
-                        (((__to_intrin(v0) & 0xff) | ((__to_intrin(v1) & 0xff) << 8)) |
-                         (((__to_intrin(v2) & 0xff) << 16) | ((__to_intrin(v3) & 0xff) << 24))) |
-                        ((((__to_intrin(v4) & 0xff) << 32) | ((__to_intrin(v5) & 0xff) << 40)) |
-                         (((__to_intrin(v6) & 0xff) << 48) | (__to_intrin(v7) << 56)))),
+                    __to_intrin((((vv0 & 0xff) | ((vv1 & 0xff) << 8)) |
+                                 (((vv2 & 0xff) << 16) | ((vv3 & 0xff) << 24))) |
+                                ((((vv4 & 0xff) << 32) | ((vv5 & 0xff) << 40)) |
+                                 (((vv6 & 0xff) << 48) | (vv7 << 56)))),
                     _mm_setr_epi8(0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15)));
             } else if constexpr (__x_to_x) {
-                const auto a = _mm_unpacklo_epi8(v0, v1); // ac
-                const auto b = _mm_unpackhi_epi8(v0, v1); // bd
-                const auto c = _mm_unpacklo_epi8(v2, v3); // eg
-                const auto d = _mm_unpackhi_epi8(v2, v3); // fh
-                const auto e = _mm_unpacklo_epi8(v4, v5); // ik
-                const auto f = _mm_unpackhi_epi8(v4, v5); // jl
-                const auto g = _mm_unpacklo_epi8(v6, v7); // mo
-                const auto h = _mm_unpackhi_epi8(v6, v7); // np
+                const auto a = _mm_unpacklo_epi8(__i0, __i1); // ac
+                const auto b = _mm_unpackhi_epi8(__i0, __i1); // bd
+                const auto c = _mm_unpacklo_epi8(__i2, __i3); // eg
+                const auto d = _mm_unpackhi_epi8(__i2, __i3); // fh
+                const auto e = _mm_unpacklo_epi8(__i4, __i5); // ik
+                const auto f = _mm_unpackhi_epi8(__i4, __i5); // jl
+                const auto g = _mm_unpacklo_epi8(__i6, __i7); // mo
+                const auto h = _mm_unpackhi_epi8(__i6, __i7); // np
                 return __intrin_bitcast<_To>(_mm_unpacklo_epi64(
                     _mm_unpacklo_epi32(_mm_unpacklo_epi8(a, b),   // abcd
                                        _mm_unpacklo_epi8(c, d)),  // efgh
@@ -1268,10 +1275,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                     ));
             } else if constexpr (__y_to_y) {
                 auto a =  // 048C GKOS 159D HLPT 26AE IMQU 37BF JNRV
-                    __to_intrin(((( __to_intrin(v0) & 0xff       ) | ((__to_intrin(v1) & 0xff) <<  8)) |
-                               (((__to_intrin(v2) & 0xff) << 16) | ((__to_intrin(v3) & 0xff) << 24))) |
-                              ((((__to_intrin(v4) & 0xff) << 32) | ((__to_intrin(v5) & 0xff) << 40)) |
-                               (((__to_intrin(v6) & 0xff) << 48) | ((__to_intrin(v7) << 56)))));
+                    __to_intrin((((vv0 & 0xff) | ((vv1 & 0xff) << 8)) |
+                                 (((vv2 & 0xff) << 16) | ((vv3 & 0xff) << 24))) |
+                                ((((vv4 & 0xff) << 32) | ((vv5 & 0xff) << 40)) |
+                                 (((vv6 & 0xff) << 48) | ((vv7 << 56)))));
                 /*
                 auto b = _mm256_unpackhi_epi64(a, a);  // 159D HLPT 159D HLPT 37BF JNRV 37BF JNRV
                 auto c = _mm256_unpacklo_epi8(a, b);  // 0145 89CD GHKL OPST 2367 ABEF IJMN QRUV
