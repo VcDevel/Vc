@@ -133,7 +133,7 @@ MacroBlockEnd: '^_GLIBCXX_END_[A-Z0-9_]+$'
 DerivePointerAlignment: false
 PointerAlignment: Left
 AlignConsecutiveAssignments: true
-AlignConsecutiveDeclarations: true
+#AlignConsecutiveDeclarations: true
 AllowShortCaseLabelsOnASingleLine: true
 
 # vim: ft=yaml
