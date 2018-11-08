@@ -414,16 +414,8 @@ else()
 endif()
 
 macro(go)
-   # On Continuous builds this string may change and thus must be inside go()
-   file(STRINGS "${PROJECT_DIRECTORY}/Vc/version.h"
-      Vc_VERSION_STRING
-      REGEX "#define +Vc_VERSION_STRING "
-      )
-   string(REGEX REPLACE "\"$" "" Vc_VERSION_STRING "${Vc_VERSION_STRING}")
-   string(REGEX REPLACE "^.*\"" "" Vc_VERSION_STRING "${Vc_VERSION_STRING}")
-
    set_property(GLOBAL PROPERTY Label other)
-   CTEST_START (${dashboard_model} TRACK "${dashboard_model} ${Vc_VERSION_STRING} ${arch_abi}")
+   CTEST_START (${dashboard_model} TRACK "${dashboard_model} ${arch_abi}")
    set(res 0)
    if(NOT is_experimental)
       CTEST_UPDATE (SOURCE "${PROJECT_DIRECTORY}" RETURN_VALUE res)
