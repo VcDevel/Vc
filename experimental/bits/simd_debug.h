@@ -75,17 +75,17 @@ enum class __area : unsigned {
 
 _GLIBCXX_SIMD_ALWAYS_INLINE void *__debug_instr_ptr()
 {
-    void *ip = nullptr;
+    void *__ip = nullptr;
 #if defined _GLIBCXX_SIMD_ENABLE_DEBUG
 #ifdef __x86_64__
-    asm volatile("lea 0(%%rip),%0" : "=r"(ip));
+    asm volatile("lea 0(%%rip),%0" : "=r"(__ip));
 #elif defined __i386__
-    asm volatile("1: movl $1b,%0" : "=r"(ip));
+    asm volatile("1: movl $1b,%0" : "=r"(__ip));
 #elif defined __arm__
-    asm volatile("mov %0,pc" : "=r"(ip));
+    asm volatile("mov %0,pc" : "=r"(__ip));
 #endif
 #endif  //__GNUC__
-    return ip;
+    return __ip;
 }
 
 template <__area> class __debug_stream;
@@ -109,15 +109,15 @@ public:
         std::cout << __buffer.str() << std::flush;
     }
 
-    template <class... _Ts> __debug_stream &operator()(const _Ts &... args)
+    template <class... _Ts> __debug_stream &operator()(const _Ts &... __args)
     {
         __color = __color > 37 ? 30 : __color + 1;
-        __buffer << "\n\033[1;40;" << __color << "m       ";
+        __buffer << "\n\033[1;40;" << __color << "__m       ";
         //__buffer << "\n        ";
 #if 0 // __cpp_fold_expressions
-        __buffer << ... << std::forward<_Ts>(args);
+        __buffer << ... << std::forward<_Ts>(__args);
 #else
-        [](const std::initializer_list<int> &) {}({(__print(args, int()), 0)...});
+        [](const std::initializer_list<int> &) {}({(__print(__args, int()), 0)...});
 #endif
         return *this;
     }
@@ -132,15 +132,15 @@ private:
     static char hexChar(char __x) { return __x + (__x > 9 ? 87 : 48); }
     template <class _T> void __print(const _T &__x, float)
     {
-        using Bytes = char[sizeof(_T)];
-        auto &&bytes = reinterpret_cast<const Bytes &>(__x);
+        using _Bytes = char[sizeof(_T)];
+        auto &&__bytes = reinterpret_cast<const _Bytes &>(__x);
         int __i = -1;
-        for (const unsigned char b : bytes) {
+        for (const unsigned char __b : __bytes) {
             if (++__i && (__i & 0x3) == 0) {
                 __buffer.put('\'');
             }
-            __buffer.put(hexChar(b >> 4));
-            __buffer.put(hexChar(b & 0xf));
+            __buffer.put(hexChar(__b >> 4));
+            __buffer.put(hexChar(__b & 0xf));
         }
     }
 };
@@ -157,7 +157,7 @@ template <class _F> class __defer_raii
 {
 public:
     // construct the object from the given callable
-    template <class _FF> __defer_raii(_FF &&f) : __cleanup_function(std::forward<_FF>(f))
+    template <class _FF> __defer_raii(_FF &&__f) : __cleanup_function(std::forward<_FF>(__f))
     {
     }
 
@@ -168,7 +168,7 @@ private:
     _F __cleanup_function;
 };
 
-template <typename _F> __defer_raii<_F> __defer(_F &&f) { return {std::forward<_F>(f)}; }
+template <typename _F> __defer_raii<_F> __defer(_F &&__f) { return {std::forward<_F>(__f)}; }
 
 _GLIBCXX_SIMD_END_NAMESPACE
 
