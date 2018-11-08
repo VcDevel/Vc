@@ -977,7 +977,8 @@ _GLIBCXX_SIMD_INTRINSIC void __maskstore(__storage32_t<_T> __v, _T* __mem, _F,
     } else if constexpr (__have_avx512f && (sizeof(_T) >= 4 || __have_avx512bw)) {
         // use a 512-bit maskstore, using zero-extension of the bitmask
         __maskstore(
-            __storage64_t<_T>(__vector_bitcast<_T>(__v)), __mem,
+            __storage64_t<_T>(__intrin_bitcast<__vector_type64_t<_T>>(__v._M_data)),
+            __mem,
             // careful, vector_aligned has a stricter meaning in the 512-bit maskstore:
             std::conditional_t<std::is_same_v<_F, vector_aligned_tag>,
                                overaligned_tag<32>, _F>(),
