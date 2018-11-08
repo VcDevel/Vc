@@ -201,16 +201,16 @@ struct __tuple_element_meta : public _Abi::__simd_impl_type {
     static constexpr maskimpl simd_mask = {};
 
     template <size_t _N>
-    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type make_mask(std::bitset<_N> bits)
+    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type make_mask(std::bitset<_N> __bits)
     {
         constexpr _T *__type_tag = nullptr;
-        return maskimpl::__from_bitset(std::bitset<size()>((bits >> _Offset).to_ullong()),
+        return maskimpl::__from_bitset(std::bitset<size()>((__bits >> _Offset).to_ullong()),
                                      __type_tag);
     }
 
-    _GLIBCXX_SIMD_INTRINSIC static __ullong mask_to_shifted_ullong(__mask_member_type k)
+    _GLIBCXX_SIMD_INTRINSIC static __ullong mask_to_shifted_ullong(__mask_member_type __k)
     {
-        return __vector_to_bitset(k).to_ullong() << _Offset;
+        return __vector_to_bitset(__k).to_ullong() << _Offset;
     }
 };
 
@@ -1230,50 +1230,50 @@ _GLIBCXX_SIMD_TO_STORAGE(__mmask64);
 
 // __convert function{{{
 template <class _To, class _From, class... _More>
-_GLIBCXX_SIMD_INTRINSIC auto __convert(_From v0, _More... vs)
+_GLIBCXX_SIMD_INTRINSIC auto __convert(_From __v0, _More... __vs)
 {
     static_assert((true && ... && is_same_v<_From, _More>));
     if constexpr (__is_vectorizable_v<_From>) {
         if constexpr (__is_vector_type_v<_To>) {
-            return __make_builtin(v0, vs...);
+            return __make_builtin(__v0, __vs...);
         } else {
             using _T = typename _To::value_type;
-            return __make_storage<_T>(v0, vs...);
+            return __make_storage<_T>(__v0, __vs...);
         }
     } else if constexpr (!__is_vector_type_v<_From>) {
-        return __convert<_To>(v0._M_data, vs._M_data...);
+        return __convert<_To>(__v0._M_data, __vs._M_data...);
     } else if constexpr (!__is_vector_type_v<_To>) {
-        return _To(__convert<typename _To::register_type>(v0, vs...));
+        return _To(__convert<typename _To::register_type>(__v0, __vs...));
     } else if constexpr (__is_vectorizable_v<_To>) {
         return __convert<__vector_type_t<_To, (__vector_traits<_From>::width *
-                                            (1 + sizeof...(_More)))>>(v0, vs...)
+                                            (1 + sizeof...(_More)))>>(__v0, __vs...)
             ._M_data;
     } else {
         static_assert(sizeof...(_More) == 0 ||
                           __vector_traits<_To>::width >=
                               (1 + sizeof...(_More)) * __vector_traits<_From>::width,
                       "__convert(...) requires the input to fit into the output");
-        return __vector_convert<_To>(v0, vs...);
+        return __vector_convert<_To>(__v0, __vs...);
     }
 }
 
 // }}}
 // __convert_all{{{
-template <typename _To, typename _From> _GLIBCXX_SIMD_INTRINSIC auto __convert_all(_From v)
+template <typename _To, typename _From> _GLIBCXX_SIMD_INTRINSIC auto __convert_all(_From __v)
 {
     static_assert(__is_vector_type_v<_To>);
     if constexpr (__is_vector_type_v<_From>) {
         using _Trait = __vector_traits<_From>;
         using S = __storage<typename _Trait::value_type, _Trait::width>;
-        return __convert_all<_To>(S(v));
+        return __convert_all<_To>(S(__v));
     } else if constexpr (_From::width > __vector_traits<_To>::width) {
         constexpr size_t _N = _From::width / __vector_traits<_To>::width;
         return __generate_from_n_evaluations<_N, std::array<_To, _N>>([&](auto __i) {
-            auto part = __extract_part<decltype(__i)::value, _N>(v);
+            auto part = __extract_part<decltype(__i)::value, _N>(__v);
             return __convert<_To>(part);
         });
     } else {
-        return __convert<_To>(v);
+        return __convert<_To>(__v);
     }
 }
 
@@ -1345,7 +1345,7 @@ _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_T, _N> __multiplies(__storage<_T, _
 //}}}
 // __abs{{{
 template <class _T, size_t _N>
-_GLIBCXX_SIMD_NORMAL_MATH _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_T, _N> __abs(__storage<_T, _N> v)
+_GLIBCXX_SIMD_NORMAL_MATH _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_T, _N> __abs(__storage<_T, _N> __v)
 {
 #ifdef _GLIBCXX_SIMD_WORKAROUND_PR85572
     if constexpr (!__have_avx512vl && std::is_integral_v<_T> && sizeof(_T) == 8 && _N <= 4) {
@@ -1358,16 +1358,16 @@ _GLIBCXX_SIMD_NORMAL_MATH _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_T, _N> __
         //   a xor ~0    -> -a - 1
         //   -a - 1 - -1 -> -a
         if constexpr(__have_sse4_2) {
-            const auto negative = reinterpret_cast<__vector_type_t<_T, _N>>(v._M_data < 0);
-            return (v._M_data ^ negative) - negative;
+            const auto negative = reinterpret_cast<__vector_type_t<_T, _N>>(__v._M_data < 0);
+            return (__v._M_data ^ negative) - negative;
         } else {
             // arithmetic right shift doesn't exist for 64-bit integers, use the following
             // instead:
             // >>63: negative ->  1, positive ->  0
             //  -  : negative -> -1, positive ->  0
             const auto negative = -reinterpret_cast<__vector_type_t<_T, _N>>(
-                reinterpret_cast<__vector_type_t<__ullong, _N>>(v._M_data) >> 63);
-            return (v._M_data ^ negative) - negative;
+                reinterpret_cast<__vector_type_t<__ullong, _N>>(__v._M_data) >> 63);
+            return (__v._M_data ^ negative) - negative;
         }
     } else
 #endif
@@ -1375,9 +1375,9 @@ _GLIBCXX_SIMD_NORMAL_MATH _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_T, _N> __
         // this workaround is only required because __builtin_abs is not a constant
         // expression
         using _I = std::make_unsigned_t<__int_for_sizeof_t<_T>>;
-        return __vector_bitcast<_T>(__vector_bitcast<_I>(v._M_data) & __vector_broadcast<_N, _I>(~_I() >> 1));
+        return __vector_bitcast<_T>(__vector_bitcast<_I>(__v._M_data) & __vector_broadcast<_N, _I>(~_I() >> 1));
     } else {
-        return v._M_data < 0 ? -v._M_data : v._M_data;
+        return __v._M_data < 0 ? -__v._M_data : __v._M_data;
     }
 }
 
@@ -2636,17 +2636,17 @@ struct __scalar_simd_impl : __simd_math_fallback<simd_abi::scalar> {
 
     // store {{{2
     template <class _T, class _U, class _F>
-    static inline void store(_T v, _U *mem, _F, __type_tag<_T>) noexcept
+    static inline void store(_T __v, _U *mem, _F, __type_tag<_T>) noexcept
     {
-        mem[0] = static_cast<_T>(v);
+        mem[0] = static_cast<_T>(__v);
     }
 
     // masked store {{{2
     template <class _T, class _U, class _F>
-    static inline void masked_store(const _T v, _U *mem, _F, const bool __k) noexcept
+    static inline void masked_store(const _T __v, _U *mem, _F, const bool __k) noexcept
     {
         if (__k) {
-            mem[0] = v;
+            mem[0] = __v;
         }
     }
 
@@ -2802,11 +2802,11 @@ struct __scalar_simd_impl : __simd_math_fallback<simd_abi::scalar> {
     template <class _T> static bool greater_equal(_T __x, _T __y) { return __x >= __y; }
 
     // smart_reference access {{{2
-    template <class _T, class _U> static void set(_T &v, int __i, _U &&__x) noexcept
+    template <class _T, class _U> static void set(_T &__v, int __i, _U &&__x) noexcept
     {
         _GLIBCXX_SIMD_ASSERT(__i == 0);
         __unused(__i);
-        v = std::forward<_U>(__x);
+        __v = std::forward<_U>(__x);
     }
 
     // masked_assign {{{2
@@ -2828,9 +2828,9 @@ struct __scalar_simd_impl : __simd_math_fallback<simd_abi::scalar> {
 
     // masked_unary {{{2
     template <template <typename> class _Op, typename _T>
-    _GLIBCXX_SIMD_INTRINSIC static _T masked_unary(const bool __k, const _T v)
+    _GLIBCXX_SIMD_INTRINSIC static _T masked_unary(const bool __k, const _T __v)
     {
-        return static_cast<_T>(__k ? _Op<_T>{}(v) : v);
+        return static_cast<_T>(__k ? _Op<_T>{}(__v) : __v);
     }
 
     // }}}2
@@ -2862,18 +2862,18 @@ struct __scalar_mask_impl {
     }
 
     // store {{{2
-    template <class _F> _GLIBCXX_SIMD_INTRINSIC static void store(bool v, bool *mem, _F) noexcept
+    template <class _F> _GLIBCXX_SIMD_INTRINSIC static void store(bool __v, bool *mem, _F) noexcept
     {
-        mem[0] = v;
+        mem[0] = __v;
     }
 
     // masked store {{{2
     template <class _F>
-    _GLIBCXX_SIMD_INTRINSIC static void masked_store(const bool v, bool *mem, _F,
+    _GLIBCXX_SIMD_INTRINSIC static void masked_store(const bool __v, bool *mem, _F,
                                           const bool __k) noexcept
     {
         if (__k) {
-            mem[0] = v;
+            mem[0] = __v;
         }
     }
 
@@ -3166,7 +3166,7 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 
     // store {{{2
     template <class _T, class _U, class _F>
-    _GLIBCXX_SIMD_INTRINSIC static void store(__simd_member_type<_T> v, _U *mem, _F,
+    _GLIBCXX_SIMD_INTRINSIC static void store(__simd_member_type<_T> __v, _U *mem, _F,
                                    __type_tag<_T>) _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
     {
         // TODO: converting int -> "smaller int" can be optimized with AVX512
@@ -3176,19 +3176,19 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
                 ? 64
                 : (std::is_floating_point_v<_U> && __have_avx) || __have_avx2 ? 32 : 16;
         if constexpr (sizeof(_U) > 8) {
-            __execute_n_times<_N>([&](auto __i) { mem[__i] = v[__i]; });
+            __execute_n_times<_N>([&](auto __i) { mem[__i] = __v[__i]; });
         } else if constexpr (std::is_same_v<_U, _T>) {
-            __vector_store(v._M_data, mem, _F());
+            __vector_store(__v._M_data, mem, _F());
         } else if constexpr (sizeof(_U) * _N < 16) {
-            __vector_store<sizeof(_U) * _N>(__convert<__vector_type16_t<_U>>(v),
+            __vector_store<sizeof(_U) * _N>(__convert<__vector_type16_t<_U>>(__v),
                                                  mem, _F());
         } else if constexpr (sizeof(_U) * _N <= max_store_size) {
-            __vector_store(__convert<__vector_type_t<_U, _N>>(v), mem, _F());
+            __vector_store(__convert<__vector_type_t<_U, _N>>(__v), mem, _F());
         } else {
             constexpr size_t VSize = max_store_size / sizeof(_U);
             constexpr size_t stores = _N / VSize;
             using _V = __vector_type_t<_U, VSize>;
-            const std::array<_V, stores> converted = __convert_all<_V>(v);
+            const std::array<_V, stores> converted = __convert_all<_V>(__v);
             __execute_n_times<stores>([&](auto __i) {
                 __vector_store(converted[__i], mem + __i * VSize, _F());
             });
@@ -3963,9 +3963,9 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 
     // smart_reference access {{{2
     template <class _T, size_t _N, class _U>
-    _GLIBCXX_SIMD_INTRINSIC static void set(__storage<_T, _N> &v, int __i, _U &&__x) noexcept
+    _GLIBCXX_SIMD_INTRINSIC static void set(__storage<_T, _N> &__v, int __i, _U &&__x) noexcept
     {
-        v.set(__i, std::forward<_U>(__x));
+        __v.set(__i, std::forward<_U>(__x));
     }
 
     // masked_assign{{{2
@@ -4013,11 +4013,11 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
     // masked_unary {{{2
     template <template <typename> class _Op, class _T, class _K, size_t _N>
     _GLIBCXX_SIMD_INTRINSIC static __storage<_T, _N> masked_unary(const __storage<_K, _N> __k,
-                                                            const __storage<_T, _N> v)
+                                                            const __storage<_T, _N> __v)
     {
-        auto vv = make_simd(v);
-        _Op<decltype(vv)> op;
-        return __blend(__k, v, __data(op(vv)));
+        auto __vv = make_simd(__v);
+        _Op<decltype(__vv)> op;
+        return __blend(__k, __v, __data(op(__vv)));
     }
 
     //}}}2
@@ -4232,9 +4232,9 @@ template <class _Abi> struct __generic_mask_impl {
 
     // __from_bitset{{{2
     template <size_t _N, class _T>
-    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __from_bitset(std::bitset<_N> bits, __type_tag<_T>)
+    _GLIBCXX_SIMD_INTRINSIC static __mask_member_type<_T> __from_bitset(std::bitset<_N> __bits, __type_tag<_T>)
     {
-        return __convert_mask<typename __mask_member_type<_T>::register_type>(bits);
+        return __convert_mask<typename __mask_member_type<_T>::register_type>(__bits);
     }
 
     // logical and bitwise operators {{{2
@@ -4640,33 +4640,33 @@ template <int _N> struct __fixed_size_simd_impl {
     // masked load {{{2
     template <class _T, class... As, class _U, class _F>
     static inline __simd_tuple<_T, As...> masked_load(__simd_tuple<_T, As...> merge,
-                                                   const __mask_member_type bits,
+                                                   const __mask_member_type __bits,
                                                    const _U *mem,
                                                    _F f) _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
     {
         __for_each(merge, [&](auto meta, auto &native) {
-            native = meta.masked_load(native, meta.make_mask(bits), &mem[meta.offset], f);
+            native = meta.masked_load(native, meta.make_mask(__bits), &mem[meta.offset], f);
         });
         return merge;
     }
 
     // store {{{2
     template <class _T, class _U, class _F>
-    static inline void store(const __simd_member_type<_T> v, _U *mem, _F f,
+    static inline void store(const __simd_member_type<_T> __v, _U *mem, _F f,
                              __type_tag<_T>) _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
     {
-        __for_each(v, [&](auto meta, auto native) {
+        __for_each(__v, [&](auto meta, auto native) {
             meta.store(native, &mem[meta.offset], f, __type_tag<_T>());
         });
     }
 
     // masked store {{{2
     template <class _T, class... As, class _U, class _F>
-    static inline void masked_store(const __simd_tuple<_T, As...> v, _U *mem, _F f,
-                                    const __mask_member_type bits) _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
+    static inline void masked_store(const __simd_tuple<_T, As...> __v, _U *mem, _F f,
+                                    const __mask_member_type __bits) _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
     {
-        __for_each(v, [&](auto meta, auto native) {
-            meta.masked_store(native, &mem[meta.offset], f, meta.make_mask(bits));
+        __for_each(__v, [&](auto meta, auto native) {
+            meta.masked_store(native, &mem[meta.offset], f, meta.make_mask(__bits));
         });
     }
 
@@ -4674,11 +4674,11 @@ template <int _N> struct __fixed_size_simd_impl {
     template <class _T, class... As>
     static inline __mask_member_type negate(__simd_tuple<_T, As...> __x) noexcept
     {
-        __mask_member_type bits = 0;
-        __for_each(__x, [&bits](auto meta, auto native) {
-            bits |= meta.mask_to_shifted_ullong(meta.negate(native));
+        __mask_member_type __bits = 0;
+        __for_each(__x, [&__bits](auto meta, auto native) {
+            __bits |= meta.mask_to_shifted_ullong(meta.negate(native));
         });
-        return bits;
+        return __bits;
     }
 
     // reductions {{{2
@@ -4845,16 +4845,16 @@ public:
     }
 
     // compares {{{2
-#define _GLIBCXX_SIMD_CMP_OPERATIONS(cmp_)                                                          \
-    template <class _T, class... As>                                                      \
-    static inline __mask_member_type cmp_(const __simd_tuple<_T, As...> &__x,                   \
-                                        const __simd_tuple<_T, As...> &__y)                   \
+#define _GLIBCXX_SIMD_CMP_OPERATIONS(cmp_)                                               \
+    template <class _T, class... As>                                                     \
+    static inline __mask_member_type cmp_(const __simd_tuple<_T, As...>& __x,            \
+                                          const __simd_tuple<_T, As...>& __y)            \
     {                                                                                    \
-        __mask_member_type bits = 0;                                                       \
-        __for_each(__x, __y, [&bits](auto meta, auto native_x, auto native_y) {        \
-            bits |= meta.mask_to_shifted_ullong(meta.cmp_(native_x, native_y));          \
+        __mask_member_type __bits = 0;                                                   \
+        __for_each(__x, __y, [&__bits](auto meta, auto native_x, auto native_y) {        \
+            __bits |= meta.mask_to_shifted_ullong(meta.cmp_(native_x, native_y));        \
         });                                                                              \
-        return bits;                                                                     \
+        return __bits;                                                                   \
     }
     _GLIBCXX_SIMD_CMP_OPERATIONS(equal_to)
     _GLIBCXX_SIMD_CMP_OPERATIONS(not_equal_to)
@@ -4867,42 +4867,42 @@ public:
 
     // smart_reference access {{{2
     template <class _T, class... As, class _U>
-    _GLIBCXX_SIMD_INTRINSIC static void set(__simd_tuple<_T, As...> &v, int __i, _U &&__x) noexcept
+    _GLIBCXX_SIMD_INTRINSIC static void set(__simd_tuple<_T, As...> &__v, int __i, _U &&__x) noexcept
     {
-        v.set(__i, std::forward<_U>(__x));
+        __v.set(__i, std::forward<_U>(__x));
     }
 
     // masked_assign {{{2
     template <typename _T, class... As>
     _GLIBCXX_SIMD_INTRINSIC static void masked_assign(
-        const __mask_member_type bits, __simd_tuple<_T, As...> &lhs,
+        const __mask_member_type __bits, __simd_tuple<_T, As...> &lhs,
         const __id<__simd_tuple<_T, As...>> rhs)
     {
         __for_each(lhs, rhs, [&](auto meta, auto &native_lhs, auto native_rhs) {
-            meta.masked_assign(meta.make_mask(bits), native_lhs, native_rhs);
+            meta.masked_assign(meta.make_mask(__bits), native_lhs, native_rhs);
         });
     }
 
     // Optimization for the case where the RHS is a scalar. No need to broadcast the
     // scalar to a simd first.
     template <typename _T, class... As>
-    _GLIBCXX_SIMD_INTRINSIC static void masked_assign(const __mask_member_type bits,
+    _GLIBCXX_SIMD_INTRINSIC static void masked_assign(const __mask_member_type __bits,
                                            __simd_tuple<_T, As...> &lhs,
                                            const __id<_T> rhs)
     {
         __for_each(lhs, [&](auto meta, auto &native_lhs) {
-            meta.masked_assign(meta.make_mask(bits), native_lhs, rhs);
+            meta.masked_assign(meta.make_mask(__bits), native_lhs, rhs);
         });
     }
 
     // __masked_cassign {{{2
     template <template <typename> class _Op, typename _T, class... As>
-    static inline void __masked_cassign(const __mask_member_type bits,
+    static inline void __masked_cassign(const __mask_member_type __bits,
                                       __simd_tuple<_T, As...> &lhs,
                                       const __simd_tuple<_T, As...> rhs)
     {
         __for_each(lhs, rhs, [&](auto meta, auto &native_lhs, auto native_rhs) {
-            meta.template __masked_cassign<_Op>(meta.make_mask(bits), native_lhs,
+            meta.template __masked_cassign<_Op>(meta.make_mask(__bits), native_lhs,
                                              native_rhs);
         });
     }
@@ -4911,22 +4911,22 @@ public:
     // scalar to a simd
     // first.
     template <template <typename> class _Op, typename _T, class... As>
-    static inline void __masked_cassign(const __mask_member_type bits,
+    static inline void __masked_cassign(const __mask_member_type __bits,
                                       __simd_tuple<_T, As...> &lhs, const _T rhs)
     {
         __for_each(lhs, [&](auto meta, auto &native_lhs) {
-            meta.template __masked_cassign<_Op>(meta.make_mask(bits), native_lhs, rhs);
+            meta.template __masked_cassign<_Op>(meta.make_mask(__bits), native_lhs, rhs);
         });
     }
 
     // masked_unary {{{2
     template <template <typename> class _Op, class _T, class... As>
     static inline __simd_tuple<_T, As...> masked_unary(
-        const __mask_member_type bits,
-        const __simd_tuple<_T, As...> v)  // TODO: const-ref v?
+        const __mask_member_type __bits,
+        const __simd_tuple<_T, As...> __v)  // TODO: const-ref __v?
     {
-        return v.apply_wrapped([&bits](auto meta, auto native) {
-            return meta.template masked_unary<_Op>(meta.make_mask(bits), native);
+        return __v.apply_wrapped([&__bits](auto meta, auto native) {
+            return meta.template masked_unary<_Op>(meta.make_mask(__bits), native);
         });
     }
 
@@ -5017,21 +5017,21 @@ template <int _N> struct __fixed_size_mask_impl {
 #endif  // __x86_64__
 #elif  _GLIBCXX_SIMD_HAVE_SSE2   // !AVX512BW && !BMI2
         using _V = simd<__uchar, simd_abi::__sse>;
-        __ullong bits = bs.to_ullong();
+        __ullong __bits = bs.to_ullong();
         __execute_n_times<(_N + 15) / 16>([&](auto __i) {
             constexpr size_t offset = __i * 16;
             constexpr size_t remaining = _N - offset;
             if constexpr (remaining == 1) {
-                mem[offset] = static_cast<bool>(bits >> offset);
+                mem[offset] = static_cast<bool>(__bits >> offset);
             } else if constexpr (remaining <= 4) {
-                const uint bool4 = ((bits >> offset) * 0x00204081U) & 0x01010101U;
+                const uint bool4 = ((__bits >> offset) * 0x00204081U) & 0x01010101U;
                 std::memcpy(&mem[offset], &bool4, remaining);
             } else if constexpr (remaining <= 7) {
                 const __ullong bool8 =
-                    ((bits >> offset) * 0x40810204081ULL) & 0x0101010101010101ULL;
+                    ((__bits >> offset) * 0x40810204081ULL) & 0x0101010101010101ULL;
                 std::memcpy(&mem[offset], &bool8, remaining);
             } else if constexpr (__have_sse2) {
-                auto tmp = _mm_cvtsi32_si128(bits >> offset);
+                auto tmp = _mm_cvtsi32_si128(__bits >> offset);
                 tmp = _mm_unpacklo_epi8(tmp, tmp);
                 tmp = _mm_unpacklo_epi16(tmp, tmp);
                 tmp = _mm_unpacklo_epi32(tmp, tmp);
@@ -5075,10 +5075,10 @@ template <int _N> struct __fixed_size_mask_impl {
 
     // masked store {{{2
     template <class _F>
-    static inline void masked_store(const __mask_member_type v, bool *mem, _F,
+    static inline void masked_store(const __mask_member_type __v, bool *mem, _F,
                                     const __mask_member_type __k) noexcept
     {
-        __bit_iteration(__k, [&](auto __i) { mem[__i] = v[__i]; });
+        __bit_iteration(__k, [&](auto __i) { mem[__i] = __v[__i]; });
     }
 
     // logical and bitwise operators {{{2

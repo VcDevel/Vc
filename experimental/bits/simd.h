@@ -2808,9 +2808,9 @@ public:
 
 template <class _T, class _A, class... Vs>
 _GLIBCXX_SIMD_INTRINSIC where_expression<simd_mask<_T, _A>, std::tuple<simd<_T, _A> &, Vs &...>> where(
-    const typename simd<_T, _A>::mask_type &__k, simd<_T, _A> &v0, Vs &... vs)
+    const typename simd<_T, _A>::mask_type &__k, simd<_T, _A> &__v0, Vs &... vs)
 {
-    return {__k, std::tie(v0, vs...)};
+    return {__k, std::tie(__v0, vs...)};
 }
 #endif  // _GLIBCXX_SIMD_EXPERIMENTAL
 
