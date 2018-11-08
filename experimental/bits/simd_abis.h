@@ -3561,7 +3561,8 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 
     // reductions {{{2
     template <class _T, class _BinaryOperation>
-    _GLIBCXX_SIMD_INTRINSIC static _T reduce(simd<_T, _Abi> __x, _BinaryOperation &&__binary_op)
+    _GLIBCXX_SIMD_INTRINSIC static _T reduce(simd<_T, _Abi> __x,
+                                             _BinaryOperation&& __binary_op)
     {
         constexpr size_t _N = simd_size_v<_T, _Abi>;
         if constexpr (sizeof(__x) > 16) {
@@ -3569,27 +3570,33 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
             using _V = std::experimental::simd<_T, _A>;
             return __simd_traits<_T, _A>::__simd_impl_type::reduce(
                 __binary_op(_V(__private_init, __extract<0, 2>(__data(__x)._M_data)),
-                          _V(__private_init, __extract<1, 2>(__data(__x)._M_data))),
+                            _V(__private_init, __extract<1, 2>(__data(__x)._M_data))),
                 std::forward<_BinaryOperation>(__binary_op));
         } else {
-            const auto __intrin = __to_intrin(__x._M_data);
+            auto __intrin = __to_intrin(__x._M_data);
             if constexpr (_N == 16) {
-                __x = __binary_op(make_simd<_T, _N>(_mm_unpacklo_epi8(__intrin, __intrin)),
-                              make_simd<_T, _N>(_mm_unpackhi_epi8(__intrin, __intrin)));
+                __x =
+                    __binary_op(make_simd<_T, _N>(_mm_unpacklo_epi8(__intrin, __intrin)),
+                                make_simd<_T, _N>(_mm_unpackhi_epi8(__intrin, __intrin)));
+                __intrin = __to_intrin(__x._M_data);
             }
             if constexpr (_N >= 8) {
-                __x = __binary_op(make_simd<_T, _N>(_mm_unpacklo_epi16(__intrin, __intrin)),
-                              make_simd<_T, _N>(_mm_unpackhi_epi16(__intrin, __intrin)));
+                __x = __binary_op(
+                    make_simd<_T, _N>(_mm_unpacklo_epi16(__intrin, __intrin)),
+                    make_simd<_T, _N>(_mm_unpackhi_epi16(__intrin, __intrin)));
+                __intrin = __to_intrin(__x._M_data);
             }
             if constexpr (_N >= 4) {
                 using _U = std::conditional_t<std::is_floating_point_v<_T>, float, int>;
                 const auto __y = __vector_bitcast<_U>(__intrin);
-                __x = __binary_op(__x, make_simd<_T, _N>(__to_storage(
-                                     __vector_type_t<_U, 4>{__y[3], __y[2], __y[1], __y[0]})));
+                __x            = __binary_op(
+                    __x, make_simd<_T, _N>(__to_storage(
+                             __vector_type_t<_U, 4>{__y[3], __y[2], __y[1], __y[0]})));
+                __intrin = __to_intrin(__x._M_data);
             }
             const auto __y = __vector_bitcast<__llong>(__intrin);
-            return __binary_op(
-                __x, make_simd<_T, _N>(__to_storage(__vector_type_t<__llong, 2>{__y[1], __y[1]})))[0];
+            return __binary_op(__x, make_simd<_T, _N>(__to_storage(
+                                        __vector_type_t<__llong, 2>{__y[1], __y[1]})))[0];
         }
     }
 
