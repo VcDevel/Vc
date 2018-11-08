@@ -291,18 +291,6 @@ template <class _T, class Abi> struct simd_size;
 #define _GLIBCXX_SIMD_IS_UNLIKELY(__x) __builtin_expect(__x, 0)
 #define _GLIBCXX_SIMD_IS_LIKELY(__x) __builtin_expect(__x, 1)
 
-#define _GLIBCXX_SIMD_NOTHING_EXPECTING_SEMICOLON static_assert(true, "")
-
-#ifdef _GLIBCXX_SIMD_ASSERT
-#define _GLIBCXX_SIMD_EXTERNAL_ASSERT 1
-#else
-#ifdef NDEBUG
-#define _GLIBCXX_SIMD_ASSERT(__x) std::experimental::__dummy_assert{} << ' '
-#else
-#define _GLIBCXX_SIMD_ASSERT(__x) std::experimental::__real_assert(__x, #__x, __FILE__, __LINE__)
-#endif
-#endif
-
 #ifdef COMPILE_FOR_UNIT_TESTS
 #define _GLIBCXX_SIMD_NOEXCEPT_OR_IN_TEST
 #else
@@ -313,9 +301,9 @@ template <class _T, class Abi> struct simd_size;
 #define _GLIBCXX_SIMD_LIST_SHIFTS(macro) macro(<<) macro(>>)
 #define _GLIBCXX_SIMD_LIST_ARITHMETICS(macro) macro(+) macro(-) macro(*) macro(/) macro(%)
 
-#define _GLIBCXX_SIMD_ALL_BINARY(macro) _GLIBCXX_SIMD_LIST_BINARY(macro) _GLIBCXX_SIMD_NOTHING_EXPECTING_SEMICOLON
-#define _GLIBCXX_SIMD_ALL_SHIFTS(macro) _GLIBCXX_SIMD_LIST_SHIFTS(macro) _GLIBCXX_SIMD_NOTHING_EXPECTING_SEMICOLON
-#define _GLIBCXX_SIMD_ALL_ARITHMETICS(macro) _GLIBCXX_SIMD_LIST_ARITHMETICS(macro) _GLIBCXX_SIMD_NOTHING_EXPECTING_SEMICOLON
+#define _GLIBCXX_SIMD_ALL_BINARY(macro) _GLIBCXX_SIMD_LIST_BINARY(macro) static_assert(true)
+#define _GLIBCXX_SIMD_ALL_SHIFTS(macro) _GLIBCXX_SIMD_LIST_SHIFTS(macro) static_assert(true)
+#define _GLIBCXX_SIMD_ALL_ARITHMETICS(macro) _GLIBCXX_SIMD_LIST_ARITHMETICS(macro) static_assert(true)
 
 #ifdef _GLIBCXX_SIMD_NO_ALWAYS_INLINE
 #undef _GLIBCXX_SIMD_ALWAYS_INLINE

@@ -13,9 +13,6 @@
 #include <iosfwd>
 #include <limits>
 #include <utility>
-#ifndef NDEBUG
-#include <iostream>
-#endif  // NDEBUG
 #if _GLIBCXX_SIMD_HAVE_SSE || _GLIBCXX_SIMD_HAVE_MMX
 #include <x86intrin.h>
 #endif  // _GLIBCXX_SIMD_HAVE_SSE
@@ -244,54 +241,6 @@ template <class _T> struct __assert_unreachable {
 };
 
 // }}}
-#ifdef NDEBUG
-// __dummy_assert {{{
-struct __dummy_assert {
-    template <class _T> _GLIBCXX_SIMD_INTRINSIC __dummy_assert &operator<<(_T &&) noexcept
-    {
-        return *this;
-    }
-};
-// }}}
-#else   // NDEBUG
-// __real_assert {{{
-struct __real_assert {
-    _GLIBCXX_SIMD_INTRINSIC __real_assert(bool ok, const char *code, const char *file, int line)
-        : failed(!ok)
-    {
-        if (_GLIBCXX_SIMD_IS_UNLIKELY(failed)) {
-            printFirst(code, file, line);
-        }
-    }
-    _GLIBCXX_SIMD_INTRINSIC ~__real_assert()
-    {
-        if (_GLIBCXX_SIMD_IS_UNLIKELY(failed)) {
-            finalize();
-        }
-    }
-    template <class _T> _GLIBCXX_SIMD_INTRINSIC __real_assert &operator<<(_T &&__x)
-    {
-        if (_GLIBCXX_SIMD_IS_UNLIKELY(failed)) {
-            print(std::forward<_T>(__x));
-        }
-        return *this;
-    }
-
-private:
-    void printFirst(const char *code, const char *file, int line)
-    {
-        std::cerr << file << ':' << line << ": assert(" << code << ") failed.";
-    }
-    template <class _T> void print(_T &&__x) const { std::cerr << std::forward<_T>(__x); }
-    void finalize()
-    {
-        std::cerr << std::endl;
-        std::abort();
-    }
-    bool failed;
-};
-// }}}
-#endif  // NDEBUG
 // __size_or_zero {{{
 template <class _T, class _A, size_t _N = simd_size<_T, _A>::value>
 constexpr size_t __size_or_zero_dispatch(int)
@@ -1984,7 +1933,8 @@ struct __storage_base<_T, _Width, _RegisterType, false> {
     }
 };
 
-// __storage{{{1
+// }}}
+// __storage{{{
 template <class _T, size_t _Width>
 struct __storage<_T, _Width,
                std::void_t<__vector_type_t<_T, _Width>, __intrinsic_type_t<_T, _Width>>>
@@ -2023,7 +1973,8 @@ struct __storage<_T, _Width,
     _GLIBCXX_SIMD_INTRINSIC void set(size_t __i, _T __x) { _M_data[__i] = __x; }
 };
 
-// _To_storage {{{1
+// }}}
+// _To_storage {{{
 template <class _T> class _To_storage
 {
     _T _M_data;
@@ -2045,7 +1996,8 @@ public:
     }
 };
 
-// __storage_bitcast{{{1
+// }}}
+// __storage_bitcast{{{
 template <class _T, class _U, size_t _M, size_t _N = sizeof(_U) * _M / sizeof(_T)>
 _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_T, _N> __storage_bitcast(__storage<_U, _M> __x)
 {
@@ -2053,35 +2005,23 @@ _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_T, _N> __storage_bitcast(__storage<
     return reinterpret_cast<__vector_type_t<_T, _N>>(__x._M_data);
 }
 
-// __make_storage{{{1
+// }}}
+// __make_storage{{{
 template <class _T, class... Args>
 _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_T, sizeof...(Args)> __make_storage(Args &&... args)
 {
     return {typename __storage<_T, sizeof...(Args)>::register_type{static_cast<_T>(args)...}};
 }
 
-// __generate_storage{{{1
+// }}}
+// __generate_storage{{{
 template <class _T, size_t _N, class _G>
 _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_T, _N> __generate_storage(_G &&__gen)
 {
     return __generate_builtin<_T, _N>(std::forward<_G>(__gen));
 }
 
-// __storage ostream operators{{{1
-#ifndef NDEBUG
-template <class _CharT, class _T, size_t _N>
-inline std::basic_ostream<_CharT> &operator<<(std::basic_ostream<_CharT> &__s,
-                                              const __storage<_T, _N> &__v)
-{
-    __s << '[' << __v[0];
-    for (size_t __i = 1; __i < _N; ++__i) {
-        __s << ((__i % 4) ? " " : " | ") << __v[__i];
-    }
-    return __s << ']';
-}
-#endif  // NDEBUG
-
-//}}}1
+//}}}
 // __fallback_abi_for_long_double {{{
 template <class _T, class _A0, class _A1> struct __fallback_abi_for_long_double {
     using type = _A0;
@@ -2628,13 +2568,13 @@ public:
     }
 
 #define _GLIBCXX_SIMD_OP_(op_, name_)                                                    \
-    template <class _U> _GLIBCXX_SIMD_INTRINSIC void operator op_##=(_U &&__x) &&          \
+    template <class _U> _GLIBCXX_SIMD_INTRINSIC void operator op_##=(_U&& __x)&&         \
     {                                                                                    \
         std::experimental::__get_impl_t<_T>::template __masked_cassign<name_>(           \
-            __data(__k), __data(_M_value),                                                        \
-            __to_value_type_or_member_type<_T>(std::forward<_U>(__x)));                    \
+            __data(__k), __data(_M_value),                                               \
+            __to_value_type_or_member_type<_T>(std::forward<_U>(__x)));                  \
     }                                                                                    \
-    _GLIBCXX_SIMD_NOTHING_EXPECTING_SEMICOLON
+    static_assert(true)
     _GLIBCXX_SIMD_OP_(+, std::plus);
     _GLIBCXX_SIMD_OP_(-, std::minus);
     _GLIBCXX_SIMD_OP_(*, std::multiplies);
@@ -2723,13 +2663,13 @@ public:
     }
 
 #define _GLIBCXX_SIMD_OP_(op_)                                                           \
-    template <class _U> _GLIBCXX_SIMD_INTRINSIC void operator op_(_U &&__x) &&             \
+    template <class _U> _GLIBCXX_SIMD_INTRINSIC void operator op_(_U&& __x)&&            \
     {                                                                                    \
-        if (__k) {                                                                         \
-            _M_value op_ std::forward<_U>(__x);                                                   \
+        if (__k) {                                                                       \
+            _M_value op_ std::forward<_U>(__x);                                          \
         }                                                                                \
     }                                                                                    \
-    _GLIBCXX_SIMD_NOTHING_EXPECTING_SEMICOLON
+    static_assert(true)
     _GLIBCXX_SIMD_OP_(=);
     _GLIBCXX_SIMD_OP_(+=);
     _GLIBCXX_SIMD_OP_(-=);
@@ -3350,7 +3290,7 @@ class _Smart_reference
     _GLIBCXX_SIMD_INTRINSIC constexpr _ValueType __read() const noexcept
     {
         if constexpr (std::is_arithmetic_v<_U>) {
-            _GLIBCXX_SIMD_ASSERT(index == 0);
+            _GLIBCXX_DEBUG_ASSERT(index == 0);
             return obj;
         } else {
             return obj[index];
@@ -4425,7 +4365,7 @@ public :
     _GLIBCXX_SIMD_ALWAYS_INLINE reference operator[](size_t __i) { return {_M_data, int(__i)}; }
     _GLIBCXX_SIMD_ALWAYS_INLINE value_type operator[](size_t __i) const {
         if constexpr (__is_scalar()) {
-            _GLIBCXX_SIMD_ASSERT(__i == 0);
+            _GLIBCXX_DEBUG_ASSERT(__i == 0);
             __unused(__i);
             return _M_data;
         } else {
@@ -5121,7 +5061,7 @@ public:
     _GLIBCXX_SIMD_ALWAYS_INLINE constexpr value_type operator[](size_t __i) const
     {
         if constexpr (__is_scalar()) {
-            _GLIBCXX_SIMD_ASSERT(__i == 0);
+            _GLIBCXX_DEBUG_ASSERT(__i == 0);
             __unused(__i);
             return _M_data;
         } else {
