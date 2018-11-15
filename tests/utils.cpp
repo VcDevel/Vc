@@ -134,7 +134,7 @@ class CallTester
 TEST_TYPES(V, applyAndCall, AllVectors)
 {
 #if defined Vc_CLANG && Vc_CLANG >= 0x30500 && Vc_CLANG < 0x30700 && defined __i386__
-    vir::test::Skip() << "clang 3.5 and 3.6 crash when compiling this test";
+    vir::test::SKIP() << "clang 3.5 and 3.6 crash when compiling this test";
 #endif
     typedef typename V::EntryType T;
 
