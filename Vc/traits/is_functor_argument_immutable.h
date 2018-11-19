@@ -46,17 +46,7 @@ struct dummy {};
 // generate a true_type for template operator() members in F that are callable with a
 // 'const A &' argument even if the template parameter to operator() is fixed to 'A'.
 template <
-    typename F, typename A
-#ifdef Vc_ICC
-    // this ensures that F is a generic lambda. We can be pretty sure that noone wrote a
-    // lambda with Vc::Traits::is_functor_argument_immutable_impl::dummy parameter
-    // type. In theory, this is not needed because the return type fails with a
-    // substitution failure in that case. Only ICC generates and error instead of doing
-    // SFINAE.
-    ,
-    typename = decltype(std::declval<F &>()(std::declval<dummy &>()))
-#endif
-    ,
+    typename F, typename A,
 #ifdef Vc_MSVC
 // MSVC fails if the template keyword is used to *correctly* tell the compiler that <A> is
 // an explicit template instantiation of operator()
@@ -85,12 +75,12 @@ template <typename F, typename A, bool = std::is_function<F>::value>
 struct is_functor_argument_immutable;
 template <typename F, typename A>
 struct is_functor_argument_immutable<F, A, false>
-    : public decltype(is_functor_argument_immutable_impl::test2<
+    : decltype(is_functor_argument_immutable_impl::test2<
                       typename std::remove_reference<F>::type, A>(int())) {
 };
 template <typename F, typename A>
 struct is_functor_argument_immutable<F, A, true>
-    : public decltype(is_functor_argument_immutable_impl::test3(std::declval<F>())) {
+    : decltype(is_functor_argument_immutable_impl::test3(std::declval<F>())) {
 };
 
 }  // namespace Traits

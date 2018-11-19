@@ -90,7 +90,7 @@ C++11 Compiler:
 
 * GCC >= 4.8.1
 * clang >= 3.4
-* ICC >= 18
+* ICC >= 18.0.5
 * Visual Studio 2015 (64-bit target)
 
 
