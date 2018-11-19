@@ -3,7 +3,7 @@ build_dir := $(shell which $(CXX))
 tmp := "case $$(readlink -f $(build_dir)) in *icecc) which $${ICECC_CXX:-g++};; *) echo $(build_dir);; esac"
 build_dir := $(shell sh -c $(tmp))
 build_dir := $(realpath $(build_dir))
-build_dir := build-$(subst /,-,$(build_dir:/%=%))
+build_dir := build-$(subst /,-,$(build_dir:/%=%)$(CXXFLAGS))
 
 all:
 %:: $(build_dir)/CMakeCache.txt
