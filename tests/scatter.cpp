@@ -113,7 +113,7 @@ template<typename T, std::size_t Align> struct Struct //{{{1
 TEST_TYPES(Vec, scatterStruct, AllTypes) //{{{1
 {
     typedef typename Vec::IndexType It;
-    typedef Struct<typename Vec::EntryType, alignof(typename Vec::EntryType)> S;
+    typedef Struct<typename Vec::EntryType, sizeof(typename Vec::EntryType)> S;
     constexpr int count = 3999;
     Vc::array<S, count> array, out;
     memset(&array[0], 0, count * sizeof(S));
@@ -178,8 +178,8 @@ template<typename V> V makeReference(V v, typename V::Mask m)
 TEST_TYPES(Vec, scatterStruct2, AllTypes) //{{{1
 {
     typedef typename Vec::IndexType It;
-    typedef Struct2<typename Vec::EntryType, alignof(typename Vec::EntryType)> S1;
-    typedef Struct<typename Vec::EntryType, alignof(typename Vec::EntryType)> S2;
+    typedef Struct2<typename Vec::EntryType, sizeof(typename Vec::EntryType)> S1;
+    typedef Struct<typename Vec::EntryType, sizeof(typename Vec::EntryType)> S2;
     Vc::array<S1, scatterStruct2Count> array, out;
     memset(&array[0], 0, scatterStruct2Count * sizeof(S1));
     memset(&out[0], 0, scatterStruct2Count * sizeof(S1));
