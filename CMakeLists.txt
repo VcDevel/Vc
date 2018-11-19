@@ -166,6 +166,14 @@ elseif(UNIX AND Vc_COMPILER_IS_CLANG)
             endif()
          endif()
       endif()
+   else()
+      CHECK_CXX_SOURCE_COMPILES("#include <tuple>
+      std::tuple<int> f() { std::tuple<int> r; return r; }
+      int main() { return 0; }
+      " tuple_sanity)
+      if (NOT tuple_sanity)
+         message(FATAL_ERROR "Clang and std::tuple brokenness detected. Please update your compiler.")
+      endif()
    endif()
 endif()
 add_dependencies(other Vc)
