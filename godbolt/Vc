@@ -1359,14 +1359,6 @@ template <std::size_t Size, typename F> Vc_INTRINSIC void for_all_vector_entries
 {
 unrolled_loop<std::size_t, 0u, Size>(std::forward<F>(f));
 }
-template <class T, std::size_t Size = sizeof(T), std::size_t Alignment = alignof(T)>
-struct ensure_alignment_equals_sizeof {
-Vc_ALIGNED_TYPEDEF(Size, T, type);
-};
-template <class T, std::size_t Size>
-struct ensure_alignment_equals_sizeof<T, Size, Size> {
-using type = T;
-};
 }
 }
 #ifndef VC_COMMON_VECTOR_H_
@@ -2833,7 +2825,7 @@ static_assert(std::is_arithmetic<T>::value,
 "Vector<T> only accepts arithmetic builtin types as template parameter T.");
 public:
 using abi = VectorAbi::Scalar;
-using EntryType = typename Common::ensure_alignment_equals_sizeof<T>::type;
+using EntryType = T;
 using VectorEntryType = EntryType;
 using value_type = EntryType;
 using VectorType = EntryType;
@@ -5586,7 +5578,7 @@ typedef T Type;
 template <typename T> struct VectorTraits
 {
 typedef typename VectorTypeHelper<T>::Type VectorType;
-using EntryType = typename Common::ensure_alignment_equals_sizeof<T>::type;
+using EntryType = T;
 static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
 typedef Mask<T> MaskType;
 typedef typename DetermineGatherMask<MaskType>::Type GatherMaskType;
@@ -13781,7 +13773,7 @@ using MaskArg Vc_DEPRECATED_ALIAS("Use MaskArgument instead.") = typename Mask::
 using MaskArgument = typename Mask::AsArg;
 using reference = Detail::ElementReference<Vector>;
 Vc_FREE_STORE_OPERATORS_ALIGNED(alignof(VectorType));
-using EntryType = typename Common::ensure_alignment_equals_sizeof<T>::type;
+using EntryType = T;
 using value_type = EntryType;
 typedef EntryType VectorEntryType;
 static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);

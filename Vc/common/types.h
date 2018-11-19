@@ -388,19 +388,6 @@ template <std::size_t Size, typename F> Vc_INTRINSIC void for_all_vector_entries
     unrolled_loop<std::size_t, 0u, Size>(std::forward<F>(f));
 }
 
-/**\internal
- * The member type `type` is either `T` or `T` with alignment increased to sizeof(T) if
- * alignof(T) < sizeof(T).
- */
-template <class T, std::size_t Size = sizeof(T), std::size_t Alignment = alignof(T)>
-struct ensure_alignment_equals_sizeof {
-    Vc_ALIGNED_TYPEDEF(Size, T, type);
-};
-template <class T, std::size_t Size>
-struct ensure_alignment_equals_sizeof<T, Size, Size> {
-    using type = T;
-};
-
 }  // namespace Common
 }  // namespace Vc
 

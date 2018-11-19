@@ -696,7 +696,7 @@ template <typename T> struct DetermineGatherMask
 template <typename T> struct VectorTraits
 {
     typedef typename VectorTypeHelper<T>::Type VectorType;
-    using EntryType = typename Common::ensure_alignment_equals_sizeof<T>::type;
+    using EntryType = T;
     static constexpr size_t Size = sizeof(VectorType) / sizeof(EntryType);
     typedef Mask<T> MaskType;
     typedef typename DetermineGatherMask<MaskType>::Type GatherMaskType;

@@ -52,7 +52,7 @@ template <typename T> class Vector<T, VectorAbi::Scalar>
 
     public:
         using abi = VectorAbi::Scalar;
-        using EntryType = typename Common::ensure_alignment_equals_sizeof<T>::type;
+        using EntryType = T;
         using VectorEntryType = EntryType;
         using value_type = EntryType;
         using VectorType = EntryType;
