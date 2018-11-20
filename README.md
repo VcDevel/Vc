@@ -50,6 +50,9 @@ After Intel dropped MIC support with ICC 18, Vc 1.4 also removes support for it.
   vectorization which does not scale to different vector sizes. However, the
   example is instructive to compare it with similar solutions of other languages
   or libraries.
+* [N-vortex solver](https://godbolt.org/z/4o1cg_) showing `simdize`d iteration
+  over many `std::vector<float>`. Note how [important the `-march` flag is, compared
+  to plain `-mavx2 -mfma`](https://godbolt.org/z/hKiOjr).
 
 ### Scalar Product
 
