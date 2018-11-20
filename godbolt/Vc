@@ -466,8 +466,8 @@ SSE2Impl
 }
 #ifndef VC_VERSION_H_
 #define VC_VERSION_H_ 
-#define Vc_VERSION_STRING "1.4.0-dev"
-#define Vc_VERSION_NUMBER 0x010401
+#define Vc_VERSION_STRING "1.4.1-dev"
+#define Vc_VERSION_NUMBER 0x010403
 #define Vc_VERSION_CHECK(major,minor,patch) ((major << 16) | (minor << 8) | (patch << 1))
 #define Vc_LIBRARY_ABI_VERSION 5
 #define Vc_IS_VERSION_2 (Vc_VERSION_NUMBER >= Vc_VERSION_CHECK(1, 70, 0))
@@ -541,11 +541,11 @@ namespace has_contiguous_storage_detail
 {
 template <typename T, typename It = typename T::iterator>
 std::is_base_of<std::random_access_iterator_tag,
-typename It::iterator_category>
+typename std::iterator_traits<It>::iterator_category>
 test(int);
 template <typename T>
 std::is_base_of<std::random_access_iterator_tag,
-typename T::iterator_category>
+typename std::iterator_traits<T>::iterator_category>
 test(long);
 template <typename T> std::false_type test(...);
 }
@@ -585,12 +585,7 @@ template <typename F, typename A> std::is_const<A> test(void (F::*)(A &&));
 template <typename F, typename A> std::is_const<A> test(void (F::*)(A &&) const);
 struct dummy {};
 template <
-typename F, typename A
-#ifdef Vc_ICC
-,
-typename = decltype(std::declval<F &>()(std::declval<dummy &>()))
-#endif
-,
+typename F, typename A,
 #ifdef Vc_MSVC
 #define Vc_TEMPLATE_ 
 #else
@@ -611,12 +606,12 @@ template <typename F, typename A, bool = std::is_function<F>::value>
 struct is_functor_argument_immutable;
 template <typename F, typename A>
 struct is_functor_argument_immutable<F, A, false>
-: public decltype(is_functor_argument_immutable_impl::test2<
+: decltype(is_functor_argument_immutable_impl::test2<
 typename std::remove_reference<F>::type, A>(int())) {
 };
 template <typename F, typename A>
 struct is_functor_argument_immutable<F, A, true>
-: public decltype(is_functor_argument_immutable_impl::test3(std::declval<F>())) {
+: decltype(is_functor_argument_immutable_impl::test3(std::declval<F>())) {
 };
 }
 }

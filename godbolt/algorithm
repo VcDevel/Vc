@@ -1182,7 +1182,19 @@ Vc_INTRINSIC V fromIterator(enable_if<!Traits::is_simd_vector<V>::value, const I
 return fromIteratorImpl<It, V, 0, determine_tuple_size<V>()>(it);
 }
 template <typename It, typename V>
-Vc_INTRINSIC V fromIterator(enable_if<Traits::is_simd_vector<V>::value, It> it)
+Vc_INTRINSIC V fromIterator(
+enable_if<
+Traits::is_simd_vector<V>::value && Traits::has_contiguous_storage<It>::value, It>
+it)
+{
+Vc_ASSERT(&*it + 1 == &*(it + 1));
+return V(&*it, Vc::Unaligned);
+}
+template <typename It, typename V>
+Vc_INTRINSIC V fromIterator(enable_if<Traits::is_simd_vector<V>::value &&
+!Traits::has_contiguous_storage<It>::value,
+It>
+it)
 {
 V r;
 for (size_t j = 0; j < V::size(); ++j, ++it) {
