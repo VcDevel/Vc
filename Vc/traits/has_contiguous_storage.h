@@ -55,16 +55,20 @@ namespace Traits
 {
 namespace has_contiguous_storage_detail
 {
+// heuristic: consider RandomAccessIterator as abstracting contiguous storage
+// case 1: T is a container
 template <typename T, typename It = typename T::iterator>
 std::is_base_of<std::random_access_iterator_tag,
-                typename It::iterator_category>
-test(int);  // this is only a heuristic. Having a RandomAccessIterator does not guarantee
-            // contiguous storage
+                typename std::iterator_traits<It>::iterator_category>
+test(int);
+
+// case 2: T is an iterator type
 template <typename T>
 std::is_base_of<std::random_access_iterator_tag,
-                typename T::iterator_category>
-test(long);  // this is only a heuristic. Having a RandomAccessIterator does not guarantee
-             // contiguous storage
+                typename std::iterator_traits<T>::iterator_category>
+test(long);
+
+// case 3: everything else
 template <typename T> std::false_type test(...);
 }  // namespace has_contiguous_storage_detail
 
