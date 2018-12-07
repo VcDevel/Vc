@@ -511,15 +511,29 @@ TEST_TYPES(V, test1Arg, real_test_types)  //{{{1
 
 TEST_TYPES(V, test2Arg, real_test_types)  //{{{1
 {
-    vir::test::setFuzzyness<float>(0);
-    vir::test::setFuzzyness<double>(0);
-
     using limits = std::numeric_limits<typename V::value_type>;
+
+    vir::test::setFuzzyness<float>(1);
+    vir::test::setFuzzyness<double>(1);
     test_values_2arg<V>(
         {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
          limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
         {10000, -limits::max()/2, limits::max()/2},
-        MAKE_TESTER(hypot),
+        MAKE_TESTER(hypot)
+        );
+    VERIFY((sfinae_is_callable<V, V>(
+        [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
+    VERIFY((sfinae_is_callable<typename V::value_type, V>(
+        [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
+    VERIFY((sfinae_is_callable<V, typename V::value_type>(
+        [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
+
+    vir::test::setFuzzyness<float>(0);
+    vir::test::setFuzzyness<double>(0);
+    test_values_2arg<V>(
+        {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
+         limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
+        {10000, -limits::max()/2, limits::max()/2},
         MAKE_TESTER(pow),
         MAKE_TESTER(fmod),
         MAKE_TESTER(remainder),
@@ -537,36 +551,62 @@ TEST_TYPES(V, test2Arg, real_test_types)  //{{{1
         MAKE_TESTER(islessgreater),
         MAKE_TESTER(isunordered)
         );
-    VERIFY((sfinae_is_callable<V, V>(
-        [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
-    VERIFY((sfinae_is_callable<typename V::value_type, V>(
-        [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
-    VERIFY((sfinae_is_callable<V, typename V::value_type>(
-        [](auto a, auto b) -> decltype(hypot(a, b)) { return {}; })));
 }
 
 TEST_TYPES(V, hypot3_fma, real_test_types)  //{{{1
 {
-    vir::test::setFuzzyness<float>(0);
-    vir::test::setFuzzyness<double>(0);
+    vir::test::setFuzzyness<float>(1);
+    vir::test::setFuzzyness<double>(1);
+    using T = typename V::value_type;
 
-    using limits = std::numeric_limits<typename V::value_type>;
+    using limits = std::numeric_limits<T>;
+    auto&& hypot3 = [](T x, T y, T z) -> T {
+        if (std::isinf(x) || std::isinf(y) || std::isinf(z)) {
+            return limits::infinity();
+        } else if (std::isnan(x) || std::isnan(y) || std::isnan(z)) {
+            return limits::quiet_NaN();
+        } else if (x == y && y == z) {
+            return x * std::sqrt(T(3));
+        } else {
+            const long double hi = std::max(std::max(x, y), z);
+            const long double lo0 = std::min(std::max(x, y), z);
+            const long double lo1 = std::min(x, y);
+            return std::hypot(std::hypot(lo0, lo1), hi);
+        }
+    };
     test_values_3arg<V>(
         {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
          limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
         {10000, -limits::max()/2, limits::max()/2},
-        MAKE_TESTER(hypot),
+        MAKE_TESTER_2(hypot, hypot3)
+        );
+    vir::test::setFuzzyness<float>(0);
+    vir::test::setFuzzyness<double>(0);
+    test_values_3arg<V>(
+        {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
+         limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
+        {10000, -limits::max()/2, limits::max()/2},
         MAKE_TESTER(fma)
         );
     VERIFY((sfinae_is_callable<V, V, V>(
         [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
-    VERIFY((sfinae_is_callable<typename V::value_type, V, V>(
+    VERIFY((sfinae_is_callable<T, T, V>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
+    VERIFY((sfinae_is_callable<V, T, T>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
+    VERIFY((sfinae_is_callable<T, V, T>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
+    VERIFY((sfinae_is_callable<T, V, V>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
+    VERIFY((sfinae_is_callable<V, T, V>(
+        [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
+    VERIFY((sfinae_is_callable<V, V, T>(
         [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
     VERIFY((sfinae_is_callable<int, int, V>(
         [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
     VERIFY((sfinae_is_callable<int, V, int>(
         [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
-    VERIFY((sfinae_is_callable<V, int, int>(
+    VERIFY((sfinae_is_callable<V, T, int>(
         [](auto a, auto b, auto c) -> decltype(hypot(a, b, c)) { return {}; })));
 }
 

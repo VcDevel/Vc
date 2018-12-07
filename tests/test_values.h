@@ -168,16 +168,15 @@ void test_values_3arg(const std::initializer_list<typename V::value_type> &input
     }
 }
 
-#define MAKE_TESTER(name_)                                                               \
-    [](const auto... inputs) {                                                           \
-        /*_GLIBCXX_SIMD_DEBUG()("testing " #name_ "(", input, ")");*/                               \
+#define MAKE_TESTER_2(name_, reference_)                                                 \
+    [&](const auto... inputs) {                                                          \
+        /*_GLIBCXX_SIMD_DEBUG()("testing " #name_ "(", input, ")");*/                    \
         const auto totest = name_(inputs...);                                            \
-        using R = std::remove_const_t<decltype(totest)>;                                 \
-        auto &&expected = [&](const auto &... vs) -> const R {                           \
+        using R           = std::remove_const_t<decltype(totest)>;                       \
+        auto&& expected   = [&](const auto&... vs) -> const R {                          \
             R tmp = {};                                                                  \
-            using std::name_;                                                            \
             for (std::size_t i = 0; i < R::size(); ++i) {                                \
-                tmp[i] = name_(vs[i]...);                                                \
+                tmp[i] = reference_(vs[i]...);                                           \
             }                                                                            \
             return tmp;                                                                  \
         };                                                                               \
@@ -193,5 +192,7 @@ void test_values_3arg(const std::initializer_list<typename V::value_type> &input
             ((COMPARE(name_(inputs...), expect1) << "\ninputs = ") << ... << inputs);    \
         }                                                                                \
     }
+
+#define MAKE_TESTER(name_) MAKE_TESTER_2(name_, std::name_)
 
 // vim: foldmethod=marker

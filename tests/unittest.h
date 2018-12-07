@@ -27,6 +27,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <experimental/simd>
 #include <vir/test.h>
+#include <iomanip>
+
+_GLIBCXX_SIMD_BEGIN_NAMESPACE
+template <class T, class A> ostream& operator<<(ostream& s, const simd<T, A>& v) {
+    if constexpr (std::is_floating_point_v<T>) {
+        s << "\n(" << v[0] << " == " << std::hexfloat << v[0] << std::defaultfloat << ')';
+        for (unsigned i = 1; i < v.size(); ++i) {
+            s << (i % 4 == 0 ? ",\n(" : ", (") << v[i] << " == " << std::hexfloat << v[i]
+              << std::defaultfloat << ')';
+        }
+    } else {
+        s << v[0];
+        for (unsigned i = 1; i < v.size(); ++i) {
+            s << ", " << v[i];
+        }
+    }
+    return s;
+}
+_GLIBCXX_SIMD_END_NAMESPACE
 
 template <class T> struct help {
     using type = T;
