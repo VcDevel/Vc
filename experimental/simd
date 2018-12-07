@@ -36,10 +36,16 @@
 
 #define __cpp_lib_experimental_parallel_simd 201803
 
+#if defined __GNUC__ && __GNUC__ < 9
+#define __gnu__ gnu
+#endif
 #include "bits/simd_detail.h"
 #include "bits/simd.h"
 #include "bits/simd_abis.h"
 #include "bits/simd_math.h"
+#if defined __GNUC__ && __GNUC__ < 9
+#undef __gnu__
+#endif
 
 #endif  // _GLIBCXX_EXPERIMENTAL_SIMD
 // vim: ft=cpp
