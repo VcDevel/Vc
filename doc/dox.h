@@ -429,6 +429,7 @@ AVX. Here is the currently complete list of possible targets the macro will comp
 \li SSE+XOP+FMA4
 \li AVX
 \li AVX+XOP+FMA4
+\li AVX2+FMA+BMI2
 
 \section buildsystem_other Using Vc without CMake
 
