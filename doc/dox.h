@@ -228,9 +228,7 @@ manpage to find all possibilities for \<target\>. Additionally it is best to als
 to the scalar implementation.
 \li \e Clang: The same as for GCC applies.
 \li \e ICC: Same as GCC, but the flags are called -xAVX -xSSE4.2 -xSSE4.1 -xSSSE3 -xSSE3 -xSSE2.
-\li \e MSVC: On 32bit you can add the /arch:SSE2 flag. That's about all the MSVC documentation
-says. Still the MSVC compiler knows about the newer instructions in SSE3 and upwards. How you can
-determine what CPUs will be supported by the resulting binary is unclear.
+\li \e MSVC: /arch:SSE /arch:SSE2 /arch:AVX /arch:AVX2 flags (at least since version 14). 
 
 \par Where does the final executable run?
 
