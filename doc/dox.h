@@ -222,13 +222,16 @@ that could lead to problems. This page aims to document all issues you might nee
 
 \par Compiler Flags
 
-\li \e GCC: The compiler should be called with the -march=\<target\> flag. Take a look at the GCC
-manpage to find all possibilities for \<target\>. Additionally it is best to also add the -msse2
--msse3 ... -mavx flags. If no SIMD instructions are enabled via compiler flags, %Vc must fall back
+\li \e GCC: The compiler should be called with the `-march=\<target\>` flag. Take a look at the GCC
+manpage to find all possibilities for `\<target\>`.
+If no SIMD instructions are enabled via compiler flags, %Vc must fall back
 to the scalar implementation.
 \li \e Clang: The same as for GCC applies.
-\li \e ICC: Same as GCC, but the flags are called -xAVX -xSSE4.2 -xSSE4.1 -xSSSE3 -xSSE3 -xSSE2.
-\li \e MSVC: /arch:SSE /arch:SSE2 /arch:AVX /arch:AVX2 flags (at least since version 14). 
+\li \e ICC: The same as for GCC applies (at least on Linux).
+\li \e MSVC: For 32-bit targets, the compiler supports the `/arch:SSE` and `/arch:SSE2`
+flags. It is undocumented when (or whether at all) SSE3, SSSE3, SSE4a, SSE4.1, or SSE4.2
+ISA extensions are used with these flags.
+For all x86 targets, the `/arch:AVX` and `/arch:AVX2` flags are supported.
 
 \par Where does the final executable run?
 
