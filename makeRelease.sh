@@ -32,8 +32,8 @@ cat Vc/version.h
 # Modify README.md to link to release docs
 ed README.md <<EOF
 P
-/web-docs/a
-* [$versionString release](https://web-docs.gsi.de/~mkretz/Vc-$versionString/)
+/github.io/a
+* [$versionString release](https://vcdevel.github.io/Vc-$versionString/)
 .
 w
 EOF
@@ -57,8 +57,15 @@ git archive --format=tar --prefix="Vc-$versionString/" "$versionString" | gzip >
 # Create API docs tarball
 ./makeApidox.sh
 
-# Copy API docs to web-docs
-rsync -a --del doc/html/ lxpool.gsi.de:web-docs/Vc-$versionString/
+# Copy API docs to vcdevel.github.io
+git clone --depth 2 git@github.com:VcDevel/vcdevel.github.io && \
+cp -a doc/html vcdevel.github.io/Vc-$versionString && \
+cd vcdevel.github.io && \
+git add Vc-$versionString && \
+git commit -m "Add Vc $versionString release docs" && \
+git push && \
+cd .. && \
+rm -r vcdevel.github.io
 
 # Create API docs tarball
 mv doc/html/*.qch "../Vc-${versionString}.qch"

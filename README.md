@@ -131,14 +131,14 @@ The documentation is generated via [doxygen](http://doxygen.org). You can build
 the documentation by running `doxygen` in the `doc` subdirectory.
 Alternatively, you can find nightly builds of the documentation at:
 
-* [1.4 branch](https://web-docs.gsi.de/~mkretz/Vc-1.4/)
-* [1.4.1 release](https://web-docs.gsi.de/~mkretz/Vc-1.4.1/)
-* [1.4.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.4.0/)
-* [1.3 branch](https://web-docs.gsi.de/~mkretz/Vc-1.3/)
-* [1.3.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.3.0/)
-* [1.2.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.2.0/)
-* [1.1.0 release](https://web-docs.gsi.de/~mkretz/Vc-1.1.0/)
-* [0.7 branch](https://web-docs.gsi.de/~mkretz/Vc-0.7/)
+* [1.4 branch](https://vcdevel.github.io/Vc-1.4/)
+* [1.4.1 release](https://vcdevel.github.io/Vc-1.4.1/)
+* [1.4.0 release](https://vcdevel.github.io/Vc-1.4.0/)
+* [1.3 branch](https://vcdevel.github.io/Vc-1.3/)
+* [1.3.0 release](https://vcdevel.github.io/Vc-1.3.0/)
+* [1.2.0 release](https://vcdevel.github.io/Vc-1.2.0/)
+* [1.1.0 release](https://vcdevel.github.io/Vc-1.1.0/)
+* [0.7 branch](https://vcdevel.github.io/Vc-0.7/)
 
 ## Publications
 
