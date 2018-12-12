@@ -566,7 +566,7 @@ TEST_TYPES(V, hypot3_fma, real_test_types)  //{{{1
         } else if (std::isnan(x) || std::isnan(y) || std::isnan(z)) {
             return limits::quiet_NaN();
         } else if (x == y && y == z) {
-            return x * std::sqrt(T(3));
+            return std::abs(x) * std::sqrt(T(3));
         } else {
             const long double hi = std::max(std::max(x, y), z);
             const long double lo0 = std::min(std::max(x, y), z);
@@ -574,12 +574,11 @@ TEST_TYPES(V, hypot3_fma, real_test_types)  //{{{1
             return std::hypot(std::hypot(lo0, lo1), hi);
         }
     };
-    test_values_3arg<V>(
-        {limits::quiet_NaN(), limits::infinity(), -limits::infinity(), +0., -0.,
-         limits::denorm_min(), limits::min(), limits::max(), limits::min() / 3},
-        {10000, -limits::max()/2, limits::max()/2},
-        MAKE_TESTER_2(hypot, hypot3)
-        );
+    test_values_3arg<V>({limits::quiet_NaN(), limits::infinity(), -limits::infinity(),
+                         +0., -0., 1., -1., limits::denorm_min(), limits::min(),
+                         limits::max(), -limits::max(), limits::min() / 3},
+                        {10000, -limits::max() / 2, limits::max() / 2},
+                        MAKE_TESTER_2(hypot, hypot3));
     vir::test::setFuzzyness<float>(0);
     vir::test::setFuzzyness<double>(0);
     test_values_3arg<V>(
