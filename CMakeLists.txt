@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.0)
 
 cmake_policy(SET CMP0028 NEW) # Double colon in target name means ALIAS or IMPORTED target.
 cmake_policy(SET CMP0048 NEW) # The ``project()`` command manages VERSION variables.
+if (POLICY CMP0071)
+cmake_policy(SET CMP0071 NEW) # Run auto{moc,uic,gen} on generated files.
+endif()
 
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
    message(FATAL_ERROR "You don't want to configure in the source directory!")
