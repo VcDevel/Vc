@@ -291,7 +291,7 @@ template <int _Bits, typename _Tp, typename _Abi>
 _GLIBCXX_SIMD_INTRINSIC simd<_Tp, _Abi> __zero_low_bits(simd<_Tp, _Abi> __x)
 {
   const simd<_Tp, _Abi> __bitmask =
-    __bit_cast<_Tp>(~__int_for_sizeof_t<_Tp>() << _Bits);
+    __bit_cast<_Tp>(~std::make_unsigned_t<__int_for_sizeof_t<_Tp>>() << _Bits);
   return {__private_init, __get_impl_t<simd<_Tp, _Abi>>::bit_and(
 			    __data(__x), __data(__bitmask))};
 }
