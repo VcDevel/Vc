@@ -981,9 +981,9 @@ _GLIBCXX_SIMD_INTRINSIC _R __fixed_size_apply(_ToApply&& __apply,
 					      const _Tps&... __args)
 {
   return {__private_init, __simd_tuple_apply(
-			    [](auto __impl, const auto&... __inner) {
+			    [&](auto __impl, const auto&... __inner) {
 			      using _V = typename decltype(__impl)::simd_type;
-			      return __data(hypot(_V(__private_init, __inner)...));
+			      return __data(__apply(_V(__private_init, __inner)...));
 			    },
 			    __data(__args)...)};
 }
