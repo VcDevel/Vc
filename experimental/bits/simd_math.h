@@ -988,8 +988,9 @@ _GLIBCXX_SIMD_INTRINSIC _R __fixed_size_apply(_ToApply&& __apply,
 			    __data(__args)...)};
 }
 
-template <typename _V> _V __hypot(_V __x, _V __y)
+template <typename _VV> __remove_cvref_t<_VV> __hypot(_VV __x, _VV __y)
 {
+  using _V = __remove_cvref_t<_VV>;
   using _Tp = typename _V::value_type;
   if constexpr (_V::size() == 1)
     {
