@@ -2480,7 +2480,7 @@ template <class _To,
 _GLIBCXX_SIMD_INTRINSIC _To simd_reinterpret_cast(const simd<_Tp, _A>& __x)
 {
   _To __r;
-  std::memcpy(&__r, &__x, sizeof(_To));
+  std::memcpy(&__data(__r), &__data(__x), sizeof(_To));
   return __r;
 }
 
