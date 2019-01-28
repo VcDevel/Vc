@@ -124,7 +124,10 @@ template <> struct __int_for_sizeof<1> { using type = signed char; };
 template <> struct __int_for_sizeof<2> { using type = signed short; };
 template <> struct __int_for_sizeof<4> { using type = signed int; };
 template <> struct __int_for_sizeof<8> { using type = signed long long; };
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 template <> struct __int_for_sizeof<16> { using type = __int128; };
+#pragma GCC diagnostic pop
 template <class _Tp>
 using __int_for_sizeof_t = typename __int_for_sizeof<sizeof(_Tp)>::type;
 template <size_t _N>
