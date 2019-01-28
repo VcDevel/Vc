@@ -4049,7 +4049,8 @@ template <class _Abi> struct __generic_simd_impl : __simd_math_fallback<_Abi> {
 	}
       else
 	{
-	  return equal_to(__abs(__x), std::numeric_limits<_Tp>::infinity());
+	  return equal_to(__abs(__x), __storage<_Tp, _N>(__vector_broadcast<_N>(
+					std::numeric_limits<_Tp>::infinity())));
 	  // alternative:
 	  // compare to inf using the corresponding integer type
 	  /*
