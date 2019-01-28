@@ -798,7 +798,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr (__i16_to_i8) {  //{{{2
             if constexpr (__x_to_x && __have_ssse3) {
                 const auto __shuf = reinterpret_cast<__m128i>(
-                    __vector_type_t<__uchar, 16>{0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80,
+                    __vector_type_t<_UChar, 16>{0, 2, 4, 6, 8, 10, 12, 14, 0x80, 0x80, 0x80,
                                               0x80, 0x80, 0x80, 0x80, 0x80});
                 return __intrin_bitcast<_To>(_mm_unpacklo_epi64(_mm_shuffle_epi8(__i0, __shuf),
                                                              _mm_shuffle_epi8(__i1, __shuf)));
@@ -827,7 +827,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto __b = _mm256_unpackhi_epi32(__i0, __i1);   // bfBF dhDH
                 const auto __lo32 = _mm256_unpacklo_epi32(__a, __b);  // abef cdgh
                 const auto __hi32 =
-                    __vector_bitcast<conditional_t<is_signed_v<_Tp>, int, __uint>>(
+                    __vector_bitcast<conditional_t<is_signed_v<_Tp>, int, _UInt>>(
                         _mm256_unpackhi_epi32(__a, __b));  // ABEF CDGH
                 const auto __hi = 0x100000000LL * __convert_x86<__vector_type_t<float, 8>>(__hi32);
                 const auto __mid =
@@ -1083,10 +1083,10 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
         } else if constexpr (__i32_to_i8) {  //{{{2
             if constexpr (__x_to_x) {
                 if constexpr (__have_ssse3) {
-                    const auto __x0 =  __vector_bitcast<uint>(__v0._M_data) & 0xff;
-                    const auto __x1 = (__vector_bitcast<uint>(__v1._M_data) & 0xff) << 8;
-                    const auto __x2 = (__vector_bitcast<uint>(__v2._M_data) & 0xff) << 16;
-                    const auto __x3 =  __vector_bitcast<uint>(__v3._M_data)         << 24;
+                    const auto __x0 =  __vector_bitcast<_UInt>(__v0._M_data) & 0xff;
+                    const auto __x1 = (__vector_bitcast<_UInt>(__v1._M_data) & 0xff) << 8;
+                    const auto __x2 = (__vector_bitcast<_UInt>(__v2._M_data) & 0xff) << 16;
+                    const auto __x3 =  __vector_bitcast<_UInt>(__v3._M_data)         << 24;
                     return __intrin_bitcast<_To>(
                         _mm_shuffle_epi8(__to_intrin(__x0 | __x1 | __x2 | __x3),
                                          _mm_setr_epi8(0, 4, 8, 12, 1, 5, 9, 13, 2, 6, 10,
@@ -1130,7 +1130,7 @@ template <class _To, class _V, class _Traits> _GLIBCXX_SIMD_INTRINSIC _To __conv
                 const auto __lo32a = _mm_unpacklo_epi32(__a, __b);  // abcd
                 const auto __lo32b = _mm_unpacklo_epi32(__c, __d);  // efgh
                 const auto __hi32 =
-                    __vector_bitcast<conditional_t<is_signed_v<_Tp>, int, __uint>>(
+                    __vector_bitcast<conditional_t<is_signed_v<_Tp>, int, _UInt>>(
                         __concat(_mm_unpackhi_epi32(__a, __b),
                                  _mm_unpackhi_epi32(__c, __d)));  // ABCD EFGH
                 const auto __hi =

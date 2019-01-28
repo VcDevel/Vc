@@ -31,19 +31,13 @@ template <size_t _N> inline constexpr overaligned_tag<_N> overaligned = {};
 
 // vvv ---- type traits ---- vvv
 // integer type aliases{{{
-using __uchar = unsigned char;
-using __schar = signed char;
-using __ushort = unsigned short;
-using __short = short;
-using __uint = unsigned int;
-using __int = int;
-using __ulong = unsigned long;
-using __long = long;
-using __ullong = unsigned long long;
-using __llong = long long;
-using __wchar = wchar_t;
-using __char16 = char16_t;
-using __char32 = char32_t;
+using _UChar = unsigned char;
+using _SChar = signed char;
+using _UShort = unsigned short;
+using _UInt = unsigned int;
+using _ULong = unsigned long;
+using _ULLong = unsigned long long;
+using _LLong = long long;
 //}}}
 // __is_equal {{{
 template <class _Tp, _Tp __a, _Tp __b> struct __is_equal : public false_type {
@@ -94,8 +88,8 @@ template <class _Ptr, class _ValueType,
 using __loadstore_ptr_type = _Ptr;
 
 // }}}
-// __size_constant{{{
-template <size_t _X> using __size_constant = integral_constant<size_t, _X>;
+// _SizeConstant{{{
+template <size_t _X> using _SizeConstant = integral_constant<size_t, _X>;
 // }}}
 // __is_bitmask{{{
 template <class _Tp, class = std::void_t<>> struct __is_bitmask : false_type {
@@ -132,42 +126,6 @@ template <class _Tp>
 using __int_for_sizeof_t = typename __int_for_sizeof<sizeof(_Tp)>::type;
 template <size_t _N>
 using __int_with_sizeof_t = typename __int_for_sizeof<_N>::type;
-
-// }}}
-// __equal_int_type{{{
-/**
- * \internal
- * TODO: rename to same_value_representation
- * Type trait to find the equivalent integer type given __a(n) (un)signed long type.
- */
-template <class _Tp, size_t = sizeof(_Tp)> struct __equal_int_type;
-template <> struct __equal_int_type< long, sizeof(int)> { using type =    int; };
-template <> struct __equal_int_type< long, sizeof(__llong)> { using type =  __llong; };
-template <> struct __equal_int_type<ulong, sizeof(uint)> { using type =   uint; };
-template <> struct __equal_int_type<ulong, sizeof(__ullong)> { using type = __ullong; };
-template <> struct __equal_int_type< char, 1> { using type = std::conditional_t<std::is_signed_v<char>, __schar, __uchar>; };
-template <size_t _N> struct __equal_int_type<char16_t, _N> { using type = std::uint_least16_t; };
-template <size_t _N> struct __equal_int_type<char32_t, _N> { using type = std::uint_least32_t; };
-template <> struct __equal_int_type<wchar_t, 1> { using type = std::conditional_t<std::is_signed_v<wchar_t>, __schar, __uchar>; };
-template <> struct __equal_int_type<wchar_t, sizeof(short)> { using type = std::conditional_t<std::is_signed_v<wchar_t>, short, ushort>; };
-template <> struct __equal_int_type<wchar_t, sizeof(int)> { using type = std::conditional_t<std::is_signed_v<wchar_t>, int, uint>; };
-
-template <class _Tp> using __equal_int_type_t = typename __equal_int_type<_Tp>::type;
-
-// }}}
-// __has_same_value_representation{{{
-template <class _Tp, class = std::void_t<>>
-struct __has_same_value_representation : false_type {
-};
-
-template <class _Tp>
-struct __has_same_value_representation<_Tp, std::void_t<typename __equal_int_type<_Tp>::type>>
-    : true_type {
-};
-
-template <class _Tp>
-inline constexpr bool __has_same_value_representation_v =
-    __has_same_value_representation<_Tp>::value;
 
 // }}}
 // __is_fixed_size_abi{{{
@@ -338,7 +296,7 @@ public:
 template <class _F, size_t... _I>
 _GLIBCXX_SIMD_INTRINSIC void __execute_on_index_sequence(_F && __f, std::index_sequence<_I...>)
 {
-    auto &&__x = {(__f(__size_constant<_I>()), 0)...};
+    auto &&__x = {(__f(_SizeConstant<_I>()), 0)...};
     __unused(__x);
 }
 
@@ -350,7 +308,7 @@ _GLIBCXX_SIMD_INTRINSIC void __execute_on_index_sequence(_F &&, std::index_seque
 template <class _R, class _F, size_t... _I>
 _GLIBCXX_SIMD_INTRINSIC _R __execute_on_index_sequence_with_return(_F && __f, std::index_sequence<_I...>)
 {
-    return _R{__f(__size_constant<_I>())...};
+    return _R{__f(_SizeConstant<_I>())...};
 }
 
 // }}}
@@ -588,21 +546,21 @@ template <class _Tp> using __storage64_t = __storage<_Tp, 64 / sizeof(_Tp)>;
 
 // }}}
 // __bit_iteration{{{
-constexpr uint __popcount(uint __x) { return __builtin_popcount(__x); }
-constexpr ulong __popcount(ulong __x) { return __builtin_popcountl(__x); }
-constexpr __ullong __popcount(__ullong __x) { return __builtin_popcountll(__x); }
+constexpr _UInt __popcount(_UInt __x) { return __builtin_popcount(__x); }
+constexpr _ULong __popcount(_ULong __x) { return __builtin_popcountl(__x); }
+constexpr _ULLong __popcount(_ULLong __x) { return __builtin_popcountll(__x); }
 
-constexpr uint ctz(uint __x) { return __builtin_ctz(__x); }
-constexpr ulong ctz(ulong __x) { return __builtin_ctzl(__x); }
-constexpr __ullong ctz(__ullong __x) { return __builtin_ctzll(__x); }
-constexpr uint clz(uint __x) { return __builtin_clz(__x); }
-constexpr ulong clz(ulong __x) { return __builtin_clzl(__x); }
-constexpr __ullong clz(__ullong __x) { return __builtin_clzll(__x); }
+constexpr _UInt ctz(_UInt __x) { return __builtin_ctz(__x); }
+constexpr _ULong ctz(_ULong __x) { return __builtin_ctzl(__x); }
+constexpr _ULLong ctz(_ULLong __x) { return __builtin_ctzll(__x); }
+constexpr _UInt clz(_UInt __x) { return __builtin_clz(__x); }
+constexpr _ULong clz(_ULong __x) { return __builtin_clzl(__x); }
+constexpr _ULLong clz(_ULLong __x) { return __builtin_clzll(__x); }
 
 template <class _Tp, class _F> void __bit_iteration(_Tp k_, _F &&__f)
 {
-    static_assert(sizeof(__ullong) >= sizeof(_Tp));
-    std::conditional_t<sizeof(_Tp) <= sizeof(uint), uint, __ullong> __k;
+    static_assert(sizeof(_ULLong) >= sizeof(_Tp));
+    std::conditional_t<sizeof(_Tp) <= sizeof(_UInt), _UInt, _ULLong> __k;
     if constexpr (std::is_convertible_v<_Tp, decltype(__k)>) {
         __k = k_;
     } else {
@@ -637,10 +595,10 @@ template <class _Tp> _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto __firstbit
     static_assert(std::is_integral_v<_Tp>, "__firstbit requires an integral argument");
     if constexpr (sizeof(_Tp) <= sizeof(int)) {
         return __builtin_ctz(__bits);
-    } else if constexpr(alignof(__ullong) == 8) {
+    } else if constexpr(alignof(_ULLong) == 8) {
         return __builtin_ctzll(__bits);
     } else {
-        uint __lo = __bits;
+        _UInt __lo = __bits;
         return __lo == 0 ? 32 + __builtin_ctz(__bits >> 32) : __builtin_ctz(__lo);
     }
 }
@@ -652,11 +610,11 @@ template <class _Tp> _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto __lastbit(
     static_assert(std::is_integral_v<_Tp>, "__firstbit requires an integral argument");
     if constexpr (sizeof(_Tp) <= sizeof(int)) {
         return 31 - __builtin_clz(__bits);
-    } else if constexpr(alignof(__ullong) == 8) {
+    } else if constexpr(alignof(_ULLong) == 8) {
         return 63 - __builtin_clzll(__bits);
     } else {
-        uint __lo = __bits;
-        uint __hi = __bits >> 32u;
+        _UInt __lo = __bits;
+        _UInt __hi = __bits >> 32u;
         return __hi == 0 ? 31 - __builtin_clz(__lo) : 63 - __builtin_clz(__hi);
     }
 }
@@ -743,7 +701,7 @@ template <class _From, class _To, class _DecayedFrom = std::decay_t<_From>,
           class = enable_if_t<conjunction<
               is_convertible<_From, _To>,
               disjunction<is_same<_DecayedFrom, _To>, is_same<_DecayedFrom, int>,
-                  conjunction<is_same<_DecayedFrom, uint>, is_unsigned<_To>>,
+                  conjunction<is_same<_DecayedFrom, _UInt>, is_unsigned<_To>>,
                   negation<__is_narrowing_conversion<_DecayedFrom, _To>>>>::value>>
 using __value_preserving_or_int = _From;
 
@@ -1013,7 +971,7 @@ template <class _Tp, size_t _N, class _G, size_t... _I>
 _GLIBCXX_SIMD_INTRINSIC constexpr __vector_type_t<_Tp, _N> generate_builtin_impl(
     _G &&__gen, std::index_sequence<_I...>)
 {
-    return __vector_type_t<_Tp, _N>{static_cast<_Tp>(__gen(__size_constant<_I>()))...};
+    return __vector_type_t<_Tp, _N>{static_cast<_Tp>(__gen(_SizeConstant<_I>()))...};
 }
 
 template <class _V, class _VVT = __vector_traits<_V>, class _G>
@@ -1099,7 +1057,7 @@ void __vector_store(const _B __v, void *__p, _F)
 // __allbits{{{
 template <class _V>
 inline constexpr _V __allbits =
-    reinterpret_cast<_V>(~__intrinsic_type_t<__llong, sizeof(_V) / sizeof(__llong)>());
+    reinterpret_cast<_V>(~__intrinsic_type_t<_LLong, sizeof(_V) / sizeof(_LLong)>());
 
 // }}}
 // __xor{{{
@@ -1392,8 +1350,8 @@ _GLIBCXX_SIMD_INTRINSIC std::bitset<_TVT::_S_width> __vector_to_bitset(_Tp __x)
     constexpr bool __is_avx = __have_avx && sizeof(_Tp) == 32;
     constexpr bool is_neon128 = __have_neon && sizeof(_Tp) == 16;
     constexpr int __w = sizeof(typename _TVT::value_type);
-    const auto intrin = __to_intrin(__x);
-    constexpr auto zero = decltype(intrin)();
+    const auto __intrin = __to_intrin(__x);
+    constexpr auto zero = decltype(__intrin)();
     __unused(zero);
 
     if constexpr (is_neon128 && __w == 1) {
@@ -1411,43 +1369,43 @@ _GLIBCXX_SIMD_INTRINSIC std::bitset<_TVT::_S_width> __vector_to_bitset(_Tp __x)
         __x &= _Tp{0x1, 0x2};
         return __x[0] | __x[1];
     } else if constexpr (__is_sse && __w == 1) {
-        return _mm_movemask_epi8(intrin);
+        return _mm_movemask_epi8(__intrin);
     } else if constexpr (__is_sse && __w == 2) {
         if constexpr (__have_avx512bw_vl) {
-            return _mm_cmplt_epi16_mask(intrin, zero);
+            return _mm_cmplt_epi16_mask(__intrin, zero);
         } else {
-            return _mm_movemask_epi8(_mm_packs_epi16(intrin, zero));
+            return _mm_movemask_epi8(_mm_packs_epi16(__intrin, zero));
         }
     } else if constexpr (__is_sse && __w == 4) {
         if constexpr (__have_avx512vl && std::is_integral_v<_Tp>) {
-            return _mm_cmplt_epi32_mask(intrin, zero);
+            return _mm_cmplt_epi32_mask(__intrin, zero);
         } else {
             return _mm_movemask_ps(__vector_bitcast<float>(__x));
         }
     } else if constexpr (__is_sse && __w == 8) {
         if constexpr (__have_avx512vl && std::is_integral_v<_Tp>) {
-            return _mm_cmplt_epi64_mask(intrin, zero);
+            return _mm_cmplt_epi64_mask(__intrin, zero);
         } else {
             return _mm_movemask_pd(__vector_bitcast<double>(__x));
         }
     } else if constexpr (__is_avx && __w == 1) {
-        return _mm256_movemask_epi8(intrin);
+        return _mm256_movemask_epi8(__intrin);
     } else if constexpr (__is_avx && __w == 2) {
         if constexpr (__have_avx512bw_vl) {
-            return _mm256_cmplt_epi16_mask(intrin, zero);
+            return _mm256_cmplt_epi16_mask(__intrin, zero);
         } else {
-            return _mm_movemask_epi8(_mm_packs_epi16(__extract<0, 2>(intrin),
-                                                     __extract<1, 2>(intrin)));
+            return _mm_movemask_epi8(_mm_packs_epi16(__extract<0, 2>(__intrin),
+                                                     __extract<1, 2>(__intrin)));
         }
     } else if constexpr (__is_avx && __w == 4) {
         if constexpr (__have_avx512vl && std::is_integral_v<_Tp>) {
-            return _mm256_cmplt_epi32_mask(intrin, zero);
+            return _mm256_cmplt_epi32_mask(__intrin, zero);
         } else {
             return _mm256_movemask_ps(__vector_bitcast<float>(__x));
         }
     } else if constexpr (__is_avx && __w == 8) {
         if constexpr (__have_avx512vl && std::is_integral_v<_Tp>) {
-            return _mm256_cmplt_epi64_mask(intrin, zero);
+            return _mm256_cmplt_epi64_mask(__intrin, zero);
         } else {
             return _mm256_movemask_pd(__vector_bitcast<double>(__x));
         }
@@ -1703,12 +1661,12 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto
 template <class _Tp, class _TVT = __vector_traits<_Tp>>
 _GLIBCXX_SIMD_INTRINSIC constexpr bool __is_zero(_Tp __a)
 {
-    const auto __b = __vector_bitcast<__llong>(__a);
-    if constexpr (sizeof(__b) / sizeof(__llong) == 2) {
+    const auto __b = __vector_bitcast<_LLong>(__a);
+    if constexpr (sizeof(__b) / sizeof(_LLong) == 2) {
         return __b[0] == 0 && __b[1] == 0;
-    } else if constexpr (sizeof(__b) / sizeof(__llong) == 4) {
+    } else if constexpr (sizeof(__b) / sizeof(_LLong) == 4) {
         return __b[0] == 0 && __b[1] == 0 && __b[2] == 0 && __b[3] == 0;
-    } else if constexpr (sizeof(__b) / sizeof(__llong) == 8) {
+    } else if constexpr (sizeof(__b) / sizeof(_LLong) == 8) {
         return __b[0] == 0 && __b[1] == 0 && __b[2] == 0 && __b[3] == 0 && __b[4] == 0 &&
                __b[5] == 0 && __b[6] == 0 && __b[7] == 0;
     } else {
@@ -1728,18 +1686,18 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST int __testz(_Tp __a, _Tp __b)
         } else if constexpr (sizeof(_Tp) == 32 && _TVT::template is<double>) {
             return _mm256_testz_pd(__a, __b);
         } else if constexpr (sizeof(_Tp) == 32) {
-            return _mm256_testz_si256(__vector_bitcast<__llong>(__a),
-                                      __vector_bitcast<__llong>(__b));
+            return _mm256_testz_si256(__vector_bitcast<_LLong>(__a),
+                                      __vector_bitcast<_LLong>(__b));
         } else if constexpr(_TVT::template is<float, 4>) {
             return _mm_testz_ps(__a, __b);
         } else if constexpr(_TVT::template is<double, 2>) {
             return _mm_testz_pd(__a, __b);
         } else {
             static_assert(sizeof(_Tp) == 16);
-            return _mm_testz_si128(__vector_bitcast<__llong>(__a), __vector_bitcast<__llong>(__b));
+            return _mm_testz_si128(__vector_bitcast<_LLong>(__a), __vector_bitcast<_LLong>(__b));
         }
     } else if constexpr (__have_sse4_1) {
-        return _mm_testz_si128(__vector_bitcast<__llong>(__a), __vector_bitcast<__llong>(__b));
+        return _mm_testz_si128(__vector_bitcast<_LLong>(__a), __vector_bitcast<_LLong>(__b));
     } else if constexpr (__have_sse && _TVT::template is<float, 4>) {
         return _mm_movemask_ps(__and(__a, __b)) == 0;
     } else if constexpr (__have_sse2 && _TVT::template is<double, 2>) {
@@ -1762,17 +1720,17 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST int __testnzc(_Tp __a, _Tp __b)
         } else if constexpr (sizeof(_Tp) == 32 && _TVT::template is<double>) {
             return _mm256_testnzc_pd(__a, __b);
         } else if constexpr (sizeof(_Tp) == 32) {
-            return _mm256_testnzc_si256(__vector_bitcast<__llong>(__a), __vector_bitcast<__llong>(__b));
+            return _mm256_testnzc_si256(__vector_bitcast<_LLong>(__a), __vector_bitcast<_LLong>(__b));
         } else if constexpr(_TVT::template is<float, 4>) {
             return _mm_testnzc_ps(__a, __b);
         } else if constexpr(_TVT::template is<double, 2>) {
             return _mm_testnzc_pd(__a, __b);
         } else {
             static_assert(sizeof(_Tp) == 16);
-            return _mm_testnzc_si128(__vector_bitcast<__llong>(__a), __vector_bitcast<__llong>(__b));
+            return _mm_testnzc_si128(__vector_bitcast<_LLong>(__a), __vector_bitcast<_LLong>(__b));
         }
     } else if constexpr (__have_sse4_1) {
-        return _mm_testnzc_si128(__vector_bitcast<__llong>(__a), __vector_bitcast<__llong>(__b));
+        return _mm_testnzc_si128(__vector_bitcast<_LLong>(__a), __vector_bitcast<_LLong>(__b));
     } else if constexpr (__have_sse && _TVT::template is<float, 4>) {
         return _mm_movemask_ps(__and(__a, __b)) == 0 && _mm_movemask_ps(__andnot(__a, __b)) == 0;
     } else if constexpr (__have_sse2 && _TVT::template is<double, 2>) {
@@ -1781,8 +1739,8 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST int __testnzc(_Tp __a, _Tp __b)
         return _mm_movemask_epi8(__and(__a, __b)) == 0 &&
                _mm_movemask_epi8(__andnot(__a, __b)) == 0;
     } else {
-        return !(__is_zero(__vector_bitcast<__llong>(__and(__a, __b))) ||
-                 __is_zero(__vector_bitcast<__llong>(__andnot(__a, __b))));
+        return !(__is_zero(__vector_bitcast<_LLong>(__and(__a, __b))) ||
+                 __is_zero(__vector_bitcast<_LLong>(__andnot(__a, __b))));
     }
 }
 
@@ -1969,7 +1927,7 @@ struct __storage<bool, _Width, std::void_t<typename __bool_storage_member_type<_
     _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_PURE operator const register_type &() const { return _M_data; }
     _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_PURE operator register_type &() { return _M_data; }
 
-    _GLIBCXX_SIMD_INTRINSIC register_type intrin() const { return _M_data; }
+    _GLIBCXX_SIMD_INTRINSIC register_type __intrin() const { return _M_data; }
 
     _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_PURE value_type operator[](size_t __i) const
     {
@@ -2006,7 +1964,7 @@ struct __storage_base<_Tp, _Width, _RegisterType, true> {
 
 template <class _Tp, size_t _Width, class _RegisterType>
 struct __storage_base<_Tp, _Width, _RegisterType, false> {
-    using intrin_type = __intrinsic_type_t<_Tp, _Width>;
+    using __intrin_type = __intrinsic_type_t<_Tp, _Width>;
     _RegisterType _M_data;
 
     _GLIBCXX_SIMD_INTRINSIC constexpr __storage_base() = default;
@@ -2014,7 +1972,7 @@ struct __storage_base<_Tp, _Width, _RegisterType, false> {
         : _M_data(reinterpret_cast<_RegisterType>(__x))
     {
     }
-    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_base(intrin_type __x)
+    _GLIBCXX_SIMD_INTRINSIC constexpr __storage_base(__intrin_type __x)
         : _M_data(reinterpret_cast<_RegisterType>(__x))
     {
     }
@@ -2198,7 +2156,7 @@ template <class _Tp, class _Abi>
 struct __simd_size_impl<_Tp, _Abi,
                         enable_if_t<std::conjunction_v<
                             __is_vectorizable<_Tp>, std::experimental::is_abi_tag<_Abi>>>>
-    : __size_constant<_Abi::template size<_Tp>> {
+    : _SizeConstant<_Abi::template size<_Tp>> {
 };
 
 template <class _Tp, class _Abi = simd_abi::__default_abi<_Tp>>
@@ -2251,7 +2209,7 @@ template <int _N, class _V> using resize_simd_t = typename resize_simd<_N, _V>::
 // memory_alignment {{{2
 template <class _Tp, class _U = typename _Tp::value_type>
 struct memory_alignment
-    : public __size_constant<__next_power_of_2(sizeof(_U) * _Tp::size())> {
+    : public _SizeConstant<__next_power_of_2(sizeof(_U) * _Tp::size())> {
 };
 template <class _Tp, class _U = typename _Tp::value_type>
 inline constexpr size_t memory_alignment_v = memory_alignment<_Tp, _U>::value;
@@ -2356,8 +2314,8 @@ _GLIBCXX_SIMD_INTRINSIC _To __mask_cast_impl(const _Native *, const _From &__x)
 template <class _To, class, class, class _Native, size_t _N>
 _GLIBCXX_SIMD_INTRINSIC _To __mask_cast_impl(const _Native *, const std::bitset<_N> &__x)
 {
-  static_assert(_N <= sizeof(__ullong) * CHAR_BIT ||
-		  _To::size() <= sizeof(__ullong) * CHAR_BIT,
+  static_assert(_N <= sizeof(_ULLong) * CHAR_BIT ||
+		  _To::size() <= sizeof(_ULLong) * CHAR_BIT,
 		"bug in std::experimental::(static|resizing)_simd_cast");
   return {std::experimental::__bitset_init, __x.to_ullong()};
 }
@@ -3062,7 +3020,7 @@ template <int _Stride, int _Offset = 0> struct strided {
 // __shuffle_return_type and the static member function __src_index
 template <class _P, class _Tp, class _A,
           class _R = typename _P::template __shuffle_return_type<_Tp, _A>,
-          class = decltype(_P::__src_index(std::experimental::__size_constant<0>()))>
+          class = decltype(_P::__src_index(std::experimental::_SizeConstant<0>()))>
 _GLIBCXX_SIMD_INTRINSIC _R shuffle(const simd<_Tp, _A> &__x)
 {
     return _R([&__x](auto __i) { return __x[_P::__src_index(__i)]; });
@@ -3088,7 +3046,7 @@ auto __extract_part(const __simd_tuple<_Tp, _A0, _As...> &__x);
 template <size_t V0, size_t... Values> struct __size_list {
     static constexpr size_t size = sizeof...(Values) + 1;
 
-    template <size_t _I> static constexpr size_t at(__size_constant<_I> = {})
+    template <size_t _I> static constexpr size_t at(_SizeConstant<_I> = {})
     {
         if constexpr (_I == 0) {
             return V0;
@@ -3097,16 +3055,16 @@ template <size_t V0, size_t... Values> struct __size_list {
         }
     }
 
-    template <size_t _I> static constexpr auto before(__size_constant<_I> = {})
+    template <size_t _I> static constexpr auto before(_SizeConstant<_I> = {})
     {
         if constexpr (_I == 0) {
-            return __size_constant<0>();
+            return _SizeConstant<0>();
         } else {
-            return __size_constant<V0 + __size_list<Values...>::template before<_I - 1>()>();
+            return _SizeConstant<V0 + __size_list<Values...>::template before<_I - 1>()>();
         }
     }
 
-    template <size_t _N> static constexpr auto pop_front(__size_constant<_N> = {})
+    template <size_t _N> static constexpr auto pop_front(_SizeConstant<_N> = {})
     {
         if constexpr (_N == 0) {
             return __size_list();
@@ -3191,7 +3149,7 @@ split(const simd<typename _V::value_type, _A> &__x)
                 constexpr size_t __offset = decltype(__i)::value * _V::size();
                 __unused(__offset);  // not really
                 return _V([&](auto __j) {
-                    constexpr __size_constant<__j + __offset> __k;
+                    constexpr _SizeConstant<__j + __offset> __k;
                     return __xx[__k];
                 });
             });
@@ -3239,7 +3197,7 @@ enable_if_t<(is_simd_mask_v<_V> &&
       return {_V(__private_init, __lo128(__data(__x))),
 	      _V(__private_init, __hi128(__data(__x)))};
     }
-  else if constexpr (_V::size() <= CHAR_BIT * sizeof(__ullong))
+  else if constexpr (_V::size() <= CHAR_BIT * sizeof(_ULLong))
     {
       const std::bitset __bits = __x.__to_bitset();
       return __generate_from_n_evaluations<_Parts, std::array<_V, _Parts>>(
@@ -3355,7 +3313,7 @@ _GLIBCXX_SIMD_ALWAYS_INLINE std::tuple<simd<_Tp, simd_abi::deduce_t<_Tp, _Sizes>
             const auto &__xx = __data(__x);
             using _Offset = decltype(_SL::before(__i));
             return _Vi([&](auto __j) {
-                constexpr __size_constant<_Offset::value + __j> __k;
+                constexpr _SizeConstant<_Offset::value + __j> __k;
                 return __xx[__k];
             });
         });
@@ -3578,7 +3536,7 @@ template <class _Tp, class _MT, class _Abi, size_t _N> struct __gnu_traits {
     struct mask_base2 {
         explicit operator __intrinsic_type_t<_Tp, _N>() const
         {
-            return static_cast<const simd_mask<_Tp, _Abi> *>(this)->_M_data.intrin();
+            return static_cast<const simd_mask<_Tp, _Abi> *>(this)->_M_data.__intrin();
         }
         explicit operator __vector_type_t<_Tp, _N>() const
         {
@@ -3674,8 +3632,8 @@ template <class _Tp> struct __avx512_is_vectorizable : __is_vectorizable<_Tp> {}
 template <> struct __avx512_is_vectorizable<long double> : false_type {};
 #if !_GLIBCXX_SIMD_HAVE_FULL_AVX512_ABI
 template <> struct __avx512_is_vectorizable<  char> : false_type {};
-template <> struct __avx512_is_vectorizable< __uchar> : false_type {};
-template <> struct __avx512_is_vectorizable< __schar> : false_type {};
+template <> struct __avx512_is_vectorizable< _UChar> : false_type {};
+template <> struct __avx512_is_vectorizable< _SChar> : false_type {};
 template <> struct __avx512_is_vectorizable< short> : false_type {};
 template <> struct __avx512_is_vectorizable<ushort> : false_type {};
 template <> struct __avx512_is_vectorizable<char16_t> : false_type {};
@@ -4464,7 +4422,7 @@ public :
             return {__private_init, _knot_mask64(builtin())};
         } else {
             return {__private_init,
-                    _To_storage(~__vector_bitcast<uint>(builtin()))};
+                    _To_storage(~__vector_bitcast<_UInt>(builtin()))};
         }
     }
 
@@ -4578,8 +4536,8 @@ private:
     }
 
     // }}}
-    // TODO remove intrin:
-    /*auto intrin() const  // {{{
+    // TODO remove __intrin:
+    /*auto __intrin() const  // {{{
     {
         if constexpr (!__is_scalar() && !__is_fixed()) {
             return __to_intrin(_M_data._M_data);
@@ -4830,28 +4788,28 @@ template <class _Tp, class _Abi, class _Data> _GLIBCXX_SIMD_INTRINSIC int __popc
             const int mask = _mm_movemask_pd(__auto_bitcast(__kk));
             return mask - (mask >> 1);
         } else if constexpr (_N == 4 && sizeof(__kk) == 16 && __have_sse2) {
-            auto __x = __vector_bitcast<__llong>(__kk);
+            auto __x = __vector_bitcast<_LLong>(__kk);
             __x = _mm_add_epi32(__x, _mm_shuffle_epi32(__x, _MM_SHUFFLE(0, 1, 2, 3)));
             __x = _mm_add_epi32(__x, _mm_shufflelo_epi16(__x, _MM_SHUFFLE(1, 0, 3, 2)));
             return -_mm_cvtsi128_si32(__x);
         } else if constexpr (_N == 4 && sizeof(__kk) == 16) {
             return __builtin_popcount(_mm_movemask_ps(__auto_bitcast(__kk)));
         } else if constexpr (_N == 8 && sizeof(__kk) == 16) {
-            auto __x = __vector_bitcast<__llong>(__kk);
+            auto __x = __vector_bitcast<_LLong>(__kk);
             __x = _mm_add_epi16(__x, _mm_shuffle_epi32(__x, _MM_SHUFFLE(0, 1, 2, 3)));
             __x = _mm_add_epi16(__x, _mm_shufflelo_epi16(__x, _MM_SHUFFLE(0, 1, 2, 3)));
             __x = _mm_add_epi16(__x, _mm_shufflelo_epi16(__x, _MM_SHUFFLE(2, 3, 0, 1)));
             return -short(_mm_extract_epi16(__x, 0));
         } else if constexpr (_N == 16 && sizeof(__kk) == 16) {
-            auto __x = __vector_bitcast<__llong>(__kk);
+            auto __x = __vector_bitcast<_LLong>(__kk);
             __x = _mm_add_epi8(__x, _mm_shuffle_epi32(__x, _MM_SHUFFLE(0, 1, 2, 3)));
             __x = _mm_add_epi8(__x, _mm_shufflelo_epi16(__x, _MM_SHUFFLE(0, 1, 2, 3)));
             __x = _mm_add_epi8(__x, _mm_shufflelo_epi16(__x, _MM_SHUFFLE(2, 3, 0, 1)));
-            auto __y = -__vector_bitcast<__uchar>(__x);
+            auto __y = -__vector_bitcast<_UChar>(__x);
             if constexpr (__have_sse4_1) {
                 return __y[0] + __y[1];
             } else {
-                unsigned __z = _mm_extract_epi16(__vector_bitcast<__llong>(__y), 0);
+                unsigned __z = _mm_extract_epi16(__vector_bitcast<_LLong>(__y), 0);
                 return (__z & 0xff) + (__z >> 8);
             }
         } else if constexpr (_N == 4 && sizeof(__kk) == 32) {
@@ -5131,7 +5089,7 @@ public:
     _GLIBCXX_SIMD_ALWAYS_INLINE explicit constexpr simd(
         _F &&__gen,
         __value_preserving_or_int<
-            decltype(std::declval<_F>()(std::declval<__size_constant<0> &>())),
+            decltype(std::declval<_F>()(std::declval<_SizeConstant<0> &>())),
             value_type> * = nullptr)
         : _M_data(__impl::generator(std::forward<_F>(__gen), _S_type_tag))
     {

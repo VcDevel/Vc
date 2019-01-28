@@ -18,7 +18,7 @@
 // incorrect use of k0 register for _kortestc_mask64_u8 and _kortestc_mask32_u8:
 #define _GLIBCXX_SIMD_WORKAROUND_PR85538 1
 
-// missed optimization for __abs(__vector_type_t<__llong, 2>):
+// missed optimization for __abs(__vector_type_t<_LLong, 2>):
 #define _GLIBCXX_SIMD_WORKAROUND_PR85572 1
 
 // very bad codegen for extraction and concatenation of 128/256 "subregisters" with

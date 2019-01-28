@@ -160,18 +160,18 @@ template <class _U, class _Tp, class _Abi> struct __extra_argument_type {
 // }}}
 // _GLIBCXX_SIMD_MATH_CALL3_ {{{
 #define _GLIBCXX_SIMD_MATH_CALL3_(__name, arg2_, arg3_)                                  \
-    template <class _Tp, class _Abi, class...,                                            \
-              class _Arg2 = std::experimental::__extra_argument_type<arg2_, _Tp, _Abi>,   \
-              class _Arg3 = std::experimental::__extra_argument_type<arg3_, _Tp, _Abi>,   \
+    template <class _Tp, class _Abi, class...,                                           \
+              class _Arg2 = std::experimental::__extra_argument_type<arg2_, _Tp, _Abi>,  \
+              class _Arg3 = std::experimental::__extra_argument_type<arg3_, _Tp, _Abi>,  \
               class _R    = std::experimental::__math_return_type_t<                     \
-                  decltype(std::__name(std::declval<double>(), _Arg2::declval(),      \
-                                       _Arg3::declval())),                            \
-                  _Tp, _Abi>>                                                          \
-    enable_if_t<std::is_floating_point_v<_Tp>, _R> __name(                                \
-        std::experimental::simd<_Tp, _Abi> __xx, typename _Arg2::type __yy,               \
+                  decltype(std::__name(std::declval<double>(), _Arg2::declval(),         \
+                                       _Arg3::declval())),                               \
+                  _Tp, _Abi>>                                                            \
+    enable_if_t<std::is_floating_point_v<_Tp>, _R> __name(                               \
+        std::experimental::simd<_Tp, _Abi> __xx, typename _Arg2::type __yy,              \
         typename _Arg3::type __zz)                                                       \
     {                                                                                    \
-        using _V = std::experimental::simd<_Tp, _Abi>;                                    \
+        using _V = std::experimental::simd<_Tp, _Abi>;                                   \
         return std::experimental::__impl_or_fallback(                                    \
             [](const auto& __x, const auto& __y, const auto& __z)                        \
                 -> decltype(                                                             \
@@ -187,10 +187,10 @@ template <class _U, class _Tp, class _Abi> struct __extra_argument_type {
             [](const _V& __x, const auto& __y, const auto& __z) {                        \
                 return _R([&](auto __i) {                                                \
                     if constexpr (_Arg3::__needs_temporary_scalar) {                     \
-                        const auto& __zz = *__z;                                         \
-                        auto __tmp       = __zz[__i];                                    \
-                        auto __ret       = std::__name(__x[__i], __y[__i], &__tmp);      \
-                        (*__z)[__i]      = __tmp;                                        \
+                        const auto& __ztmp = *__z;                                       \
+                        auto __tmp         = __ztmp[__i];                                \
+                        auto __ret         = std::__name(__x[__i], __y[__i], &__tmp);    \
+                        (*__z)[__i]        = __tmp;                                      \
                         return __ret;                                                    \
                     } else {                                                             \
                         return std::__name(__x[__i], __y[__i], __z[__i]);                \
@@ -199,16 +199,16 @@ template <class _U, class _Tp, class _Abi> struct __extra_argument_type {
             },                                                                           \
             __xx, __yy, __zz);                                                           \
     }                                                                                    \
-    template <class _Tp, class _U, class _V, class..., class _TT = std::decay_t<_Tp>,      \
+    template <class _Tp, class _U, class _V, class..., class _TT = std::decay_t<_Tp>,    \
               class _UU = std::decay_t<_U>, class _VV = std::decay_t<_V>,                \
               class _Simd =                                                              \
                   std::conditional_t<std::experimental::is_simd_v<_UU>, _UU, _VV>>       \
     _GLIBCXX_SIMD_INTRINSIC decltype(                                                    \
-        std::experimental::__name(_Simd(std::declval<_Tp>()), _Simd(std::declval<_U>()),  \
+        std::experimental::__name(_Simd(std::declval<_Tp>()), _Simd(std::declval<_U>()), \
                                   _Simd(std::declval<_V>())))                            \
-    __name(_Tp&& __xx, _U&& __yy, _V&& __zz)                                              \
+    __name(_Tp&& __xx, _U&& __yy, _V&& __zz)                                             \
     {                                                                                    \
-        return std::experimental::__name(_Simd(std::forward<_Tp>(__xx)),                  \
+        return std::experimental::__name(_Simd(std::forward<_Tp>(__xx)),                 \
                                          _Simd(std::forward<_U>(__yy)),                  \
                                          _Simd(std::forward<_V>(__zz)));                 \
     }
@@ -526,7 +526,6 @@ enable_if_t<std::is_floating_point_v<_Tp>, simd<_Tp, _Abi>>
 	  return static_simd_cast<_V>(
 	    cos(static_simd_cast<rebind_simd_t<double, _V>>(__x)));
 
-      using _Impl    = __get_impl_t<_V>;
       const auto __f = __fold_input(__x);
       // quadrant | effect
       //        0 | cosSeries, +
@@ -843,7 +842,7 @@ enable_if_t<std::is_floating_point<_Tp>::value, simd<_Tp, _Abi>> logb(
 	auto&& __exponent = [](const _V& __v) {
 	  using namespace std::experimental::__proposed;
 	  using _IV = rebind_simd_t<
-	    std::conditional_t<sizeof(_Tp) == sizeof(__llong), __llong, int>,
+	    std::conditional_t<sizeof(_Tp) == sizeof(_LLong), _LLong, int>,
 	    _V>;
 	  return (simd_reinterpret_cast<_IV>(__v) >>
 		  (std::numeric_limits<_Tp>::digits - 1)) -
@@ -1196,8 +1195,8 @@ template <class _V> struct simd_div_t {
     _V quot, rem;
 };
 template <class _Abi>
-simd_div_t<__scharv<_Abi>> div(__scharv<_Abi> numer,
-                                         __scharv<_Abi> denom);
+simd_div_t<_SCharv<_Abi>> div(_SCharv<_Abi> numer,
+                                         _SCharv<_Abi> denom);
 template <class _Abi>
 simd_div_t<__shortv<_Abi>> div(__shortv<_Abi> numer,
                                          __shortv<_Abi> denom);
