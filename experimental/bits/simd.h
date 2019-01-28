@@ -1460,7 +1460,6 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto
 			__blend(_K mask, _V0 at0, _V1 at1)
 {
   using _V = _V0;
-  using _Tp = typename __vector_traits<_V>::value_type;
   if constexpr (!std::is_same_v<_V0, _V1>)
     {
       static_assert(sizeof(_V0) == sizeof(_V1));
@@ -1488,6 +1487,7 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto
     }
   else if constexpr (sizeof(_K) < 16) // blend via bitmask (AVX512)
     {
+      using _Tp = typename __vector_traits<_V>::value_type;
       if constexpr (sizeof(_V) == 16 && __have_avx512bw_vl && sizeof(_Tp) <= 2)
 	{
 	  if constexpr (sizeof(_Tp) == 1)
@@ -1645,7 +1645,8 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto
     }
   else if constexpr (((__have_avx512f && sizeof(_V) == 64) ||
 		      __have_avx512vl) &&
-		     (sizeof(_Tp) >= 4 || __have_avx512bw))
+		     (sizeof(typename __vector_traits<_V>::value_type) >= 4 ||
+		      __have_avx512bw))
     { // convert mask to bitmask
       return __blend(
 	__convert_mask<__bool_storage_member_type_t<__vector_traits<_V>::_S_width>>(mask), at0,
@@ -1654,6 +1655,7 @@ _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST auto
   else
     {
       const _V __k = __auto_bitcast(mask);
+      using _Tp = typename __vector_traits<_V>::value_type;
       if constexpr (sizeof(_V) == 16 && __have_sse4_1)
 	{
 	  if constexpr (std::is_integral_v<_Tp>)
@@ -4448,13 +4450,14 @@ public :
             return {__private_init, !_M_data};
         } else if constexpr (__is_fixed()) {
             return {__private_init, ~builtin()};
-        } else if constexpr (__is_avx512() && size() <= 8) {
+        } else if constexpr (__have_avx512dq && __is_avx512() && size() <= 8) {
             return {__private_init, _knot_mask8(builtin())};
         } else if constexpr (__is_avx512() && size() <= 16) {
-            return {__private_init, _knot_mask16(builtin())};
-        } else if constexpr (__is_avx512() && size() <= 32) {
+            // the following is a narrowing conversion on KNL for doubles (__mmask8)
+            return simd_mask(__private_init, _knot_mask16(builtin()));
+        } else if constexpr (__have_avx512bw && __is_avx512() && size() <= 32) {
             return {__private_init, _knot_mask32(builtin())};
-        } else if constexpr (__is_avx512() && size() <= 64) {
+        } else if constexpr (__have_avx512bw && __is_avx512() && size() <= 64) {
             return {__private_init, _knot_mask64(builtin())};
         } else {
             return {__private_init,

@@ -4471,13 +4471,13 @@ template <class _Abi> struct __generic_mask_impl {
     {
       if constexpr (std::is_same_v<_Tp, bool>)
 	{
-	  if constexpr (_N <= 8)
+	  if constexpr (__have_avx512dq && _N <= 8)
 	    return _kand_mask8(__x._M_data, __y._M_data);
 	  else if constexpr (_N <= 16)
 	    return _kand_mask16(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 32)
+	  else if constexpr (__have_avx512bw && _N <= 32)
 	    return _kand_mask32(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 64)
+	  else if constexpr (__have_avx512bw && _N <= 64)
 	    return _kand_mask64(__x._M_data, __y._M_data);
 	  else
 	    __assert_unreachable<_Tp>();
@@ -4494,13 +4494,13 @@ template <class _Abi> struct __generic_mask_impl {
     {
       if constexpr (std::is_same_v<_Tp, bool>)
 	{
-	  if constexpr (_N <= 8)
+	  if constexpr (__have_avx512dq && _N <= 8)
 	    return _kor_mask8(__x._M_data, __y._M_data);
 	  else if constexpr (_N <= 16)
 	    return _kor_mask16(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 32)
+	  else if constexpr (__have_avx512bw && _N <= 32)
 	    return _kor_mask32(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 64)
+	  else if constexpr (__have_avx512bw && _N <= 64)
 	    return _kor_mask64(__x._M_data, __y._M_data);
 	  else
 	    __assert_unreachable<_Tp>();
@@ -4517,13 +4517,13 @@ template <class _Abi> struct __generic_mask_impl {
     {
       if constexpr (std::is_same_v<_Tp, bool>)
 	{
-	  if constexpr (_N <= 8)
+	  if constexpr (__have_avx512dq && _N <= 8)
 	    return _kand_mask8(__x._M_data, __y._M_data);
 	  else if constexpr (_N <= 16)
 	    return _kand_mask16(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 32)
+	  else if constexpr (__have_avx512bw && _N <= 32)
 	    return _kand_mask32(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 64)
+	  else if constexpr (__have_avx512bw && _N <= 64)
 	    return _kand_mask64(__x._M_data, __y._M_data);
 	  else
 	    __assert_unreachable<_Tp>();
@@ -4540,13 +4540,13 @@ template <class _Abi> struct __generic_mask_impl {
     {
       if constexpr (std::is_same_v<_Tp, bool>)
 	{
-	  if constexpr (_N <= 8)
+	  if constexpr (__have_avx512dq && _N <= 8)
 	    return _kor_mask8(__x._M_data, __y._M_data);
 	  else if constexpr (_N <= 16)
 	    return _kor_mask16(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 32)
+	  else if constexpr (__have_avx512bw && _N <= 32)
 	    return _kor_mask32(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 64)
+	  else if constexpr (__have_avx512bw && _N <= 64)
 	    return _kor_mask64(__x._M_data, __y._M_data);
 	  else
 	    __assert_unreachable<_Tp>();
@@ -4563,13 +4563,13 @@ template <class _Abi> struct __generic_mask_impl {
     {
       if constexpr (std::is_same_v<_Tp, bool>)
 	{
-	  if constexpr (_N <= 8)
+	  if constexpr (__have_avx512dq && _N <= 8)
 	    return _kxor_mask8(__x._M_data, __y._M_data);
 	  else if constexpr (_N <= 16)
 	    return _kxor_mask16(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 32)
+	  else if constexpr (__have_avx512bw && _N <= 32)
 	    return _kxor_mask32(__x._M_data, __y._M_data);
-	  else if constexpr (_N <= 64)
+	  else if constexpr (__have_avx512bw && _N <= 64)
 	    return _kxor_mask64(__x._M_data, __y._M_data);
 	  else
 	    __assert_unreachable<_Tp>();
