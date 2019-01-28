@@ -493,19 +493,19 @@ struct __converts_to_higher_integer_rank<_From, _To, false>
 };
 
 // __is_aligned(_v){{{1
-template <class _Flag, size_t Alignment> struct __is_aligned;
-template <size_t Alignment>
-struct __is_aligned<vector_aligned_tag, Alignment> : public true_type {
+template <class _Flag, size_t _Alignment> struct __is_aligned;
+template <size_t _Alignment>
+struct __is_aligned<vector_aligned_tag, _Alignment> : public true_type {
 };
-template <size_t Alignment>
-struct __is_aligned<element_aligned_tag, Alignment> : public false_type {
+template <size_t _Alignment>
+struct __is_aligned<element_aligned_tag, _Alignment> : public false_type {
 };
-template <size_t GivenAlignment, size_t Alignment>
-struct __is_aligned<overaligned_tag<GivenAlignment>, Alignment>
-    : public std::integral_constant<bool, (GivenAlignment >= Alignment)> {
+template <size_t _GivenAlignment, size_t _Alignment>
+struct __is_aligned<overaligned_tag<_GivenAlignment>, _Alignment>
+    : public std::integral_constant<bool, (_GivenAlignment >= _Alignment)> {
 };
-template <class _Flag, size_t Alignment>
-inline constexpr bool __is_aligned_v = __is_aligned<_Flag, Alignment>::value;
+template <class _Flag, size_t _Alignment>
+inline constexpr bool __is_aligned_v = __is_aligned<_Flag, _Alignment>::value;
 
 // }}}1
 // __when_(un)aligned{{{
@@ -513,22 +513,22 @@ inline constexpr bool __is_aligned_v = __is_aligned<_Flag, Alignment>::value;
  * \internal
  * Implicitly converts from flags that specify alignment
  */
-template <size_t Alignment>
+template <size_t _Alignment>
 class _When_aligned
 {
 public:
     constexpr _When_aligned(vector_aligned_tag) {}
-    template <size_t _Given, class = enable_if_t<(_Given >= Alignment)>>
+    template <size_t _Given, class = enable_if_t<(_Given >= _Alignment)>>
     constexpr _When_aligned(overaligned_tag<_Given>)
     {
     }
 };
-template <size_t Alignment>
+template <size_t _Alignment>
 class _When_unaligned
 {
 public:
     constexpr _When_unaligned(element_aligned_tag) {}
-    template <size_t _Given, class = enable_if_t<(_Given < Alignment)>>
+    template <size_t _Given, class = enable_if_t<(_Given < _Alignment)>>
     constexpr _When_unaligned(overaligned_tag<_Given>)
     {
     }
@@ -2037,13 +2037,13 @@ struct __storage<_Tp, _Width,
     //using __storage_base<_Tp, _Width>::__storage_base;
     using __storage_base<_Tp, _Width>::_M_data;
 
-    template <class... As,
-              class = enable_if_t<((std::is_same_v<simd_abi::scalar, As> && ...) &&
-                                        sizeof...(As) <= _Width)>>
-    _GLIBCXX_SIMD_INTRINSIC constexpr operator __simd_tuple<_Tp, As...>() const
+    template <class... _As,
+              class = enable_if_t<((std::is_same_v<simd_abi::scalar, _As> && ...) &&
+                                        sizeof...(_As) <= _Width)>>
+    _GLIBCXX_SIMD_INTRINSIC constexpr operator __simd_tuple<_Tp, _As...>() const
     {
         const auto &dd = _M_data;  // workaround for GCC7 ICE
-        return __generate_from_n_evaluations<sizeof...(As), __simd_tuple<_Tp, As...>>(
+        return __generate_from_n_evaluations<sizeof...(_As), __simd_tuple<_Tp, _As...>>(
             [&](auto __i) { return dd[int(__i)]; });
     }
 
@@ -3075,8 +3075,8 @@ template <size_t _Index, size_t _Total, class _Tp, size_t _N>
 _GLIBCXX_SIMD_INTRINSIC _GLIBCXX_SIMD_CONST
     __vector_type_t<_Tp, std::max(16 / sizeof(_Tp), _N / _Total)>
         __extract_part(__storage<_Tp, _N>);
-template <int Index, int Parts, class _Tp, class _A0, class... As>
-auto __extract_part(const __simd_tuple<_Tp, _A0, As...> &__x);
+template <int Index, int Parts, class _Tp, class _A0, class... _As>
+auto __extract_part(const __simd_tuple<_Tp, _A0, _As...> &__x);
 
 // }}}
 // __size_list {{{
@@ -3148,11 +3148,11 @@ inline __storage<_Tp, simd_size_v<_Tp, _A> / 2> __extract_center(
 
 // }}}
 // __split_wrapper {{{
-template <size_t... _Sizes, class _Tp, class... As>
-auto __split_wrapper(__size_list<_Sizes...>, const __simd_tuple<_Tp, As...> &__x)
+template <size_t... _Sizes, class _Tp, class... _As>
+auto __split_wrapper(__size_list<_Sizes...>, const __simd_tuple<_Tp, _As...> &__x)
 {
     return std::experimental::split<_Sizes...>(
-        fixed_size_simd<_Tp, __simd_tuple<_Tp, As...>::size()>(__private_init, __x));
+        fixed_size_simd<_Tp, __simd_tuple<_Tp, _As...>::size()>(__private_init, __x));
 }
 
 // }}}
@@ -3361,8 +3361,8 @@ _GLIBCXX_SIMD_ALWAYS_INLINE std::tuple<simd<_Tp, simd_abi::deduce_t<_Tp, _Sizes>
 // }}}
 
 // __subscript_in_pack {{{
-template <size_t _I, class _Tp, class _A, class... As>
-_GLIBCXX_SIMD_INTRINSIC constexpr _Tp __subscript_in_pack(const simd<_Tp, _A> &__x, const simd<_Tp, As> &... __xs)
+template <size_t _I, class _Tp, class _A, class... _As>
+_GLIBCXX_SIMD_INTRINSIC constexpr _Tp __subscript_in_pack(const simd<_Tp, _A> &__x, const simd<_Tp, _As> &... __xs)
 {
     if constexpr (_I < simd_size_v<_Tp, _A>) {
         return __x[_I];
@@ -3373,11 +3373,11 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _Tp __subscript_in_pack(const simd<_Tp, _A> &_
 // }}}
 
 // concat(simd...) {{{
-template <class _Tp, class... As>
-simd<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, As> + ...)>> concat(
-    const simd<_Tp, As> &... __xs)
+template <class _Tp, class... _As>
+simd<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _As> + ...)>> concat(
+    const simd<_Tp, _As> &... __xs)
 {
-    return simd<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, As> + ...)>>(
+    return simd<_Tp, simd_abi::deduce_t<_Tp, (simd_size_v<_Tp, _As> + ...)>>(
         [&](auto __i) { return __subscript_in_pack<__i>(__xs...); });
 }
 
