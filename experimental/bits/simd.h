@@ -4116,23 +4116,23 @@ template <template <int> class...> struct __abi_list {
     template <class, int> using best_abi = void;
 };
 
-template <template <int> class _A0, template <int> class... Rest>
-struct __abi_list<_A0, Rest...> {
+template <template <int> class _A0, template <int> class... _Rest>
+struct __abi_list<_A0, _Rest...> {
     template <class _Tp, int _N>
     static constexpr bool has_valid_abi = _A0<sizeof(_Tp) * _N>::template is_valid_v<_Tp> ||
-                                          __abi_list<Rest...>::template has_valid_abi<_Tp, _N>;
+                                          __abi_list<_Rest...>::template has_valid_abi<_Tp, _N>;
     template <class _Tp, int _N>
     using first_valid_abi =
         std::conditional_t<_A0<sizeof(_Tp) * _N>::template is_valid_v<_Tp>,
                            typename __decay_abi<_A0<sizeof(_Tp) * _N>>::type,
-                           typename __abi_list<Rest...>::template first_valid_abi<_Tp, _N>>;
+                           typename __abi_list<_Rest...>::template first_valid_abi<_Tp, _N>>;
     using _B = typename __full_abi<_A0>::type;
     template <class _Tp, int _N>
     using best_abi = std::conditional_t<
         _A0<sizeof(_Tp) * _N>::template is_valid_v<_Tp>,
         typename __decay_abi<_A0<sizeof(_Tp) * _N>>::type,
         std::conditional_t<(_B::template is_valid_v<_Tp> && _B::template size<_Tp> <= _N), _B,
-                           typename __abi_list<Rest...>::template best_abi<_Tp, _N>>>;
+                           typename __abi_list<_Rest...>::template best_abi<_Tp, _N>>>;
 };
 
 // }}}1
@@ -4663,30 +4663,30 @@ template <class _Tp, class _Abi, class _Data> _GLIBCXX_SIMD_INTRINSIC bool __all
                    (1 << (_N * sizeof(_Tp))) - 1;
         }
     } else if constexpr (__is_abi<_Abi, simd_abi::__avx512_abi>()) {
-        constexpr auto Mask = _Abi::template implicit_mask<_Tp>;
+        constexpr auto _Mask = _Abi::template implicit_mask<_Tp>;
         if constexpr (std::is_same_v<_Data, __storage<bool, 8>>) {
             if constexpr (__have_avx512dq) {
-                return _kortestc_mask8_u8(__k._M_data, Mask == 0xff ? __k._M_data : __mmask8(~Mask));
+                return _kortestc_mask8_u8(__k._M_data, _Mask == 0xff ? __k._M_data : __mmask8(~_Mask));
             } else {
-                return __k._M_data == Mask;
+                return __k._M_data == _Mask;
             }
         } else if constexpr (std::is_same_v<_Data, __storage<bool, 16>>) {
-            return _kortestc_mask16_u8(__k._M_data, Mask == 0xffff ? __k._M_data : __mmask16(~Mask));
+            return _kortestc_mask16_u8(__k._M_data, _Mask == 0xffff ? __k._M_data : __mmask16(~_Mask));
         } else if constexpr (std::is_same_v<_Data, __storage<bool, 32>>) {
             if constexpr (__have_avx512bw) {
 #ifdef _GLIBCXX_SIMD_WORKAROUND_PR85538
-                return __k._M_data == Mask;
+                return __k._M_data == _Mask;
 #else
-                return _kortestc_mask32_u8(__k._M_data, Mask == 0xffffffffU ? __k._M_data : __mmask32(~Mask));
+                return _kortestc_mask32_u8(__k._M_data, _Mask == 0xffffffffU ? __k._M_data : __mmask32(~_Mask));
 #endif
             }
         } else if constexpr (std::is_same_v<_Data, __storage<bool, 64>>) {
             if constexpr (__have_avx512bw) {
 #ifdef _GLIBCXX_SIMD_WORKAROUND_PR85538
-                return __k._M_data == Mask;
+                return __k._M_data == _Mask;
 #else
                 return _kortestc_mask64_u8(
-                    __k._M_data, Mask == 0xffffffffffffffffULL ? __k._M_data : __mmask64(~Mask));
+                    __k._M_data, _Mask == 0xffffffffffffffffULL ? __k._M_data : __mmask64(~_Mask));
 #endif
             }
         }
@@ -4984,7 +4984,7 @@ constexpr int find_last_set(_Exact_bool) { return 0; }
 
 template <class _Abi> struct __generic_simd_impl;
 // __allow_conversion_ctor2{{{1
-template <class _T0, class _T1, class _A, bool BothIntegral> struct __allow_conversion_ctor2_1;
+template <class _T0, class _T1, class _A, bool _BothIntegral> struct __allow_conversion_ctor2_1;
 
 template <class _T0, class _T1, class _A>
 struct __allow_conversion_ctor2
