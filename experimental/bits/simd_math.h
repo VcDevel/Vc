@@ -465,25 +465,25 @@ rebind_simd_t<int, simd<double, _Abi>> __extract_exponent_bits(const simd<double
 
 // }}}
 // __impl_or_fallback {{{
-template <class ImplFun, class FallbackFun, class... Args>
+template <class ImplFun, class FallbackFun, class... _Args>
 _GLIBCXX_SIMD_INTRINSIC auto __impl_or_fallback_dispatch(int, ImplFun&& __impl_fun,
-                                                         FallbackFun&&, Args&&... __args)
-    -> decltype(__impl_fun(std::forward<Args>(__args)...))
+                                                         FallbackFun&&, _Args&&... __args)
+    -> decltype(__impl_fun(std::forward<_Args>(__args)...))
 {
-    return __impl_fun(std::forward<Args>(__args)...);
+    return __impl_fun(std::forward<_Args>(__args)...);
 }
 
-template <class ImplFun, class FallbackFun, class... Args>
+template <class ImplFun, class FallbackFun, class... _Args>
 inline auto __impl_or_fallback_dispatch(float, ImplFun&&, FallbackFun&& __fallback_fun,
-                                        Args&&... __args)
-    -> decltype(__fallback_fun(std::forward<Args>(__args)...))
+                                        _Args&&... __args)
+    -> decltype(__fallback_fun(std::forward<_Args>(__args)...))
 {
-    return __fallback_fun(std::forward<Args>(__args)...);
+    return __fallback_fun(std::forward<_Args>(__args)...);
 }
 
-template <class... Args> _GLIBCXX_SIMD_INTRINSIC auto __impl_or_fallback(Args&&... __args)
+template <class... _Args> _GLIBCXX_SIMD_INTRINSIC auto __impl_or_fallback(_Args&&... __args)
 {
-    return __impl_or_fallback_dispatch(int(), std::forward<Args>(__args)...);
+    return __impl_or_fallback_dispatch(int(), std::forward<_Args>(__args)...);
 }  //}}}
 
 // trigonometric functions {{{

@@ -179,17 +179,17 @@ inline constexpr bool __is_fixed_size_abi_v = __is_fixed_size_abi<_Tp>::value;
 
 // }}}
 // __is_callable{{{
-template <class _F, class = std::void_t<>, class... Args>
+template <class _F, class = std::void_t<>, class... _Args>
 struct __is_callable : false_type {
 };
 
-template <class _F, class... Args>
-struct __is_callable<_F, std::void_t<decltype(std::declval<_F>()(std::declval<Args>()...))>,
-                   Args...> : true_type {
+template <class _F, class... _Args>
+struct __is_callable<_F, std::void_t<decltype(std::declval<_F>()(std::declval<_Args>()...))>,
+                   _Args...> : true_type {
 };
 
-template <class _F, class... Args>
-inline constexpr bool __is_callable_v = __is_callable<_F, void, Args...>::value;
+template <class _F, class... _Args>
+inline constexpr bool __is_callable_v = __is_callable<_F, void, _Args...>::value;
 
 #define _GLIBCXX_SIMD_TEST_LAMBDA(...)                                                              \
     decltype(                                                                            \
@@ -946,10 +946,10 @@ _GLIBCXX_SIMD_INTRINSIC constexpr _R __to_intrin(__storage<_Tp, _N> __x)
 
 // }}}
 // __make_builtin{{{
-template <class _Tp, class... Args>
-_GLIBCXX_SIMD_INTRINSIC constexpr __vector_type_t<_Tp, sizeof...(Args)> __make_builtin(Args &&... args)
+template <class _Tp, class... _Args>
+_GLIBCXX_SIMD_INTRINSIC constexpr __vector_type_t<_Tp, sizeof...(_Args)> __make_builtin(_Args &&... args)
 {
-    return __vector_type_t<_Tp, sizeof...(Args)>{static_cast<_Tp>(args)...};
+    return __vector_type_t<_Tp, sizeof...(_Args)>{static_cast<_Tp>(args)...};
 }
 
 // }}}
@@ -2089,10 +2089,10 @@ _GLIBCXX_SIMD_INTRINSIC constexpr __storage<_Tp, _N> __storage_bitcast(__storage
 
 // }}}
 // __make_storage{{{
-template <class _Tp, class... Args>
-_GLIBCXX_SIMD_INTRINSIC constexpr __storage<_Tp, sizeof...(Args)> __make_storage(Args &&... args)
+template <class _Tp, class... _Args>
+_GLIBCXX_SIMD_INTRINSIC constexpr __storage<_Tp, sizeof...(_Args)> __make_storage(_Args &&... args)
 {
-    return {typename __storage<_Tp, sizeof...(Args)>::register_type{static_cast<_Tp>(args)...}};
+    return {typename __storage<_Tp, sizeof...(_Args)>::register_type{static_cast<_Tp>(args)...}};
 }
 
 // }}}
